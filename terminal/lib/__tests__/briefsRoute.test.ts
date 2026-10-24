@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { BRIEFS_ROUTE_MESSAGES } from "@/lib/briefs";
+import { BRIEFS_ROUTE_MESSAGES, BRIEFS_EXPLICIT_LANGUAGE_CONTRACT } from "@/lib/briefs";
 
 const H = vi.hoisted(() => ({
   user: null as { id: string } | null,
@@ -157,6 +157,12 @@ vi.mock("@/lib/supabase/server", () => ({
         }
         if (table === "brief_deliveries") {
           let rows = [...H.deliveries];
+          const userId = q._filters.find(([c]) => c === "brief_subscriptions.user_id")?.[1];
+          if (userId) rows = rows.filter((r) => {
+            const raw = r.brief_subscriptions;
+            const sub = (Array.isArray(raw) ? raw[0] : raw) as Record<string, unknown> | undefined;
+            return sub?.user_id === userId;
+          });
           const subId = q._filters.find(([c]) => c === "subscription_id")?.[1];
           if (subId) rows = rows.filter((r) => r.subscription_id === subId);
           rows.sort((a, b) => String(b.slot_asof).localeCompare(String(a.slot_asof)));
@@ -413,6 +419,105 @@ describe("/api/briefs routes", () => {
     expect(body.deliveries[1].state).toBe("ready");
     expect(body.deliveries[0].subscription.targetName).toBe("NVDA cycle");
     expect(body.deliveries[0].body).toEqual({});
+  });
+
+
+  function languageDelivery(partial = true) {
+    return {
+      delivery_id: "language-ready", subscription_id: SUB, slot_asof: "2026-10-17",
+      state: "ready", degraded_reason: null, artifact_asof: "2026-10-17T06:41:59.930490+00:00",
+      created_at: "2026-10-17T07:00:00.000Z",
+      body: {
+        target: { kind: "thesis", id: THESIS, name: "NVDA cycle", version_or_asof: "v3" },
+        market_read: [
+          { section: "tape", sentence_en: "First original.", sentence_zh: "第一条原文。", asof: "2026-10-17", translation_status: "available" },
+          { section: "flow", sentence_en: "Second original.", sentence_zh: "第二条原文。", asof: "2026-10-17" },
+          { section: "watch_items", sentence_en: "Third original.", sentence_zh: partial ? null : "第三条原文。", asof: "2026-10-17", translation_status: partial ? "unavailable" : "available" },
+        ],
+        monitors: [{ name: "Credit", state_en: "Watching", state_zh: "观察中" }],
+        artifact: { name: "Master brief", asof: "2026-10-17T06:41:59.930490+00:00" },
+      },
+      brief_subscriptions: {
+        subscription_id: SUB, user_id: "u-1", target_kind: "thesis", target_id: THESIS,
+        cadence: "weekly_saturday", state: "active",
+      },
+    };
+  }
+
+  it("acknowledges the requested language contract and preserves the whole partial ready body", async () => {
+    H.user = { id: "u-1" };
+    const row = languageDelivery();
+    H.deliveries = [row];
+    const response = await GET_DEL(req(`http://localhost/api/briefs/deliveries?contract=${BRIEFS_EXPLICIT_LANGUAGE_CONTRACT}`));
+    expect(response.status).toBe(200);
+    const payload = await response.json();
+    expect(payload.contract).toBe(BRIEFS_EXPLICIT_LANGUAGE_CONTRACT);
+    expect(payload.deliveries[0].body).toEqual(row.body);
+    expect(payload.deliveries[0]).toMatchObject({
+      state: "ready", degradedReason: null, artifactAsof: row.artifact_asof,
+      slotAsof: row.slot_asof, createdAt: row.created_at,
+    });
+    expect(payload.deliveries[0].pinned).toBeUndefined();
+  });
+
+  it("requires legacy requests to upgrade before a valid nullable body can disappear", async () => {
+    H.user = { id: "u-1" };
+    H.deliveries = [languageDelivery()];
+    const response = await GET_DEL(req("http://localhost/api/briefs/deliveries"));
+    expect(response.status).toBe(409);
+    expect(await response.json()).toEqual({
+      error: "UPGRADE_REQUIRED",
+      message: BRIEFS_ROUTE_MESSAGES.upgrade_required[0],
+      messageZh: BRIEFS_ROUTE_MESSAGES.upgrade_required[1],
+      requiredContract: BRIEFS_EXPLICIT_LANGUAGE_CONTRACT,
+      reloadRequired: true,
+    });
+  });
+
+  it("keeps fully translated rows readable to both request contracts", async () => {
+    H.user = { id: "u-1" };
+    const row = languageDelivery(false);
+    H.deliveries = [row];
+    for (const suffix of ["", `?contract=${BRIEFS_EXPLICIT_LANGUAGE_CONTRACT}`]) {
+      const response = await GET_DEL(req("http://localhost/api/briefs/deliveries" + suffix));
+      expect(response.status).toBe(200);
+      const payload = await response.json();
+      expect(payload.deliveries[0].body).toEqual(row.body);
+      expect(payload.contract).toBe(suffix ? BRIEFS_EXPLICIT_LANGUAGE_CONTRACT : undefined);
+    }
+  });
+
+  it("does not report malformed or forbidden bodies as an upgrade requirement", async () => {
+    H.user = { id: "u-1" };
+    const row = languageDelivery();
+    delete (row.body.market_read[2] as { translation_status?: string }).translation_status;
+    H.deliveries = [row];
+    let response = await GET_DEL(req("http://localhost/api/briefs/deliveries"));
+    expect(response.status).toBe(200);
+    expect((await response.json()).deliveries[0].body).toEqual({});
+    H.deliveries = [{ ...languageDelivery(), body: { ...languageDelivery().body, model: "forbidden" } }];
+    response = await GET_DEL(req("http://localhost/api/briefs/deliveries"));
+    expect(response.status).toBe(200);
+    expect((await response.json()).deliveries[0].body).toEqual({});
+  });
+
+  it("filters another user's nullable delivery before deciding compatibility", async () => {
+    H.user = { id: "u-1" };
+    const row = languageDelivery();
+    row.brief_subscriptions.user_id = "u-other";
+    H.deliveries = [row];
+    const response = await GET_DEL(req("http://localhost/api/briefs/deliveries"));
+    expect(response.status).toBe(200);
+    expect((await response.json()).deliveries).toEqual([]);
+  });
+
+  it("rejects an unsupported contract without weakening signed-out handling", async () => {
+    const url = "http://localhost/api/briefs/deliveries?contract=unknown";
+    expect((await GET_DEL(req(url))).status).toBe(401);
+    H.user = { id: "u-1" };
+    const response = await GET_DEL(req(url));
+    expect(response.status).toBe(400);
+    expect((await response.json()).error).toBe("UNSUPPORTED_CONTRACT");
   });
 
   it("strips an invalid body instead of shipping judgement keys to the client", async () => {
