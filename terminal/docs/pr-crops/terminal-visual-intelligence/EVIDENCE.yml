@@ -1,3 +1,4 @@
+# Current coherent Options + protected HTML-language capture: optionsLanguageCompositionRecapture20261024 below. Prior records remain historical.
 # Current source qualification: documentLanguageRecapture20261024. Older recapture sections below remain historical.
 # Current Company design recapture is sharedShellCompanyDesignRecapture20261022; prior records remain historical.
 # Historical manifest history is retained below. Current scoped capture/source identity is sharedShellRefinementRecapture20261022.
@@ -51,7 +52,7 @@ layoutFiles:
   terminal/lib/sharedShellContracts.ts: "dc7c893852c287b2a18c6b71cbced07bfa0996c1168490c5a8c24e4d3de01266"
   terminal/app/company-intelligence.css: "8b43f2046891837f6572fa2a59b7594547def9602b0454e1f14edba322da2a34"
   terminal/components/DayRange.tsx: "c84724652783da1897ab4eeb98550eaf3dbd7942eefe3ce127b6ada2b16dd672"
-  terminal/components/OptionsHubView.tsx: "158ce4599ff142bd5c1f6a3f575bf59ea1dc817c9cbf402e96c28900ad17c036"
+  terminal/components/OptionsHubView.tsx: "5c54df6f4939a966262323325f7abba196599abbce8a137882b8dc13068c72bb"
   terminal/components/SearchModal.tsx: "5b3a466a06215231f1b458c382aaae268b4f2f9f206d6f985f312f603fa4a5aa"
   terminal/components/StockAnalysis.tsx: "376a907d0d8ea3dc5819e0092f02e19ce56fa1f4b71a3489551adf52fddb35c0"
   terminal/components/workspaces/AnalysisWorkspace.tsx: "411b8a7e498b8af3f9337fdcf3835dd62e6a5854826f414171d8303efd8aa5bb"
@@ -63,8 +64,8 @@ layoutFiles:
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
   terminal/lib/flowActivity.ts: "eb1433e57c7b63a52978aa4e63419e62b3e1a0e0210869f93838a8b7529ce332"
 cropFiles:
-  desktop-context.png: "2cc43c8059881d2ec6242835fb2d6f37fc7938e814b88ca2529975d7a1bd22bf"
-  desktop-context-zh.png: "dfbcd1af1fb83678f75012f2dba1ac6d83a689998bc792f307e24c09c0aef505"
+  desktop-context.png: "8dccf3e0c0281356af20e55ba27bf646767e5c5361f787c36ebb7550049dde95"
+  desktop-context-zh.png: "ad1c4e38bcdd055b62f44335ad991972bc7de78210ea50841fa04bee29f6f3f7"
   mobile-context.png: "4bb912458a311faed7e779e24dffda3907ce5af4eec95dbc1a9f21ae3978bbe7"
   mobile-context-zh.png: "e405b67dd7664ccbe130e97c455a536b24e7b85ab51af9f96ec135e030608622"
   tablet-context.png: "876d593ae5cbee00ff1326e661de1739f2a094bf621636d74473093218388234"
@@ -91,8 +92,8 @@ browserResults:
   visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases
 browserReportPath: browser-report.json
 browserReportHashes:
-  visualReport: "aa38be0914a7be6dbccf26e9a4283521f4979d0941149ca83b10b438638b4580"
-  mobileCrosshairReport: "aa38be0914a7be6dbccf26e9a4283521f4979d0941149ca83b10b438638b4580"
+  visualReport: "12e731ec8f8f7c706c05a3a66d9a13ba87d0b0980a91a52dd164a6f730422704"
+  mobileCrosshairReport: "12e731ec8f8f7c706c05a3a66d9a13ba87d0b0980a91a52dd164a6f730422704"
 drawingDockRecapture:
   sourceHead: 8a3135bc6eaa307f3d581223e70471df8de49d95
   reason: DrawingSidebar.tsx and TerminalShell.tsx changed so the drawing dock's group button follows the tool the shell actually armed
@@ -629,3 +630,24 @@ documentLanguageRecapture20261024:
   actualCrops: Six EN/ZH desktop, tablet, mobile current Chart context captures
   receiptIndex: ../document-language/recapture-index.json
   productionProof: false
+
+optionsNavigationSavedScreensRecapture20261024:
+  sourceHead: "08dd2a971cf2ed2e16918250895d92c8b1399743"
+  capturedAt: "2026-10-24T06:43:52.036409+00:00"
+  optionsHubSha256: "5c54df6f4939a966262323325f7abba196599abbce8a137882b8dc13068c72bb"
+  actualFreshCrops: 6
+  scope: "Fresh existing-harness fixture capture on the combined accepted navigation and saved-screens source; source/crop hashes above bind actual bytes. Unchanged surfaces retain their existing captures. No production claim."
+  command: "TERMINAL_E2E_PORT=3197 PLAYWRIGHT_JSON_OUTPUT_NAME=docs/pr-crops/terminal-visual-intelligence/browser-report.json npm run test:e2e:responsive -- e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --reporter=list,json"
+  actualBrowserResult: "30 passed, 0 failures/skips/flaky/retries; complete named matrix and same-run mobile crosshair"
+
+optionsLanguageCompositionRecapture20261024:
+  sourceHead: "ec5175d2f0f88c463cae54e9e675325c9b25d321"
+  protectedMaster: "00de45950a4b29cf83c68e6e5678ceca8b777f3f"
+  acceptedOptionsHead: "f3087e20b77f1a4bb61909eced7e2c9f2f1e4d50"
+  capturedAt: "2026-10-24T10:23:09.177791+00:00"
+  optionsHubSha256: "5c54df6f4939a966262323325f7abba196599abbce8a137882b8dc13068c72bb"
+  actualFreshCrops: 6
+  scope: "Actual existing-harness recapture after resolving the protected1160 evidence conflicts; Options production source is unchanged, incoming HTML-language source is retained. Both historical records are preserved. Local fixtures only; no production/authenticated acceptance claim."
+  actualBrowserResult: "30 passed; zero failed, skipped, flaky or retries; full named matrix and same-run mobile crosshair"
+  browserReportSha256: "12e731ec8f8f7c706c05a3a66d9a13ba87d0b0980a91a52dd164a6f730422704"
+  command: "TERMINAL_E2E_PORT=3197 PLAYWRIGHT_JSON_OUTPUT_NAME=docs/pr-crops/terminal-visual-intelligence/browser-report.json npm run test:e2e:responsive -- e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --reporter=list,json"
