@@ -80,3 +80,52 @@ test("/options?tab=statistics cold-loads the gated Statistics category", async (
     fullPage: false,
   });
 });
+
+test("Options follows query navigation and Back/Forward while retaining visited desks", async ({ page }, testInfo) => {
+  test.setTimeout(60_000);
+  await page.goto("/options?tab=structure&root=QQQ&keep=original#details");
+  const structureRoot = page.locator('input[list="structure-roots"]');
+  await expect(structureRoot).toBeVisible({ timeout: 15_000 });
+  await structureRoot.fill("IWM");
+  await structureRoot.press("Enter");
+
+  // Exercise Next's native history integration without a reload or remount.
+  await page.evaluate(() => {
+    const url = new URL(window.location.href);
+    url.searchParams.set("tab", "tape");
+    window.history.pushState(null, "", url);
+  });
+  await expect(page.locator("#wtab-cat-flow")).toHaveAttribute("aria-selected", "true");
+  await expect(page.locator("#wtab-tape")).toHaveAttribute("aria-selected", "true");
+  await expect(structureRoot).toBeHidden();
+
+  await page.goBack();
+  await expect(page.locator("#wtab-cat-structure")).toHaveAttribute("aria-selected", "true");
+  await expect(structureRoot).toBeVisible();
+  await expect(structureRoot).toHaveValue("IWM");
+  await page.goForward();
+  await expect(page.locator("#wtab-tape")).toHaveAttribute("aria-selected", "true");
+
+  await page.evaluate(() => {
+    const url = new URL(window.location.href);
+    url.searchParams.set("tab", "prism");
+    window.history.replaceState(null, "", url);
+  });
+  await expect(page.locator("#wtab-cat-exposure")).toHaveAttribute("aria-selected", "true");
+  await expect(page.locator("#wtab-gex")).toHaveAttribute("aria-selected", "true");
+  await expect(page).toHaveURL(/tab=prism&root=QQQ&keep=original#details$/);
+
+  await page.locator("#wtab-cat-structure").click();
+  await expect(structureRoot).toBeVisible();
+  await expect(structureRoot).toHaveValue("IWM");
+  await expect(page).toHaveURL(/tab=structure&root=QQQ&keep=original#details$/);
+
+  await page.evaluate(() => {
+    const url = new URL(window.location.href);
+    url.searchParams.set("tab", "statistics");
+    window.history.pushState(null, "", url);
+  });
+  await expect(page.locator("#wtab-cat-statistics")).toHaveAttribute("aria-selected", "true");
+  await expect(page.locator('[data-options-ia-state="statistics-pending"]')).toBeVisible();
+  await page.screenshot({ path: testInfo.outputPath(`${testInfo.project.name}-options-query-navigation.png`) });
+});

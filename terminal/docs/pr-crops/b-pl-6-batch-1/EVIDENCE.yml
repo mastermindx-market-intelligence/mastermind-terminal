@@ -1,3 +1,6 @@
+# Current scoped qualification: optionsSharedShellCompositionRecapture20261024; prior records keep their original identities.
+# Current coherent Options + protected HTML-language capture: optionsLanguageCompositionRecapture20261024 below. Prior records remain historical.
+
 # Current scoped source: composedDocumentLanguageProductionJoin20261024; parent records retain their original identities.
 # Current source: documentLanguageRecapture20261024; older named records below are historical.
 # PR #1142: freshly recaptured ChartChrome EN/ZH desktop/mobile with identical original crop geometry; source/crop digests updated, historical records intact.
@@ -12,7 +15,7 @@
 layoutFiles:
   terminal/app/workspace-chrome.css: "97e32bc24ed20479ea7b2e024ef6bc3883b9ead764098344f3ad4acea52b4bdd"
   terminal/app/layout.tsx: "9b675d52a647b4a92407958aa0ab7ffcc2632d95d003c89ca2eed2a1f4e35264"
-  terminal/components/OptionsHubView.tsx: "158ce4599ff142bd5c1f6a3f575bf59ea1dc817c9cbf402e96c28900ad17c036"
+  terminal/components/OptionsHubView.tsx: "5c54df6f4939a966262323325f7abba196599abbce8a137882b8dc13068c72bb"
   terminal/components/SearchModal.tsx: "5b3a466a06215231f1b458c382aaae268b4f2f9f206d6f985f312f603fa4a5aa"
   terminal/components/StockAnalysis.tsx: "376a907d0d8ea3dc5819e0092f02e19ce56fa1f4b71a3489551adf52fddb35c0"
   terminal/components/workspaces/AnalysisWorkspace.tsx: "411b8a7e498b8af3f9337fdcf3835dd62e6a5854826f414171d8303efd8aa5bb"
@@ -393,11 +396,55 @@ documentLanguageRecapture20261024:
   historicalSource: 919114d1c27f0f588d9d5a4d52574f19b0137d6d
   receiptIndex: ../document-language/recapture-index.json
 
+optionsNavigationSavedScreensRecapture20261024:
+  sourceHead: "08dd2a971cf2ed2e16918250895d92c8b1399743"
+  capturedAt: "2026-10-24T06:43:52.036409+00:00"
+  optionsHubSha256: "5c54df6f4939a966262323325f7abba196599abbce8a137882b8dc13068c72bb"
+  actualFreshCrops: 4
+  scope: "Fresh existing-harness fixture capture on the combined accepted navigation and saved-screens source; source/crop hashes above bind actual bytes. Unchanged surfaces retain their existing captures. No production claim."
+  command: "CAPTURE_ONLY=OptionsHubView TERMINAL_CROP_PORT=3197 node e2e/tools/capture_pl6_batch1.cjs"
+  actualBrowserResult: "4 OptionsHubView EN/ZH desktop/mobile crops captured successfully"
+
+optionsTapeMobileSpacingRepair20261024:
+  sourceHead: "0217d079276b568a6180bc3f4aa68badd6ba2875"
+  capturedAt: "2026-10-24T07:48:34.030944+00:00"
+  optionsTapeViewLinkCssSha256: "4ff18d21d636476512f95e165d4044c98cb2af9205c8c91246c0c7f4cf01a154"
+  actualFreshCrops: 4
+  command: "CAPTURE_ONLY=OptionsHubView TERMINAL_CROP_PORT=3197 node e2e/tools/capture_pl6_batch1.cjs"
+  scope: "Actual EN/ZH desktop/mobile Hub recapture after the scoped phone row-gap repair; crop hashes above bind these bytes. Existing chart-only matrix is unchanged and reused. Local fixture only, no production/authenticated acceptance claim."
+
+optionsLanguageCompositionRecapture20261024:
+  sourceHead: "ec5175d2f0f88c463cae54e9e675325c9b25d321"
+  protectedMaster: "00de45950a4b29cf83c68e6e5678ceca8b777f3f"
+  acceptedOptionsHead: "f3087e20b77f1a4bb61909eced7e2c9f2f1e4d50"
+  capturedAt: "2026-10-24T10:23:09.171416+00:00"
+  optionsHubSha256: "5c54df6f4939a966262323325f7abba196599abbce8a137882b8dc13068c72bb"
+  actualFreshCrops: 4
+  scope: "Actual existing-harness recapture after resolving the protected1160 evidence conflicts; Options production source is unchanged, incoming HTML-language source is retained. Both historical records are preserved. Local fixtures only; no production/authenticated acceptance claim."
+  actualBrowserResult: "4 OptionsHubView EN/ZH desktop/mobile crops captured successfully"
+  command: "NODE_OPTIONS=--no-experimental-webstorage CAPTURE_ONLY=OptionsHubView TERMINAL_CROP_PORT=3197 node e2e/tools/capture_pl6_batch1.cjs"
+
 composedDocumentLanguageProductionJoin20261024:
   sourceHead: "03e678a8992b484a3bbf0d385e23724e8cf5f95b"
   receipt: composed-language-production-recapture.json
   scope: "ChartChrome-1440.png, ChartChrome-1440-zh.png, ChartChrome-390.png, ChartChrome-390-zh.png"
   qualification: "Actual joined-source ordinary-profile local captures; historical full30 and prior6 reports are retained, not relabeled."
 
-# Raw capture identity and every upstream source/crop lock remain unchanged; omit only unused pending-copy dependency.
+
+optionsSharedShellCompositionRecapture20261024:
+  sourceHead: "658137647374fa1f3e0b8f83f959410e56144b7b"
+  protectedMaster: "da990eb349ceadcd16e8855db29574e36deac782"
+  capturedAt: "2026-10-24T11:19:51.347Z"
+  scope: "Evidence-history union plus exact incoming next.config build-flag pin; accepted OptionsHub source and four existing PNGs are unchanged and retain their prior capture identity. No new Hub capture claimed."
+  report: "../terminal-visual-intelligence/options-shared-shell-composition-report.json"
+  actualBrowserResult: "2 passed; 0 failed, skipped, flaky or retries; default ordinary-profile capture"
+  reportSha256: "811fe01b3d2b3199e93f2149627a0611da12b8a8e1259042db0dcef2eb8f5709"
+  productionProof: false
+
+# Preserve the original captured LEX bytes; only unused pending-preferences copy differs.
 lexProjection: {"schema":"terminal.lex_capture_projection.v1","omittedProperty":"obDonePrefsSyncing","capturedRawSha256":"13f33e3178b105a64f1f5df35974cd99041ef06f05bdece95939dd07a8b9fe7c","projectedSha256":"d6dcc2df7615a1c5782f4d755178fbb76bcf9ee42b93dffe7c7c95317a652de5","sourceGitBlob":"664d68043f472919f7b581f545a334bf66d9782f","sourceRecoveryCommit":"da990eb349ceadcd16e8855db29574e36deac782","captureCommitLocallyAvailable":false}
+
+commercialPreferencesProtectedJoin20261024:
+  consumerHead: "841194510eb228d834ddff1400203905e8643024"
+  protectedMaster: "a8037ef7b662316a88becca11f31f5a87b5b7133"
+  qualification: "Retain protected Options source, actual crop and report bindings and historical capture identities; preserve the consumer AST projection excluding only unused pending-onboarding copy. No new capture or larger matrix is claimed."
