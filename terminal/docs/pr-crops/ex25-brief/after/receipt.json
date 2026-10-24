@@ -1,0 +1,3401 @@
+{
+  "phase": "after",
+  "recordedAt": "2026-10-24T03:04:10.361Z",
+  "sourceHead": "7accf09a2a07e72e161795c7aebe4bfe07077ad9",
+  "sourceHashes": {
+    "components/fin/CompanyIntelligenceBriefLayout.tsx": "7fdafec5c5c7b45996cf098cda22399395ad6c4fbfb442b2d2a867b130244796",
+    "components/fin/CompanyIntelligenceBriefLayout.module.css": "8256d9ea4cb9f2a64cad5d6d41ccf981d99b7a27a4837481000ebbfb36d9ffe3",
+    "app/globals.css": "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517",
+    "app/fin.css": "0ef210f0d6181849a582dd1e4a5aa80aeeabf0f769fe5c41035aeabc80d37fd1",
+    "app/company-intelligence.css": "8b43f2046891837f6572fa2a59b7594547def9602b0454e1f14edba322da2a34",
+    "components/chrome/shared-shell/shared-shell.css": "aa6555ac18306f31fb317d8941bd1dd530ab7c61c18e67d2a73a439329950339"
+  },
+  "fontQualification": "Repository CSS with local system fallback; not production font proof",
+  "scope": "Isolated actual Brief component and CSS with synthetic props; not full-shell/live-data/auth evidence",
+  "records": [
+    {
+      "profile": "classic-dark",
+      "width": 1440,
+      "height": 900,
+      "lang": "en",
+      "state": "mixed",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "What changed",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "↗What changedSource-backed changes in the selected eventNo comparison is available for this event."
+          },
+          {
+            "title": "Why it matters",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "iWhy it mattersBusiness implications · context onlyBusiness implications are not available for this event."
+          },
+          {
+            "title": "Watchpoints",
+            "empty": false,
+            "flag": "false",
+            "height": 180,
+            "minHeight": "180px",
+            "text": "!WatchpointsGuidance and watchpoints from this event01A fixture watchpoint to check in the next report›"
+          },
+          {
+            "title": "What to watch next",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "auto",
+            "text": "What to watch nextGuidance and watchpoints from this eventcontext onlyNo future watchpoint is asserted for this generation."
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "classic-dark",
+      "width": 1440,
+      "height": 900,
+      "lang": "en",
+      "state": "populated",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "What changed",
+            "empty": false,
+            "flag": "false",
+            "height": 180,
+            "minHeight": "180px",
+            "text": "↗What changedSource-backed changes in the selected event01Illustrative year-over-year change›"
+          },
+          {
+            "title": "Why it matters",
+            "empty": false,
+            "flag": "false",
+            "height": 180,
+            "minHeight": "180px",
+            "text": "iWhy it mattersBusiness implications · context only01Business context for component testing only›"
+          },
+          {
+            "title": "Watchpoints",
+            "empty": false,
+            "flag": "false",
+            "height": 180,
+            "minHeight": "180px",
+            "text": "!WatchpointsGuidance and watchpoints from this event01A fixture watchpoint to check in the next report›"
+          },
+          {
+            "title": "What to watch next",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "auto",
+            "text": "What to watch nextGuidance and watchpoints from this eventcontext onlyWatchpointA fixture watchpoint to check in the next report›"
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "classic-dark",
+      "width": 1440,
+      "height": 900,
+      "lang": "en",
+      "state": "empty",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "What changed",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "↗What changedSource-backed changes in the selected eventNo comparison is available for this event."
+          },
+          {
+            "title": "Why it matters",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "iWhy it mattersBusiness implications · context onlyBusiness implications are not available for this event."
+          },
+          {
+            "title": "Watchpoints",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "!WatchpointsGuidance and watchpoints from this eventNo source-backed watchpoints are available for this event."
+          },
+          {
+            "title": "What to watch next",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "auto",
+            "text": "What to watch nextGuidance and watchpoints from this eventcontext onlyNo future watchpoint is asserted for this generation."
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "classic-dark",
+      "width": 1440,
+      "height": 900,
+      "lang": "en",
+      "state": "long",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "What changed",
+            "empty": false,
+            "flag": "false",
+            "height": 211.25,
+            "minHeight": "180px",
+            "text": "↗What changedSource-backed changes in the selected event01Illustrative year-over-year change›"
+          },
+          {
+            "title": "Why it matters",
+            "empty": false,
+            "flag": "false",
+            "height": 211.25,
+            "minHeight": "180px",
+            "text": "iWhy it mattersBusiness implications · context only01Business context for component testing only›"
+          },
+          {
+            "title": "Watchpoints",
+            "empty": false,
+            "flag": "false",
+            "height": 211.25,
+            "minHeight": "180px",
+            "text": "!WatchpointsGuidance and watchpoints from this event01Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. ›"
+          },
+          {
+            "title": "What to watch next",
+            "empty": false,
+            "flag": "false",
+            "height": 136.875,
+            "minHeight": "auto",
+            "text": "What to watch nextGuidance and watchpoints from this eventcontext onlyWatchpointLong evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. ›"
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "classic-dark",
+      "width": 1440,
+      "height": 900,
+      "lang": "zh",
+      "state": "mixed",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "发生了什么变化",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "↗发生了什么变化所选事件中有来源支持的变化本事件暂无可用的对比信息。"
+          },
+          {
+            "title": "为何重要",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "i为何重要业务含义 · 仅供背景参考本事件尚未提供业务含义分析。"
+          },
+          {
+            "title": "关注事项",
+            "empty": false,
+            "flag": "false",
+            "height": 180,
+            "minHeight": "180px",
+            "text": "!关注事项本次事件的指引与关注事项01需要在下一份报告核对的测试事项›"
+          },
+          {
+            "title": "接下来关注什么",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "auto",
+            "text": "接下来关注什么本次事件的指引与关注事项仅供背景参考本版本未断言后续关注点。"
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "classic-dark",
+      "width": 1440,
+      "height": 900,
+      "lang": "zh",
+      "state": "populated",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "发生了什么变化",
+            "empty": false,
+            "flag": "false",
+            "height": 180,
+            "minHeight": "180px",
+            "text": "↗发生了什么变化所选事件中有来源支持的变化01测试中的同比变化›"
+          },
+          {
+            "title": "为何重要",
+            "empty": false,
+            "flag": "false",
+            "height": 180,
+            "minHeight": "180px",
+            "text": "i为何重要业务含义 · 仅供背景参考01仅用于组件测试的业务背景›"
+          },
+          {
+            "title": "关注事项",
+            "empty": false,
+            "flag": "false",
+            "height": 180,
+            "minHeight": "180px",
+            "text": "!关注事项本次事件的指引与关注事项01需要在下一份报告核对的测试事项›"
+          },
+          {
+            "title": "接下来关注什么",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "auto",
+            "text": "接下来关注什么本次事件的指引与关注事项仅供背景参考关注事项需要在下一份报告核对的测试事项›"
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "classic-dark",
+      "width": 1440,
+      "height": 900,
+      "lang": "zh",
+      "state": "empty",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "发生了什么变化",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "↗发生了什么变化所选事件中有来源支持的变化本事件暂无可用的对比信息。"
+          },
+          {
+            "title": "为何重要",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "i为何重要业务含义 · 仅供背景参考本事件尚未提供业务含义分析。"
+          },
+          {
+            "title": "关注事项",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "!关注事项本次事件的指引与关注事项本次事件暂无有来源支持的关注事项。"
+          },
+          {
+            "title": "接下来关注什么",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "auto",
+            "text": "接下来关注什么本次事件的指引与关注事项仅供背景参考本版本未断言后续关注点。"
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "classic-dark",
+      "width": 1440,
+      "height": 900,
+      "lang": "zh",
+      "state": "long",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "发生了什么变化",
+            "empty": false,
+            "flag": "false",
+            "height": 211.25,
+            "minHeight": "180px",
+            "text": "↗发生了什么变化所选事件中有来源支持的变化01测试中的同比变化›"
+          },
+          {
+            "title": "为何重要",
+            "empty": false,
+            "flag": "false",
+            "height": 211.25,
+            "minHeight": "180px",
+            "text": "i为何重要业务含义 · 仅供背景参考01仅用于组件测试的业务背景›"
+          },
+          {
+            "title": "关注事项",
+            "empty": false,
+            "flag": "false",
+            "height": 211.25,
+            "minHeight": "180px",
+            "text": "!关注事项本次事件的指引与关注事项01长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。›"
+          },
+          {
+            "title": "接下来关注什么",
+            "empty": false,
+            "flag": "false",
+            "height": 136.875,
+            "minHeight": "auto",
+            "text": "接下来关注什么本次事件的指引与关注事项仅供背景参考关注事项长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。›"
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "classic-dark",
+      "width": 820,
+      "height": 1180,
+      "lang": "en",
+      "state": "mixed",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "What changed",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "↗What changedSource-backed changes in the selected eventNo comparison is available for this event."
+          },
+          {
+            "title": "Why it matters",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "iWhy it mattersBusiness implications · context onlyBusiness implications are not available for this event."
+          },
+          {
+            "title": "Watchpoints",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "!WatchpointsGuidance and watchpoints from this event01A fixture watchpoint to check in the next report›"
+          },
+          {
+            "title": "What to watch next",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "auto",
+            "text": "What to watch nextGuidance and watchpoints from this eventcontext onlyNo future watchpoint is asserted for this generation."
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "classic-dark",
+      "width": 820,
+      "height": 1180,
+      "lang": "en",
+      "state": "populated",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "What changed",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "↗What changedSource-backed changes in the selected event01Illustrative year-over-year change›"
+          },
+          {
+            "title": "Why it matters",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "iWhy it mattersBusiness implications · context only01Business context for component testing only›"
+          },
+          {
+            "title": "Watchpoints",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "!WatchpointsGuidance and watchpoints from this event01A fixture watchpoint to check in the next report›"
+          },
+          {
+            "title": "What to watch next",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "auto",
+            "text": "What to watch nextGuidance and watchpoints from this eventcontext onlyWatchpointA fixture watchpoint to check in the next report›"
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "classic-dark",
+      "width": 820,
+      "height": 1180,
+      "lang": "en",
+      "state": "empty",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "What changed",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "↗What changedSource-backed changes in the selected eventNo comparison is available for this event."
+          },
+          {
+            "title": "Why it matters",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "iWhy it mattersBusiness implications · context onlyBusiness implications are not available for this event."
+          },
+          {
+            "title": "Watchpoints",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "!WatchpointsGuidance and watchpoints from this eventNo source-backed watchpoints are available for this event."
+          },
+          {
+            "title": "What to watch next",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "auto",
+            "text": "What to watch nextGuidance and watchpoints from this eventcontext onlyNo future watchpoint is asserted for this generation."
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "classic-dark",
+      "width": 820,
+      "height": 1180,
+      "lang": "en",
+      "state": "long",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "What changed",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "↗What changedSource-backed changes in the selected event01Illustrative year-over-year change›"
+          },
+          {
+            "title": "Why it matters",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "iWhy it mattersBusiness implications · context only01Business context for component testing only›"
+          },
+          {
+            "title": "Watchpoints",
+            "empty": false,
+            "flag": "false",
+            "height": 155.46875,
+            "minHeight": "0px",
+            "text": "!WatchpointsGuidance and watchpoints from this event01Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. ›"
+          },
+          {
+            "title": "What to watch next",
+            "empty": false,
+            "flag": "false",
+            "height": 174.0625,
+            "minHeight": "auto",
+            "text": "What to watch nextGuidance and watchpoints from this eventcontext onlyWatchpointLong evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. ›"
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "classic-dark",
+      "width": 820,
+      "height": 1180,
+      "lang": "zh",
+      "state": "mixed",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "发生了什么变化",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "↗发生了什么变化所选事件中有来源支持的变化本事件暂无可用的对比信息。"
+          },
+          {
+            "title": "为何重要",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "i为何重要业务含义 · 仅供背景参考本事件尚未提供业务含义分析。"
+          },
+          {
+            "title": "关注事项",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "!关注事项本次事件的指引与关注事项01需要在下一份报告核对的测试事项›"
+          },
+          {
+            "title": "接下来关注什么",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "auto",
+            "text": "接下来关注什么本次事件的指引与关注事项仅供背景参考本版本未断言后续关注点。"
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "classic-dark",
+      "width": 820,
+      "height": 1180,
+      "lang": "zh",
+      "state": "populated",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "发生了什么变化",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "↗发生了什么变化所选事件中有来源支持的变化01测试中的同比变化›"
+          },
+          {
+            "title": "为何重要",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "i为何重要业务含义 · 仅供背景参考01仅用于组件测试的业务背景›"
+          },
+          {
+            "title": "关注事项",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "!关注事项本次事件的指引与关注事项01需要在下一份报告核对的测试事项›"
+          },
+          {
+            "title": "接下来关注什么",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "auto",
+            "text": "接下来关注什么本次事件的指引与关注事项仅供背景参考关注事项需要在下一份报告核对的测试事项›"
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "classic-dark",
+      "width": 820,
+      "height": 1180,
+      "lang": "zh",
+      "state": "empty",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "发生了什么变化",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "↗发生了什么变化所选事件中有来源支持的变化本事件暂无可用的对比信息。"
+          },
+          {
+            "title": "为何重要",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "i为何重要业务含义 · 仅供背景参考本事件尚未提供业务含义分析。"
+          },
+          {
+            "title": "关注事项",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "!关注事项本次事件的指引与关注事项本次事件暂无有来源支持的关注事项。"
+          },
+          {
+            "title": "接下来关注什么",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "auto",
+            "text": "接下来关注什么本次事件的指引与关注事项仅供背景参考本版本未断言后续关注点。"
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "classic-dark",
+      "width": 820,
+      "height": 1180,
+      "lang": "zh",
+      "state": "long",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "发生了什么变化",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "↗发生了什么变化所选事件中有来源支持的变化01测试中的同比变化›"
+          },
+          {
+            "title": "为何重要",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "i为何重要业务含义 · 仅供背景参考01仅用于组件测试的业务背景›"
+          },
+          {
+            "title": "关注事项",
+            "empty": false,
+            "flag": "false",
+            "height": 155.46875,
+            "minHeight": "0px",
+            "text": "!关注事项本次事件的指引与关注事项01长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。›"
+          },
+          {
+            "title": "接下来关注什么",
+            "empty": false,
+            "flag": "false",
+            "height": 155.46875,
+            "minHeight": "auto",
+            "text": "接下来关注什么本次事件的指引与关注事项仅供背景参考关注事项长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。›"
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "classic-dark",
+      "width": 390,
+      "height": 844,
+      "lang": "en",
+      "state": "mixed",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "What changed",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "↗What changedSource-backed changes in the selected eventNo comparison is available for this event."
+          },
+          {
+            "title": "Why it matters",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "iWhy it mattersBusiness implications · context onlyBusiness implications are not available for this event."
+          },
+          {
+            "title": "Watchpoints",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "!WatchpointsGuidance and watchpoints from this event01A fixture watchpoint to check in the next report›"
+          },
+          {
+            "title": "What to watch next",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "auto",
+            "text": "What to watch nextGuidance and watchpoints from this eventcontext onlyNo future watchpoint is asserted for this generation."
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "classic-dark",
+      "width": 390,
+      "height": 844,
+      "lang": "en",
+      "state": "populated",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "What changed",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "↗What changedSource-backed changes in the selected event01Illustrative year-over-year change›"
+          },
+          {
+            "title": "Why it matters",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "iWhy it mattersBusiness implications · context only01Business context for component testing only›"
+          },
+          {
+            "title": "Watchpoints",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "!WatchpointsGuidance and watchpoints from this event01A fixture watchpoint to check in the next report›"
+          },
+          {
+            "title": "What to watch next",
+            "empty": false,
+            "flag": "false",
+            "height": 136.875,
+            "minHeight": "auto",
+            "text": "What to watch nextGuidance and watchpoints from this eventcontext onlyWatchpointA fixture watchpoint to check in the next report›"
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "classic-dark",
+      "width": 390,
+      "height": 844,
+      "lang": "en",
+      "state": "empty",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "What changed",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "↗What changedSource-backed changes in the selected eventNo comparison is available for this event."
+          },
+          {
+            "title": "Why it matters",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "iWhy it mattersBusiness implications · context onlyBusiness implications are not available for this event."
+          },
+          {
+            "title": "Watchpoints",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "!WatchpointsGuidance and watchpoints from this eventNo source-backed watchpoints are available for this event."
+          },
+          {
+            "title": "What to watch next",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "auto",
+            "text": "What to watch nextGuidance and watchpoints from this eventcontext onlyNo future watchpoint is asserted for this generation."
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "classic-dark",
+      "width": 390,
+      "height": 844,
+      "lang": "en",
+      "state": "long",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "What changed",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "↗What changedSource-backed changes in the selected event01Illustrative year-over-year change›"
+          },
+          {
+            "title": "Why it matters",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "iWhy it mattersBusiness implications · context only01Business context for component testing only›"
+          },
+          {
+            "title": "Watchpoints",
+            "empty": false,
+            "flag": "false",
+            "height": 229.84375,
+            "minHeight": "0px",
+            "text": "!WatchpointsGuidance and watchpoints from this event01Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. ›"
+          },
+          {
+            "title": "What to watch next",
+            "empty": false,
+            "flag": "false",
+            "height": 267.03125,
+            "minHeight": "auto",
+            "text": "What to watch nextGuidance and watchpoints from this eventcontext onlyWatchpointLong evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. ›"
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "classic-dark",
+      "width": 390,
+      "height": 844,
+      "lang": "zh",
+      "state": "mixed",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "发生了什么变化",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "↗发生了什么变化所选事件中有来源支持的变化本事件暂无可用的对比信息。"
+          },
+          {
+            "title": "为何重要",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "i为何重要业务含义 · 仅供背景参考本事件尚未提供业务含义分析。"
+          },
+          {
+            "title": "关注事项",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "!关注事项本次事件的指引与关注事项01需要在下一份报告核对的测试事项›"
+          },
+          {
+            "title": "接下来关注什么",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "auto",
+            "text": "接下来关注什么本次事件的指引与关注事项仅供背景参考本版本未断言后续关注点。"
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "classic-dark",
+      "width": 390,
+      "height": 844,
+      "lang": "zh",
+      "state": "populated",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "发生了什么变化",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "↗发生了什么变化所选事件中有来源支持的变化01测试中的同比变化›"
+          },
+          {
+            "title": "为何重要",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "i为何重要业务含义 · 仅供背景参考01仅用于组件测试的业务背景›"
+          },
+          {
+            "title": "关注事项",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "!关注事项本次事件的指引与关注事项01需要在下一份报告核对的测试事项›"
+          },
+          {
+            "title": "接下来关注什么",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "auto",
+            "text": "接下来关注什么本次事件的指引与关注事项仅供背景参考关注事项需要在下一份报告核对的测试事项›"
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "classic-dark",
+      "width": 390,
+      "height": 844,
+      "lang": "zh",
+      "state": "empty",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "发生了什么变化",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "↗发生了什么变化所选事件中有来源支持的变化本事件暂无可用的对比信息。"
+          },
+          {
+            "title": "为何重要",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "i为何重要业务含义 · 仅供背景参考本事件尚未提供业务含义分析。"
+          },
+          {
+            "title": "关注事项",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "!关注事项本次事件的指引与关注事项本次事件暂无有来源支持的关注事项。"
+          },
+          {
+            "title": "接下来关注什么",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "auto",
+            "text": "接下来关注什么本次事件的指引与关注事项仅供背景参考本版本未断言后续关注点。"
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "classic-dark",
+      "width": 390,
+      "height": 844,
+      "lang": "zh",
+      "state": "long",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "发生了什么变化",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "↗发生了什么变化所选事件中有来源支持的变化01测试中的同比变化›"
+          },
+          {
+            "title": "为何重要",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "i为何重要业务含义 · 仅供背景参考01仅用于组件测试的业务背景›"
+          },
+          {
+            "title": "关注事项",
+            "empty": false,
+            "flag": "false",
+            "height": 211.25,
+            "minHeight": "0px",
+            "text": "!关注事项本次事件的指引与关注事项01长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。›"
+          },
+          {
+            "title": "接下来关注什么",
+            "empty": false,
+            "flag": "false",
+            "height": 248.4375,
+            "minHeight": "auto",
+            "text": "接下来关注什么本次事件的指引与关注事项仅供背景参考关注事项长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。›"
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "shared-light",
+      "width": 1440,
+      "height": 900,
+      "lang": "en",
+      "state": "mixed",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "What changed",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "↗What changedSource-backed changes in the selected eventNo comparison is available for this event."
+          },
+          {
+            "title": "Why it matters",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "iWhy it mattersBusiness implications · context onlyBusiness implications are not available for this event."
+          },
+          {
+            "title": "Watchpoints",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "!WatchpointsGuidance and watchpoints from this event01A fixture watchpoint to check in the next report›"
+          },
+          {
+            "title": "What to watch next",
+            "empty": true,
+            "flag": "true",
+            "height": 102.890625,
+            "minHeight": "auto",
+            "text": "What to watch nextGuidance and watchpoints from this eventcontext onlyNo future watchpoint is asserted for this generation."
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "shared-light",
+      "width": 1440,
+      "height": 900,
+      "lang": "en",
+      "state": "populated",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "What changed",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "↗What changedSource-backed changes in the selected event01Illustrative year-over-year change›"
+          },
+          {
+            "title": "Why it matters",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "iWhy it mattersBusiness implications · context only01Business context for component testing only›"
+          },
+          {
+            "title": "Watchpoints",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "!WatchpointsGuidance and watchpoints from this event01A fixture watchpoint to check in the next report›"
+          },
+          {
+            "title": "What to watch next",
+            "empty": false,
+            "flag": "false",
+            "height": 137.09375,
+            "minHeight": "auto",
+            "text": "What to watch nextGuidance and watchpoints from this eventcontext onlyWatchpointA fixture watchpoint to check in the next report›"
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "shared-light",
+      "width": 1440,
+      "height": 900,
+      "lang": "en",
+      "state": "empty",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "What changed",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "↗What changedSource-backed changes in the selected eventNo comparison is available for this event."
+          },
+          {
+            "title": "Why it matters",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "iWhy it mattersBusiness implications · context onlyBusiness implications are not available for this event."
+          },
+          {
+            "title": "Watchpoints",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "!WatchpointsGuidance and watchpoints from this eventNo source-backed watchpoints are available for this event."
+          },
+          {
+            "title": "What to watch next",
+            "empty": true,
+            "flag": "true",
+            "height": 102.890625,
+            "minHeight": "auto",
+            "text": "What to watch nextGuidance and watchpoints from this eventcontext onlyNo future watchpoint is asserted for this generation."
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "shared-light",
+      "width": 1440,
+      "height": 900,
+      "lang": "en",
+      "state": "long",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "What changed",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "↗What changedSource-backed changes in the selected event01Illustrative year-over-year change›"
+          },
+          {
+            "title": "Why it matters",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "iWhy it mattersBusiness implications · context only01Business context for component testing only›"
+          },
+          {
+            "title": "Watchpoints",
+            "empty": false,
+            "flag": "false",
+            "height": 155.46875,
+            "minHeight": "0px",
+            "text": "!WatchpointsGuidance and watchpoints from this event01Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. ›"
+          },
+          {
+            "title": "What to watch next",
+            "empty": false,
+            "flag": "false",
+            "height": 299.09375,
+            "minHeight": "auto",
+            "text": "What to watch nextGuidance and watchpoints from this eventcontext onlyWatchpointLong evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. ›"
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "shared-light",
+      "width": 1440,
+      "height": 900,
+      "lang": "zh",
+      "state": "mixed",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "发生了什么变化",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "↗发生了什么变化所选事件中有来源支持的变化本事件暂无可用的对比信息。"
+          },
+          {
+            "title": "为何重要",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "i为何重要业务含义 · 仅供背景参考本事件尚未提供业务含义分析。"
+          },
+          {
+            "title": "关注事项",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "!关注事项本次事件的指引与关注事项01需要在下一份报告核对的测试事项›"
+          },
+          {
+            "title": "接下来关注什么",
+            "empty": true,
+            "flag": "true",
+            "height": 102.890625,
+            "minHeight": "auto",
+            "text": "接下来关注什么本次事件的指引与关注事项仅供背景参考本版本未断言后续关注点。"
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "shared-light",
+      "width": 1440,
+      "height": 900,
+      "lang": "zh",
+      "state": "populated",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "发生了什么变化",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "↗发生了什么变化所选事件中有来源支持的变化01测试中的同比变化›"
+          },
+          {
+            "title": "为何重要",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "i为何重要业务含义 · 仅供背景参考01仅用于组件测试的业务背景›"
+          },
+          {
+            "title": "关注事项",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "!关注事项本次事件的指引与关注事项01需要在下一份报告核对的测试事项›"
+          },
+          {
+            "title": "接下来关注什么",
+            "empty": false,
+            "flag": "false",
+            "height": 121.09375,
+            "minHeight": "auto",
+            "text": "接下来关注什么本次事件的指引与关注事项仅供背景参考关注事项需要在下一份报告核对的测试事项›"
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "shared-light",
+      "width": 1440,
+      "height": 900,
+      "lang": "zh",
+      "state": "empty",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "发生了什么变化",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "↗发生了什么变化所选事件中有来源支持的变化本事件暂无可用的对比信息。"
+          },
+          {
+            "title": "为何重要",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "i为何重要业务含义 · 仅供背景参考本事件尚未提供业务含义分析。"
+          },
+          {
+            "title": "关注事项",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "!关注事项本次事件的指引与关注事项本次事件暂无有来源支持的关注事项。"
+          },
+          {
+            "title": "接下来关注什么",
+            "empty": true,
+            "flag": "true",
+            "height": 102.890625,
+            "minHeight": "auto",
+            "text": "接下来关注什么本次事件的指引与关注事项仅供背景参考本版本未断言后续关注点。"
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "shared-light",
+      "width": 1440,
+      "height": 900,
+      "lang": "zh",
+      "state": "long",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "发生了什么变化",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "↗发生了什么变化所选事件中有来源支持的变化01测试中的同比变化›"
+          },
+          {
+            "title": "为何重要",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "i为何重要业务含义 · 仅供背景参考01仅用于组件测试的业务背景›"
+          },
+          {
+            "title": "关注事项",
+            "empty": false,
+            "flag": "false",
+            "height": 155.46875,
+            "minHeight": "0px",
+            "text": "!关注事项本次事件的指引与关注事项01长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。›"
+          },
+          {
+            "title": "接下来关注什么",
+            "empty": false,
+            "flag": "false",
+            "height": 245.09375,
+            "minHeight": "auto",
+            "text": "接下来关注什么本次事件的指引与关注事项仅供背景参考关注事项长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。›"
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "shared-light",
+      "width": 820,
+      "height": 1180,
+      "lang": "en",
+      "state": "mixed",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "What changed",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "↗What changedSource-backed changes in the selected eventNo comparison is available for this event."
+          },
+          {
+            "title": "Why it matters",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "iWhy it mattersBusiness implications · context onlyBusiness implications are not available for this event."
+          },
+          {
+            "title": "Watchpoints",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "!WatchpointsGuidance and watchpoints from this event01A fixture watchpoint to check in the next report›"
+          },
+          {
+            "title": "What to watch next",
+            "empty": true,
+            "flag": "true",
+            "height": 102.890625,
+            "minHeight": "auto",
+            "text": "What to watch nextGuidance and watchpoints from this eventcontext onlyNo future watchpoint is asserted for this generation."
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "shared-light",
+      "width": 820,
+      "height": 1180,
+      "lang": "en",
+      "state": "populated",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "What changed",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "↗What changedSource-backed changes in the selected event01Illustrative year-over-year change›"
+          },
+          {
+            "title": "Why it matters",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "iWhy it mattersBusiness implications · context only01Business context for component testing only›"
+          },
+          {
+            "title": "Watchpoints",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "!WatchpointsGuidance and watchpoints from this event01A fixture watchpoint to check in the next report›"
+          },
+          {
+            "title": "What to watch next",
+            "empty": false,
+            "flag": "false",
+            "height": 121.09375,
+            "minHeight": "auto",
+            "text": "What to watch nextGuidance and watchpoints from this eventcontext onlyWatchpointA fixture watchpoint to check in the next report›"
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "shared-light",
+      "width": 820,
+      "height": 1180,
+      "lang": "en",
+      "state": "empty",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "What changed",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "↗What changedSource-backed changes in the selected eventNo comparison is available for this event."
+          },
+          {
+            "title": "Why it matters",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "iWhy it mattersBusiness implications · context onlyBusiness implications are not available for this event."
+          },
+          {
+            "title": "Watchpoints",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "!WatchpointsGuidance and watchpoints from this eventNo source-backed watchpoints are available for this event."
+          },
+          {
+            "title": "What to watch next",
+            "empty": true,
+            "flag": "true",
+            "height": 102.890625,
+            "minHeight": "auto",
+            "text": "What to watch nextGuidance and watchpoints from this eventcontext onlyNo future watchpoint is asserted for this generation."
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "shared-light",
+      "width": 820,
+      "height": 1180,
+      "lang": "en",
+      "state": "long",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "What changed",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "↗What changedSource-backed changes in the selected event01Illustrative year-over-year change›"
+          },
+          {
+            "title": "Why it matters",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "iWhy it mattersBusiness implications · context only01Business context for component testing only›"
+          },
+          {
+            "title": "Watchpoints",
+            "empty": false,
+            "flag": "false",
+            "height": 155.46875,
+            "minHeight": "0px",
+            "text": "!WatchpointsGuidance and watchpoints from this event01Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. ›"
+          },
+          {
+            "title": "What to watch next",
+            "empty": false,
+            "flag": "false",
+            "height": 173.09375,
+            "minHeight": "auto",
+            "text": "What to watch nextGuidance and watchpoints from this eventcontext onlyWatchpointLong evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. ›"
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "shared-light",
+      "width": 820,
+      "height": 1180,
+      "lang": "zh",
+      "state": "mixed",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "发生了什么变化",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "↗发生了什么变化所选事件中有来源支持的变化本事件暂无可用的对比信息。"
+          },
+          {
+            "title": "为何重要",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "i为何重要业务含义 · 仅供背景参考本事件尚未提供业务含义分析。"
+          },
+          {
+            "title": "关注事项",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "!关注事项本次事件的指引与关注事项01需要在下一份报告核对的测试事项›"
+          },
+          {
+            "title": "接下来关注什么",
+            "empty": true,
+            "flag": "true",
+            "height": 102.890625,
+            "minHeight": "auto",
+            "text": "接下来关注什么本次事件的指引与关注事项仅供背景参考本版本未断言后续关注点。"
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "shared-light",
+      "width": 820,
+      "height": 1180,
+      "lang": "zh",
+      "state": "populated",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "发生了什么变化",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "↗发生了什么变化所选事件中有来源支持的变化01测试中的同比变化›"
+          },
+          {
+            "title": "为何重要",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "i为何重要业务含义 · 仅供背景参考01仅用于组件测试的业务背景›"
+          },
+          {
+            "title": "关注事项",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "!关注事项本次事件的指引与关注事项01需要在下一份报告核对的测试事项›"
+          },
+          {
+            "title": "接下来关注什么",
+            "empty": false,
+            "flag": "false",
+            "height": 121.09375,
+            "minHeight": "auto",
+            "text": "接下来关注什么本次事件的指引与关注事项仅供背景参考关注事项需要在下一份报告核对的测试事项›"
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "shared-light",
+      "width": 820,
+      "height": 1180,
+      "lang": "zh",
+      "state": "empty",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "发生了什么变化",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "↗发生了什么变化所选事件中有来源支持的变化本事件暂无可用的对比信息。"
+          },
+          {
+            "title": "为何重要",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "i为何重要业务含义 · 仅供背景参考本事件尚未提供业务含义分析。"
+          },
+          {
+            "title": "关注事项",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "!关注事项本次事件的指引与关注事项本次事件暂无有来源支持的关注事项。"
+          },
+          {
+            "title": "接下来关注什么",
+            "empty": true,
+            "flag": "true",
+            "height": 102.890625,
+            "minHeight": "auto",
+            "text": "接下来关注什么本次事件的指引与关注事项仅供背景参考本版本未断言后续关注点。"
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "shared-light",
+      "width": 820,
+      "height": 1180,
+      "lang": "zh",
+      "state": "long",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "发生了什么变化",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "↗发生了什么变化所选事件中有来源支持的变化01测试中的同比变化›"
+          },
+          {
+            "title": "为何重要",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "i为何重要业务含义 · 仅供背景参考01仅用于组件测试的业务背景›"
+          },
+          {
+            "title": "关注事项",
+            "empty": false,
+            "flag": "false",
+            "height": 155.46875,
+            "minHeight": "0px",
+            "text": "!关注事项本次事件的指引与关注事项01长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。›"
+          },
+          {
+            "title": "接下来关注什么",
+            "empty": false,
+            "flag": "false",
+            "height": 155.09375,
+            "minHeight": "auto",
+            "text": "接下来关注什么本次事件的指引与关注事项仅供背景参考关注事项长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。›"
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "shared-light",
+      "width": 390,
+      "height": 844,
+      "lang": "en",
+      "state": "mixed",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "What changed",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "↗What changedSource-backed changes in the selected eventNo comparison is available for this event."
+          },
+          {
+            "title": "Why it matters",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "iWhy it mattersBusiness implications · context onlyBusiness implications are not available for this event."
+          },
+          {
+            "title": "Watchpoints",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "!WatchpointsGuidance and watchpoints from this event01A fixture watchpoint to check in the next report›"
+          },
+          {
+            "title": "What to watch next",
+            "empty": true,
+            "flag": "true",
+            "height": 102.890625,
+            "minHeight": "auto",
+            "text": "What to watch nextGuidance and watchpoints from this eventcontext onlyNo future watchpoint is asserted for this generation."
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "shared-light",
+      "width": 390,
+      "height": 844,
+      "lang": "en",
+      "state": "populated",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "What changed",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "↗What changedSource-backed changes in the selected event01Illustrative year-over-year change›"
+          },
+          {
+            "title": "Why it matters",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "iWhy it mattersBusiness implications · context only01Business context for component testing only›"
+          },
+          {
+            "title": "Watchpoints",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "!WatchpointsGuidance and watchpoints from this event01A fixture watchpoint to check in the next report›"
+          },
+          {
+            "title": "What to watch next",
+            "empty": false,
+            "flag": "false",
+            "height": 147.09375,
+            "minHeight": "auto",
+            "text": "What to watch nextGuidance and watchpoints from this eventcontext onlyWatchpointA fixture watchpoint to check in the next report›"
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "shared-light",
+      "width": 390,
+      "height": 844,
+      "lang": "en",
+      "state": "empty",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "What changed",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "↗What changedSource-backed changes in the selected eventNo comparison is available for this event."
+          },
+          {
+            "title": "Why it matters",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "iWhy it mattersBusiness implications · context onlyBusiness implications are not available for this event."
+          },
+          {
+            "title": "Watchpoints",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "!WatchpointsGuidance and watchpoints from this eventNo source-backed watchpoints are available for this event."
+          },
+          {
+            "title": "What to watch next",
+            "empty": true,
+            "flag": "true",
+            "height": 102.890625,
+            "minHeight": "auto",
+            "text": "What to watch nextGuidance and watchpoints from this eventcontext onlyNo future watchpoint is asserted for this generation."
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "shared-light",
+      "width": 390,
+      "height": 844,
+      "lang": "en",
+      "state": "long",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "What changed",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "↗What changedSource-backed changes in the selected event01Illustrative year-over-year change›"
+          },
+          {
+            "title": "Why it matters",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "iWhy it mattersBusiness implications · context only01Business context for component testing only›"
+          },
+          {
+            "title": "Watchpoints",
+            "empty": false,
+            "flag": "false",
+            "height": 229.84375,
+            "minHeight": "0px",
+            "text": "!WatchpointsGuidance and watchpoints from this event01Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. ›"
+          },
+          {
+            "title": "What to watch next",
+            "empty": false,
+            "flag": "false",
+            "height": 237.09375,
+            "minHeight": "auto",
+            "text": "What to watch nextGuidance and watchpoints from this eventcontext onlyWatchpointLong evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. ›"
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "shared-light",
+      "width": 390,
+      "height": 844,
+      "lang": "zh",
+      "state": "mixed",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "发生了什么变化",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "↗发生了什么变化所选事件中有来源支持的变化本事件暂无可用的对比信息。"
+          },
+          {
+            "title": "为何重要",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "i为何重要业务含义 · 仅供背景参考本事件尚未提供业务含义分析。"
+          },
+          {
+            "title": "关注事项",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "!关注事项本次事件的指引与关注事项01需要在下一份报告核对的测试事项›"
+          },
+          {
+            "title": "接下来关注什么",
+            "empty": true,
+            "flag": "true",
+            "height": 102.890625,
+            "minHeight": "auto",
+            "text": "接下来关注什么本次事件的指引与关注事项仅供背景参考本版本未断言后续关注点。"
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "shared-light",
+      "width": 390,
+      "height": 844,
+      "lang": "zh",
+      "state": "populated",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "发生了什么变化",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "↗发生了什么变化所选事件中有来源支持的变化01测试中的同比变化›"
+          },
+          {
+            "title": "为何重要",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "i为何重要业务含义 · 仅供背景参考01仅用于组件测试的业务背景›"
+          },
+          {
+            "title": "关注事项",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "!关注事项本次事件的指引与关注事项01需要在下一份报告核对的测试事项›"
+          },
+          {
+            "title": "接下来关注什么",
+            "empty": false,
+            "flag": "false",
+            "height": 147.09375,
+            "minHeight": "auto",
+            "text": "接下来关注什么本次事件的指引与关注事项仅供背景参考关注事项需要在下一份报告核对的测试事项›"
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "shared-light",
+      "width": 390,
+      "height": 844,
+      "lang": "zh",
+      "state": "empty",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "发生了什么变化",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "↗发生了什么变化所选事件中有来源支持的变化本事件暂无可用的对比信息。"
+          },
+          {
+            "title": "为何重要",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "i为何重要业务含义 · 仅供背景参考本事件尚未提供业务含义分析。"
+          },
+          {
+            "title": "关注事项",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "!关注事项本次事件的指引与关注事项本次事件暂无有来源支持的关注事项。"
+          },
+          {
+            "title": "接下来关注什么",
+            "empty": true,
+            "flag": "true",
+            "height": 102.890625,
+            "minHeight": "auto",
+            "text": "接下来关注什么本次事件的指引与关注事项仅供背景参考本版本未断言后续关注点。"
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "shared-light",
+      "width": 390,
+      "height": 844,
+      "lang": "zh",
+      "state": "long",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "发生了什么变化",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "↗发生了什么变化所选事件中有来源支持的变化01测试中的同比变化›"
+          },
+          {
+            "title": "为何重要",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "i为何重要业务含义 · 仅供背景参考01仅用于组件测试的业务背景›"
+          },
+          {
+            "title": "关注事项",
+            "empty": false,
+            "flag": "false",
+            "height": 211.25,
+            "minHeight": "0px",
+            "text": "!关注事项本次事件的指引与关注事项01长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。›"
+          },
+          {
+            "title": "接下来关注什么",
+            "empty": false,
+            "flag": "false",
+            "height": 219.09375,
+            "minHeight": "auto",
+            "text": "接下来关注什么本次事件的指引与关注事项仅供背景参考关注事项长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。›"
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "shared-dark",
+      "width": 1440,
+      "height": 900,
+      "lang": "en",
+      "state": "mixed",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "What changed",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "↗What changedSource-backed changes in the selected eventNo comparison is available for this event."
+          },
+          {
+            "title": "Why it matters",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "iWhy it mattersBusiness implications · context onlyBusiness implications are not available for this event."
+          },
+          {
+            "title": "Watchpoints",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "!WatchpointsGuidance and watchpoints from this event01A fixture watchpoint to check in the next report›"
+          },
+          {
+            "title": "What to watch next",
+            "empty": true,
+            "flag": "true",
+            "height": 102.890625,
+            "minHeight": "auto",
+            "text": "What to watch nextGuidance and watchpoints from this eventcontext onlyNo future watchpoint is asserted for this generation."
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "shared-dark",
+      "width": 1440,
+      "height": 900,
+      "lang": "en",
+      "state": "populated",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "What changed",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "↗What changedSource-backed changes in the selected event01Illustrative year-over-year change›"
+          },
+          {
+            "title": "Why it matters",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "iWhy it mattersBusiness implications · context only01Business context for component testing only›"
+          },
+          {
+            "title": "Watchpoints",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "!WatchpointsGuidance and watchpoints from this event01A fixture watchpoint to check in the next report›"
+          },
+          {
+            "title": "What to watch next",
+            "empty": false,
+            "flag": "false",
+            "height": 137.09375,
+            "minHeight": "auto",
+            "text": "What to watch nextGuidance and watchpoints from this eventcontext onlyWatchpointA fixture watchpoint to check in the next report›"
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "shared-dark",
+      "width": 1440,
+      "height": 900,
+      "lang": "en",
+      "state": "empty",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "What changed",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "↗What changedSource-backed changes in the selected eventNo comparison is available for this event."
+          },
+          {
+            "title": "Why it matters",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "iWhy it mattersBusiness implications · context onlyBusiness implications are not available for this event."
+          },
+          {
+            "title": "Watchpoints",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "!WatchpointsGuidance and watchpoints from this eventNo source-backed watchpoints are available for this event."
+          },
+          {
+            "title": "What to watch next",
+            "empty": true,
+            "flag": "true",
+            "height": 102.890625,
+            "minHeight": "auto",
+            "text": "What to watch nextGuidance and watchpoints from this eventcontext onlyNo future watchpoint is asserted for this generation."
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "shared-dark",
+      "width": 1440,
+      "height": 900,
+      "lang": "en",
+      "state": "long",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "What changed",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "↗What changedSource-backed changes in the selected event01Illustrative year-over-year change›"
+          },
+          {
+            "title": "Why it matters",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "iWhy it mattersBusiness implications · context only01Business context for component testing only›"
+          },
+          {
+            "title": "Watchpoints",
+            "empty": false,
+            "flag": "false",
+            "height": 155.46875,
+            "minHeight": "0px",
+            "text": "!WatchpointsGuidance and watchpoints from this event01Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. ›"
+          },
+          {
+            "title": "What to watch next",
+            "empty": false,
+            "flag": "false",
+            "height": 299.09375,
+            "minHeight": "auto",
+            "text": "What to watch nextGuidance and watchpoints from this eventcontext onlyWatchpointLong evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. ›"
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "shared-dark",
+      "width": 1440,
+      "height": 900,
+      "lang": "zh",
+      "state": "mixed",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "发生了什么变化",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "↗发生了什么变化所选事件中有来源支持的变化本事件暂无可用的对比信息。"
+          },
+          {
+            "title": "为何重要",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "i为何重要业务含义 · 仅供背景参考本事件尚未提供业务含义分析。"
+          },
+          {
+            "title": "关注事项",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "!关注事项本次事件的指引与关注事项01需要在下一份报告核对的测试事项›"
+          },
+          {
+            "title": "接下来关注什么",
+            "empty": true,
+            "flag": "true",
+            "height": 102.890625,
+            "minHeight": "auto",
+            "text": "接下来关注什么本次事件的指引与关注事项仅供背景参考本版本未断言后续关注点。"
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "shared-dark",
+      "width": 1440,
+      "height": 900,
+      "lang": "zh",
+      "state": "populated",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "发生了什么变化",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "↗发生了什么变化所选事件中有来源支持的变化01测试中的同比变化›"
+          },
+          {
+            "title": "为何重要",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "i为何重要业务含义 · 仅供背景参考01仅用于组件测试的业务背景›"
+          },
+          {
+            "title": "关注事项",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "!关注事项本次事件的指引与关注事项01需要在下一份报告核对的测试事项›"
+          },
+          {
+            "title": "接下来关注什么",
+            "empty": false,
+            "flag": "false",
+            "height": 121.09375,
+            "minHeight": "auto",
+            "text": "接下来关注什么本次事件的指引与关注事项仅供背景参考关注事项需要在下一份报告核对的测试事项›"
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "shared-dark",
+      "width": 1440,
+      "height": 900,
+      "lang": "zh",
+      "state": "empty",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "发生了什么变化",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "↗发生了什么变化所选事件中有来源支持的变化本事件暂无可用的对比信息。"
+          },
+          {
+            "title": "为何重要",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "i为何重要业务含义 · 仅供背景参考本事件尚未提供业务含义分析。"
+          },
+          {
+            "title": "关注事项",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "!关注事项本次事件的指引与关注事项本次事件暂无有来源支持的关注事项。"
+          },
+          {
+            "title": "接下来关注什么",
+            "empty": true,
+            "flag": "true",
+            "height": 102.890625,
+            "minHeight": "auto",
+            "text": "接下来关注什么本次事件的指引与关注事项仅供背景参考本版本未断言后续关注点。"
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "shared-dark",
+      "width": 1440,
+      "height": 900,
+      "lang": "zh",
+      "state": "long",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "发生了什么变化",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "↗发生了什么变化所选事件中有来源支持的变化01测试中的同比变化›"
+          },
+          {
+            "title": "为何重要",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "i为何重要业务含义 · 仅供背景参考01仅用于组件测试的业务背景›"
+          },
+          {
+            "title": "关注事项",
+            "empty": false,
+            "flag": "false",
+            "height": 155.46875,
+            "minHeight": "0px",
+            "text": "!关注事项本次事件的指引与关注事项01长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。›"
+          },
+          {
+            "title": "接下来关注什么",
+            "empty": false,
+            "flag": "false",
+            "height": 245.09375,
+            "minHeight": "auto",
+            "text": "接下来关注什么本次事件的指引与关注事项仅供背景参考关注事项长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。›"
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "shared-dark",
+      "width": 820,
+      "height": 1180,
+      "lang": "en",
+      "state": "mixed",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "What changed",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "↗What changedSource-backed changes in the selected eventNo comparison is available for this event."
+          },
+          {
+            "title": "Why it matters",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "iWhy it mattersBusiness implications · context onlyBusiness implications are not available for this event."
+          },
+          {
+            "title": "Watchpoints",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "!WatchpointsGuidance and watchpoints from this event01A fixture watchpoint to check in the next report›"
+          },
+          {
+            "title": "What to watch next",
+            "empty": true,
+            "flag": "true",
+            "height": 102.890625,
+            "minHeight": "auto",
+            "text": "What to watch nextGuidance and watchpoints from this eventcontext onlyNo future watchpoint is asserted for this generation."
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "shared-dark",
+      "width": 820,
+      "height": 1180,
+      "lang": "en",
+      "state": "populated",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "What changed",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "↗What changedSource-backed changes in the selected event01Illustrative year-over-year change›"
+          },
+          {
+            "title": "Why it matters",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "iWhy it mattersBusiness implications · context only01Business context for component testing only›"
+          },
+          {
+            "title": "Watchpoints",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "!WatchpointsGuidance and watchpoints from this event01A fixture watchpoint to check in the next report›"
+          },
+          {
+            "title": "What to watch next",
+            "empty": false,
+            "flag": "false",
+            "height": 121.09375,
+            "minHeight": "auto",
+            "text": "What to watch nextGuidance and watchpoints from this eventcontext onlyWatchpointA fixture watchpoint to check in the next report›"
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "shared-dark",
+      "width": 820,
+      "height": 1180,
+      "lang": "en",
+      "state": "empty",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "What changed",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "↗What changedSource-backed changes in the selected eventNo comparison is available for this event."
+          },
+          {
+            "title": "Why it matters",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "iWhy it mattersBusiness implications · context onlyBusiness implications are not available for this event."
+          },
+          {
+            "title": "Watchpoints",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "!WatchpointsGuidance and watchpoints from this eventNo source-backed watchpoints are available for this event."
+          },
+          {
+            "title": "What to watch next",
+            "empty": true,
+            "flag": "true",
+            "height": 102.890625,
+            "minHeight": "auto",
+            "text": "What to watch nextGuidance and watchpoints from this eventcontext onlyNo future watchpoint is asserted for this generation."
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "shared-dark",
+      "width": 820,
+      "height": 1180,
+      "lang": "en",
+      "state": "long",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "What changed",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "↗What changedSource-backed changes in the selected event01Illustrative year-over-year change›"
+          },
+          {
+            "title": "Why it matters",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "iWhy it mattersBusiness implications · context only01Business context for component testing only›"
+          },
+          {
+            "title": "Watchpoints",
+            "empty": false,
+            "flag": "false",
+            "height": 155.46875,
+            "minHeight": "0px",
+            "text": "!WatchpointsGuidance and watchpoints from this event01Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. ›"
+          },
+          {
+            "title": "What to watch next",
+            "empty": false,
+            "flag": "false",
+            "height": 173.09375,
+            "minHeight": "auto",
+            "text": "What to watch nextGuidance and watchpoints from this eventcontext onlyWatchpointLong evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. ›"
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "shared-dark",
+      "width": 820,
+      "height": 1180,
+      "lang": "zh",
+      "state": "mixed",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "发生了什么变化",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "↗发生了什么变化所选事件中有来源支持的变化本事件暂无可用的对比信息。"
+          },
+          {
+            "title": "为何重要",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "i为何重要业务含义 · 仅供背景参考本事件尚未提供业务含义分析。"
+          },
+          {
+            "title": "关注事项",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "!关注事项本次事件的指引与关注事项01需要在下一份报告核对的测试事项›"
+          },
+          {
+            "title": "接下来关注什么",
+            "empty": true,
+            "flag": "true",
+            "height": 102.890625,
+            "minHeight": "auto",
+            "text": "接下来关注什么本次事件的指引与关注事项仅供背景参考本版本未断言后续关注点。"
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "shared-dark",
+      "width": 820,
+      "height": 1180,
+      "lang": "zh",
+      "state": "populated",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "发生了什么变化",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "↗发生了什么变化所选事件中有来源支持的变化01测试中的同比变化›"
+          },
+          {
+            "title": "为何重要",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "i为何重要业务含义 · 仅供背景参考01仅用于组件测试的业务背景›"
+          },
+          {
+            "title": "关注事项",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "!关注事项本次事件的指引与关注事项01需要在下一份报告核对的测试事项›"
+          },
+          {
+            "title": "接下来关注什么",
+            "empty": false,
+            "flag": "false",
+            "height": 121.09375,
+            "minHeight": "auto",
+            "text": "接下来关注什么本次事件的指引与关注事项仅供背景参考关注事项需要在下一份报告核对的测试事项›"
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "shared-dark",
+      "width": 820,
+      "height": 1180,
+      "lang": "zh",
+      "state": "empty",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "发生了什么变化",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "↗发生了什么变化所选事件中有来源支持的变化本事件暂无可用的对比信息。"
+          },
+          {
+            "title": "为何重要",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "i为何重要业务含义 · 仅供背景参考本事件尚未提供业务含义分析。"
+          },
+          {
+            "title": "关注事项",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "!关注事项本次事件的指引与关注事项本次事件暂无有来源支持的关注事项。"
+          },
+          {
+            "title": "接下来关注什么",
+            "empty": true,
+            "flag": "true",
+            "height": 102.890625,
+            "minHeight": "auto",
+            "text": "接下来关注什么本次事件的指引与关注事项仅供背景参考本版本未断言后续关注点。"
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "shared-dark",
+      "width": 820,
+      "height": 1180,
+      "lang": "zh",
+      "state": "long",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "发生了什么变化",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "↗发生了什么变化所选事件中有来源支持的变化01测试中的同比变化›"
+          },
+          {
+            "title": "为何重要",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "i为何重要业务含义 · 仅供背景参考01仅用于组件测试的业务背景›"
+          },
+          {
+            "title": "关注事项",
+            "empty": false,
+            "flag": "false",
+            "height": 155.46875,
+            "minHeight": "0px",
+            "text": "!关注事项本次事件的指引与关注事项01长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。›"
+          },
+          {
+            "title": "接下来关注什么",
+            "empty": false,
+            "flag": "false",
+            "height": 155.09375,
+            "minHeight": "auto",
+            "text": "接下来关注什么本次事件的指引与关注事项仅供背景参考关注事项长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。›"
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "shared-dark",
+      "width": 390,
+      "height": 844,
+      "lang": "en",
+      "state": "mixed",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "What changed",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "↗What changedSource-backed changes in the selected eventNo comparison is available for this event."
+          },
+          {
+            "title": "Why it matters",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "iWhy it mattersBusiness implications · context onlyBusiness implications are not available for this event."
+          },
+          {
+            "title": "Watchpoints",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "!WatchpointsGuidance and watchpoints from this event01A fixture watchpoint to check in the next report›"
+          },
+          {
+            "title": "What to watch next",
+            "empty": true,
+            "flag": "true",
+            "height": 102.890625,
+            "minHeight": "auto",
+            "text": "What to watch nextGuidance and watchpoints from this eventcontext onlyNo future watchpoint is asserted for this generation."
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "shared-dark",
+      "width": 390,
+      "height": 844,
+      "lang": "en",
+      "state": "populated",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "What changed",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "↗What changedSource-backed changes in the selected event01Illustrative year-over-year change›"
+          },
+          {
+            "title": "Why it matters",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "iWhy it mattersBusiness implications · context only01Business context for component testing only›"
+          },
+          {
+            "title": "Watchpoints",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "!WatchpointsGuidance and watchpoints from this event01A fixture watchpoint to check in the next report›"
+          },
+          {
+            "title": "What to watch next",
+            "empty": false,
+            "flag": "false",
+            "height": 147.09375,
+            "minHeight": "auto",
+            "text": "What to watch nextGuidance and watchpoints from this eventcontext onlyWatchpointA fixture watchpoint to check in the next report›"
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "shared-dark",
+      "width": 390,
+      "height": 844,
+      "lang": "en",
+      "state": "empty",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "What changed",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "↗What changedSource-backed changes in the selected eventNo comparison is available for this event."
+          },
+          {
+            "title": "Why it matters",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "iWhy it mattersBusiness implications · context onlyBusiness implications are not available for this event."
+          },
+          {
+            "title": "Watchpoints",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "!WatchpointsGuidance and watchpoints from this eventNo source-backed watchpoints are available for this event."
+          },
+          {
+            "title": "What to watch next",
+            "empty": true,
+            "flag": "true",
+            "height": 102.890625,
+            "minHeight": "auto",
+            "text": "What to watch nextGuidance and watchpoints from this eventcontext onlyNo future watchpoint is asserted for this generation."
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "shared-dark",
+      "width": 390,
+      "height": 844,
+      "lang": "en",
+      "state": "long",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "What changed",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "↗What changedSource-backed changes in the selected event01Illustrative year-over-year change›"
+          },
+          {
+            "title": "Why it matters",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "iWhy it mattersBusiness implications · context only01Business context for component testing only›"
+          },
+          {
+            "title": "Watchpoints",
+            "empty": false,
+            "flag": "false",
+            "height": 229.84375,
+            "minHeight": "0px",
+            "text": "!WatchpointsGuidance and watchpoints from this event01Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. ›"
+          },
+          {
+            "title": "What to watch next",
+            "empty": false,
+            "flag": "false",
+            "height": 237.09375,
+            "minHeight": "auto",
+            "text": "What to watch nextGuidance and watchpoints from this eventcontext onlyWatchpointLong evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. Long evidence wording must wrap without hiding its meaning. ›"
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "shared-dark",
+      "width": 390,
+      "height": 844,
+      "lang": "zh",
+      "state": "mixed",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "发生了什么变化",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "↗发生了什么变化所选事件中有来源支持的变化本事件暂无可用的对比信息。"
+          },
+          {
+            "title": "为何重要",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "i为何重要业务含义 · 仅供背景参考本事件尚未提供业务含义分析。"
+          },
+          {
+            "title": "关注事项",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "!关注事项本次事件的指引与关注事项01需要在下一份报告核对的测试事项›"
+          },
+          {
+            "title": "接下来关注什么",
+            "empty": true,
+            "flag": "true",
+            "height": 102.890625,
+            "minHeight": "auto",
+            "text": "接下来关注什么本次事件的指引与关注事项仅供背景参考本版本未断言后续关注点。"
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "shared-dark",
+      "width": 390,
+      "height": 844,
+      "lang": "zh",
+      "state": "populated",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "发生了什么变化",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "↗发生了什么变化所选事件中有来源支持的变化01测试中的同比变化›"
+          },
+          {
+            "title": "为何重要",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "i为何重要业务含义 · 仅供背景参考01仅用于组件测试的业务背景›"
+          },
+          {
+            "title": "关注事项",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "!关注事项本次事件的指引与关注事项01需要在下一份报告核对的测试事项›"
+          },
+          {
+            "title": "接下来关注什么",
+            "empty": false,
+            "flag": "false",
+            "height": 147.09375,
+            "minHeight": "auto",
+            "text": "接下来关注什么本次事件的指引与关注事项仅供背景参考关注事项需要在下一份报告核对的测试事项›"
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "shared-dark",
+      "width": 390,
+      "height": 844,
+      "lang": "zh",
+      "state": "empty",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "发生了什么变化",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "↗发生了什么变化所选事件中有来源支持的变化本事件暂无可用的对比信息。"
+          },
+          {
+            "title": "为何重要",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "i为何重要业务含义 · 仅供背景参考本事件尚未提供业务含义分析。"
+          },
+          {
+            "title": "关注事项",
+            "empty": true,
+            "flag": "true",
+            "height": 101.484375,
+            "minHeight": "0px",
+            "text": "!关注事项本次事件的指引与关注事项本次事件暂无有来源支持的关注事项。"
+          },
+          {
+            "title": "接下来关注什么",
+            "empty": true,
+            "flag": "true",
+            "height": 102.890625,
+            "minHeight": "auto",
+            "text": "接下来关注什么本次事件的指引与关注事项仅供背景参考本版本未断言后续关注点。"
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    },
+    {
+      "profile": "shared-dark",
+      "width": 390,
+      "height": 844,
+      "lang": "zh",
+      "state": "long",
+      "errors": [],
+      "layout": {
+        "overflow": false,
+        "panels": [
+          {
+            "title": "发生了什么变化",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "↗发生了什么变化所选事件中有来源支持的变化01测试中的同比变化›"
+          },
+          {
+            "title": "为何重要",
+            "empty": false,
+            "flag": "false",
+            "height": 123.6875,
+            "minHeight": "0px",
+            "text": "i为何重要业务含义 · 仅供背景参考01仅用于组件测试的业务背景›"
+          },
+          {
+            "title": "关注事项",
+            "empty": false,
+            "flag": "false",
+            "height": 211.25,
+            "minHeight": "0px",
+            "text": "!关注事项本次事件的指引与关注事项01长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。›"
+          },
+          {
+            "title": "接下来关注什么",
+            "empty": false,
+            "flag": "false",
+            "height": 219.09375,
+            "minHeight": "auto",
+            "text": "接下来关注什么本次事件的指引与关注事项仅供背景参考关注事项长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。长文本证据说明，需完整换行并保留原始含义。›"
+          }
+        ],
+        "footer": true
+      },
+      "result": "PASS"
+    }
+  ]
+}
