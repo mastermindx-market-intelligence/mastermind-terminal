@@ -1,3 +1,4 @@
+# Current scoped Plan composition: optionsPlanComposition20261024 below. Earlier source/report identities remain historical.
 # Current scoped qualification: optionsSharedShellCompositionRecapture20261024; prior records keep their original identities.
 # Current coherent Options + protected HTML-language capture: optionsLanguageCompositionRecapture20261024 below. Prior records remain historical.
 
@@ -15,7 +16,7 @@
 layoutFiles:
   terminal/app/workspace-chrome.css: "97e32bc24ed20479ea7b2e024ef6bc3883b9ead764098344f3ad4acea52b4bdd"
   terminal/app/layout.tsx: "9b675d52a647b4a92407958aa0ab7ffcc2632d95d003c89ca2eed2a1f4e35264"
-  terminal/components/OptionsHubView.tsx: "5c54df6f4939a966262323325f7abba196599abbce8a137882b8dc13068c72bb"
+  terminal/components/OptionsHubView.tsx: "476b79a8d87ed6b7e165013ce7610cb0811d63800dab5c91ef1a729a128c82bb"
   terminal/components/SearchModal.tsx: "5b3a466a06215231f1b458c382aaae268b4f2f9f206d6f985f312f603fa4a5aa"
   terminal/components/StockAnalysis.tsx: "376a907d0d8ea3dc5819e0092f02e19ce56fa1f4b71a3489551adf52fddb35c0"
   terminal/components/workspaces/AnalysisWorkspace.tsx: "411b8a7e498b8af3f9337fdcf3835dd62e6a5854826f414171d8303efd8aa5bb"
@@ -440,6 +441,12 @@ optionsSharedShellCompositionRecapture20261024:
   actualBrowserResult: "2 passed; 0 failed, skipped, flaky or retries; default ordinary-profile capture"
   reportSha256: "811fe01b3d2b3199e93f2149627a0611da12b8a8e1259042db0dcef2eb8f5709"
   productionProof: false
+
+optionsPlanComposition20261024:
+  head: 38565c73bcdb31fcf2920fc91b90ed775d495c93
+  source: 476b79a8d87ed6b7e165013ce7610cb0811d63800dab5c91ef1a729a128c82bb
+  qualification: terminal/docs/pr-crops/terminal-visual-intelligence/options-plan-composed-qualification.json
+  scope: four OptionsHub crops and two desktop chart-context cases; earlier full30 report remains historical
 
 # Preserve the original captured LEX bytes; only unused pending-preferences copy differs.
 lexProjection: {"schema":"terminal.lex_capture_projection.v1","omittedProperty":"obDonePrefsSyncing","capturedRawSha256":"13f33e3178b105a64f1f5df35974cd99041ef06f05bdece95939dd07a8b9fe7c","projectedSha256":"d6dcc2df7615a1c5782f4d755178fbb76bcf9ee42b93dffe7c7c95317a652de5","sourceGitBlob":"664d68043f472919f7b581f545a334bf66d9782f","sourceRecoveryCommit":"da990eb349ceadcd16e8855db29574e36deac782","captureCommitLocallyAvailable":false}

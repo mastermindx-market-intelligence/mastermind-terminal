@@ -71,4 +71,27 @@ describe("prepared Plan editor integration seam", () => {
     expect(applied).toHaveBeenCalledOnce();
     expect(host.querySelector("[role=alert]")).not.toBeNull();
   });
+  it.each(["en", "zh"] as const)("planning layout keeps trade controls first and retains disclosed source/research in %s", async lang => {
+    const applied = vi.fn(), original = source();
+    const d = { ...original, research: { thesis: "Dated thesis", invalidation: "Evidence changes", horizon: "3 sessions" } };
+    await act(async () => root.render(<OptionsPlanDraftEditor layout="planning" draft={d} lang={lang} onApply={applied} onClose={() => undefined} />));
+    const evidence = host.querySelector<HTMLDetailsElement>('[data-testid="plan-original-source"]')!;
+    const notes = host.querySelector<HTMLDetailsElement>('[data-testid="plan-research-notes"]')!;
+    expect(evidence.open).toBe(false); expect(notes.open).toBe(false);
+    expect(evidence.querySelector('[data-plan-field="mid"]')?.textContent).toContain("4.5");
+    expect(host.querySelector('input[id*="entry"]')?.closest("details")).toBeNull();
+    expect(host.querySelector('input[id*="entry"]')!.compareDocumentPosition(evidence) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    const visibleDate = [...host.querySelectorAll("p")].find(el => el.textContent?.includes("2026-10-23T20:00:00Z") && !el.closest("details"));
+    expect(visibleDate).toBeDefined();
+    await act(async () => notes.querySelector("summary")!.click()); expect(notes.open).toBe(true);
+    await change(lang === "en" ? "Research thesis" : "研究观点", "Revised retained thesis");
+    await act(async () => notes.querySelector("summary")!.click()); expect(notes.open).toBe(false);
+    await submit();
+    expect(applied.mock.calls[0][0].research).toEqual({ thesis: "Revised retained thesis", invalidation: "Evidence changes", horizon: "3 sessions" });
+    expect(applied.mock.calls[0][0].legs[0].snapshot).toEqual(original.legs[0].snapshot);
+    expect(applied.mock.calls[0][0].legs[0].assumptions).toEqual({ side: null, quantity: null, entry: null });
+    await act(async () => notes.querySelector("summary")!.click());
+    expect(notes.querySelector("textarea")).toHaveProperty("value", "Revised retained thesis");
+  });
+
 });

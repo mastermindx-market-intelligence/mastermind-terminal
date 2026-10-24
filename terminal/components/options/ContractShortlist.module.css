@@ -355,3 +355,11 @@
     max-width: 128px;
   }
 }
+
+/* Scoped planning editor: trade assumptions first; native disclosures retain
+   the full original evidence and optional research without a second form. */
+.planCompact .planFields { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.planDetails { min-width: 0; border-top: 1px solid var(--line); }
+.planDetails > summary { min-height: 44px; padding: 12px 0; color: var(--text-2); font: 500 12px/1.5 var(--font-ui); cursor: pointer; }
+.planDetails > summary:focus-visible { outline: 2px solid var(--brand-2); outline-offset: 2px; }
+.planDetails[open] > summary { margin-bottom: 8px; }
