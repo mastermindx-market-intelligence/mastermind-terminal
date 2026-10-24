@@ -1,0 +1,39 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/options-tape-saved-screens-20261024-54883c6ea72344b5/terminal
+
+ ✓ lib/__tests__/chartOverlaysI18nKeys.test.ts (3 tests) 16ms
+ ✓ lib/__tests__/plainLabelsCallSites.test.ts (60 tests) 80ms
+ ✓ lib/__tests__/guestBundleBoundary.test.ts (26 tests) 90ms
+
+--- plain-language guard receipt: flagged fixture ---
+plain-language guard — vocabulary overlay ABSENT: terminal/lib/plainLabels.ts not present on this tree; using the 83 declared terms only.
+  ::error title=plain-language::1 blocking plain-language finding(s) on newly added lines
+  ::error title=plain-language::terminal/components/Bad.tsx:2: raw_state_enum: "BOTTOM_WATCH" — say "Watching for a bottom" / "关注筑底" (route via regimeLabel(t, value, lang) from @/lib/plainLabels)
+blocking (added lines)
+terminal/components/Bad.tsx:2: raw_state_enum: "BOTTOM_WATCH" — raw state enum in a user-visible position
+  say "Watching for a bottom" / "关注筑底" (route via regimeLabel(t, value, lang) from @/lib/plainLabels)
+
+--- end receipt ---
+
+--- plain-language guard receipt: legacy fixture ---
+plain-language guard — vocabulary overlay ABSENT: terminal/lib/plainLabels.ts not present on this tree; using the 83 declared terms only.
+legacy (pre-existing, not blocking)
+terminal/components/Bad.tsx:2: raw_state_enum: "BOTTOM_WATCH" — raw state enum in a user-visible position
+  say "Watching for a bottom" / "关注筑底" (route via regimeLabel(t, value, lang) from @/lib/plainLabels)
+terminal/components/Legacy2.tsx:2: raw_state_enum: "BOTTOM_WATCH" — raw state enum in a user-visible position
+  say "Watching for a bottom" / "关注筑底" (route via regimeLabel(t, value, lang) from @/lib/plainLabels)
+
+--- end receipt ---
+ ✓ lib/__tests__/plainLanguageGuard.test.ts (35 tests) 9541ms
+   ✓ check_plain_language.mjs > 4. EN/ZH parity: missing zh in LEX entry and unrouted English literal both block 448ms
+   ✓ check_plain_language.mjs > 8. receipt printer: prints the checker's full human block for bad + legacy fixtures 495ms
+   ✓ check_plain_language.mjs > 10. a bare substring match on a helper name (.sort(/useEffect() does not defeat R3/R5b 463ms
+   ✓ check_plain_language.mjs > 21. NOT flagged: className is not a visible attribute, even behind the same ternary 319ms
+   ✓ check_plain_language.mjs > 25. R3 fires on the interpolation's OWN span, never on a sibling span sharing the line (PR #530 round-3 review MAJOR) 622ms
+   ✓ check_plain_language.mjs > 28. R3 examines EVERY `{...field}` match on a line, not just the first (PR #530 round-4 review MAJOR) 428ms
+
+ Test Files  4 passed (4)
+      Tests  124 passed (124)
+   Start at  23:01:14
+   Duration  10.26s (transform 203ms, setup 0ms, collect 272ms, tests 9.73s, environment 1ms, prepare 262ms)
