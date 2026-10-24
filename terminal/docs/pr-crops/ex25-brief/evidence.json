@@ -40,7 +40,8 @@
   "source_sha256": {
     "components/fin/CompanyIntelligenceBriefLayout.tsx": "7fdafec5c5c7b45996cf098cda22399395ad6c4fbfb442b2d2a867b130244796",
     "components/fin/CompanyIntelligenceBriefLayout.module.css": "8256d9ea4cb9f2a64cad5d6d41ccf981d99b7a27a4837481000ebbfb36d9ffe3",
-    "lib/__tests__/companyIntelligenceBriefLayout.test.tsx": "3a656558422c4a853ecfeb038ad7c92822b36578c107f6e747b2f0caf0ea07e7"
+    "lib/__tests__/companyIntelligenceBriefLayout.test.tsx": "3a656558422c4a853ecfeb038ad7c92822b36578c107f6e747b2f0caf0ea07e7",
+    "lib/__tests__/ex25CaptureSecurity.test.ts": "c2fde2378ba5459d7d3784d3944a557b6edfdd8028a45c25a1a4d661980b0a7c"
   },
   "capture_sha256": {
     "after/classic-dark-1440-en.png": "0198df443675bca72f6ba7c496395f24b5fe15ac3f78429e97ab918970827861",
@@ -49,7 +50,7 @@
     "after/classic-dark-390-zh.png": "c17ed384bcf9c40dfeaefb62c3a96bd6f289f7917ce4aa35cd20de46b031ba14",
     "after/classic-dark-820-en.png": "996ad562a7564acf5d3db05aa7a24a31ca01c20d649fd3e49e1324df16831357",
     "after/classic-dark-820-zh.png": "72aa7d18b0a7880dda73b5402e6d0f55c9f5879791e02cdf4611b10b603409d3",
-    "after/receipt.json": "23ecfbc0642be827500bcc2ac41ffff0e0a47fd040a4750d16e14014201cb082",
+    "after/receipt.json": "2d27c06578a03d9e1984e57a8e0b0148eeb0a27a63dbb08009e21cd5f5b00ffc",
     "after/shared-dark-1440-en.png": "7fb32c31763bd397d431ed514f43f8388f2c9e33f278f71f51262cb4f37c6058",
     "after/shared-dark-1440-zh.png": "1cc2f08f1a13c71f1e6518c6c4931e130cf62cdb88a9076515ad5f7f156c9c72",
     "after/shared-dark-390-en.png": "0807b239f2aa63f2d2b09294b55f9d104c94e93f90461eff9536f24432d53594",
@@ -81,7 +82,7 @@
     "before/shared-light-390-zh.png": "6c6c1acf37475cc21bef75c45f23302a3236de919a8f01d5cde1b5f0e5b45091",
     "before/shared-light-820-en.png": "11962e28f8a0b0bf69a64ca8de272a0b36d851ce179ec6db3e5c9c46df38880c",
     "before/shared-light-820-zh.png": "0292cdd8f31d545febd5d8b7f1c3afd89615501ef728be37319cd694a5f3e223",
-    "capture.cjs": "cf2d5a8e5ce33bcfeb9a1ccaf23ca8ed01fdd519bbc42be3017d1fb4d53c2100"
+    "capture.cjs": "959ddb6b13bd3159a1219caef0fc40ead3e436ab59604fa2acaabc17dd71f58d"
   },
   "source_file_equivalence": "css, global stylesheet and shared shell source hashes in both capture receipts must match aside from intentional Brief TSX/CSS changes",
   "not_qualified": [
@@ -89,5 +90,27 @@
     "signed-in private sources",
     "full-shell behavior",
     "production deployment"
-  ]
+  ],
+  "capture_harness_provenance": {
+    "before": {
+      "source_commit": "3e99c1e0bd6783752e7d28bf81791504525f0e9d",
+      "sha256": "cf2d5a8e5ce33bcfeb9a1ccaf23ca8ed01fdd519bbc42be3017d1fb4d53c2100",
+      "receipt": "before/receipt.json",
+      "status": "retained original historical capture, not recaptured"
+    },
+    "after": {
+      "sha256": "959ddb6b13bd3159a1219caef0fc40ead3e436ab59604fa2acaabc17dd71f58d",
+      "receipt": "after/receipt.json",
+      "recordedAt": "2026-10-24T05:19:01.597Z",
+      "status": "72 actual cases recaptured with URL attributes reduced to safe literals"
+    },
+    "security_regression": {
+      "test": "lib/__tests__/ex25CaptureSecurity.test.ts",
+      "before": "3 failed / 3 passed",
+      "after": "6 passed",
+      "ordinary_component_tests": "6 passed",
+      "codeql_alert": 37,
+      "codeql_recheck": "pending hosted analysis"
+    }
+  }
 }

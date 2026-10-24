@@ -18,3 +18,7 @@ NODE_OPTIONS=--no-experimental-webstorage npx vitest run lib/__tests__/companyIn
 ```
 
 This test bundle serves **synthetic props via loopback only** and uses real DOM/CSS/browser layout. It is not a public live/full-auth/UI shell test. Hosted CI, protected merge and live authenticated source/Brief acceptance remain separate release gates.
+
+## Capture harness security repair (24 October)
+
+CodeQL alert 37 correctly identified request-controlled language/theme strings reflected into HTML attributes. The capture server now selects literal `en`/`zh` and `dark`/`light` output values. A test executes the actual fixed handler from the repository script: hostile language and theme payloads failed before repair; all six profile/security cases pass afterward. No alert was suppressed. All 72 after-capture cases were rerun using the repaired harness. The before captures remain historical, bound to their original harness digest in `capture_harness_provenance`; they were not falsely restamped as newly captured. Hosted CodeQL must independently confirm closure.

@@ -1,7 +1,7 @@
 {
   "phase": "after",
-  "recordedAt": "2026-10-24T03:04:10.361Z",
-  "sourceHead": "7accf09a2a07e72e161795c7aebe4bfe07077ad9",
+  "recordedAt": "2026-10-24T05:19:01.597Z",
+  "sourceHead": "3e99c1e0bd6783752e7d28bf81791504525f0e9d",
   "sourceHashes": {
     "components/fin/CompanyIntelligenceBriefLayout.tsx": "7fdafec5c5c7b45996cf098cda22399395ad6c4fbfb442b2d2a867b130244796",
     "components/fin/CompanyIntelligenceBriefLayout.module.css": "8256d9ea4cb9f2a64cad5d6d41ccf981d99b7a27a4837481000ebbfb36d9ffe3",
