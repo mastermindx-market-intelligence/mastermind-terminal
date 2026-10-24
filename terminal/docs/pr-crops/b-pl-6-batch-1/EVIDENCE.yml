@@ -1,3 +1,4 @@
+# Current phone filter-spacing repair recapture: optionsTapeMobileSpacingRepair20261024 below. Earlier records remain historical.
 # Current scoped Options navigation + saved-screens recapture: optionsNavigationSavedScreensRecapture20261024 below. Earlier capture records remain historical.
 # PR #1142: freshly recaptured ChartChrome EN/ZH desktop/mobile with identical original crop geometry; source/crop digests updated, historical records intact.
 # Current Company design recapture is sharedShellCompanyDesignRecapture20261022; prior records remain historical.
@@ -387,3 +388,11 @@ optionsNavigationSavedScreensRecapture20261024:
   scope: "Fresh existing-harness fixture capture on the combined accepted navigation and saved-screens source; source/crop hashes above bind actual bytes. Unchanged surfaces retain their existing captures. No production claim."
   command: "CAPTURE_ONLY=OptionsHubView TERMINAL_CROP_PORT=3197 node e2e/tools/capture_pl6_batch1.cjs"
   actualBrowserResult: "4 OptionsHubView EN/ZH desktop/mobile crops captured successfully"
+
+optionsTapeMobileSpacingRepair20261024:
+  sourceHead: "0217d079276b568a6180bc3f4aa68badd6ba2875"
+  capturedAt: "2026-10-24T07:48:34.030944+00:00"
+  optionsTapeViewLinkCssSha256: "4ff18d21d636476512f95e165d4044c98cb2af9205c8c91246c0c7f4cf01a154"
+  actualFreshCrops: 4
+  command: "CAPTURE_ONLY=OptionsHubView TERMINAL_CROP_PORT=3197 node e2e/tools/capture_pl6_batch1.cjs"
+  scope: "Actual EN/ZH desktop/mobile Hub recapture after the scoped phone row-gap repair; crop hashes above bind these bytes. Existing chart-only matrix is unchanged and reused. Local fixture only, no production/authenticated acceptance claim."
