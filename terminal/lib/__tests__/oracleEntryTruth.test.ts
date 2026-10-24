@@ -118,6 +118,21 @@ describe("Oracle historical signal and current entry truth", () => {
     expect(html).toContain("Entry availability not verified");
   });
 
+  it.each([false, true])("keeps the stance historical event and unknown date in a separate phone row (zh=%s)", zh => {
+    const oracle = oracleVerdict("SELL", { indicator: { signals: [{ ts: "2026-09-01", type: "SELL" }], state: { position_hint: "long", above200: true } } }, zh, NOW);
+    expect(oracle.stance).toBe(true);
+    const html = renderToStaticMarkup(createElement(SignalButton, {
+      oracle, desk: deskVerdict(null, zh), oracleLabel: "Oracle", deskLabel: "Research", viewLabel: "View", onView: () => {}, zh,
+      prophet: { symbol: "USFD", account: "reader", status: "unavailable", data: null },
+    }));
+    const historyRow = html.slice(html.indexOf('data-testid="oracle-stance-history"'), html.indexOf('data-testid="oracle-entry-availability"'));
+    expect(historyRow).toContain(oracle.historicalSignal!.label);
+    expect(historyRow).toContain(oracle.historicalSignal!.date);
+    expect(oracle.historicalSignal!.knownTs).toBeNull();
+    expect(html.indexOf('data-testid="oracle-stance-history"')).toBeGreaterThan(html.indexOf('data-testid="prophet-observation-launcher"'));
+    expect(html).toContain('data-status="UNAVAILABLE_DATA"');
+  });
+
   it.each([false, true])("renders both real consumers with separate history and unavailable reason (zh=%s)", zh => {
     vi.useFakeTimers(); vi.setSystemTime(NOW);
     source.slice = fixture();
