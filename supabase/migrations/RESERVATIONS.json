@@ -475,10 +475,11 @@
       "file": "0045_options_frozen_runtime.sql",
       "packet": "OPTIONS-EXPOSURE-P09-FROZEN-RUNTIME",
       "pr": 1175,
-      "pr_state": "open",
+      "pr_state": "merged",
       "applied_in_production": false,
       "applied_date": null,
-      "note": "Prospective source claim after complete169openPR file census including8paginatedlargePRs and7reservation-ledger joins on2026-10-24. Existing0043/#804 and0044/#1173 preserved. Package accepted lifecycle/atomic/prepared source as one atomic migration; production remains unapplied and application date not recorded. No runtime admission, activation or provider operation."
+      "note": "PR #1175 source merged as aaa4801db5a7e467c52dd94b4e7aea217be50b23 at 2026-10-24T23:38:23Z after protected CI and scoped independent review. Packages the accepted lifecycle/atomic/prepared units as one atomic migration, including native installer readback compatibility. Source only; production remains unapplied and application date is not recorded. Existing0043/#804 and0044/#1173 records remain intact. No runtime admission, activation, provider operation or SQL application is implied.",
+      "merged_sha": "aaa4801db5a7e467c52dd94b4e7aea217be50b23"
     }
   }
 }
