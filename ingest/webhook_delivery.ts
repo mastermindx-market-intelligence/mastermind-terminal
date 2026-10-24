@@ -13,6 +13,7 @@
  */
 
 import { readFileSync } from "node:fs";
+import { FrozenDeliveryClient, frozenDeliveryFromDeployment, equalJSON, databaseOrigin } from "./frozen_delivery_client";
 import https from "node:https";
 import { isIP } from "node:net";
 import { lookup } from "node:dns/promises";
@@ -73,11 +74,13 @@ function truncateError(msg: string): string {
 }
 
 class Supa {
+  readonly sourceOrigin: string;
   private base: string;
   private headers: Record<string, string>;
 
   constructor(url: string, key: string) {
-    this.base = url.replace(/\/+$/, "") + "/rest/v1";
+    this.sourceOrigin = url.replace(/\/+$/, "");
+    this.base = this.sourceOrigin + "/rest/v1";
     this.headers = { apikey: key, Authorization: `Bearer ${key}` };
   }
 
@@ -120,6 +123,8 @@ export type EndpointRow = {
   secret_previous: string | null;
   secret_previous_expires_at: string | null;
   secret_version: number;
+  team_id?: string;
+  event_filter?: string[];
 };
 
 export type Poster = (
@@ -131,11 +136,14 @@ export type Poster = (
 ) => Promise<{ status: number; error?: string }>;
 
 export type DeliverHooks = {
+  frozenDelivery?: FrozenDeliveryClient;
   post?: Poster;
   resolve?: (hostname: string) => Promise<{ address: string; family: number } | { error: string }>;
 };
 
 type PatchClient = {
+  sourceOrigin?: string;
+  get?: (path: string) => Promise<unknown>;
   patch: (path: string, body: Record<string, unknown>) => Promise<unknown[]>;
 };
 
@@ -259,6 +267,12 @@ export async function deliverOne(
   dryRun: boolean,
   hooks: DeliverHooks = {},
 ): Promise<void> {
+  const candidate = row.payload && typeof row.payload === 'object' ? row.payload as Record<string,unknown> : {};
+  const frozenHint = candidate.category === 'options_exposure_node' || Object.hasOwn(candidate,'frozen_node');
+  if (frozenHint || (hooks.frozenDelivery instanceof FrozenDeliveryClient && row.event_type === 'alert.fired')) {
+    await deliverQualifiedFrozen(supa,row,dryRun,hooks,frozenHint);
+    return;
+  }
   const tag = `delivery=${row.id}`;
   // Neither of the next two branches exhausted the retry table, so neither may
   // write `failed` — that status renders as "Gave up after 5 tries" and would
@@ -378,6 +392,69 @@ export async function deliverOne(
   log(`${tag} ${fail.status} ${klass} attempt=${attempt}`);
 }
 
+const frozenRowFields=['id','endpoint_id','team_id','event_id','event_type','payload','attempt','status','claimed_at','next_retry_at'] as const;
+function frozenRow(value:unknown):DeliveryRow|null{
+  if(!value||typeof value!=='object'||Array.isArray(value))return null;
+  const record=value as Record<string,unknown>;
+  if(!frozenRowFields.every(k=>Object.hasOwn(record,k)))return null;
+  return Object.fromEntries(frozenRowFields.map(k=>[k,record[k]])) as DeliveryRow;
+}
+const publicEndpoint=(e:Record<string,unknown>)=>Object.fromEntries(['id','team_id','url','enabled','event_filter','secret_version'].map(k=>[k,e[k]]));
+
+async function deliverQualifiedFrozen(supa:PatchClient,selected:DeliveryRow,dryRun:boolean,hooks:DeliverHooks,frozenHint:boolean):Promise<void>{
+  const client=hooks.frozenDelivery;
+  if(!(client instanceof FrozenDeliveryClient)||databaseOrigin(supa.sourceOrigin)!==client.origin||!supa.get)return;
+  // Pin caller-owned data before any transport yields. Proof is event evidence;
+  // authoritative current row selection + exact CAS below own this channel.
+  const row=frozenRow(JSON.parse(JSON.stringify(selected)));
+  if(!row)return;
+  let proof=await client.check(row,new Date().toISOString());
+  if(!proof)return;
+  const endpointRows=await supa.get(`webhook_endpoints?id=eq.${encodeURIComponent(row.endpoint_id)}&select=id,team_id,url,enabled,event_filter,secret,secret_previous,secret_previous_expires_at,secret_version&limit=2`);
+  if(!Array.isArray(endpointRows)||endpointRows.length!==1)return;
+  const endpoint=JSON.parse(JSON.stringify(endpointRows[0])) as EndpointRow & Record<string,unknown>;
+  if(!equalJSON(publicEndpoint(endpoint),proof.endpoint)||typeof endpoint.secret!=='string'||!endpoint.secret)return;
+  if(proof.kind==='legacy_delivery'){
+    if(frozenHint)return;
+    await deliverOne(supa,row,endpoint,dryRun,{...hooks,frozenDelivery:undefined});return;
+  }
+  // A prior delivering row may represent a live or lost send. A stale lease is
+  // not permission to resend frozen events; retain it for explicit reconciliation.
+  if(!['pending','retrying'].includes(row.status)||!Number.isInteger(row.attempt)||row.attempt<0||row.attempt>=5)return;
+  const urlCheck=validateWebhookUrl(endpoint.url);if(!endpoint.enabled||!urlCheck.ok||dryRun)return;
+  const stamp=new Date().toISOString(),attempt=row.attempt+1;
+  const priorClaim=row.claimed_at===null?'is.null':`eq.${encodeURIComponent(row.claimed_at)}`;
+  const claimPath=`webhook_deliveries?id=eq.${encodeURIComponent(row.id)}&status=eq.${encodeURIComponent(row.status)}&attempt=eq.${row.attempt}&claimed_at=${priorClaim}`;
+  const claimed=await supa.patch(claimPath,{status:'delivering',claimed_at:stamp,attempt,last_error:'frozen_delivery_reserved'});
+  if(claimed.length!==1)return;
+  const reserved=frozenRow(claimed[0]),expected={...row,status:'delivering',claimed_at:stamp,attempt};
+  if(!reserved||!equalJSON(reserved,expected))return;
+  const patchPath=`webhook_deliveries?id=eq.${encodeURIComponent(row.id)}&status=eq.delivering&attempt=eq.${attempt}&claimed_at=eq.${encodeURIComponent(stamp)}`;
+  const resolve=hooks.resolve??resolvePublicAddress;
+  const resolved=await resolve(new URL(endpoint.url).hostname.replace(/^\[|\]$/g,''));
+  if('error' in resolved)return;
+  // Current account/category/team/endpoint/opt-in is observed again after DNS,
+  // without replacing the exact historical event or consulting armed state.
+  proof=await client.check(reserved,new Date().toISOString());
+  if(!proof||proof.kind!=='admitted_delivery'||!equalJSON(proof.endpoint,publicEndpoint(endpoint)))return;
+  const marker=await supa.patch(patchPath,{last_error:'frozen_delivery_send_started'});
+  if(marker.length!==1||!equalJSON(frozenRow(marker[0]),reserved))return;
+  const rawBody=JSON.stringify(reserved.payload);
+  const headers=buildWebhookHeaders({secret:endpoint.secret,secretPrevious:endpoint.secret_previous??null,
+    secretPreviousExpiresAt:endpoint.secret_previous_expires_at??null,secretVersion:endpoint.secret_version,
+    deliveryId:row.id,eventId:row.event_id,eventType:row.event_type,timestamp:Math.floor(Date.now()/1000),rawBody,nowMs:Date.now()});
+  let result:{status:number;error?:string};
+  try{result=await(hooks.post??postPinned)(endpoint.url,resolved.address,resolved.family,headers,rawBody);}
+  catch{result={status:0,error:'unknown'};}
+  if(result.status>=200&&result.status<300){
+    await supa.patch(patchPath,{status:'delivered',response_code:result.status,delivered_at:new Date().toISOString(),last_error:null,next_retry_at:null});
+  }else{
+    // No stronger exactly-once claim: the receiver may have acted before an
+    // error/timeout. Preserve the claimed row, never auto-reoffer this event.
+    await supa.patch(patchPath,{last_error:'frozen_delivery_effect_unknown',response_code:result.status||null});
+  }
+}
+
 function runDemo(): number {
   log("DEMO — no Supabase; signing + retry table only");
   const rawBody = "{\"schema\":\"mastermind.webhook-test/v1\"}";
@@ -413,6 +490,7 @@ async function main(): Promise<number> {
   }
 
   const supa = new Supa(url, key);
+  const frozenDelivery = frozenDeliveryFromDeployment(env,url);
   const now = new Date();
   let due: DeliveryRow[] = [];
   try {
@@ -448,7 +526,7 @@ async function main(): Promise<number> {
       continue;
     }
     try {
-      await deliverOne(supa, row, ep, args.dryRun);
+      await deliverOne(supa, row, ep, args.dryRun, {frozenDelivery});
     } catch (e) {
       log(`delivery=${row.id} ERROR ${e instanceof Error ? e.name : "unknown"}`);
     }
