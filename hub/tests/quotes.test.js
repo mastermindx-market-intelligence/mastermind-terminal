@@ -535,3 +535,86 @@ describe("buildQuotesResponse — view=regular is closed at the response boundar
     }
   });
 });
+
+// P1 request-local primary eligibility: no legacy demand/read before effects.
+describe('primary_snapshot extended-source selector', () => {
+  const { handleQuotesRequest } = require('../lib/quotes');
+  const { SnapshotFeed } = require('../lib/snapshot');
+  const now = Date.parse('2026-10-23T12:00:00Z');
+  async function fixture({missing=false, stale=false, failure=false} = {}) {
+    const calls={demand:0,read:0,webull:0,yahoo:0,alpaca:0,snapshot:0,polygon:0,anchor:0};
+    let primary=false;
+    const guard=kind=>{calls[kind]++;if(primary)throw Error('legacy '+kind+' reached primary request');};
+    const extFeed={demand(){guard('demand');for(const k of ['webull','yahoo','alpaca'])guard(k);},
+      getExt(){guard('read');return {extPrice:88,extSource:'webull',extSession:'pre'};}};
+    const anchor={prevClose:100,prevSessionChg:100/9,anchor_source:'daily_file',
+      completedRegularClose:100,completedRegularSessionDate:'2026-10-22',completedRegularSource:'daily_file'};
+    const anchorCache={get:()=>anchor,resolve(){calls.anchor++;return Promise.resolve(anchor);}};
+    const store=new Store('/no/offline-manifest.json',anchorCache);
+    store.quotes.set('NVDA',{sym:'NVDA',market:'us',last:100,prevClose:100,chg:100/9,prevSessionChg:100/9,
+      regularSession:'closed',regularSessionDate:'2026-10-22',ts:now/1000-72000,
+      source:'polygon-delayed',basis:'DELAYED_15M',extPrice:88,extSource:'webull',extPoison:'cached'});
+    const snapshotFeed=new SnapshotFeed({apiKey:'offline-only',realtime:true,fetchJson:async()=>{if(failure)throw Error('offline primary transport failure');return {tickers:missing?[]:[{
+      ticker:'NVDA',day:{c:0},updated:now*1e6,lastTrade:{p:99,t:(now-(stale?120001:1000))*1e6},
+    }]};}});
+    snapshotFeed._pending.add('NVDA');await snapshotFeed._flush(now);
+    const originalDemand=snapshotFeed.demand.bind(snapshotFeed);
+    snapshotFeed.demand=(...args)=>{calls.snapshot++;originalDemand(...args);};
+    const polygon={isHealthy:()=>true,ensureSubscribed(){calls.polygon++;}};
+    const deps={store,extFeed,snapshotFeed,anchorCache,polygon};
+    return {calls,store,deps,request(query){primary=query.includes('primary_snapshot');
+      try{return handleQuotesRequest(new URLSearchParams(query),now,deps);}finally{primary=false;}}};
+  }
+  it('suppresses legacy demand and reads while retaining snapshot/Polygon/anchor and qualified tuple',async()=>{
+    const f=await fixture();const result=f.request('syms=NVDA&extSource=primary_snapshot');
+    assert.equal(result.status,200);assert.equal(result.body.NVDA.last,100);assert.equal(result.body.NVDA.extPrice,99);
+    assert.equal(result.body.NVDA.extRegularSessionDate,'2026-10-22');
+    assert.equal(result.body.NVDA.extAsOfMs,now-1000);assert.equal(result.body.NVDA.extPoison,undefined);
+    for(const k of ['demand','read','webull','yahoo','alpaca'])assert.equal(f.calls[k],0);
+    for(const k of ['snapshot','polygon','anchor'])assert.equal(f.calls[k],1);
+  });
+  for(const state of [{missing:true},{stale:true},{failure:true}])it('missing/stale primary remains unavailable without legacy substitution '+JSON.stringify(state),async()=>{
+    const f=await fixture(state);const q=f.request('syms=NVDA&extSource=primary_snapshot').body.NVDA;
+    assert.equal(q.last,100);assert.equal(q.extPrice,undefined);
+    assert.equal(Object.keys(q).some(k=>k.startsWith('ext')),false);
+    assert.equal(f.calls.demand+f.calls.read+f.calls.webull+f.calls.yahoo+f.calls.alpaca,0);
+  });
+  it('defensively removes all cached legacy ext values even when Store returns its shared row',()=>{
+    const poison={sym:'NVDA',market:'us',last:100,extPrice:88,extSource:'polygon-snapshot-rt',extAsOfMs:now,extPoison:true};
+    const result=handleQuotesRequest(new URLSearchParams('syms=NVDA&extSource=primary_snapshot'),now,
+      {store:{getQuotes:()=>({NVDA:poison})},extFeed:{demand(){throw Error('legacy demand');},getExt(){throw Error('legacy read');}}});
+    assert.deepEqual(result.body.NVDA,{sym:'NVDA',market:'us',last:100});assert.equal(poison.extPrice,88);
+  });
+  it('retains ordinary full and regular clients across interleaved requests without global suppression',async()=>{
+    const f=await fixture({missing:true});
+    const first=f.request('syms=NVDA&extSource=primary_snapshot');assert.equal(first.body.NVDA.extPrice,undefined);
+    const full=f.request('syms=NVDA');assert.equal(full.body.NVDA.extSource,'webull');
+    const primary=f.request('syms=NVDA&extSource=primary_snapshot');assert.equal(primary.body.NVDA.extPrice,undefined);
+    const regular=f.request('syms=NVDA&view=regular');assert.equal(regular.body.NVDA.extPrice,undefined);
+    assert.equal(f.calls.demand,1);assert.equal(f.calls.read,1);
+    for(const k of ['webull','yahoo','alpaca'])assert.equal(f.calls[k],1);
+    const same=await Promise.all([Promise.resolve().then(()=>f.request('syms=NVDA&extSource=primary_snapshot')),
+      Promise.resolve().then(()=>f.request('syms=NVDA'))]);
+    assert.equal(same[0].body.NVDA.extPrice,undefined);assert.equal(same[1].body.NVDA.extSource,'webull');
+  });
+  it('rejects invalid/repeated selectors before any demand and preserves tiingo_boats',()=>{
+    let calls=0;const deps={extFeed:{demand(){calls++;},getExt(){calls++;}}};
+    for(const query of ['extSource=','extSource=bogus','extSource=primary_snapshot&extSource=primary_snapshot',
+      'extSource=primary_snapshot&extSource=tiingo_boats','view=regular&extSource=primary_snapshot']) {
+      assert.equal(handleQuotesRequest(new URLSearchParams('syms=NVDA&'+query),now,deps).status,400);
+    }
+    assert.equal(calls,0);
+    assert.equal(handleQuotesRequest(new URLSearchParams('syms=&extSource=tiingo_boats'),now,deps).status,200);
+  });
+});
+
+it('primary_snapshot refuses non-US/macro routes before their independent provider demand', () => {
+  const { handleQuotesRequest } = require('../lib/quotes');
+  let calls=0;
+  const deps={macroFeed:{demand(){calls++;throw Error('macro provider demand');},getAll(){calls++;throw Error('macro read');}}};
+  for(const sym of ['CL=F','^GSPC','DX-Y.NYB','BTC-USD','0700.HK','DFII10']) {
+    const query=new URLSearchParams({syms:sym,extSource:'primary_snapshot'});
+    assert.equal(handleQuotesRequest(query,Date.parse('2026-10-23T12:00:00Z'),deps).status,400);
+  }
+  assert.equal(calls,0);
+});
