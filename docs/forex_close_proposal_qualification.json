@@ -1,0 +1,33 @@
+{
+  "schema": "forex.close-proposal-qualification.v1",
+  "status": "OFFLINE_ADAPTER_QUALIFIED_NOT_INSTALLED",
+  "terminal_base": "725764d24ec0c003d2a68fe20a004523a9614ec2",
+  "macro_evaluator_commit": "e2169fe462017d849b525c16dd44d2f45a69393a",
+  "macro_evaluator_git_blob": "aea6b913a9642a34b6cfb26657c0c970ee639ede",
+  "macro_config_git_blob": "b6fc888269876242597da354aaa726c20ed95802",
+  "identity_functions_ast_unchanged_from_acquisition": true,
+  "tests_passed": 76,
+  "tests_skipped": 0,
+  "completed_at_utc": "2026-10-24T03:06:34.314167+00:00",
+  "source_sha256": "27ccb04989efdd95dd1c847703c11a62e20f3f4928391ad645255ebd22c33089",
+  "tests_sha256": "c29487bc63602a60677cc6a1a097992d6026b3df062be924cce7fc091e95d7d2",
+  "retained_result_sha256": "18eb2a2f4df53e7d5ea1f4f9308a8cab8813cbd6992bc22eddcc30b3ebc25c16",
+  "retained_log_sha256": "9c837f895a113e8380ce2603127c792f5f600e3a248670388aab4dcad88c4212",
+  "scope": [
+    "new inert adapter",
+    "deterministic contract tests",
+    "actual pinned evaluator and incumbent identity integration"
+  ],
+  "not_proven": [
+    "source adoption",
+    "SQL atomicity",
+    "independent review",
+    "activation",
+    "delivery"
+  ],
+  "original_refused_sql_run": "forex-r26-source-fence-proposal-20261024-sol-001",
+  "original_refused_sql_retry_allowed": false,
+  "no_engine_or_sql_edits": true,
+  "no_credentials_or_network_acquisition": true,
+  "source_image_env_absent": true
+}
