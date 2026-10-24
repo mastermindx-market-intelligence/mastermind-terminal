@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect } from "react";
 import Link from "next/link";
 import { useFuturesText } from "@/lib/futuresUiCopy";
 import { useSearchParams } from "next/navigation";
@@ -79,9 +79,9 @@ export default function OptionsWorkspace() {
   const futuresText = useFuturesText();
   const searchParams = useSearchParams();
   const rawTab = searchParams.get("tab");
-  const [activeView, setActiveView] = useState<OptionsWorkspaceViewKey>(
-    () => (rawTab && ROUTE_VIEW[rawTab]) || DEFAULT_VIEW,
-  );
+  // Native history changes and Back/Forward update useSearchParams through
+  // Next's router. Derive the view on every render so the URL stays authoritative.
+  const activeView = (rawTab && ROUTE_VIEW[rawTab]) || DEFAULT_VIEW;
 
   // Redirected legacy destinations are handled before this component in normal
   // requests. Keep a client guard for a passthrough or stale cached route.
@@ -94,7 +94,6 @@ export default function OptionsWorkspace() {
   }, [rawTab]);
 
   const selectView = useCallback((view: OptionsWorkspaceViewKey) => {
-    setActiveView(view);
     const pageKey = view === "statistics" ? "statistics" : OPTIONS_IA_VIEW_BY_KEY[view].pageKey;
     writeTabToUrl(pageKey);
   }, []);
