@@ -58,6 +58,7 @@ function sha256Of(abs: string): string {
 describe("B-PL-6 batch 1 evidence lock is the sha256 of the layout sources", () => {
   it("EVIDENCE.yml records a sha256 for AnalysisWorkspace.tsx", () => {
     const recorded = layoutFileMap(evidenceText());
+    expect(recorded["terminal/components/SearchModal.module.css"], "layoutFiles is missing the imported search presentation").toMatch(/^[0-9a-f]{64}$/);
     expect(recorded["terminal/components/workspaces/AnalysisWorkspace.tsx"], "layoutFiles is missing AnalysisWorkspace.tsx").toMatch(/^[0-9a-f]{64}$/);
   });
 

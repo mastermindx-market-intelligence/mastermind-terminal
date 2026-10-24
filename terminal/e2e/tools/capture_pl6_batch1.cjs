@@ -29,6 +29,7 @@ const FAILURE_OUT = process.env.TERMINAL_CAPTURE_FAILURE_DIR || OUT;
 const LAYOUT_FILES = [
   "terminal/components/OptionsHubView.tsx",
   "terminal/components/SearchModal.tsx",
+  "terminal/components/SearchModal.module.css",
   "terminal/components/SearchModalCompare.module.css",
   "terminal/components/StockAnalysis.tsx",
   "terminal/components/workspaces/AnalysisWorkspace.tsx",

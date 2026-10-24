@@ -382,13 +382,14 @@ describe("existing next-observation draft field", () => {
 
 describe("retained Plan composition in the actual existing Workspace",()=>{
  it.each(["revise","duplicate","assess"])("keeps the exact whole Plan through an explicit %s without modifying the source revision",async action=>{
-  const original={...manifest,schema:"investigation_manifest.v3" as const,option_plan:structuredClone(planFixture) as NonNullable<InvestigationManifest["option_plan"]>,review:{assessment:"inconclusive" as const,note:"Original observation"}};
+  const optionRef={owner:"terminal.options_exposure",object_type:"rotation_measurement",object_id:"exact-options-source-A",mode:"pinned" as const,version_ref:"retained-vintage-A"};
+  const original={...manifest,evidence_refs:[...manifest.evidence_refs,optionRef],schema:"investigation_manifest.v3" as const,option_plan:structuredClone(planFixture) as NonNullable<InvestigationManifest["option_plan"]>,review:{assessment:"inconclusive" as const,note:"Original observation"}};
   const before=JSON.stringify(original);detailReply={status:200,body:{...foundBody,current_revision:2,manifest:original}};
   await mount(SOURCE_ID);
   if(action==="assess"){
    await click("Contradicted");await click("Save as revision 3");
   }else{
-   await click(action==="duplicate"?"Duplicate as new research":"Edit saved question");await click("Save research");
+   await click(action==="duplicate"?"Duplicate as new research":"Edit saved question");expect(host.querySelector('[data-testid="options-evidence"]')?.textContent).toContain(optionRef.object_id);await click("Save research");
   }
   expect(posts).toHaveLength(1);const c=posts[0];expect(c.manifest.schema).toBe("investigation_manifest.v3");expect(c.manifest.option_plan).toEqual(original.option_plan);expect(c.manifest.argument_relations).toEqual(original.argument_relations);expect(c.manifest.evidence_refs).toEqual(original.evidence_refs);expect(c.manifest.thesis_refs).toEqual(original.thesis_refs);
   expect(c.expected_revision).toBe(action==="duplicate"?0:2);expect(c.action).toBe(action==="duplicate"?"create":"revise");expect(c.manifest.review).toEqual(action==="assess"?{assessment:"contradicted"}:original.review);expect(JSON.stringify(original)).toBe(before);
