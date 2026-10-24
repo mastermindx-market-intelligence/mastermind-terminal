@@ -15,7 +15,8 @@ export function OptionsPlanDraftEditor({ draft, lang, onApply, onClose, contextD
   onClose: () => void;
   contextDescription?: string;
   applyLabel?: string;
-  onEdit?: () => void;
+  /** Current validated inputs on every edit; null refuses handoff while invalid. */
+  onEdit?: (draft: OptionsPlanDraft | null) => void;
   /** Planning surfaces prioritize authored trade controls; existing callers keep full evidence layout. */
   layout?: "full" | "planning";
 }) {
@@ -34,28 +35,39 @@ export function OptionsPlanDraftEditor({ draft, lang, onApply, onClose, contextD
     <button type="button" className={`chip ${styles.planControl}`} onClick={onClose}>{t("Close draft", "关闭草稿")}</button>
   </section>;
   const frozen = checked.value;
-  const changeLeg = (i: number, patch: Partial<typeof assumptions[number]>) => {
-    onEdit?.();
-    setAssumptions(values => values.map((v, index) => index === i ? { ...v, ...patch } : v));
-    setError(false);
-  };
   const entryNumber = (s: string) => /^(?:\d+(?:\.\d*)?|\.\d+)$/.test(s) ? Number(s) : NaN;
-  const submit = (e: FormEvent) => {
-    e.preventDefault();
+  const currentDraft = (values = assumptions, notes = research) => {
     const candidate = {
-      ...frozen, research,
+      ...frozen, research: notes,
       legs: frozen.legs.map((leg, i) => ({
         snapshot: leg.snapshot,
         assumptions: {
-          side: assumptions[i].side || null,
-          quantity: assumptions[i].quantity === "" ? null : /^\d+$/.test(assumptions[i].quantity) ? Number(assumptions[i].quantity) : NaN,
-          entry: assumptions[i].entry === "" ? null : {
-            kind: "user_assumption", premium_per_unit: entryNumber(assumptions[i].entry), currency: assumptions[i].usd ? "USD" : null,
+          side: values[i].side || null,
+          quantity: values[i].quantity === "" ? null : /^\d+$/.test(values[i].quantity) ? Number(values[i].quantity) : NaN,
+          entry: values[i].entry === "" ? null : {
+            kind: "user_assumption", premium_per_unit: entryNumber(values[i].entry), currency: values[i].usd ? "USD" : null,
           },
         },
       })),
     };
-    const result = validateOptionsPlanDraft(candidate);
+    return validateOptionsPlanDraft(candidate);
+  };
+  const edited = (values: typeof assumptions, notes = research) => {
+    const result = currentDraft(values, notes);
+    onEdit?.(result.ok ? result.value : null);
+    setError(false);
+  };
+  const changeLeg = (i: number, patch: Partial<typeof assumptions[number]>) => {
+    const next = assumptions.map((v, index) => index === i ? { ...v, ...patch } : v);
+    edited(next); setAssumptions(next);
+  };
+  const changeResearch = (patch: Partial<typeof research>) => {
+    const next = { ...research, ...patch };
+    edited(assumptions, next); setResearch(next);
+  };
+  const submit = (e: FormEvent) => {
+    e.preventDefault();
+    const result = currentDraft();
     if (!result.ok) { setError(true); return; }
     setError(false);
     onApply(result.value);
@@ -63,9 +75,9 @@ export function OptionsPlanDraftEditor({ draft, lang, onApply, onClose, contextD
   const cellText = (cell: CompareCell) => cell.state === "value" ? String(cell.value)
     : cell.state === "missing" ? t("Missing in this snapshot", "此快照缺失") : t("Not supplied", "来源未提供");
   const researchFields = <>
-      <label htmlFor={`${id}-thesis`}>{t("Research thesis", "研究观点")}<textarea id={`${id}-thesis`} value={research.thesis} onChange={e => { onEdit?.(); setResearch(v => ({ ...v, thesis: e.target.value })); setError(false); }} /></label>
-      <label htmlFor={`${id}-invalidation`}>{t("What would invalidate the thesis?", "哪些情况会推翻观点？")}<textarea id={`${id}-invalidation`} value={research.invalidation} onChange={e => { onEdit?.(); setResearch(v => ({ ...v, invalidation: e.target.value })); setError(false); }} /></label>
-      <label htmlFor={`${id}-horizon`}>{t("Research horizon — separate from option expiry", "研究期限——与合约到期日分别记录")}<input id={`${id}-horizon`} value={research.horizon} onChange={e => { onEdit?.(); setResearch(v => ({ ...v, horizon: e.target.value })); setError(false); }} /></label>
+      <label htmlFor={`${id}-thesis`}>{t("Research thesis", "研究观点")}<textarea id={`${id}-thesis`} value={research.thesis} onChange={e => { changeResearch({ thesis: e.target.value }); }} /></label>
+      <label htmlFor={`${id}-invalidation`}>{t("What would invalidate the thesis?", "哪些情况会推翻观点？")}<textarea id={`${id}-invalidation`} value={research.invalidation} onChange={e => { changeResearch({ invalidation: e.target.value }); }} /></label>
+      <label htmlFor={`${id}-horizon`}>{t("Research horizon — separate from option expiry", "研究期限——与合约到期日分别记录")}<input id={`${id}-horizon`} value={research.horizon} onChange={e => { changeResearch({ horizon: e.target.value }); }} /></label>
   </>;
   return <section className={`${styles.cmp}${layout === "planning" ? ` ${styles.planCompact}` : ""}`} aria-labelledby={`${id}-title`} data-testid="options-plan-draft">
     <div className={styles.cmpHd}><h3 className={styles.cmpTitle} id={`${id}-title`}>{t("Plan draft", "计划草稿")}</h3>

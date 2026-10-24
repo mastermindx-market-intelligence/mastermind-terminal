@@ -1516,6 +1516,8 @@ export interface OptionsHubViewProps {
   hideTabStrip?: boolean;
   /** Whole canonical draft only; an admitted Investigation owner supplies Save. */
   onPlanDraftChange?: (draft: OptionsPlanDraft) => void;
+  /** Every editor change, including null for invalid input or explicit close. */
+  onPlanDraftInputChange?: (draft: OptionsPlanDraft | null) => void;
 }
 
 // No external hydration events are needed: React compares the server and client snapshots.
@@ -1529,6 +1531,7 @@ export default function OptionsHubView({
   onTab,
   hideTabStrip,
   onPlanDraftChange,
+  onPlanDraftInputChange,
 }: OptionsHubViewProps = {}) {
   const { lang } = useLang();
   const t = useT();
@@ -3617,6 +3620,7 @@ export default function OptionsHubView({
                   onShowInList={showPinInList}
                   scopeKey={planScope}
                   onPlanDraftChange={onPlanDraftChange}
+                  onPlanDraftInputChange={onPlanDraftInputChange}
                 />
               )}
               {screenerLoading && !oiData && !hotData && !feed && (

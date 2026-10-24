@@ -20,6 +20,16 @@ const render = async (scopeKey: string, selected = pins(), onDraftChange = vi.fn
   return onDraftChange;
 };
 describe("shortlist → exact Plan", () => {
+  it("exposes current inputs on open and invalidates the handoff on close or source replacement", async () => {
+    const current = vi.fn();
+    const mount = async (scopeKey: string) => act(async () => root.render(<OptionsShortlistPlan pins={pins()} scopeKey={scopeKey} lang="en" onDraftInputChange={current} />));
+    await mount("a/1"); await click(host.querySelector("button")!);
+    expect(current.mock.lastCall?.[0].legs[0].assumptions.entry).toBeNull();
+    await click([...host.querySelectorAll("button")].find(b => b.textContent === "Close draft")!);
+    expect(current.mock.lastCall?.[0]).toBeNull();
+    await click(host.querySelector("button")!); expect(current.mock.lastCall?.[0]).not.toBeNull();
+    await mount("a/2"); expect(current.mock.lastCall?.[0]).toBeNull();
+  });
   it("copies the exact retained selection with all assumptions null; close restores context/focus", async () => {
     const changed = await render("account-a/0");
     await click(host.querySelector("button")!);

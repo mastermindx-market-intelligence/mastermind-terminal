@@ -15,6 +15,21 @@ async function changeEntry(value: string) {
   await act(async () => { Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!.call(el, value); el.dispatchEvent(new Event("input", { bubbles: true })); });
 }
 describe("Plan editor to conditional curve", () => {
+  it("returns current edited inputs for a handoff, never the previous calculation or invalid text", async () => {
+    const applied = vi.fn(), current = vi.fn();
+    vi.stubGlobal("fetch", vi.fn(async (_url, init) => new Response(JSON.stringify(response(JSON.parse(init.body) as PlanExpiryRequest)), { status: 200 })));
+    await act(async () => root.render(<OptionsPlanPayoffPanel scopeKey="account/selection" draft={draft()} lang="en" onDraftChange={applied} onDraftInputChange={current} onClose={() => undefined} />));
+    await submit();
+    expect(applied.mock.calls[0][0].legs[0].assumptions.entry.premium_per_unit).toBe(2);
+    await changeEntry("6");
+    expect(current.mock.lastCall?.[0].legs[0].assumptions.entry.premium_per_unit).toBe(6);
+    expect(current.mock.lastCall?.[0].legs[0].snapshot).toEqual(draft().legs[0].snapshot);
+    expect(applied).toHaveBeenCalledOnce();
+    expect(host.querySelector('svg[role="img"]')).toBeNull();
+    await changeEntry("not a premium");
+    expect(current.mock.lastCall?.[0]).toBeNull();
+    expect(applied).toHaveBeenCalledOnce();
+  });
   it.each(["en", "zh"] as const)("renders exact assumptions and bounded result in %s then clears on edit", async lang => {
     const saved = vi.fn(), fetcher = vi.fn(async (_url, init) => new Response(JSON.stringify(response(JSON.parse(init.body) as PlanExpiryRequest)), { status: 200 }));
     vi.stubGlobal("fetch", fetcher);

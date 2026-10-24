@@ -143,3 +143,42 @@ captures are2495px EN and2341px ZH (the preceding ZH path was2887px); full-page
 height also includes the unchanged workspace chrome, tray, payoff and source
 table. Refreshed mounted-{en,zh}-{desktop,mobile}.png captures were inspected.
 No source/private transport, canonical payload, persistence or effect ID changed.
+
+
+## Native Investigation composition preparation
+
+`OptionsPlanInvestigationHost` is a disjoint, currently unmounted frame over the
+existing `InvestigationWorkspaceMount`. Props derive from that exact mount;
+no second workspace, Save command, storage, URL Plan payload or manifest is added.
+The authenticated host supplies `ownerKey`; account epoch and exact-selection
+keys destroy prior host state. Opening requires an explicit gesture. Native New
+research remains the way to create a fresh draft. Back hides rather than destroys
+the workspace and restores trigger focus, retaining native inputs and pending
+operation custody.
+
+The editor's optional `onEdit` now receives current canonical validated inputs
+or null for invalid text, synchronously from the edit event. Payoff panel and Hub
+expose this separately as `onDraftInputChange` / `onPlanDraftInputChange`; the old
+non-null applied-draft callback remains unchanged. Close and keyed source
+unmount invalidate current inputs. The changed-entry-before-handoff case proves
+that a prior calculation cannot silently replace edited inputs; invalid text
+yields no current canonical draft. A handoff must consume this current-input
+seam and the native owner's synchronous admission checks.
+
+This source does not yet wire admission: the active IW2 owner is delivering typed
+admission/revision callbacks and an opt-in embedded history policy on its own
+Workspace carrier. Incumbent history writes target `/analysis`; mounting it inside
+`/options` before that policy would lose Options context on New/open/Save. Next
+composition uses the owner's accepted exact source, native New, an explicit
+add-inputs gesture and exact revision readback. Saved inputs do not retain or
+reproduce an ephemeral calculation; reopened Plans calculate only on explicit
+request with newly displayed dated terms. Native runtime Save remains held by
+its actual platform/release boundaries. Product copy must simply state that
+saving is unavailable and the current Plan is a draft.
+
+No `OptionsWorkspace`/navigation or active IW2 file is changed. Later mounting
+preserves the single 1159 writer and 1162 release order. No hosted CI, runtime
+Save, provider acquisition, private install or configuration effect follows.
+Affected checks: 5 editor + 8 payoff panel + 4 host + 4 shortlist + 2 account
+lifetime tests PASS; tsc and changed-file lint PASS. Host is not a browser or
+Save acceptance claim. Accepted compact-layout pixels are unchanged.

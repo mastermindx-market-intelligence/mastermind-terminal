@@ -378,12 +378,14 @@ export function ContractShortlistTray({
   onShowInList,
   scopeKey = "session",
   onPlanDraftChange,
+  onPlanDraftInputChange,
 }: {
   shortlist: ContractShortlistController;
   active: boolean;
   onShowInList: (pin: ShortlistPin) => PinLocation;
   scopeKey?: string;
   onPlanDraftChange?: (draft: OptionsPlanDraft) => void;
+  onPlanDraftInputChange?: (draft: OptionsPlanDraft | null) => void;
 }) {
   const { lang } = useLang();
   const t = useShortlistT();
@@ -494,7 +496,7 @@ export function ContractShortlistTray({
       <p className={styles.status} role="status" aria-live="polite">
         {shortlist.message}
       </p>
-      {pins.length > 0 && <OptionsShortlistPlan pins={pins} scopeKey={scopeKey} lang={lang} onDraftChange={onPlanDraftChange} />}
+      {pins.length > 0 && <OptionsShortlistPlan pins={pins} scopeKey={scopeKey} lang={lang} onDraftChange={onPlanDraftChange} onDraftInputChange={onPlanDraftInputChange} />}
       {open && canCompare && <ComparePanel pins={pins} t={t} />}
     </div>
   );
