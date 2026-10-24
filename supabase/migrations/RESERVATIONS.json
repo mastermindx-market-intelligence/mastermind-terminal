@@ -465,9 +465,10 @@
       "packet": "B-MO-DELTA-003-PORTFOLIO-ROLE",
       "pr": 1173,
       "pr_state": "merged",
-      "applied_in_production": false,
-      "applied_date": null,
-      "note": "PR #1173 opened 2026-10-24 after complete 169-open-PR filename census and current reservation-ledger joins. Protected max0042; existing #804 owns0043. Optional owner-authored role on existing portfolio_targets, unchanged RLS/grants/monetary fields. SOURCE ONLY/UNAPPLIED; application date not recorded because no application occurred. Preserve applied0036 and superseded #866; no old SQL replay. PR #1173 source merged in protected master 424ed4a2c700955dc35354d597611219d8ef6980 on 2026-10-24; reservation metadata reconciled only, SQL remains unapplied."
+      "applied_in_production": true,
+      "applied_date": "2026-10-24",
+      "note": "PR #1173 merged424ed4a2. Exact SQL applied once2026-10-24T20:43:40Z through incumbent supabase_apply/1, one statement; original status unverified/exit6/error null retained because ALTER column/constraint are not discovered by expected_objects. Separate readonly catalog qualification confirms exact nullable role column/validated constraint and unchanged existing columns/constraints/RLS/ACL/policies/triggers. Receipt comment6389324788 and docs/verification/portfolio-role preserve evidence; public receipt derivative redacts only project_ref. No role labels or browser actions; owner acceptance remains open. No replay;0042/0030 unchanged.",
+      "merged_sha": "424ed4a2c700955dc35354d597611219d8ef6980"
     }
   }
 }

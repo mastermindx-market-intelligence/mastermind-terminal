@@ -372,7 +372,7 @@ async function assertTakenEntry(page: Page, zh: boolean, label: string, testInfo
   // ── the rail: the ORDINARY entry verdict, not the amber refusal card ──
   const signalButton = page.locator(".sig-btn");
   await signalButton.scrollIntoViewIfNeeded();
-  await expect(signalButton.locator(".sig-btn-go .sig-btn-vd")).toHaveText(zh ? "买入" : "Buy");
+  await expect(signalButton.locator(".sig-btn-go .sig-btn-vd")).toHaveText(zh ? "已确认买入" : "Confirmed Buy");
   await expect(signalButton.locator(".sig-btn-go .sig-btn-vd"))
     .not.toHaveText(zh ? "买点触发 — 趋势闸拦截" : "Entry trigger — regime-blocked");
   await expect(signalButton).toHaveAttribute(
@@ -431,7 +431,8 @@ async function assertTakenEntry(page: Page, zh: boolean, label: string, testInfo
   await expect(dialog).toBeVisible();
   await dialog.getByRole("tab", { name: zh ? "神谕" : "Oracle", exact: true }).click();
   const oracle = dialog.getByTestId("workspace-oracle");
-  await expect(oracle.locator(".od-verdict")).toHaveText(zh ? "买入" : "Buy");
+  await expect(oracle.locator(".od-verdict")).toHaveText(zh ? "已确认买入" : "Confirmed Buy");
+  await expect(oracle.getByTestId("workspace-oracle-entry-availability")).toHaveAttribute("data-status", "UNAVAILABLE_DATA");
   const line2 = oracle.getByTestId("workspace-oracle-disclosure");
   await expect(line2).toHaveText(
     zh ? "深度洗盘例外入场 — 铀矿商板块距高点 −38%"
