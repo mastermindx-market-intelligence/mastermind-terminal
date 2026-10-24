@@ -29,6 +29,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { flowGet } from "@/lib/flowClientCache";
 import { useLang } from "@/lib/i18n";
 import { makeProphetT, phaseWhy } from "./prophetStrings";
+import { prophetSourceVintage } from "./prophetSourceVintage";
 import {
   SelectionCohortCard,
   SelectionCohortMastheadTile,
@@ -256,18 +257,11 @@ export function ProphetView() {
   const activePlans = sortedPlans.filter((p) => planPhase(p) !== "invalidated").length;
   const marksFresh  = marksAreFresh(marks);
   const asofLabel   = fmtDate(payload?.asof, lang) ?? (lang === "zh" ? "等待更新" : "Awaiting close");
-  // Publication clock and underlying ranked-price evidence have different owners.
-  // Never infer fresh source data merely because the publication clock advanced.
-  const sourceDate = typeof payload?.source_asof === "string" && /^\d{4}-\d{2}-\d{2}(?:$|T|\s)/.test(payload.source_asof)
-    ? payload.source_asof.slice(0, 10)
-    : null;
-  const sourceLabel = sourceDate ? fmtDate(sourceDate + "T12:00:00Z", lang) : null;
-  const sourceUnknown = payload?.source_unknown === true || !sourceLabel;
-  const sourceWarnings = [
-    ...(sourceUnknown ? [t("mastheadSourceUnknown")] : []),
-    ...(payload?.source_delayed === true ? [t("mastheadSourceDelayed")] : []),
-    ...(payload?.source_mixed_vintage === true ? [t("mastheadSourceMixed")] : []),
-  ];
+  const sourceVintage = prophetSourceVintage(payload, lang);
+  const sourceWarnings = sourceVintage.warnings.map((status) => t(
+    status === "unknown" ? "mastheadSourceUnknown"
+      : status === "delayed" ? "mastheadSourceDelayed" : "mastheadSourceMixed",
+  ));
 
   // ── Full-pane states ───────────────────────────────────────────────────────
 
@@ -316,7 +310,7 @@ export function ProphetView() {
           </div>
           <div className="obs-prophet-stat" data-testid="prophet-source-vintage">
             <span>{t("mastheadSourceThrough")}</span>
-            <b>{sourceLabel ?? "—"}</b>
+            <b>{sourceVintage.label ?? "—"}</b>
             {sourceWarnings.length > 0 && (
               <span role="status" style={{ color: "var(--muted, #999)", fontSize: 10, lineHeight: 1.3 }}>
                 {sourceWarnings.join(" · ")}
