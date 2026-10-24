@@ -1,3 +1,4 @@
+# Current scoped source: composedDocumentLanguageProductionJoin20261024; parent records retain their original identities.
 # Current source qualification: documentLanguageRecapture20261024. Older recapture sections below remain historical.
 # Current Company design recapture is sharedShellCompanyDesignRecapture20261022; prior records remain historical.
 # Historical manifest history is retained below. Current scoped capture/source identity is sharedShellRefinementRecapture20261022.
@@ -46,7 +47,7 @@ layoutFiles:
   terminal/components/chrome/investor-shell-preview.css: "83d1842b9b057014f698d5e62627c3e492a1061d0e8713b7a2bdc3ca8753650e"
   terminal/components/chrome/shared-shell/shared-shell.css: "aa6555ac18306f31fb317d8941bd1dd530ab7c61c18e67d2a73a439329950339"
   terminal/app/(shell)/layout.tsx: "76270446f1ff2b2f60393eacb81d3ccb1c5f6e7c7b20b96d85b535c7d1da5b9a"
-  terminal/next.config.ts: "a0dc8c710922b25d865eb966c4da69a77c953bb6b98a9b5e0ed00d7e78beaf40"
+  terminal/next.config.ts: "2fa9402645a4312f9846e9f73b6df076e6747723041a5f2da4c6ada3c4cf375e"
   terminal/lib/investorShellPreview.ts: "d0e7797ffba0bfdda2fdabc1312abe07e631b5060ed9c58bbb320ed4b50624e9"
   terminal/lib/sharedShellContracts.ts: "dc7c893852c287b2a18c6b71cbced07bfa0996c1168490c5a8c24e4d3de01266"
   terminal/app/company-intelligence.css: "8b43f2046891837f6572fa2a59b7594547def9602b0454e1f14edba322da2a34"
@@ -63,8 +64,8 @@ layoutFiles:
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
   terminal/lib/flowActivity.ts: "eb1433e57c7b63a52978aa4e63419e62b3e1a0e0210869f93838a8b7529ce332"
 cropFiles:
-  desktop-context.png: "2cc43c8059881d2ec6242835fb2d6f37fc7938e814b88ca2529975d7a1bd22bf"
-  desktop-context-zh.png: "dfbcd1af1fb83678f75012f2dba1ac6d83a689998bc792f307e24c09c0aef505"
+  desktop-context.png: "1c3540dd0ca90aa5b06aecf40a2af7a93cbe2557d94502b7e4d49327f1eb5b94"
+  desktop-context-zh.png: "ff89bce5a6e70b7ee0da2435b26d9334000d98fbe20ba29a682fb416547d7a9a"
   mobile-context.png: "4bb912458a311faed7e779e24dffda3907ce5af4eec95dbc1a9f21ae3978bbe7"
   mobile-context-zh.png: "e405b67dd7664ccbe130e97c455a536b24e7b85ab51af9f96ec135e030608622"
   tablet-context.png: "876d593ae5cbee00ff1326e661de1739f2a094bf621636d74473093218388234"
@@ -620,6 +621,12 @@ ex03Post1140ProtectedIntegration20261023:
   productionProof: false
   receipt: "../ex03-search/ci-repair-20261022/post1140-master-integration-20261023.json"
 
+productionShellBuildConfigRecapture20261024:
+  sourceHead: "08bca3d53b52f245f081fed26cfd7ac352c52488"
+  receipt: production-shell-config-recapture.json
+  scope: "desktop-context.png, desktop-context-zh.png, tablet-context.png, tablet-context-zh.png, mobile-context.png, mobile-context-zh.png"
+  qualification: "Actual local ordinary-profile captures; prior functional reports and unrecaptured images retain their original identities."
+
 documentLanguageRecapture20261024:
   sourceHead: e2846880681d4b9aff4a060e1321f50f240cafc7
   historicalSource: 919114d1c27f0f588d9d5a4d52574f19b0137d6d
@@ -629,3 +636,9 @@ documentLanguageRecapture20261024:
   actualCrops: Six EN/ZH desktop, tablet, mobile current Chart context captures
   receiptIndex: ../document-language/recapture-index.json
   productionProof: false
+
+composedDocumentLanguageProductionJoin20261024:
+  sourceHead: "03e678a8992b484a3bbf0d385e23724e8cf5f95b"
+  receipt: composed-language-production-recapture.json
+  scope: "desktop-context.png, desktop-context-zh.png, tablet-context.png, tablet-context-zh.png, mobile-context.png, mobile-context-zh.png"
+  qualification: "Actual joined-source ordinary-profile local captures; historical full30 and prior6 reports are retained, not relabeled."
