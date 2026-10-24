@@ -38,7 +38,11 @@ for (const lang of ["en", "zh"] as const) {
     await expect(tile).toContainText("20");
     await expect(tile).toContainText(lang === "zh" ? "数据延迟" : "Delayed");
     await expect(tile).toContainText(lang === "zh" ? "数据时点不一致" : "Mixed vintages");
-    await expect(page.locator(".obs-prophet-masthead")).toContainText("23");
+    const published = page.locator(".obs-prophet-stat").filter({
+      hasText: lang === "zh" ? "模型收盘" : "Model close",
+    });
+    await expect(published).toContainText("23");
+    await expect(published).not.toContainText("22");
     await expect(tile).not.toContainText("23");
   });
   test(`Prophet reports missing source date as unknown, never current (${lang})`, async ({ page }) => {
