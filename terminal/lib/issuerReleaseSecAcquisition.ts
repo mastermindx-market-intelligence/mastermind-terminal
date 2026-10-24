@@ -52,6 +52,18 @@ function timestamp(raw:unknown):raw is string {
   return date.getUTCFullYear()===Number(m[1])&&date.getUTCMonth()===Number(m[2])-1&&date.getUTCDate()===Number(m[3])
     &&date.getUTCHours()===Number(m[4])&&date.getUTCMinutes()===Number(m[5])&&date.getUTCSeconds()===Number(m[6]);
 }
+/** Compare supported ISO instants without dropping the acquisition record's
+ * micro/nanoseconds. Date.parse alone truncates them to milliseconds. */
+export function secAcquisitionNoLaterThan(acquiredAt:string,bound:string):boolean {
+  if(!timestamp(acquiredAt)||typeof bound!=="string"
+    ||!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:Z|[+-]\d{2}:\d{2})$/.test(bound)
+    ||!timestamp(bound.replace(/[+-]\d{2}:\d{2}$/, "Z")))return false;
+  const acquiredMs=Date.parse(acquiredAt),boundMs=Date.parse(bound);
+  if(!Number.isFinite(boundMs))return false;
+  if(acquiredMs!==boundMs)return acquiredMs<boundMs;
+  const submillis=(value:string)=>Number((/\.(\d+)(?:Z|[+-]\d{2}:\d{2})$/.exec(value)?.[1]??"").padEnd(9,"0").slice(3));
+  return submillis(acquiredAt)<=submillis(bound);
+}
 function header(raw:unknown,max:number):string|null|undefined {
   return raw===null?null:typeof raw==="string"&&raw.length<=max?raw:undefined;
 }

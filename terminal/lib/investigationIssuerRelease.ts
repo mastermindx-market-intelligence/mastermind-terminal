@@ -1,7 +1,7 @@
 /** Reference-only selection over the existing immutable Earnings owner. */
 import {createHash} from "node:crypto";
 import {canonicalInvestigationJson} from "./investigationContracts";
-import {parseSecAcquisitionReceipt,type SecAcquisitionReceipt} from "./issuerReleaseSecAcquisition";
+import {parseSecAcquisitionReceipt,secAcquisitionNoLaterThan,type SecAcquisitionReceipt} from "./issuerReleaseSecAcquisition";
 import {resolveRetainedEventWorkspaceFromR2,resolveRetainedEventWorkspaceAtCutoff,
   type EventWorkspace,type EventWorkspaceReplayResult,type RetainedEventWorkspaceResult,
   type RetainedEventWorkspacePin,type RetainedEventWorkspaceReceipt,type EventWorkspaceSource} from "./eventWorkspace";
@@ -51,7 +51,7 @@ export const SELECTED_SEC_READ_POLICY=Object.freeze({
   purpose:"investigation.selected_issuer_release",action:"read",reviewed_on:"2026-10-24",
   basis:Object.freeze(["https://www.sec.gov/files/about/webmaster-faq.htm","https://www.sec.gov/about/privacy-information"]),
   acquisition_schema:"earnings_release.sec_acquisition.v1",
-  acquisition_schema_sha256:"a630622d64cccca2ef73de1af0263120331613537f74e4dfc52863548b66832b",
+  acquisition_schema_sha256:"da8340856158166353f1672904d14b922e2c95fbb5bf51c074fbbff3f8ffb41f",
   eligibility:"Existing trusted owner retained a matching typed SEC public-filing acquisition receipt",
   rules:Object.freeze([
     "Canonical HTTPS sec.gov or www.sec.gov filing document; matching issuer CIK and accession; no escapes, userinfo, ports, queries, fragments or indexes",
@@ -87,7 +87,7 @@ export function createSelectedIssuerReleaseReadOptions(principal_id:string,signa
       ||!identity.filing_key||identity.company_id!==`cik:${identity.filing_key.cik}`||!source.source_url)throw Error("rights_unavailable");
     const receipt=parseSecAcquisitionReceipt(source.acquisition_receipt,{filing_key:identity.filing_key,source_url:source.source_url,source_sha256:identity.source_sha256});
     // This is a request decision clock, not a filing/publication/source clock.
-    if(!receipt||!Number.isFinite(Date.parse(scope.checked_at))||Date.parse(receipt.acquired_at)>Date.parse(scope.checked_at))throw Error("rights_unavailable");
+    if(!receipt||!secAcquisitionNoLaterThan(receipt.acquired_at,scope.checked_at))throw Error("rights_unavailable");
     return {allowed:true,family:"sec_edgar",policy_version:SELECTED_SEC_READ_POLICY.policy_version,registry_revision:SELECTED_SEC_POLICY_REVISION,
       permitted_display_class:"direct_display_ok",checked_at:scope.checked_at,document_id:identity.document_id,source_sha256:identity.source_sha256,
       decision_binding:decisionBinding(identity,requestScope)};

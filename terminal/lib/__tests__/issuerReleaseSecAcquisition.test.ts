@@ -162,6 +162,14 @@ describe("existing retained source normalization",()=>{
     input.generated_at="2026-08-01T00:00:00Z";
     expect(normalizeEventWorkspace(input)).not.toBeNull();
   });
+  it.each(["2026-07-30T20:30:28.000001Z","2026-07-30T20:30:28.000000001Z"])("does not truncate acquisition precision at an immutable emission boundary: %s",acquired=>{
+    const input=declared();input.sources[0].acquisition_receipt!.acquired_at=acquired;
+    expect(normalizeEventWorkspace(input)).toBeNull();
+    input.generated_at="2026-07-30T20:30:28.000001Z";
+    expect(normalizeEventWorkspace(input)).not.toBeNull();
+    input.generated_at="2026-07-30T21:30:28.000001+01:00";
+    expect(normalizeEventWorkspace(input)).not.toBeNull();
+  });
   it("refuses a present invalid record or a receipt attached to the wrong source kind",()=>{
     const input=declared();input.sources[0].acquisition_receipt!.source_sha256="a".repeat(64);
     expect(normalizeEventWorkspace(input)).toBeNull();

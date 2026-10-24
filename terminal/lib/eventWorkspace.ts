@@ -9,7 +9,7 @@
  */
 
 import { normalizeCompanyIntelligenceSymbol } from "./companyIntelligence";
-import { parseSecAcquisitionReceipt, type SecAcquisitionReceipt } from "./issuerReleaseSecAcquisition";
+import { parseSecAcquisitionReceipt, secAcquisitionNoLaterThan, type SecAcquisitionReceipt } from "./issuerReleaseSecAcquisition";
 
 export { normalizeCompanyIntelligenceSymbol };
 
@@ -1363,7 +1363,7 @@ export function normalizeEventWorkspace(
     if (!source) return null;
     // Acquisition completion belongs to this immutable emission, not to a
     // carried-forward lifecycle/source first-observation clock.
-    if (source.acquisition_receipt && Date.parse(source.acquisition_receipt.acquired_at) > Date.parse(obj.generated_at)) return null;
+    if (source.acquisition_receipt && !secAcquisitionNoLaterThan(source.acquisition_receipt.acquired_at, obj.generated_at)) return null;
     sources.push(source);
   }
   if (!Array.isArray(obj.warnings) || obj.warnings.length > MAX_WARNINGS) return null;

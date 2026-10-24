@@ -158,13 +158,16 @@ or `byte_replayed` alone cannot authorize display.
 
 The immutable owner may supply `acquisition_receipt` conforming to
 `earnings_release.sec_acquisition.v1`. The checked-in schema and synthetic byte
-vector are exact copies from Macro commit `2b4408859faf5002093000b6ecf6e4e69983d455`.
+vector are exact copies from Macro commit `2b17d6c4c3e03cfb49f6d3cd8c4ce781e9d3b607` (the synthetic byte
+vector is unchanged from `2b4408859faf5002093000b6ecf6e4e69983d455`).
 The consumer strictly validates closed fields, selected URL/hash/filing binding,
 canonical HTTPS SEC filing URLs, at most five contiguous same-filing redirects
 with raw Location validation, status 200, recorded entity/UTF8 digests and lengths,
 strict decoder policy and a real acquisition timestamp no later than its immutable
-generation emission. This bound uses emission, not a carried-forward source
-first-observation clock. Filing index and index-header URLs are refused. Valid records are copied
+generation cutoff. The producer computes that conservative whole-second cutoff
+from actual observations, including acquisition; it is not a measured wall-clock
+emission time. This bound uses the generation cutoff, not a carried-forward source
+first-observation clock, and preserves sub-millisecond acquisition precision. Filing index and index-header URLs are refused. Valid records are copied
 and deeply frozen. A present malformed receipt invalidates the owner record; an
 old record without one remains readable by its existing non-grant consumers but
 is unavailable to this selected read policy. No old timestamp or receipt is
@@ -186,7 +189,8 @@ receives a frozen `IssuerReleaseSourceContext`: the retained source URL,
 and current request scope. The server creates a fresh `checked_at` evaluation
 clock and binds the decision to the exact authenticated principal, `read` action,
 `investigation.selected_issuer_release` purpose, company, event, generation,
-document and source digest. An acquisition later than the evaluation is refused.
+document and source digest. An acquisition later than the evaluation is refused without truncating its
+microseconds or nanoseconds to the request clock's milliseconds.
 Review evaluates the saved and current generations separately; replay reauthorizes
 the saved root and every actual selected generation. A stale checked-at value,
 other tuple/principal/purpose, or wrong policy version/revision is unavailable.
@@ -198,6 +202,10 @@ newly retained receipt bytes legitimately change the existing container and
 transitive selection fingerprints; identical retained bytes keep their existing
 fingerprints. The decision carries its binding separately in selection rights;
 acquisition and request clocks do not fill unknown source/publication clocks.
+The checked-in emitted synthetic fixture retains two unique exact producer rows
+and manifests (three cases including an identical refresh). Consumer integration
+checks their original wire hashes, cutoff ordering, bounded selected projection
+and retained replay. Its mocked acquisition date is not a live observation.
 Synthetic tests establish this source contract, not real authenticated acquisition,
 production source-use permission, migration qualification or release acceptance.
 

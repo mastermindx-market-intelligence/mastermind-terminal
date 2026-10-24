@@ -25,7 +25,7 @@ function serve(workspace:unknown=admittedFixture()){
     aliases:{[pin.event_id]:pin.event_id},authority:"context_only",warnings:[]});
   const fetch=vi.fn(async(url:string)=>new Response(url.endsWith("manifest.json")?manifest:body));vi.stubGlobal("fetch",fetch);return fetch;
 }
-afterEach(()=>vi.unstubAllGlobals());
+afterEach(()=>{vi.unstubAllGlobals();vi.useRealTimers();});
 
 describe("current selected SEC read decision — source-only synthetic records",()=>{
   it("pins an honest immutable local policy definition to the exact producer schema",()=>{
@@ -78,6 +78,13 @@ describe("current selected SEC read decision — source-only synthetic records",
   it("does not relabel a future acquisition time as current evidence",async()=>{
     const input=admittedFixture();const row=input.sources[0] as typeof input.sources[0]&{acquisition_receipt:typeof synthetic.acquisition_receipt};
     row.acquisition_receipt.acquired_at=new Date(Date.now()+365*86400_000).toISOString();input.generated_at=row.acquisition_receipt.acquired_at;serve(input);
+    expect(await resolveInvestigationIssuerRelease(pin,R2,createSelectedIssuerReleaseReadOptions(A))).toMatchObject({ok:false,reason:"rights_unavailable"});
+  });
+  it("does not round a future acquisition down to the current decision millisecond",async()=>{
+    vi.useFakeTimers();vi.setSystemTime(new Date("2026-07-31T00:00:00.000Z"));
+    const input=admittedFixture();input.generated_at="2026-08-01T00:00:00Z";
+    (input.sources[0] as typeof input.sources[0]&{acquisition_receipt:typeof synthetic.acquisition_receipt}).acquisition_receipt.acquired_at="2026-07-31T00:00:00.000001Z";
+    serve(input);
     expect(await resolveInvestigationIssuerRelease(pin,R2,createSelectedIssuerReleaseReadOptions(A))).toMatchObject({ok:false,reason:"rights_unavailable"});
   });
   it("rechecks the actual replay selection and never grants unsupported replay purposes",async()=>{
