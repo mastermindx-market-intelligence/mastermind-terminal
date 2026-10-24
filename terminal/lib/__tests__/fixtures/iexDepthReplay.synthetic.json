@@ -1,0 +1,228 @@
+{
+  "schema": "mastermind.large_trades.v1",
+  "instrument": {
+    "symbol": "SPY",
+    "instrumentId": "IEX:SPY",
+    "assetClass": "equity",
+    "quantityUnit": "shares",
+    "priceScale": 10000,
+    "tickSizeInt": null,
+    "timezone": "America/New_York"
+  },
+  "provenance": {
+    "provider": "IEX",
+    "dataset": "HIST DEEP+ 1.0",
+    "venue": "IEX",
+    "scope": "venue",
+    "dataMode": "historical",
+    "evidenceMode": "HISTORICAL_REPLAY",
+    "sourceId": "iex-hist-dpls:20261005:aaaaaaaaaaaaaaaa",
+    "sourceSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "sourceRef": "https://iex.example.test/recorded-historical-source",
+    "generatedAtNs": "1791353318000000000",
+    "acquiredAtNs": "1791353317000000000",
+    "receiptBasis": "archive_acquisition",
+    "coverage": "partial",
+    "sequenceGaps": 1,
+    "delayMs": null,
+    "conditionPolicy": "IEX_DEEP_PLUS_1_0_NATIVE_L_T_VOLUME_ALL_DEFINED_FLAGS_V1",
+    "attribution": "Data provided for free by IEX. By accessing or using IEX Historical Data, you agree to the IEX Historical Data Terms of Use.",
+    "termsUrl": "https://www.iex.io/legal/hist-data-terms"
+  },
+  "range": {
+    "startNs": "1791201600000000010",
+    "endNs": "1791201604000000001"
+  },
+  "prints": [
+    {
+      "id": "iex-dpls:20261005:32773:1:123:SPY:1",
+      "kind": "trade",
+      "eventNs": "1791201600000000010",
+      "availableNs": "1791353317000000000",
+      "sourceSequence": "2",
+      "session": "20261005.8005.00000001.0000007b",
+      "priceInt": 1000000,
+      "quantity": 50,
+      "side": "buy",
+      "sideMethod": "resting_order",
+      "eligible": true,
+      "conditions": [],
+      "sourceRecordType": "L"
+    },
+    {
+      "id": "iex-dpls:20261005:32773:1:123:SPY:2",
+      "kind": "trade",
+      "eventNs": "1791201601000000010",
+      "availableNs": "1791353317000000000",
+      "sourceSequence": "4",
+      "session": "20261005.8005.00000001.0000007b",
+      "priceInt": 1000150,
+      "quantity": 30,
+      "side": "unknown",
+      "sideMethod": "unknown",
+      "eligible": true,
+      "conditions": [],
+      "sourceRecordType": "T"
+    },
+    {
+      "id": "iex-dpls:20261005:32773:1:123:SPY:3",
+      "kind": "trade",
+      "eventNs": "1791201602000000000",
+      "availableNs": "1791353317000000000",
+      "sourceSequence": "6",
+      "session": "20261005.8005.00000001.0000007b",
+      "priceInt": 1000200,
+      "quantity": 10,
+      "side": "unknown",
+      "sideMethod": "unknown",
+      "eligible": true,
+      "conditions": [],
+      "sourceRecordType": "T"
+    },
+    {
+      "id": "iex-dpls:20261005:32773:1:123:SPY:4",
+      "kind": "trade",
+      "eventNs": "1791201603000000010",
+      "availableNs": "1791353317000000000",
+      "sourceSequence": "9",
+      "session": "20261005.8005.00000001.0000007b",
+      "priceInt": 999900,
+      "quantity": 20,
+      "side": "sell",
+      "sideMethod": "resting_order",
+      "eligible": true,
+      "conditions": [],
+      "sourceRecordType": "L"
+    },
+    {
+      "id": "iex-dpls:20261005:32773:1:123:SPY:1:break:10",
+      "kind": "cancel",
+      "eventNs": "1791201604000000000",
+      "availableNs": "1791353317000000000",
+      "sourceSequence": "10",
+      "session": "20261005.8005.00000001.0000007b",
+      "priceInt": 1000000,
+      "quantity": 50,
+      "side": "unknown",
+      "sideMethod": "unknown",
+      "eligible": true,
+      "conditions": [],
+      "sourceRecordType": "B",
+      "targetId": "iex-dpls:20261005:32773:1:123:SPY:1"
+    }
+  ],
+  "responses": [],
+  "responseCoverage": "unavailable",
+  "responseKnownAtNs": null,
+  "depthReplay": {
+    "schema": "mastermind.iex_depth_snapshots.v1",
+    "symbol": "SPY",
+    "sourceSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "priceScale": 10000,
+    "quantityUnit": "shares",
+    "venue": "IEX",
+    "coverage": "partial",
+    "measurement": "discrete_observed_book_not_time_weighted",
+    "availabilityBasis": "archive_acquisition",
+    "intervalMs": 1,
+    "maxLevelsPerSide": 32,
+    "samplingTruncated": false,
+    "samples": [
+      {
+        "marketNs": "1791201601000000000",
+        "transportSendNs": "1791201601000000000",
+        "availableNs": "1791353317000000000",
+        "sourceSequence": "2",
+        "session": "20261005.8005.00000001.0000007b",
+        "status": "observed",
+        "reason": null,
+        "bids": [],
+        "asks": [
+          {
+            "priceInt": 1000000,
+            "quantity": 150
+          }
+        ],
+        "bidTotal": 0,
+        "askTotal": 150,
+        "orderCount": 1,
+        "levelsTruncated": false
+      },
+      {
+        "marketNs": "1791201602000000000",
+        "transportSendNs": "1791201602000000000",
+        "availableNs": "1791353317000000000",
+        "sourceSequence": "4",
+        "session": "20261005.8005.00000001.0000007b",
+        "status": "observed",
+        "reason": null,
+        "bids": [],
+        "asks": [
+          {
+            "priceInt": 1000100,
+            "quantity": 150
+          }
+        ],
+        "bidTotal": 0,
+        "askTotal": 150,
+        "orderCount": 1,
+        "levelsTruncated": false
+      },
+      {
+        "marketNs": "1791201603000000000",
+        "transportSendNs": "1791201603000000000",
+        "availableNs": "1791353317000000000",
+        "sourceSequence": "6",
+        "session": "20261005.8005.00000001.0000007b",
+        "status": "unavailable",
+        "reason": "source_gap_or_prefix",
+        "bids": [],
+        "asks": [],
+        "bidTotal": 0,
+        "askTotal": 0,
+        "orderCount": 0,
+        "levelsTruncated": false
+      },
+      {
+        "marketNs": "1791201604000000000",
+        "transportSendNs": "1791201604000000000",
+        "availableNs": "1791353317000000000",
+        "sourceSequence": "9",
+        "session": "20261005.8005.00000001.0000007b",
+        "status": "observed",
+        "reason": null,
+        "bids": [
+          {
+            "priceInt": 999900,
+            "quantity": 60
+          }
+        ],
+        "asks": [],
+        "bidTotal": 60,
+        "askTotal": 0,
+        "orderCount": 1,
+        "levelsTruncated": false
+      },
+      {
+        "marketNs": "1791201605000000000",
+        "transportSendNs": "1791201605000000000",
+        "availableNs": "1791353317000000000",
+        "sourceSequence": "10",
+        "session": "20261005.8005.00000001.0000007b",
+        "status": "observed",
+        "reason": null,
+        "bids": [
+          {
+            "priceInt": 999900,
+            "quantity": 60
+          }
+        ],
+        "asks": [],
+        "bidTotal": 60,
+        "askTotal": 0,
+        "orderCount": 1,
+        "levelsTruncated": false
+      }
+    ]
+  }
+}
