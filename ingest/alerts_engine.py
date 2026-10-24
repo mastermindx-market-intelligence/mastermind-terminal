@@ -130,6 +130,7 @@ if str(CA_ROOT) not in sys.path:
     sys.path.insert(0, str(CA_ROOT))
 from ingest.options_frozen_lifecycle import FrozenNodeLifecycleAdapter  # noqa: E402
 from ingest.options_frozen_service import FrozenNodeServiceReader  # noqa: E402
+from ingest.options_frozen_assembly import assemble_frozen_node_services  # noqa: E402
 
 DEFAULT_ENV = "/opt/terminal/terminal/.env.local"
 DEFAULT_DATA = "/opt/terminal/terminal/public/data"
@@ -2478,6 +2479,13 @@ def main() -> int:
         return 2
 
     supa = Supa(url, key)
+    try:
+        frozen_reader, frozen_lifecycle = assemble_frozen_node_services(
+            supa, env, load_env=load_env, fingerprint=frozen_node_target_fingerprint,
+            instant_micros=_fnp_instant_micros)
+    except (OSError, TypeError, ValueError):
+        log("FATAL: frozen options host configuration is unavailable")
+        return 2
     data = Data(args.data_dir, env.get("HUB_PORT", "3100"))
     run_once(
         supa, data, datetime.now(timezone.utc), uuid.uuid4().hex,
@@ -2486,6 +2494,8 @@ def main() -> int:
         flow_r2=env.get("FLOW_R2_BASE") or DEFAULT_FLOW_R2,
         flow_fixtures=args.flow_fixtures,
         dry_run=args.dry_run,
+        frozen_node_reader=frozen_reader,
+        frozen_lifecycle_adapter=frozen_lifecycle,
         lane_cadence_budget_s=ALERTS_LANE_CADENCE_S,
     )
     return 0
