@@ -3,6 +3,7 @@ from pathlib import Path
 import os
 import shlex
 import subprocess
+import sys
 
 import pytest
 
@@ -31,6 +32,8 @@ def host(tmp_path):
     script.write_text(SOURCE.read_text().replace(INSTALLED, str(installed)))
     binary = tmp_path / "bin"
     binary.mkdir()
+    # Pin the fixture to this interpreter, not an ambient python launcher/shim.
+    (binary / "python3").symlink_to(sys.executable)
     systemctl = binary / "systemctl"
     systemctl.write_text("""#!/bin/sh
 if [ "$1" = show-environment ]; then printf '%s\\n' "$FIXTURE_MANAGER_ENV"; exit 0; fi
