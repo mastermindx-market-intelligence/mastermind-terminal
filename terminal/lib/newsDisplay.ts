@@ -14,14 +14,21 @@ const PUBLISHER_LABELS: Readonly<Record<string, string>> = {
   "globenewswire.com": "GlobeNewswire", "businesswire.com": "Business Wire",
   "prnewswire.com": "PR Newswire", "accesswire.com": "Accesswire",
   "accessnewswire.com": "Access Newswire", "thefly.com": "The Fly",
+  "cls.cn": "财联社", "yicai.com": "第一财经", "stcn.com": "证券时报",
+  "cnstock.com": "中国证券网", "cs.com.cn": "中证网", "caixin.com": "财新",
+  "wallstreetcn.com": "华尔街见闻", "cnfin.com": "新华财经",
+  "finance.eastmoney.com": "东方财富", "stock.eastmoney.com": "东方财富",
+  "finance.sina.com.cn": "新浪财经", "news.10jqka.com.cn": "同花顺",
+  "etnet.com.hk": "經濟通", "aastocks.com": "阿思達克", "hkej.com": "信報",
+  "hket.com": "香港經濟日報", "zhitongcaijing.com": "智通財經",
 };
 
 export function sourceLabel(source: string): string {
   const key = source.trim().toLowerCase();
   if (!key) return "Source";
-  const publisher = (key === "benzinga" ? "benzinga.com" : key.replace(/^massive:/, ""))
+  const publisher = (key === "benzinga" ? "benzinga.com" : key.replace(/^(?:massive|finlight):/, ""))
     .replace(/^www\./, "").replace(/\.$/, "");
-  return PUBLISHER_LABELS[publisher] ?? (key.startsWith("massive:") ? publisher
+  return PUBLISHER_LABELS[publisher] ?? (/^(?:massive|finlight):/.test(key) ? publisher
     : source.trim().charAt(0).toUpperCase() + source.trim().slice(1));
 }
 

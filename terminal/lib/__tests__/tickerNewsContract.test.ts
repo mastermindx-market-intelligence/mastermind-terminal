@@ -158,6 +158,24 @@ describe("ticker news contract", () => {
     })).toThrow(/story_member_id/);
   });
 
+
+  it("keeps Chinese headlines and qualified CN/HK listing symbols unchanged", () => {
+    for (const [ticker, securityId, source, title] of [
+      ["0700.HK", "SEC:HK-XHKG-00700", "finlight:etnet.com.hk", "騰訊控股公布季度業績"],
+      ["600519.SS", "SEC:CN-XSHG-600519", "finlight:cls.cn", "贵州茅台发布经营数据"],
+    ]) {
+      const parsed = parseTickerNewsSnapshot({
+        schema: "ticker_news.snapshot.v1", ticker, security_id: securityId,
+        state: "degraded", rows: [{ ...row, source, title, teaser: "", updated_at: null }],
+        next_cursor: 7, has_more: false, source_health: { state: "degraded" },
+      });
+      expect(parsed.rows[0].title).toBe(title);
+      expect(parsed.rows[0].source).toBe(source);
+      expect(parsed.security_id).toBe(securityId);
+      expect(normalizeTickerNewsSymbol(ticker)).toBe(ticker);
+    }
+  });
+
   it("normalizes ordinary ticker symbols without accepting path syntax", () => {
     expect(normalizeTickerNewsSymbol(" nvda ")).toBe("NVDA");
     expect(normalizeTickerNewsSymbol("BRK.B")).toBe("BRK.B");
