@@ -1,3 +1,4 @@
+# Current scoped source: composedDocumentLanguageProductionJoin20261024; parent records retain their original identities.
 # Current source: documentLanguageRecapture20261024; older named records below are historical.
 # PR #1142: freshly recaptured ChartChrome EN/ZH desktop/mobile with identical original crop geometry; source/crop digests updated, historical records intact.
 # Current Company design recapture is sharedShellCompanyDesignRecapture20261022; prior records remain historical.
@@ -391,3 +392,9 @@ documentLanguageRecapture20261024:
   historicalManifest: history/before-document-language-20261024.yml
   historicalSource: 919114d1c27f0f588d9d5a4d52574f19b0137d6d
   receiptIndex: ../document-language/recapture-index.json
+
+composedDocumentLanguageProductionJoin20261024:
+  sourceHead: "03e678a8992b484a3bbf0d385e23724e8cf5f95b"
+  receipt: composed-language-production-recapture.json
+  scope: "ChartChrome-1440.png, ChartChrome-1440-zh.png, ChartChrome-390.png, ChartChrome-390-zh.png"
+  qualification: "Actual joined-source ordinary-profile local captures; historical full30 and prior6 reports are retained, not relabeled."
