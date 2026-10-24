@@ -1515,14 +1515,17 @@ function workspaceResult(workspace: EventWorkspace, receipt: EventWorkspaceVerif
   };
 }
 
-async function loadManifest(base: string, signal?: AbortSignal): Promise<{ manifest: EventWorkspaceManifest; sha256: string; stale: boolean } | null | "invalid"> {
+async function loadManifest(base: string, signal?: AbortSignal): Promise<{ manifest: EventWorkspaceManifest; sha256: string; stale: boolean } | null | "invalid" | "unavailable"> {
   const now = Date.now();
   if (manifestCache && now - manifestCache.at < MANIFEST_TTL_MS) {
     return { manifest: manifestCache.data, sha256: manifestCache.sha256, stale: false };
   }
   const markerUrl = `${base}/company_intelligence/${EVENT_WORKSPACE_NEST}/manifest.json`;
   const fetched = await fetchJson(markerUrl, MAX_MANIFEST_BYTES, signal);
-  if (fetched.kind !== "ok") return manifestCache ? { manifest: manifestCache.data, sha256: manifestCache.sha256, stale: true } : fetched.kind === "missing" ? null : null;
+  if (fetched.kind !== "ok") {
+    if (manifestCache) return { manifest: manifestCache.data, sha256: manifestCache.sha256, stale: true };
+    return fetched.kind === "missing" ? null : "unavailable";
+  }
   const marker = normalizeEventWorkspaceManifest(fetched.raw);
   if (!marker) return manifestCache ? { manifest: manifestCache.data, sha256: manifestCache.sha256, stale: true } : "invalid";
   const immutableUrl = `${base}/company_intelligence/${EVENT_WORKSPACE_NEST}/generations/${marker.generation_id}/manifest.json`;
@@ -1553,6 +1556,7 @@ export async function resolveCurrentEventWorkspaceFromR2(
   const safeBase = validateR2Base(base);
   if (!safeBase) return error("upstream_unavailable", "Event workspace is unavailable", true);
   const manifestRead = await loadManifest(safeBase, options.signal);
+  if (manifestRead === "unavailable") return error("upstream_unavailable", "Event workspace is temporarily unavailable", true);
   if (manifestRead === "invalid") return error("invalid_payload", "Event workspace manifest is invalid", true);
   if (!manifestRead) return error("not_found", "Event workspace is not covered", false);
   const selected = selectCurrentEventFromAliases(ticker, manifestRead.manifest.aliases);
@@ -1573,6 +1577,7 @@ export async function resolveEventWorkspaceFromR2(
   const safeBase = validateR2Base(base);
   if (!safeBase) return error("upstream_unavailable", "Event workspace is unavailable", true);
   const manifestRead = preloaded ?? await loadManifest(safeBase, options.signal);
+  if (manifestRead === "unavailable") return error("upstream_unavailable", "Event workspace is temporarily unavailable", true);
   if (manifestRead === "invalid") return error("invalid_payload", "Event workspace manifest is invalid", true);
   if (!manifestRead) return error("not_found", "Event workspace is not covered", false);
   const { manifest, sha256: markerSha, stale } = manifestRead;

@@ -1,20 +1,21 @@
 # B-PL-6 batch 1 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 5aa80158ff9d126242d1fddf126197be591f2f33
-# capturedAt: 2026-10-20T17:39:26.485Z
+# capturedAtHead: 1312828cdac570c06cd6e83e71a802763fad2d2e
+# capturedAt: 2026-10-24T07:05:33.570Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
+  terminal/components/SearchModal.module.css: "bc82bdeb1a4eb78fe9babe884c2ae8e7fc2773710e6399b5bf22733f70f102fb"
   terminal/components/OptionsHubView.tsx: "158ce4599ff142bd5c1f6a3f575bf59ea1dc817c9cbf402e96c28900ad17c036"
-  terminal/components/SearchModal.tsx: "51067eb747ddf776a93d247a48d35aff699a893366e9655f6ec2fad2f2895531"
+  terminal/components/SearchModal.tsx: "c61d073891cd36a62e1ce4a64fc0a80a4d96618d0eb3cf57bd4a164233458fe4"
   terminal/components/SearchModalCompare.module.css: "864d08191bf60d696b8e1f5233e9ddafec5ebfeeb8b307b61f629894bd48700c"
   terminal/components/StockAnalysis.tsx: "376a907d0d8ea3dc5819e0092f02e19ce56fa1f4b71a3489551adf52fddb35c0"
-  terminal/components/workspaces/AnalysisWorkspace.tsx: "f98764b71e4e1301d6149aef0d3e47615455801f95a9691b4d8807febe92226e"
-  terminal/components/ChartPanel.tsx: "697141dd7ef013c26f55fd0be7d8e85844fda5eb34dbe436216b1450ecc82a5e"
+  terminal/components/workspaces/AnalysisWorkspace.tsx: "411b8a7e498b8af3f9337fdcf3835dd62e6a5854826f414171d8303efd8aa5bb"
+  terminal/components/ChartPanel.tsx: "07c37fd5c3f8044082d6fd1f7ca06edfd61c9833bca1a7fcc649d4660515c27a"
   terminal/components/DayRange.tsx: "c84724652783da1897ab4eeb98550eaf3dbd7942eefe3ce127b6ada2b16dd672"
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
   terminal/lib/i18n.tsx: "9acd67ddc1e85b1058b850b807f5e78c46c659192066dd3565f779ed51a11968"
-  terminal/app/company-intelligence.css: "2bd8643832428198d38e8a5140cb7029687466781b2366976cb3ca5ddad9892b"
+  terminal/app/company-intelligence.css: "8b43f2046891837f6572fa2a59b7594547def9602b0454e1f14edba322da2a34"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -43,6 +44,12 @@ files:
   - OptionsHubView-1440.png
   - OptionsHubView-390-zh.png
   - OptionsHubView-390.png
+  - OptionsScreener-volume-1440-zh.png
+  - OptionsScreener-volume-1440.png
+  - OptionsScreener-volume-390-zh.png
+  - OptionsScreener-volume-390.png
+  - OptionsScreener-volume-820-zh.png
+  - OptionsScreener-volume-820.png
   - SearchModal-1440-zh.png
   - SearchModal-1440.png
   - SearchModal-390-zh.png
@@ -51,13 +58,3 @@ files:
   - StockAnalysis-1440.png
   - StockAnalysis-390-zh.png
   - StockAnalysis-390.png
-inheritedSupplementalEvidence:
-  source: bbc07037aae3e98597945e23448781a091d15281
-  scope: Exact upstream supplemental files retained with original upstream qualification; NOT recaptured or reattributed to this source
-  files:
-    - OptionsScreener-volume-1440-zh.png
-    - OptionsScreener-volume-1440.png
-    - OptionsScreener-volume-390-zh.png
-    - OptionsScreener-volume-390.png
-    - OptionsScreener-volume-820-zh.png
-    - OptionsScreener-volume-820.png

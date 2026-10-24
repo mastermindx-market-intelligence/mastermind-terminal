@@ -79,7 +79,9 @@ export type InvestigationArgumentRelation = {
   discrimination_criterion?: string;
 };
 
-/** Only call on validated semantic JSON. Keys are ASCII in this closed schema. */
+/** Only call on validated semantic JSON. Retains the existing JS key ordering.
+ * V3 snapshot rows may have open source keys/numbers: this is not a claim of
+ * PostgreSQL canonical-byte parity; the database digest remains owner-supplied. */
 export function canonicalInvestigationJson(value: unknown): string {
   if (Array.isArray(value)) return `[${value.map(canonicalInvestigationJson).join(",")}]`;
   if (value !== null && typeof value === "object") return `{${Object.keys(value).sort().map(key =>
