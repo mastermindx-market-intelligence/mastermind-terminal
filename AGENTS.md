@@ -4,14 +4,46 @@ This repository and Macro Dashboard are operated by multiple Claude accounts and
 Codex sessions. Repository files are the durable, shared source of instructions;
 promises or “memory” recorded only inside one chat do not carry to another session.
 
+## Assigned Meta-CEO and economical Fabric delegation (2026-10-12)
+
+Only a **currently assigned** Codex or Claude principal/Meta-CEO owns
+architectural choices, decomposition, review and integration. A normal Terminal
+worker does not self-promote because it is running in Codex or on a frontier
+model. Reuse protected Mastermind
+`docs/sol_skills/WEB_CEO_DELEGATION.md` and its routing/authority companions;
+Terminal has no second Fabric scheduler or grant system.
+
+For independently verifiable, bounded C0/C1/C2 implementation, research,
+testing, debugging or review, the assigned Meta-CEO makes the paid Fabric
+delegation decision **before spending substantial frontier principal turns**.
+An enrolled Codex session uses the existing
+`mastermind-fabric-delegate` skill and installed `fabric_task.py` adapter
+with its verified current `CODEX_THREAD_ID` root and stable child ID; the
+existing Executive/Capacity path remains the owner of admission and placement.
+Claude uses its already admitted Executive/Fabric path. A native child is not
+an external Fabric worker and is reserved for genuine coordinator/judgment
+needs. Never duplicate an existing run, change carrier after `EFFECT_UNKNOWN`,
+or bypass a provider/tool/permission refusal.
+
+The Meta-CEO retains real architectural decisions and reconciles compact
+worker returns (exact source hash, test evidence, result, gaps, effects, next
+parent decision), leaving full logs outside principal context. Maintain durable
+decisions in the canonical Macro Agent OS, not a Terminal-local memory mirror.
+Do not spawn just to fill 114 Ubuntu ceilings; consider genuine independent
+ready work, thermal/disk/provider constraints, shared worktree custody, cost
+and the parent's review capacity. These source instructions do not install a
+plugin, prove a live Codex adopter, alter native model defaults or authorize
+merges/deployments.
+
 ## Required context at the start of every task
 
 1. Read `terminal/AGENTS.md` and `terminal/CLAUDE.md` in full before changing the
    Next.js application.
-2. Search the Claude project memory index at
-   `~/.claude/projects/-Users-chriswong-Documents-Cluade-charting-app/memory/MEMORY.md`
-   and open the relevant entries. Delivery work must include
-   `git-flow-commit-pr-merge-habit`, `prod-repo-is-stale`, and `deploy-topology`.
+2. Recover current source, the exact assigned task and any existing Macro Agent OS
+   workstream before using account-local notes. Claude project memory is optional
+   historical context for an eligible Claude session, not a mandatory startup
+   dependency for Codex, ChatGPT Web or Fabric workers. Old memory instructions
+   never override current repository, protected Mastermind or release rules.
 3. Treat `/Users/chriswong/Documents/Cluade/Macro Dashboard` as the connected
    dashboard/backend repository. Authentication, subscriptions, data contracts,
    APIs, Caddy routes, and deployment changes may require checking both repos.
@@ -46,9 +78,13 @@ promises or “memory” recorded only inside one chat do not carry to another s
 - The canonical project home is `/Users/chriswong/Documents/Cluade`.
 - Never create project work in `~/.codex/worktrees`, `/private/tmp`, or another
   Codex-only location. Never use a `codex/` branch for these repositories.
-- The primary checkout is shared and commonly dirty. Do not change its files or git
-  state. Fetch `origin/master`, then create a fresh worktree under this repository's
-  `.claude/worktrees/<task>/` using a `claude/<task>` branch.
+- The primary checkout is shared and commonly dirty; never change its files or git
+  state. Reuse the existing authorized operation workspace after checking its exact
+  source identity, writer and effects. For fresh work use the currently installed
+  Mastermind workspace launcher or approved native external-volume allocator,
+  according to the active host/client policy. Do not use a raw `git worktree add`,
+  `~/.codex/worktrees` or a legacy in-repo `.claude/worktrees` path as a
+  replacement for admission. Preserve original branch, lease and release rules.
 - Never reuse a squash/merge-completed branch and never use the repo-global stash.
 
 ## `ingest/` runs as scripts, not modules

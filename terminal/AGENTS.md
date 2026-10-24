@@ -8,7 +8,14 @@ This version has breaking changes — APIs, conventions, and file structure may 
 # Mastermind Terminal — agent laws
 
 ## Model routing
-Opus builds and reviews code. Design choices are judgment work — made in the session's main loop (or an Opus designer agent), never delegated to Sonnet; builders only implement fully-specified designs (exact markup/classes handed to them). Sonnet = mechanical non-code sweeps only; Haiku = trivial extraction.
+Use the currently protected Mastermind routing/delegation policy and the actual
+installed provider/host grants; this nested Terminal guide does not pin a
+universal Opus/Sonnet/Haiku hierarchy or confer agent-spawn permission. An
+explicitly assigned principal considers admitted economical paid Fabric for
+bounded implementation, tests and research, while retaining architecture,
+integration and acceptance. A normal worker remains a scoped leaf. Preserve
+qualified design judgment and proportionate independent review when required.
+Claude-native Agent/Task routing hooks are not Codex-native capabilities.
 
 ## Design direction (user-facing surfaces)
 - **OPERATOR RESCISSION 2026-08-02:** the former "design system is REAL and locked /
@@ -46,7 +53,7 @@ that each violated several of these — do not hand-roll a sixth way.
 - A ready, non-draft PR must carry `merge-on-green` and be armed with `gh pr merge --auto --squash --delete-branch`. `master` protects the exact 3/3 CI contexts, so native auto-merge is the server-side fast path; the controller is the fail-closed orphan fallback (current-master ancestry, same-repo head, no hold/conflict, SHA-pinned squash). Neither path permits the commissioning session to skip deployment and live verification. Never use an admin bypass.
 
 ## Repo facts
-Next.js 16 + Supabase; entitlements authority = macro-api (`profiles.is_pro` is a UI hint only); i18n via LEX `[en, zh]` tuples in `lib/i18n.tsx`; tests = vitest, golden fixtures in `lib/__tests__/fixtures/`. The main checkout is often on another agent's branch — ALWAYS `git worktree add` off `origin/master`; never touch the main checkout's git state.
+Next.js 16 + Supabase; entitlements authority = macro-api (`profiles.is_pro` is a UI hint only); i18n via LEX `[en, zh]` tuples in `lib/i18n.tsx`; tests = vitest, golden fixtures in `lib/__tests__/fixtures/`. The main checkout is often on another agent's branch: never touch its Git state. Reuse the assigned isolated workspace or acquire one through the active host's approved Mastermind workspace/external-volume helper. Do not run raw `git worktree add` to bypass placement.
 
 ## Agent OS (organizational memory)
 Durable org memory — workstreams `WS-*`, decisions `DEC-*`, discoveries `DSC-*`, session handoffs — lives in the Macro repo's `agentos/` (`/Users/chriswong/Documents/Cluade/Macro Dashboard`; rules: `agentos/README.md` there). A task on an existing Mastermind workstream starts by reading its `WS-*` record and latest handoff; `do_not_redo` is binding unless refuted with new evidence. Durable choices, verified non-obvious facts, and transfers of claimed work get a `DEC-*`/`DSC-*`/handoff record via a normal Macro PR — chat memory is not company memory. Knowledge plane only: nothing in it gates execution, ranks priorities, or proves liveness, and no Terminal-local copy of the store may exist. Full section: root `AGENTS.md` § "Agent OS knowledge plane".
