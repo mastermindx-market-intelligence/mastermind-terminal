@@ -472,6 +472,6 @@ jobs:
           command -v pg_ctl
           command -v psql
       - name: Exercise migration, replay, CAS and owner isolation
-        run: python -m pytest tests/test_investigation_postgres.py tests/test_thesis_proposal_postgres.py tests/test_api_watchlist_write_postgres.py tests/test_forex_watch_postgres.py tests/test_alerts_frozen_hit_postgres.py tests/test_alerts_frozen_prepared_postgres.py -q
+        run: python -m pytest tests/test_investigation_postgres.py tests/test_thesis_proposal_postgres.py tests/test_api_watchlist_write_postgres.py tests/test_forex_watch_postgres.py tests/test_alerts_frozen_hit_postgres.py tests/test_alerts_frozen_prepared_postgres.py tests/test_portfolio_target_role_postgres.py -q
       - name: Exercise drawing snapshots, replacement and actual competing sessions
         run: python tests/sql/audit04/run_native_fixture.py --out-dir "$RUNNER_TEMP/audit04-evidence"
