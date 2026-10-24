@@ -17,6 +17,23 @@ describe("selected issuer-release baseline",()=>{
  it("defaults to unavailable without using public-primary labels as a grant",async()=>{
   const fetch=serve();expect(await resolveInvestigationIssuerRelease(pin,R2)).toMatchObject({ok:false,reason:"rights_unavailable"});expect(fetch).not.toHaveBeenCalled();
  });
+ it("supplies isolated declared source metadata without changing the saved selection identity",async()=>{
+  serve();const owner=vi.fn(async(...args:unknown[])=>authorize(args[0] as IssuerReleaseIdentity));
+  const result=await resolveInvestigationIssuerRelease(pin,R2,{authorize:owner});
+  expect(result.ok).toBe(true);if(!result.ok)return;
+  expect(result.reference.fingerprint).toBe("a469e76c98cebd4cd094751c9c05fe3e8f3b96e06ca900008b1bebbfdbd2a050");
+  expect(owner.mock.calls[0]).toHaveLength(2);
+  expect(owner.mock.calls[0][1]).toEqual({source_url:golden.sources[0].url,provenance:"retained_owner_metadata"});
+  expect(Object.isFrozen(owner.mock.calls[0][1])).toBe(true);
+  expect(result.workspace.selected_release).not.toHaveProperty("source_url");
+  expect(result.workspace.selected_release).not.toHaveProperty("provenance");
+ });
+ it("lets the authorizer reject a declared non-SEC URL rather than inferring permission from a filing key",async()=>{
+  const copy=structuredClone(golden);copy.sources[0].url="https://unqualified.example/release.htm";serve(copy);
+  const owner=vi.fn(async(identity:IssuerReleaseIdentity,source:{source_url:string|null})=>({...await authorize(identity),allowed:source.source_url===golden.sources[0].url}));
+  expect(await resolveInvestigationIssuerRelease(pin,R2,{authorize:owner})).toMatchObject({ok:false,reason:"denied"});
+  expect(owner.mock.calls[0][1]).toEqual({source_url:copy.sources[0].url,provenance:"retained_owner_metadata"});
+ });
  it("emits only a selected reference projection despite mixed retained source bodies",async()=>{
   serve();const owner=vi.fn(authorize);const result=await resolveInvestigationIssuerRelease(pin,R2,{authorize:owner});expect(result.ok).toBe(true);if(!result.ok)return;
   expect(result.reference.selection).toEqual({field:"issuer_release"});

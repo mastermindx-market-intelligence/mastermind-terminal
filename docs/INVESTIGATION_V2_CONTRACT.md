@@ -152,10 +152,21 @@ output, other source bodies, or whole workspace payload.
 The current rights dependency must supply a fresh `sec_edgar` display decision bound
 to that document/hash, registry revision, policy revision and checked-at time. It is
 injectable for owner integration tests and **absent by default in production**. The
-baseline route therefore reports `rights_unavailable` until the existing rights owner
-is admitted and connected. An old `rp_public_primary_v1` annotation cannot authorize
+baseline route therefore reports `rights_unavailable` until the selected document's
+current policy and native provenance are qualified and connected. An old `rp_public_primary_v1` annotation cannot authorize
 the mixed workspace. The previous broad authorizer now refuses; preserved G2/G4 source
 foundations do not bypass that refusal. Source fixtures are not a production grant.
+
+The authorization callback separately receives a frozen `IssuerReleaseSourceContext`
+containing `source_url` and `provenance="retained_owner_metadata"`. This is declared
+metadata bound by the immutable workspace, not a verified acquisition receipt or an
+authorization decision. It does not enter `IssuerReleaseIdentity`, the returned
+selection projection or its saved fingerprint. The current publisher's offline
+binding of supplied text and URL does not independently attest the final HTTP origin,
+redirects or decoding of acquired bytes. An origin-qualified permission must validate
+a genuine receipt through that existing producer; old rows cannot acquire one by
+relabeling `byte_replayed`, public-primary annotations or a SEC-looking URL. Neither
+this callback context nor policy-source qualification enables either endpoint scope.
 
 The shared baseline endpoint has two explicit consumer contracts. Existing IW2
 requests without `scope` keep the selected issuer-release projection. The Company

@@ -13,6 +13,11 @@ export type IssuerReleaseIdentity = {
   company_id:string;event_id:string;generation_id:string;document_id:string;
   source_sha256:string;filing_key:EventWorkspaceSource["filing_key"];
 };
+/** Declared metadata from the hash-bound retained owner, not an acquisition
+ * receipt or a permission grant. Keep it outside the saved selection identity. */
+export type IssuerReleaseSourceContext = Readonly<{
+  source_url:string|null;provenance:"retained_owner_metadata";
+}>;
 export type IssuerReleaseProjection = {
   schema:"earnings.issuer_release_projection.v1";
   issuer:{company_id:string;display_name:string};event_id:string;generation_id:string;
@@ -25,7 +30,7 @@ export type IssuerReleaseBaseline = {
   reference:{owner:"earnings.workspace_generation";object_type:"event_workspace";object_id:string;mode:"pinned";version_ref:string;fingerprint:string;selection:{field:"issuer_release"}};
 };
 type Unavailable={ok:false;code:"HISTORICAL_UNAVAILABLE";reason:string};
-type Options={signal?:AbortSignal;authorize?:(identity:IssuerReleaseIdentity)=>Promise<IssuerReleaseRights>};
+type Options={signal?:AbortSignal;authorize?:(identity:IssuerReleaseIdentity,source:IssuerReleaseSourceContext)=>Promise<IssuerReleaseRights>};
 type Authorized={identity:IssuerReleaseIdentity;release:EventWorkspaceSource;rights:IssuerReleaseRights};
 const unavailable=(reason:string):Unavailable=>({ok:false,code:"HISTORICAL_UNAVAILABLE",reason});
 
@@ -35,7 +40,8 @@ async function authorizeSelection(workspace:EventWorkspace,authorize:NonNullable
   const release=releases[0];
   if(release.receipt_state!=="byte_replayed"||!release.document_id||!release.source_sha256||!/^[0-9a-f]{64}$/.test(release.source_sha256))throw Error("unretained_release");
   const identity:IssuerReleaseIdentity={company_id:workspace.issuer.company_id,event_id:workspace.event_id,generation_id:workspace.generation_id,document_id:release.document_id,source_sha256:release.source_sha256,filing_key:release.filing_key};
-  const decision=await authorize(identity);
+  const source:IssuerReleaseSourceContext=Object.freeze({source_url:release.url,provenance:"retained_owner_metadata"});
+  const decision=await authorize(identity,source);
   if(!decision||decision.family!=="sec_edgar"||decision.document_id!==identity.document_id||decision.source_sha256!==identity.source_sha256
     ||decision.permitted_display_class!=="direct_display_ok"||![decision.registry_revision,decision.policy_version,decision.checked_at].every(v=>typeof v==="string"&&v.length>0&&v.length<=256)
     ||!Number.isFinite(Date.parse(decision.checked_at)))throw Error("rights_unavailable");
