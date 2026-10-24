@@ -1,0 +1,32 @@
+.panel { min-width: 0; display: grid; gap: 16px; }
+.answer { min-width: 0; padding: 16px; border: 1px solid var(--line); border-radius: var(--r-md, 8px); background: var(--panel); color: var(--text); }
+.answer h2 { margin: 0 0 8px; font: 600 17px/1.4 var(--font-ui); }
+.answer p { font: 400 13px/1.6 var(--font-ui); overflow-wrap: anywhere; }
+.metrics { margin: 16px 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.metrics div { min-width: 0; }
+.metrics dt { color: var(--text-2); font: 400 12px/1.5 var(--font-ui); }
+.metrics dd { margin: 4px 0 0; color: var(--text); font: 600 17px/1.4 var(--font-num); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.limit { color: var(--text-2); }
+.chart { width: 100%; min-width: 0; overflow: hidden; }
+.chart svg { display: block; max-width: 100%; }
+.chart text { fill: var(--text-2); font: 11px var(--font-num); }
+.grid { stroke: var(--line); stroke-width: 1; }
+.zero { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 4 4; }
+.curve { stroke: var(--brand-2); stroke-width: 2; }
+.answer summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; font: 500 13px var(--font-ui); }
+.answer summary:focus-visible { outline: 2px solid var(--brand-2); outline-offset: 3px; }
+@media (max-width: 600px) { .metrics { grid-template-columns: 1fr; gap: 12px; } .answer { padding: 12px; } }
+@media (min-width: 1000px) { .panel { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: start; } }
+
+.referenceBasis { color: var(--text-2); }
+.legend { display: flex; flex-wrap: wrap; gap: 12px; color: var(--text-2); font: 12px var(--font-ui); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 10px; height: 10px; display: inline-block; }
+.lossKey, .lossArea { fill: var(--down); background: var(--down); }
+.profitKey, .profitArea { fill: var(--up); background: var(--up); }
+.profitArea, .lossArea { opacity: 0.18; }
+.profitCurve { stroke: var(--up); stroke-width: 2; }
+.lossCurve { stroke: var(--down); stroke-width: 2; }
+.breakeven { stroke: var(--text-2); stroke-width: 1; stroke-dasharray: 3 3; }
+.breakevenDot { fill: var(--text); }
+.chart button { min-height: 44px; margin-top: 8px; }
