@@ -63,6 +63,17 @@ N+1 and deletion of the mutable layout. Reopen never writes the current head.
 The layout digest retains the existing PostgreSQL JSONB owner law; it is not the
 Investigation digest or a redefinition of `workspace_layout.v1` golden bytes.
 
+## Owner API read lifetime
+
+A current `401` from `/api/investigations` (including its query forms) ends the
+Workspace's existing private-view lifetime before parsing the response body.
+It aborts that scope and clears displayed private detail and local admission;
+it does not call SDK sign-out or clear the original owner's pending-save storage.
+An unresolved write remains unresolved under its original operation. A stale
+response from an older scope cannot end a newly rebound view. `403`, `404` and
+`503` remain unavailable/refused reads, not invented sign-out or no-effect proof.
+This is local display/admission fencing, not live authentication or cutover proof.
+
 ## Same-owner response-loss recovery
 
 The operation lock and immutable receipt bind authenticated principal, operation UUID,

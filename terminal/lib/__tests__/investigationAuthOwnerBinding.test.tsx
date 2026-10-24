@@ -196,4 +196,39 @@ describe("existing Workspace projection transport and unchanged Saved authority"
   expect(latest()!.snapshot.auth_epoch).not.toBe(old.snapshot.auth_epoch);
   act(() => first.late(0, "SIGNED_OUT", null)); expect(element.textContent).not.toContain("Your account changed"); await timers();
  });
+ it("an owner API 401 fences the private view before parsing its body, retaining the exact unresolved save", async () => {
+  const h=harness();mocks.client.mockReturnValue({auth:h.auth});seedPending();
+  const parse=vi.fn(async()=>({status:"unauthenticated"}));
+  fetchMock.mockImplementation(async(url:string)=>url==="/api/investigations"?{status:401,json:parse}:{status:200,json:async()=>({layouts:[]})});
+  await act(async()=>{mountPending();});
+  expect(element.textContent).toContain("Sign in again to open saved research.");
+  expect(element.querySelector('input[aria-label="Title"]')).toBeNull();
+  expect(parse).not.toHaveBeenCalled();
+  expect(sessionStorage.getItem("mm.investigation.pending.v2:account-A")).toBe(pendingStorage);
+  expect(fetchMock.mock.calls.every(([,init])=>(init as RequestInit).signal?.aborted)).toBe(true);
+  const count=fetchMock.mock.calls.length;await timers();expect(fetchMock).toHaveBeenCalledTimes(count);
+  expect(element.textContent).toContain("Sign in again to open saved research.");
+ });
+ it.each([403,404,503])("owner API %s is unavailable, not a fabricated sign-out or a no-effect save result",async status=>{
+  const h=harness();mocks.client.mockReturnValue({auth:h.auth});seedPending();
+  fetchMock.mockImplementation(async(url:string)=>({status:url==="/api/investigations"?status:200,json:async()=>url==="/api/investigations"?{status:"unavailable"}:{layouts:[]}}));
+  await act(async()=>{mountPending();});
+  expect(element.textContent).not.toContain("Your account changed");
+  expect(element.querySelector<HTMLInputElement>('input[aria-label="Title"]')?.value).toBe("Retained exact draft");
+  expect(sessionStorage.getItem("mm.investigation.pending.v2:account-A")).toBe(pendingStorage);
+ });
+ it("a late old-scope 401 cannot end a freshly rebound owner lifetime",async()=>{
+  const h=harness();mocks.client.mockReturnValue({auth:h.auth});seedPending();
+  let release!:(value:unknown)=>void;let calls=0;
+  fetchMock.mockImplementation(async(url:string)=>{
+   if(url==="/api/investigations"&&++calls===1)return new Promise(resolve=>{release=resolve;});
+   return{status:200,json:async()=>url==="/api/investigations"?{status:"listed",items:[]}:{layouts:[]}};
+  });
+  await act(async()=>{mountPending();});await act(async()=>{mountPending("account-A",2);});
+  await act(async()=>{release({status:401,json:async()=>({status:"unauthenticated"})});});
+  expect(element.textContent).not.toContain("Your account changed");
+  expect(element.querySelector<HTMLInputElement>('input[aria-label="Title"]')?.value).toBe("Retained exact draft");
+  expect(sessionStorage.getItem("mm.investigation.pending.v2:account-A")).toBe(pendingStorage);
+ });
+
 });

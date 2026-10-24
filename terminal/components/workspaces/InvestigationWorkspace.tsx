@@ -180,10 +180,21 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
   onOptionPlanRevisionReady(read);
   return()=>{active=false;onOptionPlanRevisionReady(null);};
  },[onOptionPlanRevisionReady,ownerKey,authProjection,entryActive,authEnded,acknowledgedDetail,detail,detailLoading,editing]);
+ // Reuse the existing private-view lifetime fence for a definitive owner API
+ // 401. It ends local display/admission, never signs out the SDK or settles an
+ // uncertain write. Exact pending storage stays with its original owner/key.
+ function endOwnerView(controller:AbortController) {
+  if(scope.current!==controller||controller.signal.aborted)return;
+  controller.abort();acknowledgeDetail(null);++detailSeq.current;++baselineSeq.current;setAuthEnded(true);setItems(null);setDetail(null);setBaseline(null);++optionsSeq.current;setOptionsRefs([]);setOptionsStatus(null);setAlertRows(null);setOutbox(null);setAlertLoad("loading");setDraft(emptyDraft());setRetainedCapture(null);setDuplicate(null);setSave({phase:"idle"});setLayouts([]);setMessage("");
+ }
  async function json(url:string,init?:RequestInit):Promise<unknown> {
   const controller=scope.current;
   if(!controller||controller.signal.aborted) throw Error("inactive");
   const response=await fetch(url,{...init,cache:"no-store",signal:controller.signal});
+  // Check the captured scope before even interpreting an old response. A 403
+  // can be a source/plan restriction; only this owner's 401 ends this view.
+  if(controller!==scope.current||controller.signal.aborted)throw Error("inactive");
+  if(response.status===401&&(url==="/api/investigations"||url.startsWith("/api/investigations?"))){endOwnerView(controller);throw Error("unauthenticated");}
   const value:unknown=await response.json();
   if(controller!==scope.current||controller.signal.aborted) throw Error("inactive");
   return value;
@@ -401,7 +412,7 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
   if(ownerKey!=="local-preview")try{
    auth=subscribeInvestigationAuthOwner(publish,principal=>{
     if(!active||principal===ownerKey)return;
-    controller.abort();acknowledgeDetail(null);++detailSeq.current;++baselineSeq.current;setAuthEnded(true);setItems(null);setDetail(null);setBaseline(null);++optionsSeq.current;setOptionsRefs([]);setOptionsStatus(null);setAlertRows(null);setOutbox(null);setAlertLoad("loading");setDraft(emptyDraft());setRetainedCapture(null);setDuplicate(null);setSave({phase:"idle"});setLayouts([]);setMessage("");
+    endOwnerView(controller);
    });
    if(auth)publish(auth.getSnapshot());
    else {setAuthEnded(true);controller.abort();}
