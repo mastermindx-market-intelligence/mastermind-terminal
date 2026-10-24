@@ -1021,12 +1021,27 @@ describe("a stored invalid_payload refusal is rechecked with the owner before an
     expect(draftValues()).toEqual(draft);
   }
 
-  it.each(Object.keys(SHAPES).flatMap(shape => Object.keys(MISSES).map(miss => [shape, miss])))("a %s refusal whose receipt read is %s stays unconfirmed; only Check original outcome asks the owner", async (shape, miss) => {
+  it.each(Object.keys(SHAPES).flatMap(shape => Object.keys(MISSES).map(miss => [shape, miss])))("a %s refusal whose receipt read is %s preserves the original; only an active-scope Check original outcome asks the owner", async (shape, miss) => {
     storeRefusal(shape); receipt = MISSES[miss];
     await mount(); await flush();
     expect(receiptReads).toEqual([sent.operation_id]);
     expect(receiptKeys).toEqual([["operation_id"]]);
     expect(reconciles).toHaveLength(0); expect(posts).toHaveLength(0);
+    if (miss === "unauthenticated") {
+      // A 401 ends this private view; it is not an owner no-effect answer.
+      // The exact uncertain operation survives, but no action is available in
+      // this ended scope. A deliberate fresh mount models a new read lifetime,
+      // not a provider sign-in or any SQL/cutover qualification.
+      expect(host.textContent).toContain("Sign in again to open saved research.");
+      expect(question()).toBeUndefined();
+      for (const label of [SAVED, "Check original outcome", "Save research", "Try save again", "Start new research"]) expect(button(label)).toBeUndefined();
+      expect(sessionStorage.getItem(key)).toBe(stored);
+      expect(reconciles).toHaveLength(0); expect(posts).toHaveLength(0);
+      receipt = MISSES.not_found;
+      await reopen();
+      expect(receiptReads).toEqual([sent.operation_id, sent.operation_id]);
+      expect(reconciles).toHaveLength(0); expect(posts).toHaveLength(0);
+    }
     const draft = draftValues();
     await expectUnconfirmed(draft);
     // The deliberate check sends the exact original request to the full-request owner, once.
@@ -1035,7 +1050,7 @@ describe("a stored invalid_payload refusal is rechecked with the owner before an
     await expectUnconfirmed(draft);
     // Reopening reads the receipt once more and never sends a POST.
     await reopen();
-    expect(receiptReads).toEqual([sent.operation_id, sent.operation_id]);
+    expect(receiptReads).toEqual(Array(miss === "unauthenticated" ? 3 : 2).fill(sent.operation_id));
     expect(reconciles).toHaveLength(1); expect(posts).toHaveLength(0);
     await expectUnconfirmed(draft);
   });
