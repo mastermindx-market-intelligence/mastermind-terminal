@@ -271,7 +271,9 @@ runtime `MMX_SHARED_SHELL=1` override on production. Preserve all other unit dro
 Before building, the incumbent release owner checks the installed bytes against
 the exact admitted target commit and the effective unit BUILD flag, then derives
 the build flag. Missing activation keeps production off; any partial or modified
-activation refuses. Next pins the feature flag into the resulting build. The
+activation refuses. Existing nonfeature service credential files remain supported;
+manager, passed/unset variables, unit environment files, Next dotenv files and the
+known npm/Next start path are checked without logging secret values. Next pins the feature flag into the resulting build. The
 owner rechecks activation before restart and verifies the admitted protocol,
 bridge, document, registry and source tuple before accepting an enabled generation.
 

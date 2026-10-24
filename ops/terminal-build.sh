@@ -274,9 +274,62 @@ import sys
 repository, revision = sys.argv[1:]
 installed = Path('/etc/systemd/system/terminal.service.d/shared-shell.conf')
 try:
-    environment = subprocess.check_output(
-        ['systemctl', 'show', '-p', 'Environment', '--value', 'terminal.service'],
-        text=True, stderr=subprocess.DEVNULL)
+    def unit_property(name):
+        return subprocess.check_output(
+            ['systemctl', 'show', '-p', name, '--value', 'terminal.service'],
+            text=True, stderr=subprocess.DEVNULL).strip()
+
+    feature_keys = {'MMX_SHARED_SHELL', 'MMX_SHARED_SHELL_BUILD'}
+    def feature_assignments(text):
+        import re
+        return re.findall(r'(?m)^\s*(?:export\s+)?(MMX_SHARED_SHELL(?:_BUILD)?)\s*=', text)
+
+    def inspect_env_file(path, optional=False):
+        # Read only for feature-key classification; no secret value is returned.
+        if not path.exists() and not path.is_symlink() and optional:
+            return
+        fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW)
+        try:
+            info = os.fstat(fd)
+            if (not stat.S_ISREG(info.st_mode) or info.st_uid != os.geteuid()
+                    or info.st_mode & 0o022 or info.st_size > 1024 * 1024):
+                raise ValueError('unsupported environment file')
+            text = os.read(fd, 1024 * 1024 + 1).decode('utf-8')
+        finally:
+            os.close(fd)
+        if feature_assignments(text):
+            raise ValueError('feature key in environment file')
+
+    environment = unit_property('Environment')
+    passed = shlex.split(unit_property('PassEnvironment'))
+    unset = shlex.split(unit_property('UnsetEnvironment'))
+    if any(item.split('=', 1)[0] in feature_keys for item in passed + unset):
+        raise ValueError('feature key in indirect unit environment')
+    manager = subprocess.check_output(['systemctl', 'show-environment'],
+                                      text=True, stderr=subprocess.DEVNULL)
+    if feature_assignments(manager):
+        raise ValueError('feature key in manager environment')
+    import re
+    files = unit_property('EnvironmentFiles')
+    entry = re.compile(r'(/[-A-Za-z0-9_./]+) \(ignore_errors=(yes|no)\)')
+    if entry.sub('', files).strip():
+        raise ValueError('unsupported environment file topology')
+    for path, optional in entry.findall(files):
+        inspect_env_file(Path(path), optional == 'yes')
+    app = Path(repository).parent / 'terminal'
+    for name in ['.env.local', '.env.production.local', '.env.production', '.env']:
+        inspect_env_file(app / name, optional=True)
+    start = unit_property('ExecStart')
+    if (re.findall(r'path=([^ ;]+) ;', start) != ['/usr/bin/npm']
+            or start.count('argv[]=') != 1
+            or 'argv[]=/usr/bin/npm run start ;' not in start):
+        raise ValueError('unsupported production start wrapper')
+    import json
+    package = subprocess.check_output(
+        ['git', '-C', repository, 'cat-file', 'blob', revision + ':terminal/package.json'],
+        stderr=subprocess.DEVNULL)
+    if json.loads(package).get('scripts', {}).get('start') != 'next start':
+        raise ValueError('unsupported application start wrapper')
     flags = [item.split('=', 1)[1] for item in shlex.split(environment)
              if item.startswith('MMX_SHARED_SHELL_BUILD=')]
     runtime_flags = [item for item in shlex.split(environment)

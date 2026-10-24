@@ -17,6 +17,8 @@ def host(tmp_path):
     repo = tmp_path / "repo"
     (repo / "ops").mkdir(parents=True)
     (repo / "ops/terminal-shared-shell.conf").write_bytes(CANONICAL)
+    (repo / "terminal").mkdir()
+    (repo / "terminal/package.json").write_text('{"scripts":{"start":"next start"}}')
     def git(*args):
         return subprocess.check_output(["git", "-C", str(repo), *args], text=True).strip()
     git("init", "-q")
@@ -30,14 +32,23 @@ def host(tmp_path):
     binary = tmp_path / "bin"
     binary.mkdir()
     systemctl = binary / "systemctl"
-    systemctl.write_text("#!/bin/sh\nprintf '%s\\n' \"$FIXTURE_UNIT_ENV\"\n")
+    systemctl.write_text("""#!/bin/sh
+if [ "$1" = show-environment ]; then printf '%s\\n' "$FIXTURE_MANAGER_ENV"; exit 0; fi
+case "$3" in
+ Environment) printf '%s\\n' "$FIXTURE_UNIT_ENV" ;;
+ EnvironmentFiles) printf '%s\\n' "$FIXTURE_ENV_FILES" ;;
+ PassEnvironment) printf '%s\\n' "$FIXTURE_PASS_ENV" ;;
+ UnsetEnvironment) printf '%s\\n' "$FIXTURE_UNSET_ENV" ;;
+ ExecStart) printf '%s\\n' "${FIXTURE_EXEC_START:-{ path=/usr/bin/npm ; argv[]=/usr/bin/npm run start ; }}" ;;
+esac
+""")
     systemctl.chmod(0o755)
-    def run(body, unit="", target="production"):
+    def run(body, unit="", target="production", props=None):
         return subprocess.run(["bash", "-c", f'. {shlex.quote(str(script))}\nset +e\n'
                                f'TARGET={target}\nSRC={shlex.quote(str(repo))}\nFULL_SHA={sha}\n'+body],
                               text=True, capture_output=True, timeout=20,
                               env={**os.environ, "PATH":str(binary)+os.pathsep+os.environ["PATH"],
-                                   "FIXTURE_UNIT_ENV":unit})
+                                   "FIXTURE_UNIT_ENV":unit, **(props or {})})
     return repo, installed, run
 
 
@@ -115,3 +126,36 @@ def test_source_orders_admission_and_tuple_before_generation_commit():
     assert identity < apply < build < recheck < restart < tuple_check < commit
     config = (ROOT / 'terminal/next.config.ts').read_text()
     assert 'MMX_SHARED_SHELL: process.env.MMX_SHARED_SHELL === "1" ? "1" : "0"' in config
+
+@pytest.mark.parametrize("indirection", ["manager", "pass", "unset", "file", "dotenv", "wrapper", "unknown_file_topology"])
+def test_indirect_runtime_feature_sources_are_not_silently_ignored(host, indirection):
+    repo, installed, run = host
+    installed.write_bytes(CANONICAL)
+    props = {}
+    if indirection == "manager": props["FIXTURE_MANAGER_ENV"] = "MMX_SHARED_SHELL=1"
+    elif indirection == "pass": props["FIXTURE_PASS_ENV"] = "MMX_SHARED_SHELL"
+    elif indirection == "unset": props["FIXTURE_UNSET_ENV"] = "MMX_SHARED_SHELL_BUILD"
+    elif indirection == "wrapper": props["FIXTURE_EXEC_START"] = "{ path=/usr/bin/env ; argv[]=/usr/bin/env MMX_SHARED_SHELL=1 npm run start ; }"
+    elif indirection == "unknown_file_topology": props["FIXTURE_ENV_FILES"] = "unparsed topology"
+    else:
+        env_file = repo.parent / "credentials.env"
+        if indirection == "dotenv":
+            env_file = repo.parent / "terminal/.env.production.local"
+            env_file.parent.mkdir(exist_ok=True)
+        else: props["FIXTURE_ENV_FILES"] = str(env_file) + " (ignore_errors=no)"
+        env_file.write_text("OTHER_SECRET=fixture-never-log\nexport MMX_SHARED_SHELL=1\n")
+    result = run('production_shared_shell_state', "MMX_SHARED_SHELL_BUILD=1", props=props)
+    assert result.returncode == 65, (indirection, result.stdout, result.stderr)
+    assert "fixture-never-log" not in result.stdout + result.stderr
+
+
+def test_legitimate_nonfeature_credentials_file_is_preserved(host):
+    repo, installed, run = host
+    installed.write_bytes(CANONICAL)
+    env_file = repo.parent / 'credentials.env'
+    env_file.write_text('OTHER_SECRET=fixture-never-log\n')
+    result = run('production_shared_shell_state', 'MMX_SHARED_SHELL_BUILD=1',
+                 props={'FIXTURE_ENV_FILES':str(env_file) + ' (ignore_errors=no)'})
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.strip() == '1'
+    assert 'fixture-never-log' not in result.stdout + result.stderr
