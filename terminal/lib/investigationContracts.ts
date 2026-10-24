@@ -1,3 +1,5 @@
+import { validateOptionsPlanDraft, type OptionsPlanDraft } from "./optionsPlanDraft";
+
 /**
  * P1 Investigation command boundary. This is NOT a persistence, identity, evidence,
  * or entitlement owner. An accepted shape still needs authenticated owner resolution
@@ -10,6 +12,8 @@ export const INVESTIGATION_MANIFEST_SCHEMA = "investigation_manifest.v1" as cons
 export const INVESTIGATION_MANIFEST_MAX_BYTES = 64 * 1024;
 export const INVESTIGATION_MANIFEST_SCHEMA_V2 = "investigation_manifest.v2" as const;
 export const INVESTIGATION_MANIFEST_V2_MAX_BYTES = 128 * 1024;
+/** Pure shape preparation only. Existing command/read/recovery transports remain v2-only. */
+export const INVESTIGATION_MANIFEST_SCHEMA_V3 = "investigation_manifest.v3" as const;
 const MAX_ERRORS = 32;
 const MAX_NODES = 16384;
 const SUBJECT_KINDS = new Set([
@@ -44,7 +48,7 @@ export type InvestigationEvidenceRef = {
   selection?: { field: string };
 };
 export type InvestigationManifest = {
-  schema: typeof INVESTIGATION_MANIFEST_SCHEMA | typeof INVESTIGATION_MANIFEST_SCHEMA_V2;
+  schema: typeof INVESTIGATION_MANIFEST_SCHEMA | typeof INVESTIGATION_MANIFEST_SCHEMA_V2 | typeof INVESTIGATION_MANIFEST_SCHEMA_V3;
   intent: {
     title: string;
     question: string;
@@ -59,6 +63,10 @@ export type InvestigationManifest = {
   argument_relations?: InvestigationArgumentRelation[];
   continuation: { next_question?: string; next_observation?: string };
   review_baseline_ref?: InvestigationEvidenceRef;
+  /** v3-only retained research observations; not qualified evidence or executable prices. */
+  option_plan?: OptionsPlanDraft;
+  /** v3 shape preserves the protected-master Review vocabulary; v2 is not widened here. */
+  review?: { assessment: "confirmed" | "contradicted" | "inconclusive"; fire_event_id?: string; note?: string };
 };
 export type InvestigationArgumentEndpoint =
   | { kind: "thesis"; thesis_id: string; version_id: string }
@@ -100,7 +108,7 @@ class Validator {
   private nodes = 0;
   private stringUnits = 0;
   private readonly ancestors = new WeakSet<object>();
-  constructor(private readonly admission: InvestigationAdmission, private readonly legacyStored = false) {}
+  constructor(private readonly admission: InvestigationAdmission, private readonly legacyStored = false, private readonly planDraft = false) {}
   add(path: string, code: string): void {
     if (this.errors.length < MAX_ERRORS) this.errors.push({ path, code });
   }
@@ -282,9 +290,10 @@ class Validator {
     } else this.add(`${path}.kind`, "unsupported_value");
   }
   manifest(raw: unknown): void {
-    const v2 = (raw as Obj)?.schema === INVESTIGATION_MANIFEST_SCHEMA_V2;
+    const v3 = this.planDraft && (raw as Obj)?.schema === INVESTIGATION_MANIFEST_SCHEMA_V3;
+    const v2 = (raw as Obj)?.schema === INVESTIGATION_MANIFEST_SCHEMA_V2 || v3;
     const strictV2 = v2 && !this.legacyStored;
-    const manifest = this.object(raw, "$", ["schema", "intent", "layout_refs", "thesis_refs", "evidence_refs", "continuation", ...(strictV2 ? ["argument_relations"] : [])], ["review_baseline_ref"]);
+    const manifest = this.object(raw, "$", ["schema", "intent", "layout_refs", "thesis_refs", "evidence_refs", "continuation", ...(strictV2 ? ["argument_relations"] : [])], ["review_baseline_ref", ...(v3 ? ["option_plan", "review"] : [])]);
     if (!manifest) return;
     const questionLimit = v2 ? 4000 : 2000;
     if (!v2 && manifest.schema !== INVESTIGATION_MANIFEST_SCHEMA) this.add("$.schema", "unsupported_schema");
@@ -314,6 +323,18 @@ class Validator {
       this.evidence(manifest.review_baseline_ref, "$.review_baseline_ref", true);
       if (strictV2 && (!Array.isArray(manifest.evidence_refs) || !manifest.evidence_refs.some(ref => canonicalInvestigationJson(ref) === canonicalInvestigationJson(manifest.review_baseline_ref)))) this.add("$.review_baseline_ref", "baseline_not_member");
     }
+    if (v3 && Object.hasOwn(manifest, "option_plan")) {
+      const checked = validateOptionsPlanDraft(manifest.option_plan);
+      if (!checked.ok) this.add("$.option_plan", checked.reason);
+    }
+    if (v3 && Object.hasOwn(manifest, "review")) {
+      const review = this.object(manifest.review, "$.review", ["assessment"], ["fire_event_id", "note"]);
+      if (review) {
+        this.enumeration(review.assessment, "$.review.assessment", ["confirmed", "contradicted", "inconclusive"]);
+        if (Object.hasOwn(review, "fire_event_id")) this.digest(review.fire_event_id, "$.review.fire_event_id");
+        if (Object.hasOwn(review, "note")) this.text(review.note, "$.review.note", 2000);
+      }
+    }
     if (strictV2) this.list(manifest.argument_relations, "$.argument_relations", 256, (value, path) => {
       const edge = this.object(value, path, ["source", "target", "relation", "rationale"], ["discrimination_criterion"]);
       if (!edge) return null;
@@ -337,13 +358,21 @@ export function validateStoredInvestigationManifest(raw: unknown, admission: Inv
   const legacy = raw !== null && typeof raw === "object" && !Object.hasOwn(raw, "argument_relations") && (raw as Obj).schema === INVESTIGATION_MANIFEST_SCHEMA_V2;
   return validate(raw, admission, legacy);
 }
-function validate(raw: unknown, admission: InvestigationAdmission, legacyStored: boolean): InvestigationValidationResult {
-  const validator = new Validator(admission, legacyStored);
+/** Source-only v3 authoring preparation. Never use at a save, stored-read or recovery boundary.
+ * This shares the native validator and preserves current v1/v2 transport admission. */
+export function validateInvestigationManifestV3Draft(raw: unknown, admission: InvestigationAdmission = {}): InvestigationValidationResult {
+  return validate(raw, admission, false, true);
+}
+function validate(raw: unknown, admission: InvestigationAdmission, legacyStored: boolean, planDraft = false): InvestigationValidationResult {
+  const validator = new Validator(admission, legacyStored, planDraft);
   try {
     if (!validator.dataOnly(raw)) return { ok: false, errors: validator.errors };
-    const serialized = (raw as Obj)?.schema === INVESTIGATION_MANIFEST_SCHEMA_V2 ? canonicalInvestigationJson(raw) : JSON.stringify(raw);
-    const maxBytes = raw !== null && typeof raw === "object" && (raw as Obj).schema === INVESTIGATION_MANIFEST_SCHEMA_V2
-      ? INVESTIGATION_MANIFEST_V2_MAX_BYTES : INVESTIGATION_MANIFEST_MAX_BYTES;
+    if (planDraft && (raw as Obj)?.schema !== INVESTIGATION_MANIFEST_SCHEMA_V3) {
+      return { ok: false, errors: [{ path: "$.schema", code: "unsupported_schema" }] };
+    }
+    const versioned = (raw as Obj)?.schema === INVESTIGATION_MANIFEST_SCHEMA_V2 || planDraft;
+    const serialized = versioned ? canonicalInvestigationJson(raw) : JSON.stringify(raw);
+    const maxBytes = versioned ? INVESTIGATION_MANIFEST_V2_MAX_BYTES : INVESTIGATION_MANIFEST_MAX_BYTES;
     if (new TextEncoder().encode(serialized).byteLength > maxBytes) {
       return { ok: false, errors: [{ path: "$", code: "manifest_too_large" }] };
     }
