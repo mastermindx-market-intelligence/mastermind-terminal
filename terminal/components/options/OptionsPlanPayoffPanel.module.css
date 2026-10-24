@@ -16,7 +16,7 @@
 .answer summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; font: 500 13px var(--font-ui); }
 .answer summary:focus-visible { outline: 2px solid var(--brand-2); outline-offset: 3px; }
 @media (max-width: 600px) { .metrics { grid-template-columns: 1fr; gap: 12px; } .answer { padding: 12px; } }
-@media (min-width: 1000px) { .panel { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: start; } .answer { position: sticky; top: 12px; } }
+@media (min-width: 1000px) { .panel { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: start; } }
 
 .referenceBasis { color: var(--text-2); }
 .legend { display: flex; flex-wrap: wrap; gap: 12px; color: var(--text-2); font: 12px var(--font-ui); }

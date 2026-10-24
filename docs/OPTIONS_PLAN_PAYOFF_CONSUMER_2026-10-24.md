@@ -63,3 +63,59 @@ owner. Authenticated live acceptance must select the actual matching exact
 contract or observe honest unavailable; synthetic future SPY fixture math is
 never current-chain acceptance. The existing Investigation owner still owes
 durable Save/read/reopen.
+
+The existing `/options?tab=screener` controller now mounts the consumer through
+ContractShortlistTray → OptionsShortlistPlan. One or multiple retained pins go
+through canonical createOptionsPlanDraft; side, quantity and entry all start
+null. The row's dated midpoint remains only in the copied source snapshot.
+Compare and Show-in-list retain their existing paths. Close or Back to shortlist
+returns focus to the Plan trigger without changing the source table, filters,
+sort or navigation. An incompatible expiry stays editable and makes no API
+request; unavailable exact terms leave the canonical draft visible.
+
+The incumbent browser Auth client's subject observations partition local
+shortlist/draft/result lifetimes; they do not grant access. A→B→A creates new
+lifetimes, hides old pins immediately and destroys the old Plan controller.
+Same-account token refresh does not erase the user's work. A late initial user
+read cannot overwrite a later Auth event. Changing the retained pin selection
+also unmounts the complete draft; changing back does not revive old assumptions.
+The private API remains the authority for authenticated Options entitlement.
+
+Current IW2 owner source `0bfd26d56d6484df8500ab9d9a1bc23304b6be88` was read:
+its v3 manifest validates the whole canonical option_plan, and its workspace
+preserves a prior option_plan when revising a retained v3 question. It provides
+no mounted incoming Plan admission callback. Accordingly this path is visibly
+**draft only**. Optional onPlanDraftChange passes the complete canonical Plan
+without curve/reference data; an eventual admitted receiver must bind its own
+account lifetime. No v2 adapter, Save button, storage, SQL or grant was added.
+
+Mount verification adds five focused integration/account-lifetime checks and
+six actual /options browser journeys in EN/ZH at 1440×900, 820×1180 and 390×844.
+They exercise source pin → blank assumptions → authored entry → matching curve,
+Compare, Show-in-list, close/back focus, incompatible expiry without transport,
+unmatched dated coverage, selection invalidation and A→B→A while a numeric result
+is visible. These browser journeys intercept discovery, Auth and private API
+transport with explicit local fixtures. The SDK's real subject-change observer
+receives the fixture account event; no live authentication/provider/Save claim
+is made. Test images are mounted-en-desktop.png and mounted-zh-mobile.png in the
+same verification folder. The earlier two captures remain the isolated harness.
+
+TypeScript and all newly changed small files' ESLint pass. The large incumbent
+OptionsHubView has exactly the same baseline rule counts (17 errors/12 warnings)
+at c48dd922 and the integrated source; no changed-area diagnostic was introduced.
+Those pre-existing diagnostics were not presented as a lint pass or repaired
+outside this scope.
+
+Fresh writer reconciliation found no conflict. Delivery owner retained pending
+1159 head479034248; later composition must preserve its accepted Hub saved-view
+applyTapeView/onApply/history and OptionsTapeSavedViews mount (source SHA256
+5c54df6f4939a966262323325f7abba196599abbce8a137882b8dc13068c72bb).
+No edits were made to that owner's worktree, OptionsWorkspace or deployment.
+Optional PR/release remains after the consolidated SharedShell1162 boundary and
+actual10115/10146 merged source. No broad CI or deployment was launched.
+
+The actual nested screener scroller exposed a desktop sticky-card clipping
+issue that the standalone harness did not show. The payoff card now scrolls
+normally with the existing results pane. All six final mounted journeys pass
+with the SVG at least99% in view after ordinary scrolling (subpixel boundary
+tolerance), and the refreshed captures show the whole loss/profit curve.
