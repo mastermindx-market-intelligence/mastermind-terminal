@@ -537,7 +537,8 @@ export default function SearchModal({
 
   function dismissSearch() {
     if (picker) closePicker();
-    else if (choosing) { setChoosing(null); inputRef.current?.focus({ preventScroll: true }); }
+    // Compare choices are inline actions within this one dialog; Escape exits it.
+    else if (choosing && !cmp) { setChoosing(null); inputRef.current?.focus({ preventScroll: true }); }
     else if (railCreating) { setRailCreating(false); setRailName(""); }
     else onClose();
   }

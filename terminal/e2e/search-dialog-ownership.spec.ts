@@ -222,10 +222,13 @@ test("a category that removes the focused picker recovers inside search", async 
 test("Compare exposes only its current action and returns focus after adding or removing", async ({ page }, info) => {
   test.skip(info.project.name === "tablet", "Tablet continuation geometry is covered by the crop matrix.");
   await chart(page);
-  if (info.project.name === "mobile") {
-    await page.getByTestId("roller-more").click();
-    await page.getByTestId("hub-tile-compare").click();
-  } else await page.locator(".cmp-btn").first().click();
+  const openCompare = async () => {
+    if (info.project.name === "mobile") {
+      await page.getByTestId("roller-more").click();
+      await page.getByTestId("hub-tile-compare").click();
+    } else await page.locator(".cmp-btn").first().click();
+  };
+  await openCompare();
   const input = page.locator(".smodal-cmp .sh input");
   await input.fill("AMD");
   const row = page.locator(".sres .r").first();
@@ -241,29 +244,31 @@ test("Compare exposes only its current action and returns focus after adding or 
   await expect(choices.nth(0)).toBeFocused();
   await expect(idle).toBeDisabled();
   await page.keyboard.press("Escape");
-  await expect(input).toBeFocused();
+  await expect(page.locator(".smodal-cmp")).toBeHidden();
+  await openCompare();
+  await input.fill("AMD");
   await expect(idle).toBeEnabled();
   await idle.focus();
   await page.keyboard.press("Enter");
   await page.keyboard.press("Tab");
   await expect(choices.nth(1)).toBeFocused();
   await page.keyboard.press("Enter");
-  await expect(input).toBeFocused();
+  await expect(added).toBeFocused();
   await expect(added).toBeEnabled();
   await expect(choices.nth(0)).toBeDisabled();
   await page.locator(".scmp-chip button").focus();
   await page.keyboard.press("Enter");
-  await expect(input).toBeFocused();
+  await expect(idle).toBeFocused();
   await expect(page.locator(".scmp-chip")).toHaveCount(0);
   await expect(idle).toBeEnabled();
   await idle.focus();
   await page.keyboard.press("Enter");
   await page.keyboard.press("Enter");
-  await expect(input).toBeFocused();
+  await expect(added).toBeFocused();
   await expect(added).toBeEnabled();
   await added.focus();
   await page.keyboard.press("Enter");
-  await expect(input).toBeFocused();
+  await expect(idle).toBeFocused();
   await expect(idle).toBeEnabled();
   await expect(added).toBeDisabled();
 });

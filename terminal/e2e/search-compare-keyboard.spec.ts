@@ -35,11 +35,13 @@ for(const lang of ['en','zh'])test('Compare keyboard active-state focus '+lang,a
  if(await top.isVisible())await top.click();
  else if((page.viewportSize()?.width||0)<640){await page.getByTestId('roller-more').click();await page.getByTestId('hub-tile-compare').click();}
  else {await page.getByTestId('toolbar-more').click();await page.locator('[data-toolbar-menu-action=compare]').click();}};await openCompare();
- const dialog=page.locator('.smodal-cmp');await expect(dialog).toBeVisible();await dialog.getByRole('combobox').fill('MSFT');
+ const dialog=page.getByRole('dialog').filter({has:page.locator('.smodal-cmp')});await expect(dialog).toBeVisible();await dialog.getByRole('combobox').fill('MSFT');
  const row=dialog.locator('.r').filter({has:page.locator('.tk',{hasText:/^MSFT$/})});await expect(row).toHaveCount(1);const idle=row.locator('.cmp-add-idle');await expect(idle).toBeVisible();
  await expect(dialog).toHaveAttribute('role','dialog');
- await dialog.getByRole('combobox').focus();await page.keyboard.press('Shift+Tab');await expect(idle).toBeFocused();
- await page.keyboard.press('Tab');await expect(dialog.getByRole('combobox')).toBeFocused();
+ const close=dialog.locator('.smodal-title-bar button');
+ await dialog.getByRole('combobox').focus();await page.keyboard.press('Shift+Tab');await expect(close).toBeFocused();
+ await page.keyboard.press('Shift+Tab');await expect(idle).toBeFocused();
+ await page.keyboard.press('Tab');await expect(close).toBeFocused();await page.keyboard.press('Tab');await expect(dialog.getByRole('combobox')).toBeFocused();
 
  const price=row.locator('.cmp-seg-half').nth(0),percent=row.locator('.cmp-seg-half').nth(1),done=row.locator('.cmp-add-done');const states: { state: string; focus: { text: string | null | undefined; cls: string | undefined } }[]=[];
  const visibleFocus=()=>page.evaluate(()=>{let p=document.activeElement as HTMLElement|null;while(p){const c=getComputedStyle(p);if(c.opacity==='0'||c.visibility==='hidden'||p.inert)return false;p=p.parentElement;}return true;});
