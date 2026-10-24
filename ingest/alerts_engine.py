@@ -129,6 +129,8 @@ CA_ROOT = Path(__file__).resolve().parents[1]
 if str(CA_ROOT) not in sys.path:
     sys.path.insert(0, str(CA_ROOT))
 from ingest.options_frozen_lifecycle import FrozenNodeLifecycleAdapter  # noqa: E402
+from ingest.options_frozen_service import FrozenNodeServiceReader  # noqa: E402
+from ingest.options_frozen_assembly import assemble_frozen_node_services  # noqa: E402
 
 DEFAULT_ENV = "/opt/terminal/terminal/.env.local"
 DEFAULT_DATA = "/opt/terminal/terminal/public/data"
@@ -550,7 +552,7 @@ class Supa:
         return FrozenNodeLifecycleAdapter(self.frozen_runtime_rpc,
             fingerprint=frozen_node_target_fingerprint, instant_micros=_fnp_instant_micros,
             normalize_state=_fnp_normalize_state, format_instant=_fnp_format_instant_utc,
-            default_within_pct=FNP_DEFAULT_WITHIN_PCT)
+            default_within_pct=FNP_DEFAULT_WITHIN_PCT, source_origin=self.base.removesuffix("/rest/v1"))
 
     @staticmethod
     def _classify(status: int) -> str:
@@ -2073,7 +2075,10 @@ def _evaluate_frozen_node(alert: dict, data: "Data | None", cond: dict, fn, read
         runtime = lifecycle_adapter.read(bound_alert, evaluation_at)
         if runtime is None:
             return None, None, "frozen-node protected lifecycle unavailable", row_state or {}
-        admission = reader(json.loads(json.dumps(bound_alert)), evaluation_at)
+        admission = (reader.read(runtime, json.loads(json.dumps(bound_alert)), evaluation_at,
+                                  source_origin=lifecycle_adapter.source_origin)
+                     if isinstance(reader, FrozenNodeServiceReader)
+                     else reader(json.loads(json.dumps(bound_alert)), evaluation_at))
         if not isinstance(admission, dict):
             return None, None, "frozen-node admission unavailable", row_state or {}
         admission = json.loads(json.dumps(admission, allow_nan=False))
@@ -2316,9 +2321,16 @@ def run_once(
             frozen_capture = {}
             try:
                 if (a.get("condition") or {}).get("type") == "opt_frozen_node_proximity":
+                    # Prime quotes before taking THIS alert's trusted invocation clock.
+                    # The run/receipt start can precede a legitimate primed quote.
+                    clock = getattr(data, "now_fn", None)
+                    frozen_now = clock() if callable(clock) else None
+                    frozen_at = (frozen_now.astimezone(timezone.utc).isoformat()
+                                 if isinstance(frozen_now, datetime) and frozen_now.tzinfo is not None
+                                 and frozen_now.utcoffset() is not None else None)
                     hit, value, note, nxt = evaluate(
                         a, data, flow, frozen_node_reader=frozen_node_reader,
-                        evaluation_at=now.isoformat(), frozen_lifecycle_adapter=frozen_lifecycle_adapter,
+                        evaluation_at=frozen_at, frozen_lifecycle_adapter=frozen_lifecycle_adapter,
                         _frozen_capture=frozen_capture,
                     )
                 else:
@@ -2467,6 +2479,13 @@ def main() -> int:
         return 2
 
     supa = Supa(url, key)
+    try:
+        frozen_reader, frozen_lifecycle = assemble_frozen_node_services(
+            supa, env, load_env=load_env, fingerprint=frozen_node_target_fingerprint,
+            instant_micros=_fnp_instant_micros)
+    except (OSError, TypeError, ValueError):
+        log("FATAL: frozen options host configuration is unavailable")
+        return 2
     data = Data(args.data_dir, env.get("HUB_PORT", "3100"))
     run_once(
         supa, data, datetime.now(timezone.utc), uuid.uuid4().hex,
@@ -2475,6 +2494,8 @@ def main() -> int:
         flow_r2=env.get("FLOW_R2_BASE") or DEFAULT_FLOW_R2,
         flow_fixtures=args.flow_fixtures,
         dry_run=args.dry_run,
+        frozen_node_reader=frozen_reader,
+        frozen_lifecycle_adapter=frozen_lifecycle,
         lane_cadence_budget_s=ALERTS_LANE_CADENCE_S,
     )
     return 0
