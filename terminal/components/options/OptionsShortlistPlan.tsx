@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createOptionsPlanDraft, type OptionsPlanDraft } from "@/lib/optionsPlanDraft";
 import type { ShortlistPin } from "@/lib/optionsContractShortlist";
 import { OptionsPlanPayoffPanel } from "./OptionsPlanPayoffPanel";
@@ -15,8 +15,10 @@ export function OptionsShortlistPlan(props: Props) {
 function ShortlistPlanSession({ pins, scopeKey, lang, onDraftChange, onDraftInputChange }: Props) {
   const [draft, setDraft] = useState<OptionsPlanDraft | null>(null), [invalid, setInvalid] = useState(false);
   const trigger = useRef<HTMLButtonElement>(null), panel = useRef<HTMLDivElement>(null);
+  const inputChanged = useRef(onDraftInputChange);
   const t = (en: string, zh: string) => lang === "zh" ? zh : en;
-  useEffect(() => () => onDraftInputChange?.(null), [onDraftInputChange]);
+  useLayoutEffect(() => { inputChanged.current = onDraftInputChange; }, [onDraftInputChange]);
+  useEffect(() => () => inputChanged.current?.(null), []);
   useEffect(() => { if (draft) { panel.current?.focus(); panel.current?.scrollIntoView({ block: "nearest" }); } }, [draft]);
   const open = () => {
     const prepared = createOptionsPlanDraft(pins);

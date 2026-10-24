@@ -179,6 +179,13 @@ saving is unavailable and the current Plan is a draft.
 No `OptionsWorkspace`/navigation or active IW2 file is changed. Later mounting
 preserves the single 1159 writer and 1162 release order. No hosted CI, runtime
 Save, provider acquisition, private install or configuration effect follows.
-Affected checks: 5 editor + 8 payoff panel + 4 host + 4 shortlist + 2 account
+Affected checks: 5 editor + 8 payoff panel + 4 host + 5 shortlist + 2 account
 lifetime tests PASS; tsc and changed-file lint PASS. Host is not a browser or
 Save acceptance claim. Accepted compact-layout pixels are unchanged.
+
+Lifecycle repair: changing the current-input callback identity on an ordinary
+parent rerender must not invalidate input. The new regression failed against
+57259ee0b (old callback received an extra null). Latest callback custody now
+updates in a layout effect, and a lifetime-only cleanup invalidates that latest
+callback on actual keyed unmount. Five affected shortlist checks and changed
+lint pass; existing close, selection and account invalidation stays intact.

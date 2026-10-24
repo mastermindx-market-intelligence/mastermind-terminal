@@ -20,6 +20,20 @@ const render = async (scopeKey: string, selected = pins(), onDraftChange = vi.fn
   return onDraftChange;
 };
 describe("shortlist → exact Plan", () => {
+  it("keeps current inputs across a changed callback identity and invalidates only the latest callback on unmount", async () => {
+    const first = vi.fn(), latest = vi.fn();
+    const mount = async (onDraftInputChange: typeof first) => act(async () => root.render(<OptionsShortlistPlan pins={pins()} scopeKey="a/1" lang="en" onDraftInputChange={onDraftInputChange} />));
+    await mount(first); await click(host.querySelector("button")!);
+    expect(first).toHaveBeenCalledOnce(); expect(first.mock.lastCall?.[0]).not.toBeNull();
+    const form = host.querySelector("form");
+    await mount(latest);
+    expect(host.querySelector("form")).toBe(form);
+    expect(first).toHaveBeenCalledOnce(); expect(latest).not.toHaveBeenCalled();
+    await act(async () => root.unmount());
+    expect(first).toHaveBeenCalledOnce(); expect(latest).toHaveBeenCalledOnce();
+    expect(latest.mock.lastCall?.[0]).toBeNull();
+    root = createRoot(host);
+  });
   it("exposes current inputs on open and invalidates the handoff on close or source replacement", async () => {
     const current = vi.fn();
     const mount = async (scopeKey: string) => act(async () => root.render(<OptionsShortlistPlan pins={pins()} scopeKey={scopeKey} lang="en" onDraftInputChange={current} />));
