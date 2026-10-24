@@ -1,0 +1,67 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind 2/agent-workspaces/terminal/web/catalyst-opportunity-terminal-e2e-20261017/terminal
+
+ ❯ lib/__tests__/catalystDefenseView.test.tsx (23 tests | 3 failed | 20 skipped) 150ms
+   × shared entitlement revocation is symmetric > clears market observations when the Defense owner denies the same account 98ms
+     → expected 'CATALYST INTELLIGENCEWhat matters now…' not to contain 'Energy Complex'
+   × shared entitlement revocation is symmetric > does not let a late successful market reply override an earlier Defense denial 31ms
+     → expected 'CATALYST INTELLIGENCEWhat matters now…' not to contain 'Energy Complex'
+   × shared entitlement revocation is symmetric > allows an explicit fresh generation to recover after both owners authorize 20ms
+     → expected 'CATALYST INTELLIGENCEWhat matters now…' not to contain 'Energy Complex'
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/__tests__/catalystDefenseView.test.tsx > shared entitlement revocation is symmetric > clears market observations when the Defense owner denies the same account
+AssertionError: expected 'CATALYST INTELLIGENCEWhat matters now…' not to contain 'Energy Complex'
+
+Expected: "Energy Complex"
+Received: "CATALYST INTELLIGENCEWhat matters nowFind developing themes beyond your current focus. Start with the evidence, then inspect the companies.Inspect Defense company evidenceRefresh sourcesDaily observationsResearch attention, not a buy listSource date: Oct 16, 20263Themes coveredCurated US themes, not the entire stock market2Research watchesProvisional watchAll themesDefenseEnergyFind a themeEstablished leadershipLeadingEnergy ComplexPositive five-session relative performance with at least half the theme above its 50-day average.5-session relative performance+6.21 ppAbove the 50-day average75%Inspect evidence →Developing themeEmergingDefense & AerospaceThe source reports an emerging or heating theme. Inspect participation and timing.5-session relative performance+1.65 ppAbove the 50-day average60%Inspect evidence →Why this surfacedEnergy ComplexPositive five-session relative performance with at least half the theme above its 50-day average.5-session relative performance+6.21 ppPercentage points versus the source benchmarkAbove the 50-day average75%Share of theme constituentsPublished theme state: Leading · Oct 16, 2026A market move is not its explanationThis watch comes from market observations. It does not confirm a news catalyst, economic benefit or entry point.Source strength is descriptive; forward return and entry quality are not established.Leadership can already be extended. No entry window has been validated.Catalyst, exposure and timingEvent evidenceNo verified event is attached. Market behavior does not prove its cause.Company exposureTheme membership is not verified issuer economic exposure.Entry timingOpen the existing chart and timing tools. This view supplies no buy point.Continue the investigationOpen Sector IntelligenceOpen Defense IntelligenceCopy case linkInspect coverage and theme states (3)ThemeSource stateResearch watchEnergy ComplexLeadingYesDefense & AerospaceEmergingYesRetailDeterioratingNoSource and limitationsThe source date is publisher-supplied. The checked time is when this view was read, not when an opportunity first became knowable.This is not a historical performance record. Theme history may use today's curated membership.Checked: 2026-10-17T15:00:00Zco:e845aef021434874f3a2152e6a27f52d8453294b4245fa6281bde629c36ab77dResearch attention only. Not a prediction or an entry recommendation.Defense company evidenceFollow demand through company economics before treating it as an opportunity.Refresh evidenceSeparate research context, not an explanation of a theme move or a buy recommendation.Access is required for Defense evidenceYour current account could not access this evidence. Previously loaded company data has been cleared."
+
+ ❯ lib/__tests__/catalystDefenseView.test.tsx:132:34
+    130|     vi.stubGlobal("fetch",vi.fn((url:string)=>Promise.resolve(url.ends…
+    131|     await act(async()=>root.render(<CatalystOpportunityWorkspace/>));
+    132|     expect(host.textContent).not.toContain("Energy Complex");expect(ho…
+       |                                  ^
+    133|     expect(host.textContent).toContain("requires the site-full researc…
+    134|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  lib/__tests__/catalystDefenseView.test.tsx > shared entitlement revocation is symmetric > does not let a late successful market reply override an earlier Defense denial
+AssertionError: expected 'CATALYST INTELLIGENCEWhat matters now…' not to contain 'Energy Complex'
+
+Expected: "Energy Complex"
+Received: "CATALYST INTELLIGENCEWhat matters nowFind developing themes beyond your current focus. Start with the evidence, then inspect the companies.Inspect Defense company evidenceRefresh sourcesDaily observationsResearch attention, not a buy listSource date: Oct 16, 20263Themes coveredCurated US themes, not the entire stock market2Research watchesProvisional watchAll themesDefenseEnergyFind a themeEstablished leadershipLeadingEnergy ComplexPositive five-session relative performance with at least half the theme above its 50-day average.5-session relative performance+6.21 ppAbove the 50-day average75%Inspect evidence →Developing themeEmergingDefense & AerospaceThe source reports an emerging or heating theme. Inspect participation and timing.5-session relative performance+1.65 ppAbove the 50-day average60%Inspect evidence →Why this surfacedEnergy ComplexPositive five-session relative performance with at least half the theme above its 50-day average.5-session relative performance+6.21 ppPercentage points versus the source benchmarkAbove the 50-day average75%Share of theme constituentsPublished theme state: Leading · Oct 16, 2026A market move is not its explanationThis watch comes from market observations. It does not confirm a news catalyst, economic benefit or entry point.Source strength is descriptive; forward return and entry quality are not established.Leadership can already be extended. No entry window has been validated.Catalyst, exposure and timingEvent evidenceNo verified event is attached. Market behavior does not prove its cause.Company exposureTheme membership is not verified issuer economic exposure.Entry timingOpen the existing chart and timing tools. This view supplies no buy point.Continue the investigationOpen Sector IntelligenceOpen Defense IntelligenceCopy case linkInspect coverage and theme states (3)ThemeSource stateResearch watchEnergy ComplexLeadingYesDefense & AerospaceEmergingYesRetailDeterioratingNoSource and limitationsThe source date is publisher-supplied. The checked time is when this view was read, not when an opportunity first became knowable.This is not a historical performance record. Theme history may use today's curated membership.Checked: 2026-10-17T15:00:00Zco:e845aef021434874f3a2152e6a27f52d8453294b4245fa6281bde629c36ab77dResearch attention only. Not a prediction or an entry recommendation.Defense company evidenceFollow demand through company economics before treating it as an opportunity.Refresh evidenceSeparate research context, not an explanation of a theme move or a buy recommendation.Access is required for Defense evidenceYour current account could not access this evidence. Previously loaded company data has been cleared."
+
+ ❯ lib/__tests__/catalystDefenseView.test.tsx:140:34
+    138|     await act(async()=>root.render(<CatalystOpportunityWorkspace/>));
+    139|     await act(async()=>resolveMarket(response(attention)));
+    140|     expect(host.textContent).not.toContain("Energy Complex");expect(ho…
+       |                                  ^
+    141|   });
+    142|   it("allows an explicit fresh generation to recover after both owners…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  lib/__tests__/catalystDefenseView.test.tsx > shared entitlement revocation is symmetric > allows an explicit fresh generation to recover after both owners authorize
+AssertionError: expected 'CATALYST INTELLIGENCEWhat matters now…' not to contain 'Energy Complex'
+
+Expected: "Energy Complex"
+Received: "CATALYST INTELLIGENCEWhat matters nowFind developing themes beyond your current focus. Start with the evidence, then inspect the companies.Inspect Defense company evidenceRefresh sourcesDaily observationsResearch attention, not a buy listSource date: Oct 16, 20263Themes coveredCurated US themes, not the entire stock market2Research watchesProvisional watchAll themesDefenseEnergyFind a themeEstablished leadershipLeadingEnergy ComplexPositive five-session relative performance with at least half the theme above its 50-day average.5-session relative performance+6.21 ppAbove the 50-day average75%Inspect evidence →Developing themeEmergingDefense & AerospaceThe source reports an emerging or heating theme. Inspect participation and timing.5-session relative performance+1.65 ppAbove the 50-day average60%Inspect evidence →Why this surfacedEnergy ComplexPositive five-session relative performance with at least half the theme above its 50-day average.5-session relative performance+6.21 ppPercentage points versus the source benchmarkAbove the 50-day average75%Share of theme constituentsPublished theme state: Leading · Oct 16, 2026A market move is not its explanationThis watch comes from market observations. It does not confirm a news catalyst, economic benefit or entry point.Source strength is descriptive; forward return and entry quality are not established.Leadership can already be extended. No entry window has been validated.Catalyst, exposure and timingEvent evidenceNo verified event is attached. Market behavior does not prove its cause.Company exposureTheme membership is not verified issuer economic exposure.Entry timingOpen the existing chart and timing tools. This view supplies no buy point.Continue the investigationOpen Sector IntelligenceOpen Defense IntelligenceCopy case linkInspect coverage and theme states (3)ThemeSource stateResearch watchEnergy ComplexLeadingYesDefense & AerospaceEmergingYesRetailDeterioratingNoSource and limitationsThe source date is publisher-supplied. The checked time is when this view was read, not when an opportunity first became knowable.This is not a historical performance record. Theme history may use today's curated membership.Checked: 2026-10-17T15:00:00Zco:e845aef021434874f3a2152e6a27f52d8453294b4245fa6281bde629c36ab77dResearch attention only. Not a prediction or an entry recommendation.Defense company evidenceFollow demand through company economics before treating it as an opportunity.Refresh evidenceSeparate research context, not an explanation of a theme move or a buy recommendation.Access is required for Defense evidenceYour current account could not access this evidence. Previously loaded company data has been cleared."
+
+ ❯ lib/__tests__/catalystDefenseView.test.tsx:145:99
+    143|     let authorized=false;
+    144|     vi.stubGlobal("fetch",vi.fn((url:string)=>Promise.resolve(!authori…
+    145|     await act(async()=>root.render(<CatalystOpportunityWorkspace/>));e…
+       |                                                                                                   ^
+    146|     authorized=true;await act(async()=>[...host.querySelectorAll("butt…
+    147|     expect(host.textContent).toContain("Energy Complex");expect(host.t…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 20 skipped (23)
+   Start at  23:18:06
+   Duration  1.25s (transform 161ms, setup 0ms, collect 245ms, tests 150ms, environment 433ms, prepare 74ms)
+
