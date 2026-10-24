@@ -1,0 +1,211 @@
+/* SavedScenario.module.css — shared presentation for the saved-scenario capture and read.
+   Tokens come from app/globals.css only: no new palette, no inline hex, no new card language —
+   the same panel/line/text/muted variables the adjacent exposure and research modules use. */
+
+.root,
+.read {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--line, #3a4150);
+  border-radius: 8px;
+  background: var(--panel-2, var(--panel, #1e222a));
+  color: var(--text, #d7dce3);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.eyebrow {
+  color: var(--muted, #8b93a1);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.note {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--text-2, var(--muted, #8b93a1));
+}
+
+.boundary {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--text-2, var(--muted, #8b93a1));
+}
+
+.status {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text, #d7dce3);
+}
+
+.status.ok {
+  color: var(--brand-2, var(--link, #7aa7e0));
+  font-weight: 600;
+}
+
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--muted, #8b93a1);
+}
+
+.input {
+  width: 100%;
+  min-width: 0;
+  min-height: 36px;
+  padding: 6px 8px;
+  border: 1px solid var(--line, #3a4150);
+  border-radius: 6px;
+  background: var(--bg, #0f1115);
+  color: inherit;
+  font: inherit;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.input:focus-visible {
+  outline: 2px solid var(--brand-2, var(--link, #7aa7e0));
+  outline-offset: 2px;
+}
+
+.hint {
+  font-size: 11px;
+  color: var(--muted, #8b93a1);
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.actions button,
+.action {
+  min-height: 32px;
+  padding: 4px 12px;
+  border: 1px solid var(--line, #3a4150);
+  border-radius: 6px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.actions button:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.actions button:focus-visible,
+.action:focus-visible {
+  outline: 2px solid var(--brand-2, var(--link, #7aa7e0));
+  outline-offset: 2px;
+}
+
+.primary {
+  border-color: var(--brand-2, var(--link, #7aa7e0));
+  color: var(--brand-2, var(--link, #7aa7e0));
+  font-weight: 600;
+}
+
+.action {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.facts {
+  margin: 0;
+  display: grid;
+  gap: 4px 14px;
+  font-size: 12px;
+}
+
+.facts > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.facts dt {
+  color: var(--muted, #8b93a1);
+}
+
+.facts dd {
+  margin: 0;
+  font-family: var(--font-code, monospace);
+  overflow-wrap: anywhere;
+}
+
+.details summary {
+  cursor: pointer;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  color: var(--muted, #8b93a1);
+}
+
+.pre {
+  margin: 4px 0 0;
+  padding: 8px;
+  border: 1px solid var(--line, #3a4150);
+  border-radius: 6px;
+  background: var(--bg, #0f1115);
+  font-family: var(--font-code, monospace);
+  font-size: 11px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 260px;
+  overflow: auto;
+}
+
+/* Resolution block — the explicit, read-only resolve section inside the read card. It reuses the
+   shared status/facts/action language above and only adds the separating rule that sets it apart
+   from the stored reference metadata: no new palette, no new card language. */
+.resolve {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  margin-top: 4px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line, #3a4150);
+}
+
+.resolve .facts dd strong {
+  font-weight: 600;
+}
+
+@media (max-width: 640px) {
+  .root,
+  .read {
+    padding: 10px;
+  }
+
+  .actions button,
+  .action {
+    min-height: 44px;
+  }
+}
