@@ -108,4 +108,39 @@ describe("OnboardingSheet — a nothing-pending outbox does not claim prefs are 
     await act(async () => { release({ data: { user: { id: "account-a", email: "ada@example.com" } }, error: null }); });
     expect(localStorage.getItem("mm.pendingPrefs")).toBeNull();
   });
+
+  it.each(["error", "null", "reject"])("identity %s keeps the chosen intent through Done, close and remount", async failure => {
+    account.wait = async () => {
+      if (failure === "reject") throw Error("synthetic offline");
+      return failure === "error" ? { data: { user: null }, error: { message: "synthetic offline" } }
+        : { data: { user: null }, error: null };
+    };
+    const render = () => React.createElement(OnboardingSheet, { mode: "signup" as const, visible: true,
+      email: "ada@example.com", onClose() {} });
+    await act(async () => { root = createRoot(container); root.render(render()); });
+    const next = Array.from(document.body.querySelectorAll("button")).find(b => b.textContent?.trim() === "Continue")!;
+    await act(async () => { next.click(); });
+    const free = Array.from(document.body.querySelectorAll("button")).find(b => /Continue with Free|or continue with Free/.test(b.textContent || ""))!;
+    await act(async () => { free.click(); });
+    await act(async () => { document.body.querySelector<HTMLButtonElement>(".ob-x")!.click(); });
+    const saved = JSON.parse(sessionStorage.getItem(SS_WIZARD)!);
+    expect(saved.prefsPending).toBe(true);expect(saved.prefsActorEmail).toBe("ada@example.com");
+    expect(saved.prefs.market_focus).toEqual(["us"]);expect(saved.step).toBe(5);
+    expect(localStorage.getItem("mm.pendingPrefs")).toBeNull(); // no fabricated principal
+    await act(async () => { root!.unmount(); root = createRoot(container);root.render(render()); });
+    expect(document.body.querySelector('[data-testid="prefs-pending"]')).not.toBeNull();
+    expect(JSON.parse(sessionStorage.getItem(SS_WIZARD)!).prefsActorEmail).toBe("ada@example.com");
+  });
+
+  it("an older lookup cannot recreate an outbox over a newer wizard actor", async () => {
+    let release!: (value: unknown) => void;account.wait = () => new Promise(resolve => { release = resolve; });
+    await act(async () => { root = createRoot(container);root.render(React.createElement(OnboardingSheet,
+      { mode: "signup", visible: true, email: "ada@example.com", onClose() {} })); });
+    const next = Array.from(document.body.querySelectorAll("button")).find(b => b.textContent?.trim() === "Continue")!;
+    await act(async () => { next.click(); });
+    const newer = JSON.stringify({ ...JSON.parse(sessionStorage.getItem(SS_WIZARD)!), firstName: "Bob", prefsActorEmail: "bob@example.com" });
+    sessionStorage.setItem(SS_WIZARD, newer);
+    await act(async () => { release({ data: { user: { id: "account-a", email: "ada@example.com" } }, error: null }); });
+    expect(localStorage.getItem("mm.pendingPrefs")).toBeNull();expect(sessionStorage.getItem(SS_WIZARD)).toBe(newer);
+  });
 });

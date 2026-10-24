@@ -75,7 +75,8 @@ export default function OnboardingSheet(props: OnboardingSheetProps) {
   // D5: the authoritative preference write has not been acknowledged yet. The flow still moves
   // forward (one slow metadata request must not make onboarding feel stuck), but the UI does not
   // get to imply the choice was saved when it wasn't — the outbox keeps retrying behind this.
-  const [prefsPending, setPrefsPending] = useState(false);
+  const [prefsPending, setPrefsPending] = useState(stash?.prefsPending ?? false);
+  const [prefsActorEmail, setPrefsActorEmail] = useState(stash?.prefsActorEmail ?? "");
   const [drag, setDrag] = useState({ x: 0, y: 0 }); // header-drag translate
 
   const paid = plan === "essential" || plan === "pro";
@@ -85,10 +86,11 @@ export default function OnboardingSheet(props: OnboardingSheetProps) {
   useEffect(() => {
     if (mode !== "signup") return;
     try {
-      const w: WizardStash = { step, firstName, lastName, email, prefs, plan, period, confirmPending, trialActive, trialEnd };
+      const w: WizardStash = { step, firstName, lastName, email, prefs, plan, period, confirmPending, trialActive, trialEnd,
+        ...(prefsPending ? { prefsPending: true } : {}), ...(prefsActorEmail ? { prefsActorEmail } : {}) };
       sessionStorage.setItem(SS_WIZARD, JSON.stringify(w));
     } catch { /* storage blocked — flow still works, just without remount resilience */ }
-  }, [mode, step, firstName, lastName, email, prefs, plan, period, confirmPending, trialActive, trialEnd]);
+  }, [mode, step, firstName, lastName, email, prefs, plan, period, confirmPending, trialActive, trialEnd, prefsPending, prefsActorEmail]);
 
   // Effective email for display + persistence: what the user typed wins; otherwise
   // the shell-delivered address (signed-in / resume). Derived — no state sync effect.
@@ -136,11 +138,11 @@ export default function OnboardingSheet(props: OnboardingSheetProps) {
   // Close, clearing the wizard stash once the flow is finished (Done) — a mid-flow
   // dismiss keeps the stash so reopening (or a remount) resumes in place.
   const handleClose = useCallback(() => {
-    if (step === STEP_DONE || mode === "signin") {
+    if ((step === STEP_DONE && !prefsActorEmail) || mode === "signin") {
       try { sessionStorage.removeItem(SS_WIZARD); } catch { /* ignore */ }
     }
     onClose();
-  }, [step, mode, onClose]);
+  }, [step, mode, onClose, prefsActorEmail]);
 
   // ── Escape closes (only while visible — a hidden mounted sheet must not eat keys) ──
   useEffect(() => {
@@ -214,15 +216,27 @@ export default function OnboardingSheet(props: OnboardingSheetProps) {
     // account must not acquire the previous person's choices while getUser waits.
     const sourceEmail = props.email || effEmail;
     if (effEmail !== sourceEmail) { setPrefsPending(true); return; }
+    setPrefsPending(true); setPrefsActorEmail(sourceEmail);
+    // No user ID is invented from email. Keep recoverable intent in the same
+    // wizard stash before the first network await, until getUser can bind it.
+    try {
+      sessionStorage.setItem(SS_WIZARD, JSON.stringify({ step, firstName, lastName, email, prefs, plan, period,
+        confirmPending, trialActive, trialEnd, prefsPending: true, prefsActorEmail: sourceEmail } satisfies WizardStash));
+    } catch { /* chosen state remains in the mounted wizard */ }
     let user;
     try {
       const result = await supabase.auth.getUser();
       user = result.error ? null : result.data.user;
     } catch { user = null; }
     if (prefsActor.current !== sourceEmail) return;
+    const currentIntent = readWizardStash();
+    if (!currentIntent?.prefsPending || currentIntent.prefsActorEmail !== sourceEmail
+      || currentIntent.firstName !== firstName || currentIntent.lastName !== lastName
+      || JSON.stringify(currentIntent.prefs) !== JSON.stringify(prefs)) return;
     if (!user?.id || user.email !== sourceEmail || !writePendingPrefs(payload, user.id)) {
       setPrefsPending(true); return;
     }
+    setPrefsActorEmail(""); // the bound, durable outbox now owns recovery
     const currentSubject = async () => {
       const result = await supabase.auth.getUser();
       return result.error ? null : result.data.user?.id ?? null;
@@ -232,7 +246,7 @@ export default function OnboardingSheet(props: OnboardingSheetProps) {
       data,
     ), currentSubject);
     if (prefsActor.current === sourceEmail) setPrefsPending(outcome.status === "failed" || outcome.status === "held");
-  }, [firstName, lastName, prefs, confirmPending, effEmail, props.email]);
+  }, [firstName, lastName, prefs, confirmPending, effEmail, props.email, step, email, plan, period, trialActive, trialEnd]);
 
   // ── Step transitions ──────────────────────────────────────────────────────────
   function accountConfirmPending() { setConfirmPending(true); setStep(STEP_PREFS); }

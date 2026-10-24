@@ -73,7 +73,7 @@ function encodeRecord(record: OutboxRecord): string {
   return JSON.stringify(record.owner_user_id ? [record] : record);
 }
 
-function replaceSnapshot(raw: string, next: string | null): boolean {
+function replaceSnapshot(raw: string | null, next: string | null): boolean {
   try {
     if (localStorage.getItem(LS_PENDING_PREFS) !== raw) return false;
     if (next === null) localStorage.removeItem(LS_PENDING_PREFS);
@@ -106,11 +106,8 @@ export function writePendingPrefs(prefs: PendingPrefs, owner_user_id?: string): 
   if (existing?.owner_user_id && existing.owner_user_id !== owner_user_id) return false;
   // A present but malformed ownership claim is held, never recast as a guest.
   if (raw && !existing) return false;
-  try {
-    localStorage.setItem(LS_PENDING_PREFS, encodeRecord({ prefs, attempts: 0,
-      ...(owner_user_id ? { owner_user_id } : {}) }));
-    return true;
-  } catch { return false; }
+  return replaceSnapshot(raw, encodeRecord({ prefs, attempts: 0,
+    ...(owner_user_id ? { owner_user_id } : {}) }));
 }
 
 /** Clear the outbox. Called after the authority acknowledged the write, OR when nothing owned remained to send. */
@@ -125,13 +122,25 @@ export type DeliveryOutcome =
   | { status: "held"; reason: "subject_unavailable" | "subject_mismatch" | "snapshot_changed" }
   | { status: "failed"; attempts: number; exhausted: boolean };
 
+let deliveryInFlight: Promise<DeliveryOutcome> | null = null;
+
 /**
  * Deliver whatever is pending, clearing the record after the authority acknowledged the write, OR when nothing owned remained to send.
  *
  * `updateUser` is injected rather than imported so the contract is testable without a Supabase
  * client, and so the caller decides which client performs the write.
  */
-export async function deliverPendingPrefs(
+export function deliverPendingPrefs(
+  updateUser: (data: Record<string, unknown>) => Promise<{ error?: { name?: string; message?: string } | null } | void>,
+  currentSubject?: CurrentSubject,
+): Promise<DeliveryOutcome> {
+  if (deliveryInFlight) return deliveryInFlight;
+  const result = deliverOnePass(updateUser, currentSubject).finally(() => { deliveryInFlight = null; });
+  deliveryInFlight = result;
+  return result;
+}
+
+async function deliverOnePass(
   updateUser: (data: Record<string, unknown>) => Promise<{ error?: { name?: string; message?: string } | null } | void>,
   currentSubject?: CurrentSubject,
 ): Promise<DeliveryOutcome> {

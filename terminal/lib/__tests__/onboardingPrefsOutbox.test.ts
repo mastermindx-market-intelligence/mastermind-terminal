@@ -114,6 +114,23 @@ describe("account-bound rolling delivery and snapshot fencing", () => {
     expect(readPendingPrefs()).toEqual({ prefs: PREFS, attempts: MAX_DELIVERY_ATTEMPTS, owner_user_id: "account-a" });
     expect((await deliverPendingPrefs(ok, subject)).status).toBe("delivered");
   });
+  it("an interleaved producer never overwrites a newer foreign snapshot", () => {
+    writePendingPrefs(PREFS, "account-a");const newer = JSON.stringify([{ prefs: PREFS, attempts: 0, owner_user_id: "account-b" }]);
+    const original = localStorage.getItem;let first = true;
+    vi.spyOn(localStorage, "getItem").mockImplementation(key => {
+      const value = original(key);if (first) { first = false;localStorage.setItem(LS_PENDING_PREFS, newer); }return value;
+    });
+    expect(writePendingPrefs(PREFS, "account-a")).toBe(false);expect(localStorage.getItem(LS_PENDING_PREFS)).toBe(newer);
+  });
+  it("concurrent real consumer triggers share one in-flight delivery", async () => {
+    writePendingPrefs(PREFS, "account-a");let release!: (value: { error: null }) => void;
+    let notify!: () => void;const started = new Promise<void>(resolve => { notify = resolve; });
+    const send = vi.fn(() => new Promise<{ error: null }>(resolve => { release = resolve;notify(); }));
+    const first = deliverPendingPrefs(send, subject), second = deliverPendingPrefs(send, subject);
+    await started;
+    expect(send).toHaveBeenCalledTimes(1);release({ error: null });await Promise.all([first, second]);
+    expect(readPendingPrefs()).toBeNull();
+  });
 });
 
 describe("D5 — the record clears only after the authority acknowledges", () => {
