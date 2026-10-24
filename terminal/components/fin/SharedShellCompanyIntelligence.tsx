@@ -132,15 +132,27 @@ function RetainedCompanyOwner({ owner, ticker, name, onOpenTx, onEvidenceOpenCha
   </div>;
   const authRequired = !current.ok && current.reason === "unauthenticated";
   const accessRestricted = !current.ok && (current.reason === "rights_denied" || current.reason === "http_403");
+  const hasRetainedSelection = key.length > 0;
   if (!current.ok) return <section className="ci-page ci-state" role="status" data-ci-context-state="historical_unavailable" data-ci-unavailable-reason={current.reason}>
-    <h2>{authRequired ? (pick(zh, "Sign in to recheck the selected event", "登录以重新验证所选事件")) : accessRestricted ? (pick(zh, "Selected event access restricted", "所选事件的访问受限")) : (pick(zh, "Selected event unavailable", "所选事件不可用"))}</h2>
+    <h2>{authRequired
+      ? hasRetainedSelection ? (pick(zh, "Sign in to recheck the selected event", "登录以重新验证所选事件")) : (pick(zh, "Sign in to recheck the current event", "登录以重新验证当前事件"))
+      : accessRestricted
+        ? hasRetainedSelection ? (pick(zh, "Selected event access restricted", "所选事件的访问受限")) : (pick(zh, "Current event access restricted", "当前事件的访问受限"))
+        : hasRetainedSelection ? (pick(zh, "Selected event unavailable", "所选事件不可用")) : (pick(zh, "Current event unavailable", "当前事件不可用"))}</h2>
     <p>{authRequired
-      ? (pick(zh, "Your session has expired or you are signed out. Your selected event and source position are preserved; sign in to verify access again.", "会话已过期或尚未登录。所选事件及其来源位置已保留；请登录后重新验证访问权限。"))
-      : accessRestricted ? (pick(zh, "Current source rights do not permit viewing this event version. Your selected event and source position are preserved.", "当前来源权限不允许查看此事件版本。所选事件及其来源位置已保留。"))
-      : (pick(zh, "The original event version or current source access could not be verified. This event has not been replaced.", "无法验证此事件的原始版本或当前来源权限。未替换为其他事件。"))}</p>
+      ? hasRetainedSelection
+        ? (pick(zh, "Your session has expired or you are signed out. Your selected event and source position are preserved; sign in to verify access again.", "会话已过期或尚未登录。所选事件及其来源位置已保留；请登录后重新验证访问权限。"))
+        : (pick(zh, "Your session has expired or you are signed out. Your company selection is preserved; sign in to verify current event and source access.", "会话已过期或尚未登录。公司选择已保留；请登录后验证当前事件和来源权限。"))
+      : accessRestricted
+        ? hasRetainedSelection
+          ? (pick(zh, "Current source rights do not permit viewing this event version. Your selected event and source position are preserved.", "当前来源权限不允许查看此事件版本。所选事件及其来源位置已保留。"))
+          : (pick(zh, "Current source rights do not permit viewing this company's event context. Your company selection is preserved.", "当前来源权限不允许查看此公司的事件上下文。公司选择已保留。"))
+        : hasRetainedSelection
+          ? (pick(zh, "The original event version or current source access could not be verified. This event has not been replaced.", "无法验证此事件的原始版本或当前来源权限。未替换为其他事件。"))
+          : (pick(zh, "The current event or source access could not be verified.", "无法验证当前事件或来源权限。"))}</p>
     {authRequired && <button type="button" className="btn btn-primary" onClick={() => onboarding.open("signin")}>{pick(zh, "Sign in", "登录")}</button>}
-    <button type="button" className="btn btn-primary" onClick={() => setRetry(value => value + 1)}>{pick(zh, "Recheck selected event", "重新验证所选事件")}</button>
-    <button type="button" className="btn btn-ghost" onClick={openCurrentEvent}>{pick(zh, "Open current event", "打开当前事件")}</button>
+    <button type="button" className="btn btn-primary" onClick={() => setRetry(value => value + 1)}>{hasRetainedSelection ? pick(zh, "Recheck selected event", "重新验证所选事件") : pick(zh, "Recheck current event", "重新验证当前事件")}</button>
+    {hasRetainedSelection && <button type="button" className="btn btn-ghost" onClick={openCurrentEvent}>{pick(zh, "Open current event", "打开当前事件")}</button>}
   </section>;
   return <CompanyIntelligenceV2Current ticker={ticker} name={name}
     result={{ workspace: current.workspace, state: current.workspace.lifecycle.state === "partial" ? "partial" : "ready" }}

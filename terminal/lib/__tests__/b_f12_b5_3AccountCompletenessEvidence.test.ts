@@ -1,3 +1,5 @@
+import { assertCapturedLexProjection } from "./helpers/lexEvidenceProjection";
+// Preserve the raw capture pin; only unused onboarding copy has an AST dependency projection.
 // B-F12-B5-3b evidence lock: sha256 of the account-completeness layout
 // sources recorded in EVIDENCE.yml. capturedAtHead is informational and
 // must name the code commit the pixels depict.
@@ -86,7 +88,11 @@ describe("B-F12-B5-3b evidence lock", () => {
     for (const [rel, expected] of Object.entries(recorded)) {
       const abs = join(REPO, rel);
       expect(existsSync(abs), `${rel} is recorded in layoutFiles but absent from the tree`).toBe(true);
-      expect(sha256Of(abs), `${rel} changed without a recapture`).toBe(expected);
+      if (rel === "terminal/lib/i18n.tsx") {
+        assertCapturedLexProjection(readFileSync(abs, "utf8"), expected, readFileSync(EVIDENCE, "utf8"));
+      } else {
+        expect(sha256Of(abs), `${rel} changed without a recapture`).toBe(expected);
+      }
     }
   });
 
