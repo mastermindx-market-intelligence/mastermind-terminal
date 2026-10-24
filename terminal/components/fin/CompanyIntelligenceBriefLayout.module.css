@@ -140,6 +140,18 @@
 .brief :global(.ci-paper-insight) header p,
 .brief :global(.ci-paper-watch) header p { font-size: 11px; line-height: 1.5; }
 .brief :global(.ci-paper-brief-empty) { padding: 20px 16px; font-size: 12px; line-height: 1.65; }
+/* Empty evidence isn't a large card: keep its honest copy while returning the
+   first-frame space to populated evidence. The original selectors still own
+   full-height, selectable items, and all source/footer actions remain mounted. */
+.brief :global(.ci-paper-insight[data-empty="true"]) {
+  min-height: 0;
+  align-self: start;
+}
+.brief :global(.ci-paper-insight[data-empty="true"]) > header { padding: 12px 16px 8px; }
+.brief :global(.ci-paper-insight[data-empty="true"] .ci-paper-brief-empty) {
+  padding: 6px 16px 14px;
+  color: var(--muted);
+}
 .brief :global(.ci-paper-brief-list) button { min-height: 48px; padding: 12px 14px; }
 .brief :global(.ci-paper-brief-list) strong,
 .brief :global(.ci-paper-watch-list) strong {
@@ -156,6 +168,11 @@
 }
 .brief :global(.ci-paper-watch) { border-color: var(--line); box-shadow: none; }
 .brief :global(.ci-paper-watch) > header { padding: 17px 18px; }
+.brief :global(.ci-paper-watch[data-empty="true"]) > header { padding: 12px 18px 8px; }
+.brief :global(.ci-paper-watch[data-empty="true"] .ci-paper-brief-empty) {
+  padding: 6px 18px 14px;
+  color: var(--muted);
+}
 .brief :global(.ci-paper-watch-list) > button {
   grid-template-columns: 120px minmax(0, 1fr) 12px;
   min-height: 48px;
