@@ -10,3 +10,9 @@
 .savedControl.savedControl { min-height: 44px !important; height: auto; }
 @media (pointer: coarse) { .launch, .action, .input { min-height: 44px; } }
 @media (max-width: 640px) { .input { flex-basis: 100%; } }
+/* Saved-screen launchers add a wrapped row on phones. Recover vertical space
+   between filter rows so the first Tape result stays visible at 390 × 844,
+   while keeping every saved-screen action's 44px touch target. */
+@media (max-width: 640px) {
+  :global(.flow-filter-bar):has(.savedControl) { row-gap: 2px; }
+}

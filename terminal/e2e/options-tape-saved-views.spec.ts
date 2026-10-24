@@ -28,6 +28,24 @@ async function routeFeed(page: Page) {
 
 for (const lang of ["en", "zh"] as const) {
   const theme = "dark"; // Terminal currently ships a hardcoded dark theme. No light-product proof.
+  test(`closed saved-screen controls keep the first Tape result visible (${lang})`, async ({ page }, testInfo) => {
+    await page.addInitScript((locale) => localStorage.setItem("mm.lang", locale), lang);
+    await page.goto("/options?tab=tape");
+    const first = page.locator('.scr-table table.scr:not([aria-busy="true"]) tbody tr')
+      .filter({ has: page.locator("td") }).first();
+    await expect(first).toBeVisible();
+    for (const action of ["save", "list"]) {
+      const control = page.locator(`[data-options-saved-view="${action}"]`);
+      await expect(control).toBeEnabled();
+      expect((await control.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    }
+    if ((page.viewportSize()?.width ?? 1440) < 640) {
+      const bounds = (await first.boundingBox())!;
+      expect(bounds.y + bounds.height).toBeLessThan(page.viewportSize()!.height);
+    }
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(page.viewportSize()!.width + 1);
+    await page.screenshot({ path: testInfo.outputPath(`closed-tape-${lang}.png`) });
+  });
   test(`named screens restore current Tape filters and persist (${lang}, ${theme})`, async ({ page }, testInfo) => {
     test.setTimeout(90_000);
     await page.addInitScript((locale) => { localStorage.setItem("mm.lang", locale); }, lang);

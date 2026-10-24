@@ -6,18 +6,18 @@
   "files_sha256": {
     "terminal/components/OptionsHubView.tsx": "5c54df6f4939a966262323325f7abba196599abbce8a137882b8dc13068c72bb",
     "terminal/components/options/OptionsTapeSavedViews.tsx": "aa5d8ef99766aa9d4bf5659b936a8433ed7ee611dcf64bd55c856f8b098ac3c0",
-    "terminal/components/options/OptionsTapeViewLink.module.css": "59b4cea2a215a621fba726b07c673bc7099b0b65ca9842750093d67885a1ecfb",
+    "terminal/components/options/OptionsTapeViewLink.module.css": "4ff18d21d636476512f95e165d4044c98cb2af9205c8c91246c0c7f4cf01a154",
     "terminal/lib/optionsTapeSavedViews.ts": "8203203edad03f5d2dae0006db7e9c258b84617b22ca47377a4c0213650c14df",
     "terminal/lib/__tests__/optionsTapeSavedViews.test.ts": "2e11f728abc0ee2ec3ec0378b0b3380670faebc939452b1ddbcffb9433462d85",
-    "terminal/e2e/options-tape-saved-views.spec.ts": "3737226c9afb534f9c2c61e8c02c57219d4f70fa45d5e4bfe6fd62ff822809a7"
+    "terminal/e2e/options-tape-saved-views.spec.ts": "714545cac39a386e36121d2bf6679f0b6557361b5696079cb150a67855357199"
   },
   "screenshots_sha256": {
-    "docs/pr-crops/options-tape-saved-views/desktop-en-dark.png": "ded00497520c49629098202ef0e1395482117e5595248ed8c8eaff210b04b19c",
-    "docs/pr-crops/options-tape-saved-views/desktop-zh-dark.png": "10716655f05002c39c475455f202330a81953da295b58fb9a2640a3ef3591c94",
-    "docs/pr-crops/options-tape-saved-views/tablet-en-dark.png": "2c1b2cbdc5d7f0430fd10600c980c1751271ef22bf9c52c16dd3f6200dde3a15",
-    "docs/pr-crops/options-tape-saved-views/tablet-zh-dark.png": "9bf1c85287ca3be42665ac39f12493efadcae3b96ed59bb42557cb3fbe5cfdd3",
-    "docs/pr-crops/options-tape-saved-views/mobile-en-dark.png": "f7a6b8fe143cd4b91187762edb1a5f859c5940dc553e27d1ccefc8e737da7cd6",
-    "docs/pr-crops/options-tape-saved-views/mobile-zh-dark.png": "09944eba8aeeaadf56415a53500a7f2cc6b3dc5293e9d5c9693496b57bce4849"
+    "docs/pr-crops/options-tape-saved-views/desktop-en-dark.png": "224167a379400fc5bf57e04082070d585e2a1aa3053c3de0ab234900da4457f2",
+    "docs/pr-crops/options-tape-saved-views/desktop-zh-dark.png": "6d17a316fe8bc81c2f8bcf59ab0eb629016b88703b66b95e06a9b445873c8a9b",
+    "docs/pr-crops/options-tape-saved-views/tablet-en-dark.png": "57c924993b53a127be22a3555224ff4a3a15d99636ebab8a378a72b8814f3843",
+    "docs/pr-crops/options-tape-saved-views/tablet-zh-dark.png": "f8cec3302582367e895d5352c08ce27552fea7ce017ae00a45e0fd0b8c1612e0",
+    "docs/pr-crops/options-tape-saved-views/mobile-en-dark.png": "9db201aeb74700020bb6ac7a0e9bcfe2c90832df6b1e05a1e4e582489f7d65d1",
+    "docs/pr-crops/options-tape-saved-views/mobile-zh-dark.png": "ae116732cc2d75a4af4031397ef50e8a62eac0a64657f7da0497c9391cab2ddf"
   },
   "verification": {
     "units": 28,
@@ -64,5 +64,33 @@
     "no source or pricing/model/rights/alert change",
     "no Lab or server persistence",
     "full programme remains under original root"
-  ]
+  ],
+  "integrationRepair20261024": {
+    "coordinator": "01a16c6d-4308-7151-a458-54c49ab7a2a1",
+    "preimage": "063dc38ff38b19def4f64a00df62745b333bbabb",
+    "hosted_run": 40071543751,
+    "failed_job": 120806181135,
+    "cause": "Saved-screen 44px launchers increased the wrapped phone filter bar height; first settled Tape row ended at 852.09375 beyond the 844px viewport.",
+    "repair": "Only phone filter bars containing saved-screen controls use a 2px vertical row gap instead of 6px. Horizontal gaps and 44px targets remain unchanged.",
+    "red": "Existing workspace-refinement Options test reproduced unchanged locally.",
+    "green": {
+      "responsive_cases": 57,
+      "viewports": [
+        "1440x900",
+        "820x1180",
+        "390x844"
+      ],
+      "languages": [
+        "en",
+        "zh"
+      ],
+      "retries": 0,
+      "skips": 0,
+      "affected_unit_and_evidence_checks": 50,
+      "typecheck": "PASS",
+      "lint": "PASS"
+    },
+    "captures": "All six named-screen panel frames recaptured on repaired source; closed Tape EN/ZH phone pixels also inspected and retained in root artifacts.",
+    "scope": "LOCAL_FIXTURE_ONLY; no production data/authenticated acceptance claimed"
+  }
 }
