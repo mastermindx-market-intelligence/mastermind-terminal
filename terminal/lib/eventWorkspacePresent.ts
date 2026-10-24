@@ -309,7 +309,7 @@ export function presentEventWorkspace(workspace: EventWorkspace, options: { zh?:
   const questions = workspace.facts.find((fact) => fact.metric === "questions_count");
   const qaCount = workspace.qa_exchanges.length;
   const reported: EventWorkspacePresentedItem[] = [];
-  if (revenue && revenue.value != null) {
+  if (revenue && typeof revenue.value === "number") {
     const growth = yoyFromRevenueClaim(revenueClaim);
     const evidence = evidenceForFact(revenue, workspace);
     if (evidence) {
@@ -344,7 +344,7 @@ export function presentEventWorkspace(workspace: EventWorkspace, options: { zh?:
     if (!evidence) continue;
     watch.push({
       id: claim.claim_id,
-      label: claim.kind === "quote" ? (zh ? "关注" : "Watch") : claim.metric ?? (zh ? "关注" : "Watch"),
+      label: zh ? "关注事项" : "Watchpoint",
       value: claim.text,
       detail: claim.speaker,
       evidence,
@@ -365,7 +365,7 @@ export function presentEventWorkspace(workspace: EventWorkspace, options: { zh?:
       });
       continue;
     }
-    const formatted = fact.metric === "revenue" && fact.value != null
+    const formatted = fact.metric === "revenue" && typeof fact.value === "number"
       ? formatUsdMillions(fact.value)
       : fact.value == null ? (zh ? "暂无" : "Unavailable") : String(fact.value);
     facts.push({

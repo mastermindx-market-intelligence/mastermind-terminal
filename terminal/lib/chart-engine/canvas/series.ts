@@ -258,6 +258,8 @@ export function candleGeometry(
     const color = upColor(opts, up);
     const x = snap(proj.xOfLogical(i), dpr);
     const id: PointId = { index: i, time: row.time };
+    // LWC precedence (candlestick barStyleFn): each part takes its own row field first;
+    // a row `color` paints the body only, never the border or the wick.
     bodies.push({
       ...id,
       x,
@@ -265,11 +267,11 @@ export function candleGeometry(
       yClose: snap(proj.yOfPrice(row.close), dpr),
       width,
       up,
-      color,
+      color: row.color ?? color,
       borderVisible,
-      borderColor: up
+      borderColor: row.borderColor ?? (up
         ? optStr(opts, "borderUpColor") ?? optStr(opts, "borderColor")
-        : optStr(opts, "borderDownColor") ?? optStr(opts, "borderColor"),
+        : optStr(opts, "borderDownColor") ?? optStr(opts, "borderColor")),
     });
     wicks.push({
       ...id,
@@ -277,9 +279,9 @@ export function candleGeometry(
       yHigh: snap(proj.yOfPrice(row.high), dpr),
       yLow: snap(proj.yOfPrice(row.low), dpr),
       visible: wickVisible,
-      color: up
+      color: row.wickColor ?? (up
         ? optStr(opts, "wickUpColor") ?? optStr(opts, "wickColor") ?? color
-        : optStr(opts, "wickDownColor") ?? optStr(opts, "wickColor") ?? color,
+        : optStr(opts, "wickDownColor") ?? optStr(opts, "wickColor") ?? color),
     });
   }
   return { bodies, wicks, slice, visual: null };
@@ -297,6 +299,8 @@ export function barGeometry(
   }
   const dpr = proj.dpr;
   const width = barBodyWidth(spacing, dpr);
+  // Not mirrored: LWC's thinBars defaults true and sizes ticks from the bar width in device
+  // pixels; mm's opt-in 1px tick differs, and no production caller sets thinBars.
   const thinBars = optBool(opts, "thinBars", false);
   const tickLen = thinBars ? snap(1, dpr) : snap(width / 2, dpr);
   const ticks: BarTick[] = [];
@@ -318,7 +322,7 @@ export function barGeometry(
       closeX: snap(x + tickLen, dpr),
       thinBars,
       up,
-      color: upColor(opts, up),
+      color: row.color ?? upColor(opts, up),
     });
   }
   return { ticks, slice, visual: null };
@@ -339,10 +343,8 @@ function collectLinePoints(
   };
   for (let i = from; i <= to; i++) {
     const row = rows[i];
-    if (pointIsGap(row) || !isPoint(row)) {
-      flush();
-      continue;
-    }
+    // LWC line items skip whitespace: the line runs straight on to the next valued point.
+    if (pointIsGap(row) || !isPoint(row)) continue;
     current.push({
       index: i,
       time: row.time,

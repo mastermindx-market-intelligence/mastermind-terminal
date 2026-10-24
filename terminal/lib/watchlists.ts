@@ -21,7 +21,7 @@
 /** A row as it comes back over PostgREST: keys are known, value types are not, so every read
  *  below narrows explicitly rather than trusting the wire. */
 export type DbRow = Record<string, unknown>;
-export type DbResult = { data?: DbRow[] | DbRow | null; error?: { message?: string } | null };
+export type DbResult = { data?: DbRow[] | DbRow | null; error?: { message?: string; code?: string } | null };
 
 /** Structural view of the Supabase query builder — the subset this service actually calls. Keeps
  *  the module free of the SDK's generics and lets both the e2e fixture transport and unit tests
@@ -104,11 +104,24 @@ export function normalizeListName(value: unknown): string | null {
 // ───────────────────────────── reads ─────────────────────────────
 
 /** Full owner-scoped inventory: every list with its symbols, both ordered by `position`. */
+export class WatchlistReadError extends Error {
+  constructor() {
+    super("watchlists unavailable");
+    this.name = "WatchlistReadError";
+  }
+}
+
+/** A failed read must never masquerade as an empty list or lost membership. */
+function inventoryRows(result: DbResult): DbRow[] {
+  if (result?.error || !Array.isArray(result?.data)) throw new WatchlistReadError();
+  return result.data;
+}
+
 export async function listWatchlists(db: WatchlistDb, userId: string): Promise<ServerWatchlist[]> {
   const listResult = await db.from("watchlists")
     .select("id,name,position").eq("user_id", userId).order("position");
   const lists: ServerWatchlist[] = [];
-  for (const [index, row] of rows(listResult).entries()) {
+  for (const [index, row] of inventoryRows(listResult).entries()) {
     const id = text(row.id);
     const name = text(row.name);
     if (!id || !name) continue;
@@ -121,7 +134,7 @@ export async function listWatchlists(db: WatchlistDb, userId: string): Promise<S
     .select("watchlist_id,symbol,section,position")
     .in("watchlist_id", [...byId.keys()])
     .order("position");
-  for (const row of rows(symbolResult)) {
+  for (const row of inventoryRows(symbolResult)) {
     const listId = text(row.watchlist_id);
     const list = listId ? byId.get(listId) : undefined;
     const symbol = text(row.symbol);

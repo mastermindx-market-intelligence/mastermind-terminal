@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { identityOwnerKey, isAccountOwner } from "@/lib/accountIdentity";
 import { canonicalTimeZone, curatedTimeZones, timeZoneLabel } from "@/lib/plainLabels";
 import { DeliveryNote, Group, IconCheck, Msg, Row, SectionHead } from "./icons";
@@ -9,12 +9,16 @@ import type { SectionProps } from "./types";
 // Every save goes through that BFF. This file does not import useMarketPrefs or
 // accountPrefs and never calls auth.updateUser().
 
-const KNOWN_CATS = ["holdings_material_change", "thesis_window"] as const;
+const KNOWN_CATS = ["holdings_material_change", "thesis_window", "options_exposure_node"] as const;
 type KnownCat = (typeof KNOWN_CATS)[number];
-const CAT_KEY: Record<KnownCat, string> = {
+const CAT_KEY: Record<Exclude<KnownCat, "options_exposure_node">, string> = {
   holdings_material_change: "acsAlertCatHold",
   thesis_window: "acsAlertCatThes",
 };
+const EXPOSURE_NODE_COPY = {
+  label: ["Price nears an exposure level I selected", "价格接近我选定的敞口价位"],
+  note: ["Notification preference only. Exposure-level alerts are not available yet.", "这仅保存通知偏好。敞口价位提醒尚未开放。"],
+} as const;
 
 // The four keys this section writes. A save is scoped to the keys in its own
 // request: it reports on those rows and, if it fails, rolls back only those.
@@ -28,7 +32,7 @@ function isFieldKey(v: string): v is FieldKey {
 type QuietHours = { start: string; end: string };
 type AlertState = {
   alert_email_optin: boolean | null;
-  alert_categories: KnownCat[];
+  alert_categories: unknown[];
   tz: string;
   quiet_hours: QuietHours | null;
 };
@@ -82,15 +86,11 @@ const TIME_COVER: CSSProperties = {
 const TIME_VALUE: CSSProperties = { ...TIME_COVER, color: "var(--text)" };
 const TIME_EMPTY: CSSProperties = { ...TIME_COVER, color: "var(--text-2)" };
 
-function asKnownCats(raw: unknown): KnownCat[] {
-  if (!Array.isArray(raw)) return [];
-  const out: KnownCat[] = [];
-  for (const v of raw) {
-    if (v === "holdings_material_change" || v === "thesis_window") {
-      if (!out.includes(v)) out.push(v);
-    }
-  }
-  return out;
+function asRetainedCats(raw: unknown): unknown[] {
+  // Unknown categories are opaque retained consent, not controls or grants.
+  // Round-trip them unchanged; a server that cannot validate the complete set
+  // must refuse the save instead of silently erasing another category.
+  return Array.isArray(raw) ? [...raw] : [];
 }
 
 function asQuiet(raw: unknown): QuietHours | null {
@@ -123,7 +123,7 @@ function stateFromGet(body: {
   if (!unset.has("alert_email_optin") && typeof prefs.alert_email_optin === "boolean") {
     next.alert_email_optin = prefs.alert_email_optin;
   }
-  if (!unset.has("alert_categories")) next.alert_categories = asKnownCats(prefs.alert_categories);
+  if (!unset.has("alert_categories")) next.alert_categories = asRetainedCats(prefs.alert_categories);
   if (!unset.has("tz") && typeof prefs.tz === "string") next.tz = prefs.tz;
   if (!unset.has("quiet_hours")) next.quiet_hours = asQuiet(prefs.quiet_hours);
   return next;
@@ -183,25 +183,35 @@ export default function SectionAlertDelivery({ t, lang, identity, onClose }: Sec
     };
   }, []);
 
-  const renderedFor = useRef(owner);
-  if (renderedFor.current !== owner) {
-    renderedFor.current = owner;
-    if (saveTimer.current) { clearTimeout(saveTimer.current); saveTimer.current = null; }
-    qhDraft.current = { start: "", end: "" };
-    qhSnap.current = null;
+  const [renderedIdentity, setRenderedIdentity] = useState({ owner, generation: 0 });
+  const activeIdentity = useRef(renderedIdentity);
+  if (renderedIdentity.owner !== owner) {
+    setRenderedIdentity({ owner, generation: renderedIdentity.generation + 1 });
     setState(EMPTY);
     setRows(IDLE_ROWS);
     setFieldErr(null);
     setGate(!isAccountOwner(owner) ? "signedOut" : "loading");
   }
+  const renderedGeneration = renderedIdentity.generation;
+  // Commit the identity before async replies can repaint it. Each owner
+  // transition advances the generation, including A to B to A.
+  useLayoutEffect(() => {
+    activeIdentity.current = { owner, generation: renderedGeneration };
+    if (saveTimer.current) { clearTimeout(saveTimer.current); saveTimer.current = null; }
+    qhDraft.current = { start: "", end: "" };
+    qhSnap.current = null;
+  }, [owner, renderedGeneration]);
 
   useEffect(() => {
     if (!isAccountOwner(owner)) return;
     let cancelled = false;
+    const loadGeneration = renderedGeneration;
+    const stillOwner = () => !cancelled && alive.current && activeIdentity.current.owner === owner
+      && activeIdentity.current.generation === loadGeneration;
     (async () => {
       try {
         const res = await fetch("/api/account/alert-prefs");
-        if (cancelled || !alive.current) return;
+        if (!stillOwner()) return;
         if (res.status === 401) { setGate("signedOut"); return; }
         // 404/503 is the spec's "not deployed yet" case: calm and terminal.
         if (res.status === 404 || res.status === 503) { setGate("unavailable"); return; }
@@ -209,19 +219,19 @@ export default function SectionAlertDelivery({ t, lang, identity, onClose }: Sec
         // moment, not a missing feature — say so instead.
         if (!res.ok) { setGate("loadFail"); return; }
         const body = await res.json();
-        if (cancelled || !alive.current) return;
+        if (!stillOwner()) return;
         const loaded = stateFromGet(body);
         qhDraft.current = loaded.quiet_hours ?? { start: "", end: "" };
         qhSnap.current = null;
         setState(loaded);
         setGate("ready");
       } catch {
-        if (cancelled || !alive.current) return;
+        if (!stillOwner()) return;
         setGate("loadFail");
       }
     })();
     return () => { cancelled = true; };
-  }, [owner]);
+  }, [owner, renderedGeneration]);
 
   function markRows(keys: readonly FieldKey[], patch: Partial<RowState>) {
     setRows((r) => {
@@ -250,6 +260,11 @@ export default function SectionAlertDelivery({ t, lang, identity, onClose }: Sec
   }
 
   async function post(patch: Partial<Record<FieldKey, unknown>>, snap: Partial<AlertState>) {
+    const requestOwner = owner;
+    const requestGeneration = renderedGeneration;
+    const stillOwner = () => alive.current && activeIdentity.current.owner === requestOwner
+      && activeIdentity.current.generation === requestGeneration;
+    if (!stillOwner()) return;
     const keys = (Object.keys(patch) as FieldKey[]).filter(isFieldKey);
     if (keys.includes("quiet_hours")) qhSnap.current = null;
     const mine: Partial<Record<FieldKey, number>> = {};
@@ -267,7 +282,7 @@ export default function SectionAlertDelivery({ t, lang, identity, onClose }: Sec
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(patch),
       });
-      if (!alive.current) return;
+      if (!stillOwner()) return;
       if (res.status === 401) {
         qhDraft.current = { start: "", end: "" };
         qhSnap.current = null;
@@ -283,7 +298,7 @@ export default function SectionAlertDelivery({ t, lang, identity, onClose }: Sec
       if (overtaken()) return;
       let body: { ok?: boolean; prefs?: Record<string, unknown>; detail?: unknown } | null = null;
       try { body = await res.json(); } catch { body = null; }
-      if (overtaken()) return;
+      if (!stillOwner() || overtaken()) return;
       if (res.status === 200 && body?.ok) {
         const prefs = body.prefs && typeof body.prefs === "object" ? body.prefs : {};
         let quiet: QuietHours | null | undefined;
@@ -295,7 +310,7 @@ export default function SectionAlertDelivery({ t, lang, identity, onClose }: Sec
         setState((s) => {
           const next = { ...s };
           if (typeof prefs.alert_email_optin === "boolean") next.alert_email_optin = prefs.alert_email_optin;
-          if (Array.isArray(prefs.alert_categories)) next.alert_categories = asKnownCats(prefs.alert_categories);
+          if (Array.isArray(prefs.alert_categories)) next.alert_categories = asRetainedCats(prefs.alert_categories);
           if (typeof prefs.tz === "string") next.tz = prefs.tz;
           if (quiet !== undefined) next.quiet_hours = quiet;
           return next;
@@ -319,7 +334,7 @@ export default function SectionAlertDelivery({ t, lang, identity, onClose }: Sec
       rollback(keys, snap);
       markRows(keys, { phase: "idle", failed: true });
     } catch {
-      if (!alive.current || overtaken()) return;
+      if (!stillOwner() || overtaken()) return;
       rollback(keys, snap);
       markRows(keys, { phase: "idle", failed: true });
     }
@@ -451,11 +466,12 @@ export default function SectionAlertDelivery({ t, lang, identity, onClose }: Sec
                     key={id}
                     cat={id}
                     on={state.alert_categories.includes(id)}
-                    label={t(CAT_KEY[id])}
+                    label={id === "options_exposure_node" ? EXPOSURE_NODE_COPY.label[lang === "zh" ? 1 : 0] : t(CAT_KEY[id])}
                     onClick={() => toggleCat(id)}
                   />
                 ))}
               </div>
+              <p className="acs-row-desc">{EXPOSURE_NODE_COPY.note[lang === "zh" ? 1 : 0]}</p>
               {fieldMsg("alert_categories")}
               {rowNote("alert_categories")}
             </Row>

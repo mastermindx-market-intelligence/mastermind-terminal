@@ -1,0 +1,70 @@
+{
+  "recorded_at": "2026-10-22T13:40:14.247790+00:00",
+  "preflight": {
+    "recorded_at": "2026-10-22T13:40:11.419413+00:00",
+    "ui_head": "1afec9431df4778d57532a67794ee2b2f00beb3c",
+    "accepted_source_ref": "0551a2017067c9f0aab63e8579936bdcb5b728fb",
+    "sql_sha256": "aaebea44dd4c3ee795f984b9701bb7acafa1a5408513a9ae5ee410314ac564d4",
+    "project_ref": "fsldfzlxyavsuwqbceod",
+    "behavior": [
+      {
+        "admits_valid_review": false,
+        "rejects_invalid_assessment": false,
+        "rejects_malformed_fire_event_id": false
+      }
+    ],
+    "catalog": [
+      {
+        "name": "valid_investigation_manifest_v2",
+        "object_kind": "function",
+        "object_schema": "public",
+        "identity_arguments": "m jsonb",
+        "result_type": "boolean",
+        "language_name": "plpgsql",
+        "owner_name": "postgres",
+        "volatility": "i",
+        "security_definer": false,
+        "configuration": [
+          "search_path=pg_catalog, public"
+        ],
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "body_md5": "a05be457296d6841844d6981bdff7360"
+      }
+    ]
+  },
+  "applier_exit": 0,
+  "receipt_path": "/tmp/terminal-experience-0040-apply-receipt-20261022.json",
+  "receipt_sha256": "7f0677bef3129358ef586393556130dea80122da0b0ccf8b97a091f4400828f4",
+  "post_behavior": [
+    {
+      "admits_valid_review": true,
+      "rejects_invalid_assessment": false,
+      "rejects_malformed_fire_event_id": false
+    }
+  ],
+  "post_catalog": [
+    {
+      "name": "valid_investigation_manifest_v2",
+      "object_kind": "function",
+      "object_schema": "public",
+      "identity_arguments": "m jsonb",
+      "result_type": "boolean",
+      "language_name": "plpgsql",
+      "owner_name": "postgres",
+      "volatility": "i",
+      "security_definer": false,
+      "configuration": [
+        "search_path=pg_catalog, public"
+      ],
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "body_md5": "16f7838c8e797663d64783cff92fb6ef"
+    }
+  ],
+  "qualified": true,
+  "existing_manifest_probe": [
+    {
+      "admits_existing_manifest": true
+    }
+  ],
+  "qualification": "Expected behavior and source-derived body digest; exact identity and execution properties preserved"
+}

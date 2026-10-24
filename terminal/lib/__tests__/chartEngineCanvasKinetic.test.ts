@@ -217,6 +217,9 @@ describe("canvas engine pointer / wheel / kinetic (T3)", () => {
       scheduler,
       now: () => nowMs,
       kineticScroll: { mouse: true, touch: true },
+      // No price axis: the plot is the whole 200 px, so the window set below is the
+      // one the gestures start from (a measured strip would narrow it on the first frame).
+      rightPriceScale: { visible: false },
       ...opts,
     });
     const series = engine.addSeries("candles", { upColor: "U", downColor: "D" });

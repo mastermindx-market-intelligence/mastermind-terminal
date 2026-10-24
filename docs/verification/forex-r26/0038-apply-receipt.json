@@ -1,0 +1,177 @@
+{
+  "scope": "Named-file production application and catalog verification only",
+  "status": "APPLIED_CATALOG_VERIFIED",
+  "repository": "mastermindx-market-intelligence/mastermind-terminal",
+  "pr": 1100,
+  "candidate_head": "813b36c869fa649c1b0e17693da73b0882181e8b",
+  "reviewed_storage_head": "5969bf5408c16626487831496d0083ce2fe31deb",
+  "migration": "supabase/migrations/0038_forex_inactive_conditions.sql",
+  "migration_sha256": "f7f2e50b11fd863f107abc8406c04d35ffa67f52bca6c885281340d6aff4adee",
+  "carrier": "Existing attended operator session in Supabase SQL editor",
+  "project_binding": "Exact project from RESERVATIONS.json, MarketIntelligence / main Production; ref omitted from committed evidence",
+  "procedure": "supabase/migrations/README.md binding rule (d), explicit SQL editor path; not a supabase_apply/1 wrapper receipt",
+  "source_binding": {
+    "editor_full_selection_equals_reviewed_file": true,
+    "characters": 16582
+  },
+  "application": {
+    "statement_count": 1,
+    "statement": "DO $migration$ ... $migration$",
+    "confirmed_submissions": 1,
+    "result": "Success. No rows returned",
+    "window_start_utc": "2026-10-21T17:39:00.792731+00:00",
+    "window_end_utc": "2026-10-21T17:40:22.148275+00:00",
+    "initial_run_selector": "Run changed to Run selected after selecting source; original selector matched zero elements, no submission. Retargeted from fresh DOM; one confirmation executed the source."
+  },
+  "pre": {
+    "alerts": {
+      "acl": "{postgres=arwdDxtm/postgres,anon=arwdDxtm/postgres,authenticated=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+      "rls": true,
+      "owner": "postgres",
+      "force_rls": false,
+      "authenticated_delete": true,
+      "authenticated_insert": true,
+      "authenticated_select": true,
+      "authenticated_update": true
+    },
+    "policies": [
+      {
+        "cmd": "ALL",
+        "name": "alerts_owner",
+        "qual": "(user_id = auth.uid())",
+        "roles": [
+          "public"
+        ],
+        "with_check": "(user_id = auth.uid())"
+      }
+    ],
+    "observed_at": "2026-10-21T17:39:00.792731+00:00",
+    "execution_role": "postgres",
+    "alerts_triggers": [],
+    "forex_functions": [],
+    "default_transaction_isolation": "read committed",
+    "migration_history_schema_present": false
+  },
+  "post": {
+    "alerts": {
+      "acl": "{postgres=arwdDxtm/postgres,anon=arwdDxtm/postgres,authenticated=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+      "rls": true,
+      "owner": "postgres",
+      "force_rls": false,
+      "authenticated_delete": true,
+      "authenticated_insert": true,
+      "authenticated_select": true,
+      "authenticated_update": true
+    },
+    "policies": [
+      {
+        "cmd": "ALL",
+        "name": "alerts_owner",
+        "qual": "(user_id = auth.uid())",
+        "roles": [
+          "public"
+        ],
+        "with_check": "(user_id = auth.uid())"
+      }
+    ],
+    "observed_at": "2026-10-21T17:40:22.148275+00:00",
+    "execution_role": "postgres",
+    "alerts_triggers": [
+      {
+        "name": "alerts_forex_inactive_guard",
+        "enabled": "O",
+        "definition": "CREATE TRIGGER alerts_forex_inactive_guard BEFORE INSERT OR UPDATE ON public.alerts FOR EACH ROW EXECUTE FUNCTION guard_forex_watch_write()"
+      }
+    ],
+    "forex_functions": [
+      {
+        "acl": "{postgres=X/postgres,authenticated=X/postgres}",
+        "md5": "35b3dd9cddd026c11d118731538b2222",
+        "name": "canonical_forex_watch_rule",
+        "settings": [
+          "search_path=pg_catalog"
+        ],
+        "arguments": "p_rule jsonb, p_require_future boolean",
+        "anon_execute": false,
+        "service_execute": false,
+        "security_definer": false,
+        "authenticated_execute": true
+      },
+      {
+        "acl": "{postgres=X/postgres,authenticated=X/postgres}",
+        "md5": "bfcfe2737676c0680396e40f28e1adf5",
+        "name": "delete_forex_watch",
+        "settings": [
+          "search_path=pg_catalog"
+        ],
+        "arguments": "p_id uuid, p_expected_revision integer, p_expected_user_id uuid",
+        "anon_execute": false,
+        "service_execute": false,
+        "security_definer": false,
+        "authenticated_execute": true
+      },
+      {
+        "acl": "{postgres=X/postgres}",
+        "md5": "c1a96a7d3a55d250136c8035f848d105",
+        "name": "guard_forex_watch_write",
+        "settings": [
+          "search_path=pg_catalog"
+        ],
+        "arguments": "",
+        "anon_execute": false,
+        "service_execute": false,
+        "security_definer": false,
+        "authenticated_execute": false
+      },
+      {
+        "acl": "{postgres=X/postgres,authenticated=X/postgres}",
+        "md5": "e45cda6cb21b119c35dde46a3b083410",
+        "name": "save_forex_watch",
+        "settings": [
+          "search_path=pg_catalog"
+        ],
+        "arguments": "p_id uuid, p_expected_revision integer, p_expected_user_id uuid, p_rule jsonb",
+        "anon_execute": false,
+        "service_execute": false,
+        "security_definer": false,
+        "authenticated_execute": true
+      },
+      {
+        "acl": "{postgres=X/postgres,authenticated=X/postgres}",
+        "md5": "70907c0426411a16cac6314cc324c084",
+        "name": "validate_forex_watch_row",
+        "settings": [
+          "search_path=pg_catalog"
+        ],
+        "arguments": "p_id uuid, p_symbol text, p_condition jsonb",
+        "anon_execute": false,
+        "service_execute": false,
+        "security_definer": false,
+        "authenticated_execute": true
+      }
+    ],
+    "default_transaction_isolation": "read committed",
+    "migration_history_schema_present": false
+  },
+  "checks": {
+    "function_count": true,
+    "bodies_match": true,
+    "invoker_searchpath": true,
+    "execute_grants": true,
+    "alerts_unchanged": true,
+    "policies_unchanged": true,
+    "trigger": true,
+    "no_remote_history": true
+  },
+  "current_hosted_storage_test": {
+    "run": 39637491057,
+    "job": 119351886574,
+    "conclusion": "success",
+    "forex_suite": "tests/test_forex_watch_postgres.py"
+  },
+  "limitations": [
+    "No authenticated save/reload/edit/delete product acceptance yet.",
+    "No application deployment, feed admission, activation, evaluation or notification claim.",
+    "Generic native migration tool was not used; no remote migration history was created."
+  ]
+}

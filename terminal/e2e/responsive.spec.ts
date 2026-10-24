@@ -128,7 +128,7 @@ test("the canonical Terminal shell works at its supported responsive widths", as
     const viewToggle = searchHub.locator(".sh-view-toggle");
     const closeSearch = async () => {
       if (phone) await page.keyboard.press("Escape");
-      else await searchHub.locator(".smodal-title-bar .esc").click();
+      else await searchHub.getByRole("button", { name: "Close symbol search", exact: true }).click();
     };
     await expect(searchHub.locator(".s-home")).toBeVisible();
     await expect(searchInput).not.toBeFocused();

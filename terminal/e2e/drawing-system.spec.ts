@@ -1,3 +1,4 @@
+import { normalizeDrawings } from "../lib/drawings";
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { DRAWING_TOOL_REGISTRY } from "../lib/drawingTools";
 import { PHONE_MAX } from "./phoneChrome";
@@ -130,7 +131,7 @@ async function openTerminal(
       await route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify({ drawings: options.drawings ?? [] }),
+        body: JSON.stringify({ drawings: normalizeDrawings(options.drawings ?? []), revision: options.drawings?.length ? "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa" : null, schemaVersion: 1 }),
       });
       return;
     }
@@ -138,7 +139,7 @@ async function openTerminal(
     await route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({ ok: true }),
+      body: JSON.stringify({ ok: true, operationId: route.request().postDataJSON().operationId, revision: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", idempotentReplay: false, superseded: false }),
     });
   });
   await page.addInitScript(() => {
@@ -1452,7 +1453,7 @@ test("account drawing loads fail closed and retry without issuing a destructive 
     await route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({ ok: true }),
+      body: JSON.stringify({ ok: true, operationId: route.request().postDataJSON().operationId, revision: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", idempotentReplay: false, superseded: false }),
     });
   });
   await page.addInitScript(() => {
@@ -1473,6 +1474,37 @@ test("account drawing loads fail closed and retry without issuing a destructive 
   }).toBeGreaterThanOrEqual(2);
   await page.waitForTimeout(750);
   expect(putCount).toBe(0);
+});
+
+test("a tool refused while account drawings are unavailable never becomes the group's shown tool", async ({ page }) => {
+  test.skip(isPhone(page), SKIP_PHONE);
+  // The failed read is a refusal path that is NOT creationDisabledReason: the dock stays
+  // enabled and TerminalShell's activateDrawingTool quietly declines every tool.
+  await page.route("**/api/drawings**", async (route) => {
+    await route.fulfill({
+      status: route.request().method() === "GET" ? 500 : 200,
+      contentType: "application/json",
+      body: JSON.stringify(route.request().method() === "GET"
+        ? { drawings: [], error: "fixture outage" }
+        : { ok: true }),
+    });
+  });
+  await page.addInitScript(() => {
+    localStorage.removeItem("mm.draw");
+    localStorage.removeItem("mm.drawing.preferences");
+  });
+  await page.goto("/terminal?symbol=NVDA");
+  await expect(page.locator(".chart-wrap canvas").first()).toBeVisible();
+  await expect(page.getByText(/Saved drawings could not be loaded/)).toBeVisible();
+
+  const lineTool = page.getByTestId("drawing-group-lines-main");
+  await expect(lineTool).toHaveAttribute("data-tool-id", "trendline");
+  await page.getByTestId("drawing-group-lines-menu-trigger").click();
+  await page.getByTestId("drawing-tool-hline").press("Enter");
+
+  await expect(lineTool).toHaveAttribute("aria-pressed", "false");
+  await expect(lineTool).toHaveAttribute("data-tool-id", "trendline");
+  await expect(page.getByTestId("drawing-tool-cursor")).toHaveAttribute("aria-pressed", "true");
 });
 
 test("a symbol change keeps the renderer alive and never leaks the old symbol's drawings", async ({ page }) => {
@@ -1608,7 +1640,17 @@ test("an indicator-pane drawing holds its place when the price scale rescales", 
   await page.mouse.move(subPane!.left + subPane!.width * 0.5, y + 6);
   await page.mouse.up();
   await expect(strokes).toHaveCount(1);
+  // A busy renderer can mount the SVG group before the indicator-pane line
+  // has painted. Never compare a zero-size pre-paint baseline to live geometry.
+  await expect.poll(
+    () => strokes.first().evaluate((el) => (el as SVGGElement).getBBox().y),
+    { message: "indicator drawing has measurable geometry before rescaling", timeout: 15_000 },
+  ).toBeGreaterThan(0);
 
+  // The group mounts before its projected SVG geometry. Measure the rendered
+  // stroke, so an empty group's zero box cannot become the rescale baseline.
+  await expect.poll(async () => strokes.first().evaluate((el) => (el as SVGGElement).getBBox().height))
+    .toBeGreaterThan(0);
   const before = await strokes.first().evaluate((el) => (el as SVGGElement).getBBox().y);
 
   // Zoom the MAIN price axis. The sub-pane object is anchored to its own scale,

@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { fetchQuotes, type QuoteView } from "@/lib/intradaySources";
 import { rateLimit, tooMany } from "@/lib/rateLimit";
+import { isSecondTf } from "@/lib/intradayShared";
+import { parseFormingTimeframes, projectFormingSnapshot } from "@/lib/formingCandles";
 import {
   withRegularSessionDisplay,
   type QuoteDisplayInput,
@@ -23,12 +25,35 @@ export const dynamic = "force-dynamic";
 
 type Entry = { at: number; goodAt?: number; quote: any }; // goodAt: when quote was last genuinely fresh
 const CACHE = new Map<string, Entry>(); // view + symbol, shared by the single + batch paths
-const cacheKey = (view: QuoteView, sym: string) => `${view}\u0000${sym}`;
+const cacheKey = (view: QuoteView, sym: string, chartKey = "") => `${view}\u0000${chartKey}\u0000${sym}`;
 const TTL = 5_000; // real-time snapshot cadence; also bounds upstream call volume per symbol
 const CHART_TTL = 750; // visible-pane cadence; the hub's A.* lane publishes one aggregate per second
 const KEEP_GOOD_MS = 30_000; // ride out a transient upstream miss on a recently-good symbol
 const MAX_BATCH = 200; // a watchlist is normally < 50; cap to bound one poll's upstream fan-out
 const MAX_CHART_BATCH = 8; // at most four panes today; leave headroom without enabling bulk scraping
+const MAX_CACHE_ENTRIES = 4096;
+const MAX_FORMING_CACHE_ENTRIES = 128;
+const FORMING_KEYS = new Set<string>();
+function writeCache(key: string, entry: Entry, chart: boolean): void {
+  // TTL bounds freshness; these independent limits bound retained memory, including
+  // arbitrary legal combinations of selected timeframes and inactive symbols.
+  for (const [oldKey, old] of CACHE) {
+    if (entry.at - old.at > KEEP_GOOD_MS) { CACHE.delete(oldKey); FORMING_KEYS.delete(oldKey); }
+  }
+  CACHE.delete(key);
+  FORMING_KEYS.delete(key);
+  CACHE.set(key, entry);
+  if (chart) FORMING_KEYS.add(key);
+  while (FORMING_KEYS.size > MAX_FORMING_CACHE_ENTRIES) {
+    const oldest = FORMING_KEYS.values().next().value!;
+    FORMING_KEYS.delete(oldest); CACHE.delete(oldest);
+  }
+  while (CACHE.size > MAX_CACHE_ENTRIES) {
+    const oldest = CACHE.keys().next().value!;
+    CACHE.delete(oldest); FORMING_KEYS.delete(oldest);
+  }
+}
+
 
 // D2: the cap stays (it is what bounds one poll's provider fan-out), but it may not be enforced in
 // SILENCE. It used to be a bare `slice(0, MAX_BATCH)`: no 413, no flag, no remainder — so a caller
@@ -68,12 +93,13 @@ function readCache(
   syms: string[],
   ttlMs: number = TTL,
   view: QuoteView = "full",
+  chartKey = "",
 ): { hits: Record<string, unknown>; miss: string[] } {
   const now = Date.now();
   const hits: Record<string, unknown> = {};
   const miss: string[] = [];
   for (const s of syms) {
-    const c = CACHE.get(cacheKey(view, s));
+    const c = CACHE.get(cacheKey(view, s, chartKey));
     if (c && now - c.at < ttlMs) hits[s] = c.quote;
     else miss.push(s);
   }
@@ -92,37 +118,61 @@ function readCache(
 async function fillMisses(
   miss: string[],
   view: QuoteView = "full",
+  chartKey = "",
 ): Promise<Record<string, unknown>> {
   if (!miss.length) return {};
-  const fresh = await fetchQuotes(miss, { view });
+  const fresh = await fetchQuotes(miss, { view, ...(chartKey ? { forming: true } : {}) });
   const at = Date.now();
   const out: Record<string, unknown> = {};
   for (const s of miss) {
-    const key = cacheKey(view, s);
-    const q = fresh[s] ?? null;
-    if (q) { CACHE.set(key, { at, quote: q }); out[s] = q; continue; }
+    const key = cacheKey(view, s, chartKey);
+    const raw = fresh[s] as (Record<string, any> | undefined);
+    const q = raw ? { ...raw } : null;
+    if (q) {
+      // Raw UTC components are a localhost contract, never a public quote field.
+      delete q.forming;
+      delete q.formingCandles;
+      if (chartKey && raw?.basis === "REALTIME" && raw.source === "polygon-live-second") {
+        const selected = chartKey.slice("chart:".length).split(",").filter(Boolean);
+        const formingCandles = projectFormingSnapshot(raw.forming, selected, at);
+        if (formingCandles) {
+          q.formingCandles = formingCandles;
+          if (formingCandles.day?.complete) {
+            q.open = formingCandles.day.o; q.high = formingCandles.day.h;
+            q.low = formingCandles.day.l; q.vol = formingCandles.day.v;
+          }
+        }
+      }
+    }
+    if (q) { writeCache(key, { at, quote: q }, !!chartKey); out[s] = q; continue; }
     const prior = CACHE.get(key);
     const goodAt = prior?.quote ? prior.goodAt ?? prior.at : null;
     if (goodAt != null && at - goodAt < KEEP_GOOD_MS) {
-      CACHE.set(key, { at, goodAt, quote: prior!.quote });
+      writeCache(key, { at, goodAt, quote: prior!.quote }, !!chartKey);
       out[s] = prior!.quote;
       continue;
     }
-    CACHE.set(key, { at, quote: null });
+    writeCache(key, { at, quote: null }, !!chartKey);
     out[s] = null;
   }
   return out;
 }
 
-// Same auth switch as the rest of the app (TERMINAL_REQUIRE_AUTH=1). Only runs when we have a cache
-// miss, so a fully-warm poll never pays the auth round-trip (bounds cost while login is disabled).
+// Same auth switch as the rest of the app (TERMINAL_REQUIRE_AUTH=1).
+// A warm quote is still a served payload, so every request passes this gate before cache access.
 async function gate(): Promise<NextResponse | null> {
-  if (process.env.TERMINAL_REQUIRE_AUTH === "1") {
+  if (process.env.TERMINAL_REQUIRE_AUTH !== "1") return null;
+  try {
     const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return NextResponse.json({ error: "unauthenticated" }, { status: 401 });
+    const { data: { user }, error } = await supabase.auth.getUser();
+    if (!error && user) return null;
+  } catch {
+    // Verification failures cannot fall through to a provider or keep-good cache.
   }
-  return null;
+  return NextResponse.json(
+    { error: "unauthenticated" },
+    { status: 401, headers: { "Cache-Control": "no-store" } },
+  );
 }
 
 export async function GET(req: Request) {
@@ -140,6 +190,27 @@ export async function GET(req: Request) {
   const symsParam = (searchParams.get("syms") || "").trim();
   const sym = (searchParams.get("sym") || "").trim();
   const chartCadence = searchParams.get("cadence") === "chart";
+  const timeframes = parseFormingTimeframes(searchParams.get("timeframes"));
+  if (timeframes == null || searchParams.getAll("timeframes").length > 1 || (!chartCadence && timeframes.length)) {
+    return NextResponse.json({ error: "bad timeframes" }, { status: 400 });
+  }
+  if (!symsParam && !sym) return NextResponse.json({ error: "bad params" }, { status: 400 });
+  const denied = await gate(); if (denied) return denied;
+  // Share the historical seconds band's existing capability lever. Reject the
+  // selected set atomically so a mixed response never implies complete coverage.
+  // This precedes cache reads: switching the lever off also fences warm payloads.
+  const disabledTimeframes = timeframes.filter(isSecondTf);
+  if (disabledTimeframes.length && process.env.HUB_REALTIME_QUOTES !== "1") {
+    return NextResponse.json(
+      {
+        ...(symsParam ? { quotes: {} } : { sym, quote: null }),
+        note: "second-resolution bars are not enabled",
+        disabledTimeframes,
+      },
+      { headers: { "Cache-Control": "no-store" } },
+    );
+  }
+  const chartKey = chartCadence ? "chart:" + timeframes.join(",") : "";
   const ttlMs = chartCadence ? CHART_TTL : TTL;
 
   // ── batch: the live watchlist (one poll for the header + every row) ──
@@ -152,10 +223,9 @@ export async function GET(req: Request) {
       ? { requested: asked.length, served: want.length, omitted: asked.slice(cap) }
       : null;
     if (!want.length) return NextResponse.json({ quotes: {} });
-    const { hits, miss } = readCache(want, ttlMs, view);
-    if (miss.length) { const denied = await gate(); if (denied) return denied; }
+    const { hits, miss } = readCache(want, ttlMs, view, chartKey);
     try {
-      const filled = await fillMisses(miss, view);
+      const filled = await fillMisses(miss, view, chartKey);
       return NextResponse.json(
         { quotes: exposeMap({ ...hits, ...filled }), ...(truncated ? { truncated } : {}) },
         { headers: { "Cache-Control": "no-store" } },
@@ -171,11 +241,10 @@ export async function GET(req: Request) {
 
   // ── single: the detail/header pane (unchanged {sym, quote} contract) ──
   if (!sym) return NextResponse.json({ error: "bad params" }, { status: 400 });
-  const { hits, miss } = readCache([sym], ttlMs, view);
+  const { hits, miss } = readCache([sym], ttlMs, view, chartKey);
   if (!miss.length) return NextResponse.json({ sym, quote: expose(hits[sym] ?? null) });
-  const denied = await gate(); if (denied) return denied;
   try {
-    const filled = await fillMisses([sym], view);
+    const filled = await fillMisses([sym], view, chartKey);
     return NextResponse.json({ sym, quote: expose(filled[sym] ?? null) }, { headers: { "Cache-Control": "no-store" } });
   } catch (e: any) {
     return NextResponse.json({ sym, quote: null, error: e?.message || "fetch failed" });

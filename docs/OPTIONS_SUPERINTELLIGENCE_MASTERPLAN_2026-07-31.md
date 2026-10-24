@@ -305,6 +305,9 @@ upgrade (click-reveals-largest-trades-per-interval, Net Drift Cross events) · *
 (vanna grids from U-CHAIN make VEX honest; the 30-d unusual baseline has accrued since 07-24 — verify, then light).
 
 ### R4 — Filter Groups, alerts, and the workspace bus (terminal + Supabase)
+
+**2026-10-18 bounded slice IN FLIGHT** — `claude/ssd-options-product-integration-20261018-8bb2bf58397e9392` adds a versioned link to the existing Tape controls and sort order. Recipients use their current available feed and existing access; the link is neither a saved snapshot nor an alert. Unsupported links withhold results until explicit recovery. This does not close R4's saved-group AST, account persistence, public library, alert inheritance, or cross-page filter bus.
+
 - **Filter engine**: Field/Operator/Value AST over `flow.print/v2` + contract + underlying vocabulary; applied
   server-side in the SSE spine (per-connection filter param) and client-side for instant refinement; human-readable
   summary sentence (their best UX idea).

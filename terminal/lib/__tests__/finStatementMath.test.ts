@@ -6,6 +6,8 @@ import { describe, it, expect } from "vitest";
 import {
   CUMULATIVE_YTD_MARKETS,
   cumulativeQuarterNote,
+  priorComparableIndex,
+  comparablePeriodChanges,
   discreteQuarters,
   financialFamilyDisclosure,
   filesCumulativeQuarters,
@@ -1191,4 +1193,62 @@ describe("a US name with 69 rising quarters is differenced by no surface", () =>
     expect(cumulativeQuarterNote(view, false)).toBeNull();
     expect(cumulativeQuarterNote(view, true)).toBeNull();
   });
+});
+
+
+describe("mixed mainland coverage extension", () => {
+  const mixed = () => mkQuarterSet({
+    periods: ["H1 2025", "9M 2025", "Q1 2026", "Q2 2026"],
+    period_end: ["2025-06-30", "2025-09-30", "2026-03-31", "2026-06-30"],
+    fiscal_year: ["2025", "2025", "2026", "2026"],
+    period_kind: ["half_year", "year_to_date", "quarter", "quarter"],
+    period_number: [1, null, 1, 2],
+    period_duration_months: [6, 9, 3, 3],
+    comparison_basis: ["tushare:other:legacy_ytd", "tushare:other:legacy_ytd", "tushare:other:legacy_ytd", "yahoo_timeseries:industrial:v1"],
+    flow_basis: "mixed_period",
+    reporting_cadence: "mixed",
+    is_cumulative: [true, true, true, false],
+    normalization_method: ["as_reported_ytd", "as_reported_ytd", "as_reported_ytd", "as_reported"],
+    income: mkIncome({ revenue: [50, 80, 30, 40], eps_basic: [2, 3, 1, null] }),
+  });
+  it("preserves 3M values and leaves absent EPS null through the display adapter", () => {
+    const view = incomeView("600519.SS", mixed(), "quarterly");
+    expect(view.income.revenue).toEqual([50, 80, 30, 40]);
+    expect(view.income.eps_basic.at(-1)).toBeNull();
+    expect(priorComparableIndex(mixed(), 3, "quarterly")).toBeNull();
+    expect(cumulativeQuarterNote(view, false)).toContain("Historical YTD");
+    expect(cumulativeQuarterNote(view, false)).not.toContain("are differenced");
+    expect(cumulativeQuarterNote(view, true)).toContain("不同期间长度");
+  });
+  it("withholds annual growth at a provider boundary and preserves same-provider comparisons", () => {
+    const annual = mkQuarterSet({
+      periods: ["FY2024", "FY2025", "FY2026"], period_end: ["2024-12-31", "2025-12-31", "2026-12-31"],
+      fiscal_year: ["2024", "2025", "2026"], period_kind: ["full_year", "full_year", "full_year"],
+      period_number: [null, null, null], period_duration_months: [12, 12, 12],
+      comparison_basis: ["tushare:other:legacy_ytd", "tushare:other:legacy_ytd", "yahoo_timeseries:industrial:v1"],
+    });
+    expect(comparablePeriodChanges([100, 110, 140], annual, "annual")).toEqual([null, 10, null]);
+    annual.comparison_basis = ["same", "same", "same"];
+    expect(priorComparableIndex(annual, 2, "annual")).toBe(1);
+    annual.period_duration_months = [12, 12, 9];
+    expect(priorComparableIndex(annual, 2, "annual")).toBeNull();
+  });
+  it("cannot fall back to positional comparisons when duration metadata is incomplete", () => {
+    const set = mixed();
+    set.period_number = undefined;
+    expect(priorComparableIndex(set, 3, "quarterly")).toBeNull();
+  });
+});
+
+
+it("suppresses industrial geometry for unqualified retained financial taxonomy", () => {
+  const view = incomeView("601318.SS", mkQuarterSet({
+    source_family: "insurer",
+    source_family_by_period: Q_LABELS.map(() => "ambiguous"),
+    source_family_basis: "profile_financial_historical_unqualified",
+  }), "annual");
+  expect(isIndustrialIncomeView(view)).toBe(false);
+  expect(incomeViewFamilyMode(view)).toBe("mixed");
+  expect(incomeViewFamilyDisclosure(view, false)).toContain("historical statement formats are unqualified");
+  expect(incomeViewFamilyDisclosure(view, false)).not.toContain("spans industrial");
 });
