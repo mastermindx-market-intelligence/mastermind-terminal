@@ -184,3 +184,27 @@ def test_local_protocol_timeout_and_input_bound(tmp_path, monkeypatch):
     assert _invoke((sys.executable, str(worker)), {}) is None
     assert time.monotonic() - started < 2
     assert _invoke((sys.executable, str(worker)), {'oversize': 'x' * (1024 * 1024)}) is None
+
+
+def test_evaluation_clock_is_captured_after_quote_priming(workers, tmp_path, monkeypatch):
+    db, data = engine(tmp_path, monkeypatch)
+    # The run begins first, then a quote arrives while the incumbent primer runs.
+    # Its server event time precedes this alert's actual evaluation invocation.
+    observed = NOW + timedelta(seconds=1)
+    evaluation = NOW + timedelta(seconds=2)
+    data.now_fn = lambda: evaluation
+    data.quotes['QQQ']['asOfMs'] = int(observed.timestamp() * 1000)
+    result = run(db, data, reader(workers, monkeypatch), now=NOW)
+    assert result['unevaluable_n'] == 0
+    assert db.runtime['revision'] == 1
+    assert db.runtime['priorState']['lastQuoteAt'] == observed.isoformat(timespec='microseconds').replace('+00:00', 'Z')
+    assert db.outbox == []
+
+
+def test_genuinely_future_quote_remains_unavailable(workers, tmp_path, monkeypatch):
+    db, data = engine(tmp_path, monkeypatch)
+    data.now_fn = lambda: NOW + timedelta(seconds=2)
+    data.quotes['QQQ']['asOfMs'] = int((NOW+timedelta(seconds=3)).timestamp()*1000)
+    before = copy.deepcopy(db.runtime)
+    assert run(db, data, reader(workers, monkeypatch))['unevaluable_n'] == 1
+    assert db.runtime == before and db.outbox == []

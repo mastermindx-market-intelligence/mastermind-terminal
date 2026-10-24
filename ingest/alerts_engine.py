@@ -2320,9 +2320,16 @@ def run_once(
             frozen_capture = {}
             try:
                 if (a.get("condition") or {}).get("type") == "opt_frozen_node_proximity":
+                    # Prime quotes before taking THIS alert's trusted invocation clock.
+                    # The run/receipt start can precede a legitimate primed quote.
+                    clock = getattr(data, "now_fn", None)
+                    frozen_now = clock() if callable(clock) else None
+                    frozen_at = (frozen_now.astimezone(timezone.utc).isoformat()
+                                 if isinstance(frozen_now, datetime) and frozen_now.tzinfo is not None
+                                 and frozen_now.utcoffset() is not None else None)
                     hit, value, note, nxt = evaluate(
                         a, data, flow, frozen_node_reader=frozen_node_reader,
-                        evaluation_at=now.isoformat(), frozen_lifecycle_adapter=frozen_lifecycle_adapter,
+                        evaluation_at=frozen_at, frozen_lifecycle_adapter=frozen_lifecycle_adapter,
                         _frozen_capture=frozen_capture,
                     )
                 else:
