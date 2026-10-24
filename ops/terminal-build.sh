@@ -45,7 +45,7 @@
 #   global cron wrapper,     YES                         NO — never, on any path
 #   quote-hub service,
 #   owner self-install
-#   MMX_SHARED_SHELL         never inherited (unset)     exactly 1 (owner-declared)
+#   MMX_SHARED_SHELL         source/unit-qualified build exactly 1 (owner-declared)
 #
 # The beta profile still deploys only an exact full commit contained by the freshly
 # fetched protected ref, still requires a CLEAN (or sole-canonical-head-mismatch)
@@ -254,6 +254,141 @@ apply_profile_environment(){
       return 64
       ;;
   esac
+}
+
+# Production remains opt-in until the qualified source-owned unit drop-in is
+# installed by the attended host configuration lane. Its BUILD flag is inert in
+# an older runtime: Next pins the actual feature flag into each new build.
+# Caller environment is never activation authority. Derive the expected bytes from the admitted commit.
+production_shared_shell_state(){
+  [ "$TARGET" = production ] || { printf '0\n'; return 0; }
+  sanitize_git_environment
+  python3 -I - "$SRC" "$FULL_SHA" <<'PY_PRODUCTION_SHELL'
+import os
+from pathlib import Path
+import shlex
+import stat
+import subprocess
+import sys
+
+repository, revision = sys.argv[1:]
+installed = Path('/etc/systemd/system/terminal.service.d/shared-shell.conf')
+try:
+    def unit_property(name):
+        return subprocess.check_output(
+            ['systemctl', 'show', '-p', name, '--value', 'terminal.service'],
+            text=True, stderr=subprocess.DEVNULL).strip()
+
+    feature_keys = {'MMX_SHARED_SHELL', 'MMX_SHARED_SHELL_BUILD'}
+    def feature_assignments(text):
+        import re
+        return re.findall(r'(?m)^\s*(?:export\s+)?(MMX_SHARED_SHELL(?:_BUILD)?)(?:\s*=|:\s+)', text)
+
+    def inspect_env_file(path, optional=False):
+        # Read only for feature-key classification; no secret value is returned.
+        if not path.exists() and not path.is_symlink() and optional:
+            return
+        fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW)
+        try:
+            info = os.fstat(fd)
+            if (not stat.S_ISREG(info.st_mode) or info.st_uid != os.geteuid()
+                    or info.st_mode & 0o022 or info.st_size > 1024 * 1024):
+                raise ValueError('unsupported environment file')
+            text = os.read(fd, 1024 * 1024 + 1).decode('utf-8')
+        finally:
+            os.close(fd)
+        if feature_assignments(text):
+            raise ValueError('feature key in environment file')
+
+    environment = unit_property('Environment')
+    flags = [item.split('=', 1)[1] for item in shlex.split(environment)
+             if item.startswith('MMX_SHARED_SHELL_BUILD=')]
+    runtime_flags = [item for item in shlex.split(environment)
+                     if item.startswith('MMX_SHARED_SHELL=')]
+    if runtime_flags:
+        raise ValueError('production runtime flag must stay absent')
+    exists = installed.exists() or installed.is_symlink()
+    if not exists and not flags:
+        print('0')
+        sys.exit(0)
+    if flags != ['1'] or not exists:
+        raise ValueError('unit and promotion drop-in disagree')
+    passed = shlex.split(unit_property('PassEnvironment'))
+    unset = shlex.split(unit_property('UnsetEnvironment'))
+    if any(item.split('=', 1)[0] in feature_keys for item in passed + unset):
+        raise ValueError('feature key in indirect unit environment')
+    manager = subprocess.check_output(['systemctl', 'show-environment'],
+                                      text=True, stderr=subprocess.DEVNULL)
+    if feature_assignments(manager):
+        raise ValueError('feature key in manager environment')
+    import re
+    files = unit_property('EnvironmentFiles')
+    entry = re.compile(r'(/[-A-Za-z0-9_./]+) \(ignore_errors=(yes|no)\)')
+    if entry.sub('', files).strip():
+        raise ValueError('unsupported environment file topology')
+    for path, optional in entry.findall(files):
+        inspect_env_file(Path(path), optional == 'yes')
+    app = Path(repository).parent / 'terminal'
+    for name in ['.env.local', '.env.production.local', '.env.production', '.env']:
+        inspect_env_file(app / name, optional=True)
+    start = unit_property('ExecStart')
+    if (re.findall(r'path=([^ ;]+) ;', start) != ['/usr/bin/npm']
+            or start.count('argv[]=') != 1
+            or 'argv[]=/usr/bin/npm run start ;' not in start):
+        raise ValueError('unsupported production start wrapper')
+    import json
+    package = subprocess.check_output(
+        ['git', '-C', repository, 'cat-file', 'blob', revision + ':terminal/package.json'],
+        stderr=subprocess.DEVNULL)
+    if json.loads(package).get('scripts', {}).get('start') != 'next start':
+        raise ValueError('unsupported application start wrapper')
+    directory = installed.parent.lstat()
+    if (not stat.S_ISDIR(directory.st_mode) or directory.st_uid != os.geteuid()
+            or directory.st_mode & 0o022):
+        raise ValueError('promotion directory custody')
+    fd = os.open(installed, os.O_RDONLY | os.O_NOFOLLOW)
+    try:
+        info = os.fstat(fd)
+        if (not stat.S_ISREG(info.st_mode) or info.st_uid != os.geteuid()
+                or info.st_mode & 0o022 or info.st_size > 4096):
+            raise ValueError('promotion file custody')
+        actual = os.read(fd, 4097)
+        after = installed.lstat()
+        if (info.st_dev, info.st_ino) != (after.st_dev, after.st_ino):
+            raise ValueError('promotion file identity changed')
+    finally:
+        os.close(fd)
+    expected = subprocess.check_output(
+        ['git', '-C', repository, 'cat-file', 'blob', revision + ':ops/terminal-shared-shell.conf'],
+        stderr=subprocess.DEVNULL)
+    if expected != b'[Service]\nEnvironment=MMX_SHARED_SHELL_BUILD=1\n' or actual != expected:
+        raise ValueError('promotion file is not the admitted source')
+    print('1')
+except Exception:
+    print('FATAL: production Shared Shell activation is not source/unit/custody qualified', file=sys.stderr)
+    sys.exit(65)
+PY_PRODUCTION_SHELL
+}
+
+apply_production_shared_shell_profile(){
+  [ "$TARGET" = production ] || return 0
+  PRODUCTION_SHARED_SHELL_ENABLED=$(production_shared_shell_state) || return $?
+  case "$PRODUCTION_SHARED_SHELL_ENABLED" in
+    0) unset MMX_SHARED_SHELL ;;
+    1) export MMX_SHARED_SHELL=1 ;;
+    *) return 65 ;;
+  esac
+  log "production Shared Shell profile derived from admitted source and unit: enabled=$PRODUCTION_SHARED_SHELL_ENABLED"
+}
+
+production_shared_shell_profile_unchanged(){
+  [ "$TARGET" = production ] || return 0
+  local observed
+  observed=$(production_shared_shell_state) || return $?
+  [ "$observed" = "$PRODUCTION_SHARED_SHELL_ENABLED" ] || {
+    log "FATAL: production Shared Shell activation changed during the build"
+    return 65
+  }
 }
 
 # Beta runtime settings are verified against the source-managed unit, never
@@ -4491,6 +4626,7 @@ FULL_SHA=$(git -C "$SRC" rev-parse HEAD)
   exit 65
 }
 SHA=${FULL_SHA:0:12}
+apply_production_shared_shell_profile || exit $?
 if [ "$TARGET" = beta ] && [ "$RECOVERY_REQUESTED" != 1 ]; then
   beta_txn_begin || exit $?
 fi
@@ -4599,8 +4735,9 @@ log "next build (staging) ..."
 # deployment-id inputs to the ONE deployed commit so every HTML/RSC response and
 # every static chunk uses the same ?dpl= value. The Date.now fallback is only for
 # ad-hoc local builds. NODE_OPTIONS carries the heap ceiling (see build_node_options).
-# MMX_SHARED_SHELL is present only because apply_profile_environment declared it for
-# beta and removed it for production; the build command itself is identical for both.
+# MMX_SHARED_SHELL is owner-derived: beta declares it; production requires the
+# exact admitted activation drop-in and inert unit BUILD flag. Next pins the
+# value into this build, so restoring an older off build cannot enable it.
 BUILD_NODE_OPTIONS=$(build_node_options "${NODE_OPTIONS:-}")
 ( cd "$STAGE" && NODE_OPTIONS="$BUILD_NODE_OPTIONS" GIT_SHA="$FULL_SHA" NEXT_DEPLOYMENT_ID="$FULL_SHA" npm run build )
 
@@ -4709,6 +4846,9 @@ if [ "$TARGET" = beta ]; then
   fi
   log "beta candidate active but pending: $FULL_SHA; accepted pointer has not advanced"
 else
+if ! production_shared_shell_profile_unchanged; then
+  deploy_generation_abort "$APP" "$FULL_SHA" "$SWAPPED" "production Shared Shell activation changed" || exit 1
+fi
 if ! systemctl restart terminal; then
   deploy_generation_abort "$APP" "$FULL_SHA" "$SWAPPED" "systemctl restart failed" || exit 1
 fi
@@ -4725,6 +4865,12 @@ if [ "$DEPLOY_OK" = 1 ] && ! deploy_identity_verified "$APP" "$FULL_SHA" "$NEW_B
   DEPLOY_OK=0
 fi
 
+if [ "$DEPLOY_OK" = 1 ] && [ "$PRODUCTION_SHARED_SHELL_ENABLED" = 1 ]; then
+  if ! shared_shell_status_verified "http://127.0.0.1:3000/api/shared-shell/status" "$FULL_SHA" "$SRC"; then
+    log "production Shared Shell tuple verification failed"
+    DEPLOY_OK=0
+  fi
+fi
 if [ "$DEPLOY_OK" = 1 ]; then
   deploy_generation_commit "$APP"
   log "identity verified: $(deploy_identity_line "$APP" "$FULL_SHA")"
