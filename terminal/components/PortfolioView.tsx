@@ -23,6 +23,7 @@ import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useSta
 import { useLang } from "@/lib/i18n";
 import { getJSON } from "@/lib/dataCache";
 import { isAccountOwner, ownerKeyFor, ownerUserId } from "@/lib/accountIdentity";
+import PortfolioRoleEditor from "@/components/PortfolioRoleEditor";
 import PortfolioWorkspace from "@/components/PortfolioWorkspace";
 import { decodePositionRead, portfolioCopy, type PortfolioSection } from "@/lib/portfolioWorkspace";
 import { isPortfolioRisk, isPortfolioRiskHistory } from "@/lib/portfolioAnalysisRead";
@@ -482,6 +483,26 @@ export default function PortfolioView(
     });
   }, [enqueue, reload, scopeNow, scopeValid]);
 
+  const saveTargetRole = useCallback((ticker: string, roleLabel: string | null) => {
+    const scope = scopeNow();
+    return enqueue(async () => {
+      if (!scopeValid(scope)) throw retiredScopeError("never-dispatched");
+      if (!isAccountOwner(scope.owner)) throw new Error("role labels unavailable");
+      const originatingOwner = originatingOwnerId(scope);
+      const response = await fetch("/api/portfolio/targets", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "set_role", ticker, roleLabel,
+          ...(originatingOwner ? { expectedOwnerId: originatingOwner } : {}) }),
+      });
+      if (!scopeValid(scope)) throw retiredScopeError("sent-uncertain");
+      if (!response.ok) throw new Error("role change unconfirmed");
+      const readback = await reload({ scope, confirmTargets: summary => summary.roleLabelsAvailable === true
+        && [...summary.drifts, ...summary.orphaned].some(row => row.ticker === ticker && row.roleLabel === roleLabel) });
+      if (!scopeValid(scope)) throw retiredScopeError("sent-uncertain");
+      if (!readback) throw new Error("role change unconfirmed");
+    });
+  }, [enqueue, reload, scopeNow, scopeValid]);
+
   const clearTarget = useCallback((ticker: string) => {
     const scope = scopeNow();
     return enqueue(async () => {
@@ -643,7 +664,7 @@ export default function PortfolioView(
     untargeted: targets.untargeted.map(row => ({ ...row, currentWeightPct: null })),
   } : targets;
   const targetsContent = visibleTargets
-    ? <>{!targetsFresh && <p role="status">{copy("targetsReadPending")}</p>}<PortfolioTargetsReadout key={ownerKey} summary={visibleTargets} lang={lang as Lang} shapeReadoutVisible={false} weightsPending={!targetsFresh} onSetTarget={saveTarget} onClearTarget={clearTarget} captureScope={scopeNow} /></>
+    ? <>{!targetsFresh && <p role="status">{copy("targetsReadPending")}</p>}<PortfolioTargetsReadout key={ownerKey} summary={visibleTargets} lang={lang as Lang} shapeReadoutVisible={false} weightsPending={!targetsFresh} onSetTarget={saveTarget} onSetRole={saveTargetRole} onClearTarget={clearTarget} captureScope={scopeNow} /></>
     : targetsAttempted ? <TargetsUnavailableNotice lang={lang as Lang} /> : <p role="status">{copy("loadingAnalysis")}</p>;
 
   // Retire the whole rendered workspace when its immutable owner changes, including the
@@ -923,11 +944,12 @@ function fillLabel(template: { en: string; zh: string }, ticker: string, lang: L
 
 // Exported so `lib/__tests__/portfolioTargetsView.test.tsx` can mount the real readout without
 // standing up the whole page (the `riskAvailability` precedent: keep the decision testable).
-export function PortfolioTargetsReadout({ summary, lang, shapeReadoutVisible, weightsPending = false, onSetTarget, onClearTarget, captureScope }: {
+export function PortfolioTargetsReadout({ summary, lang, shapeReadoutVisible, weightsPending = false, onSetTarget, onSetRole, onClearTarget, captureScope }: {
   summary: PortfolioTargetsSummary; lang: Lang;
   shapeReadoutVisible: boolean;
   weightsPending?: boolean;
   onSetTarget: (ticker: string, targetWeightPct: number, bandPct?: number, queuedScope?: OwnerScope) => Promise<void>;
+  onSetRole?: (ticker: string, roleLabel: string | null) => Promise<void>;
   onClearTarget: (ticker: string) => Promise<void>;
   /** The page scope captured when a debounced draft is SCHEDULED, threaded into the write so
    *  retirement is judged against the intent's own scope, never dispatch-time state (011 F2). */
@@ -980,6 +1002,9 @@ export function PortfolioTargetsReadout({ summary, lang, shapeReadoutVisible, we
                 unweighableNote={weightsPending ? "" : pick(row.unweighableNote)}
                 targetWeightPct={drift.targetWeightPct}
                 bandPct={drift.bandPct}
+                roleLabel={drift.roleLabel}
+                rolesAvailable={summary.roleLabelsAvailable === true}
+                onSetRole={onSetRole ? value => onSetRole(row.ticker, value) : undefined}
                 lang={lang}
                 onSetTarget={persist}
                 onClearTarget={drop}
@@ -1014,6 +1039,7 @@ export function PortfolioTargetsReadout({ summary, lang, shapeReadoutVisible, we
             <OrphanedTargetRow
               key={row.ticker}
               ticker={row.ticker}
+              roleLabel={summary.orphaned.find(item => item.ticker === row.ticker)?.roleLabel}
               target={pick(row.target)}
               band={pick(row.band)}
               lang={lang}
@@ -1033,8 +1059,9 @@ export function PortfolioTargetsReadout({ summary, lang, shapeReadoutVisible, we
   );
 }
 
-function OrphanedTargetRow({ ticker, target, band, lang, onClearTarget }: {
+function OrphanedTargetRow({ ticker, roleLabel, target, band, lang, onClearTarget }: {
   ticker: string;
+  roleLabel?: string | null;
   target: string;
   band: string;
   lang: Lang;
@@ -1046,6 +1073,7 @@ function OrphanedTargetRow({ ticker, target, band, lang, onClearTarget }: {
   return (
     <div className={tg.orphanedRow} data-ticker={ticker} data-status="orphaned">
       <p className={tg.ticker}>{ticker}</p>
+      {roleLabel && <p className={tg.value}>{lang === "zh" ? "你的角色标签" : "Your role label"}: {roleLabel}</p>}
       <p className={tg.value}>{pick(T_TARGET)} {target}</p>
       <p className={tg.value}>{pick(T_BAND)} {band}</p>
       <div className={tg.actions}>
@@ -1211,7 +1239,7 @@ function useDebouncedSave(
 
 function TargetCard({
   ticker, current, driftText, bandFitLabel, bandFit, unweighableNote,
-  targetWeightPct, bandPct, lang, onSetTarget, onClearTarget, captureScope, showSaved,
+  targetWeightPct, bandPct, roleLabel, rolesAvailable, onSetRole, lang, onSetTarget, onClearTarget, captureScope, showSaved,
 }: {
   ticker: string;
   current: string;
@@ -1221,6 +1249,9 @@ function TargetCard({
   unweighableNote: string;
   targetWeightPct: number;
   bandPct: number;
+  roleLabel?: string | null;
+  rolesAvailable: boolean;
+  onSetRole?: (roleLabel: string | null) => Promise<void>;
   lang: Lang;
   onSetTarget: (ticker: string, targetWeightPct: number, bandPct?: number, queuedScope?: OwnerScope) => Promise<void>;
   onClearTarget: (ticker: string) => Promise<void>;
@@ -1301,6 +1332,7 @@ function TargetCard({
           <p className={tg.value}>{driftText}</p>
         </div>
       </div>
+      {onSetRole && <PortfolioRoleEditor ticker={ticker} roleLabel={roleLabel} available={rolesAvailable} lang={lang} onSave={onSetRole} />}
       <p className={tg.status} data-kind={bandFit}>{bandFitLabel}</p>
       {/* On an unweighable row the status label IS T_UNWEIGHABLE (spec 2.6 names that sentence as
           the status), so rendering the note as well printed the same sentence twice on one card.

@@ -22,6 +22,7 @@ export type NumericField =
   | { kind: "invalid" };
 
 export type PortfolioTarget = {
+  roleLabel?: string | null;
   ticker: string;
   targetWeightPct: number;
   bandPct: number;
@@ -31,6 +32,7 @@ export type PortfolioTarget = {
 export type TargetStatus = "within_band" | "outside_band" | "unweighable";
 
 export type TargetDrift = {
+  roleLabel?: string | null;
   ticker: string;
   currentWeightPct: number | null;
   targetWeightPct: number;
@@ -40,10 +42,11 @@ export type TargetDrift = {
 };
 
 export type UntargetedHolding = { ticker: string; currentWeightPct: number | null };
-export type OrphanedTarget = { ticker: string; targetWeightPct: number; bandPct: number };
+export type OrphanedTarget = { roleLabel?: string | null; ticker: string; targetWeightPct: number; bandPct: number };
 
 export interface PortfolioTargetsSummary {
   schema: "portfolio_targets.v1";
+  roleLabelsAvailable?: boolean;
   weightBasis: "cost";
   costCurrency?: string | null;
   costGap?: CostGap | null;
@@ -60,18 +63,20 @@ export interface PortfolioTargetsSummary {
 export function isPortfolioTargetsSummary(value: unknown): value is PortfolioTargetsSummary {
   const record = (item: unknown): item is Record<string, unknown> =>
     item !== null && typeof item === "object" && !Array.isArray(item);
+  const validRole = (item: unknown) => item === undefined || item === null || typeof item === "string" && Array.from(item).length <= 48 && !/[\u0000-\u001f\u007f-\u009f]/u.test(item);
   const nullableNumber = (item: unknown) => item === null || isFiniteNum(item);
   const ticker = (item: unknown) => typeof item === "string" && item.trim().length > 0;
   return record(value)
     && value.schema === "portfolio_targets.v1"
     && value.weightBasis === "cost"
+    && (value.roleLabelsAvailable === undefined || typeof value.roleLabelsAvailable === "boolean")
     && (value.costGap === undefined || value.costGap === null
       || value.costGap === "currency_unknown" || value.costGap === "currency_mismatch" || value.costGap === "amount_overflow")
     && nullableNumber(value.targetsSumPct)
     && nullableNumber(value.targetsSumOffBy100)
     && Array.isArray(value.drifts)
     && value.drifts.every((row: unknown) => record(row)
-      && ticker(row.ticker) && nullableNumber(row.currentWeightPct)
+      && ticker(row.ticker) && validRole(row.roleLabel) && nullableNumber(row.currentWeightPct)
       && isFiniteNum(row.targetWeightPct) && isFiniteNum(row.bandPct)
       && nullableNumber(row.driftPct)
       && (row.status === "within_band" || row.status === "outside_band" || row.status === "unweighable"))
@@ -80,7 +85,7 @@ export function isPortfolioTargetsSummary(value: unknown): value is PortfolioTar
       && ticker(row.ticker) && nullableNumber(row.currentWeightPct))
     && Array.isArray(value.orphaned)
     && value.orphaned.every((row: unknown) => record(row)
-      && ticker(row.ticker) && isFiniteNum(row.targetWeightPct) && isFiniteNum(row.bandPct));
+      && ticker(row.ticker) && validRole(row.roleLabel) && isFiniteNum(row.targetWeightPct) && isFiniteNum(row.bandPct));
 }
 
 export const DEFAULT_BAND_PCT = 5;
@@ -163,6 +168,7 @@ export function computePortfolioTargets(
     if (!hasOpen) {
       orphaned.push({
         ticker: key,
+        ...(t.roleLabel !== undefined ? { roleLabel: t.roleLabel } : {}),
         targetWeightPct: t.targetWeightPct,
         bandPct: t.bandPct,
       });
@@ -175,6 +181,7 @@ export function computePortfolioTargets(
     if (currentWeightPct == null) {
       drifts.push({
         ticker: key,
+        ...(t.roleLabel !== undefined ? { roleLabel: t.roleLabel } : {}),
         currentWeightPct: null,
         targetWeightPct: t.targetWeightPct,
         bandPct: t.bandPct,
@@ -187,6 +194,7 @@ export function computePortfolioTargets(
     const status: TargetStatus = Math.abs(driftPct) <= t.bandPct ? "within_band" : "outside_band";
     drifts.push({
       ticker: key,
+      ...(t.roleLabel !== undefined ? { roleLabel: t.roleLabel } : {}),
       currentWeightPct,
       targetWeightPct: t.targetWeightPct,
       bandPct: t.bandPct,
