@@ -8,11 +8,14 @@ import styles from "./ContractShortlist.module.css";
 /** Controlled integration seam for Plan. The action owner supplies an admitted
  * continuation; this editor performs no fetch, save, storage or valuation. Mount
  * with a new key when the person explicitly replaces the source draft. */
-export function OptionsPlanDraftEditor({ draft, lang, onApply, onClose }: {
+export function OptionsPlanDraftEditor({ draft, lang, onApply, onClose, contextDescription, applyLabel, onEdit }: {
   draft: OptionsPlanDraft;
   lang: "en" | "zh";
   onApply: (draft: OptionsPlanDraft) => void;
   onClose: () => void;
+  contextDescription?: string;
+  applyLabel?: string;
+  onEdit?: () => void;
 }) {
   const id = useId();
   const t = (en: string, zh: string) => lang === "zh" ? zh : en;
@@ -30,6 +33,7 @@ export function OptionsPlanDraftEditor({ draft, lang, onApply, onClose }: {
   </section>;
   const frozen = checked.value;
   const changeLeg = (i: number, patch: Partial<typeof assumptions[number]>) => {
+    onEdit?.();
     setAssumptions(values => values.map((v, index) => index === i ? { ...v, ...patch } : v));
     setError(false);
   };
@@ -59,11 +63,11 @@ export function OptionsPlanDraftEditor({ draft, lang, onApply, onClose }: {
   return <section className={styles.cmp} aria-labelledby={`${id}-title`} data-testid="options-plan-draft">
     <div className={styles.cmpHd}><h3 className={styles.cmpTitle} id={`${id}-title`}>{t("Plan draft", "计划草稿")}</h3>
       <p className={styles.cmpNoExec}>{t("Record your research and assumptions. This draft is not saved to your account.", "记录研究观点与假设，此草稿尚未保存到账户。")}</p></div>
-    <p className={styles.hint}>{t("Dated reference marks remain separate from your entry assumption. Quotes, fees and a compatible valuation model are unavailable; no payoff or profit is calculated.", "带日期的参考价格与入场假设分别保留。当前缺少报价、费用及兼容估值模型，不计算收益或损益。")}</p>
+    <p className={styles.hint}>{contextDescription ?? t("Dated reference marks remain separate from your entry assumption. Quotes, fees and a compatible valuation model are unavailable; no payoff or profit is calculated.", "带日期的参考价格与入场假设分别保留。当前缺少报价、费用及兼容估值模型，不计算收益或损益。")}</p>
     <form className={styles.planForm} onSubmit={submit} noValidate>
-      <label htmlFor={`${id}-thesis`}>{t("Research thesis", "研究观点")}<textarea id={`${id}-thesis`} value={research.thesis} onChange={e => { setResearch(v => ({ ...v, thesis: e.target.value })); setError(false); }} /></label>
-      <label htmlFor={`${id}-invalidation`}>{t("What would invalidate the thesis?", "哪些情况会推翻观点？")}<textarea id={`${id}-invalidation`} value={research.invalidation} onChange={e => { setResearch(v => ({ ...v, invalidation: e.target.value })); setError(false); }} /></label>
-      <label htmlFor={`${id}-horizon`}>{t("Research horizon — separate from option expiry", "研究期限——与合约到期日分别记录")}<input id={`${id}-horizon`} value={research.horizon} onChange={e => { setResearch(v => ({ ...v, horizon: e.target.value })); setError(false); }} /></label>
+      <label htmlFor={`${id}-thesis`}>{t("Research thesis", "研究观点")}<textarea id={`${id}-thesis`} value={research.thesis} onChange={e => { onEdit?.(); setResearch(v => ({ ...v, thesis: e.target.value })); setError(false); }} /></label>
+      <label htmlFor={`${id}-invalidation`}>{t("What would invalidate the thesis?", "哪些情况会推翻观点？")}<textarea id={`${id}-invalidation`} value={research.invalidation} onChange={e => { onEdit?.(); setResearch(v => ({ ...v, invalidation: e.target.value })); setError(false); }} /></label>
+      <label htmlFor={`${id}-horizon`}>{t("Research horizon — separate from option expiry", "研究期限——与合约到期日分别记录")}<input id={`${id}-horizon`} value={research.horizon} onChange={e => { onEdit?.(); setResearch(v => ({ ...v, horizon: e.target.value })); setError(false); }} /></label>
       {frozen.legs.map((leg, i) => {
         const p = leg.snapshot, a = assumptions[i], rows = buildComparison([p]).rows;
         return <fieldset key={p.pinKey} className={styles.planLeg}>
@@ -83,7 +87,7 @@ export function OptionsPlanDraftEditor({ draft, lang, onApply, onClose }: {
         </fieldset>;
       })}
       {error && <p role="alert" className={styles.status}>{t("Check the draft: quantity must be a positive whole number of contracts. An entered premium needs a nonnegative number and an explicit denomination. Thesis and invalidation allow 4,000 characters; horizon allows 160.", "请检查草稿：合约数量须为正整数。填写权利金时须使用非负数并明确币种。观点及证伪条件各限4000字符，研究期限限160字符。")}</p>}
-      <div className={styles.trayActions}><button type="button" className={`chip ${styles.planControl}`} onClick={onClose}>{t("Close draft", "关闭草稿")}</button><button type="submit" className={`chip ${styles.planControl}`}>{t("Apply draft", "应用草稿")}</button></div>
+      <div className={styles.trayActions}><button type="button" className={`chip ${styles.planControl}`} onClick={onClose}>{t("Close draft", "关闭草稿")}</button><button type="submit" className={`chip ${styles.planControl}`}>{applyLabel ?? t("Apply draft", "应用草稿")}</button></div>
     </form>
   </section>;
 }
