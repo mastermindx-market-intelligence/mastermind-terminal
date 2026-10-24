@@ -83,7 +83,7 @@ function InsightPanel({
   empty: string;
 }) {
   return (
-    <section className="ci-paper-insight">
+    <section className="ci-paper-insight" data-empty={String(items.length === 0)}>
       <header>
         <span className="ci-paper-insight-mark" aria-hidden>{eyebrow}</span>
         <div>
@@ -217,7 +217,7 @@ export default function CompanyIntelligenceBriefLayout({
         />
       </div>
 
-      <section className="ci-paper-watch">
+      <section className="ci-paper-watch" data-empty={String(watch.length === 0)}>
         <header>
           <div>
             <h4>{label(zh, "What to watch next", "接下来关注什么")}</h4>
