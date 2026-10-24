@@ -5005,6 +5005,22 @@ else
   log "WARN: suite_alerts bundle FAILED — cron keeps the previous bundle"
 fi
 
+# Frozen-node source reader bundle only. Packaging does not opt in the Python
+# evaluator, install lifecycle SQL, enroll alerts or authorize delivery.
+# BEGIN frozen-node source bundle
+log "bundling ingest/frozen_node_source_cli.ts -> ingest/dist/frozen_node_source.mjs"
+if ( cd "$APP" && npx esbuild ../ingest/frozen_node_source_cli.ts --bundle --platform=node --format=esm \
+      --conditions=react-server --outfile=../ingest/dist/frozen_node_source.mjs.new \
+      "--alias:@=." --log-level=warning ) && \
+    mv -f "$APP/../ingest/dist/frozen_node_source.mjs.new" \
+      "$APP/../ingest/dist/frozen_node_source.mjs"; then
+  log "installed ingest/dist/frozen_node_source.mjs (reader remains opt-in)"
+else
+  rm -f "$APP/../ingest/dist/frozen_node_source.mjs.new"
+  log "WARN: frozen_node_source bundle FAILED — previous bundle retained"
+fi
+# END frozen-node source bundle
+
 # personal-accuracy nightly worker: terminal-data invokes the generated artifact after the
 # US-equity OHLC refresh. Stage atomically so a failed bundle leaves the prior artifact in
 # place; scripts/dist is excluded above because the app-source rsync would otherwise delete
