@@ -380,6 +380,11 @@ def main() -> int:
                                          prefix=".market-risk-", suffix=".tmp", delete=False) as handle:
             temporary = Path(handle.name)
             handle.write(payload)
+            handle.flush()
+            # This one artifact is served from terminal/public/data. Keep the
+            # private temporary file until complete, then set its public read
+            # mode on the owned descriptor before the atomic replacement.
+            os.fchmod(handle.fileno(), 0o644)
         temporary.replace(OUT)
     finally:
         if temporary is not None:
