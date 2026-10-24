@@ -220,7 +220,7 @@ export default function OnboardingSheet(props: OnboardingSheetProps) {
     // No user ID is invented from email. Keep recoverable intent in the same
     // wizard stash before the first network await, until getUser can bind it.
     try {
-      sessionStorage.setItem(SS_WIZARD, JSON.stringify({ step, firstName, lastName, email, prefs, plan, period,
+      sessionStorage.setItem(SS_WIZARD, JSON.stringify({ step: STEP_PREFS, firstName, lastName, email, prefs, plan, period,
         confirmPending, trialActive, trialEnd, prefsPending: true, prefsActorEmail: sourceEmail } satisfies WizardStash));
     } catch { /* chosen state remains in the mounted wizard */ }
     let user;
@@ -246,7 +246,7 @@ export default function OnboardingSheet(props: OnboardingSheetProps) {
       data,
     ), currentSubject);
     if (prefsActor.current === sourceEmail) setPrefsPending(outcome.status === "failed" || outcome.status === "held");
-  }, [firstName, lastName, prefs, confirmPending, effEmail, props.email, step, email, plan, period, trialActive, trialEnd]);
+  }, [firstName, lastName, prefs, confirmPending, effEmail, props.email, email, plan, period, trialActive, trialEnd]);
 
   // ── Step transitions ──────────────────────────────────────────────────────────
   function accountConfirmPending() { setConfirmPending(true); setStep(STEP_PREFS); }
