@@ -39,6 +39,11 @@ describe("Prophet private source-data vintage", () => {
     expect(zh.warnings).toEqual([]);
     expect(en.label).not.toBe(zh.label);
   });
+  it("prioritizes explicit publisher unknown even if a date string is present", () => {
+    expect(prophetSourceVintage({
+      asof: "2026-10-23", source_asof: "2026-10-20", source_unknown: true,
+    }, "en")).toEqual({ label: null, warnings: ["unknown"] });
+  });
   it("rejects a source stamped after its own publication clock", () => {
     expect(prophetSourceVintage({
       asof: "2026-10-23", source_asof: "2026-10-24", source_unknown: false,
