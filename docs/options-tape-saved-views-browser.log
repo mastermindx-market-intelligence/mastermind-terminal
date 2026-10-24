@@ -1,0 +1,46 @@
+
+> terminal@0.1.0 test:e2e:responsive
+> playwright test e2e/options-tape-saved-views.spec.ts --workers=1
+
+[warmup] /terminal?symbol=NVDA → 200 in 84ms
+[warmup] /options → 200 in 144ms
+[warmup] /portfolio → 200 in 77ms
+[warmup] /alerts → 200 in 82ms
+[warmup] /analysis → 200 in 145ms
+[warmup] /discover → 200 in 90ms
+[warmup] /admin → 200 in 49ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 46ms
+[warmup] /login → 200 in 55ms
+[warmup] /reset-password → 200 in 76ms
+[warmup] /api/me → 200 in 56ms
+[warmup] /api/watchlist → 200 in 29ms
+[warmup] /api/layouts → 200 in 31ms
+[warmup] /api/watchlist/annotations → 409 in 29ms
+[warmup] 14 routes compiled in 1s
+
+Running 15 tests using 1 worker
+
+(node:10828) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓   1 [desktop] › e2e/options-tape-saved-views.spec.ts:31:7 › named screens restore current Tape filters and persist (en, dark) (3.8s)
+  ✓   2 [desktop] › e2e/options-tape-saved-views.spec.ts:31:7 › named screens restore current Tape filters and persist (zh, dark) (3.3s)
+  ✓   3 [desktop] › e2e/options-tape-saved-views.spec.ts:114:5 › corrupt preferences and invalid links do not broaden the Tape (1.2s)
+  ✓   4 [desktop] › e2e/options-tape-saved-views.spec.ts:131:5 › storage failure remains unsaved and leaves current results usable (1.0s)
+  ✓   5 [desktop] › e2e/options-tape-saved-views.spec.ts:147:5 › suggested multilingual names retain complete code points (904ms)
+(node:11856) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   6 [tablet] › e2e/options-tape-saved-views.spec.ts:31:7 › named screens restore current Tape filters and persist (en, dark) (3.4s)
+  ✓   7 [tablet] › e2e/options-tape-saved-views.spec.ts:31:7 › named screens restore current Tape filters and persist (zh, dark) (3.2s)
+  ✓   8 [tablet] › e2e/options-tape-saved-views.spec.ts:114:5 › corrupt preferences and invalid links do not broaden the Tape (1.2s)
+  ✓   9 [tablet] › e2e/options-tape-saved-views.spec.ts:131:5 › storage failure remains unsaved and leaves current results usable (997ms)
+  ✓  10 [tablet] › e2e/options-tape-saved-views.spec.ts:147:5 › suggested multilingual names retain complete code points (991ms)
+(node:12661) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  11 [mobile] › e2e/options-tape-saved-views.spec.ts:31:7 › named screens restore current Tape filters and persist (en, dark) (3.3s)
+  ✓  12 [mobile] › e2e/options-tape-saved-views.spec.ts:31:7 › named screens restore current Tape filters and persist (zh, dark) (3.5s)
+  ✓  13 [mobile] › e2e/options-tape-saved-views.spec.ts:114:5 › corrupt preferences and invalid links do not broaden the Tape (1.6s)
+  ✓  14 [mobile] › e2e/options-tape-saved-views.spec.ts:131:5 › storage failure remains unsaved and leaves current results usable (1.1s)
+  ✓  15 [mobile] › e2e/options-tape-saved-views.spec.ts:147:5 › suggested multilingual names retain complete code points (1.2s)
+
+  15 passed (41.2s)
