@@ -2596,7 +2596,13 @@ export default function OptionsHubView({
 
                 {/* Ticker search */}
                 <input
-                  type="text"
+                  type="search"
+                  id="options-tape-ticker-search"
+                  name="options-tape-ticker-search"
+                  autoComplete="off"
+                  autoCapitalize="characters"
+                  spellCheck={false}
+                  aria-label={t("tapeTickerPlaceholder", "Ticker…")}
                   placeholder={t("tapeTickerPlaceholder", "Ticker…")}
                   // The SSR value is visible before React can preserve user edits.
                   disabled={!tapeInputHydrated}
