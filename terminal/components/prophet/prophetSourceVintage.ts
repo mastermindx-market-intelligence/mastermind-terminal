@@ -1,5 +1,6 @@
 /** Prophet source-evidence vintage is not its publication timestamp. */
 export interface ProphetSourceVintage {
+  asof?: string | null;
   source_asof?: string | null;
   source_delayed?: boolean | null;
   source_unknown?: boolean | null;
@@ -16,7 +17,12 @@ export function prophetSourceVintage(
   const parsed = date ? new Date(date + "T12:00:00Z") : null;
   const validDate = parsed && Number.isFinite(parsed.getTime()) &&
     parsed.toISOString().slice(0, 10) === date;
-  const label = validDate
+  // A source stamped after the publisher's as-of date cannot be represented as
+  // already available evidence. No new freshness clock or delay threshold is set.
+  const published = typeof payload?.asof === "string" && /^\d{4}-\d{2}-\d{2}/.test(payload.asof)
+    ? payload.asof.slice(0, 10) : null;
+  const sourceWithinPublication = !published || !date || date <= published;
+  const label = validDate && sourceWithinPublication
     ? parsed.toLocaleDateString(lang === "zh" ? "zh-CN" : "en-US", {
       month: "short", day: "numeric", timeZone: "America/New_York",
     })
