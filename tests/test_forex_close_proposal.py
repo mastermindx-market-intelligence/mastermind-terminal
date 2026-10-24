@@ -93,6 +93,15 @@ def prepare(alert=None, snapshot=None, **kwargs):
     )
 
 
+def submit(proposal, **kwargs):
+    return submit_prepared(
+        proposal,
+        condition_version_fn=kwargs.pop("condition_version_fn", condition_version),
+        mint_fire_event_id_fn=kwargs.pop("mint_fire_event_id_fn", mint_fire_event_id),
+        **kwargs,
+    )
+
+
 def acknowledgement(payload, status="accepted"):
     return {
         "status": status, "owner_id": payload["owner_id"], "alert_id": payload["alert_id"],
@@ -281,7 +290,7 @@ def test_explicit_submit_calls_once_and_does_not_mutate_or_disarm():
         response = acknowledgement(payload)
         payload["source_generation"] = 999
         return response
-    result = submit_prepared(proposal, enqueue=enqueue)
+    result = submit(proposal, enqueue=enqueue)
     assert result.status == "accepted" and len(calls) == 1
     assert not result.historical
     assert proposal.payload_json == before
@@ -292,7 +301,7 @@ def test_submission_timeout_is_unconfirmed_with_no_retry():
     def enqueue(payload):
         calls.append(payload["fire_event_id"])
         raise TimeoutError("unknown effect")
-    result = submit_prepared(prepare().proposal, enqueue=enqueue)
+    result = submit(prepare().proposal, enqueue=enqueue)
     assert result.status == "unconfirmed"
     assert len(calls) == 1 and calls[0] == prepare().proposal.as_dict()["fire_event_id"]
 
@@ -310,7 +319,7 @@ def test_bad_acknowledgement_stays_unconfirmed(mutate):
         response = acknowledgement(payload)
         mutate(response)
         return response
-    assert submit_prepared(prepare().proposal, enqueue=enqueue).status == "unconfirmed"
+    assert submit(prepare().proposal, enqueue=enqueue).status == "unconfirmed"
 
 
 def test_replay_returns_original_evidence_without_renewing_it():
@@ -318,9 +327,9 @@ def test_replay_returns_original_evidence_without_renewing_it():
     def enqueue(payload):
         response = acknowledgement(payload, "replayed")
         response["receipt"].update(evaluation_id="b" * 64, source_generation=2,
-                                   manifest_sha256="c" * 64, not_after="2026-10-21T20:00:00Z")
+                                   manifest_sha256="c" * 64, not_after="2026-10-22T16:30:00Z")
         return response
-    result = submit_prepared(proposal, enqueue=enqueue)
+    result = submit(proposal, enqueue=enqueue)
     assert result.status == "replayed" and result.historical
     assert json.loads(result.receipt_json)["receipt"]["source_generation"] == 2
 
@@ -334,7 +343,7 @@ def test_transaction_rejection_has_no_fallback(status):
         response.pop("receipt")
         response["reasons"] = ["fixture_locked_source_changed"]
         return response
-    result = submit_prepared(prepare().proposal, enqueue=enqueue)
+    result = submit(prepare().proposal, enqueue=enqueue)
     assert result.status == status and len(calls) == 1
     assert result.receipt_json is None
 
@@ -342,7 +351,7 @@ def test_transaction_rejection_has_no_fallback(status):
 def test_malformed_proposal_never_reaches_transport():
     def forbidden(payload):
         pytest.fail("invalid proposal reached transport")
-    assert submit_prepared(PreparedProposal("{}"), enqueue=forbidden).status == "unconfirmed"
+    assert submit(PreparedProposal("{}"), enqueue=forbidden).status == "unconfirmed"
 
 
 def test_module_import_has_no_source_or_transport_acquisition():
@@ -441,7 +450,7 @@ def test_truncated_proposal_never_reaches_transport(field):
     del payload[field]
     def forbidden(payload):
         pytest.fail("truncated proposal reached transport")
-    result = submit_prepared(PreparedProposal(json.dumps(payload)), enqueue=forbidden)
+    result = submit(PreparedProposal(json.dumps(payload)), enqueue=forbidden)
     assert result.status == "unconfirmed"
 
 
@@ -449,6 +458,8 @@ def test_truncated_proposal_never_reaches_transport(field):
     lambda p: p.update(vintage="forex-4h/v1:sha256:" + "a" * 64),
     lambda p: p.update(not_after="2026-10-22T22:00:00Z"),
     lambda p: p.update(expected_rule_revision=True),
+    lambda p: p.update(condition_version="0" * 16),
+    lambda p: p.update(fire_event_id="0" * 64),
     lambda p: p["window"][0].update(revision=True),
     lambda p: p["window"][0].update(close=1),
 ])
@@ -457,7 +468,7 @@ def test_tampered_proposal_never_reaches_transport(change):
     change(payload)
     def forbidden(payload):
         pytest.fail("tampered proposal reached transport")
-    assert submit_prepared(PreparedProposal(json.dumps(payload)), enqueue=forbidden).status == "unconfirmed"
+    assert submit(PreparedProposal(json.dumps(payload)), enqueue=forbidden).status == "unconfirmed"
 
 
 def test_rehashed_boolean_evidence_does_not_alias_integer_rule_revision():
@@ -484,3 +495,47 @@ def test_deeply_nested_input_is_typed_withheld():
         mint_fire_event_id_fn=mint_fire_event_id)
     assert result.status == "withheld"
     assert result.reasons in {("invalid_input_json",), ("invalid_alert",)}
+
+
+@pytest.mark.parametrize("identity_callback", ["condition_version_fn", "mint_fire_event_id_fn"])
+def test_unavailable_identity_binding_never_reaches_transport(identity_callback):
+    def unavailable(*args):
+        raise RuntimeError("identity owner unavailable")
+    def forbidden(payload):
+        pytest.fail("unverified event identity reached transport")
+    result = submit(prepare().proposal, enqueue=forbidden, **{identity_callback: unavailable})
+    assert result.status == "unconfirmed"
+
+
+@pytest.mark.parametrize("rule_expiry,receipt_deadline", [
+    ("2026-10-22T21:00:00.000Z", "2026-10-22T15:59:59Z"),
+    ("2026-10-22T21:00:00.000Z", "2026-10-22T16:00:00Z"),
+    ("2026-10-22T21:00:00.000Z", "2026-10-22T20:00:00.000000001Z"),
+    ("2026-10-22T19:00:00.000Z", "2026-10-22T19:00:00.000000001Z"),
+])
+def test_replay_deadline_must_be_possible_for_immutable_rule_and_window(rule_expiry, receipt_deadline):
+    alert, snapshot = fixture_inputs()
+    alert["condition"]["expires_at"] = rule_expiry
+    def enqueue(payload):
+        response = acknowledgement(payload, "replayed")
+        response["receipt"]["not_after"] = receipt_deadline
+        return response
+    result = submit(prepare(alert, snapshot).proposal, enqueue=enqueue)
+    assert result.status == "unconfirmed"
+    assert result.reasons == ("receipt_deadline_outside_immutable_window",)
+
+
+def test_replay_original_deadline_may_differ_from_current_eligibility_cutoff():
+    alert, snapshot = fixture_inputs()
+    snapshot["eligibility_deadline"] = {
+        "not_after": "2026-10-22T18:00:00Z", "reason": "fixture cutoff",
+        "evidence_id": "fixture://eligibility/revision-2",
+    }
+    proposal = prepare(alert, snapshot).proposal
+    def enqueue(payload):
+        response = acknowledgement(payload, "replayed")
+        response["receipt"]["not_after"] = "2026-10-22T20:00:00Z"
+        return response
+    result = submit(proposal, enqueue=enqueue)
+    assert result.status == "replayed" and result.historical
+    assert json.loads(result.receipt_json)["receipt"]["not_after"] == "2026-10-22T20:00:00Z"

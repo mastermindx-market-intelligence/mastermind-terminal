@@ -31,8 +31,10 @@ evaluator, condition_version_fn, mint_fire_event_id_fn) returns ready,
 not_met or withheld. Only ready carries a detached strict-JSON
 PreparedProposal. Preparation cannot enqueue or disarm an alert.
 
-submit_prepared(proposal, *, enqueue) first validates the full proposal and
-then invokes the explicitly supplied callback once. Its response is typed as
+submit_prepared(proposal, *, enqueue, condition_version_fn,
+mint_fire_event_id_fn) first validates the full proposal and binds its condition
+version and event ID through the incumbent identity functions, then invokes the
+explicitly supplied enqueue callback once. Its response is typed as
 accepted, replayed, withheld, conflict or unconfirmed. Exceptions and
 malformed acknowledgements remain unconfirmed. There is no retry, legacy
 Supa.fire, direct outbox insert or disarm fallback.
@@ -120,7 +122,10 @@ The future transaction still owes:
    concurrency proof.
 5. Exact-event reconciliation after an uncertain acknowledgement. A replay
    returns the first receipt/evidence and is explicitly historical; it need not
-   match a newer equivalent manifest, generation or evaluation digest.
+   match a newer equivalent manifest, generation or evaluation digest. Its
+   original deadline can be expired and can differ from the current eligibility
+   cutoff, but must be after the newest close and no later than the immutable
+   rule/source expiry.
 6. Forward account-validator/guard integration. Never reapply 0038.
 
 An accepted callback fixture is not proof of database atomicity. The source
@@ -129,7 +134,7 @@ This independent adapter does not replace or replay the SQL proposal request.
 
 ## Executed qualification
 
-The current-base run completed **2026-10-24T03:06:34Z: 76 passed**, including the
+The latest local run completed **2026-10-24T04:01:28Z: 85 passed**, including the
 actual pinned Macro evaluator and the incumbent Terminal identity functions.
 See forex_close_proposal_qualification.json for source and retained proof hashes.
 
@@ -149,7 +154,7 @@ Tests cover current inactive/unbound rejection, malformed snapshots and clocks,
 full-window conflicts/gaps, fixed expiry, exact deadline equality, stable reread
 identity, revision re-arm, immutable proposals, evaluator contract corruption,
 malformed pre-effect requests, one-call acknowledgement uncertainty and historical
-replay. Existing identity tests run alongside them.
+replay. Follow-up cases reject valid-looking but incorrect event IDs before enqueue,\nqualify identity-owner failure, and constrain historical deadlines to their\nimmutable rule/source window while allowing an original eligibility cutoff.\nExisting identity tests run alongside them.
 
 ## Remaining release holds
 

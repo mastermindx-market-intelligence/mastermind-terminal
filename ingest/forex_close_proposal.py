@@ -313,7 +313,9 @@ def prepare_forex_enqueue(
     return PreparationResult("ready", proposal=PreparedProposal(_json(proposal)), evaluation_json=evidence_json)
 
 
-def _validate_proposal(payload: dict) -> None:
+def _validate_proposal(
+    payload: dict, *, condition_version_fn: Callable, mint_fire_event_id_fn: Callable,
+) -> None:
     """Reject malformed/tampered wire data before calling an effectful callback.
 
     This is shape/evidence validation, not authentication. Only the future SQL
@@ -368,13 +370,23 @@ def _validate_proposal(payload: dict) -> None:
                          separators=(",", ":"), ensure_ascii=True).encode("ascii")
     _require(payload["vintage"] == "forex-4h/v1:sha256:" + hashlib.sha256(encoded).hexdigest(),
              "proposal_vintage_mismatch")
+    try:
+        expected_version = condition_version_fn(_copy(rule))
+        expected_event = mint_fire_event_id_fn(_copy(alert), payload["vintage"])
+    except Exception as exc:
+        raise _Invalid("proposal_identity_unavailable_or_invalid") from exc
+    _require(payload["condition_version"] == expected_version
+             and payload["fire_event_id"] == expected_event, "proposal_identity_mismatch")
     deadlines = [_clock(rule["expires_at"]), _clock(selected[-1]["expires_at"])]
     if eligibility_deadline is not None:
         deadlines.append(eligibility_deadline)
     _require(payload["not_after"] == _format_clock(min(deadlines)), "proposal_deadline_mismatch")
 
 
-def submit_prepared(proposal: PreparedProposal, *, enqueue: Callable) -> EnqueueResult:
+def submit_prepared(
+    proposal: PreparedProposal, *, enqueue: Callable,
+    condition_version_fn: Callable, mint_fire_event_id_fn: Callable,
+) -> EnqueueResult:
     """One explicit call to an injected future atomic boundary; never auto-retry.
 
     Exceptions or unqualified acknowledgements leave the original event
@@ -383,7 +395,10 @@ def submit_prepared(proposal: PreparedProposal, *, enqueue: Callable) -> Enqueue
     """
     try:
         payload = proposal.as_dict()
-        _validate_proposal(payload)
+        _validate_proposal(
+            payload, condition_version_fn=condition_version_fn,
+            mint_fire_event_id_fn=mint_fire_event_id_fn,
+        )
         expected = {key: payload[key] for key in ("owner_id", "alert_id", "condition_version", "fire_event_id", "vintage")}
         expected["rule_revision"] = payload["expected_rule_revision"]
     except (AttributeError, KeyError, TypeError, ValueError, OverflowError, RecursionError):
@@ -407,13 +422,21 @@ def submit_prepared(proposal: PreparedProposal, *, enqueue: Callable) -> Enqueue
         _require(isinstance(receipt, dict) and _uuid(receipt.get("outbox_id"))
                  and _sha(receipt.get("evaluation_id")) and _integer(receipt.get("source_generation"))
                  and _sha(receipt.get("manifest_sha256")), "invalid_enqueue_receipt")
-        _clock(receipt.get("not_after"))
+        receipt_deadline = _clock(receipt.get("not_after"))
+        newest = payload["window"][-1]
+        immutable_upper_bound = min(
+            _clock(payload["condition"]["expires_at"]), _clock(newest["expires_at"]),
+        )
+        _require(_clock(newest["bar_end"]) < receipt_deadline <= immutable_upper_bound,
+                 "receipt_deadline_outside_immutable_window")
         if status == "accepted":
             _require(all(receipt[key] == payload[key] for key in (
                 "evaluation_id", "source_generation", "manifest_sha256", "not_after",
             )), "accepted_receipt_mismatch")
         # A replay retains the first evidence, even when an equal reread has a
         # different generation/manifest/evaluation digest or is now expired.
+        # Its original cutoff may differ from today's eligibility deadline,
+        # but must have been possible for this immutable rule and price window.
         return EnqueueResult(status, receipt_json=_json(response), historical=status == "replayed")
     except (KeyError, TypeError, ValueError) as exc:
         reason = str(exc) if isinstance(exc, _Invalid) else "invalid_enqueue_acknowledgement"
