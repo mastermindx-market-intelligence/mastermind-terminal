@@ -1,0 +1,52 @@
+{
+  "recorded_at": "2026-10-22T23:00:41.800722+00:00",
+  "base_head": "fdd584cb5f162a94056e3a73aef7c29916497c7e",
+  "failed_ci_run": 39863344495,
+  "failed_job": 120119288391,
+  "failure": "18 wall-clock-dependent regional fixture failures during 21:00\u201322:30 UTC hold",
+  "patch_sha256": "962ba56c1d3e321ff52d27f1ce8f3c91823e69cb699486e58be52f1b05807138",
+  "source_sha256": {
+    "tests/test_regional_runtime_integration.py": "1e09d5e87495985240f7c7b936417f9ba0a9643294e5f319f157746b8c976b71",
+    "tests/test_cnhk_refresh_failure_propagation.py": "f350ae5616cb25e3dde5a8bdd7c933ec818bc1d3e0dfd0eaca9676c0be5ac099"
+  },
+  "unchanged_runtime_sha256": {
+    "ingest/regional_refresh.py": "f58286aee834b1f3ad8629966fffa1648f77aa0ce6e0f98e29a17345ddf1ccc9",
+    "terminal/components/SearchModal.tsx": "5b3a466a06215231f1b458c382aaae268b4f2f9f206d6f985f312f603fa4a5aa",
+    "terminal/components/TerminalShell.tsx": "f4685da5953cab5b67ea234d1bdb02e5c05484e60c153718809cbb52be2e22aa",
+    "terminal/components/studyTemplates/useDialogFocus.ts": "2e592df0047262e496afcca0a245b9b6d90bb7a37f21a316803792fc26e84e40",
+    "terminal/components/SearchModal.module.css": "bc82bdeb1a4eb78fe9babe884c2ae8e7fc2773710e6399b5bf22733f70f102fb"
+  },
+  "parent_verified": {
+    "targeted_real_clock": {
+      "passed": 68,
+      "exit_code": 0
+    },
+    "targeted_injected_2130_utc": {
+      "passed": 68,
+      "exit_code": 0
+    },
+    "hold_disabled_in_memory_mutant": {
+      "failed": 2,
+      "passed": 2,
+      "exit_code": 1,
+      "expected_failure": true
+    },
+    "py_compile": "passed",
+    "git_diff_check": "passed"
+  },
+  "worker_full_suite_claim": "Not used as acceptance proof: worker did not retain raw full-suite logs. Current-head hosted CI is still required.",
+  "scope": "Test-only. Production publication window, data rules and UI runtime are unchanged. No release or live acceptance claimed.",
+  "fabric": {
+    "builder": "terminal-ex03-ci-clock-fixture-20261022-04",
+    "builder_response_sha256": "0814f24222080f1eabe6bd68f3aa2b4898deddd3a31588a7c845c8219693ef7f",
+    "artifact_return": "terminal-ex03-clock-artifact-return-20261022-05",
+    "artifact_return_response_sha256": "8d5985e3e21e381a062bf25402be7dd0f5ac08979278151f6e91587665600b0f",
+    "both_accepted": true
+  },
+  "artifacts_sha256": {
+    "targeted-real.log": "e0477e95e1e74deef2be2c25b0b61e8572a492916e7d09db089ddcb9c81494e5",
+    "targeted-injected.log": "ac0328e7710afef81ec7976e30e1c9b31156c5462863e4fca9e0dad3675c4ce8",
+    "wall-clock-injection.py": "5de1cbe40cb3b414f1972bf3bac99cdd71cf086debb2839e7f16dd641e2df091",
+    "guard-mutant.log": "f4ad8dbff730d7b6edeec7db2f8bbf2c0120e71434a345ec5974757c8cfdbd3e"
+  }
+}

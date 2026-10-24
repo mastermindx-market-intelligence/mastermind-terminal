@@ -8,6 +8,7 @@ import InvestigationWorkspace from "@/components/workspaces/InvestigationWorkspa
 import { admitDuplicate, duplicateDraftFields } from "@/lib/investigationDuplicate";
 import type { InvestigationCommand } from "../investigations";
 import type { InvestigationManifest } from "../investigationContracts";
+import planFixture from "./fixtures/options_plan_draft_v1.json";
 
 const i18n = vi.hoisted(() => ({ lang: "en" as "en" | "zh" }));
 vi.mock("@/lib/i18n", () => ({ useLang: () => ({ lang: i18n.lang }) }));
@@ -375,5 +376,21 @@ describe("existing next-observation draft field", () => {
  });
  it("uses the existing revise command and exact expected revision",async()=>{
   detailReply={status:200,body:{...foundBody,current_revision:2}};await mount(SOURCE_ID);await click("Edit saved question");expect(observation()?.value).toBe("Observation preserved");await change("Revised observation");expect(posts).toHaveLength(0);await click("Save research");expect(posts).toHaveLength(1);expect(posts[0]).toMatchObject({action:"revise",id:SOURCE_ID,expected_revision:2});expect(posts[0].manifest).toEqual({...manifest,continuation:{...manifest.continuation,next_observation:"Revised observation"}});
+ });
+});
+
+
+describe("retained Plan composition in the actual existing Workspace",()=>{
+ it.each(["revise","duplicate","assess"])("keeps the exact whole Plan through an explicit %s without modifying the source revision",async action=>{
+  const original={...manifest,schema:"investigation_manifest.v3" as const,option_plan:structuredClone(planFixture) as NonNullable<InvestigationManifest["option_plan"]>,review:{assessment:"inconclusive" as const,note:"Original observation"}};
+  const before=JSON.stringify(original);detailReply={status:200,body:{...foundBody,current_revision:2,manifest:original}};
+  await mount(SOURCE_ID);
+  if(action==="assess"){
+   await click("Contradicted");await click("Save as revision 3");
+  }else{
+   await click(action==="duplicate"?"Duplicate as new research":"Edit saved question");await click("Save research");
+  }
+  expect(posts).toHaveLength(1);const c=posts[0];expect(c.manifest.schema).toBe("investigation_manifest.v3");expect(c.manifest.option_plan).toEqual(original.option_plan);expect(c.manifest.argument_relations).toEqual(original.argument_relations);expect(c.manifest.evidence_refs).toEqual(original.evidence_refs);expect(c.manifest.thesis_refs).toEqual(original.thesis_refs);
+  expect(c.expected_revision).toBe(action==="duplicate"?0:2);expect(c.action).toBe(action==="duplicate"?"create":"revise");expect(c.manifest.review).toEqual(action==="assess"?{assessment:"contradicted"}:original.review);expect(JSON.stringify(original)).toBe(before);
  });
 });

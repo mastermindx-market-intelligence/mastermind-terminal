@@ -204,7 +204,12 @@ const nextConfig: NextConfig = {
         destination: "/analysis",
         permanent: true,
       },
-      { source: "/research", destination: "/options", permanent: true },
+      // Shared Shell owns the new revision-aware reader at bare /research.
+      // Keep every old Options tab bookmark and the ordinary flag-off alias.
+      ...(process.env.MMX_SHARED_SHELL === "1" ? [{
+        source: "/research", has: [{ type: "query" as const, key: "tab" }],
+        destination: "/options", permanent: true,
+      }] : [{ source: "/research", destination: "/options", permanent: true }]),
       // Automate is split back into standalone Scripts + Alerts. Peel the two tabs
       // off first, then default bare /automate to /alerts (its old default tab).
       // NB: /alerts and /scripts are now REAL routes (their old redirects into
@@ -289,7 +294,7 @@ const nextConfig: NextConfig = {
       {
         // Auth-aware shells must never be shared by EdgeOne. Caching these as
         // public can replay a signed-out redirect or another session's shell.
-        source: "/(terminal|discover|analysis|options|scripts|alerts|portfolio|admin|login)",
+        source: "/(terminal|today|research|monitor|discover|analysis|options|scripts|alerts|portfolio|admin|login)",
         headers: [
           {
             key: "Cache-Control",

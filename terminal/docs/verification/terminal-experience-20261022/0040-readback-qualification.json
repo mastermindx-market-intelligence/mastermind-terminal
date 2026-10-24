@@ -1,0 +1,48 @@
+{
+  "original_file_sha256": "9353ef58cf500b91b1f9b029f0249b09151975bc697e267f7182cd8147146287",
+  "qualified_file_sha256": "aaebea44dd4c3ee795f984b9701bb7acafa1a5408513a9ae5ee410314ac564d4",
+  "executable_statement_sha256": "8702d9762af6198de1ed2b89762354ee1bb219736de7519c14fe798663abe919",
+  "executable_statements_identical": true,
+  "application_statements": 1,
+  "readback_statements": 2,
+  "production_ddl_executed": false,
+  "schema": "terminal.migration-readback-qualification.v1",
+  "recorded_at": "2026-10-22T10:32:04.677400+00:00",
+  "owning_ddl_pr": 1104,
+  "owning_ddl_merge_sha": "0aecf8e95dd7888b3453834d75f3e072e464bb6e",
+  "repair_carrier_pr": 1125,
+  "reason": "The original boolean-only readback omits the catalog identifier required by the unchanged reviewed applier. A successful DDL execution would then return exit 6 with failed_readback.",
+  "repair": "Append an actual pg_proc catalog SELECT bound to the exact public.valid_investigation_manifest_v2(jsonb) OID inside the existing contiguous readback block. Return identity, signature, result, language, owner, volatility, security mode, configuration, ACL and body digest.",
+  "original_regression": {
+    "result": "EXPECTED_FAIL",
+    "exit_code": 1,
+    "applier_exit": 6,
+    "applier_status": "failed_readback",
+    "missing_object": "function valid_investigation_manifest_v2"
+  },
+  "qualified_checks": {
+    "postgres_applier_namespace_tests_passed": 198,
+    "typescript_migration_contract_tests_passed": 3,
+    "pr_mode": 1125,
+    "first_apply": "applied",
+    "replay": "applied; pre/post equal",
+    "missing_catalog_control": "failed_readback, exit 6 despite passing behavior",
+    "no_op_control": "generic name check alone reports applied, but behavior remains false and body digest is wrong; operator qualification rejects it",
+    "metadata_preserved": [
+      "owner",
+      "volatility",
+      "security_definer",
+      "configuration",
+      "acl",
+      "arguments",
+      "result",
+      "language"
+    ]
+  },
+  "source_sha256": {
+    "supabase/migrations/0040_investigation_review.sql": "aaebea44dd4c3ee795f984b9701bb7acafa1a5408513a9ae5ee410314ac564d4",
+    "tests/test_investigation_postgres.py": "4ccd76bc2f3fb1771db7f0d7c56c608ef1fe31425a8b8302e33c7909aa023c55",
+    "scripts/supabase_apply.py": "938349bba26a848508a579835245d77a70c01baa7e9b641d9163d4f3c8ec0b55"
+  },
+  "production_effects": "None during qualification. The latest read-only production probe still finds the 0039 validator; application follows the accepted release procedure after source integration."
+}

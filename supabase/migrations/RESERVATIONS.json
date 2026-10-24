@@ -364,6 +364,80 @@
       "applied_date": "2026-10-15",
       "note": "Opt-in personal watchlist additions and atomic replay receipts. PR1018 merged as 00c5f72508e3d19987c77452a41ea0359679172f. Applied once at 2026-10-15T21:05:32Z through scripts/supabase_apply.py as one atomic DO statement. RLS and service-only RPC catalog readback passed; existing authentication owner/ACL/security/search_path and existing key scopes unchanged. Receipt: https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1018#issuecomment-6202285065. Application/live acceptance remains separate.",
       "merged_sha": "00c5f72508e3d19987c77452a41ea0359679172f"
+    },
+    "0035": {
+      "state": "taken",
+      "file": "0035_saved_view_guard.sql",
+      "packet": "DEFENSE-P2-SAVED-VIEW-DB",
+      "pr": 778,
+      "pr_state": "open",
+      "applied_in_production": false,
+      "applied_date": null,
+      "note": "Existing PR778: database enforcement of atomic50 active saved views and immutable v2 operation receipts on existing workspace_settings/RLS. Source only, unapplied; original0028/777 and all original unknown Fabric effects preserved. Application date is null because no production application has occurred."
+    },
+    "0036": {
+      "state": "taken",
+      "file": "0036_portfolio_entry_currency.sql",
+      "packet": "TERMINAL-PORTFOLIO-WORKSPACE",
+      "pr": 1044,
+      "pr_state": "merged",
+      "merged_sha": "8f00622096d0dc574458c134516e802ce78907ae",
+      "applied_in_production": true,
+      "applied_date": "2026-10-19",
+      "note": "Original forward-number proposal on then-draft #1044 for pending #866 entry-unit SQL at 60fd6d997df52d2d8331de85ab63014446e16ef9; earlier-opened #778 at 88f2919a5c2222bcf05f452f2549b9af180dcae6 keeps 0035_saved_view_guard.sql (this proposal moved from 0035 to 0036 to preserve that claim). The earlier-opened-PR precedence and application-order disposition of the pending #866 claim is resolved by canonical Macro decision 9593 (DEC-PORTFOLIO-CURRENCY-FORWARD-DISPOSITION-2026-10-18); superseded #866 remains historical evidence and is never rerun. Applied in production once at 2026-10-19T01:13:16Z by the original applier (scripts/supabase_apply.py, tool supabase_apply/1, statement-at-a-time, project {ref}): statements_n=1, status applied, all five post readbacks present, missing_after empty, error null. Original application receipt SHA256 511faa4788ca35b8946070bdc8420057fcd0bd62be96fa289c058609e3fe3ff1 (4419 bytes), published complete on PR #1044 comment 6283607982 and stored byte-exact at terminal/docs/verification/portfolio-workspace/0036-production-receipt.json; executable SQL hash 9c09540e7b4e451e55a39d8229b3a73eb93c997578f3dadfdc3f24b47a7f7f4c unchanged from application head 75eaabd1ebc4af3bf7e43b8488d519da9024dd45; the separate estate-preservation receipt binds the same runner (938349bba26a848508a579835245d77a70c01baa7e9b641d9163d4f3c8ec0b55) with before 2026-10-19T01:13:11.882652Z / after 2026-10-19T01:13:16.774276Z and ACL, RLS and policy equality true. This row records the actual solo squash of #1044 as 8f00622096d0dc574458c134516e802ce78907ae and the recovered application fact. This immediate merged-ledger follow-up follows DEC-TERMINAL-MIGRATION-PR-LANDS-SOLO-WITH-LEDGER-FOLLOWUP; production-route qualification and authenticated acceptance remain separate. The applied SQL, including its historical header comments, and original receipt remain byte-exact under the narrow preservation ruling in PR #1044 comment 6287989702. Applied #946/0032 SQL and its existing reservation are unchanged."
+    },
+    "0037": {
+      "state": "taken",
+      "file": "0037_medtech_watches.sql",
+      "packet": "MEDTECH-R14-WATCHES",
+      "pr": 1084,
+      "pr_state": "open",
+      "applied_in_production": true,
+      "applied_date": "2026-10-20",
+      "note": "Reserved by medtech-r14-watches-20261019 for typed personal FDA event/PMA-application watches and exact revision review state. Applied once at 2026-10-20T19:36:59Z from accepted source 9d080bdca3bcce8ec10c1fce4e1ca30386d6d3c3, using unchanged scripts/supabase_apply.py (SHA256 938349bba26a848508a579835245d77a70c01baa7e9b641d9163d4f3c8ec0b55), tool supabase_apply/1, project {ref}, one atomic DO statement. Original applied full-file SQL SHA256 c2e4831534fe2af7f835b19210020544b56b01866109a06b965ea656d87b8406; unchanged executable DO SHA256 a6845559c01e3e22f141992d1be9f80b6892dbdf582539fb35d456d821273985. Complete 12096-byte receipt SHA256 087902b037282c94aefab098839f52217342075ddf6d109e419fd00a15c6bf65 was published on PR #1084 and read back exactly at 2026-10-20T19:38:48Z before changing this row; retained at docs/evidence/medtech-r14-0037-production-application-20261020.json. Both pre-readbacks were empty; the actual post-readback and independent validator verify all twelve typed public objects, owning tables, function signatures, forced RLS and the intended privilege/policy/guard matrix, with no missing objects, excluded readback or error. The scoped application-order/solo-landing decisions became canonical through Macro #9816 at 7a6e21cb7d6a38855b7e06432c94f61acb0fe6f1; exact Terminal 9d required CI was fully green before application. The final namespace delta through 19:36:23Z preserves all 34 canonical master bbc07037 rows, held 0035 and already-applied 0036; 0037 is unique to #1084 with no new train declaration or hold. Never replay 0036 or 0037. This records application only: #1084 remains open and unmerged; no merged_sha is claimed until the immediate actual-squash ledger/header/README follow-up. Deployment and genuine signed-in acceptance remain separate."
+    },
+    "0038": {
+      "state": "taken",
+      "file": "0038_forex_inactive_conditions.sql",
+      "packet": "FOREX-R26-INACTIVE-CONDITIONS",
+      "pr": 1100,
+      "pr_state": "merged",
+      "merged_sha": "5f14b35c18d8f9f70e8f0d381963dee98e59a521",
+      "applied_in_production": true,
+      "applied_date": "2026-10-21",
+      "note": "Claimed by draft PR #1100 opened 2026-10-21T12:17:40Z, read back at head b44b0552f7bee8be7cb3dfc7782274ef7437ee69 before SQL authoring. Complete 157-open-PR file census retains 0037 for earlier #1084. Applied once through the existing authenticated Supabase SQL editor, the explicit carrier allowed by README binding rule (d), between 2026-10-21T17:39:00.792731Z and 17:40:22.148275Z. Candidate 813b36c869fa649c1b0e17693da73b0882181e8b retains independently reviewed storage source 5969bf5408c16626487831496d0083ce2fe31deb. Exact full-file SQL SHA256 f7f2e50b11fd863f107abc8406c04d35ffa67f52bca6c885281340d6aff4adee; all 16582 editor characters matched that source immediately before one confirmed atomic DO submission. UI returned Success. No rows returned. Complete pre/post catalog receipt was posted on PR #1100 and read back exactly at 2026-10-21T17:41:57Z BEFORE this ledger update; retained at docs/verification/forex-r26/0038-apply-receipt.json. All five actual function bodies, argument identities, invoker/search-path and execute privileges, enabled INSERT/UPDATE trigger, and unchanged alerts RLS, owner policy and table grants verified. No remote migration-history schema was created. This is an SQL-editor application receipt, not a supabase_apply/1 receipt. #1100 squash-merged to master as 5f14b35c18d8f9f70e8f0d381963dee98e59a521 at 2026-10-21T19:11:55Z (read back from the pull request before this edit); this row was flipped to merged in the first master merge after it (the #1103 branch refresh), the immediate ledger follow-up this file requires, with the applied SQL, its header and the retained receipt byte-exact. Preserve the byte-exact applied SQL, including historical authoring comments. Never replay this application. Deployment, authenticated account acceptance, final-4H feed admission and monitoring/delivery acceptance remain separate."
+    },
+    "0039": {
+      "state": "taken",
+      "file": "0039_investigation_options_evidence.sql",
+      "packet": "OPTIONS-R1-W2C",
+      "pr": 1103,
+      "pr_state": "merged",
+      "merged_sha": "eb752cd653f3add2aa67cdcc7b588dae13c86843",
+      "applied_in_production": true,
+      "applied_date": "2026-10-22",
+      "note": "Widens valid_investigation_manifest_v2 from the earnings-only evidence owner to the Terminal registry (terminal.options_exposure: exposure_chart_request, sector_origin, rotation_measurement), every other byte the installed body (contract test terminal/lib/__tests__/investigationEvidenceOwnersMigrationContract.test.ts). Numbered 0039 by rule (b): 0037 is held by #1084 and 0038 by #1100. #1103 squash-merged to master as eb752cd653f3add2aa67cdcc7b588dae13c86843 at 2026-10-21T20:32:35Z. Applied once at 2026-10-22T01:20:36Z through the unchanged scripts/supabase_apply.py (tool supabase_apply/1, --apply --receipt): statements_n=1, status applied, missing_after empty, error null. Complete receipt SHA256 97765e4c006ac47430b6866ae0ca551a6f92cb728e08c1c83102cb49319b1901 (14286 bytes) posted on PR #1103 (https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1103#issuecomment-6330358798) and retained byte-exact at docs/verification/options-r1/0039-apply-receipt.json. The applied SQL, including its historical header comment, stays byte-exact because the applier hashes the whole file. Never replay this application. Deployment and authenticated acceptance remain separate."
+    },
+    "0040": {
+      "state": "taken",
+      "file": "0040_investigation_review.sql",
+      "packet": "OPTIONS-R1-W3C",
+      "pr": 1104,
+      "pr_state": "merged",
+      "merged_sha": "0aecf8e95dd7888b3453834d75f3e072e464bb6e",
+      "applied_in_production": true,
+      "applied_date": "2026-10-22",
+      "note": "Admits the optional top-level `review` block (assessment in confirmed/contradicted/inconclusive, optional fire_event_id 64-hex, optional note <= 2000 chars, no other keys) in valid_investigation_manifest_v2; executable SQL remains byte-identical to PR #1104. Depends on installed 0039 (PR #1103). Applied once at 2026-10-22T13:40:13Z through scripts/supabase_apply.py --apply --receipt from accepted repair carrier PR #1125 / 0551a2017067c9f0aab63e8579936bdcb5b728fb. Full-file SQL SHA-256 aaebea44dd4c3ee795f984b9701bb7acafa1a5408513a9ae5ee410314ac564d4. Actual receipt posted on owning PR before recording application: https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1104#issuecomment-6343024596; byte-exact copy docs/verification/options-r1/0040-apply-receipt.json (SHA-256 7f0677bef3129358ef586393556130dea80122da0b0ccf8b97a091f4400828f4). Independent qualification in docs/verification/options-r1/0040-production-qualification.json confirms expected behavior, body MD5 16f7838c8e797663d64783cff92fb6ef, preserved identity/execution properties, and existing-manifest compatibility. README application row updated together."
+    },
+    "0041": {
+      "state": "taken",
+      "file": "0041_pinned_research_handoffs.sql",
+      "packet": "B-F12-PINNED-RESEARCH-HANDOFF",
+      "pr": 1139,
+      "pr_state": "merged",
+      "applied_in_production": true,
+      "applied_date": "2026-10-23",
+      "note": "PR #1139 merged as 61c504a472120935458874db04757f6064b91e6f after independent security qualification and exact-head CI. Compatible app-first production installation verified before this exact SQL was applied once on 2026-10-23 at 04:35:10 UTC through the original Management API/CurlRunner (25/25 statements returned successfully, statement-at-a-time). Applied full-file SQL SHA256 5bc394c6d8c4d9a8fef9115e47a0caaa8e6156f6850d76347a171387fea3addd. Original helper exit 6/status failed_readback is preserved: its sole missing object is resource_grants_guard, omitted from the built-in function readback. Separate same-carrier catalog qualification proves all seven exact reviewed bodies, unchanged terminal trigger/guard ACL and prerequisite bodies, intended new-function ACL/policies/constraints, column privileges and uniqueness index. No SQL replay or recipient grant. Raw receipt posted BEFORE this metadata: https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1139#issuecomment-6357486989; byte-exact retained receipt docs/verification/pinned-research-handoff/0041-native-apply-receipt.json and separate catalog qualification 0041-effect-qualification.json. Authenticated owner/recipient product acceptance remains separate."
     }
   }
 }

@@ -367,6 +367,74 @@ export const FD = {
     "检测标记来自补充数据。文件缺失或过期时，筛选仍可用，标记会隐藏。",
   ),
   resetFilters: bi("Reset filters", "重置筛选"),
+
+  // ── W3A flow print inspector (Options R1 packet 3) ─────────────────────────
+  // Field policy (2026-10-21): the flow owner is contract-level and carries no
+  // receipt clock, conditions, lineage, quote context or confidence — every one
+  // of those renders as "not supplied by the flow owner", never derived.
+  printEyebrow: bi("SELECTED PRINT", "选定成交明细"),
+  printEventLabel: bi("Event", "事件时间"),
+  printReceiptNotSupplied: bi(
+    "receipt not supplied by the flow owner",
+    "回执时间资金流数据方未提供",
+  ),
+  printExchCondNotSupplied: bi(
+    "exchange and conditions not supplied",
+    "交易所与成交条件未提供",
+  ),
+  printOwnerFigure: bi("owner's figure", "数据方数值"),
+  printNotReproducibleFrom: bi("not reproducible from", "无法由下列算式复现："),
+  printArithNotSupplied: bi(
+    "contracts × price arithmetic not supplied",
+    "张数×价格算式未提供",
+  ),
+  printSideHeading: bi("SIDE · ESTIMATE", "方向 · 估计"),
+  printSideBought: bi("Bought · estimate", "买入 · 估计"),
+  printSideSold: bi("Sold · estimate", "卖出 · 估计"),
+  printSideMixed: bi("Mixed", "混合"),
+  printSideUnknown: bi("Unknown", "未知"),
+  printMethodPrefix: bi("method:", "方法："),
+  printMethodTape: bi("tick rule on the tape", "逐笔成交规则推断"),
+  printMethodFloor: bi("floor", "场内报价"),
+  printMethodNotSupplied: bi("method not supplied", "方法未提供"),
+  printConfidenceNotSupplied: bi(
+    "confidence not supplied by the flow owner",
+    "置信度资金流数据方未提供",
+  ),
+  printLineageHeading: bi("LINEAGE", "更正与取消"),
+  printLineageNotSupplied: bi(
+    "original, corrected or cancelled — not supplied by the flow owner",
+    "原始、更正或取消——资金流数据方未提供",
+  ),
+  printQuoteNotSupplied: bi(
+    "quote at trade not supplied by the flow owner",
+    "成交时报价资金流数据方未提供",
+  ),
+  printPackagesHeading: bi("PACKAGES", "组合交易"),
+  printPackagesNone: bi(
+    "No package source is admitted. Similar timestamps alone never group prints.",
+    "不接纳任何组合交易数据源。仅凭相近的时间戳绝不会把多笔成交归为一组。",
+  ),
+  printActivityHeading: bi("CONTRACT ACTIVITY", "合约活跃度"),
+  printRatioUnit: bi("prior open interest", "前一交易日持仓量"),
+  printOiAsOfPrefix: bi("OI as of", "持仓量截至"),
+  printOiDateNotSupplied: bi(
+    "OI date not supplied by the flow owner",
+    "持仓量日期资金流数据方未提供",
+  ),
+  printRatioNotSupplied: bi(
+    "prior open interest not supplied",
+    "未提供前一交易日持仓量",
+  ),
+  coverageClassifiedPart: bi("of eligible premium classified", "合格权利金已分类"),
+  coverageUnknownPart: bi("unknown", "未知"),
+  coverageCalls: bi("Calls", "认购"),
+  coveragePuts: bi("Puts", "认沽"),
+  coverageUnsigned: bi(
+    "unsigned premium, not a direction",
+    "无符号权利金，非方向指示",
+  ),
+  coverageEmpty: bi("No eligible premium in this tape yet", "本磁带暂无合格权利金"),
 } as const;
 
 // Shared display copy for enrichment badge keys. Older artifact prose can claim

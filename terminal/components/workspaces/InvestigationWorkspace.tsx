@@ -12,6 +12,14 @@ import { INVESTIGATION_ADMISSION, type InvestigationCommand, type InvestigationS
 import { beginInvestigationSave, settleInvestigationSave, retryInvestigationSave, investigationCommandToReconcile, recoverInvestigationSave, receiptRequiresOwnerCheck, resendsRefusedReferences, type InvestigationSaveState } from "@/lib/investigationSave";
 import { admitDuplicate, duplicateDraftFields, type DuplicateGuard, type DuplicateSource } from "@/lib/investigationDuplicate";
 import type { EventWorkspace, RetainedEventWorkspaceReceipt } from "@/lib/eventWorkspace";
+import { exposureChartHref, parseExposureChartRequest } from "@/lib/exposureChartLink";
+import { parseExposureOrigin } from "@/lib/exposureOrigin";
+import { exposureRequestFromRef, isOptionsEvidenceRef, optionsEvidenceRefs, optionsEvidenceStateLabel, type OptionsEvidenceStatus } from "@/lib/investigationEvidenceOptions";
+import { currentOptionsEvidence } from "@/lib/optionsEvidenceCurrent";
+import { assessmentRevision, orderReceipts, projectReview, receiptsFrom, type Assessment } from "@/lib/investigationReview";
+import type { OwnerAlertRow, WatchBuild } from "@/lib/investigationWatch";
+import InvestigationWatchPanel, { type WatchLoadState } from "./InvestigationWatchPanel";
+import InvestigationReviewPanel from "./InvestigationReviewPanel";
 import styles from "./InvestigationWorkspace.module.css";
 import InvestigationEvidenceReview from "./InvestigationEvidenceReview";
 import InvestigationReplay from "./InvestigationReplay";
@@ -63,6 +71,7 @@ function contextLabel(value:string,lang:"en"|"zh") {
  const pair=CONTEXT_LABELS[value]??["Not classified","未分类"];
  return pair[lang==="zh"?1:0];
 }
+const optionsTypeLabel=(type:string,c:(typeof COPY)[keyof typeof COPY])=>type==="exposure_chart_request"?c.typeExposure:type==="sector_origin"?c.typeOrigin:type==="rotation_measurement"?c.typeRotation:c.options;
 
 export default function InvestigationWorkspace({ownerKey,initialSymbol,initialInvestigationId,initialRevision}:Props) {
  const {lang}=useLang(), c=COPY[lang];
@@ -99,6 +108,10 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
  const storageBlockedRef=useRef(false);
  const setStorageBlocked=(blocked:boolean)=>{storageBlockedRef.current=blocked;setStorageBlockedState(blocked);};
  const editLocked=()=>stateRef.current.phase==="pending"||stateRef.current.phase==="uncertain"||storageBlockedRef.current||!!scope.current?.signal.aborted;
+ const [optionsRefs,setOptionsRefs]=useState<InvestigationEvidenceRef[]>([]),[optionsStatus,setOptionsStatus]=useState<OptionsEvidenceStatus[]|null>(null),[optionsChecking,setOptionsChecking]=useState(false);
+ const [alertRows,setAlertRows]=useState<OwnerAlertRow[]|null>(null),[alertLoad,setAlertLoad]=useState<WatchLoadState>("loading"),[outbox,setOutbox]=useState<readonly unknown[]|null>(null);
+ const optionsSeq=useRef(0),alertsSeq=useRef(0);
+ const invalidateOptionsReads=()=>{++optionsSeq.current;++alertsSeq.current;};
  const detailTitle=useRef<HTMLHeadingElement>(null),draftTitle=useRef<HTMLInputElement>(null);
  useEffect(()=>{if(editing)draftTitle.current?.focus();else if(detail)detailTitle.current?.focus();},[editing,detail?.id,detail?.revision]);
  const locked=saveState.phase==="pending"||saveState.phase==="uncertain";
@@ -163,6 +176,52 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
   if(ref.owner!=="earnings.workspace_generation"||!issuer||!ref.version_ref||!ref.fingerprint){setBaseline(null);setBaselineState("unavailable");return;}
   void resolveBaseline(`/api/investigations/baseline?${new URLSearchParams({event_id:ref.object_id,generation_id:ref.version_ref,company_id:issuer.object_id,fingerprint:ref.fingerprint})}`);
  }
+ // Saved Options references are compared with their sources on every open; nothing saved is rewritten.
+ async function evaluateOptions(refs:readonly InvestigationEvidenceRef[]) {
+  const ticket=++optionsSeq.current, saved=refs.filter(isOptionsEvidenceRef);
+  setOptionsStatus(null);setOptionsChecking(saved.length>0);
+  if(!saved.length)return;
+  try {const status=await currentOptionsEvidence(saved);if(ticket===optionsSeq.current&&!scope.current?.signal.aborted)setOptionsStatus(status);}
+  catch {if(ticket===optionsSeq.current&&!scope.current?.signal.aborted)setOptionsStatus(saved.map(ref=>({ref,state:"unavailable",savedFingerprint:ref.fingerprint??null,currentFingerprint:null})));}
+  finally {if(ticket===optionsSeq.current)setOptionsChecking(false);}
+ }
+ // The watch and its receipts belong to the existing alerts owner; this is one read per open,
+ // never a poll. 401/403 mean unauthenticated, any other failure means the owner is unreadable.
+ async function loadAlerts() {
+  const ticket=++alertsSeq.current;setAlertLoad("loading");
+  try {
+   const response=await fetch("/api/alerts",{cache:"no-store"});
+   if(ticket!==alertsSeq.current||scope.current?.signal.aborted)return;
+   if(response.status===401||response.status===403){setAlertRows(null);setOutbox(null);setAlertLoad("unauthenticated");return;}
+   const value:unknown=await response.json();
+   if(!response.ok||!record(value)||!Array.isArray(value.alerts))throw Error("unavailable");
+   setAlertRows(value.alerts as OwnerAlertRow[]);setAlertLoad("ready");
+   try {
+    const receipts=await fetch("/api/alerts/receipts",{cache:"no-store"});
+    if(ticket!==alertsSeq.current||scope.current?.signal.aborted)return;
+    const body:unknown=receipts.ok?await receipts.json():null;
+    setOutbox(receipts.ok&&record(body)&&Array.isArray(body.outbox)?(body.outbox as unknown[]):null);
+   } catch {if(ticket===alertsSeq.current&&!scope.current?.signal.aborted)setOutbox(null);}
+  } catch {
+   if(ticket===alertsSeq.current&&!scope.current?.signal.aborted){setAlertRows(null);setOutbox(null);setAlertLoad("unavailable");}
+  }
+ }
+ async function armWatch(build:Extract<WatchBuild,{ok:true}>) {
+  const response=await fetch("/api/alerts",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({symbol:build.symbol,condition:build.condition})});
+  if(response.status===403)throw Error("plan");
+  if(!response.ok)throw Error("arm refused");
+  await loadAlerts();
+ }
+ async function rearmWatch(alertId:string) {
+  const response=await fetch("/api/alerts",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:alertId})});
+  if(!response.ok)throw Error("re-arm refused");
+  await loadAlerts();
+ }
+ async function assess(assessment:Assessment,fireEventId:string|null,note:string) {
+  if(!detail)return;
+  // A review is a NEW immutable revision through the existing command; the opened manifest is never edited.
+  save("revise",assessmentRevision(detail.manifest,assessment,fireEventId,note||null));
+ }
  async function openRecord(id:string,revision?:number,afterSave=false) {
   acknowledgeDetail(null);
   const ticket=++detailSeq.current;++baselineSeq.current;setBaseline(null);setBaselineState("none");setDetailLoading(true);
@@ -171,7 +230,7 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
    const value=await json(`/api/investigations?${new URLSearchParams({id,...(revision?{revision:String(revision)}:{})})}`);
    if(ticket!==detailSeq.current)return;
    if(!record(value)||value.status!=="found"||value.id!==id||(revision!==undefined&&value.revision!==revision)||!Array.isArray(value.layouts)||!validateStoredInvestigationManifest(value.manifest,INVESTIGATION_ADMISSION).ok)throw Error("unavailable");
-   const found=value as unknown as Detail;setDetail(found);acknowledgeDetail(found);setDuplicate(null);setEditing(false);setMessage("");retainedBaseline(found.manifest);
+   const found=value as unknown as Detail;setDetail(found);acknowledgeDetail(found);setDuplicate(null);setEditing(false);setMessage("");retainedBaseline(found.manifest);void evaluateOptions(found.manifest.evidence_refs);void loadAlerts();
    window.history.replaceState({},"",`/analysis?view=investigations&investigation=${id}&revision=${found.revision}`);
   } catch {if(ticket===detailSeq.current&&!scope.current?.signal.aborted){setMessage(afterSave?c.readbackFailed:c.invalidLink);if(!afterSave)setDetail(null);}}
   finally {if(ticket===detailSeq.current)setDetailLoading(false);}
@@ -243,19 +302,29 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
  useEffect(()=>{
   const controller=new AbortController();scope.current=controller;
   acknowledgeDetail(null);setAuthEnded(false);setItems(null);setListError(false);setDetail(null);setBaseline(null);setSave({phase:"idle"});setStorageBlocked(false);setRetainedCapture(null);setDuplicate(null);
+  setAlertRows(null);setOutbox(null);setAlertLoad("loading");
   void inventory();
   void loadLayouts();
   let recovery=false;
+  ++optionsSeq.current;setOptionsRefs([]);setOptionsStatus(null);setOptionsChecking(false);
   try {
    const stored=sessionStorage.getItem(storageKey(ownerKey));
    if(stored){const recovered=recoverInvestigationSave(ownerKey,JSON.parse(stored));
     if(!recovered||(recovered.phase!=="uncertain"&&recovered.phase!=="rejected"))throw Error("invalid recovery");
     const command=recovered.command;recovery=true;setSave(recovered);setEditing(true);resetAsOf();setRetainedCapture(command.layout_capture??null);
     setDraft({title:command.manifest.intent.title,question:command.manifest.intent.question,symbol:command.manifest.intent.subjects.find(s=>s.owner==="terminal.analysis_symbol")?.object_id??"",next:command.manifest.continuation.next_question??"",observation:command.manifest.continuation.next_observation??"",horizon:command.manifest.intent.horizon??"",asOf:command.manifest.intent.research_as_of??"",layoutId:command.layout_capture?RETAINED_LAYOUT:command.manifest.layout_refs.length?KEPT_LAYOUT:"",theses:command.manifest.thesis_refs,screenCapture:command.screen_capture??null,screenRefs:command.manifest.evidence_refs.filter(r=>r.owner===SCREEN_EVIDENCE_OWNER)});
-    retainedBaseline(command.manifest);if(recovered.phase==="uncertain")void readOriginalOutcome();else setMessage(refusal(recovered,false));
+    retainedBaseline(command.manifest);setOptionsRefs(command.manifest.evidence_refs.filter(isOptionsEvidenceRef));if(recovered.phase==="uncertain")void readOriginalOutcome();else setMessage(refusal(recovered,false));
    }
   } catch {setStorageBlocked(true);}
   if(!recovery&&initialInvestigationId)void openRecord(initialInvestigationId,initialRevision);
+  else if(!recovery){
+   // Arriving from the chart reference: the bounded request and its sector origin become references on a new draft.
+   const request=parseExposureChartRequest(window.location.hash), origin=parseExposureOrigin(window.location.search);
+   if(request){
+    const ticket=optionsSeq.current;setEditing(true);setDraft(emptyDraft(request.root));
+    void optionsEvidenceRefs({request,...(origin&&origin.company===request.root?{origin}:{})}).then(refs=>{if(ticket===optionsSeq.current&&!controller.signal.aborted)setOptionsRefs(refs);}).catch(()=>{/* the draft stays open without Options evidence */});
+   }
+  }
   let active=true;
   let auth:AuthLifecycleSubscription|null=null;
   setBoundAuth(null);
@@ -268,13 +337,13 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
   if(ownerKey!=="local-preview")try{
    auth=subscribeInvestigationAuthOwner(publish,principal=>{
     if(!active||principal===ownerKey)return;
-    controller.abort();acknowledgeDetail(null);++detailSeq.current;++baselineSeq.current;setAuthEnded(true);setItems(null);setDetail(null);setBaseline(null);setDraft(emptyDraft());setRetainedCapture(null);setDuplicate(null);setSave({phase:"idle"});setLayouts([]);setMessage("");
+    controller.abort();acknowledgeDetail(null);++detailSeq.current;++baselineSeq.current;setAuthEnded(true);setItems(null);setDetail(null);setBaseline(null);++optionsSeq.current;setOptionsRefs([]);setOptionsStatus(null);setAlertRows(null);setOutbox(null);setAlertLoad("loading");setDraft(emptyDraft());setRetainedCapture(null);setDuplicate(null);setSave({phase:"idle"});setLayouts([]);setMessage("");
    });
    if(auth)publish(auth.getSnapshot());
    else {setAuthEnded(true);controller.abort();}
   }catch{setAuthEnded(true);controller.abort();}
   setEntryActive(true);
-  return()=>{active=false;setBoundAuth(null);controller.abort();++detailSeq.current;++baselineSeq.current;auth?.unsubscribe();};
+  return()=>{active=false;setBoundAuth(null);controller.abort();++detailSeq.current;++baselineSeq.current;invalidateOptionsReads();auth?.unsubscribe();};
   // Owner changes are remounted by the authenticated server page; every request also has a scope fence.
   // eslint-disable-next-line react-hooks/exhaustive-deps
  },[ownerKey,initialInvestigationId,initialRevision]);
@@ -283,7 +352,7 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
   // started its GET. The boolean return pairs baseline installation with edit.
   if(editLocked())return false;
   ++detailSeq.current;++baselineSeq.current;setMessage("");resetAsOf();setDuplicate(null);
-  if(fresh){try{sessionStorage.removeItem(storageKey(ownerKey));}catch{setStorageBlocked(true);return false;}setSave({phase:"idle"});setRetainedCapture(null);setDetail(null);setDraft(emptyDraft(initialSymbol));setBaseline(null);setBaselineState("none");window.history.replaceState({},"","/analysis?view=investigations");}
+  if(fresh){try{sessionStorage.removeItem(storageKey(ownerKey));}catch{setStorageBlocked(true);return false;}setSave({phase:"idle"});setRetainedCapture(null);setDetail(null);setDraft(emptyDraft(initialSymbol));setBaseline(null);setBaselineState("none");++optionsSeq.current;setOptionsRefs([]);setOptionsStatus(null);setOptionsChecking(false);window.history.replaceState({},"","/analysis?view=investigations");}
   else if(detail){const m=detail.manifest;setRetainedCapture(null);setDraft({title:m.intent.title,question:m.intent.question,symbol:m.intent.subjects.find(s=>s.owner==="terminal.analysis_symbol")?.object_id??"",next:m.continuation.next_question??"",observation:m.continuation.next_observation??"",horizon:m.intent.horizon??"",asOf:m.intent.research_as_of??"",layoutId:m.layout_refs.length?KEPT_LAYOUT:"",theses:m.thesis_refs,screenCapture:null,screenRefs:m.evidence_refs.filter(r=>r.owner===SCREEN_EVIDENCE_OWNER)});setBaselineState(baseline?"ready":"unavailable");}
   setEditing(true);return true;
  }
@@ -368,7 +437,7 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
   }
   if(detail)retainedBaseline(detail.manifest);
  }
- function save(action:InvestigationCommand["action"]=detail?"revise":"create") {
+ function save(action:InvestigationCommand["action"]=detail?"revise":"create", manifestOverride?:InvestigationManifest) {
   if(editLocked())return;
   // A duplicate draft may become a send only while the captured getter still shows the same ready
   // principal and epoch it was admitted with. A same-user epoch change or another account refuses
@@ -376,7 +445,9 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
   if(!detail&&duplicate&&!duplicateAdmittedAgain(duplicate.guard)){setMessage(c.auth);return;}
   if(!detail&&saveState.phase==="rejected"&&saveState.command.expected_revision>0){setMessage(refusal(saveState,false));return;}
   let manifest:InvestigationManifest;
-  if((action==="remove"||action==="restore")&&detail)manifest=detail.manifest;
+  // A deliberate assessment starts a new command, never rewrites an uncertain original.
+  if(manifestOverride)manifest={...manifestOverride,...(manifestOverride.schema==="investigation_manifest.v2"&&!Object.hasOwn(manifestOverride,"argument_relations")?{argument_relations:[]}: {})};
+  else if((action==="remove"||action==="restore")&&detail)manifest=detail.manifest;
   else {
    if(Array.from(draft.observation).length>4000){setMessage(c.observationLimit);return;}
    // The draft's own as-of value is sent exactly or the save is refused visibly: never dropped, never completed with an invented time.
@@ -389,11 +460,11 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
    // A duplicate sends the acknowledged revision's own references verbatim: the baseline kept on
    // screen is display context, never a silent refresh or replacement of the copied pins.
    const reference=duplicate?prior?.review_baseline_ref:baseline?.reference??prior?.review_baseline_ref;
-   const evidence=(prior?.evidence_refs??[]).filter(ref=>ref.owner!==SCREEN_EVIDENCE_OWNER||draft.screenRefs.some(kept=>canonicalInvestigationJson(kept)===canonicalInvestigationJson(ref)));
+   const evidence=(prior?.evidence_refs??optionsRefs).filter(ref=>ref.owner!==SCREEN_EVIDENCE_OWNER||draft.screenRefs.some(kept=>canonicalInvestigationJson(kept)===canonicalInvestigationJson(ref)));
    const retainedEvidence=reference&&!evidence.some(ref=>canonicalInvestigationJson(ref)===canonicalInvestigationJson(reference))?[...evidence,reference]:evidence;
    const issuer=!duplicate&&baseline?[{owner:"data_os.security_master",kind:"issuer",object_id:baseline.receipt.company_id}]:[];
    const subjects=detail?.manifest.intent.subjects??(prior?[...prior.intent.subjects,...issuer.filter(s=>!prior.intent.subjects.some(r=>canonicalInvestigationJson(r)===canonicalInvestigationJson(s)))]:[...(draft.symbol?[{owner:"terminal.analysis_symbol",kind:"security",object_id:draft.symbol}]:[]),...issuer]);
-   manifest={schema:"investigation_manifest.v2",argument_relations:prior?.argument_relations??[],intent:{title:draft.title,question:draft.question,subjects,...(draft.horizon?{horizon:draft.horizon}:{}),...(draft.asOf?{research_as_of:draft.asOf}:{})},layout_refs:draft.layoutId===KEPT_LAYOUT?prior?.layout_refs??[]:[],thesis_refs:draft.theses,evidence_refs:retainedEvidence,continuation:{...(prior?.continuation??{}),...(draft.next?{next_question:draft.next}:{}),...(draft.observation?{next_observation:draft.observation}:{})},...(reference?{review_baseline_ref:reference}:{})};
+   manifest={schema:prior?.schema==="investigation_manifest.v3"?prior.schema:"investigation_manifest.v2",...(prior?.option_plan?{option_plan:prior.option_plan}:{}),...(prior?.review?{review:prior.review}:{}),argument_relations:prior?.argument_relations??[],intent:{title:draft.title,question:draft.question,subjects,...(draft.horizon?{horizon:draft.horizon}:{}),...(draft.asOf?{research_as_of:draft.asOf}:{})},layout_refs:draft.layoutId===KEPT_LAYOUT?prior?.layout_refs??[]:[],thesis_refs:draft.theses,evidence_refs:retainedEvidence,continuation:{...(prior?.continuation??{}),...(draft.next?{next_question:draft.next}:{}),...(draft.observation?{next_observation:draft.observation}:{})},...(reference?{review_baseline_ref:reference}:{})};
    if(!draft.next)delete manifest.continuation.next_question;
    if(!draft.observation)delete manifest.continuation.next_observation;
   }
@@ -426,8 +497,16 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
  }
  const enterApplies=(e:ReactKeyboardEvent<HTMLInputElement>)=>{if(e.key==="Enter"){e.preventDefault();applyExactTime();}};
  const symbol=detail?.manifest.intent.subjects.find(s=>s.owner==="terminal.analysis_symbol")?.object_id??draft.symbol;
+ const shownOptions=detail?detail.manifest.evidence_refs.filter(isOptionsEvidenceRef):optionsRefs;
  const visible=items?.filter(i=>i.lifecycle===filter);
  const frozen=locked||storageBlocked;
+ // The review folds the saved revision, the owner's receipts and the W2 evidence status; the
+ // revision list also carries the other revisions the inventory already knows about.
+ const watchReceipts=detail&&alertRows?orderReceipts(receiptsFrom(alertRows,outbox,detail.id)):null;
+ const watchReview=detail?projectReview([detail],optionsStatus,watchReceipts??[]):null;
+ const reviewHistory=watchReview?watchReview.revisions.slice():[];
+ if(detail)for(const item of items??[])if(item.id===detail.id&&!reviewHistory.some(entry=>entry.revision===item.revision))reviewHistory.push({revision:item.revision,committed_at:item.updated_at,assessment:null});
+ reviewHistory.sort((a,b)=>b.revision-a.revision);
  // Render-level hint only: beginDuplicate and save() re-read the owner's synchronous getter, so a
  // stale projection can never admit what the current lifetime refuses (and a script click on a
  // handler enabled by a stale render still runs the same fence).
@@ -472,6 +551,7 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
      <p className={styles.eyebrow}>{c.saved} · {c.revision} {detail.revision}{detail.lifecycle==="removed"?` · ${c.removed}`:""}</p><h2 ref={detailTitle} tabIndex={-1}>{detail.manifest.intent.title}</h2><p className={styles.question}>{detail.manifest.intent.question}</p>
      <dl className={styles.context}>{detail.manifest.intent.subjects.map((s,i)=><div key={i}><dt>{contextLabel(s.kind,lang)}</dt><dd>{s.object_id}</dd></div>)}{detail.manifest.intent.horizon&&<div><dt>{c.horizon}</dt><dd>{detail.manifest.intent.horizon}</dd></div>}{detail.manifest.intent.research_as_of&&<div><dt>{c.asOf}</dt><dd>{detail.manifest.intent.research_as_of}</dd></div>}</dl>
      <div className={styles.actions}><button disabled={frozen||detail.lifecycle==="removed"} onClick={()=>beginEdit()}>{c.edit}</button><button type="button" disabled={frozen||detailLoading||acknowledgedDetail!==detail||detail.lifecycle==="removed"||!duplicateReady} onClick={beginDuplicate}>{c.duplicate}</button>{detail.revision!==detail.current_revision&&<button disabled={locked} onClick={()=>void openRecord(detail.id)}>{c.viewLatest}</button>}{detail.revision>1&&<button disabled={locked} onClick={()=>void openRecord(detail.id,detail.revision-1)}>{c.previous}</button>}{detail.revision<detail.current_revision&&<button disabled={locked} onClick={()=>void openRecord(detail.id,detail.revision+1)}>{c.nextRevision}</button>}</div>
+     {detail.lifecycle==="active"&&<InvestigationWatchPanel link={{investigation_id:detail.id,revision:detail.revision}} symbol={symbol} rows={alertRows} current={null} lang={lang} disabled={frozen} loadState={alertLoad} onArm={armWatch} onRearm={rearmWatch} onRetry={()=>void loadAlerts()}/>}
      <section className={styles.card}><h3>{c.retained}</h3>{detail.manifest.layout_refs.length?detail.manifest.layout_refs.map(ref=><p key={ref.layout_revision_id}><Link href={`/terminal?investigation=${detail.id}&revision=${detail.revision}&layout_revision=${ref.layout_revision_id}`}>{c.openLayout} →</Link></p>):<p>{c.noLayout}</p>}{symbol&&<Link href={`/analysis?symbol=${encodeURIComponent(symbol)}`}>{c.continue} →</Link>}</section>
      <InvestigationScreenReader refs={detail.manifest.evidence_refs} lookups={detail.screen_definitions} lang={lang}/>
      <InvestigationThesisReader key={`thesis-read:${ownerKey}:${detail.id}:${detail.revision}`} id={detail.id} revision={detail.revision} refs={detail.manifest.thesis_refs} lang={lang}/>
@@ -479,10 +559,14 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
      <InvestigationNextObservation value={detail.manifest.continuation.next_observation} lang={lang}/>
      {baseline&&<InvestigationEvidenceReview key={`${ownerKey}:${detail.id}:${detail.revision}`} id={detail.id} revision={detail.revision} lang={lang} baseline={{...baseline,workspace:baseline.workspace}} canAdvance={!frozen&&baselineState==="ready"&&detail.revision===detail.current_revision&&detail.lifecycle==="active"} onSelect={(receipt,reference)=>void selectReviewedBaseline(receipt,reference)}/>}
      {baseline&&baselineState==="ready"&&<InvestigationReplay key={`replay:${ownerKey}:${detail.id}:${detail.revision}:${baseline.receipt.fingerprint}`} id={detail.id} revision={detail.revision} lang={lang} selection={baseline.workspace.schema==="earnings.issuer_release_projection.v1"?"issuer_release":undefined} fingerprint={baseline.reference.fingerprint??baseline.receipt.fingerprint} generation={baseline.receipt.generation_id} initialCutoff={baseline.receipt.generation_emitted_at??detail.committed_at}/>}
+     {detail.lifecycle==="active"&&watchReview&&<InvestigationReviewPanel review={watchReview} receipts={watchReceipts} current={{revision:detail.revision,current_revision:detail.current_revision}} history={reviewHistory} lang={lang} disabled={frozen} onAssess={assess} onOpenRevision={revision=>void openRecord(detail.id,revision)}/>}
      <div className={styles.actions}><button disabled={frozen||detail.revision!==detail.current_revision} onClick={()=>save(detail.lifecycle==="removed"?"restore":"remove")}>{detail.lifecycle==="removed"?c.restore:c.remove}</button></div>
     </>:<p>{c.choose}</p>}
    </section>
    <aside className={styles.evidence} aria-label={c.baseline}><section className={styles.card}><h2>{c.baseline}</h2><p className={styles.eyebrow}>{c.contextOnly}</p>{baselineState==="loading"?<p role="status">{c.baselineLoading}</p>:baselineState==="unavailable"?<p role="status">{c.missing}</p>:!baseline?<p>{c.noBaseline}</p>:<><h3>{baseline.workspace.issuer.display_name}</h3><p className={styles.identifier}>{baseline.receipt.event_id}</p><details><summary>{c.selected}</summary><p className={styles.identifier}>{baseline.receipt.generation_id}</p><p className={styles.identifier}>{baseline.reference.fingerprint??baseline.receipt.fingerprint}</p></details><h3>{c.coverage}</h3><p>{c.partial}</p><dl className={styles.context}>{Object.entries(baseline.workspace.completeness).map(([key,value])=><div key={key}><dt>{contextLabel(key,lang)}</dt><dd>{contextLabel(value.status,lang)}</dd></div>)}</dl></>}</section>
+    <section className={styles.card} data-testid="options-evidence"><h2>{c.options}</h2><p className={styles.eyebrow}>{c.contextOnly}</p><p>{c.optionsIntro}</p>{optionsChecking&&<p role="status">{c.optionsChecking}</p>}{!shownOptions.length?<p>{c.optionsNone}</p>:<ul className={styles.refs}>{shownOptions.map(ref=>{const status=optionsStatus?.find(s=>s.ref.object_type===ref.object_type&&s.ref.object_id===ref.object_id), request=exposureRequestFromRef(ref), href=request?exposureChartHref(request):null;
+     return <li key={`${ref.object_type}:${ref.object_id}`} data-options-ref={ref.object_type} data-state={status?.state??"saved"} // plain-language-ok: data attributes for tests and CSS, never rendered; the visible words are the labels below
+     ><strong>{optionsTypeLabel(ref.object_type,c)}</strong><span className={styles.identifier}>{ref.object_id}</span><small>{c.optionsVersion} {ref.version_ref}</small>{status?<p role="status" data-testid="options-evidence-state">{optionsEvidenceStateLabel(status.state,lang)}</p>:ref.fingerprint?<small className={styles.identifier}>{ref.fingerprint}</small>:null}{status?.state==="source_corrected"&&<dl className={styles.context}><div><dt>{c.optionsSaved}</dt><dd className={styles.identifier}>{status.savedFingerprint??"—"}</dd></div><div><dt>{c.optionsCurrent}</dt><dd className={styles.identifier}>{status.currentFingerprint??"—"}</dd></div></dl>}{href&&<a href={href}>{c.optionsOpen} →</a>}</li>;})}</ul>}</section>
     {baseline&&<section className={styles.card}><h2>{c.clocks}</h2><dl className={styles.clocks}>{[[c.public,baseline.receipt.public_known_at],[c.platform,baseline.receipt.platform_known_at],[c.generated,baseline.receipt.generation_emitted_at],[c.seen,seenAt],[c.rights,baseline.receipt.rights.checked_at]].map(([label,value])=><div key={label}><dt>{label}</dt><dd>{clock(value)}</dd></div>)}</dl></section>}
    </aside>
   </div>

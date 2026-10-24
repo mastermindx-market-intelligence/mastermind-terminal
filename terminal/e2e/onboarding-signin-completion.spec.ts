@@ -22,7 +22,9 @@ for (const lang of ["en", "zh"] as const) {
       // Auth response at fetch while keeping the real SDK and form path intact.
       await page.addInitScript(({ user, token }) => {
         const state = window as unknown as { __mmSigninSubmissions: number; __mmResolveSignin?: () => void };
-        state.__mmSigninSubmissions = 0;
+        // Hard same-path navigation re-executes init scripts. Persist the fixture
+        // counter in this one tab so an actual reload cannot erase its evidence.
+        state.__mmSigninSubmissions = Number(sessionStorage.getItem("mm:e2e:signin-submissions") || "0");
         const originalFetch = window.fetch.bind(window);
         const authPath = "/api/__e2e__/supabase/auth/v1";
         window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
@@ -32,6 +34,7 @@ for (const lang of ["en", "zh"] as const) {
           if (url.origin !== window.location.origin) throw new Error("Unexpected auth fixture origin");
           if (url.pathname === `${authPath}/token` && url.searchParams.get("grant_type") === "password") {
             state.__mmSigninSubmissions += 1;
+            sessionStorage.setItem("mm:e2e:signin-submissions", String(state.__mmSigninSubmissions));
             await new Promise<void>((resolve) => { state.__mmResolveSignin = resolve; });
             return new Response(JSON.stringify({ access_token: token, token_type: "bearer",
               expires_in: 3600, refresh_token: "local-fixture-only", user }),
@@ -43,9 +46,13 @@ for (const lang of ["en", "zh"] as const) {
         };
       }, { user, token });
 
-      await page.goto("/terminal?signin=1&sym=NVDA&from=press-signin-regression");
+      // The fragment variant would previously do only an in-document jump,
+      // leaving the guest RSC response mounted after password login.
+      const fragment = lang === "en" && theme === "dark" ? "#research-anchor" : "";
+      await page.goto("/terminal?signin=1&sym=NVDA&from=press-signin-regression" + fragment);
       const sheet = page.getByRole("dialog", { name: lang === "zh" ? "欢迎回来" : "Welcome back" });
       await expect(sheet).toBeVisible({ timeout: 15_000 });
+      const originalDocumentStartedAt = await page.evaluate(() => performance.timeOrigin);
       await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
       await sheet.getByLabel(lang === "zh" ? "邮箱" : "Email", { exact: true }).fill(user.email);
       await sheet.getByLabel(lang === "zh" ? "密码" : "Password", { exact: true }).fill("local-fixture-password");
@@ -56,11 +63,15 @@ for (const lang of ["en", "zh"] as const) {
       await expect(sheet).toBeVisible();
       await page.evaluate(() => (window as unknown as { __mmResolveSignin?: () => void }).__mmResolveSignin?.());
       await expect(sheet).toBeHidden({ timeout: 15_000 });
-      expect(await page.evaluate(() => (window as unknown as { __mmSigninSubmissions: number }).__mmSigninSubmissions)).toBe(1);
+      // The original router.refresh() would not produce a new document; this
+      // assertion binds the test to the real server-gate recovery behavior.
+      await expect.poll(() => page.evaluate(() => performance.timeOrigin)).toBeGreaterThan(originalDocumentStartedAt);
+      expect(await page.evaluate(() => Number(sessionStorage.getItem("mm:e2e:signin-submissions")))).toBe(1);
       const url = new URL(page.url());
       expect(url.searchParams.get("sym")).toBe("NVDA");
       expect(url.searchParams.get("from")).toBe("press-signin-regression");
       expect(url.searchParams.has("signin")).toBe(false);
+      expect(url.hash).toBe(fragment);
       await expect(page.locator(".chart-wrap canvas").first()).toBeVisible();
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true);
       await page.screenshot({ path: info.outputPath(`${info.project.name}-${lang}-${theme}-continued.png`) });

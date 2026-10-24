@@ -1,12 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useEffectEvent, useId, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useLayoutEffect, useEffectEvent, useId, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { useLang, useT } from "@/lib/i18n";
 import { subjectKindLabel } from "@/lib/plainLabels";
 import { parseAnalysisSearchParams } from "@/lib/analysisRoute";
 import { normalizeAnalysisSymbol } from "@/lib/analysisSymbol";
 import { hasMarketOntologyContext, parseMarketOntologyContext, serializeMarketOntologyContext, stripMarketOntologyParams, type MarketOntologyContext } from "@/lib/marketOntologyContext";
 import { isUuid, normalizeThesisContent, normalizeThesisSubject } from "@/lib/theses";
+import { installThesisReadSource } from "@/lib/thesisReadContext";
 import type {
   ThesisAction,
   ThesisContent,
@@ -566,6 +567,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   const [truncated, setTruncated] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(initialThesisId ?? null);
   const [detail, setDetail] = useState<ThesisDetail | null>(null);
+  const [detailReadOwner, setDetailReadOwner] = useState<string | null>(null);
   const [proposalRead, setProposalRead] = useState<ProposalRead>(PROPOSALS_PENDING);
   const [assistantText, setAssistantText] = useState("");
   const [proposalBusy, setProposalBusy] = useState(false);
@@ -1647,6 +1649,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       }
       const loadedDraft = draftFromDetail(payload.thesis);
       setDetail(payload.thesis);
+      setDetailReadOwner(ownerKey);
       setDraft(loadedDraft);
       setSubjectDraft(payload.thesis.subject.key);
       setBaseline({ subject: payload.thesis.subject.key, draft: loadedDraft });
@@ -1661,7 +1664,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       settleMarketOntologyContext(id, contextCandidate, null);
       setDetailState("unavailable");
     }
-  }, [loadProposals, settleMarketOntologyContext]);
+  }, [loadProposals, ownerKey, settleMarketOntologyContext]);
 
   const openDetail = useCallback((id: string, historyMode: "push" | "none" = "push") => {
     const token = ++detailRequest.current;
@@ -2157,6 +2160,24 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       : null;
     return fromHistory ?? detail.current;
   }, [detail, inspectedVersion]);
+
+  // Register only committed, ready, caller-owned detail. Cleanup is mount-token
+  // guarded, so an older workspace cannot clear a newer registration.
+  useLayoutEffect(() => installThesisReadSource(() => {
+    if (detailState !== "ready" || !detail || detailReadOwner !== ownerKey
+        || selectedId !== detail.id) return null;
+    // A pop/navigation can precede React reconciliation. Never reuse its old
+    // selected record during that interval. This reads location; it never writes it.
+    const params = new URLSearchParams(window.location.search);
+    if (window.location.pathname !== "/analysis" || params.get("view") !== "theses"
+        || params.get("thesis") !== detail.id) return null;
+    const version = inspectedVersion
+      ? detail.history.find((entry) => entry.version === inspectedVersion)
+      : detail.current;
+    if (!version || version.thesisId !== detail.id) return null;
+    return { thesis_id: detail.id, version_id: version.id };
+  }), [detail, detailReadOwner, detailState, inspectedVersion, ownerKey, selectedId]);
+
 
   const suggestAmendment = useCallback(async () => {
     if (!selectedId || !detail) {

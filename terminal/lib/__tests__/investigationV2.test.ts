@@ -52,7 +52,7 @@ describe("versioned Investigation envelope", () => {
       primary: { expiry: "2026-10-16", side: "call", strike: "600" }, comparisons: [],
       view: { lens: "chain", metric: "volume", side: "all", expiry: "all", display_mode: "table" } };
     expect(validateInvestigationManifest({ ...input, evidence_refs: [{ ...ref, selection }] }, admission).ok).toBe(false);
-    expect(validateInvestigationManifest({ ...input, schema: "investigation_manifest.v3" }, admission).ok).toBe(false);
+    expect(validateInvestigationManifest({ ...input, schema: "investigation_manifest.v4" }, admission).ok).toBe(false);
   });
   it("counts evidence separately from the bounded layout and Thesis references", () => {
     const input = manifest();

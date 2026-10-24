@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { useLang } from "@/lib/i18n";
+import { useOptionalSharedShellPresentation } from "@/components/chrome/shared-shell/SharedShellPresentation";
 import { isAccountOwner } from "@/lib/accountIdentity";
 import {
   currentOwnerToken, ownerTokenIsCurrent, persistMetaPrefs, persistTradeTypes, useAccountPrefs,
@@ -58,6 +59,7 @@ function Chip({
 
 export default function SectionPreferences({ t, identity, user, onClose, onPatchMeta }: SectionProps) {
   const { lang, setLang } = useLang();
+  const presentation = useOptionalSharedShellPresentation();
   const { prefs, metaPrefs, setFollowed, setLangPref, sync, owner, retrySync } = useAccountPrefs(identity);
   const guest = !isAccountOwner(owner);
 
@@ -130,9 +132,13 @@ export default function SectionPreferences({ t, identity, user, onClose, onPatch
   function pickTheme(choice: ThemeChoice) {
     // Matches the macro semantics: `auto` records the flag and lets the dashboard
     // Saved research and 3D Research Lab consume the same local-time theme preference.
+    // compute the theme from local time; an explicit pick records the theme and
+    // clears the flag. The mounted 3D Research Lab consumes this preference;
+    // Shared Shell also applies explicit intent when the saved choice is unchanged.
     setTouched((s) => ({ ...s, theme: true }));
     if (choice === "auto") persistMetaPrefs({ themeAuto: "1" });
     else persistMetaPrefs({ theme: choice, themeAuto: "0" });
+    presentation?.applyThemeChoice(choice);
   }
 
   function pickLang(l: "en" | "zh") {

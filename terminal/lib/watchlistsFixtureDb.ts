@@ -348,6 +348,15 @@ class FixtureQuery implements WatchlistQuery {
           : {}),
         ...row,
       }));
+      // Model the existing portfolio primary key so retry/concurrency proofs exercise
+      // the same refusal as Postgres, including collisions across different owners.
+      if (this.table === "portfolio_positions") {
+        const ids = new Set(this.store.positions.map(row => row.id));
+        for (const row of incoming) {
+          if (ids.has(row.id)) return { data: null, error: { code: "23505", message: "duplicate portfolio position id" } };
+          ids.add(row.id);
+        }
+      }
       // The live schema's unique (user_id,name) is what makes the migration converge under a
       // race instead of duplicating a list — model it rather than accepting anything.
       if (this.table === "watchlists") {

@@ -1,0 +1,24 @@
+{
+  "sourceHead": "42d78dbb108eae0dc37fd73d7ece947612cb1ce0",
+  "captureEnvironment": "M2 macOS; isolated SSD checkout; incumbent local deterministic fixtures; not normal Chrome or production",
+  "capturedAt": "2026-10-21T15:49:01.529602+00:00",
+  "scope": [
+    "desktop-en.png",
+    "desktop-zh.png",
+    "tablet-en.png",
+    "tablet-zh.png",
+    "mobile-en.png",
+    "mobile-zh.png"
+  ],
+  "cropHashes": {
+    "desktop-en.png": "c00afbd79583ef0167dab17663b5bd9f52808ffae7bca5e927dc215f68ef7aa5",
+    "desktop-zh.png": "f1c699c72b3c30b04115915f9a7a1b0a6a3f37f943d71eff16a4a576f6ca3c5b",
+    "tablet-en.png": "388a71b49ae4ed2aaa9c6fe88d328c05ca4dc4cc8628c819fb6062bad3a54b8d",
+    "tablet-zh.png": "f77e535a8810955f33f9be869bcf13312a99f01f1793ca83221221129f9c0e9f",
+    "mobile-en.png": "3a8303deb157100c617ba94cea7b17afbf4db14d2eefdc9bbfd67ad08f07e23b",
+    "mobile-zh.png": "b05c6ff4a4451c87cc9bab61c98d814609dd904b55d9e85b7abca23c1a8c6ba9"
+  },
+  "profile": "ordinary Terminal, MMX_SHARED_SHELL unset; deterministic fixture environment",
+  "qualification": "Actual local browser capture and fixture assertions; hosted CI, authenticated data and public served acceptance remain separate. Existing historical qualifications and unrecaptured surfaces are retained.",
+  "command": "NODE_OPTIONS=--no-experimental-webstorage TERMINAL_CROP_PORT=37165 node e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs"
+}

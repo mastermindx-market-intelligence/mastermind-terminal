@@ -1,6 +1,6 @@
 import { isScreenEvidenceReference, parseScreenCapture, SCREEN_EVIDENCE_OWNER, SCREEN_EVIDENCE_TYPE, type ScreenCapture } from "./investigationScreen";
 import {
-  INVESTIGATION_MANIFEST_SCHEMA_V2, validateInvestigationManifest, validateStoredInvestigationManifest,
+  INVESTIGATION_MANIFEST_SCHEMA_V2, INVESTIGATION_MANIFEST_SCHEMA_V3, validateInvestigationManifest, validateStoredInvestigationManifest,
   type InvestigationAdmission, type InvestigationManifest,
 } from "./investigationContracts";
 
@@ -11,6 +11,7 @@ export const INVESTIGATION_ADMISSION: InvestigationAdmission = {
     { owner: "data_os.security_master", kinds: ["security", "issuer"] },
   ],
   evidence: [{ owner: "earnings.workspace_generation", object_types: ["event_workspace"] },
+    { owner: "terminal.options_exposure", object_types: ["exposure_chart_request", "sector_origin", "rotation_measurement"] },
     { owner: SCREEN_EVIDENCE_OWNER, object_types: [SCREEN_EVIDENCE_TYPE] }],
 };
 export type InvestigationCommand = {
@@ -61,7 +62,7 @@ export function parseInvestigationCommand(raw: unknown, recovery = false): Inves
       || typeof raw.action !== "string" || !["create", "revise", "remove", "restore"].includes(raw.action)) return null;
   const stored = recovery || raw.action === "remove" || raw.action === "restore";
   const checked = (stored ? validateStoredInvestigationManifest : validateInvestigationManifest)(raw.manifest, INVESTIGATION_ADMISSION);
-  if (!checked.ok || checked.value.schema !== INVESTIGATION_MANIFEST_SCHEMA_V2 || !validScreenRefs(checked.value)) return null;
+  if (!checked.ok || (checked.value.schema !== INVESTIGATION_MANIFEST_SCHEMA_V2 && checked.value.schema !== INVESTIGATION_MANIFEST_SCHEMA_V3) || !validScreenRefs(checked.value)) return null;
   if (Object.hasOwn(raw, "screen_capture")) {
     const capture = parseScreenCapture(raw.screen_capture);
     if (!capture || (raw.action !== "create" && raw.action !== "revise")
@@ -86,7 +87,7 @@ export function isInvestigationCommitted(raw: unknown): raw is InvestigationComm
     && Number.isSafeInteger(raw.revision) && Number(raw.revision) > 0
     && (raw.lifecycle === "active" || raw.lifecycle === "removed")
     && typeof raw.committed_at === "string" && Number.isFinite(Date.parse(raw.committed_at))
-    && record(raw.manifest) && raw.manifest.schema===INVESTIGATION_MANIFEST_SCHEMA_V2
+    && record(raw.manifest) && (raw.manifest.schema===INVESTIGATION_MANIFEST_SCHEMA_V2 || raw.manifest.schema===INVESTIGATION_MANIFEST_SCHEMA_V3)
     && validateStoredInvestigationManifest(raw.manifest, INVESTIGATION_ADMISSION).ok
     && validScreenRefs(raw.manifest as InvestigationManifest)
     && ((!Object.hasOwn(raw.manifest,"argument_relations") && !Object.hasOwn(raw,"revision_id")) || isRevisionIdentity(raw));
@@ -206,7 +207,7 @@ export async function readInvestigation(db: InvestigationDb, id: string, revisio
       || !validateStoredInvestigationManifest(data.manifest, INVESTIGATION_ADMISSION).ok
       || !validScreenRefs(data.manifest as InvestigationManifest)
       || (Object.hasOwn(data,"screen_definitions") && !Array.isArray(data.screen_definitions))
-      || (Object.hasOwn(data,"revision_id") && !isRevisionIdentity(data))) return { status: "unavailable" };
+      || ((Object.hasOwn(data,"revision_id") || (data.manifest as InvestigationManifest).schema===INVESTIGATION_MANIFEST_SCHEMA_V3) && !isRevisionIdentity(data))) return { status: "unavailable" };
     return data;
   } catch { return { status: "unavailable" }; }
 }

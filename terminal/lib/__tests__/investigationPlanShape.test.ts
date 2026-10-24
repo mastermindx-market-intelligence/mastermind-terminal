@@ -6,7 +6,7 @@ import {parseInvestigationCommand} from "../investigations";
 import {beginInvestigationSave,recoverInvestigationSave} from "../investigationSave";
 const base=()=>({schema:"investigation_manifest.v3",intent:{title:"Exact-contract Plan",question:"Keep source values and assumptions separate",subjects:[]},layout_refs:[],thesis_refs:[],evidence_refs:[],argument_relations:[],continuation:{}});
 const manifest=()=>({...base(),option_plan:structuredClone(plan)});
-describe("dormant Investigation v3 Plan shape",()=>{
+describe("versioned Investigation v3 Plan shape",()=>{
  it("retains the exact shared synthetic draft and detaches caller memory",()=>{
   expect(validateOptionsPlanDraft(plan).ok).toBe(true);const m=manifest();const got=validateDraft(m);expect(got).toEqual({ok:true,value:m});
   if(got.ok){m.option_plan.legs[0].assumptions.quantity=999;expect(got.value.option_plan?.legs[0].assumptions.quantity).toBe(2);expect(got.value.option_plan?.legs[0].assumptions.entry).toBeNull();expect(got.value.option_plan?.legs[1].assumptions.entry?.premium_per_unit).toBe(0);}
@@ -41,7 +41,7 @@ describe("dormant Investigation v3 Plan shape",()=>{
   expect(validateDraft({...manifest(),evidence_refs:[ref]}).ok).toBe(false);
   expect(validateDraft({...manifest(),evidence_refs:[ref]},{evidence:[{owner:"terminal.options_exposure",object_types:["exposure_chart_request"]}]}).ok).toBe(true);
  });
- it("leaves v3 command, new save and recovered outbox transport unadmitted",()=>{
-  const c={id:"11111111-1111-4111-8111-111111111111",operation_id:"22222222-2222-4222-8222-222222222222",expected_revision:0,action:"create",manifest:manifest()};expect(validateInvestigationManifest(c.manifest).ok).toBe(false);expect(validateStoredInvestigationManifest(c.manifest).ok).toBe(false);expect(parseInvestigationCommand(c)).toBeNull();expect(beginInvestigationSave("alice",c,{phase:"idle"})).toEqual({phase:"idle"});expect(recoverInvestigationSave("alice",{owner:"alice",phase:"uncertain",command:c})).toBeNull();
+ it("uses the same strict v3 shape for commands, new save and recovered outbox",()=>{
+  const c={id:"11111111-1111-4111-8111-111111111111",operation_id:"22222222-2222-4222-8222-222222222222",expected_revision:0,action:"create",manifest:manifest()};expect(validateInvestigationManifest(c.manifest)).toEqual({ok:true,value:c.manifest});expect(validateStoredInvestigationManifest(c.manifest)).toEqual({ok:true,value:c.manifest});expect(parseInvestigationCommand(c)).toEqual(c);expect(beginInvestigationSave("alice",c,{phase:"idle"})).toEqual({phase:"pending",principal:"alice",command:c});expect(recoverInvestigationSave("alice",{owner:"alice",phase:"uncertain",command:c})).toEqual({phase:"uncertain",principal:"alice",command:c});
  });
 });

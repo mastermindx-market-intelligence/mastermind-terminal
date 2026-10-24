@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { isPaidTier, isProTier } from "@/lib/entitlement";
 import { canonicalizeOptAlertIdentity, optAlertIdentityState } from "@/lib/optionsAlerts";
 import { SUITE_ALERT_EVENTS, validateSuiteCondition, validateSuiteSequence } from "@/lib/suiteAlerts";
+import { FOREX_WATCH_TYPE, isForexWatch, isWatchUuid, canonicalForexRule, forexRuleInput, forexWatchRow, sameForexRule } from "@/lib/forexWatches";
 
 async function uid() {
   const supabase = await createClient();
@@ -24,6 +25,55 @@ const SUITE_TYPE = "suite_event";
 const SUITE_SEQ_TYPE = "suite_sequence"; // two-step "A then B within N bars" (same suite lane)
 
 const MAX_ALERTS_PER_USER = 50;
+
+type ForexWriteBody = Record<string, unknown>;
+type AlertClient = Awaited<ReturnType<typeof createClient>>;
+const WITHOUT_FOREX = "condition->>type.is.null,condition->>type.neq.forex_price_close";
+
+function forexError(error: unknown) {
+  const e = error && typeof error === "object" ? error as { code?: string; message?: string } : {};
+  const statuses: Record<string, [number, string]> = {
+    forex_watch_revision_conflict: [409, "conflict"],
+    forex_watch_identity_conflict: [409, "conflict"],
+    forex_watch_owner_changed: [409, "session_changed"],
+    forex_watch_not_found: [404, "not_found"],
+    forex_watch_unauthenticated: [401, "signed_out"],
+    forex_watch_invalid_request: [400, "invalid"],
+    forex_watch_invalid_condition: [400, "invalid"],
+    forex_watch_limit_reached: [400, "limit"],
+    forex_activation_unavailable: [409, "unavailable"],
+  };
+  const known = e.message ? statuses[e.message] : undefined;
+  if (known) return NextResponse.json({ error: e.message, state: known[1] }, { status: known[0] });
+  if (["PGRST202", "42883", "42501", "PGRST301", "PGRST302"].includes(e.code ?? ""))
+    return NextResponse.json({ error: "forex_watch_owner_unavailable", state: "unavailable" }, { status: 503 });
+  // A transport or unexpected database reply does not establish that a mutation failed to apply.
+  return NextResponse.json({ error: "forex_watch_change_unconfirmed", state: "unconfirmed" }, { status: 503 });
+}
+
+async function saveForex(supabase: AlertClient, userId: string, body: ForexWriteBody, creating: boolean) {
+  if (body.expected_user_id !== userId)
+    return forexError({ message: "forex_watch_owner_changed" });
+  const revision = body.expected_revision;
+  if (!isWatchUuid(body.id) || typeof revision !== "number" || !Number.isInteger(revision) ||
+      revision < (creating ? 0 : 1) || revision > 2147483646 || (creating && revision !== 0) ||
+      !isForexWatch(body.condition))
+    return forexError({ message: "forex_watch_invalid_request" });
+  const rule = canonicalForexRule(forexRuleInput(body.condition));
+  if (!rule || body.symbol !== rule.pair)
+    return forexError({ message: "forex_watch_invalid_condition" });
+  try {
+    const { data, error } = await supabase.rpc("save_forex_watch", {
+      p_id: body.id, p_expected_revision: revision, p_expected_user_id: userId, p_rule: rule,
+    });
+    if (error) return forexError(error);
+    const row = forexWatchRow(data);
+    if (!row || row.id !== body.id || row.user_id !== userId || row.condition.revision !== revision + 1 ||
+        !sameForexRule(forexRuleInput(row.condition), rule)) return forexError(null);
+    return NextResponse.json({ alert: row });
+  } catch { return forexError(null); }
+}
+
 
 export function normalizeStoredAlert(row: unknown): unknown {
   if (!row || typeof row !== "object") return row;
@@ -76,13 +126,15 @@ export async function GET() {
 export async function POST(req: Request) {
   const { supabase, user } = await uid();
   if (!user) return NextResponse.json({ error: "unauthenticated" }, { status: 401 });
-  const body = (await req.json().catch(() => ({}))) as { symbol?: unknown; condition?: unknown };
+  const parsed = await req.json().catch(() => null);
+  const body: ForexWriteBody = parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
   const symbol = body.symbol;
   const condition = body.condition as Record<string, unknown> | undefined;
   if (!symbol || typeof symbol !== "string" || !condition || typeof condition !== "object")
     return NextResponse.json({ error: "bad request" }, { status: 400 });
 
   const type = condition.type;
+  if (isForexWatch(condition)) return saveForex(supabase, user.id, body, true);
   if (typeof type !== "string" || (!LEGACY_TYPES.has(type) && !OPT_TYPES.has(type) && type !== SUITE_TYPE && type !== SUITE_SEQ_TYPE))
     return NextResponse.json({ error: `Unknown alert condition: ${String(type)}` }, { status: 400 });
 
@@ -143,10 +195,10 @@ export async function POST(req: Request) {
 export async function PATCH(req: Request) {
   const { supabase, user } = await uid();
   if (!user) return NextResponse.json({ error: "unauthenticated" }, { status: 401 });
-  const body = (await req.json().catch(() => null)) as { id?: unknown; action?: unknown } | null;
+  const body = (await req.json().catch(() => null)) as ForexWriteBody | null;
   const id = body?.id as string | undefined;
   const action = body?.action;
-  if (!id || (action !== undefined && action !== "pause" && action !== "resume"))
+  if (!id || (action !== undefined && action !== "pause" && action !== "resume" && action !== "edit"))
     return NextResponse.json({ error: "bad request" }, { status: 400 });
   // A failed read is not "no such row": only PostgREST's zero-row answer (PGRST116) is a 404. Any
   // other read error means the store did not answer, nothing was written, and the caller must not
@@ -157,6 +209,18 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: "alerts unavailable" }, { status: 503 });
   }
   if (!row) return NextResponse.json({ error: "not found" }, { status: 404 });
+  if (action !== "pause" && row.condition?.type === "opt_frozen_node_proximity") {
+    return NextResponse.json({ error: "Frozen options alerts are not available yet." }, { status: 409 });
+  }
+  if (isForexWatch(row.condition)) {
+    if (action === undefined || action === "resume") return forexError({ message: "forex_activation_unavailable" });
+    if (action === "edit") return saveForex(supabase, user.id, { ...body, symbol: body?.symbol ?? row.symbol }, false);
+    const saved = forexWatchRow(row);
+    return saved && saved.user_id === user.id
+      ? NextResponse.json({ alert: saved })
+      : forexError({ code: "42501" });
+  }
+  if (action === "edit") return NextResponse.json({ error: "bad request" }, { status: 400 });
   let patch: Record<string, unknown>;
   if (action === "pause") {
     patch = { active: false };
@@ -169,7 +233,7 @@ export async function PATCH(req: Request) {
       : { active: true, condition: cond };
   }
   const { data, error } = await supabase.from("alerts").update(patch)
-    .eq("id", id).eq("user_id", user.id).select("*").single();
+    .eq("id", id).eq("user_id", user.id).or(WITHOUT_FOREX).select("*").single();
   if (error) {
     console.error("alerts PATCH failed:", error);
     return NextResponse.json({ error: "Could not update alert" }, { status: 400 });
@@ -198,15 +262,47 @@ export async function PATCH(req: Request) {
 export async function DELETE(req: Request) {
   const { supabase, user } = await uid();
   if (!user) return NextResponse.json({ error: "unauthenticated" }, { status: 401 });
-  const id = new URL(req.url).searchParams.get("id");
+  const params = new URL(req.url).searchParams;
+  const id = params.get("id");
   if (!id) return NextResponse.json({ error: "bad request" }, { status: 400 });
-  // `.select("id")` is what makes the outcome observable — without it the store's answer is
-  // discarded and there is nothing to check.
+  const { data: row, error: readError } = await supabase.from("alerts").select("*")
+    .eq("id", id).eq("user_id", user.id).single();
+  if (readError && readError.code !== "PGRST116")
+    return NextResponse.json({ error: "alerts unavailable" }, { status: 503 });
+  // Even an already absent Forex intent retains its expected-account fence.
+  if (isForexWatch(row?.condition) || params.get("type") === FOREX_WATCH_TYPE) {
+    if (params.get("expected_user_id") !== user.id) return forexError({ message: "forex_watch_owner_changed" });
+    const rawRevision = params.get("expected_revision");
+    const revision = Number(rawRevision);
+    if (!isWatchUuid(id) || !rawRevision || !/^[1-9][0-9]*$/.test(rawRevision) ||
+        !Number.isSafeInteger(revision) || revision > 2147483647)
+      return forexError({ message: "forex_watch_invalid_request" });
+    try {
+      const { data, error } = await supabase.rpc("delete_forex_watch", {
+        p_id: id, p_expected_revision: revision, p_expected_user_id: user.id,
+      });
+      if (error) return forexError(error);
+      if (!data || typeof data !== "object" || Array.isArray(data) || data.id !== id || typeof data.deleted !== "boolean")
+        return forexError(null);
+      return NextResponse.json({ ok: true, id, deleted: data.deleted });
+    } catch { return forexError(null); }
+  }
+  if (!row) return NextResponse.json({ ok: true, deleted: false });
+  // The predicate prevents a pre-read/delete identity race from reaching a Forex row.
   const { data, error } = await supabase.from("alerts").delete()
-    .eq("user_id", user.id).eq("id", id).select("id");
+    .eq("user_id", user.id).eq("id", id).or(WITHOUT_FOREX).select("id");
   if (error) {
     console.error("alerts DELETE failed:", error);
     return NextResponse.json({ error: "Could not delete alert" }, { status: 503 });
   }
-  return NextResponse.json({ ok: true, deleted: Array.isArray(data) ? data.length > 0 : true });
+  if (!Array.isArray(data) || data.length > 1 || data.some((item) => item?.id !== id))
+    return NextResponse.json({ error: "Delete not confirmed", state: "unconfirmed" }, { status: 503 });
+  if (!data.length) {
+    const { data: current, error: currentError } = await supabase.from("alerts").select("id")
+      .eq("id", id).eq("user_id", user.id).single();
+    if (currentError && currentError.code !== "PGRST116")
+      return NextResponse.json({ error: "Delete not confirmed", state: "unconfirmed" }, { status: 503 });
+    if (current) return NextResponse.json({ error: "Alert changed. Reload before deleting.", state: "conflict" }, { status: 409 });
+  }
+  return NextResponse.json({ ok: true, deleted: data.length > 0 });
 }

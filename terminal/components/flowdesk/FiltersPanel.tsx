@@ -11,7 +11,7 @@
  * raw ~buy token and never an affirmative likelihood claim.
  */
 
-import { pick } from "@/lib/finFormat";
+import { fmtDate, pick } from "@/lib/finFormat";
 import { FD } from "@/lib/flowdeskStrings";
 import { flowSideLabel } from "@/lib/plainLabels";
 import type { DteBucket, MnyBucket, Side } from "./FeedPane";
@@ -55,6 +55,8 @@ export interface FlowFilters {
   badges: Set<BadgeFlag>;
   /** v2 detection badge filter — show only events with ANY of these detections */
   detections: Set<DetectionFlag>;
+  /** ISO expiry (e.g. "2026-10-23") or null = all — options come from the feed (W3A) */
+  exp: string | null;
 }
 
 export const DEFAULT_FILTERS: FlowFilters = {
@@ -66,6 +68,7 @@ export const DEFAULT_FILTERS: FlowFilters = {
   mnyBuckets: [],
   badges: new Set(),
   detections: new Set(),
+  exp: null,
 };
 
 // ── Props ────────────────────────────────────────────────────────────────────
@@ -74,6 +77,8 @@ interface FiltersPanelProps {
   filters: FlowFilters;
   onFiltersChange: (next: FlowFilters) => void;
   lang: "en" | "zh";
+  /** Distinct ISO expiries present in the feed, ascending (W3A expiry filter). */
+  expiryOptions?: string[];
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -195,7 +200,7 @@ const DETECTION_OPTIONS: { key: DetectionFlag; label: string; zh: string; tip: T
 
 // ── Component ────────────────────────────────────────────────────────────────
 
-export function FiltersPanel({ filters, onFiltersChange, lang }: FiltersPanelProps) {
+export function FiltersPanel({ filters, onFiltersChange, lang, expiryOptions }: FiltersPanelProps) {
   const zh = lang === "zh";
 
   function patch(partial: Partial<FlowFilters>) {
@@ -234,7 +239,8 @@ export function FiltersPanel({ filters, onFiltersChange, lang }: FiltersPanelPro
     filters.dteBuckets.length > 0 ||
     filters.mnyBuckets.length > 0 ||
     filters.badges.size > 0 ||
-    filters.detections.size > 0;
+    filters.detections.size > 0 ||
+    filters.exp !== null;
 
   return (
     <div style={PANEL_STYLE} data-tut="flow-filter-panel">
@@ -248,6 +254,29 @@ export function FiltersPanel({ filters, onFiltersChange, lang }: FiltersPanelPro
               onClick={() => patch({ right: v })}
             >
               {v === "all" ? (zh ? "全部" : "All") : v === "C" ? (zh ? "认购" : "Call") : (zh ? "认沽" : "Put")}
+            </button>
+          ))}
+        </div>
+      </FilterRow>
+
+      {/* ── Expiry (W3A) — the distinct expiries present in the feed ── */}
+      <FilterRow label={zh ? "到期日" : "Expiry"}>
+        <div style={CHIP_ROW_STYLE} data-testid="flow-filter-exp">
+          <button
+            className={`obs-chip${filters.exp === null ? " on" : ""}`}
+            onClick={() => patch({ exp: null })}
+            aria-pressed={filters.exp === null}
+          >
+            {pick(zh, FD.allExpirations.en, FD.allExpirations.zh)}
+          </button>
+          {(expiryOptions ?? []).map((exp) => (
+            <button
+              key={exp}
+              className={`obs-chip${filters.exp === exp ? " on" : ""}`}
+              onClick={() => patch({ exp })}
+              aria-pressed={filters.exp === exp}
+            >
+              {fmtDate(exp, { short: true })}
             </button>
           ))}
         </div>

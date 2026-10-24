@@ -58,12 +58,12 @@ describe("24-hour sessions use the canonical exchange calendar", () => {
  });
  it("preserves short intervals and non-24H clocks, and refuses closed or unknown phases",()=>{
   const now=Date.parse("2026-10-19T20:05:00Z");
-  expect(liveCandleRemaining(ep("2026-10-19","16:00"),"12h","us",false,now)).toBe(11*3600+55*60);
+  expect(liveCandleRemaining(ep("2026-10-19","16:00"),"12h","us",false,now)).toBeNull();
   expect(liveCandleRemaining(ep("2026-10-19","16:05"),"5m","us",true,now)).toBe(300);
   expect(liveCandleRemaining(ep("2026-11-27","16:55"),"10m","us",true,Date.parse("2026-11-27T21:56:00Z"))).toBe(240);
   expect(liveCandleRemaining(ep("2026-11-27","17:00"),"12h","us",true,Date.parse("2026-11-27T22:05:00Z"))).toBeNull();
   expect(liveCandleRemaining(ep("2029-01-01","20:00"),"12h","us",true,Date.parse("2029-01-02T01:05:00Z"))).toBeNull();
-  expect(liveCandleRemaining(ep("2026-10-19","20:00"),"12h","crypto",true,now)).toBe(11*3600+55*60);
+  expect(liveCandleRemaining(ep("2026-10-19","12:00"),"12h","crypto",true,now)).toBe(3*3600+55*60);
  });
  it.each(["1s","5m","4h","12h"])("allows eligible %s",tf=>expect(isOvernightTimeframe(tf)).toBe(true));
  it.each(["D","W","1M","24h","13h"])("excludes %s",tf=>expect(isOvernightTimeframe(tf)).toBe(false));

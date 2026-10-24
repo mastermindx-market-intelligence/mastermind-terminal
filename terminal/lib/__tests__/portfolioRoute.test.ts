@@ -13,6 +13,9 @@ const H = vi.hoisted(() => ({
   user: { id: "e2e-user-pfroute" } as { id: string } | null,
   failTable: null as string | null,
   noopPortfolioMutations: false,
+  // Every mutating verb the route issues against any table, so "zero store mutation calls" is an
+  // assertion about the transport and not an inference from resulting state alone.
+  storeWrites: [] as { table: string; op: string }[],
 }));
 
 vi.mock("next/headers", () => ({ cookies: vi.fn(async () => ({ get: () => undefined })) }));
@@ -44,7 +47,21 @@ vi.mock("@/lib/supabase/server", async () => {
         auth: { getUser: vi.fn(async () => ({ data: { user: H.user } })) },
         from: (table: string) => {
           const query = db.from(table);
-          if (H.failTable !== table) return query;
+          if (H.failTable !== table) {
+            return new Proxy(query, {
+              get(target, prop, receiver) {
+                if (prop === "insert" || prop === "update" || prop === "delete") {
+                  return (value?: unknown) => {
+                    H.storeWrites.push({ table, op: String(prop) });
+                    const fn = Reflect.get(target, prop, receiver) as (...args: unknown[]) => unknown;
+                    return typeof fn === "function" ? fn.call(target, value) : fn;
+                  };
+                }
+                const value = Reflect.get(target, prop, receiver);
+                return typeof value === "function" ? value.bind(target) : value;
+              },
+            });
+          }
           // Reads still work; only the mutating verbs fail, the way a policy or constraint error
           // surfaces in production.
           return new Proxy(query, {
@@ -92,6 +109,7 @@ beforeEach(() => {
   H.user = { id: owner };
   H.failTable = null;
   H.noopPortfolioMutations = false;
+  H.storeWrites = [];
   vi.clearAllMocks();
 });
 
@@ -338,5 +356,86 @@ describe("semantic invariants A-D across the two ROUTES", () => {
     expect((await watchlistPost({ action: "deleteList", listId: list.id })).status).toBe(200);
     expect(await lists()).toEqual([]);
     expect((await book()).map((p) => p.ticker)).toEqual(["NVDA"]);
+  });
+});
+
+// ── Optional `expectedOwnerId` refusal precondition (Sol ruling, PR1044, 2026-10-20) ────────────
+// Comparison-only, never auth: the session still owns identity on every path. A stub B session
+// owns a valid holding; an A session naming B as `expectedOwnerId` must be refused 409 BEFORE the
+// store is touched, a B session naming B proceeds normally, and omission is legacy behavior.
+describe("POST /api/portfolio — optional expectedOwnerId refusal precondition", () => {
+  const userB = fixtureUserId("pfroute-b");
+
+  it("409s every mutating action carrying a mismatched expectedOwnerId, with ZERO store mutation calls", async () => {
+    // Session stub B owns a valid holding (created with its own matching precondition).
+    H.user = { id: userB };
+    const seeded = await post({ action: "create", ticker: "NVDA", shares: 7, expectedOwnerId: userB });
+    expect(seeded.status).toBe(200);
+    const bPosition = (await seeded.json()).position as { id: string };
+
+    // A session, precondition naming B. Pre-fix these were a 200 create / 404 foreign ids —
+    // the discriminator this block exists to pin.
+    H.user = { id: owner };
+    H.storeWrites = [];
+    for (const body of [
+      { action: "create", ticker: "AAPL", expectedOwnerId: userB },
+      { action: "update", id: bPosition.id, shares: 1, expectedOwnerId: userB },
+      { action: "close", id: bPosition.id, expectedOwnerId: userB },
+      { action: "reopen", id: bPosition.id, expectedOwnerId: userB },
+      { action: "delete", id: bPosition.id, expectedOwnerId: userB },
+    ]) {
+      const response = await post(body);
+      expect(response.status).toBe(409);
+      expect(await response.json()).toEqual({ error: "owner mismatch" });
+    }
+    expect(H.storeWrites).toEqual([]);
+    // Nothing was written anywhere: B's holding survives untouched, A still has no book.
+    expect((await listPositions(db(), userB)).map((p: Position) => p.id)).toEqual([bPosition.id]);
+    expect(await book()).toEqual([]);
+  });
+
+  it("proceeds normally when expectedOwnerId matches the session user", async () => {
+    H.user = { id: userB };
+    const created = await post({ action: "create", ticker: "NVDA", expectedOwnerId: userB });
+    expect(created.status).toBe(200);
+    const { id } = (await created.json()).position as { id: string };
+    expect((await post({ action: "close", id, expectedOwnerId: userB })).status).toBe(200);
+    expect((await post({ action: "reopen", id, expectedOwnerId: userB })).status).toBe(200);
+    expect((await post({ action: "update", id, shares: 3, expectedOwnerId: userB })).status).toBe(200);
+    expect((await post({ action: "delete", id, expectedOwnerId: userB })).status).toBe(200);
+    expect(await listPositions(db(), userB)).toEqual([]);
+  });
+
+  it("preserves legacy behavior when the field is omitted, including the foreign-id 404", async () => {
+    const created = await post({ action: "create", ticker: "NVDA", shares: 2 });
+    expect(created.status).toBe(200);
+    const { id } = (await created.json()).position as { id: string };
+    expect((await post({ action: "close", id })).status).toBe(200);
+
+    const theirs = await createPosition(db(), userB, { ticker: "TSLA", shares: 5 });
+    const foreign = await post({ action: "delete", id: theirs.position!.id });
+    expect(foreign.status).toBe(404);
+    expect((await foreign.json()).error).toBe("position not found");
+    expect((await listPositions(db(), userB)).map((p: Position) => p.ticker)).toEqual(["TSLA"]);
+  });
+
+  it("409s null, nonstring and malformed expectedOwnerId values before any mutation", async () => {
+    await create({ ticker: "NVDA" });
+    H.storeWrites = [];
+    for (const bad of [null, 123, true, { id: owner }, ["x"], ""]) {
+      const response = await post({ action: "create", ticker: "AAPL", expectedOwnerId: bad });
+      expect(response.status).toBe(409);
+      expect(await response.json()).toEqual({ error: "owner mismatch" });
+    }
+    expect(H.storeWrites).toEqual([]);
+    expect((await book()).map((p: Position) => p.ticker)).toEqual(["NVDA"]);
+  });
+
+  it("keeps the signed-out 401 ahead of the precondition", async () => {
+    H.user = null;
+    const response = await post({ action: "create", ticker: "NVDA", expectedOwnerId: owner });
+    expect(response.status).toBe(401);
+    expect(await response.json()).toEqual({ error: "unauthenticated" });
+    expect(H.storeWrites).toEqual([]);
   });
 });

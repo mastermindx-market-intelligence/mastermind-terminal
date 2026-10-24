@@ -254,3 +254,100 @@ def test_backup_restore_preserves_owner_rows_receipts_and_read_only_rollback(pg)
     assert json.loads(restored('select public.read_investigation_v2('+quote(ID)+'::uuid,1);', A))['revision'] == 1
     restored('grant execute on function public.apply_investigation_revision_v2(uuid,integer,text,uuid,jsonb,jsonb) to authenticated;')
     assert apply(restored, '40000000-0000-4000-8000-000000000001') == replay
+
+
+def test_review_migration_applier_qualifies_behavior_and_catalog(pg, tmp_path):
+    """The real applier needs catalog identity as well as behavioral probe rows."""
+    import hashlib
+    import io
+    import re
+    from scripts.supabase_apply import readback_statements, run_apply
+
+    migration = ROOT / "supabase/migrations/0040_investigation_review.sql"
+    predecessor = ROOT / "supabase/migrations/0039_investigation_options_evidence.sql"
+    database = "review_migration_receipt"
+    pg("do $$ begin create role service_role; exception when duplicate_object then null; end $$;")
+    pg(f"create database {database} template postgres;")
+
+    def sql_run(sql):
+        return pg(sql, database=database)
+
+    def runner(sql):
+        if sql.lstrip().lower().startswith(("select", "with")):
+            query = sql.rstrip().removesuffix(";")
+            return json.loads(sql_run(f"select coalesce(json_agg(r),'[]'::json) from ({query}) r;"))
+        sql_run(sql)
+        return []
+
+    metadata_query = """select p.proowner, p.provolatile, p.prosecdef, p.proconfig,
+        p.proacl::text as acl, pg_get_function_identity_arguments(p.oid) as arguments,
+        pg_get_function_result(p.oid) as result, l.lanname as language
+        from pg_proc p join pg_language l on l.oid=p.prolang
+        where p.oid=to_regprocedure('public.valid_investigation_manifest_v2(jsonb)')"""
+
+    def invoke(path, name, transport=runner):
+        receipt_path = tmp_path / f"{name}.json"
+        result = run_apply(path, runner=transport, receipt_path=receipt_path,
+                           project_ref="isolated-local-fixture", out=io.StringIO())
+        return result, json.loads(receipt_path.read_text())
+
+    try:
+        sql_run(predecessor.read_text())
+        sql_run("revoke all on function public.valid_investigation_manifest_v2(jsonb) "
+                "from public, anon, authenticated; "
+                "grant execute on function public.valid_investigation_manifest_v2(jsonb) to service_role;")
+        before = runner(metadata_query)
+
+        result, receipt = invoke(migration, "first-apply")
+        assert result == 0, receipt
+        assert receipt["status"] == "applied" and receipt["missing_after"] == []
+        assert receipt["statements_n"] == 1
+        assert receipt["pre"][0]["rows"] == [{
+            "admits_valid_review": False, "rejects_invalid_assessment": False,
+            "rejects_malformed_fire_event_id": False,
+        }]
+        assert receipt["post"][0]["rows"] == [{
+            "admits_valid_review": True, "rejects_invalid_assessment": False,
+            "rejects_malformed_fire_event_id": False,
+        }]
+        assert runner(metadata_query) == before
+        assert sql_run("select public.valid_investigation_manifest_v2("
+                       + quote(json.dumps(manifest())) + "::jsonb)") == "t"
+
+        readbacks = readback_statements(migration.read_text())
+        assert len(readbacks) == 2
+        catalog = receipt["post"][1]["rows"]
+        assert len(catalog) == 1
+        assert catalog[0]["name"] == "valid_investigation_manifest_v2"
+        assert catalog[0]["object_schema"] == "public"
+        assert catalog[0]["identity_arguments"] == "m jsonb"
+        body = re.search(r"as \$function\$(.*?)\$function\$", migration.read_text(), re.S).group(1)
+        assert catalog[0]["body_md5"] == hashlib.md5(body.encode()).hexdigest()
+
+        replay_result, replay = invoke(migration, "replay")
+        assert replay_result == 0 and replay["status"] == "applied"
+        assert replay["pre"] == replay["post"]
+        assert runner(metadata_query) == before
+
+        # Removing the catalog query reproduces the original failure even though
+        # the function exists and its behavioral probes succeed.
+        missing_catalog = tmp_path / migration.name
+        missing_catalog.write_text(
+            migration.read_text().split("-- readback:", 1)[0] + "-- readback:\n"
+            + "\n".join("-- " + line for line in (readbacks[0].rstrip() + ";").splitlines()) + "\n"
+        )
+        missing_result, missing = invoke(missing_catalog, "missing-catalog-control")
+        assert missing_result == 6 and missing["status"] == "failed_readback"
+        assert missing["missing_after"] == ["function valid_investigation_manifest_v2"]
+
+        # A name alone cannot establish that the replacement happened. The
+        # captured behavior and body digest must also be checked by the operator.
+        sql_run(predecessor.read_text())
+        def no_op_runner(sql):
+            return runner(sql) if sql.lstrip().lower().startswith(("select", "with")) else []
+        noop_result, noop = invoke(migration, "no-op-control", no_op_runner)
+        assert noop_result == 0  # generic applier checks catalog names only
+        assert noop["post"][0]["rows"][0]["admits_valid_review"] is False
+        assert noop["post"][1]["rows"][0]["body_md5"] != catalog[0]["body_md5"]
+    finally:
+        pg(f"drop database {database};")
