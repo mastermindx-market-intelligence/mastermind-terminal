@@ -102,6 +102,32 @@ definitive rejections (for example `version_conflict`) also stay local and show 
 conflict message. Logout/account changes abort in-flight reads and clear the mounted
 private state.
 
+## Native Options Plan draft entry
+
+The Workspace optionally registers `onOptionPlanAdmissionReady(admit | null)`.
+Only an already-open fresh unsaved draft and a current ready authenticated lifetime
+can admit a whole canonical `OptionsPlanDraft`; the anonymous preview carrier cannot.
+The consumer calls `admit(candidate)` deliberately. Registration does not capture,
+save, allocate an identity, clear an uncertain command or select a different subject.
+The admitted detached/frozen Plan leaves the authored title, question and subject
+unchanged. It uses v3 through the existing explicit Save command, with its captured
+principal/epoch checked again before that command can be sent.
+
+`onOptionPlanRevisionReady(read | null)` registers a pure current-lifetime getter.
+`read()` returns `{id, revision, plan}` only for the acknowledged exact saved revision;
+a stale account/epoch, departed selection or cleaned-up Workspace returns null.
+Selection departure invalidates the previous getter synchronously; ordinary
+same-record Edit receives a newly bound getter for its acknowledged saved Plan.
+This is an authored-input read, not an immutable previous calculation. It performs
+no payoff recomputation or source refresh. A future calculation must be explicit and
+carry its own dated terms/source boundary through its existing owner.
+
+`historyMode="embedded"` suppresses only the Workspace's programmatic route-history
+writes for New/open/save, so the existing host retains its URL and navigation lifetime.
+The default `"route"` behavior and explicit canonical links remain unchanged. Neither
+mode serializes a Plan in a URL or creates another store/router. These optional source
+interfaces do not enable live Save, change any SQL grant or clear cutover/release holds.
+
 ## Selected Earnings evidence and current rights
 
 The immutable Earnings generation is a container, not a rights grant. The first new

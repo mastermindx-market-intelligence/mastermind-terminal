@@ -10,7 +10,9 @@ import { InvestigationAuthContext, type InvestigationAuthProjection } from "./In
 import { INVESTIGATION_MANIFEST_SCHEMA_V2, validateInvestigationManifest, validateStoredInvestigationManifest, canonicalInvestigationJson, type InvestigationManifest, type InvestigationEvidenceRef, type InvestigationThesisRef } from "@/lib/investigationContracts";
 import { INVESTIGATION_ADMISSION, type InvestigationCommand, type InvestigationSummary } from "@/lib/investigations";
 import { beginInvestigationSave, settleInvestigationSave, retryInvestigationSave, investigationCommandToReconcile, recoverInvestigationSave, receiptRequiresOwnerCheck, resendsRefusedReferences, type InvestigationSaveState } from "@/lib/investigationSave";
-import { admitDuplicate, duplicateDraftFields, type DuplicateGuard, type DuplicateSource } from "@/lib/investigationDuplicate";
+import { admitDuplicate, duplicateDraftFields, duplicateGuard, type DuplicateGuard, type DuplicateSource } from "@/lib/investigationDuplicate";
+import {admitInvestigationOptionPlan, type InvestigationOptionPlanAdmission} from "@/lib/investigationOptionPlanAdmission";
+import {validateOptionsPlanDraft, type OptionsPlanDraft} from "@/lib/optionsPlanDraft";
 import type { EventWorkspace, RetainedEventWorkspaceReceipt } from "@/lib/eventWorkspace";
 import { exposureChartHref, parseExposureChartRequest } from "@/lib/exposureChartLink";
 import { parseExposureOrigin } from "@/lib/exposureOrigin";
@@ -28,11 +30,22 @@ import {InvestigationScreenPicker,InvestigationScreenReader} from "./Investigati
 import {SCREEN_EVIDENCE_OWNER,type ScreenCapture} from "@/lib/investigationScreen";
 import {InvestigationThesisPicker,InvestigationThesisReader} from "./InvestigationTheses";
 
-type Props = { ownerKey:string; initialSymbol?:string; initialInvestigationId?:string; initialRevision?:number };
+export type InvestigationOptionPlanEntry = (candidate:unknown)=>
+ | {ok:true;plan:OptionsPlanDraft}
+ | Extract<InvestigationOptionPlanAdmission,{ok:false}>
+ | {ok:false;reason:"inactive"};
+/** Pure current-lifetime getter over an already acknowledged exact revision.
+ * Reopening returns authored inputs, never a prior or recomputed payoff. */
+export type InvestigationOptionPlanRevisionReader = ()=>{id:string;revision:number;plan:OptionsPlanDraft}|null;
+type Props = { ownerKey:string; initialSymbol?:string; initialInvestigationId?:string; initialRevision?:number;
+ historyMode?:"route"|"embedded";
+ onOptionPlanAdmissionReady?:(admit:InvestigationOptionPlanEntry|null)=>void;
+ onOptionPlanRevisionReady?:(read:InvestigationOptionPlanRevisionReader|null)=>void;
+};
 type Detail = { id:string; revision:number; current_revision:number; lifecycle:"active"|"removed"; manifest:InvestigationManifest; committed_at:string; layouts:Array<{id:string;layout_id:string;digest:string;config:unknown}>;screen_definitions?:unknown[] };
 type Baseline = {workspace:EventWorkspace | import("@/lib/investigationIssuerRelease").IssuerReleaseProjection;receipt:RetainedEventWorkspaceReceipt;reference:InvestigationEvidenceRef};
 type Layout = {id:string;name:string;config:{schema:string;revision:number};userId?:string;mine?:boolean};
-type Draft = {title:string;question:string;symbol:string;next:string;observation:string;horizon:string;asOf:string;layoutId:string;theses:InvestigationThesisRef[];screenCapture:ScreenCapture|null;screenRefs:InvestigationEvidenceRef[]};
+type Draft = {title:string;question:string;symbol:string;next:string;observation:string;horizon:string;asOf:string;layoutId:string;theses:InvestigationThesisRef[];screenCapture:ScreenCapture|null;screenRefs:InvestigationEvidenceRef[];optionPlan?:{value:OptionsPlanDraft;guard:Readonly<DuplicateGuard>}};
 /** A local unsaved duplicate of one acknowledged revision: the exact copied source, the auth
  * guard captured at the click, and the original detail kept so Cancel can restore it without a fetch. */
 type Duplicate = { source:DuplicateSource; guard:DuplicateGuard; detail:Detail };
@@ -73,7 +86,7 @@ function contextLabel(value:string,lang:"en"|"zh") {
 }
 const optionsTypeLabel=(type:string,c:(typeof COPY)[keyof typeof COPY])=>type==="exposure_chart_request"?c.typeExposure:type==="sector_origin"?c.typeOrigin:type==="rotation_measurement"?c.typeRotation:c.options;
 
-export default function InvestigationWorkspace({ownerKey,initialSymbol,initialInvestigationId,initialRevision}:Props) {
+export default function InvestigationWorkspace({ownerKey,initialSymbol,initialInvestigationId,initialRevision,historyMode="route",onOptionPlanAdmissionReady,onOptionPlanRevisionReady}:Props) {
  const {lang}=useLang(), c=COPY[lang];
  const [boundAuth,setBoundAuth]=useState<BoundAuthProjection|null>(null);
  // An old effect's render projection cannot cross a changed Workspace lifetime.
@@ -85,6 +98,9 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
  // re-bound or cleaned-up lifetime has a different getter; a recreated projection keeps this one.
  const authGetterRef=useRef<InvestigationAuthProjection["getSnapshot"]|null>(null);
  useLayoutEffect(()=>{authGetterRef.current=authProjection?.getSnapshot??null;},[authProjection?.getSnapshot]);
+ const historyModeRef=useRef(historyMode);
+ useLayoutEffect(()=>{historyModeRef.current=historyMode;},[historyMode]);
+ function replaceInvestigationHistory(url:string){if(historyModeRef.current!=="embedded")window.history.replaceState({},"",url);}
  const [items,setItems]=useState<InvestigationSummary[]|null>(null), [listError,setListError]=useState(false);
  const [detail,setDetail]=useState<Detail|null>(null),[detailLoading,setDetailLoading]=useState(false);
  const [duplicate,setDuplicate]=useState<Duplicate|null>(null);
@@ -116,6 +132,54 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
  useEffect(()=>{if(editing)draftTitle.current?.focus();else if(detail)detailTitle.current?.focus();},[editing,detail?.id,detail?.revision]);
  const locked=saveState.phase==="pending"||saveState.phase==="uncertain";
  const setSave=(s:InvestigationSaveState)=>{stateRef.current=s;setSaveState(s);};
+ const planEntryToken=useRef<object|null>(null);
+ const [planEntryGeneration,setPlanEntryGeneration]=useState(0);
+ // Optional native consumer seam. Registration is not admission, and admission
+ // changes only this already-open local draft. No request/id/storage is created.
+ useLayoutEffect(()=>{
+  if(!onOptionPlanAdmissionReady)return;
+  const getter=authGetterRef.current,controller=scope.current,ticket=detailSeq.current;
+  const guard=ownerKey!=="local-preview"?duplicateGuard(ownerKey,getter?.()??null):null;
+  if(!entryActive||authEnded||!editing||detail||detailLoading||duplicate||!guard||!getter||!controller||controller.signal.aborted){onOptionPlanAdmissionReady(null);return;}
+  const token={};planEntryToken.current=token;let active=true;
+  const admit:InvestigationOptionPlanEntry=candidate=>{
+   if(!active||planEntryToken.current!==token||scope.current!==controller||controller.signal.aborted
+    ||detailSeq.current!==ticket||authGetterRef.current!==getter)return{ok:false,reason:"inactive"};
+   const snapshot=getter();
+   if(!snapshot||snapshot.availability!=="ready"||snapshot.principal_partition!==guard.principal||snapshot.auth_epoch!==guard.epoch)return{ok:false,reason:"auth"};
+   const result=admitInvestigationOptionPlan({ownerKey,snapshot,locked:stateRef.current.phase==="pending"||stateRef.current.phase==="uncertain"||storageBlockedRef.current,
+    fresh:stateRef.current.phase==="idle",candidate});
+   if(!result.ok)return result;
+   // Unknown input can contain proxy traps even though data accessors are
+   // rejected. Re-check the actual lifetime after validation, before staging.
+   if(!active||planEntryToken.current!==token||scope.current!==controller||controller.signal.aborted
+    ||detailSeq.current!==ticket||authGetterRef.current!==getter)return{ok:false,reason:"inactive"};
+   const again=getter();
+   if(!again||again.availability!=="ready"||again.principal_partition!==guard.principal||again.auth_epoch!==guard.epoch)return{ok:false,reason:"auth"};
+   if(stateRef.current.phase==="pending"||stateRef.current.phase==="uncertain"||storageBlockedRef.current)return{ok:false,reason:"locked"};
+   if(stateRef.current.phase!=="idle")return{ok:false,reason:"not_new_draft"};
+   setDraft(current=>({...current,optionPlan:{value:result.plan,guard:result.guard}}));
+   return{ok:true,plan:result.plan};
+  };
+  onOptionPlanAdmissionReady(admit);
+  return()=>{active=false;if(planEntryToken.current===token)planEntryToken.current=null;onOptionPlanAdmissionReady(null);};
+ },[onOptionPlanAdmissionReady,ownerKey,authProjection,entryActive,authEnded,editing,detail,detailLoading,duplicate,planEntryGeneration]);
+ useLayoutEffect(()=>{
+  if(!onOptionPlanRevisionReady)return;
+  const getter=authGetterRef.current,controller=scope.current,selected=acknowledgedDetail,ticket=detailSeq.current;
+  const guard=ownerKey!=="local-preview"?duplicateGuard(ownerKey,getter?.()??null):null;
+  if(!entryActive||authEnded||!guard||!getter||!controller||controller.signal.aborted||!selected||selected!==detail||detailLoading){onOptionPlanRevisionReady(null);return;}
+  let active=true;
+  const read:InvestigationOptionPlanRevisionReader=()=>{
+   if(!active||scope.current!==controller||controller.signal.aborted||authGetterRef.current!==getter||acknowledgedDetailRef.current!==selected||detailSeq.current!==ticket)return null;
+   const now=getter();
+   if(!now||now.availability!=="ready"||now.principal_partition!==guard.principal||now.auth_epoch!==guard.epoch)return null;
+   const plan=validateOptionsPlanDraft(selected.manifest.option_plan);
+   return plan.ok?{id:selected.id,revision:selected.revision,plan:plan.value}:null;
+  };
+  onOptionPlanRevisionReady(read);
+  return()=>{active=false;onOptionPlanRevisionReady(null);};
+ },[onOptionPlanRevisionReady,ownerKey,authProjection,entryActive,authEnded,acknowledgedDetail,detail,detailLoading,editing]);
  async function json(url:string,init?:RequestInit):Promise<unknown> {
   const controller=scope.current;
   if(!controller||controller.signal.aborted) throw Error("inactive");
@@ -231,7 +295,7 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
    if(ticket!==detailSeq.current)return;
    if(!record(value)||value.status!=="found"||value.id!==id||(revision!==undefined&&value.revision!==revision)||!Array.isArray(value.layouts)||!validateStoredInvestigationManifest(value.manifest,INVESTIGATION_ADMISSION).ok)throw Error("unavailable");
    const found=value as unknown as Detail;setDetail(found);acknowledgeDetail(found);setDuplicate(null);setEditing(false);setMessage("");retainedBaseline(found.manifest);void evaluateOptions(found.manifest.evidence_refs);void loadAlerts();
-   window.history.replaceState({},"",`/analysis?view=investigations&investigation=${id}&revision=${found.revision}`);
+   replaceInvestigationHistory(`/analysis?view=investigations&investigation=${id}&revision=${found.revision}`);
   } catch {if(ticket===detailSeq.current&&!scope.current?.signal.aborted){setMessage(afterSave?c.readbackFailed:c.invalidLink);if(!afterSave)setDetail(null);}}
   finally {if(ticket===detailSeq.current)setDetailLoading(false);}
  }
@@ -246,7 +310,7 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
   if(next.phase==="committed") {
    try{sessionStorage.removeItem(storageKey(ownerKey));}catch{/* exact receipt remains authoritative */}
   }
-  if(next.phase==="committed") {window.history.replaceState({},"",`/analysis?view=investigations&investigation=${next.result.id}&revision=${next.result.revision}`);setMessage(c.readback);await Promise.all([openRecord(next.result.id,next.result.revision,true),inventory()]);}
+  if(next.phase==="committed") {replaceInvestigationHistory(`/analysis?view=investigations&investigation=${next.result.id}&revision=${next.result.revision}`);setMessage(c.readback);await Promise.all([openRecord(next.result.id,next.result.revision,true),inventory()]);}
   else if(next.phase==="rejected") {
    try{sessionStorage.setItem(storageKey(ownerKey),JSON.stringify({owner:ownerKey,command:next.command,phase:"rejected",reason:next.reason}));}catch{setStorageBlocked(true);}
    setMessage(refusal(next,!!detail));
@@ -352,7 +416,7 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
   // started its GET. The boolean return pairs baseline installation with edit.
   if(editLocked())return false;
   ++detailSeq.current;++baselineSeq.current;setMessage("");resetAsOf();setDuplicate(null);
-  if(fresh){try{sessionStorage.removeItem(storageKey(ownerKey));}catch{setStorageBlocked(true);return false;}setSave({phase:"idle"});setRetainedCapture(null);setDetail(null);setDraft(emptyDraft(initialSymbol));setBaseline(null);setBaselineState("none");++optionsSeq.current;setOptionsRefs([]);setOptionsStatus(null);setOptionsChecking(false);window.history.replaceState({},"","/analysis?view=investigations");}
+   if(fresh){try{sessionStorage.removeItem(storageKey(ownerKey));}catch{setStorageBlocked(true);return false;}setPlanEntryGeneration(generation=>generation+1);setSave({phase:"idle"});setRetainedCapture(null);setDetail(null);setDraft(emptyDraft(initialSymbol));setBaseline(null);setBaselineState("none");++optionsSeq.current;setOptionsRefs([]);setOptionsStatus(null);setOptionsChecking(false);replaceInvestigationHistory("/analysis?view=investigations");}
   else if(detail){const m=detail.manifest;setRetainedCapture(null);setDraft({title:m.intent.title,question:m.intent.question,symbol:m.intent.subjects.find(s=>s.owner==="terminal.analysis_symbol")?.object_id??"",next:m.continuation.next_question??"",observation:m.continuation.next_observation??"",horizon:m.intent.horizon??"",asOf:m.intent.research_as_of??"",layoutId:m.layout_refs.length?KEPT_LAYOUT:"",theses:m.thesis_refs,screenCapture:null,screenRefs:m.evidence_refs.filter(r=>r.owner===SCREEN_EVIDENCE_OWNER)});setBaselineState(baseline?"ready":"unavailable");}
   setEditing(true);return true;
  }
@@ -426,6 +490,7 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
   setDraft({title:fields.title,question:fields.question,symbol:fields.symbol,next:fields.next,observation:detail.manifest.continuation.next_observation??"",horizon:fields.horizon,asOf:fields.asOf,layoutId:fields.keepLayout?KEPT_LAYOUT:"",theses:fields.theses,screenCapture:null,screenRefs:detail.manifest.evidence_refs.filter(r=>r.owner===SCREEN_EVIDENCE_OWNER)});
  }
  function cancelDraft() {
+  planEntryToken.current=null;
   setEditing(false);
   // Cancelling a duplicate writes nothing: the original acknowledged detail returns exactly as it
   // was, without a refetch, and the local copy base is dropped.
@@ -445,6 +510,7 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
   // principal and epoch it was admitted with. A same-user epoch change or another account refuses
   // here before any request, and the retained draft is never adopted on a stale identity.
   if(!detail&&duplicate&&!duplicateAdmittedAgain(duplicate.guard)){setMessage(c.auth);return;}
+  if(!detail&&draft.optionPlan&&!duplicateAdmittedAgain(draft.optionPlan.guard)){setMessage(c.auth);return;}
   if(!detail&&saveState.phase==="rejected"&&saveState.command.expected_revision>0){setMessage(refusal(saveState,false));return;}
   let manifest:InvestigationManifest;
   // A deliberate assessment starts a new command, never rewrites an uncertain original.
@@ -466,7 +532,8 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
    const retainedEvidence=reference&&!evidence.some(ref=>canonicalInvestigationJson(ref)===canonicalInvestigationJson(reference))?[...evidence,reference]:evidence;
    const issuer=!duplicate&&baseline?[{owner:"data_os.security_master",kind:"issuer",object_id:baseline.receipt.company_id}]:[];
    const subjects=detail?.manifest.intent.subjects??(prior?[...prior.intent.subjects,...issuer.filter(s=>!prior.intent.subjects.some(r=>canonicalInvestigationJson(r)===canonicalInvestigationJson(s)))]:[...(draft.symbol?[{owner:"terminal.analysis_symbol",kind:"security",object_id:draft.symbol}]:[]),...issuer]);
-   manifest={schema:prior?.schema==="investigation_manifest.v3"?prior.schema:"investigation_manifest.v2",...(prior?.option_plan?{option_plan:prior.option_plan}:{}),...(prior?.review?{review:prior.review}:{}),argument_relations:prior?.argument_relations??[],intent:{title:draft.title,question:draft.question,subjects,...(draft.horizon?{horizon:draft.horizon}:{}),...(draft.asOf?{research_as_of:draft.asOf}:{})},layout_refs:draft.layoutId===KEPT_LAYOUT?prior?.layout_refs??[]:[],thesis_refs:draft.theses,evidence_refs:retainedEvidence,continuation:{...(prior?.continuation??{}),...(draft.next?{next_question:draft.next}:{}),...(draft.observation?{next_observation:draft.observation}:{})},...(reference?{review_baseline_ref:reference}:{})};
+   const optionPlan=draft.optionPlan?.value??prior?.option_plan;
+   manifest={schema:optionPlan||prior?.schema==="investigation_manifest.v3"?"investigation_manifest.v3":"investigation_manifest.v2",...(optionPlan?{option_plan:optionPlan}:{}),...(prior?.review?{review:prior.review}:{}),argument_relations:prior?.argument_relations??[],intent:{title:draft.title,question:draft.question,subjects,...(draft.horizon?{horizon:draft.horizon}:{}),...(draft.asOf?{research_as_of:draft.asOf}:{})},layout_refs:draft.layoutId===KEPT_LAYOUT?prior?.layout_refs??[]:[],thesis_refs:draft.theses,evidence_refs:retainedEvidence,continuation:{...(prior?.continuation??{}),...(draft.next?{next_question:draft.next}:{}),...(draft.observation?{next_observation:draft.observation}:{})},...(reference?{review_baseline_ref:reference}:{})};
    if(!draft.next)delete manifest.continuation.next_question;
    if(!draft.observation)delete manifest.continuation.next_observation;
   }
