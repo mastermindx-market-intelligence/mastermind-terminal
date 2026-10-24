@@ -145,7 +145,7 @@ NOW = datetime(2026, 7, 1, 19, 0, tzinfo=timezone.utc)
 
 def _envelope():
     return {
-        "schema": "mastermind.risk_envelope/v1", "bundle_id": "test-bundle",
+        "schema": "mastermind.risk_envelope/v1", "bundle_id": "test-bundle", "market": "US",
         "source_session": "2026-07-01", "as_of": "2026-07-01",
         "observed_at": "2026-07-01T18:00:00Z", "produced_at": "2026-07-01T18:00:00Z",
         "stale_after": None, "revision": "settled", "data_state": "FRESH",
