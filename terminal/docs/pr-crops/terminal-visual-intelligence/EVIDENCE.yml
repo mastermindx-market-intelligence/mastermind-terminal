@@ -1,3 +1,5 @@
+# Current scoped source: composedDocumentLanguageProductionJoin20261024; parent records retain their original identities.
+# Current source qualification: documentLanguageRecapture20261024. Older recapture sections below remain historical.
 # Current Company design recapture is sharedShellCompanyDesignRecapture20261022; prior records remain historical.
 # Historical manifest history is retained below. Current scoped capture/source identity is sharedShellRefinementRecapture20261022.
 # Terminal Visual Intelligence Layer — current chart/session integration
@@ -11,7 +13,7 @@
 # This set was recaptured for PR #1133 cache assembly-completeness consumer fix.
 layoutFiles:
   terminal/app/workspace-chrome.css: "97e32bc24ed20479ea7b2e024ef6bc3883b9ead764098344f3ad4acea52b4bdd"
-  terminal/app/layout.tsx: "84ba7f7a8e7a569ab0e71c88cba0fefbbd19bccb38ddc112e65d603a3be5e1de"
+  terminal/app/layout.tsx: "9b675d52a647b4a92407958aa0ab7ffcc2632d95d003c89ca2eed2a1f4e35264"
   terminal/components/ChartPanel.tsx: "56457ac4fe11f5c4fcfe4ab0e14f487ac3b3eaa70d9daa81f21526ed1b47b871"
   terminal/components/ChartSettingsModal.tsx: "e1a22018044d0baee02eb84ea2396b3e135b0f7a3ef586bf3bc241f117df3928"
   terminal/components/ChartSettingsModal.module.css: "a1685d103511e11882f8d379b22570f018e47aed88266db5ca6fec8808100b0a"
@@ -45,7 +47,7 @@ layoutFiles:
   terminal/components/chrome/investor-shell-preview.css: "83d1842b9b057014f698d5e62627c3e492a1061d0e8713b7a2bdc3ca8753650e"
   terminal/components/chrome/shared-shell/shared-shell.css: "aa6555ac18306f31fb317d8941bd1dd530ab7c61c18e67d2a73a439329950339"
   terminal/app/(shell)/layout.tsx: "76270446f1ff2b2f60393eacb81d3ccb1c5f6e7c7b20b96d85b535c7d1da5b9a"
-  terminal/next.config.ts: "a0dc8c710922b25d865eb966c4da69a77c953bb6b98a9b5e0ed00d7e78beaf40"
+  terminal/next.config.ts: "2fa9402645a4312f9846e9f73b6df076e6747723041a5f2da4c6ada3c4cf375e"
   terminal/lib/investorShellPreview.ts: "d0e7797ffba0bfdda2fdabc1312abe07e631b5060ed9c58bbb320ed4b50624e9"
   terminal/lib/sharedShellContracts.ts: "dc7c893852c287b2a18c6b71cbced07bfa0996c1168490c5a8c24e4d3de01266"
   terminal/app/company-intelligence.css: "8b43f2046891837f6572fa2a59b7594547def9602b0454e1f14edba322da2a34"
@@ -58,16 +60,16 @@ layoutFiles:
   terminal/lib/chartPresentation.ts: "069f5af2dfc47c7c2f31ae21d23438825912c5e442cded7f18d794ebec834df3"
   terminal/lib/chartPriceWindow.ts: "1bcf4496ece02d755f75e9ddd0966e244d42dc86d62acba0a77f7c0208c33dd8"
   terminal/lib/chartReadoutSnapshot.ts: "3b0d3ff6d245006bd4543b9048049920ea9b2f2878eeb4bbe0dd705dcae0145e"
-  terminal/lib/i18n.tsx: "af0ffe39ba94d7a78997275a3d5ea71a853ca56eabbf42e0ce6d1d1dbe68ac3a"
+  terminal/lib/i18n.tsx: "13f33e3178b105a64f1f5df35974cd99041ef06f05bdece95939dd07a8b9fe7c"
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
   terminal/lib/flowActivity.ts: "eb1433e57c7b63a52978aa4e63419e62b3e1a0e0210869f93838a8b7529ce332"
 cropFiles:
-  desktop-context.png: "9ab1770f4b1a6a59c02730cf954d8360b359d5b1764b828281f06948308b9d13"
-  desktop-context-zh.png: "77077eee2e63819a48e2cb99645525cf9f0b79d29689dfbc7741a2b431887416"
+  desktop-context.png: "1c3540dd0ca90aa5b06aecf40a2af7a93cbe2557d94502b7e4d49327f1eb5b94"
+  desktop-context-zh.png: "ff89bce5a6e70b7ee0da2435b26d9334000d98fbe20ba29a682fb416547d7a9a"
   mobile-context.png: "4bb912458a311faed7e779e24dffda3907ce5af4eec95dbc1a9f21ae3978bbe7"
-  mobile-context-zh.png: "026a5eec18bd550659368edb3ad69d20dacd542bdd898b16b971d0284a67d087"
-  tablet-context.png: "371cb5a97f7571295ff71c117eb6c7869d180c1a3b72c68551783ce1cf41be23"
-  tablet-context-zh.png: "83e2284520987798d68f92c1db4bba81d4293ff82d48e9044ec5aedf50d2c4bf"
+  mobile-context-zh.png: "e405b67dd7664ccbe130e97c455a536b24e7b85ab51af9f96ec135e030608622"
+  tablet-context.png: "876d593ae5cbee00ff1326e661de1739f2a094bf621636d74473093218388234"
+  tablet-context-zh.png: "400ffa72ae0b5a8eb746132ccee9e02bf539a20d9189b210507b10d9e42dcd9e"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -90,8 +92,8 @@ browserResults:
   visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases
 browserReportPath: browser-report.json
 browserReportHashes:
-  visualReport: "a04c11f78ec3f2233c9ace7d078b035669447cde191db6aee0fa71463a454ecc"
-  mobileCrosshairReport: "a04c11f78ec3f2233c9ace7d078b035669447cde191db6aee0fa71463a454ecc"
+  visualReport: "aa38be0914a7be6dbccf26e9a4283521f4979d0941149ca83b10b438638b4580"
+  mobileCrosshairReport: "aa38be0914a7be6dbccf26e9a4283521f4979d0941149ca83b10b438638b4580"
 drawingDockRecapture:
   sourceHead: 8a3135bc6eaa307f3d581223e70471df8de49d95
   reason: DrawingSidebar.tsx and TerminalShell.tsx changed so the drawing dock's group button follows the tool the shell actually armed
@@ -618,3 +620,25 @@ ex03Post1140ProtectedIntegration20261023:
   browserReportSha256: "a04c11f78ec3f2233c9ace7d078b035669447cde191db6aee0fa71463a454ecc"
   productionProof: false
   receipt: "../ex03-search/ci-repair-20261022/post1140-master-integration-20261023.json"
+
+productionShellBuildConfigRecapture20261024:
+  sourceHead: "08bca3d53b52f245f081fed26cfd7ac352c52488"
+  receipt: production-shell-config-recapture.json
+  scope: "desktop-context.png, desktop-context-zh.png, tablet-context.png, tablet-context-zh.png, mobile-context.png, mobile-context-zh.png"
+  qualification: "Actual local ordinary-profile captures; prior functional reports and unrecaptured images retain their original identities."
+
+documentLanguageRecapture20261024:
+  sourceHead: e2846880681d4b9aff4a060e1321f50f240cafc7
+  historicalSource: 919114d1c27f0f588d9d5a4d52574f19b0137d6d
+  historicalManifest: history/before-document-language-20261024.yml
+  command: "TERMINAL_E2E_PORT=35061 PLAYWRIGHT_JSON_OUTPUT_NAME=docs/pr-crops/terminal-visual-intelligence/browser-report.json NODE_OPTIONS=--no-experimental-webstorage npm run test:e2e:responsive -- e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --reporter=list,json"
+  actualBrowserResult: "30 passed; zero failed, skipped or flaky; no retries"
+  actualCrops: Six EN/ZH desktop, tablet, mobile current Chart context captures
+  receiptIndex: ../document-language/recapture-index.json
+  productionProof: false
+
+composedDocumentLanguageProductionJoin20261024:
+  sourceHead: "03e678a8992b484a3bbf0d385e23724e8cf5f95b"
+  receipt: composed-language-production-recapture.json
+  scope: "desktop-context.png, desktop-context-zh.png, tablet-context.png, tablet-context-zh.png, mobile-context.png, mobile-context-zh.png"
+  qualification: "Actual joined-source ordinary-profile local captures; historical full30 and prior6 reports are retained, not relabeled."

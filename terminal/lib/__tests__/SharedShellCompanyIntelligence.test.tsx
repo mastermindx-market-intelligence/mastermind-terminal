@@ -7,9 +7,9 @@ import { normalizeEventWorkspace, type RetainedEventWorkspaceReceipt } from "@/l
 import { companyRetainedContextParams } from "@/lib/companyRetainedContext";
 import raw from "./fixtures/aapl-event-workspace.json";
 
-const edges=vi.hoisted(()=>({identity:{kind:"account",userId:"11111111-1111-4111-8111-111111111111",email:"same@example.test"},load:vi.fn(),open:vi.fn()}));
+const edges=vi.hoisted(()=>({identity:{kind:"account",userId:"11111111-1111-4111-8111-111111111111",email:"same@example.test"},load:vi.fn(),open:vi.fn(),routerSearch:null as string|null}));
 vi.mock("@/components/onboarding/OnboardingProvider",()=>({useOnboarding:()=>({open:edges.open})}));
-vi.mock("next/navigation",()=>({useSearchParams:()=>new URLSearchParams(window.location.search)}));
+vi.mock("next/navigation",()=>({useSearchParams:()=>new URLSearchParams(edges.routerSearch ?? window.location.search)}));
 vi.mock("@/components/chrome/AppShell",()=>({useShellIdentity:()=>edges.identity}));
 vi.mock("@/lib/i18n",()=>({useLang:()=>({lang:"en"})}));
 vi.mock("@/lib/companyRetainedContext",async original=>({...await original<typeof import("@/lib/companyRetainedContext")>(),loadCompanyRetainedContext:edges.load}));
@@ -21,12 +21,44 @@ const receipt:RetainedEventWorkspaceReceipt={schema:"earnings.retained_baseline.
 const success={ok:true as const,workspace,receipt};
 let root:Root,host:HTMLDivElement;
 let pending:Array<{resolve:(value:typeof success)=>void;signal:AbortSignal}>;
-beforeEach(()=>{edges.load.mockReset();edges.identity={kind:"account",userId:"11111111-1111-4111-8111-111111111111",email:"same@example.test"};pending=[];edges.load.mockImplementation(({signal}:{signal:AbortSignal})=>new Promise(resolve=>pending.push({resolve,signal})));host=document.createElement("div");document.body.append(host);root=createRoot(host);window.history.replaceState({},"","/analysis?symbol=AAPL&page=intelligence");});
+beforeEach(()=>{edges.routerSearch=null;edges.load.mockReset();edges.identity={kind:"account",userId:"11111111-1111-4111-8111-111111111111",email:"same@example.test"};pending=[];edges.load.mockImplementation(({signal}:{signal:AbortSignal})=>new Promise(resolve=>pending.push({resolve,signal})));host=document.createElement("div");document.body.append(host);root=createRoot(host);window.history.replaceState({},"","/analysis?symbol=AAPL&page=intelligence");});
 afterEach(async()=>{await act(async()=>root.unmount());host.remove();vi.useRealTimers();});
 async function render(symbol="AAPL"){await act(async()=>root.render(<SharedShellCompanyIntelligence sym={symbol} onOpenTx={()=>{}}/>));}
 async function resolve(index:number){await act(async()=>pending[index].resolve(success));}
 
 describe("retained Company active scope",()=>{
+ it("keeps the freshly authorized event visible after pin export while the router snapshot lags",async()=>{
+  edges.routerSearch=window.location.search;
+  await render();await resolve(0);
+  expect(window.location.search).toContain("ci_event=");
+  expect(edges.routerSearch).not.toContain("ci_event=");
+  expect(host.querySelector('[data-retained-company="AAPL"]')).not.toBeNull();
+  expect(host.textContent).not.toContain("Verifying");
+  expect(edges.load).toHaveBeenCalledTimes(1);
+ });
+ it("hides the previous receipt and revalidates external pin changes and Back with a stale router snapshot",async()=>{
+  edges.routerSearch=window.location.search;
+  await render();await resolve(0);const first=window.location.href;
+  const changed=new URL(first);changed.searchParams.set("ci_fingerprint","d".repeat(64));
+  await act(async()=>{window.history.pushState({},"",changed);window.dispatchEvent(new Event("mmx:shell-location"));});
+  expect(host.querySelector("[data-retained-company]")).toBeNull();
+  expect(edges.load).toHaveBeenCalledTimes(2);
+  expect(edges.load.mock.calls[1][0].pin.fingerprint).toBe("d".repeat(64));
+  await act(async()=>{window.history.replaceState({},"",first);window.dispatchEvent(new PopStateEvent("popstate"));});
+  expect(edges.load).toHaveBeenCalledTimes(3);expect(pending[1].signal.aborted).toBe(true);
+  await resolve(1);expect(host.querySelector("[data-retained-company]")).toBeNull();
+  await resolve(2);expect(host.querySelector('[data-retained-company="AAPL"]')).not.toBeNull();
+ });
+ it("opens current explicitly after clearing the old pin even while the router snapshot retains it",async()=>{
+  window.history.replaceState({},"","/analysis?symbol=AAPL&page=intelligence&"+companyRetainedContextParams(receipt).toString());
+  edges.routerSearch=window.location.search;await render();
+  await act(async()=>pending[0].resolve({ok:false,code:"HISTORICAL_UNAVAILABLE",reason:"rights_denied"} as unknown as typeof success));
+  const open=Array.from(host.querySelectorAll("button")).find(button=>button.textContent==="Open current event")!;
+  await act(async()=>open.click());
+  expect(window.location.search).not.toContain("ci_event=");
+  expect(edges.load).toHaveBeenCalledTimes(2);expect(edges.load.mock.calls[1][0].pin).toBeNull();
+  expect(pending[0].signal.aborted).toBe(true);
+ });
  it("distinguishes denied current rights from a missing event without replacing the selection",async()=>{
   edges.load.mockResolvedValue({ok:false,code:"HISTORICAL_UNAVAILABLE",reason:"rights_denied"});
   window.history.replaceState({},"","/analysis?symbol=AAPL&page=intelligence&"+companyRetainedContextParams(receipt).toString());
