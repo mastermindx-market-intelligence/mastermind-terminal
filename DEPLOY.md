@@ -257,3 +257,31 @@ The settings › Webhooks panel (`SAFE_ENDPOINT_COLUMNS` in `terminal/lib/webhoo
   complete, nothing more. The discriminating identity is the marker, and it is only trustworthy because
   rollback now restores it. For live proof from outside the box, read `?dpl=<full sha>` on
   `/_next/static/*` or `data-dpl-id` on `<html>` — never `BUILD_ID`.
+
+## Shared Shell production promotion
+
+The production profile stays off by default. After exact beta journey acceptance
+and normal protected source/CI qualification, the attended host configuration lane
+may install the landed `ops/terminal-shared-shell.conf` at
+`/etc/systemd/system/terminal.service.d/shared-shell.conf` (root-owned, non-writable
+by group/others) and daemon-reload. It declares only `MMX_SHARED_SHELL_BUILD=1`;
+it does not enable an already running or restored older app. Never install a
+runtime `MMX_SHARED_SHELL=1` override on production. Preserve all other unit drop-ins.
+
+Before building, the incumbent release owner checks the installed bytes against
+the exact admitted target commit and the effective unit BUILD flag, then derives
+the build flag. Missing activation keeps production off; any partial or modified
+activation refuses. Next pins the feature flag into the resulting build. The
+owner rechecks activation before restart and verifies the admitted protocol,
+bridge, document, registry and source tuple before accepting an enabled generation.
+
+Promotion still uses the single normal transaction:
+`/opt/terminal/terminal-build.sh --target production --target-sha <qualified-40-hex>`.
+Its installed owner must first contain this reviewed activation support through
+the existing attended canonical-source installation path; the incumbent old owner
+unsets production's flag and self-updates only for a subsequent run. Do not treat
+a source merge or a drop-in alone as activation. Publish the app-origin bridge and
+Caddy framing/redirect exceptions through the normal Macro owner before promotion,
+preserving beta and foreign/no-opt-in/internal negatives. Final proof uses the real
+`app.mastermind-x.com` account, shared-shell status, document READY/navigation and
+private/no-store boundary. Beta proof alone is not default-production launch.
