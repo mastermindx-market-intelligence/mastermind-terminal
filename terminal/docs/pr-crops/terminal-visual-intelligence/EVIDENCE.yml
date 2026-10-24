@@ -618,3 +618,6 @@ ex03Post1140ProtectedIntegration20261023:
   browserReportSha256: "a04c11f78ec3f2233c9ace7d078b035669447cde191db6aee0fa71463a454ecc"
   productionProof: false
   receipt: "../ex03-search/ci-repair-20261022/post1140-master-integration-20261023.json"
+
+# Recorded raw LEX/capture identities above remain unchanged; this binds only its unused pending-message omission.
+lexProjection: {"schema":"terminal.lex_capture_projection.v1","omittedProperty":"obDonePrefsSyncing","capturedRawSha256":"af0ffe39ba94d7a78997275a3d5ea71a853ca56eabbf42e0ce6d1d1dbe68ac3a","projectedSha256":"f7b2a2f8ab1abe3d7c3b794357a22ea9bf3a2b76e54dc7786a91f61f8805e712","sourceGitBlob":"bedd60274c196559776d87487a454dbfe350bd74","sourceRecoveryCommit":"a7a3d591590a1cbd09bc94ee602e4c980d8aec30","captureCommitLocallyAvailable":false}

@@ -40,3 +40,6 @@ measurements:
   mobile-zh-overview.png: { teamLine: "你是“Acme”团队的所有者。", currentPasswordField: false, passwordEditVisible: false, noPasswordLine: "你登录时未设置密码，因此这里没有可更改的内容。" }
   mobile-en-password.png: { teamLine: "You are the owner of Acme.", currentPasswordField: true, passwordEditVisible: false, noPasswordLine: "" }
   mobile-zh-password.png: { teamLine: "你是“Acme”团队的所有者。", currentPasswordField: true, passwordEditVisible: false, noPasswordLine: "" }
+
+# Recorded raw LEX/capture identities above remain unchanged; this binds only its unused pending-message omission.
+lexProjection: {"schema":"terminal.lex_capture_projection.v1","omittedProperty":"obDonePrefsSyncing","capturedRawSha256":"af0ffe39ba94d7a78997275a3d5ea71a853ca56eabbf42e0ce6d1d1dbe68ac3a","projectedSha256":"f7b2a2f8ab1abe3d7c3b794357a22ea9bf3a2b76e54dc7786a91f61f8805e712","sourceGitBlob":"bedd60274c196559776d87487a454dbfe350bd74","sourceRecoveryCommit":"a7a3d591590a1cbd09bc94ee602e4c980d8aec30","captureCommitLocallyAvailable":true}
