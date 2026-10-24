@@ -23,7 +23,7 @@
 const fs = require("fs");
 const log = require("./log");
 const { classifySession, etDate } = require("./usSession");
-const { NAME_REALTIME_MAX_LAG_MS, marketClock, isValidClockMs } = require("./snapshot");
+const { NAME_REALTIME_MAX_LAG_MS, marketClock, isValidClockMs, calendarSession } = require("./snapshot");
 
 const STALE_EVICT_MS = 45 * 60 * 1000; // 45 min
 const MANIFEST_CHECK_MIN_INTERVAL = 30 * 1000; // ≤1 stat/reparse per 30 s
@@ -389,6 +389,13 @@ class Store {
         if (!q || q.market !== "us") continue;
         const snap = snapshotFeed.get(sym, now);
         if (!snap) continue;
+        const calendarPhase = calendarSession(now);
+        // An extended print cannot create a regular session, including the
+        // first read after 09:30 with no opening print. Post-close day.c remains
+        // the existing official-close fallback, never the post-market trade.
+        if (calendarPhase === "pre") continue;
+        if (calendarPhase === "rth" && snap.printMs != null &&
+            calendarSession(snap.printMs) !== "rth") continue;
 
         const ownsSnapshotClock = Object.prototype.hasOwnProperty.call(q, SNAPSHOT_MARKET_MS);
         const incumbentMarketMs = ownsSnapshotClock ? q[SNAPSHOT_MARKET_MS] : null;
@@ -398,7 +405,8 @@ class Store {
         // The feed floor cannot lend this name a clock. Revalidate the same origin,
         // finite/nonfuture timestamp and actual ET session used by SnapshotFeed.
         const clock = marketClock(snap, now);
-        const printFresh = clock != null && clock.lagMs <= NAME_REALTIME_MAX_LAG_MS;
+        const printFresh = calendarPhase === "rth" && calendarSession(snap.printMs) === "rth" &&
+          clock != null && clock.lagMs <= NAME_REALTIME_MAX_LAG_MS;
         // Real-time price for this row: the last TRADE, which is fresher than day.c.
         const rtPrice =
           realtimeTier && printFresh && Number.isFinite(snap.printPrice) && snap.printPrice > 0
@@ -525,6 +533,23 @@ class Store {
             for (const field of ["extVenue", "extPriceKind", "extReceivedTs", "extPublishedTs", "extExpiresTs", "extCaptureId", "extGeneration"]) delete copy[field];
             out[sym] = copy;
           }
+        }
+      }
+    }
+
+    // The licensed snapshot leg composes its own independently dated extended
+    // tuple. It needs no new hub wiring, publisher, demand pass or timer.
+    if (snapshotFeed && typeof snapshotFeed.getExt === "function") {
+      for (const sym of symList) {
+        const q = out[sym];
+        if (!q || q.market !== "us") continue;
+        const reference = this.anchorCache && this.anchorCache.get(sym, now);
+        const ext = snapshotFeed.getExt(sym, now, reference);
+        const snapshotOwned = q.extSource === "polygon-snapshot" || q.extSource === "polygon-snapshot-rt";
+        if (ext || snapshotOwned) {
+          const copy = { ...q };
+          for (const field of Object.keys(copy)) if (field.startsWith("ext")) delete copy[field];
+          out[sym] = ext ? { ...copy, ...ext } : copy;
         }
       }
     }
