@@ -7,7 +7,7 @@ vi.mock("@/lib/eventWorkspace",async()=>({
   ...await vi.importActual<typeof import("@/lib/eventWorkspace")>("@/lib/eventWorkspace"),
   resolveCurrentEventWorkspaceFromR2:current,resolveRetainedEventWorkspaceFromR2:whole,
 }));
-vi.mock("@/lib/investigationIssuerRelease",()=>({resolveInvestigationIssuerRelease:selected}));
+vi.mock("@/lib/investigationIssuerRelease",async()=>({...await vi.importActual<typeof import("@/lib/investigationIssuerRelease")>("@/lib/investigationIssuerRelease"),resolveInvestigationIssuerRelease:selected}));
 import {GET} from "@/app/api/investigations/baseline/route";
 import {loadCompanyRetainedContext} from "../companyRetainedContext";
 import {normalizeEventWorkspace} from "../eventWorkspace";
@@ -23,15 +23,15 @@ const query=new URLSearchParams(pin).toString();
 const request=(q:string)=>new Request(`https://terminal.test/api/investigations/baseline?${q}`);
 const localFetch:typeof fetch=async(input,init)=>GET(new Request(`https://terminal.test${input}`,init));
 beforeEach(()=>{
-  vi.clearAllMocks();getUser.mockResolvedValue({data:{user:{id:"fixture-principal"}},error:null});
+  vi.clearAllMocks();getUser.mockResolvedValue({data:{user:{id:"11111111-1111-4111-8111-111111111111"}},error:null});
   current.mockResolvedValue({ok:true,state:"ready",workspace:golden});
   whole.mockResolvedValue(unavailable);selected.mockResolvedValue(unavailable);
 });
 
 describe("Company context and selected-release endpoint scope composition",()=>{
-  it("keeps no-scope IW2 requests on the selected owner with no authorization invented",async()=>{
+  it("binds no-scope IW2 reads to the selected server-principal policy",async()=>{
     expect((await GET(request(query))).status).toBe(503);
-    expect(selected.mock.calls[0][0]).toEqual(pin);expect(selected.mock.calls[0][2].authorize).toBeUndefined();
+    expect(selected.mock.calls[0][0]).toEqual(pin);expect(typeof selected.mock.calls[0][2].authorize).toBe("function");expect(selected.mock.calls[0][2].requestScope.principal_id).toBe("11111111-1111-4111-8111-111111111111");
     expect(whole).not.toHaveBeenCalled();expect(current).not.toHaveBeenCalled();
   });
   it("routes explicit Company pins only to the whole owner; a selected grant cannot substitute",async()=>{

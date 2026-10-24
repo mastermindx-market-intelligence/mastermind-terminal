@@ -149,24 +149,57 @@ selected source clocks (unknown stays unknown), container hashes/byte counts and
 separate selection fingerprint. It emits no transcript, QA, facts, excerpts, model
 output, other source bodies, or whole workspace payload.
 
-The current rights dependency must supply a fresh `sec_edgar` display decision bound
-to that document/hash, registry revision, policy revision and checked-at time. It is
-injectable for owner integration tests and **absent by default in production**. The
-baseline route therefore reports `rights_unavailable` until the selected document's
-current policy and native provenance are qualified and connected. An old `rp_public_primary_v1` annotation cannot authorize
-the mixed workspace. The previous broad authorizer now refuses; preserved G2/G4 source
-foundations do not bypass that refusal. Source fixtures are not a production grant.
+The no-scope selected baseline, saved review and platform-snapshot replay routes
+supply `createSelectedIssuerReleaseReadOptions(user.id, request.signal)` using the
+principal returned by the existing server `getUser`. This is a narrow executable
+read policy, not a general source-family or whole-workspace grant. An absent
+callback still denies; a historical `rp_public_primary_v1` label, a SEC-looking URL
+or `byte_replayed` alone cannot authorize display.
 
-The authorization callback separately receives a frozen `IssuerReleaseSourceContext`
-containing `source_url` and `provenance="retained_owner_metadata"`. This is declared
-metadata bound by the immutable workspace, not a verified acquisition receipt or an
-authorization decision. It does not enter `IssuerReleaseIdentity`, the returned
-selection projection or its saved fingerprint. The current publisher's offline
-binding of supplied text and URL does not independently attest the final HTTP origin,
-redirects or decoding of acquired bytes. An origin-qualified permission must validate
-a genuine receipt through that existing producer; old rows cannot acquire one by
-relabeling `byte_replayed`, public-primary annotations or a SEC-looking URL. Neither
-this callback context nor policy-source qualification enables either endpoint scope.
+The immutable owner may supply `acquisition_receipt` conforming to
+`earnings_release.sec_acquisition.v1`. The checked-in schema and synthetic byte
+vector are exact copies from Macro commit `2b4408859faf5002093000b6ecf6e4e69983d455`.
+The consumer strictly validates closed fields, selected URL/hash/filing binding,
+canonical HTTPS SEC filing URLs, at most five contiguous same-filing redirects
+with raw Location validation, status 200, recorded entity/UTF8 digests and lengths,
+strict decoder policy and a real acquisition timestamp no later than its immutable
+generation emission. This bound uses emission, not a carried-forward source
+first-observation clock. Filing index and index-header URLs are refused. Valid records are copied
+and deeply frozen. A present malformed receipt invalidates the owner record; an
+old record without one remains readable by its existing non-grant consumers but
+is unavailable to this selected read policy. No old timestamp or receipt is
+synthesized. The entity is `requests.content` after content decoding, not raw wire
+bytes. Parsing retained declarations does not independently replay acquired bytes
+or prove the producer was correctly installed; producer qualification and actual
+retained publication remain separate acceptance obligations.
+
+`SELECTED_SEC_READ_POLICY` records the reviewed SEC public-filing basis, exact
+acquisition-schema digest, read purpose, eligibility and exclusions. Its
+`local_executable_policy.sha256:` revision hashes our canonical executable policy;
+it is not an SEC-issued policy version or an external registry revision. The
+policy does not grant transcript/QA, mixed Company context, model input, export,
+owner writes, or use of SEC logos/artwork/trademarks.
+
+For each selected document evaluation the authorization callback separately
+receives a frozen `IssuerReleaseSourceContext`: the retained source URL,
+`provenance="retained_owner_metadata"`, optional validated acquisition receipt,
+and current request scope. The server creates a fresh `checked_at` evaluation
+clock and binds the decision to the exact authenticated principal, `read` action,
+`investigation.selected_issuer_release` purpose, company, event, generation,
+document and source digest. An acquisition later than the evaluation is refused.
+Review evaluates the saved and current generations separately; replay reauthorizes
+the saved root and every actual selected generation. A stale checked-at value,
+other tuple/principal/purpose, or wrong policy version/revision is unavailable.
+
+The callback context and current decision scope add no direct fields to
+`IssuerReleaseIdentity`, the bounded selection projection or its fingerprint
+formula. The acquisition receipt is part of the immutable raw owner JSON, so
+newly retained receipt bytes legitimately change the existing container and
+transitive selection fingerprints; identical retained bytes keep their existing
+fingerprints. The decision carries its binding separately in selection rights;
+acquisition and request clocks do not fill unknown source/publication clocks.
+Synthetic tests establish this source contract, not real authenticated acquisition,
+production source-use permission, migration qualification or release acceptance.
 
 The shared baseline endpoint has two explicit consumer contracts. Existing IW2
 requests without `scope` keep the selected issuer-release projection. The Company
@@ -175,11 +208,11 @@ or its exact four-field retained pin; only the whole immutable workspace resolve
 may answer that scope. Unknown or duplicate scopes and mixed selectors are invalid.
 The Company client continues to reject a selected projection, including one paired
 with a superficially valid whole-workspace receipt; it never falls back to current.
-Neither scope currently supplies a qualified production authorizer. In particular,
-the whole resolver is called without one and refuses before fetching retained
-generation bytes. This separation repairs the endpoint/schema collision; it does
-not restore the withdrawn public-primary grant, qualify full Company availability,
-authorize a source family, or change the original admission/release holds.
+The whole resolver is still called without an authorizer and refuses before
+fetching retained generation bytes. The selected factory cannot be borrowed by
+that scope. This separation repairs the endpoint/schema collision; it does not
+restore the withdrawn public-primary grant, qualify full Company availability,
+change the original admission/release holds, or assert producer installation.
 Symbol bootstrap still reads the current owner to establish the exact company and
 generation; the zero-retained-generation-read denial is not a zero-network claim
 for that bootstrap. Client and server scope changes require coupled adoption:

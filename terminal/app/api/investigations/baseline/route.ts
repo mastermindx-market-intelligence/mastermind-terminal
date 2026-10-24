@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { R2_BASE } from "@/lib/upstreams";
 import { normalizeCompanyIntelligenceSymbol, resolveCurrentEventWorkspaceFromR2, resolveRetainedEventWorkspaceFromR2, type RetainedEventWorkspacePin } from "@/lib/eventWorkspace";
-import { resolveInvestigationIssuerRelease } from "@/lib/investigationIssuerRelease";
+import { createSelectedIssuerReleaseReadOptions, resolveInvestigationIssuerRelease } from "@/lib/investigationIssuerRelease";
 import { investigationApiUnavailable } from "@/lib/investigationApiAdmission";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -47,9 +47,9 @@ export async function GET(request: Request) {
       } });
     }
     // Existing no-scope IW2 callers retain their selected-release contract.
-    // Current SEC authorization stays absent/default-deny; neither scope may
-    // borrow historical public-primary labels or the other scope's grant.
-    const result = await resolveInvestigationIssuerRelease(pin, R2_BASE, { signal: request.signal });
+    // Only a qualified selected receipt can earn this principal's read decision.
+    // Neither scope borrows public-primary labels or the other scope's grant.
+    const result = await resolveInvestigationIssuerRelease(pin, R2_BASE, createSelectedIssuerReleaseReadOptions(user.id,request.signal));
     if (!result.ok) return response(result, result.reason === "invalid_reference" ? 400 : 503);
     return response(result);
   } catch { return response({ ok: false, code: "HISTORICAL_UNAVAILABLE", reason: "owner_unavailable" }, 503); }

@@ -9,6 +9,7 @@
  */
 
 import { normalizeCompanyIntelligenceSymbol } from "./companyIntelligence";
+import { parseSecAcquisitionReceipt, type SecAcquisitionReceipt } from "./issuerReleaseSecAcquisition";
 
 export { normalizeCompanyIntelligenceSymbol };
 
@@ -170,6 +171,7 @@ export interface EventWorkspaceSource {
   filing_key: { cik: string; accession: string } | null;
   typed_absence: EventWorkspaceTypedAbsence | null;
   source_clock?: EventWorkspaceSourceClock | null;
+  acquisition_receipt?: SecAcquisitionReceipt;
 }
 
 export interface EventWorkspaceSourceClock {
@@ -1227,6 +1229,12 @@ function normalizeSource(raw: unknown, eventId: string): EventWorkspaceSource | 
   if (url === undefined) return null;
   const documentId = obj.document_id == null ? null : requiredString(obj.document_id, MAX_ID);
   const sourceSha = obj.source_sha256 == null ? null : validSha(obj.source_sha256) ? obj.source_sha256 : null;
+  let acquisition:SecAcquisitionReceipt|null=null;
+  if(Object.prototype.hasOwnProperty.call(obj,"acquisition_receipt")){
+    if(kind!=="issuer_release"||obj.receipt_state!=="byte_replayed"||!key||!url||!sourceSha)return null;
+    acquisition=parseSecAcquisitionReceipt(obj.acquisition_receipt,{filing_key:key,source_url:url,source_sha256:sourceSha});
+    if(!acquisition)return null;
+  }
   const clockPresent = Object.prototype.hasOwnProperty.call(obj, "source_clock") && obj.source_clock != null;
   let clock: EventWorkspaceSourceClock | undefined;
   if (clockPresent) {
@@ -1246,6 +1254,7 @@ function normalizeSource(raw: unknown, eventId: string): EventWorkspaceSource | 
     filing_key: key,
     typed_absence: absence,
     ...(clock ? { source_clock: clock } : {}),
+    ...(acquisition ? { acquisition_receipt: acquisition } : {}),
   };
 }
 
@@ -1352,6 +1361,9 @@ export function normalizeEventWorkspace(
   for (const item of obj.sources) {
     const source = normalizeSource(item, eventId);
     if (!source) return null;
+    // Acquisition completion belongs to this immutable emission, not to a
+    // carried-forward lifecycle/source first-observation clock.
+    if (source.acquisition_receipt && Date.parse(source.acquisition_receipt.acquired_at) > Date.parse(obj.generated_at)) return null;
     sources.push(source);
   }
   if (!Array.isArray(obj.warnings) || obj.warnings.length > MAX_WARNINGS) return null;
