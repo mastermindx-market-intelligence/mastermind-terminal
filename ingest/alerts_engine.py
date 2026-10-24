@@ -129,6 +129,9 @@ CA_ROOT = Path(__file__).resolve().parents[1]
 if str(CA_ROOT) not in sys.path:
     sys.path.insert(0, str(CA_ROOT))
 from ingest.options_frozen_lifecycle import FrozenNodeLifecycleAdapter  # noqa: E402
+from ingest.options_frozen_service import FrozenNodeServiceReader  # noqa: E402
+from ingest.options_frozen_assembly import assemble_frozen_node_services  # noqa: E402
+from ingest.options_frozen_hit import FrozenNodeHitPublisher, runtime_record  # noqa: E402
 
 DEFAULT_ENV = "/opt/terminal/terminal/.env.local"
 DEFAULT_DATA = "/opt/terminal/terminal/public/data"
@@ -542,6 +545,10 @@ class Supa:
         if name not in {"read_frozen_node_runtime", "arm_frozen_node_runtime", "commit_frozen_node_state"}:
             return {"kind": "unavailable", "reason": "unknown lifecycle operation"}
         status, parsed, _ = http_json_status(f"{self.base}/rpc/{name}", self.h, method="POST", body=params)
+        if (isinstance(params.get('p_hit'), dict) and params['p_hit'].get('mode') in ('prepare', 'commit', 'fence', 'settle')
+                and (status == 0 or status >= 500
+                     or (200 <= status < 300 and not isinstance(parsed, dict)))):
+            return {"kind": "effect_unknown", "reason": "atomic hit outcome unavailable"}
         return parsed if 200 <= status < 300 and isinstance(parsed, dict) else {
             "kind": "unavailable", "reason": "lifecycle RPC unavailable"}
 
@@ -550,7 +557,7 @@ class Supa:
         return FrozenNodeLifecycleAdapter(self.frozen_runtime_rpc,
             fingerprint=frozen_node_target_fingerprint, instant_micros=_fnp_instant_micros,
             normalize_state=_fnp_normalize_state, format_instant=_fnp_format_instant_utc,
-            default_within_pct=FNP_DEFAULT_WITHIN_PCT)
+            default_within_pct=FNP_DEFAULT_WITHIN_PCT, source_origin=self.base.removesuffix("/rest/v1"))
 
     @staticmethod
     def _classify(status: int) -> str:
@@ -578,8 +585,19 @@ class Supa:
             return True
         return False
 
+    def frozen_publication_clear(self, lane: str) -> bool:
+        """Read-only startup fence. Unknown/malformed/table-absent never clear it."""
+        url = (f'{self.base}/alert_runs?lane=eq.{urllib.parse.quote(lane, safe="")}'
+               '&error_class=in.(frozen_publication_pending,frozen_fire_effect_unknown)'
+               '&select=run_id&limit=1')
+        try:
+            status, rows, _ = http_json_status(url, self.h)
+            return 200 <= status < 300 and isinstance(rows, list) and not rows
+        except Exception:
+            return False
+
     def start_run(self, lane: str, run_id: str, started_at: str, source_asof: str | None,
-                   lane_cadence_budget_s: int | None) -> bool:
+                   lane_cadence_budget_s: int | None, *, frozen_pending: bool = False) -> bool:
         """Insert the 'started' half of the two-phase alert_runs receipt. Returns False (and logs
         a typed READ_UNAVAILABLE line) when alert_runs has not been applied yet — the fire path is
         unaffected either way, this is receipts-only."""
@@ -588,8 +606,12 @@ class Supa:
             "lane": lane, "run_id": run_id, "started_at": started_at,
             "source_asof": source_asof, "lane_cadence_budget_s": lane_cadence_budget_s,
         }
+        if frozen_pending:
+            body["error_class"] = "frozen_publication_pending"
         status, parsed, text = http_json_status(url, {**self.h, "Prefer": "return=minimal"},
                                                  method="POST", body=body)
+        if frozen_pending and not 200 <= status < 300:
+            return False  # No acknowledged durable pre-transport barrier, no publication.
         if self._table_missing(status, parsed):
             log("READ_UNAVAILABLE alert_runs (start) — table not applied yet; run proceeds without a receipt")
             return False
@@ -619,7 +641,7 @@ class Supa:
         if self._table_missing(status, parsed):
             log("READ_UNAVAILABLE alert_runs (conclude) — table not applied yet")
             return False
-        if status >= 300:
+        if not 200 <= status < 300:
             log(f"{self._classify(status)} alert_runs (conclude) — {status}: {text[:200]}")
             return False
         return True
@@ -2057,7 +2079,8 @@ def _evaluate_frozen_node(alert: dict, data: "Data | None", cond: dict, fn, read
     """Compose separate lifecycle provenance and source/action context, both explicit.
 
     Lifecycle createdAt is this generation's server creation instant, NOT row.created_at.
-    No reader/adapter is installed by main(); row JSON cannot supply either capability.
+    Only explicit deployment configuration may construct the reader/adapter;
+    row JSON cannot supply either capability. Publication is separate and off.
     """
     row_state = cond.get(FNP_STATE_KEY) if isinstance(cond.get(FNP_STATE_KEY), dict) else None
     if reader is None:
@@ -2073,7 +2096,10 @@ def _evaluate_frozen_node(alert: dict, data: "Data | None", cond: dict, fn, read
         runtime = lifecycle_adapter.read(bound_alert, evaluation_at)
         if runtime is None:
             return None, None, "frozen-node protected lifecycle unavailable", row_state or {}
-        admission = reader(json.loads(json.dumps(bound_alert)), evaluation_at)
+        admission = (reader.read(runtime, json.loads(json.dumps(bound_alert)), evaluation_at,
+                                  source_origin=lifecycle_adapter.source_origin)
+                     if isinstance(reader, FrozenNodeServiceReader)
+                     else reader(json.loads(json.dumps(bound_alert)), evaluation_at))
         if not isinstance(admission, dict):
             return None, None, "frozen-node admission unavailable", row_state or {}
         admission = json.loads(json.dumps(admission, allow_nan=False))
@@ -2096,7 +2122,38 @@ def _evaluate_frozen_node(alert: dict, data: "Data | None", cond: dict, fn, read
     result = fn(cond, envelope, admission, quote, None)
     if capture is not None:
         capture["runtime"] = runtime
+        if result[0] is True:
+            capture["admission"] = json.loads(json.dumps(admission, allow_nan=False))
+            capture["quote"] = json.loads(json.dumps(quote, allow_nan=False))
     return result
+
+
+def _frozen_hit_envelope(runtime, state, admission, quote, *, invocation=None):
+    """Installed evaluator output only; no condition-authored grant or row state."""
+    condition = runtime.predicate
+    root = normalize_opt_alert_root(condition.get('root'))
+    if root is None or condition.get('target', {}).get('root') != root:
+        raise ValueError('frozen hit root mismatch')
+    vintage = _minute_vintage(state['lastQuoteAt'])
+    alert = {'id': runtime.alert_id, 'condition': condition}
+    receipt = {'schema': 'options.frozen_hit_receipt/v1', 'runtime': runtime_record(runtime),
+        'admission': admission, 'quote': quote, 'nextState': state,
+        'evaluationAt': runtime.evaluation_at, 'vintage': vintage,
+        'conditionVersion': condition_version(condition), 'fireEventId': mint_fire_event_id(alert, vintage)}
+    if invocation is not None:
+        receipt['invocation'] = invocation
+    described = {**condition, FNP_STATE_KEY: state}
+    en = _condition_plain_en(described, root)
+    zh = _condition_plain_zh(described, root)
+    payload = {'subject': f'{root} alert: {en}', 'subject_zh': f'{root}提醒：{zh}',
+        'summary_plain': f'Your alert fired: {en}.', 'summary_plain_zh': f'你的提醒已触发：{zh}。',
+        'ticker': root, 'condition_plain': en, 'condition_plain_zh': zh, 'value': quote['spot'],
+        'evidence_url': '/alerts', 'fired_at': runtime.evaluation_at,
+        'category': 'options_exposure_node', 'requires_tier': 'essential',
+        'frozen_node': {'target': condition['target'], 'within_pct': state['withinPct'],
+            'quote': {'asof': state['lastQuoteAt'], 'basis': state['lastQuoteBasis']},
+            'publication_receipt': receipt}}
+    return json.loads(json.dumps([receipt, payload], allow_nan=False))
 
 
 # Options-alert condition types that carry per-condition hysteresis state on a cond sub-key.
@@ -2226,6 +2283,7 @@ def run_once(
     lane_cadence_budget_s: int = 300,
     frozen_node_reader=None,
     frozen_lifecycle_adapter=None,
+    frozen_node_publisher=None,
 ) -> dict:
     """The real per-run body, extracted out of main() so tests drive production code directly
     (Meta-CEO ruling item 3) instead of re-deriving its arithmetic inline. Owns the two-phase
@@ -2247,10 +2305,15 @@ def run_once(
     through to start_run's receipt rather than a literal baked into this function body.
 
     `frozen_node_reader` and `frozen_lifecycle_adapter` are explicit, separate inputs for
-    the preparatory frozen type. Both default unavailable; main() enables neither. Only the
+    the preparatory frozen type. Both default unavailable; main() may explicitly assemble them. Only the
     service RPC result supplies generation creation/arming/prior-state provenance. An idle
     qualified observation persists by full predicate/generation/revision CAS. A hit remains
-    deferred without advancing state, disarming or inserting outbox (including webhook fan-out).
+    deferred unless a separate explicit publisher is supplied; main()/reader opt-in supplies
+    no publisher. The publisher uses the SAME protected adapter and atomic state/outbox RPC.
+    Authorization is as of evaluation, not transaction-locked account revocation. A DB-exclusive
+    unresolved marker in existing alert_runs precedes prepare; its private exact envelope lives
+    only in the owner-scoped outbox. Unknown prepare/commit outcomes hold future invocations,
+    including restarts, for explicit same-ID read-only reconciliation. Fencing is never automatic.
     The pure evaluator retains the accepted quote event time; no second/EOD quote substitutes.
     Legacy types retain their existing condition persistence, vintage and fire behavior.
 
@@ -2267,11 +2330,20 @@ def run_once(
     run that is still in progress.
     """
     run_started_at = now.isoformat(timespec="seconds")
+    publication_enabled = (isinstance(frozen_node_publisher, FrozenNodeHitPublisher)
+                           and frozen_node_publisher.lifecycle is frozen_lifecycle_adapter)
+    publication_allowed = False
     if dry_run:
         log(f"[dry-run] start_run lane={lane} run_id={run_id} started_at={run_started_at} (no write)")
         run_receipted = False
     else:
-        run_receipted = supa.start_run(lane, run_id, run_started_at, None, lane_cadence_budget_s)
+        clear = not publication_enabled or supa.frozen_publication_clear(lane)
+        if publication_enabled and clear:
+            run_receipted = supa.start_run(lane, run_id, run_started_at, None,
+                                          lane_cadence_budget_s, frozen_pending=True)
+            publication_allowed = run_receipted
+        else:
+            run_receipted = supa.start_run(lane, run_id, run_started_at, None, lane_cadence_budget_s)
 
     try:
         alerts = supa.active_alerts()
@@ -2312,13 +2384,25 @@ def run_once(
         )
 
         fired = skipped = errored = deferred = no_vintage = 0
+        unknown_commits = []
         for a in alerts:
             frozen_capture = {}
             try:
                 if (a.get("condition") or {}).get("type") == "opt_frozen_node_proximity":
+                    if publication_enabled and (not publication_allowed or unknown_commits):
+                        deferred += 1
+                        log("DEFER frozen-node — unresolved or unacknowledged publication run; no retry")
+                        continue
+                    # Prime quotes before taking THIS alert's trusted invocation clock.
+                    # The run/receipt start can precede a legitimate primed quote.
+                    clock = getattr(data, "now_fn", None)
+                    frozen_now = clock() if callable(clock) else None
+                    frozen_at = (frozen_now.astimezone(timezone.utc).isoformat()
+                                 if isinstance(frozen_now, datetime) and frozen_now.tzinfo is not None
+                                 and frozen_now.utcoffset() is not None else None)
                     hit, value, note, nxt = evaluate(
                         a, data, flow, frozen_node_reader=frozen_node_reader,
-                        evaluation_at=now.isoformat(), frozen_lifecycle_adapter=frozen_lifecycle_adapter,
+                        evaluation_at=frozen_at, frozen_lifecycle_adapter=frozen_lifecycle_adapter,
                         _frozen_capture=frozen_capture,
                     )
                 else:
@@ -2333,8 +2417,28 @@ def run_once(
                 log(f"SKIP  {tag} — {note}")
             elif hit:
                 if (a.get("condition") or {}).get("type") == "opt_frozen_node_proximity":
-                    deferred += 1
-                    log(f"DEFER {tag} — frozen-node publication unavailable; no state/fire/outbox effect")
+                    if (not isinstance(frozen_node_publisher, FrozenNodeHitPublisher)
+                            or frozen_node_publisher.lifecycle is not frozen_lifecycle_adapter or dry_run):
+                        deferred += 1
+                        log(f"DEFER {tag} — frozen-node publication unavailable; no state/fire/outbox effect")
+                        continue
+                    runtime = frozen_capture['runtime']
+                    receipt, payload = _frozen_hit_envelope(
+                        runtime, nxt, frozen_capture['admission'], frozen_capture['quote'],
+                        invocation={'lane': lane, 'runId': run_id})
+                    committed = frozen_node_publisher.publish(runtime, nxt, receipt, payload)
+                    if committed.get('kind') == 'committed':
+                        fired += 1
+                        log(f"FIRE {tag} — atomic frozen-node event {receipt['fireEventId']}")
+                    elif committed.get('kind') == 'already_committed':
+                        log(f"ALREADY_COMMITTED {tag} — {receipt['fireEventId']}; no current-row mutation")
+                    else:
+                        deferred += 1
+                        if committed.get('kind') == 'effect_unknown':
+                            unknown_commits.append({'receipt': receipt, 'payload': payload, 'phase': committed.get('phase')})
+                            log(f"EFFECT_UNKNOWN {tag} — fire_event_id={receipt['fireEventId']} run_id={run_id}; no retry")
+                        else:
+                            log(f"DEFER {tag} — atomic frozen-node conflict/unavailable")
                     continue
                 if dry_run:
                     fired += 1
@@ -2410,7 +2514,8 @@ def run_once(
             # don't know", 0 would be indistinguishable from "nothing happened" in the one table
             # whose purpose is proof-of-run.
             supa.conclude_run(lane, run_id, datetime.now(timezone.utc).isoformat(timespec="seconds"),
-                               "failure", None, None, None, type(e).__name__)
+                               "failure", None, None, None,
+                               "frozen_fire_effect_unknown" if publication_enabled else type(e).__name__)
         elif dry_run:
             log("[dry-run] conclude_run lane=%s run_id=%s outcome=failure evaluated_n=None "
                 "fired_n=None unevaluable_n=None error_class=%s (no write)" % (lane, run_id, type(e).__name__))
@@ -2429,7 +2534,7 @@ def run_once(
     outcome = ("success" if (errored == 0 and skipped == 0 and deferred == 0 and no_vintage == 0
                               and not data.used_eod_fallback)
                else "partial")
-    error_class = None if errored == 0 else "eval_error"
+    error_class = 'frozen_fire_effect_unknown' if unknown_commits else None if errored == 0 else "eval_error"
     if run_receipted:
         supa.conclude_run(lane, run_id, datetime.now(timezone.utc).isoformat(timespec="seconds"),
                            outcome, evaluated_n, fired, unevaluable_n,
@@ -2444,8 +2549,11 @@ def run_once(
     # MINOR-3 (round 4): log the receipt's own unevaluable_n, not the skipped-only subcount —
     # unevaluable_n is what the receipt table actually records as "could not be evaluated".
     log(f"done: {len(alerts)} armed, {fired} fired, {unevaluable_n} unevaluable")
-    return {"outcome": outcome, "evaluated_n": evaluated_n, "fired_n": fired,
-            "unevaluable_n": unevaluable_n, "error_class": error_class, "source_asof": fallback_asof}
+    result = {"outcome": outcome, "evaluated_n": evaluated_n, "fired_n": fired,
+              "unevaluable_n": unevaluable_n, "error_class": error_class, "source_asof": fallback_asof}
+    if unknown_commits:
+        result['frozen_effect_unknown'] = unknown_commits
+    return result
 
 
 def main() -> int:
@@ -2467,6 +2575,13 @@ def main() -> int:
         return 2
 
     supa = Supa(url, key)
+    try:
+        frozen_reader, frozen_lifecycle = assemble_frozen_node_services(
+            supa, env, load_env=load_env, fingerprint=frozen_node_target_fingerprint,
+            instant_micros=_fnp_instant_micros)
+    except (OSError, TypeError, ValueError):
+        log("FATAL: frozen options host configuration is unavailable")
+        return 2
     data = Data(args.data_dir, env.get("HUB_PORT", "3100"))
     run_once(
         supa, data, datetime.now(timezone.utc), uuid.uuid4().hex,
@@ -2475,6 +2590,8 @@ def main() -> int:
         flow_r2=env.get("FLOW_R2_BASE") or DEFAULT_FLOW_R2,
         flow_fixtures=args.flow_fixtures,
         dry_run=args.dry_run,
+        frozen_node_reader=frozen_reader,
+        frozen_lifecycle_adapter=frozen_lifecycle,
         lane_cadence_budget_s=ALERTS_LANE_CADENCE_S,
     )
     return 0
