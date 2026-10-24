@@ -25,8 +25,9 @@ const text = (v: unknown, max: number, singleLine = false): v is string => typeo
   && [...v].length <= max && !/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f-\u009f\ud800-\udfff]/u.test(v)
   && (!singleLine || !/[\r\n\t\u2028\u2029]/u.test(v));
 
-/** Inspect descriptors before reading values. A rejected graph is never serialized
- * or evaluated. Row fields are retained, including nested data, without coercion. */
+/** Inspect descriptors before reading accessor values; getters are not invoked.
+ * Proxy traps are not certified by this check. Row fields are retained, including
+ * nested data, without coercion. Rejected graphs are not serialized. */
 function cloneData(raw: unknown): unknown {
   let nodes = 0;
   let textBytes = 0;
@@ -94,7 +95,7 @@ function snapshot(raw: unknown): raw is ShortlistPin {
     && Object.keys(id.terms).every(k => terms[k] === id.terms[k as keyof typeof id.terms]);
 }
 
-/** Validate and copy every source byte before exposing an immutable draft.
+/** Validate and copy source field values before exposing an immutable draft.
  * This confirms a coherent retained observation, not provider authenticity or
  * a fresh ambiguity check against the original full source list. */
 export function validateOptionsPlanDraft(raw: unknown): PlanDraftResult {
