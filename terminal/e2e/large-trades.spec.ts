@@ -743,8 +743,19 @@ async function settledTradePng(page: Page, info: TestInfo, name: string, options
 test("native PNG includes visible executions, quantity labels and provenance but excludes inspection controls", async ({ page }, info) => {
   test.setTimeout(120_000);
   await prepare(page); await observeTradePng(page);
+  // Compare the inspector against one settled input scene. CI artifacts showed
+  // late manifest hydration and subpixel changes only on the unrelated native
+  // last-price guide; neither was inspection content leaking into the export.
+  await page.route("**/data/manifest.json", route => route.fulfill({
+    json: { symbols: { AAPL: { name: "Apple Inc", sec: "Equities" } } },
+  }));
+  await page.addInitScript(() => {
+    localStorage.setItem("mm.chartSettings", JSON.stringify({ priceLineVisible: false }));
+  });
   await page.clock.setFixedTime(new Date("2026-10-11T11:00:00Z"));
   await openFixture(page);
+  await expect(page.locator(".pane-hd").first()).toContainText("Apple Inc");
+  await page.evaluate(() => document.fonts.ready.then(() => undefined));
   await expect.poll(() => page.locator('[data-testid="large-trade-marker"]:visible').count()).toBeGreaterThan(0);
   await settledTradeChart(page);
   await capture(page, info, "large-trades-export-visible-chart");
