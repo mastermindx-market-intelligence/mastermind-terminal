@@ -14,7 +14,7 @@ vi.mock("@/lib/i18n", () => ({ useLang: () => ({ lang: "en" }) }));
 function MockLink({ children, ...props }: React.ComponentProps<"a">) { projections.push(useInvestigationAuthLifecycle()); return <a {...props}>{children}</a>; }
 vi.mock("next/link", () => ({ default: MockLink }));
 vi.mock("@/lib/investigationContracts", () => ({ INVESTIGATION_MANIFEST_SCHEMA_V2: "investigation.manifest.v2", validateInvestigationManifest: () => ({ ok: true, errors: [] }), validateStoredInvestigationManifest: () => ({ ok: true }), canonicalInvestigationJson: () => "" }));
-vi.mock("@/lib/investigations", () => ({ INVESTIGATION_ADMISSION: {} }));
+vi.mock("@/lib/investigations", async () => ({ ...await vi.importActual<typeof import("@/lib/investigations")>("@/lib/investigations"), INVESTIGATION_ADMISSION: {} }));
 vi.mock("@/lib/investigationSave", () => ({
  beginInvestigationSave: vi.fn(), settleInvestigationSave: (state: unknown) => state,
  retryInvestigationSave: () => null, investigationCommandToReconcile: () => null,

@@ -4,12 +4,15 @@ import Link from "next/link";
 import { useInvestigationTheme } from "@/lib/useInvestigationTheme";
 import { useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { useLang } from "@/lib/i18n";
+import { accountIdentity } from "@/lib/accountIdentity";
+import { investigationSubject, readInvestigationJournal, retainInvestigationJournal, rejectInvestigationJournal, clearCommittedInvestigationJournal, clearRejectedInvestigationJournal } from "@/lib/investigationJournal";
+import SavedScenarioRead from "@/components/research/SavedScenarioRead";
 import { subscribeInvestigationAuthOwner } from "@/lib/supabase/investigationAuthOwner";
 import type { AuthLifecycleSnapshot, AuthLifecycleSubscription } from "@/lib/supabase/authLifecycle";
 import { InvestigationAuthContext, type InvestigationAuthProjection } from "./InvestigationAuthContext";
 import { INVESTIGATION_MANIFEST_SCHEMA_V2, validateInvestigationManifest, validateStoredInvestigationManifest, canonicalInvestigationJson, type InvestigationManifest, type InvestigationEvidenceRef, type InvestigationThesisRef } from "@/lib/investigationContracts";
 import { INVESTIGATION_ADMISSION, type InvestigationCommand, type InvestigationSummary } from "@/lib/investigations";
-import { beginInvestigationSave, settleInvestigationSave, retryInvestigationSave, investigationCommandToReconcile, recoverInvestigationSave, receiptRequiresOwnerCheck, resendsRefusedReferences, type InvestigationSaveState } from "@/lib/investigationSave";
+import { beginInvestigationSave, settleInvestigationSave, retryInvestigationSave, investigationCommandToReconcile, receiptRequiresOwnerCheck, resendsRefusedReferences, type InvestigationSaveState } from "@/lib/investigationSave";
 import { admitDuplicate, duplicateDraftFields, duplicateGuard, type DuplicateGuard, type DuplicateSource } from "@/lib/investigationDuplicate";
 import {admitInvestigationOptionPlan, type InvestigationOptionPlanAdmission} from "@/lib/investigationOptionPlanAdmission";
 import {validateOptionsPlanDraft, type OptionsPlanDraft} from "@/lib/optionsPlanDraft";
@@ -62,7 +65,6 @@ const KEPT_LAYOUT="kept";
 type RetainedCapture={layout_id:string;expected_revision:number;revision_id?:string};
 /** The retained manifest of a create that was definitively not saved; it is the base for ordinary Save. */
 const recoveredCreate=(state:InvestigationSaveState)=>state.phase==="rejected"&&state.command.action==="create"?state.command.manifest:null;
-const storageKey=(owner:string)=>`mm.investigation.pending.v2:${encodeURIComponent(owner)}`;
 const record=(v:unknown):v is Record<string,unknown>=>!!v&&typeof v==="object"&&!Array.isArray(v);
 const clock=(v:string|null|undefined)=>v ? new Date(v).toLocaleString() : "—";
 /** Whether the strict save contract accepts this as-of value. Only the contract's own parser decides. */
@@ -80,6 +82,10 @@ const CONTEXT_LABELS: Record<string,readonly [string,string]> = {
  missing:["Missing","缺失"], partial:["Partial coverage","部分覆盖"], stale:["Out of date","已过期"],
  denied:["Access denied","无访问权限"], address_only:["Address only","仅有地址"],
 };
+const SCENARIO_COPY={
+ en:{conflict:"Two different retained saves require reconciliation. Both are preserved; no new request was sent.",planConflict:"Save the Options plan as separate research. This saved scenario and its reference are unchanged.",saved:"Saved scenario",boundary:"Reference and inputs recorded with this exact revision — no market values and no current claim.",legacy:"A previously retained scenario save stores protected values this platform no longer accepts. Nothing was sent, checked or changed — the retained draft requires reconciliation."},
+ zh:{conflict:"发现两个不同的保留保存请求。两者均保持原样，未发送新请求。",planConflict:"请另建研究以保存期权计划。此已保存方案及其引用保持不变。",saved:"已保存方案",boundary:"随此确切修订版本记录的引用与输入——无市场数值，非当前读数。",legacy:"先前保留的方案保存请求含有本平台不再接受的受保护数值。未发送、未检查、未更改——请处理保留的草稿。"},
+} as const;
 function contextLabel(value:string,lang:"en"|"zh") {
  const pair=CONTEXT_LABELS[value]??["Not classified","未分类"];
  return pair[lang==="zh"?1:0];
@@ -87,7 +93,7 @@ function contextLabel(value:string,lang:"en"|"zh") {
 const optionsTypeLabel=(type:string,c:(typeof COPY)[keyof typeof COPY])=>type==="exposure_chart_request"?c.typeExposure:type==="sector_origin"?c.typeOrigin:type==="rotation_measurement"?c.typeRotation:c.options;
 
 export default function InvestigationWorkspace({ownerKey,initialSymbol,initialInvestigationId,initialRevision,historyMode="route",onOptionPlanAdmissionReady,onOptionPlanRevisionReady}:Props) {
- const {lang}=useLang(), c=COPY[lang];
+ const {lang}=useLang(), c=COPY[lang], sc=SCENARIO_COPY[lang];
  const [boundAuth,setBoundAuth]=useState<BoundAuthProjection|null>(null);
  // An old effect's render projection cannot cross a changed Workspace lifetime.
  const authProjection=boundAuth?.ownerKey===ownerKey
@@ -119,6 +125,8 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
  const [storageBlocked,setStorageBlockedState]=useState(false),[authEnded,setAuthEnded]=useState(false),[filter,setFilter]=useState<"active"|"removed">("active");
  // Keep server HTML unavailable until the existing client initialization has installed its fences.
  const [entryActive,setEntryActive]=useState(false);
+ // A legacy full-value Scenario buffer cannot be sent, checked or discarded here.
+ const [legacyScenario,setLegacyScenario]=useState(false);
  const investigationTheme=useInvestigationTheme(ownerKey,authEnded);
  const scope=useRef<AbortController|null>(null),inventorySeq=useRef(0),layoutSeq=useRef(0),detailSeq=useRef(0),baselineSeq=useRef(0),stateRef=useRef<InvestigationSaveState>({phase:"idle"});
  const storageBlockedRef=useRef(false);
@@ -214,7 +222,7 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
   try {
    const value=await json("/api/layouts");if(!current())return;
    if(!record(value)||!Array.isArray(value.layouts))throw Error("unavailable");
-   setLayouts((value.layouts as Layout[]).filter(l=>(l.mine===true||l.userId===ownerKey)&&l.config?.schema==="workspace_layout.v1"&&Number.isSafeInteger(l.config.revision)));setLayoutError(false);
+   setLayouts((value.layouts as Layout[]).filter(l=>(l.mine===true||l.userId===(investigationSubject(ownerKey)||ownerKey))&&l.config?.schema==="workspace_layout.v1"&&Number.isSafeInteger(l.config.revision)));setLayoutError(false);
   } catch {if(current()){setLayouts([]);setLayoutError(true);}}
  }
  /** Bind this optional browse to the current authenticated lifetime; a late result never picks a version. */
@@ -305,7 +313,7 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
    const value=await json(`/api/investigations?${new URLSearchParams({id,...(revision?{revision:String(revision)}:{})})}`);
    if(ticket!==detailSeq.current)return;
    if(!record(value)||value.status!=="found"||value.id!==id||(revision!==undefined&&value.revision!==revision)||!Array.isArray(value.layouts)||!validateStoredInvestigationManifest(value.manifest,INVESTIGATION_ADMISSION).ok)throw Error("unavailable");
-   const found=value as unknown as Detail;setDetail(found);acknowledgeDetail(found);setDuplicate(null);setEditing(false);setMessage("");retainedBaseline(found.manifest);void evaluateOptions(found.manifest.evidence_refs);void loadAlerts();
+   const found=value as unknown as Detail;setDetail(found);acknowledgeDetail(found);setDuplicate(null);setEditing(false);setMessage("");setLegacyScenario(false);retainedBaseline(found.manifest);void evaluateOptions(found.manifest.evidence_refs);void loadAlerts();
    replaceInvestigationHistory(`/analysis?view=investigations&investigation=${id}&revision=${found.revision}`);
   } catch {if(ticket===detailSeq.current&&!scope.current?.signal.aborted){setMessage(afterSave?c.readbackFailed:c.invalidLink);if(!afterSave)setDetail(null);}}
   finally {if(ticket===detailSeq.current)setDetailLoading(false);}
@@ -319,11 +327,11 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
     ||current.command.action!==command.action||current.command.expected_revision!==command.expected_revision)return;
   const next=settleInvestigationSave(current,ownerKey,response);setSave(next);
   if(next.phase==="committed") {
-   try{sessionStorage.removeItem(storageKey(ownerKey));}catch{/* exact receipt remains authoritative */}
+   try{clearCommittedInvestigationJournal(sessionStorage,ownerKey,current.command);}catch{setStorageBlocked(true);}
   }
   if(next.phase==="committed") {replaceInvestigationHistory(`/analysis?view=investigations&investigation=${next.result.id}&revision=${next.result.revision}`);setMessage(c.readback);await Promise.all([openRecord(next.result.id,next.result.revision,true),inventory()]);}
   else if(next.phase==="rejected") {
-   try{sessionStorage.setItem(storageKey(ownerKey),JSON.stringify({owner:ownerKey,command:next.command,phase:"rejected",reason:next.reason}));}catch{setStorageBlocked(true);}
+   try{rejectInvestigationJournal(sessionStorage,ownerKey,next.command,next.reason);}catch{setStorageBlocked(true);}
    setMessage(refusal(next,!!detail));
    if(next.reason==="layout_conflict"||next.reason==="reference_unavailable"){
     // The refused capture stays the visible choice exactly as it was sent; the list is read again so a
@@ -335,9 +343,8 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
   }
  }
  function retainPendingSave(command:InvestigationCommand) {
-  const stored=JSON.stringify({owner:ownerKey,command});
-  sessionStorage.setItem(storageKey(ownerKey),stored);
-  if(sessionStorage.getItem(storageKey(ownerKey))!==stored)throw Error("storage");
+  // Inspect both existing namespaces; never overwrite a different or uncertain save.
+  retainInvestigationJournal(sessionStorage,ownerKey,command,stateRef.current);
  }
  function retryFencedSave() {
   if(editLocked())return;
@@ -354,7 +361,7 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
   setMessage("");setSave({phase:"pending",principal:ownerKey,command});void send(command);
  }
  async function send(command:InvestigationCommand) {
-  try {await settle(command,await json("/api/investigations",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(command)}));}
+  try {await settle(command,await json("/api/investigations",{method:"POST",headers:{"Content-Type":"application/json",...(command.manifest.scenario_capture!==undefined?{"x-mm-scenario-owner":investigationSubject(ownerKey),"x-mm-scenario-capture":"recover"}:{})},body:JSON.stringify(command)}));}
   catch {if(!scope.current?.signal.aborted)await settle(command,null);}
  }
  async function checkOutcome() {
@@ -376,16 +383,21 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
  }
  useEffect(()=>{
   const controller=new AbortController();scope.current=controller;
-  acknowledgeDetail(null);setAuthEnded(false);setItems(null);setListError(false);setDetail(null);setBaseline(null);setSave({phase:"idle"});setStorageBlocked(false);setRetainedCapture(null);setDuplicate(null);
+  acknowledgeDetail(null);setAuthEnded(false);setItems(null);setListError(false);setDetail(null);setBaseline(null);setSave({phase:"idle"});setStorageBlocked(false);setRetainedCapture(null);setDuplicate(null);setLegacyScenario(false);
   setAlertRows(null);setOutbox(null);setAlertLoad("loading");
   void inventory();
   void loadLayouts();
   let recovery=false;
   ++optionsSeq.current;setOptionsRefs([]);setOptionsStatus(null);setOptionsChecking(false);
   try {
-   const stored=sessionStorage.getItem(storageKey(ownerKey));
-   if(stored){const recovered=recoverInvestigationSave(ownerKey,JSON.parse(stored));
-    if(!recovered||(recovered.phase!=="uncertain"&&recovered.phase!=="rejected"))throw Error("invalid recovery");
+   const journal=readInvestigationJournal(sessionStorage,ownerKey);
+   if(journal.status==="conflict"){recovery=true;setEditing(false);setStorageBlocked(true);setMessage(sc.conflict);}
+   else if(journal.status==="invalid"){recovery=true;setEditing(false);setStorageBlocked(true);setMessage(c.storage);}
+   else if(journal.status==="legacy"){recovery=true;setLegacyScenario(true);setEditing(false);setStorageBlocked(true);setMessage(sc.legacy);}
+   else if(journal.status==="retained"){
+    // The existing helper preserves ownerRecheck and rebinds only the principal;
+    // the exact command/operation remains untouched, including legacy shapes.
+    const recovered=journal.state;
     const command=recovered.command;recovery=true;setSave(recovered);setEditing(true);resetAsOf();setRetainedCapture(command.layout_capture??null);
     setDraft({title:command.manifest.intent.title,question:command.manifest.intent.question,symbol:command.manifest.intent.subjects.find(s=>s.owner==="terminal.analysis_symbol")?.object_id??"",next:command.manifest.continuation.next_question??"",observation:command.manifest.continuation.next_observation??"",horizon:command.manifest.intent.horizon??"",asOf:command.manifest.intent.research_as_of??"",layoutId:command.layout_capture?RETAINED_LAYOUT:command.manifest.layout_refs.length?KEPT_LAYOUT:"",theses:command.manifest.thesis_refs,screenCapture:command.screen_capture??null,screenRefs:command.manifest.evidence_refs.filter(r=>r.owner===SCREEN_EVIDENCE_OWNER)});
     retainedBaseline(command.manifest);setOptionsRefs(command.manifest.evidence_refs.filter(isOptionsEvidenceRef));if(recovered.phase==="uncertain")void readOriginalOutcome();else setMessage(refusal(recovered,false));
@@ -427,7 +439,7 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
   // started its GET. The boolean return pairs baseline installation with edit.
   if(editLocked())return false;
   ++detailSeq.current;++baselineSeq.current;setMessage("");resetAsOf();setDuplicate(null);
-   if(fresh){try{sessionStorage.removeItem(storageKey(ownerKey));}catch{setStorageBlocked(true);return false;}setPlanEntryGeneration(generation=>generation+1);setSave({phase:"idle"});setRetainedCapture(null);setDetail(null);setDraft(emptyDraft(initialSymbol));setBaseline(null);setBaselineState("none");++optionsSeq.current;setOptionsRefs([]);setOptionsStatus(null);setOptionsChecking(false);replaceInvestigationHistory("/analysis?view=investigations");}
+   if(fresh){try{clearRejectedInvestigationJournal(sessionStorage,ownerKey,stateRef.current);}catch{setStorageBlocked(true);return false;}setPlanEntryGeneration(generation=>generation+1);setSave({phase:"idle"});setRetainedCapture(null);setDetail(null);setDraft(emptyDraft(initialSymbol));setBaseline(null);setBaselineState("none");++optionsSeq.current;setOptionsRefs([]);setOptionsStatus(null);setOptionsChecking(false);replaceInvestigationHistory("/analysis?view=investigations");}
   else if(detail){const m=detail.manifest;setRetainedCapture(null);setDraft({title:m.intent.title,question:m.intent.question,symbol:m.intent.subjects.find(s=>s.owner==="terminal.analysis_symbol")?.object_id??"",next:m.continuation.next_question??"",observation:m.continuation.next_observation??"",horizon:m.intent.horizon??"",asOf:m.intent.research_as_of??"",layoutId:m.layout_refs.length?KEPT_LAYOUT:"",theses:m.thesis_refs,screenCapture:null,screenRefs:m.evidence_refs.filter(r=>r.owner===SCREEN_EVIDENCE_OWNER)});setBaselineState(baseline?"ready":"unavailable");}
   setEditing(true);return true;
  }
@@ -487,7 +499,7 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
   // Confirmed idle, committed and definitively rejected bookkeeping may be reset here, the way a fresh
   // start already resets it. A pending or uncertain original command and its storage never pass
   // editLocked, so they are never cleared and can never become a fresh duplicate.
-  try{sessionStorage.removeItem(storageKey(ownerKey));}catch{setStorageBlocked(true);return;}
+  try{clearRejectedInvestigationJournal(sessionStorage,ownerKey,stateRef.current);}catch{setStorageBlocked(true);return;}
   setSave({phase:"idle"});
   // Outstanding detail and baseline tickets are invalidated so a late response cannot replace the
   // draft's basis; no current-evidence read is started, and the acknowledged baseline already on
@@ -517,6 +529,7 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
  }
  function save(action:InvestigationCommand["action"]=detail?"revise":"create", manifestOverride?:InvestigationManifest) {
   if(editLocked())return;
+  if(legacyScenario){setMessage(sc.legacy);return;}
   // A duplicate draft may become a send only while the captured getter still shows the same ready
   // principal and epoch it was admitted with. A same-user epoch change or another account refuses
   // here before any request, and the retained draft is never adopted on a stale identity.
@@ -544,7 +557,10 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
    const issuer=!duplicate&&baseline?[{owner:"data_os.security_master",kind:"issuer",object_id:baseline.receipt.company_id}]:[];
    const subjects=detail?.manifest.intent.subjects??(prior?[...prior.intent.subjects,...issuer.filter(s=>!prior.intent.subjects.some(r=>canonicalInvestigationJson(r)===canonicalInvestigationJson(s)))]:[...(draft.symbol?[{owner:"terminal.analysis_symbol",kind:"security",object_id:draft.symbol}]:[]),...issuer]);
    const optionPlan=draft.optionPlan?.value??prior?.option_plan;
-   manifest={schema:optionPlan||prior?.schema==="investigation_manifest.v3"?"investigation_manifest.v3":"investigation_manifest.v2",...(optionPlan?{option_plan:optionPlan}:{}),...(prior?.review?{review:prior.review}:{}),argument_relations:prior?.argument_relations??[],intent:{title:draft.title,question:draft.question,subjects,...(draft.horizon?{horizon:draft.horizon}:{}),...(draft.asOf?{research_as_of:draft.asOf}:{})},layout_refs:draft.layoutId===KEPT_LAYOUT?prior?.layout_refs??[]:[],thesis_refs:draft.theses,evidence_refs:retainedEvidence,continuation:{...(prior?.continuation??{}),...(draft.next?{next_question:draft.next}:{}),...(draft.observation?{next_observation:draft.observation}:{})},...(reference?{review_baseline_ref:reference}:{})};
+   // Preserve the canonical Scenario reference only in its v2 contract. Never
+   // convert it into a Plan v3 payload or discard it to make a different save pass.
+   if(optionPlan&&prior?.scenario_capture!==undefined){setMessage(sc.planConflict);return;}
+   manifest={schema:optionPlan||prior?.schema==="investigation_manifest.v3"?"investigation_manifest.v3":"investigation_manifest.v2",...(optionPlan?{option_plan:optionPlan}:{}),...(prior?.scenario_capture!==undefined?{scenario_capture:prior.scenario_capture}:{}),...(prior?.review?{review:prior.review}:{}),argument_relations:prior?.argument_relations??[],intent:{title:draft.title,question:draft.question,subjects,...(draft.horizon?{horizon:draft.horizon}:{}),...(draft.asOf?{research_as_of:draft.asOf}:{})},layout_refs:draft.layoutId===KEPT_LAYOUT?prior?.layout_refs??[]:[],thesis_refs:draft.theses,evidence_refs:retainedEvidence,continuation:{...(prior?.continuation??{}),...(draft.next?{next_question:draft.next}:{}),...(draft.observation?{next_observation:draft.observation}:{})},...(reference?{review_baseline_ref:reference}:{})};
    if(!draft.next)delete manifest.continuation.next_question;
    if(!draft.observation)delete manifest.continuation.next_observation;
   }
@@ -591,6 +607,16 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
  // stale projection can never admit what the current lifetime refuses (and a script click on a
  // handler enabled by a stale render still runs the same fence).
  const duplicateReady=ownerKey==="local-preview"||!!authProjection&&authProjection.snapshot.availability==="ready"&&authProjection.snapshot.principal_partition===ownerKey&&!!authProjection.snapshot.auth_epoch;
+ // The canonical Scenario reader uses this owner's actual getter and scope;
+ // it never observes the SDK or creates a second authentication lifetime.
+ const scenarioGetter=authProjection?.getSnapshot??null,scenarioController=scope.current,scenarioTicket=detailSeq.current,scenarioDetail=detail;
+ const scenarioResolveGuard={
+  getSnapshot:()=>scenarioGetter?.()??null,
+  isCurrent:()=>!!scenarioGetter&&authGetterRef.current===scenarioGetter&&!!scenarioController
+   &&scope.current===scenarioController&&!scenarioController.signal.aborted
+   &&detailSeq.current===scenarioTicket&&acknowledgedDetailRef.current===scenarioDetail,
+ };
+ const scenarioIdentity=ownerKey!=="local-preview"&&duplicateReady?accountIdentity(investigationSubject(ownerKey)):accountIdentity();
  if(authEnded)return <InvestigationAuthContext.Provider value={authProjection}><main className={`main2 ws-shell ${styles.root}`} data-investigation-theme={investigationTheme}><h1>{c.title}</h1><p role="status">{c.auth}</p><Link href="/login">{c.signIn}</Link></main></InvestigationAuthContext.Provider>;
  return <InvestigationAuthContext.Provider value={authProjection}><main className={`main2 ws-shell ${styles.root}`} data-investigation-theme={investigationTheme}>
   <Link className={styles.back} href={`/analysis${symbol?`?symbol=${encodeURIComponent(symbol)}`:""}`}>← {c.back}</Link>
@@ -630,6 +656,7 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
     </form>:detail?<>
      <p className={styles.eyebrow}>{c.saved} · {c.revision} {detail.revision}{detail.lifecycle==="removed"?` · ${c.removed}`:""}</p><h2 ref={detailTitle} tabIndex={-1}>{detail.manifest.intent.title}</h2><p className={styles.question}>{detail.manifest.intent.question}</p>
      <dl className={styles.context}>{detail.manifest.intent.subjects.map((s,i)=><div key={i}><dt>{contextLabel(s.kind,lang)}</dt><dd>{s.object_id}</dd></div>)}{detail.manifest.intent.horizon&&<div><dt>{c.horizon}</dt><dd>{detail.manifest.intent.horizon}</dd></div>}{detail.manifest.intent.research_as_of&&<div><dt>{c.asOf}</dt><dd>{detail.manifest.intent.research_as_of}</dd></div>}</dl>
+     {detail.manifest.scenario_capture!==undefined&&<section className={styles.card} data-testid="saved-scenario"><h3>{sc.saved}</h3><p className={styles.eyebrow}>{sc.boundary}</p><SavedScenarioRead key={`scenario:${ownerKey}:${authProjection?.snapshot.auth_epoch??"unavailable"}:${detail.id}:${detail.revision}`} capture={detail.manifest.scenario_capture} lang={lang} revision={{id:detail.id,revision:detail.revision,grantId:null}} identity={scenarioIdentity} resolveGuard={scenarioResolveGuard}/></section>}
      <div className={styles.actions}><button disabled={frozen||detail.lifecycle==="removed"} onClick={()=>beginEdit()}>{c.edit}</button><button type="button" disabled={frozen||detailLoading||acknowledgedDetail!==detail||detail.lifecycle==="removed"||!duplicateReady} onClick={beginDuplicate}>{c.duplicate}</button>{detail.revision!==detail.current_revision&&<button disabled={locked} onClick={()=>void openRecord(detail.id)}>{c.viewLatest}</button>}{detail.revision>1&&<button disabled={locked} onClick={()=>void openRecord(detail.id,detail.revision-1)}>{c.previous}</button>}{detail.revision<detail.current_revision&&<button disabled={locked} onClick={()=>void openRecord(detail.id,detail.revision+1)}>{c.nextRevision}</button>}</div>
      {detail.lifecycle==="active"&&<InvestigationWatchPanel link={{investigation_id:detail.id,revision:detail.revision}} symbol={symbol} rows={alertRows} current={null} lang={lang} disabled={frozen} loadState={alertLoad} onArm={armWatch} onRearm={rearmWatch} onRetry={()=>void loadAlerts()}/>}
      <section className={styles.card}><h3>{c.retained}</h3>{detail.manifest.layout_refs.length?detail.manifest.layout_refs.map(ref=><p key={ref.layout_revision_id}><Link href={`/terminal?investigation=${detail.id}&revision=${detail.revision}&layout_revision=${ref.layout_revision_id}`}>{c.openLayout} →</Link></p>):<p>{c.noLayout}</p>}{symbol&&<Link href={`/analysis?symbol=${encodeURIComponent(symbol)}`}>{c.continue} →</Link>}</section>

@@ -141,13 +141,15 @@ describe("native whole Plan entry through the existing explicit Investigation co
    return original(input,init);
   });
   await click("Save research");
-  expect(posts).toHaveLength(1);const retained=sessionStorage.getItem(`mm.investigation.pending.v2:${owner}`)!;
-  expect(JSON.parse(retained)).toEqual({owner,command:posts[0]});
+  expect(posts).toHaveLength(1);const bufferOwner=`account:${owner}`,bufferKey=`mm.investigation.pending.v2:${encodeURIComponent(bufferOwner)}`;
+  const retained=sessionStorage.getItem(bufferKey)!;
+  expect(sessionStorage.getItem(`mm.investigation.pending.v2:${owner}`)).toBeNull();
+  expect(JSON.parse(retained)).toEqual({owner:bufferOwner,command:posts[0]});
   expect(posts[0].manifest.option_plan).toEqual(fixture);
   expect(host.textContent).toContain("Sign in again to open saved research.");
   expect(host.querySelector('input[aria-label="Title"]')).toBeNull();expect(entry).toBeNull();expect(reader).toBeNull();
   expect(originalEntry(fixture).ok).toBe(false);await act(async()=>{});
-  expect(posts).toHaveLength(1);expect(sessionStorage.getItem(`mm.investigation.pending.v2:${owner}`)).toBe(retained);
+  expect(posts).toHaveLength(1);expect(sessionStorage.getItem(bufferKey)).toBe(retained);
  });
 
 });

@@ -11,6 +11,8 @@ import json
 import math
 import re
 
+from api.investigation_scenario import validate_scenario_capture
+
 TRIM = "\t\v\f \u00a0\ufeff\n\r\u1680\u2028\u2029\u202f\u205f\u3000" + "".join(chr(n) for n in range(0x2000, 0x200B))
 UUID = re.compile(r"[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\Z")
 DIGEST = re.compile(r"[0-9a-f]{64}\Z")
@@ -92,7 +94,7 @@ def validate_investigation_manifest(raw, admission=None):
     try:
         data_only(raw)
         v2 = type(raw) is dict and raw.get("schema") == "investigation_manifest.v2"
-        m = obj(raw, "$", ("schema", "intent", "layout_refs", "thesis_refs", "evidence_refs", "continuation") + (("argument_relations",) if v2 else ()), ("review_baseline_ref",))
+        m = obj(raw, "$", ("schema", "intent", "layout_refs", "thesis_refs", "evidence_refs", "continuation") + (("argument_relations",) if v2 else ()), ("review_baseline_ref", "scenario_capture"))
         choice(m["schema"], "$.schema", ("investigation_manifest.v1", "investigation_manifest.v2"))
         v2 = m["schema"] == "investigation_manifest.v2"
         limit = 4000 if v2 else 2000
@@ -202,6 +204,10 @@ def validate_investigation_manifest(raw, admission=None):
                 text(edge["rationale"], p + ".rationale", 4000)
                 if "discrimination_criterion" in edge:
                     text(edge["discrimination_criterion"], p + ".discrimination_criterion", 4000)
+        if "scenario_capture" in m:
+            # Canonical value-free reference only; no source or retention grant.
+            require(v2, "$.scenario_capture", "unsupported_schema")
+            require(validate_scenario_capture(m["scenario_capture"]), "$.scenario_capture", "invalid_scenario_capture")
         serialized = canonical_investigation_json(m) if v2 else json.dumps(m, ensure_ascii=False, separators=(",", ":"))
         require(len(serialized.encode("utf-8")) <= (131072 if v2 else 65536), "$", "manifest_too_large")
         return {"ok": True, "value": json.loads(serialized)}
