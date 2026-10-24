@@ -399,6 +399,33 @@ function frozenRow(value:unknown):DeliveryRow|null{
   if(!frozenRowFields.every(k=>Object.hasOwn(record,k)))return null;
   return Object.fromEntries(frozenRowFields.map(k=>[k,record[k]])) as DeliveryRow;
 }
+// Only claimed_at has transport-dependent timestamptz serialization. Compare
+// strict calendar instants without dropping submillisecond precision; every
+// other authoritative row field remains byte/JSON exact.
+function claimInstant(value:unknown):bigint|null{
+  if(typeof value!=='string')return null;
+  const m=/^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d{1,9}))?(Z|[+-]\d{2}:\d{2})$/.exec(value);
+  if(!m)return null;
+  const day=Date.parse(m[1]+'T00:00:00Z');
+  if(!Number.isFinite(day)||new Date(day).toISOString().slice(0,10)!==m[1])return null;
+  const hour=Number(m[2]),minute=Number(m[3]),second=Number(m[4]);
+  if(hour>23||minute>59||second>59)return null;
+  let offset=0;
+  if(m[6]!=='Z'){
+    const oh=Number(m[6].slice(1,3)),om=Number(m[6].slice(4,6));
+    if(oh>23||om>59)return null;
+    offset=(oh*60+om)*(m[6][0]==='+'?1:-1);
+  }
+  return BigInt(day)*BigInt(1_000_000)+BigInt(hour*3600+minute*60+second-offset*60)*BigInt(1_000_000_000)
+    +BigInt((m[5]??'').padEnd(9,'0'));
+}
+function sameClaimRow(actual:DeliveryRow|null,expected:DeliveryRow):actual is DeliveryRow{
+  if(!actual)return false;
+  const a=claimInstant(actual.claimed_at),b=claimInstant(expected.claimed_at);
+  return a!==null&&b!==null&&a===b&&equalJSON({...actual,claimed_at:null},{...expected,claimed_at:null});
+}
+const claimMutationPath=(row:DeliveryRow)=>`webhook_deliveries?id=eq.${encodeURIComponent(row.id)}&status=eq.delivering&attempt=eq.${row.attempt}&claimed_at=eq.${encodeURIComponent(row.claimed_at!)}`;
+
 const publicEndpoint=(e:Record<string,unknown>)=>Object.fromEntries(['id','team_id','url','enabled','event_filter','secret_version'].map(k=>[k,e[k]]));
 
 async function deliverQualifiedFrozen(supa:PatchClient,selected:DeliveryRow,dryRun:boolean,hooks:DeliverHooks,frozenHint:boolean):Promise<void>{
@@ -418,9 +445,10 @@ async function deliverQualifiedFrozen(supa:PatchClient,selected:DeliveryRow,dryR
     if(frozenHint)return;
     await deliverOne(supa,row,endpoint,dryRun,{...hooks,frozenDelivery:undefined});return;
   }
-  // A prior delivering row may represent a live or lost send. A stale lease is
-  // not permission to resend frozen events; retain it for explicit reconciliation.
-  if(!['pending','retrying'].includes(row.status)||!Number.isInteger(row.attempt)||row.attempt<0||row.attempt>=5)return;
+  // Only a pristine offer proves there was no previous automatic attempt.
+  // Legacy retrying/claimed rows may follow an ambiguous POST; neither a stale
+  // lease nor a generic retry marker authorizes replay of a frozen event.
+  if(row.status!=='pending'||row.attempt!==0||row.claimed_at!==null)return;
   const urlCheck=validateWebhookUrl(endpoint.url);if(!endpoint.enabled||!urlCheck.ok||dryRun)return;
   const stamp=new Date().toISOString(),attempt=row.attempt+1;
   const priorClaim=row.claimed_at===null?'is.null':`eq.${encodeURIComponent(row.claimed_at)}`;
@@ -428,8 +456,8 @@ async function deliverQualifiedFrozen(supa:PatchClient,selected:DeliveryRow,dryR
   const claimed=await supa.patch(claimPath,{status:'delivering',claimed_at:stamp,attempt,last_error:'frozen_delivery_reserved'});
   if(claimed.length!==1)return;
   const reserved=frozenRow(claimed[0]),expected={...row,status:'delivering',claimed_at:stamp,attempt};
-  if(!reserved||!equalJSON(reserved,expected))return;
-  const patchPath=`webhook_deliveries?id=eq.${encodeURIComponent(row.id)}&status=eq.delivering&attempt=eq.${attempt}&claimed_at=eq.${encodeURIComponent(stamp)}`;
+  if(!sameClaimRow(reserved,expected))return;
+  let patchPath=claimMutationPath(reserved);
   const resolve=hooks.resolve??resolvePublicAddress;
   const resolved=await resolve(new URL(endpoint.url).hostname.replace(/^\[|\]$/g,''));
   if('error' in resolved)return;
@@ -438,7 +466,11 @@ async function deliverQualifiedFrozen(supa:PatchClient,selected:DeliveryRow,dryR
   proof=await client.check(reserved,new Date().toISOString());
   if(!proof||proof.kind!=='admitted_delivery'||!equalJSON(proof.endpoint,publicEndpoint(endpoint)))return;
   const marker=await supa.patch(patchPath,{last_error:'frozen_delivery_send_started'});
-  if(marker.length!==1||!equalJSON(frozenRow(marker[0]),reserved))return;
+  if(marker.length!==1)return;
+  const marked=frozenRow(marker[0]);
+  if(!sameClaimRow(marked,reserved))return;
+  // Keep the returned database serialization for subsequent exact CAS filters.
+  patchPath=claimMutationPath(marked);
   const rawBody=JSON.stringify(reserved.payload);
   const headers=buildWebhookHeaders({secret:endpoint.secret,secretPrevious:endpoint.secret_previous??null,
     secretPreviousExpiresAt:endpoint.secret_previous_expires_at??null,secretVersion:endpoint.secret_version,

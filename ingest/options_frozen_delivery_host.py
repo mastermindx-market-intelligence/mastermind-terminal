@@ -123,9 +123,13 @@ class FrozenDeliveryAuthorizer:
             for key in ('fired_at','ticker','subject','subject_zh','summary_plain','summary_plain_zh',
                         'condition_plain','condition_plain_zh','evidence_url'):
                 expected[key]=p.get(key) or ''
-            if not isinstance(event_row.get('value_text'),str):
+            # Native SQL coalesces ->> NULL (missing or JSON null value) to ''.
+            # The selected alias must still be present; never forgive a malformed
+            # response or reconstruct numeric text with a different formatter.
+            if 'value_text' not in event_row or (event_row['value_text'] is not None
+                    and not isinstance(event_row['value_text'],str)):
                 return None
-            expected['value']=event_row['value_text']
+            expected['value']=event_row['value_text'] if event_row['value_text'] is not None else ''
             if not legacy:expected.update({k:p[k] for k in ('category','requires_tier','frozen_node')})
             if not _json_equal(row['payload'],expected):
                 return None
