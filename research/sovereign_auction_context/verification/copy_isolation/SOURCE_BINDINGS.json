@@ -1,0 +1,31 @@
+{
+  "schema": "terminal_auction_copy_isolation_source_v1",
+  "prior_head": "9292c7ca1e19e07ee70514b9a3cfb598ba5dd5b9",
+  "preimage_retention": "Original source bytes remain in reachable Git history at the prior head; no duplicate executable preimage tree is added.",
+  "files": [
+    {
+      "path": "terminal/components/SovereignAuctionContext.tsx",
+      "preimage_sha256": "2b8cb70a8d0b43ce650e48868f3d5471a3b3b5e178bec089b3c3b7bf03946086",
+      "sha256": "b2cbcc4807342678b46b5ebf5321bc48f9c1307fea8591be29cb6cea67d42665",
+      "bytes": 11190
+    },
+    {
+      "path": "terminal/lib/i18n.tsx",
+      "preimage_sha256": "cc6b9efb57ea38a9f2b22c6daa993e5766008e2e1c08ddae276fb11314ec9a9c",
+      "sha256": "858306597ebbfc2d912cefc997ad88e4805cafb08794b5cd4d3dfeacb109371f",
+      "bytes": 202478
+    },
+    {
+      "path": "terminal/lib/__tests__/sovereignAuctionComponent.test.tsx",
+      "preimage_sha256": "1c568ed8ca406f8d4def37eaf4c753ba7a620d5b7b0463471d645a0a14780657",
+      "sha256": "ab45200e06acc3e1b347314f0e466d07e2181e6112c5494b4b5723c5426a210c",
+      "bytes": 11297
+    },
+    {
+      "path": "terminal/lib/sovereignAuctionCopy.ts",
+      "preimage_sha256": null,
+      "sha256": "cf2784b31eb09dd3c89626922b50106f3ec2952467eb357c5faf6107e137b6e5",
+      "bytes": 4143
+    }
+  ]
+}

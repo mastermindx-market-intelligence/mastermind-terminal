@@ -1,0 +1,9 @@
+{
+  "baseline_errors": 54,
+  "baseline_warnings": 14,
+  "current_shell_errors": 54,
+  "current_shell_warnings": 14,
+  "diagnostics_match_original_source_locations": false,
+  "non_shell_new_errors": 0,
+  "not_a_whole_file_lint_pass": true
+}
