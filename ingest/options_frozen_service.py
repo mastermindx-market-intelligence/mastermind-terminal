@@ -93,10 +93,11 @@ class FrozenNodeServiceReader:
     FrozenRuntime it independently obtained via its protected lifecycle adapter.
     """
     def __init__(self, *, macro_python, macro_account_script, node, source_bundle,
-                 fingerprint, instant_micros, macro_env=None):
+                 fingerprint, instant_micros, macro_env=None, source_env=None):
         self._account = _command(macro_python, macro_account_script, 'frozen_options_account.py')
         self._source = _command(node, source_bundle, 'frozen_node_source.mjs')
         self._macro_env = dict(macro_env) if macro_env is not None else dict(os.environ)
+        self._source_env = dict(source_env) if source_env is not None else dict(os.environ)
         self._fingerprint = fingerprint
         self._instant = instant_micros
 
@@ -142,7 +143,7 @@ class FrozenNodeServiceReader:
                     or account['evaluationAt'] != evaluation_at):
                 return None
             result = _invoke(self._source, {'principal': pin['principal'], 'evaluationAt': evaluation_at,
-                'expected': target, 'lens': lens, 'account': account['account']})
+                'expected': target, 'lens': lens, 'account': account['account']}, self._source_env)
             if not result or set(result) != {'kind', 'context'} or result['kind'] != 'admitted':
                 return None
             context = result['context']
