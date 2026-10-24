@@ -1,0 +1,13 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/options-exact-plan-prep-20261024-1658a3c456445e03/terminal
+
+ ✓ lib/__tests__/optionsPlanDraft.test.ts (18 tests) 44ms
+ ✓ lib/__tests__/optionsContractShortlist.test.ts (24 tests) 32ms
+ ✓ lib/__tests__/optionsPlanDraftEditor.test.tsx (3 tests) 317ms
+
+ Test Files  3 passed (3)
+      Tests  45 passed (45)
+   Start at  23:29:27
+   Duration  6.03s (transform 1.54s, setup 0ms, collect 1.84s, tests 393ms, environment 3.95s, prepare 1.50s)
+

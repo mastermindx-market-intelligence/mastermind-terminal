@@ -1,0 +1,98 @@
+{
+  "schema": "options_plan_draft.v1",
+  "legs": [
+    {
+      "snapshot": {
+        "pinKey": "doi@2026-10-23#=NVDA1|C|2026-11-20|=180|?|?|?|?",
+        "identity": {
+          "root": "NVDA1",
+          "right": "C",
+          "exp": "2026-11-20",
+          "strike": 180,
+          "terms": {
+            "multiplier": null,
+            "deliverable": null,
+            "settlement": null,
+            "exercise_style": null
+          },
+          "key": "=NVDA1|C|2026-11-20|=180|?|?|?|?",
+          "adjustedRootHint": true
+        },
+        "family": "doi",
+        "hotView": null,
+        "session": "2026-10-23",
+        "asofRaw": "2026-10-23T20:00:00Z",
+        "schema": null,
+        "sourceStale": true,
+        "row": {
+          "root": "NVDA1",
+          "right": "C",
+          "exp": "2026-11-20",
+          "strike": 180,
+          "mid": 4.5,
+          "oi": 100,
+          "nested": {
+            "fixture": "SYNTHETIC_NOT_LIVE"
+          }
+        }
+      },
+      "assumptions": {
+        "side": "buy",
+        "quantity": 2,
+        "entry": null
+      }
+    },
+    {
+      "snapshot": {
+        "pinKey": "doi@2026-10-23#=NVDA1|C|2026-11-20|=190|=50|=50%20fixture%20shares|?|?",
+        "identity": {
+          "root": "NVDA1",
+          "right": "C",
+          "exp": "2026-11-20",
+          "strike": 190,
+          "terms": {
+            "multiplier": 50,
+            "deliverable": "50 fixture shares",
+            "settlement": null,
+            "exercise_style": null
+          },
+          "key": "=NVDA1|C|2026-11-20|=190|=50|=50%20fixture%20shares|?|?",
+          "adjustedRootHint": true
+        },
+        "family": "doi",
+        "hotView": null,
+        "session": "2026-10-23",
+        "asofRaw": "2026-10-23T20:00:00Z",
+        "schema": null,
+        "sourceStale": true,
+        "row": {
+          "root": "NVDA1",
+          "right": "C",
+          "exp": "2026-11-20",
+          "strike": 190,
+          "mid": null,
+          "oi": 100,
+          "nested": {
+            "fixture": "SYNTHETIC_NOT_LIVE"
+          },
+          "multiplier": 50,
+          "deliverable": "50 fixture shares"
+        }
+      },
+      "assumptions": {
+        "side": "sell",
+        "quantity": 2,
+        "entry": {
+          "kind": "user_assumption",
+          "premium_per_unit": 0,
+          "currency": "USD"
+        }
+      }
+    }
+  ],
+  "research": {
+    "thesis": "模拟研究观点 👨‍👩‍👧‍👦",
+    "invalidation": "证据改变时复核；并非止损订单。",
+    "horizon": "3–10 sessions; distinct from expiry"
+  }
+}
