@@ -677,3 +677,11 @@ optionsSharedShellCompositionRecapture20261024:
   actualBrowserResult: "2 passed; 0 failed, skipped, flaky or retries; default ordinary-profile capture"
   reportSha256: "811fe01b3d2b3199e93f2149627a0611da12b8a8e1259042db0dcef2eb8f5709"
   productionProof: false
+
+# Preserve the original captured LEX bytes; only unused pending-preferences copy differs.
+lexProjection: {"schema":"terminal.lex_capture_projection.v1","omittedProperty":"obDonePrefsSyncing","capturedRawSha256":"13f33e3178b105a64f1f5df35974cd99041ef06f05bdece95939dd07a8b9fe7c","projectedSha256":"d6dcc2df7615a1c5782f4d755178fbb76bcf9ee42b93dffe7c7c95317a652de5","sourceGitBlob":"664d68043f472919f7b581f545a334bf66d9782f","sourceRecoveryCommit":"da990eb349ceadcd16e8855db29574e36deac782","captureCommitLocallyAvailable":false}
+
+commercialPreferencesProtectedJoin20261024:
+  consumerHead: "841194510eb228d834ddff1400203905e8643024"
+  protectedMaster: "a8037ef7b662316a88becca11f31f5a87b5b7133"
+  qualification: "Retain protected Options source, actual crop and report bindings and historical capture identities; preserve the consumer AST projection excluding only unused pending-onboarding copy. No new capture or larger matrix is claimed."
