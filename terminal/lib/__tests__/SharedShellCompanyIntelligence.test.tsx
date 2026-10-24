@@ -7,11 +7,11 @@ import { normalizeEventWorkspace, type RetainedEventWorkspaceReceipt } from "@/l
 import { companyRetainedContextParams } from "@/lib/companyRetainedContext";
 import raw from "./fixtures/aapl-event-workspace.json";
 
-const edges=vi.hoisted(()=>({identity:{kind:"account",userId:"11111111-1111-4111-8111-111111111111",email:"same@example.test"},load:vi.fn(),open:vi.fn(),routerSearch:null as string|null}));
+const edges=vi.hoisted(()=>({identity:{kind:"account",userId:"11111111-1111-4111-8111-111111111111",email:"same@example.test"},load:vi.fn(),open:vi.fn(),lang:"en" as "en"|"zh",routerSearch:null as string|null}));
 vi.mock("@/components/onboarding/OnboardingProvider",()=>({useOnboarding:()=>({open:edges.open})}));
 vi.mock("next/navigation",()=>({useSearchParams:()=>new URLSearchParams(edges.routerSearch ?? window.location.search)}));
 vi.mock("@/components/chrome/AppShell",()=>({useShellIdentity:()=>edges.identity}));
-vi.mock("@/lib/i18n",()=>({useLang:()=>({lang:"en"})}));
+vi.mock("@/lib/i18n",()=>({useLang:()=>({lang:edges.lang})}));
 vi.mock("@/lib/companyRetainedContext",async original=>({...await original<typeof import("@/lib/companyRetainedContext")>(),loadCompanyRetainedContext:edges.load}));
 vi.mock("@/components/fin/CompanyIntelligenceV2Current",()=>({default:({ticker}:{ticker:string})=><p data-retained-company={ticker}>verified {ticker}</p>}));
 vi.mock("@/components/fin/CompanyWatchSave",()=>({default:()=>null}));
@@ -21,12 +21,40 @@ const receipt:RetainedEventWorkspaceReceipt={schema:"earnings.retained_baseline.
 const success={ok:true as const,workspace,receipt};
 let root:Root,host:HTMLDivElement;
 let pending:Array<{resolve:(value:typeof success)=>void;signal:AbortSignal}>;
-beforeEach(()=>{edges.routerSearch=null;edges.load.mockReset();edges.identity={kind:"account",userId:"11111111-1111-4111-8111-111111111111",email:"same@example.test"};pending=[];edges.load.mockImplementation(({signal}:{signal:AbortSignal})=>new Promise(resolve=>pending.push({resolve,signal})));host=document.createElement("div");document.body.append(host);root=createRoot(host);window.history.replaceState({},"","/analysis?symbol=AAPL&page=intelligence");});
+beforeEach(()=>{edges.lang="en";edges.routerSearch=null;edges.load.mockReset();edges.open.mockReset();edges.identity={kind:"account",userId:"11111111-1111-4111-8111-111111111111",email:"same@example.test"};pending=[];edges.load.mockImplementation(({signal}:{signal:AbortSignal})=>new Promise(resolve=>pending.push({resolve,signal})));host=document.createElement("div");document.body.append(host);root=createRoot(host);window.history.replaceState({},"","/analysis?symbol=AAPL&page=intelligence");});
 afterEach(async()=>{await act(async()=>root.unmount());host.remove();vi.useRealTimers();});
 async function render(symbol="AAPL"){await act(async()=>root.render(<SharedShellCompanyIntelligence sym={symbol} onOpenTx={()=>{}}/>));}
 async function resolve(index:number){await act(async()=>pending[index].resolve(success));}
 
 describe("retained Company active scope",()=>{
+ it.each([
+  ["en","current_owner_unavailable","Current event unavailable"],
+  ["zh","current_owner_unavailable","当前事件不可用"],
+  ["en","rights_denied","Current event access restricted"],
+  ["zh","rights_denied","当前事件的访问受限"],
+  ["en","unauthenticated","Sign in to recheck the current event"],
+  ["zh","unauthenticated","登录以重新验证当前事件"],
+ ] as const)("describes an unpinned %s %s result without inventing a selected version",async(lang,reason,title)=>{
+  edges.lang=lang;edges.load.mockResolvedValue({ok:false,code:"HISTORICAL_UNAVAILABLE",reason});
+  const original=window.location.href;await render();
+  expect(host.querySelector("h2")?.textContent).toBe(title);
+  expect(host.querySelector("[data-ci-unavailable-reason]")?.getAttribute("data-ci-unavailable-reason")).toBe(reason);
+  expect(host.textContent).toContain(lang==="zh"?"重新验证当前事件":"Recheck current event");
+  expect(host.textContent).not.toContain(lang==="zh"?"所选事件":"selected event");
+  expect(host.textContent).not.toContain(lang==="zh"?"原始版本":"original event version");
+  expect(Array.from(host.querySelectorAll("button")).some(button=>button.textContent===(lang==="zh"?"打开当前事件":"Open current event"))).toBe(false);
+  expect(window.location.href).toBe(original);expect(edges.load).toHaveBeenCalledTimes(1);expect(edges.load.mock.calls[0][0].pin).toBeNull();
+ });
+ it.each(["en","zh"] as const)("preserves selected-version recovery for a pinned %s failure",async(lang)=>{
+  edges.lang=lang;edges.load.mockResolvedValue({ok:false,code:"HISTORICAL_UNAVAILABLE",reason:"owner_unavailable"});
+  window.history.replaceState({},"","/analysis?symbol=AAPL&page=intelligence&"+companyRetainedContextParams(receipt).toString()+"&ci_evidence=claim-1");
+  const original=window.location.href;await render();
+  expect(host.querySelector("h2")?.textContent).toBe(lang==="zh"?"所选事件不可用":"Selected event unavailable");
+  expect(host.textContent).toContain(lang==="zh"?"原始版本":"original event version");
+  expect(host.textContent).toContain(lang==="zh"?"重新验证所选事件":"Recheck selected event");
+  expect(host.textContent).toContain(lang==="zh"?"打开当前事件":"Open current event");
+  expect(window.location.href).toBe(original);expect(edges.load).toHaveBeenCalledTimes(1);expect(edges.load.mock.calls[0][0].pin.fingerprint).toBe(receipt.fingerprint);
+ });
  it("keeps the freshly authorized event visible after pin export while the router snapshot lags",async()=>{
   edges.routerSearch=window.location.search;
   await render();await resolve(0);
@@ -96,9 +124,9 @@ describe("retained Company active scope",()=>{
  it("bounds a nonsettling event read and permits a same-selection recheck",async()=>{
   vi.useFakeTimers();await render();
   await act(async()=>{await vi.advanceTimersByTimeAsync(COMPANY_CONTEXT_READ_TIMEOUT_MS+1);});
-  expect(host.textContent).toContain("Selected event unavailable");
+  expect(host.textContent).toContain("Current event unavailable");
   expect(pending[0].signal.aborted).toBe(true);
-  const retry=Array.from(host.querySelectorAll("button")).find(button=>button.textContent==="Recheck selected event")!;
+  const retry=Array.from(host.querySelectorAll("button")).find(button=>button.textContent==="Recheck current event")!;
   expect(retry.disabled).toBe(false);await act(async()=>retry.click());expect(edges.load).toHaveBeenCalledTimes(2);
  });
 });
