@@ -1,0 +1,66 @@
+{
+  "classification": "LOCAL_CONTROLLED_FEED_BROWSER_NOT_PRODUCTION_DATA",
+  "base": "919114d1c27f0f588d9d5a4d52574f19b0137d6d",
+  "root": "01a10340-ddc1-7e41-9b42-9c8543c28c3d",
+  "coordinator": "01a16c6c-f91e-7bd2-9b0e-734172a3dd7d",
+  "files_sha256": {
+    "terminal/components/OptionsHubView.tsx": "5c54df6f4939a966262323325f7abba196599abbce8a137882b8dc13068c72bb",
+    "terminal/components/options/OptionsTapeSavedViews.tsx": "8ca8e9fc0676be61599864c9662613c73e31ce6ee7fcfe0134027664e5485d65",
+    "terminal/components/options/OptionsTapeViewLink.module.css": "59b4cea2a215a621fba726b07c673bc7099b0b65ca9842750093d67885a1ecfb",
+    "terminal/lib/optionsTapeSavedViews.ts": "8203203edad03f5d2dae0006db7e9c258b84617b22ca47377a4c0213650c14df",
+    "terminal/lib/__tests__/optionsTapeSavedViews.test.ts": "2e11f728abc0ee2ec3ec0378b0b3380670faebc939452b1ddbcffb9433462d85",
+    "terminal/e2e/options-tape-saved-views.spec.ts": "0f59b788d8558de6dabc3ed72e61426707d34cf424b8a20946d14f5736c0a4de"
+  },
+  "screenshots_sha256": {
+    "docs/pr-crops/options-tape-saved-views/desktop-en-dark.png": "ded00497520c49629098202ef0e1395482117e5595248ed8c8eaff210b04b19c",
+    "docs/pr-crops/options-tape-saved-views/desktop-zh-dark.png": "10716655f05002c39c475455f202330a81953da295b58fb9a2640a3ef3591c94",
+    "docs/pr-crops/options-tape-saved-views/tablet-en-dark.png": "2c1b2cbdc5d7f0430fd10600c980c1751271ef22bf9c52c16dd3f6200dde3a15",
+    "docs/pr-crops/options-tape-saved-views/tablet-zh-dark.png": "59573789a6019c5542525fd71867a88c804b7ead10d9346cd42f3781e7356c1d",
+    "docs/pr-crops/options-tape-saved-views/mobile-en-dark.png": "f7a6b8fe143cd4b91187762edb1a5f859c5940dc553e27d1ccefc8e737da7cd6",
+    "docs/pr-crops/options-tape-saved-views/mobile-zh-dark.png": "09944eba8aeeaadf56415a53500a7f2cc6b3dc5293e9d5c9693496b57bce4849"
+  },
+  "verification": {
+    "units": 28,
+    "affected_existing_units": 124,
+    "new_browser_cases": 12,
+    "existing_tape_share_history_hydration_cases_reused": 15,
+    "tsc": "PASS",
+    "new_files_lint": "PASS",
+    "hub_lint_baseline": 29,
+    "hub_lint_current": 29,
+    "new_hub_lint_diagnostics": 0,
+    "browser_retries": 0,
+    "browser_skips": 0,
+    "parent_pixels": "Accepted mobile ZH and desktop EN; remaining frames retained",
+    "light": "UNAVAILABLE: existing Terminal hardcodes dark; parent scoped this workflow to actual dark product"
+  },
+  "cases": [
+    "A-local-edit-A with identical URL",
+    "two screens with Back/Forward",
+    "latest matching feed event appears after reopening",
+    "save rename delete reload",
+    "keyboard Escape and logical focus return",
+    "malformed preference bytes preserved and explicit recovery",
+    "failed storage is visibly unsaved",
+    "invalid shared URL keeps results withheld",
+    "no horizontal document overflow",
+    "saved-screen controls >=40px (scoped44px)"
+  ],
+  "initial_failure": {
+    "product": "Global narrow-screen .chip !important overrode44px to36px; fixed with module-scoped rule",
+    "test_assumption": "Whole-row text changed when independent OI-confirmation badge arrived; stable identity/order fields now compared",
+    "obsolete_theme_request": "mm.theme did not enable light; redundant requested-light cases removed and no light claim retained"
+  },
+  "fabric": {
+    "public_census": "fable-week-competitor-census-20261023 TERMINAL rc1 QWEN_FINAL_RESPONSE_UNCONFIRMED429 not accepted",
+    "store": "fable-tape-screens-store-20261024 TERMINAL rc1 QWEN_FINAL_RESPONSE_UNCONFIRMED429 not accepted",
+    "implementation": "Explicit root-authorized direct coordinator implementation after settled provider failures; no replacement request"
+  },
+  "limits": [
+    "browser-local display preference only",
+    "no market rows or data snapshot persisted",
+    "no source or pricing/model/rights/alert change",
+    "no Lab or server persistence",
+    "full programme remains under original root"
+  ]
+}
