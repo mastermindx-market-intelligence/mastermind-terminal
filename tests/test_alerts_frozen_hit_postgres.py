@@ -30,10 +30,14 @@ def hit_pg(tmp_path_factory):
         # Explicit model of required Supabase service default ACL, not target proof.
         pg('grant all on public.alert_runs,public.alert_outbox to service_role;')
         pg(SQL.read_text()); pg(SQL.read_text())
+        pg((ROOT/'tests/sql/options_frozen_node/proposed_prepared_intent.sql').read_text())
         (directory/'hit-fixture-source.json').write_text(json.dumps({
             'hashes':{f:hashlib.sha256((ROOT/f).read_bytes()).hexdigest() for f in (
                 'tests/sql/options_frozen_node/proposed_atomic_hit.sql',
-                'tests/test_alerts_frozen_hit_postgres.py','ingest/options_frozen_hit.py','ingest/alerts_engine.py')},
+                'tests/test_alerts_frozen_hit_postgres.py','ingest/options_frozen_hit.py','ingest/alerts_engine.py',
+                'tests/sql/options_frozen_node/proposed_prepared_intent.sql',
+                'tests/test_alerts_frozen_prepared_postgres.py','tests/test_frozen_prepared_run_barrier.py',
+                '.github/workflows/ci.yml')},
             'postgres_version_num':pg.version_num(),'listen_addresses':pg('show listen_addresses'),
             'scope':'disposable socket only; no target DB or delivery'},indent=2))
         yield pg
@@ -43,7 +47,7 @@ def hit_pg(tmp_path_factory):
 
 @pytest.fixture
 def pg(hit_pg):
-    hit_pg('truncate public.alerts,public.alert_outbox,public.teams,public.webhook_endpoints,public.webhook_deliveries cascade')
+    hit_pg('truncate public.alerts,public.alert_outbox,public.alert_runs,public.teams,public.webhook_endpoints,public.webhook_deliveries cascade')
     hit_pg(f"insert into public.teams(id,name,created_by) values({b.q(TEAM)},'synthetic',{b.q(b.A)})")
     hit_pg(f"insert into public.webhook_endpoints(id,team_id,url,secret,created_by,event_filter) values"
            f"({b.q(ENDPOINT)},{b.q(TEAM)},'https://synthetic.invalid/webhook','synthetic-secret',{b.q(b.A)},array['alert.fired'])")
@@ -83,7 +87,9 @@ def candidate(pg,symbol='QQQ'):
         'rights_decision_ref':'DEC:COMMERCIAL-DATA-RIGHTS-CHAIRMAN-ATTESTATION-20261023',
         'createdAt':runtime.created_at,'armingEpoch':runtime.arming_epoch,'priorState':runtime.prior_state}
     state={**outside,'lastQuoteAt':at,'inside':True}
-    receipt,payload=ae._frozen_hit_envelope(runtime,state,admission,quote)
+    receipt,payload=ae._frozen_hit_envelope(runtime,state,admission,quote,
+        invocation={'lane':'synthetic-candidate','runId':runtime.generation})
+    pg(f"insert into public.alert_runs(lane,run_id,started_at,error_class) values('synthetic-candidate',{b.q(runtime.generation)},{b.q(runtime.created_at)},'frozen_publication_pending')")
     return alert,adapter,runtime,state,receipt,payload
 
 
@@ -110,7 +116,8 @@ def test_racing_same_hit_one_effect(pg):
     _,adapter,runtime,state,receipt,payload=candidate(pg)
     with ThreadPoolExecutor(max_workers=2) as pool:
         results=list(pool.map(lambda _:FrozenNodeHitPublisher(adapter).publish(runtime,state,receipt,payload),range(2)))
-    assert sorted(x['kind'] for x in results)==['already_committed','committed']
+    assert sum(x['kind']=='committed' for x in results)==1
+    assert all(x['kind'] in ('committed','already_committed','unsettled') for x in results)
     assert effects(pg)==(1,1)
 
 
@@ -143,7 +150,7 @@ def test_generation_collision_and_exact_old_recovery_never_mutate_current(pg):
        f"({b.q(b.A)},{b.q(alert['id'])},{b.q(receipt['fireEventId'])},{b.q(old)})")
     before=b.get_runtime(pg,alert['id'])
     assert FrozenNodeHitPublisher(adapter).publish(runtime,state,receipt,payload)['kind']=='conflict'
-    assert b.get_runtime(pg,alert['id'])==before and b.get_active(pg,alert['id']) and effects(pg)==(1,1)
+    assert b.get_runtime(pg,alert['id'])==before and b.get_active(pg,alert['id']) and effects(pg)==(1,0)
     # Explicit exact old receipt reconciliation may acknowledge only that old
     # effect; it must not disarm or alter today's protected generation.
     old_runtime=copy.deepcopy(runtime)
@@ -162,7 +169,7 @@ def test_failure_rolls_back_all_writes(pg,which):
        f'create trigger synthetic_hit_failure before {operation} on public.{relation} for each row execute function public.synthetic_hit_failure();')
     try:
         result=FrozenNodeHitPublisher(adapter).publish(runtime,state,receipt,payload)
-        assert result['kind']=='unavailable' and effects(pg)==(0,0)
+        assert result['kind']=='unavailable' and effects(pg)==((0,0) if which=='outbox' else (1,0))
         assert b.get_active(pg,alert['id']) and b.get_runtime(pg,alert['id'])==receipt['runtime']
     finally:
         pg(f'drop trigger synthetic_hit_failure on public.{relation};drop function public.synthetic_hit_failure()')
@@ -170,7 +177,7 @@ def test_failure_rolls_back_all_writes(pg,which):
 
 def test_reconcile_absence_and_claims_role_forgery(pg):
     alert,adapter,runtime,state,receipt,payload=candidate(pg)
-    assert FrozenNodeHitPublisher(adapter).reconcile(runtime,state,receipt,payload)['reason']=='no_committed_receipt'
+    assert FrozenNodeHitPublisher(adapter).reconcile(runtime,state,receipt,payload)['reason']=='prepared_intent_unavailable'
     args=[alert['id'],b.A,runtime.predicate,runtime.generation,runtime.revision,state,{'mode':'commit','receipt':receipt,'payload':payload}]
     denied=b.call_raw(pg,'commit_frozen_node_state',args,role='authenticated',claims={'sub':b.A,'role':'service_role'})
     assert denied.returncode!=0 and 'permission denied' in denied.stderr and effects(pg)==(0,0)
@@ -236,12 +243,14 @@ def test_unknown_response_no_retry_then_explicit_same_id_reconciliation(pg):
     original=adapter.rpc;calls=[]
     def lost(name,params):
         calls.append(params)
-        original(name,params)
-        raise OSError('synthetic response lost AFTER SQL commit')
+        result=original(name,params)
+        if params.get('p_hit',{}).get('mode')=='commit':
+            raise OSError('synthetic response lost AFTER SQL commit')
+        return result
     adapter.rpc=lost
     publisher=FrozenNodeHitPublisher(adapter)
     assert publisher.publish(runtime,state,receipt,payload)['kind']=='effect_unknown'
-    assert len(calls)==1 and effects(pg)==(1,1)
+    assert len(calls)==2 and effects(pg)==(1,1)
     adapter.rpc=original
     assert publisher.reconcile(runtime,state,receipt,payload)['kind']=='already_committed'
     assert effects(pg)==(1,1)
@@ -260,6 +269,8 @@ def test_actual_run_once_service_workers_and_atomic_pg_payload(pg,workers,tmp_pa
     fallback=ae.http_json_status
     calls=[]
     def status(url,headers=None,method='GET',body=None,timeout=15):
+        if '/alert_runs' in url:
+            return native_run_receipt(pg,url,method,body)
         if '/rpc/' in url:
             calls.append(body)
             result=rpc(pg,url.rsplit('/',1)[1],body)
@@ -289,7 +300,7 @@ def test_actual_run_once_service_workers_and_atomic_pg_payload(pg,workers,tmp_pa
     assert '15-minute-delayed' in payload['condition_plain'] and 'observed partial' in payload['condition_plain']
     assert payload['frozen_node']['publication_receipt']['quote']['asof']==at
     assert payload['frozen_node']['publication_receipt']['vintage']==ae._minute_vintage(at)
-    assert len([p for p in calls if p.get('p_hit')])==1
+    assert len([p for p in calls if p.get('p_hit')])==2
     assert not any('/alert_outbox' in url for _,url,_ in fake.calls)
     assert not any(method=='PATCH' and '/alerts?' in url for method,url,_ in fake.calls)
     if lost_response:
@@ -322,6 +333,7 @@ def test_upgrade_single_statement_failure_restores_old_signature_and_acl(pg):
         assert pg("select pg_get_functiondef('public.project_alert_fire_to_webhooks()'::regprocedure)")==before
     finally:
         pg(sql)
+        pg((ROOT/'tests/sql/options_frozen_node/proposed_prepared_intent.sql').read_text())
 
 
 @pytest.mark.parametrize('competitor',['pause','rearm'])
@@ -352,3 +364,24 @@ def test_read_reconciliation_failure_is_unavailable_not_effect_unknown(pg,monkey
     supa=ae.Supa('https://synthetic.invalid','synthetic-service-key')
     for mode,kind in [('commit','effect_unknown'),('reconcile','unavailable')]:
         assert supa.frozen_runtime_rpc('commit_frozen_node_state',{'p_hit':{'mode':mode}})['kind']==kind
+
+
+def native_run_receipt(pg,url,method,body):
+    from urllib.parse import urlparse,parse_qs
+    query=parse_qs(urlparse(url).query)
+    if method=='POST':
+        columns=','.join(body);values=','.join(b.q(v) for v in body.values())
+        result=pg(f'insert into public.alert_runs({columns}) values({values})',check=False)
+        if result.returncode:
+            assert 'duplicate key' in result.stderr,result.stderr
+            return 409,{},result.stderr
+        return 201,None,''
+    lane=query['lane'][0].removeprefix('eq.')
+    if method=='GET':
+        rows=pg(f"select coalesce(json_agg(x),'[]'::json) from (select run_id from public.alert_runs where lane={b.q(lane)} and error_class in ('frozen_publication_pending','frozen_fire_effect_unknown') limit 1) x")
+        return 200,json.loads(rows),rows
+    assert method=='PATCH'
+    run=query['run_id'][0].removeprefix('eq.')
+    values=','.join(f'{k}={b.q(v)}' for k,v in body.items())
+    pg(f"update public.alert_runs set {values} where lane={b.q(lane)} and run_id={b.q(run)}")
+    return 204,None,''

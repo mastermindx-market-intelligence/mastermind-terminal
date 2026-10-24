@@ -545,8 +545,9 @@ class Supa:
         if name not in {"read_frozen_node_runtime", "arm_frozen_node_runtime", "commit_frozen_node_state"}:
             return {"kind": "unavailable", "reason": "unknown lifecycle operation"}
         status, parsed, _ = http_json_status(f"{self.base}/rpc/{name}", self.h, method="POST", body=params)
-        if (isinstance(params.get('p_hit'), dict) and params['p_hit'].get('mode') == 'commit'
-                and (status == 0 or status >= 500)):
+        if (isinstance(params.get('p_hit'), dict) and params['p_hit'].get('mode') in ('prepare', 'commit', 'fence')
+                and (status == 0 or status >= 500
+                     or (200 <= status < 300 and not isinstance(parsed, dict)))):
             return {"kind": "effect_unknown", "reason": "atomic hit outcome unavailable"}
         return parsed if 200 <= status < 300 and isinstance(parsed, dict) else {
             "kind": "unavailable", "reason": "lifecycle RPC unavailable"}
@@ -584,8 +585,19 @@ class Supa:
             return True
         return False
 
+    def frozen_publication_clear(self, lane: str) -> bool:
+        """Read-only startup fence. Unknown/malformed/table-absent never clear it."""
+        url = (f'{self.base}/alert_runs?lane=eq.{urllib.parse.quote(lane, safe="")}'
+               '&error_class=in.(frozen_publication_pending,frozen_fire_effect_unknown)'
+               '&select=run_id&limit=1')
+        try:
+            status, rows, _ = http_json_status(url, self.h)
+            return 200 <= status < 300 and isinstance(rows, list) and not rows
+        except Exception:
+            return False
+
     def start_run(self, lane: str, run_id: str, started_at: str, source_asof: str | None,
-                   lane_cadence_budget_s: int | None) -> bool:
+                   lane_cadence_budget_s: int | None, *, frozen_pending: bool = False) -> bool:
         """Insert the 'started' half of the two-phase alert_runs receipt. Returns False (and logs
         a typed READ_UNAVAILABLE line) when alert_runs has not been applied yet — the fire path is
         unaffected either way, this is receipts-only."""
@@ -594,8 +606,12 @@ class Supa:
             "lane": lane, "run_id": run_id, "started_at": started_at,
             "source_asof": source_asof, "lane_cadence_budget_s": lane_cadence_budget_s,
         }
+        if frozen_pending:
+            body["error_class"] = "frozen_publication_pending"
         status, parsed, text = http_json_status(url, {**self.h, "Prefer": "return=minimal"},
                                                  method="POST", body=body)
+        if frozen_pending and not 200 <= status < 300:
+            return False  # No acknowledged durable pre-transport barrier, no publication.
         if self._table_missing(status, parsed):
             log("READ_UNAVAILABLE alert_runs (start) — table not applied yet; run proceeds without a receipt")
             return False
@@ -625,7 +641,7 @@ class Supa:
         if self._table_missing(status, parsed):
             log("READ_UNAVAILABLE alert_runs (conclude) — table not applied yet")
             return False
-        if status >= 300:
+        if not 200 <= status < 300:
             log(f"{self._classify(status)} alert_runs (conclude) — {status}: {text[:200]}")
             return False
         return True
@@ -2112,7 +2128,7 @@ def _evaluate_frozen_node(alert: dict, data: "Data | None", cond: dict, fn, read
     return result
 
 
-def _frozen_hit_envelope(runtime, state, admission, quote):
+def _frozen_hit_envelope(runtime, state, admission, quote, *, invocation=None):
     """Installed evaluator output only; no condition-authored grant or row state."""
     condition = runtime.predicate
     root = normalize_opt_alert_root(condition.get('root'))
@@ -2124,6 +2140,8 @@ def _frozen_hit_envelope(runtime, state, admission, quote):
         'admission': admission, 'quote': quote, 'nextState': state,
         'evaluationAt': runtime.evaluation_at, 'vintage': vintage,
         'conditionVersion': condition_version(condition), 'fireEventId': mint_fire_event_id(alert, vintage)}
+    if invocation is not None:
+        receipt['invocation'] = invocation
     described = {**condition, FNP_STATE_KEY: state}
     en = _condition_plain_en(described, root)
     zh = _condition_plain_zh(described, root)
@@ -2292,8 +2310,10 @@ def run_once(
     qualified observation persists by full predicate/generation/revision CAS. A hit remains
     deferred unless a separate explicit publisher is supplied; main()/reader opt-in supplies
     no publisher. The publisher uses the SAME protected adapter and atomic state/outbox RPC.
-    Authorization is as of evaluation, not transaction-locked account revocation. Unknown
-    commit outcomes are returned for explicit same-ID reconciliation, never auto-retried.
+    Authorization is as of evaluation, not transaction-locked account revocation. A DB-exclusive
+    unresolved marker in existing alert_runs precedes prepare; its private exact envelope lives
+    only in the owner-scoped outbox. Unknown prepare/commit outcomes hold future invocations,
+    including restarts, for explicit same-ID read-only reconciliation. Fencing is never automatic.
     The pure evaluator retains the accepted quote event time; no second/EOD quote substitutes.
     Legacy types retain their existing condition persistence, vintage and fire behavior.
 
@@ -2310,11 +2330,20 @@ def run_once(
     run that is still in progress.
     """
     run_started_at = now.isoformat(timespec="seconds")
+    publication_enabled = (isinstance(frozen_node_publisher, FrozenNodeHitPublisher)
+                           and frozen_node_publisher.lifecycle is frozen_lifecycle_adapter)
+    publication_allowed = False
     if dry_run:
         log(f"[dry-run] start_run lane={lane} run_id={run_id} started_at={run_started_at} (no write)")
         run_receipted = False
     else:
-        run_receipted = supa.start_run(lane, run_id, run_started_at, None, lane_cadence_budget_s)
+        clear = not publication_enabled or supa.frozen_publication_clear(lane)
+        if publication_enabled and clear:
+            run_receipted = supa.start_run(lane, run_id, run_started_at, None,
+                                          lane_cadence_budget_s, frozen_pending=True)
+            publication_allowed = run_receipted
+        else:
+            run_receipted = supa.start_run(lane, run_id, run_started_at, None, lane_cadence_budget_s)
 
     try:
         alerts = supa.active_alerts()
@@ -2360,6 +2389,10 @@ def run_once(
             frozen_capture = {}
             try:
                 if (a.get("condition") or {}).get("type") == "opt_frozen_node_proximity":
+                    if publication_enabled and (not publication_allowed or unknown_commits):
+                        deferred += 1
+                        log("DEFER frozen-node — unresolved or unacknowledged publication run; no retry")
+                        continue
                     # Prime quotes before taking THIS alert's trusted invocation clock.
                     # The run/receipt start can precede a legitimate primed quote.
                     clock = getattr(data, "now_fn", None)
@@ -2391,7 +2424,8 @@ def run_once(
                         continue
                     runtime = frozen_capture['runtime']
                     receipt, payload = _frozen_hit_envelope(
-                        runtime, nxt, frozen_capture['admission'], frozen_capture['quote'])
+                        runtime, nxt, frozen_capture['admission'], frozen_capture['quote'],
+                        invocation={'lane': lane, 'runId': run_id})
                     committed = frozen_node_publisher.publish(runtime, nxt, receipt, payload)
                     if committed.get('kind') == 'committed':
                         fired += 1
@@ -2401,7 +2435,7 @@ def run_once(
                     else:
                         deferred += 1
                         if committed.get('kind') == 'effect_unknown':
-                            unknown_commits.append({'receipt': receipt, 'payload': payload})
+                            unknown_commits.append({'receipt': receipt, 'payload': payload, 'phase': committed.get('phase')})
                             log(f"EFFECT_UNKNOWN {tag} — fire_event_id={receipt['fireEventId']} run_id={run_id}; no retry")
                         else:
                             log(f"DEFER {tag} — atomic frozen-node conflict/unavailable")
@@ -2480,7 +2514,8 @@ def run_once(
             # don't know", 0 would be indistinguishable from "nothing happened" in the one table
             # whose purpose is proof-of-run.
             supa.conclude_run(lane, run_id, datetime.now(timezone.utc).isoformat(timespec="seconds"),
-                               "failure", None, None, None, type(e).__name__)
+                               "failure", None, None, None,
+                               "frozen_fire_effect_unknown" if publication_enabled else type(e).__name__)
         elif dry_run:
             log("[dry-run] conclude_run lane=%s run_id=%s outcome=failure evaluated_n=None "
                 "fired_n=None unevaluable_n=None error_class=%s (no write)" % (lane, run_id, type(e).__name__))

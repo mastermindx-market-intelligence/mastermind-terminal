@@ -2,7 +2,9 @@
 
 Admission is as of the trusted evaluation, not a transaction-locked account
 revision. Receipts are evidence from the installed producer, never a grant read
-from condition JSON. The existing lifecycle RPC/outbox own all effects.
+from condition JSON. The existing lifecycle RPC/outbox own all effects. A fresh prepare ACK precedes
+the one commit transport; replayed intents never resume automatically. The caller
+must first acknowledge its DB-exclusive publication-run marker.
 """
 from __future__ import annotations
 
@@ -29,7 +31,19 @@ class FrozenNodeHitPublisher:
         self.lifecycle = lifecycle
 
     def publish(self, runtime, state, receipt, payload):
+        # Only a freshly acknowledged durable intent permits this invocation's
+        # one commit transport. Existing/unsettled intents never resume here.
+        prepared = self.prepare(runtime, state, receipt, payload)
+        if prepared.get('kind') != 'prepared':
+            return prepared
         return self._call(runtime, state, receipt, payload, 'commit')
+
+    def prepare(self, runtime, state, receipt, payload):
+        return self._call(runtime, state, receipt, payload, 'prepare')
+
+    def fence(self, runtime, state, receipt, payload):
+        """Explicit exact persisted intent retirement; NEVER an automatic recovery."""
+        return self._call(runtime, state, receipt, payload, 'fence')
 
     def reconcile(self, runtime, state, receipt, payload):
         """Explicit same-ID read only; never called automatically on uncertainty."""
@@ -37,7 +51,7 @@ class FrozenNodeHitPublisher:
 
     def _call(self, runtime, state, receipt, payload, mode):
         unavailable = {'kind': 'unavailable', 'reason': 'invalid qualified-hit binding'}
-        failed_kind = 'effect_unknown' if mode == 'commit' else 'unavailable'
+        failed_kind = 'unavailable' if mode == 'reconcile' else 'effect_unknown'
         if not isinstance(runtime, FrozenRuntime):
             return unavailable
         try:
@@ -64,16 +78,18 @@ class FrozenNodeHitPublisher:
                 'p_revision': runtime.revision, 'p_next_state': state,
                 'p_hit': {'mode': mode, 'receipt': receipt, 'payload': payload}})
             if not isinstance(reply, dict):
-                return {'kind': failed_kind, 'fireEventId': receipt.get('fireEventId')}
-            if reply.get('kind') in ('committed', 'already_committed'):
+                return {'kind': failed_kind, 'fireEventId': receipt.get('fireEventId'), 'phase': mode}
+            if reply.get('kind') in ('prepared', 'committed', 'already_committed', 'unsettled', 'abandoned'):
                 if reply.get('fireEventId') != receipt.get('fireEventId'):
-                    return {'kind': failed_kind, 'fireEventId': receipt.get('fireEventId')}
+                    return {'kind': failed_kind, 'fireEventId': receipt.get('fireEventId'), 'phase': mode}
+                if reply.get('kind') == 'prepared' and (mode != 'prepare' or not _json_equal(reply.get('receipt'), receipt)):
+                    return {'kind': failed_kind, 'fireEventId': receipt.get('fireEventId'), 'phase': mode}
                 return reply
             if reply.get('kind') in ('conflict', 'unavailable', 'effect_unknown'):
-                return reply
-            return {'kind': failed_kind, 'fireEventId': receipt.get('fireEventId')}
+                return {**reply, 'phase': mode} if reply.get('kind') == 'effect_unknown' else reply
+            return {'kind': failed_kind, 'fireEventId': receipt.get('fireEventId'), 'phase': mode}
         except Exception:
             # A transport exception may follow a committed SQL transaction. No
             # automatic repeat or downgrade to proof of no effect is permitted.
             return {'kind': failed_kind, 'fireEventId': receipt.get('fireEventId')
-                    if isinstance(receipt, dict) else None}
+                    if isinstance(receipt, dict) else None, 'phase': mode}
