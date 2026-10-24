@@ -1,11 +1,11 @@
 # B-PL-6 batch 1 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: c069160cfccb177668a7f9fa247fbfcf8ebdbeec
-# capturedAt: 2026-10-24T11:22:07.870Z
+# capturedAtHead: 32bee096a6ff9cb6c1aa1e6d5404b38ebe9deddb
+# capturedAt: 2026-10-24T13:03:08.550Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/OptionsHubView.tsx: "158ce4599ff142bd5c1f6a3f575bf59ea1dc817c9cbf402e96c28900ad17c036"
+  terminal/components/OptionsHubView.tsx: "5c54df6f4939a966262323325f7abba196599abbce8a137882b8dc13068c72bb"
   terminal/components/SearchModal.tsx: "a7a9a97d9ce08b7e8b03ccfdfc8720c5d6fca80873663125f624dba98b99cc83"
   terminal/components/SearchModal.module.css: "bc82bdeb1a4eb78fe9babe884c2ae8e7fc2773710e6399b5bf22733f70f102fb"
   terminal/components/SearchModalCompare.module.css: "864d08191bf60d696b8e1f5233e9ddafec5ebfeeb8b307b61f629894bd48700c"
@@ -138,7 +138,7 @@ cropFiles:
   StockAnalysis-390-zh.png: "f1d6768036d03fe0c713d681925297b5174e9097dccd81d8277758be9d802364"
   StockAnalysis-390.png: "96ed4fb95e3f6870b2f0601648d0d7ae961e11280457d46a327649366333035b"
 
-iw2Upstream1162Recapture:
-  sourceHead: c069160cfccb177668a7f9fa247fbfcf8ebdbeec
-  historicalManifest: history/before-iw2-recapture-c069160cf.yml
+iw2Upstream1159Recapture:
+  sourceHead: 32bee096a6ff9cb6c1aa1e6d5404b38ebe9deddb
+  historicalManifest: history/before-iw2-recapture-6df5ebc3.yml
   qualification: Actual native producer full matrix; local fixtures only; no runtime or live-account acceptance

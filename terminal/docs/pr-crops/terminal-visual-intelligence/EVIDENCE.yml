@@ -52,7 +52,7 @@ layoutFiles:
   terminal/lib/sharedShellContracts.ts: "dc7c893852c287b2a18c6b71cbced07bfa0996c1168490c5a8c24e4d3de01266"
   terminal/app/company-intelligence.css: "8b43f2046891837f6572fa2a59b7594547def9602b0454e1f14edba322da2a34"
   terminal/components/DayRange.tsx: "c84724652783da1897ab4eeb98550eaf3dbd7942eefe3ce127b6ada2b16dd672"
-  terminal/components/OptionsHubView.tsx: "158ce4599ff142bd5c1f6a3f575bf59ea1dc817c9cbf402e96c28900ad17c036"
+  terminal/components/OptionsHubView.tsx: "5c54df6f4939a966262323325f7abba196599abbce8a137882b8dc13068c72bb"
   terminal/components/SearchModal.tsx: "a7a9a97d9ce08b7e8b03ccfdfc8720c5d6fca80873663125f624dba98b99cc83"
   terminal/components/StockAnalysis.tsx: "376a907d0d8ea3dc5819e0092f02e19ce56fa1f4b71a3489551adf52fddb35c0"
   terminal/components/workspaces/AnalysisWorkspace.tsx: "411b8a7e498b8af3f9337fdcf3835dd62e6a5854826f414171d8303efd8aa5bb"
@@ -64,12 +64,12 @@ layoutFiles:
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
   terminal/lib/flowActivity.ts: "eb1433e57c7b63a52978aa4e63419e62b3e1a0e0210869f93838a8b7529ce332"
 cropFiles:
-  desktop-context.png: "27c37d3ea688a51fdd95fe6bc390d3edff5af20218625c0a8d79f6444c7cc6e2"
-  desktop-context-zh.png: "8266455a9d0c1ba88fc1560f427255ca1fe06d14705857cb2cae1de071aeda22"
+  desktop-context.png: "308d5c0a1fb1336b352e51f1ce1508663aaca529074b66fa4eef1720383afba4"
+  desktop-context-zh.png: "b1854cbd4c61b138ddd80541014ac7c41ad09b4d9e35f39a0896d5d96800968a"
   mobile-context.png: "bbebcc0cc16b1d9bef4b316ec73e3cd9f7c0621e159747db97f006746841c14e"
   mobile-context-zh.png: "ad8903b573db8338d50020d80d11d4b7393abc88312d3635bbf44cb6d3b5f654"
   tablet-context.png: "2dae8afacb4ab7951fa0a139d44a2061f73b5375431e46d3b58449865131af68"
-  tablet-context-zh.png: "025c84ec06fb8c9ad2ce3fc8dad175e6b63382ce30cf694d4b911cf64145229c"
+  tablet-context-zh.png: "391867e1bb05d471e0f8f467f3902bd5f99e69f2dd597811921ff4efead33763"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -92,8 +92,8 @@ browserResults:
   visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases
 browserReportPath: browser-report.json
 browserReportHashes:
-  visualReport: "75e1fef768afb81fc3723a860f0916c42785f10f49adbea27a9762be6b9055bc"
-  mobileCrosshairReport: "75e1fef768afb81fc3723a860f0916c42785f10f49adbea27a9762be6b9055bc"
+  visualReport: "6235260b83023cf70ed44cd097a9f2bca78c3789a6c4b78c5840046177d4c43c"
+  mobileCrosshairReport: "6235260b83023cf70ed44cd097a9f2bca78c3789a6c4b78c5840046177d4c43c"
 drawingDockRecapture:
   sourceHead: 8a3135bc6eaa307f3d581223e70471df8de49d95
   reason: DrawingSidebar.tsx and TerminalShell.tsx changed so the drawing dock's group button follows the tool the shell actually armed
@@ -475,10 +475,9 @@ priorTiingo24hConsumerRecapture:
   scope: Actual local deterministic fixture evidence after the Tiingo 24H consumer changes. Live vendor freshness and production installation are separate acceptance steps.
 
 currentLocalGates:
-  sourceHead: c069160cfccb177668a7f9fa247fbfcf8ebdbeec
-  visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases; actual EN/ZH at three viewports
-  postCaptureGates: Recorded after actual captures and manifest; no inherited suite count
-  scope: Fresh local fixture captures; no production or live-provider assertion
+  sourceHead: 32bee096a6ff9cb6c1aa1e6d5404b38ebe9deddb
+  visualIntelligenceMatrix: "30 passed; zero failures, skips, retries or flaky cases; actual EN/ZH at three viewports"
+  scope: "Fresh local fixture captures; no production or live-provider acceptance"
 
 sharedShellComposedSourceRecapture:
   sourceHead: "42d78dbb108eae0dc37fd73d7ece947612cb1ce0"
@@ -634,3 +633,10 @@ composedDocumentLanguageProductionJoin20261024:
   receipt: composed-language-production-recapture.json
   scope: "desktop-context.png, desktop-context-zh.png, tablet-context.png, tablet-context-zh.png, mobile-context.png, mobile-context-zh.png"
   qualification: "Actual joined-source ordinary-profile local captures; historical full30 and prior6 reports are retained, not relabeled."
+
+iw2Upstream1159Recapture:
+  sourceHead: 32bee096a6ff9cb6c1aa1e6d5404b38ebe9deddb
+  integratedMaster: a8037ef7b662316a88becca11f31f5a87b5b7133
+  historicalManifest: history/before-iw2-recapture-6df5ebc3.yml
+  fullMatrixReport: browser-report.json
+  scope: Actual original30case matrix; separate upstream composition report is not included in this census
