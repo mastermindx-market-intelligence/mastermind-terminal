@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { billingAuthResult, BILLING_BASE } from "@/app/api/billing/gateway";
-import { preparePlanExpiryRequest, readPlanPayoff } from "@/lib/optionsPlanPayoff";
+import { preparePlanExpiryRequest, readPlanPayoff, readPlanReferenceCoverage } from "@/lib/optionsPlanPayoff";
 import { rateLimit, tooMany } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
@@ -58,6 +58,11 @@ export async function POST(request: Request): Promise<Response> {
     if (!upstream.headers.get("content-type")?.toLowerCase().startsWith("application/json")) return respond(502, "contract_terms_unavailable");
     const raw: unknown = JSON.parse(await boundedBody(upstream, 192 * 1024));
     if (!upstream.ok) return respond([401, 403, 422, 429, 503].includes(upstream.status) ? upstream.status : 502, "contract_terms_unavailable");
+    if (raw && typeof raw === "object" && "status" in raw && raw.status === "UNPRICED"
+      && "curve" in raw && raw.curve === null) {
+      const coverage = readPlanReferenceCoverage(raw);
+      return NextResponse.json({ status: "UNAVAILABLE", reason: "contract_terms_unavailable", ...(coverage ? { coverage } : {}) }, { status: 422, headers: HEADERS });
+    }
     if (!readPlanPayoff(raw, checked.value)) return respond(422, "contract_terms_unavailable");
     return NextResponse.json(raw, { headers: HEADERS });
   } catch { return respond(503, "contract_terms_unavailable"); }

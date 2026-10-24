@@ -24,6 +24,17 @@ describe("private Plan proxy", () => {
     expect(fetcher.mock.calls[0][1]).toMatchObject({ cache: "no-store", redirect: "error", headers: { Authorization: "Bearer verified" } });
     expect(r.headers.get("cache-control")).toBe("private, no-store");
   });
+  it("returns only safe dated coverage for an unpriced exact selection, never rows or partial math", async () => {
+    const built = preparePlanExpiryRequest(draft()); if (!built.ok) throw new Error();
+    const raw = { ...response(built.value), status: "UNPRICED", curve: null, contracts: [{ secret_paid_row: true }] };
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify(raw), { headers: { "Content-Type": "application/json" } })));
+    const r = await POST(request());
+    expect(r.status).toBe(422);
+    expect(await r.json()).toEqual({ status: "UNAVAILABLE", reason: "contract_terms_unavailable", coverage: {
+      root: "SPY", contract_count: 20, expirations: ["2026-10-30"], as_of: "2026-10-23", captured_at: "2026-10-23T20:00:00Z",
+    } });
+    expect(r.headers.get("cache-control")).toBe("private, no-store");
+  });
   it("never forwards caller evidence or arbitrary prices", async () => {
     const built = preparePlanExpiryRequest(draft()); if (!built.ok) throw new Error();
     const fetcher = vi.fn(); vi.stubGlobal("fetch", fetcher);

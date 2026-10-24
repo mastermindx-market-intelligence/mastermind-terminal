@@ -17,3 +17,16 @@
 .answer summary:focus-visible { outline: 2px solid var(--brand-2); outline-offset: 3px; }
 @media (max-width: 600px) { .metrics { grid-template-columns: 1fr; gap: 12px; } .answer { padding: 12px; } }
 @media (min-width: 1000px) { .panel { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: start; } .answer { position: sticky; top: 12px; } }
+
+.referenceBasis { color: var(--text-2); }
+.legend { display: flex; flex-wrap: wrap; gap: 12px; color: var(--text-2); font: 12px var(--font-ui); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 10px; height: 10px; display: inline-block; }
+.lossKey, .lossArea { fill: var(--down); background: var(--down); }
+.profitKey, .profitArea { fill: var(--up); background: var(--up); }
+.profitArea, .lossArea { opacity: 0.18; }
+.profitCurve { stroke: var(--up); stroke-width: 2; }
+.lossCurve { stroke: var(--down); stroke-width: 2; }
+.breakeven { stroke: var(--text-2); stroke-width: 1; stroke-dasharray: 3 3; }
+.breakevenDot { fill: var(--text); }
+.chart button { min-height: 44px; margin-top: 8px; }

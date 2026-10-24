@@ -18,6 +18,7 @@ export function response(request: PlanExpiryRequest) {
     curve: { spots: request.spots, pnl: request.spots.map(s => Math.max(s - 765, 0) * 100 - 200), cost: 200,
       max_gain: "UNBOUNDED", max_loss: -200, breakevens: [767] },
     source_boundary: { terms: "server_held_qualified_reference", terms_temporal_basis: "dated_reference",
+      reference_root: "SPY", reference_contract_count: 20, reference_expirations: ["2026-10-30"],
       reference_as_of: "2026-10-23", current_terms_qualified: false, original_response_bytes_replayed: false, installed_observation_sha256: "b".repeat(64), discovery_snapshot_authenticated: false,
       current_quote_eligible: false, historical_first_availability_established: false, reference_request_count: 0,
       reference_sha256: "a".repeat(64), reference_observed_at: "2026-10-23T20:00:00Z" } };

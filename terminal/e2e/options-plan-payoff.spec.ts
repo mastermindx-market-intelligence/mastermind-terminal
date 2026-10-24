@@ -18,6 +18,13 @@ for (const lang of ["en", "zh"] as const) {
     await expect(page.getByText(lang === "en" ? "Worst expiry outcome" : "最差到期结果", { exact: true })).toBeVisible();
     await expect(page.getByText(lang === "en" ? "Unbounded gain" : "收益无上限", { exact: true })).toBeVisible();
     await expect(page.locator('svg[role="img"]')).toBeVisible();
+    await expect(page.getByTestId("plan-reference-basis")).toBeVisible();
+    await expect(page.getByTestId("plan-reference-coverage")).toContainText("20 SPY");
+    await expect.poll(() => page.locator('polyline[clip-path*="profit"]').evaluate(el => getComputedStyle(el).stroke)).toBe(lang === "zh" ? "rgb(240, 86, 107)" : "rgb(38, 194, 129)");
+    await expect(page.getByTestId("plan-breakeven-marker")).toContainText("767.00");
+    const view = page.getByTestId("plan-expiry-chart");
+    expect(Number(await view.getAttribute("data-view-high")) - Number(await view.getAttribute("data-view-low"))).toBeLessThan(12);
+    await expect(page.getByText(lang === "en" ? "Profit / loss (USD)" : "损益（美元）", { exact: true })).toBeVisible();
     await expect(page.getByTestId("draft-returned")).toHaveText("canonical-draft-returned");
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
     await page.screenshot({ path: info.outputPath(`plan-${lang}-${info.project.name}.png`), fullPage: true });
