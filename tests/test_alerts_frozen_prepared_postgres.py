@@ -570,3 +570,61 @@ def test_delivery_evidence_refuses_mismatch_and_pins_before_transport(pg):
     body=proof.payload;body['summary_plain']='external mutation'
     assert proof.payload==p
     assert h.effects(pg)==(1,1)
+
+
+def delivery_host(pg, adapter, account_allowed=lambda:True):
+    from ingest.options_frozen_delivery_host import FrozenDeliveryAuthorizer
+    from types import SimpleNamespace
+    from urllib.parse import parse_qs
+    calls=[]
+    def read(path):
+        calls.append(path); table,query=path.split('?',1);q=parse_qs(query)
+        assert table in {'alert_outbox','webhook_deliveries','webhook_endpoints','team_members','webhook_alert_optins'}
+        where=[]
+        for key in ('id','fire_event_id','team_id','user_id','channel'):
+            if key in q:where.append(key+'='+h.b.q(q[key][0].removeprefix('eq.')))
+        extra=",'value_text',x.payload->>'value'" if table=='alert_outbox' and 'value_text:' in q['select'][0] else ''
+        sql=f"select coalesce(json_agg(row_to_json(x)), '[]'::json) from (select * from public.{table}"+(' where '+' and '.join(where) if where else '')+' limit 2) x'
+        rows=json.loads(pg(sql))
+        if extra:
+            for row in rows:row['value_text']=pg('select payload->>\'value\' from public.alert_outbox where id='+h.b.q(row['id']))
+        selected=[part.split(':',1)[0] for part in q['select'][0].split(',')]
+        return [{key:row[key] for key in selected} for row in rows]
+    def account(event,at,source_origin=None):
+        assert event.source_origin==source_origin==adapter.source_origin
+        return {'kind':'delivery_account','principal':event.principal,'evaluationAt':at} if account_allowed() else None
+    return FrozenDeliveryAuthorizer(read=read,event_reader=FrozenNodeCommittedEventReader(adapter,outbox_origin=adapter.source_origin),
+        account_reader=SimpleNamespace(read_delivery_account=account),source_origin=adapter.source_origin),calls
+
+
+def test_private_delivery_composition_binds_current_rows_projection_and_policy(pg):
+    from ingest.options_frozen_delivery_host import EMAIL_FIELDS,WEBHOOK_FIELDS
+    _,a,r,s,x,p=subject(pg);assert h.FrozenNodeHitPublisher(a).publish(r,s,x,p)['kind']=='committed'
+    host,calls=delivery_host(pg,a)
+    email=canonical_event(pg);selected={k:email[k] for k in EMAIL_FIELDS}
+    at=pg.clock();q={'mode':'email','row':selected,'evaluationAt':at,'sourceOrigin':a.source_origin}
+    proof=host.check(q);assert proof and proof['row']==selected
+    delivery=json.loads(pg('select row_to_json(d) from public.webhook_deliveries d'))
+    q.update(mode='webhook',row={k:delivery[k] for k in WEBHOOK_FIELDS})
+    proof=host.check(q);assert proof and proof['row']['payload']==delivery['payload']
+    assert 'secret' not in proof['endpoint']
+    assert all(not path.startswith('alerts?') for path in calls)  # committed disarm is expected
+    assert h.effects(pg)==(1,1)
+
+
+@pytest.mark.parametrize('fault',['account','membership','optin','filter','disabled','projection','endpoint_team','wrong_origin','future','row_identity'])
+def test_private_delivery_composition_revocation_mismatch_unknown_fail_closed(pg,fault):
+    from ingest.options_frozen_delivery_host import WEBHOOK_FIELDS
+    _,a,r,s,x,p=subject(pg);assert h.FrozenNodeHitPublisher(a).publish(r,s,x,p)['kind']=='committed'
+    host,_=delivery_host(pg,a,lambda:fault!='account')
+    if fault=='membership':pg('delete from public.team_members')
+    elif fault=='optin':pg('update public.webhook_alert_optins set enabled=false')
+    elif fault=='filter':pg("update public.webhook_endpoints set event_filter=array['webhook.test']")
+    elif fault=='disabled':pg('update public.webhook_endpoints set enabled=false')
+    elif fault=='projection':pg("update public.webhook_deliveries set payload=jsonb_set(payload,'{summary_plain}','\"changed\"')")
+    elif fault=='endpoint_team':host.read=lambda _:None
+    row=json.loads(pg('select row_to_json(d) from public.webhook_deliveries d'));row={k:row[k] for k in WEBHOOK_FIELDS}
+    if fault=='row_identity':row['event_id']='a'*64
+    req={'mode':'webhook','row':row,'evaluationAt':('2099-01-01T00:00:00Z' if fault=='future' else pg.clock()),'sourceOrigin':('https://other.invalid' if fault=='wrong_origin' else a.source_origin)}
+    assert host.check(req) is None
+    assert h.effects(pg)==(1,1)
