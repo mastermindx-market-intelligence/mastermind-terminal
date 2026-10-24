@@ -132,6 +132,12 @@ the whole resolver is called without one and refuses before fetching retained
 generation bytes. This separation repairs the endpoint/schema collision; it does
 not restore the withdrawn public-primary grant, qualify full Company availability,
 authorize a source family, or change the original admission/release holds.
+Symbol bootstrap still reads the current owner to establish the exact company and
+generation; the zero-retained-generation-read denial is not a zero-network claim
+for that bootstrap. Client and server scope changes require coupled adoption:
+an old server rejects the new scope, and an old Company client cannot treat the
+new server's no-scope selection response as full context. These are fail-closed
+availability limits, not transparent rolling compatibility.
 
 ## Installation and proof boundary
 
