@@ -46,9 +46,11 @@ function walk(root, relative) {
   const identity = io(root, relative, "directory");
   return { root, relative, identity, guard: () => { if (!equal(identity, io(root, relative, "directory"))) fail("DIRECTORY_REPLACED"); }, close() {} };
 }
-function read(d, name, maximum) { member(name); return Buffer.from(io(d.root, d.relative, "read", { name, maximum, identity: d.identity }), "base64"); }
-function write(d, name, bytes) { member(name); if (!Buffer.isBuffer(bytes) || bytes.length < 1 || bytes.length > LIMIT.image) fail("WRITE_BOUND"); io(d.root, d.relative, "write", { name, bytes: bytes.toString("base64"), identity: d.identity }); }
-function exists(d, name) { return io(d.root, d.relative, "exists", { name, identity: d.identity }); }
+function physical(d, name) { member(name); if (d.prefix && (name.includes("--") || name.endsWith(".composition.json"))) fail("UNSAFE_MEMBER"); return (d.prefix || "") + name; }
+function guard(d) { return d.startGuard ? { start: d.startGuard } : {}; }
+function read(d, name, maximum, fileIdentity) { return Buffer.from(io(d.root, d.relative, "read", { name: physical(d, name), maximum, identity: d.identity, ...(fileIdentity ? { fileIdentity } : {}), ...guard(d) }), "base64"); }
+function write(d, name, bytes) { if (!Buffer.isBuffer(bytes) || bytes.length < 1 || bytes.length > LIMIT.image) fail("WRITE_BOUND"); return io(d.root, d.relative, "write", { name: physical(d, name), bytes: bytes.toString("base64"), identity: d.identity, ...guard(d) }); }
+function exists(d, name) { return io(d.root, d.relative, "exists", { name: physical(d, name), identity: d.identity, ...guard(d) }); }
 function sourceSnapshot(repo) {
   // Complete incumbent union plus current runtime/fixture source membership. No causal narrowing.
   return io(repo, "", "snapshot", { paths: [...SOURCE_PATHS, "terminal/e2e/tools/visualEvidenceSources.json"] });
@@ -94,21 +96,38 @@ function composeCases({ operations, selections, requiredCases, currentSources, p
 function beginOperation({ repoRoot, packet, operationId, env }) {
   if (!PACKETS[packet] || !ID.test(operationId || "")) fail("OPERATION_ID");
   const repo = fs.realpathSync(repoRoot); if (path.resolve(repoRoot) !== repo) fail("UNSAFE_DIRECTORY");
-  const createdIdentity = io(repo, `${PACKETS[packet]}/operations`, "create_operation", { id: operationId });
-  const relative = `${PACKETS[packet]}/operations/${operationId}`, d = walk(repo, relative);
+  // No newly-created directory is opened by name. The payload precedes exclusive file creation.
+  const start = { schema: "terminal.visual-operation-start.v2", id: operationId, packet, profile: profile(env), sourceFiles: sourceSnapshot(repo) };
+  const bytes = Buffer.from(canonical(start)), relative = PACKETS[packet], d = walk(repo, relative);
   try {
-    if (!equal(createdIdentity, d.identity)) fail("DIRECTORY_REPLACED");
-    const start = { schema: "terminal.visual-operation-start.v1", id: operationId, packet, profile: profile(env), sourceFiles: sourceSnapshot(repo) };
-    write(d, "start.json", Buffer.from(canonical(start))); return { repoRoot: repo, relative, id: operationId, packet, identity: d.identity };
+    const created = io(repo, relative, "create_start", { id: operationId, name: `${operationId}--start.json`, bytes: bytes.toString("base64"), identity: d.identity });
+    const op = { version: 2, repoRoot: repo, relative, id: operationId, packet, identity: created.identity, parentIdentity: d.identity, startHash: created.sha256 };
+    const opened = openOperation(repo, op); opened.d.close();
+    return op;
   } finally { d.close(); }
 }
-function openOperation(repoRoot, relative, expectedIdentity, maximum = LIMIT.json) {
-  if (!Object.values(PACKETS).some(p => relative.startsWith(`${p}/operations/`)) || relative.split("/").length !== 6 || !ID.test(path.basename(relative))) fail("OPERATION_PATH");
+function openOperation(repoRoot, locator, expectedIdentity, maximum = LIMIT.json) {
+  if (plain(locator)) {
+    if (locator.version !== 2 || !ID.test(locator.id || "") || PACKETS[locator.packet] !== locator.relative) fail("OPERATION_PATH");
+    const d = walk(repoRoot, locator.relative);
+    try {
+      if (locator.parentIdentity && !equal(locator.parentIdentity, d.identity)) fail("DIRECTORY_REPLACED");
+      const name = `${locator.id}--start.json`, meta = io(repoRoot, locator.relative, "read_meta", { name, maximum: Math.min(LIMIT.json, maximum), identity: d.identity, ...(locator.identity ? { fileIdentity: locator.identity } : {}) });
+      const bytes = Buffer.from(meta.bytes, "base64"), start = JSON.parse(bytes);
+      if (locator.startHash && meta.sha256 !== locator.startHash) fail("START_BINDING");
+      if (start.schema !== "terminal.visual-operation-start.v2" || start.id !== locator.id || start.packet !== locator.packet) fail("OPERATION_BINDING");
+      d.prefix = `${locator.id}--`; d.startGuard = { name, identity: meta.identity, sha256: meta.sha256 }; d.version = 2;
+      return { d, start, startBytes: bytes.length, startHash: meta.sha256 };
+    } catch (error) { d.close(); throw error; }
+  }
+  // Explicit historical v1 read path only. New writers never create or adopt operation directories.
+  const relative = locator;
+  if (typeof relative !== "string" || !Object.values(PACKETS).some(p => relative.startsWith(`${p}/operations/`)) || relative.split("/").length !== 6 || !ID.test(path.basename(relative))) fail("OPERATION_PATH");
   const d = walk(repoRoot, relative);
   if (expectedIdentity && !equal(expectedIdentity, d.identity)) fail("DIRECTORY_REPLACED");
-  try { const startBytes = read(d, "start.json", Math.min(LIMIT.json, maximum)); const start = JSON.parse(startBytes); if (start.schema !== "terminal.visual-operation-start.v1" || start.id !== path.basename(relative) || PACKETS[start.packet] !== relative.split("/operations/")[0]) fail("OPERATION_BINDING"); return { d, start, startBytes: startBytes.length }; } catch (e) { d.close(); throw e; }
+  try { const bytes = read(d, "start.json", Math.min(LIMIT.json, maximum)), start = JSON.parse(bytes); if (start.schema !== "terminal.visual-operation-start.v1" || start.id !== path.basename(relative) || PACKETS[start.packet] !== relative.split("/operations/")[0]) fail("OPERATION_BINDING"); d.version = 1; return { d, start, startBytes: bytes.length, startHash: sha(bytes) }; } catch (error) { d.close(); throw error; }
 }
-function writePayload(op, name, bytes) { const { d } = openOperation(op.repoRoot, op.relative, op.identity); try { if (exists(d, "operation.json")) fail("OPERATION_COMPLETE"); write(d, member(name), bytes); } finally { d.close(); } }
+function writePayload(op, name, bytes) { if (op.version !== 2) fail("HISTORICAL_READ_ONLY"); const { d } = openOperation(op.repoRoot, op); try { if (exists(d, "operation.json")) fail("OPERATION_COMPLETE"); write(d, member(name), bytes); } finally { d.close(); } }
 function writeCase(op, spec, bytes, observation) {
   const digest = sha(Buffer.from(spec.key)).slice(0, 32), imageName = `case-${digest}.png`, observationName = `case-${digest}.json`;
   const image = { path: imageName, ...imageInfo(bytes) };
@@ -129,7 +148,8 @@ function reportCases(report, packet) {
   report.suites.forEach(visit); if (rows.length !== report.stats.expected) fail("REPORT_COUNT"); return rows;
 }
 function finishOperation(op, report) {
-  const { d, start } = openOperation(op.repoRoot, op.relative, op.identity);
+  if (op.version !== 2) fail("HISTORICAL_READ_ONLY");
+  const { d, start, startHash } = openOperation(op.repoRoot, op);
   try {
     if (exists(d, "operation.json")) fail("OPERATION_COMPLETE");
     if (!equal(start.sourceFiles, sourceSnapshot(op.repoRoot))) fail("SOURCE_MISMATCH");
@@ -146,23 +166,32 @@ function finishOperation(op, report) {
     }
     if (!cases.length) fail("REPORT_COUNT");
     const reportBytes = Buffer.from(canonical(report)); write(d, "report.json", reportBytes);
-    const record = { ...start, schema: "terminal.visual-operation.v1", report: { path: "report.json", sha256: sha(reportBytes) }, cases };
+    const record = { ...start, schema: "terminal.visual-operation.v2", start: { path: "start.json", sha256: startHash }, report: { path: "report.json", sha256: sha(reportBytes) }, cases };
     // Validate each actually executed case; completeness is the composition reader's separate duty.
     const specs = cases.map(c => ({ key: c.key, packet: c.packet, file: c.execution.file, title: c.execution.title, project: c.execution.project, locale: c.locale, viewport: c.viewport }));
     composeCases({ operations: [record], selections: cases.map(c => ({ operationId: record.id, key: c.key })), requiredCases: specs, currentSources: start.sourceFiles, profile: start.profile });
     for (const c of cases) { const actual = imageInfo(read(d, c.image.path, LIMIT.image)); if (!equal(actual, { sha256: c.image.sha256, width: c.image.width, height: c.image.height })) fail("PNG_BINDING"); }
-    write(d, "operation.json", Buffer.from(canonical(record))); io(d.root, d.relative, "seal", { name: "operation.json", identity: d.identity });
-    return { path: `${op.relative}/operation.json`, sha256: sha(Buffer.from(canonical(record))), operation: record };
+    write(d, "operation.json", Buffer.from(canonical(record)));
+    return { path: `${op.relative}/${physical(d, "operation.json")}`, sha256: sha(Buffer.from(canonical(record))), operation: record };
   } finally { d.close(); }
 }
 function readOperation(repo, ref, budget) {
-  if (!plain(ref) || !safeRelative(ref.path) || path.basename(ref.path) !== "operation.json" || !HASH.test(ref.sha256 || "")) fail("OPERATION_REFERENCE");
-  const { d, start, startBytes } = openOperation(repo, path.dirname(ref.path), undefined, budget.remaining);
+  if (!plain(ref) || !safeRelative(ref.path) || !HASH.test(ref.sha256 || "")) fail("OPERATION_REFERENCE");
+  const flat = path.basename(ref.path).match(/^([A-Za-z0-9][A-Za-z0-9_-]{0,95})--operation\.json$/);
+  let locator;
+  if (flat) {
+    const entry = Object.entries(PACKETS).find(([, p]) => p === path.dirname(ref.path)); if (!entry) fail("OPERATION_REFERENCE");
+    locator = { version: 2, relative: entry[1], packet: entry[0], id: flat[1] };
+  } else {
+    if (path.basename(ref.path) !== "operation.json") fail("OPERATION_REFERENCE");
+    locator = path.dirname(ref.path);
+  }
+  const { d, start, startBytes, startHash } = openOperation(repo, locator, undefined, budget.remaining);
   budget.remaining -= startBytes;
   try {
     function bounded(name, cap) { const bytes = read(d, name, Math.min(cap, budget.remaining)); budget.remaining -= bytes.length; return bytes; }
     const bytes = bounded("operation.json", LIMIT.json); if (sha(bytes) !== ref.sha256) fail("OPERATION_HASH");
-    const op = JSON.parse(bytes); if (op.schema !== "terminal.visual-operation.v1" || op.id !== start.id || op.packet !== start.packet || !equal(op.sourceFiles, start.sourceFiles) || !equal(op.profile, start.profile) || !Array.isArray(op.cases) || op.cases.length > 64 || !op.report || op.report.path !== "report.json" || !HASH.test(op.report.sha256 || "")) fail("OPERATION_BINDING");
+    const op = JSON.parse(bytes); if (op.schema !== `terminal.visual-operation.v${d.version}` || (d.version === 2 && (!op.start || op.start.path !== "start.json" || op.start.sha256 !== startHash)) || op.id !== start.id || op.packet !== start.packet || !equal(op.sourceFiles, start.sourceFiles) || !equal(op.profile, start.profile) || !Array.isArray(op.cases) || op.cases.length > 64 || !op.report || op.report.path !== "report.json" || !HASH.test(op.report.sha256 || "")) fail("OPERATION_BINDING");
     const reportBytes = bounded("report.json", LIMIT.json); if (sha(reportBytes) !== op.report.sha256) fail("REPORT_HASH");
     const actual = reportCases(JSON.parse(reportBytes), op.packet); if (actual.length !== op.cases.length) fail("REPORT_COUNT");
     for (const c of op.cases) {
@@ -177,14 +206,16 @@ function readOperation(repo, ref, budget) {
     return op;
   } finally { d.close(); }
 }
-function readComposition({ repoRoot, compositionPath, expectedProfile = profile() }) {
+function readComposition({ repoRoot, compositionPath, expectedProfile = profile(), expectedFile, expectedParent }) {
   const repo = fs.realpathSync(repoRoot), relative = path.relative(repo, path.resolve(repo, compositionPath));
   if (!safeRelative(relative) || !Object.values(PACKETS).some(p => path.dirname(relative) === p) || !/^[A-Za-z0-9][A-Za-z0-9_-]{0,95}\.composition\.json$/.test(path.basename(relative))) fail("COMPOSITION_PATH");
   const d = walk(repo, path.dirname(relative)); let bytes;
-  try { bytes = read(d, path.basename(relative), LIMIT.json); } finally { d.close(); }
-  const c = JSON.parse(bytes); if (c.schema !== "terminal.visual-composition.v1" || c.mode !== "records" || !ID.test(c.id || "") || path.basename(relative) !== `${c.id}.composition.json` || !Array.isArray(c.operations) || c.operations.length < 2 || c.operations.length > 64 || !Array.isArray(c.selections) || c.selections.length > 64 || !equal(c.profile, profile(c.profile?.sharedShell === "1" ? { MMX_SHARED_SHELL: "1", MMX_INVESTOR_SHELL_PREVIEW: c.profile.investorShellPreview } : { MMX_INVESTOR_SHELL_PREVIEW: c.profile?.investorShellPreview }))) fail("COMPOSITION_SHAPE");
+  try { if (expectedParent && !equal(expectedParent, d.identity)) fail("DIRECTORY_REPLACED"); bytes = read(d, path.basename(relative), LIMIT.json, expectedFile?.identity); if (expectedFile && sha(bytes) !== expectedFile.sha256) fail("COMPOSITION_HASH"); } finally { d.close(); }
+  const c = JSON.parse(bytes); if (!["terminal.visual-composition.v1", "terminal.visual-composition.v2"].includes(c.schema) || c.mode !== "records" || !ID.test(c.id || "") || path.basename(relative) !== `${c.id}.composition.json` || !Array.isArray(c.operations) || c.operations.length < 2 || c.operations.length > 64 || !Array.isArray(c.selections) || c.selections.length > 64 || !equal(c.profile, profile(c.profile?.sharedShell === "1" ? { MMX_SHARED_SHELL: "1", MMX_INVESTOR_SHELL_PREVIEW: c.profile.investorShellPreview } : { MMX_INVESTOR_SHELL_PREVIEW: c.profile?.investorShellPreview }))) fail("COMPOSITION_SHAPE");
   if (!equal(c.profile, expectedProfile)) fail("PROFILE_MISMATCH");
   const budget = { remaining: LIMIT.total - bytes.length }, ops = c.operations.map(ref => readOperation(repo, ref, budget));
+  const version = c.schema.endsWith(".v2") ? 2 : 1;
+  if (ops.some(op => op.schema !== `terminal.visual-operation.v${version}`)) fail("MIXED_OPERATION_VERSIONS");
   const requiredCases = [...requirements("pl6"), ...requirements("vi")];
   const cases = composeCases({ operations: ops, selections: c.selections, requiredCases, currentSources: sourceSnapshot(repo), profile: c.profile });
   return { id: c.id, cases, operations: ops };
@@ -199,10 +230,10 @@ function selectedComposition(repoRoot, env = process.env) {
 }
 function writeComposition({ repoRoot, id, packet = "pl6", operations, selections, profile: captureProfile }) {
   if (!ID.test(id || "") || !PACKETS[packet]) fail("COMPOSITION_ID");
-  const c = { schema: "terminal.visual-composition.v1", mode: "records", id, profile: captureProfile, operations, selections };
-  const d = walk(repoRoot, PACKETS[packet]);
-  try { write(d, `${id}.composition.json`, Buffer.from(canonical(c))); } finally { d.close(); }
+  const c = { schema: "terminal.visual-composition.v2", mode: "records", id, profile: captureProfile, operations, selections };
+  const d = walk(repoRoot, PACKETS[packet]); let created;
+  try { created = write(d, `${id}.composition.json`, Buffer.from(canonical(c))); } finally { d.close(); }
   // Invalid explicit data stays immutable and ineligible; no legacy fallback or replacement.
-  return readComposition({ repoRoot, compositionPath: `${PACKETS[packet]}/${id}.composition.json`, expectedProfile: captureProfile });
+  return readComposition({ repoRoot, compositionPath: `${PACKETS[packet]}/${id}.composition.json`, expectedProfile: captureProfile, expectedFile: created, expectedParent: d.identity });
 }
 module.exports = { PACKETS, VIEWPORTS, TITLES, SURFACES, requirements, key, sha, canonical, profile, sourceSnapshot, imageInfo, composeCases, beginOperation, openOperation, writePayload, writeCase, finishOperation, readOperation, readComposition, selectedComposition, writeComposition };
