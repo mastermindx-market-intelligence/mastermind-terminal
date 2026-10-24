@@ -1073,7 +1073,7 @@ function OrphanedTargetRow({ ticker, roleLabel, target, band, lang, onClearTarge
   return (
     <div className={tg.orphanedRow} data-ticker={ticker} data-status="orphaned">
       <p className={tg.ticker}>{ticker}</p>
-      {roleLabel && <p className={tg.value}>{lang === "zh" ? "你的角色标签" : "Your role label"}: {roleLabel}</p>}
+      {roleLabel && <p className={tg.value}>{pick({ en: "Your role label", zh: "你的角色标签" })}: {roleLabel}</p>}
       <p className={tg.value}>{pick(T_TARGET)} {target}</p>
       <p className={tg.value}>{pick(T_BAND)} {band}</p>
       <div className={tg.actions}>
