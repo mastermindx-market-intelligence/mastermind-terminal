@@ -1,3 +1,4 @@
+# Current scoped Plan composition: optionsPlanComposition20261024 below. Earlier source/report identities remain historical.
 # Current scoped qualification: optionsSharedShellCompositionRecapture20261024; prior records keep their original identities.
 # Current coherent Options + protected HTML-language capture: optionsLanguageCompositionRecapture20261024 below. Prior records remain historical.
 
@@ -55,7 +56,7 @@ layoutFiles:
   terminal/lib/sharedShellContracts.ts: "dc7c893852c287b2a18c6b71cbced07bfa0996c1168490c5a8c24e4d3de01266"
   terminal/app/company-intelligence.css: "8b43f2046891837f6572fa2a59b7594547def9602b0454e1f14edba322da2a34"
   terminal/components/DayRange.tsx: "c84724652783da1897ab4eeb98550eaf3dbd7942eefe3ce127b6ada2b16dd672"
-  terminal/components/OptionsHubView.tsx: "5c54df6f4939a966262323325f7abba196599abbce8a137882b8dc13068c72bb"
+  terminal/components/OptionsHubView.tsx: "476b79a8d87ed6b7e165013ce7610cb0811d63800dab5c91ef1a729a128c82bb"
   terminal/components/SearchModal.tsx: "5b3a466a06215231f1b458c382aaae268b4f2f9f206d6f985f312f603fa4a5aa"
   terminal/components/StockAnalysis.tsx: "376a907d0d8ea3dc5819e0092f02e19ce56fa1f4b71a3489551adf52fddb35c0"
   terminal/components/workspaces/AnalysisWorkspace.tsx: "411b8a7e498b8af3f9337fdcf3835dd62e6a5854826f414171d8303efd8aa5bb"
@@ -67,8 +68,8 @@ layoutFiles:
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
   terminal/lib/flowActivity.ts: "eb1433e57c7b63a52978aa4e63419e62b3e1a0e0210869f93838a8b7529ce332"
 cropFiles:
-  desktop-context.png: "c283b5851a6c57c9296d3bcf9af470f5c2608cb943c8ac9be7b9f0f3ab739a89"
-  desktop-context-zh.png: "a3ddb474c423b1cbebd086c6a85acb798185159971a071545d7c1fe9912296db"
+  desktop-context.png: "5af6b583872fe76c770874ef839a68e4794f6982f5210e252886c89a38f6effa"
+  desktop-context-zh.png: "be085764baf8fcf8ed481fc9fa970b9ca1ca907a82c4e37e7576f7842707ec15"
   mobile-context.png: "4bb912458a311faed7e779e24dffda3907ce5af4eec95dbc1a9f21ae3978bbe7"
   mobile-context-zh.png: "e405b67dd7664ccbe130e97c455a536b24e7b85ab51af9f96ec135e030608622"
   tablet-context.png: "876d593ae5cbee00ff1326e661de1739f2a094bf621636d74473093218388234"
@@ -677,3 +678,9 @@ optionsSharedShellCompositionRecapture20261024:
   actualBrowserResult: "2 passed; 0 failed, skipped, flaky or retries; default ordinary-profile capture"
   reportSha256: "811fe01b3d2b3199e93f2149627a0611da12b8a8e1259042db0dcef2eb8f5709"
   productionProof: false
+
+optionsPlanComposition20261024:
+  head: 38565c73bcdb31fcf2920fc91b90ed775d495c93
+  source: 476b79a8d87ed6b7e165013ce7610cb0811d63800dab5c91ef1a729a128c82bb
+  qualification: terminal/docs/pr-crops/terminal-visual-intelligence/options-plan-composed-qualification.json
+  scope: four OptionsHub crops and two desktop chart-context cases; earlier full30 report remains historical
