@@ -43,6 +43,7 @@ for (const lang of ["en", "zh"] as const) {
     await panel(page).getByRole("button", { name: lang === "zh" ? "保存筛选视图" : "Save screen", exact: true }).click();
     await expect(panel(page)).toContainText(lang === "zh" ? "仅保存在此浏览器" : "Saved on this browser");
     await expect(panel(page)).toContainText(lang === "zh" ? "已保存在此浏览器" : "Screen saved on this browser");
+    await expect(panel(page)).toBeFocused();
     await page.keyboard.press("Escape");
     await expect(save).toBeFocused();
 
@@ -141,4 +142,18 @@ test("storage failure remains unsaved and leaves current results usable", async 
   await expect(panel(page)).toContainText("the change was not saved");
   await expect(page.locator('[data-options-export="tape-csv-v1"]')).toContainText("1");
   expect(await page.evaluate((key) => localStorage.getItem(key), SAVED_TAPE_VIEWS_KEY)).toBeNull();
+});
+
+test("suggested multilingual names retain complete code points", async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem("mm.lang", "en"));
+  await routeFeed(page);
+  const groupFilter = `A${"😀".repeat(31)}`;
+  await page.goto(`/options?${new URLSearchParams({ tab: "tape", tapeView: encodeTapeView({ ...createDefaultTapeView(), groupFilter }) })}`);
+  await page.locator('[data-options-saved-view="save"]').click();
+  const suggestion = await panel(page).getByRole("textbox").inputValue();
+  expect(suggestion).toBe(`${groupFilter} · All expiries`);
+  await panel(page).getByRole("button", { name: "Save screen", exact: true }).click();
+  await expect(panel(page)).toContainText("Screen saved on this browser");
+  const saved = await page.evaluate((key) => JSON.parse(localStorage.getItem(key)!), SAVED_TAPE_VIEWS_KEY);
+  expect(saved.views[0].name).toBe(suggestion);
 });
