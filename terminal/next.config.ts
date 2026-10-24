@@ -155,7 +155,12 @@ const nextConfig: NextConfig = {
   outputFileTracingExcludes: { "/*": [".local-futures/**/*", "**/.local-futures/**/*"] },
   // Distinct-per-build id → version-skew protection + stale-chunk self-heal (see DEPLOYMENT_ID above).
   deploymentId: DEPLOYMENT_ID,
-  env: { NEXT_PUBLIC_SHARED_SHELL_BUILD: DEPLOYMENT_ID || (isProd ? "unversioned" : "development") },
+  env: {
+    NEXT_PUBLIC_SHARED_SHELL_BUILD: DEPLOYMENT_ID || (isProd ? "unversioned" : "development"),
+    // Pin activation to this build. An older flag-off build stays off if restored;
+    // the production unit's inert BUILD flag is only release-owner admission.
+    MMX_SHARED_SHELL: process.env.MMX_SHARED_SHELL === "1" ? "1" : "0",
+  },
   // pin the workspace root (sibling lockfiles exist) so Turbopack stops warning
   turbopack: { root: path.resolve(__dirname) },
   // The shared pure validators also export Node-side digest helpers. For webpack's

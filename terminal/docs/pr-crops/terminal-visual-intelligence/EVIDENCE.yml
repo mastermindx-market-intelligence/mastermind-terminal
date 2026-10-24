@@ -45,7 +45,7 @@ layoutFiles:
   terminal/components/chrome/investor-shell-preview.css: "83d1842b9b057014f698d5e62627c3e492a1061d0e8713b7a2bdc3ca8753650e"
   terminal/components/chrome/shared-shell/shared-shell.css: "aa6555ac18306f31fb317d8941bd1dd530ab7c61c18e67d2a73a439329950339"
   terminal/app/(shell)/layout.tsx: "76270446f1ff2b2f60393eacb81d3ccb1c5f6e7c7b20b96d85b535c7d1da5b9a"
-  terminal/next.config.ts: "a0dc8c710922b25d865eb966c4da69a77c953bb6b98a9b5e0ed00d7e78beaf40"
+  terminal/next.config.ts: "2fa9402645a4312f9846e9f73b6df076e6747723041a5f2da4c6ada3c4cf375e"
   terminal/lib/investorShellPreview.ts: "d0e7797ffba0bfdda2fdabc1312abe07e631b5060ed9c58bbb320ed4b50624e9"
   terminal/lib/sharedShellContracts.ts: "dc7c893852c287b2a18c6b71cbced07bfa0996c1168490c5a8c24e4d3de01266"
   terminal/app/company-intelligence.css: "8b43f2046891837f6572fa2a59b7594547def9602b0454e1f14edba322da2a34"
@@ -62,12 +62,12 @@ layoutFiles:
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
   terminal/lib/flowActivity.ts: "eb1433e57c7b63a52978aa4e63419e62b3e1a0e0210869f93838a8b7529ce332"
 cropFiles:
-  desktop-context.png: "9ab1770f4b1a6a59c02730cf954d8360b359d5b1764b828281f06948308b9d13"
-  desktop-context-zh.png: "77077eee2e63819a48e2cb99645525cf9f0b79d29689dfbc7741a2b431887416"
+  desktop-context.png: "a80cd2688aa95a63118e0eaa13e6aa13ce09cd109e9099bfecb36e2c39410526"
+  desktop-context-zh.png: "f91e23ffee50348427ecc9b869d2345db0d1f79cc8838c342a78bda3aa003a0a"
   mobile-context.png: "4bb912458a311faed7e779e24dffda3907ce5af4eec95dbc1a9f21ae3978bbe7"
   mobile-context-zh.png: "026a5eec18bd550659368edb3ad69d20dacd542bdd898b16b971d0284a67d087"
-  tablet-context.png: "371cb5a97f7571295ff71c117eb6c7869d180c1a3b72c68551783ce1cf41be23"
-  tablet-context-zh.png: "83e2284520987798d68f92c1db4bba81d4293ff82d48e9044ec5aedf50d2c4bf"
+  tablet-context.png: "876d593ae5cbee00ff1326e661de1739f2a094bf621636d74473093218388234"
+  tablet-context-zh.png: "60a4aea2a2b13d527c6ffc0eec5d034d819477b4aafa83334231dc716ae73519"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -618,3 +618,9 @@ ex03Post1140ProtectedIntegration20261023:
   browserReportSha256: "a04c11f78ec3f2233c9ace7d078b035669447cde191db6aee0fa71463a454ecc"
   productionProof: false
   receipt: "../ex03-search/ci-repair-20261022/post1140-master-integration-20261023.json"
+
+productionShellBuildConfigRecapture20261024:
+  sourceHead: "08bca3d53b52f245f081fed26cfd7ac352c52488"
+  receipt: production-shell-config-recapture.json
+  scope: "desktop-context.png, desktop-context-zh.png, tablet-context.png, tablet-context-zh.png, mobile-context.png, mobile-context-zh.png"
+  qualification: "Actual local ordinary-profile captures; prior functional reports and unrecaptured images retain their original identities."

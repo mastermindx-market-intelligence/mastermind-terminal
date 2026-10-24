@@ -19,6 +19,13 @@ type LiveFrame = {
   generation: string; canonical: string; entry: string; restore: ShellViewState | null;
   initialized: boolean; admitted: boolean; requests: Set<string>;
 };
+type FrameDiagnostic = {
+  phase: "location-pending" | "inactive" | "gate-pending" | "frame-requested" | "init-sent" | "ready" | "restricted";
+  failure: "none" | "invalid-path" | "gate-http" | "gate-network" | "gate-mismatch" | "frame-navigation" | "deadline" | "ready-version" | "ready-canonical" | "child-error" | "navigation-target";
+  load: "not-seen" | "seen";
+  childError: "none" | "initialization_failed" | "unsupported_context" | "navigation_unavailable" | "authentication_navigation";
+};
+const INITIAL_DIAGNOSTIC: FrameDiagnostic = { phase: "location-pending", failure: "none", load: "not-seen", childError: "none" };
 const ENTRY_KEY = "mmxSharedShellEntry";
 const LOCATION_EVENT = "mmx:shell-location";
 
@@ -50,6 +57,14 @@ export default function LegacyPageHost({
   const sameDocument = useRef<string | null>(null);
   const active = isLegacyShellPath(path);
   const [canonical, setCanonical] = useState<string | null>(null);
+  const [diagnostic, setDiagnostic] = useState<FrameDiagnostic>(INITIAL_DIAGNOSTIC);
+  const diagnose = useCallback((patch: Partial<FrameDiagnostic>) => {
+    setDiagnostic(previous => {
+      const next = { ...previous, ...patch };
+      return next.phase === previous.phase && next.failure === previous.failure
+        && next.load === previous.load && next.childError === previous.childError ? previous : next;
+    });
+  }, []);
 
   const clearDeadline = useCallback(() => {
     if (timeout.current !== null) window.clearTimeout(timeout.current);
@@ -64,10 +79,18 @@ export default function LegacyPageHost({
     const current = live.current;
     if (!current?.admitted) return;
     current.initialized = true;
+    setDiagnostic(previous => previous.phase === "ready" || previous.phase === "restricted"
+      ? previous : { ...previous, phase: "init-sent" });
     post({ protocol: SHARED_SHELL_PROTOCOL, frameGeneration: current.generation,
       type: "INIT", ...contextRef.current, canonicalPath: current.canonical,
       catalog: sharedShellCatalog, restore: current.restore });
   }, [post, clearDeadline]);
+
+  const onFrameLoad = useCallback(() => {
+    if (!live.current?.admitted) return; // about:blank may load before admission.
+    diagnose({ load: "seen" });
+    initialize();
+  }, [diagnose, initialize]);
 
   useEffect(() => {
     contextRef.current = context;
@@ -113,12 +136,14 @@ export default function LegacyPageHost({
     // Retire the previous transaction without admitting its old document again.
     if (canonical === null || canonical.split(/[?#]/, 1)[0] !== path) {
       live.current = null;
+      setDiagnostic(INITIAL_DIAGNOSTIC);
       setStatus("loading");
       return;
     }
     if (!active || !isPresentationHref(canonical)) {
       live.current = null;
       onTitle("");
+      diagnose({ phase: "inactive", failure: active ? "invalid-path" : "none" });
       setStatus(active ? "failed" : "loading");
       return;
     }
@@ -145,29 +170,36 @@ export default function LegacyPageHost({
       initialized: false, admitted: false, requests: new Set(),
     };
     live.current = current;
+    setDiagnostic({ ...INITIAL_DIAGNOSTIC, phase: "gate-pending" });
     setStatus("loading");
     onTitle(shellPageLabel(path, contextRef.current.locale));
     const abort = new AbortController();
     let expired = false;
+    let gateHttpFailed = false;
+    let frameRequested = false;
     timeout.current = window.setTimeout(() => {
-      if (live.current === current) { expired = true; clearDeadline(); setStatus("failed"); }
+      if (live.current === current) { expired = true; clearDeadline();
+        setDiagnostic(previous => previous.failure === "none" ? { ...previous, failure: "deadline" } : previous);
+        setStatus("failed"); }
     }, 15000);
 
     // Check the actual running sibling service on every document navigation.
     // A stale client cannot treat a rollback/disabled server as a successful integration.
     fetch("/api/shared-shell/status", { cache: "no-store", credentials: "same-origin", signal: abort.signal })
       .then(async response => {
-        if (!response.ok) throw new Error("Shared Shell unavailable");
+        if (!response.ok) { gateHttpFailed = true; throw new Error("Shared Shell unavailable"); }
         const gate = await response.json();
         if (expired || abort.signal.aborted || live.current !== current) return;
         if (gate.buildId !== SHARED_SHELL_BUILD || gate.protocol !== SHARED_SHELL_PROTOCOL || gate.bridgeVersion !== SHARED_SHELL_BRIDGE_VERSION
           || gate.documentVersion !== SHARED_SHELL_DOCUMENT_VERSION
           || gate.registrySha256 !== sharedShellSource.registrySha256 || gate.enabled !== true) {
-          if (live.current === current) { clearDeadline(); setStatus("changed"); }
+          if (live.current === current) { clearDeadline(); diagnose({ failure: "gate-mismatch" }); setStatus("changed"); }
           return;
         }
         if (live.current !== current || !frame.current?.contentWindow) return;
         current.admitted = true;
+        frameRequested = true;
+        diagnose({ phase: "frame-requested" });
         // Cross-origin Location.replace is the browser-supported write operation.
         // Keeping the one WindowProxy avoids adding child-only history entries via iframe.src.
         frame.current.contentWindow.location.replace(legacyFrameHref(canonical, current.generation, legacyOrigin));
@@ -179,10 +211,13 @@ export default function LegacyPageHost({
         }, 250);
       })
       .catch(error => {
-        if (error?.name !== "AbortError" && live.current === current) setStatus("failed");
+        if (error?.name !== "AbortError" && live.current === current) {
+          diagnose({ failure: gateHttpFailed ? "gate-http" : frameRequested ? "frame-navigation" : "gate-network" });
+          setStatus("failed");
+        }
       });
     return () => { abort.abort(); clearDeadline(); };
-  }, [active, canonical, retry, identityKey, legacyOrigin, path, onTitle, clearDeadline, initialize]);
+  }, [active, canonical, retry, identityKey, legacyOrigin, path, onTitle, clearDeadline, initialize, diagnose]);
 
   useEffect(() => {
     const receive = (event: MessageEvent) => {
@@ -197,14 +232,15 @@ export default function LegacyPageHost({
         const target = resolveSharedShellLink(message.href, current.canonical, window.location.origin, legacyOrigin);
         if (message.bridgeVersion !== SHARED_SHELL_BRIDGE_VERSION
           || message.documentVersion !== SHARED_SHELL_DOCUMENT_VERSION) {
-          clearDeadline(); setStatus("changed"); return;
+          clearDeadline(); diagnose({ failure: "ready-version" }); setStatus("changed"); return;
         }
         if (target.kind !== "legacy" || target.href !== current.canonical) {
-          clearDeadline(); setStatus("failed"); return;
+          clearDeadline(); diagnose({ failure: "ready-canonical" }); setStatus("failed"); return;
         }
         if (message.contextRevision !== contextRef.current.contextRevision) { initialize(); return; }
         clearDeadline();
         onTitle(message.title || shellPageLabel(path, contextRef.current.locale));
+        diagnose({ phase: message.responseKind === "content" ? "ready" : "restricted", failure: "none", childError: "none" });
         setStatus(message.responseKind === "content" ? "ready" : "restricted");
       } else if (message.type === "VIEW_STATE") {
         views.current.set(current.entry, message.view);
@@ -214,10 +250,10 @@ export default function LegacyPageHost({
         current.requests.add(message.requestId);
         if (current.requests.size > 128) current.requests.delete(current.requests.values().next().value!);
         const target = resolveSharedShellLink(message.href, current.canonical, window.location.origin, legacyOrigin);
-        if (target.kind !== "legacy" && target.kind !== "native") { setStatus("failed"); return; }
+        if (target.kind !== "legacy" && target.kind !== "native") { diagnose({ failure: "navigation-target" }); setStatus("failed"); return; }
         if (message.sameDocument) {
           if (target.kind !== "legacy" || new URL(target.href, legacyOrigin).pathname !== path) {
-            setStatus("failed"); return;
+            diagnose({ failure: "navigation-target" }); setStatus("failed"); return;
           }
           sameDocument.current = target.href;
           const key = message.mode === "push" ? crypto.randomUUID() : current.entry;
@@ -241,12 +277,12 @@ export default function LegacyPageHost({
           settings.open(message.intent === "billing" ? "billing" : "account");
         else onboarding.open(message.intent);
       } else if (message.type === "ERROR") {
-        clearDeadline(); setStatus("failed");
+        clearDeadline(); diagnose({ failure: "child-error", childError: message.code }); setStatus("failed");
       }
     };
     window.addEventListener("message", receive);
     return () => window.removeEventListener("message", receive);
-  }, [legacyOrigin, path, router, post, clearDeadline, initialize, onTitle, onContextRequest, settings, onboarding]);
+  }, [legacyOrigin, path, router, post, clearDeadline, initialize, onTitle, onContextRequest, settings, onboarding, diagnose]);
 
   useEffect(() => {
     const visibility = () => {
@@ -260,20 +296,22 @@ export default function LegacyPageHost({
           .then(gate => {
             if (live.current === current && (!gate?.enabled || gate.buildId !== SHARED_SHELL_BUILD || gate.registrySha256 !== sharedShellSource.registrySha256
               || gate.protocol !== SHARED_SHELL_PROTOCOL || gate.bridgeVersion !== SHARED_SHELL_BRIDGE_VERSION
-              || gate.documentVersion !== SHARED_SHELL_DOCUMENT_VERSION)) { clearDeadline(); setStatus("changed"); }
+              || gate.documentVersion !== SHARED_SHELL_DOCUMENT_VERSION)) { clearDeadline(); diagnose({ failure: "gate-mismatch" }); setStatus("changed"); }
           }).catch(() => { /* The next navigation performs the required admission check. */ });
       }
     };
     document.addEventListener("visibilitychange", visibility);
     return () => document.removeEventListener("visibilitychange", visibility);
-  }, [post, clearDeadline]);
+  }, [post, clearDeadline, diagnose]);
 
   if (!active) return null;
   const title = shellPageLabel(path, context.locale);
   const failed = status === "failed" || status === "changed";
   const visible = status === "ready" || status === "restricted";
   return (
-    <main className="main2 shared-shell-content" id="shared-shell-content" aria-label={title} aria-busy={status === "loading"}>
+    <main className="main2 shared-shell-content" id="shared-shell-content" aria-label={title} aria-busy={status === "loading"}
+      data-shared-shell-phase={diagnostic.phase} data-shared-shell-failure={diagnostic.failure}
+      data-shared-shell-load={diagnostic.load} data-shared-shell-child-error={diagnostic.childError}>
       {!visible && (
         <section className="shared-shell-boundary" role={failed ? "alert" : "status"} aria-live="polite">
           <span className="shared-shell-boundary-mark" aria-hidden="true">{failed ? "↗" : "M"}</span>
@@ -301,7 +339,7 @@ export default function LegacyPageHost({
         aria-hidden={!visible}
         inert={!visible}
         tabIndex={visible ? 0 : -1}
-        onLoad={initialize}
+        onLoad={onFrameLoad}
         sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads allow-top-navigation-by-user-activation"
         referrerPolicy="strict-origin-when-cross-origin"
         allow="clipboard-write; fullscreen"
