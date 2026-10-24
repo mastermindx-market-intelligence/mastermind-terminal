@@ -314,3 +314,12 @@ revoke all on function public.investigation_plan_keys_v1(jsonb,text[]),public.in
 
 $definitions$;
 end $composition$;
+
+-- down:
+-- NONE: preserve retained manifests/revisions/receipts and use a reviewed forward repair.
+-- Close application ingress through its existing owner before any separately authorized
+-- runtime repair. Installing an old predicate after v3 data is not a safe rollback.
+-- readback:
+-- select p.proname,p.prosecdef,p.provolatile,p.proconfig from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname in ('valid_investigation_manifest_v2','valid_investigation_option_plan_v1','investigation_plan_number_v1','investigation_plan_json_v1') order by p.proname;
+-- select md5(pg_get_functiondef('public.valid_investigation_manifest_v2(jsonb)'::regprocedure)) as manifest_body,md5(pg_get_functiondef('public.valid_investigation_option_plan_v1(jsonb)'::regprocedure)) as plan_body;
+-- select has_function_privilege('anon','public.valid_investigation_option_plan_v1(jsonb)','EXECUTE') as anon_plan,has_function_privilege('authenticated','public.valid_investigation_option_plan_v1(jsonb)','EXECUTE') as authenticated_plan;

@@ -59,8 +59,11 @@ def composed(kernel):
     # disposable fixture only. This does not qualify or authorize a live0042 effect.
     kernel("create role service_role; create table watchlists(id uuid primary key,user_id uuid references auth.users(id),name text);"
            "create table watchlist_symbols(id uuid primary key,watchlist_id uuid references watchlists(id),symbol text);")
-    for name in ("0021_resource_grants.sql", "0041_pinned_research_handoffs.sql", "0042_investigation_scenario_reference.sql"):
+    for name in ("0021_resource_grants.sql", "0041_pinned_research_handoffs.sql"):
         kernel((ROOT / "supabase/migrations" / name).read_text())
+    dependency = ROOT / "tests/fixtures/migrations/0042_investigation_scenario_reference.sql"
+    assert hashlib.sha256(dependency.read_bytes()).hexdigest() == "2eb41ee7bbfa3b0601e05b211b09a15c3418d1ee0fe7d9b57e7f096e98cb1682"
+    kernel(dependency.read_text())
     installed = kernel("select pg_get_functiondef('public.valid_investigation_manifest_v2(jsonb)'::regprocedure)")
     kernel("create or replace function public.valid_investigation_manifest_v2(m jsonb) returns boolean language sql immutable as $$select false$$")
     with pytest.raises(AssertionError, match="0043_requires_0042_predicate_order"):
