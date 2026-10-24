@@ -43,6 +43,7 @@ export default function LegacyPageHost({
   const live = useRef<LiveFrame | null>(null);
   const contextRef = useRef(context);
   const timeout = useRef<number | null>(null);
+  const bootstrap = useRef<number | null>(null);
   const views = useRef(new Map<string, ShellViewState>());
   const previousEntry = useRef<{ key: string; canonical: string } | null>(null);
   const traversal = useRef(false);
@@ -52,7 +53,9 @@ export default function LegacyPageHost({
 
   const clearDeadline = useCallback(() => {
     if (timeout.current !== null) window.clearTimeout(timeout.current);
+    if (bootstrap.current !== null) window.clearInterval(bootstrap.current);
     timeout.current = null;
+    bootstrap.current = null;
   }, []);
   const post = useCallback((message: ShellParentMessage) => {
     frame.current?.contentWindow?.postMessage(message, legacyOrigin);
@@ -145,8 +148,9 @@ export default function LegacyPageHost({
     setStatus("loading");
     onTitle(shellPageLabel(path, contextRef.current.locale));
     const abort = new AbortController();
+    let expired = false;
     timeout.current = window.setTimeout(() => {
-      if (live.current === current) setStatus("failed");
+      if (live.current === current) { expired = true; clearDeadline(); setStatus("failed"); }
     }, 15000);
 
     // Check the actual running sibling service on every document navigation.
@@ -155,6 +159,7 @@ export default function LegacyPageHost({
       .then(async response => {
         if (!response.ok) throw new Error("Shared Shell unavailable");
         const gate = await response.json();
+        if (expired || abort.signal.aborted || live.current !== current) return;
         if (gate.buildId !== SHARED_SHELL_BUILD || gate.protocol !== SHARED_SHELL_PROTOCOL || gate.bridgeVersion !== SHARED_SHELL_BRIDGE_VERSION
           || gate.documentVersion !== SHARED_SHELL_DOCUMENT_VERSION
           || gate.registrySha256 !== sharedShellSource.registrySha256 || gate.enabled !== true) {
@@ -166,12 +171,18 @@ export default function LegacyPageHost({
         // Cross-origin Location.replace is the browser-supported write operation.
         // Keeping the one WindowProxy avoids adding child-only history entries via iframe.src.
         frame.current.contentWindow.location.replace(legacyFrameHref(canonical, current.generation, legacyOrigin));
+        // load waits for every image/resource, while the trusted bridge can prove
+        // readiness at DOMContentLoaded. Retry the existing idempotent INIT only
+        // inside this admitted generation and its unchanged readiness deadline.
+        bootstrap.current = window.setInterval(() => {
+          if (live.current === current) initialize();
+        }, 250);
       })
       .catch(error => {
         if (error?.name !== "AbortError" && live.current === current) setStatus("failed");
       });
     return () => { abort.abort(); clearDeadline(); };
-  }, [active, canonical, retry, identityKey, legacyOrigin, path, onTitle, clearDeadline]);
+  }, [active, canonical, retry, identityKey, legacyOrigin, path, onTitle, clearDeadline, initialize]);
 
   useEffect(() => {
     const receive = (event: MessageEvent) => {
