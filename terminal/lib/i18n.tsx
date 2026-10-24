@@ -2008,8 +2008,6 @@ export const LEX: Record<string, [string, string]> = {
   acsAlertCats: ["What we email you about", "邮件提醒的内容"],
   acsAlertCatHold: ["A position I hold moves on real news", "我持有的仓位因真实消息出现变动"],
   acsAlertCatThes: ["A market view I'm watching starts or ends", "我关注的市场观点开始或结束"],
-  acsAlertCatExposureNode: ["Price nears an exposure level I selected", "价格接近我选定的敞口价位"],
-  acsAlertCatExposureNodeNote: ["Notification preference only. Exposure-level alerts are not available yet.", "这仅保存通知偏好。敞口价位提醒尚未开放。"],
   acsAlertTz: ["Time zone", "时区"],
   acsAlertTzNote: ["Used for quiet hours.", "用于免打扰时段。"],
   acsAlertTzUnset: ["No time zone chosen yet.", "尚未选择时区。"],

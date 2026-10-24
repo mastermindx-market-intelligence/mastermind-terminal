@@ -1031,6 +1031,8 @@ describe("P09 node category and opaque consent preservation", () => {
   it.each(["en", "zh"] as const)("is off by default and discloses unavailable alerts in %s", async lang => {
     const el = await mount(accountProps(lang));
     expect(categoryButton(el, NODE_CAT).getAttribute("aria-pressed")).toBe("false");
+    expect(categoryButton(el, NODE_CAT).textContent).toBe(lang === "en"
+      ? "Price nears an exposure level I selected" : "价格接近我选定的敞口价位");
     expect(el.textContent).toContain(lang === "en" ? "Exposure-level alerts are not available yet." : "敞口价位提醒尚未开放。");
     expect(fetchCalls.filter(c => c.method === "POST")).toHaveLength(0);
   });

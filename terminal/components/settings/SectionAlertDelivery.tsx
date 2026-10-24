@@ -11,11 +11,14 @@ import type { SectionProps } from "./types";
 
 const KNOWN_CATS = ["holdings_material_change", "thesis_window", "options_exposure_node"] as const;
 type KnownCat = (typeof KNOWN_CATS)[number];
-const CAT_KEY: Record<KnownCat, string> = {
+const CAT_KEY: Record<Exclude<KnownCat, "options_exposure_node">, string> = {
   holdings_material_change: "acsAlertCatHold",
   thesis_window: "acsAlertCatThes",
-  options_exposure_node: "acsAlertCatExposureNode",
 };
+const EXPOSURE_NODE_COPY = {
+  label: ["Price nears an exposure level I selected", "价格接近我选定的敞口价位"],
+  note: ["Notification preference only. Exposure-level alerts are not available yet.", "这仅保存通知偏好。敞口价位提醒尚未开放。"],
+} as const;
 
 // The four keys this section writes. A save is scoped to the keys in its own
 // request: it reports on those rows and, if it fails, rolls back only those.
@@ -463,12 +466,12 @@ export default function SectionAlertDelivery({ t, lang, identity, onClose }: Sec
                     key={id}
                     cat={id}
                     on={state.alert_categories.includes(id)}
-                    label={t(CAT_KEY[id])}
+                    label={id === "options_exposure_node" ? EXPOSURE_NODE_COPY.label[lang === "zh" ? 1 : 0] : t(CAT_KEY[id])}
                     onClick={() => toggleCat(id)}
                   />
                 ))}
               </div>
-              <p className="acs-row-desc">{t("acsAlertCatExposureNodeNote")}</p>
+              <p className="acs-row-desc">{EXPOSURE_NODE_COPY.note[lang === "zh" ? 1 : 0]}</p>
               {fieldMsg("alert_categories")}
               {rowNote("alert_categories")}
             </Row>
