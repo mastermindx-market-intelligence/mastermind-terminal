@@ -7,8 +7,9 @@ import {
 import { dailyActivityNote, signedActivityLabel } from "@/lib/flowActivity";
 import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
-import { createDefaultTapeView, decodeTapeView } from "@/lib/optionsTapeView";
+import { createDefaultTapeView, decodeTapeView, type TapeViewState } from "@/lib/optionsTapeView";
 import { OptionsTapeViewLink } from "@/components/options/OptionsTapeViewLink";
+import { OptionsTapeSavedViews } from "@/components/options/OptionsTapeSavedViews";
 import { useTapeViewText } from "@/components/options/optionsTapeViewStrings";
 import { useLang, useT } from "@/lib/i18n";
 import type { Lang } from "@/lib/i18n";
@@ -1686,16 +1687,8 @@ export default function OptionsHubView({
   const [showPresets, setShowPresets] = useState(false);
   const presetsRef = useRef<HTMLDivElement>(null);
 
-  // Next keeps this component mounted for same-route history navigation. Apply
-  // only an actual change to the shared-view parameter; unrelated URL updates
-  // must preserve local filter edits. Guarded render-time adjustment prevents
-  // a frame of results for the previous view before an invalid link is withheld.
-  if (requestedTapeView !== appliedTapeView) {
-    const values = tapeParams.getAll("tapeView");
-    const decoded = values.length === 1 ? decodeTapeView(values[0]) : null;
-    const next = decoded ?? createDefaultTapeView();
-    setAppliedTapeView(requestedTapeView);
-    setInvalidTapeView(values.length > 0 && decoded === null);
+  // One application path for URL restoration and saved display preferences.
+  const applyTapeView = (next: TapeViewState) => {
     setMinPrem(next.minPrem);
     setDteBuckets(new Set(next.dteBuckets));
     setMnyBuckets(new Set(next.mnyBuckets));
@@ -1707,6 +1700,19 @@ export default function OptionsHubView({
     setSortKey(next.sortKey);
     setSortDir(next.sortDir);
     setShowPresets(false);
+  };
+
+  // Next keeps this component mounted for same-route history navigation. Apply
+  // only an actual change to the shared-view parameter; unrelated URL updates
+  // must preserve local filter edits. Guarded render-time adjustment prevents
+  // a frame of results for the previous view before an invalid link is withheld.
+  if (requestedTapeView !== appliedTapeView) {
+    const values = tapeParams.getAll("tapeView");
+    const decoded = values.length === 1 ? decodeTapeView(values[0]) : null;
+    const next = decoded ?? createDefaultTapeView();
+    setAppliedTapeView(requestedTapeView);
+    setInvalidTapeView(values.length > 0 && decoded === null);
+    applyTapeView(next);
   }
 
   useEffect(() => {
@@ -2614,6 +2620,20 @@ export default function OptionsHubView({
                   </button>
                 )}
 
+                <OptionsTapeSavedViews state={{
+                  minPrem, dteBuckets: [...dteBuckets], mnyBuckets: [...mnyBuckets],
+                  groupFilter, drillTicker, tapeTickerSearch, sideFilter, flagFilter,
+                  sortKey, sortDir,
+                }} onApply={(encoded) => {
+                  // Invalid shared links keep their explicit recovery boundary.
+                  const restored = decodeTapeView(encoded);
+                  if (invalidTapeView || !restored) return;
+                  // Also handles re-opening the URL's screen after unsaved local edits.
+                  applyTapeView(restored);
+                  const url = new URL(window.location.href);
+                  url.searchParams.set("tapeView", encoded);
+                  window.history.pushState(null, "", url);
+                }} />
                 <OptionsTapeViewLink state={{
                   minPrem, dteBuckets: [...dteBuckets], mnyBuckets: [...mnyBuckets],
                   groupFilter, drillTicker, tapeTickerSearch, sideFilter, flagFilter,
