@@ -1,3 +1,4 @@
+# Current scoped qualification: optionsSharedShellCompositionRecapture20261024; prior records keep their original identities.
 # Current coherent Options + protected HTML-language capture: optionsLanguageCompositionRecapture20261024 below. Prior records remain historical.
 
 # Current scoped source: composedDocumentLanguageProductionJoin20261024; parent records retain their original identities.
@@ -428,3 +429,14 @@ composedDocumentLanguageProductionJoin20261024:
   receipt: composed-language-production-recapture.json
   scope: "ChartChrome-1440.png, ChartChrome-1440-zh.png, ChartChrome-390.png, ChartChrome-390-zh.png"
   qualification: "Actual joined-source ordinary-profile local captures; historical full30 and prior6 reports are retained, not relabeled."
+
+
+optionsSharedShellCompositionRecapture20261024:
+  sourceHead: "658137647374fa1f3e0b8f83f959410e56144b7b"
+  protectedMaster: "da990eb349ceadcd16e8855db29574e36deac782"
+  capturedAt: "2026-10-24T11:19:51.347Z"
+  scope: "Evidence-history union plus exact incoming next.config build-flag pin; accepted OptionsHub source and four existing PNGs are unchanged and retain their prior capture identity. No new Hub capture claimed."
+  report: "../terminal-visual-intelligence/options-shared-shell-composition-report.json"
+  actualBrowserResult: "2 passed; 0 failed, skipped, flaky or retries; default ordinary-profile capture"
+  reportSha256: "811fe01b3d2b3199e93f2149627a0611da12b8a8e1259042db0dcef2eb8f5709"
+  productionProof: false

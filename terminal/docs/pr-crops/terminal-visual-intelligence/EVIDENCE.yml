@@ -1,3 +1,4 @@
+# Current scoped qualification: optionsSharedShellCompositionRecapture20261024; prior records keep their original identities.
 # Current coherent Options + protected HTML-language capture: optionsLanguageCompositionRecapture20261024 below. Prior records remain historical.
 
 # Current scoped source: composedDocumentLanguageProductionJoin20261024; parent records retain their original identities.
@@ -66,8 +67,8 @@ layoutFiles:
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
   terminal/lib/flowActivity.ts: "eb1433e57c7b63a52978aa4e63419e62b3e1a0e0210869f93838a8b7529ce332"
 cropFiles:
-  desktop-context.png: "1c3540dd0ca90aa5b06aecf40a2af7a93cbe2557d94502b7e4d49327f1eb5b94"
-  desktop-context-zh.png: "ff89bce5a6e70b7ee0da2435b26d9334000d98fbe20ba29a682fb416547d7a9a"
+  desktop-context.png: "c283b5851a6c57c9296d3bcf9af470f5c2608cb943c8ac9be7b9f0f3ab739a89"
+  desktop-context-zh.png: "a3ddb474c423b1cbebd086c6a85acb798185159971a071545d7c1fe9912296db"
   mobile-context.png: "4bb912458a311faed7e779e24dffda3907ce5af4eec95dbc1a9f21ae3978bbe7"
   mobile-context-zh.png: "e405b67dd7664ccbe130e97c455a536b24e7b85ab51af9f96ec135e030608622"
   tablet-context.png: "876d593ae5cbee00ff1326e661de1739f2a094bf621636d74473093218388234"
@@ -665,3 +666,14 @@ composedDocumentLanguageProductionJoin20261024:
   receipt: composed-language-production-recapture.json
   scope: "desktop-context.png, desktop-context-zh.png, tablet-context.png, tablet-context-zh.png, mobile-context.png, mobile-context-zh.png"
   qualification: "Actual joined-source ordinary-profile local captures; historical full30 and prior6 reports are retained, not relabeled."
+
+
+optionsSharedShellCompositionRecapture20261024:
+  sourceHead: "658137647374fa1f3e0b8f83f959410e56144b7b"
+  protectedMaster: "da990eb349ceadcd16e8855db29574e36deac782"
+  capturedAt: "2026-10-24T11:19:51.347Z"
+  scope: "Two actual EN/ZH desktop context captures and existing associated assertions; unchanged responsive images and full30 report retain prior identities."
+  report: "options-shared-shell-composition-report.json"
+  actualBrowserResult: "2 passed; 0 failed, skipped, flaky or retries; default ordinary-profile capture"
+  reportSha256: "811fe01b3d2b3199e93f2149627a0611da12b8a8e1259042db0dcef2eb8f5709"
+  productionProof: false
