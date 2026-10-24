@@ -128,4 +128,26 @@ describe("native whole Plan entry through the existing explicit Investigation co
   expect(reader?.()).toEqual({id:posts[0].id,revision:1,plan:fixture});
   await click("Cancel editing");expect(reader?.()).toEqual({id:posts[0].id,revision:1,plan:fixture});expect(posts).toHaveLength(1);
  });
+ it("a POST 401 ends Plan admission but retains the exact uncertain operation without retry or replacement",async()=>{
+  await mount();await click("Start new research");const originalEntry=entry!;
+  await act(async()=>{expect(originalEntry(fixture).ok).toBe(true);});
+  await fill("Title","A local pending Plan");await fill("Research question","Retain the original operation after a 401");
+  const original=vi.mocked(fetch).getMockImplementation()!;
+  vi.mocked(fetch).mockImplementation((input,init)=>{
+   if(String(input)==="/api/investigations"&&init?.method==="POST"){
+    posts.push(JSON.parse(String(init.body)) as InvestigationCommand);
+    return Promise.resolve(new Response("body must not be parsed",{status:401}));
+   }
+   return original(input,init);
+  });
+  await click("Save research");
+  expect(posts).toHaveLength(1);const retained=sessionStorage.getItem(`mm.investigation.pending.v2:${owner}`)!;
+  expect(JSON.parse(retained)).toEqual({owner,command:posts[0]});
+  expect(posts[0].manifest.option_plan).toEqual(fixture);
+  expect(host.textContent).toContain("Sign in again to open saved research.");
+  expect(host.querySelector('input[aria-label="Title"]')).toBeNull();expect(entry).toBeNull();expect(reader).toBeNull();
+  expect(originalEntry(fixture).ok).toBe(false);await act(async()=>{});
+  expect(posts).toHaveLength(1);expect(sessionStorage.getItem(`mm.investigation.pending.v2:${owner}`)).toBe(retained);
+ });
+
 });
