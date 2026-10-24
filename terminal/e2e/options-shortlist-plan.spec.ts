@@ -47,6 +47,7 @@ for (const lang of ["en", "zh"] as const) {
       const leg = request.draft.legs[0];
       expect(leg.assumptions).toEqual({ side: "buy", quantity: 1, entry: { kind: "user_assumption", premium_per_unit: 3, currency: "USD" } });
       expect(leg.snapshot.sourceStale).toBe(true);
+      expect(request.draft.research).toEqual(requests === 1 ? { thesis: "Dated thesis", invalidation: "Evidence changes", horizon: "3 sessions" } : { thesis: "", invalidation: "", horizon: "" });
       const result = response(request);
       result.contract_expirations = ["2026-10-23"];
       Object.assign(result.source_boundary, { reference_as_of: "2026-10-19", reference_observed_at: "2026-10-20T08:43:25.307134+00:00", reference_expirations: ["2026-10-23"] });
@@ -70,6 +71,25 @@ for (const lang of ["en", "zh"] as const) {
       for (const control of await panel().getByRole("combobox", { name: t("Assumed premium denomination", "权利金假设币种"), exact: true }).all()) await control.selectOption("USD");
     };
     await open().click();
+    const sourceDetails = panel().getByTestId("plan-original-source"), notes = panel().getByTestId("plan-research-notes");
+    await expect(sourceDetails).not.toHaveAttribute("open"); await expect(notes).not.toHaveAttribute("open");
+    await expect(panel().getByText(t("Use your entry assumptions for a conditional expiry outcome. Current executable quotes are unavailable.", "用个人入场假设研究条件到期结果；当前可成交报价不可用。"), { exact: true })).toBeVisible();
+    // Native summary controls must work with keyboard and retain all fields.
+    await sourceDetails.locator("summary").focus(); await page.keyboard.press("Enter");
+    await expect(sourceDetails).toHaveAttribute("open", "");
+    await expect(sourceDetails.locator('[data-plan-field="mid"]')).toContainText("9");
+    await page.keyboard.press("Space"); await expect(sourceDetails).not.toHaveAttribute("open");
+    await notes.locator("summary").focus(); await page.keyboard.press("Enter");
+    await panel().getByLabel(t("Research thesis", "研究观点"), { exact: true }).fill("Dated thesis");
+    await panel().getByLabel(t("What would invalidate the thesis?", "哪些情况会推翻观点？"), { exact: true }).fill("Evidence changes");
+    await panel().getByLabel(t("Research horizon — separate from option expiry", "研究期限——与合约到期日分别记录"), { exact: true }).fill("3 sessions");
+    await notes.locator("summary").click(); await expect(notes).not.toHaveAttribute("open");
+    if (info.project.name === "mobile") {
+      const editor = panel().getByTestId("options-plan-draft"), entry = panel().getByLabel(t("Your entry assumption — premium per unit", "假设入场价——每单位权利金"), { exact: true });
+      const editorBox = await editor.boundingBox(), entryBox = await entry.boundingBox();
+      expect(editorBox!.height).toBeLessThan(620);
+      expect(entryBox!.y - editorBox!.y).toBeLessThan(350);
+    }
     await expect(panel().getByRole("combobox", { name: t("Your assumed side", "假设方向"), exact: true })).toHaveValue("");
     await expect(panel().getByLabel(t("Your assumed quantity — contracts", "假设数量——张"), { exact: true })).toHaveValue("");
     await expect(panel().getByLabel(t("Your entry assumption — premium per unit", "假设入场价——每单位权利金"), { exact: true })).toHaveValue("");

@@ -119,3 +119,27 @@ issue that the standalone harness did not show. The payoff card now scrolls
 normally with the existing results pane. All six final mounted journeys pass
 with the SVG at least99% in view after ordinary scrolling (subpixel boundary
 tolerance), and the refreshed captures show the whole loss/profit curve.
+
+The mounted planning panel now opts into the editor's optional `layout="planning"`.
+Existing editor callers retain the default full layout. Exact identity, source
+as-of and a refresh-failure flag stay above the authored trade controls; the
+panel explicitly states that current executable quotes are unavailable. Side,
+quantity, entry and denomination come before native Original source details and
+Optional research notes disclosures. Those disclosures retain the identical
+original fields and controlled research values; closing them never discards or
+rewrites the canonical draft. Notes added is visible for nonempty research.
+Native keyboard-operable summaries have the existing44px minimum touch target.
+Desktop keeps the two-column builder/payoff hierarchy; narrow planning fields
+use two columns without inferring any initial assumption.
+
+Affected verification:15 editor/panel/mount checks PASS, TypeScript PASS and
+changed-file ESLint PASS. Six focused EN/ZH mounted journeys PASS in24.2s with
+zero retries/skips; tablet was included because the disclosure layout changes
+there too. They verify keyboard Enter/Space expansion, original midpoint values,
+closed research serialization, compact phone control placement, and the existing
+source/selection/account/focus paths. At390px the collapsed editor is under620px
+and authored entry begins within350px of its top. Current full-page phone
+captures are2495px EN and2341px ZH (the preceding ZH path was2887px); full-page
+height also includes the unchanged workspace chrome, tray, payoff and source
+table. Refreshed mounted-{en,zh}-{desktop,mobile}.png captures were inspected.
+No source/private transport, canonical payload, persistence or effect ID changed.

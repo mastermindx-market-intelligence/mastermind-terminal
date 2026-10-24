@@ -112,10 +112,10 @@ function PlanPayoffBody({ draft, lang, onDraftChange, onClose }: Props) {
     : reason === "unsupported" ? t("Expiry terms are currently supported for ordinary SPY and QQQ contracts.", "当前到期条款支持标准SPY及QQQ合约。")
       : t("Enter a side, whole contract quantity and your USD entry assumption for every leg.", "请为每条腿填写方向、合约整数数量及美元入场价假设。");
   return <section className={styles.panel} data-testid="options-plan-payoff-panel" aria-label={t("Exact-contract Plan", "精确合约计划")}>
-    <OptionsPlanDraftEditor draft={draft} lang={lang} onApply={candidate => { void calculate(candidate); }} onClose={onClose}
+    <OptionsPlanDraftEditor layout="planning" draft={draft} lang={lang} onApply={candidate => { void calculate(candidate); }} onClose={onClose}
       onEdit={() => { sequence.current++; controller.current?.abort(); setResult(null); setCoverage(null); setStatus("idle"); }}
       applyLabel={t("Calculate expiry payoff", "计算到期损益")}
-      contextDescription={t("Use your entry assumptions to explore a hold-to-expiry outcome. Current quotes are separate.", "用个人入场假设研究持有至到期的结果；当前报价另行核验。")} />
+      contextDescription={t("Use your entry assumptions for a conditional expiry outcome. Current executable quotes are unavailable.", "用个人入场假设研究条件到期结果；当前可成交报价不可用。")} />
     <div className={styles.answer} aria-live="polite" aria-busy={status === "loading"}>
       <h2 ref={answer} tabIndex={-1}>{t("Expiry payoff", "到期损益")}</h2>
       {status === "idle" && <p>{t("Set your assumptions, then calculate a conditional expiry curve.", "填写假设后，可计算条件到期曲线。")}</p>}
