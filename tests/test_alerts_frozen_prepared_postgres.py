@@ -401,3 +401,101 @@ def test_ordinary_conclude_cannot_clear_unknown_prepare_marker(pg):
     assert pg("select error_class from public.alert_runs where lane='prepared_test'")=='frozen_fire_effect_unknown'
     assert call(a,r,s,x,p,'fence')['kind']=='unavailable'
     assert pg("select error_class from public.alert_runs where lane='prepared_test'")=='frozen_fire_effect_unknown'
+
+
+def test_explicit_settle_proven_commit_preserves_event_and_counters(pg):
+    _,a,r,s,x,p=subject(pg)
+    publisher=h.FrozenNodeHitPublisher(a)
+    assert publisher.publish(r,s,x,p)['kind']=='committed'
+    pg("update public.alert_runs set error_class='frozen_fire_effect_unknown',evaluated_n=7,fired_n=1,unevaluable_n=2 where lane='prepared_test'")
+    before=pg('select row_to_json(o) from public.alert_outbox o')
+    assert publisher.reconcile(r,s,x,p)['kind']=='already_committed'
+    assert pg("select error_class from public.alert_runs where lane='prepared_test'")=='frozen_fire_effect_unknown'
+    assert publisher.settle(r,s,x,p)=={'kind':'settled','fireEventId':x['fireEventId']}
+    assert pg("select error_class||':'||evaluated_n||':'||fired_n||':'||unevaluable_n from public.alert_runs where lane='prepared_test'")=='frozen_publication_settled:7:1:2'
+    assert pg('select row_to_json(o) from public.alert_outbox o')==before
+    assert h.effects(pg)==(1,1)
+    # A late terminal callback cannot resurrect the old barrier or its authority.
+    pg("update public.alert_runs set error_class='frozen_fire_effect_unknown',evaluated_n=8 where lane='prepared_test'")
+    assert pg("select error_class from public.alert_runs where lane='prepared_test'")=='frozen_publication_settled'
+    assert publisher.settle(r,s,x,p)['kind']=='settled'
+    assert call(a,r,s,x,p,'commit')['kind']=='already_committed'
+    pg("insert into public.alert_runs(lane,run_id,started_at,error_class) values('prepared_test','new-run',clock_timestamp(),'frozen_publication_pending')")
+    assert h.effects(pg)==(1,1)
+
+
+def test_settle_refuses_absent_prepared_or_mismatched_evidence(pg):
+    _,a,r,s,x,p=subject(pg)
+    assert call(a,r,s,x,p,'settle')['kind']=='unavailable'
+    assert call(a,r,s,x,p,'prepare')['kind']=='prepared'
+    assert call(a,r,s,x,p,'settle')['kind']=='unavailable'
+    assert pg("select error_class from public.alert_runs where lane='prepared_test'")=='frozen_publication_pending'
+    assert call(a,r,s,x,p,'commit')['kind']=='committed'
+    changed=copy.deepcopy(p);changed['subject']+=' altered'
+    assert call(a,r,s,x,changed,'settle')['kind']=='conflict'
+    assert pg("select error_class from public.alert_runs where lane='prepared_test'")=='frozen_publication_pending'
+    # This mode is administrative service authority, never owner/JWT authority.
+    params=[r.alert_id,r.principal,r.predicate,r.generation,r.revision,s,{'mode':'settle','receipt':x,'payload':p}]
+    denied=pg('select public.commit_frozen_node_state('+','.join(h.b.q(z) for z in params)+')',role='authenticated',claims={'sub':r.principal,'role':'service_role'},check=False)
+    assert denied.returncode!=0 and 'permission denied' in denied.stderr
+    assert h.effects(pg)==(1,1)
+
+
+def test_settle_cannot_relabel_abandoned_or_missing_run(pg):
+    _,a,r,s,x,p=subject(pg)
+    assert call(a,r,s,x,p,'prepare')['kind']=='prepared'
+    assert call(a,r,s,x,p,'fence')['kind']=='abandoned'
+    assert call(a,r,s,x,p,'settle')['kind']=='conflict'
+    assert pg("select error_class from public.alert_runs where lane='prepared_test'")=='frozen_publication_fenced'
+    # Published evidence without its actual invocation marker cannot create one.
+    pg("update public.alert_outbox set status='sent'")
+    pg("delete from public.alert_runs where lane='prepared_test'")
+    assert call(a,r,s,x,p,'settle')['kind']=='unavailable'
+    assert pg("select count(*) from public.alert_runs where lane='prepared_test'")=='0'
+
+
+def test_settle_refuses_any_remaining_prepared_intent(pg):
+    _,a,r,s,x,p=subject(pg)
+    assert h.FrozenNodeHitPublisher(a).publish(r,s,x,p)['kind']=='committed'
+    # Even an inconsistent retained intent sharing the invocation must hold it.
+    pg(f"insert into public.alert_outbox(user_id,alert_id,fire_event_id,channel,status,payload) values({h.b.q(r.principal)},{h.b.q(h.b.ALERT_IDS[1])},'other-prepared','email','prepared',{h.b.q(p)})")
+    assert call(a,r,s,x,p,'settle')['kind']=='unavailable'
+    assert pg("select error_class from public.alert_runs where lane='prepared_test'")=='frozen_publication_pending'
+    assert h.effects(pg)==(2,1)
+
+
+def test_competing_settlement_and_delayed_original_prepare_are_exclusive(pg):
+    _,a,r,s,x,p=subject(pg)
+    assert h.FrozenNodeHitPublisher(a).publish(r,s,x,p)['kind']=='committed'
+    # A separately valid second alert in the same original invocation must
+    # either prepare before closure (holding settlement), or lose to closure.
+    other_id=h.b.ALERT_IDS[1]
+    h.b.insert_alert(pg,alert=other_id,condition=r.predicate,symbol='QQQ')
+    h.b.call(pg,'arm_frozen_node_runtime',[other_id,r.principal,r.predicate,None,None])
+    alert={'id':other_id,'user_id':r.principal,'condition':r.predicate,'active':True}
+    at=pg.clock();second=a.read(alert,at)
+    outside={'targetFingerprint':second.target_fingerprint,'armingEpoch':second.arming_epoch,
+             'lastQuoteAt':at,'inside':False,'withinPct':second.within_pct,'lastQuoteBasis':'LIVE'}
+    assert a.commit(second,outside)
+    at=pg.clock();second=a.read(alert,at);state={**outside,'inside':True,'lastQuoteAt':at}
+    admission=copy.deepcopy(x['admission']);admission.update(evaluationAt=at,createdAt=second.created_at,
+        armingEpoch=second.arming_epoch,priorState=second.prior_state)
+    admission['rights']['checked_at']=at
+    late,late_payload=h.ae._frozen_hit_envelope(second,state,admission,
+        {'spot':159.1,'asof':at,'basis':'LIVE'},invocation=x['invocation'])
+    with ThreadPoolExecutor(max_workers=3) as pool:
+        tasks=[pool.submit(call,a,r,s,x,p,'settle'),pool.submit(call,a,r,s,x,p,'settle'),
+               pool.submit(call,a,second,state,late,late_payload,'prepare')]
+        settlements=[f.result()['kind'] for f in tasks[:2]]
+        prepared=tasks[2].result()['kind']
+    if prepared=='prepared':
+        assert settlements==['unavailable','unavailable']
+        assert h.effects(pg)==(2,1)
+        assert call(a,second,state,late,late_payload,'fence')['kind']=='abandoned'
+        # Fence closes the invocation; settlement must not relabel that decision.
+        assert call(a,r,s,x,p,'settle')['kind']=='unavailable'
+    else:
+        assert prepared=='unavailable' and settlements==['settled','settled']
+        assert call(a,second,state,late,late_payload,'prepare')['kind']=='unavailable'
+        assert pg("select error_class from public.alert_runs where lane='prepared_test'")=='frozen_publication_settled'
+        assert h.effects(pg)==(1,1)

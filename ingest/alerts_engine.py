@@ -545,7 +545,7 @@ class Supa:
         if name not in {"read_frozen_node_runtime", "arm_frozen_node_runtime", "commit_frozen_node_state"}:
             return {"kind": "unavailable", "reason": "unknown lifecycle operation"}
         status, parsed, _ = http_json_status(f"{self.base}/rpc/{name}", self.h, method="POST", body=params)
-        if (isinstance(params.get('p_hit'), dict) and params['p_hit'].get('mode') in ('prepare', 'commit', 'fence')
+        if (isinstance(params.get('p_hit'), dict) and params['p_hit'].get('mode') in ('prepare', 'commit', 'fence', 'settle')
                 and (status == 0 or status >= 500
                      or (200 <= status < 300 and not isinstance(parsed, dict)))):
             return {"kind": "effect_unknown", "reason": "atomic hit outcome unavailable"}

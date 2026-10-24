@@ -81,7 +81,7 @@ def test_barrier_exception_and_known_clear(monkeypatch):
     assert s.frozen_publication_clear('alerts_engine')
 
 
-@pytest.mark.parametrize('mode',['prepare','commit','fence'])
+@pytest.mark.parametrize('mode',['prepare','commit','fence','settle'])
 @pytest.mark.parametrize('reply',[(200,None,''),(204,None,''),(500,None,''),(0,None,'')])
 def test_mutating_rpc_malformed_or_unknown_reply_keeps_uncertainty(monkeypatch,mode,reply):
     monkeypatch.setattr(ae,'http_json_status',lambda *a,**k:reply)

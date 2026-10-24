@@ -94,7 +94,7 @@ begin
       return public.frozen_node_refuse('hit_envelope_shape');
     end if;
     v_mode := p_hit->>'mode'; v_receipt := p_hit->'receipt'; v_payload := p_hit->'payload';
-    if v_mode not in ('prepare','commit','reconcile','fence') or v_mode is null
+    if v_mode not in ('prepare','commit','reconcile','fence','settle') or v_mode is null
        or jsonb_typeof(v_receipt) is distinct from 'object'
        or jsonb_typeof(v_payload) is distinct from 'object' then
       return public.frozen_node_refuse('hit_envelope_shape');
@@ -186,7 +186,28 @@ begin
         return public.frozen_node_refuse('prepared_intent_fenced','conflict');
       end if;
       if v_existing.status <> 'prepared' then
+        if v_mode='settle' then
+          -- Explicit administration only: an exact published winner is the
+          -- evidence. Close its invocation to delayed prepares, never replay it.
+          -- The run advisory lock also excludes every prepare/commit/fence in
+          -- this invocation. No absent-row or timeout-based reset is possible.
+          if exists(select 1 from public.alert_outbox o where o.status='prepared'
+              and o.payload#>'{frozen_node,publication_receipt,invocation}'=v_receipt->'invocation') then
+            return public.frozen_node_refuse('invocation_has_prepared_intent');
+          end if;
+          update public.alert_runs set error_class='frozen_publication_settled'
+            where lane=v_receipt#>>'{invocation,lane}' and run_id=v_receipt#>>'{invocation,runId}'
+              and error_class in ('frozen_publication_pending','frozen_fire_effect_unknown','frozen_publication_settled')
+              and started_at <= public.frozen_node_parse_tstz(v_receipt->>'evaluationAt');
+          if not found then
+            return public.frozen_node_refuse('settlement_run_unavailable');
+          end if;
+          return pg_catalog.jsonb_build_object('kind','settled','fireEventId',v_event);
+        end if;
         return pg_catalog.jsonb_build_object('kind','already_committed','fireEventId',v_event);
+      end if;
+      if v_mode='settle' then
+        return public.frozen_node_refuse('settlement_requires_published_intent');
       end if;
       if v_mode='fence' then
         -- Explicit exact PREPARED retirement only. Never create a tombstone on absence.
@@ -650,10 +671,11 @@ language plpgsql security invoker set search_path='' as $body$
 begin
   -- Terminal counters remain writable. Late conclude cannot resurrect a fenced
   -- intent or clear an already-unknown publication from an ordinary callback.
-  if old.error_class='frozen_publication_fenced' then
+  if old.error_class in ('frozen_publication_fenced','frozen_publication_settled') then
     new.error_class := old.error_class;
   elsif old.error_class='frozen_fire_effect_unknown'
-        and new.error_class is distinct from 'frozen_publication_fenced' then
+        and new.error_class is distinct from 'frozen_publication_fenced'
+        and new.error_class is distinct from 'frozen_publication_settled' then
     new.error_class := old.error_class;
   end if;
   return new;

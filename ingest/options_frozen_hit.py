@@ -45,6 +45,14 @@ class FrozenNodeHitPublisher:
         """Explicit exact persisted intent retirement; NEVER an automatic recovery."""
         return self._call(runtime, state, receipt, payload, 'fence')
 
+    def settle(self, runtime, state, receipt, payload):
+        """Explicit administrative closure of a proven committed invocation.
+
+        Never called by publish, reconciliation or the scheduled evaluator.
+        Absence, a timeout or a remaining prepared intent cannot authorize it.
+        """
+        return self._call(runtime, state, receipt, payload, 'settle')
+
     def reconcile(self, runtime, state, receipt, payload):
         """Explicit same-ID read only; never called automatically on uncertainty."""
         return self._call(runtime, state, receipt, payload, 'reconcile')
@@ -79,8 +87,10 @@ class FrozenNodeHitPublisher:
                 'p_hit': {'mode': mode, 'receipt': receipt, 'payload': payload}})
             if not isinstance(reply, dict):
                 return {'kind': failed_kind, 'fireEventId': receipt.get('fireEventId'), 'phase': mode}
-            if reply.get('kind') in ('prepared', 'committed', 'already_committed', 'unsettled', 'abandoned'):
+            if reply.get('kind') in ('prepared', 'committed', 'already_committed', 'unsettled', 'abandoned', 'settled'):
                 if reply.get('fireEventId') != receipt.get('fireEventId'):
+                    return {'kind': failed_kind, 'fireEventId': receipt.get('fireEventId'), 'phase': mode}
+                if reply.get('kind') == 'settled' and mode != 'settle':
                     return {'kind': failed_kind, 'fireEventId': receipt.get('fireEventId'), 'phase': mode}
                 if reply.get('kind') == 'prepared' and (mode != 'prepare' or not _json_equal(reply.get('receipt'), receipt)):
                     return {'kind': failed_kind, 'fireEventId': receipt.get('fireEventId'), 'phase': mode}
