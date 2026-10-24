@@ -54,7 +54,7 @@ import {
 } from "@/components/options/ContractShortlist";
 import { useOptionsPlanScope } from "@/lib/useOptionsPlanScope";
 import type { OptionsPlanDraft } from "@/lib/optionsPlanDraft";
-import { locatePin, type PinLocation, type ShortlistPin } from "@/lib/optionsContractShortlist";
+import { locatePin, sessionOf, type PinLocation, type ShortlistPin } from "@/lib/optionsContractShortlist";
 // Shared SVG chart primitives — measured 1:1 viewBox, nice ticks, pixel-gap label
 // thinning, padded domains. The hygiene rules live in that module's header.
 import {
@@ -3813,6 +3813,7 @@ export default function OptionsHubView({
               {/* ── ΔOI Builds view — oiData.movers ── */}
               {screenerPreset === "doi" && oiData && (() => {
                 const rows = oiRows;
+                const reportDate = sessionOf(oiData.asof);
                 const hdr = (key: string, en: string, zh: string, tip?: string) => (
                   <th style={{ cursor: "pointer" }} className={scrSortKey === key ? "sorted" : ""} onClick={() => scrSort(key)} title={tip}>
                     {lang === "zh" ? zh : en}{scrSortKey === key ? (scrSortDir === -1 ? " ↓" : " ↑") : ""}
@@ -3823,7 +3824,7 @@ export default function OptionsHubView({
                     <div className="obs-card-hd" style={{ borderBottom: "1px solid var(--line)" }}>
                       <span className="obs-lbl">{t("ohOiBuilds")}</span>
                       <span style={{ fontSize: 11, color: "var(--text-dim)" }}>
-                        {t("ohAsOfPrevSession")}
+                        {reportDate ? t("ohOiReportDated").replace("{d}", reportDate) : t("ohOiReportDateUnavailable")}
                       </span>
                     </div>
                     <div style={{ overflowX: "auto" }}>
@@ -3834,8 +3835,8 @@ export default function OptionsHubView({
                             <th style={{ textAlign: "left" }}>{lang === "zh" ? "认购/认沽" : "C/P"}</th>
                             <th style={{ textAlign: "left" }}>{lang === "zh" ? "到期日" : "Exp"}</th>
                             <th>{lang === "zh" ? "行权价" : "Strike"}</th>
-                            {hdr("doi", t("ohOiChange"), t("ohOiChange"), t("ohDoiFoot"))}
-                            {hdr("oi", t("ohOiYesterday"), t("ohOiYesterday"))}
+                            {hdr("doi", t("ohOiChange"), t("ohOiChange"), t("ohDoiReportedFoot"))}
+                            {hdr("oi", t("ohOiReported"), t("ohOiReported"))}
                             {hdr("mid", "Mid", "中间价")}
                           </tr>
                         </thead>
@@ -3869,7 +3870,7 @@ export default function OptionsHubView({
                       </table>
                     </div>
                     <div style={{ padding: "6px 14px", fontSize: 10, color: "var(--text-dim)", borderTop: "1px solid var(--line)" }}>
-                      {t("ohDoiFoot")}
+                      {t("ohDoiReportedFoot")}
                     </div>
                   </div>
                 );
