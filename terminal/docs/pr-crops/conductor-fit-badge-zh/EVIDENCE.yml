@@ -1,17 +1,17 @@
 # Conductor fit chip in zh — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: e2846880681d4b9aff4a060e1321f50f240cafc7
-# capturedAt: 2026-10-24T05:33:34.443Z
+# capturedAtHead: a13b382fb961c96e0f69e0d04e7985fe9671e1aa
+# capturedAt: 2026-10-24T11:05:33.435Z
 # capturedAtHead is informational. The lock is layoutFiles.
 # before/ holds the same crops at the commit before the fix (before/BEFORE.yml); this tool never rewrites it.
 layoutFiles:
-  terminal/app/dev/theater/page.tsx: "e311e7babdc633c6b85222e8e7c2c128653fc476bcf0fbc5caa951beb5ce6953"
-  terminal/app/globals.css: "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517"
+  terminal/app/dev/theater/page.tsx: "0eac12bf5e47fb2e9add413c94824c047548820e530064ae544f92f8aa21c2af"
+  terminal/app/globals.css: "5a13bcd2fea57f4aeea71aa43bd0a1d58460f8c92bf11e99c9b92d3a1bc06cdf"
   terminal/components/ChartConductor.tsx: "471a8972a8b8d4775abddc6a455dd50af0943fec18ad5a0a0c1a77243330d8b0"
   terminal/lib/chartBus.ts: "96c1ac39db798d09f9ffc91223b33ee5e91ef26e793530f9d91ecdab26501b3d"
   terminal/lib/conductorState.ts: "3333fae411ad63ff4bd19eace00ca93fd36709206b6806b7ef939e5425d0e33c"
-  terminal/lib/i18n.tsx: "13f33e3178b105a64f1f5df35974cd99041ef06f05bdece95939dd07a8b9fe7c"
+  terminal/lib/i18n.tsx: "0e217ccf6adef6f1848606851c414d35287a787970d175a7a63c71458d392abf"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -42,9 +42,7 @@ files:
   - rail-820-zh.png
   - rail-820.png
 
-documentLanguageRecapture20261024:
-  sourceHead: e2846880681d4b9aff4a060e1321f50f240cafc7
-  qualification: Actual native producer executed in original managed language workspace; existing fixture data, no live-account or production claim
-  historicalManifest: history/before-document-language-20261024.yml
-  historicalSource: 919114d1c27f0f588d9d5a4d52574f19b0137d6d
-  receiptIndex: ../document-language/recapture-index.json
+iw2Upstream1160Recapture:
+  sourceHead: a13b382fb961c96e0f69e0d04e7985fe9671e1aa
+  historicalManifest: history/before-iw2-recapture-a13b382fb.yml
+  qualification: Actual native producer full matrix; local fixtures only; no runtime or live-account acceptance

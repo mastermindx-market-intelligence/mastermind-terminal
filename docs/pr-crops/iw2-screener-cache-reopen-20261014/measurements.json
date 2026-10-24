@@ -1,0 +1,242 @@
+{
+  "at": "2026-10-14T15:20:02.279960+00:00",
+  "source_parent": "cbfd2945483d457c3adebf016dda161dacc5af6a",
+  "source_sha256": {
+    "terminal/lib/dataCache.ts": "c3d3a6c98d2daffe3e409b7870adc9bf6936d4b15a301e4ff48c9d7ae7004eee",
+    "terminal/lib/__tests__/dataCacheManifestShape.test.ts": "23b3d5a62e01fe7f79445fb6accd8d67ca45e96bc67d0b3bd3b25ae87ac22c90",
+    "terminal/lib/__tests__/dataCacheAvailability.test.ts": "5da7f13517339cf8c20e9460e8fcbe32b0f0c37d7ff8c7151a0af8654632f0fc",
+    "terminal/lib/__tests__/dataCachePersist.test.ts": "c7b34c86c33ff3e5cccd677601d3920bb2e3f4f9f425bd74475a00673b9b0411",
+    "terminal/e2e/screener-cache-reopen.spec.ts": "f598c2da16cb8184acfdf756d853c7f6de7c79956658a5a8a6550939a73e2625"
+  },
+  "original_browser": "1FAIL invalid200 replacesnativeIDB;1PASS503 control",
+  "original_unit": "14FAIL2PASS afterharnesscorrections",
+  "candidate": "133 affected checks pass:18new plus115unchangedaffectedchecks reused from131passrun;6DTMreopen+18ENZHDTMrefresh+9coldfailurebrowserPASS;TS0;newtestlint0;56existingerrors/10warnings unchanged",
+  "fixture_correction": "Two existing successfixturetests lacked symbolsmap; added empty map preservingexactpayload/callback/throwisolation expectations. Originalcandidate2FAIL retained.",
+  "change": "Exact /data/manifest.json stable shape check before network cachecommit and persistedread/prefetch. Sameexisting nonarray object/symbolsmap shape,empty/thinaccepted;otherURLs unchanged;no new percaller validator/identityrace;404/TTL/invalidationunchanged.",
+  "pixels": [
+    {
+      "file": "desktop-before-reopen.png",
+      "sha256": "7b8c4f344b9d6bb990056e11bfcdb0c4b56e40117e0bbf90c0958a6b15ea87b4",
+      "original_paths": [
+        "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/screener-stale-refresh/persistence/candidate-output/remount-last-usable-scan-s-9b330-valid-refresh-and-reopening-desktop/before-reopen.png",
+        "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/screener-stale-refresh/persistence/candidate-output/remount-last-usable-scan-s-9b330-valid-refresh-and-reopening-desktop/after-reopen.png",
+        "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/screener-stale-refresh/persistence/candidate-output/remount-last-usable-scan-survives-503-refresh-and-reopening-desktop/before-reopen.png",
+        "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/screener-stale-refresh/persistence/candidate-output/remount-last-usable-scan-survives-503-refresh-and-reopening-desktop/after-reopen.png"
+      ],
+      "review": "Directly viewed: warning/Retry and cachedIWCACHE111/asof2026-10-12 remain readable. Mobile existing hidden columns not accepted as all-column coverage."
+    },
+    {
+      "file": "tablet-before-reopen.png",
+      "sha256": "2f8d2239a3635128f0e5e092000e200863612518bd6a93d9a7c0e8ccb58109dc",
+      "original_paths": [
+        "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/screener-stale-refresh/persistence/candidate-output/remount-last-usable-scan-survives-503-refresh-and-reopening-tablet/before-reopen.png",
+        "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/screener-stale-refresh/persistence/candidate-output/remount-last-usable-scan-survives-503-refresh-and-reopening-tablet/after-reopen.png",
+        "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/screener-stale-refresh/persistence/candidate-output/remount-last-usable-scan-s-9b330-valid-refresh-and-reopening-tablet/before-reopen.png",
+        "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/screener-stale-refresh/persistence/candidate-output/remount-last-usable-scan-s-9b330-valid-refresh-and-reopening-tablet/after-reopen.png"
+      ],
+      "review": "Directly viewed: warning/Retry and cachedIWCACHE111/asof2026-10-12 remain readable. Mobile existing hidden columns not accepted as all-column coverage."
+    },
+    {
+      "file": "mobile-before-reopen.png",
+      "sha256": "0cad1ce26bbda83a0db30d81a2007c869f1e61aa918a054deffee93e8cca9305",
+      "original_paths": [
+        "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/screener-stale-refresh/persistence/candidate-output/remount-last-usable-scan-s-9b330-valid-refresh-and-reopening-mobile/before-reopen.png",
+        "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/screener-stale-refresh/persistence/candidate-output/remount-last-usable-scan-survives-503-refresh-and-reopening-mobile/before-reopen.png"
+      ],
+      "review": "Directly viewed: warning/Retry and cachedIWCACHE111/asof2026-10-12 remain readable. Mobile existing hidden columns not accepted as all-column coverage."
+    },
+    {
+      "file": "mobile-after-reopen.png",
+      "sha256": "13b4ffdd1f132e15621089b3ab804b3d7f78e2d96ab650bdfc1af5a8d4106a95",
+      "original_paths": [
+        "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/screener-stale-refresh/persistence/candidate-output/remount-last-usable-scan-s-9b330-valid-refresh-and-reopening-mobile/after-reopen.png",
+        "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/screener-stale-refresh/persistence/candidate-output/remount-last-usable-scan-survives-503-refresh-and-reopening-mobile/after-reopen.png"
+      ],
+      "review": "Directly viewed: warning/Retry and cachedIWCACHE111/asof2026-10-12 remain readable. Mobile existing hidden columns not accepted as all-column coverage."
+    }
+  ],
+  "measurements": [
+    {
+      "mode": "invalid",
+      "browser": "149.0.7827.55",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "persisted": {
+        "url": "/data/manifest.json",
+        "data": {
+          "as_of": "2026-10-12",
+          "symbols": {
+            "IWCACHE": {
+              "name": "Cached scan",
+              "last": 111,
+              "chg": 4,
+              "vol": 1000,
+              "sec": "Equities",
+              "mkt": "NASDAQ"
+            }
+          }
+        },
+        "ts": 1791987320334
+      },
+      "attempts": 2,
+      "writes": [],
+      "error": null,
+      "scope": "Local native IndexedDB record and full page reopen; no shared/live data effects"
+    },
+    {
+      "mode": "503",
+      "browser": "149.0.7827.55",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "persisted": {
+        "url": "/data/manifest.json",
+        "data": {
+          "as_of": "2026-10-12",
+          "symbols": {
+            "IWCACHE": {
+              "name": "Cached scan",
+              "last": 111,
+              "chg": 4,
+              "vol": 1000,
+              "sec": "Equities",
+              "mkt": "NASDAQ"
+            }
+          }
+        },
+        "ts": 1791987322040
+      },
+      "attempts": 2,
+      "writes": [],
+      "error": null,
+      "scope": "Local native IndexedDB record and full page reopen; no shared/live data effects"
+    },
+    {
+      "mode": "503",
+      "browser": "149.0.7827.55",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "persisted": {
+        "url": "/data/manifest.json",
+        "data": {
+          "as_of": "2026-10-12",
+          "symbols": {
+            "IWCACHE": {
+              "name": "Cached scan",
+              "last": 111,
+              "chg": 4,
+              "vol": 1000,
+              "sec": "Equities",
+              "mkt": "NASDAQ"
+            }
+          }
+        },
+        "ts": 1791987319012
+      },
+      "attempts": 2,
+      "writes": [],
+      "error": null,
+      "scope": "Local native IndexedDB record and full page reopen; no shared/live data effects"
+    },
+    {
+      "mode": "invalid",
+      "browser": "149.0.7827.55",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "persisted": {
+        "url": "/data/manifest.json",
+        "data": {
+          "as_of": "2026-10-12",
+          "symbols": {
+            "IWCACHE": {
+              "name": "Cached scan",
+              "last": 111,
+              "chg": 4,
+              "vol": 1000,
+              "sec": "Equities",
+              "mkt": "NASDAQ"
+            }
+          }
+        },
+        "ts": 1791987323158
+      },
+      "attempts": 2,
+      "writes": [],
+      "error": null,
+      "scope": "Local native IndexedDB record and full page reopen; no shared/live data effects"
+    },
+    {
+      "mode": "invalid",
+      "browser": "149.0.7827.55",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "persisted": {
+        "url": "/data/manifest.json",
+        "data": {
+          "as_of": "2026-10-12",
+          "symbols": {
+            "IWCACHE": {
+              "name": "Cached scan",
+              "last": 111,
+              "chg": 4,
+              "vol": 1000,
+              "sec": "Equities",
+              "mkt": "NASDAQ"
+            }
+          }
+        },
+        "ts": 1791987325794
+      },
+      "attempts": 2,
+      "writes": [],
+      "error": null,
+      "scope": "Local native IndexedDB record and full page reopen; no shared/live data effects"
+    },
+    {
+      "mode": "503",
+      "browser": "149.0.7827.55",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "persisted": {
+        "url": "/data/manifest.json",
+        "data": {
+          "as_of": "2026-10-12",
+          "symbols": {
+            "IWCACHE": {
+              "name": "Cached scan",
+              "last": 111,
+              "chg": 4,
+              "vol": 1000,
+              "sec": "Equities",
+              "mkt": "NASDAQ"
+            }
+          }
+        },
+        "ts": 1791987324735
+      },
+      "attempts": 2,
+      "writes": [],
+      "error": null,
+      "scope": "Local native IndexedDB record and full page reopen; no shared/live data effects"
+    }
+  ],
+  "proof_limits": [
+    "LocalnativeIDB+routed transport; no live/shared owner datawrites",
+    "Ownerwrites0; analytics is excluded fromownerwrites; notzeroalleffects claim",
+    "Existing403corpus/manifests/recipes/layoutsourceinputs unchanged; cachebehaviornewscopedproof",
+    "No recoveryofgoodrecordalreadyoverwritten;invalidlegacyrecordskippedandnetworkretried",
+    "No new schema/rowfieldvalidation or full consumer/accessibility/liveacceptance"
+  ],
+  "review": "Original Fabric designreview consumed/ACCEPTED byreviewer; exactstdout andparentadjudication6f506ace651f8dba3da472096d796acbcbe09ae4002652f7fb2910d3d252eb1c. Readonlydesignreview, notliteralpatchapproval."
+}

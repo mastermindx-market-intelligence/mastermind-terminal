@@ -2,7 +2,8 @@
 import React, { act } from "react";
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { createRoot, type Root } from "react-dom/client";
+import { createRoot, hydrateRoot, type Root } from "react-dom/client";
+import { renderToString } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { parseExpectedUpdatedAtMs } from "@/lib/savedScriptStamp";
 
@@ -87,6 +88,7 @@ describe("PineEditor ID-keyed buffers and save receipts", () => {
   let fetchImpl: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
 
   beforeEach(() => {
+    vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
     searchId = "script-a";
     fetches.length = 0;
     host = document.createElement("div");
@@ -108,6 +110,22 @@ describe("PineEditor ID-keyed buffers and save receipts", () => {
     host.remove();
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
+  });
+
+  it.each([false, true])("keeps server source read-only until hydration, preserving locked=%s", async (locked) => {
+    act(() => { root.unmount(); });
+    const props = { scripts: [{ ...A, locked }], isPro: true, email: "pro@example.com" };
+    host.innerHTML = renderToString(React.createElement(PineEditor, props));
+    expect(editor(host).value).toBe(A.source);
+    expect(editor(host).readOnly).toBe(true);
+    await act(async () => { root = hydrateRoot(host, React.createElement(PineEditor, props)); });
+    expect(editor(host).readOnly).toBe(locked);
+    expect(editor(host).value).toBe(A.source);
+    if (!locked) {
+      const typed = `${A.source}plot(open)\n`;
+      await act(async () => { setTextarea(editor(host), typed); });
+      expect(editor(host).value).toBe(typed);
+    }
   });
 
   async function render(scripts: Script[] = [A, B]) {

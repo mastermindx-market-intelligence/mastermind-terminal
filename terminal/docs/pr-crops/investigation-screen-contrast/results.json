@@ -1,0 +1,210 @@
+{
+  "sourceBase": "f6c66305ad3aaf9d70a2622a2b8c0262c24f0fee",
+  "testedFiles": {
+    "terminal/components/workspaces/InvestigationScreens.tsx": "d86dcf3e76679aa1f43961b185aad7de75d215b47f30d1407cb2a6cd2f2d8d75",
+    "terminal/components/workspaces/InvestigationWorkspace.module.css": "f8daa4885dcc2cd9ca872bffee9bd92659654ae20353b87c988d947fec859dfa",
+    "terminal/e2e/investigation-screen-retention.spec.ts": "cc960dbbed56ebbfa9e37bbb45ef3f823c45693af70077c034a60451f0f533a9",
+    "terminal/e2e/investigation-theses.spec.ts": "6f9f38d9e3785847cabe76f762fc3285f2c491fc6777b9696c50e726c473445d",
+    "terminal/e2e/retainedMetadataContrast.ts": "42d6af901cb7910225d86573f47a367053d1565196396468542a98894f10b11d"
+  },
+  "cases": [
+    {
+      "language": "en",
+      "device": "desktop",
+      "states": [
+        {
+          "mode": "light",
+          "contrast": 6.727360252985324,
+          "pixel": "en-desktop-auto-day.png",
+          "fontSize": "13px"
+        },
+        {
+          "mode": "auto-day",
+          "contrast": 6.727360252985324,
+          "pixel": "en-desktop-auto-day.png",
+          "fontSize": "13px"
+        },
+        {
+          "mode": "auto-night",
+          "contrast": 6.293717295748454,
+          "pixel": "en-desktop-auto-night.png",
+          "fontSize": "13px"
+        }
+      ],
+      "readCount": 3,
+      "retainedRevision": 1,
+      "currentOwnerRevision": 2,
+      "ownerUnchanged": true,
+      "browserOwnerReads": 0,
+      "browserWrites": 0,
+      "authWrites": 0,
+      "viewport": 1440,
+      "overflow": 0
+    },
+    {
+      "language": "en",
+      "device": "tablet",
+      "states": [
+        {
+          "mode": "light",
+          "contrast": 6.727360252985324,
+          "pixel": "en-tablet-auto-day.png",
+          "fontSize": "13px"
+        },
+        {
+          "mode": "auto-day",
+          "contrast": 6.727360252985324,
+          "pixel": "en-tablet-auto-day.png",
+          "fontSize": "13px"
+        },
+        {
+          "mode": "auto-night",
+          "contrast": 6.293717295748454,
+          "pixel": "en-tablet-auto-night.png",
+          "fontSize": "13px"
+        }
+      ],
+      "readCount": 3,
+      "retainedRevision": 1,
+      "currentOwnerRevision": 2,
+      "ownerUnchanged": true,
+      "browserOwnerReads": 0,
+      "browserWrites": 0,
+      "authWrites": 0,
+      "viewport": 820,
+      "overflow": 0
+    },
+    {
+      "language": "en",
+      "device": "mobile",
+      "states": [
+        {
+          "mode": "light",
+          "contrast": 6.727360252985324,
+          "pixel": "en-mobile-auto-day.png",
+          "fontSize": "13px"
+        },
+        {
+          "mode": "auto-day",
+          "contrast": 6.727360252985324,
+          "pixel": "en-mobile-auto-day.png",
+          "fontSize": "13px"
+        },
+        {
+          "mode": "auto-night",
+          "contrast": 6.293717295748454,
+          "pixel": "en-mobile-auto-night.png",
+          "fontSize": "13px"
+        }
+      ],
+      "readCount": 3,
+      "retainedRevision": 1,
+      "currentOwnerRevision": 2,
+      "ownerUnchanged": true,
+      "browserOwnerReads": 0,
+      "browserWrites": 0,
+      "authWrites": 0,
+      "viewport": 390,
+      "overflow": 0
+    },
+    {
+      "language": "zh",
+      "device": "desktop",
+      "states": [
+        {
+          "mode": "light",
+          "contrast": 6.727360252985324,
+          "pixel": "zh-desktop-auto-day.png",
+          "fontSize": "13px"
+        },
+        {
+          "mode": "auto-day",
+          "contrast": 6.727360252985324,
+          "pixel": "zh-desktop-auto-day.png",
+          "fontSize": "13px"
+        },
+        {
+          "mode": "auto-night",
+          "contrast": 6.293717295748454,
+          "pixel": "zh-desktop-auto-night.png",
+          "fontSize": "13px"
+        }
+      ],
+      "readCount": 3,
+      "retainedRevision": 1,
+      "currentOwnerRevision": 2,
+      "ownerUnchanged": true,
+      "browserOwnerReads": 0,
+      "browserWrites": 0,
+      "authWrites": 0,
+      "viewport": 1440,
+      "overflow": 0
+    },
+    {
+      "language": "zh",
+      "device": "tablet",
+      "states": [
+        {
+          "mode": "light",
+          "contrast": 6.727360252985324,
+          "pixel": "zh-tablet-auto-day.png",
+          "fontSize": "13px"
+        },
+        {
+          "mode": "auto-day",
+          "contrast": 6.727360252985324,
+          "pixel": "zh-tablet-auto-day.png",
+          "fontSize": "13px"
+        },
+        {
+          "mode": "auto-night",
+          "contrast": 6.293717295748454,
+          "pixel": "zh-tablet-auto-night.png",
+          "fontSize": "13px"
+        }
+      ],
+      "readCount": 4,
+      "retainedRevision": 1,
+      "currentOwnerRevision": 2,
+      "ownerUnchanged": true,
+      "browserOwnerReads": 0,
+      "browserWrites": 0,
+      "authWrites": 0,
+      "viewport": 820,
+      "overflow": 0
+    },
+    {
+      "language": "zh",
+      "device": "mobile",
+      "states": [
+        {
+          "mode": "light",
+          "contrast": 6.727360252985324,
+          "pixel": "zh-mobile-auto-day.png",
+          "fontSize": "13px"
+        },
+        {
+          "mode": "auto-day",
+          "contrast": 6.727360252985324,
+          "pixel": "zh-mobile-auto-day.png",
+          "fontSize": "13px"
+        },
+        {
+          "mode": "auto-night",
+          "contrast": 6.293717295748454,
+          "pixel": "zh-mobile-auto-night.png",
+          "fontSize": "13px"
+        }
+      ],
+      "readCount": 3,
+      "retainedRevision": 1,
+      "currentOwnerRevision": 2,
+      "ownerUnchanged": true,
+      "browserOwnerReads": 0,
+      "browserWrites": 0,
+      "authWrites": 0,
+      "viewport": 390,
+      "overflow": 0
+    }
+  ]
+}

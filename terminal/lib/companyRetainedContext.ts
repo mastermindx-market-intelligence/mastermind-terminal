@@ -4,7 +4,7 @@
  * A page URL may carry a retained pin (`ci_event`, `ci_generation`,
  * `ci_company`, `ci_fingerprint`) pointing at one immutable historical event
  * workspace revision. Loading replays that exact pin against the existing
- * authenticated `/api/investigations/baseline` GET endpoint and never falls
+ * authenticated `/api/investigations/baseline?scope=company_context` GET endpoint and never falls
  * back to the current/latest view. This module owns no store, no endpoint and
  * no policy: identity validation reuses the event-workspace owner validators,
  * and availability/rights are decided only by the same-origin server response
@@ -298,7 +298,7 @@ export function companyRetainedContextParams(
  *
  * Without a pin this performs the current baseline query (`?symbol=...`).
  * With a pin the pin is re-validated through the URL parser first and the
- * exact four identity keys are sent; any response other than the matching
+ * exact four identity keys and explicit Company scope are sent; any response other than the matching
  * retained workspace is an explicit `HISTORICAL_UNAVAILABLE` failure. There
  * is exactly one request and never a current/latest fallback.
  */
@@ -317,6 +317,7 @@ export async function loadCompanyRetainedContext({
   if (normalizeCompanyIntelligenceSymbol(symbol) !== symbol) return invalidReference('symbol_not_canonical');
 
   const endpointParams = new URLSearchParams();
+  endpointParams.set('scope', 'company_context');
   if (pin) {
     // Re-validate the caller-supplied pin so a partially built or malformed
     // pin can never reach the endpoint.

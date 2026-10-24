@@ -81,7 +81,8 @@ async function dragRow(page: Page, symbol: string, target: Locator, targetBias =
 
 async function dragSection(page: Page, section: string, target: Locator) {
   const handle = page.getByRole("button", { name: `Drag section ${section}` });
-  await page.locator(`[data-watchlist-section-header="${section}"]`).evaluate((element) => element.scrollIntoView({ block: "center", inline: "nearest" }));
+  // The section can be wider than the rail; reveal the activator before measuring it.
+  await handle.hover();
   const from = await handle.boundingBox();
   expect(from).not.toBeNull();
   await page.mouse.move(from!.x + from!.width / 2, from!.y + from!.height / 2);
@@ -99,6 +100,7 @@ async function dragSection(page: Page, section: string, target: Locator) {
 }
 
 async function microDrag(page: Page, target: Locator, deltaY = 12) {
+  await target.hover();
   const box = await target.boundingBox();
   expect(box).not.toBeNull();
   const x = box!.x + box!.width / 2;
@@ -106,6 +108,7 @@ async function microDrag(page: Page, target: Locator, deltaY = 12) {
   await page.mouse.move(x, y);
   await page.mouse.down();
   await page.mouse.move(x, y + deltaY, { steps: 3 });
+  await expect(page.locator(".wl-row.dragging, .wl-sec.dragging")).toHaveCount(1);
   await page.mouse.up();
   await expect(page.locator(".wl-row.dragging, .wl-sec.dragging")).toHaveCount(0);
   await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));

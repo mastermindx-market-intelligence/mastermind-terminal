@@ -21,9 +21,9 @@
 
 import { GUEST_OWNER } from "@/lib/accountIdentity";
 import { isPlainObject, readOwnerSlot, writeOwnerSlot, type StoragePort } from "@/lib/ownerStorage";
-import { normalizeDefinition, type ScreenDefinition } from "./predicate";
+import { canonicalDefinition, normalizeDefinition, type ScreenDefinition } from "./predicate";
 import { normalizeReview, reviewableDefinition, type ReviewSnapshot } from "./review";
-import { newScreenId, normalizeScreenName, parseScreenRecord, type ReadOnlyScreen, type ScreenRecord } from "./record";
+import { isScreenRevision, SCREEN_ID_RE, newScreenId, normalizeScreenName, parseScreenRecord, type ReadOnlyScreen, type ScreenRecord } from "./record";
 
 export const SMART_SCREENS_LOCAL_KEY = "mm.smartScreens";
 export const LOCAL_VERSION = 1;
@@ -87,7 +87,9 @@ type Deps = {
 type ScreenContent = { name: string; def: ScreenDefinition; hash: string; review: ReviewSnapshot | null };
 
 const sameIntent = (record: ScreenRecord, op: PendingOp): boolean =>
-  record.name === op.name && record.hash === op.hash && JSON.stringify(record.review) === JSON.stringify(op.review);
+  record.id === op.id && record.name === op.name && record.hash === op.hash && op.def !== null
+  && canonicalDefinition(record.def) === canonicalDefinition(op.def)
+  && JSON.stringify(record.review) === JSON.stringify(op.review);
 
 // ── parsing what comes back (from the account or from this device) ───────────────────────
 
@@ -107,10 +109,13 @@ function parseAckLists(value: { screens?: unknown; readOnly?: unknown; invalid?:
   }
   if (Array.isArray(value.readOnly)) {
     for (const item of value.readOnly) {
-      if (!isPlainObject(item) || typeof item.id !== "string" || typeof item.rev !== "number") { invalid++; continue; }
+      if (!isPlainObject(item) || typeof item.id !== "string" || !SCREEN_ID_RE.test(item.id)
+        || !isScreenRevision(item.rev) || typeof item.schema !== "number"
+        || !Number.isSafeInteger(item.schema) || item.schema < 1) { invalid++; continue; }
       readOnly.push({
         id: item.id, rev: item.rev, name: normalizeScreenName(item.name),
-        schema: typeof item.schema === "number" ? item.schema : 0,
+        // A newer grammar or review may still use record schema 1.
+        schema: item.schema,
       });
     }
   }
@@ -369,7 +374,7 @@ export class SmartScreenStore {
     return this.send({ ...op, action: "create", id: this.newId(), expectedRev: null, state: "sending", error: null, current: null });
   }
 
-  /** Drop an unacknowledged write. The account is unchanged by it. */
+  /** Forget only this local request. This neither undoes nor disproves an account write. */
   discard(opId: string): OpOutcome {
     const op = this.snap.pending.find((item) => item.opId === opId);
     if (!op || op.state === "sending") return { ok: false, reason: "not_found" };
@@ -404,7 +409,11 @@ export class SmartScreenStore {
 
   private fail(op: PendingOp, patch: Partial<PendingOp>): OpOutcome {
     const next = { ...op, ...patch };
-    this.snap = { ...this.snap, busy: false };
+    const uncertain = next.state === "failed" && (next.error === "network" || next.error === "unavailable");
+    this.snap = {
+      ...this.snap, busy: false,
+      ...(uncertain ? { status: this.snap.ack ? "stale" as const : "unavailable" as const, readFailure: next.error as ReadFailure } : {}),
+    };
     this.replaceOp(next);
     return { ok: false, reason: next.state };
   }
@@ -432,38 +441,49 @@ export class SmartScreenStore {
 
     if (response.ok && json) {
       if (op.action === "delete") {
+        if (json.deleted !== op.id || typeof json.alreadyGone !== "boolean") {
+          return this.fail(op, { state: "failed", error: "unavailable" });
+        }
         return this.settle(op, {
           ...ack,
           screens: ack.screens.filter((screen) => screen.id !== op.id),
           readOnly: ack.readOnly.filter((screen) => screen.id !== op.id),
         });
       }
-      const parsed = parseScreenRecord(json.record);
-      if (parsed.kind === "ok") return this.settle(op, this.applyRecord(ack, parsed.record));
+      const parsed = parseScreenRecord(json.record, op.id);
+      if (parsed.kind === "ok" && sameIntent(parsed.record, op)
+        && (op.action === "create" ? parsed.record.rev === 1
+          : parsed.record.rev === op.expectedRev || parsed.record.rev === Number(op.expectedRev) + 1)) {
+        return this.settle(op, this.applyRecord(ack, parsed.record));
+      }
       // A 2xx whose record this version cannot verify: the effect is unknown, so it stays pending.
       return this.fail(op, { state: "failed", error: "unavailable" });
     }
     const error = json && typeof json.error === "string" ? json.error : "";
-    if (response.status === 409 && error === "conflict") {
-      const parsed = parseScreenRecord(json?.current);
-      const current = parsed.kind === "ok" ? parsed.record : null;
+    const newerConflict = error === "conflict" && json?.current === null && json?.readOnly != null;
+    if (response.status === 409 && error === "conflict" && !newerConflict) {
+      const parsed = parseScreenRecord(json?.current, op.id);
+      if (isPlainObject(json?.current) && json.current.id !== op.id) {
+        return this.fail(op, { state: "failed", error: "unavailable" });
+      }
+      if (parsed.kind !== "ok") return this.fail(op, { state: "failed", error: "unavailable" });
+      const current = parsed.record;
       // The account already holds exactly what this write intended (an earlier attempt landed
       // and its answer was lost): that IS the acknowledgement.
       if (current && op.action !== "delete" && sameIntent(current, op)) return this.settle(op, this.applyRecord(ack, current));
       return this.fail(op, { state: "conflict", error: null, current });
     }
-    if (response.status === 409 && error === "newer_schema") {
+    if (response.status === 409 && (error === "newer_schema" || newerConflict)) {
       const readOnly = parseAckLists({ readOnly: [json?.readOnly] }).readOnly[0];
-      if (readOnly) {
-        this.snap = {
-          ...this.snap,
-          ack: {
-            ...ack,
-            screens: ack.screens.filter((screen) => screen.id !== op.id),
-            readOnly: [...ack.readOnly.filter((screen) => screen.id !== op.id), readOnly],
-          },
-        };
-      }
+      if (!readOnly || readOnly.id !== op.id) return this.fail(op, { state: "failed", error: "unavailable" });
+      this.snap = {
+        ...this.snap,
+        ack: {
+          ...ack,
+          screens: ack.screens.filter((screen) => screen.id !== op.id),
+          readOnly: [...ack.readOnly.filter((screen) => screen.id !== op.id), readOnly],
+        },
+      };
       return this.fail(op, { state: "failed", error: "newer_schema" });
     }
     if (response.status === 409 && error === "limit_reached") return this.fail(op, { state: "failed", error: "limit_reached" });

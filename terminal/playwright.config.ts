@@ -107,15 +107,26 @@ export default defineConfig({
     timeout: 120_000,
     env: {
       // /analysis is normally member-gated. The page's local-only preview seam
-      // keeps responsive visual tests focused on the workspace, not auth.
+      // keeps responsive visual tests focused on the workspace, not auth. The two
+      // Investigation evidence-review loops opt out with a host-only marker cookie
+      // and run against the real SDK instead (see TERMINAL_E2E_VERIFIED_AUTH below).
       ANALYSIS_LOCAL_PREVIEW: "1",
       // The owner console's existing dev hatch (lib/adminGate.ts), not a new seam: it grants
       // admin only when NODE_ENV === "development", which is exactly what `next dev` is here.
       // Production runs `next start` and can never satisfy it.
       ADMIN_DEV: "1",
       TERMINAL_E2E_FIXTURE: "1",
+      // Server-only additional gate: together with exact development, the existing
+      // fixture flag and marker, it selects the real auth branch for investigations.
+      // Ordinary unmarked local preview stays unchanged; it is never set for a build, a deploy or production. The
+      // test-only helper reads the flags from this block instead of its own worker env.
+      TERMINAL_E2E_VERIFIED_AUTH: "1",
       TERMINAL_E2E_EMAIL: "responsive@example.com",
       TERMINAL_E2E_ENTITLEMENT: "unlimited",
+      // Investigation API closed-mode admission: fixture-only opt-in so the
+      // evidence-review loops keep reaching the handlers. Production stays
+      // CLOSED when this server-only variable is unset.
+      INVESTIGATION_API_ADMISSION: "open",
       // All browser projects share one loopback IP. The fully-parallel matrix can
       // legitimately open hundreds of fixture feed + meta streams, so keep the
       // origin's production anti-scrape budget out of this deterministic test seam.
@@ -126,7 +137,12 @@ export default defineConfig({
       // Exercise the News rail in deterministic e2e; production stays dark unless the operator sets TICKER_NEWS_RAIL.
       TICKER_NEWS_RAIL: "1",
       FLOW_FIXTURE: "1",
-      NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
+      // The fixture base is the SAME origin as this test server, under /api/__e2e__/
+      // supabase: the pinned SDK discovers its JWK Set at <base>/auth/v1/.well-known/
+      // jwks.json, which the gated public-only route serves from this same dev process.
+      // No second server, no new port, no live service; CSP 'self' and the proxy's /api
+      // exclusion already cover it, so neither is changed.
+      NEXT_PUBLIC_SUPABASE_URL: `http://127.0.0.1:${port}/api/__e2e__/supabase`,
       NEXT_PUBLIC_SUPABASE_ANON_KEY: "fixture-anon-key",
     },
   },

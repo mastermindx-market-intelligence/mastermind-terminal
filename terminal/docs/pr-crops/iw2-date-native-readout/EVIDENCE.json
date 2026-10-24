@@ -1,0 +1,650 @@
+{
+  "schema": "iw2.scoped-browser-proof.v1",
+  "capturedAtHead": "3743f9d02e8c65a28609766883dfba703a75c760",
+  "tested_precommit_parent": "299d05a9c6de430cdefca4e2b6c2499b8f487a5e",
+  "layoutFiles": {
+    "terminal/components/workspaces/ThesisWorkspace.tsx": "3ae0839c038727533aec840d4300ee8f978a22165420028c6104530da3b12da3",
+    "terminal/components/workspaces/ThesisWorkspace.module.css": "9d2f361302f0c644614e8da2c5e095f9f8a9629be86c1a350051a4fdb9305fa8"
+  },
+  "acceptance_receipt_sha256": "b8e840e2a068f1b18750a7b25de11b03e48d0cfcdf0b04fe46e9bcd83c8d09c5",
+  "cases": [
+    {
+      "id": "native-text200-en-mobile",
+      "source_test_case": "native-precise-local-date--99d5f-tive-text200-without-saving-native-mobile",
+      "runtime": {
+        "before": {
+          "font": "13px",
+          "width": 390,
+          "height": 844,
+          "dpr": 1,
+          "cssZoom": "1",
+          "timezone": "America/Vancouver"
+        },
+        "after": {
+          "font": "26px",
+          "width": 390,
+          "height": 844,
+          "dpr": 1,
+          "cssZoom": "1",
+          "timezone": "America/Vancouver"
+        },
+        "actual": {
+          "session": {
+            "sessionId": "66c4d4dc-f2f3-496a-aab3-25273013f754",
+            "capabilities": {
+              "acceptInsecureCerts": false,
+              "browserName": "firefox",
+              "browserVersion": "151.0",
+              "platformName": "mac",
+              "setWindowRect": true,
+              "unhandledPromptBehavior": "dismiss and notify",
+              "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:151.0) Gecko/20100101 Firefox/151.0",
+              "moz:buildID": "20260611192437",
+              "moz:headless": true,
+              "moz:platformVersion": "25.5.0",
+              "moz:processID": 73238,
+              "moz:profile": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/date-native-readout/candidate-mobile-output/native-precise-local-date--99d5f-tive-text200-without-saving-native-mobile/isolated-firefox-profile",
+              "moz:shutdownTimeout": 60000,
+              "pageLoadStrategy": "normal",
+              "timeouts": {
+                "implicit": 0,
+                "pageLoad": 300000,
+                "script": 30000
+              },
+              "strictFileInteractability": false,
+              "moz:accessibilityChecks": false,
+              "moz:webdriverClick": true,
+              "moz:windowless": false,
+              "capabilities": {
+                "alwaysMatch": {
+                  "acceptInsecureCerts": false
+                }
+              },
+              "proxy": {}
+            }
+          },
+          "native": {
+            "value": {
+              "textZoom": 2,
+              "fullZoom": 1,
+              "url": "http://127.0.0.1:3586/analysis?view=theses&thesis=185d2e18-e39b-4a98-a43a-c984fdcfcef5"
+            }
+          }
+        }
+      },
+      "readability": {
+        "fits": true,
+        "text": "2026-10-01 02:30:00.123",
+        "box": {
+          "x": 10,
+          "y": 457.6499938964844,
+          "width": 370,
+          "height": 78
+        },
+        "rects": [
+          {
+            "x": 238.78334045410156,
+            "y": 461.1499938964844,
+            "width": 139.81666564941406,
+            "height": 32
+          },
+          {
+            "x": 10,
+            "y": 500.1499938964844,
+            "width": 153.56666564941406,
+            "height": 32
+          }
+        ],
+        "viewport": 390,
+        "doc": 390
+      },
+      "owner_exact": true,
+      "implicit_writes": 0,
+      "files": {
+        "native-text200-en-mobile/OWNER_EXACT.json": "c3cf4d0d1a2513a45d345f50a19cbe65943edfa9f9322aa574b2a2edee41bbcf",
+        "native-text200-en-mobile/edited-unsaved.png": "7746da502403cf83c48afd965105a695b73b10927da1a8ab53e3227a9f5cdb47",
+        "native-text200-en-mobile/initial-date.png": "06a4aba38876f133c7fabb7d71bf023c45fb5d3d95f2e0c39f1d8f3b9f44fc2e",
+        "native-text200-en-mobile/native.json": "3308145a8f0a292f43e0c7d7264b88009e7be9b0e26ad7129ca4ca3a063cf09b",
+        "native-text200-en-mobile/readable.json": "52aeaed67402c8c41a1265bc1ae600775162f46c0fadae56c3f5365ea72990ae",
+        "native-text200-en-mobile/reopened-exact.png": "738320ab37fc4438519590662b19256feab3420b20c737f94525534f2350018a"
+      }
+    },
+    {
+      "id": "native-text200-en-desktop",
+      "source_test_case": "native-precise-local-date--99d5f-tive-text200-without-saving-native-desktop",
+      "runtime": {
+        "before": {
+          "font": "13px",
+          "width": 1440,
+          "height": 900,
+          "dpr": 1,
+          "cssZoom": "1",
+          "timezone": "America/Vancouver"
+        },
+        "after": {
+          "font": "26px",
+          "width": 1440,
+          "height": 900,
+          "dpr": 1,
+          "cssZoom": "1",
+          "timezone": "America/Vancouver"
+        },
+        "actual": {
+          "session": {
+            "sessionId": "f0a958b6-5eeb-4eaa-ab1a-5e0caab5e8d4",
+            "capabilities": {
+              "acceptInsecureCerts": false,
+              "browserName": "firefox",
+              "browserVersion": "151.0",
+              "platformName": "mac",
+              "setWindowRect": true,
+              "unhandledPromptBehavior": "dismiss and notify",
+              "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:151.0) Gecko/20100101 Firefox/151.0",
+              "moz:buildID": "20260611192437",
+              "moz:headless": true,
+              "moz:platformVersion": "25.5.0",
+              "moz:processID": 79921,
+              "moz:profile": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/date-native-readout/remaining-output/native-precise-local-date--99d5f-tive-text200-without-saving-native-desktop/isolated-firefox-profile",
+              "moz:shutdownTimeout": 60000,
+              "pageLoadStrategy": "normal",
+              "timeouts": {
+                "implicit": 0,
+                "pageLoad": 300000,
+                "script": 30000
+              },
+              "strictFileInteractability": false,
+              "moz:accessibilityChecks": false,
+              "moz:webdriverClick": true,
+              "moz:windowless": false,
+              "capabilities": {
+                "alwaysMatch": {
+                  "acceptInsecureCerts": false
+                }
+              },
+              "proxy": {}
+            }
+          },
+          "native": {
+            "value": {
+              "textZoom": 2,
+              "fullZoom": 1,
+              "url": "http://127.0.0.1:3586/analysis?view=theses&thesis=f2ef1c1c-b604-4832-b6ab-4418af784a99"
+            }
+          }
+        }
+      },
+      "readability": {
+        "fits": true,
+        "text": "2026-10-01 02:30:00.123",
+        "box": {
+          "x": 382,
+          "y": 563.2166748046875,
+          "width": 1026,
+          "height": 39
+        },
+        "rects": [
+          {
+            "x": 610.7833251953125,
+            "y": 566.7166748046875,
+            "width": 298.8999938964844,
+            "height": 32
+          }
+        ],
+        "viewport": 1440,
+        "doc": 1440
+      },
+      "owner_exact": true,
+      "implicit_writes": 0,
+      "files": {
+        "native-text200-en-desktop/OWNER_EXACT.json": "14a56d4722578b52cd7f96d1376b285f760c9e67256d7b6b93260f527feb93a0",
+        "native-text200-en-desktop/edited-unsaved.png": "0774a986eff34d4a911bc9172af93491d668a98310cd3b2c07d93a51c2bf1c83",
+        "native-text200-en-desktop/initial-date.png": "297b3f8c60f90d9dd48322d46854792f2b30383412cae006e1958667d56fa336",
+        "native-text200-en-desktop/native.json": "9c7b71f82d6f3b5978ed9f799e879f9e2f7dd0ad0a97181af6d03cc5cda9e815",
+        "native-text200-en-desktop/readable.json": "2c855fd3a5f0c17465aae191331a8262eb3a1bcf054de5a13944600d140a5f7e",
+        "native-text200-en-desktop/reopened-exact.png": "89b3da14c427d518ffcaec3af9f922b53c3b9b77715920071c25e18e44a84b77"
+      }
+    },
+    {
+      "id": "native-text200-en-tablet",
+      "source_test_case": "native-precise-local-date--99d5f-tive-text200-without-saving-native-tablet",
+      "runtime": {
+        "before": {
+          "font": "13px",
+          "width": 820,
+          "height": 1180,
+          "dpr": 1,
+          "cssZoom": "1",
+          "timezone": "America/Vancouver"
+        },
+        "after": {
+          "font": "26px",
+          "width": 820,
+          "height": 1180,
+          "dpr": 1,
+          "cssZoom": "1",
+          "timezone": "America/Vancouver"
+        },
+        "actual": {
+          "session": {
+            "sessionId": "467d9696-e15a-4a98-85d2-3d6940d1c6b5",
+            "capabilities": {
+              "acceptInsecureCerts": false,
+              "browserName": "firefox",
+              "browserVersion": "151.0",
+              "platformName": "mac",
+              "setWindowRect": true,
+              "unhandledPromptBehavior": "dismiss and notify",
+              "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:151.0) Gecko/20100101 Firefox/151.0",
+              "moz:buildID": "20260611192437",
+              "moz:headless": true,
+              "moz:platformVersion": "25.5.0",
+              "moz:processID": 78309,
+              "moz:profile": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/date-native-readout/remaining-output/native-precise-local-date--99d5f-tive-text200-without-saving-native-tablet/isolated-firefox-profile",
+              "moz:shutdownTimeout": 60000,
+              "pageLoadStrategy": "normal",
+              "timeouts": {
+                "implicit": 0,
+                "pageLoad": 300000,
+                "script": 30000
+              },
+              "strictFileInteractability": false,
+              "moz:accessibilityChecks": false,
+              "moz:webdriverClick": true,
+              "moz:windowless": false,
+              "capabilities": {
+                "alwaysMatch": {
+                  "acceptInsecureCerts": false
+                }
+              },
+              "proxy": {}
+            }
+          },
+          "native": {
+            "value": {
+              "textZoom": 2,
+              "fullZoom": 1,
+              "url": "http://127.0.0.1:3586/analysis?view=theses&thesis=ee7bdc0d-2dea-4487-b7f2-ffbd45ab6a68"
+            }
+          }
+        }
+      },
+      "readability": {
+        "fits": true,
+        "text": "2026-10-01 02:30:00.123",
+        "box": {
+          "x": 259.66668701171875,
+          "y": 625.566650390625,
+          "width": 540.6666259765625,
+          "height": 39
+        },
+        "rects": [
+          {
+            "x": 488.45001220703125,
+            "y": 629.066650390625,
+            "width": 298.9000244140625,
+            "height": 32
+          }
+        ],
+        "viewport": 820,
+        "doc": 820
+      },
+      "owner_exact": true,
+      "implicit_writes": 0,
+      "files": {
+        "native-text200-en-tablet/OWNER_EXACT.json": "2a7955cd6a17be0d181c677f92c0c20b51b071d1e9b7c326b2ccbd3a244dfd4d",
+        "native-text200-en-tablet/edited-unsaved.png": "01180223049f66e2e558ab7b9d8390f58e136beee485e083dafba064625a24ab",
+        "native-text200-en-tablet/initial-date.png": "9ebcae19130f1f4e2306a4c9417cb70ff73a2a865b5513bec5f0430067191f99",
+        "native-text200-en-tablet/native.json": "c1b9e845e43a3663aa33181b788eeb6c47b92937e2bcccf7cbf8463b80460164",
+        "native-text200-en-tablet/readable.json": "930ab42bf4796cfc528e33010b39b31362f22e37ce6325a297fb52d77d72c62e",
+        "native-text200-en-tablet/reopened-exact.png": "b40a62a82c7c3fb516afb8cf57dd6a67c67c1bc11d855ff4373072282cc4d6d8"
+      }
+    },
+    {
+      "id": "standard-en-desktop",
+      "source_test_case": "standard-precise-local-date-readout-en-standard-desktop",
+      "runtime": {
+        "before": {
+          "font": "13px",
+          "width": 1440,
+          "height": 900,
+          "dpr": 1,
+          "cssZoom": "1",
+          "timezone": "America/Vancouver"
+        },
+        "after": {
+          "font": "13px",
+          "width": 1440,
+          "height": 900,
+          "dpr": 1,
+          "cssZoom": "1",
+          "timezone": "America/Vancouver"
+        },
+        "actual": null
+      },
+      "readability": {
+        "fits": true,
+        "text": "2026-10-01 02:30:00.123",
+        "box": {
+          "x": 382,
+          "y": 527.5,
+          "width": 1025.984375,
+          "height": 19.5
+        },
+        "rects": [
+          {
+            "x": 508.015625,
+            "y": 528.5,
+            "width": 156.171875,
+            "height": 16
+          }
+        ],
+        "viewport": 1440,
+        "doc": 1440
+      },
+      "owner_exact": true,
+      "implicit_writes": 0,
+      "files": {
+        "standard-en-desktop/OWNER_EXACT.json": "8822a2278d016e335d5e031a3634ea0906fc517899dcaf1eace92c78f381d2d0",
+        "standard-en-desktop/edited-unsaved.png": "130447fb89d4d8410e70b86a8bff4c56f03bfea25157928a3a169f5345cd9b94",
+        "standard-en-desktop/initial-date.png": "66761a1e8652a95ac88e5b22ab6af8ed4f0bf815a58abc3062fe20fe64eefcb7",
+        "standard-en-desktop/native.json": "2553270c9d6e7833e931cb9f6fa6ae64601362c0829a44213753132f7ba43c41",
+        "standard-en-desktop/readable.json": "25ed7d7a32098e29ab5eb96e7c357944b0699a1517934890f397c2f61ddcc5cd",
+        "standard-en-desktop/reopened-exact.png": "8393be812fde6f766816798e752f1dbc7f3986e67acf7f5e0e9d874ea6b183bd"
+      }
+    },
+    {
+      "id": "standard-en-mobile",
+      "source_test_case": "standard-precise-local-date-readout-en-standard-mobile",
+      "runtime": {
+        "before": {
+          "font": "13px",
+          "width": 390,
+          "height": 844,
+          "dpr": 1,
+          "cssZoom": "1",
+          "timezone": "America/Vancouver"
+        },
+        "after": {
+          "font": "13px",
+          "width": 390,
+          "height": 844,
+          "dpr": 1,
+          "cssZoom": "1",
+          "timezone": "America/Vancouver"
+        },
+        "actual": null
+      },
+      "readability": {
+        "fits": true,
+        "text": "2026-10-01 02:30:00.123",
+        "box": {
+          "x": 10,
+          "y": 448.0625,
+          "width": 370,
+          "height": 19.5
+        },
+        "rects": [
+          {
+            "x": 136.015625,
+            "y": 449.0625,
+            "width": 156.171875,
+            "height": 16
+          }
+        ],
+        "viewport": 390,
+        "doc": 390
+      },
+      "owner_exact": true,
+      "implicit_writes": 0,
+      "files": {
+        "standard-en-mobile/OWNER_EXACT.json": "bf87c3b5688b68bf0bde40b0c00e657cb3509697ca0f5a329e0340379ec2e628",
+        "standard-en-mobile/edited-unsaved.png": "8d7ae2fc858a1a340333031a126d84c1c1ff9bfa07242ab16daca6e24604bf27",
+        "standard-en-mobile/initial-date.png": "bfc22a5e98cd6aa657566cec5efd375e8173efdd965c74535d8f7409e6fe4882",
+        "standard-en-mobile/native.json": "3f62c21bfc9b65b5f84d31c1afe1ad5daac3b3f1270f9653259db7ce714909b5",
+        "standard-en-mobile/readable.json": "42d17fe9fc1a03224ccbad6904f469a64a8e93b66bc9b7f6fdb835d5d3a593e5",
+        "standard-en-mobile/reopened-exact.png": "3a531f9674c0bf8a7394997cc1da66ccc29a83668799529ebb3bf1726979ffbc"
+      }
+    },
+    {
+      "id": "standard-en-tablet",
+      "source_test_case": "standard-precise-local-date-readout-en-standard-tablet",
+      "runtime": {
+        "before": {
+          "font": "13px",
+          "width": 820,
+          "height": 1180,
+          "dpr": 1,
+          "cssZoom": "1",
+          "timezone": "America/Vancouver"
+        },
+        "after": {
+          "font": "13px",
+          "width": 820,
+          "height": 1180,
+          "dpr": 1,
+          "cssZoom": "1",
+          "timezone": "America/Vancouver"
+        },
+        "actual": null
+      },
+      "readability": {
+        "fits": true,
+        "text": "2026-10-01 02:30:00.123",
+        "box": {
+          "x": 259.671875,
+          "y": 762.5,
+          "width": 540.65625,
+          "height": 19.5
+        },
+        "rects": [
+          {
+            "x": 385.6875,
+            "y": 763.5,
+            "width": 156.171875,
+            "height": 16
+          }
+        ],
+        "viewport": 820,
+        "doc": 820
+      },
+      "owner_exact": true,
+      "implicit_writes": 0,
+      "files": {
+        "standard-en-tablet/OWNER_EXACT.json": "388745ce658a03e86b1f6132effbf72452559a507e5b8bacbad5231b4e93abb2",
+        "standard-en-tablet/edited-unsaved.png": "181008fbc7bc89c13114739c4278d782338b8594253954a4d1e1ddf76bbc3730",
+        "standard-en-tablet/initial-date.png": "0b91eee46d28366c31a3c9ee8632f288328fb85b71b7cb2272881f88a7444f3d",
+        "standard-en-tablet/native.json": "dd7f24cf0b0489eaa17034f385a4693ee8f2bcf018dd480c3137c9e4490d4359",
+        "standard-en-tablet/readable.json": "bdbf101359613772bc4219bffd1640b62379ac8a594e16bebea7856ae6193ab4",
+        "standard-en-tablet/reopened-exact.png": "971004cf39ecc15f98586bd29e3e22bb0862bff73aab7eb2f5c9968c17f75e0f"
+      }
+    },
+    {
+      "id": "standard-zh-desktop",
+      "source_test_case": "standard-precise-local-date-readout-zh-standard-desktop",
+      "runtime": {
+        "before": {
+          "font": "13px",
+          "width": 1440,
+          "height": 900,
+          "dpr": 1,
+          "cssZoom": "1",
+          "timezone": "America/Vancouver"
+        },
+        "after": {
+          "font": "13px",
+          "width": 1440,
+          "height": 900,
+          "dpr": 1,
+          "cssZoom": "1",
+          "timezone": "America/Vancouver"
+        },
+        "actual": null
+      },
+      "readability": {
+        "fits": true,
+        "text": "2026-10-01 02:30:00.123",
+        "box": {
+          "x": 382,
+          "y": 527.5,
+          "width": 1025.984375,
+          "height": 19.5
+        },
+        "rects": [
+          {
+            "x": 479.671875,
+            "y": 528.5,
+            "width": 156.171875,
+            "height": 16
+          }
+        ],
+        "viewport": 1440,
+        "doc": 1440
+      },
+      "owner_exact": true,
+      "implicit_writes": 0,
+      "files": {
+        "standard-zh-desktop/OWNER_EXACT.json": "289fc8aeb900dd5295450f7d35e70516b3ca4d62964584facddc65784b88d8a1",
+        "standard-zh-desktop/edited-unsaved.png": "2c6f4570333f8348672691769fa0d2c84caa7075b58cde9d1292477f8f310b07",
+        "standard-zh-desktop/initial-date.png": "c6ccbbb26b65f9934b5de4a08b188ee9f3c493e65c5c8b05ad8a24d1c92afbc4",
+        "standard-zh-desktop/native.json": "2553270c9d6e7833e931cb9f6fa6ae64601362c0829a44213753132f7ba43c41",
+        "standard-zh-desktop/readable.json": "7ea46990c82e4c7b953a5fc99871a2ac3c9c51b1cfb63db2e055c2ce04cc3ccf",
+        "standard-zh-desktop/reopened-exact.png": "882932be7d72986b14707fb31174d2fae895e1094dca34945e5032f9d2223512"
+      }
+    },
+    {
+      "id": "standard-zh-mobile",
+      "source_test_case": "standard-precise-local-date-readout-zh-standard-mobile",
+      "runtime": {
+        "before": {
+          "font": "13px",
+          "width": 390,
+          "height": 844,
+          "dpr": 1,
+          "cssZoom": "1",
+          "timezone": "America/Vancouver"
+        },
+        "after": {
+          "font": "13px",
+          "width": 390,
+          "height": 844,
+          "dpr": 1,
+          "cssZoom": "1",
+          "timezone": "America/Vancouver"
+        },
+        "actual": null
+      },
+      "readability": {
+        "fits": true,
+        "text": "2026-10-01 02:30:00.123",
+        "box": {
+          "x": 10,
+          "y": 448.171875,
+          "width": 370,
+          "height": 19.5
+        },
+        "rects": [
+          {
+            "x": 107.671875,
+            "y": 449.171875,
+            "width": 156.171875,
+            "height": 16
+          }
+        ],
+        "viewport": 390,
+        "doc": 390
+      },
+      "owner_exact": true,
+      "implicit_writes": 0,
+      "files": {
+        "standard-zh-mobile/OWNER_EXACT.json": "0773ae04b54c870a494c4552342029bf455fa30442b934203a128574e0cb4d84",
+        "standard-zh-mobile/edited-unsaved.png": "2f7f5990311c86469608adbe1e5f41fcd987151c4463de038d94b731f82b8216",
+        "standard-zh-mobile/initial-date.png": "c7bedadf49c48c083f8aa616d22dba6676dc1ed47fd348f53bf90a704f86e470",
+        "standard-zh-mobile/native.json": "3f62c21bfc9b65b5f84d31c1afe1ad5daac3b3f1270f9653259db7ce714909b5",
+        "standard-zh-mobile/readable.json": "4af29a1a10b6bed5da1a52b971c796c13bc9d2a11eb28fa43ae5f3fd220181d5",
+        "standard-zh-mobile/reopened-exact.png": "20639bb4466082421217fcc83c16824d623cbb08f96e5d6cb10e4d2587eb0f8b"
+      }
+    },
+    {
+      "id": "standard-zh-tablet",
+      "source_test_case": "standard-precise-local-date-readout-zh-standard-tablet",
+      "runtime": {
+        "before": {
+          "font": "13px",
+          "width": 820,
+          "height": 1180,
+          "dpr": 1,
+          "cssZoom": "1",
+          "timezone": "America/Vancouver"
+        },
+        "after": {
+          "font": "13px",
+          "width": 820,
+          "height": 1180,
+          "dpr": 1,
+          "cssZoom": "1",
+          "timezone": "America/Vancouver"
+        },
+        "actual": null
+      },
+      "readability": {
+        "fits": true,
+        "text": "2026-10-01 02:30:00.123",
+        "box": {
+          "x": 259.671875,
+          "y": 762.5,
+          "width": 540.65625,
+          "height": 19.5
+        },
+        "rects": [
+          {
+            "x": 357.34375,
+            "y": 763.5,
+            "width": 156.171875,
+            "height": 16
+          }
+        ],
+        "viewport": 820,
+        "doc": 820
+      },
+      "owner_exact": true,
+      "implicit_writes": 0,
+      "files": {
+        "standard-zh-tablet/OWNER_EXACT.json": "83c001fe50aea40b76e35bd956496892aa2c3a4272c7a0dc569651023b61418b",
+        "standard-zh-tablet/edited-unsaved.png": "345dceed4436157f97c509e14fafd45c923c19e7fb25b454b7cbdff1a847aebb",
+        "standard-zh-tablet/initial-date.png": "f80e1ac9ed27eb632e02dc524c474869edae5396497297b791d3c26d7658f70b",
+        "standard-zh-tablet/native.json": "dd7f24cf0b0489eaa17034f385a4693ee8f2bcf018dd480c3137c9e4490d4359",
+        "standard-zh-tablet/readable.json": "6335a765b9c17c993431487aa6d4c60d1029137e840f758ed575546d7f63b7c1",
+        "standard-zh-tablet/reopened-exact.png": "f3bbf301136a1d0db31abd1c93a498334b66d8d84fe5c4d922ebb62c0b59129a"
+      }
+    }
+  ],
+  "red": {
+    "path": "original-red-native-mobile.png",
+    "sha256": "51faff4d8b69e94c8f604fce9b7701556238856d6b37e0d2c88352923a556eae",
+    "source_parent": "299d05a9c6de430cdefca4e2b6c2499b8f487a5e",
+    "result": "Original readout absent. Exact native input clips at textZoom2/fullZoom1."
+  },
+  "results": {
+    "native_en_text200": 3,
+    "standard_en_zh": 6,
+    "failed": 0,
+    "flaky": 0,
+    "workers": 1,
+    "retries": 0,
+    "affected_unit_pass": 140,
+    "typecheck_errors": 0,
+    "lint_errors": 0,
+    "lint_inherited_warnings": 1
+  },
+  "controls": [
+    "Readout text and datetime preserve exact local milliseconds.",
+    "Readout associated by aria-describedby; cleared draft removes readout and association.",
+    "DOM clipping negative control fails geometry predicate then restored geometry passes.",
+    "Edited value remains unsaved; full owner equals initial after edit/clear/reload, zero implicit Thesis writes."
+  ],
+  "limitations": [
+    "Native input internal clipping remains; complete value available in associated wrapping readout.",
+    "Chinese native text200 NOT accepted; standard Chinese Chromium only.",
+    "Actual local isolated fixture, not live principal/production/full-page accessibility."
+  ]
+}
