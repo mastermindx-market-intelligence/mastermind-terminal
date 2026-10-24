@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createHash } from "node:crypto";
 import golden from "./fixtures/aapl-event-workspace.json";
 import { __resetEventWorkspaceCacheForTests } from "../eventWorkspace";
-import { companyRetainedContextParams, loadCompanyRetainedContext, parseCompanyRetainedContext } from "../companyRetainedContext";
+import { loadCompanyRetainedContext } from "../companyRetainedContext";
 
 const { getUser } = vi.hoisted(() => ({ getUser: vi.fn() }));
 vi.mock("@/lib/supabase/server", () => ({
@@ -36,60 +36,38 @@ beforeEach(() => {
 });
 afterEach(() => { vi.unstubAllGlobals(); __resetEventWorkspaceCacheForTests(); });
 
-describe("Company client composed with the actual retained owner and authenticated BFF", () => {
-  it("exports a real owner fingerprint, then reloads the exact immutable tuple", async () => {
-    const first = await loadCompanyRetainedContext({ symbol: "AAPL", fetchImpl: localFetch });
-    expect(first.ok).toBe(true);
-    if (!first.ok) return;
-    const parsed = parseCompanyRetainedContext(companyRetainedContextParams(first.receipt), "AAPL");
-    expect(parsed.ok).toBe(true);
-    if (!parsed.ok || !parsed.pin) return;
-    ownerCalls.length = 0;
-    const resumed = await loadCompanyRetainedContext({ symbol: "AAPL", pin: parsed.pin, fetchImpl: localFetch });
-    expect(resumed.ok).toBe(true);
-    if (!resumed.ok) return;
-    expect(resumed.receipt.fingerprint).toBe(first.receipt.fingerprint);
-    expect(resumed.workspace.event_id).toBe(golden.event_id);
-    expect(resumed.workspace.generation_id).toBe(golden.generation_id);
-    expect(ownerCalls.some(url => url.endsWith("/manifest.json") && !url.includes("/generations/"))).toBe(true);
+// The production BFF now selects issuer-release-only evidence. A full Company
+// workspace is a different rights scope: do not mock the old whole-workspace owner
+// into this route or report a successful full-Company integration that cannot run.
+// Pure retained-owner/loader positive cases remain in eventWorkspaceRetained.test.ts
+// and companyRetainedContext.test.ts; selected-release identity is covered in
+// investigationIssuerRelease.test.ts with an explicit fixture authorization.
+const pin = { event_id: golden.event_id, generation_id: golden.generation_id,
+  company_id: golden.issuer.company_id, fingerprint: "a".repeat(64) };
+const unavailable = { ok: false, code: "HISTORICAL_UNAVAILABLE", reason: "rights_unavailable" };
+describe("actual Company client/BFF rights-scope boundary", () => {
+  it("never promotes a public mixed-workspace bootstrap into a full Company authorization", async () => {
+    expect(await loadCompanyRetainedContext({ symbol: "AAPL", fetchImpl: localFetch })).toEqual(unavailable);
+    expect(ownerCalls.length).toBeGreaterThan(0);
+    expect(ownerCalls.filter(url => url.endsWith("manifest.json") && !url.includes("/generations/"))).toHaveLength(1);
   });
-  it("rechecks current rights and refuses a retained reload after rights publication is unavailable", async () => {
-    const first = await loadCompanyRetainedContext({ symbol: "AAPL", fetchImpl: localFetch });
-    expect(first.ok).toBe(true);
-    if (!first.ok) return;
-    const parsed = parseCompanyRetainedContext(companyRetainedContextParams(first.receipt), "AAPL");
-    if (!parsed.ok || !parsed.pin) throw new Error("valid owner pin expected");
-    rightsAvailable = false;
-    const resumed = await loadCompanyRetainedContext({ symbol: "AAPL", pin: parsed.pin, fetchImpl: localFetch });
-    expect(resumed).toMatchObject({ ok: false, code: "HISTORICAL_UNAVAILABLE", reason: "rights_denied" });
+  it("refuses an exact retained pin before fetching protected historical bytes", async () => {
+    expect(await loadCompanyRetainedContext({ symbol: "AAPL", pin, fetchImpl: localFetch })).toEqual(unavailable);
+    expect(ownerCalls).toEqual([]);
   });
-  it("refuses a changed fingerprint without selecting current even after a valid bootstrap", async () => {
-    const first = await loadCompanyRetainedContext({ symbol: "AAPL", fetchImpl: localFetch });
-    if (!first.ok) throw new Error("owner baseline expected");
-    const parsed = parseCompanyRetainedContext(companyRetainedContextParams(first.receipt), "AAPL");
-    if (!parsed.ok || !parsed.pin) throw new Error("valid owner pin expected");
-    ownerCalls.length = 0;
-    const result = await loadCompanyRetainedContext({ symbol: "AAPL", pin: { ...parsed.pin, fingerprint: "0".repeat(64) }, fetchImpl: localFetch });
-    expect(result).toMatchObject({ ok: false, code: "HISTORICAL_UNAVAILABLE" });
-    expect(ownerCalls.every(url => url.includes(`/generations/${golden.generation_id}/`))).toBe(true);
+  it("does not recover a changed fingerprint by selecting current or an old public-primary grant", async () => {
+    expect(await loadCompanyRetainedContext({ symbol: "AAPL", pin: { ...pin, fingerprint: "0".repeat(64) }, fetchImpl: localFetch })).toEqual(unavailable);
+    expect(ownerCalls).toEqual([]);
   });
-  it("requires authentication again on reload and never substitutes a cached authenticated response", async () => {
-    const first = await loadCompanyRetainedContext({ symbol: "AAPL", fetchImpl: localFetch });
-    if (!first.ok) throw new Error("owner baseline expected");
-    const parsed = parseCompanyRetainedContext(companyRetainedContextParams(first.receipt), "AAPL");
-    if (!parsed.ok || !parsed.pin) throw new Error("valid owner pin expected");
+  it("requires authentication again and never substitutes a cached authenticated response", async () => {
     getUser.mockResolvedValue({ data: { user: null }, error: null });
-    ownerCalls.length = 0;
-    expect(await loadCompanyRetainedContext({ symbol: "AAPL", pin: parsed.pin, fetchImpl: localFetch }))
-      .toMatchObject({ ok: false, code: "HISTORICAL_UNAVAILABLE" });
-    expect(ownerCalls).toHaveLength(0);
+    expect(await loadCompanyRetainedContext({ symbol: "AAPL", pin, fetchImpl: localFetch }))
+      .toEqual({ ok: false, code: "HISTORICAL_UNAVAILABLE", reason: "unauthenticated" });
+    expect(ownerCalls).toEqual([]);
   });
-  it("refuses a different requested listing even with a genuine retained owner receipt", async () => {
-    const first = await loadCompanyRetainedContext({ symbol: "AAPL", fetchImpl: localFetch });
-    if (!first.ok) throw new Error("owner baseline expected");
-    const parsed = parseCompanyRetainedContext(companyRetainedContextParams(first.receipt), "AAPL");
-    if (!parsed.ok || !parsed.pin) throw new Error("valid owner pin expected");
-    expect(await loadCompanyRetainedContext({ symbol: "MSFT", pin: parsed.pin, fetchImpl: localFetch }))
-      .toMatchObject({ ok: false, code: "HISTORICAL_UNAVAILABLE" });
+  it("refuses an unresolvable unrelated bootstrap without falling back to the fixture company", async () => {
+    expect(await loadCompanyRetainedContext({ symbol: "MSFT", fetchImpl: localFetch }))
+      .toEqual({ ok: false, code: "HISTORICAL_UNAVAILABLE", reason: "current_owner_unavailable" });
+    expect(ownerCalls.filter(url => url.includes("/workspaces/"))).toEqual([]);
   });
 });

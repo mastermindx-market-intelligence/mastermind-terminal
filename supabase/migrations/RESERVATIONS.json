@@ -438,6 +438,26 @@
       "applied_in_production": true,
       "applied_date": "2026-10-23",
       "note": "PR #1139 merged as 61c504a472120935458874db04757f6064b91e6f after independent security qualification and exact-head CI. Compatible app-first production installation verified before this exact SQL was applied once on 2026-10-23 at 04:35:10 UTC through the original Management API/CurlRunner (25/25 statements returned successfully, statement-at-a-time). Applied full-file SQL SHA256 5bc394c6d8c4d9a8fef9115e47a0caaa8e6156f6850d76347a171387fea3addd. Original helper exit 6/status failed_readback is preserved: its sole missing object is resource_grants_guard, omitted from the built-in function readback. Separate same-carrier catalog qualification proves all seven exact reviewed bodies, unchanged terminal trigger/guard ACL and prerequisite bodies, intended new-function ACL/policies/constraints, column privileges and uniqueness index. No SQL replay or recipient grant. Raw receipt posted BEFORE this metadata: https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1139#issuecomment-6357486989; byte-exact retained receipt docs/verification/pinned-research-handoff/0041-native-apply-receipt.json and separate catalog qualification 0041-effect-qualification.json. Authenticated owner/recipient product acceptance remains separate."
+    },
+    "0042": {
+      "state": "taken",
+      "file": "0042_investigation_scenario_reference.sql",
+      "packet": "B-F12-SAVED-SCENARIO-CAPTURE",
+      "pr": 1144,
+      "pr_state": "open",
+      "applied_in_production": false,
+      "applied_date": null,
+      "note": "PR #1144 opened 2026-10-23T15:23:54Z after complete162openPR migration-file census and protected ledger max0041; incremental current metadata found only own new PR/no changed incumbent heads. Initially copied independently reviewed SQL SHA256 518b1223386b37eed53f54ba991ff16a5a41749fe59976bf9391e124749d004b. Current file SHA256 2eb41ee7bbfa3b0601e05b211b09a15c3418d1ee0fe7d9b57e7f096e98cb1682 changes rollback guidance only: prose punctuation plus a read-only current-function catalog query required by the existing down-block guard. No automatic restoration is prescribed. Every executable migration statement remains byte-identical to reviewed source. Strict definer pinned-reference condition; existing question-only grants remain unchanged. SOURCE ONLY/UNAPPLIED. No new privileged application or production binding authority; closed0041 operation is not replayed. Application date not recorded because the migration remains unapplied."
+    },
+    "0043": {
+      "state": "taken",
+      "file": "0043_investigation_plan_composition.sql",
+      "packet": "IW2-OPTIONS-PLAN-V3-COMPOSITION",
+      "pr": 804,
+      "pr_state": "open",
+      "applied_in_production": false,
+      "applied_date": null,
+      "note": "Original IW2 root integration. Current protected max0041 plus complete176openPR filename census2026-10-24 found only incumbent0042/1144 after0041;0043free. Forward predicate composition after exact0030/0039/0040/0041/0042; immutable originals preserved. Source preparation/independent review and isolated PostgreSQL only; NO production application, qualification, grant or release hold clearance. Application date not recorded because this source remains unapplied."
     }
   }
 }

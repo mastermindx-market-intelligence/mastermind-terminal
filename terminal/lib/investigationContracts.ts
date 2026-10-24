@@ -8,6 +8,9 @@ import { validateOptionsPlanDraft, type OptionsPlanDraft } from "./optionsPlanDr
  * Server-owned clocks/authors/qualification are rejected, not discarded. Canonical
  * serialization preserves authored text. No I/O or implicit writes occur.
  */
+// Exact PR1144 pure reference parser; no source bytes/retention or scenario grants.
+import { parseScenarioCapture, type ScenarioCapture } from "./investigationScenario";
+
 export const INVESTIGATION_MANIFEST_SCHEMA = "investigation_manifest.v1" as const;
 export const INVESTIGATION_MANIFEST_MAX_BYTES = 64 * 1024;
 export const INVESTIGATION_MANIFEST_SCHEMA_V2 = "investigation_manifest.v2" as const;
@@ -65,6 +68,8 @@ export type InvestigationManifest = {
   review_baseline_ref?: InvestigationEvidenceRef;
   /** v3-only retained research observations; not qualified evidence or executable prices. */
   option_plan?: OptionsPlanDraft;
+  /** v2-only value-free reference, retaining the existing0042 source contract. */
+  scenario_capture?: ScenarioCapture;
   /** Review observations use the existing owner vocabulary across supported versions. */
   review?: { assessment: "confirmed" | "contradicted" | "inconclusive"; fire_event_id?: string; note?: string };
 };
@@ -295,7 +300,7 @@ class Validator {
     const v3 = (raw as Obj)?.schema === INVESTIGATION_MANIFEST_SCHEMA_V3;
     const v2 = (raw as Obj)?.schema === INVESTIGATION_MANIFEST_SCHEMA_V2 || v3;
     const strictV2 = v2 && !this.legacyStored;
-    const manifest = this.object(raw, "$", ["schema", "intent", "layout_refs", "thesis_refs", "evidence_refs", "continuation", ...(strictV2 ? ["argument_relations"] : [])], ["review_baseline_ref", "review", ...(v3 ? ["option_plan"] : [])]);
+    const manifest = this.object(raw, "$", ["schema", "intent", "layout_refs", "thesis_refs", "evidence_refs", "continuation", ...(strictV2 ? ["argument_relations"] : [])], ["review_baseline_ref", "review", "scenario_capture", ...(v3 ? ["option_plan"] : [])]);
     if (!manifest) return;
     const questionLimit = v2 ? 4000 : 2000;
     if (!v2 && manifest.schema !== INVESTIGATION_MANIFEST_SCHEMA) this.add("$.schema", "unsupported_schema");
@@ -324,6 +329,10 @@ class Validator {
     if (Object.hasOwn(manifest, "review_baseline_ref")) {
       this.evidence(manifest.review_baseline_ref, "$.review_baseline_ref", true);
       if (strictV2 && (!Array.isArray(manifest.evidence_refs) || !manifest.evidence_refs.some(ref => canonicalInvestigationJson(ref) === canonicalInvestigationJson(manifest.review_baseline_ref)))) this.add("$.review_baseline_ref", "baseline_not_member");
+    }
+    if (Object.hasOwn(manifest, "scenario_capture")) {
+      if (manifest.schema !== INVESTIGATION_MANIFEST_SCHEMA_V2) this.add("$.scenario_capture", "unsupported_schema");
+      else if (!parseScenarioCapture(manifest.scenario_capture)) this.add("$.scenario_capture", "invalid_scenario_capture");
     }
     if (v3 && Object.hasOwn(manifest, "option_plan")) {
       const checked = validateOptionsPlanDraft(manifest.option_plan);
