@@ -410,20 +410,34 @@ describe("PaneHandle contract after engine disposal — canvas engine mm", () =>
     expect(after.seriesIds).toEqual([]);
     expect(e.inventory()).toMatchObject({ alive: false, panes: 0, series: 0 });
   });
-  it("the canvas model never drops a pane, so its removed-pane throw stays unreachable (tripwire)", () => {
+  it("a pane emptied by remove() is dropped as on LWC; the held handle reports -1, acting methods throw, reads stay quiet", () => {
     const e = makeCanvas();
     const s0 = e.addSeries("candles", {}, 0);
     s0.setData([{ time: "2026-10-01", open: 1, high: 2, low: 1, close: 1.5 }]);
     const s1 = e.addSeries("line", {}, 1);
     s1.setData([{ time: "2026-10-01", value: 1 }]);
+    const s2 = e.addSeries("histogram", {}, 2);
+    s2.setData([{ time: "2026-10-01", value: 1 }]);
     const held = s1.pane();
+    const below = s2.pane();
     s1.remove();
-    // Real LWC collapses the emptied pane (`_private__cleanupIfPaneIsEmpty`); the
-    // canvas model does not. Pin the gap so closing it is a deliberate act that
-    // also adds the removed-pane throw test this adapter currently cannot have.
-    expect(e.inventory().panes).toBe(2);
-    expect(held.index()).toBe(1);
+    // LWC `_private__cleanupIfPaneIsEmpty`: the emptied pane leaves the chart and
+    // the pane below it moves up one slot, its handle following it.
+    expect(e.inventory()).toMatchObject({ alive: true, panes: 2, seriesByPane: [1, 1] });
+    expect(held.index()).toBe(-1);
+    expect(() => held.height()).toThrow(/pane 1 no longer exists/);
+    expect(() => held.setHeight(50)).toThrow(/no longer exists/);
+    expect(() => held.setStretchFactor(2)).toThrow(/no longer exists/);
+    expect(() => held.stretchFactor()).toThrow(/no longer exists/);
+    expect(() => held.unwrap<unknown>()).toThrow(/no longer exists/);
     expect(held.getSeries()).toEqual([]);
-    expect(() => held.height()).not.toThrow();
+    expect(held.getHTMLElement()).toBeNull();
+    expect(below.index()).toBe(1);
+    expect(s2.paneIndex()).toBe(1);
+    expect(below.getSeries()).toHaveLength(1);
+    // The last pane is never dropped, even when it is empty.
+    s0.remove();
+    s2.remove();
+    expect(e.inventory()).toMatchObject({ alive: true, panes: 1, series: 0, seriesByPane: [0] });
   });
 });

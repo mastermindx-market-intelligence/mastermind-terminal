@@ -1,0 +1,38 @@
+{
+  "schema": "shared-shell.workspace-design-merge-recapture.v1",
+  "source": {
+    "sourceHead": "511d53ff526657e19b13b8e1ffa0e8cd6927f241",
+    "mergedProtectedMaster": "0551a2017067c9f0aab63e8579936bdcb5b728fb",
+    "acceptedPredecessor": "6b54c2196a8d844c76c82f5e25706be7b43a5ffd",
+    "capturedAt": "2026-10-22T11:31:07.089998+00:00",
+    "command": "CAPTURE_ONLY=ChartChrome,AnalysisWorkspace TERMINAL_CROP_PORT=3214 TERMINAL_CAPTURE_FAILURE_DIR=/tmp/ss-1124-0551-merge-capture-failures node e2e/tools/capture_pl6_batch1.cjs",
+    "result": "8 actual scoped captures passed; no retry/skip/failure",
+    "refreshedFiles": [
+      "ChartChrome-1440.png",
+      "ChartChrome-1440-zh.png",
+      "ChartChrome-390.png",
+      "ChartChrome-390-zh.png",
+      "AnalysisWorkspace-1440.png",
+      "AnalysisWorkspace-1440-zh.png",
+      "AnalysisWorkspace-390.png",
+      "AnalysisWorkspace-390-zh.png"
+    ],
+    "logSha256": "fb06b1f36cd56e14a4abf5b12ab0ce96404174e911aa19cb2582c6b79d014c5e",
+    "receipt": "workspace-design-merge-recapture.json",
+    "scope": "Actual local deterministic incumbent-profile fixture refresh after protected workspace-chrome.css import. Only Analysis context bar/chart crops refreshed; Search and unrelated accepted captures reused. Prior source identities and complete functional reports remain historical. No authenticated/public proof."
+  },
+  "newlyBoundActualDependencies": {
+    "terminal/app/layout.tsx": "84ba7f7a8e7a569ab0e71c88cba0fefbbd19bccb38ddc112e65d603a3be5e1de",
+    "terminal/app/workspace-chrome.css": "97e32bc24ed20479ea7b2e024ef6bc3883b9ead764098344f3ad4acea52b4bdd"
+  },
+  "crops": {
+    "ChartChrome-1440.png": "424a03aa1d672400101346bac93beceb11f4397a784a50a26188a73d71e4263d",
+    "ChartChrome-1440-zh.png": "dbb0e498448ab270c98b9ee17154ae93279e86924bbef526e5338a462c4c250d",
+    "ChartChrome-390.png": "f19d5c5b5c02b1639293de7776935886e3ec83388789fc725a39ec5cb816daa0",
+    "ChartChrome-390-zh.png": "898df24d245540d080e8aceb3ab5c39f6196c3d1e7096c5c5797ef9244aba0ce",
+    "AnalysisWorkspace-1440.png": "7427faf26f49b141052e8912621d9aa8d25f110110980d168818cda38d7d7d5e",
+    "AnalysisWorkspace-1440-zh.png": "c4922fcdad7b487c317cc9c2ea15c92df5f718579a4e2fafdd4206c2527601b1",
+    "AnalysisWorkspace-390.png": "f74a1fb8987b12f35fbace88658a13f028af5a892990ce4316026ad92a4c3b3d",
+    "AnalysisWorkspace-390-zh.png": "040b516a0da40cd055947db7aec49cf624658594cb39c26631b5e8305b04ff5d"
+  }
+}

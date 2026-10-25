@@ -32,6 +32,12 @@
   position: relative;
   z-index: 1;
 }
+/* The Lab's light research workspace uses white material and hairlines, without glow. */
+html[data-research-appearance="lab"][data-theme="light"] .obs-ambient::before { display:none; }
+html[data-research-appearance="lab"][data-theme="light"] .app2 > .topbar,
+html[data-research-appearance="lab"][data-theme="light"] .app2 > .appnav { background:var(--panel); }
+html[data-research-appearance="lab"][data-theme="light"] .wtabs .obs-pillnav-tab.on { box-shadow:none; }
+html[data-research-appearance="lab"][data-theme="light"] .options-view-tabs .obs-pillnav-tab.on { color:var(--link); background:var(--panel-2); box-shadow:inset 0 -2px var(--link); }
 /* The child override above cancels position:fixed on MobileNav's drawer/scrim when the
  * .app2 shell carries obs-ambient (equal specificity, later sheet wins) — they then join
  * the .app2 grid auto-placement and shove .topbar into the bottom status row ("logo/menu
@@ -1216,6 +1222,21 @@
   .obs-fd-right > .obs-fd-chain.obs-card {
     flex: 0 0 300px;
   }
+  /* The inspector card is `flex: 0 0 auto` + `max-height: 45%` for the desktop
+     column, where it sits below Chain Heat. In this horizontal strip that pair
+     is wrong on both axes: `auto` hands the card its max-content width (1,620 px
+     for a selected print at 390/820, so the strip scrolled sideways and hid
+     almost all of it) and 45% of the 340 px strip squeezes it to 153 px tall.
+     Give it the strip's card basis and the strip's full height; its body
+     scrolls vertically like the other cards. The hairline moves to the edge
+     that now borders the neighbouring card. */
+  .obs-fd-right > .obs-fd-inspector.obs-card {
+    flex: 0 0 300px;
+    min-width: 0;
+    max-height: none;
+    border-top: 0;
+    border-left: 1px solid rgba(255,255,255,0.06);
+  }
 }
 
 /* ── Radar in left rail: fills remaining height after FlowGauge+WatchlistRail ── */
@@ -1814,6 +1835,17 @@
   border-top: 1px solid rgba(255,255,255,0.06);
   border-radius: 0;
 }
+/* With a print selected the inspector is what the reader asked for: the pinned
+   hero plus the print inspector and field breakdown in one scroller. 45% of a
+   900 px viewport's column left that scroller ~170 px tall, so it takes 55% and
+   Chain Heat keeps 45% — still its own scroller, never starved. Column widths
+   only: in the ≤999px strip the card takes the strip's full height (rule in the
+   narrow block above), and this later, equally specific rule must not cap it. */
+@media (min-width: 1000px) {
+  .obs-fd-inspector.obs-card.has-event {
+    max-height: 55%;
+  }
+}
 /* Scrollable body inside the inspector card */
 .obs-insp-body {
   flex: 1;
@@ -1962,6 +1994,48 @@
   font-size: 12px;
   color: var(--muted);
   text-align: center;
+}
+
+/* ── W3A print inspector (per-print estimate view, mounted by InspectorPane) ──
+   Neutral text only — side is an estimate, never a direction fact, so no
+   direction hues ride any line here. */
+.obs-print-identity {
+  font: 700 13px/1.35 var(--font-ui);
+  color: var(--text);
+  margin-bottom: 6px;
+}
+.obs-print-line {
+  font: 500 11px/1.55 var(--font-ui);
+  color: var(--text-2);
+  margin-bottom: 6px;
+}
+.obs-print-premium {
+  color: var(--text);
+}
+.obs-print-block {
+  margin-bottom: 9px;
+}
+.obs-print-hd {
+  margin-bottom: 3px;
+}
+.obs-print-side {
+  font: 650 12px/1.45 var(--font-ui);
+  color: var(--text);
+}
+.obs-print-sub {
+  font: 500 11px/1.55 var(--font-ui);
+  color: var(--text-2);
+}
+
+/* ── W3A coverage line (desk-level, above the tape; FeedPane mounts it) ── */
+.obs-print-coverage {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px 16px;
+  padding: 7px 16px;
+  border-bottom: 1px solid var(--line);
+  font: 500 11px/1.5 var(--font-ui);
+  color: var(--text-2);
 }
 
 /* ── Chain heat card — top of right rail, fills all space above inspector ── */
@@ -3116,9 +3190,10 @@
 .obs-gexdesk-root-chooser,.obs-gexdesk-view-chooser{position:relative;flex:none}
 .obs-gexdesk-root-chooser>summary,.obs-gexdesk-view-chooser>summary{min-height:44px;display:flex;align-items:center;padding:0 9px;cursor:pointer;color:var(--text-2);font-size:12px;border:1px solid var(--line);border-radius:5px;list-style:none}
 .obs-gexdesk-root-chooser[open]>div,.obs-gexdesk-view-chooser[open]>div{position:absolute;z-index:25;top:100%;right:0;width:max-content;max-width:calc(100vw - 24px);padding:8px;background:var(--panel);border:1px solid var(--line);border-radius:5px;box-shadow:0 6px 18px #0005}
-/* Root quick picks anchor to the full controls bar so edge roots stay on-screen. */
-.obs-gexdesk-root-chooser{position:static}
-.obs-gexdesk-root-chooser[open]>div{left:8px;right:auto;max-width:calc(100% - 16px)}
+/* Both menus anchor to the controls bar: right-aligned wide view choices could
+   extend behind the desktop navigation and become impossible to click. */
+.obs-gexdesk-root-chooser,.obs-gexdesk-view-chooser{position:static}
+.obs-gexdesk-root-chooser[open]>div,.obs-gexdesk-view-chooser[open]>div{left:8px;right:auto;max-width:calc(100% - 16px)}
 .obs-gexdesk-map-first .obs-gexdesk-controls button,.obs-gexdesk-map-first .obs-gexdesk-controls input{min-height:44px}
 .obs-gexdesk-map-first .obs-gexdesk-controls input{width:96px}
 .obs-gexdesk-map-first .obs-gexdesk-controls>div{flex-wrap:nowrap;gap:8px}

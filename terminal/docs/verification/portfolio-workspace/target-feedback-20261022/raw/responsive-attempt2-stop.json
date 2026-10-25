@@ -1,0 +1,7 @@
+{
+  "sent_at": "2026-10-22T02:54:26.520099+00:00",
+  "pid": 68700,
+  "signal": "SIGINT",
+  "reason": "Confirmed deterministic Settings locator selects offscreen duplicate; stop remaining repetitions before correcting test harness.",
+  "observed_process": "68681 node /Volumes/Mastermind 2/agent-workspaces/terminal/web/portfolio-target-feedback-20261022/terminal/node_modules/.bin/playwright test e2e/portfolio-targets.spec.ts --grep target feedback is actionable --workers=1 --retries=0 --project=desktop --project=tablet --project=mobile --reporter=line,json"
+}

@@ -3,9 +3,12 @@ import { useEffect, useRef, useState } from "react";
 import type { ChartEngine } from "@/lib/chart-engine/api";
 import { EnginePriceScaleMode } from "@/lib/chart-engine";
 import { DEFAULT_CHART_RIGHT_OFFSET, withChartFutureOffset } from "@/lib/chart-engine/viewReset";
+import { isOvernightTimeframe } from "@/lib/liveCandle";
 import { isIntradayTf } from "@/lib/intradaySources";
 import { VISUAL_INTELLIGENCE_DEFAULTS, type VisualIntelligenceSettings } from "@/lib/visualIntelligence";
-import { useT } from "@/lib/i18n";
+import { useLang, useT } from "@/lib/i18n";
+import { boatsChartCopy } from "@/lib/extQuoteCopy";
+import overnightStyles from "./ChartOvernight.module.css";
 import DataOriginChip from "@/components/DataOriginChip";
 import type { DataOrigin } from "@/lib/dataOrigin";
 
@@ -64,6 +67,7 @@ export type ChartSettings = {
   paneButtons: "always" | "hover" | "never";
   // Extended hours (intraday only)
   extHours: boolean;
+  overnightHours: boolean;
   extendedLineVisible: boolean;
   preMarketColor: string;
   postMarketColor: string;
@@ -122,6 +126,7 @@ export const DEFAULT_CHART_SETTINGS: ChartSettings = {
   watermarkColor: "",
   paneButtons: "hover",
   extHours: false,
+  overnightHours: false,
   extendedLineVisible: true,
   preMarketColor: "#ff9800",
   postMarketColor: "#2962ff",
@@ -215,6 +220,7 @@ export default function ChartFrameBar({
   onSettings,
   onOpenSettingsModal,
   extendedEligible = false,
+  openGotoRequest = 0,
   symbol,
   dataOrigin,
 }: {
@@ -224,11 +230,15 @@ export default function ChartFrameBar({
   onSettings: (patch: Partial<ChartSettings>) => void;
   onOpenSettingsModal?: (tab?: string) => void;
   extendedEligible?: boolean;
+  /** Bumped by the chart pane when the command palette asks for this chart's go-to-date box:
+   *  each new value opens the same popover the calendar button opens. */
+  openGotoRequest?: number;
   /** Data OS U02: the mounted chart's symbol + its derived origin readout (drives the origin chip). */
   symbol?: string;
   dataOrigin?: DataOrigin | null;
 }) {
   const t = useT();
+  const { lang } = useLang();
   // Client-only clock: render nothing until mounted to avoid SSR/hydration mismatch.
   // The server renders at server-local time; the client's timezone may differ completely.
   const [mounted, setMounted] = useState(false);
@@ -373,6 +383,15 @@ export default function ChartFrameBar({
     return () => window.removeEventListener("keydown", h);
   }, [settings, onSettings, chartApi]);
 
+  // Only a NEW request opens the box: the value present at mount (a remount after an earlier
+  // request) is not one.
+  const handledGotoRequest = useRef(openGotoRequest);
+  useEffect(() => {
+    if (openGotoRequest === handledGotoRequest.current) return;
+    handledGotoRequest.current = openGotoRequest;
+    setGotoOpen(true);
+  }, [openGotoRequest]);
+
   // Go-to-date: focus the input when it opens
   useEffect(() => {
     if (gotoOpen) setTimeout(() => gotoRef.current?.focus(), 50);
@@ -401,7 +420,7 @@ export default function ChartFrameBar({
   const s = settings;
 
   return (
-    <div className="chart-frame-bar">
+    <div className={`chart-frame-bar ${overnightStyles.frameBar}`}>
       {/* LEFT: range buttons + go-to-date */}
       <div className="cfb-left">
         {RANGE_KEYS.map((rk) => (
@@ -443,12 +462,15 @@ export default function ChartFrameBar({
         )}
         {/* ETH chip — active when on; muted+non-interactive on daily TFs (no tooltip per spec) */}
         <button
-          className={`cfb-chip${s.extHours && extendedEligible ? " on" : ""}${!isIntraday || !extendedEligible ? " dis" : ""}`}
+          className={`cfb-chip${s.extHours && extendedEligible && isIntraday ? " on" : ""}${!isIntraday || !extendedEligible ? " dis" : ""}`}
           disabled={!isIntraday || !extendedEligible}
-          onClick={() => isIntraday && extendedEligible && onSettings({ extHours: !s.extHours })}
+          onClick={() => isIntraday && extendedEligible && onSettings({ extHours: !s.extHours, overnightHours: false })}
           title={isIntraday && extendedEligible ? (s.extHours ? t("ethOff") : t("ethOn")) : undefined}
           aria-label={t("cfbExtendedHours")}
         >ETH</button>
+        {extendedEligible && isOvernightTimeframe(timeframe) && <button className={`cfb-chip${s.overnightHours ? " on" : ""}`}
+          onClick={() => onSettings({ overnightHours: !s.overnightHours, ...(!s.overnightHours ? { extHours: true } : {}) })}
+          aria-label={boatsChartCopy(lang).label} aria-pressed={!!s.overnightHours} title={boatsChartCopy(lang).coverage}>24H</button>}
         {/* Data OS U02 — the origin chip replaces the static ADJ span: label and explanation are
             derived from the OHLC file's view contract, never a hardcoded claim. */}
         <DataOriginChip symbol={symbol} origin={dataOrigin ?? null} />

@@ -1,0 +1,161 @@
+{
+  "parent_head": "8d3dc9d5dbc5b935a01656ba5be051894b721120",
+  "diff_base": "8189edb8abd41e1c95d6460ad735549af5538d48",
+  "results": [
+    {
+      "name": "plain-language-self",
+      "command": [
+        "node",
+        "scripts/check_plain_language.mjs",
+        "--self-check"
+      ],
+      "extra_env": {},
+      "exit_code": 0,
+      "seconds": 0.27,
+      "log": "/tmp/forex-r26-resume-20261021/ci-repair-8d3/plain-language-self.log",
+      "log_sha256": "24cda5f8f3b651c996f217787394bdaeed8d89c8d2deb739191fc0fc7eacb83f",
+      "result_excerpt": "R1 detected\nR2 detected\nR3 detected\nR4 detected\nR5a detected\nR5b detected"
+    },
+    {
+      "name": "plain-language-added",
+      "command": [
+        "node",
+        "scripts/check_plain_language.mjs",
+        "--mode",
+        "enforce-added",
+        "--diff-file",
+        "/tmp/forex-r26-resume-20261021/ci-repair-8d3/plain-language.diff"
+      ],
+      "extra_env": {},
+      "exit_code": 0,
+      "seconds": 2.18,
+      "log": "/tmp/forex-r26-resume-20261021/ci-repair-8d3/plain-language-added.log",
+      "log_sha256": "90f4735987350837fb9cc33093853877ce297d394502f3f3677750ae6e8cbdce",
+      "result_excerpt": "legacy (pre-existing, not blocking)\nterminal/components/alerts/AlertTimeline.tsx:45: raw_slug_interpolation: \"verdict\" — raw \"verdict\" field interpolated with no plain-language helper on the same line\n  route through a plainLabels helper (e.g. regimeLabel/classicCategoryLabel) or lib/i18n t()\nterminal/components/fin/ForecastPage.tsx:647: raw_slug_interpolation: \"type\" — raw \"type\" field interpolated with no plain-language helper on the same line\n  route through a plainLabels helper (e.g. regimeLabel/classicCategoryLabel) or lib/i18n t()\nterminal/components/screener/CrossMarketStrip.tsx:188: raw_slug_interpolation: \"code\" — raw \"code\" field interpolated with no plain-language helper on the same line\n  route through a plainLabels helper (e.g. regimeLabel/classicCategoryLabel) or lib/i18n t()\nterminal/lib/sharedShellCopy.ts:1: missing_zh: \"use client\" — added English literal in a user-visible position with no zh routing (t(/tPlain(/pick(/LEX[)\n  route through t()/tPlain()/pick() with a LEX entry carrying an [en, zh] pair\nterminal/lib/visualIntelligenceCopy.ts:81: raw_state_enum: \"DELAYED_15M\" — raw state enum in a user-visible position\n  say \"15-minute delayed\" / \"延迟15分钟\" (route via regimeLabel(t, value, lang) from @/lib/plainLabels)\nnull: zh_translation @ terminal/components/alerts/AlertBulkManager.tsx: not evaluable — no new user-visible strings added\nnull: zh_translation @ terminal/components/alerts/AlertsCockpit.tsx: not evaluable — no new user-visible strings added"
+    },
+    {
+      "name": "forex-inventory-unit",
+      "command": [
+        "npx",
+        "vitest",
+        "run",
+        "lib/__tests__/forexWatchesInventory.test.tsx"
+      ],
+      "extra_env": {},
+      "exit_code": 0,
+      "seconds": 3.87,
+      "log": "/tmp/forex-r26-resume-20261021/ci-repair-8d3/forex-inventory-unit.log",
+      "log_sha256": "cc606f01d47fdff09c481282ce9054f9a017f4d54c9573fc7189d32c64cbbd3e",
+      "result_excerpt": "The CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.\n\n RUN  v2.1.9 /Volumes/Mastermind 2/agent-workspaces/terminal/web/forex-r26-account-owner-20261021-sol-002/terminal\n\n ✓ lib/__tests__/forexWatchesInventory.test.tsx (15 tests) 427ms\n\n Test Files  1 passed (1)\n      Tests  15 passed (15)\n   Start at  09:41:17\n   Duration  2.86s (transform 547ms, setup 0ms, collect 786ms, tests 427ms, environment 715ms, prepare 91ms)\n"
+    },
+    {
+      "name": "typecheck",
+      "command": [
+        "npx",
+        "tsc",
+        "--noEmit"
+      ],
+      "extra_env": {},
+      "exit_code": 0,
+      "seconds": 12.49,
+      "log": "/tmp/forex-r26-resume-20261021/ci-repair-8d3/typecheck.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "result_excerpt": ""
+    },
+    {
+      "name": "tablet-screener-traced",
+      "command": [
+        "npm",
+        "run",
+        "test:e2e:responsive",
+        "--",
+        "e2e/screener-technical-scan.spec.ts",
+        "--project=tablet",
+        "--workers=1",
+        "--retries=0",
+        "--trace=on",
+        "--output",
+        "/tmp/forex-r26-resume-20261021/ci-repair-8d3/tablet-results"
+      ],
+      "extra_env": {
+        "TERMINAL_E2E_PORT": "47321"
+      },
+      "exit_code": 0,
+      "seconds": 78.2,
+      "log": "/tmp/forex-r26-resume-20261021/ci-repair-8d3/tablet-screener-traced.log",
+      "log_sha256": "9f312fa5d848f77683f8552ad26c5d6a34e374ee9bad02b4a7cd5ef9cd74f508",
+      "result_excerpt": "[warmup] /terminal?symbol=NVDA → 200 in 104ms\n[warmup] /options → 200 in 2060ms\n[warmup] /portfolio → 200 in 892ms\n[warmup] /alerts → 200 in 104ms\n[warmup] /analysis → 200 in 176ms\n[warmup] /discover → 200 in 1974ms\n[warmup] /admin → 200 in 600ms\n[warmup] /embed/chart?symbol=NVDA → 200 in 605ms\n[warmup] /login → 200 in 180ms\n[warmup] /reset-password → 200 in 429ms\n[warmup] /api/me → 200 in 147ms\n[warmup] /api/watchlist → 200 in 122ms\n[warmup] /api/layouts → 200 in 208ms\n[warmup] /api/watchlist/annotations → 404 in 586ms\n[warmup] 14 routes compiled in 8s\n\nRunning 3 tests using 1 worker\n\n[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)\n  ✓  1 [tablet] › e2e/screener-technical-scan.spec.ts:143:7 › E01 technical screen journey (en) (26.2s)\n  ✓  2 [tablet] › e2e/screener-technical-scan.spec.ts:143:7 › E01 technical screen journey (zh) (24.4s)\n  ✓  3 [tablet] › e2e/screener-technical-scan.spec.ts:264:5 › AC-E01-03: an incomplete generation is labelled, and still accounts every name (7.3s)\n\n  3 passed (1.3m)"
+    },
+    {
+      "name": "forex-responsive",
+      "command": [
+        "npm",
+        "run",
+        "test:e2e:responsive",
+        "--",
+        "e2e/forex-account-conditions.spec.ts",
+        "--project=desktop",
+        "--project=tablet",
+        "--project=mobile",
+        "--workers=1",
+        "--retries=0",
+        "--output",
+        "/tmp/forex-r26-resume-20261021/ci-repair-8d3/forex-results"
+      ],
+      "extra_env": {
+        "TERMINAL_E2E_PORT": "47322"
+      },
+      "exit_code": 0,
+      "seconds": 30.35,
+      "log": "/tmp/forex-r26-resume-20261021/ci-repair-8d3/forex-responsive.log",
+      "log_sha256": "1e9e7d94fcd2b35556859a0da4bf602f2c0ce78456a111632b6dc3f1acf0b2f2",
+      "result_excerpt": "\nRunning 18 tests using 1 worker\n\n  ✓   1 [desktop] › e2e/forex-account-conditions.spec.ts:36:7 › Forex saved inactive presentation and bulk activation exclusion — en (1.3s)\n  ✓   2 [desktop] › e2e/forex-account-conditions.spec.ts:57:7 › Forex deletion binds account and revision and survives reload — en (1.5s)\n  ✓   3 [desktop] › e2e/forex-account-conditions.spec.ts:70:7 › Forex uncertain delete is reconciled by reads without replay — en (1.0s)\n  ✓   4 [desktop] › e2e/forex-account-conditions.spec.ts:36:7 › Forex saved inactive presentation and bulk activation exclusion — zh (1.3s)\n[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)\n  ✓   5 [desktop] › e2e/forex-account-conditions.spec.ts:57:7 › Forex deletion binds account and revision and survives reload — zh (1.5s)\n  ✓   6 [desktop] › e2e/forex-account-conditions.spec.ts:70:7 › Forex uncertain delete is reconciled by reads without replay — zh (1.2s)\n  ✓   7 [tablet] › e2e/forex-account-conditions.spec.ts:36:7 › Forex saved inactive presentation and bulk activation exclusion — en (1.1s)\n  ✓   8 [tablet] › e2e/forex-account-conditions.spec.ts:57:7 › Forex deletion binds account and revision and survives reload — en (1.4s)\n  ✓   9 [tablet] › e2e/forex-account-conditions.spec.ts:70:7 › Forex uncertain delete is reconciled by reads without replay — en (1.0s)\n  ✓  10 [tablet] › e2e/forex-account-conditions.spec.ts:36:7 › Forex saved inactive presentation and bulk activation exclusion — zh (1.2s)\n  ✓  11 [tablet] › e2e/forex-account-conditions.spec.ts:57:7 › Forex deletion binds account and revision and survives reload — zh (1.4s)\n  ✓  12 [tablet] › e2e/forex-account-conditions.spec.ts:70:7 › Forex uncertain delete is reconciled by reads without replay — zh (1.0s)\n  ✓  13 [mobile] › e2e/forex-account-conditions.spec.ts:36:7 › Forex saved inactive presentation and bulk activation exclusion — en (888ms)\n  ✓  14 [mobile] › e2e/forex-account-conditions.spec.ts:57:7 › Forex deletion binds account and revision and survives reload — en (1.1s)\n  ✓  15 [mobile] › e2e/forex-account-conditions.spec.ts:70:7 › Forex uncertain delete is reconciled by reads without replay — en (747ms)\n  ✓  16 [mobile] › e2e/forex-account-conditions.spec.ts:36:7 › Forex saved inactive presentation and bulk activation exclusion — zh (1.1s)\n  ✓  17 [mobile] › e2e/forex-account-conditions.spec.ts:57:7 › Forex deletion binds account and revision and survives reload — zh (1.2s)\n  ✓  18 [mobile] › e2e/forex-account-conditions.spec.ts:70:7 › Forex uncertain delete is reconciled by reads without replay — zh (993ms)\n\n  18 passed (29.6s)"
+    }
+  ],
+  "source_hashes": {
+    "terminal/components/AlertsView.tsx": "8cb9bf5073e98805c4721d59301b94b92a6d84da9e8eb5f07b3748039027ef46",
+    "terminal/e2e/screener-technical-scan.spec.ts": "95125429d73e9c3e9eb93f96858f0230968e28d90334d13cb365e62337e4022f"
+  },
+  "originating_ci": {
+    "run": 39612809504,
+    "head": "8d3dc9d5dbc5b935a01656ba5be051894b721120",
+    "plain_language_job": 119266520987,
+    "tablet_job": 119266520657,
+    "actual_merge": "32dabe899b227cdfb3b6751dc7097cba2ee07bc4",
+    "tablet_artifact": 12353573663
+  },
+  "repairs": [
+    "Route unchanged Forex deletion EN/ZH strings through component-local bilingual copy, matching the incumbent REARM_COPY pattern.",
+    "Replace only the greater-than-zero outer poll with the equivalent native locator toBeAttached assertion; preserve 5s budget, tracing, 2000-name fixture, hidden-unknown assertion and product code."
+  ],
+  "independent_diagnosis": {
+    "reviewer": "native independent reviewer /root/forex_tablet_ci_review",
+    "browser_counts": [
+      2001,
+      2001,
+      2001
+    ],
+    "browser_response_ms": [
+      4093.953,
+      3968.42,
+      4607.094
+    ],
+    "test_promise_ms": [
+      5388.051,
+      5374.847,
+      5662.808
+    ],
+    "poll_deadline_ms": [
+      5001.923,
+      5002.142,
+      5001.128
+    ],
+    "conclusion": "Correct browser results preceded deadline; test-side trace/API completion crossed outer polling deadline."
+  },
+  "scope": {
+    "production_or_real_account": false,
+    "storage_migration_changed": false,
+    "remaining_required_ci": "Fresh hosted run required for the published repair head.",
+    "prior_review_reuse": "Storage/API semantics unchanged; AlertsView copy-only delta and test assertion require scoped review."
+  }
+}

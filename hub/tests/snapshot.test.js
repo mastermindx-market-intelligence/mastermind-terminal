@@ -337,3 +337,109 @@ describe("store — a placeholder must never publish a fabricated 0.00%", () => 
     });
   }
 });
+
+// Offline P1 extended composition: actual endpoint seam, no hub boot/network.
+describe("snapshot extended tuple is separate from completed regular view", () => {
+  const { handleQuotesRequest } = require("../lib/quotes");
+  const { calendarSession, completedSessionDate } = require("../lib/snapshot");
+  const pre = Date.parse("2026-10-23T12:00:00Z");
+  const ref = { prevClose: 100, prevSessionChg: 100 / 9,
+    completedRegularClose: 100, completedRegularSessionDate: "2026-10-22",
+    completedRegularSource: "daily_file", anchor_source: "daily_file" };
+  async function prepared(now = pre, changes = {}, reference = ref) {
+    const row = { ticker: "SKY", day: { c: 0, o: 0, h: 0, l: 0 }, prevDay: { c: 100 },
+      updated: now * 1e6, lastTrade: { p: 99, t: (now - 1000.25) * 1e6 }, ...changes };
+    const feed = new SnapshotFeed({ apiKey: "offline-test", realtime: true,
+      fetchJson: async () => ({ tickers: [row] }) });
+    feed._pending.add("SKY"); await feed._flush(now);
+    const store = new Store("/dev/null/manifest.json", { get: () => reference });
+    store.quotes.set("SKY", { sym: "SKY", market: "us", last: 100,
+      prevClose: 100, chg: 100 / 9, prevSessionChg: 100 / 9, regularSession: "closed",
+      regularSessionDate: "2026-10-22", ts: (pre - 72000000) / 1000, live: false,
+      source: "polygon-delayed", basis: "DELAYED_15M" });
+    return { feed, store };
+  }
+  it("keeps zeroed day missing and exposes ext only in the default full view", async () => {
+    const { feed, store } = await prepared();
+    assert.equal(feed.get("SKY", pre), null);
+    const deps = { store, snapshotFeed: feed };
+    const full = handleQuotesRequest(new URLSearchParams("syms=SKY"), pre, deps);
+    const regular = handleQuotesRequest(new URLSearchParams("syms=SKY&view=regular"), pre, deps);
+    assert.equal(full.status, 200);
+    const q = full.body.SKY;
+    assert.equal(q.last, 100); assert.ok(q.chg > 0); assert.equal(q.prevSessionChg, 100 / 9);
+    assert.equal(q.regularSessionDate, "2026-10-22");
+    for (const key of ["open", "high", "low", "close"]) assert.equal(q[key], undefined);
+    assert.equal(q.extPrice, 99); assert.equal(q.extChg, -1);
+    assert.equal(q.extAsOfMs, pre - 1000.25);
+    assert.equal(q.extTs, Math.floor(q.extAsOfMs / 1000));
+    assert.equal(q.extRegularSessionDate, "2026-10-22");
+    const withoutExt = Object.fromEntries(Object.entries(q).filter(([k]) => !k.startsWith("ext")));
+    assert.deepEqual(regular.body.SKY, withoutExt);
+    assert.equal(store.quotes.get("SKY").extPrice, undefined);
+  });
+  it("filters each candidate before newest selection, without borrowing clocks", async () => {
+    const { feed } = await prepared(pre, {
+      lastTrade: { p: 98, t: (pre + 1) * 1e6 }, min: { c: 99, t: pre - 2000 },
+    });
+    assert.equal(feed.getExt("SKY", pre, ref).extAsOfMs, pre - 2000);
+    assert.equal(feed.getExt("SKY", pre, ref).extPrice, 99);
+    const { feed: newerMinute } = await prepared(pre, {
+      lastTrade: { p: 98, t: (pre - 5000) * 1e6 }, min: { c: 97, t: pre - 1000 },
+    });
+    assert.equal(newerMinute.getExt("SKY", pre, ref).extPrice, 97);
+  });
+  it("rejects stale/wrong-session/invalid clocks even with a fresh sibling floor", async () => {
+    for (const trade of [
+      { p: 99, t: (pre - 120001) * 1e6 }, { p: 99, t: (pre + 1) * 1e6 },
+      { p: 99, t: String((pre - 1000) * 1e6) }, { p: 99, t: NaN },
+      { p: 99, t: pre - 1000 }, { p: 0, t: (pre - 1000) * 1e6 },
+    ]) {
+      const { feed } = await prepared(pre, { lastTrade: trade });
+      feed._floorLagMs = 0; feed._floorAt = pre;
+      assert.equal(feed.getExt("SKY", pre, ref), null);
+    }
+  });
+  it("clears pre at09:30 without putting the old preprint into regular fields", async () => {
+    const at = Date.parse("2026-10-23T13:29:59Z");
+    const { feed, store } = await prepared(at, { day: { c: 100, o: 0, h: 0, l: 0 } });
+    assert.equal(store.getQuotes(["SKY"], at, null, feed).SKY.extPrice, 99);
+    const open = at + 1000;
+    const q = store.getQuotes(["SKY"], open, null, feed).SKY;
+    assert.equal(q.extPrice, undefined); assert.equal(q.last, 100);
+    assert.equal(q.prevSessionChg, 100 / 9);
+    assert.equal(q.regularSessionDate, "2026-10-22");
+  });
+  it("never puts a post trade in regular last, and supports the real early close", async () => {
+    for (const [instant, date] of [["2026-10-23T20:10:00Z", "2026-10-23"],
+      ["2026-11-27T19:00:00Z", "2026-11-27"]]) {
+      const now = Date.parse(instant);
+      const reference = { ...ref, completedRegularSessionDate: date };
+      const { feed, store } = await prepared(now, { day: { c: 100 },
+        lastTrade: { p: 99, t: (now - 1000) * 1e6 } }, reference);
+      const q = store.getQuotes(["SKY"], now, null, feed).SKY;
+      assert.equal(q.last, 100);
+      // The legacy regular marketSession is weekday-only; do not rewrite its
+      // early-close keys as part of the additive extended contract.
+      assert.equal(q.close, date === "2026-10-23" ? 100 : undefined);
+      assert.equal(q.extPrice, 99); assert.equal(q.extMarketSession, "post");
+      assert.equal(feed.getExt("SKY", Date.parse(`${date}T22:00:00Z`), reference), null);
+    }
+  });
+  it("uses canonical holiday/weekend/midnight/DST/coverage boundaries", () => {
+    for (const instant of ["2026-07-03T12:00:00Z", "2026-10-24T12:00:00Z",
+      "2026-10-23T04:00:00Z", "2029-01-02T13:00:00Z"]) assert.equal(calendarSession(Date.parse(instant)), null);
+    assert.equal(completedSessionDate(Date.parse("2026-10-26T12:00:00Z")), "2026-10-23");
+    assert.equal(completedSessionDate(Date.parse("2026-07-06T12:00:00Z")), "2026-07-02");
+    assert.equal(calendarSession(Date.parse("2026-11-02T13:00:00Z")), "pre");
+    assert.equal(calendarSession(Date.parse("2026-03-09T12:00:00Z")), "pre");
+    assert.equal(calendarSession(Date.parse("2026-11-27T22:00:00Z")), null);
+  });
+  it("missing/wrong completed provenance never borrows rolled prevClose", async () => {
+    const { feed } = await prepared();
+    for (const reference of [null, { prevClose: 100 }, { ...ref, completedRegularSessionDate: "2026-10-23" },
+      { ...ref, completedRegularSource: "manifest" }, { ...ref, completedRegularClose: 0 }]) {
+      assert.equal(feed.getExt("SKY", pre, reference), null);
+    }
+  });
+});

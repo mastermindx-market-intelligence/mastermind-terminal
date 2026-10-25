@@ -112,7 +112,7 @@ export interface EventWorkspaceFact {
   fact_id: string;
   event_id: string;
   metric: string;
-  value: number | null;
+  value: number | string | null;
   unit: string | null;
   period: string | null;
   basis: string | null;
@@ -853,13 +853,21 @@ function normalizeFact(raw: unknown, eventId: string): EventWorkspaceFact | null
   if (!factId || !metric || boundEvent !== eventId) return null;
   const evidence = spanOrAbsence(obj, eventId);
   if (!evidence) return null;
-  const value = obj.value === undefined ? null : finiteNumber(obj.value);
-  if (value === undefined) return null;
+  // Native issuer_profiles emits one textual fact: the source-bound
+  // cancellation denominator label. Financial facts remain strictly numeric;
+  // an absence cannot supply a present text value.
+  const nativeDenominator = factId === "fact_cancellation_rate_denominator" &&
+    metric === "cancellation_rate_basis" && obj.unit === null && obj.period === null &&
+    evidence.source_span !== null;
+  const value = nativeDenominator && typeof obj.value === "string"
+    ? requiredString(obj.value, MAX_TEXT)
+    : obj.value === undefined ? null : finiteNumber(obj.value);
+  if (value === undefined || (typeof obj.value === "string" && value === null)) return null;
   const unit = obj.unit === null || obj.unit === undefined ? null : requiredString(obj.unit, 40);
   if (obj.unit != null && !unit) return null;
   const period = obj.period === null || obj.period === undefined ? null : (validDate(obj.period) ? obj.period : requiredString(obj.period, 40));
   if (obj.period != null && !period) return null;
-  const basis = obj.basis === null || obj.basis === undefined ? null : requiredString(obj.basis, 40);
+  const basis = obj.basis === null || obj.basis === undefined ? null : requiredString(obj.basis, MAX_TEXT);
   if (obj.basis != null && !basis) return null;
   return {
     schema: "event_fact.v1",
@@ -884,7 +892,7 @@ function deltaSide(raw: unknown, eventId: string): EventWorkspaceDeltaValue | Ev
   if (value === undefined || value === null) return undefined;
   const unit = obj.unit === null || obj.unit === undefined ? null : requiredString(obj.unit, 40);
   if (obj.unit != null && !unit) return undefined;
-  const basis = obj.basis === null || obj.basis === undefined ? null : requiredString(obj.basis, 40);
+  const basis = obj.basis === null || obj.basis === undefined ? null : requiredString(obj.basis, MAX_TEXT);
   if (obj.basis != null && !basis) return undefined;
   return { value, unit, basis };
 }
@@ -1278,6 +1286,11 @@ export function normalizeEventWorkspace(
     const listing = object(listingRaw);
     const ticker = listing && typeof listing.ticker === "string" ? normalizeCompanyIntelligenceSymbol(listing.ticker) : null;
     if (!listing || !ticker) return null;
+    // Unknown validity remains null; malformed non-null validity is not an open
+    // listing. This reader also supplies the held-event firing prerequisite.
+    if ((listing.valid_from != null && !validDate(listing.valid_from)) ||
+        (listing.valid_to != null && !validDate(listing.valid_to)) ||
+        (listing.valid_from != null && listing.valid_to != null && listing.valid_from > listing.valid_to)) return null;
     listings.push({
       ticker,
       mic: requiredString(listing.mic, 16) ?? "",
@@ -1285,8 +1298,8 @@ export function normalizeEventWorkspace(
       share_class: listing.share_class == null ? null : requiredString(listing.share_class, 40),
       trading_currency: listing.trading_currency == null ? null : requiredString(listing.trading_currency, 8),
       is_primary: listing.is_primary === true,
-      valid_from: listing.valid_from == null ? null : (validDate(listing.valid_from) ? listing.valid_from : null),
-      valid_to: listing.valid_to == null ? null : (validDate(listing.valid_to) ? listing.valid_to : null),
+      valid_from: listing.valid_from == null ? null : listing.valid_from as string,
+      valid_to: listing.valid_to == null ? null : listing.valid_to as string,
     });
   }
   const fiscal = object(obj.fiscal_period);
@@ -1502,14 +1515,17 @@ function workspaceResult(workspace: EventWorkspace, receipt: EventWorkspaceVerif
   };
 }
 
-async function loadManifest(base: string, signal?: AbortSignal): Promise<{ manifest: EventWorkspaceManifest; sha256: string; stale: boolean } | null | "invalid"> {
+async function loadManifest(base: string, signal?: AbortSignal): Promise<{ manifest: EventWorkspaceManifest; sha256: string; stale: boolean } | null | "invalid" | "unavailable"> {
   const now = Date.now();
   if (manifestCache && now - manifestCache.at < MANIFEST_TTL_MS) {
     return { manifest: manifestCache.data, sha256: manifestCache.sha256, stale: false };
   }
   const markerUrl = `${base}/company_intelligence/${EVENT_WORKSPACE_NEST}/manifest.json`;
   const fetched = await fetchJson(markerUrl, MAX_MANIFEST_BYTES, signal);
-  if (fetched.kind !== "ok") return manifestCache ? { manifest: manifestCache.data, sha256: manifestCache.sha256, stale: true } : fetched.kind === "missing" ? null : null;
+  if (fetched.kind !== "ok") {
+    if (manifestCache) return { manifest: manifestCache.data, sha256: manifestCache.sha256, stale: true };
+    return fetched.kind === "missing" ? null : "unavailable";
+  }
   const marker = normalizeEventWorkspaceManifest(fetched.raw);
   if (!marker) return manifestCache ? { manifest: manifestCache.data, sha256: manifestCache.sha256, stale: true } : "invalid";
   const immutableUrl = `${base}/company_intelligence/${EVENT_WORKSPACE_NEST}/generations/${marker.generation_id}/manifest.json`;
@@ -1540,6 +1556,7 @@ export async function resolveCurrentEventWorkspaceFromR2(
   const safeBase = validateR2Base(base);
   if (!safeBase) return error("upstream_unavailable", "Event workspace is unavailable", true);
   const manifestRead = await loadManifest(safeBase, options.signal);
+  if (manifestRead === "unavailable") return error("upstream_unavailable", "Event workspace is temporarily unavailable", true);
   if (manifestRead === "invalid") return error("invalid_payload", "Event workspace manifest is invalid", true);
   if (!manifestRead) return error("not_found", "Event workspace is not covered", false);
   const selected = selectCurrentEventFromAliases(ticker, manifestRead.manifest.aliases);
@@ -1560,6 +1577,7 @@ export async function resolveEventWorkspaceFromR2(
   const safeBase = validateR2Base(base);
   if (!safeBase) return error("upstream_unavailable", "Event workspace is unavailable", true);
   const manifestRead = preloaded ?? await loadManifest(safeBase, options.signal);
+  if (manifestRead === "unavailable") return error("upstream_unavailable", "Event workspace is temporarily unavailable", true);
   if (manifestRead === "invalid") return error("invalid_payload", "Event workspace manifest is invalid", true);
   if (!manifestRead) return error("not_found", "Event workspace is not covered", false);
   const { manifest, sha256: markerSha, stale } = manifestRead;

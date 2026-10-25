@@ -1,11 +1,17 @@
 "use client";
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { mergeFormingQuote } from "@/lib/formingCandles";
+import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { PHONE_QUERY, useIsMobile, useIsPhone } from "@/lib/useMediaQuery";
 import MobileSheet from "@/components/ui/MobileSheet";
 import OptionsRail, { type OptionsRailHandle } from "@/components/options-companion/OptionsRail";
 import { optionsT } from "@/components/options-companion/optionsStrings";
 import type { OptionsChartLevel } from "@/lib/optionsCompanion";
 import replayStyles from "./ReplayTransport.module.css";
+import contextStyles from "./ChartContextPlacement.module.css";
+import searchStyles from "./SearchModal.module.css";
+import type { ChartContextDock } from "./ChartContextDock";
+import { visualText } from "@/lib/visualIntelligenceCopy";
+import { track } from "@/lib/analytics";
 import { DndContext, DragOverlay, PointerSensor, KeyboardSensor, useDroppable, useSensor, useSensors, closestCenter, type CollisionDetection, type DragEndEvent, type DragStartEvent, type Modifier } from "@dnd-kit/core";
 import { SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
@@ -13,7 +19,7 @@ import { CSS as DndCSS } from "@dnd-kit/utilities";
 import dynamic from "next/dynamic";
 import { createPortal, flushSync } from "react-dom";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { BrandLockup } from "@/components/BrandMark";
 import DashboardBackButton from "@/components/DashboardBackButton";
 import { AppNav } from "@/components/AppNav";
@@ -24,7 +30,7 @@ import { type DetectCmd } from "@/components/ChartPanel";
 import ChartPane from "@/components/ChartPane";
 import ChartConductor from "@/components/ChartConductor";
 import { intradayCapable } from "@/components/ChartPanel";
-import { classify, SECOND_TFS, isSecondTf } from "@/lib/intradaySources";
+import { classify, SECOND_TFS, isSecondTf, isIntradayTf } from "@/lib/intradaySources";
 import { isMacroSymbol } from "@/lib/macroSymbols";
 import { freshnessLabel } from "@/lib/feedFreshness";
 import { boatsLatestTradeLabel } from "@/lib/extQuoteCopy";
@@ -39,8 +45,10 @@ import { flowGet } from "@/lib/flowClientCache";
 import { parseGlanceState } from "@/lib/mscGlance";
 import { DEFAULT_START_TF, TF_CANONICAL_ORDER, mobileTimeframeOptions, readStartTf, resolveStartTf } from "@/lib/startTf";
 import { useMarketPrefs } from "@/lib/useMarketPrefs";
-import { accountIdentity } from "@/lib/accountIdentity";
+import { accountIdentity, identityOwnerKey, isAccountOwner } from "@/lib/accountIdentity";
 import { portfolioRailOwner, usePortfolioRailRead } from "@/lib/usePortfolioRailRead";
+import { decodePositionRead } from "@/lib/portfolioWorkspace";
+import { mutationPostcondition, positionMutationFailure, type MutationReceipt } from "@/lib/portfolioMutation";
 // Import the page ids from the import-free leaf, NOT from MegaPane: MegaPane is mounted
 // through next/dynamic below, and a value import out of it here would statically pull its
 // entire graph (14 fundamentals pages + statement/intelligence/transcript libs, ~709 KB of
@@ -93,10 +101,14 @@ import {
 } from "@/lib/watchlistOwner";
 import { useGateEntitlement } from "@/lib/entitlementStore";
 import { normalizeDevTierOverride } from "@/lib/subscriptionTier";
-import { useChartBus } from "@/lib/useChartBus";
+import { CHART_PANE_CONTEXT_SCHEMA, useChartBus } from "@/lib/useChartBus";
 import { isV2Envelope, type IndicatorSpec } from "@/lib/chartBus";
-import { describeNativeSuiteCapabilities } from "@/lib/chartIndicatorParams";
+import { describeNativeSuiteCapabilities, describeNativeStudyContext } from "@/lib/chartIndicatorParams";
 import LinkedSeasonalityCard from "@/components/LinkedSeasonalityCard";
+import WatchlistEventsButton from "@/components/events/WatchlistEventsButton";
+import WatchlistReviewBar from "@/components/watchlist/WatchlistReviewBar";
+import { useWatchlistReview } from "@/lib/useWatchlistReview";
+import { useWatchlistReviewT } from "@/lib/watchlistReviewLex";
 // Code-split the conditionally-mounted heavies out of the /terminal first-paint bundle (task 9).
 // TerminalShell is a Client Component, so ssr:false is allowed — none of these render on any SSR
 // path (each mounts only when opened: paneOpen / signalsOpen / copilot toggle).
@@ -110,6 +122,8 @@ const IndicatorSource = dynamic(() => import("@/components/IndicatorSource"), { 
 const CompareSettings = dynamic(() => import("@/components/CompareSettings"), { ssr: false });
 const ChartObjectTree = dynamic(() => import("@/components/ChartObjectTree"), { ssr: false });
 const TickerNewsPanel = dynamic(() => import("@/components/news/TickerNewsPanel"), { ssr: false });
+// Watchlist event planner (E14): mounts only when opened from the watchlist header / symbol bar.
+const WatchlistEventPlanner = dynamic(() => import("@/components/events/WatchlistEventPlanner"), { ssr: false });
 // E05: cross-device note/flag sync for a signed-in owner. Lazy and client-only, so the guest
 // bundle never carries it; it renders inside the watchlist bar and owns no watchlist state.
 const WatchlistAnnotationSync = dynamic(() => import("@/components/watchlist/WatchlistAnnotationSync"), { ssr: false });
@@ -118,6 +132,10 @@ const WatchlistAnnotationSync = dynamic(() => import("@/components/watchlist/Wat
 const RollerStrip = dynamic(() => import("@/components/mobile/RollerStrip"), { ssr: false });
 const DrawingsSheet = dynamic(() => import("@/components/mobile/DrawingsSheet"), { ssr: false });
 const AnalysisHubSheet = dynamic(() => import("@/components/mobile/AnalysisHubSheet"), { ssr: false });
+// Review capture (E19): loaded on first open only — the chart snapshot compositor stays in ChartPanel.
+const ChartCaptureDialog = dynamic(() => import("@/components/chartCapture/ChartCaptureDialog"), { ssr: false });
+// Chart command palette (E20): mounts only while open, so its code stays out of the first load.
+const CommandPalette = dynamic(() => import("@/components/commandPalette/CommandPalette"), { ssr: false });
 // BrainWidget mounts the production Mastermind Brain widget (mm_brain.js) — it renders null
 // and only injects a cross-origin <script>, so ssr:false / dynamic isn't needed.
 import BrainWidget from "@/components/BrainWidget";
@@ -126,12 +144,13 @@ import BrainWidget from "@/components/BrainWidget";
 import { createAiContextProvider } from "@/lib/aiContext";
 import StockAnalysis from "@/components/StockAnalysis";
 import SignalButton from "@/components/SignalButton";
+import { useProphetObservation } from "@/lib/useProphetObservation";
 import TrendRow from "@/components/TrendRow";
 import WashoutTurnRow from "@/components/WashoutTurnRow";
 import { oracleVerdict, deskVerdict } from "@/lib/signalVerdict";
 import { computeTrendState } from "@/lib/trend";
 import { useLive } from "@/lib/live";
-import { requestPaneFocus, setPaneLinks, subscribePaneRegistry, registeredPaneIds, subscribePaneVisibleWindow } from "@/lib/paneSync";
+import { requestPaneFocus, setPaneLinks, subscribePaneRegistry, registeredPaneIds, setPaneVisibleWindow, subscribePaneVisibleWindow } from "@/lib/paneSync";
 import { assignPaneGroup, chartLinkView, fitLinkState, legacyLinkState, normalizeLinkState, pickLinkPanes, projectLegacySync, setGroupShare, type ChartLinkState, type LinkDimension, type LinkGroupId } from "@/lib/chartLinkGroups";
 import ChartLinkControl from "@/components/ChartLinkControl";
 import { REPLAY_MIN_IDX, replayIsAvailable, replayChartKey, resolveReplayTotal, replayHasSpan, clampReplayIdx, initialReplayIdx,
@@ -145,7 +164,9 @@ import {
   normalizeDrawings,
   uid,
 } from "@/lib/drawings";
-import { readDrawingOutbox, writeDrawingOutbox, type DrawingOutbox } from "@/lib/drawingOutbox";
+import { reconcileDrawingJournal, writeDrawingJournal, refreshDrawingJournalSymbol, selectDrawingRecoveryCopy } from "@/lib/drawingOutbox";
+import { DRAWING_OWNER_HEADER, parseDrawingSnapshot, parseDrawingSaveReceipt, prepareDrawingAttempt, settleDrawingAttempt, beginDrawingLoad, abandonDrawingLoad, abandonAllDrawingLoads, isCurrentDrawingLoad, shouldRescheduleDrawingFlush, shouldApplyDrawingCloudCopy, decideDrawingLoadReconciliation, unionCloudWithPreloadAdditions, remainingPreloadPending, keepMinePutDrawings, settlePreloadMergeRevisionConflict, type DrawingJournal, type DrawingSnapshot, type DrawingRevision } from "@/lib/drawingPersistence";
+import { applyDrawingSaveConflict, drawingSaveIssueChoices, drawingSaveIssueFromEntry, drawingSaveIssueFromLoadPark, drawingSaveIssueOffersReplace, drawingSaveRecoveryMessage } from "@/lib/drawingSaveConflict";
 import { FREEHAND_DRAWING_KINDS, getDrawingTool, isDrawingToolId } from "@/lib/drawingTools";
 import { SHELL_DRAW_TOOLS } from "@/lib/drawingTaxonomy";
 import { type ShellPanelId } from "@/lib/platform/contract";
@@ -155,6 +176,7 @@ import { OnboardingProvider } from "@/components/onboarding/OnboardingProvider";
 import DrawingSidebar from "@/components/DrawingSidebar";
 import DayRange from "@/components/DayRange";
 import { useT, useLang } from "@/lib/i18n";
+import { useCaptureT } from "@/lib/chartCaptureLex";
 import { displayName } from "@/lib/markets";
 import { useFromMacro, backToMacro } from "@/lib/originNav";
 import { getJSON, prefetch, loadCoverage } from "@/lib/dataCache";
@@ -176,10 +198,17 @@ import { type PineScript } from "@/components/ChartPanel";
 
 type ShellDrawingStyle = { color: string; width: number; dash: Dash };
 import { visualReadoutColumns, type ChartReadoutMeta } from "@/lib/visualIntelligence";
+import { captureChartReadout, CHART_READOUT_SCHEMA } from "@/lib/chartReadoutSnapshot";
+import { CHART_PRICE_WINDOW_MAX_BARS, CHART_PRICE_WINDOW_SCHEMA, type ChartPriceWindowSource } from "@/lib/chartPriceWindow";
+import { CHART_PRESENTATION_SCHEMA, chartPresentationSessionKey, commitChartPresentation, readChartPresentation, type ChartPresentationCache } from "@/lib/chartPresentation";
+import { LIVE_NATIVE_OBSERVATION_SCHEMA, LIVE_NATIVE_OBSERVATION_MAX_BYTES } from "@/lib/nativeObservationProjection";
 import DataInspector from "@/components/dataInspector/DataInspector";
 import { dataInspectorFocusMessage } from "@/lib/dataInspectorLex";
 import { type OTEntry } from "@/components/ChartObjectTree";
-import { listTemplates, saveTemplate } from "@/lib/chartTemplates";
+// E07: study templates — the host owns the save dialog, the library and the menu events.
+import StudyTemplatesHost from "@/components/studyTemplates/StudyTemplatesHost";
+// E20 seam: the palette lists templates through the same accessor the chart's template menu uses.
+import { listTemplates, type TemplateMenuEntry } from "@/lib/chartTemplates";
 import { FLAG_DEFAULT, FLAG_COLORS } from "@/lib/flagPalette";
 import { resolveTerminalLandingSymbol, TERMINAL_VISUAL_READY_EVENT } from "@/lib/terminalBoot";
 import AssetLogo from "@/components/AssetLogo";
@@ -208,6 +237,9 @@ import {
   watchlistSectionOrder,
   watchlistVisualOrder,
 } from "@/lib/watchlistSections";
+import { analysisPageHref, hasOpenModal, resolvePaletteRun, shouldOpenPaletteFromKey, type PaletteContext, type PaletteRunDecision } from "@/lib/commandPalette/catalog";
+import { paletteText } from "@/lib/commandPaletteLex";
+import paletteTriggerStyles from "@/components/commandPalette/CommandPaletteTrigger.module.css";
 
 type Row ={ name: string; sec: string; col: string; mkt?: string; zh?: string; last: number; chg: number; open: number; high: number; low: number; vol: number; hi52: number; lo52: number; verdict: string | null; wr: number | null; pf: number | null; cagr: number | null; regimeBull: boolean | null; suspended?: boolean };
 type Manifest = { as_of: string | null; symbols: Record<string, Row> };
@@ -218,6 +250,8 @@ type ExtQuote = ExtProvenance & { extPrice: number; extChg: number | null; extTs
 const normalizeWatchlistRows = (rows: readonly { symbol: string; section?: unknown }[]) => rows
   .filter((row) => typeof row.symbol === "string" && !!row.symbol)
   .map((row) => ({ symbol: row.symbol, section: typeof row.section === "string" ? row.section.trim() : WATCHLIST_ROOT_SECTION }));
+/** E16: the watchlist review never moves the symbol inside the native dossier. */
+const noReviewNavigation = () => {};
 
 const fmt = (n: number | null | undefined, d = 2) => (n == null || !isFinite(n) ? "—" : n.toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d }));
 const vol = (v: number | null | undefined) => (v == null || !isFinite(v) ? "—" : v >= 1e9 ? (v / 1e9).toFixed(2) + "B" : v >= 1e6 ? (v / 1e6).toFixed(1) + "M" : String(v));
@@ -232,10 +266,12 @@ const chgStr = (c: number | null | undefined) => (c == null || !isFinite(c) ? "�
 // would defeat this bail-out entirely for any snapshot-served symbol during a quiet session.
 // `asOfMs` (the print instant) IS compared, so a genuinely new print still re-renders, and the
 // badge derives its displayed age from asOfMs at render time rather than from the retained lagMs.
-const QUOTE_EQ_IGNORE = new Set(["lagMs"]);
+const QUOTE_EQ_IGNORE = new Set(["lagMs", "formingCandles"]);
 function quoteEq(a: any, b: any): boolean {
   if (a === b) return true;
   if (!a || !b) return false;
+  const af = a.formingCandles, bf = b.formingCandles;
+  if (af?.generation !== bf?.generation || af?.revision !== bf?.revision || af?.timeframes !== bf?.timeframes) return false;
   const ka = Object.keys(a), kb = Object.keys(b);
   if (ka.length !== kb.length) return false;
   for (const k of ka) if (!QUOTE_EQ_IGNORE.has(k) && a[k] !== b[k]) return false;
@@ -864,11 +900,11 @@ function ChartTypeIcon({ kind }: { kind: string }) {
   if (kind === "area" || kind === "baseline") return <svg className="ct-kind-icon" viewBox="0 0 28 16" aria-hidden="true"><path d="M2 12l6-5 5 3 6-7 7 3v8H2z" className="ct-fill" /><path d="M2 12l6-5 5 3 6-7 7 3" />{kind === "baseline" && <path d="M2 9h24" className="ct-base" />}</svg>;
   return <svg className="ct-kind-icon" viewBox="0 0 28 16" aria-hidden="true"><path d="M2 12l6-5 5 3 6-7 7 3" />{kind === "line-markers" && <><circle cx="8" cy="7" r="1.4" /><circle cx="19" cy="3" r="1.4" /><circle cx="26" cy="6" r="1.4" /></>}</svg>;
 }
-const TF_GROUPS: [string, string[]][] = [["Seconds", ["1s", "5s", "15s", "30s"]], ["Minutes", ["1m", "5m", "15m", "30m"]], ["Hours", ["1h", "2h", "4h"]], ["Days", ["D", "2D", "3D"]], ["Weeks", ["W", "2W"]], ["Months", ["1M", "3M"]]];
+const TF_GROUPS: [string, string[]][] = [["Seconds", ["1s", "5s", "15s", "30s"]], ["Minutes", ["1m", "5m", "15m", "30m"]], ["Hours", ["1h", "2h", "4h", "12h"]], ["Days", ["D", "2D", "3D"]], ["Weeks", ["W", "2W"]], ["Months", ["1M", "3M"]]];
 // Daily-derived TFs are always functional. Intraday TFs (R12) go live for intraday-capable markets
 // (us/crypto/cn/hk); .TO (ca) stays daily-only — its picker entries render disabled.
 const DAILY_FUNCTIONAL = new Set(["D", "2D", "3D", "W", "2W", "1M", "3M"]);
-const INTRADAY_FUNCTIONAL = ["1m", "5m", "15m", "30m", "1h", "2h", "4h"];
+const INTRADAY_FUNCTIONAL = ["1m", "5m", "15m", "30m", "1h", "2h", "4h", "12h"];
 // Second-resolution aggregates are a US-STOCKS-ONLY entitlement on the current Massive plan —
 // no crypto, no index/futures/FX. Rendering them disabled for every other market is how the
 // boundary reaches the user: the band is visible and honestly unavailable, rather than silently
@@ -1046,6 +1082,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // name and watching a name are different facts; the rail shows both without mixing them.
   const [railTab, setRailTab] = useState<"watchlists" | "portfolio" | "news">("watchlists");
   /** Symbol queued for the "Add to → Portfolio" modal; `null` = closed. */
+  const mobileQuoteId = useId();
   const [pfAddSymbol, setPfAddSymbol] = useState<string | null>(null);
   // Live mirror of `lists` for the async migration: reading it from a ref keeps the effect keyed
   // on `loggedIn` alone, so a symbol edit mid-migration cannot restart the whole run.
@@ -1115,6 +1152,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   const [linkPlan, setLinkPlan] = useState<ChartLinkState | null>(null);
   const [split, setSplit] = useState(1);   // the split the user requested (panes.length may be smaller after dedup)
   const active = panes[activePane] ?? panes[0] ?? seed0;
+  const prophetRead = useProphetObservation(active, userId ?? null);
   // A deep link already identifies the real landing symbol. A normal launch may restore a saved
   // workspace later in the mount pass, so wait for that restore before counting the chart view;
   // otherwise the brief fallback seed would pollute Recent ahead of the actual restored ticker.
@@ -1273,6 +1311,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   const [searchOpen, setSearchOpen] = useState(false); const [seed, setSeed] = useState("");
   const [indOpen, setIndOpen] = useState(false);
   const [wlSetOpen, setWlSetOpen] = useState(false); const [tfOpen, setTfOpen] = useState(false); const [ctOpen, setCtOpen] = useState(false); const [snapOpen, setSnapOpen] = useState(false);
+  const [captureOpen, setCaptureOpen] = useState(false);
+  const captureT = useCaptureT();
   const [toolbarMoreOpen, setToolbarMoreOpen] = useState(false);
   const [toolbarMoreView, setToolbarMoreView] = useState<"main" | "detect" | "layouts" | "snapshot">("main");
   // ── REPLAY CONTRACT: Bar Replay is SINGLE-CHART ONLY (lib/replayContract.ts) ──
@@ -1425,9 +1465,13 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   const [fundLoading, setFundLoading] = useState(true);   // true from symbol reset until getFund settles — MegaPane/ForecastPage skeleton gate
   const [opts, setOpts] = useState<any>(null);
   const [bars, setBars] = useState<Bar[]>([]);
+  const [barsSymbol, setBarsSymbol] = useState<string | null>(null);
   // MegaPane (in-shell fundamentals overlay) + OracleDash (Golden Oracle history) overlays
   const [paneOpen, setPaneOpen] = useState<FinPage | null>(null);
+  const [eventPlannerOpen, setEventPlannerOpen] = useState(false);
   const [signalsOpen, setSignalsOpen] = useState(false);
+  const [signalsMounted, setSignalsMounted] = useState(false);
+  useEffect(() => { if (signalsOpen) setSignalsMounted(true); }, [signalsOpen]);
   const [magnet, setMagnet] = useState<"off" | "weak" | "strong">("off");
   const [drawingSticky, setDrawingSticky] = useState(false);
   const drawingCreationDisabledReason = replayOn
@@ -1456,16 +1500,30 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // D4: object tree panel
   const [objectTreeOpen, setObjectTreeOpen] = useState(false);
   // D1: indicator value lookup by bar time — populated by the active ChartPane after each data load
-  const [chartReadoutMeta, setChartReadoutMeta] = useState<ChartReadoutMeta | null>(null);
+  const [chartReadoutMeta, setChartReadoutMeta] = useState<(ChartReadoutMeta & {
+    copilotBinding?: { origin_id: string; context_revision: number; paneId: number;
+      settingsKey: string; replayOn: boolean; replayIdx: number | null };
+  }) | null>(null);
   const [indRowsAt, setIndRowsAt] = useState<((barTime: string | number) => Record<string, number | null>) | null>(null);
+  type NativePaneObservationState = {
+    packet: Record<string, unknown>;
+    pane_id: number;
+    symbol: string;
+    tf: string;
+    settings_key: string;
+    replay_on: boolean;
+    replay_idx: number | null;
+    selected_time: string | null;
+  };
+  // Read-only renderer evidence by mounted chart pane. ai_context origin/revision remains
+  // owned once at the active Terminal context and is attached only when the state is mirrored.
+  const panePriceSourceRef = useRef<Record<number, ChartPriceWindowSource>>({});
+  const panePresentationRef = useRef<ChartPresentationCache>({});
+  const paneSessionKeyRef = useRef<Record<number, string>>({});
+  const [nativeObservationByPane, setNativeObservationByPane] = useState<Record<number, NativePaneObservationState>>({});
   // B3: sub-pane count for mobile chart-body height formula (--subpanes CSS var)
   const [subPanes, setSubPanes] = useState(0);
   const onPaneCount = useCallback((n: number) => setSubPanes(n), []);
-  // D2: chart templates — save-as modal
-  const [tmplSaveOpen, setTmplSaveOpen] = useState(false);
-  const [tmplSaveName, setTmplSaveName] = useState("");
-  const [tmplSaveErr, setTmplSaveErr] = useState<string | null>(null);
-  const [templates, setTemplates] = useState<import("@/lib/chartTemplates").ChartTemplate[]>([]);
   // D2: locked vertical line (bar time string | null); persists with the workspace save
   const [lockedVLine, setLockedVLine] = useState<string | null>(null);
   // D1: "remove all indicators" undo toast
@@ -1507,17 +1565,39 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // localStorage restore, templates, DTM presets, layouts, commands, undo) flows
   // through `inds`, so clamp here instead of guarding ~10 setInds call sites.
   // Silent — the manual add path (toggleInd) shows the nudge; bulk/load just cap.
+  //
+  // The cap waits for the saved studies. On the mount pass this effect still sees the 4-study default
+  // and the default params, while the layout restore below has already queued the saved set at a
+  // higher priority. A clamp queued from that pass lands in React's idle lane, which the restored
+  // render keeps skipping, so it never applies; every later setInds is then replayed from the old base
+  // on each render. `studiesRestored` is set in the same batch as the restored set, so the cap only
+  // ever clamps the guest's real studies against their real params.
+  const [studiesRestored, setStudiesRestored] = useState(false);
   useEffect(() => {
-    if (loggedIn) return;
-    const candlesAreAmbientOnly = isAmbientCandleSuite(inds, indParams);
-    const counted = [...inds].filter((key) => !(candlesAreAmbientOnly && key === MASTERMIND_CANDLES_SUITE_KEY));
-    if (counted.length <= MAX_ANON_IND) return;
-    const keep = new Set(counted.slice(0, MAX_ANON_IND));
-    // Mastermind Candles is the Terminal's default candle styling, not one of the anonymous
-    // study slots. Exempt the carrier only while it contains no other Trend Waves modules.
-    if (candlesAreAmbientOnly) keep.add(MASTERMIND_CANDLES_SUITE_KEY);
-    setInds(keep);
-  }, [indParams, inds, loggedIn]);
+    if (loggedIn || !studiesRestored) return;
+    // React may replay this updater onto the same base on every render while an earlier update waits.
+    // Returning the same Set for the same input keeps `inds` stable, so the replay cannot re-run the
+    // effects that read it and start a render loop.
+    let last: { from: Set<string>; to: Set<string> } | null = null;
+    const clamp = (current: Set<string>) => {
+      if (last && last.from === current) return last.to;
+      const candlesAreAmbientOnly = isAmbientCandleSuite(current, indParams);
+      const counted = [...current].filter((key) => !(candlesAreAmbientOnly && key === MASTERMIND_CANDLES_SUITE_KEY));
+      let keep = current;
+      if (counted.length > MAX_ANON_IND) {
+        keep = new Set(counted.slice(0, MAX_ANON_IND));
+        // Mastermind Candles is the Terminal's default candle styling, not one of the anonymous
+        // study slots. Exempt the carrier only while it contains no other Trend Waves modules.
+        if (candlesAreAmbientOnly) keep.add(MASTERMIND_CANDLES_SUITE_KEY);
+      }
+      last = { from: current, to: keep };
+      return keep;
+    };
+    if (clamp(inds) === inds) return;
+    // An updater, never a value: it clamps whatever set it is applied to, so it cannot undo another
+    // change queued before it.
+    setInds(clamp);
+  }, [indParams, inds, loggedIn, studiesRestored]);
   // Preserve OpenMarket-style defaults per tool. A global blue/1.5/solid state
   // flattened meaningful defaults (for example Highlighter 8px and dashed Fib)
   // as soon as a tool was selected. Overrides now belong to the tool that the
@@ -1606,6 +1686,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // Narrower than isMobile on purpose — the tablet contract viewport keeps the desktop-era chrome.
   const isPhone = useIsPhone();
   const navPath = usePathname();
+  const router = useRouter();
   // ── urlSearch: window.location.search alternative to useSearchParams() ──────
   // TerminalShell is always dynamically-rendered (server-side, on demand) so the
   // implicit-Suspense prerender path that useSearchParams() triggers on static
@@ -1630,6 +1711,41 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   }, []);
   // mobile + fullscreen + expanded-analysis state
   const [fullChart, setFullChart] = useState(false);
+  const [contextOpen, setContextOpen] = useState(false);
+  const [contextRailHost, setContextRailHost] = useState<HTMLDivElement | null>(null);
+  const [contextInlineHost, setContextInlineHost] = useState<HTMLDivElement | null>(null);
+  const contextReturnFocus = useRef<HTMLElement | null>(null);
+  const contextInline = isMobile || fullChart || shellMode;
+  const contextAvailable = !paneOpen && !tableViewOpen && !(shellMode && shellDossier);
+  const changeContext = useCallback((next: boolean, launcher?: HTMLElement | null) => {
+    if (next) contextReturnFocus.current = launcher ?? document.activeElement as HTMLElement | null;
+    setContextOpen(next);
+    if (next) requestAnimationFrame(() => {
+      const reader = document.querySelector<HTMLElement>("[data-context-reader]");
+      reader?.querySelector<HTMLButtonElement>("header button")?.focus({ preventScroll: true });
+      if (reader?.closest('[data-context-dock="inline"]')) reader.querySelector("header")?.scrollIntoView({ block: "nearest" });
+    });
+  }, []);
+  const closeContext = useCallback((restoreFocus = true) => {
+    setContextOpen(false);
+    if (!restoreFocus) return;
+    requestAnimationFrame(() => {
+      const prior = contextReturnFocus.current;
+      const fallback = Array.from(document.querySelectorAll<HTMLElement>('[data-context-launcher], [data-testid="roller-more"]')).find((node) => node.getClientRects().length > 0);
+      const nativeChart = document.documentElement.dataset.shell === "app"
+        ? Array.from(document.querySelectorAll<HTMLElement>(".chart-wrap")).find((node) => node.getClientRects().length > 0) : undefined;
+      const target = prior?.isConnected && prior.getClientRects().length ? prior : fallback ?? nativeChart;
+      if (target === nativeChart && target) target.tabIndex = -1;
+      target?.focus({ preventScroll: true });
+      if (target?.matches('[data-testid="roller-more"]')) target.scrollIntoView({ block: "nearest" });
+    });
+  }, []);
+  const contextDock = useMemo<ChartContextDock>(() => ({
+    open: contextOpen && contextAvailable,
+    target: contextInline ? contextInlineHost : contextRailHost,
+    onOpen: (launcher) => { if (contextAvailable) changeContext(true, launcher); },
+    onClose: closeContext,
+  }), [contextOpen, contextAvailable, contextInline, contextInlineHost, contextRailHost, changeContext, closeContext]);
   // ── phone chart chrome (R2): the roller strip's two sheets ──
   const [drawSheetOpen, setDrawSheetOpen] = useState(false);
   const [hubOpen, setHubOpen] = useState(false);
@@ -1667,17 +1783,103 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   const flushDrawingsRef = useRef<(sym: string) => void>(() => {});
   const drawLoadRetryTimers = useRef<Record<string, any>>({});
   const drawLoadRetryAttempts = useRef<Record<string, number>>({});
+  // Symbols whose settled GET deferred to the queued save instead of applying.
+  const drawLoadDeferred = useRef<Set<string>>(new Set());
   // Invalidates every async load/save callback when drawing ownership changes
   // (guest -> account, sign-out, or account swap). A stale request must never
   // populate or enqueue work into the next owner's cache.
   const drawOwnerEpoch = useRef(0);
-  const drawOwner = useRef(email ? `account:${email}` : "guest");
-  const [drawingOwnerKey, setDrawingOwnerKey] = useState(email ? `account:${email}` : "guest");
+  const drawLoadGeneration = useRef<Record<string, number>>({});
+  // Owner-scoped stores key on the auth UUID, never the email (account-identity law):
+  // `account:<uuid>` keys the journal, the receipts and the server's ownership check.
+  const currentDrawingOwnerKey = identityOwnerKey(identity);
+  const drawingAccount = isAccountOwner(currentDrawingOwnerKey);
+  // Released clients wrote the v1 outbox under `account:<email>`; that namespace is
+  // imported (review-only) into the UUID owner and never written or sent anywhere.
+  const drawingLegacyOwner = drawingAccount && email ? `account:${email}` : undefined;
+  const drawOwner = useRef(currentDrawingOwnerKey);
+  const drawLegacyOwners = useRef<Record<string, string | undefined>>({});
+  const drawJournalKey = useCallback((owner: string) => ({ owner, legacyOwner: drawLegacyOwners.current[owner] }), []);
+  const [drawingOwnerKey, setDrawingOwnerKey] = useState(currentDrawingOwnerKey);
   const drawHistory = useRef<Record<string, { undo: Drawing[][]; redo: Drawing[][] }>>({});
   const prevPaneSyms = useRef<Set<string>>(new Set());
   const [drawingLoadRetryVersion, setDrawingLoadRetryVersion] = useState(0);
   const [drawingLoadFailures, setDrawingLoadFailures] = useState<Set<string>>(new Set());
-  const drawRecovery = useRef<Record<string, DrawingOutbox>>({});
+  const drawRecovery = useRef<Record<string, DrawingJournal>>({});
+  const drawRevisions = useRef<Record<string, DrawingRevision>>({});
+  const drawPreloadMergeReread = useRef<Set<string>>(new Set());
+  const drawOwnerHydrated = useRef(false);
+  const [drawingSaveIssues, setDrawingSaveIssues] = useState<Record<string, string>>({});
+  // Symbols with a save in flight. Only the recovery banner reads this set, so
+  // a save re-renders the shell only while a committed banner shows its symbol;
+  // an uncommitted issue reads the current set when it first renders.
+  const drawingSavesActive = useRef<Set<string>>(new Set());
+  const drawingSaveIssuesShown = useRef<Record<string, string>>({});
+  const [, setDrawingSavesActiveVersion] = useState(0);
+  useLayoutEffect(() => { drawingSaveIssuesShown.current = drawingSaveIssues; }, [drawingSaveIssues]);
+  const markDrawingSaveActive = useCallback((sym: string, active: boolean) => {
+    if (active) drawingSavesActive.current.add(sym);
+    else drawingSavesActive.current.delete(sym);
+    if (drawingSaveIssuesShown.current[sym] !== undefined) setDrawingSavesActiveVersion((version) => version + 1);
+  }, []);
+  const [drawingCloudCopies, setDrawingCloudCopies] = useState<Record<string, DrawingSnapshot>>({});
+  const loadDrawingCloudCopy = useCallback(async (sym: string) => {
+    const epoch = drawOwnerEpoch.current;
+    const generation = drawLoadGeneration.current[sym] ?? 0;
+    try {
+      // The owner key travels in a header, never the URL (logs, history, edge cache keys).
+      const response = await fetch(`/api/drawings?symbol=${encodeURIComponent(sym)}`, { cache: "no-store", headers: { [DRAWING_OWNER_HEADER]: drawOwner.current } });
+      const snapshot = response.ok ? parseDrawingSnapshot(await response.json()) : null;
+      if (snapshot && shouldApplyDrawingCloudCopy({
+        generations: drawLoadGeneration.current,
+        symbol: sym,
+        startedGeneration: generation,
+        ownerEpoch: epoch,
+        currentOwnerEpoch: drawOwnerEpoch.current,
+        symbolStillOpen: prevPaneSyms.current.has(sym),
+      })) setDrawingCloudCopies((copies) => ({ ...copies, [sym]: snapshot }));
+    } catch { /* Keep the local recovery copy until a valid cloud read succeeds. */ }
+  }, []);
+  const [drawingStorageUnavailable, setDrawingStorageUnavailable] = useState(false);
+  const persistDrawingRecovery = useCallback(async (owner: string, journal: DrawingJournal) => {
+    const before = Object.entries(journal).map(([sym, entry]) => ({ sym, drawings: entry.drawings }));
+    const durable = await writeDrawingJournal(localStorage, drawJournalKey(owner), journal);
+    if (drawOwner.current === owner) {
+      setDrawingStorageUnavailable(!durable);
+      if (durable) for (const { sym, drawings } of before) {
+        if (journal[sym] || drawPending.current[sym] !== drawings) continue;
+        // Another tab acknowledged this unchanged legacy import while our
+        // handle was stale. Re-read remaining copies before accepting cloud.
+        delete drawPending.current[sym];
+        const remaining = refreshDrawingJournalSymbol(localStorage, drawJournalKey(owner), journal, sym);
+        if (remaining) {
+          remaining.blocked ??= "conflict";
+          drawPending.current[sym] = remaining.drawings;
+          setDrawStore((store) => ({ ...store, [sym]: normalizeDrawings(remaining.drawings) }));
+          setDrawingSaveIssues((issues) => ({ ...issues, [sym]: "multiple" }));
+          void loadDrawingCloudCopy(sym);
+        } else {
+          drawLoaded.current.delete(sym);
+          setDrawStore((store) => { const next = { ...store }; delete next[sym]; return next; });
+          setDrawingSaveIssues((issues) => { const next = { ...issues }; delete next[sym]; return next; });
+          setDrawingLoadRetryVersion((version) => version + 1);
+        }
+      }
+    }
+    return durable;
+  }, [drawJournalKey, loadDrawingCloudCopy]);
+  const restoreOtherDrawingCopies = useCallback((sym: string, owner: string, journal: DrawingJournal) => {
+    if (drawOwner.current !== owner || drawPending.current[sym] !== undefined) return;
+    const remaining = refreshDrawingJournalSymbol(localStorage, drawJournalKey(owner), journal, sym);
+    if (!remaining) return;
+    // A remaining copy can belong to a still-open tab. Review it explicitly;
+    // recovering it is never authority to replay or overwrite the cloud.
+    remaining.blocked ??= "conflict";
+    drawPending.current[sym] = remaining.drawings;
+    setDrawStore((store) => ({ ...store, [sym]: normalizeDrawings(remaining.drawings) }));
+    setDrawingSaveIssues((issues) => ({ ...issues, [sym]: "multiple" }));
+    void loadDrawingCloudCopy(sym);
+  }, [drawJournalKey, loadDrawingCloudCopy]);
   const [drawingLimitWarning, setDrawingLimitWarning] = useState(false);
   const drawingLimitTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const showDrawingLimitWarning = useCallback(() => {
@@ -1687,66 +1889,199 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   }, []);
   const flushDrawings = useCallback((sym: string) => {
     clearTimeout(drawTimers.current[sym]);
+    delete drawTimers.current[sym];
     if (drawSaving.current[sym]) return;
     const drawings = drawPending.current[sym];
     if (!drawings) return;
-    delete drawPending.current[sym];
-    if (!loggedIn) { writeGuestDraw(sym, drawings); return; }
+    if (!drawingAccount) { delete drawPending.current[sym]; writeGuestDraw(sym, drawings); return; }
     const ownerEpoch = drawOwnerEpoch.current;
     const ownerKey = drawOwner.current;
-    let failed = false;
-    const save = fetch("/api/drawings", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ symbol: sym, drawings }),
-      })
-      .then((response) => {
-        if (!response.ok) throw new Error(`drawing save failed (${response.status})`);
-        if (drawOwnerEpoch.current !== ownerEpoch) return;
-        const recovery = drawRecovery.current[ownerKey];
-        if (recovery?.[sym] === drawings) {
-          delete recovery[sym];
-          writeDrawingOutbox(localStorage, ownerKey, recovery);
+    const recovery = drawRecovery.current[ownerKey] ?? (drawRecovery.current[ownerKey] = {});
+    const entry = recovery[sym] ?? (recovery[sym] = { drawings, ...(Object.hasOwn(drawRevisions.current, sym) ? { revision: drawRevisions.current[sym] } : { preload: true as const }) });
+    if (!Object.hasOwn(entry, "revision") && !Object.hasOwn(drawRevisions.current, sym)) {
+      entry.preload = true;
+      void persistDrawingRecovery(ownerKey, recovery);
+      return;
+    }
+    const attempt = prepareDrawingAttempt(entry, () => crypto.randomUUID());
+    if (!attempt) {
+      // !attempt is the only flush call site that sets the issue from the
+      // pre-write entry. writeDrawingJournal already re-derived recovery[sym]
+      // in place under its lock (dropUnownedLegacyCopies in
+      // lib/drawingOutbox.ts assigns the new entry), so after = recovery[sym]
+      // is the post-write truth and is used here without another re-read.
+      const hadAlts = entry.alternatives?.length ?? 0;
+      const issue = entry.alternatives?.length ? "multiple" : (drawingSaveIssueFromEntry(entry) ?? entry.blocked ?? "legacy");
+      setDrawingSaveIssues((issues) => ({ ...issues, [sym]: issue }));
+      if (drawingSaveIssueOffersReplace(issue)) void loadDrawingCloudCopy(sym);
+      void (async () => {
+        const durable = await persistDrawingRecovery(ownerKey, recovery);
+        if (!durable || drawOwnerEpoch.current !== ownerEpoch || hadAlts === 0) return;
+        const after = recovery[sym];
+        if (after && after !== entry && drawPending.current[sym] === drawings) {
+          drawPending.current[sym] = after.drawings;
+          setDrawStore((store) => ({ ...store, [sym]: normalizeDrawings(after.drawings) }));
         }
-      })
-      .catch(() => {
+        if (after && !after.alternatives?.length && !after.blocked) {
+          // The surviving copy is single and unblocked — only the "multiple"
+          // issue is bound to that condition. Other issues (retry, too_many,
+          // preload, storage, conflict, and the rest) are set by paths whose
+          // condition still holds, so clearing them here would hide a real
+          // failure from the user.
+          setDrawingSaveIssues((issues) => issues[sym] === "multiple"
+            ? (() => { const next = { ...issues }; delete next[sym]; return next; })()
+            : issues);
+          setDrawingCloudCopies((copies) => { const next = { ...copies }; delete next[sym]; return next; });
+          if (!drawSaving.current[sym] && !drawTimers.current[sym]) {
+            // The drawSaving early-return at the top of flushDrawings plus
+            // this guard together rule out the duplicate-PUT race that
+            // happens when an in-flight save settles into a re-flush arm.
+            drawTimers.current[sym] = setTimeout(() => flushDrawingsRef.current(sym), 0);
+          }
+        } else if (after) {
+          const nextIssue = after.alternatives?.length ? "multiple" : (drawingSaveIssueFromEntry(after) ?? after.blocked ?? "legacy");
+          setDrawingSaveIssues((issues) => ({ ...issues, [sym]: nextIssue }));
+        }
+      })();
+      return;
+    }
+    let queued = false;
+    let saveSettledOk = false;
+    markDrawingSaveActive(sym, true);
+    const save = (async () => {
+      try {
+        if (!await persistDrawingRecovery(ownerKey, recovery)) {
+          if (drawOwnerEpoch.current === ownerEpoch) setDrawingSaveIssues((issues) => ({ ...issues, [sym]: "storage" }));
+          return;
+        }
+        if (drawOwnerEpoch.current !== ownerEpoch || recovery[sym] !== entry) return;
+        // The durable write keeps a copy it cannot prove was never discarded
+        // for an explicit choice; the attempt prepared before it is not sent.
+        if (entry.blocked) {
+          const issue = drawingSaveIssueFromEntry(entry) ?? entry.blocked;
+          setDrawingSaveIssues((issues) => ({ ...issues, [sym]: issue }));
+          if (drawingSaveIssueOffersReplace(issue)) void loadDrawingCloudCopy(sym);
+          return;
+        }
+        const response = await fetch("/api/drawings", {
+          method: "PUT", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ownerKey, symbol: sym, drawings: attempt.drawings, expectedRevision: attempt.expectedRevision, operationId: attempt.operationId }),
+        });
         if (drawOwnerEpoch.current !== ownerEpoch) return;
-        failed = true;
-        // Preserve a failed snapshot, but never replace a newer edit queued
-        // while this request was in flight.
-        if (drawPending.current[sym] === undefined) drawPending.current[sym] = drawings;
-      })
-      .finally(() => {
+        if (!response.ok) {
+          if (response.status === 409) {
+            let payload: unknown = null;
+            try { payload = await response.json(); } catch { payload = null; }
+            const code = payload && typeof payload === "object" && !Array.isArray(payload)
+              ? (payload as Record<string, unknown>).code
+              : undefined;
+            if (entry.preload && code === "revision_conflict" && !drawPreloadMergeReread.current.has(attempt.operationId)) {
+              drawPreloadMergeReread.current.add(attempt.operationId);
+              let cloudSnap: DrawingSnapshot | null = null;
+              try {
+                const reread = await fetch(`/api/drawings?symbol=${encodeURIComponent(sym)}`, {
+                  cache: "no-store",
+                  headers: { [DRAWING_OWNER_HEADER]: drawOwner.current },
+                });
+                cloudSnap = reread.ok ? parseDrawingSnapshot(await reread.json()) : null;
+              } catch { cloudSnap = null; }
+              if (drawOwnerEpoch.current !== ownerEpoch) return;
+              // Another tab acknowledged this copy during the re-read and the
+              // journal now holds a different copy that awaits review.
+              if (recovery[sym] !== entry) return;
+              if (cloudSnap && settlePreloadMergeRevisionConflict({
+                wasPreloadMerge: true,
+                conflictCode: code,
+                pending: attempt.drawings,
+                latest: entry.drawings,
+                cloud: cloudSnap.drawings,
+              }) === "saved") {
+                drawRevisions.current[sym] = cloudSnap.revision;
+                delete recovery[sym];
+                delete drawPending.current[sym];
+                setDrawStore((store) => ({ ...store, [sym]: normalizeDrawings(cloudSnap.drawings) }));
+                setDrawingSaveIssues((issues) => { const next = { ...issues }; delete next[sym]; return next; });
+                saveSettledOk = true;
+                return;
+              }
+            }
+            const issue = applyDrawingSaveConflict(entry, payload);
+            // Another tab acknowledged this copy while the save was in flight; the
+            // journal write that noticed it already labelled what remains.
+            if (drawOwnerEpoch.current === ownerEpoch && recovery[sym] === entry) setDrawingSaveIssues((issues) => ({ ...issues, [sym]: issue }));
+          } else if ([400, 413, 422].includes(response.status)) entry.blocked = "invalid";
+          throw new Error("Drawing save was not acknowledged");
+        }
+        const receipt = parseDrawingSaveReceipt(await response.json(), attempt);
+        if (drawOwnerEpoch.current !== ownerEpoch) return;
+        // Another tab acknowledged this copy while the save was in flight and the
+        // journal now holds a different copy that awaits review.
+        if (recovery[sym] !== entry) return;
+        if (!receipt) throw new Error("Drawing save receipt is unavailable");
+        const outcome = settleDrawingAttempt(entry, receipt);
+        if (outcome === "blocked") {
+          setDrawingSaveIssues((issues) => ({ ...issues, [sym]: entry.blocked ?? "conflict" }));
+          void loadDrawingCloudCopy(sym);
+        } else {
+          drawRevisions.current[sym] = receipt.revision;
+          // Most receipts arrive with no issue showing; keep the same state then.
+          setDrawingSaveIssues((issues) => {
+            if (issues[sym] === undefined) return issues;
+            const next = { ...issues }; delete next[sym]; return next;
+          });
+          if (outcome === "saved") { delete recovery[sym]; delete drawPending.current[sym]; saveSettledOk = true; }
+          else { queued = true; saveSettledOk = true; }
+        }
+      } catch {
+        // A copy another tab acknowledged keeps the label its journal write gave.
+        if (drawOwnerEpoch.current !== ownerEpoch || recovery[sym] !== entry) return;
+        // Preserve both the exact unknown-outcome attempt and the newest edit.
+        const issue = drawingSaveIssueFromEntry(entry) ?? "retry";
+        setDrawingSaveIssues((issues) => ({ ...issues, [sym]: issue }));
+        if (entry.blocked && drawingSaveIssueOffersReplace(issue)) void loadDrawingCloudCopy(sym);
+      } finally {
+        if (drawOwnerEpoch.current !== ownerEpoch) return;
+        const durable = await persistDrawingRecovery(ownerKey, recovery);
         if (drawOwnerEpoch.current !== ownerEpoch) return;
         delete drawSaving.current[sym];
-        const pending = drawPending.current[sym];
-        // Coalesce to the newest snapshot and serialize PUTs per symbol. Do not
-        // spin forever on a lone failed request; a future edit/navigation flush
-        // retries the retained snapshot.
-        if (pending && (!failed || pending !== drawings)) {
+        const loadDeferred = drawLoadDeferred.current.delete(sym);
+        markDrawingSaveActive(sym, false);
+        if (durable && !recovery[sym]) restoreOtherDrawingCopies(sym, ownerKey, recovery);
+        if (queued) drawTimers.current[sym] = setTimeout(() => flushDrawings(sym), 0);
+        else if (shouldRescheduleDrawingFlush({
+          hasPending: drawPending.current[sym] !== undefined,
+          timerArmed: Boolean(drawTimers.current[sym]),
+          saveSettledOk,
+        })) {
           drawTimers.current[sym] = setTimeout(() => flushDrawings(sym), 0);
-        } else if (!pending && !prevPaneSyms.current.has(sym)) {
-          // A symbol that left the workspace stays cached while its serialized
-          // save is in flight. Evict only after the final snapshot is durable;
-          // revisiting before then keeps the authoritative in-memory version.
+        } else if (!drawPending.current[sym] && !prevPaneSyms.current.has(sym)) {
           drawLoaded.current.delete(sym);
+          delete drawRevisions.current[sym];
           delete drawHistory.current[sym];
-          setDrawStore((store) => {
-            if (store[sym] === undefined) return store;
-            const next = { ...store }; delete next[sym]; return next;
-          });
+          setDrawStore((store) => { const next = { ...store }; delete next[sym]; return next; });
         }
-      });
+        if (prevPaneSyms.current.has(sym) && drawLoadRetryTimers.current[sym] === undefined) {
+          // The load effect skips a symbol while its save is in flight, and a load that
+          // deferred to this save needs its receipt. When the save ended with neither,
+          // because another tab acknowledged or replaced the copy, load the symbol again.
+          const unsettled = loadDeferred && !Object.hasOwn(drawRevisions.current, sym) && recovery[sym] !== entry;
+          if (unsettled || (!drawLoaded.current.has(sym) && drawPending.current[sym] === undefined)) {
+            drawLoaded.current.delete(sym);
+            setDrawingLoadRetryVersion((version) => version + 1);
+          }
+        }
+      }
+    })();
     drawSaving.current[sym] = save;
-  }, [loggedIn]);
+  }, [drawingAccount, loadDrawingCloudCopy, markDrawingSaveActive, persistDrawingRecovery, restoreOtherDrawingCopies]);
   useEffect(() => { flushDrawingsRef.current = flushDrawings; }, [flushDrawings]);
   const setSymbolDrawings = useCallback((sym: string, d: Drawing[], recordHistory = true) => {
-    if (drawOwner.current !== (email ? `account:${email}` : "guest")) return;
+    if (drawOwner.current !== currentDrawingOwnerKey) return;
     // `undefined` is deliberate: signed-in symbols remain fail-closed until an
     // authoritative GET succeeds (a valid empty collection is stored as `[]`).
     // This prevents a transient load failure plus one new mark from replacing
     // an unseen server collection.
-    if (loggedIn && drawStoreRef.current[sym] === undefined) return;
+    if (drawingAccount && drawStoreRef.current[sym] === undefined) return;
     if (d.length > MAX_DRAWINGS_PER_SYMBOL) {
       showDrawingLimitWarning();
       return;
@@ -1761,15 +2096,24 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     }
     setDrawStore((s) => ({ ...s, [sym]: normalized }));
     drawPending.current[sym] = normalized;
-    if (loggedIn) {
+    if (drawingAccount) {
       const ownerKey = drawOwner.current;
       const recovery = drawRecovery.current[ownerKey] ?? (drawRecovery.current[ownerKey] = {});
-      recovery[sym] = normalized;
+      const entry = recovery[sym];
+      if (entry) {
+        entry.drawings = normalized;
+        if (!Object.hasOwn(entry, "revision") && !Object.hasOwn(drawRevisions.current, sym)) entry.preload = true;
+      } else {
+        recovery[sym] = Object.hasOwn(drawRevisions.current, sym)
+          ? { drawings: normalized, revision: drawRevisions.current[sym] }
+          : { drawings: normalized, preload: true };
+      }
+      void persistDrawingRecovery(ownerKey, recovery);
     }
     clearTimeout(drawTimers.current[sym]);
     drawTimers.current[sym] = setTimeout(() => flushDrawings(sym), 600);
     setDrawingHistoryVersion((v) => v + 1);
-  }, [email, flushDrawings, loggedIn, showDrawingLimitWarning]);
+  }, [currentDrawingOwnerKey, drawingAccount, flushDrawings, showDrawingLimitWarning, persistDrawingRecovery]);
   const travelDrawingHistory = useCallback((sym: string, dir: "undo" | "redo") => {
     const history = drawHistory.current[sym]; if (!history) return;
     const from = dir === "undo" ? history.undo : history.redo, to = dir === "undo" ? history.redo : history.undo;
@@ -1866,6 +2210,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       // Additional study instances ("rsi__<token>", E06) keep THEIR OWN saved params.
       setIndParams(withStudyInstanceParams(base, rollout.indicators, rollout.params));
       setHidden(new Set(rollout.hidden));
+      // Releases the guest study cap above, in the same pre-paint batch as the restored set (E07).
+      setStudiesRestored(true);
       // Commit the one-time rollout before the mount-skip persistence effects. The marker is written
       // last so an interrupted/blocked storage write retries rather than falsely claiming success.
       if (rollout.changed) {
@@ -1878,8 +2224,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       }
     }
     setChartType(load("mm.ct", "candles"));
-    // Hidden-state is restored inside the rollout block above so the one-time enable also makes
-    // Mastermind Candles visible for users who had previously hidden the old Candle Painter.
+    // Hidden-state is restored with the studies in the layout effect above, inside the rollout, so the
+    // one-time enable also makes Mastermind Candles visible for users who had hidden the old Candle Painter.
     setFavTF(load("mm.favtf", ["D", "3D", "W", "1M"])); {
       const savedSet = load(WATCHLIST_SETTINGS_KEY, {});
       const savedVersion = Number(localStorage.getItem(WATCHLIST_SETTINGS_VERSION_KEY) || 0);
@@ -2405,58 +2751,48 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     if (!drawingPrefsHydrated) return;
     try { localStorage.setItem("mm.drawing.preferences", JSON.stringify({ magnet, sticky: drawingSticky, visible: drawingsVisible, styles: drawStyleOverrides, ...(lastDrawingColor ? { lastColor: lastDrawingColor } : {}) })); } catch {}
   }, [drawStyleOverrides, drawingPrefsHydrated, drawingSticky, drawingsVisible, lastDrawingColor, magnet]);
-  // Drawing ownership is a hard cache boundary. Guest drawings remain in the
-  // guest collection; an account always reloads its authoritative server copy.
-  // This also handles sign-out and direct account-to-account session changes.
+  // Ownership invalidates async callbacks; recovery keeps the original attempt and revision.
   useEffect(() => {
-    const nextOwner = email ? `account:${email}` : "guest";
+    const nextOwner = currentDrawingOwnerKey;
     const previousOwner = drawOwner.current;
-    if (previousOwner === nextOwner) return;
-
-    const pending = { ...drawPending.current };
+    if (previousOwner === nextOwner && drawOwnerHydrated.current) return;
+    drawOwnerHydrated.current = true;
     for (const timer of Object.values(drawTimers.current)) clearTimeout(timer);
     for (const timer of Object.values(drawLoadRetryTimers.current)) clearTimeout(timer);
-
     if (previousOwner === "guest") {
-      // Guest persistence is synchronous, so finish every pending snapshot
-      // before clearing its cache.
-      for (const [sym, drawings] of Object.entries(pending)) writeGuestDraw(sym, drawings);
-    } else {
-      // Authentication has already changed by the time this effect runs, so an
-      // unsent old-account fetch would carry the wrong cookie. Preserve the
-      // captured full snapshots under the previous owner and replay only when
-      // that exact identity is active again.
-      const recovery = drawRecovery.current[previousOwner] ?? (drawRecovery.current[previousOwner] = {});
-      Object.assign(recovery, pending);
-      writeDrawingOutbox(localStorage, previousOwner, recovery);
+      for (const [sym, drawings] of Object.entries(drawPending.current)) writeGuestDraw(sym, drawings);
+    } else if (drawRecovery.current[previousOwner]) {
+      void persistDrawingRecovery(previousOwner, drawRecovery.current[previousOwner]);
     }
-
-    // From here onward, callbacks carrying the previous epoch are inert.
     drawOwnerEpoch.current += 1;
     drawOwner.current = nextOwner;
+    drawLegacyOwners.current[nextOwner] = drawingLegacyOwner;
     setDrawingOwnerKey(nextOwner);
-    const recovered = nextOwner === "guest"
-      ? {}
-      : {
-          ...readDrawingOutbox(localStorage, nextOwner),
-          ...(drawRecovery.current[nextOwner] ?? {}),
-        };
+    const recovered: DrawingJournal = nextOwner === "guest" ? {} :
+      reconcileDrawingJournal(localStorage, drawJournalKey(nextOwner), drawRecovery.current[nextOwner]);
     if (nextOwner !== "guest") drawRecovery.current[nextOwner] = recovered;
-    drawPending.current = recovered;
+    const pending = Object.fromEntries(Object.entries(recovered).map(([sym, entry]) => [sym, entry.drawings]));
+    drawPending.current = pending;
     drawSaving.current = {};
     drawTimers.current = {};
+    drawRevisions.current = {};
+    drawPreloadMergeReread.current = new Set();
     drawLoadRetryTimers.current = {};
     drawLoadRetryAttempts.current = {};
+    drawLoadDeferred.current.clear();
     drawLoaded.current.clear();
+    abandonAllDrawingLoads(drawLoadGeneration.current);
     drawHistory.current = {};
     prevPaneSyms.current.clear();
-    setDrawStore(recovered);
+    setDrawStore(pending);
     setDrawingLoadFailures(new Set());
+    setDrawingSaveIssues(Object.fromEntries(Object.entries(recovered).filter(([, entry]) => entry.blocked).map(([sym, entry]) => [sym, drawingSaveIssueFromEntry(entry)!])));
+    setDrawingCloudCopies({});
+    drawingSavesActive.current.clear();
+    setDrawingStorageUnavailable(false);
     setDrawingHistoryVersion((version) => version + 1);
-    for (const sym of Object.keys(recovered)) {
-      drawTimers.current[sym] = setTimeout(() => flushDrawings(sym), 0);
-    }
-  }, [email, flushDrawings]);
+    for (const sym of Object.keys(recovered)) drawTimers.current[sym] = setTimeout(() => flushDrawings(sym), 0);
+  }, [currentDrawingOwnerKey, drawingLegacyOwner, drawJournalKey, flushDrawings, persistDrawingRecovery]);
   // load drawings once per symbol that appears in a pane; don't clobber an in-flight local edit
   useEffect(() => {
     const now = new Set(panes);
@@ -2466,15 +2802,96 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       if (drawSaving.current[sym]) continue;
       if (drawLoaded.current.has(sym)) continue;
       drawLoaded.current.add(sym);
-      if (loggedIn) {
+      drawLoadDeferred.current.delete(sym);
+      if (drawingAccount) {
+        if (drawPending.current[sym] === undefined) {
+          setDrawStore((s) => (s[sym] !== undefined ? s : { ...s, [sym]: [] }));
+        }
         const ownerEpoch = drawOwnerEpoch.current;
-        fetch(`/api/drawings?symbol=${encodeURIComponent(sym)}`).then((r) => {
+        const generation = beginDrawingLoad(drawLoadGeneration.current, sym);
+        fetch(`/api/drawings?symbol=${encodeURIComponent(sym)}`, { headers: { [DRAWING_OWNER_HEADER]: drawOwner.current } }).then((r) => {
           if (!r.ok) throw new Error(`drawing load failed (${r.status})`);
           return r.json();
         }).then((d) => {
+          if (!isCurrentDrawingLoad(drawLoadGeneration.current, sym, generation)) return;
           if (drawOwnerEpoch.current !== ownerEpoch) return;
           if (!prevPaneSyms.current.has(sym)) return;
-          if (drawPending.current[sym] === undefined) setDrawStore((s) => (s[sym] !== undefined ? s : { ...s, [sym]: normalizeDrawings(d.drawings) }));
+          const snapshot = parseDrawingSnapshot(d);
+          if (!snapshot) throw new Error("Drawing snapshot is unavailable");
+          const pending = drawPending.current[sym];
+          const ownerKey = drawOwner.current;
+          const recovery = drawRecovery.current[ownerKey] ?? (drawRecovery.current[ownerKey] = {});
+          const entry = recovery[sym];
+          let decision = decideDrawingLoadReconciliation({
+            cloudIds: snapshot.drawings.map((drawing) => drawing.id),
+            cloudRevision: snapshot.revision,
+            hasPending: pending !== undefined,
+            pendingIds: (pending ?? []).map((drawing) => drawing.id),
+            pendingRevisionPresent: Boolean(entry && Object.hasOwn(entry, "revision")),
+            pendingRevision: entry?.revision,
+            pendingBlocked: entry?.blocked,
+            pendingHasAlternatives: Boolean(entry?.alternatives?.length),
+            pendingPreload: entry?.preload === true,
+            pendingAttemptQueued: Boolean(entry?.attempt)
+              && (drawSaving.current[sym] !== undefined || drawTimers.current[sym] !== undefined),
+            cloudDrawings: snapshot.drawings,
+            pendingDrawings: pending,
+          });
+          let merged: Drawing[] | null = null;
+          if (decision.action === "merge") {
+            const remaining = entry?.preload === true
+              ? remainingPreloadPending(snapshot.drawings, pending ?? [])
+              : (pending ?? []);
+            const union = unionCloudWithPreloadAdditions(snapshot.drawings, remaining);
+            if (union.ok) merged = union.drawings;
+            else decision = { action: "park", reason: union.reason };
+          }
+          if (decision.action === "stamp") {
+            drawRevisions.current[sym] = snapshot.revision;
+            setDrawStore((s) => ({ ...s, [sym]: normalizeDrawings(snapshot.drawings) }));
+            if (pending !== undefined) {
+              delete drawPending.current[sym];
+              delete recovery[sym];
+              clearTimeout(drawTimers.current[sym]);
+              delete drawTimers.current[sym];
+              void persistDrawingRecovery(ownerKey, recovery);
+            }
+          } else if (decision.action === "keep") {
+            drawRevisions.current[sym] = snapshot.revision;
+          } else if (decision.action === "merge" && merged) {
+            const mergedDrawings = merged;
+            drawRevisions.current[sym] = snapshot.revision;
+            drawPending.current[sym] = mergedDrawings;
+            if (entry) {
+              entry.drawings = mergedDrawings;
+              entry.revision = snapshot.revision;
+              delete entry.blocked;
+            } else {
+              recovery[sym] = { drawings: mergedDrawings, revision: snapshot.revision, preload: true };
+            }
+            setDrawStore((s) => ({ ...s, [sym]: normalizeDrawings(mergedDrawings) }));
+            void persistDrawingRecovery(ownerKey, recovery);
+            clearTimeout(drawTimers.current[sym]);
+            drawTimers.current[sym] = setTimeout(() => flushDrawings(sym), 0);
+          } else if (decision.action === "defer") {
+            // The save settles this symbol: it stamps the receipt revision, and its
+            // superseded and 409 branches fetch the cloud copy for the choice. If it
+            // ends without a receipt, its settlement loads the symbol again.
+            drawLoadDeferred.current.add(sym);
+          } else {
+            const parkEntry = entry ?? (pending ? (recovery[sym] = { drawings: pending }) : undefined);
+            if (parkEntry && !(decision.action === "park" && decision.reason === "too_many")) {
+              parkEntry.blocked ??= "conflict";
+            }
+            setDrawingCloudCopies((copies) => ({ ...copies, [sym]: snapshot }));
+            setDrawingSaveIssues((issues) => ({
+              ...issues,
+              [sym]: decision.action === "park"
+                ? drawingSaveIssueFromLoadPark(decision.reason, parkEntry?.blocked)
+                : (parkEntry?.blocked ?? "conflict"),
+            }));
+            void persistDrawingRecovery(ownerKey, recovery);
+          }
           clearTimeout(drawLoadRetryTimers.current[sym]);
           delete drawLoadRetryTimers.current[sym];
           delete drawLoadRetryAttempts.current[sym];
@@ -2483,8 +2900,17 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             const next = new Set(failed); next.delete(sym); return next;
           });
         }).catch(() => {
+          if (!isCurrentDrawingLoad(drawLoadGeneration.current, sym, generation)) return;
           if (drawOwnerEpoch.current !== ownerEpoch || !prevPaneSyms.current.has(sym)) return;
           drawLoaded.current.delete(sym);
+          if (drawPending.current[sym] === undefined) {
+            setDrawStore((s) => {
+              if (s[sym] === undefined) return s;
+              const next = { ...s };
+              delete next[sym];
+              return next;
+            });
+          }
           setDrawingLoadFailures((failed) => failed.has(sym) ? failed : new Set(failed).add(sym));
           const attempt = (drawLoadRetryAttempts.current[sym] ?? 0) + 1;
           drawLoadRetryAttempts.current[sym] = attempt;
@@ -2504,12 +2930,17 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     // later re-visit re-fetches fresh server state (restores the old per-mount refetch behavior)
     for (const sym of prevPaneSyms.current) {
       if (now.has(sym)) continue;
+      abandonDrawingLoad(drawLoadGeneration.current, sym);
       flushDrawings(sym);
       clearTimeout(drawLoadRetryTimers.current[sym]);
       delete drawLoadRetryTimers.current[sym];
-      if (drawSaving.current[sym] || drawPending.current[sym] !== undefined) continue;
+      if (drawSaving.current[sym] || drawPending.current[sym] !== undefined) {
+        if (!Object.hasOwn(drawRevisions.current, sym)) drawLoaded.current.delete(sym);
+        continue;
+      }
       drawLoaded.current.delete(sym);
       delete drawLoadRetryAttempts.current[sym];
+      delete drawRevisions.current[sym];
       delete drawHistory.current[sym];
       setDrawingLoadFailures((failed) => {
         if (!failed.has(sym)) return failed;
@@ -2518,11 +2949,65 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       setDrawStore((s) => { if (s[sym] === undefined) return s; const n = { ...s }; delete n[sym]; return n; });
     }
     prevPaneSyms.current = now;
-  }, [panes, flushDrawings, loggedIn, drawingLoadRetryVersion, email]);
-  useEffect(() => () => {
-    for (const timer of Object.values(drawLoadRetryTimers.current)) clearTimeout(timer);
-    for (const sym of Object.keys(drawPending.current)) flushDrawingsRef.current(sym);
-    if (drawingLimitTimer.current !== null) clearTimeout(drawingLimitTimer.current);
+  }, [panes, flushDrawings, drawingAccount, drawingLoadRetryVersion, currentDrawingOwnerKey, persistDrawingRecovery]);
+  useEffect(() => {
+    const persistPendingDrawings = () => {
+      for (const timer of Object.values(drawLoadRetryTimers.current)) clearTimeout(timer);
+      for (const sym of Object.keys(drawPending.current)) flushDrawingsRef.current(sym);
+      if (drawingLimitTimer.current !== null) clearTimeout(drawingLimitTimer.current);
+    };
+    window.addEventListener("pagehide", persistPendingDrawings);
+    return () => {
+      window.removeEventListener("pagehide", persistPendingDrawings);
+      persistPendingDrawings();
+    };
+  }, []);
+
+  const resolveDrawingRecovery = useCallback(async (sym: string, choice: "cloud" | "local") => {
+    if (drawSaving.current[sym] || drawOwner.current !== currentDrawingOwnerKey) return;
+    const cloud = drawingCloudCopies[sym];
+    const recovery = drawRecovery.current[drawOwner.current];
+    const entry = recovery?.[sym];
+    if (!cloud || !entry) return;
+    drawRevisions.current[sym] = cloud.revision;
+    delete drawHistory.current[sym];
+    if (choice === "cloud") {
+      delete recovery[sym]; delete drawPending.current[sym];
+      setDrawStore((store) => ({ ...store, [sym]: normalizeDrawings(cloud.drawings) }));
+    } else {
+      // This click is a new replacement intent against the displayed cloud copy.
+      // Neither a background GET nor a superseded replay can take this action.
+      // A preload row is additions, never a full snapshot: union so cloud-only ids survive.
+      const put = keepMinePutDrawings(cloud.drawings, entry.drawings, entry.preload === true);
+      if (!put.ok) {
+        setDrawingSaveIssues((issues) => ({ ...issues, [sym]: drawingSaveIssueFromLoadPark("too_many") }));
+        return;
+      }
+      delete entry.attempt; delete entry.blocked; delete entry.alternatives; entry.revision = cloud.revision;
+      entry.drawings = put.drawings;
+      if (entry.preload) delete entry.preload;
+      drawPending.current[sym] = entry.drawings;
+    }
+    const owner = drawOwner.current;
+    const durable = await persistDrawingRecovery(owner, recovery);
+    if (drawOwner.current !== owner) return;
+    setDrawingSaveIssues((issues) => { const next = { ...issues }; delete next[sym]; return next; });
+    setDrawingCloudCopies((copies) => { const next = { ...copies }; delete next[sym]; return next; });
+    setDrawingHistoryVersion((version) => version + 1);
+    if (durable && choice === "cloud") restoreOtherDrawingCopies(sym, owner, recovery);
+    if (choice === "local") {
+      if (durable) drawTimers.current[sym] = setTimeout(() => flushDrawings(sym), 0);
+      else setDrawingSaveIssues((issues) => ({ ...issues, [sym]: "storage" }));
+    }
+  }, [drawingCloudCopies, currentDrawingOwnerKey, flushDrawings, persistDrawingRecovery, restoreOtherDrawingCopies]);
+  const chooseDrawingRecoveryCopy = useCallback((sym: string, id: string) => {
+    const journal = drawRecovery.current[drawOwner.current];
+    if (!journal || drawSaving.current[sym]) return;
+    const entry = selectDrawingRecoveryCopy(journal, sym, id);
+    if (!entry) return;
+    drawPending.current[sym] = entry.drawings;
+    setDrawStore((store) => ({ ...store, [sym]: normalizeDrawings(entry.drawings) }));
+    setDrawingSaveIssues((issues) => ({ ...issues, [sym]: "multiple" }));
   }, []);
 
   // per-symbol data for the rail.  Priority split:
@@ -2539,7 +3024,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     setRailGex(null);
     // immediate: chart-shared OHLC and 6KB slice (signal verdict for the rail badge)
     getJSON(`/data/${active}.slice.json`).then((d) => { if (alive) setSlice(d); });
-    getBars(active).then((b) => { if (alive) setBars(b); }).catch(() => {});
+    getBars(active).then((b) => { if (alive) { setBars(b); setBarsSymbol(active); } }).catch(() => {});
     // deferred: intel (~30-80KB), fund (~100-200KB), opts (~50-100KB) — not visible until user opens
     // the rail cards or MegaPane; deferring avoids competing with the chart's OHLC fetch on cold load.
     const useNativeRic = typeof requestIdleCallback !== "undefined";
@@ -2672,7 +3157,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
           const n: Record<string, any> = { ...prev };
           for (const k of Object.keys(d.quotes)) {
             const q = d.quotes[k];
-            if (q) { if (!quoteEq(prev[k], q)) { n[k] = q; changed = true; } }
+            if (q) { const merged = mergeFormingQuote(prev[k], q); if (!quoteEq(prev[k], merged)) { n[k] = merged; changed = true; } }
             else if (drop.has(k) && k in n) { delete n[k]; changed = true; }
           }
           return changed ? n : prev;
@@ -2719,6 +3204,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     }
     return Array.from(new Set(syms)).slice(0, 8).join(",");
   }, [panes, paneTfs, quotes]);
+  const chartQuoteTfsKey = Array.from(new Set(paneTfs.filter(tf => isIntradayTf(tf)))).sort().slice(0, 4).join(",");
+  const chartQuoteTfsKeyRef = useRef(chartQuoteTfsKey);
+  chartQuoteTfsKeyRef.current = chartQuoteTfsKey;
   const chartQuoteSymsKeyRef = useRef(chartQuoteSymsKey);
   chartQuoteSymsKeyRef.current = chartQuoteSymsKey;
   const chartQuoteAliveRef = useRef(true);
@@ -2739,16 +3227,21 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       return;
     }
     chartQuoteInFlightRef.current = true;
-    fetch(`/api/quote?view=regular&cadence=chart&syms=${encodeURIComponent(key)}`, { cache: "no-store" })
+    const tfs = chartQuoteTfsKeyRef.current;
+    fetch(`/api/quote?view=regular&cadence=chart&timeframes=${encodeURIComponent(tfs)}&syms=${encodeURIComponent(key)}`, { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
-        if (!chartQuoteAliveRef.current || !d?.quotes) return;
+        if (!chartQuoteAliveRef.current || !d?.quotes || key !== chartQuoteSymsKeyRef.current ||
+            tfs !== chartQuoteTfsKeyRef.current) return;
         updateQuotes((prev) => {
           let changed = false;
           const next = { ...prev };
           for (const [sym, quote] of Object.entries<any>(d.quotes)) {
             // A transient fast-lane miss must not erase the slower lane's last-known quote.
-            if (quote && !quoteEq(prev[sym], quote)) { next[sym] = quote; changed = true; }
+            if (quote) {
+              const merged = mergeFormingQuote(prev[sym], quote);
+              if (!quoteEq(prev[sym], merged)) { next[sym] = merged; changed = true; }
+            }
           }
           return changed ? next : prev;
         });
@@ -2785,7 +3278,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     if (!chartQuoteSymsKey) return;
     const id = setTimeout(pollChartQuotes, 120);
     return () => clearTimeout(id);
-  }, [chartQuoteSymsKey, pollChartQuotes]);
+  }, [chartQuoteSymsKey, chartQuoteTfsKey, pollChartQuotes]);
 
   // item-26/27: extended/overnight poll — US equities only. Always includes the active symbol
   // (pane-card secondary block, item-25) plus all watchlist US singles when the Ext column is on.
@@ -2793,6 +3286,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // lane surface (/api/quote route) stays untouched.
   const extSymsKey = useMemo(() => {
     const syms: string[] = [];
+    // Every visible US pane needs the same dedicated BOATS lane as the active header.
+    for (const symbol of panes) if (!isComposite(symbol) && classify(symbol) === "us" && !isMacroSymbol(symbol)) syms.push(symbol);
     // Always poll the active symbol for the pane-card secondary block (item-25)
     if (!isComposite(active) && classify(active) === "us") syms.push(active);
     // Add watchlist US singles when either extended-hours column is enabled. Ext % is an
@@ -2804,7 +3299,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       }
     }
     return syms.filter((v, i, a) => a.indexOf(v) === i).join(",");
-  }, [wl, active, set.cols.ext, set.cols.extPct]);
+  }, [wl, active, panes, set.cols.ext, set.cols.extPct]);
   const extSymsKeyRef = useRef(extSymsKey);
   extSymsKeyRef.current = extSymsKey;
   const extAliveRef = useRef(true);
@@ -3008,9 +3503,6 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   useEffect(() => { window.dispatchEvent(new CustomEvent("mm:pane-state", { detail: paneOpen })); }, [paneOpen]);
 
   // ── D1-D4 event handlers (wired from context menu custom events) ─────────────
-  // Load chart templates on mount
-  useEffect(() => { try { setTemplates(listTemplates()); } catch {} }, []);
-
   // Remove-all-indicators event (from D1 context menu)
   useEffect(() => {
     const h = () => {
@@ -3036,27 +3528,13 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     return () => window.removeEventListener("mm:remove-all-inds", h);
   }, [enabledIds, hidden, inds]);
 
-  // Apply template event (from D2 context menu)
-  useEffect(() => {
-    const h = (e: Event) => {
-      const id = (e as CustomEvent).detail?.id as string;
-      const tmpl = templates.find((t) => t.id === id);
-      if (!tmpl) return;
-      setInds(new Set(tmpl.indicators));
-      const base = allDefaults();
-      for (const k of IND_ORDER) { if (tmpl.indParams[k]) base[k] = withDefaults(k, tmpl.indParams[k]); }
-      for (const k of Object.keys(tmpl.indParams || {})) { if (isSuiteKey(k)) base[k] = { ...suiteDefaults(k), ...tmpl.indParams[k] }; }
-      setIndParams(withStudyInstanceParams(base, tmpl.indicators, tmpl.indParams));   // per-instance params (E06)
-    };
-    window.addEventListener("mm:apply-template", h);
-    return () => window.removeEventListener("mm:apply-template", h);
-  }, [templates]);
-
-  // Save-template event (from D2 context menu)
-  useEffect(() => {
-    const h = () => { setTmplSaveName(""); setTmplSaveErr(null); setTmplSaveOpen(true); };
-    window.addEventListener("mm:save-template", h);
-    return () => window.removeEventListener("mm:save-template", h);
+  // E07: study-template apply/save events are handled by <StudyTemplatesHost>. Its only chart effect
+  // is this study triple — never the symbol, drawings, watchlists, alerts, data policy or Day Trade Mode.
+  const studyTemplateState = useMemo(() => ({ inds: [...inds], indParams, hidden: [...hidden] }), [inds, indParams, hidden]);
+  const applyStudyTemplate = useCallback((next: { inds: string[]; indParams: Record<string, Record<string, unknown>>; hidden: string[] }) => {
+    setInds(new Set(next.inds));
+    setIndParams(next.indParams);
+    setHidden(new Set(next.hidden));
   }, []);
 
   const detect = (kind: NonNullable<DetectCmd>["kind"]) => {
@@ -3104,9 +3582,14 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   const onTick = useCallback((p: number) => setLivePx(p), []);
   const liveStatus = useLive(active, onTick);
 
+  // The chart command palette (E20, below) is modal: while it is open, a key that reaches the page
+  // must not open symbol search underneath it. Declared here so the type-anywhere effect can see it.
+  const [paletteOpen, setPaletteOpen] = useState(false);
+
   // type-anywhere → search; Ctrl/Cmd+K
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
+      if (paletteOpen) return;
       const tag = (e.target as HTMLElement)?.tagName?.toLowerCase();
       if (tag === "input" || tag === "textarea") return;
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); setSeed(""); setSearchOpen(true); return; }
@@ -3114,7 +3597,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       if (!searchOpen && e.key.length === 1 && /[a-zA-Z0-9]/.test(e.key)) { setSeed(e.key); setSearchOpen(true); }
     };
     window.addEventListener("keydown", h); return () => window.removeEventListener("keydown", h);
-  }, [searchOpen]);
+  }, [paletteOpen, searchOpen]);
 
   // Snapshot keyboard shortcuts (guarded: not when an input/textarea has focus)
   //   ⌥⌘S  → Download image
@@ -3635,6 +4118,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       return n;
     });
     setActiveList((a) => (a === name ? next : a));
+    wlReview.renameList(name, next);                // E16: a review of this list follows the rename
     if (!loggedIn) return;                          // guest: local rename only, exactly as before
     const listId = serverListIdsRef.current[name];
     // Move the id onto the new key first: a symbol op racing the rename must not target a name
@@ -4397,6 +4881,12 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     pick(symbol);
   }, [pick, visibleWlOrder]);
   const onSearchPick = (sym: string) => { if (searchMode === "compare") { toggleCompare(sym); } else pick(sym); };
+  // E16: a user-started, frozen review over one list. It navigates only through `pick` (the same
+  // owner a row click uses), so linked panels follow and pinned panels stay pinned. The native
+  // dossier (?shell=app&dossier=1) has no chart and its header owns the symbol, so the review is
+  // not mounted there and cannot navigate there.
+  const wlReview = useWatchlistReview({ owner: wlOwner, lists, listMeta, listsReady: wlsRestored, manifestSymbols: man?.symbols ?? null, navigate: shellMode && shellDossier ? noReviewNavigation : pick });
+  const reviewT = useWatchlistReviewT();
 
   // The dashboard keeps one warm iframe alive between launches. A later ticker click
   // therefore switches the existing Terminal instance through the bridge instead of
@@ -4453,25 +4943,101 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // the same origin_id/context_revision from the first observable snapshot onward.
   const aiContextProviderRef = useRef<ReturnType<typeof createAiContextProvider> | null>(null);
   if (!aiContextProviderRef.current) aiContextProviderRef.current = createAiContextProvider();
-  useLayoutEffect(() => {
-    aiContextProviderRef.current?.noteContextChange({ symbol: active, timeframe: tf });
-  }, [active, tf]);
-
-  // ── Chart Bus v2 (CMX W1) ──────────────────────────────────────────────────────────────────
-  // The v2 typed drawing/command vocabulary. v1 envelopes stay on handleBrainCommand below; a v:2
-  // envelope routes here. The bus owns the in-memory per-symbol AI drawing layer, acks, and the
-  // debounced state-mirror POST. capabilities report the REAL enums (kills hallucinated names).
   const sessionIndicators: IndicatorSpec[] = useMemo(
     () => [...inds].map((k) => ({ name: k, params: indParams[k] as IndicatorSpec["params"] })),
     [inds, indParams],
   );
+  const aiSettingsKey = JSON.stringify(sessionIndicators);
+  const aiSelectionKey = JSON.stringify({ replayOn, replayCutoff: replayOn ? replayCutoff : null, lockedVLine });
+  const noteAiChartContext = useCallback(() => {
+    aiContextProviderRef.current?.noteContextChange({ symbol: active, timeframe: tf,
+      paneId: activePane, settingsKey: aiSettingsKey, selectionKey: aiSelectionKey,
+      sessionKey: paneSessionKeyRef.current[activePane] ?? null });
+  }, [active, tf, activePane, aiSettingsKey, aiSelectionKey]);
+  useLayoutEffect(noteAiChartContext, [noteAiChartContext]);
+
+  // ── Chart Bus v2 (CMX W1) ──────────────────────────────────────────────────────────────────
+  // One targeted AI mutation path. The bus owns the per-symbol AI layer, queue,
+  // receipts and mirror; human chart controls retain their existing owners.
   // Metadata only; the existing mirror forwards this exact object to Brain.
   // Memoize off settings, not live price ticks. No second indicator catalog/compute.
   const chartCapabilities = useMemo(() => ({
     tfs: TF_CANONICAL_ORDER,
     indicators: [...IND_ORDER, ...SUITE_ORDER],
     native_parameters: describeNativeSuiteCapabilities([...inds], indParams),
+    native_study_context: describeNativeStudyContext([...inds], indParams),
+    data_readout: { schema: CHART_READOUT_SCHEMA, source: "existing_chart_data_window",
+      samples: ["latest_loaded", "locked_bar"], max_bytes: 4096,
+      coverage: "not_all_native_studies", freshness: "not_live_attested" },
+    price_window: { schema: CHART_PRICE_WINDOW_SCHEMA, source: "existing_active_chart_rendered_bars",
+      max_bars: CHART_PRICE_WINDOW_MAX_BARS, selection: "visible_tail_else_loaded_tail",
+      order: "oldest_to_newest", replay: "renderer_slice", freshness: "not_live_attested" },
+    presentation: { schema: CHART_PRESENTATION_SCHEMA,
+      source: "committed_chart_settings_and_render_mode", control_authority: "none",
+      scope: ["chart_type", "scale", "session", "display", "visual_intelligence", "comparisons"] },
+    native_observations: { schema: LIVE_NATIVE_OBSERVATION_SCHEMA,
+      source: "same_computeSuite_bundle_used_by_renderer", max_bytes: LIVE_NATIVE_OBSERVATION_MAX_BYTES,
+      coverage: "only_suites_rendered_in_current_chart_pass", missing: "omitted_not_negative_evidence",
+      series_samples: "up_to_6_recent_plus_exact_locked_bar_when_available",
+      strength: "native_score_not_probability", freshness: "chart_loaded_not_live_attested" },
+    pane_contexts: { schema: CHART_PANE_CONTEXT_SCHEMA, max_panes: 4,
+      observation: "read_only_mounted_panes", control_authority: "active_pane_only",
+      native_source: "same_renderer_bundle_when_available",
+      price_source: "same_rendered_bar_owner_when_available",
+      presentation_source: "committed_pane_chart_settings_when_available",
+      context_revision: "read_does_not_increment" },
+    command_target: {
+      schema: "chart.command_target.v1", author: "server_only",
+      match: ["origin_id", "context_revision", "pane_id", "symbol", "tf"],
+      check: ["receipt", "execution"], mismatch: "reject_without_retarget_or_retry",
+      required_for: ["all_effectful_v2"],
+      application: "chart.command_application.v1",
+      revision_scope: ["symbol", "timeframe", "active_pane", "attached_settings", "chart_session", "candle_replay_selection"],
+      legacy_untargeted: "refused", authentication: "existing_session_not_this_precondition",
+    },
+    indicator_edit: {
+      op: "chart.set_indicators", modes: ["replace", "patch"],
+      patch_membership: "preserve_unmentioned", parameters: "merge_existing",
+      removal: "explicit_remove_names", undo: "drawings_only_not_indicator_settings",
+      target_required: "chart.command_target.v1",
+    },
+    ai_drawing_edit: {
+      clear_ids: true, id_source: "session.drawings", ownership: "ai_only",
+      missing_id: "reject_whole_request", omitted_ids: "clear_all_ai_on_active_symbol",
+      target_required_for_ids: "chart.command_target.v1",
+    },
   }), [inds, indParams]);
+
+  const nativeObservationForPane = useCallback((
+    paneId: number,
+    symbol: string,
+    paneTf: string,
+    paneReplayOn: boolean,
+    paneReplayIdx: number | null,
+  ): Record<string, unknown> => {
+    const state = nativeObservationByPane[paneId];
+    const identity = aiContextProviderRef.current!.getAiContext();
+    const settingsKey = JSON.stringify(sessionIndicators);
+    if (!prefsHydrated || !state || state.pane_id !== paneId
+      || state.symbol !== symbol || state.tf !== paneTf || state.settings_key !== settingsKey
+      || state.replay_on !== paneReplayOn || state.replay_idx !== paneReplayIdx
+      || state.selected_time !== lockedVLine) {
+      return { schema: LIVE_NATIVE_OBSERVATION_SCHEMA, status: "unavailable",
+        reason: "native_observation_context_not_current" };
+    }
+    return { ...state.packet, binding: {
+      origin_id: identity.origin_id,
+      context_revision: identity.context_revision,
+      pane_id: paneId,
+      symbol,
+      tf: paneTf,
+      settings_key: settingsKey,
+      replay_on: paneReplayOn,
+      replay_idx: paneReplayIdx,
+      selected_time: lockedVLine,
+    } };
+  }, [nativeObservationByPane, prefsHydrated, sessionIndicators, lockedVLine]);
+
   const chartBus = useChartBus({
     activeSymbol: active,
     bars,
@@ -4487,46 +5053,102 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       const ctx = aiContextProviderRef.current!.getAiContext();
       return { origin_id: ctx.origin_id, context_revision: ctx.context_revision };
     },
-    setSymbol: (s) => pick(s),
-    setTf: (t2) => setTf(t2),
-    setIndicators: (specs) => {
+    getReadoutSnapshot: () => {
+      const binding = chartReadoutMeta?.copilotBinding;
+      const identity = aiContextProviderRef.current!.getAiContext();
+      const settingsKey = JSON.stringify(sessionIndicators);
+      if (!prefsHydrated || !binding || binding.origin_id !== identity.origin_id
+        || binding.context_revision !== identity.context_revision || binding.paneId !== activePane
+        || binding.settingsKey !== settingsKey || binding.replayOn !== replayOn
+        || binding.replayIdx !== (replayOn ? replayIdx : null)) {
+        return { schema: CHART_READOUT_SCHEMA, status: "unavailable", reason: "readout_context_not_current" };
+      }
+      return captureChartReadout(chartReadoutMeta, indRowsAt, active, tf, lockedVLine, replayOn);
+    },
+    getRenderedPriceWindowSource: () => {
+      const binding = chartReadoutMeta?.copilotBinding;
+      const identity = aiContextProviderRef.current!.getAiContext();
+      const settingsKey = JSON.stringify(sessionIndicators);
+      if (!prefsHydrated || !chartReadoutMeta || !binding || binding.origin_id !== identity.origin_id
+        || binding.context_revision !== identity.context_revision || binding.paneId !== activePane
+        || binding.settingsKey !== settingsKey || binding.replayOn !== replayOn
+        || binding.replayIdx !== (replayOn ? replayIdx : null)) return null;
+      return { symbol: chartReadoutMeta.symbol, tf: chartReadoutMeta.timeframe,
+        bars: chartReadoutMeta.bars, replay: replayOn };
+    },
+    getPresentationSnapshot: () => {
+      const packet = readChartPresentation(panePresentationRef.current, {
+        symbol: active, tf, pane_id: activePane, chart_type: chartType,
+        replay: replayOn, day_trade_mode: dtm,
+      });
+      if (!packet) {
+        return { schema: CHART_PRESENTATION_SCHEMA, status: "unavailable",
+          reason: "presentation_source_not_current" };
+      }
+      return packet;
+    },
+    getNativeObservationSnapshot: () => nativeObservationForPane(
+      activePane, active, tf, replayOn, replayOn ? replayIdx : null,
+    ),
+    getPaneContextSnapshots: () => panes.slice(0, 4).map((symbol, pane_id) => {
+      const paneTf = paneTfs[pane_id] ?? "D";
+      const paneReplayOn = pane_id === activePane && replayOn;
+      const paneReplayIdx = paneReplayOn ? replayIdx : null;
+      const priceSource = panePriceSourceRef.current[pane_id] ?? null;
+      const presentation = readChartPresentation(panePresentationRef.current, {
+        symbol, tf: paneTf, pane_id, chart_type: chartType,
+        replay: paneReplayOn, day_trade_mode: dtm,
+      });
+      return {
+        pane_id,
+        symbol,
+        tf: paneTf,
+        price_window_source: priceSource
+          && priceSource.symbol === symbol && priceSource.tf === paneTf
+          && priceSource.replay === paneReplayOn ? priceSource : null,
+        presentation: presentation
+          && presentation.symbol === symbol
+          && presentation.tf === paneTf
+          && presentation.pane_id === pane_id ? presentation : null,
+        native_observations: nativeObservationForPane(
+          pane_id, symbol, paneTf, paneReplayOn, paneReplayIdx,
+        ),
+      };
+    }),
+    flushContext: () => flushSync(() => {}),
+    setSymbol: (s) => flushSync(() => pick(s)),
+    setTf: (t2) => flushSync(() => setTf(t2)),
+    setIndicators: (specs) => flushSync(() => {
       const keys = specs.map((s) => s.name).filter((k) => isIndKey(k) || isSuiteKey(k) || scriptById[k]);
       setInds(new Set(keys));
       const withParams = specs.filter((s) => s.params && (isIndKey(s.name) || isSuiteKey(s.name)));
       if (withParams.length) setIndParams((p) => { const n = { ...p }; for (const s of withParams) n[s.name] = { ...(n[s.name] || {}), ...s.params }; return n; });
-    },
-    // MVP: jump the chart to the range start via the existing mm:chart-jump consumer. A precise
-    // setVisibleRange is a follow-up via the onChartApi seam (see PR body).
-    setRange: (from) => { try { window.dispatchEvent(new CustomEvent("mm:chart-jump", { detail: { ts: from } })); } catch {} },
+    }),
+    // Convert the command's epoch-seconds calendar window through the existing paneSync owner.
+    // False means the exact window was not representable; callers must reject rather than ACK drift.
+    setRange: (from, to) => setPaneVisibleWindow(activePane, { from: from * 1000, to: to * 1000 }),
   });
 
-  // Observe the already-registered active pane's calendar viewport. paneSync remains the
-  // single logical-range→calendar owner; Chart Bus only mirrors the result into Brain state.
-  useEffect(() => subscribePaneVisibleWindow(
-    activePane,
-    (window) => chartBus.noteViewport(activePane, window),
-  ), [activePane, chartBus.noteViewport]);
+  // The existing readout owner drives refresh. No timer, data fetch or indicator rerun.
+  useEffect(() => { chartBus.noteReadoutChange(); }, [chartReadoutMeta, indRowsAt,
+    lockedVLine, replayOn, replayIdx, chartBus.noteReadoutChange]);
+  useEffect(() => { chartBus.noteNativeObservationChange(); },
+    [nativeObservationByPane, chartBus.noteNativeObservationChange]);
 
-  // Brain widget → chart command executor. Mirrors the retired CopilotPanel's FLAT single-command
-  // contract EXACTLY ({action, symbol|tf|indicator+on|kind} at top level): every field is
-  // type-guarded, toggle_indicator adds ONLY on an explicit on===true (a missing flag never
-  // silently adds), and unknown/malformed actions are ignored gracefully.
-  const handleBrainCommand = (j: any) => {
-    // v2 envelope ({on:true, v:2, batch_id, seq, op, …}) → the typed Chart Bus. v1 falls through.
-    if (isV2Envelope(j)) { chartBus.dispatchV2(j); return; }
-    const action = typeof j?.action === "string" ? j.action : "";
-    if (action === "set_symbol" && typeof j.symbol === "string") {
-      pick(j.symbol);
-    } else if (action === "set_timeframe" && typeof j.tf === "string") {
-      setTf(j.tf);
-    } else if (action === "toggle_indicator" && typeof j.indicator === "string") {
-      const on = j.on === true; // explicit only — a missing flag never silently adds
-      const indicator = j.indicator;
-      if (on) setInds((s) => { const n = new Set(s); n.add(indicator); return n; });
-      else setInds((s) => { const n = new Set(s); n.delete(indicator); return n; });
-    } else if (action === "run_detection" && typeof j.kind === "string") {
-      detect(j.kind);
-    }
+  // Observe every mounted chart pane through paneSync's existing calendar owner.
+  // This is evidence collection only: subscriptions never activate a pane or bump ai_context.
+  useEffect(() => {
+    const unsubs = panes.slice(0, 4).map((_, paneId) => subscribePaneVisibleWindow(
+      paneId,
+      (window) => chartBus.noteViewport(paneId, window),
+    ));
+    return () => { for (const unsub of unsubs) unsub(); };
+  }, [panes.length, chartBus.noteViewport]);
+
+  // AI commands use one host-targeted queue and receipt path. Legacy payloads
+  // cannot fall through into direct setters; ordinary human controls are separate.
+  const handleBrainCommand = (j: unknown) => {
+    if (isV2Envelope(j)) chartBus.dispatchV2(j);
   };
 
   // ── saved-layout writes ───────────────────────────────────────────────────────────────────────
@@ -5087,6 +5709,11 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // other when a row carries only one. (This used to be `zh || name`, which showed every Chinese
   // name to English users.)
   const nameOf = (r?: Row) => displayName(r, lang);
+  // Stable between renders so the event planner's per-symbol profiles are not rebuilt every render.
+  const plannerSymbolInfo = useCallback((symbol: string) => {
+    const row = man?.symbols?.[symbol];
+    return row ? { name: displayName(row, lang), mkt: row.mkt, sec: row.sec } : null;
+  }, [man, lang]);
   const startResize = (key: string, e: React.MouseEvent) => {
     e.preventDefault(); e.stopPropagation();
     const startX = e.clientX, startW = colw(key);
@@ -5112,9 +5739,11 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     window.addEventListener("mouseup", up);
     document.body.classList.add("rail-resizing");
   };
-  const currentDrawingOwnerKey = email ? `account:${email}` : "guest";
   const drawingOwnerMatches = drawingOwnerKey === currentDrawingOwnerKey;
-  const drawingsReadyFor = (sym: string) => drawingOwnerMatches && (!loggedIn || drawStore[sym] !== undefined);
+  // Click callbacks can be held by memoized descendants across render transitions.
+  // The write fence below uses drawStoreRef.current; match that exact current
+  // owner/symbol readiness here instead of a possibly stale render snapshot.
+  const drawingsReadyFor = (sym: string) => drawingOwnerMatches && (!drawingAccount || drawStoreRef.current[sym] !== undefined);
   // ONE activation path for every surface that arms a tool — the desktop dock, the phone Drawings
   // sheet, and the native bridge's setDrawTool. Returns whether the tool actually armed.
   const activateDrawingTool = (id: DrawKind | null) => {
@@ -5181,6 +5810,97 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     setHubOpen(true);
     if (!hubSeen) { setHubSeen(true); try { localStorage.setItem("mm.hubSeen", "1"); } catch {} }
   };
+  // ── Chart command palette (E20) ─────────────────────────────────────────────────────────────
+  // A second way to reach controls this shell already owns. The palette gets a snapshot of the
+  // current chart (`paletteContext`) and hands a chosen action back to `runPaletteAction`, which
+  // re-checks it against the live state and then calls the SAME handler the visible control uses:
+  // the research nav's setPaneOpen, the symbol wheel's pick, the timeframe menu's FUNCTIONAL-guarded
+  // setTf, the template menu's events, the indicator dialog, remove-all (with its 5-second undo),
+  // the toolbar's drawing undo/redo, Bar Replay's toggle and the range row's go-to-date box. It
+  // adds no queue, no session and no account/alert/trade action. (`paletteOpen` is declared with
+  // the type-anywhere search effect, which stands down while the palette is open.)
+  const [researchCloseRequest, setResearchCloseRequest] = useState(0);
+  const paletteLang = lang === "zh" ? "zh" : "en";
+  // E07 moved the template stores into <StudyTemplatesHost>. The palette reads the same
+  // synchronous list the chart's template menu uses (`listTemplates`: the host's account rows
+  // first, then this device's), refreshed on mount and each time the palette opens so account rows
+  // fetched after mount are listed. The ids are exactly what `mm:apply-template` resolves.
+  const [templates, setTemplates] = useState<TemplateMenuEntry[]>([]);
+  useEffect(() => {
+    try { setTemplates(listTemplates()); } catch {}
+  }, [paletteOpen]);
+  useEffect(() => {
+    if (shellMode || paletteOpen) return;
+    const onKey = (event: KeyboardEvent) => {
+      // E07's save dialog and library both render role="dialog" aria-modal="true", so
+      // hasOpenModal covers them; the shell no longer tracks a template-dialog flag of its own.
+      const modalOpen = searchOpen || indOpen || hasOpenModal(document);
+      const target = event.target instanceof Element ? event.target : null;
+      if (!shouldOpenPaletteFromKey(event, { target, active: document.activeElement, modalOpen })) return;
+      event.preventDefault();
+      setPaletteOpen(true);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [indOpen, paletteOpen, searchOpen, shellMode]);
+  const paletteContext: PaletteContext | null = paletteOpen ? {
+    paneIndex: activePane,
+    panes,
+    symbol: active,
+    timeframe: tf,
+    researchPage: paneOpen,
+    tableView: tableViewOpen,
+    watchlist: stripSymbols,
+    timeframes: TF_GROUPS.flatMap(([, items]) => items).map((tfi) => (
+      FUNCTIONAL.has(tfi) ? { tf: tfi, available: true } : { tf: tfi, available: false, reason: tfDisabledReason(tfi) }
+    )),
+    templates,
+    // Exactly what remove-all removes (and what its own guard checks).
+    indicatorCount: inds.size + enabledIds.length,
+    drawing: drawingHistoryState,
+    replay: { on: replayOn, blocked: replayBlockedReason ?? null },
+    phone: isPhone,
+    researchOnAnalysisPage: isMobile,
+    // E16's frozen review session (`wlReview`, above): its own previous/next neighbours, never a
+    // live-order substitute. Null when no review session exists; the palette then says so.
+    review: wlReview.current === null ? null : { next: wlReview.nextSymbol, previous: wlReview.prevSymbol },
+  } : null;
+  const runPaletteAction = (actionId: string, seenToken: string): PaletteRunDecision => {
+    if (!paletteContext) return { ok: false, reason: "gone", message: paletteText(paletteLang, "cpGone") };
+    const decision = resolvePaletteRun(actionId, seenToken, paletteContext, paletteLang);
+    if (!decision.ok) return decision;
+    const run = decision.run;
+    switch (run.kind) {
+      // Wide layouts: the research nav's page switch. Touch layouts: the menu's Analysis link.
+      case "research":
+        if (run.via === "analysis-page") router.push(analysisPageHref(active, run.page));
+        else setPaneOpen(run.page);
+        break;
+      // The research pane's own Back button: MegaPane runs its closePane (URL cleanup + onClose).
+      case "close-research": setResearchCloseRequest((n) => n + 1); break;
+      case "symbol":
+        // The review rows step the FROZEN review through its own owner — the same next()/prev()
+        // its bar buttons run, which land on exactly the company the row named and navigate
+        // through `pick` — so the review position advances with the chart and the palette adds no
+        // itinerary write of its own. Every other symbol row is the shell's pick, as before.
+        if (decision.action.id === "review:next") wlReview.next();
+        else if (decision.action.id === "review:previous") wlReview.prev();
+        else pick(run.symbol);
+        break;
+      case "timeframe": if (FUNCTIONAL.has(run.tf)) setTf(run.tf); break;
+      case "template": window.dispatchEvent(new CustomEvent("mm:apply-template", { detail: { id: run.id } })); break;
+      case "save-template": window.dispatchEvent(new CustomEvent("mm:save-template")); break;
+      case "open-indicators": setIndOpen(true); break;
+      case "remove-indicators": removeAllIndicators(); break;
+      case "drawing-history":
+        if (run.direction === "undo" ? drawingHistoryState.canUndo : drawingHistoryState.canRedo) travelDrawingHistory(active, run.direction);
+        break;
+      case "replay": toggleReplay(); break;
+      case "goto-date": window.dispatchEvent(new CustomEvent("mm:open-goto-date", { detail: { pane: run.pane, symbol: run.symbol } })); break;
+    }
+    return decision;
+  };
+
   shellCmdRef.current = {
     favTimeframes: favTfOrder,
     setDrawTool: (id) => (isDrawingToolId(id) ? activateDrawingTool(id) : false),
@@ -5217,10 +5937,11 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       }}/>}
       {!shellMode && (
       <header className="topbar">
-        {fromMacro ? <DashboardBackButton onClick={onBack} /> : <BrandLockup />}
+        {fromMacro ? <DashboardBackButton onClick={onBack} returnHref={macroHref} /> : <BrandLockup />}
         <div className="tdiv" />
-        <div className="pair" onClick={() => { setSeed(""); setSearchMode("go"); setSearchOpen(true); }}><span className="dual"><i>{active[0]}</i><i>$</i></span><b>{active}</b>
-          <svg className="car" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" /></svg></div>
+        <button type="button" className="pair" aria-label={`${t("searchTitle")} — ${active}`} aria-haspopup="dialog" aria-expanded={searchOpen && searchMode === "go"}
+          onClick={() => { setSeed(""); setSearchMode("go"); setSearchOpen(true); }}><span className="dual"><i>{active[0]}</i><i>$</i></span><b>{active}</b>
+          <svg className="car" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" /></svg></button>
         <button className="cmp-btn" title={t("compareTitle")} onClick={(e) => { e.stopPropagation(); setSearchMode("compare"); setSeed(""); setSearchOpen(true); }}>
           <svg viewBox="0 0 24 24"><path d="M4 18l5-9 4 5 3-4 4 8" /></svg>
           <span>{t("compare")}</span>
@@ -5249,6 +5970,19 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
           return <span className={`${cls} topbar-livebadge`} title={tip}><i />{label}</span>;
         })()}
         <div className="spacer" />
+        <button
+          type="button"
+          className="cmp-btn"
+          data-command-palette-trigger="desktop"
+          aria-haspopup="dialog"
+          aria-keyshortcuts=">"
+          aria-label={paletteText(paletteLang, "cpTriggerName")}
+          title={paletteText(paletteLang, "cpTriggerTip")}
+          onClick={() => setPaletteOpen(true)}
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7l5 5-5 5M12 17h7" /></svg>
+          <span>{paletteText(paletteLang, "cpTrigger")}<kbd className={paletteTriggerStyles.kbd}>&gt;</kbd></span>
+        </button>
         <button className="ai" onClick={() => openBrainReincluding(setBrainIncluded, () => (window as any).MMBrain?.toggle())}><svg viewBox="0 0 24 24"><path d="M12 2l2.2 5.8L20 10l-5.8 2.2L12 18l-2.2-5.8L4 10l5.8-2.2z" /></svg>Mastermind AI</button>
         <SettingsButton email={email} />
       </header>
@@ -5259,8 +5993,11 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       <MobileNav
         email={email}
         fromMacro={fromMacro}
+        returnHref={macroHref}
         onBack={onBack}
         onOpenCopilot={() => openBrainReincluding(setBrainIncluded, () => (window as any).MMBrain?.open())}
+        onOpenCommandPalette={() => setPaletteOpen(true)}
+        commandPaletteLabel={paletteText(paletteLang, "cpTriggerName")}
         isTerminal
         activeKey={(() => {
           const pane = new URLSearchParams(urlSearch).get("pane");
@@ -5268,9 +6005,13 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         })()}
       />
       {/* ── mobile symbol bar (tap → search) ── */}
-      <div className={`m-symbar${activeExtData ? " has-ext" : ""}`} onClick={() => { setSeed(""); setSearchOpen(true); }}>
+      <div className={`m-symbar${activeExtData ? " has-ext" : ""}`}>
+        <button type="button" className={searchStyles.mobileTrigger} data-symbol-search
+          aria-describedby={mobileQuoteId}
+          aria-label={`${t("searchTitle")} — ${active}`} aria-haspopup="dialog" aria-expanded={searchOpen && searchMode === "go"}
+          onClick={() => { setSeed(""); setSearchMode("go"); setSearchOpen(true); }}>
         <span className="m-sym"><span className="ic" style={{ background: m?.col || "#76b900" }}>{active[0]}</span><b>{active}</b><svg className="car" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" /></svg></span>
-        <span className="m-quote-stack">
+        <span className="m-quote-stack" id={mobileQuoteId}>
           <span className="m-px" data-quote-lane="regular"><b className="num">{fmt(lastPx, m && lastPx != null && lastPx < 10 ? 4 : 2)}</b>{isSuspended
             ? <span className="cg quote-suspended">{t("suspended")}</span>
             : <span className={`cg num ${(chgNow ?? 0) >= 0 ? "up" : "down"}`}>{chgStr(chgNow)}</span>}</span>
@@ -5284,6 +6025,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             </span>
           )}
         </span>
+        </button>
+        <WatchlistEventsButton variant="symbar" onOpen={() => setEventPlannerOpen(true)} />
       </div>
 
       <AppNav />
@@ -5304,6 +6047,12 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         <div className="chart-tabs" ref={chartToolbarRef} data-toolbar-mode={chartToolbarMode}>
           <div className="ct on">{t("priceChart")}</div>
           <div className="tools">
+            {!shellMode && <button type="button" className={contextStyles.launcher} data-context-launcher data-toolbar-item data-toolbar-core="true"
+              aria-label={visualText("title", lang)} aria-expanded={contextOpen && contextAvailable} disabled={!contextAvailable}
+              onClick={(event) => { changeContext(!contextOpen, event.currentTarget); if (!contextOpen) track({ type: "click", ticker: active, meta: { feature: "visual_intelligence", action: "open", timeframe: tf, language: lang } }); }}>
+              <svg viewBox="0 0 18 18" aria-hidden="true"><rect x="2" y="3" width="14" height="12" rx="2" /><path d="M11 3v12M5 7h3M5 10h3" /></svg>
+              {visualText("tab", lang)}
+            </button>}
             <div className="pophost" data-toolbar-item data-toolbar-timeframes>
               <div className="tftray">
                 {[...favTF].sort((a, b) => tfSortKey(a) - tfSortKey(b)).map((tfi) => (
@@ -5402,10 +6151,14 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                 <LayoutMenu {...layoutMenuProps} isOpen={layoutOpen} />
               </div>
             </div>
-            <div className="pophost tool-adv toolbar-overflow-item" data-toolbar-item>
+            <div className="pophost tool-adv toolbar-overflow-item" data-toolbar-item data-toolbar-action="snapshot">
               <button className="icbtn" title={t("snapshot")} onClick={(e) => { e.stopPropagation(); const willOpen = !snapOpen; closeAll(); setSnapOpen(willOpen); }}><svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" /><circle cx="12" cy="13" r="4" /></svg></button>
               <div className={`pop snap-pop${snapOpen ? " show" : ""}`} style={{ top: 36, right: 0, minWidth: 220 }} onClick={(e) => e.stopPropagation()}>
                 <div className="menu-hd" style={{ padding: "7px 12px 5px", fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "var(--text-dim)", borderBottom: "1px solid var(--line)", marginBottom: 2 }}>{t("snapMenuTitle")}</div>
+                <div className="menu-row" data-snapshot-action="review" onClick={() => { setSnapOpen(false); setCaptureOpen(true); }}>
+                  <svg viewBox="0 0 24 24"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z" /><circle cx="12" cy="12" r="3" /></svg>
+                  {captureT("ccMenuReview")}
+                </div>
                 <div className="menu-row" onClick={() => { setSnapOpen(false); window.dispatchEvent(new CustomEvent("mm:snapshot", { detail: { action: "download" } })); }}>
                   <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" /></svg>
                   {t("snapDownload")}<span style={{ marginLeft: "auto", opacity: 0.45, fontSize: 10 }}>⌥⌘S</span>
@@ -5511,6 +6264,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                 </>)}
 
                 {toolbarMoreView === "snapshot" && (<>
+                  <button type="button" role="menuitem" className="menu-row" data-toolbar-menu-action="snapshot-review" onClick={() => { setToolbarMoreOpen(false); setCaptureOpen(true); }}><svg viewBox="0 0 24 24"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z" /><circle cx="12" cy="12" r="3" /></svg>{captureT("ccMenuReview")}</button>
                   <button type="button" role="menuitem" className="menu-row" data-toolbar-menu-action="snapshot-download" onClick={() => { setToolbarMoreOpen(false); window.dispatchEvent(new CustomEvent("mm:snapshot", { detail: { action: "download" } })); }}><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" /></svg>{t("snapDownload")}</button>
                   <button type="button" role="menuitem" className="menu-row" data-toolbar-menu-action="snapshot-copy" onClick={() => { setToolbarMoreOpen(false); window.dispatchEvent(new CustomEvent("mm:snapshot", { detail: { action: "copy" } })); }}><svg viewBox="0 0 24 24"><path d="M8 17H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v3M11 21h8a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-8a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2z" /></svg>{t("snapCopy")}</button>
                   <button type="button" role="menuitem" className="menu-row" data-toolbar-menu-action="snapshot-share" onClick={() => { setToolbarMoreOpen(false); window.dispatchEvent(new CustomEvent("mm:snapshot", { detail: { action: "share" } })); }}><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg>{t("snapCopyLink")}</button>
@@ -5541,11 +6295,12 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
 
         {/* ── MegaPane in-slot: on desktop (>860px via CSS) this fills the chart-pane area in-place,
              keeping the AppNav + watchlist rail mounted and interactive. On mobile the CSS reverts it
-             to a full-screen fixed overlay (existing behavior). Ticker changes propagate automatically
+             to a full-screen fixed overlay over .mobilebar, so `chartHosted` gives it its own ≥44px
+             Back-to-chart exit there. Ticker changes propagate automatically
              because `active` is the same symbol-selection state the chart uses. ── */}
         {paneOpen ? (
           <MegaPane
-            sym={active}
+            sym={active} host="chart"
             fund={fund}
             fundLoading={fundLoading}
             quote={liveQuote ? { last: lastPx ?? null } : null}
@@ -5555,7 +6310,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             onClose={() => setPaneOpen(null)}
             name={nameOf(m) || active}
             mode="workspace"
+            chartHosted
             intel={intel}
+            closeRequest={researchCloseRequest}
           />
         ) : tableViewOpen ? (
           /* D3 → E10: the time-aware Data Inspector replaces the chart body. It reads only what the
@@ -5602,7 +6359,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
               canUndo={drawingHistoryState.canUndo}
               canRedo={drawingHistoryState.canRedo}
               drawStyle={drawStyle}
-              onTool={(id) => { activateDrawingTool(id); }}
+              onTool={activateDrawingTool}
               onMagnet={setMagnet}
               onSticky={setDrawingSticky}
               onPinned={setDrawingPinnedTool}
@@ -5634,15 +6391,78 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
               }}
               onDrawStyle={patchDrawStyle}
             />
-            <div className="pane-grid" data-n={panes.length}>
+            <div className={`pane-grid ${contextStyles.paneGrid}`} data-n={panes.length}>
               {panes.map((sym, i) => (
-                <ChartPane key={i} idx={i} optionsLevel={ent.optionsRead && !replayOn && i === activePane && optionsLevel?.pane === i ? optionsLevel : null} symbol={sym} drawingOwnerKey={currentDrawingOwnerKey} isActive={i === activePane} onActivate={setActivePane} row={paneRows[i]} tf={paneTfs[i] ?? "D"} episodeId={initialEpisode && initialSymbol && sym.toUpperCase() === initialSymbol.toUpperCase() ? initialEpisode : null} chartType={chartType} inds={inds} tool={drawingsReadyFor(sym) ? activeDrawingTool : null} toolActivation={toolState.activation} drawingSticky={drawingCreationDisabledReason ? false : drawingKeepsActive} drawingCreationDisabled={drawingCreationDisabledReason !== null} drawStyle={drawStyle} detectCmd={detectCmd} compare={compare} compareCfg={compareCfg} magnet={magnet} replayCutoff={replayOn && i === 0 ? replayCutoff : null} onMeta={onPaneMeta} drawings={[...(drawingOwnerMatches ? (drawStore[sym] ?? []) : []), ...chartBus.aiDrawingsFor(sym)]} drawingsVisible={drawingsVisible} onDrawingsChange={(d) => setSymbolDrawings(sym, d)} onDetectedDrawingCount={i === activePane ? setActivePaneDetectedDrawingCount : undefined} liveQuote={quotes[sym] ?? null} dataReady={prefsHydrated} initialTimeframe={startTfRef.current} indParams={indParams} hidden={hidden} onToggleHidden={toggleHidden} onRemoveInd={removeInd} onOpenSettings={openSettings} onOpenSource={openSource} pineScripts={pineScripts} dayMode={dtm} userTier={userTier}
+                <ChartPane key={i} idx={i} contextDock={contextDock} optionsLevel={ent.optionsRead && !replayOn && i === activePane && optionsLevel?.pane === i ? optionsLevel : null} symbol={sym} drawingOwnerKey={currentDrawingOwnerKey} isActive={i === activePane} onActivate={setActivePane} row={paneRows[i]} tf={paneTfs[i] ?? "D"} episodeId={initialEpisode && initialSymbol && sym.toUpperCase() === initialSymbol.toUpperCase() ? initialEpisode : null} chartType={chartType} inds={inds} tool={drawingsReadyFor(sym) ? activeDrawingTool : null} toolActivation={toolState.activation} drawingSticky={drawingCreationDisabledReason ? false : drawingKeepsActive} drawingCreationDisabled={drawingCreationDisabledReason !== null} drawStyle={drawStyle} detectCmd={detectCmd} compare={compare} compareCfg={compareCfg} onCompareCfgChange={setCompareCfg} magnet={magnet} replayCutoff={replayOn && i === 0 ? replayCutoff : null} onMeta={onPaneMeta} drawings={[...(drawingOwnerMatches ? (drawStore[sym] ?? []) : []), ...chartBus.aiDrawingsFor(sym)]} drawingsVisible={drawingsVisible} onDrawingsChange={(d) => setSymbolDrawings(sym, d)} onDetectedDrawingCount={i === activePane ? setActivePaneDetectedDrawingCount : undefined} liveQuote={{ ...(quotes[sym] ?? {}), ...(isPublicBoatsQuote(extQuotes[sym], extClockMs) ? extQuotes[sym] : {}) }} dataReady={prefsHydrated} initialTimeframe={startTfRef.current} indParams={indParams} hidden={hidden} onToggleHidden={toggleHidden} onRemoveInd={removeInd} onOpenSettings={openSettings} onOpenSource={openSource} pineScripts={pineScripts} dayMode={dtm} userTier={userTier}
                   onAddAlert={(price) => { window.location.href = `/alerts?sym=${encodeURIComponent(active)}&price=${encodeURIComponent(price.toFixed(4))}&type=price_above`; }}
                   onTableView={() => setTableViewOpen(true)}
                   onObjectTree={() => setObjectTreeOpen((o) => !o)}
                   lockedVLine={lockedVLine}
                   onSetLockedVLine={(t2) => setLockedVLine(t2)}
-                  onIndRowsAt={i === activePane ? (fn, meta) => { setIndRowsAt(() => fn); if (meta) setChartReadoutMeta(meta); } : undefined}
+                  onIndRowsAt={i === activePane ? (fn, meta) => {
+                    setIndRowsAt(() => fn);
+                    const identity = aiContextProviderRef.current!.getAiContext();
+                    setChartReadoutMeta(meta ? { ...meta, copilotBinding: {
+                      origin_id: identity.origin_id, context_revision: identity.context_revision,
+                      paneId: i, settingsKey: JSON.stringify(sessionIndicators),
+                      replayOn, replayIdx: replayOn ? replayIdx : null,
+                    } } : null);
+                  } : undefined}
+                  onRenderedPriceSource={(source) => {
+                    const paneTf = paneTfs[i] ?? "D";
+                    const paneReplayOn = i === activePane && replayOn;
+                    if (!source) {
+                      if (panePriceSourceRef.current[i]) {
+                        delete panePriceSourceRef.current[i];
+                        chartBus.noteReadoutChange();
+                      }
+                      return;
+                    }
+                    // A late callback from the pane's previous symbol/timeframe/replay epoch
+                    // cannot replace current evidence.
+                    if (source.symbol !== sym || source.tf !== paneTf || source.replay !== paneReplayOn) return;
+                    panePriceSourceRef.current[i] = source;
+                    chartBus.noteReadoutChange();
+                  }}
+                  onPresentationState={(packet, source) => {
+                    const expected = { symbol: sym, tf: paneTfs[i] ?? "D", pane_id: i, chart_type: chartType,
+                      replay: i === activePane && replayOn, day_trade_mode: dtm };
+                    const release = commitChartPresentation(
+                      panePresentationRef.current, expected, source, packet, chartBus.noteReadoutChange,
+                    );
+                    if (release) {
+                      const sessionKey = chartPresentationSessionKey(readChartPresentation(panePresentationRef.current, expected));
+                      if (sessionKey !== null) {
+                        paneSessionKeyRef.current[i] = sessionKey;
+                        if (i === activePane) noteAiChartContext();
+                      }
+                    }
+                    // Cleanup retires evidence without manufacturing a second context transition.
+                    return release;
+                  }}
+                  onNativeObservations={(packet) => {
+                    const paneTf = paneTfs[i] ?? "D";
+                    const paneReplayOn = i === activePane && replayOn;
+                    const paneReplayIdx = paneReplayOn ? replayIdx : null;
+                    setNativeObservationByPane((current) => {
+                      if (!packet) {
+                        if (!(i in current)) return current;
+                        const next = { ...current }; delete next[i]; return next;
+                      }
+                      const nextState: NativePaneObservationState = {
+                        packet,
+                        pane_id: i,
+                        symbol: sym,
+                        tf: paneTf,
+                        settings_key: JSON.stringify(sessionIndicators),
+                        replay_on: paneReplayOn,
+                        replay_idx: paneReplayIdx,
+                        selected_time: lockedVLine,
+                      };
+                      // ChartPanel already signature-deduplicates packets before this callback.
+                      return { ...current, [i]: nextState };
+                    });
+                  }}
                   onPaneCount={i === 0 ? onPaneCount : undefined}
                   headerSlot={panes.length > 1 ? <ChartLinkControl idx={i} view={linkView} labels={panes} onAssign={assignLinkGroup} onShare={setLinkShare} /> : null}
                 />
@@ -5747,8 +6567,14 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             canRedo={drawingHistoryState.canRedo}
           />
         )}
+        {contextInline && contextAvailable && <div className={`${contextStyles.inline} ${fullChart || shellMode ? contextStyles.bounded : ""}`}>
+          <div ref={setContextInlineHost} className={contextStyles.inlineHost} data-context-dock="inline" hidden={!contextOpen} />
+        </div>}
       </section>
       )}
+
+      {/* Review capture (E19) — every breakpoint; the chart's own snapshot compositor paints it. */}
+      {captureOpen && <ChartCaptureDialog open onClose={() => setCaptureOpen(false)} />}
 
       {/* ── phone chart chrome (R2.1–R2.3) ──────────────────────────────────────────────────────
           The sheets the strip raises replace the phone's floating drawing dock and top toolbar
@@ -5766,14 +6592,20 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
           open={hubOpen}
           onClose={() => setHubOpen(false)}
           replay={{ active: replayOn, blockedReason: replayBlockedReason, title: t(replayTitleKey) }}
+          context={{ available: contextAvailable, open: contextOpen && contextAvailable, label: visualText("title", lang) }}
           onAction={(action) => {
             setHubOpen(false);
-            if (action === "indicators") setIndOpen(true);
+            if (action === "context") changeContext(true, document.querySelector<HTMLElement>('[data-testid="roller-more"]'));
+            else if (action === "indicators") setIndOpen(true);
             else if (action === "compare") { setSearchMode("compare"); setSeed(""); setSearchOpen(true); }
             else if (action === "chartType") setCtOpen(true);
+            else if (action === "chartSettings") window.dispatchEvent(new CustomEvent("mm:open-chart-settings", {
+              detail: { pane: activePane, symbol: active, tab: "symbol" },
+            }));
             else if (action === "workspaces") setPhoneWorkspacesOpen(true);
             else if (action === "options") optionsRailRef.current?.open();
             else if (action === "replay") toggleReplay();
+            else if (action === "capture") setCaptureOpen(true);
             else if (action === "dataTable") setTableViewOpen(true);
             else if (action === "alerts") window.location.assign(`/alerts?sym=${encodeURIComponent(active)}`);
             else if (action === "symbolDetails") {
@@ -5799,6 +6631,16 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         </MobileSheet>
       </>)}
 
+      {eventPlannerOpen && (
+        <WatchlistEventPlanner
+          lists={lists}
+          initialList={activeList}
+          symbolInfo={plannerSymbolInfo}
+          onClose={() => setEventPlannerOpen(false)}
+          onOpenCompany={(symbol) => { setEventPlannerOpen(false); pick(symbol); setPaneOpen("earnings"); }}
+        />
+      )}
+
       {/* The rail and the chart workspace are INDEPENDENT surfaces (the rail's intel/fund/opts
           fetches never touch ChartPanel), so shell mode drops the rail while dossier mode keeps
           it and drops the chart. The resizer is desktop-only chrome — never in a native shell. */}
@@ -5807,9 +6649,11 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       )}
       {(!shellMode || dossierMode) && (<>
       <OptionsRail ref={optionsRailRef} symbol={active} enabled={!shellMode && !dossierMode}
+        contextOpen={contextOpen && contextAvailable} contextAvailable={contextAvailable} onContextChange={changeContext} contextHostRef={setContextRailHost}
         access={ent.loading ? "loading" : ent.optionsRead ? "allowed" : "locked"}
         pinned={optionsLevel?.pane === activePane ? optionsLevel : null} onPin={pinOptionsLevel} replayActive={replayOn}>
         <div className="rail-body">
+          {!dossierMode && <WatchlistReviewBar review={wlReview} activeSymbol={active} activeList={activeList} activeListCount={lists[activeList]?.length ?? 0} manifestSymbols={man?.symbols ?? null} />}
           {/* The authenticated rail has three distinct sources: Portfolio, Watchlists and News.
               A guest has no book/news entitlement, so the guest rail is byte-for-byte what it was.
               The watchlist board below is HIDDEN, never unmounted, when another source is showing —
@@ -5932,6 +6776,12 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                 {/* Actions on the ACTIVE list — the operator's reference puts sections and the
                     list-level commands behind the watchlist-name dropdown, not the gear. */}
                 <div className="set-grp">{t("thisList")}</div>
+                {!dossierMode && <div className="menu-row" role="button" tabIndex={0} data-testid="wl-review-start"
+                  title={wlReview.itinerary && wlReview.itinerary.listName !== activeList ? reviewT("wlrReplaces").replace("{list}", wlReview.itinerary.listName) : undefined}
+                  onClick={() => { setWlMenuOpen(false); if (wlReview.itinerary?.listName === activeList) wlReview.resume(); else wlReview.start(activeList); }}
+                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }}>
+                  <svg viewBox="0 0 24 24"><path d="M4 6h11M4 12h11M4 18h7M17 15l3 3-3 3M14 18h6" /></svg>{reviewT(wlReview.itinerary?.listName === activeList ? "wlrResumeThis" : "wlrStartThis")}
+                </div>}
                 {secCreating ? (
                   <div className="wl-sec-new">
                     <input
@@ -5960,6 +6810,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
               )}
               <div className={`wl-acts${selectedWlCount >= 2 ? " wl-acts-selection" : ""}`}>
                 <button title={t("addSymbol")} onClick={(e) => { e.stopPropagation(); addSymbolTargetRef.current = null; setSeed(""); setAddSymOpen(true); }}><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg></button>
+                <WatchlistEventsButton variant="rail" onOpen={() => { closeAll(); setEventPlannerOpen(true); }} />
                 <button title={t("settings")} onClick={(e) => { e.stopPropagation(); const willOpen = !wlSetOpen; closeAll(); setWlSetOpen(willOpen); }}><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5" /><circle cx="12" cy="12" r="1.5" /><circle cx="19" cy="12" r="1.5" /></svg></button>
               </div>
               <div className={`pop${wlSetOpen ? " show" : ""}`} style={{ top: 40, right: 6 }} onClick={(e) => e.stopPropagation()}>
@@ -6213,10 +7064,12 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             </div>
             <div className="detail-scroll">
               <div style={{ padding: "12px 12px 0" }}>
-                <SignalButton oracle={ov} desk={dv} oracleLabel={t("goldenOracleLbl")} deskLabel={t("researchDeskLbl")} viewLabel={t("signalView")} onView={() => setSignalsOpen(true)} />
+                <SignalButton oracle={ov} desk={dv} prophet={prophetRead} oracleLabel={t("goldenOracleLbl")} deskLabel={t("researchDeskLbl")} viewLabel={t("signalView")} zh={lang === "zh"} expanded={signalsOpen} onView={() => setSignalsOpen(value => !value)} />
                 <TrendRow bars={bars} />
                 <WashoutTurnRow wt={intel?.tape?.washout_turn} zh={lang === "zh"} />
               </div>
+              {/* E16 on a phone: the idle review control follows the oracle row so the row keeps the fold (R2.3). */}
+              {!dossierMode && <WatchlistReviewBar slot="phone-foot" review={wlReview} activeSymbol={active} activeList={activeList} activeListCount={lists[activeList]?.length ?? 0} manifestSymbols={man?.symbols ?? null} />}
               {/* Seasonality is injected via beforeIv so it renders BETWEEN the Analyst gauge and Implied
                   Volatility (order: analysis → Seasonality → IV) rather than after the whole card. */}
               <StockAnalysis intel={intel} row={m} fund={fund} opts={opts} bars={bars} glance={parseGlanceState(railGex, active)} onOpenPane={(p) => setPaneOpen(p)} onOpenSignals={() => setSignalsOpen(true)}
@@ -6288,13 +7141,18 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ action: "create", ...draft }),
               });
-              if (!response.ok) return false;
-            } catch { return false; }
+              const receipt = await response.json().catch(() => null) as MutationReceipt | null;
+              if (!response.ok) return positionMutationFailure(response.status, receipt);
+              if (!receipt) return { ok: false, reason: null };
+              const reread = await fetch("/api/portfolio?view=positions", { cache: "no-store" });
+              const canonical = reread.ok ? decodePositionRead(await reread.json().catch(() => null)) : null;
+              if (!canonical || !mutationPostcondition({ action: "create", ...draft }, receipt, canonical.positions)) return { ok: false, reason: null };
+            } catch { return { ok: false, reason: null }; }
             setPfAddSymbol(null);
             // The rail only holds a book while the Portfolio tab is open; refresh it there so the
             // new row appears without a reload, and leave it alone otherwise.
             if (railTab === "portfolio") void pfRail.load();
-            return true;
+            return { ok: true };
           }}
         />
       )}
@@ -6330,7 +7188,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             if (entry) setGuide({ suite: entry.suiteKey, mod: entry.moduleKey, label: entry.label });
           }}
           scripts={scripts} scriptsUnavailable={scriptsUnavailable} onRetryScripts={loadScripts}
-          enabled={enabledSet} onToggleScript={toggleScript} onRenameScript={handleRenameScript} onDeleteScript={handleDeleteScript} />
+          enabled={enabledSet} onToggleScript={toggleScript} onRenameScript={handleRenameScript} onDeleteScript={handleDeleteScript}
+          onOpenTemplates={() => { window.requestAnimationFrame(() => window.dispatchEvent(new CustomEvent("mm:open-study-templates"))); }} />
       )}
       {settingsKey && (isCmpKey(settingsKey)
         ? <CompareSettings sym={cmpSymOf(settingsKey)} cfg={compareCfg[cmpSymOf(settingsKey)] || defaultCmpCfg(0)} onChange={(patch) => setCompareCfg((c) => ({ ...c, [cmpSymOf(settingsKey)]: { ...(c[cmpSymOf(settingsKey)] || defaultCmpCfg(0)), ...patch } }))} onClose={() => setSettingsKey(null)} />
@@ -6368,55 +7227,38 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         <BrainWidget
           active={active}
           onCommand={handleBrainCommand}
-          onAnnotate={(j) => annotateChart(j.symbol || active, j.annotations || [])}
+          onChartStop={(request) => {
+            if (request?.scope !== "received_batches") return undefined;
+            return { scope: "received_batches", cancelled: chartBus.queue.cancelBatches(request.batch_ids) };
+          }}
           onAuthRequired={() => window.location.assign("/login")}
           getAiContext={() => aiContextProviderRef.current!.getAiContext()}
         />
       )}
 
-      {/* ── Signals dashboard overlay (Golden Oracle scorecard · research read · signal history) ── */}
-      {signalsOpen && (
-        <OracleDash sym={active} row={m} slice={slice} intel={intel} bars={bars} zh={lang === "zh"} onClose={() => setSignalsOpen(false)} onJump={(ts: string) => { window.dispatchEvent(new CustomEvent("mm:chart-jump", { detail: { ts } })); setSignalsOpen(false); }} onOpenFull={() => { setSignalsOpen(false); setPaneOpen("overview"); }} />
-      )}
+      {/* One docked workspace; its shell owns presence so exit motion can finish. */}
+      {(signalsOpen || signalsMounted) && <OracleDash open={signalsOpen} sym={active} prophet={prophetRead} row={m} bars={barsSymbol === active ? bars : []} zh={lang === "zh"}
+        onClose={() => setSignalsOpen(false)} onOpenFull={() => { setSignalsOpen(false); setPaneOpen("overview"); }} />}
 
-      {/* ── D2 Save-template-as modal ─── */}
-      {tmplSaveOpen && (
-        <div className="tmpl-modal-bg" onClick={(e) => { if (e.target === e.currentTarget) setTmplSaveOpen(false); }}>
-          <div className="tmpl-modal">
-            <h3>{t("tmplSaveAs")}</h3>
-            <input
-              autoFocus
-              placeholder={t("tmplNamePlaceholder")}
-              value={tmplSaveName}
-              onChange={(e) => { setTmplSaveName(e.target.value); setTmplSaveErr(null); }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  if (!tmplSaveName.trim()) { setTmplSaveErr(t("tmplNameRequired")); return; }
-                  const existing = templates.find((x) => x.name === tmplSaveName.trim());
-                  if (existing && !window.confirm(t("tmplOverwriteConfirm"))) return;
-                  try {
-                    saveTemplate(tmplSaveName.trim(), [...inds], indParams);
-                    setTemplates(listTemplates());
-                  } catch {}
-                  setTmplSaveOpen(false);
-                } else if (e.key === "Escape") setTmplSaveOpen(false);
-              }}
-            />
-            {tmplSaveErr && <div style={{ color: "var(--danger)", fontSize: 12, marginBottom: 10 }}>{tmplSaveErr}</div>}
-            <div className="tmpl-btns">
-              <button className="btn" onClick={() => setTmplSaveOpen(false)}>{t("cancel")}</button>
-              <button className="btn btn-primary" onClick={() => {
-                if (!tmplSaveName.trim()) { setTmplSaveErr(t("tmplNameRequired")); return; }
-                try {
-                  saveTemplate(tmplSaveName.trim(), [...inds], indParams);
-                  setTemplates(listTemplates());
-                } catch {}
-                setTmplSaveOpen(false);
-              }}>{t("save")}</button>
-            </div>
-          </div>
-        </div>
+      {/* ── E07 study templates: save dialog, library with preview, menu events ─── */}
+      <StudyTemplatesHost
+        key={identityOwnerKey(identity)}
+        identity={identity}
+        studyState={studyTemplateState}
+        userTier={userTier}
+        guestLimit={loggedIn ? null : MAX_ANON_IND}
+        onApply={applyStudyTemplate}
+      />
+
+      {/* ── E20 chart command palette ─── */}
+      {!shellMode && paletteContext && (
+        <CommandPalette
+          lang={paletteLang}
+          context={paletteContext}
+          phone={isPhone}
+          onRun={runPaletteAction}
+          onClose={() => setPaletteOpen(false)}
+        />
       )}
 
       {/* ── D1 "remove all indicators" undo toast ─── */}
@@ -6460,6 +7302,56 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         <div className="undo-toast" role="alert" style={{ position: "fixed", bottom: 136, left: "50%", transform: "translateX(-50%)", background: "var(--panel-3)", border: "1px solid var(--danger)", borderRadius: "var(--r-md)", padding: "8px 16px", fontSize: 12.5, color: "var(--text)", boxShadow: "0 8px 24px -8px rgba(0,0,0,.7)", zIndex: 52, display: "flex", alignItems: "center", gap: 10, maxWidth: "min(92vw, 560px)" }}>
           {t("drawingLoadFailed")}
         </div>
+      )}
+
+      {drawingOwnerMatches && drawingSaveIssues[active] && (
+        <div className="undo-toast" role="alert" data-testid="drawing-save-recovery" style={{ position: "fixed", bottom: 176, left: "50%", transform: "translateX(-50%)", background: "var(--panel-3)", border: "1px solid var(--warn)", borderRadius: "var(--r-md)", padding: "12px 16px", fontSize: 12.5, color: "var(--text)", boxShadow: "0 8px 24px -8px rgba(0,0,0,.7)", zIndex: 53, width: "min(92vw, 560px)", display: "flex", flexWrap: "wrap", gap: 10 }}>
+          <span style={{ width: "100%" }}>{drawingSaveRecoveryMessage(drawingSaveIssues[active], lang, t)}</span>
+          {(() => {
+            const issue = drawingSaveIssues[active];
+            const choices = drawingSaveIssueChoices(issue, !!drawingCloudCopies[active]);
+            if (choices.length === 0) return null;
+            if (choices.includes("retry_save")) {
+              return (
+                <button type="button" style={{ minHeight: 44 }} disabled={drawingSavesActive.current.has(active)} onClick={() => flushDrawings(active)}>{t("drawingRetrySave")}</button>
+              );
+            }
+            // keep_local implies the full replace/keep cloud UI (counts + alternatives + both buttons)
+            if (choices.includes("keep_local")) {
+              return (
+                <>
+                  <span style={{ width: "100%" }}>{t("drawingLocalCopy")} ({drawPending.current[active]?.length ?? 0}) · {t("drawingCloudCopy")} ({drawingCloudCopies[active].drawings.length})</span>
+                  {[...(drawRecovery.current[drawOwner.current]?.[active]?.alternatives ?? [])].map((copy, index) => (
+                    <button key={copy.recoveryId} type="button" style={{ minHeight: 44 }} disabled={drawingSavesActive.current.has(active)} onClick={() => chooseDrawingRecoveryCopy(active, copy.recoveryId!)}>{t("drawingOtherLocalCopy")} {index + 1} ({copy.drawings.length})</button>
+                  ))}
+                  {choices.includes("use_cloud") && (
+                    <button type="button" style={{ minHeight: 44 }} disabled={drawingSavesActive.current.has(active)} onClick={() => resolveDrawingRecovery(active, "cloud")}>{t("drawingUseCloud")}</button>
+                  )}
+                  {choices.includes("keep_local") && (
+                    <button type="button" style={{ minHeight: 44 }} disabled={drawingSavesActive.current.has(active)} onClick={() => resolveDrawingRecovery(active, "local")}>{t("drawingKeepLocal")}</button>
+                  )}
+                </>
+              );
+            }
+            // too_many falls here: only "Use cloud copy" once the cloud copy is loaded,
+            // or "Review cloud copy" if the user still needs to fetch it.
+            if (choices.includes("use_cloud")) {
+              return (
+                <button type="button" style={{ minHeight: 44 }} disabled={drawingSavesActive.current.has(active)} onClick={() => resolveDrawingRecovery(active, "cloud")}>{t("drawingUseCloud")}</button>
+              );
+            }
+            if (choices.includes("review_cloud")) {
+              return (
+                <button type="button" style={{ minHeight: 44 }} onClick={() => void loadDrawingCloudCopy(active)}>{t("drawingReviewCloud")}</button>
+              );
+            }
+            return null;
+          })()}
+        </div>
+      )}
+
+      {drawingOwnerMatches && drawingStorageUnavailable && !drawingSaveIssues[active] && (
+        <div className="undo-toast" role="alert" data-testid="drawing-storage-unavailable">{t("drawingStorageUnavailable")}</div>
       )}
 
       {drawingLimitWarning && (

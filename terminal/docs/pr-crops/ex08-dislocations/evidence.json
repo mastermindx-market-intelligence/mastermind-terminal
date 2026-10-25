@@ -1,0 +1,51 @@
+{
+  "schema": "mastermind.terminal.ex08_dislocations_evidence.v1",
+  "program_operation": "terminal-ex08-dislocations-clarity-20261023",
+  "base_source": "ec1e45ec29ced091b3721da77702d57e720ae588",
+  "candidate_source": "one independent managed worktree, pending source commit",
+  "capture_time_utc": "2026-10-23T19:27:13.611Z",
+  "data_source": "existing local mm_e2e_dislo feed fixtures, not live provider readings",
+  "scope": "12 responsive EN/ZH desktop/tablet/mobile fresh/stale local browser cells",
+  "tests": {
+    "dislocations_view_and_api_unit": {
+      "passed": 53,
+      "failed": 0
+    },
+    "playwright": {
+      "expected": 12,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    }
+  },
+  "production_deployed": false,
+  "live_user_acceptance": false,
+  "source_sha256": {
+    "terminal/components/dislocations/DislocationsView.tsx": "40ee75c948b2b3c5ed3740582a50a7d95d152a3f777854eca52319cc30ece55b",
+    "terminal/components/dislocations/DislocationsView.module.css": "03e58b70bd93bfb83b53540f90c0a85f6b76188380b4a8f264d882c3fafd8e6f",
+    "terminal/components/dislocations/__tests__/DislocationsView.test.tsx": "65f3a16fac5195be5d77e0bd29bb79d34d45684930c7ddb15a59255bb71d32ab",
+    "terminal/e2e/dislocations-ex08.spec.ts": "86ca09f1bf562bb69c198bda080846cdac68798155b8c42ee1b074696ac77b70"
+  },
+  "browser_report_sha256": "e23ff13bf90ee33b7bce43b44e43f13fdd123bd82d3443c0c00ec7fe26c8d499",
+  "images_sha256": {
+    "desktop-fresh-en.png": "5562cb5ac0aae789bc2bb6fd4f61c74664a801a2e581ff348b2f8331f36f5fe3",
+    "desktop-fresh-zh.png": "7daeca80bc6909c42fb23c9ebc5bb6e2d4a0513102156ac4969aeb2b9be5beb5",
+    "desktop-stale-en.png": "564b0e441763e4369a41d2aa27236c4a4a83c5146c90047ec25c0486e6471481",
+    "desktop-stale-zh.png": "6d0e490e9ed8d69ea054b74114420fdf260cb26091906743afa653a798d7c9f5",
+    "mobile-fresh-en.png": "7e1c81046c75d3dbd681d6088470018bee3202dab258a99d21ad0ed593fa9444",
+    "mobile-fresh-zh.png": "559455aceaa532b94d935235654134837769a23e2fc47d4fb2270f91a963f194",
+    "mobile-stale-en.png": "bfdafb255493f580a34a3d20dfd9029daa29bf56de5988eec93f7c5077ca9c55",
+    "mobile-stale-zh.png": "082f55401f686943252357b788cbc98623d1bee7c64c03cf0a444bd565e23195",
+    "tablet-fresh-en.png": "50c9c3d971280104e41ec15d52b4f454a5ea6d7534c6389d78dd4cade9d5dbb1",
+    "tablet-fresh-zh.png": "cae9a56ca64a520ee017f165d3fbfe03df3358ffd61f640add0b3c6b86e2e8cf",
+    "tablet-stale-en.png": "d52b43aa3d9cc3db4542a9421cb4613c32f4ba722c27c08012c8d388870b3432",
+    "tablet-stale-zh.png": "ad47a1667b676ec46a5e3ed8d49a1df75cae7bacd31500aab505ac9802b2b501"
+  },
+  "untouched_authorities": [
+    "source/API data provenance",
+    "feed stale/delayed/paywall classification",
+    "producer signal logic",
+    "existing chart and terminal shell"
+  ],
+  "inherited_lint_baseline": "2 existing React hooks errors and 1 warning are unchanged vs exact base; no new ESLint violations in EX08 component or new browser spec"
+}

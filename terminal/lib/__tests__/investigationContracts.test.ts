@@ -247,6 +247,36 @@ describe("P1 boundary and active-object falsifiers", () => {
 
 import textVectors from "./fixtures/investigation_text_vectors.json";
 
+describe("P1 review block on the manifest (W3C)", () => {
+  it("accepts an optional review block with a valid assessment", () => {
+    for (const assessment of ["confirmed", "contradicted", "inconclusive"]) {
+      const raw = { ...draft(), review: { assessment, ...(assessment === "confirmed" ? { fire_event_id: "a".repeat(64), note: "the wall held through the session" } : {}) } };
+      const result = validateInvestigationManifest(raw, admission);
+      expect(result).toMatchObject({ ok: true });
+      if (result.ok) expect(result.value.review).toEqual(raw.review);
+    }
+    reject({ ...draft(), review: { assessment: "confirmed", author_ref: "forged" } }, "unknown_field", "$.review.author_ref");
+    reject({ ...draft(), review: "confirmed" }, "invalid_type", "$.review");
+  });
+  it("rejects an unknown assessment, a malformed fire_event_id and an over-long note", () => {
+    reject({ ...draft(), review: { assessment: "maybe" } }, "invalid_assessment", "$.review.assessment");
+    reject({ ...draft(), review: { assessment: "CONFIRMED" } }, "invalid_assessment");
+    reject({ ...draft(), review: { assessment: "confirmed", fire_event_id: "g".repeat(64) } }, "invalid_fire_event_id", "$.review.fire_event_id");
+    reject({ ...draft(), review: { assessment: "confirmed", fire_event_id: "a".repeat(63) } }, "invalid_fire_event_id");
+    reject({ ...draft(), review: { assessment: "inconclusive", note: "界".repeat(2001) } }, "text_too_long", "$.review.note");
+    reject({ ...draft(), review: { assessment: "inconclusive", note: "" } }, "empty_text");
+    const raw = { ...draft(), review: { assessment: "inconclusive", note: "界".repeat(2000) } };
+    expect(validateInvestigationManifest(raw, admission).ok).toBe(true);
+  });
+  it("keeps a manifest without a review block valid", () => {
+    const result = validateInvestigationManifest(draft(), admission);
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(Object.hasOwn(result.value, "review")).toBe(false);
+    reject({ ...draft(), review: null }, "invalid_type", "$.review");
+    reject({ ...draft(), review: {} }, "missing_field", "$.review.assessment");
+  });
+});
+
 describe("shared Python/TypeScript text vectors", () => {
   it.each(textVectors.vectors)("$name", vector => {
     const raw = draft();

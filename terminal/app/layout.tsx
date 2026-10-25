@@ -10,6 +10,7 @@ import "./fin.css";
 import "./observatory.css";
 import "./onboarding.css";
 import "./settings.css";
+import "./workspace-chrome.css";
 import { LangProvider } from "@/lib/i18n";
 import Tracker from "@/components/Tracker";
 import EmbeddedTerminalBridge from "@/components/EmbeddedTerminalBridge";
@@ -42,6 +43,7 @@ const LOCALE_INIT = `(function(){try{
   document.documentElement.setAttribute('data-updown',ud);
   var lg=localStorage.getItem('mm.lang'); if(lg!=='zh'&&lg!=='en') lg=/^zh/.test(L)?'zh':'en';
   document.documentElement.setAttribute('data-lang',lg);
+  document.documentElement.lang=lg==='zh'?'zh-CN':'en';
   var sp=new URLSearchParams(location.search);
   if(sp.get('shell')==='app'){
     document.documentElement.setAttribute('data-shell','app');

@@ -1,3 +1,19 @@
+export type TickerNewsViewMode = "news" | "company" | "all";
+export type TickerNewsEditorialView = {
+  schema: "ticker_news.editorial_view.v1";
+  rules: string;
+  mode: TickerNewsViewMode;
+  revision: string;
+  name_coverage: "names_and_symbols" | "symbols_only" | "unavailable";
+};
+export type TickerNewsEditorial = {
+  schema: "ticker_news.editorial_view.v1";
+  format: "unclassified" | "roundup" | "investment_template" | "commentary";
+  format_reason: string | null;
+  company_reference: "headline" | "summary" | "not_observed";
+  eligible: boolean;
+};
+
 export type TickerNewsState =
   | "live"
   | "catching_up"
@@ -7,6 +23,14 @@ export type TickerNewsState =
   | "unavailable";
 
 export type TickerNewsChangeKind = "upsert" | "remove";
+
+export type TickerNewsReportingState =
+  | "not_compared"
+  | "no_material_difference"
+  | "reports_differ"
+  | "comparison_limited";
+
+export type TickerNewsContentKind = "reporting" | "press_release";
 
 export type TickerNewsStoryRow = {
   sequence: number;
@@ -22,6 +46,14 @@ export type TickerNewsStoryRow = {
   updated_at: string | null;
   received_at: string;
   universe_revision: string;
+  reporting_state?: TickerNewsReportingState;
+  content_kind?: TickerNewsContentKind;
+  /** R2: engine publisher_identity() — a bare domain such as "reuters.com"; absent on older readers. */
+  publisher?: string;
+  /** R2: engine annotate_row() — only event_type is read; null when annotation is not permitted. */
+  annotation?: { event_type: string | null } | null;
+  editorial_view?: TickerNewsEditorialView;
+  editorial?: TickerNewsEditorial | null;
 };
 
 export type TickerNewsSourceHealth = {
@@ -39,6 +71,9 @@ export type TickerNewsRightsBasis = {
 
 export type TickerNewsSnapshot = {
   schema: "ticker_news.snapshot.v1";
+  editorial_policy?: string;
+  editorial_view?: TickerNewsEditorialView;
+  change_sequence?: number;
   ticker: string;
   security_id: string;
   universe_known_at?: string | null;
@@ -58,6 +93,7 @@ export type TickerNewsFlowReason = "no_accessible_sources" | "calculation_failed
 export type TickerNewsFlowComparison = "busier" | "typical" | "quieter" | "insufficient_history";
 
 export type TickerNewsFlowProvenance = {
+  editorial_view?: TickerNewsEditorialView;
   velocity_schema: string;
   sources_counted: string[];
   status_counted: string;
@@ -113,6 +149,16 @@ export type TickerNewsChange = {
   security_ids: string[];
   universe_revision: string;
   observed_at: string;
+  // Additive current-state projection; sequence remains the delivery cursor.
+  source_count?: number | null;
+  item_count?: number | null;
+  published_at?: string | null;
+  updated_at?: string | null;
+  received_at?: string | null;
+  reporting_state?: TickerNewsReportingState;
+  content_kind?: TickerNewsContentKind;
+  editorial_view?: TickerNewsEditorialView;
+  editorial?: TickerNewsEditorial | null;
 };
 
 export type TickerNewsStory = {
@@ -121,4 +167,8 @@ export type TickerNewsStory = {
   source_count: number;
   item_count: number;
   members: TickerNewsStoryRow[];
+  reporting_state?: TickerNewsReportingState;
+  content_kind?: TickerNewsContentKind;
+  editorial_view?: TickerNewsEditorialView;
+  editorial?: TickerNewsEditorial | null;
 };

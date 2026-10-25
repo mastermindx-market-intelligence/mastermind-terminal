@@ -1,0 +1,220 @@
+{
+  "sourceHead": "42d78dbb108eae0dc37fd73d7ece947612cb1ce0",
+  "captured": 24,
+  "files": [
+    {
+      "path": "b-f11-10-analysis-theses-entry/desktop-en.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "c00afbd79583ef0167dab17663b5bd9f52808ffae7bca5e927dc215f68ef7aa5",
+      "crcDecoded": true,
+      "nonblank": true
+    },
+    {
+      "path": "b-f11-10-analysis-theses-entry/desktop-zh.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "f1c699c72b3c30b04115915f9a7a1b0a6a3f37f943d71eff16a4a576f6ca3c5b",
+      "crcDecoded": true,
+      "nonblank": true
+    },
+    {
+      "path": "b-f11-10-analysis-theses-entry/tablet-en.png",
+      "width": 820,
+      "height": 1180,
+      "sha256": "388a71b49ae4ed2aaa9c6fe88d328c05ca4dc4cc8628c819fb6062bad3a54b8d",
+      "crcDecoded": true,
+      "nonblank": true
+    },
+    {
+      "path": "b-f11-10-analysis-theses-entry/tablet-zh.png",
+      "width": 820,
+      "height": 1180,
+      "sha256": "f77e535a8810955f33f9be869bcf13312a99f01f1793ca83221221129f9c0e9f",
+      "crcDecoded": true,
+      "nonblank": true
+    },
+    {
+      "path": "b-f11-10-analysis-theses-entry/mobile-en.png",
+      "width": 390,
+      "height": 844,
+      "sha256": "3a8303deb157100c617ba94cea7b17afbf4db14d2eefdc9bbfd67ad08f07e23b",
+      "crcDecoded": true,
+      "nonblank": true
+    },
+    {
+      "path": "b-f11-10-analysis-theses-entry/mobile-zh.png",
+      "width": 390,
+      "height": 844,
+      "sha256": "b05c6ff4a4451c87cc9bab61c98d814609dd904b55d9e85b7abca23c1a8c6ba9",
+      "crcDecoded": true,
+      "nonblank": true
+    },
+    {
+      "path": "b-pl-6-batch-1/AnalysisWorkspace-1440.png",
+      "width": 1392,
+      "height": 84,
+      "sha256": "7427faf26f49b141052e8912621d9aa8d25f110110980d168818cda38d7d7d5e",
+      "crcDecoded": true,
+      "nonblank": true
+    },
+    {
+      "path": "b-pl-6-batch-1/AnalysisWorkspace-1440-zh.png",
+      "width": 1392,
+      "height": 84,
+      "sha256": "c4922fcdad7b487c317cc9c2ea15c92df5f718579a4e2fafdd4206c2527601b1",
+      "crcDecoded": true,
+      "nonblank": true
+    },
+    {
+      "path": "b-pl-6-batch-1/AnalysisWorkspace-390.png",
+      "width": 390,
+      "height": 137,
+      "sha256": "b429558568562d6a65df28c27c2133b25728879d12e136045e4c046d1e8a0595",
+      "crcDecoded": true,
+      "nonblank": true
+    },
+    {
+      "path": "b-pl-6-batch-1/AnalysisWorkspace-390-zh.png",
+      "width": 390,
+      "height": 137,
+      "sha256": "2396f566f9b55ea502c988666d613b38558cab181f8f55a58f225f9772328781",
+      "crcDecoded": true,
+      "nonblank": true
+    },
+    {
+      "path": "b-pl-6-batch-1/SearchModal-1440.png",
+      "width": 580,
+      "height": 211,
+      "sha256": "cc20356e5af3172bf9c215e4ca2613724f65b5ebe538d9ab82a25449a76fd310",
+      "crcDecoded": true,
+      "nonblank": true
+    },
+    {
+      "path": "b-pl-6-batch-1/SearchModal-1440-zh.png",
+      "width": 580,
+      "height": 211,
+      "sha256": "574dc1bfb5abb4dbff39346de3d647a610c9a5595ce159662876e195a8a9ff97",
+      "crcDecoded": true,
+      "nonblank": true
+    },
+    {
+      "path": "b-pl-6-batch-1/SearchModal-390.png",
+      "width": 390,
+      "height": 532,
+      "sha256": "9c203d6f7a615675c9c09c40b7c2d3cf91765c38217c74d40087081fb3f2a85e",
+      "crcDecoded": true,
+      "nonblank": true
+    },
+    {
+      "path": "b-pl-6-batch-1/SearchModal-390-zh.png",
+      "width": 390,
+      "height": 532,
+      "sha256": "78c9d04b8cdbe759e7c2a8d543aab0b5c8cd46c4981b21dfff9116c78ded263e",
+      "crcDecoded": true,
+      "nonblank": true
+    },
+    {
+      "path": "b-pl-6-batch-1/ChartChrome-1440.png",
+      "width": 174,
+      "height": 77,
+      "sha256": "accaa50d0bfd7812023cebf930f5354b8a41655c9b524bcd443183a8e12e8e78",
+      "crcDecoded": true,
+      "nonblank": true
+    },
+    {
+      "path": "b-pl-6-batch-1/ChartChrome-1440-zh.png",
+      "width": 174,
+      "height": 77,
+      "sha256": "eb2207f84e05e7fb101bf49575f9726a305a3a8c9202e2704cb027c1e20b48f0",
+      "crcDecoded": true,
+      "nonblank": true
+    },
+    {
+      "path": "b-pl-6-batch-1/ChartChrome-390.png",
+      "width": 310,
+      "height": 107,
+      "sha256": "47d9bfce5e7296df1115ea50145fc05f96523d1ab2a292224b2ffbc331ae8bc2",
+      "crcDecoded": true,
+      "nonblank": true
+    },
+    {
+      "path": "b-pl-6-batch-1/ChartChrome-390-zh.png",
+      "width": 310,
+      "height": 107,
+      "sha256": "f61dc0d77e59f292d3fc9aca0be5aa9f7dedf3e5931f6461aa723df5f067de68",
+      "crcDecoded": true,
+      "nonblank": true
+    },
+    {
+      "path": "terminal-visual-intelligence/desktop-context.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "f53d4463b9ac760fdf39c0303aa527332c1aeeabfaa4f47b35ea2cea0f17c6e7",
+      "crcDecoded": true,
+      "nonblank": true
+    },
+    {
+      "path": "terminal-visual-intelligence/desktop-context-zh.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "7411ed51ae15fde50befe1e7b24e0c9ece065d8f506082586e9716400792a7e8",
+      "crcDecoded": true,
+      "nonblank": true
+    },
+    {
+      "path": "terminal-visual-intelligence/tablet-context.png",
+      "width": 820,
+      "height": 1180,
+      "sha256": "371cb5a97f7571295ff71c117eb6c7869d180c1a3b72c68551783ce1cf41be23",
+      "crcDecoded": true,
+      "nonblank": true
+    },
+    {
+      "path": "terminal-visual-intelligence/tablet-context-zh.png",
+      "width": 820,
+      "height": 1180,
+      "sha256": "83e2284520987798d68f92c1db4bba81d4293ff82d48e9044ec5aedf50d2c4bf",
+      "crcDecoded": true,
+      "nonblank": true
+    },
+    {
+      "path": "terminal-visual-intelligence/mobile-context.png",
+      "width": 390,
+      "height": 844,
+      "sha256": "4bb912458a311faed7e779e24dffda3907ce5af4eec95dbc1a9f21ae3978bbe7",
+      "crcDecoded": true,
+      "nonblank": true
+    },
+    {
+      "path": "terminal-visual-intelligence/mobile-context-zh.png",
+      "width": 390,
+      "height": 844,
+      "sha256": "026a5eec18bd550659368edb3ad69d20dacd542bdd898b16b971d0284a67d087",
+      "crcDecoded": true,
+      "nonblank": true
+    }
+  ],
+  "functionalReport": {
+    "sourceHead": "fbc850932e778fb53543d26e07f6ac11c5c70611",
+    "stats": {
+      "startTime": "2026-10-21T15:27:05.850Z",
+      "duration": 300049.554,
+      "expected": 30,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    }
+  },
+  "finalCaptureReport": {
+    "sourceHead": "42d78dbb108eae0dc37fd73d7ece947612cb1ce0",
+    "stats": {
+      "startTime": "2026-10-21T15:45:50.359Z",
+      "duration": 161476.171,
+      "expected": 6,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    }
+  }
+}

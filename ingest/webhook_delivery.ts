@@ -13,10 +13,11 @@
  */
 
 import { readFileSync } from "node:fs";
+import { FrozenDeliveryClient, frozenDeliveryFromDeployment, equalJSON, databaseOrigin } from "./frozen_delivery_client";
 import https from "node:https";
 import { isIP } from "node:net";
 import { lookup } from "node:dns/promises";
-import { signWebhookPayload } from "../terminal/lib/webhookSigning";
+import { buildWebhookHeaders, signWebhookPayload } from "../terminal/lib/webhookSigning";
 import { failurePatch, hasBadRetryTimestamp, isDueDelivery, STALE_LEASE_MS } from "../terminal/lib/webhookRetry";
 import { decodeHostToIp, isPrivateIp, validateWebhookUrl } from "../terminal/lib/webhookUrl";
 
@@ -73,11 +74,13 @@ function truncateError(msg: string): string {
 }
 
 class Supa {
+  readonly sourceOrigin: string;
   private base: string;
   private headers: Record<string, string>;
 
   constructor(url: string, key: string) {
-    this.base = url.replace(/\/+$/, "") + "/rest/v1";
+    this.sourceOrigin = url.replace(/\/+$/, "");
+    this.base = this.sourceOrigin + "/rest/v1";
     this.headers = { apikey: key, Authorization: `Bearer ${key}` };
   }
 
@@ -117,6 +120,11 @@ export type EndpointRow = {
   url: string;
   secret: string;
   enabled: boolean;
+  secret_previous: string | null;
+  secret_previous_expires_at: string | null;
+  secret_version: number;
+  team_id?: string;
+  event_filter?: string[];
 };
 
 export type Poster = (
@@ -128,11 +136,14 @@ export type Poster = (
 ) => Promise<{ status: number; error?: string }>;
 
 export type DeliverHooks = {
+  frozenDelivery?: FrozenDeliveryClient;
   post?: Poster;
   resolve?: (hostname: string) => Promise<{ address: string; family: number } | { error: string }>;
 };
 
 type PatchClient = {
+  sourceOrigin?: string;
+  get?: (path: string) => Promise<unknown>;
   patch: (path: string, body: Record<string, unknown>) => Promise<unknown[]>;
 };
 
@@ -256,6 +267,12 @@ export async function deliverOne(
   dryRun: boolean,
   hooks: DeliverHooks = {},
 ): Promise<void> {
+  const candidate = row.payload && typeof row.payload === 'object' ? row.payload as Record<string,unknown> : {};
+  const frozenHint = candidate.category === 'options_exposure_node' || Object.hasOwn(candidate,'frozen_node');
+  if (frozenHint || (hooks.frozenDelivery instanceof FrozenDeliveryClient && row.event_type === 'alert.fired')) {
+    await deliverQualifiedFrozen(supa,row,dryRun,hooks,frozenHint);
+    return;
+  }
   const tag = `delivery=${row.id}`;
   // Neither of the next two branches exhausted the retry table, so neither may
   // write `failed` — that status renders as "Gave up after 5 tries" and would
@@ -331,17 +348,24 @@ export async function deliverOne(
 
   const rawBody = JSON.stringify(row.payload ?? {});
   const timestamp = Math.floor(Date.now() / 1000);
-  const hex = signWebhookPayload(endpoint.secret, timestamp, rawBody);
+  const nowMs = Date.now();
+  const headers = buildWebhookHeaders({
+    secret: endpoint.secret,
+    secretPrevious: endpoint.secret_previous ?? null,
+    secretPreviousExpiresAt: endpoint.secret_previous_expires_at ?? null,
+    secretVersion: endpoint.secret_version ?? 1,
+    deliveryId: row.id,
+    eventId: row.event_id,
+    eventType: row.event_type,
+    timestamp,
+    rawBody,
+    nowMs,
+  });
   const result = await post(
     endpoint.url,
     resolved.address,
     resolved.family,
-    {
-      "Content-Type": "application/json",
-      "Mastermind-Webhook-Id": row.id,
-      "Mastermind-Webhook-Timestamp": String(timestamp),
-      "Mastermind-Webhook-Signature": `v1=${hex}`,
-    },
+    headers,
     rawBody,
   );
 
@@ -368,10 +392,119 @@ export async function deliverOne(
   log(`${tag} ${fail.status} ${klass} attempt=${attempt}`);
 }
 
+const frozenRowFields=['id','endpoint_id','team_id','event_id','event_type','payload','attempt','status','claimed_at','next_retry_at'] as const;
+function frozenRow(value:unknown):DeliveryRow|null{
+  if(!value||typeof value!=='object'||Array.isArray(value))return null;
+  const record=value as Record<string,unknown>;
+  if(!frozenRowFields.every(k=>Object.hasOwn(record,k)))return null;
+  return Object.fromEntries(frozenRowFields.map(k=>[k,record[k]])) as DeliveryRow;
+}
+// Only claimed_at has transport-dependent timestamptz serialization. Compare
+// strict calendar instants without dropping submillisecond precision; every
+// other authoritative row field remains byte/JSON exact.
+function claimInstant(value:unknown):bigint|null{
+  if(typeof value!=='string')return null;
+  const m=/^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d{1,9}))?(Z|[+-]\d{2}:\d{2})$/.exec(value);
+  if(!m)return null;
+  const day=Date.parse(m[1]+'T00:00:00Z');
+  if(!Number.isFinite(day)||new Date(day).toISOString().slice(0,10)!==m[1])return null;
+  const hour=Number(m[2]),minute=Number(m[3]),second=Number(m[4]);
+  if(hour>23||minute>59||second>59)return null;
+  let offset=0;
+  if(m[6]!=='Z'){
+    const oh=Number(m[6].slice(1,3)),om=Number(m[6].slice(4,6));
+    if(oh>23||om>59)return null;
+    offset=(oh*60+om)*(m[6][0]==='+'?1:-1);
+  }
+  return BigInt(day)*BigInt(1_000_000)+BigInt(hour*3600+minute*60+second-offset*60)*BigInt(1_000_000_000)
+    +BigInt((m[5]??'').padEnd(9,'0'));
+}
+function sameClaimRow(actual:DeliveryRow|null,expected:DeliveryRow):actual is DeliveryRow{
+  if(!actual)return false;
+  const a=claimInstant(actual.claimed_at),b=claimInstant(expected.claimed_at);
+  return a!==null&&b!==null&&a===b&&equalJSON({...actual,claimed_at:null},{...expected,claimed_at:null});
+}
+const claimMutationPath=(row:DeliveryRow)=>`webhook_deliveries?id=eq.${encodeURIComponent(row.id)}&status=eq.delivering&attempt=eq.${row.attempt}&claimed_at=eq.${encodeURIComponent(row.claimed_at!)}`;
+
+const publicEndpoint=(e:Record<string,unknown>)=>Object.fromEntries(['id','team_id','url','enabled','event_filter','secret_version'].map(k=>[k,e[k]]));
+
+async function deliverQualifiedFrozen(supa:PatchClient,selected:DeliveryRow,dryRun:boolean,hooks:DeliverHooks,frozenHint:boolean):Promise<void>{
+  const client=hooks.frozenDelivery;
+  if(!(client instanceof FrozenDeliveryClient)||databaseOrigin(supa.sourceOrigin)!==client.origin||!supa.get)return;
+  // Pin caller-owned data before any transport yields. Proof is event evidence;
+  // authoritative current row selection + exact CAS below own this channel.
+  const row=frozenRow(JSON.parse(JSON.stringify(selected)));
+  if(!row)return;
+  let proof=await client.check(row,new Date().toISOString());
+  if(!proof)return;
+  const endpointRows=await supa.get(`webhook_endpoints?id=eq.${encodeURIComponent(row.endpoint_id)}&select=id,team_id,url,enabled,event_filter,secret,secret_previous,secret_previous_expires_at,secret_version&limit=2`);
+  if(!Array.isArray(endpointRows)||endpointRows.length!==1)return;
+  const endpoint=JSON.parse(JSON.stringify(endpointRows[0])) as EndpointRow & Record<string,unknown>;
+  if(!equalJSON(publicEndpoint(endpoint),proof.endpoint)||typeof endpoint.secret!=='string'||!endpoint.secret)return;
+  if(proof.kind==='legacy_delivery'){
+    if(frozenHint)return;
+    await deliverOne(supa,row,endpoint,dryRun,{...hooks,frozenDelivery:undefined});return;
+  }
+  // Only a pristine offer proves there was no previous automatic attempt.
+  // Legacy retrying/claimed rows may follow an ambiguous POST; neither a stale
+  // lease nor a generic retry marker authorizes replay of a frozen event.
+  if(row.status!=='pending'||row.attempt!==0||row.claimed_at!==null)return;
+  const urlCheck=validateWebhookUrl(endpoint.url);if(!endpoint.enabled||!urlCheck.ok||dryRun)return;
+  const stamp=new Date().toISOString(),attempt=row.attempt+1;
+  const priorClaim=row.claimed_at===null?'is.null':`eq.${encodeURIComponent(row.claimed_at)}`;
+  const claimPath=`webhook_deliveries?id=eq.${encodeURIComponent(row.id)}&status=eq.${encodeURIComponent(row.status)}&attempt=eq.${row.attempt}&claimed_at=${priorClaim}`;
+  const claimed=await supa.patch(claimPath,{status:'delivering',claimed_at:stamp,attempt,last_error:'frozen_delivery_reserved'});
+  if(claimed.length!==1)return;
+  const reserved=frozenRow(claimed[0]),expected={...row,status:'delivering',claimed_at:stamp,attempt};
+  if(!sameClaimRow(reserved,expected))return;
+  let patchPath=claimMutationPath(reserved);
+  const resolve=hooks.resolve??resolvePublicAddress;
+  const resolved=await resolve(new URL(endpoint.url).hostname.replace(/^\[|\]$/g,''));
+  if('error' in resolved)return;
+  // Current account/category/team/endpoint/opt-in is observed again after DNS,
+  // without replacing the exact historical event or consulting armed state.
+  proof=await client.check(reserved,new Date().toISOString());
+  if(!proof||proof.kind!=='admitted_delivery'||!equalJSON(proof.endpoint,publicEndpoint(endpoint)))return;
+  const marker=await supa.patch(patchPath,{last_error:'frozen_delivery_send_started'});
+  if(marker.length!==1)return;
+  const marked=frozenRow(marker[0]);
+  if(!sameClaimRow(marked,reserved))return;
+  // Keep the returned database serialization for subsequent exact CAS filters.
+  patchPath=claimMutationPath(marked);
+  const rawBody=JSON.stringify(reserved.payload);
+  const headers=buildWebhookHeaders({secret:endpoint.secret,secretPrevious:endpoint.secret_previous??null,
+    secretPreviousExpiresAt:endpoint.secret_previous_expires_at??null,secretVersion:endpoint.secret_version,
+    deliveryId:row.id,eventId:row.event_id,eventType:row.event_type,timestamp:Math.floor(Date.now()/1000),rawBody,nowMs:Date.now()});
+  let result:{status:number;error?:string};
+  try{result=await(hooks.post??postPinned)(endpoint.url,resolved.address,resolved.family,headers,rawBody);}
+  catch{result={status:0,error:'unknown'};}
+  if(result.status>=200&&result.status<300){
+    await supa.patch(patchPath,{status:'delivered',response_code:result.status,delivered_at:new Date().toISOString(),last_error:null,next_retry_at:null});
+  }else{
+    // No stronger exactly-once claim: the receiver may have acted before an
+    // error/timeout. Preserve the claimed row, never auto-reoffer this event.
+    await supa.patch(patchPath,{last_error:'frozen_delivery_effect_unknown',response_code:result.status||null});
+  }
+}
+
 function runDemo(): number {
   log("DEMO — no Supabase; signing + retry table only");
-  const hex = signWebhookPayload("demo-secret", 1_700_000_000, "{\"schema\":\"mastermind.webhook-test/v1\"}");
+  const rawBody = "{\"schema\":\"mastermind.webhook-test/v1\"}";
+  const hex = signWebhookPayload("demo-secret", 1_700_000_000, rawBody);
   log(`sign vector length=${hex.length}`);
+  const headers = buildWebhookHeaders({
+    secret: "demo-secret",
+    secretPrevious: null,
+    secretPreviousExpiresAt: null,
+    secretVersion: 1,
+    deliveryId: "00000000-0000-4000-8000-000000000001",
+    eventId: "demo-event",
+    eventType: "webhook.test",
+    timestamp: 1_700_000_000,
+    rawBody,
+    nowMs: 1_700_000_000_000,
+  });
+  log(`demo headers ${Object.keys(headers).sort().join(" ")}`);
   log("demo done");
   return 0;
 }
@@ -389,6 +522,7 @@ async function main(): Promise<number> {
   }
 
   const supa = new Supa(url, key);
+  const frozenDelivery = frozenDeliveryFromDeployment(env,url);
   const now = new Date();
   let due: DeliveryRow[] = [];
   try {
@@ -407,7 +541,7 @@ async function main(): Promise<number> {
   let endpoints: EndpointRow[] = [];
   try {
     const data = await supa.get(
-      `webhook_endpoints?id=in.(${ids.map(encodeURIComponent).join(",")})&select=id,url,secret,enabled`,
+      `webhook_endpoints?id=in.(${ids.map(encodeURIComponent).join(",")})&select=id,url,secret,enabled,secret_previous,secret_previous_expires_at,secret_version`,
     );
     endpoints = Array.isArray(data) ? (data as EndpointRow[]) : [];
   } catch (e) {
@@ -424,7 +558,7 @@ async function main(): Promise<number> {
       continue;
     }
     try {
-      await deliverOne(supa, row, ep, args.dryRun);
+      await deliverOne(supa, row, ep, args.dryRun, {frozenDelivery});
     } catch (e) {
       log(`delivery=${row.id} ERROR ${e instanceof Error ? e.name : "unknown"}`);
     }

@@ -1,7 +1,10 @@
+import { assertCapturedLexProjection } from "./helpers/lexEvidenceProjection";
+// Preserve the raw capture pin; only unused onboarding copy has an AST dependency projection.
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { PNG } from "pngjs";
 
 const REPO = join(__dirname, "../../..");
 const CROP_DIR = join(__dirname, "../../docs/pr-crops/terminal-visual-intelligence");
@@ -25,11 +28,72 @@ function mapSection(text: string, name: string): Record<string, string> {
   return out;
 }
 
-function pngDimensions(path: string): [number, number] {
-  const bytes = readFileSync(path);
-  expect(bytes.subarray(1, 4).toString("ascii")).toBe("PNG");
-  return [bytes.readUInt32BE(16), bytes.readUInt32BE(20)];
+function expectDecodedCrop(bytes: Buffer, expectedSize: [number, number]): void {
+  // PNG compression depends on the rendered pixels, not on whether a capture is useful.
+  // Decode every scanline with CRC checking instead of accepting a header or a byte floor.
+  const png = PNG.sync.read(bytes, { checkCRC: true });
+  expect([png.width, png.height], "decoded crop dimensions").toEqual(expectedSize);
+  expect(png.data.byteLength, "complete RGBA pixel data").toBe(png.width * png.height * 4);
+  let firstVisibleColor: number | undefined;
+  let hasVisibleVariation = false;
+  for (let offset = 0; offset < png.data.length; offset += 4) {
+    if (png.data[offset + 3] === 0) continue;
+    const color = (png.data[offset] << 16) | (png.data[offset + 1] << 8) | png.data[offset + 2];
+    if (firstVisibleColor === undefined) firstVisibleColor = color;
+    else if (color !== firstVisibleColor) hasVisibleVariation = true;
+  }
+  expect(firstVisibleColor, "crop must not be entirely transparent").not.toBeUndefined();
+  expect(hasVisibleVariation, "crop must not be a uniform blank image").toBe(true);
 }
+
+describe("decoded screenshot evidence controls", () => {
+  function fixture(pixels: number[][]): Buffer {
+    const png = new PNG({ width: 2, height: 2 });
+    png.data = Buffer.from(pixels.flat());
+    return PNG.sync.write(png);
+  }
+  const pixels = [
+    [0, 0, 0, 255], [255, 255, 255, 255],
+    [30, 60, 90, 255], [90, 60, 30, 255],
+  ];
+  const valid = fixture(pixels);
+
+  it("accepts complete nonblank pixels even when compression produces a small file", () => {
+    expect(valid.byteLength).toBeLessThan(50_000);
+    expect(() => expectDecodedCrop(valid, [2, 2])).not.toThrow();
+  });
+
+  it("rejects a padded PNG-header impostor with otherwise matching dimensions", () => {
+    const impostor = Buffer.alloc(60_000);
+    valid.copy(impostor, 0, 0, 24);
+    expect(() => expectDecodedCrop(impostor, [2, 2])).toThrow();
+  });
+
+  it("rejects truncated pixel data and a missing PNG terminator", () => {
+    expect(() => expectDecodedCrop(valid.subarray(0, 40), [2, 2])).toThrow();
+    expect(() => expectDecodedCrop(valid.subarray(0, valid.length - 12), [2, 2])).toThrow();
+  });
+
+  it("rejects a corrupt chunk checksum", () => {
+    const corrupt = Buffer.from(valid);
+    corrupt[corrupt.length - 1] ^= 1;
+    expect(() => expectDecodedCrop(corrupt, [2, 2])).toThrow();
+  });
+
+  it("rejects decoded pixels at the wrong viewport dimensions", () => {
+    expect(() => expectDecodedCrop(valid, [3, 2])).toThrow();
+  });
+
+  it("rejects a valid uniform blank image", () => {
+    const blank = fixture(Array.from({ length: 4 }, () => [255, 255, 255, 255]));
+    expect(() => expectDecodedCrop(blank, [2, 2])).toThrow();
+  });
+
+  it("rejects an entirely transparent image even when its hidden RGB values vary", () => {
+    const transparent = fixture(pixels.map(([r, g, b]) => [r, g, b, 0]));
+    expect(() => expectDecodedCrop(transparent, [2, 2])).toThrow();
+  });
+});
 
 describe("Terminal Visual Intelligence browser evidence", () => {
   const text = readFileSync(EVIDENCE, "utf8");
@@ -40,7 +104,11 @@ describe("Terminal Visual Intelligence browser evidence", () => {
     for (const [relative, expected] of Object.entries(recorded)) {
       const absolute = join(REPO, relative);
       expect(existsSync(absolute), relative).toBe(true);
-      expect(sha256(absolute), `${relative} changed without a recapture`).toBe(expected);
+      if (relative === "terminal/lib/i18n.tsx") {
+        assertCapturedLexProjection(readFileSync(absolute, "utf8"), expected, readFileSync(EVIDENCE, "utf8"));
+      } else {
+        expect(sha256(absolute), `${relative} changed without a recapture`).toBe(expected);
+      }
     }
   });
 
@@ -57,10 +125,9 @@ describe("Terminal Visual Intelligence browser evidence", () => {
     for (const [file, expectedHash] of Object.entries(recorded)) {
       const absolute = join(CROP_DIR, file);
       expect(existsSync(absolute), file).toBe(true);
-      expect(readFileSync(absolute).byteLength, `${file} is not a substantive crop`).toBeGreaterThan(50_000);
       expect(sha256(absolute), `${file} changed without updating evidence`).toBe(expectedHash);
       const viewport = file.split("-")[0];
-      expect(pngDimensions(absolute), file).toEqual(expectedSize[viewport]);
+      expectDecodedCrop(readFileSync(absolute), expectedSize[viewport]);
     }
   });
 

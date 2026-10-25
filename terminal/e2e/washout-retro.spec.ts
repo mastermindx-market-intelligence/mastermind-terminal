@@ -266,11 +266,11 @@ const AMBER_RGB = "rgb(232, 179, 57)";
 /** The refused-entry slate (#7c8aa0) — no CSS token, an inline hex in ChartPanel. */
 const SLATE_RGB = "rgb(124, 138, 160)";
 
-/** Mirror of signalVerdict's `fmtDate`, so the expected card sub-line is DERIVED from the
+/** Explicit source-known date with a year, so the expected history sub-line is derived from the
  *  fixture's own dates rather than hardcoded (the fixture moves with the calendar). */
 const fmtSub = (iso: string, zh: boolean) =>
   new Date(Date.parse(iso)).toLocaleDateString(zh ? "zh-CN" : "en-US",
-    { month: "short", day: "numeric", timeZone: "UTC" });
+    { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" });
 
 type MarkerRead = {
   opacity: string | null;
@@ -347,26 +347,6 @@ async function cropThreeMarkers(page: Page, path: string) {
       height: Math.min(window.innerHeight - Math.max(0, y0 - padY), y1 - y0 + padY * 2),
     };
   }, [PLAIN_TS, RETRO_TS, TAKE_TS]);
-  if (!clip || clip.width <= 0 || clip.height <= 0) return;
-  await page.screenshot({ path, clip });
-}
-
-/** Screenshot an element framed by the union of its own box and every descendant's, clamped to
- *  the viewport. `element.screenshot()` uses the element's box alone, which silently crops any
- *  child that overflows it — and a receipt with the evidence cropped off is worse than none. */
-async function cropUnion(page: Page, selector: string, path: string, pad = 10) {
-  const clip = await page.locator(selector).first().evaluate((el, padding) => {
-    const boxes = [el, ...el.querySelectorAll("*")].map((n) => n.getBoundingClientRect())
-      .filter((b) => b.width > 0 && b.height > 0);
-    if (!boxes.length) return null;
-    const x = Math.max(0, Math.min(...boxes.map((b) => b.left)) - padding);
-    const y = Math.max(0, Math.min(...boxes.map((b) => b.top)) - padding);
-    return {
-      x, y,
-      width: Math.min(window.innerWidth - x, Math.max(...boxes.map((b) => b.right)) + padding - x),
-      height: Math.min(window.innerHeight - y, Math.max(...boxes.map((b) => b.bottom)) + padding - y),
-    };
-  }, pad);
   if (!clip || clip.width <= 0 || clip.height <= 0) return;
   await page.screenshot({ path, clip });
 }
@@ -466,7 +446,7 @@ async function assertThreeStates(page: Page, zh: boolean, tag: string, testInfo:
   // ── the rail: anchored by the LIVE entry, in the ordinary entry language ────────────────
   const signalButton = page.locator(".sig-btn");
   await signalButton.scrollIntoViewIfNeeded();
-  await expect(signalButton.locator(".sig-btn-go .sig-btn-vd")).toHaveText(zh ? "买入" : "Buy");
+  await expect(signalButton.locator(".sig-btn-go .sig-btn-vd")).toHaveText(zh ? "已确认买入" : "Confirmed Buy");
   const railTitle = (await signalButton.getAttribute("title")) ?? "";
   if (zh) {
     expect(railTitle).toContain("次根K线");
@@ -487,15 +467,16 @@ async function assertThreeStates(page: Page, zh: boolean, tag: string, testInfo:
 
   // ── the card: entry verdict, ONE disclosure line, the recipe's grade beside it ──────────
   await signalButton.click();
-  const dialog = page.locator(".sd-scrim");
+  const dialog = page.locator("#intelligence-workspace");
   await expect(dialog).toBeVisible();
-  const go = dialog.locator(".sd-go");
-  await expect(go.locator(".od-verdict")).toHaveText(zh ? "买入" : "Buy");
+  await dialog.getByRole("tab", { name: zh ? "神谕" : "Oracle", exact: true }).click();
+  const go = dialog.getByTestId("workspace-oracle");
+  await expect(go.locator(".od-verdict")).toHaveText(zh ? "已确认买入" : "Confirmed Buy");
   // dated from the LIVE entry — the retro fire is 12 bars older and never anchors
   await expect(go.locator(".od-vsub")).toHaveText(fmtSub(TAKE_TS, zh));
   expect(fmtSub(TAKE_TS, zh)).not.toBe(fmtSub(RETRO_TS, zh));   // the check has teeth
 
-  const line2 = go.locator(".od-vline2");
+  const line2 = go.getByTestId("workspace-oracle-disclosure");
   await expect(line2).toHaveCount(1);
   await expect(line2).toHaveCSS("color", AMBER_RGB);
   if (zh) {
@@ -519,16 +500,18 @@ async function assertThreeStates(page: Page, zh: boolean, tag: string, testInfo:
   }
   await expect(go.locator(".sig-dims .sig-dim-v").nth(1)).toHaveText(zh ? "优质" : "Quality");
   // The independent market context shares this styling class, but is not a signal warning.
-  const marketRisk = go.getByTestId("market-risk-chip");
+  const marketRisk = dialog.getByTestId("market-risk-chip");
   await expect(marketRisk).toBeVisible();
   await expect(marketRisk.locator("summary"))
     .toContainText(zh ? "市场风险不可用" : "Market risk unavailable");
   // the refusal's own "⃠ Entry blocked" strip belongs to a blocked LATEST signal — not here
   await expect(go.locator('.sig-conflict:not([data-testid="market-risk-chip"])')).toHaveCount(0);
-  await go.locator(".sig-card").screenshot({ path: out("card-reclaim-waived") });
+  await go.getByTestId("workspace-oracle-read").screenshot({ path: out("card-reclaim-waived") });
 
-  // ── the signal history: three rows, three different rows ────────────────────────────────
-  const rows = go.locator(".sd-siglist .sd-sigrow");
+  // ── Activity: three rows, three different rows ──────────────────────────────────────────
+  await dialog.getByRole("tab", { name: zh ? "动态" : "Activity", exact: true }).click();
+  const activity = dialog.getByTestId("workspace-activity");
+  const rows = activity.locator(".sd-siglist .sd-sigrow");
   await expect(rows).toHaveCount(3);                    // newest first: waived, retro, refusal
 
   // row 0 — the live waived entry: a solid BUY pill and the class's own qualifier
@@ -562,7 +545,7 @@ async function assertThreeStates(page: Page, zh: boolean, tag: string, testInfo:
   // it costs a hover or a tap, and it is gone from any screenshot. Asserted as RENDERED TEXT
   // (never an attribute), and
   // compared against the exported copy itself so the assertion cannot drift from the product.
-  const legend = go.locator(".sd-sig-legend");
+  const legend = activity.locator(".sd-sig-legend");
   await expect(legend).toHaveCount(1);
   await expect(legend).toBeVisible();
   await expect(legend).toHaveText(retroLegendCopy(zh));
@@ -577,13 +560,10 @@ async function assertThreeStates(page: Page, zh: boolean, tag: string, testInfo:
   await expect(blockedRow.locator(".sd-sig-q")).toHaveText(zh ? "非入场信号" : "not an entry");
 
   // the three qualifiers are three different words — the list is the same claim as the chart
-  const qualifiers = await go.locator(".sd-siglist .sd-sigrow .sd-sig-q").allTextContents();
+  const qualifiers = await activity.locator(".sd-siglist .sd-sigrow .sd-sig-q").allTextContents();
   expect(new Set(qualifiers).size).toBe(3);
-  // Framed from the DESCENDANTS' union, not the section's own box: the rows overflow their
-  // container on both sides, so an element screenshot clips the price column AND the legend's
-  // first word. This crop is the visual receipt for the whole disclosure argument — the
-  // "(retro)" label and the sentence that resolves it have to be legible in one frame.
-  await cropUnion(page, ".sd-go .od-sig-section", out("history-rows"));
+  // The contained Activity section keeps the rows and the disclosure in one legible frame.
+  await activity.screenshot({ path: out("history-rows") });
 
   await page.keyboard.press("Escape");
   await expect(dialog).toBeHidden();
@@ -727,19 +707,23 @@ test("the retro legend renders only when a re-marked fire is actually in the lis
   const signalButton = page.locator(".sig-btn");
   await signalButton.scrollIntoViewIfNeeded();
   await signalButton.click();
-  const go = page.locator(".sd-scrim .sd-go");
-  await expect(go).toBeVisible();
+  const dialog = page.locator("#intelligence-workspace");
+  await expect(dialog).toBeVisible();
+  await dialog.getByRole("tab", { name: zh ? "动态" : "Activity", exact: true }).click();
+  const activity = dialog.getByTestId("workspace-activity");
 
-  // the same two survivors, still rendering exactly as they do in the three-fire card
-  const rows = go.locator(".sd-siglist .sd-sigrow");
+  // the same two survivors, still rendering exactly as they do in the three-fire list
+  const rows = activity.locator(".sd-siglist .sd-sigrow");
   await expect(rows).toHaveCount(2);
   await expect(rows.nth(0).locator(".sd-sig-badge")).toHaveText("BUY");
   await expect(rows.nth(1).locator(".sd-sig-badge")).toHaveText(zh ? "已拦截" : "BLOCKED");
   // …no "(retro)" row, and therefore no legend to resolve one
-  await expect(go.locator(".sd-siglist .sd-sig-q", { hasText: zh ? "（事后重标）" : "(retro)" }))
+  await expect(activity.locator(".sd-siglist .sd-sig-q", { hasText: zh ? "（事后重标）" : "(retro)" }))
     .toHaveCount(0);
-  await expect(go.locator(".sd-sig-legend")).toHaveCount(0);
+  await expect(activity.locator(".sd-sig-legend")).toHaveCount(0);
   // and the verdict is unchanged — removing the counterfactual moved nothing about the read
-  await expect(go.locator(".od-verdict")).toHaveText(zh ? "买入" : "Buy");
+  await dialog.getByRole("tab", { name: zh ? "神谕" : "Oracle", exact: true }).click();
+  const go = dialog.getByTestId("workspace-oracle");
+  await expect(go.locator(".od-verdict")).toHaveText(zh ? "已确认买入" : "Confirmed Buy");
   await expect(go.locator(".od-vsub")).toHaveText(fmtSub(TAKE_TS, zh));
 });

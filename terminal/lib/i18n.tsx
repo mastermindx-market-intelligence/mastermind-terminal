@@ -468,6 +468,16 @@ export const LEX: Record<string, [string, string]> = {
   drawingDragFavorites: ["Drag favorite tools", "拖动收藏工具栏"],
   drawingHideFavoriteStrip: ["Hide favorite tools", "隐藏收藏工具栏"],
   drawingLoadFailed: ["Saved drawings could not be loaded. Drawing changes are paused while we retry.", "无法载入已保存的图形。重试期间已暂停绘图更改。"],
+  drawingSaveRetry: ["Your drawing changes are kept on this device. Retry saving when connected.", "绘图更改已保留在此设备上。连接恢复后请重试保存。"],
+  drawingStorageUnavailable: ["Browser recovery storage is unavailable. Keep this tab open and retry; your pending edits are only in this tab.", "浏览器恢复存储暂不可用。请保持此标签页打开并重试；待保存修改仅保留在此标签页中。"],
+  drawingOtherLocalCopy: ["Review another local copy", "查看另一个本地副本"],
+  drawingSaveConflict: ["The cloud copy changed, or local recovery needs review. Your local drawings are kept. Choose which copy to use.", "云端图形已更改，或本地恢复需要检查。本地图形已保留。请选择要使用的副本。"],
+  drawingRetrySave: ["Retry save", "重试保存"],
+  drawingReviewCloud: ["Review cloud copy", "检查云端副本"],
+  drawingLocalCopy: ["Local drawings", "本地图形"],
+  drawingCloudCopy: ["Cloud drawings", "云端图形"],
+  drawingUseCloud: ["Use cloud copy", "使用云端副本"],
+  drawingKeepLocal: ["Replace cloud with local copy", "使用本地副本替换云端"],
   drawingLimitReached: ["500 drawing limit reached. Delete a drawing before adding another.", "已达到 500 个绘图上限。请先删除一个绘图再添加。"],
   drawingBars: ["bars", "根K线"],
   drawingTarget: ["Target", "目标"],
@@ -1885,8 +1895,8 @@ export const LEX: Record<string, [string, string]> = {
   // usable, the outbox keeps retrying, and there is nothing for the user to do. The one thing this
   // line must NOT do is let the screen imply the choice was saved when it was not.
   obDonePrefsSyncing: [
-    "Your preferences are still syncing — we'll keep trying in the background.",
-    "你的偏好设置仍在同步中 —— 我们会在后台继续尝试。",
+    "Your preferences haven’t synced yet. After signing in, you can retry saving them in Settings.",
+    "你的偏好尚未同步。登录后，可在设置中重试保存。",
   ],
   obOpenTerminal: ["Open the Terminal", "进入终端"],
   // onboarding wiring (W1)
@@ -2987,13 +2997,20 @@ export function applyLang(l: Lang) {
   try { localStorage.setItem("mm.lang", l); } catch { /* storage blocked */ }
   if (typeof document === "undefined") return;
   document.documentElement.setAttribute("data-lang", l);
+  document.documentElement.lang = l === "zh" ? "zh-CN" : "en";
   window.dispatchEvent(new CustomEvent("mm:lang"));
 }
 
 export function LangProvider({ children }: { children: React.ReactNode }) {
   const [lang, setLangState] = useState<Lang>("en");
   useEffect(() => {
-    const read = () => { const v = document.documentElement.getAttribute("data-lang"); if (v === "zh" || v === "en") setLangState(v); };
+    const read = () => {
+      const v = document.documentElement.getAttribute("data-lang");
+      if (v === "zh" || v === "en") {
+        document.documentElement.lang = v === "zh" ? "zh-CN" : "en";
+        setLangState(v);
+      }
+    };
     read();
     window.addEventListener("mm:lang", read);
     return () => window.removeEventListener("mm:lang", read);

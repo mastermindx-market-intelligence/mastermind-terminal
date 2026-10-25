@@ -1,0 +1,38 @@
+# Actual Analysis thesis -> existing Mastermind Brain entry.
+# Terminal dark-only surface; existing application and unmodified served widget.
+# captureBaseHead: bbc07037aae3e98597945e23448781a091d15281
+# source tree: uncommitted six qualified Terminal blobs over bbc07037aae3e98597945e23448781a091d15281
+# capturedAt: 2026-10-20T20:29:17.411Z
+# Identity is the actual rendered source bytes, not the informational base head.
+layoutFiles:
+  terminal/components/AppNav.tsx: "d0576cb59f754530614a4eb0191595854f44d95192b162c0cd612185123a9a5b"
+  terminal/components/MobileNav.tsx: "a0d4e6ad5ec1b7422a6816dda01ad01da3025f263314c49435156753e84f788a"
+  terminal/components/chrome/AnalysisBrainHost.tsx: "dbddf637effe1c029ec359ea93a7b58f4ee540997fca8470b6a2808139c4d87d"
+  terminal/lib/analysisBrainEntry.ts: "94d76b2e09076ba3aa90a2d0b0ce36a0d7582878fe4e4494ca7e88301106d44c"
+  terminal/components/BrainWidget.tsx: "6eb6d407b3fd58d3ad285c08260b459ba099c4ea8eb2611816e09c103b5f9866"
+  terminal/lib/aiContext.ts: "f31d046024809de2923c86536679bdcf49683b7e1b1cd8a5ecf51b4950058f92"
+theme: dark
+languages: [en, zh]
+viewports:
+  - { name: desktop, width: 1440, height: 900 }
+  - { name: mobile, width: 390, height: 844 }
+surfaces: [AppNav, MobileNav, AnalysisBrainHost, MastermindBrain]
+states: [thesis-entry, delayed-first-click, typed-context-send, close]
+capture_flag: TERMINAL_E2E_FIXTURE
+browser_report: browser-report.json
+served_widget_receipt: served-widget-receipt.json
+production_acceptance: false
+private_account_data: false
+network: controlled-local-responses-only
+command: |
+  F11_SERVED_BRAIN_JS=/absolute/retained/mm_brain-served.js node e2e/tools/capture_f11_analysis_brain_entry.cjs
+files:
+  - analysis-brain-1440-en.png
+  - analysis-brain-1440-zh.png
+  - analysis-brain-390-en.png
+  - analysis-brain-390-zh.png
+
+# The layoutFiles hashes above remain the original capture-time identity.
+# Current aiContext.ts restores canonical type declarations with identical emitted code.
+# Original source bytes and reproducible compiler equality are retained; no recapture occurred.
+source_transition: ../b-f11-version-grounding/source-equivalence-20261022.json
