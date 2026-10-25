@@ -53,7 +53,10 @@ import {
   shortlistSource,
   useContractShortlist,
 } from "@/components/options/ContractShortlist";
-import { locatePin, type PinLocation, type ShortlistPin } from "@/lib/optionsContractShortlist";
+import { useOptionsPlanScope } from "@/lib/useOptionsPlanScope";
+import { useShortlistT } from "@/lib/optionsContractShortlistLex";
+import type { OptionsPlanDraft } from "@/lib/optionsPlanDraft";
+import { locatePin, sessionOf, type PinLocation, type ShortlistPin } from "@/lib/optionsContractShortlist";
 // Shared SVG chart primitives — measured 1:1 viewBox, nice ticks, pixel-gap label
 // thinning, padded domains. The hygiene rules live in that module's header.
 import {
@@ -1513,6 +1516,10 @@ export interface OptionsHubViewProps {
   onTab?: (tab: TabKey) => void;
   /** Suppress the internal legacy tab strip even in uncontrolled mode. */
   hideTabStrip?: boolean;
+  /** Whole canonical draft only; an admitted Investigation owner supplies Save. */
+  onPlanDraftChange?: (draft: OptionsPlanDraft) => void;
+  /** Every editor change, including null for invalid input or explicit close. */
+  onPlanDraftInputChange?: (draft: OptionsPlanDraft | null) => void;
 }
 
 // No external hydration events are needed: React compares the server and client snapshots.
@@ -1525,9 +1532,12 @@ export default function OptionsHubView({
   activeTab: controlledTab,
   onTab,
   hideTabStrip,
+  onPlanDraftChange,
+  onPlanDraftInputChange,
 }: OptionsHubViewProps = {}) {
   const { lang } = useLang();
   const t = useT();
+  const doiT = useShortlistT();
   const viewText = useTapeViewText();
 
   const controlled = onTab !== undefined;
@@ -2017,7 +2027,8 @@ export default function OptionsHubView({
   // touches the source arrays, filters, sort or view. "Show in list" returns to
   // the originating table exactly as its preset chip would, and never edits the
   // index filter — a filtered-out pin is reported instead.
-  const contractShortlist = useContractShortlist();
+  const planScope = useOptionsPlanScope();
+  const contractShortlist = useContractShortlist(planScope);
   const showPinInList = (pin: ShortlistPin): PinLocation => {
     const list = pin.family === "doi" ? oiData?.movers : hotData?.[pin.hotView ?? "by_premium"];
     const where = locatePin(pin, list, scrRoot);
@@ -2591,7 +2602,13 @@ export default function OptionsHubView({
 
                 {/* Ticker search */}
                 <input
-                  type="text"
+                  type="search"
+                  id="options-tape-ticker-search"
+                  name="options-tape-ticker-search"
+                  autoComplete="off"
+                  autoCapitalize="characters"
+                  spellCheck={false}
+                  aria-label={t("tapeTickerPlaceholder", "Ticker…")}
                   placeholder={t("tapeTickerPlaceholder", "Ticker…")}
                   // The SSR value is visible before React can preserve user edits.
                   disabled={!tapeInputHydrated}
@@ -3629,6 +3646,9 @@ export default function OptionsHubView({
                   shortlist={contractShortlist}
                   active={screenerPreset === "doi" || screenerPreset === "hot"}
                   onShowInList={showPinInList}
+                  scopeKey={planScope}
+                  onPlanDraftChange={onPlanDraftChange}
+                  onPlanDraftInputChange={onPlanDraftInputChange}
                 />
               )}
               {screenerLoading && !oiData && !hotData && !feed && (
@@ -3821,6 +3841,7 @@ export default function OptionsHubView({
               {/* ── ΔOI Builds view — oiData.movers ── */}
               {screenerPreset === "doi" && oiData && (() => {
                 const rows = oiRows;
+                const reportDate = sessionOf(oiData.asof);
                 const hdr = (key: string, en: string, zh: string, tip?: string) => (
                   <th style={{ cursor: "pointer" }} className={scrSortKey === key ? "sorted" : ""} onClick={() => scrSort(key)} title={tip}>
                     {lang === "zh" ? zh : en}{scrSortKey === key ? (scrSortDir === -1 ? " ↓" : " ↑") : ""}
@@ -3831,7 +3852,7 @@ export default function OptionsHubView({
                     <div className="obs-card-hd" style={{ borderBottom: "1px solid var(--line)" }}>
                       <span className="obs-lbl">{t("ohOiBuilds")}</span>
                       <span style={{ fontSize: 11, color: "var(--text-dim)" }}>
-                        {t("ohAsOfPrevSession")}
+                        {reportDate ? doiT("e15O_report_dated").replace("{d}", reportDate) : doiT("e15O_report_date_unavailable")}
                       </span>
                     </div>
                     <div style={{ overflowX: "auto" }}>
@@ -3842,8 +3863,8 @@ export default function OptionsHubView({
                             <th style={{ textAlign: "left" }}>{lang === "zh" ? "认购/认沽" : "C/P"}</th>
                             <th style={{ textAlign: "left" }}>{lang === "zh" ? "到期日" : "Exp"}</th>
                             <th>{lang === "zh" ? "行权价" : "Strike"}</th>
-                            {hdr("doi", t("ohOiChange"), t("ohOiChange"), t("ohDoiFoot"))}
-                            {hdr("oi", t("ohOiYesterday"), t("ohOiYesterday"))}
+                            {hdr("doi", t("ohOiChange"), t("ohOiChange"), doiT("e15O_reported_doi_foot"))}
+                            {hdr("oi", doiT("e15O_reported_oi"), doiT("e15O_reported_oi"))}
                             {hdr("mid", "Mid", "中间价")}
                           </tr>
                         </thead>
@@ -3877,7 +3898,7 @@ export default function OptionsHubView({
                       </table>
                     </div>
                     <div style={{ padding: "6px 14px", fontSize: 10, color: "var(--text-dim)", borderTop: "1px solid var(--line)" }}>
-                      {t("ohDoiFoot")}
+                      {doiT("e15O_reported_doi_foot")}
                     </div>
                   </div>
                 );
