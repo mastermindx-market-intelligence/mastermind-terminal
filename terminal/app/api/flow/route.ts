@@ -11,6 +11,7 @@ import {
   tryFetchUpstreamResult,
 } from "@/lib/flowSource";
 import { fetchOptionsAlphaCandidatePair } from "@/lib/optionsAlphaCandidatePair";
+import { isUnadmittedGexFamilyArtifact } from "@/lib/ndxFamilyAdmission";
 
 // Bare-minimum in-memory cache so concurrent renders share one fetch.
 type CacheEntry = { data: Record<string, unknown>; ts: number };
@@ -82,6 +83,11 @@ export async function GET(req: Request): Promise<Response> {
     }
     try {
       const data = await fixtureFor(f);
+      if (isUnadmittedGexFamilyArtifact(f, data)) {
+        return NextResponse.json({ error: "feed unavailable" }, {
+          status: 503, headers: { "Cache-Control": "no-store" },
+        });
+      }
       attachFlowScores(f, data);
       return NextResponse.json(data, {
         headers: { "Cache-Control": "no-store", "X-Flow-Source": "fixture" },
@@ -130,6 +136,14 @@ export async function GET(req: Request): Promise<Response> {
 
   const now = Date.now();
   const cached = CACHE[f];
+  // Defense in depth across hot reloads or a pre-existing cached source entry:
+  // the source-family candidate is never a stale-but-displayable NDX book.
+  if (cached && isUnadmittedGexFamilyArtifact(f, cached.data)) {
+    delete CACHE[f];
+    return NextResponse.json({ error: "feed unavailable" }, {
+      status: 503, headers: { "Cache-Control": "no-store" },
+    });
+  }
 
   if (!cached) {
     const outcome = await tryFetchUpstreamResult(f);

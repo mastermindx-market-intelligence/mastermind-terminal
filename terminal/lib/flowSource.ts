@@ -18,6 +18,7 @@ import { createHash } from "node:crypto";
 import { computeFlowScore, type ScorerInput } from "@/lib/flowScore";
 import { FLOW_BACKEND as BACKEND, R2_BASE } from "@/lib/upstreams";
 import { isValidRoot } from "@/lib/flowRoot";
+import { isUnadmittedGexFamilyArtifact } from "@/lib/ndxFamilyAdmission";
 import { type Bar6, tfMinutes, resample, sessionEpoch } from "@/lib/intradayShared";
 
 const FIXTURE_FILE = path.join(process.cwd(), "public", "data", "flow_fixture.json");
@@ -1248,7 +1249,12 @@ async function readGenericUpstream(f: string): Promise<UpstreamOutcome> {
     const read = await readUpstream(source === "r2"
       ? `${R2_BASE}/${r2Key(f)}`
       : `${BACKEND}${backendPath(f)}`, source === "r2" && /^(gex|moves):/.test(f) ? f : undefined);
-    if (read.status === "data") return read;
+    if (read.status === "data") {
+      // One observed but unqualified family candidate makes the source UNAVAILABLE.
+      // Never fall back to another object that can launder the same root identity.
+      if (isUnadmittedGexFamilyArtifact(f, read.data)) return { status: "unavailable" };
+      return read;
+    }
     if (source === "r2") {
       if (read.status === "absent") r2Absent = true;
       else unexplained = true;
@@ -1275,6 +1281,7 @@ export async function loadFlowFreshResult(f: string): Promise<UpstreamOutcome> {
   if (process.env.FLOW_FIXTURE === "1") {
     try {
       const data = await fixtureFor(f);
+      if (isUnadmittedGexFamilyArtifact(f, data)) return { status: "unavailable" };
       attachFlowScores(f, data);
       return { status: "data", data };
     } catch {
