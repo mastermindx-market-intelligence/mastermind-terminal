@@ -61,7 +61,7 @@ for (const { query, pill, category } of CASES) {
   });
 }
 
-test("/options?tab=statistics cold-loads the gated Statistics category", async ({ page }, testInfo) => {
+test("/options?tab=statistics cold-loads the observed Statistics category", async ({ page }, testInfo) => {
   test.setTimeout(60_000);
 
   const res = await page.request.get("/options?tab=statistics");
@@ -69,11 +69,11 @@ test("/options?tab=statistics cold-loads the gated Statistics category", async (
   const html = await res.text();
   const category = html.match(/<button[^>]*id="wtab-cat-statistics"[^>]*>/)?.[0];
   expect(category).toContain('aria-selected="true"');
-  expect(html).toContain('data-options-ia-state="statistics-pending"');
+  expect(html).toContain('data-options-ia-state="statistics-observed"');
 
   await page.goto("/options?tab=statistics");
   await expect(page.locator("#wtab-cat-statistics")).toHaveAttribute("aria-selected", "true");
-  await expect(page.locator('[data-options-ia-state="statistics-pending"]')).toBeVisible();
+  await expect(page.locator('[data-options-ia-state="statistics-observed"]')).toBeVisible();
   await expect(page).toHaveURL(/\/options\?tab=statistics$/);
   await page.screenshot({
     path: testInfo.outputPath(`${testInfo.project.name}-options-deeplink-statistics.png`),
@@ -126,6 +126,6 @@ test("Options follows query navigation and Back/Forward while retaining visited 
     window.history.pushState(null, "", url);
   });
   await expect(page.locator("#wtab-cat-statistics")).toHaveAttribute("aria-selected", "true");
-  await expect(page.locator('[data-options-ia-state="statistics-pending"]')).toBeVisible();
+  await expect(page.locator('[data-options-ia-state="statistics-observed"]')).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath(`${testInfo.project.name}-options-query-navigation.png`) });
 });

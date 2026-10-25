@@ -166,16 +166,31 @@ describe("fatal CLOSED stream recovery", () => {
     await act(async () => { pending[0](denied(403)); });
     expect(snapshot()).toEqual({ data: null, connected: false, error: true, status: "unavailable", stale: false });
   });
-  it("keeps one fallback timer and one in-flight read after duplicate closed callbacks", async () => {
-    await render("meta");
-    await act(async () => { source().failClosed(); source().failClosed(); });
-    expect(pending).toHaveLength(1);
-    expect(vi.getTimerCount()).toBe(1);
-    await act(async () => { await vi.advanceTimersByTimeAsync(3000); });
-    expect(fetcher).toHaveBeenCalledTimes(1);
-    await resolvePoll(0, { value: "fresh meta" });
-    await act(async () => { await vi.advanceTimersByTimeAsync(1000); });
-    expect(fetcher).toHaveBeenCalledTimes(2);
-    expect(vi.getTimerCount()).toBe(1);
+  it("keeps one fallback interval and one bounded read after duplicate closed callbacks", async () => {
+    const interval = vi.spyOn(globalThis, "setInterval");
+    try {
+      await render("meta");
+      await act(async () => { source().failClosed(); source().failClosed(); });
+      expect(pending).toHaveLength(1);
+      expect(interval).toHaveBeenCalledTimes(1);
+      expect(interval).toHaveBeenCalledWith(expect.any(Function), 1000);
+      // One polling interval plus the existing cache owner's pending-read deadline.
+      expect(vi.getTimerCount()).toBe(2);
+      await act(async () => { await vi.advanceTimersByTimeAsync(3000); });
+      expect(fetcher).toHaveBeenCalledTimes(1);
+      expect(interval).toHaveBeenCalledTimes(1);
+      await resolvePoll(0, { value: "fresh meta" });
+      expect(vi.getTimerCount()).toBe(1); // Completed read cleared its deadline.
+      await act(async () => { await vi.advanceTimersByTimeAsync(1000); });
+      expect(fetcher).toHaveBeenCalledTimes(2);
+      expect(vi.getTimerCount()).toBe(2);
+      expect(interval).toHaveBeenCalledTimes(1);
+      await resolvePoll(1, { value: "next meta" });
+      expect(vi.getTimerCount()).toBe(1);
+      await act(async () => root.render(null));
+      expect(vi.getTimerCount()).toBe(0);
+    } finally {
+      interval.mockRestore();
+    }
   });
 });
