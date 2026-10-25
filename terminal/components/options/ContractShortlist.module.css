@@ -173,6 +173,21 @@
   padding-top: 10px;
 }
 
+.planForm { display: grid; gap: 12px; min-width: 0; }
+.planForm label { display: grid; gap: 6px; min-width: 0; color: var(--text-2); font: 500 12px/1.4 var(--font-ui); }
+.planForm :is(input, textarea, select) { width: 100%; min-width: 0; min-height: 44px; padding: 9px 10px; border: 1px solid var(--line); border-radius: var(--r-md, 8px); background: var(--inset, var(--bg)); color: var(--text); font: inherit; }
+.planForm textarea { min-height: 70px; resize: vertical; }
+.planForm :is(input, textarea, select):focus-visible { outline: 2px solid var(--brand-2); outline-offset: 2px; }
+.planLeg { min-width: 0; margin: 0; padding: 12px 0 0; border: 0; border-top: 1px solid var(--line); }
+.planLeg legend { color: var(--text); font: 600 12px/1.4 var(--font-ui); overflow-wrap: anywhere; }
+.planFields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.planSource { display: grid; gap: 6px; font: 500 11px/1.4 var(--font-ui); }
+.planSource > div { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 16px; }
+.planSource dt { color: var(--muted); }
+.planSource dd { margin: 0; overflow-wrap: anywhere; color: var(--text); }
+.planControl.planControl { min-height: 44px !important; height: auto; white-space: normal; }
+@media (max-width: 599px) { .planFields { grid-template-columns: 1fr; } }
+
 .cmpHd {
   display: flex;
   flex-direction: column;
@@ -340,3 +355,11 @@
     max-width: 128px;
   }
 }
+
+/* Scoped planning editor: trade assumptions first; native disclosures retain
+   the full original evidence and optional research without a second form. */
+.planCompact .planFields { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.planDetails { min-width: 0; border-top: 1px solid var(--line); }
+.planDetails > summary { min-height: 44px; padding: 12px 0; color: var(--text-2); font: 500 12px/1.5 var(--font-ui); cursor: pointer; }
+.planDetails > summary:focus-visible { outline: 2px solid var(--brand-2); outline-offset: 2px; }
+.planDetails[open] > summary { margin-bottom: 8px; }

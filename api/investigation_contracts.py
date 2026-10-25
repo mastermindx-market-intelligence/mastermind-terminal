@@ -11,6 +11,8 @@ import json
 import math
 import re
 
+from api.investigation_scenario import validate_scenario_capture
+
 TRIM = "\t\v\f \u00a0\ufeff\n\r\u1680\u2028\u2029\u202f\u205f\u3000" + "".join(chr(n) for n in range(0x2000, 0x200B))
 UUID = re.compile(r"[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\Z")
 DIGEST = re.compile(r"[0-9a-f]{64}\Z")
@@ -86,7 +88,7 @@ def validate_investigation_manifest(raw, admission=None):
     admission = admission if admission is not None else {}
     try:
         data_only(raw)
-        m = obj(raw, "$", ("schema", "intent", "layout_refs", "thesis_refs", "evidence_refs", "continuation"), ("review_baseline_ref",))
+        m = obj(raw, "$", ("schema", "intent", "layout_refs", "thesis_refs", "evidence_refs", "continuation"), ("review_baseline_ref", "scenario_capture"))
         choice(m["schema"], "$.schema", ("investigation_manifest.v1", "investigation_manifest.v2"))
         v2 = m["schema"] == "investigation_manifest.v2"
         limit = 4000 if v2 else 2000
@@ -165,6 +167,12 @@ def validate_investigation_manifest(raw, admission=None):
             text(value, "$.continuation." + key, limit)
         if "review_baseline_ref" in m:
             evidence(m["review_baseline_ref"], "$.review_baseline_ref", True)
+        if "scenario_capture" in m:
+            # v2 only, and only a value the pure leaf validator accepts; nothing is coerced. A
+            # reference is unresolved input metadata: no basis/result values are admitted and
+            # acceptance is never a retention, entitlement or source-availability claim.
+            require(v2, "$.scenario_capture", "unsupported_schema")
+            require(validate_scenario_capture(m["scenario_capture"]), "$.scenario_capture", "invalid_scenario_capture")
         serialized = json.dumps(m, ensure_ascii=False, separators=(",", ":"))
         require(len(serialized.encode("utf-8")) <= (131072 if v2 else 65536), "$", "manifest_too_large")
         return {"ok": True, "value": json.loads(serialized)}

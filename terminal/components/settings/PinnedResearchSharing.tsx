@@ -38,6 +38,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Group } from "./icons";
 import type { SectionProps } from "./types";
 import { identityUserId } from "@/lib/accountIdentity";
+import { parseScenarioCapture } from "@/lib/investigationScenario";
+import SavedScenarioRead from "@/components/research/SavedScenarioRead";
 import {
   isHandoffOwnerChangeError,
   listHandoffs,
@@ -103,6 +105,14 @@ const COPY: Record<Lang, Record<string, string>> = {
     readFailed: "We could not read your research handoffs just now.",
     ownerChanged: "Your session switched accounts. Reload this page before sharing again.",
     invalid: "Check the investigation and the recipient account ID, then try again.",
+    scenarioOpt: "Include the saved scenario inputs and source reference",
+    scenarioOptNote:
+      "The scenario inputs and the source reference recorded with this exact revision would be shared. No market values are included. Resolving the saved scenario requires the recipient’s current source access and availability of the exact retained source and model version. Resolution is not provided here. Later revisions are never shared.",
+    scenarioChecking: "Checking this revision for a saved scenario…",
+    scenarioNone: "This revision has no saved scenario reference.",
+    scenarioFailed: "The saved scenario could not be verified for this revision, so it cannot be included.",
+    scenarioIncluded: "Includes saved scenario reference",
+    sharedScenario: "The scenario inputs and source reference for this exact revision are included.",
   },
   zh: {
     head: "钉选研究交接",
@@ -148,6 +158,14 @@ const COPY: Record<Lang, Record<string, string>> = {
     readFailed: "暂时无法读取你的研究交接。",
     ownerChanged: "你的会话已切换账户。请重新加载本页后再共享。",
     invalid: "请检查所选研究与对方账户 ID，然后重试。",
+    scenarioOpt: "包含已保存的方案输入与来源引用",
+    scenarioOptNote:
+      "随此确切修订版本记录的方案输入与来源引用将被一并共享。不包含任何市场数值。解析已保存的方案需要对方当前拥有来源访问权限，且确切保留的来源与模型版本仍可用。此处不提供解析功能。永远不会共享更新的修订版本。",
+    scenarioChecking: "正在检查此修订版本是否包含已保存的方案…",
+    scenarioNone: "此修订版本没有已保存的方案引用。",
+    scenarioFailed: "无法核实此修订版本的已保存方案，因此无法包含。",
+    scenarioIncluded: "包含已保存方案引用",
+    sharedScenario: "此确切修订版本的方案输入与来源引用已包含在内。",
   },
 };
 
@@ -191,12 +209,20 @@ function PinnedResearchSharingOwner({ t, lang, identity }: Pick<SectionProps, "t
   // otherwise claim "no shares" for a state the server never confirmed.
   const [stale, setStale] = useState(false);
   const [openContent, setOpenContent] = useState<OpenContent>(null);
+  // The saved-scenario choice is deliberate, per share, and only for a revision the owner has
+  // ACTUALLY re-read and parsed here as a valid reference-only capture. Default false keeps the
+  // old payload byte-for-byte; a selection or owner change clears it.
+  const [includeScenario, setIncludeScenario] = useState(false);
+  const [scenario, setScenario] = useState<"idle" | "checking" | "ok" | "none" | "failed">("idle");
 
   // Every async completion is stamped with the generation that started it. An identity change
   // or unmount bumps the counter, so a stale answer cannot paint into the new owner's pane.
   const genRef = useRef(0);
   const readGenRef = useRef(0);
   const listEpochRef = useRef(0);
+  // Sequence guard for the per-revision owner preview: a selection change or an unmount
+  // invalidates the in-flight answer before it can enable the opt-in.
+  const previewSeq = useRef(0);
   // Where each collection is currently positioned. A paging completion is stamped with the
   // cursor it asked for; a refresh, share or revoke moves the position, so the late answer for
   // the old position is discarded instead of painted. Mirrored outside state on purpose: the
@@ -226,6 +252,9 @@ function PinnedResearchSharingOwner({ t, lang, identity }: Pick<SectionProps, "t
     setReadNote(null);
     setStale(false);
     setOpenContent(null);
+    previewSeq.current += 1;
+    setIncludeScenario(false);
+    setScenario("idle");
   }, []);
 
   // Owner change (guest ⇄ account, or account ⇄ account) and unmount both invalidate.
@@ -233,8 +262,53 @@ function PinnedResearchSharingOwner({ t, lang, identity }: Pick<SectionProps, "t
     reset();
     return () => {
       genRef.current += 1;
+      previewSeq.current += 1;
     };
   }, [userId, reset]);
+
+  /** Owner-side verification for the opt-in: the EXACT selected revision is re-read through
+   *  the existing /api/investigations endpoint (owner RLS applies) and its stored capture is
+   *  parsed as a strict reference-only capture before the choice can even be enabled. A failed
+   *  preview, a changed selection or an owner change clears both the private preview verdict
+   *  and the opt-in — an unverifiable revision can never be shared with scenario: true, and a
+   *  legacy full-value payload simply parses as "none" (it is not a valid reference). */
+  useEffect(() => {
+    const item = own.find((entry) => entry.id === picked);
+    if (!picked || !item) {
+      previewSeq.current += 1;
+      setScenario("idle");
+      setIncludeScenario(false);
+      return;
+    }
+    const seq = ++previewSeq.current;
+    setScenario("checking");
+    setIncludeScenario(false);
+    void (async () => {
+      try {
+        const response = await fetch(
+          `/api/investigations?${new URLSearchParams({ id: item.id, revision: String(item.revision) })}`,
+          { cache: "no-store" },
+        );
+        const body: unknown = await response.json();
+        if (seq !== previewSeq.current) return;
+        const manifest =
+          response.ok && body !== null && typeof body === "object" && !Array.isArray(body)
+            && (body as { status?: unknown }).status === "found"
+            && (body as { id?: unknown }).id === item.id
+            && (body as { revision?: unknown }).revision === item.revision
+            && (body as { manifest?: unknown }).manifest !== null
+            && typeof (body as { manifest?: unknown }).manifest === "object"
+            ? ((body as { manifest: Record<string, unknown> }).manifest) : null;
+        const capture = manifest && manifest.scenario_capture !== undefined && manifest.scenario_capture !== null
+          ? parseScenarioCapture(manifest.scenario_capture)
+          : null;
+        setScenario(capture ? "ok" : "none");
+      } catch {
+        if (seq !== previewSeq.current) return;
+        setScenario("failed");
+      }
+    })();
+  }, [picked, own]);
 
   /** The list read — always the FIRST page, so it re-positions both collections and orphans
    *  any in-flight later page. False means "do not speak about state" — the pane shows why.
@@ -389,7 +463,15 @@ function PinnedResearchSharingOwner({ t, lang, identity }: Pick<SectionProps, "t
     setMsg(null);
     const gen = genRef.current;
     try {
-      const { result } = await shareHandoff(userId, { investigationId: item.id, revision: item.revision, granteeUserId: trimmed });
+      // include_scenario is sent ONLY when the owner explicitly opted in AND this exact
+      // revision was verified above; the default call stays the old payload.
+      const withScenario = includeScenario && scenario === "ok";
+      const { result } = await shareHandoff(userId, {
+        investigationId: item.id,
+        revision: item.revision,
+        granteeUserId: trimmed,
+        ...(withScenario ? { includeScenario: true } : {}),
+      });
       if (!alive(gen)) return;
       // No retries, no local optimism: speak only from the server's own answer.
       if (result.status === "created" || result.status === "already_shared") {
@@ -586,6 +668,24 @@ function PinnedResearchSharingOwner({ t, lang, identity }: Pick<SectionProps, "t
               />
               <p className="acs-note">{c.accountHint}</p>
               <p className="acs-note">{c.excludes}</p>
+              {scenario === "checking" ? <p className="acs-note" role="status">{c.scenarioChecking}</p>
+                : scenario === "failed" ? <p className="acs-msg show err" role="status">{c.scenarioFailed}</p>
+                : scenario === "none" ? <p className="acs-note" role="status">{c.scenarioNone}</p>
+                : scenario === "ok" ? (
+                  <>
+                    <label className="acs-row-desc" style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                      <input
+                        type="checkbox"
+                        checked={includeScenario}
+                        disabled={busy}
+                        onChange={(e) => setIncludeScenario(e.target.checked)}
+                        aria-label={c.scenarioOpt}
+                      />
+                      {c.scenarioOpt}
+                    </label>
+                    <p className="acs-note">{includeScenario ? c.scenarioIncluded : c.scenarioOptNote}</p>
+                  </>
+                ) : null}
               <div className="acs-btns">
                 <button
                   type="button"
@@ -715,6 +815,11 @@ function PinnedResearchSharingOwner({ t, lang, identity }: Pick<SectionProps, "t
                         ) : null}
                         {open.continuation.nextObservation ? (
                           <p style={{ margin: "0 0 4px" }}>{`${c.nextObservation}: ${open.continuation.nextObservation}`}</p>
+                        ) : null}
+                        {"scenarioCapture" in open ? (
+                          <SavedScenarioRead capture={open.scenarioCapture} lang={lang}
+                            revision={{ id: open.investigationId, revision: open.revision, grantId: open.grantId }}
+                            identity={identity} />
                         ) : null}
                         <p style={{ margin: 0 }}>{c.excludes}</p>
                       </div>
