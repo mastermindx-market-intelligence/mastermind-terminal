@@ -20,6 +20,11 @@ vi.mock("@/lib/i18n", () => ({
   useT: () => (key: string, fallback?: string) => fallback ?? key,
 }));
 vi.mock("@/lib/futuresUiCopy", () => ({ useFuturesText: () => (key: string) => key }));
+// Navigation exercises the real Statistics view with an explicitly absent snapshot.
+// Source transport and decoder behavior have their own contract/browser coverage.
+vi.mock("@/lib/flowStream", () => ({
+  useFlowStream: () => ({ data: null, connected: false, error: false, status: "absent", stale: false, retry: vi.fn() }),
+}));
 vi.mock("@/components/options/OptionsWorkflowGuide", () => ({ default: () => null }));
 vi.mock("@/components/chrome/WorkspaceTabs", () => ({
   default: ({ tabs, active, onSelect }: WorkspaceTabsProps) => <nav>
@@ -87,16 +92,19 @@ it("follows later query changes in the same mounted workspace and retains the Hu
   expect(hub.mounts).toBe(1);
 });
 
-it("enters and leaves the Statistics gate when the query changes", async () => {
+it("enters and leaves Statistics without inventing values when its snapshot is absent", async () => {
   await render();
   await navigate("?tab=statistics");
   expect(active("cat-statistics")).toBe("true");
-  expect(node.querySelector('[data-options-ia-state="statistics-pending"]')).not.toBeNull();
+  const statistics = node.querySelector('[data-options-ia-state="statistics-observed"]');
+  expect(statistics).not.toBeNull();
+  expect(statistics?.querySelector('[data-statistics-state="unavailable"]')?.textContent).toContain("No qualified observations yet");
+  expect(statistics?.querySelector("table")).toBeNull();
   expect(view()).toBeUndefined();
   await navigate("?tab=volatility");
   expect(view()).toBe("volatility");
   expect(active("cat-volatility")).toBe("true");
-  expect(node.querySelector('[data-options-ia-state="statistics-pending"]')).toBeNull();
+  expect(node.querySelector('[data-options-ia-state="statistics-observed"]')).toBeNull();
 });
 
 it("preserves unrelated query context and the Hub on category and internal drill selections", async () => {
