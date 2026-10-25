@@ -167,7 +167,7 @@ export default function OptionsWorkspace() {
             />
           ) : (
             <div className={s.statisticsSummary} data-options-ia-gate="statistics-r3">
-              {lang === "zh" ? "已观测交易 · 部分覆盖 · 不使用合成数值" : "Observed trading · partial coverage · no synthetic values"}
+              {t("optionsStatisticsSummary")}
             </div>
           )}
         </div>

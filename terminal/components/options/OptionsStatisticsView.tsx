@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useFlowStream } from "@/lib/flowStream";
-import { useLang } from "@/lib/i18n";
+import { useLang, useT } from "@/lib/i18n";
 import { decodeObservedStatistics, type ObservedBucket, type ObservedStatisticsResult } from "@/lib/optionsObservedStatistics";
 import s from "./OptionsStatisticsView.module.css";
 
@@ -73,6 +73,7 @@ export function OptionsStatisticsPanel({ result, lang, transportStale = false }:
 
 export default function OptionsStatisticsView() {
   const { lang } = useLang();
+  const t = useT();
   const stream = useFlowStream<unknown>("meta");
   const [root, setRoot] = useState("SPY");
   const [draft, setDraft] = useState("SPY");
@@ -84,10 +85,10 @@ export default function OptionsStatisticsView() {
   const result = decodeObservedStatistics(stream.data, root, now);
   const zh = lang === "zh";
   return <section id="wpanel-statistics" className={s.workspace} data-options-ia-state="statistics-observed" aria-labelledby="wtab-cat-statistics">
-    <header className={s.header}><div><span className={s.eyebrow}>{zh ? "期权统计" : "Options statistics"}</span><h1>{zh ? "交易构成" : "Trading composition"}</h1><p>{zh ? "逐笔观测 · 覆盖范围明确" : "Observed prints. Explicit coverage."}</p></div>
+    <header className={s.header}><div><span className={s.eyebrow}>{t("optionsStatisticsEyebrow")}</span><h1>{t("optionsStatisticsTitle")}</h1><p>{t("optionsStatisticsDescription")}</p></div>
       <form onSubmit={event => { event.preventDefault(); const value = draft.trim().toUpperCase(); if (/^[A-Z0-9.^=-]{1,16}$/.test(value)) setRoot(value); }}><label htmlFor="options-statistics-symbol">{zh ? "代码" : "Symbol"}</label><div><input id="options-statistics-symbol" value={draft} onChange={e => setDraft(e.target.value)} maxLength={16} pattern="[A-Za-z0-9.\^=\-]+" required autoCapitalize="characters" autoComplete="off" spellCheck={false} /><button type="submit">{zh ? "查看" : "View"}</button></div><small>{zh ? "当前显示" : "Showing"} {root}</small></form>
     </header>
-    {stream.status === "loading" && !stream.data ? <p role="status">{zh ? "正在读取观测快照…" : "Reading observed snapshot…"}</p> : <OptionsStatisticsPanel result={result} lang={lang} transportStale={stream.stale} />}
-    {stream.error && <p className={s.notice} role="status">{zh ? "最新快照暂时无法获取。" : "The latest snapshot is currently unavailable."} <button onClick={stream.retry}>{zh ? "重试" : "Retry"}</button></p>}
+    {stream.status === "loading" && !stream.data ? <p role="status">{t("optionsStatisticsLoading")}</p> : <OptionsStatisticsPanel result={result} lang={lang} transportStale={stream.stale} />}
+    {stream.error && <p className={s.notice} role="status">{t("optionsStatisticsUnavailable")} <button onClick={stream.retry}>{zh ? "重试" : "Retry"}</button></p>}
   </section>;
 }

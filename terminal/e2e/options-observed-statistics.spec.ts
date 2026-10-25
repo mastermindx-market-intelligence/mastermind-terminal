@@ -8,6 +8,7 @@ for (const lang of ["en", "zh"]) {
     await page.route(url => url.pathname === "/api/flow" && url.searchParams.get("f") === "meta", route => route.fulfill({ json: data }));
     await page.goto("/options?tab=statistics");
     const workspace = page.locator("#wpanel-statistics");
+    await expect(workspace.getByRole("heading", { name: lang === "zh" ? "交易构成" : "Trading composition", exact: true })).toBeVisible();
     await expect(workspace.locator('[data-statistics-state="available"]')).toBeVisible();
     await expect(workspace.locator('[data-statistics-stale="true"]')).toBeVisible();
     await expect(workspace).toContainText(lang === "zh" ? "最近计划的数据源请求失败" : "Latest scheduled source request failed");
