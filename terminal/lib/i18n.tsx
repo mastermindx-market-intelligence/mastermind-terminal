@@ -1333,12 +1333,6 @@ export const LEX: Record<string, [string, string]> = {
   optionsCategoryProphet: ["Prophet", "Prophet"],
   optionsIaCategoryLabel: ["Category", "类别"],
   optionsIaViewLabel: ["View", "视图"],
-  optionsStatisticsEyebrow: ["Options statistics", "期权统计"],
-  optionsStatisticsTitle: ["Trading composition", "交易构成"],
-  optionsStatisticsDescription: ["Observed prints. Explicit coverage.", "逐笔观测 · 覆盖范围明确"],
-  optionsStatisticsLoading: ["Reading observed snapshot…", "正在读取观测快照…"],
-  optionsStatisticsUnavailable: ["The latest snapshot is currently unavailable.", "最新快照暂时无法获取。"],
-  optionsStatisticsSummary: ["Observed trading · partial coverage · no synthetic values", "已观测交易 · 部分覆盖 · 不使用合成数值"],
   optionsStatisticsGateShort: ["Source publisher pending · no synthetic values", "数据发布器待上线 · 不使用合成数值"],
   optionsStatisticsGateTitle: ["Statistics opens when the source is honest", "数据源通过诚实性门槛后开放统计"],
   optionsStatisticsGateBody: [

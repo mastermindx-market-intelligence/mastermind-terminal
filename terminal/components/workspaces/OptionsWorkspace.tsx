@@ -167,7 +167,7 @@ export default function OptionsWorkspace() {
             />
           ) : (
             <div className={s.statisticsSummary} data-options-ia-gate="statistics-r3">
-              {t("optionsStatisticsSummary")}
+              {optionsWorkspaceCopy(lang).statisticsSummary}
             </div>
           )}
         </div>
