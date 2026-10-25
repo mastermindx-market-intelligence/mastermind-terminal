@@ -469,6 +469,17 @@
       "applied_date": "2026-10-24",
       "note": "PR #1173 merged424ed4a2. Exact SQL applied once2026-10-24T20:43:40Z through incumbent supabase_apply/1, one statement; original status unverified/exit6/error null retained because ALTER column/constraint are not discovered by expected_objects. Separate readonly catalog qualification confirms exact nullable role column/validated constraint and unchanged existing columns/constraints/RLS/ACL/policies/triggers. Receipt comment6389324788 and docs/verification/portfolio-role preserve evidence; public receipt derivative redacts only project_ref. No role labels or browser actions; owner acceptance remains open. No replay;0042/0030 unchanged.",
       "merged_sha": "424ed4a2c700955dc35354d597611219d8ef6980"
+    },
+    "0045": {
+      "state": "taken",
+      "file": "0045_options_frozen_runtime.sql",
+      "packet": "OPTIONS-EXPOSURE-P09-FROZEN-RUNTIME",
+      "pr": 1175,
+      "pr_state": "merged",
+      "applied_in_production": false,
+      "applied_date": null,
+      "note": "PR #1175 source merged as aaa4801db5a7e467c52dd94b4e7aea217be50b23 at 2026-10-24T23:38:23Z after protected CI and scoped independent review. Packages the accepted lifecycle/atomic/prepared units as one atomic migration, including native installer readback compatibility. Source only; production remains unapplied and application date is not recorded. Existing0043/#804 and0044/#1173 records remain intact. No runtime admission, activation, provider operation or SQL application is implied.",
+      "merged_sha": "aaa4801db5a7e467c52dd94b4e7aea217be50b23"
     }
   }
 }
