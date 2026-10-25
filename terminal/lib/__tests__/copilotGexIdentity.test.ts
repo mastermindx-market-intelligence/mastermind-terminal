@@ -37,6 +37,20 @@ const state = (o: Obj = {}): Obj => ({
 });
 
 describe("curateGex — owner root binds every source, not only a fused pair", () => {
+  it("refuses offline NDX/NDXP family gamma even with a matching measured NDX root", () => {
+    const composite = ladder({ root: "NDX", net_gex_bn: 14.2, family_source: {
+      schema: "mastermind.index_options_family_source.v1",
+      source_roots: ["NDX", "NDXP"], state: "OFFLINE_SOURCE_QUALIFIED_NOT_PUBLISHABLE",
+    } });
+    const out = curateGex(composite, null, "NDX");
+    expect(out.status).toBe("unavailable");
+    expect(out.no_data).toBe(true);
+    expect(carriesNumbers(out)).toBe(false);
+    expect(JSON.stringify(out)).not.toContain("14.2");
+    expect((out.withheld as Obj)?.ladder).toMatchObject({
+      root: "NDX", reason: expect.stringContaining("family_source"),
+    });
+  });
   it("a ladder-only payload for another root is withheld, never that symbol's GEX", () => {
     const out = curateGex(ladder({ root: "QQQ" }), null, "SPY");
     expect(carriesNumbers(out)).toBe(false);
@@ -470,6 +484,25 @@ describe("execTool get_options_summary — the R2 mirror decides absence (produc
   const aaplLadder = ladder({ root: "AAPL" });
   const aaplState = state({ root: "AAPL" });
   const gexOf = async (symbol = "AAPL") => (await execTool("get_options_summary", { symbol })).gex as Obj;
+
+  it("withholds an actual R2 NDX/NDXP family object in the Copilot read path", async () => {
+    const composite = ladder({ root: "NDX", net_gex_bn: 19.7, family_source: {
+      schema: "mastermind.index_options_family_source.v1",
+      source_roots: ["NDX", "NDXP"], historical_first_available_at: null,
+      complete_chain_receipt: false, redistribution_grant: null,
+      state: "OFFLINE_SOURCE_QUALIFIED_NOT_PUBLISHABLE",
+    } });
+    // The hub cannot read the source; R2 is the single store of record.
+    stub(async (side, store) => side === "ladder" && store === "r2"
+      ? json(200, composite) : json(side === "ladder" ? 503 : 404));
+    const gex = await gexOf("NDX");
+    expect(gex.status).toBe("unavailable");
+    expect(gex.no_data).toBe(true);
+    expect(JSON.stringify(gex)).not.toContain("19.7");
+    expect((gex.withheld as Obj)?.ladder).toMatchObject({
+      root: "NDX", reason: expect.stringContaining("family_source"),
+    });
+  });
 
   it("an uncovered root (hub gex 503, no hub state route, R2 404 for both) is no coverage, not a failed read", async () => {
     stub(async (side, store) => (store === "hub" ? json(side === "ladder" ? 503 : 404) : json(404)));

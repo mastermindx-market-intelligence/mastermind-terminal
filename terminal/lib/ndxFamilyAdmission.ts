@@ -14,6 +14,9 @@
  */
 export function isUnadmittedGexFamilyArtifact(f: string, payload: unknown): boolean {
   if (!(f.startsWith("gex:") || f.startsWith("gex_at:"))) return false;
-  if (!payload || typeof payload !== "object" || Array.isArray(payload)) return false;
+  // Any array on a GEX key is off-contract. An array-wrapped family_source
+  // must not be served as HTTP 200 or admitted into the shared Flow cache.
+  if (Array.isArray(payload)) return true;
+  if (!payload || typeof payload !== "object") return false;
   return Object.prototype.hasOwnProperty.call(payload, "family_source");
 }

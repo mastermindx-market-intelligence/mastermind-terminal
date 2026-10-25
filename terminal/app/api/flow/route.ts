@@ -28,7 +28,9 @@ function revalidateFlow(f: string): Promise<Record<string, unknown> | null> {
   // so two users cannot create competing source-check workers for one key.
   const request = tryFetchUpstream(f).then(
     (data) => {
-      if (data) {
+      // Defense in depth: revalidation can never repopulate cached GEX family data,
+      // even when a future source path bypasses the generic loader.
+      if (data && !isUnadmittedGexFamilyArtifact(f, data)) {
         attachFlowScores(f, data);
         CACHE[f] = { data, ts: Date.now() };
       }
@@ -163,6 +165,13 @@ export async function GET(req: Request): Promise<Response> {
       );
     }
     const data = outcome.data;
+    // The HTTP boundary refuses unqualified families even if a later upstream
+    // adapter erroneously returns them as a data outcome.
+    if (isUnadmittedGexFamilyArtifact(f, data)) {
+      return NextResponse.json({ error: "feed unavailable" }, {
+        status: 503, headers: { "Cache-Control": "no-store" },
+      });
+    }
     // Score once here (before caching) so cache hits reuse the scored payload.
     attachFlowScores(f, data);
     CACHE[f] = { data, ts: now };

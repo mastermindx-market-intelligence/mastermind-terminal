@@ -29,7 +29,7 @@ const candidate = (patch: Record<string, unknown> = {}) => ({
   },
   ...patch,
 });
-type Answer = number | Record<string, unknown>;
+type Answer = number | Record<string, unknown> | unknown[];
 function upstreams(backend: Answer, r2: Answer) {
   const send = vi.fn(async (input: RequestInfo | URL) => {
     const value = String(input).startsWith(R2_BASE) ? r2 : backend;
@@ -70,6 +70,9 @@ describe("NDX+NDXP family source-admission boundary", () => {
   it("does not alter unrelated root feeds or native single-root GEX without a family marker", () => {
     expect(isUnadmittedGexFamilyArtifact("gex:NDX", ordinary("NDX"))).toBe(false);
     expect(isUnadmittedGexFamilyArtifact("gex:SPY", ordinary())).toBe(false);
+    expect(isUnadmittedGexFamilyArtifact("gex:SPX", ordinary("SPX"))).toBe(false);
+    expect(isUnadmittedGexFamilyArtifact("gex:NDX", [candidate()])).toBe(true);
+    expect(isUnadmittedGexFamilyArtifact("gex:SPY", [])).toBe(true);
     expect(isUnadmittedGexFamilyArtifact("gex_dates:NDX", candidate())).toBe(false);
     expect(isUnadmittedGexFamilyArtifact("vol:NDX", candidate())).toBe(false);
   });
@@ -92,6 +95,15 @@ describe("NDX+NDXP family source-admission boundary", () => {
     expect(await tryFetchUpstreamResult("gex_at:NDX:" + session)).toEqual({ status: "unavailable" });
     upstreams(candidate({ root: "QQQ" }), ordinary("NDX"));
     expect(await tryFetchUpstreamResult("gex:NDX")).toEqual({ status: "unavailable" });
+  });
+
+  it("refuses array-wrapped GEX family payloads through both backend and R2", async () => {
+    let fetchMock = upstreams([candidate()], ordinary("NDX"));
+    expect(await tryFetchUpstreamResult("gex:NDX")).toEqual({ status: "unavailable" });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    fetchMock = upstreams(503, [candidate()]);
+    expect(await tryFetchUpstreamResult("gex:NDX")).toEqual({ status: "unavailable" });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
   it("permits ordinary SPY and NDX single-root payloads with the old transport semantics", async () => {
@@ -138,6 +150,18 @@ describe("real /api/flow GET admission", () => {
     expect(res.status).toBe(503);
     expect(res.headers.get("cache-control")).toBe("no-store");
     expect(await res.json()).toEqual({ error: "feed unavailable" });
+  });
+
+  it("does not serve or cache array-wrapped offline family JSON as HTTP 200", async () => {
+    const fetchMock = upstreams([candidate()], ordinary("NDX"));
+    const handler = await get();
+    for (let i = 0; i < 2; i++) {
+      const res = await handler(request("gex:NDX"));
+      expect(res.status).toBe(503);
+      expect(res.headers.get("cache-control")).toBe("no-store");
+      expect(await res.json()).toEqual({ error: "feed unavailable" });
+    }
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
   it("preserves a real standard SPY root's HTTP 200 and value", async () => {
