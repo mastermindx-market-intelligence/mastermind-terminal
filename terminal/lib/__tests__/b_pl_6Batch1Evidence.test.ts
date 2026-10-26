@@ -1,3 +1,4 @@
+import { createRequire } from "node:module";
 import { assertCapturedLexProjection } from "./helpers/lexEvidenceProjection";
 // Preserve the raw capture pin; only unused onboarding copy has an AST dependency projection.
 // Git-free evidence lock for the B-PL-6 batch 1 capture packet.
@@ -9,6 +10,8 @@ import { existsSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 
 const REPO = join(__dirname, "../../..");
+const immutableEvidence = createRequire(import.meta.url)("../../e2e/tools/visualEvidence.cjs");
+const composition = immutableEvidence.selectedComposition(REPO);
 const CROP_DIR = join(__dirname, "../../docs/pr-crops/b-pl-6-batch-1");
 const EVIDENCE = join(CROP_DIR, "EVIDENCE.yml");
 const CROPS = [
@@ -57,6 +60,16 @@ function sha256Of(abs: string): string {
   return createHash("sha256").update(readFileSync(abs)).digest("hex");
 }
 
+if (composition !== null) {
+  describe("explicit immutable pl6 evidence composition", () => {
+    it("retains every required actual case under the shared current-source contract", () => {
+      const cases = composition.cases.filter((c: { packet: string }) => c.packet === "pl6");
+      expect(cases).toHaveLength(20);
+      expect(new Set(cases.map((c: { key: string }) => c.key)).size).toBe(20);
+    });
+  });
+} else {
+// Bounded incumbent mode: original checks below remain unchanged; no invented record metadata.
 describe("B-PL-6 batch 1 evidence lock is the sha256 of the layout sources", () => {
   it("EVIDENCE.yml records a sha256 for AnalysisWorkspace.tsx", () => {
     const recorded = layoutFileMap(evidenceText());
@@ -95,3 +108,5 @@ describe("B-PL-6 batch 1 evidence lock is the sha256 of the layout sources", () 
     }
   });
 });
+
+}
