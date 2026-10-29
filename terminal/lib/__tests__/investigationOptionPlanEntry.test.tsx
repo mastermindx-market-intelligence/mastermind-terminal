@@ -187,11 +187,16 @@ describe("Options host composed with the real native Save and acknowledged reade
   expect(JSON.parse(host.querySelector('[data-testid="bridge-payoff-inputs"] output')!.textContent!)).toEqual(original);
   expect(posts).toHaveLength(1);expect(window.location.href).toBe(url);
  });
- it("null inputs disable transfer; an epoch mismatch cannot stage a candidate or Save",async()=>{
+ it("null inputs disable transfer; stale transfer and a previously admitted Plan Save are refused",async()=>{
   await compose();await click("Open saved research");await click("Start new research");
   await compose(null);expect(button("Add Plan inputs to new research").disabled).toBe(true);expect(posts).toEqual([]);
   await compose();auth.snapshot={...ready(),auth_epoch:"epoch-changed"};await click("Add Plan inputs to new research");
-  await fill("Title","Refused stale transfer");await fill("Research question","Must not save through an old owner");await click("Save research");
+  expect(posts).toEqual([]);expect(host.textContent).toContain("This research session is unavailable");
+  // A newly edited plain native draft may intentionally save without a Plan.
+  // Prove the Plan-specific Save fence with inputs admitted in the original epoch.
+  auth.snapshot=ready();await compose();await click("Add Plan inputs to new research");
+  await fill("Title","Refused stale Plan");await fill("Research question","Must not save inputs through an old epoch");
+  auth.snapshot={...ready(),auth_epoch:"epoch-after-admission"};await click("Save research");
   expect(posts).toEqual([]);expect(sessionStorage.getItem(`mm.investigation.pending.v2:${owner}`)).toBeNull();
  });
  it("scope and exact-selection replacement destroy the old host; A-B-A cannot revive its draft",async()=>{

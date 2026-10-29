@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, useState, type ComponentProps, type ReactNode } from "react";
+import { Suspense, useEffect, useId, useRef, useState, type ComponentProps, type ReactNode } from "react";
 import InvestigationWorkspaceMount from "@/components/mounts/InvestigationWorkspaceMount";
 import styles from "./ContractShortlist.module.css";
 
@@ -39,7 +39,9 @@ function ResearchSession({ workspaceProps, lang, children }: Props) {
       <h2 ref={heading} tabIndex={-1}>{t("Plan and saved research", "计划与已保存研究")}</h2>
       <p className={styles.hint}>{t("Start a new research draft here before adding Plan inputs. A saved Plan keeps your inputs; calculate again explicitly to use newly shown dated terms.", "请先在此开始新的研究草稿，再添加计划输入。保存的计划保留输入；请主动重新计算，以使用新显示的带日期条款。")}</p>
       {children}
-      <InvestigationWorkspaceMount {...workspaceProps} />
+      <Suspense fallback={<p role="status">{t("Loading saved research…", "正在加载已保存研究…")}</p>}>
+        <InvestigationWorkspaceMount {...workspaceProps} />
+      </Suspense>
       <button type="button" className={`chip ${styles.planControl}`} onClick={close}>{t("Back to Plan", "返回计划")}</button>
     </div>}
   </section>;
