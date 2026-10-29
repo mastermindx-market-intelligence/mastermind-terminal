@@ -1,3 +1,4 @@
+# Current scoped qualification: iw2PlanMaster729Recapture20261029; earlier sections remain historical.
 # Current scoped source: composedDocumentLanguageProductionJoin20261024; parent records retain their original identities.
 # Current source qualification: documentLanguageRecapture20261024. Older recapture sections below remain historical.
 # Current Company design recapture is sharedShellCompanyDesignRecapture20261022; prior records remain historical.
@@ -52,7 +53,7 @@ layoutFiles:
   terminal/lib/sharedShellContracts.ts: "dc7c893852c287b2a18c6b71cbced07bfa0996c1168490c5a8c24e4d3de01266"
   terminal/app/company-intelligence.css: "8b43f2046891837f6572fa2a59b7594547def9602b0454e1f14edba322da2a34"
   terminal/components/DayRange.tsx: "c84724652783da1897ab4eeb98550eaf3dbd7942eefe3ce127b6ada2b16dd672"
-  terminal/components/OptionsHubView.tsx: "5c54df6f4939a966262323325f7abba196599abbce8a137882b8dc13068c72bb"
+  terminal/components/OptionsHubView.tsx: "333413411f33fefe1dab2a32fcc71eab611d0fa2b270f9939b8c5e1c9aa5e69b"
   terminal/components/SearchModal.tsx: "a7a9a97d9ce08b7e8b03ccfdfc8720c5d6fca80873663125f624dba98b99cc83"
   terminal/components/StockAnalysis.tsx: "376a907d0d8ea3dc5819e0092f02e19ce56fa1f4b71a3489551adf52fddb35c0"
   terminal/components/workspaces/AnalysisWorkspace.tsx: "411b8a7e498b8af3f9337fdcf3835dd62e6a5854826f414171d8303efd8aa5bb"
@@ -60,16 +61,16 @@ layoutFiles:
   terminal/lib/chartPresentation.ts: "069f5af2dfc47c7c2f31ae21d23438825912c5e442cded7f18d794ebec834df3"
   terminal/lib/chartPriceWindow.ts: "1bcf4496ece02d755f75e9ddd0966e244d42dc86d62acba0a77f7c0208c33dd8"
   terminal/lib/chartReadoutSnapshot.ts: "3b0d3ff6d245006bd4543b9048049920ea9b2f2878eeb4bbe0dd705dcae0145e"
-  terminal/lib/i18n.tsx: "0e217ccf6adef6f1848606851c414d35287a787970d175a7a63c71458d392abf"
+  terminal/lib/i18n.tsx: "a907bc3d1b49cf700c9b81a2c21fdadc653c2bb1baeaa13374c782e063b2a718"
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
   terminal/lib/flowActivity.ts: "eb1433e57c7b63a52978aa4e63419e62b3e1a0e0210869f93838a8b7529ce332"
 cropFiles:
-  desktop-context.png: "308d5c0a1fb1336b352e51f1ce1508663aaca529074b66fa4eef1720383afba4"
-  desktop-context-zh.png: "b1854cbd4c61b138ddd80541014ac7c41ad09b4d9e35f39a0896d5d96800968a"
+  desktop-context.png: "973baa1b08bf19db42f71f416fed0904fd62012e24ace9b82ce8ed6585a7219e"
+  desktop-context-zh.png: "ce56240391dcaea86da3b61669e1f34fbc731ded2f19f3db6ddfe4cc94bbc925"
   mobile-context.png: "bbebcc0cc16b1d9bef4b316ec73e3cd9f7c0621e159747db97f006746841c14e"
   mobile-context-zh.png: "ad8903b573db8338d50020d80d11d4b7393abc88312d3635bbf44cb6d3b5f654"
-  tablet-context.png: "2dae8afacb4ab7951fa0a139d44a2061f73b5375431e46d3b58449865131af68"
-  tablet-context-zh.png: "391867e1bb05d471e0f8f467f3902bd5f99e69f2dd597811921ff4efead33763"
+  tablet-context.png: "e9429678ac8781c3d4f801a5b279f005f7f242a0691401305733bc90050018db"
+  tablet-context-zh.png: "452f7d0029fd199be6fc4e7370fb6cfb01f21c83d68ce12e992610884275ff0f"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -642,4 +643,11 @@ iw2Upstream1159Recapture:
   scope: Actual original30case matrix; separate upstream composition report is not included in this census
 
 # Original captured bytes/identity retained; only unused pending-onboarding copy is projected.
-lexProjection: {"schema":"terminal.lex_capture_projection.v1","omittedProperty":"obDonePrefsSyncing","capturedRawSha256":"0e217ccf6adef6f1848606851c414d35287a787970d175a7a63c71458d392abf","projectedSha256":"811c41ae96cd66bd4e361dbb9cf0a2dbf1b42def38c1a55144f6bb7b9b8e58a5","sourceGitBlob":"4f6155bb0a1ebbe41f58dd2cb4e4a3da0f532b8f","sourceRecoveryCommit":"00bf547ee2473f3d5a2d69416512d16bc466c6ea","captureCommitLocallyAvailable":false}
+
+iw2PlanMaster729Recapture20261029:
+  renderedSourceHead: 716d354ea87e0e854e2a831bd497613858582b58
+  integratedMaster: 729a781acdb639f9e8ef9aaaba043c7624b6ceda
+  qualification: Actual original VI30 matrix plus six whole-Plan EN/ZH desktop/tablet/mobile cases; all 36 passed without skips, retries or flaky cases. Local fixtures only.
+  matrixCrops: Six fresh current Chart context captures; four changed desktop/tablet crops reviewed, two byte-identical mobile crops reused.
+  combinedBrowserReport: whole-plan-master729-browser-report.json
+  productionProof: false
