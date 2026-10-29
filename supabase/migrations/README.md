@@ -415,3 +415,33 @@ Complete 169-open-PR filename and reservation-ledger census on 2026-10-24 found 
 ### P09 frozen-runtime source reservation
 
 Complete October24 census of 169 open PRs (including all file pages and changed reservation ledgers) preserves 0043 for #804 and 0044 for #1173. [PR #1175](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1175) source merged as `aaa4801db5a7e467c52dd94b4e7aea217be50b23` at **2026-10-24T23:38:23Z**, claiming prefix 0045 for OPTIONS-EXPOSURE-P09-FROZEN-RUNTIME. The accepted lifecycle, atomic hit and prepared intent units are packaged in one atomic statement, with scoped independent review and protected CI passed. **Not applied:** production application, runtime admission and activation remain separate; this merge records no application date.
+
+
+### 0046 — Source-only exact-attempt frozen enrollment
+
+Follows immutable0045. **UNAPPLIED**: application is false and the application date
+is null. The atomic package embeds the accepted intent-revision unit unchanged,
+removes the legacy five-argument arm, and retains the six-argument CAS. A new
+seven-argument overload of the existing arm RPC implements initial enrollment
+prepare/arm/reconcile on `alerts.frozen_enrollment`. No route or caller is wired.
+
+The envelope is owner-RLS readable and service-write-only; it is not a secret from
+the owning user. It is never stored in authenticated-wide `alert_runs`. It retains
+one attempt for the alert row's lifetime. Different attempts cannot replace it;
+protected edits make old pins stale, and deletion loses the row and its receipt.
+A missing/reinserted/stale row cannot prove the older attempt's outcome.
+
+Only the prepare call that creates the marker may dispatch arm. A preexisting
+prepared marker returns pending. Explicit reconciliation uses the original pin,
+rechecks current Auth/account/source admission and never arms. It returns the
+exact retained terminal acknowledgment or seals the slot as not committed under
+the arm lock, fencing late prepare/arm. A different runtime generation cannot be
+attributed to that acknowledgment. Six-argument lifecycle callers remain separate
+from exact-attempt enrollment and cannot fabricate its receipt.
+
+Source proof uses a private socket-only PostgreSQL fixture, including response
+loss, restart, concurrent attempts, delayed dispatch, stale intent, owner isolation,
+atomic rollback and reapplication. It is not production application or permission
+for the original October26 two-attempt pilot; its held effects remain UNKNOWN.
+Rollback starts with caller disablement and retains revisions/runtime/enrollment
+and terminal tombstones. Never restore the legacy arm or replay an uncertain arm.

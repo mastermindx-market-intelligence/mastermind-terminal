@@ -25,15 +25,21 @@ async function setup() {
     scopeKey: report.scopeKey, availableAt: report.availableAt, sourceBinding: report.sourceBinding,
     members: report.members.filter(m => m.strike === 159).map(({ expiry, strike, right }) => ({ expiry, strike, right })),
     price: 159, qualification: "observed_partial" as const };
-  const request: FrozenNodeInitialIntent = { alertId, principal, predicate: { type: "opt_frozen_node_proximity", root: "QQQ", target },
+  const request: FrozenNodeInitialIntent = { attemptId: "60000000-0000-4000-8000-000000000001", alertId, principal, predicate: { type: "opt_frozen_node_proximity", root: "QQQ", target },
     expectedIntentRevision: intent, expectedGeneration: null, expectedRevision: null, lens: { kind: "all" } };
   const row = { id: alertId, user_id: principal, symbol: "QQQ", condition: structuredClone(request.predicate),
     active: true, created_at: "2026-10-20T00:00:00Z", frozen_runtime: null as unknown, frozen_intent_revision: intent };
   const runtime = { schema: "options.frozen_runtime/v1", alertId, principal, predicate: structuredClone(request.predicate),
     generation, revision: 0, createdAt: at, armingEpoch: at, priorState: null };
-  const rpc = vi.fn(async (_name: string, _args: unknown): Promise<{ data: unknown; error: unknown }> => {
-    void _name; void _args;
-    return { data: { kind: "data", runtime: structuredClone(runtime), intentRevision: intent }, error: null }; });
+  const enrollment = { schema: "options.frozen_enrollment/v1", attemptId: request.attemptId,
+    alertId, principal, predicate: structuredClone(request.predicate), intentRevision: intent,
+    lens: structuredClone(request.lens), preparedAt: at, phase: "prepared", outcome: null as unknown };
+  const rpc = vi.fn(async (_name: string, args: unknown): Promise<{ data: unknown; error: unknown }> => {
+    const op = (args as { p_enrollment: { operation: string } }).p_enrollment.operation;
+    return op === "prepare" ? { data: { kind: "prepared", enrollment: structuredClone(enrollment) }, error: null }
+      : { data: { kind: "enrollment", enrollment: { ...structuredClone(enrollment), phase: "terminal",
+        outcome: { kind: "data", runtime: structuredClone(runtime), intentRevision: intent } } }, error: null };
+  });
   const read = vi.fn(async (): Promise<{ data: unknown; error: unknown }> => ({ data: row, error: null }));
   const builder = { select: vi.fn(() => builder), eq: vi.fn(() => builder), maybeSingle: read };
   const from = vi.fn(() => builder);
@@ -45,20 +51,21 @@ async function setup() {
     status: "active", current_period_end: "2026-11-21T00:00:00Z" }, "https://www.mastermind-x.com/api/me"));
   const source = vi.fn(async (url: string) => response(fixture, url));
   const deps = { auth, accountFetcher: account, sourceTransport: { fetcher: source }, clock: () => at };
-  return { request, row, runtime, deps, rpc, read, from, builder, auth, account, source };
+  return { request, row, runtime, deps, rpc, read, from, builder, auth, account, source, enrollment };
 }
 afterEach(() => { vi.useRealTimers(); service.create.mockReset(); });
 
 describe("dormant initial enrollment: actual account/source reader + single intent-bound arm", () => {
-  it("uses authoritative exact row and six-argument RPC; arms once without sampling/firing", async () => {
+  it("uses authoritative exact row and attempt-bound RPC; arms once without sampling/firing", async () => {
     const x = await setup(), original = structuredClone(x.request);
     const attempt = createFrozenNodeInitialEnrollment(x.request, x.deps);
     const [first, second] = await Promise.all([attempt.run(), attempt.run()]);
     expect(first).toEqual({ kind: "armed", intent: original, runtime: x.runtime });
     expect(second).toEqual(first);
-    expect(x.rpc).toHaveBeenCalledTimes(1);
-    expect(x.rpc).toHaveBeenCalledWith("arm_frozen_node_runtime", { p_alert_id: alertId, p_principal: principal,
-      p_predicate: original.predicate, p_expected_generation: null, p_expected_revision: null, p_expected_intent_revision: intent });
+    expect(x.rpc).toHaveBeenCalledTimes(2);
+    expect(x.rpc).toHaveBeenLastCalledWith("arm_frozen_node_runtime", { p_alert_id: alertId, p_principal: principal,
+      p_predicate: original.predicate, p_expected_generation: null, p_expected_revision: null, p_expected_intent_revision: intent,
+      p_enrollment: { operation: "arm", attemptId: original.attemptId, lens: original.lens } });
     expect(x.from).toHaveBeenCalledWith("alerts");
     expect(x.builder.eq.mock.calls).toEqual([["id", alertId], ["user_id", principal]]);
     expect(x.auth.getUser).toHaveBeenCalledWith("synthetic-token");
@@ -138,13 +145,14 @@ describe("dormant initial enrollment: actual account/source reader + single inte
       if (fault === "prior") Object.assign(body.runtime, { priorState: {} });
       if (fault === "old-epoch") { body.runtime.armingEpoch = "2026-10-20T23:59:59Z"; body.runtime.createdAt = body.runtime.armingEpoch; }
       if (fault === "extra") Object.assign(body.runtime, { allowed: true });
-      x.rpc.mockResolvedValue({ data: body, error: null });
+      x.rpc.mockResolvedValueOnce({ data: { kind: "prepared", enrollment: x.enrollment }, error: null })
+        .mockResolvedValue({ data: { kind: "enrollment", enrollment: { ...x.enrollment, phase: "terminal", outcome: body } }, error: null });
     }
     const attempt = createFrozenNodeInitialEnrollment(x.request, x.deps), pending = attempt.run();
     if (ready) { await ready; await vi.advanceTimersByTimeAsync(5_001); }
     const result = await pending;
-    expect(result).toEqual({ kind: "effect_unknown", reason: "arm_acknowledgment_unknown", intent: x.request });
-    expect(await attempt.run()).toEqual(result); expect(x.rpc).toHaveBeenCalledTimes(1);
+    expect(result).toEqual({ kind: "effect_unknown", reason: "enrollment_acknowledgment_unknown", intent: x.request });
+    expect(await attempt.run()).toEqual(result); expect(x.rpc).toHaveBeenCalledTimes(["error", "reject", "timeout"].includes(fault) ? 1 : 2);
   });
   it("does not turn unavailable row lookup into an arm", async () => {
     const x = await setup();
@@ -152,4 +160,62 @@ describe("dormant initial enrollment: actual account/source reader + single inte
     expect(await createFrozenNodeInitialEnrollment(x.request, x.deps).run()).toEqual({ kind: "unavailable", reason: "persisted_intent_unavailable" });
     expect(x.rpc).not.toHaveBeenCalled();
   });
+  it("recovers a lost committed response after process restart using only the exact retained attempt", async () => {
+    const x = await setup();
+    const terminal = { kind: "enrollment", enrollment: { ...x.enrollment, phase: "terminal",
+      outcome: { kind: "data", runtime: x.runtime, intentRevision: intent } } };
+    x.rpc.mockResolvedValueOnce({ data: { kind: "prepared", enrollment: x.enrollment }, error: null })
+      .mockRejectedValueOnce(new Error("response lost after commit"));
+    expect((await createFrozenNodeInitialEnrollment(x.request, x.deps).run()).kind).toBe("effect_unknown");
+    x.rpc.mockResolvedValue({ data: terminal, error: null });
+    x.read.mockClear(); x.from.mockClear(); x.rpc.mockClear();
+    const restarted = createFrozenNodeInitialEnrollment(structuredClone(x.request), x.deps);
+    expect(await restarted.reconcile()).toEqual({ kind: "armed", intent: x.request, runtime: x.runtime });
+    expect(x.from).not.toHaveBeenCalled();
+    expect(x.rpc).toHaveBeenCalledTimes(1);
+    expect(x.rpc.mock.calls[0][1]).toMatchObject({ p_enrollment: { operation: "reconcile", attemptId: x.request.attemptId } });
+  });
+  it("does not arm an existing prepare after restart, even if the current row still matches", async () => {
+    const x = await setup();
+    x.rpc.mockResolvedValue({ data: { kind: "pending", enrollment: x.enrollment }, error: null });
+    const restarted = createFrozenNodeInitialEnrollment(x.request, x.deps);
+    expect((await restarted.run()).kind).toBe("effect_unknown");
+    expect(x.rpc).toHaveBeenCalledTimes(1);
+    expect(x.rpc.mock.calls[0][1]).toMatchObject({ p_enrollment: { operation: "prepare" } });
+  });
+  it("reconciles a crash before dispatch by closing the original attempt, never by arming", async () => {
+    const x = await setup();
+    x.rpc.mockResolvedValue({ data: { kind: "enrollment", enrollment: { ...x.enrollment,
+      phase: "terminal", outcome: { kind: "conflict", reason: "enrollment_not_committed" } } }, error: null });
+    const restarted = createFrozenNodeInitialEnrollment(x.request, x.deps);
+    expect(await restarted.reconcile()).toEqual({ kind: "conflict", reason: "enrollment_not_committed" });
+    expect(x.from).not.toHaveBeenCalled();
+    expect(x.rpc).toHaveBeenCalledTimes(1);
+    expect(x.rpc.mock.calls[0][1]).toMatchObject({ p_enrollment: { operation: "reconcile" } });
+  });
+  it.each(["attempt", "principal", "predicate", "lens", "intent", "extra"])("never attributes a substituted %s envelope during reconciliation", async fault => {
+    const x = await setup();
+    const saved = { ...structuredClone(x.enrollment), phase: "terminal",
+      outcome: { kind: "data", runtime: x.runtime, intentRevision: intent } };
+    if (fault === "attempt") saved.attemptId = other;
+    if (fault === "principal") saved.principal = other;
+    if (fault === "predicate") saved.predicate.target.members.pop();
+    if (fault === "lens") Object.assign(saved, { lens: { kind: "week" } });
+    if (fault === "intent") saved.intentRevision = other;
+    if (fault === "extra") Object.assign(saved, { allowed: true });
+    x.rpc.mockResolvedValue({ data: { kind: "enrollment", enrollment: saved }, error: null });
+    expect((await createFrozenNodeInitialEnrollment(x.request, x.deps).reconcile()).kind).toBe("effect_unknown");
+    expect(x.rpc).toHaveBeenCalledTimes(1);
+    expect(x.from).not.toHaveBeenCalled();
+  });
+  it.each(["principal", "consent", "account", "source"])("requires current %s admission before reconciliation", async fault => {
+    const x = await setup();
+    if (fault === "principal") x.request.principal = other;
+    if (fault === "consent") x.auth.getUser.mockResolvedValue({ data: { user: { id: principal, user_metadata: { alert_email_optin: false, alert_categories: [] } } }, error: null });
+    if (fault === "account") x.account.mockImplementation(async () => response({ id: principal, tier: "free" }, "https://www.mastermind-x.com/api/me"));
+    if (fault === "source") x.source.mockImplementation(async url => response({ ...fixture, corrected: true }, url));
+    expect((await createFrozenNodeInitialEnrollment(x.request, x.deps).reconcile()).kind).not.toBe("armed");
+    expect(service.create).not.toHaveBeenCalled(); expect(x.rpc).not.toHaveBeenCalled();
+  });
+
 });
