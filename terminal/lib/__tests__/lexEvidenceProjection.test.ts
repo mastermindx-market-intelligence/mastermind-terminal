@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { assertCapturedLexProjection, fingerprintCapturedLex, projectCapturedLex } from "./helpers/lexEvidenceProjection";
+import { assertCapturedLexEvidence, assertCapturedLexProjection, fingerprintCapturedLex, projectCapturedLex } from "./helpers/lexEvidenceProjection";
 
 const hash = (source: string) => createHash("sha256").update(source).digest("hex");
 const captured = `// obDonePrefsSyncing: ["a comment", "注释"]
@@ -62,6 +62,13 @@ describe("recorded LEX capture dependency projection", () => {
     expect(() => assertCapturedLexProjection(current, rawHash, manifest().replace("obDonePrefsSyncing", "searchTitle"))).toThrow(/provenance/);
   });
 
+  it("accepts exact fresh captured bytes without projection and refuses a consumed-key mutation", () => {
+    expect(() => assertCapturedLexEvidence(current, hash(current), "")).not.toThrow();
+    expect(() => assertCapturedLexEvidence(current.replace("Symbol search", "changed"), hash(current), "")).toThrow(/projection binding/);
+    expect(() => assertCapturedLexEvidence(current, rawHash, manifest())).not.toThrow();
+    expect(() => assertCapturedLexEvidence(current.replace("Symbol search", "changed"), rawHash, manifest())).toThrow(/changed outside/);
+  });
+
   it("rejects a real SearchModal-consumed key mutation in the actual shared LEX", () => {
     const source = readFileSync(join(__dirname, "../i18n.tsx"), "utf8");
     const packet = readFileSync(join(__dirname, "../../docs/pr-crops/b-pl-6-batch-1/EVIDENCE.yml"), "utf8");
@@ -69,7 +76,7 @@ describe("recorded LEX capture dependency projection", () => {
     expect(readFileSync(join(__dirname, "../../components/SearchModal.tsx"), "utf8")).toContain('"searchTitle"');
     const changed = source.replace('searchTitle: ["Symbol search",', 'searchTitle: ["Mutation must fail",');
     expect(changed).not.toBe(source);
-    expect(() => assertCapturedLexProjection(source, expected, packet)).not.toThrow();
-    expect(() => assertCapturedLexProjection(changed, expected, packet)).toThrow(/changed outside/);
+    expect(() => assertCapturedLexEvidence(source, expected, packet)).not.toThrow();
+    expect(() => assertCapturedLexEvidence(changed, expected, packet)).toThrow();
   });
 });

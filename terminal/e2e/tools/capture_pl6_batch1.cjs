@@ -458,7 +458,7 @@ async function main() {
   const files = [];
   let failed = 0;
   try {
-    await waitForServer(180_000, operation ? child : undefined);
+    await waitForServer(180_000, child);
     await warmFixtureRoutes(BASE);
     // Partial raster tiles land at nondeterministic times; force full-tile rasterisation
     // so a crop never records a half-painted frame (memory: screenshot-partial-raster-drift).
@@ -472,7 +472,7 @@ async function main() {
             process.stdout.write(`capture ${file} … `);
             const { context, page } = await newPage(browser, width, lang);
             try {
-              if (operation && !ownedServer(child)) throw new Error("CAPTURE_SERVER_NOT_READY");
+              if (!ownedServer(child)) throw new Error("CAPTURE_SERVER_NOT_READY");
               immutablePng = null;
               await surface.run(page, width, lang, join(OUT, file));
               await assertNoNextIndicator(page, file);

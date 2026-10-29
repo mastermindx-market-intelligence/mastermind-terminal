@@ -70,3 +70,11 @@ export function assertCapturedLexProjection(currentSource: string, recordedRawSh
     throw new Error("Captured LEX changed outside the pending-preferences copy");
   }
 }
+
+/** Fresh captures retain the original full-byte lock. Projection applies only
+ * to retained historical source whose one unused onboarding tuple changed. */
+export function assertCapturedLexEvidence(currentSource: string, recordedRawSha256: string, manifest: string): void {
+  if (!/^[0-9a-f]{64}$/.test(recordedRawSha256)) throw new Error("Invalid captured LEX raw hash");
+  if (sha256(currentSource) === recordedRawSha256) return;
+  assertCapturedLexProjection(currentSource, recordedRawSha256, manifest);
+}
