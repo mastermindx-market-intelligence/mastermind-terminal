@@ -53,6 +53,8 @@ import {
   shortlistSource,
   useContractShortlist,
 } from "@/components/options/ContractShortlist";
+import { useOptionsPlanBoundary } from "@/lib/useOptionsPlanScope";
+import type { OptionsPlanDraft } from "@/lib/optionsPlanDraft";
 import { locatePin, type PinLocation, type ShortlistPin } from "@/lib/optionsContractShortlist";
 // Shared SVG chart primitives — measured 1:1 viewBox, nice ticks, pixel-gap label
 // thinning, padded domains. The hygiene rules live in that module's header.
@@ -1513,6 +1515,8 @@ export interface OptionsHubViewProps {
   onTab?: (tab: TabKey) => void;
   /** Suppress the internal legacy tab strip even in uncontrolled mode. */
   hideTabStrip?: boolean;
+  onPlanDraftChange?: (draft: OptionsPlanDraft) => void;
+  onPlanDraftInputChange?: (draft: OptionsPlanDraft | null) => void;
 }
 
 // No external hydration events are needed: React compares the server and client snapshots.
@@ -1525,6 +1529,8 @@ export default function OptionsHubView({
   activeTab: controlledTab,
   onTab,
   hideTabStrip,
+  onPlanDraftChange,
+  onPlanDraftInputChange,
 }: OptionsHubViewProps = {}) {
   const { lang } = useLang();
   const t = useT();
@@ -2017,7 +2023,9 @@ export default function OptionsHubView({
   // touches the source arrays, filters, sort or view. "Show in list" returns to
   // the originating table exactly as its preset chip would, and never edits the
   // index filter — a filtered-out pin is reported instead.
-  const contractShortlist = useContractShortlist();
+  const planBoundary = useOptionsPlanBoundary();
+  const planScope = planBoundary.key;
+  const contractShortlist = useContractShortlist(planScope);
   const showPinInList = (pin: ShortlistPin): PinLocation => {
     const list = pin.family === "doi" ? oiData?.movers : hotData?.[pin.hotView ?? "by_premium"];
     const where = locatePin(pin, list, scrRoot);
@@ -3629,6 +3637,11 @@ export default function OptionsHubView({
                   shortlist={contractShortlist}
                   active={screenerPreset === "doi" || screenerPreset === "hot"}
                   onShowInList={showPinInList}
+                  scopeKey={planScope}
+                  scopeOwnerKey={planBoundary.ownerKey}
+                  isScopeCurrent={planBoundary.isCurrent}
+                  onPlanDraftChange={onPlanDraftChange}
+                  onPlanDraftInputChange={onPlanDraftInputChange}
                 />
               )}
               {screenerLoading && !oiData && !hotData && !feed && (

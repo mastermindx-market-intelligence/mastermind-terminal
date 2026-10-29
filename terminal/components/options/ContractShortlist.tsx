@@ -14,6 +14,9 @@
  */
 
 import { useCallback, useEffect, useState } from "react";
+import { useLang } from "@/lib/i18n";
+import type { OptionsPlanDraft } from "@/lib/optionsPlanDraft";
+import { OptionsShortlistPlan } from "./OptionsShortlistPlan";
 import {
   SHORTLIST_MAX,
   addPin,
@@ -89,18 +92,27 @@ export function shortlistSource(
   };
 }
 
+const EMPTY_PINS: readonly ShortlistPin[] = [];
+
 /** Session-only shortlist state. Lives beside the screener; never persisted. */
-export function useContractShortlist(): ContractShortlistController {
+export function useContractShortlist(scopeKey = "session"): ContractShortlistController {
   const t = useShortlistT();
-  const [pins, setPins] = useState<readonly ShortlistPin[]>([]);
-  const [flashKey, setFlashKey] = useState<string | null>(null);
-  const [message, setMessage] = useState("");
+  const [state, setState] = useState({ scopeKey, pins: [] as readonly ShortlistPin[], flashKey: null as string | null, message: "" });
+  const pins = state.scopeKey === scopeKey ? state.pins : EMPTY_PINS;
+  const flashKey = state.scopeKey === scopeKey ? state.flashKey : null;
+  const message = state.scopeKey === scopeKey ? state.message : "";
+  const update = useCallback((patch: Partial<Omit<typeof state, "scopeKey">>) => {
+    setState(value => ({ ...(value.scopeKey === scopeKey ? value : { scopeKey, pins: EMPTY_PINS, flashKey: null, message: "" }), ...patch }));
+  }, [scopeKey]);
+  const setPins = useCallback((next: readonly ShortlistPin[]) => update({ pins: next }), [update]);
+  const setFlashKey = useCallback((next: string | null) => update({ flashKey: next }), [update]);
+  const setMessage = useCallback((next: string) => update({ message: next }), [update]);
 
   useEffect(() => {
     if (!flashKey) return;
     const id = window.setTimeout(() => setFlashKey(null), 1600);
     return () => window.clearTimeout(id);
-  }, [flashKey]);
+  }, [flashKey, setFlashKey]);
 
   const toggle = useCallback(
     (row: unknown, source: ShortlistSource, list: readonly unknown[]) => {
@@ -119,7 +131,7 @@ export function useContractShortlist(): ContractShortlistController {
       setPins(next.pins);
       setMessage(next.result === "full" ? t("e15RefuseFull") : fillShortlistCopy(t("e15Pinned"), { c: label }));
     },
-    [pins, t],
+    [pins, t, setPins, setMessage],
   );
 
   const remove = useCallback(
@@ -129,13 +141,13 @@ export function useContractShortlist(): ContractShortlistController {
       setPins(removePin(pins, pinKey));
       setMessage(fillShortlistCopy(t("e15Unpinned"), { c: contractLabel(gone.identity, t) }));
     },
-    [pins, t],
+    [pins, t, setPins, setMessage],
   );
 
   const clear = useCallback(() => {
     setPins([]);
     setMessage(t("e15Cleared"));
-  }, [t]);
+  }, [t, setPins, setMessage]);
 
   return { pins, flashKey, message, toggle, remove, clear, flash: setFlashKey, say: setMessage };
 }
@@ -364,11 +376,22 @@ export function ContractShortlistTray({
   shortlist,
   active,
   onShowInList,
+  scopeKey = "session",
+  scopeOwnerKey = "",
+  isScopeCurrent,
+  onPlanDraftChange,
+  onPlanDraftInputChange,
 }: {
   shortlist: ContractShortlistController;
   active: boolean;
   onShowInList: (pin: ShortlistPin) => PinLocation;
+  scopeKey?: string;
+  scopeOwnerKey?: string;
+  isScopeCurrent?: () => boolean;
+  onPlanDraftChange?: (draft: OptionsPlanDraft) => void;
+  onPlanDraftInputChange?: (draft: OptionsPlanDraft | null) => void;
 }) {
+  const { lang } = useLang();
   const t = useShortlistT();
   const [open, setOpen] = useState(false);
   const [seek, setSeek] = useState<string | null>(null);
@@ -477,6 +500,7 @@ export function ContractShortlistTray({
       <p className={styles.status} role="status" aria-live="polite">
         {shortlist.message}
       </p>
+      <OptionsShortlistPlan pins={pins} scopeKey={scopeKey} scopeOwnerKey={scopeOwnerKey} isScopeCurrent={isScopeCurrent} lang={lang} onDraftChange={onPlanDraftChange} onDraftInputChange={onPlanDraftInputChange} />
       {open && canCompare && <ComparePanel pins={pins} t={t} />}
     </div>
   );

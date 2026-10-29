@@ -6,6 +6,11 @@ import InvestigationWorkspace,{type InvestigationOptionPlanEntry,type Investigat
 import type {AuthLifecycleSnapshot} from "../supabase/authLifecycle";
 import type {InvestigationCommand} from "../investigations";
 import fixture from "./fixtures/options_plan_draft_v1.json";
+import {OptionsPlanResearchBridge} from "@/components/options/OptionsPlanResearchBridge";
+import {validateOptionsPlanDraft,type OptionsPlanDraft} from "@/lib/optionsPlanDraft";
+const planFixture=():OptionsPlanDraft=>{const parsed=validateOptionsPlanDraft(fixture);if(!parsed.ok)throw Error("Invalid existing Plan fixture");return parsed.value;};
+vi.mock("@/components/mounts/InvestigationWorkspaceMount",()=>({default:(props:React.ComponentProps<typeof InvestigationWorkspace>)=><InvestigationWorkspace {...props}/>}));
+vi.mock("@/components/options/OptionsPlanPayoffPanel",()=>({OptionsPlanPayoffPanel:({draft,onClose}:{draft:OptionsPlanDraft;onClose:()=>void})=><div data-testid="bridge-payoff-inputs"><output>{JSON.stringify(draft)}</output><button onClick={onClose}>Close saved Plan inputs</button></div>}));
 
 vi.mock("@/lib/i18n",()=>({useLang:()=>({lang:"en"})}));
 vi.mock("@/lib/useInvestigationTheme",()=>({useInvestigationTheme:()=>"dark"}));
@@ -18,6 +23,7 @@ const owner="40000000-0000-4000-8000-000000000001",stamp="2026-10-24T08:00:00.00
 let root:Root,host:HTMLDivElement,entry:InvestigationOptionPlanEntry|null,reader:InvestigationOptionPlanRevisionReader|null;
 let posts:InvestigationCommand[],requests:Array<{url:string;method:string}>,saved:InvestigationCommand|null;
 let currentRevision:number;
+const originalScrollIntoView=Object.getOwnPropertyDescriptor(Element.prototype,"scrollIntoView");
 const ready=():AuthLifecycleSnapshot=>({availability:"ready",principal_partition:owner,auth_epoch:"epoch-1"});
 const onEntry=(value:InvestigationOptionPlanEntry|null)=>{entry=value;};
 const onReader=(value:InvestigationOptionPlanRevisionReader|null)=>{reader=value;};
@@ -35,6 +41,7 @@ async function mount(id?:string,revision?:number,key="first",historyMode:"route"
 }
 beforeEach(()=>{
  (globalThis as {IS_REACT_ACT_ENVIRONMENT?:boolean}).IS_REACT_ACT_ENVIRONMENT=true;
+ Object.defineProperty(Element.prototype,"scrollIntoView",{configurable:true,writable:true,value:vi.fn()});
  auth.snapshot=ready();entry=null;reader=null;posts=[];requests=[];saved=null;currentRevision=2;sessionStorage.clear();
  host=document.createElement("div");document.body.append(host);root=createRoot(host);
  vi.stubGlobal("fetch",vi.fn((input:RequestInfo|URL,init?:RequestInit)=>{
@@ -58,6 +65,7 @@ beforeEach(()=>{
  }));
 });
 afterEach(async()=>{await act(async()=>root.unmount());host.remove();sessionStorage.clear();vi.unstubAllGlobals();vi.restoreAllMocks();
+ if(originalScrollIntoView)Object.defineProperty(Element.prototype,"scrollIntoView",originalScrollIntoView);else Reflect.deleteProperty(Element.prototype,"scrollIntoView");
  (globalThis as {IS_REACT_ACT_ENVIRONMENT?:boolean}).IS_REACT_ACT_ENVIRONMENT=false;});
 
 describe("native whole Plan entry through the existing explicit Investigation command",()=>{
@@ -150,6 +158,62 @@ describe("native whole Plan entry through the existing explicit Investigation co
   expect(host.querySelector('input[aria-label="Title"]')).toBeNull();expect(entry).toBeNull();expect(reader).toBeNull();
   expect(originalEntry(fixture).ok).toBe(false);await act(async()=>{});
   expect(posts).toHaveLength(1);expect(sessionStorage.getItem(bufferKey)).toBe(retained);
+ });
+
+});
+
+
+describe("Options host composed with the real native Save and acknowledged reader",()=>{
+ async function compose(candidate:OptionsPlanDraft|null=structuredClone(planFixture()),scopeKey=JSON.stringify([owner,1]),selectionKey="selection-A",id?:string){
+  await act(async()=>{root.render(<OptionsPlanResearchBridge workspaceProps={{ownerKey:owner,initialSymbol:"AAPL",initialInvestigationId:id,initialRevision:id?1:undefined}}
+   candidate={candidate} isScopeCurrent={()=>auth.snapshot?.availability==="ready"&&auth.snapshot.principal_partition===owner&&auth.snapshot.auth_epoch==="epoch-1"} scopeKey={scopeKey} selectionKey={selectionKey} lang="en"/>);});
+ }
+ it("requires explicit New and transfer, saves a detached whole Plan once, then reopens exact1 despite head2 without recalculation",async()=>{
+  const candidate=structuredClone(planFixture()),original=structuredClone(candidate);
+  window.history.replaceState({},"","/options?tab=screener#selection-A");const url=window.location.href;
+  await compose(candidate);expect(posts).toEqual([]);expect(requests).toEqual([]);
+  await click("Open saved research");expect(button("Add Plan inputs to new research").disabled).toBe(true);
+  await click("Start new research");expect(posts).toEqual([]);
+  await click("Add Plan inputs to new research");expect(posts).toEqual([]);
+  candidate.research.thesis="later editor change must not replace admitted snapshot";
+  await fill("Title","Whole Plan from Options");await fill("Research question","Keep the exact acknowledged input");
+  await click("Save research");expect(posts).toHaveLength(1);const savedId=posts[0].id;
+  expect(posts[0].manifest.option_plan).toEqual(original);
+  await click("Open saved Plan inputs");expect(host.querySelector('[data-testid="saved-plan-inputs"]')?.getAttribute("data-investigation-revision")).toBe("1");
+  expect(JSON.parse(host.querySelector('[data-testid="bridge-payoff-inputs"] output')!.textContent!)).toEqual(original);
+  expect(window.location.href).toBe(url);expect(requests.filter(r=>r.method!=="GET")).toEqual([{url:"/api/investigations",method:"POST"}]);
+  await act(async()=>root.unmount());root=createRoot(host);
+  await compose(null,JSON.stringify([owner,1]),"selection-A",savedId);await click("Open saved research");await click("Open saved Plan inputs");
+  expect(JSON.parse(host.querySelector('[data-testid="bridge-payoff-inputs"] output')!.textContent!)).toEqual(original);
+  expect(posts).toHaveLength(1);expect(window.location.href).toBe(url);
+ });
+ it("null inputs disable transfer; an epoch mismatch cannot stage a candidate or Save",async()=>{
+  await compose();await click("Open saved research");await click("Start new research");
+  await compose(null);expect(button("Add Plan inputs to new research").disabled).toBe(true);expect(posts).toEqual([]);
+  await compose();auth.snapshot={...ready(),auth_epoch:"epoch-changed"};await click("Add Plan inputs to new research");
+  await fill("Title","Refused stale transfer");await fill("Research question","Must not save through an old owner");await click("Save research");
+  expect(posts).toEqual([]);expect(sessionStorage.getItem(`mm.investigation.pending.v2:${owner}`)).toBeNull();
+ });
+ it("scope and exact-selection replacement destroy the old host; A-B-A cannot revive its draft",async()=>{
+  await compose();await click("Open saved research");await click("Start new research");await click("Add Plan inputs to new research");
+  await fill("Title","Retired draft");await compose(structuredClone(planFixture()),JSON.stringify([owner,1]),"selection-B");
+  expect(host.querySelector('[aria-label="Title"]')).toBeNull();expect(posts).toEqual([]);
+  await compose(structuredClone(planFixture()),JSON.stringify([owner,2]),"selection-A");
+  await click("Open saved research");expect(host.querySelector('[aria-label="Title"]')).toBeNull();expect(button("Add Plan inputs to new research").disabled).toBe(true);
+ });
+ it("clears transferred feedback for native New and requires another explicit Add",async()=>{
+  await compose();await click("Open saved research");await click("Start new research");await click("Add Plan inputs to new research");
+  expect(host.textContent).toContain("Plan inputs copied into this research draft");
+  await click("Start new research");expect(host.textContent).not.toContain("Plan inputs copied into this research draft");
+  await fill("Title","Replacement native draft");await fill("Research question","No automatic Plan transfer");await click("Save research");
+  expect(posts).toHaveLength(1);expect(posts[0].manifest).not.toHaveProperty("option_plan");
+ });
+ it("rejects a Lab Matrix coordinate-shaped payload and a withdrawn account without allocating a Save",async()=>{
+  const matrix={schema:"matrix_coordinate",strike:760,expiry:"2026-10-30",net_millions:1.2} as unknown as OptionsPlanDraft;
+  await compose(matrix);await click("Open saved research");await click("Start new research");await click("Add Plan inputs to new research");
+  expect(posts).toEqual([]);expect(sessionStorage.getItem(`mm.investigation.pending.v2:${owner}`)).toBeNull();
+  await compose();auth.snapshot={availability:"unavailable",principal_partition:null,auth_epoch:"withdrawn"};await click("Add Plan inputs to new research");
+  expect(posts).toEqual([]);expect(sessionStorage.getItem(`mm.investigation.pending.v2:${owner}`)).toBeNull();
  });
 
 });
