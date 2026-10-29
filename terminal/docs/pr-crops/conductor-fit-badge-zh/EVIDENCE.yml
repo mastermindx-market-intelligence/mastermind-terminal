@@ -1,17 +1,17 @@
 # Conductor fit chip in zh — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: a13b382fb961c96e0f69e0d04e7985fe9671e1aa
-# capturedAt: 2026-10-24T11:05:33.435Z
+# capturedAtHead: 9e45b2d19c6990512969aba811e45c12e50aaa52
+# capturedAt: 2026-10-29T20:58:05.083Z
 # capturedAtHead is informational. The lock is layoutFiles.
 # before/ holds the same crops at the commit before the fix (before/BEFORE.yml); this tool never rewrites it.
 layoutFiles:
   terminal/app/dev/theater/page.tsx: "0eac12bf5e47fb2e9add413c94824c047548820e530064ae544f92f8aa21c2af"
-  terminal/app/globals.css: "5a13bcd2fea57f4aeea71aa43bd0a1d58460f8c92bf11e99c9b92d3a1bc06cdf"
+  terminal/app/globals.css: "ae2e8d4136166cd32e7062a4cf9d18ac094ec57c89243f23272378ccd3269e74"
   terminal/components/ChartConductor.tsx: "471a8972a8b8d4775abddc6a455dd50af0943fec18ad5a0a0c1a77243330d8b0"
   terminal/lib/chartBus.ts: "96c1ac39db798d09f9ffc91223b33ee5e91ef26e793530f9d91ecdab26501b3d"
   terminal/lib/conductorState.ts: "3333fae411ad63ff4bd19eace00ca93fd36709206b6806b7ef939e5425d0e33c"
-  terminal/lib/i18n.tsx: "0e217ccf6adef6f1848606851c414d35287a787970d175a7a63c71458d392abf"
+  terminal/lib/i18n.tsx: "a907bc3d1b49cf700c9b81a2c21fdadc653c2bb1baeaa13374c782e063b2a718"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -42,10 +42,7 @@ files:
   - rail-820-zh.png
   - rail-820.png
 
-iw2Upstream1160Recapture:
-  sourceHead: a13b382fb961c96e0f69e0d04e7985fe9671e1aa
-  historicalManifest: history/before-iw2-recapture-a13b382fb.yml
-  qualification: Actual native producer full matrix; local fixtures only; no runtime or live-account acceptance
-
-# Original captured bytes/identity retained; only unused pending-onboarding copy is projected.
-lexProjection: {"schema":"terminal.lex_capture_projection.v1","omittedProperty":"obDonePrefsSyncing","capturedRawSha256":"0e217ccf6adef6f1848606851c414d35287a787970d175a7a63c71458d392abf","projectedSha256":"811c41ae96cd66bd4e361dbb9cf0a2dbf1b42def38c1a55144f6bb7b9b8e58a5","sourceGitBlob":"4f6155bb0a1ebbe41f58dd2cb4e4a3da0f532b8f","sourceRecoveryCommit":"00bf547ee2473f3d5a2d69416512d16bc466c6ea","captureCommitLocallyAvailable":true}
+iw2PhoneFoldRecapture:
+  sourceHead: 9e45b2d19c6990512969aba811e45c12e50aaa52
+  historicalManifest: history/before-phone-fold-50a4269a.yml
+  qualification: Original full producer matrix; local fixtures only; no live or SQL acceptance

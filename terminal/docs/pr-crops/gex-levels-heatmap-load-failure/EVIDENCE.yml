@@ -1,11 +1,11 @@
 # GEX desk, Levels and Heatmap failure-state truth — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 853ee29cd98b9ff72e18f61dab56d37de8b28ac0
-# capturedAt: 2026-10-24T07:22:09.582Z
+# capturedAtHead: 9e45b2d19c6990512969aba811e45c12e50aaa52
+# capturedAt: 2026-10-29T20:54:10.579Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/app/globals.css: "5a13bcd2fea57f4aeea71aa43bd0a1d58460f8c92bf11e99c9b92d3a1bc06cdf"
+  terminal/app/globals.css: "ae2e8d4136166cd32e7062a4cf9d18ac094ec57c89243f23272378ccd3269e74"
   terminal/components/gexdesk/GexDeskView.tsx: "4d7b3ac38519fc2522b2100b97685240187380303b03c9485885eb16952d159a"
   terminal/components/gexdesk/HeatSeekerCard.tsx: "308295e2b0143fe933948c97a14584e1e0d1eff9249a58104dd3587a2642c93a"
   terminal/components/gexdesk/MarketStateCard.tsx: "069c4a2f1a5f53e8f611e3231b78751948cc0264c8af6efd167f7b3e4902bbe2"
@@ -260,3 +260,8 @@ files:
   - levels-unavailable-390.png
   - levels-unavailable-820-zh.png
   - levels-unavailable-820.png
+
+iw2PhoneFoldRecapture:
+  sourceHead: 9e45b2d19c6990512969aba811e45c12e50aaa52
+  historicalManifest: history/before-phone-fold-50a4269a.yml
+  qualification: Original full producer matrix; local fixtures only; no live or SQL acceptance
