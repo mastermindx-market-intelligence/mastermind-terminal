@@ -1,4 +1,4 @@
--- Ledger row: 0046 / OPTIONS-EXPOSURE-P09-EXACT-ENROLLMENT / PR pending
+-- Ledger row: 0046 / OPTIONS-EXPOSURE-P09-EXACT-ENROLLMENT / PR #1182
 -- Rollback: application-first disablement; retain intent revision and enrollment tombstones.
 -- Source only, UNAPPLIED. Requires immutable0045. No route, enrollment,
 -- opt-in, source/action grant, provider call, activation or delivery is installed.
@@ -6,9 +6,17 @@
 -- Private means owner-RLS readable and service-write-only, not a secret from
 -- the owning user. alert_runs and its authenticated-wide policy are unchanged.
 -- Embedded proposed_intent_revision.sql SHA256 a4aed9e4af12c0cf9a2718f9574c0ab092838714ff1b7b718fe629ef57ddc3a2
--- Embedded proposed_enrollment_attempt.sql SHA256 c49442cc29f9fe128f7bc1c8c597153ad02d2bf6c718d48c8d11c318597b21d9
+-- Embedded proposed_enrollment_attempt.sql SHA256 77842b264e7c932c05432b1e1cc97b9cc71219cda1bff5027681aca85bbaa1bf
 DO $frozen_enrollment_composed$
 BEGIN
+  if not exists(select 1 from pg_catalog.pg_attribute where attrelid='public.alerts'::regclass
+      and attname='frozen_runtime' and atttypid='jsonb'::regtype and not attnotnull and not attisdropped)
+     or to_regprocedure('public.read_frozen_node_runtime(uuid,uuid,jsonb)') is null
+     or to_regprocedure('public.commit_frozen_node_state(uuid,uuid,jsonb,uuid,bigint,jsonb,jsonb)') is null
+     or not exists(select 1 from pg_catalog.pg_trigger where tgrelid='public.alert_runs'::regclass
+       and tgname='frozen_publication_run_guard' and not tgisinternal) then
+    raise exception 'qualified0045 frozen runtime composition required before0046';
+  end if;
   -- Reapplication temporarily removes only this composition's seven-argument
   -- overload inside the SAME transaction, so the immutable accepted stage can
   -- reject every other unexpected overload. Stage2 restores ACLs/body atomically.
@@ -205,6 +213,16 @@ BEGIN
   if not exists(select 1 from pg_catalog.pg_class c where c.oid='public.alerts'::regclass
       and c.relrowsecurity) then
     raise exception 'owner-scoped alerts RLS required';
+  end if;
+  -- RLS being enabled alone does not establish privacy. A permissive extra
+  -- SELECT/ALL policy could disclose the new envelope to every authenticated
+  -- principal. Require the exact incumbent owner policy before adding data.
+  if (select count(*) from pg_catalog.pg_policy where polrelid='public.alerts'::regclass) <> 1
+     or not exists(select 1 from pg_catalog.pg_policy where polrelid='public.alerts'::regclass
+       and polpermissive and polcmd='*' and polroles=array[0]::oid[]
+       and pg_catalog.pg_get_expr(polqual,polrelid)='(user_id = auth.uid())'
+       and pg_catalog.pg_get_expr(polwithcheck,polrelid)='(user_id = auth.uid())') then
+    raise exception 'exact incumbent alerts owner policy required';
   end if;
   if to_regprocedure('public.arm_frozen_node_runtime(uuid,uuid,jsonb,uuid,bigint,uuid)') is null
      or to_regprocedure('public.arm_frozen_node_runtime(uuid,uuid,jsonb,uuid,bigint)') is not null then

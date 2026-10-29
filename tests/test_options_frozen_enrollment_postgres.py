@@ -189,3 +189,41 @@ def test_actual_package_atomic_rollback_and_reapplication(native):
     rb = [{'statement': q, 'rows': json.loads(pg('select json_agg(r)::text from ('+q.rstrip(';')+') r'))}
           for q in readback_statements(FOLLOWUP.read_text())]
     assert missing_after(expected_objects(split_statements(FOLLOWUP.read_text())), rb) == []
+
+
+@pytest.mark.parametrize('unsafe_policy', ['disabled', 'wide_select', 'wide_owner'])
+def test_installer_refuses_unqualified_disclosure_boundary_atomically(native, unsafe_policy):
+    pg = native
+    pg(MIGRATION.read_text())
+    if unsafe_policy == 'disabled':
+        pg('alter table public.alerts disable row level security')
+    elif unsafe_policy == 'wide_select':
+        pg('create policy unsafe_wide_select on public.alerts for select to authenticated using(true)')
+    else:
+        pg('alter policy alerts_owner on public.alerts using(true)')
+    result = pg(FOLLOWUP.read_text(), check=False)
+    assert result.returncode and ('owner policy required' in result.stderr or 'RLS required' in result.stderr)
+    assert pg("select count(*) from pg_attribute where attrelid='public.alerts'::regclass and attname='frozen_enrollment' and not attisdropped") == '0'
+    assert pg("select to_regprocedure('public.arm_frozen_node_runtime(uuid,uuid,jsonb,uuid,bigint)') is not null") == 't'
+
+
+def test_packaging_requires0045_before_intent_or_enrollment_install(native):
+    pg = native
+    result = pg(FOLLOWUP.read_text(), check=False)
+    assert result.returncode and 'composition required before0046' in result.stderr
+    assert pg("select count(*) from pg_attribute where attrelid='public.alerts'::regclass and attname in ('frozen_intent_revision','frozen_enrollment') and not attisdropped") == '0'
+
+
+def test_reapplication_preserves_pending_marker_and_late_failure_restores_overload(enrolled):
+    pg = enrolled
+    call(pg, 'prepare')
+    before = pg('select to_jsonb(a)::text from public.alerts a')
+    pg(FOLLOWUP.read_text())
+    assert pg('select to_jsonb(a)::text from public.alerts a') == before
+    bad = FOLLOWUP.read_text().replace('END $frozen_enrollment_composed$;',
+        "RAISE EXCEPTION 'synthetic_reapply_failure'; END $frozen_enrollment_composed$;")
+    result = pg(bad, check=False)
+    assert result.returncode and 'synthetic_reapply_failure' in result.stderr
+    assert pg('select to_jsonb(a)::text from public.alerts a') == before
+    assert call(pg, 'prepare')['kind'] == 'pending'
+    assert call(pg, 'arm')['enrollment']['outcome']['kind'] == 'data'

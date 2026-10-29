@@ -217,5 +217,14 @@ describe("dormant initial enrollment: actual account/source reader + single inte
     expect((await createFrozenNodeInitialEnrollment(x.request, x.deps).reconcile()).kind).not.toBe("armed");
     expect(service.create).not.toHaveBeenCalled(); expect(x.rpc).not.toHaveBeenCalled();
   });
+  it.each(["stale_intent_revision", "not_found_or_not_owner", "enrollment_attempt_conflict", "enrollment_generation_changed"])("preserves UNKNOWN when %s prevents exact-attempt reconciliation", async reason => {
+    const x = await setup();
+    x.rpc.mockResolvedValue({ data: { kind: "conflict", reason }, error: null });
+    expect(await createFrozenNodeInitialEnrollment(x.request, x.deps).reconcile()).toEqual({
+      kind: "effect_unknown", reason: "enrollment_acknowledgment_unknown", intent: x.request,
+    });
+    expect(x.rpc).toHaveBeenCalledTimes(1);
+    expect(x.from).not.toHaveBeenCalled();
+  });
 
 });

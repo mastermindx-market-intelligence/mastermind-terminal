@@ -7,6 +7,16 @@ BEGIN
       and c.relrowsecurity) then
     raise exception 'owner-scoped alerts RLS required';
   end if;
+  -- RLS being enabled alone does not establish privacy. A permissive extra
+  -- SELECT/ALL policy could disclose the new envelope to every authenticated
+  -- principal. Require the exact incumbent owner policy before adding data.
+  if (select count(*) from pg_catalog.pg_policy where polrelid='public.alerts'::regclass) <> 1
+     or not exists(select 1 from pg_catalog.pg_policy where polrelid='public.alerts'::regclass
+       and polpermissive and polcmd='*' and polroles=array[0]::oid[]
+       and pg_catalog.pg_get_expr(polqual,polrelid)='(user_id = auth.uid())'
+       and pg_catalog.pg_get_expr(polwithcheck,polrelid)='(user_id = auth.uid())') then
+    raise exception 'exact incumbent alerts owner policy required';
+  end if;
   if to_regprocedure('public.arm_frozen_node_runtime(uuid,uuid,jsonb,uuid,bigint,uuid)') is null
      or to_regprocedure('public.arm_frozen_node_runtime(uuid,uuid,jsonb,uuid,bigint)') is not null then
     raise exception 'six-argument intent-bound arm required without legacy arm';

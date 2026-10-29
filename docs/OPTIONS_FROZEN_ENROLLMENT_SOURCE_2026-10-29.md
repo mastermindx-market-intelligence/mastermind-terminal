@@ -76,3 +76,32 @@ from the read-only sibling worktree; no shared dependency files are mutated.
 
 No SQL was sent to a configured database. No opt-in, provider request, send,
 activation, deployment, merge or approval is authorized by this source draft.
+
+## Source verification and remaining boundary
+
+- E1/E2:21 private PostgreSQL cases passed for0046 and exact-attempt recovery.
+  Command: `python3 -m pytest tests/test_options_frozen_enrollment_postgres.py -q`.
+- Namespace/ledger:102 cases passed (the combined invocation with the then19
+  PostgreSQL cases returned121 passed). `PR_NUMBER=1182` native namespace check
+  reports zero findings. Actual0046 application remains false/null.
+- E3:100 TypeScript account/source/enrollment cases passed, with48 enrollment
+  cases; TypeScript no-emit typecheck and focused ESLint both passed.
+- Existing P09 packaging/prepared tests passed before the initial placeholder
+  ledger schema failure; six actual Macro-drain interface cases skipped because
+  no explicit Macro source fixture was provided. The ledger metadata was repaired
+  using actual draft1182 and the namespace/ledger checks then passed. No skipped
+  Macro runtime proof is promoted to acceptance.
+- E4 remains assigning-parent independent permission/exactly-once source review.
+  Draft-only publication is not merge, DB application, activation or product proof.
+
+A reconciliation refusal caused by stale/missing/reinserted row or a different
+runtime generation remains EFFECT_UNKNOWN in the composition. Only a terminal
+envelope matching the original complete pin resolves that attempt's ambiguity.
+Current Auth/account/source denial also grants no inference about prior effects.
+
+**Account attribution incident:** the local CLI was verified as `mastermindxryan`,
+but the GitHub connector used for draft creation returned `mastermindx-3` as the
+actual author of1182, an excluded account under this commission. The assigning
+parent was notified immediately. The confirmed draft was retained with its true
+attribution; no replacement creation, merge or approval occurred. That connector
+was not used again. Local source work and verified CLI use remain separate facts.

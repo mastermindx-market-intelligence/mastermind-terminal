@@ -123,6 +123,10 @@ export function createFrozenNodeInitialEnrollment(
       const terminal = (body: unknown): FrozenNodeEnrollmentResult => {
         if (record(body) && keys(body, ["kind", "reason"]) && ["unavailable", "conflict"].includes(String(body.kind))
           && typeof body.reason === "string" && body.reason) {
+          // A stale/missing row or generation is not the original attempt's
+          // terminal outcome. Only its exact retained envelope can resolve
+          // historical ambiguity; a reconciliation refusal preserves UNKNOWN.
+          if (reconcile) return unknown();
           return { kind: body.kind as "unavailable" | "conflict", reason: body.reason };
         }
         if (!record(body) || !keys(body, ["kind", "enrollment"]) || body.kind !== "enrollment") return unknown();

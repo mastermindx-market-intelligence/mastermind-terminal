@@ -485,11 +485,11 @@
       "state": "taken",
       "file": "0046_options_frozen_enrollment.sql",
       "packet": "OPTIONS-EXPOSURE-P09-EXACT-ENROLLMENT",
-      "pr": null,
-      "pr_state": "draft",
+      "pr": 1182,
+      "pr_state": "open",
       "applied_in_production": false,
       "applied_date": null,
-      "note": "Source-only follow-up after immutable0045. Complete census of163 open PRs on2026-10-29 found no0046 claim. DB-owned intent revision plus owner-RLS exact-attempt initial enrollment on alerts; no application, activation or adoption/replay of the Oct26 uncertain operation."
+      "note": "Source-only follow-up after immutable0045. Complete census of163 open PRs on2026-10-29 found no0046 claim. DB-owned intent revision plus owner-RLS exact-attempt initial enrollment on alerts; no application, activation or adoption/replay of the Oct26 uncertain operation. Applied date is not recorded because production application is not authorized and has not occurred."
     }
   }
 }
