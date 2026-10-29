@@ -5,6 +5,9 @@ import { optionsReadAccess } from "./optionsAccess";
 import { isPaidSubscriptionTier } from "./subscriptionTier";
 import { fnpInstantMicros } from "./optionsAlerts";
 
+export const FROZEN_NODE_COMMERCIAL_DECISION = "DEC:COMMERCIAL-DATA-RIGHTS-CHAIRMAN-ATTESTATION-20261023";
+export const FROZEN_NODE_ACCOUNT_POLICY = "options.frozen_node_proximity/account/v1";
+
 export type FrozenNodeAccountCheck =
   | { kind: "eligible"; principal: string }
   | { kind: "denied" | "unavailable"; reason: string };

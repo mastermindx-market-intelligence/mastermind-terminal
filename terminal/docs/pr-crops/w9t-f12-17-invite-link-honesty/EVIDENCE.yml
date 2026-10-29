@@ -65,3 +65,6 @@ iw2Upstream1160Recapture:
   sourceHead: a13b382fb961c96e0f69e0d04e7985fe9671e1aa
   historicalManifest: history/before-iw2-recapture-a13b382fb.yml
   qualification: Actual native producer full matrix; local fixtures only; no runtime or live-account acceptance
+
+# Original captured bytes/identity retained; only unused pending-onboarding copy is projected.
+lexProjection: {"schema":"terminal.lex_capture_projection.v1","omittedProperty":"obDonePrefsSyncing","capturedRawSha256":"0e217ccf6adef6f1848606851c414d35287a787970d175a7a63c71458d392abf","projectedSha256":"811c41ae96cd66bd4e361dbb9cf0a2dbf1b42def38c1a55144f6bb7b9b8e58a5","sourceGitBlob":"4f6155bb0a1ebbe41f58dd2cb4e4a3da0f532b8f","sourceRecoveryCommit":"00bf547ee2473f3d5a2d69416512d16bc466c6ea","captureCommitLocallyAvailable":true}

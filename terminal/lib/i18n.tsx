@@ -1895,8 +1895,8 @@ export const LEX: Record<string, [string, string]> = {
   // usable, the outbox keeps retrying, and there is nothing for the user to do. The one thing this
   // line must NOT do is let the screen imply the choice was saved when it was not.
   obDonePrefsSyncing: [
-    "Your preferences are still syncing — we'll keep trying in the background.",
-    "你的偏好设置仍在同步中 —— 我们会在后台继续尝试。",
+    "Your preferences haven’t synced yet. After signing in, you can retry saving them in Settings.",
+    "你的偏好尚未同步。登录后，可在设置中重试保存。",
   ],
   obOpenTerminal: ["Open the Terminal", "进入终端"],
   // onboarding wiring (W1)
