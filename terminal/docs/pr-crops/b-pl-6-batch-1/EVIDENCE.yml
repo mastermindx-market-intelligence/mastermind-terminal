@@ -1,11 +1,11 @@
 # B-PL-6 batch 1 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 32bee096a6ff9cb6c1aa1e6d5404b38ebe9deddb
-# capturedAt: 2026-10-24T13:03:08.550Z
+# capturedAtHead: 5e0d3000950036f3862f0bd7c0f9ffa70d8d4243
+# capturedAt: 2026-10-29T18:32:34.824Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/OptionsHubView.tsx: "5c54df6f4939a966262323325f7abba196599abbce8a137882b8dc13068c72bb"
+  terminal/components/OptionsHubView.tsx: "5eebc81c4bcf8456bcecb71e12702f05995a0316e5c2908b734f20705c6fac4d"
   terminal/components/SearchModal.tsx: "a7a9a97d9ce08b7e8b03ccfdfc8720c5d6fca80873663125f624dba98b99cc83"
   terminal/components/SearchModal.module.css: "bc82bdeb1a4eb78fe9babe884c2ae8e7fc2773710e6399b5bf22733f70f102fb"
   terminal/components/SearchModalCompare.module.css: "864d08191bf60d696b8e1f5233e9ddafec5ebfeeb8b307b61f629894bd48700c"
@@ -131,8 +131,8 @@ cropFiles:
   OptionsHubView-390.png: "7d84f22f6820f3bbc4202a42020d7618d8b780c5317ff0ec6ef6e1abdb1cc21c"
   SearchModal-1440-zh.png: "cae50070f6af7c80d9901abc888a4d8c15672174603ccf6d60189e55fb73e934"
   SearchModal-1440.png: "00bd1bc81584a4d4ec88d3cb558ff122b5edc8a1d7996b76b9b40637d9e63619"
-  SearchModal-390-zh.png: "e9ad4c55185cb126c8c8c2689c6dd485e55e5e1a912d16f567478d808a83b9c7"
-  SearchModal-390.png: "643a0eb030fe565961f93d9d91620d40d939dfff77f69f4ba255e2c202c5191a"
+  SearchModal-390-zh.png: "f8d0ab512090d22f43e518187612c2d9fb4a65674fae5cfba4238b816feaf0e5"
+  SearchModal-390.png: "80807c685bb0db63285b7741b62818f34b84964a6bf37f1c05c2672cfbe7d611"
   StockAnalysis-1440-zh.png: "793f30762dd65bd8bc13bbe936f3e46de58ee7af10a5ab4d1ffd2119bcc18912"
   StockAnalysis-1440.png: "56f1f611e857dd076fea00e4ac6a9b4d64084191e09ef31f07fa085d6176937d"
   StockAnalysis-390-zh.png: "f1d6768036d03fe0c713d681925297b5174e9097dccd81d8277758be9d802364"
@@ -142,3 +142,7 @@ iw2Upstream1159Recapture:
   sourceHead: 32bee096a6ff9cb6c1aa1e6d5404b38ebe9deddb
   historicalManifest: history/before-iw2-recapture-6df5ebc3.yml
   qualification: Actual native producer full matrix; local fixtures only; no runtime or live-account acceptance
+
+iw2PlanCompositionRecapture:
+  sourceHead: 5e0d3000950036f3862f0bd7c0f9ffa70d8d4243
+  qualification: Unchanged original full recipe; 24 fresh crops, 22 byte-identical reused, two mobile SearchModal crops reviewed. Local fixtures only.
