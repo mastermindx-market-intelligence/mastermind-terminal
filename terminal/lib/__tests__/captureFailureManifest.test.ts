@@ -33,6 +33,9 @@ function finishCapture(recipe: string, failed: number, only: string | null = nul
   const file = "example-1440.png";
   runInNewContext(`(function () {\n${finalization}\n})()`, {
     failed,
+    // This slice qualifies the legacy manifest path; immutable operations have
+    // their own offline protocol controls and must not start from this harness.
+    operation: null,
     only,
     ONLY: only ? [only] : [],
     layoutFilesBlock: () => [],
@@ -40,7 +43,7 @@ function finishCapture(recipe: string, failed: number, only: string | null = nul
     updateHeatmap: false,
     files: [file],
     process: state,
-    console: { log() {} },
+    console: { log() {}, error() {} },
     OUT: "/capture",
     LAYOUT_FILES: [],
     STATES: { example: { board: "gex", replies: {} } },
