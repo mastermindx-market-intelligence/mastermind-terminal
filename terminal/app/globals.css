@@ -5125,8 +5125,10 @@ html[data-shell="app"] .mm-brandbug{
      height — chart-body + strip still measure the band the fold was tuned against
      (the hidden range row hands back 26 of those px). Guarded by
      mobile-chart-chrome.spec.ts. */
-  .app:not(.shell-app) .chart-body{height:min(calc(46.4vh + var(--subpanes,0)*7vh - var(--mrs-h)), calc(80vh - var(--mrs-h)))}
-  .app:not(.shell-app) .chart-body{height:min(calc(46.4svh + var(--subpanes,0)*7svh - var(--mrs-h)), calc(80svh - var(--mrs-h)))}
+  /* The readable rail tabs now reserve 44px instead of the former 38px.
+     Yield their additional 6px here so the Intelligence row retains its fold. */
+  .app:not(.shell-app):not(.fs) .chart-body{height:min(calc(46.4vh + var(--subpanes,0)*7vh - var(--mrs-h) - 6px), calc(80vh - var(--mrs-h) - 6px))}
+  .app:not(.shell-app):not(.fs) .chart-body{height:min(calc(46.4svh + var(--subpanes,0)*7svh - var(--mrs-h) - 6px), calc(80svh - var(--mrs-h) - 6px))}
 
   /* ── R2c — the selected-drawing inspector is a LEFT-EDGE VERTICAL DRAWER on the phone ──────
      As a bottom strip it was a horizontal scroller wider than the screen: it covered the band
