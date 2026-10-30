@@ -542,6 +542,7 @@ describe("negative-case statuses", () => {
     const phaseC = {
       ran: true,
       route: "operator_url",
+      principalsVerifiedDistinct: true,
       read: 404,
       revise: 409,
       archive: 404,
@@ -561,6 +562,7 @@ describe("validateNegativeCaseReceipt", () => {
   const validPhaseC = {
     ran: true,
     route: "operator_url",
+      principalsVerifiedDistinct: true,
     read: 404,
     revise: 404,
     archive: 404,
@@ -599,6 +601,7 @@ describe("validateNegativeCaseReceipt", () => {
       phaseC: {
         ran: true,
         route: "operator_url",
+      principalsVerifiedDistinct: true,
         read: 404,
         revise: 404,
         archive: 404,
@@ -618,6 +621,7 @@ describe("validateNegativeCaseReceipt", () => {
       phaseC: {
         ran: true,
         route: "operator_url",
+      principalsVerifiedDistinct: true,
         read: 404,
         revise: 409,
         archive: 404,
@@ -637,6 +641,7 @@ describe("validateNegativeCaseReceipt", () => {
       phaseC: {
         ran: true,
         route: "operator_url",
+      principalsVerifiedDistinct: true,
         read: 200,
         revise: 404,
         archive: 404,
@@ -661,6 +666,7 @@ describe("validateNegativeCaseReceipt", () => {
       phaseC: {
         ran: true,
         route: "operator_url",
+      principalsVerifiedDistinct: true,
         read: 404,
         revise: 404,
         archive: 404,

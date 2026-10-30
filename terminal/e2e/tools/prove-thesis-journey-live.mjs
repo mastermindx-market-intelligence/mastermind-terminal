@@ -11,9 +11,9 @@ import {
   describeNegativeCaseReason,
   detailFromResponse,
   exitCodeFor,
+  executeWrongUserProbe,
+  verifiedCookiePrincipal,
   negativeCaseExitRequired,
-  negativeCaseListExcludes,
-  negativeCaseOutcome,
   notFoundHeadingMatches,
   redactReceipt,
   releaseFromHtml,
@@ -284,6 +284,10 @@ async function runPhaseB(storageState, otherStorageState) {
     page = await context.newPage();
     page.on("console", (message) => { if (message.type() === "error") phaseBBrowserErrorCount += 1; });
     page.on("pageerror", () => { phaseBBrowserErrorCount += 1; });
+    // Bind the proof to the cookie-verified owner before any Phase B create.
+    // This ID stays in memory and is rechecked immediately before Phase C.
+    const ownerPrincipal = await verifiedCookiePrincipal(page.request, base);
+    if (!ownerPrincipal) assertion();
 
     await assertResponse(page, `${base}/analysis?view=theses&symbol=${encodeURIComponent(symbol)}`);
     const controls = await preflightLocators(page, [
@@ -379,91 +383,57 @@ async function runPhaseB(storageState, otherStorageState) {
             otherPage.on("console", (message) => { if (message.type() === "error") phaseCBrowserErrorCount += 1; });
             otherPage.on("pageerror", () => { phaseCBrowserErrorCount += 1; });
 
-            const readResponse = await otherPage.request.get(`${base}/api/theses?id=${thesisId}`);
-            const readStatus = readResponse.status();
-            const reviseResponse = await otherPage.request.post(`${base}/api/theses`, {
-              data: {
-                action: "revise",
-                id: thesisId,
-                expectedVersion: 2,
-                clientRequestId: randomUUID(),
-                subject: subjectPayload(),
-                content: revised.current.content,
-              },
-            });
-            const reviseStatus = reviseResponse.status();
-            const archiveResponse = await otherPage.request.post(`${base}/api/theses`, {
-              data: {
-                action: "archive",
-                id: thesisId,
-                expectedVersion: 2,
-                clientRequestId: randomUUID(),
-                subject: revised.current.subject,
-                content: revised.current.content,
-              },
-            });
-            const archiveStatus = archiveResponse.status();
-            const listResponse = await otherPage.request.get(`${base}/api/theses`);
-            const listStatus = listResponse.status();
-            const listBody = await listResponse.json().catch(() => null);
-            const listExcludes = listStatus === 200 && negativeCaseListExcludes(listBody, thesisId);
-
-            let uiNotFound = false;
-            await otherPage.goto(`${base}/analysis?view=theses&symbol=${encodeURIComponent(symbol)}&thesis=${thesisId}`, { waitUntil: "domcontentloaded", timeout: 30_000 });
-            const notFound = otherPage.locator('[data-testid="thesis-not-found"]');
-            await notFound.waitFor({ state: "visible", timeout: 10_000 }).catch(() => null);
-            uiNotFound = await notFound.isVisible()
-              && notFoundHeadingMatches(await notFound.locator("h1").first().innerText().catch(() => ""));
-
-            const outcome = negativeCaseOutcome({
-              read: readStatus,
-              revise: reviseStatus,
-              archive: archiveStatus,
-              listExcludes,
-              uiNotFound,
-            });
-            console.log(`Phase C: read=${readStatus} revise=${reviseStatus} archive=${archiveStatus} listStatus=${listStatus} listExcludes=${listExcludes} uiNotFound=${uiNotFound} browserErrors=${phaseCBrowserErrorCount}`);
-            if (outcome.leak) {
-              const leakField = readStatus === 200 || readStatus === 201 || readStatus === 409 ? "read"
-                : reviseStatus === 200 || reviseStatus === 201 || reviseStatus === 409 ? "revise" : "archive";
-              const leakStatus = leakField === "read" ? readStatus : leakField === "revise" ? reviseStatus : archiveStatus;
-              console.log(`Phase C: wrong-user negative case FAILED (leak: ${leakField}=${leakStatus})`);
-            } else if (!outcome.ok) {
-              const failure = readStatus !== 404 ? ["read", readStatus]
-                : reviseStatus !== 404 ? ["revise", reviseStatus]
-                : archiveStatus !== 404 ? ["archive", archiveStatus]
-                : !listExcludes ? ["listExcludes", listExcludes] : ["uiNotFound", uiNotFound];
-              console.log(`Phase C: wrong-user negative case FAILED (not proven: ${failure[0]}=${failure[1]})`);
-            } else {
-              console.log("Phase C: wrong-user negative case PROVEN");
-            }
-
-            phaseC = {
-              ran: true,
-              route: "operator_url",
-              read: readStatus,
-              revise: reviseStatus,
-              archive: archiveStatus,
-              listExcludes,
-              uiNotFound,
-              browserErrorCount: phaseCBrowserErrorCount,
-              ok: outcome.ok,
-              leak: outcome.leak,
+            const retainPhaseC = (observed) => {
+              phaseC = { ...observed, browserErrorCount: phaseCBrowserErrorCount };
+              // Independent partial evidence survives owner-journey or teardown
+              // failure. It is not a successful signed-in/owner receipt.
+              mkdirSync(liveStateDir, { recursive: true });
+              writeFileSync(join(liveStateDir, "receipt-phase-c.json"), `${JSON.stringify(redactReceipt({
+                capturedAt: new Date().toISOString(), base, expectedRelease: release,
+                ownerJourney: "in_progress", phaseC,
+              }), null, 2)}\n`);
             };
+            const observed = await executeWrongUserProbe({
+              ownerRequest: page.request, otherRequest: otherPage.request, ownerPrincipal, base, thesisId,
+              reviseData: {
+                action: "revise", id: thesisId, expectedVersion: 2,
+                clientRequestId: randomUUID(), subject: subjectPayload(), content: revised.current.content,
+              },
+              archiveData: {
+                action: "archive", id: thesisId, expectedVersion: 2,
+                clientRequestId: randomUUID(), subject: revised.current.subject, content: revised.current.content,
+              },
+              verifyUi: async () => {
+                await otherPage.goto(`${base}/analysis?view=theses&symbol=${encodeURIComponent(symbol)}&thesis=${thesisId}`, { waitUntil: "domcontentloaded", timeout: 30_000 });
+                const notFound = otherPage.locator('[data-testid="thesis-not-found"]');
+                await notFound.waitFor({ state: "visible", timeout: 10_000 }).catch(() => null);
+                return await notFound.isVisible()
+                  && notFoundHeadingMatches(await notFound.locator("h1").first().innerText().catch(() => ""));
+              },
+              onProgress: retainPhaseC,
+            });
+            retainPhaseC(observed);
+            console.log(`Phase C: ran=${phaseC.ran} reason=${phaseC.reason || "none"} read=${phaseC.read ?? "unobserved"} revise=${phaseC.revise ?? "unobserved"} archive=${phaseC.archive ?? "unobserved"} ok=${phaseC.ok === true}`);
           } finally {
             if (otherContext) {
               try {
                 await otherContext.close();
               } catch {
                 phaseC.reason = "phase_c_error";
+                if (phaseC.ran) phaseC.ok = false;
               }
             }
           }
         }
-      } catch (error) {
-        console.log(`Phase C not run: phase_c_error (${error?.constructor?.name || "Error"})`);
-        phaseC = { ran: false, route: "none", reason: "phase_c_error" };
+      } catch {
+        console.log("Phase C stopped: phase_c_error");
+        phaseC = { ...phaseC, reason: "phase_c_error", ...(phaseC.ran ? { ok: false } : {}) };
       }
+      mkdirSync(liveStateDir, { recursive: true });
+      writeFileSync(join(liveStateDir, "receipt-phase-c.json"), `${JSON.stringify(redactReceipt({
+        capturedAt: new Date().toISOString(), base, expectedRelease: release,
+        ownerJourney: "in_progress", phaseC,
+      }), null, 2)}\n`);
       await assertResponse(page, `${base}/analysis?view=theses&symbol=${encodeURIComponent(symbol)}`);
       await settle(controls.rail, "The thesis lens rail was not visible.");
       const selectedTheses = controls.thesesTab.and(page.locator('[aria-selected="true"]'));

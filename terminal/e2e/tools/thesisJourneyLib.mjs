@@ -226,6 +226,12 @@ const NEGATIVE_CASE_REASONS = {
   other_state_invalid: "The other-account storage state was invalid.",
   phase_b_not_run: "Phase B did not run.",
   phase_c_error: "An internal error occurred during Phase C.",
+  principal_unverified: "Both browser-cookie principals could not be verified.",
+  same_principal: "Both browser contexts belong to the same verified principal.",
+  owner_principal_changed: "The verified owner changed after Phase B began.",
+  read_not_denied: "The wrong-user read was not denied with 404; subsequent probes were stopped.",
+  revise_not_denied: "The wrong-user revision was not denied with 404; subsequent probes were stopped.",
+  archive_not_denied: "The wrong-user archive was not denied with 404; subsequent probes were stopped.",
 };
 
 export function describeNegativeCaseReason(reason) {
@@ -242,7 +248,7 @@ export function admitOtherStorageState({ path, blockedReason, samePath }) {
 
 export function negativeCaseExitRequired(phaseC) {
   return (
-    phaseC?.reason === "phase_c_error"
+    ["phase_c_error", "principal_unverified", "same_principal", "owner_principal_changed"].includes(phaseC?.reason)
     || (phaseC?.ran === true && (
       phaseC.ok !== true
       || phaseC.browserErrorCount !== 0
@@ -259,6 +265,81 @@ export function notFoundHeadingMatches(text) {
   return heading === "Thesis not found" || heading === "未找到论点";
 }
 
+// Fresh server-verified cookie identity only; keep principal IDs in this call's
+// memory, never in a proof receipt. Storage filenames cannot prove distinctness.
+export async function verifiedCookiePrincipal(request, base) {
+  try {
+    const response = await request.get(`${base}/api/auth/principal`, {
+      maxRedirects: 0,
+      headers: { "cache-control": "no-cache" },
+    });
+    if (response.status() !== 200) return null;
+    const body = await response.json();
+    if (body?.schema !== "mmx.cookie-principal.v1" || body.verified !== true
+      || typeof body.principalId !== "string"
+      || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(body.principalId)) return null;
+    return body.principalId.toLowerCase();
+  } catch {
+    return null;
+  }
+}
+
+/** Execute the real Phase C request ordering with injected cookie-bound request
+ * contexts. Null means unobserved/not attempted, never a fabricated 404.
+ * onProgress is synchronous durable evidence: a write failure aborts the probe.
+ */
+export async function executeWrongUserProbe({ ownerRequest, otherRequest, ownerPrincipal, base, thesisId,
+  reviseData, archiveData, verifyUi, onProgress }) {
+  const owner = await verifiedCookiePrincipal(ownerRequest, base);
+  const other = await verifiedCookiePrincipal(otherRequest, base);
+  const validOwner = typeof ownerPrincipal === "string"
+    && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(ownerPrincipal);
+  if (!validOwner || !owner || !other || owner !== ownerPrincipal.toLowerCase() || owner === other) {
+    const reason = !validOwner || !owner || !other ? "principal_unverified"
+      : owner !== ownerPrincipal.toLowerCase() ? "owner_principal_changed" : "same_principal";
+    const denied = { ran: false, route: "none", reason };
+    onProgress(denied);
+    return denied;
+  }
+  const result = { ran: true, route: "operator_url", principalsVerifiedDistinct: true,
+    read: null, revise: null, archive: null, listStatus: null,
+    attempted: { read: false, revise: false, archive: false, list: false, ui: false },
+    listExcludes: null, uiNotFound: null, browserErrorCount: 0, ok: false, leak: false };
+  // Publish before the first target attempt so transport errors remain ran:true.
+  onProgress({ ...result });
+  const report = () => {
+    result.leak = negativeCaseOutcome(result).leak;
+    onProgress({ ...result });
+    return result;
+  };
+  try {
+    result.attempted.read = true;
+    result.read = (await otherRequest.get(`${base}/api/theses?id=${thesisId}`, { maxRedirects: 0 })).status();
+    if (result.read !== 404) { result.reason = "read_not_denied"; return report(); }
+    report();
+    result.attempted.revise = true;
+    result.revise = (await otherRequest.post(`${base}/api/theses`, { data: reviseData, maxRedirects: 0 })).status();
+    if (result.revise !== 404) { result.reason = "revise_not_denied"; return report(); }
+    report();
+    result.attempted.archive = true;
+    result.archive = (await otherRequest.post(`${base}/api/theses`, { data: archiveData, maxRedirects: 0 })).status();
+    if (result.archive !== 404) { result.reason = "archive_not_denied"; return report(); }
+    report();
+    result.attempted.list = true;
+    const list = await otherRequest.get(`${base}/api/theses`, { maxRedirects: 0 });
+    result.listStatus = list.status();
+    result.listExcludes = result.listStatus === 200 && negativeCaseListExcludes(await list.json().catch(() => null), thesisId);
+    report();
+    result.attempted.ui = true;
+    result.uiNotFound = await verifyUi();
+    result.ok = negativeCaseOutcome(result).ok;
+  } catch {
+    result.reason = "phase_c_error";
+    result.ok = false;
+  }
+  return report();
+}
+
 /**
  * Evaluates the five wrong-user negative-case outcomes.
  * leak = any of read/revise/archive returned 200, 201, or 409 (existence confirmed).
@@ -266,7 +347,7 @@ export function notFoundHeadingMatches(text) {
  */
 export function negativeCaseOutcome({ read, revise, archive, listExcludes, uiNotFound }) {
   const leak = [read, revise, archive].some((s) => s === 200 || s === 201 || s === 409);
-  const ok = read === 404 && revise === 404 && archive === 404 && listExcludes && uiNotFound;
+  const ok = read === 404 && revise === 404 && archive === 404 && listExcludes === true && uiNotFound === true;
   return { ok, leak };
 }
 
@@ -281,7 +362,8 @@ export function validateNegativeCaseReceipt(value) {
   if (pc.ran === false) {
     return pc.reason === undefined || Object.prototype.hasOwnProperty.call(NEGATIVE_CASE_REASONS, pc.reason);
   }
-  if (pc.ran !== true) return false;
+  if (pc.ran !== true || pc.route !== "operator_url" || pc.principalsVerifiedDistinct !== true) return false;
+  if (pc.reason !== undefined && !Object.prototype.hasOwnProperty.call(NEGATIVE_CASE_REASONS, pc.reason)) return false;
   const integerStatus = (status) => Number.isInteger(status) && status >= 0;
   const { ok: expectedOk, leak: expectedLeak } = negativeCaseOutcome({
     read: pc.read,
@@ -291,15 +373,15 @@ export function validateNegativeCaseReceipt(value) {
     uiNotFound: pc.uiNotFound,
   });
   return (
-    integerStatus(pc.read)
-    && integerStatus(pc.revise)
-    && integerStatus(pc.archive)
+    (integerStatus(pc.read) || pc.read === null)
+    && (integerStatus(pc.revise) || pc.revise === null)
+    && (integerStatus(pc.archive) || pc.archive === null)
     && integerStatus(pc.browserErrorCount)
-    && typeof pc.listExcludes === "boolean"
-    && typeof pc.uiNotFound === "boolean"
+    && (typeof pc.listExcludes === "boolean" || pc.listExcludes === null)
+    && (typeof pc.uiNotFound === "boolean" || pc.uiNotFound === null)
     && typeof pc.ok === "boolean"
     && typeof pc.leak === "boolean"
-    && pc.ok === expectedOk
+    && pc.ok === (expectedOk && pc.reason !== "phase_c_error")
     && pc.leak === expectedLeak
   );
 }
