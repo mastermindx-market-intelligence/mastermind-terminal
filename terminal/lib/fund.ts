@@ -1,3 +1,4 @@
+import { materializeRegionalFund } from "./regionalFinancialProjection";
 // fund.ts — TS contracts + client getters for the fundamentals / options / transcript files
 // (BUILD-SPEC §1 + §3.1). SINGLE AUTHOR: lane FE1a.
 //
@@ -10,6 +11,7 @@
 //   - getBars re-exports dataCache's OHLC getter so rail widgets share the chart's fetch.
 
 import { getJSON, getOhlc } from "./dataCache";
+import type { ReportedOwnershipBlock } from "./reportedOwnership";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // §1.1  <SYM>.fund.json — mastermind.fund/v1
@@ -102,6 +104,10 @@ export interface StatementPeriodSet {
   period_kind?: StatementPeriodKind[];
   /** Q=1..4, H=1..2; null for FY/YTD. Used for comparable-period YoY without label parsing. */
   period_number?: (number | null)[];
+  /** Explicit economic duration; required for mixed YTD/discrete coverage extensions. */
+  period_duration_months?: (number | null)[];
+  /** Provider + accounting convention. Different/unknown groups cannot support growth comparisons. */
+  comparison_basis?: (string | null)[];
   /** Label of the vendor row before normalization (for example H1/FY behind displayed H1/H2). */
   source_period_label?: string[];
   /** Cadence represented by this transport set. `.quarterly` remains the v1 key for compatibility. */
@@ -115,7 +121,7 @@ export interface StatementPeriodSet {
   source_market?: "us" | "cn" | "hk" | "ca" | "intl" | "crypto";
   source_family?: StatementSourceFamily;
   /** Evidence used when Terminal supplies a conservative family for a legacy artifact. */
-  source_family_basis?: "profile_sector_absent_industrial_structure";
+  source_family_basis?: "profile_sector_absent_industrial_structure" | "profile_financial_historical_unqualified";
   /** Historical vendor family, aligned per period; a minority of issuers change schema family. */
   source_family_by_period?: StatementSourceFamily[];
   income: IncomeBlock;
@@ -132,6 +138,11 @@ export interface StatementPeriodSet {
    * "massive"-only period carries statement TOTALS but not the derived rows below.
    */
   src_by_period?: string[];
+  /** Observation receipt for each retained statement family; generation time is never a source clock. */
+  period_provenance?: Partial<Record<"income" | "balance" | "cashflow", ({
+    origin?: string; provider?: string; acquired_at?: string | null; scope?: string;
+    raw_input_sha256?: string | null;
+  } | null)[]>>;
   /**
    * Contract fields the vendor payload cannot fill, by block — e.g.
    * `{income: ["ebitda"], balance: ["cash","debt","net_debt"], cashflow: ["capex","fcf"]}`.
@@ -152,7 +163,7 @@ export interface StatementPeriodSet {
    * period has been restated. The column shows the LATEST filing's figures; this flag is what
    * lets a surface say so. Not full point-in-time: the superseded figures are not retained.
    */
-  restated_by_period?: boolean[];
+  restated_by_period?: (boolean | null)[];
 }
 
 export interface FundStatements {
@@ -287,6 +298,16 @@ export interface FundOwnership {
   free_float_pct: number | null;
   closely_held_pct: number | null;
   top_inst: InstHolder[]; // ≤10
+  /**
+   * `mastermind.reported-ownership/v1` — provider-reported institutional holders, normalized by
+   * `ingest/reported_ownership.py` and read through `lib/reportedOwnership.ts`.
+   *
+   * This is a separate, independently validated snapshot and it is deliberately NOT a 13F
+   * substitute: `top_inst` above keeps only a name and an undated percentage, so it can never be
+   * rendered as verified ownership. Absent means "no qualified block for this listing" — the panel
+   * renders that absence explicitly and never falls back to `top_inst`.
+   */
+  reported?: ReportedOwnershipBlock | null;
 }
 
 export interface FundGuidance {
@@ -313,6 +334,9 @@ export interface Fund {
   quote_currency: string; // trading currency (price/mktcap/dividends)
   stmt_currency: string | null; // financial-reporting currency (statements/estimates); null = unknown
   src: {
+    cache_fetched_at?: string | null;
+    profile_acquired_at?: string | null;
+    estimates_acquired_at?: string | null;
     statements: string;
     estimates: string | null;
     dividends: string;
@@ -489,6 +513,8 @@ function negMark(key: string): void {
   negCache.set(key, Date.now() + NEG_TTL);
 }
 
+const LEGACY_FINANCIAL_SECTORS = new Set(["financial services", "financials"]);
+
 function withFinancialFamilyFallback(set: StatementPeriodSet): StatementPeriodSet {
   // Explicit producer taxonomy, especially a historical by-period receipt, always wins.
   if (set.source_family != null || (set.source_family_by_period?.length ?? 0) > 0) return set;
@@ -513,7 +539,10 @@ function withFinancialFamilyFallback(set: StatementPeriodSet): StatementPeriodSe
  * and it never overrides producer-owned taxonomy.
  */
 export function applyLegacyStatementFamilyFallback(fund: Fund): Fund {
-  if (fund.profile?.sector?.trim().toLowerCase() !== "financial services") return fund;
+  // Both sector vocabularies the profile producer has emitted: the Yahoo-style "Financial
+  // Services" and the GICS "Financials" that live JPM.fund.json carries (verified 2026-10-11 —
+  // under the old single-name match the live JPM statement rendered as industrial "Revenue").
+  if (!LEGACY_FINANCIAL_SECTORS.has(fund.profile?.sector?.trim().toLowerCase() ?? "")) return fund;
   // Some valid source-gap artifacts carry a null annual or interim set even though the frozen
   // v1 TypeScript shape predates that reality. Classify only sets that actually exist.
   const annual = fund.statements?.annual;
@@ -541,7 +570,8 @@ export async function getFund(sym: string): Promise<Fund | null> {
     negMark(key);
     return null;
   }
-  return applyLegacyStatementFamilyFallback(data);
+  const selected = await materializeRegionalFund(data, sym);
+  return selected ? applyLegacyStatementFamilyFallback(selected) : null;
 }
 
 /** getOpts — <SYM>.opts.json, negative-cached (most symbols are not optionable). */

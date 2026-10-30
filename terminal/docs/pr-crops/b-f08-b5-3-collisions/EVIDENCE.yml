@@ -1,19 +1,17 @@
-# 2026-09-19 m_f119_detail: hash-only restamp of AlertsCockpit.tsx (adds kind:"thesis" to thesis detail return) — crops unchanged
 # B-F08-B5-3 collisions — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 56ebbc0e5710ecbe98252f74170bf55bbe3f9eb5
-# capturedAt: 2026-09-10T17:19:31.994Z
-# 2026-09-13 B-F11-7: AlertsCockpit.tsx re-hashed for BriefsInbox mounted below the existing alerts children. Collision crops photograph the top of the cockpit (AnswerLine / watching / degraded); the new inbox sits under the legacy list; no crop recaptured.
+# capturedAtHead: 736758d0262767b9243861247112590a78fc01d5
+# capturedAt: 2026-10-19T07:31:36.411Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/alerts/AlertsCockpit.tsx: "468a506890408b90a5621982a178fcef4ebf711e0d8bbb9428de78a4abd3f8a7"
+  terminal/components/alerts/AlertsCockpit.tsx: "15c9d49915da05fcceaaaeeb62aa22c5a9984404fca122e654316ccac3f8b4bb"
   terminal/components/alerts/WatchingList.tsx: "642c8c76062fefb5ff06d8496bfea50f45de5af1aaf7a989e82e10f7b36d483b"
   terminal/components/alerts/AnswerLine.tsx: "f3bf1f587566c521b66d210b84ec316ed1e5809f2f5ce758c6c0c81f77e4dbdb"
   terminal/components/alerts/CouldNotWatch.tsx: "bedf3678d07a9c1f767df5b87a59648e69e8167df493d63412210a088d95d3a8"
-  terminal/lib/alertsView.ts: "ee48893ed7706de4d6fa306b237a5df647166acb6737dc4b9dd3b23c350b1d0f"
+  terminal/lib/alertsView.ts: "2c3461178393c770cd3ca9918273c650c52adc381e8437f9679903715b3a54fa"
   terminal/app/api/alerts/receipts/route.ts: "e90838781925cd4035cf913a3f011ad0e79a2f2fb4528fa1518a392144f44d82"
-  terminal/app/api/alerts/route.ts: "7b7ff8a30555230b344027385b24fcb488871bace93cf8b51e6a47c0433e66d3"
+  terminal/app/api/alerts/route.ts: "6aaaeb5d946a5c750ccc86beaa7c3998088811fb626914971dcea636ab7e3e1b"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -21,7 +19,7 @@ viewports:
   - { name: mobile, width: 390, height: 844 }
 surfaces: [AlertsCockpit]
 capture_flag: TERMINAL_E2E_FIXTURE
-capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
+capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
 states: [watching, suite-degraded, suite-never-ran, unresolved]
 command: |
   node e2e/tools/capture_b_f08_b5_3_collisions.cjs

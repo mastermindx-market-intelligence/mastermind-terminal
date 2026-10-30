@@ -1,0 +1,262 @@
+# GEX desk, Levels and Heatmap failure-state truth — capture evidence
+# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
+# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
+# capturedAtHead: 9ef0160bba5c35d12abd6a531ee1c4e30bed0cdb
+# capturedAt: 2026-10-22T05:11:35.368Z
+# capturedAtHead is informational. The lock is layoutFiles.
+layoutFiles:
+  terminal/app/globals.css: "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517"
+  terminal/components/gexdesk/GexDeskView.tsx: "4d7b3ac38519fc2522b2100b97685240187380303b03c9485885eb16952d159a"
+  terminal/components/gexdesk/HeatSeekerCard.tsx: "308295e2b0143fe933948c97a14584e1e0d1eff9249a58104dd3587a2642c93a"
+  terminal/components/gexdesk/MarketStateCard.tsx: "069c4a2f1a5f53e8f611e3231b78751948cc0264c8af6efd167f7b3e4902bbe2"
+  terminal/components/gexdesk/StrikeLadder.tsx: "55dccbef4e3bfebc09477f6d9a0133cf0bc5d70531d32d532e760ff214ed4596"
+  terminal/components/gexdesk/gexStrings.ts: "15fb1e6b89725ae7bf5762b3b0cd9749e85331f6733c34efc710979430132d7b"
+  terminal/components/heatmap/HeatmapView.tsx: "3b3ab5049715a33f167e344d3013b8f880356e8b96077b38c9a517c57b7a54cb"
+  terminal/lib/dataCache.ts: "f8a7f978049e64482b385d43c13d49d05ddec2525e36457b365a2d083060e1be"
+  terminal/components/levels/LevelsView.tsx: "91a4d6fd86b12225e657c8a9c4b2b185e3940356af3cd11466ca30e04f05b0c9"
+  terminal/components/levels/levelsLabels.ts: "361124ec9293623fefe69128212f5a25bfddf2c3d716252126d56ec5f356d0d9"
+  terminal/lib/heatmapStrings.ts: "26bb75eccce7429e5a37154f07f7f68faf9652da1f6f3560074cb558f0dda9c2"
+theme: dark
+languages: [en, zh]
+viewports:
+  - { name: desktop, width: 1440, height: 900 }
+  - { name: tablet, width: 820, height: 1180 }
+  - { name: mobile, width: 390, height: 844 }
+harness:
+  gex-ladder-absent-1440-zh.png: { url: "/options?tab=gex", state: gex-ladder-absent, injected: { "gex:SPY": 404 }, stream: aborted }
+  gex-ladder-absent-1440.png: { url: "/options?tab=gex", state: gex-ladder-absent, injected: { "gex:SPY": 404 }, stream: aborted }
+  gex-ladder-absent-390-zh.png: { url: "/options?tab=gex", state: gex-ladder-absent, injected: { "gex:SPY": 404 }, stream: aborted }
+  gex-ladder-absent-390.png: { url: "/options?tab=gex", state: gex-ladder-absent, injected: { "gex:SPY": 404 }, stream: aborted }
+  gex-ladder-absent-820-zh.png: { url: "/options?tab=gex", state: gex-ladder-absent, injected: { "gex:SPY": 404 }, stream: aborted }
+  gex-ladder-absent-820.png: { url: "/options?tab=gex", state: gex-ladder-absent, injected: { "gex:SPY": 404 }, stream: aborted }
+  gex-ladder-retried-1440-zh.png: { url: "/options?tab=gex", state: gex-ladder-retried, injected: { "gex:SPY": 503 }, stream: aborted, then: "gex:SPY healed, Retry clicked" }
+  gex-ladder-retried-1440.png: { url: "/options?tab=gex", state: gex-ladder-retried, injected: { "gex:SPY": 503 }, stream: aborted, then: "gex:SPY healed, Retry clicked" }
+  gex-ladder-retried-390-zh.png: { url: "/options?tab=gex", state: gex-ladder-retried, injected: { "gex:SPY": 503 }, stream: aborted, then: "gex:SPY healed, Retry clicked" }
+  gex-ladder-retried-390.png: { url: "/options?tab=gex", state: gex-ladder-retried, injected: { "gex:SPY": 503 }, stream: aborted, then: "gex:SPY healed, Retry clicked" }
+  gex-ladder-retried-820-zh.png: { url: "/options?tab=gex", state: gex-ladder-retried, injected: { "gex:SPY": 503 }, stream: aborted, then: "gex:SPY healed, Retry clicked" }
+  gex-ladder-retried-820.png: { url: "/options?tab=gex", state: gex-ladder-retried, injected: { "gex:SPY": 503 }, stream: aborted, then: "gex:SPY healed, Retry clicked" }
+  gex-ladder-unavailable-1440-zh.png: { url: "/options?tab=gex", state: gex-ladder-unavailable, injected: { "gex:SPY": 503 }, stream: aborted }
+  gex-ladder-unavailable-1440.png: { url: "/options?tab=gex", state: gex-ladder-unavailable, injected: { "gex:SPY": 503 }, stream: aborted }
+  gex-ladder-unavailable-390-zh.png: { url: "/options?tab=gex", state: gex-ladder-unavailable, injected: { "gex:SPY": 503 }, stream: aborted }
+  gex-ladder-unavailable-390.png: { url: "/options?tab=gex", state: gex-ladder-unavailable, injected: { "gex:SPY": 503 }, stream: aborted }
+  gex-ladder-unavailable-820-zh.png: { url: "/options?tab=gex", state: gex-ladder-unavailable, injected: { "gex:SPY": 503 }, stream: aborted }
+  gex-ladder-unavailable-820.png: { url: "/options?tab=gex", state: gex-ladder-unavailable, injected: { "gex:SPY": 503 }, stream: aborted }
+  gex-live-refresh-failed-1440-zh.png: { url: "/options?tab=gex", state: gex-live-refresh-failed, injected: {  }, stream: "last frame, then event status unavailable" }
+  gex-live-refresh-failed-1440.png: { url: "/options?tab=gex", state: gex-live-refresh-failed, injected: {  }, stream: "last frame, then event status unavailable" }
+  gex-live-refresh-failed-390-zh.png: { url: "/options?tab=gex", state: gex-live-refresh-failed, injected: {  }, stream: "last frame, then event status unavailable" }
+  gex-live-refresh-failed-390.png: { url: "/options?tab=gex", state: gex-live-refresh-failed, injected: {  }, stream: "last frame, then event status unavailable" }
+  gex-live-refresh-failed-820-zh.png: { url: "/options?tab=gex", state: gex-live-refresh-failed, injected: {  }, stream: "last frame, then event status unavailable" }
+  gex-live-refresh-failed-820.png: { url: "/options?tab=gex", state: gex-live-refresh-failed, injected: {  }, stream: "last frame, then event status unavailable" }
+  gex-live-retried-1440-zh.png: { url: "/options?tab=gex", state: gex-live-retried, injected: {  }, stream: "last frame, then event status unavailable", then: "Retry clicked; the same ladder element kept" }
+  gex-live-retried-1440.png: { url: "/options?tab=gex", state: gex-live-retried, injected: {  }, stream: "last frame, then event status unavailable", then: "Retry clicked; the same ladder element kept" }
+  gex-live-retried-390-zh.png: { url: "/options?tab=gex", state: gex-live-retried, injected: {  }, stream: "last frame, then event status unavailable", then: "Retry clicked; the same ladder element kept" }
+  gex-live-retried-390.png: { url: "/options?tab=gex", state: gex-live-retried, injected: {  }, stream: "last frame, then event status unavailable", then: "Retry clicked; the same ladder element kept" }
+  gex-live-retried-820-zh.png: { url: "/options?tab=gex", state: gex-live-retried, injected: {  }, stream: "last frame, then event status unavailable", then: "Retry clicked; the same ladder element kept" }
+  gex-live-retried-820.png: { url: "/options?tab=gex", state: gex-live-retried, injected: {  }, stream: "last frame, then event status unavailable", then: "Retry clicked; the same ladder element kept" }
+  gex-pick-absent-1440-zh.png: { url: "/options?tab=gex", state: gex-pick-absent, injected: { "matrix:SPY": 404 }, stream: aborted }
+  gex-pick-absent-1440.png: { url: "/options?tab=gex", state: gex-pick-absent, injected: { "matrix:SPY": 404 }, stream: aborted }
+  gex-pick-absent-390-zh.png: { url: "/options?tab=gex", state: gex-pick-absent, injected: { "matrix:SPY": 404 }, stream: aborted }
+  gex-pick-absent-390.png: { url: "/options?tab=gex", state: gex-pick-absent, injected: { "matrix:SPY": 404 }, stream: aborted }
+  gex-pick-absent-820-zh.png: { url: "/options?tab=gex", state: gex-pick-absent, injected: { "matrix:SPY": 404 }, stream: aborted }
+  gex-pick-absent-820.png: { url: "/options?tab=gex", state: gex-pick-absent, injected: { "matrix:SPY": 404 }, stream: aborted }
+  gex-rail-retried-1440-zh.png: { url: "/options?tab=gex", state: gex-rail-retried, injected: { "gexstate:SPY": 503, "matrix:SPY": 503 }, stream: aborted, then: "gexstate:SPY + matrix:SPY healed, Retry clicked" }
+  gex-rail-retried-1440.png: { url: "/options?tab=gex", state: gex-rail-retried, injected: { "gexstate:SPY": 503, "matrix:SPY": 503 }, stream: aborted, then: "gexstate:SPY + matrix:SPY healed, Retry clicked" }
+  gex-rail-retried-390-zh.png: { url: "/options?tab=gex", state: gex-rail-retried, injected: { "gexstate:SPY": 503, "matrix:SPY": 503 }, stream: aborted, then: "gexstate:SPY + matrix:SPY healed, Retry clicked" }
+  gex-rail-retried-390.png: { url: "/options?tab=gex", state: gex-rail-retried, injected: { "gexstate:SPY": 503, "matrix:SPY": 503 }, stream: aborted, then: "gexstate:SPY + matrix:SPY healed, Retry clicked" }
+  gex-rail-retried-820-zh.png: { url: "/options?tab=gex", state: gex-rail-retried, injected: { "gexstate:SPY": 503, "matrix:SPY": 503 }, stream: aborted, then: "gexstate:SPY + matrix:SPY healed, Retry clicked" }
+  gex-rail-retried-820.png: { url: "/options?tab=gex", state: gex-rail-retried, injected: { "gexstate:SPY": 503, "matrix:SPY": 503 }, stream: aborted, then: "gexstate:SPY + matrix:SPY healed, Retry clicked" }
+  gex-rail-unavailable-1440-zh.png: { url: "/options?tab=gex", state: gex-rail-unavailable, injected: { "gexstate:SPY": 503, "matrix:SPY": 503 }, stream: aborted }
+  gex-rail-unavailable-1440.png: { url: "/options?tab=gex", state: gex-rail-unavailable, injected: { "gexstate:SPY": 503, "matrix:SPY": 503 }, stream: aborted }
+  gex-rail-unavailable-390-zh.png: { url: "/options?tab=gex", state: gex-rail-unavailable, injected: { "gexstate:SPY": 503, "matrix:SPY": 503 }, stream: aborted }
+  gex-rail-unavailable-390.png: { url: "/options?tab=gex", state: gex-rail-unavailable, injected: { "gexstate:SPY": 503, "matrix:SPY": 503 }, stream: aborted }
+  gex-rail-unavailable-820-zh.png: { url: "/options?tab=gex", state: gex-rail-unavailable, injected: { "gexstate:SPY": 503, "matrix:SPY": 503 }, stream: aborted }
+  gex-rail-unavailable-820.png: { url: "/options?tab=gex", state: gex-rail-unavailable, injected: { "gexstate:SPY": 503, "matrix:SPY": 503 }, stream: aborted }
+  gex-state-refresh-failed-1440-zh.png: { url: "/options?tab=gex", state: gex-state-refresh-failed, injected: {  }, stream: aborted, then: "healthy read landed; gexstate:SPY answer 503; page clock moved past two polls" }
+  gex-state-refresh-failed-1440.png: { url: "/options?tab=gex", state: gex-state-refresh-failed, injected: {  }, stream: aborted, then: "healthy read landed; gexstate:SPY answer 503; page clock moved past two polls" }
+  gex-state-refresh-failed-390-zh.png: { url: "/options?tab=gex", state: gex-state-refresh-failed, injected: {  }, stream: aborted, then: "healthy read landed; gexstate:SPY answer 503; page clock moved past two polls" }
+  gex-state-refresh-failed-390.png: { url: "/options?tab=gex", state: gex-state-refresh-failed, injected: {  }, stream: aborted, then: "healthy read landed; gexstate:SPY answer 503; page clock moved past two polls" }
+  gex-state-refresh-failed-820-zh.png: { url: "/options?tab=gex", state: gex-state-refresh-failed, injected: {  }, stream: aborted, then: "healthy read landed; gexstate:SPY answer 503; page clock moved past two polls" }
+  gex-state-refresh-failed-820.png: { url: "/options?tab=gex", state: gex-state-refresh-failed, injected: {  }, stream: aborted, then: "healthy read landed; gexstate:SPY answer 503; page clock moved past two polls" }
+  heatmap-absent-1440-zh.png: { url: "/discover?tab=heatmap", state: heatmap-absent, injected: { "manifest": 404, "/data/manifest.json": 404 } }
+  heatmap-absent-1440.png: { url: "/discover?tab=heatmap", state: heatmap-absent, injected: { "manifest": 404, "/data/manifest.json": 404 } }
+  heatmap-absent-390-zh.png: { url: "/discover?tab=heatmap", state: heatmap-absent, injected: { "manifest": 404, "/data/manifest.json": 404 } }
+  heatmap-absent-390.png: { url: "/discover?tab=heatmap", state: heatmap-absent, injected: { "manifest": 404, "/data/manifest.json": 404 } }
+  heatmap-absent-820-zh.png: { url: "/discover?tab=heatmap", state: heatmap-absent, injected: { "manifest": 404, "/data/manifest.json": 404 } }
+  heatmap-absent-820.png: { url: "/discover?tab=heatmap", state: heatmap-absent, injected: { "manifest": 404, "/data/manifest.json": 404 } }
+  heatmap-persisted-refresh-failed-1440-zh.png: { url: "/discover?tab=heatmap", state: heatmap-persisted-refresh-failed, injected: { "manifest": 503 }, then: "healthy /data/manifest.json read written to IndexedDB and aged 6h; manifest + /data/manifest.json answer 503; page reloaded" }
+  heatmap-persisted-refresh-failed-1440.png: { url: "/discover?tab=heatmap", state: heatmap-persisted-refresh-failed, injected: { "manifest": 503 }, then: "healthy /data/manifest.json read written to IndexedDB and aged 6h; manifest + /data/manifest.json answer 503; page reloaded" }
+  heatmap-persisted-refresh-failed-390-zh.png: { url: "/discover?tab=heatmap", state: heatmap-persisted-refresh-failed, injected: { "manifest": 503 }, then: "healthy /data/manifest.json read written to IndexedDB and aged 6h; manifest + /data/manifest.json answer 503; page reloaded" }
+  heatmap-persisted-refresh-failed-390.png: { url: "/discover?tab=heatmap", state: heatmap-persisted-refresh-failed, injected: { "manifest": 503 }, then: "healthy /data/manifest.json read written to IndexedDB and aged 6h; manifest + /data/manifest.json answer 503; page reloaded" }
+  heatmap-persisted-refresh-failed-820-zh.png: { url: "/discover?tab=heatmap", state: heatmap-persisted-refresh-failed, injected: { "manifest": 503 }, then: "healthy /data/manifest.json read written to IndexedDB and aged 6h; manifest + /data/manifest.json answer 503; page reloaded" }
+  heatmap-persisted-refresh-failed-820.png: { url: "/discover?tab=heatmap", state: heatmap-persisted-refresh-failed, injected: { "manifest": 503 }, then: "healthy /data/manifest.json read written to IndexedDB and aged 6h; manifest + /data/manifest.json answer 503; page reloaded" }
+  heatmap-persisted-refresh-refused-1440-zh.png: { url: "/discover?tab=heatmap", state: heatmap-persisted-refresh-refused, injected: { "manifest": 503 }, then: "healthy /data/manifest.json read written to IndexedDB and aged 6h; manifest + /data/manifest.json refuse the connection; page reloaded" }
+  heatmap-persisted-refresh-refused-1440.png: { url: "/discover?tab=heatmap", state: heatmap-persisted-refresh-refused, injected: { "manifest": 503 }, then: "healthy /data/manifest.json read written to IndexedDB and aged 6h; manifest + /data/manifest.json refuse the connection; page reloaded" }
+  heatmap-persisted-refresh-refused-390-zh.png: { url: "/discover?tab=heatmap", state: heatmap-persisted-refresh-refused, injected: { "manifest": 503 }, then: "healthy /data/manifest.json read written to IndexedDB and aged 6h; manifest + /data/manifest.json refuse the connection; page reloaded" }
+  heatmap-persisted-refresh-refused-390.png: { url: "/discover?tab=heatmap", state: heatmap-persisted-refresh-refused, injected: { "manifest": 503 }, then: "healthy /data/manifest.json read written to IndexedDB and aged 6h; manifest + /data/manifest.json refuse the connection; page reloaded" }
+  heatmap-persisted-refresh-refused-820-zh.png: { url: "/discover?tab=heatmap", state: heatmap-persisted-refresh-refused, injected: { "manifest": 503 }, then: "healthy /data/manifest.json read written to IndexedDB and aged 6h; manifest + /data/manifest.json refuse the connection; page reloaded" }
+  heatmap-persisted-refresh-refused-820.png: { url: "/discover?tab=heatmap", state: heatmap-persisted-refresh-refused, injected: { "manifest": 503 }, then: "healthy /data/manifest.json read written to IndexedDB and aged 6h; manifest + /data/manifest.json refuse the connection; page reloaded" }
+  heatmap-persisted-retried-1440-zh.png: { url: "/discover?tab=heatmap", state: heatmap-persisted-retried, injected: { "manifest": 503 }, then: "healthy /data/manifest.json read written to IndexedDB and aged 6h; manifest + /data/manifest.json answer 503; page reloaded; then manifest + /data/manifest.json healed, Retry clicked" }
+  heatmap-persisted-retried-1440.png: { url: "/discover?tab=heatmap", state: heatmap-persisted-retried, injected: { "manifest": 503 }, then: "healthy /data/manifest.json read written to IndexedDB and aged 6h; manifest + /data/manifest.json answer 503; page reloaded; then manifest + /data/manifest.json healed, Retry clicked" }
+  heatmap-persisted-retried-390-zh.png: { url: "/discover?tab=heatmap", state: heatmap-persisted-retried, injected: { "manifest": 503 }, then: "healthy /data/manifest.json read written to IndexedDB and aged 6h; manifest + /data/manifest.json answer 503; page reloaded; then manifest + /data/manifest.json healed, Retry clicked" }
+  heatmap-persisted-retried-390.png: { url: "/discover?tab=heatmap", state: heatmap-persisted-retried, injected: { "manifest": 503 }, then: "healthy /data/manifest.json read written to IndexedDB and aged 6h; manifest + /data/manifest.json answer 503; page reloaded; then manifest + /data/manifest.json healed, Retry clicked" }
+  heatmap-persisted-retried-820-zh.png: { url: "/discover?tab=heatmap", state: heatmap-persisted-retried, injected: { "manifest": 503 }, then: "healthy /data/manifest.json read written to IndexedDB and aged 6h; manifest + /data/manifest.json answer 503; page reloaded; then manifest + /data/manifest.json healed, Retry clicked" }
+  heatmap-persisted-retried-820.png: { url: "/discover?tab=heatmap", state: heatmap-persisted-retried, injected: { "manifest": 503 }, then: "healthy /data/manifest.json read written to IndexedDB and aged 6h; manifest + /data/manifest.json answer 503; page reloaded; then manifest + /data/manifest.json healed, Retry clicked" }
+  heatmap-retried-1440-zh.png: { url: "/discover?tab=heatmap", state: heatmap-retried, injected: { "manifest": 503, "/data/manifest.json": 503 }, then: "manifest + /data/manifest.json healed, Retry clicked" }
+  heatmap-retried-1440.png: { url: "/discover?tab=heatmap", state: heatmap-retried, injected: { "manifest": 503, "/data/manifest.json": 503 }, then: "manifest + /data/manifest.json healed, Retry clicked" }
+  heatmap-retried-390-zh.png: { url: "/discover?tab=heatmap", state: heatmap-retried, injected: { "manifest": 503, "/data/manifest.json": 503 }, then: "manifest + /data/manifest.json healed, Retry clicked" }
+  heatmap-retried-390.png: { url: "/discover?tab=heatmap", state: heatmap-retried, injected: { "manifest": 503, "/data/manifest.json": 503 }, then: "manifest + /data/manifest.json healed, Retry clicked" }
+  heatmap-retried-820-zh.png: { url: "/discover?tab=heatmap", state: heatmap-retried, injected: { "manifest": 503, "/data/manifest.json": 503 }, then: "manifest + /data/manifest.json healed, Retry clicked" }
+  heatmap-retried-820.png: { url: "/discover?tab=heatmap", state: heatmap-retried, injected: { "manifest": 503, "/data/manifest.json": 503 }, then: "manifest + /data/manifest.json healed, Retry clicked" }
+  heatmap-unavailable-1440-zh.png: { url: "/discover?tab=heatmap", state: heatmap-unavailable, injected: { "manifest": 503, "/data/manifest.json": 503 } }
+  heatmap-unavailable-1440.png: { url: "/discover?tab=heatmap", state: heatmap-unavailable, injected: { "manifest": 503, "/data/manifest.json": 503 } }
+  heatmap-unavailable-390-zh.png: { url: "/discover?tab=heatmap", state: heatmap-unavailable, injected: { "manifest": 503, "/data/manifest.json": 503 } }
+  heatmap-unavailable-390.png: { url: "/discover?tab=heatmap", state: heatmap-unavailable, injected: { "manifest": 503, "/data/manifest.json": 503 } }
+  heatmap-unavailable-820-zh.png: { url: "/discover?tab=heatmap", state: heatmap-unavailable, injected: { "manifest": 503, "/data/manifest.json": 503 } }
+  heatmap-unavailable-820.png: { url: "/discover?tab=heatmap", state: heatmap-unavailable, injected: { "manifest": 503, "/data/manifest.json": 503 } }
+  levels-absent-1440-zh.png: { url: "/options?tab=levels", state: levels-absent, injected: { "levels:SPY": 404 } }
+  levels-absent-1440.png: { url: "/options?tab=levels", state: levels-absent, injected: { "levels:SPY": 404 } }
+  levels-absent-390-zh.png: { url: "/options?tab=levels", state: levels-absent, injected: { "levels:SPY": 404 } }
+  levels-absent-390.png: { url: "/options?tab=levels", state: levels-absent, injected: { "levels:SPY": 404 } }
+  levels-absent-820-zh.png: { url: "/options?tab=levels", state: levels-absent, injected: { "levels:SPY": 404 } }
+  levels-absent-820.png: { url: "/options?tab=levels", state: levels-absent, injected: { "levels:SPY": 404 } }
+  levels-refresh-failed-1440-zh.png: { url: "/options?tab=levels", state: levels-refresh-failed, injected: {  }, then: "healthy read landed; levels:SPY answer 503; page clock moved past two polls" }
+  levels-refresh-failed-1440.png: { url: "/options?tab=levels", state: levels-refresh-failed, injected: {  }, then: "healthy read landed; levels:SPY answer 503; page clock moved past two polls" }
+  levels-refresh-failed-390-zh.png: { url: "/options?tab=levels", state: levels-refresh-failed, injected: {  }, then: "healthy read landed; levels:SPY answer 503; page clock moved past two polls" }
+  levels-refresh-failed-390.png: { url: "/options?tab=levels", state: levels-refresh-failed, injected: {  }, then: "healthy read landed; levels:SPY answer 503; page clock moved past two polls" }
+  levels-refresh-failed-820-zh.png: { url: "/options?tab=levels", state: levels-refresh-failed, injected: {  }, then: "healthy read landed; levels:SPY answer 503; page clock moved past two polls" }
+  levels-refresh-failed-820.png: { url: "/options?tab=levels", state: levels-refresh-failed, injected: {  }, then: "healthy read landed; levels:SPY answer 503; page clock moved past two polls" }
+  levels-retried-1440-zh.png: { url: "/options?tab=levels", state: levels-retried, injected: { "levels:SPY": 503 }, then: "levels:SPY healed, Retry clicked" }
+  levels-retried-1440.png: { url: "/options?tab=levels", state: levels-retried, injected: { "levels:SPY": 503 }, then: "levels:SPY healed, Retry clicked" }
+  levels-retried-390-zh.png: { url: "/options?tab=levels", state: levels-retried, injected: { "levels:SPY": 503 }, then: "levels:SPY healed, Retry clicked" }
+  levels-retried-390.png: { url: "/options?tab=levels", state: levels-retried, injected: { "levels:SPY": 503 }, then: "levels:SPY healed, Retry clicked" }
+  levels-retried-820-zh.png: { url: "/options?tab=levels", state: levels-retried, injected: { "levels:SPY": 503 }, then: "levels:SPY healed, Retry clicked" }
+  levels-retried-820.png: { url: "/options?tab=levels", state: levels-retried, injected: { "levels:SPY": 503 }, then: "levels:SPY healed, Retry clicked" }
+  levels-unavailable-1440-zh.png: { url: "/options?tab=levels", state: levels-unavailable, injected: { "levels:SPY": 503 } }
+  levels-unavailable-1440.png: { url: "/options?tab=levels", state: levels-unavailable, injected: { "levels:SPY": 503 } }
+  levels-unavailable-390-zh.png: { url: "/options?tab=levels", state: levels-unavailable, injected: { "levels:SPY": 503 } }
+  levels-unavailable-390.png: { url: "/options?tab=levels", state: levels-unavailable, injected: { "levels:SPY": 503 } }
+  levels-unavailable-820-zh.png: { url: "/options?tab=levels", state: levels-unavailable, injected: { "levels:SPY": 503 } }
+  levels-unavailable-820.png: { url: "/options?tab=levels", state: levels-unavailable, injected: { "levels:SPY": 503 } }
+surfaces: [GexDeskView, HeatSeekerCard, MarketStateCard, LevelsView, HeatmapView]
+injection: page.route answers /api/flow (by f-param) and /data/manifest.json with 503 / 404, or refuses the connection (abort); /api/flow/stream is refused on the GEX desk, or (gex-live-*) answers the last frame then its named status event; every other read is the FLOW_FIXTURE server
+persisted: the heatmap-persisted-* states age the browser's own IndexedDB record of /data/manifest.json (dataCache write-through), never a mocked cache
+capture_flag: TERMINAL_E2E_FIXTURE
+capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
+command: |
+  cd terminal
+  node e2e/tools/capture_gex_levels_heatmap_load_failure.cjs
+files:
+  - gex-ladder-absent-1440-zh.png
+  - gex-ladder-absent-1440.png
+  - gex-ladder-absent-390-zh.png
+  - gex-ladder-absent-390.png
+  - gex-ladder-absent-820-zh.png
+  - gex-ladder-absent-820.png
+  - gex-ladder-retried-1440-zh.png
+  - gex-ladder-retried-1440.png
+  - gex-ladder-retried-390-zh.png
+  - gex-ladder-retried-390.png
+  - gex-ladder-retried-820-zh.png
+  - gex-ladder-retried-820.png
+  - gex-ladder-unavailable-1440-zh.png
+  - gex-ladder-unavailable-1440.png
+  - gex-ladder-unavailable-390-zh.png
+  - gex-ladder-unavailable-390.png
+  - gex-ladder-unavailable-820-zh.png
+  - gex-ladder-unavailable-820.png
+  - gex-live-refresh-failed-1440-zh.png
+  - gex-live-refresh-failed-1440.png
+  - gex-live-refresh-failed-390-zh.png
+  - gex-live-refresh-failed-390.png
+  - gex-live-refresh-failed-820-zh.png
+  - gex-live-refresh-failed-820.png
+  - gex-live-retried-1440-zh.png
+  - gex-live-retried-1440.png
+  - gex-live-retried-390-zh.png
+  - gex-live-retried-390.png
+  - gex-live-retried-820-zh.png
+  - gex-live-retried-820.png
+  - gex-pick-absent-1440-zh.png
+  - gex-pick-absent-1440.png
+  - gex-pick-absent-390-zh.png
+  - gex-pick-absent-390.png
+  - gex-pick-absent-820-zh.png
+  - gex-pick-absent-820.png
+  - gex-rail-retried-1440-zh.png
+  - gex-rail-retried-1440.png
+  - gex-rail-retried-390-zh.png
+  - gex-rail-retried-390.png
+  - gex-rail-retried-820-zh.png
+  - gex-rail-retried-820.png
+  - gex-rail-unavailable-1440-zh.png
+  - gex-rail-unavailable-1440.png
+  - gex-rail-unavailable-390-zh.png
+  - gex-rail-unavailable-390.png
+  - gex-rail-unavailable-820-zh.png
+  - gex-rail-unavailable-820.png
+  - gex-state-refresh-failed-1440-zh.png
+  - gex-state-refresh-failed-1440.png
+  - gex-state-refresh-failed-390-zh.png
+  - gex-state-refresh-failed-390.png
+  - gex-state-refresh-failed-820-zh.png
+  - gex-state-refresh-failed-820.png
+  - heatmap-absent-1440-zh.png
+  - heatmap-absent-1440.png
+  - heatmap-absent-390-zh.png
+  - heatmap-absent-390.png
+  - heatmap-absent-820-zh.png
+  - heatmap-absent-820.png
+  - heatmap-persisted-refresh-failed-1440-zh.png
+  - heatmap-persisted-refresh-failed-1440.png
+  - heatmap-persisted-refresh-failed-390-zh.png
+  - heatmap-persisted-refresh-failed-390.png
+  - heatmap-persisted-refresh-failed-820-zh.png
+  - heatmap-persisted-refresh-failed-820.png
+  - heatmap-persisted-refresh-refused-1440-zh.png
+  - heatmap-persisted-refresh-refused-1440.png
+  - heatmap-persisted-refresh-refused-390-zh.png
+  - heatmap-persisted-refresh-refused-390.png
+  - heatmap-persisted-refresh-refused-820-zh.png
+  - heatmap-persisted-refresh-refused-820.png
+  - heatmap-persisted-retried-1440-zh.png
+  - heatmap-persisted-retried-1440.png
+  - heatmap-persisted-retried-390-zh.png
+  - heatmap-persisted-retried-390.png
+  - heatmap-persisted-retried-820-zh.png
+  - heatmap-persisted-retried-820.png
+  - heatmap-retried-1440-zh.png
+  - heatmap-retried-1440.png
+  - heatmap-retried-390-zh.png
+  - heatmap-retried-390.png
+  - heatmap-retried-820-zh.png
+  - heatmap-retried-820.png
+  - heatmap-unavailable-1440-zh.png
+  - heatmap-unavailable-1440.png
+  - heatmap-unavailable-390-zh.png
+  - heatmap-unavailable-390.png
+  - heatmap-unavailable-820-zh.png
+  - heatmap-unavailable-820.png
+  - levels-absent-1440-zh.png
+  - levels-absent-1440.png
+  - levels-absent-390-zh.png
+  - levels-absent-390.png
+  - levels-absent-820-zh.png
+  - levels-absent-820.png
+  - levels-refresh-failed-1440-zh.png
+  - levels-refresh-failed-1440.png
+  - levels-refresh-failed-390-zh.png
+  - levels-refresh-failed-390.png
+  - levels-refresh-failed-820-zh.png
+  - levels-refresh-failed-820.png
+  - levels-retried-1440-zh.png
+  - levels-retried-1440.png
+  - levels-retried-390-zh.png
+  - levels-retried-390.png
+  - levels-retried-820-zh.png
+  - levels-retried-820.png
+  - levels-unavailable-1440-zh.png
+  - levels-unavailable-1440.png
+  - levels-unavailable-390-zh.png
+  - levels-unavailable-390.png
+  - levels-unavailable-820-zh.png
+  - levels-unavailable-820.png

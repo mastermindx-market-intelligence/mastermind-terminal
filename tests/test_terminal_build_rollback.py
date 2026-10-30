@@ -549,7 +549,7 @@ SHIMS = {
     "systemctl": (
         '#!/bin/sh\n'
         'printf "systemctl %s\\n" "$*" >> "$MMX_EFFECT_LOG"\n'
-        '[ -n "${FAIL_RESTART:-}" ] && { echo "systemctl: simulated failure" >&2; exit 1; }\n'
+        '[ "$1" = restart ] && [ -n "${FAIL_RESTART:-}" ] && { echo "systemctl: simulated failure" >&2; exit 1; }\n'
         'exit 0\n'
     ),
     "curl": '#!/bin/sh\n[ -n "${FAIL_HEALTH:-}" ] && exit 22\nexit 0\n',
@@ -938,6 +938,39 @@ def test_preswap_exit_recovery_returns_source_head_after_failed_build(tmp_path):
     )
     assert r.returncode == 1, r.stdout + r.stderr
     assert _git(repo, "rev-parse", "HEAD") == old_sha
+    assert "pre-swap canonical checkout recovery OK" in r.stdout
+
+
+def test_preswap_disk_exhaustion_frees_owned_stage_before_restoring_source(tmp_path):
+    repo, live, marker, _, _, old_sha, _ = make_canonical_mismatch_fixture(tmp_path)
+    stage = tmp_path / "owned-failed-stage"
+    stage.mkdir()
+    (stage / "incomplete-build").write_text("occupied staging capacity")
+    r = run_gen(
+        SCRIPT,
+        f'''
+        SRC="{repo}"
+        APP="{live}"
+        DEPLOYMENT_MARKER="{marker}"
+        CANONICAL_RECOVERY_SHA="{old_sha}"
+        CANONICAL_RECOVERY_ARMED=1
+        STAGE_ROOT="{stage}"
+        git() {{
+          if [ "$3" = reset ] && [ -d "$STAGE_ROOT" ]; then
+            echo "synthetic ENOSPC: index cannot be written while failed stage remains" >&2
+            return 1
+          fi
+          command git "$@"
+        }}
+        false
+        cleanup_deploy_attempt
+        ''',
+    )
+    assert r.returncode == 1, r.stdout + r.stderr
+    assert not stage.exists()
+    assert _git(repo, "rev-parse", "HEAD") == old_sha
+    assert _git(repo, "status", "--porcelain=v1", "--untracked-files=all") == ""
+    assert marker.read_text().strip() == old_sha
     assert "pre-swap canonical checkout recovery OK" in r.stdout
 
 

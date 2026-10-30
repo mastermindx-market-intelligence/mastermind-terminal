@@ -21,8 +21,10 @@
 // no crash.
 
 const WebSocket = require("ws");
+const { randomUUID } = require("node:crypto");
 const log = require("./log");
 const { classifySession, etDate } = require("./usSession");
+const { FormingCandles, validBar } = require("./formingCandles");
 
 const URL_LIVE = "wss://socket.polygon.io/stocks";
 const URL_DELAYED = "wss://delayed.polygon.io/stocks";
@@ -34,11 +36,268 @@ const MAX_BACKOFF_MS = 30 * 1000;
 const MAX_PARAMS_PER_FRAME = 50; // batch subscribe/unsubscribe frames
 const REALTIME_AGG_MAX_LAG_MS = 2 * 60 * 1000;
 
+// Optional transport evidence only. These caps bound retained payload, not ws/JSON
+// allocations, process RSS, or copies retained by a reader. No production call
+// constructs this buffer; local sequence never establishes native completeness.
+const FRAME_CAPTURE_STATES = new WeakMap();
+const POLYGON_FRAME_CAPTURES = new WeakMap();
+const FRAME_MAX_BYTES = 2 * 1024 * 1024;
+const QUEUE_MAX_BYTES = 8 * 1024 * 1024;
+const QUEUE_MAX_FRAMES = 128;
+const RAW_MAX_FRAGMENTS = 128; // Bounds inspection even for empty fragments.
+const WALL_MAX_MS = 8_640_000_000_000_000; // JavaScript's representable Date range.
+const MONOTONIC_MAX_NS = (1n << 63n) - 1n;
+const TYPED_ARRAY = Object.getPrototypeOf(Uint8Array.prototype);
+const BYTE_LENGTH = Object.getOwnPropertyDescriptor(TYPED_ARRAY, "byteLength").get;
+const BYTE_OFFSET = Object.getOwnPropertyDescriptor(TYPED_ARRAY, "byteOffset").get;
+const BACKING_BUFFER = Object.getOwnPropertyDescriptor(TYPED_ARRAY, "buffer").get;
+const ARRAY_BUFFER_LENGTH = Object.getOwnPropertyDescriptor(ArrayBuffer.prototype, "byteLength").get;
+const COPY_BYTES = Uint8Array.prototype.set;
+
+class FrameCaptureError extends Error {
+  constructor(code) {
+    super("Frame capture: " + code);
+    this.name = "FrameCaptureError";
+    this.code = code;
+  }
+}
+
+function captureState(buffer) {
+  const state = FRAME_CAPTURE_STATES.get(buffer);
+  if (!state) throw new FrameCaptureError("INVALID_BUFFER");
+  return state;
+}
+
+function positiveLimit(value, maximum) {
+  if (!Number.isSafeInteger(value) || value < 1 || value > maximum) {
+    throw new FrameCaptureError("INVALID_LIMIT");
+  }
+  return value;
+}
+
+function reasonCode(reason) {
+  if (typeof reason !== "string" || !/^[A-Z][A-Z0-9_]{0,63}$/.test(reason)) {
+    throw new FrameCaptureError("INVALID_REASON");
+  }
+  return reason;
+}
+
+function terminateCapture(state, reason, closed = false) {
+  if (!state.firstGap) state.firstGap = { reason, afterSequence: state.lastSequence };
+  if (closed) state.state = "CLOSED";
+  else if (state.state === "OPEN") state.state = "GAP";
+}
+
+function captureStatus(state) {
+  return {
+    generation: state.generation,
+    state: state.state,
+    sourceContinuity: "UNQUALIFIED",
+    receiptPrecision: "ms",
+    limits: { ...state.limits, maxRawFragments: RAW_MAX_FRAGMENTS },
+    capturedFrames: state.lastSequence,
+    capturedBytes: state.capturedBytes,
+    queuedFrames: state.queue.length,
+    queuedBytes: state.queuedBytes,
+    acknowledgedThrough: state.acknowledgedThrough,
+    deliveredThrough: state.deliveredThrough,
+    firstGap: state.firstGap ? { ...state.firstGap } : null,
+  };
+}
+
+// ws text/default binary messages are Buffers. Its optional ArrayBuffer and
+// fragments modes also preserve bytes; Blob is asynchronous and unsupported.
+// A JS string can never be promoted back into evidence of original bytes.
+function rawViews(raw, maxBytes) {
+  const parts = Array.isArray(raw) ? raw : [raw];
+  const partCount = parts.length;
+  if (!Number.isSafeInteger(partCount) || partCount < 0 || partCount > RAW_MAX_FRAGMENTS) {
+    throw new FrameCaptureError("FRAME_SHAPE");
+  }
+  const views = [];
+  let total = 0;
+  for (let i = 0; i < partCount; i++) {
+    const descriptor = Object.getOwnPropertyDescriptor(parts, String(i));
+    if (!descriptor || !("value" in descriptor)) throw new FrameCaptureError("FRAME_SHAPE");
+    const part = descriptor.value;
+    let backing, offset, length;
+    if (Buffer.isBuffer(part)) {
+      backing = BACKING_BUFFER.call(part);
+      offset = BYTE_OFFSET.call(part);
+      length = BYTE_LENGTH.call(part);
+      ARRAY_BUFFER_LENGTH.call(backing); // Refuse shared or detached backing.
+    } else if (!Array.isArray(raw) && part instanceof ArrayBuffer) {
+      backing = part;
+      offset = 0;
+      length = ARRAY_BUFFER_LENGTH.call(part);
+    } else {
+      throw new FrameCaptureError("FRAME_TYPE");
+    }
+    if (length > maxBytes - total) throw new FrameCaptureError("FRAME_TOO_LARGE");
+    total += length;
+    views.push(new Uint8Array(backing, offset, length));
+  }
+  return { views, total };
+}
+
+function captureFrame(state, raw, clocks) {
+  if (state.state !== "OPEN") {
+    return { accepted: false, generation: state.generation, reason: state.firstGap.reason };
+  }
+  try {
+    if (!clocks || typeof clocks !== "object") throw new FrameCaptureError("CLOCK_INVALID");
+    const { receivedAtMs, monotonicNs } = clocks;
+    if (!Number.isSafeInteger(receivedAtMs) || receivedAtMs < 0 || receivedAtMs > WALL_MAX_MS ||
+        typeof monotonicNs !== "bigint" || monotonicNs < 0n || monotonicNs > MONOTONIC_MAX_NS) {
+      throw new FrameCaptureError("CLOCK_INVALID");
+    }
+    if (state.lastReceivedAtMs !== null &&
+        (receivedAtMs < state.lastReceivedAtMs || monotonicNs < state.lastMonotonicNs)) {
+      throw new FrameCaptureError("CLOCK_REGRESSION");
+    }
+    const { views, total } = rawViews(raw, state.limits.maxFrameBytes);
+    if (state.queue.length >= state.limits.maxQueueFrames ||
+        total > state.limits.maxQueueBytes - state.queuedBytes) {
+      throw new FrameCaptureError("QUEUE_OVERFLOW");
+    }
+    if (state.lastSequence >= state.limits.maxCapturedFrames ||
+        total > state.limits.maxCapturedBytes - state.capturedBytes) {
+      throw new FrameCaptureError("COUNTER_LIMIT");
+    }
+    // Every shape/clock/byte/counter bound is complete before payload allocation.
+    const bytes = Buffer.allocUnsafeSlow(total);
+    let offset = 0;
+    for (const view of views) {
+      COPY_BYTES.call(bytes, view, offset);
+      offset += BYTE_LENGTH.call(view);
+    }
+    const sequence = state.lastSequence + 1;
+    state.queue.push({ sequence, bytes, receivedAtMs, monotonicNs: monotonicNs.toString() });
+    state.lastSequence = sequence;
+    state.capturedBytes += total;
+    state.queuedBytes += total;
+    state.lastReceivedAtMs = receivedAtMs;
+    state.lastMonotonicNs = monotonicNs;
+    return { accepted: true, generation: state.generation, sequence };
+  } catch (error) {
+    const reason = error instanceof FrameCaptureError ? error.code : "CAPTURE_ERROR";
+    terminateCapture(state, reason);
+    return { accepted: false, generation: state.generation, reason };
+  }
+}
+
+function exactGeneration(state, generation) {
+  if (generation !== state.generation) throw new FrameCaptureError("GENERATION_MISMATCH");
+}
+
+class FrameCaptureBuffer {
+  constructor({
+    maxFrameBytes = FRAME_MAX_BYTES,
+    maxQueueBytes = QUEUE_MAX_BYTES,
+    maxQueueFrames = QUEUE_MAX_FRAMES,
+    maxCapturedFrames = Number.MAX_SAFE_INTEGER,
+    maxCapturedBytes = Number.MAX_SAFE_INTEGER,
+  } = {}) {
+    const limits = {
+      maxFrameBytes: positiveLimit(maxFrameBytes, FRAME_MAX_BYTES),
+      maxQueueBytes: positiveLimit(maxQueueBytes, QUEUE_MAX_BYTES),
+      maxQueueFrames: positiveLimit(maxQueueFrames, QUEUE_MAX_FRAMES),
+      maxCapturedFrames: positiveLimit(maxCapturedFrames, Number.MAX_SAFE_INTEGER),
+      maxCapturedBytes: positiveLimit(maxCapturedBytes, Number.MAX_SAFE_INTEGER),
+    };
+    const generation = randomUUID();
+    Object.defineProperty(this, "generation", { value: generation, enumerable: true });
+    FRAME_CAPTURE_STATES.set(this, {
+      generation, limits, state: "OPEN", firstGap: null, bound: false,
+      queue: [], queuedBytes: 0, capturedBytes: 0, lastSequence: 0,
+      acknowledgedThrough: 0, deliveredThrough: 0,
+      lastReceivedAtMs: null, lastMonotonicNs: null,
+    });
+  }
+
+  capture(raw, clocks = {}) {
+    const state = captureState(this);
+    if (state.bound) throw new FrameCaptureError("BOUND_CAPTURE");
+    return captureFrame(state, raw, clocks);
+  }
+
+  status() { return captureStatus(captureState(this)); }
+
+  markGap(reason = "EXPLICIT_GAP") {
+    const state = captureState(this);
+    terminateCapture(state, reasonCode(reason));
+    return captureStatus(state);
+  }
+
+  close(reason = "CLOSED") {
+    const state = captureState(this);
+    terminateCapture(state, reasonCode(reason), true);
+    return captureStatus(state);
+  }
+
+  readBatch({ generation, afterSequence, maxFrames, maxBytes } = {}) {
+    const state = captureState(this);
+    exactGeneration(state, generation);
+    if (!Number.isSafeInteger(afterSequence) || afterSequence < state.acknowledgedThrough ||
+        afterSequence > state.deliveredThrough) {
+      throw new FrameCaptureError("INVALID_CURSOR");
+    }
+    maxFrames = positiveLimit(maxFrames === undefined ? state.limits.maxQueueFrames : maxFrames, QUEUE_MAX_FRAMES);
+    maxBytes = positiveLimit(maxBytes === undefined ? state.limits.maxQueueBytes : maxBytes, QUEUE_MAX_BYTES);
+    const frames = [];
+    let bytes = 0;
+    let nextSequence = afterSequence;
+    const start = afterSequence - state.acknowledgedThrough;
+    for (let i = start; i < state.queue.length && frames.length < maxFrames; i++) {
+      const frame = state.queue[i];
+      if (frame.bytes.length > maxBytes - bytes) {
+        if (!frames.length) throw new FrameCaptureError("READ_FRAME_TOO_LARGE");
+        break;
+      }
+      const copy = Buffer.allocUnsafeSlow(frame.bytes.length);
+      COPY_BYTES.call(copy, frame.bytes);
+      frames.push({ ...frame, bytes: copy });
+      bytes += frame.bytes.length;
+      nextSequence = frame.sequence;
+    }
+    // A failed copy cannot advance the delivered prefix or consume the originals.
+    state.deliveredThrough = Math.max(state.deliveredThrough, nextSequence);
+    return {
+      ...captureStatus(state), frames, bytes, nextSequence,
+      hasMore: nextSequence < state.lastSequence,
+    };
+  }
+
+  ackThrough({ generation, throughSequence } = {}) {
+    const state = captureState(this);
+    exactGeneration(state, generation);
+    if (!Number.isSafeInteger(throughSequence) || throughSequence < state.acknowledgedThrough ||
+        throughSequence > state.deliveredThrough) {
+      throw new FrameCaptureError("INVALID_ACK");
+    }
+    const count = throughSequence - state.acknowledgedThrough;
+    for (let i = 0; i < count; i++) state.queuedBytes -= state.queue[i].bytes.length;
+    state.queue.splice(0, count);
+    state.acknowledgedThrough = throughSequence;
+    return captureStatus(state);
+  }
+}
+
+function bindFrameCapture(polygon, buffer) {
+  const state = captureState(buffer);
+  if (state.bound) throw new FrameCaptureError("ALREADY_BOUND");
+  if (state.state !== "OPEN" || state.lastSequence !== 0) throw new FrameCaptureError("USED_GENERATION");
+  state.bound = true;
+  POLYGON_FRAME_CAPTURES.set(polygon, state);
+}
+
 class Polygon {
-  constructor(store, apiKey, extFeed) {
+  constructor(store, apiKey, extFeed, { frameCapture = null } = {}) {
+    if (frameCapture !== null) bindFrameCapture(this, frameCapture);
     this.store = store;
     this.apiKey = apiKey || "";
     this.extFeed = extFeed || null;
+    this.forming = new FormingCandles({ fetchMinutes: (sym, day, end) => this._fetchFormingMinutes(sym, day, end) });
     // Effective cluster; starts from env, demoted (permanently for this process) on RT-denied.
     this.cluster = WANT_LIVE ? "live" : "delayed";
     this.ws = null;
@@ -64,7 +323,10 @@ class Polygon {
   }
 
   stop() {
+    const capture = POLYGON_FRAME_CAPTURES.get(this);
+    if (capture) terminateCapture(capture, "STOPPED", true);
     this.stopped = true;
+    this.forming.invalidate();
     if (this.reconnectTimer) { clearTimeout(this.reconnectTimer); this.reconnectTimer = null; }
     if (this.sweepTimer) { clearInterval(this.sweepTimer); this.sweepTimer = null; }
     if (this.ws) { try { this.ws.terminate(); } catch {} this.ws = null; }
@@ -111,21 +373,56 @@ class Polygon {
       }
     });
 
-    ws.on("message", (buf) => {
-      this.lastMsgAt = Date.now();
-      let arr;
-      try { arr = JSON.parse(buf.toString()); } catch { return; }
-      if (!Array.isArray(arr)) arr = [arr];
+    ws.on("message", (raw) => this._receiveRawFrame(raw));
+
+    ws.on("error", (error) => this._onSocketError(error));
+
+    ws.on("close", (code) => this._onSocketClose(code));
+  }
+
+  _receiveRawFrame(raw) {
+    this.lastMsgAt = Date.now();
+    const capture = POLYGON_FRAME_CAPTURES.get(this);
+    if (capture && capture.state === "OPEN") {
+      try {
+        captureFrame(capture, raw, {
+          receivedAtMs: this.lastMsgAt,
+          monotonicNs: process.hrtime.bigint(),
+        });
+      } catch {
+        terminateCapture(capture, "CAPTURE_ERROR");
+      }
+    }
+    let arr;
+    try { arr = JSON.parse(raw.toString()); } catch {
+      if (capture) terminateCapture(capture, "PARSE_LOSS");
+      this.forming.invalidate();
+      return;
+    }
+    if (!Array.isArray(arr)) arr = [arr];
+    try {
       for (const msg of arr) this._onMessage(msg);
-    });
+    } catch (error) {
+      if (capture) terminateCapture(capture, "DISPATCH_LOSS");
+      this.forming.invalidate();
+      throw error; // Preserve the incumbent dispatch error, never a successful empty result.
+    }
+  }
 
-    ws.on("error", (e) => log.every("polygon-error", "WARN", "polygon ws error", e && e.message));
+  _onSocketError(error) {
+    this.forming.invalidate();
+    const capture = POLYGON_FRAME_CAPTURES.get(this);
+    if (capture) terminateCapture(capture, "SOCKET_ERROR");
+    log.every("polygon-error", "WARN", "polygon ws error", error && error.message);
+  }
 
-    ws.on("close", (code) => {
-      this.authed = false;
-      log.every("polygon-close", "WARN", "polygon ws closed", `code=${code}`);
-      this._scheduleReconnect();
-    });
+  _onSocketClose(code) {
+    this.forming.invalidate();
+    const capture = POLYGON_FRAME_CAPTURES.get(this);
+    if (capture) terminateCapture(capture, "SOCKET_CLOSED", true);
+    this.authed = false;
+    log.every("polygon-close", "WARN", "polygon ws closed", `code=${code}`);
+    this._scheduleReconnect();
   }
 
   _onMessage(msg) {
@@ -149,6 +446,7 @@ class Polygon {
         // broad — free-text wording from a third party (Polygon → Massive rebrand in flight); a
         // false-positive demote only costs latency, a miss silently blanks the whole US feed.
         this.cluster = "delayed";
+        this.forming.invalidate();
         log.error("polygon real-time denied — demoting to delayed cluster", msg.message || "");
         // Quotes already stamped live must not linger overclaiming until their next delayed AM bar.
         for (const q of this.store.quotes.values()) {
@@ -181,13 +479,16 @@ class Polygon {
     if (!sym || this.cluster !== "live") return;
     const o = Number(m.o), h = Number(m.h), l = Number(m.l), c = Number(m.c), v = Number(m.v);
     if (![o, h, l, c].every((n) => Number.isFinite(n) && n > 0)) return;
-    const startMs = Number(m.s) || Number(m.e) || Date.now();
-    const endMs = Number(m.e) || startMs;
+    const startMs = Number(m.s), endMs = Number(m.e);
     const now = Date.now();
+    const bar = { t: startMs, o, h, l, c, v };
+    if (!validBar(bar) || startMs % 1000 !== 0 || !Number.isSafeInteger(endMs) ||
+        endMs < startMs || endMs > startMs + 1000 || endMs - now > 5_000) return;
+    // A valid old source window can correct a retained candle without being a
+    // fresh last-price observation. The forming owner admits only its own day.
+    this.forming.ingest(sym, bar, endMs, now);
     const lagMs = Math.max(0, now - endMs);
-    // A buffered/old packet is not evidence of a live tape. The delayed cluster never subscribes
-    // A.* at all; this second guard protects reconnect/catch-up edge cases on the live socket.
-    if (endMs - now > 5_000 || lagMs > REALTIME_AGG_MAX_LAG_MS) return;
+    if (lagMs > REALTIME_AGG_MAX_LAG_MS) return;
     const session = classifySession(startMs);
 
     if (session !== "rth") {
@@ -200,6 +501,10 @@ class Polygon {
       });
       return;
     }
+
+    // A source-window correction advances forming revision, not the last trade clock.
+    const previous = this.store.quotes.get(sym);
+    if (previous?.source === "polygon-live-second" && previous.asOfMs > endMs) return;
 
     const date = etDate(startMs);
     let acc = this.dayAcc.get(sym);
@@ -329,6 +634,7 @@ class Polygon {
       const oldestKey = this.subs.keys().next().value;
       if (oldestKey === undefined) break;
       this.subs.delete(oldestKey);
+      this.forming.invalidate(oldestKey);
       this.store.markSubscribed(oldestKey, false);
       this._send({ action: "unsubscribe", params: `${this._aggregateChannel()}.${oldestKey}` });
       log.info("polygon LRU-evicted", oldestKey);
@@ -382,7 +688,7 @@ class Polygon {
     }
     for (let i = 0; i < toUnsub.length; i += MAX_PARAMS_PER_FRAME) {
       const chunk = toUnsub.slice(i, i + MAX_PARAMS_PER_FRAME);
-      for (const s of chunk) { this.subs.delete(s); this.store.markSubscribed(s, false); }
+      for (const s of chunk) { this.subs.delete(s); this.store.markSubscribed(s, false); this.forming.invalidate(s); }
       const channel = this._aggregateChannel();
       this._send({ action: "unsubscribe", params: chunk.map((s) => `${channel}.${s}`).join(",") });
     }
@@ -397,6 +703,32 @@ class Polygon {
   }
 
   _aggregateChannel() { return this.cluster === "live" ? "A" : "AM"; }
+
+  demandForming(sym, nowMs) {
+    if (this.cluster === "live" && this.isHealthy()) this.forming.demand(sym, nowMs);
+  }
+
+  getForming(sym, nowMs) {
+    return this.cluster === "live" && this.isHealthy() ? this.forming.snapshot(sym, nowMs) : null;
+  }
+
+  async _fetchFormingMinutes(sym, day, endMs) {
+    if (!this.apiKey || this.cluster !== "live") throw new Error("forming source unavailable");
+    const url = "https://api.polygon.io/v2/aggs/ticker/" + encodeURIComponent(sym) +
+      "/range/1/minute/" + day + "/" + (endMs - 1) +
+      "?adjusted=false&sort=asc&limit=50000&apiKey=" + encodeURIComponent(this.apiKey);
+    const response = await fetch(url, { signal: AbortSignal.timeout(4500) });
+    if (!response.ok) throw new Error("forming seed unavailable");
+    const body = await response.json();
+    // One session fits below the provider base-aggregate limit. A paginated,
+    // delayed, mismatched or malformed result never grants prefix coverage.
+    if (body.status !== "OK" || body.ticker !== sym || body.adjusted !== false || body.next_url ||
+        !Array.isArray(body.results ?? []) || (body.resultsCount != null && body.resultsCount !== (body.results ?? []).length)) {
+      throw new Error("forming seed incomplete");
+    }
+    return (body.results ?? []).filter(b => b.t < endMs)
+      .map(({ t, o, h, l, c, v }) => ({ t, o, h, l, c, v }));
+  }
 
   health() {
     return {
@@ -413,4 +745,4 @@ class Polygon {
   }
 }
 
-module.exports = { Polygon, etDate };
+module.exports = { Polygon, etDate, FrameCaptureBuffer, FrameCaptureError };

@@ -1,0 +1,53 @@
+{
+  "schema": "shared-shell.refinement-capture.v1",
+  "source_commit": "52e5b3ded79a9711a0eb8cdd58d987ee7f7d704f",
+  "surface": "local development; existing responsive harness; MMX_SHARED_SHELL=1; guest",
+  "runtime": "Node20.20.2, repository Playwright1.61.1",
+  "viewports": [
+    "1440x900",
+    "820x1180",
+    "390x844",
+    "320x760"
+  ],
+  "browser_result": "7 passed; 2 deliberate project skips (320px runs once)",
+  "source_result": "91 focused tests; full TypeScript; changed-file ESLint pass",
+  "paper_reference": {
+    "file": "01M2WGNCX9475G79JRKJTCM08P",
+    "page": "p-23-0",
+    "boards": [
+      "SS01 / 6NMP-0",
+      "SS15 / 6OVX-0"
+    ]
+  },
+  "files": [
+    {
+      "file": "discover-dark-desktop.png",
+      "bytes": 141098,
+      "sha256": "46d992acd6081dacff10a650b5b9f5e6d83602555b08157c5a070266b30a6a0d"
+    },
+    {
+      "file": "discover-light-desktop.png",
+      "bytes": 140130,
+      "sha256": "36d2e235c9a5659102cf3f7c75e4b2e852fb10075dbc2d75e33f0c4417b4e370"
+    },
+    {
+      "file": "discover-light-zh-mobile.png",
+      "bytes": 63795,
+      "sha256": "3139256a0fc501912d7430495f7f0d6ba186036b415e799e25b48a4c1fe63075"
+    },
+    {
+      "file": "directory-light-zh.png",
+      "bytes": 161907,
+      "sha256": "b4e9873107b237392cde7ad43a06f94dd372c4d5c5835d991180fde0251f8976"
+    },
+    {
+      "file": "discover-320.png",
+      "bytes": 49550,
+      "sha256": "784ecfc67d18a76a827648b56093caf3e6400af3b3e077cdd326d4a80eb42585"
+    }
+  ],
+  "limitations": [
+    "No production or beta release is evidenced by these local captures.",
+    "No authenticated user journey is claimed by the guest capture suite."
+  ]
+}

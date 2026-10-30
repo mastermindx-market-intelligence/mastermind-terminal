@@ -19,7 +19,7 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { flowGet } from "../../lib/flowClientCache";
+import { flowGet, flowGetResult, flowInvalidate } from "../../lib/flowClientCache";
 import { useFlowStream } from "../../lib/flowStream";
 import { useLang } from "../../lib/i18n";
 import { makeFlowT } from "../../lib/flowdeskStrings";
@@ -80,6 +80,87 @@ interface ChainHeatCampaign {
   direction_reliability: string;
   authority_tier: string;
   note?: string;
+  category_proxy?: ChainHeatCategoryProxy;
+}
+
+// Additive side-category proxy.  This is a fixed mapping category — NOT a
+// measured NBBO and NOT the legacy ask_share.  Absent on legacy payloads.
+interface ChainHeatCategoryProxy {
+  schema?: string;
+  basis?: string;
+  share?: number | null;
+  known_premium_usd?: number;
+  unknown_premium_usd?: number;
+  source_premium_usd?: number;
+  invalid_premium_count?: number;
+  source_certified_accepted?: boolean;
+}
+
+type CategoryProxyState =
+  | { kind: "none" }
+  | { kind: "invalid" }
+  | { kind: "valid"; share: number | null; known: number; source: number };
+
+/**
+ * Resolve the additive category_proxy object with the exact contract guard.
+ *
+ *   none    — payload carries no object (legacy); legacy bar may be shown,
+ *             clearly labelled as legacy with coverage unavailable.
+ *   invalid — a NEW object was claimed but fails the schema/basis/bounds
+ *             contract; render unavailable and NEVER fall back to legacy.
+ *   valid   — schema + basis match and every share/mass is finite and bounded.
+ */
+function resolveCategoryProxy(
+  p: unknown,
+): CategoryProxyState {
+  // Only an ABSENT field is legacy.  null / primitives / arrays are a claimed
+  // but malformed object → invalid, and must NEVER fall back to the legacy bar.
+  if (p === undefined) return { kind: "none" };
+  if (p === null || typeof p !== "object" || Array.isArray(p)) {
+    return { kind: "invalid" };
+  }
+  const o = p as Record<string, unknown>;
+  const finiteNonNeg = (v: unknown): v is number =>
+    typeof v === "number" && Number.isFinite(v) && v >= 0;
+  if (
+    o.schema !== "options_flow.category_proxy/v1" ||
+    o.basis !== "side_category" ||
+    o.source_certified_accepted !== false ||
+    !finiteNonNeg(o.known_premium_usd) ||
+    !finiteNonNeg(o.unknown_premium_usd) ||
+    !finiteNonNeg(o.source_premium_usd) ||
+    !Number.isInteger(o.invalid_premium_count) ||
+    (o.invalid_premium_count as number) < 0
+  ) {
+    return { kind: "invalid" };
+  }
+  const known = o.known_premium_usd as number;
+  const unknown = o.unknown_premium_usd as number;
+  const source = o.source_premium_usd as number;
+  const invalidCount = o.invalid_premium_count as number;
+  // Mass must reconcile to the selected source within rounding: known+unknown
+  // ≈ source (0.02 USD + 1e-12 relative), and known ≤ source within rounding.
+  const tol = 0.02 + 1e-12 * source;
+  if (Math.abs(known + unknown - source) > tol) return { kind: "invalid" };
+  if (known > source + tol) return { kind: "invalid" };
+  // share: null is allowed; a numeric share requires real known mass and no
+  // invalid premium rows.
+  let share: number | null;
+  if (o.share === null) {
+    share = null;
+  } else if (
+    typeof o.share === "number" &&
+    Number.isFinite(o.share) &&
+    o.share >= 0 &&
+    o.share <= 1 &&
+    known > 0 &&
+    invalidCount === 0
+  ) {
+    share = o.share;
+  } else {
+    return { kind: "invalid" };
+  }
+  return { kind: "valid", share, known, source };
 }
 
 interface ChainHeatPayload {
@@ -140,14 +221,39 @@ async function safeFetch<T>(url: string): Promise<T | null> {
   }
 }
 
+/**
+ * What the last chain-heat read established. "unavailable" with campaigns still held
+ * is a failed refresh: the rows stay, labelled as the last read.
+ */
+type ChainHeatStatus = "loading" | "data" | "absent" | "unavailable";
+
+/** A 200 whose body is not a chain-heat payload is a read that did not land. */
+function isChainHeatPayload(v: unknown): v is ChainHeatPayload {
+  return typeof v === "object" && v !== null && Array.isArray((v as { campaigns?: unknown }).campaigns);
+}
+
 // ─── ChainHeatRail ────────────────────────────────────────────────────────────
 
 interface ChainHeatRailProps {
   data: ChainHeatPayload | null;
+  status: ChainHeatStatus;
+  onRetry: () => void;
   lang: "en" | "zh";
 }
 
-function ChainHeatRail({ data, lang }: ChainHeatRailProps) {
+const CHAIN_LOAD_ERROR: React.CSSProperties = {
+  display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
+  padding: 16, fontSize: 11, textAlign: "center", color: "var(--muted)",
+};
+const CHAIN_LOAD_ERROR_TITLE: React.CSSProperties = { color: "var(--text)", fontWeight: 600 };
+const CHAIN_REFRESH_FAILED: React.CSSProperties = {
+  display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8,
+  padding: "6px 16px", fontSize: 10, lineHeight: 1.4, color: "var(--warn)",
+  borderBottom: "1px solid var(--line-2)",
+};
+const RETRY_INLINE: React.CSSProperties = { padding: "2px 10px", fontSize: 11, flexShrink: 0 };
+
+function ChainHeatRail({ data, status, onRetry, lang }: ChainHeatRailProps) {
   const zh = lang === "zh";
   const t = makeFlowT(lang);
 
@@ -157,7 +263,19 @@ function ChainHeatRail({ data, lang }: ChainHeatRailProps) {
         <div className="obs-card-hd">
           <span className="obs-lbl">{t("chainHeatTitle")}</span>
         </div>
-        <div className="obs-fd-chain-empty">{t("chainHeatLoading")}</div>
+        {status === "unavailable" ? (
+          <div style={CHAIN_LOAD_ERROR} data-testid="chainheat-load-error" role="alert">
+            <span style={CHAIN_LOAD_ERROR_TITLE}>{t("chainHeatError")}</span>
+            <span>{t("chainHeatErrorWhy")}</span>
+            <button type="button" className="btn btn-ghost load-retry" style={RETRY_INLINE} onClick={onRetry}>
+              {t("errRetry")}
+            </button>
+          </div>
+        ) : status === "absent" ? (
+          <div className="obs-fd-chain-empty" data-testid="chainheat-absent">{t("chainHeatAbsent")}</div>
+        ) : (
+          <div className="obs-fd-chain-empty">{t("chainHeatLoading")}</div>
+        )}
       </div>
     );
   }
@@ -178,6 +296,15 @@ function ChainHeatRail({ data, lang }: ChainHeatRailProps) {
           {zh ? `≥$${threshold}M` : `≥$${threshold}M cumul`}
         </span>
       </div>
+
+      {status === "unavailable" && (
+        <div style={CHAIN_REFRESH_FAILED} data-testid="chainheat-refresh-failed" role="status">
+          <span>{t("chainHeatRefreshFailed")}</span>
+          <button type="button" className="btn btn-ghost load-retry" style={RETRY_INLINE} onClick={onRetry}>
+            {t("errRetry")}
+          </button>
+        </div>
+      )}
 
       {note && <div className="obs-fd-chain-note">{note}</div>}
 
@@ -217,8 +344,25 @@ function ChainCampaignRow({
   const premStr = `$${campaign.total_premium_mn.toFixed(1)}M`;
   const isBig = campaign.total_premium_mn >= 10;
 
-  // Ask share bar width
-  const askBarW = Math.round(campaign.ask_share * 100);
+  // Category proxy state: "none" (legacy payload) | "invalid" (claimed but
+  // malformed) | "valid" (exact schema/basis + bounded finite share/mass).
+  const proxyState = resolveCategoryProxy(campaign.category_proxy);
+  const proxyW =
+    proxyState.kind === "valid" && proxyState.share !== null
+      ? Math.round(Math.min(1, Math.max(0, proxyState.share)) * 100)
+      : 0;
+  // Legacy numeric bar — shown ONLY when no new object is present, and clearly
+  // labelled as legacy with coverage unavailable.  A legacy ask_share that is
+  // not a finite 0..1 number renders as unavailable with NO fill (never NaN,
+  // never a 0 fallback).  Never presented as "at ask" or a measured neutral.
+  const legacyShareOk =
+    typeof campaign.ask_share === "number" &&
+    Number.isFinite(campaign.ask_share) &&
+    campaign.ask_share >= 0 &&
+    campaign.ask_share <= 1;
+  const legacyBarW = legacyShareOk
+    ? Math.round(Math.min(1, Math.max(0, campaign.ask_share)) * 100)
+    : null;
 
   // First-seen time (ET)
   let firstSeenStr = "";
@@ -272,16 +416,55 @@ function ChainCampaignRow({
         </span>
       </div>
 
-      {/* Ask share bar */}
-      <div>
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "var(--sp-1)" }}>
-          <span className="obs-fd-chain-stat-key">{t("chainHeatAskShare")}</span>
-          <span className="num" style={{ fontSize: "var(--fs-micro)", color: "var(--text-2)" }}>{askBarW}%</span>
+      {/* Category proxy bar — additive; never a measured NBBO */}
+      {proxyState.kind === "valid" ? (
+        <div>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "var(--sp-1)" }}>
+            <span className="obs-fd-chain-stat-key">{t("chainHeatAskShare")}</span>
+            <span className="num" style={{ fontSize: "var(--fs-micro)", color: "var(--text-2)" }}>
+              {proxyState.share === null ? t("chainHeatProxyUnavailable") : `${proxyW}%`}
+            </span>
+          </div>
+          <div className="obs-fd-chain-askbar-track">
+            {proxyState.share !== null && (
+              <div className="obs-fd-chain-askbar-fill" style={{ width: `${proxyW}%` }} />
+            )}
+          </div>
+          <div style={{ display: "grid", gap: "var(--sp-1)", marginTop: "var(--sp-1)" }}>
+            <span className="obs-fd-chain-caveat">{t("chainHeatProxyNote")}</span>
+            <span className="num" style={{ fontSize: "var(--fs-micro)", color: "var(--text-2)" }}>
+              {t("chainHeatProxyCoverage")} {(proxyState.known / 1e6).toFixed(1)}M / {(proxyState.source / 1e6).toFixed(1)}M
+            </span>
+          </div>
         </div>
-        <div className="obs-fd-chain-askbar-track">
-          <div className="obs-fd-chain-askbar-fill" style={{ width: `${askBarW}%` }} />
+      ) : proxyState.kind === "invalid" ? (
+        <div>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "var(--sp-1)" }}>
+            <span className="obs-fd-chain-stat-key">{t("chainHeatAskShare")}</span>
+            <span className="num" style={{ fontSize: "var(--fs-micro)", color: "var(--text-2)" }}>
+              {t("chainHeatProxyUnavailable")}
+            </span>
+          </div>
+          <div className="obs-fd-chain-askbar-track" />
+          <div style={{ marginTop: "var(--sp-1)" }}>
+            <span className="obs-fd-chain-caveat">{t("chainHeatProxyNote")}</span>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "var(--sp-1)" }}>
+            <span className="obs-fd-chain-stat-key">{t("chainHeatProxyLegacy")}</span>
+            <span className="num" style={{ fontSize: "var(--fs-micro)", color: "var(--text-2)" }}>
+              {legacyBarW === null ? t("chainHeatProxyUnavailable") : `${legacyBarW}%`}
+            </span>
+          </div>
+          <div className="obs-fd-chain-askbar-track">
+            {legacyBarW !== null && (
+              <div className="obs-fd-chain-askbar-fill" style={{ width: `${legacyBarW}%` }} />
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -302,6 +485,7 @@ export function FlowDeskView() {
   const { data: flowMeta } = useFlowStream<unknown>("meta", { pollMs: 60_000 });
   const [tide,      setTide]      = useState<TidePayload | null>(null);
   const [chainHeat, setChainHeat] = useState<ChainHeatPayload | null>(null);
+  const [chainHeatStatus, setChainHeatStatus] = useState<ChainHeatStatus>("loading");
   const [enrich,    setEnrich]    = useState<EnrichPayload | null>(null);
 
 
@@ -342,11 +526,36 @@ export function FlowDeskView() {
     if (data) setTide(data);
   }, []);
 
+  // Chain heat keeps the read's outcome: a 404 withdraws the campaigns, a read that
+  // did not land keeps whatever was last read and says so.
+  const mountedRef = useRef(true);
+  const readChainHeat = useCallback(async () => {
+    const outcome = await flowGetResult("chainheat");
+    if (!mountedRef.current) return;
+    if (outcome.status === "data" && isChainHeatPayload(outcome.data)) {
+      setChainHeat(outcome.data);
+      setChainHeatStatus("data");
+    } else if (outcome.status === "absent") {
+      setChainHeat(null);
+      setChainHeatStatus("absent");
+    } else {
+      // A payload that is not chain heat must not be served again as if it were.
+      if (outcome.status === "data") flowInvalidate("chainheat");
+      setChainHeatStatus("unavailable");
+    }
+  }, []);
+
   const fetchChainHeat = useCallback(async () => {
     if (document.visibilityState === "hidden") return;
-    const data = await safeFetch<ChainHeatPayload>("/api/flow?f=chainheat");
-    if (data) setChainHeat(data);
-  }, []);
+    await readChainHeat();
+  }, [readChainHeat]);
+
+  // Retry is the reader's own request, so it is not visibility-guarded.
+  const retryChainHeat = useCallback(() => {
+    flowInvalidate("chainheat");
+    setChainHeatStatus("loading");
+    void readChainHeat();
+  }, [readChainHeat]);
 
   /** Fetch enrich artifact — fail-soft (absent/stale → null → v1 fallback in UI)
    *
@@ -394,13 +603,13 @@ export function FlowDeskView() {
     // frame — i.e. the artifact nobody needs for the first cards delayed the one
     // that draws them. It now loads on the first idle slice after mount, once the
     // feed has had the pipe to itself.
+    mountedRef.current = true;
     void (async () => {
-      const [ti, ch] = await Promise.all([
+      const [ti] = await Promise.all([
         safeFetch<TidePayload>("/api/flow?f=tide"),
-        safeFetch<ChainHeatPayload>("/api/flow?f=chainheat"),
+        readChainHeat(),
       ]);
       if (ti) setTide(ti);
-      if (ch) setChainHeat(ch);
     })();
 
     // Deferred enrich bootstrap — same stale gate as the fetchEnrich poll, minus
@@ -435,6 +644,7 @@ export function FlowDeskView() {
     enrichTimerRef.current = setInterval(fetchEnrich, 5 * 60_000);
 
     return () => {
+      mountedRef.current = false;
       cancelIdle();
       if (tideTimerRef.current)   clearInterval(tideTimerRef.current);
       if (chainTimerRef.current)  clearInterval(chainTimerRef.current);
@@ -590,7 +800,7 @@ export function FlowDeskView() {
           selected (Chain Heat keeps the rail when nothing is). */}
       <div className={`obs-fd-right${selectedEvent ? " has-sel" : ""}`}>
         {/* Chain Heat Rail — top of right column, scrollable */}
-        <ChainHeatRail data={chainHeat} lang={lang} />
+        <ChainHeatRail data={chainHeat} status={chainHeatStatus} onRetry={retryChainHeat} lang={lang} />
 
         {/* Inspector — slim one-line hint when nothing selected; full view on click */}
         <InspectorPane

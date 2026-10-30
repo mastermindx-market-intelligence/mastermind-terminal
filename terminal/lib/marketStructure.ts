@@ -88,8 +88,10 @@ const isNum = (v: unknown): v is number => typeof v === "number" && Number.isFin
 // ─── Aggregates ──────────────────────────────────────────────────────────────────────
 
 export interface AggregateResult {
-  /** Σ gamma_net — $mn dealer delta per +1% spot. */
+  /** Σ gamma_net — $mn dealer delta per +1% spot. Stays a number so other consumers keep compiling. */
   gammaMn: number;
+  /** Rows with a finite `gamma_net`. A zero counts; NaN and a missing value do not. */
+  gammaKnown: number;
   /** Σ vanna_net — $mn dealer delta per +1 vol point. `null` when the lens is absent. */
   vannaMn: number | null;
   /** Σ charm_net — $mn dealer delta per +1 calendar day. `null` when the lens is absent. */
@@ -113,6 +115,7 @@ export function aggregate(
   fullN?: number | null,
 ): AggregateResult {
   let gammaMn = 0;
+  let gammaKnown = 0;
   let callAbsMn = 0;
   let putAbsMn = 0;
   let vSum = 0;
@@ -125,7 +128,10 @@ export function aggregate(
 
   for (const r of rows ?? []) {
     if (!r) continue;
-    if (isNum(r.gamma_net)) gammaMn += r.gamma_net;
+    if (isNum(r.gamma_net)) {
+      gammaMn += r.gamma_net;
+      gammaKnown += 1;
+    }
     if (isNum(r.gamma_call)) callAbsMn += Math.abs(r.gamma_call);
     if (isNum(r.gamma_put)) putAbsMn += Math.abs(r.gamma_put);
     if (isNum(r.vanna_net)) { vSum += r.vanna_net; vSeen = true; }
@@ -137,6 +143,7 @@ export function aggregate(
   const nStrikesFull = isNum(fullN) && fullN > 0 ? fullN : null;
   return {
     gammaMn,
+    gammaKnown,
     vannaMn: vSeen ? vSum : null,
     charmMn: cSeen ? cSum : null,
     deltaMn: dSeen ? dSum : null,
@@ -211,24 +218,40 @@ export function signSensitivity(agg: AggregateResult): SignSensitivity {
 
 // ─── R0.2 — hedge-flow scenario grid (Tier B) ────────────────────────────────────────
 
+/** How many strikes actually fed the gamma in a scenario grid. */
+export interface ScenarioCoverage {
+  /** Rows with a finite `gamma_net`. */
+  known: number;
+  /** Strikes on the ladder that was summed. */
+  offered: number;
+  /** Uncut strike count when the payload discloses it. */
+  full: number | null;
+  /** True when the ladder is a window over a larger book. */
+  windowed: boolean;
+  /** Every offered strike had finite gamma, and the ladder is not a window. */
+  complete: boolean;
+}
+
 export interface ScenarioGrid {
   /** Spot-move axis, in percent. */
   dsPct: number[];
-  /** IV-shock axis, in vol points. */
+  /** IV-shock axis, in vol points. One row (`[0]`) when vanna was not measured. */
   dVolPts: number[];
   /** Time axis used for the charm column, in calendar days. */
   dtDays: number;
   /**
    * cells[volIdx][spotIdx] = estimated dealer hedge flow in $mn.
    * POSITIVE = dealers must BUY the underlying; negative = must SELL.
+   * `null` when no strike carried a finite gamma — unknown is not a flat book.
    */
-  cells: number[][];
+  cells: (number | null)[][];
   /** Hedge flow from one calendar day of decay alone, $mn. `null` without a charm lens. */
   charmPerDayMn: number | null;
-  /** Largest |cell| — the colour-scale anchor. */
+  /** Largest |cell| — the colour-scale anchor. `0` when every cell is null. */
   maxAbs: number;
   hasVanna: boolean;
   hasCharm: boolean;
+  coverage: ScenarioCoverage;
 }
 
 export interface ScenarioOpts {
@@ -256,8 +279,34 @@ const DEFAULT_DVOL = [5, 2, 0, -2, -5];
  */
 export function scenarioGrid(agg: AggregateResult, opts: ScenarioOpts = {}): ScenarioGrid {
   const dsPct = opts.dsPct ?? DEFAULT_DS;
-  const dVolPts = opts.dVolPts ?? DEFAULT_DVOL;
+  // No vanna lens means an IV row was never measured. Keep the no-change row only,
+  // even when the caller passed a longer axis.
+  const dVolPts = agg.vannaMn == null ? [0] : (opts.dVolPts ?? DEFAULT_DVOL);
   const dtDays = opts.dtDays ?? 0;
+  const coverage: ScenarioCoverage = {
+    known: agg.gammaKnown,
+    offered: agg.nStrikes,
+    full: agg.nStrikesFull,
+    windowed: agg.windowed,
+    complete: agg.gammaKnown === agg.nStrikes && !agg.windowed,
+  };
+  const charmPerDayMn = agg.charmMn == null ? null : agg.charmMn === 0 ? 0 : -agg.charmMn;
+  const hasVanna = agg.vannaMn != null;
+  const hasCharm = agg.charmMn != null;
+
+  if (agg.gammaKnown === 0) {
+    return {
+      dsPct,
+      dVolPts,
+      dtDays,
+      cells: dVolPts.map(() => dsPct.map(() => null)),
+      charmPerDayMn,
+      maxAbs: 0,
+      hasVanna,
+      hasCharm,
+      coverage,
+    };
+  }
 
   const g = agg.gammaMn;
   const v = agg.vannaMn ?? 0;
@@ -281,10 +330,11 @@ export function scenarioGrid(agg: AggregateResult, opts: ScenarioOpts = {}): Sce
     dVolPts,
     dtDays,
     cells,
-    charmPerDayMn: agg.charmMn == null ? null : agg.charmMn === 0 ? 0 : -agg.charmMn,
+    charmPerDayMn,
     maxAbs,
-    hasVanna: agg.vannaMn != null,
-    hasCharm: agg.charmMn != null,
+    hasVanna,
+    hasCharm,
+    coverage,
   };
 }
 
@@ -386,6 +436,101 @@ export function emFrame(
 }
 
 // ─── R0.4 — gamma topology (Tier A) ──────────────────────────────────────────────────
+
+/** A selected, already-normalized strike row. These are $mn, never raw Greeks. */
+export interface ExposureNodeInput {
+  strike: number;
+  netMn: number | null | undefined;
+  callMn?: number | null;
+  putMn?: number | null;
+  /** Qualified producer gross, summed before any side/expiry cancellation. */
+  grossMn?: number | null;
+}
+
+export interface ExposureNode {
+  strike: number;
+  netMn: number | null;
+  grossMn: number | null;
+  grossShare: number | null;
+}
+
+export interface ExposureNodeSummary {
+  nodes: ExposureNode[];
+  netTotalMn: number | null;
+  grossTotalMn: number | null;
+  netKnown: number;
+  grossKnown: number;
+  offered: number;
+  fullCount: number | null;
+  population: "full" | "window" | "unknown";
+  netLeader: ExposureNode | null;
+  grossLeader: ExposureNode | null;
+  netTies: number[];
+  grossTies: number[];
+  invalid: boolean;
+  /** Only measured contributions are summed; totals and leaders are provisional. */
+  coveredOnly?: true;
+}
+
+/**
+ * Gross and signed-net concentration over ONE analytical population. This is a
+ * display derivation, not contract-coverage or inventory certification. A missing
+ * side withholds gross ranking; a missing net withholds net ranking. A viewport
+ * is deliberately not an input. Full count describes strikes, never contracts.
+ */
+export function exposureNodes(
+  rows: readonly ExposureNodeInput[] | null | undefined,
+  spot: number | null,
+  fullCount?: number | null,
+  basis: "complete" | "covered" = "complete",
+): ExposureNodeSummary {
+  const offered = rows?.length ?? 0;
+  const full = isNum(fullCount) && Number.isInteger(fullCount) && fullCount > 0 && fullCount >= offered ? fullCount : null;
+  const result: ExposureNodeSummary = {
+    nodes: [], netTotalMn: null, grossTotalMn: null, netKnown: 0, grossKnown: 0,
+    offered, fullCount: full, population: full == null ? "unknown" : full === offered ? "full" : "window",
+    netLeader: null, grossLeader: null, netTies: [], grossTies: [], invalid: false,
+    ...(basis === "covered" ? { coveredOnly: true as const } : {}),
+  };
+  const seen = new Set<number>();
+  for (const row of rows ?? []) {
+    if (!row || !isNum(row.strike) || row.strike <= 0 || seen.has(row.strike)) {
+      return { ...result, invalid: true };
+    }
+    seen.add(row.strike);
+  }
+  if (!offered) return result;
+  result.nodes = (rows ?? []).map((row) => {
+    const gross = "grossMn" in row ? row.grossMn : isNum(row.callMn) && isNum(row.putMn) ? Math.abs(row.callMn) + Math.abs(row.putMn) : null;
+    return { strike: row.strike, netMn: isNum(row.netMn) ? row.netMn === 0 ? 0 : row.netMn : null,
+      grossMn: isNum(gross) && gross >= 0 ? gross : null, grossShare: null };
+  }).sort((a, b) => a.strike - b.strike);
+  result.netKnown = result.nodes.filter((n) => n.netMn != null).length;
+  result.grossKnown = result.nodes.filter((n) => n.grossMn != null).length;
+  const sum = (key: "netMn" | "grossMn", known: number) => {
+    if (!known || (basis === "complete" && known !== offered)) return null;
+    const value = result.nodes.filter(node => node[key] != null).reduce((total, node) => total + node[key]!, 0);
+    return isNum(value) ? value === 0 ? 0 : value : null;
+  };
+  result.netTotalMn = sum("netMn", result.netKnown);
+  result.grossTotalMn = sum("grossMn", result.grossKnown);
+  const leader = (key: "netMn" | "grossMn", complete: boolean): [ExposureNode | null, number[]] => {
+    if (!complete) return [null, []];
+    const measured = result.nodes.filter(n => n[key] != null);
+    const maximum = Math.max(...measured.map((n) => Math.abs(n[key]!)));
+    if (maximum === 0) return [null, []];
+    const tied = measured.filter((n) => Math.abs(n[key]!) === maximum);
+    const ties = tied.map((n) => n.strike);
+    tied.sort((a, b) => (isNum(spot) && spot > 0 ? Math.abs(a.strike - spot) - Math.abs(b.strike - spot) : 0) || a.strike - b.strike);
+    return [tied[0], ties];
+  };
+  [result.netLeader, result.netTies] = leader("netMn", result.netTotalMn != null);
+  [result.grossLeader, result.grossTies] = leader("grossMn", result.grossTotalMn != null);
+  if (result.grossTotalMn != null && result.grossTotalMn > 0) {
+    for (const node of result.nodes) if (node.grossMn != null) node.grossShare = node.grossMn / result.grossTotalMn;
+  }
+  return result;
+}
 
 export interface TopologyResult {
   /** argmax over strikes of |gamma_call| + |gamma_put| — the stickiest magnet candidate. */
@@ -585,10 +730,11 @@ export function buildMarketStructure(input: BuildInput): MarketStructure {
 export type HedgeGreek = "gamma" | "delta" | "vanna" | "charm";
 
 /**
- * Second-order greeks measure a RATE (how the hedge changes as something moves), so their
- * cumulative curve is anchored at spot and accumulates outward — "what must dealers trade
- * to get from here to there". First-order greeks are a LEVEL (the position itself), so
- * their cumulative curve is a plain running total across the ladder.
+ * Second-order greeks measure a RATE (how the modeled sensitivity changes as something
+ * moves), so their cumulative curve is anchored at the reference spot and accumulates
+ * outward — the running subtotal of supplied strike contributions on each side. First-order
+ * greeks are a LEVEL (the position itself), so their cumulative curve is a plain running
+ * subtotal across the ladder. Neither is a spot-path or whole-book trade total.
  *
  * Volland's user guide documents exactly this split, and getting it wrong (cumsumming
  * everything identically from the low strike) produces a curve that looks plausible and
@@ -598,18 +744,19 @@ export const SECOND_ORDER: ReadonlySet<HedgeGreek> = new Set<HedgeGreek>(["gamma
 
 export interface HedgeRow {
   strike: number;
-  /** $mn of underlying to transact per unit move. Positive = dealers buy. */
+  /** USD mn modeled hedge sensitivity for the stated unit move. Positive = modeled buy. */
   hedgeMn: number;
 }
 
 export interface HedgeProfile {
   greek: HedgeGreek;
-  /** Per-strike requirement — the histogram. */
+  /** Per-strike snapshot sensitivity — the histogram. */
   rows: HedgeRow[];
   /**
-   * Cumulative requirement — the profile line. Anchored at spot for second-order greeks
-   * (spot reads 0 and the curve accumulates away from it in both directions); a plain
-   * running total for first-order greeks.
+   * Cumulative snapshot subtotal — the profile line. Anchored at the reference spot for
+   * second-order lenses (the running subtotal accumulates outward on each side of spot); a
+   * plain running subtotal across the ladder for first-order lenses. Every point is the sum
+   * of the KNOWN SUPPLIED strike contributions, never a spot-path or whole-book trade total.
    */
   cumulative: { strike: number; cumMn: number }[];
   anchored: boolean;
@@ -618,6 +765,14 @@ export interface HedgeProfile {
   maxAbsCumMn: number;
   /** The unit the per-unit move refers to, for the axis caption. */
   perUnit: "1% spot" | "1 vol point" | "1 day" | "position";
+  /** Every input row offered, including malformed/absent slots. */
+  inputRows: number;
+  /** Rows carrying a finite strike AND a finite value for the selected lens. */
+  knownRows: number;
+  /** inputRows − knownRows. A missing cell is excluded, never counted as a zero. */
+  missingRows: number;
+  /** True only when the input is non-empty AND every offered row is known/valid. */
+  complete: boolean;
 }
 
 const PER_UNIT: Record<HedgeGreek, HedgeProfile["perUnit"]> = {
@@ -635,22 +790,28 @@ function greekField(greek: HedgeGreek): keyof MscStrikeRow {
 }
 
 /**
- * Build the hedging-requirement histogram + cumulative profile for one greek lens.
+ * Build the per-strike snapshot-sensitivity histogram + cumulative subtotal for one lens.
  *
- * The anchored branch is the interesting one. Rows are split at spot; going up, the running
- * total accumulates from spot outward; going down, likewise. Spot therefore sits at zero and
- * each point answers "if price travelled from here to this strike, how much would dealers
- * have had to transact along the way" — the one-dimensional form of the same question the
- * (ΔS, Δσ, Δt) scenario grid answers in three.
+ * The anchored branch is the interesting one. Rows are split at the reference spot; going up,
+ * the running subtotal accumulates outward; going down, likewise. Each point is the sum of the
+ * KNOWN SUPPLIED strike contributions between the reference spot and that strike — a snapshot
+ * subtotal, not a spot-path or whole-book trade total.
+ *
+ * Coverage is additive and changes no arithmetic: inputRows counts every offered row
+ * (malformed included), knownRows counts the rows that carry a finite strike and a finite
+ * value for this lens, missingRows is their difference, and complete is true only for a
+ * non-empty, fully known book. An observed zero stays counted as known; a missing cell is
+ * never zero-filled.
  */
 export function hedgeProfile(
   rows: readonly MscStrikeRow[] | null | undefined,
   greek: HedgeGreek,
   spot: number | null | undefined,
 ): HedgeProfile {
+  const list = rows ?? [];
   const field = greekField(greek);
   const out: HedgeRow[] = [];
-  for (const r of rows ?? []) {
+  for (const r of list) {
     if (!r || !isNum(r.strike)) continue;
     const v = r[field];
     if (!isNum(v)) continue;
@@ -658,6 +819,11 @@ export function hedgeProfile(
     out.push({ strike: r.strike, hedgeMn: v === 0 ? 0 : -v });
   }
   out.sort((a, b) => a.strike - b.strike);
+
+  const inputRows = list.length;
+  const knownRows = out.length;
+  const missingRows = inputRows - knownRows;
+  const complete = inputRows > 0 && missingRows === 0;
 
   const anchored = SECOND_ORDER.has(greek) && isNum(spot) && spot > 0;
   const cumulative: { strike: number; cumMn: number }[] = [];
@@ -693,7 +859,19 @@ export function hedgeProfile(
   let maxAbsCumMn = 0;
   for (const c of cumulative) maxAbsCumMn = Math.max(maxAbsCumMn, Math.abs(c.cumMn));
 
-  return { greek, rows: out, cumulative, anchored, maxAbsMn, maxAbsCumMn, perUnit: PER_UNIT[greek] };
+  return {
+    greek,
+    rows: out,
+    cumulative,
+    anchored,
+    maxAbsMn,
+    maxAbsCumMn,
+    perUnit: PER_UNIT[greek],
+    inputRows,
+    knownRows,
+    missingRows,
+    complete,
+  };
 }
 
 // ─── Term structure with tenor banding ───────────────────────────────────────────────

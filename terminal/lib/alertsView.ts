@@ -1,3 +1,4 @@
+import { isForexWatch, forexConditionText } from "./forexWatches";
 // Pure view model for the /alerts in-product surface (packet B-F08-3).
 // No React, no fetch, no cache — every input arrives as an argument, including
 // `now`, so this module is fully deterministic under test. See
@@ -10,6 +11,9 @@ export type ResolutionState = "open" | "resolved" | "armed" | "paused";
 
 export const LANE = "alerts_engine";
 export const CALM_GRACE_S = 120; // budget (300) + grace = 420s
+const MONTHS_EN = [
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+];
 
 // Fired when this page's create/re-arm/delete actions succeed, so every AlertsView instance
 // mounted on the same page (the cockpit's inline create form and the separate existing-alerts
@@ -33,7 +37,7 @@ export interface RunReceipt {
 }
 
 export interface OutboxRow {
-  alert_id: string;
+  alert_id: string | null;
   fire_event_id: string;
   status: DeliveryState | string;
   attempts: number;
@@ -44,15 +48,64 @@ export interface OutboxRow {
   payload: {
     subject?: string;
     summary_plain?: string;
+    summary_plain_zh?: string;
     ticker?: string;
     condition_plain?: string;
+    condition_plain_zh?: string;
     evidence_url?: string | null;
     fired_at?: string;
-    /** Set when kind === "thesis_condition": the thesis that had its window close. */
     thesis_id?: string;
-    /** "thesis_condition" when this row was written by the thesis-condition monitor. */
-    kind?: string;
+    thesis_version?: number;
+    tripwire_id?: string;
+    tripwire_version?: number;
+    category?: string;
+    source?: string;
+    event_id?: string;
+    authority?: string;
+    source_asof?: string;
+    event_time?: string;
+    recorded_at?: string;
+    corrects?: { lane: string; id: string } | null;
+    subject_zh?: string;
+    engine_window_plain?: string;
+    engine_window_plain_zh?: string;
+    requires_tier?: string | null;
+    coverage?: string;
   };
+}
+
+/** Implicit position events have no alert row. Reject arbitrary null-alert receipts;
+ * only this producer's typed notification and stable event/fire identities qualify. */
+export function isHeldMaterialReceipt(row: OutboxRow): boolean {
+  return row.alert_id == null && row.payload?.source === "terminal.held_material_event.v1" &&
+    row.payload.category === "holdings_material_change" && row.payload.authority === "notification_only" &&
+    /^evt_[a-z0-9_]+$/.test(row.payload.event_id ?? "") && /^held:[a-f0-9]{64}$/.test(row.fire_event_id ?? "") &&
+    typeof row.payload.ticker === "string" && row.payload.ticker.trim().length > 0;
+}
+
+/** True when thesis_id passes the house UUID version/variant gate. */
+function isWellFormedThesisId(value: unknown): value is string {
+  if (typeof value !== "string") return false;
+  // Same pattern as THESIS_ID_UUID in lib/rmsViews.ts:114 — keep the two gates identical.
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+}
+
+function compareThesisRowsNewestFirst(left: AlertRowView, right: AlertRowView): number {
+  const leftCreated = Date.parse(left.outboxRow?.created_at ?? "");
+  const rightCreated = Date.parse(right.outboxRow?.created_at ?? "");
+  if (!Number.isNaN(leftCreated) || !Number.isNaN(rightCreated)) {
+    if (Number.isNaN(leftCreated)) return 1;
+    if (Number.isNaN(rightCreated)) return -1;
+    if (rightCreated !== leftCreated) return rightCreated - leftCreated;
+  }
+  const leftFired = Date.parse(left.outboxRow?.payload.fired_at ?? "");
+  const rightFired = Date.parse(right.outboxRow?.payload.fired_at ?? "");
+  if (!Number.isNaN(leftFired) || !Number.isNaN(rightFired)) {
+    if (Number.isNaN(leftFired)) return 1;
+    if (Number.isNaN(rightFired)) return -1;
+    if (rightFired !== leftFired) return rightFired - leftFired;
+  }
+  return (left.alertId < right.alertId ? -1 : left.alertId > right.alertId ? 1 : 0);
 }
 
 // The evaluator (ingest/alerts_engine.py Supa.fire) stamps `triggered` as an OBJECT — {at, value,
@@ -89,6 +142,7 @@ export interface AlertRowView {
   alertId: string;
   /** Present only for thesis_condition rows (no matching alerts entry). */
   thesisId?: string;
+  heldEventId?: string;
   delivery: DeliveryState;
   foldedRows: number;
   outboxRow: OutboxRow | null;
@@ -148,7 +202,7 @@ export function lanesForArmedAlerts(
   engine: LaneMonitor,
   suite: LaneMonitor,
 ): LaneMonitor[] {
-  const armed = (alerts ?? []).filter((a) => a.active);
+  const armed = (alerts ?? []).filter((a) => a.active && !isForexWatch(a.condition));
   if (armed.length === 0) return [{ ...engine, id: "engine" }];
   const hasSuite = armed.some((a) => SUITE_CONDITION_TYPES.has(a.condition?.type));
   const hasEngine = armed.some((a) => !SUITE_CONDITION_TYPES.has(a.condition?.type));
@@ -239,13 +293,40 @@ export function rowChipKey(alert: { identity_state?: string; active?: boolean; c
   return alert.identity_state === "unresolved" ? "identity.unresolved" : "resolution.armed";
 }
 
-/** Fold outbox rows by fire_event_id, keeping the newest (by created_at) per id. */
+export function formatFiredAt(firedAt: string | null | undefined, lang: "en" | "zh"): string {
+  if (!firedAt) return "—";
+  const dateOnly = /^(\d{4})-(\d{2})-(\d{2})$/.exec(firedAt);
+  if (dateOnly) {
+    const [, yearText, monthText, dayText] = dateOnly;
+    const year = Number(yearText);
+    const month = Number(monthText);
+    const day = Number(dayText);
+    if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+      return lang === "zh" ? `${year}年${month}月${day}日` : `${MONTHS_EN[month - 1]} ${day}, ${year}`;
+    }
+    return "—";
+  }
+  const parsed = new Date(firedAt);
+  if (Number.isNaN(parsed.getTime())) return "—";
+  return parsed.toLocaleString(lang === "zh" ? "zh-CN" : "en-US", {
+    year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "2-digit",
+  });
+}
+
+/** Fold outbox rows by fire_event_id, preserving distinct empty-id fires. */
 export function foldOutbox(outbox: OutboxRow[]): Map<string, { row: OutboxRow; folded: number }> {
   const byEvent = new Map<string, OutboxRow[]>();
   for (const row of outbox) {
-    const list = byEvent.get(row.fire_event_id) ?? [];
+    const thesisId = row.payload?.thesis_id;
+    const thesisKey = isWellFormedThesisId(thesisId)
+      ? `thesis:${thesisId}:${row.created_at?.trim() || ""}`
+      : null;
+    const fireKey = row.fire_event_id?.trim()
+      || thesisKey
+      || `alert:${row.alert_id ?? "unknown"}:${row.created_at?.trim() || ""}`;
+    const list = byEvent.get(fireKey) ?? [];
     list.push(row);
-    byEvent.set(row.fire_event_id, list);
+    byEvent.set(fireKey, list);
   }
   const out = new Map<string, { row: OutboxRow; folded: number }>();
   for (const [eventId, rows] of byEvent) {
@@ -327,47 +408,62 @@ export function buildAlertsView(input: {
     : monitorFor(input.run, input.runsState, input.now);
   const folded = foldOutbox(input.outbox ?? []);
   const alerts = input.alerts ?? [];
+  const alertIds = new Set(alerts.map((alert) => alert.id));
   // Only alerts that have actually FIRED get a delivery-timeline row — an alert that has never
   // fired has no delivery outcome and must not render one. "Fired" is decided in deliveryFor by
   // receipt existence (or, absent readable receipts, condition.triggered), never by the alert's
   // current `active` flag — an alert stays in the timeline after re-arm as long as its receipt
   // still exists (major: recent activity derived from `!alert.active`).
   const rows: AlertRowView[] = alerts
+    .filter((a) => !isForexWatch(a.condition))
     .map((a) => ({ a, d: deliveryFor(a, input.outboxState, folded) }))
     .filter(({ d }) => d.fired)
     .map(({ a, d }) => ({ alertId: a.id, delivery: d.delivery, foldedRows: d.foldedRows, outboxRow: d.outboxRow }));
 
-  // MO-PAID-047: surface thesis_condition outbox rows (written by macro's thesis-condition
-  // monitor) as delivery rows even when there is no matching alerts entry. The filter keeps
-  // rows whose kind === "thesis_condition", whose alert_id is null or "", and whose payload
-  // carries thesis_id. A row with a non-empty alert_id stays on the alerts path above.
-  const thesisRows: AlertRowView[] = (input.outbox ?? [])
-    .filter((o) => {
-      if (o.payload?.kind !== "thesis_condition") return false;
-      if (o.alert_id != null && o.alert_id !== "") return false;
-      if (!o.payload?.thesis_id) return false;
-      return true;
-    })
-    .map((o) => {
-      const status = o.status as string;
-      // Same mapping as deliveryFor's alerts path (status === "sent" && delivered_at == null
-      // → "pending"; otherwise KNOWN_DELIVERY[status] ?? "unconfirmed").
-      const delivery: DeliveryState =
-        status === "sent" && o.delivered_at == null ? "pending" : (KNOWN_DELIVERY[status] ?? "unconfirmed");
-      return {
-        alertId: `thesis:${o.payload.thesis_id}`,
-        thesisId: o.payload.thesis_id,
-        delivery,
-        foldedRows: 0,
-        outboxRow: o,
-      };
-    });
+  // MO-PAID-047 + F11-11b-pre: surface thesis-condition outbox rows written by macro's
+  // thesis-condition monitor as delivery rows. A row is a thesis-condition row when
+  // payload.thesis_id is a well-formed UUID AND the producer path identifies it by both payload
+  // source and category. A row whose alert_id matches a real alerts entry stays on the alerts
+  // path only; null, empty, and unmatched synthetic ids take the thesis path.
+  const thesisFireRows = [...folded.values()].filter(({ row }) => {
+    if (!isWellFormedThesisId(row.payload?.thesis_id)) return false;
+    if (row.alert_id && alertIds.has(row.alert_id)) return false;
+    const source = row.payload?.source;
+    const category = row.payload?.category;
+    return source === "macro.thesis_condition_monitor" && category === "thesis_window";
+  });
+  const thesisRows: AlertRowView[] = thesisFireRows.map(({ row, folded: duplicates }) => {
+    const thesisId = row.payload.thesis_id as string;
+    const rawFireKey = row.fire_event_id?.trim() || row.created_at?.trim();
+    const fireKey = rawFireKey || "unknown-fire";
+    const status = row.status as string;
+    const delivery: DeliveryState =
+      status === "sent" && row.delivered_at == null ? "pending" : (KNOWN_DELIVERY[status] ?? "unconfirmed");
+    return {
+      alertId: `thesis:${thesisId}:${fireKey}`,
+      thesisId,
+      delivery,
+      foldedRows: duplicates,
+      outboxRow: row,
+    };
+  }).sort(compareThesisRowsNewestFirst);
+
+  const heldRows: AlertRowView[] = [...folded.values()]
+    .filter(({ row }) => isHeldMaterialReceipt(row))
+    .map(({ row, folded: duplicates }) => ({
+      alertId: `position:${row.fire_event_id}`, heldEventId: row.payload.event_id,
+      delivery: row.status === "sent" && row.delivered_at == null ? "pending" as const : (KNOWN_DELIVERY[row.status] ?? "unconfirmed"),
+      foldedRows: duplicates, outboxRow: row,
+    })).sort(compareThesisRowsNewestFirst);
 
   // `input.alertsState` is the frozen four-state read vocabulary (§5), decided by the caller —
   // this view model never invents READ_NO_COVERAGE from a fabricated signal, it only ever
   // reports what the caller determined. `unevaluable_n` on the run receipt is the AUTHORITATIVE
   // upstream signal callers should use to decide READ_NO_COVERAGE (never a client quote probe).
-  const emptyAction = input.alertsState === "READ_OK_ZERO" ? "add_watch" : monitor === "degraded" ? "check_again" : null;
+  // Saved Forex conditions are not admitted to any monitoring lane.
+  const noWatches = input.alertsState === "READ_OK_ZERO" || (input.alertsState === "READ_OK" &&
+    alerts.length > 0 && alerts.every((a) => isForexWatch(a.condition)));
+  const emptyAction = noWatches ? "add_watch" : monitor === "degraded" ? "check_again" : null;
   const attemptSuccess = input.monitorLanes
     ? attemptAndSuccessForLanes(input.monitorLanes, input.now)
     : {
@@ -388,7 +484,7 @@ export function buildAlertsView(input: {
       // just as much "the read succeeded" as READ_OK with rows (blocker: a zero-alert user's
       // successful, empty read rendered "cannot read" instead of an honest 0).
       count: input.alertsState === "READ_OK" || input.alertsState === "READ_OK_ZERO"
-        ? alerts.filter((a) => a.identity_state !== "unresolved").length
+        ? alerts.filter((a) => a.identity_state !== "unresolved" && !isForexWatch(a.condition)).length
         : null,
     },
     // Distinct from `coverage.count` (which is an honest null, not a number, when coverage
@@ -397,7 +493,7 @@ export function buildAlertsView(input: {
     noCoverageCount: input.monitorLanes
       ? noCoverageAcross(input.monitorLanes.map((l) => l.run))
       : input.run?.unevaluable_n ?? null,
-    rows: [...rows, ...thesisRows],
+    rows: [...rows, ...thesisRows, ...heldRows],
     emptyAction,
   };
 }
@@ -550,6 +646,7 @@ export function conditionText(
   lang: "en" | "zh",
 ): string {
   if (!condition || typeof condition.type !== "string") return copy("condition.unknown", lang);
+  if (isForexWatch(condition)) return (symbol ? symbol + " " : "") + forexConditionText(condition, lang);
   const value = normalizeTriggeredValue(condition.value);
   if (condition.type === "price" && (condition.op === "above" || condition.op === "below") && value !== null) {
     const sym = symbol ? `${symbol} ` : "";

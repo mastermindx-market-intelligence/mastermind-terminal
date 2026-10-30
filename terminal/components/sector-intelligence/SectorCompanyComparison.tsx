@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { useMemo, useRef, type KeyboardEvent } from "react";
 import { useChartWidth, padDomain, niceTicks, thinLabels, fmtTick } from "@/components/charts/svgChart";
+import { useLang } from "@/lib/i18n";
 import { formatValue, companyHref, type SectorMember } from "@/lib/sectorIntelligence";
 import { useSectorT } from "@/lib/sectorIntelligenceLex";
+import { holdingsCoverageLine, type SectorHoldingsFund } from "@/lib/sectorHoldingsCoverage";
 import styles from "./SectorCompanyComparison.module.css";
 
 export interface SectorCompanyComparisonProps {
@@ -16,20 +18,26 @@ export interface SectorCompanyComparisonProps {
   onSelect: (ticker: string) => void;
   onExpand: () => void;
   onOpenTable: () => void;
+  /** Address of the options exposure view for a holding, carrying the sector origin; null hides the action. */
+  exposureHref?: (ticker: string) => string | null;
+  /** Options R1 W2B: how much of the sector fund the compared holdings cover; null or absent renders no line. */
+  coverage?: SectorHoldingsFund | null;
 }
 
 /** One shared point scale, never a price-return bar silently truncated at zero.
  * Both displayed measures remain the source values. No recomputed stock signal.
  */
 export default function SectorCompanyComparison({ rows, selected, expanded, groupName, asOf,
-  onSelect, onExpand, onOpenTable }: SectorCompanyComparisonProps) {
+  onSelect, onExpand, onOpenTable, exposureHref, coverage }: SectorCompanyComparisonProps) {
   const t = useSectorT();
+  const { lang } = useLang();
   const wrapper = useRef<HTMLDivElement>(null), svg = useRef<SVGSVGElement>(null);
   const width = useChartWidth(wrapper, 600);
   const visible = useMemo(() => expanded ? rows : rows.slice(0, 6), [rows, expanded]);
   // An explicit selection remains exact even outside the collapsed subset.
   // Do not silently choose the first/highest-return name as a recommendation.
   const member = rows.find(row => row.ticker === selected) ?? null;
+  const exposure = member && exposureHref ? exposureHref(member.ticker) : null;
   const finite = visible.flatMap(row => row.relative === null ? [] : [row.relative]);
   const [lo, hi] = finite.length ? padDomain(Math.min(...finite), Math.max(...finite), { includeZero: true }) : [0, 1];
   const left = 57, right = width - 75;
@@ -46,7 +54,8 @@ export default function SectorCompanyComparison({ rows, selected, expanded, grou
     svg.current?.querySelectorAll<SVGGElement>("[data-company-choice]")[next]?.focus();
   };
   return <section className={styles.comparison} aria-label={t("siCompareTitle")}>
-    <header className={styles.heading}><div><h2>{t("siCompareTitle")}</h2><p>{groupName || t("siGroup")} · {t("siCompareWindow")}</p></div>
+    <header className={styles.heading}><div><h2>{t("siCompareTitle")}</h2><p>{groupName || t("siGroup")} · {t("siCompareWindow")}</p>
+      {coverage && <p data-testid="sector-holdings-coverage">{holdingsCoverageLine(coverage, lang === "zh" ? "zh" : "en")} · {t("siHoldingsAsOf")} <time dateTime={coverage.asOf}>{coverage.asOf}</time></p>}</div>
       <button type="button" onClick={onOpenTable}>{t("siFullCompanyTable")} →</button>
     </header>
     <div className={styles.layout}>
@@ -89,6 +98,7 @@ export default function SectorCompanyComparison({ rows, selected, expanded, grou
             <div><dt>{t("siCompareRelative")}</dt><dd>{formatValue(member.relative, 1, "pp", true)}</dd></div></dl>
           <p className={styles.clock}>{t("siGroupClock")} · {asOf || t("siUnknownDate")}</p>
           <Link className={styles.primaryAction} href={companyHref(member.ticker)!}>{t("siOpenCompany")} ↗</Link>
+          {exposure && <Link className={styles.secondaryAction} href={exposure} data-testid="sector-open-exposure">{t("siOpenExposure")} →</Link>}
           <details className={styles.details}><summary>{t("siSourceSignalDetails")}</summary>
             <dl><div><dt>{t("siTier")}</dt><dd>{member.tier || t("siSourceUnrated")}</dd></div>
               <div><dt>{t("siSourceFlag")}</dt><dd>{member.buyable === null ? "—" : t(member.buyable ? "siYes" : "siNo")}</dd></div>

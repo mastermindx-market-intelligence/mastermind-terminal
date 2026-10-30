@@ -51,17 +51,53 @@ export function isInterval(v: unknown): v is ValidInterval {
  * React request scope (e.g. a plain route handler) `cache()` degrades to a
  * direct call, so behaviour there is byte-for-byte what it was before.
  */
+/** A typed observation from the existing Supabase verifier, not a second auth owner.
+ * Invalid/absent sessions are denied. A retryable provider error remains distinct
+ * so read-only Options can show an outage without claiming a subscription downgrade.
+ */
+export type BillingAuthResult =
+  | { status: "ok"; token: string }
+  | { status: "denied" | "unavailable" };
+
+function isRetryableAuthError(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const e = error as { name?: unknown; status?: unknown };
+  return e.name === "AuthRetryableFetchError"
+    || (typeof e.status === "number" &&
+      (e.status === 0 || e.status === 429 || e.status >= 500));
+}
+
+export const billingAuthResult = cache(async (): Promise<BillingAuthResult> => {
+  try {
+    const supabase = await createClient();
+    // getSession() may refresh an expiring token. Verify precisely the token
+    // it returns: independent concurrent getSession()/getUser() calls can read
+    // different session generations during a refresh or account transition.
+    const sessionRead = await supabase.auth.getSession();
+    if (sessionRead.error) {
+      return { status: isRetryableAuthError(sessionRead.error) ? "unavailable" : "denied" };
+    }
+    const token = sessionRead.data.session?.access_token;
+    if (!token) return { status: "denied" };
+
+    // getUser(jwt) makes Supabase Auth verify THIS bearer token, not whatever
+    // a second read of mutable cookie storage happens to return. No success
+    // from a cookie-only session; no second authentication authority.
+    const userRead = await supabase.auth.getUser(token);
+    if (userRead.error) {
+      return { status: isRetryableAuthError(userRead.error) ? "unavailable" : "denied" };
+    }
+    if (!userRead.data.user) return { status: "denied" };
+    return { status: "ok", token };
+  } catch {
+    return { status: "unavailable" };
+  }
+});
+
+/** Existing auth consumers retain their null-on-refusal contract, including writes. */
 export const billingAuth = cache(async (): Promise<{ token: string } | null> => {
-  const supabase = await createClient();
-  // getUser() verifies the JWT with Supabase Auth (getSession alone is cookie-trusted);
-  // pairing the two catches expired/revoked sessions before we forward.
-  const [{ data: sessionData }, { data: userData }] = await Promise.all([
-    supabase.auth.getSession(),
-    supabase.auth.getUser(),
-  ]);
-  const session = sessionData.session;
-  if (!session || !userData.user) return null;
-  return { token: session.access_token };
+  const result = await billingAuthResult();
+  return result.status === "ok" ? { token: result.token } : null;
 });
 
 /** Forward to the gateway and pipe its status + JSON back verbatim. */
@@ -82,9 +118,9 @@ export async function forward(
       signal: init.signal,
       cache: "no-store",
     });
-  } catch (e: any) {
+  } catch (e: unknown) {
     return NextResponse.json(
-      { error: "Billing service unreachable", detail: e?.message },
+      { error: "Billing service unreachable", detail: e instanceof Error ? e.message : undefined },
       { status: 502 },
     );
   }

@@ -1,0 +1,14 @@
+{
+  "exit": 0,
+  "log": "/tmp/portfolio-terminal-owner-recovery-20261021/visual-intelligence-capture.log",
+  "log_sha256": "29ed5c3a1952883c103afb185b8b7d6edd9c5e5e5c23cab2e99f6699babbc7c4",
+  "stats": {
+    "startTime": "2026-10-21T03:16:07.334Z",
+    "duration": 139313.968,
+    "expected": 30,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "report_sha256": "ba261add90d19e99ba741085c67baf1401f47af2c7b8fcda0646102ab9578387"
+}

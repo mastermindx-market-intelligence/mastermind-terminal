@@ -1,0 +1,9 @@
+[dev] - Network:       http://127.0.0.1:3123
+✓ Ready in 591ms
+capture desktop-en.png … ok
+capture desktop-zh.png … ok
+capture tablet-en.png … ok
+capture tablet-zh.png … ok
+capture mobile-en.png … ok
+capture mobile-zh.png … ok
+wrote 6 crops + EVIDENCE.yml at 6c9cde3550d2ab6281c2ea309c56f714f58b2ae1

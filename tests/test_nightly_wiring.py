@@ -24,6 +24,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -33,6 +34,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 NIGHTLY = ROOT / "ops" / "terminal-data"
+BUILD = ROOT / "ops" / "terminal-build.sh"
 
 # The bridges the nightly must run, and the file each one writes. Adding a bridge without
 # adding it here is the mistake this table exists to make impossible.
@@ -44,6 +46,24 @@ POST_SLICE_BRIDGES = [
     ("ingest/pull_macro_opportunities.py", "*.slice.json#opportunities"),
 ]
 BRIDGES = PRE_SLICE_BRIDGES + POST_SLICE_BRIDGES
+
+ACCURACY_ENTRY = "terminal/scripts/score_personal_accuracy_entry.ts"
+ACCURACY_ARTIFACT = "terminal/scripts/dist/score_personal_accuracy.mjs"
+ACCURACY_SOURCE = "terminal/scripts/score_personal_accuracy.mjs"
+
+
+def _nightly_bundle_block(marker: str, entry: str) -> str:
+    """Extract this worker's single if/else bundle, including its own closing fi.
+
+    The final DONE log is outside the production-only wrapper; slicing to it would
+    also capture that wrapper's unmatched else/fi (and any following workers).
+    """
+    build = BUILD.read_text()
+    start = build.find(marker)
+    assert start >= 0, f"{entry} is not bundled by {BUILD}"
+    end = build.find("\nfi\n", start)
+    assert end > start, f"{entry} bundle has no closing fi in {BUILD}"
+    return build[start:end + len("\nfi\n")]
 
 
 @pytest.mark.parametrize("script,_out", BRIDGES, ids=[b[0] for b in BRIDGES])
@@ -74,6 +94,88 @@ def test_both_washout_bridges_run_before_the_slice_generator_that_consumes_them(
     consumer = line_of("ingest/gen_slices_all.py")
     for script, _out in PRE_SLICE_BRIDGES:
         assert line_of(script) < consumer, f"{script} must run BEFORE gen_slices_all"
+
+
+def test_personal_accuracy_runs_once_after_the_us_equity_close_refresh():
+    """The worker must see the same night's close, not the previous bundle's chance."""
+    body = NIGHTLY.read_text()
+    invocation = re.search(
+        r'^run node /opt/terminal/terminal/scripts/dist/score_personal_accuracy\.mjs$',
+        body,
+        re.M,
+    )
+    assert invocation, f"{ACCURACY_ARTIFACT} is never invoked by ops/terminal-data"
+    assert body.count(invocation.group(0)) == 1, "personal accuracy must run exactly once"
+    refresh = body.find('run "$PY" ingest/refresh_ohlc.py --days 7 --write')
+    assert refresh >= 0 and invocation.start() > refresh, (
+        "personal accuracy must run AFTER ingest/refresh_ohlc.py --days 7 --write"
+    )
+
+
+def test_personal_accuracy_worker_has_one_owner_and_no_second_scheduler():
+    """One generated worker, invoked by the one existing nightly, is the whole cadence."""
+    nightly = NIGHTLY.read_text()
+    build = BUILD.read_text()
+    entry = ROOT / ACCURACY_ENTRY
+    entry_source = entry.read_text()
+    assert entry.is_file(), f"{ACCURACY_ENTRY} is missing"
+    assert 'from "@/lib/personalAccuracyStore"' in entry_source
+    assert "RESOLVER_REGISTRY,\n  thresholdNumber," in entry_source
+    assert nightly.count("score_personal_accuracy") == 1
+    assert build.count(ACCURACY_ARTIFACT) >= 2
+    assert re.search(r"--exclude='scripts/dist'", build)
+    for name in ("workflow", "cron", "systemd", "timer"):
+        assert name not in ACCURACY_ENTRY.lower()
+    for workflow in (ROOT / ".github" / "workflows").glob("*.yml"):
+        assert "score_personal_accuracy" not in workflow.read_text(), (
+            f"{workflow.name} introduces a second personal-accuracy scheduler"
+        )
+
+
+def test_canonical_deploy_script_bundles_personal_accuracy_and_preserves_the_prior_artifact():
+    """A failed deploy bundle must leave the nightly's previous worker untouched."""
+    block = _nightly_bundle_block("# personal-accuracy nightly worker", ACCURACY_ENTRY)
+    assert f"npx esbuild scripts/score_personal_accuracy_entry.ts" in block
+    assert "--packages=external" in block
+    assert "--outfile=scripts/dist/score_personal_accuracy.mjs.new" in block
+    assert "mv -f \"$APP/scripts/dist/score_personal_accuracy.mjs.new\"" in block
+    assert "rm -f \"$APP/scripts/dist/score_personal_accuracy.mjs.new\"" in block
+    assert "nightly keeps the previous bundle" in block
+
+
+def test_failed_personal_accuracy_bundle_keeps_the_previous_artifact(tmp_path):
+    """Execute the deploy branch with a failing esbuild, not merely trust its wording."""
+    block = _nightly_bundle_block("# personal-accuracy nightly worker", ACCURACY_ENTRY)
+    app = tmp_path / "app"
+    dist = app / "scripts" / "dist"
+    dist.mkdir(parents=True)
+    artifact = dist / "score_personal_accuracy.mjs"
+    artifact.write_text("previous known good worker")
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    (bin_dir / "npx").write_text("#!/bin/sh\nexit 1\n")
+    (bin_dir / "npx").chmod(0o755)
+
+    result = subprocess.run(
+        ["bash", "-c", "log(){ echo \"$*\"; }\n" + block],
+        env={**os.environ, "APP": str(app), "PATH": f"{bin_dir}:{os.environ['PATH']}"},
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+
+    assert result.returncode == 0
+    assert artifact.read_text() == "previous known good worker"
+    assert not (dist / "score_personal_accuracy.mjs.new").exists()
+
+
+def test_personal_accuracy_generated_artifact_has_no_secret_or_ref_logging():
+    """The deploy sidecar may name an error, but it must never expose credentials."""
+    source = (ROOT / ACCURACY_SOURCE).read_text()
+    entry = (ROOT / ACCURACY_ENTRY).read_text()
+    combined = source + entry
+    assert "No key, ref, or token value is printed, logged, or committed." in source
+    assert not re.search(r'console\.(?:log|error)\([^)]*(?:url|key|token|ref)', combined, re.I)
 
 
 def test_opportunity_bridge_runs_after_slice_generation_and_before_verification():
@@ -198,6 +300,39 @@ def test_the_history_bridge_leaves_the_old_file_alone_when_no_source_is_reachabl
 # -> coverage still says XYZ has no intel -> an open tab refuses to ask for it. Pinning the step
 # here is the producer half; the consumer half is the bounded TTL in terminal/lib/dataCache.ts.
 
+INTRADAY_REFRESH = (
+    '"$PY" -m ingest.backfill_intraday --existing-only --expect-advance --tf 1h,5m --workers 8'
+)
+
+
+def test_the_nightly_runs_the_bounded_existing_intraday_refresh():
+    body = NIGHTLY.read_text()
+    assert body.count(INTRADAY_REFRESH) == 1, (
+        "existing intraday stores have an incremental refresher but ops/terminal-data does not run it"
+    )
+
+
+def test_intraday_refresh_prints_status_line_and_never_aborts():
+    body = NIGHTLY.read_text()
+    assert "INTRADAY_REFRESH status=OK" in body
+    assert "INTRADAY_REFRESH status=FAILED rc=" in body
+    assert body.count(INTRADAY_REFRESH) == 1
+
+
+def test_intraday_refresh_runs_after_core_publish_and_before_coverage_index():
+    body = NIGHTLY.read_text().splitlines()
+    def line_of(exact: str) -> int:
+        for i, line in enumerate(body):
+            if exact in line:
+                return i
+        raise AssertionError(f"{exact} not found in ops/terminal-data")
+    swap = line_of('mv -f "$STAGE" "$LIVE"')
+    refresh = line_of(INTRADAY_REFRESH)
+    coverage = next(i for i, line in enumerate(body)
+                    if line.strip().startswith('run "$PY" scripts/build_data_coverage.py'))
+    assert swap < refresh < coverage
+
+
 COVERAGE_STEP = "scripts/build_data_coverage.py"
 
 
@@ -227,6 +362,9 @@ def test_the_coverage_index_is_rebuilt_AFTER_every_artifact_writer():
         'run "$PY" ingest/backfill_ohlc.py',
         'run "$PY" ingest/refresh_crypto_ohlc.py',
         'run "$PY" ingest/hydrate_prices.py',
+        f'run "$PY" {SCAN_STEP}',
+        f'run "$PY" {CLASSIFICATION_STEP}',
+        f"run node {FUNDAMENTAL_SCAN_ARTIFACT}",
     ):
         assert line_of(writer) < coverage, f"{writer} must run BEFORE the coverage index"
 
@@ -304,3 +442,165 @@ def test_the_coverage_writer_refuses_to_publish_an_all_empty_index_for_a_missing
     sys.argv = ["build_data_coverage.py", "--data-dir", str(missing)]
     assert module.main() == 0                       # non-fatal: `npm run build` still works
     assert not (missing / "coverage.json").exists() # …and nothing was published
+
+
+# ── the screener scan generation (E01) ───────────────────────────────────────────────────
+# The Screener reads ONE document instead of an OHLC file per ticker; its producer projects the
+# slices the writers above publish. The same lesson as the bridges: a reader that degrades to
+# "scan absent" and an unwired producer look identical from the outside.
+SCAN_STEP = "ingest/gen_technical_scan.py"
+
+
+def test_the_nightly_publishes_the_screener_scan_into_the_served_dir():
+    body = NIGHTLY.read_text()
+    assert re.search(
+        rf'^run "\$PY" {re.escape(SCAN_STEP)} --data-dir "\$D"( --budget-seconds \d+)?\s*$',
+        body, re.M,
+    ), f"{SCAN_STEP} must be invoked by ops/terminal-data and write into $D"
+
+
+def test_the_screener_scan_runs_after_the_swap_and_every_slice_writer():
+    """Before the swap it would screen the PREVIOUS universe; before a slice writer it would
+    project last night's cutoffs."""
+    body = NIGHTLY.read_text().splitlines()
+
+    def line_of(needle: str) -> int:
+        for i, ln in enumerate(body):
+            if ln.strip().startswith(needle):
+                return i
+        raise AssertionError(f"{needle} not found in ops/terminal-data")
+
+    scan = line_of(f'run "$PY" {SCAN_STEP}')
+    for earlier in (
+        'mv -f "$STAGE" "$LIVE"',
+        'run "$PY" -m ingest.build_polygon_universe',
+        'run "$PY" ingest/regen_flagship_slices.py',
+        'run "$PY" ingest/gen_slices_all.py',
+        'run "$PY" ingest/pull_macro_opportunities.py',
+    ):
+        assert line_of(earlier) < scan, f"{earlier} must run BEFORE {SCAN_STEP}"
+    # outside the swap's if/else, so a guarded swap still regenerates it over the live manifest
+    fi_after_swap = next(i for i in range(line_of('mv -f "$STAGE" "$LIVE"'), len(body))
+                         if body[i].strip() == "fi")
+    assert fi_after_swap < scan
+    assert not body[scan].startswith(" "), "the scan step must not be nested in a conditional"
+
+
+# ── the screener classification generation (E03) ────────────────────────────────────────
+# Native taxonomies + trading currency per listing, projected from the fund.json owner records
+# in the served dir. Unwired, the Screener would state "classification scan not published"
+# forever — indistinguishable from outside from a producer that ran and found nothing.
+CLASSIFICATION_STEP = "ingest/gen_classification_scan.py"
+
+
+def test_the_nightly_publishes_the_classification_scan_into_the_served_dir():
+    body = NIGHTLY.read_text()
+    assert re.search(
+        rf'^run "\$PY" {re.escape(CLASSIFICATION_STEP)} --data-dir "\$D"( --budget-seconds \d+)?\s*$',
+        body, re.M,
+    ), f"{CLASSIFICATION_STEP} must be invoked by ops/terminal-data and write into $D"
+
+
+def test_the_classification_scan_runs_after_the_swap_outside_any_conditional():
+    """Before the swap it would classify the PREVIOUS universe (rows the reader never gets)."""
+    body = NIGHTLY.read_text().splitlines()
+
+    def line_of(needle: str) -> int:
+        for i, ln in enumerate(body):
+            if ln.strip().startswith(needle):
+                return i
+        raise AssertionError(f"{needle} not found in ops/terminal-data")
+
+    step = line_of(f'run "$PY" {CLASSIFICATION_STEP}')
+    for earlier in ('mv -f "$STAGE" "$LIVE"', 'run "$PY" -m ingest.build_polygon_universe'):
+        assert line_of(earlier) < step, f"{earlier} must run BEFORE {CLASSIFICATION_STEP}"
+    fi_after_swap = next(i for i in range(line_of('mv -f "$STAGE" "$LIVE"'), len(body))
+                         if body[i].strip() == "fi")
+    assert fi_after_swap < step
+    assert not body[step].startswith(" "), "the classification step must not be nested in a conditional"
+
+
+# ── the screener fundamental scan (E02) ──────────────────────────────────────────────────
+# Same lesson again: the Screener's fundamental filters degrade to "scan absent" (every row
+# unknown, nothing matches) when the producer never runs, which is indistinguishable from a
+# quiet night. Pin the bundle, the invocation, its target dir and its order.
+FUNDAMENTAL_SCAN_ENTRY = "terminal/scripts/gen_fundamental_scan.ts"
+FUNDAMENTAL_SCAN_ARTIFACT = "/opt/terminal/terminal/scripts/dist/gen_fundamental_scan.mjs"
+FUNDAMENTAL_BUILD_MARK = "# fundamental scan nightly producer (E02)"
+
+
+def _fundamental_build_block() -> str:
+    return _nightly_bundle_block(FUNDAMENTAL_BUILD_MARK, FUNDAMENTAL_SCAN_ENTRY)
+
+
+def test_the_nightly_publishes_the_fundamental_scan_into_the_served_dir():
+    body = NIGHTLY.read_text()
+    assert (ROOT / FUNDAMENTAL_SCAN_ENTRY).exists()
+    assert re.search(
+        rf'^run node {re.escape(FUNDAMENTAL_SCAN_ARTIFACT)} --data-dir "\$D"( --budget-seconds \d+)?\s*$',
+        body, re.M,
+    ), f"{FUNDAMENTAL_SCAN_ARTIFACT} must be invoked by ops/terminal-data and write into $D"
+    assert body.count("gen_fundamental_scan") == 1, "one owner, one invocation"
+
+
+def test_the_fundamental_scan_runs_after_the_swap_at_top_level():
+    """Before the swap it would screen the PREVIOUS universe; nested in the swap's if/else it
+    would silently skip every guarded night."""
+    body = NIGHTLY.read_text().splitlines()
+
+    def line_of(needle: str) -> int:
+        for i, ln in enumerate(body):
+            if ln.strip().startswith(needle):
+                return i
+        raise AssertionError(f"{needle} not found in ops/terminal-data")
+
+    scan = line_of(f"run node {FUNDAMENTAL_SCAN_ARTIFACT}")
+    swap = line_of('mv -f "$STAGE" "$LIVE"')
+    assert swap < scan
+    fi_after_swap = next(i for i in range(swap, len(body)) if body[i].strip() == "fi")
+    assert fi_after_swap < scan
+    assert not body[scan].startswith(" "), "the fundamental scan step must not be nested in a conditional"
+
+
+def test_canonical_deploy_script_bundles_the_fundamental_scan_and_preserves_the_prior_artifact():
+    block = _fundamental_build_block()
+    assert "npx esbuild scripts/gen_fundamental_scan.ts" in block
+    assert "--packages=external" in block
+    assert '"--alias:@=."' in block
+    assert "--outfile=scripts/dist/gen_fundamental_scan.mjs.new" in block
+    assert 'mv -f "$APP/scripts/dist/gen_fundamental_scan.mjs.new"' in block
+    assert 'rm -f "$APP/scripts/dist/gen_fundamental_scan.mjs.new"' in block
+    assert "nightly keeps the previous bundle" in block
+
+
+def test_failed_fundamental_scan_bundle_keeps_the_previous_artifact(tmp_path):
+    """Execute the deploy branch with a failing esbuild, not merely trust its wording."""
+    block = _fundamental_build_block()
+    app = tmp_path / "app"
+    dist = app / "scripts" / "dist"
+    dist.mkdir(parents=True)
+    artifact = dist / "gen_fundamental_scan.mjs"
+    artifact.write_text("previous known good producer")
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    (bin_dir / "npx").write_text("#!/bin/sh\nexit 1\n")
+    (bin_dir / "npx").chmod(0o755)
+
+    result = subprocess.run(
+        ["bash", "-c", "log(){ echo \"$*\"; }\n" + block],
+        env={**os.environ, "APP": str(app), "PATH": f"{bin_dir}:{os.environ['PATH']}"},
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+
+    assert result.returncode == 0
+    assert artifact.read_text() == "previous known good producer"
+    assert not (dist / "gen_fundamental_scan.mjs.new").exists()
+    assert "gen_fundamental_scan bundle FAILED" in result.stdout
+
+
+def test_the_app_rsync_preserves_the_untracked_scripts_dist_bundles():
+    """scripts/dist is untracked; without this exclude the app rsync --delete would remove the
+    known-good producer bundle before it is rebuilt."""
+    assert "--exclude='scripts/dist'" in BUILD.read_text()

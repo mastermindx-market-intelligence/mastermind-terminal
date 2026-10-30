@@ -1,5 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 
+import {boatsQuote} from "./fixtures/boatsQuote";
+
 async function armTerminalVisualReady(page: Page) {
   await page.addInitScript(() => {
     const readyWindow = window as Window & { __mmWatchlistVisualReady?: boolean };
@@ -43,7 +45,7 @@ test("Ext price and Ext % are independent, persistent watchlist columns", async 
     await route.fulfill({ json: { quotes: Object.fromEntries(syms.map((sym) => [
       sym,
       sym === "NVDA"
-        ? { extPrice: 421.14, extChg: 7.84, extTs: 1_785_533_400, extSession: "post" }
+        ? boatsQuote(421.14,7.84)
         : null,
     ])) } });
   });
@@ -59,7 +61,7 @@ test("Ext price and Ext % are independent, persistent watchlist columns", async 
   await expect(extHeader).toHaveCount(0);
   await expect(nvda.locator('[data-watchlist-column="extPct"]')).toHaveText("+7.84%");
   await expect(nvda.locator('[data-watchlist-column="extPct"]')).toHaveClass(/\bup\b/);
-  await expect(nvda.locator('[data-watchlist-column="extPct"]')).toHaveAttribute("title", "After hours · +7.84%");
+  await expect(nvda.locator('[data-watchlist-column="extPct"]')).toHaveAttribute("title", /Latest qualifying BOATS trade · single venue · \d+s ago · \+7.84%/);
   const aapl = page.locator(".wl-row", { has: page.locator(".tk", { hasText: /^AAPL$/ }) });
   const bitcoin = page.locator(".wl-row", { has: page.locator(".tk", { hasText: /^BTC-USD$/ }) });
   await expect(aapl.locator('[data-watchlist-column="extPct"]')).toHaveText("—");
@@ -94,7 +96,7 @@ test("Ext price and Ext % are independent, persistent watchlist columns", async 
   await expect(extPctHeader).toHaveCount(0);
 });
 
-test("a transient ext-quote outage keeps the last-good quote at every width", async ({ page }, testInfo) => {
+test("a transient ext-quote outage keeps the unexpired BOATS trade at every width", async ({ page }, testInfo) => {
   const isDesktop = testInfo.project.name === "desktop";
 
   await page.addInitScript(() => {
@@ -129,8 +131,8 @@ test("a transient ext-quote outage keeps the last-good quote at every width", as
     const syms = (new URL(route.request().url()).searchParams.get("syms") || "")
       .split(",").filter(Boolean);
     const quote = mode === "recovered"
-      ? { extPrice: 422.08, extChg: 8.06, extTs: 1_785_533_460, extSession: "post" }
-      : { extPrice: 421.14, extChg: 7.84, extTs: 1_785_533_400, extSession: "post" };
+      ? boatsQuote(422.08,8.06)
+      : boatsQuote(421.14,7.84);
     await route.fulfill({ json: { quotes: Object.fromEntries(syms.map((sym) => [
       sym,
       sym === "NVDA" ? quote : null,
@@ -156,7 +158,7 @@ test("a transient ext-quote outage keeps the last-good quote at every width", as
       await expect(detail.locator(".ah-chg")).toHaveText(pct);
       return;
     }
-    await expect(compactExtended).toContainText("After hours");
+    await expect(compactExtended).toContainText("BOATS");
     await expect(compactExtended).toContainText(price);
     await expect(compactExtended).toContainText(pct);
   };

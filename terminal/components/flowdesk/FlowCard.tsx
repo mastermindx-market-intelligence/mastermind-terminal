@@ -27,7 +27,7 @@
 import { memo, useEffect, useRef, useState } from "react";
 import type { FlowEvent, EnrichEvent } from "./FeedPane";
 import { fmtNum } from "@/lib/finFormat";
-import { makeFlowT, scoreComponentLabel } from "@/lib/flowdeskStrings";
+import { detectionCopy, makeFlowT, scoreComponentLabel } from "@/lib/flowdeskStrings";
 import { flowSideLabel, statTokenLabel } from "@/lib/plainLabels";
 import { RingGauge } from "../ui/RingGauge";
 
@@ -138,8 +138,7 @@ export const FlowCard = memo(function FlowCard({
   const flags: MetaFlagSpec[] = [];
   if (hasEnrich) {
     for (const b of v2Badges) {
-      const labels = V2_BADGE_LABELS[b] ?? { en: b, zh: b };
-      flags.push({ key: b, label: zh ? labels.zh : labels.en });
+      flags.push({ key: b, ...detectionCopy(b, lang) });
     }
   } else {
     if (badges.whale)   flags.push({ key: "whale",   label: zh ? "巨单" : "WHALE",   tip: t("badgeWhaleDesc") });
@@ -188,7 +187,7 @@ export const FlowCard = memo(function FlowCard({
         </span>
 
         {/* Lean chip — dashed border, neutral color.
-            direction_discounted=true (spread detected): muted + unreliable-direction label. */}
+            A legacy direction-discount flag does not prove a package. */}
         {directionDiscounted ? (
           <span
             className="obs-fc-lean"
@@ -346,19 +345,6 @@ function MetaFlag({ label, tip }: { label: string; tip?: string }) {
     </span>
   );
 }
-
-// ── V2 detection labels (compact token from enrich artifact) ──────────────────
-
-const V2_BADGE_LABELS: Record<string, { en: string; zh: string }> = {
-  MULTI_LEG:    { en: "MULTI-LEG", zh: "多腿" },
-  LADDER:       { en: "LADDER",    zh: "梯形" },
-  REPEAT_HITTER:{ en: "REPEAT",    zh: "重复" },
-  SIZE_VS_OI:   { en: "SZ>OI",     zh: "量超OI" },
-  WHALE:        { en: "WHALE",     zh: "巨单" },
-  FRESH:        { en: "FRESH",     zh: "新仓" },
-  Z_OUTLIER:    { en: "Z-OUT",     zh: "Z异常" },
-  OI_CONFIRMED: { en: "OI✓",      zh: "OI确认" },
-};
 
 // ── Tooltip styles ────────────────────────────────────────────────────────────
 

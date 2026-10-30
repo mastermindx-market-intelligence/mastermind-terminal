@@ -8,6 +8,7 @@ import {
   marketOntologyReturnHref,
   parseMarketOntologyContext,
   serializeMarketOntologyContext,
+  stripMarketOntologyParams,
 } from "@/lib/marketOntologyContext";
 
 /**
@@ -22,7 +23,7 @@ import {
  * 6. serializer emits only closed validated fields
  * 7. return href cannot incorporate unvalidated prose or an arbitrary URL
  * 8. clear removes all mo_* (known and unknown) and leaves symbol/page/view/thesis untouched
- * 9. mo_from=transmission (or anything but ontology) → null
+ * 9. mo_from outside {ontology, transmission} → null
  * 10. mo_chain missing → null
  */
 
@@ -127,10 +128,53 @@ describe("parseMarketOntologyContext", () => {
     expect(parseMarketOntologyContext(params)).toBeNull();
   });
 
-  // Test 9: mo_from=transmission (or anything but ontology) → null
-  it("returns null when mo_from is transmission", () => {
-    const params = makeParams({ mo_from: "transmission", mo_chain: VALID_CHAIN });
+  // Test 9: mo_from outside the closed origin enum → null
+  it("invalid_from_values_still_void", () => {
+    expect(parseMarketOntologyContext(makeParams({ mo_from: "Transmission", mo_chain: VALID_CHAIN }))).toBeNull();
+    expect(parseMarketOntologyContext(makeRawParams("mo_from=ontology,transmission&mo_chain=a"))).toBeNull();
+
+    const duplicateFrom = new URLSearchParams();
+    duplicateFrom.append("mo_from", "transmission");
+    duplicateFrom.append("mo_from", "transmission");
+    duplicateFrom.append("mo_chain", VALID_CHAIN);
+    expect(parseMarketOntologyContext(duplicateFrom)).toBeNull();
+  });
+
+  it("macro_current_link_shape_parses_null", () => {
+    // This documents the current Macro producer's live break: no mo_from and mo_security_id.
+    const params = makeRawParams(
+      "symbol=XOM&page=intelligence&mo_chain=chain-1&mo_channel=channel-1&mo_asof=2026-10-01&mo_security_id=SEC:US",
+    );
+
     expect(parseMarketOntologyContext(params)).toBeNull();
+  });
+
+  it("macro_post_ruling_link_shape_parses", () => {
+    const params = makeRawParams(
+      "symbol=XOM&page=intelligence&mo_from=transmission&mo_chain=chain-1&mo_channel=channel-1&mo_asof=2026-10-01&mo_security=SEC:US",
+    );
+
+    const result = parseMarketOntologyContext(params);
+    expect(result).toEqual({
+      from: "transmission",
+      chain: "chain-1",
+      channel: "channel-1",
+      security: "SEC:US",
+      asof: "2026-10-01",
+    });
+    expect(marketOntologyReturnHref(result!)).toBe("https://www.mastermind-x.com/transmission.html#tx-chain-chain-1");
+  });
+
+  it("transmission_origin_never_carries_focus_or_rev", () => {
+    const params = makeRawParams(
+      "mo_from=transmission&mo_chain=chain-1&mo_focus=leg-3&mo_path_rev=12",
+    );
+
+    const result = parseMarketOntologyContext(params);
+    expect(result?.from).toBe("transmission");
+    expect(result?.focus).toBe("leg-3");
+    expect(result?.pathRev).toBe("12");
+    expect(marketOntologyReturnHref(result!)).toBe("https://www.mastermind-x.com/transmission.html#tx-chain-chain-1");
   });
 
   it("returns null when mo_from is empty string", () => {
@@ -467,7 +511,7 @@ describe("serializeMarketOntologyContext", () => {
     ["pathRev", "1e9"],
     ["asof", "2026-02-30"],
     ["chain", "a b"],
-    ["from", "transmission"],
+    ["from", "Transmission"],
   ] as const)("omits an illegal forged %s field", (field, value) => {
     const ctx = { from: "ontology", chain: VALID_CHAIN, [field]: value } as unknown as MarketOntologyContext;
     const result = serializeMarketOntologyContext(ctx);
@@ -480,6 +524,16 @@ describe("serializeMarketOntologyContext", () => {
 });
 
 describe("marketOntologyReturnHref", () => {
+  it("ontology_origin_back_link_unchanged", () => {
+    const ctx: MarketOntologyContext = {
+      from: "ontology",
+      chain: VALID_CHAIN,
+      focus: VALID_FOCUS,
+      pathRev: VALID_PATH_REV,
+    };
+    expect(marketOntologyReturnHref(ctx)).toBe("https://www.mastermind-x.com/ontology.html?rev=3#ox-leg-node_42");
+  });
+
   // Test 7: return href cannot incorporate unvalidated prose or an arbitrary URL
   it("returns base URL with no pathRev or focus", () => {
     const ctx: MarketOntologyContext = { from: "ontology", chain: VALID_CHAIN };
@@ -550,6 +604,18 @@ describe("marketOntologyReturnHref", () => {
 });
 
 describe("clearMarketOntologyContext", () => {
+  it("symbol_switch_clears_every_mo_key_for_transmission_origin", () => {
+    const params = makeRawParams(
+      "symbol=NVDA&page=intelligence&mo_from=transmission&mo_chain=a&mo_channel=b&mo_security=SEC:US&mo_unknown=yes",
+    );
+
+    const result = clearMarketOntologyContext(params);
+
+    expect([...result.keys()].filter((key) => key.startsWith("mo_"))).toEqual([]);
+    expect(result.get("symbol")).toBe("NVDA");
+    expect(result.get("page")).toBe("intelligence");
+  });
+
   // Test 8: clear removes all mo_* (known and unknown) and leaves symbol/page/view/thesis untouched
   it("removes all known mo_* keys and leaves other params untouched", () => {
     const params = makeParams({
@@ -640,6 +706,15 @@ describe("hasMarketOntologyContext", () => {
   it("counts an uppercase MO_ prefix case-insensitively", () => {
     expect(hasMarketOntologyContext(makeRawParams("MO_CHAIN=x"))).toBe(true);
     expect(hasMarketOntologyContext(makeRawParams("symbol=NVDA"))).toBe(false);
+  });
+});
+
+describe("stripMarketOntologyParams", () => {
+  it("drops every mo_* key and keeps every other key and value", () => {
+    const result = stripMarketOntologyParams(makeRawParams(
+      "symbol=NVDA&page=intelligence&mo_from=ontology&mo_chain=chain_1&mo_unknown=yes&keep=value",
+    ));
+    expect(result.toString()).toBe("symbol=NVDA&page=intelligence&keep=value");
   });
 });
 

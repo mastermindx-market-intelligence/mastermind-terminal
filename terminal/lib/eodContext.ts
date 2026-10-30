@@ -408,12 +408,54 @@ export type StructureCellKey =
 /** Which settled store a cell's number came from — printed on hover, not guessed. */
 export type StructureSource = "gexstate" | "gex" | "moves" | "vol" | "oiconf";
 
+/**
+ * What one settled read has established so far. Only "absent" (a 404/410) means the store
+ * has nothing; "unavailable" is a read that did not land and says nothing about the store.
+ */
+export type EodReadStatus = "loading" | "data" | "absent" | "unavailable";
+
+/** Why a cell with no value has none: the read failed, it is in flight, or it proved absence. */
+export type StructureGap = "failed" | "reading" | "absent";
+
+/** The stores each cell can be answered from. Levels read gex_state first, the ladder second. */
+const CELL_SOURCES: Record<StructureCellKey, StructureSource[]> = {
+  callWall: ["gexstate", "gex"],
+  putWall: ["gexstate", "gex"],
+  flip: ["gexstate", "gex"],
+  maxPain: ["gexstate", "gex"],
+  expMove: ["moves"],
+  ivPct: ["vol"],
+  oiConf: ["oiconf"],
+};
+
+/**
+ * The gap behind a valueless cell. A failure on ANY store that could have answered wins:
+ * that store might hold the value, so "not published" would be a claim nobody checked.
+ */
+export function structureCellGap(
+  cell: StructureCell,
+  reads: Record<StructureSource, EodReadStatus>
+): StructureGap | null {
+  if (cell.value !== null) return null;
+  const statuses = CELL_SOURCES[cell.key].map((s) => reads[s]);
+  if (statuses.includes("unavailable")) return "failed";
+  if (statuses.includes("loading")) return "reading";
+  return "absent";
+}
+
 export interface StructureCell {
   key: StructureCellKey;
   /** Preformatted display value, or null → the cell renders its absent state. */
   value: string | null;
   /** Secondary line (range, percentile context). null when not applicable. */
   detail: string | null;
+  /**
+   * expMove only (W3S): the published band's own statement, carried as data so the belt
+   * renderer can localize it. Each part is shown only when its field is finite, and the
+   * wording says the source states no method — the producer's `band_mult` is never
+   * dressed up as a stated statistical level of any kind.
+   */
+  method?: { bandMult: number | null; horizonDays: number | null } | null;
   /** The SOURCE STORE's own as-of. Never the wall clock, never another store's. */
   vintage: string | null;
   source: StructureSource;
@@ -587,6 +629,8 @@ export function buildStructureCells(inp: StructureInputs): StructureCell[] {
   ];
 
   // Expected move — options_hub/moves publishes the band whole (pct + lo/hi + multiplier).
+  // W3S: the producer's band statement rides beside it — parts render only when finite,
+  // and no band means no line and no number (never 0).
   const em = inp.moves?.expected_move ?? null;
   const emPct = num(em?.pct);
   const lo = fmtLevel(em?.lo);
@@ -595,6 +639,9 @@ export function buildStructureCells(inp: StructureInputs): StructureCell[] {
     key: "expMove",
     value: emPct === null ? null : `±${emPct.toFixed(1)}%`,
     detail: lo && hi ? `${lo} – ${hi}` : null,
+    method: emPct === null
+      ? null
+      : { bandMult: num(em?.band_mult), horizonDays: num(em?.horizon_days) },
     vintage: eodDate(inp.moves?.asof),
     source: "moves",
   });

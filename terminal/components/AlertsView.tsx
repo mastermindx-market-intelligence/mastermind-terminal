@@ -23,8 +23,55 @@ import { SUITE_DEFS } from "@/lib/suites/registry";
 import { useGateEntitlement } from "@/lib/entitlementStore";
 import { useShellIdentity } from "@/components/chrome/AppShell";
 import { ALERTS_CHANGED_EVENT, conditionText, firedEventTextZh } from "@/lib/alertsView";
+import { identityOwnerKey } from "@/lib/accountIdentity";
+import { isForexWatch, forexWatchRow, forexConditionText, FOREX_INACTIVE_COPY, FOREX_UNAVAILABLE_COPY } from "@/lib/forexWatches";
+import AlertDryRunPanel from "@/components/alerts/AlertDryRunPanel";
 
-type Alert = { id: string; symbol: string; condition: any; active: boolean; created_at: string };
+type Alert = { id: string; user_id?: string; symbol: string; condition: any; active: boolean; created_at: string };
+
+/**
+ * Where one row's re-arm stands (F08-REARM, macro#6819 C4 5990007233). Absent = no re-arm in play.
+ *   sending       the PATCH is in flight — the row is fenced; an inventory read landing now settles nothing
+ *   checking      the PATCH answered without this row's acknowledgement (lost, malformed, another row, a
+ *                 gateway page); the existing inventory GET is reading the row's current state
+ *   unconfirmed   that read answered: the row shows the LATEST OBSERVATION, still qualified — a read is
+ *                 not proof the unacknowledged write finished. A further re-arm is a new, informed write.
+ *   check-failed  the read failed too: nothing is known, so no re-arm is offered — only a GET-only check
+ * Apart from the phase, a row whose re-arm outcome was never learned says so for as long as it is on
+ * screen: a later attempt's acknowledgement or refusal answers only that attempt (C4 5991393156).
+ */
+type RearmPhase = "sending" | "checking" | "unconfirmed" | "check-failed";
+
+// Component-local, keyed by language — the idiom SectionSync/SectionAlertDelivery use. Not in
+// lib/i18n.tsx: seventeen evidence packets pin that file byte-for-byte.
+const REARM_COPY = {
+  rearming: { en: "Re-arming…", zh: "正在重新启用…" },
+  checking: { en: "Re-arm not confirmed — checking the alert's current state…", zh: "重新启用未获确认——正在核对提醒的当前状态…" },
+  unconfirmed: { en: "Re-arm not confirmed — showing the latest saved state.", zh: "重新启用未获确认——以下为最新保存的状态。" },
+  "check-failed": { en: "Re-arm not confirmed, and the alert's current state could not be checked.", zh: "重新启用未获确认，且无法核对提醒的当前状态。" },
+  checkStatus: { en: "Check status", zh: "核对状态" },
+  earlier: { en: "An earlier re-arm of this alert was never confirmed — it may still take effect.", zh: "此提醒先前的一次重新启用从未获得确认——它仍可能生效。" },
+} as const;
+
+const FOREX_DELETE_COPY = {
+  sending: { en: "Deleting condition…", zh: "正在删除条件…" },
+  unconfirmed: { en: "Deletion is unconfirmed. Check the current state.", zh: "删除尚未确认。请核对当前状态。" },
+  checkStatus: { en: "Check status", zh: "核对状态" },
+} as const;
+
+/**
+ * A PATCH reply that acknowledges THIS re-arm and can stand in for the row on screen: the expected
+ * id, armed, a symbol and creation time, a plain-object condition, and no trigger stamp (route.ts
+ * PATCH deletes it). Anything less is not an acknowledgement — the row is reconciled by reading.
+ */
+function isRearmAck(x: unknown, id: string): x is Alert {
+  if (!x || typeof x !== "object" || Array.isArray(x)) return false;
+  const a = x as Record<string, unknown>;
+  const c = a.condition;
+  return a.id === id && a.active === true && typeof a.symbol === "string" && typeof a.created_at === "string"
+    && !!c && typeof c === "object" && !Array.isArray(c)
+    && !Object.prototype.hasOwnProperty.call(c, "triggered");
+}
 
 // ── suite-event catalog (lib/suiteAlerts.ts is the authority for events + tiers) ──
 type Tier = "free" | "essential" | "pro";
@@ -143,9 +190,15 @@ export function _resetAlertPrefill(): void {
   pendingPrefill = null;
 }
 
-export default function AlertsView({ email, panelOnly, listOnly }: { email: string; panelOnly?: boolean; listOnly?: boolean }) {
+type AlertsViewProps = { email: string; panelOnly?: boolean; listOnly?: boolean };
+export default function AlertsView(props: AlertsViewProps) {
+  const owner = identityOwnerKey(useShellIdentity());
+  return <AlertsViewBody key={owner} {...props} />;
+}
+function AlertsViewBody({ email, panelOnly, listOnly }: AlertsViewProps) {
   const t = useT();
   const { lang } = useLang();
+  const L = lang === "zh" ? "zh" : "en";
   const fmtDate = (iso: string) => {
     try {
       return new Date(iso).toLocaleDateString(lang === "zh" ? "zh-CN" : "en-US");
@@ -154,6 +207,7 @@ export default function AlertsView({ email, panelOnly, listOnly }: { email: stri
     }
   };
   const condText = (c: any) => {
+    if (isForexWatch(c)) return forexConditionText(c, L);
     if (c?.type === "signal") return c.target === "BUY" ? t("condSignalBuy") : t("condSignalSell");
     if (c?.type === "regime") return t("condRegimeUp");
     if (c?.type === "price") {
@@ -183,6 +237,9 @@ export default function AlertsView({ email, panelOnly, listOnly }: { email: stri
     return JSON.stringify(c);
   };
   const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [forexDeletes, setForexDeletes] = useState<Record<string, "sending" | "unconfirmed">>({});
+  const forexPending = useRef(new Map<string, { row: Alert; floor: number }>());
+
   const [loaded, setLoaded] = useState(false);
   // 401 from the list endpoint means NO SESSION — a real signed-out state, not an empty list.
   // Coercing it to {alerts:[]} showed anon visitors the signed-in "no alerts yet" copy, which
@@ -200,6 +257,7 @@ export default function AlertsView({ email, panelOnly, listOnly }: { email: stri
   const [sym, setSym] = useState("NVDA");
   const [ctype, setCtype] = useState("signal_buy");
   const [val, setVal] = useState("");
+  const draftRevision = useRef(0);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   // ── options-flow sub-form state ─────────────────────────────────────────────
@@ -249,6 +307,30 @@ export default function AlertsView({ email, panelOnly, listOnly }: { email: stri
     gateTimer.current = setTimeout(() => setGateNudge(null), 5000);
   };
 
+  // F08-REARM. Phases live in a ref as well as state: the fence must hold for a second click
+  // in the same tick, which still sees the previous render.
+  const [rearmPhase, setRearmPhaseState] = useState<Record<string, RearmPhase>>({});
+  const rearmPhaseRef = useRef<Record<string, RearmPhase>>({});
+  const updateRearm = useCallback((update: (p: Record<string, RearmPhase>) => Record<string, RearmPhase>) => {
+    const next = update(rearmPhaseRef.current);
+    if (next === rearmPhaseRef.current) return;
+    rearmPhaseRef.current = next;
+    setRearmPhaseState(next);
+  }, []);
+  // Inventory reads can finish out of order. Each read takes a sequence number as it STARTS;
+  // only an answer newer than the one on screen may replace it.
+  const readSeq = useRef(0);
+  const appliedSeq = useRef(0);
+  const lastReadOk = useRef(false); // was the answer on screen a usable inventory?
+  // A re-arm acknowledged while reads were in flight is newer than what those reads saw for that
+  // row: until a read that STARTED after the acknowledgement lands, the acknowledged row stands.
+  const ackedRows = useRef(new Map<string, { floor: number; row: Alert }>());
+  // A pre-ack inventory cannot resurrect a successfully deleted row.
+  const ackedDeletes = useRef(new Map<string, number>());
+  // Rows with a re-arm whose outcome was never learned. Kept apart from the current attempt's phase:
+  // a later attempt settling does not settle the earlier one.
+  const [earlierUnknown, setEarlierUnknown] = useState<Record<string, true>>({});
+
   /**
    * Read the inventory. FOUR outcomes, none of them allowed to wear another's clothes:
    * 401 → signed out · non-2xx or unusable body → unavailable (existing rows kept) ·
@@ -259,23 +341,59 @@ export default function AlertsView({ email, panelOnly, listOnly }: { email: stri
    */
   const loadAlerts = useCallback(async (aliveRef?: { alive: boolean }) => {
     const alive = () => aliveRef?.alive !== false;
+    const seq = ++readSeq.current;
+    // An older read finishing late describes a state the panel has already moved past: it says nothing.
+    const speaks = (ok: boolean) => {
+      if (!alive() || seq <= appliedSeq.current) return false;
+      appliedSeq.current = seq;
+      lastReadOk.current = ok;
+      return true;
+    };
     try {
       const r = await fetch("/api/alerts");
       if (r.status === 401) {
-        if (alive()) { setSignedOut(true); setUnavailable(false); }
+        if (speaks(false)) { setSignedOut(true); setUnavailable(false); }
         return;
       }
-      if (!r.ok) { if (alive()) setUnavailable(true); return; }
+      if (!r.ok) { if (speaks(false)) setUnavailable(true); return; }
       const d = await r.json().catch(() => null);
-      if (!d || !Array.isArray(d.alerts)) { if (alive()) setUnavailable(true); return; }
-      if (alive()) { setAlerts(d.alerts); setUnavailable(false); setSignedOut(false); }
+      if (!d || !Array.isArray(d.alerts)) { if (speaks(false)) setUnavailable(true); return; }
+      if (speaks(true)) {
+        const acked = ackedRows.current;
+        const rows = (d.alerts as Alert[]).filter((x) => {
+          const floor = ackedDeletes.current.get(x.id);
+          return floor === undefined || seq > floor;
+        }).map((x) => {
+          const a = acked.get(x.id);
+          return a && seq <= a.floor ? a.row : x;
+        });
+        for (const [id, pending] of forexPending.current) {
+          if (rows.some((row) => row.id === id)) continue;
+          if (seq > pending.floor) {
+            forexPending.current.delete(id);
+            setForexDeletes((previous) => { const next = { ...previous }; delete next[id]; return next; });
+          } else {
+            rows.push(pending.row); // A read predating the uncertain mutation cannot settle it.
+          }
+        }
+        for (const [id, a] of acked) if (seq > a.floor) acked.delete(id);
+        for (const [id, floor] of ackedDeletes.current) if (seq > floor) ackedDeletes.current.delete(id);
+        setAlerts(rows); setUnavailable(false); setSignedOut(false);
+        // This read began after any failed re-arm check did, so it IS an observation of that row.
+        updateRearm((p) => {
+          if (!Object.values(p).includes("check-failed")) return p;
+          const next = { ...p };
+          for (const id of Object.keys(next)) if (next[id] === "check-failed") next[id] = "unconfirmed";
+          return next;
+        });
+      }
     } catch {
       // Transport failure. Say nothing about the inventory — and above all do not empty it.
-      if (alive()) setUnavailable(true);
+      if (speaks(false)) setUnavailable(true);
     } finally {
       if (alive()) setLoaded(true);
     }
-  }, []);
+  }, [updateRearm]);
 
   const retryLoad = useCallback(async () => {
     setReloading(true);
@@ -300,6 +418,7 @@ export default function AlertsView({ email, panelOnly, listOnly }: { email: stri
     // sticks, so a remount between the two cannot lose the prefill.
     const pre = takePendingPrefill();
     if (pre) {
+      if (pre.sym || pre.ctype || pre.value || pre.options) draftRevision.current++;
       if (pre.sym) setSym(pre.sym);
       if (pre.ctype) setCtype(pre.ctype);
       if (pre.value) setVal(pre.value);
@@ -409,9 +528,14 @@ export default function AlertsView({ email, panelOnly, listOnly }: { email: stri
         symbol = sym;
         condition = { ...ct.cond, ...(ct.needsVal ? { value: parseFloat(val) || 0 } : {}) };
       }
+      const submittedRevision = draftRevision.current;
       const r = await fetch("/api/alerts", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ symbol, condition }) });
       const d = await r.json().catch(() => ({}));
-      if (d.alert) { setAlerts((a) => [d.alert, ...a]); setVal(""); window.dispatchEvent(new Event(ALERTS_CHANGED_EVENT)); }
+      if (d.alert) {
+        setAlerts((a) => [d.alert, ...a]);
+        if (draftRevision.current === submittedRevision) setVal("");
+        window.dispatchEvent(new Event(ALERTS_CHANGED_EVENT));
+      }
       else setErr(d.error || t("couldNotCreateAlert"));
     } catch {
       setErr(t("alertNetErr"));
@@ -419,23 +543,106 @@ export default function AlertsView({ email, panelOnly, listOnly }: { email: stri
       setBusy(false);
     }
   }
+  /**
+   * Re-arm one fired row. Only THIS row's acknowledgement is success, and only a refusal the route
+   * issues BEFORE it attempts the update — 401 (no user) or 404 (no such owned row), each with its
+   * {error} body — is failure. Anything else means the write may or may not have landed: a lost
+   * reply, a 2xx without this row, a gateway page, and the route's own 400 after the update call
+   * (supabase-js reports a lost upstream reply as an error too). Such a row is fenced and the
+   * existing inventory read reconciles it. Never replayed: a repeat PATCH after a lost reply could
+   * clear a NEWER trigger the first, committed one let the engine stamp (C4's counterexample).
+   */
   async function rearm(id: string) {
+    const phase = rearmPhaseRef.current[id];
+    if (phase && phase !== "unconfirmed") return;
+    const refused = t("couldNotRearm");
+    setErr((e) => (e === refused ? null : e)); // a new attempt supersedes the last re-arm's verdict
+    updateRearm((p) => ({ ...p, [id]: "sending" }));
+    let r: Response | null = null;
     try {
-      const r = await fetch("/api/alerts", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
-      const d = await r.json().catch(() => ({}));
-      if (d.alert) { setAlerts((a) => a.map((x) => (x.id === id ? d.alert : x))); window.dispatchEvent(new Event(ALERTS_CHANGED_EVENT)); }
-      else setErr(d.error || t("couldNotRearm"));
-    } catch {
-      setErr(t("couldNotRearm"));
+      r = await fetch("/api/alerts", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
+    } catch { /* lost: the write may have landed */ }
+    const d = r ? await r.json().catch(() => null) : null;
+    if (r?.ok && isRearmAck(d?.alert, id)) {
+      ackedRows.current.set(id, { floor: readSeq.current, row: d.alert });
+      setAlerts((a) => a.map((x) => (x.id === id ? d.alert : x)));
+      dropRearm(id);
+      window.dispatchEvent(new Event(ALERTS_CHANGED_EVENT));
+      return;
     }
+    if (r && (r.status === 401 || r.status === 404) && typeof d?.error === "string") {
+      dropRearm(id);
+      setErr(t("couldNotRearm")); // localized — the route's {error} is a code, not user copy
+      return;
+    }
+    // This write's outcome is unknown for the rest of the row's life on screen: a later attempt's
+    // acknowledgement or refusal settles only that later attempt, never this one.
+    setEarlierUnknown((u) => (u[id] ? u : { ...u, [id]: true }));
+    await checkRearm(id);
   }
+
+  function dropRearm(id: string) {
+    updateRearm((p) => {
+      if (!(id in p)) return p;
+      const next = { ...p };
+      delete next[id];
+      return next;
+    });
+  }
+
+  /** GET-only: read the row's current state. Never a write. */
+  async function checkRearm(id: string) {
+    updateRearm((p) => ({ ...p, [id]: "checking" }));
+    await loadAlerts();
+    // The answer on screen began after the re-arm resolved — this read's, or a newer one's.
+    updateRearm((p) => ({ ...p, [id]: lastReadOk.current ? "unconfirmed" : "check-failed" }));
+  }
+  async function delForex(removed: Alert) {
+    const saved = forexWatchRow(removed);
+    if (!saved || forexPending.current.has(removed.id)) return;
+    const id = saved.id;
+    forexPending.current.set(id, { row: removed, floor: Infinity });
+    setForexDeletes((previous) => ({ ...previous, [id]: "sending" }));
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 12_000);
+    const clear = () => {
+      forexPending.current.delete(id);
+      setForexDeletes((previous) => { const next = { ...previous }; delete next[id]; return next; });
+    };
+    const uncertain = () => {
+      forexPending.current.set(id, { row: removed, floor: readSeq.current });
+      setForexDeletes((previous) => ({ ...previous, [id]: "unconfirmed" }));
+    };
+    try {
+      const params = new URLSearchParams({ id, type: "forex_price_close",
+        expected_revision: String(saved.condition.revision), expected_user_id: saved.user_id });
+      const response = await fetch("/api/alerts?" + params, { method: "DELETE", signal: controller.signal });
+      const body = await response.json().catch(() => null);
+      if (response.ok && body?.ok === true && body.id === id && typeof body.deleted === "boolean") {
+        clear();
+        ackedDeletes.current.set(id, readSeq.current);
+        setAlerts((previous) => previous.filter((row) => row.id !== id));
+        window.dispatchEvent(new Event(ALERTS_CHANGED_EVENT));
+      } else if (response.status === 401 || ([400, 403, 404, 409].includes(response.status) &&
+          ["invalid", "conflict", "session_changed", "signed_out", "not_found"].includes(body?.state))) {
+        clear();
+        setErr(L === "zh" ? "条件或账户已更改。请刷新后再操作。" : "The condition or account changed. Refresh before trying again.");
+        void loadAlerts();
+      } else uncertain();
+    } catch { uncertain(); }
+    finally { clearTimeout(timer); }
+  }
+
   async function del(id: string) {
     setConfirmDel(null);
     const removed = alerts.find((x) => x.id === id);
+    if (removed && isForexWatch(removed.condition)) { await delForex(removed); return; }
     setAlerts((a) => a.filter((x) => x.id !== id));     // optimistic
     try {
       const r = await fetch(`/api/alerts?id=${id}`, { method: "DELETE" });
       if (!r.ok) throw new Error();
+      ackedDeletes.current.set(id, readSeq.current);
+      setAlerts((a) => a.filter((x) => x.id !== id));
       window.dispatchEvent(new Event(ALERTS_CHANGED_EVENT));
     } catch {
       // re-insert ONLY the failed item (functional update preserves any concurrent deletes)
@@ -474,7 +681,7 @@ export default function AlertsView({ email, panelOnly, listOnly }: { email: stri
   const newAlertPanel = (
         <div className="panel">
           <div className="ph">{t("newAlert")}</div>
-          <div className="alert-form">
+          <div className="alert-form" onChangeCapture={() => { draftRevision.current++; }}>
             {/* category picker: signal/regime (legacy 6) · options flow (5) · suite events (catalog) */}
             <select aria-label={t("newAlert")} value={cat} onChange={(e) => setCat(e.target.value as "signal" | "options" | "suite")}>
               <option value="signal">{t("condCatSignal")}</option>
@@ -611,6 +818,15 @@ export default function AlertsView({ email, panelOnly, listOnly }: { email: stri
               </span>
             </div>
           )}
+          {/* E17: read-only "would it trigger right now?" for this exact unsaved condition */}
+          {cat === "suite" && (
+            <AlertDryRunPanel
+              symbol={sym}
+              condition={suiteMode === "seq" ? seqCondition : suiteCondition}
+              signedIn={!!email}
+              locked={suiteMode === "seq" ? seqLocked : curLocked}
+            />
+          )}
         </div>
   );
   const gateNudgeNode = gateNudge && (
@@ -626,12 +842,14 @@ export default function AlertsView({ email, panelOnly, listOnly }: { email: stri
   const existingAlertsPanel = (
         <div className="panel">
           {/* The count is a claim about the inventory — it must not print "0 total" over a
-              read that never landed. The re-read control is always present when signed in: a
+              read that never landed, and that includes the FIRST read while it is still in
+              flight (`alerts` starts as [], so only `loaded` can tell). The re-read control is always present when signed in: a
               retry path that only exists once a failure is already on screen cannot recover a
               refresh that failed over rows the user can still see. */}
           <div className="ph">
-            {t("activeAlerts")}
-            {!signedOut && !(unavailable && alerts.length === 0) && <span className="sub">{alerts.length} {t("total")}</span>}
+            {alerts.some((row) => isForexWatch(row.condition))
+              ? (L === "zh" ? "已保存提醒与条件" : "Saved alerts and conditions") : t("activeAlerts")}
+            {loaded && !signedOut && !(unavailable && alerts.length === 0) && <span className="sub">{alerts.length} {t("total")}</span>}
             {!signedOut && loaded && (
               <button
                 type="button"
@@ -681,7 +899,9 @@ export default function AlertsView({ email, panelOnly, listOnly }: { email: stri
           )}
           {loaded && !signedOut && !unavailable && alerts.length === 0 && <div data-alerts-state="empty" style={{ padding: "26px 15px", color: "var(--muted)", fontSize: 13 }}>{t("noAlertsYet")}</div>}
           {!signedOut && alerts.map((a) => {
-            const trig = !a.active && a.condition?.triggered; // engine one-shot: fired -> disarmed + stamped
+            const forex = isForexWatch(a.condition);
+            const savedForex = forex ? forexWatchRow(a) : null;
+            const trig = !forex && !a.active && a.condition?.triggered; // engine one-shot: fired -> disarmed + stamped
             const note = trig ? String(a.condition.triggered.note ?? "") : "";
             const tval = trig ? a.condition.triggered.value : null;
             // Minor-1 (round-9 review of a32b8fd4): mirrors the exact render gate of the
@@ -690,20 +910,25 @@ export default function AlertsView({ email, panelOnly, listOnly }: { email: stri
             // actually about to render — an unconditional row reference was allocating an
             // always-empty row-2 track (and its row-gap on both edges) on every unfired row.
             const hasNote = lang === "zh" ? !!trig : !!(trig && note);
+            const phase = rearmPhase[a.id];
             return (
-              <div key={a.id} className={`arow${hasNote ? " has-note" : ""}`}>
-                <span className={`dot${a.active ? "" : " off"}`} style={trig ? { background: "var(--signal)" } : undefined} />
+              <div key={a.id} data-forex-watch={forex ? a.id : undefined} className={`arow${hasNote ? " has-note" : ""}`}>
+                <span className={`dot${a.active && !forex ? "" : " off"}`} style={trig ? { background: "var(--signal)" } : undefined} />
                 <span><span className="tk">{a.symbol}</span> <span className="cond">· {condText(a.condition)}</span></span>
-                {trig ? <button className="btn" style={{ height: 26, fontSize: 11.5, justifySelf: "end" }} onClick={() => rearm(a.id)}>{t("rearm")}</button> : <span />}
+                {phase === "sending" ? (
+                  <button className="btn" style={{ height: 26, fontSize: 11.5, justifySelf: "end" }} disabled>{REARM_COPY.rearming[L]}</button>
+                ) : trig && (!phase || phase === "unconfirmed") ? (
+                  <button className="btn" style={{ height: 26, fontSize: 11.5, justifySelf: "end" }} onClick={() => rearm(a.id)}>{t("rearm")}</button>
+                ) : <span />}
                 <span style={{ color: "var(--muted)", fontSize: 11.5 }}>{fmtDate(a.created_at)}</span>
                 {trig ? (
                   <span style={{ color: "var(--signal)", fontSize: 11.5 }}>
                     {t("triggeredAt")} {fmtDate(a.condition.triggered.at)}
                   </span>
                 ) : (
-                  <span style={{ color: a.active ? "var(--up)" : "var(--muted)", fontSize: 11.5 }}>{a.active ? t("armed") : t("paused")}</span>
+                  <span style={{ color: a.active && !forex ? "var(--up)" : "var(--muted)", fontSize: 11.5 }}>{forex ? (savedForex ? FOREX_INACTIVE_COPY[L] : (L === "zh" ? "条件状态不可用" : "Condition status unavailable")) : a.active ? t("armed") : t("paused")}</span>
                 )}
-                <button className="icbtn" aria-label={t("remove")} onClick={() => setConfirmDel((c) => (c === a.id ? null : a.id))}><svg viewBox="0 0 24 24"><path d="M5 7h14M9 7V5h6v2M7 7l1 13h8l1-13" /></svg></button>
+                <button className="icbtn" aria-label={t("remove")} disabled={forex && (!savedForex || !!forexDeletes[a.id])} onClick={() => setConfirmDel((c) => (c === a.id ? null : a.id))}><svg viewBox="0 0 24 24"><path d="M5 7h14M9 7V5h6v2M7 7l1 13h8l1-13" /></svg></button>
                 {/* WHY it fired — was title=-only, invisible to touch and keyboard.
                     The note is composed server-side by ingest/alerts_engine.py as one
                     English string, so it does NOT follow the UI language (major, round-6
@@ -741,6 +966,38 @@ export default function AlertsView({ email, panelOnly, listOnly }: { email: stri
                         {tval != null ? ` · ${tval}` : ""}
                       </span>
                     )}
+                {/* Re-arm not confirmed: say so, beside the latest observation. Rides the delete
+                    confirm's full-width track (appended after child 6, so the 390px grid's
+                    nth-child placement is untouched). */}
+                {phase && phase !== "sending" ? (
+                  <span className="arow-confirm arow-rearm" role="status" data-rearm-state={phase}>
+                    <span className="arow-confirm-q">{REARM_COPY[phase][L]}</span>
+                    {phase === "check-failed" && (
+                      <button type="button" className="btn" onClick={() => checkRearm(a.id)}>{REARM_COPY.checkStatus[L]}</button>
+                    )}
+                  </span>
+                ) : earlierUnknown[a.id] ? (
+                  <span className="arow-confirm arow-rearm" role="status" data-rearm-state="earlier-unconfirmed">
+                    <span className="arow-confirm-q">{REARM_COPY.earlier[L]}</span>
+                  </span>
+                ) : null}
+                {savedForex && (
+                  <span className="arow-confirm" data-forex-watch-details>
+                    <span className="arow-confirm-q">
+                      {FOREX_UNAVAILABLE_COPY[L]}{" "}
+                      {L === "zh" ? "到期时间" : "Expires"}: {String(savedForex.condition.expires_at).replace("T", " ").replace(".000Z", " UTC")}{" · "}
+                      {L === "zh" ? "版本" : "Version"} {savedForex.condition.revision}
+                    </span>
+                  </span>
+                )}
+                {forexDeletes[a.id] && (
+                  <span className="arow-confirm" role="status" data-forex-delete={forexDeletes[a.id]}>
+                    <span className="arow-confirm-q">{FOREX_DELETE_COPY[forexDeletes[a.id]][L]}</span>
+                    {forexDeletes[a.id] === "unconfirmed" && <button className="btn" onClick={() => void retryLoad()}>
+                      {FOREX_DELETE_COPY.checkStatus[L]}
+                    </button>}
+                  </span>
+                )}
                 {confirmDel === a.id && (
                   <span className="arow-confirm" role="group" aria-label={t("deleteAlertQ")}>
                     <span className="arow-confirm-q">{t("deleteAlertQ")}</span>

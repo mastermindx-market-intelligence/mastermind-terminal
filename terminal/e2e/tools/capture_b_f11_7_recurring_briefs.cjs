@@ -211,6 +211,11 @@ async function openAlerts(page, lang, viewport, deliveries) {
   }, lang);
   await page.goto(`${BASE}/alerts?lang=${lang}`, { waitUntil: "domcontentloaded", timeout: 90_000 });
   await page.getByTestId("briefs-inbox").waitFor({ state: "visible", timeout: 45_000 });
+  // The cockpit initially renders a lazy-mount placeholder with the same test id.
+  // Scroll it into view, then require the actual list/empty state before capture.
+  await page.getByTestId("briefs-inbox").scrollIntoViewIfNeeded();
+  await page.locator(deliveries.length ? '[data-brief-row]' : '[data-briefs-state="empty"]').first()
+    .waitFor({ state: "visible", timeout: 45_000 });
   await stripDevOverlay(page);
 }
 
@@ -316,6 +321,8 @@ async function main() {
     const browser = await chromium.launch({ headless: true });
     try {
       for (const shot of SHOTS) {
+        const only = (process.env.CAPTURE_ONLY || "").split(",").filter(Boolean);
+        if (only.length && !only.includes(shot.kind) && !only.includes(shot.file)) continue;
         process.stdout.write(`capture ${shot.file} … `);
         const context = await browser.newContext({
           viewport: VIEWPORTS[shot.viewport],
@@ -351,6 +358,12 @@ async function main() {
     stopServer(child);
   }
 
+  // A subset capture cannot qualify unrendered surfaces or their source hashes.
+  if (files.length !== SHOTS.length) {
+    console.log(`wrote ${files.length} crops; retained EVIDENCE.yml for scoped binding adjudication`);
+    return;
+  }
+
   const evidence = [
     "# B-F11-7 Recurring briefs — capture evidence",
     "# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06",
@@ -368,7 +381,7 @@ async function main() {
     "harness:",
     ...SHOTS.map((s) => `  ${s.file}: { kind: ${s.kind}, lang: ${s.lang}, viewport: ${s.viewport} }`),
     "capture_flag: TERMINAL_E2E_FIXTURE",
-    "capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This script starts next dev with the same flag.",
+    "capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This script starts next dev with the same flag.",
     "command: |",
     "  cd terminal",
     "  node e2e/tools/capture_b_f11_7_recurring_briefs.cjs",

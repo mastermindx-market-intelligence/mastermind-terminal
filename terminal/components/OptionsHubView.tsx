@@ -1,10 +1,16 @@
 "use client";
 import {
   memo,
-  useCallback, useDeferredValue, useEffect, useMemo, useRef, useState,
+  useCallback, useDeferredValue, useEffect, useMemo, useRef, useState, useSyncExternalStore,
   type CSSProperties, type ReactNode,
 } from "react";
+import { dailyActivityNote, signedActivityLabel } from "@/lib/flowActivity";
 import dynamic from "next/dynamic";
+import { useSearchParams } from "next/navigation";
+import { createDefaultTapeView, decodeTapeView, type TapeViewState } from "@/lib/optionsTapeView";
+import { OptionsTapeViewLink } from "@/components/options/OptionsTapeViewLink";
+import { OptionsTapeSavedViews } from "@/components/options/OptionsTapeSavedViews";
+import { useTapeViewText } from "@/components/options/optionsTapeViewStrings";
 import { useLang, useT } from "@/lib/i18n";
 import type { Lang } from "@/lib/i18n";
 import { daysHeld, daysToExpiry, volAboveOi } from "@/lib/plainAbbrev";
@@ -12,8 +18,9 @@ import { CoachProvider, useCoach } from "@/lib/tutorial/coach";
 import { getTutStr } from "@/lib/tutorial/tutorialStrings";
 import { abbrevSector } from "@/lib/sectorAbbrev";
 import { windowGexRows } from "@/lib/windowGexRows.mjs";
-import { flowGet, flowInvalidate, flowPrefetch } from "@/lib/flowClientCache";
+import { flowGet, flowGetFresh, flowInvalidate, flowPrefetch } from "@/lib/flowClientCache";
 import { useFlowStream } from "@/lib/flowStream";
+import { FD } from "@/lib/flowdeskStrings";
 import { usOptionsSessionState } from "@/lib/flowFreshness";
 import { trackSearch } from "@/lib/searchTrack";
 import { normalizeVolUnits } from "@/lib/eodContext";
@@ -40,6 +47,16 @@ import { VolRegimeChip } from "@/components/eodcontext/VolRegimeChip";
 import { OptionsCsvExportButton } from "@/components/options/OptionsCsvExportButton";
 import { OptionsFlowBoardView } from "@/components/options/OptionsFlowBoardView";
 import { FlowFreshnessReceipt } from "@/components/flowdesk/FlowFreshnessReceipt";
+import {
+  ContractPinButton,
+  ContractShortlistTray,
+  shortlistSource,
+  useContractShortlist,
+} from "@/components/options/ContractShortlist";
+import { useOptionsPlanScope } from "@/lib/useOptionsPlanScope";
+import { useShortlistT } from "@/lib/optionsContractShortlistLex";
+import type { OptionsPlanDraft } from "@/lib/optionsPlanDraft";
+import { locatePin, sessionOf, type PinLocation, type ShortlistPin } from "@/lib/optionsContractShortlist";
 // Shared SVG chart primitives — measured 1:1 viewBox, nice ticks, pixel-gap label
 // thinning, padded domains. The hygiene rules live in that module's header.
 import {
@@ -363,11 +380,18 @@ interface LeadersPayload {
   as_of: string;
   session_date?: string;
   stale: boolean;
+  stale_reason?: string | null;
+  source_age_stale?: boolean;
+  source_family?: string;
+  signal_policy?: string;
   cold_start: boolean;
   cold_start_detail?: LeadersColdStart;
   direction_note?: string;
   coverage: {
     n_universe: number;
+    n_expected_roots?: number;
+    n_current_roots?: number;
+    same_session_coverage_ratio?: number;
     n_flow_sessions: number;
     flow_z_live: boolean;
     tape_names: string[];
@@ -514,14 +538,9 @@ function fmtPremium(n: number): string {
   return `$${n.toFixed(0)}`;
 }
 
-/** Plain-language presentation of the premium z-score used by the data contract. */
+/** Signed presentation of the premium z-score used by the data contract: negative z is below the baseline, positive above. */
 function activityBand(z: number | null, lang: Lang): string {
-  if (z == null) return lang === "zh" ? "积累中" : "Warming";
-  const az = Math.abs(z);
-  if (az >= 3) return lang === "zh" ? "极异常" : "Extreme";
-  if (az >= 2) return lang === "zh" ? "很异常" : "Very unusual";
-  if (az >= 1) return lang === "zh" ? "偏高" : "Elevated";
-  return lang === "zh" ? "正常" : "Typical";
+  return signedActivityLabel(z, lang === "zh" ? "zh" : "en");
 }
 
 // GICS sector name → its SPDR ETF ticker. sector_etf_flows (ctx) is keyed by ETF
@@ -1497,18 +1516,32 @@ export interface OptionsHubViewProps {
   onTab?: (tab: TabKey) => void;
   /** Suppress the internal legacy tab strip even in uncontrolled mode. */
   hideTabStrip?: boolean;
+  /** Whole canonical draft only; an admitted Investigation owner supplies Save. */
+  onPlanDraftChange?: (draft: OptionsPlanDraft) => void;
+  /** Every editor change, including null for invalid input or explicit close. */
+  onPlanDraftInputChange?: (draft: OptionsPlanDraft | null) => void;
 }
+
+// No external hydration events are needed: React compares the server and client snapshots.
+const subscribeHydration = () => () => {};
+const clientHydrated = () => true;
+const serverHydrated = () => false;
 
 export default function OptionsHubView({
   allowedTabs,
   activeTab: controlledTab,
   onTab,
   hideTabStrip,
+  onPlanDraftChange,
+  onPlanDraftInputChange,
 }: OptionsHubViewProps = {}) {
   const { lang } = useLang();
   const t = useT();
+  const doiT = useShortlistT();
+  const viewText = useTapeViewText();
 
   const controlled = onTab !== undefined;
+  const [exposureMapFirst, setExposureMapFirst] = useState(false);
 
   // Tabs the hub is permitted to render. `tickers` is always reachable when
   // leaders/radar are allowed so their row → ticker-drill cross-jump survives
@@ -1637,21 +1670,60 @@ export default function OptionsHubView({
   }, []);
 
   // ── Filter state (Tape tab) ───────────────────────────────────────────────
-  const [minPrem, setMinPrem] = useState<number>(0);
-  const [dteBuckets, setDteBuckets] = useState<Set<DteBucket>>(new Set());
-  const [mnyBuckets, setMnyBuckets] = useState<Set<MnyBucket>>(new Set());
-  const [groupFilter, setGroupFilter] = useState<string>("");
+  const tapeInputHydrated = useSyncExternalStore(subscribeHydration, clientHydrated, serverHydrated);
+  const tapeParams = useSearchParams();
+  const requestedTapeView = JSON.stringify(tapeParams.getAll("tapeView"));
+  const [appliedTapeView, setAppliedTapeView] = useState(requestedTapeView);
+  const [initialTapeView] = useState(() => {
+    const values = tapeParams.getAll("tapeView");
+    const raw = values[0] ?? null;
+    const view = values.length <= 1 ? decodeTapeView(raw) : null;
+    return { view: view ?? createDefaultTapeView(), invalid: raw !== null && view === null };
+  });
+  const [invalidTapeView, setInvalidTapeView] = useState(initialTapeView.invalid);
+  const [minPrem, setMinPrem] = useState<number>(initialTapeView.view.minPrem);
+  const [dteBuckets, setDteBuckets] = useState<Set<DteBucket>>(new Set(initialTapeView.view.dteBuckets));
+  const [mnyBuckets, setMnyBuckets] = useState<Set<MnyBucket>>(new Set(initialTapeView.view.mnyBuckets));
+  const [groupFilter, setGroupFilter] = useState<string>(initialTapeView.view.groupFilter);
   // Tide tab sub-view: the classic net-premium tide chart, or the quanted-style Session
   // Flow pane (C+P|calls|puts · cumulative|per-min · off-open · fill · absolute).
   const [tideView, setTideView] = useState<"tide" | "session">("tide");
-  const [drillTicker, setDrillTicker] = useState<string | null>(null);
-  const [tapeTickerSearch, setTapeTickerSearch] = useState<string>("");
-  const [sideFilter, setSideFilter] = useState<string>("");
-  const [flagFilter, setFlagFilter] = useState<string>("");
-  const [sortKey, setSortKey] = useState<"ts" | "premium">("ts");
-  const [sortDir, setSortDir] = useState<1 | -1>(-1);
+  const [drillTicker, setDrillTicker] = useState<string | null>(initialTapeView.view.drillTicker);
+  const [tapeTickerSearch, setTapeTickerSearch] = useState<string>(initialTapeView.view.tapeTickerSearch);
+  const [sideFilter, setSideFilter] = useState<string>(initialTapeView.view.sideFilter);
+  const [flagFilter, setFlagFilter] = useState<string>(initialTapeView.view.flagFilter);
+  const [sortKey, setSortKey] = useState<"ts" | "premium">(initialTapeView.view.sortKey);
+  const [sortDir, setSortDir] = useState<1 | -1>(initialTapeView.view.sortDir);
   const [showPresets, setShowPresets] = useState(false);
   const presetsRef = useRef<HTMLDivElement>(null);
+
+  // One application path for URL restoration and saved display preferences.
+  const applyTapeView = (next: TapeViewState) => {
+    setMinPrem(next.minPrem);
+    setDteBuckets(new Set(next.dteBuckets));
+    setMnyBuckets(new Set(next.mnyBuckets));
+    setGroupFilter(next.groupFilter);
+    setDrillTicker(next.drillTicker);
+    setTapeTickerSearch(next.tapeTickerSearch);
+    setSideFilter(next.sideFilter);
+    setFlagFilter(next.flagFilter);
+    setSortKey(next.sortKey);
+    setSortDir(next.sortDir);
+    setShowPresets(false);
+  };
+
+  // Next keeps this component mounted for same-route history navigation. Apply
+  // only an actual change to the shared-view parameter; unrelated URL updates
+  // must preserve local filter edits. Guarded render-time adjustment prevents
+  // a frame of results for the previous view before an invalid link is withheld.
+  if (requestedTapeView !== appliedTapeView) {
+    const values = tapeParams.getAll("tapeView");
+    const decoded = values.length === 1 ? decodeTapeView(values[0]) : null;
+    const next = decoded ?? createDefaultTapeView();
+    setAppliedTapeView(requestedTapeView);
+    setInvalidTapeView(values.length > 0 && decoded === null);
+    applyTapeView(next);
+  }
 
   useEffect(() => {
     if (!showPresets) return;
@@ -1951,6 +2023,25 @@ export default function OptionsHubView({
     else { setScrSortKey(key); setScrSortDir(-1); }
   }
 
+  // E15 exact-contract shortlist. Read-only over oiData/hotData: pinning never
+  // touches the source arrays, filters, sort or view. "Show in list" returns to
+  // the originating table exactly as its preset chip would, and never edits the
+  // index filter — a filtered-out pin is reported instead.
+  const planScope = useOptionsPlanScope();
+  const contractShortlist = useContractShortlist(planScope);
+  const showPinInList = (pin: ShortlistPin): PinLocation => {
+    const list = pin.family === "doi" ? oiData?.movers : hotData?.[pin.hotView ?? "by_premium"];
+    const where = locatePin(pin, list, scrRoot);
+    if (where !== "present") return where;
+    if (screenerPreset !== pin.family) {
+      setScreenerPreset(pin.family);
+      setScrSortKey(""); setScrSortDir(-1);
+      setScrGroup("");
+    }
+    if (pin.family === "hot" && pin.hotView && pin.hotView !== hotView) setHotView(pin.hotView);
+    return where;
+  };
+
   // The table and CSV consume the same memoized collections. That makes the
   // active preset's filters and ordering an executable contract instead of two
   // implementations that can drift apart.
@@ -2139,20 +2230,34 @@ export default function OptionsHubView({
   const [leadersLoading, setLeadersLoading] = useState(false);
   const [leadersError, setLeadersError] = useState(false);
   const [leadersBoard, setLeadersBoard] = useState<"a" | "b">("a");
+  const [showHistoricalLeaders, setShowHistoricalLeaders] = useState(false);
 
-  const fetchLeaders = useCallback(async () => {
-    if (leadersData) return;
+  // The nightly data can advance while this workspace stays mounted. The ordinary
+  // flowGet SWR path returns yesterday's cache and only refreshes it in the background;
+  // the previous "if (leadersData) return" then held that first payload indefinitely.
+  // Wait for revalidation on each Leaders entry or explicit retry.
+  const fetchLeaders = useCallback(async (force = false) => {
     setLeadersLoading(true); setLeadersError(false);
     try {
-      const d = await flowGet("leaders");
-      if (d) setLeadersData(d as unknown as LeadersPayload);
-      else setLeadersError(true);
+      // A manual check explicitly revalidates the publisher through the
+      // existing client/server cache owners, even inside the normal TTL.
+      const d = await flowGetFresh("leaders", { forceUpstream: force });
+      if (d && typeof d === "object" &&
+          Array.isArray((d as LeadersPayload).board_a) &&
+          Array.isArray((d as LeadersPayload).board_b) &&
+          (d as LeadersPayload).coverage) {
+        const payload = d as LeadersPayload;
+        setLeadersData(payload);
+        if (!payload.stale) setShowHistoricalLeaders(false);
+      } else {
+        setLeadersError(true);
+      }
     } catch { setLeadersError(true); }
     setLeadersLoading(false);
-  }, [leadersData]);
+  }, []);
 
   useEffect(() => {
-    if (activeTab === "leaders") fetchLeaders();
+    if (activeTab === "leaders") void fetchLeaders();
   }, [activeTab, fetchLeaders]);
 
   // ── Leader Radar fetch ────────────────────────────────────────────────────
@@ -2239,8 +2344,9 @@ export default function OptionsHubView({
           // hub's own header wherever the hub is acting as a HUB — standalone or inside the
           // workspace. A Discover single-tab embed (one allowed tab) is a bare mount of one
           // surface, not a hub header, and must stay bare.
-          const showVol = stripTabs.length > 1;
-          if (!showStrip && !showFlowTiming && !activeAsof && !showVol) return null;
+          const showVol = stripTabs.length > 1 && !(activeTab === "gex" && exposureMapFirst);
+          const showAsof = !!activeAsof && !(activeTab === "gex" && exposureMapFirst);
+          if (!showStrip && !showFlowTiming && !showAsof && !showVol) return null;
           return (
         <div className="options-flow-status-row" style={{ display: "flex", alignItems: "center", padding: "8px 14px", borderBottom: "1px solid var(--line)", flexShrink: 0, gap: 8 }}>
           {showStrip && (
@@ -2274,7 +2380,7 @@ export default function OptionsHubView({
               className="options-flow-freshness"
             />
           )}
-          {activeAsof && (
+          {showAsof && (
             <span style={{ color: "var(--text-dim)", fontSize: 11 }}>
               {t("asOf", "as of")} {fmtAsof(activeAsof)}
               {activeStale && (
@@ -2332,7 +2438,19 @@ export default function OptionsHubView({
           )}
 
           {/* ═══ TAPE TAB ═══════════════════════════════════════════════════ */}
-          {activeTab === "tape" && (
+          {activeTab === "tape" && invalidTapeView && (
+            <div className="fin-empty fin-empty-lg" role="alert" data-options-tape-view="invalid">
+              <div className="fin-empty-title">{viewText("tapeViewInvalid")}</div>
+              <p>{viewText("tapeViewInvalidBody")}</p>
+              <button className="chip" onClick={() => {
+                const url = new URL(window.location.href);
+                url.searchParams.delete("tapeView");
+                window.history.replaceState(null, "", url);
+                setInvalidTapeView(false);
+              }}>{viewText("tapeViewOpenDefault")}</button>
+            </div>
+          )}
+          {activeTab === "tape" && !invalidTapeView && (
             <>
               {/* Belt: index roots, then sector groups. Both drive the SAME table below —
                   index chips reuse drillTicker (per-root), sector chips groupFilter, and the
@@ -2484,24 +2602,60 @@ export default function OptionsHubView({
 
                 {/* Ticker search */}
                 <input
-                  type="text"
+                  type="search"
+                  id="options-tape-ticker-search"
+                  name="options-tape-ticker-search"
+                  autoComplete="off"
+                  autoCapitalize="characters"
+                  spellCheck={false}
+                  aria-label={t("tapeTickerPlaceholder", "Ticker…")}
                   placeholder={t("tapeTickerPlaceholder", "Ticker…")}
+                  // The SSR value is visible before React can preserve user edits.
+                  disabled={!tapeInputHydrated}
                   value={tapeTickerSearch}
                   onChange={(e) => { setTapeTickerSearch(e.target.value); setDrillTicker(null); }}
                   style={{ height: 28, padding: "0 10px", borderRadius: "var(--r-md)", background: "var(--inset)", border: "1px solid var(--line)", color: "var(--text)", font: "13px var(--font-ui)", width: 110 }}
                 />
 
+                {sideFilter && <button className="chip" onClick={() => setSideFilter("")}
+                  title={t("clearFilter")}>{viewText("tapeViewSide")}: {sideFilter} ×</button>}
+                {flagFilter && <button className="chip" onClick={() => setFlagFilter("")}
+                  title={t("clearFilter")}>{(flagFilter === "swept" ? viewText("tapeViewSwept") : t(flagFilter === "repeated" ? "presetRepeat" : "presetPutsOnStrength"))} ×</button>}
+
                 {/* Reset */}
-                {(minPrem > 0 || dteBuckets.size > 0 || mnyBuckets.size > 0 || groupFilter || tapeTickerSearch || drillTicker || sideFilter || flagFilter) && (
+                {(minPrem > 0 || dteBuckets.size > 0 || mnyBuckets.size > 0 || groupFilter || tapeTickerSearch || drillTicker || sideFilter || flagFilter || sortKey !== "ts" || sortDir !== -1) && (
                   <button
                     className="chip"
                     style={{ marginLeft: 4, color: "var(--muted)", height: 26, fontSize: 11 }}
-                    onClick={() => { setMinPrem(0); setDteBuckets(new Set()); setMnyBuckets(new Set()); setGroupFilter(""); setTapeTickerSearch(""); setDrillTicker(null); setSideFilter(""); setFlagFilter(""); }}
+                    onClick={() => { setMinPrem(0); setDteBuckets(new Set()); setMnyBuckets(new Set()); setGroupFilter(""); setTapeTickerSearch(""); setDrillTicker(null); setSideFilter(""); setFlagFilter(""); setSortKey("ts"); setSortDir(-1);
+                      const url = new URL(window.location.href);
+                      url.searchParams.delete("tapeView");
+                      window.history.replaceState(null, "", url);
+                    }}
                   >
                     {t("tapeReset", "Reset")}
                   </button>
                 )}
 
+                <OptionsTapeSavedViews state={{
+                  minPrem, dteBuckets: [...dteBuckets], mnyBuckets: [...mnyBuckets],
+                  groupFilter, drillTicker, tapeTickerSearch, sideFilter, flagFilter,
+                  sortKey, sortDir,
+                }} onApply={(encoded) => {
+                  // Invalid shared links keep their explicit recovery boundary.
+                  const restored = decodeTapeView(encoded);
+                  if (invalidTapeView || !restored) return;
+                  // Also handles re-opening the URL's screen after unsaved local edits.
+                  applyTapeView(restored);
+                  const url = new URL(window.location.href);
+                  url.searchParams.set("tapeView", encoded);
+                  window.history.pushState(null, "", url);
+                }} />
+                <OptionsTapeViewLink state={{
+                  minPrem, dteBuckets: [...dteBuckets], mnyBuckets: [...mnyBuckets],
+                  groupFilter, drillTicker, tapeTickerSearch, sideFilter, flagFilter,
+                  sortKey, sortDir,
+                }} />
                 <OptionsCsvExportButton
                   label={t("exportCsv")}
                   rowCount={events.length}
@@ -2690,7 +2844,7 @@ export default function OptionsHubView({
                         <span className="flow-unusual-group">{lang === "zh" ? u.group_zh : u.group}</span>
                         <div className="flow-unusual-meta">
                           <span className="num">{fmtPremium(u.gross_premium_today)}</span>
-                          <span className="flow-unusual-band">{activityBand(u.prem_z, lang)}</span>
+                          <span className="flow-unusual-band" title={dailyActivityNote(lang)}>{activityBand(u.prem_z, lang)}</span>
                         </div>
                       </button>
                     ))}
@@ -3145,15 +3299,15 @@ export default function OptionsHubView({
                         const histN = tctxData.history_n ?? 0;
                         const minN = 20;
                         const warming = histN < minN;
-                        const chips: { labelKey: string; label: string; zKey: keyof NonNullable<TctxPayload["z"]> }[] = [
-                          { labelKey: "tctxNetPremZ", label: "Net activity", zKey: "net_signed_premium_z252" },
-                          { labelKey: "tctxVolGtOiShare", label: "New-position activity", zKey: "vol_gt_oi_share_z252" },
+                        const chips: { label: string; zKey: keyof NonNullable<TctxPayload["z"]> }[] = [
+                          { label: t("tctxNetPremZ", "Net activity"), zKey: "net_signed_premium_z252" },
+                          { label: FD.volumeOiActivity[lang], zKey: "vol_gt_oi_share_z252" },
                         ];
                         return chips.map((c) => {
                           const zVal = tctxData.z?.[c.zKey];
                           return (
                             <div key={c.zKey} style={{ border: "1px solid var(--line)", borderRadius: "var(--r-tile)", padding: "5px 10px", background: "var(--panel)" }}>
-                              <div className="obs-lbl">{t(c.labelKey, c.label)}</div>
+                              <div className="obs-lbl">{c.label}</div>
                               <div className="num" style={{ fontSize: 13, fontWeight: 650, marginTop: 4, fontVariantNumeric: "tabular-nums", color: "var(--text)" }}>
                                 {warming || zVal == null
                                   ? <span style={{ fontSize: 10, color: "var(--text-dim)" }}>—</span>
@@ -3364,7 +3518,7 @@ export default function OptionsHubView({
                 const PRESET_DEFS: PresetDef[] = [
                   { key: "top_prem",  en: "Top Premium",       zh: "保费最大",     needsFeed: true },
                   { key: "unusual_z", en: "Unusual Activity",   zh: "异常活跃",     needsFeed: true },
-                  { key: "fresh",     en: "Fresh Positioning",  zh: "新建仓位",     needsFeed: true },
+                  { key: "fresh",     en: "Volume > OI",       zh: "成交量>持仓",   needsFeed: true },
                   { key: "doi",       en: "ΔOI Builds",         zh: "持仓增长",     needsOi: true },
                   { key: "zerodte",   en: "0DTE Heavy",         zh: "高0DTE占比",   needsFeed: true },
                   { key: "hot",       en: "Hot Contracts",      zh: "热门合约",     needsHot: true },
@@ -3487,6 +3641,16 @@ export default function OptionsHubView({
                 padding: "14px 18px", display: "flex", flexDirection: "column", gap: 16,
               }}>
 
+              {(oiData || hotData) && (
+                <ContractShortlistTray
+                  shortlist={contractShortlist}
+                  active={screenerPreset === "doi" || screenerPreset === "hot"}
+                  onShowInList={showPinInList}
+                  scopeKey={planScope}
+                  onPlanDraftChange={onPlanDraftChange}
+                  onPlanDraftInputChange={onPlanDraftInputChange}
+                />
+              )}
               {screenerLoading && !oiData && !hotData && !feed && (
                 <div className="fin-empty" role="status">{t("loading", "Loading…")}</div>
               )}
@@ -3527,7 +3691,7 @@ export default function OptionsHubView({
                             <th style={{ textAlign: "left" }}>{lang === "zh" ? "代码" : "Ticker"}</th>
                             <th style={{ textAlign: "left" }}>{t("screenerColSector", "Sector")}</th>
                             {hdr("gross", "Gross Prem", "总权利金", "Total premium across all flow events today")}
-                            {hdr("z", "Activity", "活跃度", "Premium activity compared with roughly one trading year")}
+                            {hdr("z", "Activity", "活跃度", dailyActivityNote(lang))}
                             {hdr("call_share", "Call%", "认购占比", "Call premium share of total")}
                           </tr>
                         </thead>
@@ -3587,7 +3751,7 @@ export default function OptionsHubView({
                           <tr>
                             <th style={{ textAlign: "left" }}>{lang === "zh" ? "代码" : "Ticker"}</th>
                             <th style={{ textAlign: "left" }}>{t("screenerColSector", "Sector")}</th>
-                            {hdr("z", "Activity", "活跃度", "Premium activity compared with roughly one trading year")}
+                            {hdr("z", "Activity", "活跃度", dailyActivityNote(lang))}
                             {hdr("gross", "Gross", "总权利金", "Total premium today")}
                             {hdr("call_share", "Call%", "认购占比")}
                           </tr>
@@ -3638,7 +3802,7 @@ export default function OptionsHubView({
                 return (
                   <div className="obs-card" style={{ overflow: "hidden" }}>
                     <div className="obs-card-hd" style={{ borderBottom: "1px solid var(--line)" }}>
-                      <span className="obs-lbl">{t("ohFreshPositioning")}</span>
+                      <span className="obs-lbl">{FD.volumeOiHeading[lang]}</span>
                     </div>
                     <div style={{ overflowX: "auto" }}>
                       <table className="scr" style={{ fontSize: 12 }}>
@@ -3646,8 +3810,8 @@ export default function OptionsHubView({
                           <tr>
                             <th style={{ textAlign: "left" }}>{lang === "zh" ? "代码" : "Ticker"}</th>
                             <th style={{ textAlign: "left" }}>{t("screenerColSector", "Sector")}</th>
-                            {hdr("n", "Fresh hits", "新开仓次数", t("ohFreshFoot"))}
-                            {hdr("prem", "Prem", "保费", t("ohFreshFoot"))}
+                            {hdr("n", "Vol > OI hits", "成交量>持仓次数", FD.volumeOiExplanation[lang])}
+                            {hdr("prem", "Prem", "保费", FD.volumeOiExplanation[lang])}
                           </tr>
                         </thead>
                         <tbody>
@@ -3662,13 +3826,13 @@ export default function OptionsHubView({
                             </tr>
                           ))}
                           {rows.length === 0 &&
-                            scrEmptyRow(4, t("ohFreshPositioning"), t("ohFreshPositioning"),
+                            scrEmptyRow(4, FD.volumeOiHeading.en, FD.volumeOiHeading.zh,
                               (feed.events ?? []).filter((e) => e.vol_gt_oi).length)}
                         </tbody>
                       </table>
                     </div>
                     <div style={{ padding: "6px 14px", fontSize: 10, color: "var(--text-dim)", borderTop: "1px solid var(--line)" }}>
-                      {t("ohFreshFoot")}
+                      {FD.volumeOiExplanation[lang]}
                     </div>
                   </div>
                 );
@@ -3677,6 +3841,7 @@ export default function OptionsHubView({
               {/* ── ΔOI Builds view — oiData.movers ── */}
               {screenerPreset === "doi" && oiData && (() => {
                 const rows = oiRows;
+                const reportDate = sessionOf(oiData.asof);
                 const hdr = (key: string, en: string, zh: string, tip?: string) => (
                   <th style={{ cursor: "pointer" }} className={scrSortKey === key ? "sorted" : ""} onClick={() => scrSort(key)} title={tip}>
                     {lang === "zh" ? zh : en}{scrSortKey === key ? (scrSortDir === -1 ? " ↓" : " ↑") : ""}
@@ -3687,7 +3852,7 @@ export default function OptionsHubView({
                     <div className="obs-card-hd" style={{ borderBottom: "1px solid var(--line)" }}>
                       <span className="obs-lbl">{t("ohOiBuilds")}</span>
                       <span style={{ fontSize: 11, color: "var(--text-dim)" }}>
-                        {t("ohAsOfPrevSession")}
+                        {reportDate ? doiT("e15O_report_dated").replace("{d}", reportDate) : doiT("e15O_report_date_unavailable")}
                       </span>
                     </div>
                     <div style={{ overflowX: "auto" }}>
@@ -3698,8 +3863,8 @@ export default function OptionsHubView({
                             <th style={{ textAlign: "left" }}>{lang === "zh" ? "认购/认沽" : "C/P"}</th>
                             <th style={{ textAlign: "left" }}>{lang === "zh" ? "到期日" : "Exp"}</th>
                             <th>{lang === "zh" ? "行权价" : "Strike"}</th>
-                            {hdr("doi", t("ohOiChange"), t("ohOiChange"), t("ohDoiFoot"))}
-                            {hdr("oi", t("ohOiYesterday"), t("ohOiYesterday"))}
+                            {hdr("doi", t("ohOiChange"), t("ohOiChange"), doiT("e15O_reported_doi_foot"))}
+                            {hdr("oi", doiT("e15O_reported_oi"), doiT("e15O_reported_oi"))}
                             {hdr("mid", "Mid", "中间价")}
                           </tr>
                         </thead>
@@ -3708,7 +3873,10 @@ export default function OptionsHubView({
                             const isAdd = m.d_oi > 0;
                             return (
                               <tr key={i} style={{ cursor: "pointer" }} onClick={() => { switchTab("tickers"); setSelectedTicker(m.root); }}>
-                                <td style={{ textAlign: "left", fontWeight: 700 }}>{m.root}</td>
+                                <td style={{ textAlign: "left", fontWeight: 700 }}>
+                                  <ContractPinButton shortlist={contractShortlist} row={m} source={shortlistSource("doi", oiData)} list={oiData.movers} />
+                                  {m.root}
+                                </td>
                                 <td style={{ textAlign: "left" }}>
                                   <span style={{ color: m.right === "C" ? "var(--up)" : "var(--down)", fontWeight: 700 }}>{m.right}</span>
                                 </td>
@@ -3730,7 +3898,7 @@ export default function OptionsHubView({
                       </table>
                     </div>
                     <div style={{ padding: "6px 14px", fontSize: 10, color: "var(--text-dim)", borderTop: "1px solid var(--line)" }}>
-                      {t("ohDoiFoot")}
+                      {doiT("e15O_reported_doi_foot")}
                     </div>
                   </div>
                 );
@@ -3826,7 +3994,10 @@ export default function OptionsHubView({
                       <tbody>
                         {hotRows.map((c, i) => (
                           <tr key={i} style={{ cursor: "pointer" }} onClick={() => { switchTab("tickers"); setSelectedTicker(c.root); }}>
-                            <td style={{ textAlign: "left", fontWeight: 700 }}>{c.root}</td>
+                            <td style={{ textAlign: "left", fontWeight: 700 }}>
+                              <ContractPinButton shortlist={contractShortlist} row={c} source={shortlistSource("hot", hotData, hotView)} list={hotData[hotView] ?? []} />
+                              {c.root}
+                            </td>
                             <td style={{ textAlign: "left" }}>
                               <span style={{ color: c.right === "C" ? "var(--up)" : "var(--down)", fontWeight: 700 }}>{c.right}</span>
                             </td>
@@ -3870,7 +4041,7 @@ export default function OptionsHubView({
               ──────────────────────────────────────────────────────────────────── */}
           {(activeTab === "gex" || visitedTabs.has("gex")) && (
             <div style={{ flex: 1, overflow: "hidden", display: activeTab === "gex" ? "flex" : "none", minHeight: 0 }}>
-              <GexDeskView />
+              <GexDeskView onMapFirstChange={setExposureMapFirst} />
             </div>
           )}
 
@@ -3942,7 +4113,7 @@ export default function OptionsHubView({
                     type="button"
                     className="btn btn-ghost"
                     style={{ height: 28, marginTop: 14 }}
-                    onClick={() => void fetchLeaders()}
+                    onClick={() => void fetchLeaders(true)}
                     disabled={leadersLoading}
                   >
                     {leadersLoading ? t("loading", "Loading…") : pick(lang, "Retry", "重试")}
@@ -3958,6 +4129,52 @@ export default function OptionsHubView({
                 const boardARows = [...leadersData.board_a].sort((a, b) => b.K_a - a.K_a);
                 const boardBRows = [...leadersData.board_b].sort((a, b) => b.K_b - a.K_b);
                 const displayRows = leadersBoard === "a" ? boardARows : boardBRows;
+
+                // A recent build stamp is NOT a recent source session. Keep historical
+                // tables out of the active discovery surface by default: legacy
+                // options summaries froze on 2026-08-12 and can still be republished.
+                const insufficientCoverage = leadersData.stale_reason === "insufficient_same_session_coverage";
+                if (leadersData.stale && !showHistoricalLeaders) {
+                  return (
+                    <div role="status" style={{ padding: "24px 20px", border: "1px solid var(--border)", borderRadius: "var(--r-md)" }}>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: "var(--warn)", marginBottom: 8 }}>
+                        {pick(lang, "Current Flow Leaders unavailable", "当前资金流领涨榜不可用")}
+                      </div>
+                      <div style={{ fontSize: 12, color: "var(--text-2)", lineHeight: 1.6 }}>
+                        {insufficientCoverage
+                          ? pick(lang,
+                              `Partial ThetaData coverage for ${leadersData.session_date ?? "unknown session"}: ${cov.n_current_roots ?? 0} of ${cov.n_expected_roots ?? "?"} configured roots. Full-universe rankings are not qualified.`,
+                              `${leadersData.session_date ?? "未知交易日"} 的 ThetaData 覆盖不足：${cov.n_current_roots ?? 0}/${cov.n_expected_roots ?? "?"} 个股票。尚不足以形成全市场排名。`)
+                          : leadersData.session_date
+                            ? pick(lang,
+                                `Last verified source session: ${leadersData.session_date}. This is a historical snapshot, not today's options activity.`,
+                                `最后验证的数据会话：${leadersData.session_date}。这是历史快照，并非今日的期权活动。`)
+                            : pick(lang, "The latest market session cannot be verified.", "无法核实最新市场交易日。")}
+                        {" "}
+                        {pick(lang, "Rankings and signal flags are withheld until current-session evidence is available.",
+                          "在取得当前交易日证据之前，暂不展示排名和信号标记。")}
+                      </div>
+                      {leadersError && (
+                        <div style={{ fontSize: 12, color: "var(--warn)", marginTop: 8 }}>
+                          {pick(lang, "The latest refresh failed; the historical snapshot remains unchanged.",
+                            "最新刷新失败；历史快照未更改。")}
+                        </div>
+                      )}
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 16 }}>
+                        <button type="button" className="btn btn-ghost" disabled={leadersLoading}
+                          onClick={() => void fetchLeaders(true)}>
+                          {leadersLoading ? t("loading", "Loading…") : pick(lang, "Check for new data", "检查新数据")}
+                        </button>
+                        <button type="button" className="btn btn-ghost"
+                          onClick={() => setShowHistoricalLeaders(true)}>
+                          {insufficientCoverage
+                            ? pick(lang, "Inspect incomplete snapshot", "查看不完整快照")
+                            : pick(lang, "Inspect historical snapshot", "查看历史快照")}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                }
 
                 return (
                   <>
@@ -3984,10 +4201,21 @@ export default function OptionsHubView({
                       </span>
                       {leadersData.stale && (
                         <span style={{ fontSize: 11, color: "var(--warn)", fontWeight: 600 }}>
-                          {leadersData.session_date
-                            ? pick(lang, `Historical snapshot · source session ${leadersData.session_date}`, `历史快照 · 数据会话 ${leadersData.session_date}`)
-                            : t("leadersStale", "Snapshot from prior session")}
+                          {leadersData.stale_reason === "insufficient_same_session_coverage"
+                            ? pick(lang,
+                                `Incomplete ThetaData coverage · ${cov.n_current_roots ?? 0}/${cov.n_expected_roots ?? "?"} roots`,
+                                `ThetaData 覆盖不足 · ${cov.n_current_roots ?? 0}/${cov.n_expected_roots ?? "?"} 个股票`)
+                            : leadersData.session_date
+                              ? pick(lang, `Historical snapshot · source session ${leadersData.session_date}`, `历史快照 · 数据会话 ${leadersData.session_date}`)
+                              : t("leadersStale", "Snapshot from prior session")}
                         </span>
+                      )}
+                      {leadersData.stale && showHistoricalLeaders && (
+                        <button type="button" className="btn btn-ghost"
+                          style={{ height: 26, fontSize: 11 }}
+                          onClick={() => setShowHistoricalLeaders(false)}>
+                          {pick(lang, "Hide historical snapshot", "收起历史快照")}
+                        </button>
                       )}
                     </div>
 

@@ -14,6 +14,8 @@ export default defineConfig({
       "lib/__tests__/**/*.test.tsx",
       // B-F08-6: section tests live next to the settings components they mount.
       "components/settings/__tests__/**/*.test.tsx",
+      // IDR W1: Dislocations screen component tests (screen lane S2).
+      "components/dislocations/__tests__/**/*.test.tsx",
     ],
   },
   resolve: {

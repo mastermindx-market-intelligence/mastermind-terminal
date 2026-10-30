@@ -15,27 +15,88 @@
  * the only freshness truth, and every panel carries an options_hub provenance
  * footer. Vol is NON-DIRECTIONAL: neutral brand accents only, never --up/--down.
  *
- * Fetch: ONE flowGet(`vol:{ROOT}`) per committed root (the store publishes once
- * a night — polling would only re-download the same snapshot). A request counter
- * drops stale responses so a slow root can't clobber a newer pick.
+ * Fetch: ONE flowGetResult(`vol:{ROOT}`) per committed root (the store publishes once
+ * a night — polling would only re-download the same snapshot). Only a 404 is the
+ * coverage-gap empty, along with a name the route would refuse (never asked for); a
+ * read that did not land is the load error. A request counter drops stale responses
+ * so a slow root can't clobber a newer pick.
  */
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { flowGet } from "@/lib/flowClientCache";
+import { getJSONResult } from "@/lib/dataCache";
+import type { MovesPayload } from "@/lib/eodContext";
+import { flowGetResult, type FlowOutcome } from "@/lib/flowClientCache";
+import { isValidRoot } from "@/lib/flowRoot";
 import { useLang } from "@/lib/i18n";
 import { GEX_AUTOCOMPLETE_ROOTS } from "@/lib/optionsRoots";
 import { trackSearch } from "@/lib/searchTrack";
+import { parseNextDate } from "@/lib/watchlistEventPlanner";
+import type { CurveEvent } from "@/lib/volTenorComparison";
 import { makeVolT } from "./volStrings";
 import type { VolPayload } from "./volTypes";
-import { ProvenanceLine, fmtPct, fmtRank } from "./volShared";
+import {
+  ProvenanceLine, fmtPct, fmtRank, reportedVolNumber, volIsoDay,
+  admitVolTermRows, admitVolSmileExpiries,
+} from "./volShared";
 import { VolHistoryPanel } from "./VolHistoryPanel";
-import { VolVrpPanel } from "./VolVrpPanel";
+import { VolVrpPanel, type AggRead } from "./VolVrpPanel";
 import type { AggTrendPayload } from "@/lib/aggTrend";
 import { VolTermPanel } from "./VolTermPanel";
 import { VolSkewPanel } from "./VolSkewPanel";
+import { VolComparePanel } from "./VolComparePanel";
 
 const DEFAULT_ROOT = "SPY";
 const STALE_SESSIONS = 3;
+
+/** A stamped live quote the hub may hand down. The stamp is passed through unchanged. */
+export interface LiveSpotStamp {
+  value: number;
+  asOf: string;
+}
+
+/**
+ * The comparison panel prints the clock it is given beside a "live quote" label, so only
+ * a genuinely stamped live quote may be handed to it: a finite positive value with a
+ * non-empty stamp. Anything else — and today the hub holds no live quote at all — is the
+ * panel's percent-only path. Never a spot derived from the term structure or a strike grid.
+ */
+function hubLiveSpot(quote: LiveSpotStamp | null | undefined): { value: number; asOf: string } | null {
+  return quote != null
+    && typeof quote.value === "number" && Number.isFinite(quote.value) && quote.value > 0
+    && typeof quote.asOf === "string" && quote.asOf.trim() !== ""
+    ? { value: quote.value, asOf: quote.asOf }
+    : null;
+}
+
+/**
+ * The published band exactly as `options_hub/moves` stated it (W3S): the producer's own
+ * multiple and horizon with the payload's clock. Any field missing or not finite is NO
+ * band — the column stays absent rather than rendering a substitute number.
+ */
+function publishedBandOf(
+  moves: MovesPayload | null,
+): { pct: number; bandMult: number; horizonDays: number; asof: string } | null {
+  const em = moves?.expected_move ?? null;
+  const pct = typeof em?.pct === "number" && Number.isFinite(em.pct) ? em.pct : null;
+  const mult = typeof em?.band_mult === "number" && Number.isFinite(em.band_mult) ? em.band_mult : null;
+  const days = typeof em?.horizon_days === "number" && Number.isFinite(em.horizon_days) ? em.horizon_days : null;
+  const asof = typeof moves?.asof === "string" && moves.asof ? moves.asof : null;
+  return pct != null && mult != null && days != null && asof != null
+    ? { pct, bandMult: mult, horizonDays: days, asof }
+    : null;
+}
+
+/**
+ * The root's next earnings day from `<SYM>.fund.json` — the one accepted company-event
+ * source (watchlistEventPlanner). A date-only record stays a calendar day; absent,
+ * unreadable, already-past or a failed read is NO event, never an invented row, and
+ * never a `macro_release` or `index_review` kind the join does not emit.
+ */
+function earningsEventDay(fund: unknown, nowMs: number = Date.now()): string | null {
+  const next = (fund as { earnings?: { next_date?: unknown } } | null | undefined)?.earnings?.next_date;
+  const parsed = parseNextDate(next, null, nowMs);
+  return parsed.kind === "when" ? parsed.when.day : null;
+}
 
 /**
  * ET weekday sessions elapsed since `asofDate` (YYYY-MM-DD). Calendar weekdays
@@ -59,80 +120,178 @@ function sessionsOld(asofDate: string): number {
   return n;
 }
 
-export function VolView() {
+export function VolView({ liveSpot }: { liveSpot?: LiveSpotStamp | null } = {}) {
   const { lang } = useLang();
   const t = makeVolT(lang);
 
   const [root, setRoot] = useState(DEFAULT_ROOT);
   const [inputVal, setInputVal] = useState(DEFAULT_ROOT);
   const [payload, setPayload] = useState<VolPayload | null>(null);
+  // `moves:{ROOT}` — the per-root expected-move store, fetched non-gating for the
+  // comparison panel's published band (W3S). Optional: its absence drops the band
+  // column only, and a pending or failed read is never shown as that absence.
+  const [moves, setMoves] = useState<MovesPayload | null>(null);
+  // `<ROOT>.fund.json` — the earnings day for the panel's event window. A failed or
+  // absent read is "no calendar events supplied", the panel's own honest sentence.
+  const [fund, setFund] = useState<unknown>(null);
   // `agg:{ROOT}` — the aggregate-trend store, fetched non-gating for the VRP
-  // regime band. Optional: its absence hides one panel, never the tab.
+  // regime band. Optional: its absence hides one panel, never the tab — and a
+  // pending or failed read is never shown as that absence.
   const [agg, setAgg] = useState<AggTrendPayload | null>(null);
+  const [aggRead, setAggRead] = useState<AggRead>("loading");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  // Bumped by Retry: re-runs the snapshot read for the same root.
+  const [attempt, setAttempt] = useState(0);
+  const [expiryChoice, setExpiryChoice] = useState<{ root: string; exp: string } | null>(null);
   const reqRef = useRef(0);
 
-  // One-shot fetch per committed root (nightly store — no polling). The
-  // loading/error/payload RESETS live in commitRoot (the event that changes the
-  // root) — the effect body itself only starts the async load and resolves its
-  // states in the awaited callback, so a slow root can never clobber a newer
-  // pick (request counter) and the effect never sets state synchronously.
-  useEffect(() => {
-    const req = ++reqRef.current;
+  // VRP regime context for `forRoot`, fenced by the snapshot request that owns it:
+  // a newer root or retry drops a late answer for the old one.
+  const readAgg = useCallback((forRoot: string, req: number) => {
     void (async () => {
-      let data: unknown = null;
+      let aggOutcome: FlowOutcome;
       try {
-        data = await flowGet(`vol:${root}`);
+        aggOutcome = await flowGetResult(`agg:${forRoot}`);
       } catch {
-        data = null;
+        aggOutcome = { status: "unavailable", reason: "network" };
       }
       if (reqRef.current !== req) return;
-      if (data == null) {
-        // A null here is almost always an UNCOVERED root (the nightly build's R2 key
-        // does not exist → /api/flow 5xx → flowGet null), not a broken desk. On prod
-        // this rendered "Could not load" for every name outside the build — the
-        // honest state is the coverage-gap empty, which also tells the reader what
-        // to do about it.
+      if (aggOutcome.status !== "data") {
+        // Only a 404 lets the panel say the history was never published.
+        setAgg(null);
+        setAggRead(aggOutcome.status === "absent" ? "resolved" : "unavailable");
+        return;
+      }
+      const a = aggOutcome.data as
+        | (AggTrendPayload & { root?: string })
+        | Record<string, unknown>;
+      const inner = (a && typeof a === "object" && !("series" in a) && (a as Record<string, unknown>)[forRoot]
+        ? (a as Record<string, unknown>)[forRoot]
+        : a) as (AggTrendPayload & { root?: string }) | null;
+      const okA =
+        inner != null &&
+        Array.isArray(inner.series) &&
+        (typeof inner.root !== "string" || inner.root.toUpperCase() === forRoot);
+      setAgg(okA ? inner : null);
+      setAggRead("resolved");
+    })();
+  }, []);
+
+  // `moves:{ROOT}` for the comparison panel's published band, fenced by the same
+  // snapshot request: a newer root or retry drops a late answer for the old one.
+  const readMoves = useCallback((forRoot: string, req: number) => {
+    void (async () => {
+      let read: FlowOutcome;
+      try {
+        read = await flowGetResult(`moves:${forRoot}`);
+      } catch {
+        read = { status: "unavailable", reason: "network" };
+      }
+      if (reqRef.current !== req) return;
+      if (read.status !== "data") {
+        setMoves(null);
+        return;
+      }
+      const rec = read.data as MovesPayload;
+      const ok = typeof rec.root !== "string" || rec.root.toUpperCase() === forRoot;
+      setMoves(ok ? rec : null);
+    })();
+  }, []);
+
+  // `<ROOT>.fund.json` for the earnings event, through the shared data-cache read the
+  // fin tabs use. Anything but a landed data answer is "no calendar events".
+  const readFund = useCallback((forRoot: string, req: number) => {
+    void (async () => {
+      let outcome: Awaited<ReturnType<typeof getJSONResult>> | null = null;
+      try {
+        outcome = await getJSONResult(`/data/${encodeURIComponent(forRoot)}.fund.json`);
+      } catch {
+        outcome = null;
+      }
+      if (reqRef.current !== req) return;
+      setFund(outcome && outcome.status === "data" ? outcome.data : null);
+    })();
+  }, []);
+
+  // One-shot fetch per committed root (nightly store — no polling). The
+  // loading/error/payload RESETS live in commitRoot and retrySnapshot (the events
+  // that start a read) — the effect body itself only starts the async load and
+  // resolves its states in the awaited callback, so a slow root can never clobber
+  // a newer pick (request counter) and the effect never sets state synchronously.
+  useEffect(() => {
+    const req = ++reqRef.current;
+    // A name no published object can carry (^VIX, $SPX, BRK/B) is never asked for: the
+    // route refuses it with a 400, and that refusal shown as a failed read would offer a
+    // Retry that can never land. No build holds such a name — it is the coverage gap.
+    // The counter bump above still drops any read in flight for the previous root.
+    if (!isValidRoot(root)) return;
+    void (async () => {
+      let read: FlowOutcome;
+      try {
+        read = await flowGetResult(`vol:${root}`);
+      } catch {
+        read = { status: "unavailable", reason: "network" };
+      }
+      if (reqRef.current !== req) return;
+      if (read.status !== "data") {
+        // /api/flow answers 404 only when the nightly build has no object for this
+        // root: that is the coverage-gap empty, which tells the reader what to do
+        // about it. A 5xx, a refused fetch or an unreadable body is a read that did
+        // not land — the load error, never "{sym} isn't in this nightly build".
         setPayload(null);
-        setError(false);
+        setError(read.status === "unavailable");
         setLoading(false);
         return;
       }
-      const rec = data as VolPayload;
+      const rec = read.data as VolPayload;
       // Root-match guard (fixture convention): {} or another root's payload is
       // the honest empty, never data wearing the wrong header.
       const ok = typeof rec.root === "string" && rec.root.toUpperCase() === root;
       setPayload(ok ? rec : null);
+      setError(false);
       setLoading(false);
 
       // VRP regime context, after first paint (the series is ~250KB for SPY).
-      void (async () => {
-        const a = (await flowGet(`agg:${root}`).catch(() => null)) as
-          | (AggTrendPayload & { root?: string })
-          | Record<string, unknown>
-          | null;
-        if (reqRef.current !== req) return;
-        const inner = (a && typeof a === "object" && !("series" in a) && (a as Record<string, unknown>)[root]
-          ? (a as Record<string, unknown>)[root]
-          : a) as (AggTrendPayload & { root?: string }) | null;
-        const okA =
-          inner != null &&
-          Array.isArray(inner.series) &&
-          (typeof inner.root !== "string" || inner.root.toUpperCase() === root);
-        setAgg(okA ? inner : null);
-      })();
+      readAgg(root, req);
+      // The comparison panel's two optional inputs ride the same settled snapshot read.
+      readMoves(root, req);
+      readFund(root, req);
     })();
-  }, [root]);
+  }, [root, attempt, readAgg, readMoves, readFund]);
+
+  // A read that did not land is retried in place, never by reloading the page. The
+  // client cache keeps payloads only, so each retry is a real re-read.
+  const retrySnapshot = useCallback(() => {
+    setLoading(true);
+    setError(false);
+    setPayload(null);
+    setMoves(null);
+    setFund(null);
+    setAgg(null);
+    setAggRead("loading");
+    setAttempt((n) => n + 1);
+  }, []);
+
+  // The spread panel re-reads only its own store; the snapshot on screen stays.
+  const retryAgg = useCallback(() => {
+    setAgg(null);
+    setAggRead("loading");
+    readAgg(root, reqRef.current);
+  }, [readAgg, root]);
 
   const commitRoot = useCallback(() => {
     const next = inputVal.trim().toUpperCase();
     if (next && next !== root) {
       trackSearch(next, "vol-tab", inputVal.trim() || undefined);
-      setLoading(true);
+      // A name the route refuses settles as the coverage gap without a read (the effect).
+      setLoading(isValidRoot(next));
       setError(false);
       setPayload(null);
+      setMoves(null);
+      setFund(null);
       setAgg(null);
+      setAggRead("loading");
       setRoot(next);
     }
   }, [inputVal, root]);
@@ -170,6 +329,69 @@ export function VolView() {
     vrp != null && Number.isFinite(vrp)
       ? `${vrp >= 0 ? "+" : "−"}${Math.abs(vrp).toFixed(1)}`
       : "—";
+
+  // One shared admission layer feeds BOTH the panels and this context strip.
+  // A context summary must never re-admit source rows that a panel quarantined.
+  const termAdmission = useMemo(() => admitVolTermRows(payload?.term), [payload?.term]);
+  const smileAdmission = useMemo(() => admitVolSmileExpiries(payload?.smile), [payload?.smile]);
+
+  // Selection is root-keyed so a root switch cannot leak the old contract context.
+  // Conflict identities remain selectable as unavailable evidence; we know the expiry
+  // identity even when we intentionally refuse to choose a conflicting source revision.
+  const expiryInventory = useMemo(() => {
+    const term = [...new Set([
+      ...termAdmission.rows.map((row) => row.exp),
+      ...termAdmission.conflictExpiries,
+    ])].sort();
+    const smile = [...new Set([
+      ...smileAdmission.expiries.map((row) => row.exp),
+      ...smileAdmission.conflictExpiries,
+    ])].sort();
+    const smileSet = new Set(smile);
+    const first = term.find((exp) => smileSet.has(exp)) ?? term[0] ?? smile[0] ?? null;
+    return { term, smile, all: new Set([...term, ...smile]), first };
+  }, [smileAdmission, termAdmission]);
+
+  const selectedExpiry = useMemo(() => {
+    if (expiryChoice?.root === root && expiryInventory.all.has(expiryChoice.exp)) return expiryChoice.exp;
+    return expiryInventory.first;
+  }, [expiryChoice, expiryInventory, root]);
+
+  const selectExpiry = useCallback((exp: string) => {
+    if (!volIsoDay(exp)) return;
+    setExpiryChoice({ root, exp });
+  }, [root]);
+
+  const selectedTermRow = useMemo(() =>
+    selectedExpiry ? termAdmission.rows.find((row) => row.exp === selectedExpiry) ?? null : null,
+  [selectedExpiry, termAdmission.rows]);
+  const selectedTermConflict = selectedExpiry != null && termAdmission.conflictExpiries.has(selectedExpiry);
+  const selectedTermDte = reportedVolNumber(selectedTermRow?.dte);
+  const selectedTermIv = reportedVolNumber(selectedTermRow?.v);
+
+  const selectedSmile = useMemo(() =>
+    selectedExpiry ? smileAdmission.expiries.find((row) => row.exp === selectedExpiry) ?? null : null,
+  [selectedExpiry, smileAdmission.expiries]);
+  const selectedSmileExpiryConflict = selectedExpiry != null && smileAdmission.conflictExpiries.has(selectedExpiry);
+  const selectedSmileConflictCount = selectedSmile?.conflictStrikes.size ?? 0;
+  const selectedSmileUsable = !!selectedSmile?.points.some((point) =>
+    Number.isFinite(reportedVolNumber(point.call_iv)) || Number.isFinite(reportedVolNumber(point.put_iv)),
+  );
+  const selectedSmileConflict = selectedSmileExpiryConflict || (selectedSmileConflictCount > 0 && !selectedSmileUsable);
+
+  // ── Comparison panel's three optional inputs (W3S) ─────────────────────────
+  // spot: only a stamped live quote the hub hands down — none exists in the nightly
+  // plane, so the panel's percent-only path stands unless a prop arrives.
+  const spot = hubLiveSpot(liveSpot);
+  // events: at most the root's own earnings day; a failed/absent fund read is no event.
+  const events = useMemo<CurveEvent[]>(() => {
+    const day = earningsEventDay(fund);
+    return day
+      ? [{ kind: "earnings", date: day, label: lang === "zh" ? `${root} 财报` : `${root} earnings`, source: "fund.json" }]
+      : [];
+  }, [fund, lang, root]);
+  // publishedBand: the producer's own statement from `moves:{ROOT}`, verbatim.
+  const publishedBand = useMemo(() => publishedBandOf(moves), [moves]);
 
   return (
     <div style={OUTER}>
@@ -220,7 +442,10 @@ export function VolView() {
           /* Honest empty / error: name WHICH emptiness this is. */
           <div style={CENTER_STATE}>
             <div style={EMPTY_TITLE}>{error ? t("errorLoad") : t("emptyTitle")}</div>
-            {!error && <div style={EMPTY_WHY}>{t("emptyWhy").replace("{sym}", root)}</div>}
+            <div style={EMPTY_WHY}>{error ? t("errorWhy") : t("emptyWhy").replace("{sym}", root)}</div>
+            {error && (
+              <button type="button" className="btn btn-ghost vol-retry" onClick={retrySnapshot}>{t("retry")}</button>
+            )}
           </div>
         ) : (
           <div style={GRID}>
@@ -231,6 +456,7 @@ export function VolView() {
                 <div className="fin-kpi">
                   <span className="k">{t("statAtmIv")}</span>
                   <span className="v">{fmtPct(atmIv)}</span>
+                  <span className="s">{t("statAtmIvCaption")}</span>
                 </div>
                 <div className="fin-kpi">
                   <span className="k">{t("statIvRank252")}</span>
@@ -279,15 +505,56 @@ export function VolView() {
             />
 
             {/* ═══ Panel B2 — VRP regime (R2.3) ═══════════════════════════ */}
-            <VolVrpPanel vrp={payload.vrp} agg={agg} lang={lang} />
+            <VolVrpPanel vrp={payload.vrp} agg={agg} aggRead={aggRead} onRetry={retryAgg} sourceAsOf={payload.asof} lang={lang} />
+
+            {selectedExpiry && (
+              <section className="fin-card" data-testid="vol-expiry-context" style={EXPIRY_CONTEXT}>
+                <span style={EXPIRY_CONTEXT_LABEL}>{t("expiryContextLabel")}</span>
+                <strong style={EXPIRY_CONTEXT_EXP}>{selectedExpiry}</strong>
+                {Number.isFinite(selectedTermDte) && (
+                  <span style={EXPIRY_CONTEXT_META}>{t("expiryContextDte").replace("{n}", String(selectedTermDte))}</span>
+                )}
+                <span style={selectedTermConflict ? EXPIRY_CONTEXT_WARN : EXPIRY_CONTEXT_META}>
+                  {selectedTermConflict
+                    ? t("expiryContextAtmConflict")
+                    : Number.isFinite(selectedTermIv)
+                      ? t("expiryContextAtm").replace("{v}", selectedTermIv.toFixed(1))
+                      : t("expiryContextAtmMissing")}
+                </span>
+                <span style={selectedSmileUsable && !selectedSmileConflict ? EXPIRY_CONTEXT_OK : EXPIRY_CONTEXT_WARN}>
+                  {selectedSmileConflict
+                    ? t("expiryContextSmileConflict")
+                    : selectedSmileUsable && selectedSmileConflictCount > 0
+                      ? t("expiryContextSmilePartial").replace("{n}", String(selectedSmileConflictCount))
+                      : t(selectedSmileUsable ? "expiryContextSmile" : "expiryContextSmileMissing")}
+                </span>
+              </section>
+            )}
 
             {/* ═══ Panel C — term structure ═══════════════════════════════ */}
-            <VolTermPanel term={payload.term} lang={lang} />
+            <VolTermPanel term={payload.term} lang={lang} selectedExp={selectedExpiry} onSelectExp={selectExpiry} />
 
             {/* ═══ Panel D — smile / skew ═════════════════════════════════ */}
             <div style={{ gridColumn: "1 / -1", minWidth: 0, display: "flex", flexDirection: "column" }}>
-              <VolSkewPanel smile={payload.smile} lang={lang} />
+              <VolSkewPanel smile={payload.smile} lang={lang} selectedExp={selectedExpiry} onSelectExp={selectExpiry} />
             </div>
+
+            {/* ═══ Panel E — constant-tenor comparison (W3B) ════════════════ */}
+            {/* Wired per the W3S ruling: the hub's stamped live spot when one exists
+                (percent-only until then), the root's own earnings day from
+                `<ROOT>.fund.json`, and the `moves:{ROOT}` band with the producer's own
+                multiple, horizon and clock. */}
+            <VolComparePanel
+              term={payload.term}
+              smile={payload.smile}
+              asof={payload.asof}
+              selectedExp={selectedExpiry}
+              lang={lang}
+              sessionsOld={age}
+              spot={spot}
+              events={events}
+              publishedBand={publishedBand}
+            />
           </div>
         )}
       </div>
@@ -426,4 +693,46 @@ const RANGE_MARK: React.CSSProperties = {
   height: 10,
   borderRadius: 2,
   background: "var(--brand-2)",
+};
+
+const EXPIRY_CONTEXT: React.CSSProperties = {
+  gridColumn: "1 / -1",
+  minWidth: 0,
+  display: "flex",
+  alignItems: "center",
+  flexWrap: "wrap",
+  gap: 9,
+  padding: "10px 12px",
+};
+
+const EXPIRY_CONTEXT_LABEL: React.CSSProperties = {
+  fontSize: 10,
+  fontWeight: 700,
+  letterSpacing: "0.06em",
+  color: "var(--muted)",
+  textTransform: "uppercase",
+};
+
+const EXPIRY_CONTEXT_EXP: React.CSSProperties = {
+  fontSize: 12.5,
+  color: "var(--text)",
+  fontVariantNumeric: "tabular-nums",
+};
+
+const EXPIRY_CONTEXT_META: React.CSSProperties = {
+  fontSize: 11,
+  color: "var(--text-2)",
+  fontVariantNumeric: "tabular-nums",
+};
+
+const EXPIRY_CONTEXT_OK: React.CSSProperties = {
+  marginLeft: "auto",
+  fontSize: 10.5,
+  color: "var(--brand-2)",
+};
+
+const EXPIRY_CONTEXT_WARN: React.CSSProperties = {
+  marginLeft: "auto",
+  fontSize: 10.5,
+  color: "var(--warn)",
 };

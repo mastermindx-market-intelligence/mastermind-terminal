@@ -1,16 +1,16 @@
 # B-F11-4 research management views — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 21168c818212c4fe058f9d731f3be873f430c387
-# capturedAt: 2026-09-25T12:08:23.089Z
+# capturedAtHead: e2846880681d4b9aff4a060e1321f50f240cafc7
+# capturedAt: 2026-10-24T05:34:24.184Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/workspaces/ThesisWorkspace.tsx: "d1c18da171f599360f44cb6024f88bcfe3a2a3c4faac135815844fd4481ca523"
-  terminal/components/workspaces/ThesisWorkspace.module.css: "3afaa5c0a5794f3fc2cdfb5c9b65257f703e7a3105e08009e602363d40690891"
+  terminal/components/workspaces/ThesisWorkspace.tsx: "f8aa79a228b85a0c10050b06d24665a95fc149ea56a00e8610472cc7a2a7849c"
+  terminal/components/workspaces/ThesisWorkspace.module.css: "c7fcd07d13cf3d7453bb51cd47ffb13c80af05e327bf9662368e97988023320c"
   terminal/lib/rmsViews.ts: "fd5f025806c5a4b1b27e7d99a026e82f555767f0d96b6a2766a5b363961897cb"
   terminal/lib/savedViews.ts: "16e2914a032cba50cce999d1802c53e51098ce76dd82931925ef41b8e0f7af54"
-  terminal/lib/plainLabels.ts: "711f94db978d842b8051e9a975ef772308dab45ba08b3f1859537b5747d372d1"
-  terminal/lib/i18n.tsx: "51276ecc8db6956c6c4e5cc67c55eab029c0b468ccb61e34f8bb92f25e42b9f8"
+  terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
+  terminal/lib/i18n.tsx: "13f33e3178b105a64f1f5df35974cd99041ef06f05bdece95939dd07a8b9fe7c"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -31,7 +31,7 @@ window_closed_data: |
   FIXTURE_MONITOR_FIRED_TOKEN (terminal/lib/watchlistsFixtureDb.ts). The shipped
   GET /api/thesis-fire-status route and mapOutboxToConditionStates() run for real
   against it; nothing in this capture stubs a network response.
-capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
+capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
 command: |
   cd terminal
   node e2e/tools/capture_f11_4_research_views.cjs
@@ -56,3 +56,13 @@ files:
   - window-closed-1440.png
   - window-closed-390-zh.png
   - window-closed-390.png
+
+documentLanguageRecapture20261024:
+  sourceHead: e2846880681d4b9aff4a060e1321f50f240cafc7
+  qualification: Actual native producer executed in original managed language workspace; existing fixture data, no live-account or production claim
+  historicalManifest: history/before-document-language-20261024.yml
+  historicalSource: 919114d1c27f0f588d9d5a4d52574f19b0137d6d
+  receiptIndex: ../document-language/recapture-index.json
+
+# Raw capture identity and every upstream source/crop lock remain unchanged; omit only unused pending-copy dependency.
+lexProjection: {"schema":"terminal.lex_capture_projection.v1","omittedProperty":"obDonePrefsSyncing","capturedRawSha256":"13f33e3178b105a64f1f5df35974cd99041ef06f05bdece95939dd07a8b9fe7c","projectedSha256":"d6dcc2df7615a1c5782f4d755178fbb76bcf9ee42b93dffe7c7c95317a652de5","sourceGitBlob":"664d68043f472919f7b581f545a334bf66d9782f","sourceRecoveryCommit":"e2846880681d4b9aff4a060e1321f50f240cafc7","captureCommitLocallyAvailable":true}

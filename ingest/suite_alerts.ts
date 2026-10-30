@@ -34,31 +34,34 @@
  * Missing data file / malformed condition / fetch error → SKIP log, never disarm.
  *
  * Usage: node ingest/dist/suite_alerts.mjs [--dry-run] [--data-dir DIR] [--env-file FILE]
- *                                          [--demo] [--symbol SYM]
+ *                                          [--demo] [--symbol SYM] [--held-material-events]
+ *   --held-material-events: dormant MO-PAID-027 source composition. Writes existing
+ *     private outbox only when explicitly selected. No deployment/cron enables it.
+ *     Activation requires the parent's privacy/exactly-once and send-policy review;
+ *     this source change does not authorize email, enrollment or a live-book canary.
  *   --demo: no Supabase needed — lists what WOULD be evaluated for --symbol (default
  *           AAPL): computes every suite at defaults and prints fresh-window events.
  */
 
 import { readFileSync, existsSync } from "node:fs";
 import { randomUUID } from "node:crypto";
+import { foldHeldPositions } from "./heldPositionFold";
+import { loadHeldPublicEvents, heldPublicSourceAsof, planHeldMaterialEvents, type HeldOutboxRow } from "./heldMaterialEvents";
 import { join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { computeSuite, resolveSuiteColors } from "../terminal/lib/indicator-canvas/host";
-import type { SuiteHostInput } from "../terminal/lib/indicator-canvas/host";
 import type { SuiteEvent } from "../terminal/lib/indicator-canvas/types";
-import { suiteDefaults, SUITE_ORDER } from "../terminal/lib/suites/registry";
-import { ensureSuiteRuntime } from "../terminal/lib/suites/compute";
+import { SUITE_ORDER } from "../terminal/lib/suites/registry";
+import { parseSuiteDailyBars, suiteAlertFloorT, suiteEventsAtDefaults } from "../terminal/lib/suiteAlertInputs";
+import type { SuiteSymbolData } from "../terminal/lib/suiteAlertInputs";
 import {
   SUITE_ALERT_EVENTS,
   SUITE_EVENT_FRESH_BARS,
   evalSuiteEvent,
   suiteEventTiming,
-  validSuiteBarClock,
   evalSuiteSequence,
   suiteAlertEventDef,
   validateSuiteCondition,
-  validateSuiteSequence,
-  floorToUtcDayStart } from "../terminal/lib/suiteAlerts";
+  validateSuiteSequence } from "../terminal/lib/suiteAlerts";
 import type { SuiteAlertCondition, SuiteSequenceCondition } from "../terminal/lib/suiteAlerts";
 
 const DEFAULT_ENV = "/opt/terminal/terminal/.env.local";
@@ -76,6 +79,7 @@ function log(msg: string): void {
 
 interface Args {
   dryRun: boolean;
+  heldMaterialEvents: boolean;
   demo: boolean;
   envFile: string;
   dataDir: string;
@@ -83,10 +87,11 @@ interface Args {
 }
 
 function parseArgs(argv: string[]): Args {
-  const a: Args = { dryRun: false, demo: false, envFile: DEFAULT_ENV, dataDir: DEFAULT_DATA, symbol: "AAPL" };
+  const a: Args = { dryRun: false, heldMaterialEvents: false, demo: false, envFile: DEFAULT_ENV, dataDir: DEFAULT_DATA, symbol: "AAPL" };
   for (let i = 0; i < argv.length; i++) {
     const t = argv[i];
-    if (t === "--dry-run") a.dryRun = true;
+    if (t === "--held-material-events") a.heldMaterialEvents = true;
+    else if (t === "--dry-run") a.dryRun = true;
     else if (t === "--demo") a.demo = true;
     else if (t === "--env-file") a.envFile = argv[++i] ?? a.envFile;
     else if (t === "--data-dir") a.dataDir = argv[++i] ?? a.dataDir;
@@ -118,20 +123,10 @@ function loadEnv(path: string): Record<string, string> {
 
 // ─────────────────────────────────────────────────────────────────────── bar loading
 
-interface SymbolData {
-  bars: SuiteHostInput["bars"];
-  barsT: number[]; // epoch secs per bar index (UTC midnight of the trading day)
-}
-
-const DAY_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
-
-function epochOfDay(t: unknown): number | null {
-  if (typeof t === "number" && Number.isFinite(t)) return t;
-  if (typeof t !== "string") return null;
-  const m = DAY_RE.exec(t);
-  if (!m) return null;
-  return Date.UTC(+m[1], +m[2] - 1, +m[3]) / 1000;
-}
+// Bar parsing, module-defaults compute and the creation floor live in ONE adapter
+// (terminal/lib/suiteAlertInputs.ts) shared with the read-only alert dry run, so the preview and
+// this lane decide on identical inputs. This file keeps only the I/O around them.
+type SymbolData = SuiteSymbolData;
 
 /** <data>/<SYM>.json → {t,o,src,bars:[["YYYY-MM-DD",o,h,l,c,v],…]}. null = unreadable. */
 function loadSymbolData(dataDir: string, symbol: string): SymbolData | null {
@@ -143,38 +138,16 @@ function loadSymbolData(dataDir: string, symbol: string): SymbolData | null {
   } catch {
     return null;
   }
-  const rows: unknown = doc?.bars;
-  if (!Array.isArray(rows) || rows.length === 0) return null;
-  const bars: SuiteHostInput["bars"] = [];
-  const barsT: number[] = [];
-  for (const r of rows) {
-    if (!Array.isArray(r) || r.length < 6) return null;
-    const t = epochOfDay(r[0]);
-    if (t === null) return null;
-    bars.push({ time: r[0] as string | number, o: +r[1], h: +r[2], l: +r[3], c: +r[4], v: +r[5] });
-    barsT.push(t);
-  }
-  return validSuiteBarClock(barsT) ? { bars, barsT } : null;
+  return parseSuiteDailyBars(doc);
 }
 
 // ───────────────────────────────────────────────────────── suite events (real modules)
 
 /** Run one suite at MODULE DEFAULTS over the symbol's daily bars; return its merged
- *  event stream. Throws only if the suite key is unknown (caller SKIPs). */
+ *  event stream. Throws only if the suite key is unknown (caller SKIPs). Tier "pro"
+ *  (see header); every module force-enabled — see suiteEventsAtDefaults. */
 async function suiteEventsFor(suiteKey: string, symbol: string, data: SymbolData): Promise<SuiteEvent[]> {
-  // The registry is metadata only. Acquire the same runtime graph the chart loads;
-  // casting metadata to SuiteDef silently skips every compute and produces an empty tape.
-  const def = await ensureSuiteRuntime(suiteKey);
-  if (!def) throw new Error(`suite runtime unavailable: "${suiteKey}"`);
-  const input: SuiteHostInput = { bars: data.bars, tf: "D", symbol, isIntraday: false, lang: "en" };
-  // tier "pro" (see header), FALLBACK colors (resolveSuiteColors returns the token
-  // fallbacks under Node — events carry no colors, prims are discarded anyway).
-  // Force-enable EVERY module — several curated events live in defaultOn:false modules and would
-  // otherwise never fire (review W3-1). Settings stay at module defaults.
-  const params: Record<string, any> = suiteDefaults(suiteKey);
-  for (const mod of def.modules) params[`${mod.key}.on`] = true;
-  const res = computeSuite(def, params, input, "pro", resolveSuiteColors());
-  return res.events;
+  return suiteEventsAtDefaults(suiteKey, symbol, data);
 }
 
 // ─────────────────────────────────────────────────────────────────────── supabase REST
@@ -198,6 +171,58 @@ class Supa {
     if (!r.ok) throw new Error(`GET alerts -> ${r.status}`);
     const rows = await r.json();
     return Array.isArray(rows) ? rows : [];
+  }
+
+  /** Canonical book is read-only and projected to the minimum join fields. Explicit
+   * pagination prevents PostgREST's row cap from becoming silent calm coverage. */
+  async openPositions(): Promise<unknown[]> {
+    const all: unknown[] = [];
+    for (let offset = 0; offset < 10_000; offset += 500) {
+      const r = await this.fetchImpl(`${this.base}/portfolio_positions?status=eq.open&select=user_id,ticker,status,created_at&order=id.asc&limit=500&offset=${offset}`, { headers: this.headers });
+      if (!r.ok) throw new Error("held_positions_read_failed");
+      const rows: unknown = await r.json();
+      if (!Array.isArray(rows) || rows.length > 500) throw new Error("held_positions_invalid");
+      all.push(...rows);
+      if (rows.length < 500) return all;
+    }
+    throw new Error("held_positions_over_limit");
+  }
+
+  /** Corrections append; an existing private receipt is linked, never edited.
+   * The query and returned identity are both constrained to this owner/event. */
+  async linkHeldCorrection(row: HeldOutboxRow): Promise<void> {
+    if (!row.payload.source_revision.startsWith("corrected:")) return;
+    const query = new URLSearchParams({
+      user_id: `eq.${row.user_id}`, "payload->>source": `eq.${row.payload.source}`,
+      "payload->>event_id": `eq.${row.payload.event_id}`, "payload->>event_time": `lte.${row.payload.event_time}`, fire_event_id: `neq.${row.fire_event_id}`,
+      select: "user_id,fire_event_id,payload", order: "created_at.desc", limit: "1",
+    });
+    const r = await this.fetchImpl(`${this.base}/alert_outbox?${query}`, { headers: this.headers });
+    if (!r.ok) throw new Error("held_correction_read_failed");
+    const prior: unknown = await r.json();
+    if (!Array.isArray(prior) || prior.length > 1) throw new Error("held_correction_unconfirmed");
+    const previous = prior[0];
+    if (prior.length && (!previous || previous.user_id !== row.user_id || previous.payload?.source !== row.payload.source ||
+      previous.payload?.event_id !== row.payload.event_id || previous.fire_event_id === row.fire_event_id ||
+      !Number.isFinite(Date.parse(previous.payload?.event_time ?? "")) || Date.parse(previous.payload.event_time) > Date.parse(row.payload.event_time) ||
+      !/^held:[a-f0-9]{64}$/.test(previous.fire_event_id))) throw new Error("held_correction_unconfirmed");
+    row.payload.corrects = previous ? { lane: "suite_alerts", id: previous.fire_event_id } : null;
+  }
+
+  async enqueueHeld(row: HeldOutboxRow): Promise<"inserted" | "duplicate"> {
+    const r = await this.fetchImpl(`${this.base}/alert_outbox?on_conflict=fire_event_id`, {
+      method: "POST", headers: { ...this.headers, "Content-Type": "application/json", Prefer: "return=representation,resolution=ignore-duplicates" },
+      body: JSON.stringify(row),
+    });
+    // A raw 409 is never sufficient evidence of this identity's existence.
+    // ON CONFLICT is scoped to the actual fire key; its empty representation is
+    // the one accepted duplicate disposition. All other failures remain errors.
+    if (!r.ok) throw new Error("held_outbox_write_failed");
+    const result: unknown = await r.json();
+    if (!Array.isArray(result)) throw new Error("held_outbox_unconfirmed");
+    if (result.length === 0) return "duplicate";
+    if (result.length !== 1 || result[0]?.fire_event_id !== row.fire_event_id || result[0]?.user_id !== row.user_id) throw new Error("held_outbox_unconfirmed");
+    return "inserted";
   }
 
   /** Disarm + stamp trigger evidence. The active=eq.true guard makes double-fires a
@@ -278,12 +303,13 @@ class Supa {
   async concludeRun(
     lane: string, runId: string, concludedAt: string, outcome: string,
     evaluatedN: number | null, firedN: number | null, unevaluableN: number | null,
-    errorClass: string | null,
+    errorClass: string | null, sourceAsof?: string | null,
   ): Promise<boolean> {
     const url = `${this.base}/alert_runs?lane=eq.${encodeURIComponent(lane)}&run_id=eq.${encodeURIComponent(runId)}`;
     const { status, parsed, text } = await this.jsonStatus(url, "PATCH", {
       concluded_at: concludedAt, outcome, evaluated_n: evaluatedN, fired_n: firedN,
       unevaluable_n: unevaluableN, error_class: errorClass,
+      ...(sourceAsof === undefined ? {} : { source_asof: sourceAsof }),
     });
     if (this.tableMissing(status, parsed)) {
       log("READ_UNAVAILABLE alert_runs (conclude) — table not applied yet");
@@ -346,6 +372,8 @@ function isoSeconds(): string {
 
 export type SuiteAlertsHooks = {
   fetchImpl?: typeof fetch;
+  loadHeldEvents?: typeof loadHeldPublicEvents;
+  now?: () => number;
   loadSymbolData?: typeof loadSymbolData;
   suiteEventsFor?: (...args: Parameters<typeof suiteEventsFor>) => SuiteEvent[] | Promise<SuiteEvent[]>;
 };
@@ -397,6 +425,7 @@ export async function runSuiteAlertsLane(opts: {
     runReceipted = await supa.startRun(LANE, runId, startedAt, LANE_CADENCE_S);
   }
 
+  let heldSourceAsof: string | null | undefined;
   const conclude = async (
     outcome: string,
     evaluatedN: number | null,
@@ -406,7 +435,7 @@ export async function runSuiteAlertsLane(opts: {
   ) => {
     const concludedAt = isoSeconds();
     if (runReceipted) {
-      await supa.concludeRun(LANE, runId, concludedAt, outcome, evaluatedN, firedN, unevaluableN, errorClass);
+      await supa.concludeRun(LANE, runId, concludedAt, outcome, evaluatedN, firedN, unevaluableN, errorClass, heldSourceAsof);
     } else if (args.dryRun) {
       log(`[dry-run] conclude_run lane=${LANE} run_id=${runId} outcome=${outcome} evaluated_n=${evaluatedN} fired_n=${firedN} unevaluable_n=${unevaluableN} error_class=${errorClass} (no write)`);
     }
@@ -421,14 +450,37 @@ export async function runSuiteAlertsLane(opts: {
       log(`FETCH ERROR listing alerts: ${e instanceof Error ? e.message : e}`);
       return empty(1, { outcome: "failure" });
     }
-    if (alerts.length === 0) {
-      log("no armed suite_event alerts — nothing to do");
-      const skipped = 0;
-      const evalErrors = 0;
-      const deferred = 0;
-      const outcome = (skipped === 0 && evalErrors === 0 && deferred === 0) ? "success" : "partial";
-      await conclude(outcome, 0, 0, 0, null);
-      return empty(0, { outcome, evaluatedN: 0 });
+    // Optional held-company path shares this lane and its two-phase receipt. Public
+    // catalog reads never receive private membership. Do not activate through cron
+    // or configuration as part of source delivery.
+    let heldEvaluated = 0;
+    let heldUnevaluable = 0;
+    let heldFired = 0;
+    let heldError: string | null = null;
+    if (args.heldMaterialEvents) {
+      heldSourceAsof = null;
+      try {
+        if (!args.dryRun && !runReceipted) throw new Error("held_receipt_unavailable");
+        const events = await (opts.hooks?.loadHeldEvents ?? loadHeldPublicEvents)();
+        const book = foldHeldPositions(await supa.openPositions());
+        const plan = planHeldMaterialEvents(book.positions, events, (opts.hooks?.now ?? Date.now)());
+        heldEvaluated = plan.evaluated;
+        heldUnevaluable = plan.unevaluable + book.excludedRows;
+        heldSourceAsof = heldPublicSourceAsof(events);
+        for (const row of plan.rows) {
+          if (args.dryRun) { heldFired++; continue; }
+          try {
+            await supa.linkHeldCorrection(row);
+            if (await supa.enqueueHeld(row) === "inserted") heldFired++;
+          }
+          catch { heldUnevaluable++; heldEvaluated = Math.max(0, heldEvaluated - 1); heldError = "held_outbox_write_failed"; }
+        }
+        if (heldUnevaluable && !heldError) heldError = "held_source_no_coverage";
+      } catch {
+        // No raw error/URL/owner/ticker/position is logged on this private path.
+        heldUnevaluable++;
+        heldError = "held_read_unavailable";
+      }
     }
 
     // Group by symbol → one bars load + one computeSuite per (symbol, suite).
@@ -439,7 +491,7 @@ export async function runSuiteAlertsLane(opts: {
       bySymbol.get(sym)!.push(a);
     }
 
-    let fired = 0;
+    let fired = heldFired;
     let skipped = 0;
     let evalErrors = 0;
     let deferred = 0;
@@ -484,8 +536,7 @@ export async function runSuiteAlertsLane(opts: {
 
           // Floor = alert creation time: old history never fires on first evaluation.
           // SAME day-floored floorT for both condition types.
-          const createdMs = Date.parse(String(a?.created_at ?? ""));
-          const floorT = Number.isFinite(createdMs) ? floorToUtcDayStart(createdMs / 1000) : 0;
+          const floorT = suiteAlertFloorT(a?.created_at);
           const r = isSeq
             ? evalSuiteSequence(cond as SuiteSequenceCondition, events, data.barsT, floorT)
             : evalSuiteEvent(cond as SuiteAlertCondition, events, data.barsT, floorT);
@@ -541,11 +592,15 @@ export async function runSuiteAlertsLane(opts: {
         }
       }
     }
-    const unevaluableN = skipped + evalErrors + deferred;
-    const evaluatedN = alerts.length - unevaluableN;
-    const outcome = (skipped === 0 && evalErrors === 0 && deferred === 0) ? "success" : "partial";
-    await conclude(outcome, evaluatedN, fired, unevaluableN, evalErrors === 0 ? null : "eval_error");
-    log(`done: ${alerts.length} armed, ${fired} fired, ${unevaluableN} unevaluable`);
+    const unevaluableN = skipped + evalErrors + deferred + heldUnevaluable;
+    const evaluatedN = alerts.length - skipped - evalErrors - deferred + heldEvaluated;
+    const outcome = unevaluableN === 0 ? "success" : "partial";
+    // alert_runs is a shared lane-health surface. Never expose held membership
+    // counts or a membership-selected timestamp through its global receipt.
+    await conclude(outcome, args.heldMaterialEvents ? null : evaluatedN, args.heldMaterialEvents ? null : fired,
+      args.heldMaterialEvents ? null : unevaluableN, heldError ?? (evalErrors === 0 ? null : "eval_error"));
+    if (args.heldMaterialEvents) log(`done: suite and held evaluation ${outcome}; private counts omitted`);
+    else log(`done: ${alerts.length} armed, ${fired} fired, ${unevaluableN} unevaluable`);
     return { code: 0, outcome, fired, unevaluableN, evaluatedN, deferred, skipped, evalErrors };
   } catch (e) {
     await conclude("failure", null, null, null, e instanceof Error ? e.constructor.name : "Error");

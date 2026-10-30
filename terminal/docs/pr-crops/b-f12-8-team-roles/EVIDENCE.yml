@@ -1,16 +1,16 @@
 # B-F12-8 Team roles v1 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: bfe98ed4f82f30506af69e9ada13811343e386fe
-# capturedAt: 2026-09-27T10:12:21.098Z
+# capturedAtHead: e2846880681d4b9aff4a060e1321f50f240cafc7
+# capturedAt: 2026-10-24T05:35:17.793Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/settings/SectionTeam.tsx: "00f61441215f0cdb8c6b40536e66e243d0ae83ffa54d6f19ae8a67dd99d7a79d"
+  terminal/components/settings/SectionTeam.tsx: "add785974e9872100f912b96f21e28d48819f39eef221b9efe887752ba51e3e6"
   terminal/components/settings/SectionTeam.module.css: "069056ff7ac4274a57ae9a835a0fdda178e9625a591b4374e855b9d41a3fd5bc"
-  terminal/components/settings/SettingsPanel.tsx: "526725b37af04f1092359a8aca1e6d3d6d62815b5913b3a7eba754e4ca020329"
+  terminal/components/settings/SettingsPanel.tsx: "35ad74834c9d52ab797d6554c4b68182c268177f1907f775fb07a8a9a3118ccf"
   terminal/components/settings/icons.tsx: "7f3e17e45cb92545437ade898fe47a92cf6a65d1682cec9b9cea7a5bb8bd4d83"
-  terminal/app/settings.css: "d17ceff6469db97d3d4bcfb800503ee3c22e89b0770a1c0a88c9d39eb5a72837"
-  terminal/lib/i18n.tsx: "51276ecc8db6956c6c4e5cc67c55eab029c0b468ccb61e34f8bb92f25e42b9f8"
+  terminal/app/settings.css: "2a15b7704f1c6ec62671ec84723063dcce367c7998bbea56e04b50c9bda2252c"
+  terminal/lib/i18n.tsx: "13f33e3178b105a64f1f5df35974cd99041ef06f05bdece95939dd07a8b9fe7c"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -18,7 +18,7 @@ viewports:
   - { name: mobile, width: 390, height: 844 }
 harness: /dev/settings?s=team&lang=<en|zh> (roster and confirm crops); /dev/settings?s=team&team=none&lang=<en|zh> (zero-team crops); /dev/settings?s=team&team=truncated&lang=<en|zh> (truncated crops)
 capture_flag: TERMINAL_E2E_FIXTURE
-capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This script starts next dev with the same flag.
+capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This script starts next dev with the same flag.
 command: |
   cd terminal
   node e2e/tools/capture_f12_8_team_roles.cjs
@@ -56,3 +56,13 @@ measurements:
   mobile-zh-no-team.png: { roleBadgeText: "", changeRolePresent: false, changeRoleLabels: "", confirmText: "", noTeamPresent: true, createLabel: "创建团队", nameLabel: "团队名称", truncatedText: "", truncatedInView: false, inviteBadgeText: "", unnamedRows: 0, ownerWhatPresent: true, headingTitle: "团队", joinNotRead: 0, expiryNotRead: 0, removeClass: "" }
   mobile-en-truncated.png: { roleBadgeText: "Owner | Administrator | Member | Member | Member", changeRolePresent: true, changeRoleLabels: "Make a member | Make an administrator | Make an administrator | Make an administrator", confirmText: "", noTeamPresent: false, createLabel: "", nameLabel: "", truncatedText: "Showing the first 5 people; the full list is longer.", truncatedInView: true, inviteBadgeText: "Invited — not yet accepted", unnamedRows: 2, ownerWhatPresent: true, headingTitle: "Desk", joinNotRead: 2, expiryNotRead: 1, removeClass: "acs-btn btn-danger SectionTeam-module__okp4Qq__btnSm" }
   mobile-zh-truncated.png: { roleBadgeText: "所有者 | 管理员 | 成员 | 成员 | 成员", changeRolePresent: true, changeRoleLabels: "设为成员 | 设为管理员 | 设为管理员 | 设为管理员", confirmText: "", noTeamPresent: false, createLabel: "", nameLabel: "", truncatedText: "仅显示前 5 位成员，完整名单更长。", truncatedInView: true, inviteBadgeText: "已邀请，尚未接受", unnamedRows: 2, ownerWhatPresent: true, headingTitle: "Desk", joinNotRead: 2, expiryNotRead: 1, removeClass: "acs-btn btn-danger SectionTeam-module__okp4Qq__btnSm" }
+
+documentLanguageRecapture20261024:
+  sourceHead: e2846880681d4b9aff4a060e1321f50f240cafc7
+  qualification: Actual native producer executed in original managed language workspace; existing fixture data, no live-account or production claim
+  historicalManifest: history/before-document-language-20261024.yml
+  historicalSource: 919114d1c27f0f588d9d5a4d52574f19b0137d6d
+  receiptIndex: ../document-language/recapture-index.json
+
+# Raw capture identity and every upstream source/crop lock remain unchanged; omit only unused pending-copy dependency.
+lexProjection: {"schema":"terminal.lex_capture_projection.v1","omittedProperty":"obDonePrefsSyncing","capturedRawSha256":"13f33e3178b105a64f1f5df35974cd99041ef06f05bdece95939dd07a8b9fe7c","projectedSha256":"d6dcc2df7615a1c5782f4d755178fbb76bcf9ee42b93dffe7c7c95317a652de5","sourceGitBlob":"664d68043f472919f7b581f545a334bf66d9782f","sourceRecoveryCommit":"e2846880681d4b9aff4a060e1321f50f240cafc7","captureCommitLocallyAvailable":true}

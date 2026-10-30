@@ -142,8 +142,8 @@ export function readOwnerWatchlists(storage: StoragePort, owner: string): LocalW
   return normalizeState(readSlot(storage, WLS_KEY, owner));
 }
 
-export function writeOwnerWatchlists(storage: StoragePort, owner: string, state: LocalWatchlistState): void {
-  writeSlot(storage, WLS_KEY, owner, { lists: state.lists, active: state.active, meta: state.meta });
+export function writeOwnerWatchlists(storage: StoragePort, owner: string, state: LocalWatchlistState): boolean {
+  return writeSlot(storage, WLS_KEY, owner, { lists: state.lists, active: state.active, meta: state.meta });
 }
 
 // ───────────────────────────── flags / notes ─────────────────────────────
@@ -159,8 +159,8 @@ export function readOwnerStringMap(storage: StoragePort, key: string, owner: str
   return map;
 }
 
-export function writeOwnerStringMap(storage: StoragePort, key: string, owner: string, map: Record<string, string>): void {
-  writeSlot(storage, key, owner, Object.keys(map).length ? map : undefined);
+export function writeOwnerStringMap(storage: StoragePort, key: string, owner: string, map: Record<string, string>): boolean {
+  return writeSlot(storage, key, owner, Object.keys(map).length ? map : undefined);
 }
 
 // ───────────────────────────── migration receipt ─────────────────────────────
@@ -273,7 +273,7 @@ export function adoptLegacyWatchlistState(storage: StoragePort): boolean {
       try { return JSON.parse(storage.getItem(LEGACY_KEYS.lists) || "null"); } catch { return null; }
     })());
     if (legacyState && !guestHasLists) {
-      writeOwnerWatchlists(storage, GUEST_OWNER, legacyState);
+      if (!writeOwnerWatchlists(storage, GUEST_OWNER, legacyState)) return adopted;
       adopted = true;
     }
     for (const [legacyKey, scopedKey] of [[LEGACY_KEYS.flags, WL_FLAGS_KEY], [LEGACY_KEYS.notes, WL_NOTES_KEY]] as const) {
@@ -287,7 +287,7 @@ export function adoptLegacyWatchlistState(storage: StoragePort): boolean {
         if (symbol && typeof value === "string") map[symbol] = value;
       }
       if (!Object.keys(map).length) continue;
-      writeOwnerStringMap(storage, scopedKey, GUEST_OWNER, map);
+      if (!writeOwnerStringMap(storage, scopedKey, GUEST_OWNER, map)) return adopted;
       adopted = true;
     }
     // The receipt is DISCARDED, never adopted — see the policy note at the top of this file.
@@ -297,4 +297,58 @@ export function adoptLegacyWatchlistState(storage: StoragePort): boolean {
     // Storage unavailable (private mode, quota): the session runs on in-memory state.
   }
   return adopted;
+}
+
+// ───────────────────── unresolved Company saves ─────────────────────
+// Same browser owner/envelope as local watchlists and deletion intents. This is a
+// no-replay fence, never an outbox, server idempotency receipt or retry permission.
+export const WLS_SAVE_FENCE_KEY = "mm.wls.save-fence.v1";
+export type WatchlistSaveFence = {
+  operationId: string; subjectId: string; listId: string; symbol: string; status: "unknown";
+};
+export type WatchlistSaveFenceRead =
+  | { state: "empty" }
+  | { state: "blocked" }
+  | { state: "held"; save: WatchlistSaveFence };
+const SAVE_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+function validSaveFence(value: unknown, owner: string): value is WatchlistSaveFence {
+  if (!isPlainObject(value) || Object.keys(value).sort().join(",") !== "listId,operationId,status,subjectId,symbol") return false;
+  return typeof value.subjectId === "string" && SAVE_UUID.test(value.subjectId)
+    && owner === watchlistOwnerKey(value.subjectId)
+    && typeof value.operationId === "string" && SAVE_UUID.test(value.operationId)
+    && typeof value.listId === "string" && SAVE_UUID.test(value.listId)
+    && typeof value.symbol === "string" && /^[A-Z0-9][A-Z0-9.^:_-]{0,127}$/.test(value.symbol)
+    && value.status === "unknown";
+}
+/** Unlike convenience state, unreadable/corrupt fence data must never look empty. No expiry. */
+export function readWatchlistSaveFence(storage: StoragePort, owner: string): WatchlistSaveFenceRead {
+  if (!owner.startsWith("account:")) return { state: "blocked" };
+  try {
+    const raw = storage.getItem(WLS_SAVE_FENCE_KEY);
+    if (raw === null) return { state: "empty" };
+    const envelope: unknown = JSON.parse(raw);
+    if (!isPlainObject(envelope)) return { state: "blocked" };
+    if (!Object.hasOwn(envelope, owner)) return { state: "empty" };
+    const save = envelope[owner];
+    return validSaveFence(save, owner) ? { state: "held", save } : { state: "blocked" };
+  } catch { return { state: "blocked" }; }
+}
+/** Persist and read back BEFORE sending. A different unresolved operation cannot be replaced. */
+export function retainWatchlistSaveFence(storage: StoragePort, owner: string, save: Omit<WatchlistSaveFence, "status">): boolean {
+  const value: WatchlistSaveFence = { ...save, status: "unknown" };
+  if (!validSaveFence(value, owner)) return false;
+  const existing = readWatchlistSaveFence(storage, owner);
+  if (existing.state === "blocked" || (existing.state === "held" && (existing.save.operationId !== value.operationId || existing.save.subjectId !== value.subjectId || existing.save.listId !== value.listId || existing.save.symbol !== value.symbol))) return false;
+  if (!writeSlot(storage, WLS_SAVE_FENCE_KEY, owner, value)) return false;
+  const retained = readWatchlistSaveFence(storage, owner);
+  return retained.state === "held" && retained.save.operationId === value.operationId
+    && retained.save.listId === value.listId && retained.save.symbol === value.symbol;
+}
+/** Call only after exact membership confirmation or a definitive owner rejection. */
+export function clearWatchlistSaveFence(storage: StoragePort, owner: string, operationId: string): boolean {
+  const existing = readWatchlistSaveFence(storage, owner);
+  if (existing.state === "empty") return true;
+  if (existing.state !== "held" || existing.save.operationId !== operationId) return false;
+  return writeSlot(storage, WLS_SAVE_FENCE_KEY, owner, undefined)
+    && readWatchlistSaveFence(storage, owner).state === "empty";
 }

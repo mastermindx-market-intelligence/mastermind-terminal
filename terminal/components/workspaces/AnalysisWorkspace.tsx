@@ -3,18 +3,29 @@
 // intelligence surface). It used to load from app/layout.tsx on every route; it is imported
 // here and in components/fin/CompanyIntelligencePage so only the two surfaces that use it pay
 // for it. See the note in that file.
+import { pick } from "@/lib/finFormat";
 import "../../app/company-intelligence.css";
-import { useCallback, useEffect, useLayoutEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import MegaPane, { FIN_PAGES as FIN_PAGE_LIST, type FinPage } from "@/components/fin/MegaPane";
 import { getFund, getBars, type Fund, type Bar } from "@/lib/fund";
 import { getJSON } from "@/lib/dataCache";
 import { useLang, useT } from "@/lib/i18n";
+import {
+  hasMarketOntologyContext,
+  parseMarketOntologyContext,
+  serializeMarketOntologyContext,
+  stripMarketOntologyParams,
+  type MarketOntologyContext,
+} from "@/lib/marketOntologyContext";
 import { ANALYSIS_DEFAULT_SYMBOL, normalizeAnalysisSymbol } from "@/lib/analysisSymbol";
 import { announceShellBrainSymbol } from "@/lib/shellBrainSymbol";
 import { readActiveSymbol, writeActiveSymbol } from "@/lib/activeSymbol";
 import SymbolPicker from "@/components/SymbolPicker";
+import MarketOntologyContextStrip from "./MarketOntologyContextStrip";
+import { sharedShellTerminalHref } from "@/lib/sharedShellNavigation";
+import { useOptionalSharedShellPresentation } from "@/components/chrome/shared-shell/SharedShellPresentation";
 
 /**
  * Analysis workspace composer (Wave-2 IA) — the `/analysis` body.
@@ -76,6 +87,8 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
   const { lang } = useLang();
   const t = useT();
   const router = useRouter();
+  const sharedPresentation = useOptionalSharedShellPresentation();
+  const searchParams = useSearchParams();
 
   const requestedSymbol = initialSymbol?.trim().toUpperCase() || "";
   const normalizedInitialSymbol = normalizeAnalysisSymbol(initialSymbol);
@@ -90,8 +103,27 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
   );
   const [page, setPage] = useState<FinPage>(seededPage);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [marketOntologyContext, setMarketOntologyContext] = useState<MarketOntologyContext | null>(null);
+  const routeQuery = searchParams.toString();
+  useLayoutEffect(() => {
+    // Router navigation and Back/Forward reuse this mounted workspace. Reconcile
+    // URL identity before paint; a useState seed alone would leave the old company.
+    const params = new URLSearchParams(routeQuery);
+    const raw = params.get("symbol");
+    if (raw) {
+      const next = normalizeAnalysisSymbol(raw);
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- synchronize the external URL owner before painting reused route content.
+      setInvalidSymbol(next ? null : raw);
+      if (next) setSym(next);
+    } else {
+      setInvalidSymbol(null);
+      setSym(normalizeAnalysisSymbol(readActiveSymbol() ?? undefined) ?? DEFAULT_SYMBOL);
+    }
+    const nextPage = params.get("page") ?? params.get("pane");
+    setPage(nextPage && FIN_PAGES.has(nextPage as FinPage) ? nextPage as FinPage : DEFAULT_PAGE);
+  }, [routeQuery]);
 
-  const [intel, setIntel] = useState<any | null>(null);
+  const [intel, setIntel] = useState<unknown | null>(null);
   const [fund, setFund] = useState<Fund | null>(null);
   const [fundLoading, setFundLoading] = useState(true);
   const [bars, setBars] = useState<Bar[]>([]);
@@ -109,6 +141,14 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
   const [symbolSettled, setSymbolSettled] = useState(() => !!normalizedInitialSymbol || !!requestedSymbol);
   useLayoutEffect(() => {
     if (symbolSettled) return;
+    const params = new URLSearchParams(window.location.search);
+    if (hasMarketOntologyContext(params) && !normalizedInitialSymbol) {
+      const url = new URL(window.location.href);
+      url.search = stripMarketOntologyParams(params).toString();
+      window.history.replaceState(null, "", url.toString());
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- invalid context is dropped at the hydration boundary.
+      setMarketOntologyContext(null);
+    }
     const cursor = normalizeAnalysisSymbol(readActiveSymbol() ?? undefined);
     if (cursor && cursor !== sym) setSym(cursor);
     setSymbolSettled(true);
@@ -133,6 +173,17 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
     window.history.replaceState(null, "", u.toString());
   }, []);
 
+  const contextParams = useMemo(() => {
+    const params = new URLSearchParams();
+    for (const [key, value] of searchParams.entries()) params.append(key, value);
+    return params;
+  }, [searchParams]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMarketOntologyContext(parseMarketOntologyContext(contextParams));
+  }, [contextParams]);
+
   // ── symbol change → rewrite ?symbol= shallowly, and tell AppShell's Brain host ──
   // `writeParam` uses `history.replaceState`, which fires no Next.js navigation and no
   // native DOM event, so AppShell's shell-level resolver would otherwise never learn the
@@ -154,6 +205,7 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
   useEffect(() => {
     if (invalidSymbol || !symbolSettled) return;
     let alive = true;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIntel(null); setFund(null); setBars([]); setLast(null); setFundLoading(true);
     getJSON(`/data/${sym}.intel.json`).then((d) => { if (alive) setIntel(d); }).catch(() => {});
     getBars(sym).then((b) => { if (alive) setBars(b); }).catch(() => {});
@@ -193,17 +245,39 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
   const openSymbol = useCallback((next: string) => {
     const valid = normalizeAnalysisSymbol(next);
     if (!valid) return;   // the picker only ever yields manifest symbols; belt and braces
+    const params = new URLSearchParams(window.location.search);
+    for (const key of ["ci_event", "ci_generation", "ci_company", "ci_fingerprint", "ci_lens", "ci_evidence"]) params.delete(key);
+    const investigationUrl = new URL(window.location.href);
+    investigationUrl.search = params.toString();
+    window.history.replaceState(window.history.state, "", investigationUrl.toString());
+    if (hasMarketOntologyContext(params)) {
+      const url = new URL(window.location.href);
+      url.search = stripMarketOntologyParams(params).toString();
+      window.history.replaceState(null, "", url.toString());
+    }
+    setMarketOntologyContext(null);
     setInvalidSymbol(null);
     setSym(valid);
   }, []);
 
   // ── onClose (workspace) → jump to the chart for this symbol ──
   const onClose = useCallback(() => {
-    router.push(`/terminal?symbol=${encodeURIComponent(sym)}`);
-  }, [router, sym]);
+    const href = sharedPresentation
+      ? sharedShellTerminalHref(window.location.href, sym)
+      : `/terminal?symbol=${encodeURIComponent(sym)}`;
+    router.push(href);
+  }, [router, sharedPresentation, sym]);
 
   const zh = lang === "zh";
   const contextSymbol = invalidSymbol ?? sym;
+  const thesesHref = useMemo(() => {
+    if (!marketOntologyContext) return `/analysis?view=theses&symbol=${encodeURIComponent(sym)}`;
+    const params = serializeMarketOntologyContext(
+      marketOntologyContext,
+      new URLSearchParams({ view: "theses", symbol: sym }),
+    );
+    return `/analysis?${params.toString()}`;
+  }, [marketOntologyContext, sym]);
 
   return (
     // Root IS the (shell) .app2 grid cell (like DiscoverWorkspace). Flex-column so
@@ -211,22 +285,24 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
     // bar. `.analysis-shell` also keeps that in-flow behaviour at ≤860px, where the pane would
     // otherwise fall back to a fixed full-screen overlay and bury this bar and the app's mobile
     // nav underneath itself — see the scoped block in app/fin.css.
-    <div className="main2 ws-shell analysis-shell">
+    <div className="main2 ws-shell analysis-shell" role="main" id="shared-shell-content" tabIndex={-1}>
+      {marketOntologyContext && <MarketOntologyContextStrip context={marketOntologyContext} />}
       <div className="analysis-context-bar">
-        <button type="button" className="analysis-context-back" onClick={onClose}>
+        {!invalidSymbol && <button type="button" className="analysis-context-back" onClick={onClose}>
           <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden>
             <path d="M15 18l-6-6 6-6" />
           </svg>
           {t("backToChart")}
-        </button>
+        </button>}
         {/* The identity block IS the switcher. Two controls that both name the current company —
             a read-only chip beside a "switch to" field — is one more than the bar needs, and the
             chart already established that tapping the ticker is how you change it. */}
         <SymbolPicker
+          scope={sharedPresentation ? "companies" : "symbols"}
           symbol={contextSymbol}
           mark={invalidSymbol ? "!" : undefined}
-          eyebrow={zh ? "研究工作区" : "RESEARCH WORKSPACE"}
-          label={zh ? "切换标的" : "Change symbol"}
+          eyebrow={pick(zh, "RESEARCH WORKSPACE", "研究工作区")}
+          label={pick(zh, "Change symbol", "切换标的")}
           open={pickerOpen}
           onOpenChange={setPickerOpen}
           onPick={openSymbol}
@@ -237,9 +313,13 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
           <i />
           <span>{t("wsCompanyResearch")}</span>
         </div>
+        {!invalidSymbol && sharedPresentation && <button type="button" className="analysis-context-chart" onClick={onClose}>
+          {pick(zh, "Open current chart", "打开当前图表")} <span aria-hidden="true">↗</span>
+        </button>}
+        {!invalidSymbol && <Link className="analysis-context-theses" href={`/analysis?view=investigations&symbol=${encodeURIComponent(sym)}`}>{pick(zh, "Saved research", "已保存研究")}</Link>}
         {!invalidSymbol && (
           <Link
-            href={`/analysis?view=theses&symbol=${encodeURIComponent(sym)}`}
+            href={thesesHref}
             className="analysis-context-theses"
             aria-label={t("wsOpenThesesFor", "Your theses on {sym}").replace("{sym}", sym)}
           >
