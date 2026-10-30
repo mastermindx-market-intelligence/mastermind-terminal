@@ -419,29 +419,29 @@ Complete October24 census of 169 open PRs (including all file pages and changed 
 
 ### 0046 — Source-only exact-attempt frozen enrollment
 
-Follows immutable0045. **UNAPPLIED**: application is false and the application date
-is null. The atomic package embeds the accepted intent-revision unit unchanged,
-removes the legacy five-argument arm, and retains the six-argument CAS. A new
-seven-argument overload of the existing arm RPC implements initial enrollment
-prepare/arm/reconcile on `alerts.frozen_enrollment`. No route or caller is wired.
+Follows immutable0045. **UNAPPLIED**: application is false and date is null.
+Existing draft1182 retains the0046 reservation. The atomic package embeds the
+accepted intent-revision unit unchanged, then installs the exact-attempt protocol.
+Final schema has ONLY the seven-argument existing arm name; both old five/six-
+argument initial-arm bypasses are absent. Initial-only rearm fails closed; existing
+state-only generation/revision CAS remains unchanged. No public caller is wired.
 
-The envelope is owner-RLS readable and service-write-only; it is not a secret from
-the owning user. It is never stored in authenticated-wide `alert_runs`. It retains
-one attempt for the alert row's lifetime. Different attempts cannot replace it;
-protected edits make old pins stale, and deletion loses the row and its receipt.
-A missing/reinserted/stale row cannot prove the older attempt's outcome.
+The one retained envelope lives on owner-RLS alerts, never authenticated-wide
+alert_runs. Other attempts cannot replace/evict it. Owners can read their own pin;
+unprivileged writers/JWT role claims cannot forge it. Retained receipts refuse
+id/user_id transfer, while deletion loses the receipt and remains UNKNOWN.
+Actual service_role trust is unchanged; this is not protection from arbitrary
+trusted SQL and adds no definer, role/grant expansion or new store/RPC family.
 
-Only the prepare call that creates the marker may dispatch arm. A preexisting
-prepared marker returns pending. Explicit reconciliation uses the original pin,
-rechecks current Auth/account/source admission and never arms. It returns the
-exact retained terminal acknowledgment or seals the slot as not committed under
-the arm lock, fencing late prepare/arm. A different runtime generation cannot be
-attributed to that acknowledgment. Six-argument lifecycle callers remain separate
-from exact-attempt enrollment and cannot fabricate its receipt.
+Only the PREPARE creator may dispatch ARM. Runtime+exact acknowledgment commit in
+one transaction. RECONCILE is READ ONLY: absent/PREPARED stays UNKNOWN and cannot
+cancel or arm. A DISTINCT explicit FENCE may close only an existing exact PREPARED
+slot under the arm lock, including after same-owner edits; absence is not fenced.
+Current Auth/account/exact-source checks gate every server action/read. Recovered
+COMMITTED outcomes retain original historical runtime, never infer current active
+state from current runtime or conflate a later generation with the original ack.
 
-Source proof uses a private socket-only PostgreSQL fixture, including response
-loss, restart, concurrent attempts, delayed dispatch, stale intent, owner isolation,
-atomic rollback and reapplication. It is not production application or permission
-for the original October26 two-attempt pilot; its held effects remain UNKNOWN.
-Rollback starts with caller disablement and retains revisions/runtime/enrollment
-and terminal tombstones. Never restore the legacy arm or replay an uncertain arm.
+Source tests use only synthetic transport and disposable socket-only PostgreSQL.
+They do not apply production SQL or resume/replay an October26 pilot/UNKNOWN effect.
+Rollback begins with caller disablement and preserves revisions/runtime/receipts;
+never restore an unreceipted arm or replay uncertain execution.

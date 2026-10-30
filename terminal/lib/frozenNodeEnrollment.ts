@@ -25,7 +25,7 @@ type Runtime = {
   generation: string; revision: 0; createdAt: string; armingEpoch: string; priorState: null;
 };
 export type FrozenNodeEnrollmentResult =
-  | { kind: "armed"; intent: FrozenNodeInitialIntent; runtime: Runtime }
+  | { kind: "committed"; intent: FrozenNodeInitialIntent; historicalRuntime: Runtime; currentState: "unavailable" }
   | { kind: "unavailable" | "denied" | "conflict"; reason: string }
   | { kind: "effect_unknown"; reason: "enrollment_acknowledgment_unknown"; intent: FrozenNodeInitialIntent };
 const uuid = (x: unknown): x is string => typeof x === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(x);
@@ -81,12 +81,16 @@ function acknowledgment(value: unknown, pin: FrozenNodeInitialIntent, preparedAt
  * The existing alerts row retains the exact attempt's terminal acknowledgment.
  * After process loss use reconcile() with the ORIGINAL durably retained pin;
  * it never arms. An existing prepared marker never authorizes a new run() to
- * arm. Reconciliation atomically closes a pending/absent slot against late
- * dispatch. No route or historical-operation adoption is enabled here. */
+ * arm. Reconciliation is READ ONLY for pending or absent receipts and leaves
+ * those outcomes UNKNOWN. fence() is a SEPARATE explicit server-authorized
+ * action that may close only the exact persisted PREPARED slot, never absence.
+ * A recovered COMMITTED ack is historical evidence, not current armed/active
+ * state. No route or historical-operation adoption is enabled here. */
 export function createFrozenNodeInitialEnrollment(
   request: FrozenNodeInitialIntent,
   source: FrozenNodeSourceActionDependencies,
-): { run: () => Promise<FrozenNodeEnrollmentResult>; reconcile: () => Promise<FrozenNodeEnrollmentResult> } {
+): { run: () => Promise<FrozenNodeEnrollmentResult>; reconcile: () => Promise<FrozenNodeEnrollmentResult>;
+  fence: () => Promise<FrozenNodeEnrollmentResult> } {
   const pin = snapshot(request);
   // Freeze the capability references as well; caller mutation during await must
   // not replace the verified Auth/account/source/or invocation-clock boundary.
@@ -94,8 +98,8 @@ export function createFrozenNodeInitialEnrollment(
     getSession: source.auth.getSession.bind(source.auth), getUser: source.auth.getUser.bind(source.auth),
   }, sourceTransport: { ...source.sourceTransport } };
   let outcome: Promise<FrozenNodeEnrollmentResult> | undefined;
-  let reconciliation: Promise<FrozenNodeEnrollmentResult> | undefined;
-  async function execute(reconcile = false): Promise<FrozenNodeEnrollmentResult> {
+  let fencing: Promise<FrozenNodeEnrollmentResult> | undefined;
+  async function execute(mode: "run" | "reconcile" | "fence" = "run"): Promise<FrozenNodeEnrollmentResult> {
     const unavailable = (reason: string): FrozenNodeEnrollmentResult => ({ kind: "unavailable", reason });
     if (!pin) return unavailable("invalid_initial_intent");
     let dispatchStarted = false;
@@ -109,7 +113,7 @@ export function createFrozenNodeInitialEnrollment(
       if (admitted.context.principal !== pin.principal || !equal(admitted.context.target, pin.predicate.target)) return unavailable("admitted_target_mismatch");
       const db = createServiceClient();
       if (!db) return unavailable("service_client_unavailable");
-      const rpc = async (operation: "prepare" | "arm" | "reconcile") => {
+      const rpc = async (operation: "prepare" | "arm" | "reconcile" | "fence") => {
         dispatchStarted = true;
         const reply = await bounded(db.rpc("arm_frozen_node_runtime", {
           p_alert_id: pin.alertId, p_principal: pin.principal, p_predicate: structuredClone(pin.predicate),
@@ -126,7 +130,7 @@ export function createFrozenNodeInitialEnrollment(
           // A stale/missing row or generation is not the original attempt's
           // terminal outcome. Only its exact retained envelope can resolve
           // historical ambiguity; a reconciliation refusal preserves UNKNOWN.
-          if (reconcile) return unknown();
+          if (mode !== "run") return unknown();
           return { kind: body.kind as "unavailable" | "conflict", reason: body.reason };
         }
         if (!record(body) || !keys(body, ["kind", "enrollment"]) || body.kind !== "enrollment") return unknown();
@@ -138,7 +142,8 @@ export function createFrozenNodeInitialEnrollment(
           return { kind: result.kind as "unavailable" | "conflict", reason: result.reason };
         }
         const runtime = acknowledgment(result, pin, saved.preparedAt as string, deps.clock());
-        return runtime ? { kind: "armed", intent: structuredClone(pin), runtime } : unknown();
+        if (!runtime) return unknown();
+        return { kind: "committed", intent: structuredClone(pin), historicalRuntime: runtime, currentState: "unavailable" };
       };
       const envelope = (value: unknown): Record<string, unknown> | null => {
         if (!record(value) || !keys(value, ["schema", "attemptId", "alertId", "principal", "predicate", "intentRevision", "lens", "preparedAt", "phase", "outcome"])
@@ -149,7 +154,7 @@ export function createFrozenNodeInitialEnrollment(
         const prepared = fnpInstantMicros(value.preparedAt), now = fnpInstantMicros(deps.clock());
         return prepared !== null && now !== null && prepared <= now ? value : null;
       };
-      if (reconcile) return terminal(await rpc("reconcile"));
+      if (mode !== "run") return terminal(await rpc(mode));
       const read = await bounded(db.from("alerts")
         .select("id,user_id,symbol,condition,active,created_at,frozen_runtime,frozen_intent_revision")
         .eq("id", pin.alertId).eq("user_id", pin.principal).maybeSingle());
@@ -174,7 +179,11 @@ export function createFrozenNodeInitialEnrollment(
     outcome ??= execute();
     return structuredClone(await outcome);
   }, reconcile: async () => {
-    reconciliation ??= execute(true);
-    return structuredClone(await reconciliation);
+    // Each explicit read rechecks current Auth/account/source admission. It is
+    // not a new mutation or a retry of the original prepare/arm/fence.
+    return structuredClone(await execute("reconcile"));
+  }, fence: async () => {
+    fencing ??= execute("fence");
+    return structuredClone(await fencing);
   } };
 }
