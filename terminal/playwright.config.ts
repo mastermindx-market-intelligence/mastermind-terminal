@@ -101,7 +101,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: `npm run dev -- --hostname 127.0.0.1 --port ${port}`,
+    command: `npm run dev -- ${process.env.TERMINAL_EVIDENCE_COMPILER === "webpack" ? "--webpack " : ""}--hostname 127.0.0.1 --port ${port}`,
     url: `${baseURL}/terminal?symbol=NVDA`,
     reuseExistingServer: !process.env.CI && process.env.TERMINAL_VISUAL_EVIDENCE_OPERATION === undefined,
     timeout: 120_000,
