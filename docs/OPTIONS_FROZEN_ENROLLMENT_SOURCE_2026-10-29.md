@@ -314,3 +314,38 @@ installation, source/account readiness and any real operation remain separately 
 Local component tests used Node26 `--no-experimental-webstorage` to let jsdom own
 its real browser Storage; this avoids Node26’s unavailable native localStorage
 shadow. No runtime/source permission or application behavior was changed for it.
+
+## Production publisher assembly — October30 source followup
+
+Commission:1182 comment6528692543. Root01a156f1 resumes this same clean writer
+from accepted776468f2 after coordinator01a15700's completed push/comment. The
+coordinator is idle/interrupted and absent from native agent inventory; direct
+app-server continuation returned a multi-agent-v2 refusal and was not retried or
+rerouted. No live writer, lease or uncertain publication was taken over.
+
+The existing production main now passes the existing FrozenNodeHitPublisher bound
+to the identical lifecycle adapter into run_once ONLY when host configuration has
+both OPTIONS_FROZEN_READER_ENABLED=1 and a separate
+OPTIONS_FROZEN_PUBLISHER_ENABLED=1. Publisher switch absent/empty/0 returns None;
+malformed or incomplete explicit opt-in stops before runtime execution. This is
+source wiring only; no environment file or host configuration was changed. Reader
+and entry flags alone still cannot publish. The publisher does not grant source,
+account, generation/epoch or run-marker admission. Existing run_once retains its
+exclusive pending-run acknowledgement, exact atomic PREPARE/commit, no-retry
+UNKNOWN handling and dry-run fences. Delivery email/webhook admission is unchanged.
+
+Actual main tests execute production service/publisher assembly and run_once with
+isolated account/source/REST fixtures. Positive fixture reaches existing prepare
+then commit and one synthetic outbox result; negative principal, denied rights,
+future source clock, prior UNKNOWN run, incomplete config, disabled publisher,
+dry-run and lost prepare/commit responses cannot publish/retry. RPC responses are
+synthetic transport evidence, not a new claim of real PostgreSQL atomicity.
+51 affected tests pass; five pre-existing optional cross-repository reader tests
+skip without OPTIONS_FROZEN_MACRO_SOURCE. Their unchanged earlier accepted evidence
+is retained, not claimed rerun. Initial test fixture used priorState with revision0;
+correcting it to revision1 and subclassing the actual reader restored valid fixture
+admission without weakening production checks. Independent non-author review of
+this changed exactly-once composition is required before Draft publication.
+All SQL, account/source policies and delivery contracts remain unchanged. No DB
+apply, real account/provider request, enrollment, publication/send, activation,
+merge/approval or deployment occurred. Runtime prerequisites remain separately held.
