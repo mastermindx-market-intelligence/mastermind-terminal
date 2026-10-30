@@ -18,20 +18,39 @@ function environment(env) {
   check(env.TERMINAL_EVIDENCE_FONTS === ID); verify();
   return { ...env, NEXT_FONT_GOOGLE_MOCKED_RESPONSES: path.join(root, "responses.cjs") };
 }
+function assetIdentity(raw) {
+  const url = new URL(raw);
+  check(url.protocol === "http:" && url.hostname === "127.0.0.1" && ["33961", "33962"].includes(url.port) && !url.username && !url.password && !url.hash);
+  check(/^\/_next\/static\/media\/[a-f0-9]{16}(?:-s)?(?:\.p)?\.woff2$/.test(url.pathname));
+  check(url.search === "" || /^\?v=\d+$/.test(url.search));
+  return url.origin + url.pathname;
+}
 function track(page) {
-  const state = { pending: [], responses: [], failed: false }; tracked.set(page, state);
+  const state = { pending: [], responses: new Map(), unavailable: [], failed: false }; tracked.set(page, state);
   page.on("response", response => {
     if (!/\.woff2(?:\?|$)/.test(response.url())) return;
+    let asset;
+    try { asset = assetIdentity(response.url()); } catch { state.failed = true; return; }
+    if (response.status() !== 200) state.failed = true;
     const pending = response.body().then(bytes => {
-      const sha256 = digest(bytes); check(response.status() === 200 && files.some(f => f.sha256 === sha256));
-      state.responses.push({ sha256, bytes: bytes.length });
-    }).catch(() => { state.failed = true; });
+      const sha256 = digest(bytes), prior = state.responses.get(asset);
+      if (!files.some(f => f.sha256 === sha256 && f.bytes === bytes.length) || (prior && prior.sha256 !== sha256)) { state.failed = true; return; }
+      state.responses.set(asset, { asset, sha256, bytes: bytes.length });
+    }, () => { state.unavailable.push({ asset, reason: "body_unavailable" }); });
     state.pending.push(pending);
   });
 }
+
 function validate(observation) {
   check(observation?.fixture === ID && Array.isArray(observation.responses) && Array.isArray(observation.loadedFaces));
-  for (const f of observation.responses) check(files.some(row => row.sha256 === f.sha256 && row.bytes === f.bytes));
+  check(observation.verifiedResponseScope === "same-isolated-page-context" && Array.isArray(observation.unavailableResponses));
+  check(Number.isSafeInteger(observation.unavailableBodies) && observation.unavailableBodies === observation.unavailableResponses.length);
+  const assets = new Map();
+  for (const f of observation.responses) {
+    check(assetIdentity(f.asset) === f.asset && files.some(row => row.sha256 === f.sha256 && row.bytes === f.bytes));
+    check(!assets.has(f.asset) || assets.get(f.asset) === f.sha256); assets.set(f.asset, f.sha256);
+  }
+  for (const f of observation.unavailableResponses) check(f.reason === "body_unavailable" && assetIdentity(f.asset) === f.asset && assets.has(f.asset));
   for (const family of receipt.families) {
     const latin = family.files.find(f => f.subset === "latin");
     check(observation.responses.some(f => f.sha256 === latin.sha256));
@@ -59,7 +78,7 @@ async function observe(page) {
     return { loadedFaces: [...document.fonts].filter(f => f.status === "loaded").map(f => ({ family: f.family, status: f.status, weight: f.weight, style: f.style })), numeric: numeric ? { present: true, fontFamily: getComputedStyle(numeric).fontFamily, fontVariantNumeric: getComputedStyle(numeric).fontVariantNumeric } : { present: false } };
   });
   await Promise.all(state.pending); check(!state.failed);
-  const observation = { fixture: ID, ...actual, responses: [...new Map(state.responses.map(r => [r.sha256, r])).values()].sort((a,b) => a.sha256.localeCompare(b.sha256)) };
+  const observation = { fixture: ID, ...actual, verifiedResponseScope: "same-isolated-page-context", unavailableBodies: state.unavailable.length, unavailableResponses: state.unavailable, responses: [...state.responses.values()].sort((a,b) => a.asset.localeCompare(b.asset)) };
   validate(observation); return observation;
 }
 module.exports = { ID, verify, environment, track, observe, validate };

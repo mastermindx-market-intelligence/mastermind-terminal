@@ -38,10 +38,10 @@ test("installed Next exact CSS and font-file test seams consume retained bytes w
     if (old === undefined) delete process.env.NEXT_FONT_GOOGLE_MOCKED_RESPONSES; else process.env.NEXT_FONT_GOOGLE_MOCKED_RESPONSES = old;
   }
 });
-function observation() { return { fixture: f.ID, responses: receipt.families.map(f => { const row = f.files.find(x => x.subset === "latin"); return { sha256: row.sha256, bytes: row.bytes }; }), loadedFaces: [{ family: "__Inter_abc", status: "loaded" }, { family: "__JetBrains_Mono_abc", status: "loaded" }], numeric: { present: true, fontFamily: "__Inter_abc, Arial" } }; }
+function observation() { return { fixture: f.ID, verifiedResponseScope: "same-isolated-page-context", unavailableBodies: 0, unavailableResponses: [], responses: receipt.families.map(f => { const row = f.files.find(x => x.subset === "latin"); return { asset: `http://127.0.0.1:33962/_next/static/media/${row.sha256.slice(0,16)}-s.woff2`, sha256: row.sha256, bytes: row.bytes }; }), loadedFaces: [{ family: "__Inter_abc", status: "loaded" }, { family: "__JetBrains_Mono_abc", status: "loaded" }], numeric: { present: true, fontFamily: "__Inter_abc, Arial" } }; }
 test("actual response/load observation requires both faces plus numeric first family", () => {
   f.validate(observation());
-  for (const alter of [x => x.responses.pop(), x => x.responses[0].sha256 = "a".repeat(64), x => x.loadedFaces[0].family += "_Fallback", x => x.loadedFaces[0].status = "loading", x => x.numeric.fontFamily = "Arial"]) {
+  for (const alter of [x => x.responses.pop(), x => x.responses[0].sha256 = "a".repeat(64), x => x.loadedFaces[0].family += "_Fallback", x => x.loadedFaces[0].status = "loading", x => x.numeric.fontFamily = "Arial", x => x.unavailableBodies = 1]) {
     const x = observation(); alter(x); assert.throws(() => f.validate(x), /FONT_FIXTURE_BINDING/);
   }
 });
@@ -69,4 +69,34 @@ test("actual VI writeCase statement forwards the page's font witness", () => {
     page: { viewportSize: () => ({ width: 1440, height: 900 }) },
   });
   assert.equal(observation.fonts, marker);
+});
+async function actualTrackerCase({ unavailableOnly = false, badBytes = false, badStatus = false, uniqueMissing = false, conflictingKnown = false } = {}) {
+  const page = new (require("node:events").EventEmitter)();
+  const shape = observation();
+  page.evaluate = async () => ({ loadedFaces: shape.loadedFaces, numeric: shape.numeric });
+  f.track(page);
+  const inter = receipt.families[0].files.find(x => x.subset === "latin");
+  const asset = row => `http://127.0.0.1:33962/_next/static/media/${row.sha256.slice(0,16)}-s.woff2`;
+  const response = (body, status = 200, url = asset(inter)) => ({ url: () => url, status: () => status, body });
+  page.emit("response", response(async () => { throw new Error("synthetic body unavailable after reload"); }, 200, uniqueMissing ? "http://127.0.0.1:33962/_next/static/media/0000000000000000-s.woff2" : asset(inter)));
+  if (!unavailableOnly) for (const family of receipt.families) {
+    const row = family.files.find(x => x.subset === "latin");
+    page.emit("response", response(async () => require("node:fs").readFileSync(path.join(__dirname, "../fixtures/retained-fonts-34fb", row.file)), 200, asset(row) + "?v=123"));
+  }
+  if (conflictingKnown) {
+    const other = receipt.families[1].files.find(x => x.subset === "latin");
+    page.emit("response", response(async () => require("node:fs").readFileSync(path.join(__dirname, "../fixtures/retained-fonts-34fb", other.file))));
+  }
+  if (badBytes) page.emit("response", response(async () => Buffer.from("wrong font")));
+  if (badStatus) page.emit("response", response(async () => Buffer.from("not a success"), 503));
+  return f.observe(page);
+}
+test("unreadable duplicate is uncredited when both exact font bodies are independently verified in this page context", async () => {
+  const actual = await actualTrackerCase();
+  assert.equal(actual.unavailableBodies, 1);
+  assert.equal(actual.verifiedResponseScope, "same-isolated-page-context");
+  assert.equal(actual.responses.length, 2);
+});
+test("unavailable-only, actual wrong bytes and non200 still refuse", async () => {
+  for (const options of [{ unavailableOnly: true }, { badBytes: true }, { badStatus: true }, { uniqueMissing: true }, { conflictingKnown: true }]) await assert.rejects(actualTrackerCase(options), /FONT_FIXTURE_BINDING/);
 });
