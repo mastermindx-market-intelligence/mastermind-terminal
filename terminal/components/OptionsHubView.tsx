@@ -4044,7 +4044,15 @@ export default function OptionsHubView({
               ──────────────────────────────────────────────────────────────────── */}
           {(activeTab === "gex" || visitedTabs.has("gex")) && (
             <div style={{ flex: 1, overflow: "hidden", display: activeTab === "gex" ? "flex" : "none", minHeight: 0 }}>
-              <GexDeskView onMapFirstChange={setExposureMapFirst} />
+              <GexDeskView onMapFirstChange={setExposureMapFirst}
+                onOpenPlan={renderableTabs.has("screener") ? () => {
+                  // Navigation only: preserve exact-contract pins. The shortlist owns
+                  // draft lifetime; never promote Matrix coordinates into snapshots.
+                  setScreenerPreset("doi");
+                  setScrRoot(""); setScrGroup("");
+                  setScrSortKey(""); setScrSortDir(-1);
+                  switchTab("screener");
+                } : undefined} />
             </div>
           )}
 
