@@ -9,6 +9,16 @@ import { frozenEntrySelection } from "@/lib/frozenNodeEntrySelection";
 import styles from "./FrozenNodeEntry.module.css";
 import type { ExposureLens } from "@/lib/exposureMapProjection";
 
+const LEX = {
+  preview: ["Frozen node enrollment preview", "冻结节点登记预览"],
+  scope: ["Exact dated Gamma node reference only; live alert evaluation is not enabled.", "仅限精确日期的 Gamma 节点引用；实时提醒评估尚未启用。"],
+  prepare: ["Prepare and save reference", "准备并保存引用"],
+  confirm: ["Confirm this enrollment", "确认登记此引用"],
+  recover: ["Read original attempt", "只读核对原始尝试"],
+  original: ["Original reference", "原始引用"],
+  attempt: ["Original attempt reference", "原始尝试引用"],
+} as const;
+
 type Props = { owner: string; identity: string; root: string; source: unknown; lens: ExposureLens; price: number;
   metric: string; shock: { spotPercent: number; ivPoints: number; calendarDays: number }; now: number; zh: boolean };
 /** Default-OFF mount has zero Auth/issuance/account/source/storage effects. */
@@ -17,6 +27,7 @@ export default function FrozenNodeEntry(props: Props) {
     ? <EnabledFrozenNodeEntry {...props} /> : null;
 }
 function EnabledFrozenNodeEntry(props: Props) {
+  const pick = (pair: readonly [string, string]) => pair[props.zh ? 1 : 0];
   const live = useRef({ alive: true, identity: props.identity, owner: props.owner });
   useLayoutEffect(() => {
     const state = live.current; state.alive = true; state.identity = props.identity; state.owner = props.owner;
@@ -77,14 +88,14 @@ function EnabledFrozenNodeEntry(props: Props) {
   const message = result?.kind === "retained" ? (props.zh ? "原始引用已在本设备保存。尚未创建或启用提醒；请明确确认。" : "Original reference saved on this device. No alert has been created or armed; explicit confirmation is required.")
     : result?.kind === "committed" ? (props.zh ? "已核对原始历史登记回执；当前启用状态未经确认。" : "Original historical enrollment acknowledged; current active state is unverified.")
     : result ? (props.zh ? "尚未确认。保留原始引用；仅可只读核对，不会自动重试或创建新尝试。" : "Unconfirmed. Keep the original reference; recovery is read-only and never retries or creates a new attempt.") : "";
-  return <section className={styles.entry} aria-label={props.zh ? "冻结节点登记预览" : "Frozen node enrollment preview"}>
-    <p>{props.zh ? "仅限精确日期的 Gamma 节点引用；实时提醒评估尚未启用。" : "Exact dated Gamma node reference only; live alert evaluation is not enabled."}</p>
+  return <section className={styles.entry} aria-label={pick(LEX.preview)}>
+    <p>{pick(LEX.scope)}</p>
     <p>{props.zh ? `拟设条件：距原始 ${props.root} ${props.price} 节点不超过 0.5%。` : `Prospective condition: within 0.5% of the original ${props.root} ${props.price} node.`}</p>
-    <div className={styles.actions}><button type="button" disabled={busy || !props.owner || referenceState !== "empty" || result?.kind === "effect_unknown"} onClick={() => void prepare()}>{props.zh ? "准备并保存引用" : "Prepare and save reference"}</button>
-      <button type="button" disabled={busy || result?.kind !== "retained"} onClick={() => void act(false)}>{props.zh ? "确认登记此引用" : "Confirm this enrollment"}</button>
-      <button type="button" disabled={busy || !props.owner} onClick={() => void act(true)}>{props.zh ? "只读核对原始尝试" : "Read original attempt"}</button></div>
+    <div className={styles.actions}><button type="button" disabled={busy || !props.owner || referenceState !== "empty" || result?.kind === "effect_unknown"} onClick={() => void prepare()}>{pick(LEX.prepare)}</button>
+      <button type="button" disabled={busy || result?.kind !== "retained"} onClick={() => void act(false)}>{pick(LEX.confirm)}</button>
+      <button type="button" disabled={busy || !props.owner} onClick={() => void act(true)}>{pick(LEX.recover)}</button></div>
     <p role="status">{message}</p>
-    {result?.original && <p>{props.zh ? "原始引用" : "Original reference"}: {result.original.root} · {result.original.price} · {result.original.session}</p>}
-    {result?.original && <details><summary>{props.zh ? "原始尝试引用" : "Original attempt reference"}</summary><code>{result.original.alertId} / {result.original.attemptId}</code></details>}
+    {result?.original && <p>{pick(LEX.original)}: {result.original.root} · {result.original.price} · {result.original.session}</p>}
+    {result?.original && <details><summary>{pick(LEX.attempt)}</summary><code>{result.original.alertId} / {result.original.attemptId}</code></details>}
   </section>;
 }

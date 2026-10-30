@@ -349,3 +349,17 @@ this changed exactly-once composition is required before Draft publication.
 All SQL, account/source policies and delivery contracts remain unchanged. No DB
 apply, real account/provider request, enrollment, publication/send, activation,
 merge/approval or deployment occurred. Runtime prerequisites remain separately held.
+
+## Hosted plain-language repair — October30
+
+Exact dbc59bf8 CI41097000418/job124205408969 passed all17,375 unit tests,
+then failed enforce-added plain-language on seven entry labels using inline
+EN/ZH conditionals. The retained exact job log identifies missing_zh, not an
+Auth/publisher/test-assertion failure. Local enforce-added reproduced all seven.
+The seven unchanged English/Chinese pairs now use component-local LEX tuples and
+pick(), preserving rendered text, markup and every handler. Shared i18n and all
+security/exactly-once source remain untouched. After repair: zero added-language
+findings, seven rendered entry tests PASS (including EN/ZH), scoped TypeScript,
+affected lint and diff check PASS. Existing synthetic viewport evidence is reused
+because text/layout/CSS are identical. Hosted checks belong to the new head;
+Draft/noauto and all runtime/release holds remain unchanged.
