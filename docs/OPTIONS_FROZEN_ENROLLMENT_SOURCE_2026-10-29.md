@@ -37,8 +37,8 @@ rearm is explicitly unavailable in this bounded INITIAL-only contract; the exist
 state-only generation/revision CAS remains unchanged.
 
 The server-owned durable pin is the entire frozen intent plus its original attempt
-UUID. A future caller must retain that pin durably BEFORE run(), not manufacture
-an identity after a historical UNKNOWN. Exactly one `alerts.frozen_enrollment`
+UUID. The dormant private caller confirms PREPARE retention of that complete pin
+before run()/ARM; it never manufactures an identity after a historical UNKNOWN. Exactly one `alerts.frozen_enrollment`
 slot is retained for the row lifetime; no automatic replacement, eviction, retry
 history or enrollment registry is introduced. It contains no bearer, credentials,
 account payload, raw source document or policy-verdict grant. A matching runtime
@@ -90,7 +90,7 @@ receipt retention after physical deletion is not implemented by silently adding 
 second store. An absent result cannot settle a still-late PREPARE. These are explicit
 held cases, not permission for replay, replacement or a new attempt UUID.
 
-## Verification frontier — local qualification, independent review pending
+## Accepted baseline verification frontier
 
 The final affected suite has34 PASS in39.19s on actual disposable socket-only
 PostgreSQL. It replaces all seven superseded expectations with discriminators:
@@ -115,9 +115,10 @@ remain exact. Local namespace guard returned zero findings in LENIENT mode;
 this is local consistency only, NOT hosted PR-scope/native strict qualification.
 No manual CI/observer or known-red publication was used.
 
-Root independent changed-risk source review consumed frozen f31041ba and found
-no additional blocker on R1/R2/R3; final changed test diff/source snapshot still
-requires its independent acceptance before any normal FF to existing draft1182.
+Root independent changed-risk review SOURCE_ACCEPTED exact785789a5 after the
+final34-case PG result and final test/source hash verification. Canonical accepted
+disposition is1182 comment6526842110. The new caller delta below requires its own
+scoped changed-risk review before publication.
 Draft status/no auto-merge/approval/application/activation remains mandatory.
 
 ## Settled Fabric return and exact delivery refusal
@@ -153,3 +154,64 @@ as mastermindxryan, but draft creation used connector account mastermindx-3, an
 excluded author under its commission. No replacement PR was created. Recovery
 uses only fresh-verified permitted CLI identity; historical attribution is not
 rewritten or silently accepted as current authentication.
+
+
+## Dormant caller and crash recovery — October30 followup
+
+Commission:1182 comment6526919133. Existing SQL/envelope/0046 phases are unchanged.
+`createFrozenNodeInitialEnrollment().retain()` snapshots and confirms the complete
+pin through the existing PREPARE. It returns retained only for the original call
+that actually created the exact PREPARED slot. `run()` consumes that same-instance
+confirmation, revalidates current Auth/canonical account/exact selected source,
+then dispatches at most one ARM. Without explicit retain, compatible run performs
+those same steps internally. A pending/error/timeout/late PREPARE cannot dispatch;
+concurrent run calls share one retained result, never a new UUID or second ARM.
+
+`frozenNodeEnrollmentCaller.ts` adds a dormant PRIVATE SERVER capability. Its full
+pin parameter and transport capabilities are server inputs, never authority from
+public request JSON. It obtains the actual cookie-authenticated Supabase client,
+verifies getUser against the exact session bearer and reads the authoritative row
+through owner RLS. It then uses the actual existing account/source verifier and
+service RPC, with full row/predicate/current intent token CAS still enforced.
+Public POST/PATCH/UI/reader opt-in and main publisher are unchanged/off. The helper
+does not create a frozen alert, mint attempts or enable enrollment.
+
+Read-only `reconcilePersistedFrozenNodeEnrollment({alertId,attemptId}, transports)`
+requires a KNOWN original immutable attempt reference. The identifier is a selector,
+not permission: current authenticated owner RLS first locates the saved complete
+pin; current account/exact-source admission then gates privileged reconciliation
+and historical acknowledgment disclosure. A replaced receipt with another valid
+attempt, changed owner, deleted/missing receipt or absent reference remains UNKNOWN.
+No latest-attempt lookup, run/fence capability or automatic mutation is returned.
+The exact saved COMMITTED acknowledgment remains historical/currentState unavailable
+after same-owner predicate/token/runtime changes; no currently-armed claim is made.
+
+Unavoidable held case: if the first retention response AND the caller's original
+attempt reference are both lost, recovery is unavailable. A receipt lookup by
+alertId alone cannot attribute it to the original invocation after deletion/ABA.
+PREPARED found on restart remains pending/UNKNOWN and cannot regain dispatch;
+explicit fence remains a separate admitted operation, never automatic recovery.
+This source slice does not add durable request-reference storage or a public
+caller/creation path, and claims no recovery from physical receipt deletion.
+
+New affected checks:77 enrollment/caller Vitest cases PASS (including23 new cases),
+scoped TypeScript and affected ESLint. Existing34 actual private-PG/81 unchanged
+account/source/resolver TS checks remain reusable because SQL/account/source are
+unchanged. Original first focused run53PASS/1FAIL exposed an old test mock holding
+EVERY getSession call; the explicit second admission now needs the mock to hold
+only its intended first call. That fixture change preserves the pin/method
+mutation discriminator; no timeout/assertion/runtime weakening occurred.
+
+Distinct admitted Fabric leaf `oem-01a156f1-enrollment-retain-tests-v1` ran under
+original root01a156f1/parent01a15700, GLM5.3Flash/ubuntu3, controller97581 consumed0.
+Same-ID5118B plain result was consumed directly (no denied artifact export). Two
+returned nonduplicate discriminators, retain-time denial and late PREPARE timeout,
+were integrated and passed; other scenarios overlap existing coordinator cases.
+Deterministic acceptance is scoped to those verified test contributions, not
+independent production review. Usage receipt is MISSING; no budget reset claimed.
+
+At the one eligible source boundary remote1182 remained OPEN/Draft/no-auto/no-labels
+on accepted785789a5. Natural CI41083075458 had11 responsive shards in progress and
+no failures at that observation. No observer/manual CI was created. The caller
+delta remains LOCAL pending root independent changed-risk review and normal FF
+publication to the same Draft carrier; no runtime effect is authorized here.

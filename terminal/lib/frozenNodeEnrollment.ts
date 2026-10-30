@@ -28,6 +28,8 @@ export type FrozenNodeEnrollmentResult =
   | { kind: "committed"; intent: FrozenNodeInitialIntent; historicalRuntime: Runtime; currentState: "unavailable" }
   | { kind: "unavailable" | "denied" | "conflict"; reason: string }
   | { kind: "effect_unknown"; reason: "enrollment_acknowledgment_unknown"; intent: FrozenNodeInitialIntent };
+export type FrozenNodeRetentionResult = FrozenNodeEnrollmentResult
+  | { kind: "retained"; intent: FrozenNodeInitialIntent };
 const uuid = (x: unknown): x is string => typeof x === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(x);
 const record = (x: unknown): x is Record<string, unknown> => !!x && typeof x === "object" && !Array.isArray(x);
 const keys = (x: Record<string, unknown>, expected: string[]) => Object.keys(x).sort().join("|") === [...expected].sort().join("|");
@@ -38,7 +40,7 @@ function equal(a: unknown, b: unknown): boolean {
   if (!record(a) || !record(b)) return false;
   return keys(a, Object.keys(b)) && Object.keys(a).every(k => equal(a[k], b[k]));
 }
-function snapshot(request: FrozenNodeInitialIntent): FrozenNodeInitialIntent | null {
+export function snapshotFrozenNodeInitialIntent(request: FrozenNodeInitialIntent): FrozenNodeInitialIntent | null {
   try {
     const pin = structuredClone(request);
     if (!record(pin) || !keys(pin, ["attemptId", "alertId", "principal", "predicate", "expectedIntentRevision", "expectedGeneration", "expectedRevision", "lens"])
@@ -50,6 +52,20 @@ function snapshot(request: FrozenNodeInitialIntent): FrozenNodeInitialIntent | n
       || (p.within_pct !== undefined && (typeof p.within_pct !== "number" || !Number.isFinite(p.within_pct) || p.within_pct < 0))) return null;
     return pin;
   } catch { return null; }
+}
+/** Decode identity only, never permission or a recovered dispatch capability.
+ * The actual source/account reader and RPC still validate the exact saved pin. */
+export function retainedFrozenNodeIntent(value: unknown, expected: { alertId: string; attemptId: string; principal: string }, at: string): FrozenNodeInitialIntent | null {
+  if (!record(value) || !keys(value, ["schema", "attemptId", "alertId", "principal", "predicate", "intentRevision", "lens", "preparedAt", "phase", "outcome"])
+    || value.schema !== "options.frozen_enrollment/v1" || value.alertId !== expected.alertId
+    || value.attemptId !== expected.attemptId || value.principal !== expected.principal
+    || !["prepared", "terminal"].includes(String(value.phase))
+    || (value.phase === "prepared" && value.outcome !== null)) return null;
+  const prepared = fnpInstantMicros(value.preparedAt), now = fnpInstantMicros(at);
+  if (prepared === null || now === null || prepared > now) return null;
+  return snapshotFrozenNodeInitialIntent({ attemptId: value.attemptId, alertId: value.alertId, principal: value.principal,
+    predicate: value.predicate, expectedIntentRevision: value.intentRevision,
+    expectedGeneration: null, expectedRevision: null, lens: value.lens } as FrozenNodeInitialIntent);
 }
 async function bounded<T>(work: PromiseLike<T>): Promise<T> {
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -89,17 +105,18 @@ function acknowledgment(value: unknown, pin: FrozenNodeInitialIntent, preparedAt
 export function createFrozenNodeInitialEnrollment(
   request: FrozenNodeInitialIntent,
   source: FrozenNodeSourceActionDependencies,
-): { run: () => Promise<FrozenNodeEnrollmentResult>; reconcile: () => Promise<FrozenNodeEnrollmentResult>;
+): { retain: () => Promise<FrozenNodeRetentionResult>; run: () => Promise<FrozenNodeEnrollmentResult>; reconcile: () => Promise<FrozenNodeEnrollmentResult>;
   fence: () => Promise<FrozenNodeEnrollmentResult> } {
-  const pin = snapshot(request);
+  const pin = snapshotFrozenNodeInitialIntent(request);
   // Freeze the capability references as well; caller mutation during await must
   // not replace the verified Auth/account/source/or invocation-clock boundary.
   const deps = { ...source, auth: {
     getSession: source.auth.getSession.bind(source.auth), getUser: source.auth.getUser.bind(source.auth),
   }, sourceTransport: { ...source.sourceTransport } };
   let outcome: Promise<FrozenNodeEnrollmentResult> | undefined;
+  let retention: Promise<FrozenNodeRetentionResult> | undefined;
   let fencing: Promise<FrozenNodeEnrollmentResult> | undefined;
-  async function execute(mode: "run" | "reconcile" | "fence" = "run"): Promise<FrozenNodeEnrollmentResult> {
+  async function execute(mode: "retain" | "dispatch" | "reconcile" | "fence"): Promise<FrozenNodeRetentionResult> {
     const unavailable = (reason: string): FrozenNodeEnrollmentResult => ({ kind: "unavailable", reason });
     if (!pin) return unavailable("invalid_initial_intent");
     let dispatchStarted = false;
@@ -130,7 +147,7 @@ export function createFrozenNodeInitialEnrollment(
           // A stale/missing row or generation is not the original attempt's
           // terminal outcome. Only its exact retained envelope can resolve
           // historical ambiguity; a reconciliation refusal preserves UNKNOWN.
-          if (mode !== "run") return unknown();
+          if (mode === "reconcile" || mode === "fence") return unknown();
           return { kind: body.kind as "unavailable" | "conflict", reason: body.reason };
         }
         if (!record(body) || !keys(body, ["kind", "enrollment"]) || body.kind !== "enrollment") return unknown();
@@ -154,7 +171,8 @@ export function createFrozenNodeInitialEnrollment(
         const prepared = fnpInstantMicros(value.preparedAt), now = fnpInstantMicros(deps.clock());
         return prepared !== null && now !== null && prepared <= now ? value : null;
       };
-      if (mode !== "run") return terminal(await rpc(mode));
+      if (mode === "reconcile" || mode === "fence") return terminal(await rpc(mode));
+      if (mode === "dispatch") return terminal(await rpc("arm"));
       const read = await bounded(db.from("alerts")
         .select("id,user_id,symbol,condition,active,created_at,frozen_runtime,frozen_intent_revision")
         .eq("id", pin.alertId).eq("user_id", pin.principal).maybeSingle());
@@ -170,20 +188,29 @@ export function createFrozenNodeInitialEnrollment(
       if (!record(prepared) || prepared.kind !== "prepared") return terminal(prepared);
       const saved = keys(prepared, ["kind", "enrollment"]) && envelope(prepared.enrollment);
       if (!saved || saved.phase !== "prepared" || saved.outcome !== null) return unknown();
-      // Only the call that CREATED the durable marker can dispatch arm. An
-      // existing marker returns pending, so restart cannot repeat an unknown arm.
-      return terminal(await rpc("arm"));
+      // This instance alone retains the confirmation. Reconstructing the pin
+      // from the owner row cannot recreate it: PREPARE returns pending there.
+      return { kind: "retained", intent: structuredClone(pin) };
     } catch { return dispatchStarted ? unknown() : unavailable("initial_enrollment_unavailable"); }
   }
-  return { run: async () => {
-    outcome ??= execute();
+  const retain = () => retention ??= execute("retain");
+  return { retain: async () => structuredClone(await retain()), run: async () => {
+    // Memoize before the first await; concurrent calls share ONE ARM dispatch.
+    // A lost/pending retention reply can never flow into the dispatch branch.
+    outcome ??= (async () => {
+      const retained = await retain();
+      if (retained.kind !== "retained") return retained;
+      // This separate invocation revalidates current Auth/account/exact source
+      // after retention. SQL independently checks current intent under its lock.
+      return await execute("dispatch") as FrozenNodeEnrollmentResult;
+    })();
     return structuredClone(await outcome);
   }, reconcile: async () => {
     // Each explicit read rechecks current Auth/account/source admission. It is
     // not a new mutation or a retry of the original prepare/arm/fence.
-    return structuredClone(await execute("reconcile"));
+    return structuredClone(await execute("reconcile")) as FrozenNodeEnrollmentResult;
   }, fence: async () => {
-    fencing ??= execute("fence");
+    fencing ??= execute("fence") as Promise<FrozenNodeEnrollmentResult>;
     return structuredClone(await fencing);
   } };
 }
