@@ -1,4 +1,5 @@
 "use client";
+import { useHubDiscovery } from "@/lib/useHubDiscovery";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { PHONE_QUERY, useIsMobile, useIsPhone } from "@/lib/useMediaQuery";
 import MobileSheet from "@/components/ui/MobileSheet";
@@ -1562,9 +1563,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
     query.addEventListener("change", closeOutsidePhone);
     return () => query.removeEventListener("change", closeOutsidePhone);
   }, []);
-  // Optimistic "seen" so the ••• badge cannot flash before localStorage is read on mount.
-  const [hubSeen, setHubSeen] = useState(true);
-  useEffect(() => { try { setHubSeen(localStorage.getItem("mm.hubSeen") === "1"); } catch {} }, []);
+  // Chart paint readiness does not classify the phone hub's persisted discovery state.
+  const { state: hubDiscoveryState, markSeen: markHubSeen } = useHubDiscovery();
   // SSR-consistent default; the persisted width is read after mount (below) so the server- and
   // client-rendered `--rail-w` style always agree on the first paint (no hydration mismatch).
   const [railW, setRailW] = useState<number>(360);
@@ -5036,7 +5036,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
     setDrawSheetOpen(false);
     setPhoneWorkspacesOpen(false);
     setHubOpen(true);
-    if (!hubSeen) { setHubSeen(true); try { localStorage.setItem("mm.hubSeen", "1"); } catch {} }
+    markHubSeen();
   };
   shellCmdRef.current = {
     favTimeframes: favTfOrder,
@@ -5560,7 +5560,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
             onDraw={openDrawingsSheet}
             drawActive={activeDrawingTool !== null}
             onMore={openAnalysisHub}
-            moreBadge={!hubSeen}
+            moreBadge={hubDiscoveryState === "unseen"}
+            hubDiscoveryState={hubDiscoveryState}
             onUndo={() => travelDrawingHistory(active, "undo")}
             onRedo={() => travelDrawingHistory(active, "redo")}
             canUndo={drawingHistoryState.canUndo}

@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { useT } from "@/lib/i18n";
+import type { HubDiscoveryState } from "@/lib/useHubDiscovery";
 import styles from "./RollerStrip.module.css";
 
 /**
@@ -136,6 +137,7 @@ export type RollerStripProps = {
   drawActive: boolean;
   onMore: () => void;
   moreBadge: boolean;
+  hubDiscoveryState: HubDiscoveryState;
   onUndo: () => void;
   onRedo: () => void;
   canUndo: boolean;
@@ -145,7 +147,7 @@ export type RollerStripProps = {
 export default function RollerStrip({
   symbols, symbol, onSymbol, onTapSymbol,
   timeframes, timeframe, onTimeframe,
-  onDraw, drawActive, onMore, moreBadge, onUndo, onRedo, canUndo, canRedo,
+  onDraw, drawActive, onMore, moreBadge, hubDiscoveryState, onUndo, onRedo, canUndo, canRedo,
 }: RollerStripProps) {
   const t = useT();
   const [copied, setCopied] = useState(false);
@@ -192,7 +194,7 @@ export default function RollerStrip({
               <svg viewBox="0 0 24 24"><path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17v3M15 7l3 3" /></svg>
             </span>
           </button>
-          <button className={`mrs-ic ${styles.action}`} onClick={onMore} aria-label={t("stripMore")} data-testid="roller-more">
+          <button className={`mrs-ic ${styles.action}`} onClick={onMore} aria-label={t("stripMore")} data-testid="roller-more" data-hub-discovery-state={hubDiscoveryState}>
             <span className={styles.actionSurface} data-roller-visual="true">
               <svg viewBox="0 0 24 24"><circle cx="5.5" cy="12" r="1.9" /><circle cx="12" cy="12" r="1.9" /><circle cx="18.5" cy="12" r="1.9" /></svg>
               {moreBadge && <i className="mrs-dot" data-testid="roller-more-badge" />}
