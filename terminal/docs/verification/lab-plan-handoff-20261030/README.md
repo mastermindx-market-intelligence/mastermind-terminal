@@ -36,3 +36,11 @@ Each filename encodes viewport, state, language and theme. `scenario-*` shows th
 ## Integration boundary
 
 Draft only: no arm, merge, deploy or production claim. IW2/full-suite integration remains the sole Save/reopen owner. Commercial Theta rights are approved by Chairman attestation; actual technical enrollment and authenticated source/consumer qualification remain separate. Original review publication/lease UNKNOWN and T03k UNKNOWN remain held. The original Matrix transport carriers #10126/#1151 are unchanged by this navigation slice.
+
+## Hosted evidence-lock repair
+
+CI `41073165684` on `284f09f7` passed every browser shard, PostgreSQL invariants, Ingest and Quote Hub; CodeQL `41073161252` passed all three analyses. The unit job passed 17,275 cases and failed four source-hash locks in the PL6, EOD/GEX and Visual Intelligence evidence packets. Local reproduction matched those exact four failures (21 other lock checks passed).
+
+The existing tools recaptured the affected scope on unchanged `284f09f7` source: four Hub crops, 42 EOD states, 54 GEX states and two desktop EN/ZH chart-context cases. All 102 completed successfully. `evidence-lock-recapture.json` binds actual commands, source/crop hashes and the two-case `context-recapture-report.json`; unrelated source pins, crops and historical report identities remain intact. The earlier full30 chart report is reused as historical evidence, not relabeled as a new full run. Parent inspected representative Hub, mobile EOD and chart/GEX images. Current scoped bindings are additive in the four incumbent manifests; no assertion, skip or production behavior changed.
+
+After repair: all four suites passed, 25/25 tests. This is local qualification; the next normal hosted run must qualify the repaired PR head independently.
