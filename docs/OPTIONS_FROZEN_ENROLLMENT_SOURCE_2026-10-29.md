@@ -215,3 +215,102 @@ on accepted785789a5. Natural CI41083075458 had11 responsive shards in progress a
 no failures at that observation. No observer/manual CI was created. The caller
 delta remains LOCAL pending root independent changed-risk review and normal FF
 publication to the same Draft carrier; no runtime effect is authorized here.
+
+## Prospective entry composition — disabled-default source followup
+
+Commission:1182 comment6527394858. This slice connects the actual ExposureMap
+selection to the existing alerts POST owner, accepted caller and read-only restart.
+No new endpoint/RPC/server registry/SQL/role/server store or IW2 Plan/Save lane is added.
+Both `NEXT_PUBLIC_MM_OPTIONS_FROZEN_ENTRY_ENABLED` and the independent private host
+`MM_OPTIONS_FROZEN_ENTRY_ENABLED` are absent/OFF by default. No configuration,
+installation, target-DB application, source acquisition, enrollment or send is
+performed by this source work. Live quote/evaluator/publisher remains unavailable.
+
+The actual selected entry is keyed by full map identity PLUS selected strike and
+owner. It builds a target ONLY from the frozen native `reportedGamma(lens)` book,
+full-source value fingerprint, exact source binding and all selected-price members.
+Other metrics, shocked/scenario values, chart nodes and Plan legs cannot supply it.
+Source/root/lens/metric/shock/strike or account drift invalidates the original
+asynchronous issuance/confirmation. Keyed remount/layout cleanup clears the visible
+confirmation without clearing the retained operation. Default-OFF selected-node
+mount performs zero entry Auth/fetch/storage work.
+
+Protocol on EXISTING POST `/api/alerts`, explicit `x-mm-frozen-entry: v1` header:
+
+1. `issue` validates actual Auth/current canonical account/exact selected source
+   and returns a non-effectful descriptor `{schema,alertId,attemptId,principal,
+   predicate,lens,issuedAt}`. Its UUIDs/reference are selectors, not signed grants;
+   DB intentRevision does not exist until creation and is never fabricated.
+2. The browser holds an account-specific native WebLock across issuance and exact
+   localStorage write/readback. One bounded128KiB owner slot retains the COMPLETE
+   descriptor. Corrupt/unreadable/occupied storage or missing/unavailable lock
+   refuses dispatch. Other owners use disjoint keys. No credentials, Auth bearer,
+   account payload or raw source book is stored. Browser readback is identifier
+   retention, not guaranteed hardware durability or server permission.
+3. A SEPARATE explicit confirmation by the same original controller rechecks
+   current owner/selection, writes and verifies its `dispatched` marker under that
+   lock BEFORE sending. Current-owner waits are bounded5s; late Auth cannot resume
+   storage or HTTP work. Lock completion is normal, never forced/released by hand.
+4. Server `enroll` again validates actual Auth/account/source and the existing50
+   owner-alert cap. It uses INSERT ONLY for the issued id. Error, timeout or occupied
+   id never reads/adopts an existing row to continue. Only the confirmed returned
+   exact owner/predicate/active row and real DB-generated intentRevision form the
+   full pin. Existing confirmed PREPARE then one original-instance ARM follows,
+   including its fresh admission and SQL token/CAS/prepared-publication checks.
+5. Restart never reconstructs dispatch. Explicit `reconcile` uses the retained
+   exact `{alertId,attemptId}`, owner RLS and current account/exact original source.
+   Missing/deleted/replaced receipt stays UNKNOWN. A historical commit response
+   names ORIGINAL root/price/session/reference even if another node is now selected;
+   it never claims current activation. Generic POST/PATCH/other alert families are
+   unchanged; generic frozen POST remains rejected.
+
+Journal lifecycle: `empty -> retained -> dispatched`, or `empty -> reference_unknown`
+after a KNOWN missing-reference recovery. That hold uses the SAME slot with no
+fabricated descriptor/UUID. It disables new issuance in the same journey and across
+remount; a fresh profile cannot detect physically erased prior history. One unresolved owner slot,
+no expiry, timeout-based clearance, eviction, replacement, latest lookup or automatic
+fence. Once sent/uncertain, an empty server read is not permission to create again.
+This module offers NO disposal or retry API. An explicit recovery read with missing
+local reference returns UNKNOWN and never issues a UUID. Complete browser/site-data
+loss cannot reconstruct the old original reference; no hardware persistence, global
+cross-device history or recovery from physically deleted receipts is claimed.
+Issuance-response loss itself has no alert/lifecycle effect. Clearing/forging client
+storage is not server authority; every server effect still requires actual Auth,
+current canonical account and exact source, and duplicate same-id creation has only
+one INSERT creator. Stateless issuance is not a cryptographic storage attestation.
+
+The new shared browser journal leaf was admitted as
+`oem-01a156f1-entry-reference-journal-v1` under original root01a156f1 and parent01a15700,
+GLM5.3Flash/ubuntu1. Original controller82236 consumed0; same-ID6404B plain result
+consumed, no refused artifact export/retry. Coordinator integration added owner
+binding, read-size-before-parse protection and invalidation of escaped slot methods
+after lock release. Tests cover those repairs and real shared-lock two-tab admission;
+acceptance is deterministic integration, not independent production review. Usage
+receipt MISSING. Root independent changed-risk review remains required for final
+new source; earlier787 review is reused only for unchanged retain/run/RPC semantics.
+
+Affected checks:44 new composed actual-route/caller cases,7 actual rendered
+component cases,13 incumbent route regressions (64PASS total), scoped TypeScript,
+affected ESLint (zero errors; one unchanged ExposureMap unused-read warning),
+local Next production build. Actual parent A-issue -> strike-B remount regression
+proves no retention/enrollment and no stale confirmation. Known missing-reference
+recovery prevents subsequent Prepare in both the same journey and parent remount.
+The visible condition states0.5% proximity; original root/price/session stays visible
+while UUIDs live in a closed keyboard-accessible details disclosure. Hung-owner cases before
+issuance and after dispatch marker release the lock normally with no late POST.
+Other cases include non-effectful response loss, retention failure, pre/post-effect
+crashes, independent concurrent tabs/direct submissions, lost INSERT/PREPARE/ARM
+replies, exact-reference ABA/deletion/account swap, source/account revocation,
+forged input/origin,50cap and default-OFF zero effects. Existing34 private-PG and77
+accepted helper cases remain reusable because SQL and helper are unchanged.
+
+Six local headless synthetic actual-component preview captures plus one expanded
+keyboard disclosure passed EN/ZH at1440x900,820x1180,390x844 with zero page errors/overflow.
+They substitute mock Auth/non-effectful mock issuance and allow only the local fixture origin; they are layout/source proof, NOT actual
+Chrome, live source, enrolled runtime or production acceptance. No actual-provider
+screenshots/inputs are added to this public repository. Host flags, exact0046
+installation, source/account readiness and any real operation remain separately held.
+
+Local component tests used Node26 `--no-experimental-webstorage` to let jsdom own
+its real browser Storage; this avoids Node26’s unavailable native localStorage
+shadow. No runtime/source permission or application behavior was changed for it.
