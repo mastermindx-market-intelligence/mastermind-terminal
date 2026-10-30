@@ -1,11 +1,11 @@
 # B-PL-6 batch 1 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 82cf1e8c0030974a04c22957a617b75689f6b2f9
-# capturedAt: 2026-10-29T18:53:21.373Z
+# capturedAtHead: d976fa504e024ec4912edcb8a3ab5908ac71edde
+# capturedAt: 2026-10-30T14:52:16.503Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/OptionsHubView.tsx: "333413411f33fefe1dab2a32fcc71eab611d0fa2b270f9939b8c5e1c9aa5e69b"
+  terminal/components/OptionsHubView.tsx: "f3e2f16fd78f8746211a869c96287c57fb6322a532e29346b23d9c4aaa20b4e8"
   terminal/components/SearchModal.tsx: "a7a9a97d9ce08b7e8b03ccfdfc8720c5d6fca80873663125f624dba98b99cc83"
   terminal/components/SearchModal.module.css: "bc82bdeb1a4eb78fe9babe884c2ae8e7fc2773710e6399b5bf22733f70f102fb"
   terminal/components/SearchModalCompare.module.css: "864d08191bf60d696b8e1f5233e9ddafec5ebfeeb8b307b61f629894bd48700c"
@@ -97,57 +97,3 @@ files:
   - StockAnalysis-1440.png
   - StockAnalysis-390-zh.png
   - StockAnalysis-390.png
-
-captureHarnessFiles:
-  terminal/docs/pr-crops/options-level-axis-labels/capture.mjs: "1dd35ad1e48b6d1cd3c101ffd1f58078f02a8bb53ea8168c39872a8a46fc68db"
-  terminal/e2e/chart-context-dock.spec.ts: "76c4f4c31873fcf43a92e24e40a6cdb2ce1a70e63f33bdf99df00081591f84bb"
-  terminal/e2e/command-palette-review.spec.ts: "1524c6bbb0ee9a0c4e48cf7c0e714600d14727a4a8f81792076572aa593067f8"
-  terminal/e2e/fixtureWarmup.cjs: "4ff5d71c544d5310e630952539b23540cc179ff2e421034b452ef41adf9c2532"
-  terminal/e2e/globalSetup.ts: "c2fbd4f02bb93d40f4cf9b5a80f302e11adeecd0e32a54d1d11cd9aad72a886b"
-  terminal/e2e/mobile-chart-hub-upgrade.spec.ts: "8738702d3bcbe1b794c479db02de444e1b77ed5759c04b5f519022f10734e37b"
-  terminal/e2e/options-companion.spec.ts: "c0b8d012423113f830f679cae1b659b96ebe866eca5ef4254a4d6e1a6bcaadac"
-  terminal/e2e/overnight-refresh.spec.ts: "4aaccc8d8d4fc790bd7807d5ebf21a81c7a0a028a9586202990b046e6bb31f6c"
-  terminal/e2e/phoneChrome.ts: "f42cdf73cd1fd604fe77bcfba0d21a598ac8bf814b955b9116f71f391e216657"
-  terminal/e2e/terminal-chrome-responsive.spec.ts: "7182c4e8fa9f4dd1733fb93c3c3397b4c5841cab6e44a6a2f91e95c932e9afea"
-  terminal/e2e/tools/capture_pl6_batch1.cjs: "b0b78d44527265ef29b2090c0644bb620884c0782770c73fbbf6d6678d902b2c"
-  terminal/e2e/visual-intelligence.spec.ts: "ecedd0a313b0c46256978696768380a67c30b32097b5f4d2ce829acffeaef633"
-
-cropFiles:
-  AnalysisWorkspace-1440-zh.png: "c4922fcdad7b487c317cc9c2ea15c92df5f718579a4e2fafdd4206c2527601b1"
-  AnalysisWorkspace-1440.png: "7427faf26f49b141052e8912621d9aa8d25f110110980d168818cda38d7d7d5e"
-  AnalysisWorkspace-390-zh.png: "040b516a0da40cd055947db7aec49cf624658594cb39c26631b5e8305b04ff5d"
-  AnalysisWorkspace-390.png: "f74a1fb8987b12f35fbace88658a13f028af5a892990ce4316026ad92a4c3b3d"
-  ChartChrome-1440-zh.png: "dbb0e498448ab270c98b9ee17154ae93279e86924bbef526e5338a462c4c250d"
-  ChartChrome-1440.png: "424a03aa1d672400101346bac93beceb11f4397a784a50a26188a73d71e4263d"
-  ChartChrome-390-zh.png: "d69161508e6ea55024da39f4e0664bb3f97831102f7d7280cb5dec2191c0b063"
-  ChartChrome-390.png: "c1ee56f6cae0e5aa78b88dc234c5f1b29f8d41717a485df0ca01cf4e91b7159f"
-  DiscoverLeaders-1440-zh.png: "3d010a3289d4b2a41e3918ef1cbd92ca4b79a7b15eed52d5b4f1252b6d1fad97"
-  DiscoverLeaders-1440.png: "5772eb2982808d10dd0b382d585be7a1fbae946c4f6990077a4d981dbd4d9a6b"
-  DiscoverLeaders-390-zh.png: "dfb05edcaf5b37f332e78a5cc3e48bad70ebdc6500cb5375c102be74e29875e7"
-  DiscoverLeaders-390.png: "0571bb8494f8a084c962adffbd61c98de40cd908b237c84fdc32fa812f6a6672"
-  OptionsHubView-1440-zh.png: "3cf44b98105635da0e1b4b7926840776cd33b918fe7cef26517b16dfb8310d98"
-  OptionsHubView-1440.png: "cba0c8b9437057d47a0c17f49c73eaedd159d41b687386c4daed1bd682fee35a"
-  OptionsHubView-390-zh.png: "a3f2d6d48c1d7c4c36d07b01e850453c3f0cb1bec0525981ffafde5065b0dfdd"
-  OptionsHubView-390.png: "7d84f22f6820f3bbc4202a42020d7618d8b780c5317ff0ec6ef6e1abdb1cc21c"
-  SearchModal-1440-zh.png: "cae50070f6af7c80d9901abc888a4d8c15672174603ccf6d60189e55fb73e934"
-  SearchModal-1440.png: "00bd1bc81584a4d4ec88d3cb558ff122b5edc8a1d7996b76b9b40637d9e63619"
-  SearchModal-390-zh.png: "38717f1e1bc651067f968a27a54589d1f2e70072bca5247fb92201833bddc044"
-  SearchModal-390.png: "f256ae6e4abfcfac5ce17940ccf1059fc29c73a152099954810166cf9a7eae92"
-  StockAnalysis-1440-zh.png: "e0f74e55e2f3e38b02bcb8e1a7b10c08be50860074f27d48736c5e0f5fdcaa3e"
-  StockAnalysis-1440.png: "e1473b324b59d58a2a5d937861675d261148fb40d8b880704196f53caa7de89e"
-  StockAnalysis-390-zh.png: "46123bd96735c449f1ce50fa6bb25de357466b4acb00698f91fc1d0ad52bd6e7"
-  StockAnalysis-390.png: "6540b580667bcc83f318ee63c1f7435be24af6f063aea5b61144df40dba6d6b3"
-
-iw2Upstream1159Recapture:
-  sourceHead: 32bee096a6ff9cb6c1aa1e6d5404b38ebe9deddb
-  historicalManifest: history/before-iw2-recapture-6df5ebc3.yml
-  qualification: Actual native producer full matrix; local fixtures only; no runtime or live-account acceptance
-
-iw2PlanCompositionRecapture:
-  sourceHead: 5e0d3000950036f3862f0bd7c0f9ffa70d8d4243
-  qualification: Unchanged original full recipe; 24 fresh crops, 22 byte-identical reused, two mobile SearchModal crops reviewed. Local fixtures only.
-
-
-iw2PlanMaster729Recapture20261029:
-  sourceHead: 82cf1e8c0030974a04c22957a617b75689f6b2f9
-  qualification: Actual full24 ordinary legacy cases on the qualified spawned child;18 byte-identical reused and six changed crops reviewed. No immutable operation flag or production action.

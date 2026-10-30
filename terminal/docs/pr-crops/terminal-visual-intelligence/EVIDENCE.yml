@@ -1,3 +1,4 @@
+# Current scoped qualification: iw2LabNavigationComposition20261030; prior identities remain historical.
 # Current scoped qualification: iw2PlanMaster729Recapture20261029; earlier sections remain historical.
 # Current scoped source: composedDocumentLanguageProductionJoin20261024; parent records retain their original identities.
 # Current source qualification: documentLanguageRecapture20261024. Older recapture sections below remain historical.
@@ -53,7 +54,7 @@ layoutFiles:
   terminal/lib/sharedShellContracts.ts: "dc7c893852c287b2a18c6b71cbced07bfa0996c1168490c5a8c24e4d3de01266"
   terminal/app/company-intelligence.css: "8b43f2046891837f6572fa2a59b7594547def9602b0454e1f14edba322da2a34"
   terminal/components/DayRange.tsx: "c84724652783da1897ab4eeb98550eaf3dbd7942eefe3ce127b6ada2b16dd672"
-  terminal/components/OptionsHubView.tsx: "333413411f33fefe1dab2a32fcc71eab611d0fa2b270f9939b8c5e1c9aa5e69b"
+  terminal/components/OptionsHubView.tsx: "f3e2f16fd78f8746211a869c96287c57fb6322a532e29346b23d9c4aaa20b4e8"
   terminal/components/SearchModal.tsx: "a7a9a97d9ce08b7e8b03ccfdfc8720c5d6fca80873663125f624dba98b99cc83"
   terminal/components/StockAnalysis.tsx: "376a907d0d8ea3dc5819e0092f02e19ce56fa1f4b71a3489551adf52fddb35c0"
   terminal/components/workspaces/AnalysisWorkspace.tsx: "411b8a7e498b8af3f9337fdcf3835dd62e6a5854826f414171d8303efd8aa5bb"
@@ -65,12 +66,12 @@ layoutFiles:
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
   terminal/lib/flowActivity.ts: "eb1433e57c7b63a52978aa4e63419e62b3e1a0e0210869f93838a8b7529ce332"
 cropFiles:
-  desktop-context.png: "973baa1b08bf19db42f71f416fed0904fd62012e24ace9b82ce8ed6585a7219e"
-  desktop-context-zh.png: "ce56240391dcaea86da3b61669e1f34fbc731ded2f19f3db6ddfe4cc94bbc925"
-  mobile-context.png: "bbebcc0cc16b1d9bef4b316ec73e3cd9f7c0621e159747db97f006746841c14e"
-  mobile-context-zh.png: "ad8903b573db8338d50020d80d11d4b7393abc88312d3635bbf44cb6d3b5f654"
+  desktop-context.png: "b0835967189dd5337a2a5e8f1968e717157afdcee305c4a14843a3b0478098db"
+  desktop-context-zh.png: "725aceb5f1ef8daa76194f69de3c2fd4577da0cd6658a72ab8bbb85697c62d42"
+  mobile-context.png: "d785ce44fc2894ed800a47451196e36b0cf9f1a89b5592541ca2c6a90cb45509"
+  mobile-context-zh.png: "2b14740fb99536970eabf74315e9df2bbb663aa0f7c9ee3ae8c5c272bd047025"
   tablet-context.png: "e9429678ac8781c3d4f801a5b279f005f7f242a0691401305733bc90050018db"
-  tablet-context-zh.png: "452f7d0029fd199be6fc4e7370fb6cfb01f21c83d68ce12e992610884275ff0f"
+  tablet-context-zh.png: "3fa9a3f7a4f2d7b78687445d50ce3929c18eec646d7682393545b0d6f6acf7fa"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -93,8 +94,8 @@ browserResults:
   visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases
 browserReportPath: browser-report.json
 browserReportHashes:
-  visualReport: "6235260b83023cf70ed44cd097a9f2bca78c3789a6c4b78c5840046177d4c43c"
-  mobileCrosshairReport: "6235260b83023cf70ed44cd097a9f2bca78c3789a6c4b78c5840046177d4c43c"
+  visualReport: "e1b9dcb76f09cb0ca87dc692f0840e3b0b7969b761fd2710fea3723bec227b73"
+  mobileCrosshairReport: "e1b9dcb76f09cb0ca87dc692f0840e3b0b7969b761fd2710fea3723bec227b73"
 drawingDockRecapture:
   sourceHead: 8a3135bc6eaa307f3d581223e70471df8de49d95
   reason: DrawingSidebar.tsx and TerminalShell.tsx changed so the drawing dock's group button follows the tool the shell actually armed
@@ -650,4 +651,12 @@ iw2PlanMaster729Recapture20261029:
   qualification: Actual original VI30 matrix plus six whole-Plan EN/ZH desktop/tablet/mobile cases; all 36 passed without skips, retries or flaky cases. Local fixtures only.
   matrixCrops: Six fresh current Chart context captures; four changed desktop/tablet crops reviewed, two byte-identical mobile crops reused.
   combinedBrowserReport: whole-plan-master729-browser-report.json
+  productionProof: false
+
+iw2LabNavigationComposition20261030:
+  renderedSourceHead: d976fa504e024ec4912edcb8a3ab5908ac71edde
+  originalSource: fff451a1fff1d4c5d2246f30b59eceb66dc00666
+  historicalManifest: history/before-lab-navigation-fff451a1.yml
+  fullMatrixReport: browser-report.json
+  qualification: Actual original VI30 matrix; all30 passed without skips, retries or flaky cases. Local fixtures only.
   productionProof: false

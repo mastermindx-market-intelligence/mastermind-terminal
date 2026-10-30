@@ -32,7 +32,9 @@ for (const lang of ["en", "zh"] as const) for (const theme of ["dark", "light"] 
     expect(new URL(page.url()).searchParams.get("keep")).toBe("lab");
     await expect(lab).toBeHidden();
     const open = page.getByTestId("shortlist-plan-path").getByRole("button", { name: t("Plan from pinned contracts", "用固定合约创建计划"), exact: true });
-    await expect(page.getByTestId("shortlist-plan-path")).toHaveCount(0);
+    // The IW2 composition may retain its native saved-research entry with no
+    // pins. The navigation contract forbids an invented Plan, not that entry.
+    await expect(page.getByTestId("shortlist-plan-path").getByTestId("options-plan-draft")).toHaveCount(0);
     await page.getByRole("button", { name: t("Pin SPY 2026-10-30 765 Call to compare", "固定 SPY 2026-10-30 765 认购 用于对比"), exact: true }).click();
     await open.click();
     const editor = page.getByTestId("options-plan-draft");
