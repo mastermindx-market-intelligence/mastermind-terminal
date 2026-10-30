@@ -139,4 +139,63 @@ describe("fresh cookie-principal gate and actual wrong-user sequence", () => {
     await expect(executeWrongUserProbe({ ...s.options, onProgress })).rejects.toThrow();
     expect(s.otherRequest.post).not.toHaveBeenCalled();
   });
+
+  it.each(["revise", "archive"])("serializes the %s attempt before its held POST settles", async (stage) => {
+    const s = setup();
+    let settlePost!: (value: ReturnType<typeof response>) => void;
+    let started!: () => void;
+    const held = new Promise<ReturnType<typeof response>>((resolve) => { settlePost = resolve; });
+    const dispatched = new Promise<void>((resolve) => { started = resolve; });
+    if (stage === "archive") s.otherRequest.post.mockResolvedValueOnce(response(404));
+    s.otherRequest.post.mockImplementationOnce(async () => { started(); return held; });
+    const running = executeWrongUserProbe(s.options);
+    await dispatched;
+    const snapshot = s.progress.at(-1);
+    // structuredClone in onProgress represents bytes already serialized to disk.
+    expect(snapshot).toMatchObject({ [stage]: null, attempted: { [stage]: true } });
+    expect(validateNegativeCaseReceipt({ phaseC: snapshot })).toBe(true);
+    settlePost(response(404));
+    expect(await running).toMatchObject({ ok: true });
+  });
+
+  it.each(["revise", "archive"])("cannot dispatch %s when its predispatch evidence write fails", async (stage) => {
+    const s = setup();
+    const onProgress = (value: { attempted?: Record<string, boolean> }) => {
+      if (value.attempted?.[stage]) throw new Error("synthetic-record-failure");
+    };
+    await expect(executeWrongUserProbe({ ...s.options, onProgress })).rejects.toThrow("synthetic-record-failure");
+    expect(s.otherRequest.post).toHaveBeenCalledTimes(stage === "revise" ? 0 : 1);
+  });
+
+  it("rejects complete success whose attempt evidence says nothing was attempted", async () => {
+    const s = setup();
+    const result = await executeWrongUserProbe(s.options);
+    expect(validateNegativeCaseReceipt({ phaseC: { ...result,
+      attempted: { read: false, revise: false, archive: false, list: false, ui: false },
+    } })).toBe(false);
+  });
+
+  it.each([
+    ["missing attempt evidence", { attempted: undefined }],
+    ["nonboolean flag", { attempted: { read: true, revise: true, archive: true, list: true, ui: "true" } }],
+    ["extra attempt key", { attempted: { read: true, revise: true, archive: true, list: true, ui: true, secret: true } }],
+    ["unattempted read with observed status", { attempted: { read: false, revise: true, archive: true, list: true, ui: true } }],
+    ["list not attempted with a response", { attempted: { read: true, revise: true, archive: true, list: false, ui: true } }],
+    ["UI not attempted with a result", { attempted: { read: true, revise: true, archive: true, list: true, ui: false } }],
+    ["list status absent despite success", { listStatus: null }],
+    ["non200 list claimed excluded", { listStatus: 503 }],
+    ["malformed list status", { listStatus: "200" }],
+  ])("rejects contradictory receipt: %s", async (_name, mutation) => {
+    const s = setup();
+    const result = await executeWrongUserProbe(s.options);
+    expect(validateNegativeCaseReceipt({ phaseC: { ...result, ...mutation } })).toBe(false);
+  });
+
+  it("rejects a partial response attributed to an unattempted request", async () => {
+    const s = setup();
+    s.otherRequest.post.mockRejectedValueOnce(new Error("synthetic-transport"));
+    const result = await executeWrongUserProbe(s.options);
+    expect(validateNegativeCaseReceipt({ phaseC: result })).toBe(true);
+    expect(validateNegativeCaseReceipt({ phaseC: { ...result, archive: 404 } })).toBe(false);
+  });
 });

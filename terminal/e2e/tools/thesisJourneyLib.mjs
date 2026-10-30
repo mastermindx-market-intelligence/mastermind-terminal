@@ -314,23 +314,29 @@ export async function executeWrongUserProbe({ ownerRequest, otherRequest, ownerP
   };
   try {
     result.attempted.read = true;
+    report();
     result.read = (await otherRequest.get(`${base}/api/theses?id=${thesisId}`, { maxRedirects: 0 })).status();
     if (result.read !== 404) { result.reason = "read_not_denied"; return report(); }
     report();
     result.attempted.revise = true;
+    report();
     result.revise = (await otherRequest.post(`${base}/api/theses`, { data: reviseData, maxRedirects: 0 })).status();
     if (result.revise !== 404) { result.reason = "revise_not_denied"; return report(); }
     report();
     result.attempted.archive = true;
+    report();
     result.archive = (await otherRequest.post(`${base}/api/theses`, { data: archiveData, maxRedirects: 0 })).status();
     if (result.archive !== 404) { result.reason = "archive_not_denied"; return report(); }
     report();
     result.attempted.list = true;
+    report();
     const list = await otherRequest.get(`${base}/api/theses`, { maxRedirects: 0 });
     result.listStatus = list.status();
+    report();
     result.listExcludes = result.listStatus === 200 && negativeCaseListExcludes(await list.json().catch(() => null), thesisId);
     report();
     result.attempted.ui = true;
+    report();
     result.uiNotFound = await verifyUi();
     result.ok = negativeCaseOutcome(result).ok;
   } catch {
@@ -364,7 +370,25 @@ export function validateNegativeCaseReceipt(value) {
   }
   if (pc.ran !== true || pc.route !== "operator_url" || pc.principalsVerifiedDistinct !== true) return false;
   if (pc.reason !== undefined && !Object.prototype.hasOwnProperty.call(NEGATIVE_CASE_REASONS, pc.reason)) return false;
-  const integerStatus = (status) => Number.isInteger(status) && status >= 0;
+  const stages = ["read", "revise", "archive", "list", "ui"];
+  const attempts = pc.attempted;
+  if (!attempts || typeof attempts !== "object" || Array.isArray(attempts)
+    || Object.keys(attempts).length !== stages.length
+    || !stages.every((stage) => Object.prototype.hasOwnProperty.call(attempts, stage) && typeof attempts[stage] === "boolean")) return false;
+  const httpStatus = (status) => Number.isInteger(status) && status >= 100 && status <= 599;
+  const responses = [pc.read, pc.revise, pc.archive, pc.listStatus, pc.uiNotFound];
+  for (let index = 0; index < stages.length; index += 1) {
+    const observed = responses[index];
+    const attempted = attempts[stages[index]];
+    if (index < 4 ? !(observed === null || httpStatus(observed)) : !(observed === null || typeof observed === "boolean")) return false;
+    if (!attempted && observed !== null) return false;
+    if (index > 0 && attempted && (!attempts[stages[index - 1]] || responses[index - 1] === null)) return false;
+  }
+  if (!(pc.listExcludes === null || typeof pc.listExcludes === "boolean")) return false;
+  if (pc.listExcludes !== null && (!attempts.list || pc.listStatus === null)) return false;
+  if (pc.listExcludes === true && pc.listStatus !== 200) return false;
+  if (attempts.ui && pc.listExcludes === null) return false;
+  if (pc.ok === true && (!stages.every((stage) => attempts[stage]) || pc.listStatus !== 200)) return false;
   const { ok: expectedOk, leak: expectedLeak } = negativeCaseOutcome({
     read: pc.read,
     revise: pc.revise,
@@ -373,12 +397,7 @@ export function validateNegativeCaseReceipt(value) {
     uiNotFound: pc.uiNotFound,
   });
   return (
-    (integerStatus(pc.read) || pc.read === null)
-    && (integerStatus(pc.revise) || pc.revise === null)
-    && (integerStatus(pc.archive) || pc.archive === null)
-    && integerStatus(pc.browserErrorCount)
-    && (typeof pc.listExcludes === "boolean" || pc.listExcludes === null)
-    && (typeof pc.uiNotFound === "boolean" || pc.uiNotFound === null)
+    Number.isInteger(pc.browserErrorCount) && pc.browserErrorCount >= 0
     && typeof pc.ok === "boolean"
     && typeof pc.leak === "boolean"
     && pc.ok === (expectedOk && pc.reason !== "phase_c_error")

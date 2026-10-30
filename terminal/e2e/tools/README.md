@@ -37,7 +37,11 @@ responses from requests never attempted: `null` is not a fabricated 404. The lis
 only absence from the returned page, because the API caps that page at 200 records.
 
 Closed partial observations are saved to ignored `e2e/.live-state/receipt-phase-c.json` as each
-stage settles, before the next mutation, and after context teardown. A transport or close error
+attempt begins (synchronously before dispatch), as each stage settles, and after context teardown.
+An evidence-write failure prevents that dispatch. A recorded attempt with a null response does
+not prove a remote effect or its absence; no repeat is authorized. The validator checks the closed
+attempt flags against observed statuses/results, including a 200 list response for success.
+A transport or close error
 preserves already observed statuses and sets `phase_c_error`; it does not relabel an attempted
 case as not-run. This separate file reports `ownerJourney: "in_progress"` and never certifies a
 completed owner journey. The unchanged owner flow and owner-only failure cleanup remain separate
