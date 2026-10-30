@@ -90,30 +90,63 @@ receipt retention after physical deletion is not implemented by silently adding 
 second store. An absent result cannot settle a still-late PREPARE. These are explicit
 held cases, not permission for replay, replacement or a new attempt UUID.
 
-## Verification frontier — draft, not accepted
+## Verification frontier — local qualification, independent review pending
 
-Current repaired TS source:135 focused cases passed (54 enrollment,18 source/action,
-29 source-resolver,34 account-policy), scoped TypeScript and affected ESLint passed.
-The retained October29 PG21 suite encodes superseded auto-fence/old6 behavior;
-its current14PASS/7FAIL is NOT a completed qualification. Discriminating repaired
-PostgreSQL test evidence must replace those seven expectations before acceptance.
-Five additional principal-local discriminators ran on actual private PostgreSQL17.11:
-all five fail against original975 SQL and pass against the repaired package (absent
-read has no writes; actual READ ONLY transaction; six-arg bypass absent; original
-ack after runtime/owner edit; explicit old-pin fence after owner edit). These
-changed-risk probes do not replace the still-unresolved seven suite expectations.
-Native namespace guard PR_NUMBER=1182 reports zero findings.
-Root independent changed-risk source review is mandatory on the frozen final delta.
-No merge, approval, target DB application, runtime activation or product proof is
-claimed by this checkpoint.
+The final affected suite has34 PASS in39.19s on actual disposable socket-only
+PostgreSQL. It replaces all seven superseded expectations with discriminators:
+read-only absent/PREPARED snapshots and actual READ ONLY transactions; real
+concurrent reconcile versus late prepare/arm; explicit fence versus arm one
+terminal winner; original commit acknowledgment after current generation AND
+same-owner predicate/token changes; missing/deleted receipt UNKNOWN; old5/6
+signature absence; cross-owner read isolation and identity-transfer refusal;
+JWT/custom-role forgery denial; no slot eviction; atomic rollback/reapplication;
+unchanged state-only generation CAS and explicit initial-rearm refusal.
+
+The first local run had32PASS/1FAIL because the local helper json.loads tried to
+parse psql's empty text for SQL NULL in the new delete/reinsert case. Correcting
+that test helper to return None for SQL NULL preserved missingness; the complete
+final34-case run passed. No production code changed after frozen f31041ba.
+
+Reused source checks:135 focused TS cases (54 enrollment,18 source/action,
+29 source-resolver,34 account-policy), scoped TypeScript and affected ESLint pass.
+Five separate principal-local PG discriminators are all RED on original975 SQL
+and all GREEN on repaired SQL. Immutable0045 and accepted intent-stage hashes
+remain exact. Local namespace guard returned zero findings in LENIENT mode;
+this is local consistency only, NOT hosted PR-scope/native strict qualification.
+No manual CI/observer or known-red publication was used.
+
+Root independent changed-risk source review consumed frozen f31041ba and found
+no additional blocker on R1/R2/R3; final changed test diff/source snapshot still
+requires its independent acceptance before any normal FF to existing draft1182.
+Draft status/no auto-merge/approval/application/activation remains mandatory.
+
+## Settled Fabric return and exact delivery refusal
 
 Original October29 Fabric packaging/design IDs `exposure-01a188db-package-20261029`
-and `exposure-01a188db-design-review-20261029` are closed rc75 prelaunch refusals;
-no execution or acceptance is inferred, and neither was retried. The distinct
-October30 test-artifact leaf `oem-01a156f1-enrollment-durable-falsifiers-v1` retains
-original root01a156f1 and immediate parent01a15700/controller56237. Its latest
-supported observation is ACTIVE_OR_WAITING, worker UNKNOWN, no verified START or
-quality acceptance; no replacement or allowance reset is permitted.
+and `exposure-01a188db-design-review-20261029` remain closed rc75 prelaunch refusals;
+neither was retried. Distinct October30 test-artifact run
+`oem-01a156f1-enrollment-durable-falsifiers-v1` retained root01a156f1 and immediate
+parent01a15700. Its ORIGINAL controller56237 was consumed exit0: actual lease and
+launch are now verified, with terminal DONE at2026-10-30T14:57Z. The controller's
+7200s wait bound was never a worker termination deadline. Usage receipt is MISSING.
+
+The same-ID4196B result was consumed (SHA256
+`5c5e1ff6abe7bf7b9f43e740bf11944e0bc64bc5b8437bfffdd1fe9bb7694699`).
+Its advertised artifact was NOT delivered: the first supported export returned
+rc75/REFUSED at destination_reservation, diagnostic
+`destination_outside_approved_evidence_root`. Read-only source diagnosis found
+artifact_delivery.py hardcodes `/Volumes/Mastermind/evidence`; the native alias
+mapper does not map unrelated evidence roots. No policy edit, alternate export,
+reader, destination, retry, replacement worker or allowance reset occurred.
+
+Verdict: NOT_ACCEPTED_AS_DELIVERED. The artifact bytes were never inspected or
+validated; exit0 is not quality acceptance. The supported accept command exposes
+only positive `--by deterministic|reviewer`, so it was not invoked; the actual
+adapter projection remains accepted=false/NO_OUTCOME, not a fabricated negative
+ledger write. Root separately authorized local completion after execution was
+settled, using already-local tests and accepted contracts. No denied artifact
+bytes were reconstructed/retrieved or used as passing evidence. Local34PG proof
+is principal-authored verification, not independent Fabric review.
 
 The original1182 connector attribution incident is preserved: CLI was verified
 as mastermindxryan, but draft creation used connector account mastermindx-3, an
