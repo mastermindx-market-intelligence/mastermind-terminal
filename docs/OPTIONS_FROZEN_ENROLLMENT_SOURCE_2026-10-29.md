@@ -363,3 +363,20 @@ findings, seven rendered entry tests PASS (including EN/ZH), scoped TypeScript,
 affected lint and diff check PASS. Existing synthetic viewport evidence is reused
 because text/layout/CSS are identical. Hosted checks belong to the new head;
 Draft/noauto and all runtime/release holds remain unchanged.
+
+## Hosted missing-SDK test timing repair — October30
+
+375f2b12 CI41104163751/job124228956724 exposed one rendered-test race:
+the missing-SDK case asserted Unconfirmed immediately after clicking, while
+native WebCrypto fingerprinting could still be pending. Other17374 unit tests,
+all responsive shards, ingest, PostgreSQL invariants and CodeQL passed. This is
+not the earlier translation finding or a production enrollment change.
+
+The test now deliberately gates the real digest, proves no SDK/fetch/status has
+completed before release, then awaits the actual SDK invocation within act()
+before asserting the refusal and zero fetch/enrollment. No timeout increase,
+sleep, retries, skipped assertion or application code change. The64 affected
+route/client/render tests pass; the final explicit pre-release status assertion
+also passed the7 rendered cases. Scoped TypeScript/lint pass. All source reviews
+remain reusable; new hostedCI is required on the repaired head. Runtime holds,
+Draft/noauto and exactly-once behavior are unchanged.

@@ -98,9 +98,23 @@ it("confirmed reference exposes exact original identity and keeps UUIDs in a clo
 });
 
 it("missing client SDK configuration refuses the preview action without fetch or enrollment", async () => {
-  H.enabled = true; H.auth.mockImplementation(() => { throw new Error("synthetic missing SDK config"); });
+  H.enabled = true;
+  let releaseDigest!: () => void, reachedSdk!: () => void;
+  const digestGate = new Promise<void>(resolve => { releaseDigest = resolve; });
+  const sdkReached = new Promise<void>(resolve => { reachedSdk = resolve; });
+  const nativeDigest = crypto.subtle.digest.bind(crypto.subtle);
+  vi.spyOn(crypto.subtle, "digest").mockImplementation(async (...args) => {
+    await digestGate;
+    return nativeDigest(...args);
+  });
+  H.auth.mockImplementation(() => { reachedSdk(); throw new Error("synthetic missing SDK config"); });
   const fetcher = vi.fn(); vi.stubGlobal("fetch", fetcher); mountMap(); await select(159);
   await act(async () => { button("Prepare and save reference").click(); });
+  // act() cannot settle native WebCrypto IO. Keep it delayed deliberately, then
+  // await the actual SDK boundary rather than assuming the click completed it.
+  expect(H.auth).not.toHaveBeenCalled(); expect(fetcher).not.toHaveBeenCalled();
+  expect(host.textContent).not.toContain("Unconfirmed");
+  await act(async () => { releaseDigest(); await sdkReached; });
   expect(host.textContent).toContain("Unconfirmed"); expect(fetcher).not.toHaveBeenCalled();
   expect(button("Confirm this enrollment").disabled).toBe(true);
 });
