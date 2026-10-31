@@ -660,7 +660,8 @@ def test_beta_env_file_malformed_key_line_refuses(verifier, tmp_path):
     with pytest.raises(verifier["Refused"]) as raised:
         verifier["main"](["/app", NEW_SHA, "prestart", str(tmp_path),
                           "terminal-beta", str(tmp_path), "beta"])
-    assert raised.value.code == "malformed-admission-assignment"
+    # Service files use the reviewed systemd grammar, not the dotenv scanner.
+    assert raised.value.code == "unsupported-env-file-syntax"
 
 
 def test_production_launch_wrapper_matrix(verifier):
