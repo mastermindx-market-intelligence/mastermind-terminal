@@ -22,7 +22,9 @@ const UPSTREAM = `${GATEWAY}/api/portfolio/changes`;
 const NO_STORE = "private, no-store";
 /** The desk reads at most 500 names of a few short fields each (engine/portfolio_changes.py
  *  MAX_PREVIOUS_NAMES); a well-formed digest is tens of KB. Anything larger is refused before
- *  it is parsed, so a hostile body cannot buy a JSON.parse or an upstream round trip. */
+ *  it is parsed, so a hostile body cannot buy a JSON.parse or an upstream round trip. The
+ *  cap is in UTF-8 bytes (a Chinese-heavy body is up to 3x its character count). A body sent
+ *  without content-length is still read in full before the check; the rate limit bounds that. */
 const MAX_BODY_BYTES = 256 * 1024;
 
 async function sessionToken(): Promise<string | null> {
@@ -70,7 +72,7 @@ export async function POST(req: Request) {
   let body: unknown = null;
   try {
     const raw = await req.text();
-    if (raw.length > MAX_BODY_BYTES) return tooLarge();
+    if (Buffer.byteLength(raw, "utf8") > MAX_BODY_BYTES) return tooLarge();
     body = raw ? JSON.parse(raw) : null;
   } catch {
     body = null;

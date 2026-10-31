@@ -36,7 +36,7 @@ const CHANGES = {
   population: "positions",
   first_visit: false,
   changes: [{ kind: "stage", en: "NVDA moved from Stage 2 to Stage 3.", zh: "NVDA 从第 2 阶段进入第 3 阶段。", ticker: "NVDA" }],
-  state_digest: { schema: "portfolio_snapshot.v1", asof: "2026-10-30", names: { NVDA: { stage: 3 } }, sectors: {} },
+  state_digest: { schema: "portfolio_state_digest.v1", asof: "2026-10-30", names: { NVDA: { stage: 3 } }, sectors: {} },
   cursor: { scope: "device", note_en: "Marker kept on this device.", note_zh: "标记保存在本设备。" },
 };
 
@@ -163,6 +163,18 @@ describe("body size cap → 413 before parse or upstream", () => {
     const body = big();
     expect(body.length).toBeGreaterThan(256 * 1024);
     const r = new Request("https://app.mastermind-x.com/api/portfolio-changes", { method: "POST", headers: { "cf-connecting-ip": "203.0.113.250", "content-type": "application/json" }, body });
+    const res = await POST(r);
+    expect(res.status).toBe(413);
+    expect(calls).toHaveLength(0);
+  });
+
+  it("counts UTF-8 bytes, not characters: a Chinese-heavy body under 256K characters but over 256 KiB is refused", async () => {
+    installFetchSpy();
+    signedIn();
+    const body = JSON.stringify({ previous: { names: { NVDA: { entry: "超".repeat(100 * 1024) } } } });
+    expect(body.length).toBeLessThan(256 * 1024);
+    expect(Buffer.byteLength(body, "utf8")).toBeGreaterThan(256 * 1024);
+    const r = new Request("https://app.mastermind-x.com/api/portfolio-changes", { method: "POST", headers: { "cf-connecting-ip": "203.0.113.251", "content-type": "application/json" }, body });
     const res = await POST(r);
     expect(res.status).toBe(413);
     expect(calls).toHaveLength(0);

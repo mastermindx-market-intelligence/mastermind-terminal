@@ -38,27 +38,33 @@ const seed = (slots: Record<string, unknown>) => window.localStorage.setItem(STO
 
 // Producer-shaped fixtures (engine/portfolio_changes.py snapshot(): `names` values are the
 // per-name desk state RECORDS, `sectors` the sector records, regime labels at the top).
+// Digest shapes follow engine/portfolio_changes.py snapshot(): SNAPSHOT_SCHEMA, per-name
+// records (stage / entry "label / state" / earnings / sector), sector records with
+// class + conviction_en/zh, and the regime labels at the top.
 const DIGEST_OLD = {
-  schema: "portfolio_snapshot.v1", asof: "2026-10-29",
-  names: { NVDA: { stage: 2, entry: "Entry zone", earnings: "2026-11-19" }, AAPL: { stage: 3 } },
-  sectors: { Technology: { cls: "leading", conviction: "high" } },
+  schema: "portfolio_state_digest.v1", asof: "2026-10-29",
+  names: { NVDA: { stage: 2, entry: "Entry zone / open", earnings: "2026-11-19", sector: "Technology" }, AAPL: { stage: 3, sector: "Technology" } },
+  sectors: { Technology: { class: "leading", conviction_en: "high", conviction_zh: "高" } },
   regime_en: "Risk-on", regime_zh: "风险偏好",
 };
 const DIGEST_NEW = {
-  schema: "portfolio_snapshot.v1", asof: "2026-10-30",
-  names: { NVDA: { stage: 3, entry: "Extended", earnings: "2026-11-19" }, AAPL: { stage: 3 } },
-  sectors: { Technology: { cls: "weakening", conviction: "medium" } },
+  schema: "portfolio_state_digest.v1", asof: "2026-10-30",
+  names: { NVDA: { stage: 3, entry: "Extended / closed", earnings: "2026-11-19", sector: "Technology" }, AAPL: { stage: 3, sector: "Technology" } },
+  sectors: { Technology: { class: "weakening", conviction_en: "medium", conviction_zh: "中" } },
   regime_en: "Mixed", regime_zh: "分化",
 };
-const BRIEF = { schema: "portfolio_brief.v2", asof: "2026-10-30", state_digest: DIGEST_NEW, population: { mode: "positions", label_en: "Open positions", label_zh: "开仓持仓", n: 2, disclosure_en: "Composed over the 2 names you hold as open positions.", disclosure_zh: "基于你持有的 2 个开仓名称生成。" } };
-const BRIEF_WATCHLIST = { ...BRIEF, population: { mode: "watchlist_union", label_en: "Watchlist", label_zh: "自选", n: 2, disclosure_en: "Composed over the 2 names on your watchlists; no open positions were found.", disclosure_zh: "基于你自选列表中的 2 个名称生成；未找到开仓持仓。" } };
-const CURSOR = { scope: "device", note_en: "Your marker is kept on this device only.", note_zh: "你的标记仅保存在本设备。" };
+// Disclosure sentences verbatim from engine/portfolio_brief.py _population_block.
+const BRIEF = { schema: "portfolio_brief.v2", asof: "2026-10-30", state_digest: DIGEST_NEW, population: { mode: "positions", label_en: "Open positions", label_zh: "开仓持仓", n: 2, disclosure_en: "This read describes the 2 names you hold.", disclosure_zh: "此判读描述你持有的 2 只个股。" } };
+const BRIEF_WATCHLIST = { ...BRIEF, population: { mode: "watchlist_union", label_en: "Watchlist", label_zh: "观察列表", n: 2, disclosure_en: "This read describes the 2 names on your watchlists, equal weighted — not a position book.", disclosure_zh: "此判读描述你观察列表中的 2 只个股，按等权计算 — 并非持仓。" } };
+// CURSOR_DISCLOSURE verbatim from engine/portfolio_changes.py.
+const CURSOR = { scope: "device", note_en: "This “since your last visit” marker is kept on this device, so a different browser or phone keeps its own separate history.", note_zh: "“自你上次查看以来”的记录保存在本设备上，因此换用其他浏览器或手机时会各自独立计算。" };
 // The desk's own kinds: regime carries no ticker; stage/entry/earnings carry one;
 // sector_class/sector_conviction carry a sector; added/removed are membership lines.
 const REGIME = { kind: "regime", en: "The desk's daily read moved from Risk-on to Mixed.", zh: "桌面的每日判读从风险偏好转为分化。" };
 const STAGE = { kind: "stage", en: "NVDA moved from Stage 2 to Stage 3.", zh: "NVDA 从第 2 阶段进入第 3 阶段。", ticker: "NVDA" };
-const ENTRY = { kind: "entry", en: "NVDA's entry read changed from Entry zone to Extended.", zh: "NVDA 的入场判读从入场区变为超涨。", ticker: "NVDA" };
-const SECTOR = { kind: "sector_class", en: "Technology moved from leading to weakening.", zh: "科技从领先转为走弱。", sector: "Technology" };
+const ENTRY = { kind: "entry", en: "NVDA's entry read changed: Entry zone / open → Extended / closed.", zh: "NVDA 的入场判读发生变化：Entry zone / open → Extended / closed。", ticker: "NVDA" };
+const SECTOR = { kind: "sector_class", en: "Technology moved from leading to weakening on the desk's rotation board.", zh: "Technology 在桌面轮动板上从领先转为走弱。", sector: "Technology" };
+const CONVICTION = { kind: "sector_conviction", en: "The desk read on Technology moved from high to medium.", zh: "桌面对Technology的判读从高转为中。", sector: "Technology" };
 const ADDED = { kind: "added", en: "1 name joined this read since your last visit: XOM.", zh: "自你上次查看以来，新增 1 只个股：XOM。" };
 function changes(lines: Array<Record<string, unknown>>, extra: Record<string, unknown> = {}) {
   return { schema: "portfolio_changes.v1", asof: "2026-10-30", population: "positions", first_visit: false, changes: lines, state_digest: DIGEST_NEW, cursor: CURSOR, ...extra };
@@ -97,12 +103,12 @@ describe("Today — since your last visit", () => {
     await renderOwner(A);
     await answer(0, BRIEF);
     expect(sentPrevious(1)).toEqual(DIGEST_OLD);
-    await answer(1, changes([REGIME, STAGE, ENTRY, SECTOR, ADDED]));
+    await answer(1, changes([REGIME, STAGE, ENTRY, SECTOR, CONVICTION, ADDED]));
     expect(state()).toBe("ready");
-    for (const line of [REGIME, STAGE, ENTRY, SECTOR, ADDED]) expect(container.textContent).toContain(line.en);
+    for (const line of [REGIME, STAGE, ENTRY, SECTOR, CONVICTION, ADDED]) expect(container.textContent).toContain(line.en);
     const links = Array.from(container.querySelectorAll("li a")).map(a => a.getAttribute("href"));
     expect(links).toEqual(["/analysis?symbol=NVDA", "/analysis?symbol=NVDA"]);
-    expect(container.textContent).toContain("Composed over the 2 names you hold as open positions.");
+    expect(container.textContent).toContain("This read describes the 2 names you hold.");
     expect(container.textContent).toContain(CURSOR.note_en);
     expect(container.textContent).toContain("2026-10-30");
     expect(slot(A)).toEqual(DIGEST_NEW);
@@ -127,9 +133,13 @@ describe("Today — since your last visit", () => {
     const more = button("Show 2 more changes");
     expect(more).toBeTruthy();
     await act(async () => more!.click()); await flush();
-    expect(container.querySelectorAll("li")).toHaveLength(8);
+    const items = container.querySelectorAll("li");
+    expect(items).toHaveLength(8);
     expect(container.textContent).toContain("H moved from Stage 2 to Stage 3.");
     expect(button("Show")).toBeUndefined();
+    // The control unmounted; focus lands on the first revealed line, not on <body>.
+    expect(document.activeElement).toBe(items[6]);
+    expect(items[6].textContent).toContain("G moved from Stage 2 to Stage 3.");
   });
 
   it("accepts the desk's longest names (up to 48 characters) as Analysis links", async () => {
@@ -302,7 +312,7 @@ describe("Today — since your last visit", () => {
     await answer(0, BRIEF_WATCHLIST);
     await answer(1, changes([STAGE], { population: "watchlist_union" }));
     expect(state()).toBe("ready");
-    expect(container.textContent).toContain("Composed over the 2 names on your watchlists");
+    expect(container.textContent).toContain("This read describes the 2 names on your watchlists, equal weighted — not a position book.");
   });
 
   it("shows no population sentence when the cached brief names a different set than the diff", async () => {
@@ -312,7 +322,7 @@ describe("Today — since your last visit", () => {
     await answer(1, changes([STAGE], { population: "watchlist_union" }));
     expect(state()).toBe("ready");
     expect(container.textContent).toContain(STAGE.en);
-    expect(container.textContent).not.toContain("Composed over");
+    expect(container.textContent).not.toContain("This read describes");
     expect(container.textContent).toContain("Desk read as of");
   });
 
@@ -322,7 +332,7 @@ describe("Today — since your last visit", () => {
     await answer(0, BRIEF);
     await answer(1, changes([STAGE], { population: undefined }));
     expect(state()).toBe("ready");
-    expect(container.textContent).not.toContain("Composed over");
+    expect(container.textContent).not.toContain("This read describes");
   });
 
   it("renders the desk's zh sentence and zh chrome when the reader is in zh", async () => {
@@ -335,7 +345,7 @@ describe("Today — since your last visit", () => {
     expect(container.textContent).toContain(STAGE.zh);
     expect(container.textContent).not.toContain(STAGE.en);
     expect(container.textContent).toContain(CURSOR.note_zh);
-    expect(container.textContent).toContain("基于你持有的 2 个开仓名称生成。");
+    expect(container.textContent).toContain("此判读描述你持有的 2 只个股。");
     expect(button("显示另外 1 项变化")).toBeTruthy();
   });
 });

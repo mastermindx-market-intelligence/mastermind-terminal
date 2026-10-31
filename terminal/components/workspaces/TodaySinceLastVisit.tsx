@@ -170,6 +170,10 @@ function TodaySinceLastVisitSession({ ownerKey, scope, onUnauthenticated }: Prop
   const [phase, setPhase] = useState<Phase>("loading");
   const [reading, setReading] = useState<Reading | null>(null);
   const [showAll, setShowAll] = useState(false);
+  // The expand control unmounts once pressed; focus moves to the first revealed line so a
+  // keyboard or screen-reader user does not land on <body>.
+  const revealed = useRef<HTMLLIElement | null>(null);
+  useEffect(() => { if (showAll) revealed.current?.focus(); }, [showAll]);
   const [attempt, setAttempt] = useState(0);
   const generation = useRef(0);
   const onUnauthenticatedRef = useRef(onUnauthenticated);
@@ -246,7 +250,8 @@ function TodaySinceLastVisitSession({ ownerKey, scope, onUnauthenticated }: Prop
       {reading.firstVisit ? <p className={styles.notice}>{c.first}</p>
         : lines.length === 0 ? <p className={styles.notice}>{c.quiet}</p>
         : <ul className={today.sinceList}>
-          {lines.map((change, index) => <li key={`${change.kind}|${change.ticker ?? change.sector ?? index}`} className={today.sinceRow}>
+          {lines.map((change, index) => <li key={`${change.kind}|${change.ticker ?? change.sector ?? index}`} className={today.sinceRow}
+            ref={showAll && index === MAX_LINES ? revealed : undefined} tabIndex={showAll && index === MAX_LINES ? -1 : undefined}>
             {change.ticker && <Link href={`/analysis?symbol=${encodeURIComponent(change.ticker)}`} aria-label={c.open(change.ticker)}>{change.ticker}</Link>}
             <p>{pick(change)}</p>
           </li>)}
