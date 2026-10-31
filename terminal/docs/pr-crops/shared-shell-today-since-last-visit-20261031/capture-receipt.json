@@ -1,16 +1,16 @@
 {
-  "sourceHead": "ac319630492c5a3b7b2c04dda396e608da15d56c",
-  "recordedAt": "2026-10-31T06:46:12.249162+00:00",
+  "sourceHead": "f26a81c0631b7029c3c07d9a6f60d3bc8f8a238d",
+  "recordedAt": "2026-10-31T06:51:23.998204+00:00",
   "kind": "ISOLATED_ACTUAL_COMPONENT_FIXTURE",
-  "qualification": "Actual production Today components and source CSS; the Supabase SDK, next/link and onboarding boundaries and all /api data are deterministic fixtures served from a loopback server; non-loopback requests are blocked. These captures do not prove live authentication, data freshness, the deployed beta, or desk acceptance of the portfolio_changes.v1 producer.",
+  "qualification": "Actual production Today components and source CSS; the Supabase SDK, next/link and onboarding boundaries and all /api data are deterministic fixtures served from a loopback server (change lines, disclosures and the cursor note use the producer's verbatim sentence forms); non-loopback requests are blocked. These captures do not prove live authentication, data freshness, the deployed beta, or desk acceptance of the portfolio_changes.v1 producer.",
   "commands": {
-    "today": "CAPTURE_SOURCE_HEAD=ac319630492c5a3b7b2c04dda396e608da15d56c CAPTURE_FONTS_CSS=<a built .next Inter font-face chunk, optional> CAPTURE_FONTS_DIR=<its media dir, optional> node docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/capture.mjs (Node v26.5.0, @playwright/test chromium headless)"
+    "today": "CAPTURE_SOURCE_HEAD=f26a81c0631b7029c3c07d9a6f60d3bc8f8a238d CAPTURE_FONTS_CSS=<a built .next Inter font-face chunk, optional> CAPTURE_FONTS_DIR=<its media dir, optional> node docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/capture.mjs (Node v26.5.0, @playwright/test chromium headless)"
   },
   "sourceHashes": {
-    "terminal/components/workspaces/TodaySinceLastVisit.tsx": "1a21285d00c4b0e3a49f4bae9d466f9b0eb395f1fcac63ffab124fe61bf31fb7",
+    "terminal/components/workspaces/TodaySinceLastVisit.tsx": "a133753904e026f268d36b31374dc38a9f4250438514b675fcead24719f5e668",
     "terminal/components/workspaces/TodayWorkspace.tsx": "5d55900f7b7cdb143b9488759c50c67dee5031abcb2896a44a7ecdba9cb326e1",
     "terminal/components/workspaces/TodayWorkspace.module.css": "44bae21ba102abbf6a486754188e9834b020641ecd2a8e1cc1aaf87047fb7070",
-    "terminal/app/api/portfolio-changes/route.ts": "b339cdc6de04e4315f652ee8f242e36fd347fed0f0708bb140d12c07296fa138",
+    "terminal/app/api/portfolio-changes/route.ts": "f8456fae9097cb2fafc9325768e9a1c28175f47330ed90e99a7a44746befb223",
     "terminal/lib/ownerStorage.ts": "6b1eb941ef6a4f11960d4d20c9bc488ebab6022559f0963bbbd980461a68cb6e",
     "terminal/lib/accountIdentity.ts": "84240a1d43343ae57288ca2d72ed8b9d8128e561448a6b0daae51f3441fede1c",
     "terminal/lib/shared-shell/useReadingScope.ts": "37bc0cc517172ba243a7578cf82940b6ac6c212cb1c8787bcbf789be8aa43f20",
@@ -18,31 +18,31 @@
     "terminal/components/chrome/shared-shell/shared-shell.css": "aa6555ac18306f31fb317d8941bd1dd530ab7c61c18e67d2a73a439329950339"
   },
   "harness": {
-    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/capture.mjs": "55a86b1eb2a6d119fc78fc573c32524dd4ba06a028d658a70a4890e89a9d4978"
+    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/capture.mjs": "42503465b8ec0f5b75c5d573552c83f1049faf7351a6f4ba278bc3b21337003c"
   },
   "report": {
-    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/report.json": "460216dd0f7626db6288a2a3e676b7a6ca08e50c3a0e7e5c446d3c80e7b03b13"
+    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/report.json": "c5ec03402fb13016e53c8489ca82d31222a095d4f514033ae01a6690098d4ad2"
   },
   "captures": {
-    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/1440-dark-en-first.png": "b3cc7d6cb89f518a899d87ef5c6e3be650915e8746691f45ca45853203ea2fd8",
-    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/1440-dark-en-overflow-collapsed.png": "4b321a546f92259b8e8c1240bb8816f7c784f70517c7606f8a607302aa6564ae",
-    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/1440-dark-en-overflow.png": "1dd2a2d1b406ee066a307c0c7f6450b55f2904d88dafb3fc439a9fd1f1abf319",
-    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/1440-dark-en-quiet.png": "4210865b121f061bdc5d16bd64170876f83a68305da5fa95d3baa56ff465cbc7",
-    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/1440-dark-en-ready.png": "69173fca981751bee55a69f41871e724113254b6836773994574ab5ead22afce",
+    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/1440-dark-en-first.png": "f905838b3f0500da527df9ec130eecc4b9fc5ee568b7dea16c09be3a2134aed9",
+    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/1440-dark-en-overflow-collapsed.png": "1df114119498c1ab4057fc8f6ac1fda9a0b55e0f10843b3c095c87e222de0c55",
+    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/1440-dark-en-overflow.png": "a895eda813f44b8a0df7a45ea35b979e94ef01281afbb5fcac4baa4acee777cd",
+    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/1440-dark-en-quiet.png": "248f3a5868b29c38569521293692983095f00b794430848c3726acdfdf9ad578",
+    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/1440-dark-en-ready.png": "bd63c29ebe2a850ae37fdd3854d0854aff293887079e1790b3163f5fe4831d5a",
     "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/1440-dark-en-teaser.png": "4949e6a07db014237961f80c085487b8246f4ecf7419c208925dc9aa0ef1c170",
     "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/1440-dark-en-unavailable.png": "b7e06ea446331c614171ed05083ef9cdf9c8de1e88e5d18fa099a732676a584b",
-    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/1440-dark-zh-ready.png": "3dbad9a735eb228febd589fd6f8ecf2f647703509e47ba2486dfab0f40f47197",
-    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/1440-light-en-ready.png": "e7b98f7053968b32ed9cec26f1a6fe9b24605a76e2ce993d0c15fb1a572833d2",
-    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/1440-light-zh-ready.png": "96a0964c30dc2dbcdac350ed5d14e309fe597671b450f87e343104fa04f2a550",
-    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/320-light-zh-ready.png": "425e5b68b05beefa1318d2c4002b760ff90edcafb4e4e7a045ff688d310ac9c8",
-    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/390-dark-en-ready.png": "e404c7987a46416f7f27d0ecb9825c4713c5b195fbfbf8ae5a6a10d9d63f7d52",
-    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/390-dark-zh-ready.png": "0a28b0f8d5262cf26c763e37db147c82b9c443d65efa16a1d6156297381e3e67",
-    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/390-light-en-ready.png": "f84ea6d4a5b75accc2fbfa859fa039b4180b85f2603a887b86f63086d11209ce",
-    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/390-light-zh-first.png": "0b3363d7233c3588a4ba1d7e0a30007debc060d3f59f65a9673c05548281d254",
-    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/390-light-zh-overflow-collapsed.png": "e77e3ce3a6c7dcdf623a8ce5efd81e161ec3dad26357a9d94c566fe886ce01cb",
-    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/390-light-zh-overflow.png": "2b53edb1bacd05784a7da26c37a31132ed0f9fbdb3b298a34e04b9d57827f2c8",
-    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/390-light-zh-quiet.png": "558446976248d3d7baf1d6c4081a74b37b104ba4b381e18ff63b0062c3a88e0b",
-    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/390-light-zh-ready.png": "7ab51822d6f6136b832b5b57610f3c6266b0a2cb98a1f57a97eaadd83048451b",
+    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/1440-dark-zh-ready.png": "599bc925a70f28eb4cc09d706e906aec099cf5f00460b91b2efdaa0860a0ee9a",
+    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/1440-light-en-ready.png": "6bbe6cd86e5ad3101a20423a1ffbb58a7e5871f7b70a3b8bf104b5863758eee5",
+    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/1440-light-zh-ready.png": "b82c6120fc8a8b26e618dc7ea188648bdc767d936789ce6eb0496e0184000343",
+    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/320-light-zh-ready.png": "4a6fb88393e348b0deffa47b79806e3d62b6f9fb38d056be3ba096cb03b62988",
+    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/390-dark-en-ready.png": "c744ea2934ddfd22d383e3a85a5c4d3c9bcf41813a674614126ab31c4b460558",
+    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/390-dark-zh-ready.png": "ef51ced78eaa79989e1d2bff34b61c1d056d78b97cbed022c4aedf4619cf9103",
+    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/390-light-en-ready.png": "a3a6a713e1c168100a6f53cd17407c35dc6ebc040fb6c056ce032eb38589f1d3",
+    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/390-light-zh-first.png": "a021ccf390b51842d50fe989d78a8d03aa25237e9d8d45ea6296e7ca9bc64e63",
+    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/390-light-zh-overflow-collapsed.png": "dd5dca1caf82c158292ec8e7abaafb932cb694880767eb1fbab5b7a8693b28c0",
+    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/390-light-zh-overflow.png": "c029c5cd8692ff7740f00738fde35ccc5c3bb165834843bed51567bb8f33d780",
+    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/390-light-zh-quiet.png": "ac0aae34f3d177c461a336a61eb2d1630be9e98f29aa93de836d5578f34df0ca",
+    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/390-light-zh-ready.png": "1d817fb883ea6626202274e665b62063029bffed5d11b8b68b64e799f4590c06",
     "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/390-light-zh-teaser.png": "f7e2d4164f2ec1b62c341a8cb2a59c47216053e93135d6ca8417619e82eeae2d",
     "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/390-light-zh-unavailable.png": "dff883fd07820182cf4c2fca8ec07ea64a644e58a435ee7fb4e52db0deb28b5c"
   }

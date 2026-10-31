@@ -1,5 +1,5 @@
 {
-  "sourceHead": "ac319630492c5a3b7b2c04dda396e608da15d56c",
+  "sourceHead": "f26a81c0631b7029c3c07d9a6f60d3bc8f8a238d",
   "kind": "ISOLATED_ACTUAL_TODAY_COMPONENT_FIXTURE",
   "results": [
     {
@@ -17,57 +17,67 @@
         "brief": true,
         "posts": 1,
         "previousSent": {
-          "schema": "portfolio_snapshot.v1",
+          "schema": "portfolio_state_digest.v1",
           "asof": "2026-10-29",
           "names": {
             "NVDA": {
               "stage": 2,
-              "entry": "Entry zone"
+              "entry": "Entry zone / open",
+              "sector": "Technology"
             },
             "AAPL": {
-              "stage": 3
+              "stage": 3,
+              "sector": "Technology"
             },
             "XOM": {
-              "stage": 1
+              "stage": 1,
+              "sector": "Energy"
             }
           },
           "sectors": {
             "Energy": {
-              "cls": "improving",
-              "conviction": "medium"
+              "class": "improving",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
             },
             "Technology": {
-              "cls": "leading",
-              "conviction": "high"
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
             }
           },
           "regime_en": "Risk-on",
           "regime_zh": "风险偏好"
         },
         "storedAfter": {
-          "schema": "portfolio_snapshot.v1",
+          "schema": "portfolio_state_digest.v1",
           "asof": "2026-10-30",
           "names": {
             "NVDA": {
               "stage": 3,
-              "entry": "Extended"
+              "entry": "Extended / closed",
+              "sector": "Technology"
             },
             "AAPL": {
-              "stage": 3
+              "stage": 3,
+              "sector": "Technology"
             },
             "XOM": {
               "stage": 2,
-              "entry": "Entry zone"
+              "entry": "Entry zone / open",
+              "sector": "Energy"
             }
           },
           "sectors": {
             "Energy": {
-              "cls": "leading",
-              "conviction": "high"
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
             },
             "Technology": {
-              "cls": "weakening",
-              "conviction": "medium"
+              "class": "weakening",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
             }
           },
           "regime_en": "Mixed",
@@ -107,57 +117,67 @@
         "brief": true,
         "posts": 1,
         "previousSent": {
-          "schema": "portfolio_snapshot.v1",
+          "schema": "portfolio_state_digest.v1",
           "asof": "2026-10-29",
           "names": {
             "NVDA": {
               "stage": 2,
-              "entry": "Entry zone"
+              "entry": "Entry zone / open",
+              "sector": "Technology"
             },
             "AAPL": {
-              "stage": 3
+              "stage": 3,
+              "sector": "Technology"
             },
             "XOM": {
-              "stage": 1
+              "stage": 1,
+              "sector": "Energy"
             }
           },
           "sectors": {
             "Energy": {
-              "cls": "improving",
-              "conviction": "medium"
+              "class": "improving",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
             },
             "Technology": {
-              "cls": "leading",
-              "conviction": "high"
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
             }
           },
           "regime_en": "Risk-on",
           "regime_zh": "风险偏好"
         },
         "storedAfter": {
-          "schema": "portfolio_snapshot.v1",
+          "schema": "portfolio_state_digest.v1",
           "asof": "2026-10-30",
           "names": {
             "NVDA": {
               "stage": 3,
-              "entry": "Extended"
+              "entry": "Extended / closed",
+              "sector": "Technology"
             },
             "AAPL": {
-              "stage": 3
+              "stage": 3,
+              "sector": "Technology"
             },
             "XOM": {
               "stage": 2,
-              "entry": "Entry zone"
+              "entry": "Entry zone / open",
+              "sector": "Energy"
             }
           },
           "sectors": {
             "Energy": {
-              "cls": "leading",
-              "conviction": "high"
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
             },
             "Technology": {
-              "cls": "weakening",
-              "conviction": "medium"
+              "class": "weakening",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
             }
           },
           "regime_en": "Mixed",
@@ -197,57 +217,67 @@
         "brief": true,
         "posts": 1,
         "previousSent": {
-          "schema": "portfolio_snapshot.v1",
+          "schema": "portfolio_state_digest.v1",
           "asof": "2026-10-29",
           "names": {
             "NVDA": {
               "stage": 2,
-              "entry": "Entry zone"
+              "entry": "Entry zone / open",
+              "sector": "Technology"
             },
             "AAPL": {
-              "stage": 3
+              "stage": 3,
+              "sector": "Technology"
             },
             "XOM": {
-              "stage": 1
+              "stage": 1,
+              "sector": "Energy"
             }
           },
           "sectors": {
             "Energy": {
-              "cls": "improving",
-              "conviction": "medium"
+              "class": "improving",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
             },
             "Technology": {
-              "cls": "leading",
-              "conviction": "high"
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
             }
           },
           "regime_en": "Risk-on",
           "regime_zh": "风险偏好"
         },
         "storedAfter": {
-          "schema": "portfolio_snapshot.v1",
+          "schema": "portfolio_state_digest.v1",
           "asof": "2026-10-30",
           "names": {
             "NVDA": {
               "stage": 3,
-              "entry": "Extended"
+              "entry": "Extended / closed",
+              "sector": "Technology"
             },
             "AAPL": {
-              "stage": 3
+              "stage": 3,
+              "sector": "Technology"
             },
             "XOM": {
               "stage": 2,
-              "entry": "Entry zone"
+              "entry": "Entry zone / open",
+              "sector": "Energy"
             }
           },
           "sectors": {
             "Energy": {
-              "cls": "leading",
-              "conviction": "high"
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
             },
             "Technology": {
-              "cls": "weakening",
-              "conviction": "medium"
+              "class": "weakening",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
             }
           },
           "regime_en": "Mixed",
@@ -287,57 +317,67 @@
         "brief": true,
         "posts": 1,
         "previousSent": {
-          "schema": "portfolio_snapshot.v1",
+          "schema": "portfolio_state_digest.v1",
           "asof": "2026-10-29",
           "names": {
             "NVDA": {
               "stage": 2,
-              "entry": "Entry zone"
+              "entry": "Entry zone / open",
+              "sector": "Technology"
             },
             "AAPL": {
-              "stage": 3
+              "stage": 3,
+              "sector": "Technology"
             },
             "XOM": {
-              "stage": 1
+              "stage": 1,
+              "sector": "Energy"
             }
           },
           "sectors": {
             "Energy": {
-              "cls": "improving",
-              "conviction": "medium"
+              "class": "improving",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
             },
             "Technology": {
-              "cls": "leading",
-              "conviction": "high"
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
             }
           },
           "regime_en": "Risk-on",
           "regime_zh": "风险偏好"
         },
         "storedAfter": {
-          "schema": "portfolio_snapshot.v1",
+          "schema": "portfolio_state_digest.v1",
           "asof": "2026-10-30",
           "names": {
             "NVDA": {
               "stage": 3,
-              "entry": "Extended"
+              "entry": "Extended / closed",
+              "sector": "Technology"
             },
             "AAPL": {
-              "stage": 3
+              "stage": 3,
+              "sector": "Technology"
             },
             "XOM": {
               "stage": 2,
-              "entry": "Entry zone"
+              "entry": "Entry zone / open",
+              "sector": "Energy"
             }
           },
           "sectors": {
             "Energy": {
-              "cls": "leading",
-              "conviction": "high"
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
             },
             "Technology": {
-              "cls": "weakening",
-              "conviction": "medium"
+              "class": "weakening",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
             }
           },
           "regime_en": "Mixed",
@@ -371,63 +411,73 @@
         "scroll": 390,
         "width": 390,
         "mains": 1,
-        "bodyHeight": 2171
+        "bodyHeight": 2192
       },
       "proof": {
         "brief": true,
         "posts": 1,
         "previousSent": {
-          "schema": "portfolio_snapshot.v1",
+          "schema": "portfolio_state_digest.v1",
           "asof": "2026-10-29",
           "names": {
             "NVDA": {
               "stage": 2,
-              "entry": "Entry zone"
+              "entry": "Entry zone / open",
+              "sector": "Technology"
             },
             "AAPL": {
-              "stage": 3
+              "stage": 3,
+              "sector": "Technology"
             },
             "XOM": {
-              "stage": 1
+              "stage": 1,
+              "sector": "Energy"
             }
           },
           "sectors": {
             "Energy": {
-              "cls": "improving",
-              "conviction": "medium"
+              "class": "improving",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
             },
             "Technology": {
-              "cls": "leading",
-              "conviction": "high"
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
             }
           },
           "regime_en": "Risk-on",
           "regime_zh": "风险偏好"
         },
         "storedAfter": {
-          "schema": "portfolio_snapshot.v1",
+          "schema": "portfolio_state_digest.v1",
           "asof": "2026-10-30",
           "names": {
             "NVDA": {
               "stage": 3,
-              "entry": "Extended"
+              "entry": "Extended / closed",
+              "sector": "Technology"
             },
             "AAPL": {
-              "stage": 3
+              "stage": 3,
+              "sector": "Technology"
             },
             "XOM": {
               "stage": 2,
-              "entry": "Entry zone"
+              "entry": "Entry zone / open",
+              "sector": "Energy"
             }
           },
           "sectors": {
             "Energy": {
-              "cls": "leading",
-              "conviction": "high"
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
             },
             "Technology": {
-              "cls": "weakening",
-              "conviction": "medium"
+              "class": "weakening",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
             }
           },
           "regime_en": "Mixed",
@@ -461,63 +511,73 @@
         "scroll": 390,
         "width": 390,
         "mains": 1,
-        "bodyHeight": 2067
+        "bodyHeight": 2109
       },
       "proof": {
         "brief": true,
         "posts": 1,
         "previousSent": {
-          "schema": "portfolio_snapshot.v1",
+          "schema": "portfolio_state_digest.v1",
           "asof": "2026-10-29",
           "names": {
             "NVDA": {
               "stage": 2,
-              "entry": "Entry zone"
+              "entry": "Entry zone / open",
+              "sector": "Technology"
             },
             "AAPL": {
-              "stage": 3
+              "stage": 3,
+              "sector": "Technology"
             },
             "XOM": {
-              "stage": 1
+              "stage": 1,
+              "sector": "Energy"
             }
           },
           "sectors": {
             "Energy": {
-              "cls": "improving",
-              "conviction": "medium"
+              "class": "improving",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
             },
             "Technology": {
-              "cls": "leading",
-              "conviction": "high"
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
             }
           },
           "regime_en": "Risk-on",
           "regime_zh": "风险偏好"
         },
         "storedAfter": {
-          "schema": "portfolio_snapshot.v1",
+          "schema": "portfolio_state_digest.v1",
           "asof": "2026-10-30",
           "names": {
             "NVDA": {
               "stage": 3,
-              "entry": "Extended"
+              "entry": "Extended / closed",
+              "sector": "Technology"
             },
             "AAPL": {
-              "stage": 3
+              "stage": 3,
+              "sector": "Technology"
             },
             "XOM": {
               "stage": 2,
-              "entry": "Entry zone"
+              "entry": "Entry zone / open",
+              "sector": "Energy"
             }
           },
           "sectors": {
             "Energy": {
-              "cls": "leading",
-              "conviction": "high"
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
             },
             "Technology": {
-              "cls": "weakening",
-              "conviction": "medium"
+              "class": "weakening",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
             }
           },
           "regime_en": "Mixed",
@@ -551,63 +611,73 @@
         "scroll": 390,
         "width": 390,
         "mains": 1,
-        "bodyHeight": 2171
+        "bodyHeight": 2192
       },
       "proof": {
         "brief": true,
         "posts": 1,
         "previousSent": {
-          "schema": "portfolio_snapshot.v1",
+          "schema": "portfolio_state_digest.v1",
           "asof": "2026-10-29",
           "names": {
             "NVDA": {
               "stage": 2,
-              "entry": "Entry zone"
+              "entry": "Entry zone / open",
+              "sector": "Technology"
             },
             "AAPL": {
-              "stage": 3
+              "stage": 3,
+              "sector": "Technology"
             },
             "XOM": {
-              "stage": 1
+              "stage": 1,
+              "sector": "Energy"
             }
           },
           "sectors": {
             "Energy": {
-              "cls": "improving",
-              "conviction": "medium"
+              "class": "improving",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
             },
             "Technology": {
-              "cls": "leading",
-              "conviction": "high"
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
             }
           },
           "regime_en": "Risk-on",
           "regime_zh": "风险偏好"
         },
         "storedAfter": {
-          "schema": "portfolio_snapshot.v1",
+          "schema": "portfolio_state_digest.v1",
           "asof": "2026-10-30",
           "names": {
             "NVDA": {
               "stage": 3,
-              "entry": "Extended"
+              "entry": "Extended / closed",
+              "sector": "Technology"
             },
             "AAPL": {
-              "stage": 3
+              "stage": 3,
+              "sector": "Technology"
             },
             "XOM": {
               "stage": 2,
-              "entry": "Entry zone"
+              "entry": "Entry zone / open",
+              "sector": "Energy"
             }
           },
           "sectors": {
             "Energy": {
-              "cls": "leading",
-              "conviction": "high"
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
             },
             "Technology": {
-              "cls": "weakening",
-              "conviction": "medium"
+              "class": "weakening",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
             }
           },
           "regime_en": "Mixed",
@@ -641,63 +711,73 @@
         "scroll": 390,
         "width": 390,
         "mains": 1,
-        "bodyHeight": 2067
+        "bodyHeight": 2109
       },
       "proof": {
         "brief": true,
         "posts": 1,
         "previousSent": {
-          "schema": "portfolio_snapshot.v1",
+          "schema": "portfolio_state_digest.v1",
           "asof": "2026-10-29",
           "names": {
             "NVDA": {
               "stage": 2,
-              "entry": "Entry zone"
+              "entry": "Entry zone / open",
+              "sector": "Technology"
             },
             "AAPL": {
-              "stage": 3
+              "stage": 3,
+              "sector": "Technology"
             },
             "XOM": {
-              "stage": 1
+              "stage": 1,
+              "sector": "Energy"
             }
           },
           "sectors": {
             "Energy": {
-              "cls": "improving",
-              "conviction": "medium"
+              "class": "improving",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
             },
             "Technology": {
-              "cls": "leading",
-              "conviction": "high"
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
             }
           },
           "regime_en": "Risk-on",
           "regime_zh": "风险偏好"
         },
         "storedAfter": {
-          "schema": "portfolio_snapshot.v1",
+          "schema": "portfolio_state_digest.v1",
           "asof": "2026-10-30",
           "names": {
             "NVDA": {
               "stage": 3,
-              "entry": "Extended"
+              "entry": "Extended / closed",
+              "sector": "Technology"
             },
             "AAPL": {
-              "stage": 3
+              "stage": 3,
+              "sector": "Technology"
             },
             "XOM": {
               "stage": 2,
-              "entry": "Entry zone"
+              "entry": "Entry zone / open",
+              "sector": "Energy"
             }
           },
           "sectors": {
             "Energy": {
-              "cls": "leading",
-              "conviction": "high"
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
             },
             "Technology": {
-              "cls": "weakening",
-              "conviction": "medium"
+              "class": "weakening",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
             }
           },
           "regime_en": "Mixed",
@@ -731,63 +811,73 @@
         "scroll": 320,
         "width": 320,
         "mains": 1,
-        "bodyHeight": 2171
+        "bodyHeight": 2191
       },
       "proof": {
         "brief": true,
         "posts": 1,
         "previousSent": {
-          "schema": "portfolio_snapshot.v1",
+          "schema": "portfolio_state_digest.v1",
           "asof": "2026-10-29",
           "names": {
             "NVDA": {
               "stage": 2,
-              "entry": "Entry zone"
+              "entry": "Entry zone / open",
+              "sector": "Technology"
             },
             "AAPL": {
-              "stage": 3
+              "stage": 3,
+              "sector": "Technology"
             },
             "XOM": {
-              "stage": 1
+              "stage": 1,
+              "sector": "Energy"
             }
           },
           "sectors": {
             "Energy": {
-              "cls": "improving",
-              "conviction": "medium"
+              "class": "improving",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
             },
             "Technology": {
-              "cls": "leading",
-              "conviction": "high"
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
             }
           },
           "regime_en": "Risk-on",
           "regime_zh": "风险偏好"
         },
         "storedAfter": {
-          "schema": "portfolio_snapshot.v1",
+          "schema": "portfolio_state_digest.v1",
           "asof": "2026-10-30",
           "names": {
             "NVDA": {
               "stage": 3,
-              "entry": "Extended"
+              "entry": "Extended / closed",
+              "sector": "Technology"
             },
             "AAPL": {
-              "stage": 3
+              "stage": 3,
+              "sector": "Technology"
             },
             "XOM": {
               "stage": 2,
-              "entry": "Entry zone"
+              "entry": "Entry zone / open",
+              "sector": "Energy"
             }
           },
           "sectors": {
             "Energy": {
-              "cls": "leading",
-              "conviction": "high"
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
             },
             "Technology": {
-              "cls": "weakening",
-              "conviction": "medium"
+              "class": "weakening",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
             }
           },
           "regime_en": "Mixed",
@@ -827,57 +917,67 @@
         "brief": true,
         "posts": 1,
         "previousSent": {
-          "schema": "portfolio_snapshot.v1",
+          "schema": "portfolio_state_digest.v1",
           "asof": "2026-10-29",
           "names": {
             "NVDA": {
               "stage": 2,
-              "entry": "Entry zone"
+              "entry": "Entry zone / open",
+              "sector": "Technology"
             },
             "AAPL": {
-              "stage": 3
+              "stage": 3,
+              "sector": "Technology"
             },
             "XOM": {
-              "stage": 1
+              "stage": 1,
+              "sector": "Energy"
             }
           },
           "sectors": {
             "Energy": {
-              "cls": "improving",
-              "conviction": "medium"
+              "class": "improving",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
             },
             "Technology": {
-              "cls": "leading",
-              "conviction": "high"
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
             }
           },
           "regime_en": "Risk-on",
           "regime_zh": "风险偏好"
         },
         "storedAfter": {
-          "schema": "portfolio_snapshot.v1",
+          "schema": "portfolio_state_digest.v1",
           "asof": "2026-10-30",
           "names": {
             "NVDA": {
               "stage": 3,
-              "entry": "Extended"
+              "entry": "Extended / closed",
+              "sector": "Technology"
             },
             "AAPL": {
-              "stage": 3
+              "stage": 3,
+              "sector": "Technology"
             },
             "XOM": {
               "stage": 2,
-              "entry": "Entry zone"
+              "entry": "Entry zone / open",
+              "sector": "Energy"
             }
           },
           "sectors": {
             "Energy": {
-              "cls": "leading",
-              "conviction": "high"
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
             },
             "Technology": {
-              "cls": "weakening",
-              "conviction": "medium"
+              "class": "weakening",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
             }
           },
           "regime_en": "Mixed",
@@ -912,63 +1012,73 @@
         "scroll": 390,
         "width": 390,
         "mains": 1,
-        "bodyHeight": 2253
+        "bodyHeight": 2294
       },
       "proof": {
         "brief": true,
         "posts": 1,
         "previousSent": {
-          "schema": "portfolio_snapshot.v1",
+          "schema": "portfolio_state_digest.v1",
           "asof": "2026-10-29",
           "names": {
             "NVDA": {
               "stage": 2,
-              "entry": "Entry zone"
+              "entry": "Entry zone / open",
+              "sector": "Technology"
             },
             "AAPL": {
-              "stage": 3
+              "stage": 3,
+              "sector": "Technology"
             },
             "XOM": {
-              "stage": 1
+              "stage": 1,
+              "sector": "Energy"
             }
           },
           "sectors": {
             "Energy": {
-              "cls": "improving",
-              "conviction": "medium"
+              "class": "improving",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
             },
             "Technology": {
-              "cls": "leading",
-              "conviction": "high"
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
             }
           },
           "regime_en": "Risk-on",
           "regime_zh": "风险偏好"
         },
         "storedAfter": {
-          "schema": "portfolio_snapshot.v1",
+          "schema": "portfolio_state_digest.v1",
           "asof": "2026-10-30",
           "names": {
             "NVDA": {
               "stage": 3,
-              "entry": "Extended"
+              "entry": "Extended / closed",
+              "sector": "Technology"
             },
             "AAPL": {
-              "stage": 3
+              "stage": 3,
+              "sector": "Technology"
             },
             "XOM": {
               "stage": 2,
-              "entry": "Entry zone"
+              "entry": "Entry zone / open",
+              "sector": "Energy"
             }
           },
           "sectors": {
             "Energy": {
-              "cls": "leading",
-              "conviction": "high"
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
             },
             "Technology": {
-              "cls": "weakening",
-              "conviction": "medium"
+              "class": "weakening",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
             }
           },
           "regime_en": "Mixed",
@@ -1010,29 +1120,34 @@
         "posts": 1,
         "previousSent": null,
         "storedAfter": {
-          "schema": "portfolio_snapshot.v1",
+          "schema": "portfolio_state_digest.v1",
           "asof": "2026-10-30",
           "names": {
             "NVDA": {
               "stage": 3,
-              "entry": "Extended"
+              "entry": "Extended / closed",
+              "sector": "Technology"
             },
             "AAPL": {
-              "stage": 3
+              "stage": 3,
+              "sector": "Technology"
             },
             "XOM": {
               "stage": 2,
-              "entry": "Entry zone"
+              "entry": "Entry zone / open",
+              "sector": "Energy"
             }
           },
           "sectors": {
             "Energy": {
-              "cls": "leading",
-              "conviction": "high"
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
             },
             "Technology": {
-              "cls": "weakening",
-              "conviction": "medium"
+              "class": "weakening",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
             }
           },
           "regime_en": "Mixed",
@@ -1062,36 +1177,41 @@
         "scroll": 390,
         "width": 390,
         "mains": 1,
-        "bodyHeight": 1958
+        "bodyHeight": 1979
       },
       "proof": {
         "brief": true,
         "posts": 1,
         "previousSent": null,
         "storedAfter": {
-          "schema": "portfolio_snapshot.v1",
+          "schema": "portfolio_state_digest.v1",
           "asof": "2026-10-30",
           "names": {
             "NVDA": {
               "stage": 3,
-              "entry": "Extended"
+              "entry": "Extended / closed",
+              "sector": "Technology"
             },
             "AAPL": {
-              "stage": 3
+              "stage": 3,
+              "sector": "Technology"
             },
             "XOM": {
               "stage": 2,
-              "entry": "Entry zone"
+              "entry": "Entry zone / open",
+              "sector": "Energy"
             }
           },
           "sectors": {
             "Energy": {
-              "cls": "leading",
-              "conviction": "high"
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
             },
             "Technology": {
-              "cls": "weakening",
-              "conviction": "medium"
+              "class": "weakening",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
             }
           },
           "regime_en": "Mixed",
@@ -1127,57 +1247,67 @@
         "brief": true,
         "posts": 1,
         "previousSent": {
-          "schema": "portfolio_snapshot.v1",
+          "schema": "portfolio_state_digest.v1",
           "asof": "2026-10-29",
           "names": {
             "NVDA": {
               "stage": 2,
-              "entry": "Entry zone"
+              "entry": "Entry zone / open",
+              "sector": "Technology"
             },
             "AAPL": {
-              "stage": 3
+              "stage": 3,
+              "sector": "Technology"
             },
             "XOM": {
-              "stage": 1
+              "stage": 1,
+              "sector": "Energy"
             }
           },
           "sectors": {
             "Energy": {
-              "cls": "improving",
-              "conviction": "medium"
+              "class": "improving",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
             },
             "Technology": {
-              "cls": "leading",
-              "conviction": "high"
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
             }
           },
           "regime_en": "Risk-on",
           "regime_zh": "风险偏好"
         },
         "storedAfter": {
-          "schema": "portfolio_snapshot.v1",
+          "schema": "portfolio_state_digest.v1",
           "asof": "2026-10-30",
           "names": {
             "NVDA": {
               "stage": 3,
-              "entry": "Extended"
+              "entry": "Extended / closed",
+              "sector": "Technology"
             },
             "AAPL": {
-              "stage": 3
+              "stage": 3,
+              "sector": "Technology"
             },
             "XOM": {
               "stage": 2,
-              "entry": "Entry zone"
+              "entry": "Entry zone / open",
+              "sector": "Energy"
             }
           },
           "sectors": {
             "Energy": {
-              "cls": "leading",
-              "conviction": "high"
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
             },
             "Technology": {
-              "cls": "weakening",
-              "conviction": "medium"
+              "class": "weakening",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
             }
           },
           "regime_en": "Mixed",
@@ -1207,63 +1337,73 @@
         "scroll": 390,
         "width": 390,
         "mains": 1,
-        "bodyHeight": 1958
+        "bodyHeight": 1979
       },
       "proof": {
         "brief": true,
         "posts": 1,
         "previousSent": {
-          "schema": "portfolio_snapshot.v1",
+          "schema": "portfolio_state_digest.v1",
           "asof": "2026-10-29",
           "names": {
             "NVDA": {
               "stage": 2,
-              "entry": "Entry zone"
+              "entry": "Entry zone / open",
+              "sector": "Technology"
             },
             "AAPL": {
-              "stage": 3
+              "stage": 3,
+              "sector": "Technology"
             },
             "XOM": {
-              "stage": 1
+              "stage": 1,
+              "sector": "Energy"
             }
           },
           "sectors": {
             "Energy": {
-              "cls": "improving",
-              "conviction": "medium"
+              "class": "improving",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
             },
             "Technology": {
-              "cls": "leading",
-              "conviction": "high"
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
             }
           },
           "regime_en": "Risk-on",
           "regime_zh": "风险偏好"
         },
         "storedAfter": {
-          "schema": "portfolio_snapshot.v1",
+          "schema": "portfolio_state_digest.v1",
           "asof": "2026-10-30",
           "names": {
             "NVDA": {
               "stage": 3,
-              "entry": "Extended"
+              "entry": "Extended / closed",
+              "sector": "Technology"
             },
             "AAPL": {
-              "stage": 3
+              "stage": 3,
+              "sector": "Technology"
             },
             "XOM": {
               "stage": 2,
-              "entry": "Entry zone"
+              "entry": "Entry zone / open",
+              "sector": "Energy"
             }
           },
           "sectors": {
             "Energy": {
-              "cls": "leading",
-              "conviction": "high"
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
             },
             "Technology": {
-              "cls": "weakening",
-              "conviction": "medium"
+              "class": "weakening",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
             }
           },
           "regime_en": "Mixed",
@@ -1299,28 +1439,33 @@
         "brief": true,
         "posts": 0,
         "storedAfter": {
-          "schema": "portfolio_snapshot.v1",
+          "schema": "portfolio_state_digest.v1",
           "asof": "2026-10-29",
           "names": {
             "NVDA": {
               "stage": 2,
-              "entry": "Entry zone"
+              "entry": "Entry zone / open",
+              "sector": "Technology"
             },
             "AAPL": {
-              "stage": 3
+              "stage": 3,
+              "sector": "Technology"
             },
             "XOM": {
-              "stage": 1
+              "stage": 1,
+              "sector": "Energy"
             }
           },
           "sectors": {
             "Energy": {
-              "cls": "improving",
-              "conviction": "medium"
+              "class": "improving",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
             },
             "Technology": {
-              "cls": "leading",
-              "conviction": "high"
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
             }
           },
           "regime_en": "Risk-on",
@@ -1352,28 +1497,33 @@
         "brief": true,
         "posts": 0,
         "storedAfter": {
-          "schema": "portfolio_snapshot.v1",
+          "schema": "portfolio_state_digest.v1",
           "asof": "2026-10-29",
           "names": {
             "NVDA": {
               "stage": 2,
-              "entry": "Entry zone"
+              "entry": "Entry zone / open",
+              "sector": "Technology"
             },
             "AAPL": {
-              "stage": 3
+              "stage": 3,
+              "sector": "Technology"
             },
             "XOM": {
-              "stage": 1
+              "stage": 1,
+              "sector": "Energy"
             }
           },
           "sectors": {
             "Energy": {
-              "cls": "improving",
-              "conviction": "medium"
+              "class": "improving",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
             },
             "Technology": {
-              "cls": "leading",
-              "conviction": "high"
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
             }
           },
           "regime_en": "Risk-on",
@@ -1405,56 +1555,66 @@
         "brief": true,
         "posts": 1,
         "previousSent": {
-          "schema": "portfolio_snapshot.v1",
+          "schema": "portfolio_state_digest.v1",
           "asof": "2026-10-29",
           "names": {
             "NVDA": {
               "stage": 2,
-              "entry": "Entry zone"
+              "entry": "Entry zone / open",
+              "sector": "Technology"
             },
             "AAPL": {
-              "stage": 3
+              "stage": 3,
+              "sector": "Technology"
             },
             "XOM": {
-              "stage": 1
+              "stage": 1,
+              "sector": "Energy"
             }
           },
           "sectors": {
             "Energy": {
-              "cls": "improving",
-              "conviction": "medium"
+              "class": "improving",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
             },
             "Technology": {
-              "cls": "leading",
-              "conviction": "high"
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
             }
           },
           "regime_en": "Risk-on",
           "regime_zh": "风险偏好"
         },
         "storedAfter": {
-          "schema": "portfolio_snapshot.v1",
+          "schema": "portfolio_state_digest.v1",
           "asof": "2026-10-29",
           "names": {
             "NVDA": {
               "stage": 2,
-              "entry": "Entry zone"
+              "entry": "Entry zone / open",
+              "sector": "Technology"
             },
             "AAPL": {
-              "stage": 3
+              "stage": 3,
+              "sector": "Technology"
             },
             "XOM": {
-              "stage": 1
+              "stage": 1,
+              "sector": "Energy"
             }
           },
           "sectors": {
             "Energy": {
-              "cls": "improving",
-              "conviction": "medium"
+              "class": "improving",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
             },
             "Technology": {
-              "cls": "leading",
-              "conviction": "high"
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
             }
           },
           "regime_en": "Risk-on",
@@ -1490,56 +1650,66 @@
         "brief": true,
         "posts": 1,
         "previousSent": {
-          "schema": "portfolio_snapshot.v1",
+          "schema": "portfolio_state_digest.v1",
           "asof": "2026-10-29",
           "names": {
             "NVDA": {
               "stage": 2,
-              "entry": "Entry zone"
+              "entry": "Entry zone / open",
+              "sector": "Technology"
             },
             "AAPL": {
-              "stage": 3
+              "stage": 3,
+              "sector": "Technology"
             },
             "XOM": {
-              "stage": 1
+              "stage": 1,
+              "sector": "Energy"
             }
           },
           "sectors": {
             "Energy": {
-              "cls": "improving",
-              "conviction": "medium"
+              "class": "improving",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
             },
             "Technology": {
-              "cls": "leading",
-              "conviction": "high"
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
             }
           },
           "regime_en": "Risk-on",
           "regime_zh": "风险偏好"
         },
         "storedAfter": {
-          "schema": "portfolio_snapshot.v1",
+          "schema": "portfolio_state_digest.v1",
           "asof": "2026-10-29",
           "names": {
             "NVDA": {
               "stage": 2,
-              "entry": "Entry zone"
+              "entry": "Entry zone / open",
+              "sector": "Technology"
             },
             "AAPL": {
-              "stage": 3
+              "stage": 3,
+              "sector": "Technology"
             },
             "XOM": {
-              "stage": 1
+              "stage": 1,
+              "sector": "Energy"
             }
           },
           "sectors": {
             "Energy": {
-              "cls": "improving",
-              "conviction": "medium"
+              "class": "improving",
+              "conviction_en": "medium",
+              "conviction_zh": "中"
             },
             "Technology": {
-              "cls": "leading",
-              "conviction": "high"
+              "class": "leading",
+              "conviction_en": "high",
+              "conviction_zh": "高"
             }
           },
           "regime_en": "Risk-on",
