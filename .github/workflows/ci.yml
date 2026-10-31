@@ -413,6 +413,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # The Scenario PostgreSQL qualification drives the actual TypeScript HTTP
+      # consumer in this same job. Python and PostgreSQL alone cannot run it.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: terminal/package-lock.json
+      - name: Install Terminal consumer test dependencies
+        run: npm ci
+        working-directory: terminal
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -431,6 +441,15 @@ jobs:
       # requirements.txt additionally carries fastapi/uvicorn, which nothing under tests/
       # imports — installing them would only slow the job down.
       - run: pip install numpy pandas pyarrow jsonschema pyyaml requests yfinance==1.4.1 pytest
+      # Keep the broad ingest suite fail-closed when PostgreSQL binaries are missing.
+      # The dedicated upstream Investigation job remains an additional gate.
+      - name: Put PostgreSQL binaries on PATH
+        run: echo "$(pg_config --bindir)" >> "$GITHUB_PATH"
+      - name: Require PostgreSQL rather than silently skip
+        run: |
+          command -v initdb
+          command -v pg_ctl
+          command -v psql
       # Run as `python -m pytest` from the repo root: that is what puts the root on sys.path,
       # which is how `import ingest.…` / `import signal_layer.…` resolve (there is no
       # conftest.py and no installed package).
@@ -472,6 +491,6 @@ jobs:
           command -v pg_ctl
           command -v psql
       - name: Exercise migration, replay, CAS and owner isolation
-        run: python -m pytest tests/test_investigation_postgres.py tests/test_thesis_proposal_postgres.py tests/test_api_watchlist_write_postgres.py tests/test_forex_watch_postgres.py tests/test_alerts_frozen_hit_postgres.py tests/test_alerts_frozen_prepared_postgres.py tests/test_portfolio_target_role_postgres.py tests/test_options_frozen_migration_postgres.py -q
+        run: python -m pytest tests/test_investigation_postgres.py tests/test_thesis_proposal_postgres.py tests/test_api_watchlist_write_postgres.py tests/test_forex_watch_postgres.py tests/test_alerts_frozen_hit_postgres.py tests/test_alerts_frozen_prepared_postgres.py tests/test_portfolio_target_role_postgres.py tests/test_options_frozen_migration_postgres.py tests/test_options_frozen_enrollment_postgres.py -q
       - name: Exercise drawing snapshots, replacement and actual competing sessions
         run: python tests/sql/audit04/run_native_fixture.py --out-dir "$RUNNER_TEMP/audit04-evidence"

@@ -39,6 +39,8 @@ const LEX = {
   replayGap: ["This matrix is a single session. Dated chain frames and availability times are not supplied by the shared replay owner.", "此矩阵为单一交易日数据，共享回放尚未提供带日期的期权链帧和可得时间。"],
   flowGap: ["Package identity and dated quotes are not in this snapshot. Nearby equal-size legs do not prove a package.", "此快照不含组合身份和带时间的报价，相邻同规模合约并不能确认组合。"],
   scenarioGap: ["Verified deliverables, entry prices and admitted valuation output are required from Plan. No parallel pricer is created.", "需要计划工具提供经过验证的交割规格、入场价格及估值结果。"],
+  openPlan: ["Choose exact contracts for Plan", "前往精确合约候选列表"],
+  planHandoff: ["Continue in the exact-contract shortlist, then choose your side, quantity and entry assumptions. Matrix coordinates are not transferred. Existing pinned contracts remain in the shortlist. Open a new draft there explicitly; leaving the shortlist clears its previous draft.", "前往精确合约候选列表，再填写方向、数量及入场价假设。矩阵坐标不会转入计划；已有固定合约保留在候选列表中，请在那里主动打开新草稿；离开候选列表会清除旧草稿。"],
   quantities: ["Counts: contracts · ΔOI: signed contracts", "数量单位：张 · 未平仓变化：带正负号的张数"],
   nullLaw: ["Missing values stay unavailable. Zero is a known value. Net producer GEX is aggregate dollars, not per-option gamma.", "缺失值保持不可用，零值为已知数值。生产者净 GEX 为汇总美元敞口，并非单一期权 Gamma。"],
   clockLaw: ["Build time is not availability time. OI session, settlement time, multiplier and deliverable are unknown.", "生成时间不等于数据可得时间。未平仓交易日、结算时间、乘数及交割规格未知。"],
@@ -64,7 +66,7 @@ class SceneBoundary extends React.Component<{ children: React.ReactNode; fallbac
 /** No I/O, clock, cache, valuation or persistence ownership lives in this consumer. */
 export function OptionsResearchLab({
   root, matrix, volatility = null, matrixReadStatus = "data", onRetryMatrix,
-  volReadStatus = "data", onRetryVol, lang, onClose,
+  volReadStatus = "data", onRetryVol, lang, onClose, onOpenPlan,
 }: {
   root: string;
   matrix: unknown;
@@ -77,6 +79,8 @@ export function OptionsResearchLab({
   onRetryVol?: () => void;
   lang: Lang;
   onClose: () => void;
+  /** Navigation only. The exact-contract owner retains draft creation and Save. */
+  onOpenPlan?: () => void;
 }) {
   const t = (key: keyof typeof LEX) => LEX[key][lang === "zh" ? 1 : 0];
   const number = (v: number | null) => v == null ? t("unknown") : v.toLocaleString(lang === "zh" ? "zh-CN" : "en-US", { maximumFractionDigits: 4 });
@@ -154,7 +158,10 @@ export function OptionsResearchLab({
           sourceStatus={volReadStatus} onRetrySource={onRetryVol}
           selected={sameVolSession ? safeSelection.selected : null} canPin={key => sameVolSession && data.rows.some(r => r.key === key)}
           onSelect={(key, origin) => { focusOrigin.current = origin; pin(key); }} />
-          : <div className={styles.capability}><span>{t(lens)}</span><h3>{t("unavailable")}</h3><p>{t(`${lens}Gap`)}</p><p>{t("clockLaw")}</p></div>}
+          : lens === "scenario" && onOpenPlan ? <div className={styles.capability}>
+            <span>{t("scenario")}</span><h3>{t("openPlan")}</h3><p>{t("planHandoff")}</p>
+            <button type="button" className={styles.back} onClick={() => onOpenPlan()}>{t("openPlan")}</button>
+          </div> : <div className={styles.capability}><span>{t(lens)}</span><h3>{t("unavailable")}</h3><p>{t(`${lens}Gap`)}</p><p>{t("clockLaw")}</p></div>}
         <section className={styles.tablePanel} aria-label={t("exact")}>
           <div className={styles.toolbar}><h3>{t("exact")}</h3><span>{rows.length} · {t("quantities")}</span></div>
           <div className={styles.tableScroll} tabIndex={0} aria-label={t("exact")}><table><thead><tr><th scope="col">{t("strike")} · {t("expiryLabel")}</th>{metricNames.map(m => <th scope="col" key={m}>{t(m)}</th>)}</tr></thead>

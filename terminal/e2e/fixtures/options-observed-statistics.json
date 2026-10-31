@@ -1,0 +1,134 @@
+{
+  "observed_statistics": {
+    "schema": "options.observed_statistics_snapshot/v1",
+    "session_date": "2026-10-24",
+    "first_observed_at": "2026-10-24T14:00:01+00:00",
+    "last_observed_at": "2026-10-24T14:00:01+00:00",
+    "roots": {
+      "SPY": {
+        "first_observed_at": "2026-10-24T14:00:01+00:00",
+        "last_observed_at": "2026-10-24T14:00:01+00:00",
+        "first_trade_at": "2026-10-24T14:00:00+00:00",
+        "last_trade_at": "2026-10-24T14:00:00+00:00",
+        "input_row_count": 1,
+        "rejected_row_count": 0,
+        "duplicate_row_count": 0,
+        "conflicting_identity_count": 0,
+        "ambiguous_row_count": 0,
+        "source_input_row_count": 1,
+        "source_rejected_row_count": 0,
+        "source_non_novel_row_count": 0,
+        "totals": {
+          "print_count": 1,
+          "contract_volume": 3,
+          "premium_qualified_print_count": 1,
+          "premium_print_coverage": 1.0,
+          "qualified_premium_usd": 600.0,
+          "premium_total_status": "QUALIFIED_SUBTOTAL"
+        },
+        "rights": {
+          "C": {
+            "print_count": 1,
+            "contract_volume": 3,
+            "premium_qualified_print_count": 1,
+            "premium_print_coverage": 1.0,
+            "qualified_premium_usd": 600.0,
+            "premium_total_status": "QUALIFIED_SUBTOTAL"
+          },
+          "P": {
+            "print_count": 0,
+            "contract_volume": 0,
+            "premium_qualified_print_count": 0,
+            "premium_print_coverage": null,
+            "qualified_premium_usd": null,
+            "premium_total_status": "UNAVAILABLE"
+          }
+        },
+        "locations": {
+          "below_bid": {
+            "print_count": 0,
+            "contract_volume": 0,
+            "premium_qualified_print_count": 0,
+            "premium_print_coverage": null,
+            "qualified_premium_usd": null,
+            "premium_total_status": "UNAVAILABLE"
+          },
+          "at_bid": {
+            "print_count": 0,
+            "contract_volume": 0,
+            "premium_qualified_print_count": 0,
+            "premium_print_coverage": null,
+            "qualified_premium_usd": null,
+            "premium_total_status": "UNAVAILABLE"
+          },
+          "inside_below_mid": {
+            "print_count": 0,
+            "contract_volume": 0,
+            "premium_qualified_print_count": 0,
+            "premium_print_coverage": null,
+            "qualified_premium_usd": null,
+            "premium_total_status": "UNAVAILABLE"
+          },
+          "at_mid": {
+            "print_count": 1,
+            "contract_volume": 3,
+            "premium_qualified_print_count": 1,
+            "premium_print_coverage": 1.0,
+            "qualified_premium_usd": 600.0,
+            "premium_total_status": "QUALIFIED_SUBTOTAL"
+          },
+          "inside_above_mid": {
+            "print_count": 0,
+            "contract_volume": 0,
+            "premium_qualified_print_count": 0,
+            "premium_print_coverage": null,
+            "qualified_premium_usd": null,
+            "premium_total_status": "UNAVAILABLE"
+          },
+          "at_ask": {
+            "print_count": 0,
+            "contract_volume": 0,
+            "premium_qualified_print_count": 0,
+            "premium_print_coverage": null,
+            "qualified_premium_usd": null,
+            "premium_total_status": "UNAVAILABLE"
+          },
+          "above_ask": {
+            "print_count": 0,
+            "contract_volume": 0,
+            "premium_qualified_print_count": 0,
+            "premium_print_coverage": null,
+            "qualified_premium_usd": null,
+            "premium_total_status": "UNAVAILABLE"
+          },
+          "UNKNOWN": {
+            "print_count": 0,
+            "contract_volume": 0,
+            "premium_qualified_print_count": 0,
+            "premium_print_coverage": null,
+            "qualified_premium_usd": null,
+            "premium_total_status": "UNAVAILABLE"
+          }
+        },
+        "venues": {
+          "int:0": {
+            "print_count": 1,
+            "contract_volume": 3,
+            "premium_qualified_print_count": 1,
+            "premium_print_coverage": 1.0,
+            "qualified_premium_usd": 600.0,
+            "premium_total_status": "QUALIFIED_SUBTOTAL"
+          }
+        },
+        "nbbo_print_coverage": 1.0,
+        "venue_print_coverage": 1.0,
+        "status": "OBSERVED"
+      }
+    },
+    "status": "OBSERVED",
+    "population": "prospective_observed_source_valid_novel_prints",
+    "coverage": "caller_selected_roots_not_whole_market_or_whole_session",
+    "continuity": "observed_poll_batches_continuous_session_coverage_not_established",
+    "source_counter_basis": "received_rows_across_poll_batches_including_repeated_observations"
+  }
+}

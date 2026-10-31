@@ -227,7 +227,7 @@ type ReadStatus = "loading" | "data" | "absent" | "unavailable";
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export function GexDeskView({ onMapFirstChange }: { onMapFirstChange?: (active: boolean) => void } = {}) {
+export function GexDeskView({ onMapFirstChange, onOpenPlan }: { onMapFirstChange?: (active: boolean) => void; onOpenPlan?: () => void } = {}) {
   const { lang } = useLang();
   const t = makeGexT(lang);
 
@@ -965,6 +965,7 @@ export function GexDeskView({ onMapFirstChange }: { onMapFirstChange?: (active: 
       volReadStatus={researchOpen && !isArchived && rootOk ? researchEod.volStatus : "data"}
       onRetryVol={researchOpen && !isArchived && rootOk ? researchEod.retryVol : undefined}
       lang={lang}
+      onOpenPlan={onOpenPlan}
       onClose={() => { returnFromResearch.current = true; openResearch(false); }} />
   );
 

@@ -1,3 +1,4 @@
+import { createRequire } from "node:module";
 import { assertCapturedLexProjection } from "./helpers/lexEvidenceProjection";
 // Preserve the raw capture pin; only unused onboarding copy has an AST dependency projection.
 import { createHash } from "node:crypto";
@@ -7,6 +8,8 @@ import { describe, expect, it } from "vitest";
 import { PNG } from "pngjs";
 
 const REPO = join(__dirname, "../../..");
+const immutableEvidence = createRequire(import.meta.url)("../../e2e/tools/visualEvidence.cjs");
+const composition = immutableEvidence.selectedComposition(REPO);
 const CROP_DIR = join(__dirname, "../../docs/pr-crops/terminal-visual-intelligence");
 const EVIDENCE = join(CROP_DIR, "EVIDENCE.yml");
 
@@ -46,6 +49,16 @@ function expectDecodedCrop(bytes: Buffer, expectedSize: [number, number]): void 
   expect(hasVisibleVariation, "crop must not be a uniform blank image").toBe(true);
 }
 
+if (composition !== null) {
+  describe("explicit immutable vi evidence composition", () => {
+    it("retains every required actual case under the shared current-source contract", () => {
+      const cases = composition.cases.filter((c: { packet: string }) => c.packet === "vi");
+      expect(cases).toHaveLength(30);
+      expect(new Set(cases.map((c: { key: string }) => c.key)).size).toBe(30);
+    });
+  });
+} else {
+// Bounded incumbent mode: original checks below remain unchanged; no invented record metadata.
 describe("decoded screenshot evidence controls", () => {
   function fixture(pixels: number[][]): Buffer {
     const png = new PNG({ width: 2, height: 2 });
@@ -191,3 +204,5 @@ describe("Terminal Visual Intelligence browser evidence", () => {
     expect(mobileCrosshair[0].test.results[0].status).toBe("passed");
   });
 });
+
+}

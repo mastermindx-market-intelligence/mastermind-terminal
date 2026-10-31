@@ -7,11 +7,14 @@
  * here and the pages stay presentational.
  *
  * Two jobs:
- *   1. COVERAGE HONESTY. The vendor's XBRL payload carries statement TOTALS but not
- *      EBITDA / cash / total debt / capex / free cash flow (`statements.<tf>.vendor_gaps`,
- *      written by ingest/massive_financials.py). Those rows are null on backfilled periods.
- *      `vendorGapNotice()` turns that into the plain-word disclosure the Statements tab
- *      shows, so a dash is explained rather than read as "zero" or "we lost the data".
+ *   1. COVERAGE HONESTY. `statements.<tf>.vendor_gaps` (written by
+ *      ingest/massive_financials.py) names contract rows the vendor cannot fill; those rows
+ *      are null on backfilled periods. `vendorGapNotice()` turns that into the plain-word
+ *      disclosure the Statements tab shows, so a dash is explained rather than read as
+ *      "zero" or "we lost the data". The `stocks/financials/v1` source gaps EBITDA, total
+ *      debt and net debt: it states them, but under definitions that differ from the
+ *      yfinance columns its history is stitched onto (no lease line in its debt), so they
+ *      stay blank rather than show a level shift that is not in the business.
  *   2. REVENUE HISTORY. The Revenue tab had no total-revenue series at all — it showed a
  *      segment empty-state plus sell-side estimates. `revenueHistory()` derives the long
  *      series (with YoY) from the statements block that now goes back to 2009.
@@ -49,7 +52,7 @@ export interface GapNotice {
   rows: string[];
   /** Label of the OLDEST period that still carries the full row set (e.g. "2021"). */
   fullFrom: string | null;
-  /** Number of periods carrying the vendor-only (totals-only) shape. */
+  /** Number of periods taken from the vendor alone (no yfinance column). */
   vendorPeriods: number;
 }
 
