@@ -486,10 +486,11 @@
       "file": "0046_options_frozen_enrollment.sql",
       "packet": "OPTIONS-EXPOSURE-P09-EXACT-ENROLLMENT",
       "pr": 1182,
-      "pr_state": "open",
+      "pr_state": "merged",
       "applied_in_production": false,
       "applied_date": null,
-      "note": "Source-only follow-up after immutable0045. Complete census of163 open PRs on2026-10-29 found no0046 claim. DB-owned intent revision plus owner-RLS exact-attempt initial enrollment on alerts; no application, activation or adoption/replay of the Oct26 uncertain operation. Applied date is not recorded because production application is not authorized and has not occurred."
+      "note": "PR #1182 source merged as b1ba8e7c21e8864a0f11f87c4ae6aaab7bb54133 at 2026-10-31T06:31:38Z. Source-only follow-up after immutable0045. Complete census of163 open PRs on2026-10-29 found no0046 claim. DB-owned intent revision plus owner-RLS exact-attempt initial enrollment on alerts; no application, activation or adoption/replay of the Oct26 uncertain operation. Applied date is not recorded because production application is not authorized and has not occurred.",
+      "merged_sha": "b1ba8e7c21e8864a0f11f87c4ae6aaab7bb54133"
     }
   }
 }
