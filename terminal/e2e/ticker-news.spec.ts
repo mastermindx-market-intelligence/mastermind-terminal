@@ -373,7 +373,9 @@ test("ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix", a
         await expect(panel).toContainText("Nvidia launches next-generation AI accelerator");
         await expect(panel).toContainText("Benzinga");
         await expect(panel).toHaveAttribute("data-news-editorial-policy", "ticker_news.curated.v1");
-        await expect(panel).toContainText(lang === "zh" ? "GlobeNewswire · 公司公告" : "GlobeNewswire · Press release");
+        // R2: the content kind moved from the source label into the evidence ladder's first step (spec §3.2).
+        await expect(panel).toContainText("GlobeNewswire");
+        await expect(panel).toContainText(lang === "zh" ? "公司公告" : "Company announcement");
         await expect(panel.locator('option[value=""]')).toHaveText(lang === "zh" ? "全部精选来源" : "All curated sources");
         await panel.locator("select[data-news-source-filter]").selectOption("benzinga");
         await expect(panel.locator("[data-news-headline]")).toHaveCount(1);
@@ -384,7 +386,7 @@ test("ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix", a
           "https://www.benzinga.com/news/101",
         );
         await expect(panel.getByRole("button", {
-          name: lang === "zh" ? "2 条报道" : "2 reports",
+          name: lang === "zh" ? "查看这条新闻背后的报道" : "Show the reports behind this story",
         })).toBeVisible();
 
         const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
@@ -456,13 +458,83 @@ test("unavailable snapshot renders without rail overflow", async ({ page, baseUR
   }
 });
 
+test("unavailable snapshot retries inside the rail across EN/ZH and theme specimens", async ({ page, baseURL }, testInfo) => {
+  test.skip(!["desktop", "tablet", "mobile"].includes(testInfo.project.name), "Contract viewports only.");
+  await prepare(page, testInfo, baseURL);
+  const retryOut = join(process.cwd(), "docs", "pr-crops", "ticker-news-recovery");
+  if (CROPS) mkdirSync(retryOut, { recursive: true });
+  let allowRecovery = false;
+  let releaseRecovery!: () => void;
+  let recoveryGate = Promise.resolve();
+  let snapshotReads = 0;
+  let documentReads = 0;
+  page.on("request", (request) => {
+    if (request.isNavigationRequest() && request.frame() === page.mainFrame()) documentReads += 1;
+  });
+  await page.route(/\/api\/news\/NVDA(?:\?.*)?$/, async (route) => {
+    snapshotReads += 1;
+    if (!allowRecovery) {
+      await route.fulfill({ status: 503, json: { detail: "temporary failure" } });
+      return;
+    }
+    await recoveryGate;
+    await route.fulfill({ json: viewSnapshot(SNAPSHOT, "news") });
+  });
+
+  for (const lang of ["en", "zh"] as const) {
+    for (const theme of ["light", "dark"] as const) {
+      allowRecovery = false;
+      recoveryGate = new Promise<void>((resolve) => { releaseRecovery = resolve; });
+      await setPresentation(page, lang, theme);
+      const panel = await openNews(page, "unavailable");
+      if (theme === "light") {
+        await page.addStyleTag({ content: LIGHT_SPECIMEN_CSS });
+        await panel.evaluate((node) => node.setAttribute("data-specimen-theme", "light"));
+      }
+      const label = lang === "zh" ? "重试" : "Retry";
+      const retry = panel.getByRole("button", { name: label, exact: true });
+      await expect(retry).toBeVisible();
+      await expect(panel.getByRole("button", { name: lang === "zh" ? "Retry" : "重试", exact: true })).toHaveCount(0);
+      expect((await retry.boundingBox())?.height).toBeGreaterThanOrEqual(44);
+      await panel.locator("select[data-news-view-select]").focus();
+      await page.keyboard.press("Tab");
+      await expect(retry).toBeFocused();
+      expect(await retry.evaluate((node) => parseFloat(getComputedStyle(node).outlineWidth))).toBeGreaterThanOrEqual(2);
+      const cell = [testInfo.project.name, lang, theme === "light" ? "light-specimen" : "dark"].join("-");
+      if (CROPS) await panel.screenshot({ path: join(retryOut, cell + "-unavailable.png") });
+
+      const beforeRetry = snapshotReads;
+      const beforeDocuments = documentReads;
+      allowRecovery = true;
+      await page.keyboard.press("Enter");
+      try {
+        await expect(panel).toHaveAttribute("data-news-state", "loading");
+        await expect(retry).toHaveCount(0);
+        await expect(panel.locator("[data-news-headline], [data-news-mark-one]")).toHaveCount(0);
+        await expect.poll(() => snapshotReads).toBe(beforeRetry + 1);
+        if (CROPS) await panel.screenshot({ path: join(retryOut, cell + "-loading.png") });
+      } finally {
+        releaseRecovery();
+      }
+      await expect(panel).toHaveAttribute("data-news-state", "live");
+      await expect(panel).toHaveAttribute("data-news-view", "news");
+      await expect(panel.locator("[data-news-headline]")).toHaveCount(2);
+      await expect(panel.locator('article[data-news-review="reviewed"]')).toHaveCount(0);
+      expect(snapshotReads).toBe(beforeRetry + 1);
+      expect(documentReads).toBe(beforeDocuments);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
+      if (CROPS) await panel.screenshot({ path: join(retryOut, cell + "-recovered.png") });
+    }
+  }
+});
+
 test("grouped reports expand inside the real rail without leaving ticker context", async ({ page, baseURL }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "Desktop owns grouped-source browser proof.");
   await prepare(page, testInfo, baseURL);
   await setPresentation(page, "en");
   const panel = await openNews(page);
 
-  await panel.getByRole("button", { name: "2 reports" }).click();
+  await panel.getByRole("button", { name: "Show the reports behind this story" }).click();
   await expect(panel).toContainText("Nvidia details next-generation AI accelerator platform");
   await expect(page).toHaveURL(/\/terminal\?symbol=NVDA/);
 });
@@ -497,7 +569,7 @@ test("MSFT grouped detail starts while an Apple story response is still held", a
     }
   });
 
-  await panel.getByRole("button", { name: "2 reports" }).click();
+  await panel.getByRole("button", { name: "Show the reports behind this story" }).click();
   await expect.poll(() => page.locator('[data-story-id="ev2_aapl_grp"] button[aria-expanded]').isDisabled()).toBeTruthy();
 
   await pickSymbol(page, testInfo, "MSFT", "Microsoft");
@@ -505,7 +577,7 @@ test("MSFT grouped detail starts while an Apple story response is still held", a
   await expect(msftPanel).toContainText("Microsoft expands cloud AI services");
 
   const beforeMsft = Date.now();
-  await msftPanel.getByRole("button", { name: "2 reports" }).click();
+  await msftPanel.getByRole("button", { name: "Show the reports behind this story" }).click();
   await expect.poll(() => msftStoryWaits.length, { timeout: 10_000 }).toBeGreaterThan(0);
   expect(Date.now() - beforeMsft).toBeLessThan(10_000);
 
@@ -542,7 +614,7 @@ test("editorial views filter before display and keep grouped details in the sele
   await control.selectOption("company");
   await expect(panel).toHaveAttribute("data-news-view", "company");
   await expect(panel.locator("[data-news-headline]")).toHaveCount(1);
-  await panel.getByRole("button", { name: "2 reports", exact: true }).click();
+  await panel.getByRole("button", { name: "Show the reports behind this story", exact: true }).click();
   await expect(panel).toContainText("Current company report member");
   await control.selectOption("all");
   await expect(panel).toHaveAttribute("data-news-view", "all");

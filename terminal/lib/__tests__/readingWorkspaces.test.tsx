@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import React, { act } from "react";
+import Link from "next/link";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import ResearchWorkspace from "@/components/workspaces/ResearchWorkspace";
@@ -13,6 +14,10 @@ const auth=vi.hoisted(()=>({user:"11111111-1111-4111-8111-111111111111",failure:
 vi.mock("@/components/onboarding/OnboardingProvider",()=>({useOnboarding:()=>({open:auth.open})}));
 vi.mock("@/lib/i18n",()=>({useLang:()=>({lang:"en"})}));
 vi.mock("@/lib/supabase/client",()=>({createClient:()=>({auth:{getUser:async()=>auth.holdUser?new Promise<{data:{user:{id:string}};error:null}>(resolve=>auth.resolvers.push(resolve)):({data:{user:{id:auth.user}},error:auth.failure?Error("auth service unavailable"):null}),onAuthStateChange:(listener:typeof auth.listener)=>{auth.listener=listener;return{data:{subscription:{unsubscribe:vi.fn()}}};}}})}));
+vi.mock("next/navigation",()=>({useSearchParams:()=>new URLSearchParams(window.location.search)}));
+// These tests isolate the briefing and reader; Today attention has a real joined integration suite.
+vi.mock("@/components/workspaces/TodayResearchAttention",()=>({default:({render}:{render?:(parts:{continuation:React.ReactNode;briefing:React.ReactNode})=>React.ReactNode})=>render?.({continuation:<Link href="/research">Research</Link>,briefing:null})??null}));
+vi.mock("@/components/workspaces/TodayWatchAttention",()=>({default:()=>null}));
 vi.mock("next/link",()=>({default:({children,...props}:React.AnchorHTMLAttributes<HTMLAnchorElement>)=><a {...props}>{children}</a>}));
 const selection:ReadingSelection={docId:"report-one",sourcePdfSha256:"a".repeat(64),extractedTextSha256:"b".repeat(64),extractorVersion:"research_vault.ingest.extract_pdf_text.v1",segmenterVersion:"page-byte-v1"};
 function body(text="PRIVATE SELECTED SOURCE",start=0,total=3,docId=selection.docId){return{
@@ -138,5 +143,61 @@ describe("Today source coverage",()=>{
  });
  it("clears a visible Today response immediately when the account ends",async()=>{
   await mount(<TodayWorkspace ownerKey={A}/>);await answer(0,today);expect(container.textContent).toContain("Liquidity is mixed");await act(async()=>auth.listener!("SIGNED_OUT",null));expect(container.textContent).not.toContain("Liquidity is mixed");expect(container.textContent).toContain("Private readings have been cleared");
+ });
+});
+
+describe("Research App Router URL continuity",()=>{
+ it("clears the selected revision when same-route navigation returns to the library",async()=>{
+  await mount(<ResearchWorkspace ownerKey={A}/>);await library();await click("Open current revision");await answer(1,body());
+  expect(held).toHaveLength(2);expect(container.textContent).toContain("PRIVATE SELECTED SOURCE");
+  window.history.pushState({},"","/research");await mount(<ResearchWorkspace ownerKey={A}/>);
+  expect(container.textContent).not.toContain("PRIVATE SELECTED SOURCE");
+  expect(container.textContent).toContain("Choose a report");expect(held).toHaveLength(2);
+ });
+ it("ignores a pending old revision after a different exact URL is selected",async()=>{
+  window.history.replaceState({},"",readingHref(selection));await mount(<ResearchWorkspace ownerKey={A}/>);
+  const second={...selection,docId:"report-two"};
+  window.history.pushState({},"",readingHref(second));await mount(<ResearchWorkspace ownerKey={A}/>);
+  expect(held).toHaveLength(3);expect(held[2].url).toContain("/report-two?");expect(held[2].url).toContain(selection.sourcePdfSha256);
+  await answer(2,body("URL-SELECTED SECOND",0,1,"report-two"));await answer(1,body("LATE FIRST"));
+  expect(container.textContent).toContain("URL-SELECTED SECOND");expect(container.textContent).not.toContain("LATE FIRST");
+ });
+ it("deduplicates accepted history writes and the App Router/popstate observation of one window",async()=>{
+  await mount(<ResearchWorkspace ownerKey={A}/>);await library();await click("Open current revision");await answer(1,body());
+  await mount(<ResearchWorkspace ownerKey={A}/>);expect(held).toHaveLength(2);
+  await click("Next text window");await answer(2,body("SECOND WINDOW",1));expect(held).toHaveLength(3);
+  window.history.replaceState({},"",readingHref(selection,0));
+  await act(async()=>window.dispatchEvent(new PopStateEvent("popstate")));await mount(<ResearchWorkspace ownerKey={A}/>);
+  expect(held).toHaveLength(4);expect(held[3].url).toContain("segment_start=0");
+  await answer(3,body("RESTORED FIRST"));expect(container.textContent).toContain("RESTORED FIRST");
+ });
+ it("refuses duplicate source parameters introduced by same-route navigation",async()=>{
+  await mount(<ResearchWorkspace ownerKey={A}/>);await library();
+  window.history.pushState({},"",readingHref(selection)+"&doc_id=report-two");await mount(<ResearchWorkspace ownerKey={A}/>);
+  expect(held).toHaveLength(1);expect(container.textContent).toContain("incomplete or invalid");
+ });
+});
+
+describe("Today published nullable source readings",()=>{
+ const curve={...today.strip[0],id:"rates",section:"rates",label:{en:"Rates",zh:"利率"},value:null,null:true,cause:"see_curve"};
+ const withCurve={...today,strip:[...today.strip,curve],sections:[...today.sections,{id:"rates",label:curve.label,href:"/macro_monetary.html#rates"}]};
+ it("renders verified readings alongside intentionally null curve summaries and preserves their clocks",async()=>{
+  await mount(<TodayWorkspace ownerKey={A}/>);await answer(0,withCurve);
+  expect(container.textContent).toContain("Liquidity is mixed");expect(container.textContent).not.toContain("reading is unavailable");
+  const curveLink=container.querySelector('[aria-label="Source readings"] a[href="/macro_monetary.html#rates"]');
+  expect(curveLink?.textContent).toContain("View the curve");expect(curveLink?.textContent).toContain("18 October 2026");
+ });
+ it("shows one honest recovery message and useful onward routes when the source fails",async()=>{
+  await mount(<TodayWorkspace ownerKey={A}/>);await answer(0,{},503);
+  expect(container.textContent?.match(/does not mean markets are quiet/g)).toHaveLength(1);
+  expect(container.querySelector('a[href="/discover"]')).toBeTruthy();
+  expect(container.querySelector('a[href="/research"]')).toBeTruthy();
+ });
+ it.each([
+  {...curve,null:false}, {...curve,value:{en:"Invented",zh:"虚构"}},
+  {...curve,note:{en:3,zh:"坏数据"}},
+ ])("rejects a malformed nullable reading without inventing a summary",async chip=>{
+  await mount(<TodayWorkspace ownerKey={A}/>);await answer(0,{...withCurve,strip:[chip]});
+  expect(container.textContent).toContain("reading is unavailable");
  });
 });

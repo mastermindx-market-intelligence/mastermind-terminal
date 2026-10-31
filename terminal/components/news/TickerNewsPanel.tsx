@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import styles from "@/components/news/TickerNewsPanel.module.css";
 import {
@@ -26,6 +26,7 @@ import {
 import { formatRailTime, reportSourceLabel, sourceLabel } from "@/lib/newsDisplay";
 import { newsEditorialText } from "@/lib/newsEditorialLex";
 import { newsFlowText } from "@/lib/newsFlowLex";
+import { ladderSteps, newsLadderText, nextCheck, topicFamily } from "@/lib/newsLadderLex";
 import {
   type TickerNewsLoadState,
   useTickerNewsFeed,
@@ -47,10 +48,10 @@ const COPY = {
     curated: "Curated reporting and company announcements",
     restricted: "News access is unavailable for this account or feed.",
     unavailable: "News is temporarily unavailable.",
+    retry: "Retry",
     degraded: "Live updates are degraded. Showing the latest verified read.",
     catchingUp: "Catching up…",
     reports: (n: number) => `${n} reports`,
-    closeReports: "Hide reports",
     sourceUnavailable: "Source link unavailable",
     liveInterrupted: "Live updates interrupted. Showing the latest read.",
   },
@@ -60,12 +61,12 @@ const COPY = {
     quiet: "暂时没有新的公司新闻。",
     curatedQuiet: "暂时没有符合精选标准的公司新闻。",
     curated: "精选报道与公司公告",
-    restricted: "此账户或新闻源当前不可用。",
+    restricted: "此账户或新闻源暂无新闻访问权限。",
     unavailable: "新闻暂时不可用。",
-    degraded: "实时更新降级，显示最近一次已验证读取。",
+    retry: "重试",
+    degraded: "实时更新降级，显示最近一次已核实读取。",
     catchingUp: "正在补齐新闻…",
     reports: (n: number) => `${n} 条报道`,
-    closeReports: "收起报道",
     sourceUnavailable: "原文链接不可用",
     liveInterrupted: "实时更新中断，显示最近一次读取。",
   },
@@ -74,14 +75,42 @@ const COPY = {
 function EmptyState({
   state,
   copy,
+  onRetry,
 }: {
   state: TickerNewsLoadState;
   copy: typeof COPY.en | typeof COPY.zh;
+  onRetry: () => void;
 }) {
   if (state === "loading") return <div className={styles.empty} role="status">{copy.loading}</div>;
   if (state === "restricted") return <div className={`${styles.empty} ${styles.restricted}`} role="status">{copy.restricted}</div>;
-  if (state === "unavailable") return <div className={styles.empty} role="status">{copy.unavailable}</div>;
+  if (state === "unavailable") return (
+    <div className={styles.empty}>
+      <div role="status">{copy.unavailable}</div>
+      <button type="button" className={styles.retryButton} onClick={onRetry}>{copy.retry}</button>
+    </div>
+  );
   return null;
+}
+
+/** The ladder's visible children: kind › outlets › reports › agreement. */
+function LadderSteps({ row, lang }: { row: TickerNewsStoryRow; lang: Lang }) {
+  return (
+    <>
+      {ladderSteps(row, lang).map((step, index) => (
+        <Fragment key={step.key}>
+          {index > 0 && <span className={styles.sep} aria-hidden="true">›</span>}
+          <span className={styles.step} data-step={step.key}>
+            {step.key === "agreement" && (
+              <span className={styles.glyph} data-agreement={row.reporting_state ?? "not_compared"} aria-hidden="true">
+                {step.glyph}
+              </span>
+            )}
+            {step.text}
+          </span>
+        </Fragment>
+      ))}
+    </>
+  );
 }
 
 export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: string; lang: Lang; userId?: string }) {
@@ -89,6 +118,8 @@ export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: stri
   const [view, setView] = useState<TickerNewsViewMode>("news");
   const { snapshot, loadState, liveInterrupted, refresh } = useTickerNewsFeed(symbol, view);
   const [details, setDetails] = useState<Record<string, CachedDetail | null>>({});
+  // R2: stories whose evidence view is showing all members, beyond the first two.
+  const [revealedStories, setRevealedStories] = useState<ReadonlySet<string>>(() => new Set<string>());
   const [detailBusy, setDetailBusy] = useState<DetailBusy | null>(null);
   const detailGen = useRef(0);
   const detailReq = useRef<DetailRequest | null>(null);
@@ -148,6 +179,7 @@ export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: stri
     detailReq.current = null;
     setDetailBusy(null);
     setDetails({});
+    setRevealedStories(new Set());
     return () => {
       detailGen.current += 1;
       detailReq.current?.controller.abort();
@@ -159,6 +191,13 @@ export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: stri
     if (!snapshot?.editorial_view) return;
     const token = detailTokens.get(row.story_id);
     if (!token) return;
+    // Either toggle direction restarts the story's member list at the first two.
+    setRevealedStories((current) => {
+      if (!current.has(row.story_id)) return current;
+      const next = new Set(current);
+      next.delete(row.story_id);
+      return next;
+    });
     if (details[row.story_id]?.token === token) {
       setDetails((current) => ({ ...current, [row.story_id]: null }));
       return;
@@ -244,7 +283,7 @@ export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: stri
       )}
 
       <div className={styles.scroll}>
-        <EmptyState state={loadState} copy={copy} />
+        <EmptyState state={loadState} copy={copy} onRetry={refresh} />
         {loadState === "ready" && state === "degraded" && (
           <div className={styles.note} role="status">{copy.degraded}</div>
         )}
@@ -262,6 +301,14 @@ export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: stri
           const detail = cached && cached.token === detailTokens.get(row.story_id) ? cached.story : null;
           const timeRaw = row.updated_at || row.published_at || row.received_at;
           const review = catchup.classify(row);
+          const topic = topicFamily(row.annotation?.event_type ?? null, lang);
+          const nextKey = nextCheck(row, state, detail?.members ?? null);
+          const revealed = revealedStories.has(row.story_id);
+          const clocks: ReadonlyArray<{ key: "clock.published" | "clock.updated" | "clock.received"; at: string }> = [
+            ...(row.published_at ? [{ key: "clock.published" as const, at: row.published_at }] : []),
+            ...(row.updated_at ? [{ key: "clock.updated" as const, at: row.updated_at }] : []),
+            { key: "clock.received", at: row.received_at },
+          ];
           return (
             <article
               className={styles.row}
@@ -271,7 +318,8 @@ export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: stri
             >
               <div className={styles.meta}>
                 <NewsReviewTag cls={review} lang={lang} />
-                <span className={styles.source}>{reportSourceLabel(row.source, row.content_kind, lang)}</span>
+                <span className={styles.source}>{sourceLabel(row.source)}</span>
+                {topic && <span className={styles.topic}>{topic}</span>}
                 <time dateTime={timeRaw}>{formatRailTime(timeRaw, lang)}</time>
                 {row.editorial && row.editorial.format !== "unclassified" && (
                   <span className={styles.editorialTag}>{newsEditorialText(`format.${row.editorial.format}`, lang)}</span>
@@ -290,38 +338,74 @@ export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: stri
               )}
               {row.teaser && <p className={styles.teaser}>{row.teaser}</p>}
               <NewsReviewChange cls={review} lang={lang} />
-              <NewsMarkReviewed cls={review} lang={lang} onMark={() => catchup.markStory(row.story_id)} title={row.title} />
-              {row.item_count > 1 && (
+              {row.item_count > 1 ? (
                 <button
                   type="button"
-                  className={styles.sourcesButton}
+                  className={styles.ladder}
+                  data-news-ladder
                   aria-expanded={!!detail}
+                  aria-label={newsLadderText(detail ? "ladder.close" : "ladder.open", lang)}
                   onClick={() => void toggleStory(row)}
                   disabled={activeDetailBusy?.storyId === row.story_id}
                 >
-                  {detail
-                    ? copy.closeReports
-                    : row.item_count > 1 && row.source_count > 1
-                      ? newsFlowText("row.outlets", lang, { n: row.item_count, k: row.source_count })
-                      : copy.reports(row.item_count)}
+                  <LadderSteps row={row} lang={lang} />
                 </button>
+              ) : (
+                <span className={styles.ladderStatic} data-news-ladder="static">
+                  <LadderSteps row={row} lang={lang} />
+                </span>
               )}
               {detail && (
-                <div className={styles.sourceList} role="group" aria-label={copy.reports(detail.item_count)}>
+                <div className={styles.evidence} role="group" aria-label={copy.reports(detail.item_count)}>
+                  <p className={styles.clocks}>
+                    {clocks.map((clock, index) => (
+                      <Fragment key={clock.key}>
+                        {index > 0 && <span aria-hidden="true">·</span>}
+                        <span>{newsLadderText(clock.key, lang)} {formatRailTime(clock.at, lang)}</span>
+                      </Fragment>
+                    ))}
+                  </p>
                   <p className={styles.groupNote}>{newsFlowText("row.groupNote", lang)}</p>
-                  {detail.members.map((member) => (
+                  {(revealed ? detail.members : detail.members.slice(0, 2)).map((member) => (
                     member.url ? (
-                      <a key={JSON.stringify([member.source, member.source_item_id])} href={member.url} target="_blank" rel="noopener noreferrer" className={styles.sourceLink}>
+                      <a
+                        key={JSON.stringify([member.source, member.source_item_id])}
+                        href={member.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={styles.sourceLink}
+                        title={member.publisher}
+                      >
                         <span>{reportSourceLabel(member.source, member.content_kind, lang)}</span><span>{member.title}</span>
                       </a>
                     ) : (
-                      <div className={`${styles.sourceLink} ${styles.static}`} key={JSON.stringify([member.source, member.source_item_id])}>
+                      <div
+                        className={`${styles.sourceLink} ${styles.static}`}
+                        key={JSON.stringify([member.source, member.source_item_id])}
+                        title={member.publisher}
+                      >
                         <span>{reportSourceLabel(member.source, member.content_kind, lang)}</span><span>{member.title}</span>
                       </div>
                     )
                   ))}
+                  {detail.members.length > 2 && !revealed && (
+                    <button
+                      type="button"
+                      className={styles.moreReports}
+                      onClick={() => setRevealedStories((current) => new Set(current).add(row.story_id))}
+                    >
+                      {newsLadderText("more.reports", lang, { n: detail.members.length - 2 })}
+                    </button>
+                  )}
                 </div>
               )}
+              {nextKey && (
+                <p className={styles.nextCheck} data-next-check={nextKey}>
+                  <span className={styles.nextLabel}>{newsLadderText("next.label", lang)}</span>
+                  {newsLadderText(nextKey, lang)}
+                </p>
+              )}
+              <NewsMarkReviewed cls={review} lang={lang} onMark={() => catchup.markStory(row.story_id)} title={row.title} />
             </article>
           );
         })}

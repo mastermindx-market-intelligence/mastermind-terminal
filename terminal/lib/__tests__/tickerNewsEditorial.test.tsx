@@ -124,6 +124,94 @@ describe("editorial view contract", () => {
 });
 
 describe("editorial views in the mounted Terminal", () => {
+  it.each(["en", "zh"] as const)("recovers a failed first read through an explicit localized retry in %s", async (lang) => {
+    const pending = deferred();
+    const fetcher = vi.fn()
+      .mockImplementationOnce(() => lang === "en"
+        ? Promise.resolve(Response.json({ detail: "temporary failure" }, { status: 503 }))
+        : Promise.reject(new Error("network unavailable")))
+      .mockImplementationOnce(() => pending.promise);
+    vi.stubGlobal("fetch", fetcher);
+    await mount(lang);
+    const label = lang === "zh" ? "重试" : "Retry";
+    const retry = [...host.querySelectorAll("button")].find((button) => button.textContent === label);
+    const marks = localStorage.getItem(NEWS_REVIEW_KEY);
+    expect(panel().dataset.newsState).toBe("unavailable");
+    expect(retry).toBeDefined();
+    expect(retry?.type).toBe("button");
+    expect(host.textContent).not.toContain(lang === "zh" ? "Retry" : "重试");
+    expect(Events.instances).toHaveLength(0);
+
+    await act(async () => retry!.click());
+    expect(panel().dataset.newsState).toBe("loading");
+    expect([...host.querySelectorAll("button")].some((button) => button.textContent === label)).toBe(false);
+    expect(host.querySelector("[data-news-headline]")).toBeNull();
+    expect(host.querySelector("[data-news-mark-one]")).toBeNull();
+    expect(host.querySelector("[data-flow-state]")).toBeNull();
+    expect(fetcher).toHaveBeenCalledTimes(2);
+    expect(String(fetcher.mock.calls[1][0])).toBe("/api/news/NVDA?limit=20&view=news");
+    expect(localStorage.getItem(NEWS_REVIEW_KEY)).toBe(marks);
+
+    await act(async () => pending.resolve(Response.json(snapshot())));
+    expect(panel().dataset.newsState).toBe("live");
+    expect(host.querySelector("[data-news-headline]")).not.toBeNull();
+    expect(host.querySelector("article")?.getAttribute("data-news-review")).toBe("new");
+    expect(Events.instances).toHaveLength(1);
+    expect(localStorage.getItem(NEWS_REVIEW_KEY)).toBe(marks);
+  });
+
+  it.each(["company", "all"] as const)("retries the selected %s view and still rejects a wrong acknowledgement", async (mode) => {
+    const fetcher = vi.fn()
+      .mockResolvedValueOnce(Response.json(snapshot()))
+      .mockResolvedValueOnce(Response.json({ detail: "temporary failure" }, { status: 503 }))
+      .mockResolvedValueOnce(Response.json(snapshot()))
+      .mockResolvedValueOnce(Response.json(snapshot(editorialView(mode))));
+    vi.stubGlobal("fetch", fetcher);
+    await mount();
+    const originalStream = Events.instances[0];
+    await select(mode);
+    expect(originalStream.closed).toBe(true);
+    expect(panel().dataset.newsState).toBe("unavailable");
+    const retry = () => [...host.querySelectorAll("button")].find((button) => button.textContent === "Retry");
+    expect(retry()).toBeDefined();
+
+    await act(async () => retry()!.click());
+    expect(panel().dataset.newsState).toBe("unavailable");
+    expect(host.querySelector("[data-news-headline]")).toBeNull();
+    expect(host.querySelector("[data-news-mark-one]")).toBeNull();
+    expect(Events.instances).toHaveLength(1);
+    expect(retry()).toBeDefined();
+
+    await act(async () => retry()!.click());
+    expect(panel().dataset.newsState).toBe("live");
+    expect(panel().dataset.newsView).toBe(mode);
+    expect(fetcher).toHaveBeenCalledTimes(4);
+    expect(fetcher.mock.calls.slice(1).every(([url]) => String(url) === "/api/news/NVDA?limit=20&view=" + mode)).toBe(true);
+    expect(Events.instances).toHaveLength(2);
+    expect(Events.instances[1].url).toContain("view=" + mode);
+  });
+
+  it("cannot paint a late retry over a subsequently selected view", async () => {
+    const late = deferred();
+    const fetcher = vi.fn()
+      .mockResolvedValueOnce(Response.json({ detail: "temporary failure" }, { status: 503 }))
+      .mockImplementationOnce(() => late.promise)
+      .mockResolvedValueOnce(Response.json(snapshot(editorialView("company"), [row(editorialView("company"), "Current company report")])));
+    vi.stubGlobal("fetch", fetcher);
+    await mount();
+    const retry = [...host.querySelectorAll("button")].find((button) => button.textContent === "Retry");
+    expect(retry).toBeDefined();
+    await act(async () => retry!.click());
+    expect(panel().dataset.newsState).toBe("loading");
+    await select("company");
+    await act(async () => late.resolve(Response.json(snapshot(editorialView(), [row(editorialView(), "Stale retried report")]))));
+    expect(panel().dataset.newsView).toBe("company");
+    expect(panel().dataset.newsState).toBe("live");
+    expect(host.textContent).toContain("Current company report");
+    expect(host.textContent).not.toContain("Stale retried report");
+    expect(Events.instances).toHaveLength(1);
+  });
+
   it("requests News by default and resumes after hidden as well as visible changes", async () => {
     const fetcher = vi.fn().mockResolvedValue(Response.json(snapshot()));
     vi.stubGlobal("fetch", fetcher);

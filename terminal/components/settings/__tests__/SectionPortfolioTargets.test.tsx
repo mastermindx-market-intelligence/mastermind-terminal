@@ -348,13 +348,13 @@ function installServer(targeted: Record<string, number>, holdings: string[]) {
     /** The next POST to ARRIVE fails with this status and its write is not applied. */
     failNextPost(status: number) { failNext.push(status); },
     /** Release the n-th arrival (1-based). GETs answer with the book as it was on arrival. */
-    async release(n: number, opts: { networkError?: boolean; status?: number } = {}) {
+    async release(n: number, opts: { networkError?: boolean; status?: number; body?: unknown } = {}) {
       const p = pending[n - 1];
       if (!p) throw new Error(`no arrival #${n} (have ${pending.length})`);
       await act(async () => {
         if (opts.networkError) p.reject(new TypeError("network down"));
         else if (p.method === "GET") p.resolve(jsonRes(opts.status ?? 200, opts.status && opts.status >= 400 ? { error: "boom" } : { summary: p.snapshot }));
-        else p.resolve(jsonRes(opts.status ?? p.forcedStatus ?? 200, { ok: true }));
+        else p.resolve(jsonRes(opts.status ?? p.forcedStatus ?? 200, opts.body ?? { ok: true }));
       });
       await settle();
     },
@@ -422,6 +422,57 @@ describe("SectionPortfolioTargets readback ordering (macro#6819 C2)", () => {
     expect(server.arrivals).toEqual(["GET"]);
     return server;
   }
+
+  it.each((["en", "zh"] as const).flatMap(lang =>
+    (["target", "band"] as const).map(field => ({ lang, field }))))(
+    "explains a refused $field in $lang and accepts a corrected save",
+    async ({ lang, field }) => {
+      const s = await mountBook({ AAPL: 10 }, ["AAPL"], baseProps(lang));
+      const label = (field === "target" ? T_ARIA_TARGET : T_ARIA_BAND)[lang].replace("{ticker}", "AAPL");
+      const edited = container!.querySelector<HTMLInputElement>('input[aria-label="' + label + '"]')!;
+      s.failNextPost(400);
+      typeInto(edited, field === "target" ? "101" : "51");
+      await debounce();
+      await s.release(2, { body: { error: field === "target" ? "invalid target" : "invalid band" } });
+      await s.release(3);
+      const message = field === "target"
+        ? (lang === "en" ? "A target has to be a number from 0 to 100." : "目标权重必须是 0 到 100 之间的数字。")
+        : (lang === "en" ? "Your band has to be a number from 0 to 50 points." : "容忍区间必须是 0 到 50 个百分点之间的数字。");
+      const alert = card("AAPL")!.querySelector('[role="alert"]');
+      expect(alert?.textContent).toBe(message);
+      expect(edited.value).toBe(field === "target" ? "10" : "5");
+      // The refusal describes the attempted edit; the restored canonical value is valid.
+      expect(edited.getAttribute("aria-invalid")).not.toBe("true");
+      expect(edited.getAttribute("aria-describedby")).toBe(alert?.id);
+      expect(text()).not.toContain(lang === "en" ? "Saved" : "已保存");
+
+      typeInto(edited, field === "target" ? "20" : "7");
+      await debounce();
+      await s.release(4);
+      await s.release(5);
+      expect(edited.value).toBe(field === "target" ? "20" : "7");
+      expect(card("AAPL")!.querySelector('[role="alert"]')).toBeNull();
+      expect(edited.hasAttribute("aria-describedby")).toBe(false);
+      expect(s.arrivals.filter(value => value.startsWith("POST"))).toHaveLength(2);
+      expect(text()).toContain(lang === "en" ? "Saved" : "已保存");
+    },
+  );
+
+  it("keeps an unknown non-owner refusal generic and reconciles the saved book", async () => {
+    const s = await mountBook({ AAPL: 10 }, ["AAPL"]);
+    s.failNextPost(400);
+    typeInto(targetInput("AAPL"), "20");
+    await debounce();
+    await s.release(2, { body: { error: "private diagnostic must not appear" } });
+    await s.release(3);
+    expect(card("AAPL")!.querySelector('[role="alert"]')?.textContent).toBe(
+      "We couldn't confirm this change. Refresh to check your saved target.");
+    expect(text()).not.toContain("private diagnostic");
+    expect(targetInput("AAPL").value).toBe("10");
+    expect(targetInput("AAPL").getAttribute("aria-invalid")).not.toBe("true");
+    expect(targetInput("AAPL").hasAttribute("aria-describedby")).toBe(false);
+    expect(s.arrivals).toEqual(["GET", "POST set AAPL 20", "GET"]);
+  });
 
   it("Save → Save: the older readback released last never paints, and the second POST waits for the first readback", async () => {
     const s = await mountBook({ AAPL: 10 }, ["AAPL"]);

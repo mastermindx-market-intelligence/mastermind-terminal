@@ -19,10 +19,11 @@
 // TWO-ORGANISMS LAW (UWP-R2): these holdings never feed a signal, score, ranker or alert. The live
 // price join is client-side display tier, exactly like the watchlist rail's.
 
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useLang } from "@/lib/i18n";
 import { getJSON } from "@/lib/dataCache";
 import { isAccountOwner, ownerKeyFor, ownerUserId } from "@/lib/accountIdentity";
+import PortfolioRoleEditor from "@/components/PortfolioRoleEditor";
 import PortfolioWorkspace from "@/components/PortfolioWorkspace";
 import { decodePositionRead, portfolioCopy, type PortfolioSection } from "@/lib/portfolioWorkspace";
 import { isPortfolioRisk, isPortfolioRiskHistory } from "@/lib/portfolioAnalysisRead";
@@ -46,6 +47,8 @@ import {
 import {
   targetsCopy,
   apiErrorCopy,
+  normalizeWeightPct,
+  normalizeBandPct,
   copyBandFit,
   driftBandFit,
   T_UNAVAILABLE,
@@ -480,6 +483,26 @@ export default function PortfolioView(
     });
   }, [enqueue, reload, scopeNow, scopeValid]);
 
+  const saveTargetRole = useCallback((ticker: string, roleLabel: string | null) => {
+    const scope = scopeNow();
+    return enqueue(async () => {
+      if (!scopeValid(scope)) throw retiredScopeError("never-dispatched");
+      if (!isAccountOwner(scope.owner)) throw new Error("role labels unavailable");
+      const originatingOwner = originatingOwnerId(scope);
+      const response = await fetch("/api/portfolio/targets", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "set_role", ticker, roleLabel,
+          ...(originatingOwner ? { expectedOwnerId: originatingOwner } : {}) }),
+      });
+      if (!scopeValid(scope)) throw retiredScopeError("sent-uncertain");
+      if (!response.ok) throw new Error("role change unconfirmed");
+      const readback = await reload({ scope, confirmTargets: summary => summary.roleLabelsAvailable === true
+        && [...summary.drifts, ...summary.orphaned].some(row => row.ticker === ticker && row.roleLabel === roleLabel) });
+      if (!scopeValid(scope)) throw retiredScopeError("sent-uncertain");
+      if (!readback) throw new Error("role change unconfirmed");
+    });
+  }, [enqueue, reload, scopeNow, scopeValid]);
+
   const clearTarget = useCallback((ticker: string) => {
     const scope = scopeNow();
     return enqueue(async () => {
@@ -641,7 +664,7 @@ export default function PortfolioView(
     untargeted: targets.untargeted.map(row => ({ ...row, currentWeightPct: null })),
   } : targets;
   const targetsContent = visibleTargets
-    ? <>{!targetsFresh && <p role="status">{copy("targetsReadPending")}</p>}<PortfolioTargetsReadout key={ownerKey} summary={visibleTargets} lang={lang as Lang} shapeReadoutVisible={false} weightsPending={!targetsFresh} onSetTarget={saveTarget} onClearTarget={clearTarget} captureScope={scopeNow} /></>
+    ? <>{!targetsFresh && <p role="status">{copy("targetsReadPending")}</p>}<PortfolioTargetsReadout key={ownerKey} summary={visibleTargets} lang={lang as Lang} shapeReadoutVisible={false} weightsPending={!targetsFresh} onSetTarget={saveTarget} onSetRole={saveTargetRole} onClearTarget={clearTarget} captureScope={scopeNow} /></>
     : targetsAttempted ? <TargetsUnavailableNotice lang={lang as Lang} /> : <p role="status">{copy("loadingAnalysis")}</p>;
 
   // Retire the whole rendered workspace when its immutable owner changes, including the
@@ -921,11 +944,12 @@ function fillLabel(template: { en: string; zh: string }, ticker: string, lang: L
 
 // Exported so `lib/__tests__/portfolioTargetsView.test.tsx` can mount the real readout without
 // standing up the whole page (the `riskAvailability` precedent: keep the decision testable).
-export function PortfolioTargetsReadout({ summary, lang, shapeReadoutVisible, weightsPending = false, onSetTarget, onClearTarget, captureScope }: {
+export function PortfolioTargetsReadout({ summary, lang, shapeReadoutVisible, weightsPending = false, onSetTarget, onSetRole, onClearTarget, captureScope }: {
   summary: PortfolioTargetsSummary; lang: Lang;
   shapeReadoutVisible: boolean;
   weightsPending?: boolean;
   onSetTarget: (ticker: string, targetWeightPct: number, bandPct?: number, queuedScope?: OwnerScope) => Promise<void>;
+  onSetRole?: (ticker: string, roleLabel: string | null) => Promise<void>;
   onClearTarget: (ticker: string) => Promise<void>;
   /** The page scope captured when a debounced draft is SCHEDULED, threaded into the write so
    *  retirement is judged against the intent's own scope, never dispatch-time state (011 F2). */
@@ -978,6 +1002,9 @@ export function PortfolioTargetsReadout({ summary, lang, shapeReadoutVisible, we
                 unweighableNote={weightsPending ? "" : pick(row.unweighableNote)}
                 targetWeightPct={drift.targetWeightPct}
                 bandPct={drift.bandPct}
+                roleLabel={drift.roleLabel}
+                rolesAvailable={summary.roleLabelsAvailable === true}
+                onSetRole={onSetRole ? value => onSetRole(row.ticker, value) : undefined}
                 lang={lang}
                 onSetTarget={persist}
                 onClearTarget={drop}
@@ -1012,6 +1039,7 @@ export function PortfolioTargetsReadout({ summary, lang, shapeReadoutVisible, we
             <OrphanedTargetRow
               key={row.ticker}
               ticker={row.ticker}
+              roleLabel={summary.orphaned.find(item => item.ticker === row.ticker)?.roleLabel}
               target={pick(row.target)}
               band={pick(row.band)}
               lang={lang}
@@ -1031,8 +1059,9 @@ export function PortfolioTargetsReadout({ summary, lang, shapeReadoutVisible, we
   );
 }
 
-function OrphanedTargetRow({ ticker, target, band, lang, onClearTarget }: {
+function OrphanedTargetRow({ ticker, roleLabel, target, band, lang, onClearTarget }: {
   ticker: string;
+  roleLabel?: string | null;
   target: string;
   band: string;
   lang: Lang;
@@ -1044,6 +1073,7 @@ function OrphanedTargetRow({ ticker, target, band, lang, onClearTarget }: {
   return (
     <div className={tg.orphanedRow} data-ticker={ticker} data-status="orphaned">
       <p className={tg.ticker}>{ticker}</p>
+      {roleLabel && <p className={tg.value}>{pick({ en: "Your role label", zh: "你的角色标签" })}: {roleLabel}</p>}
       <p className={tg.value}>{pick(T_TARGET)} {target}</p>
       <p className={tg.value}>{pick(T_BAND)} {band}</p>
       <div className={tg.actions}>
@@ -1081,6 +1111,12 @@ function useDebouncedSave(
 ) {
   const [flash, setFlash] = useState<"saved" | "cleared" | "error" | null>(null);
   const [errorText, setErrorText] = useState<string | null>(null);
+  const [errorField, setErrorField] = useState<"target" | "band" | null>(null);
+  const clearFeedback = useCallback(() => {
+    setFlash(null);
+    setErrorText(null);
+    setErrorField(null);
+  }, []);
   const [pendingCount, setPendingCount] = useState(0);
   // C4 target-draft clobber: dirtiness is an explicit per-field edit revision, deliberately not
   // value equality — a draft that equals a canonical number could be an untouched field or a
@@ -1135,7 +1171,7 @@ function useDebouncedSave(
     editedField: "target" | "band",
   ) => {
     cancel();
-    setErrorText(null);
+    clearFeedback();
     // R3: an emptied field is not a value. `Number("")` is 0, which `Number.isFinite` accepts and
     // `normalizeWeightPct` admits (0 is in range), so a user who select-all-deleted a target to
     // retype it and paused past the debounce had a 0% target written for them and the input reset
@@ -1166,6 +1202,7 @@ function useDebouncedSave(
         const copy = apiErrorCopy(invalid);
         setFlash("error");
         setErrorText(lang === "zh" ? copy.zh : copy.en);
+        setErrorField(invalid === "invalid target" ? "target" : "band");
         return;
       }
       setPendingCount(count => count + 1);
@@ -1181,6 +1218,7 @@ function useDebouncedSave(
         setDraftDirty({ target: false, band: false });
         setFlash("saved");
         setErrorText(null);
+        setErrorField(null);
       } catch (cause) {
         if (editSeq !== editSeqRef.current) return;
         setDraftDirty({ target: false, band: false });
@@ -1189,18 +1227,19 @@ function useDebouncedSave(
         const code = cause && typeof cause === "object" && "code" in cause ? String((cause as { code: string }).code) : "";
         const copy = apiErrorCopy(code);
         setErrorText(lang === "zh" ? copy.zh : copy.en);
+        setErrorField(code === "invalid target" ? "target" : code === "invalid band" ? "band" : null);
       } finally {
         setPendingCount(count => Math.max(0, count - 1));
       }
     }, 500);
   };
 
-  return { flash, errorText, schedule, cancel, rollbackRef, setFlash, pending: pendingCount > 0, scheduled, draftDirty };
+  return { flash, errorText, errorField, clearFeedback, schedule, cancel, rollbackRef, setFlash, pending: pendingCount > 0, scheduled, draftDirty };
 }
 
 function TargetCard({
   ticker, current, driftText, bandFitLabel, bandFit, unweighableNote,
-  targetWeightPct, bandPct, lang, onSetTarget, onClearTarget, captureScope, showSaved,
+  targetWeightPct, bandPct, roleLabel, rolesAvailable, onSetRole, lang, onSetTarget, onClearTarget, captureScope, showSaved,
 }: {
   ticker: string;
   current: string;
@@ -1210,16 +1249,21 @@ function TargetCard({
   unweighableNote: string;
   targetWeightPct: number;
   bandPct: number;
+  roleLabel?: string | null;
+  rolesAvailable: boolean;
+  onSetRole?: (roleLabel: string | null) => Promise<void>;
   lang: Lang;
   onSetTarget: (ticker: string, targetWeightPct: number, bandPct?: number, queuedScope?: OwnerScope) => Promise<void>;
   onClearTarget: (ticker: string) => Promise<void>;
   captureScope?: () => OwnerScope;
   showSaved: boolean;
 }) {
+  const errorId = useId();
   const [targetStr, setTargetStr] = useState(String(targetWeightPct));
   const [bandStr, setBandStr] = useState(String(bandPct));
   const [clearing, setClearing] = useState(false);
-  const { flash, errorText, schedule, cancel, rollbackRef, setFlash, pending, scheduled, draftDirty } = useDebouncedSave(ticker, lang, onSetTarget, false, captureScope);
+  const { flash, errorText, errorField, clearFeedback, schedule, cancel, rollbackRef, setFlash, pending, scheduled, draftDirty } = useDebouncedSave(ticker, lang, onSetTarget, false, captureScope);
+  const activeErrorField = flash === "error" ? errorField : null;
   const pick = (b: { en: string; zh: string }) => (lang === "zh" ? b.zh : b.en);
 
   const [sourceTarget, setSourceTarget] = useState({ targetWeightPct, bandPct });
@@ -1254,6 +1298,8 @@ function TargetCard({
             inputMode="decimal"
             value={targetStr}
             aria-label={fillLabel(T_ARIA_TARGET, ticker, lang)}
+            aria-describedby={activeErrorField === "target" ? errorId : undefined}
+            aria-invalid={activeErrorField === "target" && normalizeWeightPct(targetStr).kind === "invalid" || undefined}
             onChange={(event) => {
               const next = event.target.value;
               setTargetStr(next);
@@ -1269,6 +1315,8 @@ function TargetCard({
             inputMode="decimal"
             value={bandStr}
             aria-label={fillLabel(T_ARIA_BAND, ticker, lang)}
+            aria-describedby={activeErrorField === "band" ? errorId : undefined}
+            aria-invalid={activeErrorField === "band" && normalizeBandPct(bandStr).kind === "invalid" || undefined}
             onChange={(event) => {
               const next = event.target.value;
               setBandStr(next);
@@ -1284,6 +1332,7 @@ function TargetCard({
           <p className={tg.value}>{driftText}</p>
         </div>
       </div>
+      {onSetRole && <PortfolioRoleEditor ticker={ticker} roleLabel={roleLabel} available={rolesAvailable} lang={lang} onSave={onSetRole} />}
       <p className={tg.status} data-kind={bandFit}>{bandFitLabel}</p>
       {/* On an unweighable row the status label IS T_UNWEIGHABLE (spec 2.6 names that sentence as
           the status), so rendering the note as well printed the same sentence twice on one card.
@@ -1299,7 +1348,7 @@ function TargetCard({
           onClick={async () => {
             // R3: a save queued inside the debounce window would otherwise fire after this clear
             // and put the target straight back.
-            cancel(); setClearing(true);
+            cancel(); clearFeedback(); setClearing(true);
             try {
               await onClearTarget(ticker);
               setFlash("cleared");
@@ -1316,7 +1365,7 @@ function TargetCard({
             draft is ahead of every confirmation that exists so far. */}
         {(flash === "saved" || showSaved) && draftMatches && !pending && !scheduled && !clearing && <span className={tg.saved}>{pick(T_SAVED)}</span>}
         {flash === "cleared" && <span className={tg.saved}>{pick(T_CLEARED)}</span>}
-        {flash === "error" && <span className={tg.error}>{errorText || pick(T_SAVE_FAIL)}</span>}
+        {flash === "error" && <span id={errorId} className={tg.error} role="alert">{errorText || pick(T_SAVE_FAIL)}</span>}
       </div>
     </article>
   );
@@ -1332,9 +1381,11 @@ function UntargetedRow({
   captureScope?: () => OwnerScope;
   showCleared: boolean;
 }) {
+  const errorId = useId();
   const [targetStr, setTargetStr] = useState("");
   const [bandStr, setBandStr] = useState(String(DEFAULT_BAND_PCT));
-  const { flash, errorText, schedule, rollbackRef, setFlash, pending } = useDebouncedSave(ticker, lang, onSetTarget, true, captureScope);
+  const { flash, errorText, errorField, schedule, rollbackRef, setFlash, pending } = useDebouncedSave(ticker, lang, onSetTarget, true, captureScope);
+  const activeErrorField = flash === "error" ? errorField : null;
   const pick = (b: { en: string; zh: string }) => (lang === "zh" ? b.zh : b.en);
 
   useEffect(() => {
@@ -1352,6 +1403,8 @@ function UntargetedRow({
           inputMode="decimal"
           value={targetStr}
           aria-label={fillLabel(T_ARIA_TARGET, ticker, lang)}
+          aria-describedby={activeErrorField === "target" ? errorId : undefined}
+          aria-invalid={activeErrorField === "target" && normalizeWeightPct(targetStr).kind === "invalid" || undefined}
           onChange={(event) => {
             const next = event.target.value;
             setTargetStr(next);
@@ -1368,6 +1421,8 @@ function UntargetedRow({
           inputMode="decimal"
           value={bandStr}
           aria-label={fillLabel(T_ARIA_BAND, ticker, lang)}
+          aria-describedby={activeErrorField === "band" ? errorId : undefined}
+          aria-invalid={activeErrorField === "band" && normalizeBandPct(bandStr).kind === "invalid" || undefined}
           onChange={(event) => {
             const next = event.target.value;
             setBandStr(next);
@@ -1378,7 +1433,7 @@ function UntargetedRow({
       </label>
       {pending && <span className={tg.saved} role="status">{portfolioCopy(lang)("savingTarget")}</span>}
       {(flash === "cleared" || showCleared) && !pending && targetStr === "" && <span className={tg.saved}>{pick(T_CLEARED)}</span>}
-      {flash === "error" && <span className={tg.error}>{errorText || pick(T_SAVE_FAIL)}</span>}
+      {flash === "error" && <span id={errorId} className={tg.error} role="alert">{errorText || pick(T_SAVE_FAIL)}</span>}
     </div>
   );
 }

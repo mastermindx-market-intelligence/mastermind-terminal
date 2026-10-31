@@ -124,6 +124,10 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  if (req.headers.get("x-mm-frozen-entry") === "v1") {
+    const { handleFrozenNodeEntry } = await import("@/lib/frozenNodeEntryServer");
+    return handleFrozenNodeEntry(req);
+  }
   const { supabase, user } = await uid();
   if (!user) return NextResponse.json({ error: "unauthenticated" }, { status: 401 });
   const parsed = await req.json().catch(() => null);
@@ -209,6 +213,9 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: "alerts unavailable" }, { status: 503 });
   }
   if (!row) return NextResponse.json({ error: "not found" }, { status: 404 });
+  if (action !== "pause" && row.condition?.type === "opt_frozen_node_proximity") {
+    return NextResponse.json({ error: "Frozen options alerts are not available yet." }, { status: 409 });
+  }
   if (isForexWatch(row.condition)) {
     if (action === undefined || action === "resume") return forexError({ message: "forex_activation_unavailable" });
     if (action === "edit") return saveForex(supabase, user.id, { ...body, symbol: body?.symbol ?? row.symbol }, false);

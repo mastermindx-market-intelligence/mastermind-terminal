@@ -40,8 +40,9 @@
 #   mkdir -p /Users/chriswong/fund-src   # caches rebuild themselves on first run
 #
 # Flow: self-update DEPLOY (exec-once) → refresh ENGINE clone → panels() EV stockdata →
-# transcript delta/index recovery → gentle yfinance collect (incremental,
-# --stale-days 3) → gen_fund_us → rsync data-only
+# transcript delta/index recovery → gentle Canadian .TO collect (--canada, workers=1, bounded)
+# → gentle yfinance collect (incremental, --stale-days 3) → gen_fund_us → SEC filing lineage
+# → deep statement history backfill (massive v1, non-fatal, time-boxed) → rsync data-only
 # to the VPS. Safety gates abort BEFORE any deploy if EV coverage collapses or AAPL EV
 # is null (never ship bad data).
 #
@@ -65,30 +66,17 @@ TX_REVISION_CANDIDATE="$FUNDSRC/data/transcripts/.stock_earning_call_transcripts
 LOCK_DIR="/tmp/mm_fund_refresh.lock"
 ts(){ date "+%Y-%m-%dT%H:%M:%S%z"; }
 
-# launchd will not overlap scheduled runs, but a manual kick can.  The archive
-# scan/publish protocol assumes a single writer. Reclaim only a lock whose PID
-# is no longer alive, so a kill/power loss cannot disable the lane forever.
-if [ "${2:-}" != "--lock-held" ] && ! mkdir "$LOCK_DIR" 2>/dev/null; then
-  LOCK_PID="$(cat "$LOCK_DIR/pid" 2>/dev/null || true)"
-  if [ -n "$LOCK_PID" ] && kill -0 "$LOCK_PID" 2>/dev/null; then
-    echo "[$(ts)] SKIP: fund refresh PID $LOCK_PID holds $LOCK_DIR" >> "$LOG"
-    exit 0
-  fi
-  rm -f "$LOCK_DIR/pid" 2>/dev/null || true
-  rmdir "$LOCK_DIR" 2>/dev/null || true
-  if ! mkdir "$LOCK_DIR" 2>/dev/null; then
-    echo "[$(ts)] ABORT: could not reclaim stale lock $LOCK_DIR" >> "$LOG"
-    exit 1
-  fi
-fi
-if [ "${2:-}" != "--lock-held" ]; then
-  echo "$$" > "$LOCK_DIR/pid"
-elif [ "$(cat "$LOCK_DIR/pid" 2>/dev/null || true)" != "$$" ]; then
-  echo "[$(ts)] ABORT: inherited lock ownership is invalid" >> "$LOG"
+# Both launchd lanes share this incumbent lock BEFORE self-update or any cache write.
+LOCK_DIR="/tmp/mm_fund_refresh.lock"
+. "$(cd "$(dirname "$0")" && pwd)/fund_writer_lock.sh"
+LOCK_RC=0
+acquire_fund_writer_lock 0 "${2:-}" || LOCK_RC=$?
+if [ "$LOCK_RC" != "0" ]; then
+  echo "[$(ts)] SKIP: fund writer lock unavailable (rc=$LOCK_RC); no checkout or data mutation" >> "$LOG"
+  [ "$LOCK_RC" = "10" ] && exit 0
   exit 1
 fi
-cleanup_lock(){ rm -f "$LOCK_DIR/pid" 2>/dev/null || true; rmdir "$LOCK_DIR" 2>/dev/null || true; }
-trap cleanup_lock EXIT
+trap release_fund_writer_lock EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
 
@@ -270,15 +258,70 @@ else
   exit 1
 fi
 
+# 3a. Canadian .TO refresh FIRST, so this same run's gen_fund_us publishes fresh Canadian
+# fundamentals instead of re-emitting whatever was last cached. Canada used to be collected only
+# by an occasional ad-hoc `--foreign` run, so every .TO fund.json froze on its last good fetch
+# (216 listings in the 2026-10-21 manifest, incl. NA.TO/SGD.TO which had no cache at all).
+# Scope is `--canada`, NOT `--foreign`: this lane must not drag the ~1.2k other intl names onto
+# a nightly that has to fit before the 18:30 cnhk lane. Gentle: workers=1 and a wide jitter, so
+# the Canadian pass never competes with the US pass for yfinance's rate limit.
+# NON-FATAL: per-symbol failures are logged by the collector and the last valid cache is kept —
+# collect_us_fund refuses to let a thinner fetch overwrite a richer one, so a vendor blip can
+# never erase good Canadian data. BOUNDED: the collector takes --deadline-seconds and defers
+# whatever it does not reach to the next night (unreached names keep their old cache mtime, so
+# they are retried rather than skipped as fresh). The subprocess supervisor stops at 17:15 (plus a 3s kill grace), before the 18:30 lane
+# and before the statements backfill that follows gen_fund_us.
+CA_BUDGET=$("$PY" "$DEPLOY/ingest/run_bounded.py" --daily-budget)
+if [ "$CA_BUDGET" -lt 60 ]; then
+  echo "[$(ts)] WARN: Canada refresh skipped — too close to the 18:30 cnhk lane" >> "$LOG"
+else
+  echo "[$(ts)] Canada refresh (--canada, workers=1; budget ${CA_BUDGET}s)" >> "$LOG"
+  "$PY" "$DEPLOY/ingest/run_bounded.py" --seconds "$CA_BUDGET" -- \
+    "$PY" "$DEPLOY/ingest/collect_us_fund.py" --canada --workers 1 --stale-days 7 \
+    --delay 3.0 6.0 --deadline-seconds "$CA_BUDGET" >> "$LOG" 2>&1 \
+    || echo "[$(ts)] WARN: Canada collect had per-name errors (existing caches retained)" >> "$LOG"
+fi
+
 # 3. gentle, incremental yfinance collect + gen (reads EV stockdata via MACRO_ROOT).
 "$PY" "$DEPLOY/ingest/collect_us_fund.py" --workers 2 --stale-days 3 --delay 2.0 5.0 >> "$LOG" 2>&1 \
   || echo "[$(ts)] WARN: collect had per-name errors (continuing)" >> "$LOG"
-"$PY" "$DEPLOY/ingest/gen_fund_us.py" >> "$LOG" 2>&1 \
+"$PY" "$DEPLOY/ingest/gen_fund_us.py" --exclude-canada >> "$LOG" 2>&1 \
   || { echo "[$(ts)] ABORT: gen_fund_us failed — no deploy" >> "$LOG"; exit 1; }
 # E11-03: stamp each statement column with the SEC filing that carries its figures, and
 # mark recast periods restated. No stamp is the safe state, so a failure never blocks deploy.
 "$PY" "$DEPLOY/ingest/annotate_sec_lineage.py" >> "$LOG" 2>&1 \
   || echo "[$(ts)] WARN: SEC filing lineage failed — statement columns keep no filing stamp (continuing)" >> "$LOG"
+
+# 3b. deep statement history (massive stocks/financials/v1, #364). gen_fund_us just rewrote
+# every file from the ~5-period yfinance cache, so without this pass the 2009+ history is
+# wiped nightly. It runs AFTER the SEC lineage pass and keeps every stamp that pass wrote;
+# it dates only the older columns it adds. NON-FATAL: a vendor outage leaves the yfinance files as emitted and the
+# deploy proceeds. The key is read from the env file inside the Python process only — it is
+# never exported, echoed or put on a command line. BOUNDED: this lane holds $LOCK_DIR, and
+# the 18:30 cnhk lane SKIPs while it is held, so before 18:30 the pass must end by 18:15.
+# It stops itself at its budget, and run_bounded kills it 60s later if a request hangs.
+# What follows (gates, Canada publication, rsync) took 28s on 2026-10-30, before this pass
+# existed (annotate ended 17:46:34, rsync OK 17:47:02) — well inside the 15-minute margin;
+# an overrun past 18:30 only makes that night's cnhk lane log SKIP. Symbols not reached
+# (the sweep runs largest market cap first) keep that night's yfinance periods; nothing
+# carries over, since gen_fund_us rewrites every file the next night.
+BF_BUDGET=2700
+BF_NOW=$(date +%s)
+BF_STOP=$(date -j -f "%H:%M:%S" "18:15:00" +%s 2>/dev/null || echo 0)
+BF_CNHK=$(date -j -f "%H:%M:%S" "18:30:00" +%s 2>/dev/null || echo 0)
+if [ "$BF_NOW" -lt "$BF_CNHK" ]; then
+  BF_LEFT=$((BF_STOP - BF_NOW))
+  [ "$BF_LEFT" -lt "$BF_BUDGET" ] && BF_BUDGET=$BF_LEFT
+fi
+if [ "$BF_BUDGET" -lt 60 ]; then
+  echo "[$(ts)] WARN: statements backfill skipped — too close to the 18:30 cnhk lane" >> "$LOG"
+else
+  echo "[$(ts)] statements backfill (massive v1, #364; budget ${BF_BUDGET}s)" >> "$LOG"
+  "$PY" "$DEPLOY/ingest/run_bounded.py" --seconds "$((BF_BUDGET + 60))" -- \
+    "$PY" "$DEPLOY/ingest/backfill_fund_statements_massive.py" --env-file "$HOME/.macro-dashboard/.env" \
+      --deadline-seconds "$BF_BUDGET" --quiet >> "$LOG" 2>&1 \
+    || echo "[$(ts)] WARN: statements backfill failed (non-fatal — fund.json keeps the yfinance periods)" >> "$LOG"
+fi
 
 # 4. SAFETY GATES: AAPL EV must be non-null and transcript discovery may
 # never collapse before deploy.
@@ -301,11 +344,21 @@ print(f"fund transcript links healthy: {n_ids} across {n_sym} symbols")
 PYEOF
 if [ $? -ne 0 ]; then echo "[$(ts)] ABORT: transcript link gate failed — no deploy" >> "$LOG"; exit 1; fi
 
+# Canada stays under this existing writer lock, but emits into a stage using immutable
+# prior files. A different served baseline holds publication until it is synchronized.
+# Collection has its own acquired-at clock; publishing retained caches is not a new fetch.
+CA_PUBLISH_RC=0
+"$PY" "$DEPLOY/ingest/regional_refresh.py" --phase fund --market ca --skip-collect \
+  --repo "$DEPLOY" --data "$DATA" --status "$FUNDSRC/canada_status.json" \
+  --key "$KEY" --remote "$VPS:$VPS_DATA" >> "$LOG" 2>&1 \
+  || { CA_PUBLISH_RC=$?; echo "[$(ts)] WARN: Canada staged publication failed — retained candidates require review" >> "$LOG"; }
+
 # 5. rsync data-only to the VPS (never touches the app).
-ls "$DATA"/*.fund.json 2>/dev/null | xargs -n1 basename > /tmp/mm_fund_list.txt
+ls "$DATA"/*.fund.json 2>/dev/null | xargs -n1 basename | grep -Ev '\.(SS|SZ|BJ|HK|TO|V)\.fund\.json$' > /tmp/mm_fund_list.txt
 N=$(wc -l < /tmp/mm_fund_list.txt | tr -d ' ')
 rsync -az -e "ssh -i $KEY -o StrictHostKeyChecking=accept-new -o ConnectTimeout=25" \
   --files-from=/tmp/mm_fund_list.txt "$DATA/" "$VPS:$VPS_DATA/" >> "$LOG" 2>&1 \
   && echo "[$(ts)] rsync OK — $N fund.json (AAPL ev_sales=$AEV)" >> "$LOG" \
   || { echo "[$(ts)] rsync FAILED" >> "$LOG"; exit 1; }
-echo "[$(ts)] ===== nightly fund refresh done =====" >> "$LOG"
+echo "[$(ts)] ===== nightly fund refresh done (Canada publication rc=$CA_PUBLISH_RC) =====" >> "$LOG"
+exit "$CA_PUBLISH_RC"

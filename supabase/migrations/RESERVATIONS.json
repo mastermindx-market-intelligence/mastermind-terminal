@@ -414,9 +414,83 @@
       "pr": 1103,
       "pr_state": "merged",
       "merged_sha": "eb752cd653f3add2aa67cdcc7b588dae13c86843",
+      "applied_in_production": true,
+      "applied_date": "2026-10-22",
+      "note": "Widens valid_investigation_manifest_v2 from the earnings-only evidence owner to the Terminal registry (terminal.options_exposure: exposure_chart_request, sector_origin, rotation_measurement), every other byte the installed body (contract test terminal/lib/__tests__/investigationEvidenceOwnersMigrationContract.test.ts). Numbered 0039 by rule (b): 0037 is held by #1084 and 0038 by #1100. #1103 squash-merged to master as eb752cd653f3add2aa67cdcc7b588dae13c86843 at 2026-10-21T20:32:35Z. Applied once at 2026-10-22T01:20:36Z through the unchanged scripts/supabase_apply.py (tool supabase_apply/1, --apply --receipt): statements_n=1, status applied, missing_after empty, error null. Complete receipt SHA256 97765e4c006ac47430b6866ae0ca551a6f92cb728e08c1c83102cb49319b1901 (14286 bytes) posted on PR #1103 (https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1103#issuecomment-6330358798) and retained byte-exact at docs/verification/options-r1/0039-apply-receipt.json. The applied SQL, including its historical header comment, stays byte-exact because the applier hashes the whole file. Never replay this application. Deployment and authenticated acceptance remain separate."
+    },
+    "0040": {
+      "state": "taken",
+      "file": "0040_investigation_review.sql",
+      "packet": "OPTIONS-R1-W3C",
+      "pr": 1104,
+      "pr_state": "merged",
+      "merged_sha": "0aecf8e95dd7888b3453834d75f3e072e464bb6e",
+      "applied_in_production": true,
+      "applied_date": "2026-10-22",
+      "note": "Admits the optional top-level `review` block (assessment in confirmed/contradicted/inconclusive, optional fire_event_id 64-hex, optional note <= 2000 chars, no other keys) in valid_investigation_manifest_v2; executable SQL remains byte-identical to PR #1104. Depends on installed 0039 (PR #1103). Applied once at 2026-10-22T13:40:13Z through scripts/supabase_apply.py --apply --receipt from accepted repair carrier PR #1125 / 0551a2017067c9f0aab63e8579936bdcb5b728fb. Full-file SQL SHA-256 aaebea44dd4c3ee795f984b9701bb7acafa1a5408513a9ae5ee410314ac564d4. Actual receipt posted on owning PR before recording application: https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1104#issuecomment-6343024596; byte-exact copy docs/verification/options-r1/0040-apply-receipt.json (SHA-256 7f0677bef3129358ef586393556130dea80122da0b0ccf8b97a091f4400828f4). Independent qualification in docs/verification/options-r1/0040-production-qualification.json confirms expected behavior, body MD5 16f7838c8e797663d64783cff92fb6ef, preserved identity/execution properties, and existing-manifest compatibility. README application row updated together."
+    },
+    "0041": {
+      "state": "taken",
+      "file": "0041_pinned_research_handoffs.sql",
+      "packet": "B-F12-PINNED-RESEARCH-HANDOFF",
+      "pr": 1139,
+      "pr_state": "merged",
+      "applied_in_production": true,
+      "applied_date": "2026-10-23",
+      "note": "PR #1139 merged as 61c504a472120935458874db04757f6064b91e6f after independent security qualification and exact-head CI. Compatible app-first production installation verified before this exact SQL was applied once on 2026-10-23 at 04:35:10 UTC through the original Management API/CurlRunner (25/25 statements returned successfully, statement-at-a-time). Applied full-file SQL SHA256 5bc394c6d8c4d9a8fef9115e47a0caaa8e6156f6850d76347a171387fea3addd. Original helper exit 6/status failed_readback is preserved: its sole missing object is resource_grants_guard, omitted from the built-in function readback. Separate same-carrier catalog qualification proves all seven exact reviewed bodies, unchanged terminal trigger/guard ACL and prerequisite bodies, intended new-function ACL/policies/constraints, column privileges and uniqueness index. No SQL replay or recipient grant. Raw receipt posted BEFORE this metadata: https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1139#issuecomment-6357486989; byte-exact retained receipt docs/verification/pinned-research-handoff/0041-native-apply-receipt.json and separate catalog qualification 0041-effect-qualification.json. Authenticated owner/recipient product acceptance remains separate."
+    },
+    "0042": {
+      "state": "taken",
+      "file": "0042_investigation_scenario_reference.sql",
+      "packet": "B-F12-SAVED-SCENARIO-CAPTURE",
+      "pr": 1144,
+      "pr_state": "merged",
       "applied_in_production": false,
       "applied_date": null,
-      "note": "Widens valid_investigation_manifest_v2 from the earnings-only evidence owner to the Terminal registry (terminal.options_exposure: exposure_chart_request, sector_origin, rotation_measurement), every other byte the installed body (contract test terminal/lib/__tests__/investigationEvidenceOwnersMigrationContract.test.ts). Numbered 0039 by rule (b): 0037 is held by #1084 and 0038 by #1100. Not yet applied: applied_date is null because the application is not recorded until the post-merge scripts/supabase_apply.py --apply --receipt run posts its receipt on the PR (null, never guessed); the README application table and this row are then updated together."
+      "note": "PR #1144 protected-merged as a32f264d8ac2b02744fb8928a3fc35ae8e774893 on 2026-10-24T15:04:01Z; source merge only, production application remains false. PR #1144 opened 2026-10-23T15:23:54Z after complete162openPR migration-file census and protected ledger max0041; incremental current metadata found only own new PR/no changed incumbent heads. Initially copied independently reviewed SQL SHA256 518b1223386b37eed53f54ba991ff16a5a41749fe59976bf9391e124749d004b. Current file SHA256 2eb41ee7bbfa3b0601e05b211b09a15c3418d1ee0fe7d9b57e7f096e98cb1682 changes rollback guidance only: prose punctuation plus a read-only current-function catalog query required by the existing down-block guard. No automatic restoration is prescribed. Every executable migration statement remains byte-identical to reviewed source. Strict definer pinned-reference condition; existing question-only grants remain unchanged. SOURCE ONLY/UNAPPLIED. No new privileged application or production binding authority; closed0041 operation is not replayed. Application date not recorded because the migration remains unapplied."
+    },
+    "0043": {
+      "state": "taken",
+      "file": "0043_investigation_plan_composition.sql",
+      "packet": "IW2-OPTIONS-PLAN-V3-COMPOSITION",
+      "pr": 804,
+      "pr_state": "open",
+      "applied_in_production": false,
+      "applied_date": null,
+      "note": "Original IW2 root integration. Current protected max0041 plus complete176openPR filename census2026-10-24 found only incumbent0042/1144 after0041;0043free. Forward predicate composition after exact0030/0039/0040/0041/0042; immutable originals preserved. Source preparation/independent review and isolated PostgreSQL only; NO production application, qualification, grant or release hold clearance. Application date not recorded because this source remains unapplied."
+    },
+    "0044": {
+      "state": "taken",
+      "file": "0044_portfolio_target_role.sql",
+      "packet": "B-MO-DELTA-003-PORTFOLIO-ROLE",
+      "pr": 1173,
+      "pr_state": "merged",
+      "applied_in_production": true,
+      "applied_date": "2026-10-24",
+      "note": "PR #1173 merged424ed4a2. Exact SQL applied once2026-10-24T20:43:40Z through incumbent supabase_apply/1, one statement; original status unverified/exit6/error null retained because ALTER column/constraint are not discovered by expected_objects. Separate readonly catalog qualification confirms exact nullable role column/validated constraint and unchanged existing columns/constraints/RLS/ACL/policies/triggers. Receipt comment6389324788 and docs/verification/portfolio-role preserve evidence; public receipt derivative redacts only project_ref. No role labels or browser actions; owner acceptance remains open. No replay;0042/0030 unchanged.",
+      "merged_sha": "424ed4a2c700955dc35354d597611219d8ef6980"
+    },
+    "0045": {
+      "state": "taken",
+      "file": "0045_options_frozen_runtime.sql",
+      "packet": "OPTIONS-EXPOSURE-P09-FROZEN-RUNTIME",
+      "pr": 1175,
+      "pr_state": "merged",
+      "applied_in_production": true,
+      "applied_date": "2026-10-31",
+      "note": "PR #1175 source merged as aaa4801db5a7e467c52dd94b4e7aea217be50b23. Applied once 2026-10-31T07:06:43Z by original operation oem-01a156f1-schema0045-20261031-v1 under META disposition6540397272; native receipt status applied/error null/missing_after empty, seven pre/post readbacks. Immutable SQL SHA2562719fcdb0ca70248791459d981e5bb645f0b680a1382e181b2c08b8c6a27da30; receipt SHA256461359c7fccb914b22c9dd7de3bc63f7b3d023bfe66ceca8b7de792a691f42e3. Source-linked owner readback: PR #1182 comment6540438658. Schema readiness only; switches remain OFF, no activation/enrollment/provider/send or replay of unknown effects. Existing0043/0044 unchanged.",
+      "merged_sha": "aaa4801db5a7e467c52dd94b4e7aea217be50b23"
+    },
+    "0046": {
+      "state": "taken",
+      "file": "0046_options_frozen_enrollment.sql",
+      "packet": "OPTIONS-EXPOSURE-P09-EXACT-ENROLLMENT",
+      "pr": 1182,
+      "pr_state": "merged",
+      "applied_in_production": true,
+      "applied_date": "2026-10-31",
+      "note": "PR #1182 protected merged b1ba8e7c21e8864a0f11f87c4ae6aaab7bb54133. Applied once 2026-10-31T07:08:54Z after positively settled0045 by original operation oem-01a156f1-schema0046-20261031-v1 under META disposition6540397272; native receipt status applied/error null/missing_after empty, five pre/post readbacks. Immutable SQL SHA256eb1e6598f82d18b228eb4d72162a7d9be9062f017e8f15026173dd857aa828a5; receipt SHA25616a7f7cb447526d9de30c8a56e58948fa80fdcb46f8cece9be92d888b3a3e8a0. Source-linked owner readback: PR #1182 comment6540453300. Final seven-argument arm contract installed; five/six-argument overloads absent. Four entry/reader/publisher switches remain absent/OFF. No activation, enrollment, live-product acceptance or adoption/replay of the Oct26 uncertain operation.",
+      "merged_sha": "b1ba8e7c21e8864a0f11f87c4ae6aaab7bb54133"
     }
   }
 }

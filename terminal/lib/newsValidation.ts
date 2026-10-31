@@ -119,6 +119,24 @@ export function parseContentKind(value: unknown): TickerNewsContentKind | undefi
   throw new TickerNewsContractError("content_kind");
 }
 
+export function parsePublisher(value: unknown): string | undefined {
+  // R2: engine publisher_identity() — a bare domain such as "reuters.com".
+  // asText already enforces the non-empty, trimmed, ≤256 part of the contract.
+  if (value === undefined || value === null) return undefined;
+  return asText(value, "row_publisher", 256).toLowerCase();
+}
+
+export function parseAnnotation(value: unknown): { event_type: string | null } | null {
+  // R2: engine annotate_row() — only event_type is read; every other key of the
+  // annotation object is ignored, and "not permitted" arrives as null.
+  if (value === undefined || value === null) return null;
+  const obj = asRecord(value, "row_annotation");
+  const raw = obj.event_type;
+  if (raw === null || raw === undefined) return { event_type: null };
+  if (typeof raw === "string" && raw.length > 0 && raw.length <= 64) return { event_type: raw };
+  throw new TickerNewsContractError("row_annotation");
+}
+
 export function normalizeTickerNewsView(value: unknown): TickerNewsViewMode {
   if (value === "news" || value === "company" || value === "all") return value;
   throw new TickerNewsContractError("editorial_view_mode");
@@ -189,6 +207,8 @@ export function parseStoryRow(value: unknown): TickerNewsStoryRow {
     universe_revision: asText(obj.universe_revision, "row_universe_revision", 1024),
     reporting_state: parseReportingState(obj.reporting_state),
     content_kind: parseContentKind(obj.content_kind),
+    publisher: parsePublisher(obj.publisher),
+    annotation: parseAnnotation(obj.annotation),
     editorial_view: parseEditorialView(obj.editorial_view),
     editorial: parseEditorial(obj.editorial),
   };

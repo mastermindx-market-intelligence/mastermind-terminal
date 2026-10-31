@@ -311,12 +311,21 @@ describe("PortfolioTargetsReadout — invalid explicit bands", () => {
     mount(summary, { onSetTarget }, lang);
     const bandLabel = lang === "en" ? "Band for AAA, percentage points" : "AAA 的容忍区间，百分点";
     const targetLabel = lang === "en" ? "Target weight for AAA, percent" : "AAA 的目标权重，百分比";
+    input(bandLabel).focus();
     await typeInto(input(bandLabel), value);
     if (kind === "first") await typeInto(input(targetLabel), "55");
     await act(async () => { await vi.advanceTimersByTimeAsync(600); });
     expect(onSetTarget).not.toHaveBeenCalled();
     expect(input(bandLabel).value).toBe(value);
     expect(input(bandLabel).disabled).toBe(false);
+    const alert = container!.querySelector('[role="alert"]')!;
+    expect(alert).not.toBeNull();
+    expect(alert.id).not.toBe("");
+    expect(input(bandLabel).getAttribute("aria-describedby")).toBe(alert.id);
+    expect(input(bandLabel).getAttribute("aria-invalid")).toBe("true");
+    expect(input(targetLabel).getAttribute("aria-invalid")).not.toBe("true");
+    expect(input(targetLabel).hasAttribute("aria-describedby")).toBe(false);
+    expect(document.activeElement).toBe(input(bandLabel));
     expect(text()).toContain(lang === "en"
       ? "Your band has to be a number from 0 to 50 points."
       : "容忍区间必须是 0 到 50 个百分点之间的数字。");
@@ -326,6 +335,9 @@ describe("PortfolioTargetsReadout — invalid explicit bands", () => {
     await act(async () => { await vi.advanceTimersByTimeAsync(600); });
     expect(onSetTarget).toHaveBeenCalledTimes(1);
     expect(onSetTarget).toHaveBeenCalledWith("AAA", kind === "existing" ? 80 : 55, 7);
+    expect(container!.querySelector('[role="alert"]')).toBeNull();
+    expect(input(bandLabel).hasAttribute("aria-describedby")).toBe(false);
+    expect(input(bandLabel).getAttribute("aria-invalid")).not.toBe("true");
   });
 });
 
@@ -484,5 +496,96 @@ describe("PortfolioTargetsReadout — unavailable common cost basis", () => {
     expect(text()).not.toContain(test.notice[lang]);
     expect(text()).toContain(lang === "en" ? "Current weights are awaiting refresh." : "当前权重等待刷新。");
     expect(container?.querySelector('[data-testid="targets-empty"]')).toBeNull();
+  });
+});
+
+describe("PortfolioTargetsReadout — accessible save feedback", () => {
+  const holdings = [pos("AAA", 100, 200)];
+  const targeted = computePortfolioTargets(holdings, [tgt("AAA", 80, 5)]);
+
+  it.each(["existing", "first"] as const)("associates invalid target text with the target field for a %s target", async kind => {
+    const onSetTarget = vi.fn(async () => {});
+    mount(kind === "existing" ? targeted : computePortfolioTargets(holdings, []), { onSetTarget });
+    const target = input("Target weight for AAA, percent");
+    const band = input("Band for AAA, percentage points");
+    target.focus();
+    await typeInto(target, "abc");
+    await act(async () => { await vi.advanceTimersByTimeAsync(600); });
+    const alert = container!.querySelector('[role="alert"]')!;
+    expect(alert?.textContent).toBe("A target has to be a number from 0 to 100.");
+    expect(target.getAttribute("aria-describedby")).toBe(alert.id);
+    expect(target.getAttribute("aria-invalid")).toBe("true");
+    expect(band.hasAttribute("aria-describedby")).toBe(false);
+    expect(band.getAttribute("aria-invalid")).not.toBe("true");
+    expect(document.activeElement).toBe(target);
+    expect(onSetTarget).not.toHaveBeenCalled();
+    await typeInto(target, "55");
+    await act(async () => { await vi.advanceTimersByTimeAsync(600); });
+    expect(onSetTarget).toHaveBeenCalledOnce();
+    expect(container!.querySelector('[role="alert"]')).toBeNull();
+    expect(target.hasAttribute("aria-describedby")).toBe(false);
+    expect(target.getAttribute("aria-invalid")).not.toBe("true");
+  });
+
+  it("keeps a refused first target editable and marks its preserved out-of-range draft", async () => {
+    mount(computePortfolioTargets(holdings, []), {
+      onSetTarget: async () => { throw Object.assign(new Error("invalid target"), { code: "invalid target" }); },
+    });
+    const target = input("Target weight for AAA, percent");
+    await typeInto(target, "101");
+    await act(async () => { await vi.advanceTimersByTimeAsync(600); });
+    expect(target.value).toBe("101");
+    expect(target.disabled).toBe(false);
+    const alert = container!.querySelector('[role="alert"]')!;
+    expect(alert?.textContent).toBe("A target has to be a number from 0 to 100.");
+    expect(target.getAttribute("aria-describedby")).toBe(alert.id);
+    expect(target.getAttribute("aria-invalid")).toBe("true");
+  });
+
+  it("announces a network failure without labelling valid fields invalid", async () => {
+    mount(targeted, { onSetTarget: async () => { throw new TypeError("network down"); } });
+    await typeInto(input("Target weight for AAA, percent"), "55");
+    await act(async () => { await vi.advanceTimersByTimeAsync(600); });
+    expect(container!.querySelector('[role="alert"]')?.textContent).toBe(
+      "We couldn't confirm this change. Refresh to check your saved target.");
+    expect(input("Target weight for AAA, percent").value).toBe("80");
+    for (const field of container!.querySelectorAll("input")) {
+      expect(field.getAttribute("aria-invalid")).not.toBe("true");
+      expect(field.hasAttribute("aria-describedby")).toBe(false);
+    }
+  });
+
+  it("does not reuse a validation message when a later clear fails", async () => {
+    mount(targeted, { onClearTarget: async () => { throw new TypeError("network down"); } });
+    await typeInto(input("Band for AAA, percentage points"), "abc");
+    await act(async () => { await vi.advanceTimersByTimeAsync(600); });
+    expect(text()).toContain("Your band has to be a number from 0 to 50 points.");
+    await click(clearButton());
+    expect(container!.querySelector('[role="alert"]')?.textContent).toBe(
+      "We couldn't confirm this change. Refresh to check your saved target.");
+    expect(text()).not.toContain("Your band has to be a number from 0 to 50 points.");
+    expect(input("Band for AAA, percentage points").hasAttribute("aria-describedby")).toBe(false);
+  });
+
+  it("keeps error IDs distinct when the same ticker is mounted on two surfaces", async () => {
+    mount(targeted);
+    act(() => {
+      root!.render(<>
+        <PortfolioTargetsReadout summary={targeted} lang="en" shapeReadoutVisible
+          onSetTarget={async () => {}} onClearTarget={async () => {}} />
+        <PortfolioTargetsReadout summary={targeted} lang="en" shapeReadoutVisible={false}
+          onSetTarget={async () => {}} onClearTarget={async () => {}} />
+      </>);
+    });
+    const bands = [...container!.querySelectorAll<HTMLInputElement>('input[aria-label="Band for AAA, percentage points"]')];
+    for (const band of bands) await typeInto(band, "abc");
+    await act(async () => { await vi.advanceTimersByTimeAsync(600); });
+    const alerts = [...container!.querySelectorAll('[role="alert"]')];
+    expect(alerts).toHaveLength(2);
+    expect(new Set(alerts.map(alert => alert.id)).size).toBe(2);
+    bands.forEach((band, index) => {
+      expect(band.getAttribute("aria-describedby")).toBe(alerts[index].id);
+      expect(band.closest("article")!.contains(alerts[index])).toBe(true);
+    });
   });
 });

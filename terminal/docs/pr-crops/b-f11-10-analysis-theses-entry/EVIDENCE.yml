@@ -1,14 +1,13 @@
-# Historical manifest history is retained below. Current capture/source identity is sharedShellComposedSourceRecapture.
 # B-F11-10a Analysis context-bar theses entry — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: a7a3d591590a1cbd09bc94ee602e4c980d8aec30
-# capturedAt: 2026-10-19T04:40:37.291Z
+# capturedAtHead: e2846880681d4b9aff4a060e1321f50f240cafc7
+# capturedAt: 2026-10-24T05:29:47.034Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/components/workspaces/AnalysisWorkspace.tsx: "411b8a7e498b8af3f9337fdcf3835dd62e6a5854826f414171d8303efd8aa5bb"
-  terminal/app/company-intelligence.css: "2bd8643832428198d38e8a5140cb7029687466781b2366976cb3ca5ddad9892b"
-  terminal/lib/i18n.tsx: "af0ffe39ba94d7a78997275a3d5ea71a853ca56eabbf42e0ce6d1d1dbe68ac3a"
+  terminal/app/company-intelligence.css: "8b43f2046891837f6572fa2a59b7594547def9602b0454e1f14edba322da2a34"
+  terminal/lib/i18n.tsx: "13f33e3178b105a64f1f5df35974cd99041ef06f05bdece95939dd07a8b9fe7c"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -35,8 +34,12 @@ files:
   - mobile-en.png
   - mobile-zh.png
 
-sharedShellComposedSourceRecapture:
-  sourceHead: "42d78dbb108eae0dc37fd73d7ece947612cb1ce0"
-  receipt: shared-shell-recapture.json
-  scope: "desktop-en.png; desktop-zh.png; tablet-en.png; tablet-zh.png; mobile-en.png; mobile-zh.png"
-  qualification: "Actual local deterministic fixtures only; prior historical gates remain historical; unchanged surfaces retain prior captures."
+documentLanguageRecapture20261024:
+  sourceHead: e2846880681d4b9aff4a060e1321f50f240cafc7
+  qualification: Actual native producer executed in original managed language workspace; existing fixture data, no live-account or production claim
+  historicalManifest: history/before-document-language-20261024.yml
+  historicalSource: 919114d1c27f0f588d9d5a4d52574f19b0137d6d
+  receiptIndex: ../document-language/recapture-index.json
+
+# Raw capture identity and every upstream source/crop lock remain unchanged; omit only unused pending-copy dependency.
+lexProjection: {"schema":"terminal.lex_capture_projection.v1","omittedProperty":"obDonePrefsSyncing","capturedRawSha256":"13f33e3178b105a64f1f5df35974cd99041ef06f05bdece95939dd07a8b9fe7c","projectedSha256":"d6dcc2df7615a1c5782f4d755178fbb76bcf9ee42b93dffe7c7c95317a652de5","sourceGitBlob":"664d68043f472919f7b581f545a334bf66d9782f","sourceRecoveryCommit":"e2846880681d4b9aff4a060e1321f50f240cafc7","captureCommitLocallyAvailable":true}

@@ -9,7 +9,7 @@ import { describe, expect, it } from "vitest";
 
 import { parseTickerNewsSnapshot } from "@/lib/newsContract";
 import type { TickerNewsFlow } from "@/lib/newsTypes";
-import { parseTickerNewsFlow } from "@/lib/newsValidation";
+import { parseTickerNewsFlow, parseStoryRow, TickerNewsContractError } from "@/lib/newsValidation";
 
 const FLOW_METHOD =
   "distinct reports by source + source_item_id; active status only; " +
@@ -266,5 +266,53 @@ describe("parseTickerNewsSnapshot — flow key handling", () => {
   it("a malformed flow never throws the snapshot", () => {
     expect(() => parseTickerNewsSnapshot(snapshotBody("garbage"))).not.toThrow();
     expect(parseTickerNewsSnapshot(snapshotBody("garbage")).flow).toEqual(MALFORMED);
+  });
+});
+
+// R2 row fields (NEWS_INTELLIGENCE_RAIL_R2_SPEC.md §1/§6 lane L1): publisher and
+// annotation ride the same parseStoryRow as every other row key.
+describe("R2 row fields", () => {
+  const base = storyRow("ev2_r2", 5);
+
+  it("accepts a row without publisher and annotation (undefined / null)", () => {
+    const parsed = parseStoryRow(base);
+    expect(parsed.publisher).toBeUndefined();
+    expect(parsed.annotation).toBeNull();
+  });
+
+  it("lower-cases and trims the publisher domain", () => {
+    expect(parseStoryRow({ ...base, publisher: "Reuters.com " }).publisher).toBe("reuters.com");
+  });
+
+  it("accepts an explicit annotation null (annotation not permitted)", () => {
+    expect(parseStoryRow({ ...base, annotation: null }).annotation).toBeNull();
+  });
+
+  it("keeps only event_type from the engine's annotation object", () => {
+    expect(parseStoryRow({ ...base, annotation: { event_type: "guidance_cut", figures: {} } }).annotation)
+      .toEqual({ event_type: "guidance_cut" });
+  });
+
+  it("a null event_type survives as null", () => {
+    expect(parseStoryRow({ ...base, annotation: { event_type: null } }).annotation)
+      .toEqual({ event_type: null });
+  });
+
+  it.each([
+    ["a non-string publisher", { publisher: 7 }, "row_publisher"],
+    ["a whitespace-only publisher", { publisher: "   " }, "row_publisher"],
+    ["a string annotation", { annotation: "x" }, "row_annotation"],
+    ["a numeric event_type", { annotation: { event_type: 3 } }, "row_annotation"],
+  ])("rejects %s with %s", (_name, overrides, code) => {
+    const attempt = (): TickerNewsContractError | null => {
+      try {
+        parseStoryRow({ ...base, ...overrides });
+      } catch (error) {
+        return error as TickerNewsContractError;
+      }
+      return null;
+    };
+    expect(() => parseStoryRow({ ...base, ...overrides })).toThrow(TickerNewsContractError);
+    expect(attempt()?.code).toBe(code);
   });
 });

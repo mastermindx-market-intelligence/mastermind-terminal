@@ -58,12 +58,18 @@ describe("existing intraday route consumes private BOATS history", () => {
     await save("TRADINGDATE", ["2026-10-19T00:01:00Z", "2026-10-19T04:01:00Z",
       "2026-10-19T07:59:00Z", "2026-10-20T00:01:00Z"].map(s => Date.parse(s) / 1000));
     const request = () => GET(new Request("https://unit.test/api/intraday?sym=TRADINGDATE&tf=12h&session=24h&date=2026-10-19"));
-    for (const cacheState of ["new_assembly", "cache"]) {
+    // No daytime provider response succeeds in this fixture. Returning the
+    // same authoritative BOATS-only bars must not claim a complete/cacheable
+    // daytime assembly: the server retries that independently failed leg.
+    for (const cacheState of ["new_assembly", "new_assembly"]) {
       const body = await (await request()).json();
       expect(body.bars).toEqual([[Date.parse("2026-10-18T20:00:00Z") / 1000, 10, 12, 9, 11, 369]]);
       expect(body.boats_history).toMatchObject({ status: "available", returned_bars: 1 });
       expect(body.source_evidence.source_counts.tiingo_boats_rest).toBe(1);
       expect(body.daytime_cache.cache_state).toBe(cacheState);
+      expect(body.daytime_cache).toMatchObject({
+        assembly_complete: false, refresh_pending: false, refresh_error: "upstream unavailable",
+      });
     }
   });
   it("keeps the chart's class-share symbol while reading exact vendor receipts", async () => {
@@ -82,9 +88,19 @@ describe("existing intraday route consumes private BOATS history", () => {
     expect(first.boats_history.complete).toBe(false);
     expect(first.source_evidence.source_counts.tiingo_boats_rest).toBe(1);
     expect(first.source_evidence.session).toBe("24h");
-    const cached = await (await call("HISTORYA")).json();
-    expect(cached.bars).toEqual(first.bars);
-    expect(cached.daytime_cache.cache_state).toBe("cache");
+    const fetchesBeforeRetry = state.calls;
+    const retried = await (await call("HISTORYA")).json();
+    expect(retried.bars).toEqual(first.bars);
+    expect(retried.daytime_cache.cache_state).toBe("new_assembly");
+    expect(retried.daytime_cache).toMatchObject({ assembly_complete: false,
+      refresh_error: "upstream unavailable", refresh_pending: false });
+    // Identical failed keys use a brief 2.5-second negative cache, while
+    // BOATS receipts remain independently refreshed for every request.
+    expect(state.calls).toBe(fetchesBeforeRetry);
+    const clock = vi.spyOn(Date, "now").mockReturnValue(Date.now() + 2_501);
+    await call("HISTORYA");
+    expect(state.calls).toBe(fetchesBeforeRetry + 1);
+    clock.mockRestore();
     const sliced = await (await call("HISTORYA", "session=24h&date=2026-10-09")).json();
     expect(sliced.bars).toEqual(first.bars);
     expect(sliced.boats_history.returned_bars).toBe(1);
@@ -133,7 +149,9 @@ it("serves an older requested day beyond the latest 20000 bars and keeps dated c
   expect(old.bars.every((bar: Bar6) => usEquitySessionAtDisplayEpoch(bar[0]).tradeDate === "2026-07-20")).toBe(true);
   const cachedOld = await (await request("2026-07-20")).json();
   expect(cachedOld.bars).toEqual(old.bars);
-  expect(cachedOld.daytime_cache.cache_state).toBe("cache");
+  expect(cachedOld.daytime_cache).toMatchObject({
+    cache_state: "new_assembly", assembly_complete: false, refresh_error: "upstream unavailable",
+  });
   const other = await (await request("2026-07-21")).json();
   expect(other.bars).toHaveLength(480);
   expect(other.bars[0][0]).not.toBe(old.bars[0][0]);
@@ -148,7 +166,9 @@ it("records signed-in overnight demand before cache hits and never for anonymous
   const first = await (await call("DEMANDA")).json();
   const second = await (await call("DEMANDA")).json();
   expect(first.bars).toHaveLength(1);
-  expect(second.daytime_cache.cache_state).toBe("cache");
+  expect(second.daytime_cache).toMatchObject({
+    cache_state: "new_assembly", assembly_complete: false, refresh_error: "upstream unavailable",
+  });
   expect(state.demand).toEqual([["DEMANDA", "5m", ""], ["DEMANDA", "5m", ""]]);
   state.user = false;
   expect((await call("DEMANDA")).status).toBe(401);

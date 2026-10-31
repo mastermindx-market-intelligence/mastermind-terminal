@@ -1,6 +1,6 @@
 "use client";
 import { mergeFormingQuote } from "@/lib/formingCandles";
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { PHONE_QUERY, useIsMobile, useIsPhone } from "@/lib/useMediaQuery";
 import MobileSheet from "@/components/ui/MobileSheet";
 import OptionsRail, { type OptionsRailHandle } from "@/components/options-companion/OptionsRail";
@@ -8,6 +8,7 @@ import { optionsT } from "@/components/options-companion/optionsStrings";
 import type { OptionsChartLevel } from "@/lib/optionsCompanion";
 import replayStyles from "./ReplayTransport.module.css";
 import contextStyles from "./ChartContextPlacement.module.css";
+import searchStyles from "./SearchModal.module.css";
 import type { ChartContextDock } from "./ChartContextDock";
 import { visualText } from "@/lib/visualIntelligenceCopy";
 import { track } from "@/lib/analytics";
@@ -1081,6 +1082,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // name and watching a name are different facts; the rail shows both without mixing them.
   const [railTab, setRailTab] = useState<"watchlists" | "portfolio" | "news">("watchlists");
   /** Symbol queued for the "Add to → Portfolio" modal; `null` = closed. */
+  const mobileQuoteId = useId();
   const [pfAddSymbol, setPfAddSymbol] = useState<string | null>(null);
   // Live mirror of `lists` for the async migration: reading it from a ref keeps the effect keyed
   // on `loggedIn` alone, so a symbol edit mid-migration cannot restart the whole run.
@@ -5937,8 +5939,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       <header className="topbar">
         {fromMacro ? <DashboardBackButton onClick={onBack} returnHref={macroHref} /> : <BrandLockup />}
         <div className="tdiv" />
-        <div className="pair" onClick={() => { setSeed(""); setSearchMode("go"); setSearchOpen(true); }}><span className="dual"><i>{active[0]}</i><i>$</i></span><b>{active}</b>
-          <svg className="car" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" /></svg></div>
+        <button type="button" className="pair" aria-label={`${t("searchTitle")} — ${active}`} aria-haspopup="dialog" aria-expanded={searchOpen && searchMode === "go"}
+          onClick={() => { setSeed(""); setSearchMode("go"); setSearchOpen(true); }}><span className="dual"><i>{active[0]}</i><i>$</i></span><b>{active}</b>
+          <svg className="car" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" /></svg></button>
         <button className="cmp-btn" title={t("compareTitle")} onClick={(e) => { e.stopPropagation(); setSearchMode("compare"); setSeed(""); setSearchOpen(true); }}>
           <svg viewBox="0 0 24 24"><path d="M4 18l5-9 4 5 3-4 4 8" /></svg>
           <span>{t("compare")}</span>
@@ -6002,9 +6005,13 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         })()}
       />
       {/* ── mobile symbol bar (tap → search) ── */}
-      <div className={`m-symbar${activeExtData ? " has-ext" : ""}`} onClick={() => { setSeed(""); setSearchOpen(true); }}>
+      <div className={`m-symbar${activeExtData ? " has-ext" : ""}`}>
+        <button type="button" className={searchStyles.mobileTrigger} data-symbol-search
+          aria-describedby={mobileQuoteId}
+          aria-label={`${t("searchTitle")} — ${active}`} aria-haspopup="dialog" aria-expanded={searchOpen && searchMode === "go"}
+          onClick={() => { setSeed(""); setSearchMode("go"); setSearchOpen(true); }}>
         <span className="m-sym"><span className="ic" style={{ background: m?.col || "#76b900" }}>{active[0]}</span><b>{active}</b><svg className="car" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" /></svg></span>
-        <span className="m-quote-stack">
+        <span className="m-quote-stack" id={mobileQuoteId}>
           <span className="m-px" data-quote-lane="regular"><b className="num">{fmt(lastPx, m && lastPx != null && lastPx < 10 ? 4 : 2)}</b>{isSuspended
             ? <span className="cg quote-suspended">{t("suspended")}</span>
             : <span className={`cg num ${(chgNow ?? 0) >= 0 ? "up" : "down"}`}>{chgStr(chgNow)}</span>}</span>
@@ -6018,6 +6025,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             </span>
           )}
         </span>
+        </button>
         <WatchlistEventsButton variant="symbar" onOpen={() => setEventPlannerOpen(true)} />
       </div>
 

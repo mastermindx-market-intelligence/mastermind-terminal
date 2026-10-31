@@ -227,7 +227,7 @@ type ReadStatus = "loading" | "data" | "absent" | "unavailable";
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export function GexDeskView({ onMapFirstChange }: { onMapFirstChange?: (active: boolean) => void } = {}) {
+export function GexDeskView({ onMapFirstChange, onOpenPlan }: { onMapFirstChange?: (active: boolean) => void; onOpenPlan?: () => void } = {}) {
   const { lang } = useLang();
   const t = makeGexT(lang);
 
@@ -965,6 +965,7 @@ export function GexDeskView({ onMapFirstChange }: { onMapFirstChange?: (active: 
       volReadStatus={researchOpen && !isArchived && rootOk ? researchEod.volStatus : "data"}
       onRetryVol={researchOpen && !isArchived && rootOk ? researchEod.retryVol : undefined}
       lang={lang}
+      onOpenPlan={onOpenPlan}
       onClose={() => { returnFromResearch.current = true; openResearch(false); }} />
   );
 
@@ -1021,7 +1022,7 @@ export function GexDeskView({ onMapFirstChange }: { onMapFirstChange?: (active: 
         <ExposureMap root={ticker} onView={chooseView} onResearch={() => openResearch(true)} onOpenRoot={(root) => { setInputVal(root); setTicker(root); }} source={isArchived ? (archivedError || archivedMissing ? null : activePayload) : (liveStatus !== "data" || stream.status === "absent" || stream.status === "unavailable" ? null : activePayload)} matrix={isArchived || matrixStatus !== "data" ? null : visibleMatrix}
           sourceStatus={isArchived ? (archivedError ? "unavailable" : archivedMissing ? "absent" : activePayload ? "data" : "loading") : stream.status === "absent" || stream.status === "unavailable" ? stream.status : liveStatus}
           onRetry={() => { if (isArchived) loadSession(sessionDate); else { flowInvalidate(`gex:${ticker}`); stream.retry(); } }}
-          stale={!isArchived && stream.stale} archivedSession={sessionDate} onLatest={() => loadSession(null)}
+          stale={!isArchived && stream.stale} archivedSession={sessionDate} onLatest={() => loadSession(null)} onLoadSession={loadSession}
           initialRequest={exposureReturn} origin={sectorOrigin} onOriginStep={stepSectorOrigin}
           historySlot={<GexHistory history={gexPayload?.history} lang={lang} sessionDates={sessionDates} activeSession={sessionDate}
             liveDate={gexSessionOf(gexPayload?.asof)} onLoadSession={loadSession}
