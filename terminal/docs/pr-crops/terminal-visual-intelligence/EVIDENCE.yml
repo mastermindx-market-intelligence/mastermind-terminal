@@ -1,3 +1,4 @@
+# Current scoped launcher boot stability: launcherBootStabilityRecapture20261031 below. Earlier source/report identities remain historical.
 # Current scoped Plan composition: optionsPlanComposition20261024 below. Earlier source/report identities remain historical.
 # Current scoped qualification: optionsSharedShellCompositionRecapture20261024; prior records keep their original identities.
 # Current coherent Options + protected HTML-language capture: optionsLanguageCompositionRecapture20261024 below. Prior records remain historical.
@@ -33,7 +34,7 @@ layoutFiles:
   terminal/lib/indicator-canvas/host.ts: "4f2949efb22b8c378cab1ff9d176466c4857073c14a36ee4f0eeab4ec1015a25"
   terminal/e2e/visual-intelligence.spec.ts: "ecedd0a313b0c46256978696768380a67c30b32097b5f4d2ce829acffeaef633"
   terminal/lib/chart-engine/lwc/index.ts: "b82beb4c9f266c525cb3296ece617e65b601aa6a5239235a87dcc7c8c811ada2"
-  terminal/components/TerminalShell.tsx: "f4685da5953cab5b67ea234d1bdb02e5c05484e60c153718809cbb52be2e22aa"
+  terminal/components/TerminalShell.tsx: "14e4d5e271e54ccf3cbdcfdb7ee4e9bad30703bb85d34d05b4bf65dfec8cb85a"
   terminal/components/ChartPane.tsx: "987d36ca27383e1eab71419f05fc41210e9c1806fd099aa516417b0875bd10c1"
   terminal/components/ChartContextDock.ts: "4029c8c4552fcdcd7973cb57fff0805ea1b068280a3d34db773e6bed27c51ec9"
   terminal/components/ChartContextPlacement.module.css: "62b9c6887f7ce9bd6db81f8339408ed671722d6dee3c713990d3fc8b164e36c0"
@@ -68,12 +69,12 @@ layoutFiles:
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
   terminal/lib/flowActivity.ts: "eb1433e57c7b63a52978aa4e63419e62b3e1a0e0210869f93838a8b7529ce332"
 cropFiles:
-  desktop-context.png: "79c9e63d6a9185265095838ef591bf77c8cc0e901d526ba2065fefc096eaaa32"
-  desktop-context-zh.png: "f8858f21c9684266f16213f9314ee26a0007e0fd2bd712d2e02ba2e6e56cec58"
+  desktop-context.png: "02ccbed74bddc8d2f08aee0a077f708abe546ed53efe4135269f50d0769a6b77"
+  desktop-context-zh.png: "6822ae7ec24e9db23e5b1cf66fb5170e3a95a7dac65ce3e99e29c5d06394d5b1"
   mobile-context.png: "4bb912458a311faed7e779e24dffda3907ce5af4eec95dbc1a9f21ae3978bbe7"
   mobile-context-zh.png: "e405b67dd7664ccbe130e97c455a536b24e7b85ab51af9f96ec135e030608622"
-  tablet-context.png: "876d593ae5cbee00ff1326e661de1739f2a094bf621636d74473093218388234"
-  tablet-context-zh.png: "400ffa72ae0b5a8eb746132ccee9e02bf539a20d9189b210507b10d9e42dcd9e"
+  tablet-context.png: "4980ef7d1881bf573b82c73e65048eb3f6f1298abfddba8c79d8139d81c65b00"
+  tablet-context-zh.png: "5278387301c027e7e3c0ae0c96f0b6a233ef43243208936437d7bdf84855fd5a"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -96,8 +97,8 @@ browserResults:
   visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases
 browserReportPath: browser-report.json
 browserReportHashes:
-  visualReport: "12e731ec8f8f7c706c05a3a66d9a13ba87d0b0980a91a52dd164a6f730422704"
-  mobileCrosshairReport: "12e731ec8f8f7c706c05a3a66d9a13ba87d0b0980a91a52dd164a6f730422704"
+  visualReport: "b427d7b30255982d0d9c319c049070f63daeebe0ac4e171cd65fb0b7f8c92a0c"
+  mobileCrosshairReport: "b427d7b30255982d0d9c319c049070f63daeebe0ac4e171cd65fb0b7f8c92a0c"
 drawingDockRecapture:
   sourceHead: 8a3135bc6eaa307f3d581223e70471df8de49d95
   reason: DrawingSidebar.tsx and TerminalShell.tsx changed so the drawing dock's group button follows the tool the shell actually armed
@@ -699,3 +700,13 @@ labPlanNavigationRecapture20261030:
   qualification: "terminal/docs/verification/lab-plan-handoff-20261030/evidence-lock-recapture.json"
   qualificationSha256: "b34344fad4050563f59223f81056de0415527a98e6bc8047f99a6bfccbdc6be4"
   scope: "Actual scoped browser captures on the navigation candidate. Other surfaces and earlier reports retain their historical identities; no production or full-matrix recapture claim."
+
+launcherBootStabilityRecapture20261031:
+  baseHead: "57ab05517c031d90325ada0a73fc82b604ac2d72"
+  reason: "TerminalShell.tsx reserves the phone roller strip slot and the implied sub-pane height from first paint, so the Intelligence launcher does not move after boot; ChartFrameBar's clock no longer commits React state each second"
+  sourceIdentity: "Actual uncommitted working source; layoutFiles and cropFiles bind the exact bytes"
+  command: "TERMINAL_E2E_PORT=3253 PLAYWRIGHT_JSON_OUTPUT_NAME=docs/pr-crops/terminal-visual-intelligence/browser-report.json npm run test:e2e:responsive -- e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --reporter=list,json"
+  actualBrowserResult: "30 passed; 0 failed, skipped, flaky or retries; full named matrix and same-run mobile crosshair"
+  browserReportSha256: "b427d7b30255982d0d9c319c049070f63daeebe0ac4e171cd65fb0b7f8c92a0c"
+  cropDelta: "Desktop and tablet EN/ZH bytes regenerated on the changed source merged with master; tablet bytes reproduce exactly across two runs; mobile EN/ZH are byte-identical to the prior capture"
+  productionProof: false
