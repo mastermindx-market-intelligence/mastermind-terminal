@@ -1,0 +1,83 @@
+{
+  "sourceHead": "dd84334720f1588b7b9ddd914994e1473d351e0d",
+  "sourceSha256": "d70c9dd892d1a962fd18d97b3ea882d68010f3dd7d346bf808a3310af039eddc",
+  "scope": "Four current OptionsHub crops and six bilingual chart-context captures at three viewports. Existing full30 behavioral report remains historical; unchanged unrelated surfaces reused. Actual source snapshots/report/case/pixels retained in original immutable operations. No production or authenticated proof.",
+  "operations": [
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/r4-tape-pl6-20261031--operation.json",
+      "sha256": "8793836e7f0d58c5d30337a799f80087978653d432c5b734c6d8f9fe623134df",
+      "packet": "pl6",
+      "actualCases": 4,
+      "copies": [
+        {
+          "file": "OptionsHubView-1440.png",
+          "priorSha256": "cba0c8b9437057d47a0c17f49c73eaedd159d41b687386c4daed1bd682fee35a",
+          "sha256": "cba0c8b9437057d47a0c17f49c73eaedd159d41b687386c4daed1bd682fee35a",
+          "key": "pl6:desktop:en:capture OptionsHubView"
+        },
+        {
+          "file": "OptionsHubView-1440-zh.png",
+          "priorSha256": "3cf44b98105635da0e1b4b7926840776cd33b918fe7cef26517b16dfb8310d98",
+          "sha256": "3cf44b98105635da0e1b4b7926840776cd33b918fe7cef26517b16dfb8310d98",
+          "key": "pl6:desktop:zh:capture OptionsHubView"
+        },
+        {
+          "file": "OptionsHubView-390.png",
+          "priorSha256": "7d84f22f6820f3bbc4202a42020d7618d8b780c5317ff0ec6ef6e1abdb1cc21c",
+          "sha256": "7d84f22f6820f3bbc4202a42020d7618d8b780c5317ff0ec6ef6e1abdb1cc21c",
+          "key": "pl6:mobile:en:capture OptionsHubView"
+        },
+        {
+          "file": "OptionsHubView-390-zh.png",
+          "priorSha256": "a3f2d6d48c1d7c4c36d07b01e850453c3f0cb1bec0525981ffafde5065b0dfdd",
+          "sha256": "a3f2d6d48c1d7c4c36d07b01e850453c3f0cb1bec0525981ffafde5065b0dfdd",
+          "key": "pl6:mobile:zh:capture OptionsHubView"
+        }
+      ]
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/r4-tape-vi-20261031--operation.json",
+      "sha256": "a9b28ae09be1167bae997d2e985321543ce598dc6780b00326920e07fab83fda",
+      "packet": "vi",
+      "actualCases": 6,
+      "copies": [
+        {
+          "file": "desktop-context.png",
+          "priorSha256": "79c9e63d6a9185265095838ef591bf77c8cc0e901d526ba2065fefc096eaaa32",
+          "sha256": "031e65d02ac13632616d3629b42ac804f87cc7d6d5d53c0acdf856db331a6573",
+          "key": "vi:desktop:en:default context explains plotted bars, toggles original overlays, and persists choices"
+        },
+        {
+          "file": "desktop-context-zh.png",
+          "priorSha256": "f8858f21c9684266f16213f9314ee26a0007e0fd2bd712d2e02ba2e6e56cec58",
+          "sha256": "6dabbcdb0f3fd32c5e1f227b1bd02b174992c7b60113b57fc1068aaaa694363c",
+          "key": "vi:desktop:zh:Chinese context uses text alongside regional colors and remains keyboard dismissible"
+        },
+        {
+          "file": "tablet-context.png",
+          "priorSha256": "876d593ae5cbee00ff1326e661de1739f2a094bf621636d74473093218388234",
+          "sha256": "4980ef7d1881bf573b82c73e65048eb3f6f1298abfddba8c79d8139d81c65b00",
+          "key": "vi:tablet:en:default context explains plotted bars, toggles original overlays, and persists choices"
+        },
+        {
+          "file": "tablet-context-zh.png",
+          "priorSha256": "400ffa72ae0b5a8eb746132ccee9e02bf539a20d9189b210507b10d9e42dcd9e",
+          "sha256": "5278387301c027e7e3c0ae0c96f0b6a233ef43243208936437d7bdf84855fd5a",
+          "key": "vi:tablet:zh:Chinese context uses text alongside regional colors and remains keyboard dismissible"
+        },
+        {
+          "file": "mobile-context.png",
+          "priorSha256": "4bb912458a311faed7e779e24dffda3907ce5af4eec95dbc1a9f21ae3978bbe7",
+          "sha256": "4bb912458a311faed7e779e24dffda3907ce5af4eec95dbc1a9f21ae3978bbe7",
+          "key": "vi:mobile:en:default context explains plotted bars, toggles original overlays, and persists choices"
+        },
+        {
+          "file": "mobile-context-zh.png",
+          "priorSha256": "e405b67dd7664ccbe130e97c455a536b24e7b85ab51af9f96ec135e030608622",
+          "sha256": "6da1659b586e05f6dbcf0235d684ed7ee39034938ea0090d145f7c53858b96a7",
+          "key": "vi:mobile:zh:Chinese context uses text alongside regional colors and remains keyboard dismissible"
+        }
+      ]
+    }
+  ]
+}
