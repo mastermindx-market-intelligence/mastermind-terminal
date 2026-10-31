@@ -32,6 +32,10 @@ const PROPHET_LEX = {
   mastheadActive:   ["Active plans", "活跃计划"],
   mastheadFocus:    ["In focus", "当前焦点"],
   mastheadUpdated:  ["Model close", "模型收盘"],
+  mastheadSourceThrough: ["Data through", "数据截至"],
+  mastheadSourceUnknown: ["Source date unknown", "来源日期未知"],
+  mastheadSourceDelayed: ["Delayed", "数据延迟"],
+  mastheadSourceMixed: ["Mixed vintages", "数据时点不一致"],
   mastheadMarks:    ["Option marks", "期权报价"],
   mastheadMarksLive:["Live", "实时"],
 
