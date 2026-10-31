@@ -18,6 +18,18 @@
  *
  * No title, teaser, URL or body is stored.
  *
+ * ── Saved evidence basis (Journey 6 / E5) ──────────────────────────────────────────────────────
+ * The pair answers "have I read THIS revision?" and moves on every re-mark. `basis` answers a
+ * different question: "what exactly did I see when I first marked this?" For each marked story it
+ * keeps the report key (`source:source_item_id`), the revision markers of that presentation
+ * (sequence, item_count, editorial view revision), the rights receipt the snapshot carried, and
+ * the source `received_at` — still only references the feed already supplies. A basis is written
+ * ONCE, at the first mark that captures it, and is never overwritten by later marks: the user's
+ * authorship over what they reviewed is the point. `describeSavedDrift` compares a later
+ * presentation against the saved basis (newer revision, fewer/more grouped reports, a re-keyed
+ * report, a different view revision, a different rights receipt); an OLDER presentation is
+ * out-of-order and is never described as an update.
+ *
  * ── Reviewed-through receipt ───────────────────────────────────────────────────────────────────
  * `through` records the newest record of a presented page at the moment EVERY presented story in it
  * was read. Its time is the source's `received_at` for that record — never the local clock — and
@@ -31,7 +43,7 @@
  * There is no guest → account adoption: an account reads only its own slot.
  */
 
-import type { TickerNewsStoryRow } from "@/lib/newsTypes";
+import type { TickerNewsRightsBasis, TickerNewsStoryRow } from "@/lib/newsTypes";
 import {
   isPlainObject, readOwnerSlot, writeOwnerSlot, type StoragePort,
 } from "@/lib/ownerStorage";
@@ -51,9 +63,26 @@ export type ReviewReceipt = {
   at: string;
 };
 
+/** The evidence basis of one mark, exactly as the story was presented then. No content fields. */
+export type SavedBasis = {
+  /** `${source}:${source_item_id}` — which report the mark referred to. */
+  report_key: string;
+  sequence: number;
+  item_count: number;
+  /** `row.editorial_view?.revision ?? null` — the view the mark was made under. */
+  view_revision: string | null;
+  /** The snapshot's rights_basis as seen, copied field-by-field; null when absent. */
+  rights: TickerNewsRightsBasis | null;
+  /** `row.received_at` — a source timestamp, same convention as `ReviewReceipt.at`. */
+  at: string;
+};
+
 export type TickerReview = {
   stories: Record<string, ReviewedRevision>;
   through: ReviewReceipt | null;
+  /** Journey 6: story_id → the basis captured at the story's FIRST capturing mark. Optional so
+   *  every pre-change envelope parses unchanged. */
+  basis?: Record<string, SavedBasis>;
 };
 
 /** One owner's review state: TICKER → review. */
@@ -66,6 +95,22 @@ export type ReviewClass =
   | { status: "reviewed" }
   | { status: "updated"; change: "revised" }
   | { status: "updated"; change: "more_reports"; added: number };
+
+/** How a later presentation differs from the saved basis. An out-of-order copy has no facets. */
+export type SavedDriftFacet =
+  | "newer_revision"
+  | "fewer_reports"
+  | "more_reports"
+  | "report_rekeyed"
+  | "view_revision"
+  | "rights";
+
+export type SavedDrift = {
+  basis: SavedBasis;
+  facets: SavedDriftFacet[];
+  /** row.sequence < basis.sequence — an older copy is never an update. */
+  out_of_order: boolean;
+};
 
 const isCount = (v: unknown): v is number => typeof v === "number" && Number.isInteger(v) && v >= 0;
 const isSequence = (v: unknown): v is number => typeof v === "number" && Number.isInteger(v) && v > 0;
@@ -91,6 +136,81 @@ export function classifyStory(
   return { status: "updated", change: "revised" };
 }
 
+const reportKeyOf = (row: Pick<TickerNewsStoryRow, "source" | "source_item_id">): string =>
+  `${row.source}:${row.source_item_id}`;
+
+/**
+ * Describe how a presented row differs from the basis saved at the story's first capturing mark.
+ * Null when no basis was saved. An OLDER sequence is out-of-order (a stale copy, not a change the
+ * user has not read) and carries no facets. Nothing is inferred from `story_id` beyond lookup.
+ */
+export function describeSavedDrift(
+  review: TickerReview | undefined,
+  row: Pick<
+    TickerNewsStoryRow,
+    "story_id" | "source" | "source_item_id" | "sequence" | "item_count" | "editorial_view"
+  >,
+  current?: { rights?: TickerNewsRightsBasis | null },
+): SavedDrift | null {
+  const basis = review?.basis?.[row.story_id];
+  if (!basis) return null;
+  if (row.sequence < basis.sequence) return { basis, facets: [], out_of_order: true };
+  const facets: SavedDriftFacet[] = [];
+  if (row.sequence > basis.sequence) facets.push("newer_revision");
+  if (row.item_count < basis.item_count) facets.push("fewer_reports");
+  if (row.item_count > basis.item_count) facets.push("more_reports");
+  if (reportKeyOf(row) !== basis.report_key) facets.push("report_rekeyed");
+  const viewRevision = row.editorial_view?.revision ?? null;
+  if (viewRevision !== null && basis.view_revision !== null && viewRevision !== basis.view_revision) {
+    facets.push("view_revision");
+  }
+  const receiptId = current?.rights?.receipt_id ?? null;
+  if (receiptId !== null && basis.rights !== null && receiptId !== basis.rights.receipt_id) {
+    facets.push("rights");
+  }
+  return { basis, facets, out_of_order: false };
+}
+
+const isFeedText = (v: unknown, max: number): v is string =>
+  typeof v === "string" && v.length > 0 && v.length <= max;
+const isSourceTime = (v: unknown): v is string =>
+  typeof v === "string" && Number.isFinite(Date.parse(v));
+
+/** Tolerant parse of one saved basis; anything malformed is dropped, never repaired by guessing. */
+function parseSavedBasis(value: unknown): SavedBasis | null {
+  if (!isPlainObject(value)) return null;
+  if (!isFeedText(value.report_key, 385)) return null; // 128 source + ':' + 256 item id
+  if (!isSequence(value.sequence) || !isCount(value.item_count)) return null;
+  const rawView = value.view_revision;
+  if (rawView !== undefined && rawView !== null && typeof rawView !== "string") return null;
+  const viewRevision = typeof rawView === "string" ? rawView : null;
+  if (viewRevision !== null && !isFeedText(viewRevision, 1024)) return null;
+  if (!isSourceTime(value.at)) return null;
+  let rights: TickerNewsRightsBasis | null = null;
+  const rawRights = value.rights;
+  if (rawRights !== null && rawRights !== undefined) {
+    if (!isPlainObject(rawRights)) return null;
+    if (!isFeedText(rawRights.receipt_id, 256) || !isFeedText(rawRights.source, 128)
+        || !isFeedText(rawRights.provider, 128)
+        || !isSourceTime(rawRights.effective_at) || !isSourceTime(rawRights.expires_at)) return null;
+    rights = {
+      receipt_id: rawRights.receipt_id,
+      source: rawRights.source,
+      provider: rawRights.provider,
+      effective_at: rawRights.effective_at,
+      expires_at: rawRights.expires_at,
+    };
+  }
+  return {
+    report_key: value.report_key,
+    sequence: value.sequence,
+    item_count: value.item_count,
+    view_revision: viewRevision,
+    rights,
+    at: value.at,
+  };
+}
+
 function parseTickerReview(value: unknown): TickerReview | null {
   if (!isPlainObject(value) || !isPlainObject(value.stories)) return null;
   const stories: Record<string, ReviewedRevision> = {};
@@ -106,7 +226,17 @@ function parseTickerReview(value: unknown): TickerReview | null {
     through = { sequence: raw.sequence, at: raw.at };
   }
   if (!Object.keys(stories).length) return null;
-  return { stories, through };
+  // Bases exist only for kept stories; malformed entries and orphans are dropped silently.
+  const basis: Record<string, SavedBasis> = {};
+  if (isPlainObject(value.basis)) {
+    for (const [id, entry] of Object.entries(value.basis)) {
+      if (!STORY_ID_RE.test(id) || !stories[id]) continue;
+      const parsed = parseSavedBasis(entry);
+      if (parsed) basis[id] = parsed;
+    }
+  }
+  if (!Object.keys(basis).length) return { stories, through };
+  return { stories, through, basis };
 }
 
 /** Tolerant parse of one owner's slot: malformed entries are dropped, never repaired by guessing. */
@@ -135,7 +265,13 @@ export function pruneOwnerReview(value: OwnerNewsReview): OwnerNewsReview {
     const kept = entries.length > MAX_REVIEW_STORIES_PER_TICKER
       ? entries.sort((a, b) => b[1][0] - a[1][0]).slice(0, MAX_REVIEW_STORIES_PER_TICKER)
       : entries;
-    out[ticker] = { stories: Object.fromEntries(kept), through: review.through };
+    // Prune bases to the same key set as the kept stories.
+    const basis = review.basis
+      ? Object.fromEntries(kept.filter(([id]) => review.basis?.[id]).map(([id]) => [id, review.basis![id]]))
+      : undefined;
+    out[ticker] = basis && Object.keys(basis).length
+      ? { stories: Object.fromEntries(kept), through: review.through, basis }
+      : { stories: Object.fromEntries(kept), through: review.through };
   }
   return out;
 }
@@ -156,12 +292,17 @@ export function writeOwnerReview(storage: StoragePort, owner: string, value: Own
  * `presented` must be the rows the panel actually rendered from a successful load. An id in
  * `storyIds` that is not in `presented` is ignored, so a caller cannot mark an unseen story.
  * Returns the same object when nothing changed (so callers can skip a write).
+ *
+ * `context` (the panel always supplies it) also captures each target's evidence basis: written
+ * once at the first capturing mark and never overwritten by later marks, whatever they see.
+ * Without `context` the legacy envelope shape is produced exactly as before.
  */
 export function markStoriesReviewed(
   current: OwnerNewsReview,
   ticker: string,
   presented: readonly TickerNewsStoryRow[],
   storyIds: readonly string[],
+  context?: { rights?: TickerNewsRightsBasis | null },
 ): OwnerNewsReview {
   const key = ticker.toUpperCase();
   const wanted = new Set(storyIds);
@@ -180,6 +321,34 @@ export function markStoriesReviewed(
     }
   }
 
+  // Authorship (Journey 6): capture the basis as seen at the FIRST capturing mark; a basis that
+  // already exists is left byte-identical, and capturing one counts as a change on its own.
+  const priorBasis = prior?.basis;
+  let basis: Record<string, SavedBasis> | undefined = priorBasis ? { ...priorBasis } : undefined;
+  if (context) {
+    for (const row of targets) {
+      if (basis?.[row.story_id]) continue;
+      const captured: SavedBasis = {
+        report_key: reportKeyOf(row),
+        sequence: row.sequence,
+        item_count: row.item_count,
+        view_revision: row.editorial_view?.revision ?? null,
+        rights: context.rights
+          ? {
+              receipt_id: context.rights.receipt_id,
+              source: context.rights.source,
+              provider: context.rights.provider,
+              effective_at: context.rights.effective_at,
+              expires_at: context.rights.expires_at,
+            }
+          : null,
+        at: row.received_at,
+      };
+      (basis ??= {})[row.story_id] = captured;
+      changed = true;
+    }
+  }
+
   let through = prior?.through ?? null;
   const pageFullyRead = presented.length > 0
     && presented.every((row) => classifyStory({ stories, through }, row).status === "reviewed");
@@ -192,6 +361,9 @@ export function markStoriesReviewed(
   }
 
   if (!changed) return current;
+  if (basis && Object.keys(basis).length) {
+    return { ...current, [key]: { stories, through, basis } };
+  }
   return { ...current, [key]: { stories, through } };
 }
 
