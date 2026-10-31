@@ -420,7 +420,7 @@ Complete October24 census of 169 open PRs (including all file pages and changed 
 ### 0046 — Source-only exact-attempt frozen enrollment
 
 Follows immutable0045. **UNAPPLIED**: application is false and date is null.
-Existing draft1182 retains the0046 reservation. The atomic package embeds the
+Existing draft1182 retains the0046 reservation. [PR #1182](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1182) source merged as `b1ba8e7c21e8864a0f11f87c4ae6aaab7bb54133` at **2026-10-31T06:31:38Z**; this merge records no application date. The atomic package embeds the
 accepted intent-revision unit unchanged, then installs the exact-attempt protocol.
 Final schema has ONLY the seven-argument existing arm name; both old five/six-
 argument initial-arm bypasses are absent. Initial-only rearm fails closed; existing
