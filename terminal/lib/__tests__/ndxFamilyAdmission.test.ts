@@ -73,36 +73,56 @@ describe("NDX+NDXP family source-admission boundary", () => {
     expect(isUnadmittedGexFamilyArtifact("gex:SPX", ordinary("SPX"))).toBe(false);
     expect(isUnadmittedGexFamilyArtifact("gex:NDX", [candidate()])).toBe(true);
     expect(isUnadmittedGexFamilyArtifact("gex:SPY", [])).toBe(true);
-    expect(isUnadmittedGexFamilyArtifact("gex_dates:NDX", candidate())).toBe(false);
+    expect(isUnadmittedGexFamilyArtifact("gexstate:NDX", candidate())).toBe(true);
+    expect(isUnadmittedGexFamilyArtifact("gexstate_index", candidate())).toBe(true);
+    expect(isUnadmittedGexFamilyArtifact("gex_dates:NDX", candidate())).toBe(true);
+    expect(isUnadmittedGexFamilyArtifact("gex_dates:NDX", ["2026-10-22", "2026-10-23"])).toBe(false);
+    expect(isUnadmittedGexFamilyArtifact("gex_dates:NDX", [{ family_source: null }])).toBe(true);
+    expect(isUnadmittedGexFamilyArtifact("gexstate_index", [{root:"NDX"}, {root:"NDXP"}])).toBe(false);
+    expect(isUnadmittedGexFamilyArtifact("gexstate:SPY", ordinary())).toBe(false);
     expect(isUnadmittedGexFamilyArtifact("vol:NDX", candidate())).toBe(false);
   });
 
   it("refuses a backend family candidate before R2 could substitute a valid-looking NDX body", async () => {
     const fetchMock = upstreams(candidate(), ordinary("NDX"));
-    expect(await tryFetchUpstreamResult("gex:NDX")).toEqual({ status: "unavailable" });
+    expect(await tryFetchUpstreamResult("gex:NDX")).toEqual({ status: "unavailable", refusal: "unadmitted_gex_family" });
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   it("refuses the R2 family candidate after backend miss; no acquired bytes identity escapes", async () => {
     const fetchMock = upstreams(503, candidate());
-    expect(await tryFetchUpstreamResult("gex:NDX")).toEqual({ status: "unavailable" });
+    expect(await tryFetchUpstreamResult("gex:NDX")).toEqual({ status: "unavailable", refusal: "unadmitted_gex_family" });
     expect(fetchMock).toHaveBeenCalledTimes(2);
     expect(await tryFetchUpstream("gex:NDX")).toBeNull();
   });
 
   it("refuses dated GEX and a wrong-root family marker, without proven absence", async () => {
     upstreams(candidate(), 404);
-    expect(await tryFetchUpstreamResult("gex_at:NDX:" + session)).toEqual({ status: "unavailable" });
+    expect(await tryFetchUpstreamResult("gex_at:NDX:" + session)).toEqual({ status: "unavailable", refusal: "unadmitted_gex_family" });
     upstreams(candidate({ root: "QQQ" }), ordinary("NDX"));
-    expect(await tryFetchUpstreamResult("gex:NDX")).toEqual({ status: "unavailable" });
+    expect(await tryFetchUpstreamResult("gex:NDX")).toEqual({ status: "unavailable", refusal: "unadmitted_gex_family" });
+  });
+
+  it("refuses state and index family markers before any GEX read becomes data", async () => {
+    const body = candidate({ net_gex_bn: 1.5 });
+    for (const f of ["gexstate:NDX", "gexstate_index", "gex_dates:NDX"]) {
+      const fetchMock = upstreams(body, ordinary("NDX"));
+      expect(await tryFetchUpstreamResult(f)).toEqual({
+        status: "unavailable", refusal: "unadmitted_gex_family",
+      });
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(await loadFlowFreshResult(f)).toEqual({
+        status: "unavailable", refusal: "unadmitted_gex_family",
+      });
+    }
   });
 
   it("refuses array-wrapped GEX family payloads through both backend and R2", async () => {
     let fetchMock = upstreams([candidate()], ordinary("NDX"));
-    expect(await tryFetchUpstreamResult("gex:NDX")).toEqual({ status: "unavailable" });
+    expect(await tryFetchUpstreamResult("gex:NDX")).toEqual({ status: "unavailable", refusal: "unadmitted_gex_family" });
     expect(fetchMock).toHaveBeenCalledTimes(1);
     fetchMock = upstreams(503, [candidate()]);
-    expect(await tryFetchUpstreamResult("gex:NDX")).toEqual({ status: "unavailable" });
+    expect(await tryFetchUpstreamResult("gex:NDX")).toEqual({ status: "unavailable", refusal: "unadmitted_gex_family" });
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
@@ -124,7 +144,7 @@ describe("NDX+NDXP family source-admission boundary", () => {
 
   it("feeds the shared stream source only unavailable, never a data object", async () => {
     upstreams(candidate(), ordinary("NDX"));
-    expect(await loadFlowFreshResult("gex:NDX")).toEqual({ status: "unavailable" });
+    expect(await loadFlowFreshResult("gex:NDX")).toEqual({ status: "unavailable", refusal: "unadmitted_gex_family" });
   });
 });
 
@@ -162,6 +182,45 @@ describe("real /api/flow GET admission", () => {
       expect(await res.json()).toEqual({ error: "feed unavailable" });
     }
     expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("stops stale NDX GEX SWR after the upstream changes to an offline family", async () => {
+    let clock = 1_800_000_000_000;
+    vi.spyOn(Date, "now").mockImplementation(() => clock);
+    const fetchMock = upstreams(ordinary("NDX"), 404);
+    const handler = await get();
+    expect((await handler(request("gex:NDX"))).status).toBe(200);
+    clock += 31_000;
+    upstreams(candidate(), ordinary("NDX"));
+    for (let i = 0; i < 3; i++) {
+      const result = await handler(request("gex:NDX"));
+      expect(result.status).toBe(503);
+      expect(result.headers.get("cache-control")).toBe("no-store");
+      expect(await result.json()).toEqual({ error: "feed unavailable" });
+      clock += 31_000;
+    }
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("preserves stale single-root GEX during a transient outage, not a family refusal", async () => {
+    let clock = 1_800_000_100_000;
+    vi.spyOn(Date, "now").mockImplementation(() => clock);
+    upstreams(ordinary("SPY"), 404);
+    const handler = await get();
+    expect((await handler(request("gex:SPY"))).status).toBe(200);
+    clock += 31_000;
+    upstreams(503, 503);
+    const stale = await handler(request("gex:SPY"));
+    expect(stale.status).toBe(200);
+    expect((await stale.json()).stale).toBe(true);
+  });
+
+  it("returns 503 at real GET for a family-marked GEX state key", async () => {
+    const fetchMock = upstreams(candidate({net_gex_bn:1.5}), ordinary("NDX"));
+    const result = await (await get())(request("gexstate:NDX"));
+    expect(result.status).toBe(503);
+    expect(result.headers.get("cache-control")).toBe("no-store");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   it("preserves a real standard SPY root's HTTP 200 and value", async () => {

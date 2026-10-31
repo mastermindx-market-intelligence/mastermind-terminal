@@ -7,11 +7,10 @@ import {
   isValidF,
   fixtureFor,
   attachFlowScores,
-  tryFetchUpstream,
   tryFetchUpstreamResult,
 } from "@/lib/flowSource";
 import { fetchOptionsAlphaCandidatePair } from "@/lib/optionsAlphaCandidatePair";
-import { isUnadmittedGexFamilyArtifact } from "@/lib/ndxFamilyAdmission";
+import { isGexFamilyFeed, isUnadmittedGexFamilyArtifact } from "@/lib/ndxFamilyAdmission";
 
 // Bare-minimum in-memory cache so concurrent renders share one fetch.
 type CacheEntry = { data: Record<string, unknown>; ts: number };
@@ -20,23 +19,32 @@ const TTL_MS = 30_000;
 
 // Inflight dedup: a single background revalidation promise per cache key.
 // Without this, N concurrent stale requests each fire a separate upstream fetch.
-const INFLIGHT: Record<string, Promise<Record<string, unknown> | null> | undefined> = {};
+// Preserve the classified refusal on this one existing in-flight owner. Null
+// from tryFetchUpstream() previously hid "unadmitted family" behind an outage,
+// allowing SWR to replay a stale NDX body indefinitely.
+type Revalidation = Awaited<ReturnType<typeof tryFetchUpstreamResult>>;
+const INFLIGHT: Record<string, Promise<Revalidation> | undefined> = {};
 
-function revalidateFlow(f: string): Promise<Record<string, unknown> | null> {
+function revalidateFlow(f: string): Promise<Revalidation> {
   if (INFLIGHT[f]) return INFLIGHT[f];
-  // The same in-flight owner serves ordinary SWR and explicit Leaders refresh,
-  // so two users cannot create competing source-check workers for one key.
-  const request = tryFetchUpstream(f).then(
-    (data) => {
-      // Defense in depth: revalidation can never repopulate cached GEX family data,
-      // even when a future source path bypasses the generic loader.
-      if (data && !isUnadmittedGexFamilyArtifact(f, data)) {
-        attachFlowScores(f, data);
-        CACHE[f] = { data, ts: Date.now() };
+  const request: Promise<Revalidation> = tryFetchUpstreamResult(f).then(
+    (outcome): Revalidation => {
+      if (outcome.status === "data" && !isUnadmittedGexFamilyArtifact(f, outcome.data)) {
+        attachFlowScores(f, outcome.data);
+        CACHE[f] = { data: outcome.data, ts: Date.now() };
+        return outcome;
       }
-      return data;
+      // An inadmissible family is neither a transient outage nor an ordinary
+      // absent object: evict the prior single-root book and refuse stale replay.
+      if ((outcome.status === "unavailable" && outcome.refusal === "unadmitted_gex_family") ||
+          (outcome.status === "data" && isUnadmittedGexFamilyArtifact(f, outcome.data))) {
+        delete CACHE[f];
+        return { status: "unavailable", refusal: "unadmitted_gex_family" };
+      }
+      // Ordinary transport outages preserve the original SWR fallback semantics.
+      return outcome;
     },
-    () => null,
+    (): Revalidation => ({ status: "unavailable" }),
   ).finally(() => {
     if (INFLIGHT[f] === request) delete INFLIGHT[f];
   });
@@ -123,8 +131,8 @@ export async function GET(req: Request): Promise<Response> {
   if (f === "leaders" && url.searchParams.get("refresh") === "1") {
     const previous = CACHE[f];
     const refreshed = await revalidateFlow(f);
-    if (refreshed) {
-      return NextResponse.json(refreshed, { headers: { "Cache-Control": "no-store" } });
+    if (refreshed.status === "data") {
+      return NextResponse.json(refreshed.data, { headers: { "Cache-Control": "no-store" } });
     }
     if (previous) {
       return NextResponse.json({ ...previous.data, stale: true }, {
@@ -185,14 +193,22 @@ export async function GET(req: Request): Promise<Response> {
 
   const stale = { ...cached.data, stale: true };
   const refresh = revalidateFlow(f);
-  // Leaders is a nightly-derived source with a source-session admission gate.
-  // The generic background SWR response reports stale:true immediately, even if
-  // the new Macro artifact is already current. Wait for this one coalesced check
-  // so an explicit Leaders refresh actually consumes the newly published source.
-  // On upstream failure the historical cached snapshot stays explicitly stale.
-  if (f === "leaders") {
+  // GEX reads cannot return a previously measured live book after the upstream
+  // explicitly rejects it as an unadmitted settlement-root family. Await the
+  // SAME coalesced refresh before answering; ordinary outages still serve stale.
+  // Leaders retains its historical wait-for-refresh behavior.
+  if (f === "leaders" || isGexFamilyFeed(f)) {
     const refreshed = await refresh;
-    return NextResponse.json(refreshed ?? stale, { headers: { "Cache-Control": "no-store" } });
+    if (isGexFamilyFeed(f) && refreshed.status === "unavailable" &&
+        refreshed.refusal === "unadmitted_gex_family") {
+      delete CACHE[f];
+      return NextResponse.json({ error: "feed unavailable" }, {
+        status: 503, headers: { "Cache-Control": "no-store" },
+      });
+    }
+    return NextResponse.json(refreshed.status === "data" ? refreshed.data : stale, {
+      headers: { "Cache-Control": "no-store" },
+    });
   }
   return NextResponse.json(stale, { headers: { "Cache-Control": "no-store" } });
 }

@@ -378,7 +378,7 @@ async function fetchWithUA(url: string): Promise<Record<string, unknown>> {
 export type UpstreamOutcome =
   | { status: "data"; data: Record<string, unknown> }
   | { status: "absent" }
-  | { status: "unavailable" };
+  | { status: "unavailable"; refusal?: "unadmitted_gex_family" };
 
 /** One classified upstream read — the same timeout, UA and no-store policy as fetchWithUA. */
 async function readUpstream(url: string, producerKey?: string): Promise<UpstreamOutcome> {
@@ -1252,7 +1252,11 @@ async function readGenericUpstream(f: string): Promise<UpstreamOutcome> {
     if (read.status === "data") {
       // One observed but unqualified family candidate makes the source UNAVAILABLE.
       // Never fall back to another object that can launder the same root identity.
-      if (isUnadmittedGexFamilyArtifact(f, read.data)) return { status: "unavailable" };
+      if (isUnadmittedGexFamilyArtifact(f, read.data)) {
+        // Internal provenance for cache/SSE invalidation: source refusal is
+        // different from a transient outage, which can preserve stale data.
+        return { status: "unavailable", refusal: "unadmitted_gex_family" };
+      }
       return read;
     }
     if (source === "r2") {
@@ -1281,7 +1285,7 @@ export async function loadFlowFreshResult(f: string): Promise<UpstreamOutcome> {
   if (process.env.FLOW_FIXTURE === "1") {
     try {
       const data = await fixtureFor(f);
-      if (isUnadmittedGexFamilyArtifact(f, data)) return { status: "unavailable" };
+      if (isUnadmittedGexFamilyArtifact(f, data)) return { status: "unavailable", refusal: "unadmitted_gex_family" };
       attachFlowScores(f, data);
       return { status: "data", data };
     } catch {

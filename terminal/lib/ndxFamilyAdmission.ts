@@ -12,11 +12,21 @@
  * malformed/unknown versions and roots other than NDX. Ordinary single-root
  * GEX payloads without the marker retain their existing behavior.
  */
+/** The existing Flow keys that carry a GEX ladder, positioning state, or GEX index. */
+export function isGexFamilyFeed(f: string): boolean {
+  return f.startsWith("gex:") || f.startsWith("gex_at:") ||
+    f.startsWith("gexstate:") || f === "gexstate_index" || f.startsWith("gex_dates:");
+}
+
 export function isUnadmittedGexFamilyArtifact(f: string, payload: unknown): boolean {
-  if (!(f.startsWith("gex:") || f.startsWith("gex_at:"))) return false;
-  // Any array on a GEX key is off-contract. An array-wrapped family_source
-  // must not be served as HTTP 200 or admitted into the shared Flow cache.
-  if (Array.isArray(payload)) return true;
+  if (!isGexFamilyFeed(f)) return false;
+  if (Array.isArray(payload)) {
+    // Ladder and state documents are objects. Keep existing date-index arrays
+    // (strings/normal sessions) working, but reject a marked object inside one.
+    if (!(f.startsWith("gex_dates:") || f === "gexstate_index")) return true;
+    return payload.some((item) => item !== null && typeof item === "object" &&
+      Object.prototype.hasOwnProperty.call(item, "family_source"));
+  }
   if (!payload || typeof payload !== "object") return false;
   return Object.prototype.hasOwnProperty.call(payload, "family_source");
 }
