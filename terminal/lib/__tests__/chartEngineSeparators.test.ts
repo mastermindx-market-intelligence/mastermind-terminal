@@ -275,7 +275,9 @@ describe("canvas engine pane separators", () => {
     const hs = handles();
     expect(hs.map((h) => h.dataset.mmSeparator)).toEqual(["0", "1"]);
     expect(hs.map((h) => h.style.top)).toEqual(["96px", "196px"]);
-    expect(hs.every((h) => h.style.height === "9px" && h.style.zIndex === "50")).toBe(true);
+    // z 3: above the overlay canvas (z 2) and below the host's chart-wrap chrome (.ctx-menu is z 8).
+    expect(hs.every((h) => h.style.height === "9px" && h.style.zIndex === "3")).toBe(true);
+    expect(hs.every((h) => Number(h.style.zIndex) > Number(overlay.style.zIndex) && Number(h.style.zIndex) < 6)).toBe(true);
     expect(root.lastElementChild).toBe(overlay);
     for (const h of hs) {
       expect(h.parentElement).toBe(root);
