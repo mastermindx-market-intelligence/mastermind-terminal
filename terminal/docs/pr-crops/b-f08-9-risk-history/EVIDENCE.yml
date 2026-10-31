@@ -1,16 +1,10 @@
 # B-F08-9 Historical risk of today's book — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 7dc811d87d9a3402accadd86c95d695213313aad
-# capturedAt: 2026-09-13T15:04:19.998Z
+# capturedAtHead: 59fc7ca283e40ec9ea9a224e9ee912753f788f98
+# capturedAt: 2026-10-10T01:30:34.746Z
 # capturedAtHead is informational. The lock is layoutFiles.
-# Heal round (META-CEO B, packet T_F08_9, 2026-09-13): the only code commit after
-# capturedAtHead touched terminal/app/api/portfolio/risk-history/route.ts (how a holding the
-# fan-out cap never requested is typed). That file is not a layoutFile, and no rendered
-# sentence or layout changed, so these twelve pixels still depict the head and the
-# layoutFiles sha256 lock below still holds against the files on disk.
-# 2026-09-19 seat merge of master 1c46b277 into #584 (B-F12-13): hash-only restamp of terminal/components/PortfolioView.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit.
-# 2026-10-04 F08 page-side readback fence (macro#6819 5979873599): hash-only restamp of terminal/components/PortfolioView.tsx to the new bytes — logic-only edit (one page mutation chain for position AND target writes; newest-read-wins in reload()); no JSX, class, string or CSS change, so no crop can differ; crops NOT recaptured (the 2026-09-19 precedent above); capturedAtHead untouched.
+# 2026-10-10 recapture: all 12 crops recaptured at the head above by e2e/tools/capture_b_f08_9_risk_history.cjs, run unmodified, and pixel-diffed against the 2026-09-13 crops: all 12 are byte-identical, so the 2026-09-19 and 2026-10-04 hash-only restamps of PortfolioView.tsx did not hide a pixel change. Supersedes the heal-round, 2026-09-19 and 2026-10-04 notes.
 layoutFiles:
   terminal/components/PortfolioView.tsx: "4a08c45bdd7a9867a10ba4102cd358f02f4ffdf4d1013a951dc6b892ed102d90"
   terminal/lib/portfolioRiskHistory.ts: "1f260800522bc61e54c4cd8731b95583aedc3dbd7214ccd5c66e6a3e5498f871"
