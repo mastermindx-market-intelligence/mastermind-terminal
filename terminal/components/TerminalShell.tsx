@@ -32,6 +32,7 @@ import ChartConductor from "@/components/ChartConductor";
 import { intradayCapable } from "@/components/ChartPanel";
 import { classify, SECOND_TFS, isSecondTf, isIntradayTf } from "@/lib/intradaySources";
 import { isMacroSymbol } from "@/lib/macroSymbols";
+import SovereignAuctionContext from "@/components/SovereignAuctionContext";
 import { freshnessLabel } from "@/lib/feedFreshness";
 import { boatsLatestTradeLabel } from "@/lib/extQuoteCopy";
 import { isExtQuoteCurrent, isPublicBoatsQuote, extQuotePollMs, type ExtProvenance } from "@/lib/extQuoteFreshness";
@@ -7079,6 +7080,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                 <button className="btn btn-primary" style={{ width: "100%", height: 38 }} onClick={() => setPaneOpen("overview")}>{t("openFullAnalysis")}</button>
                 <button className="btn btn-ghost" style={{ width: "100%", height: 36 }} onClick={() => openBrainReincluding(setBrainIncluded, () => (window as any).MMBrain?.open())}>{t("askAIabout")} {active} →</button>
               </div>
+              <div style={{ padding: 12, minWidth: 0 }}><SovereignAuctionContext /></div>
             </div>
           </div>
         </div>

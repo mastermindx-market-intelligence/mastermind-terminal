@@ -1,0 +1,31 @@
+{
+  "persisted_at": "2026-10-08T23:46:11.468925+00:00",
+  "source_output": "/tmp/sovereign-auction-terminal-ui-proof-02",
+  "complete_receipts": [
+    "browser_results.json",
+    "execution_receipt.json",
+    "runner.log",
+    "SCREENSHOT_MANIFEST.json"
+  ],
+  "retained_screenshots": [
+    {
+      "name": "desktop-en-dark-shared-fixture.png",
+      "sha256": "e3ce39342ee2ca5bd816e5751aec3f93b62056c663a7252486e5acb7e6ff788a"
+    },
+    {
+      "name": "tablet-zh-dark-shared-fixture.png",
+      "sha256": "8c6ab1904e57ef62ee9299992d8fb2aa1b205c41fd24bc87dbdf99520edbfd5a"
+    },
+    {
+      "name": "mobile-zh-dark-bill-amount-deadline.png",
+      "sha256": "1aaf7324803215fd38f745246b66ed78437d99ea138d48ba72764eda54799523"
+    },
+    {
+      "name": "mobile-en-source-degraded.png",
+      "sha256": "e19571c571a7d11af0f2565e42804857602f2db9ca6289d99074f86aa93e5830"
+    }
+  ],
+  "unretained_screenshots": "All screenshot hashes are retained in SCREENSHOT_MANIFEST.json; representative PNGs are persisted. Other reproduction output remains transient.",
+  "visual_review": "Root inspected final desktop EN and mobile ZH; prior tablet EN/ZH containment and both theme variants inspected across final browser metrics.",
+  "scope": "Isolated fixture-based actual-page browser proof; not production auth, CSP, deployment or predictive validity."
+}
