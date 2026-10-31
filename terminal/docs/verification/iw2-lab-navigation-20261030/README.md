@@ -1,0 +1,27 @@
+# IW2 composition of navigation-only Lab1183
+
+Runtime source `d976fa504e024ec4912edcb8a3ab5908ac71edde` is the exact Terminal1183 navigation commit `284f09f748e6a7107ceffe0a0c54fc1e0af14fc9` cherry-picked onto accepted IW2 `fff451a1fff1d4c5d2246f30b59eceb66dc00666`. The product source is unchanged after that cherry-pick. This is Draft source composition, not release acceptance.
+
+Canonical incoming disposition: https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1151#issuecomment-6525446677 . Lab retains its original1183 hosted-CI continuation. No replacement observer or original61394 operation was started.
+
+## Composed behavior
+
+The existing admitted Screener supplies a zero-argument navigation callback through GexDesk and the existing `AdmittedOptionsResearchLab`. The wrapper's verified entitlement/owner boundary remains unchanged and forwards the optional callback through its existing props spread. Scenario navigation selects the DOI list and clears list filters; it does not transfer Matrix coordinates into contract snapshots or create assumptions, valuation or persistence.
+
+Actual local signed-SDK browser cases on desktop1440x900, tablet820x1180 and mobile390x844 passed: select a Matrix785 cell, navigate to the exact shortlist, explicitly pin the distinct765 DOI contract, open a working Plan, edit assumptions, leave and return. Exact pins survive while the working draft is retired and must be explicitly reopened with blank assumptions. The existing native saved-research entry requires explicit New and Add; navigation alone performs neither. After an explicit local Add, a signed account-B event retires the old Plan/native draft. No valuation, Save, owner/auth write or model-command request occurs. Synthetic SDK identity and fulfilled transport responses do not establish provider login, production rights or database persistence.
+
+The original Lab EN-dark handoff also passes all three viewports. Its assertion now checks for no invented Plan rather than an absent outer container: IW2 intentionally keeps its native saved-research entry mounted with no pins. Initial3 composed browser failures from that incompatible harness assumption are retained in local raw evidence; no product workaround was added. The three current viewport screenshots were visually reviewed as bounded New/Add states, not full-page accessibility or complete desktop-form coverage.
+
+## Affected checks and retained proof
+
+- 73 affected mounted/pure unit cases pass across six suites: Lab adapter/view/admission, Plan scope/host and native Investigation composition. Existing auth/owner/epoch and Add/Save/reopen checks are retained unchanged.
+- TypeScript passes after normal type generation. The two owned browser files lint clean. Incoming product source adds zero lint diagnostics againstfff: OptionsHub29 inherited, GexDesk2 inherited, Lab0.
+- Six actual composition/navigation browser cases pass with workers1/retries0. The incoming Lab34/12 bilingual/theme proof remains attributed to its original source; it is reused, not counted as a new run here. Earlier whole-Plan explicit Save/exact reopen proof remains unchanged and source-qualified.
+- Four current raw-source evidence packets genuinely depend on the changed host files. Their original recipes ran atd976: batch1 actual24 (20identical/4changed), GEXfailure114 (102identical/12changed), EODfailure126 (114identical/12changed), and original VI30 producing6images (1identical/5changed). Total270fresh=237identicalreuse+33changedreviewed. Six older screener PNGs co-located in batch1 are retained, not counted fresh. Original recipes, before images, archived manifest identities and unrelated packets remain unchanged.
+- VI30 passes without skips/retries/flaky cases; its exact complete JSON report and six actual PNGs are bound in the existing manifest. All25 affected evidence checks pass unchanged. The initial stale raw-source lock failure is retained. Changed views were compared with prior images; dated-age labels and small raster differences were observed without inventing a rendering root cause or claiming full accessibility.
+
+An original Fabric run `iw2-lab-composed-admission-tests-20261030-r1` returned a proposed additive mounted-test artifact, process0 with missing usage receipt. Its first observation was refused `original_run_observation_unconfirmed`; that action was not retried. The later original controller return was consumed, but artifact export was refused at destination reservation (`destination_outside_approved_evidence_root`). No alternate destination/carrier, recreated patch, Fabric acceptance or additional test PASS is claimed; the artifact was not applied. The locally executed checks above pre-exist or are independently scoped actual browser composition, not that unvalidated patch.
+
+## Held boundary
+
+No second Plan store, retry owner or journal was created. Native Add/Save/reopen and authentication/epoch owner implementations are unchanged. Original release5989604142, exact0030 unapplied/unqualified, T03k refusal/EFFECT_UNKNOWN, all-ingress/drain/fleet, Lab61394 UNKNOWN, native03342a8d and all other frozen carriers remain. No Ready, merge, approval, deployment, SQL, arm, provider call or live Saved/auth effect. Oldfff hosted green is historical; CI for the new composed head is separate. Source, fixture, rendered proof, hosted CI, installation, authenticated consumer behavior and full IW2/scientific acceptance remain distinct.

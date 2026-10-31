@@ -1,0 +1,1581 @@
+{
+  "config": {
+    "argv": [
+      "/opt/homebrew/Cellar/node/26.5.0/bin/node",
+      "/Users/chriswong/mmx-worktrees/claude/53c10d576ba9ec02/iw2-plan-compose-01a104c8-1d1a22040ea88c0a/terminal/node_modules/.bin/playwright",
+      "test",
+      "-c",
+      "playwright.iw2.config.ts"
+    ],
+    "configFile": "/Users/chriswong/mmx-worktrees/claude/53c10d576ba9ec02/iw2-plan-compose-01a104c8-1d1a22040ea88c0a/terminal/playwright.iw2.config.ts",
+    "rootDir": "/Users/chriswong/mmx-worktrees/claude/53c10d576ba9ec02/iw2-plan-compose-01a104c8-1d1a22040ea88c0a/terminal/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": "/Users/chriswong/mmx-worktrees/claude/53c10d576ba9ec02/iw2-plan-compose-01a104c8-1d1a22040ea88c0a/terminal/e2e/globalSetup.ts",
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Users/chriswong/mmx-repos/iw2-merge-browser-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "desktop",
+        "name": "desktop",
+        "testDir": "/Users/chriswong/mmx-worktrees/claude/53c10d576ba9ec02/iw2-plan-compose-01a104c8-1d1a22040ea88c0a/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "/(?:options-plan-save-reopen|visual-intelligence)\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/chriswong/mmx-repos/iw2-merge-browser-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "tablet",
+        "name": "tablet",
+        "testDir": "/Users/chriswong/mmx-worktrees/claude/53c10d576ba9ec02/iw2-plan-compose-01a104c8-1d1a22040ea88c0a/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "/(?:options-plan-save-reopen|visual-intelligence)\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/chriswong/mmx-repos/iw2-merge-browser-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "mobile",
+        "name": "mobile",
+        "testDir": "/Users/chriswong/mmx-worktrees/claude/53c10d576ba9ec02/iw2-plan-compose-01a104c8-1d1a22040ea88c0a/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "/(?:options-plan-save-reopen|visual-intelligence)\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "/Users/chriswong/mmx-repos/iw2-merge-browser-results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.1",
+    "workers": 1,
+    "webServer": {
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 3586",
+      "url": "http://127.0.0.1:3586/options",
+      "reuseExistingServer": false,
+      "timeout": 180000,
+      "env": {
+        "ANALYSIS_LOCAL_PREVIEW": "1",
+        "ADMIN_DEV": "1",
+        "TERMINAL_E2E_FIXTURE": "1",
+        "TERMINAL_E2E_VERIFIED_AUTH": "1",
+        "TERMINAL_E2E_EMAIL": "responsive@example.com",
+        "TERMINAL_E2E_ENTITLEMENT": "unlimited",
+        "INVESTIGATION_API_ADMISSION": "open",
+        "RATE_LIMIT_MAX": "100000",
+        "HUB_REALTIME_QUOTES": "1",
+        "TICKER_NEWS_RAIL": "1",
+        "FLOW_FIXTURE": "1",
+        "NEXT_PUBLIC_SUPABASE_URL": "http://127.0.0.1:3586/api/__e2e__/supabase",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY": "fixture-anon-key"
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "options-plan-save-reopen.spec.ts",
+      "file": "options-plan-save-reopen.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "whole Plan explicit transfer, Save, exact reopen and recalculation (en)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2186,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T18:47:43.795Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "59662fbc52604e865709-23ce91708ee9fa06322b",
+          "file": "options-plan-save-reopen.spec.ts",
+          "line": 11,
+          "column": 7
+        },
+        {
+          "title": "whole Plan explicit transfer, Save, exact reopen and recalculation (zh)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1933,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T18:47:46.243Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "59662fbc52604e865709-822a6d282b0acb492cc2",
+          "file": "options-plan-save-reopen.spec.ts",
+          "line": 11,
+          "column": 7
+        },
+        {
+          "title": "whole Plan explicit transfer, Save, exact reopen and recalculation (en)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2043,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T18:48:59.092Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "59662fbc52604e865709-274af14fe19761114085",
+          "file": "options-plan-save-reopen.spec.ts",
+          "line": 11,
+          "column": 7
+        },
+        {
+          "title": "whole Plan explicit transfer, Save, exact reopen and recalculation (zh)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1935,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T18:49:01.262Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "59662fbc52604e865709-16e89c9332ddf8c5c292",
+          "file": "options-plan-save-reopen.spec.ts",
+          "line": 11,
+          "column": 7
+        },
+        {
+          "title": "whole Plan explicit transfer, Save, exact reopen and recalculation (en)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2044,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T18:50:19.097Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "59662fbc52604e865709-047b7ae481dec6525c5e",
+          "file": "options-plan-save-reopen.spec.ts",
+          "line": 11,
+          "column": 7
+        },
+        {
+          "title": "whole Plan explicit transfer, Save, exact reopen and recalculation (zh)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1923,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T18:50:21.260Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "59662fbc52604e865709-83c1097a914550716292",
+          "file": "options-plan-save-reopen.spec.ts",
+          "line": 11,
+          "column": 7
+        }
+      ]
+    },
+    {
+      "title": "visual-intelligence.spec.ts",
+      "file": "visual-intelligence.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "saved startup timeframe hydrates chart context without stale SSR attributes",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2224,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T18:47:48.187Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d1ebbf33cd31219b530a-240a3533243d7749498f",
+          "file": "visual-intelligence.spec.ts",
+          "line": 45,
+          "column": 5
+        },
+        {
+          "title": "default context explains plotted bars, toggles original overlays, and persists choices",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [
+                {
+                  "type": "slow",
+                  "location": {
+                    "file": "/Users/chriswong/mmx-worktrees/claude/53c10d576ba9ec02/iw2-plan-compose-01a104c8-1d1a22040ea88c0a/terminal/e2e/visual-intelligence.spec.ts",
+                    "line": 63,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 15067,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T18:47:50.417Z",
+                  "annotations": [
+                    {
+                      "type": "slow",
+                      "location": {
+                        "file": "/Users/chriswong/mmx-worktrees/claude/53c10d576ba9ec02/iw2-plan-compose-01a104c8-1d1a22040ea88c0a/terminal/e2e/visual-intelligence.spec.ts",
+                        "line": 63,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "chart-context-en",
+                      "contentType": "image/png",
+                      "path": "/Users/chriswong/mmx-repos/iw2-merge-browser-results/visual-intelligence-defaul-aa21e-erlays-and-persists-choices-desktop/attachments/chart-context-en-6f96bedec0912538646f79b8f4a212e28a4b1c86.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d1ebbf33cd31219b530a-5057187179cfcef63a04",
+          "file": "visual-intelligence.spec.ts",
+          "line": 62,
+          "column": 5
+        },
+        {
+          "title": "classic candles retain descriptive context without pretending to paint them",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 8658,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T18:48:05.491Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d1ebbf33cd31219b530a-4a8a29671c97d99bb4aa",
+          "file": "visual-intelligence.spec.ts",
+          "line": 126,
+          "column": 5
+        },
+        {
+          "title": "historical crosshair inspection stays on the selected bar without relabeling current calendar knowledge",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4901,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T18:48:14.157Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d1ebbf33cd31219b530a-0eaf17297ad5823d7674",
+          "file": "visual-intelligence.spec.ts",
+          "line": 148,
+          "column": 5
+        },
+        {
+          "title": "real candle colors stay attached to price after chart-layer settings overwrite base series data",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6184,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T18:48:19.065Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d1ebbf33cd31219b530a-193b5037c3eda5cc57ae",
+          "file": "visual-intelligence.spec.ts",
+          "line": 170,
+          "column": 5
+        },
+        {
+          "title": "context can be restored through the existing chart settings without a new preference owner",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 10458,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T18:48:25.256Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d1ebbf33cd31219b530a-a071011d21c3283a47aa",
+          "file": "visual-intelligence.spec.ts",
+          "line": 205,
+          "column": 5
+        },
+        {
+          "title": "table and CSV expose the same actual 3D bars and numeric context as the plotted chart",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7603,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T18:48:35.722Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d1ebbf33cd31219b530a-710b1b2a9f20f8563c35",
+          "file": "visual-intelligence.spec.ts",
+          "line": 222,
+          "column": 5
+        },
+        {
+          "title": "replay consumer excludes current-calendar events and future numeric rows across viewport sizes",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [
+                {
+                  "type": "slow",
+                  "location": {
+                    "file": "/Users/chriswong/mmx-worktrees/claude/53c10d576ba9ec02/iw2-plan-compose-01a104c8-1d1a22040ea88c0a/terminal/e2e/visual-intelligence.spec.ts",
+                    "line": 248,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4850,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T18:48:43.339Z",
+                  "annotations": [
+                    {
+                      "type": "slow",
+                      "location": {
+                        "file": "/Users/chriswong/mmx-worktrees/claude/53c10d576ba9ec02/iw2-plan-compose-01a104c8-1d1a22040ea88c0a/terminal/e2e/visual-intelligence.spec.ts",
+                        "line": 248,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d1ebbf33cd31219b530a-2d6d9da081d6f3ba1a0f",
+          "file": "visual-intelligence.spec.ts",
+          "line": 247,
+          "column": 5
+        },
+        {
+          "title": "an unavailable calendar and a delayed outgoing symbol never become fabricated event context",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [
+                {
+                  "type": "slow",
+                  "location": {
+                    "file": "/Users/chriswong/mmx-worktrees/claude/53c10d576ba9ec02/iw2-plan-compose-01a104c8-1d1a22040ea88c0a/terminal/e2e/visual-intelligence.spec.ts",
+                    "line": 272,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6859,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T18:48:48.199Z",
+                  "annotations": [
+                    {
+                      "type": "slow",
+                      "location": {
+                        "file": "/Users/chriswong/mmx-worktrees/claude/53c10d576ba9ec02/iw2-plan-compose-01a104c8-1d1a22040ea88c0a/terminal/e2e/visual-intelligence.spec.ts",
+                        "line": 272,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d1ebbf33cd31219b530a-78e4f04839954402588e",
+          "file": "visual-intelligence.spec.ts",
+          "line": 271,
+          "column": 5
+        },
+        {
+          "title": "Chinese context uses text alongside regional colors and remains keyboard dismissible",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3569,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T18:48:55.069Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "chart-context-zh",
+                      "contentType": "image/png",
+                      "path": "/Users/chriswong/mmx-repos/iw2-merge-browser-results/visual-intelligence-Chines-75b9f-emains-keyboard-dismissible-desktop/attachments/chart-context-zh-9145df304dd245dc1f6cb456b7bc942972c2ebc3.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d1ebbf33cd31219b530a-b2e082b412032f4ed98d",
+          "file": "visual-intelligence.spec.ts",
+          "line": 305,
+          "column": 5
+        },
+        {
+          "title": "saved startup timeframe hydrates chart context without stale SSR attributes",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3284,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T18:49:03.207Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d1ebbf33cd31219b530a-fab440fbc8f9e4890208",
+          "file": "visual-intelligence.spec.ts",
+          "line": 45,
+          "column": 5
+        },
+        {
+          "title": "default context explains plotted bars, toggles original overlays, and persists choices",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [
+                {
+                  "type": "slow",
+                  "location": {
+                    "file": "/Users/chriswong/mmx-worktrees/claude/53c10d576ba9ec02/iw2-plan-compose-01a104c8-1d1a22040ea88c0a/terminal/e2e/visual-intelligence.spec.ts",
+                    "line": 63,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 16076,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T18:49:06.497Z",
+                  "annotations": [
+                    {
+                      "type": "slow",
+                      "location": {
+                        "file": "/Users/chriswong/mmx-worktrees/claude/53c10d576ba9ec02/iw2-plan-compose-01a104c8-1d1a22040ea88c0a/terminal/e2e/visual-intelligence.spec.ts",
+                        "line": 63,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "chart-context-en",
+                      "contentType": "image/png",
+                      "path": "/Users/chriswong/mmx-repos/iw2-merge-browser-results/visual-intelligence-defaul-aa21e-erlays-and-persists-choices-tablet/attachments/chart-context-en-d068ce63195aa0f297764e1b0e280596ad33fb03.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d1ebbf33cd31219b530a-5ba9d9099c0f12c5d90c",
+          "file": "visual-intelligence.spec.ts",
+          "line": 62,
+          "column": 5
+        },
+        {
+          "title": "classic candles retain descriptive context without pretending to paint them",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 8017,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T18:49:22.580Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d1ebbf33cd31219b530a-d1d062923b0c1d6350ad",
+          "file": "visual-intelligence.spec.ts",
+          "line": 126,
+          "column": 5
+        },
+        {
+          "title": "historical crosshair inspection stays on the selected bar without relabeling current calendar knowledge",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4620,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T18:49:30.602Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d1ebbf33cd31219b530a-24d7d0adc04d5f789747",
+          "file": "visual-intelligence.spec.ts",
+          "line": 148,
+          "column": 5
+        },
+        {
+          "title": "real candle colors stay attached to price after chart-layer settings overwrite base series data",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5295,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T18:49:35.228Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d1ebbf33cd31219b530a-3f9e70e49e1854b86352",
+          "file": "visual-intelligence.spec.ts",
+          "line": 170,
+          "column": 5
+        },
+        {
+          "title": "context can be restored through the existing chart settings without a new preference owner",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 11127,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T18:49:40.528Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d1ebbf33cd31219b530a-4af657e2bd2ad65036c5",
+          "file": "visual-intelligence.spec.ts",
+          "line": 205,
+          "column": 5
+        },
+        {
+          "title": "table and CSV expose the same actual 3D bars and numeric context as the plotted chart",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6201,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T18:49:51.661Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d1ebbf33cd31219b530a-020cac26dd0b188daa7d",
+          "file": "visual-intelligence.spec.ts",
+          "line": 222,
+          "column": 5
+        },
+        {
+          "title": "replay consumer excludes current-calendar events and future numeric rows across viewport sizes",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [
+                {
+                  "type": "slow",
+                  "location": {
+                    "file": "/Users/chriswong/mmx-worktrees/claude/53c10d576ba9ec02/iw2-plan-compose-01a104c8-1d1a22040ea88c0a/terminal/e2e/visual-intelligence.spec.ts",
+                    "line": 248,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7881,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T18:49:57.868Z",
+                  "annotations": [
+                    {
+                      "type": "slow",
+                      "location": {
+                        "file": "/Users/chriswong/mmx-worktrees/claude/53c10d576ba9ec02/iw2-plan-compose-01a104c8-1d1a22040ea88c0a/terminal/e2e/visual-intelligence.spec.ts",
+                        "line": 248,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d1ebbf33cd31219b530a-d2226af00acd8650b598",
+          "file": "visual-intelligence.spec.ts",
+          "line": 247,
+          "column": 5
+        },
+        {
+          "title": "an unavailable calendar and a delayed outgoing symbol never become fabricated event context",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [
+                {
+                  "type": "slow",
+                  "location": {
+                    "file": "/Users/chriswong/mmx-worktrees/claude/53c10d576ba9ec02/iw2-plan-compose-01a104c8-1d1a22040ea88c0a/terminal/e2e/visual-intelligence.spec.ts",
+                    "line": 272,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7981,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T18:50:05.756Z",
+                  "annotations": [
+                    {
+                      "type": "slow",
+                      "location": {
+                        "file": "/Users/chriswong/mmx-worktrees/claude/53c10d576ba9ec02/iw2-plan-compose-01a104c8-1d1a22040ea88c0a/terminal/e2e/visual-intelligence.spec.ts",
+                        "line": 272,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d1ebbf33cd31219b530a-f6c91f962b4b7f3db51b",
+          "file": "visual-intelligence.spec.ts",
+          "line": 271,
+          "column": 5
+        },
+        {
+          "title": "Chinese context uses text alongside regional colors and remains keyboard dismissible",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5047,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T18:50:13.744Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "chart-context-zh",
+                      "contentType": "image/png",
+                      "path": "/Users/chriswong/mmx-repos/iw2-merge-browser-results/visual-intelligence-Chines-75b9f-emains-keyboard-dismissible-tablet/attachments/chart-context-zh-593f3cefa934c84d9df2bc38a570edcb325e993d.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d1ebbf33cd31219b530a-aa95f822f9c7c096d131",
+          "file": "visual-intelligence.spec.ts",
+          "line": 305,
+          "column": 5
+        },
+        {
+          "title": "saved startup timeframe hydrates chart context without stale SSR attributes",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3296,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T18:50:23.193Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d1ebbf33cd31219b530a-8e3e4e036e0e65584c64",
+          "file": "visual-intelligence.spec.ts",
+          "line": 45,
+          "column": 5
+        },
+        {
+          "title": "default context explains plotted bars, toggles original overlays, and persists choices",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [
+                {
+                  "type": "slow",
+                  "location": {
+                    "file": "/Users/chriswong/mmx-worktrees/claude/53c10d576ba9ec02/iw2-plan-compose-01a104c8-1d1a22040ea88c0a/terminal/e2e/visual-intelligence.spec.ts",
+                    "line": 63,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 14766,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T18:50:26.495Z",
+                  "annotations": [
+                    {
+                      "type": "slow",
+                      "location": {
+                        "file": "/Users/chriswong/mmx-worktrees/claude/53c10d576ba9ec02/iw2-plan-compose-01a104c8-1d1a22040ea88c0a/terminal/e2e/visual-intelligence.spec.ts",
+                        "line": 63,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "chart-context-en",
+                      "contentType": "image/png",
+                      "path": "/Users/chriswong/mmx-repos/iw2-merge-browser-results/visual-intelligence-defaul-aa21e-erlays-and-persists-choices-mobile/attachments/chart-context-en-a4de0098035fc1c9ab0273a416de102519c7b93a.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d1ebbf33cd31219b530a-7669bd44df2bdf856f26",
+          "file": "visual-intelligence.spec.ts",
+          "line": 62,
+          "column": 5
+        },
+        {
+          "title": "classic candles retain descriptive context without pretending to paint them",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 8523,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T18:50:41.267Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d1ebbf33cd31219b530a-c2ed0676e229539a0a27",
+          "file": "visual-intelligence.spec.ts",
+          "line": 126,
+          "column": 5
+        },
+        {
+          "title": "historical crosshair inspection stays on the selected bar without relabeling current calendar knowledge",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4267,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T18:50:49.797Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d1ebbf33cd31219b530a-15f1e15e396bddb4a370",
+          "file": "visual-intelligence.spec.ts",
+          "line": 148,
+          "column": 5
+        },
+        {
+          "title": "real candle colors stay attached to price after chart-layer settings overwrite base series data",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5099,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T18:50:54.070Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d1ebbf33cd31219b530a-934cf559345949036762",
+          "file": "visual-intelligence.spec.ts",
+          "line": 170,
+          "column": 5
+        },
+        {
+          "title": "context can be restored through the existing chart settings without a new preference owner",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 13031,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T18:50:59.175Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d1ebbf33cd31219b530a-cd6fff4b4ccffc48a412",
+          "file": "visual-intelligence.spec.ts",
+          "line": 205,
+          "column": 5
+        },
+        {
+          "title": "table and CSV expose the same actual 3D bars and numeric context as the plotted chart",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5895,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T18:51:12.212Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d1ebbf33cd31219b530a-9fb31198f5d8f5bd7c49",
+          "file": "visual-intelligence.spec.ts",
+          "line": 222,
+          "column": 5
+        },
+        {
+          "title": "replay consumer excludes current-calendar events and future numeric rows across viewport sizes",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [
+                {
+                  "type": "slow",
+                  "location": {
+                    "file": "/Users/chriswong/mmx-worktrees/claude/53c10d576ba9ec02/iw2-plan-compose-01a104c8-1d1a22040ea88c0a/terminal/e2e/visual-intelligence.spec.ts",
+                    "line": 248,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 8112,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T18:51:18.114Z",
+                  "annotations": [
+                    {
+                      "type": "slow",
+                      "location": {
+                        "file": "/Users/chriswong/mmx-worktrees/claude/53c10d576ba9ec02/iw2-plan-compose-01a104c8-1d1a22040ea88c0a/terminal/e2e/visual-intelligence.spec.ts",
+                        "line": 248,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d1ebbf33cd31219b530a-331497fbaa34b973e534",
+          "file": "visual-intelligence.spec.ts",
+          "line": 247,
+          "column": 5
+        },
+        {
+          "title": "an unavailable calendar and a delayed outgoing symbol never become fabricated event context",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [
+                {
+                  "type": "slow",
+                  "location": {
+                    "file": "/Users/chriswong/mmx-worktrees/claude/53c10d576ba9ec02/iw2-plan-compose-01a104c8-1d1a22040ea88c0a/terminal/e2e/visual-intelligence.spec.ts",
+                    "line": 272,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 9429,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T18:51:26.231Z",
+                  "annotations": [
+                    {
+                      "type": "slow",
+                      "location": {
+                        "file": "/Users/chriswong/mmx-worktrees/claude/53c10d576ba9ec02/iw2-plan-compose-01a104c8-1d1a22040ea88c0a/terminal/e2e/visual-intelligence.spec.ts",
+                        "line": 272,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d1ebbf33cd31219b530a-501c216fbdd9e8f534fb",
+          "file": "visual-intelligence.spec.ts",
+          "line": 271,
+          "column": 5
+        },
+        {
+          "title": "Chinese context uses text alongside regional colors and remains keyboard dismissible",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5213,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T18:51:35.666Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "chart-context-zh",
+                      "contentType": "image/png",
+                      "path": "/Users/chriswong/mmx-repos/iw2-merge-browser-results/visual-intelligence-Chines-75b9f-emains-keyboard-dismissible-mobile/attachments/chart-context-zh-5cc6820e5fadec967da8d16af09b4ac2ca3c26e3.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d1ebbf33cd31219b530a-028de8143b6315105e7a",
+          "file": "visual-intelligence.spec.ts",
+          "line": 305,
+          "column": 5
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-29T18:47:31.427Z",
+    "duration": 249615.926,
+    "expected": 36,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

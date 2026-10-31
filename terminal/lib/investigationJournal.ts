@@ -9,7 +9,7 @@ import { parseScenarioCapture } from "./investigationScenario";
 import { recoverInvestigationSave, type InvestigationSaveState } from "./investigationSave";
 type Store = Pick<Storage,"getItem"|"setItem"|"removeItem">;
 type Entry = { key:string; owner:string; text:string };
-type Retained = {phase:"uncertain";principal:string;command:InvestigationCommand} | Extract<InvestigationSaveState,{phase:"rejected"}>;
+type Retained = Extract<InvestigationSaveState,{phase:"uncertain"|"rejected"}>;
 export type JournalRead = {status:"empty";entries:Entry[]}
  | {status:"retained";entries:Entry[];state:Retained}
  | {status:"conflict"|"invalid"|"legacy";entries:Entry[]};
@@ -33,7 +33,7 @@ export function readInvestigationJournal(store:Store,principal:string):JournalRe
    const state=recoverInvestigationSave(entry.owner,raw);
    if(!state||(state.phase!=="uncertain"&&state.phase!=="rejected")){invalid=true;continue;}
    if(state.phase==="rejected")states.push({...state,principal});
-   else states.push({phase:"uncertain",principal,command:state.command});
+   else states.push({...state,principal});
   }catch{invalid=true;}
  }
  // Even an invalid/legacy second buffer cannot be silently discarded in favor
@@ -41,12 +41,24 @@ export function readInvestigationJournal(store:Store,principal:string):JournalRe
  if(entries.length>1&&(invalid||legacy||states.some(s=>!same(s.command,states[0].command))))return {status:"conflict",entries};
  if(invalid)return {status:"invalid",entries};if(legacy)return {status:"legacy",entries};
  // If duplicate copies disagree about rejection, preserve uncertainty.
- return {status:"retained",entries,state:states.find(s=>s.phase==="uncertain")??states[0]};
+ const state=states.find(s=>s.phase==="uncertain")??states[0];
+ // Identical aliases may hold different recovery provenance. A single older
+ // invalid_payload copy requires the complete owner check, regardless of key order.
+ const ownerRecheck=states.some(s=>s.phase==="uncertain"&&s.ownerRecheck===true);
+ return {status:"retained",entries,state:state.phase==="uncertain"&&ownerRecheck?{...state,ownerRecheck:true}:state};
+}
+/** A persisted no-effect word cannot prove a fence on reload. Only the current
+ * canonical state machine's matching, same-principal owner-confirmed state may
+ * authorize replacing/clearing that conservative journal copy. */
+function replaceable(found:JournalRead,principal:string,previous?:InvestigationSaveState):boolean {
+ return found.status==="retained" && (found.state.phase==="rejected"
+   ||(previous?.phase==="rejected"&&previous.reason==="not_applied"&&previous.principal===principal
+     &&same(found.state.command,previous.command)));
 }
 export function retainInvestigationJournal(store:Store,principal:string,command:InvestigationCommand,previous?:InvestigationSaveState){
  const found=readInvestigationJournal(store,principal);
- if(found.status!=="empty"&&!(found.status==="retained"&&found.state.phase==="rejected"
-   &&previous?.phase==="rejected"&&same(found.state.command,previous.command)))throw Error("occupied journal");
+ if(found.status!=="empty"&&!(replaceable(found,principal,previous)&&found.status==="retained"
+   &&previous?.phase==="rejected"&&previous.principal===principal&&same(found.state.command,previous.command)))throw Error("occupied journal");
  const entries=found.status==="empty"?[{owner:investigationSubject(principal)?ownerKeyFor(investigationSubject(principal)):principal,key:key(investigationSubject(principal)?ownerKeyFor(investigationSubject(principal)):principal),text:""}]:found.entries;
  for(const entry of entries){const text=JSON.stringify({owner:entry.owner,command});store.setItem(entry.key,text);if(store.getItem(entry.key)!==text)throw Error("journal unavailable");}
 }
@@ -62,8 +74,8 @@ export function clearCommittedInvestigationJournal(store:Store,principal:string,
  for(const entry of found.entries)store.removeItem(entry.key);
 }
 /** Starting another draft cannot discard either UNKNOWN or conflicting buffers. */
-export function clearRejectedInvestigationJournal(store:Store,principal:string){
+export function clearRejectedInvestigationJournal(store:Store,principal:string,previous?:InvestigationSaveState){
  const found=readInvestigationJournal(store,principal);if(found.status==="empty")return;
- if(found.status!=="retained"||found.state.phase!=="rejected")throw Error("unsettled journal");
+ if(!replaceable(found,principal,previous))throw Error("unsettled journal");
  for(const entry of found.entries)store.removeItem(entry.key);
 }

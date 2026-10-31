@@ -1,5 +1,5 @@
 import { createRequire } from "node:module";
-import { assertCapturedLexProjection } from "./helpers/lexEvidenceProjection";
+import { assertCapturedLexEvidence } from "./helpers/lexEvidenceProjection";
 // Preserve the raw capture pin; only unused onboarding copy has an AST dependency projection.
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
@@ -118,7 +118,7 @@ describe("Terminal Visual Intelligence browser evidence", () => {
       const absolute = join(REPO, relative);
       expect(existsSync(absolute), relative).toBe(true);
       if (relative === "terminal/lib/i18n.tsx") {
-        assertCapturedLexProjection(readFileSync(absolute, "utf8"), expected, readFileSync(EVIDENCE, "utf8"));
+        assertCapturedLexEvidence(readFileSync(absolute, "utf8"), expected, readFileSync(EVIDENCE, "utf8"));
       } else {
         expect(sha256(absolute), `${relative} changed without a recapture`).toBe(expected);
       }

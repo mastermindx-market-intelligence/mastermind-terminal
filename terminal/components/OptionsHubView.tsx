@@ -53,9 +53,9 @@ import {
   shortlistSource,
   useContractShortlist,
 } from "@/components/options/ContractShortlist";
-import { useOptionsPlanScope } from "@/lib/useOptionsPlanScope";
-import { useShortlistT } from "@/lib/optionsContractShortlistLex";
+import { useOptionsPlanBoundary } from "@/lib/useOptionsPlanScope";
 import type { OptionsPlanDraft } from "@/lib/optionsPlanDraft";
+import { useShortlistT } from "@/lib/optionsContractShortlistLex";
 import { locatePin, sessionOf, type PinLocation, type ShortlistPin } from "@/lib/optionsContractShortlist";
 // Shared SVG chart primitives — measured 1:1 viewBox, nice ticks, pixel-gap label
 // thinning, padded domains. The hygiene rules live in that module's header.
@@ -2027,7 +2027,8 @@ export default function OptionsHubView({
   // touches the source arrays, filters, sort or view. "Show in list" returns to
   // the originating table exactly as its preset chip would, and never edits the
   // index filter — a filtered-out pin is reported instead.
-  const planScope = useOptionsPlanScope();
+  const planBoundary = useOptionsPlanBoundary();
+  const planScope = planBoundary.key;
   const contractShortlist = useContractShortlist(planScope);
   const showPinInList = (pin: ShortlistPin): PinLocation => {
     const list = pin.family === "doi" ? oiData?.movers : hotData?.[pin.hotView ?? "by_premium"];
@@ -3647,6 +3648,8 @@ export default function OptionsHubView({
                   active={screenerPreset === "doi" || screenerPreset === "hot"}
                   onShowInList={showPinInList}
                   scopeKey={planScope}
+                  scopeOwnerKey={planBoundary.ownerKey}
+                  isScopeCurrent={planBoundary.isCurrent}
                   onPlanDraftChange={onPlanDraftChange}
                   onPlanDraftInputChange={onPlanDraftInputChange}
                 />

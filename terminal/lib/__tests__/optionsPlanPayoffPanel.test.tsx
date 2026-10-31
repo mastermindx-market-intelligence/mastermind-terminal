@@ -100,4 +100,17 @@ describe("Plan editor to conditional curve", () => {
     expect(host.textContent).not.toContain("Contract terms unavailable");
   });
 
+  it("refuses Calculate synchronously when its original admitted lifetime ended",async()=>{
+    let current=true;const fetcher=vi.fn(),applied=vi.fn();vi.stubGlobal("fetch",fetcher);
+    await act(async()=>root.render(<OptionsPlanPayoffPanel scopeKey="same-render" draft={draft()} lang="en" isScopeCurrent={()=>current} onDraftChange={applied} onClose={()=>undefined}/>));
+    current=false;await submit();expect(fetcher).not.toHaveBeenCalled();expect(applied).not.toHaveBeenCalled();expect(host.querySelector('svg[role="img"]')).toBeNull();
+  });
+  it("rejects a late calculation after same-owner epoch withdrawal before projected cleanup",async()=>{
+    let current=true,finish:(v:Response)=>void=()=>undefined;let request:PlanExpiryRequest;
+    vi.stubGlobal("fetch",vi.fn((_url,init)=>{request=JSON.parse(init.body);return new Promise<Response>(resolve=>{finish=resolve;});}));
+    await act(async()=>root.render(<OptionsPlanPayoffPanel scopeKey="same-render" draft={draft()} lang="en" isScopeCurrent={()=>current} onDraftChange={()=>undefined} onClose={()=>undefined}/>));
+    await submit();current=false;await act(async()=>finish(new Response(JSON.stringify(response(request!)),{status:200})));
+    expect(host.querySelector('svg[role="img"]')).toBeNull();expect(host.textContent).not.toContain("Worst expiry outcome");
+  });
+
 });

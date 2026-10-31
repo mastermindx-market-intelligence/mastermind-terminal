@@ -1,5 +1,5 @@
 import type { BrowserContext } from "@playwright/test";
-import { ResearchStore } from "./optionsR1Research";
+import { ResearchStore, fixtureRevisionIdentity } from "./optionsR1Research";
 
 // Options R1 W3C — the alerts owner as an in-memory store behind /api/alerts (GET/POST/PATCH)
 // and /api/alerts/receipts, so a watch armed in one context fires by fixture and reads back
@@ -42,7 +42,8 @@ export const WATCH_MANIFEST = {
 
 /** Seed the research store with the saved question the watch is created from (revision 1). */
 export function seedInvestigation(store: ResearchStore) {
-  store.records.set(INVESTIGATION_ID, [{ id: INVESTIGATION_ID, revision: 1, lifecycle: "active", manifest: WATCH_MANIFEST, committed_at: "2026-10-21T14:02:00Z", layouts: [] }]);
+  const saved = { id: INVESTIGATION_ID, revision: 1, revision_id:"50000000-0000-4000-8000-000000000001", lifecycle: "active" as const, manifest: WATCH_MANIFEST, committed_at: "2026-10-21T14:02:00Z", layouts: [] as never[] };
+  store.records.set(INVESTIGATION_ID, [{ ...saved, ...fixtureRevisionIdentity(saved, "60000000-0000-4000-8000-000000000001", null) }]);
 }
 
 export async function routeWatch(context: BrowserContext, store: WatchStore, access: "granted" | "plan" = "granted") {

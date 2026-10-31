@@ -4,7 +4,7 @@ import { INVESTIGATION_ADMISSION } from "../investigations";
 
 const DIGEST = "7c1f5b2e9a3d4c6f8e0b1a2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6";
 const manifest = (object_type: string) => ({
-  schema: "investigation_manifest.v2",
+  schema: "investigation_manifest.v2", argument_relations:[],
   intent: { title: "XLK gamma at 450", question: "Does the matched change hold?", subjects: [] },
   layout_refs: [], thesis_refs: [],
   evidence_refs: [{ owner: "terminal.options_exposure", object_type, object_id: "XLK/2026-10-16/450/gamma/one:2026-10-17",

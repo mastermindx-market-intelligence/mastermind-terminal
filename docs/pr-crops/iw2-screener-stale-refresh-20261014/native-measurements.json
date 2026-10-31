@@ -1,0 +1,113 @@
+{
+  "mode": "503",
+  "browser": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:151.0) Gecko/20100101 Firefox/151.0",
+  "zooms": [
+    {
+      "before": {
+        "font": "10.5px",
+        "width": 320,
+        "height": 844,
+        "dpr": 1,
+        "cssZoom": "1"
+      },
+      "after": {
+        "font": "21px",
+        "width": 320,
+        "height": 844,
+        "dpr": 1,
+        "cssZoom": "1"
+      },
+      "native": {
+        "session": {
+          "sessionId": "30fd5b0c-9542-4a58-ac8d-38214c1a7840",
+          "capabilities": {
+            "acceptInsecureCerts": false,
+            "browserName": "firefox",
+            "browserVersion": "151.0",
+            "platformName": "mac",
+            "setWindowRect": true,
+            "unhandledPromptBehavior": "dismiss and notify",
+            "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:151.0) Gecko/20100101 Firefox/151.0",
+            "moz:buildID": "20260611192437",
+            "moz:headless": true,
+            "moz:platformVersion": "25.5.0",
+            "moz:processID": 56008,
+            "moz:profile": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/screener-stale-refresh/native-output/native-stale.ts-cached-sca-a554d--503-preserves-predicate-EN-native-320/isolated-firefox-profile",
+            "moz:shutdownTimeout": 60000,
+            "pageLoadStrategy": "normal",
+            "timeouts": {
+              "implicit": 0,
+              "pageLoad": 300000,
+              "script": 30000
+            },
+            "strictFileInteractability": false,
+            "moz:accessibilityChecks": false,
+            "moz:webdriverClick": true,
+            "moz:windowless": false,
+            "capabilities": {
+              "alwaysMatch": {
+                "acceptInsecureCerts": false
+              }
+            },
+            "proxy": {}
+          }
+        },
+        "native": {
+          "value": {
+            "textZoom": 2,
+            "fullZoom": 1,
+            "url": "http://127.0.0.1:3586/discover?tab=screener"
+          }
+        }
+      }
+    }
+  ],
+  "geometry": {
+    "left": 0,
+    "right": 320,
+    "viewport": 320,
+    "width": 320,
+    "scrollWidth": 320,
+    "text": "Refresh failed \u2014 showing the last rows that loaded successfully.Retry"
+  },
+  "keyboardTabs": 42,
+  "viewport": {
+    "width": 320,
+    "height": 844
+  },
+  "zh": false,
+  "seeded": {
+    "as_of": "2026-10-12",
+    "symbols": {
+      "IWCACHE": {
+        "name": "Cached scan",
+        "last": 111,
+        "chg": 4,
+        "vol": 1000,
+        "sec": "Equities",
+        "mkt": "NASDAQ"
+      }
+    }
+  },
+  "events": [
+    {
+      "request": 1
+    },
+    {
+      "response": 1
+    },
+    {
+      "request": 2
+    },
+    {
+      "response": 2
+    }
+  ],
+  "writes": [],
+  "telemetryRequests": [
+    "POST /api/collect"
+  ],
+  "attempt": 2,
+  "error": null,
+  "scope": "Native Firefox textZoom2/fullZoom1 EN320 keyboard retry with native persisted manifest fixture; no Chinese glyph, live, auth, full accessibility or full V3 acceptance"
+}

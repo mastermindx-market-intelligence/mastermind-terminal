@@ -141,7 +141,7 @@ async function waitForServer(timeoutMs) {
     try {
       const res = await fetch(`${BASE}/dev/settings?s=team`, { redirect: "manual" });
       last = String(res.status);
-      if (res.status >= 200 && res.status < 500) return;
+      if (res.status >= 200 && res.status < 300) return;
     } catch (err) {
       last = err.cause?.code || err.message;
     }
@@ -283,8 +283,15 @@ async function stubSession(page) {
   });
 }
 
+async function gotoChecked(page, url) {
+  const response = await page.goto(url, { waitUntil: "domcontentloaded", timeout: 90_000 });
+  if (!response || !response.ok()) {
+    throw new Error(`capture navigation failed: HTTP ${response?.status() ?? "no response"} at ${url}`);
+  }
+}
+
 async function openTeam(page, lang) {
-  await page.goto(`${BASE}/dev/settings?s=team&lang=${lang}`, { waitUntil: "domcontentloaded", timeout: 90_000 });
+  await gotoChecked(page, `${BASE}/dev/settings?s=team&lang=${lang}`);
   await page.locator(".acs-overlay.open .acs-card").waitFor({ state: "visible", timeout: 45_000 });
   await page.locator('[data-testid="team-invite-form"], [data-testid="team-invite-link"]').first()
     .waitFor({ state: "visible", timeout: 20_000 });
@@ -413,7 +420,7 @@ async function main() {
               await stubSession(page);
               await stubInvitations(page, { accept: true });
             }
-            await page.goto(`${BASE}/invite?token=${TOKEN}`, { waitUntil: "domcontentloaded", timeout: 90_000 });
+            await gotoChecked(page, `${BASE}/invite?token=${TOKEN}`);
             await page.locator('[data-testid="invite-card"]').waitFor({ state: "visible", timeout: 30_000 });
             if (shot.surface === "invite-joined") {
               await page.locator('[data-testid="invite-accept"]').waitFor({ state: "visible", timeout: 20_000 });

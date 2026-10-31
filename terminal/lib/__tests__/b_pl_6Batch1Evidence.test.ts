@@ -1,5 +1,5 @@
 import { createRequire } from "node:module";
-import { assertCapturedLexProjection } from "./helpers/lexEvidenceProjection";
+import { assertCapturedLexEvidence } from "./helpers/lexEvidenceProjection";
 // Preserve the raw capture pin; only unused onboarding copy has an AST dependency projection.
 // Git-free evidence lock for the B-PL-6 batch 1 capture packet.
 // The lock is the sha256 of the layout sources the crops depend on, recorded in
@@ -73,6 +73,7 @@ if (composition !== null) {
 describe("B-PL-6 batch 1 evidence lock is the sha256 of the layout sources", () => {
   it("EVIDENCE.yml records a sha256 for AnalysisWorkspace.tsx", () => {
     const recorded = layoutFileMap(evidenceText());
+    expect(recorded["terminal/components/SearchModal.module.css"], "layoutFiles is missing the imported search presentation").toMatch(/^[0-9a-f]{64}$/);
     expect(recorded["terminal/components/workspaces/AnalysisWorkspace.tsx"], "layoutFiles is missing AnalysisWorkspace.tsx").toMatch(/^[0-9a-f]{64}$/);
   });
 
@@ -82,7 +83,7 @@ describe("B-PL-6 batch 1 evidence lock is the sha256 of the layout sources", () 
       const abs = join(REPO, rel);
       expect(existsSync(abs), `${rel} is recorded in layoutFiles but absent from the tree`).toBe(true);
       if (rel === "terminal/lib/i18n.tsx") {
-        assertCapturedLexProjection(readFileSync(abs, "utf8"), expected, readFileSync(EVIDENCE, "utf8"));
+        assertCapturedLexEvidence(readFileSync(abs, "utf8"), expected, readFileSync(EVIDENCE, "utf8"));
       } else {
         expect(sha256Of(abs), `${rel} changed without a recapture`).toBe(expected);
       }

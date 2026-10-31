@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 import { useT, useLang } from "@/lib/i18n";
 import { displayName, marketOf, isSymbolVisible, ALL_MARKETS, type MarketId } from "@/lib/markets";
 import { useMarketPrefs } from "@/lib/useMarketPrefs";
-import type { AccountIdentity } from "@/lib/accountIdentity";
+import { identityOwnerKey, type AccountIdentity } from "@/lib/accountIdentity";
 import { MARKET_TKEY } from "@/lib/markets";
 import { getJSONResult, invalidate } from "@/lib/dataCache";
 import { trackSearch } from "@/lib/searchTrack";
@@ -31,6 +31,8 @@ import {
 import { TAXONOMY_LEX, YAHOO_SECTOR_ZH, useCrossMarketT } from "@/lib/crossMarketLex";
 import CrossMarketStrip, { CurrencyBadge, EmptyExclusionNote, SectorCellContent, type LabelCoverage } from "@/components/screener/CrossMarketStrip";
 import SmartScreensPanel from "@/components/screener/SmartScreensPanel";
+import { classifyRow, fundOf, normalizeDefinition, type ScreenDefinition } from "@/lib/smartScreen/predicate";
+import { useSmartScreens } from "@/lib/smartScreen/useSmartScreens";
 import type { ScreenerFilters } from "@/lib/smartScreen/predicate";
 // E01 technical screen: one bounded scan read (/data/scan/technical.json), classified per row by
 // lib/technicalScan — never inferred from per-symbol OHLC in the browser.
@@ -324,6 +326,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
   // "the manifest is not published" (absent) and "we could not reach it" (unavailable). The
   // last two both mean NO SCAN — but they are different facts, so the why-line names which.
   const [err, setErr] = useState<ScreenerFault | null>(null);
+  const [refreshFailed, setRefreshFailed] = useState(false);
   const [reloadN, setReloadN] = useState(0);
 
   // ── filter state ───────────────────────────────────────────────────────
@@ -332,6 +335,15 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
   // Session-only widening of the market preference. NEVER writes prefs — a screener
   // toggle must not silently change what search shows on the next page.
   const [showAllMarkets, setShowAllMarkets] = useState(false);
+  const owner = identityOwnerKey(identity);
+  const { snap: screenSnap } = useSmartScreens(identity);
+  const [storedDefinition, setStoredDefinition] = useState<{ owner: string; label: string; def: ScreenDefinition } | null>(null);
+  // Fence before rendering, not merely in an effect: another account must never see this copy.
+  const openedDefinition = identity.kind === "account" && storedDefinition?.owner === owner
+    && screenSnap.owner === owner && screenSnap.readFailure !== "unauthenticated" ? storedDefinition : null;
+  if (storedDefinition && (storedDefinition.owner !== owner || screenSnap.readFailure === "unauthenticated")) {
+    setStoredDefinition(null);
+  }
 
   // ── search state (wrapped in deferred for perf) ────────────────────────
   const [searchRaw, setSearchRaw] = useState("");
@@ -370,11 +382,12 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
   const [fundPreds, setFundPreds] = useState<FundamentalPredicate[]>([]);
   const [evidence, setEvidence] = useState<FundamentalEvidenceTarget | null>(null);
   const [fundWanted, setFundWanted] = useState(false);
-  const fund = useFundamentalScan(fundOpen || fundPreds.length > 0 || fundWanted);
+  const activeFundPreds = openedDefinition ? fundOf(openedDefinition.def) : fundPreds;
+  const fund = useFundamentalScan(fundOpen || activeFundPreds.length > 0 || fundWanted);
   const fundCtx = useMemo(() => ({ source: fund.source, nowMs: fund.nowMs }), [fund.source, fund.nowMs]);
   const fundCols = useMemo(
-    () => FUNDAMENTAL_FIELD_IDS.filter((id) => (fundOpen && id === fundField) || fundPreds.some((p) => p.field === id)),
-    [fundOpen, fundField, fundPreds],
+    () => FUNDAMENTAL_FIELD_IDS.filter((id) => (fundOpen && id === fundField) || activeFundPreds.some((p) => p.field === id)),
+    [fundOpen, fundField, activeFundPreds],
   );
   const closeEvidence = useCallback(() => setEvidence(null), []);
 
@@ -402,6 +415,8 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
   // ── fetch manifest via dataCache (dedup + SWR) + mounted guard ─────────
   useEffect(() => {
     let alive = true;
+    let refreshed = false;
+    let invalidRefresh = false;
     // onRevalidate: dataCache serves the persisted manifest stale on every load, so without
     // it the screener — including the "as of" date it prints — would show whatever board
     // this browser last cached. An honest-looking date on a stale table is the worst case.
@@ -443,20 +458,42 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
         );
         setLoaded(true);
     };
-    // A background revalidation that FAILS leaves the last good scan on screen (it is still a
-    // real answer, just older) — onRevalidate only ever fires with data.
-    getJSONResult("/data/manifest.json", {
-      onRevalidate: (m: any) => { if (alive && isManifestShape(m)) apply(m); },
-    })
-      .then((res) => {
-        if (!alive) return;
-        if (res.status === "data" && isManifestShape(res.data)) { apply(res.data); return; }
-        // No scan. `absent` = the manifest is not published at this address; anything else
-        // (network, 5xx, unparseable body, a 200 that is not a manifest) = we could not find out.
-        setErr(res.status === "absent" ? "absent" : "unavailable");
-        setLoaded(true);
+    // Keep the last good scan on a failed refresh, but disclose that it could not be refreshed.
+    // JSON transport success alone is not proof of a usable manifest.
+    // The discarded StrictMode setup must not own the shared background refresh.
+    queueMicrotask(() => {
+      if (!alive) return;
+      getJSONResult("/data/manifest.json", {
+        onRevalidate: (m: unknown) => {
+          if (!alive) return;
+          if (isManifestShape(m)) {
+            refreshed = true;
+            apply(m);
+            setRefreshFailed(false);
+          } else {
+            invalidRefresh = true;
+            setRefreshFailed(true);
+          }
+        },
       })
-      .catch(() => { if (alive) { setErr("unavailable"); setLoaded(true); } });
+        .then((res) => {
+          if (!alive) return;
+          if (res.status === "data" && isManifestShape(res.data)) {
+            // A refresh delivered before this continuation already owns the displayed scan.
+            if (!refreshed) apply(res.data);
+            setRefreshFailed(invalidRefresh);
+            void res.stale?.revalidation.then((result) => {
+              if (alive && result === "failed") setRefreshFailed(true);
+            });
+            return;
+          }
+          // No scan. `absent` = the manifest is not published at this address; anything else
+          // (network, 5xx, unparseable body, a 200 that is not a manifest) = we could not find out.
+          setErr(res.status === "absent" ? "absent" : "unavailable");
+          setLoaded(true);
+        })
+        .catch(() => { if (alive) { setErr("unavailable"); setLoaded(true); } });
+    });
     return () => { alive = false; };
   }, [reloadN]);
 
@@ -493,6 +530,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
   const retry = useCallback(() => {
     invalidate("/data/manifest.json");
     setErr(null);
+    setRefreshFailed(false);
     setLoaded(false);
     setReloadN((n) => n + 1);
   }, []);
@@ -506,7 +544,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
   const techScan = useTechnicalScan(techOpen);
   const techSource = techScan.phase === "settled" && techScan.source.kind === "ready" ? techScan.source : null;
   const techNow = techScan.phase === "settled" ? techScan.now : 0;
-  const techOnScreen = techOpen && techSource !== null;
+  const techOnScreen = !openedDefinition && techOpen && techSource !== null;
   const techScreen = useMemo(() => technicalScreenOf(techControls), [techControls]);
   const techGate = techOnScreen && techControlsActive(techControls);
 
@@ -625,7 +663,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
   const smartFilters = useMemo(() => smartScreenHandover(f, floorSt, scope).filters, [f, floorSt, scope]);
 
   // ── view mode: signal scope switches the whole column set ──────────────
-  const signalView = f.signal !== "any" || f.uptrend;
+  const signalView = !openedDefinition && (f.signal !== "any" || f.uptrend);
 
   // A sort key that does not exist in the active column set falls back to that view's default
   // rather than being written back to state — switching views and back restores the user's pick.
@@ -658,6 +696,9 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
     let techHidden = 0;
 
     const base = rowsJoined.filter((r) => {
+      // Saved grammar owns the complete scope. Do not flatten OR, intersect device prefs,
+      // or apply residual filter/search state to this explicit session copy.
+      if (openedDefinition) return classifyRow(openedDefinition.def, r).status === "match";
       if (!f.unpriced && r.last == null) return false;
       if (explicitMkt && r.mktId !== f.market) return false;
       if (f.asset !== "all" && r.sec !== f.asset) return false;
@@ -715,21 +756,21 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
     // A predicate is applied only against a settled scan. Until it answers, the table waits
     // (skeleton) instead of showing the unfiltered rows as if the filter had run.
     const fsrc = fund.source;
-    const fundWaiting = fundPreds.length > 0 && fsrc === null;
+    const fundWaiting = activeFundPreds.length > 0 && fsrc === null;
     let kept = fundWaiting ? [] : base;
     let cellsBy: Map<string, Partial<Record<FundamentalFieldId, FundamentalClassification>>> | null = null;
     let tallyOut: FundamentalTally | null = null;
     let summary: FundamentalFieldSummary | null = null;
-    if (fsrc && (fundCols.length > 0 || fundPreds.length > 0)) {
+    if (fsrc && (fundCols.length > 0 || activeFundPreds.length > 0)) {
       cellsBy = new Map();
-      const tally = fundPreds.length > 0 ? createFundamentalTally(fundPreds) : null;
+      const tally = activeFundPreds.length > 0 ? createFundamentalTally(activeFundPreds) : null;
       const out: Row[] = [];
       for (const r of base) {
-        const res = evaluateFundamentalScreen(fsrc, r.sym, fundPreds, fund.nowMs);
+        const res = evaluateFundamentalScreen(fsrc, r.sym, activeFundPreds, fund.nowMs);
         for (const id of fundCols) if (!res.cells[id]) res.cells[id] = classifyFundamental(fsrc, r.sym, id, fund.nowMs);
         cellsBy.set(r.sym, res.cells);
         tally?.record(r.sym, res);
-        if (fundPreds.length === 0 || passes(res.match)) out.push(r);
+        if (activeFundPreds.length === 0 || passes(res.match)) out.push(r);
       }
       kept = out;
       tallyOut = tally ? tally.result() : null;
@@ -781,8 +822,8 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
     };
   }, [
     rowsJoined, f, search, effSort, prefs, gateByPrefs, scan, tax, now, annot, scope.code, appliedLiq,
-    techOnScreen, techGate, techSource, techScreen, techNow,
-    fund.source, fund.nowMs, fundPreds, fundCols, fundOpen, fundField,
+    techOnScreen, techGate, techSource, techScreen, techNow, openedDefinition,
+    fund.source, fund.nowMs, activeFundPreds, fundCols, fundOpen, fundField,
   ]);
   const exclTotal = excl.stale + excl.unclassified + excl.unread + excl.otherCurrency + excl.currencyUnknown + excl.notMoney;
   // Rows / counts / empty state render only over a settled result (manifest AND, when a
@@ -854,6 +895,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
   const openSmartScreen = useCallback((next: ScreenerFilters, o: { showAllMarkets: boolean | null; fund: FundamentalPredicate[] }) => {
     const merged = reconcileTo({ ...DEFAULT_FILTERS, ...next, ...sanitizeCrossMarketFields(next) });
     startTransition(() => {
+      setStoredDefinition(null);
       setActivePreset(null);
       setF(merged);
       // A saved screen is applied whole: its fundamental conditions replace the table's.
@@ -964,7 +1006,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
 
   return (
     <main className={`main2 screener-main scr2 ${signalView ? "s-view" : "u-view"}${density === "k" ? " den-k" : ""}${techOnScreen ? ` ${TECH_ON_CLASS}` : ""}`}>
-      <div className="scr2-bar">
+      {!openedDefinition && <div className="scr2-bar">
         {/* ── scope row ── */}
         <div className="scr2-row">
           <select
@@ -1214,10 +1256,10 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
             summary={tableReady ? fundSummary : null}
           />
         )}
-      </div>
+      </div>}
 
       {/* ── E03: scan state, screened taxonomy, money scope and market-change clears ── */}
-      {loaded && !err && scan && (
+      {!openedDefinition && loaded && !err && scan && (
         <CrossMarketStrip
           source={scan}
           now={now}
@@ -1253,6 +1295,17 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
         showAllMarkets={showAllMarkets}
         labelGics={gicsLabel}
         labelAsset={assetLabel}
+        openedDefinition={openedDefinition}
+        onCloseDefinition={() => setStoredDefinition(null)}
+        onOpenExact={(label, def) => startTransition(() => {
+          const normalized = normalizeDefinition(def);
+          if (!normalized.ok) return;
+          setStoredDefinition({ owner, label, def: normalized.def });
+          setSaving(false);
+          setSearchRaw("");
+          if (tableRef.current) tableRef.current.scrollTop = 0;
+          setScrollTop(0);
+        })}
         onOpen={openSmartScreen}
       />
 
@@ -1271,7 +1324,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
           </>
         )}
 
-        {tags.map((tg) => (
+        {!openedDefinition && tags.map((tg) => (
           <button
             key={tg.id}
             type="button"
@@ -1281,18 +1334,18 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
             onClick={() => (tg.id === "market" ? changeMarket("all") : tg.id === "ccy" ? changeCcy("auto") : patchF(tg.clear))}
           >{tg.label} ×</button>
         ))}
-        <FundamentalStatusItems
+        {!openedDefinition && <FundamentalStatusItems
           predicates={fundPreds}
           tally={tableReady ? fundTally : null}
           onRemove={(id) => setFundPreds((ps) => ps.filter((p) => p.field !== id))}
-        />
-        {tags.length + fundPreds.length >= 2 && (
+        />}
+        {!openedDefinition && tags.length + fundPreds.length >= 2 && (
           <button type="button" className="scr2-clear" onClick={clearAll}>{t("scr2ClearAll")}</button>
         )}
 
         {/* scope caveats + the hidden-markets notice ride right; one group so the auto margin
             survives a wrap instead of stranding them on the next line's left edge */}
-        {(f.mcap > 0 || hiddenN > 0) && (
+        {!openedDefinition && (f.mcap > 0 || hiddenN > 0) && (
           <span className="scr2-status-tail">
             {f.mcap > 0 && (
               <span className="fin-tag" style={{ "--c": "var(--warn)" } as React.CSSProperties}>{t("scr2McapNote")}</span>
@@ -1308,7 +1361,15 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
         )}
       </div>
 
-      <div className="scr2-table" ref={tableRef}>
+      {/* Page-scroll layouts have no definite parent height. Keep the measured
+          viewport bounded rather than letting it grow with the full manifest. */}
+      {loaded && !err && refreshFailed && (
+        <div className="scr2-status" data-scr-refresh="failed" role="status">
+          <span style={{ color: "var(--warn)" }}>{t("admStale")}</span>
+          <button type="button" className="chip" onClick={retry}>{t("scr2Retry")}</button>
+        </div>
+      )}
+      <div className="scr2-table" ref={tableRef} style={{ maxHeight: "100dvh" }}>
         <table className="scr2">
           <thead>
             <tr>
@@ -1371,8 +1432,8 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
                           ? t("scr2EmptySigWhy").replace("{n}", trackedCount.toLocaleString())
                           : t("scr2EmptyWhy")}
                     </div>
-                    <EmptyExclusionNote n={exclTotal} />
-                    {(tags.length > 0 || techGate || fundPreds.length > 0) && (
+                    {!openedDefinition && <EmptyExclusionNote n={exclTotal} />}
+                    {!openedDefinition && (tags.length > 0 || techGate || fundPreds.length > 0) && (
                       <button type="button" className="chip" onClick={clearAll}>{t("scr2ClearAll")}</button>
                     )}
                   </div>

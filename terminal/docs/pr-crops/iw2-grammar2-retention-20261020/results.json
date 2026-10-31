@@ -1,0 +1,90 @@
+{
+  "scope": "controlled GET-only local consumer fixtures, not live auth/SQL/qualification",
+  "base_head": "4ade6f4a8a4e138f41da5ffc8554cf7e4ccc9c33",
+  "source_files_sha256": {
+    "supabase/migrations/0030_investigation_kernel.sql": "13dec673fc00beecb7c4c1defadbfe30686e7d753fd2be33d0e9a7e7c7177716",
+    "terminal/components/workspaces/InvestigationScreens.tsx": "d4e087a3802c2577430824a7d41e9a16691efaa68f1cf505e9808709137c3d83",
+    "terminal/docs/verification/iw2-kernel/cutover-0030.md": "8a83d3803fe55d46c42246aea1ebff5362d1417fc8433f0445c7bf500dd513be",
+    "terminal/lib/__tests__/investigationScreensView.test.tsx": "e93a64d421a1c7e862867c8ee5afd90d2678f28860d0b3b5c29591e7d33c9f4a"
+  },
+  "fixture_sha256": "f8cf3e9196da1389223a957b79bd5a513e753c9ae3830437e4d734389a7a9ffb",
+  "stats": {
+    "startTime": "2026-10-20T15:32:54.776Z",
+    "duration": 11142.064,
+    "expected": 6,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "captures": [
+    {
+      "file": "desktop-en-picker.png",
+      "sha256": "437e078f46ab13ffaa63cb3a205c2e75aab5abc58a714c4a782e419bd97e78b4",
+      "reviewed": true
+    },
+    {
+      "file": "desktop-en-retained.png",
+      "sha256": "47646cee4ce18cf26a3d053fc7cad0e98c853a87c909ef4dfdebba76fde3c6a2",
+      "reviewed": true
+    },
+    {
+      "file": "mobile-en-picker.png",
+      "sha256": "e3d63fc7c648fabc7ec9ef807afac95e4ed1c627380824fd80a59a79857b9ba4",
+      "reviewed": true
+    },
+    {
+      "file": "mobile-en-retained.png",
+      "sha256": "47736e6c3257d3f69429c5341542dde27850add6df823f00392964652d826f60",
+      "reviewed": true
+    },
+    {
+      "file": "tablet-en-picker.png",
+      "sha256": "5b61c9ba3b75d869869ba49048f81d099e388a1b8419c72675492f71ed9ef33d",
+      "reviewed": true
+    },
+    {
+      "file": "tablet-en-retained.png",
+      "sha256": "2263b17104fbed8a3d73e5a543fc415da0fcf0062957b8b52915f3a367f7de51",
+      "reviewed": true
+    },
+    {
+      "file": "desktop-zh-picker.png",
+      "sha256": "db229746857b3a0249849fa4736efb04223791a4c6f0d139463187491efe49d7",
+      "reviewed": true
+    },
+    {
+      "file": "desktop-zh-retained.png",
+      "sha256": "23d0a75577c52b2efed974d4194df2a9bcc5a5e7417f8e087fed8b7b9cd2b236",
+      "reviewed": true
+    },
+    {
+      "file": "mobile-zh-picker.png",
+      "sha256": "b5ce5185705e637880db0676a16d4dee85b19cb7425f4dcc7c1b5964a733a089",
+      "reviewed": true
+    },
+    {
+      "file": "mobile-zh-retained.png",
+      "sha256": "a8dfcf52720340556cb7ad9c10445b4048a4d9d2c93a98e3b0cedcf8e1398e88",
+      "reviewed": true
+    },
+    {
+      "file": "tablet-zh-picker.png",
+      "sha256": "2a5b64beba3378a58dc24cea2c13d1442ec0999184e119c48259168af4f85204",
+      "reviewed": true
+    },
+    {
+      "file": "tablet-zh-retained.png",
+      "sha256": "85f9db2420d29e54011b2e20ae87ca86a261e60bcd2582b043579f97a92d19f9",
+      "reviewed": true
+    }
+  ],
+  "zero_owner_auth_writes": true,
+  "review_status": "Original non-author Qwen source review adjudicated with current-source reconciliation; grammar2 review:null remedy applied; no release approval",
+  "sql_executed": false,
+  "post_capture_source_only_change": {
+    "migration_sha256": "e98d5a59cfb1932ebf4e562ecf89b6d08b7a5c9365b3e2fbe0b612eaaeff4694",
+    "bytes": 41139,
+    "reason": "review-derived null-review tightening; rendered component bytes unchanged",
+    "sql_executed": false
+  }
+}

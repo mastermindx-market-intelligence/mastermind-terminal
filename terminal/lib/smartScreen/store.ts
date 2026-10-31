@@ -43,7 +43,8 @@ function userRows(db: WatchlistDb, userId: string) {
 }
 
 async function readAll(db: WatchlistDb, userId: string): Promise<{ ok: true; rows: StoredRow[] } | { ok: false; error: string }> {
-  const result = await userRows(db, userId);
+  // Filter before PostgREST's response cap; retained scr_def rows share this table.
+  const result = await userRows(db, userId).like("key", "scr\\_screen.%");
   if (result.error) return { ok: false, error: result.error.message ?? "unavailable" };
   return { ok: true, rows: rowsOf(result).filter((row) => isScreenKey(row.key)).map(toStored) };
 }

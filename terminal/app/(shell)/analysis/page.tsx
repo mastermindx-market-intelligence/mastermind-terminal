@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
+import { E2E_AUTH_MARKER_COOKIE, selectsFixtureAuthBranch } from "@/lib/e2e/investigationAuthFixture";
 import AnalysisWorkspaceMount from "@/components/mounts/AnalysisWorkspaceMount";
 import ThesisWorkspaceMount from "@/components/mounts/ThesisWorkspaceMount";
 import InvestigationWorkspaceMount from "@/components/mounts/InvestigationWorkspaceMount";
@@ -19,6 +21,13 @@ import { parseAnalysisRoute } from "@/lib/analysisRoute";
 // Member surface: the chart (/terminal) is open to guests, this desk is not.
 // getClaims verifies the JWT locally (the same read the (shell) layout does for
 // chrome) — no Auth round-trip unless a refresh is due.
+//
+// The Investigation evidence-review loops are the one exception to the seam below: with
+// the test-fixture marker they take the real createClient()/getClaims() path, so the
+// browser exercises the existing auth owner instead of a manufactured identity. The
+// marker is a host-only path=/analysis cookie holding no principal and no token — it
+// selects a branch, it never authenticates: an unverifiable session still lands on
+// SignupGate, and production never selects this branch.
 
 export const metadata: Metadata = { title: "Analysis · Mastermind Terminal" };
 
@@ -42,7 +51,8 @@ export default async function AnalysisPage({ searchParams }: AnalysisPageProps) 
   );
   // Local visual QA needs the real workspace without manufacturing a Supabase
   // session. The production build can never activate this escape hatch.
-  if (process.env.NODE_ENV !== "production" && process.env.ANALYSIS_LOCAL_PREVIEW === "1") {
+  const useFixtureAuth = selectsFixtureAuthBranch(route.kind, (await cookies()).get(E2E_AUTH_MARKER_COOKIE)?.value);
+  if (!useFixtureAuth && process.env.NODE_ENV !== "production" && process.env.ANALYSIS_LOCAL_PREVIEW === "1") {
     return workspace("local-preview");
   }
   const supabase = await createClient();

@@ -7,6 +7,7 @@ import OptionsRail, { type OptionsRailHandle } from "@/components/options-compan
 import { optionsT } from "@/components/options-companion/optionsStrings";
 import type { OptionsChartLevel } from "@/lib/optionsCompanion";
 import replayStyles from "./ReplayTransport.module.css";
+import symbolBarStyles from "./MobileSymbolBar.module.css";
 import contextStyles from "./ChartContextPlacement.module.css";
 import searchStyles from "./SearchModal.module.css";
 import type { ChartContextDock } from "./ChartContextDock";
@@ -385,7 +386,7 @@ function WlSectionHeader({ name, count, collapsed, minWidth, onToggle, onContext
   name: string;
   count: number;
   collapsed: boolean;
-  minWidth: number;
+  minWidth: number | string;
   onToggle: () => void;
   onContextMenu: (point: { x: number; y: number; focus: HTMLElement }) => void;
   onRename: (point: { x: number; y: number; focus: HTMLElement }) => void;
@@ -5700,11 +5701,12 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     }
     return "";
   };
-  // resizable columns: symbol track + each visible data track carries an explicit px width
+  // Keep saved widths in their original 16px-root units; text-only enlargement
+  // scales the shared header/row tracks without changing saved preferences.
   const colw = (k: string) => set.colW?.[k] ?? DEFAULT_COLW[k] ?? 80;
   const dataCols = colList();
-  const wlGrid = `${colw("sym")}px ${dataCols.map(([k]) => colw(k) + "px").join(" ")} 18px`;
-  const wlMinW = colw("sym") + dataCols.reduce((s, [k]) => s + colw(k), 0) + 18 + (dataCols.length + 1) * 8;
+  const wlGrid = `${colw("sym") / 16}rem ${dataCols.map(([k]) => colw(k) / 16 + "rem").join(" ")} 18px`;
+  const wlMinW = `calc(${(colw("sym") + dataCols.reduce((s, [k]) => s + colw(k), 0)) / 16}rem + ${18 + (dataCols.length + 1) * 8}px)`;
   // Language-aware: EN shows the English name, ZH shows the Chinese one, each falling back to the
   // other when a row carries only one. (This used to be `zh || name`, which showed every Chinese
   // name to English users.)
@@ -5717,7 +5719,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   const startResize = (key: string, e: React.MouseEvent) => {
     e.preventDefault(); e.stopPropagation();
     const startX = e.clientX, startW = colw(key);
-    const move = (ev: MouseEvent) => { const w = Math.max(44, Math.round(startW + (ev.clientX - startX))); setSet((s) => ({ ...s, colW: { ...s.colW, [key]: w } })); };
+    const rootFontSize = Number.parseFloat(getComputedStyle(document.documentElement).fontSize);
+    const textScale = Number.isFinite(rootFontSize) && rootFontSize > 0 ? rootFontSize / 16 : 1;
+    const move = (ev: MouseEvent) => { const w = Math.max(44, Math.round(startW + (ev.clientX - startX) / textScale)); setSet((s) => ({ ...s, colW: { ...s.colW, [key]: w } })); };
     const up = () => { window.removeEventListener("mousemove", move); window.removeEventListener("mouseup", up); document.body.classList.remove("col-resizing"); };
     window.addEventListener("mousemove", move); window.addEventListener("mouseup", up); document.body.classList.add("col-resizing");
   };
@@ -6005,7 +6009,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         })()}
       />
       {/* ── mobile symbol bar (tap → search) ── */}
-      <div className={`m-symbar${activeExtData ? " has-ext" : ""}`}>
+      <div className={`m-symbar ${symbolBarStyles.symbolBar}${activeExtData ? " has-ext" : ""}`}>
         <button type="button" className={searchStyles.mobileTrigger} data-symbol-search
           aria-describedby={mobileQuoteId}
           aria-label={`${t("searchTitle")} — ${active}`} aria-haspopup="dialog" aria-expanded={searchOpen && searchMode === "go"}
@@ -6224,6 +6228,12 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                       {[1, 2, 4].map((n) => <button key={n} className={split === n ? "on" : ""} onClick={() => { setGrid(n); setToolbarMoreOpen(false); }}>{n}</button>)}
                     </div>
                   </div>
+                  {!shellMode && <button type="button" role="menuitem" className="menu-row" data-toolbar-menu-action="compare" onClick={(e) => {
+                    e.currentTarget.closest("[data-toolbar-more]")?.querySelector<HTMLButtonElement>("[data-testid='toolbar-more']")?.focus({ preventScroll: true });
+                    setSearchMode("compare"); setSeed(""); setSearchOpen(true); setToolbarMoreOpen(false);
+                  }}>
+                    <svg viewBox="0 0 24 24"><path d="M4 18l5-9 4 5 3-4 4 8" /></svg>{t("compare")}
+                  </button>}
                   {!shellMode && !dossierMode && <button type="button" role="menuitem" className="menu-row" data-toolbar-menu-action="options" onClick={() => { optionsRailRef.current?.open(); setToolbarMoreOpen(false); }}>
                     <svg viewBox="0 0 24 24"><path d="M3 3h18v18H3zM3 9h18M3 15h18M9 3v18M15 3v18" /></svg>{optionsT(lang)("open")}
                   </button>}
@@ -6659,7 +6669,19 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
               The watchlist board below is HIDDEN, never unmounted, when another source is showing —
               unmounting it would throw away drag state, scroll position and selection. */}
           {loggedIn && (
-            <div className="rail-tabs" role="tablist" aria-label={t("railSourceLabel")} data-testid="rail-source-tabs">
+            <div className="rail-tabs" role="tablist" aria-label={t("railSourceLabel")} data-testid="rail-source-tabs"
+              onKeyDown={event => {
+                if (event.altKey || event.ctrlKey || event.metaKey || !["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+                const tabs = [...event.currentTarget.querySelectorAll<HTMLButtonElement>('button[role="tab"]:not(:disabled)')];
+                const current = tabs.indexOf(event.target as HTMLButtonElement);
+                if (current < 0) return;
+                event.preventDefault();
+                event.stopPropagation();
+                const next = event.key === "Home" ? 0 : event.key === "End" ? tabs.length - 1
+                  : (current + (event.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length;
+                tabs[next].focus();
+                tabs[next].click();
+              }}>
               <button type="button" role="tab" id="rail-tab-portfolio" aria-selected={railTab === "portfolio"}
                 aria-controls="rail-panel-portfolio" tabIndex={railTab === "portfolio" ? 0 : -1}
                 className={`rail-tab${railTab === "portfolio" ? " on" : ""}`}
@@ -6834,7 +6856,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                 {dataCols.map(([k, l]) => <span key={k} data-watchlist-column={k} className="wl-col"><span className="wl-col-l">{l}</span><i className="wl-rz" title={t("resizeCol")} onMouseDown={(e) => startResize(k, e)} /></span>)}
                 <span />
               </div>
-              <div className="wl-list" role="listbox" aria-label={t("watchlists")} aria-multiselectable="true">
+              <div className="wl-list" style={{ minWidth: wlMinW }} role="listbox" aria-label={t("watchlists")} aria-multiselectable="true">
                 <DndContext sensors={dndSensors} collisionDetection={watchlistCollisionDetection} onDragStart={onWlDragStart} onDragCancel={() => { wlPointerDragRef.current = false; wlPointerRef.current = null; wlPointerLeftInitialRef.current = false; wlPointerInitialRectRef.current = null; wlPendingPointerRef.current = null; wlActivationDeltaRef.current = null; setWlDragId(null); }} onDragEnd={onWlDragEnd} modifiers={[restrictToVerticalAxis]}>
                 <SortableContext items={sectionOrder.map((section) => SEC_DROP_PREFIX + section)} strategy={verticalListSortingStrategy}>
                 <WlRootDropZone active={wlDragId !== null} label={t("wlUnsectionedDrop")} />

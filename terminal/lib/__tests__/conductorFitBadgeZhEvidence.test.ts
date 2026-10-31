@@ -1,4 +1,4 @@
-import { assertCapturedLexProjection } from "./helpers/lexEvidenceProjection";
+import { assertCapturedLexEvidence } from "./helpers/lexEvidenceProjection";
 // Preserve the raw capture pin; only unused onboarding copy has an AST dependency projection.
 // Git-free evidence lock for the conductor-fit-badge-zh capture packet (the rail's zh fit chip).
 // The lock is the sha256 of the sources the rail crops draw from, recorded in EVIDENCE.yml
@@ -98,7 +98,7 @@ describe("conductor-fit-badge-zh evidence lock is the sha256 of the rail's sourc
       const abs = join(REPO, rel);
       expect(existsSync(abs), `${rel} is recorded in layoutFiles but absent from the tree`).toBe(true);
       if (rel === "terminal/lib/i18n.tsx") {
-        assertCapturedLexProjection(readFileSync(abs, "utf8"), expected, readFileSync(EVIDENCE, "utf8"));
+        assertCapturedLexEvidence(readFileSync(abs, "utf8"), expected, readFileSync(EVIDENCE, "utf8"));
       } else {
         expect(sha256Of(abs), `${rel} changed without a recapture`).toBe(expected);
       }

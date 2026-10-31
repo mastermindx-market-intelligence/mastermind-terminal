@@ -1,0 +1,61 @@
+{
+  "before": {
+    "font": "13px",
+    "width": 390,
+    "height": 844,
+    "dpr": 1,
+    "cssZoom": "1",
+    "timezone": "America/Vancouver"
+  },
+  "after": {
+    "font": "26px",
+    "width": 390,
+    "height": 844,
+    "dpr": 1,
+    "cssZoom": "1",
+    "timezone": "America/Vancouver"
+  },
+  "actual": {
+    "session": {
+      "sessionId": "66c4d4dc-f2f3-496a-aab3-25273013f754",
+      "capabilities": {
+        "acceptInsecureCerts": false,
+        "browserName": "firefox",
+        "browserVersion": "151.0",
+        "platformName": "mac",
+        "setWindowRect": true,
+        "unhandledPromptBehavior": "dismiss and notify",
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:151.0) Gecko/20100101 Firefox/151.0",
+        "moz:buildID": "20260611192437",
+        "moz:headless": true,
+        "moz:platformVersion": "25.5.0",
+        "moz:processID": 73238,
+        "moz:profile": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/date-native-readout/candidate-mobile-output/native-precise-local-date--99d5f-tive-text200-without-saving-native-mobile/isolated-firefox-profile",
+        "moz:shutdownTimeout": 60000,
+        "pageLoadStrategy": "normal",
+        "timeouts": {
+          "implicit": 0,
+          "pageLoad": 300000,
+          "script": 30000
+        },
+        "strictFileInteractability": false,
+        "moz:accessibilityChecks": false,
+        "moz:webdriverClick": true,
+        "moz:windowless": false,
+        "capabilities": {
+          "alwaysMatch": {
+            "acceptInsecureCerts": false
+          }
+        },
+        "proxy": {}
+      }
+    },
+    "native": {
+      "value": {
+        "textZoom": 2,
+        "fullZoom": 1,
+        "url": "http://127.0.0.1:3586/analysis?view=theses&thesis=185d2e18-e39b-4a98-a43a-c984fdcfcef5"
+      }
+    }
+  }
+}

@@ -1,12 +1,12 @@
 # B-F11-5 Suggested changes to your thesis — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: bbc07037aae3e98597945e23448781a091d15281
-# capturedAt: 2026-10-20T20:23:33.567Z
+# capturedAtHead: 1312828cdac570c06cd6e83e71a802763fad2d2e
+# capturedAt: 2026-10-24T07:06:31.022Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/workspaces/ThesisWorkspace.tsx: "f8aa79a228b85a0c10050b06d24665a95fc149ea56a00e8610472cc7a2a7849c"
-  terminal/components/workspaces/ThesisWorkspace.module.css: "c7fcd07d13cf3d7453bb51cd47ffb13c80af05e327bf9662368e97988023320c"
+  terminal/components/workspaces/ThesisWorkspace.tsx: "262487c533699abf02f1c3f3f22b756addc2b1d1857b6c327f4b7add7e345ed9"
+  terminal/components/workspaces/ThesisWorkspace.module.css: "9d2f361302f0c644614e8da2c5e095f9f8a9629be86c1a350051a4fdb9305fa8"
   terminal/lib/thesisAmendmentProposals.ts: "f82b472f87e9c098fd1752ed357447e1462be5e5dee26bc4a0c110c15ada0d9b"
 theme: dark
 languages: [en, zh]
@@ -36,5 +36,3 @@ files:
   - desktop-zh-populated.png
   - mobile-en-populated.png
   - mobile-zh-populated.png
-
-recapture_adapter: "Native producer executed with local capture-webpack.cjs NODE_OPTIONS preload; adds supported --webpack only for the reused dependency symlink. Product sources unchanged."
