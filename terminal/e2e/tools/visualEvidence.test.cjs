@@ -51,6 +51,11 @@ test("explicit invalid selection never falls back; bounded legacy remains explic
   assert.throws(() => e.selectedComposition("unused", { TERMINAL_EVIDENCE_COMPOSITION: "" }), /EVIDENCE_SELECTION/);
   assert.throws(() => e.selectedComposition("unused", { TERMINAL_EVIDENCE_COMPOSITION: "missing", TERMINAL_EVIDENCE_MODE: "legacy" }), /EVIDENCE_SELECTION/);
 });
+test("source lock includes both committed hub classification and actual More renderer", () => {
+  const locked = require("./visualEvidenceSources.json");
+  assert.ok(locked.includes("terminal/lib/useHubDiscovery.ts"));
+  assert.ok(locked.includes("terminal/components/mobile/RollerStrip.tsx"));
+});
 let root;
 function at(op,name){return path.join(root,op.relative,(op.version===2?op.id+"--":"")+name);}
 function refPath(op){return `${op.relative}/${op.version===2?op.id+"--":""}operation.json`;}
@@ -306,4 +311,14 @@ print(json.dumps({'error':error,'bytes':open(os.path.join(x['root'],x['packet'],
   assert.throws(()=>e.beginOperation({repoRoot:root,packet:'pl6',operationId:'partial-write',env:{}}),/FileExistsError/);
   assert.equal(fs.readFileSync(path.join(root,e.PACKETS.pl6,'partial-write--start.json'),'utf8'),'ori');
   assert.equal(fs.existsSync(path.join(root,e.PACKETS.pl6,'partial-write--operation.json')),false);
+});
+
+test("webpack identity is explicit and cannot reuse unlabelled compiler proof", () => {
+  assert.equal(e.profile({ TERMINAL_EVIDENCE_COMPILER: "webpack" }).compiler, "webpack");
+  assert.equal(e.profile({}).compiler, undefined);
+  assert.throws(() => e.profile({ TERMINAL_EVIDENCE_COMPILER: "other" }), /PROFILE_COMPILER/);
+  const x = fixture(); x.operations[0].profile = e.profile({ TERMINAL_EVIDENCE_COMPILER: "webpack" });
+  assert.throws(() => e.composeCases(x), /PROFILE_MISMATCH/);
+  x.profile = e.profile({ TERMINAL_EVIDENCE_COMPILER: "webpack" });
+  assert.equal(e.composeCases(x).length, 30);
 });
