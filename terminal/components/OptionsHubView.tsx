@@ -2671,7 +2671,7 @@ export default function OptionsHubView({
                   url.searchParams.set("tapeView", encodeTapeView({ minPrem, dteBuckets: [...dteBuckets], mnyBuckets: [...mnyBuckets],
                     groupFilter, drillTicker, tapeTickerSearch, sideFilter, flagFilter, sortKey, sortDir }));
                   window.history.pushState(null, "", url);
-                }}>{lang === "zh" ? "清除组合条件" : "Clear combined conditions"}</button>
+                }}>{viewText("tapeViewClearCombined")}</button>
               </div>}
 
               {/* Drill card */}

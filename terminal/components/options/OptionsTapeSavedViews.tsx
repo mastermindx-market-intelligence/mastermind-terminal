@@ -7,6 +7,7 @@ import { decodeTapeFilterGroups, encodeTapeFilterGroups, MAX_TAPE_FILTER_GROUPS 
 import { addSavedTapeView, decodeSavedTapeViews, encodeSavedTapeViews, removeSavedTapeView,
   renameSavedTapeView, SAVED_TAPE_VIEWS_KEY, type SavedTapeView } from "@/lib/optionsTapeSavedViews";
 import s from "./OptionsTapeViewLink.module.css";
+import { useTapeViewText } from "./optionsTapeViewStrings";
 
 const COPY = {
   save: ["Save screen", "保存筛选视图"], views: ["Saved screens", "已存筛选视图"],
@@ -63,7 +64,8 @@ function tapeViewSummary(encoded: string, lang: string, includeSort = true): str
 
 export function OptionsTapeGroupDetails({ groups }: { groups: readonly TapeViewState[] }) {
   const { lang } = useLang();
-  return <details><summary>{lang === "zh" ? "查看组合条件" : "View combined conditions"}</summary>
+  const viewText = useTapeViewText();
+  return <details><summary>{viewText("tapeViewCombinedDetails")}</summary>
     <ol>{groups.map((group, index) => <li key={index} style={{ overflowWrap: "anywhere" }}>{tapeViewSummary(encodeTapeView(group), lang, false)}</li>)}</ol>
   </details>;
 }
