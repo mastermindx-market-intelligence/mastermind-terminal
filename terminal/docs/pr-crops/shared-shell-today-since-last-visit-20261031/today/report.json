@@ -1,0 +1,730 @@
+{
+  "sourceHead": "981408801a3fdb9f65db277f304245a2474d12ab",
+  "kind": "ISOLATED_ACTUAL_TODAY_COMPONENT_FIXTURE",
+  "results": [
+    {
+      "width": 1440,
+      "theme": "dark",
+      "lang": "en",
+      "state": "ready",
+      "layout": {
+        "scroll": 1440,
+        "width": 1440,
+        "mains": 1,
+        "bodyHeight": 1713
+      },
+      "proof": {
+        "brief": true,
+        "posts": 1,
+        "previousSent": {
+          "names": {
+            "NVDA": "trend",
+            "AAPL": "trend",
+            "XOM": "chop"
+          }
+        },
+        "storedAfter": {
+          "names": {
+            "NVDA": "chop",
+            "AAPL": "trend",
+            "XOM": "trend"
+          }
+        },
+        "tickerHrefs": [
+          "/analysis?symbol=NVDA",
+          "/analysis?symbol=XOM"
+        ],
+        "lines": 3
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-changes",
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "lang": "zh",
+      "state": "ready",
+      "layout": {
+        "scroll": 1440,
+        "width": 1440,
+        "mains": 1,
+        "bodyHeight": 1716
+      },
+      "proof": {
+        "brief": true,
+        "posts": 1,
+        "previousSent": {
+          "names": {
+            "NVDA": "trend",
+            "AAPL": "trend",
+            "XOM": "chop"
+          }
+        },
+        "storedAfter": {
+          "names": {
+            "NVDA": "chop",
+            "AAPL": "trend",
+            "XOM": "trend"
+          }
+        },
+        "tickerHrefs": [
+          "/analysis?symbol=NVDA",
+          "/analysis?symbol=XOM"
+        ],
+        "lines": 3
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-changes",
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "lang": "en",
+      "state": "ready",
+      "layout": {
+        "scroll": 1440,
+        "width": 1440,
+        "mains": 1,
+        "bodyHeight": 1713
+      },
+      "proof": {
+        "brief": true,
+        "posts": 1,
+        "previousSent": {
+          "names": {
+            "NVDA": "trend",
+            "AAPL": "trend",
+            "XOM": "chop"
+          }
+        },
+        "storedAfter": {
+          "names": {
+            "NVDA": "chop",
+            "AAPL": "trend",
+            "XOM": "trend"
+          }
+        },
+        "tickerHrefs": [
+          "/analysis?symbol=NVDA",
+          "/analysis?symbol=XOM"
+        ],
+        "lines": 3
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-changes",
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "lang": "zh",
+      "state": "ready",
+      "layout": {
+        "scroll": 1440,
+        "width": 1440,
+        "mains": 1,
+        "bodyHeight": 1716
+      },
+      "proof": {
+        "brief": true,
+        "posts": 1,
+        "previousSent": {
+          "names": {
+            "NVDA": "trend",
+            "AAPL": "trend",
+            "XOM": "chop"
+          }
+        },
+        "storedAfter": {
+          "names": {
+            "NVDA": "chop",
+            "AAPL": "trend",
+            "XOM": "trend"
+          }
+        },
+        "tickerHrefs": [
+          "/analysis?symbol=NVDA",
+          "/analysis?symbol=XOM"
+        ],
+        "lines": 3
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-changes",
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "lang": "en",
+      "state": "ready",
+      "layout": {
+        "scroll": 390,
+        "width": 390,
+        "mains": 1,
+        "bodyHeight": 2122
+      },
+      "proof": {
+        "brief": true,
+        "posts": 1,
+        "previousSent": {
+          "names": {
+            "NVDA": "trend",
+            "AAPL": "trend",
+            "XOM": "chop"
+          }
+        },
+        "storedAfter": {
+          "names": {
+            "NVDA": "chop",
+            "AAPL": "trend",
+            "XOM": "trend"
+          }
+        },
+        "tickerHrefs": [
+          "/analysis?symbol=NVDA",
+          "/analysis?symbol=XOM"
+        ],
+        "lines": 3
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-changes",
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "lang": "zh",
+      "state": "ready",
+      "layout": {
+        "scroll": 390,
+        "width": 390,
+        "mains": 1,
+        "bodyHeight": 2038
+      },
+      "proof": {
+        "brief": true,
+        "posts": 1,
+        "previousSent": {
+          "names": {
+            "NVDA": "trend",
+            "AAPL": "trend",
+            "XOM": "chop"
+          }
+        },
+        "storedAfter": {
+          "names": {
+            "NVDA": "chop",
+            "AAPL": "trend",
+            "XOM": "trend"
+          }
+        },
+        "tickerHrefs": [
+          "/analysis?symbol=NVDA",
+          "/analysis?symbol=XOM"
+        ],
+        "lines": 3
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-changes",
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "en",
+      "state": "ready",
+      "layout": {
+        "scroll": 390,
+        "width": 390,
+        "mains": 1,
+        "bodyHeight": 2122
+      },
+      "proof": {
+        "brief": true,
+        "posts": 1,
+        "previousSent": {
+          "names": {
+            "NVDA": "trend",
+            "AAPL": "trend",
+            "XOM": "chop"
+          }
+        },
+        "storedAfter": {
+          "names": {
+            "NVDA": "chop",
+            "AAPL": "trend",
+            "XOM": "trend"
+          }
+        },
+        "tickerHrefs": [
+          "/analysis?symbol=NVDA",
+          "/analysis?symbol=XOM"
+        ],
+        "lines": 3
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-changes",
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "zh",
+      "state": "ready",
+      "layout": {
+        "scroll": 390,
+        "width": 390,
+        "mains": 1,
+        "bodyHeight": 2038
+      },
+      "proof": {
+        "brief": true,
+        "posts": 1,
+        "previousSent": {
+          "names": {
+            "NVDA": "trend",
+            "AAPL": "trend",
+            "XOM": "chop"
+          }
+        },
+        "storedAfter": {
+          "names": {
+            "NVDA": "chop",
+            "AAPL": "trend",
+            "XOM": "trend"
+          }
+        },
+        "tickerHrefs": [
+          "/analysis?symbol=NVDA",
+          "/analysis?symbol=XOM"
+        ],
+        "lines": 3
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-changes",
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "theme": "light",
+      "lang": "zh",
+      "state": "ready",
+      "layout": {
+        "scroll": 320,
+        "width": 320,
+        "mains": 1,
+        "bodyHeight": 2142
+      },
+      "proof": {
+        "brief": true,
+        "posts": 1,
+        "previousSent": {
+          "names": {
+            "NVDA": "trend",
+            "AAPL": "trend",
+            "XOM": "chop"
+          }
+        },
+        "storedAfter": {
+          "names": {
+            "NVDA": "chop",
+            "AAPL": "trend",
+            "XOM": "trend"
+          }
+        },
+        "tickerHrefs": [
+          "/analysis?symbol=NVDA",
+          "/analysis?symbol=XOM"
+        ],
+        "lines": 3
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-changes",
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "lang": "en",
+      "state": "first",
+      "layout": {
+        "scroll": 1440,
+        "width": 1440,
+        "mains": 1,
+        "bodyHeight": 1639
+      },
+      "proof": {
+        "brief": true,
+        "posts": 1,
+        "previousSent": null,
+        "storedAfter": {
+          "names": {
+            "NVDA": "chop",
+            "AAPL": "trend",
+            "XOM": "trend"
+          }
+        },
+        "tickerHrefs": [],
+        "lines": 0
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-changes",
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "zh",
+      "state": "first",
+      "layout": {
+        "scroll": 390,
+        "width": 390,
+        "mains": 1,
+        "bodyHeight": 1958
+      },
+      "proof": {
+        "brief": true,
+        "posts": 1,
+        "previousSent": null,
+        "storedAfter": {
+          "names": {
+            "NVDA": "chop",
+            "AAPL": "trend",
+            "XOM": "trend"
+          }
+        },
+        "tickerHrefs": [],
+        "lines": 0
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-changes",
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "lang": "en",
+      "state": "quiet",
+      "layout": {
+        "scroll": 1440,
+        "width": 1440,
+        "mains": 1,
+        "bodyHeight": 1639
+      },
+      "proof": {
+        "brief": true,
+        "posts": 1,
+        "previousSent": {
+          "names": {
+            "NVDA": "trend",
+            "AAPL": "trend",
+            "XOM": "chop"
+          }
+        },
+        "storedAfter": {
+          "names": {
+            "NVDA": "chop",
+            "AAPL": "trend",
+            "XOM": "trend"
+          }
+        },
+        "tickerHrefs": [],
+        "lines": 0
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-changes",
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "zh",
+      "state": "quiet",
+      "layout": {
+        "scroll": 390,
+        "width": 390,
+        "mains": 1,
+        "bodyHeight": 1958
+      },
+      "proof": {
+        "brief": true,
+        "posts": 1,
+        "previousSent": {
+          "names": {
+            "NVDA": "trend",
+            "AAPL": "trend",
+            "XOM": "chop"
+          }
+        },
+        "storedAfter": {
+          "names": {
+            "NVDA": "chop",
+            "AAPL": "trend",
+            "XOM": "trend"
+          }
+        },
+        "tickerHrefs": [],
+        "lines": 0
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-changes",
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "lang": "en",
+      "state": "teaser",
+      "layout": {
+        "scroll": 1440,
+        "width": 1440,
+        "mains": 1,
+        "bodyHeight": 1608
+      },
+      "proof": {
+        "brief": true,
+        "posts": 0,
+        "storedAfter": {
+          "names": {
+            "NVDA": "trend",
+            "AAPL": "trend",
+            "XOM": "chop"
+          }
+        },
+        "tickerHrefs": [],
+        "lines": 0
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "zh",
+      "state": "teaser",
+      "layout": {
+        "scroll": 390,
+        "width": 390,
+        "mains": 1,
+        "bodyHeight": 1905
+      },
+      "proof": {
+        "brief": true,
+        "posts": 0,
+        "storedAfter": {
+          "names": {
+            "NVDA": "trend",
+            "AAPL": "trend",
+            "XOM": "chop"
+          }
+        },
+        "tickerHrefs": [],
+        "lines": 0
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "lang": "en",
+      "state": "unavailable",
+      "layout": {
+        "scroll": 1440,
+        "width": 1440,
+        "mains": 1,
+        "bodyHeight": 1630
+      },
+      "proof": {
+        "brief": true,
+        "posts": 1,
+        "previousSent": {
+          "names": {
+            "NVDA": "trend",
+            "AAPL": "trend",
+            "XOM": "chop"
+          }
+        },
+        "storedAfter": {
+          "names": {
+            "NVDA": "trend",
+            "AAPL": "trend",
+            "XOM": "chop"
+          }
+        },
+        "tickerHrefs": [],
+        "lines": 0
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-changes",
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "zh",
+      "state": "unavailable",
+      "layout": {
+        "scroll": 390,
+        "width": 390,
+        "mains": 1,
+        "bodyHeight": 1906
+      },
+      "proof": {
+        "brief": true,
+        "posts": 1,
+        "previousSent": {
+          "names": {
+            "NVDA": "trend",
+            "AAPL": "trend",
+            "XOM": "chop"
+          }
+        },
+        "storedAfter": {
+          "names": {
+            "NVDA": "trend",
+            "AAPL": "trend",
+            "XOM": "chop"
+          }
+        },
+        "tickerHrefs": [],
+        "lines": 0
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-changes",
+          "method": "POST"
+        }
+      ]
+    }
+  ]
+}

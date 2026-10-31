@@ -1,0 +1,43 @@
+{
+  "sourceHead": "981408801a3fdb9f65db277f304245a2474d12ab",
+  "recordedAt": "2026-10-31T06:28:14.874255+00:00",
+  "kind": "ISOLATED_ACTUAL_COMPONENT_FIXTURE",
+  "qualification": "Actual production Today components and source CSS; the Supabase SDK, next/link and onboarding boundaries and all /api data are deterministic fixtures served from a loopback server; non-loopback requests are blocked. These captures do not prove live authentication, data freshness, the deployed beta, or desk acceptance of the portfolio_changes.v1 producer.",
+  "commands": {
+    "today": "CAPTURE_SOURCE_HEAD=981408801a3fdb9f65db277f304245a2474d12ab CAPTURE_FONTS_CSS=<a built .next Inter font-face chunk, optional> CAPTURE_FONTS_DIR=<its media dir, optional> node docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/capture.mjs (Node v26.5.0, @playwright/test chromium headless)"
+  },
+  "sourceHashes": {
+    "terminal/components/workspaces/TodaySinceLastVisit.tsx": "96a40e661711cf1020c1d394d4d2037546637d04d8b5789123b421c06910bea0",
+    "terminal/components/workspaces/TodayWorkspace.tsx": "fd35a3ec84e57e9370ffc69b90882fcb79dfdb4d466b776c9ae8988eb18dba66",
+    "terminal/components/workspaces/TodayWorkspace.module.css": "44bae21ba102abbf6a486754188e9834b020641ecd2a8e1cc1aaf87047fb7070",
+    "terminal/app/api/portfolio-changes/route.ts": "ce447c6387051425bdf2171072bcf79775f2f14bd175ab1ebc2375f7dcf1f930",
+    "terminal/lib/shared-shell/useReadingScope.ts": "37bc0cc517172ba243a7578cf82940b6ac6c212cb1c8787bcbf789be8aa43f20",
+    "terminal/app/globals.css": "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517",
+    "terminal/components/chrome/shared-shell/shared-shell.css": "aa6555ac18306f31fb317d8941bd1dd530ab7c61c18e67d2a73a439329950339"
+  },
+  "harness": {
+    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/capture.mjs": "82e36cb7061b964a8e80ed7f4ad3ec2b657a8a663f6886dd84f8651988aae47f"
+  },
+  "report": {
+    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/report.json": "3cfda6a8f03b7d3df8b41a87a5f04646abc94d42541db18939147d53043166fe"
+  },
+  "captures": {
+    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/1440-dark-en-first.png": "b3cc7d6cb89f518a899d87ef5c6e3be650915e8746691f45ca45853203ea2fd8",
+    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/1440-dark-en-quiet.png": "4210865b121f061bdc5d16bd64170876f83a68305da5fa95d3baa56ff465cbc7",
+    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/1440-dark-en-ready.png": "1c0b7fbc2b86ad4b80437625def67c13d796ea56e250d5615fa1c75c8f9ae375",
+    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/1440-dark-en-teaser.png": "4949e6a07db014237961f80c085487b8246f4ecf7419c208925dc9aa0ef1c170",
+    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/1440-dark-en-unavailable.png": "b7e06ea446331c614171ed05083ef9cdf9c8de1e88e5d18fa099a732676a584b",
+    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/1440-dark-zh-ready.png": "9a559212b6c42d91c9524b030c4a4e441d65169989198c7191d17cd554fda3d2",
+    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/1440-light-en-ready.png": "565e25f37125eeb7c1fdb0438ecb2ec5b3bbf9c676ffec8982319a2644aa42f7",
+    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/1440-light-zh-ready.png": "b0631bd09103d8f5236cc0b64566f7b5551cb4efddbd5c2c74a15ad7ccbaefda",
+    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/320-light-zh-ready.png": "4e10e7020048e9f126d2016897a288198964e578d07b0307341dfb469e23f845",
+    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/390-dark-en-ready.png": "65017d531100df259ddc5afc0f3cf83b9d96eb9cb67e85ced83aba73723b6c8b",
+    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/390-dark-zh-ready.png": "ee3b5920cf619399ab62d35f42d2fbddb00a9547e53086dbff3ea0d155fcaad8",
+    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/390-light-en-ready.png": "a9bdb020daa6dc59b8f987ad219a262848b715c5514df3e4a6a2ee62862f2ceb",
+    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/390-light-zh-first.png": "0b3363d7233c3588a4ba1d7e0a30007debc060d3f59f65a9673c05548281d254",
+    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/390-light-zh-quiet.png": "558446976248d3d7baf1d6c4081a74b37b104ba4b381e18ff63b0062c3a88e0b",
+    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/390-light-zh-ready.png": "1bbd0d80e02b49a4e57b012524c08aa73fb7d1b4d58ff65618576d5798c2b010",
+    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/390-light-zh-teaser.png": "f7e2d4164f2ec1b62c341a8cb2a59c47216053e93135d6ca8417619e82eeae2d",
+    "terminal/docs/pr-crops/shared-shell-today-since-last-visit-20261031/today/390-light-zh-unavailable.png": "dff883fd07820182cf4c2fca8ec07ea64a644e58a435ee7fb4e52db0deb28b5c"
+  }
+}
