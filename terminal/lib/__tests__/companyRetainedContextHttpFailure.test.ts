@@ -4,8 +4,10 @@ const { getUser, retained, current } = vi.hoisted(() => ({ getUser: vi.fn(), ret
 vi.mock("@/lib/supabase/server", () => ({ createClient: async () => ({ auth: { getUser } }) }));
 vi.mock("@/lib/eventWorkspace", async () => {
   const real = await vi.importActual<typeof import("@/lib/eventWorkspace")>("@/lib/eventWorkspace");
-  return { ...real, resolveRetainedEventWorkspaceFromR2: retained, resolveCurrentEventWorkspaceFromR2: current };
+  return { ...real, resolveCurrentEventWorkspaceFromR2: current, resolveRetainedEventWorkspaceFromR2: retained };
 });
+// Isolate the explicit full-Company owner boundary; the real BFF default-deny
+// path is separately exercised in companyRetainedContextOwnerIntegration.test.ts.
 import { GET } from "@/app/api/investigations/baseline/route";
 import { loadCompanyRetainedContext } from "../companyRetainedContext";
 

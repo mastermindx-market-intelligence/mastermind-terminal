@@ -1,0 +1,85 @@
+{
+  "lang": "en",
+  "original": "{\"argument_relations\":[],\"continuation\":{\"next_observation\":\"Original observation\",\"next_question\":\"Retain next question\"},\"evidence_refs\":[],\"intent\":{\"question\":\"Which observation changes this view?\",\"subjects\":[],\"title\":\"Observation authoring source\"},\"layout_refs\":[],\"schema\":\"investigation_manifest.v2\",\"thesis_refs\":[]}",
+  "finalOriginal": "{\"argument_relations\":[],\"continuation\":{\"next_observation\":\"Original observation\",\"next_question\":\"Retain next question\"},\"evidence_refs\":[],\"intent\":{\"question\":\"Which observation changes this view?\",\"subjects\":[],\"title\":\"Observation authoring source\"},\"layout_refs\":[],\"schema\":\"investigation_manifest.v2\",\"thesis_refs\":[]}",
+  "commands": [
+    {
+      "id": "10000000-0000-4000-8000-000000000011",
+      "operation_id": "b673da98-ec90-4dc2-9a73-cf519829f1f8",
+      "expected_revision": 3,
+      "action": "revise",
+      "manifest": {
+        "argument_relations": [],
+        "continuation": {
+          "next_observation": "  Watch exact margin <5% & next report.\nExplicit condition  ",
+          "next_question": "Retain next question"
+        },
+        "evidence_refs": [],
+        "intent": {
+          "question": "Which observation changes this view?",
+          "subjects": [],
+          "title": "Observation authoring source"
+        },
+        "layout_refs": [],
+        "schema": "investigation_manifest.v2",
+        "thesis_refs": []
+      }
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000011",
+      "operation_id": "85c21e52-81ea-4dd7-8c5a-08a61a3b6de3",
+      "expected_revision": 4,
+      "action": "revise",
+      "manifest": {
+        "argument_relations": [],
+        "continuation": {
+          "next_question": "Retain next question"
+        },
+        "evidence_refs": [],
+        "intent": {
+          "question": "Which observation changes this view?",
+          "subjects": [],
+          "title": "Observation authoring source"
+        },
+        "layout_refs": [],
+        "schema": "investigation_manifest.v2",
+        "thesis_refs": []
+      }
+    },
+    {
+      "id": "5cbaf061-2d44-4e24-bfae-e44ea83fe969",
+      "operation_id": "3ea9e792-b88a-4eb4-ab98-13302e2c6d4f",
+      "expected_revision": 0,
+      "action": "create",
+      "manifest": {
+        "argument_relations": [],
+        "continuation": {
+          "next_observation": "Independent copied observation",
+          "next_question": "Retain next question"
+        },
+        "evidence_refs": [],
+        "intent": {
+          "question": "Which observation changes this view?",
+          "subjects": [],
+          "title": "Independent question"
+        },
+        "layout_refs": [],
+        "schema": "investigation_manifest.v2",
+        "thesis_refs": []
+      }
+    }
+  ],
+  "otherWrites": [],
+  "telemetry": [
+    "POST",
+    "POST",
+    "POST",
+    "POST",
+    "POST",
+    "POST",
+    "POST",
+    "POST",
+    "POST"
+  ],
+  "scope": "Three explicitly clicked Saves, exact old revision and copy readback on isolated owner transport; not live persistence or lifecycle closure"
+}

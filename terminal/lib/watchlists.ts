@@ -29,6 +29,7 @@ export type DbResult = { data?: DbRow[] | DbRow | null; error?: { message?: stri
 export type WatchlistQuery = PromiseLike<DbResult> & {
   select: (fields?: string) => WatchlistQuery;
   eq: (column: string, value: unknown) => WatchlistQuery;
+  like: (column: string, pattern: string) => WatchlistQuery;
   in: (column: string, values: readonly unknown[]) => WatchlistQuery;
   order: (column: string, options?: { ascending?: boolean; referencedTable?: string }) => WatchlistQuery;
   limit: (count: number) => WatchlistQuery;

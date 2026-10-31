@@ -1,0 +1,1156 @@
+{
+  "at": "2026-10-14T14:07:54.861019+00:00",
+  "source": "fc8224071b44726484ebc306c0fef7b745060ece",
+  "verdict": "SCOPED_KEYBOARD_SCROLL_ACCEPTED",
+  "results": "OriginalDesktop+Tablet2PASS reused; originalMobile horizontal assumption1FAIL retained; correctedMobile1PASS. No productsource change.",
+  "cells": [
+    {
+      "source": "fc8224071b44726484ebc306c0fef7b745060ece",
+      "browser": "149.0.7827.55",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "tabs": [
+        {
+          "tag": "A",
+          "cls": "",
+          "text": "Chart"
+        },
+        {
+          "tag": "A",
+          "cls": "",
+          "text": "Analysis"
+        },
+        {
+          "tag": "A",
+          "cls": "on",
+          "text": "Discover"
+        },
+        {
+          "tag": "A",
+          "cls": "",
+          "text": "Dislocations"
+        },
+        {
+          "tag": "A",
+          "cls": "",
+          "text": "Options"
+        },
+        {
+          "tag": "A",
+          "cls": "",
+          "text": "Scripts"
+        },
+        {
+          "tag": "A",
+          "cls": "",
+          "text": "Portfolio"
+        },
+        {
+          "tag": "A",
+          "cls": "",
+          "text": "Alerts"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Mastermind AI"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "avatar",
+          "text": "R"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "avatar",
+          "text": "R"
+        },
+        {
+          "tag": "A",
+          "cls": "navbtn",
+          "text": ""
+        },
+        {
+          "tag": "A",
+          "cls": "navbtn",
+          "text": ""
+        },
+        {
+          "tag": "A",
+          "cls": "navbtn on",
+          "text": ""
+        },
+        {
+          "tag": "A",
+          "cls": "navbtn",
+          "text": ""
+        },
+        {
+          "tag": "A",
+          "cls": "navbtn",
+          "text": ""
+        },
+        {
+          "tag": "A",
+          "cls": "navbtn",
+          "text": ""
+        },
+        {
+          "tag": "A",
+          "cls": "navbtn",
+          "text": ""
+        },
+        {
+          "tag": "A",
+          "cls": "navbtn",
+          "text": ""
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "navbtn",
+          "text": ""
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "obs-pillnav-tab on",
+          "text": "Stock Screener"
+        },
+        {
+          "tag": "SELECT",
+          "cls": "scr2-select",
+          "text": "All marketsUnited StatesChina A-sharesHong KongCanadaInternationalCrypto"
+        },
+        {
+          "tag": "SELECT",
+          "cls": "scr2-select",
+          "text": "All assetsEquitiesETFs & fundsCryptoIndicesBondsForexFutures"
+        },
+        {
+          "tag": "SELECT",
+          "cls": "scr2-select",
+          "text": "All sectors"
+        },
+        {
+          "tag": "INPUT",
+          "cls": "scr2-search",
+          "text": ""
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "fin-tab",
+          "text": "Oracle BUYs"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "fin-tab",
+          "text": "Big gainers"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "fin-tab",
+          "text": "Big decliners"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "fin-tab",
+          "text": "New-high watch"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "fin-tab",
+          "text": "Deep drawdown"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "fin-tab",
+          "text": "China A liquid"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "fin-tab",
+          "text": "HK liquid"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "fin-tab",
+          "text": "+ Save"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "on",
+          "text": "Any"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Oracle BUY"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Oracle SELL"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Tracked"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "chip",
+          "text": "Uptrend regime"
+        },
+        {
+          "tag": "SELECT",
+          "cls": "scr2-select",
+          "text": "Min $ volume \u00b7 Any\u2265 $1M\u2265 $5M\u2265 $20M\u2265 $100M"
+        },
+        {
+          "tag": "SELECT",
+          "cls": "scr2-select",
+          "text": "Min market cap \u00b7 Any\u2265 $300M\u2265 $2B\u2265 $10B\u2265 $100B"
+        },
+        {
+          "tag": "SELECT",
+          "cls": "scr2-select",
+          "text": "52-week position \u00b7 AnyNear high (\u22645% off)Within 15% of highDrawdown \u226530%Near low (\u226410% up)"
+        },
+        {
+          "tag": "SELECT",
+          "cls": "scr2-select",
+          "text": "Day move \u00b7 AnyUp \u22653%Down \u22653%Moved \u22655%"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "chip",
+          "text": "Unpriced symbols"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "on",
+          "text": "Comfortable"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Compact"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "SmartScreensPanel-module__wQi2qa__toggle",
+          "text": "\u25b8Smart screens0 in account"
+        },
+        {
+          "tag": "DIV",
+          "cls": "scr2-table",
+          "text": "SymbolLastChg%$ Vol \u2193Mkt cap% off hiSectorSignalIIW00000Scale fixture 050.00+3.00%$100.0M\u2014\u2014\u2014\u2014IIW0000"
+        }
+      ],
+      "states": [
+        {
+          "label": "keyboard-focused",
+          "geometry": {
+            "focused": true,
+            "top": 0,
+            "left": 0,
+            "h": 532,
+            "sh": 418033,
+            "w": 1380,
+            "sw": 1380
+          },
+          "rows": [
+            "IIW00000Scale fixture 0",
+            "IIW00001Scale fixture 1",
+            "IIW00002Scale fixture 2",
+            "IIW00003Scale fixture 3",
+            "IIW00004Scale fixture 4",
+            "IIW00005Scale fixture 5",
+            "IIW00006Scale fixture 6",
+            "IIW00007Scale fixture 7",
+            "IIW00008Scale fixture 8",
+            "IIW00009Scale fixture 9",
+            "IIW00010Scale fixture 10",
+            "IIW00011Scale fixture 11",
+            "IIW00012Scale fixture 12",
+            "IIW00013Scale fixture 13",
+            "IIW00014Scale fixture 14",
+            "IIW00015Scale fixture 15",
+            "IIW00016Scale fixture 16",
+            "IIW00017Scale fixture 17",
+            "IIW00018Scale fixture 18",
+            "IIW00019Scale fixture 19",
+            "IIW00020Scale fixture 20",
+            "IIW00021Scale fixture 21",
+            "IIW00022Scale fixture 22",
+            "IIW00023Scale fixture 23",
+            "IIW00024Scale fixture 24"
+          ]
+        },
+        {
+          "label": "keyboard-end",
+          "geometry": {
+            "focused": true,
+            "top": 417501,
+            "left": 0,
+            "h": 532,
+            "sh": 418033,
+            "w": 1380,
+            "sw": 1380
+          },
+          "rows": [
+            "IIW09482Scale fixture 9482",
+            "IIW09483Scale fixture 9483",
+            "IIW09484Scale fixture 9484",
+            "IIW09485Scale fixture 9485",
+            "IIW09486Scale fixture 9486",
+            "IIW09487Scale fixture 9487",
+            "IIW09488Scale fixture 9488",
+            "IIW09489Scale fixture 9489",
+            "IIW09490Scale fixture 9490",
+            "IIW09491Scale fixture 9491",
+            "IIW09492Scale fixture 9492",
+            "IIW09493Scale fixture 9493",
+            "IIW09494Scale fixture 9494",
+            "IIW09495Scale fixture 9495",
+            "IIW09496Scale fixture 9496",
+            "IIW09497Scale fixture 9497",
+            "IIW09498Scale fixture 9498",
+            "IIW09499Scale fixture 9499"
+          ]
+        },
+        {
+          "label": "keyboard-home",
+          "geometry": {
+            "focused": true,
+            "top": 0,
+            "left": 0,
+            "h": 532,
+            "sh": 418033,
+            "w": 1380,
+            "sw": 1380
+          },
+          "rows": [
+            "IIW00000Scale fixture 0",
+            "IIW00001Scale fixture 1",
+            "IIW00002Scale fixture 2",
+            "IIW00003Scale fixture 3",
+            "IIW00004Scale fixture 4",
+            "IIW00005Scale fixture 5",
+            "IIW00006Scale fixture 6",
+            "IIW00007Scale fixture 7",
+            "IIW00008Scale fixture 8",
+            "IIW00009Scale fixture 9",
+            "IIW00010Scale fixture 10",
+            "IIW00011Scale fixture 11",
+            "IIW00012Scale fixture 12",
+            "IIW00013Scale fixture 13",
+            "IIW00014Scale fixture 14",
+            "IIW00015Scale fixture 15",
+            "IIW00016Scale fixture 16",
+            "IIW00017Scale fixture 17",
+            "IIW00018Scale fixture 18",
+            "IIW00019Scale fixture 19",
+            "IIW00020Scale fixture 20",
+            "IIW00021Scale fixture 21",
+            "IIW00022Scale fixture 22",
+            "IIW00023Scale fixture 23",
+            "IIW00024Scale fixture 24"
+          ]
+        }
+      ],
+      "effects": [],
+      "error": null,
+      "scope": "Native keyboard focus and scroll on local9500fixture; no DOM focus, forcedscroll, rowactivation or liveeffects. Not wholeaccessibility/Firefox/textzoom acceptance.",
+      "raw_sha256": "f6fda6d42b16975417b6729a40a83c2d8c4925a877a1f737189899e418ba2e76"
+    },
+    {
+      "source": "fc8224071b44726484ebc306c0fef7b745060ece",
+      "browser": "149.0.7827.55",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "tabs": [
+        {
+          "tag": "BUTTON",
+          "cls": "m-ic",
+          "text": ""
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "m-ic",
+          "text": ""
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "avatar",
+          "text": "R"
+        },
+        {
+          "tag": "A",
+          "cls": "",
+          "text": "Chart"
+        },
+        {
+          "tag": "A",
+          "cls": "",
+          "text": "Analysis"
+        },
+        {
+          "tag": "A",
+          "cls": "on",
+          "text": "Discover"
+        },
+        {
+          "tag": "A",
+          "cls": "",
+          "text": "Dislocations"
+        },
+        {
+          "tag": "A",
+          "cls": "",
+          "text": "Options"
+        },
+        {
+          "tag": "A",
+          "cls": "",
+          "text": "Scripts"
+        },
+        {
+          "tag": "A",
+          "cls": "",
+          "text": "Portfolio"
+        },
+        {
+          "tag": "A",
+          "cls": "",
+          "text": "Alerts"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Mastermind AI"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "avatar",
+          "text": "R"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "obs-pillnav-tab on",
+          "text": "Stock Screener"
+        },
+        {
+          "tag": "SELECT",
+          "cls": "scr2-select",
+          "text": "All marketsUnited StatesChina A-sharesHong KongCanadaInternationalCrypto"
+        },
+        {
+          "tag": "SELECT",
+          "cls": "scr2-select",
+          "text": "All assetsEquitiesETFs & fundsCryptoIndicesBondsForexFutures"
+        },
+        {
+          "tag": "SELECT",
+          "cls": "scr2-select",
+          "text": "All sectors"
+        },
+        {
+          "tag": "INPUT",
+          "cls": "scr2-search",
+          "text": ""
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "fin-tab",
+          "text": "Oracle BUYs"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "fin-tab",
+          "text": "Big gainers"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "fin-tab",
+          "text": "Big decliners"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "fin-tab",
+          "text": "New-high watch"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "fin-tab",
+          "text": "Deep drawdown"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "fin-tab",
+          "text": "China A liquid"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "fin-tab",
+          "text": "HK liquid"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "fin-tab",
+          "text": "+ Save"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "on",
+          "text": "Any"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Oracle BUY"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Oracle SELL"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Tracked"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "chip",
+          "text": "Uptrend regime"
+        },
+        {
+          "tag": "SELECT",
+          "cls": "scr2-select",
+          "text": "Min $ volume \u00b7 Any\u2265 $1M\u2265 $5M\u2265 $20M\u2265 $100M"
+        },
+        {
+          "tag": "SELECT",
+          "cls": "scr2-select",
+          "text": "Min market cap \u00b7 Any\u2265 $300M\u2265 $2B\u2265 $10B\u2265 $100B"
+        },
+        {
+          "tag": "SELECT",
+          "cls": "scr2-select",
+          "text": "52-week position \u00b7 AnyNear high (\u22645% off)Within 15% of highDrawdown \u226530%Near low (\u226410% up)"
+        },
+        {
+          "tag": "SELECT",
+          "cls": "scr2-select",
+          "text": "Day move \u00b7 AnyUp \u22653%Down \u22653%Moved \u22655%"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "chip",
+          "text": "Unpriced symbols"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "on",
+          "text": "Comfortable"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Compact"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "SmartScreensPanel-module__wQi2qa__toggle",
+          "text": "\u25b8Smart screens0 in account"
+        },
+        {
+          "tag": "DIV",
+          "cls": "scr2-table",
+          "text": "SymbolLastChg%$ Vol \u2193Mkt cap% off hiSectorSignalIIW00000Scale fixture 050.00+3.00%$100.0M\u2014\u2014\u2014\u2014IIW0000"
+        }
+      ],
+      "states": [
+        {
+          "label": "keyboard-focused",
+          "geometry": {
+            "focused": true,
+            "top": 0,
+            "left": 0,
+            "h": 1180,
+            "sh": 418034,
+            "w": 820,
+            "sw": 820
+          },
+          "rows": [
+            "IIW00000Scale fixture 0",
+            "IIW00001Scale fixture 1",
+            "IIW00002Scale fixture 2",
+            "IIW00003Scale fixture 3",
+            "IIW00004Scale fixture 4",
+            "IIW00005Scale fixture 5",
+            "IIW00006Scale fixture 6",
+            "IIW00007Scale fixture 7",
+            "IIW00008Scale fixture 8",
+            "IIW00009Scale fixture 9",
+            "IIW00010Scale fixture 10",
+            "IIW00011Scale fixture 11",
+            "IIW00012Scale fixture 12",
+            "IIW00013Scale fixture 13",
+            "IIW00014Scale fixture 14",
+            "IIW00015Scale fixture 15",
+            "IIW00016Scale fixture 16",
+            "IIW00017Scale fixture 17",
+            "IIW00018Scale fixture 18",
+            "IIW00019Scale fixture 19",
+            "IIW00020Scale fixture 20",
+            "IIW00021Scale fixture 21",
+            "IIW00022Scale fixture 22",
+            "IIW00023Scale fixture 23",
+            "IIW00024Scale fixture 24",
+            "IIW00025Scale fixture 25",
+            "IIW00026Scale fixture 26",
+            "IIW00027Scale fixture 27",
+            "IIW00028Scale fixture 28",
+            "IIW00029Scale fixture 29",
+            "IIW00030Scale fixture 30",
+            "IIW00031Scale fixture 31",
+            "IIW00032Scale fixture 32",
+            "IIW00033Scale fixture 33",
+            "IIW00034Scale fixture 34",
+            "IIW00035Scale fixture 35",
+            "IIW00036Scale fixture 36",
+            "IIW00037Scale fixture 37",
+            "IIW00038Scale fixture 38"
+          ]
+        },
+        {
+          "label": "keyboard-end",
+          "geometry": {
+            "focused": true,
+            "top": 416853,
+            "left": 0,
+            "h": 1180,
+            "sh": 418034,
+            "w": 820,
+            "sw": 820
+          },
+          "rows": [
+            "IIW09467Scale fixture 9467",
+            "IIW09468Scale fixture 9468",
+            "IIW09469Scale fixture 9469",
+            "IIW09470Scale fixture 9470",
+            "IIW09471Scale fixture 9471",
+            "IIW09472Scale fixture 9472",
+            "IIW09473Scale fixture 9473",
+            "IIW09474Scale fixture 9474",
+            "IIW09475Scale fixture 9475",
+            "IIW09476Scale fixture 9476",
+            "IIW09477Scale fixture 9477",
+            "IIW09478Scale fixture 9478",
+            "IIW09479Scale fixture 9479",
+            "IIW09480Scale fixture 9480",
+            "IIW09481Scale fixture 9481",
+            "IIW09482Scale fixture 9482",
+            "IIW09483Scale fixture 9483",
+            "IIW09484Scale fixture 9484",
+            "IIW09485Scale fixture 9485",
+            "IIW09486Scale fixture 9486",
+            "IIW09487Scale fixture 9487",
+            "IIW09488Scale fixture 9488",
+            "IIW09489Scale fixture 9489",
+            "IIW09490Scale fixture 9490",
+            "IIW09491Scale fixture 9491",
+            "IIW09492Scale fixture 9492",
+            "IIW09493Scale fixture 9493",
+            "IIW09494Scale fixture 9494",
+            "IIW09495Scale fixture 9495",
+            "IIW09496Scale fixture 9496",
+            "IIW09497Scale fixture 9497",
+            "IIW09498Scale fixture 9498",
+            "IIW09499Scale fixture 9499"
+          ]
+        },
+        {
+          "label": "keyboard-home",
+          "geometry": {
+            "focused": true,
+            "top": 0,
+            "left": 0,
+            "h": 1180,
+            "sh": 418034,
+            "w": 820,
+            "sw": 820
+          },
+          "rows": [
+            "IIW00000Scale fixture 0",
+            "IIW00001Scale fixture 1",
+            "IIW00002Scale fixture 2",
+            "IIW00003Scale fixture 3",
+            "IIW00004Scale fixture 4",
+            "IIW00005Scale fixture 5",
+            "IIW00006Scale fixture 6",
+            "IIW00007Scale fixture 7",
+            "IIW00008Scale fixture 8",
+            "IIW00009Scale fixture 9",
+            "IIW00010Scale fixture 10",
+            "IIW00011Scale fixture 11",
+            "IIW00012Scale fixture 12",
+            "IIW00013Scale fixture 13",
+            "IIW00014Scale fixture 14",
+            "IIW00015Scale fixture 15",
+            "IIW00016Scale fixture 16",
+            "IIW00017Scale fixture 17",
+            "IIW00018Scale fixture 18",
+            "IIW00019Scale fixture 19",
+            "IIW00020Scale fixture 20",
+            "IIW00021Scale fixture 21",
+            "IIW00022Scale fixture 22",
+            "IIW00023Scale fixture 23",
+            "IIW00024Scale fixture 24",
+            "IIW00025Scale fixture 25",
+            "IIW00026Scale fixture 26",
+            "IIW00027Scale fixture 27",
+            "IIW00028Scale fixture 28",
+            "IIW00029Scale fixture 29",
+            "IIW00030Scale fixture 30",
+            "IIW00031Scale fixture 31",
+            "IIW00032Scale fixture 32",
+            "IIW00033Scale fixture 33",
+            "IIW00034Scale fixture 34",
+            "IIW00035Scale fixture 35",
+            "IIW00036Scale fixture 36",
+            "IIW00037Scale fixture 37",
+            "IIW00038Scale fixture 38"
+          ]
+        }
+      ],
+      "effects": [],
+      "error": null,
+      "scope": "Native keyboard focus and scroll on local9500fixture; no DOM focus, forcedscroll, rowactivation or liveeffects. Not wholeaccessibility/Firefox/textzoom acceptance.",
+      "raw_sha256": "a5dc5120ddd52efd6135e5adcb0caf63774016475a80540a38bc660f52175d3c"
+    },
+    {
+      "source": "fc8224071b44726484ebc306c0fef7b745060ece",
+      "browser": "149.0.7827.55",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "tabs": [
+        {
+          "tag": "BUTTON",
+          "cls": "m-ic",
+          "text": ""
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "m-ic",
+          "text": ""
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "avatar",
+          "text": "R"
+        },
+        {
+          "tag": "A",
+          "cls": "",
+          "text": "Chart"
+        },
+        {
+          "tag": "A",
+          "cls": "",
+          "text": "Analysis"
+        },
+        {
+          "tag": "A",
+          "cls": "on",
+          "text": "Discover"
+        },
+        {
+          "tag": "A",
+          "cls": "",
+          "text": "Dislocations"
+        },
+        {
+          "tag": "A",
+          "cls": "",
+          "text": "Options"
+        },
+        {
+          "tag": "A",
+          "cls": "",
+          "text": "Scripts"
+        },
+        {
+          "tag": "A",
+          "cls": "",
+          "text": "Portfolio"
+        },
+        {
+          "tag": "A",
+          "cls": "",
+          "text": "Alerts"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Mastermind AI"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "avatar",
+          "text": "R"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "obs-pillnav-tab on",
+          "text": "Stock Screener"
+        },
+        {
+          "tag": "SELECT",
+          "cls": "scr2-select",
+          "text": "All marketsUnited StatesChina A-sharesHong KongCanadaInternationalCrypto"
+        },
+        {
+          "tag": "SELECT",
+          "cls": "scr2-select",
+          "text": "All assetsEquitiesETFs & fundsCryptoIndicesBondsForexFutures"
+        },
+        {
+          "tag": "SELECT",
+          "cls": "scr2-select",
+          "text": "All sectors"
+        },
+        {
+          "tag": "INPUT",
+          "cls": "scr2-search",
+          "text": ""
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "fin-tab",
+          "text": "Oracle BUYs"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "fin-tab",
+          "text": "Big gainers"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "fin-tab",
+          "text": "Big decliners"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "fin-tab",
+          "text": "New-high watch"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "fin-tab",
+          "text": "Deep drawdown"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "fin-tab",
+          "text": "China A liquid"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "fin-tab",
+          "text": "HK liquid"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "fin-tab",
+          "text": "+ Save"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "on",
+          "text": "Any"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Oracle BUY"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Oracle SELL"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Tracked"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "chip",
+          "text": "Uptrend regime"
+        },
+        {
+          "tag": "SELECT",
+          "cls": "scr2-select",
+          "text": "Min $ volume \u00b7 Any\u2265 $1M\u2265 $5M\u2265 $20M\u2265 $100M"
+        },
+        {
+          "tag": "SELECT",
+          "cls": "scr2-select",
+          "text": "Min market cap \u00b7 Any\u2265 $300M\u2265 $2B\u2265 $10B\u2265 $100B"
+        },
+        {
+          "tag": "SELECT",
+          "cls": "scr2-select",
+          "text": "52-week position \u00b7 AnyNear high (\u22645% off)Within 15% of highDrawdown \u226530%Near low (\u226410% up)"
+        },
+        {
+          "tag": "SELECT",
+          "cls": "scr2-select",
+          "text": "Day move \u00b7 AnyUp \u22653%Down \u22653%Moved \u22655%"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "chip",
+          "text": "Unpriced symbols"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "on",
+          "text": "Comfortable"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Compact"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "SmartScreensPanel-module__wQi2qa__toggle",
+          "text": "\u25b8Smart screens0 in account"
+        },
+        {
+          "tag": "DIV",
+          "cls": "scr2-table",
+          "text": "SymbolLastChg%$ Vol \u2193Mkt cap% off hiSectorSignalIIW00000Scale fixture 050.00+3.00%$100.0M\u2014\u2014\u2014\u2014IIW0000"
+        }
+      ],
+      "states": [
+        {
+          "label": "keyboard-focused",
+          "geometry": {
+            "focused": true,
+            "top": 0,
+            "left": 0,
+            "h": 844,
+            "sh": 418034,
+            "w": 390,
+            "sw": 390
+          },
+          "rows": [
+            "IIW00000Scale fixture 0",
+            "IIW00001Scale fixture 1",
+            "IIW00002Scale fixture 2",
+            "IIW00003Scale fixture 3",
+            "IIW00004Scale fixture 4",
+            "IIW00005Scale fixture 5",
+            "IIW00006Scale fixture 6",
+            "IIW00007Scale fixture 7",
+            "IIW00008Scale fixture 8",
+            "IIW00009Scale fixture 9",
+            "IIW00010Scale fixture 10",
+            "IIW00011Scale fixture 11",
+            "IIW00012Scale fixture 12",
+            "IIW00013Scale fixture 13",
+            "IIW00014Scale fixture 14",
+            "IIW00015Scale fixture 15",
+            "IIW00016Scale fixture 16",
+            "IIW00017Scale fixture 17",
+            "IIW00018Scale fixture 18",
+            "IIW00019Scale fixture 19",
+            "IIW00020Scale fixture 20",
+            "IIW00021Scale fixture 21",
+            "IIW00022Scale fixture 22",
+            "IIW00023Scale fixture 23",
+            "IIW00024Scale fixture 24",
+            "IIW00025Scale fixture 25",
+            "IIW00026Scale fixture 26",
+            "IIW00027Scale fixture 27",
+            "IIW00028Scale fixture 28",
+            "IIW00029Scale fixture 29",
+            "IIW00030Scale fixture 30",
+            "IIW00031Scale fixture 31"
+          ]
+        },
+        {
+          "label": "keyboard-end",
+          "geometry": {
+            "focused": true,
+            "top": 417189,
+            "left": 0,
+            "h": 844,
+            "sh": 418034,
+            "w": 390,
+            "sw": 390
+          },
+          "rows": [
+            "IIW09475Scale fixture 9475",
+            "IIW09476Scale fixture 9476",
+            "IIW09477Scale fixture 9477",
+            "IIW09478Scale fixture 9478",
+            "IIW09479Scale fixture 9479",
+            "IIW09480Scale fixture 9480",
+            "IIW09481Scale fixture 9481",
+            "IIW09482Scale fixture 9482",
+            "IIW09483Scale fixture 9483",
+            "IIW09484Scale fixture 9484",
+            "IIW09485Scale fixture 9485",
+            "IIW09486Scale fixture 9486",
+            "IIW09487Scale fixture 9487",
+            "IIW09488Scale fixture 9488",
+            "IIW09489Scale fixture 9489",
+            "IIW09490Scale fixture 9490",
+            "IIW09491Scale fixture 9491",
+            "IIW09492Scale fixture 9492",
+            "IIW09493Scale fixture 9493",
+            "IIW09494Scale fixture 9494",
+            "IIW09495Scale fixture 9495",
+            "IIW09496Scale fixture 9496",
+            "IIW09497Scale fixture 9497",
+            "IIW09498Scale fixture 9498",
+            "IIW09499Scale fixture 9499"
+          ]
+        },
+        {
+          "label": "mobile-existing-four-column-layout",
+          "geometry": {
+            "focused": true,
+            "top": 417189,
+            "left": 0,
+            "h": 844,
+            "sh": 418034,
+            "w": 390,
+            "sw": 390
+          },
+          "rows": [
+            "IIW09475Scale fixture 9475",
+            "IIW09476Scale fixture 9476",
+            "IIW09477Scale fixture 9477",
+            "IIW09478Scale fixture 9478",
+            "IIW09479Scale fixture 9479",
+            "IIW09480Scale fixture 9480",
+            "IIW09481Scale fixture 9481",
+            "IIW09482Scale fixture 9482",
+            "IIW09483Scale fixture 9483",
+            "IIW09484Scale fixture 9484",
+            "IIW09485Scale fixture 9485",
+            "IIW09486Scale fixture 9486",
+            "IIW09487Scale fixture 9487",
+            "IIW09488Scale fixture 9488",
+            "IIW09489Scale fixture 9489",
+            "IIW09490Scale fixture 9490",
+            "IIW09491Scale fixture 9491",
+            "IIW09492Scale fixture 9492",
+            "IIW09493Scale fixture 9493",
+            "IIW09494Scale fixture 9494",
+            "IIW09495Scale fixture 9495",
+            "IIW09496Scale fixture 9496",
+            "IIW09497Scale fixture 9497",
+            "IIW09498Scale fixture 9498",
+            "IIW09499Scale fixture 9499"
+          ]
+        },
+        {
+          "label": "keyboard-home",
+          "geometry": {
+            "focused": true,
+            "top": 0,
+            "left": 0,
+            "h": 844,
+            "sh": 418034,
+            "w": 390,
+            "sw": 390
+          },
+          "rows": [
+            "IIW00000Scale fixture 0",
+            "IIW00001Scale fixture 1",
+            "IIW00002Scale fixture 2",
+            "IIW00003Scale fixture 3",
+            "IIW00004Scale fixture 4",
+            "IIW00005Scale fixture 5",
+            "IIW00006Scale fixture 6",
+            "IIW00007Scale fixture 7",
+            "IIW00008Scale fixture 8",
+            "IIW00009Scale fixture 9",
+            "IIW00010Scale fixture 10",
+            "IIW00011Scale fixture 11",
+            "IIW00012Scale fixture 12",
+            "IIW00013Scale fixture 13",
+            "IIW00014Scale fixture 14",
+            "IIW00015Scale fixture 15",
+            "IIW00016Scale fixture 16",
+            "IIW00017Scale fixture 17",
+            "IIW00018Scale fixture 18",
+            "IIW00019Scale fixture 19",
+            "IIW00020Scale fixture 20",
+            "IIW00021Scale fixture 21",
+            "IIW00022Scale fixture 22",
+            "IIW00023Scale fixture 23",
+            "IIW00024Scale fixture 24",
+            "IIW00025Scale fixture 25",
+            "IIW00026Scale fixture 26",
+            "IIW00027Scale fixture 27",
+            "IIW00028Scale fixture 28",
+            "IIW00029Scale fixture 29",
+            "IIW00030Scale fixture 30",
+            "IIW00031Scale fixture 31"
+          ]
+        }
+      ],
+      "effects": [],
+      "error": null,
+      "scope": "Native keyboard focus and scroll on local9500fixture; no DOM focus, forcedscroll, rowactivation or liveeffects. Not wholeaccessibility/Firefox/textzoom acceptance.",
+      "raw_sha256": "4ccefa23229a9c5c22de56cf051ab92169560aa40eec641dc69e56557c90b724"
+    }
+  ],
+  "pixels": [
+    {
+      "file": "desktop-keyboard-tail.png",
+      "sha256": "8edb8173fa09db9ee4b67e59bbbac48291e0584bd0dc5b4416e0777bbdbe186c",
+      "verdict": "DIRECT_PIXELS_ACCEPTED",
+      "scope": "Native keyboard End reached final IW09499; mobile shows existingfirst4columns; visiblefocus/values in capturedscope."
+    },
+    {
+      "file": "tablet-keyboard-tail.png",
+      "sha256": "819cd0835a5439ef5052f100c3621593bc3a096fe9c5d79391a744abee861375",
+      "verdict": "DIRECT_PIXELS_ACCEPTED",
+      "scope": "Native keyboard End reached final IW09499; mobile shows existingfirst4columns; visiblefocus/values in capturedscope."
+    },
+    {
+      "file": "mobile-keyboard-tail.png",
+      "sha256": "10f9210e380d7c62be5c5b1903ff7bee699ab7f0ee15d6ed2c5036170d509bd9",
+      "verdict": "DIRECT_PIXELS_ACCEPTED",
+      "scope": "Native keyboard End reached final IW09499; mobile shows existingfirst4columns; visiblefocus/values in capturedscope."
+    }
+  ],
+  "correction": "Original README/sourceacceptance/pixelreview incorrectly described mobile hiddencolumns as horizontallyscrollable. Actual640px stylesheet hides columns5+; clientWidth=scrollWidth=390. Newmobiletest verifiesfirst4visible/restdisplaynone. Thiscorrectsevidencewording; doesnotacceptallcolumns onmobile.",
+  "supersedes_claims": {
+    "source_acceptance_sha256": "c268daeafad659110b5035c072ba806840ea561c0c0690d01d63659d2baf2698",
+    "pixel_review_sha256": "b5eefc36c50c5503b9a4fb96eb07d4c0bae09121f31dabafc65ce10b53ef0c37"
+  },
+  "limits": "Chromium149 ENlocal9500fixture/keyboardscroll only; no Firefox/textzoom/fullaccessibility/rowactivation/live acceptance; no syntheticfocus/scroll.",
+  "receipts": {
+    "BROWSER.json": "7ad3a3f01ef1ad1afae685232f9993bb0b4327c9cc934135bf814c0bf0e8b435",
+    "MOBILE_CORRECTED.json": "6e8d54aacc7975bf397b5aaf1867b1d70a3f3aaf3f369b124e764ef5ef84bf7e",
+    "original-horizontal-assumption.spec.ts.txt": "5be97e60ceefb63246f26df3b6e2a944f6eae5fde5b5dac8f3152cb15bd0ff34",
+    "keyboard.spec.ts": "47fa90beabfee1036f478df0b4e0b916a554030c2d229255edba14579f3284cb"
+  }
+}

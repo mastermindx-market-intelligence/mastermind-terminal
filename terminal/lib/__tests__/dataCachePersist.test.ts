@@ -684,8 +684,8 @@ describe("dataCache.onRevalidate — a stale-while-revalidate serve corrects its
   it("a throwing consumer cannot break the cache commit", async () => {
     const { idb, dc } = await freshModules();
     const url = "/data/manifest.json";
-    await idb.idbPut(url, { as_of: "old" }, Date.now() - 10 * 60_000);
-    const freshBoard = { as_of: "new" };
+    await idb.idbPut(url, { as_of: "old", symbols: {} }, Date.now() - 10 * 60_000);
+    const freshBoard = { as_of: "new", symbols: {} };
     globalThis.fetch = vi.fn(() =>
       Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(freshBoard) } as any),
     ) as any;

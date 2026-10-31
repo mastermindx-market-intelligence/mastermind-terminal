@@ -76,7 +76,7 @@ describe("optionsEvidenceRefs", () => {
   it("the minted references validate inside a v2 manifest under the admission", async () => {
     const refs = await optionsEvidenceRefs({ request: request(), origin: origin(), rotation });
     const result = validateInvestigationManifest({
-      schema: "investigation_manifest.v2", intent: { title: "XLK gamma at 450", question: "Does the matched change hold?", subjects: [] },
+      schema: "investigation_manifest.v2", argument_relations:[], intent: { title: "XLK gamma at 450", question: "Does the matched change hold?", subjects: [] },
       layout_refs: [], thesis_refs: [], evidence_refs: refs, continuation: {},
     }, INVESTIGATION_ADMISSION);
     expect(result.ok).toBe(true);

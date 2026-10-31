@@ -49,7 +49,15 @@ import {
   type ScenarioValue,
 } from "@/lib/exposureScenario";
 import { identityUserId, type AccountIdentity } from "@/lib/accountIdentity";
+import type { AuthLifecycleSnapshot } from "@/lib/supabase/authLifecycle";
 import styles from "./SavedScenario.module.css";
+
+/** Optional host fence over an EXISTING auth owner. No subscription or store.
+ * Standalone consumers retain their canonical account/context behavior. */
+export type SavedScenarioResolveGuard = {
+  getSnapshot: () => AuthLifecycleSnapshot | null;
+  isCurrent: () => boolean;
+};
 
 type Props = {
   /** Untreated storage/RPC payload. Parsed here; anything but an exact reference-only capture is unavailable. */
@@ -59,6 +67,8 @@ type Props = {
   revision?: { id?: string; investigationId?: string; revision?: number; grantId?: string | null } | null;
   /** The current viewer. Resolution is offered to a current account with complete context only. */
   identity?: AccountIdentity | null;
+  /** Required by the private Workspace host; absent for canonical standalone consumers. */
+  resolveGuard?: SavedScenarioResolveGuard;
 };
 
 const COPY = {
@@ -326,10 +336,12 @@ const readVerdict = (body: unknown, ctx: ResolutionContext, capture: ScenarioCap
  * resolving is always one deliberate button click, and a failed or mismatched answer leaves the
  * button available for an explicit retry only.
  */
-function SavedScenarioResolve({ ctx, capture, lang }: {
+function SavedScenarioResolve({ ctx, capture, lang, principal, resolveGuard }: {
   ctx: ResolutionContext;
   capture: ScenarioCapture;
   lang: "en" | "zh";
+  principal: string;
+  resolveGuard?: SavedScenarioResolveGuard;
 }) {
   const c = COPY[lang];
   const [state, setState] = useState<ResolveState>({ phase: "idle" });
@@ -347,6 +359,34 @@ function SavedScenarioResolve({ ctx, capture, lang }: {
 
   async function onResolve() {
     if (!aliveRef.current || state.phase === "resolving") return;
+    // A supplied host guard is mandatory for this request: capture the existing
+    // owner's ready principal/epoch now, then re-read that SAME getter before
+    // fetching and before publishing either success or failure. A deferred React
+    // projection can never admit an ended or replaced lifetime.
+    let currentLifetime = (): boolean => true;
+    if (resolveGuard !== undefined) {
+      const guard = resolveGuard, getter = guard.getSnapshot;
+      try {
+        const admitted = guard.isCurrent() ? getter() : null;
+        if (!admitted || admitted.availability !== "ready"
+          || admitted.principal_partition !== principal || !admitted.auth_epoch) {
+          setState({ phase: "failed", kind: "unavailable", reason: null });
+          return;
+        }
+        currentLifetime = () => {
+          try {
+            if (!guard.isCurrent() || guard.getSnapshot !== getter) return false;
+            const now = getter();
+            return !!now && now.availability === "ready"
+              && now.principal_partition === admitted.principal_partition
+              && now.auth_epoch === admitted.auth_epoch;
+          } catch { return false; }
+        };
+      } catch {
+        setState({ phase: "failed", kind: "unavailable", reason: null });
+        return;
+      }
+    }
     // Replacing the whole state clears any previously painted paid values in this same commit.
     setState({ phase: "resolving" });
     const controller = new AbortController();
@@ -355,6 +395,7 @@ function SavedScenarioResolve({ ctx, capture, lang }: {
     try {
       // The exact wire contract: three keys, nothing else — no capture/user/token/root/source/
       // model override. Verification, the canonical RPC, hashes and math are server-owned.
+      if (!currentLifetime()) return;
       const response = await fetch("/api/investigation-scenarios", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -371,8 +412,9 @@ function SavedScenarioResolve({ ctx, capture, lang }: {
     } catch {
       body = null; // transport failure or abort: unknown, never an effect claim
     }
-    if (!aliveRef.current || controller.signal.aborted) return;
+    if (!aliveRef.current || controller.signal.aborted || !currentLifetime()) return;
     const verdict = readVerdict(body, ctx, capture);
+    if (!currentLifetime()) return;
     setState(verdict.ok
       ? { phase: "resolved", basis: verdict.basis, result: verdict.result }
       : { phase: "failed", kind: verdict.kind, reason: verdict.reason });
@@ -441,7 +483,7 @@ const resolutionContext = (revision: Props["revision"], parsed: ScenarioCapture 
   return { investigationId, revision: rev, grantId: grantId ?? null };
 };
 
-export default function SavedScenarioRead({ capture, lang, revision, identity }: Props) {
+export default function SavedScenarioRead({ capture, lang, revision, identity, resolveGuard }: Props) {
   const c = COPY[lang];
   const zh = lang === "zh";
   const parsed = useMemo(() => parseScenarioCapture(capture), [capture]);
@@ -490,7 +532,7 @@ export default function SavedScenarioRead({ capture, lang, revision, identity }:
       </dl>
 
       {ctx && parsed
-        ? <SavedScenarioResolve key={resolveKey} ctx={ctx} capture={parsed} lang={lang} />
+        ? <SavedScenarioResolve key={resolveKey} ctx={ctx} capture={parsed} lang={lang} principal={userId} resolveGuard={resolveGuard} />
         : <p className={styles.status} role="status" data-testid="scenario-resolution" data-state="unverified">
             {`${c.resolution}: ${c.resolutionValue}`}
           </p>}

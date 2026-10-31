@@ -2,16 +2,17 @@
 import React, { act, useEffect, useState } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-const native = vi.hoisted(() => ({ mount: vi.fn(), cleanup: vi.fn() }));
+const native = vi.hoisted(() => ({ mount: vi.fn(), cleanup: vi.fn(), pending: null as Promise<void> | null }));
 vi.mock("@/components/mounts/InvestigationWorkspaceMount", () => ({ default: function Native({ ownerKey }: { ownerKey: string }) {
   const [newDraft, setNewDraft] = useState(false);
   useEffect(() => { native.mount(ownerKey); return () => native.cleanup(ownerKey); }, [ownerKey]);
+  if (native.pending) throw native.pending;
   return <div data-native-owner={ownerKey}><button onClick={() => setNewDraft(true)}>Native New research</button>{newDraft && <input aria-label="Native title" />}</div>;
 } }));
 import { OptionsPlanInvestigationHost } from "@/components/options/OptionsPlanInvestigationHost";
 let host: HTMLDivElement, root: Root;
 beforeEach(() => {
-  vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true); native.mount.mockClear(); native.cleanup.mockClear();
+  vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true); native.mount.mockClear(); native.cleanup.mockClear(); native.pending=null;
   Element.prototype.scrollIntoView = vi.fn();
   host = document.createElement("div"); document.body.append(host); root = createRoot(host);
 });
@@ -49,4 +50,21 @@ describe("isolated native Investigation host preparation", () => {
     await render(""); expect(host.querySelector("button")?.disabled).toBe(true);
     await click(host.querySelector("button")!); expect(native.mount).not.toHaveBeenCalled();
   });
+  it("contains a delayed native chunk without suspending the surrounding authored Plan", async () => {
+    let release!: () => void;
+    const pending = new Promise<void>(resolve => { release=resolve; });
+    await act(async () => root.render(<React.Suspense fallback={<p data-outer-fallback>Page loading</p>}>
+      <OptionsPlanInvestigationHost workspaceProps={{ownerKey:"owner-a"}} scopeKey="a/1" selectionKey="selection-a" lang="en">
+        <input data-candidate defaultValue="Authored Plan inputs" />
+      </OptionsPlanInvestigationHost></React.Suspense>));
+    native.pending=pending;
+    await click(host.querySelector("button")!);
+    expect(host.querySelector("[data-outer-fallback]")).toBeNull();
+    expect(host.textContent).toContain("Loading saved research");
+    const candidate=host.querySelector<HTMLInputElement>("[data-candidate]")!;
+    expect(candidate.value).toBe("Authored Plan inputs");expect(native.mount).not.toHaveBeenCalled();
+    await act(async()=>{native.pending=null;release();});
+    expect(native.mount).toHaveBeenCalledOnce();expect(host.querySelector("[data-candidate]")).toBe(candidate);
+  });
+
 });

@@ -1,0 +1,82 @@
+{
+  "lang": "zh",
+  "original": "{\"argument_relations\":[],\"continuation\":{\"next_observation\":\"Original observation\",\"next_question\":\"Retain next question\"},\"evidence_refs\":[],\"intent\":{\"question\":\"Which observation changes this view?\",\"subjects\":[],\"title\":\"Observation authoring source\"},\"layout_refs\":[],\"schema\":\"investigation_manifest.v2\",\"thesis_refs\":[]}",
+  "finalOriginal": "{\"argument_relations\":[],\"continuation\":{\"next_observation\":\"Original observation\",\"next_question\":\"Retain next question\"},\"evidence_refs\":[],\"intent\":{\"question\":\"Which observation changes this view?\",\"subjects\":[],\"title\":\"Observation authoring source\"},\"layout_refs\":[],\"schema\":\"investigation_manifest.v2\",\"thesis_refs\":[]}",
+  "commands": [
+    {
+      "id": "10000000-0000-4000-8000-000000000011",
+      "operation_id": "29b3d927-500e-400e-bab7-bd3d6b3b21c6",
+      "expected_revision": 3,
+      "action": "revise",
+      "manifest": {
+        "argument_relations": [],
+        "continuation": {
+          "next_observation": "  观察精确利润率 <5% & 下一份报告。\n明确条件  ",
+          "next_question": "Retain next question"
+        },
+        "evidence_refs": [],
+        "intent": {
+          "question": "Which observation changes this view?",
+          "subjects": [],
+          "title": "Observation authoring source"
+        },
+        "layout_refs": [],
+        "schema": "investigation_manifest.v2",
+        "thesis_refs": []
+      }
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000011",
+      "operation_id": "59333430-27db-4980-a856-a2908265cb6e",
+      "expected_revision": 4,
+      "action": "revise",
+      "manifest": {
+        "argument_relations": [],
+        "continuation": {
+          "next_question": "Retain next question"
+        },
+        "evidence_refs": [],
+        "intent": {
+          "question": "Which observation changes this view?",
+          "subjects": [],
+          "title": "Observation authoring source"
+        },
+        "layout_refs": [],
+        "schema": "investigation_manifest.v2",
+        "thesis_refs": []
+      }
+    },
+    {
+      "id": "30e504d5-542e-4b4a-a62a-b78c7128f903",
+      "operation_id": "0d81117e-b35e-43b8-8fba-c322d0eeff94",
+      "expected_revision": 0,
+      "action": "create",
+      "manifest": {
+        "argument_relations": [],
+        "continuation": {
+          "next_observation": "Independent copied observation",
+          "next_question": "Retain next question"
+        },
+        "evidence_refs": [],
+        "intent": {
+          "question": "Which observation changes this view?",
+          "subjects": [],
+          "title": "Independent question"
+        },
+        "layout_refs": [],
+        "schema": "investigation_manifest.v2",
+        "thesis_refs": []
+      }
+    }
+  ],
+  "otherWrites": [],
+  "telemetry": [
+    "POST",
+    "POST",
+    "POST",
+    "POST",
+    "POST",
+    "POST"
+  ],
+  "scope": "Three explicitly clicked Saves, exact old revision and copy readback on isolated owner transport; not live persistence or lifecycle closure"
+}

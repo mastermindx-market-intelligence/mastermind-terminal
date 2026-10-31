@@ -99,6 +99,8 @@ const LS_LEGACY_RECEIPT = "mm.marketPrefs.legacy.v1";
 let state: MarketPrefs = DEFAULT_PREFS;
 let terminal: TerminalPrefs = DEFAULT_TERMINAL_PREFS;
 let metaPrefs: MetaPrefs = {};
+// Local appearance intent only; never serialized into account metadata.
+let appearanceRevision = 0;
 // Last-known raw blobs, kept verbatim so a write can spread them. `auth.updateUser` merges
 // TOP-LEVEL keys but REPLACES a nested object wholesale, so writing `{ terminal: { updown } }`
 // would delete `terminal.start_tf`. Every write goes through the spread of these.
@@ -157,6 +159,8 @@ export type AccountPrefsSnapshot = {
   terminal: TerminalPrefs;
   /** The macro `prefs` blob (theme / themeAuto / lang), sanitized. */
   metaPrefs: MetaPrefs;
+  /** Owner-local appearance selections, including repeating the same valid choice. */
+  appearanceRevision: number;
   /** false until the account (or the local fallback) has answered. Callers must not filter the
    *  universe while this is false, or the first paint would hide enabled symbols. */
   ready: boolean;
@@ -188,7 +192,7 @@ function hydrationBase(): AccountPrefsSnapshot["base"] {
 }
 function buildSnapshot(): AccountPrefsSnapshot {
   return {
-    prefs: state, terminal, metaPrefs, ready, owner, sync,
+    prefs: state, terminal, metaPrefs, appearanceRevision, ready, owner, sync,
     base: hydrationBase(),
     held: pendingTerminal !== null || pendingMetaPrefs !== null,
   };
@@ -205,7 +209,7 @@ function getSnapshot() { return snapshot; }
 // permissive defaults so the first paint never hides a symbol that is in fact enabled, and never
 // disagrees with what the pre-paint script is about to put on the document.
 const SERVER_SNAPSHOT: AccountPrefsSnapshot = {
-  prefs: DEFAULT_PREFS, terminal: DEFAULT_TERMINAL_PREFS, metaPrefs: {}, ready: false,
+  prefs: DEFAULT_PREFS, terminal: DEFAULT_TERMINAL_PREFS, metaPrefs: {}, appearanceRevision: 0, ready: false,
   owner: GUEST_OWNER, sync: LOCAL_STATUS, base: "pending", held: false,
 };
 function getServerSnapshot() { return SERVER_SNAPSHOT; }
@@ -271,6 +275,7 @@ function beginOwner(next: string) {
   hydrateFailed = false;
   state = DEFAULT_PREFS;
   metaPrefs = {};
+  appearanceRevision = 0;
   rawTerminal = {};
   pendingTerminal = null;
   rawMetaPrefs = {};
@@ -517,7 +522,9 @@ export function persistMetaPrefs(patch: MetaPrefs) {
   // untyped/cast caller can still hand `patch` a junk value alongside a valid one, and that junk
   // must not reach subscribers just because ONE field in the same call was legitimate — published
   // state must never diverge from what was actually persisted.
-  metaPrefs = { ...metaPrefs, ...readMetaPrefs(patch) };
+  const sanitized = readMetaPrefs(patch);
+  if (sanitized.theme !== undefined || sanitized.themeAuto !== undefined) appearanceRevision += 1;
+  metaPrefs = { ...metaPrefs, ...sanitized };
   publish();
   if (!isAccountOwner(owner)) return;
   const oneShot = Object.keys(atoms);
@@ -623,6 +630,7 @@ export function useAccountPrefs(identity?: AccountIdentity | null): AccountPrefs
   return {
     prefs: snap.prefs, terminal: snap.terminal, metaPrefs: snap.metaPrefs, ready: snap.ready,
     owner: snap.owner, sync: snap.sync, base: snap.base, held: snap.held,
+    appearanceRevision: snap.appearanceRevision,
     toggle, enableAll, setFollowed,
     setStartTf: persistStartTf, setUpDown: persistUpDown, setLangPref: persistLang,
     retrySync: retryPrefSync,
@@ -638,6 +646,7 @@ export function __resetMarketPrefsStore() {
   state = DEFAULT_PREFS;
   terminal = DEFAULT_TERMINAL_PREFS;
   metaPrefs = {};
+  appearanceRevision = 0;
   rawTerminal = {};
   pendingTerminal = null;
   rawMetaPrefs = {};

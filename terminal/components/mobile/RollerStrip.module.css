@@ -1,3 +1,8 @@
+/* The intrinsic line box follows browser text enlargement. JS uses that same
+   measured pitch for rendering and drag/flick detents. */
+.wheelItem.wheelItem { height: auto; }
+.wheelText { display: inline-block; }
+
 /* Native 44px controls make touch activation reliable inside the horizontally
    panning cluster. The nested surface preserves TradingView's 28px visual box. */
 .clusterRow.clusterRow {

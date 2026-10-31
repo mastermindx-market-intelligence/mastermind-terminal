@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "id": "dddddddddddddddddddddddddddddddd",
+  "rev": 1,
+  "name": "Retained screen",
+  "def": {
+    "grammar": 1,
+    "scope": {
+      "markets": [
+        "hk",
+        "us"
+      ],
+      "asset": "Equities",
+      "unpriced": false
+    },
+    "where": {
+      "all": [
+        {
+          "f": "dv",
+          "op": "gte",
+          "v": 1000000
+        }
+      ]
+    }
+  },
+  "hash": "13bc3de9f9974e",
+  "createdAt": "2026-10-15T00:00:00.000Z",
+  "updatedAt": "2026-10-15T00:00:00.000Z",
+  "review": null
+}

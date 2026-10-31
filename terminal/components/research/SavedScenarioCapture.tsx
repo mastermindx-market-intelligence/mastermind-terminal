@@ -32,9 +32,11 @@
 //   · the POST carries the deliberate owner binding header `x-mm-scenario-owner:<user id>`
 //     derived from the actual shell identity (never a body override). A lost response leaves
 //     the outcome UNKNOWN with the exact command retained; recovery is the explicit Check
-//     (operation_id GET) or read-only source recovery before CAS (the SAME operation, same ids).
-//     The initial capture header is never reused on recovery. No automatic retries, no new
-//     UUIDs, no registry.
+//     through the full-request owner check; receipt reads alone cannot establish a new retry.
+//     An explicit Check PUT sends the full original request to the owner without acquiring
+//     the source again. Only a matching same-principal not_applied fence permits Retry:
+//     it retains the same intent with a NEW operation id and the recover header. A persisted
+//     fence alone is uncertain on reload; no automatic retry or new registry exists.
 //   · a CONFIRMED commit is a METADATA commit — the reference and the inputs were recorded —
 //     and stays known even when only the readback fails. The copy distinguishes that recorded
 //     revision from any claim that the exact source was resolved, and the readback is a
@@ -52,6 +54,7 @@ import { createScenarioCapture } from "@/lib/investigationScenario";
 import {
   beginInvestigationSave,
   retryInvestigationSave,
+  investigationCommandToReconcile,
   settleInvestigationSave,
   type InvestigationSaveState,
 } from "@/lib/investigationSave";
@@ -88,7 +91,7 @@ const COPY = {
     legacy: "A previously retained scenario save stores protected values this platform no longer accepts. It was not sent, checked or changed — resolve it in Saved research.",
     uncertain: "The save outcome is not confirmed. The exact request is retained.",
     check: "Check original outcome",
-    retry: "Retry original save",
+    retry: "Retry checked save",
     conflict: "This revision was not committed. The original request is retained.",
     refusedSource: "This revision was not committed because its exact source is unavailable. The original request is retained.",
     saved: "Saved",
@@ -118,7 +121,7 @@ const COPY = {
     legacy: "先前保留的方案保存请求含有本平台不再接受的受保护数值。它未被发送、检查或更改——请在“已保存研究”中处理。",
     uncertain: "保存结果尚未确认。原请求已保留。",
     check: "检查原请求结果",
-    retry: "重试原保存请求",
+    retry: "重试已核验保存",
     conflict: "本修订未提交，原请求已保留。",
     refusedSource: "平台当前无法获取该确切来源，本修订未提交，原请求已保留。",
     saved: "已保存",
@@ -212,6 +215,7 @@ export default function SavedScenarioCapture({ inputs, sourceReference = null, l
       action: "create",
       manifest: {
         schema: "investigation_manifest.v2",
+        argument_relations: [],
         intent: { title, question, subjects: [{ owner: "terminal.analysis_symbol", kind: "security", object_id: made.capture.source.root }] },
         layout_refs: [],
         thesis_refs: [],
@@ -255,10 +259,10 @@ export default function SavedScenarioCapture({ inputs, sourceReference = null, l
       });
       const body: unknown = await response.json().catch(() => null);
       if (!alive(gen)) return;
-      settle(body);
+      settle(command,body);
     } catch {
       if (!alive(gen) || controller.signal.aborted) return;
-      settle(null);
+      settle(command,null);
     } finally {
       if (alive(gen) && abortRef.current === controller) abortRef.current = null;
     }
@@ -267,10 +271,12 @@ export default function SavedScenarioCapture({ inputs, sourceReference = null, l
   /** Canonical settle: only an exact committed receipt is a commit; definitive refusals are
    *  rejected; everything else — timeouts, auth expiry, malformed replies, receipt misses —
    *  stays UNKNOWN with the original command retained. */
-  function settle(response: unknown) {
+  function settle(command:InvestigationCommand,response: unknown) {
     const owner = ownerKey;
     const previous = stateRef.current;
     if (previous.phase !== "pending" && previous.phase !== "uncertain") return;
+    if(previous.principal!==owner||previous.command.id!==command.id||previous.command.operation_id!==command.operation_id
+      ||previous.command.action!==command.action||previous.command.expected_revision!==command.expected_revision)return;
     const next = settleInvestigationSave(previous, owner, response);
     stateRef.current = next;
     if (next.phase === "committed") {
@@ -324,31 +330,34 @@ export default function SavedScenarioCapture({ inputs, sourceReference = null, l
     }
   }
 
-  /** Explicit outcome check: the existing operation receipt by its ORIGINAL operation_id. */
+  /** Explicit full-request owner check. It never repeats native retention or an apply POST. */
   async function onCheck() {
-    const command = retryInvestigationSave(stateRef.current, ownerKey);
+    const command = investigationCommandToReconcile(stateRef.current, ownerKey);
     if (!command) return;
     const gen = genRef.current;
     const controller = new AbortController();
     abortRef.current = controller;
     try {
-      const response = await fetch(`/api/investigations?operation_id=${encodeURIComponent(command.operation_id)}`, { cache: "no-store", signal: controller.signal });
+      const response = await fetch("/api/investigations", {method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(command),cache:"no-store",signal:controller.signal});
       const body: unknown = await response.json().catch(() => null);
       if (!alive(gen)) return;
-      settle(body);
+      settle(command,body);
     } catch {
       if (!alive(gen) || controller.signal.aborted) return;
-      settle(null);
+      settle(command,null);
     }
   }
 
-  /** Explicit retry of the SAME original operation — same id, same operation_id, same frozen
-   *  reference. Never a rebuilt command, never automatic. */
+  /** Only the current exact owner fence permits a new operation. Reloaded
+   * local rejection words are never authority; native retention is not repeated. */
   function onRetry() {
-    const command = retryInvestigationSave(stateRef.current, ownerKey);
-    if (!command) return;
-    setPhase({ kind: "pending" });
-    void send(command);
+    const previous=stateRef.current;
+    const command=retryInvestigationSave(previous,ownerKey);if(!command)return;
+    const next=beginInvestigationSave(ownerKey,command,previous);if(next.phase!=="pending")return;
+    try{retainInvestigationJournal(sessionStorage,ownerKey,next.command,previous);}
+    catch{setPhase({kind:"blocked"});return;}
+    stateRef.current=next;setRetained(next.command);setPhase({kind:"pending"});
+    void send(next.command,false);
   }
 
   // ── Derived, always-truthful refusal copy ────────────────────────────────────────────────
@@ -448,10 +457,10 @@ export default function SavedScenarioCapture({ inputs, sourceReference = null, l
               <p className={styles.status} role="status">{c.uncertain}</p>
               <div className={styles.actions}>
                 <button type="button" onClick={() => void onCheck()}>{c.check}</button>
-                <button type="button" disabled={busy} onClick={onRetry}>{c.retry}</button>
               </div>
             </>
           )}
+          {phase.kind==="rejected"&&phase.reason==="not_applied"&&<button type="button" onClick={onRetry}>{c.retry}</button>}
           {retained && phase.kind !== "rejected" && (
             <details className={styles.details}>
               <summary>{c.sent}</summary>

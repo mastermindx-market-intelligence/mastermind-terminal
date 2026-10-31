@@ -32,6 +32,8 @@ const FAILURE_OUT = process.env.TERMINAL_CAPTURE_FAILURE_DIR || OUT;
 const LAYOUT_FILES = [
   "terminal/components/OptionsHubView.tsx",
   "terminal/components/SearchModal.tsx",
+  "terminal/components/SearchModal.module.css",
+  "terminal/components/SearchModalCompare.module.css",
   "terminal/components/StockAnalysis.tsx",
   "terminal/components/workspaces/AnalysisWorkspace.tsx",
   "terminal/components/ChartPanel.tsx",
@@ -39,6 +41,45 @@ const LAYOUT_FILES = [
   "terminal/lib/plainLabels.ts",
   "terminal/lib/i18n.tsx",
   "terminal/app/company-intelligence.css",
+  "terminal/app/workspace-chrome.css",
+  "terminal/app/layout.tsx",
+  "terminal/app/(shell)/layout.tsx",
+  "terminal/components/AppNav.tsx",
+  "terminal/components/ChartContextDock.ts",
+  "terminal/components/ChartContextPlacement.module.css",
+  "terminal/components/ChartPane.tsx",
+  "terminal/components/ChartSettingsModal.module.css",
+  "terminal/components/ChartSettingsModal.tsx",
+  "terminal/components/ChartTableView.tsx",
+  "terminal/components/DrawingSidebar.module.css",
+  "terminal/components/DrawingSidebar.tsx",
+  "terminal/components/MobileNav.module.css",
+  "terminal/components/MobileNav.tsx",
+  "terminal/components/MobileNavModal.tsx",
+  "terminal/components/TerminalShell.tsx",
+  "terminal/components/VisualIntelligencePanel.module.css",
+  "terminal/components/VisualIntelligencePanel.tsx",
+  "terminal/components/chrome/AppShell.tsx",
+  "terminal/components/chrome/investor-shell-preview.css",
+  "terminal/components/chrome/shared-shell/shared-shell.css",
+  "terminal/components/mobile/AnalysisHubSheet.module.css",
+  "terminal/components/mobile/AnalysisHubSheet.tsx",
+  "terminal/components/options-companion/OptionsCompanion.module.css",
+  "terminal/components/options-companion/OptionsRail.tsx",
+  "terminal/lib/aiContext.ts",
+  "terminal/lib/chart-engine/lwc/index.ts",
+  "terminal/lib/chartPresentation.ts",
+  "terminal/lib/chartPriceWindow.ts",
+  "terminal/lib/chartReadoutSnapshot.ts",
+  "terminal/lib/chartSettingsUi.ts",
+  "terminal/lib/indicator-canvas/host.ts",
+  "terminal/lib/investorShellPreview.ts",
+  "terminal/lib/sharedShellContracts.ts",
+  "terminal/lib/suites/trend/candlePainter.ts",
+  "terminal/lib/visualIntelligence.ts",
+  "terminal/lib/visualIntelligenceCopy.ts",
+  "terminal/next.config.ts",
+  "terminal/lib/flowActivity.ts",
 ];
 const ONLY = (process.env.CAPTURE_ONLY || "")
   .split(",")
@@ -140,17 +181,20 @@ async function newPage(browser, width, lang) {
     locale: lang === "zh" ? "zh-CN" : "en-US",
     colorScheme: "dark",
   });
-  await context.addInitScript((l) => {
+  await context.addInitScript(({ l, origin }) => {
+    // The init script also runs in the opaque about:blank document. Seed the
+    // fixture origin only, and wait for the root element before touching it.
+    if (location.origin !== origin) return;
     localStorage.setItem("mm.lang", l);
     localStorage.setItem("theme", "dark");
     localStorage.setItem("theme_auto", "0");
-    const applyThemeAndLanguage = () => {
+    const apply = () => {
       document.documentElement.setAttribute("data-theme", "dark");
       document.documentElement.setAttribute("data-lang", l);
     };
-    if (document.documentElement) applyThemeAndLanguage();
-    else document.addEventListener("DOMContentLoaded", applyThemeAndLanguage, { once: true });
-  }, lang);
+    if (document.documentElement) apply();
+    else document.addEventListener("DOMContentLoaded", apply, { once: true });
+  }, { l: lang, origin: BASE });
   const page = await context.newPage();
   page.setDefaultTimeout(45_000);
   return { context, page };
@@ -167,7 +211,8 @@ async function ensureLang(page, lang) {
 }
 
 async function gotoReady(page, path, lang) {
-  await page.goto(`${BASE}${path}`, { waitUntil: "domcontentloaded", timeout: 90_000 });
+  const response = await page.goto(`${BASE}${path}`, { waitUntil: "domcontentloaded", timeout: 90_000 });
+  if (!response?.ok()) throw new Error(`${path}: capture navigation failed (HTTP ${response?.status() ?? "no response"})`);
   await ensureLang(page, lang);
   await page.waitForTimeout(400);
 }
@@ -204,7 +249,16 @@ async function cropLocator(page, locator, outPath, pad = 18) {
   const fresh = locator.first();
   await fresh.waitFor({ state: "visible", timeout: 20_000 });
   await page.waitForTimeout(250);
-  const box = await fresh.boundingBox();
+  let box = null;
+  // A visible SSR node can disappear during hydration. Require two consecutive
+  // nonempty boxes for this same locator rather than sampling that transition.
+  await expect.poll(async () => {
+    const next = await fresh.boundingBox();
+    const stable = next && next.width > 0 && next.height > 0
+      && JSON.stringify(next) === JSON.stringify(box);
+    box = next;
+    return Boolean(stable);
+  }, { timeout: 20_000, message: 'stable capture target' }).toBe(true);
   if (!box) throw new Error(`no bounding box for ${outPath}`);
   await cropBox(page, box, outPath, pad);
 }
@@ -291,6 +345,8 @@ async function waitForChartReady(page, symbol) {
 async function captureSearchModal(page, width, lang, outPath) {
   await gotoReady(page, "/terminal?symbol=SPY", lang);
   await page.locator(".workspace").waitFor({ state: "visible", timeout: 45_000 });
+  // SSR visibility does not prove the symbol bar's click handler is hydrated.
+  await waitForChartIdentity(page, width);
   await waitForChartReady(page, "SPY");
   if (width === 390) {
     await page.locator(".m-symbar").click();
@@ -335,8 +391,24 @@ async function captureAnalysis(page, width, lang, outPath) {
   const backLabel = lang === "zh" ? "返回图表" : "Back to chart";
   await shell.getByText(backLabel, { exact: true }).first().waitFor({ state: "visible", timeout: 45_000 });
   const bar = page.locator(".analysis-context-bar").first();
-  const target = (await bar.count()) && (await bar.isVisible().catch(() => false)) ? bar : shell;
-  await cropLocator(page, target, outPath, 12);
+  // This cursor is published by AnalysisWorkspace's mounted effect.
+  await page.waitForFunction(() => localStorage.getItem("mm.activeSymbol") === "SPY");
+  await expect(bar).toContainText("SPY", { timeout: 45_000 });
+  await cropLocator(page, bar, outPath, 12);
+}
+
+async function waitForChartIdentity(page, width) {
+  const symbol = page.locator(width === 390 ? ".m-symbar .m-sym b" : ".topbar .pair b").first();
+  await expect(symbol).toHaveText("SPY", { timeout: 45_000 });
+  const oracle = page.locator(".statusline").first();
+  // paintStatus defaults to the instrument name once the manifest arrives.
+  // Bind both the canonical ticker control and its hydrated chart identity.
+  await expect(oracle.locator(".status-symbol-name")).toHaveText(
+    /^(?:SPY|SPDR S&P 500 ETF)(?: ·.*)?$/, { timeout: 45_000 },
+  );
+  const ohlc = oracle.locator(".status-ohlc b");
+  await expect(ohlc).toHaveCount(4);
+  for (const value of await ohlc.all()) await expect(value).toHaveText(/\d/);
 }
 
 // Default-on Terminal studies for a fresh SPY chart (see the legend: Moving Averages,
@@ -348,6 +420,7 @@ async function captureChartChrome(page, width, lang, outPath) {
   await page.locator(".workspace").waitFor({ state: "visible", timeout: 45_000 });
   const day = page.locator(".dayrange").first();
   const oracle = page.locator(".statusline").first();
+  await waitForChartIdentity(page, width);
   await waitForChartReady(page, "SPY");
   // The default study set attaches asynchronously: "TW · Mastermind Candles" lands
   // after the first paint and recolours every candle. Shooting before it attaches
@@ -385,7 +458,7 @@ async function main() {
   const files = [];
   let failed = 0;
   try {
-    await waitForServer(180_000, operation ? child : undefined);
+    await waitForServer(180_000, child);
     await warmFixtureRoutes(BASE);
     // Partial raster tiles land at nondeterministic times; force full-tile rasterisation
     // so a crop never records a half-painted frame (memory: screenshot-partial-raster-drift).
@@ -399,7 +472,7 @@ async function main() {
             process.stdout.write(`capture ${file} … `);
             const { context, page } = await newPage(browser, width, lang);
             try {
-              if (operation && !ownedServer(child)) throw new Error("CAPTURE_SERVER_NOT_READY");
+              if (!ownedServer(child)) throw new Error("CAPTURE_SERVER_NOT_READY");
               immutablePng = null;
               await surface.run(page, width, lang, join(OUT, file));
               await assertNoNextIndicator(page, file);
@@ -439,6 +512,8 @@ async function main() {
     process.exitCode = 1;
     return;
   }
+
+  if (!operation && ONLY.length) { console.log("diagnostic run: EVIDENCE.yml not written"); return; }
 
   if (operation) {
     const ref = evidence.finishOperation(operation, { schema: "terminal.pl6-execution.v1", cases: executionRows });

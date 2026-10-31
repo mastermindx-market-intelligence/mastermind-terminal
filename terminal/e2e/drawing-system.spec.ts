@@ -1651,7 +1651,10 @@ test("an indicator-pane drawing holds its place when the price scale rescales", 
   // stroke, so an empty group's zero box cannot become the rescale baseline.
   await expect.poll(async () => strokes.first().evaluate((el) => (el as SVGGElement).getBBox().height))
     .toBeGreaterThan(0);
-  const before = await strokes.first().evaluate((el) => (el as SVGGElement).getBBox().y);
+  // Redraws replace the SVG groups. Query and measure in one browser evaluation
+  // so an ElementHandle detached between protocol calls cannot report y = 0.
+  const readY = () => strokes.evaluateAll(([el]) => (el as SVGGElement).getBBox().y);
+  const before = await readY();
 
   // Zoom the MAIN price axis. The sub-pane object is anchored to its own scale,
   // so this must not move it — it used to be re-extrapolated and slide away.
@@ -1659,8 +1662,7 @@ test("an indicator-pane drawing holds its place when the price scale rescales", 
   await page.mouse.move(plot.x + plot.width + 20, plot.y + plot.height * 0.4);
   for (let notch = 0; notch < 6; notch += 1) await page.mouse.wheel(0, 120);
 
-  await expect.poll(async () => strokes.first().evaluate((el) => (el as SVGGElement).getBBox().y))
-    .toBeCloseTo(before, 0);
+  await expect.poll(readY).toBeCloseTo(before, 0);
 });
 
 test("an indicator-pane drawing stays in its pane when that pane y-axis rescales", async ({ page }) => {
