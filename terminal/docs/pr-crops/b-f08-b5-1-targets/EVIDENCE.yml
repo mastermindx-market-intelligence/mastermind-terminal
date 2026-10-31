@@ -1,11 +1,10 @@
 # B-F08-B5-1 portfolio construction targets — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 3a2519ce2ca531beeac84d21ad98bec2151c53b9
-# capturedAt: 2026-09-10T14:19:38.106Z
+# capturedAtHead: 40e28feee85e1b85481365ba29caf6c4460c1162
+# capturedAt: 2026-10-10T01:08:54.249Z
 # capturedAtHead is informational. The lock is layoutFiles.
-# 2026-09-19 seat merge of master 1c46b277 into #584 (B-F12-13): hash-only restamp of terminal/components/PortfolioView.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit.
-# 2026-10-04 F08 page-side readback fence (macro#6819 5979873599): hash-only restamp of terminal/components/PortfolioView.tsx to the new bytes — logic-only edit (one page mutation chain for position AND target writes; newest-read-wins in reload()); no JSX, class, string or CSS change, so no crop can differ; crops NOT recaptured (the 2026-09-19 precedent above); capturedAtHead untouched.
+# 2026-10-10 recapture: all 32 crops recaptured at the head above by e2e/tools/capture_b_f08_b5_1_targets.cjs, run unmodified, and pixel-diffed against the 2026-09-10 crops (changes: 1px sub-pixel line shifts and crop-edge changes because the B-F08-9 risk-history section now renders above this one; no change inside the section). Supersedes the 2026-09-19 and 2026-10-04 hash-only notes.
 layoutFiles:
   terminal/components/PortfolioView.tsx: "4a08c45bdd7a9867a10ba4102cd358f02f4ffdf4d1013a951dc6b892ed102d90"
   terminal/lib/portfolioTargets.ts: "7857cef2eb79cd4f78b875744734a7d45ed04d1d50f1ea55dd7ce155248a2bf9"
