@@ -16,6 +16,7 @@ export default function ShellSearch({ open, onOpenChange }: {
   // intent. This does not edit or shadow SymbolPicker's recovery/cache policy.
   const [activated, setActivated] = useState(open);
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- retain the real picker after a programmatic keyboard opening.
     if (open) setActivated(true);
   }, [open]);
   if (!activated) {
