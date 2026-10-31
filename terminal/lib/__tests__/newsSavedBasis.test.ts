@@ -16,6 +16,7 @@ import {
   writeOwnerReview,
   type OwnerNewsReview,
   type SavedBasis,
+  type SavedDrift,
 } from "@/lib/newsReviewState";
 import type { StoragePort } from "@/lib/ownerStorage";
 
@@ -184,15 +185,15 @@ describe("describeSavedDrift — what moved since the saved basis", () => {
   it("names each facet of the difference from the saved basis", () => {
     const marked = markStoriesReviewed({}, "NVDA", [row("ev2_a", 5, 3)], ["ev2_a"], { rights: RIGHTS });
     const review = marked.NVDA;
-    const driftFor = (presented: TickerNewsStoryRow, rights: TickerNewsRightsBasis | null = RIGHTS) =>
-      describeSavedDrift(review, presented, { rights });
+    const driftFor = (presented: TickerNewsStoryRow, rights: TickerNewsRightsBasis | null = RIGHTS): SavedDrift["facets"] =>
+      describeSavedDrift(review, presented, { rights })?.facets ?? [];
 
-    expect(driftFor(row("ev2_a", 9, 3)).facets).toContain("newer_revision");
-    expect(driftFor(row("ev2_a", 9, 2)).facets).toContain("fewer_reports");
-    expect(driftFor(row("ev2_a", 9, 4)).facets).toContain("more_reports");
-    expect(driftFor(row("ev2_a", 9, 3, { source_item_id: "ev2_a-item-2" })).facets).toContain("report_rekeyed");
-    expect(driftFor(row("ev2_a", 9, 3, { editorial_view: { ...NEWS_VIEW, revision: "b".repeat(64) } })).facets).toContain("view_revision");
-    expect(driftFor(row("ev2_a", 9, 3), { ...RIGHTS, receipt_id: "rr_0009" }).facets).toContain("rights");
+    expect(driftFor(row("ev2_a", 9, 3))).toContain("newer_revision");
+    expect(driftFor(row("ev2_a", 9, 2))).toContain("fewer_reports");
+    expect(driftFor(row("ev2_a", 9, 4))).toContain("more_reports");
+    expect(driftFor(row("ev2_a", 9, 3, { source_item_id: "ev2_a-item-2" }))).toContain("report_rekeyed");
+    expect(driftFor(row("ev2_a", 9, 3, { editorial_view: { ...NEWS_VIEW, revision: "b".repeat(64) } }))).toContain("view_revision");
+    expect(driftFor(row("ev2_a", 9, 3), { ...RIGHTS, receipt_id: "rr_0009" })).toContain("rights");
 
     // No saved basis → nothing to describe.
     expect(describeSavedDrift(review, row("ev2_b", 9))).toBeNull();
