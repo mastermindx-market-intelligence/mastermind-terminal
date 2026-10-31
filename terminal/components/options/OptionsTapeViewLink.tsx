@@ -2,18 +2,21 @@
 
 import { useRef, useState } from "react";
 import { useTapeViewText } from "./optionsTapeViewStrings";
-import { encodeTapeView, type TapeViewState } from "@/lib/optionsTapeView";
+import { type TapeViewState } from "@/lib/optionsTapeView";
+import { encodeTapeScreen } from "@/lib/optionsTapeFilterGroups";
 import s from "./OptionsTapeViewLink.module.css";
 
 /** Shares display controls only. Entitlements and the recipient's current feed still apply. */
-export function OptionsTapeViewLink({ state }: { state: TapeViewState }) {
+export function OptionsTapeViewLink({ state, groups }: { state: TapeViewState; groups?: readonly TapeViewState[] }) {
   const t = useTapeViewText();
   const [origin, setOrigin] = useState<string | null>(null);
   const [copyResult, setCopyResult] = useState<{ href: string; copied: boolean } | null>(null);
   const input = useRef<HTMLInputElement>(null);
   const launcher = useRef<HTMLButtonElement>(null);
   let encoded: string | null = null;
-  try { encoded = encodeTapeView(state); } catch { /* unsupported input cannot become a broader view */ }
+  try {
+    encoded = encodeTapeScreen(state, groups);
+  } catch { /* unsupported input cannot become a broader view */ }
   const params = new URLSearchParams({ tab: "tape", ...(encoded ? { tapeView: encoded } : {}) });
   const href = origin && encoded ? `${origin}/options?${params}` : "";
   const close = () => { setOrigin(null); launcher.current?.focus(); };
