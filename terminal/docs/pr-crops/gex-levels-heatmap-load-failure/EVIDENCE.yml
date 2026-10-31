@@ -6,7 +6,7 @@
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/app/globals.css: "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517"
-  terminal/components/gexdesk/GexDeskView.tsx: "4d7b3ac38519fc2522b2100b97685240187380303b03c9485885eb16952d159a"
+  terminal/components/gexdesk/GexDeskView.tsx: "e7e12f9b3f1217c0b78692a5c65d5181552015ca0c1a91510e01d259432a7a14"
   terminal/components/gexdesk/HeatSeekerCard.tsx: "308295e2b0143fe933948c97a14584e1e0d1eff9249a58104dd3587a2642c93a"
   terminal/components/gexdesk/MarketStateCard.tsx: "069c4a2f1a5f53e8f611e3231b78751948cc0264c8af6efd167f7b3e4902bbe2"
   terminal/components/gexdesk/StrikeLadder.tsx: "55dccbef4e3bfebc09477f6d9a0133cf0bc5d70531d32d532e760ff214ed4596"
@@ -260,3 +260,10 @@ files:
   - levels-unavailable-390.png
   - levels-unavailable-820-zh.png
   - levels-unavailable-820.png
+
+labPlanNavigationRecapture20261030:
+  sourceHead: "284f09f748e6a7107ceffe0a0c54fc1e0af14fc9"
+  actualCases: 54
+  qualification: "terminal/docs/verification/lab-plan-handoff-20261030/evidence-lock-recapture.json"
+  qualificationSha256: "b34344fad4050563f59223f81056de0415527a98e6bc8047f99a6bfccbdc6be4"
+  scope: "Actual scoped browser captures on the navigation candidate. Other surfaces and earlier reports retain their historical identities; no production or full-matrix recapture claim."
