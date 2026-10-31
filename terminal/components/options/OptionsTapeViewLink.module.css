@@ -8,6 +8,7 @@
 /* The global narrow-screen .chip rule is !important. Keep new screen actions
    comfortably tappable without changing other Tape/share controls. */
 .savedControl.savedControl { min-height: 44px !important; height: auto; }
+.groupChoice { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; margin: 0; cursor: pointer; }
 @media (pointer: coarse) { .launch, .action, .input { min-height: 44px; } }
 @media (max-width: 640px) { .input { flex-basis: 100%; } }
 /* Saved-screen launchers add a wrapped row on phones. Recover vertical space

@@ -15,6 +15,8 @@ export const TAPE_VIEW_LEX = {
   tapeViewClose: ["Close share link", "关闭分享链接"],
   tapeViewInvalid: ["This Tape view could not be restored", "无法恢复此期权流视图"],
   tapeViewInvalidBody: ["The link contains unsupported filters. No unfiltered results are shown. Open the default Tape to start again.", "链接包含不支持的筛选条件。当前不显示未筛选的结果。请打开默认期权流重新开始。"],
+  tapeViewClearCombined: ["Clear combined conditions", "清除组合条件"],
+  tapeViewCombinedDetails: ["View combined conditions", "查看组合条件"],
   tapeViewOpenDefault: ["Open default Tape", "打开默认期权流"],
 } as const;
 

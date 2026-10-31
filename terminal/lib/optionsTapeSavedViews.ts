@@ -1,9 +1,10 @@
 /** Browser-local display preferences. No market rows, timestamps or account data. */
 import { decodeTapeView, encodeTapeView, type TapeViewState } from "./optionsTapeView";
+import { decodeTapeFilterGroups, encodeTapeFilterGroups } from "./optionsTapeFilterGroups";
 
 export const SAVED_TAPE_VIEWS_KEY = "mm.optionsTapeSavedViews.v1";
 export const MAX_SAVED_TAPE_VIEWS = 20;
-export type SavedTapeView = { id: string; name: string; state: string };
+export type SavedTapeView = { id: string; name: string; state: string; groups?: string };
 export type SavedTapeViewsResult = { ok: true; views: SavedTapeView[] } | { ok: false; reason: "invalid" };
 
 export function normalizeTapeViewName(value: unknown): string | null {
@@ -25,14 +26,17 @@ function validateViews(value: unknown): SavedTapeView[] {
   const ids = new Set<string>();
   const names = new Set<string>();
   return value.map((row) => {
-    if (!exactKeys(row, ["id", "name", "state"]) || typeof row.id !== "string"
+    if (!(exactKeys(row, ["id", "name", "state"]) || exactKeys(row, ["id", "name", "state", "groups"])) || typeof row.id !== "string"
       || !/^[A-Za-z0-9][A-Za-z0-9_.:-]{0,79}$/.test(row.id)) throw new Error("invalid");
     const name = normalizeTapeViewName(row.name);
     const state = decodeTapeView(typeof row.state === "string" ? row.state : null);
+    const hasGroups = Object.prototype.hasOwnProperty.call(row, "groups");
+    const groups = hasGroups ? decodeTapeFilterGroups(typeof row.groups === "string" ? row.groups : null) : null;
+    if (hasGroups && !groups) throw new Error("invalid");
     if (!name || !state || ids.has(row.id) || names.has(name.toLowerCase())) throw new Error("invalid");
     ids.add(row.id);
     names.add(name.toLowerCase());
-    return { id: row.id, name, state: encodeTapeView(state) };
+    return { id: row.id, name, state: encodeTapeView(state), ...(groups ? { groups: encodeTapeFilterGroups(groups) } : {}) };
   });
 }
 
@@ -59,10 +63,11 @@ function uniqueName(views: readonly SavedTapeView[], input: unknown, except?: st
   return name;
 }
 
-export function addSavedTapeView(views: readonly SavedTapeView[], id: string, name: string, state: TapeViewState): SavedTapeView[] {
+export function addSavedTapeView(views: readonly SavedTapeView[], id: string, name: string, state: TapeViewState, groups?: readonly TapeViewState[]): SavedTapeView[] {
   const current = validateViews(views);
   if (current.length >= MAX_SAVED_TAPE_VIEWS) throw new Error("full");
-  const next = { id, name: uniqueName(current, name), state: encodeTapeView(state) };
+  const next = { id, name: uniqueName(current, name), state: encodeTapeView(state),
+    ...(groups === undefined ? {} : { groups: encodeTapeFilterGroups(groups) }) };
   return validateViews([...current, next]);
 }
 

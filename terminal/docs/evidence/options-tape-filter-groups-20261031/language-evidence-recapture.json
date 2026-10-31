@@ -1,0 +1,73 @@
+{
+  "sourceHead": "fbbca96f0bfbd29faf5e091e8a263f5bbaf2fab1",
+  "sourceSha256": "35530f6190313cee37cff43a92cd526c6010d6276f85a9f46dbf550522d7bd74",
+  "scope": "New copy-helper source qualified by four actual Hub and six actual EN/ZH chart-context captures. All legacy images and cropFiles hashes preserved as historical; current captures are only the immutable operation images referenced below. No permission changes or denied image overwrite retry.",
+  "operations": [
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/r4-tape-copy-pl6-20261031--operation.json",
+      "sha256": "b9a10844fae2135992cd66a066cd621cb095139d11e1deb2e1289d6d2c4eff70",
+      "packet": "pl6",
+      "actualCases": 4,
+      "images": [
+        {
+          "key": "pl6:desktop:en:capture OptionsHubView",
+          "path": "terminal/docs/pr-crops/b-pl-6-batch-1/r4-tape-copy-pl6-20261031--case-86d84cab75217bdefb7397a6e4bb1f13.png",
+          "sha256": "cba0c8b9437057d47a0c17f49c73eaedd159d41b687386c4daed1bd682fee35a"
+        },
+        {
+          "key": "pl6:desktop:zh:capture OptionsHubView",
+          "path": "terminal/docs/pr-crops/b-pl-6-batch-1/r4-tape-copy-pl6-20261031--case-5fb36fd42dbf29bcb562d53fa45f701b.png",
+          "sha256": "3cf44b98105635da0e1b4b7926840776cd33b918fe7cef26517b16dfb8310d98"
+        },
+        {
+          "key": "pl6:mobile:en:capture OptionsHubView",
+          "path": "terminal/docs/pr-crops/b-pl-6-batch-1/r4-tape-copy-pl6-20261031--case-eb3ce40c99712bf3225af0f136c81df2.png",
+          "sha256": "7d84f22f6820f3bbc4202a42020d7618d8b780c5317ff0ec6ef6e1abdb1cc21c"
+        },
+        {
+          "key": "pl6:mobile:zh:capture OptionsHubView",
+          "path": "terminal/docs/pr-crops/b-pl-6-batch-1/r4-tape-copy-pl6-20261031--case-0f8cd82e5d4bc245843916285d6c10fb.png",
+          "sha256": "a3f2d6d48c1d7c4c36d07b01e850453c3f0cb1bec0525981ffafde5065b0dfdd"
+        }
+      ]
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/r4-tape-copy-vi-20261031--operation.json",
+      "sha256": "b25b2d52345a542463c72242b1fa43b834e872707eba7c527d3eae18ec04d4a9",
+      "packet": "vi",
+      "actualCases": 6,
+      "images": [
+        {
+          "key": "vi:desktop:en:default context explains plotted bars, toggles original overlays, and persists choices",
+          "path": "terminal/docs/pr-crops/terminal-visual-intelligence/r4-tape-copy-vi-20261031--case-ee02b323aeba2da6a7cfcfdec67e90b2.png",
+          "sha256": "654d9b94b8894829d06cfaa25e4ea4b443be291dafe28cc2a0fc2f0e1fcf7184"
+        },
+        {
+          "key": "vi:desktop:zh:Chinese context uses text alongside regional colors and remains keyboard dismissible",
+          "path": "terminal/docs/pr-crops/terminal-visual-intelligence/r4-tape-copy-vi-20261031--case-eb0837fd25a2a7a98fbc8e9b3999401d.png",
+          "sha256": "6b98e500c476648ed8332f520fe5835de3ee2f25c523724beb1bdef1fa6a013b"
+        },
+        {
+          "key": "vi:tablet:en:default context explains plotted bars, toggles original overlays, and persists choices",
+          "path": "terminal/docs/pr-crops/terminal-visual-intelligence/r4-tape-copy-vi-20261031--case-c99d1d4f435e2af686e0b59fcd647ea9.png",
+          "sha256": "4980ef7d1881bf573b82c73e65048eb3f6f1298abfddba8c79d8139d81c65b00"
+        },
+        {
+          "key": "vi:tablet:zh:Chinese context uses text alongside regional colors and remains keyboard dismissible",
+          "path": "terminal/docs/pr-crops/terminal-visual-intelligence/r4-tape-copy-vi-20261031--case-7381784ee89146a99c2d47e0857cd8db.png",
+          "sha256": "5278387301c027e7e3c0ae0c96f0b6a233ef43243208936437d7bdf84855fd5a"
+        },
+        {
+          "key": "vi:mobile:en:default context explains plotted bars, toggles original overlays, and persists choices",
+          "path": "terminal/docs/pr-crops/terminal-visual-intelligence/r4-tape-copy-vi-20261031--case-fa58e0493f7e0c95bf2f5b4b64e83204.png",
+          "sha256": "4bb912458a311faed7e779e24dffda3907ce5af4eec95dbc1a9f21ae3978bbe7"
+        },
+        {
+          "key": "vi:mobile:zh:Chinese context uses text alongside regional colors and remains keyboard dismissible",
+          "path": "terminal/docs/pr-crops/terminal-visual-intelligence/r4-tape-copy-vi-20261031--case-997b1cb667944d5f31aa982480cd6617.png",
+          "sha256": "e405b67dd7664ccbe130e97c455a536b24e7b85ab51af9f96ec135e030608622"
+        }
+      ]
+    }
+  ]
+}

@@ -3,9 +3,11 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { useLang } from "@/lib/i18n";
 import { decodeTapeView, encodeTapeView, type TapeViewState } from "@/lib/optionsTapeView";
+import { decodeTapeFilterGroups, encodeTapeFilterGroups, MAX_TAPE_FILTER_GROUPS } from "@/lib/optionsTapeFilterGroups";
 import { addSavedTapeView, decodeSavedTapeViews, encodeSavedTapeViews, removeSavedTapeView,
   renameSavedTapeView, SAVED_TAPE_VIEWS_KEY, type SavedTapeView } from "@/lib/optionsTapeSavedViews";
 import s from "./OptionsTapeViewLink.module.css";
+import { useTapeViewText } from "./optionsTapeViewStrings";
 
 const COPY = {
   save: ["Save screen", "保存筛选视图"], views: ["Saved screens", "已存筛选视图"],
@@ -26,9 +28,53 @@ const COPY = {
   repeated: ["Repeat-root", "重复代码"], put_buy: ["Puts on strength", "上涨时偏买看跌"], swept: ["Swept", "扫单"],
   sorted: ["Sort", "排序"], ts: ["Time", "时间"], premium: ["Premium", "权利金"],
   showAll: ["See all", "查看全部"], fewer: ["Show fewer", "收起"], open: ["Open", "打开"],
+  combine: ["Combine selected", "组合所选视图"], select: ["Select for combination", "选择以组合"],
+  combineHint: ["Select 2–4 single screens to match any of them. Conditions within each screen must all match. Current filters can refine the combined results.", "选择2–4个单独视图，匹配其中任一视图；每个视图内的条件须全部满足。当前筛选可进一步缩小组合结果。"],
+  combined: ["Combined screen", "组合视图"], any: ["Match any", "匹配任一"],
+  changed: ["A selected screen changed. Select the screens again; current filters have not changed.", "所选视图已更改。请重新选择；当前筛选条件保持不变。"],
+  frozenFilters: ["Combined screens keep a copy of their filter definitions, not market data.", "组合视图保留筛选条件的副本，不保存市场数据。"],
 } as const;
 
-export function OptionsTapeSavedViews({ state, onApply }: { state: TapeViewState; onApply: (encoded: string) => void }) {
+function tapeViewSummary(encoded: string, lang: string, includeSort = true): string {
+  const t = (key: keyof typeof COPY) => COPY[key][lang === "zh" ? 1 : 0];
+  const dteLabel = (bucket: string) => ({
+    "0d": lang === "zh" ? "当日到期" : "0DTE", "1_7d": lang === "zh" ? "1–7天" : "1–7d",
+    "8_30d": lang === "zh" ? "8–30天" : "8–30d", "31_90d": lang === "zh" ? "31–90天" : "31–90d",
+    "90p": lang === "zh" ? "90天以上" : "90d+",
+  })[bucket] ?? bucket;
+  const mnyLabel = (bucket: string) => ({ itm: lang === "zh" ? "价内" : "ITM", atm: lang === "zh" ? "平值" : "ATM",
+    near_otm: lang === "zh" ? "近虚值" : "Near OTM", far_otm: lang === "zh" ? "深虚值" : "Far OTM" })[bucket] ?? bucket;
+  const summary = (encoded: string) => {
+    const view = decodeTapeView(encoded);
+    if (!view) return t("invalid");
+    const parts = [view.drillTicker || view.tapeTickerSearch || view.groupFilter || t("allRoots"),
+      `${t("minimum")} $${view.minPrem.toLocaleString("en-US")}`,
+      view.dteBuckets.length ? view.dteBuckets.map(dteLabel).join(" / ") : t("allExpiry"),
+      view.mnyBuckets.length ? view.mnyBuckets.map(mnyLabel).join(" / ") : t("allMny")];
+    if (view.groupFilter && (view.drillTicker || view.tapeTickerSearch)) parts.push(view.groupFilter);
+    if (view.tapeTickerSearch && view.drillTicker) parts.push(view.tapeTickerSearch);
+    if (view.sideFilter) parts.push(`${t("side")}: ${t(view.sideFilter === "~buy" ? "buy" : view.sideFilter === "~sell" ? "sell" : "mixed")}`);
+    if (view.flagFilter) parts.push(`${t("flags")}: ${t(view.flagFilter as "repeated" | "put_buy" | "swept")}`);
+    if (includeSort) parts.push(`${t("sorted")}: ${t(view.sortKey)} ${view.sortDir === 1 ? "↑" : "↓"}`);
+    return parts.join(" · ");
+  };
+
+  return summary(encoded);
+}
+
+export function OptionsTapeGroupDetails({ groups }: { groups: readonly TapeViewState[] }) {
+  const { lang } = useLang();
+  const viewText = useTapeViewText();
+  return <details><summary>{viewText("tapeViewCombinedDetails")}</summary>
+    <ol>{groups.map((group, index) => <li key={index} style={{ overflowWrap: "anywhere" }}>{tapeViewSummary(encodeTapeView(group), lang, false)}</li>)}</ol>
+  </details>;
+}
+
+export function OptionsTapeSavedViews({ state, groups, onApply, onCombine }: {
+  state: TapeViewState; groups?: readonly TapeViewState[];
+  onApply: (encoded: string, encodedGroups?: string) => void;
+  onCombine?: (groups: TapeViewState[]) => void;
+}) {
   const { lang } = useLang();
   const t = (key: keyof typeof COPY) => COPY[key][lang === "zh" ? 1 : 0];
   const panelId = useId();
@@ -40,6 +86,7 @@ export function OptionsTapeSavedViews({ state, onApply }: { state: TapeViewState
   const [name, setName] = useState("");
   const [message, setMessage] = useState<keyof typeof COPY | null>(null);
   const [all, setAll] = useState(false);
+  const [selected, setSelected] = useState<SavedTapeView[]>([]);
   const input = useRef<HTMLInputElement>(null);
   const launcher = useRef<HTMLButtonElement | null>(null);
   const panel = useRef<HTMLElement>(null);
@@ -69,7 +116,7 @@ export function OptionsTapeSavedViews({ state, onApply }: { state: TapeViewState
     return () => cancelAnimationFrame(frame);
   }, [open, editor]);
 
-  const close = () => { setOpen(false); setEditor(null); launcher.current?.focus(); };
+  const close = () => { setOpen(false); setEditor(null); setSelected([]); launcher.current?.focus(); };
   const editNew = () => {
     refresh(); setOpen(true); setEditor("new"); setMessage(null);
     setName([...([state.drillTicker || state.tapeTickerSearch || state.groupFilter || t("allRoots"),
@@ -94,28 +141,9 @@ export function OptionsTapeSavedViews({ state, onApply }: { state: TapeViewState
   };
 
   let activeName: string | undefined;
-  try { activeName = views.find((view) => view.state === encodeTapeView(state))?.name; } catch { /* no active saved screen */ }
-  const dteLabel = (bucket: string) => ({
-    "0d": lang === "zh" ? "当日到期" : "0DTE", "1_7d": lang === "zh" ? "1–7天" : "1–7d",
-    "8_30d": lang === "zh" ? "8–30天" : "8–30d", "31_90d": lang === "zh" ? "31–90天" : "31–90d",
-    "90p": lang === "zh" ? "90天以上" : "90d+",
-  })[bucket] ?? bucket;
-  const mnyLabel = (bucket: string) => ({ itm: lang === "zh" ? "价内" : "ITM", atm: lang === "zh" ? "平值" : "ATM",
-    near_otm: lang === "zh" ? "近虚值" : "Near OTM", far_otm: lang === "zh" ? "深虚值" : "Far OTM" })[bucket] ?? bucket;
-  const summary = (encoded: string) => {
-    const view = decodeTapeView(encoded);
-    if (!view) return t("invalid");
-    const parts = [view.drillTicker || view.tapeTickerSearch || view.groupFilter || t("allRoots"),
-      `${t("minimum")} $${view.minPrem.toLocaleString("en-US")}`,
-      view.dteBuckets.length ? view.dteBuckets.map(dteLabel).join(" / ") : t("allExpiry"),
-      view.mnyBuckets.length ? view.mnyBuckets.map(mnyLabel).join(" / ") : t("allMny")];
-    if (view.groupFilter && (view.drillTicker || view.tapeTickerSearch)) parts.push(view.groupFilter);
-    if (view.tapeTickerSearch && view.drillTicker) parts.push(view.tapeTickerSearch);
-    if (view.sideFilter) parts.push(`${t("side")}: ${t(view.sideFilter === "~buy" ? "buy" : view.sideFilter === "~sell" ? "sell" : "mixed")}`);
-    if (view.flagFilter) parts.push(`${t("flags")}: ${t(view.flagFilter as "repeated" | "put_buy" | "swept")}`);
-    parts.push(`${t("sorted")}: ${t(view.sortKey)} ${view.sortDir === 1 ? "↑" : "↓"}`);
-    return parts.join(" · ");
-  };
+  try { activeName = views.find((view) => view.state === encodeTapeView(state)
+    && view.groups === (groups === undefined ? undefined : encodeTapeFilterGroups(groups)))?.name; } catch { /* no active saved screen */ }
+  const summary = (encoded: string) => tapeViewSummary(encoded, lang);
 
   return <>
     <button type="button" className={`chip ${s.launch} ${s.savedControl}`} disabled={!loaded} onClick={(event) => { launcher.current = event.currentTarget; editNew(); }}
@@ -138,7 +166,7 @@ export function OptionsTapeSavedViews({ state, onApply }: { state: TapeViewState
           catch { setMessage("storage"); }
         }}>{t("clear")}</button></div> : <>
         {editor !== null && <form onSubmit={(event) => { event.preventDefault(); persist((latest) => editor === "new"
-          ? addSavedTapeView(latest, crypto.randomUUID(), name, state)
+          ? addSavedTapeView(latest, crypto.randomUUID(), name, state, groups)
           : renameSavedTapeView(latest, editor, name), editor === "new" ? "saved" : "renamed"); }}>
           <label htmlFor={`${panelId}-name`} className={s.label} style={{ marginTop: 12 }}>{t("name")}</label>
           <div className={s.controls}><input id={`${panelId}-name`} ref={input} className={s.input} value={name}
@@ -146,18 +174,44 @@ export function OptionsTapeSavedViews({ state, onApply }: { state: TapeViewState
             <button type="submit" className={`chip ${s.action} ${s.savedControl}`}>{t(editor === "new" ? "save" : "rename")}</button>
             <button type="button" className={`chip ${s.action} ${s.savedControl}`} onClick={() => { setEditor(null); setMessage(null); }}>{t("cancel")}</button></div>
         </form>}
+        {onCombine && views.filter((view) => !view.groups).length >= 2 && <div data-options-saved-view="combine">
+          <p className={s.note}>{t("combineHint")}</p>
+          <button type="button" className={`chip ${s.action} ${s.savedControl}`} disabled={selected.length < 2}
+            onClick={() => {
+              const latest = refresh();
+              if (!latest.ok || selected.some((selection) => !latest.views.some((view) => view.id === selection.id
+                && view.state === selection.state && view.groups === undefined))) {
+                setSelected([]); setMessage("changed"); return;
+              }
+              const combined = selected.map((view) => decodeTapeView(view.state));
+              if (combined.some((view) => !view)) { setMessage("invalid"); return; }
+              onCombine(combined as TapeViewState[]); close();
+            }}>{t("combine")} ({selected.length}/{MAX_TAPE_FILTER_GROUPS})</button>
+        </div>}
         {views.length === 0 ? <p className={s.note}>{t("empty")}</p> : <ul style={{ listStyle: "none", padding: 0, margin: "12px 0 0" }}>
           {(all ? views : views.slice(0, 8)).map((view) => <li key={view.id} style={{ padding: "12px 0", borderTop: "1px solid var(--line)" }}>
             <div className={s.controls}><bdi style={{ flex: "1 1 160px", overflowWrap: "anywhere", color: "var(--text)" }}>{view.name}</bdi>
+              {onCombine && !view.groups && <label className={`${s.note} ${s.groupChoice}`}>
+                <input type="checkbox" checked={selected.some((item) => item.id === view.id)}
+                  disabled={selected.length >= MAX_TAPE_FILTER_GROUPS && !selected.some((item) => item.id === view.id)}
+                  aria-label={`${t("select")} ${view.name}`} onChange={(event) => {
+                    setSelected((prior) => event.target.checked ? [...prior, view] : prior.filter((item) => item.id !== view.id));
+                  }} />{t("select")}
+              </label>}
               <button type="button" className={`chip ${s.action} ${s.savedControl}`} aria-label={`${t("open")} ${view.name}`} onClick={() => {
                 const latest = refresh();
                 const selected = latest.ok && latest.views.find((item) => item.id === view.id);
                 if (!selected) { setMessage("missing"); return; }
-                onApply(selected.state); close();
+                onApply(selected.state, selected.groups); close();
               }}>{t("open")}</button>
               <button type="button" className={`chip ${s.action} ${s.savedControl}`} aria-label={`${t("rename")} ${view.name}`} onClick={() => { setName(view.name); setEditor(view.id); setMessage(null); }}>{t("rename")}</button>
               <button type="button" className={`chip ${s.action} ${s.savedControl}`} aria-label={`${t("remove")} ${view.name}`} onClick={() => persist((latest) => removeSavedTapeView(latest, view.id), "deleted")}>{t("remove")}</button>
             </div><p className={s.note} style={{ overflowWrap: "anywhere" }}>{summary(view.state)}</p>
+            {view.groups && <details className={s.note} data-options-saved-view="group-summary">
+              <summary>{t("combined")} · {t("any")} ({decodeTapeFilterGroups(view.groups)?.length})</summary>
+              <ol>{decodeTapeFilterGroups(view.groups)?.map((group, index) => <li key={index} style={{ overflowWrap: "anywhere" }}>{tapeViewSummary(encodeTapeView(group), lang, false)}</li>)}</ol>
+              <p>{t("frozenFilters")}</p>
+            </details>}
           </li>)}
         </ul>}
         {views.length > 8 && <button type="button" className={`chip ${s.action} ${s.savedControl}`} onClick={() => setAll((value) => !value)}>{all ? t("fewer") : `${t("showAll")} ${views.length}`}</button>}
