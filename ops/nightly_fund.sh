@@ -41,7 +41,8 @@
 #
 # Flow: self-update DEPLOY (exec-once) → refresh ENGINE clone → panels() EV stockdata →
 # transcript delta/index recovery → gentle Canadian .TO collect (--canada, workers=1, bounded)
-# → gentle yfinance collect (incremental, --stale-days 3) → gen_fund_us → rsync data-only
+# → gentle yfinance collect (incremental, --stale-days 3) → gen_fund_us → SEC filing lineage
+# → deep statement history backfill (massive v1, non-fatal, time-boxed) → rsync data-only
 # to the VPS. Safety gates abort BEFORE any deploy if EV coverage collapses or AAPL EV
 # is null (never ship bad data).
 #
@@ -301,6 +302,37 @@ fi
 # mark recast periods restated. No stamp is the safe state, so a failure never blocks deploy.
 "$PY" "$DEPLOY/ingest/annotate_sec_lineage.py" >> "$LOG" 2>&1 \
   || echo "[$(ts)] WARN: SEC filing lineage failed — statement columns keep no filing stamp (continuing)" >> "$LOG"
+
+# 3b. deep statement history (massive stocks/financials/v1, #364). gen_fund_us just rewrote
+# every file from the ~5-period yfinance cache, so without this pass the 2009+ history is
+# wiped nightly. It runs AFTER the SEC lineage pass and keeps every stamp that pass wrote;
+# it dates only the older columns it adds. NON-FATAL: a vendor outage leaves the yfinance files as emitted and the
+# deploy proceeds. The key is read from the env file inside the Python process only — it is
+# never exported, echoed or put on a command line. BOUNDED: this lane holds $LOCK_DIR, and
+# the 18:30 cnhk lane SKIPs while it is held, so before 18:30 the pass must end by 18:15.
+# It stops itself at its budget, and run_bounded kills it 60s later if a request hangs.
+# What follows (gates, Canada publication, rsync) took 28s on 2026-10-30, before this pass
+# existed (annotate ended 17:46:34, rsync OK 17:47:02) — well inside the 15-minute margin;
+# an overrun past 18:30 only makes that night's cnhk lane log SKIP. Symbols not reached
+# (the sweep runs largest market cap first) keep that night's yfinance periods; nothing
+# carries over, since gen_fund_us rewrites every file the next night.
+BF_BUDGET=2700
+BF_NOW=$(date +%s)
+BF_STOP=$(date -j -f "%H:%M:%S" "18:15:00" +%s 2>/dev/null || echo 0)
+BF_CNHK=$(date -j -f "%H:%M:%S" "18:30:00" +%s 2>/dev/null || echo 0)
+if [ "$BF_NOW" -lt "$BF_CNHK" ]; then
+  BF_LEFT=$((BF_STOP - BF_NOW))
+  [ "$BF_LEFT" -lt "$BF_BUDGET" ] && BF_BUDGET=$BF_LEFT
+fi
+if [ "$BF_BUDGET" -lt 60 ]; then
+  echo "[$(ts)] WARN: statements backfill skipped — too close to the 18:30 cnhk lane" >> "$LOG"
+else
+  echo "[$(ts)] statements backfill (massive v1, #364; budget ${BF_BUDGET}s)" >> "$LOG"
+  "$PY" "$DEPLOY/ingest/run_bounded.py" --seconds "$((BF_BUDGET + 60))" -- \
+    "$PY" "$DEPLOY/ingest/backfill_fund_statements_massive.py" --env-file "$HOME/.macro-dashboard/.env" \
+      --deadline-seconds "$BF_BUDGET" --quiet >> "$LOG" 2>&1 \
+    || echo "[$(ts)] WARN: statements backfill failed (non-fatal — fund.json keeps the yfinance periods)" >> "$LOG"
+fi
 
 # 4. SAFETY GATES: AAPL EV must be non-null and transcript discovery may
 # never collapse before deploy.

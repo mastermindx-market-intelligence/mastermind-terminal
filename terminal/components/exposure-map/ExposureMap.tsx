@@ -4,6 +4,8 @@ import dynamic from "next/dynamic";
 import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useLang } from "@/lib/i18n";
 import { useShellIdentity } from "@/components/chrome/AppShell";
+import { identityUserId } from "@/lib/accountIdentity";
+import FrozenNodeEntry from "./FrozenNodeEntry";
 import { useResearchAppearance } from "@/components/researchlab/useResearchAppearance";
 import "@/components/researchlab/ResearchAppearance.css";
 import type { TerminalVisualReadyDetail } from "@/lib/terminalBoot";
@@ -56,7 +58,8 @@ export default function ExposureMap({ root, source, matrix, stale = false, sourc
     sourceStatus?: "data" | "loading" | "absent" | "unavailable"; onRetry?: () => void; onOpenRoot?: (root: string) => void; onView?: (view: "matrix" | "strike" | "expiry") => void; onResearch?: () => void; historySlot?: ReactNode; archivedSession?: string | null; onLatest?: () => void; onLoadSession?: (session: string) => void; initialRequest?: ExposureChartRequest | null; origin?: ExposureOrigin | null; onOriginStep?: (next: { company: string; index: number }) => void }) {
   const { lang } = useLang();
   const phone = useIsPhone();
-  useResearchAppearance(useShellIdentity());
+  const shellIdentity = useShellIdentity();
+  useResearchAppearance(shellIdentity);
   const t = exposureMapT(lang);
   const entry = initialRequest?.root === root ? initialRequest : null;
   const sectorOrigin = origin?.company === root ? origin : null;
@@ -265,6 +268,7 @@ export default function ExposureMap({ root, source, matrix, stale = false, sourc
           <dt>{t("gross")}</dt><dd>{focus.grossMn == null ? "—" : `${exposureValue(focus.grossMn)}M`}</dd>
           <dt>{t("share")}</dt><dd>{focus.grossShare == null ? "—" : `${exposureValue(focus.grossShare * 100)}%`}</dd>
         </dl><ExposureDistance root={root} session={read.session} spot={read.spot} target={focus.strike} zh={zh} /><div className={styles.route}><span className={styles.eyebrow}>{t("interveningStrikes")}</span>{structure.intervening.length ? structure.intervening.slice(0, 5).map(n => <button key={n.strike} type="button" onClick={e => select(n.strike, e.currentTarget)}><b>{n.strike}</b><span>{signed(n.netMn)}M</span></button>) : <p className={styles.note}>{t("noSuppliedStrikesBetweenTheReferenceSpotAnd")}</p>}<small>{t("distanceInvestigationNoPathOrArrivalProbability")}</small></div></>}
+        {selected && <FrozenNodeEntry key={`${identity}|${selected.strike}|${identityUserId(shellIdentity)}`} owner={identityUserId(shellIdentity)} identity={`${identity}|${selected.strike}`} root={root} source={source} lens={lens} price={selected.strike} metric={metric} shock={shock} now={clock} zh={zh} />}
         {selected && <div className={styles.inspectorActions}><button type="button" className={styles.primary} aria-pressed={pinned?.price === selected.strike} onClick={() => setPin(pinned?.price === selected.strike ? null : { identity, strike: selected.strike })}>{pinned?.price === selected.strike ? t("unpin") : t("pin")}</button><button type="button" disabled={linkState?.key === linkKey && linkState.status === "pending"} onClick={() => void openMainChart()}>{t("openOnMainChart")}</button><button type="button" onClick={close}>{t("close")}</button></div>}
         {linkState?.key === linkKey && linkState.status === "failed" && <p role="status" className={styles.note}>{t("referenceLinkFailed")}</p>}
         <div className={styles.rankedNodes}><span className={styles.eyebrow}>{t("largestNetNodes")}</span>{structure.ranked.slice(0, 5).map((n, i) => <button key={n.strike} type="button" onClick={e => select(n.strike, e.currentTarget)} aria-pressed={selected?.strike === n.strike}><span><small>{String(i + 1).padStart(2, "0")}</small> {n.strike}</span><b data-sign={n.netMn! < 0 ? "negative" : "positive"}>{signed(n.netMn)}M</b></button>)}</div>

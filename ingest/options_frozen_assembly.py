@@ -11,9 +11,27 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 from ingest.options_frozen_service import FrozenNodeServiceReader
+from ingest.options_frozen_hit import FrozenNodeHitPublisher
+from ingest.options_frozen_lifecycle import FrozenNodeLifecycleAdapter
 
 _PREFIX = 'OPTIONS_FROZEN_'
 _PATHS = ('MACRO_PYTHON', 'MACRO_ACCOUNT_SCRIPT', 'NODE', 'SOURCE_BUNDLE', 'MACRO_ENV_FILE')
+
+
+def assemble_frozen_node_publisher(lifecycle, deployment):
+    """Separate host opt-in; construction grants no source/account or run authority.
+
+    The exact adapter already assembled for this invocation is shared with the
+    publisher. Existing run-marker ACK, admission and atomic RPC checks still own
+    every effect. Reader opt-in alone never constructs a publisher.
+    """
+    enabled = deployment.get(_PREFIX + 'PUBLISHER_ENABLED')
+    if enabled in (None, '', '0'):
+        return None
+    if (enabled != '1' or deployment.get(_PREFIX + 'READER_ENABLED') != '1'
+            or not isinstance(lifecycle, FrozenNodeLifecycleAdapter)):
+        raise ValueError('incomplete frozen-node publication configuration')
+    return FrozenNodeHitPublisher(lifecycle)
 
 
 def _origin(value):

@@ -414,4 +414,37 @@ Complete 169-open-PR filename and reservation-ledger census on 2026-10-24 found 
 
 ### P09 frozen-runtime source reservation
 
-Complete October24 census of 169 open PRs (including all file pages and changed reservation ledgers) preserves 0043 for #804 and 0044 for #1173. [PR #1175](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1175) source merged as `aaa4801db5a7e467c52dd94b4e7aea217be50b23` at **2026-10-24T23:38:23Z**, claiming prefix 0045 for OPTIONS-EXPOSURE-P09-FROZEN-RUNTIME. The accepted lifecycle, atomic hit and prepared intent units are packaged in one atomic statement, with scoped independent review and protected CI passed. **Not applied:** production application, runtime admission and activation remain separate; this merge records no application date.
+Complete October24 census of 169 open PRs (including all file pages and changed reservation ledgers) preserves 0043 for #804 and 0044 for #1173. [PR #1175](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1175) source merged as `aaa4801db5a7e467c52dd94b4e7aea217be50b23` at **2026-10-24T23:38:23Z**, claiming prefix 0045 for OPTIONS-EXPOSURE-P09-FROZEN-RUNTIME. The accepted lifecycle, atomic hit and prepared intent units are packaged in one atomic statement, with scoped independent review and protected CI passed. **Applied 2026-10-31:** the original schema-only operation `oem-01a156f1-schema0045-20261031-v1` settled at 07:06:43Z with native status `applied`, no error and no missing objects. The [source-linked owner receipt/readback](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1182#issuecomment-6540438658) records seven pre/post readbacks and receipt SHA256 `461359c7fccb914b22c9dd7de3bc63f7b3d023bfe66ceca8b7de792a691f42e3`. Immutable SQL SHA256 is `2719fcdb0ca70248791459d981e5bb645f0b680a1382e181b2c08b8c6a27da30`. Schema installation does not establish runtime admission or activation; switches remain OFF.
+
+
+### 0046 — Exact-attempt frozen enrollment, schema installed / activation OFF
+
+Follows immutable0045. [PR #1182](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1182) protected merged as `b1ba8e7c21e8864a0f11f87c4ae6aaab7bb54133`. **Applied 2026-10-31:** original operation `oem-01a156f1-schema0046-20261031-v1` settled at 07:08:54Z after positive0045 settlement, with native status `applied`, no error and no missing objects. The [source-linked owner receipt/readback](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1182#issuecomment-6540453300) records five pre/post readbacks and receipt SHA256 `16a7f7cb447526d9de30c8a56e58948fa80fdcb46f8cece9be92d888b3a3e8a0`. Immutable SQL SHA256 is `eb1e6598f82d18b228eb4d72162a7d9be9062f017e8f15026173dd857aa828a5`. Both original applications used the incumbent applier under META disposition6540397272; these metadata updates perform no SQL or activation.
+
+The atomic package embeds the
+accepted intent-revision unit unchanged, then installs the exact-attempt protocol.
+Final schema has ONLY the seven-argument existing arm name; both old five/six-
+argument initial-arm bypasses are absent. Initial-only rearm fails closed; existing
+state-only generation/revision CAS remains unchanged. The merged caller is gated OFF: all four entry/reader/publisher switches were absent/OFF in the owner's post-schema readback. No enrollment, provider request, publisher or send was invoked. Authenticated UI and live-product acceptance remain separate; the production-browser refusal stays held.
+
+The one retained envelope lives on owner-RLS alerts, never authenticated-wide
+alert_runs. Other attempts cannot replace/evict it. Owners can read their own pin;
+unprivileged writers/JWT role claims cannot forge it. Retained receipts refuse
+id/user_id transfer, while deletion loses the receipt and remains UNKNOWN.
+Actual service_role trust is unchanged; this is not protection from arbitrary
+trusted SQL and adds no definer, role/grant expansion or new store/RPC family.
+
+Only the PREPARE creator may dispatch ARM. Runtime+exact acknowledgment commit in
+one transaction. RECONCILE is READ ONLY: absent/PREPARED stays UNKNOWN and cannot
+cancel or arm. A DISTINCT explicit FENCE may close only an existing exact PREPARED
+slot under the arm lock, including after same-owner edits; absence is not fenced.
+Current Auth/account/exact-source checks gate every server action/read. Recovered
+COMMITTED outcomes retain original historical runtime, never infer current active
+state from current runtime or conflate a later generation with the original ack.
+
+Source tests use only synthetic transport and disposable socket-only PostgreSQL.
+They do not apply production SQL or resume/replay an October26 pilot/UNKNOWN effect.
+Rollback begins with caller disablement and preserves revisions/runtime/receipts;
+never restore an unreceipted arm or replay uncertain execution.
+
+The immutable0045/0046 SQL headers retain their historical unapplied wording because receipts hash the complete files. The receipt-bound metadata above supersedes that historical application state without editing or replaying SQL. Original uncertain operations and independent full-suite acceptance obligations remain unchanged.
