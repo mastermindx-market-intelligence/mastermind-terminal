@@ -15,8 +15,8 @@ import { CANVAS_CAPABILITIES } from "../chart-engine/canvas";
 // now drives the engine only through the ChartEngine contract, so ?engine=mm
 // MOUNTS mm and only a construction throw (refused option group) falls back.
 //
-// Anchored slice: from `const requestedImpl = resolveMountEngineImpl(` to the
-// next `engineRef.current = engine;`. Both anchors must exist; assertions below
+// Anchored slice: from `const engineSelection = resolveMountEngineSelection(` to
+// the next `engineRef.current = engine;`. Both anchors must exist; assertions below
 // run against THIS slice, not against the full 10k-line file, so changing an
 // unrelated comment cannot accidentally satisfy them.
 
@@ -25,7 +25,7 @@ const chartPanelSrc = readFileSync(
   "utf8",
 );
 
-const mountStartIdx = chartPanelSrc.indexOf("const requestedImpl = resolveMountEngineImpl(");
+const mountStartIdx = chartPanelSrc.indexOf("const engineSelection = resolveMountEngineSelection(");
 const mountEndIdx = chartPanelSrc.indexOf("engineRef.current = engine;", mountStartIdx);
 if (mountStartIdx === -1 || mountEndIdx === -1) {
   throw new Error(
@@ -39,18 +39,19 @@ const mountEnd = mountEndIdx + "engineRef.current = engine;".length + 1;
 const mountSlice = chartPanelSrc.slice(mountStartIdx, mountEnd);
 
 describe("ChartPanel mount engine selector (F-13)", () => {
-  it("routes the create site through resolveMountEngineImpl(window.location.search)", () => {
+  it("routes the create site through resolveMountEngineSelection(window.location.search)", () => {
     expect(chartPanelSrc).toMatch(
-      /import\s*\{[^}]*\bresolveMountEngineImpl\b[^}]*\}\s*from\s*["']@\/lib\/chart-engine\/select["']/,
+      /import\s*\{[^}]*\bresolveMountEngineSelection\b[^}]*\}\s*from\s*["']@\/lib\/chart-engine\/select["']/,
     );
-    expect(chartPanelSrc).toMatch(/resolveMountEngineImpl\(\s*window\.location\.search\s*\)/);
+    expect(chartPanelSrc).toMatch(/resolveMountEngineSelection\(\s*window\.location\.search\s*\)/);
+    expect(mountSlice).toMatch(/const requestedImpl = engineSelection\.impl;/);
   });
 
-  it("mount block (sliced) starts at resolveMountEngineImpl(...) and ends at engineRef.current = engine", () => {
+  it("mount block (sliced) starts at resolveMountEngineSelection(...) and ends at engineRef.current = engine", () => {
     expect(mountStartIdx).toBeGreaterThanOrEqual(0);
     expect(mountEndIdx).toBeGreaterThan(mountStartIdx);
     // Slice must contain the F-13 boundary.
-    expect(mountSlice).toContain("const requestedImpl = resolveMountEngineImpl(");
+    expect(mountSlice).toContain("const engineSelection = resolveMountEngineSelection(");
     expect(mountSlice).toContain("engineRef.current = engine;");
   });
 
@@ -87,6 +88,26 @@ describe("ChartPanel mount engine selector (F-13)", () => {
     }
   });
 
+  it("P03 observability (review F-1): the slice reports the fallback inside the catch and exactly one mount event before engineRef.current", () => {
+    expect(chartPanelSrc).toMatch(
+      /import\s*\{[^}]*\breportEngineMount\b[^}]*\}\s*from\s*["']@\/lib\/chart-engine\/telemetry["']/,
+    );
+    const fallbackCalls = mountSlice.match(/reportEngineFallback\(\{\s*requested:\s*"mm",\s*impl:\s*"lwc",\s*refusal:\s*engineRefusal\s*\}\)/g) ?? [];
+    expect(fallbackCalls).toHaveLength(1);
+    const catchIdx = mountSlice.search(/\}\s*catch\s*\(\s*err\s*\)\s*\{/);
+    const elseIdx = mountSlice.search(/\}\s*else\s*\{/);
+    const fallbackIdx = mountSlice.indexOf("reportEngineFallback(");
+    expect(fallbackIdx).toBeGreaterThan(catchIdx);
+    expect(fallbackIdx).toBeLessThan(elseIdx);
+    const mountCalls = mountSlice.match(/reportEngineMount\(\{\s*impl:\s*engine\.impl,\s*source:\s*engineSelection\.source,\s*fallback:\s*engineRefusal\s*!==\s*null,\s*refusal:\s*engineRefusal\s*\}\)/g) ?? [];
+    expect(mountCalls).toHaveLength(1);
+    const mountIdx = mountSlice.indexOf("reportEngineMount(");
+    expect(mountIdx).toBeGreaterThan(elseIdx);
+    expect(mountIdx).toBeLessThan(mountSlice.indexOf("engineRef.current = engine;"));
+    // Falsifier: deleting either call from the slice turns this pin red.
+    expect(mountSlice.replace("reportEngineMount(", "")).not.toContain("reportEngineMount(");
+  });
+
   it('else branch: bare lwc createEngine(el, engineOptions)', () => {
     expect(mountSlice).toMatch(/\}\s*else\s*\{\s*engine\s*=\s*createEngine\(\s*el,\s*engineOptions\s*\);\s*\}/);
   });
@@ -100,6 +121,26 @@ describe("ChartPanel mount engine selector (F-13)", () => {
     // No browser storage reads.
     expect(mountSlice).not.toMatch(/localStorage/);
     expect(mountSlice).not.toMatch(/sessionStorage/);
+  });
+
+  // P03 ADDITION (assertions may only be added here — the BASE block above pins the
+  // UNMODIFIED ChartPanel mount, masterplan A06). This case is the standing
+  // falsifier for that pin: it proves the call-site regex is sensitive to a
+  // one-line edit of the slice, so the "still matches BASE" claim can fail. When
+  // the parent applies P03's PROPOSED_PATCH, the anchors themselves move to
+  // resolveMountEngineSelection and this file is re-pinned (see RESULT.md
+  // INTEGRATION_NOTES for the exact assertion list that must move).
+  it("anchored pin is falsifiable: swapping the one-line selector breaks the F-13 call-site match", () => {
+    const edited = mountSlice.replace(
+      "const engineSelection = resolveMountEngineSelection(window.location.search);",
+      "const engineSelection = resolveMountEngineImpl(window.location.search);",
+    );
+    // The edit must actually apply to the BASE slice, or this falsifier is vacuous.
+    expect(edited).not.toBe(mountSlice);
+    expect(edited).not.toContain("const engineSelection = resolveMountEngineSelection(");
+    expect(edited).not.toMatch(/resolveMountEngineSelection\(\s*window\.location\.search\s*\)/);
+    // …while the real BASE slice does match (this is what A06 pins):
+    expect(mountSlice).toMatch(/resolveMountEngineSelection\(\s*window\.location\.search\s*\)/);
   });
 });
 

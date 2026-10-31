@@ -293,9 +293,18 @@ async function captureSearchModal(page, width, lang, outPath) {
   await page.locator(".workspace").waitFor({ state: "visible", timeout: 45_000 });
   await waitForChartReady(page, "SPY");
   if (width === 390) {
-    await page.locator(".m-symbar").click();
+    // The symbar is painted before hydration attaches its handler, so a tap that lands in that
+    // gap opens nothing. Tap again until the sheet is up (bounded); one real tap opens it.
     const hub = page.locator(".msheet-search");
-    await hub.waitFor({ state: "visible", timeout: 20_000 });
+    for (let attempt = 1; ; attempt++) {
+      await page.locator(".m-symbar").click();
+      try {
+        await hub.waitFor({ state: "visible", timeout: 7_000 });
+        break;
+      } catch (err) {
+        if (attempt >= 3) throw err;
+      }
+    }
     await waitForCutChip(hub, page, lang, outPath);
     await cropLocator(page, hub, outPath, 8);
   } else {
