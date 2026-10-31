@@ -397,7 +397,7 @@ const T_C1_LABEL: Bilingual = { en: "Biggest holding", zh: "最大的一笔持�
 const T_C1_Q: Bilingual = { en: "How much of your money sits in one name", zh: "有多少钱押在同一只股票上" };
 const T_C1_VALUE: Bilingual = { en: "{pct}%", zh: "{pct}%" };
 const T_C1_SUB: Bilingual = { en: "Your {n} biggest hold {pct}% together.", zh: "最大的 {n} 笔合计占 {pct}%。" };
-const T_C1_UNREAD: Bilingual = { en: "No holding has both a share count and a buy price yet.", zh: "还没有持仓同时记录了数量和买入价。" };
+const T_COST_UNAVAILABLE: Bilingual = { en: "No positive entry cost is available. Check share counts and buy prices.", zh: "暂无可用的正数入场成本，请检查持仓数量和买入价。" };
 
 const T_C2_LABEL: Bilingual = { en: "Industries", zh: "行业分布" };
 const T_C2_Q: Bilingual = { en: "Where your money sits by industry", zh: "你的钱分布在哪些行业" };
@@ -417,7 +417,7 @@ const GAP_REASON_COPY: Record<GapReason, Bilingual> = {
   currency_unknown: { en: "entry currency is not recorded; cost weights are unavailable", zh: "未记录入场币种，成本权重不可用" },
   currency_mismatch: { en: "entry currencies differ; cost weights are unavailable", zh: "入场币种不同，成本权重不可用" },
   amount_overflow: { en: "cost exceeds the supported numeric range", zh: "成本超出支持的数值范围" },
-  no_size: { en: "no share count or buy price on record", zh: "没有记录数量或买入价" },
+  no_size: { en: "share count and buy price do not give a positive entry cost", zh: "数量和买入价无法得出正数入场成本" },
   no_page: { en: "no data page yet", zh: "还没有数据页" },
   page_locked: { en: "its data page needs you signed in on the main site", zh: "该数据页需要在主站登录后才能读取" },
   page_unreadable: { en: "its data page did not answer", zh: "该数据页没有响应" },
@@ -445,6 +445,12 @@ export function riskCopy(risk: PortfolioRisk): {
   gapLinesOverflow: number;
 } {
   const c = risk.concentration;
+  // A security read can succeed while the common cost basis is unavailable. Preserve the
+  // computation's reason (and precedence) instead of claiming that recorded fields are absent.
+  const costReason = (["amount_overflow", "currency_unknown", "currency_mismatch"] as const)
+    .find(reason => risk.gaps.some(gap => gap.reason === reason));
+  const costUnread = costReason ? GAP_REASON_COPY[costReason]
+    : risk.totalCost == null ? T_COST_UNAVAILABLE : null;
   const card1 = c
     ? {
       key: "concentration" as const,
@@ -453,17 +459,17 @@ export function riskCopy(risk: PortfolioRisk): {
       sub: fill(T_C1_SUB, { n: String(c.topNCount), pct: fmtPct(c.topNWeightPct ?? 0) }),
       unread: null,
     }
-    : { key: "concentration" as const, label: T_C1_LABEL, question: T_C1_Q, value: null, sub: null, unread: T_C1_UNREAD };
+    : { key: "concentration" as const, label: T_C1_LABEL, question: T_C1_Q, value: null, sub: null, unread: costUnread ?? T_COST_UNAVAILABLE };
 
   const card2 = {
     key: "industries" as const, label: T_C2_LABEL, question: T_C2_Q,
     value: null, sub: null,
-    unread: risk.sectors.length ? null : { en: "Nothing readable yet.", zh: "暂时没有可读的数据。" },
+    unread: risk.sectors.length ? null : costUnread ?? { en: "Nothing readable yet.", zh: "暂时没有可读的数据。" },
   };
   const card3 = {
     key: "size" as const, label: T_C3_LABEL, question: T_C3_Q,
     value: null, sub: null,
-    unread: risk.sizes.length ? null : { en: "Nothing readable yet.", zh: "暂时没有可读的数据。" },
+    unread: risk.sizes.length ? null : costUnread ?? { en: "Nothing readable yet.", zh: "暂时没有可读的数据。" },
   };
   const liq = risk.liquidity;
   const card4 = liq
@@ -472,7 +478,7 @@ export function riskCopy(risk: PortfolioRisk): {
       value: fill(T_C4_VALUE, { pct: fmtPct(liq.thinPct), n: String(liq.thinNames.length) }),
       sub: null, unread: null,
     }
-    : { key: "thickness" as const, label: T_C4_LABEL, question: T_C4_Q, value: null, sub: null, unread: T_C4_UNREAD };
+    : { key: "thickness" as const, label: T_C4_LABEL, question: T_C4_Q, value: null, sub: null, unread: costUnread ?? T_C4_UNREAD };
 
   const T_REST: Bilingual = { en: "Rest of your book", zh: "其余持仓" };
   // MINOR (round-2 review): a single-holding book has top1 at 100%, so the remainder is exactly

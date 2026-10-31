@@ -1,0 +1,110 @@
+{
+  "schema": "portfolio.risk-current-base-validation.v1",
+  "started_at": "2026-10-23T17:31:49.732609+00:00",
+  "head_before": "6d44121650014fbc44b1f451cbe1109ac6e1fcd0",
+  "merged_base": "f686271495ec36760f39113c0fd2b8bbee201f21",
+  "composition_tree_before_evidence": "978994266214423e342fce76751859d675d10c5f",
+  "reason": "Normal non-queue merge controller refreshes behind branches. No direct classic strict boolean claim; full protection endpoint was inaccessible.",
+  "checks": [
+    {
+      "name": "focused-unit",
+      "command": [
+        "./node_modules/.bin/vitest",
+        "run",
+        "lib/__tests__/portfolioRisk.test.ts"
+      ],
+      "exit": 0,
+      "seconds": 0.85,
+      "log_sha256": "7cce97519b920ea259b2d93045986a9d158880c580dba239847d83a28f9c91f9",
+      "tail": [
+        "\u001b[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.\u001b[39m",
+        "",
+        " RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/web/portfolio-risk-reasons-20261022/terminal",
+        "",
+        " \u2713 lib/__tests__/portfolioRisk.test.ts (34 tests) 16ms",
+        "",
+        " Test Files  1 passed (1)",
+        "      Tests  34 passed (34)",
+        "   Start at  10:31:50",
+        "   Duration  474ms (transform 58ms, setup 0ms, collect 60ms, tests 16ms, environment 0ms, prepare 59ms)",
+        ""
+      ]
+    },
+    {
+      "name": "typegen",
+      "command": [
+        "./node_modules/.bin/next",
+        "typegen"
+      ],
+      "exit": 0,
+      "seconds": 0.55,
+      "log_sha256": "adba4af9194e10e47dda75ff0fd0f8c2b756474896d0eba5612799c527ff372a",
+      "tail": [
+        "Generating route types...",
+        "\u2713 Types generated successfully"
+      ]
+    },
+    {
+      "name": "typecheck",
+      "command": [
+        "./node_modules/.bin/tsc",
+        "--noEmit"
+      ],
+      "exit": 0,
+      "seconds": 15.7,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tail": []
+    }
+  ],
+  "source_hashes": {
+    "terminal/lib/portfolioRisk.ts": "d9927185b9a536baf391b434e615258647c7a81a1d593b8abf38791d30851ae8",
+    "terminal/lib/__tests__/portfolioRisk.test.ts": "1234ec82351450c8aa59f2a5b63f7cd31e1c36cc5884d8d8b23fe89aaba831a9",
+    "terminal/e2e/portfolio-risk-reasons.spec.ts": "6f523d62b63217d11054ece8d62e98e051db3e0112eeaa4db561c40bdf4aec2b"
+  },
+  "diff_check": {
+    "exit": 0,
+    "scope": "All three owned source/test files against current base."
+  },
+  "prior_browser_evidence": "Twelve local cases on unchanged owned Risk source retained under their original execution identities. Incoming47-file Analysis/Thesis delta independently qualified; AppShell mounts AnalysisBrainHost only on /analysis. No local matrix rerun.",
+  "incoming_composition": {
+    "file_count": 47,
+    "incoming_equals_composed_delta": true,
+    "raw_delta_sha256": "352f94419da999e18151bddc2b3a4b2942a6aad2ea5a6d246e542b4d53e7d113"
+  },
+  "prior_ci": {
+    "run": 39987759344,
+    "head": "6d44121650014fbc44b1f451cbe1109ac6e1fcd0",
+    "base": "efbd9a7be25355432ed03de59f7c461aecae0be1",
+    "tested_merge": "e67253282ff8e0cb9e289f91bfc75331a72d3cda",
+    "tree": "11565f73d62719b75fc06b4b8e34adfd26d321db",
+    "conclusion": "success",
+    "completed_at": "2026-10-23T17:24:46Z",
+    "workflow_jobs_passed": 17,
+    "head_checks_passed": 21,
+    "unit_passed": 16672,
+    "unit_skipped": 2,
+    "unit_todo": 4,
+    "browser_passed": 2965,
+    "browser_skipped": 861,
+    "browser_flaky": 0,
+    "browser_failed": 0,
+    "limits": "Frozen prior execution; not current f686 composition CI."
+  },
+  "review_fence": "Fresh Fabric submission and separate PR1143 description action were rejected; no retry or native substitution. This source integration does not clear those fences.",
+  "logs": {
+    "current-base-f686-20261023-focused-unit.log.gz": {
+      "uncompressed_sha256": "7cce97519b920ea259b2d93045986a9d158880c580dba239847d83a28f9c91f9",
+      "compressed_sha256": "650672f7ad27fe027458d474606b643d9b32ceadfb945e021207e111de7399a4"
+    },
+    "current-base-f686-20261023-typegen.log.gz": {
+      "uncompressed_sha256": "adba4af9194e10e47dda75ff0fd0f8c2b756474896d0eba5612799c527ff372a",
+      "compressed_sha256": "87417460f6b68343dfe6dfe0973432d06facd8a828a251502a6c11eab1da05bd"
+    },
+    "current-base-f686-20261023-typecheck.log.gz": {
+      "uncompressed_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "compressed_sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    }
+  },
+  "finished_at": "2026-10-23T17:32:07.041816+00:00",
+  "state": "PASSED"
+}
