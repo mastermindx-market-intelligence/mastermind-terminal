@@ -42,3 +42,30 @@ Crops are captured by the PROOF lane with `TERMINAL_CROPS=1` (this lane commits 
 Naming: `<project>-<run>-<step>-<lang>-<theme>.png` — run `a`/`b`, step `annotated` /
 `out-of-order`, lang `en`/`zh`. The Terminal ships dark-only (D-W1; light is a specimen), so
 `theme` is `dark`.
+
+## Proof run 2026-10-31 (Fabric NEWS-ORCH4-PROOF)
+
+Head `579cb2f425763a08cc3c83867d642bc60ebe2efa`, projects desktop (1440×900) + mobile
+(390×844), `TERMINAL_CROPS=1 FLOW_FIXTURE=1` on a reserved port — 4 passed. The proof lane's
+spec diff added the `a-before-save` crop step, the Run B `zh` loop, and read-only proof
+prints; see EVIDENCE.yml `spec_changes_by_proof_lane`. Fixture identity only (`mm_e2e_wl`
+under `FLOW_FIXTURE=1`); the snapshot/ladder routes are mocks, so production SSE delivery is
+out of this run's reach.
+
+| journey step | evidence | status |
+|---|---|---|
+| encounter/inspect (Run A first visit) | `desktop/mobile-a-before-save-{en,zh}-dark.png` | PROVEN |
+| save — mark reviewed (Run A) | spec basis assertion + `basis.afterMark` store read in EVIDENCE.yml | PROVEN |
+| correction arrives after save (Run A) | in-spec feed switch (route-mocked snapshot) | PROVEN (mocked delivery, not production SSE) |
+| reopen — update discoverable, original basis intact (Run A) | `desktop/mobile-a-annotated-{en,zh}-dark.png` + annotation reads + `basis.deepEqual=true` | PROVEN |
+| current revision one action away (Run A) | ladder request URL read + in-spec `aria-expanded` assertion | PROVEN |
+| out-of-order older copy after save (Run B) | `desktop/mobile-b-out-of-order-{en,zh}-dark.png` + `savedBasis.count=0` + `basis.deepEqual=true` | PROVEN |
+| nothing claims an update (Run B, saved-basis layer) | no `[data-news-saved-basis]` element in any Run B crop/read | PROVEN |
+| nothing claims an update (Run B, classic pair tag) | classic tag still shows the revised-line (frozen `classifyStory`, spec header note) | UNPROVEN by design — pre-existing layer, unchanged by Journey 6 |
+| open-current accessible name EN/ZH | `runA_open_current_aria_{en,zh}` reads | PROVEN |
+| focus-visible affordance on the new control | `NewsCatchup.module.css:17` covers `.openCurrent:focus-visible` (stylesheet rule; computed style not asserted) | PROVEN |
+| real Supabase sign-in | not exercised (fixture identity) | UNPROVEN |
+| production SSE delivery of the correction | not exercised (route-mocked) | UNPROVEN |
+| cross-device persistence | not exercised (single browser profile) | UNPROVEN |
+| light theme | Terminal is dark-only (D-W1) | NOT APPLICABLE |
+

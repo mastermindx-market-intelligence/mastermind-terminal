@@ -1,5 +1,5 @@
 import { expect, test, type Locator, type Page, type TestInfo } from "@playwright/test";
-import { mkdirSync, rmSync } from "node:fs";
+import { mkdirSync, readdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { e2eWatchlistOwner, isolateWatchlistStore } from "./watchlistStore";
 import { NEWS_VIEW } from "../lib/__tests__/fixtures/newsEditorial";
@@ -212,6 +212,27 @@ test("Run A — a corrected save keeps the original basis and opens the current 
 
   // ── Mark S reviewed: the mark captures its exact evidence basis as seen.
   let panel = await openNews(page);
+  if (CROPS) {
+    // Journey step "encounter/inspect": the row before any mark exists. Wipe only this
+    // project's stale `a-` crops — a whole-dir rm here would delete the before-save crops
+    // taken below (and race the sibling project/test writing its own).
+    mkdirSync(OUT, { recursive: true });
+    for (const name of readdirSync(OUT)) {
+      if (name.startsWith(`${testInfo.project.name}-a-`) && name.endsWith(".png")) rmSync(join(OUT, name));
+    }
+    for (const lang of ["en", "zh"] as const) {
+      await setPresentation(page, lang);
+      panel = await openNews(page);
+      await page.mouse.move(0, 0);
+      await panel.screenshot({
+        path: join(OUT, `${testInfo.project.name}-a-before-save-${lang}-${THEME}.png`),
+        animations: "disabled",
+      });
+    }
+    // The assertions below read EN copy; return the presentation to EN before the mark.
+    await setPresentation(page, "en");
+    panel = await openNews(page);
+  }
   await reviewOf(panel, SYM_S).locator("[data-news-mark-one]").click();
   const basis = await savedBasis(page, owner, SYM_S);
   expect(basis).toEqual({
@@ -221,6 +242,9 @@ test("Run A — a corrected save keeps the original basis and opens the current 
     view_revision: NEWS_VIEW.revision,
     rights: RIGHTS_1,
     at: R1,
+  });
+  await test.step("proof read: basis after first mark", async () => {
+    console.log(`[proof] runA ${testInfo.project.name} basis.afterMark=${JSON.stringify(basis)}`);
   });
   // Only references were kept: no headline, teaser or URL reaches storage.
   expect(await storedReview(page)).not.toContain("supply agreement");
@@ -246,20 +270,38 @@ test("Run A — a corrected save keeps the original basis and opens the current 
   }
 
   // ── The current revision is one action away, through the EXISTING ladder toggle.
+  await test.step("proof read: annotation after correction", async () => {
+    const basisAgain = await savedBasis(page, owner, SYM_S);
+    console.log(`[proof] runA ${testInfo.project.name} basis.afterReopen=${JSON.stringify(basisAgain)}`);
+    console.log(`[proof] runA ${testInfo.project.name} basis.deepEqual=${JSON.stringify(basisAgain) === JSON.stringify(basis)}`);
+    console.log(`[proof] runA ${testInfo.project.name} note.en=${JSON.stringify(await note.textContent())}`);
+    console.log(`[proof] runA ${testInfo.project.name} openCurrent.aria.en=${JSON.stringify(await reviewOf(panel, SYM_S).locator("[data-news-open-current]").getAttribute("aria-label"))}`);
+  });
+  const storyRequests: string[] = [];
+  page.on("request", (request) => {
+    if (request.url().includes("/api/news/stories/")) storyRequests.push(request.url());
+  });
   await reviewOf(panel, SYM_S).locator("[data-news-open-current]").click();
   await expect(reviewOf(panel, SYM_S).locator("[data-news-ladder]")).toHaveAttribute("aria-expanded", "true", { timeout: 20_000 });
   await expect(reviewOf(panel, SYM_S).locator('[role="group"][aria-label="2 reports"]')).toBeVisible();
+  await test.step("proof read: ladder request url", async () => {
+    console.log(`[proof] runA ${testInfo.project.name} ladder.requests=${JSON.stringify(storyRequests)}`);
+  });
 
   // ── Opening the current revision wrote nothing: the first capture stands.
   expect(await savedBasis(page, owner, SYM_S)).toEqual(basis);
 
   if (CROPS) {
-    rmSync(OUT, { recursive: true, force: true });
     mkdirSync(OUT, { recursive: true });
     for (const lang of ["en", "zh"] as const) {
       await setPresentation(page, lang);
       panel = await openNews(page);
-      await expect(reviewOf(panel, SYM_S).locator("[data-news-saved-basis]")).toBeVisible({ timeout: 20_000 });
+      const langNote = reviewOf(panel, SYM_S).locator("[data-news-saved-basis]");
+      await expect(langNote).toBeVisible({ timeout: 20_000 });
+      await test.step("proof read: annotation per lang", async () => {
+        console.log(`[proof] runA ${testInfo.project.name} note.${lang}=${JSON.stringify(await langNote.textContent())}`);
+        console.log(`[proof] runA ${testInfo.project.name} openCurrent.aria.${lang}=${JSON.stringify(await reviewOf(panel, SYM_S).locator("[data-news-open-current]").getAttribute("aria-label"))}`);
+      });
       await page.mouse.move(0, 0);
       await panel.screenshot({
         path: join(OUT, `${testInfo.project.name}-a-annotated-${lang}-${THEME}.png`),
@@ -287,13 +329,32 @@ test("Run B — an out-of-order older presentation is never an update", async ({
   await expect(reviewOf(reloaded, SYM_S)).toBeVisible({ timeout: 20_000 });
   await expect(reloaded.locator("[data-news-saved-basis]")).toHaveCount(0);
   expect(await savedBasis(page, owner, SYM_S)).toEqual(basis);
+  await test.step("proof read: out-of-order presentation", async () => {
+    const basisAgain = await savedBasis(page, owner, SYM_S);
+    console.log(`[proof] runB ${testInfo.project.name} basis.afterReopen=${JSON.stringify(basisAgain)}`);
+    console.log(`[proof] runB ${testInfo.project.name} basis.deepEqual=${JSON.stringify(basisAgain) === JSON.stringify(basis)}`);
+    console.log(`[proof] runB ${testInfo.project.name} savedBasis.count=${await reloaded.locator("[data-news-saved-basis]").count()}`);
+    // The classic pair tag is frozen by this spec's header note: it compares only
+    // [sequence, item_count], so the older copy still reads "updated" THERE. Record what
+    // the DOM shows — the Journey 6 guarantee is the saved-basis layer above.
+    const classicChange = reviewOf(reloaded, SYM_S).locator("[data-news-change]");
+    const classicCount = await classicChange.count();
+    console.log(`[proof] runB ${testInfo.project.name} classicChange.count=${classicCount} text=${JSON.stringify(classicCount ? await classicChange.first().textContent() : null)}`);
+  });
 
   if (CROPS) {
     mkdirSync(OUT, { recursive: true });
-    await page.mouse.move(0, 0);
-    await reloaded.screenshot({
-      path: join(OUT, `${testInfo.project.name}-b-out-of-order-en-${THEME}.png`),
-      animations: "disabled",
-    });
+    for (const lang of ["en", "zh"] as const) {
+      await setPresentation(page, lang);
+      const langPanel = await openNews(page);
+      await expect(reviewOf(langPanel, SYM_S)).toBeVisible({ timeout: 20_000 });
+      await expect(langPanel.locator("[data-news-saved-basis]")).toHaveCount(0);
+      expect(await savedBasis(page, owner, SYM_S)).toEqual(basis);
+      await page.mouse.move(0, 0);
+      await langPanel.screenshot({
+        path: join(OUT, `${testInfo.project.name}-b-out-of-order-${lang}-${THEME}.png`),
+        animations: "disabled",
+      });
+    }
   }
 });
