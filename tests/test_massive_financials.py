@@ -453,6 +453,54 @@ def test_a_column_no_vendor_row_touched_claims_no_filing():
     assert out["filed_by_period"] == ["2010-10-30", None, None]
 
 
+def sec_stamped_set():
+    """existing_set() as annotate_sec_lineage leaves it: 2024 attributed (first filed
+    2024-11-01, recast), 2025 judged with no claim (null date, restated False)."""
+    return {**existing_set(), "filed_by_period": ["2024-11-01", None], "restated_by_period": [True, False]}
+
+
+def test_sec_lineage_keeps_the_annotators_verdict_on_every_column_it_judged():
+    """The annotator runs first in the nightly and its first-filed date is the stronger claim:
+    a vendor fill never displaces it, never turns its restated False into null, and never
+    stamps a column it left silent. The flag is what decides — without it, the vendor's
+    latest filing claims both columns."""
+    rows = [annual(2015), annual(2024, filed="2025-10-30", end="2024-09-28"), annual(2025)]
+    sec, _ = bf.merge_period_set(sec_stamped_set(), rows, 9, "annual", "yfinance", sec_lineage=True)
+    assert sec["src_by_period"] == ["massive", "yfinance+massive", "yfinance+massive"]
+    assert sec["income"]["net_income"][2] == 112_010_000_000.0      # the hole is still filled
+    assert sec["filed_by_period"] == ["2015-10-30", "2024-11-01", None]
+    assert sec["restated_by_period"] == [None, True, False]
+    plain, _ = bf.merge_period_set(sec_stamped_set(), rows, 9, "annual", "yfinance")
+    assert plain["filed_by_period"] == ["2015-10-30", "2025-10-30", "2025-10-30"]
+    assert plain["restated_by_period"] == [None, True, None]
+
+
+def test_a_set_the_annotator_left_unstamped_stays_silent_under_sec_lineage():
+    """The annotator drops both arrays when it makes no claim on any column of a set; that
+    is still a verdict, so a vendor fill does not date those columns."""
+    out, _ = bf.merge_period_set(existing_set(), [annual(2015), annual(2025)], 9, "annual", "yfinance",
+                                 sec_lineage=True)
+    assert out["filed_by_period"] == ["2015-10-30", None, None]
+    assert out["restated_by_period"] == [None, None, None]
+
+
+def test_a_vendor_only_column_stays_ours_unless_the_annotator_judged_it():
+    first = jrow("2023-09-30", 2023, filed="2023-11-03", inc={
+        "net_income_loss_attributable_common_shareholders": None, "consolidated_net_income_loss": None})
+    later = annual(2023, revenue=999.0, filed="2024-08-02", end="2023-09-30")
+    night1, _ = bf.merge_period_set(sec_stamped_set(), [first], 9, "annual", "yfinance", sec_lineage=True)
+    assert night1["src_by_period"][0] == "massive" and night1["restated_by_period"][0] is None
+    night2, _ = bf.merge_period_set(night1, [later], 9, "annual", "yfinance", sec_lineage=True)
+    assert night2["filed_by_period"] == ["2024-08-02", "2024-11-01", None]
+    assert night2["restated_by_period"] == [None, True, False]
+    # A file gen_fund_us did not rebuild keeps the vendor columns, and the annotator judges them.
+    rejudged = {**night1, "filed_by_period": ["2023-11-01", "2024-11-01", None],
+                "restated_by_period": [False, True, False]}
+    kept, _ = bf.merge_period_set(rejudged, [later], 9, "annual", "yfinance", sec_lineage=True)
+    assert kept["filed_by_period"] == ["2023-11-01", "2024-11-01", None]
+    assert kept["restated_by_period"] == [False, True, False]
+
+
 @pytest.mark.parametrize(
     "mutate,reason",
     [
@@ -513,6 +561,21 @@ def test_apply_merges_deep_history_and_stamps_the_source(tmp_path):
     assert fund["src"]["statements"] == "yfinance+massive"
     assert fund["statements"]["quarterly"] is None          # no rows → a null basis stays null
     assert fund["ratios"] == {"current": {"ev_sales": 8.1}}  # nothing outside statements moves
+
+
+def test_apply_reads_sec_lineage_from_the_file_and_keeps_its_tag(tmp_path):
+    path = fund_file(tmp_path)
+    fund = json.loads(path.read_text())
+    fund["src"]["statement_lineage"] = "sec_companyfacts"
+    fund["statements"]["annual"] = sec_stamped_set()
+    path.write_text(json.dumps(fund, indent=1))
+    rows = [annual(2015), annual(2024, filed="2025-10-30", end="2024-09-28"), annual(2025)]
+    assert bf.apply_vendor_rows("AAPL", path, rows, [])["changed"] is True
+    out = json.loads(path.read_text())
+    ann = out["statements"]["annual"]
+    assert ann["filed_by_period"] == ["2015-10-30", "2024-11-01", None]
+    assert ann["restated_by_period"] == [None, True, False]
+    assert out["src"] == {"statements": "yfinance+massive", "statement_lineage": "sec_companyfacts"}
 
 
 def test_a_re_run_with_nothing_new_leaves_the_file_byte_identical(tmp_path):

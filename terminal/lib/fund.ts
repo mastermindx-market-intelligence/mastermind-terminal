@@ -152,20 +152,26 @@ export interface StatementPeriodSet {
    */
   vendor_gaps?: Record<string, string[]>;
   /**
-   * Filing provenance, index-aligned to `periods`: the ISO date of the vendor filing whose
-   * figures this column took, or null where no vendor row supplied a value (a yfinance-only
-   * column, or a file that predates the backfill). Written by
-   * `backfill_fund_statements_massive.merge_period_set` — when two filings report the same
-   * period, the LATER one wins and its date lands here. The v1 source serves only the latest
-   * filing per period, so this is a conservative point-in-time anchor (never earlier than
-   * first publication), not the original as-filed date.
+   * Filing provenance, index-aligned to `periods`; null = no claim. Two writers, in nightly
+   * order:
+   *  1. `annotate_sec_lineage` (E11-03, `src.statement_lineage === "sec_companyfacts"`): the
+   *     date the column's anchor figures (revenue, net income, total assets) were FIRST filed
+   *     with the SEC, or null where the file and SEC disagree.
+   *  2. `backfill_fund_statements_massive.merge_period_set`: keeps every column the annotator
+   *     judged exactly as it left it, and dates only the older columns it adds (and, on a file
+   *     without SEC lineage, the columns it fills) with the LATER vendor filing that supplied
+   *     the figures. The v1 source serves only the latest filing per period, so a vendor date
+   *     is a conservative point-in-time anchor (never earlier than first publication), not
+   *     the original as-filed date. `src_by_period` tells the two apart.
    */
   filed_by_period?: (string | null)[];
   /**
    * True where the period is known to have been restated (the column shows the LATEST
-   * filing's figures; the superseded ones are not retained). null = not established: the v1
+   * filing's figures; the superseded ones are not retained). False comes only from the SEC
+   * annotator: with a filed date it means no earlier filing reported a different figure;
+   * with a null date it is the annotator's "no claim". null = not established: the v1 vendor
    * source serves one filing per period, so it cannot show a restatement either way, and the
-   * backfill never writes a false it cannot back. Only `=== true` is a claim.
+   * backfill never writes a false it cannot back. Only `=== true` is a restatement claim.
    */
   restated_by_period?: (boolean | null)[];
 }

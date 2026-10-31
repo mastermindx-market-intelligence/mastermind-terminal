@@ -43,6 +43,14 @@ MERGE CONTRACT (deliberately conservative — a backfill must never degrade a li
      publication — and the source cannot show whether a period was restated:
      `restated_by_period[]` is null for "not established", never a False the data cannot
      back. True survives only where an earlier run observed it.
+  6. SEC LINEAGE TAKES PRECEDENCE. In the nightly, annotate_sec_lineage (E11-03) runs between
+     gen_fund_us and this pass and stamps each column from SEC companyfacts: the date its
+     anchor figures were FIRST filed, and whether an earlier filing reported a different
+     figure. That is a stronger claim than the vendor's latest filing, so when the file carries
+     `src.statement_lineage` every column the annotator judged keeps its verdict exactly —
+     its date, its restated True/False, and its silence (a null date where the file and SEC
+     disagree) — even where this pass fills a hole in it (`sec_judged`). The vendor stamps only
+     what the annotator never saw: the deep columns this pass adds.
 
      ⚠ THIS IS NOT FULL POINT-IN-TIME. A restatement still REWRITES the published column; we
      make the rewrite deterministic and visible, we do not preserve what was published before
@@ -83,6 +91,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from gen_fund_us import atomic_write, dump, fiscal_q_label, fy_label  # noqa: E402
+from annotate_sec_lineage import LINEAGE_SOURCE  # noqa: E402
 from massive_financials import (  # noqa: E402
     SERVES_FILING_HISTORY,
     SOURCE_LABEL,
@@ -254,12 +263,14 @@ def merge_period_set(
     timeframe: str,
     base_src: str,
     serves_history: bool = SERVES_FILING_HISTORY,
+    sec_lineage: bool = False,
 ) -> tuple[dict, dict]:
     """Merge vendor rows into one StatementPeriodSet. Returns (merged_set, stats).
 
     Pure — no I/O — so the merge contract is unit-testable. `serves_history` says whether
     the source returns every filing per period (only then is ">1 filing" a restatement tell
-    and "1 filing" evidence of none — rule 5).
+    and "1 filing" evidence of none — rule 5). `sec_lineage` says the file carries
+    annotate_sec_lineage's stamps (rule 6).
     """
     held = unmergeable(existing)
     if held:
@@ -291,18 +302,28 @@ def merge_period_set(
         return out
 
     for i, label in enumerate(ex_periods):
+        src = ex_src[i].split("+") if i < len(ex_src) and ex_src[i] else [base_src]
+        restated_on_file = ex_restated[i] if i < len(ex_restated) else None
         merged[label] = {
             "end": ex_ends[i] if i < len(ex_ends) else None,
             "values": {b: existing_at(b, i) for b in BLOCKS},
             # A column an earlier run stamped keeps its stamp ("massive" alone marks a
             # vendor-only column, which finStatements discloses).
-            "src": (ex_src[i].split("+") if i < len(ex_src) and ex_src[i] else [base_src]),
+            "src": src,
             # Filing provenance (rule 5). `filed` is the filing whose values this column
             # actually took; `filings` is every distinct vendor filing seen THIS run;
             # `restated` carries a True an earlier run established (never a False).
             "filed": ex_filed[i] if i < len(ex_filed) else None,
             "filings": set(),
-            "restated": i < len(ex_restated) and ex_restated[i] is True,
+            "restated": restated_on_file is True,
+            # Rule 6: the annotator judged every column of the file it stamped, so a column
+            # under SEC lineage keeps the annotator's verdict — including a null date and
+            # restated False, which is how it records "no claim", and an absent array, which
+            # is how it records "no claim on any column". The one exception is a vendor-only
+            # column this pass added after the annotator ran: it carries our own null
+            # restated, never the annotator's bool, and stays ours.
+            "sec_judged": sec_lineage and (src != [SOURCE_LABEL] or isinstance(restated_on_file, bool)),
+            "sec_restated": restated_on_file,
         }
         order.append(label)
 
@@ -338,6 +359,7 @@ def merge_period_set(
                 "filed": filed,
                 "filings": {filed} if filed else set(),
                 "restated": False,
+                "sec_judged": False,
             }
             order.append(label)
             added += 1
@@ -361,14 +383,17 @@ def merge_period_set(
             # Rows arrive newest-filing-first, so the first one to supply a value is the newest
             # filing that supplied one. A row that contributed nothing never claims the column,
             # and an older filing never displaces a later one already stamped (this run or a
-            # previous one) — ISO dates compare lexicographically.
-            if filed and (slot["filed"] is None or filed > slot["filed"]):
+            # previous one) — ISO dates compare lexicographically. A column SEC judged keeps
+            # SEC's date, or SEC's silence (rule 6).
+            if filed and not slot["sec_judged"] and (slot["filed"] is None or filed > slot["filed"]):
                 slot["filed"] = filed
 
     # oldest→newest by period-end (the contract's array order), label as a stable tiebreak
     order = sorted(set(order), key=lambda lab: (merged[lab]["end"] or "", lab))
 
     def restated(slot: dict) -> bool | None:
+        if slot.get("sec_judged"):
+            return slot.get("sec_restated")
         if slot.get("restated") or (serves_history and len(slot.get("filings") or ()) > 1):
             return True
         return False if serves_history else None
@@ -426,6 +451,8 @@ def apply_vendor_rows(
     # columns the vendor actually filled earn.
     file_src = str((fund.get("src") or {}).get("statements") or "")
     base_src = "+".join(p for p in file_src.split("+") if p and p != SOURCE_LABEL) or "unknown"
+    # annotate_sec_lineage ran on this file since gen_fund_us last rebuilt it (rule 6).
+    sec_lineage = (fund.get("src") or {}).get("statement_lineage") == LINEAGE_SOURCE
 
     ann_ends = list((stmts.get("annual") or {}).get("period_end") or [])
     ann_ends += [row_end_date(r) or "" for r in ann_rows]
@@ -439,7 +466,9 @@ def apply_vendor_rows(
             stats[tf] = {"added": 0, "filled": 0, "relabeled": 0, "skipped": 0,
                          "held": None, "total": before, "before": before}
             continue
-        merged, stats[tf] = merge_period_set(stmts.get(tf), rows, fy_end_m, tf, base_src)
+        merged, stats[tf] = merge_period_set(
+            stmts.get(tf), rows, fy_end_m, tf, base_src, sec_lineage=sec_lineage
+        )
         # A set the vendor added nothing to stays exactly as emitted — no provenance arrays
         # claiming a source that contributed no value.
         if stats[tf]["added"] or stats[tf]["filled"]:
