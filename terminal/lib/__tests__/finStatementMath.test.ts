@@ -859,8 +859,8 @@ describe("netMarginPct", () => {
 describe("opExpenseStep — the waterfall's gross-profit → operating-income bridge", () => {
   /**
    * AAPL FY2025, read off the LIVE vendor payload on 2026-08-08 (the same figures
-   * tests/test_massive_financials.py pins in its fixture). `operating_expenses` comes back
-   * 62.151B and ALREADY excludes cost of revenue — it equals gross_profit − op_income exactly,
+   * tests/test_massive_financials.py pins in its fixture). `operating_expenses` (v1:
+   * `total_operating_expenses`) comes back 62.151B and ALREADY excludes cost of revenue — it equals gross_profit − op_income exactly,
    * which is what makes the double-subtraction detectable from the numbers alone.
    */
   const REV = 416_161_000_000;

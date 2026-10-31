@@ -129,3 +129,25 @@ it("preserves a verified Matrix during refresh failure and distinguishes loading
   expect(node.textContent).toContain("Matrix not published");
   expect([...node.querySelectorAll("button")].some(b => b.textContent === "Retry matrix")).toBe(false);
 });
+
+it("hands off navigation only, uses the current callback, and withdraws an unavailable action", async () => {
+  const first = vi.fn(), next = vi.fn();
+  const render = async (callback?: () => void) => act(async () => root.render(
+    <OptionsResearchLab root="SPY" matrix={matrix} lang="en" onClose={() => {}} onOpenPlan={callback} />));
+  const action = () => [...node.querySelectorAll("button")].find(b => b.textContent === "Choose exact contracts for Plan");
+  await render(first);
+  expect(action()).toBeUndefined();
+  await click("785 Call · 2026-10-09");
+  await click("Scenario lab");
+  expect(node.textContent).toContain("leaving the shortlist clears its previous draft");
+  await click("Choose exact contracts for Plan");
+  expect(first.mock.calls).toEqual([[]]);
+  expect(node.querySelector('[data-testid="research-inspector"]')?.textContent).toContain("243,000");
+  await render(next);
+  await click("Choose exact contracts for Plan");
+  expect(first.mock.calls).toEqual([[]]); expect(next.mock.calls).toEqual([[]]);
+  await render();
+  expect(action()).toBeUndefined();
+  expect(node.textContent).toContain("No parallel pricer is created");
+  expect([...node.querySelectorAll("button")].find(b => b.textContent === "Save investigation")?.disabled).toBe(true);
+});

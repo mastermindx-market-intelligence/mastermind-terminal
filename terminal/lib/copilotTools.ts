@@ -27,6 +27,7 @@ import { nextDateCountdown } from "@/lib/finFormat";
 // app/api/nw/route.ts — the shared endpoint constants live in lib/upstreams (the routes
 // themselves must not be imported from a lib).
 import { FLOW_BACKEND, R2_BASE, NW_BASE } from "@/lib/upstreams";
+import { isUnadmittedGexFamilyArtifact } from "@/lib/ndxFamilyAdmission";
 
 const DATA = path.join(process.cwd(), "public", "data");
 
@@ -904,6 +905,11 @@ function bindGexSource(side: GexSide, raw: unknown, owner: string | undefined): 
       reason,
     },
   });
+  // This curator reads the same R2 GEX key as Flow but bypasses Flow transport.
+  // Never rebind an offline NDX+NDXP family as a measured single-root NDX ladder.
+  if (isUnadmittedGexFamilyArtifact(`gex:${owner ?? id.root ?? "NDX"}`, o)) {
+    return withheld(`${side} family_source is not admitted as a live single-root GEX book`);
+  }
   if (!id.root) return withheld(`${side} payload carries no producer root, so it cannot be bound to ${owner ?? "a symbol"}`);
   if (owner && id.root !== owner) return withheld(`${side} payload is for root ${id.root}, not ${owner}`);
   const measured =

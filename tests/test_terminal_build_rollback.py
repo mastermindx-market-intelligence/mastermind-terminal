@@ -536,7 +536,14 @@ SHIMS = {
     "git": (
         '#!/bin/sh\n'
         'printf "git %s\\n" "$*" >> "$MMX_EFFECT_LOG"\n'
-        'case "$*" in *rev-parse*) echo "$FAKE_SHA" ;; esac\n'
+        # These two fixture revisions are valid old commits with no IW2 gate.
+        # Unknown identities remain errors; the real candidate cases live in
+        # test_terminal_investigation_install_admission.py.
+        'case "$*" in\n'
+        '  *"cat-file -t "*) case "$*" in *'
+        + OLD_SHA + '|*' + NEW_SHA + ') echo commit ;; *) exit 1 ;; esac ;;\n'
+        '  *rev-parse*) echo "$FAKE_SHA" ;;\n'
+        'esac\n'
         'exit 0\n'
     ),
     "npm": (
