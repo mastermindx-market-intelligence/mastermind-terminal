@@ -56,7 +56,7 @@ layoutFiles:
   terminal/lib/sharedShellContracts.ts: "dc7c893852c287b2a18c6b71cbced07bfa0996c1168490c5a8c24e4d3de01266"
   terminal/app/company-intelligence.css: "8b43f2046891837f6572fa2a59b7594547def9602b0454e1f14edba322da2a34"
   terminal/components/DayRange.tsx: "c84724652783da1897ab4eeb98550eaf3dbd7942eefe3ce127b6ada2b16dd672"
-  terminal/components/OptionsHubView.tsx: "d70c9dd892d1a962fd18d97b3ea882d68010f3dd7d346bf808a3310af039eddc"
+  terminal/components/OptionsHubView.tsx: "35530f6190313cee37cff43a92cd526c6010d6276f85a9f46dbf550522d7bd74"
   terminal/components/SearchModal.tsx: "5b3a466a06215231f1b458c382aaae268b4f2f9f206d6f985f312f603fa4a5aa"
   terminal/components/StockAnalysis.tsx: "376a907d0d8ea3dc5819e0092f02e19ce56fa1f4b71a3489551adf52fddb35c0"
   terminal/components/workspaces/AnalysisWorkspace.tsx: "411b8a7e498b8af3f9337fdcf3835dd62e6a5854826f414171d8303efd8aa5bb"
@@ -706,3 +706,10 @@ r4TapeScopedRecapture20261031:
   operationSha256: "a9b28ae09be1167bae997d2e985321543ce598dc6780b00326920e07fab83fda"
   actualCases: 6
   scope: "Current-source scoped captures; actual immutable source/report/observations retained. Earlier reports and unrelated surfaces remain historical. No production acceptance."
+
+r4TapeCopyRecapture20261031:
+  sourceHead: "fbbca96f0bfbd29faf5e091e8a263f5bbaf2fab1"
+  operation: "terminal/docs/pr-crops/terminal-visual-intelligence/r4-tape-copy-vi-20261031--operation.json"
+  operationSha256: "b25b2d52345a542463c72242b1fa43b834e872707eba7c527d3eae18ec04d4a9"
+  actualCases: 6
+  scope: "Current copy-helper source qualified by actual immutable captures referenced here. Legacy image files and cropFiles hashes retain their prior pixels; no recapture of those paths or production proof is claimed."

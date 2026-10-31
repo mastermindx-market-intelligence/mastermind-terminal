@@ -37,5 +37,12 @@
     "desktop-group-results-en.png": "18ee9a9e4f7189539aa3b7b575e4c45debcefbc83ed11e2ae0b66166b4acbec5",
     "mobile-group-selection-en.png": "050e9c2abdf1ba8e8276eb667004b21f7f45cb743cd17b9341e7f5d5ed399ced"
   },
-  "limits": "Synthetic local routefixtures; no authenticatedproduction/rights/modelclaim. Draft-only, no deploy/activation."
+  "limits": "Synthetic local routefixtures; no authenticatedproduction/rights/modelclaim. Draft-only, no deploy/activation.",
+  "copy_helper_repair": {
+    "source": "fbbca96f0",
+    "plain_language_guard": "2blockingRED ->0blockingPASS; exact EN/ZH strings unchanged, recognized sharedcopyhelper used",
+    "typecheck": "PASS",
+    "browser": "12affected EN/ZH 3viewport cases PASS; includes both changed-label interactions",
+    "prior54unit33browser": "retained original accepted scope; not represented as rerun"
+  }
 }

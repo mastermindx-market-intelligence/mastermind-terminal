@@ -29,3 +29,24 @@ behavioral report remains historical, not a fresh full30 claim.
 The evidence-only repair does not change the product code qualified by54unit,
 33Tape browser journeys and TypeScript. Independent review remains unestablished
 after the original thermal admission refusal; Draft and production holds remain.
+
+## Copy-helper CI repair
+
+Run41223233975 tested merge c13caf430a657207362655eb24aae79e70a4eb41
+(078ae8bfd into9d69efd4). All17439unit tests, all browser shards, and CodeQL
+passed; the subsequent plain-language guard rejected two inline bilingual
+labels. The exact local guard reproduced two findings. Source fbbca96f0
+routes the unchanged EN/ZH labels through the existing Tape copy helper.
+The guard and TypeScript pass;12affected bilingual browser journeys pass,
+with all12Tape screenshots byte-identical to the earlier accepted captures.
+
+Four Hub and six chart-context cases were freshly captured against this source
+using r4-tape-copy-pl6-20261031 and r4-tape-copy-vi-20261031. Existing immutable
+readers validated their source snapshots, execution reports and actual pixels.
+All14evidence assertions pass after the current source qualification was bound.
+The legacy image-copy helper hit EACCES on a read-only Hub image and stopped
+before any manifest write; the denied overwrite was not retried and no modes
+were changed. All legacy image files remain untouched. Current captures are
+the separate immutable images linked by the new manifest section and
+language-evidence-recapture.json; older capture/report identities stay historical.
+This is fixture/source qualification, not production or authenticated proof.
