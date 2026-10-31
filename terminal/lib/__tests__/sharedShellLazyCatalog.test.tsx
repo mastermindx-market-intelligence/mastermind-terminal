@@ -87,7 +87,9 @@ describe("Shared Shell native first-frame cost", () => {
   });
   it("defers both heavy consumers with separate dynamic import boundaries", () => {
     const src = readFileSync(path.resolve(__dirname, "../../components/chrome/shared-shell/SharedShellRuntime.tsx"), "utf8");
-    expect(src).toContain('dynamic(() => import("./LegacyPageHost"), { ssr: false })');
+    expect(src).toContain('dynamic(() => import("./LegacyPageHost"), { ssr: false, loading: LegacyPageLoading })');
+    expect(src).toContain('role="status"');
+    expect(src).toContain('t("shellOpening")');
     expect(src).toContain('dynamic(() => import("./ShellDirectory"), { ssr: false })');
     expect(src).not.toMatch(/import\s+(?:LegacyPageHost|ShellDirectory)\s+from/);
   });
