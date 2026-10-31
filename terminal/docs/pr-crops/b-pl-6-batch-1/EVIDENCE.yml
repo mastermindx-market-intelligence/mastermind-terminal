@@ -10,8 +10,8 @@
 # B-PL-6 batch 1 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 1d36422a85dcf32cbd287e7423e8a9f2e6be47d8
-# capturedAt: 2026-10-31T06:51:41.084214+00:00
+# capturedAtHead: 90b24738c26b978b7e7b930b89b19aa3dfe7e7ea
+# capturedAt: 2026-10-31T07:33:00.334496+00:00
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/app/workspace-chrome.css: "97e32bc24ed20479ea7b2e024ef6bc3883b9ead764098344f3ad4acea52b4bdd"
@@ -20,7 +20,7 @@ layoutFiles:
   terminal/components/SearchModal.tsx: "5b3a466a06215231f1b458c382aaae268b4f2f9f206d6f985f312f603fa4a5aa"
   terminal/components/StockAnalysis.tsx: "376a907d0d8ea3dc5819e0092f02e19ce56fa1f4b71a3489551adf52fddb35c0"
   terminal/components/workspaces/AnalysisWorkspace.tsx: "411b8a7e498b8af3f9337fdcf3835dd62e6a5854826f414171d8303efd8aa5bb"
-  terminal/components/ChartPanel.tsx: "cce63c0124550037931eeb2b291fff41d90fc8fdf838162f91ff91460d274c00"
+  terminal/components/ChartPanel.tsx: "2d49fad03d06bea084a86c2b114f76abe84d5d0a03e6f1ec76f7337862805113"
   terminal/components/DayRange.tsx: "c84724652783da1897ab4eeb98550eaf3dbd7942eefe3ce127b6ada2b16dd672"
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
   terminal/lib/i18n.tsx: "13f33e3178b105a64f1f5df35974cd99041ef06f05bdece95939dd07a8b9fe7c"
@@ -460,4 +460,10 @@ p03DefaultFlipRecapture20261031:
   head: "1d36422a85dcf32cbd287e7423e8a9f2e6be47d8"
   capturedAt: "2026-10-31T06:51:41.084214+00:00"
   scope: "P03 default engine flip to mm: ChartPanel.tsx source pin refreshed; ChartChrome-390 EN/ZH crops recaptured at this head via capture_pl6_batch1.cjs (24/24 captured); the other 22 crops retain their prior capture identity because their layout sources are byte-identical."
+  productionProof: false
+
+p03DefaultFlipRecapture20261031:
+  head: "90b24738c26b978b7e7b930b89b19aa3dfe7e7ea"
+  capturedAt: "2026-10-31T07:33:00.334496+00:00"
+  scope: "P03 telemetry wiring (review F-1): ChartPanel.tsx source pin refreshed; ChartChrome crops recaptured via capture_pl6_batch1.cjs (24/24); other crops retain their capture identity (layout sources byte-identical)."
   productionProof: false
