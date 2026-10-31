@@ -3,12 +3,12 @@ import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { webcrypto } from "node:crypto";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-const H = vi.hoisted(() => ({ enabled: false, auth: vi.fn(), owner: "10000000-0000-4000-8000-000000000001" }));
+const H = vi.hoisted(() => ({ enabled: false, lang: "en", auth: vi.fn(), owner: "10000000-0000-4000-8000-000000000001" }));
 vi.mock("@/lib/frozenNodeEntryProtocol", async () => ({ ...await vi.importActual<typeof import("@/lib/frozenNodeEntryProtocol")>("@/lib/frozenNodeEntryProtocol"), get FROZEN_ENTRY_CLIENT_ENABLED() { return H.enabled; } }));
 vi.mock("@/lib/supabase/client", () => ({ createClient: H.auth }));
 vi.mock("@/components/exposure-map/ExposureDivergence", () => ({ default: () => null }));
 vi.mock("next/dynamic", () => ({ default: () => () => null }));
-vi.mock("@/lib/i18n", () => ({ useLang: () => ({ lang: "en" }) }));
+vi.mock("@/lib/i18n", () => ({ useLang: () => ({ lang: H.lang }) }));
 vi.mock("@/components/chrome/AppShell", () => ({ useShellIdentity: () => ({ kind: "account", userId: H.owner, email: "synthetic@example.test" }) }));
 vi.mock("@/components/researchlab/useResearchAppearance", () => ({ useResearchAppearance: () => {} }));
 vi.mock("@/lib/useMediaQuery", () => ({ useIsPhone: () => false }));
@@ -20,7 +20,7 @@ import FrozenNodeEntry from "@/components/exposure-map/FrozenNodeEntry";
 const at = Date.parse("2026-10-21T00:00:00Z");
 let host: HTMLDivElement, root: Root;
 beforeEach(() => {
-  H.enabled = false; H.auth.mockReset(); localStorage.clear();
+  H.enabled = false; H.lang = "en"; H.auth.mockReset(); localStorage.clear();
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true); vi.stubGlobal("crypto", webcrypto);
   vi.spyOn(Date, "now").mockReturnValue(at);
   vi.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) => { cb(0); return 1; });
@@ -117,4 +117,27 @@ it("missing client SDK configuration refuses the preview action without fetch or
   await act(async () => { releaseDigest(); await sdkReached; });
   expect(host.textContent).toContain("Unconfirmed"); expect(fetcher).not.toHaveBeenCalled();
   expect(button("Confirm this enrollment").disabled).toBe(true);
+});
+
+
+describe("source availability and publication remain distinct in the actual map", () => {
+  it.each(["en", "zh"])("unknown publication does not borrow the availability clock (%s)", lang => {
+    H.lang = lang;
+    const fetcher = vi.fn(); vi.stubGlobal("fetch", fetcher);
+    mountMap();
+    const label = [...host.querySelectorAll("span")].find(el => el.textContent === (lang === "zh" ? "时钟" : "CLOCKS"))!;
+    const clocks = label.parentElement!;
+    expect(clocks.textContent).toContain(lang === "zh" ? "发布 未提供" : "published Not supplied");
+    expect(clocks.textContent).toContain(lang === "zh" ? "来源可用 10-20 12:04" : "source available 10-20 12:04");
+    expect(clocks.textContent).not.toContain(lang === "zh" ? "发布 10-20 12:04" : "published 10-20 12:04");
+    expect(H.auth).not.toHaveBeenCalled(); expect(fetcher).not.toHaveBeenCalled();
+  });
+  it.each(["en", "zh"])("known publication shows its own clock alongside availability (%s)", lang => {
+    H.lang = lang;
+    const source = { ...fixture, exposure_projection: { ...fixture.exposure_projection, clocks: { ...fixture.exposure_projection.clocks, published_at: "2026-10-20T13:10:00Z" } } };
+    act(() => root.render(<ExposureMap root="QQQ" source={source} matrix={null} />));
+    const label = [...host.querySelectorAll("span")].find(el => el.textContent === (lang === "zh" ? "时钟" : "CLOCKS"))!;
+    expect(label.parentElement!.textContent).toContain(lang === "zh" ? "发布 10-20 13:10Z" : "published 10-20 13:10Z");
+    expect(label.parentElement!.textContent).toContain(lang === "zh" ? "来源可用 10-20 12:04" : "source available 10-20 12:04");
+  });
 });
