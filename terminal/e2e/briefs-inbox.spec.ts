@@ -1,5 +1,10 @@
 import { expect, test, type Page } from "@playwright/test";
-import { briefCopy, degradedLine } from "@/lib/briefs";
+import { briefCopy, degradedLine, BRIEFS_EXPLICIT_LANGUAGE_CONTRACT } from "@/lib/briefs";
+
+import { createHash } from "node:crypto";
+import { execFileSync } from "node:child_process";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { join, resolve } from "node:path";
 
 const THESIS = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 const readyBody = {
@@ -116,3 +121,101 @@ test("390 list sentences occupy the row width instead of one English word per li
   const dateBox = await inbox.locator("[data-brief-date]").boundingBox();
   expect(dateBox?.height ?? 99).toBeLessThan(28);
 });
+
+
+async function languageCrop(page: Page, lang: "en" | "zh", state: string) {
+  if (process.env.BRIEFS_LANGUAGE_CROPS !== "1") return;
+  const repo = resolve(process.cwd(), "..");
+  const out = join(repo, "terminal/docs/pr-crops/briefs-explicit-language");
+  mkdirSync(out, { recursive: true });
+  const viewport = page.viewportSize()!;
+  const stem = `${state}-${viewport.width}-${lang}-dark`;
+  const png = await page.getByTestId("briefs-inbox").screenshot({ path: join(out, stem + ".png") });
+  const sourceFiles = [
+    "terminal/lib/briefs.ts",
+    "terminal/app/api/briefs/deliveries/route.ts",
+    "terminal/components/briefs/BriefsInbox.tsx",
+    "terminal/components/briefs/briefs.module.css",
+    "terminal/components/alerts/AlertsCockpit.tsx",
+    "terminal/e2e/briefs-inbox.spec.ts",
+  ];
+  writeFileSync(join(out, stem + ".json"), JSON.stringify({
+    proof: "Actual Alerts inbox with controlled delivery responses; route ownership separately unit-tested.",
+    capturedAtHead: execFileSync("git", ["rev-parse", "HEAD"], { cwd: repo, encoding: "utf8" }).trim(),
+    capturedAt: new Date().toISOString(), route: "/alerts", lang, viewport, state,
+    requestedContract: BRIEFS_EXPLICIT_LANGUAGE_CONTRACT,
+    sourceHashes: Object.fromEntries(sourceFiles.map((file) => [
+      file, createHash("sha256").update(readFileSync(join(repo, file))).digest("hex"),
+    ])),
+    png: stem + ".png", sha256: createHash("sha256").update(png).digest("hex"),
+    productionAcceptance: false, producerActivation: false,
+  }, null, 2) + "\n");
+}
+
+for (const lang of ["en", "zh"] as const) {
+  test(`actual inbox preserves partial Chinese and full-body coverage in ${lang}`, async ({ page }) => {
+    const row = {
+      deliveryId: "language-ready", subscriptionId: "s1", slotAsof: "2026-10-17",
+      state: "ready", createdAt: "2026-10-17T07:00:00.000Z",
+      body: {
+        ...readyBody,
+        market_read: [
+          { ...readyBody.market_read[0], translation_status: "available" },
+          { ...readyBody.market_read[1], sentence_zh: null, translation_status: "unavailable" },
+          { section: "watch_items", sentence_en: "Watch credit.", sentence_zh: null, translation_status: "unavailable", asof: "2026-10-17" },
+        ],
+      },
+      subscription: { targetKind: "thesis", targetId: THESIS, cadence: "weekly_saturday", state: "active" },
+    };
+    await page.addInitScript((locale) => {
+      localStorage.setItem("mm.lang", locale);
+      localStorage.setItem("theme", "dark");
+    }, lang);
+    await page.route("**/api/briefs/deliveries**", async (route) => {
+      expect(new URL(route.request().url()).searchParams.get("contract")).toBe(BRIEFS_EXPLICIT_LANGUAGE_CONTRACT);
+      await route.fulfill({ status: 200, contentType: "application/json",
+        body: JSON.stringify({ contract: BRIEFS_EXPLICIT_LANGUAGE_CONTRACT, deliveries: [row] }) });
+    });
+    await page.goto("/alerts");
+    const inbox = page.getByTestId("briefs-inbox");
+    await expect(inbox.locator("[data-brief-language-availability]")).toContainText(lang === "zh" ? "1/3" : "1 of 3");
+    await expect(inbox).toContainText(lang === "zh"
+      ? `英文原文：${readyBody.market_read[1].sentence_en}` : readyBody.market_read[1].sentence_en);
+    await expect(inbox).toContainText(lang === "zh" ? readyBody.market_read[0].sentence_zh : readyBody.market_read[0].sentence_en);
+    await expect(inbox).not.toContainText("Watch credit.");
+    await expect(inbox).not.toContainText("翻译待补");
+    await expect(inbox.locator("[data-brief-name]")).toHaveText("NVDA cycle");
+    await expect(inbox.locator("[data-brief-date]")).toHaveText("2026-10-17");
+    await expect(inbox.locator("[data-brief-miss], [data-brief-pinned]")).toHaveCount(0);
+    await inbox.scrollIntoViewIfNeeded();
+    expect(await inbox.evaluate((el) => el.scrollWidth <= el.clientWidth + 1)).toBe(true);
+    await languageCrop(page, lang, "partial");
+  });
+
+  test(`actual inbox refreshes the page after a typed upgrade response in ${lang}`, async ({ page }) => {
+    let serveCurrent = false;
+    await page.addInitScript((locale) => {
+      localStorage.setItem("mm.lang", locale);
+      localStorage.setItem("theme", "dark");
+    }, lang);
+    await page.route("**/api/briefs/deliveries**", async (route) => {
+      await route.fulfill({
+        status: serveCurrent ? 200 : 409, contentType: "application/json",
+        body: JSON.stringify(serveCurrent
+          ? { contract: BRIEFS_EXPLICIT_LANGUAGE_CONTRACT, deliveries: [] }
+          : { error: "UPGRADE_REQUIRED", requiredContract: BRIEFS_EXPLICIT_LANGUAGE_CONTRACT, reloadRequired: true }),
+      });
+    });
+    await page.goto("/alerts");
+    const inbox = page.getByTestId("briefs-inbox");
+    await expect(inbox).toContainText(briefCopy("upgradeRequired", lang));
+    await inbox.scrollIntoViewIfNeeded();
+    await languageCrop(page, lang, "upgrade");
+    serveCurrent = true;
+    await Promise.all([
+      page.waitForNavigation({ waitUntil: "domcontentloaded" }),
+      inbox.getByRole("button", { name: briefCopy("refresh", lang), exact: true }).click(),
+    ]);
+    await expect(page.getByTestId("briefs-inbox")).toContainText(briefCopy("empty", lang));
+  });
+}

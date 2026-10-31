@@ -6,7 +6,7 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import BriefsInbox from "@/components/briefs/BriefsInbox";
 import BriefSubscribeControls from "@/components/briefs/BriefSubscribeControls";
-import { briefCopy, degradedLine } from "@/lib/briefs";
+import { briefCopy, degradedLine, BRIEFS_EXPLICIT_LANGUAGE_CONTRACT } from "@/lib/briefs";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -24,6 +24,8 @@ const validBody = {
 let container: HTMLDivElement | null = null;
 let root: Root | null = null;
 let deliveries: unknown[] = [];
+let deliveryContract: string | undefined;
+let deliveryResponse: { status: number; body: unknown } | null = null;
 
 function jsonRes(status: number, body: unknown): Response {
   return new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
@@ -33,7 +35,9 @@ function installFetch() {
   vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
     const url = String(input);
     if (url.includes("/api/briefs/deliveries")) {
-      return jsonRes(200, { deliveries });
+      return deliveryResponse
+        ? jsonRes(deliveryResponse.status, deliveryResponse.body)
+        : jsonRes(200, { deliveries, ...(deliveryContract ? { contract: deliveryContract } : {}) });
     }
     if (url.includes("/api/briefs/subscriptions")) {
       return jsonRes(200, { subscriptions: [] });
@@ -76,11 +80,122 @@ function text(): string {
 describe("BriefsInbox rendering", () => {
   beforeEach(() => {
     deliveries = [];
+    deliveryContract = undefined;
+    deliveryResponse = null;
     installFetch();
   });
   afterEach(() => {
     unmount();
     vi.unstubAllGlobals();
+  });
+
+
+  function readyRow(body: unknown) {
+    return {
+      deliveryId: "language-ready", subscriptionId: "s1", slotAsof: "2026-10-17",
+      state: "ready", body, createdAt: "2026-10-17T07:00:00.000Z",
+      subscription: { targetKind: "thesis", targetId: THESIS, cadence: "weekly_saturday", state: "active" },
+    };
+  }
+
+  it("retains mixed-language ready content and requests explicit capability in both locales", async () => {
+    deliveryContract = BRIEFS_EXPLICIT_LANGUAGE_CONTRACT;
+    deliveries = [readyRow({
+      ...validBody,
+      market_read: [
+        { ...validBody.market_read[0], translation_status: "available" },
+        { ...validBody.market_read[1], sentence_zh: null, translation_status: "unavailable" },
+      ],
+    })];
+    await mountInbox("en");
+    expect(fetch).toHaveBeenCalledWith(`/api/briefs/deliveries?limit=40&contract=${BRIEFS_EXPLICIT_LANGUAGE_CONTRACT}`);
+    expect(text()).toContain(validBody.market_read[1].sentence_en);
+    expect(text()).toContain("Chinese available for 1 of 2");
+    expect(text()).toContain("NVDA cycle");
+    expect(text()).toContain("1 monitor");
+    expect(container?.querySelector("[data-brief-miss]")).toBeNull();
+    expect(container?.querySelector("[data-brief-pinned]")).toBeNull();
+    unmount();
+    await mountInbox("zh");
+    expect(text()).toContain(validBody.market_read[0].sentence_zh);
+    expect(text()).toContain(`英文原文：${validBody.market_read[1].sentence_en}`);
+    expect(text()).toContain("中文解读可用 1/2 条");
+    expect(text()).not.toContain("翻译待补");
+    expect(container?.querySelector("[data-brief-miss]")).toBeNull();
+  });
+
+  it("reports incomplete Chinese beyond the first two displayed passages", async () => {
+    deliveryContract = BRIEFS_EXPLICIT_LANGUAGE_CONTRACT;
+    deliveries = [readyRow({
+      ...validBody,
+      market_read: [
+        ...validBody.market_read,
+        { section: "watch_items", sentence_en: "Watch credit.", sentence_zh: null, translation_status: "unavailable", asof: "2026-10-17" },
+      ],
+    })];
+    await mountInbox("zh");
+    expect(text()).toContain("中文解读可用 2/3 条");
+    expect(text()).not.toContain("Watch credit.");
+    expect(text()).toContain(validBody.market_read[1].sentence_zh);
+    expect(container?.querySelectorAll("[data-brief-language-availability]")).toHaveLength(1);
+  });
+
+  it("labels the historical pending-marker form without dropping an unacknowledged legacy response", async () => {
+    deliveries = [readyRow({
+      ...validBody,
+      market_read: [{
+        ...validBody.market_read[0],
+        sentence_zh: `${validBody.market_read[0].sentence_en} （翻译待补）`,
+      }],
+    })];
+    await mountInbox("zh");
+    expect(text()).toContain(`英文原文：${validBody.market_read[0].sentence_en}`);
+    expect(text()).toContain("中文解读可用 0/1 条");
+    expect(text()).not.toContain("翻译待补");
+  });
+
+  it("does not accept nullable publication from an unacknowledged or unknown API contract", async () => {
+    deliveries = [readyRow({
+      ...validBody,
+      market_read: [{ ...validBody.market_read[0], sentence_zh: null, translation_status: "unavailable" }],
+    })];
+    for (const contract of [undefined, "unknown"]) {
+      deliveryContract = contract;
+      await mountInbox("en");
+      expect(text()).toContain(briefCopy("unavailable", "en"));
+      expect(container?.querySelector("[data-brief-row]")).toBeNull();
+      unmount();
+    }
+  });
+
+  it("offers localized page refresh for a typed upgrade response, rather than another API retry", async () => {
+    deliveryResponse = {
+      status: 409,
+      body: { error: "UPGRADE_REQUIRED", requiredContract: BRIEFS_EXPLICIT_LANGUAGE_CONTRACT, reloadRequired: true },
+    };
+    const reload = vi.fn();
+    const realWindow = window;
+    vi.stubGlobal("window", new Proxy(realWindow, {
+      get(target, key) { return key === "location" ? { reload } : Reflect.get(target, key); },
+    }));
+    for (const lang of ["en", "zh"] as const) {
+      await mountInbox(lang);
+      expect(text()).toContain(briefCopy("upgradeRequired", lang));
+      const button = container!.querySelector("button")!;
+      expect(button.textContent).toBe(briefCopy("refresh", lang));
+      const requests = vi.mocked(fetch).mock.calls.length;
+      await act(async () => { button.click(); });
+      expect(vi.mocked(fetch).mock.calls.length).toBe(requests);
+      unmount();
+    }
+    expect(reload).toHaveBeenCalledTimes(2);
+  });
+
+  it("keeps an unrelated 409 as unavailable with the existing retry action", async () => {
+    deliveryResponse = { status: 409, body: { error: "UNRELATED", reloadRequired: true } };
+    await mountInbox("en");
+    expect(text()).toContain(briefCopy("unavailable", "en"));
+    expect(container?.querySelector("button")?.textContent).toBe(briefCopy("retry", "en"));
   });
 
   it("renders the empty state in EN and ZH", async () => {
