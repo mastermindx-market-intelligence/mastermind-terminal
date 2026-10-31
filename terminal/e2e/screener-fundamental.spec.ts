@@ -317,7 +317,8 @@ test("an unpublished or failing scan is a stated state with Retry — never an e
 // kept the previous threshold in the inputs — and Update then wrote that stale threshold over the
 // condition the table had just received. The journey below is the repro, step by step, in both
 // languages at every contract viewport. With TERMINAL_CROPS=1 it also writes the PR's screenshots
-// (open / remove / clear per viewport and language) into docs/pr-crops/e02-fund-draft-sync-916/.
+// (open / remove / clear / clear-uncommitted / open-uncommitted per viewport and language) into
+// docs/pr-crops/e02-fund-draft-sync-916/.
 const DRAFT_SYNC_CROPS = join(process.cwd(), "docs", "pr-crops", "e02-fund-draft-sync-916");
 async function draftSyncCrop(page: Page, step: string, lang: string, testInfo: TestInfo) {
   if (!process.env.TERMINAL_CROPS) return;
@@ -334,6 +335,7 @@ for (const lang of ["en", "zh"] as const) {
     const zh = lang === "zh";
     const name10 = zh ? "净利率一成" : "Margin 10";
     const name15 = zh ? "净利率一成五" : "Margin 15";
+    const nameMove = zh ? "动量" : "Momentum";
     await page.context().addCookies([
       { name: "mm_e2e_rs30", value: "1", url: baseURL! },
       { name: "mm_e2e_wl", value: `e02-draft-${testInfo.project.name}-${lang}-${Date.now()}`, url: baseURL! },
@@ -395,5 +397,27 @@ for (const lang of ["en", "zh"] as const) {
     await expect(min).toHaveValue("");
     await expect(commit).toHaveText(zh ? "添加筛选" : "Add filter");
     await draftSyncCrop(page, "clear", lang, testInfo);
+
+    // ── uncommitted: a value typed on a field with NO committed condition reads the same by value
+    //    before and after, so only the parent's whole-table reset can blank it (#916 follow-up) ──
+    await min.fill("33");
+    await moveSelect(page).selectOption("up3");
+    await page.locator("button.chip", { hasText: zh ? "上升趋势" : "Uptrend regime" }).first().click(); // two filters → Clear filters is offered
+    await page.locator("button.scr2-clear", { hasText: zh ? "清除筛选" : "Clear filters" }).first().click();
+    await expect(tableSyms(page)).toHaveCount(SYMS.length);
+    await expect(min).toHaveValue("");
+    await draftSyncCrop(page, "clear-uncommitted", lang, testInfo);
+
+    // The same for a saved screen that carries no condition on the selected field.
+    await moveSelect(page).selectOption("up3");
+    await ss.locator("[data-ss-name-input]").fill(nameMove);
+    await ss.locator("[data-ss-save-button]").click();
+    await expect(ss.locator("[data-ss-screen]")).toHaveCount(3);
+    await min.fill("33");
+    await ss.locator(`[data-ss-screen][data-ss-name="${nameMove}"] [data-ss-open]`).click();
+    await expect(chip).toHaveCount(0);
+    await expect(min).toHaveValue("");
+    await expect(commit).toHaveText(zh ? "添加筛选" : "Add filter");
+    await draftSyncCrop(page, "open-uncommitted", lang, testInfo);
   });
 }
