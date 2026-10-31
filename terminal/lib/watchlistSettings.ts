@@ -54,7 +54,10 @@ export function resolveWatchlistSettings(
 } {
   const persisted = record(saved);
   const cols = record(persisted.cols);
-  const colW = record(persisted.colW) as Record<string, number>;
+  const colW = Object.fromEntries(
+    Object.entries(record(persisted.colW)).filter(([, width]) =>
+      typeof width === "number" && Number.isFinite(width) && width >= 44),
+  ) as Record<string, number>;
   const migrated = !Number.isFinite(storedVersion) || storedVersion < WATCHLIST_SETTINGS_VERSION;
 
   const settings: WatchlistSettings = {
