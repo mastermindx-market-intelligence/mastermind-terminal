@@ -1,9 +1,11 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page, type TestInfo } from "@playwright/test";
+import { mkdirSync } from "node:fs";
+import { join } from "node:path";
 import { FUNDAMENTAL_FIELD_IDS } from "@/lib/fundamentalScan";
 import { projectFundamental } from "@/lib/fundamentalScanProducer";
 import { SCREENER_SCAN_SCHEMA } from "@/lib/screenerScan";
 import { fundDoc, JUNCO_ANNUAL, SEPCO_ANNUAL, type Col } from "../lib/__tests__/fixtures/fundamentalScan/fundDoc";
-import { openPanel } from "./smartScreensFixture";
+import { moveSelect, openPanel } from "./smartScreensFixture";
 
 /**
  * E02 — period-aware fundamental screening, end to end in the browser.
@@ -307,3 +309,91 @@ test("an unpublished or failing scan is a stated state with Retry — never an e
   await expect(state).toHaveAttribute("data-fund-scan", "ready");
   await expect(page.locator("[data-fund-commit]")).toBeEnabled();
 });
+
+// ── Issue #916: the editor's draft follows the saved screen the table just received ──────────
+// ScreenerView.openSmartScreen replaces the fundamental conditions whole and leaves the selected
+// field alone; Clear filters and a chip click empty them the same way. The bar used to reload its
+// draft only on a FIELD change, so a saved screen whose condition sat on the already-selected field
+// kept the previous threshold in the inputs — and Update then wrote that stale threshold over the
+// condition the table had just received. The journey below is the repro, step by step, in both
+// languages at every contract viewport. With TERMINAL_CROPS=1 it also writes the PR's screenshots
+// (open / remove / clear per viewport and language) into docs/pr-crops/e02-fund-draft-sync-916/.
+const DRAFT_SYNC_CROPS = join(process.cwd(), "docs", "pr-crops", "e02-fund-draft-sync-916");
+async function draftSyncCrop(page: Page, step: string, lang: string, testInfo: TestInfo) {
+  if (!process.env.TERMINAL_CROPS) return;
+  mkdirSync(DRAFT_SYNC_CROPS, { recursive: true });
+  await page.mouse.move(0, 0);
+  // The evidence is the editor's draft (Min, the mode, the commit label) next to the chip row; the
+  // smart-screens click that led here can leave a phone viewport scrolled past the bar.
+  await page.locator("[data-fund-bar]").scrollIntoViewIfNeeded();
+  await page.screenshot({ path: join(DRAFT_SYNC_CROPS, `${testInfo.project.name}-${lang}-${step}.png`), fullPage: false, animations: "disabled" });
+}
+
+for (const lang of ["en", "zh"] as const) {
+  test(`[${lang}] a saved screen opened on the selected field loads ITS threshold; Update, chip removal and Clear filters act on what the table shows`, async ({ page, baseURL }, testInfo) => {
+    const zh = lang === "zh";
+    const name10 = zh ? "净利率一成" : "Margin 10";
+    const name15 = zh ? "净利率一成五" : "Margin 15";
+    await page.context().addCookies([
+      { name: "mm_e2e_rs30", value: "1", url: baseURL! },
+      { name: "mm_e2e_wl", value: `e02-draft-${testInfo.project.name}-${lang}-${Date.now()}`, url: baseURL! },
+    ]);
+    await setup(page, lang);
+    await openScreen(page);
+    const min = page.locator("[data-fund-min]");
+    const commit = page.locator("[data-fund-commit]");
+    const chip = page.locator('[data-fund-chip="fund.net_margin_fy"]');
+
+    // Two saved screens on the SAME field: ≥ 10% keeps SEPCO (15%) and JUNCO (10%); ≥ 15% keeps SEPCO.
+    await addRange(page, "fund.net_margin_fy", "10", "");
+    await expect(tableSyms(page)).toHaveCount(2);
+    const ss = await openPanel(page);
+    await expect(ss).toHaveAttribute("data-ss-status", "ready");
+    await ss.locator("[data-ss-name-input]").fill(name10);
+    await ss.locator("[data-ss-save-button]").click();
+    await expect(ss.locator("[data-ss-screen]")).toHaveCount(1);
+    await min.fill("15");
+    await commit.click();
+    await expect(chip).toContainText("15%");
+    await expect(tableSyms(page)).toHaveCount(1);
+    await ss.locator("[data-ss-name-input]").fill(name15);
+    await ss.locator("[data-ss-save-button]").click();
+    await expect(ss.locator("[data-ss-screen]")).toHaveCount(2);
+    const screen10 = ss.locator(`[data-ss-screen][data-ss-name="${name10}"]`);
+    const screen15 = ss.locator(`[data-ss-screen][data-ss-name="${name15}"]`);
+
+    // ── open: the editor shows the OPENED screen's threshold, not the one typed last ──
+    await screen10.locator("[data-ss-open]").click();
+    await expect(chip).toContainText("10%");
+    await expect(tableSyms(page)).toHaveCount(2);
+    await expect(min).toHaveValue("10");
+    await expect(commit).toHaveText(zh ? "更新筛选" : "Update filter");
+    await draftSyncCrop(page, "open", lang, testInfo);
+
+    // ── update: Update keeps the opened screen (the old bar reverted it to the 15% typed before) ──
+    await commit.click();
+    await expect(chip).toContainText("10%");
+    await expect(tableSyms(page)).toHaveCount(2);
+    await expect(screen10.locator("[data-ss-on-table]")).toBeVisible();
+
+    // ── remove: taking the chip off blanks the editor, and the button offers Add ──
+    await chip.click();
+    await expect(chip).toHaveCount(0);
+    await expect(tableSyms(page)).toHaveCount(SYMS.length);
+    await expect(min).toHaveValue("");
+    await expect(commit).toHaveText(zh ? "添加筛选" : "Add filter");
+    await draftSyncCrop(page, "remove", lang, testInfo);
+
+    // ── clear: open ≥ 15%, add a second filter so "Clear filters" is offered, then clear everything ──
+    await screen15.locator("[data-ss-open]").click();
+    await expect(chip).toContainText("15%");
+    await expect(min).toHaveValue("15");
+    await moveSelect(page).selectOption("up3");
+    await page.locator("button.scr2-clear", { hasText: zh ? "清除筛选" : "Clear filters" }).first().click();
+    await expect(chip).toHaveCount(0);
+    await expect(tableSyms(page)).toHaveCount(SYMS.length);
+    await expect(min).toHaveValue("");
+    await expect(commit).toHaveText(zh ? "添加筛选" : "Add filter");
+    await draftSyncCrop(page, "clear", lang, testInfo);
+  });
+}
