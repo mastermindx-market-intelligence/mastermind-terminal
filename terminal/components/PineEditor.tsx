@@ -124,6 +124,9 @@ export default function PineEditor({ scripts, isPro, email, libraryUnavailable =
   const [selectedId, setSelectedId] = useState<string | null>(initialId);
   const active = library.find((s) => s.id === selectedId) ?? library[0];
   const [src, setSrc] = useState(active?.source || "");
+  // SSR can display the source before React owns input events. Enable editing only
+  // after the initial buffer-reset effect has settled, so early edits cannot be lost.
+  const [bufferReady, setBufferReady] = useState(false);
   const [params, setParams] = useState<Record<string, any>>(active?.params || {});
   const srcRef = useRef(src);
   const paramsRef = useRef(params);
@@ -157,7 +160,7 @@ export default function PineEditor({ scripts, isPro, email, libraryUnavailable =
   // the selected script ID, never on the library's contents or array index — so a save, which
   // rewrites the active row in `library`, or a server-list reorder of the same identities, does
   // not reset the buffer the user is still typing in.
-  useEffect(() => { setSrc(active?.source || ""); setParams(active?.params || {}); setStatus("idle"); setPicker(false); }, [selectedId]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { setSrc(active?.source || ""); setParams(active?.params || {}); setStatus("idle"); setPicker(false); setBufferReady(true); }, [selectedId]); // eslint-disable-line react-hooks/exhaustive-deps
   // close the script picker on any outside click
   useEffect(() => { if (!picker) return; const close = () => setPicker(false); window.addEventListener("click", close); return () => window.removeEventListener("click", close); }, [picker]);
 
@@ -473,7 +476,7 @@ export default function PineEditor({ scripts, isPro, email, libraryUnavailable =
                 </div>
               )}
               <div className="code">{lines.map((ln, i) => <div key={i} dangerouslySetInnerHTML={{ __html: hl(ln) || "&nbsp;" }} />)}</div>
-              <textarea ref={taRef} value={src} spellCheck={false} aria-label={`${active.name} source`} readOnly={isLocked}
+              <textarea ref={taRef} value={src} spellCheck={false} aria-label={`${active.name} source`} readOnly={isLocked} disabled={!bufferReady}
                 onChange={(e) => { if (!isLocked) setSrc(e.target.value); }} onKeyDown={onKeyDown} />
             </div>
           </div>

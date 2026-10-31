@@ -1,4 +1,5 @@
 "use client";
+import { boatsChartHistoryBars, type BoatsChartHistory } from "@/lib/extQuoteCopy";
 import type { OptionsChartLevel } from "@/lib/optionsCompanion";
 import { syncOptionsPricePin, removeOptionsPricePin, type OptionsPricePin } from "@/lib/optionsChartPin";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
@@ -90,7 +91,9 @@ import { isIntradayTf, isSecondTf, classify, tfMinutes, type Market } from "@/li
 import { episodeMarks, type MarkTone } from "@/lib/dislocations/episodeMarks";
 import { chartMarkerSpecs, toChartMarks } from "@/lib/dislocations/episodeChartTimes";
 import type { LiveEntryEpisode } from "@/lib/dislocations/types";
-import { liveDisplayEpoch, mutateLiveCandle } from "@/lib/liveCandle";
+import { liveDisplayEpoch, liveCandleRemaining, mutateLiveCandle, createLiveCandleState, isFormingAfterHistory, type LiveCandleState } from "@/lib/liveCandle";
+import { calendarCandleClose, type CalendarCloseContext } from "@/lib/candleCalendar";
+import { boatsChartRefresh, boatsRefreshLogicalRange } from "@/lib/boatsChartRefresh";
 import { isMacroSymbol, macroOnEtAxis } from "@/lib/macroSymbols";
 import { sessionVwap, openingRange, sessionLevels, pivotLevels, rvolSeries, ttmSqueeze, adx as calcAdx, cvdApprox, type Bar as IMBar, type DailyBar } from "@/lib/intradayMath";
 import { attachSessionShadingToHandle, detachSessionShadingFromHandle, type SessionShadingPrimitive } from "@/lib/sessionShading";
@@ -99,6 +102,7 @@ import { isAdditionalStudyId, studyParamsWithDefaults, studyTypeOf } from "@/lib
 import { expandStudyOrder, renderableStudyIds, studyInstanceMeta } from "@/lib/studyInstanceView";
 import { flowGet, flowGetFresh } from "@/lib/flowClientCache";
 import { deriveOptLevels, sessionsOldEt, type OptLevelKey, type OptLevelsResult } from "@/lib/optionsLevels";
+import { olPlain } from "@/lib/optionsLevelsStrings";
 import { computeSuite, resolveSuiteColors } from "@/lib/indicator-canvas/host";
 import { renderPrims, ensureTooltipHost } from "@/lib/indicator-canvas/render";
 import {
@@ -119,6 +123,8 @@ import {
   type SuiteModuleCatalogEntry,
 } from "@/lib/suites/catalog";
 import type { SuiteRenderBundle, SuiteTier, SuiteColors, CoordMapper, TableSpec } from "@/lib/indicator-canvas/types";
+import { buildLiveNativeObservations, type LiveNativeSuiteProjectionInput } from "@/lib/nativeObservationProjection";
+import type { ChartPriceWindowSource } from "@/lib/chartPriceWindow";
 import ChartTables from "@/components/ChartTables";
 import { crossUps, crossDowns, crossUpsBelow, crossDownsAbove } from "@/lib/crossSignals";
 import { SOFT_Q, anchorSignal, isBlockedSignal, isOverrideCandidate, isReclaimOverrideTake, isStopSweepReclaim, isStructureStop, isWaivedEntry, markerTooltipCopy, opportunityMarkerGlyph, sliceSignalBasis } from "@/lib/signalVerdict";
@@ -126,7 +132,7 @@ import { makeNearestBarIndex } from "@/lib/barSnap";
 import { LIVE_BAR_PROJECTION, LIVE_INPLACE_SERIES_KEYS, LIVE_REBUILD_KEYS, acceptsLiveTick, liveQuoteStamp, seriesReuseEngine, type AcceptedLiveTick } from "@/lib/liveBarProjection";
 import { composeCaptureScene, isChartCaptureRequest, type CaptureDataCopy, type CapturePainted, type CaptureScene, type ChartCaptureRequest } from "@/lib/chartCapture";
 import { dailyMultipleOf, groupSessionBars, parseSessionAnchor, resolveBarAnchor,
-  sessionToBarTime, type SessionAnchor } from "@/lib/sessionBars";
+  sessionToBarTime, resampleTf, type SessionAnchor } from "@/lib/sessionBars";
 import { ichimoku, supertrend, avwap as computeAvwap, rollingVwap, weekAnchoredVwap, vprofile, volbox, rsiStack, accumPct, trendRibbon, buyShare as mfBuyShare } from "@/lib/indicatorMath";
 import ChartOverlays, { type PaneInfo, type LegendEntry } from "@/components/ChartOverlays";
 import DayStatsStrip from "@/components/DayStatsStrip";
@@ -137,6 +143,7 @@ import {
   announceTerminalVisualReady,
   isTerminalIndicatorSetBuilt,
   type TerminalVisualReadyAnnouncement,
+  type TerminalVisualReadyDetail,
 } from "@/lib/terminalBoot";
 import { assetInitial, assetLogoPath } from "@/lib/assetLogos";
 import { DEFAULT_CHART_SETTINGS, type ChartSettings } from "@/components/ChartFrameBar";
@@ -247,17 +254,23 @@ export type LiveQuote = {
   regularSessionDate?: string;
   regularSession?: "rth" | "closed";
   extPrice?: number;
-  extChg?: number;
+  extChg?: number | null;
   extTs?: number;
   extSession?: "pre" | "post" | "overnight";
   extSource?: string;
   extBasis?: string;
+  extVenue?: string;
+  extPriceKind?: string;
+  extReceivedTs?: number;
+  extPublishedTs?: number;
+  extExpiresTs?: number;
   live?: boolean;
   suspended?: boolean;
   lagMs?: number | null;
   asOfMs?: number | null;
   // Latest one-second aggregate from the live Massive WebSocket lane. Kept distinct from
   // day open/high/low/volume so a 1s candle never mistakes the session open for its own open.
+  formingCandles?: import("@/lib/formingCandles").FormingSnapshot;
   tickOpen?: number | null;
   tickHigh?: number | null;
   tickLow?: number | null;
@@ -278,8 +291,13 @@ export function intradayCapable(market: Market): boolean { return market !== "ca
 //   • sessionDate === last bar date → PATCH the last bar (c=last, h=max, l=min, v when known)
 //   • sessionDate < last bar date OR no quote/last → return the input unchanged (no-op)
 // Callers own the replay / basis / intraday guards (this helper is math-only).
-export function spliceDaily(daily: Bar[], q: { last?: number; open?: number; high?: number; low?: number; vol?: number } | null | undefined, sessionDate: string | null): Bar[] {
+export function spliceDaily(daily: Bar[], q: { last?: number; open?: number; high?: number; low?: number; vol?: number; asOfMs?: number | null; formingCandles?: import("@/lib/formingCandles").FormingSnapshot } | null | undefined, sessionDate: string | null, historyFence?: LiveCandleState["historyFence"]): Bar[] {
   if (!daily.length || !q || sessionDate == null) return daily;
+  if (q.formingCandles && !isFormingAfterHistory(q.formingCandles, historyFence ?? null)) {
+    if ((q.asOfMs ?? 0) <= (historyFence?.asOfMs ?? 0)) return daily;
+    // The price is newer, but the retained OHLCV was superseded by history.
+    q = { last: q.last, asOfMs: q.asOfMs };
+  }
   const last = q.last;
   // Only splice a REAL positive price. Equities never trade at/below 0; a 0 (or missing) `last` is a
   // premarket/feed placeholder — splicing it would draw a bar down to $0.
@@ -291,6 +309,14 @@ export function spliceDaily(daily: Bar[], q: { last?: number; open?: number; hig
   const qHigh = pos(q.high), qLow = pos(q.low), qOpen = pos(q.open);
   const tail = daily[daily.length - 1];
   if (sessionDate < tail.time) return daily;   // quote is older than the freshest bar — nothing to do
+  const formedDay = q.formingCandles?.day;
+  const authoritativeDay = formedDay?.complete && q.formingCandles!.asOfMs === q.asOfMs &&
+    new Date(formedDay.time * 1000).toISOString().slice(0, 10) === sessionDate ? formedDay : null;
+  if (authoritativeDay) {
+    const bar: Bar = { time: sessionDate, o: authoritativeDay.o, h: authoritativeDay.h,
+      l: authoritativeDay.l, c: authoritativeDay.c, v: authoritativeDay.v };
+    return sessionDate === tail.time ? [...daily.slice(0, -1), bar] : [...daily, bar];
+  }
   if (sessionDate === tail.time) {
     const h = Math.max(tail.h, last, qHigh ?? -Infinity);
     const l = Math.min(tail.l, last, qLow ?? Infinity);
@@ -367,44 +393,12 @@ export function sessionDateOf(ts: number | undefined, market: Market): string | 
 const US_DATE_FMT = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit" });
 
 // ── last-price tag: bar-close countdown (the "07:36" / "1d 20h" next to the price) ──
-// Per-market UTC offsets + session-close hours (both DST/holiday-agnostic — good enough for a
-// countdown; ≤1h drift under DST). Intraday close is exact (bar open + interval). Daily+ counts
-// to the exchange session close of the last trading day of the period: 24/7 crypto rolls at local
-// midnight (closeH=24), equities close at 16:00 (15:00 CN) on the last weekday of the period.
-const MARKET_TZ_OFFSET: Record<Market, number> = { us: -5 * 3600, ca: -5 * 3600, cn: 8 * 3600, hk: 8 * 3600, crypto: 0 };
-const SESSION_CLOSE_H: Record<Market, number> = { us: 16, ca: 16, cn: 15, hk: 16, crypto: 24 };
-
-/** Unix seconds when the current daily/weekly/2-week/monthly/quarter bar closes. */
-export function periodCloseTs(tf: string, nowSec: number, market: Market): number {
-  const off = MARKET_TZ_OFFSET[market] ?? 0;
-  const closeH = SESSION_CLOSE_H[market] ?? 24;
-  const weekend = market === "crypto";                        // 24/7 → no weekend walk-back, midnight roll
-  const HOUR = 3600, DAYMS = 86400_000;
-  const d = new Date((nowSec + off) * 1000);
-  const Y = d.getUTCFullYear(), Mo = d.getUTCMonth(), Da = d.getUTCDate();
-  // unix-sec of the session close on local calendar day (y,m,dd), walked back to the last
-  // trading weekday for markets that don't trade weekends.
-  const closeOn = (y: number, m: number, dd: number): number => {
-    let t = Date.UTC(y, m, dd);
-    if (!weekend) { let wd = new Date(t).getUTCDay(); while (wd === 0 || wd === 6) { t -= DAYMS; wd = new Date(t).getUTCDay(); } }
-    return Math.floor(t / 1000) + closeH * HOUR - off;
-  };
-  for (let i = 0; i < 3; i++) {                               // advance to the next period if this one already closed
-    let cand: number;
-    if (tf === "W" || tf === "2W") {
-      const dow = new Date(Date.UTC(Y, Mo, Da)).getUTCDay();
-      cand = closeOn(Y, Mo, Da + ((7 - dow) % 7) + i * 7);    // ISO-week end (Sunday) → walked to Fri close for equities
-    } else if (tf === "1M") {
-      cand = closeOn(Y, Mo + i, new Date(Date.UTC(Y, Mo + i + 1, 0)).getUTCDate());   // last day of month
-    } else if (tf === "3M") {
-      const qEndMo = Math.floor(Mo / 3) * 3 + 2 + i * 3;      // last month of the calendar quarter
-      cand = closeOn(Y, qEndMo, new Date(Date.UTC(Y, qEndMo + 1, 0)).getUTCDate());
-    } else {
-      cand = closeOn(Y, Mo, Da + i);                          // D + any unknown daily-derived TF
-    }
-    if (cand > nowSec) return cand;
-  }
-  return closeOn(Y, Mo, Da + 1);
+// Intraday uses exchange-local wall time; 24H candles stop at their calendar-owned phase end.
+/** The close of the candle actually plotted, using the shared calendar owner. */
+export function periodCloseTs(
+  tf: string, activeBarTime: string | number, market: Market, context?: CalendarCloseContext,
+): number | null {
+  return calendarCandleClose(activeBarTime, tf, market, context);
 }
 
 /** Format a bar-close countdown (seconds), TradingView-style, tiered by timeframe. */
@@ -453,49 +447,8 @@ function cmStoch(highs: number[], lows: number[], cl: number[], len = 14, smooth
 function rsiMacd(cl: number[], rsiLen = 14, fastLen = 14, baseLen = 60, signalLen = 5) { const r = rsi(cl, rsiLen); const ef = ema(r, fastLen), es = ema(r, baseLen); const line = cl.map((_, i) => (ef[i] != null && es[i] != null ? ef[i]! - es[i]! : null)); const sig = ema(line, signalLen); const hist = line.map((_, i) => (line[i] != null && sig[i] != null ? line[i]! - sig[i]! : null)); return { line, sig, hist }; }
 const toLine = (rows: Bar[], arr: (number | null)[]) => rows.map((r, i) => (arr[i] != null && isFinite(arr[i]!) ? { time: r.time, value: arr[i]! } : null)).filter(Boolean) as any[];
 
-export function resampleTf(rows: Bar[], tf: string, anchor?: SessionAnchor | null): Bar[] {
-  if (tf === "D" || rows.length === 0) return rows;
-  // ── daily multiples (2D / 3D) ─ ONE canonical grid, shared with the signal engine ──────
-  // These are the only timeframes with a session-PHASE freedom, and the phase is not a
-  // property of this array: it is the symbol's global session index, published on the OHLC
-  // document as `session_anchor` (ingest/session_anchor.py) because a truncated feed cannot
-  // tell you which sessions share a bar. Bucketing by row index from the feed's first row —
-  // what this function did — re-phased every later bar and stamped each one with its CLOSING
-  // session, so a Golden Oracle signal (indexed by the bar's OPEN) never matched the candle it
-  // was computed on. lib/sessionBars.ts carries the rule and the rationale.
-  const mult = dailyMultipleOf(tf);
-  if (mult != null) {
-    const barAnchor = resolveBarAnchor(rows.map((r) => r.time), anchor);
-    return groupSessionBars(rows, mult, barAnchor, (from, to) => {
-      const first = rows[from];
-      let h = first.h, l = first.l, v = first.v;
-      for (let i = from + 1; i <= to; i++) {
-        const r = rows[i];
-        if (r.h > h) h = r.h;
-        if (r.l < l) l = r.l;
-        v += r.v;
-      }
-      return { o: first.o, h, l, c: rows[to].c, v };
-    });
-  }
-  // ── calendar units (W / 2W / 1M / 3M) ─ unchanged ──────────────────────────────────────
-  // A calendar bucket has no phase to get wrong and its key is its LAST session; every
-  // consumer (lib/barSnap, lib/pine-engine/runtime, TechnicalsPage) is written to that.
-  const out: Bar[] = []; let cur: Bar | null = null; let key: any = null;
-  const isoWeek = (d: string) => { const dt = new Date(d + "T00:00:00Z"); const day = (dt.getUTCDay() + 6) % 7; dt.setUTCDate(dt.getUTCDate() - day); return dt.toISOString().slice(0, 10); };
-  // 2W / 3M use ABSOLUTE-calendar bucketing (anchored to a fixed epoch, not the data's first bar), so
-  // buckets are stable across a month/quarter boundary regardless of where the window starts:
-  //   2W → floor(days-since-epoch of the bar's ISO-week-start / 14)   (fixed fortnight blocks)
-  //   3M → year + calendar quarter (Q0=Jan-Mar … Q3=Oct-Dec)
-  const biWeek = (d: string) => { const dt = new Date(isoWeek(d) + "T00:00:00Z"); return Math.floor(dt.getTime() / 86400_000 / 14); };
-  const quarter = (d: string) => { const y = d.slice(0, 4); const m = +d.slice(5, 7) - 1; return `${y}-Q${Math.floor(m / 3)}`; };
-  // The daily-derived set is exactly {D, 2D, 3D, W, 2W, 1M, 3M} (TerminalShell.DAILY_FUNCTIONAL);
-  // D and the two daily multiples returned above, so only calendar units reach here. An
-  // unrecognised unit keys per row — one bar in, one bar out — rather than silently falling into
-  // a 3-row bucket, which is what the old trailing `Math.floor(i / 3)` default did.
-  for (let i = 0; i < rows.length; i++) { const r = rows[i]; const k = tf === "W" ? isoWeek(r.time) : tf === "2W" ? biWeek(r.time) : tf === "1M" ? r.time.slice(0, 7) : tf === "3M" ? quarter(r.time) : r.time; if (k !== key) { if (cur) out.push(cur); key = k; cur = { ...r }; } else { cur!.h = Math.max(cur!.h, r.h); cur!.l = Math.min(cur!.l, r.l); cur!.c = r.c; cur!.time = r.time; cur!.v += r.v; } }
-  if (cur) out.push(cur); return out;
-}
+// The shared bar owner keeps the existing public import compatible.
+export { resampleTf } from "@/lib/sessionBars";
 
 // ── resampleTf memoization: cache per (symbol, tf) so D→W→D doesn't recompute ──
 // Keys are evicted when the symbol changes (clearResampleCache). Max ~10 entries (6 TFs × recent symbols).
@@ -563,7 +516,7 @@ const shellAxisFontSize = () => (shellAxis() && shellWide() ? 13 : 12);
 // `axis`/`grid` resolve through the --chart-axis-text / --chart-grid indirection whose :root
 // defaults reproduce --muted / --grid exactly; only the native shell retunes them (D6).
 type Tokens = { up: string; down: string; grid: string; axis: string; line: string; p3: string; link: string; warn: string; signal: string; buy: string; sell: string; mut: string; brand2: string };
-const readTokens = (): Tokens => ({ up: css("--up"), down: css("--down"), grid: css("--chart-grid") || css("--grid"), axis: css("--chart-axis-text") || css("--muted"), line: css("--line"), p3: css("--panel-3"), link: css("--link"), warn: css("--warn"), signal: css("--signal"), buy: css("--buy"), sell: css("--sell"), mut: css("--muted"), brand2: css("--brand-2") });
+const readTokens = (): Tokens => ({ up: css("--up"), down: css("--down"), grid: css("--chart-grid") || css("--grid"), axis: css("--chart-axis-text") || css("--muted"), line: css("--line"), p3: css("--chart-crosshair-label-bg") || css("--panel-3"), link: css("--link"), warn: css("--warn"), signal: css("--signal"), buy: css("--buy"), sell: css("--sell"), mut: css("--muted"), brand2: css("--brand-2") });
 
 // Directional tint. LWC paints to canvas and cannot resolve var(--up)/var(--down), so every shaded
 // directional band has to be built in JS from the LIVE token — hardcoding the green/red rgba is what
@@ -641,8 +594,8 @@ import { detectGapZones, gapZonesAsOf, type GapZone } from "@/lib/gapZones";
 import { deriveDataOrigin, originComposite, originNotCovered, originUnavailable, type DataOrigin } from "@/lib/dataOrigin";
 
 export default function ChartPanel({ symbol, contextDock, optionsLevel = null, chartType = "candles", indicators, timeframe = "D", replayCutoff = null, onMeta, tool = null, toolActivation = 0, drawingSticky = false, drawingCreationDisabled = false, drawStyle, drawings = [], onDrawingsChange, detectCmd = null, magnet = "off", compare = [], compareCfg = EMPTY_OBJ, isActive = true, syncId = null, liveQuote = null,
-  indParams = EMPTY_OBJ, hidden = EMPTY_SET, onToggleHidden, onRemoveInd, onOpenSettings, onOpenSource, pineScripts = EMPTY_PINE, chartSettings, onVisualSettings, onChartApi, onCompareStudy, extHours = false, episodeId = null,
-  instrumentName, instrumentMarket, instrumentColor, onAddAlert, onTableView, onObjectTree, onOpenSettingsModal, lockedVLine = null, onSetLockedVLine, onIndRowsAt, dayMode = false, onPaneCount, companyName = "", userTier = "free", dataReady = true, initialTimeframe = null, onDataOrigin }:
+  indParams = EMPTY_OBJ, hidden = EMPTY_SET, onToggleHidden, onRemoveInd, onOpenSettings, onOpenSource, pineScripts = EMPTY_PINE, chartSettings, onVisualSettings, onChartApi, onVisualReady, onCompareStudy, extHours = false, overnightHours = false, episodeId = null,
+  instrumentName, instrumentMarket, instrumentColor, onAddAlert, onTableView, onObjectTree, onOpenSettingsModal, lockedVLine = null, onSetLockedVLine, onIndRowsAt, onRenderedPriceSource, onNativeObservations, dayMode = false, onPaneCount, companyName = "", userTier = "free", dataReady = true, initialTimeframe = null, onDataOrigin, onOvernightHistory }:
   { symbol: string; contextDock?: ChartContextDock; optionsLevel?: OptionsChartLevel | null; companyName?: string; chartType?: string; indicators: Set<string>; timeframe?: string; replayCutoff?: ReplayCutoff | null; onMeta?: (m: { symbol: string; timeframe: string; axis: ReplayAxis }) => void;
     /** False until the shell has COMMITTED its persisted prefs. See `effectiveTimeframe`. */
     dataReady?: boolean;
@@ -655,7 +608,8 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
     instrumentName?: string;
     instrumentMarket?: string;
     instrumentColor?: string;
-    onChartApi?: (api: ChartEngine | null) => void; extHours?: boolean; episodeId?: string | null;
+    onVisualReady?: (detail: TerminalVisualReadyDetail) => void;
+    onChartApi?: (api: ChartEngine | null) => void; extHours?: boolean; overnightHours?: boolean; episodeId?: string | null;
     /** E08: the receipt of every completed compare build (anchors, bases, withheld legs, digest). */
     onCompareStudy?: (study: CompareStudy) => void;
     onAddAlert?: (price: number) => void;
@@ -666,6 +620,10 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
     onSetLockedVLine?: (time: string | null) => void;
     /** Called once after each data load with a function that returns per-key indicator values at a bar time. */
     onIndRowsAt?: (fn: ((barTime: string | number) => Record<string, number | null>) | null, meta?: ChartReadoutMeta) => void;
+    /** Exact accepted rendered bars for read-only Copilot price context; never a second fetch/store. */
+    onRenderedPriceSource?: (source: ChartPriceWindowSource | null) => void;
+    /** Exact compact facts from the SAME native bundles this panel actually rendered. */
+    onNativeObservations?: (packet: Record<string, unknown> | null) => void;
     /** Day Trade Mode — enables session shading + countdown chip + stats strip. */
     dayMode?: boolean;
     /** B3: fires whenever the number of non-price sub-panes changes, so TerminalShell can grow the container. */
@@ -674,7 +632,9 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
     userTier?: SuiteTier;
     /** Data OS U02: emits the derived data-origin readout for the data this generation accepted. */
     onDataOrigin?: (o: DataOrigin) => void;
+    onOvernightHistory?: (history: BoatsChartHistory) => void;
   }) {
+  const visualReadyCallbackRef = useRef(onVisualReady); visualReadyCallbackRef.current = onVisualReady;
   const t = useT();
   const { lang } = useLang();
   const chartLanguageRef = useRef(lang); chartLanguageRef.current = lang;
@@ -757,6 +717,17 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
   const pineScriptsRef = useRef<PineScript[]>(pineScripts); pineScriptsRef.current = pineScripts;
   const barsRef = useRef<Bar[]>([]);        // the bars currently ON the chart (full OR replay-sliced)
   const fullBarsRef = useRef<Bar[]>([]);    // the full resampled history — NEVER mutated by replay
+  // Capture belongs to the displayed data, including its initial load; an effect restart is not a new receipt.
+  const overnightCaptureRef = useRef(0);
+  // Retire the old chart synchronously when the user changes 24H session
+  // presentation, before the new asynchronous history request resolves.
+  const priorOvernightPresentationRef = useRef(overnightHours);
+  const [intradayLoadVersion, setIntradayLoadVersion] = useState(0);
+  // A cold completion uses the existing first-paint owner, including studies and visual readiness.
+  const intradayFirstPaintRef = useRef<{
+    epoch: number; symbol: string; timeframe: string; chartType: typeof chartType; extHours: boolean; overnightHours: boolean;
+    body: Parameters<typeof boatsChartRefresh>[0]; appliedTradeMs: number;
+  } | null>(null);
   // The timeframe `fullBarsRef` was resampled to. During a timeframe switch `timeframeRef` already
   // names the NEW timeframe while these rows are still the old one's; a replay step landing in that
   // window must slice them by THEIR availability rule, not the new timeframe's.
@@ -788,10 +759,16 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
     const b = barsRef.current;
     if (futureRef.current.src !== b) {
       const barTimes = b.map((row) => row.time as string | number);
-      const times = futureBarTimes(barTimes, FUTURE_ANCHOR_BARS);
+      // Sparse overnight history can contain a weekend-sized gap. The selected
+      // interval owns future cadence; that gap is not a multi-day candle width.
+      const span = tfMinutes(timeframeRef.current) * 60;
+      const last = barTimes[barTimes.length - 1];
+      const cadenceTimes = overnightHoursRef.current && typeof last === "number" && span > 0
+        ? [last - span, last] : barTimes;
+      const times = futureBarTimes(cadenceTimes, FUTURE_ANCHOR_BARS);
       const index = new Map<string | number, number>();
       times.forEach((time, offset) => { index.set(String(time), offset); index.set(time, offset); });
-      futureRef.current = { src: b, times, index, cadence: futureCadence(barTimes) };
+      futureRef.current = { src: b, times, index, cadence: futureCadence(cadenceTimes) };
     }
     return futureRef.current;
   };
@@ -934,6 +911,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
   const replayIdxRef = useRef<ReplayCutoff | null>(replayCutoff);
   const liveQuoteRef = useRef<LiveQuote>(liveQuote);       // latest live quote, so Effect 2's tail can re-apply the splice after setData
   const extHoursRef = useRef(extHours);
+  const overnightHoursRef = useRef(overnightHours);
   const liveTickKeyRef = useRef("");                        // rejects a repeated one-second packet without repainting
   const livePulseSeqRef = useRef(0);                         // alternates CSS animation names so every tick can pulse
   // The newest quote this pane has ACCEPTED — its lane and its instant. The splice rewrites the
@@ -941,6 +919,8 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
   // everything derived from it, backwards; `acceptsLiveTick` refuses a strictly older one FROM THE
   // SAME LANE (a basis change is a different clock, so it restarts the ordering). Cleared with the bars.
   const liveTickRef = useRef<AcceptedLiveTick | null>(null);
+  const liveCandleStateRef = useRef(createLiveCandleState());
+  const liveHistoryRepairAtRef = useRef(0);
   // What this generation's bar read reported about its own freshness, for the capture review (E19):
   // a saved copy carries its age and how its background refresh ended; null = not reported.
   const ohlcCopyRef = useRef<CaptureDataCopy | null>(null);
@@ -1040,11 +1020,22 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
   const onOpenSettingsModalRef = useRef(onOpenSettingsModal); onOpenSettingsModalRef.current = onOpenSettingsModal;
   const onSetLockedVLineRef = useRef(onSetLockedVLine); onSetLockedVLineRef.current = onSetLockedVLine;
   const lockedVLineRef = useRef(lockedVLine); lockedVLineRef.current = lockedVLine;
+  const onRenderedPriceSourceRef = useRef(onRenderedPriceSource);
+  onRenderedPriceSourceRef.current = onRenderedPriceSource;
+  const renderedPriceRowsRef = useRef<readonly Bar[] | null>(null);
+  const renderedPriceTailSigRef = useRef("");
   // A cursor lock belongs to the exact chart/ticker that created it. The shell still carries the
   // historical workspace field for compatibility, but this ref prevents that global value from
   // painting on sibling panes or a different ticker after navigation.
   const lockedVLineOwnerSymbolRef = useRef<string | null>(null);
   const onIndRowsAtRef = useRef(onIndRowsAt); onIndRowsAtRef.current = onIndRowsAt;
+  const onNativeObservationsRef = useRef(onNativeObservations); onNativeObservationsRef.current = onNativeObservations;
+  const nativeObservationSigRef = useRef("");
+  useEffect(() => {
+    nativeObservationSigRef.current = "";
+    if (isActive) scheduleRenderRef.current?.();
+  }, [isActive, lockedVLine]);
+  useEffect(() => () => { onRenderedPriceSourceRef.current?.(null); }, []);
   // B2/B3/B5: mobile breakpoint ref (drives applyStretch) + reactive state (drives ChartOverlays coarse prop)
   const isMobileRef = useRef<boolean>(typeof window !== "undefined" && window.matchMedia("(max-width:860px)").matches);
   const [isMobile, setIsMobile] = useState<boolean>(() =>
@@ -1052,6 +1043,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
   );
   const onPaneCountRef = useRef(onPaneCount); onPaneCountRef.current = onPaneCount;
   const onDataOriginRef = useRef(onDataOrigin); onDataOriginRef.current = onDataOrigin;
+  const onOvernightHistoryRef = useRef(onOvernightHistory); onOvernightHistoryRef.current = onOvernightHistory;
   const lastPaneCountRef = useRef<number>(-1);   // last reported count to avoid redundant calls
 
   const suiteRuntimeProfile = (key: string): SuiteRuntimeProfile => {
@@ -1252,7 +1244,15 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
 
   // rebuild the CHART STYLE (not the chart) when the up/down color scheme flips (Effect 5)
   const [csNonce, setCsNonce] = useState(0);
-  useEffect(() => { const h = () => setCsNonce((n) => n + 1); window.addEventListener("mm:updown", h); return () => window.removeEventListener("mm:updown", h); }, []);
+  useEffect(() => {
+    const h = () => setCsNonce((n) => n + 1);
+    window.addEventListener("mm:updown", h);
+    // Appearance is owned by the host/account preference. Repaint token colors
+    // when it changes, retaining this chart's data, series and viewport.
+    const observer = new MutationObserver(h);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme", "data-research-appearance"] });
+    return () => { window.removeEventListener("mm:updown", h); observer.disconnect(); };
+  }, []);
   // suite colors resolve from CSS tokens — drop the cache on an up/down flip so the next frame re-reads
   useEffect(() => { const h = () => { suiteColorsRef.current = null; }; window.addEventListener("mm:updown", h); return () => window.removeEventListener("mm:updown", h); }, []);
   // Options Levels bakes tPlain() titles into canvas price-line labels at build time — rebuild on a
@@ -1297,18 +1297,27 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
   // The cutoff as a stable effect key: a new object for the same instant must not re-slice.
   const replayKey = replayCutoff ? `${replayCutoff.clock}:${replayCutoff.at}` : null;
   useLayoutEffect(() => {
+    // ETH and 24H may have the same symbol/timeframe. Retire their old numeric owners
+    // before the new session is observable or a live tick can restamp prior bars.
+    chartDataSymRef.current = "";
     visualSourceRef.current = null;
     visualSeriesRef.current = null;
     visualSelectedTimeRef.current = null;
+    renderedPriceRowsRef.current = null;
+    renderedPriceTailSigRef.current = "";
+    onRenderedPriceSourceRef.current?.(null);
+    onIndRowsAtRef.current?.(null);
+    nativeObservationSigRef.current = "";
+    onNativeObservationsRef.current?.(null);
     visualCalendarRef.current = { symbol: "", calendar: EMPTY_VISUAL_CALENDAR };
     visualPanelRef.current?.reset();
-  }, [symbol, effectiveTimeframe]);
+  }, [symbol, effectiveTimeframe, extHours, overnightHours]);
   useLayoutEffect(() => {
     visualSeriesRef.current = null;
     visualSelectedTimeRef.current = null;
     visualPanelRef.current?.reset();
   }, [replayKey]);
-  chartTypeRef.current = chartType; timeframeRef.current = effectiveTimeframe; compareRef.current = compare || []; compareCfgRef.current = compareCfg; indicatorsRef.current = indicators; dataReadyRef.current = dataReady; syncIdRef.current = syncId; replayIdxRef.current = replayCutoff; liveQuoteRef.current = liveQuote; extHoursRef.current = extHours; symbolRef.current = symbol; companyNameRef.current = companyName;
+  chartTypeRef.current = chartType; timeframeRef.current = effectiveTimeframe; compareRef.current = compare || []; compareCfgRef.current = compareCfg; indicatorsRef.current = indicators; dataReadyRef.current = dataReady; syncIdRef.current = syncId; replayIdxRef.current = replayCutoff; liveQuoteRef.current = liveQuote; extHoursRef.current = extHours; overnightHoursRef.current = overnightHours; symbolRef.current = symbol; companyNameRef.current = companyName;
   lastValueVisibleRef.current = chartSettings?.lastValueVisible !== false;
   countdownVisibleRef.current = chartSettings?.countdownVisible !== false;
   chartSettingsRef.current = chartSettings ?? {};
@@ -1848,7 +1857,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
     const market = classify(symbolRef.current);
     const imBars = toIMBars(rows);
     const mults = [p.m1 as number, p.m2 as number, p.m3 as number];
-    const result = sessionVwap(imBars, market, p.includePm as boolean, mults);
+    const result = sessionVwap(imBars, market, p.includePm as boolean, mults, overnightHoursRef.current);
     const out: SeriesHandle[] = [];
     // Main VWAP line — participates in autoscale
     const vwapS = chart.addSeries("line", {
@@ -2322,11 +2331,26 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       else if (fresh.status === "ok" && fresh.res) {
         const d = fresh.res.asofDate;
         const age = d ? sessionsOldEt(d) : 0;
+        // W3S: when the published band is drawn, the legend carries the producer's own
+        // statement beside it — each part only when its field is finite, and the method
+        // named as unstated. No band drawn, no statement.
+        // Strings live in lib/optionsLevelsStrings.ts (owner-local; the shared LEX stays untouched).
+        const emBand = fresh.res.levels.find(
+          (lv) => (lv.key === "em_lo" || lv.key === "em_hi") && lv.band != null,
+        )?.band ?? null;
+        const emStatement = emBand
+          ? [
+            emBand.bandMult != null ? olPlain("olEmBandMult").replace("{m}", emBand.bandMult.toFixed(2)) : "",
+            emBand.horizonDays != null ? olPlain("olEmHorizon").replace("{n}", String(emBand.horizonDays)) : "",
+            olPlain("olEmMethodUnstated"),
+          ].filter(Boolean).join(" · ")
+          : "";
         // Tier discipline (§4.1): "signed estimate" rides ONLY when a dealer-signed level
         // (wall/flip) is drawn; an EM-only set is Tier A arithmetic and carries no disclosure.
         const parts = [
           d ? tPlain("olEod").replace("{date}", d.slice(5)) : "",
           fresh.res.signed ? tPlain("olSigned") : "",
+          emStatement,
           age > 3 ? tPlain("olStale").replace("{n}", String(age)) : "",
         ].filter(Boolean);
         // Undated + unsigned (a Tier-A-only set with a malformed asof): still say SOMETHING
@@ -2930,10 +2954,54 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
     const prefs = visualSettings(chartSettingsRef.current);
     if (prefs.visualLevels || prefs.visualEvents) scheduleRenderRef.current?.();
   };
+  const publishRenderedPriceSource = (rows: Bar[]) => {
+    const source = visualSourceRef.current;
+    if (!source || source.symbol !== symbolRef.current || source.timeframe !== timeframeRef.current) {
+      if (renderedPriceRowsRef.current !== null || renderedPriceTailSigRef.current) {
+        renderedPriceRowsRef.current = null;
+        renderedPriceTailSigRef.current = "";
+        onRenderedPriceSourceRef.current?.(null);
+      }
+      return;
+    }
+    if (!rows.length) {
+      if (renderedPriceRowsRef.current !== null || renderedPriceTailSigRef.current) {
+        renderedPriceRowsRef.current = null;
+        renderedPriceTailSigRef.current = "";
+        onRenderedPriceSourceRef.current?.(null);
+      }
+      return;
+    }
+    const tailSig = rows.slice(-12).map((bar) =>
+      `${String(bar.time)}:${bar.o}:${bar.h}:${bar.l}:${bar.c}:${bar.v}`,
+    ).join("|");
+    const signature = `${source.symbol}|${source.timeframe}|${replayIdxRef.current == null ? "live" : "replay"}|${rows.length}|${tailSig}`;
+    if (rows === renderedPriceRowsRef.current && signature === renderedPriceTailSigRef.current) return;
+    renderedPriceRowsRef.current = rows;
+    renderedPriceTailSigRef.current = signature;
+    onRenderedPriceSourceRef.current?.({
+      symbol: source.symbol,
+      tf: source.timeframe,
+      bars: rows,
+      replay: replayIdxRef.current !== null,
+    });
+  };
+
   const refreshVisualContext = (rows: Bar[]) => {
     const source = visualSourceRef.current;
-    if (!source || source.symbol !== symbolRef.current || source.timeframe !== timeframeRef.current) return;
-    if (!rows.length) { visualSeriesRef.current = null; visualPanelRef.current?.reset("empty"); return; }
+    if (!source || source.symbol !== symbolRef.current || source.timeframe !== timeframeRef.current) {
+      publishRenderedPriceSource(rows);
+      return;
+    }
+    if (!rows.length) {
+      publishRenderedPriceSource(rows);
+      visualSeriesRef.current = null; visualPanelRef.current?.reset("empty");
+      onIndRowsAtRef.current?.(() => ({}), { symbol: source.symbol, timeframe: source.timeframe, bars: [] });
+      nativeObservationSigRef.current = "";
+      onNativeObservationsRef.current?.(null);
+      return;
+    }
+    publishRenderedPriceSource(rows);
     const series = buildVisualSeries(source.symbol, source.timeframe, rows, indParamsRef.current.trend?.["cp.mode"]);
     visualSeriesRef.current = series;
     if (visualSelectedTimeRef.current !== null && !series.indexByTime.has(visualSelectedTimeRef.current)) visualSelectedTimeRef.current = null;
@@ -3081,6 +3149,12 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
    * scale, and a status line reading +1881%). Clearing `chartDataSymRef` also tells every
    * symbol-guarded consumer (splice, options levels, drawings) that this pane is unpainted.
    */
+  const showIntradayEmpty = (sym: string, tf: string, unavailable: boolean) => {
+    if (statusRef.current) statusRef.current.textContent = unavailable ? "Intraday feed unavailable." : "No intraday data for this symbol.";
+    showEmptyRef.current(unavailable
+      ? `Intraday feed unavailable for ${sym} on ${tf}. Switch back to the daily timeframe to keep charting.`
+      : `No intraday data for ${sym} on ${tf}. Switch back to the daily timeframe to keep charting.`);
+  };
   const clearChartData = () => {
     largeTradesRef.current?.clear();
     episodeSpecsRef.current = [];
@@ -3126,6 +3200,25 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
     renderSignalsRef.current();    // drop the previous symbol's markers / gap zones
     renderRef.current();
   };
+
+  // A 1m ETH/daily chart must not remain painted for even a fetch budget under
+  // the newly selected 24H badge. Layout effects retire prior bars before the
+  // browser paints the new session; the ordinary load still owns adoption.
+  useLayoutEffect(() => {
+    const previous = priorOvernightPresentationRef.current;
+    priorOvernightPresentationRef.current = overnightHours;
+    if (previous === overnightHours || !isIntradayTf(effectiveTimeframe)
+        || (!barsRef.current.length && !fullBarsRef.current.length)) return;
+    clearChartData();
+    hideEmptyRef.current();
+    if (statusRef.current) statusRef.current.textContent = tPlain("loading", "Loading…");
+    // The five-second refresh must remain eligible even if the foreground
+    // request is provisional or delayed after this synchronous retirement.
+    if (overnightHours) {
+      chartDataSymRef.current = symbol;
+      fullBarsTfRef.current = effectiveTimeframe;
+    }
+  }, [symbol, effectiveTimeframe, overnightHours]);
 
   // ── in-place study refresh ────────────────────────────────────────────────────────────────────
   // `updateAllIndicators` only re-setData's the classic subset (EMA/BB/VWAP/Vol/RSI/Stoch/MACD).
@@ -3237,11 +3330,15 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
     if (!priceS || !isIntradayRef.current || replayIdxRef.current != null) return;
     if (chartDataSymRef.current !== symbolRef.current) return;
     const current = fullBarsRef.current;
-    if (!current.length) return;
+    if (!current.length && !overnightHoursRef.current && !liveQuoteRef.current?.formingCandles) return;
     // A superseded packet must never repaint after a newer one. `tickKey` alone only rejects an
     // exact REPEAT; an out-of-order packet carries a different key and would reshape the candle
     // backwards, so the accepted instant is the gate.
-    const tick: AcceptedLiveTick = { basis: liveQuoteRef.current?.basis ?? "", stamp: liveQuoteStamp(liveQuoteRef.current) };
+    const candleQuote = liveQuoteRef.current;
+    const overnightTick = overnightHoursRef.current && candleQuote?.extSource === "tiingo_boats";
+    const tick: AcceptedLiveTick = overnightTick
+      ? { basis: "tiingo_boats", stamp: (candleQuote?.extTs ?? 0) * 1000 }
+      : { basis: candleQuote?.basis ?? "", stamp: liveQuoteStamp(candleQuote) };
     if (!acceptsLiveTick(liveTickRef.current, tick)) return;
     const mutation = mutateLiveCandle(
       current as unknown as import("@/lib/liveCandle").LiveCandleBar[],
@@ -3249,17 +3346,39 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       timeframeRef.current,
       classify(symbolRef.current),
       extHoursRef.current,
+      overnightHoursRef.current,
+      liveCandleStateRef.current,
     );
     if (!mutation || mutation.tickKey === liveTickKeyRef.current) return;
 
+    if (mutation.kind === "history-gap") {
+      if (Date.now() - liveHistoryRepairAtRef.current > 30_000) {
+        liveHistoryRepairAtRef.current = Date.now();
+        setIntradayLoadVersion(v => v + 1);
+      }
+      return;
+    }
     const bar = mutation.bar as unknown as Bar;
+    const changed = mutation.changedBars ?? [mutation.bar];
+    const oldTimes = new Set(current.map(row => Number(row.time)));
+    const oldTail = Number(current[current.length - 1]?.time ?? -Infinity);
+    const priceRow = (row: import("@/lib/liveCandle").LiveCandleBar) => isValueChartType(chartTypeRef.current)
+      ? { time: row.time, value: row.c }
+      : { time: row.time, open: row.o, high: row.h, low: row.l, close: row.c };
     try {
-      priceS.update(isValueChartType(chartTypeRef.current)
-        ? { time: bar.time, value: bar.c }
-        : { time: bar.time, open: bar.o, high: bar.h, low: bar.l, close: bar.c });
+      if (changed.some(row => Number(row.time) < oldTail && !oldTimes.has(Number(row.time)))) {
+        // A backfilled hole needs one atomic replacement; historical update cannot insert it.
+        const scale = engineRef.current?.timeScale();
+        const visible = scale?.getVisibleRange();
+        priceS.setData(mutation.bars.map(priceRow));
+        if (visible) scale?.setVisibleRange(visible);
+      } else {
+        for (const row of changed) priceS.update(priceRow(row), Number(row.time) < oldTail);
+      }
       suitePaintKeyRef.current = "";
-    } catch { return; }
+    } catch { liveCandleStateRef.current = createLiveCandleState(); return; }
 
+    hideEmptyRef.current();
     liveTickKeyRef.current = mutation.tickKey;
     liveTickRef.current = tick;
     fullBarsRef.current = mutation.bars as unknown as Bar[];
@@ -3287,6 +3406,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       wrap.dataset.liveClose = String(bar.c);
       wrap.dataset.liveTime = String(bar.time);
       wrap.dataset.liveRevision = String(++livePulseSeqRef.current);
+      wrap.dataset.liveCoverage = mutation.coverage ?? "partial";
       wrap.dataset.livePulse = livePulseSeqRef.current % 2 ? "a" : "b";
       wrap.style.setProperty("--mm-live-color", color || tokensRef.current.brand2);
       if (y != null && Number.isFinite(y)) wrap.style.setProperty("--mm-live-y", `${Math.round(y)}px`);
@@ -3315,7 +3435,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
     const sd = sessionDateOf(q.ts, market);
     if (sd == null) return;
     if (!canSpliceRegularBar(symbolRef.current, q, sd)) return;
-    const spliced = spliceDaily(daily, q, sd);
+    const spliced = spliceDaily(daily, q, sd, liveCandleStateRef.current.historyFence);
     if (spliced === daily) return;                         // nothing changed (older session)
     // fold to the bar the chart actually plots at this TF, then push it via update()
     let bucket = foldFinalBucket(spliced, tf, sessionAnchorRef.current);
@@ -4085,6 +4205,8 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
           lastBar: last ? { time: last.time, o: last.o, h: last.h, l: last.l, c: last.c, v: last.v } : null,
           // what the candle on the canvas actually holds, not what we believe we pushed
           priceTail: tail(priceSeriesHandleRef.current ?? undefined),
+          priceRecent: g(() => priceSeriesHandleRef.current?.data().slice(-3) ?? []),
+          recentBars: rows.slice(-3).map(row => ({ ...row })),
           series,
           // Cached SVG-overlay geometry (ichimoku cloud, profiles, ORB, session VWAP bands). The POC
           // is a COMPUTED value, not a reference into the bar array: an in-place last-bucket
@@ -4119,7 +4241,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       // fontSize matches the settings effect (Effect 7) so the axis does not reflow one frame after mount.
       layout: { background: { color: "transparent" }, textColor: t.axis, fontSize: shellAxisFontSize(), attributionLogo: false, panes: { separatorColor: css("--pane-sep"), separatorHoverColor: css("--pane-sep-h") } },
       grid: { vertLines: { color: t.grid }, horzLines: { color: t.grid } },
-      crosshair: { mode: EngineCrosshairMode.Normal, vertLine: { color: "rgba(214,218,227,.32)", width: 1, labelBackgroundColor: t.p3 }, horzLine: { color: "rgba(214,218,227,.32)", width: 1, labelBackgroundColor: t.p3 } },
+      crosshair: { mode: EngineCrosshairMode.Normal, vertLine: { color: css("--chart-crosshair-line") || "rgba(214,218,227,.32)", width: 1, labelBackgroundColor: t.p3 }, horzLine: { color: css("--chart-crosshair-line") || "rgba(214,218,227,.32)", width: 1, labelBackgroundColor: t.p3 } },
       // C2 — TV draws no price-scale border (row y=700 across x1010–1050 is uniform canvas); the axis
       // labels float. C3 — tickMarkDensity thins the label/gridline run to TV's measured 47 CSS px.
       rightPriceScale: { borderVisible: !shellAxis(), borderColor: t.line, tickMarkDensity: shellTickDensity(), scaleMargins: { top: 0.1, bottom: 0.08 } },
@@ -4459,11 +4581,13 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       if (replayIdxRef.current == null) {                     // no meaningful "time to close" while replaying history
         const nowSec = Date.now() / 1000; let rem: number | null = null;
         if (isIntradayRef.current) {
-          const mins = tfMinutes(timeframeRef.current); const openTs = Number(last.time);
-          const displayNow = liveDisplayEpoch(Date.now(), classify(symbolRef.current));
-          if (mins > 0 && isFinite(openTs) && displayNow != null) rem = openTs + mins * 60 - displayNow;
+          rem = liveCandleRemaining(Number(last.time), timeframeRef.current, classify(symbolRef.current), overnightHoursRef.current, Date.now(), extHoursRef.current);
         } else {
-          rem = periodCloseTs(timeframeRef.current, nowSec, classify(symbolRef.current)) - nowSec;
+          const close = periodCloseTs(timeframeRef.current, last.time, classify(symbolRef.current), {
+            dailyTimes: dailyBarsRef.current.map(bar => String(bar.time)),
+            publishedSessionAnchor: sessionAnchorRef.current,
+          });
+          rem = close == null ? null : Math.max(0, close - nowSec);
         }
         if (rem != null && isFinite(rem)) cd = fmtCountdown(rem, isIntradayRef.current);
       }
@@ -6831,18 +6955,9 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       const lastBarTime = lastBar.time as unknown as number; // numeric epoch for intraday
       const tf = timeframeRef.current;
       const intervalSec = tfMinutes(tf) * 60;
-      // Market-local "now" via Intl API
       const market = classify(symbolRef.current);
-      const tz = market === "cn" || market === "hk" ? "Asia/Shanghai" : market === "us" ? "America/New_York" : "UTC";
-      const nowMs = Date.now();
-      const nowLocalSec = (() => {
-        const parts: Record<string, string> = {};
-        for (const p of new Intl.DateTimeFormat("en-US", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false }).formatToParts(nowMs)) parts[p.type] = p.value;
-        return (parseInt(parts.hour || "0") * 3600 + parseInt(parts.minute || "0") * 60 + parseInt(parts.second || "0")) + (Math.floor(nowMs / 86400000) * 86400);
-      })();
-      const barCloseEpoch = lastBarTime + intervalSec;
-      const rem = barCloseEpoch - nowLocalSec;
-      if (rem <= 0 || rem > intervalSec) { chip.style.display = "none"; return; }
+      const rem = liveCandleRemaining(lastBarTime, tf, market, overnightHoursRef.current, Date.now(), extHoursRef.current);
+      if (rem == null || rem <= 0 || rem > intervalSec) { chip.style.display = "none"; return; }
       const mm = Math.floor(rem / 60).toString().padStart(2, "0");
       const ss = Math.floor(rem % 60).toString().padStart(2, "0");
       chip.textContent = `${mm}:${ss}`;
@@ -6873,6 +6988,79 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       while (svgEl.firstChild) svgEl.removeChild(svgEl.firstChild);
       // dashboards collected from every suite bundle this frame; flushed to React only on change
       const collectedTables: TableSpec[] = [];
+      const configuredNativeSuites = Object.keys(SUITE_DEFS)
+        .filter((key) => indicatorsRef.current.has(key));
+      const observedNativeSuites = new Map<string, LiveNativeSuiteProjectionInput>();
+      const omittedNativeSuites = new Map<string, string>();
+      const omitNativeSuite = (suite: string, reason: string) => {
+        if (!observedNativeSuites.has(suite) && !omittedNativeSuites.has(suite))
+          omittedNativeSuites.set(suite, reason);
+      };
+      const rememberNativeSuite = (
+        suite: string,
+        def: (typeof SUITE_DEFS)[string],
+        renderedParams: Record<string, any> | undefined,
+        bundle: SuiteRenderBundle & { lockedModules?: Array<{ key: string }> },
+      ) => {
+        observedNativeSuites.set(suite, {
+          suite,
+          bundle,
+          bars: barsRef.current,
+          modules: def.modules.map((module) => ({ key: module.key, defaultOn: module.defaultOn })),
+          configuredParams: indParamsRef.current[suite] as Record<string, unknown> | undefined,
+          renderedParams,
+        });
+        omittedNativeSuites.delete(suite);
+      };
+      const flushNativeObservations = () => {
+        const callback = onNativeObservationsRef.current;
+        if (!callback) return;
+        const paneId = syncIdRef.current;
+        const source = visualSourceRef.current;
+        if (!configuredNativeSuites.length || !barsRef.current.length || !source
+            || source.symbol !== symbolRef.current || source.timeframe !== timeframeRef.current
+            || !Number.isInteger(paneId) || (paneId as number) < 0) {
+          if (nativeObservationSigRef.current !== "") {
+            nativeObservationSigRef.current = "";
+            callback(null);
+          }
+          return;
+        }
+        const omitted = configuredNativeSuites
+          .filter((suite) => !observedNativeSuites.has(suite))
+          .map((suite) => ({
+            suite,
+            reason: omittedNativeSuites.get(suite) ?? "not_rendered_this_pass",
+          }));
+        const rows = barsRef.current;
+        const lockedTime = lockedVLineOwnerSymbolRef.current === symbolRef.current
+          ? lockedVLineRef.current : null;
+        const selectedIndex = lockedTime == null
+          ? -1 : rows.findIndex((row) => String(row.time) === String(lockedTime));
+        const packet = buildLiveNativeObservations(
+          {
+            symbol: symbolRef.current,
+            timeframe: timeframeRef.current,
+            pane_id: paneId as number,
+            // barsRef is the chart owner’s cutoff-sliced series. The replay rail’s
+            // index belongs to its own axis and cannot be reused after a timeframe change.
+            replay: { active: replayIdxRef.current !== null,
+              index: replayIdxRef.current !== null ? rows.length - 1 : null },
+            bar_count: rows.length,
+            first_bar: rows[0]?.time ?? null,
+            last_bar: rows[rows.length - 1]?.time ?? null,
+            selected_bar: selectedIndex >= 0
+              ? { index: selectedIndex, time: rows[selectedIndex].time } : null,
+          },
+          configuredNativeSuites,
+          [...observedNativeSuites.values()],
+          omitted,
+        );
+        const sig = JSON.stringify(packet);
+        if (sig === nativeObservationSigRef.current) return;
+        nativeObservationSigRef.current = sig;
+        callback(packet);
+      };
       const flushTables = () => {
         const nextTables = collectedTables.slice();
         suiteTablesRef.current = nextTables;
@@ -6900,14 +7088,21 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
           const wrapRect = wrapElRef.current?.getBoundingClientRect();
           const langP = typeof document !== "undefined" && document.documentElement.getAttribute("data-lang") === "zh" ? "zh" as const : "en" as const;
           for (const k of paneKeys) {
-            const def = peekSuiteRuntime(k, suiteRuntimeProfile(k)); if (!def) { requestSuiteRuntime(k); continue; }   // fetch + repaint when it lands
-            const anchor = indSeriesRef.current.get(k)?.[0]; if (!anchor || !wrapRect) continue;
+            const def = peekSuiteRuntime(k, suiteRuntimeProfile(k));
+            if (!def) { omitNativeSuite(k, "runtime_pending"); requestSuiteRuntime(k); continue; }
+            const anchor = indSeriesRef.current.get(k)?.[0];
+            if (!anchor || !wrapRect) { omitNativeSuite(k, "pane_unavailable"); continue; }
             let paneTop = 0, paneH = 0;
-            try { const paneEl = anchor.pane().getHTMLElement(); if (!paneEl) continue; const rct = paneEl.getBoundingClientRect(); paneTop = rct.top - wrapRect.top; paneH = rct.height; } catch { continue; }
-            if (paneH < 12) continue;   // collapsed/hidden pane
+            try {
+              const paneEl = anchor.pane().getHTMLElement();
+              if (!paneEl) { omitNativeSuite(k, "pane_unavailable"); continue; }
+              const rct = paneEl.getBoundingClientRect(); paneTop = rct.top - wrapRect.top; paneH = rct.height;
+            } catch { omitNativeSuite(k, "pane_unavailable"); continue; }
+            if (paneH < 12) { omitNativeSuite(k, "pane_collapsed"); continue; }
             const yP = (pv: number): number | null => { try { const v = anchor.priceToCoordinate(pv); return v == null || !isFinite(v as number) ? null : (v as number) + paneTop; } catch { return null; } };
             try {
-              const bundle = computeSuite(def, suiteRenderParams(k), {
+              const renderedParams = suiteRenderParams(k);
+              const bundle = computeSuite(def, renderedParams, {
                 bars: barsRef.current as any, tf: timeframeRef.current, symbol: symbolRef.current,
                 isIntraday: isIntradayRef.current, lang: langP,
               }, userTierRef.current, suiteColorsRef.current!);
@@ -6922,7 +7117,8 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
               svgEl.appendChild(defsEl); svgEl.appendChild(g);
               renderPrims(g, bundle, { xi: xiP, y: yP, W: WP, H: paneH, i0: lrP ? lrP.from : 0, i1: lrP ? lrP.to : barsRef.current.length - 1, barW: barWP });
               if (bundle.tables.length) collectedTables.push(...bundle.tables);
-            } catch (e) { console.warn(`[suite:${k}] pane render skipped:`, e); }
+              rememberNativeSuite(k, def, renderedParams, bundle);
+            } catch (e) { omitNativeSuite(k, "compute_or_render_failed"); console.warn(`[suite:${k}] pane render skipped:`, e); }
           }
         }
       }
@@ -6939,9 +7135,11 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
           if (!suiteColorsRef.current) suiteColorsRef.current = resolveSuiteColors();
           const lang = typeof document !== "undefined" && document.documentElement.getAttribute("data-lang") === "zh" ? "zh" as const : "en" as const;
           for (const k of tableOnlyKeys) {
-            const def = peekSuiteRuntime(k, suiteRuntimeProfile(k)); if (!def) { requestSuiteRuntime(k); continue; }   // fetch + repaint when it lands
+            const def = peekSuiteRuntime(k, suiteRuntimeProfile(k));
+            if (!def) { omitNativeSuite(k, "runtime_pending"); requestSuiteRuntime(k); continue; }
             try {
-              const bundle = computeSuite(def, suiteRenderParams(k), {
+              const renderedParams = suiteRenderParams(k);
+              const bundle = computeSuite(def, renderedParams, {
                 bars: barsRef.current as any,
                 tf: timeframeRef.current,
                 symbol: symbolRef.current,
@@ -6949,15 +7147,16 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
                 lang,
               }, userTierRef.current, suiteColorsRef.current!);
               if (bundle.tables.length) collectedTables.push(...bundle.tables);
-            } catch (e) { console.warn(`[suite:${k}] dashboard render skipped:`, e); }
+              rememberNativeSuite(k, def, renderedParams, bundle);
+            } catch (e) { omitNativeSuite(k, "compute_or_render_failed"); console.warn(`[suite:${k}] dashboard render skipped:`, e); }
           }
         }
       }
-      if (priceProjHidden()) { flushTables(); return; }   // sub-pane maximized → price-anchored fills stay cleared
+      if (priceProjHidden()) { flushTables(); flushNativeObservations(); return; }   // sub-pane maximized → price-anchored fills stay cleared
       const inds = indicatorsRef.current;
       const W = el!.clientWidth, H = el!.clientHeight;
       const priceS = priceSeriesHandleRef.current;
-      if (!priceS) return;
+      if (!priceS) { flushTables(); flushNativeObservations(); return; }
       const p2y = (p: number): number | null => { try { const v = priceS.priceToCoordinate(p); return (v == null || !isFinite(v as number)) ? null : v as number; } catch { return null; } };
       const t2x = (tm: string | number): number | null => { try { const v = chart.timeScale().timeToCoordinate(tm as any); return (v == null || !isFinite(v as number)) ? null : v as number; } catch { return null; } };
 
@@ -7244,20 +7443,24 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
             renderPrims(group, bundle, { ...m, W: chart.timeScale().width() });
           }
           for (const k of activeSuites) {
-            const def = peekSuiteRuntime(k, suiteRuntimeProfile(k)); if (!def) { requestSuiteRuntime(k); continue; }   // fetch + repaint when it lands
+            const def = peekSuiteRuntime(k, suiteRuntimeProfile(k));
+            if (!def) { omitNativeSuite(k, "runtime_pending"); requestSuiteRuntime(k); continue; }
             try {
-              const bundle = computeSuite(def, suiteRenderParams(k), {
+              const renderedParams = suiteRenderParams(k);
+              const bundle = computeSuite(def, renderedParams, {
                 bars: barsRef.current as any, tf: timeframeRef.current, symbol: symbolRef.current,
                 isIntraday: isIntradayRef.current, lang,
               }, userTierRef.current, suiteColorsRef.current);
               renderPrims(priceSuiteGroup, bundle, m);
               if (bundle.tables.length) collectedTables.push(...bundle.tables);
-            } catch (e) { console.warn(`[suite:${k}] render skipped:`, e); }
+              rememberNativeSuite(k, def, renderedParams, bundle);
+            } catch (e) { omitNativeSuite(k, "compute_or_render_failed"); console.warn(`[suite:${k}] render skipped:`, e); }
           }
         }
         applySuitePaint();   // key-guarded no-op unless suite candle paint actually changed
       }
       flushTables();
+      flushNativeObservations();
     };
 
     let drawingPaneClipIds = new Map<string, string>();
@@ -8869,6 +9072,13 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
   useEffect(() => {
     const engine = engineRef.current; if (!engine) return;
     const chart = engineRef.current; if (!chart) return;
+    const firstPaint = intradayFirstPaintRef.current;
+    intradayFirstPaintRef.current = null;
+    const sameFirstPaintIdentity = firstPaint?.symbol === symbol && firstPaint.timeframe === effectiveTimeframe
+      && firstPaint.chartType === chartType && firstPaint.extHours === extHours && firstPaint.overnightHours === overnightHours;
+    // A rejected local handoff must not become an extra fetch or interrupt replay.
+    if (sameFirstPaintIdentity && (firstPaint.epoch !== epochRef.current || replayIdxRef.current != null)) return;
+    const adoptFirstPaint = !!sameFirstPaintIdentity && overnightHours;
     cpMark(`chart-effect2-start[${symbol}@${effectiveTimeframe}]`);
     liveTickKeyRef.current = "";
     liveTickRef.current = null;    // a new bar set starts a new accepted-quote ordering
@@ -8905,6 +9115,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       generationReady = announceTerminalVisualReady(symbol, state, {
         timeframe: effectiveTimeframe,
         generation: epoch,
+        onReady: (detail) => visualReadyCallbackRef.current?.(detail),
         isCurrent: () => !cancelled && epochRef.current === epoch,
         ...(state === "data" ? {
           isReady: () => isTerminalIndicatorSetBuilt(
@@ -8965,14 +9176,27 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       //    signal/compare overlays (those are "YYYY-MM-DD" keyed). Indicators are bar-agnostic → kept. ──
       if (intraday) {
         let bars: any[] = [];
+        let historyBars = 0;
+        let daytimePending = false;
+        let daytimeIncomplete = false;
+        let initialCaptureMs = 0;
         let feedErr: string | null = null;       // the route's j.error (route returns {bars:[],error} on an upstream/config failure)
         try {
-          const r = await fetch(`/api/intraday?sym=${encodeURIComponent(symbol)}&tf=${encodeURIComponent(effectiveTimeframe)}&ext=${extHours ? "1" : "0"}`, { cache: "no-store" });
-          const j = await r.json().catch(() => null);
+          const r = adoptFirstPaint ? null : await fetch(`/api/intraday?sym=${encodeURIComponent(symbol)}&tf=${encodeURIComponent(effectiveTimeframe)}&ext=${extHours ? "1" : "0"}${overnightHours ? "&session=24h" : ""}`, { cache: "no-store" });
+          const j = adoptFirstPaint ? firstPaint!.body : await r!.json().catch(() => null);
+          const ok = adoptFirstPaint || r!.ok;
           bars = Array.isArray(j?.bars) ? j.bars : [];
-          if (!r.ok || j?.error) feedErr = String(j?.error || `HTTP ${r.status}`);
+          historyBars = ok && overnightHours ? boatsChartHistoryBars(j?.boats_history) : 0;
+          // A warm complete assembly stays paintable while another refresh is
+          // pending. Only cold/incomplete pending data must remain Loading.
+          daytimePending = ok && overnightHours && j?.daytime_cache?.refresh_pending === true
+            && j?.daytime_cache?.assembly_complete !== true;
+          daytimeIncomplete = ok && overnightHours && j?.daytime_cache?.assembly_complete === false;
+          initialCaptureMs = ok && overnightHours ? boatsChartRefresh(j, symbol, effectiveTimeframe, null, 0)?.captureMs ?? 0 : 0;
+          if (!ok || j?.error) feedErr = String(j?.error || `HTTP ${r?.status}`);
         } catch (e: any) { feedErr = e?.message || "network error"; }
         if (cancelled || epochRef.current !== epoch) return;
+        onOvernightHistoryRef.current?.({ symbol, timeframe: effectiveTimeframe, bars: historyBars });
         onDataOriginRef.current?.(originNotCovered(symbol, "INTRADAY_NOT_IN_V1"));
         sliceRef.current = null;                 // no daily slice on intraday → no sig marks
         setSliceState("none", symbol);
@@ -8981,17 +9205,27 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
         sigMarksRef.current = [];
         earlyDotsRef.current = []; warnMarksRef.current = [];   // GC v2 side channels: daily-only too
         dailyBarsRef.current = [];               // splice is daily-only; disable it here
-        if (!bars.length) {
-          clearChartData();   // never leave the previous symbol's series under this symbol's badge
+        // A nonempty BOATS/stored-only response is still provisional while the
+        // daytime assembly is pending. Painting it as the first full chart makes
+        // price/RSI autoscale against a truncated history, then visibly jumps on
+        // the next refresh. Admit the whole snapshot only after settlement.
+        if (!bars.length || daytimePending || daytimeIncomplete) {
+          clearChartData();
+          overnightCaptureRef.current = initialCaptureMs;
+          if (overnightHours) { chartDataSymRef.current = symbol; fullBarsTfRef.current = effectiveTimeframe; }
+          if (daytimePending) {
+            hideEmptyRef.current();
+            if (statusRef.current) statusRef.current.textContent = tPlain("loading", "Loading…");
+            announceVisualReady("empty");
+            return;
+          }
+          // never leave the previous symbol's series under this symbol's badge
           // Differentiate a feed/entitlement/config failure ("POLYGON_API_KEY not set", "polygon 403",
           // "unauthenticated", …) from a genuinely-empty symbol. Both dead-end the intraday chart, so
           // surface a "Back to Daily" affordance instead of a blank chart.
-          const unavailable = feedErr != null;
-          if (statusRef.current) statusRef.current.textContent = unavailable ? "Intraday feed unavailable." : "No intraday data for this symbol.";
-          showEmptyRef.current(unavailable
-            ? `Intraday feed unavailable for ${symbol} on ${effectiveTimeframe}. Switch back to the daily timeframe to keep charting.`
-            : `No intraday data for ${symbol} on ${effectiveTimeframe}. Switch back to the daily timeframe to keep charting.`);
-          announceVisualReady("empty");
+          showIntradayEmpty(symbol, effectiveTimeframe, feedErr != null || daytimeIncomplete);
+          if (overnightHours && !daytimeIncomplete) applyLiveSplice();
+          announceVisualReady(barsRef.current.length ? "data" : "empty");
           return;
         }
         hideEmptyRef.current();                   // data arrived → clear any prior dead-end overlay
@@ -8999,6 +9233,9 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
         // epoch-second Bar6 [t,o,h,l,c,v] → Bar with a NUMERIC time (lightweight-charts accepts UTCTimestamp)
         const rows: Bar[] = bars.map((b: any[]) => ({ time: b[0] as any, o: b[1], h: b[2], l: b[3], c: b[4], v: b[5] }));
         if (onMeta) onMeta({ symbol, timeframe: effectiveTimeframe, axis: replayAxisOf(rows, effectiveTimeframe) });
+        // A retained pre-load snapshot cannot overwrite freshly accepted history.
+        // A later producer revision (including a correction) can reconcile it.
+        liveCandleStateRef.current = createLiveCandleState(liveQuoteRef.current?.formingCandles);
         fullBarsRef.current = rows; fullBarsTfRef.current = effectiveTimeframe;
         const ri = replayIdxRef.current;
         const onChart = ri != null ? rows.slice(0, replayVisibleCount(rows, effectiveTimeframe, ri)) : rows;
@@ -9042,6 +9279,10 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
         } else { priceHandle.applyOptions({ priceFormat: priceFmt() }); }
         if (chartType === "baseline" && onChart.length) priceHandle.applyOptions({ baseValue: { type: "price", price: onChart[0].c } });
         priceHandle.setData(priceData(onChart) as any);
+        overnightCaptureRef.current = initialCaptureMs;
+        if (adoptFirstPaint && firstPaint!.appliedTradeMs > 0) {
+          liveTickRef.current = { basis: "tiingo_boats", stamp: firstPaint!.appliedTradeMs };
+        }
         renderEpisodeMarksRef.current();
       suitePaintKeyRef.current = "";
         applyFutureAxis();   // future dates on the time axis follow the loaded bars
@@ -9159,6 +9400,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
         if (sliceOutcome) adoptSlice(sliceOutcome);
         else { sliceRef.current = null; setSliceState("pending", symbol); }
       }
+      liveCandleStateRef.current = createLiveCandleState(liveQuoteRef.current?.formingCandles);
       dailyBarsRef.current = daily;         // raw daily source — the R11 splice operates on THIS
       // ── PERF-FIX (b): use cached resample; same-symbol TF switches skip the O(N) bucketing pass ──
       let rows: Bar[] = resampleTfCached(daily, effectiveTimeframe, symbol,
@@ -9285,7 +9527,121 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       if (visualReadyRef.current === generationReady) visualReadyRef.current = null;
     };
     // eslint-disable-next-line
-  }, [symbol, effectiveTimeframe, chartType, extHours]);
+  }, [symbol, effectiveTimeframe, chartType, extHours, overnightHours, intradayLoadVersion]);
+
+  // Refresh the complete vendor history without rebuilding the chart or moving
+  // the user's viewport. This also renews authenticated demand on a warm cache.
+  useEffect(() => {
+    if (!overnightHours || !isIntradayTf(effectiveTimeframe) || isSecondTf(effectiveTimeframe)) return;
+    let disposed = false;
+    let busy = false;
+    let controller: AbortController | null = null;
+    const refresh = async () => {
+      if (disposed || busy || intradayFirstPaintRef.current || document.visibilityState !== "visible" || replayIdxRef.current != null
+          || chartDataSymRef.current !== symbol || fullBarsTfRef.current !== effectiveTimeframe) return;
+      const epoch = epochRef.current;
+      busy = true; controller = new AbortController();
+      try {
+        const response = await fetch(`/api/intraday?sym=${encodeURIComponent(symbol)}&tf=${encodeURIComponent(effectiveTimeframe)}&ext=1&session=24h`,
+          { cache: "no-store", signal: controller.signal });
+        const body = await response.json().catch(() => null);
+        if (disposed || epochRef.current !== epoch || symbolRef.current !== symbol
+            || timeframeRef.current !== effectiveTimeframe || !overnightHoursRef.current || replayIdxRef.current != null) return;
+        const previous = fullBarsRef.current;
+        if (!response.ok) {
+          if (!previous.length) showIntradayEmpty(symbol, effectiveTimeframe, true);
+          return;
+        }
+        const accepted = boatsChartRefresh(body, symbol, effectiveTimeframe, liveQuoteRef.current, overnightCaptureRef.current, Date.now(),
+          liveTickRef.current?.basis === "tiingo_boats" ? (liveTickRef.current.stamp ?? 0) : 0,
+          previous as unknown as import("@/lib/liveCandle").LiveCandleBar[]);
+        if (!accepted) {
+          // Status completion is separate from data admission. Never clear an accepted chart on a failed read.
+          if (!previous.length && body?.t === symbol && body?.tf === effectiveTimeframe
+              && body?.daytime_cache?.refresh_pending === false
+              && (body?.daytime_cache?.assembly_complete === false || (Array.isArray(body?.bars) && !body.bars.length))) {
+            showIntradayEmpty(symbol, effectiveTimeframe,
+              !!body.error || body.daytime_cache.refresh_error != null || body.daytime_cache.assembly_complete === false);
+          }
+          return;
+        }
+        const engine = engineRef.current, series = priceSeriesHandleRef.current;
+        if (!engine) return;
+        if (!previous.length && accepted.bars.length) {
+          intradayFirstPaintRef.current = { epoch, symbol, timeframe: effectiveTimeframe, chartType: chartTypeRef.current,
+            extHours: extHoursRef.current, overnightHours: overnightHoursRef.current,
+            body: { ...body, bars: accepted.bars.map(bar => [Number(bar.time), bar.o, bar.h, bar.l, bar.c, bar.v]) },
+            appliedTradeMs: accepted.appliedTradeMs };
+          setIntradayLoadVersion(version => version + 1);
+          return;
+        }
+        if (!previous.length) {
+          overnightCaptureRef.current = accepted.captureMs;
+          onOvernightHistoryRef.current?.({ symbol, timeframe: effectiveTimeframe, bars: boatsChartHistoryBars(body?.boats_history) });
+          if (body?.daytime_cache?.refresh_pending !== true) {
+            showIntradayEmpty(symbol, effectiveTimeframe, !!body?.error || body?.daytime_cache?.refresh_error != null);
+          }
+          return;
+        }
+        if (!series) return;
+        const commitObservation = () => {
+          // Even equal-data history is a new authoritative observation. Fence
+          // the retained quote version before any later wide-lane tick arrives.
+          liveCandleStateRef.current = createLiveCandleState(liveQuoteRef.current?.formingCandles);
+          overnightCaptureRef.current = accepted.captureMs;
+          if (accepted.appliedTradeMs > 0) {
+            liveTickRef.current = { basis: "tiingo_boats", stamp: accepted.appliedTradeMs };
+          }
+          onOvernightHistoryRef.current?.({ symbol, timeframe: effectiveTimeframe, bars: boatsChartHistoryBars(body?.boats_history) });
+        };
+        if (previous.length === accepted.bars.length && previous.every((bar, i) => {
+          const next = accepted.bars[i];
+          return bar.time === next.time && bar.o === next.o && bar.h === next.h
+            && bar.l === next.l && bar.c === next.c && bar.v === next.v;
+        })) { commitObservation(); return; }
+        // Read the viewport after the fetch: panning while it was pending wins.
+        const range = engine.timeScale().getVisibleRange();
+        const logicalRange = boatsRefreshLogicalRange(previous, accepted.bars, engine.timeScale().getVisibleLogicalRange());
+        const scale = series.priceScale();
+        const priceRange = scale.options().autoScale === false ? scale.getVisibleRange() : null;
+        const rows = accepted.bars as unknown as Bar[];
+        series.setData(rows.map(bar => isValueChartType(chartTypeRef.current)
+          ? { time: bar.time, value: bar.c }
+          : { time: bar.time, open: bar.o, high: bar.h, low: bar.l, close: bar.c }));
+        fullBarsRef.current = rows; barsRef.current = rows;
+        commitObservation();
+        suitePaintKeyRef.current = "";
+        if (rows.length) {
+          hideEmptyRef.current();
+          commitLiveBarGeneration({ appended: true });
+        } else {
+          closesRef.current = []; barIdxRef.current = { src: null, map: new Map() };
+          updateAllIndicators([], []); refreshLiveStudies([], []); buildIndDataMap([], []);
+          onMeta?.({ symbol, timeframe: effectiveTimeframe, axis: replayAxisOf([], effectiveTimeframe) });
+          scheduleRenderRef.current?.();
+        }
+        if (logicalRange) engine.timeScale().setVisibleLogicalRange(logicalRange);
+        else if (range && rows.length) engine.timeScale().setVisibleRange(range);
+        if (priceRange) scale.setVisibleRange(priceRange);
+      } catch {
+        // A failed background request must not leave a still-empty chart saying Loading.
+        if (!disposed && epochRef.current === epoch && !fullBarsRef.current.length) {
+          showIntradayEmpty(symbol, effectiveTimeframe, true);
+        }
+      } finally { busy = false; controller = null; }
+    };
+    // Local snapshots are cheap; the route coalesces/caches the expensive daytime leg.
+    // Keep delivered corrections and background first-paint completion within five seconds.
+    const timer = window.setInterval(refresh, 5_000);
+    const visible = () => { if (document.visibilityState === "visible") void refresh(); };
+    document.addEventListener("visibilitychange", visible);
+    return () => {
+      disposed = true; controller?.abort(); window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", visible);
+    };
+    // The refresh reads the latest chart state through refs and never owns a new chart.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [symbol, effectiveTimeframe, chartType, overnightHours, replayCutoff]);
 
   // Register (or re-register) this pane with paneSync. Cleans up any prior registration first.
   const reRegisterSync = () => {
@@ -9829,11 +10185,11 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
   //   two prints inside one candle still reshape its body/wicks without remounting the chart.
   // ────────────────────────────────────────────────────────────────────────────
   const liveSig = liveQuote
-    ? `${liveQuote.last ?? ""}|${liveQuote.ts ?? ""}|${liveQuote.asOfMs ?? ""}|${liveQuote.basis ?? ""}|${liveQuote.tickStartMs ?? ""}|${liveQuote.tickEndMs ?? ""}|${liveQuote.tickOpen ?? ""}|${liveQuote.tickHigh ?? ""}|${liveQuote.tickLow ?? ""}|${liveQuote.tickClose ?? ""}|${liveQuote.tickVol ?? ""}|${liveQuote.extPrice ?? ""}|${liveQuote.extTs ?? ""}|${liveQuote.extSession ?? ""}`
+    ? `${liveQuote.last ?? ""}|${liveQuote.ts ?? ""}|${liveQuote.asOfMs ?? ""}|${liveQuote.basis ?? ""}|${liveQuote.tickStartMs ?? ""}|${liveQuote.tickEndMs ?? ""}|${liveQuote.tickOpen ?? ""}|${liveQuote.tickHigh ?? ""}|${liveQuote.tickLow ?? ""}|${liveQuote.tickClose ?? ""}|${liveQuote.tickVol ?? ""}|${liveQuote.extPrice ?? ""}|${liveQuote.extTs ?? ""}|${liveQuote.extSession ?? ""}|${liveQuote.formingCandles?.generation ?? ""}|${liveQuote.formingCandles?.revision ?? ""}|${liveQuote.formingCandles?.timeframes ?? ""}`
     : "";
   useEffect(() => {
     if (!engineRef.current || !priceSeriesHandleRef.current) return;
-    if (!barsRef.current.length) return;   // no data yet — Effect 2's tail will apply it
+    if (!barsRef.current.length && !overnightHoursRef.current) return;   // empty 24H can start from one qualified observed trade
     applyLiveSplice();
     applyExtendedPriceLine();
     // eslint-disable-next-line
@@ -9909,7 +10265,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       engine.applyOptions({
         layout: { textColor: settings.scaleTextColor || t.axis, panes: { separatorColor: settings.paneSeparatorColor || css("--pane-sep"), separatorHoverColor: settings.paneSeparatorColor || css("--pane-sep-h") } },
         grid: { vertLines: { color: settings.gridVColor || t.grid }, horzLines: { color: settings.gridHColor || t.grid } },
-        crosshair: { vertLine: { labelBackgroundColor: t.p3 }, horzLine: { labelBackgroundColor: t.p3 } },
+        crosshair: { vertLine: { color: settings.crosshairColor || css("--chart-crosshair-line") || "rgba(214,218,227,.32)", labelBackgroundColor: t.p3 }, horzLine: { color: settings.crosshairColor || css("--chart-crosshair-line") || "rgba(214,218,227,.32)", labelBackgroundColor: t.p3 } },
         // C2 — this effect re-applies borderColor only (borderVisible from createEngine survives the
         // merge), but the time-axis rule WOULD revert to --line without the shell gate here.
         rightPriceScale: { borderColor: settings.scaleLineColor || t.line },
@@ -10014,8 +10370,8 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
         },
         crosshair: {
           mode: chartSettings.crosshairMode === 1 ? EngineCrosshairMode.Magnet : EngineCrosshairMode.Normal,
-          vertLine: { color: chartSettings.crosshairColor || "rgba(214,218,227,.32)", labelBackgroundColor: tokens.p3 },
-          horzLine: { color: chartSettings.crosshairColor || "rgba(214,218,227,.32)", labelBackgroundColor: tokens.p3 },
+          vertLine: { color: chartSettings.crosshairColor || css("--chart-crosshair-line") || "rgba(214,218,227,.32)", labelBackgroundColor: tokens.p3 },
+          horzLine: { color: chartSettings.crosshairColor || css("--chart-crosshair-line") || "rgba(214,218,227,.32)", labelBackgroundColor: tokens.p3 },
         },
         // C2 — borderVisible is never re-applied here, so createEngine's shell value survives the
         // merge; only the time-axis colour needs the gate (see Effect 5).

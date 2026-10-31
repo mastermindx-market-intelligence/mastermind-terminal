@@ -1,5 +1,6 @@
 import { mkdirSync } from "node:fs";
 import { expect, test, type Locator, type Page, type TestInfo } from "@playwright/test";
+import type { Ack, ChartCommandTarget } from "../lib/chartBus";
 import { useLang } from "./layoutStore";
 import { e2eWatchlistOwner, isolateWatchlistStore, seedOwnerWatchlists } from "./watchlistStore";
 
@@ -7,6 +8,44 @@ import { e2eWatchlistOwner, isolateWatchlistStore, seedOwnerWatchlists } from ".
 // the review through the same owner its bar buttons use — the position advances with the chart,
 // the landing company is the itinerary's, and a null neighbour is the edge, never a substitute.
 // The real shell, the real palette and the real frozen itinerary; deterministic feed/auth fixtures.
+
+
+type ChartMirror = {
+  origin_id: string;
+  context_revision: number;
+  session?: { symbol: string; tf: string; pane_id: number };
+  acks?: Ack[];
+};
+
+async function mirroredTarget(page: Page, mirrors: ChartMirror[], symbol: string): Promise<ChartCommandTarget> {
+  const identity = await page.evaluate(() => {
+    const cfg = (window as unknown as {
+      MM_BRAIN_CFG?: { getAiContext?: () => { origin_id: string; context_revision: number } | undefined };
+    }).MM_BRAIN_CFG;
+    const context = cfg?.getAiContext?.();
+    if (!context) throw new Error("The real chart identity is absent");
+    return { origin_id: context.origin_id, context_revision: context.context_revision };
+  });
+  await expect.poll(() => mirrors.at(-1), { timeout: 10_000 })
+    .toMatchObject({ ...identity, session: { symbol } });
+  const session = mirrors.at(-1)!.session!;
+  return { schema: "chart.command_target.v1", ...identity,
+    pane_id: session.pane_id, symbol: session.symbol, tf: session.tf };
+}
+
+async function commandEma(page: Page, target: ChartCommandTarget, seq: number) {
+  await page.evaluate(({ target, seq }) => {
+    const cfg = (window as unknown as { MM_BRAIN_CFG?: { onCommand?: (command: unknown) => void } }).MM_BRAIN_CFG;
+    if (!cfg?.onCommand) throw new Error("The real Brain command callback is absent");
+    cfg.onCommand({ on: true, v: 2, batch_id: "palette-review-target-roundtrip", seq, target,
+      op: "chart.set_indicators", args: { indicators: [{ name: "ema", params: { len: 37 } }] } });
+  }, { target, seq });
+}
+
+const indicatorState = (page: Page) => page.evaluate(() => ({
+  indicators: JSON.parse(localStorage.getItem("mm.inds") || "[]"),
+  parameters: JSON.parse(localStorage.getItem("mm.indParams") || "{}"),
+}));
 
 const LIST = "Review Mix";
 // ZZZQ is in no manifest: the frozen review skips it by name, in both directions.
@@ -63,7 +102,7 @@ async function boot(page: Page, testInfo: TestInfo, baseURL: string | undefined,
   const storeKey = await isolateWatchlistStore(page, testInfo, baseURL);
   await seedOwnerWatchlists(page, storeKey, SEED);
   await useLang(page, lang);
-  await page.route("https://www.mastermind-x.com/mm_brain.js", (route) => route.fulfill({ contentType: "application/javascript", body: "" }));
+  await page.route("https://www.mastermind-x.com/mm_brain.js", (route) => route.fulfill({ contentType: "application/javascript", body: "window.MMBrain={mounted:true,open(){},close(){},toggle(){}};" }));
   await page.goto("/terminal?symbol=SPY");
   await expect(page.locator(".mm-ptag")).toBeVisible({ timeout: 60_000 });
   return { storeKey, owner: e2eWatchlistOwner(storeKey) };
@@ -124,8 +163,13 @@ async function runAction(page: Page, testInfo: TestInfo, id: string) {
 
 for (const lang of ["en", "zh"] as const) {
   test(`${lang}: the palette's review rows name the frozen neighbours and step the review itself`, async ({ page, baseURL }, testInfo) => {
-    test.setTimeout(120_000);
+    test.setTimeout(180_000);
     const c = COPY[lang];
+    const mirrors: ChartMirror[] = [];
+    await page.route("**/api/brain/chart/state", async route => {
+      mirrors.push(route.request().postDataJSON());
+      await route.fulfill({ json: { ok: true } });
+    });
     await boot(page, testInfo, baseURL, lang);
     const region = await startReview(page, lang);
     const current = region.getByTestId("wl-review-current");
@@ -134,6 +178,7 @@ for (const lang of ["en", "zh"] as const) {
     await expect(current).toHaveText("NVDA");
     await expect(region.getByTestId("wl-review-position")).toHaveText(c.position(1, 5));
     await expect.poll(() => chartSymbol(page)).toBe("NVDA");
+    const firstTarget = await mirroredTarget(page, mirrors, "NVDA");
 
     // The rows name the session's own frozen neighbours: next is MSFT (ZZZQ skipped by name),
     // and at the first stop the previous row is the edge — never the live list's neighbour.
@@ -155,6 +200,45 @@ for (const lang of ["en", "zh"] as const) {
     await expect(region.getByTestId("wl-review-notice")).toHaveText(c.skipped);
     await expect(region.getByTestId("wl-review-position")).toHaveText(c.position(3, 5));
     await expect.poll(() => chartSymbol(page)).toBe("MSFT");
+
+
+    const nextTarget = await mirroredTarget(page, mirrors, "MSFT");
+    expect(nextTarget.origin_id).toBe(firstTarget.origin_id);
+    expect(nextTarget.context_revision).toBeGreaterThan(firstTarget.context_revision);
+
+    // Returning through the new palette route must never revive an earlier AI target.
+    const back = await openPalette(page, testInfo, lang);
+    await search(page, testInfo, c.searchPrev);
+    await runAction(page, testInfo, "review:previous");
+    await expect(back).toBeHidden();
+    await expect(current).toHaveText("NVDA");
+    await expect(region.getByTestId("wl-review-position")).toHaveText(c.position(1, 5));
+    await expect.poll(() => chartSymbol(page)).toBe("NVDA");
+    const returnedTarget = await mirroredTarget(page, mirrors, "NVDA");
+    expect(returnedTarget.origin_id).toBe(firstTarget.origin_id);
+    expect(returnedTarget.context_revision).toBeGreaterThan(nextTarget.context_revision);
+    const beforeStale = await indicatorState(page);
+    await commandEma(page, firstTarget, 1);
+    await expect.poll(() => mirrors.flatMap(row => row.acks || []).find(ack => ack.seq === 1), { timeout: 10_000 })
+      .toMatchObject({ ok: false, error: "command_target_revision_mismatch" });
+    expect(await indicatorState(page)).toEqual(beforeStale);
+
+    // A fresh target must still apply through the real host and return its generated receipt.
+    const freshTarget = await mirroredTarget(page, mirrors, "NVDA");
+    await commandEma(page, freshTarget, 2);
+    await expect.poll(() => mirrors.flatMap(row => row.acks || []).find(ack => ack.seq === 2), { timeout: 10_000 })
+      .toMatchObject({ ok: true, application: { schema: "chart.command_application.v1",
+        predecessor: freshTarget, successor: { ...freshTarget, context_revision: freshTarget.context_revision + 1 } } });
+    await expect.poll(() => indicatorState(page)).toMatchObject({
+      indicators: ["ema"], parameters: { ema: { len: 37 } },
+    });
+
+    const forward = await openPalette(page, testInfo, lang);
+    await search(page, testInfo, c.searchNext);
+    await runAction(page, testInfo, "review:next");
+    await expect(forward).toBeHidden();
+    await expect(current).toHaveText("MSFT");
+    await expect(region.getByTestId("wl-review-position")).toHaveText(c.position(3, 5));
 
     // Walk to the end of the frozen itinerary through the palette.
     for (const [symbol, place] of [["AAPL", 4], ["AMD", 5]] as const) {
@@ -180,5 +264,6 @@ for (const lang of ["en", "zh"] as const) {
     await expect(current).toHaveText("AAPL");
     await expect(region.getByTestId("wl-review-position")).toHaveText(c.position(4, 5));
     await expect.poll(() => chartSymbol(page)).toBe("AAPL");
+    await testInfo.attach("palette-review-chart-receipts", { body: JSON.stringify(mirrors), contentType: "application/json" });
   });
 }

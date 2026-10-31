@@ -13,6 +13,8 @@
 #   /opt/terminal/terminal-build.sh --target-sha <full-lowercase-40-hex>
 # USAGE (isolated beta target profile):
 #   /opt/terminal/terminal-build.sh --target beta --target-sha <full-lowercase-40-hex>
+# USAGE (beta-only one-shot failed dirty upgrade recovery; immutable IDs required):
+#   /opt/terminal/terminal-build.sh --target beta --recover-attempt <32-hex> --pending-record-id <64-hex> --target-sha <40-hex>
 # USAGE (beta-only FIRST-INSTALL bootstrap entrance; invalid for production):
 #   /opt/terminal/terminal-build.sh --target beta --bootstrap --target-sha <full-lowercase-40-hex>
 #
@@ -43,7 +45,7 @@
 #   global cron wrapper,     YES                         NO — never, on any path
 #   quote-hub service,
 #   owner self-install
-#   MMX_SHARED_SHELL         never inherited (unset)     exactly 1 (owner-declared)
+#   MMX_SHARED_SHELL         source/unit-qualified build exactly 1 (owner-declared)
 #
 # The beta profile still deploys only an exact full commit contained by the freshly
 # fetched protected ref, still requires a CLEAN (or sole-canonical-head-mismatch)
@@ -252,6 +254,141 @@ apply_profile_environment(){
       return 64
       ;;
   esac
+}
+
+# Production remains opt-in until the qualified source-owned unit drop-in is
+# installed by the attended host configuration lane. Its BUILD flag is inert in
+# an older runtime: Next pins the actual feature flag into each new build.
+# Caller environment is never activation authority. Derive the expected bytes from the admitted commit.
+production_shared_shell_state(){
+  [ "$TARGET" = production ] || { printf '0\n'; return 0; }
+  sanitize_git_environment
+  python3 -I - "$SRC" "$FULL_SHA" <<'PY_PRODUCTION_SHELL'
+import os
+from pathlib import Path
+import shlex
+import stat
+import subprocess
+import sys
+
+repository, revision = sys.argv[1:]
+installed = Path('/etc/systemd/system/terminal.service.d/shared-shell.conf')
+try:
+    def unit_property(name):
+        return subprocess.check_output(
+            ['systemctl', 'show', '-p', name, '--value', 'terminal.service'],
+            text=True, stderr=subprocess.DEVNULL).strip()
+
+    feature_keys = {'MMX_SHARED_SHELL', 'MMX_SHARED_SHELL_BUILD'}
+    def feature_assignments(text):
+        import re
+        return re.findall(r'(?m)^\s*(?:export\s+)?(MMX_SHARED_SHELL(?:_BUILD)?)(?:\s*=|:\s+)', text)
+
+    def inspect_env_file(path, optional=False):
+        # Read only for feature-key classification; no secret value is returned.
+        if not path.exists() and not path.is_symlink() and optional:
+            return
+        fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW)
+        try:
+            info = os.fstat(fd)
+            if (not stat.S_ISREG(info.st_mode) or info.st_uid != os.geteuid()
+                    or info.st_mode & 0o022 or info.st_size > 1024 * 1024):
+                raise ValueError('unsupported environment file')
+            text = os.read(fd, 1024 * 1024 + 1).decode('utf-8')
+        finally:
+            os.close(fd)
+        if feature_assignments(text):
+            raise ValueError('feature key in environment file')
+
+    environment = unit_property('Environment')
+    flags = [item.split('=', 1)[1] for item in shlex.split(environment)
+             if item.startswith('MMX_SHARED_SHELL_BUILD=')]
+    runtime_flags = [item for item in shlex.split(environment)
+                     if item.startswith('MMX_SHARED_SHELL=')]
+    if runtime_flags:
+        raise ValueError('production runtime flag must stay absent')
+    exists = installed.exists() or installed.is_symlink()
+    if not exists and not flags:
+        print('0')
+        sys.exit(0)
+    if flags != ['1'] or not exists:
+        raise ValueError('unit and promotion drop-in disagree')
+    passed = shlex.split(unit_property('PassEnvironment'))
+    unset = shlex.split(unit_property('UnsetEnvironment'))
+    if any(item.split('=', 1)[0] in feature_keys for item in passed + unset):
+        raise ValueError('feature key in indirect unit environment')
+    manager = subprocess.check_output(['systemctl', 'show-environment'],
+                                      text=True, stderr=subprocess.DEVNULL)
+    if feature_assignments(manager):
+        raise ValueError('feature key in manager environment')
+    import re
+    files = unit_property('EnvironmentFiles')
+    entry = re.compile(r'(/[-A-Za-z0-9_./]+) \(ignore_errors=(yes|no)\)')
+    if entry.sub('', files).strip():
+        raise ValueError('unsupported environment file topology')
+    for path, optional in entry.findall(files):
+        inspect_env_file(Path(path), optional == 'yes')
+    app = Path(repository).parent / 'terminal'
+    for name in ['.env.local', '.env.production.local', '.env.production', '.env']:
+        inspect_env_file(app / name, optional=True)
+    start = unit_property('ExecStart')
+    if (re.findall(r'path=([^ ;]+) ;', start) != ['/usr/bin/npm']
+            or start.count('argv[]=') != 1
+            or 'argv[]=/usr/bin/npm run start ;' not in start):
+        raise ValueError('unsupported production start wrapper')
+    import json
+    package = subprocess.check_output(
+        ['git', '-C', repository, 'cat-file', 'blob', revision + ':terminal/package.json'],
+        stderr=subprocess.DEVNULL)
+    if json.loads(package).get('scripts', {}).get('start') != 'next start':
+        raise ValueError('unsupported application start wrapper')
+    directory = installed.parent.lstat()
+    if (not stat.S_ISDIR(directory.st_mode) or directory.st_uid != os.geteuid()
+            or directory.st_mode & 0o022):
+        raise ValueError('promotion directory custody')
+    fd = os.open(installed, os.O_RDONLY | os.O_NOFOLLOW)
+    try:
+        info = os.fstat(fd)
+        if (not stat.S_ISREG(info.st_mode) or info.st_uid != os.geteuid()
+                or info.st_mode & 0o022 or info.st_size > 4096):
+            raise ValueError('promotion file custody')
+        actual = os.read(fd, 4097)
+        after = installed.lstat()
+        if (info.st_dev, info.st_ino) != (after.st_dev, after.st_ino):
+            raise ValueError('promotion file identity changed')
+    finally:
+        os.close(fd)
+    expected = subprocess.check_output(
+        ['git', '-C', repository, 'cat-file', 'blob', revision + ':ops/terminal-shared-shell.conf'],
+        stderr=subprocess.DEVNULL)
+    if expected != b'[Service]\nEnvironment=MMX_SHARED_SHELL_BUILD=1\n' or actual != expected:
+        raise ValueError('promotion file is not the admitted source')
+    print('1')
+except Exception:
+    print('FATAL: production Shared Shell activation is not source/unit/custody qualified', file=sys.stderr)
+    sys.exit(65)
+PY_PRODUCTION_SHELL
+}
+
+apply_production_shared_shell_profile(){
+  [ "$TARGET" = production ] || return 0
+  PRODUCTION_SHARED_SHELL_ENABLED=$(production_shared_shell_state) || return $?
+  case "$PRODUCTION_SHARED_SHELL_ENABLED" in
+    0) unset MMX_SHARED_SHELL ;;
+    1) export MMX_SHARED_SHELL=1 ;;
+    *) return 65 ;;
+  esac
+  log "production Shared Shell profile derived from admitted source and unit: enabled=$PRODUCTION_SHARED_SHELL_ENABLED"
+}
+
+production_shared_shell_profile_unchanged(){
+  [ "$TARGET" = production ] || return 0
+  local observed
+  observed=$(production_shared_shell_state) || return $?
+  [ "$observed" = "$PRODUCTION_SHARED_SHELL_ENABLED" ] || {
+    log "FATAL: production Shared Shell activation changed during the build"
+    return 65
+  }
 }
 
 # Beta runtime settings are verified against the source-managed unit, never
@@ -2295,10 +2432,88 @@ def action_attempt_begin(args):
     return 0
 
 
+
+def recovery_candidate(args):
+    (target_root, state_dir, app_root, repo, sha, policy_digest, production_app,
+     identifier, expected_id) = args
+    full_sha(sha, "recovery target SHA")
+    hex64(expected_id, "expected failed attempt record")
+    hex64(policy_digest, "recovery policy digest")
+    old_path, attempt = read_attempt(target_root, state_dir, identifier)
+    if record_id(attempt) != expected_id:
+        fail("pending attempt is not the exact failed record selected for recovery")
+    if (attempt.get("phase") != "failed" or attempt.get("mode") != "upgrade"
+            or attempt.get("live_inputs_dirty") is not True
+            or attempt.get("recovery_from_record_id") is not None):
+        fail("only an original failed dirty upgrade may consume one recovery entrance")
+    for key, value in (("app_root", norm(app_root)), ("canonical_repo", norm(repo)),
+                       ("target_sha", sha), ("policy_digest", policy_digest)):
+        if attempt.get(key) != value:
+            fail(f"recovery cannot change the captured {key}")
+    current, _ = pointer_destination(target_root, RUNTIME_POINTER)
+    if norm(current) != attempt.get("prior_runtime_record"):
+        fail("prior accepted pointer changed before recovery")
+    prior = validated_runtime(target_root, state_dir, app_root, repo, production_app, current)
+    if (record_id(prior) != attempt.get("prior_runtime_record_id")
+            or prior.get("accepted_sha") != attempt.get("prior_sha")
+            or prior.get("build_id") != attempt.get("prior_build_id")):
+        fail("prior accepted runtime identity changed before recovery")
+    if attempt_runtime_committed(target_root, state_dir, attempt):
+        fail("an already committed attempt is never recovered again")
+    if read_bytes(os.path.join(app_root, ".deployment-id"), "failed target marker").decode("ascii").strip() != sha:
+        fail("recovery marker is not the captured failed target")
+    if os.path.lexists(os.path.join(app_root, ".next")):
+        fail("recovery requires the failed generation stopped and quarantined")
+    if read_bytes(os.path.join(app_root, ".deployment-id.bak"), "retained prior marker").decode("ascii").strip() != attempt["prior_sha"]:
+        fail("retained marker does not name the captured prior generation")
+    retained = {}
+    for name, expected_sha, expected_build in (
+            (".next.bak", attempt["prior_sha"], attempt["prior_build_id"]),
+            (".next.broken", sha, attempt.get("build_id"))):
+        root = os.path.join(app_root, name)
+        require_dir(root, "retained generation")
+        build = read_bytes(os.path.join(root, "BUILD_ID"), "retained build ID").decode("ascii").strip()
+        raw = read_bytes(os.path.join(root, "required-server-files.json"), "retained server manifest")
+        try:
+            manifest = json.loads(raw)
+        except (ValueError, UnicodeError):
+            fail("retained server manifest is invalid")
+        if (build != expected_build or not isinstance(manifest, dict)
+                or not isinstance(manifest.get("config"), dict)
+                or manifest["config"].get("deploymentId") != expected_sha):
+            fail("retained build evidence does not match the captured generation")
+        retained[name] = {"build_id": build, "deployment_id": expected_sha,
+                          "server_manifest_sha256": hashlib.sha256(raw).hexdigest()}
+    return old_path, attempt, retained
+
+
+def action_attempt_recovery_check(args):
+    _, attempt, _ = recovery_candidate(args)
+    print("RECOVERABLE\t" + attempt["attempt_id"])
+    return 0
+
+
+def action_attempt_recover(args):
+    old_path, attempt, retained = recovery_candidate(args)
+    original_id = record_id(attempt)
+    attempt.pop("record_id", None)
+    attempt.update({"phase": "recovering", "recovery_from_record": old_path,
+                    "recovery_from_record_id": original_id,
+                    "recovery_retained_builds": retained,
+                    "recovery_build_id": None})
+    path = publish(args[1], f"attempt-{attempt['attempt_id']}-recovering-{record_id(attempt)[:16]}.json", attempt)
+    replace_pointer(args[0], ATTEMPT_POINTER, path, old_path)
+    print("RECOVERY\t{}\t{}\t{}\t{}".format(
+        attempt["prior_runtime_record"], attempt["prior_runtime_record_id"],
+        attempt["prior_sha"], attempt["prior_build_id"]))
+    return 0
+
+
 def action_attempt_phase(args):
     target_root, state_dir, identifier, phase, build_id = args
     old_path, attempt = read_attempt(target_root, state_dir, identifier)
     allowed = {
+        "recovering": {"activation", "inputs-dirty", "failed"},
         "staging": {"staging", "activation", "inputs-dirty", "failed"},
         "activation": {"activation", "inputs-dirty", "failed"},
         "inputs-dirty": {"inputs-dirty", "activation", "validated", "failed"},
@@ -2315,9 +2530,10 @@ def action_attempt_phase(args):
     if build_id:
         if TOKEN_RE.fullmatch(build_id) is None:
             fail("the staged beta build ID is malformed")
-        if attempt.get("build_id") and attempt["build_id"] != build_id:
+        key = "recovery_build_id" if attempt.get("recovery_from_record_id") else "build_id"
+        if attempt.get(key) and attempt[key] != build_id:
             fail("the beta attempt cannot change its staged build identity")
-        attempt["build_id"] = build_id
+        attempt[key] = build_id
     path = publish(state_dir, f"attempt-{identifier}-{phase}-{record_id(attempt)[:16]}.json", attempt)
     replace_pointer(target_root, ATTEMPT_POINTER, path, old_path)
     print(path)
@@ -2390,7 +2606,7 @@ def action_runtime(args):
     hex64(policy_digest, "selected policy digest")
     _, attempt = read_attempt(target_root, state_dir, attempt_id)
     if (attempt.get("phase") != "committing" or attempt.get("target_sha") != sha
-            or attempt.get("build_id") != build_id or attempt.get("policy_digest") != policy_digest
+            or (attempt.get("recovery_build_id") if attempt.get("recovery_from_record_id") else attempt.get("build_id")) != build_id or attempt.get("policy_digest") != policy_digest
             or attempt.get("app_root") != norm(app_root) or attempt.get("canonical_repo") != norm(repo)):
         fail("runtime publication is not the validated pending beta transaction")
     destination, provenance = provision_anchor(target_root, state_dir, app_root, repo, production_app)
@@ -2428,6 +2644,9 @@ def action_runtime(args):
         "previous_runtime_record_id": attempt.get("prior_runtime_record_id"),
         "runtime_accepted": True, "rollback_baseline": True,
     }
+    if attempt.get("recovery_from_record_id"):
+        payload.update({key: attempt[key] for key in (
+            "recovery_from_record", "recovery_from_record_id", "recovery_retained_builds")})
     path = publish(state_dir, runtime_filename(sha, record_id(payload)[:16]), payload)
     replace_pointer(target_root, RUNTIME_POINTER, path, expected_previous)
     print(path)
@@ -2471,6 +2690,8 @@ ACTIONS = {
     "ordinary-gate": action_ordinary_gate,
     "runtime": action_runtime,
     "demote": action_demote,
+    "attempt-recovery-check": action_attempt_recovery_check,
+    "attempt-recover": action_attempt_recover,
     "attempt-begin": action_attempt_begin,
     "attempt-phase": action_attempt_phase,
     "attempt-state": action_attempt_state,
@@ -3023,6 +3244,240 @@ PY_DEPENDENCIES
   else log "beta dependency inodes prepared: $outcome"; fi
 }
 
+# Turbopack 16.2.9 explicitly writes generated regular files as 0664, even
+# under a restrictive umask. Qualify that explained mode only while this
+# invocation's new output remains inside its private, identity-pinned stage.
+# This is not live-input repair: cache ownership and the final runtime publisher
+# retain their separate guards and responsibilities. No prior/live/quarantined
+# build is accepted here, and no shared inode or path alias is chmodded.
+beta_prepare_build_output(){
+  local outcome
+  [ "$TARGET" = beta ] || { log "FATAL: build output preparation is beta-profile-only"; return 64; }
+  [ -n "${STAGE_ROOT:-}" ] && [ -n "${BETA_BUILD_STAGE_ID:-}" ] || {
+    log "FATAL: beta build output has no current private-stage binding"; return 64;
+  }
+  if ! outcome=$(python3 -I - "$STAGE_ROOT" "$BETA_TARGET_ROOT" "$BETA_BUILD_STAGE_ID" 2>&1 <<'PY_BUILD_OUTPUT'
+import contextlib
+import hashlib
+import os
+import stat
+import sys
+
+stage, target, expected_id = sys.argv[1:]
+owner = (os.geteuid(), os.getegid())
+directory_flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
+file_flags = os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK
+pins = {}
+ancestor_pins = None
+
+
+def fail(message):
+    raise SystemExit(message)
+
+
+def signature(info):
+    # Reading changes atime; permission preparation is allowed to change ctime.
+    # All other original identity/content metadata must remain stable.
+    return (info.st_dev, info.st_ino, info.st_uid, info.st_gid, info.st_mode,
+            info.st_size, info.st_mtime_ns, info.st_ctime_ns, info.st_nlink)
+
+
+def preserved(info):
+    value = signature(info)
+    return value[:4] + value[5:7] + value[8:]
+
+
+def no_extended_metadata(fd, label):
+    if os.listxattr(fd):
+        fail(f"unexplained extended metadata in private build output: {label}")
+
+
+def directory(fd, label, private=False):
+    info = os.fstat(fd)
+    mode = stat.S_IMODE(info.st_mode)
+    if (not stat.S_ISDIR(info.st_mode) or (info.st_uid, info.st_gid) != owner
+            or mode & 0o7022 or mode & 0o700 != 0o700
+            or (private and mode != 0o700)):
+        fail(f"private build directory custody is not exclusive: {label}")
+    no_extended_metadata(fd, label)
+    return info
+
+
+def regular(fd, label):
+    info = os.fstat(fd)
+    mode = stat.S_IMODE(info.st_mode)
+    if (not stat.S_ISREG(info.st_mode) or (info.st_uid, info.st_gid) != owner
+            or info.st_nlink != 1 or mode & 0o7000 or not mode & 0o400
+            or (mode & 0o022 and mode != 0o664)):
+        fail(f"unexplained generated file custody or mode: {label}")
+    no_extended_metadata(fd, label)
+    return info
+
+
+def digest(fd):
+    os.lseek(fd, 0, os.SEEK_SET)
+    result = hashlib.sha256()
+    while chunk := os.read(fd, 1024 * 1024):
+        result.update(chunk)
+    return result.hexdigest()
+
+
+def pin(label, info):
+    value = signature(info)
+    if label in pins and pins[label] != value:
+        fail(f"private build ancestry changed: {label}")
+    pins.setdefault(label, value)
+
+
+@contextlib.contextmanager
+def output_handle():
+    # Open every absolute ancestor and every stage component without following
+    # links. Reopen/revalidate the named chain on every use; a retained descriptor
+    # alone would not notice that an ancestor had been renamed out of this stage.
+    global ancestor_pins
+    with contextlib.ExitStack() as handles:
+        fd = os.open(os.sep, directory_flags)
+        handles.callback(os.close, fd)
+        chain = []
+        for component in target.split(os.sep)[1:]:
+            fd = os.open(component, directory_flags, dir_fd=fd)
+            handles.callback(os.close, fd)
+            info = os.fstat(fd)
+            chain.append((info.st_dev, info.st_ino, info.st_uid, info.st_gid,
+                          stat.S_IMODE(info.st_mode)))
+        if ancestor_pins is not None and chain != ancestor_pins:
+            fail("absolute beta target ancestry changed")
+        ancestor_pins = chain
+        pin("beta target", directory(fd, target))
+        fd = os.open(os.path.basename(stage), directory_flags, dir_fd=fd)
+        handles.callback(os.close, fd)
+        info = directory(fd, stage, private=True)
+        if f"{info.st_dev}:{info.st_ino}" != expected_id:
+            fail("current private build stage identity changed")
+        pin("stage", info)
+        stage_device = info.st_dev
+        for component in ("terminal", ".next"):
+            fd = os.open(component, directory_flags, dir_fd=fd)
+            handles.callback(os.close, fd)
+            info = directory(fd, component)
+            if info.st_dev != stage_device:
+                fail("private build output crossed a filesystem boundary")
+            pin(component, info)
+        yield fd, stage_device
+
+
+def inventory():
+    result = {}
+    with output_handle() as (root_fd, device):
+        def walk(fd, parts):
+            before = directory(fd, "/".join(parts) or ".next")
+            if before.st_dev != device:
+                fail("private generated directory crossed a filesystem boundary")
+            result[parts] = (signature(before), None)
+            names = sorted(os.listdir(fd))
+            for name in names:
+                child = parts + (name,)
+                label = "/".join(child)
+                if name == ".env" or name.startswith(".env."):
+                    fail(f"secret-style name is not generated runtime output: {label}")
+                named = os.stat(name, dir_fd=fd, follow_symlinks=False)
+                if stat.S_ISDIR(named.st_mode):
+                    child_fd = os.open(name, directory_flags, dir_fd=fd)
+                    try:
+                        if signature(os.fstat(child_fd)) != signature(named):
+                            fail(f"generated directory changed before inventory: {label}")
+                        walk(child_fd, child)
+                    finally:
+                        os.close(child_fd)
+                elif stat.S_ISREG(named.st_mode):
+                    child_fd = os.open(name, file_flags, dir_fd=fd)
+                    try:
+                        before_file = regular(child_fd, label)
+                        if (signature(before_file) != signature(named)
+                                or before_file.st_dev != device):
+                            fail(f"generated file changed before inventory: {label}")
+                        content = digest(child_fd)
+                        after = regular(child_fd, label)
+                        if (signature(before_file) != signature(after)
+                                or signature(after) != signature(os.stat(
+                                    name, dir_fd=fd, follow_symlinks=False))):
+                            fail(f"generated file changed during inventory: {label}")
+                        result[child] = (signature(after), content)
+                    finally:
+                        os.close(child_fd)
+                else:
+                    fail(f"generated output contains an alias or special entry: {label}")
+            if (names != sorted(os.listdir(fd))
+                    or signature(before) != signature(directory(fd, "/".join(parts)))):
+                fail("generated directory membership changed during inventory")
+        walk(root_fd, ())
+    return result
+
+
+@contextlib.contextmanager
+def file_handle(parts, snapshot):
+    with output_handle() as (root_fd, device), contextlib.ExitStack() as handles:
+        fd = root_fd
+        for offset, component in enumerate(parts[:-1], 1):
+            fd = os.open(component, directory_flags, dir_fd=fd)
+            handles.callback(os.close, fd)
+            info = directory(fd, "/".join(parts[:offset]))
+            if signature(info) != snapshot[parts[:offset]][0]:
+                fail("generated file ancestry changed before preparation")
+        fd = os.open(parts[-1], file_flags, dir_fd=fd)
+        handles.callback(os.close, fd)
+        info = regular(fd, "/".join(parts))
+        if info.st_dev != device or signature(info) != snapshot[parts][0]:
+            fail("generated file identity, membership or mode changed before preparation")
+        yield fd
+
+
+if (not os.path.isabs(stage) or os.path.normpath(stage) != stage
+        or not os.path.isabs(target) or os.path.normpath(target) != target
+        or os.path.dirname(stage) != target
+        or not os.path.basename(stage).startswith(".stage.")
+        or len(os.path.basename(stage)) <= len(".stage.")):
+    fail("only this invocation's private beta stage may prepare generated output")
+try:
+    # Complete inventory first. Static unexplained state refuses before any mode
+    # changes. Descriptor use is bounded by directory depth, not the file count.
+    original = inventory()
+    expected = dict(original)
+    converted = 0
+    for parts, (before, content) in sorted(original.items()):
+        if content is None or stat.S_IMODE(before[4]) != 0o664:
+            continue
+        if parts[0] == "cache":
+            continue  # beta_prepare_next_cache owns this subtree after the swap
+        with file_handle(parts, original) as fd:
+            current = regular(fd, "/".join(parts))
+            if digest(fd) != content or signature(regular(fd, "/".join(parts))) != before:
+                fail("generated bytes or custody changed before permission preparation")
+            with output_handle():
+                pass  # catch ancestor replacement after this file was opened
+            os.fchmod(fd, 0o644)
+            after = regular(fd, "/".join(parts))
+            if (preserved(after) != preserved(current)
+                    or stat.S_IMODE(after.st_mode) != 0o644 or digest(fd) != content
+                    or signature(regular(fd, "/".join(parts))) != signature(after)):
+                fail("generated bytes or custody changed during permission preparation")
+            expected[parts] = (signature(after), content)
+            converted += 1
+    # No late replacement, new inode alias, membership change, byte change or
+    # unexplained metadata may carry this preparation past the activation seam.
+    if inventory() != expected:
+        fail("generated output changed before private preparation completed")
+except OSError as exc:
+    fail(f"private build output could not be safely inspected/prepared: {exc}")
+print(f"inspected={len(original)} converted={converted}; bytes, inodes and custody preserved")
+PY_BUILD_OUTPUT
+  ); then
+    log "FATAL: beta build output preparation failed: ${outcome:-<no reason reported>}"
+    return 73
+  fi
+  log "beta build output prepared: $outcome"
+}
+
 # Explicit custody preparation for the beta Next cache. The repaired unit keeps
 # only the beta app's .next/cache writable; that is useless unless that cache
 # actually belongs to the service user, so it is created and owned deliberately
@@ -3369,6 +3824,388 @@ beta_txn_begin(){
   log "beta transaction pending: attempt=$BETA_TXN_ID prior=${BETA_PRIOR_SHA:-<first-install>} target=$FULL_SHA; automatic startup disabled"
 }
 
+
+beta_runtime_prune_owned(){
+  # beta-only protected runtime-source deletion helper (bounded fabric artifact).
+  # Frozen interface: beta_runtime_prune_owned "$prior_sha" "$target_sha"
+  # Shell globals consumed: TARGET (must be exactly "beta"), SRC (canonical git
+  # repo), RUNTIME_SYNC_ROOT and BETA_TARGET_ROOT (identical physical
+  # destination root). Read-only against git: no fetch, no ref/index mutation.
+  # Deletes only prior-tracked regular files that are absent from the target
+  # commit inside the exact six runtime roots (config, contracts, hub, ingest,
+  # signal_layer, scripts), and only after a full preflight of every candidate.
+  # Any refusal happens before the first unlink. Emits compact deleted
+  # path/count evidence; never prints file content.
+  local _brp_prior="${1-}" _brp_target="${2-}" _brp_rc=0
+  if [ "$#" -ne 2 ]; then
+    printf '%s: refuse: expected exactly 2 arguments (prior_sha target_sha), got %s\n' \
+      'beta_runtime_prune_owned' "$#" >&2
+    return 2
+  fi
+  MMX_PRUNE_TARGET_NAME="${TARGET-}" \
+  MMX_PRUNE_SRC="${SRC-}" \
+  MMX_PRUNE_ROOT="${RUNTIME_SYNC_ROOT-}" \
+  MMX_PRUNE_ROOT_ALIAS="${BETA_TARGET_ROOT-}" \
+  python3 -I - "$_brp_prior" "$_brp_target" <<'MMX_PRUNE_PY_V1'
+import errno
+import hashlib
+import os
+import re
+import stat
+import subprocess
+import sys
+
+PROG = "beta_runtime_prune_owned"
+SHA_RE = re.compile(r"\A[0-9a-f]{40}\Z")
+RUNTIME_ROOTS = ("config", "contracts", "hub", "ingest", "signal_layer", "scripts")
+GIT_MODE_REGULAR = ("100644", "100755")
+GIT_MODE_KNOWN = ("100644", "100755", "120000", "160000")
+RC_REFUSAL = 2
+RC_PREFLIGHT = 3
+RC_DELETION = 4
+
+
+def refuse(msg):
+    sys.stderr.write(PROG + ": refuse: " + msg + "\n")
+    sys.exit(RC_REFUSAL)
+
+
+def errname(exc):
+    code = getattr(exc, "errno", None)
+    return errno.errorcode.get(code, str(exc))
+
+
+def normalize_physical_dir(raw, label):
+    if not raw:
+        refuse(label + " is empty or unset")
+    if not os.path.isabs(raw):
+        refuse(label + " must be an absolute path (got %r)" % (raw,))
+    if os.path.normpath(raw) != raw:
+        refuse(label + " is not a normalized single-spelling path (alias form refused)")
+    real = os.path.realpath(raw)
+    if real != raw:
+        refuse(label + " is not a physical directory (symlink component refused)")
+    if not os.path.isdir(real):
+        refuse(label + " is not an existing directory")
+    return real
+
+
+def safe_git_path(path):
+    if not path or path.startswith("/"):
+        return False
+    for bad in ("\n", "\r"):
+        if bad in path:
+            return False
+    for comp in path.split("/"):
+        if comp in ("", ".", ".."):
+            return False
+    return True
+
+
+def in_runtime_roots(path):
+    for root in RUNTIME_ROOTS:
+        if path.startswith(root + "/"):
+            return True
+    return False
+
+
+def git_bytes(src, args):
+    proc = subprocess.run(["git", "-C", src] + args,
+                          stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if proc.returncode != 0:
+        first = proc.stderr.decode("utf-8", "replace").strip().splitlines()
+        refuse("read-only git %s failed: %s"
+               % (args[0], first[0] if first else "unknown error"))
+    return proc.stdout
+
+
+def require_commit(src, sha, label):
+    kind = git_bytes(src, ["cat-file", "-t", sha]).decode("ascii", "replace").strip()
+    if kind != "commit":
+        refuse(label + " is not a commit object (git reports %r)" % (kind,))
+
+
+def tracked_entries(src, sha, label):
+    entries = {}
+    for rec in git_bytes(src, ["ls-tree", "-r", "-z", sha]).split(b"\x00"):
+        if not rec:
+            continue
+        meta, sep, raw_path = rec.partition(b"\t")
+        if not sep:
+            refuse("malformed ls-tree record in " + label + " tree")
+        fields = meta.split(b" ")
+        if len(fields) != 3:
+            refuse("malformed ls-tree metadata in " + label + " tree")
+        mode = fields[0].decode("ascii", "replace")
+        kind = fields[1].decode("ascii", "replace")
+        oid = fields[2].decode("ascii", "replace")
+        path = os.fsdecode(raw_path)
+        if not safe_git_path(path):
+            refuse("unsafe git path in " + label + " tree: " + repr(path))
+        if not in_runtime_roots(path):
+            continue
+        if mode not in GIT_MODE_KNOWN:
+            refuse("unsafe git mode " + mode + " for tracked path " + repr(path))
+        if kind != "blob":
+            refuse("unexpected tracked object type " + kind + " for path " + repr(path))
+        entries[path] = (mode, oid)
+    return entries
+
+
+def open_under_root(root_fd, rel):
+    # Walk every path component with O_NOFOLLOW starting from the already
+    # verified physical root fd, so no symlink or traversal can escape.
+    parts = rel.split("/")
+    opened = []
+    cur = root_fd
+    try:
+        for comp in parts[:-1]:
+            cur = os.open(comp, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW | os.O_CLOEXEC,
+                          dir_fd=cur)
+            opened.append(cur)
+            require_directory_custody(cur)
+        entry = os.stat(parts[-1], dir_fd=cur, follow_symlinks=False)
+        if not stat.S_ISREG(entry.st_mode):
+            raise OSError(errno.EINVAL, "candidate is not a regular source file")
+        leaf = os.open(parts[-1], os.O_RDONLY | os.O_NOFOLLOW | os.O_CLOEXEC | os.O_NONBLOCK, dir_fd=cur)
+    except OSError:
+        for fd in opened:
+            os.close(fd)
+        raise
+    return leaf, opened
+
+
+def require_directory_custody(fd):
+    meta = os.fstat(fd)
+    if (not stat.S_ISDIR(meta.st_mode) or meta.st_uid != os.geteuid()
+            or stat.S_IMODE(meta.st_mode) & 0o022):
+        raise OSError(errno.EPERM, "runtime directory custody is not exclusive")
+
+
+def close_all(fds):
+    for fd in fds:
+        os.close(fd)
+
+
+def blob_sha1(fd):
+    digest = hashlib.sha1()
+    size = os.fstat(fd).st_size
+    digest.update(("blob %d\0" % (size,)).encode("ascii"))
+    os.lseek(fd, 0, os.SEEK_SET)
+    while True:
+        chunk = os.read(fd, 1 << 20)
+        if not chunk:
+            break
+        digest.update(chunk)
+    return digest.hexdigest()
+
+
+def preflight_candidate(root, root_fd, rel, entry):
+    mode, oid = entry
+    disk = os.path.join(root, rel)
+    try:
+        leaf_fd, opened = open_under_root(root_fd, rel)
+    except FileNotFoundError:
+        return ("missing", "")
+    except OSError as exc:
+        return ("blocked",
+                "path is not directly addressable under the physical root ("
+                + errname(exc) + ")")
+    try:
+        st = os.fstat(leaf_fd)
+        if not stat.S_ISREG(st.st_mode):
+            return ("blocked",
+                    "on-disk entry is not a regular file (mode 0%o)"
+                    % (st.st_mode & 0o7777,))
+        if st.st_nlink != 1:
+            return ("blocked",
+                    "shared inode (st_nlink=%d); aliased deletion refused"
+                    % (st.st_nlink,))
+        if st.st_uid != os.geteuid() or st.st_mode & 0o022:
+            return ("blocked",
+                    "world-writable or group-writable/foreign custody (mode 0%o); refused"
+                    % (st.st_mode & 0o7777,))
+        if (mode == "100755") != bool(st.st_mode & 0o100):
+            return ("blocked",
+                    "executable bit incompatible with prior git mode %s (disk 0%o)"
+                    % (mode, st.st_mode & 0o7777))
+        if blob_sha1(leaf_fd) != oid:
+            return ("blocked", "on-disk bytes differ from prior git blob " + oid)
+        if signature(os.fstat(leaf_fd)) != signature(st):
+            return ("blocked", "candidate changed during its content check")
+        if os.path.realpath(disk) != disk:
+            return ("blocked", "path resolves outside the physical root")
+    finally:
+        os.close(leaf_fd)
+        close_all(opened)
+    return ("plan", signature(st))
+
+
+def signature(st):
+    return (st.st_dev, st.st_ino, st.st_mode, st.st_uid, st.st_gid,
+            st.st_nlink, st.st_size, st.st_mtime_ns, st.st_ctime_ns)
+
+
+def delete_planned(root_fd, plan):
+    deleted = []
+    for rel, expected_identity, expected_oid in plan:
+        parts = rel.split("/")
+        opened = []
+        cur = root_fd
+        try:
+            for comp in parts[:-1]:
+                cur = os.open(comp,
+                              os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW | os.O_CLOEXEC,
+                              dir_fd=cur)
+                opened.append(cur)
+                require_directory_custody(cur)
+            leaf_name = parts[-1]
+            st = os.stat(leaf_name, dir_fd=cur, follow_symlinks=False)
+            if not stat.S_ISREG(st.st_mode) or signature(st) != expected_identity:
+                raise OSError(errno.EINVAL, "candidate identity changed before unlink", rel)
+            fd = os.open(leaf_name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=cur)
+            try:
+                if (signature(os.fstat(fd)) != expected_identity
+                        or blob_sha1(fd) != expected_oid
+                        or signature(os.fstat(fd)) != expected_identity):
+                    raise OSError(errno.EINVAL, "candidate bytes changed before unlink", rel)
+            finally:
+                os.close(fd)
+            if signature(os.stat(leaf_name, dir_fd=cur, follow_symlinks=False)) != expected_identity:
+                raise OSError(errno.EINVAL, "candidate path changed before unlink", rel)
+            os.unlink(leaf_name, dir_fd=cur)
+        except OSError as exc:
+            close_all(opened)
+            sys.stderr.write("%s: deletion-failed after %d deletion(s) at %s: %s\n"
+                             % (PROG, len(deleted), rel, errname(exc)))
+            sys.exit(RC_DELETION)
+        close_all(opened)
+        deleted.append(rel)
+    return deleted
+
+
+def main(argv):
+    if len(argv) != 3:
+        refuse("expected exactly 2 arguments: prior_sha target_sha")
+    prior, target = argv[1], argv[2]
+
+    profile = os.environ.get("MMX_PRUNE_TARGET_NAME", "")
+    if profile != "beta":
+        refuse("TARGET profile must be exactly 'beta' for this helper (got %r)"
+               % (profile,))
+
+    if not SHA_RE.match(target):
+        refuse("target_sha must be a full 40-character lowercase hex commit id")
+    if prior != "" and not SHA_RE.match(prior):
+        refuse("prior_sha must be empty (first bootstrap) or a full 40-character "
+               "lowercase hex commit id")
+
+    root_raw = os.environ.get("MMX_PRUNE_ROOT", "")
+    alias_raw = os.environ.get("MMX_PRUNE_ROOT_ALIAS", "")
+    src_raw = os.environ.get("MMX_PRUNE_SRC", "")
+    if not root_raw or not alias_raw:
+        refuse("RUNTIME_SYNC_ROOT and BETA_TARGET_ROOT must both be set")
+    if root_raw != alias_raw:
+        refuse("destination root mismatch/alias: RUNTIME_SYNC_ROOT and "
+               "BETA_TARGET_ROOT are not the identical path")
+    root = normalize_physical_dir(root_raw, "RUNTIME_SYNC_ROOT/BETA_TARGET_ROOT")
+    src = normalize_physical_dir(src_raw, "SRC canonical git repo")
+
+    require_commit(src, target, "target_sha")
+    if prior == "":
+        sys.stdout.write("%s: first_bootstrap prior_revision_empty candidates=0 "
+                         "deleted_count=0 target=%s\n" % (PROG, target))
+        return 0
+    require_commit(src, prior, "prior_sha")
+
+    prior_entries = tracked_entries(src, prior, "prior")
+    target_entries = tracked_entries(src, target, "target")
+    # Candidates: regular files tracked in prior, absent from target, inside the
+    # exact six roots. Tracked overlap is untouched by design.
+    candidates = sorted(
+        path for path, (mode, _oid) in prior_entries.items()
+        if mode in GIT_MODE_REGULAR and path not in target_entries
+    )
+
+    root_fd = os.open(root, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+    try:
+        require_directory_custody(root_fd)
+        plan = []
+        blocked = []
+        missing = 0
+        for rel in candidates:
+            status, why = preflight_candidate(root, root_fd, rel, prior_entries[rel])
+            if status == "plan":
+                plan.append((rel, why, prior_entries[rel][1]))
+            elif status == "missing":
+                missing += 1
+            else:
+                blocked.append((rel, why))
+        if blocked:
+            for rel, why in blocked:
+                sys.stderr.write("%s: blocked candidate %s: %s\n" % (PROG, rel, why))
+            sys.stderr.write("%s: preflight blocked=%d planned=%d missing=%d "
+                             "candidates=%d; no deletion performed\n"
+                             % (PROG, len(blocked), len(plan), missing, len(candidates)))
+            sys.exit(RC_PREFLIGHT)
+        deleted = delete_planned(root_fd, plan)
+    finally:
+        os.close(root_fd)
+
+    sys.stdout.write("%s: deleted_count=%d candidates=%d missing_noop=%d "
+                     "prior=%s target=%s\n"
+                     % (PROG, len(deleted), len(candidates), missing, prior, target))
+    for rel in deleted:
+        sys.stdout.write("deleted " + rel + "\n")
+    return 0
+
+
+sys.exit(main(sys.argv))
+MMX_PRUNE_PY_V1
+  _brp_rc=$?
+  return "$_brp_rc"
+}
+
+# End beta runtime source prune.
+
+beta_recovery_check(){
+  local field value head dirty
+  [ "$TARGET" = beta ] || return 64
+  beta_unit_declares_shared_shell inactive disabled || return $?
+  for field in MainPID ControlPID; do
+    value=$(systemctl show -p "$field" --value "$SERVICE_NAME") || return $?
+    [ "$value" = 0 ] || { log "FATAL: recovery requires $field=0"; return 75; }
+  done
+  head=$(git -C "$SRC" rev-parse HEAD) || return $?
+  dirty=$(git -C "$SRC" status --porcelain=v1 --untracked-files=all) || return $?
+  [ "$head" = "$TARGET_SHA" ] && [ -z "$dirty" ] || {
+    log "FATAL: recovery requires the exact clean failed target checkout"; return 75;
+  }
+  beta_statectl attempt-recovery-check "$BETA_TARGET_ROOT" "$SOURCE_PROVISIONED_STATE_DIR" \
+    "$APP" "$SRC" "$TARGET_SHA" "$PREFLIGHT_POLICY_DIGEST" "$PRODUCTION_APP_DEFAULT" \
+    "$RECOVERY_ATTEMPT" "$RECOVERY_RECORD_ID" >/dev/null
+}
+
+beta_txn_recover(){
+  local outcome tag
+  beta_recovery_check || return $?
+  outcome=$(beta_statectl attempt-recover "$BETA_TARGET_ROOT" "$SOURCE_PROVISIONED_STATE_DIR" \
+    "$APP" "$SRC" "$TARGET_SHA" "$PREFLIGHT_POLICY_DIGEST" "$PRODUCTION_APP_DEFAULT" \
+    "$RECOVERY_ATTEMPT" "$RECOVERY_RECORD_ID") || return $?
+  IFS=$'\t' read -r tag BETA_PRIOR_RECORD BETA_PRIOR_RECORD_ID BETA_PRIOR_SHA BETA_PRIOR_BUILD <<<"$outcome"
+  [ "$tag" = RECOVERY ] || return 75
+  RUNTIME_RECORD_PATH=$BETA_PRIOR_RECORD
+  BETA_TXN_ID=$RECOVERY_ATTEMPT
+  BETA_TXN_ACTIVE=1
+  BETA_TXN_INPUTS_DIRTY=1
+  BETA_TXN_ABORT_HANDLED=0
+  BETA_TXN_COMMITTED=0
+  SWAPPED=0
+  NEW_BUILD_ID=
+  CANONICAL_RECOVERY_ARMED=0
+  log "beta same-attempt recovery claimed once: attempt=$BETA_TXN_ID failed_record=$RECOVERY_RECORD_ID target=$TARGET_SHA; exact target will be rebuilt"
+}
+
 beta_txn_phase(){
   [ "$TARGET" = beta ] || return 0
   [ "$BETA_TXN_ACTIVE" = 1 ] || { log "FATAL: beta has no admitted pending transaction"; return 75; }
@@ -3397,8 +4234,15 @@ beta_txn_quarantine(){
   # Only the candidate installed by this attempt belongs in .next.broken.
   # A staging failure must never rename the still-accepted baseline's build.
   if [ "${SWAPPED:-0}" = 1 ] && [ -d "$APP/.next" ] && [ ! -L "$APP/.next" ]; then
-    rm -rf "$APP/.next.broken" || return $?
-    mv "$APP/.next" "$APP/.next.broken" || return $?
+    if [ "${RECOVERY_REQUESTED:-0}" = 1 ]; then
+      # Keep both original retained generations. A failed recovery is not retried.
+      local recovery_failed="$APP/.next.recovery-failed-$BETA_TXN_ID"
+      [ ! -e "$recovery_failed" ] && [ ! -L "$recovery_failed" ] || return 75
+      mv "$APP/.next" "$recovery_failed" || return $?
+    else
+      rm -rf "$APP/.next.broken" || return $?
+      mv "$APP/.next" "$APP/.next.broken" || return $?
+    fi
   fi
 }
 
@@ -3529,7 +4373,7 @@ beta_txn_commit(){
   # automatically startable generation is the durably accepted one.
   systemctl enable "$SERVICE_NAME" || return $?
   beta_unit_declares_shared_shell active enabled || return $?
-  deploy_generation_commit "$APP" || return $?
+  if [ "${RECOVERY_REQUESTED:-0}" != 1 ]; then deploy_generation_commit "$APP" || return $?; fi
   beta_statectl attempt-finish "$BETA_TARGET_ROOT" "$SOURCE_PROVISIONED_STATE_DIR" \
     "$BETA_TXN_ID" committed >/dev/null || return $?
   BETA_TXN_ACTIVE=0
@@ -3612,14 +4456,17 @@ if [ "${BASH_SOURCE[0]}" != "$0" ]; then
 fi
 
 # ── argument form -> profile -> SHA. Nothing here touches the filesystem. ──────
-# Exactly three shapes are accepted: the production default that predates any beta
-# work, the beta profile, and the beta-only bootstrap entrance. The profile flag,
+# Four explicit forms are accepted: the production default, ordinary beta,
+# beta bootstrap, and exact one-shot beta recovery. The profile flag,
 # when present, comes first and --bootstrap is valid only with --target beta. There
 # is no environment variable, config file or positional shortcut that selects a
 # profile or an entrance: the release intent is the command line, in full, every
 # time.
 TARGET_REQUESTED=production
 BOOTSTRAP_REQUESTED=0
+RECOVERY_REQUESTED=0
+RECOVERY_ATTEMPT=
+RECOVERY_RECORD_ID=
 TARGET_SHA=
 if [ "$#" -eq 2 ] && [ "$1" = "--target-sha" ]; then
   TARGET_SHA=$2
@@ -3630,9 +4477,19 @@ elif [ "$#" -eq 5 ] && [ "$1" = "--target" ] && [ "$3" = "--bootstrap" ] && [ "$
   TARGET_REQUESTED=$2
   TARGET_SHA=$5
   BOOTSTRAP_REQUESTED=1
+elif [ "$#" -eq 8 ] && [ "$1" = "--target" ] && [ "$2" = beta ] \
+    && [ "$3" = "--recover-attempt" ] && [ "$5" = "--pending-record-id" ] && [ "$7" = "--target-sha" ]; then
+  TARGET_REQUESTED=beta
+  RECOVERY_REQUESTED=1
+  RECOVERY_ATTEMPT=$4
+  RECOVERY_RECORD_ID=$6
+  TARGET_SHA=$8
+  if [[ ! "$RECOVERY_ATTEMPT" =~ ^[0-9a-f]{32}$ ]] || [[ ! "$RECOVERY_RECORD_ID" =~ ^[0-9a-f]{64}$ ]]; then
+    log "FATAL: recovery requires exact attempt and pending record identities"; exit 64
+  fi
 else
   log "USAGE: $0 [--target production|beta] [--bootstrap] --target-sha <full-lowercase-40-hex-commit>"
-  log "       --bootstrap is a beta-only entrance and is invalid for production"
+  log "       --bootstrap is beta-only; failed dirty upgrades use --target beta --recover-attempt <32-hex> --pending-record-id <64-hex> --target-sha <40-hex>"
   exit 64
 fi
 if [ "$BOOTSTRAP_REQUESTED" = 1 ] && [ "$TARGET_REQUESTED" != beta ]; then
@@ -3692,7 +4549,7 @@ prepare_preflight_receipt_dir "$PREFLIGHT_RECEIPT_DIR"
 # the ordinary entrance is written first and calls the gate INLINE, exactly as the
 # incumbent always did. The bootstrap entrance is second and unchanged in
 # behaviour; its own gate runs against the provisioned generation.
-if [ "$BOOTSTRAP_REQUESTED" != 1 ]; then
+if [ "$BOOTSTRAP_REQUESTED" != 1 ] && [ "$RECOVERY_REQUESTED" != 1 ]; then
   # The incumbent order, exactly restored: current-generation preflight (plus the
   # receipted sole-canonical-head-mismatch recovery and its second preflight)
   # BEFORE fetch, admission, reset, clean, build and every source write.
@@ -3722,7 +4579,7 @@ if [ "$BOOTSTRAP_REQUESTED" != 1 ]; then
   CANONICAL_RECOVERY_ARMED=1
   git -C "$SRC" reset -q --hard "$TARGET_SHA"
   git -C "$SRC" clean -qfd
-else
+elif [ "$BOOTSTRAP_REQUESTED" = 1 ]; then
   # Bootstrap order is load-bearing: unit prerequisite -> admission of an empty or
   # exactly-verified target -> fetch the protected ref -> prove the requested
   # commit is contained by it -> bind the beta checkout -> provision SOURCE from the
@@ -3754,6 +4611,14 @@ else
     recover_canonical_head_mismatch "$SRC" "$DEPLOYMENT_MARKER" || exit $?
     run_release_preflight "$PREFLIGHT_SCRIPT" "$PREFLIGHT_POLICY" "$SRC" "$PREFLIGHT_RECEIPT_DIR"
   fi
+else
+  # Dirty failed-attempt recovery is an explicit, one-shot entrance. It does not
+  # reinterpret the original UNKNOWN_STOP as CLEAN or open a replacement attempt.
+  beta_recovery_check || exit $?
+  ACCEPTED_REF="refs/remotes/origin/$BRANCH"
+  fetch_accepted_ref "$SRC" origin "$BRANCH" "$ACCEPTED_REF"
+  admit_target_sha "$SRC" "$TARGET_SHA" "$ACCEPTED_REF_SHA"
+  beta_txn_recover || exit $?
 fi
 FULL_SHA=$(git -C "$SRC" rev-parse HEAD)
 [ "$FULL_SHA" = "$TARGET_SHA" ] || {
@@ -3761,7 +4626,8 @@ FULL_SHA=$(git -C "$SRC" rev-parse HEAD)
   exit 65
 }
 SHA=${FULL_SHA:0:12}
-if [ "$TARGET" = beta ]; then
+apply_production_shared_shell_profile || exit $?
+if [ "$TARGET" = beta ] && [ "$RECOVERY_REQUESTED" != 1 ]; then
   beta_txn_begin || exit $?
 fi
 log "node $(node -v)"
@@ -3811,6 +4677,11 @@ fi
 # the one production-only filesystem assumption in this step, and keeps any
 # build-time write inside the ephemeral stage instead of a live tree.
 STAGE_ROOT=$(mktemp -d "$(dirname "$APP")/.stage.XXXXXX")
+if [ "$TARGET" = beta ]; then
+  # Capture this invocation's private directory identity before archive/build code
+  # runs. Later output preparation must reopen exactly this directory.
+  BETA_BUILD_STAGE_ID=$(python3 -I -c 'import os,sys; s=os.lstat(sys.argv[1]); print(str(s.st_dev)+":"+str(s.st_ino))' "$STAGE_ROOT") || exit $?
+fi
 STAGE="$STAGE_ROOT/terminal"
 mkdir -p "$STAGE"
 # The gated dirs are archived to a file first: an EMPTY stream (a commit without them, or a
@@ -3864,8 +4735,9 @@ log "next build (staging) ..."
 # deployment-id inputs to the ONE deployed commit so every HTML/RSC response and
 # every static chunk uses the same ?dpl= value. The Date.now fallback is only for
 # ad-hoc local builds. NODE_OPTIONS carries the heap ceiling (see build_node_options).
-# MMX_SHARED_SHELL is present only because apply_profile_environment declared it for
-# beta and removed it for production; the build command itself is identical for both.
+# MMX_SHARED_SHELL is owner-derived: beta declares it; production requires the
+# exact admitted activation drop-in and inert unit BUILD flag. Next pins the
+# value into this build, so restoring an older off build cannot enable it.
 BUILD_NODE_OPTIONS=$(build_node_options "${NODE_OPTIONS:-}")
 ( cd "$STAGE" && NODE_OPTIONS="$BUILD_NODE_OPTIONS" GIT_SHA="$FULL_SHA" NEXT_DEPLOYMENT_ID="$FULL_SHA" npm run build )
 
@@ -3879,6 +4751,14 @@ NEW_BUILD_ID=$(cat "$STAGE/.next/BUILD_ID")
 # so print the SHA beside it — the bare BUILD_ID line makes a healthy deploy look like a no-op.
 log "new build OK: BUILD_ID=$NEW_BUILD_ID sha=$FULL_SHA"
 
+if [ "$TARGET" = beta ]; then
+  # Only the fresh private stage is touched; preserve any existing live-input
+  # dirty state, and refuse before activation or any live build/marker swap.
+  if ! beta_prepare_build_output; then
+    beta_txn_abort "could not qualify private beta build output" || exit 1
+  fi
+fi
+
 # 5) Pin the same deployment id for `next start`, which evaluates next.config.ts
 #    again. Install it only after the staged build verifies, immediately before the
 #    atomic build swap — and open a deploy generation as it goes, so the prior
@@ -3891,7 +4771,11 @@ log "new build OK: BUILD_ID=$NEW_BUILD_ID sha=$FULL_SHA"
 #    silently promote provisioned source to a rollback baseline, so no generation is
 #    opened at all on that entrance.
 if [ "$TARGET" = beta ]; then beta_txn_phase activation "$NEW_BUILD_ID" || exit $?; fi
-if [ "$BOOTSTRAP_REQUESTED" = 1 ]; then
+if [ "$RECOVERY_REQUESTED" = 1 ]; then
+  # The original prior marker/build remain rollback evidence. Never snapshot
+  # the failed target as a new accepted baseline merely because its ID is present.
+  [ "$(read_live_deployment_marker "$DEPLOYMENT_MARKER")" = "$FULL_SHA" ] || exit 75
+elif [ "$BOOTSTRAP_REQUESTED" = 1 ]; then
   log "beta bootstrap: no deploy generation is opened; a provisioned source marker is never a rollback baseline"
 else
   deploy_generation_begin "$APP" "$STAGE/.deployment-id"
@@ -3903,7 +4787,9 @@ CANONICAL_RECOVERY_ARMED=0
 #    marker already advanced by step 5 and the live .next already moved aside, and
 #    rollback would never run — see deploy_generation_abort.
 SWAPPED=0
-if ! rm -rf "$APP/.next.bak"; then
+if [ "$RECOVERY_REQUESTED" = 1 ]; then
+  [ ! -e "$APP/.next" ] && [ ! -L "$APP/.next" ] || exit 75
+elif ! rm -rf "$APP/.next.bak"; then
   if [ "$TARGET" = beta ]; then beta_txn_abort "could not clear .next.bak" || exit 1; fi
   deploy_generation_abort "$APP" "$FULL_SHA" "$SWAPPED" "could not clear .next.bak" || exit 1
 fi
@@ -3960,6 +4846,9 @@ if [ "$TARGET" = beta ]; then
   fi
   log "beta candidate active but pending: $FULL_SHA; accepted pointer has not advanced"
 else
+if ! production_shared_shell_profile_unchanged; then
+  deploy_generation_abort "$APP" "$FULL_SHA" "$SWAPPED" "production Shared Shell activation changed" || exit 1
+fi
 if ! systemctl restart terminal; then
   deploy_generation_abort "$APP" "$FULL_SHA" "$SWAPPED" "systemctl restart failed" || exit 1
 fi
@@ -3976,6 +4865,12 @@ if [ "$DEPLOY_OK" = 1 ] && ! deploy_identity_verified "$APP" "$FULL_SHA" "$NEW_B
   DEPLOY_OK=0
 fi
 
+if [ "$DEPLOY_OK" = 1 ] && [ "$PRODUCTION_SHARED_SHELL_ENABLED" = 1 ]; then
+  if ! shared_shell_status_verified "http://127.0.0.1:3000/api/shared-shell/status" "$FULL_SHA" "$SRC"; then
+    log "production Shared Shell tuple verification failed"
+    DEPLOY_OK=0
+  fi
+fi
 if [ "$DEPLOY_OK" = 1 ]; then
   deploy_generation_commit "$APP"
   log "identity verified: $(deploy_identity_line "$APP" "$FULL_SHA")"
@@ -4049,6 +4944,9 @@ else
   fi
   beta_txn_inputs_dirty || exit $?
   log "runtime sync <- target=beta origin/$BRANCH: $RUNTIME_PATHS -> $RUNTIME_SYNC_ROOT"
+  # The profile's legacy destination has a trailing slash; bind the helper to
+  # its one physical spelling without changing the production profile/overlay.
+  RUNTIME_SYNC_ROOT="${RUNTIME_SYNC_ROOT%/}" beta_runtime_prune_owned "$BETA_PRIOR_SHA" "$FULL_SHA"
   git -C "$SRC" -c tar.umask=0077 archive HEAD -- $RUNTIME_PATHS | tar -x -C "$RUNTIME_SYNC_ROOT"
   log "beta profile: no hub dependency detection, no hub npm ci, no quote-hub effect"
   log "beta profile: no nightly cron wrapper, no owner self-install, no global cron bundles"
@@ -4106,6 +5004,22 @@ if ( cd "$APP" && npx esbuild ../ingest/suite_alerts.ts --bundle --platform=node
 else
   log "WARN: suite_alerts bundle FAILED — cron keeps the previous bundle"
 fi
+
+# Frozen-node source reader bundle only. Packaging does not opt in the Python
+# evaluator, install lifecycle SQL, enroll alerts or authorize delivery.
+# BEGIN frozen-node source bundle
+log "bundling ingest/frozen_node_source_cli.ts -> ingest/dist/frozen_node_source.mjs"
+if ( cd "$APP" && npx esbuild ../ingest/frozen_node_source_cli.ts --bundle --platform=node --format=esm \
+      --conditions=react-server --outfile=../ingest/dist/frozen_node_source.mjs.new \
+      "--alias:@=." --log-level=warning ) && \
+    mv -f "$APP/../ingest/dist/frozen_node_source.mjs.new" \
+      "$APP/../ingest/dist/frozen_node_source.mjs"; then
+  log "installed ingest/dist/frozen_node_source.mjs (reader remains opt-in)"
+else
+  rm -f "$APP/../ingest/dist/frozen_node_source.mjs.new"
+  log "WARN: frozen_node_source bundle FAILED — previous bundle retained"
+fi
+# END frozen-node source bundle
 
 # personal-accuracy nightly worker: terminal-data invokes the generated artifact after the
 # US-equity OHLC refresh. Stage atomically so a failed bundle leaves the prior artifact in

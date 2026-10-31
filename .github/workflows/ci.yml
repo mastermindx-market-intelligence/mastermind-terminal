@@ -230,7 +230,12 @@ jobs:
     # tablet ~35-36 min and each desktop half ~28-31 min (from the old whole-desktop runs).
     # By 2026-10-12 the whole tablet project ran 47-59 min and the whole mobile project
     # 44-56 min on green runs, and both were cancelled at the cap on slower runners
-    # (#953, #954, #959, #960), so they are split into halves below exactly like desktop.
+    # (#953, #954, #959, #960), so they were split into halves exactly like desktop.
+    # On 2026-10-20 a mobile HALF still reached the unchanged cap (#1061): run
+    # 39403170318, job 118563127930 started 09:48:07 UTC, selected 513 tests with
+    # the single CI worker at 09:49:29, and was still passing with no assertion
+    # failure when the host cancelled it at 10:48:24 (60m17s), so mobile runs in
+    # thirds below.
     # This cap is a hang detector, not a budget to grow into: when a shard creeps toward it,
     # split that shard (as desktop, tablet and mobile are below), never just raise the number.
     timeout-minutes: 60
@@ -241,15 +246,32 @@ jobs:
       matrix:
         include:
           # Desktop first split after PR #677 reached the 60-minute cap. By 2026-10-18,
-          # desktop-1 alone carried 415 tests and again reached the cap (run 39121850650).
-          # Three Playwright shards retain the complete project with less work per runner.
-          # tests/test_ci_e2e_shards.py rejects missing, duplicate or inconsistent shards.
+          # desktop-1 alone carried 415 tests and again reached the cap (run 39121850650),
+          # so it ran in thirds. A THIRD still reached the unchanged cap on 2026-10-20
+          # (#1090): run 39415184138, job 118602371043 started 11:28:26 UTC and was still
+          # passing with no assertion failure when the host cancelled it at 12:28:40
+          # (60m14s), while the run's other desktop, tablet, mobile, serial, unit and
+          # ingest jobs finished green, so desktop ran in quarters. A QUARTER still
+          # reached the unchanged cap on 2026-10-21: required run 39655439015,
+          # job 119414325187 (desktop-1) reported a drawing recovery assertion at
+          # 19:37:52 and seven subsequent passes at 19:39:49 before cancellation
+          # at 19:45:28. That assertion has its own test-precondition repair;
+          # partitioning preserves the hang cap and does not fix assertions. Green
+          # predecessor heads 7579 (desktop-1 PASS 58m50) and 60c2 (PASS 57m17) sat
+          # about a minute under the cap while every other quarter ran 26-44 min.
+          # Five Playwright shards retain the complete project with less work per
+          # runner. tests/test_ci_e2e_shards.py rejects missing, duplicate or
+          # inconsistent shards.
           - shard: desktop-1
-            projects: "--project=desktop --shard=1/3"
+            projects: "--project=desktop --shard=1/5"
           - shard: desktop-2
-            projects: "--project=desktop --shard=2/3"
+            projects: "--project=desktop --shard=2/5"
           - shard: desktop-3
-            projects: "--project=desktop --shard=3/3"
+            projects: "--project=desktop --shard=3/5"
+          - shard: desktop-4
+            projects: "--project=desktop --shard=4/5"
+          - shard: desktop-5
+            projects: "--project=desktop --shard=5/5"
           # tablet and mobile outgrew one job the same way. On 2026-10-12 the last eight green
           # runs measured tablet 47-59 min and mobile 44-56 min, and train 3 (#960, head
           # 1dc6c48e9) lost both at the 60-min cap: jobs 114632507605 (tablet) and
@@ -257,14 +279,26 @@ jobs:
           # `npm run test:e2e:responsive --project=tablet` process terminated and no test
           # failure (#954 and #959 heads lost tablet the same way). Same contiguous
           # `--shard` coverage contract as desktop; tests/test_ci_e2e_shards.py guards these too.
+          # Tablet halves now approach the same cap: #1061 run 39416005343
+          # tablet-1 passed in 56m47s, and #1090 run 39415184138 in 55m40s.
+          # Three complete shards preserve coverage and leave runner margin.
           - shard: tablet-1
-            projects: "--project=tablet --shard=1/2"
+            projects: "--project=tablet --shard=1/3"
           - shard: tablet-2
-            projects: "--project=tablet --shard=2/2"
+            projects: "--project=tablet --shard=2/3"
+          - shard: tablet-3
+            projects: "--project=tablet --shard=3/3"
+          # A mobile HALF still reached the cap: on 2026-10-20 run 39403170318
+          # job 118563127930 started 09:48:07 UTC, selected 513 tests with the single CI
+          # worker at 09:49:29, and was still passing with no assertion failure when the
+          # host cancelled it at 10:48:24 — 60m17s, the unchanged cap (#1061). Three
+          # contiguous Playwright shards, same coverage contract as desktop above.
           - shard: mobile-1
-            projects: "--project=mobile --shard=1/2"
+            projects: "--project=mobile --shard=1/3"
           - shard: mobile-2
-            projects: "--project=mobile --shard=2/2"
+            projects: "--project=mobile --shard=2/3"
+          - shard: mobile-3
+            projects: "--project=mobile --shard=3/3"
           # The company-intelligence chain uses Playwright `dependencies`
           # (playwright.config.ts:69-87) and MUST stay whole inside one shard, or the
           # dependency projects re-run in every shard that touches them.
@@ -325,6 +359,17 @@ jobs:
           --project=desktop --project=tablet --project=mobile
           --workers=1 --retries=0
           --output=test-results/investor-shell-preview
+      - name: Qualify Shared Shell beta presentation
+        if: matrix.shard == 'serial'
+        env:
+          MMX_SHARED_SHELL: '1'
+          CI: '1'
+          TERMINAL_E2E_PORT: '31992'
+        run: >-
+          npm run test:e2e:responsive -- e2e/shared-shell-refinement.spec.ts
+          --project=desktop --project=tablet --project=mobile
+          --workers=1 --retries=0
+          --output=test-results/shared-shell-refinement
       - name: Upload responsive QA screenshots
         if: always()
         uses: actions/upload-artifact@v4
@@ -368,6 +413,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # The Scenario PostgreSQL qualification drives the actual TypeScript HTTP
+      # consumer in this same job. Python and PostgreSQL alone cannot run it.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: terminal/package-lock.json
+      - name: Install Terminal consumer test dependencies
+        run: npm ci
+        working-directory: terminal
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -385,7 +440,16 @@ jobs:
       #                    can't misread a comment or a `run:` shell block as a real job key.
       # requirements.txt additionally carries fastapi/uvicorn, which nothing under tests/
       # imports — installing them would only slow the job down.
-      - run: pip install numpy pandas pyarrow jsonschema pyyaml pytest
+      - run: pip install numpy pandas pyarrow jsonschema pyyaml requests yfinance==1.4.1 pytest
+      # Keep the broad ingest suite fail-closed when PostgreSQL binaries are missing.
+      # The dedicated upstream Investigation job remains an additional gate.
+      - name: Put PostgreSQL binaries on PATH
+        run: echo "$(pg_config --bindir)" >> "$GITHUB_PATH"
+      - name: Require PostgreSQL rather than silently skip
+        run: |
+          command -v initdb
+          command -v pg_ctl
+          command -v psql
       # Run as `python -m pytest` from the repo root: that is what puts the root on sys.path,
       # which is how `import ingest.…` / `import signal_layer.…` resolve (there is no
       # conftest.py and no installed package).
@@ -404,6 +468,9 @@ jobs:
       - run: python -m pytest tests/ -q
         env:
           PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr_number }}
+          # Read-only native membership qualification for present open migrations
+          # on a single-entry merge group. No PR/contents write permission added.
+          GH_TOKEN: ${{ github.event_name == 'merge_group' && github.token || '' }}
 
   investigation-postgres:
     name: Investigation PostgreSQL invariants
@@ -424,4 +491,6 @@ jobs:
           command -v pg_ctl
           command -v psql
       - name: Exercise migration, replay, CAS and owner isolation
-        run: python -m pytest tests/test_investigation_postgres.py tests/test_thesis_proposal_postgres.py tests/test_api_watchlist_write_postgres.py -q
+        run: python -m pytest tests/test_investigation_postgres.py tests/test_thesis_proposal_postgres.py tests/test_api_watchlist_write_postgres.py tests/test_forex_watch_postgres.py tests/test_alerts_frozen_hit_postgres.py tests/test_alerts_frozen_prepared_postgres.py tests/test_portfolio_target_role_postgres.py tests/test_options_frozen_migration_postgres.py -q
+      - name: Exercise drawing snapshots, replacement and actual competing sessions
+        run: python tests/sql/audit04/run_native_fixture.py --out-dir "$RUNNER_TEMP/audit04-evidence"

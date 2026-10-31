@@ -1,14 +1,14 @@
 {
   "schema": "mastermind.chart-context-redesign-evidence/v1",
-  "recordedAt": "2026-10-18T23:59:10.112Z",
-  "acceptanceSource": "9fe57b566316be7e1436e6d4b5e3b91c0a8c59bb",
-  "applicationBuildSource": "9fe57b566316be7e1436e6d4b5e3b91c0a8c59bb",
-  "applicationSourceUnchangedAfterBuild": true,
+  "recordedAt": "2026-10-20T01:42:39.993029+00:00",
+  "acceptanceSource": "3a5249a1c70a3b754384a1e31a4db71e12095e56",
+  "mergeSource": "50a8c01553ee92731a53dfcff36256308cfb5f0e",
+  "sourceIdentity": "Actual working normal merge; sourceFiles bind the captured implementation",
   "classification": "LOCAL_BROWSER_WITH_REPOSITORY_FIXTURES_NOT_PRODUCTION_MARKET_DATA",
   "paper": "https://app.paper.design/file/01M2WGNCX9475G79JRKJTCM08P/p-21-0",
   "sourceFiles": {
-    "terminal/components/ChartPanel.tsx": "f100d02a69a224e6742a9c7bffc93420f6a7fecb87c81ae4c1d221d0c6ef71f1",
-    "terminal/components/ChartSettingsModal.tsx": "6282cabd270912a32beb38c41d543bc2103d152de0f7e8c8225517caf3b6f431",
+    "terminal/components/ChartPanel.tsx": "c04f9eab4d6b85b0ac5670d2fe989260ec72b0170b1a96e4bd0ce5bf286da16d",
+    "terminal/components/ChartSettingsModal.tsx": "e1a22018044d0baee02eb84ea2396b3e135b0f7a3ef586bf3bc241f117df3928",
     "terminal/components/ChartSettingsModal.module.css": "a1685d103511e11882f8d379b22570f018e47aed88266db5ca6fec8808100b0a",
     "terminal/components/DrawingSidebar.tsx": "95910121c08efa2a41bcaac02ec626a48bc98021bbbf9e611ff0b61f7baaf6d9",
     "terminal/components/DrawingSidebar.module.css": "8f0452b49da704d0a0d3ea9f9317de1388fe5fbb169800bd8d5fac9ce007def2",
@@ -22,8 +22,8 @@
     "terminal/lib/indicator-canvas/host.ts": "4f2949efb22b8c378cab1ff9d176466c4857073c14a36ee4f0eeab4ec1015a25",
     "terminal/e2e/visual-intelligence.spec.ts": "69c3a3c2d5047249b80c25d671edaeae71cf0e17fa2ea8bf24c9b9404728d1ea",
     "terminal/lib/chart-engine/lwc/index.ts": "b82beb4c9f266c525cb3296ece617e65b601aa6a5239235a87dcc7c8c811ada2",
-    "terminal/components/TerminalShell.tsx": "2cfc6918daf402a1ee836247df9e574a4ab53529e731ece41f49afd8e26f8a1a",
-    "terminal/components/ChartPane.tsx": "e3dc3396a717c727d7e4f696a16e38b6b2fdb8098cd261884b1ef3c11df664bb",
+    "terminal/components/TerminalShell.tsx": "f5c3845fc9eafc46542f600ef2100ee85e3d3d7c6b8007e9253b1b26db3b74b2",
+    "terminal/components/ChartPane.tsx": "ee17acfd01af7cb6283e98db5a4cdab94bb7436606292699742f669c489f7d64",
     "terminal/components/ChartContextDock.ts": "4029c8c4552fcdcd7973cb57fff0805ea1b068280a3d34db773e6bed27c51ec9",
     "terminal/components/ChartContextPlacement.module.css": "62b9c6887f7ce9bd6db81f8339408ed671722d6dee3c713990d3fc8b164e36c0",
     "terminal/components/options-companion/OptionsRail.tsx": "1173a010353499930c7ab572bc92017085b7d75b4d40ba30fbecfe66ba671305",
@@ -31,128 +31,182 @@
     "terminal/e2e/chart-context-dock.spec.ts": "76c4f4c31873fcf43a92e24e40a6cdb2ce1a70e63f33bdf99df00081591f84bb",
     "terminal/e2e/options-companion.spec.ts": "c0b8d012423113f830f679cae1b659b96ebe866eca5ef4254a4d6e1a6bcaadac",
     "terminal/e2e/terminal-chrome-responsive.spec.ts": "8d8b3cbfb3e873e5ec2af39d1b068fead386535b801092cf8f7845a9c0272180",
-    "terminal/components/mobile/AnalysisHubSheet.tsx": "9b4eb9e703792bbc7fefe53cc09024a51bd5263f05fb348ae6a5752952360e29",
+    "terminal/components/mobile/AnalysisHubSheet.tsx": "f52b30fe5e7832077db8902a2651e0c47faabe7df1d892cc3b787e23ce8c9b24",
     "terminal/components/mobile/AnalysisHubSheet.module.css": "b54a3356b41a9e1f7838df62d4510375bf7421d34fc535345bee36d8d996a846",
     "terminal/e2e/phoneChrome.ts": "f42cdf73cd1fd604fe77bcfba0d21a598ac8bf814b955b9116f71f391e216657",
-    "terminal/e2e/mobile-chart-hub-upgrade.spec.ts": "7e71683e7b02319305317544528b0b0d68d59b6cd6af610f3190a4a487e74b40"
+    "terminal/e2e/mobile-chart-hub-upgrade.spec.ts": "8738702d3bcbe1b794c479db02de444e1b77ed5759c04b5f519022f10734e37b",
+    "terminal/components/chrome/AppShell.tsx": "8cf00af74b607f2f69c03f72550a2271609a272810116f17679199195cfcbb1d",
+    "terminal/components/AppNav.tsx": "d0576cb59f754530614a4eb0191595854f44d95192b162c0cd612185123a9a5b",
+    "terminal/components/MobileNav.tsx": "a0d4e6ad5ec1b7422a6816dda01ad01da3025f263314c49435156753e84f788a",
+    "terminal/components/MobileNav.module.css": "ebc961c1a5ed307aca41b147d87a6373c8710d0a9298e3bfe0df215d287c6c15",
+    "terminal/components/MobileNavModal.tsx": "62b4495cab5f8608b3413dad279b1bd48cdb4b6543dc07544428283665740498",
+    "terminal/components/chrome/investor-shell-preview.css": "83d1842b9b057014f698d5e62627c3e492a1061d0e8713b7a2bdc3ca8753650e",
+    "terminal/components/chrome/shared-shell/shared-shell.css": "b22101d04b9d034051e025d9d31506c09b55886365851ed4c9e8022775d15306",
+    "terminal/app/(shell)/layout.tsx": "76270446f1ff2b2f60393eacb81d3ccb1c5f6e7c7b20b96d85b535c7d1da5b9a",
+    "terminal/next.config.ts": "4eb175691f3277918c389f3f75fc4509d938b1b70daf5f8d5cdfd957eb4d7aa6",
+    "terminal/lib/investorShellPreview.ts": "d0e7797ffba0bfdda2fdabc1312abe07e631b5060ed9c58bbb320ed4b50624e9",
+    "terminal/lib/sharedShellContracts.ts": "dc7c893852c287b2a18c6b71cbced07bfa0996c1168490c5a8c24e4d3de01266",
+    "terminal/app/company-intelligence.css": "2bd8643832428198d38e8a5140cb7029687466781b2366976cb3ca5ddad9892b",
+    "terminal/components/DayRange.tsx": "c84724652783da1897ab4eeb98550eaf3dbd7942eefe3ce127b6ada2b16dd672",
+    "terminal/components/OptionsHubView.tsx": "041d1434d478a3a9adddc744948e286dfd76b17cc5e5146dab75a947207e35e3",
+    "terminal/components/SearchModal.tsx": "51b7b514f169a40db9644b502ddd0d933100a305aea55ea0f6a1fb028dbe69ad",
+    "terminal/components/StockAnalysis.tsx": "376a907d0d8ea3dc5819e0092f02e19ce56fa1f4b71a3489551adf52fddb35c0",
+    "terminal/components/workspaces/AnalysisWorkspace.tsx": "f98764b71e4e1301d6149aef0d3e47615455801f95a9691b4d8807febe92226e",
+    "terminal/lib/aiContext.ts": "607d1a191e129b15248a457daff82ae9f433909b29c14b0e4bacdcb38900624b",
+    "terminal/lib/chartPresentation.ts": "069f5af2dfc47c7c2f31ae21d23438825912c5e442cded7f18d794ebec834df3",
+    "terminal/lib/chartPriceWindow.ts": "1bcf4496ece02d755f75e9ddd0966e244d42dc86d62acba0a77f7c0208c33dd8",
+    "terminal/lib/chartReadoutSnapshot.ts": "3b0d3ff6d245006bd4543b9048049920ea9b2f2878eeb4bbe0dd705dcae0145e",
+    "terminal/lib/i18n.tsx": "9bcded1313e75ca37fa7ab67f256ad3b568daa61aaf0d10fa1907a4751a371c1",
+    "terminal/lib/plainLabels.ts": "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
+  },
+  "captureHarnessFiles": {
+    "terminal/docs/pr-crops/options-level-axis-labels/capture.mjs": "1dd35ad1e48b6d1cd3c101ffd1f58078f02a8bb53ea8168c39872a8a46fc68db",
+    "terminal/e2e/chart-context-dock.spec.ts": "76c4f4c31873fcf43a92e24e40a6cdb2ce1a70e63f33bdf99df00081591f84bb",
+    "terminal/e2e/command-palette-review.spec.ts": "1524c6bbb0ee9a0c4e48cf7c0e714600d14727a4a8f81792076572aa593067f8",
+    "terminal/e2e/fixtureWarmup.cjs": "4ff5d71c544d5310e630952539b23540cc179ff2e421034b452ef41adf9c2532",
+    "terminal/e2e/globalSetup.ts": "c2fbd4f02bb93d40f4cf9b5a80f302e11adeecd0e32a54d1d11cd9aad72a886b",
+    "terminal/e2e/mobile-chart-hub-upgrade.spec.ts": "8738702d3bcbe1b794c479db02de444e1b77ed5759c04b5f519022f10734e37b",
+    "terminal/e2e/options-companion.spec.ts": "c0b8d012423113f830f679cae1b659b96ebe866eca5ef4254a4d6e1a6bcaadac",
+    "terminal/e2e/overnight-refresh.spec.ts": "909806d2c7d3aad99b94918b9bcf714c343da265b3be9f471326d0c7bd6d6b3e",
+    "terminal/e2e/phoneChrome.ts": "f42cdf73cd1fd604fe77bcfba0d21a598ac8bf814b955b9116f71f391e216657",
+    "terminal/e2e/terminal-chrome-responsive.spec.ts": "8d8b3cbfb3e873e5ec2af39d1b068fead386535b801092cf8f7845a9c0272180",
+    "terminal/e2e/tools/capture_pl6_batch1.cjs": "80f1ff3174226ad5867263b18193cb262bb45f711b95f3f12dea39b5038521f5",
+    "terminal/e2e/visual-intelligence.spec.ts": "69c3a3c2d5047249b80c25d671edaeae71cf0e17fa2ea8bf24c9b9404728d1ea"
   },
   "visualMatrixReport": {
     "path": "../terminal-visual-intelligence/browser-report.json",
-    "sha256": "c4cf9e8196468aaae9a3e40866e57521c8e39f78d382f4d969521070d70989f1",
+    "sha256": "9bc2590a993acf58c5737eb905c33ba2e8f1520c7bda9bb3ce143d63ebfabbaf",
     "stats": {
-      "startTime": "2026-10-18T23:59:10.112Z",
-      "duration": 228217.123,
+      "startTime": "2026-10-20T01:36:11.277Z",
+      "duration": 227982.131,
       "expected": 30,
       "skipped": 0,
       "unexpected": 0,
       "flaky": 0
     },
-    "sourceHead": "9fe57b566316be7e1436e6d4b5e3b91c0a8c59bb"
+    "sourceHead": "3a5249a1c70a3b754384a1e31a4db71e12095e56",
+    "mergeHead": "50a8c01553ee92731a53dfcff36256308cfb5f0e"
   },
   "reports": {
-    "responsive-repair-report.json": {
-      "sha256": "1986b41b2dc3a583ddf1275cec9fdbb70a96dc9dfb692c1cc8d0f68c22e9ce13",
+    "merged-dock-remount-report.json": {
+      "sha256": "441013734685ed865b8f9dcc68647c5b87d7c598d46def6fdcf8b1bf89967fdb",
       "stats": {
-        "startTime": "2026-10-18T23:59:10.112Z",
-        "duration": 250588.828,
-        "expected": 46,
-        "skipped": 9,
+        "startTime": "2026-10-20T01:40:00.079Z",
+        "duration": 101133.527,
+        "expected": 16,
+        "skipped": 2,
         "unexpected": 0,
         "flaky": 0
       },
-      "sourceHead": "9fe57b566316be7e1436e6d4b5e3b91c0a8c59bb"
+      "sourceHead": "3a5249a1c70a3b754384a1e31a4db71e12095e56",
+      "mergeHead": "50a8c01553ee92731a53dfcff36256308cfb5f0e"
     },
-    "hub-integration-report.json": {
-      "sha256": "a71f63ae11421ed63b84eae32632ac38787b84de303b8368b1e8ad08414dcc00",
+    "merged-options-coexistence-report.json": {
+      "sha256": "152c2bfc1a0d753a57f0e1eb6ca99a19a19238729452ae2bc9153b4e9032ce91",
       "stats": {
-        "startTime": "2026-10-19T00:03:34.148Z",
-        "duration": 67667.824,
-        "expected": 8,
+        "startTime": "2026-10-20T01:41:42.258Z",
+        "duration": 57716.111999999994,
+        "expected": 6,
         "skipped": 0,
         "unexpected": 0,
         "flaky": 0
       },
-      "sourceHead": "9fe57b566316be7e1436e6d4b5e3b91c0a8c59bb"
+      "sourceHead": "3a5249a1c70a3b754384a1e31a4db71e12095e56",
+      "mergeHead": "50a8c01553ee92731a53dfcff36256308cfb5f0e"
     },
-    "palette-template-handoffs-report.json": {
-      "sha256": "00c575f903a0aae66b416d4b66ee22bbd98bd1813a628ae88f920bab9247079d",
+    "overnight-target-readback-report.json": {
+      "sha256": "81472766c9f713fb45a992baccf9adde37020de7d88d6671e91f093ea17f0f99",
       "stats": {
-        "startTime": "2026-10-19T00:02:59.046Z",
-        "duration": 104483.4,
-        "expected": 15,
+        "startTime": "2026-10-20T00:18:09.352Z",
+        "duration": 100430.739,
+        "expected": 9,
         "skipped": 0,
         "unexpected": 0,
         "flaky": 0
       },
-      "sourceHead": "9fe57b566316be7e1436e6d4b5e3b91c0a8c59bb"
+      "sourceHead": "3a5249a1c70a3b754384a1e31a4db71e12095e56",
+      "mergeHead": "50a8c01553ee92731a53dfcff36256308cfb5f0e"
+    },
+    "palette-target-navigation-report.json": {
+      "sha256": "6bc2c4068ef75de21e04468eef4a46c157a505b34df4a22c1083ba80364cf93c",
+      "stats": {
+        "startTime": "2026-10-20T00:19:50.862Z",
+        "duration": 159738.154,
+        "expected": 6,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "sourceHead": "3a5249a1c70a3b754384a1e31a4db71e12095e56",
+      "mergeHead": "50a8c01553ee92731a53dfcff36256308cfb5f0e"
     }
   },
   "screenshots": {
     "desktop-placement.png": {
-      "sha256": "ee91a20db235aa25f864a8dfe0a67a619008ccc33ee1841ce5eb71eb32783eff",
+      "sha256": "e2afc55817f883d0b3fc647c2a5470200c4fc15abab195798e862389f2245b8d",
       "dimensions": [
         1440,
         900
       ]
     },
     "mobile-placement.png": {
-      "sha256": "fc557654f1635871d9c2eb858fe24316504dd8f29e89a8bd37f3f872e7f8768f",
+      "sha256": "22db6ad4f40b950d43dfa4949e25781faca52a0d12033bca22ce3dede2bc282b",
       "dimensions": [
         390,
-        3293
+        3278
       ]
     },
     "native-desktop-placement.png": {
-      "sha256": "bbd1acb62147c5ff9b36bf2a4b1d320ceb4af0f604fef215a7dd4b2128d1d75c",
+      "sha256": "dc4ddc5e7ae0dee2717798bb436926262790f315f3eb548736a6b0e70643f7e1",
       "dimensions": [
         1440,
         900
       ]
     },
     "native-mobile-placement.png": {
-      "sha256": "c9a46d901594ebe59db108cafeda96c95be50b93a04b855ac2176afe6d1bbc9e",
+      "sha256": "0c8b42016a347938f74b018ce5d3e72c6dc308de72cc492a3574748df00939e2",
       "dimensions": [
         390,
         844
       ]
     },
     "native-tablet-placement.png": {
-      "sha256": "f8995e5e4a6a6293d6c5a1d07d4755fe4c413681500000228cda92b3f26fc3b0",
+      "sha256": "1eb48bf009e719c4c08652955c229d51db2213c25cf6b192c8c1a7e8502e84c9",
       "dimensions": [
         820,
         1180
       ]
     },
     "options-state/pp2b-mobile-en-parked.png": {
-      "sha256": "9aa1d242435bf79c7292430a626d5305109af2c862d723b464248556d4ec61ff",
+      "sha256": "71de45f3873599191e7e3a13548129248dfa3724065a82917d9cddf299287a3f",
       "dimensions": [
         390,
         844
       ]
     },
     "options-state/pp2b-mobile-en-returned.png": {
-      "sha256": "f84b2535dc38c0c0f3180fc9e02cea0aae8d7603de4410d81cb7bc645dd9831b",
+      "sha256": "0eacc637c2f47e6e80a560785768dda241aa942cab370ee8371d95eb78b9865f",
       "dimensions": [
         390,
         844
       ]
     },
     "options-state/pp2b-mobile-zh-parked.png": {
-      "sha256": "793d0c4421724d2a9e64b1541566d90d0a743712601dc0d4ec04e8ae1810e929",
+      "sha256": "436105d13187b5feb4ce782fe2bd157041e360860b3be539c8b2a93ac09e22ed",
       "dimensions": [
         390,
         844
       ]
     },
     "options-state/pp2b-mobile-zh-returned.png": {
-      "sha256": "b1a815c68ed578ede5c2c897d6f984095ce0dbaa76dcb1f723baada35cd7a59c",
+      "sha256": "642cf13140013dc9b875f6b7329289e0a3ac1cc7609fa09afeb13c7284a24d4e",
       "dimensions": [
         390,
         844
       ]
     },
     "options-state/pp2b-tablet-en-parked.png": {
-      "sha256": "cc2b608a98f121fe82d90275c07c4cc956e0a433084c720b29baf380514600d0",
+      "sha256": "5723dee9f24c3bc1a727f35901ff756a715eb561a4203c735faac01d978a4c6f",
       "dimensions": [
         820,
         1180
@@ -166,7 +220,7 @@
       ]
     },
     "options-state/pp2b-tablet-zh-parked.png": {
-      "sha256": "6aebf0ffc382280178d8c04cbc2f7c27f5656d77483f2cc33e7e5867db7379d0",
+      "sha256": "dac958a48ac349ba469d4d6eb0af5d3144670bf866b0a68342ab80a0bb734742",
       "dimensions": [
         820,
         1180
@@ -180,10 +234,10 @@
       ]
     },
     "tablet-placement.png": {
-      "sha256": "4172f91ccf59dd27df7249043b519dba7a458d32f3a824c8e14755e9b6ea08f1",
+      "sha256": "84c86e833f083e0a3565cf41a6e889096c7421511237bad3f6c5a9ac2777dd5e",
       "dimensions": [
         820,
-        3603
+        3642
       ]
     }
   },
@@ -196,111 +250,49 @@
     "options-state/pp2b-offsets-tablet-zh.json": "a2ca0d97334334f9844314ae968a3387107894beb2b63a2e4d442761e1351c4e"
   },
   "localGates": {
-    "productionBuild": "PASS, exit0",
-    "typecheck": "PASS; npx tsc --noEmit; exit0",
-    "units": {
-      "filesPassed": 772,
-      "testsPassed": 13017,
-      "pending": 0,
-      "todo": 4,
-      "excluded": null
-    },
-    "postCaptureEvidenceReaders": "PASS; all included in the complete unfiltered unit suite",
+    "focusedIntegration": "PASS; 153 assertions in 12 suites on unchanged implementation and locked dependencies",
+    "overnightReadback": "PASS; nine cases across desktop, tablet and mobile",
+    "paletteNavigation": "PASS; six EN/ZH cases across desktop, tablet and mobile",
+    "postCaptureEvidenceReaders": "PASS; 10 assertions in three existing evidence readers",
+    "productionBuild": "PASS; canonical npm run build; exit0",
+    "typecheck": "PASS; post-build npx tsc --noEmit; exit0",
+    "plainLanguage": "PASS; enforce-added against 50a8c01553ee92731a53dfcff36256308cfb5f0e; existing advisory findings retained",
     "requiredCI": "PENDING_FINAL_PR_HEAD",
-    "plainLanguage": "PASS; enforce-added against protected 3e0be25bfc1393d75684a9ebb97dacf2fbf2c5d9; no blocking findings"
+    "rendererBoundaries": "PASS; 24 assertions in three existing suites"
   },
-  "notes": [
-    "Phone access uses More > Analysis hub > Chart context. There is no permanent closed-reader row. Tablet retains its toolbar entry; the reader moves below the whole chart at the single-column breakpoint.",
-    "The core toolbar measurement includes Context. Native shells use their chart menu and keep the normal web toolbar absent. The original chart-fill, tray-overflow, phone-fold, expanded-strip and tablet-fit assertions are unchanged.",
-    "The reader receives focus and reveals its header on explicit opening. Close restores a visible persistent opener, including after desktop-to-phone resize. Reader keys remain isolated from chart shortcuts.",
-    "The exact ten-test Visual Intelligence suite still runs at all three viewports. Settings restoration now exercises the actual entry and numeric reader before and after reload. A mouse inspection scrolls the chart back into view after the inline reader reveal.",
-    "The combined responsive report includes actual SPY Options held-build, selected strike 780, pin, scroll and same-instance checks in EN/ZH across all three viewports, plus the newly merged research-pane touch exit.",
-    "The combined report deliberately skips duplicate multi-viewport transitions and viewport-inapplicable phone/desktop research cases; every supported viewport has its own placement and interaction evidence.",
-    "All 24 PL6 crops and all five Options axis-label captures were regenerated from this integrated source. A previous dev-server attempt returned stale 404 routes; its failure images were retained outside the evidence packet, and a fresh owned dev cache produced the accepted captures.",
-    "Terminal is dark-only. Browser data is from repository fixtures and intercepted test contracts; live production qualification is separate. Paper uses supplied screenshot metric values with illustrative chart artwork.",
-    "The later protected release 3e0be25 is integrated. Both comparison callbacks, capture freshness generation guards, study-template restoration, chart-hosted research lifecycle and Capture Hub entry are preserved. The merged Hub has eleven tiles and its complete keyboard cycle includes Context. All three source-bound packets were recaptured from the combined application."
-  ],
-  "priorEvidenceCommit": "617c13adea8ee8f52d51fedeb91d003f87901288",
-  "priorQualificationSnapshot": {
-    "retainedEvidenceCommit": "54adec6253a53f486efabb4c71bf4dfbe3a1b1fa",
-    "acceptanceSource": "9d790bdbede22d6b57ea09309ca3a485d08aea4a",
-    "reports": {
-      "dock-browser-report.json": {
-        "sha256": "025c7427125fa83d1e6bb839d4a7a2910710d82dd82f16a0086c77c87a44018b",
-        "stats": {
-          "startTime": "2026-10-18T08:40:11.563Z",
-          "duration": 59842.514,
-          "expected": 10,
-          "skipped": 2,
-          "unexpected": 0,
-          "flaky": 0
-        }
-      },
-      "options-coexistence-report.json": {
-        "sha256": "07ab9816d717338e5457e32a4bb7f7aceb945a92276f1286a71338983b8d4120",
-        "stats": {
-          "startTime": "2026-10-18T08:39:10.175Z",
-          "duration": 53364.64000000001,
-          "expected": 6,
-          "skipped": 0,
-          "unexpected": 0,
-          "flaky": 0
-        }
-      },
-      "toolbar-fit-report.json": {
-        "sha256": "11409e26e7fd4ebc8a536ed8d3bc36539f170c5c2c8e946447dfd1d2479514f3",
-        "stats": {
-          "startTime": "2026-10-18T08:39:12.969Z",
-          "duration": 24960.651,
-          "expected": 4,
-          "skipped": 0,
-          "unexpected": 0,
-          "flaky": 0
-        }
-      },
-      "calendar-fixture-repair-report.json": {
-        "sha256": "bdc3bf36653031753f480d78655af8fadef70ed02c5f0b378267a9baa6d8d19c",
-        "stats": {
-          "startTime": "2026-10-18T08:53:16.696Z",
-          "duration": 23084.577999999998,
-          "expected": 2,
-          "skipped": 0,
-          "unexpected": 0,
-          "flaky": 0
-        }
-      },
-      "placement-recapture-report.json": {
-        "sha256": "d00363e242214f5a95814ef93c620a1916637116274b0a4f6c94c7296547f75f",
-        "stats": {
-          "startTime": "2026-10-18T10:35:59.846Z",
-          "duration": 20503.41,
-          "expected": 3,
-          "skipped": 0,
-          "unexpected": 0,
-          "flaky": 0
-        },
-        "sourceHead": "9d790bdbede22d6b57ea09309ca3a485d08aea4a"
-      }
-    },
-    "localGates": {
-      "productionBuild": "PASS, exit0",
-      "typecheck": "PASS, exit0",
-      "units": {
-        "filesPassed": 737,
-        "testsPassed": 12313,
-        "todo": 4,
-        "excluded": null
-      },
-      "postCaptureEvidenceReaders": "PASS; all three included in the full unfiltered unit run",
-      "requiredCI": "PENDING",
-      "plainLanguage": "PASS; no blocking findings on the complete PR diff"
-    },
-    "notes": [
-      "The two skipped dock cases are duplicate viewport-transition sequences; that sequence is exercised once on desktop through phone and fullscreen, with separate placement checks at all three native viewports.",
-      "Calendar interception tests now declare matching NVDA/AAPL coverage before navigation. A fresh build-generated empty coverage index previously suppressed their mocked requests on mobile. No production cache/calendar/data source changes.",
-      "Terminal is dark-only under the existing product decision; language coverage is EN and ZH.",
-      "Layout and selected numeric facts were checked against actual rendered chart data; mockup chart artwork is explicitly illustrative.",
-      "CI required the two trend headline fragments to use the existing pick helper. Both language outputs are unchanged; the production build, 30-case report and three placement captures were refreshed on the new source. Earlier Options, toolbar and keyboard reports retain their original run times and are recoverable with priorEvidenceCommit."
+  "focusedIntegrationRecord": {
+    "label": "focused-integration",
+    "command": [
+      "npx",
+      "vitest",
+      "run",
+      "lib/__tests__/useWatchlistReview.test.tsx",
+      "lib/__tests__/watchlistReview.test.ts",
+      "lib/__tests__/chartCommandContinuation.test.tsx",
+      "lib/__tests__/useChartBusTargeting.test.tsx",
+      "lib/__tests__/entitlementCache.test.ts",
+      "lib/__tests__/aiContext.test.ts",
+      "lib/__tests__/chartPresentation.test.ts",
+      "lib/__tests__/chartPresentationLifecycle.test.tsx",
+      "lib/__tests__/chartPriceWindow.test.ts",
+      "lib/__tests__/chartReadoutSnapshot.test.ts",
+      "lib/__tests__/boatsChartRefresh.test.ts",
+      "lib/__tests__/liveCandle.test.ts"
+    ],
+    "startedAt": "2026-10-20T00:14:45.410210+00:00",
+    "finishedAt": "2026-10-20T00:14:49.662421+00:00",
+    "seconds": 4.252,
+    "exitCode": 0,
+    "sourceParents": [
+      "3a5249a1c70a3b754384a1e31a4db71e12095e56",
+      "50a8c01553ee92731a53dfcff36256308cfb5f0e"
+    ],
+    "logPath": "/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/palette-master-integration/latest-chart-integration/functional-qualified/focused-integration.log",
+    "logSha256": "f0204886ad42e0e1dd91ed64fd19043a232b15d78c808248803a3c99d3d908af",
+    "retainedExecutionScope": "Actual completed run; later differences only in browser assertion/output harness files",
+    "laterHarnessDifferences": [
+      "terminal/e2e/overnight-refresh.spec.ts",
+      "terminal/e2e/tools/capture_pl6_batch1.cjs"
     ]
   },
   "responsiveScopes": {
@@ -314,79 +306,1349 @@
       "skipped": 0,
       "failed": 0
     },
-    "chart-engine-accessibility.spec.ts": {
-      "passed": 3,
-      "skipped": 0,
-      "failed": 0
-    },
-    "megapane-touch-back.spec.ts": {
-      "passed": 7,
-      "skipped": 5,
-      "failed": 0
-    },
-    "mobile-chart-chrome.spec.ts": {
-      "passed": 1,
-      "skipped": 2,
-      "failed": 0
-    },
     "options-companion.spec.ts": {
       "passed": 6,
       "skipped": 0,
-      "failed": 0
-    },
-    "shell-mode.spec.ts": {
-      "passed": 9,
-      "skipped": 0,
-      "failed": 0
-    },
-    "terminal-chrome-responsive.spec.ts": {
-      "passed": 4,
-      "skipped": 0,
-      "failed": 0
+      "failed": 0,
+      "selection": "PP2-UI-b chart return keeps held build identity; EN/ZH across desktop/tablet/mobile"
     }
   },
-  "previousAcceptedQualification": {
-    "retainedEvidenceCommit": "617c13adea8ee8f52d51fedeb91d003f87901288",
-    "acceptanceSource": "761cc7ab0ce7e2e43f5633f6417ad787108922e4",
-    "applicationBuildSource": "f522ff9eab21e30a2d20a0b6546983160d69f8fa",
-    "reports": {
-      "responsive-repair-report.json": {
-        "sha256": "5b76e7d1073790a7c15870fd2163a0cf9c71612681dc01e4458471c4c4a13ac7",
+  "captureRuns": [
+    {
+      "label": "pl6-batch1",
+      "command": [
+        "node",
+        "e2e/tools/capture_pl6_batch1.cjs"
+      ],
+      "startedAt": "2026-10-20T01:35:06.250493+00:00",
+      "finishedAt": "2026-10-20T01:36:07.898055+00:00",
+      "seconds": 61.648,
+      "exitCode": 0,
+      "sourceParents": [
+        "3a5249a1c70a3b754384a1e31a4db71e12095e56",
+        "50a8c01553ee92731a53dfcff36256308cfb5f0e"
+      ],
+      "logPath": "/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/palette-master-integration/latest-chart-integration/visual-qualification/pl6-batch1.log",
+      "logSha256": "e74a5ffd7187205a4d102fed863052506c02281b5045dc40e4f821c94057ca91"
+    },
+    {
+      "label": "visual-intelligence",
+      "command": [
+        "npx",
+        "playwright",
+        "test",
+        "e2e/visual-intelligence.spec.ts",
+        "--project=desktop",
+        "--project=tablet",
+        "--project=mobile",
+        "--workers=1",
+        "--retries=0",
+        "--max-failures=2",
+        "--reporter=line,json",
+        "--output=/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/palette-master-integration/latest-chart-integration/visual-qualification/visual-intelligence-artifacts"
+      ],
+      "startedAt": "2026-10-20T01:36:10.514222+00:00",
+      "finishedAt": "2026-10-20T01:39:59.273842+00:00",
+      "seconds": 228.761,
+      "exitCode": 0,
+      "sourceParents": [
+        "3a5249a1c70a3b754384a1e31a4db71e12095e56",
+        "50a8c01553ee92731a53dfcff36256308cfb5f0e"
+      ],
+      "logPath": "/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/palette-master-integration/latest-chart-integration/visual-qualification/visual-intelligence.log",
+      "logSha256": "0e332efd441b415f42dd3b16d786bae55052d31b3f7c26784ccce30122fb0ede",
+      "actualReport": {
+        "path": "/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/palette-master-integration/latest-chart-integration/visual-qualification/visual-intelligence.json",
+        "sha256": "9bc2590a993acf58c5737eb905c33ba2e8f1520c7bda9bb3ce143d63ebfabbaf",
         "stats": {
-          "startTime": "2026-10-18T12:12:21.498Z",
-          "duration": 304657.404,
-          "expected": 46,
-          "skipped": 9,
+          "startTime": "2026-10-20T01:36:11.277Z",
+          "duration": 227982.131,
+          "expected": 30,
+          "skipped": 0,
+          "unexpected": 0,
+          "flaky": 0
+        }
+      },
+      "profile": {
+        "MMX_SHARED_SHELL": "unset",
+        "MMX_INVESTOR_SHELL_PREVIEW": "unset",
+        "compiler": "default Next dev",
+        "fixtures": "explicit test feeds/auth/model transport"
+      }
+    },
+    {
+      "label": "context-dock-and-remount",
+      "command": [
+        "npx",
+        "playwright",
+        "test",
+        "e2e/chart-context-dock.spec.ts",
+        "e2e/chart-context-menu-remount.spec.ts",
+        "--project=desktop",
+        "--project=tablet",
+        "--project=mobile",
+        "--workers=1",
+        "--retries=0",
+        "--max-failures=2",
+        "--reporter=line,json",
+        "--output=/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/palette-master-integration/latest-chart-integration/visual-qualification/context-dock-and-remount-artifacts"
+      ],
+      "startedAt": "2026-10-20T01:39:59.274912+00:00",
+      "finishedAt": "2026-10-20T01:41:41.230848+00:00",
+      "seconds": 101.957,
+      "exitCode": 0,
+      "sourceParents": [
+        "3a5249a1c70a3b754384a1e31a4db71e12095e56",
+        "50a8c01553ee92731a53dfcff36256308cfb5f0e"
+      ],
+      "logPath": "/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/palette-master-integration/latest-chart-integration/visual-qualification/context-dock-and-remount.log",
+      "logSha256": "5e78ea2a9d335a75aaa7327ac5beb6173b4a2f6967859dbc7c5a9b2644823b04",
+      "actualReport": {
+        "path": "/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/palette-master-integration/latest-chart-integration/visual-qualification/context-dock-and-remount.json",
+        "sha256": "441013734685ed865b8f9dcc68647c5b87d7c598d46def6fdcf8b1bf89967fdb",
+        "stats": {
+          "startTime": "2026-10-20T01:40:00.079Z",
+          "duration": 101133.527,
+          "expected": 16,
+          "skipped": 2,
+          "unexpected": 0,
+          "flaky": 0
+        }
+      },
+      "profile": {
+        "MMX_SHARED_SHELL": "unset",
+        "MMX_INVESTOR_SHELL_PREVIEW": "unset",
+        "compiler": "default Next dev",
+        "fixtures": "explicit test feeds/auth/model transport"
+      }
+    },
+    {
+      "label": "context-options-coexistence",
+      "command": [
+        "npx",
+        "playwright",
+        "test",
+        "e2e/options-companion.spec.ts",
+        "--project=desktop",
+        "--project=tablet",
+        "--project=mobile",
+        "--workers=1",
+        "--retries=0",
+        "--max-failures=2",
+        "--reporter=line,json",
+        "--output=/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/palette-master-integration/latest-chart-integration/visual-qualification/context-options-coexistence-artifacts",
+        "--grep",
+        "PP2-UI-b chart return keeps held build identity"
+      ],
+      "startedAt": "2026-10-20T01:41:41.233393+00:00",
+      "finishedAt": "2026-10-20T01:42:39.993029+00:00",
+      "seconds": 58.76,
+      "exitCode": 0,
+      "sourceParents": [
+        "3a5249a1c70a3b754384a1e31a4db71e12095e56",
+        "50a8c01553ee92731a53dfcff36256308cfb5f0e"
+      ],
+      "logPath": "/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/palette-master-integration/latest-chart-integration/visual-qualification/context-options-coexistence.log",
+      "logSha256": "3a2d85fccc3af20a326b7cf6e543636577d379be6ea25ef94c1aab0d1023cf81",
+      "actualReport": {
+        "path": "/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/palette-master-integration/latest-chart-integration/visual-qualification/context-options-coexistence.json",
+        "sha256": "152c2bfc1a0d753a57f0e1eb6ca99a19a19238729452ae2bc9153b4e9032ce91",
+        "stats": {
+          "startTime": "2026-10-20T01:41:42.258Z",
+          "duration": 57716.111999999994,
+          "expected": 6,
+          "skipped": 0,
+          "unexpected": 0,
+          "flaky": 0
+        }
+      },
+      "profile": {
+        "MMX_SHARED_SHELL": "unset",
+        "MMX_INVESTOR_SHELL_PREVIEW": "unset",
+        "compiler": "default Next dev",
+        "fixtures": "explicit test feeds/auth/model transport"
+      }
+    },
+    {
+      "label": "options-axis",
+      "command": [
+        "node",
+        "docs/pr-crops/options-level-axis-labels/capture.mjs"
+      ],
+      "startedAt": "2026-10-20T01:42:39.994780+00:00",
+      "finishedAt": "2026-10-20T01:42:51.859093+00:00",
+      "seconds": 11.864,
+      "exitCode": 0,
+      "sourceParents": [
+        "3a5249a1c70a3b754384a1e31a4db71e12095e56",
+        "50a8c01553ee92731a53dfcff36256308cfb5f0e"
+      ],
+      "logPath": "/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/palette-master-integration/latest-chart-integration/visual-qualification/options-axis.log",
+      "logSha256": "df50fc35de586caa530ee8a3901da594e90edb7068fef47f0e5b70754efd7063",
+      "actualManifest": {
+        "path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/cmx-a4-native-ta-skillpack-20260925/terminal/docs/pr-crops/options-level-axis-labels/manifest.json",
+        "sha256": "97d437ecd9baeac28d442244c2f9e7455ffd53f3831a4aa3f8420fbb621ab05d",
+        "captures": 5,
+        "capturedAt": "2026-10-20T01:42:51.845Z"
+      }
+    }
+  ],
+  "functionalRuns": [
+    {
+      "label": "overnight-target-readback",
+      "command": [
+        "npx",
+        "playwright",
+        "test",
+        "e2e/overnight-refresh.spec.ts",
+        "--project=desktop",
+        "--project=tablet",
+        "--project=mobile",
+        "--workers=1",
+        "--retries=0",
+        "--max-failures=2",
+        "--reporter=line,json",
+        "--output=/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/palette-master-integration/latest-chart-integration/functional-final/overnight-target-readback-artifacts"
+      ],
+      "startedAt": "2026-10-20T00:18:08.323255+00:00",
+      "finishedAt": "2026-10-20T00:19:49.809343+00:00",
+      "seconds": 101.486,
+      "exitCode": 0,
+      "sourceParents": [
+        "3a5249a1c70a3b754384a1e31a4db71e12095e56",
+        "50a8c01553ee92731a53dfcff36256308cfb5f0e"
+      ],
+      "logPath": "/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/palette-master-integration/latest-chart-integration/functional-final/overnight-target-readback.log",
+      "logSha256": "d5eab3f28c694bc9f29c969911ef946f98e20d96befba456431ab405151b027f",
+      "actualReport": {
+        "path": "/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/palette-master-integration/latest-chart-integration/functional-final/overnight-target-readback.json",
+        "sha256": "81472766c9f713fb45a992baccf9adde37020de7d88d6671e91f093ea17f0f99",
+        "stats": {
+          "startTime": "2026-10-20T00:18:09.352Z",
+          "duration": 100430.739,
+          "expected": 9,
+          "skipped": 0,
+          "unexpected": 0,
+          "flaky": 0
+        }
+      },
+      "profile": {
+        "MMX_SHARED_SHELL": "unset",
+        "MMX_INVESTOR_SHELL_PREVIEW": "unset",
+        "compiler": "default Next dev",
+        "fixtures": "explicit test feeds/auth/model transport"
+      }
+    },
+    {
+      "label": "palette-target-navigation",
+      "command": [
+        "npx",
+        "playwright",
+        "test",
+        "e2e/command-palette-review.spec.ts",
+        "--project=desktop",
+        "--project=tablet",
+        "--project=mobile",
+        "--workers=1",
+        "--retries=0",
+        "--max-failures=2",
+        "--reporter=line,json",
+        "--output=/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/palette-master-integration/latest-chart-integration/functional-final/palette-target-navigation-artifacts"
+      ],
+      "startedAt": "2026-10-20T00:19:49.812054+00:00",
+      "finishedAt": "2026-10-20T00:22:30.624459+00:00",
+      "seconds": 160.812,
+      "exitCode": 0,
+      "sourceParents": [
+        "3a5249a1c70a3b754384a1e31a4db71e12095e56",
+        "50a8c01553ee92731a53dfcff36256308cfb5f0e"
+      ],
+      "logPath": "/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/palette-master-integration/latest-chart-integration/functional-final/palette-target-navigation.log",
+      "logSha256": "3583e63b6de710e4c16502a6ee62cdb7acaf0ab825fd2ec9755e21438ba79397",
+      "actualReport": {
+        "path": "/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/palette-master-integration/latest-chart-integration/functional-final/palette-target-navigation.json",
+        "sha256": "6bc2c4068ef75de21e04468eef4a46c157a505b34df4a22c1083ba80364cf93c",
+        "stats": {
+          "startTime": "2026-10-20T00:19:50.862Z",
+          "duration": 159738.154,
+          "expected": 6,
+          "skipped": 0,
+          "unexpected": 0,
+          "flaky": 0
+        }
+      },
+      "profile": {
+        "MMX_SHARED_SHELL": "unset",
+        "MMX_INVESTOR_SHELL_PREVIEW": "unset",
+        "compiler": "default Next dev",
+        "fixtures": "explicit test feeds/auth/model transport"
+      }
+    }
+  ],
+  "notes": [
+    "Current normal integration preserves chart generation retirement, targeted ACK/readback and accepted overnight behavior.",
+    "The six placement images, eight Options state images and six offset records are actual captures. Options output was isolated from pre-existing foreign root files and copied into canonical options-state paths.",
+    "Both shell preview flags were unset and the default Next dev compiler was used.",
+    "Earlier qualifications remain historical below. Hosted CI, coordinated deployment and ordinary-model live acceptance remain separate."
+  ],
+  "retainedParentQualification": {
+    "manifestSha256": "03bd74310bcd3ecb8fb2638ed9a590f2255655ed373b1502a13b561ad7a51cd4",
+    "scope": "Preintegration record retained in full; embedded original source references and times are unchanged",
+    "record": {
+      "schema": "mastermind.chart-context-redesign-evidence/v1",
+      "recordedAt": "2026-10-19T05:57:53.604969+00:00",
+      "acceptanceSource": "18d6e6e6484c2a7161eb35124d4a7ff99d72fd3e",
+      "mergeSource": "e45bde2cac07ac3b29285ff70c40d68900fad62c",
+      "sourceIdentity": "Actual working normal merge; sourceFiles bind the captured product bytes",
+      "classification": "LOCAL_BROWSER_WITH_REPOSITORY_FIXTURES_NOT_PRODUCTION_MARKET_DATA",
+      "paper": "https://app.paper.design/file/01M2WGNCX9475G79JRKJTCM08P/p-21-0",
+      "sourceFiles": {
+        "terminal/components/ChartPanel.tsx": "3d9a2e299e8a89f9ea19976dd2519477a570c966fe1de829606812761d3d5ef9",
+        "terminal/components/ChartSettingsModal.tsx": "6282cabd270912a32beb38c41d543bc2103d152de0f7e8c8225517caf3b6f431",
+        "terminal/components/ChartSettingsModal.module.css": "a1685d103511e11882f8d379b22570f018e47aed88266db5ca6fec8808100b0a",
+        "terminal/components/DrawingSidebar.tsx": "95910121c08efa2a41bcaac02ec626a48bc98021bbbf9e611ff0b61f7baaf6d9",
+        "terminal/components/DrawingSidebar.module.css": "8f0452b49da704d0a0d3ea9f9317de1388fe5fbb169800bd8d5fac9ce007def2",
+        "terminal/lib/chartSettingsUi.ts": "90dac0d31a86f0632520fc6863b894d4cfa665db2bc08c3f8ea95107c7e6c638",
+        "terminal/components/VisualIntelligencePanel.tsx": "a7ac590db5d9ae07a689c297d15ffc062ce00bbc3a9a05f16dbb529659185356",
+        "terminal/components/VisualIntelligencePanel.module.css": "0f7630c6dd6c2fbf5915df4ab450f73a173d443d51fd2e53aed593698d6283df",
+        "terminal/components/ChartTableView.tsx": "30765a6d30b998277019109c98f68671c6fca33f3dcd6f53a9d015a8e04a6b9b",
+        "terminal/lib/visualIntelligence.ts": "ae2bdd1f804e34f966ed5fde72cad9eabdfc1bbcb0d33d8a3390d158d6950970",
+        "terminal/lib/visualIntelligenceCopy.ts": "cc3e00f03aa49d502fcd0d960371fd3d86e0d0da60fb945e1e5c35bf61bd96f3",
+        "terminal/lib/suites/trend/candlePainter.ts": "8384d2bce3af939a51e88584b1436ee2898a89f0fbf1aedc09ffee624a3e12e1",
+        "terminal/lib/indicator-canvas/host.ts": "4f2949efb22b8c378cab1ff9d176466c4857073c14a36ee4f0eeab4ec1015a25",
+        "terminal/e2e/visual-intelligence.spec.ts": "69c3a3c2d5047249b80c25d671edaeae71cf0e17fa2ea8bf24c9b9404728d1ea",
+        "terminal/lib/chart-engine/lwc/index.ts": "b82beb4c9f266c525cb3296ece617e65b601aa6a5239235a87dcc7c8c811ada2",
+        "terminal/components/TerminalShell.tsx": "41ecc16df9a30e037c602799fcca08f96ccb410d18ec29aef73b68503c8596bb",
+        "terminal/components/ChartPane.tsx": "2b9f535835c40e38864a03661e7ac87b43fab7587466e47ca9c87490a113cae4",
+        "terminal/components/ChartContextDock.ts": "4029c8c4552fcdcd7973cb57fff0805ea1b068280a3d34db773e6bed27c51ec9",
+        "terminal/components/ChartContextPlacement.module.css": "62b9c6887f7ce9bd6db81f8339408ed671722d6dee3c713990d3fc8b164e36c0",
+        "terminal/components/options-companion/OptionsRail.tsx": "1173a010353499930c7ab572bc92017085b7d75b4d40ba30fbecfe66ba671305",
+        "terminal/components/options-companion/OptionsCompanion.module.css": "213aef805ed1313c2e32e2ceb3a924fcf82fd41fa9fcf52ef7c41185b699a915",
+        "terminal/e2e/chart-context-dock.spec.ts": "76c4f4c31873fcf43a92e24e40a6cdb2ce1a70e63f33bdf99df00081591f84bb",
+        "terminal/e2e/options-companion.spec.ts": "c0b8d012423113f830f679cae1b659b96ebe866eca5ef4254a4d6e1a6bcaadac",
+        "terminal/e2e/terminal-chrome-responsive.spec.ts": "8d8b3cbfb3e873e5ec2af39d1b068fead386535b801092cf8f7845a9c0272180",
+        "terminal/components/mobile/AnalysisHubSheet.tsx": "9b4eb9e703792bbc7fefe53cc09024a51bd5263f05fb348ae6a5752952360e29",
+        "terminal/components/mobile/AnalysisHubSheet.module.css": "b54a3356b41a9e1f7838df62d4510375bf7421d34fc535345bee36d8d996a846",
+        "terminal/e2e/phoneChrome.ts": "f42cdf73cd1fd604fe77bcfba0d21a598ac8bf814b955b9116f71f391e216657",
+        "terminal/e2e/mobile-chart-hub-upgrade.spec.ts": "7e71683e7b02319305317544528b0b0d68d59b6cd6af610f3190a4a487e74b40",
+        "terminal/components/chrome/AppShell.tsx": "8cf00af74b607f2f69c03f72550a2271609a272810116f17679199195cfcbb1d",
+        "terminal/components/AppNav.tsx": "766f021e1e72c228850d10cdaa3566683423d00992b7c7d6a01317279cea27f7",
+        "terminal/components/MobileNav.tsx": "577f2acf5000a7003c74cafbea01fb03b163468de37cd0d50c3cbf5778282b4b",
+        "terminal/components/MobileNav.module.css": "ebc961c1a5ed307aca41b147d87a6373c8710d0a9298e3bfe0df215d287c6c15",
+        "terminal/components/MobileNavModal.tsx": "62b4495cab5f8608b3413dad279b1bd48cdb4b6543dc07544428283665740498",
+        "terminal/components/chrome/investor-shell-preview.css": "83d1842b9b057014f698d5e62627c3e492a1061d0e8713b7a2bdc3ca8753650e",
+        "terminal/components/chrome/shared-shell/shared-shell.css": "b22101d04b9d034051e025d9d31506c09b55886365851ed4c9e8022775d15306",
+        "terminal/app/(shell)/layout.tsx": "76270446f1ff2b2f60393eacb81d3ccb1c5f6e7c7b20b96d85b535c7d1da5b9a",
+        "terminal/next.config.ts": "4eb175691f3277918c389f3f75fc4509d938b1b70daf5f8d5cdfd957eb4d7aa6",
+        "terminal/lib/investorShellPreview.ts": "d0e7797ffba0bfdda2fdabc1312abe07e631b5060ed9c58bbb320ed4b50624e9",
+        "terminal/lib/sharedShellContracts.ts": "dc7c893852c287b2a18c6b71cbced07bfa0996c1168490c5a8c24e4d3de01266"
+      },
+      "captureHarnessFiles": {
+        "terminal/e2e/globalSetup.ts": "c2fbd4f02bb93d40f4cf9b5a80f302e11adeecd0e32a54d1d11cd9aad72a886b",
+        "terminal/e2e/fixtureWarmup.cjs": "4ff5d71c544d5310e630952539b23540cc179ff2e421034b452ef41adf9c2532",
+        "terminal/e2e/tools/capture_pl6_batch1.cjs": "63fe0c40b183ae9d8df7e903e6a95ac8dc4d70aadf1b96dd07d71cb493b80c17"
+      },
+      "visualMatrixReport": {
+        "path": "../terminal-visual-intelligence/browser-report.json",
+        "sha256": "be09574927e3e0bbb65c9f9da2547d1519564e5ed53a4bd45bc4dce2144190c2",
+        "stats": {
+          "startTime": "2026-10-19T05:46:21.944Z",
+          "duration": 397805.422,
+          "expected": 30,
+          "skipped": 0,
           "unexpected": 0,
           "flaky": 0
         },
-        "sourceHead": "761cc7ab0ce7e2e43f5633f6417ad787108922e4"
-      }
-    },
-    "localGates": {
-      "productionBuild": "PASS, exit0",
-      "typecheck": "PASS; npx tsc --noEmit on the accepted source; exit0",
-      "units": {
-        "filesPassed": 737,
-        "testsPassed": 12313,
-        "pending": 0,
-        "excluded": null,
-        "todo": 4
+        "sourceHead": "18d6e6e6484c2a7161eb35124d4a7ff99d72fd3e",
+        "mergeHead": "e45bde2cac07ac3b29285ff70c40d68900fad62c"
       },
-      "postCaptureEvidenceReaders": "PASS; all included in the complete unfiltered unit suite",
-      "requiredCI": "PENDING_FINAL_PR_HEAD",
-      "plainLanguage": "PASS; enforce-added against protected 9f26d3a00dbaada3580706f7e059dd8eff682d7e; no blocking findings"
-    },
-    "unitSummary": {
-      "path": "unit-summary.json",
-      "sha256": "ac38db553b91ce00060b16c34f25a594171b3cc376b95553bb2065b47336ed7c",
-      "sourceHead": "761cc7ab0ce7e2e43f5633f6417ad787108922e4"
+      "reports": {
+        "merged-dock-remount-report.json": {
+          "sha256": "fd0cf9150683be0764bb9f4a54ac5e004bcde6f8663a6fecac96e50aa7c79321",
+          "stats": {
+            "startTime": "2026-10-19T05:53:02.647Z",
+            "duration": 180819.619,
+            "expected": 16,
+            "skipped": 2,
+            "unexpected": 0,
+            "flaky": 0
+          },
+          "sourceHead": "18d6e6e6484c2a7161eb35124d4a7ff99d72fd3e",
+          "mergeHead": "e45bde2cac07ac3b29285ff70c40d68900fad62c"
+        },
+        "merged-options-coexistence-report.json": {
+          "sha256": "c65f28664b5e9ea5999ad33253ae325ca982b0aefa4a9ad9be2397ba6857733c",
+          "stats": {
+            "startTime": "2026-10-19T05:56:07.430Z",
+            "duration": 105965.631,
+            "expected": 6,
+            "skipped": 0,
+            "unexpected": 0,
+            "flaky": 0
+          },
+          "sourceHead": "18d6e6e6484c2a7161eb35124d4a7ff99d72fd3e",
+          "mergeHead": "e45bde2cac07ac3b29285ff70c40d68900fad62c"
+        }
+      },
+      "screenshots": {
+        "desktop-placement.png": {
+          "sha256": "70e4c44114b457c2a4f54ddeacaed83139d94e9bbef93d0ce8749ca2bcaf7034",
+          "dimensions": [
+            1440,
+            900
+          ]
+        },
+        "mobile-placement.png": {
+          "sha256": "b581e7852e1859658d4f93f1a93f0fd57d61e1088ccc83af2b762816f99f3255",
+          "dimensions": [
+            390,
+            3293
+          ]
+        },
+        "native-desktop-placement.png": {
+          "sha256": "8b706b1b07c5938629429dd476d67631882a888a9b3d3c3d7889d575acd48260",
+          "dimensions": [
+            1440,
+            900
+          ]
+        },
+        "native-mobile-placement.png": {
+          "sha256": "be64558ad37c364443926a676f129d7cfceca22e72f4eeda46ee9ab6c0eca7e3",
+          "dimensions": [
+            390,
+            844
+          ]
+        },
+        "native-tablet-placement.png": {
+          "sha256": "cc432572d9dcf21bf69b51d321b59ea209fd2078a7b306f9ab195b1550eaa24a",
+          "dimensions": [
+            820,
+            1180
+          ]
+        },
+        "options-state/pp2b-mobile-en-parked.png": {
+          "sha256": "a553f9c65d5ce92c26949352acb5a49fd02ec335460bda74c7da8efa0ecef484",
+          "dimensions": [
+            390,
+            844
+          ]
+        },
+        "options-state/pp2b-mobile-en-returned.png": {
+          "sha256": "d5b2af5ffcdf55b73e474de7963793cec1097a48cb17865b5871ce403213b210",
+          "dimensions": [
+            390,
+            844
+          ]
+        },
+        "options-state/pp2b-mobile-zh-parked.png": {
+          "sha256": "493f1fb11cde08a2082686872a2e00bfbe882aacc59baff484b3b4f5f82b3b0a",
+          "dimensions": [
+            390,
+            844
+          ]
+        },
+        "options-state/pp2b-mobile-zh-returned.png": {
+          "sha256": "35decce66b2d3ed1d824a0480b22cfe3f1f279f676184ad992b8025a63419a83",
+          "dimensions": [
+            390,
+            844
+          ]
+        },
+        "options-state/pp2b-tablet-en-parked.png": {
+          "sha256": "4e6e4e487bcc07333835e4ac0d18fc5054bb6c3dc03d824f20abbf6fabf00255",
+          "dimensions": [
+            820,
+            1180
+          ]
+        },
+        "options-state/pp2b-tablet-en-returned.png": {
+          "sha256": "38a87f7260874766d21bd3251548caf5863b8d254c261b1b183af5bc03364af9",
+          "dimensions": [
+            820,
+            1180
+          ]
+        },
+        "options-state/pp2b-tablet-zh-parked.png": {
+          "sha256": "cba720bfb1575f9a0dcbe4e10d9d6e8dcab0a69137528f7c237e409dcb399f1d",
+          "dimensions": [
+            820,
+            1180
+          ]
+        },
+        "options-state/pp2b-tablet-zh-returned.png": {
+          "sha256": "55f02eed883adafe034a3554ac8fcf1353028a05ebe3b535abf68cec5601be14",
+          "dimensions": [
+            820,
+            1180
+          ]
+        },
+        "tablet-placement.png": {
+          "sha256": "54f8fa1ad9a6e5bb62f7d59242da995b8e4c80248903276d34ac63900d2b4104",
+          "dimensions": [
+            820,
+            3603
+          ]
+        }
+      },
+      "optionsScrollOffsets": {
+        "options-state/pp2b-offsets-desktop-en.json": "9d8eaaa333a3ba1c0d65dc281abd644428ff5f59ea4decb89707f4d04e82bf63",
+        "options-state/pp2b-offsets-desktop-zh.json": "9d8eaaa333a3ba1c0d65dc281abd644428ff5f59ea4decb89707f4d04e82bf63",
+        "options-state/pp2b-offsets-mobile-en.json": "a2ca0d97334334f9844314ae968a3387107894beb2b63a2e4d442761e1351c4e",
+        "options-state/pp2b-offsets-mobile-zh.json": "a2ca0d97334334f9844314ae968a3387107894beb2b63a2e4d442761e1351c4e",
+        "options-state/pp2b-offsets-tablet-en.json": "a2ca0d97334334f9844314ae968a3387107894beb2b63a2e4d442761e1351c4e",
+        "options-state/pp2b-offsets-tablet-zh.json": "a2ca0d97334334f9844314ae968a3387107894beb2b63a2e4d442761e1351c4e"
+      },
+      "localGates": {
+        "focusedIntegration": "PASS; 52 assertions in six suites",
+        "postCaptureEvidenceReaders": "PASS; 10 assertions in the three existing evidence readers",
+        "productionBuild": "PASS; canonical npm run build; exit0",
+        "typecheck": "PASS; post-build npx tsc --noEmit; exit0",
+        "plainLanguage": "PASS; enforce-added against e45bde2cac07ac3b29285ff70c40d68900fad62c",
+        "requiredCI": "PENDING_FINAL_PR_HEAD"
+      },
+      "responsiveScopes": {
+        "chart-context-dock.spec.ts": {
+          "passed": 13,
+          "skipped": 2,
+          "failed": 0
+        },
+        "chart-context-menu-remount.spec.ts": {
+          "passed": 3,
+          "skipped": 0,
+          "failed": 0
+        },
+        "options-companion.spec.ts": {
+          "passed": 6,
+          "skipped": 0,
+          "failed": 0,
+          "selection": "PP2-UI-b chart return keeps held build identity; EN/ZH across desktop/tablet/mobile"
+        }
+      },
+      "notes": [
+        "Fresh local fixture qualification of the existing AI continuation with the accepted e45 shared-shell integration; both preview flags are unset.",
+        "The standalone capture now uses the unchanged shared route warm-up and observable chart readiness; the search-open assertion remains 20 seconds.",
+        "The six placement images and eight Options state images are actual captures; the six offset records bind the actual held-state checks.",
+        "All prior parent evidence remains historical below. Final hosted CI, coordinated deployment and ordinary-model acceptance remain required."
+      ],
+      "retainedParentQualification": {
+        "sourceCommit": "18d6e6e6484c2a7161eb35124d4a7ff99d72fd3e",
+        "manifestSha256": "8f3617bc9270291a53ddd850c8171e22aae45df3c9b6fbea4b6f40f1e1f5cc3b",
+        "scope": "Original published parent record retained in full; not relabeled as a current execution",
+        "record": {
+          "schema": "mastermind.chart-context-redesign-evidence/v1",
+          "recordedAt": "2026-10-19T01:13:57.762312+00:00",
+          "acceptanceSource": "330913f983a463e126a35a33f8ab1ab910e924ae",
+          "mergeSource": "e1c66d0b137bec948e9a714b22ae81e0e72a382f",
+          "sourceIdentity": "Actual working normal merge; the sourceFiles hashes bind the captured bytes",
+          "classification": "LOCAL_BROWSER_WITH_REPOSITORY_FIXTURES_NOT_PRODUCTION_MARKET_DATA",
+          "paper": "https://app.paper.design/file/01M2WGNCX9475G79JRKJTCM08P/p-21-0",
+          "sourceFiles": {
+            "terminal/components/ChartPanel.tsx": "3d9a2e299e8a89f9ea19976dd2519477a570c966fe1de829606812761d3d5ef9",
+            "terminal/components/ChartSettingsModal.tsx": "6282cabd270912a32beb38c41d543bc2103d152de0f7e8c8225517caf3b6f431",
+            "terminal/components/ChartSettingsModal.module.css": "a1685d103511e11882f8d379b22570f018e47aed88266db5ca6fec8808100b0a",
+            "terminal/components/DrawingSidebar.tsx": "95910121c08efa2a41bcaac02ec626a48bc98021bbbf9e611ff0b61f7baaf6d9",
+            "terminal/components/DrawingSidebar.module.css": "8f0452b49da704d0a0d3ea9f9317de1388fe5fbb169800bd8d5fac9ce007def2",
+            "terminal/lib/chartSettingsUi.ts": "90dac0d31a86f0632520fc6863b894d4cfa665db2bc08c3f8ea95107c7e6c638",
+            "terminal/components/VisualIntelligencePanel.tsx": "a7ac590db5d9ae07a689c297d15ffc062ce00bbc3a9a05f16dbb529659185356",
+            "terminal/components/VisualIntelligencePanel.module.css": "0f7630c6dd6c2fbf5915df4ab450f73a173d443d51fd2e53aed593698d6283df",
+            "terminal/components/ChartTableView.tsx": "30765a6d30b998277019109c98f68671c6fca33f3dcd6f53a9d015a8e04a6b9b",
+            "terminal/lib/visualIntelligence.ts": "ae2bdd1f804e34f966ed5fde72cad9eabdfc1bbcb0d33d8a3390d158d6950970",
+            "terminal/lib/visualIntelligenceCopy.ts": "cc3e00f03aa49d502fcd0d960371fd3d86e0d0da60fb945e1e5c35bf61bd96f3",
+            "terminal/lib/suites/trend/candlePainter.ts": "8384d2bce3af939a51e88584b1436ee2898a89f0fbf1aedc09ffee624a3e12e1",
+            "terminal/lib/indicator-canvas/host.ts": "4f2949efb22b8c378cab1ff9d176466c4857073c14a36ee4f0eeab4ec1015a25",
+            "terminal/e2e/visual-intelligence.spec.ts": "69c3a3c2d5047249b80c25d671edaeae71cf0e17fa2ea8bf24c9b9404728d1ea",
+            "terminal/lib/chart-engine/lwc/index.ts": "b82beb4c9f266c525cb3296ece617e65b601aa6a5239235a87dcc7c8c811ada2",
+            "terminal/components/TerminalShell.tsx": "41ecc16df9a30e037c602799fcca08f96ccb410d18ec29aef73b68503c8596bb",
+            "terminal/components/ChartPane.tsx": "2b9f535835c40e38864a03661e7ac87b43fab7587466e47ca9c87490a113cae4",
+            "terminal/components/ChartContextDock.ts": "4029c8c4552fcdcd7973cb57fff0805ea1b068280a3d34db773e6bed27c51ec9",
+            "terminal/components/ChartContextPlacement.module.css": "62b9c6887f7ce9bd6db81f8339408ed671722d6dee3c713990d3fc8b164e36c0",
+            "terminal/components/options-companion/OptionsRail.tsx": "1173a010353499930c7ab572bc92017085b7d75b4d40ba30fbecfe66ba671305",
+            "terminal/components/options-companion/OptionsCompanion.module.css": "213aef805ed1313c2e32e2ceb3a924fcf82fd41fa9fcf52ef7c41185b699a915",
+            "terminal/e2e/chart-context-dock.spec.ts": "76c4f4c31873fcf43a92e24e40a6cdb2ce1a70e63f33bdf99df00081591f84bb",
+            "terminal/e2e/options-companion.spec.ts": "c0b8d012423113f830f679cae1b659b96ebe866eca5ef4254a4d6e1a6bcaadac",
+            "terminal/e2e/terminal-chrome-responsive.spec.ts": "8d8b3cbfb3e873e5ec2af39d1b068fead386535b801092cf8f7845a9c0272180",
+            "terminal/components/mobile/AnalysisHubSheet.tsx": "9b4eb9e703792bbc7fefe53cc09024a51bd5263f05fb348ae6a5752952360e29",
+            "terminal/components/mobile/AnalysisHubSheet.module.css": "b54a3356b41a9e1f7838df62d4510375bf7421d34fc535345bee36d8d996a846",
+            "terminal/e2e/phoneChrome.ts": "f42cdf73cd1fd604fe77bcfba0d21a598ac8bf814b955b9116f71f391e216657",
+            "terminal/e2e/mobile-chart-hub-upgrade.spec.ts": "7e71683e7b02319305317544528b0b0d68d59b6cd6af610f3190a4a487e74b40"
+          },
+          "visualMatrixReport": {
+            "path": "../terminal-visual-intelligence/browser-report.json",
+            "sha256": "0b1f6617d60fb075efb15f0de01cdacc8f98635923791baaa2be924f89061e7f",
+            "stats": {
+              "startTime": "2026-10-19T01:07:18.720Z",
+              "duration": 231953.249,
+              "expected": 30,
+              "skipped": 0,
+              "unexpected": 0,
+              "flaky": 0
+            },
+            "sourceHead": "330913f983a463e126a35a33f8ab1ab910e924ae",
+            "mergeHead": "e1c66d0b137bec948e9a714b22ae81e0e72a382f"
+          },
+          "reports": {
+            "merged-dock-remount-report.json": {
+              "sha256": "ad44d988855a05880c5eab98d2313468971de3df659155a01663e800d4036e03",
+              "stats": {
+                "startTime": "2026-10-19T01:11:11.731Z",
+                "duration": 91543.30099999999,
+                "expected": 16,
+                "skipped": 2,
+                "unexpected": 0,
+                "flaky": 0
+              },
+              "sourceHead": "330913f983a463e126a35a33f8ab1ab910e924ae",
+              "mergeHead": "e1c66d0b137bec948e9a714b22ae81e0e72a382f"
+            },
+            "merged-options-coexistence-report.json": {
+              "sha256": "d39835c0efefab1f09715b81b0111fd83f8f8c7c4b1630c0476f735b0df22000",
+              "stats": {
+                "startTime": "2026-10-19T01:12:43.870Z",
+                "duration": 58949.477,
+                "expected": 6,
+                "skipped": 0,
+                "unexpected": 0,
+                "flaky": 0
+              },
+              "sourceHead": "330913f983a463e126a35a33f8ab1ab910e924ae",
+              "mergeHead": "e1c66d0b137bec948e9a714b22ae81e0e72a382f"
+            }
+          },
+          "screenshots": {
+            "desktop-placement.png": {
+              "sha256": "cde63d79cea427f92ddc9c6e09a4b7f51b10db97fc86cdfd575fa581cb676e0a",
+              "dimensions": [
+                1440,
+                900
+              ]
+            },
+            "mobile-placement.png": {
+              "sha256": "1f06fa63d7cef536f43061be88a577e7083221f9356cccaab555e0e1e58a3f00",
+              "dimensions": [
+                390,
+                3293
+              ]
+            },
+            "native-desktop-placement.png": {
+              "sha256": "1bbb224bc706f889175ac73423a63c17b89efe5c25ba612671dc21368b1885e5",
+              "dimensions": [
+                1440,
+                900
+              ]
+            },
+            "native-mobile-placement.png": {
+              "sha256": "2eb2809dfcaf1f711279a2b54945d8283ce202df6e37f49bd0a7ae62c9c838e6",
+              "dimensions": [
+                390,
+                844
+              ]
+            },
+            "native-tablet-placement.png": {
+              "sha256": "d782dcd4bf8f41d9269f63a4dee4bd6e521dc6cbb40840f2f428e0b95e4ba3c2",
+              "dimensions": [
+                820,
+                1180
+              ]
+            },
+            "options-state/pp2b-mobile-en-parked.png": {
+              "sha256": "9d66e1df7d4b4e32721c92a63820d7b856d6bdfb6d4981cfc6efac37848a6a27",
+              "dimensions": [
+                390,
+                844
+              ]
+            },
+            "options-state/pp2b-mobile-en-returned.png": {
+              "sha256": "d1c4f912d2a0147d080beac10831bccf4f0578de023fca303036f6097cbb3157",
+              "dimensions": [
+                390,
+                844
+              ]
+            },
+            "options-state/pp2b-mobile-zh-parked.png": {
+              "sha256": "da38578726b41e271f6c545bb624e6af4b0e14f04371011c5cf04156f8d806f2",
+              "dimensions": [
+                390,
+                844
+              ]
+            },
+            "options-state/pp2b-mobile-zh-returned.png": {
+              "sha256": "da8958d7eac4d476ee120eda10cd69cdf00f09415635c89ce504af981f1281f9",
+              "dimensions": [
+                390,
+                844
+              ]
+            },
+            "options-state/pp2b-tablet-en-parked.png": {
+              "sha256": "224559e537fa9646ce0ea8baf3842c280b679ef520b28df8fec9814f3c21e183",
+              "dimensions": [
+                820,
+                1180
+              ]
+            },
+            "options-state/pp2b-tablet-en-returned.png": {
+              "sha256": "38a87f7260874766d21bd3251548caf5863b8d254c261b1b183af5bc03364af9",
+              "dimensions": [
+                820,
+                1180
+              ]
+            },
+            "options-state/pp2b-tablet-zh-parked.png": {
+              "sha256": "e12f2b544f3c9dfcc03db367a1d0023eb6804cd3830753dd501157576f5f4228",
+              "dimensions": [
+                820,
+                1180
+              ]
+            },
+            "options-state/pp2b-tablet-zh-returned.png": {
+              "sha256": "939a9647e08aacad74061586068408136afcf2a6d5df5febe91c3d5c66485dc3",
+              "dimensions": [
+                820,
+                1180
+              ]
+            },
+            "tablet-placement.png": {
+              "sha256": "7c66a2f342bb71d59705e1b9e1539120f378ba4a76c2c97928a0cd2e8b5029da",
+              "dimensions": [
+                820,
+                3603
+              ]
+            }
+          },
+          "optionsScrollOffsets": {
+            "options-state/pp2b-offsets-desktop-en.json": "9d8eaaa333a3ba1c0d65dc281abd644428ff5f59ea4decb89707f4d04e82bf63",
+            "options-state/pp2b-offsets-desktop-zh.json": "9d8eaaa333a3ba1c0d65dc281abd644428ff5f59ea4decb89707f4d04e82bf63",
+            "options-state/pp2b-offsets-mobile-en.json": "a2ca0d97334334f9844314ae968a3387107894beb2b63a2e4d442761e1351c4e",
+            "options-state/pp2b-offsets-mobile-zh.json": "a2ca0d97334334f9844314ae968a3387107894beb2b63a2e4d442761e1351c4e",
+            "options-state/pp2b-offsets-tablet-en.json": "a2ca0d97334334f9844314ae968a3387107894beb2b63a2e4d442761e1351c4e",
+            "options-state/pp2b-offsets-tablet-zh.json": "4940a46ca56c76f855f6112ebd0b4c3ebe899de44432b448b9250a3f9ca4abea"
+          },
+          "localGates": {
+            "focusedIntegration": {
+              "filesPassed": 6,
+              "testsPassed": 52,
+              "logSha256": "d21f37d51be67ee0b4be01be38bd4d3c57d979fb84acc8b31b80bd7709e3cff2"
+            },
+            "postCaptureEvidenceReaders": "PASS; 10 assertions across the three existing evidence readers",
+            "productionBuild": "PASS; canonical npm run build; exit0",
+            "typecheck": "PASS; post-build npx tsc --noEmit; exit0",
+            "plainLanguage": "PASS; enforce-added against e1c66d0b137bec948e9a714b22ae81e0e72a382f",
+            "requiredCI": "PENDING_FINAL_PR_HEAD"
+          },
+          "responsiveScopes": {
+            "chart-context-dock.spec.ts": {
+              "passed": 13,
+              "skipped": 2,
+              "failed": 0
+            },
+            "chart-context-menu-remount.spec.ts": {
+              "passed": 3,
+              "skipped": 0,
+              "failed": 0
+            },
+            "options-companion.spec.ts": {
+              "passed": 6,
+              "skipped": 0,
+              "failed": 0,
+              "selection": "PP2-UI-b chart return keeps held build identity; EN/ZH across desktop/tablet/mobile"
+            }
+          },
+          "notes": [
+            "The current captures exercise the normal merge of original AI continuation and the accepted Chart Context docking redesign.",
+            "The six docking placements are actual full-page captures; inline phone/tablet height can exceed viewport height.",
+            "The Options cases preserve the mounted instance, held build, selected strike, dashed pin and scrolling through Options to Context to Options.",
+            "The original parent qualification remains below with its own source identity. Its broader unit and responsive totals are not relabeled as current executions.",
+            "Final hosted qualification, deployment identity and ordinary-model acceptance remain required."
+          ],
+          "retainedParentQualification": {
+            "sourceCommit": "e1c66d0b137bec948e9a714b22ae81e0e72a382f",
+            "manifestSha256": "81ccfa84659aa571760c0052375764634d8ec9968d142c81ad212760fdde2a31",
+            "scope": "Original upstream record preserved in full; historical qualification of its recorded source",
+            "record": {
+              "schema": "mastermind.chart-context-redesign-evidence/v1",
+              "recordedAt": "2026-10-18T23:59:10.112Z",
+              "acceptanceSource": "9fe57b566316be7e1436e6d4b5e3b91c0a8c59bb",
+              "applicationBuildSource": "9fe57b566316be7e1436e6d4b5e3b91c0a8c59bb",
+              "applicationSourceUnchangedAfterBuild": true,
+              "classification": "LOCAL_BROWSER_WITH_REPOSITORY_FIXTURES_NOT_PRODUCTION_MARKET_DATA",
+              "paper": "https://app.paper.design/file/01M2WGNCX9475G79JRKJTCM08P/p-21-0",
+              "sourceFiles": {
+                "terminal/components/ChartPanel.tsx": "f100d02a69a224e6742a9c7bffc93420f6a7fecb87c81ae4c1d221d0c6ef71f1",
+                "terminal/components/ChartSettingsModal.tsx": "6282cabd270912a32beb38c41d543bc2103d152de0f7e8c8225517caf3b6f431",
+                "terminal/components/ChartSettingsModal.module.css": "a1685d103511e11882f8d379b22570f018e47aed88266db5ca6fec8808100b0a",
+                "terminal/components/DrawingSidebar.tsx": "95910121c08efa2a41bcaac02ec626a48bc98021bbbf9e611ff0b61f7baaf6d9",
+                "terminal/components/DrawingSidebar.module.css": "8f0452b49da704d0a0d3ea9f9317de1388fe5fbb169800bd8d5fac9ce007def2",
+                "terminal/lib/chartSettingsUi.ts": "90dac0d31a86f0632520fc6863b894d4cfa665db2bc08c3f8ea95107c7e6c638",
+                "terminal/components/VisualIntelligencePanel.tsx": "a7ac590db5d9ae07a689c297d15ffc062ce00bbc3a9a05f16dbb529659185356",
+                "terminal/components/VisualIntelligencePanel.module.css": "0f7630c6dd6c2fbf5915df4ab450f73a173d443d51fd2e53aed593698d6283df",
+                "terminal/components/ChartTableView.tsx": "30765a6d30b998277019109c98f68671c6fca33f3dcd6f53a9d015a8e04a6b9b",
+                "terminal/lib/visualIntelligence.ts": "ae2bdd1f804e34f966ed5fde72cad9eabdfc1bbcb0d33d8a3390d158d6950970",
+                "terminal/lib/visualIntelligenceCopy.ts": "cc3e00f03aa49d502fcd0d960371fd3d86e0d0da60fb945e1e5c35bf61bd96f3",
+                "terminal/lib/suites/trend/candlePainter.ts": "8384d2bce3af939a51e88584b1436ee2898a89f0fbf1aedc09ffee624a3e12e1",
+                "terminal/lib/indicator-canvas/host.ts": "4f2949efb22b8c378cab1ff9d176466c4857073c14a36ee4f0eeab4ec1015a25",
+                "terminal/e2e/visual-intelligence.spec.ts": "69c3a3c2d5047249b80c25d671edaeae71cf0e17fa2ea8bf24c9b9404728d1ea",
+                "terminal/lib/chart-engine/lwc/index.ts": "b82beb4c9f266c525cb3296ece617e65b601aa6a5239235a87dcc7c8c811ada2",
+                "terminal/components/TerminalShell.tsx": "2cfc6918daf402a1ee836247df9e574a4ab53529e731ece41f49afd8e26f8a1a",
+                "terminal/components/ChartPane.tsx": "e3dc3396a717c727d7e4f696a16e38b6b2fdb8098cd261884b1ef3c11df664bb",
+                "terminal/components/ChartContextDock.ts": "4029c8c4552fcdcd7973cb57fff0805ea1b068280a3d34db773e6bed27c51ec9",
+                "terminal/components/ChartContextPlacement.module.css": "62b9c6887f7ce9bd6db81f8339408ed671722d6dee3c713990d3fc8b164e36c0",
+                "terminal/components/options-companion/OptionsRail.tsx": "1173a010353499930c7ab572bc92017085b7d75b4d40ba30fbecfe66ba671305",
+                "terminal/components/options-companion/OptionsCompanion.module.css": "213aef805ed1313c2e32e2ceb3a924fcf82fd41fa9fcf52ef7c41185b699a915",
+                "terminal/e2e/chart-context-dock.spec.ts": "76c4f4c31873fcf43a92e24e40a6cdb2ce1a70e63f33bdf99df00081591f84bb",
+                "terminal/e2e/options-companion.spec.ts": "c0b8d012423113f830f679cae1b659b96ebe866eca5ef4254a4d6e1a6bcaadac",
+                "terminal/e2e/terminal-chrome-responsive.spec.ts": "8d8b3cbfb3e873e5ec2af39d1b068fead386535b801092cf8f7845a9c0272180",
+                "terminal/components/mobile/AnalysisHubSheet.tsx": "9b4eb9e703792bbc7fefe53cc09024a51bd5263f05fb348ae6a5752952360e29",
+                "terminal/components/mobile/AnalysisHubSheet.module.css": "b54a3356b41a9e1f7838df62d4510375bf7421d34fc535345bee36d8d996a846",
+                "terminal/e2e/phoneChrome.ts": "f42cdf73cd1fd604fe77bcfba0d21a598ac8bf814b955b9116f71f391e216657",
+                "terminal/e2e/mobile-chart-hub-upgrade.spec.ts": "7e71683e7b02319305317544528b0b0d68d59b6cd6af610f3190a4a487e74b40"
+              },
+              "visualMatrixReport": {
+                "path": "../terminal-visual-intelligence/browser-report.json",
+                "sha256": "c4cf9e8196468aaae9a3e40866e57521c8e39f78d382f4d969521070d70989f1",
+                "stats": {
+                  "startTime": "2026-10-18T23:59:10.112Z",
+                  "duration": 228217.123,
+                  "expected": 30,
+                  "skipped": 0,
+                  "unexpected": 0,
+                  "flaky": 0
+                },
+                "sourceHead": "9fe57b566316be7e1436e6d4b5e3b91c0a8c59bb"
+              },
+              "reports": {
+                "responsive-repair-report.json": {
+                  "sha256": "1986b41b2dc3a583ddf1275cec9fdbb70a96dc9dfb692c1cc8d0f68c22e9ce13",
+                  "stats": {
+                    "startTime": "2026-10-18T23:59:10.112Z",
+                    "duration": 250588.828,
+                    "expected": 46,
+                    "skipped": 9,
+                    "unexpected": 0,
+                    "flaky": 0
+                  },
+                  "sourceHead": "9fe57b566316be7e1436e6d4b5e3b91c0a8c59bb"
+                },
+                "hub-integration-report.json": {
+                  "sha256": "a71f63ae11421ed63b84eae32632ac38787b84de303b8368b1e8ad08414dcc00",
+                  "stats": {
+                    "startTime": "2026-10-19T00:03:34.148Z",
+                    "duration": 67667.824,
+                    "expected": 8,
+                    "skipped": 0,
+                    "unexpected": 0,
+                    "flaky": 0
+                  },
+                  "sourceHead": "9fe57b566316be7e1436e6d4b5e3b91c0a8c59bb"
+                },
+                "palette-template-handoffs-report.json": {
+                  "sha256": "00c575f903a0aae66b416d4b66ee22bbd98bd1813a628ae88f920bab9247079d",
+                  "stats": {
+                    "startTime": "2026-10-19T00:02:59.046Z",
+                    "duration": 104483.4,
+                    "expected": 15,
+                    "skipped": 0,
+                    "unexpected": 0,
+                    "flaky": 0
+                  },
+                  "sourceHead": "9fe57b566316be7e1436e6d4b5e3b91c0a8c59bb"
+                }
+              },
+              "screenshots": {
+                "desktop-placement.png": {
+                  "sha256": "ee91a20db235aa25f864a8dfe0a67a619008ccc33ee1841ce5eb71eb32783eff",
+                  "dimensions": [
+                    1440,
+                    900
+                  ]
+                },
+                "mobile-placement.png": {
+                  "sha256": "fc557654f1635871d9c2eb858fe24316504dd8f29e89a8bd37f3f872e7f8768f",
+                  "dimensions": [
+                    390,
+                    3293
+                  ]
+                },
+                "native-desktop-placement.png": {
+                  "sha256": "bbd1acb62147c5ff9b36bf2a4b1d320ceb4af0f604fef215a7dd4b2128d1d75c",
+                  "dimensions": [
+                    1440,
+                    900
+                  ]
+                },
+                "native-mobile-placement.png": {
+                  "sha256": "c9a46d901594ebe59db108cafeda96c95be50b93a04b855ac2176afe6d1bbc9e",
+                  "dimensions": [
+                    390,
+                    844
+                  ]
+                },
+                "native-tablet-placement.png": {
+                  "sha256": "f8995e5e4a6a6293d6c5a1d07d4755fe4c413681500000228cda92b3f26fc3b0",
+                  "dimensions": [
+                    820,
+                    1180
+                  ]
+                },
+                "options-state/pp2b-mobile-en-parked.png": {
+                  "sha256": "9aa1d242435bf79c7292430a626d5305109af2c862d723b464248556d4ec61ff",
+                  "dimensions": [
+                    390,
+                    844
+                  ]
+                },
+                "options-state/pp2b-mobile-en-returned.png": {
+                  "sha256": "f84b2535dc38c0c0f3180fc9e02cea0aae8d7603de4410d81cb7bc645dd9831b",
+                  "dimensions": [
+                    390,
+                    844
+                  ]
+                },
+                "options-state/pp2b-mobile-zh-parked.png": {
+                  "sha256": "793d0c4421724d2a9e64b1541566d90d0a743712601dc0d4ec04e8ae1810e929",
+                  "dimensions": [
+                    390,
+                    844
+                  ]
+                },
+                "options-state/pp2b-mobile-zh-returned.png": {
+                  "sha256": "b1a815c68ed578ede5c2c897d6f984095ce0dbaa76dcb1f723baada35cd7a59c",
+                  "dimensions": [
+                    390,
+                    844
+                  ]
+                },
+                "options-state/pp2b-tablet-en-parked.png": {
+                  "sha256": "cc2b608a98f121fe82d90275c07c4cc956e0a433084c720b29baf380514600d0",
+                  "dimensions": [
+                    820,
+                    1180
+                  ]
+                },
+                "options-state/pp2b-tablet-en-returned.png": {
+                  "sha256": "38a87f7260874766d21bd3251548caf5863b8d254c261b1b183af5bc03364af9",
+                  "dimensions": [
+                    820,
+                    1180
+                  ]
+                },
+                "options-state/pp2b-tablet-zh-parked.png": {
+                  "sha256": "6aebf0ffc382280178d8c04cbc2f7c27f5656d77483f2cc33e7e5867db7379d0",
+                  "dimensions": [
+                    820,
+                    1180
+                  ]
+                },
+                "options-state/pp2b-tablet-zh-returned.png": {
+                  "sha256": "55f02eed883adafe034a3554ac8fcf1353028a05ebe3b535abf68cec5601be14",
+                  "dimensions": [
+                    820,
+                    1180
+                  ]
+                },
+                "tablet-placement.png": {
+                  "sha256": "4172f91ccf59dd27df7249043b519dba7a458d32f3a824c8e14755e9b6ea08f1",
+                  "dimensions": [
+                    820,
+                    3603
+                  ]
+                }
+              },
+              "optionsScrollOffsets": {
+                "options-state/pp2b-offsets-desktop-en.json": "9d8eaaa333a3ba1c0d65dc281abd644428ff5f59ea4decb89707f4d04e82bf63",
+                "options-state/pp2b-offsets-desktop-zh.json": "9d8eaaa333a3ba1c0d65dc281abd644428ff5f59ea4decb89707f4d04e82bf63",
+                "options-state/pp2b-offsets-mobile-en.json": "a2ca0d97334334f9844314ae968a3387107894beb2b63a2e4d442761e1351c4e",
+                "options-state/pp2b-offsets-mobile-zh.json": "a2ca0d97334334f9844314ae968a3387107894beb2b63a2e4d442761e1351c4e",
+                "options-state/pp2b-offsets-tablet-en.json": "a2ca0d97334334f9844314ae968a3387107894beb2b63a2e4d442761e1351c4e",
+                "options-state/pp2b-offsets-tablet-zh.json": "a2ca0d97334334f9844314ae968a3387107894beb2b63a2e4d442761e1351c4e"
+              },
+              "localGates": {
+                "productionBuild": "PASS, exit0",
+                "typecheck": "PASS; npx tsc --noEmit; exit0",
+                "units": {
+                  "filesPassed": 772,
+                  "testsPassed": 13017,
+                  "pending": 0,
+                  "todo": 4,
+                  "excluded": null
+                },
+                "postCaptureEvidenceReaders": "PASS; all included in the complete unfiltered unit suite",
+                "requiredCI": "PENDING_FINAL_PR_HEAD",
+                "plainLanguage": "PASS; enforce-added against protected 3e0be25bfc1393d75684a9ebb97dacf2fbf2c5d9; no blocking findings"
+              },
+              "notes": [
+                "Phone access uses More > Analysis hub > Chart context. There is no permanent closed-reader row. Tablet retains its toolbar entry; the reader moves below the whole chart at the single-column breakpoint.",
+                "The core toolbar measurement includes Context. Native shells use their chart menu and keep the normal web toolbar absent. The original chart-fill, tray-overflow, phone-fold, expanded-strip and tablet-fit assertions are unchanged.",
+                "The reader receives focus and reveals its header on explicit opening. Close restores a visible persistent opener, including after desktop-to-phone resize. Reader keys remain isolated from chart shortcuts.",
+                "The exact ten-test Visual Intelligence suite still runs at all three viewports. Settings restoration now exercises the actual entry and numeric reader before and after reload. A mouse inspection scrolls the chart back into view after the inline reader reveal.",
+                "The combined responsive report includes actual SPY Options held-build, selected strike 780, pin, scroll and same-instance checks in EN/ZH across all three viewports, plus the newly merged research-pane touch exit.",
+                "The combined report deliberately skips duplicate multi-viewport transitions and viewport-inapplicable phone/desktop research cases; every supported viewport has its own placement and interaction evidence.",
+                "All 24 PL6 crops and all five Options axis-label captures were regenerated from this integrated source. A previous dev-server attempt returned stale 404 routes; its failure images were retained outside the evidence packet, and a fresh owned dev cache produced the accepted captures.",
+                "Terminal is dark-only. Browser data is from repository fixtures and intercepted test contracts; live production qualification is separate. Paper uses supplied screenshot metric values with illustrative chart artwork.",
+                "The later protected release 3e0be25 is integrated. Both comparison callbacks, capture freshness generation guards, study-template restoration, chart-hosted research lifecycle and Capture Hub entry are preserved. The merged Hub has eleven tiles and its complete keyboard cycle includes Context. All three source-bound packets were recaptured from the combined application."
+              ],
+              "priorEvidenceCommit": "617c13adea8ee8f52d51fedeb91d003f87901288",
+              "priorQualificationSnapshot": {
+                "retainedEvidenceCommit": "54adec6253a53f486efabb4c71bf4dfbe3a1b1fa",
+                "acceptanceSource": "9d790bdbede22d6b57ea09309ca3a485d08aea4a",
+                "reports": {
+                  "dock-browser-report.json": {
+                    "sha256": "025c7427125fa83d1e6bb839d4a7a2910710d82dd82f16a0086c77c87a44018b",
+                    "stats": {
+                      "startTime": "2026-10-18T08:40:11.563Z",
+                      "duration": 59842.514,
+                      "expected": 10,
+                      "skipped": 2,
+                      "unexpected": 0,
+                      "flaky": 0
+                    }
+                  },
+                  "options-coexistence-report.json": {
+                    "sha256": "07ab9816d717338e5457e32a4bb7f7aceb945a92276f1286a71338983b8d4120",
+                    "stats": {
+                      "startTime": "2026-10-18T08:39:10.175Z",
+                      "duration": 53364.64000000001,
+                      "expected": 6,
+                      "skipped": 0,
+                      "unexpected": 0,
+                      "flaky": 0
+                    }
+                  },
+                  "toolbar-fit-report.json": {
+                    "sha256": "11409e26e7fd4ebc8a536ed8d3bc36539f170c5c2c8e946447dfd1d2479514f3",
+                    "stats": {
+                      "startTime": "2026-10-18T08:39:12.969Z",
+                      "duration": 24960.651,
+                      "expected": 4,
+                      "skipped": 0,
+                      "unexpected": 0,
+                      "flaky": 0
+                    }
+                  },
+                  "calendar-fixture-repair-report.json": {
+                    "sha256": "bdc3bf36653031753f480d78655af8fadef70ed02c5f0b378267a9baa6d8d19c",
+                    "stats": {
+                      "startTime": "2026-10-18T08:53:16.696Z",
+                      "duration": 23084.577999999998,
+                      "expected": 2,
+                      "skipped": 0,
+                      "unexpected": 0,
+                      "flaky": 0
+                    }
+                  },
+                  "placement-recapture-report.json": {
+                    "sha256": "d00363e242214f5a95814ef93c620a1916637116274b0a4f6c94c7296547f75f",
+                    "stats": {
+                      "startTime": "2026-10-18T10:35:59.846Z",
+                      "duration": 20503.41,
+                      "expected": 3,
+                      "skipped": 0,
+                      "unexpected": 0,
+                      "flaky": 0
+                    },
+                    "sourceHead": "9d790bdbede22d6b57ea09309ca3a485d08aea4a"
+                  }
+                },
+                "localGates": {
+                  "productionBuild": "PASS, exit0",
+                  "typecheck": "PASS, exit0",
+                  "units": {
+                    "filesPassed": 737,
+                    "testsPassed": 12313,
+                    "todo": 4,
+                    "excluded": null
+                  },
+                  "postCaptureEvidenceReaders": "PASS; all three included in the full unfiltered unit run",
+                  "requiredCI": "PENDING",
+                  "plainLanguage": "PASS; no blocking findings on the complete PR diff"
+                },
+                "notes": [
+                  "The two skipped dock cases are duplicate viewport-transition sequences; that sequence is exercised once on desktop through phone and fullscreen, with separate placement checks at all three native viewports.",
+                  "Calendar interception tests now declare matching NVDA/AAPL coverage before navigation. A fresh build-generated empty coverage index previously suppressed their mocked requests on mobile. No production cache/calendar/data source changes.",
+                  "Terminal is dark-only under the existing product decision; language coverage is EN and ZH.",
+                  "Layout and selected numeric facts were checked against actual rendered chart data; mockup chart artwork is explicitly illustrative.",
+                  "CI required the two trend headline fragments to use the existing pick helper. Both language outputs are unchanged; the production build, 30-case report and three placement captures were refreshed on the new source. Earlier Options, toolbar and keyboard reports retain their original run times and are recoverable with priorEvidenceCommit."
+                ]
+              },
+              "responsiveScopes": {
+                "chart-context-dock.spec.ts": {
+                  "passed": 13,
+                  "skipped": 2,
+                  "failed": 0
+                },
+                "chart-context-menu-remount.spec.ts": {
+                  "passed": 3,
+                  "skipped": 0,
+                  "failed": 0
+                },
+                "chart-engine-accessibility.spec.ts": {
+                  "passed": 3,
+                  "skipped": 0,
+                  "failed": 0
+                },
+                "megapane-touch-back.spec.ts": {
+                  "passed": 7,
+                  "skipped": 5,
+                  "failed": 0
+                },
+                "mobile-chart-chrome.spec.ts": {
+                  "passed": 1,
+                  "skipped": 2,
+                  "failed": 0
+                },
+                "options-companion.spec.ts": {
+                  "passed": 6,
+                  "skipped": 0,
+                  "failed": 0
+                },
+                "shell-mode.spec.ts": {
+                  "passed": 9,
+                  "skipped": 0,
+                  "failed": 0
+                },
+                "terminal-chrome-responsive.spec.ts": {
+                  "passed": 4,
+                  "skipped": 0,
+                  "failed": 0
+                }
+              },
+              "previousAcceptedQualification": {
+                "retainedEvidenceCommit": "617c13adea8ee8f52d51fedeb91d003f87901288",
+                "acceptanceSource": "761cc7ab0ce7e2e43f5633f6417ad787108922e4",
+                "applicationBuildSource": "f522ff9eab21e30a2d20a0b6546983160d69f8fa",
+                "reports": {
+                  "responsive-repair-report.json": {
+                    "sha256": "5b76e7d1073790a7c15870fd2163a0cf9c71612681dc01e4458471c4c4a13ac7",
+                    "stats": {
+                      "startTime": "2026-10-18T12:12:21.498Z",
+                      "duration": 304657.404,
+                      "expected": 46,
+                      "skipped": 9,
+                      "unexpected": 0,
+                      "flaky": 0
+                    },
+                    "sourceHead": "761cc7ab0ce7e2e43f5633f6417ad787108922e4"
+                  }
+                },
+                "localGates": {
+                  "productionBuild": "PASS, exit0",
+                  "typecheck": "PASS; npx tsc --noEmit on the accepted source; exit0",
+                  "units": {
+                    "filesPassed": 737,
+                    "testsPassed": 12313,
+                    "pending": 0,
+                    "excluded": null,
+                    "todo": 4
+                  },
+                  "postCaptureEvidenceReaders": "PASS; all included in the complete unfiltered unit suite",
+                  "requiredCI": "PENDING_FINAL_PR_HEAD",
+                  "plainLanguage": "PASS; enforce-added against protected 9f26d3a00dbaada3580706f7e059dd8eff682d7e; no blocking findings"
+                },
+                "unitSummary": {
+                  "path": "unit-summary.json",
+                  "sha256": "ac38db553b91ce00060b16c34f25a594171b3cc376b95553bb2065b47336ed7c",
+                  "sourceHead": "761cc7ab0ce7e2e43f5633f6417ad787108922e4"
+                }
+              },
+              "protectedBase": "3e0be25bfc1393d75684a9ebb97dacf2fbf2c5d9",
+              "unitSummary": {
+                "path": "unit-summary.json",
+                "sha256": "12c651276fe80114f160e99eb2948ecc7eb62583e40fc28a205a9086d941ed7d",
+                "sourceHead": "9fe57b566316be7e1436e6d4b5e3b91c0a8c59bb"
+              }
+            }
+          },
+          "applicationBuildSource": "330913f983a463e126a35a33f8ab1ab910e924ae",
+          "applicationBuildMergeSource": "e1c66d0b137bec948e9a714b22ae81e0e72a382f",
+          "applicationSourceUnchangedAfterBuild": true
+        }
+      },
+      "applicationBuildSource": "18d6e6e6484c2a7161eb35124d4a7ff99d72fd3e",
+      "applicationBuildMergeSource": "e45bde2cac07ac3b29285ff70c40d68900fad62c",
+      "applicationSourceUnchangedAfterBuild": true,
+      "postCaptureRuns": [
+        {
+          "label": "focused-integration",
+          "command": [
+            "npx",
+            "vitest",
+            "run",
+            "lib/__tests__/chartPresentation.test.ts",
+            "lib/__tests__/chartPanelDataOrigin.test.ts",
+            "lib/__tests__/chartEngineBoundary.test.ts",
+            "lib/__tests__/chartCommandContinuation.test.tsx",
+            "lib/__tests__/chartEngineGapLiveReplay.test.ts",
+            "lib/__tests__/chartPresentationLifecycle.test.tsx"
+          ],
+          "startedAt": "2026-10-19T05:58:52.714334+00:00",
+          "finishedAt": "2026-10-19T05:59:15.545438+00:00",
+          "seconds": 22.824,
+          "exitCode": 0,
+          "logSha256": "ae56b84d8366b8bf098ee0b77cf66fd837183bfdc3d7d06fb89172e5a987f9aa",
+          "sourceHead": "18d6e6e6484c2a7161eb35124d4a7ff99d72fd3e",
+          "mergeHead": "e45bde2cac07ac3b29285ff70c40d68900fad62c"
+        },
+        {
+          "label": "evidence-readers",
+          "command": [
+            "npx",
+            "vitest",
+            "run",
+            "lib/__tests__/b_pl_6Batch1Evidence.test.ts",
+            "lib/__tests__/visualIntelligenceEvidence.test.ts",
+            "lib/__tests__/optionsLevelAxisEvidence.test.ts"
+          ],
+          "startedAt": "2026-10-19T05:59:15.555670+00:00",
+          "finishedAt": "2026-10-19T05:59:25.682146+00:00",
+          "seconds": 10.124,
+          "exitCode": 0,
+          "logSha256": "8d81f7a2eb1f2b257eedd6ac3087931b487195929874df76dcc266c595737bb7",
+          "sourceHead": "18d6e6e6484c2a7161eb35124d4a7ff99d72fd3e",
+          "mergeHead": "e45bde2cac07ac3b29285ff70c40d68900fad62c"
+        },
+        {
+          "label": "production-build",
+          "command": [
+            "npm",
+            "run",
+            "build"
+          ],
+          "startedAt": "2026-10-19T05:59:25.686495+00:00",
+          "finishedAt": "2026-10-19T06:02:41.175349+00:00",
+          "seconds": 195.481,
+          "exitCode": 0,
+          "logSha256": "cd7a669d93c00e4f3732f14ad3a14391096365eb3b3a04d51784ba70537aa777",
+          "sourceHead": "18d6e6e6484c2a7161eb35124d4a7ff99d72fd3e",
+          "mergeHead": "e45bde2cac07ac3b29285ff70c40d68900fad62c"
+        },
+        {
+          "label": "post-build-types",
+          "command": [
+            "npx",
+            "tsc",
+            "--noEmit"
+          ],
+          "startedAt": "2026-10-19T06:02:41.179294+00:00",
+          "finishedAt": "2026-10-19T06:04:06.969588+00:00",
+          "seconds": 85.79,
+          "exitCode": 0,
+          "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "sourceHead": "18d6e6e6484c2a7161eb35124d4a7ff99d72fd3e",
+          "mergeHead": "e45bde2cac07ac3b29285ff70c40d68900fad62c"
+        },
+        {
+          "label": "plain-language",
+          "command": [
+            "node",
+            "scripts/check_plain_language.mjs",
+            "--mode",
+            "enforce-added",
+            "--diff-file",
+            "/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/plain-language-qualified.diff"
+          ],
+          "startedAt": "2026-10-19T06:04:07.305369+00:00",
+          "finishedAt": "2026-10-19T06:04:11.625993+00:00",
+          "seconds": 4.321,
+          "exitCode": 0,
+          "logSha256": "71d54025af9c2d7b0ba1635b5f747455e9ab04a6054ac4968131317338820a38",
+          "sourceHead": "18d6e6e6484c2a7161eb35124d4a7ff99d72fd3e",
+          "mergeHead": "e45bde2cac07ac3b29285ff70c40d68900fad62c"
+        }
+      ]
     }
   },
-  "protectedBase": "3e0be25bfc1393d75684a9ebb97dacf2fbf2c5d9",
-  "unitSummary": {
-    "path": "unit-summary.json",
-    "sha256": "12c651276fe80114f160e99eb2948ecc7eb62583e40fc28a205a9086d941ed7d",
-    "sourceHead": "9fe57b566316be7e1436e6d4b5e3b91c0a8c59bb"
-  }
+  "applicationBuildSource": "3a5249a1c70a3b754384a1e31a4db71e12095e56",
+  "applicationBuildMergeSource": "50a8c01553ee92731a53dfcff36256308cfb5f0e",
+  "applicationSourceUnchangedAfterBuild": true,
+  "postCaptureRuns": [
+    {
+      "label": "renderer-boundaries",
+      "command": [
+        "npx",
+        "vitest",
+        "run",
+        "lib/__tests__/chartPanelDataOrigin.test.ts",
+        "lib/__tests__/chartEngineBoundary.test.ts",
+        "lib/__tests__/chartEngineGapLiveReplay.test.ts"
+      ],
+      "startedAt": "2026-10-20T01:47:02.437138+00:00",
+      "finishedAt": "2026-10-20T01:47:04.269949+00:00",
+      "seconds": 1.833,
+      "exitCode": 0,
+      "logPath": "/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/palette-master-integration/latest-chart-integration/visual-qualification/renderer-boundaries-gate.log",
+      "logSha256": "10b54ead8d025880b7177622e775561a7652e08dd64b2c16ede96974774da355",
+      "sourceHead": "3a5249a1c70a3b754384a1e31a4db71e12095e56",
+      "mergeHead": "50a8c01553ee92731a53dfcff36256308cfb5f0e",
+      "passedAssertions": 24
+    },
+    {
+      "label": "evidence-readers",
+      "command": [
+        "npx",
+        "vitest",
+        "run",
+        "lib/__tests__/b_pl_6Batch1Evidence.test.ts",
+        "lib/__tests__/visualIntelligenceEvidence.test.ts",
+        "lib/__tests__/optionsLevelAxisEvidence.test.ts"
+      ],
+      "startedAt": "2026-10-20T01:47:04.270940+00:00",
+      "finishedAt": "2026-10-20T01:47:05.060662+00:00",
+      "seconds": 0.79,
+      "exitCode": 0,
+      "logPath": "/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/palette-master-integration/latest-chart-integration/visual-qualification/evidence-readers-gate.log",
+      "logSha256": "025c41f350b1c59d44ce4990e44f289e73ed303d6e4dfe4dbdf0d61385fbf095",
+      "sourceHead": "3a5249a1c70a3b754384a1e31a4db71e12095e56",
+      "mergeHead": "50a8c01553ee92731a53dfcff36256308cfb5f0e",
+      "passedAssertions": 10
+    },
+    {
+      "label": "production-build",
+      "command": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "startedAt": "2026-10-20T01:47:05.061425+00:00",
+      "finishedAt": "2026-10-20T01:47:48.663143+00:00",
+      "seconds": 43.603,
+      "exitCode": 0,
+      "logPath": "/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/palette-master-integration/latest-chart-integration/visual-qualification/production-build-gate.log",
+      "logSha256": "247d2e6169c98f76baab49f2f1ae7ca1d5fed4f487a0d1f536473164abd9abbc",
+      "sourceHead": "3a5249a1c70a3b754384a1e31a4db71e12095e56",
+      "mergeHead": "50a8c01553ee92731a53dfcff36256308cfb5f0e"
+    },
+    {
+      "label": "post-build-types",
+      "command": [
+        "npx",
+        "tsc",
+        "--noEmit"
+      ],
+      "startedAt": "2026-10-20T01:47:48.663775+00:00",
+      "finishedAt": "2026-10-20T01:48:26.267082+00:00",
+      "seconds": 37.604,
+      "exitCode": 0,
+      "logPath": "/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/palette-master-integration/latest-chart-integration/visual-qualification/post-build-types-gate.log",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sourceHead": "3a5249a1c70a3b754384a1e31a4db71e12095e56",
+      "mergeHead": "50a8c01553ee92731a53dfcff36256308cfb5f0e"
+    },
+    {
+      "label": "plain-language",
+      "command": [
+        "node",
+        "scripts/check_plain_language.mjs",
+        "--mode",
+        "enforce-added",
+        "--diff-file",
+        "/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/palette-master-integration/latest-chart-integration/visual-qualification/plain-language.diff"
+      ],
+      "startedAt": "2026-10-20T01:48:26.482101+00:00",
+      "finishedAt": "2026-10-20T01:48:28.069199+00:00",
+      "seconds": 1.587,
+      "exitCode": 0,
+      "logPath": "/Users/chriswong/.cache/mastermind/terminal-shared-shell-join-20261019/palette-master-integration/latest-chart-integration/visual-qualification/plain-language-gate.log",
+      "logSha256": "71d54025af9c2d7b0ba1635b5f747455e9ab04a6054ac4968131317338820a38",
+      "sourceHead": "3a5249a1c70a3b754384a1e31a4db71e12095e56",
+      "mergeHead": "50a8c01553ee92731a53dfcff36256308cfb5f0e"
+    }
+  ]
 }

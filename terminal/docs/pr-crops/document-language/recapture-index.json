@@ -1,0 +1,307 @@
+{
+  "schema": "mastermind.terminal.document_language_recapture.v1",
+  "operation": "terminal-html-lang-synchronization-20261023",
+  "source_commit": "e2846880681d4b9aff4a060e1321f50f240cafc7",
+  "base_commit": "919114d1c27f0f588d9d5a4d52574f19b0137d6d",
+  "regression_red": "4 Chinese failures / 1 English pass before patch",
+  "focused_green": "22/22 provider and shared-shell presentation cases",
+  "document_browser_stats": {
+    "startTime": "2026-10-24T05:26:19.829Z",
+    "duration": 87702.368,
+    "expected": 9,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "document_browser_report_sha256": "1f48ca9de7ce3a4b479f0b4c1a18ed734edbb6bf58c6cd3d52836b6adb83ec4f",
+  "document_browser_images": {
+    "desktop-en.png": "c311a5c4eb4aa467838e46e6051db45e56a24119c3cdf9ee5e4701a8e6645bf3",
+    "desktop-zh.png": "0dafcee6c63239cad4afe92cf097257b3af0604dfaccad23d14150b86556a37e",
+    "mobile-en.png": "22dcb7fd33a30df1cd3dee27550d89c4c901e657cb73a3604b4b8cc7826d87b4",
+    "mobile-zh.png": "bfbe5db8e95f1e94e84f9b98fa5195d53cc6c64b0e63c8802d8abe4388af1b9c",
+    "tablet-en.png": "2d03fd788c70d5a990a4d2a9d7a270aa6cb8d25b0789b2914f542a31b2bee2a1",
+    "tablet-zh.png": "1442cb520715369cc17969b6532f190b27c5b76c97510373336a5fa855af3d02"
+  },
+  "source_sha256": {
+    "terminal/app/layout.tsx": "9b675d52a647b4a92407958aa0ab7ffcc2632d95d003c89ca2eed2a1f4e35264",
+    "terminal/lib/i18n.tsx": "13f33e3178b105a64f1f5df35974cd99041ef06f05bdece95939dd07a8b9fe7c",
+    "terminal/lib/__tests__/documentLanguageSync.test.tsx": "635557ac6edaa2276f88e0b8ca083e5de28722c0e462a609ed11cc89a376ffef",
+    "terminal/e2e/document-language.spec.ts": "003b26e834347eceb8f1a441759ff11669cfb91815e1ce1cd0b0278435863dc8"
+  },
+  "native_evidence_packs": [
+    {
+      "folder": "b-f11-10-analysis-theses-entry",
+      "sourceHead": "e2846880681d4b9aff4a060e1321f50f240cafc7",
+      "manifest_sha256": "ae4212440262e961fcfceb3f4bc2f60ffcacea799dd6d01807648b9a947c6242",
+      "historical_manifest_sha256": "99fc8611419d9b8fa27980e44473cca58fedcf205cc0db02259f931184674d3e",
+      "image_sha256": {
+        "desktop-en.png": "7c48b7b24b6999d5971706094670b4b67584bf4b3208cb7931bd1014d3ea7b0f",
+        "desktop-zh.png": "878bcdbe83556da0aaf30a4a6ae62c5b7810da7e73e7ad717e8cd73ca0749157",
+        "mobile-en.png": "93a22659176793246491d8bfd476d874372fa4904e32c453ded0b19004ec6876",
+        "mobile-zh.png": "fa405dc3d7c85f1ba72f290d4862d667f6da510629fbd18c9db0321ea2a2174e",
+        "tablet-en.png": "388a71b49ae4ed2aaa9c6fe88d328c05ca4dc4cc8628c819fb6062bad3a54b8d",
+        "tablet-zh.png": "f77e535a8810955f33f9be869bcf13312a99f01f1793ca83221221129f9c0e9f"
+      },
+      "qualification": "Actual native capture producer completed against this source; images are fixture proof, not live provider/account data"
+    },
+    {
+      "folder": "b-f12-b5-3-account-completeness",
+      "sourceHead": "e2846880681d4b9aff4a060e1321f50f240cafc7",
+      "manifest_sha256": "7d759ed34343de008b4e0b6fad1ca2953594c3c2285d77c4471a6bf44a10478e",
+      "historical_manifest_sha256": "eeedc8603794c99dcd55309da344a3365204d1472a2b82b58e333f2fa98ba0c2",
+      "image_sha256": {
+        "desktop-en-overview.png": "90a8952085ac794347f7490ae6a531df6397e8d3069202fe4bddb9e92d1bfc3b",
+        "desktop-en-password.png": "0f3bbc85ca37e5ce5c0856a61351916c3aabb138f30057c898fe7609ef900562",
+        "desktop-zh-overview.png": "bd780f234d2295d55f30c61da3eaab68153ccdb1b54561234a42a7820485a441",
+        "desktop-zh-password.png": "b36b299684c08cd77aa00c5153f70697b353c98501249f1eec4a328d49652254",
+        "mobile-en-overview.png": "1b5cc8efe5ca9d303633cdfd3013c18c26dc17caf8ef62015fcea110fde69c2b",
+        "mobile-en-password.png": "2a377dce42f564d37ddd04cc6f96b3834fed64367d397e903ac282196b11f5d8",
+        "mobile-zh-overview.png": "258a9bfaa46fd80234cc9e8bca430f675209bb041a7fd2ee0ee8f929959b49aa",
+        "mobile-zh-password.png": "ce9e6f6947cda06ee5d6a275ba9522196872f50b97a98760b1ef83963173af78"
+      },
+      "qualification": "Actual native capture producer completed against this source; images are fixture proof, not live provider/account data"
+    },
+    {
+      "folder": "b-pl-6-batch-1",
+      "sourceHead": "e2846880681d4b9aff4a060e1321f50f240cafc7",
+      "manifest_sha256": "dfd3a4998f86fa221e2b205aa112123a303ba5fc16e198b1e121bb41ef5aabb1",
+      "historical_manifest_sha256": "29980fd64a5a34b726c322cec86f829bd929256f2348399f42a0e02dd9bd1915",
+      "image_sha256": {
+        "AnalysisWorkspace-1440-zh.png": "c4922fcdad7b487c317cc9c2ea15c92df5f718579a4e2fafdd4206c2527601b1",
+        "AnalysisWorkspace-1440.png": "7427faf26f49b141052e8912621d9aa8d25f110110980d168818cda38d7d7d5e",
+        "AnalysisWorkspace-390-zh.png": "040b516a0da40cd055947db7aec49cf624658594cb39c26631b5e8305b04ff5d",
+        "AnalysisWorkspace-390.png": "f74a1fb8987b12f35fbace88658a13f028af5a892990ce4316026ad92a4c3b3d",
+        "ChartChrome-1440-zh.png": "dbb0e498448ab270c98b9ee17154ae93279e86924bbef526e5338a462c4c250d",
+        "ChartChrome-1440.png": "424a03aa1d672400101346bac93beceb11f4397a784a50a26188a73d71e4263d",
+        "ChartChrome-390-zh.png": "898df24d245540d080e8aceb3ab5c39f6196c3d1e7096c5c5797ef9244aba0ce",
+        "ChartChrome-390.png": "f19d5c5b5c02b1639293de7776935886e3ec83388789fc725a39ec5cb816daa0",
+        "DiscoverLeaders-1440-zh.png": "3d010a3289d4b2a41e3918ef1cbd92ca4b79a7b15eed52d5b4f1252b6d1fad97",
+        "DiscoverLeaders-1440.png": "5772eb2982808d10dd0b382d585be7a1fbae946c4f6990077a4d981dbd4d9a6b",
+        "DiscoverLeaders-390-zh.png": "dfb05edcaf5b37f332e78a5cc3e48bad70ebdc6500cb5375c102be74e29875e7",
+        "DiscoverLeaders-390.png": "0571bb8494f8a084c962adffbd61c98de40cd908b237c84fdc32fa812f6a6672",
+        "OptionsHubView-1440-zh.png": "3cf44b98105635da0e1b4b7926840776cd33b918fe7cef26517b16dfb8310d98",
+        "OptionsHubView-1440.png": "cba0c8b9437057d47a0c17f49c73eaedd159d41b687386c4daed1bd682fee35a",
+        "OptionsHubView-390-zh.png": "a3f2d6d48c1d7c4c36d07b01e850453c3f0cb1bec0525981ffafde5065b0dfdd",
+        "OptionsHubView-390.png": "7d84f22f6820f3bbc4202a42020d7618d8b780c5317ff0ec6ef6e1abdb1cc21c",
+        "SearchModal-1440-zh.png": "c62b189582ef33e9ca2fecdda19c88b8412b943b44b1040766bd7de25b55eb51",
+        "SearchModal-1440.png": "aa2aa0e3abee7aaa45a8e8c54e32f55375f4a8dc7f2c860f410f11f04d027c54",
+        "SearchModal-390-zh.png": "6bac0cf4350ecb244070ceed1b96e0776434058c4a2d7877482ea6d0b971d119",
+        "SearchModal-390.png": "48e74a116b32337b8d93d4eb6b605fa33fa96eaebdcaa6e012953f0a72c65157",
+        "StockAnalysis-1440-zh.png": "793f30762dd65bd8bc13bbe936f3e46de58ee7af10a5ab4d1ffd2119bcc18912",
+        "StockAnalysis-1440.png": "56f1f611e857dd076fea00e4ac6a9b4d64084191e09ef31f07fa085d6176937d",
+        "StockAnalysis-390-zh.png": "46123bd96735c449f1ce50fa6bb25de357466b4acb00698f91fc1d0ad52bd6e7",
+        "StockAnalysis-390.png": "6540b580667bcc83f318ee63c1f7435be24af6f063aea5b61144df40dba6d6b3"
+      },
+      "qualification": "Actual native capture producer completed against this source; images are fixture proof, not live provider/account data",
+      "retained_historical_not_recaptured": {
+        "OptionsScreener-volume-1440-zh.png": "8c68b8ef75085cfdf087d6d76e30976966eac6f29a6130f592346a419a648f3b",
+        "OptionsScreener-volume-1440.png": "ad3a43d0ac744bf63dc17063344cfbdc858f380d8947c3e53b4a1ec7a04cc6d5",
+        "OptionsScreener-volume-390-zh.png": "bed64dfdddc3724deed3653ca52aecc8c3b44665caee0536a1c8882e12de9142",
+        "OptionsScreener-volume-390.png": "3c874390bb3d74a403c700b52a67de199deedbe4a4392b36fc81451715f8efd1",
+        "OptionsScreener-volume-820-zh.png": "67b7647ac18cbd98e22e3bc7183d39d79e6adee36166ae716848951a288d7219",
+        "OptionsScreener-volume-820.png": "ad55331090482c407c867e38aeb4d3a95ebc137117e4870cd981eb61934d2581"
+      }
+    },
+    {
+      "folder": "b-pl-6-batch-2",
+      "sourceHead": "e2846880681d4b9aff4a060e1321f50f240cafc7",
+      "manifest_sha256": "ac97005b3ff808a26643f9a79e5c2220bbc6a63d14de88a5b9e94e2e36bc350f",
+      "historical_manifest_sha256": "ace8ad7f215f359f284e723c275538c222b0528cc6af0e3b20c9802a85980ebb",
+      "image_sha256": {
+        "ChartConductor-1440-zh.png": "535d9fccc560c4ab353d7bc67a0d546bbf4bd13a56080c9563be963270aae9e2",
+        "ChartConductor-1440.png": "448f5e8f17569ba118557a5507101ba5167c605153ab077aea3b663aead6c690",
+        "ChartConductor-390-zh.png": "55538cc6c5c8d6499644924d52ebc076543adfb0302d3ebd14fa486f021af35c",
+        "ChartConductor-390.png": "24083ad96afe3af0a8e027b59fe31822982d08a949860a2ef8bd1d46c4eaf290",
+        "GuidePanel-1440-zh.png": "497b9afc238e059089644acb12e736c2043b190c43633424ff8918410d6b76e6",
+        "GuidePanel-1440.png": "bdca89bec9f275538b816dcfe45ce5bd24b292eb4d664c3c435912477f96533d",
+        "GuidePanel-390-zh.png": "fe474fe2da9b113152497748d9b26cd7c50d2049a7f658efa5080df8b3761b03",
+        "GuidePanel-390.png": "9f184a8283385f95f7b13c586391a4b39c05635fa457427754540c18a1a0aca1",
+        "LevelsLearn-1440-zh.png": "4d80312504f35723f62937424b0402eb33682325524d787e6bfd5fca112f8b67",
+        "LevelsLearn-1440.png": "603e6794dc95d79e3d4d862213af788e956df6c11c8551e72f8e5fc9996d573f",
+        "LevelsLearn-390-zh.png": "d71394c5f20eea3bb204b505615975d24826dcc28312d8d888eb93f5f17551e5",
+        "LevelsLearn-390.png": "6a86954b5e3d84cc6c34ed6aafeb0600ae408114c678f7604e8fb1830731f197",
+        "LevelsView-1440-zh.png": "cded64b3036f061ef3ce7408051dd3faeacce7379742636f7919f0a19674ea96",
+        "LevelsView-1440.png": "c8b8bdf3b8d350f40cfdba70371b5493056cbf7948344c28bc44417368638258",
+        "LevelsView-390-zh.png": "40139b94ebc77fed6d3116e842609c26bbf15cc7d750815681a27dc338ea43c7",
+        "LevelsView-390.png": "b185a8ae10d1a8ba216645f75f1d149dc75b5f8672c4cf71179d3fb6bd776a97"
+      },
+      "qualification": "Actual native capture producer completed against this source; images are fixture proof, not live provider/account data"
+    },
+    {
+      "folder": "conductor-fit-badge-zh",
+      "sourceHead": "e2846880681d4b9aff4a060e1321f50f240cafc7",
+      "manifest_sha256": "0c711aac5c006527ed72d06a4a38c5d5ef3c7d36ac87376b7d57811c540012ca",
+      "historical_manifest_sha256": "bd588941ddbd4cb2e9dc3535ad93f18cf7fed9ac5e8b7e224e78786b85a1d066",
+      "image_sha256": {
+        "rail-1440-zh.png": "4c2ca1b943772141551db28d2e3cac017f98a32f2f162a4206104d775c79c572",
+        "rail-1440.png": "a060c389527ca46e514f326139764bb1c6b644e41aa22503e98ff0a31d707a36",
+        "rail-390-zh.png": "5840bef74a6c7ed256021ea3b1debffd70b38e5ad1282ba5d1a54649b5d443f6",
+        "rail-390.png": "36e0d18b256dd08b9d6e58c19b98939ecc2a652bde32a7eeb73d6e856d8a5608",
+        "rail-820-zh.png": "3f0a7de8b8b1c52a46363f5450fdbe32d1ede5939b963450233318032634a170",
+        "rail-820.png": "c4e9911ef82b6e5b6e0acb3ee0db0d34d38831a8205c42e7c128e6f95d227c3b"
+      },
+      "qualification": "Actual native capture producer completed against this source; images are fixture proof, not live provider/account data"
+    },
+    {
+      "folder": "b-f11-4-research-views",
+      "sourceHead": "e2846880681d4b9aff4a060e1321f50f240cafc7",
+      "manifest_sha256": "0805ebae0ad288ae599f8c35e2c99c5e297a065ffeaedeae552f68f5b9a421a2",
+      "historical_manifest_sha256": "bc7d1e46607f8b9e330a3a91864d10579158d7d993289bdcb2a1d88515b5071b",
+      "image_sha256": {
+        "empty-1440-zh.png": "714a01eb1824205ff303584fc908552cedc97a92c5ae4d71c7de28fc54662fd5",
+        "empty-1440.png": "1c1faee2ca76e5d8ab4a13aa755f2adb4e24cab0a40085249cd3c48e46823a3a",
+        "empty-390-zh.png": "062558138aef3ae2b66af586307e4667bb2e6f0746f54fc237392223482babe2",
+        "empty-390.png": "cc88b9f5568cb7cd68efd4c9b63e4d247c2c3c67a5aabef9f6172f14dac6634f",
+        "named-views-1440-zh.png": "fe83f49a9c8f648667fa7ca45bbb4eb5c32758d29fdd2de2238a674474cbc24a",
+        "named-views-1440.png": "b597974494df6f1751957393004545ad267783400278b1a1b56b3b48f85ee013",
+        "named-views-390-zh.png": "8167f474a8fcceb714021a85a2e29036abef516ff0e5499ae48e781efb53c738",
+        "named-views-390.png": "518c897f2c9be6389b6426e60e17799e2f17a27207eeb8e1d54c8a4eb5fc5a8c",
+        "save-flow-1440-zh.png": "1cef4c1688bbfe21ae62c384956fe4148957585790e585f21de1c8b676bacaac",
+        "save-flow-1440.png": "1c030f7bca311560dd1a82a4de23e8ad06857efecdd6f3e13b939ec8e33d164d",
+        "save-flow-390-zh.png": "d3a6ce1e71f6101abcb3e849a6bc90f349ec463cad8225865868d4044a11307d",
+        "save-flow-390.png": "645df07991483848430f4a33be46ffd0dafc881c9c64860312bfcd36300dc6d4",
+        "unavailable-1440-zh.png": "314ee462df3e57dda8a6da616e8d97e1ff919ffc0f6aa3817479e49976031f7b",
+        "unavailable-1440.png": "95184e2212ffa0c69ade23cd2f2ea8977bcb01049a17aa176a097be22266a209",
+        "view-subject-empty-1440-zh.png": "9817e7dfa4eaeb3860b6ccd219e19c874dcffdfc99573a5eb251900744a70870",
+        "view-subject-empty-1440.png": "ee4c667b973723b99c954e59084e58dfc663172a10949e1feb34caf5f71b826c",
+        "window-closed-1440-zh.png": "366f247a70a3aaa7695040fa3423acb9f22530f41ba2075b6bf874287090919d",
+        "window-closed-1440.png": "ca409d69bec60c5f47423c4874a6713ee3b274aa2f5bf688ce0228e3a5dbd19e",
+        "window-closed-390-zh.png": "9663209e3abed4b341e817fb8de98e298592f9723b1fa93071fef2798e4834fa",
+        "window-closed-390.png": "2d1c40c79d75a8755806580dd3365aff1d34e81a06fc163d7a3236d1678278a3"
+      },
+      "qualification": "Actual native capture producer completed against this source; images are fixture proof, not live provider/account data"
+    },
+    {
+      "folder": "w9t-f12-17-invite-link-honesty",
+      "sourceHead": "e2846880681d4b9aff4a060e1321f50f240cafc7",
+      "manifest_sha256": "009923bd0dd8d6da5af50039566a6f60a82b30645d2450c4202aa51f47080143",
+      "historical_manifest_sha256": "072c58d40ff2762b94ac0948fbfad0223cd75671eb028d538887b5876aa5150c",
+      "image_sha256": {
+        "desktop-en-invite-joined.png": "e997426dcedbff9d184e5554811cca64f50030457cbf2577ee10cf89cd7767be",
+        "desktop-en-invite-signin.png": "cb1fb8a3bbab77e220c238394a08e06137309fb26f574778da7c0856d1fb5b19",
+        "desktop-en-team-invite-form.png": "f0ff98323b11d400efa13bb643ae39f41faedabd422e6e9cd5ae37b422b3a53e",
+        "desktop-en-team-invite-link.png": "7037c4475d06cc0774c367c09b92fa8b7965afabc638b09051da10712a4838a9",
+        "desktop-zh-invite-joined.png": "9b37926e5bf6f75efc8f7b1e1102613f712a259d443d88c4f4687dc8bfd24253",
+        "desktop-zh-invite-signin.png": "39df6b1f5beb135a71be7f55f37b35f21467ebf089c26c15acc445b4611bd311",
+        "desktop-zh-team-invite-form.png": "93eb8eee8c83b62dbfbe7bb73f06496749bcc68417e314c571f761746cca8a6f",
+        "desktop-zh-team-invite-link.png": "abbdb1e1eed532948656961b3f4af63cfe14431247e69bc3901ed6e06a3491ed",
+        "mobile-en-invite-joined.png": "8d505b8a06a109ccc9ed72367c7c02c4533db1eac72d7c98a5da617de41d4d67",
+        "mobile-en-invite-signin.png": "bbbef201988df0a373830537b1a26a44d27a925ffa627d889d45e533ae12c99c",
+        "mobile-en-team-invite-form.png": "11572b787a4d7c8cd099ccaf8242a3303e7142f8d946e822351a94b631cdac33",
+        "mobile-en-team-invite-link.png": "a8b72b91b60e2b43f097fbef3d558b28c76f0715e57864566720502b41760284",
+        "mobile-zh-invite-joined.png": "b4bca101f085196480c866f03b8da15946bfccfaf35fa85efba2ba319eb19c8e",
+        "mobile-zh-invite-signin.png": "e71ed03140310ee3395868693f983f7c80e46f3bd125604a759497b307c6cc40",
+        "mobile-zh-team-invite-form.png": "2f5ecf9a1240ee9949657e8f67f65c0f15c917f3209e84de034ba15279c81ad9",
+        "mobile-zh-team-invite-link.png": "1fd3ce39a7b7d5ebb4d8385365c601628cd13c06a85602c1adcf8f1f9b2d709e"
+      },
+      "qualification": "Actual native capture producer completed against this source; images are fixture proof, not live provider/account data"
+    },
+    {
+      "folder": "b-f12-8-team-roles",
+      "sourceHead": "e2846880681d4b9aff4a060e1321f50f240cafc7",
+      "manifest_sha256": "fbbc8de7155a0bfb99dde4c1998c485ff28f6133087faa0bee310ec0201d9c34",
+      "historical_manifest_sha256": "a9c02fd1b5cb15014b57ab264ca5b1e9cb7a1e45b39ed250a4623bf2d770b9e4",
+      "image_sha256": {
+        "desktop-en-change-role.png": "77d77e0b168e9087bd8754c562042032e152e75f543223712a1fbc30e196b6c0",
+        "desktop-en-no-team.png": "b75761dc7f9ea5fbf93ed2d5ed2c36f919540fdb6505c769abfc8c372fa8b077",
+        "desktop-en-team.png": "d4c92a67e16114cf9aec578fb56d9a319137fe9b39bf96fba95986b61e7a5bcb",
+        "desktop-en-truncated.png": "3809fb0a6622b95bd260459bb59081cbfa0aa9934ee6485ef35ea9c87716d97d",
+        "desktop-zh-change-role.png": "c10a4f2ee1ba09f1e3692151315723d0c2dbf5e827b95cad1bf61f0b4c318a77",
+        "desktop-zh-no-team.png": "6a4e0c9399899a457104092578fbf2013cffeeef88013c5188471db8b6bdbb2f",
+        "desktop-zh-team.png": "866ffa23b7924f792a4213032d5402a96a4fa09cc788b3d446d7a2f9ee5c6f13",
+        "desktop-zh-truncated.png": "799c8b87de3445b884bb0a71d987f0418a331cedfca2f3a24be466ac00a8d53d",
+        "mobile-en-change-role.png": "638fa9812ef6318cb0fcb7a9175978fc9ab0b7258a962d268090dbf4dd38fbb9",
+        "mobile-en-no-team.png": "89e7c6831bdbc9aae71be83cd4abfac9676e3046219659042e81737b7230c342",
+        "mobile-en-team.png": "e7eb55ba73daca057b19f4f155c065b5c98b887897b88de90ed2c0a04571f82c",
+        "mobile-en-truncated.png": "bc6a704e92a354dac3b05dfb5360ff164767c4a5674eaa0cadd83b1d3d343b9a",
+        "mobile-zh-change-role.png": "068d48ea3e61833644f66955d9f990e7040872ffac4cec67c5b067fb870a614e",
+        "mobile-zh-no-team.png": "5b630c249084e2804bca6745f1793275c2ad7d74c9f3d02644a3893e0a40ae8b",
+        "mobile-zh-team.png": "f78b4c216e933e8b931794c07c27c7dd8d580bb6a8945d2614a40bd095fde6e5",
+        "mobile-zh-truncated.png": "f1ddba7a392108d9200cb77b1db9c4c7980dec4205d74ccfffafac8191aafb16"
+      },
+      "qualification": "Actual native capture producer completed against this source; images are fixture proof, not live provider/account data"
+    },
+    {
+      "folder": "b-f12-9-team-ownership-transfer",
+      "sourceHead": "e2846880681d4b9aff4a060e1321f50f240cafc7",
+      "manifest_sha256": "0ea47ac9f01af22faffa611becf62c6fbd8f39db1e6b33c25e60dcbfe3f638ad",
+      "historical_manifest_sha256": "061eff8f1476095fe22ced1b88fcbc209815cc07299beb419434dda82401160e",
+      "image_sha256": {
+        "desktop-en-transfer-button.png": "d4c92a67e16114cf9aec578fb56d9a319137fe9b39bf96fba95986b61e7a5bcb",
+        "desktop-en-transfer-confirm.png": "1949334039e1ead5b1c331f7852730ac6164a0e075033cb1356ed8c530c334b6",
+        "desktop-zh-transfer-button.png": "866ffa23b7924f792a4213032d5402a96a4fa09cc788b3d446d7a2f9ee5c6f13",
+        "desktop-zh-transfer-confirm.png": "51171536be37c4cf2808981879ce9c4d39ae1d92d3679cb91d67da847ecd3b28",
+        "mobile-en-transfer-button.png": "e7eb55ba73daca057b19f4f155c065b5c98b887897b88de90ed2c0a04571f82c",
+        "mobile-en-transfer-confirm.png": "147e622315f4aa9df2fd2d6bdff5a263975a7c69a609a43963c6be9418296691",
+        "mobile-en-transfer-control.png": "873bf44f0f544dd040d302c3f5f8b3bd0a5b975a677d0803dc3f8bb8e2e92650",
+        "mobile-zh-transfer-button.png": "f78b4c216e933e8b931794c07c27c7dd8d580bb6a8945d2614a40bd095fde6e5",
+        "mobile-zh-transfer-confirm.png": "d9de18271308476298db932a55d21a9ea83f90d7fce03583308a97ae83c6301b",
+        "mobile-zh-transfer-control.png": "d7697c0fd0685f66b5e1902483a60afc7b41595f3295e54772f5d589d7b2be7c"
+      },
+      "qualification": "Actual native capture producer completed against this source; images are fixture proof, not live provider/account data"
+    },
+    {
+      "folder": "b-f13-5-personal-accuracy",
+      "sourceHead": "e2846880681d4b9aff4a060e1321f50f240cafc7",
+      "manifest_sha256": "3c64e397f687a8deb6f25015bd39cf9d2bc53ec592785fd6fadd4196d88bd10f",
+      "historical_manifest_sha256": "8327439c727774ed730807a55dca362a1f733ddfa038fef5126e03f623427b40",
+      "image_sha256": {
+        "desktop-en-detail.png": "bf0c61787c75894153cf7d5258790440588319ad771af64c5e466d92dbe999fc",
+        "desktop-en-empty.png": "0af6a44ca0d3511f55fbca5cd465e501b78cca9c3d24ce50119179b536684c1e",
+        "desktop-en-glance.png": "bcf78b2d351e1d9edef5ab823e1f386dd255c9fa4da88c0bb5fa1a19eff6381d",
+        "desktop-zh-detail.png": "f2e4a82f028e550b74c3d0a34a2fa65137fb273110f3b8a32c65291f7527c8df",
+        "desktop-zh-empty.png": "41f97bb771225b349566c9366c8ed925491e779552a816663340273722c30cf7",
+        "desktop-zh-glance.png": "f5f2583bb82a63dbfac80726438830b253a81754507b9998882af0846e95d204",
+        "mobile-en-detail.png": "6b630c3ec9845f3dcb228f59b55c8cf15102d08f019892a94f85333250dfaff6",
+        "mobile-en-empty.png": "4fa05c206ea9a6dbcbb1b0534b0166b60592ee626b7bc776854a9da218d5772f",
+        "mobile-en-glance.png": "ad4d3c3607190579e2f2a2bb29b5f8374be10fa971b18aeaaa1f9b5d070728ec",
+        "mobile-zh-detail.png": "ed0cc92a5a9406d98dbfc4fb04fb55f7b1114082a3cb414f8db7963dc0247e2a",
+        "mobile-zh-empty.png": "a1b3bd95ae99cbae882ee5acd53b41c50fafbdb56e1107fd4189178cdd5efc46",
+        "mobile-zh-glance.png": "87f7e8bc0c1b17ebb702c420a35567f827e7479069adace42585f7a52970ebc7"
+      },
+      "qualification": "Actual native capture producer completed against this source; images are fixture proof, not live provider/account data"
+    },
+    {
+      "folder": "terminal-visual-intelligence",
+      "sourceHead": "e2846880681d4b9aff4a060e1321f50f240cafc7",
+      "manifest_sha256": "ff19db87e1b327c654fc6936016e2838808924990088ef477a6f3142e46ec6e8",
+      "historical_manifest_sha256": "1370d8cac1493b04f886ab9f741abea0532e9d5d9a9014da695ccc7de167d92f",
+      "image_sha256": {
+        "desktop-context-zh.png": "dfbcd1af1fb83678f75012f2dba1ac6d83a689998bc792f307e24c09c0aef505",
+        "desktop-context.png": "2cc43c8059881d2ec6242835fb2d6f37fc7938e814b88ca2529975d7a1bd22bf",
+        "mobile-context-zh.png": "e405b67dd7664ccbe130e97c455a536b24e7b85ab51af9f96ec135e030608622",
+        "mobile-context.png": "4bb912458a311faed7e779e24dffda3907ce5af4eec95dbc1a9f21ae3978bbe7",
+        "tablet-context-zh.png": "400ffa72ae0b5a8eb746132ccee9e02bf539a20d9189b210507b10d9e42dcd9e",
+        "tablet-context.png": "876d593ae5cbee00ff1326e661de1739f2a094bf621636d74473093218388234"
+      },
+      "qualification": "Actual native capture producer completed against this source; images are fixture proof, not live provider/account data"
+    }
+  ],
+  "visual_intelligence_stats": {
+    "startTime": "2026-10-24T05:39:44.648Z",
+    "duration": 255708.45599999998,
+    "expected": 30,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "historical_rule": "Prior source manifests retained verbatim; unrelated historical folders not recaptured remain unmodified. Current source/crop locks were refreshed only after actual matching producers ran.",
+  "full_suite_after_recapture": {
+    "passed_test_files": 985,
+    "skipped_test_files": 2,
+    "passed_tests": 16842,
+    "skipped_tests": 2,
+    "todo_tests": 4,
+    "failures": 0,
+    "exit_code": 0,
+    "log": "/tmp/mmx-document-lang-full-green-20261024.log"
+  },
+  "production_proof": false,
+  "real_native_capture_count": 140,
+  "optimized_build": {
+    "result": "PASS",
+    "generated_static_pages": 67,
+    "command": "NEXT_TELEMETRY_DISABLED=1 NODE_OPTIONS=--no-experimental-webstorage npm run build",
+    "log": "/tmp/mmx-document-language-production-build-20261024.log"
+  }
+}

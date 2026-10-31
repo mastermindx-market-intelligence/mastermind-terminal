@@ -155,7 +155,12 @@ const nextConfig: NextConfig = {
   outputFileTracingExcludes: { "/*": [".local-futures/**/*", "**/.local-futures/**/*"] },
   // Distinct-per-build id → version-skew protection + stale-chunk self-heal (see DEPLOYMENT_ID above).
   deploymentId: DEPLOYMENT_ID,
-  env: { NEXT_PUBLIC_SHARED_SHELL_BUILD: DEPLOYMENT_ID || (isProd ? "unversioned" : "development") },
+  env: {
+    NEXT_PUBLIC_SHARED_SHELL_BUILD: DEPLOYMENT_ID || (isProd ? "unversioned" : "development"),
+    // Pin activation to this build. An older flag-off build stays off if restored;
+    // the production unit's inert BUILD flag is only release-owner admission.
+    MMX_SHARED_SHELL: process.env.MMX_SHARED_SHELL === "1" ? "1" : "0",
+  },
   // pin the workspace root (sibling lockfiles exist) so Turbopack stops warning
   turbopack: { root: path.resolve(__dirname) },
   // The shared pure validators also export Node-side digest helpers. For webpack's
@@ -204,7 +209,12 @@ const nextConfig: NextConfig = {
         destination: "/analysis",
         permanent: true,
       },
-      { source: "/research", destination: "/options", permanent: true },
+      // Shared Shell owns the new revision-aware reader at bare /research.
+      // Keep every old Options tab bookmark and the ordinary flag-off alias.
+      ...(process.env.MMX_SHARED_SHELL === "1" ? [{
+        source: "/research", has: [{ type: "query" as const, key: "tab" }],
+        destination: "/options", permanent: true,
+      }] : [{ source: "/research", destination: "/options", permanent: true }]),
       // Automate is split back into standalone Scripts + Alerts. Peel the two tabs
       // off first, then default bare /automate to /alerts (its old default tab).
       // NB: /alerts and /scripts are now REAL routes (their old redirects into
@@ -289,7 +299,7 @@ const nextConfig: NextConfig = {
       {
         // Auth-aware shells must never be shared by EdgeOne. Caching these as
         // public can replay a signed-out redirect or another session's shell.
-        source: "/(terminal|discover|analysis|options|scripts|alerts|portfolio|admin|login)",
+        source: "/(terminal|today|research|monitor|discover|analysis|options|scripts|alerts|portfolio|admin|login)",
         headers: [
           {
             key: "Cache-Control",

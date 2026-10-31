@@ -17,6 +17,7 @@ export const TIME_SCALE_DEFAULTS = {
   lockVisibleTimeRangeOnResize: false,
   rightBarStaysOnScroll: false,
   shiftVisibleRangeOnNewBar: true,
+  allowShiftVisibleRangeOnWhitespaceReplacement: false,
 } as const;
 
 const DISPLAY_KEYS = [
@@ -38,6 +39,7 @@ export type TimeScaleBehaviour = {
   lockVisibleTimeRangeOnResize: boolean;
   rightBarStaysOnScroll: boolean;
   shiftVisibleRangeOnNewBar: boolean;
+  allowShiftVisibleRangeOnWhitespaceReplacement: boolean;
 } & Record<string, unknown>;
 
 export function defaultTimeScaleBehaviour(): TimeScaleBehaviour {
@@ -93,7 +95,10 @@ export type VisibleWindowClampInputs = {
   from: number;
   to: number;
   widthPx: number;
+  /** Bars up to and including the LWC base index (last valued row + 1). */
   rowCount: number;
+  /** Time-scale points (whitespace included) when they differ from rowCount. */
+  pointCount?: number;
   minBarSpacing: number;
   maxBarSpacing: number;
   fixLeftEdge: boolean;
@@ -156,7 +161,7 @@ export function clampVisibleWindow(inputs: VisibleWindowClampInputs): VisibleWin
   }
   let nextTo = to;
   if (n > 0 && widthPx > 0 && spacing > 0 && span > 0) {
-    const minBars = Math.min(2, n);
+    const minBars = Math.min(2, Math.max(0, inputs.pointCount ?? n));
     const barsEstimation = inputs.fixLeftEdge ? widthPx / spacing : minBars;
     const minTo = barsEstimation;
     const maxTo = inputs.fixRightEdge ? n : n + span - minBars;
@@ -169,8 +174,9 @@ export function clampVisibleWindow(inputs: VisibleWindowClampInputs): VisibleWin
 
 /** LWC _private__minBarSpacing (dev:6545-6550): width/points when both edges fixed. */
 function minSpacingOf(inputs: VisibleWindowClampInputs): number {
-  if (inputs.fixLeftEdge && inputs.fixRightEdge && inputs.rowCount > 0 && inputs.widthPx > 0) {
-    return inputs.widthPx / inputs.rowCount;
+  const points = inputs.pointCount ?? inputs.rowCount;
+  if (inputs.fixLeftEdge && inputs.fixRightEdge && points > 0 && inputs.widthPx > 0) {
+    return inputs.widthPx / points;
   }
   const min = inputs.minBarSpacing;
   return Number.isFinite(min) && min > 0 ? min : 0.5;
@@ -190,6 +196,9 @@ export function mergeTimeScaleBag(current: TimeScaleBehaviour, opts: Record<stri
   if (typeof opts.rightBarStaysOnScroll === "boolean") next.rightBarStaysOnScroll = opts.rightBarStaysOnScroll;
   if (typeof opts.shiftVisibleRangeOnNewBar === "boolean") {
     next.shiftVisibleRangeOnNewBar = opts.shiftVisibleRangeOnNewBar;
+  }
+  if (typeof opts.allowShiftVisibleRangeOnWhitespaceReplacement === "boolean") {
+    next.allowShiftVisibleRangeOnWhitespaceReplacement = opts.allowShiftVisibleRangeOnWhitespaceReplacement;
   }
   for (const key of DISPLAY_KEYS) {
     if (key in opts) next[key] = opts[key];

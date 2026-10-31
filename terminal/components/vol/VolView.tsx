@@ -23,11 +23,15 @@
  */
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { getJSONResult } from "@/lib/dataCache";
+import type { MovesPayload } from "@/lib/eodContext";
 import { flowGetResult, type FlowOutcome } from "@/lib/flowClientCache";
 import { isValidRoot } from "@/lib/flowRoot";
 import { useLang } from "@/lib/i18n";
 import { GEX_AUTOCOMPLETE_ROOTS } from "@/lib/optionsRoots";
 import { trackSearch } from "@/lib/searchTrack";
+import { parseNextDate } from "@/lib/watchlistEventPlanner";
+import type { CurveEvent } from "@/lib/volTenorComparison";
 import { makeVolT } from "./volStrings";
 import type { VolPayload } from "./volTypes";
 import {
@@ -39,9 +43,60 @@ import { VolVrpPanel, type AggRead } from "./VolVrpPanel";
 import type { AggTrendPayload } from "@/lib/aggTrend";
 import { VolTermPanel } from "./VolTermPanel";
 import { VolSkewPanel } from "./VolSkewPanel";
+import { VolComparePanel } from "./VolComparePanel";
 
 const DEFAULT_ROOT = "SPY";
 const STALE_SESSIONS = 3;
+
+/** A stamped live quote the hub may hand down. The stamp is passed through unchanged. */
+export interface LiveSpotStamp {
+  value: number;
+  asOf: string;
+}
+
+/**
+ * The comparison panel prints the clock it is given beside a "live quote" label, so only
+ * a genuinely stamped live quote may be handed to it: a finite positive value with a
+ * non-empty stamp. Anything else — and today the hub holds no live quote at all — is the
+ * panel's percent-only path. Never a spot derived from the term structure or a strike grid.
+ */
+function hubLiveSpot(quote: LiveSpotStamp | null | undefined): { value: number; asOf: string } | null {
+  return quote != null
+    && typeof quote.value === "number" && Number.isFinite(quote.value) && quote.value > 0
+    && typeof quote.asOf === "string" && quote.asOf.trim() !== ""
+    ? { value: quote.value, asOf: quote.asOf }
+    : null;
+}
+
+/**
+ * The published band exactly as `options_hub/moves` stated it (W3S): the producer's own
+ * multiple and horizon with the payload's clock. Any field missing or not finite is NO
+ * band — the column stays absent rather than rendering a substitute number.
+ */
+function publishedBandOf(
+  moves: MovesPayload | null,
+): { pct: number; bandMult: number; horizonDays: number; asof: string } | null {
+  const em = moves?.expected_move ?? null;
+  const pct = typeof em?.pct === "number" && Number.isFinite(em.pct) ? em.pct : null;
+  const mult = typeof em?.band_mult === "number" && Number.isFinite(em.band_mult) ? em.band_mult : null;
+  const days = typeof em?.horizon_days === "number" && Number.isFinite(em.horizon_days) ? em.horizon_days : null;
+  const asof = typeof moves?.asof === "string" && moves.asof ? moves.asof : null;
+  return pct != null && mult != null && days != null && asof != null
+    ? { pct, bandMult: mult, horizonDays: days, asof }
+    : null;
+}
+
+/**
+ * The root's next earnings day from `<SYM>.fund.json` — the one accepted company-event
+ * source (watchlistEventPlanner). A date-only record stays a calendar day; absent,
+ * unreadable, already-past or a failed read is NO event, never an invented row, and
+ * never a `macro_release` or `index_review` kind the join does not emit.
+ */
+function earningsEventDay(fund: unknown, nowMs: number = Date.now()): string | null {
+  const next = (fund as { earnings?: { next_date?: unknown } } | null | undefined)?.earnings?.next_date;
+  const parsed = parseNextDate(next, null, nowMs);
+  return parsed.kind === "when" ? parsed.when.day : null;
+}
 
 /**
  * ET weekday sessions elapsed since `asofDate` (YYYY-MM-DD). Calendar weekdays
@@ -65,13 +120,20 @@ function sessionsOld(asofDate: string): number {
   return n;
 }
 
-export function VolView() {
+export function VolView({ liveSpot }: { liveSpot?: LiveSpotStamp | null } = {}) {
   const { lang } = useLang();
   const t = makeVolT(lang);
 
   const [root, setRoot] = useState(DEFAULT_ROOT);
   const [inputVal, setInputVal] = useState(DEFAULT_ROOT);
   const [payload, setPayload] = useState<VolPayload | null>(null);
+  // `moves:{ROOT}` — the per-root expected-move store, fetched non-gating for the
+  // comparison panel's published band (W3S). Optional: its absence drops the band
+  // column only, and a pending or failed read is never shown as that absence.
+  const [moves, setMoves] = useState<MovesPayload | null>(null);
+  // `<ROOT>.fund.json` — the earnings day for the panel's event window. A failed or
+  // absent read is "no calendar events supplied", the panel's own honest sentence.
+  const [fund, setFund] = useState<unknown>(null);
   // `agg:{ROOT}` — the aggregate-trend store, fetched non-gating for the VRP
   // regime band. Optional: its absence hides one panel, never the tab — and a
   // pending or failed read is never shown as that absence.
@@ -116,6 +178,42 @@ export function VolView() {
     })();
   }, []);
 
+  // `moves:{ROOT}` for the comparison panel's published band, fenced by the same
+  // snapshot request: a newer root or retry drops a late answer for the old one.
+  const readMoves = useCallback((forRoot: string, req: number) => {
+    void (async () => {
+      let read: FlowOutcome;
+      try {
+        read = await flowGetResult(`moves:${forRoot}`);
+      } catch {
+        read = { status: "unavailable", reason: "network" };
+      }
+      if (reqRef.current !== req) return;
+      if (read.status !== "data") {
+        setMoves(null);
+        return;
+      }
+      const rec = read.data as MovesPayload;
+      const ok = typeof rec.root !== "string" || rec.root.toUpperCase() === forRoot;
+      setMoves(ok ? rec : null);
+    })();
+  }, []);
+
+  // `<ROOT>.fund.json` for the earnings event, through the shared data-cache read the
+  // fin tabs use. Anything but a landed data answer is "no calendar events".
+  const readFund = useCallback((forRoot: string, req: number) => {
+    void (async () => {
+      let outcome: Awaited<ReturnType<typeof getJSONResult>> | null = null;
+      try {
+        outcome = await getJSONResult(`/data/${encodeURIComponent(forRoot)}.fund.json`);
+      } catch {
+        outcome = null;
+      }
+      if (reqRef.current !== req) return;
+      setFund(outcome && outcome.status === "data" ? outcome.data : null);
+    })();
+  }, []);
+
   // One-shot fetch per committed root (nightly store — no polling). The
   // loading/error/payload RESETS live in commitRoot and retrySnapshot (the events
   // that start a read) — the effect body itself only starts the async load and
@@ -156,8 +254,11 @@ export function VolView() {
 
       // VRP regime context, after first paint (the series is ~250KB for SPY).
       readAgg(root, req);
+      // The comparison panel's two optional inputs ride the same settled snapshot read.
+      readMoves(root, req);
+      readFund(root, req);
     })();
-  }, [root, attempt, readAgg]);
+  }, [root, attempt, readAgg, readMoves, readFund]);
 
   // A read that did not land is retried in place, never by reloading the page. The
   // client cache keeps payloads only, so each retry is a real re-read.
@@ -165,6 +266,8 @@ export function VolView() {
     setLoading(true);
     setError(false);
     setPayload(null);
+    setMoves(null);
+    setFund(null);
     setAgg(null);
     setAggRead("loading");
     setAttempt((n) => n + 1);
@@ -185,6 +288,8 @@ export function VolView() {
       setLoading(isValidRoot(next));
       setError(false);
       setPayload(null);
+      setMoves(null);
+      setFund(null);
       setAgg(null);
       setAggRead("loading");
       setRoot(next);
@@ -273,6 +378,20 @@ export function VolView() {
     Number.isFinite(reportedVolNumber(point.call_iv)) || Number.isFinite(reportedVolNumber(point.put_iv)),
   );
   const selectedSmileConflict = selectedSmileExpiryConflict || (selectedSmileConflictCount > 0 && !selectedSmileUsable);
+
+  // ── Comparison panel's three optional inputs (W3S) ─────────────────────────
+  // spot: only a stamped live quote the hub hands down — none exists in the nightly
+  // plane, so the panel's percent-only path stands unless a prop arrives.
+  const spot = hubLiveSpot(liveSpot);
+  // events: at most the root's own earnings day; a failed/absent fund read is no event.
+  const events = useMemo<CurveEvent[]>(() => {
+    const day = earningsEventDay(fund);
+    return day
+      ? [{ kind: "earnings", date: day, label: lang === "zh" ? `${root} 财报` : `${root} earnings`, source: "fund.json" }]
+      : [];
+  }, [fund, lang, root]);
+  // publishedBand: the producer's own statement from `moves:{ROOT}`, verbatim.
+  const publishedBand = useMemo(() => publishedBandOf(moves), [moves]);
 
   return (
     <div style={OUTER}>
@@ -419,6 +538,23 @@ export function VolView() {
             <div style={{ gridColumn: "1 / -1", minWidth: 0, display: "flex", flexDirection: "column" }}>
               <VolSkewPanel smile={payload.smile} lang={lang} selectedExp={selectedExpiry} onSelectExp={selectExpiry} />
             </div>
+
+            {/* ═══ Panel E — constant-tenor comparison (W3B) ════════════════ */}
+            {/* Wired per the W3S ruling: the hub's stamped live spot when one exists
+                (percent-only until then), the root's own earnings day from
+                `<ROOT>.fund.json`, and the `moves:{ROOT}` band with the producer's own
+                multiple, horizon and clock. */}
+            <VolComparePanel
+              term={payload.term}
+              smile={payload.smile}
+              asof={payload.asof}
+              selectedExp={selectedExpiry}
+              lang={lang}
+              sessionsOld={age}
+              spot={spot}
+              events={events}
+              publishedBand={publishedBand}
+            />
           </div>
         )}
       </div>

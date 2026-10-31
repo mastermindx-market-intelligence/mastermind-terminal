@@ -628,7 +628,7 @@ def shim_text(name: str, real_git: str) -> str | None:
             'elif [ -f "$MMX_UNIT_ENABLED" ]; then cat "$MMX_UNIT_ENABLED"; else echo disabled; fi ;;\n'
             '      ActiveState) if [ -f "$MMX_UNIT_ACTIVE" ]; then cat "$MMX_UNIT_ACTIVE"; '
             'else echo "${MMX_UNIT_ACTIVE_STATE:-inactive}"; fi ;;\n'
-            '      Environment) echo "${MMX_UNIT_ENVIRONMENT:-MMX_SHARED_SHELL=1 ' + SECRET_SENTINEL + '}" ;;\n'
+            '      Environment) if [ "$5" = terminal.service ]; then echo ""; else echo "${MMX_UNIT_ENVIRONMENT:-MMX_SHARED_SHELL=1 ' + SECRET_SENTINEL + '}"; fi ;;\n'
             '      *) echo "" ;;\n'
             '    esac ;;\n'
             '  start) [ "${MMX_SYSTEMCTL_START_RC:-0}" = 0 ] || exit "$MMX_SYSTEMCTL_START_RC"; '
@@ -807,7 +807,10 @@ class Owner:
         return self
 
     def clone(self, source: Path, destination: Path) -> None:
-        subprocess.run(["git", "clone", "-q", "--no-hardlinks", str(source), str(destination)],
+        # A path clone copies loose objects even with --no-hardlinks; concurrent
+        # auto-maintenance can repack/remove one during that copy. Use Git's
+        # transfer protocol against this local fixture, with no network access.
+        subprocess.run(["git", "clone", "-q", "--no-local", str(source), str(destination)],
                        check=True, text=True)
 
     def write_realistic_beta_policy(self) -> Path:
@@ -1309,6 +1312,10 @@ def test_delivered_beta_policy_and_unit_are_source_artifacts_only() -> None:
     assert "ReadWritePaths=/opt/terminal/beta/terminal/.next/cache" in unit
     assert "ReadWritePaths=/opt/terminal/beta/terminal/.next\n" not in unit
     assert "--port 3001" in unit and "Restart=no" in unit
+    # Only Next.js's completed SIGTERM cleanup code joins ordinary success.
+    success = [line for line in unit.splitlines() if line.startswith("SuccessExitStatus=")]
+    assert success == ["SuccessExitStatus=143"]
+    assert "KillSignal=SIGTERM" in unit and "TimeoutStopSec=30" in unit
     assert "EnvironmentFile=/var/lib/mastermind-terminal-beta/host/environment" in unit
     # the writable surface is the cache only: never all of .next, never the
     # whole beta tree; both production data aliases stay enforced together

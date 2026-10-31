@@ -1,0 +1,75 @@
+{
+  "sourceHead": "2a5ba5657ed16e427910f876cc033bf5cbe2678e",
+  "crops": [
+    {
+      "path": "b-pl-6-batch-1/ChartChrome-1440.png",
+      "sha256": "accaa50d0bfd7812023cebf930f5354b8a41655c9b524bcd443183a8e12e8e78",
+      "width": 174,
+      "height": 77,
+      "completeNonblankPixels": true
+    },
+    {
+      "path": "b-pl-6-batch-1/ChartChrome-1440-zh.png",
+      "sha256": "eb2207f84e05e7fb101bf49575f9726a305a3a8c9202e2704cb027c1e20b48f0",
+      "width": 174,
+      "height": 77,
+      "completeNonblankPixels": true
+    },
+    {
+      "path": "b-pl-6-batch-1/ChartChrome-390.png",
+      "sha256": "47d9bfce5e7296df1115ea50145fc05f96523d1ab2a292224b2ffbc331ae8bc2",
+      "width": 310,
+      "height": 107,
+      "completeNonblankPixels": true
+    },
+    {
+      "path": "b-pl-6-batch-1/ChartChrome-390-zh.png",
+      "sha256": "f61dc0d77e59f292d3fc9aca0be5aa9f7dedf3e5931f6461aa723df5f067de68",
+      "width": 310,
+      "height": 107,
+      "completeNonblankPixels": true
+    },
+    {
+      "path": "terminal-visual-intelligence/desktop-context.png",
+      "sha256": "d3afad35ff314313b8fa5a00e92c23acc0454bc4bbf86fbc4eb76a1b89aad09f",
+      "width": 1440,
+      "height": 900,
+      "completeNonblankPixels": true
+    },
+    {
+      "path": "terminal-visual-intelligence/desktop-context-zh.png",
+      "sha256": "e91f9f895f6d1048ee97de1a2ec89ca7e2355f248a047f279b752e76f5c848d3",
+      "width": 1440,
+      "height": 900,
+      "completeNonblankPixels": true
+    },
+    {
+      "path": "terminal-visual-intelligence/tablet-context.png",
+      "sha256": "371cb5a97f7571295ff71c117eb6c7869d180c1a3b72c68551783ce1cf41be23",
+      "width": 820,
+      "height": 1180,
+      "completeNonblankPixels": true
+    },
+    {
+      "path": "terminal-visual-intelligence/tablet-context-zh.png",
+      "sha256": "83e2284520987798d68f92c1db4bba81d4293ff82d48e9044ec5aedf50d2c4bf",
+      "width": 820,
+      "height": 1180,
+      "completeNonblankPixels": true
+    },
+    {
+      "path": "terminal-visual-intelligence/mobile-context.png",
+      "sha256": "4bb912458a311faed7e779e24dffda3907ce5af4eec95dbc1a9f21ae3978bbe7",
+      "width": 390,
+      "height": 844,
+      "completeNonblankPixels": true
+    },
+    {
+      "path": "terminal-visual-intelligence/mobile-context-zh.png",
+      "sha256": "026a5eec18bd550659368edb3ad69d20dacd542bdd898b16b971d0284a67d087",
+      "width": 390,
+      "height": 844,
+      "completeNonblankPixels": true
+    }
+  ]
+}

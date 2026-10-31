@@ -1,3 +1,4 @@
+import { isForexWatch } from "./forexWatches";
 /**
  * E18 — scoped alert management: filter, select an explicit set, pause or resume it, and report
  * every row's own outcome. Pure contract module (no React, no fetch, no DOM) so each rule below is
@@ -30,8 +31,8 @@ export type BulkAlert = {
 };
 
 /** What the store's own fields say about one alert. There is no expiry and no group field. */
-export type AlertState = "armed" | "paused" | "fired";
-export type TypeGroup = "signal" | "price" | "rsi" | "regime" | "options" | "suite" | "other";
+export type AlertState = "armed" | "paused" | "fired" | "saved";
+export type TypeGroup = "signal" | "price" | "rsi" | "regime" | "options" | "suite" | "forex" | "other";
 export type BulkAction = "pause" | "resume";
 
 const isPlainObject = (v: unknown): v is Record<string, unknown> =>
@@ -56,11 +57,13 @@ export function toBulkAlerts(raw: unknown): BulkAlert[] | null {
 
 /** Armed = the engine evaluates it; fired = the engine disarmed it and stamped it; paused = off. */
 export function alertState(a: Pick<BulkAlert, "active" | "condition">): AlertState {
+  if (isForexWatch(a.condition)) return "saved";
   if (a.active) return "armed";
   return a.condition && a.condition.triggered ? "fired" : "paused";
 }
 
 export function typeGroup(condition: Record<string, unknown> | null | undefined): TypeGroup {
+  if (isForexWatch(condition)) return "forex";
   const t = typeof condition?.type === "string" ? condition.type : "";
   if (t === "signal" || t === "price" || t === "rsi" || t === "regime") return t;
   if (t.startsWith("opt_")) return "options";
@@ -83,9 +86,10 @@ export function matchesFilter(a: BulkAlert, f: BulkFilter): boolean {
  *   pause  · armed → pause · paused → skip (already paused) · fired → skip (not being watched)
  *   resume · paused → resume · fired → re-arm (the owner clears the fired record) · armed → skip
  */
-export type Applicability = "apply" | "rearm" | "skip-paused" | "skip-fired" | "skip-armed";
+export type Applicability = "apply" | "rearm" | "skip-paused" | "skip-fired" | "skip-armed" | "skip-forex";
 
 export function applicability(a: BulkAlert, action: BulkAction): Applicability {
+  if (isForexWatch(a.condition)) return "skip-forex";
   const s = alertState(a);
   if (action === "pause") return s === "armed" ? "apply" : s === "paused" ? "skip-paused" : "skip-fired";
   return s === "paused" ? "apply" : s === "fired" ? "rearm" : "skip-armed";

@@ -257,3 +257,79 @@ The settings › Webhooks panel (`SAFE_ENDPOINT_COLUMNS` in `terminal/lib/webhoo
   complete, nothing more. The discriminating identity is the marker, and it is only trustworthy because
   rollback now restores it. For live proof from outside the box, read `?dpl=<full sha>` on
   `/_next/static/*` or `data-dpl-id` on `<html>` — never `BUILD_ID`.
+
+## Shared Shell production promotion
+
+The production profile stays off by default. After exact beta journey acceptance
+and normal protected source/CI qualification, the attended host configuration lane
+may install the landed `ops/terminal-shared-shell.conf` at
+`/etc/systemd/system/terminal.service.d/shared-shell.conf` (root-owned, non-writable
+by group/others) and daemon-reload. It declares only `MMX_SHARED_SHELL_BUILD=1`;
+it does not enable an already running or restored older app. Never install a
+runtime `MMX_SHARED_SHELL=1` override on production. Preserve all other unit drop-ins.
+
+Before building, the incumbent release owner checks the installed bytes against
+the exact admitted target commit and the effective unit BUILD flag, then derives
+the build flag. Missing activation keeps production off; any partial or modified
+activation refuses. Existing nonfeature service credential files remain supported;
+manager, passed/unset variables, unit environment files, Next dotenv files and the
+known npm/Next start path are checked without logging secret values. Next pins the feature flag into the resulting build. The
+owner rechecks activation before restart and verifies the admitted protocol,
+bridge, document, registry and source tuple before accepting an enabled generation.
+
+Promotion still uses the single normal transaction:
+`/opt/terminal/terminal-build.sh --target production --target-sha <qualified-40-hex>`.
+Its installed owner must first contain this reviewed activation support through
+the existing attended canonical-source installation path; the incumbent old owner
+unsets production's flag and self-updates only for a subsequent run. Do not treat
+a source merge or a drop-in alone as activation. Publish the app-origin bridge and
+Caddy framing/redirect exceptions through the normal Macro owner before promotion,
+preserving beta and foreign/no-opt-in/internal negatives. Final proof uses the real
+`app.mastermind-x.com` account, shared-shell status, document READY/navigation and
+private/no-store boundary. Beta proof alone is not default-production launch.
+
+### Frozen-node delivery host composition (source only, disabled by default)
+
+`OPTIONS_FROZEN_DELIVERY_ENABLED` is a separate explicit host capability. Absent,
+empty or `0` keeps frozen-node email/webhook delivery closed; malformed configured
+values fail instead of falling back. No deployment or channel activation is part
+of this source change. The email drain still separately requires its incumbent
+`ALERT_DRAIN_ENABLE`; existing non-node delivery defaults remain unchanged.
+
+The existing Macro drain and Terminal webhook worker use the same private
+`ingest/options_frozen_delivery_cli.py` entry, configured by absolute host-owned
+`OPTIONS_FROZEN_DELIVERY_PYTHON`, `OPTIONS_FROZEN_DELIVERY_SCRIPT`, and
+`OPTIONS_FROZEN_DELIVERY_ENV_FILE`. No path, credential, origin, permission or
+command is accepted from a row. The private file contains the same Supabase
+origin/service-role reference and the already-established `OPTIONS_FROZEN_*`
+Macro account/Python/Node/source-bundle paths. The CLI uses those existing
+account-policy and protected reconciliation interfaces; it does not activate
+source evaluation. A different DB origin refuses before account use. Requests
+travel over bounded local stdin/stdout, never secret-bearing argv or a new HTTP
+endpoint. No import performs IO. Installation and actual host credential/role
+admission remain separately required; source tests do not establish them.
+
+Email reselects the exact canonical row/event/principal/full payload and proves
+committed publication after disarm. It rechecks current account/category through
+the private policy CLI. The existing drain continues to own current recipient,
+entitlement, suppression, quiet hours and the mailer's unique ledger/SMTP unknown
+boundary. Row JSON grant fields and a formerly armed runtime are not delivery
+permission. Unknown evidence withholds rather than receiving delivery credit.
+
+Webhook delivery independently reselects the canonical delivery, current endpoint,
+team membership, channel opt-in and event filter, then checks the complete SQL
+projection against the committed canonical event. The signing secret is read
+only by the incumbent privileged webhook worker, never returned by the private
+policy CLI. Exact status/attempt/claim CAS and returned snapshot equality precede
+signing; policy is checked again after DNS. Existing URL validation, public-IP
+pinning and HMAC functions own transport. A selected `delivering` frozen row is
+never reclaimed merely because its lease is old. An unreturned claim or uncertain
+POST remains held for explicit reconciliation, not an automatic new POST or a
+claim of downstream exactly-once delivery. Legacy webhook retry behavior is
+unchanged. Current policy is observed before send; no cross-service transaction
+locks account revocation throughout an external delivery.
+
+The fixture and paired tests are explicitly synthetic: private PostgreSQL,
+actual private subprocesses/native account policy, blocked source fetch and an
+injected no-network SMTP/POST boundary. No live DB, email, webhook, provider,
+service installation or enrollment is performed by them.

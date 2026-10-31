@@ -3,6 +3,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Synthetic authentication exists only inside this unit test. No account/session
 // is installed, no network is used, and these cases are not production auth proof.
+const adminGate = vi.hoisted(() => ({ isAdminRequest: vi.fn() }));
+vi.mock("@/lib/adminGate", () => adminGate);
 const auth = vi.hoisted(() => ({ getUser: vi.fn(), getSession: vi.fn() }));
 const currentCookieStore = vi.hoisted(() => {
   const state = { values: [] as { name: string; value: string }[] };
@@ -15,7 +17,11 @@ vi.mock("@/lib/supabase/server", () => ({ createClient: vi.fn(async () => ({ aut
 vi.mock("@/lib/rateLimit", () => ({ rateLimit: vi.fn(() => ({ ok: true })) }));
 vi.mock("@/lib/upstreams", () => ({ NW_BASE: "https://mastermind-x.com" }));
 import { filteredSupabaseCookieHeader, GET } from "@/app/api/sector-intelligence/route";
+import { finvizMembershipPayload, finvizMembershipFixture } from "./fixtures/finvizMembership";
 import { MARKET_RISK_NOW, riskEnvelopeFixture } from "./marketRiskFixture";
+import relativeTrendFixture from "./fixtures/sector-rotation-relative-trend.v1.json";
+import holdingsCoverageFixture from "./fixtures/sector-holdings-coverage.v1.json";
+import { basket, basketPulse, mixedPulse, observedComparison } from "./sectorIntradayFixture";
 
 const AUTH_COOKIE = "sb-fsldfzlxyavsuwqbceod-auth-token.0=base64-part-0; theme=dark; sb-fsldfzlxyavsuwqbceod-auth-token.1=part-1";
 const FILTERED_COOKIE = "sb-fsldfzlxyavsuwqbceod-auth-token.0=base64-part-0; sb-fsldfzlxyavsuwqbceod-auth-token.1=part-1";
@@ -27,6 +33,7 @@ const payload = { as_of: "2026-09-25", sectors: [] };
 let upstream: ReturnType<typeof vi.fn>;
 beforeEach(() => {
   vi.clearAllMocks();
+  adminGate.isAdminRequest.mockResolvedValue({ status: "denied" });
   currentCookieStore.state.values = [
     { name: "sb-fsldfzlxyavsuwqbceod-auth-token.0", value: "base64-part-0" },
     { name: "theme", value: "dark" },
@@ -251,6 +258,38 @@ describe("sector gateway owner-envelope admission", () => {
   });
 });
 
+
+describe("Finviz remains internal-only", () => {
+  it("does not fetch internal Finviz for an authenticated customer", async () => {
+    const response = await GET(request("finviz"));
+    expect(response.status).toBe(403);
+    expect(upstream).not.toHaveBeenCalled();
+  });
+  it("does not turn admin authority failure into permission", async () => {
+    adminGate.isAdminRequest.mockResolvedValue({ status: "unavailable" });
+    expect((await GET(request("finviz"))).status).toBe(503);
+    expect(upstream).not.toHaveBeenCalled();
+  });
+  it("requires shared authentication before the admin gate", async () => {
+    expect((await GET(request("finviz", null))).status).toBe(401);
+    expect(adminGate.isAdminRequest).not.toHaveBeenCalled();
+    expect(upstream).not.toHaveBeenCalled();
+  });
+});
+
+it("returns factual internal owner data without vendor descriptions", async () => {
+  adminGate.isAdminRequest.mockResolvedValue({ status: "admin" });
+  const internal = { source: "finviz-themes", map_type: "themes", asof: "2026-10-07", generated_utc: "2026-10-07 19:59", n_tiles: 1, n_members: 1, size_basis: "count",
+    sectors: [{ key: "AI", en: "AI", zh: "人工智能" }], timeframes: ["1D", "1W", "MTD", "1M", "3M", "6M", "YTD", "1Y"].map(key => ({ key, available: true, description: "VENDOR_TIMEFRAME_PROSE" })),
+    tiles: [{ t: "compute", name: "Compute", sector: "AI", size: 1, desc: "VENDOR_PROSE", perf: { "1D": 1 }, members: [{ t: "NVDA", perf: { "1D": 1 }, description: "VENDOR_MEMBER_PROSE" }] }], description: "VENDOR_ROOT_PROSE" };
+  upstream.mockResolvedValue(new Response(JSON.stringify(internal), { headers: { "Content-Type": "application/json" } }));
+  const response = await GET(request("finviz")), result = await response.json();
+  expect(response.status).toBe(200);
+  expect(JSON.stringify(result.data)).not.toContain("VENDOR_");
+  expect(result.data.tiles[0].members[0].t).toBe("NVDA");
+  expect(String(upstream.mock.calls[0][0])).toBe("https://www.mastermind-x.com/marketdata/themes_heatmap.json");
+  expect(response.headers.get("cache-control")).toBe("private, no-store");
+});
 describe("canonical risk context over the existing authenticated gateway", () => {
   it("uses the same cookie, fixed owner path and no-store contract", async () => {
     vi.spyOn(Date, "now").mockReturnValue(MARKET_RISK_NOW);
@@ -287,5 +326,138 @@ describe("canonical risk context over the existing authenticated gateway", () =>
     upstream.mockResolvedValue(Response.json({ schema: "market_state.v1", verdict: "RISK_OFF" }));
     const response = await GET(request("risk"));
     expect(response.status).toBe(502); expect((await response.json()).data).toBeNull();
+  });
+});
+
+
+describe("Finviz membership metadata transport", () => {
+  beforeEach(() => adminGate.isAdminRequest.mockResolvedValue({ status: "admin" }));
+  it("projects the committed metadata contract and strips unrecognized authority claims", async () => {
+    const manifest = finvizMembershipFixture();
+    upstream.mockResolvedValue(Response.json({ ...finvizMembershipPayload(), membership_manifest: {
+      ...manifest, rights: "public", accepted: true, vendor_prose: "do not transport",
+    } }));
+    const response = await GET(request("finviz"));
+    const body = await response.json();
+    expect(response.status).toBe(200);
+    expect(body.data.membership_manifest).toEqual(manifest);
+    expect(body.data.membership_manifest.membership.asof).not.toBe(body.receipt.asOf);
+    expect(body.data.membership_manifest.unresolved_identity_count).toBeNull();
+  });
+  it.each(["counts", "unknowns", "clock", "null"])("withholds inconsistent %s metadata with its population", async change => {
+    const manifest = finvizMembershipFixture();
+    if (change === "counts") (manifest.counts as Record<string, unknown>).appearances = 3;
+    if (change === "unknowns") manifest.unresolved_identity_count = 0;
+    if (change === "clock") (manifest.membership as Record<string, unknown>).refreshed_at_utc = "2027-01-01T00:00:00Z";
+    upstream.mockResolvedValue(Response.json({ ...finvizMembershipPayload(), membership_manifest: change === "null" ? null : manifest }));
+    const response = await GET(request("finviz")), body = await response.json();
+    expect(response.status).toBe(502); expect(body.data).toBeNull(); expect(body.receipt.status).toBe("invalid");
+  });
+  it("keeps legacy metadata absent without inventing a source receipt", async () => {
+    upstream.mockResolvedValue(Response.json(finvizMembershipPayload()));
+    const response = await GET(request("finviz"));
+    expect(response.status).toBe(200);
+    expect((await response.json()).data).not.toHaveProperty("membership_manifest");
+  });
+});
+
+describe("Options R1 W2 owner feeds through the same authenticated gateway", () => {
+  it("proxies the weekly relative trend owner and dates the receipt from the feed's own as-of", async () => {
+    upstream.mockResolvedValue(Response.json(relativeTrendFixture));
+    const response = await GET(request("relative_trend")), result = await response.json();
+    expect(response.status).toBe(200);
+    expect(result.receipt.source).toBe("relative_trend");
+    expect(result.receipt.path).toBe("/sectordata/sector_rotation_relative_trend.json");
+    expect(result.receipt.asOf).toBe("2026-10-16");
+    expect(result.data.meta.method.id).toBe("relative_trend_ema");
+    expect(String(upstream.mock.calls[0][0])).toBe("https://www.mastermind-x.com/sectordata/sector_rotation_relative_trend.json");
+  });
+  it("rejects a relative trend feed whose weeks run backwards as an invalid owner envelope", async () => {
+    const sectors = relativeTrendFixture.sectors.map(series => series.id !== "xlk" ? series : { ...series, observations: [...series.observations].reverse() });
+    upstream.mockResolvedValue(Response.json({ ...relativeTrendFixture, sectors }));
+    const response = await GET(request("relative_trend")), result = await response.json();
+    expect(response.status).toBe(502); expect(result.data).toBeNull(); expect(result.receipt.status).toBe("invalid");
+  });
+  it("proxies the holdings coverage owner and keeps an unknown total null on the wire", async () => {
+    upstream.mockResolvedValue(Response.json(holdingsCoverageFixture));
+    const response = await GET(request("holdings")), result = await response.json();
+    expect(response.status).toBe(200);
+    expect(result.receipt.source).toBe("holdings");
+    expect(result.receipt.path).toBe("/sectordata/sector_holdings_coverage.json");
+    expect(result.receipt.asOf).toBe("2026-10-16");
+    expect(result.data.funds.find((fund: { fund: string }) => fund.fund === "XLU").n_holdings_total).toBeNull();
+    expect(String(upstream.mock.calls[0][0])).toBe("https://www.mastermind-x.com/sectordata/sector_holdings_coverage.json");
+  });
+  it("rejects a holdings feed that renders an unknown total as zero", async () => {
+    const funds = holdingsCoverageFixture.funds.map(fund => fund.fund !== "XLU" ? fund : { ...fund, n_holdings_total: 0, coverage: { ...fund.coverage, count: { ...fund.coverage.count, total: 0 } } });
+    upstream.mockResolvedValue(Response.json({ ...holdingsCoverageFixture, funds }));
+    const response = await GET(request("holdings")), result = await response.json();
+    expect(response.status).toBe(502); expect(result.receipt.status).toBe("invalid");
+  });
+});
+
+describe("catalyst intraday comparison through the same authenticated gateway", () => {
+  it("reads the basket-pulse owner on the same fixed origin, cookie and no-store contract", async () => {
+    const data = mixedPulse();
+    upstream.mockResolvedValue(Response.json(data));
+    const response = await GET(request("intraday")), result = await response.json();
+    expect(response.status).toBe(200);
+    expect(result.receipt).toMatchObject({ source: "intraday", path: "/live/basket_pulse.json",
+      status: "ready", stale: false });
+    expect(String(upstream.mock.calls[0][0])).toBe("https://www.mastermind-x.com/live/basket_pulse.json");
+    const init = upstream.mock.calls[0][1] as RequestInit, headers = new Headers(init.headers);
+    expect(init).toMatchObject({ redirect: "manual", cache: "no-store" });
+    expect(headers.get("cookie")).toBe(FILTERED_COOKIE);
+    expect(headers.get("authorization")).toBeNull();
+    expect(response.headers.get("cache-control")).toBe("private, no-store");
+    expect(response.headers.get("vary")).toBe("Cookie");
+    expect(result.data.baskets.find((row: { id: string }) => row.id === "ai_infra").intraday_comparison.status).toBe("observed");
+  });
+
+  it("dates the receipt with the owner's full intraday clock, never a truncated date", async () => {
+    upstream.mockResolvedValue(Response.json(mixedPulse()));
+    const result = await (await GET(request("intraday"))).json();
+    // Collapsing this to 2026-10-22 would make every observation of the day look identical.
+    expect(result.receipt.asOf).toBe("2026-10-22T19:00:00.000Z");
+    expect(result.receipt.observedAt).not.toBe(result.receipt.asOf);
+  });
+
+  it("leaves every other feed's source stamp exactly as it was", async () => {
+    upstream.mockResolvedValue(Response.json(payload));
+    const result = await (await GET(request("sector"))).json();
+    expect(result.receipt.asOf).toBe("2026-09-25");
+  });
+
+  it("admits a basket-pulse build that has not published any comparison yet", async () => {
+    const data = basketPulse([basket("ai_infra", undefined), basket("mag7", null)]);
+    upstream.mockResolvedValue(Response.json(data));
+    const response = await GET(request("intraday")), result = await response.json();
+    // An absent capability is a readable owner envelope, not a transport failure.
+    expect(response.status).toBe(200); expect(result.data).toEqual(data);
+    expect(result.receipt.status).toBe("ready");
+  });
+
+  it("rejects a look-alike basket pulse before exposing any of its values", async () => {
+    for (const envelope of [{ ...basketPulse([]), schema: "basket_pulse.v2" },
+      { ...basketPulse([]), market: "hk" },
+      { ...basketPulse([basket("ai_infra", observedComparison()), basket("ai_infra", observedComparison())]) }]) {
+      upstream.mockResolvedValue(Response.json(envelope));
+      const response = await GET(request("intraday")), result = await response.json();
+      expect(response.status).toBe(502); expect(result.data).toBeNull(); expect(result.receipt.status).toBe("invalid");
+    }
+  });
+
+  it("does not qualify intraday observations without an authenticated cookie or a valid session", async () => {
+    expect((await GET(request("intraday", null))).status).toBe(401);
+    auth.getUser.mockResolvedValue({ data: { user: null }, error: null });
+    expect((await GET(request("intraday"))).status).toBe(401);
+    expect(upstream).not.toHaveBeenCalled();
+  });
+
+  it.each([401, 403, 404, 503])("keeps an upstream %s an outage rather than usable comparison data", async status => {
+    upstream.mockResolvedValue(Response.json(mixedPulse(), { status }));
+    const response = await GET(request("intraday")), result = await response.json();
+    expect(result.data).toBeNull();
+    expect(result.receipt.status).toBe(status === 503 ? "error" : status === 404 ? "unavailable" : "access");
   });
 });

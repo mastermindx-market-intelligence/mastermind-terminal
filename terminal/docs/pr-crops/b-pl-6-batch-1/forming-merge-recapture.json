@@ -1,0 +1,31 @@
+{
+  "sourceHead": "2a5ba5657ed16e427910f876cc033bf5cbe2678e",
+  "capturedAt": "2026-10-21T18:42:39.960132+00:00",
+  "profile": "ordinary Terminal; MMX_SHARED_SHELL unset; local deterministic fixtures; isolated SSD tree; not public Chrome/authenticated/production",
+  "command": "NODE_OPTIONS=--no-experimental-webstorage CAPTURE_ONLY=ChartChrome TERMINAL_CROP_PORT=37166 node e2e/tools/capture_pl6_batch1.cjs",
+  "scope": [
+    "ChartChrome-1440.png",
+    "ChartChrome-1440-zh.png",
+    "ChartChrome-390.png",
+    "ChartChrome-390-zh.png"
+  ],
+  "cropHashes": {
+    "ChartChrome-1440.png": "accaa50d0bfd7812023cebf930f5354b8a41655c9b524bcd443183a8e12e8e78",
+    "ChartChrome-1440-zh.png": "eb2207f84e05e7fb101bf49575f9726a305a3a8c9202e2704cb027c1e20b48f0",
+    "ChartChrome-390.png": "47d9bfce5e7296df1115ea50145fc05f96523d1ab2a292224b2ffbc331ae8bc2",
+    "ChartChrome-390-zh.png": "f61dc0d77e59f292d3fc9aca0be5aa9f7dedf3e5931f6461aa723df5f067de68"
+  },
+  "sourceLockChanges": [
+    {
+      "path": "terminal/components/ChartPanel.tsx",
+      "before": "f908b3c4c099c7401de5a2bb6aeb0067027421feec4841fba06633f245af6ca3",
+      "after": "06399471d2cb2408be30f5156e26f34a5e2d6aa1d3e576a3f04557e582a3078a"
+    },
+    {
+      "path": "terminal/components/TerminalShell.tsx",
+      "before": "c7d4df9bd3296715d3b7cb0aa7a6a7a4d787af805411886a57d72bb14af00a7e",
+      "after": "a82a26564fb41dc32078e50697c8c7c8428bac88f507b987c50225c855101ef7"
+    }
+  ],
+  "historicalEvidence": "Both full30 reports and original42d scoped report retained byte-for-byte under their prior identities; untouched Analysis/search/auth crops are reused, not relabeled."
+}

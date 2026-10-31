@@ -6,6 +6,8 @@ import SectorRotationMap, { filterRotationPoints, measuredCoverageReceipt, rotat
 import { LangProvider, applyLang } from "../i18n";
 import { sectorMeasuredRead, sectorRotationHistory, sectorRotationEpisodes, type MeasuredRead, type Row, type FeedPayload } from "../sectorIntelligence";
 import measuredReadFixture from "./fixtures/measured_read_v1.json";
+import relativeTrendFixture from "./fixtures/sector-rotation-relative-trend.v1.json";
+import { sectorRotationRelativeTrend, type SectorRotationRelativeTrend } from "../rotationRelativeTrend";
 import { MARKET_RISK_NOW, riskEnvelopeFixture } from "./marketRiskFixture";
 
 
@@ -28,7 +30,7 @@ describe("source-native sector rotation math", () => {
     expect(JSON.stringify(rows)).toBe(before);
   });
   it.each([
-    [1, 1, "leading"], [-1, 1, "improving"], [-1, -1, "lagging"], [1, -1, "weakening"], [0, 0, "leading"], [null, 1, null],
+    [1, 1, "leading"], [-1, 1, "improving"], [-1, -1, "lagging"], [1, -1, "weakening"], [0, 0, null], [0, 1, null], [1, 0, null], [null, 1, null],
   ] as const)("classifies quarter=%s fast=%s as %s", (quarter, fast, quadrant) => {
     expect(rotationQuadrant(quarter, fast)).toBe(quadrant);
   });
@@ -52,6 +54,8 @@ describe("source-native sector rotation math", () => {
     expect(rotationReceipt("2026-09-25", 11, "en")).toBe("Sep 25 · 11 sectors");
     expect(rotationReceipt("2026-09-25", 11, "zh")).toBe("9月25日 · 11个板块");
     expect(rotationReceipt(null, 11, "en")).toBe("11 sectors");
+    expect(rotationReceipt("2026-10-16", 1, "en")).toBe("Oct 16 · 1 sector");
+    expect(rotationReceipt("2026-10-16", 1, "zh")).toBe("10月16日 · 1个板块");
   });
 });
 
@@ -301,6 +305,49 @@ describe("SectorRotationMap", () => {
     host = document.createElement("div"); document.body.append(host); root = createRoot(host);
   });
   afterEach(async () => { await act(async () => root.unmount()); host.remove(); vi.restoreAllMocks(); });
+
+  it("places an exact-zero coordinate on the boundary instead of defaulting it to Leading", async () => {
+    await render();
+    const xli = host.querySelector('[data-sector-rotation-point="xli"]')!;
+    expect(xli.getAttribute("data-placement")).toBe("boundary");
+    expect(xli.hasAttribute("data-quadrant")).toBe(false);
+    expect(xli.getAttribute("aria-label")).toContain("On the boundary");
+    expect(host.querySelector('[data-sector-rotation-point="xlk"]')?.getAttribute("data-placement")).toBe("placed");
+    const shelf = host.querySelector('[data-testid="rotation-unplaced"]')!;
+    expect(shelf.querySelector('[data-rotation-unplaced="xli"]')?.textContent).toContain("Exactly zero on an axis; drawn on the line, nearest Leading / Improving / Lagging / Weakening.");
+    expect(shelf.querySelector('[data-rotation-unplaced="xlv"]')?.textContent).toContain("Not placed · missing");
+    expect(shelf.querySelector('[data-rotation-unplaced="xlv"]')?.textContent).toContain("never counted as zero");
+    expect(shelf.querySelector('[data-rotation-unplaced="xlk"]')).toBeNull();
+    expect(host.querySelector('[data-testid="rotation-context"]')?.textContent).toBe("Relative to SPY · as of 2026-09-25 · 4 placed · 1 on a boundary · 1 not placed");
+    expect(host.querySelector("[data-rotation-method]")?.textContent).toContain("5 / 6 coordinates available · 1 missing one or both relative-strength coordinates · 1 on an axis boundary.");
+    await render({ mode: "list" });
+    expect(host.querySelector('[data-sector-rotation-row="xli"]')?.closest("tr")?.textContent).toContain("On the boundary");
+    expect(host.querySelector('[data-sector-rotation-row="xlv"]')?.closest("tr")?.textContent).toContain("Not placed · missing");
+  });
+
+  it("keeps the fixed calculation universe under a display filter", async () => {
+    await render({ query: "Tech" });
+    expect(host.querySelectorAll("[data-sector-rotation-point]")).toHaveLength(1);
+    expect(host.querySelector('[data-testid="rotation-shown"]')?.textContent).toBe("Showing 1 of 6 · filters never change the numbers");
+    expect(host.querySelector('[data-testid="rotation-context"]')?.textContent).toContain("4 placed · 1 on a boundary · 1 not placed");
+    expect(host.querySelector('[data-testid="rotation-unplaced"]')).toBeNull();
+  });
+
+  it("draws the history trail in plot pixel units without stretching the SVG", async () => {
+    await render();
+    const trail = host.querySelector('[data-testid="rotation-history-trail"]')!;
+    expect(trail.hasAttribute("preserveAspectRatio")).toBe(false);
+    expect(trail.getAttribute("viewBox")).toBe("0 0 600 560");
+    expect(trail.getAttribute("width")).toBe("600");
+    const coords = trail.querySelector("polyline")!.getAttribute("points")!.split(" ").map(pair => pair.split(",").map(Number));
+    expect(coords).toHaveLength(3);
+    for (const [x, y] of coords) {
+      expect(x).toBeGreaterThanOrEqual(0); expect(x).toBeLessThanOrEqual(600);
+      expect(y).toBeGreaterThanOrEqual(0); expect(y).toBeLessThanOrEqual(560);
+    }
+    expect(coords.some(([x]) => x > 100)).toBe(true);
+    expect(trail.querySelector("circle")?.getAttribute("r")).toBe("4");
+  });
 
   it("serves the current answer before controls while keeping methodology disclosed", async () => {
     await render();
@@ -674,6 +721,130 @@ describe("SectorRotationMap", () => {
     expect(host.textContent).toContain("轮动"); expect(host.textContent).toContain("科技是唯一在21日和63日相对强度均为正的板块");
     expect(host.textContent).toContain("战术状态关注入场"); expect(host.textContent).toContain("由板块/SPY历史价格重建");
     expect(host.textContent).not.toContain("Market read");
+  });
+});
+
+describe("Options R1 W2A — explicit relative trend method on the rotation map", () => {
+  let root: Root, host: HTMLDivElement;
+  const select = vi.fn(), mode = vi.fn(), query = vi.fn(), research = vi.fn(), sources = vi.fn(), method = vi.fn();
+  const trend = sectorRotationRelativeTrend(relativeTrendFixture) as SectorRotationRelativeTrend;
+  const render = async (patch: Partial<SectorRotationMapProps> = {}) => {
+    const props: SectorRotationMapProps = { rows, status: "ready", asOf: "2026-09-25", selected: "xlk", mode: "map", query: "", history: sectorRotationHistory(historyPayload), historyStatus: "ready", onMode: mode, onQuery: query, onSelect: select, onOpenResearch: research, onSources: sources, ...patch };
+    await act(async () => root.render(<LangProvider><SectorRotationMap {...props} /></LangProvider>));
+  };
+  const trendProps = (patch: Partial<SectorRotationMapProps> = {}): Partial<SectorRotationMapProps> =>
+    ({ method: "relative_trend_ema", relativeTrend: trend, relativeTrendStatus: "ready", onMethod: method, ...patch });
+  const testId = (id: string) => host.querySelector(`[data-testid="${id}"]`);
+  const point = (id: string) => host.querySelector<HTMLButtonElement>(`[data-sector-rotation-point="${id}"]`);
+  const snapshot = () => ({
+    points: [...host.querySelectorAll<HTMLButtonElement>("[data-sector-rotation-point]")].map(node => [node.dataset.sectorRotationPoint, node.getAttribute("aria-label"), node.getAttribute("style")]),
+    receipt: testId("rotation-receipt")?.textContent, context: testId("rotation-context")?.textContent,
+    shown: testId("rotation-shown")?.textContent, answer: testId("rotation-answer")?.textContent,
+    inspector: testId("rotation-inspector")?.textContent, method: host.querySelector("[data-rotation-method]")?.textContent,
+    scale: host.querySelector(`.${"scale"}`)?.textContent,
+  });
+  beforeEach(() => {
+    vi.clearAllMocks(); document.documentElement.setAttribute("data-lang", "en");
+    host = document.createElement("div"); document.body.append(host); root = createRoot(host);
+  });
+  afterEach(async () => { await act(async () => root.unmount()); host.remove(); vi.restoreAllMocks(); });
+
+  it("offers an explicit method switch with the incumbent relative return as the default", async () => {
+    await render({ method: "incumbent", relativeTrend: trend, relativeTrendStatus: "ready", onMethod: method });
+    const group = host.querySelector('[role="group"][aria-label="Rotation method"]')!;
+    const buttons = [...group.querySelectorAll("button")];
+    expect(buttons.map(button => button.textContent)).toEqual(["Relative return · 63/21", "Relative trend · weekly EMA"]);
+    expect(buttons.map(button => button.getAttribute("aria-pressed"))).toEqual(["true", "false"]);
+    expect(testId("rotation-context")?.textContent).toContain("Relative to SPY · as of 2026-09-25");
+    expect(point("xlk")?.getAttribute("aria-label")).toContain("21-session RS vs SPY: +7.0%");
+    await act(async () => buttons[1].click());
+    expect(method).toHaveBeenCalledWith("relative_trend_ema");
+  });
+
+  it("plots the relative trend centred on 100 and reads one value and one date across chart, list, inspector and receipt", async () => {
+    await render(trendProps());
+    expect(testId("rotation-receipt")?.textContent).toBe("Oct 16 · 6 sectors");
+    expect(testId("rotation-context")?.textContent).toBe("Relative trend vs SPY · completed weeks · as of 2026-10-16 · 4 placed · 1 on a boundary · 1 not placed");
+    expect(testId("rotation-shown")?.textContent).toBe("Showing 6 of 6 · filters never change the numbers · relative trend · weekly EMA · vintage 7c1f5b2e · completed weeks only, no back-shift");
+    expect(testId("rotation-answer")?.textContent).toContain("2 sectors are above 100 on both relative trend and trend momentum. Technology has the strongest relative trend, and its momentum is above 100.");
+    const label = point("xlk")?.getAttribute("aria-label");
+    expect(label).toBe("Technology (XLK), Leading, Trend momentum: 101.10, Relative trend: 104.00, Week ending Oct 16, 2026");
+    expect(host.querySelectorAll("[data-sector-rotation-point]").length).toBe(5);
+    expect(point("xle")?.dataset.placement).toBe("boundary");
+    expect(point("xli")).toBeNull();
+    const plot = testId("rotation-plot")!;
+    expect(plot.textContent).toContain("Stronger relative trend →"); expect(plot.textContent).toContain("Momentum rising ↑");
+    expect(plot.textContent).not.toContain("quarter trend");
+    const scale = [...host.querySelectorAll("[data-testid='rotation-scale'] span")].map(node => node.textContent);
+    expect(scale[1]).toBe("100"); expect(scale[0]).toMatch(/^9\d\.\d$/); expect(scale[2]).toMatch(/^10\d\.\d$/);
+    const inspector = testId("rotation-inspector")!.textContent!;
+    expect(inspector).toContain("104.00"); expect(inspector).toContain("101.10"); expect(inspector).toContain("Oct 16, 2026"); expect(inspector).toContain("Measured");
+    expect(inspector).not.toContain("63-session");
+    await render(trendProps({ mode: "list" }));
+    const row = host.querySelector('[data-sector-rotation-row="xlk"]')!.closest("tr")!;
+    expect([...row.querySelectorAll("td")].map(cell => cell.textContent)).toEqual(["101.10", "104.00", "Leading", "Oct 16, 2026"]);
+    expect(host.querySelector("thead")?.textContent).toContain("Week ending");
+  });
+
+  it("draws the 12-week trail as separate runs that break at a week that could not be measured", async () => {
+    await render(trendProps({ selected: "xlf" }));
+    const trail = testId("rotation-trend-trail")!;
+    expect(trail.getAttribute("data-runs")).toBe("2"); expect(trail.getAttribute("data-weeks")).toBe("11");
+    expect(trail.querySelectorAll("polyline").length).toBe(2);
+    expect(trail.querySelectorAll("circle").length).toBe(1);
+    expect(testId("rotation-history")).toBeNull();
+    expect(host.textContent).toContain("trailing 12 completed weeks");
+  });
+
+  it("lists non-measured weeks on the shelf with plain reasons instead of plotting them as 100", async () => {
+    await render(trendProps({ relativeTrend: { ...trend, asOf: "2026-10-02" }, selected: "xlu" }));
+    expect(testId("rotation-receipt")?.textContent).toBe("Oct 2 · 6 sectors");
+    expect(point("xlu")).toBeNull();
+    const shelf = testId("rotation-unplaced")!.textContent!;
+    expect(shelf).toContain("XLU"); expect(shelf).toContain("Warming up"); expect(shelf).toContain("fewer than 120 completed weeks since 2016-01-01");
+    expect(shelf).toContain("XLI"); expect(shelf).toContain("not in the relative trend feed");
+    const inspector = testId("rotation-inspector")!.textContent!;
+    expect(inspector).toContain("Warming up"); expect(inspector).toContain("Oct 2, 2026"); expect(inspector).not.toContain("100.00");
+    expect(testId("rotation-answer")?.textContent).toContain("1 sector is still warming up.");
+  });
+
+  it("never relabels or re-plots the other method's coordinates when switching back and forth", async () => {
+    await render();
+    const untouched = snapshot();
+    await render({ method: "incumbent", relativeTrend: trend, relativeTrendStatus: "ready", onMethod: method });
+    const before = snapshot();
+    expect(before).toEqual(untouched);
+    await render(trendProps());
+    const during = snapshot();
+    expect(during.points.find(entry => entry[0] === "xlk")?.[1]).not.toBe(before.points.find(entry => entry[0] === "xlk")?.[1]);
+    expect(during.points.find(entry => entry[0] === "xlk")?.[2]).not.toBe(before.points.find(entry => entry[0] === "xlk")?.[2]);
+    expect(during.method).toContain("present-day"); expect(during.method).toContain("not a five-percent forecast");
+    expect(during.method).toContain("completed weeks");
+    await render({ method: "incumbent", relativeTrend: trend, relativeTrendStatus: "ready", onMethod: method });
+    expect(snapshot()).toEqual(before);
+  });
+
+  it("keeps the switch usable and names the way back when the relative trend feed is unavailable", async () => {
+    await render(trendProps({ relativeTrend: null, relativeTrendStatus: "unavailable" }));
+    const block = testId("rotation-method-unavailable")!;
+    expect(block.textContent).toContain("relative return method remains available");
+    expect(host.querySelectorAll("[data-sector-rotation-point]").length).toBe(0);
+    expect(host.querySelector('[role="group"][aria-label="Rotation method"]')).not.toBeNull();
+    await act(async () => block.querySelector("button")!.click());
+    expect(method).toHaveBeenCalledWith("incumbent");
+    await render(trendProps({ relativeTrend: null, relativeTrendStatus: "loading" }));
+    expect(testId("rotation-method-unavailable")?.textContent).toContain("loading");
+  });
+
+  it("renders the relative trend method in Chinese through the shared language provider", async () => {
+    await render(trendProps());
+    await act(async () => applyLang("zh"));
+    expect(host.querySelector('[role="group"][aria-label="轮动方法"]')?.textContent).toBe("相对收益 · 63/21相对趋势 · 周EMA");
+    expect(testId("rotation-context")?.textContent).toContain("相对 SPY 的趋势 · 已完成周 · 截至 2026-10-16");
+    expect(testId("rotation-plot")?.textContent).toContain("相对趋势更强 →");
+    expect(point("xlk")?.getAttribute("aria-label")).toBe("科技 (XLK), 领先, 趋势动量: 101.10, 相对趋势: 104.00, 周截至 2026年10月16日");
+    expect(testId("rotation-answer")?.textContent).toContain("2个板块的相对趋势和趋势动量均高于100。");
+    expect(host.textContent).not.toContain("Relative trend ·");
   });
 });
 

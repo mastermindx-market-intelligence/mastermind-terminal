@@ -1,11 +1,16 @@
 import type {
   TickerNewsFlow,
+  TickerNewsEditorial,
+  TickerNewsEditorialView,
+  TickerNewsViewMode,
   TickerNewsFlowComparison,
   TickerNewsFlowProvenance,
   TickerNewsFlowReason,
   TickerNewsFlowState,
   TickerNewsSourceHealth,
   TickerNewsStoryRow,
+  TickerNewsContentKind,
+  TickerNewsReportingState,
 } from "@/lib/newsTypes";
 
 export class TickerNewsContractError extends Error {
@@ -40,7 +45,7 @@ export function asText(
 }
 
 export function asNonNegativeInt(value: unknown, code: string): number {
-  if (!Number.isInteger(value) || Number(value) < 0) {
+  if (!Number.isSafeInteger(value) || Number(value) < 0) {
     throw new TickerNewsContractError(code);
   }
   return Number(value);
@@ -100,15 +105,99 @@ export function asStoryId(value: unknown, code = "story_id"): string {
   return out;
 }
 
+export function parseReportingState(value: unknown): TickerNewsReportingState {
+  if (value === undefined) return "not_compared";
+  if (value === "not_compared" || value === "no_material_difference" ||
+      value === "reports_differ" || value === "comparison_limited") return value;
+  throw new TickerNewsContractError("reporting_state");
+}
+
+export function parseContentKind(value: unknown): TickerNewsContentKind | undefined {
+  // Older readers receive no classification claim until the API supplies it.
+  if (value === undefined) return undefined;
+  if (value === "reporting" || value === "press_release") return value;
+  throw new TickerNewsContractError("content_kind");
+}
+
+export function parsePublisher(value: unknown): string | undefined {
+  // R2: engine publisher_identity() — a bare domain such as "reuters.com".
+  // asText already enforces the non-empty, trimmed, ≤256 part of the contract.
+  if (value === undefined || value === null) return undefined;
+  return asText(value, "row_publisher", 256).toLowerCase();
+}
+
+export function parseAnnotation(value: unknown): { event_type: string | null } | null {
+  // R2: engine annotate_row() — only event_type is read; every other key of the
+  // annotation object is ignored, and "not permitted" arrives as null.
+  if (value === undefined || value === null) return null;
+  const obj = asRecord(value, "row_annotation");
+  const raw = obj.event_type;
+  if (raw === null || raw === undefined) return { event_type: null };
+  if (typeof raw === "string" && raw.length > 0 && raw.length <= 64) return { event_type: raw };
+  throw new TickerNewsContractError("row_annotation");
+}
+
+export function normalizeTickerNewsView(value: unknown): TickerNewsViewMode {
+  if (value === "news" || value === "company" || value === "all") return value;
+  throw new TickerNewsContractError("editorial_view_mode");
+}
+
+export function parseEditorialView(value: unknown): TickerNewsEditorialView | undefined {
+  if (value === undefined) return undefined;
+  const obj = asRecord(value, "editorial_view");
+  if (obj.schema !== "ticker_news.editorial_view.v1") throw new TickerNewsContractError("editorial_view_schema");
+  const revision = asText(obj.revision, "editorial_view_revision", 64);
+  if (!/^[0-9a-f]{64}$/.test(revision)) throw new TickerNewsContractError("editorial_view_revision");
+  const coverage = obj.name_coverage;
+  if (coverage !== "names_and_symbols" && coverage !== "symbols_only" && coverage !== "unavailable") {
+    throw new TickerNewsContractError("editorial_name_coverage");
+  }
+  return {
+    schema: "ticker_news.editorial_view.v1", rules: asText(obj.rules, "editorial_rules", 128),
+    mode: normalizeTickerNewsView(obj.mode), revision, name_coverage: coverage,
+  };
+}
+
+export function parseEditorial(value: unknown): TickerNewsEditorial | null | undefined {
+  if (value === undefined || value === null) return value;
+  const obj = asRecord(value, "editorial");
+  if (obj.schema !== "ticker_news.editorial_view.v1") throw new TickerNewsContractError("editorial_schema");
+  const format = obj.format;
+  if (format !== "unclassified" && format !== "roundup" && format !== "investment_template" && format !== "commentary") {
+    throw new TickerNewsContractError("editorial_format");
+  }
+  const reference = obj.company_reference;
+  if (reference !== "headline" && reference !== "summary" && reference !== "not_observed") {
+    throw new TickerNewsContractError("editorial_company_reference");
+  }
+  return {
+    schema: "ticker_news.editorial_view.v1", format,
+    format_reason: obj.format_reason === null ? null : asText(obj.format_reason, "editorial_format_reason", 128),
+    company_reference: reference, eligible: asBoolean(obj.eligible, "editorial_eligible"),
+  };
+}
+
+export function requireSameEditorialView(
+  expected: TickerNewsEditorialView | undefined, actual: TickerNewsEditorialView | undefined,
+): void {
+  if (expected && (!actual || actual.revision !== expected.revision || actual.mode !== expected.mode ||
+      actual.rules !== expected.rules || actual.name_coverage !== expected.name_coverage)) {
+    throw new TickerNewsContractError("editorial_view_mismatch");
+  }
+}
+
 export function parseStoryRow(value: unknown): TickerNewsStoryRow {
   const obj = asRecord(value, "row");
+  const sourceCount = asNonNegativeInt(obj.source_count, "row_source_count");
+  const itemCount = asPositiveInt(obj.item_count, "row_item_count");
+  if (sourceCount > itemCount) throw new TickerNewsContractError("row_source_count");
   return {
     sequence: asPositiveInt(obj.sequence, "row_sequence"),
     source: asText(obj.source, "row_source", 128),
     source_item_id: asText(obj.source_item_id, "row_source_item_id", 256),
     story_id: asStoryId(obj.story_id, "row_story_id"),
-    source_count: asNonNegativeInt(obj.source_count, "row_source_count"),
-    item_count: asPositiveInt(obj.item_count, "row_item_count"),
+    source_count: sourceCount,
+    item_count: itemCount,
     title: asText(obj.title, "row_title", 4096, true),
     url: asHttpUrl(obj.url, "row_url"),
     teaser: asText(obj.teaser, "row_teaser", 65536, true),
@@ -116,6 +205,12 @@ export function parseStoryRow(value: unknown): TickerNewsStoryRow {
     updated_at: asTimestamp(obj.updated_at, "row_updated_at", true),
     received_at: asTimestamp(obj.received_at, "row_received_at")!,
     universe_revision: asText(obj.universe_revision, "row_universe_revision", 1024),
+    reporting_state: parseReportingState(obj.reporting_state),
+    content_kind: parseContentKind(obj.content_kind),
+    publisher: parsePublisher(obj.publisher),
+    annotation: parseAnnotation(obj.annotation),
+    editorial_view: parseEditorialView(obj.editorial_view),
+    editorial: parseEditorial(obj.editorial),
   };
 }
 
@@ -216,6 +311,7 @@ function parseFlowProvenance(value: unknown): TickerNewsFlowProvenance {
     throw new TickerNewsContractError("flow_provenance");
   }
   return {
+    editorial_view: parseEditorialView(obj.editorial_view),
     velocity_schema: obj.velocity_schema as string,
     sources_counted: sources as string[],
     status_counted: obj.status_counted as string,

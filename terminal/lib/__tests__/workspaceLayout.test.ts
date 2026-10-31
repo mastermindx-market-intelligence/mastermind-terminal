@@ -3,8 +3,9 @@ import { describe, expect, it } from "vitest";
 import {
   CHART_CONFIG_FIELDS, ENTITY_TYPES, FAILURE_CODES, FLOOR_SUPPORTED, MAX_ENVELOPE_BYTES,
   MAX_LINK_GROUPS, MAX_PORTS, MAX_WIDGETS, MIGRATION_SOURCES, SCHEMA, SEMANTIC_LANES, WIDGET_TYPES,
-  envelopeDigest, isWorkspaceEnvelope, rowStateFor, validateEnvelope,
+  isWorkspaceEnvelope, rowStateFor, validateEnvelope,
 } from "../workspaceLayout";
+import { envelopeDigest } from "../workspaceLayoutDigest";
 
 // A minimal, valid `workspace_layout.v1` envelope (chart-main + brain-dock, the frozen §7 proof
 // pair). Every test below mutates a clone of this rather than re-deriving the shape.
