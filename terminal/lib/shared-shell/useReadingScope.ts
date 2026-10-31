@@ -48,7 +48,7 @@ export function useReadingScope(ownerKey: string) {
   }, [ownerKey, attempt]);
   return { scope, ready: current && identity.phase === "ready", ended: current && identity.phase === "ended", unavailable: current && identity.phase === "unavailable", retryIdentity, invalidateIdentity };
 }
-export async function readingJson(scope: { current: AbortController | null }, url: string) {
+export async function readingJson(scope: { current: AbortController | null }, url: string, init?: RequestInit) {
   const controller = scope.current;
   if (!controller || controller.signal.aborted) throw Error("inactive");
   const request = new AbortController();
@@ -61,7 +61,7 @@ export async function readingJson(scope: { current: AbortController | null }, ur
   });
   try {
     return await Promise.race([boundary, (async () => {
-      const response = await fetch(url, { cache: "no-store", signal: request.signal });
+      const response = await fetch(url, { ...init, cache: "no-store", signal: request.signal });
       // Authentication status closes the private lifetime even when an edge
       // returns an empty, HTML, or indefinitely streaming error body.
       const value: unknown = response.status === 401 ? null : await response.json().catch((error: unknown) => {

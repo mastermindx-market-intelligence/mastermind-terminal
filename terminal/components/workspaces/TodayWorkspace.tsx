@@ -10,6 +10,7 @@ import styles from "./ReadingWorkspace.module.css";
 import today from "./TodayWorkspace.module.css";
 import TodayResearchAttention from "./TodayResearchAttention";
 import TodayWatchAttention from "./TodayWatchAttention";
+import TodaySinceLastVisit from "./TodaySinceLastVisit";
 
 const COPY = {
  en: {
@@ -150,6 +151,9 @@ function TodayWorkspaceSession({ ownerKey }: { ownerKey: string }) {
 
    <TodayResearchAttention ownerKey={ownerKey} scope={scope} onUnauthenticated={endAttention}
     render={({ continuation, briefing }) => <div className={today.jobs}>
+     <div className={today.sinceJob}>
+      <TodaySinceLastVisit ownerKey={ownerKey} scope={scope} onUnauthenticated={endAttention} />
+     </div>
      <section className={today.watchJob} aria-label={c.attentionLabel}>
       <TodayWatchAttention ownerKey={ownerKey} scope={scope} onUnauthenticated={endAttention} />
      </section>
