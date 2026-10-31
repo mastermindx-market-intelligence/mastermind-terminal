@@ -24,7 +24,7 @@
  */
 import { memo, useEffect, useMemo, useState } from "react";
 import type { Bar, Insider } from "../../lib/fund";
-import { getInsider } from "../../lib/fund";
+import { getJSONResult } from "../../lib/dataCache";
 import { marketOf } from "../../lib/markets";
 import { fmtCur, fmtNum, fmtDate, pick } from "../../lib/finFormat";
 import { ComboChart, type Series } from "./FinCharts";
@@ -151,25 +151,28 @@ function ageWords(days: number | null, zh: boolean): string {
 
 function InsiderPage({ sym, bars = [], zh = false }: InsiderPageProps) {
   const [data, setData] = useState<Insider | null>(null);
-  const [state, setState] = useState<"loading" | "ready" | "empty">("loading");
+  const [state, setState] = useState<"loading" | "ready" | "empty" | "error">("loading");
+  const [retryNonce, setRetryNonce] = useState(0);
 
   useEffect(() => {
     let alive = true;
     setState("loading");
     setData(null);
-    getInsider(sym)
-      .then((d) => {
+    // Keep the cache owner's absence/unavailable distinction: a failed read
+    // cannot establish that no filings exist or become a cached missing symbol.
+    getJSONResult("/data/" + sym + ".insider.json")
+      .then((result) => {
         if (!alive) return;
-        setData(d);
-        setState(d ? "ready" : "empty");
+        setData(result.status === "data" ? result.data as Insider : null);
+        setState(result.status === "data" ? "ready" : result.status === "absent" ? "empty" : "error");
       })
       .catch(() => {
-        if (alive) setState("empty");
+        if (alive) setState("error");
       });
     return () => {
       alive = false;
     };
-  }, [sym]);
+  }, [sym, retryNonce]);
 
   // month ("YYYY-MM") → last daily close in that month, for the overlaid price line.
   const monthClose = useMemo(() => {
@@ -186,6 +189,22 @@ function InsiderPage({ sym, bars = [], zh = false }: InsiderPageProps) {
       <div className="fin-body">
         <div className="fin-empty fin-empty-lg" role="status">
           <span className="fin-empty-title">{pick(zh, "Loading insider data…", "正在加载内部交易数据…")}</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (state === "error") {
+    return (
+      <div className="fin-body">
+        <div className="fin-empty fin-empty-lg" role="alert">
+          <span className="fin-empty-title">{pick(zh, "Insider data unavailable", "暂时无法加载内部交易数据")}</span>
+          <span className="fin-empty-why">
+            {pick(zh, `Could not load the Form 4 data for ${sym}. Try again.`, `无法加载 ${sym} 的 Form 4 数据。请重试。`)}
+          </span>
+          <button className="btn btn-ghost" onClick={() => setRetryNonce((value) => value + 1)}>
+            {pick(zh, "Retry", "重试")}
+          </button>
         </div>
       </div>
     );
