@@ -9,6 +9,7 @@ import {
   NewsMarkReviewed,
   NewsReviewChange,
   NewsReviewTag,
+  NewsSavedBasis,
 } from "@/components/news/NewsCatchup";
 import NewsFlowStrip from "@/components/news/NewsFlowStrip";
 import NewsLiveDot from "@/components/news/NewsLiveDot";
@@ -129,7 +130,8 @@ export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: stri
   const curated = snapshot?.editorial_policy === "ticker_news.curated.v1";
   // Only rows of a successful load are presented, so only they can ever be marked reviewed.
   const presented = loadState === "ready" && snapshot ? snapshot.rows : NO_ROWS;
-  const catchup = useNewsCatchup({ userId, ticker: snapshot?.ticker ?? symbol, presented });
+  // Journey 6: the snapshot's rights receipt rides along so marks capture it as seen.
+  const catchup = useNewsCatchup({ userId, ticker: snapshot?.ticker ?? symbol, presented, rights: snapshot?.rights_basis ?? null });
 
   // Wave B3: the news-flow strip rides on page one of a ready snapshot only. It is
   // hidden for a null flow (old API, cursor page), no_accessible_sources, an empty
@@ -338,6 +340,7 @@ export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: stri
               )}
               {row.teaser && <p className={styles.teaser}>{row.teaser}</p>}
               <NewsReviewChange cls={review} lang={lang} />
+              <NewsSavedBasis drift={catchup.drift(row.story_id)} lang={lang} onOpenCurrent={() => void toggleStory(row)} />
               {row.item_count > 1 ? (
                 <button
                   type="button"
