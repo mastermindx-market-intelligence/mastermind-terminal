@@ -462,7 +462,7 @@ p03DefaultFlipRecapture20261031:
   scope: "P03 default engine flip to mm: ChartPanel.tsx source pin refreshed; ChartChrome-390 EN/ZH crops recaptured at this head via capture_pl6_batch1.cjs (24/24 captured); the other 22 crops retain their prior capture identity because their layout sources are byte-identical."
   productionProof: false
 
-p03DefaultFlipRecapture20261031:
+p03TelemetryWiringRecapture20261031:
   head: "90b24738c26b978b7e7b930b89b19aa3dfe7e7ea"
   capturedAt: "2026-10-31T07:33:00.334496+00:00"
   scope: "P03 telemetry wiring (review F-1): ChartPanel.tsx source pin refreshed; ChartChrome crops recaptured via capture_pl6_batch1.cjs (24/24); other crops retain their capture identity (layout sources byte-identical)."

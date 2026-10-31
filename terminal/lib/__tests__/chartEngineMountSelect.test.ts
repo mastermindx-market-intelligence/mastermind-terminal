@@ -15,8 +15,8 @@ import { CANVAS_CAPABILITIES } from "../chart-engine/canvas";
 // now drives the engine only through the ChartEngine contract, so ?engine=mm
 // MOUNTS mm and only a construction throw (refused option group) falls back.
 //
-// Anchored slice: from `const requestedImpl = resolveMountEngineImpl(` to the
-// next `engineRef.current = engine;`. Both anchors must exist; assertions below
+// Anchored slice: from `const engineSelection = resolveMountEngineSelection(` to
+// the next `engineRef.current = engine;`. Both anchors must exist; assertions below
 // run against THIS slice, not against the full 10k-line file, so changing an
 // unrelated comment cannot accidentally satisfy them.
 
