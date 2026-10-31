@@ -65,7 +65,8 @@ describe("Shared Shell company search intent", () => {
     await act(async () => {
       host.querySelector<HTMLButtonElement>(".shared-shell-company-search")!.click();
     });
-    expect(onOpenChange).toHaveBeenCalledExactlyOnceWith(true);
+    expect(onOpenChange).toHaveBeenCalledTimes(1);
+    expect(onOpenChange).toHaveBeenCalledWith(true);
     expect(state.pickerRenders).toBeGreaterThan(0);
     await act(async () => {
       host.querySelector<HTMLButtonElement>("[data-mounted-picker]")!.click();
