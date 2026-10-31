@@ -421,6 +421,35 @@ describe("flow broadcaster — a key with no payload is named, not left silent",
     u1(); u2();
   });
 
+  it("does not replay a prior live GEX frame after classified family refusal", async () => {
+    loadFlowFreshResult.mockImplementation(async () =>
+      ({ status: "data", data: payload({ root: "NDX", net_gex_bn: 2.5 }) }));
+    const first = collector();
+    const u1 = subscribe("gex:NDX", first.sink);
+    await settle();
+    expect(first.frames).toHaveLength(1);
+
+    // A family-source rejection is not the same as a temporary 5xx outage.
+    loadFlowFreshResult.mockImplementation(async () =>
+      ({ status: "unavailable", refusal: "unadmitted_gex_family" }));
+    await vi.advanceTimersByTimeAsync(15_000);
+    expect(first.statuses).toEqual([statusFrame("unavailable")]);
+
+    const late = collector();
+    const u2 = subscribe("gex:NDX", late.sink);
+    expect(late.frames).toHaveLength(0);
+    expect(late.statuses).toEqual([statusFrame("unavailable")]);
+    expect(late.order.some((x) => x.includes("net_gex_bn"))).toBe(false);
+
+    // Original recovery semantics: a clean newly admitted frame can resume.
+    loadFlowFreshResult.mockImplementation(async () =>
+      ({ status: "data", data: payload({ root: "NDX", net_gex_bn: 3.2 }) }));
+    await vi.advanceTimersByTimeAsync(15_000);
+    expect(late.frames).toHaveLength(1);
+    expect(late.frames[0]).toContain("3.2");
+    u1(); u2();
+  });
+
   it("replays an absence to a late joiner of a producer that never held a frame", async () => {
     loadFlowFreshResult.mockImplementation(async () => ({ status: "absent" }));
     const first = collector();
