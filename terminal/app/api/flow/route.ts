@@ -44,6 +44,20 @@ function revalidateFlow(f: string): Promise<Record<string, unknown> | null> {
 export async function GET(req: Request): Promise<Response> {
   const rl = rateLimit(req, { name: "flow" });
   if (!rl.ok) return tooMany(rl);
+  // Exact-byte display requires the separate raw-selection POST below.
+  // Never interpret it as an ordinary Matrix GET: those reads parse/cache JSON.
+  // This GET carries no selection and cannot use the authenticated POST contract.
+  const deliveryParams = new URL(req.url).searchParams;
+  if (deliveryParams.has("matrix_delivery")) {
+    const fValues = deliveryParams.getAll("f");
+    const modes = deliveryParams.getAll("matrix_delivery");
+    const valid = modes.length === 1 && modes[0] === "exact-v1" &&
+      fValues.length === 1 && fValues[0].startsWith("matrix:") && isValidF(fValues[0]);
+    return NextResponse.json(
+      { error: valid ? "matrix_post_required" : "bad matrix delivery param" },
+      { status: valid ? 405 : 400, headers: { "Cache-Control": "private, no-store", ...(valid ? { Allow: "POST" } : {}) } },
+    );
+  }
   // Options data is a PAID feature — enforced SERVER-SIDE against the macro-api
   // entitlement authority: the `terminal_live_options` feature from /api/me
   // (config/plans.yml — essential + pro, incl. trial), NOT profiles.is_pro (a UI
@@ -172,4 +186,10 @@ export async function GET(req: Request): Promise<Response> {
     return NextResponse.json(refreshed ?? stale, { headers: { "Cache-Control": "no-store" } });
   }
   return NextResponse.json(stale, { headers: { "Cache-Control": "no-store" } });
+}
+
+/** Qualified display uses a separate exact-selection POST; ordinary GET is unchanged. */
+export async function POST(req: Request): Promise<Response> {
+  const { handleMatrixDisplayRequest } = await import("@/lib/matrixDisplayTransport");
+  return handleMatrixDisplayRequest(req);
 }
