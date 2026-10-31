@@ -1,0 +1,27 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/options-workbench-r2-scenario-terminal-contract-20260918-sol-001/terminal
+
+ ❯ lib/__tests__/scenarioSurfaceContract.test.ts (0 test)
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/__tests__/scenarioSurfaceContract.test.ts [ lib/__tests__/scenarioSurfaceContract.test.ts ]
+Error: Cannot find module '@/lib/scenarioSurfaceContract' imported from '/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/options-workbench-r2-scenario-terminal-contract-20260918-sol-001/terminal/lib/__tests__/scenarioSurfaceContract.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors
+ ❯ lib/__tests__/scenarioSurfaceContract.test.ts:2:31
+      1| import { describe, expect, it } from "vitest";
+      2| import {
+      3|   buildScenarioHeatBars,
+       |                      ^
+      4|   isScenarioSurfaceV1,
+      5|   scenarioToHeatField,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+ Test Files  1 failed (1)
+      Tests  no tests
+   Start at  04:29:57
+   Duration  2.81s (transform 388ms, setup 0ms, collect 0ms, tests 0ms, environment 0ms, prepare 1.02s)
