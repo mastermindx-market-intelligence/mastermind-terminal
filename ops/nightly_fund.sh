@@ -91,8 +91,19 @@ fi
 echo "[$(ts)] ===== nightly fund refresh start =====" >> "$LOG"
 
 # 0. keep the engine clone on latest main (EV code + tracked EDGAR/factors data).
-git -C "$ENGINE" fetch --depth 1 origin main --quiet 2>>"$LOG" && git -C "$ENGINE" reset --hard origin/main --quiet 2>>"$LOG" \
-  || echo "[$(ts)] WARN: engine git update failed — using current code" >> "$LOG"
+#    launchd jobs get EPERM from git and /bin tools on an external volume (TCC). A storage
+#    offload symlinked ENGINE and FUNDSRC onto /Volumes/STORAGE on 2026-09-17 and the engine
+#    sat frozen for six weeks behind a bare WARN, so name the cause and log the SHA reached.
+for p in "$ENGINE" "$FUNDSRC"; do
+  case "$(readlink "$p" 2>/dev/null || true)" in
+    /Volumes/*) echo "[$(ts)] WARN: $p -> $(readlink "$p") is on an external volume; launchd TCC blocks git/bin writes there — move it back to the internal disk" >> "$LOG" ;;
+  esac
+done
+if git -C "$ENGINE" fetch --depth 1 origin main --quiet 2>>"$LOG" && git -C "$ENGINE" reset --hard origin/main --quiet 2>>"$LOG"; then
+  echo "[$(ts)] engine at $(git -C "$ENGINE" log -1 --format='%h %cI' 2>/dev/null)" >> "$LOG"
+else
+  echo "[$(ts)] WARN: engine git update failed — using current code" >> "$LOG"
+fi
 
 # 1. refresh EV-bearing stockdata via panels() (SAFETY GATE: abort if EV coverage collapses).
 "$PY" - <<PYEOF >> "$LOG" 2>&1
