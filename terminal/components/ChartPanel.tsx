@@ -31,7 +31,8 @@ import {
   EngineLineType,
   EnginePriceScaleMode,
 } from "@/lib/chart-engine/api";
-import { ENGINE_REFUSAL_PROBE_OPTIONS, isRefusalProbeRequested, resolveMountEngineImpl } from "@/lib/chart-engine/select";
+import { ENGINE_REFUSAL_PROBE_OPTIONS, isRefusalProbeRequested, resolveMountEngineSelection } from "@/lib/chart-engine/select";
+import { reportEngineFallback, reportEngineMount } from "@/lib/chart-engine/telemetry";
 import {
   axisLogFormulaForRange,
   axisRangeFromLog,
@@ -4258,19 +4259,26 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       // refuses, so the catch branch below mounts lwc on the wire (same data, same documents).
       ...(isRefusalProbeRequested(window.location.search) ? ENGINE_REFUSAL_PROBE_OPTIONS : {}),
     };
-    const requestedImpl = resolveMountEngineImpl(window.location.search);
+    const engineSelection = resolveMountEngineSelection(window.location.search);
+    const requestedImpl = engineSelection.impl;
     let engine: ChartEngine | undefined;
+    let engineRefusal: string | null = null;
     if (requestedImpl === "mm") {
       try {
         engine = createEngine(el, engineOptions, "mm");
       } catch (err) {
         try { engine?.destroy(); } catch {}
-        console.warn(`chart-engine: mm mount fell back to lwc: ${err instanceof Error ? err.message : String(err)}`);
+        engineRefusal = err instanceof Error ? err.message : String(err);
+        console.warn(`chart-engine: mm mount fell back to lwc: ${engineRefusal}`);
+        reportEngineFallback({ requested: "mm", impl: "lwc", refusal: engineRefusal });
         engine = createEngine(el, engineOptions);
       }
     } else {
       engine = createEngine(el, engineOptions);
     }
+    // P03 observability: exactly one chart_engine_mount event per mount (fallback: true
+    // after a refusal), so the default flip is never blind in production.
+    reportEngineMount({ impl: engine.impl, source: engineSelection.source, fallback: engineRefusal !== null, refusal: engineRefusal });
     engineRef.current = engine;
     const chart = engine;
     // ── v5 text watermark — the owned contract's pane-scoped setWatermark (M03) ──

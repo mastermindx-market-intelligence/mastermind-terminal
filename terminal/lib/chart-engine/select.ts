@@ -132,12 +132,6 @@ export function engineQueryFromUrl(search: string): EngineImplId | null {
 }
 
 /**
- * Resolve which impl to mount. Pure: no globals read, no storage touched — the caller
- * passes the query string and the stored value it already read. See the precedence
- * table in the module header; the returned `reason` is a stable, human-readable string
- * suitable for the status line or diagnostics.
- */
-/**
  * Storage-aware mount selector for ChartPanel (P03 default flip). Resolution goes
  * through resolveEngineImpl with buildDefault = BUILD_DEFAULT_ENGINE unless the caller
  * pins its own build default (the F1 lever: a consumer that cannot drive "mm" yet
@@ -224,6 +218,12 @@ export function isRefusalProbeRequested(search: string | null | undefined): bool
   return raw !== null && raw.trim().toLowerCase() === "refuse";
 }
 
+/**
+ * Resolve which impl to mount. Pure: no globals read, no storage touched — the caller
+ * passes the query string and the stored value it already read. See the precedence
+ * table in the module header; the returned `reason` is a stable, human-readable string
+ * suitable for the status line or diagnostics.
+ */
 export function resolveEngineImpl(input: ResolveEngineInput): EngineSelection {
   if (input.killSwitch) {
     return {
