@@ -476,9 +476,9 @@
       "packet": "OPTIONS-EXPOSURE-P09-FROZEN-RUNTIME",
       "pr": 1175,
       "pr_state": "merged",
-      "applied_in_production": false,
-      "applied_date": null,
-      "note": "PR #1175 source merged as aaa4801db5a7e467c52dd94b4e7aea217be50b23 at 2026-10-24T23:38:23Z after protected CI and scoped independent review. Packages the accepted lifecycle/atomic/prepared units as one atomic migration, including native installer readback compatibility. Source only; production remains unapplied and application date is not recorded. Existing0043/#804 and0044/#1173 records remain intact. No runtime admission, activation, provider operation or SQL application is implied.",
+      "applied_in_production": true,
+      "applied_date": "2026-10-31",
+      "note": "PR #1175 source merged as aaa4801db5a7e467c52dd94b4e7aea217be50b23. Applied once 2026-10-31T07:06:43Z by original operation oem-01a156f1-schema0045-20261031-v1 under META disposition6540397272; native receipt status applied/error null/missing_after empty, seven pre/post readbacks. Immutable SQL SHA2562719fcdb0ca70248791459d981e5bb645f0b680a1382e181b2c08b8c6a27da30; receipt SHA256461359c7fccb914b22c9dd7de3bc63f7b3d023bfe66ceca8b7de792a691f42e3. Source-linked owner readback: PR #1182 comment6540438658. Schema readiness only; switches remain OFF, no activation/enrollment/provider/send or replay of unknown effects. Existing0043/0044 unchanged.",
       "merged_sha": "aaa4801db5a7e467c52dd94b4e7aea217be50b23"
     },
     "0046": {
@@ -487,9 +487,9 @@
       "packet": "OPTIONS-EXPOSURE-P09-EXACT-ENROLLMENT",
       "pr": 1182,
       "pr_state": "merged",
-      "applied_in_production": false,
-      "applied_date": null,
-      "note": "PR #1182 source merged as b1ba8e7c21e8864a0f11f87c4ae6aaab7bb54133 at 2026-10-31T06:31:38Z. Source-only follow-up after immutable0045. Complete census of163 open PRs on2026-10-29 found no0046 claim. DB-owned intent revision plus owner-RLS exact-attempt initial enrollment on alerts; no application, activation or adoption/replay of the Oct26 uncertain operation. Applied date is not recorded because production application is not authorized and has not occurred.",
+      "applied_in_production": true,
+      "applied_date": "2026-10-31",
+      "note": "PR #1182 protected merged b1ba8e7c21e8864a0f11f87c4ae6aaab7bb54133. Applied once 2026-10-31T07:08:54Z after positively settled0045 by original operation oem-01a156f1-schema0046-20261031-v1 under META disposition6540397272; native receipt status applied/error null/missing_after empty, five pre/post readbacks. Immutable SQL SHA256eb1e6598f82d18b228eb4d72162a7d9be9062f017e8f15026173dd857aa828a5; receipt SHA25616a7f7cb447526d9de30c8a56e58948fa80fdcb46f8cece9be92d888b3a3e8a0. Source-linked owner readback: PR #1182 comment6540453300. Final seven-argument arm contract installed; five/six-argument overloads absent. Four entry/reader/publisher switches remain absent/OFF. No activation, enrollment, live-product acceptance or adoption/replay of the Oct26 uncertain operation.",
       "merged_sha": "b1ba8e7c21e8864a0f11f87c4ae6aaab7bb54133"
     }
   }
