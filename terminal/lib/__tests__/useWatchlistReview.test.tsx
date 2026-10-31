@@ -8,6 +8,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
+import { renderToString } from "react-dom/server";
 import WatchlistReviewBar from "@/components/watchlist/WatchlistReviewBar";
 import { useWatchlistReview, type WatchlistReview } from "@/lib/useWatchlistReview";
 import { WL_REVIEW_KEY } from "@/lib/watchlistReview";
@@ -385,6 +386,26 @@ describe("WatchlistReviewBar slots: the phone fold (R2.3)", () => {
       act(() => latest.end());
       expect(host.querySelectorAll('[data-testid="wl-review"]')).toHaveLength(0);
     }
+  });
+
+  it("holds the idle control's slot in the server HTML, inert, until the stored review loads", () => {
+    // The stored review loads in a layout effect, which a slow boot runs seconds after first paint;
+    // the reserve keeps the rail (and the tablet's Intelligence launcher under it) from moving then.
+    const html = document.createElement("div");
+    html.innerHTML = renderToString(<Slots lists={lists} />);
+    for (const slot of ["rail-top", "phone-foot"]) {
+      const reserve = html.querySelector(`[data-slot="${slot}"] [data-review-reserve="${slot}"]`);
+      expect(reserve?.getAttribute("aria-hidden")).toBe("true");
+      expect(reserve?.tagName).toBe("DIV");
+    }
+    expect(html.querySelectorAll('[data-testid="wl-review-idle-start"], button')).toHaveLength(0);
+    // An empty list has no idle control to reserve for.
+    html.innerHTML = renderToString(<Slots lists={{ Tech: [] }} />);
+    expect(html.querySelectorAll("[data-review-reserve]")).toHaveLength(0);
+
+    act(() => { root.render(<Slots lists={lists} />); });
+    expect(host.querySelectorAll("[data-review-reserve]")).toHaveLength(0);
+    expect(host.querySelectorAll('[data-testid="wl-review-idle-start"]')).toHaveLength(1);
   });
 
   it("shows an unreadable saved review beside the phone's idle control, not above the oracle row", () => {

@@ -33,10 +33,30 @@ export default function WatchlistReviewBar({ review, activeSymbol, activeList, a
   const isPhone = useIsPhone();
   const [deferFor, setDeferFor] = useState<string | null>(null);
   const [deferNote, setDeferNote] = useState("");
-  if (!review.loaded) return null;
 
   const fill = (key: string, values: Record<string, string | number>) =>
     Object.entries(values).reduce((text, [name, value]) => text.split(`{${name}}`).join(String(value)), t(key));
+  const idleBody = (
+    <>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h11M4 12h11M4 18h7M17 15l3 3-3 3M14 18h6" /></svg>
+      <span className={styles.idleText}>
+        <b>{fill("wlrStartList", { list: activeList })}</b>
+        <span>{fill("wlrStartListCount", { n: activeListCount })}</span>
+      </span>
+    </>
+  );
+  if (!review.loaded) {
+    // The stored review loads in a layout effect, which can land seconds after first paint while the
+    // boot hydrates at idle priority. Until then an inert copy of the idle control holds its slot, so
+    // the rail (and the Intelligence launcher under it on a tablet) does not jump when it appears.
+    // The server can't see the width, so CSS rather than `isPhone` picks the mount that shows it.
+    if (activeListCount <= 0) return null;
+    const reserve = (top: boolean) => (
+      <div className={`${styles.idle} ${styles.reserve}${top ? ` ${styles.reserveTop}` : ""}`} aria-hidden="true" data-review-reserve={slot}>{idleBody}</div>
+    );
+    return slot === "phone-foot" ? <div className={`${styles.foot} ${styles.reserveFoot}`}>{reserve(false)}</div> : reserve(true);
+  }
+
   const noticeText = (notice: ReviewNotice): string | null => {
     if (!notice) return null;
     if (notice.kind === "edge") return t(notice.direction === 1 ? "wlrAtEnd" : "wlrAtStart");
@@ -83,13 +103,7 @@ export default function WatchlistReviewBar({ review, activeSymbol, activeList, a
           </div>
         )}
         {activeListCount > 0 && (
-          <button type="button" className={styles.idle} data-testid="wl-review-idle-start" onClick={startHere}>
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h11M4 12h11M4 18h7M17 15l3 3-3 3M14 18h6" /></svg>
-            <span className={styles.idleText}>
-              <b>{fill("wlrStartList", { list: activeList })}</b>
-              <span>{fill("wlrStartListCount", { n: activeListCount })}</span>
-            </span>
-          </button>
+          <button type="button" className={styles.idle} data-testid="wl-review-idle-start" onClick={startHere}>{idleBody}</button>
         )}
       </>
     );
