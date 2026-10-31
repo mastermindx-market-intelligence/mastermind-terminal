@@ -4,9 +4,21 @@ import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { useShellIdentity } from "@/components/chrome/AppShell";
 import { identityOwnerKey } from "@/lib/accountIdentity";
+import { useSharedShellT } from "@/lib/sharedShellCopy";
 // The generated 13k-route catalog belongs to these two consumers. Loading them
 // during a native workspace's first paint adds a large, unused JS/JSON payload.
-const LegacyPageHost = dynamic(() => import("./LegacyPageHost"), { ssr: false });
+function LegacyPageLoading() {
+  const t = useSharedShellT();
+  return <main className="main2 shared-shell-content" id="shared-shell-content"
+    aria-busy="true" role="status">
+    <section className="shared-shell-boundary">
+      <span className="shared-shell-boundary-mark" aria-hidden="true">M</span>
+      <h1>{t("shellOpening")}</h1>
+      <span className="shared-shell-progress" aria-hidden="true" />
+    </section>
+  </main>;
+}
+const LegacyPageHost = dynamic(() => import("./LegacyPageHost"), { ssr: false, loading: LegacyPageLoading });
 const ShellDirectory = dynamic(() => import("./ShellDirectory"), { ssr: false });
 import { useSharedShellPresentation } from "./SharedShellPresentation";
 
