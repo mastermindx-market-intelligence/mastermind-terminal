@@ -47,6 +47,8 @@ export function useDialogFocus(ref: RefObject<HTMLElement | null>, onEscape: () 
 
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
+        // Escape belongs to the IME while a text composition is being cancelled.
+        if (event.isComposing || event.keyCode === 229) return;
         // A control that owns Escape itself (an inline rename field) cancels its own edit instead.
         if (event.target instanceof Element && event.target.closest("[data-escape-local]")) return;
         event.preventDefault();

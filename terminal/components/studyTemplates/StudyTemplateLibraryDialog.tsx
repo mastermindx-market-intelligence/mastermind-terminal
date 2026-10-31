@@ -417,6 +417,7 @@ export default function StudyTemplateLibraryDialog({
                 onChange={(e) => { setRenaming(e.target.value); setActionError(null); }}
                 onKeyDown={(e) => {
                   if (e.key === "Escape") {
+                    if (e.nativeEvent.isComposing || e.nativeEvent.keyCode === 229) return;
                     e.preventDefault();
                     e.stopPropagation();
                     setRenaming(null);
