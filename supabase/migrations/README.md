@@ -415,3 +415,33 @@ Complete 169-open-PR filename and reservation-ledger census on 2026-10-24 found 
 ### P09 frozen-runtime source reservation
 
 Complete October24 census of 169 open PRs (including all file pages and changed reservation ledgers) preserves 0043 for #804 and 0044 for #1173. [PR #1175](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1175) source merged as `aaa4801db5a7e467c52dd94b4e7aea217be50b23` at **2026-10-24T23:38:23Z**, claiming prefix 0045 for OPTIONS-EXPOSURE-P09-FROZEN-RUNTIME. The accepted lifecycle, atomic hit and prepared intent units are packaged in one atomic statement, with scoped independent review and protected CI passed. **Not applied:** production application, runtime admission and activation remain separate; this merge records no application date.
+
+
+### 0046 — Source-only exact-attempt frozen enrollment
+
+Follows immutable0045. **UNAPPLIED**: application is false and date is null.
+Existing draft1182 retains the0046 reservation. The atomic package embeds the
+accepted intent-revision unit unchanged, then installs the exact-attempt protocol.
+Final schema has ONLY the seven-argument existing arm name; both old five/six-
+argument initial-arm bypasses are absent. Initial-only rearm fails closed; existing
+state-only generation/revision CAS remains unchanged. No public caller is wired.
+
+The one retained envelope lives on owner-RLS alerts, never authenticated-wide
+alert_runs. Other attempts cannot replace/evict it. Owners can read their own pin;
+unprivileged writers/JWT role claims cannot forge it. Retained receipts refuse
+id/user_id transfer, while deletion loses the receipt and remains UNKNOWN.
+Actual service_role trust is unchanged; this is not protection from arbitrary
+trusted SQL and adds no definer, role/grant expansion or new store/RPC family.
+
+Only the PREPARE creator may dispatch ARM. Runtime+exact acknowledgment commit in
+one transaction. RECONCILE is READ ONLY: absent/PREPARED stays UNKNOWN and cannot
+cancel or arm. A DISTINCT explicit FENCE may close only an existing exact PREPARED
+slot under the arm lock, including after same-owner edits; absence is not fenced.
+Current Auth/account/exact-source checks gate every server action/read. Recovered
+COMMITTED outcomes retain original historical runtime, never infer current active
+state from current runtime or conflate a later generation with the original ack.
+
+Source tests use only synthetic transport and disposable socket-only PostgreSQL.
+They do not apply production SQL or resume/replay an October26 pilot/UNKNOWN effect.
+Rollback begins with caller disablement and preserves revisions/runtime/receipts;
+never restore an unreceipted arm or replay uncertain execution.
