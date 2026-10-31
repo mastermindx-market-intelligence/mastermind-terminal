@@ -507,8 +507,17 @@ def test_a_vendor_only_column_stays_ours_unless_the_annotator_judged_it():
         (lambda s: s.update(periods=["2024", "2024"]), "repeated period label"),
         (lambda s: s.update(periods=["", "2025"]), "blank period label"),
         (lambda s: s.update(period_kind=["fy", "fy"]), "unknown key period_kind"),
+        (lambda s: s.update(periods=["2024", 2025]), "non-string period label"),
+        (lambda s: s.update(period_end=["2025-09-30"]), "misaligned period_end"),
+        (lambda s: s["income"].update(revenue=[416_161_000_000.0]), "misaligned income.revenue"),
+        (lambda s: s.update(balance=[1.0, 2.0]), "misaligned balance"),
+        (lambda s: s.update(src_by_period=["yfinance", 7]), "misaligned src_by_period"),
+        (lambda s: s.update(filed_by_period="2025-10-31"), "misaligned filed_by_period"),
+        (lambda s: s.update(restated_by_period=["yes", None]), "misaligned restated_by_period"),
     ],
-    ids=["fiscal-year-end-change", "blank-label", "cn-hk-extra-key"],
+    ids=["fiscal-year-end-change", "blank-label", "cn-hk-extra-key", "non-string-label",
+         "short-period-end", "short-field", "block-not-an-object", "non-string-source",
+         "scalar-filed", "non-bool-restated"],
 )
 def test_a_set_the_label_keyed_merge_cannot_carry_is_left_exactly_as_emitted(mutate, reason):
     """gen_fund_us repeats a label when an issuer moves its fiscal year end (GEF, JACK — 23 of
@@ -537,13 +546,16 @@ def test_bare_sweep_targets_us_listings_only():
 
 
 # ── 4b. one file ─────────────────────────────────────────────────────────────
-def fund_file(tmp_path: Path, sym="AAPL", quarterly=None) -> Path:
+def fund_file(tmp_path: Path, sym="AAPL", quarterly=None, mktcap=None, **top) -> Path:
     fund = {
         "schema": "mastermind.fund/v1",
         "ticker": sym,
+        "stmt_currency": "USD",
         "src": {"statements": "yfinance"},
+        "stats": {"mktcap": mktcap},
         "ratios": {"current": {"ev_sales": 8.1}},
         "statements": {"annual": existing_set(), "quarterly": quarterly},
+        **top,
     }
     path = tmp_path / f"{sym}.fund.json"
     path.write_text(json.dumps(fund, indent=1))
@@ -602,6 +614,24 @@ def test_a_held_set_is_untouched_while_the_other_timeframe_still_merges(tmp_path
     assert fund["statements"]["annual"]["periods"][0] == "2015"
 
 
+@pytest.mark.parametrize("ccy", ["TWD", "CNY", None], ids=["twd", "cny", "unstated"])
+def test_statements_not_in_usd_are_never_mixed_with_vendor_figures(tmp_path, ccy):
+    """Vendor rows carry no currency (TSM files TWD, BABA CNY on prod, 2026-10-30)."""
+    path = fund_file(tmp_path, "TSM", stmt_currency=ccy)
+    before = path.read_bytes()
+    st = bf.apply_vendor_rows("TSM", path, [annual(y) for y in range(2010, 2026)], [])
+    assert st == {"sym": "TSM", "status": "not-usd", "detail": str(ccy)}
+    assert path.read_bytes() == before
+
+
+def test_a_top_level_key_the_rewrite_would_drop_holds_the_whole_file(tmp_path):
+    path = fund_file(tmp_path, notes={"kept": True})
+    before = path.read_bytes()
+    st = bf.apply_vendor_rows("AAPL", path, [annual(y) for y in range(2010, 2026)], [])
+    assert st["status"] == "unsafe-shape" and "notes" in st["detail"]
+    assert path.read_bytes() == before
+
+
 def test_an_empty_vendor_answer_or_a_dry_run_never_writes(tmp_path):
     path = fund_file(tmp_path)
     before = path.read_bytes()
@@ -633,6 +663,8 @@ def test_the_key_travels_only_in_a_bearer_header_on_stdin(monkeypatch):
     assert all(FAKE_KEY not in a for a in call["argv"])                    # not visible to `ps`
     assert call["stdin"] == f'header = "Authorization: Bearer {FAKE_KEY}"\n'
     assert "-K" in call["argv"] and call["argv"][call["argv"].index("-K") + 1] == "-"
+    assert call["argv"][1] == "-q"          # curl reads ~/.curlrc unless -q comes first
+    assert "-g" in call["argv"]             # a URL's []/{} are never globbed
     assert not set(mf.KEY_VARS) & set(call["env"])                         # curl's env is clean
     assert "apiKey" not in call["argv"][-1]
 
@@ -719,6 +751,15 @@ def test_key_from_env_file_reads_only_the_key_lines(tmp_path):
     env.write_text("MASSIVE_API_KEY=\n")
     assert mf.key_from_env_file(env) is None
     assert mf.key_from_env_file(tmp_path / "absent") is None
+    for line, want in [
+        ("MASSIVE_API_KEY=abc # rotated 10-01", "abc"),        # an inline comment is not the key
+        ("MASSIVE_API_KEY=\"abc\" # note", "abc"),
+        ("MASSIVE_API_KEY='a b#c'", "a b#c"),                  # quoted: runs to the closing quote
+        ("MASSIVE_API_KEY=ab#c", "ab#c"),                      # no space before `#`: part of it
+        ("MASSIVE_API_KEY=\"abc", None),                       # unterminated: no key, not a mangled one
+    ]:
+        env.write_text(line + "\n")
+        assert mf.key_from_env_file(env) == want, line
 
 
 # ── 6. the driver: failure contract ──────────────────────────────────────────
@@ -765,7 +806,7 @@ def test_transient_batch_errors_continue_then_abort_after_three_in_a_row(tmp_pat
     assert calls == ["A", "B", "C"]
 
 
-def test_a_spent_budget_defers_the_rest_without_failing(tmp_path, monkeypatch, capsys):
+def test_a_spent_budget_stops_the_sweep_without_failing(tmp_path, monkeypatch, capsys):
     data, before = two_files(tmp_path)
 
     def late(symbols, timeframe, key=None, deadline=None):
@@ -775,7 +816,52 @@ def test_a_spent_budget_defers_the_rest_without_failing(tmp_path, monkeypatch, c
     monkeypatch.setenv("MASSIVE_API_KEY", FAKE_KEY)
     assert bf.main(["--data-dir", str(data), "--deadline-seconds", "5"]) == 0
     assert {p: p.read_bytes() for p in before} == before
-    assert "2 symbols deferred" in capsys.readouterr().err
+    err = capsys.readouterr().err
+    assert "2 symbols not reached (from AAPL); they keep the periods already on file" in err
+
+
+def test_the_bare_sweep_runs_largest_market_cap_first(tmp_path, monkeypatch):
+    """A spent budget drops the tail of the sweep, so the tail must be the smallest names."""
+    data = tmp_path / "data"
+    data.mkdir()
+    for sym, cap in [("AAA", 2e9), ("BIG", 3e12), ("MID", 5e10), ("NONE", None), ("BOOL", True)]:
+        fund_file(data, sym, mktcap=cap)
+    (data / "BAD.fund.json").write_text("{not json")
+    calls = []
+
+    def record(symbols, timeframe, key=None, deadline=None):
+        if timeframe == "annual":
+            calls.append(symbols[0])
+        return {s: [] for s in symbols}
+
+    monkeypatch.setattr(bf, "fetch_batch", record)
+    monkeypatch.setenv("MASSIVE_API_KEY", FAKE_KEY)
+    assert bf.main(["--data-dir", str(data), "--batch-size", "1", "--quiet"]) == 0
+    assert calls == ["BIG", "MID", "AAA", "BAD", "BOOL", "NONE"]
+    calls.clear()
+    bf.main(["--data-dir", str(data), "--batch-size", "1", "--quiet", "--limit", "2"])
+    assert calls == ["BIG", "MID"]
+
+
+def test_one_file_that_breaks_the_merge_is_counted_and_the_sweep_goes_on(tmp_path, monkeypatch, capsys):
+    data, before = two_files(tmp_path)
+    real = bf.apply_vendor_rows
+
+    def brittle(sym, path, *a, **k):
+        if sym == "AAPL":
+            raise TypeError("unexpected shape")
+        return real(sym, path, *a, **k)
+
+    monkeypatch.setattr(bf, "apply_vendor_rows", brittle)
+    monkeypatch.setattr(bf, "fetch_batch", lambda symbols, timeframe, key=None, deadline=None:
+                        {s: [annual(2012)] if timeframe == "annual" else [] for s in symbols})
+    monkeypatch.setenv("MASSIVE_API_KEY", FAKE_KEY)
+    assert bf.main(["--data-dir", str(data), "--batch-size", "1"]) == 0
+    out = capsys.readouterr()
+    assert "AAPL     failed: TypeError — file left unchanged" in out.err
+    assert "1 merged (1 changed)" in out.out and "1 errors" in out.out
+    aapl, msft = sorted(before)
+    assert aapl.read_bytes() == before[aapl] and msft.read_bytes() != before[msft]
 
 
 def test_no_key_fetches_nothing_and_returns_two(tmp_path, monkeypatch):

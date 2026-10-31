@@ -24,8 +24,9 @@ MERGE CONTRACT (deliberately conservative — a backfill must never degrade a li
      label-keyed merge cannot carry faithfully — a blank or repeated label (gen_fund_us
      repeats one when an issuer moves its fiscal year end), or a per-period key the merge
      does not own (the CN/HK generators') — is left exactly as emitted (`unmergeable`).
-  2. NEVER overwrite an existing non-null value. Vendor data only (a) prepends periods
-     older than anything on file and (b) fills per-field null holes, so the yfinance values
+  2. NEVER overwrite an existing non-null value. Vendor data only (a) adds periods the file
+     does not carry — in practice the older ones, but a newer or in-between period the
+     vendor serves is added too — and (b) fills per-field null holes, so the yfinance values
      the nightly just emitted survive untouched wherever both sources state one.
   3. `period_end` for an existing label keeps its existing value, so StatementsPage's
      transcript join (exact period_end ↔ earnings.q[].end) is unaffected.
@@ -65,11 +66,19 @@ MERGE CONTRACT (deliberately conservative — a backfill must never degrade a li
   exactly that).
 
 FAILURE CONTRACT. A batch is fetched whole (both timeframes) before any file in it is
-touched, so a vendor error leaves every file in the batch byte-identical. A systemic status
-(401/403/404/410 — a bad key, a retired endpoint) stops the sweep at once; so do
-MAX_CONSECUTIVE_BATCH_ERRORS failed batches in a row. A spent `--deadline-seconds` budget
-defers the remaining symbols to the next run. The exit status is non-zero only when the sweep
-was aborted, or failed without updating anything; the nightly logs it and ships regardless.
+touched, so a vendor error leaves every file in that batch byte-identical; files of batches
+already merged keep their (atomic, per-file) writes. A systemic status (401/403/404/410 — a
+bad key, a retired endpoint) stops the sweep at once; so do MAX_CONSECUTIVE_BATCH_ERRORS
+failed batches in a row. A spent `--deadline-seconds` budget stops the sweep, and the symbols
+it did not reach keep the periods already on file — in the nightly, that night's yfinance
+periods. Nothing carries over: gen_fund_us rewrites every file the next night and the sweep
+starts from the top again, so a bare sweep runs LARGEST MARKET CAP FIRST (`sweep_order`) and
+a short budget leaves the smallest names shallow, not whichever names sort last. A file this
+pass cannot rewrite faithfully is left byte-identical and counted: unreadable, carrying a
+top-level key `dump` would drop, or with statements in a currency other than USD (vendor rows
+carry no currency, so their figures are merged only where the file already states USD). One
+odd file never stops the sweep. The exit status is non-zero only when the sweep was aborted,
+or failed without updating anything; the nightly logs it and ships regardless.
 
 Usage (any Python 3.11+; no third-party deps):
     python3 ingest/backfill_fund_statements_massive.py --only AAPL,CROX
@@ -90,7 +99,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from gen_fund_us import atomic_write, dump, fiscal_q_label, fy_label  # noqa: E402
+from gen_fund_us import TOP_ORDER, atomic_write, dump, fiscal_q_label, fy_label  # noqa: E402
 from annotate_sec_lineage import LINEAGE_SOURCE  # noqa: E402
 from massive_financials import (  # noqa: E402
     SERVES_FILING_HISTORY,
@@ -231,10 +240,20 @@ def unmergeable(existing: dict | None) -> str | None:
     The merge keys columns on their label, so a set with a blank or repeated label would
     lose a published column. gen_fund_us emits repeats when an issuer moves its fiscal
     year end (GEF, JACK — 23 of 19,942 period sets on M1, 2026-10-18).
+
+    It also rebuilds every array from per-column slots, so an array that does not line up
+    with `periods`, or an entry of a type the merge would misread, would silently re-pair
+    values with the wrong period. gen_fund_us and annotate_sec_lineage always emit aligned
+    arrays; this holds anything else exactly as it is.
     """
     if not existing:
         return None
-    labels = list(existing.get("periods") or [])
+    if not isinstance(existing, dict):
+        return "not an object"
+    labels = existing.get("periods")
+    labels = [] if labels is None else labels
+    if not isinstance(labels, list) or any(not isinstance(lab, str) for lab in labels):
+        return "non-string period label"
     if any(not lab for lab in labels):
         return "blank period label"
     if len(set(labels)) != len(labels):
@@ -242,6 +261,29 @@ def unmergeable(existing: dict | None) -> str | None:
     extra = sorted(set(existing) - OWNED_KEYS)
     if extra:
         return f"unknown key {extra[0]}"
+    n = len(labels)
+    for key, kinds in (
+        ("period_end", (str,)),
+        ("src_by_period", (str,)),
+        ("filed_by_period", (str,)),
+        ("restated_by_period", (bool,)),
+    ):
+        arr = existing.get(key)
+        if arr is None:
+            continue
+        if not isinstance(arr, list) or len(arr) != n or any(
+            v is not None and not isinstance(v, kinds) for v in arr
+        ):
+            return f"misaligned {key}"
+    for block in BLOCKS:
+        fields = existing.get(block)
+        if fields is None:
+            continue
+        if not isinstance(fields, dict):
+            return f"misaligned {block}"
+        for field, arr in fields.items():
+            if not isinstance(arr, list) or len(arr) != n:
+                return f"misaligned {block}.{field}"
     return None
 
 
@@ -433,6 +475,7 @@ def apply_vendor_rows(
     """Merge already-fetched vendor rows into one file. Returns a per-symbol stats dict.
 
     The file is read AFTER the fetch, so a slow batch never writes back a stale copy.
+    A file it cannot rewrite faithfully keeps its bytes (see FAILURE CONTRACT).
     """
     if not ann_rows and not qtr_rows:
         # A real coverage gap (foreign private issuers filing 20-F/40-F carry no XBRL
@@ -446,6 +489,14 @@ def apply_vendor_rows(
         return {"sym": sym, "status": "unreadable", "detail": type(exc).__name__}
     if not isinstance(fund, dict):
         return {"sym": sym, "status": "unreadable", "detail": "not a JSON object"}
+    extra = sorted(set(fund) - set(TOP_ORDER))
+    if extra:
+        # `dump` keeps only TOP_ORDER keys, so a rewrite would silently drop this one.
+        return {"sym": sym, "status": "unsafe-shape", "detail": f"top-level key {extra[0]!r} dump would drop"}
+    if fund.get("stmt_currency") != "USD":
+        # Vendor rows carry no currency; merging them into another currency's columns would
+        # mix two units in one statement.
+        return {"sym": sym, "status": "not-usd", "detail": str(fund.get("stmt_currency"))}
     stmts = dict(fund.get("statements") or {})
     # The emitter's own source for columns already on file — without our stamp, which only
     # columns the vendor actually filled earn.
@@ -510,6 +561,26 @@ def backfill_symbol(sym: str, path: Path, key: str, dry_run: bool = False) -> di
     return apply_vendor_rows(sym, path, ann_rows, qtr_rows, dry_run=dry_run)
 
 
+def _mktcap(path: Path) -> float | None:
+    try:
+        value = (json.loads(path.read_text()).get("stats") or {}).get("mktcap")
+    except (OSError, ValueError, AttributeError):
+        return None
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    return float(value)
+
+
+def sweep_order(paths: list[tuple[str, Path]]) -> list[tuple[str, Path]]:
+    """Largest market cap first, unknown caps last, then by symbol (annotate_sec_lineage's order).
+
+    A budget that runs out drops the tail of this list for the night (FAILURE CONTRACT), so
+    the tail should be the smallest names, the same ones every night, not the late alphabet.
+    """
+    caps = {sym: _mktcap(path) for sym, path in paths}
+    return sorted(paths, key=lambda sp: (caps[sp[0]] is None, -(caps[sp[0]] or 0.0), sp[0]))
+
+
 def resolve_key(env_file: str | None) -> str | None:
     """The env file's key when one is named, else the environment's. Never printed."""
     key = key_from_env_file(env_file) if env_file else None
@@ -524,7 +595,8 @@ def resolve_key(env_file: str | None) -> str | None:
 def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--only", help="comma-separated symbols (default: every US *.fund.json)")
-    ap.add_argument("--limit", type=int, default=0, help="cap the number of symbols processed")
+    ap.add_argument("--limit", type=int, default=0,
+                    help="cap the number of symbols processed (a bare sweep's largest first)")
     ap.add_argument("--dry-run", action="store_true", help="fetch + merge but do not write")
     ap.add_argument("--data-dir", type=Path, default=OUT, help="directory of <SYM>.fund.json files")
     ap.add_argument("--batch-size", type=int, default=BATCH_SIZE, help="symbols per vendor request")
@@ -532,7 +604,7 @@ def main(argv: list[str]) -> int:
         "--deadline-seconds",
         type=float,
         default=0,
-        help="time budget; symbols not fetched by then are deferred to the next run (0 = none)",
+        help="time budget; symbols not reached by then keep the periods on file (0 = none)",
     )
     ap.add_argument(
         "--env-file",
@@ -559,17 +631,18 @@ def main(argv: list[str]) -> int:
     else:
         # A bare sweep is US-only: see NON_US_SUFFIXES. An explicit --only is honoured as
         # given, so a one-off probe of a suffixed ticker is still possible.
-        paths = sorted(
+        paths = sweep_order([
             (p.name.removesuffix(".fund.json"), p)
             for p in data_dir.glob("*.fund.json")
             if is_vendor_market(p.name.removesuffix(".fund.json"))
-        )
+        ])
     if args.limit:
         paths = paths[: args.limit]
 
     size = max(1, args.batch_size)
     batches = [paths[i : i + size] for i in range(0, len(paths), size)]
-    ok = changed = held = added = filled = relabeled = skipped = gaps = errs = deferred = 0
+    ok = changed = held = added = filled = relabeled = skipped = gaps = not_usd = errs = 0
+    unreached: list[str] = []
     consecutive = 0
     aborted = None
     started = time.monotonic()
@@ -579,7 +652,7 @@ def main(argv: list[str]) -> int:
             ann = fetch_batch(syms, "annual", key, deadline=deadline)
             qtr = fetch_batch(syms, "quarterly", key, deadline=deadline)
         except DeadlineReached:
-            deferred = sum(len(b) for b in batches[bi:])
+            unreached = [s for b in batches[bi:] for s, _ in b]
             break
         except (VendorHTTPError, ValueError, OSError) as exc:
             errs += len(syms)
@@ -595,12 +668,15 @@ def main(argv: list[str]) -> int:
             elif consecutive >= MAX_CONSECUTIVE_BATCH_ERRORS:
                 aborted = f"{consecutive} consecutive failed batches"
             if aborted:
-                deferred = sum(len(b) for b in batches[bi + 1 :])
+                unreached = [s for b in batches[bi + 1 :] for s, _ in b]
                 break
             continue
         consecutive = 0
         for sym, path in batch:
-            st = apply_vendor_rows(sym, path, ann.get(sym) or [], qtr.get(sym) or [], dry_run=args.dry_run)
+            try:
+                st = apply_vendor_rows(sym, path, ann.get(sym) or [], qtr.get(sym) or [], dry_run=args.dry_run)
+            except Exception as exc:  # noqa: BLE001 — one odd file must not stop the sweep
+                st = {"sym": sym, "status": "failed", "detail": type(exc).__name__}
             if st["status"] == "ok":
                 ok += 1
                 changed += bool(st["changed"])
@@ -626,13 +702,18 @@ def main(argv: list[str]) -> int:
                 gaps += 1
                 if not args.quiet:
                     print(f"{sym:8s} no vendor coverage — file left unchanged")
+            elif st["status"] == "not-usd":
+                not_usd += 1
+                if not args.quiet:
+                    print(f"{sym:8s} statements in {st['detail']}, not USD — file left unchanged")
             else:
                 errs += 1
                 print(f"{sym:8s} {st['status']}: {st.get('detail', '')} — file left unchanged", file=sys.stderr)
 
     print(
         f"statements backfill done in {time.monotonic() - started:.0f}s: {ok} merged "
-        f"({changed} changed), {gaps} without vendor coverage, {errs} errors, {deferred} deferred; "
+        f"({changed} changed), {gaps} without vendor coverage, {not_usd} not in USD, {errs} errors, "
+        f"{len(unreached)} not reached; "
         f"+{added} periods added, {filled} gap-filled, {relabeled} relabeled, {skipped} skipped, "
         f"{held} period sets held"
         + (" (DRY RUN — nothing written)" if args.dry_run else "")
@@ -640,8 +721,12 @@ def main(argv: list[str]) -> int:
     if aborted:
         print(f"ABORT: {aborted} — remaining symbols not attempted", file=sys.stderr)
         return 1
-    if deferred:
-        print(f"WARN: time budget spent — {deferred} symbols deferred to the next run", file=sys.stderr)
+    if unreached:
+        print(
+            f"WARN: time budget spent — {len(unreached)} symbols not reached (from {unreached[0]}); "
+            "they keep the periods already on file",
+            file=sys.stderr,
+        )
     return 1 if errs and not ok else 0
 
 

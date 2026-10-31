@@ -298,8 +298,13 @@ fi
 # it dates only the older columns it adds. NON-FATAL: a vendor outage leaves the yfinance files as emitted and the
 # deploy proceeds. The key is read from the env file inside the Python process only — it is
 # never exported, echoed or put on a command line. BOUNDED: this lane holds $LOCK_DIR, and
-# the 18:30 cnhk lane SKIPs while it is held, so before 18:30 the pass must end by 18:15;
-# symbols it does not reach are deferred to the next night.
+# the 18:30 cnhk lane SKIPs while it is held, so before 18:30 the pass must end by 18:15.
+# It stops itself at its budget, and run_bounded kills it 60s later if a request hangs.
+# What follows (gates, Canada publication, rsync) took 28s on 2026-10-30, before this pass
+# existed (annotate ended 17:46:34, rsync OK 17:47:02) — well inside the 15-minute margin;
+# an overrun past 18:30 only makes that night's cnhk lane log SKIP. Symbols not reached
+# (the sweep runs largest market cap first) keep that night's yfinance periods; nothing
+# carries over, since gen_fund_us rewrites every file the next night.
 BF_BUDGET=2700
 BF_NOW=$(date +%s)
 BF_STOP=$(date -j -f "%H:%M:%S" "18:15:00" +%s 2>/dev/null || echo 0)
@@ -312,7 +317,8 @@ if [ "$BF_BUDGET" -lt 60 ]; then
   echo "[$(ts)] WARN: statements backfill skipped — too close to the 18:30 cnhk lane" >> "$LOG"
 else
   echo "[$(ts)] statements backfill (massive v1, #364; budget ${BF_BUDGET}s)" >> "$LOG"
-  "$PY" "$DEPLOY/ingest/backfill_fund_statements_massive.py" --env-file "$HOME/.macro-dashboard/.env" \
+  "$PY" "$DEPLOY/ingest/run_bounded.py" --seconds "$((BF_BUDGET + 60))" -- \
+    "$PY" "$DEPLOY/ingest/backfill_fund_statements_massive.py" --env-file "$HOME/.macro-dashboard/.env" \
       --deadline-seconds "$BF_BUDGET" --quiet >> "$LOG" 2>&1 \
     || echo "[$(ts)] WARN: statements backfill failed (non-fatal — fund.json keeps the yfinance periods)" >> "$LOG"
 fi

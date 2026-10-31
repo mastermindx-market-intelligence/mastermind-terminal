@@ -61,6 +61,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import subprocess
 import time
 import urllib.parse
@@ -140,8 +141,14 @@ def key_from_env_file(path: str | Path) -> str | None:
         if not eq or name not in KEY_VARS:
             continue
         value = value.strip()
-        if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
-            value = value[1:-1]
+        if value[:1] in ("\"", "'"):
+            # A quoted value runs to its closing quote; anything after it (a comment) is
+            # dropped, and an unterminated quote yields no key rather than a mangled one.
+            close = value.find(value[0], 1)
+            value = value[1:close] if close > 0 else ""
+        else:
+            # An unquoted value ends at an inline comment: whitespace, then `#`.
+            value = re.split(r"\s+#", value, maxsplit=1)[0]
         if value:
             found[name] = value
     for var in KEY_VARS:
@@ -184,7 +191,9 @@ def _get(
     deadline: float | None = None,
 ) -> dict:
     """One GET → parsed JSON. curl (not urllib) per ingest/polygon_bars.py: some edge
-    endpoints 1010-block the default urllib user-agent.
+    endpoints 1010-block the default urllib user-agent. `-q` (which curl honours only as
+    the first argument) keeps a user's ~/.curlrc out of the request, and `-g` stops curl
+    reading `[]`/`{}` in a URL as a glob.
 
     `deadline` is a `time.monotonic()` instant: no request starts after it and none is
     allowed to run past it, so a caller's budget is a hard bound, not a hint.
@@ -199,7 +208,7 @@ def _get(
                 raise DeadlineReached("time budget spent")
             limit = max(1, int(min(timeout, left)))
         proc = subprocess.run(
-            ["curl", "-sS", "-m", str(limit), "-w", "\n%{http_code}", "-K", "-", url],
+            ["curl", "-q", "-sS", "-g", "-m", str(limit), "-w", "\n%{http_code}", "-K", "-", url],
             input=_curl_config(key),
             capture_output=True,
             text=True,

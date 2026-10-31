@@ -14,7 +14,8 @@ Pinned here:
   3. KEY HYGIENE. The key is read from the env file inside the Python process: never exported,
      sourced, echoed or put on a command line. `$KEY` in this script is the SSH deploy key.
   4. BUDGET. The lane holds the shared fund lock and the 18:30 cnhk lane SKIPs while it is
-     held, so a run starting before 18:30 must stop by 18:15.
+     held, so a run starting before 18:30 must stop by 18:15. The pass stops itself at its
+     budget, and run_bounded kills it 60s later if a vendor request hangs.
 """
 from __future__ import annotations
 
@@ -126,14 +127,20 @@ def budget(args):
 def test_an_on_time_run_gets_the_full_budget(tmp_path):
     log, args = run_block(tmp_path, now=1000000 - 9000)   # 16:45 in fake seconds
     assert budget(args) == 2700
-    assert args[:3] == [f"{tmp_path}/deploy/ingest/backfill_fund_statements_massive.py",
-                        "--env-file", f"{tmp_path}/.macro-dashboard/.env"]
+    # run_bounded is the outer bound: one minute past the pass's own budget.
+    assert args[:4] == [f"{tmp_path}/deploy/ingest/run_bounded.py", "--seconds", "2760", "--"]
+    assert args[5:8] == [f"{tmp_path}/deploy/ingest/backfill_fund_statements_massive.py",
+                         "--env-file", f"{tmp_path}/.macro-dashboard/.env"]
     assert "--quiet" in args and "NEXT STEP RAN" in log
+
+
+def outer_seconds(args):
+    return int(args[args.index("--seconds") + 1])
 
 
 def test_a_late_run_is_cut_to_end_by_1815(tmp_path):
     _, args = run_block(tmp_path, now=1000000 - 1000)
-    assert budget(args) == 1000
+    assert budget(args) == 1000 and outer_seconds(args) == 1060
 
 
 @pytest.mark.parametrize("now", [1000000 - 30, 1000000, 1000000 + 600], ids=["1814:30", "1815", "1825"])
@@ -169,7 +176,7 @@ def test_a_dead_endpoint_leaves_every_file_as_emitted_and_the_nightly_continues(
     for sym in ("AAPL", "MSFT"):
         path = data / f"{sym}.fund.json"
         path.write_text(json.dumps({
-            "ticker": sym, "src": {"statements": "yfinance"},
+            "ticker": sym, "src": {"statements": "yfinance"}, "stmt_currency": "USD",
             "statements": {"annual": {"periods": ["2025"], "period_end": ["2025-09-30"],
                                       "income": {"revenue": [1.0]}}},
         }))
