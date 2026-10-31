@@ -7,9 +7,10 @@ import {
 import { dailyActivityNote, signedActivityLabel } from "@/lib/flowActivity";
 import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
-import { createDefaultTapeView, decodeTapeView, type TapeViewState } from "@/lib/optionsTapeView";
+import { createDefaultTapeView, decodeTapeView, encodeTapeView, type TapeViewState } from "@/lib/optionsTapeView";
+import { decodeTapeFilterGroups, encodeTapeScreen, decodeTapeScreen, filterTapeEvents } from "@/lib/optionsTapeFilterGroups";
 import { OptionsTapeViewLink } from "@/components/options/OptionsTapeViewLink";
-import { OptionsTapeSavedViews } from "@/components/options/OptionsTapeSavedViews";
+import { OptionsTapeSavedViews, OptionsTapeGroupDetails } from "@/components/options/OptionsTapeSavedViews";
 import { useTapeViewText } from "@/components/options/optionsTapeViewStrings";
 import { useLang, useT } from "@/lib/i18n";
 import type { Lang } from "@/lib/i18n";
@@ -1677,9 +1678,11 @@ export default function OptionsHubView({
   const [initialTapeView] = useState(() => {
     const values = tapeParams.getAll("tapeView");
     const raw = values[0] ?? null;
-    const view = values.length <= 1 ? decodeTapeView(raw) : null;
-    return { view: view ?? createDefaultTapeView(), invalid: raw !== null && view === null };
+    const screen = values.length <= 1 ? decodeTapeScreen(raw) : null;
+    return { view: screen?.view ?? createDefaultTapeView(), groups: screen?.groups,
+      invalid: raw !== null && screen === null };
   });
+  const [tapeGroups, setTapeGroups] = useState<TapeViewState[] | undefined>(initialTapeView.groups);
   const [invalidTapeView, setInvalidTapeView] = useState(initialTapeView.invalid);
   const [minPrem, setMinPrem] = useState<number>(initialTapeView.view.minPrem);
   const [dteBuckets, setDteBuckets] = useState<Set<DteBucket>>(new Set(initialTapeView.view.dteBuckets));
@@ -1718,10 +1721,11 @@ export default function OptionsHubView({
   // a frame of results for the previous view before an invalid link is withheld.
   if (requestedTapeView !== appliedTapeView) {
     const values = tapeParams.getAll("tapeView");
-    const decoded = values.length === 1 ? decodeTapeView(values[0]) : null;
-    const next = decoded ?? createDefaultTapeView();
+    const screen = values.length === 1 ? decodeTapeScreen(values[0]) : null;
+    const next = screen?.view ?? createDefaultTapeView();
     setAppliedTapeView(requestedTapeView);
-    setInvalidTapeView(values.length > 0 && decoded === null);
+    setTapeGroups(screen?.groups);
+    setInvalidTapeView(values.length > 0 && screen === null);
     applyTapeView(next);
   }
 
@@ -1800,27 +1804,12 @@ export default function OptionsHubView({
   // Deferred so typing in the ticker filter doesn't block on re-filtering ~2k events.
   const deferredTapeSearch = useDeferredValue(tapeTickerSearch);
   const events = useMemo<FlowEvent[]>(() => {
-    const all = feed?.events ?? [];
-    return all.filter((e) => {
-      if (minPrem > 0 && e.premium < minPrem) return false;
-      if (dteBuckets.size > 0 && !dteBuckets.has(e.dte_bucket)) return false;
-      if (mnyBuckets.size > 0 && !mnyBuckets.has(e.mny_bucket)) return false;
-      const ag = drillTicker ? "" : groupFilter;
-      if (ag && e.group !== ag) return false;
-      if (drillTicker && e.root !== drillTicker) return false;
-      const q = deferredTapeSearch.trim().toUpperCase();
-      if (q && !e.root.includes(q)) return false;
-      if (sideFilter && e.side !== sideFilter) return false;
-      if (flagFilter === "repeated" && !e.repeated) return false;
-      if (flagFilter === "put_buy" && !(e.right === "P" && e.side === "~buy")) return false;
-      if (flagFilter === "swept" && !e.swept) return false;
-      return true;
-    }).sort((a, b) => {
-      const va = sortKey === "ts" ? new Date(a.ts).getTime() : a.premium;
-      const vb = sortKey === "ts" ? new Date(b.ts).getTime() : b.premium;
-      return (va > vb ? 1 : va < vb ? -1 : 0) * sortDir;
-    });
-  }, [feed, minPrem, dteBuckets, mnyBuckets, groupFilter, drillTicker, deferredTapeSearch, sideFilter, flagFilter, sortKey, sortDir]);
+    if (invalidTapeView) return [];
+    return filterTapeEvents(feed?.events ?? [], {
+      minPrem, dteBuckets: [...dteBuckets], mnyBuckets: [...mnyBuckets], groupFilter, drillTicker,
+      tapeTickerSearch: deferredTapeSearch, sideFilter, flagFilter, sortKey, sortDir,
+    }, tapeGroups);
+  }, [feed, minPrem, dteBuckets, mnyBuckets, groupFilter, drillTicker, deferredTapeSearch, sideFilter, flagFilter, sortKey, sortDir, tapeGroups, invalidTapeView]);
 
   // Windowed rendering: only ~150 rows in the DOM at once (was all ~2k). An
   // IntersectionObserver sentinel grows the window on scroll; changing filters
@@ -1828,7 +1817,7 @@ export default function OptionsHubView({
   const TAPE_PAGE = 150;
   const [tapeLimit, setTapeLimit] = useState(TAPE_PAGE);
   const tapeSentinelRef = useRef<HTMLTableRowElement | null>(null);
-  useEffect(() => { setTapeLimit(TAPE_PAGE); }, [minPrem, dteBuckets, mnyBuckets, groupFilter, drillTicker, deferredTapeSearch, sideFilter, flagFilter, sortKey, sortDir]);
+  useEffect(() => { setTapeLimit(TAPE_PAGE); }, [minPrem, dteBuckets, mnyBuckets, groupFilter, drillTicker, deferredTapeSearch, sideFilter, flagFilter, sortKey, sortDir, tapeGroups]);
   useEffect(() => {
     const el = tapeSentinelRef.current;
     if (!el) return;
@@ -2445,6 +2434,7 @@ export default function OptionsHubView({
               <button className="chip" onClick={() => {
                 const url = new URL(window.location.href);
                 url.searchParams.delete("tapeView");
+                setTapeGroups(undefined);
                 window.history.replaceState(null, "", url);
                 setInvalidTapeView(false);
               }}>{viewText("tapeViewOpenDefault")}</button>
@@ -2623,13 +2613,14 @@ export default function OptionsHubView({
                   title={t("clearFilter")}>{(flagFilter === "swept" ? viewText("tapeViewSwept") : t(flagFilter === "repeated" ? "presetRepeat" : "presetPutsOnStrength"))} ×</button>}
 
                 {/* Reset */}
-                {(minPrem > 0 || dteBuckets.size > 0 || mnyBuckets.size > 0 || groupFilter || tapeTickerSearch || drillTicker || sideFilter || flagFilter || sortKey !== "ts" || sortDir !== -1) && (
+                {(tapeGroups || minPrem > 0 || dteBuckets.size > 0 || mnyBuckets.size > 0 || groupFilter || tapeTickerSearch || drillTicker || sideFilter || flagFilter || sortKey !== "ts" || sortDir !== -1) && (
                   <button
                     className="chip"
                     style={{ marginLeft: 4, color: "var(--muted)", height: 26, fontSize: 11 }}
                     onClick={() => { setMinPrem(0); setDteBuckets(new Set()); setMnyBuckets(new Set()); setGroupFilter(""); setTapeTickerSearch(""); setDrillTicker(null); setSideFilter(""); setFlagFilter(""); setSortKey("ts"); setSortDir(-1);
                       const url = new URL(window.location.href);
                       url.searchParams.delete("tapeView");
+                      setTapeGroups(undefined);
                       window.history.replaceState(null, "", url);
                     }}
                   >
@@ -2637,21 +2628,29 @@ export default function OptionsHubView({
                   </button>
                 )}
 
-                <OptionsTapeSavedViews state={{
+                <OptionsTapeSavedViews groups={tapeGroups} state={{
                   minPrem, dteBuckets: [...dteBuckets], mnyBuckets: [...mnyBuckets],
                   groupFilter, drillTicker, tapeTickerSearch, sideFilter, flagFilter,
                   sortKey, sortDir,
-                }} onApply={(encoded) => {
+                }} onApply={(encoded, encodedGroups) => {
                   // Invalid shared links keep their explicit recovery boundary.
                   const restored = decodeTapeView(encoded);
-                  if (invalidTapeView || !restored) return;
+                  const restoredGroups = encodedGroups === undefined ? undefined : decodeTapeFilterGroups(encodedGroups);
+                  if (invalidTapeView || !restored || restoredGroups === null) return;
+                  setTapeGroups(restoredGroups);
                   // Also handles re-opening the URL's screen after unsaved local edits.
                   applyTapeView(restored);
                   const url = new URL(window.location.href);
-                  url.searchParams.set("tapeView", encoded);
+                  url.searchParams.set("tapeView", encodeTapeScreen(restored, restoredGroups));
+                  window.history.pushState(null, "", url);
+                }} onCombine={(groups) => {
+                  const next = { ...createDefaultTapeView(), sortKey, sortDir };
+                  applyTapeView(next); setTapeGroups(groups);
+                  const url = new URL(window.location.href);
+                  url.searchParams.set("tapeView", encodeTapeScreen(next, groups));
                   window.history.pushState(null, "", url);
                 }} />
-                <OptionsTapeViewLink state={{
+                <OptionsTapeViewLink groups={tapeGroups} state={{
                   minPrem, dteBuckets: [...dteBuckets], mnyBuckets: [...mnyBuckets],
                   groupFilter, drillTicker, tapeTickerSearch, sideFilter, flagFilter,
                   sortKey, sortDir,
@@ -2662,6 +2661,18 @@ export default function OptionsHubView({
                   buildDownload={buildTapeCsvDownload}
                 />
               </div>
+
+              {tapeGroups && <div className="flow-filter-bar" data-options-tape-view="groups" role="status">
+                <span>{lang === "zh" ? `匹配 ${tapeGroups.length} 个视图中的任一视图；当前筛选进一步缩小结果。` : `Matches any of ${tapeGroups.length} screens; current filters refine the results.`}</span>
+                <OptionsTapeGroupDetails groups={tapeGroups} />
+                <button type="button" className="chip" style={{ minHeight: 44 }} onClick={() => {
+                  setTapeGroups(undefined);
+                  const url = new URL(window.location.href);
+                  url.searchParams.set("tapeView", encodeTapeView({ minPrem, dteBuckets: [...dteBuckets], mnyBuckets: [...mnyBuckets],
+                    groupFilter, drillTicker, tapeTickerSearch, sideFilter, flagFilter, sortKey, sortDir }));
+                  window.history.pushState(null, "", url);
+                }}>{lang === "zh" ? "清除组合条件" : "Clear combined conditions"}</button>
+              </div>}
 
               {/* Drill card */}
               {drillTicker && (

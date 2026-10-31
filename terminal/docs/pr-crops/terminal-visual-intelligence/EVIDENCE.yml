@@ -56,7 +56,7 @@ layoutFiles:
   terminal/lib/sharedShellContracts.ts: "dc7c893852c287b2a18c6b71cbced07bfa0996c1168490c5a8c24e4d3de01266"
   terminal/app/company-intelligence.css: "8b43f2046891837f6572fa2a59b7594547def9602b0454e1f14edba322da2a34"
   terminal/components/DayRange.tsx: "c84724652783da1897ab4eeb98550eaf3dbd7942eefe3ce127b6ada2b16dd672"
-  terminal/components/OptionsHubView.tsx: "0edbb1f902005dad5813beb7e406c04a3c0509aae4487f087fb101dd0ceb4c25"
+  terminal/components/OptionsHubView.tsx: "d70c9dd892d1a962fd18d97b3ea882d68010f3dd7d346bf808a3310af039eddc"
   terminal/components/SearchModal.tsx: "5b3a466a06215231f1b458c382aaae268b4f2f9f206d6f985f312f603fa4a5aa"
   terminal/components/StockAnalysis.tsx: "376a907d0d8ea3dc5819e0092f02e19ce56fa1f4b71a3489551adf52fddb35c0"
   terminal/components/workspaces/AnalysisWorkspace.tsx: "411b8a7e498b8af3f9337fdcf3835dd62e6a5854826f414171d8303efd8aa5bb"
@@ -68,12 +68,12 @@ layoutFiles:
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
   terminal/lib/flowActivity.ts: "eb1433e57c7b63a52978aa4e63419e62b3e1a0e0210869f93838a8b7529ce332"
 cropFiles:
-  desktop-context.png: "79c9e63d6a9185265095838ef591bf77c8cc0e901d526ba2065fefc096eaaa32"
-  desktop-context-zh.png: "f8858f21c9684266f16213f9314ee26a0007e0fd2bd712d2e02ba2e6e56cec58"
+  desktop-context.png: "031e65d02ac13632616d3629b42ac804f87cc7d6d5d53c0acdf856db331a6573"
+  desktop-context-zh.png: "6dabbcdb0f3fd32c5e1f227b1bd02b174992c7b60113b57fc1068aaaa694363c"
   mobile-context.png: "4bb912458a311faed7e779e24dffda3907ce5af4eec95dbc1a9f21ae3978bbe7"
-  mobile-context-zh.png: "e405b67dd7664ccbe130e97c455a536b24e7b85ab51af9f96ec135e030608622"
-  tablet-context.png: "876d593ae5cbee00ff1326e661de1739f2a094bf621636d74473093218388234"
-  tablet-context-zh.png: "400ffa72ae0b5a8eb746132ccee9e02bf539a20d9189b210507b10d9e42dcd9e"
+  mobile-context-zh.png: "6da1659b586e05f6dbcf0235d684ed7ee39034938ea0090d145f7c53858b96a7"
+  tablet-context.png: "4980ef7d1881bf573b82c73e65048eb3f6f1298abfddba8c79d8139d81c65b00"
+  tablet-context-zh.png: "5278387301c027e7e3c0ae0c96f0b6a233ef43243208936437d7bdf84855fd5a"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -699,3 +699,10 @@ labPlanNavigationRecapture20261030:
   qualification: "terminal/docs/verification/lab-plan-handoff-20261030/evidence-lock-recapture.json"
   qualificationSha256: "b34344fad4050563f59223f81056de0415527a98e6bc8047f99a6bfccbdc6be4"
   scope: "Actual scoped browser captures on the navigation candidate. Other surfaces and earlier reports retain their historical identities; no production or full-matrix recapture claim."
+
+r4TapeScopedRecapture20261031:
+  sourceHead: "dd84334720f1588b7b9ddd914994e1473d351e0d"
+  operation: "terminal/docs/pr-crops/terminal-visual-intelligence/r4-tape-vi-20261031--operation.json"
+  operationSha256: "a9b28ae09be1167bae997d2e985321543ce598dc6780b00326920e07fab83fda"
+  actualCases: 6
+  scope: "Current-source scoped captures; actual immutable source/report/observations retained. Earlier reports and unrelated surfaces remain historical. No production acceptance."

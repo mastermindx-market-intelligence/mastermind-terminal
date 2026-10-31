@@ -1,0 +1,41 @@
+{
+  "base": "57ab05517c031d90325ada0a73fc82b604ac2d72",
+  "unit": 54,
+  "responsive": 33,
+  "viewports": [
+    [
+      1440,
+      900
+    ],
+    [
+      820,
+      1180
+    ],
+    [
+      390,
+      844
+    ]
+  ],
+  "languages": [
+    "en",
+    "zh"
+  ],
+  "theme": "existing dark Terminal only; no light-mode or production proof",
+  "typecheck": "PASS",
+  "lint": "17errors/12warnings in existingOptionsHubView also present onbase; same rule/severity/message-count; pagination effect bodyunchanged with extra group dependency; otherchangedfilesclean",
+  "screenshots": {
+    "desktop-group-selection-en.png": "f7ff53f5e7e213a256496d0e5962521d4cfa6b0fd622d60e6eaeea852b6065ca",
+    "mobile-group-results-en.png": "05a35dfcdd309ea73993a9ebb30e2ce2815406bcb4216d4a61a87ed0a73064eb",
+    "tablet-group-results-zh.png": "81cc33fffbc55c7bb71e1923e082fad2352c1fb99c42fe4e2460139ad7d9b423",
+    "tablet-group-selection-en.png": "f2a30b957d0f4d478527f0c1870ab285a5f8e0f8f181851992cb327f08fd2daf",
+    "desktop-group-selection-zh.png": "0b47bc70a5babab8ed6170902b6af31f5ae101cf171cd59676df32aea0cfc294",
+    "mobile-group-results-zh.png": "b593f396d7e4f72724ad579cb1f270eec4f45e8bbd3d095bc67e0b92a44325b6",
+    "tablet-group-selection-zh.png": "a7bfbced7dda19e0968c5042897829e93f224a84bc88cdbf94fd79e5f2e9d835",
+    "tablet-group-results-en.png": "eaf93e71cde6a78083d94c4d8774c71a1b714d5ab041bc4144f5ac16cff3fde3",
+    "mobile-group-selection-zh.png": "733d2f7b5cc6b35845b4b7b4e8d6ce93125937ac0972253b53497808713ea6fe",
+    "desktop-group-results-zh.png": "6b701a7a33689d6054bbb7ce9c84b2d492d34d7b565e9dc66564d120594bcfbb",
+    "desktop-group-results-en.png": "18ee9a9e4f7189539aa3b7b575e4c45debcefbc83ed11e2ae0b66166b4acbec5",
+    "mobile-group-selection-en.png": "050e9c2abdf1ba8e8276eb667004b21f7f45cb743cd17b9341e7f5d5ed399ced"
+  },
+  "limits": "Synthetic local routefixtures; no authenticatedproduction/rights/modelclaim. Draft-only, no deploy/activation."
+}

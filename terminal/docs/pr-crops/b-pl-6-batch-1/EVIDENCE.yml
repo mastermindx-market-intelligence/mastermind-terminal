@@ -16,7 +16,7 @@
 layoutFiles:
   terminal/app/workspace-chrome.css: "97e32bc24ed20479ea7b2e024ef6bc3883b9ead764098344f3ad4acea52b4bdd"
   terminal/app/layout.tsx: "9b675d52a647b4a92407958aa0ab7ffcc2632d95d003c89ca2eed2a1f4e35264"
-  terminal/components/OptionsHubView.tsx: "0edbb1f902005dad5813beb7e406c04a3c0509aae4487f087fb101dd0ceb4c25"
+  terminal/components/OptionsHubView.tsx: "d70c9dd892d1a962fd18d97b3ea882d68010f3dd7d346bf808a3310af039eddc"
   terminal/components/SearchModal.tsx: "5b3a466a06215231f1b458c382aaae268b4f2f9f206d6f985f312f603fa4a5aa"
   terminal/components/StockAnalysis.tsx: "376a907d0d8ea3dc5819e0092f02e19ce56fa1f4b71a3489551adf52fddb35c0"
   terminal/components/workspaces/AnalysisWorkspace.tsx: "411b8a7e498b8af3f9337fdcf3835dd62e6a5854826f414171d8303efd8aa5bb"
@@ -462,3 +462,10 @@ labPlanNavigationRecapture20261030:
   qualification: "terminal/docs/verification/lab-plan-handoff-20261030/evidence-lock-recapture.json"
   qualificationSha256: "b34344fad4050563f59223f81056de0415527a98e6bc8047f99a6bfccbdc6be4"
   scope: "Actual scoped browser captures on the navigation candidate. Other surfaces and earlier reports retain their historical identities; no production or full-matrix recapture claim."
+
+r4TapeScopedRecapture20261031:
+  sourceHead: "dd84334720f1588b7b9ddd914994e1473d351e0d"
+  operation: "terminal/docs/pr-crops/b-pl-6-batch-1/r4-tape-pl6-20261031--operation.json"
+  operationSha256: "8793836e7f0d58c5d30337a799f80087978653d432c5b734c6d8f9fe623134df"
+  actualCases: 4
+  scope: "Current-source scoped captures; actual immutable source/report/observations retained. Earlier reports and unrelated surfaces remain historical. No production acceptance."

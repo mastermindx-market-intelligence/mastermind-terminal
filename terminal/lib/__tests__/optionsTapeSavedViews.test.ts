@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createDefaultTapeView, decodeTapeView, encodeTapeView } from "../optionsTapeView";
+import { decodeTapeFilterGroups, encodeTapeFilterGroups } from "../optionsTapeFilterGroups";
 import { addSavedTapeView, decodeSavedTapeViews, encodeSavedTapeViews, MAX_SAVED_TAPE_VIEWS,
   normalizeTapeViewName, removeSavedTapeView, renameSavedTapeView } from "../optionsTapeSavedViews";
 
@@ -8,6 +9,21 @@ const b = { ...createDefaultTapeView(), drillTicker: "SPY", groupFilter: "Techno
   dteBuckets: ["0d" as const], sideFilter: "~buy", flagFilter: "swept" };
 
 describe("named Tape screen preferences", () => {
+  it("persists a composed screen by value without changing legacy rows", () => {
+    const simple = addSavedTapeView([], "one", "NVDA", a);
+    const composed = addSavedTapeView(simple, "both", "Both", createDefaultTapeView(), [a, b]);
+    expect(composed[0]).toEqual(simple[0]);
+    expect(decodeTapeFilterGroups(composed[1].groups!)).toEqual([a, b]);
+    expect(decodeSavedTapeViews(encodeSavedTapeViews(composed))).toEqual({ ok: true, views: composed });
+    const retained = removeSavedTapeView(renameSavedTapeView(composed, "one", "Other name"), "one");
+    expect(retained[0].groups).toBe(encodeTapeFilterGroups([a, b]));
+  });
+  it("withholds an invalid composed row instead of recovering only its broad outer filter", () => {
+    const row = { id: "both", name: "Both", state: encodeTapeView(createDefaultTapeView()) };
+    for (const groups of [null, "bad", "", JSON.stringify({ v: 1, groups: [encodeTapeView(a), "bad"] })]) {
+      expect(decodeSavedTapeViews(JSON.stringify({ v: 1, views: [{ ...row, groups }] }))).toEqual({ ok: false, reason: "invalid" });
+    }
+  });
   it("roundtrips two distinct exact states without saving market/account data", () => {
     const views = addSavedTapeView(addSavedTapeView([], "one", "NVDA swing", a), "two", "SPY 0DTE", b);
     const wire = encodeSavedTapeViews(views);
