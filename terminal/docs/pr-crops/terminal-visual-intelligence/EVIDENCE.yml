@@ -57,7 +57,7 @@ layoutFiles:
   terminal/lib/sharedShellContracts.ts: "dc7c893852c287b2a18c6b71cbced07bfa0996c1168490c5a8c24e4d3de01266"
   terminal/app/company-intelligence.css: "8b43f2046891837f6572fa2a59b7594547def9602b0454e1f14edba322da2a34"
   terminal/components/DayRange.tsx: "c84724652783da1897ab4eeb98550eaf3dbd7942eefe3ce127b6ada2b16dd672"
-  terminal/components/OptionsHubView.tsx: "476b79a8d87ed6b7e165013ce7610cb0811d63800dab5c91ef1a729a128c82bb"
+  terminal/components/OptionsHubView.tsx: "0edbb1f902005dad5813beb7e406c04a3c0509aae4487f087fb101dd0ceb4c25"
   terminal/components/SearchModal.tsx: "5b3a466a06215231f1b458c382aaae268b4f2f9f206d6f985f312f603fa4a5aa"
   terminal/components/StockAnalysis.tsx: "376a907d0d8ea3dc5819e0092f02e19ce56fa1f4b71a3489551adf52fddb35c0"
   terminal/components/workspaces/AnalysisWorkspace.tsx: "411b8a7e498b8af3f9337fdcf3835dd62e6a5854826f414171d8303efd8aa5bb"
@@ -69,8 +69,8 @@ layoutFiles:
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
   terminal/lib/flowActivity.ts: "eb1433e57c7b63a52978aa4e63419e62b3e1a0e0210869f93838a8b7529ce332"
 cropFiles:
-  desktop-context.png: "d5d6a5ec2d83bb90676861e14ad8e45477ba32a04d932b713a0a9f88c9e155bd"
-  desktop-context-zh.png: "3a2f3ee77da8b5789721056ddcf01a4105ebc59f6a6d97b5775777447a308340"
+  desktop-context.png: "02ccbed74bddc8d2f08aee0a077f708abe546ed53efe4135269f50d0769a6b77"
+  desktop-context-zh.png: "6822ae7ec24e9db23e5b1cf66fb5170e3a95a7dac65ce3e99e29c5d06394d5b1"
   mobile-context.png: "4bb912458a311faed7e779e24dffda3907ce5af4eec95dbc1a9f21ae3978bbe7"
   mobile-context-zh.png: "e405b67dd7664ccbe130e97c455a536b24e7b85ab51af9f96ec135e030608622"
   tablet-context.png: "4980ef7d1881bf573b82c73e65048eb3f6f1298abfddba8c79d8139d81c65b00"
@@ -97,8 +97,8 @@ browserResults:
   visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases
 browserReportPath: browser-report.json
 browserReportHashes:
-  visualReport: "2ffec473193442dbf31316f1d17e2da4f0e6b80207728a952ce8626048176d7e"
-  mobileCrosshairReport: "2ffec473193442dbf31316f1d17e2da4f0e6b80207728a952ce8626048176d7e"
+  visualReport: "b427d7b30255982d0d9c319c049070f63daeebe0ac4e171cd65fb0b7f8c92a0c"
+  mobileCrosshairReport: "b427d7b30255982d0d9c319c049070f63daeebe0ac4e171cd65fb0b7f8c92a0c"
 drawingDockRecapture:
   sourceHead: 8a3135bc6eaa307f3d581223e70471df8de49d95
   reason: DrawingSidebar.tsx and TerminalShell.tsx changed so the drawing dock's group button follows the tool the shell actually armed
@@ -694,12 +694,19 @@ commercialPreferencesProtectedJoin20261024:
   protectedMaster: "a8037ef7b662316a88becca11f31f5a87b5b7133"
   qualification: "Retain protected Options source, actual crop and report bindings and historical capture identities; preserve the consumer AST projection excluding only unused pending-onboarding copy. No new capture or larger matrix is claimed."
 
+labPlanNavigationRecapture20261030:
+  sourceHead: "284f09f748e6a7107ceffe0a0c54fc1e0af14fc9"
+  actualCases: 2
+  qualification: "terminal/docs/verification/lab-plan-handoff-20261030/evidence-lock-recapture.json"
+  qualificationSha256: "b34344fad4050563f59223f81056de0415527a98e6bc8047f99a6bfccbdc6be4"
+  scope: "Actual scoped browser captures on the navigation candidate. Other surfaces and earlier reports retain their historical identities; no production or full-matrix recapture claim."
+
 launcherBootStabilityRecapture20261031:
-  baseHead: "69e8e9f0eaad94180a83b108d05f16ad48c48950"
+  baseHead: "57ab05517c031d90325ada0a73fc82b604ac2d72"
   reason: "TerminalShell.tsx reserves the phone roller strip slot and the implied sub-pane height from first paint, so the Intelligence launcher does not move after boot; ChartFrameBar's clock no longer commits React state each second"
   sourceIdentity: "Actual uncommitted working source; layoutFiles and cropFiles bind the exact bytes"
   command: "TERMINAL_E2E_PORT=3253 PLAYWRIGHT_JSON_OUTPUT_NAME=docs/pr-crops/terminal-visual-intelligence/browser-report.json npm run test:e2e:responsive -- e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --reporter=list,json"
   actualBrowserResult: "30 passed; 0 failed, skipped, flaky or retries; full named matrix and same-run mobile crosshair"
-  browserReportSha256: "2ffec473193442dbf31316f1d17e2da4f0e6b80207728a952ce8626048176d7e"
-  cropDelta: "Desktop and tablet EN/ZH bytes regenerated on the changed source; mobile EN/ZH are byte-identical to the prior capture"
+  browserReportSha256: "b427d7b30255982d0d9c319c049070f63daeebe0ac4e171cd65fb0b7f8c92a0c"
+  cropDelta: "Desktop and tablet EN/ZH bytes regenerated on the changed source merged with master; tablet bytes reproduce exactly across two runs; mobile EN/ZH are byte-identical to the prior capture"
   productionProof: false

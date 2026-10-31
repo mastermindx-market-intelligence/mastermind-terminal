@@ -17,7 +17,7 @@
 layoutFiles:
   terminal/app/workspace-chrome.css: "97e32bc24ed20479ea7b2e024ef6bc3883b9ead764098344f3ad4acea52b4bdd"
   terminal/app/layout.tsx: "9b675d52a647b4a92407958aa0ab7ffcc2632d95d003c89ca2eed2a1f4e35264"
-  terminal/components/OptionsHubView.tsx: "476b79a8d87ed6b7e165013ce7610cb0811d63800dab5c91ef1a729a128c82bb"
+  terminal/components/OptionsHubView.tsx: "0edbb1f902005dad5813beb7e406c04a3c0509aae4487f087fb101dd0ceb4c25"
   terminal/components/SearchModal.tsx: "5b3a466a06215231f1b458c382aaae268b4f2f9f206d6f985f312f603fa4a5aa"
   terminal/components/StockAnalysis.tsx: "376a907d0d8ea3dc5819e0092f02e19ce56fa1f4b71a3489551adf52fddb35c0"
   terminal/components/workspaces/AnalysisWorkspace.tsx: "411b8a7e498b8af3f9337fdcf3835dd62e6a5854826f414171d8303efd8aa5bb"
@@ -457,12 +457,19 @@ commercialPreferencesProtectedJoin20261024:
   protectedMaster: "a8037ef7b662316a88becca11f31f5a87b5b7133"
   qualification: "Retain protected Options source, actual crop and report bindings and historical capture identities; preserve the consumer AST projection excluding only unused pending-onboarding copy. No new capture or larger matrix is claimed."
 
+labPlanNavigationRecapture20261030:
+  sourceHead: "284f09f748e6a7107ceffe0a0c54fc1e0af14fc9"
+  actualCases: 4
+  qualification: "terminal/docs/verification/lab-plan-handoff-20261030/evidence-lock-recapture.json"
+  qualificationSha256: "b34344fad4050563f59223f81056de0415527a98e6bc8047f99a6bfccbdc6be4"
+  scope: "Actual scoped browser captures on the navigation candidate. Other surfaces and earlier reports retain their historical identities; no production or full-matrix recapture claim."
+
 launcherBootStabilityRecapture20261031:
-  baseHead: "69e8e9f0eaad94180a83b108d05f16ad48c48950"
+  baseHead: "57ab05517c031d90325ada0a73fc82b604ac2d72"
   reason: "TerminalShell.tsx reserves the phone roller strip slot and the implied sub-pane height from first paint, so the Intelligence launcher does not move after boot"
   sourceIdentity: "Actual uncommitted working source; layoutFiles and cropFiles bind the exact bytes"
   command: "CAPTURE_ONLY=ChartChrome TERMINAL_CROP_PORT=3254 node e2e/tools/capture_pl6_batch1.cjs"
-  actualBrowserResult: "4 ChartChrome EN/ZH desktop/mobile crops captured successfully"
+  actualBrowserResult: "4 ChartChrome EN/ZH desktop/mobile crops captured successfully; recaptured on the source merged with master and all 4 reproduced byte-identical"
   cropDelta: "1440 EN/ZH are byte-identical. 390 EN/ZH changed: the phone chart is now built at its final body height, so ChartPanel's mobile stretch factors (computed once from the wrap height at pane build) give the price pane its intended share instead of the share computed from the pre-report short body"
   scope: "ChartChrome-1440.png, ChartChrome-1440-zh.png, ChartChrome-390.png, ChartChrome-390-zh.png"
   productionProof: false
