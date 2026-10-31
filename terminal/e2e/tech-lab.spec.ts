@@ -25,6 +25,7 @@ for (const lang of ["en", "zh"] as const) {
       const lab = page.getByTestId("lab-workspace");
       const zh = lang === "zh";
       await expect(lab.getByRole("heading", { name: zh ? "活跃形态" : "Active setups", exact: true })).toBeVisible({ timeout: 25_000 });
+      await expect(lab.getByTestId("lab-data-through")).toHaveText(zh ? "2026年10月15日" : "Oct 15, 2026");
       const rows = lab.locator("li[data-setup-id]");
       await expect(rows).toHaveCount(3);
       await expect(rows.first()).toHaveAttribute("data-setup-id", "strongest");
@@ -63,6 +64,7 @@ for (const lang of ["en", "zh"] as const) {
       await expect(detail).toContainText("38.0%");
       await expect(detail.getByRole("link")).toHaveAttribute("href", "/terminal?symbol=EL");
       await expect(detail).toContainText(zh ? "2026年10月12日" : "Oct 12, 2026");
+      await expect(detail).toContainText(zh ? "并非盘中实时提醒" : "not an intraday alert");
       await capture("detail", detail);
       await lab.getByLabel(zh ? "方向" : "Direction", { exact: true }).selectOption("all");
       await lab.getByRole("button", { name: zh ? /^无可用比较/ : /^No comparison/ }).click();
@@ -85,6 +87,19 @@ for (const lang of ["en", "zh"] as const) {
     });
   }
 }
+
+test("Lab discloses unknown source-bar freshness on legacy snapshots", async ({ page }) => {
+  await page.addInitScript(() => { localStorage.setItem("mm.lang", "en"); });
+  await page.route("**/mm_brain.js", route => route.fulfill({ contentType: "application/javascript", body: "" }));
+  const legacy = techLabFixture();
+  delete (legacy.tech.events as Partial<typeof legacy.tech.events>).data_through;
+  await page.route("**/data/EL.intel.json", route => route.fulfill({ json: legacy }));
+  await page.goto("/analysis?symbol=EL&page=lab");
+  const lab = page.getByTestId("lab-workspace");
+  await expect(lab.getByTestId("lab-data-through")).toHaveText("Not reported", { timeout: 25_000 });
+  await lab.locator('[data-setup-id="strongest"] button').first().click();
+  await expect(lab.locator('[data-setup-id="strongest"]').getByRole("region")).toContainText("Recency cannot be verified.");
+});
 
 test("Lab distinguishes no coverage and a wrong-ticker payload from an empty signal set", async ({ page }) => {
   await page.route("**/mm_brain.js", route => route.fulfill({ contentType: "application/javascript", body: "" }));
