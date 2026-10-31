@@ -450,6 +450,69 @@ describe("Shared Shell committed navigation", () => {
     expect(container.querySelector('[role="alert"]')).not.toBeNull();
   });
 
+  it("starts one no-store gate at child NAVIGATE and consumes it after the committed RSC route", async () => {
+    await start();
+    const prior = requests.length;
+    await childMessage({ type: "NAVIGATE", href: "/about.html", mode: "push",
+      sameDocument: false, requestId: "overlap-1" });
+    // Crucially, this request starts before HistoryCommit changes the browser URL.
+    expect(browserHref()).toBe(INITIAL);
+    expect(requests).toHaveLength(prior + 1);
+    expect(replaceFrame).toHaveBeenCalledTimes(1);
+    const early = requests.at(-1)!;
+    await renderCommittedRoute("/about.html", "push");
+    expect(requests).toHaveLength(prior + 1); // never a duplicate late gate
+    await resolveGate(early);
+    expect(latestFrameNavigation().url.pathname).toBe("/about.html");
+    expect(replaceFrame).toHaveBeenCalledTimes(2);
+  });
+
+  it("fails closed when an early gate sees a changed running build", async () => {
+    await start();
+    await childMessage({ type: "NAVIGATE", href: "/about.html", mode: "push",
+      sameDocument: false, requestId: "overlap-mismatch" });
+    const early = requests.at(-1)!;
+    await resolveGate(early, { buildId: "different-running-build" });
+    await renderCommittedRoute("/about.html", "push");
+    expect(replaceFrame).toHaveBeenCalledTimes(1);
+    expect(container.textContent).toContain("shellRefreshTitle");
+    expect(requests).toHaveLength(2);
+  });
+
+  it("aborts an unrelated early target and uses a fresh gate for the actual committed URL", async () => {
+    await start();
+    await childMessage({ type: "NAVIGATE", href: "/about.html", mode: "push",
+      sameDocument: false, requestId: "overlap-superseded" });
+    const stale = requests.at(-1)!;
+    const actual = "/macro.html?scope=latest#intel";
+    await renderCommittedRoute(actual, "push");
+    expect(stale.signal.aborted).toBe(true);
+    const current = requests.at(-1)!;
+    expect(current).not.toBe(stale);
+    await resolveGate(current);
+    expect(latestFrameNavigation().url.pathname).toBe("/macro.html");
+    expect(latestFrameNavigation().url.hash).toBe("#intel");
+  });
+
+  it("never consumes an early build verdict older than the bounded freshness window", async () => {
+    await start();
+    vi.useFakeTimers();
+    try {
+      await childMessage({ type: "NAVIGATE", href: "/about.html", mode: "push",
+        sameDocument: false, requestId: "overlap-expired" });
+      const old = requests.at(-1)!;
+      await act(async () => { vi.advanceTimersByTime(751); });
+      await renderCommittedRoute("/about.html", "push");
+      expect(old.signal.aborted).toBe(true);
+      const fresh = requests.at(-1)!;
+      expect(fresh).not.toBe(old);
+      await resolveGate(fresh);
+      expect(latestFrameNavigation().url.pathname).toBe("/about.html");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("keeps runtime build admission ahead of every iframe navigation", async () => {
     await renderCommittedRoute(INITIAL, "replace");
     await resolveGate(requests[0], { buildId: "different-running-build" });
