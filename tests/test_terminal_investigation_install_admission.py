@@ -147,7 +147,7 @@ def closed_prod_unit(**overrides) -> dict[str, str]:
     unit = {
         "LoadState": "loaded", "NeedDaemonReload": "no", "ActiveState": "active",
         "WorkingDirectory": "/opt/terminal/terminal", "ControlGroup": UNIT_CGROUP,
-        "ExecStartPre": "", "ExecStartPost": "", "ExecCondition": "", "ExecStopPost": "", "RootDirectory": "", "RootImage": "",
+        "ExecStartPre": "", "ExecStartPost": "", "ExecCondition": "", "ExecStopPost": "", "RootDirectory": "", "RootImage": "", "PAMName": "",
         "Environment": PROD_CLOSED_ENV,
         "EnvironmentFiles": "",
         "PassEnvironment": "",
@@ -162,7 +162,7 @@ def closed_beta_unit(env_file: str, **overrides) -> dict[str, str]:
     unit = {
         "LoadState": "loaded", "NeedDaemonReload": "no", "ActiveState": "active",
         "WorkingDirectory": "/opt/terminal/beta/terminal", "ControlGroup": "/system.slice/terminal-beta.service",
-        "ExecStartPre": "", "ExecStartPost": "", "ExecCondition": "", "ExecStopPost": "", "RootDirectory": "", "RootImage": "",
+        "ExecStartPre": "", "ExecStartPost": "", "ExecCondition": "", "ExecStopPost": "", "RootDirectory": "", "RootImage": "", "PAMName": "",
         "Environment": '"MMX_SHARED_SHELL=1" "PORT=3001"',
         "EnvironmentFiles": f"{env_file} (ignore_errors=no)",
         "PassEnvironment": "",
@@ -1040,7 +1040,7 @@ def _fixture_repo(tmp_path: Path, *, with_primitive: bool, decoy: bool = False,
 def _systemctl_shim(tmp_path: Path, props: dict[str, str]) -> dict[str, str]:
     props = {"NeedDaemonReload": "no", "ActiveState": "active",
              "WorkingDirectory": "/opt/terminal/terminal", "ControlGroup": UNIT_CGROUP,
-             "ExecStartPre": "", "ExecStartPost": "", "ExecCondition": "", "ExecStopPost": "", "RootDirectory": "", "RootImage": "", **props}
+             "ExecStartPre": "", "ExecStartPost": "", "ExecCondition": "", "ExecStopPost": "", "RootDirectory": "", "RootImage": "", "PAMName": "", **props}
     # Production npm reads the installed package even when the lock is unchanged.
     app_package = tmp_path / "app" / "package.json"
     if app_package.parent.is_dir() and not app_package.exists():
@@ -1115,7 +1115,7 @@ def test_admitted_target_gate_passes_with_a_fake_closed_unit(tmp_path):
     shim = _systemctl_shim(tmp_path, {
         "LoadState": "loaded", "NeedDaemonReload": "no", "ActiveState": "active",
         "WorkingDirectory": "/opt/terminal/terminal", "ControlGroup": UNIT_CGROUP,
-        "ExecStartPre": "", "ExecStartPost": "", "ExecCondition": "", "ExecStopPost": "", "RootDirectory": "", "RootImage": "",
+        "ExecStartPre": "", "ExecStartPost": "", "ExecCondition": "", "ExecStopPost": "", "RootDirectory": "", "RootImage": "", "PAMName": "",
         "Environment": PROD_CLOSED_ENV,
         "EnvironmentFiles": "",
         "PassEnvironment": "",
@@ -1239,7 +1239,7 @@ def test_mutable_checkout_decoy_does_not_flip_the_trigger(tmp_path):
     shim = _systemctl_shim(tmp_path, {
         "LoadState": "loaded", "NeedDaemonReload": "no", "ActiveState": "active",
         "WorkingDirectory": "/opt/terminal/terminal", "ControlGroup": UNIT_CGROUP,
-        "ExecStartPre": "", "ExecStartPost": "", "ExecCondition": "", "ExecStopPost": "", "RootDirectory": "", "RootImage": "",
+        "ExecStartPre": "", "ExecStartPost": "", "ExecCondition": "", "ExecStopPost": "", "RootDirectory": "", "RootImage": "", "PAMName": "",
         "Environment": PROD_CLOSED_ENV,
         "EnvironmentFiles": "",
         "PassEnvironment": "",
@@ -1285,7 +1285,7 @@ def test_restoration_gate_allows_qualified_prior_and_withholds_unknown(
     shim = _systemctl_shim(tmp_path, {
         "LoadState": "loaded", "NeedDaemonReload": "no", "ActiveState": "active",
         "WorkingDirectory": "/opt/terminal/terminal", "ControlGroup": UNIT_CGROUP,
-        "ExecStartPre": "", "ExecStartPost": "", "ExecCondition": "", "ExecStopPost": "", "RootDirectory": "", "RootImage": "",
+        "ExecStartPre": "", "ExecStartPost": "", "ExecCondition": "", "ExecStopPost": "", "RootDirectory": "", "RootImage": "", "PAMName": "",
         "Environment": PROD_CLOSED_ENV,
         "EnvironmentFiles": "",
         "PassEnvironment": "",
@@ -1313,7 +1313,7 @@ def test_poststart_refuses_with_no_running_process_without_proc_reads(
     shim = _systemctl_shim(tmp_path, {
         "LoadState": "loaded", "NeedDaemonReload": "no", "ActiveState": "active",
         "WorkingDirectory": "/opt/terminal/terminal", "ControlGroup": UNIT_CGROUP,
-        "ExecStartPre": "", "ExecStartPost": "", "ExecCondition": "", "ExecStopPost": "", "RootDirectory": "", "RootImage": "",
+        "ExecStartPre": "", "ExecStartPost": "", "ExecCondition": "", "ExecStopPost": "", "RootDirectory": "", "RootImage": "", "PAMName": "",
         "Environment": PROD_CLOSED_ENV,
         "EnvironmentFiles": "",
         "PassEnvironment": "",
@@ -1543,7 +1543,7 @@ def test_unit_mainpid_change_is_not_a_stable_poststart_binding(verifier):
         verifier["main"](["/app", NEW_SHA, "poststart", "/app", "terminal", "/app", "production"])
 
 
-@pytest.mark.parametrize("prop", ["ExecStartPre", "ExecStartPost", "ExecCondition", "ExecStopPost"])
+@pytest.mark.parametrize("prop", ["ExecStartPre", "ExecStartPost", "ExecCondition", "ExecStopPost", "PAMName"])
 def test_unsupported_service_launch_hooks_refuse(verifier, prop):
     host = FakeGitHost(tree_listing=primitive_entry(), unit=closed_prod_unit(**{prop: "/untrusted/hook"}))
     host.install(verifier)
@@ -1872,3 +1872,32 @@ def test_next_supported_export_whitespace_cannot_hide_launch_override(verifier, 
         verifier["refuse_file_launch_overrides"](
             declaration_prefix + "NODE_OPTIONS=--require=fixture-preload\n", selected=True)
     assert raised.value.code == "unsupported-launch-environment-override"
+
+
+@pytest.mark.parametrize("content", [
+    "export INVESTIGATION_API_ADMISSION=closed\n",
+    "INVESTIGATION_API_ADMISSION: closed\n",
+    'OTHER="first\nINVESTIGATION_API_ADMISSION=closed\nlast"\n',
+    "OTHER=first\\\nINVESTIGATION_API_ADMISSION=closed\n",
+    "\ufeffINVESTIGATION_API_ADMISSION=closed\n",
+    "OTHER=first\u0085INVESTIGATION_API_ADMISSION=closed\n",
+    'INVESTIGATION_API_ADMISSION=" closed "\n',
+])
+def test_systemd_environment_file_never_credits_dotenv_or_absorbed_assignments(verifier, tmp_path, content):
+    env_file = tmp_path / "environment"
+    env_file.write_text(content)
+    app = tmp_path / "app"
+    app.mkdir()
+    host = FakeGitHost(tree_listing=primitive_entry(), unit=closed_beta_unit(str(env_file)))
+    with pytest.raises(verifier["Refused"]):
+        _decide(verifier, host, app=app, profile="beta", unit_name="terminal-beta", env_dir=str(tmp_path))
+
+
+@pytest.mark.parametrize("value", ["closed", '"closed"', "'closed'"])
+def test_systemd_environment_file_supported_single_line_declaration(verifier, tmp_path, value):
+    env_file = tmp_path / "environment"
+    env_file.write_text('# comment\nNODE_ENV=production\nOTHER="opaque text"\nINVESTIGATION_API_ADMISSION=' + value + '\n')
+    app = tmp_path / "app"
+    app.mkdir()
+    host = FakeGitHost(tree_listing=primitive_entry(), unit=closed_beta_unit(str(env_file)))
+    assert _decide(verifier, host, app=app, profile="beta", unit_name="terminal-beta", env_dir=str(tmp_path)) == 0

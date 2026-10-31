@@ -4769,6 +4769,37 @@ def admission_values_in_text(text):
     return values
 
 
+def admission_values_in_systemd_file(text):
+    # EnvironmentFile is not Next dotenv. Support a deliberately narrow,
+    # complete single-line assignment grammar; multiline/continuation context
+    # cannot turn an apparent later key into a declaration. Never emit content.
+    if "\x00" in text or "\ufeff" in text:
+        raise Refused("unsupported-env-file-syntax")
+    lines = text.split("\n")  # systemd lines, not Python's broader splitlines
+    if len(lines) > MAX_SCAN_LINES:
+        raise Refused("environment-scan-oversized")
+    assignment = re.compile(
+        r"""([A-Za-z_][A-Za-z0-9_]*)[ \t]*=[ \t]*(?:([^"'\\\r\n]*)|'([^'\\\r\n]*)'|"([^"\\\r\n]*)")[ \t]*""")
+    values = []
+    for line in lines:
+        stripped = line.strip(" \t\r")
+        if not stripped or stripped.startswith(("#", ";")):
+            continue
+        match = assignment.fullmatch(stripped)
+        if match is None:
+            raise Refused("unsupported-env-file-syntax")
+        key = match.group(1)
+        if match.group(2) is not None:
+            value = match.group(2).strip(" \t\r")
+        else:
+            # Whitespace inside quotes is literal systemd value content.
+            value = match.group(3) if match.group(3) is not None else match.group(4)
+        refuse_selected_launch_overrides([key + "=" + value])
+        if key == ADMISSION_KEY:
+            values.append(value)
+    return values
+
+
 def admission_values_in_proc_environ(payload):
     values = []
     for item in payload.split(b"\0"):
@@ -4789,7 +4820,7 @@ def classify_environment_topology(profile, unit, app_root, env_source_dir):
     if unit_property(unit, "WorkingDirectory") != expected_root:
         raise Refused("unsupported-working-directory")
     for prop in ("ExecStartPre", "ExecStartPost", "ExecCondition", "ExecStopPost",
-                 "RootDirectory", "RootImage"):
+                 "RootDirectory", "RootImage", "PAMName"):
         if unit_property(unit, prop):
             raise Refused("unsupported-service-launch-hook")
     files = unit_property(unit, "EnvironmentFiles")
@@ -4821,8 +4852,7 @@ def classify_environment_topology(profile, unit, app_root, env_source_dir):
     values = admission_values_in_unit_environment(
         unit_property(unit, "Environment"))
     for text in declared:
-        refuse_file_launch_overrides(text, selected=True)
-        values.extend(admission_values_in_text(text))
+        values.extend(admission_values_in_systemd_file(text))
     if not values:
         raise Refused("missing-explicit-closed")
     if len(values) > 1:
