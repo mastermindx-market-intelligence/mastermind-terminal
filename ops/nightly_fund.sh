@@ -46,8 +46,9 @@
 # is null (never ship bad data).
 #
 # Loaded via ~/Library/LaunchAgents/com.mastermind.fund.plist. Log: /tmp/mm_fund_refresh.log
-# Install/repair the job with:
+# Install/repair the job ON M1 ONLY (the bootstrap refuses every other host, exit 3):
 #   /bin/bash /Users/chriswong/fund-ops-wt/ops/bootstrap_nightly_fund.sh [--run-now]
+# M2 rollback goes through ~/dataplane-migration/rollback-groupB-to-M2.sh, never this.
 set -u
 ENGINE="/Users/chriswong/fund-engine-wt"
 FUNDSRC="/Users/chriswong/fund-src"
