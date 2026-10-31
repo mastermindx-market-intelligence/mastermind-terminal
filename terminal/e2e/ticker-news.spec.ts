@@ -242,11 +242,11 @@ async function installEventSourceStub(page: Page) {
   });
 }
 
-async function prepare(page: Page, testInfo: TestInfo, baseURL?: string, symbol = "NVDA") {
+async function prepare(page: Page, testInfo: TestInfo, baseURL?: string, symbol = "NVDA", manifest = MANIFEST) {
   await isolateWatchlistStore(page, testInfo, baseURL);
   await installEventSourceStub(page);
 
-  await page.route("**/data/manifest.json**", (route) => route.fulfill({ json: MANIFEST }));
+  await page.route("**/data/manifest.json**", (route) => route.fulfill({ json: manifest }));
   await page.route("**/api/quote**", (route) => route.fulfill({
     json: {
       quotes: {
@@ -296,7 +296,7 @@ async function prepare(page: Page, testInfo: TestInfo, baseURL?: string, symbol 
   }));
 
   await page.goto(`/terminal?symbol=${symbol}`);
-  await expect(page.locator(".mm-ptag")).toBeVisible({ timeout: 60_000 });
+  await expect(page.locator("#rail-tab-news")).toBeAttached({ timeout: 60_000 });
 }
 
 async function setPresentation(page: Page, lang: "en" | "zh", theme: "light" | "dark" = "dark") {
@@ -304,7 +304,7 @@ async function setPresentation(page: Page, lang: "en" | "zh", theme: "light" | "
     localStorage.setItem("mm.lang", l);
   }, lang);
   await page.reload();
-  await expect(page.locator(".mm-ptag")).toBeVisible({ timeout: 60_000 });
+  await expect(page.locator("#rail-tab-news")).toBeAttached({ timeout: 60_000 });
   await expect(page.locator("html")).toHaveAttribute("data-lang", lang);
   await page.evaluate((t) => document.documentElement.setAttribute("data-theme", t), theme);
   await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
@@ -436,7 +436,7 @@ test("unavailable snapshot renders without rail overflow", async ({ page, baseUR
     json: { detail: "service unavailable" },
   }));
   await page.goto("/terminal?symbol=NVDA");
-  await expect(page.locator(".mm-ptag")).toBeVisible({ timeout: 60_000 });
+  await expect(page.locator("#rail-tab-news")).toBeAttached({ timeout: 60_000 });
 
   const languages = ["en", "zh"] as const;
   const size = testInfo.project.name === "mobile" ? "mobile" : "desktop";
@@ -626,4 +626,74 @@ test("editorial views filter before display and keep grouped details in the sele
   await expect(panel.locator("[data-news-headline]")).toHaveCount(2);
   await expect(panel).not.toContainText("Benzinga Bulls And Bears");
   expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
+});
+
+test("Chinese and Hong Kong tickers preserve original Chinese headlines", async ({ page, baseURL }, testInfo) => {
+  const manifest = {
+    symbols: {
+      ...MANIFEST.symbols,
+      "0700.HK": { ...MANIFEST.symbols.NVDA, name: "Tencent Holdings", zh: "腾讯控股", mkt: "HKEX" },
+      "600519.SS": { ...MANIFEST.symbols.NVDA, name: "Kweichow Moutai", zh: "贵州茅台", mkt: "SSE" },
+    },
+  };
+  const examples = [
+    {
+      ticker: "0700.HK", securityId: "SEC:HK-XHKG-00700", source: "finlight:etnet.com.hk",
+      label: "經濟通", title: "騰訊控股公布季度業績，金融科技及企業服務收入增長",
+      url: "https://www.etnet.com.hk/www/tc/news/fixture-tencent",
+    },
+    {
+      ticker: "600519.SS", securityId: "SEC:CN-XSHG-600519", source: "finlight:cls.cn",
+      label: "财联社", title: "贵州茅台发布经营数据，前三季度营业收入保持增长",
+      url: "https://www.cls.cn/detail/fixture-moutai",
+    },
+  ];
+  for (const [i, example] of examples.entries()) {
+    const snapshot = {
+      ...snapshotFor(example.ticker, [{
+        ...SNAPSHOT.rows[0], sequence: 71 + i, source: example.source,
+        source_item_id: `fixture-cn-hk-${i}`, story_id: `ev2_fixture_cn_hk_${i}`,
+        source_count: 1, item_count: 1, title: example.title, url: example.url,
+        teaser: "", universe_revision: "sp500-cn-hk-news-fixture",
+      }]),
+      security_id: example.securityId, state: "degraded",
+      source_health: { state: "degraded", last_successful_catchup: "2026-10-05T19:31:01+00:00" },
+    };
+    await page.route((url) => url.pathname === `/api/news/${example.ticker}`, (route) =>
+      route.fulfill({ json: snapshot }));
+  }
+  await prepare(page, testInfo, baseURL, examples[0].ticker, manifest);
+  const out = join(process.cwd(), "docs", "pr-crops", "ticker-news-cn-hk");
+  if (CROPS) mkdirSync(out, { recursive: true });
+  // Synthetic contract fixtures prove rendering only, not publisher coverage or licensing.
+  for (const example of examples) {
+    await page.goto(`/terminal?symbol=${example.ticker}`);
+    await expect(page.locator("#rail-tab-news")).toBeAttached({ timeout: 60_000 });
+    for (const lang of ["en", "zh"] as const) {
+      for (const theme of ["dark", "light"] as const) {
+        await setPresentation(page, lang, theme);
+        const panel = await openNews(page, "degraded");
+        if (theme === "light") {
+          await page.addStyleTag({ content: LIGHT_SPECIMEN_CSS });
+          await panel.evaluate((node) => node.setAttribute("data-specimen-theme", "light"));
+        }
+        const headline = panel.locator("[data-news-headline]");
+        await expect(headline).toHaveCount(1);
+        await expect(headline).toHaveText(example.title);
+        await expect(headline).toHaveAttribute("href", example.url);
+        await expect(panel).toContainText(example.label);
+        await expect(panel).not.toContainText(examples.find((item) => item !== example)!.title);
+        await expect(panel).not.toContainText("Finlight");
+        expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth))
+          .toBeLessThanOrEqual(1);
+        const streamUrl = await page.evaluate(() =>
+          (window as unknown as { __mmTickerNewsStream?: string }).__mmTickerNewsStream ?? "");
+        expect(new URL(streamUrl, "http://fixture.local").searchParams.get("symbol")).toBe(example.ticker);
+        if (CROPS) {
+          await panel.screenshot({ path: join(out,
+            `${testInfo.project.name}-${example.ticker}-${lang}-${theme === "light" ? "light-specimen" : "dark"}.png`) });
+        }
+      }
+    }
+  }
 });
