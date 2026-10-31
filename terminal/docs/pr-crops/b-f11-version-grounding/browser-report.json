@@ -1,0 +1,1058 @@
+{
+  "base_head": "bbc07037aae3e98597945e23448781a091d15281",
+  "captured_at": "2026-10-20T20:28:13.968Z",
+  "origin": "http://127.0.0.1:3179",
+  "bundler": "webpack",
+  "fixtureScope": "Synthetic GET responses only; native production widget serialized six intercepted turns; no API mutations or upstream inference",
+  "setup": "Supported Next webpack mode: Turbopack rejects the pre-existing reused node_modules symlink outside its pinned filesystem root; dependency custody unchanged",
+  "route": "/analysis?view=theses&symbol=MU&thesis=11111111-1111-4111-8111-111111111111",
+  "production": false,
+  "privateData": false,
+  "widget": {
+    "url": "https://www.mastermind-x.com/mm_brain.js",
+    "bytes": 270515,
+    "sha256": "3c7379783429846832c4cbcd86eb51882b6c52516bf0d175421d940d706d25df",
+    "implementation": "Unmodified served first-party widget bytes; controlled local responses"
+  },
+  "sourceHashes": {
+    "terminal/components/AppNav.tsx": "d0576cb59f754530614a4eb0191595854f44d95192b162c0cd612185123a9a5b",
+    "terminal/components/MobileNav.tsx": "a0d4e6ad5ec1b7422a6816dda01ad01da3025f263314c49435156753e84f788a",
+    "terminal/components/chrome/AnalysisBrainHost.tsx": "dbddf637effe1c029ec359ea93a7b58f4ee540997fca8470b6a2808139c4d87d",
+    "terminal/lib/analysisBrainEntry.ts": "94d76b2e09076ba3aa90a2d0b0ce36a0d7582878fe4e4494ca7e88301106d44c",
+    "terminal/components/BrainWidget.tsx": "6eb6d407b3fd58d3ad285c08260b459ba099c4ea8eb2611816e09c103b5f9866",
+    "terminal/lib/aiContext.ts": "f31d046024809de2923c86536679bdcf49683b7e1b1cd8a5ecf51b4950058f92"
+  },
+  "checks": [
+    {
+      "name": "own preview ready",
+      "passed": true
+    },
+    {
+      "name": "analysis-brain-1440-en: current exact version",
+      "passed": true
+    },
+    {
+      "name": "analysis-brain-1440-en: frozen turn unaffected by historical selection",
+      "passed": true
+    },
+    {
+      "name": "analysis-brain-1440-en: initial typed thesis context",
+      "passed": true,
+      "detail": {
+        "schema": "ai_context_client.v1",
+        "origin_id": "9abbd98a-a612-4122-a8e0-38fbc452ec99",
+        "context_revision": 0,
+        "captured_at": "2026-10-20T20:28:23.056Z",
+        "pinned": [],
+        "active": {
+          "type": "security",
+          "id": "MU"
+        },
+        "ambient": {
+          "symbol": "MU",
+          "page": "analysis",
+          "panel": "theses",
+          "thesis_read": {
+            "thesis_id": "11111111-1111-4111-8111-111111111111",
+            "version_id": "22222222-2222-4222-8222-222222222222"
+          }
+        }
+      }
+    },
+    {
+      "name": "analysis-brain-1440-en: entry remains on Analysis theses",
+      "passed": true,
+      "detail": "http://127.0.0.1:3179/analysis?view=theses&symbol=MU&thesis=11111111-1111-4111-8111-111111111111"
+    },
+    {
+      "name": "analysis-brain-1440-en: one real widget and panel",
+      "passed": true
+    },
+    {
+      "name": "analysis-brain-1440-en: native provider unchanged by entry",
+      "passed": true
+    },
+    {
+      "name": "analysis-brain-1440-en: exactly one intercepted local turn",
+      "passed": true
+    },
+    {
+      "name": "analysis-brain-1440-en: real widget sends selected immutable historical version",
+      "passed": true,
+      "detail": {
+        "page": "analysis",
+        "lang": "en",
+        "ai_context": {
+          "schema": "ai_context_client.v1",
+          "origin_id": "9abbd98a-a612-4122-a8e0-38fbc452ec99",
+          "context_revision": 0,
+          "captured_at": "2026-10-20T20:28:24.532Z",
+          "pinned": [],
+          "active": {
+            "type": "security",
+            "id": "MU"
+          },
+          "ambient": {
+            "symbol": "MU",
+            "page": "analysis",
+            "panel": "theses",
+            "thesis_read": {
+              "thesis_id": "11111111-1111-4111-8111-111111111111",
+              "version_id": "22222222-2222-4222-8222-222222222222"
+            }
+          }
+        },
+        "symbol": "MU",
+        "panel": "theses"
+      }
+    },
+    {
+      "name": "analysis-brain-1440-en: actual served widget serializes thesis context",
+      "passed": true,
+      "detail": {
+        "page": "analysis",
+        "lang": "en",
+        "ai_context": {
+          "schema": "ai_context_client.v1",
+          "origin_id": "9abbd98a-a612-4122-a8e0-38fbc452ec99",
+          "context_revision": 0,
+          "captured_at": "2026-10-20T20:28:24.532Z",
+          "pinned": [],
+          "active": {
+            "type": "security",
+            "id": "MU"
+          },
+          "ambient": {
+            "symbol": "MU",
+            "page": "analysis",
+            "panel": "theses",
+            "thesis_read": {
+              "thesis_id": "11111111-1111-4111-8111-111111111111",
+              "version_id": "22222222-2222-4222-8222-222222222222"
+            }
+          }
+        },
+        "symbol": "MU",
+        "panel": "theses"
+      }
+    },
+    {
+      "name": "analysis-brain-1440-en: panel fits viewport",
+      "passed": true,
+      "detail": {
+        "document": 0,
+        "panel": 440,
+        "viewport": 1440
+      }
+    },
+    {
+      "name": "analysis-brain-1440-en: close keeps typed route",
+      "passed": true
+    },
+    {
+      "name": "analysis-brain-1440-en: URL selection removal clears next turn synchronously",
+      "passed": true
+    },
+    {
+      "name": "analysis-brain-1440-zh: current exact version",
+      "passed": true
+    },
+    {
+      "name": "analysis-brain-1440-zh: frozen turn unaffected by historical selection",
+      "passed": true
+    },
+    {
+      "name": "analysis-brain-1440-zh: initial typed thesis context",
+      "passed": true,
+      "detail": {
+        "schema": "ai_context_client.v1",
+        "origin_id": "1605fc4c-a6e5-4523-9fff-6e1a7466ef9b",
+        "context_revision": 0,
+        "captured_at": "2026-10-20T20:28:26.375Z",
+        "pinned": [],
+        "active": {
+          "type": "security",
+          "id": "MU"
+        },
+        "ambient": {
+          "symbol": "MU",
+          "page": "analysis",
+          "panel": "theses",
+          "thesis_read": {
+            "thesis_id": "11111111-1111-4111-8111-111111111111",
+            "version_id": "22222222-2222-4222-8222-222222222222"
+          }
+        }
+      }
+    },
+    {
+      "name": "analysis-brain-1440-zh: entry remains on Analysis theses",
+      "passed": true,
+      "detail": "http://127.0.0.1:3179/analysis?view=theses&symbol=MU&thesis=11111111-1111-4111-8111-111111111111"
+    },
+    {
+      "name": "analysis-brain-1440-zh: one real widget and panel",
+      "passed": true
+    },
+    {
+      "name": "analysis-brain-1440-zh: native provider unchanged by entry",
+      "passed": true
+    },
+    {
+      "name": "analysis-brain-1440-zh: exactly one intercepted local turn",
+      "passed": true
+    },
+    {
+      "name": "analysis-brain-1440-zh: real widget sends selected immutable historical version",
+      "passed": true,
+      "detail": {
+        "page": "analysis",
+        "lang": "zh",
+        "ai_context": {
+          "schema": "ai_context_client.v1",
+          "origin_id": "1605fc4c-a6e5-4523-9fff-6e1a7466ef9b",
+          "context_revision": 0,
+          "captured_at": "2026-10-20T20:28:26.553Z",
+          "pinned": [],
+          "active": {
+            "type": "security",
+            "id": "MU"
+          },
+          "ambient": {
+            "symbol": "MU",
+            "page": "analysis",
+            "panel": "theses",
+            "thesis_read": {
+              "thesis_id": "11111111-1111-4111-8111-111111111111",
+              "version_id": "22222222-2222-4222-8222-222222222222"
+            }
+          }
+        },
+        "symbol": "MU",
+        "panel": "theses"
+      }
+    },
+    {
+      "name": "analysis-brain-1440-zh: actual served widget serializes thesis context",
+      "passed": true,
+      "detail": {
+        "page": "analysis",
+        "lang": "zh",
+        "ai_context": {
+          "schema": "ai_context_client.v1",
+          "origin_id": "1605fc4c-a6e5-4523-9fff-6e1a7466ef9b",
+          "context_revision": 0,
+          "captured_at": "2026-10-20T20:28:26.553Z",
+          "pinned": [],
+          "active": {
+            "type": "security",
+            "id": "MU"
+          },
+          "ambient": {
+            "symbol": "MU",
+            "page": "analysis",
+            "panel": "theses",
+            "thesis_read": {
+              "thesis_id": "11111111-1111-4111-8111-111111111111",
+              "version_id": "22222222-2222-4222-8222-222222222222"
+            }
+          }
+        },
+        "symbol": "MU",
+        "panel": "theses"
+      }
+    },
+    {
+      "name": "analysis-brain-1440-zh: panel fits viewport",
+      "passed": true,
+      "detail": {
+        "document": 0,
+        "panel": 440,
+        "viewport": 1440
+      }
+    },
+    {
+      "name": "analysis-brain-1440-zh: close keeps typed route",
+      "passed": true
+    },
+    {
+      "name": "analysis-brain-1440-zh: URL selection removal clears next turn synchronously",
+      "passed": true
+    },
+    {
+      "name": "analysis-brain-820-en: current exact version",
+      "passed": true
+    },
+    {
+      "name": "analysis-brain-820-en: frozen turn unaffected by historical selection",
+      "passed": true
+    },
+    {
+      "name": "analysis-brain-820-en: initial typed thesis context",
+      "passed": true,
+      "detail": {
+        "schema": "ai_context_client.v1",
+        "origin_id": "1f76db81-69a2-418f-9da0-6dc20de24241",
+        "context_revision": 0,
+        "captured_at": "2026-10-20T20:28:28.250Z",
+        "pinned": [],
+        "active": {
+          "type": "security",
+          "id": "MU"
+        },
+        "ambient": {
+          "symbol": "MU",
+          "page": "analysis",
+          "panel": "theses",
+          "thesis_read": {
+            "thesis_id": "11111111-1111-4111-8111-111111111111",
+            "version_id": "22222222-2222-4222-8222-222222222222"
+          }
+        }
+      }
+    },
+    {
+      "name": "analysis-brain-820-en: entry remains on Analysis theses",
+      "passed": true,
+      "detail": "http://127.0.0.1:3179/analysis?view=theses&symbol=MU&thesis=11111111-1111-4111-8111-111111111111"
+    },
+    {
+      "name": "analysis-brain-820-en: one real widget and panel",
+      "passed": true
+    },
+    {
+      "name": "analysis-brain-820-en: native provider unchanged by entry",
+      "passed": true
+    },
+    {
+      "name": "analysis-brain-820-en: exactly one intercepted local turn",
+      "passed": true
+    },
+    {
+      "name": "analysis-brain-820-en: real widget sends selected immutable historical version",
+      "passed": true,
+      "detail": {
+        "page": "analysis",
+        "lang": "en",
+        "ai_context": {
+          "schema": "ai_context_client.v1",
+          "origin_id": "1f76db81-69a2-418f-9da0-6dc20de24241",
+          "context_revision": 0,
+          "captured_at": "2026-10-20T20:28:28.357Z",
+          "pinned": [],
+          "active": {
+            "type": "security",
+            "id": "MU"
+          },
+          "ambient": {
+            "symbol": "MU",
+            "page": "analysis",
+            "panel": "theses",
+            "thesis_read": {
+              "thesis_id": "11111111-1111-4111-8111-111111111111",
+              "version_id": "22222222-2222-4222-8222-222222222222"
+            }
+          }
+        },
+        "symbol": "MU",
+        "panel": "theses"
+      }
+    },
+    {
+      "name": "analysis-brain-820-en: actual served widget serializes thesis context",
+      "passed": true,
+      "detail": {
+        "page": "analysis",
+        "lang": "en",
+        "ai_context": {
+          "schema": "ai_context_client.v1",
+          "origin_id": "1f76db81-69a2-418f-9da0-6dc20de24241",
+          "context_revision": 0,
+          "captured_at": "2026-10-20T20:28:28.357Z",
+          "pinned": [],
+          "active": {
+            "type": "security",
+            "id": "MU"
+          },
+          "ambient": {
+            "symbol": "MU",
+            "page": "analysis",
+            "panel": "theses",
+            "thesis_read": {
+              "thesis_id": "11111111-1111-4111-8111-111111111111",
+              "version_id": "22222222-2222-4222-8222-222222222222"
+            }
+          }
+        },
+        "symbol": "MU",
+        "panel": "theses"
+      }
+    },
+    {
+      "name": "analysis-brain-820-en: panel fits viewport",
+      "passed": true,
+      "detail": {
+        "document": 0,
+        "panel": 440,
+        "viewport": 820
+      }
+    },
+    {
+      "name": "analysis-brain-820-en: close keeps typed route",
+      "passed": true
+    },
+    {
+      "name": "analysis-brain-820-en: URL selection removal clears next turn synchronously",
+      "passed": true
+    },
+    {
+      "name": "analysis-brain-820-zh: current exact version",
+      "passed": true
+    },
+    {
+      "name": "analysis-brain-820-zh: frozen turn unaffected by historical selection",
+      "passed": true
+    },
+    {
+      "name": "analysis-brain-820-zh: initial typed thesis context",
+      "passed": true,
+      "detail": {
+        "schema": "ai_context_client.v1",
+        "origin_id": "59e1cf21-8b66-46fd-8ece-696b80f8e74c",
+        "context_revision": 0,
+        "captured_at": "2026-10-20T20:28:29.986Z",
+        "pinned": [],
+        "active": {
+          "type": "security",
+          "id": "MU"
+        },
+        "ambient": {
+          "symbol": "MU",
+          "page": "analysis",
+          "panel": "theses",
+          "thesis_read": {
+            "thesis_id": "11111111-1111-4111-8111-111111111111",
+            "version_id": "22222222-2222-4222-8222-222222222222"
+          }
+        }
+      }
+    },
+    {
+      "name": "analysis-brain-820-zh: entry remains on Analysis theses",
+      "passed": true,
+      "detail": "http://127.0.0.1:3179/analysis?view=theses&symbol=MU&thesis=11111111-1111-4111-8111-111111111111"
+    },
+    {
+      "name": "analysis-brain-820-zh: one real widget and panel",
+      "passed": true
+    },
+    {
+      "name": "analysis-brain-820-zh: native provider unchanged by entry",
+      "passed": true
+    },
+    {
+      "name": "analysis-brain-820-zh: exactly one intercepted local turn",
+      "passed": true
+    },
+    {
+      "name": "analysis-brain-820-zh: real widget sends selected immutable historical version",
+      "passed": true,
+      "detail": {
+        "page": "analysis",
+        "lang": "zh",
+        "ai_context": {
+          "schema": "ai_context_client.v1",
+          "origin_id": "59e1cf21-8b66-46fd-8ece-696b80f8e74c",
+          "context_revision": 0,
+          "captured_at": "2026-10-20T20:28:30.084Z",
+          "pinned": [],
+          "active": {
+            "type": "security",
+            "id": "MU"
+          },
+          "ambient": {
+            "symbol": "MU",
+            "page": "analysis",
+            "panel": "theses",
+            "thesis_read": {
+              "thesis_id": "11111111-1111-4111-8111-111111111111",
+              "version_id": "22222222-2222-4222-8222-222222222222"
+            }
+          }
+        },
+        "symbol": "MU",
+        "panel": "theses"
+      }
+    },
+    {
+      "name": "analysis-brain-820-zh: actual served widget serializes thesis context",
+      "passed": true,
+      "detail": {
+        "page": "analysis",
+        "lang": "zh",
+        "ai_context": {
+          "schema": "ai_context_client.v1",
+          "origin_id": "59e1cf21-8b66-46fd-8ece-696b80f8e74c",
+          "context_revision": 0,
+          "captured_at": "2026-10-20T20:28:30.084Z",
+          "pinned": [],
+          "active": {
+            "type": "security",
+            "id": "MU"
+          },
+          "ambient": {
+            "symbol": "MU",
+            "page": "analysis",
+            "panel": "theses",
+            "thesis_read": {
+              "thesis_id": "11111111-1111-4111-8111-111111111111",
+              "version_id": "22222222-2222-4222-8222-222222222222"
+            }
+          }
+        },
+        "symbol": "MU",
+        "panel": "theses"
+      }
+    },
+    {
+      "name": "analysis-brain-820-zh: panel fits viewport",
+      "passed": true,
+      "detail": {
+        "document": 0,
+        "panel": 440,
+        "viewport": 820
+      }
+    },
+    {
+      "name": "analysis-brain-820-zh: close keeps typed route",
+      "passed": true
+    },
+    {
+      "name": "analysis-brain-820-zh: URL selection removal clears next turn synchronously",
+      "passed": true
+    },
+    {
+      "name": "analysis-brain-390-en: current exact version",
+      "passed": true
+    },
+    {
+      "name": "analysis-brain-390-en: frozen turn unaffected by historical selection",
+      "passed": true
+    },
+    {
+      "name": "analysis-brain-390-en: initial typed thesis context",
+      "passed": true,
+      "detail": {
+        "schema": "ai_context_client.v1",
+        "origin_id": "3706f969-c08f-46c1-a948-ff10934c047c",
+        "context_revision": 0,
+        "captured_at": "2026-10-20T20:28:31.551Z",
+        "pinned": [],
+        "active": {
+          "type": "security",
+          "id": "MU"
+        },
+        "ambient": {
+          "symbol": "MU",
+          "page": "analysis",
+          "panel": "theses",
+          "thesis_read": {
+            "thesis_id": "11111111-1111-4111-8111-111111111111",
+            "version_id": "22222222-2222-4222-8222-222222222222"
+          }
+        }
+      }
+    },
+    {
+      "name": "analysis-brain-390-en: entry remains on Analysis theses",
+      "passed": true,
+      "detail": "http://127.0.0.1:3179/analysis?view=theses&symbol=MU&thesis=11111111-1111-4111-8111-111111111111"
+    },
+    {
+      "name": "analysis-brain-390-en: one real widget and panel",
+      "passed": true
+    },
+    {
+      "name": "analysis-brain-390-en: native provider unchanged by entry",
+      "passed": true
+    },
+    {
+      "name": "analysis-brain-390-en: exactly one intercepted local turn",
+      "passed": true
+    },
+    {
+      "name": "analysis-brain-390-en: real widget sends selected immutable historical version",
+      "passed": true,
+      "detail": {
+        "page": "analysis",
+        "lang": "en",
+        "ai_context": {
+          "schema": "ai_context_client.v1",
+          "origin_id": "3706f969-c08f-46c1-a948-ff10934c047c",
+          "context_revision": 0,
+          "captured_at": "2026-10-20T20:28:31.679Z",
+          "pinned": [],
+          "active": {
+            "type": "security",
+            "id": "MU"
+          },
+          "ambient": {
+            "symbol": "MU",
+            "page": "analysis",
+            "panel": "theses",
+            "thesis_read": {
+              "thesis_id": "11111111-1111-4111-8111-111111111111",
+              "version_id": "22222222-2222-4222-8222-222222222222"
+            }
+          }
+        },
+        "symbol": "MU",
+        "panel": "theses"
+      }
+    },
+    {
+      "name": "analysis-brain-390-en: actual served widget serializes thesis context",
+      "passed": true,
+      "detail": {
+        "page": "analysis",
+        "lang": "en",
+        "ai_context": {
+          "schema": "ai_context_client.v1",
+          "origin_id": "3706f969-c08f-46c1-a948-ff10934c047c",
+          "context_revision": 0,
+          "captured_at": "2026-10-20T20:28:31.679Z",
+          "pinned": [],
+          "active": {
+            "type": "security",
+            "id": "MU"
+          },
+          "ambient": {
+            "symbol": "MU",
+            "page": "analysis",
+            "panel": "theses",
+            "thesis_read": {
+              "thesis_id": "11111111-1111-4111-8111-111111111111",
+              "version_id": "22222222-2222-4222-8222-222222222222"
+            }
+          }
+        },
+        "symbol": "MU",
+        "panel": "theses"
+      }
+    },
+    {
+      "name": "analysis-brain-390-en: panel fits viewport",
+      "passed": true,
+      "detail": {
+        "document": 0,
+        "panel": 390,
+        "viewport": 390
+      }
+    },
+    {
+      "name": "analysis-brain-390-en: close keeps typed route",
+      "passed": true
+    },
+    {
+      "name": "analysis-brain-390-en: URL selection removal clears next turn synchronously",
+      "passed": true
+    },
+    {
+      "name": "analysis-brain-390-zh: current exact version",
+      "passed": true
+    },
+    {
+      "name": "analysis-brain-390-zh: frozen turn unaffected by historical selection",
+      "passed": true
+    },
+    {
+      "name": "analysis-brain-390-zh: initial typed thesis context",
+      "passed": true,
+      "detail": {
+        "schema": "ai_context_client.v1",
+        "origin_id": "f16324ec-8c5d-415c-804e-7ffbc2595d45",
+        "context_revision": 0,
+        "captured_at": "2026-10-20T20:28:33.200Z",
+        "pinned": [],
+        "active": {
+          "type": "security",
+          "id": "MU"
+        },
+        "ambient": {
+          "symbol": "MU",
+          "page": "analysis",
+          "panel": "theses",
+          "thesis_read": {
+            "thesis_id": "11111111-1111-4111-8111-111111111111",
+            "version_id": "22222222-2222-4222-8222-222222222222"
+          }
+        }
+      }
+    },
+    {
+      "name": "analysis-brain-390-zh: entry remains on Analysis theses",
+      "passed": true,
+      "detail": "http://127.0.0.1:3179/analysis?view=theses&symbol=MU&thesis=11111111-1111-4111-8111-111111111111"
+    },
+    {
+      "name": "analysis-brain-390-zh: one real widget and panel",
+      "passed": true
+    },
+    {
+      "name": "analysis-brain-390-zh: native provider unchanged by entry",
+      "passed": true
+    },
+    {
+      "name": "analysis-brain-390-zh: exactly one intercepted local turn",
+      "passed": true
+    },
+    {
+      "name": "analysis-brain-390-zh: real widget sends selected immutable historical version",
+      "passed": true,
+      "detail": {
+        "page": "analysis",
+        "lang": "zh",
+        "ai_context": {
+          "schema": "ai_context_client.v1",
+          "origin_id": "f16324ec-8c5d-415c-804e-7ffbc2595d45",
+          "context_revision": 0,
+          "captured_at": "2026-10-20T20:28:33.287Z",
+          "pinned": [],
+          "active": {
+            "type": "security",
+            "id": "MU"
+          },
+          "ambient": {
+            "symbol": "MU",
+            "page": "analysis",
+            "panel": "theses",
+            "thesis_read": {
+              "thesis_id": "11111111-1111-4111-8111-111111111111",
+              "version_id": "22222222-2222-4222-8222-222222222222"
+            }
+          }
+        },
+        "symbol": "MU",
+        "panel": "theses"
+      }
+    },
+    {
+      "name": "analysis-brain-390-zh: actual served widget serializes thesis context",
+      "passed": true,
+      "detail": {
+        "page": "analysis",
+        "lang": "zh",
+        "ai_context": {
+          "schema": "ai_context_client.v1",
+          "origin_id": "f16324ec-8c5d-415c-804e-7ffbc2595d45",
+          "context_revision": 0,
+          "captured_at": "2026-10-20T20:28:33.287Z",
+          "pinned": [],
+          "active": {
+            "type": "security",
+            "id": "MU"
+          },
+          "ambient": {
+            "symbol": "MU",
+            "page": "analysis",
+            "panel": "theses",
+            "thesis_read": {
+              "thesis_id": "11111111-1111-4111-8111-111111111111",
+              "version_id": "22222222-2222-4222-8222-222222222222"
+            }
+          }
+        },
+        "symbol": "MU",
+        "panel": "theses"
+      }
+    },
+    {
+      "name": "analysis-brain-390-zh: panel fits viewport",
+      "passed": true,
+      "detail": {
+        "document": 0,
+        "panel": 390,
+        "viewport": 390
+      }
+    },
+    {
+      "name": "analysis-brain-390-zh: close keeps typed route",
+      "passed": true
+    },
+    {
+      "name": "analysis-brain-390-zh: URL selection removal clears next turn synchronously",
+      "passed": true
+    },
+    {
+      "name": "zero browser page exceptions",
+      "passed": true,
+      "detail": []
+    }
+  ],
+  "screenshots": [
+    {
+      "file": "analysis-brain-1440-en.png",
+      "bytes": 202611,
+      "sha256": "fff93cb657c3095f0cb63e80e36b43507d017d67c3de35263dc91adbf49971f3",
+      "width": 1440,
+      "lang": "en"
+    },
+    {
+      "file": "analysis-brain-1440-zh.png",
+      "bytes": 192084,
+      "sha256": "376047fad7e49fdd094f5fa7c5d4d93e567de05c67a8b5cdbce6dca82416e267",
+      "width": 1440,
+      "lang": "zh"
+    },
+    {
+      "file": "analysis-brain-820-en.png",
+      "bytes": 181444,
+      "sha256": "2903e50151db8159fc58d528d84df9fe041e2327445de197603a939aff8085fa",
+      "width": 820,
+      "lang": "en"
+    },
+    {
+      "file": "analysis-brain-820-zh.png",
+      "bytes": 173494,
+      "sha256": "c351df4085ca07ebb1a09a1229b89187d26552f061f4cc52ddae824e183cad0d",
+      "width": 820,
+      "lang": "zh"
+    },
+    {
+      "file": "analysis-brain-390-en.png",
+      "bytes": 65880,
+      "sha256": "d5a26dad01cddb7668033c07274f628ff3d9c5c3cb1055886e7a9d2a0739d5f0",
+      "width": 390,
+      "lang": "en"
+    },
+    {
+      "file": "analysis-brain-390-zh.png",
+      "bytes": 71030,
+      "sha256": "ebc242f77e81c4c1d27d12a7f34e26696f15efaed0697aef6b71fbdb5ac68585",
+      "width": 390,
+      "lang": "zh"
+    }
+  ],
+  "pageErrors": [],
+  "unexpectedRequests": [],
+  "localTurns": [
+    {
+      "label": "analysis-brain-1440-en",
+      "context": {
+        "page": "analysis",
+        "lang": "en",
+        "ai_context": {
+          "schema": "ai_context_client.v1",
+          "origin_id": "9abbd98a-a612-4122-a8e0-38fbc452ec99",
+          "context_revision": 0,
+          "captured_at": "2026-10-20T20:28:24.532Z",
+          "pinned": [],
+          "active": {
+            "type": "security",
+            "id": "MU"
+          },
+          "ambient": {
+            "symbol": "MU",
+            "page": "analysis",
+            "panel": "theses",
+            "thesis_read": {
+              "thesis_id": "11111111-1111-4111-8111-111111111111",
+              "version_id": "22222222-2222-4222-8222-222222222222"
+            }
+          }
+        },
+        "symbol": "MU",
+        "panel": "theses"
+      },
+      "mode": "chat",
+      "lane": "fast",
+      "destination": "intercepted local fixture; no upstream execution"
+    },
+    {
+      "label": "analysis-brain-1440-zh",
+      "context": {
+        "page": "analysis",
+        "lang": "zh",
+        "ai_context": {
+          "schema": "ai_context_client.v1",
+          "origin_id": "1605fc4c-a6e5-4523-9fff-6e1a7466ef9b",
+          "context_revision": 0,
+          "captured_at": "2026-10-20T20:28:26.553Z",
+          "pinned": [],
+          "active": {
+            "type": "security",
+            "id": "MU"
+          },
+          "ambient": {
+            "symbol": "MU",
+            "page": "analysis",
+            "panel": "theses",
+            "thesis_read": {
+              "thesis_id": "11111111-1111-4111-8111-111111111111",
+              "version_id": "22222222-2222-4222-8222-222222222222"
+            }
+          }
+        },
+        "symbol": "MU",
+        "panel": "theses"
+      },
+      "mode": "chat",
+      "lane": "fast",
+      "destination": "intercepted local fixture; no upstream execution"
+    },
+    {
+      "label": "analysis-brain-820-en",
+      "context": {
+        "page": "analysis",
+        "lang": "en",
+        "ai_context": {
+          "schema": "ai_context_client.v1",
+          "origin_id": "1f76db81-69a2-418f-9da0-6dc20de24241",
+          "context_revision": 0,
+          "captured_at": "2026-10-20T20:28:28.357Z",
+          "pinned": [],
+          "active": {
+            "type": "security",
+            "id": "MU"
+          },
+          "ambient": {
+            "symbol": "MU",
+            "page": "analysis",
+            "panel": "theses",
+            "thesis_read": {
+              "thesis_id": "11111111-1111-4111-8111-111111111111",
+              "version_id": "22222222-2222-4222-8222-222222222222"
+            }
+          }
+        },
+        "symbol": "MU",
+        "panel": "theses"
+      },
+      "mode": "chat",
+      "lane": "fast",
+      "destination": "intercepted local fixture; no upstream execution"
+    },
+    {
+      "label": "analysis-brain-820-zh",
+      "context": {
+        "page": "analysis",
+        "lang": "zh",
+        "ai_context": {
+          "schema": "ai_context_client.v1",
+          "origin_id": "59e1cf21-8b66-46fd-8ece-696b80f8e74c",
+          "context_revision": 0,
+          "captured_at": "2026-10-20T20:28:30.084Z",
+          "pinned": [],
+          "active": {
+            "type": "security",
+            "id": "MU"
+          },
+          "ambient": {
+            "symbol": "MU",
+            "page": "analysis",
+            "panel": "theses",
+            "thesis_read": {
+              "thesis_id": "11111111-1111-4111-8111-111111111111",
+              "version_id": "22222222-2222-4222-8222-222222222222"
+            }
+          }
+        },
+        "symbol": "MU",
+        "panel": "theses"
+      },
+      "mode": "chat",
+      "lane": "fast",
+      "destination": "intercepted local fixture; no upstream execution"
+    },
+    {
+      "label": "analysis-brain-390-en",
+      "context": {
+        "page": "analysis",
+        "lang": "en",
+        "ai_context": {
+          "schema": "ai_context_client.v1",
+          "origin_id": "3706f969-c08f-46c1-a948-ff10934c047c",
+          "context_revision": 0,
+          "captured_at": "2026-10-20T20:28:31.679Z",
+          "pinned": [],
+          "active": {
+            "type": "security",
+            "id": "MU"
+          },
+          "ambient": {
+            "symbol": "MU",
+            "page": "analysis",
+            "panel": "theses",
+            "thesis_read": {
+              "thesis_id": "11111111-1111-4111-8111-111111111111",
+              "version_id": "22222222-2222-4222-8222-222222222222"
+            }
+          }
+        },
+        "symbol": "MU",
+        "panel": "theses"
+      },
+      "mode": "chat",
+      "lane": "fast",
+      "destination": "intercepted local fixture; no upstream execution"
+    },
+    {
+      "label": "analysis-brain-390-zh",
+      "context": {
+        "page": "analysis",
+        "lang": "zh",
+        "ai_context": {
+          "schema": "ai_context_client.v1",
+          "origin_id": "f16324ec-8c5d-415c-804e-7ffbc2595d45",
+          "context_revision": 0,
+          "captured_at": "2026-10-20T20:28:33.287Z",
+          "pinned": [],
+          "active": {
+            "type": "security",
+            "id": "MU"
+          },
+          "ambient": {
+            "symbol": "MU",
+            "page": "analysis",
+            "panel": "theses",
+            "thesis_read": {
+              "thesis_id": "11111111-1111-4111-8111-111111111111",
+              "version_id": "22222222-2222-4222-8222-222222222222"
+            }
+          }
+        },
+        "symbol": "MU",
+        "panel": "theses"
+      },
+      "mode": "chat",
+      "lane": "fast",
+      "destination": "intercepted local fixture; no upstream execution"
+    }
+  ],
+  "browser": "149.0.7827.55",
+  "passed": true,
+  "ownPreviewStopped": true,
+  "capture_source": "terminal/e2e/tools/capture_f11_thesis_read.cjs; same native producer body as executed artifact except repository-relative ROOT/OUT/module resolution",
+  "visual_acceptance": "Parent inspected six original cells; five retained, English390 replaced only after transition settled; research delta adds exact current/history mode=research proof. Final parent delta inspection recorded separately.",
+  "qualified_source_hashes": {
+    "terminal/lib/thesisReadContext.ts": "b1716af1343f37e99b92b05ac0e38e986c9c216dbbb6a2842616fe2e58ef3444",
+    "terminal/lib/aiContext.ts": "f31d046024809de2923c86536679bdcf49683b7e1b1cd8a5ecf51b4950058f92",
+    "terminal/components/chrome/AnalysisBrainHost.tsx": "dbddf637effe1c029ec359ea93a7b58f4ee540997fca8470b6a2808139c4d87d",
+    "terminal/components/workspaces/ThesisWorkspace.tsx": "f8aa79a228b85a0c10050b06d24665a95fc149ea56a00e8610472cc7a2a7849c",
+    "terminal/lib/__tests__/thesisReadContext.test.ts": "edf7b969e23d40cc877130bd0155ca754c034a97693214fab7c3636022093dff",
+    "terminal/lib/__tests__/thesisReadIntegration.test.tsx": "1b14f32c6262db9fa303d8038b32db0270894d4333b94fa731d114746c7067d1"
+  },
+  "source_binding": "All six input blobs verified identical to qualified manifest before and after this fixture browser run; initial report also records entry module digests.",
+  "superseded_mobile_english": {
+    "original": {
+      "file": "analysis-brain-390-en.png",
+      "bytes": 105828,
+      "sha256": "59eb713163aee6bb4b9d757303fbe58d987fadd130a496e642f73bd7ab31b81d",
+      "width": 390,
+      "lang": "en"
+    },
+    "artifact": "Original unmodified PNG retained at evidence f11-thesis-grounding/selected-version-browser/analysis-brain-390-en.png",
+    "reason": "Parent observed mid-transition panel opacity; replaced after settled native opacity1/transformnone/noanimations+2RAF, no product changes"
+  },
+  "delta_report": "research-delta-browser-report.json"
+}

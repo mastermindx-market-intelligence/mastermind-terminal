@@ -69,6 +69,121 @@ Only after those steps may the owner conditionally replace the exact captured ac
 
 Never remove pending evidence, a source record, an accepted record or a lock to make a command pass. Determine the recorded attempt, actual process, source identity, marker and build first. There is no silent automatic reconciliation of an unexplained state.
 
+
+### One-shot recovery of a failed dirty upgrade
+
+A dirty failed upgrade is still unresolved; ordinary upgrade and bootstrap keep
+refusing it. After the repaired owner has landed and been adopted through the
+same script-only lane, the existing owner exposes this explicit beta-only form:
+
+```sh
+/opt/terminal/terminal-build.sh --target beta \
+  --recover-attempt ORIGINAL_ATTEMPT_32_HEX \
+  --pending-record-id EXACT_FAILED_RECORD_64_HEX \
+  --target-sha ORIGINAL_TARGET_40_HEX
+```
+
+The pending ID is the immutable failed record's `record_id`, not its file SHA256.
+This is a continuation of the original pending attempt, not a new deploy or a
+way to clear its refusal. Admission requires the exact original failed dirty
+record, unchanged target/policy/provenance/prior accepted pointer, a clean target
+checkout, stopped and disabled beta with no live build slot, and retained prior
+and quarantined generation evidence. It checks protected-source containment
+again under the same non-stealing shared lock. The conditional claim appends a
+record linking the immutable failure and consumes one recovery allowance.
+
+Recovery rebuilds the exact admitted target privately; the reused Next BUILD_ID
+string and quarantined output never authorize promotion. Both original retained
+builds and the prior marker remain intact. Beta runtime synchronization removes
+only prior-accepted tracked files absent from the target, after validating the
+complete deletion plan against prior blob content and path custody. Unknown
+host files, runtime data, caches and secrets are preserved; the unchanged full
+source audit can still refuse them. Production retains its incumbent overlay.
+
+Fresh health, exact shared-shell status, complete source audit and conditional
+accepted-pointer publication remain required. Success records the original
+attempt and failure link. A failed or interrupted recovery stays stopped and
+unresolved with its consumed claim and original evidence retained; this entrance
+cannot be repeated to force acceptance. Do not delete records, reset phases,
+clear locks, edit receipts or start a quarantined generation manually.
+
+
+### Bootstrap archive storage and recovery
+
+The beta source archive uses a new private directory named
+`$SHARED_BUILD_LOCK_DIR/beta-bootstrap.XXXXXX` beside the existing `hold`.
+On the volume-backed host this places `source.tar` and its member list on
+`/opt/terminal`, outside both source trees and all audit mappings. The installed
+volume guard, shared lock, exact protected target, archive containment check
+and ordinary source audit remain required. Archive placement does not alter the
+application SHA, policy path/digest or source-provisioned receipt.
+
+The owner records the actual parent and scratch directory identities. Success,
+handled failure and trapped interruption clean only that attempt's two owned
+archive files and directory before releasing its hold. Replaced custody or
+unfamiliar entries refuse cleanup and retain the hold for attended recovery.
+There is no sweep of older archive directories. A hard kill can leave the exact
+archive and hold; the next invocation refuses until they are reconciled, and
+never reuses a partial archive.
+
+Re-evaluate capacity on the actual filesystems after adopting this protected
+owner. The large archive, dependency preparation, staging and build use the
+Terminal volume. Small inventory/status files and durable receipts still need
+root space, as do host logs and any package-manager work. Relocation does not
+waive the volume guard or establish a blanket disk-space exemption.
+
+### Resuming after dependency publication refuses a shared inode
+
+Some npm packages create hardlinks between two names inside their own dependency
+tree. The runtime permission publisher requires private regular inodes before it
+changes modes; that guard also protects against aliases outside beta. A completed
+build can therefore stop before activation when retained dependencies contain
+such a pair.
+
+The beta owner inventories dependencies after either npm installation or reuse.
+It prepares only groups whose full link count is accounted for by eligible
+regular files inside the beta app's `node_modules`. Symlinks are not followed;
+secret aliases, external links, writable custody and changed membership refuse.
+For an admitted group, the owner stages private copies in the same owned
+directories and verifies bytes, owner, mode and identity before replacing any
+name. The final names must each have one link. The runtime publisher's original
+shared-inode refusal remains in force.
+
+Preparation runs under the existing build lock and pending attempt. A read-only
+inventory with no work preserves the original rollback boundary. Before any
+replacement the owner records that live inputs may have changed. An upgrade
+failure after that point retains the unresolved pending attempt and stops beta;
+it cannot claim that restoring only the build restored its former dependencies.
+A failed first installation follows the existing source-only quarantine rules.
+
+### Adopting a repaired owner while retaining the admitted application
+
+A source-provisioned receipt binds the application target **A** and the original
+canonical policy path and digest. A fix to the release owner may be qualified at
+a later protected revision **R** while the application remains A. These are two
+separate identities; a new owner does not authorize a new application target.
+
+Reconcile the exact failed attempt, service state, source marker and immutable
+receipt before continuing. Confirm capacity for the canonical source archive,
+dependency preparation, stage and build on their actual filesystems. Preserve
+the installed volume gate and the shared lock; do not delete unfamiliar files
+or retry an unchanged failure.
+
+Once R has passed the normal review and protected merge gates, obtain only its
+exact `ops/terminal-build.sh` artifact through the attended release lane. Verify
+its revision, byte digest and root-owned private staging location. Execute that
+script with `--target beta --bootstrap --target-sha A`. Its directory must contain
+only the script: the existing selector then uses the trusted bundle in
+`/opt/terminal/.gitsrc-beta/ops`, whose policy path and digest must still match the
+original receipt.
+
+Do not relocate a complete preflight bundle beside the script. Even identical
+policy bytes at a different path cannot borrow the original source receipt.
+Do not pass R as the application target to reuse A's receipt. Do not edit the
+installed owner, weaken inode checks or rewrite lifecycle evidence on the host.
+Beta does not install the repaired script into the global production owner.
+Record both owner R and application A in the attended release proof.
+
 ## Release acceptance evidence
 
 Repository tests exercise the transaction, exact status derivation, custody refusals, real source audit and incumbent production admission. Confined command fixtures do not establish an installed service namespace.

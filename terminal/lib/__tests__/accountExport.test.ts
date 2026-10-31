@@ -28,6 +28,21 @@ const withNewSources = (): ExportSources => ({
 });
 
 describe("buildAccountExport", () => {
+  it("preserves known and unknown historical entry units in both owner export formats", () => {
+    const src = baseSources();
+    const row: Position = { id: "unit-known", ticker: "AAA", shares: 1, entryPrice: 100,
+      entryCurrency: "HKD", entryDate: null, notes: null, status: "open", createdAt: null };
+    src.positions = { ok: true, positions: [row, { ...row, id: "unit-unknown", entryCurrency: null }] };
+    const doc = buildAccountExport(src);
+    const parsed = JSON.parse(serializeJson(doc));
+    expect(parsed.portfolio_positions.map((p: Position) => p.entryCurrency)).toEqual(["HKD", null]);
+    const csv = serializeCsv(doc);
+    const lines = csv.split("\r\n").filter(line => line.includes("entry_currency"));
+    expect(lines).toHaveLength(2);
+    expect(lines.find(line => line.includes("unit-known"))).toContain("HKD");
+    expect(lines.find(line => line.includes("unit-unknown"))).not.toContain("HKD");
+    expect(lines.find(line => line.includes("unit-unknown"))).not.toContain("USD");
+  });
   it("includes both datasets with true row_counts, zero rows included not omitted", () => {
     const doc = buildAccountExport(baseSources());
     const wl = doc.coverage.included.find((e) => e.key === "watchlists");

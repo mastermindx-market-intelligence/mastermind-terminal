@@ -24,7 +24,7 @@ test("overview comparison selects a company, preserves source semantics and open
   await expect(inspector.getByRole("heading", { name: "MU", exact: true })).toBeVisible();
   await expect(inspector).toContainText("+14.9%"); await expect(inspector).toContainText("+1.9pp");
   await expect(page).toHaveURL(/sectorCompany=MU/);
-  const href = await inspector.getByRole("link").getAttribute("href");
+  const href = await inspector.getByRole("link", { name: /Open company research/ }).getAttribute("href");
   expect(href).toBe("/analysis?symbol=MU&page=overview");
   await root.getByRole("button", { name: "Show all companies", exact: true }).click();
   await expect(root.locator('[data-company-choice]')).toHaveCount(14);

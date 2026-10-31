@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
   // Sanitize `next`: must be a same-origin absolute PATH ("/…"), never protocol-relative ("//host")
   // which the browser would treat as an off-origin redirect.
   const rawNext = searchParams.get("next");
-  const next = safeAuthNext(rawNext, process.env.MMX_SHARED_SHELL === "1" ? "/macro.html" : "/terminal");
+  const next = safeAuthNext(rawNext, process.env.MMX_SHARED_SHELL === "1" ? "/today" : "/terminal");
 
   const response = new NextResponse(null, {
     status: 303,

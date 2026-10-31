@@ -1,0 +1,50 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /tmp/portfolio-pr1044-native-review-20261021/terminal
+
+ × lib/__tests__/portfolioNativeOwnerProbe.test.tsx > native review 'unkeyed candidate' > removes A's settled private brief when B's distinct nonempty book arrives
+   → expected 'portfolioaddPosition1 securities·1 re…' not to contain 'OWNER_A_PRIVATE_BRIEF'
+ × lib/__tests__/portfolioNativeOwnerProbe.test.tsx > native review 'unkeyed candidate' > retires A's pending brief before its response settles under B
+   → expected 'portfolioaddPosition1 securities·1 re…' not to contain 'OWNER_A_PRIVATE_BRIEF'
+ ✓ lib/__tests__/portfolioNativeOwnerProbe.test.tsx > native review 'owner-keyed negative control' > removes A's settled private brief when B's distinct nonempty book arrives
+ ✓ lib/__tests__/portfolioNativeOwnerProbe.test.tsx > native review 'owner-keyed negative control' > retires A's pending brief before its response settles under B
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/__tests__/portfolioNativeOwnerProbe.test.tsx > native review 'unkeyed candidate' > removes A's settled private brief when B's distinct nonempty book arrives
+AssertionError: expected 'portfolioaddPosition1 securities·1 re…' not to contain 'OWNER_A_PRIVATE_BRIEF'
+
+Expected: "OWNER_A_PRIVATE_BRIEF"
+Received: "portfolioaddPosition1 securities·1 recordsThe latest holdings check failed.Showing the last successful read. Refresh to check again.OverviewHoldingsRisk & exposureTargetsPriced value—0/1 priced recordsDay change—Current prices for sized records.Since entry—0 records with comparable entry pricesCoverage & calculationPrice change on the priced, based records.0/1 priced records. Current prices for sized records. Price change on the priced, based records. Cash flows, income and fees are not included. No currency conversion is applied.Price unavailable: NVDAReview coverage Your holdings1 recordsView all holdingsSecuritySharesMarket valueSince entryActionsNVNVDANVDA10——Review recordFrom the deskSource coverage and population are shown inside.+briefEyebrowbriefAsOfbriefPopulationPositionsOWNER_A_PRIVATE_BRIEFEvents affecting your holdings+Review nextDetails that unlock a clearer picture.1Review price coverageNVDACost concentrationShare of the eligible cost basis.Comparable, positive entry costs are needed.Explore exposureOpen 1Closed 0Search symbol, company or notesFilter recordsAll recordsNeeds entry detailsPrice coverageSecuritySharesEntry priceLast priceMarket valueSince entryActionsNVNVDANVDA10100.00USD———Review recordShowing 1–1 of 1 recordsSee where your holdings overlap.Share of the eligible cost basis. No currency conversion is applied.We could not read your holdings shape in time. It will try again next time you reload.Historical contextToday's cost-weighted holdings, viewed through past prices.This is a historical model of today's holdings. It is not your account return.We could not read the historical risk of today's book. It will try again next time you reload.Compare your holdings with the targets you set.Targets use the same eligible cost basis as exposure.We could not read your targets in time. It will try again next time you reload."
+
+ ❯ lib/__tests__/portfolioNativeOwnerProbe.test.tsx:61:34
+     59|     const bRequest = briefRequests.find(request => request.owner === "…
+     60|     if (bRequest) await settle(bRequest, "B");
+     61|     expect(node.textContent).not.toContain("OWNER_A_PRIVATE_BRIEF");
+       |                                  ^
+     62|     expect(briefRequests.filter(request => request.owner === "B")).toH…
+     63|     expect(node.querySelector(".pbrief-headline")?.textContent).toBe("…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  lib/__tests__/portfolioNativeOwnerProbe.test.tsx > native review 'unkeyed candidate' > retires A's pending brief before its response settles under B
+AssertionError: expected 'portfolioaddPosition1 securities·1 re…' not to contain 'OWNER_A_PRIVATE_BRIEF'
+
+Expected: "OWNER_A_PRIVATE_BRIEF"
+Received: "portfolioaddPosition1 securities·1 recordsThe latest holdings check failed.Showing the last successful read. Refresh to check again.OverviewHoldingsRisk & exposureTargetsPriced value—0/1 priced recordsDay change—Current prices for sized records.Since entry—0 records with comparable entry pricesCoverage & calculationPrice change on the priced, based records.0/1 priced records. Current prices for sized records. Price change on the priced, based records. Cash flows, income and fees are not included. No currency conversion is applied.Price unavailable: NVDAReview coverage Your holdings1 recordsView all holdingsSecuritySharesMarket valueSince entryActionsNVNVDANVDA10——Review recordFrom the deskSource coverage and population are shown inside.+briefEyebrowbriefAsOfbriefPopulationPositionsOWNER_A_PRIVATE_BRIEFEvents affecting your holdings+Review nextDetails that unlock a clearer picture.1Review price coverageNVDACost concentrationShare of the eligible cost basis.Comparable, positive entry costs are needed.Explore exposureOpen 1Closed 0Search symbol, company or notesFilter recordsAll recordsNeeds entry detailsPrice coverageSecuritySharesEntry priceLast priceMarket valueSince entryActionsNVNVDANVDA10100.00USD———Review recordShowing 1–1 of 1 recordsSee where your holdings overlap.Share of the eligible cost basis. No currency conversion is applied.We could not read your holdings shape in time. It will try again next time you reload.Historical contextToday's cost-weighted holdings, viewed through past prices.This is a historical model of today's holdings. It is not your account return.We could not read the historical risk of today's book. It will try again next time you reload.Compare your holdings with the targets you set.Targets use the same eligible cost basis as exposure.We could not read your targets in time. It will try again next time you reload."
+
+ ❯ lib/__tests__/portfolioNativeOwnerProbe.test.tsx:72:34
+     70|     if (bRequest) await settle(bRequest, "B");
+     71|     await settle(aRequest, "A");
+     72|     expect(node.textContent).not.toContain("OWNER_A_PRIVATE_BRIEF");
+       |                                  ^
+     73|     expect(aRequest.signal?.aborted).toBe(true);
+     74|     expect(briefRequests.filter(request => request.owner === "B")).toH…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 2 passed (4)
+   Start at  22:36:16
+   Duration  614ms (transform 131ms, setup 0ms, collect 181ms, tests 115ms, environment 113ms, prepare 37ms)
+

@@ -1,0 +1,131 @@
+{
+  "schema": "portfolio.combined_hardening.validation.v1",
+  "recorded_at_utc": "2026-10-22T05:57:17.853415+00:00",
+  "operation_id": "portfolio-target-feedback-20261022",
+  "base_sha": "516d0519ca39d4be3ef186d65261598dfc5f6042",
+  "integrated_parent": "d2ce27ace2a1a3ad1b648ae105973d01d00364be",
+  "source_files": [
+    {
+      "path": "terminal/components/PortfolioView.tsx",
+      "git_blob": "6cbcd5dabec895eb455da277453c832095465afd",
+      "sha256": "09ab42da503decfac2f1be00792d4ac3da47bee237717a80379ef4f2d0333678",
+      "bytes": 74997
+    },
+    {
+      "path": "terminal/components/settings/SectionPortfolioTargets.tsx",
+      "git_blob": "eb8e33ed070ff82eb39583017a3626985270e150",
+      "sha256": "e5b24bd5c0ba54c4f5bd1e2d43bf52ac86d766840534f99577d9081363d765e9",
+      "bytes": 12846
+    },
+    {
+      "path": "terminal/components/settings/__tests__/SectionPortfolioTargets.test.tsx",
+      "git_blob": "76f9076de8288db247d4ab732f4a113672a474c0",
+      "sha256": "601ba10c90137459bbe39b929a1991ba1ebcf8c5beadf280997df6fb150908a2",
+      "bytes": 53901
+    },
+    {
+      "path": "terminal/lib/__tests__/portfolioTargetsView.test.tsx",
+      "git_blob": "c224fbc659215009896355f9b77201757245f2ce",
+      "sha256": "9b23546f1806cd127315cf4b6252b96d7c1de0f6faa144197b6cb412046a2a71",
+      "bytes": 28873
+    },
+    {
+      "path": "terminal/e2e/portfolio-targets.spec.ts",
+      "git_blob": "55d3129b717939477d77f97ed9be0b71484ac954",
+      "sha256": "7ffe3a6cc5c7c1d407cef32a5a528ac1195a5ea72fd254285f465b603b1af8be",
+      "bytes": 18432
+    },
+    {
+      "path": "terminal/app/api/portfolio/route.ts",
+      "git_blob": "e65e4b0e2a08c2cc4cf146cca7f9620ec0c7ab8f",
+      "sha256": "2977665e85ba697c99fd7d50d0d1363a3618eb2d8825c7c50069b5c6d0c011c0",
+      "bytes": 18446
+    },
+    {
+      "path": "terminal/lib/__tests__/portfolioArtifactOrigin.test.ts",
+      "git_blob": "47478ae9a4bd9c61c35130fc7984fc84e106be84",
+      "sha256": "ddd366cb528d7250e908106a19440d9819d205a5a1b98b946521923136c0c88b",
+      "bytes": 7304
+    },
+    {
+      "path": "terminal/e2e/portfolio-workspace.spec.ts",
+      "git_blob": "5c5c1e27e2132aa1779ab3c3f8a3ec3b20be5bf9",
+      "sha256": "9de023d15541b5ea1e389582a6f9239e37cc22d3fca0d51167a37191dd904b18",
+      "bytes": 16919
+    }
+  ],
+  "source_count": 8,
+  "node": "v26.5.0",
+  "package_lock_blob": "2e162a8eb37dd72aad7a01e88c590370a324d0d1",
+  "counts": {
+    "unit_files": 10,
+    "unit_passed": 263,
+    "responsive_passed": 15,
+    "responsive_retries": 0,
+    "diagnostic_passed": 3,
+    "diagnostic_retries": 0
+  },
+  "artifacts": [
+    {
+      "path": "README.md",
+      "sha256": "c04985f15c9410fb25168fc9f44846bf9b2f90c876870ca3ab18558ae013250f",
+      "bytes": 4819
+    },
+    {
+      "path": "diagnostic-events.json",
+      "sha256": "f2acf27fdcad779e962bfdbb67043c2dac6626714aab131c08eae6daf7814ec8",
+      "bytes": 5160
+    },
+    {
+      "path": "diagnostic-source.ts.txt",
+      "sha256": "6b671ef51b6decc50e9cf8601158d66e98c7f1197d5486dd01dc156eeeb0ee2e",
+      "bytes": 5707
+    },
+    {
+      "path": "diagnostic.log.gz",
+      "sha256": "bec947c2ced82c26e0208311ab62cc0c825e949987ba59aaeb3292bc8134446b",
+      "bytes": 407
+    },
+    {
+      "path": "integration.json",
+      "sha256": "c735c46ff93024cf5bb47b80dc1cddf21b3d56ad53f79a199875b620de32406a",
+      "bytes": 4016
+    },
+    {
+      "path": "lint.log.gz",
+      "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+      "bytes": 20
+    },
+    {
+      "path": "local-checks.json",
+      "sha256": "c32b4bf6cdf5047fed8023f8b023e236b79eb12e5091ea598aeb2807c38e7d60",
+      "bytes": 2918
+    },
+    {
+      "path": "previous-ci.json",
+      "sha256": "720ae70f0a460e37c2b96a728fb4a27f7fb1cf591243210d2a7ef3dc3d630819",
+      "bytes": 4559
+    },
+    {
+      "path": "responsive.json.gz",
+      "sha256": "2ecad0fcc568cae57c9e8f4d57d5700dd774f7e5953486a6a4dc6380a91c9550",
+      "bytes": 2246
+    },
+    {
+      "path": "responsive.log.gz",
+      "sha256": "a82eaa5b0c2c3c8979154e334eeb1c7245e4a4b15cb0b7b0335e517f9ad27530",
+      "bytes": 635
+    },
+    {
+      "path": "typecheck.log.gz",
+      "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+      "bytes": 20
+    },
+    {
+      "path": "unit.log.gz",
+      "sha256": "24b3169dd31dda9b2d4a2df888484ca1a20872652bcbb314d9d44e00dbc49ddf",
+      "bytes": 7835
+    }
+  ],
+  "scope": "Combined local proof only; hosted CI, exact-head review, protected merge, incumbent deployment and final live acceptance remain separate gates."
+}

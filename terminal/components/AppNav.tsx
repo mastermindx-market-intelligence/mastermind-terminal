@@ -92,7 +92,7 @@ function AppNavInner({ labelled = false, id, overviewBridge = false, sharedShell
     : path.startsWith("/alerts") ? "alerts"
     : path.startsWith("/portfolio") ? "portfolio"
     : "chart";
-  const openAI = () => { if (path.startsWith("/terminal")) window.dispatchEvent(new CustomEvent("mm:copilot")); else router.push(sharedShell ? sharedShellTerminalHref(window.location.href, activeSymbol, true) : "/terminal?ai=1"); };
+  const openAI = () => { if (path.startsWith("/terminal") || path.startsWith("/analysis")) window.dispatchEvent(new CustomEvent("mm:copilot")); else router.push(sharedShell ? sharedShellTerminalHref(window.location.href, activeSymbol, true) : "/terminal?ai=1"); };
   return (
     <nav id={id} className="appnav" aria-label={sharedShell ? t("shellNavigation") : "Primary"}>
       {overviewBridge && (
@@ -118,7 +118,7 @@ function AppNavInner({ labelled = false, id, overviewBridge = false, sharedShell
       {(sharedShell ? SHARED_SHELL_NAV : TOP).map((it) => {
         const on = it.k === activeKey;
         return (
-          <Tip key={it.k} label={t(it.k, it.label)} side="right" size="mini">
+          <Tip key={it.k} label={t(it.k, it.label)} side="right" size="mini" disabled={sharedShell && labelled}>
             <Link
               href={navHref(it, activeSymbol, path)}
               onClick={path.startsWith("/terminal") && it.k === "chart" ? () => window.dispatchEvent(new CustomEvent("mm:close-pane")) : undefined}
@@ -143,7 +143,7 @@ function AppNavInner({ labelled = false, id, overviewBridge = false, sharedShell
         <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></svg>
         {labelled && <span className="investor-nav-label">{t("shellAllTools")}</span>}
       </button>}
-      <Tip label={t("ai")} side="right" size="mini">
+      <Tip label={t("ai")} side="right" size="mini" disabled={sharedShell && labelled}>
         <button className="navbtn" onClick={openAI} aria-label={t("ai")}><Glyph k="ai" />{labelled && <span className="investor-nav-label">{t("ai")}</span>}</button>
       </Tip>
     </nav>

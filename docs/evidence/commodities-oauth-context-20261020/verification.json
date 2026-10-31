@@ -1,0 +1,203 @@
+{
+  "schema": "mmx.commodities.oauth-context-proof.v1",
+  "recorded_at": "2026-10-20T19:51:25.966521+00:00",
+  "base_commit": "bbc07037aae3e98597945e23448781a091d15281",
+  "browser_source_base": "86e829013441a500c200af6ec6eb3a47573e12f0",
+  "base_integration": "Fast-forward to bbc07037; accepted Options changes do not touch the four reviewed implementation/test paths. Focused units re-run on current base; full protected CI is still required.",
+  "production_accepted": false,
+  "implementation": [
+    {
+      "path": "terminal/components/onboarding/oauth.ts",
+      "sha256": "586637dcb25da12e68049965501d4c32b1d9720dcd6bc8c556d99d0cc2695db3"
+    },
+    {
+      "path": "terminal/lib/__tests__/onboardingOAuthContext.test.ts",
+      "sha256": "0962bf68abd97b2a5cf122b126d7c8576068df1e28e52f8ab6d77991a874c2b1"
+    },
+    {
+      "path": "terminal/lib/__tests__/authCallbackRecovery.test.ts",
+      "sha256": "286d35a1ecbbade6ea0ed5229644836c93e97dece168e0e349e389155793a5b5"
+    },
+    {
+      "path": "terminal/e2e/onboarding-oauth-context.spec.ts",
+      "sha256": "b58f90d3aabd5af7d569952edfb6a3c23797743c3ac904a81d30cf44de3c1916"
+    }
+  ],
+  "unit": {
+    "passed": 128,
+    "failed": 0,
+    "files": 5,
+    "environment": "Node 26 local fixture uses NODE_OPTIONS=--no-experimental-webstorage so Vitest 2 uses jsdom storage"
+  },
+  "typecheck": [
+    {
+      "name": "typegen",
+      "exit": 0,
+      "seconds": 1.13
+    },
+    {
+      "name": "typecheck",
+      "exit": 0,
+      "seconds": 40.06
+    }
+  ],
+  "browser": {
+    "stats": {
+      "startTime": "2026-10-20T19:46:04.100Z",
+      "duration": 26424.85,
+      "expected": 12,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "projects": {
+      "desktop": [
+        1440,
+        900
+      ],
+      "tablet": [
+        820,
+        1180
+      ],
+      "mobile": [
+        390,
+        844
+      ]
+    },
+    "locales": [
+      "en",
+      "zh"
+    ],
+    "system_color_preferences": [
+      "dark",
+      "light"
+    ],
+    "application_theme": "dark",
+    "motion_preference": "reduce",
+    "dashboard_return": "https://www.mastermind-x.com/commodities.html#cw/relationships/oil?window=60&compare=oil%2Cgold&hypothesis=supply",
+    "external_navigations": "Supabase authorization and Macro destination are intercepted; the fixture supplies an authenticated session. Actual callback resume UI and Dashboard button are exercised. Successful code exchange is mocked separately in the callback unit test.",
+    "production_authentication_completed": false
+  },
+  "screenshots": [
+    {
+      "path": "screenshots/desktop-zh-dark-oauth.png",
+      "bytes": 29589,
+      "sha256": "77bbb8b44cd9bacd9dd7039f59b0886879a222c5e049339a61ef17c1c52ec954"
+    },
+    {
+      "path": "screenshots/desktop-zh-dark-research-resumed.png",
+      "bytes": 518149,
+      "sha256": "9f24563f35573cd2a2468636de5d7fc81697bd8d911a083c6b075aa460c0d55e"
+    },
+    {
+      "path": "screenshots/mobile-zh-dark-oauth.png",
+      "bytes": 29850,
+      "sha256": "dfb7dc8a2800f110e7bc4ca14fbb02fa96ccb7c5b7fd29578d9a38f0ea956dd6"
+    },
+    {
+      "path": "screenshots/mobile-zh-dark-research-resumed.png",
+      "bytes": 131515,
+      "sha256": "2c023f361daa2db2ee00b0e6bb2034303469d65802d3f3c94f1d03eb2ac5db1a"
+    },
+    {
+      "path": "screenshots/tablet-zh-dark-oauth.png",
+      "bytes": 39471,
+      "sha256": "57b55617e268aef64a55afae72ed3233eaec32bcb99fdef4a0ec33a01ef6aaed"
+    },
+    {
+      "path": "screenshots/tablet-zh-dark-research-resumed.png",
+      "bytes": 391177,
+      "sha256": "8b4de6ff3357ee1fe5a232c392f253d2ac8605a6b684517695e01ea8825786cd"
+    },
+    {
+      "path": "screenshots/desktop-en-dark-oauth.png",
+      "bytes": 28230,
+      "sha256": "e5a1bd17401ddaeb4916710da34c5eb29db3f796586ed9cb651fda019c760740"
+    },
+    {
+      "path": "screenshots/desktop-en-dark-research-resumed.png",
+      "bytes": 524142,
+      "sha256": "44a20df26155c0dbb295ad8b80f485e31a48618c10bbc118bc229d0484683834"
+    },
+    {
+      "path": "screenshots/mobile-en-dark-oauth.png",
+      "bytes": 31897,
+      "sha256": "271733dbeb5db12bb830141f22e134c2d4ce6cb0bb5823cff72904bb415a2eb5"
+    },
+    {
+      "path": "screenshots/mobile-en-dark-research-resumed.png",
+      "bytes": 108760,
+      "sha256": "54731661481c6b088fbc6a95673db67d22b31d0af098f79256a231f348f7d34b"
+    },
+    {
+      "path": "screenshots/tablet-en-dark-oauth.png",
+      "bytes": 41788,
+      "sha256": "1d3f8a155eb41b8565ba240ed589774a7510fd64d2aaadc07543c812c41a0528"
+    },
+    {
+      "path": "screenshots/tablet-en-dark-research-resumed.png",
+      "bytes": 398097,
+      "sha256": "61fd6be0283f6786f339596c43c3c9455a2d64b7a31b6c1d145e17d03b1f5fbc"
+    },
+    {
+      "path": "screenshots/desktop-zh-light-oauth.png",
+      "bytes": 29589,
+      "sha256": "77bbb8b44cd9bacd9dd7039f59b0886879a222c5e049339a61ef17c1c52ec954"
+    },
+    {
+      "path": "screenshots/desktop-zh-light-research-resumed.png",
+      "bytes": 79564,
+      "sha256": "bc5756aecee64919d9fbefd058ccdeb4104c22a2c9f8186563fac5cc8a110d4e"
+    },
+    {
+      "path": "screenshots/mobile-zh-light-oauth.png",
+      "bytes": 29850,
+      "sha256": "dfb7dc8a2800f110e7bc4ca14fbb02fa96ccb7c5b7fd29578d9a38f0ea956dd6"
+    },
+    {
+      "path": "screenshots/mobile-zh-light-research-resumed.png",
+      "bytes": 131515,
+      "sha256": "2c023f361daa2db2ee00b0e6bb2034303469d65802d3f3c94f1d03eb2ac5db1a"
+    },
+    {
+      "path": "screenshots/tablet-zh-light-oauth.png",
+      "bytes": 39471,
+      "sha256": "57b55617e268aef64a55afae72ed3233eaec32bcb99fdef4a0ec33a01ef6aaed"
+    },
+    {
+      "path": "screenshots/tablet-zh-light-research-resumed.png",
+      "bytes": 391177,
+      "sha256": "8b4de6ff3357ee1fe5a232c392f253d2ac8605a6b684517695e01ea8825786cd"
+    },
+    {
+      "path": "screenshots/desktop-en-light-oauth.png",
+      "bytes": 28230,
+      "sha256": "e5a1bd17401ddaeb4916710da34c5eb29db3f796586ed9cb651fda019c760740"
+    },
+    {
+      "path": "screenshots/desktop-en-light-research-resumed.png",
+      "bytes": 524142,
+      "sha256": "44a20df26155c0dbb295ad8b80f485e31a48618c10bbc118bc229d0484683834"
+    },
+    {
+      "path": "screenshots/mobile-en-light-oauth.png",
+      "bytes": 31897,
+      "sha256": "271733dbeb5db12bb830141f22e134c2d4ce6cb0bb5823cff72904bb415a2eb5"
+    },
+    {
+      "path": "screenshots/mobile-en-light-research-resumed.png",
+      "bytes": 108760,
+      "sha256": "54731661481c6b088fbc6a95673db67d22b31d0af098f79256a231f348f7d34b"
+    },
+    {
+      "path": "screenshots/tablet-en-light-oauth.png",
+      "bytes": 41788,
+      "sha256": "1d3f8a155eb41b8565ba240ed589774a7510fd64d2aaadc07543c812c41a0528"
+    },
+    {
+      "path": "screenshots/tablet-en-light-research-resumed.png",
+      "bytes": 398097,
+      "sha256": "61fd6be0283f6786f339596c43c3c9455a2d64b7a31b6c1d145e17d03b1f5fbc"
+    }
+  ]
+}

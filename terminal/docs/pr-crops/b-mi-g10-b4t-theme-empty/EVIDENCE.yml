@@ -1,3 +1,4 @@
+# Current Company design recapture is sharedShellCompanyDesignRecapture20261022; prior records remain historical.
 # B4 company theme-context empty state (mi-g10-b4t) - capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
@@ -6,7 +7,7 @@
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/components/fin/CompanyThemeContextCard.tsx: "0b8a0e1c252926f11cb1de1ffb885d6a379dc8c8a1fdda4103fc7957143b1555"
-  terminal/app/company-intelligence.css: "2bd8643832428198d38e8a5140cb7029687466781b2366976cb3ca5ddad9892b"
+  terminal/app/company-intelligence.css: "8b43f2046891837f6572fa2a59b7594547def9602b0454e1f14edba322da2a34"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -41,3 +42,9 @@ files:
   - 390x844-en-dark-theme-empty.png
   - 390x844-zh-dark-theme-empty.png
   - capture-log.json
+
+sharedShellCompanyDesignRecapture20261022:
+  sourceHead: "83bb2536856d1ef601d5a1c99d9c071e87884ef4"
+  receipt: shared-shell-company-recapture.json
+  scope: "1440x900-en-dark-theme-empty.png; 1440x900-zh-dark-theme-empty.png; 390x844-en-dark-theme-empty.png; 390x844-zh-dark-theme-empty.png; capture-log.json; shared-shell-company-recapture/1440x900-en-light-theme-empty.png; shared-shell-company-recapture/1440x900-zh-light-theme-empty.png; shared-shell-company-recapture/390x844-en-light-theme-empty.png; shared-shell-company-recapture/390x844-zh-light-theme-empty.png"
+  qualification: "Actual scoped incumbent-profile captures; unchanged surfaces retain earlier qualified evidence."

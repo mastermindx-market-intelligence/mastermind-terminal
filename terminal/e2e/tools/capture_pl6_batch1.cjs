@@ -19,10 +19,16 @@ const { createHash } = require("node:crypto");
 const { mkdirSync, readdirSync, readFileSync, writeFileSync } = require("node:fs");
 const { join } = require("node:path");
 const { chromium, expect } = require("@playwright/test");
+const { warmFixtureRoutes } = require("../fixtureWarmup.cjs");
+const evidence = require("./visualEvidence.cjs");
+const IMMUTABLE_ID = process.env.TERMINAL_PL6_EVIDENCE_OPERATION_ID;
+let immutablePng = null;
 
 const ROOT = join(__dirname, "..", "..");
 const REPO = join(ROOT, "..");
 const OUT = join(ROOT, "docs", "pr-crops", "b-pl-6-batch-1");
+// Keep prior failure receipts intact when a continuation owns a separate diagnostic directory.
+const FAILURE_OUT = process.env.TERMINAL_CAPTURE_FAILURE_DIR || OUT;
 const LAYOUT_FILES = [
   "terminal/components/OptionsHubView.tsx",
   "terminal/components/SearchModal.tsx",
@@ -45,7 +51,10 @@ const VIEWPORTS = {
   390: { width: 390, height: 844 },
 };
 
-mkdirSync(OUT, { recursive: true });
+if (IMMUTABLE_ID === undefined) {
+  mkdirSync(OUT, { recursive: true });
+  mkdirSync(FAILURE_OUT, { recursive: true });
+}
 
 function currentGitHead() {
   return execFileSync("git", ["rev-parse", "HEAD"], { cwd: ROOT, encoding: "utf8" }).trim();
@@ -85,6 +94,7 @@ function startServer() {
   });
   child.stdout.on("data", (buf) => {
     const line = String(buf);
+    if (/Ready in/.test(line)) child.captureReady = true;
     if (/Ready|compiled|error|Error/i.test(line)) process.stdout.write(`[dev] ${line}`);
   });
   child.stderr.on("data", (buf) => process.stderr.write(`[dev:err] ${buf}`));
@@ -100,15 +110,22 @@ function stopServer(child) {
   }
 }
 
-async function waitForServer(timeoutMs) {
+function ownedServer(child) {
+  if (!child || child.exitCode !== null || child.signalCode !== null) throw new Error("CAPTURE_SERVER_EXITED");
+  return child.captureReady === true;
+}
+async function waitForServer(timeoutMs, child) {
   const deadline = Date.now() + timeoutMs;
   let last = "not tried";
   while (Date.now() < deadline) {
+    if (child && !ownedServer(child)) { await new Promise(r => setTimeout(r, 50)); continue; }
     try {
       const res = await fetch(`${BASE}/terminal?symbol=SPY`, { redirect: "manual" });
       last = String(res.status);
-      if (res.status >= 200 && res.status < 500) return;
+      if (child) ownedServer(child);
+      if (res.status === 200) return;
     } catch (err) {
+      if (child) ownedServer(child);
       last = err.cause?.code || err.message;
     }
     await new Promise((r) => setTimeout(r, 750));
@@ -127,8 +144,12 @@ async function newPage(browser, width, lang) {
     localStorage.setItem("mm.lang", l);
     localStorage.setItem("theme", "dark");
     localStorage.setItem("theme_auto", "0");
-    document.documentElement.setAttribute("data-theme", "dark");
-    document.documentElement.setAttribute("data-lang", l);
+    const applyThemeAndLanguage = () => {
+      document.documentElement.setAttribute("data-theme", "dark");
+      document.documentElement.setAttribute("data-lang", l);
+    };
+    if (document.documentElement) applyThemeAndLanguage();
+    else document.addEventListener("DOMContentLoaded", applyThemeAndLanguage, { once: true });
   }, lang);
   const page = await context.newPage();
   page.setDefaultTimeout(45_000);
@@ -173,7 +194,10 @@ async function cropBox(page, box, outPath, pad) {
   const y = Math.max(0, Math.floor(box.y - pad));
   const width = Math.max(8, Math.min(vp.width - x, Math.ceil(box.width + pad * 2)));
   const height = Math.max(8, Math.min(vp.height - y, Math.ceil(box.height + pad * 2)));
-  await page.screenshot({ path: outPath, clip: { x, y, width, height } });
+  // Park the pointer so no hover state (crosshair, tooltip) leaks into the crop.
+  await page.mouse.move(0, 0);
+  if (IMMUTABLE_ID !== undefined) immutablePng = await page.screenshot({ clip: { x, y, width, height }, animations: "disabled" });
+  else await page.screenshot({ path: outPath, clip: { x, y, width, height }, animations: "disabled" });
 }
 
 async function cropLocator(page, locator, outPath, pad = 18) {
@@ -255,9 +279,19 @@ async function waitForCutChip(hub, page, lang, outPath) {
   throw new Error(`${outPath}: expected CUT chip ${cutWord} on META, got ${text}`);
 }
 
+async function waitForChartReady(page, symbol) {
+  // SSR chrome is visible before its handlers and chart values have hydrated.
+  // The active control keeps the ticker when the statusline resolves a full fund name.
+  await expect(page.locator(".topbar .pair b").first()).toHaveText(symbol, { timeout: 45_000 });
+  const ohlc = page.locator(".status-ohlc b");
+  await expect(ohlc).toHaveCount(4, { timeout: 45_000 });
+  for (const value of await ohlc.all()) await expect(value).toHaveText(/\d/);
+}
+
 async function captureSearchModal(page, width, lang, outPath) {
   await gotoReady(page, "/terminal?symbol=SPY", lang);
   await page.locator(".workspace").waitFor({ state: "visible", timeout: 45_000 });
+  await waitForChartReady(page, "SPY");
   if (width === 390) {
     // The symbar is painted before hydration attaches its handler, so a tap that lands in that
     // gap opens nothing. Tap again until the sheet is up (bounded); one real tap opens it.
@@ -304,22 +338,33 @@ async function captureAnalysis(page, width, lang, outPath) {
   await gotoReady(page, "/analysis?symbol=SPY", lang);
   const shell = page.locator(".analysis-shell").first();
   await shell.waitFor({ state: "visible", timeout: 45_000 });
+  // The server renders English and LangProvider applies mm.lang only after hydration, so a
+  // visible shell can still carry the SSR language for seconds under load. Wait for the
+  // hydrated back-link label (backToChart) like the other surfaces wait for their own strings.
+  const backLabel = lang === "zh" ? "返回图表" : "Back to chart";
+  await shell.getByText(backLabel, { exact: true }).first().waitFor({ state: "visible", timeout: 45_000 });
   const bar = page.locator(".analysis-context-bar").first();
   const target = (await bar.count()) && (await bar.isVisible().catch(() => false)) ? bar : shell;
   await cropLocator(page, target, outPath, 12);
 }
+
+// Default-on Terminal studies for a fresh SPY chart (see the legend: Moving Averages,
+// Volume, TW · Mastermind Candles, Stochastic RSI, MACD-RSI).
+const DEFAULT_STUDY_COUNT = 5;
 
 async function captureChartChrome(page, width, lang, outPath) {
   await gotoReady(page, "/terminal?symbol=SPY", lang);
   await page.locator(".workspace").waitFor({ state: "visible", timeout: 45_000 });
   const day = page.locator(".dayrange").first();
   const oracle = page.locator(".statusline").first();
-  // The SSR statusline box is visible before paintStatus receives its bars.
-  // Capture real hydrated identity/values, never an empty phone header.
-  await expect(oracle.locator(".status-symbol-name")).toContainText("SPY", { timeout: 45_000 });
-  const ohlc = oracle.locator(".status-ohlc b");
-  await expect(ohlc).toHaveCount(4);
-  for (const value of await ohlc.all()) await expect(value).toHaveText(/\d/);
+  await waitForChartReady(page, "SPY");
+  // The default study set attaches asynchronously: "TW · Mastermind Candles" lands
+  // after the first paint and recolours every candle. Shooting before it attaches
+  // records a 4-study, red/green frame that is not the settled chart. Wait for
+  // the full default legend (MA, Volume, Mastermind Candles, Stoch RSI, MACD-RSI),
+  // then let the chart commit that repaint before the crop.
+  await expect(page.locator(".lg-row")).toHaveCount(DEFAULT_STUDY_COUNT, { timeout: 45_000 });
+  await page.evaluate(() => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done))));
   const dayVisible = (await day.count()) > 0 && (await day.isVisible().catch(() => false));
   const loc = dayVisible ? day : oracle;
   await loc.waitFor({ state: "visible", timeout: 20_000 });
@@ -343,12 +388,17 @@ function shouldCapture(surfaceName, width, lang) {
 
 async function main() {
   const capturedAtHead = currentGitHead();
+  const operation = IMMUTABLE_ID === undefined ? null : evidence.beginOperation({ repoRoot: REPO, packet: "pl6", operationId: IMMUTABLE_ID });
+  const executionRows = [];
   const child = startServer();
   const files = [];
   let failed = 0;
   try {
-    await waitForServer(180_000);
-    const browser = await chromium.launch({ headless: true });
+    await waitForServer(180_000, operation ? child : undefined);
+    await warmFixtureRoutes(BASE);
+    // Partial raster tiles land at nondeterministic times; force full-tile rasterisation
+    // so a crop never records a half-painted frame (memory: screenshot-partial-raster-drift).
+    const browser = await chromium.launch({ headless: true, args: ["--disable-partial-raster"] });
     try {
       for (const width of [1440, 390]) {
         for (const lang of ["en", "zh"]) {
@@ -358,15 +408,26 @@ async function main() {
             process.stdout.write(`capture ${file} … `);
             const { context, page } = await newPage(browser, width, lang);
             try {
+              if (operation && !ownedServer(child)) throw new Error("CAPTURE_SERVER_NOT_READY");
+              immutablePng = null;
               await surface.run(page, width, lang, join(OUT, file));
               await assertNoNextIndicator(page, file);
+              if (operation) {
+                if (!ownedServer(child)) throw new Error("CAPTURE_SERVER_NOT_READY");
+                if (!immutablePng) throw new Error("NO_ACTUAL_CAPTURE");
+                const project = width === 1440 ? "desktop" : "mobile", title = `capture ${surface.name}`;
+                const observed = await page.evaluate(() => ({ lang: document.documentElement.lang.startsWith("zh") ? "zh" : document.documentElement.lang === "en" ? "en" : "unknown", theme: document.documentElement.getAttribute("data-theme") }));
+                const written = evidence.writeCase(operation, { key: evidence.key("pl6", project, title, lang), packet: "pl6", file: "capture_pl6_batch1.cjs", title, project, locale: lang, viewport: VIEWPORTS[width] }, immutablePng, { ...observed, viewport: page.viewportSize() });
+                executionRows.push({ file: "capture_pl6_batch1.cjs", title, project, locale: lang, observation: { path: written.observationName, sha256: evidence.sha(Buffer.from(evidence.canonical(written.row))) }, status: "passed", expectedStatus: "passed", retry: 0, errors: [] });
+              }
               files.push(file);
               console.log("ok");
             } catch (err) {
               failed += 1;
               console.log(`FAIL ${err && err.message ? err.message : err}`);
               try {
-                await page.screenshot({ path: join(OUT, `FAIL-${file}`), fullPage: false });
+                if (operation) evidence.writePayload(operation, `FAIL-${file}`, await page.screenshot({ fullPage: false }));
+                else await page.screenshot({ path: join(FAILURE_OUT, `FAIL-${file}`), fullPage: false });
               } catch { /* ignore */ }
             } finally {
               await context.close();
@@ -381,7 +442,20 @@ async function main() {
     stopServer(child);
   }
 
-  const evidence = [
+  if (operation && failed) evidence.writePayload(operation, "failed-execution.json", Buffer.from(evidence.canonical({ schema: "terminal.pl6-execution.v1", cases: executionRows, failed })));
+  if (failed) {
+    console.error(`Capture failed for ${failed} surface(s); the prior evidence manifest was preserved.`);
+    process.exitCode = 1;
+    return;
+  }
+
+  if (operation) {
+    const ref = evidence.finishOperation(operation, { schema: "terminal.pl6-execution.v1", cases: executionRows });
+    console.log(JSON.stringify({ visualEvidence: ref.path, sha256: ref.sha256, actualCases: executionRows.length }));
+    return;
+  }
+
+  const legacyEvidence = [
     "# B-PL-6 batch 1 — capture evidence",
     "# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06",
     "# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR",
@@ -408,13 +482,14 @@ async function main() {
     ])].map((f) => `  - ${f}`),
     "",
   ].join("\n");
-  writeFileSync(join(OUT, "EVIDENCE.yml"), evidence);
+  writeFileSync(join(OUT, "EVIDENCE.yml"), legacyEvidence);
   console.log(`capturedAtHead ${capturedAtHead}`);
   console.log(`wrote ${files.length} crops + EVIDENCE.yml to ${OUT}`);
-  if (failed) process.exitCode = 1;
 }
 
-main().catch((err) => {
+if (require.main === module) main().catch((err) => {
   console.error(err);
   process.exit(1);
 });
+
+module.exports = { waitForServer, ownedServer };

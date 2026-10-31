@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { liveDisplayEpoch, mutateLiveCandle, type LiveCandleBar } from "@/lib/liveCandle";
+import { liveDisplayEpoch, liveCandleRemaining, mutateLiveCandle, type LiveCandleBar } from "@/lib/liveCandle";
 
 const etMs = (hour: number, minute: number, second: number) =>
   Date.UTC(2026, 7, 7, hour + 4, minute, second); // 2026-08-07 is EDT
@@ -117,4 +117,18 @@ describe("mutateLiveCandle", () => {
     expect(result?.kind).toBe("new-bar");
     expect(result?.bar).toEqual({ time: display(8, 15, 2), o: 99.4, h: 99.4, l: 99.4, c: 99.4, v: 0 });
   });
+});
+
+
+it("uses the same Hong Kong session anchor as historical bars",()=>{
+  const time=Date.parse("2026-10-21T09:30:00Z")/1000;
+  const result=mutateLiveCandle([{time,o:100,h:101,l:99,c:100,v:50}],
+    {basis:"LIVE",last:102,asOfMs:Date.parse("2026-10-21T01:45:00Z")},"1h","hk",false);
+  expect(result?.kind).toBe("tick");
+  expect(result?.bar.time).toBe(time);
+});
+it("clips the regular four-hour countdown at the session close and floors elapsed candles",()=>{
+  const open=Date.parse("2026-10-21T13:30:00Z")/1000;
+  expect(liveCandleRemaining(open,"4h","us",false,Date.parse("2026-10-21T19:30:00Z"))).toBe(1800);
+  expect(liveCandleRemaining(open,"4h","us",false,Date.parse("2026-10-21T20:30:00Z"))).toBe(0);
 });

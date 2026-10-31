@@ -1,14 +1,13 @@
-# 2026-10-13 #996 (U02 data-origin readout) source hash reconciliation: preserves captured PNG bytes/provenance; the only i18n change is the added origin*/originChip*/originCode_* keys, read solely by DataOriginChip inside the /terminal ChartFrameBar; /analysis does not mount TerminalShell, ChartPane or ChartFrameBar.
 # B-F11-10a Analysis context-bar theses entry — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 74a9a3b0d5786d0e216334b1c045e7b314d32a57
-# capturedAt: 2026-10-10T00:33:51.698Z
+# capturedAtHead: e2846880681d4b9aff4a060e1321f50f240cafc7
+# capturedAt: 2026-10-24T05:29:47.034Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/workspaces/AnalysisWorkspace.tsx: "f98764b71e4e1301d6149aef0d3e47615455801f95a9691b4d8807febe92226e"
-  terminal/app/company-intelligence.css: "2bd8643832428198d38e8a5140cb7029687466781b2366976cb3ca5ddad9892b"
-  terminal/lib/i18n.tsx: "9bcded1313e75ca37fa7ab67f256ad3b568daa61aaf0d10fa1907a4751a371c1"
+  terminal/components/workspaces/AnalysisWorkspace.tsx: "411b8a7e498b8af3f9337fdcf3835dd62e6a5854826f414171d8303efd8aa5bb"
+  terminal/app/company-intelligence.css: "8b43f2046891837f6572fa2a59b7594547def9602b0454e1f14edba322da2a34"
+  terminal/lib/i18n.tsx: "13f33e3178b105a64f1f5df35974cd99041ef06f05bdece95939dd07a8b9fe7c"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -34,3 +33,13 @@ files:
   - tablet-zh.png
   - mobile-en.png
   - mobile-zh.png
+
+documentLanguageRecapture20261024:
+  sourceHead: e2846880681d4b9aff4a060e1321f50f240cafc7
+  qualification: Actual native producer executed in original managed language workspace; existing fixture data, no live-account or production claim
+  historicalManifest: history/before-document-language-20261024.yml
+  historicalSource: 919114d1c27f0f588d9d5a4d52574f19b0137d6d
+  receiptIndex: ../document-language/recapture-index.json
+
+# Raw capture identity and every upstream source/crop lock remain unchanged; omit only unused pending-copy dependency.
+lexProjection: {"schema":"terminal.lex_capture_projection.v1","omittedProperty":"obDonePrefsSyncing","capturedRawSha256":"13f33e3178b105a64f1f5df35974cd99041ef06f05bdece95939dd07a8b9fe7c","projectedSha256":"d6dcc2df7615a1c5782f4d755178fbb76bcf9ee42b93dffe7c7c95317a652de5","sourceGitBlob":"664d68043f472919f7b581f545a334bf66d9782f","sourceRecoveryCommit":"e2846880681d4b9aff4a060e1321f50f240cafc7","captureCommitLocallyAvailable":true}

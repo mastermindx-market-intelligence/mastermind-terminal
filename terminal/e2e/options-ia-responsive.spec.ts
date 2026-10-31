@@ -86,7 +86,7 @@ test("seven-category Options IA stays addressable, honest, and contained", async
   await expect(page.locator('[data-options-ia-gate="statistics-r3"]')).toContainText(
     zh ? "不使用合成数值" : "no synthetic values",
   );
-  const statisticsGate = page.locator('[data-options-ia-state="statistics-pending"]');
+  const statisticsGate = page.locator('[data-options-ia-state="statistics-observed"]');
   await expect(statisticsGate).toBeVisible();
   await expect(statisticsGate).toContainText(zh ? "当前不显示数值" : "No values shown");
 

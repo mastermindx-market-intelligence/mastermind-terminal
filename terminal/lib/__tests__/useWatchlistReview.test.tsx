@@ -112,6 +112,23 @@ describe("useWatchlistReview + WatchlistReviewBar", () => {
     expect(text("wl-review-position")).toBe("3 of 4");
   });
 
+  it("exposes the frozen previous neighbour beside nextSymbol (the E20 palette seam)", () => {
+    render({ owner: "guest", lists: { Tech: rows("NVDA", "ZZZQ", "TSLA", "AAPL") } });
+    act(() => latest.start("Tech"));
+    // At the first stop there is no previous — exactly as there is no next at the last stop.
+    expect(latest.current).toBe("NVDA");
+    expect(latest.prevSymbol).toBeNull();
+    expect(latest.canPrev).toBe(false);
+    act(() => latest.next()); // steps over ZZZQ (no market data) by name, as Next always does
+    expect(latest.current).toBe("TSLA");
+    expect(latest.nextSymbol).toBe("AAPL");
+    expect(latest.prevSymbol).toBe("NVDA"); // the unavailable ZZZQ is skipped, never substituted
+    act(() => latest.end());
+    expect(latest.itinerary).toBeNull();
+    expect(latest.prevSymbol).toBeNull();
+    expect(latest.nextSymbol).toBeNull();
+  });
+
   it("writes exactly once per action and never on a re-render", () => {
     render({ owner: "guest", lists: { Tech: rows("NVDA", "TSLA", "AAPL") } });
     expect(writes()).toBe(0);

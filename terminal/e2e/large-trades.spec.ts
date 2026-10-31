@@ -719,6 +719,27 @@ async function downloadTradePng(page: Page, info: TestInfo, name: string) {
   return { index: before, filename: download.suggestedFilename() };
 }
 
+// Geometry readiness does not imply the export inputs have settled: the company
+// manifest hydrates separately, and the native canvas can still repaint. Establish
+// an identical raster pair before changing inspection state; never retry the
+// before/after-inspector assertion or discard a changed inspection export.
+async function settledTradePng(page: Page, info: TestInfo, name: string, options: { waitForManifest?: boolean } = {}) {
+  if (options.waitForManifest !== false) await expect(page.locator(".pane-hd b").first()).toContainText("Apple Inc");
+  let previous = await downloadTradePng(page, info, name + "-readiness-0");
+  for (let attempt = 1; attempt <= 4; attempt++) {
+    const current = await downloadTradePng(page, info, name + "-readiness-" + attempt);
+    const identical = await page.evaluate(({ a, b }) => {
+      const before = window.__ltPngFrames[a], after = window.__ltPngFrames[b];
+      return before.width === after.width && before.height === after.height
+        && before.text.join("\n") === after.text.join("\n")
+        && before.pixels.every((value, i) => value === after.pixels[i]);
+    }, { a: previous.index, b: current.index });
+    if (identical) return current;
+    previous = current;
+  }
+  throw new Error("Native PNG inputs did not produce two identical baseline exports");
+}
+
 test("native PNG includes visible executions, quantity labels and provenance but excludes inspection controls", async ({ page }, info) => {
   test.setTimeout(120_000);
   await prepare(page); await observeTradePng(page);
@@ -727,7 +748,7 @@ test("native PNG includes visible executions, quantity labels and provenance but
   await expect.poll(() => page.locator('[data-testid="large-trade-marker"]:visible').count()).toBeGreaterThan(0);
   await settledTradeChart(page);
   await capture(page, info, "large-trades-export-visible-chart");
-  const first = await downloadTradePng(page, info, "large-trades-native-export");
+  const first = await settledTradePng(page, info, "large-trades-native-export");
   expect(first.filename).toBe("AAPL_5s_20261011.png");
   const proof = await page.evaluate((index) => {
     const png = window.__ltPngFrames[index];
@@ -804,6 +825,15 @@ test("native PNG freezes its admitted symbol and marker frame across asynchronou
   test.setTimeout(120_000);
   await page.clock.setFixedTime(new Date("2026-10-11T11:00:00.000Z"));
   await prepare(page); await observeTradePng(page);
+  let releaseManifest!: () => void;
+  const manifestHeld = new Promise<void>((resolve) => { releaseManifest = resolve; });
+  await page.route("**/data/manifest.json", async (route) => {
+    await manifestHeld;
+    await route.fulfill({ json: { symbols: {
+      AAPL: { name: "Apple Inc", sec: "Equities" },
+      NVDA: { name: "NVIDIA Corp", sec: "Equities" },
+    } } });
+  });
   await page.addInitScript(() => {
     localStorage.setItem("mm.inds", JSON.stringify(["largeTrades", "rsi"]));
     localStorage.setItem("mm.chartSettings", JSON.stringify({ paneButtons: "always" }));
@@ -811,16 +841,37 @@ test("native PNG freezes its admitted symbol and marker frame across asynchronou
   await openFixture(page); await settledTradeChart(page, 1);
   await page.evaluate(() => document.fonts.ready.then(() => undefined));
   await expect(page.locator('[data-testid="large-trade-marker"]:visible')).toHaveCount(4);
-  const baseline = await downloadTradePng(page, info, "large-trades-native-export-before-async-mutations");
-  const baselineFrame = await page.evaluate(() => JSON.stringify((window as unknown as {
-    __mmLargeTradesSnapshot: import("../lib/largeTrades/snapshot").LargeTradesExportFrame;
-  }).__mmLargeTradesSnapshot));
-  await page.evaluate(() => { window.__ltHoldImageDecode = true; });
+  // Native screenshot admission flushes and reprojects the chart. Prove full-raster
+  // readiness while metadata is still held, before either challenged capture or any mutation.
+  // This finite precondition never retries the ownership comparison below.
+  const readiness = await settledTradePng(page, info, "large-trades-async-admission", { waitForManifest: false });
+  const baselineIndex = await page.evaluate(() => window.__ltPngFrames.length);
+  // Admit both exports in one browser task. Awaiting the first download before admitting
+  // the second lets unrelated manifest hydration/native painting change the baseline.
+  // Only the second decode is held; its captured scene must survive the real mutations below.
+  const firstDownload = page.waitForEvent("download");
+  const baselineFrame = await page.evaluate(() => {
+    const capture = () => window.dispatchEvent(new CustomEvent("mm:snapshot", { detail: { action: "download" } }));
+    capture();
+    const frame = JSON.stringify((window as unknown as {
+      __mmLargeTradesSnapshot: import("../lib/largeTrades/snapshot").LargeTradesExportFrame;
+    }).__mmLargeTradesSnapshot);
+    window.__ltHoldImageDecode = true;
+    capture();
+    return frame;
+  });
+  const baselineDownload = await firstDownload;
+  const baselineFile = info.outputPath("large-trades-native-export-before-async-mutations.png");
+  await baselineDownload.saveAs(baselineFile);
+  await info.attach("large-trades-native-export-before-async-mutations", { path: baselineFile, contentType: "image/png" });
+  await expect.poll(() => page.evaluate(() => window.__ltPngFrames.length)).toBe(baselineIndex + 1);
   const pending = page.waitForEvent("download");
-  await page.evaluate(() => window.dispatchEvent(new CustomEvent("mm:snapshot", { detail: { action: "download" } })));
   let transitions: unknown;
   try {
     await expect.poll(() => page.evaluate(() => window.__ltImageReleases.length)).toBeGreaterThan(0);
+    // Reproduce the CI race deliberately: metadata arrives only after both captures freeze.
+    releaseManifest();
+    await expect(page.locator(".pane-hd").first()).toContainText("Apple Inc");
     await page.getByTestId("large-trades-dock").getByRole("button", { name: "Settings", exact: true }).click();
     await page.locator(".ind-set").getByRole("button", { name: "Style", exact: true }).click();
     await page.getByRole("switch", { name: "Show exact quantity labels", exact: true }).click();
@@ -860,16 +911,18 @@ test("native PNG freezes its admitted symbol and marker frame across asynchronou
       frameEqual: baselineFrame === JSON.stringify((window as unknown as { __mmLargeTradesSnapshot: unknown }).__mmLargeTradesSnapshot),
       text: after.text,
     };
-  }, { baselineIndex: baseline.index, baselineFrame });
+  }, { baselineIndex, baselineFrame });
+  await info.attach("async-capture-frame-equality", { body: JSON.stringify({
+    fixedCaptureTime: "2026-10-11T11:00:00.000Z", readinessIndex: readiness.index, baselineIndex, transitions, equality,
+    scope: "Exact native raster, overlays, frozen quantity frame, pane labels, header and provenance footer",
+  }, null, 2), contentType: "application/json" });
   expect(equality.differentBytes).toBe(0);
   expect(equality.textEqual).toBe(true);
   expect(equality.frameEqual).toBe(true);
   expect(equality.text).toEqual(expect.arrayContaining(["AAPL", "1,301", "1,500", "1,800", "1,600"]));
   expect(equality.text).not.toContain("NVDA");
-  await info.attach("async-capture-frame-equality", { body: JSON.stringify({
-    fixedCaptureTime: "2026-10-11T11:00:00.000Z", transitions, equality,
-    scope: "Exact native raster, overlays, frozen quantity frame, pane labels, header and provenance footer",
-  }, null, 2), contentType: "application/json" });
+  expect(equality.text).not.toContain("Apple Inc");
+  expect(equality.text).not.toContain("NVIDIA Corp");
 });
 
 test("native PNG waits while the requested symbol has no accepted native source", async ({ page }) => {

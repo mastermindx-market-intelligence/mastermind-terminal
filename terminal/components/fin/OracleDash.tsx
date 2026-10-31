@@ -10,7 +10,9 @@ import { useWorkspaceSource, type WorkspaceSource } from "../../lib/useWorkspace
 import { workspaceCurve, workspaceSourceClock, workspaceSecurityContext } from "../../lib/intelligenceWorkspaceView"
 import { IntelligenceWorkspaceShell, type WorkspaceTab } from "./IntelligenceWorkspaceShell"
 import styles from "./IntelligenceWorkspace.module.css"
-import { oracleVerdict, deskVerdict, signalKnownTs, isBlockedSignal, isBottomWatch, isRetroOverride, isStopSweepReclaim, isStructureStop, retroLegendCopy, sliceSignalBasis } from "../../lib/signalVerdict"
+import ProphetObservationEvidence from "./ProphetObservationEvidence"
+import type { ProphetObservationRead } from "../../lib/prophetObservations"
+import { oracleVerdict, oraclePresentation, oracleEntryAvailability, deskVerdict, signalKnownTs, isBlockedSignal, isBottomWatch, isRetroOverride, isStopSweepReclaim, isStructureStop, retroLegendCopy, sliceSignalBasis } from "../../lib/signalVerdict"
 import { computeTrendState } from "../../lib/trend"
 import { normalizeMarketRisk, riskEnvelopeCopy, type MarketRiskRead } from "../../lib/marketRisk"
 import { computeRatings, verdictFromScore } from "../../lib/techRating"
@@ -190,6 +192,7 @@ interface Intel {
 
 export interface OracleDashProps {
   sym: string
+  prophet?: ProphetObservationRead
   open?: boolean
   row?: ManifestRow | null
   slice?: Slice | null
@@ -447,7 +450,7 @@ export function MarketRiskChip({ zh }: { zh: boolean }) {
 
 /* ── main component ───────────────────────────────────────────────────── */
 
-export default function OracleDash({ sym, row, bars, zh = false, open = true, onClose, onJump, onOpenFull }: OracleDashProps) {
+export default function OracleDash({ sym, row, bars, zh = false, open = true, onClose, onJump, onOpenFull, prophet }: OracleDashProps) {
   const [tab, setTab] = useState<WorkspaceTab>("summary")
   const [filter, setFilter] = useState<"all" | "entries" | "exits" | "refused" | "receipts">("all")
   const [visibleCount, setVisibleCount] = useState(30)
@@ -459,6 +462,8 @@ export default function OracleDash({ sym, row, bars, zh = false, open = true, on
   // Derived verdicts using shared helpers (trend powers the stance ladder on stale events)
   const trendState = Array.isArray(bars) && (bars as Bar[]).length >= 200 ? computeTrendState(bars as Bar[]) : null
   const ov = oracleVerdict(row?.verdict ?? null, slice, zh, Date.now(), trendState)
+  const oracleRead = oraclePresentation(ov, zh)
+  const entry = ov.entryAvailability ?? oracleEntryAvailability(zh)
   const dv = deskVerdict(intel, zh)
 
   // derived stats: prefer slice.backtest.metrics over row for consistency
@@ -556,13 +561,22 @@ export default function OracleDash({ sym, row, bars, zh = false, open = true, on
       { label: pick(zh, "Trades", "交易次数"), value: nTrades ?? "—" }].map(metric =>
       <div className={styles.metric} key={metric.label}><span className={styles.metricValue}>{metric.value}</span><span className={styles.metricLabel}>{metric.label}</span></div>)}
   </div>
+  const entryView = <div className={styles.heroNote} data-testid="workspace-oracle-entry-availability" data-status={entry.status}>
+    <p>{pick(zh, "Entry status now", "当前入场状态")}: {entry.label}</p>
+    <p>{entry.reason}</p>
+  </div>
   const oracleView = <section className="sd-go" data-testid="workspace-oracle">
     <SourceState read={sliceRead} label={pick(zh, "Oracle signals", "神谕信号")} zh={zh} />
+    {sliceRead.status !== "ready" && entryView}
     {sliceRead.status === "ready" && <>
       <div className={styles.hero} data-testid="workspace-oracle-read">
-        <div className={styles.heroTop}><span className={styles.eyebrow}>{pick(zh, "Current read", "当前解读")}</span><span className={styles.sourcePill}>{pick(zh, "Oracle", "神谕")}</span></div>
-        <h3 className={`${styles.heroTitle} od-verdict${ov.stance ? " stance" : ""}${ov.dim && !ov.stance ? " dim" : ""}`} style={{ color: ov.color }}>{ov.label !== "—" ? ov.label : "—"}</h3>
-        {ov.sub && <p className={`${styles.heroSub} od-vsub`}>{ov.sub}</p>}
+        <div className={styles.heroTop}><span className={styles.eyebrow}>{oracleRead.heading}</span><span className={styles.sourcePill}>{pick(zh, "Oracle", "神谕")}</span></div>
+        <h3 className={`${styles.heroTitle} od-verdict${ov.stance ? " stance" : ""}${ov.dim && !ov.stance ? " dim" : ""}`} style={{ color: ov.color }}>{oracleRead.label}</h3>
+        {oracleRead.sub && <p className={`${styles.heroSub} od-vsub`}>{oracleRead.sub}</p>}
+        {ov.stance && ov.historicalSignal && <p className={styles.heroSub} data-testid="workspace-oracle-history">
+          {pick(zh, "Historical signal", "历史信号")}: {ov.historicalSignal.label} · {ov.historicalSignal.date}
+        </p>}
+        {entryView}
         {ov.line2 && <p className={styles.heroNote} data-testid="workspace-oracle-disclosure" title={ov.note || undefined}>{ov.line2}</p>}
         {ov.note && <details className={styles.method}><summary>{pick(zh, "What this means", "如何理解")}</summary><p>{ov.note}</p></details>}
               {/* GC v2: latest signal's keeper quality + recipe tier (BUY|REBUY only).
@@ -849,6 +863,7 @@ export default function OracleDash({ sym, row, bars, zh = false, open = true, on
     status={intelRead.status === "ready" ? researchDate : pick(zh, "Sources are dated individually", "各数据源单独标注日期")}>
     {(tab === "summary" || tab === "oracle") && oracleView}
     {(tab === "summary" || tab === "oracle") && <section className={styles.section}><h3 className={styles.sectionHeading}>{pick(zh, "Market risk", "市场风险")}</h3><MarketRiskChip zh={zh} /></section>}
+    {(tab === "summary" || tab === "research") && prophet && <ProphetObservationEvidence read={prophet} zh={zh} />}
     {(tab === "summary" || tab === "research") && researchView}
     {tab === "research" && intelRead.status === "ready" && companyView}
     {tab === "summary" && <section className={styles.section}><h3 className={styles.sectionHeading}>{pick(zh, "Activity", "动态")}<span>{sigs.length} {pick(zh, "events", "条记录")}</span></h3>

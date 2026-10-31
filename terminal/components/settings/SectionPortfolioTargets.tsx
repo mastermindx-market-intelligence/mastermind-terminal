@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { PortfolioTargetsReadout } from "@/components/PortfolioView";
+import { identityOwnerKey, ownerUserId } from "@/lib/accountIdentity";
 import { IconExtLink, SectionHead } from "./icons";
 import type { SectionProps } from "./types";
 import { isPortfolioTargetsSummary, type PortfolioTargetsSummary } from "@/lib/portfolioTargets";
@@ -29,19 +30,19 @@ type LoadState =
   | { kind: "unreadable" }
   | { kind: "loaded"; summary: PortfolioTargetsSummary };
 
-export default function SectionPortfolioTargets({ t, lang, onClose, email, user }: SectionProps) {
+export default function SectionPortfolioTargets({ t, lang, onClose, identity }: SectionProps) {
   const [state, setState] = useState<LoadState>({ kind: "idle" });
   // The OWNER-KEYED identity (not the email) is what the BFF rows are scoped
   // to. An owner change must invalidate the cached payload synchronously,
   // otherwise the new owner would paint the old owner's targets for a frame.
-  const ownerKey = user?.id || email || "guest";
+  const ownerKey = identityOwnerKey(identity);
   const lastLoadedOwner = useRef<string | null>(null);
   // A failed readback after a SUCCESSFUL write hands the section back to its own
   // authoritative loader below (bump = re-run the mount GET) instead of silently
   // keeping the pre-save summary on screen (macro#6819 C2 5979715088, constraint 6).
   const [reloadKey, setReloadKey] = useState(0);
   // Fences for the mutation chain (see `mutate` below). `ownerRef` is read at
-  // mutation start and again before any paint; `alive` stops paints after unmount.
+  // mutation start and again before dispatch or paint; the lifetime retires on unmount.
   const ownerRef = useRef(ownerKey);
   const ownerGeneration = useRef(0);
   // Layout effect, not passive: the owner must be current before any fetch
@@ -53,8 +54,14 @@ export default function SectionPortfolioTargets({ t, lang, onClose, email, user 
       ownerGeneration.current += 1;
     }
   }, [ownerKey]);
-  const alive = useRef(true);
-  useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
+  const lifetime = useRef({ revoked: true });
+  useLayoutEffect(() => {
+    // A fresh setup token lets StrictMode remount work without reviving a
+    // prior setup's queued intent. Cleanup permanently revokes that token.
+    const token = { revoked: false };
+    lifetime.current = token;
+    return () => { token.revoked = true; };
+  }, []);
 
   // Reset the cached payload when the active owner changes — same idiom the
   // accuracy / usage panels use, so a sign-out or account switch leaves no
@@ -123,23 +130,45 @@ export default function SectionPortfolioTargets({ t, lang, onClose, email, user 
     const seq = ++mutationSeq.current;
     const owner = ownerRef.current;
     const generation = ownerGeneration.current;
+    const token = lifetime.current;
+    const expectedOwnerId = ownerUserId(owner);
+    // Capture the scope at intent creation. Newer intents do not invalidate
+    // ordered writes; only a retired lifetime or owner generation does.
+    const owned = () => expectedOwnerId !== "" && !token.revoked
+      && lifetime.current === token && ownerRef.current === owner
+      && ownerGeneration.current === generation;
     const run = chain.current.then(async () => {
-      if (ownerRef.current !== owner) throw new Error("owner changed");
+      if (!owned()) throw new Error("owner mismatch");
       let failure: Error | null = null;
       try {
         const r = await fetch("/api/portfolio/targets", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
+          body: JSON.stringify({ ...payload, expectedOwnerId }),
         });
-        if (!r.ok) failure = new Error(String(r.status));
+        if (!r.ok) {
+          // This route reserves 409 for its owner precondition. Refusal stays
+          // terminal even when the response body is malformed or unreadable.
+          let code = r.status === 409 ? "owner mismatch" : String(r.status);
+          if (r.status !== 409) {
+            const body: unknown = await r.json().catch(() => null);
+            const error = body !== null && typeof body === "object" && "error" in body ? body.error : null;
+            // Only the route's public refusals select localized copy. Arbitrary
+            // response details must never become user-facing error text.
+            if (error === "invalid target" || error === "invalid band"
+              || error === "not a current holding" || error === "target not found") code = error;
+          }
+          failure = Object.assign(new Error(code), { code });
+        }
       } catch (cause) {
         failure = cause instanceof Error ? cause : new Error("save failed");
       }
-      // "Still the newest intent, same owner generation, still mounted" — re-asked at every
-      // step because each await is a window in which any of the three can change.
-      const live = () => alive.current && seq === mutationSeq.current
-        && ownerRef.current === owner && ownerGeneration.current === generation;
+      // A submitted POST may already have committed. Retirement rejects its
+      // caller without replay or obsolete readback. A session-owner refusal
+      // must not GET the new session's book under the still-rendered old owner.
+      if (!owned()) throw new Error("owner mismatch");
+      if (failure?.message === "owner mismatch") throw failure;
+      const live = () => owned() && seq === mutationSeq.current;
       if (live()) {
         let painted = false;
         try {
@@ -154,6 +183,7 @@ export default function SectionPortfolioTargets({ t, lang, onClose, email, user 
         } catch { /* fall through to the authoritative re-read below */ }
         if (!painted && live()) setReloadKey((k) => k + 1);
       }
+      if (!owned()) throw new Error("owner mismatch");
       if (failure) throw failure;
     });
     // The chain itself must never reject — a failed mutation is reported to ITS
@@ -219,6 +249,7 @@ export default function SectionPortfolioTargets({ t, lang, onClose, email, user 
         ) : (
           <div data-testid="portfolio-targets-loaded">
             <PortfolioTargetsReadout
+              key={ownerKey}
               summary={state.summary}
               lang={lang}
               shapeReadoutVisible={false}

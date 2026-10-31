@@ -40,13 +40,15 @@ function ev(type: string, x: number, y: number, buttons: number): MouseEvent {
   return e;
 }
 
-function axisLabelsIn(root: HTMLElement, widthPx: number): string[] {
+// Price-axis mark labels paint in the strip right of the plot, at LWC's right-aligned text
+// column: strip x0 + round(tickLength 5 + paddingInner 5).
+function axisLabelsIn(root: HTMLElement, plotWidthPx: number): string[] {
   const out: string[] = [];
   root.querySelectorAll("canvas").forEach((cv) => {
     const c = ctxByCanvas.get(cv);
     if (!c) return;
     for (const call of c.__calls) {
-      if (call.method === "fillText" && Number(call.args[1]) === widthPx - 4) out.push(String(call.args[0]));
+      if (call.method === "fillText" && Number(call.args[1]) === plotWidthPx + 10) out.push(String(call.args[0]));
     }
   });
   return out;
@@ -94,8 +96,8 @@ describe("W4-F1 — scaleLeft: PAINT must use the displayed scale too, not only 
     document.body.appendChild(left);
     const engineR = mountInto(right, false);
     const engineL = mountInto(left, true);
-    const rightLabels = axisLabelsIn(right, 200);
-    const leftLabels = axisLabelsIn(left, 200);
+    const rightLabels = axisLabelsIn(right, engineR.timeScale().width());
+    const leftLabels = axisLabelsIn(left, engineL.timeScale().width());
     expect(rightLabels.length).toBeGreaterThan(0);
     // ChartPanel.tsx:9735-9736 hides "right", shows "left" and moves the price series to
     // "left". frame.ts:288/:358 paint from "right", so at HEAD this reads a scale that has

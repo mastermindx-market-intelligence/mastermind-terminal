@@ -39,10 +39,13 @@ def test_transient_calculation_requalifies_and_refreshes_once():
     api = ChangingApi([pending()], [pull(7, mergeable_state='behind')])
     result, waits = run(api)
     assert ('update', 7, 'head-7') in api.actions
-    assert api.dispatched == [('claude/pr-7', 7)]
-    assert api.reads == {7: 2}
+    # The refreshed head's held pull_request run is re-run, not dispatched for.
+    assert ('rerun', 9101) in api.actions
+    assert api.dispatched == []
+    # Two mergeability reads, then one read of the head update-branch wrote.
+    assert api.reads == {7: 3}
     assert waits == [2]
-    assert 'awaiting fresh CI' in result[0]
+    assert 'awaiting PR-linked CI' in result[0]
 
 
 def test_transient_calculation_requalifies_and_merges_exact_head():
@@ -80,7 +83,7 @@ def test_current_refusal_or_changed_red_head_never_merges_old_proof(kind):
     if kind == 'new-red-head':
         api.runs['new-head'] = checks(conclusion='failure')
     run(api)
-    assert not any(x[0] in ('merge', 'update', 'dispatch_ci') for x in api.actions)
+    assert not any(x[0] in ('merge', 'update', 'dispatch_ci', 'rerun') for x in api.actions)
 
 
 def test_changed_green_head_is_fully_requalified_and_only_new_head_is_pinned():
@@ -96,7 +99,8 @@ def test_changed_green_head_is_fully_requalified_and_only_new_head_is_pinned():
 def test_first_refresh_stops_before_pending_second_pass():
     api = ChangingApi([pending(1), pull(2, mergeable_state='behind')], [pull(1), pull(2)])
     _, waits = run(api)
-    assert api.reads == {1: 1, 2: 1}
+    # #2's second read is the refresh path finding its new head.
+    assert api.reads == {1: 1, 2: 2}
     assert waits == []
     assert [x for x in api.actions if x[0] == 'update'] == [('update', 2, 'head-2')]
 
@@ -104,7 +108,7 @@ def test_first_refresh_stops_before_pending_second_pass():
 def test_second_pass_refresh_stops_before_other_pending_candidates():
     api = ChangingApi([pending(1), pending(2)], [pull(1, mergeable_state='behind'), pull(2)])
     run(api)
-    assert api.reads == {1: 2, 2: 1}
+    assert api.reads == {1: 3, 2: 1}
     assert [x for x in api.actions if x[0] == 'update'] == [('update', 1, 'head-1')]
 
 
