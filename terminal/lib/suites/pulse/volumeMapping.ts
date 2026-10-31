@@ -141,10 +141,8 @@ function compute(ctx: ModuleCtx): ModuleResult {
     ringB[ringPos] = bf;
     ringF[ringPos] = frac;
     ringPos = (ringPos + 1) % DOM_WIN;
-    if (ringN < DOM_WIN) {
-      ringN++;
-      continue; // warm-up: no dominance side yet
-    }
+    if (ringN < DOM_WIN) ringN++;
+    if (ringN < DOM_WIN) continue; // warm-up: no dominance side until all five bars exist
 
     let sumV = 0;
     let sumBV = 0;
