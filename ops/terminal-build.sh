@@ -4561,7 +4561,8 @@ def manager_environment():
 
 
 def read_bounded_regular_file(path, limit, prefix):
-    flags = os.O_RDONLY | getattr(os, "O_CLOEXEC", 0) | getattr(os, "O_NOFOLLOW", 0)
+    flags = (os.O_RDONLY | getattr(os, "O_CLOEXEC", 0)
+             | getattr(os, "O_NOFOLLOW", 0) | os.O_NONBLOCK)
     try:
         fd = os.open(path, flags)
     except OSError:
@@ -4694,22 +4695,35 @@ def refuse_launch_overrides(tokens):
             raise Refused("unsupported-launch-environment-override")
 
 
-def refuse_file_launch_overrides(text):
+def refuse_selected_launch_overrides(tokens):
+    for token in tokens:
+        key = token.partition("=")[0].upper()
+        if (key in LAUNCH_OVERRIDE_KEYS or key in ("PATH", "HOME")
+                or key.startswith("NPM_CONFIG_")):
+            raise Refused("unsupported-launch-environment-override")
+    refuse_launch_overrides(tokens)
+
+
+def refuse_file_launch_overrides(text, selected=False):
     for line in text.splitlines():
         stripped = line.strip()
         if not stripped or stripped.startswith(("#", ";")):
             continue
         if stripped.startswith("export "):
             stripped = stripped[7:].lstrip()
-        key, separator, value = stripped.partition("=")
-        if separator and key.strip().upper() in LAUNCH_OVERRIDE_KEYS:
-            raise Refused("unsupported-launch-environment-override")
+        assignment = re.match(r"^([A-Za-z_][A-Za-z0-9_]*)\s*(?:=|:\s+)(.*)$", stripped)
+        if assignment:
+            token = assignment.group(1) + "=" + assignment.group(2)
+            if selected:
+                refuse_selected_launch_overrides([token])
+            else:
+                refuse_launch_overrides([token])
 
 
 def admission_values_in_unit_environment(text):
     values = []
     tokens = shlex.split(text)
-    refuse_launch_overrides(tokens)
+    refuse_selected_launch_overrides(tokens)
     for token in tokens:
         key, separator, value = token.partition("=")
         if key != ADMISSION_KEY:
@@ -4787,9 +4801,11 @@ def classify_environment_topology(profile, unit, app_root, env_source_dir):
         declared.append(read_bounded_regular_file(
             entries[0][0], MAX_ENV_FILE_BYTES, "env-file"))
     for token in shlex.split(unit_property(unit, "PassEnvironment")):
+        refuse_selected_launch_overrides([token])
         if token.split("=", 1)[0] == ADMISSION_KEY:
             raise Refused("admission-key-in-indirect-unit-environment")
     for token in shlex.split(unit_property(unit, "UnsetEnvironment")):
+        refuse_selected_launch_overrides([token])
         if token.split("=", 1)[0] == ADMISSION_KEY:
             raise Refused("admission-key-in-indirect-unit-environment")
     manager = manager_environment()
@@ -4799,7 +4815,7 @@ def classify_environment_topology(profile, unit, app_root, env_source_dir):
     values = admission_values_in_unit_environment(
         unit_property(unit, "Environment"))
     for text in declared:
-        refuse_file_launch_overrides(text)
+        refuse_file_launch_overrides(text, selected=True)
         values.extend(admission_values_in_text(text))
     if not values:
         raise Refused("missing-explicit-closed")
@@ -4812,12 +4828,27 @@ def classify_environment_topology(profile, unit, app_root, env_source_dir):
         if not os.path.exists(path) and not os.path.islink(path):
             continue
         text = read_bounded_regular_file(path, MAX_ENV_FILE_BYTES, "dotenv")
-        refuse_file_launch_overrides(text)
+        refuse_file_launch_overrides(text, selected=True)
         if admission_values_in_text(text):
             raise Refused("dotenv-admission-conflict")
 
 
-def classify_launch_wrapper(profile, unit, repository, revision):
+def installed_package_json(app_root):
+    return read_bounded_regular_file(os.path.join(app_root, "package.json"),
+                                     MAX_ENV_FILE_BYTES, "installed-package")
+
+
+def classify_start_scripts(package):
+    try:
+        scripts = json.loads(package).get("scripts", {})
+    except (ValueError, TypeError, AttributeError):
+        raise Refused("unsupported-start-command")
+    if (not isinstance(scripts, dict) or scripts.get("start") != "next start"
+            or scripts.get("prestart") or scripts.get("poststart")):
+        raise Refused("unsupported-start-command")
+
+
+def classify_launch_wrapper(profile, unit, repository, revision, app_root_for_launch):
     start = unit_property(unit, "ExecStart")
     if (not start.strip().startswith("{") or not start.strip().endswith("}")
             or start.count("{") != 1 or start.count("}") != 1):
@@ -4830,13 +4861,11 @@ def classify_launch_wrapper(profile, unit, repository, revision):
         package = run_git(repository, ["cat-file", "blob",
                                         revision + ":terminal/package.json"],
                           "unsupported-launch-wrapper")
-        try:
-            scripts = json.loads(package).get("scripts", {})
-        except ValueError:
-            raise Refused("unsupported-start-command")
-        if (not isinstance(scripts, dict) or scripts.get("start") != "next start"
-                or scripts.get("prestart") or scripts.get("poststart")):
-            raise Refused("unsupported-start-command")
+        classify_start_scripts(package)
+        # With an unchanged lockfile, the first production restart still reads
+        # the installed package before step8 source reflection. Bind that actual
+        # npm command too; the candidate Git package alone is insufficient.
+        classify_start_scripts(installed_package_json(app_root_for_launch))
         return
     # systemctl renders ONE argv[]= vector in an ExecStart record, not one
     # repeated field per argument. Accept the source-owned beta unit shape.
@@ -5011,12 +5040,12 @@ def main(argv):
             or primitive[0] not in REGULAR_TREE_MODES):
         raise Refused("primitive-not-a-regular-blob")
     classify_environment_topology(profile, unit, app_root, env_source_dir)
-    classify_launch_wrapper(profile, unit, repository, revision)
+    classify_launch_wrapper(profile, unit, repository, revision, app_root)
     classify_project_npm_config(repository, revision, listing, app_root)
     if phase == "poststart":
         classify_serving_processes(unit, app_root)
         classify_environment_topology(profile, unit, app_root, env_source_dir)
-        classify_launch_wrapper(profile, unit, repository, revision)
+        classify_launch_wrapper(profile, unit, repository, revision, app_root)
         classify_project_npm_config(repository, revision, listing, app_root)
     print("explicitly-closed")
     return 0
@@ -5481,6 +5510,17 @@ if [ "$TARGET" = beta ]; then
   if ! beta_prepare_build_output; then
     beta_txn_abort "could not qualify private beta build output" || exit 1
   fi
+fi
+
+# Running Next may resolve .next at request time. Repeat after the long build,
+# before the first live marker/build movement, as well as before each restart.
+# No generation has opened here: production EXIT cleanup restores its admitted
+# canonical source; beta uses its existing transaction abort/restoration path.
+if ! require_investigation_closed_before_start "$FULL_SHA"; then
+  if [ "$TARGET" = beta ]; then
+    beta_txn_abort "candidate Investigation admission refused before live generation swap" || exit 1
+  fi
+  exit 65
 fi
 
 # 5) Pin the same deployment id for `next start`, which evaluates next.config.ts

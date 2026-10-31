@@ -18,6 +18,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 import textwrap
 from pathlib import Path
 from types import SimpleNamespace
@@ -89,6 +90,7 @@ class FakeGitHost:
         unit: dict[str, str] | None = None,
         manager: str = "",
         package: bytes = PACKAGE_JSON,
+        installed_package: bytes = PACKAGE_JSON,
     ):
         self.git_calls: list[list[str]] = []
         self.unit_calls: list[str] = []
@@ -97,6 +99,7 @@ class FakeGitHost:
         self.unit = unit or {}
         self.manager = manager
         self.package = package
+        self.installed_package = installed_package
 
     def install(self, ns) -> FakeGitHost:
         host = self
@@ -125,6 +128,7 @@ class FakeGitHost:
             host.unit_calls.append("manager-environment")
             return host.manager
 
+        ns["installed_package_json"] = lambda app: host.installed_package
         ns["run_git"] = run_git
         ns["unit_property"] = unit_property
         ns["manager_environment"] = manager_environment
@@ -1037,6 +1041,10 @@ def _systemctl_shim(tmp_path: Path, props: dict[str, str]) -> dict[str, str]:
     props = {"NeedDaemonReload": "no", "ActiveState": "active",
              "WorkingDirectory": "/opt/terminal/terminal", "ControlGroup": UNIT_CGROUP,
              "ExecStartPre": "", "ExecStartPost": "", "ExecCondition": "", "ExecStopPost": "", "RootDirectory": "", "RootImage": "", **props}
+    # Production npm reads the installed package even when the lock is unchanged.
+    app_package = tmp_path / "app" / "package.json"
+    if app_package.parent.is_dir() and not app_package.exists():
+        app_package.write_bytes(PACKAGE_JSON)
     shim_dir = tmp_path / "bin"
     shim_dir.mkdir(exist_ok=True)
     # Longest property names first: a "-p EnvironmentFiles" query must not be
@@ -1728,3 +1736,124 @@ def test_empty_project_npm_config_is_supported(verifier, tmp_path, capsys):
     assert _decide(verifier, FakeGitHost(tree_listing=primitive_entry(),
                                         unit=closed_prod_unit()), app=app) == 0
     assert capsys.readouterr().out.strip() == "explicitly-closed"
+
+
+def test_configured_fifo_is_refused_without_blocking_open(tmp_path):
+    fifo = tmp_path / "configured-env"
+    os.mkfifo(fifo)
+    # A child timeout makes the original blocking-open defect a bounded test
+    # failure; execute only the exact read-only inline collector, never main.
+    program = '''from pathlib import Path
+import sys
+text=Path(sys.argv[1]).read_text()
+marker="<<'PY_INVESTIGATION_INSTALL'"
+start=text.index(marker)+len(marker)+1
+body=text[start:text.index("\\nPY_INVESTIGATION_INSTALL\\n",start)]
+ns={"__name__":"fifo_collector_test"}
+exec(compile(body,"<exact inline verifier>","exec"),ns)
+try:
+ ns["read_bounded_regular_file"](sys.argv[2],1024,"env-file")
+except ns["Refused"] as error:
+ print(error.code)
+ raise SystemExit(65)
+raise SystemExit(1)
+'''
+    result = subprocess.run([sys.executable, "-c", program, str(SCRIPT), str(fifo)],
+                            capture_output=True, text=True, timeout=5)
+    assert result.returncode == 65, result.stderr
+    assert result.stdout.strip() == "env-file-not-regular"
+
+
+@pytest.mark.parametrize("profile", ["production", "beta"])
+def test_after_build_recheck_refuses_before_any_live_generation_mutation(tmp_path, profile):
+    text = _library_text()
+    start = text.index('if ! require_investigation_closed_before_start "$FULL_SHA";',
+                       text.index("# 4) verify the new build"))
+    end = text.index("# 5) Pin the same deployment id", start)
+    block = text[start:end]
+    generation = text.index('deploy_generation_begin "$APP" "$STAGE/.deployment-id"', end)
+    swap = text.index('# 6) atomic swap', generation)
+    assert start < end < generation < swap
+    app = tmp_path / "app"
+    app.mkdir()
+    marker = app / ".deployment-id"
+    marker.write_text(OLD_SHA + "\n")
+    result = run_gen(f'''
+        TARGET={profile}
+        FULL_SHA={NEW_SHA}
+        trap 'echo EXISTING_EXIT_CLEANUP' EXIT
+        require_investigation_closed_before_start() {{ return 65; }}
+        beta_txn_abort() {{ echo EXISTING_BETA_ABORT; return 1; }}
+        {block}
+        printf MUTATED > "{marker}"
+    ''')
+    assert result.returncode == (1 if profile == "beta" else 65)
+    assert marker.read_text().strip() == OLD_SHA
+    assert "EXISTING_EXIT_CLEANUP" in result.stdout
+    assert ("EXISTING_BETA_ABORT" in result.stdout) == (profile == "beta")
+
+
+def test_actual_installed_package_hooks_refuse_even_when_lock_unchanged(tmp_path):
+    repo, sha = _fixture_repo(tmp_path, with_primitive=True)
+    app = tmp_path / "app"
+    app.mkdir()
+    # Unchanged locks select the incumbent path that skips package reflection
+    # until after first restart. The actual old package must be classified too.
+    for parent in (repo / "terminal", app):
+        (parent / "package-lock.json").write_text("same-lock\n")
+    (app / "package.json").write_text(json.dumps({"scripts": {
+        "start": "next start", "prestart": "private-command"}}))
+    shim = _systemctl_shim(tmp_path, closed_prod_unit())
+    result = run_gen(f'''
+        {_owner_globals(repo, app)}
+        require_investigation_closed_before_start "{sha}"
+        printf 'RC=%s\\n' "$?"
+    ''', env=shim)
+    assert "RC=65" in result.stdout
+    assert "unsupported-start-command" in result.stderr
+    assert "private-command" not in result.stdout + result.stderr
+    assert (app / "package-lock.json").read_bytes() == (repo / "terminal" / "package-lock.json").read_bytes()
+
+
+@pytest.mark.parametrize("prop,value", [
+    ("Environment", PROD_CLOSED_ENV + ' "PATH=/alternate"'),
+    ("Environment", PROD_CLOSED_ENV + ' "HOME=/alternate"'),
+    ("Environment", PROD_CLOSED_ENV + ' "npm_config_workspace=other"'),
+    ("PassEnvironment", "NODE_OPTIONS"),
+    ("UnsetEnvironment", "npm_config_script_shell"),
+])
+def test_selected_launch_config_indirections_are_not_supported(verifier, prop, value):
+    host = FakeGitHost(tree_listing=primitive_entry(), unit=closed_prod_unit(**{prop: value}))
+    with pytest.raises(verifier["Refused"]) as raised:
+        _decide(verifier, host)
+    assert raised.value.code == "unsupported-launch-environment-override"
+
+
+def test_trusted_manager_defaults_and_npm_injected_metadata_remain_supported(verifier, capsys):
+    procs = serving_fixture()
+    for proc in procs.values():
+        proc["environ"] += b"PATH=/usr/bin\0HOME=/root\0npm_config_user_agent=npm/10\0"
+    install_proc_fakes(verifier, procs, (7, 99))
+    host = FakeGitHost(tree_listing=primitive_entry(), unit=closed_prod_unit(MainPID=str(MAIN_PID)),
+                       manager="PATH=/usr/bin\nHOME=/root\n")
+    host.install(verifier)
+    assert verifier["main"](["/repo", NEW_SHA, "poststart", "/app", "terminal", "/tmp", "production"]) == 0
+    assert capsys.readouterr().out.strip() == "explicitly-closed"
+
+
+@pytest.mark.parametrize("source", ["env-file", "dotenv"])
+def test_selected_file_launch_overrides_refuse(verifier, tmp_path, source):
+    app = tmp_path / "app"
+    app.mkdir()
+    if source == "env-file":
+        env_file = tmp_path / "environment"
+        env_file.write_text("INVESTIGATION_API_ADMISSION=closed\nnpm_config_workspace=other\n")
+        host = FakeGitHost(tree_listing=primitive_entry(), unit=closed_beta_unit(str(env_file)))
+        args = dict(profile="beta", unit_name="terminal-beta", env_dir=str(tmp_path))
+    else:
+        (app / ".env.local").write_text("HOME: /alternate\n")
+        host = FakeGitHost(tree_listing=primitive_entry(), unit=closed_prod_unit())
+        args = {}
+    with pytest.raises(verifier["Refused"]) as raised:
+        _decide(verifier, host, app=app, **args)
+    assert raised.value.code == "unsupported-launch-environment-override"
