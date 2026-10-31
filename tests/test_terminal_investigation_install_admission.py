@@ -1857,3 +1857,18 @@ def test_selected_file_launch_overrides_refuse(verifier, tmp_path, source):
     with pytest.raises(verifier["Refused"]) as raised:
         _decide(verifier, host, app=app, **args)
     assert raised.value.code == "unsupported-launch-environment-override"
+
+
+@pytest.mark.parametrize(("prefix", "separator"), [
+    ("", " "), ("", "\t"), ("\ufeff", ""), ("", "\ufeff"),
+])
+def test_next_supported_export_whitespace_cannot_hide_launch_override(verifier, prefix, separator):
+    # Next's dotenv parser accepts export\s+, including a tab. The known key
+    # must be refused before activation for every supported export separator.
+    declaration_prefix = prefix + ("export" + separator if separator else "")
+    assert verifier["admission_values_in_text"](
+        declaration_prefix + "INVESTIGATION_API_ADMISSION=closed\n") == ["closed"]
+    with pytest.raises(verifier["Refused"]) as raised:
+        verifier["refuse_file_launch_overrides"](
+            declaration_prefix + "NODE_OPTIONS=--require=fixture-preload\n", selected=True)
+    assert raised.value.code == "unsupported-launch-environment-override"

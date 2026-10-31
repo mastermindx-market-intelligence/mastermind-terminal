@@ -4704,13 +4704,19 @@ def refuse_selected_launch_overrides(tokens):
     refuse_launch_overrides(tokens)
 
 
+def normalize_env_export_line(line):
+    # Match the already-supported Next dotenv export-whitespace lexical shape.
+    # Both admission and known override classification use this normalization.
+    # JavaScript \s additionally includes UTF-8 BOM (U+FEFF). Match that
+    # leading/export boundary so supported dotenv assignments cannot hide.
+    return re.sub(r"^[\s\ufeff]*(?:export[\s\ufeff]+)?", "", line).rstrip()
+
+
 def refuse_file_launch_overrides(text, selected=False):
     for line in text.splitlines():
-        stripped = line.strip()
+        stripped = normalize_env_export_line(line)
         if not stripped or stripped.startswith(("#", ";")):
             continue
-        if stripped.startswith("export "):
-            stripped = stripped[7:].lstrip()
         assignment = re.match(r"^([A-Za-z_][A-Za-z0-9_]*)\s*(?:=|:\s+)(.*)$", stripped)
         if assignment:
             token = assignment.group(1) + "=" + assignment.group(2)
@@ -4743,7 +4749,7 @@ def admission_values_in_text(text):
     if len(lines) > MAX_SCAN_LINES:
         raise Refused("environment-scan-oversized")
     for line in lines:
-        stripped = line.strip()
+        stripped = normalize_env_export_line(line)
         if not stripped or stripped[0] in "#;":
             continue
         if not KEY_LINE.match(stripped):
