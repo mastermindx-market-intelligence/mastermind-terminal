@@ -1,0 +1,24 @@
+{
+  "purpose": "Local conformance specimens, not current market data or production access proof",
+  "attention_source": {
+    "repository": "mastermindx-market-intelligence/macro",
+    "commit": "27349c2c7d2ddcce562f4e973e0a1513e6181ba6",
+    "path": "site/basketdata/sector_pulse.json",
+    "source_sha256": "83e985a5cfc5c46e766dd5df9c17c5984769db36cf497b7d281e904e95ae2617",
+    "source_as_of": "2026-10-14",
+    "replay_clock": "2026-10-17T18:00:00Z",
+    "clock_scope": "Synthetic test clock only; not a historical availability or receipt assertion",
+    "generated_by": "engine.catalyst_opportunity.reader.read_current_view",
+    "fixture_sha256": "733a7c2f93d0f8379f7943cc5af6792958c7e739cd976fdc13d17eefca43cea9"
+  },
+  "defense_source": {
+    "repository": "mastermindx-market-intelligence/macro",
+    "commit": "f2b6f633f371c5191567dff434b913c0461f20bd",
+    "path": "data/government_revenue/defense_economics.json",
+    "blob": "fd47276d1e31e136715a579eddc4280c365f01f8",
+    "sha256": "7004d843ac28cdc29fc0fa1117823a8e1e2c2bd05ed22dffb9fa49909474a072",
+    "content_id": "dfe1-e90d7dd8f5678391f90e2c46",
+    "copied_without_modification": true,
+    "native_validator_passed": true
+  }
+}
