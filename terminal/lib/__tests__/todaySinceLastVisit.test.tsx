@@ -2,7 +2,7 @@
 import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import TodaySinceLastVisit, { storageKey } from "@/components/workspaces/TodaySinceLastVisit";
+import TodaySinceLastVisit, { STORAGE_KEY, ownerSlot } from "@/components/workspaces/TodaySinceLastVisit";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 const A = "11111111-1111-4111-8111-111111111111";
@@ -27,14 +27,43 @@ async function renderOwner(ownerKey: string) {
 }
 const state = () => container.querySelector("[data-today-since-state]")?.getAttribute("data-today-since-state") ?? null;
 const sentPrevious = (index: number) => JSON.parse(String(held[index].init?.body)).previous;
-const BRIEF = { schema: "portfolio_brief.v2", state_digest: { names: { NVDA: "trend" } }, population: { disclosure_en: "Composed over the 3 names you hold.", disclosure_zh: "基于你持有的 3 个名称生成。" } };
-const DIGEST_OLD = { names: { NVDA: "trend", AAPL: "chop" } };
-const DIGEST_NEW = { names: { NVDA: "chop", AAPL: "chop" } };
+const button = (text: string) => Array.from(container.querySelectorAll("button")).find(b => b.textContent?.includes(text));
+
+// Envelope helpers — the house format `{ "<owner>": <digest> }` under ONE key (lib/ownerStorage.ts).
+const envelope = () => JSON.parse(window.localStorage.getItem(STORAGE_KEY) || "{}") as Record<string, unknown>;
+const slot = (owner: string) => envelope()[ownerSlot(owner)];
+const seed = (slots: Record<string, unknown>) => window.localStorage.setItem(STORAGE_KEY, JSON.stringify(
+  Object.fromEntries(Object.entries(slots).map(([owner, digest]) => [ownerSlot(owner), digest])),
+));
+
+// Producer-shaped fixtures (engine/portfolio_changes.py snapshot(): `names` values are the
+// per-name desk state RECORDS, `sectors` the sector records, regime labels at the top).
+const DIGEST_OLD = {
+  schema: "portfolio_snapshot.v1", asof: "2026-10-29",
+  names: { NVDA: { stage: 2, entry: "Entry zone", earnings: "2026-11-19" }, AAPL: { stage: 3 } },
+  sectors: { Technology: { cls: "leading", conviction: "high" } },
+  regime_en: "Risk-on", regime_zh: "风险偏好",
+};
+const DIGEST_NEW = {
+  schema: "portfolio_snapshot.v1", asof: "2026-10-30",
+  names: { NVDA: { stage: 3, entry: "Extended", earnings: "2026-11-19" }, AAPL: { stage: 3 } },
+  sectors: { Technology: { cls: "weakening", conviction: "medium" } },
+  regime_en: "Mixed", regime_zh: "分化",
+};
+const BRIEF = { schema: "portfolio_brief.v2", asof: "2026-10-30", state_digest: DIGEST_NEW, population: { mode: "positions", label_en: "Open positions", label_zh: "开仓持仓", n: 2, disclosure_en: "Composed over the 2 names you hold as open positions.", disclosure_zh: "基于你持有的 2 个开仓名称生成。" } };
+const BRIEF_WATCHLIST = { ...BRIEF, population: { mode: "watchlist_union", label_en: "Watchlist", label_zh: "自选", n: 2, disclosure_en: "Composed over the 2 names on your watchlists; no open positions were found.", disclosure_zh: "基于你自选列表中的 2 个名称生成；未找到开仓持仓。" } };
 const CURSOR = { scope: "device", note_en: "Your marker is kept on this device only.", note_zh: "你的标记仅保存在本设备。" };
+// The desk's own kinds: regime carries no ticker; stage/entry/earnings carry one;
+// sector_class/sector_conviction carry a sector; added/removed are membership lines.
+const REGIME = { kind: "regime", en: "The desk's daily read moved from Risk-on to Mixed.", zh: "桌面的每日判读从风险偏好转为分化。" };
+const STAGE = { kind: "stage", en: "NVDA moved from Stage 2 to Stage 3.", zh: "NVDA 从第 2 阶段进入第 3 阶段。", ticker: "NVDA" };
+const ENTRY = { kind: "entry", en: "NVDA's entry read changed from Entry zone to Extended.", zh: "NVDA 的入场判读从入场区变为超涨。", ticker: "NVDA" };
+const SECTOR = { kind: "sector_class", en: "Technology moved from leading to weakening.", zh: "科技从领先转为走弱。", sector: "Technology" };
+const ADDED = { kind: "added", en: "1 name joined this read since your last visit: XOM.", zh: "自你上次查看以来，新增 1 只个股：XOM。" };
 function changes(lines: Array<Record<string, unknown>>, extra: Record<string, unknown> = {}) {
-  return { schema: "portfolio_changes.v1", asof: "2026-10-30", first_visit: false, changes: lines, state_digest: DIGEST_NEW, cursor: CURSOR, ...extra };
+  return { schema: "portfolio_changes.v1", asof: "2026-10-30", population: "positions", first_visit: false, changes: lines, state_digest: DIGEST_NEW, cursor: CURSOR, ...extra };
 }
-const line = (ticker: string, en: string, zh = en) => ({ kind: "regime", en, zh, ticker });
+const stageLine = (ticker: string) => ({ kind: "stage", en: `${ticker} moved from Stage 2 to Stage 3.`, zh: `${ticker} 从第 2 阶段进入第 3 阶段。`, ticker });
 
 beforeEach(() => {
   // Node 26 ships its own experimental global localStorage getter that shadows jsdom's
@@ -46,10 +75,10 @@ beforeEach(() => {
   container = document.createElement("div"); document.body.appendChild(container); root = createRoot(container);
   vi.stubGlobal("fetch", vi.fn((input: RequestInfo | URL, init?: RequestInit) => new Promise<Response>((resolve, reject) => held.push({ url: String(input), init, resolve, reject }))));
 });
-afterEach(async () => { await act(async () => root.unmount()); container.remove(); vi.unstubAllGlobals(); });
+afterEach(async () => { await act(async () => root.unmount()); container.remove(); vi.unstubAllGlobals(); vi.restoreAllMocks(); });
 
 describe("Today — since your last visit", () => {
-  it("first visit on a device: posts previous=null, renders the first-visit line, stores the desk's digest", async () => {
+  it("first visit on a device: posts previous=null, renders the first-visit line, stores the desk's digest in the owner's slot", async () => {
     await renderOwner(A);
     expect(state()).toBe("loading");
     expect(held).toHaveLength(1); expect(held[0].url).toBe("/api/portfolio-brief");
@@ -60,28 +89,27 @@ describe("Today — since your last visit", () => {
     await answer(1, changes([], { first_visit: true }));
     expect(state()).toBe("ready");
     expect(container.textContent).toContain("First visit on this device");
-    expect(JSON.parse(String(window.localStorage.getItem(storageKey(A))))).toEqual(DIGEST_NEW);
+    expect(envelope()).toEqual({ [ownerSlot(A)]: DIGEST_NEW });
   });
 
-  it("returning visit: posts the stored digest and renders the desk's lines, each ticker linking to Analysis", async () => {
-    window.localStorage.setItem(storageKey(A), JSON.stringify(DIGEST_OLD));
+  it("returning visit: posts the stored digest verbatim and renders every desk kind, ticker lines linking to Analysis", async () => {
+    seed({ [A]: DIGEST_OLD });
     await renderOwner(A);
     await answer(0, BRIEF);
     expect(sentPrevious(1)).toEqual(DIGEST_OLD);
-    await answer(1, changes([line("NVDA", "NVDA moved from Trend to Chop.", "NVDA 从趋势转为震荡。"), { kind: "sector", en: "Technology lost leadership.", zh: "科技失去领导地位。", sector: "Technology" }]));
+    await answer(1, changes([REGIME, STAGE, ENTRY, SECTOR, ADDED]));
     expect(state()).toBe("ready");
-    expect(container.textContent).toContain("NVDA moved from Trend to Chop.");
-    expect(container.textContent).toContain("Technology lost leadership.");
-    const link = Array.from(container.querySelectorAll("a")).find(a => a.textContent === "NVDA");
-    expect(link?.getAttribute("href")).toBe("/analysis?symbol=NVDA");
-    expect(container.textContent).toContain("Composed over the 3 names you hold.");
+    for (const line of [REGIME, STAGE, ENTRY, SECTOR, ADDED]) expect(container.textContent).toContain(line.en);
+    const links = Array.from(container.querySelectorAll("li a")).map(a => a.getAttribute("href"));
+    expect(links).toEqual(["/analysis?symbol=NVDA", "/analysis?symbol=NVDA"]);
+    expect(container.textContent).toContain("Composed over the 2 names you hold as open positions.");
     expect(container.textContent).toContain(CURSOR.note_en);
     expect(container.textContent).toContain("2026-10-30");
-    expect(JSON.parse(String(window.localStorage.getItem(storageKey(A))))).toEqual(DIGEST_NEW);
+    expect(slot(A)).toEqual(DIGEST_NEW);
   });
 
   it("no change: renders the quiet line, never invents a change", async () => {
-    window.localStorage.setItem(storageKey(A), JSON.stringify(DIGEST_NEW));
+    seed({ [A]: DIGEST_NEW });
     await renderOwner(A);
     await answer(0, BRIEF);
     await answer(1, changes([]));
@@ -89,45 +117,82 @@ describe("Today — since your last visit", () => {
     expect(container.querySelectorAll("li")).toHaveLength(0);
   });
 
-  it("caps the list at six lines and routes the rest to Portfolio", async () => {
-    window.localStorage.setItem(storageKey(A), JSON.stringify(DIGEST_OLD));
+  it("shows six lines first and expands the rest in place — no desk line is sent elsewhere or lost", async () => {
+    seed({ [A]: DIGEST_OLD });
     await renderOwner(A);
     await answer(0, BRIEF);
-    await answer(1, changes(["A", "B", "C", "D", "E", "F", "G", "H"].map(t => line(t, `${t} changed.`))));
+    await answer(1, changes(["A", "B", "C", "D", "E", "F", "G", "H"].map(stageLine)));
     expect(container.querySelectorAll("li")).toHaveLength(6);
-    expect(container.textContent).toContain("2 further changes on Portfolio.");
+    expect(container.textContent).not.toContain("Portfolio.");
+    const more = button("Show 2 more changes");
+    expect(more).toBeTruthy();
+    await act(async () => more!.click()); await flush();
+    expect(container.querySelectorAll("li")).toHaveLength(8);
+    expect(container.textContent).toContain("H moved from Stage 2 to Stage 3.");
+    expect(button("Show")).toBeUndefined();
+  });
+
+  it("accepts the desk's longest names (up to 48 characters) as Analysis links", async () => {
+    seed({ [A]: DIGEST_OLD });
+    await renderOwner(A);
+    await answer(0, BRIEF);
+    const long = "A".repeat(48);
+    await answer(1, changes([stageLine(long), stageLine("B".repeat(49))]));
+    const links = Array.from(container.querySelectorAll("li a")).map(a => a.getAttribute("href"));
+    expect(links).toEqual([`/analysis?symbol=${long}`]);
+    expect(container.querySelectorAll("li")).toHaveLength(2);
   });
 
   it("free tier: a 403 on the brief renders the teaser and never posts the digest", async () => {
-    window.localStorage.setItem(storageKey(A), JSON.stringify(DIGEST_OLD));
+    seed({ [A]: DIGEST_OLD });
     await renderOwner(A);
     await answer(0, { error: "pro_required", tier: "free" }, 403);
     expect(state()).toBe("teaser");
     expect(held).toHaveLength(1);
     expect(container.textContent).toContain("See the Pro brief");
-    expect(window.localStorage.getItem(storageKey(A))).toBe(JSON.stringify(DIGEST_OLD));
+    expect(slot(A)).toEqual(DIGEST_OLD);
   });
 
-  it("signed out: a 401 renders nothing and hands the departure to the parent", async () => {
+  it("a 403 on the diff after a 200 brief is the teaser and keeps the marker", async () => {
+    seed({ [A]: DIGEST_OLD });
+    await renderOwner(A);
+    await answer(0, BRIEF);
+    await answer(1, { error: "pro_required", tier: "free" }, 403);
+    expect(state()).toBe("teaser");
+    expect(slot(A)).toEqual(DIGEST_OLD);
+  });
+
+  it("signed out: a 401 renders nothing, clears only this owner's slot, and hands the departure to the parent", async () => {
+    seed({ [A]: DIGEST_OLD, [B]: DIGEST_NEW });
     await renderOwner(A);
     await answer(0, { error: "unauthenticated" }, 401);
     expect(container.querySelector("[data-today-since-state]")).toBeNull();
     expect(unauthenticated).toHaveBeenCalledTimes(1);
     expect(held).toHaveLength(1);
+    expect(envelope()).toEqual({ [ownerSlot(B)]: DIGEST_NEW });
   });
 
-  it("desk unavailable: a 503 keeps the stored marker and offers one retry", async () => {
-    window.localStorage.setItem(storageKey(A), JSON.stringify(DIGEST_OLD));
+  it("desk unavailable: a 503 on the diff keeps the stored marker and offers one retry", async () => {
+    seed({ [A]: DIGEST_OLD });
     await renderOwner(A);
     await answer(0, BRIEF);
     await answer(1, { error: "ctx_unavailable" }, 503);
     expect(state()).toBe("unavailable");
-    expect(window.localStorage.getItem(storageKey(A))).toBe(JSON.stringify(DIGEST_OLD));
-    const retry = Array.from(container.querySelectorAll("button")).find(b => b.textContent?.includes("Check again"));
+    expect(slot(A)).toEqual(DIGEST_OLD);
+    const retry = button("Check again");
     expect(retry).toBeTruthy();
     await act(async () => retry!.click()); await flush();
     expect(state()).toBe("loading");
     expect(held).toHaveLength(3); expect(held[2].url).toBe("/api/portfolio-brief");
+  });
+
+  it("a 503 on the brief is unavailable and never posts the digest", async () => {
+    seed({ [A]: DIGEST_OLD });
+    await renderOwner(A);
+    await answer(0, { error: "ctx_unavailable" }, 503);
+    expect(state()).toBe("unavailable");
+    expect(held).toHaveLength(1);
+    expect(slot(A)).toEqual(DIGEST_OLD);
   });
 
   it("network failure on the brief is unavailable, not a crash", async () => {
@@ -137,26 +202,89 @@ describe("Today — since your last visit", () => {
   });
 
   it("a malformed desk payload is unavailable and does not overwrite the marker", async () => {
-    window.localStorage.setItem(storageKey(A), JSON.stringify(DIGEST_OLD));
+    seed({ [A]: DIGEST_OLD });
     await renderOwner(A);
     await answer(0, BRIEF);
     await answer(1, { schema: "portfolio_changes.v1", first_visit: false, changes: [{ kind: "x" }], state_digest: DIGEST_NEW });
     expect(state()).toBe("unavailable");
-    expect(window.localStorage.getItem(storageKey(A))).toBe(JSON.stringify(DIGEST_OLD));
+    expect(slot(A)).toEqual(DIGEST_OLD);
+  });
+
+  it("a 200 whose state_digest is not a digest is unavailable and does not advance the marker", async () => {
+    seed({ [A]: DIGEST_OLD });
+    await renderOwner(A);
+    await answer(0, BRIEF);
+    await answer(1, changes([STAGE], { state_digest: { names: "NVDA,AAPL" } }));
+    expect(state()).toBe("unavailable");
+    expect(slot(A)).toEqual(DIGEST_OLD);
+    expect(container.textContent).not.toContain(STAGE.en);
+  });
+
+  it("the retry's read wins: a late answer to the superseded read is dropped and writes nothing", async () => {
+    seed({ [A]: DIGEST_OLD });
+    await renderOwner(A);
+    await answer(0, BRIEF);
+    await answer(1, { error: "ctx_unavailable" }, 503);
+    await act(async () => button("Check again")!.click()); await flush();
+    expect(held).toHaveLength(3);
+    // The retry's brief answers, then the retry's diff is pending while a stray late
+    // 200 arrives for the FIRST read's diff: it must neither render nor store.
+    await answer(2, BRIEF);
+    expect(held).toHaveLength(4);
+    const stray = { names: { STRAY: { stage: 1 } } };
+    await answer(1, changes([STAGE], { state_digest: stray }));
+    expect(state()).toBe("loading");
+    expect(slot(A)).toEqual(DIGEST_OLD);
+    await answer(3, changes([ENTRY]));
+    expect(state()).toBe("ready");
+    expect(container.textContent).toContain(ENTRY.en);
+    expect(slot(A)).toEqual(DIGEST_NEW);
+  });
+
+  it("a storage write that is refused still renders the desk's lines", async () => {
+    seed({ [A]: DIGEST_OLD });
+    const setItem = vi.spyOn(window.localStorage.__proto__ as Storage, "setItem").mockImplementation(() => { throw new DOMException("quota", "QuotaExceededError"); });
+    await renderOwner(A);
+    await answer(0, BRIEF);
+    expect(sentPrevious(1)).toEqual(DIGEST_OLD);
+    await answer(1, changes([STAGE]));
+    expect(state()).toBe("ready");
+    expect(container.textContent).toContain(STAGE.en);
+    expect(setItem).toHaveBeenCalled();
+    setItem.mockRestore();
+    expect(slot(A)).toEqual(DIGEST_OLD);
   });
 
   it("markers are per owner and the section remounts on owner change", async () => {
-    window.localStorage.setItem(storageKey(A), JSON.stringify(DIGEST_OLD));
+    seed({ [A]: DIGEST_OLD });
     const scope = { current: new AbortController() };
     await mountNode(<TodaySinceLastVisit ownerKey={A} scope={scope} onUnauthenticated={unauthenticated} />);
     await answer(0, BRIEF);
     expect(sentPrevious(1)).toEqual(DIGEST_OLD);
     const next = { current: new AbortController() };
-    scope.current.abort();
+    await act(async () => scope.current.abort());
     await mountNode(<TodaySinceLastVisit ownerKey={B} scope={next} onUnauthenticated={unauthenticated} />);
     expect(held).toHaveLength(3); expect(held[2].url).toBe("/api/portfolio-brief");
     await answer(2, BRIEF);
     expect(sentPrevious(3)).toBeNull();
+  });
+
+  it("an owner switch while the diff is in flight: the late 200 is dropped and the departed owner's slot is untouched", async () => {
+    seed({ [A]: DIGEST_OLD });
+    const scope = { current: new AbortController() };
+    await mountNode(<TodaySinceLastVisit ownerKey={A} scope={scope} onUnauthenticated={unauthenticated} />);
+    await answer(0, BRIEF);
+    expect(held).toHaveLength(2);
+    const next = { current: new AbortController() };
+    await act(async () => scope.current.abort());
+    await mountNode(<TodaySinceLastVisit ownerKey={B} scope={next} onUnauthenticated={unauthenticated} />);
+    await answer(1, changes([STAGE]));
+    expect(slot(A)).toEqual(DIGEST_OLD);
+    expect(slot(B)).toBeUndefined();
+    expect(container.textContent).not.toContain(STAGE.en);
+    await answer(2, BRIEF);
+    await answer(3, changes([], { first_visit: true }));
+    expect(envelope()).toEqual({ [ownerSlot(A)]: DIGEST_OLD, [ownerSlot(B)]: DIGEST_NEW });
   });
 
   it("a scope abort ends the section and drops any late answer", async () => {
@@ -165,19 +293,49 @@ describe("Today — since your last visit", () => {
     expect(container.querySelector("[data-today-since-state]")).toBeNull();
     await answer(0, BRIEF);
     expect(held).toHaveLength(1);
-    expect(window.localStorage.getItem(storageKey(A))).toBeNull();
+    expect(window.localStorage.getItem(STORAGE_KEY)).toBeNull();
+  });
+
+  it("shows the watchlist population sentence when the diff was read over the same set", async () => {
+    seed({ [A]: DIGEST_OLD });
+    await renderOwner(A);
+    await answer(0, BRIEF_WATCHLIST);
+    await answer(1, changes([STAGE], { population: "watchlist_union" }));
+    expect(state()).toBe("ready");
+    expect(container.textContent).toContain("Composed over the 2 names on your watchlists");
+  });
+
+  it("shows no population sentence when the cached brief names a different set than the diff", async () => {
+    seed({ [A]: DIGEST_OLD });
+    await renderOwner(A);
+    await answer(0, BRIEF);
+    await answer(1, changes([STAGE], { population: "watchlist_union" }));
+    expect(state()).toBe("ready");
+    expect(container.textContent).toContain(STAGE.en);
+    expect(container.textContent).not.toContain("Composed over");
+    expect(container.textContent).toContain("Desk read as of");
+  });
+
+  it("shows no population sentence when the diff does not name its set", async () => {
+    seed({ [A]: DIGEST_OLD });
+    await renderOwner(A);
+    await answer(0, BRIEF);
+    await answer(1, changes([STAGE], { population: undefined }));
+    expect(state()).toBe("ready");
+    expect(container.textContent).not.toContain("Composed over");
   });
 
   it("renders the desk's zh sentence and zh chrome when the reader is in zh", async () => {
     i18n.lang = "zh";
-    window.localStorage.setItem(storageKey(A), JSON.stringify(DIGEST_OLD));
+    seed({ [A]: DIGEST_OLD });
     await renderOwner(A);
     await answer(0, BRIEF);
-    await answer(1, changes([line("NVDA", "NVDA moved from Trend to Chop.", "NVDA 从趋势转为震荡。")]));
+    await answer(1, changes([STAGE, ...["B", "C", "D", "E", "F", "G"].map(stageLine)]));
     expect(container.textContent).toContain("自你上次查看以来");
-    expect(container.textContent).toContain("NVDA 从趋势转为震荡。");
-    expect(container.textContent).not.toContain("NVDA moved from Trend to Chop.");
+    expect(container.textContent).toContain(STAGE.zh);
+    expect(container.textContent).not.toContain(STAGE.en);
     expect(container.textContent).toContain(CURSOR.note_zh);
-    expect(container.textContent).toContain("基于你持有的 3 个名称生成。");
+    expect(container.textContent).toContain("基于你持有的 2 个开仓名称生成。");
+    expect(button("显示另外 1 项变化")).toBeTruthy();
   });
 });

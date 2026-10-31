@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useLang } from "@/lib/i18n";
+import { ownerKeyFor } from "@/lib/accountIdentity";
+import { browserStorage, readOwnerSlot, writeOwnerSlot } from "@/lib/ownerStorage";
 import { readingJson } from "@/lib/shared-shell/useReadingScope";
 import styles from "@/components/workspaces/ReadingWorkspace.module.css";
 import today from "./TodayWorkspace.module.css";
@@ -14,28 +16,34 @@ import today from "./TodayWorkspace.module.css";
 // returns its own change lines verbatim. This component originates nothing: it stores one
 // digest per owner in localStorage, posts it back, and renders the desk's sentences.
 //
-// TWO-ORGANISMS law: the digest is the customer's ticker set. It lives ONLY in this one
-// localStorage key, is never logged, never sent anywhere but the same-origin proxy, and is
-// only overwritten after the desk answered 200 (a failed read must not erase history).
+// TWO-ORGANISMS law: the digest is the customer's ticker set. It lives ONLY in the owner's
+// slot of one localStorage envelope (lib/ownerStorage.ts — the house format every
+// owner-scoped key uses), is never logged, never sent anywhere but the same-origin proxy,
+// and is only overwritten after the desk answered 200 (a failed read must not erase
+// history). A 401 — the owner is gone from this browser — clears that owner's slot.
 
 type Props = { ownerKey: string; scope: { current: AbortController | null }; onUnauthenticated: () => void };
 type Change = { kind: string; en: string; zh: string; ticker?: string; sector?: string };
 type Cursor = { note_en: string; note_zh: string } | null;
+type Population = { mode: string; en: string; zh: string };
 type Reading = {
   asof: string | null;
   firstVisit: boolean;
   changes: Change[];
   cursor: Cursor;
+  /** The desk's disclosure sentence for the set the change lines describe, or null. */
   population: { en: string; zh: string } | null;
 };
 type Phase = "loading" | "ready" | "teaser" | "unavailable" | "ended";
 
 const BRIEF_URL = "/api/portfolio-brief";
 const CHANGES_URL = "/api/portfolio-changes";
-/** At most this many desk lines are shown here; the rest stay on Portfolio. */
+/** Lines shown before the reader asks for the rest; every desk line stays available here. */
 const MAX_LINES = 6;
-const STORAGE_PREFIX = "mmx.today.since.v1:";
-const TICKER = /^[A-Z0-9.\-]{1,12}$/;
+/** One envelope for every owner — `{ "<owner>": <digest> }` (lib/ownerStorage.ts). */
+export const STORAGE_KEY = "mmx.today.since.v1";
+/** Up to the desk's own name limit (engine/portfolio_changes.py `_NAME_LIMIT = 48`). */
+const TICKER = /^[A-Z0-9.\-]{1,48}$/;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -46,28 +54,24 @@ export function isDigest(value: unknown): value is Record<string, unknown> {
   return isRecord(value) && isRecord(value.names);
 }
 
-export function storageKey(ownerKey: string): string {
-  return STORAGE_PREFIX + ownerKey;
+/** The envelope slot this owner's digest lives under (`account:<uuid>`). */
+export function ownerSlot(ownerKey: string): string {
+  return ownerKeyFor(ownerKey);
 }
 
 function readStored(ownerKey: string): Record<string, unknown> | null {
-  try {
-    const raw = window.localStorage.getItem(storageKey(ownerKey));
-    if (!raw) return null;
-    const parsed: unknown = JSON.parse(raw);
-    return isDigest(parsed) ? parsed : null;
-  } catch {
-    return null;
-  }
+  const storage = browserStorage();
+  if (!storage) return null;
+  const value = readOwnerSlot(storage, STORAGE_KEY, ownerSlot(ownerKey));
+  return isDigest(value) ? value : null;
 }
 
-function writeStored(ownerKey: string, digest: Record<string, unknown>): void {
-  try {
-    window.localStorage.setItem(storageKey(ownerKey), JSON.stringify(digest));
-  } catch {
-    // Storage refused (private mode, quota): the section still renders; the next visit
-    // simply reads as a first visit again.
-  }
+/** Replace (or, with undefined, delete) this owner's digest; every other owner's slot is
+ *  left byte-identical. A refused write (private mode, quota) is not an error: the section
+ *  still renders, and the next visit simply reads as a first visit again. */
+function writeStored(ownerKey: string, digest: Record<string, unknown> | undefined): void {
+  const storage = browserStorage();
+  if (storage) writeOwnerSlot(storage, STORAGE_KEY, ownerSlot(ownerKey), digest);
 }
 
 function parseChange(value: unknown): Change | null {
@@ -79,7 +83,9 @@ function parseChange(value: unknown): Change | null {
   return change;
 }
 
-function parseChanges(payload: unknown): { reading: Omit<Reading, "population">; digest: Record<string, unknown> } | null {
+type Parsed = { reading: Omit<Reading, "population">; population: string | null; digest: Record<string, unknown> };
+
+function parseChanges(payload: unknown): Parsed | null {
   if (!isRecord(payload) || payload.schema !== "portfolio_changes.v1") return null;
   if (typeof payload.first_visit !== "boolean" || !Array.isArray(payload.changes)) return null;
   if (!isDigest(payload.state_digest)) return null;
@@ -99,16 +105,26 @@ function parseChanges(payload: unknown): { reading: Omit<Reading, "population">;
       changes,
       cursor,
     },
+    // The set the change lines were diffed over (positions | watchlist_union | unspecified).
+    population: typeof payload.population === "string" ? payload.population : null,
     digest: payload.state_digest,
   };
 }
 
-/** The desk's own population sentence from a brief payload (v2), when it carries one. */
-function parsePopulation(payload: unknown): { en: string; zh: string } | null {
+/** The desk's own population sentence from a brief payload (v2), with the mode it names. */
+function parsePopulation(payload: unknown): Population | null {
   if (!isRecord(payload) || !isRecord(payload.population)) return null;
-  const { disclosure_en, disclosure_zh } = payload.population;
-  if (typeof disclosure_en !== "string" || typeof disclosure_zh !== "string") return null;
-  return { en: disclosure_en, zh: disclosure_zh };
+  const { mode, disclosure_en, disclosure_zh } = payload.population;
+  if (typeof mode !== "string" || typeof disclosure_en !== "string" || typeof disclosure_zh !== "string") return null;
+  return { mode, en: disclosure_en, zh: disclosure_zh };
+}
+
+/** The brief's sentence describes the change lines only when both reads name the same set:
+ *  the brief proxy caches for minutes, the diff is per request, and a cached "positions"
+ *  sentence over "watchlist_union" lines would be a false disclosure. */
+function populationFor(brief: Population | null, changes: string | null): { en: string; zh: string } | null {
+  if (!brief || !changes || brief.mode !== changes) return null;
+  return { en: brief.en, zh: brief.zh };
 }
 
 const COPY = {
@@ -123,7 +139,7 @@ const COPY = {
     first: "First visit on this device. Changes to your names will appear from your next visit.",
     quiet: "Nothing the desk tracks moved for your names since your last visit.",
     asof: "Desk read as of",
-    more: (count: number) => `${count} further change${count === 1 ? "" : "s"} on Portfolio.`,
+    more: (count: number) => `Show ${count} more change${count === 1 ? "" : "s"}`,
     open: (ticker: string) => `Open ${ticker} in Analysis`,
   },
   zh: {
@@ -137,7 +153,7 @@ const COPY = {
     first: "这是本设备的首次查看。你的持仓变化将从下次查看起显示。",
     quiet: "自你上次查看以来，桌面跟踪的内容在你的名称上没有变化。",
     asof: "桌面读数截至",
-    more: (count: number) => `另有 ${count} 项变化见投资组合页。`,
+    more: (count: number) => `显示另外 ${count} 项变化`,
     open: (ticker: string) => `在分析页打开 ${ticker}`,
   },
 };
@@ -153,6 +169,7 @@ function TodaySinceLastVisitSession({ ownerKey, scope, onUnauthenticated }: Prop
   const pick = (pair: { en: string; zh: string }) => (lang === "zh" ? pair.zh : pair.en);
   const [phase, setPhase] = useState<Phase>("loading");
   const [reading, setReading] = useState<Reading | null>(null);
+  const [showAll, setShowAll] = useState(false);
   const [attempt, setAttempt] = useState(0);
   const generation = useRef(0);
   const onUnauthenticatedRef = useRef(onUnauthenticated);
@@ -174,7 +191,7 @@ function TodaySinceLastVisitSession({ ownerKey, scope, onUnauthenticated }: Prop
           // population sentence. Only a 200 there is followed by the diff.
           const brief = await readingJson(scope, BRIEF_URL);
           if (stale()) return;
-          if (brief.response.status === 401) { setPhase("ended"); onUnauthenticatedRef.current(); return; }
+          if (brief.response.status === 401) { writeStored(ownerKey, undefined); setPhase("ended"); onUnauthenticatedRef.current(); return; }
           if (brief.response.status === 403) { setPhase("teaser"); return; }
           if (!brief.response.ok) { setPhase("unavailable"); return; }
           const population = parsePopulation(brief.value);
@@ -186,13 +203,13 @@ function TodaySinceLastVisitSession({ ownerKey, scope, onUnauthenticated }: Prop
             body: JSON.stringify({ previous }),
           });
           if (stale()) return;
-          if (changes.response.status === 401) { setPhase("ended"); onUnauthenticatedRef.current(); return; }
+          if (changes.response.status === 401) { writeStored(ownerKey, undefined); setPhase("ended"); onUnauthenticatedRef.current(); return; }
           if (changes.response.status === 403) { setPhase("teaser"); return; }
           const parsed = changes.response.ok ? parseChanges(changes.value) : null;
           if (!parsed) { setPhase("unavailable"); return; }
           // Only a desk answer advances the marker.
           writeStored(ownerKey, parsed.digest);
-          setReading({ ...parsed.reading, population });
+          setReading({ ...parsed.reading, population: populationFor(population, parsed.population) });
           setPhase("ready");
         } catch {
           if (stale()) return;
@@ -203,14 +220,15 @@ function TodaySinceLastVisitSession({ ownerKey, scope, onUnauthenticated }: Prop
     return () => { alive = false; controller.signal.removeEventListener("abort", hide); };
   }, [attempt, ownerKey, scope]);
 
-  const retry = () => { setPhase("loading"); setReading(null); setAttempt(value => value + 1); };
+  const retry = () => { setPhase("loading"); setReading(null); setShowAll(false); setAttempt(value => value + 1); };
 
   if (phase === "ended") return null;
 
-  const lines = reading?.changes.slice(0, MAX_LINES) ?? [];
-  const extra = reading ? reading.changes.length - lines.length : 0;
+  const all = reading?.changes ?? [];
+  const lines = showAll ? all : all.slice(0, MAX_LINES);
+  const extra = all.length - lines.length;
 
-  return <section data-today-since-state={phase} aria-label={c.title}>
+  return <section className={today.sinceJob} data-today-since-state={phase} aria-label={c.title}>
     <div className={today.jobHeader}>
       <h2>{c.title}</h2>
       <Link href="/portfolio">{c.portfolio}<span aria-hidden="true">→</span></Link>
@@ -233,7 +251,7 @@ function TodaySinceLastVisitSession({ ownerKey, scope, onUnauthenticated }: Prop
             <p>{pick(change)}</p>
           </li>)}
         </ul>}
-      {extra > 0 && <p className={styles.coverage}><Link href="/portfolio">{c.more(extra)}</Link></p>}
+      {extra > 0 && <div className={styles.actions}><button type="button" onClick={() => setShowAll(true)}>{c.more(extra)}</button></div>}
       {(reading.asof || reading.population) && <p className={today.sinceMeta}>
         {reading.asof && <>{c.asof} <strong>{reading.asof}</strong>{reading.population ? " · " : ""}</>}
         {reading.population && pick(reading.population)}

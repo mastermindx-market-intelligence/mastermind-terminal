@@ -20,6 +20,10 @@ import { rateLimit, tooMany } from "@/lib/rateLimit";
 const GATEWAY = process.env.BRAIN_GATEWAY_URL || "https://mastermind-x.com";
 const UPSTREAM = `${GATEWAY}/api/portfolio/changes`;
 const NO_STORE = "private, no-store";
+/** The desk reads at most 500 names of a few short fields each (engine/portfolio_changes.py
+ *  MAX_PREVIOUS_NAMES); a well-formed digest is tens of KB. Anything larger is refused before
+ *  it is parsed, so a hostile body cannot buy a JSON.parse or an upstream round trip. */
+const MAX_BODY_BYTES = 256 * 1024;
 
 async function sessionToken(): Promise<string | null> {
   const supabase = await createClient();
@@ -42,6 +46,13 @@ function previousFrom(body: unknown): Record<string, unknown> | null {
   return previous as Record<string, unknown>;
 }
 
+function tooLarge() {
+  return NextResponse.json(
+    { error: "previous_too_large" },
+    { status: 413, headers: { "Cache-Control": NO_STORE } },
+  );
+}
+
 export async function POST(req: Request) {
   const rl = rateLimit(req, { name: "portfolio-changes", max: 30 });
   if (!rl.ok) return tooMany(rl);
@@ -54,9 +65,13 @@ export async function POST(req: Request) {
     );
   }
 
+  const declared = Number(req.headers.get("content-length"));
+  if (Number.isFinite(declared) && declared > MAX_BODY_BYTES) return tooLarge();
   let body: unknown = null;
   try {
-    body = await req.json();
+    const raw = await req.text();
+    if (raw.length > MAX_BODY_BYTES) return tooLarge();
+    body = raw ? JSON.parse(raw) : null;
   } catch {
     body = null;
   }

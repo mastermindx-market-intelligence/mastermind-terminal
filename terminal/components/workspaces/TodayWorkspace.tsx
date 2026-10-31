@@ -151,9 +151,7 @@ function TodayWorkspaceSession({ ownerKey }: { ownerKey: string }) {
 
    <TodayResearchAttention ownerKey={ownerKey} scope={scope} onUnauthenticated={endAttention}
     render={({ continuation, briefing }) => <div className={today.jobs}>
-     <div className={today.sinceJob}>
-      <TodaySinceLastVisit ownerKey={ownerKey} scope={scope} onUnauthenticated={endAttention} />
-     </div>
+     <TodaySinceLastVisit ownerKey={ownerKey} scope={scope} onUnauthenticated={endAttention} />
      <section className={today.watchJob} aria-label={c.attentionLabel}>
       <TodayWatchAttention ownerKey={ownerKey} scope={scope} onUnauthenticated={endAttention} />
      </section>
