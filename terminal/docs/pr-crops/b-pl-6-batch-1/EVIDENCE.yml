@@ -10,8 +10,8 @@
 # B-PL-6 batch 1 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 87bf8c50c037b8da866cc1149ac0194312045cc0
-# capturedAt: 2026-10-23T07:00:08.300394+00:00
+# capturedAtHead: 1d36422a85dcf32cbd287e7423e8a9f2e6be47d8
+# capturedAt: 2026-10-31T06:51:41.084214+00:00
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/app/workspace-chrome.css: "97e32bc24ed20479ea7b2e024ef6bc3883b9ead764098344f3ad4acea52b4bdd"
@@ -20,7 +20,7 @@ layoutFiles:
   terminal/components/SearchModal.tsx: "5b3a466a06215231f1b458c382aaae268b4f2f9f206d6f985f312f603fa4a5aa"
   terminal/components/StockAnalysis.tsx: "376a907d0d8ea3dc5819e0092f02e19ce56fa1f4b71a3489551adf52fddb35c0"
   terminal/components/workspaces/AnalysisWorkspace.tsx: "411b8a7e498b8af3f9337fdcf3835dd62e6a5854826f414171d8303efd8aa5bb"
-  terminal/components/ChartPanel.tsx: "56457ac4fe11f5c4fcfe4ab0e14f487ac3b3eaa70d9daa81f21526ed1b47b871"
+  terminal/components/ChartPanel.tsx: "cce63c0124550037931eeb2b291fff41d90fc8fdf838162f91ff91460d274c00"
   terminal/components/DayRange.tsx: "c84724652783da1897ab4eeb98550eaf3dbd7942eefe3ce127b6ada2b16dd672"
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
   terminal/lib/i18n.tsx: "13f33e3178b105a64f1f5df35974cd99041ef06f05bdece95939dd07a8b9fe7c"
@@ -118,10 +118,10 @@ cropFiles:
   AnalysisWorkspace-390.png: "f74a1fb8987b12f35fbace88658a13f028af5a892990ce4316026ad92a4c3b3d"
   ChartChrome-1440-zh.png: "dbb0e498448ab270c98b9ee17154ae93279e86924bbef526e5338a462c4c250d"
   ChartChrome-1440.png: "424a03aa1d672400101346bac93beceb11f4397a784a50a26188a73d71e4263d"
-  ChartChrome-390-zh.png: "898df24d245540d080e8aceb3ab5c39f6196c3d1e7096c5c5797ef9244aba0ce"
-  ChartChrome-390.png: "f19d5c5b5c02b1639293de7776935886e3ec83388789fc725a39ec5cb816daa0"
+  ChartChrome-390-zh.png: "ddcad9fbdf3f5ccd65571d8fb828d40f104e9c452061f64a76b8f9bbe43c166b"
+  ChartChrome-390.png: "462ed1d2a17f136e485a7df36b9aa05c3495020cbb1f5235b5cbc3f81560a718"
   DiscoverLeaders-1440-zh.png: "3d010a3289d4b2a41e3918ef1cbd92ca4b79a7b15eed52d5b4f1252b6d1fad97"
-  DiscoverLeaders-1440.png: "5772eb2982808d10dd0b382d585be7a1fbae946c4f6990077a4d981dbd4d9a6b"
+  DiscoverLeaders-1440.png: "fafbc183e357b9745c03e4f19848dece8ea762822184e6ad3bfc597ed3ee45b9"
   DiscoverLeaders-390-zh.png: "dfb05edcaf5b37f332e78a5cc3e48bad70ebdc6500cb5375c102be74e29875e7"
   DiscoverLeaders-390.png: "0571bb8494f8a084c962adffbd61c98de40cd908b237c84fdc32fa812f6a6672"
   OptionsHubView-1440-zh.png: "3cf44b98105635da0e1b4b7926840776cd33b918fe7cef26517b16dfb8310d98"
@@ -455,3 +455,9 @@ commercialPreferencesProtectedJoin20261024:
   consumerHead: "841194510eb228d834ddff1400203905e8643024"
   protectedMaster: "a8037ef7b662316a88becca11f31f5a87b5b7133"
   qualification: "Retain protected Options source, actual crop and report bindings and historical capture identities; preserve the consumer AST projection excluding only unused pending-onboarding copy. No new capture or larger matrix is claimed."
+
+p03DefaultFlipRecapture20261031:
+  head: "1d36422a85dcf32cbd287e7423e8a9f2e6be47d8"
+  capturedAt: "2026-10-31T06:51:41.084214+00:00"
+  scope: "P03 default engine flip to mm: ChartPanel.tsx source pin refreshed; ChartChrome-390 EN/ZH crops recaptured at this head via capture_pl6_batch1.cjs (24/24 captured); the other 22 crops retain their prior capture identity because their layout sources are byte-identical."
+  productionProof: false
