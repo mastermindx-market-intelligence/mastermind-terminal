@@ -29,6 +29,18 @@ const INITIAL_DIAGNOSTIC: FrameDiagnostic = { phase: "location-pending", failure
 const ENTRY_KEY = "mmxSharedShellEntry";
 const LOCATION_EVENT = "mmx:shell-location";
 
+// Start a *single* no-store status request on a validated legacy NAVIGATE intent,
+// overlapping the router's RSC trip. Never admit a frame from a stale or unmatched
+// response. Direct links, history and expired requests use the original live gate.
+const EARLY_GATE_MAX_AGE_MS = 750;
+type GateReply = { response: Response | null; error: unknown };
+type EarlyGate = { href: string; started: number; controller: AbortController; result: Promise<GateReply> };
+function requestGate(signal: AbortSignal): Promise<GateReply> {
+  return fetch("/api/shared-shell/status", { cache: "no-store", credentials: "same-origin", signal })
+    .then(response => ({ response, error: null }))
+    .catch((error: unknown) => ({ response: null, error }));
+}
+
 /** One document at a time. The AppShell layout, not the route page, owns this host. */
 export default function LegacyPageHost({
   legacyOrigin, identityKey, context, onContextRequest, onTitle,
@@ -55,6 +67,11 @@ export default function LegacyPageHost({
   const previousEntry = useRef<{ key: string; canonical: string } | null>(null);
   const traversal = useRef(false);
   const sameDocument = useRef<string | null>(null);
+  const earlyGate = useRef<EarlyGate | null>(null);
+  useEffect(() => () => {
+    earlyGate.current?.controller.abort();
+    earlyGate.current = null;
+  }, []);
   const active = isLegacyShellPath(path);
   const [canonical, setCanonical] = useState<string | null>(null);
   const [diagnostic, setDiagnostic] = useState<FrameDiagnostic>(INITIAL_DIAGNOSTIC);
@@ -173,7 +190,16 @@ export default function LegacyPageHost({
     setDiagnostic({ ...INITIAL_DIAGNOSTIC, phase: "gate-pending" });
     setStatus("loading");
     onTitle(shellPageLabel(path, contextRef.current.locale));
-    const abort = new AbortController();
+    const pending = earlyGate.current;
+    earlyGate.current = null;
+    // Exact target and a short freshness cap are both mandatory. A slow RSC
+    // response discards the early request and performs the original live check.
+    const reuse = pending !== null && pending.href === canonical
+      && !pending.controller.signal.aborted
+      && performance.now() - pending.started <= EARLY_GATE_MAX_AGE_MS;
+    if (pending && !reuse) pending.controller.abort();
+    const abort = reuse && pending ? pending.controller : new AbortController();
+    const gateRequest = reuse && pending ? pending.result : requestGate(abort.signal);
     let expired = false;
     let gateHttpFailed = false;
     let frameRequested = false;
@@ -185,9 +211,10 @@ export default function LegacyPageHost({
 
     // Check the actual running sibling service on every document navigation.
     // A stale client cannot treat a rollback/disabled server as a successful integration.
-    fetch("/api/shared-shell/status", { cache: "no-store", credentials: "same-origin", signal: abort.signal })
-      .then(async response => {
-        if (!response.ok) { gateHttpFailed = true; throw new Error("Shared Shell unavailable"); }
+    gateRequest
+      .then(async ({ response, error }) => {
+        if (error) throw error;
+        if (!response?.ok) { gateHttpFailed = true; throw new Error("Shared Shell unavailable"); }
         const gate = await response.json();
         if (expired || abort.signal.aborted || live.current !== current) return;
         if (gate.buildId !== SHARED_SHELL_BUILD || gate.protocol !== SHARED_SHELL_PROTOCOL || gate.bridgeVersion !== SHARED_SHELL_BRIDGE_VERSION
@@ -267,6 +294,17 @@ export default function LegacyPageHost({
             type: "LOCATION_ACCEPTED", requestId: message.requestId, canonicalPath: target.href });
           window.dispatchEvent(new Event(LOCATION_EVENT));
         } else {
+          // Only a validated legacy destination may start the early no-store
+          // gate. Native destinations remain on their existing route path.
+          earlyGate.current?.controller.abort();
+          earlyGate.current = null;
+          if (target.kind === "legacy") {
+            const controller = new AbortController();
+            earlyGate.current = {
+              href: target.href, started: performance.now(), controller,
+              result: requestGate(controller.signal),
+            };
+          }
           if (message.mode === "replace") router.replace(target.href, { scroll: false });
           else router.push(target.href, { scroll: false });
         }
