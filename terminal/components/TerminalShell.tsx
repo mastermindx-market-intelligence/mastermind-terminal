@@ -1,4 +1,5 @@
 "use client";
+import { useHubDiscovery } from "@/lib/useHubDiscovery";
 import { mergeFormingQuote } from "@/lib/formingCandles";
 import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { PHONE_QUERY, useIsMobile, useIsPhone } from "@/lib/useMediaQuery";
@@ -1761,9 +1762,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     query.addEventListener("change", closeOutsidePhone);
     return () => query.removeEventListener("change", closeOutsidePhone);
   }, []);
-  // Optimistic "seen" so the ••• badge cannot flash before localStorage is read on mount.
-  const [hubSeen, setHubSeen] = useState(true);
-  useEffect(() => { try { setHubSeen(localStorage.getItem("mm.hubSeen") === "1"); } catch {} }, []);
+  // Chart paint readiness does not classify the phone hub's persisted discovery state.
+  const { state: hubDiscoveryState, markSeen: markHubSeen } = useHubDiscovery();
   // SSR-consistent default; the persisted width is read after mount (below) so the server- and
   // client-rendered `--rail-w` style always agree on the first paint (no hydration mismatch).
   const [railW, setRailW] = useState<number>(360);
@@ -5808,7 +5808,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     setDrawSheetOpen(false);
     setPhoneWorkspacesOpen(false);
     setHubOpen(true);
-    if (!hubSeen) { setHubSeen(true); try { localStorage.setItem("mm.hubSeen", "1"); } catch {} }
+    markHubSeen();
   };
   // ── Chart command palette (E20) ─────────────────────────────────────────────────────────────
   // A second way to reach controls this shell already owns. The palette gets a snapshot of the
@@ -6560,7 +6560,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             onDraw={openDrawingsSheet}
             drawActive={activeDrawingTool !== null}
             onMore={openAnalysisHub}
-            moreBadge={!hubSeen}
+            moreBadge={hubDiscoveryState === "unseen"}
+            hubDiscoveryState={hubDiscoveryState}
             onUndo={() => travelDrawingHistory(active, "undo")}
             onRedo={() => travelDrawingHistory(active, "redo")}
             canUndo={drawingHistoryState.canUndo}
