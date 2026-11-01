@@ -14,13 +14,19 @@
 .receipt{color:var(--text-dim);font:500 9.5px/1.35 var(--font-ui)}
 .note{padding:7px 10px;border-bottom:1px solid var(--line-2);color:var(--muted);font:550 10px/1.35 var(--font-ui)}
 .catchup .note{padding:0;border:0}
-.markShown:focus-visible,.chip:focus-visible,.source:focus-visible,.markOne:focus-visible{outline:2px solid var(--brand-2);outline-offset:2px}
+.markShown:focus-visible,.chip:focus-visible,.source:focus-visible,.markOne:focus-visible,.openCurrent:focus-visible{outline:2px solid var(--brand-2);outline-offset:2px}
 
 .tag{flex:none;padding:2px 5px;border-radius:4px;font:700 9px/1.1 var(--font-ui);letter-spacing:.04em;text-transform:uppercase}
 .tagNew{background:color-mix(in srgb,var(--brand) 22%,transparent);color:var(--text)}
 .tagUpdated{background:color-mix(in srgb,var(--signal) 22%,transparent);color:var(--text)}
 .tagReviewed{padding-left:0;padding-right:0;color:var(--text-dim);font-weight:600}
 .change{margin:4px 0 0;color:var(--text-2);font:600 10px/1.35 var(--font-ui)}
+.savedBasis{display:flex;flex-direction:column;gap:5px;margin-top:6px;padding:7px 9px;border:1px solid var(--line);border-radius:6px;background:color-mix(in srgb,var(--panel-2) 55%,transparent)}
+.savedBasisRow{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.savedBasisNote{color:var(--text);font:650 10px/1.3 var(--font-ui)}
+.savedBasisDetail{margin:0;color:var(--text-dim);font:550 9.5px/1.4 var(--font-ui);overflow-wrap:anywhere}
+.openCurrent{appearance:none;min-height:26px;padding:4px 9px;border:1px solid var(--line);border-radius:6px;background:transparent;color:var(--brand-2);font:650 10px/1.2 var(--font-ui);cursor:pointer;white-space:nowrap}
+.openCurrent:hover{border-color:var(--brand-2)}
 .markOne{appearance:none;margin-top:7px;margin-right:12px;padding:3px 0;border:0;background:transparent;color:var(--muted);font:650 10px/1.2 var(--font-ui);cursor:pointer}
 .markOne:hover{color:var(--brand-2)}
 .empty{padding:22px 14px;color:var(--muted);font:500 11.5px/1.45 var(--font-ui);text-align:center}
@@ -33,4 +39,5 @@
   .chip{padding:6px 12px;font-size:11px}
   .source{padding:6px 10px;font-size:11px}
   .markOne{min-height:44px;font-size:11px}
+  .openCurrent{min-height:44px;font-size:11px}
 }

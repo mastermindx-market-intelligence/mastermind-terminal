@@ -3,11 +3,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { ownerKeyFor } from "@/lib/accountIdentity";
-import type { TickerNewsStoryRow } from "@/lib/newsTypes";
+import type { TickerNewsRightsBasis, TickerNewsStoryRow } from "@/lib/newsTypes";
 import { browserStorage } from "@/lib/ownerStorage";
 import {
   NEWS_REVIEW_KEY,
   classifyStory,
+  describeSavedDrift,
   markStoriesReviewed,
   readOwnerReview,
   writeOwnerReview,
@@ -15,6 +16,7 @@ import {
   type ReviewClass,
   type ReviewReceipt,
   type ReviewStatus,
+  type SavedDrift,
 } from "@/lib/newsReviewState";
 
 /**
@@ -41,10 +43,13 @@ export function useNewsCatchup({
   userId,
   ticker,
   presented,
+  rights,
 }: {
   userId?: string;
   ticker: string;
   presented: readonly TickerNewsStoryRow[];
+  /** The snapshot's rights_basis as seen — captured into each new saved basis, and compared for drift. */
+  rights?: TickerNewsRightsBasis | null;
 }) {
   const owner = userId && userId.trim() ? ownerKeyFor(userId) : null;
   const [loaded, setLoaded] = useState<Loaded | null>(null);
@@ -98,6 +103,16 @@ export function useNewsCatchup({
     return map;
   }, [active, presented, review]);
 
+  // Journey 6: how each presented row differs from the basis saved at its first capturing mark.
+  const driftByStory = useMemo(() => {
+    const map = new Map<string, SavedDrift | null>();
+    if (!active) return map;
+    for (const row of presented) {
+      map.set(row.story_id, describeSavedDrift(review, row, { rights: rights ?? null }));
+    }
+    return map;
+  }, [active, presented, review, rights]);
+
   const bySource = useMemo(
     () => (source ? presented.filter((row) => row.source === source) : presented),
     [presented, source],
@@ -127,7 +142,7 @@ export function useNewsCatchup({
     const storage = current.mode === "saved" ? browserStorage() : null;
     // Merge onto the newest stored copy so another tab's marks are not overwritten.
     const base = storage ? readOwnerReview(storage, owner) : current.data;
-    const next = markStoriesReviewed(base, key, presented, storyIds);
+    const next = markStoriesReviewed(base, key, presented, storyIds, { rights: rights ?? null });
     if (next === base) {
       if (storage) commit({ owner, data: base, mode: "saved" });
       return;
@@ -137,7 +152,7 @@ export function useNewsCatchup({
     } else {
       commit({ owner, data: next, mode: "session" });
     }
-  }, [owner, presented, key, commit]);
+  }, [owner, presented, key, rights, commit]);
 
   const markStory = useCallback((storyId: string) => mark([storyId]), [mark]);
   const unreadShown = useMemo(
@@ -154,6 +169,7 @@ export function useNewsCatchup({
   return {
     mode,
     classify: (row: TickerNewsStoryRow): ReviewClass | null => classified.get(row.story_id) ?? null,
+    drift: (storyId: string): SavedDrift | null => driftByStory.get(storyId) ?? null,
     counts,
     filter: effectiveFilter,
     setFilter,

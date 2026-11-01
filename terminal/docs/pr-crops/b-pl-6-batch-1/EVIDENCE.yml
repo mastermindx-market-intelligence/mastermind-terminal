@@ -1,3 +1,4 @@
+# Current scoped launcher boot stability: launcherBootStabilityRecapture20261031 below. Earlier source/report identities remain historical.
 # Current scoped Plan composition: optionsPlanComposition20261024 below. Earlier source/report identities remain historical.
 # Current scoped qualification: optionsSharedShellCompositionRecapture20261024; prior records keep their original identities.
 # Current coherent Options + protected HTML-language capture: optionsLanguageCompositionRecapture20261024 below. Prior records remain historical.
@@ -16,7 +17,7 @@
 layoutFiles:
   terminal/app/workspace-chrome.css: "97e32bc24ed20479ea7b2e024ef6bc3883b9ead764098344f3ad4acea52b4bdd"
   terminal/app/layout.tsx: "9b675d52a647b4a92407958aa0ab7ffcc2632d95d003c89ca2eed2a1f4e35264"
-  terminal/components/OptionsHubView.tsx: "476b79a8d87ed6b7e165013ce7610cb0811d63800dab5c91ef1a729a128c82bb"
+  terminal/components/OptionsHubView.tsx: "0edbb1f902005dad5813beb7e406c04a3c0509aae4487f087fb101dd0ceb4c25"
   terminal/components/SearchModal.tsx: "5b3a466a06215231f1b458c382aaae268b4f2f9f206d6f985f312f603fa4a5aa"
   terminal/components/StockAnalysis.tsx: "376a907d0d8ea3dc5819e0092f02e19ce56fa1f4b71a3489551adf52fddb35c0"
   terminal/components/workspaces/AnalysisWorkspace.tsx: "411b8a7e498b8af3f9337fdcf3835dd62e6a5854826f414171d8303efd8aa5bb"
@@ -38,7 +39,7 @@ layoutFiles:
   terminal/components/MobileNav.module.css: "ebc961c1a5ed307aca41b147d87a6373c8710d0a9298e3bfe0df215d287c6c15"
   terminal/components/MobileNav.tsx: "807e623386587d369ee8a088f07815d5296539ea8ca787a39ed0b64d27935f52"
   terminal/components/MobileNavModal.tsx: "62b4495cab5f8608b3413dad279b1bd48cdb4b6543dc07544428283665740498"
-  terminal/components/TerminalShell.tsx: "f4685da5953cab5b67ea234d1bdb02e5c05484e60c153718809cbb52be2e22aa"
+  terminal/components/TerminalShell.tsx: "14e4d5e271e54ccf3cbdcfdb7ee4e9bad30703bb85d34d05b4bf65dfec8cb85a"
   terminal/components/VisualIntelligencePanel.module.css: "0f7630c6dd6c2fbf5915df4ab450f73a173d443d51fd2e53aed593698d6283df"
   terminal/components/VisualIntelligencePanel.tsx: "a7ac590db5d9ae07a689c297d15ffc062ce00bbc3a9a05f16dbb529659185356"
   terminal/components/chrome/AppShell.tsx: "7054ce108b9701b29c8d608bc102f775858cb232b4289032d2afac66338cee43"
@@ -118,8 +119,8 @@ cropFiles:
   AnalysisWorkspace-390.png: "f74a1fb8987b12f35fbace88658a13f028af5a892990ce4316026ad92a4c3b3d"
   ChartChrome-1440-zh.png: "dbb0e498448ab270c98b9ee17154ae93279e86924bbef526e5338a462c4c250d"
   ChartChrome-1440.png: "424a03aa1d672400101346bac93beceb11f4397a784a50a26188a73d71e4263d"
-  ChartChrome-390-zh.png: "898df24d245540d080e8aceb3ab5c39f6196c3d1e7096c5c5797ef9244aba0ce"
-  ChartChrome-390.png: "f19d5c5b5c02b1639293de7776935886e3ec83388789fc725a39ec5cb816daa0"
+  ChartChrome-390-zh.png: "2d589b2e425b47743d0642130e577f4192d92f27ac33cdaeeaee211acb5eeb96"
+  ChartChrome-390.png: "a5139c064799d639d5ed42d1b9714fbf1753583abbe5cf494207a8eec0cbba0b"
   DiscoverLeaders-1440-zh.png: "3d010a3289d4b2a41e3918ef1cbd92ca4b79a7b15eed52d5b4f1252b6d1fad97"
   DiscoverLeaders-1440.png: "5772eb2982808d10dd0b382d585be7a1fbae946c4f6990077a4d981dbd4d9a6b"
   DiscoverLeaders-390-zh.png: "dfb05edcaf5b37f332e78a5cc3e48bad70ebdc6500cb5375c102be74e29875e7"
@@ -455,3 +456,20 @@ commercialPreferencesProtectedJoin20261024:
   consumerHead: "841194510eb228d834ddff1400203905e8643024"
   protectedMaster: "a8037ef7b662316a88becca11f31f5a87b5b7133"
   qualification: "Retain protected Options source, actual crop and report bindings and historical capture identities; preserve the consumer AST projection excluding only unused pending-onboarding copy. No new capture or larger matrix is claimed."
+
+labPlanNavigationRecapture20261030:
+  sourceHead: "284f09f748e6a7107ceffe0a0c54fc1e0af14fc9"
+  actualCases: 4
+  qualification: "terminal/docs/verification/lab-plan-handoff-20261030/evidence-lock-recapture.json"
+  qualificationSha256: "b34344fad4050563f59223f81056de0415527a98e6bc8047f99a6bfccbdc6be4"
+  scope: "Actual scoped browser captures on the navigation candidate. Other surfaces and earlier reports retain their historical identities; no production or full-matrix recapture claim."
+
+launcherBootStabilityRecapture20261031:
+  baseHead: "57ab05517c031d90325ada0a73fc82b604ac2d72"
+  reason: "TerminalShell.tsx reserves the phone roller strip slot and the implied sub-pane height from first paint, so the Intelligence launcher does not move after boot"
+  sourceIdentity: "Actual uncommitted working source; layoutFiles and cropFiles bind the exact bytes"
+  command: "CAPTURE_ONLY=ChartChrome TERMINAL_CROP_PORT=3254 node e2e/tools/capture_pl6_batch1.cjs"
+  actualBrowserResult: "4 ChartChrome EN/ZH desktop/mobile crops captured successfully; recaptured on the source merged with master and all 4 reproduced byte-identical"
+  cropDelta: "1440 EN/ZH are byte-identical. 390 EN/ZH changed: the phone chart is now built at its final body height, so ChartPanel's mobile stretch factors (computed once from the wrap height at pane build) give the price pane its intended share instead of the share computed from the pre-report short body"
+  scope: "ChartChrome-1440.png, ChartChrome-1440-zh.png, ChartChrome-390.png, ChartChrome-390-zh.png"
+  productionProof: false
