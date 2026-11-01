@@ -253,6 +253,43 @@ test("phone: the pencil opens the TV Drawings sheet and a tile arms the tool", a
   await expect(sheet).toBeHidden();
 });
 
+test("phone: a tile the shell refuses is never recorded under Favorites", async ({ page }) => {
+  test.skip(!phone(page), "The Drawings sheet is the phone replacement for the dock.");
+  // A failed account read leaves drawings unready, so activateDrawingTool declines every tool
+  // without a creation-disabled reason: the sheet stays usable and its tiles stay tappable.
+  await page.route("**/api/drawings**", async (route) => {
+    await route.fulfill({
+      status: route.request().method() === "GET" ? 500 : 200,
+      contentType: "application/json",
+      body: JSON.stringify(route.request().method() === "GET"
+        ? { drawings: [], error: "fixture outage" }
+        : { ok: true }),
+    });
+  });
+  await page.addInitScript(() => {
+    localStorage.removeItem("mm.draw");
+    localStorage.removeItem("mm.drawRecents");
+  });
+  await openTerminal(page);
+  await expect(page.getByText(/Saved drawings could not be loaded/)).toBeAttached();
+
+  await page.getByTestId("roller-draw").click();
+  const sheet = page.getByRole("dialog", { name: "Drawings" });
+  await expect(sheet).toBeVisible();
+  await page.getByTestId("drawings-cat-trendlines").click();
+  await page.getByTestId("drawings-tile-trendline").click();
+  await expect(sheet).toBeHidden();
+  await expect(page.getByTestId("drawing-group-lines-main")).toHaveAttribute("aria-pressed", "false");
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem("mm.drawRecents") || "[]"))).toEqual([]);
+
+  await page.getByTestId("roller-draw").click();
+  await page.getByTestId("drawings-cat-favorites").click();
+  await expect(sheet.locator(".mdraw-tile")).toHaveCount(0);
+  await expect(sheet.getByText("Tools you use appear here.")).toBeVisible();
+  await page.getByTestId("drawings-sheet-close").click();
+  await expect(sheet).toBeHidden();
+});
+
 test("phone: the Drawings sheet opens at 62% over a live chart and drags to full", async ({ page }) => {
   test.skip(!phone(page), "The Drawings sheet is the phone replacement for the dock.");
   await openTerminal(page);
