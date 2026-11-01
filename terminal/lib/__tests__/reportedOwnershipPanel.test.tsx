@@ -35,6 +35,10 @@ function block(): Record<string, unknown> {
 const PAST_ACQUIRED = "2026-10-02T04:52:16Z";
 const PAST_ATTEMPT = "2026-10-05T09:00:00Z";
 
+// The panel stamps Date.now() at verification and discloses staleness after 30 days, so the
+// fixtures are dated relative to this pinned day rather than the day the suite happens to run.
+const PINNED_NOW = "2026-10-15T12:00:00Z";
+
 /** Typed accessors so the draft can be mutated one field at a time without `any`. */
 function rowsOf(draft: Record<string, unknown>): Record<string, unknown>[] {
   return draft.rows as Record<string, unknown>[];
@@ -70,6 +74,10 @@ let node: HTMLDivElement;
 let root: Root;
 
 beforeEach(() => {
+  // Fake only Date: the file awaits real WebCrypto digests and spies on crypto.subtle, so timers
+  // and microtasks must stay real.
+  vi.useFakeTimers({ toFake: ["Date"] });
+  vi.setSystemTime(new Date(PINNED_NOW));
   verificationWork = [];
   vi.spyOn(ownershipReader, "verifyReportedOwnership").mockImplementation((...args) => {
     const work = realVerify(...args);
@@ -88,6 +96,7 @@ afterEach(() => {
   act(() => root.unmount());
   node.remove();
   document.documentElement.setAttribute("data-lang", "en");
+  vi.useRealTimers();
   vi.restoreAllMocks();
 });
 
