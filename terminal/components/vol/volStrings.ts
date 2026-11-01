@@ -228,6 +228,11 @@ const VOL_LEX = {
     "基准为已发布平值IV · 时钟为 {date} 每晚收盘 · 来源未说明报价口径 · 方差线性插值",
   ],
   cmpClockUnstated:  ["clock not stated by source", "来源未说明时钟"],
+  // AC40 Option B: an interpolated row dated on the producer clock whose date is on or before
+  // the viewer's ET today. True at the boundary (a row dated today is "not ahead of today").
+  cmpRowPastRead:    ["not ahead of today · from the {asof} read", "不晚于今日 · 来自{asof}的读数"],
+  // AC40 point 4: the skew calendar fallback runs from the viewer's today only when asof is absent.
+  cmpSkewDteFromToday: ["days counted from today: clock not stated by source", "天数自今日起算：来源未说明时钟"],
   cmpDeltaAxis: [
     "Delta axis unsupported · no spot or delta published",
     "Delta 轴不支持 · 来源未发布现价或 Delta",
