@@ -1,0 +1,39 @@
+{
+  "scope": "Local browser behavior; not live source, production authorization or predictive proof",
+  "harness": "existing playwright.config.ts, TERMINAL_E2E_PORT=3317",
+  "projects": [
+    "desktop 1440x900",
+    "tablet 820x1180",
+    "mobile 390x844"
+  ],
+  "languages": [
+    "en",
+    "zh"
+  ],
+  "appearance": "native Terminal dark only; no light-mode support claimed",
+  "result": "12 passed",
+  "unit_result": "63 passed",
+  "screenshots": [
+    {
+      "path": "docs/catalyst-opportunity/screenshots/catalyst-desktop-en-native-dark.png",
+      "sha256": "68cbcbcac8376b6941fe4c0c6c68effe0c2dcf84a0dc2126dbecd67202f925b0",
+      "source": "actual Chromium rendering of shipped Discover components with explicit synthetic fixture"
+    },
+    {
+      "path": "docs/catalyst-opportunity/screenshots/catalyst-tablet-zh-native-dark.png",
+      "sha256": "170d83bd802532e06b7ccae8bbd5034f3b3ec0c7173c8e923f49383c42229ecd",
+      "source": "actual Chromium rendering of shipped Discover components with explicit synthetic fixture"
+    },
+    {
+      "path": "docs/catalyst-opportunity/screenshots/catalyst-mobile-en-native-dark.png",
+      "sha256": "ee7a72dc8d1d29cf387248f2747ae66be6a740edb7e1024b44bab85957df1105",
+      "source": "actual Chromium rendering of shipped Discover components with explicit synthetic fixture"
+    },
+    {
+      "path": "docs/catalyst-opportunity/screenshots/catalyst-mobile-dated-coverage.png",
+      "sha256": "d2f16ecf1768a0be6dcdeee0495f89d175539537eb89a2abf6a747443278490e",
+      "source": "actual Chromium rendering of shipped Discover components with explicit synthetic fixture"
+    }
+  ],
+  "earlier_failure": "12 assertions caught a test initialization null-document error; the test setup was corrected. Earlier supposed light captures were dark and are not accepted as light proof."
+}
