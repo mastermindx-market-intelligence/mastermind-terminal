@@ -352,6 +352,9 @@ interface FeedPaneProps {
    *  behavior (a null feed renders the loading skeletons), so callers that do
    *  not know the read outcome behave exactly as before. */
   status?: FlowStreamStatus;
+  /** Data held from an earlier read because the latest did not land. Absent =
+   *  derived from `status` (a held feed with an unavailable or absent read). */
+  stale?: boolean;
   /** Re-read the feed key now. Wired to the Retry affordances of the
    *  unavailable states; absent = no-op. */
   onRetry?: () => void;
@@ -371,6 +374,7 @@ export function FeedPane({
   feed,
   connected,
   status,
+  stale,
   onRetry,
   flowMeta,
   enrich,
@@ -382,6 +386,9 @@ export function FeedPane({
 }: FeedPaneProps) {
   const zh = lang === "zh";
   const t = useT();
+  // The hook's `stale` (a held feed whose latest read did not land); callers without it
+  // derive the same fact from the read status.
+  const heldStale = stale ?? (feed !== null && (status === "unavailable" || status === "absent"));
 
   // Persist preset + sort across page loads
   const [prefs, setPrefs] = useState<PersistedPrefs>(() => loadPrefs());
@@ -767,12 +774,19 @@ export function FeedPane({
         {feed === null && status !== "unavailable" && status !== "absent" && <LoadingState zh={zh} />}
 
         {/* A failed refresh keeps every loaded card and says they are the last read */}
-        {feed !== null && status === "unavailable" && (
+        {feed !== null && heldStale && status === "unavailable" && (
           <div style={FEED_REFRESH_FAILED} data-testid="flowfeed-refresh-failed" role="status">
             <span>{pick(zh, FD.feedRefreshFailed.en, FD.feedRefreshFailed.zh)}</span>
             <button type="button" className="btn btn-ghost load-retry" style={FEED_RETRY_INLINE} onClick={onRetry}>
               {pick(zh, FD.errRetry.en, FD.errRetry.zh)}
             </button>
+          </div>
+        )}
+        {/* A held feed whose latest read found nothing published: the cards are the last
+            read, and there is nothing to retry until a feed is published again. */}
+        {feed !== null && heldStale && status === "absent" && (
+          <div style={FEED_REFRESH_FAILED} data-testid="flowfeed-refresh-absent" role="status">
+            <span>{pick(zh, FD.feedRefreshAbsent.en, FD.feedRefreshAbsent.zh)}</span>
           </div>
         )}
 

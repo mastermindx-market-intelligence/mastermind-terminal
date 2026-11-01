@@ -482,7 +482,7 @@ export function FlowDeskView() {
   // timing comes from live_flow.meta/v2 and is rendered separately. The SSE endpoint
   // pushes only on change (asof+size signature), so the old client-side asof dedup is
   // no longer needed.
-  const { data: feed, connected: feedConnected, status: feedStatus, retry: retryFeed } = useFlowStream<FeedPayload>("feed");
+  const { data: feed, connected: feedConnected, status: feedStatus, stale: feedStale, retry: retryFeed } = useFlowStream<FeedPayload>("feed");
   const { data: flowMeta } = useFlowStream<unknown>("meta", { pollMs: 60_000 });
   const [tide,      setTide]      = useState<TidePayload | null>(null);
   const [chainHeat, setChainHeat] = useState<ChainHeatPayload | null>(null);
@@ -702,10 +702,6 @@ export function FlowDeskView() {
       }
     : null;
 
-  // ── FlowGauge needs feed with typed events ────────────────────────────────────
-
-  const feedForGauge = feed ?? { events: [], session_pct: undefined };
-
   // ── RadarStrip needs feed with typed unusual_names ────────────────────────────
 
   const feedForRadar = feed
@@ -757,8 +753,14 @@ export function FlowDeskView() {
 
       {/* ═══ LEFT RAIL (FlowGauge strip + WatchlistRail + Smart Money Radar) ═ */}
       <div className="obs-fd-left">
-        {/* FlowGauge — slim strip pinned at top of left rail */}
-        <FlowGauge feed={feedForGauge} lang={lang} />
+        {/* FlowGauge — slim strip pinned at top of left rail. Unknown is not zero: with
+            no feed there is no session total or call/put split to draw, so the gauge is
+            not rendered and the rail states below say what the read established. */}
+        {feed !== null && (
+          <div data-testid="flow-gauge-slot" style={{ display: "contents" }}>
+            <FlowGauge feed={feed} lang={lang} />
+          </div>
+        )}
 
         {/* WatchlistRail — compacted rings (26px) + tighter rows */}
         {feedForWatchlist && (
@@ -802,6 +804,7 @@ export function FlowDeskView() {
           feed={feed}
           connected={feedConnected}
           status={feedStatus}
+          stale={feedStale}
           onRetry={retryFeed}
           flowMeta={flowMeta}
           enrich={enrich}

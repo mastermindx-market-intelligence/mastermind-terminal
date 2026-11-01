@@ -180,14 +180,18 @@ const FLOW_LEX = {
   scoreUnavailable: ["Score unavailable", "评分不可用"],
   feedErrorWhy: [
     "The read did not reach the store, so this says nothing about today's flow. Chain heat loads on its own read.",
-    "读取未能到达数据源，因此无法判断今日的资金流。链式热度单独读取，不受影响。",
+    "读取未能到达数据源，因此无法判断今日的资金流。链式热度单独读取。",
   ],
   feedAbsent: ["No flow feed published for this session yet", "本交易时段尚未发布资金流数据"],
   feedRefreshFailed: [
     "Could not refresh the flow feed — showing the last read.",
     "无法刷新资金流 — 显示上次读取的数据。",
   ],
-  watchlistFeedUnavailable: ["The watchlist needs the flow feed, which did not load.", "观察列表依赖资金流数据，目前未能加载。"],
+  feedRefreshAbsent: [
+    "The latest read found no flow feed published — showing the last read.",
+    "最新读取未发现已发布的资金流数据 — 显示上次读取的数据。",
+  ],
+  watchlistFeedUnavailable: ["Session flow totals and the watchlist need the flow feed, which did not load.", "本时段资金流合计与观察列表依赖资金流数据，目前未能加载。"],
 
   // ── Misc ───────────────────────────────────────────────────────────────────
   scoreLabel:       ["Score", "评分"],
@@ -297,6 +301,7 @@ export const FD = {
   feedErrorWhy:        bi(...FLOW_LEX.feedErrorWhy),
   feedAbsent:          bi(...FLOW_LEX.feedAbsent),
   feedRefreshFailed:   bi(...FLOW_LEX.feedRefreshFailed),
+  feedRefreshAbsent:   bi(...FLOW_LEX.feedRefreshAbsent),
   feedEmptyFiltered: bi("No signals match your filters", "无符合筛选条件的信号"),
   feedEmptyFilteredWhy: bi(
     "Every event on today's tape is excluded by the active filters. Clear them, or lower the min-premium / min-score threshold.",

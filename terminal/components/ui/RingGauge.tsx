@@ -118,7 +118,7 @@ export function RingGauge({ value, max = 100, size = "sm", tone = "auto", label,
       <svg className="obs-ring-svg" width={geo.d} height={geo.d} viewBox={`0 0 ${geo.d} ${geo.d}`}>
         {/* track — faint full circle; no arc: there is no reading to fill */}
         <circle cx={center} cy={center} r={r} fill="none"
-          stroke="rgba(255,255,255,.08)" strokeWidth={geo.sw} />
+          style={{ stroke: "var(--hairline)" }} strokeWidth={geo.sw} />
       </svg>
       <span className="obs-ring-inner">
         <span className="obs-ring-value num" style={{ fontSize: geo.fs }}>—</span>
