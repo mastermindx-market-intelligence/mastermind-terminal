@@ -18,6 +18,7 @@ vi.mock("next/navigation",()=>({useSearchParams:()=>new URLSearchParams(window.l
 // These tests isolate the briefing and reader; Today attention has a real joined integration suite.
 vi.mock("@/components/workspaces/TodayResearchAttention",()=>({default:({render}:{render?:(parts:{continuation:React.ReactNode;briefing:React.ReactNode})=>React.ReactNode})=>render?.({continuation:<Link href="/research">Research</Link>,briefing:null})??null}));
 vi.mock("@/components/workspaces/TodayWatchAttention",()=>({default:()=>null}));
+vi.mock("@/components/workspaces/TodaySinceLastVisit",()=>({default:()=>null}));
 vi.mock("next/link",()=>({default:({children,...props}:React.AnchorHTMLAttributes<HTMLAnchorElement>)=><a {...props}>{children}</a>}));
 const selection:ReadingSelection={docId:"report-one",sourcePdfSha256:"a".repeat(64),extractedTextSha256:"b".repeat(64),extractorVersion:"research_vault.ingest.extract_pdf_text.v1",segmenterVersion:"page-byte-v1"};
 function body(text="PRIVATE SELECTED SOURCE",start=0,total=3,docId=selection.docId){return{

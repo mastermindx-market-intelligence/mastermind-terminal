@@ -96,7 +96,7 @@
  .today a { transition:none; }
 }
 
-/* Additive Today jobs: DOM order is attention, continuation, briefing, source detail. */
+/* Additive Today jobs: DOM order is since-last-visit, attention, continuation, briefing, source detail. */
 .jobs { display:grid;grid-template-columns:minmax(0,1.5fr) minmax(280px,1fr);gap:24px 32px;align-items:start; }
 .watchJob,.continuationJob,.researchJob,.coverageJob { min-width:0; }
 .continuationJob { padding:20px;background:var(--panel);border:1px solid var(--line);border-radius:12px; }
@@ -123,10 +123,11 @@
 /* Reading order stays attention → continuation → briefing → source detail.
    Spanning the aside lets the primary column flow without an empty grid row. */
 @media(min-width:700px) {
- .watchJob { grid-column:1;grid-row:1; }
- .continuationJob { grid-column:2;grid-row:1 / span 2; }
- .researchJob { grid-column:1;grid-row:2; }
- .coverageJob { grid-column:1 / -1;grid-row:3;padding-top:20px;border-top:1px solid var(--line); }
+ .sinceJob { grid-column:1 / -1;grid-row:1; }
+ .watchJob { grid-column:1;grid-row:2; }
+ .continuationJob { grid-column:2;grid-row:2 / span 2; }
+ .researchJob { grid-column:1;grid-row:3; }
+ .coverageJob { grid-column:1 / -1;grid-row:4;padding-top:20px;border-top:1px solid var(--line); }
 }
 .today .marketRead { margin-top:14px; }
 .today .readingDate > span { display:inline;margin:0 0 0 8px; }
@@ -173,3 +174,14 @@
  .today .watchFooter > p { min-width:200px; }
  .coverageJob { padding-top:20px;border-top:1px solid var(--line); }
 }
+
+/* Since your last visit — the desk's own change lines over the names you hold. */
+.sinceJob { min-width:0;padding-bottom:20px;border-bottom:1px solid var(--line); }
+.sinceList { list-style:none;margin:0;padding:0; }
+.sinceRow { display:flex;align-items:baseline;gap:12px;padding:12px 0;border-block:1px solid var(--line); }
+.sinceRow + .sinceRow { border-top:0; }
+.sinceRow > a { flex:none;font-weight:550;letter-spacing:.01em;text-decoration:none;min-height:24px; }
+.sinceRow > a:hover { text-decoration:underline;text-underline-offset:4px; }
+.today .sinceRow > p { margin:0;min-width:0; }
+.today .sinceMeta { margin:10px 0 0;font-size:12px;color:var(--text-2); }
+.today .sinceFoot { margin:10px 0 0;font-size:11px;line-height:1.6;color:var(--muted); }
