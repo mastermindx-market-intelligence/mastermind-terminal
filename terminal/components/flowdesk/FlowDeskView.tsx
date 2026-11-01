@@ -473,6 +473,7 @@ function ChainCampaignRow({
 
 export function FlowDeskView() {
   const { lang } = useLang();
+  const t = makeFlowT(lang);
 
   // ── Data state ──────────────────────────────────────────────────────────────
   // The order-flow tape rides the SSE transport (push) instead of a 30s poll; the
@@ -481,7 +482,7 @@ export function FlowDeskView() {
   // timing comes from live_flow.meta/v2 and is rendered separately. The SSE endpoint
   // pushes only on change (asof+size signature), so the old client-side asof dedup is
   // no longer needed.
-  const { data: feed, connected: feedConnected } = useFlowStream<FeedPayload>("feed");
+  const { data: feed, connected: feedConnected, status: feedStatus, stale: feedStale, retry: retryFeed } = useFlowStream<FeedPayload>("feed");
   const { data: flowMeta } = useFlowStream<unknown>("meta", { pollMs: 60_000 });
   const [tide,      setTide]      = useState<TidePayload | null>(null);
   const [chainHeat, setChainHeat] = useState<ChainHeatPayload | null>(null);
@@ -701,10 +702,6 @@ export function FlowDeskView() {
       }
     : null;
 
-  // ── FlowGauge needs feed with typed events ────────────────────────────────────
-
-  const feedForGauge = feed ?? { events: [], session_pct: undefined };
-
   // ── RadarStrip needs feed with typed unusual_names ────────────────────────────
 
   const feedForRadar = feed
@@ -756,8 +753,14 @@ export function FlowDeskView() {
 
       {/* ═══ LEFT RAIL (FlowGauge strip + WatchlistRail + Smart Money Radar) ═ */}
       <div className="obs-fd-left">
-        {/* FlowGauge — slim strip pinned at top of left rail */}
-        <FlowGauge feed={feedForGauge} lang={lang} />
+        {/* FlowGauge — slim strip pinned at top of left rail. Unknown is not zero: with
+            no feed there is no session total or call/put split to draw, so the gauge is
+            not rendered and the rail states below say what the read established. */}
+        {feed !== null && (
+          <div data-testid="flow-gauge-slot" style={{ display: "contents" }}>
+            <FlowGauge feed={feed} lang={lang} />
+          </div>
+        )}
 
         {/* WatchlistRail — compacted rings (26px) + tighter rows */}
         {feedForWatchlist && (
@@ -771,7 +774,22 @@ export function FlowDeskView() {
             onOpenTutorial={() => setTutOpen(true)}
           />
         )}
-        {!feedForWatchlist && <div className="fin-skel" style={RAIL_LOADING} aria-hidden="true" />}
+        {/* A feed the desk could not read is not an endless skeleton (UI-truth law):
+            unavailable says what failed, absent says nothing is published, and only
+            a genuine in-flight read keeps the loading skeleton. */}
+        {!feedForWatchlist && feedStatus === "unavailable" && (
+          <div className="obs-card" data-testid="watchlist-feed-unavailable" role="status" style={WATCHLIST_FEED_STATE}>
+            {t("watchlistFeedUnavailable")}
+          </div>
+        )}
+        {!feedForWatchlist && feedStatus === "absent" && (
+          <div className="obs-card" data-testid="watchlist-feed-absent" role="status" style={WATCHLIST_FEED_STATE}>
+            {t("feedAbsent")}
+          </div>
+        )}
+        {!feedForWatchlist && feedStatus !== "unavailable" && feedStatus !== "absent" && (
+          <div className="fin-skel" style={RAIL_LOADING} aria-hidden="true" />
+        )}
 
         {/* Smart Money Radar — fills remaining left-rail height, obs-scroll inside */}
         {feedForRadar.unusual_names.length > 0 && (
@@ -785,6 +803,9 @@ export function FlowDeskView() {
         <FeedPane
           feed={feed}
           connected={feedConnected}
+          status={feedStatus}
+          stale={feedStale}
+          onRetry={retryFeed}
           flowMeta={flowMeta}
           enrich={enrich}
           lang={lang}
@@ -827,6 +848,14 @@ export function FlowDeskView() {
 
 // Left-rail placeholder while the first feed payload lands — a shimmer skeleton
 // rather than an unexplained blank panel (doctrine: never a mute blank).
+// Neutral note for the left rail when the flow feed did not land — existing card
+// surface, muted text, no new colour.
+const WATCHLIST_FEED_STATE: React.CSSProperties = {
+  padding: 16,
+  fontSize: 11,
+  lineHeight: 1.5,
+  color: "var(--muted)",
+};
 const RAIL_LOADING: React.CSSProperties = {
   height: 220,
   margin: "var(--sp-2) 0",

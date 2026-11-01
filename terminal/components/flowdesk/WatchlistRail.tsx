@@ -91,12 +91,17 @@ export function WatchlistRail({ feed, tide, lang, watchlist, onToggleTicker, onP
     ? (overview.putPrem / overview.callPrem).toFixed(2)
     : "—";
 
-  // Best score per ticker
+  // Best score per ticker. Unknown is not zero: a root whose events carry no
+  // finite score maps to null (a missing score is not a 0-scored root), and the
+  // best-of is taken over FINITE scores only.
   const tickerBestScore = useMemo(() => {
-    const map: Record<string, number> = {};
+    const map: Record<string, number | null> = {};
     for (const ev of feed.events) {
-      const score = ev.flowScore?.score ?? 0;
-      if (!(ev.root in map) || score > map[ev.root]) map[ev.root] = score;
+      const score = ev.flowScore && Number.isFinite(ev.flowScore.score) ? ev.flowScore.score : null;
+      const cur = map[ev.root];
+      map[ev.root] = cur === undefined || (score !== null && (cur === null || score > cur))
+        ? score
+        : cur;
     }
     return map;
   }, [feed.events]);
@@ -196,7 +201,14 @@ export function WatchlistRail({ feed, tide, lang, watchlist, onToggleTicker, onP
                 {pick(zh, "Active today", "今日活跃")}
               </div>
               {Object.entries(tickerBestScore)
-                .sort((a, b) => b[1] - a[1])
+                // Scored roots first, best score on top; an unknown score is not a
+                // zero, so unscored roots sort last (stable) instead of the bottom.
+                .sort(([, a], [, b]) => {
+                  if (a === null && b === null) return 0;
+                  if (a === null) return 1;
+                  if (b === null) return -1;
+                  return b - a;
+                })
                 .slice(0, 5)
                 .map(([root, score]) => (
                   <WatchRow
@@ -267,16 +279,16 @@ function WatchRow({ root, score, inFeed, zh, onPick, onRemove, isWatch = true }:
           <span className="obs-fd-wl-inactive">{pick(zh, "no events", "无事件")}</span>
         )}
         <span style={{ marginLeft: "auto", flexShrink: 0 }}>
-          {score != null
-            ? <RingGauge value={score} size="sm" tone="auto" />
+          {inFeed
+            ? <RingGauge value={score} size="sm" tone="auto" naLabel={pick(zh, FD.scoreUnavailable.en, FD.scoreUnavailable.zh)} />
             : null}
         </span>
       </button>
       <div className="obs-fd-wl-btns">
         {isWatch ? (
-          <button className="obs-fd-wl-btn" onClick={onRemove} aria-label="Remove">×</button>
+          <button className="obs-fd-wl-btn" onClick={onRemove} aria-label={pick(zh, `Remove ${root} from watchlist`, `将 ${root} 移出观察列表`)}>×</button>
         ) : (
-          <button className="obs-fd-wl-btn add" onClick={onRemove} aria-label="Watch">+</button>
+          <button className="obs-fd-wl-btn add" onClick={onRemove} aria-label={pick(zh, `Add ${root} to watchlist`, `将 ${root} 加入观察列表`)}>+</button>
         )}
       </div>
     </div>

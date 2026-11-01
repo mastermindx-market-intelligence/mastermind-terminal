@@ -1,0 +1,294 @@
+capturedAtHead: 0b5e19f87acb2e71b0945d6de5b8ef0e236bcf5c
+capturedAt: 2026-11-01T12:17:49.275Z
+command: "cd terminal && node docs/pr-crops/flowdesk-unknown-truth-light/capture.mjs"
+theme: light — Shared Shell beta only (MMX_SHARED_SHELL=1, localStorage mmx.shell.theme=light); the legacy Terminal shell is dark-only.
+sources: the FLOW_FIXTURE dev server's own feed; only the /api/flow/stream and /api/flow?f=feed transport is scripted; na-score withholds flowScore on alternate events. Not market data or provider evidence.
+layoutFiles:
+  - path: terminal/app/globals.css
+    sha256: b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517
+  - path: terminal/app/observatory.css
+    sha256: 09e9db8ecbc3be7858d609342b1ba3d5797298adfa17a5f936b04b9c00c31414
+  - path: terminal/components/chrome/shared-shell/shared-shell.css
+    sha256: aa6555ac18306f31fb317d8941bd1dd530ab7c61c18e67d2a73a439329950339
+  - path: terminal/components/flowdesk/FeedPane.tsx
+    sha256: ae2a870c9829fa51cb03590fbbed2a54af9dbed21bd6a7818a2bfecbeb4d6ace
+  - path: terminal/components/flowdesk/FlowCard.tsx
+    sha256: cef9c25c7e144c82200f89818bb679a2282f217debbf0229cf163cdddac1de37
+  - path: terminal/components/flowdesk/FlowDeskView.tsx
+    sha256: 06534b5c6e86e7311c774d3233a3ecd74a0245b4957d9136ff747d7fb24f5f1d
+  - path: terminal/components/flowdesk/WatchlistRail.tsx
+    sha256: 5d264ec89bf5f5142562fcf5b8922eac813ae215edf3d1c5cc80453c988acfe2
+  - path: terminal/components/ui/RingGauge.tsx
+    sha256: 18772b03682044321b0fa4a8f925c7eae2303a4927635b3068e6419453880114
+  - path: terminal/lib/flowdeskStrings.ts
+    sha256: f9bad0793492bdd040333c60a54fa6cd6bc02230817643c4f1437d8feb951d50
+naTrackChecks:
+  - crop: na-score-1440
+    naTrackStroke: "rgba(31, 43, 62, 0.09)"
+    rootHairline: "#1f2b3e17"
+  - crop: na-score-390
+    naTrackStroke: "rgba(31, 43, 62, 0.09)"
+    rootHairline: "#1f2b3e17"
+  - crop: na-score-1440-zh
+    naTrackStroke: "rgba(31, 43, 62, 0.09)"
+    rootHairline: "#1f2b3e17"
+  - crop: na-score-390-zh
+    naTrackStroke: "rgba(31, 43, 62, 0.09)"
+    rootHairline: "#1f2b3e17"
+crops:
+  - file: unavailable-1440-context.png
+    viewport: 1440x900
+    lang: en
+    state: unavailable
+    part: "viewport"
+    htmlTheme: light
+    sharedShell: "1"
+    sha256: 066fd6159da4faf7986d5262afb78336f53d4580712a44809c17866dc852e484
+  - file: unavailable-1440-load-error.png
+    viewport: 1440x900
+    lang: en
+    state: unavailable
+    part: "flowfeed-load-error"
+    htmlTheme: light
+    sharedShell: "1"
+    sha256: 81e57fab5eb0ca7287acc77106950efb1d646fbaae37ddf35da622a9531cd019
+  - file: unavailable-1440-watchlist.png
+    viewport: 1440x900
+    lang: en
+    state: unavailable
+    part: "watchlist-feed-unavailable"
+    htmlTheme: light
+    sharedShell: "1"
+    sha256: 9947c2cef22cd47a443f9a1930135845cacaebeecdb9d4a91d0c0d57af362b04
+  - file: absent-after-data-1440-context.png
+    viewport: 1440x900
+    lang: en
+    state: absent-after-data
+    part: "viewport"
+    htmlTheme: light
+    sharedShell: "1"
+    sha256: f2df7eb4faf52ff44a39ca63217bb78fd5d6226fc451a12a5f1eb88dc37dfa5e
+  - file: absent-after-data-1440-note.png
+    viewport: 1440x900
+    lang: en
+    state: absent-after-data
+    part: "flowfeed-refresh-absent"
+    htmlTheme: light
+    sharedShell: "1"
+    sha256: 21ca70bfd880c2b2c66c0b30a435b01303f7321fe23760dac86a11d103c58d37
+  - file: loading-1440-context.png
+    viewport: 1440x900
+    lang: en
+    state: loading
+    part: "viewport"
+    htmlTheme: light
+    sharedShell: "1"
+    sha256: 3ba5f7bb288664b2bcd15c4b5910ffc81c15438fda450f7704aaf0705f93fc28
+  - file: loading-1440-rail.png
+    viewport: 1440x900
+    lang: en
+    state: loading
+    part: ".obs-fd-left skeleton"
+    htmlTheme: light
+    sharedShell: "1"
+    sha256: 94ad0dc313a08b351713d18dc158950f9c614fc3d4e7a2837a6a19f31df04a28
+  - file: na-score-1440-context.png
+    viewport: 1440x900
+    lang: en
+    state: na-score
+    part: "viewport"
+    htmlTheme: light
+    sharedShell: "1"
+    sha256: 5d478f477b43cdeb51382f7971cd408e7354ded90508c1e4c5bb5d81c6ff69d3
+  - file: na-score-1440-na-card.png
+    viewport: 1440x900
+    lang: en
+    state: na-score
+    part: "unscored .obs-fc-card"
+    htmlTheme: light
+    sharedShell: "1"
+    sha256: a172faa61b0bbb4554404b6cf667ab4bda63dd4679b0f212e4a8406cb71e474b
+  - file: na-score-1440-scored-card.png
+    viewport: 1440x900
+    lang: en
+    state: na-score
+    part: "scored .obs-fc-card"
+    htmlTheme: light
+    sharedShell: "1"
+    sha256: b1ced08a496242fa8cdb9c2ee661568698595d07d492d870cea03e6988c813b8
+  - file: unavailable-390-load-error.png
+    viewport: 390x844
+    lang: en
+    state: unavailable
+    part: "flowfeed-load-error"
+    htmlTheme: light
+    sharedShell: "1"
+    sha256: d15a1fee77b92e965f955c76c827028db9bbb2c53a02a65374f9fa1eb912df55
+  - file: unavailable-390-watchlist.png
+    viewport: 390x844
+    lang: en
+    state: unavailable
+    part: "watchlist-feed-unavailable"
+    htmlTheme: light
+    sharedShell: "1"
+    sha256: 8f2bda07c851a4f09b397fde1a6a6ba681a66415ecb1760bebf43e61b4f6c64d
+  - file: absent-after-data-390-note.png
+    viewport: 390x844
+    lang: en
+    state: absent-after-data
+    part: "flowfeed-refresh-absent"
+    htmlTheme: light
+    sharedShell: "1"
+    sha256: 1a5e974e1498c21499111afdd449fc3ee2e93179ebdb3196e59afe0a198bf5e6
+  - file: loading-390-rail.png
+    viewport: 390x844
+    lang: en
+    state: loading
+    part: ".obs-fd-left skeleton"
+    htmlTheme: light
+    sharedShell: "1"
+    sha256: e0ba7ce77171e5ad51a993080a77a777666c73e26e5c8f85284703e4371ecce8
+  - file: na-score-390-na-card.png
+    viewport: 390x844
+    lang: en
+    state: na-score
+    part: "unscored .obs-fc-card"
+    htmlTheme: light
+    sharedShell: "1"
+    sha256: fbd6a77ff6414200dc2003a6ca01fd81fcb96f49336a5da2fbd6be9fe4b755ad
+  - file: na-score-390-scored-card.png
+    viewport: 390x844
+    lang: en
+    state: na-score
+    part: "scored .obs-fc-card"
+    htmlTheme: light
+    sharedShell: "1"
+    sha256: 328c53f775b1274c9bf9138fb1ffb137faab492211751c89f326737cb5ad5c73
+  - file: unavailable-1440-zh-context.png
+    viewport: 1440x900
+    lang: zh
+    state: unavailable
+    part: "viewport"
+    htmlTheme: light
+    sharedShell: "1"
+    sha256: 7545b5c5b7bc515a32263b508db16b0ea51f4653cee756fef0bcd62a46ae424c
+  - file: unavailable-1440-zh-load-error.png
+    viewport: 1440x900
+    lang: zh
+    state: unavailable
+    part: "flowfeed-load-error"
+    htmlTheme: light
+    sharedShell: "1"
+    sha256: 734919c4c16484f6a4a612035090da4f9297fddad0c26cb608aa747451f8fca9
+  - file: unavailable-1440-zh-watchlist.png
+    viewport: 1440x900
+    lang: zh
+    state: unavailable
+    part: "watchlist-feed-unavailable"
+    htmlTheme: light
+    sharedShell: "1"
+    sha256: 5416f8d48447cc6ce6cb0d6ae2c8933aca25a833e0a0c56b1bb8043407df38c4
+  - file: absent-after-data-1440-zh-context.png
+    viewport: 1440x900
+    lang: zh
+    state: absent-after-data
+    part: "viewport"
+    htmlTheme: light
+    sharedShell: "1"
+    sha256: eb6d50afb51829eccbb88a2571f6ffa72b434b5852370a02e3d5099a831a7b13
+  - file: absent-after-data-1440-zh-note.png
+    viewport: 1440x900
+    lang: zh
+    state: absent-after-data
+    part: "flowfeed-refresh-absent"
+    htmlTheme: light
+    sharedShell: "1"
+    sha256: 6aceb5bf542ce7c94b0eeea040c452fbd11b0cb83a6e6c3a6661d447ae470d85
+  - file: loading-1440-zh-context.png
+    viewport: 1440x900
+    lang: zh
+    state: loading
+    part: "viewport"
+    htmlTheme: light
+    sharedShell: "1"
+    sha256: 12ac865f844becd88a9de1a237c2f4f77e093425a8bbf918627af47d9a8f65e1
+  - file: loading-1440-zh-rail.png
+    viewport: 1440x900
+    lang: zh
+    state: loading
+    part: ".obs-fd-left skeleton"
+    htmlTheme: light
+    sharedShell: "1"
+    sha256: 94ad0dc313a08b351713d18dc158950f9c614fc3d4e7a2837a6a19f31df04a28
+  - file: na-score-1440-zh-context.png
+    viewport: 1440x900
+    lang: zh
+    state: na-score
+    part: "viewport"
+    htmlTheme: light
+    sharedShell: "1"
+    sha256: 523bcef4e9f456547b845ed4af963a64b5670e2abc4c5078f9068a3be2692fc7
+  - file: na-score-1440-zh-na-card.png
+    viewport: 1440x900
+    lang: zh
+    state: na-score
+    part: "unscored .obs-fc-card"
+    htmlTheme: light
+    sharedShell: "1"
+    sha256: 8f1301806e650118e284db8fb48b0df2c6e173e405b678dbc545bb2e6cefce3b
+  - file: na-score-1440-zh-scored-card.png
+    viewport: 1440x900
+    lang: zh
+    state: na-score
+    part: "scored .obs-fc-card"
+    htmlTheme: light
+    sharedShell: "1"
+    sha256: 7c3d79c68bd0633b32a55b870849c8df389ff40e6532ad4581ba6edab065eebf
+  - file: unavailable-390-zh-load-error.png
+    viewport: 390x844
+    lang: zh
+    state: unavailable
+    part: "flowfeed-load-error"
+    htmlTheme: light
+    sharedShell: "1"
+    sha256: 674535d71fd384b107fd0edfad8f2c45c8c53f1762469120f6343c6492cca49a
+  - file: unavailable-390-zh-watchlist.png
+    viewport: 390x844
+    lang: zh
+    state: unavailable
+    part: "watchlist-feed-unavailable"
+    htmlTheme: light
+    sharedShell: "1"
+    sha256: 7c79ae6b299307f2b4b6d2df0a8db9c087973be1c3bd0b496b62f266cb686621
+  - file: absent-after-data-390-zh-note.png
+    viewport: 390x844
+    lang: zh
+    state: absent-after-data
+    part: "flowfeed-refresh-absent"
+    htmlTheme: light
+    sharedShell: "1"
+    sha256: 02f331b431341882a7502695a9406b76ace228d6d346e5187c13720be11a1f88
+  - file: loading-390-zh-rail.png
+    viewport: 390x844
+    lang: zh
+    state: loading
+    part: ".obs-fd-left skeleton"
+    htmlTheme: light
+    sharedShell: "1"
+    sha256: e0ba7ce77171e5ad51a993080a77a777666c73e26e5c8f85284703e4371ecce8
+  - file: na-score-390-zh-na-card.png
+    viewport: 390x844
+    lang: zh
+    state: na-score
+    part: "unscored .obs-fc-card"
+    htmlTheme: light
+    sharedShell: "1"
+    sha256: 187dcf54223355f91897a7fe5bbd4c849289e8f860ab0e5528b75e6fc9497f62
+  - file: na-score-390-zh-scored-card.png
+    viewport: 390x844
+    lang: zh
+    state: na-score
+    part: "scored .obs-fc-card"
+    htmlTheme: light
+    sharedShell: "1"
+    sha256: a8493d32c6dc072cc122737b1cdd825674cbf26b902692ac86107e8d4c50e9e2
