@@ -113,6 +113,10 @@ export function VolComparePanel({
   const rootRef = useRef<HTMLElement | null>(null);
   const asofDate = (asof ?? "").slice(0, 10);
   const todayIso = today ?? etToday();
+  // AC40 Option B: the producer's clock. Interpolated tenors are calendar days after `asof`
+  // (engine/options_hub.py dte = exp - asof), so their dates and the skew's calendar fallback
+  // run on it. `null` when the source states no valid day: then no interpolated date is shown.
+  const asofIso = volIsoDay(asofDate);
 
   const admission = useMemo(() => admitVolTermRows(term), [term]);
   const admitted = useMemo(() => admission.rows.filter((row) => Number.isFinite(row.v)), [admission.rows]);
@@ -144,7 +148,7 @@ export function VolComparePanel({
       .filter((p) => p.basis === "interpolated" && !supplied.some((s) => s.tenorDays === p.tenorDays))
       .map((p) => ({
         key: `i:${p.tenorDays}`, tenorDays: p.tenorDays,
-        exp: addDays(todayIso, p.tenorDays), iv: p.iv, basis: "interpolated",
+        exp: asofIso ? addDays(asofIso, p.tenorDays) : null, iv: p.iv, basis: "interpolated",
         between: p.between ? { lo: p.between.lo.dte, hi: p.between.hi.dte } : null, selected: false,
       }));
     const unsupported: TableRow[] = std
@@ -159,7 +163,7 @@ export function VolComparePanel({
       suppliedCount: supplied.length,
       interpolatedCount: interpolated.length,
     };
-  }, [admitted, selectedExpiry, term, todayIso]);
+  }, [admitted, asofIso, selectedExpiry, term]);
 
   const [levelLo, levelHi] = useMemo(() => {
     if (!admitted.length) return [0, 1];
@@ -205,15 +209,19 @@ export function VolComparePanel({
   const skew = useMemo(() => {
     const expiries = (smile ?? []).filter((s) => volIsoDay(s?.exp));
     if (expiries.length === 0) return null;
-    const calDte = (exp: string) => Math.round((Date.parse(`${exp}T00:00:00Z`) - Date.parse(`${todayIso}T00:00:00Z`)) / 86400000);
+    // One comparator, one clock: the fallback sits beside producer dte values, so it counts
+    // from `asof`; it falls back to the viewer's today only when `asof` is absent, and says so.
+    const clockIso = asofIso ?? todayIso;
+    const calDte = (exp: string) => Math.round((Date.parse(`${exp}T00:00:00Z`) - Date.parse(`${clockIso}T00:00:00Z`)) / 86400000);
     const dteOfExp = (exp: string) => dteAt.get(exp) ?? calDte(exp);
     const onSelected = selectedExpiry != null && expiries.some((s) => s.exp === selectedExpiry);
     const chosen = onSelected
       ? expiries.find((s) => s.exp === selectedExpiry)!
       : expiries.reduce((a, b) => (Math.abs(dteOfExp(b.exp) - 30) < Math.abs(dteOfExp(a.exp) - 30) ? b : a));
     const rows = skewInStrikeSpace(chosen, atmProxyStrike(chosen), SKEW_PCTS, "auto");
-    return { chosen, dte: dteOfExp(chosen.exp), onSelected, rows };
-  }, [dteAt, selectedExpiry, smile, todayIso]);
+    const usedCalendar = onSelected ? !dteAt.has(chosen.exp) : expiries.some((s) => !dteAt.has(s.exp));
+    return { chosen, dte: dteOfExp(chosen.exp), onSelected, rows, todayFallback: asofIso == null && usedCalendar };
+  }, [asofIso, dteAt, selectedExpiry, smile, todayIso]);
 
   // ── Events inside the curve ──────────────────────────────────────────────────
   const eventRows = useMemo(() => {
@@ -247,6 +255,19 @@ export function VolComparePanel({
       return t("cmpBasisBetween").replace("{lo}", String(row.between.lo)).replace("{hi}", String(row.between.hi));
     }
     return t("cmpUnsupportedRange");
+  };
+
+  // Supplied rows carry the exchange expiry and render exactly as before. An interpolated row
+  // is dated on the producer clock: with no stated asof it shows no date plus the reason; a date
+  // on or before the viewer's ET today is no longer ahead and names the read it comes from.
+  const expiryCell = (row: TableRow) => {
+    const selected = row.selected ? ` · ${t("cmpSelected")}` : "";
+    if (row.basis !== "interpolated") return `${dayShort(row.exp, lang)}${selected}`;
+    if (!row.exp || !asofIso) return `${dayShort(null, lang)} · ${t("cmpClockUnstated")}${selected}`;
+    if (row.exp <= todayIso) {
+      return `${dayShort(row.exp, lang)} · ${t("cmpRowPastRead").replace("{asof}", dayShort(asofIso, lang))}${selected}`;
+    }
+    return `${dayShort(row.exp, lang)}${selected}`;
   };
 
   const eventCell = (row: TableRow) => {
@@ -360,7 +381,7 @@ export function VolComparePanel({
                   {table.main.map((row) => (
                     <tr key={row.key}>
                       <td style={{ ...TD, fontWeight: row.selected ? 700 : 500 }}>{row.tenorDays}D</td>
-                      <td style={TD}>{dayShort(row.exp, lang)}{row.selected && ` · ${t("cmpSelected")}`}</td>
+                      <td style={TD}>{expiryCell(row)}</td>
                       <td style={TD_NUM}>{fmtIv(row.iv)}</td>
                       <td style={TD}>{basisCell(row)}</td>
                       <td style={TD}>{eventCell(row)}</td>
@@ -485,6 +506,7 @@ export function VolComparePanel({
                 {skew.onSelected
                   ? t("cmpSkewOnSelected").replace("{exp}", skew.chosen.exp)
                   : t("cmpSkewOnNearest").replace("{exp}", skew.chosen.exp)}
+                {skew.todayFallback && ` · ${t("cmpSkewDteFromToday")}`}
               </div>
               <div style={SCROLL_X}>
                 <table style={TABLE}>

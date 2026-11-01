@@ -1,0 +1,126 @@
+capturedAtHead: fd423bff1ec087d2cf8323afd191296e17fb3b0f
+command: "OPTIONS_AC40_CROPS=1 npx playwright test e2e/options-ac40-tenor-asof-crops.spec.ts --project=desktop --workers=1"
+theme: Terminal and Options routes are dark-only (DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06).
+sources: synthetic (e2e/fixtures/options-r1-w3b-vol.json less its 7D row, and less asof for asof-missing; e2e/fixtures/options-r1-w3-moves.json; mocked /data/AAPL.fund.json); not provider evidence.
+layoutFiles:
+  - path: terminal/app/globals.css
+    sha256: b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517
+  - path: terminal/components/vol/VolComparePanel.tsx
+    sha256: 481a34e73312100b3d513e4bff08db27ff4841d5158932ad0eeec0c323de0eea
+  - path: terminal/components/vol/VolView.tsx
+    sha256: 2f0d396f8163b628a5e241e3ec74b19271bef08474c3df11709ea81f57dd4fbe
+  - path: terminal/components/vol/volShared.tsx
+    sha256: e77a4159b46c9670201a03ab22e0408ec5eeb03725dc9e7dad54b49a07cfdd50
+  - path: terminal/components/vol/volStrings.ts
+    sha256: ec923024084e017634e4e6b2d4e538e2dd8be00c4bc3b1451c36ec6477be9223
+  - path: terminal/lib/volTenorComparison.ts
+    sha256: ba5e924630df32cf91c5e8c64880e91a2e5e4a241f19a0451f514283c180c3ac
+crops:
+  - file: old-read-on-today-1440.png
+    viewport: 1440x2567
+    lang: en
+    state: old-read-on-today
+    clock: 2026-10-27T15:00:00Z
+    sha256: 9d3d023f95a3ec0bd04ed60db461229674a75e0ad4acaa1abb3ef3f793ee4494
+  - file: old-read-on-today-820.png
+    viewport: 820x2974
+    lang: en
+    state: old-read-on-today
+    clock: 2026-10-27T15:00:00Z
+    sha256: 450313a6e9508d45d683b86b2e4edc997e4ca7302c652886881709f1adbb9e7f
+  - file: old-read-on-today-390.png
+    viewport: 390x3462
+    lang: en
+    state: old-read-on-today
+    clock: 2026-10-27T15:00:00Z
+    sha256: 3dd91514998fbdfcdbe213996765d22febed3d8aee6ea43f731cd15cb25bb5b1
+  - file: old-read-on-today-1440-zh.png
+    viewport: 1440x2535
+    lang: zh
+    state: old-read-on-today
+    clock: 2026-10-27T15:00:00Z
+    sha256: 812b19a1a999f0e2e706fa76f5057a54bf23c962a0faf80f559a73dad9f09729
+  - file: old-read-on-today-820-zh.png
+    viewport: 820x2929
+    lang: zh
+    state: old-read-on-today
+    clock: 2026-10-27T15:00:00Z
+    sha256: 37102cebc958868029164af5741cecdacb3b8a985d4d7f97cf64f8c1b5dd61f6
+  - file: old-read-on-today-390-zh.png
+    viewport: 390x3389
+    lang: zh
+    state: old-read-on-today
+    clock: 2026-10-27T15:00:00Z
+    sha256: e659e787b7b468a9174d5c26874f4fd06ad470408c1c741f1a8a513f2af24d40
+  - file: today-read-1440.png
+    viewport: 1440x2783
+    lang: en
+    state: today-read
+    clock: 2026-10-20T15:00:00Z
+    sha256: 5ecc11c7d83a316a7bd45c33d325bb1da7d48ee3f6341fac9c16c179ea4cdd6e
+  - file: today-read-820.png
+    viewport: 820x3190
+    lang: en
+    state: today-read
+    clock: 2026-10-20T15:00:00Z
+    sha256: 4f4093de87b86b1d711d8f49e49f72c8365528b1ab22ff72ed51bb25be96b17d
+  - file: today-read-390.png
+    viewport: 390x3775
+    lang: en
+    state: today-read
+    clock: 2026-10-20T15:00:00Z
+    sha256: 5425dd87b66c55d4f014fbde60df044638948d5e068fe69a4f90af159f605701
+  - file: today-read-1440-zh.png
+    viewport: 1440x2730
+    lang: zh
+    state: today-read
+    clock: 2026-10-20T15:00:00Z
+    sha256: e5c338ee841d8535875171114fc09e9e2beaf7b96eff392a73d1e4f432bcaca5
+  - file: today-read-820-zh.png
+    viewport: 820x3108
+    lang: zh
+    state: today-read
+    clock: 2026-10-20T15:00:00Z
+    sha256: 236facddf718f1018a3fb31489d2996e43cd684e9810b801de4f0f9d164cb23f
+  - file: today-read-390-zh.png
+    viewport: 390x3651
+    lang: zh
+    state: today-read
+    clock: 2026-10-20T15:00:00Z
+    sha256: 17ea335ebeaffc0b98cf2ff6ec580a81a223dd231385e7d20c492615cba80756
+  - file: asof-missing-1440.png
+    viewport: 1440x2783
+    lang: en
+    state: asof-missing
+    clock: 2026-10-21T15:00:00Z
+    sha256: d98bb4d7532ad19725d7d1eb0764ca6b522ddc55868f569021c61c733bf9284a
+  - file: asof-missing-820.png
+    viewport: 820x3210
+    lang: en
+    state: asof-missing
+    clock: 2026-10-21T15:00:00Z
+    sha256: 377cec84a8bfb4ba346168619193633785bcdeb250f4ec0911ddd0edb6d9912a
+  - file: asof-missing-390.png
+    viewport: 390x3775
+    lang: en
+    state: asof-missing
+    clock: 2026-10-21T15:00:00Z
+    sha256: 64e7c080c8057a81a57517ecce3cf7c37f6af851861b3817a0ccc32b790f9652
+  - file: asof-missing-1440-zh.png
+    viewport: 1440x2730
+    lang: zh
+    state: asof-missing
+    clock: 2026-10-21T15:00:00Z
+    sha256: 229d7c029c8cbf80d4b50df866aa7fe5375ee2c4ffa49404d4631ada94f18b2d
+  - file: asof-missing-820-zh.png
+    viewport: 820x3108
+    lang: zh
+    state: asof-missing
+    clock: 2026-10-21T15:00:00Z
+    sha256: 7a3a13aa5c0c72bd502e2a307715f29217c6b4e079cfebc2e10ecd1345fae661
+  - file: asof-missing-390-zh.png
+    viewport: 390x3651
+    lang: zh
+    state: asof-missing
+    clock: 2026-10-21T15:00:00Z
+    sha256: 7c088daa3ad331a6a58fbe20ce555aa471de2ed553a9834e607c167fa00bcabd
