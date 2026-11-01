@@ -508,7 +508,7 @@ class MacroFeed {
     lruTouch(this._subs, sym, MACRO_LRU_CAP, (old) => {
       this._sinaCache.delete(old);
       this._yahooCache.delete(old);
-      log.info("macro LRU-evicted", old);
+      log.tally("macro LRU-evicted", old);
     });
   }
 

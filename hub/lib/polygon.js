@@ -637,7 +637,7 @@ class Polygon {
       this.forming.invalidate(oldestKey);
       this.store.markSubscribed(oldestKey, false);
       this._send({ action: "unsubscribe", params: `${this._aggregateChannel()}.${oldestKey}` });
-      log.info("polygon LRU-evicted", oldestKey);
+      log.tally("polygon LRU-evicted", oldestKey);
     }
 
     this.subs.set(sym, { lastReq: now, subscribedAt: now });
