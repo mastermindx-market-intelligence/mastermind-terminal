@@ -16,7 +16,45 @@ usage() {
   echo "Usage: /bin/bash $0 [--check | --run-now]"
   echo "  --check    validate repo paths and plist syntax without changing launchd"
   echo "  --run-now  install, then kick off one refresh immediately"
+  echo "Runs only on the fund lane host ($FUND_LANE_HOST, i.e. M1); other hosts exit 3."
 }
+
+# ── HOST GUARD — this is the M1 installer, never run it anywhere else ────────
+# The fund lane moved M2 → M1 on 2026-07-25/26. On 2026-08-01 this script ran
+# on M2 and silently re-loaded the job there, so both Macs rsynced *.fund.json
+# to the VPS every night for ~11 weeks and prod flip-flopped between them.
+# M2's job was booted out again on 2026-10-19 and carries a persistent
+# `launchctl disable` override; leave it in place.
+#
+# Identity is the Bonjour LocalHostName: user-set, independent of network/DHCP
+# (unlike `hostname`), and read as m1studio on M1 / m2studio on M2 (2026-10-30).
+# A missing or renamed name fails closed.
+#
+# Rolling the lane back to M2 goes through ~/dataplane-migration/rollback-groupB-to-M2.sh
+# on M2 (it boots M1 out, lifts M2's disable override, restores M2's plist).
+# MM_FUND_BOOTSTRAP_ALLOW_HOST=1 is only for refreshing the plist on M2 AFTER
+# that rollback; never set it while M1 still runs the lane.
+FUND_LANE_HOST="m1studio"
+fund_lane_host_id() { /usr/sbin/scutil --get LocalHostName 2>/dev/null || true; }
+require_fund_lane_host() {
+  local host
+  host="$(fund_lane_host_id)"
+  [ "$host" = "$FUND_LANE_HOST" ] && return 0
+  if [ "${MM_FUND_BOOTSTRAP_ALLOW_HOST:-}" = "1" ]; then
+    echo "WARNING: MM_FUND_BOOTSTRAP_ALLOW_HOST=1 — proceeding on '${host:-unknown}'; the fund lane host is $FUND_LANE_HOST." >&2
+    echo "Only valid after ~/dataplane-migration/rollback-groupB-to-M2.sh moved the lane off M1." >&2
+    return 0
+  fi
+  echo "REFUSED: $LABEL runs only on $FUND_LANE_HOST (M1); this host's LocalHostName is '${host:-unknown}'." >&2
+  echo "Nothing was installed: ~/Library/LaunchAgents and launchctl were not touched." >&2
+  echo "Install or refresh the lane on M1:  ssh m1 '/bin/bash /Users/chriswong/fund-ops-wt/ops/bootstrap_nightly_fund.sh'" >&2
+  echo "Roll the lane back to M2 only with:  ~/dataplane-migration/rollback-groupB-to-M2.sh" >&2
+  echo "After that rollback, refresh M2's plist with MM_FUND_BOOTSTRAP_ALLOW_HOST=1." >&2
+  return 3
+}
+
+# Sourced by tests/test_bootstrap_nightly_fund_host_guard.py: define, run nothing.
+[ "${BASH_SOURCE[0]}" = "$0" ] || return 0
 
 for arg in "$@"; do
   case "$arg" in
@@ -26,6 +64,9 @@ for arg in "$@"; do
     *) echo "Unknown argument: $arg" >&2; usage >&2; exit 2 ;;
   esac
 done
+
+# Before every other check, so a wrong host never reaches LaunchAgents or launchctl.
+require_fund_lane_host || exit $?
 
 if ! /usr/bin/git -C "$OPS_ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   echo "Missing standalone ops clone at $OPS_ROOT" >&2
