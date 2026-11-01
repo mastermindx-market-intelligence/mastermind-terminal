@@ -44,8 +44,8 @@ const RING_GEO: Record<RingSize, { d: number; sw: number; fs: number }> = {
 };
 
 export interface RingGaugeProps {
-  /** Score or confidence value — displayed as-is */
-  value: number;
+  /** Score or confidence value — displayed as-is. null / non-finite = NO reading */
+  value: number | null;
   /** Scale for the ring FILL (e.g. 92 for capped confidence). Display number is unaffected. */
   max?: number;
   /** Visual size variant */
@@ -58,6 +58,13 @@ export interface RingGaugeProps {
   tone?: RingTone;
   /** Optional micro-label rendered above the ring when supplied */
   label?: string;
+  /**
+   * Accessible name for the no-reading mark shown when `value` is null or
+   * non-finite. Unknown is not zero: the mark renders the same geometry with
+   * the track only, a "—" inner value, tone muted and data-score-state
+   * "unavailable" — never a filled 0-ring.
+   */
+  naLabel?: string;
 }
 
 function resolveAutoTone(value: number): Exclude<RingTone, "auto"> {
@@ -67,15 +74,20 @@ function resolveAutoTone(value: number): Exclude<RingTone, "auto"> {
   return "down";
 }
 
-export function RingGauge({ value, max = 100, size = "sm", tone = "auto", label }: RingGaugeProps) {
+export function RingGauge({ value, max = 100, size = "sm", tone = "auto", label, naLabel }: RingGaugeProps) {
+  // Unknown is not zero (UI-truth law): a null or non-finite value has NO reading.
+  // It renders the same geometry with the track only, a "—" instead of a number,
+  // tone forced to muted and data-score-state="unavailable" — never a filled 0-ring.
+  const unavailable = value === null || !Number.isFinite(value);
+  const v = unavailable ? null : value;
   // The DISPLAYED number is always the true value; `max` only scales the fill.
   // (A confidence of 68 with a 92 cap must read "68", never a normalized 74.)
-  const displayValue = isNaN(value) ? 0 : Math.max(0, Math.round(value));
-  const fillPct = isNaN(value) || max <= 0
+  const displayValue = v === null ? 0 : Math.max(0, Math.round(v));
+  const fillPct = v === null || max <= 0
     ? 0
-    : Math.max(0, Math.min(100, Math.round((value / max) * 100)));
+    : Math.max(0, Math.min(100, Math.round((v / max) * 100)));
   const resolvedTone: Exclude<RingTone, "auto"> =
-    tone === "auto" ? resolveAutoTone(fillPct) : tone;
+    unavailable ? "muted" : tone === "auto" ? resolveAutoTone(fillPct) : tone;
 
   const geo = RING_GEO[size];
   const r = (geo.d - geo.sw) / 2;         // stroke sits inside the box
@@ -96,7 +108,23 @@ export function RingGauge({ value, max = 100, size = "sm", tone = "auto", label 
   }, []);
   const shownOffset = drawn || reduce.current ? offset : c;
 
-  const ring = (
+  const ring = unavailable ? (
+    <span
+      className={`obs-ring obs-ring--${size} obs-ring--${resolvedTone} obs-ring--na`}
+      role="img"
+      aria-label={naLabel ?? "—"}
+      data-score-state="unavailable"
+    >
+      <svg className="obs-ring-svg" width={geo.d} height={geo.d} viewBox={`0 0 ${geo.d} ${geo.d}`}>
+        {/* track — faint full circle; no arc: there is no reading to fill */}
+        <circle cx={center} cy={center} r={r} fill="none"
+          stroke="rgba(255,255,255,.08)" strokeWidth={geo.sw} />
+      </svg>
+      <span className="obs-ring-inner">
+        <span className="obs-ring-value num" style={{ fontSize: geo.fs }}>—</span>
+      </span>
+    </span>
+  ) : (
     <span
       className={`obs-ring obs-ring--${size} obs-ring--${resolvedTone}`}
       aria-label={`${displayValue} out of ${max}`}

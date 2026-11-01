@@ -181,8 +181,11 @@ export function InspectorPane({ event, tickerCtx, enrichEv, lang }: InspectorPan
 function InspectorHero({ event, lang, zh }: { event: FlowEvent; lang: Lang; zh: boolean }) {
   const t = makeFlowT(lang);
   const fs = event.flowScore;
-  const score = fs && !isNaN(fs.score) ? fs.score : 0;
-  const tier = fs?.tier ?? "LOW";
+  // Unknown is not zero and not a tier: a missing/non-finite score leaves both
+  // null — no 0-ring, and no tier chip pretending "LOW" was read.
+  const score = fs && Number.isFinite(fs.score) ? fs.score : null;
+  const tier =
+    fs && Number.isFinite(fs.score) && VALID_TIERS.includes(fs.tier) ? fs.tier : null;
 
   return (
     <div className="obs-insp-hero">
@@ -192,16 +195,19 @@ function InspectorHero({ event, lang, zh }: { event: FlowEvent; lang: Lang; zh: 
           {event.strike}{event.right} · {fmtExp(event.exp)}
         </span>
         {/* Tier chip rides the universal tint formula (--c → text/bg/ring).
-            Tones are MAGNITUDE hues, never up/down — a tier is not a direction. */}
-        <span
-          className="obs-insp-tier obs-tag"
-          style={{ "--c": tierTone(tier) } as React.CSSProperties}
-        >
-          {tierLabel(tier, t)}
-        </span>
+            Tones are MAGNITUDE hues, never up/down — a tier is not a direction.
+            With no readable score there is no tier — no chip at all. */}
+        {tier !== null && (
+          <span
+            className="obs-insp-tier obs-tag"
+            style={{ "--c": tierTone(tier) } as React.CSSProperties}
+          >
+            {tierLabel(tier, t)}
+          </span>
+        )}
       </div>
       <div className="obs-insp-hero-main">
-        <RingGauge value={score} size="md" tone="auto" />
+        <RingGauge value={score} size="md" tone="auto" naLabel={t("scoreUnavailable")} />
         <div className="obs-insp-hero-nums">
           <span className="obs-insp-hero-prem num">{fmtPrem(event.premium)}</span>
           <span className="obs-insp-hero-sub num">
@@ -418,6 +424,10 @@ function KV({ k, v, note, wide, num }: {
 // Magnitude hues only — the tier says how big the event is, never which way it
 // points, so --up/--down never appear here. The chip derives text, fill and ring
 // from this one token via the .obs-tag tint formula.
+
+// Tiers the pipeline actually stamps. Anything else (or no readable score) is an
+// unknown, and an unknown renders no tier chip at all — never a default "LOW".
+const VALID_TIERS = ["ELITE", "STRONG", "HIGH", "MEDIUM", "LOW"];
 
 function tierTone(tier: string): string {
   if (tier === "ELITE")  return "var(--code-fn)";  // violet accent

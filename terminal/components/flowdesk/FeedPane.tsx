@@ -21,6 +21,7 @@ import { FlowCoverageLine } from "./PrintInspector";
 import { trackSearch } from "@/lib/searchTrack";
 import { pick } from "@/lib/finFormat";
 import { FD } from "@/lib/flowdeskStrings";
+import type { FlowStreamStatus } from "@/lib/flowStream";
 import { compareTape, flowCoverage } from "@/lib/flowPrintInspector";
 import { usOptionsSessionState } from "@/lib/flowFreshness";
 import { FlowFreshnessReceipt } from "./FlowFreshnessReceipt";
@@ -347,6 +348,13 @@ interface FeedPaneProps {
   feed: FeedPayload | null;
   /** SSE transport state only; never interpreted as producer freshness. */
   connected?: boolean;
+  /** What the last read of the feed key established. Absent = the pre-status
+   *  behavior (a null feed renders the loading skeletons), so callers that do
+   *  not know the read outcome behave exactly as before. */
+  status?: FlowStreamStatus;
+  /** Re-read the feed key now. Wired to the Retry affordances of the
+   *  unavailable states; absent = no-op. */
+  onRetry?: () => void;
   /** Strict measured timing is accepted only from live_flow.meta/v2. */
   flowMeta?: unknown;
   enrich: EnrichPayload | null;
@@ -362,6 +370,8 @@ interface FeedPaneProps {
 export function FeedPane({
   feed,
   connected,
+  status,
+  onRetry,
   flowMeta,
   enrich,
   lang,
@@ -738,8 +748,33 @@ export function FeedPane({
 
       {/* ── Feed list ── */}
       <div className="obs-fd-list obs-scroll" data-tut="flow-feed">
-        {/* Loading state */}
-        {feed === null && <LoadingState zh={zh} />}
+        {/* A read that did not land is not "still loading": unavailable is a load
+            error with Retry, a 404 is published absence, only an in-flight read
+            keeps the skeletons. Same doctrine as the chain-heat rail. */}
+        {feed === null && status === "unavailable" && (
+          <div style={FEED_LOAD_ERROR} data-testid="flowfeed-load-error" role="alert">
+            <span style={FEED_LOAD_ERROR_TITLE}>{pick(zh, FD.errFeed.en, FD.errFeed.zh)}</span>
+            <span>{pick(zh, FD.feedErrorWhy.en, FD.feedErrorWhy.zh)}</span>
+            <button type="button" className="btn btn-ghost load-retry" style={FEED_RETRY_INLINE} onClick={onRetry}>
+              {pick(zh, FD.errRetry.en, FD.errRetry.zh)}
+            </button>
+          </div>
+        )}
+        {feed === null && status === "absent" && (
+          <div data-testid="flowfeed-absent">{pick(zh, FD.feedAbsent.en, FD.feedAbsent.zh)}</div>
+        )}
+        {/* Loading state (also covers the status-less callers — behavior unchanged) */}
+        {feed === null && status !== "unavailable" && status !== "absent" && <LoadingState zh={zh} />}
+
+        {/* A failed refresh keeps every loaded card and says they are the last read */}
+        {feed !== null && status === "unavailable" && (
+          <div style={FEED_REFRESH_FAILED} data-testid="flowfeed-refresh-failed" role="status">
+            <span>{pick(zh, FD.feedRefreshFailed.en, FD.feedRefreshFailed.zh)}</span>
+            <button type="button" className="btn btn-ghost load-retry" style={FEED_RETRY_INLINE} onClick={onRetry}>
+              {pick(zh, FD.errRetry.en, FD.errRetry.zh)}
+            </button>
+          </div>
+        )}
 
         {/* Empty state */}
         {feed !== null && filtered.length === 0 && (
@@ -790,6 +825,21 @@ export function FeedPane({
 }
 
 // ── Empty / loading states ────────────────────────────────────────────────────
+
+// Load-error block for a feed read that did not land (CHAIN_LOAD_ERROR shape on
+// the chain-heat rail): neutral card surface, muted text, one Retry.
+const FEED_LOAD_ERROR: React.CSSProperties = {
+  display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
+  padding: 16, fontSize: 11, textAlign: "center", color: "var(--muted)",
+};
+const FEED_LOAD_ERROR_TITLE: React.CSSProperties = { color: "var(--text)", fontWeight: 600 };
+// Refresh-failed strip (CHAIN_REFRESH_FAILED shape): held data stays on screen.
+const FEED_REFRESH_FAILED: React.CSSProperties = {
+  display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8,
+  padding: "6px 16px", fontSize: 10, lineHeight: 1.4, color: "var(--warn)",
+  borderBottom: "1px solid var(--line-2)",
+};
+const FEED_RETRY_INLINE: React.CSSProperties = { padding: "2px 10px", fontSize: 11, flexShrink: 0 };
 
 // Empty-state session tone is resolved by the pure flowFreshness helper using
 // both the ET window and payload session_date, so pre-open/closed/holiday data
