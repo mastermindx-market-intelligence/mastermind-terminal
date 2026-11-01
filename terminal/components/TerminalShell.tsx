@@ -6600,7 +6600,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
           open={drawSheetOpen}
           onClose={() => setDrawSheetOpen(false)}
           activeTool={activeDrawingTool}
-          onPick={(id) => { activateDrawingTool(id); }}
+          onPick={activateDrawingTool}
         />
         <AnalysisHubSheet
           open={hubOpen}
