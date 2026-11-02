@@ -27,9 +27,15 @@ test.setTimeout(120_000);
 const MANIFEST = {
   symbols: {
     NVDA: { name: "NVIDIA", zh: "英伟达", col: "#76b900", last: 175, chg: 1.2, currency: "USD" },
+    AAPL: { name: "Apple", zh: "苹果", col: "#a2aaad", last: 225, chg: -0.4, currency: "USD" },
   },
 };
-const QUOTES = { quotes: { NVDA: { last: 180, chg: 2.5, currency: "USD" } } };
+const QUOTES = {
+  quotes: {
+    NVDA: { last: 180, chg: 2.5, currency: "USD" },
+    AAPL: { last: 230, chg: -0.8, currency: "USD" },
+  },
+};
 
 /** The route's own typed payload shape, with the held size and a per-read marker. */
 function eventPayload(shares: number, marker: string) {
@@ -69,6 +75,47 @@ function eventPayload(shares: number, marker: string) {
 type Fixture = { shares: number; reads: number };
 
 /**
+ * Seven events naming the held positions, so the panel offers its "Show all" control — the panel
+ * collapses past six rows. The route's own response shape again, served from the browser so the
+ * panel's states are deterministic; it is a fixture and it is labelled as one.
+ */
+function expansionPayload(openTickers: readonly string[], marker: string) {
+  return {
+    state: "ok",
+    asof: "2026-11-02",
+    heldTickers: openTickers.length,
+    heldPositions: openTickers.length,
+    unjoinable: [],
+    events: Array.from({ length: 7 }, (_, i) => {
+      const date = `2026-11-${String(10 + i).padStart(2, "0")}`;
+      return {
+        eventId: `earnings|NVDA|${date}`,
+        kind: "earnings",
+        ticker: "NVDA",
+        date,
+        daysUntil: 8 + i,
+        positions: openTickers.map(ticker => ({ id: `seeded-${ticker.toLowerCase()}`, ticker, shares: 10, status: "open" })),
+        direction: { state: "not_stated" },
+        mechanism: { state: "stated", text: marker, textZh: marker },
+        timeframe: { state: "not_stated" },
+        invalidation: {
+          condition_en: "A last close has printed on the report date.",
+          condition_zh: "报告日已经公布收盘价。",
+          metric_owner: "hub/lib/anchor.js",
+          comparator: "at or below",
+          threshold: null,
+          checked_against: "named date",
+          named_date: date,
+          null_reason: null,
+        },
+        sourcePath: "/data/portfolio_ctx.json",
+      };
+    }),
+  };
+}
+
+
+/**
  * Install the routes and language. `fixture.shares` is the size the served event payload
  * reports; the test raises it as part of the edit, so the read that follows the canonical
  * reread answers for the resulting book.
@@ -94,6 +141,14 @@ async function seedPosition(page: Page) {
     data: { action: "create", ticker: "NVDA", shares: "10", entryPrice: "100", entryCurrency: "USD" },
   });
   expect(response.ok(), `seeding NVDA failed: ${response.status()}`).toBe(true);
+}
+
+/** A second holding, so a count boundary can move without emptying the book. */
+async function seedSecondPosition(page: Page) {
+  const response = await page.request.post("/api/portfolio", {
+    data: { action: "create", ticker: "AAPL", shares: "10", entryPrice: "150", entryCurrency: "USD" },
+  });
+  expect(response.ok(), `seeding AAPL failed: ${response.status()}`).toBe(true);
 }
 
 const panel = (page: Page) => page.getByTestId("event-impact");
@@ -184,6 +239,96 @@ test.describe("Portfolio event panel refreshes after a holding edit", () => {
       const shot = page.getByTestId("event-impact");
       await shot.screenshot({
         path: `docs/verification/portfolio-event-refresh-20261102/browser/${testInfo.project.name}-${lang}-refreshed.png`,
+      });
+    });
+  }
+});
+
+/**
+ * The expansion grant is retired at a committed count boundary.
+ *
+ * WHAT THIS PROVES: in a real browser, an expanded panel stays collapsed when the open-position
+ * count changes and then comes back. Masking the grant (storing it, comparing it against the
+ * current boundaries) only makes the panel LOOK collapsed while the boundaries differ: expand
+ * under two positions, close one (count one), reopen it (count two again) and the stored grant
+ * matches once more, so "Show all" reopens for a boundary the user never granted.
+ *
+ * TWO holdings, so the count moves without emptying the book: the workspace renders its empty
+ * state — and unmounts the panel with it — when no position is open.
+ *
+ * The HOLDINGS side is real: the positions are written through the product's own route and the
+ * close/reopen go through the workspace's own record inspector, so the committed input change is
+ * the real path. The event payload is the route's own shape, served from the browser.
+ *
+ * ONE exercise per register, at the desktop viewport: the responsive assurance for this surface
+ * is the existing six-case capture, which this run preserves rather than recaptures.
+ */
+test.describe("Portfolio event panel expansion is retired at a count boundary", () => {
+  for (const lang of ["en", "zh"] as const) {
+    test(`${lang}: an expanded panel stays collapsed when the count comes back`, async ({ page, baseURL }, testInfo) => {
+      test.skip(testInfo.project.name !== "desktop", "one exercise per register; the responsive proof is the existing six-case capture");
+      const zh = lang === "zh";
+      const fixture: Fixture & { openTickers: string[] } = { shares: 10, reads: 0, openTickers: ["NVDA", "AAPL"] };
+      await prepare(page, testInfo, baseURL, zh);
+
+      await page.route("**/api/event-impact", async (route) => {
+        fixture.reads += 1;
+        const read = fixture.reads;
+        // Every read after the first is deliberately slow, so the window between the committed
+        // input and the fresh read is observable rather than instantaneous.
+        if (read > 1) await new Promise((done) => setTimeout(done, 1200));
+        await route.fulfill({ json: expansionPayload(fixture.openTickers, `READ-${read}`) });
+      });
+
+      await seedPosition(page);
+      await seedSecondPosition(page);
+      await page.goto("/portfolio");
+      await openEvents(page);
+
+      // Seven events, collapsed to six rows, with the control that expands them.
+      await expect(rows(page)).toHaveCount(6);
+      const showAll = panel(page).getByRole("button");
+      await expect(showAll).toHaveText(zh ? /显示全部 7 个事件/ : /Show all 7 events/);
+      await showAll.click();
+      await expect(rows(page)).toHaveCount(7);
+
+      // The count boundary changes: AAPL is closed, so the book has ONE open position. The
+      // panel stays mounted (the book is not empty), and the grant ends with the boundary it
+      // was granted under.
+      fixture.openTickers = ["NVDA"];
+      const row = page.locator('tr[data-ticker="AAPL"]').filter({ visible: true }).first();
+      await expect(row).toBeVisible();
+      await row.getByRole("button").first().click();
+      const inspector = page.getByRole("dialog").filter({ has: page.locator("#portfolio-record-title") });
+      await expect(inspector).toBeVisible();
+      await inspector.getByRole("button", { name: zh ? "平仓 AAPL" : "Close AAPL", exact: true }).click();
+
+      // The committed input changed, so the previous read is retired: the panel shows the neutral
+      // busy state while the fresh read is in flight. Waiting for THAT is what makes the row
+      // count below a statement about the fresh read and not about the read still on screen.
+      await expect(panel(page).getByTestId("event-impact-checking")).toBeVisible();
+      await expect(rows(page)).toHaveCount(6);
+      await expect(panel(page).getByRole("button")).toHaveText(zh ? /显示全部 7 个事件/ : /Show all 7 events/);
+
+      // The count comes BACK to two — the same boundary the grant was made under. The retired
+      // grant must not come back with it: the panel must be collapsed, not expanded, and it must
+      // be showing a fresh read of the book rather than the facts it was showing before.
+      fixture.openTickers = ["NVDA", "AAPL"];
+      const reopen = inspector.getByRole("button", { name: zh ? "重新开仓 AAPL" : "Reopen AAPL", exact: true });
+      await expect(reopen).toBeVisible();
+      await reopen.click();
+
+      await expect(panel(page).getByTestId("event-impact-checking")).toBeVisible();
+      await expect(rows(page)).toHaveCount(6);
+      await expect(panel(page).getByRole("button")).toHaveText(zh ? /显示全部 7 个事件/ : /Show all 7 events/);
+      await expect(panel(page)).not.toContainText("READ-1");
+
+      // Responsive finding: the panel adds no horizontal document overflow at this viewport.
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+
+      const shot = page.getByTestId("event-impact");
+      await shot.screenshot({
+        path: `docs/verification/portfolio-event-refresh-20261102/browser/${testInfo.project.name}-${lang}-expansion-retired.png`,
       });
     });
   }

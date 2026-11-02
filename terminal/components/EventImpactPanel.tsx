@@ -198,7 +198,32 @@ export default function EventImpactPanel({ positions, holdingsUnreadable }: Even
   // remembered together with the boundaries it was granted under, so it ends the moment the
   // open-position count or the book's readability changes — and survives every other change,
   // including a meaningful same-count edit.
+  //
+  // The grant is RETIRED at that boundary change, not merely MASKED by it. Masking — storing
+  // the boundaries and comparing them against the current ones — only makes the panel LOOK
+  // collapsed while the boundaries differ, and leaves the stored grant alive: expand under
+  // eight positions, commit seven, then commit eight again, and the stored boundaries match
+  // once more, so "Show all" reopens for a boundary the user never granted. Retirement is a
+  // one-way door: the first committed boundary that differs clears the grant, so a later match
+  // finds nothing left to restore.
+  //
+  // The retirement uses React's documented "adjusting state when a prop changes" pattern — the
+  // same idiom the committed lifetime above uses for its epoch, and the same one PortfolioView
+  // uses for its owner-scoped seed reset. React discards a speculative render and re-renders
+  // immediately, so the render that COMMITS already carries the retired grant, and a render
+  // that never commits never retires it. A generation mutated in place during render would
+  // retire the grant for a commit that never happened — and would burn it even for a render
+  // React went on to discard.
   const [expandedUnder, setExpandedUnder] = useState<{ count: number; unreadable: boolean } | null>(null);
+  if (
+    expandedUnder !== null &&
+    (expandedUnder.count !== positions.length || expandedUnder.unreadable !== holdingsUnreadable)
+  ) {
+    setExpandedUnder(null);
+  }
+  // Computed from the retired-and-current grant alike: when the boundaries differ the grant is
+  // already on its way out and `showAll` is false, whether this render sees the old grant or
+  // the retired one.
   const showAll =
     expandedUnder !== null &&
     expandedUnder.count === positions.length &&

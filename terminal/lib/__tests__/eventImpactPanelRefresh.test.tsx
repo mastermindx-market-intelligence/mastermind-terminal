@@ -262,6 +262,56 @@ describe("EventImpactPanel — expansion policy", () => {
     expect(rows()).toHaveLength(0);
     expect(panel()?.querySelector('[data-testid="event-impact-holdings-unreadable"]')).toBeTruthy();
   });
+
+  // The round trips the one-way cases above cannot catch. The one-way cases only show that
+  // the panel LOOKS collapsed while the boundaries differ; they cannot show what happens when
+  // the boundaries come back. Storing the grant and comparing it against the current boundaries
+  // masks the difference instead of ending the grant, so a later match reopens "Show all" for a
+  // boundary the user never granted. The grant must be RETIRED at the boundary change, once.
+  it("does not restore the expansion after a committed count round trip", async () => {
+    await mount(many(8));
+    await complete(requests[0], "OLD_FACT", many(8));
+    expect(rows()).toHaveLength(6);
+    await act(async () => { panel()?.querySelector<HTMLButtonElement>("button")?.click(); });
+    expect(rows()).toHaveLength(8);
+
+    // A DIFFERENT count is committed: the grant was made under eight positions, and seven is
+    // not the boundary it was granted under.
+    await mount(many(7));
+    await complete(requests[1], "MID_FACT", many(7));
+    expect(rows()).toHaveLength(6);
+
+    // The count comes BACK to eight. The boundaries match again, but the grant must stay
+    // retired: a later match must not restore it.
+    await mount(many(8));
+    await complete(requests[2], "BACK_FACT", many(8));
+    expect(rows()).toHaveLength(6);
+    // Collapsed, not emptied: the Show all control is offered again for the eight events.
+    expect(panel()?.querySelector("button")?.textContent).toContain("8");
+  });
+
+  it("does not restore the expansion after a committed readability round trip", async () => {
+    await mount(many(8));
+    await complete(requests[0], "OLD_FACT", many(8));
+    expect(rows()).toHaveLength(6);
+    await act(async () => { panel()?.querySelector<HTMLButtonElement>("button")?.click(); });
+    expect(rows()).toHaveLength(8);
+
+    // The book becomes unreadable: a boundary the grant was not granted under.
+    await mount(many(8), true);
+    expect(rows()).toHaveLength(0);
+    expect(panel()?.querySelector('[data-testid="event-impact-holdings-unreadable"]')).toBeTruthy();
+    expect(requests).toHaveLength(1); // an unreadable book is not read
+
+    // The book is readable again, with the same count and the same readability as when the
+    // grant was made. The grant must stay retired: the boundaries match again, but the grant
+    // does not come back.
+    await mount(many(8), false);
+    expect(requests).toHaveLength(2);
+    await complete(requests[1], "BACK_FACT", many(8));
+    expect(rows()).toHaveLength(6);
+    expect(panel()?.querySelector("button")?.textContent).toContain("8");
+  });
 });
 
 describe("EventImpactPanel — request retirement", () => {
