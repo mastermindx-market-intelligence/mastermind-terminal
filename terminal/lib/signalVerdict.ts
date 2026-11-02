@@ -1,4 +1,34 @@
+/** A source event remains history even when its recency changes the regime read. */
+export interface OracleHistoricalSignal {
+  type: string;
+  chartTs: string;
+  /** Explicit source availability only; a chart/bar date never fills this field. */
+  knownTs: string | null;
+  label: string;
+  date: string;
+  confirmed: boolean;
+}
+
+export interface OracleEntryAvailability {
+  status: "UNAVAILABLE_DATA";
+  label: string;
+  reason: string;
+}
+
+/** No qualified Oracle strategy/horizon/current-entry owner is bound to this consumer.
+ * Prophet B4 availability is strategy-specific and cannot qualify an Oracle entry. */
+export function oracleEntryAvailability(zh = false): OracleEntryAvailability {
+  return {
+    status: "UNAVAILABLE_DATA",
+    label: zh ? "入场机会尚未核实" : "Entry availability not verified",
+    reason: zh ? "缺少适用于神谕的当前入场数据源" : "No qualified current Oracle entry source",
+  };
+}
+
 export interface Verdict {
+  historicalSignal?: OracleHistoricalSignal | null;
+  refusedSignalKnownTs?: string | null;
+  entryAvailability?: OracleEntryAvailability;
   label: string;
   color: string;
   raw: string | null;
@@ -715,7 +745,61 @@ export function computeStance(st: OracleState, trend: StanceTrend, zh: boolean):
 //   2. manifest row.verdict (scored lane) — undated fallback when there is no slice: dimmed.
 // Either way this is a swing-timing overlay read (3D bars), never an investment view — the
 // horizon rides along in `note` so the button tooltip says so.
+/** Consumer projection only: never edits signal history, scoring or engine clocks. */
 export function oracleVerdict(
+  v?: string | null,
+  slice?: OracleSlice | null,
+  zh = false,
+  now: number = Date.now(),
+  trend: StanceTrend = null,
+): Verdict {
+  const read = oracleVerdictRead(v, slice, zh, now, trend);
+  const { anchor, blockedTail } = anchorSignal(slice?.indicator?.signals);
+  const explicitKnownTs = (signal: OracleSignal | null): string | null =>
+    typeof signal?.known_ts === "string" && Number.isFinite(Date.parse(signal.known_ts)) ? signal.known_ts : null;
+  let historicalSignal: OracleHistoricalSignal | null = null;
+  if (anchor) {
+    const type = String(anchor.type).toUpperCase();
+    const knownTs = explicitKnownTs(anchor);
+    const quality = String(anchor.quality ?? "").toLowerCase();
+    const starter = BUYISH.includes(type) && (quality === "block" || quality === "pending");
+    const confirmed = BUYISH.includes(type) && knownTs != null && Date.parse(knownTs) <= now
+      && !SOFT_Q.has(quality) && anchor.scored !== false && !isRetroOverride(anchor);
+    const event = starter ? (zh ? "试仓" : "Starter")
+      : eventLabel(type, zh, sliceSignalBasis(anchor), anchor.quality);
+    historicalSignal = {
+      type,
+      chartTs: anchor.ts,
+      knownTs,
+      label: confirmed ? (zh ? `已确认${event}` : `Confirmed ${event}`) : event,
+      date: oracleHistoryDate(knownTs, zh),
+      confirmed,
+    };
+  }
+  return { ...read, historicalSignal, refusedSignalKnownTs: explicitKnownTs(blockedTail), entryAvailability: oracleEntryAvailability(zh) };
+}
+
+function oracleHistoryDate(knownTs: string | null, zh: boolean): string {
+  return knownTs
+    ? new Date(knownTs).toLocaleDateString(zh ? "zh-CN" : "en-US", { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" })
+    : (zh ? "信号可知日期未核实" : "Signal date unverified");
+}
+
+/** Both Oracle consumers use the same visible history/stance wording and source clock. */
+export function oraclePresentation(verdict: Pick<Verdict, "label" | "sub" | "stance" | "blocked" | "historicalSignal" | "refusedSignalKnownTs"> & Partial<Pick<Verdict, "raw">>, zh = false): { heading: string; label: string; sub: string | null } {
+  const history = verdict.historicalSignal;
+  const showsHistory = history != null && !verdict.stance && verdict.raw === history.type;
+  const refusalDate = oracleHistoryDate(verdict.refusedSignalKnownTs ?? null, zh);
+  const blockedNote = verdict.blocked ? ` · ${zh ? "入场被拦截" : "entry blocked"} ${refusalDate}` : "";
+  return {
+    heading: verdict.stance ? (zh ? "当前姿态" : "Current regime")
+      : (zh ? "历史信号" : "Historical signal"),
+    label: showsHistory ? history.label : verdict.label,
+    sub: showsHistory ? history.date + blockedNote : verdict.raw === "BLOCKED_ENTRY" ? refusalDate : verdict.sub ?? null,
+  };
+}
+
+function oracleVerdictRead(
   v?: string | null,
   slice?: OracleSlice | null,
   zh = false,

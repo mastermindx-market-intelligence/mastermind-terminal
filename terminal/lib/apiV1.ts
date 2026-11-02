@@ -135,6 +135,7 @@ export const API_V1_RESOURCES = [
   { path: "/api/v1/alerts/{id}/fires", schema: "mm.api.v1.alert_fires", version: API_V1_VERSION },
   { path: "/api/v1/claims", schema: "mm.api.v1.claims", version: API_V1_VERSION },
   { path: "/api/v1/positions", schema: "mm.api.v1.positions", version: API_V1_VERSION },
+  { path: "/api/v1/event-impact", schema: "mm.api.v1.event_impact", version: API_V1_VERSION },
   { path: "/api/v1/openapi.json", schema: "mm.api.v1.openapi", version: API_V1_VERSION },
 ] as const;
 

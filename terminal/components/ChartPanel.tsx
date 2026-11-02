@@ -719,6 +719,9 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
   const fullBarsRef = useRef<Bar[]>([]);    // the full resampled history — NEVER mutated by replay
   // Capture belongs to the displayed data, including its initial load; an effect restart is not a new receipt.
   const overnightCaptureRef = useRef(0);
+  // Retire the old chart synchronously when the user changes 24H session
+  // presentation, before the new asynchronous history request resolves.
+  const priorOvernightPresentationRef = useRef(overnightHours);
   const [intradayLoadVersion, setIntradayLoadVersion] = useState(0);
   // A cold completion uses the existing first-paint owner, including studies and visual readiness.
   const intradayFirstPaintRef = useRef<{
@@ -3197,6 +3200,25 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
     renderSignalsRef.current();    // drop the previous symbol's markers / gap zones
     renderRef.current();
   };
+
+  // A 1m ETH/daily chart must not remain painted for even a fetch budget under
+  // the newly selected 24H badge. Layout effects retire prior bars before the
+  // browser paints the new session; the ordinary load still owns adoption.
+  useLayoutEffect(() => {
+    const previous = priorOvernightPresentationRef.current;
+    priorOvernightPresentationRef.current = overnightHours;
+    if (previous === overnightHours || !isIntradayTf(effectiveTimeframe)
+        || (!barsRef.current.length && !fullBarsRef.current.length)) return;
+    clearChartData();
+    hideEmptyRef.current();
+    if (statusRef.current) statusRef.current.textContent = tPlain("loading", "Loading…");
+    // The five-second refresh must remain eligible even if the foreground
+    // request is provisional or delayed after this synchronous retirement.
+    if (overnightHours) {
+      chartDataSymRef.current = symbol;
+      fullBarsTfRef.current = effectiveTimeframe;
+    }
+  }, [symbol, effectiveTimeframe, overnightHours]);
 
   // ── in-place study refresh ────────────────────────────────────────────────────────────────────
   // `updateAllIndicators` only re-setData's the classic subset (EMA/BB/VWAP/Vol/RSI/Stoch/MACD).
@@ -9156,6 +9178,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
         let bars: any[] = [];
         let historyBars = 0;
         let daytimePending = false;
+        let daytimeIncomplete = false;
         let initialCaptureMs = 0;
         let feedErr: string | null = null;       // the route's j.error (route returns {bars:[],error} on an upstream/config failure)
         try {
@@ -9164,7 +9187,11 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
           const ok = adoptFirstPaint || r!.ok;
           bars = Array.isArray(j?.bars) ? j.bars : [];
           historyBars = ok && overnightHours ? boatsChartHistoryBars(j?.boats_history) : 0;
-          daytimePending = ok && overnightHours && j?.daytime_cache?.refresh_pending === true;
+          // A warm complete assembly stays paintable while another refresh is
+          // pending. Only cold/incomplete pending data must remain Loading.
+          daytimePending = ok && overnightHours && j?.daytime_cache?.refresh_pending === true
+            && j?.daytime_cache?.assembly_complete !== true;
+          daytimeIncomplete = ok && overnightHours && j?.daytime_cache?.assembly_complete === false;
           initialCaptureMs = ok && overnightHours ? boatsChartRefresh(j, symbol, effectiveTimeframe, null, 0)?.captureMs ?? 0 : 0;
           if (!ok || j?.error) feedErr = String(j?.error || `HTTP ${r?.status}`);
         } catch (e: any) { feedErr = e?.message || "network error"; }
@@ -9178,7 +9205,11 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
         sigMarksRef.current = [];
         earlyDotsRef.current = []; warnMarksRef.current = [];   // GC v2 side channels: daily-only too
         dailyBarsRef.current = [];               // splice is daily-only; disable it here
-        if (!bars.length) {
+        // A nonempty BOATS/stored-only response is still provisional while the
+        // daytime assembly is pending. Painting it as the first full chart makes
+        // price/RSI autoscale against a truncated history, then visibly jumps on
+        // the next refresh. Admit the whole snapshot only after settlement.
+        if (!bars.length || daytimePending || daytimeIncomplete) {
           clearChartData();
           overnightCaptureRef.current = initialCaptureMs;
           if (overnightHours) { chartDataSymRef.current = symbol; fullBarsTfRef.current = effectiveTimeframe; }
@@ -9192,8 +9223,8 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
           // Differentiate a feed/entitlement/config failure ("POLYGON_API_KEY not set", "polygon 403",
           // "unauthenticated", …) from a genuinely-empty symbol. Both dead-end the intraday chart, so
           // surface a "Back to Daily" affordance instead of a blank chart.
-          showIntradayEmpty(symbol, effectiveTimeframe, feedErr != null);
-          if (overnightHours) applyLiveSplice();
+          showIntradayEmpty(symbol, effectiveTimeframe, feedErr != null || daytimeIncomplete);
+          if (overnightHours && !daytimeIncomplete) applyLiveSplice();
           announceVisualReady(barsRef.current.length ? "data" : "empty");
           return;
         }
@@ -9527,8 +9558,10 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
         if (!accepted) {
           // Status completion is separate from data admission. Never clear an accepted chart on a failed read.
           if (!previous.length && body?.t === symbol && body?.tf === effectiveTimeframe
-              && body?.daytime_cache?.refresh_pending === false && Array.isArray(body?.bars) && !body.bars.length) {
-            showIntradayEmpty(symbol, effectiveTimeframe, !!body.error || body.daytime_cache.refresh_error != null);
+              && body?.daytime_cache?.refresh_pending === false
+              && (body?.daytime_cache?.assembly_complete === false || (Array.isArray(body?.bars) && !body.bars.length))) {
+            showIntradayEmpty(symbol, effectiveTimeframe,
+              !!body.error || body.daytime_cache.refresh_error != null || body.daytime_cache.assembly_complete === false);
           }
           return;
         }

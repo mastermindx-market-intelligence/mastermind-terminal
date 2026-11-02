@@ -13,7 +13,9 @@ FIXTURE_HELPER=HERE/'terminal_beta_transaction_fixture.py'
 # Integrated r2 retains the literal production restart anchor and uses the
 # profile variable only on the beta branch; this reviewed dispatch is the sole
 # change from the original candidate generation span.
-GENERATION_SHA256 = 'c55c893300ac1068e66dda44ac0b2f925243af4ea60501698c28049b37e2d047'
+# P1.T12 reviewed activation qualification preserves unconditional build/marker
+# restoration; fake rollback cases and retained Linux transaction cases qualify it.
+GENERATION_SHA256 = '8c3dab8c16b2040c8a0dc9da6deb865168352207ff010e464c048198b9a91ef1'
 PREFLIGHT_SHA256='ecdcdcd811a0d31300ddbd3ccf8e8550503c1c5b1c36ed13c47c8bc37d4ae31c'
 PRODUCTION_BRANCH_SHA256='d7b43b23539508f888c6e4ca8440c311c8add91b25ba4f8fac56f2719a1726e4'
 PRODUCTION_BRANCH_CHARS=799
@@ -377,7 +379,30 @@ def _case_production_generation_library_and_restart_branch_are_unchanged():
  assert hashlib.sha256(span(source,'deploy_generation_reset(){','# ── beta lifecycle state:').encode()).hexdigest()==GENERATION_SHA256
  assert hashlib.sha256(span(source,'run_release_preflight(){','# Read the live deployment marker').encode()).hexdigest()==PREFLIGHT_SHA256
  start=source.index('if ! systemctl restart terminal; then',source.index('# 6) atomic swap'))
- assert hashlib.sha256(source[start:start+PRODUCTION_BRANCH_CHARS].encode()).hexdigest()==PRODUCTION_BRANCH_SHA256
+ # The reviewed production opt-in adds exactly this status gate. Keep the
+ # original rollback/commit branch byte lock, rather than blessing a new hash.
+ addition = '''if [ "$DEPLOY_OK" = 1 ] && [ "$PRODUCTION_SHARED_SHELL_ENABLED" = 1 ]; then
+  if ! shared_shell_status_verified "http://127.0.0.1:3000/api/shared-shell/status" "$FULL_SHA" "$SRC"; then
+    log "production Shared Shell tuple verification failed"
+    DEPLOY_OK=0
+  fi
+fi
+'''
+ branch=source[start:]
+ assert branch.count(addition)==1
+ # Remove only this exact reviewed P1.T12 postguard; keep the original
+ # production prefix length/hash and the independent preflight lock unchanged.
+ investigation_addition = '''# Production acceptance has the same closed-candidate prerequisite as beta,
+# independently of the Shared Shell ON/OFF classifier.
+if [ "$DEPLOY_OK" = 1 ] && ! require_investigation_closed_after_start "$FULL_SHA" "$NEW_BUILD_ID"; then
+  log "production candidate Investigation process binding failed"
+  DEPLOY_OK=0
+fi
+
+'''
+ assert branch.count(investigation_addition)==1
+ baseline_branch=branch.replace(addition,'',1).replace(investigation_addition,'',1)
+ assert hashlib.sha256(baseline_branch[:PRODUCTION_BRANCH_CHARS].encode()).hexdigest()==PRODUCTION_BRANCH_SHA256
  # These source gates must remain in the ordinary main branch, in order.
  main=source[source.index('# 0c) two entrances, one source contract.'):]
  ordinary=main[main.index('  # The incumbent order, exactly restored:'):main.index('FULL_SHA=$(git')]

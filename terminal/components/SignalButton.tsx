@@ -1,9 +1,14 @@
 import type { CSSProperties } from "react";
+import { oracleEntryAvailability, oraclePresentation, type Verdict } from "../lib/signalVerdict";
 import { pick } from "../lib/finFormat"
 import styles from "./SignalButton.module.css";
 import { prophetObservationSummary, type ProphetObservationRead } from "../lib/prophetObservations";
 
 interface Half {
+  raw?: Verdict["raw"];
+  historicalSignal?: Verdict["historicalSignal"];
+  refusedSignalKnownTs?: Verdict["refusedSignalKnownTs"];
+  entryAvailability?: Verdict["entryAvailability"];
   label: string;
   color: string;
   sub?: string | null;
@@ -41,7 +46,12 @@ interface Props {
 
 export default function SignalButton({ oracle, desk, oracleLabel, deskLabel, onView, expanded = false, zh = false, prophet }: Props) {
   const title = oracleLabel + (oracle.note ? ` — ${oracle.note}` : "") + " · " + deskLabel + (desk.note ? ` — ${desk.note}` : "");
+  const oracleRead = oraclePresentation(oracle, zh);
+  const entry = oracle.entryAvailability ?? oracleEntryAvailability(zh);
   const early = prophet ? prophetObservationSummary(prophet, zh) : null;
+  const stanceHistory = oracle.stance && oracle.historicalSignal
+    ? `${pick(zh, "Historical signal", "历史信号")}: ${oracle.historicalSignal.label} · ${oracle.historicalSignal.date}`
+    : null;
   return <button className={`sig-btn ${styles.launcher}`} onClick={onView} title={title}
     data-testid="intelligence-launcher" data-prophet={early ? true : undefined} aria-expanded={expanded} aria-controls="intelligence-workspace"
     aria-label={pick(zh, "Open Intelligence workspace", "打开情报工作区")}>
@@ -53,8 +63,8 @@ export default function SignalButton({ oracle, desk, oracleLabel, deskLabel, onV
       {([{ source: oracle, name: pick(zh, "Oracle", "神谕"), cls: "sig-btn-go" }, { source: desk, name: pick(zh, "Research", "研究"), cls: "sig-btn-rd" }]).map(({ source, name, cls }) =>
         <span key={cls} className={`${styles.source} ${cls}${source.blocked ? " sig-btn-blocked" : ""}`} style={{ "--vc": source.color } as CSSProperties}>
           <span className={styles.label}>{name}</span>
-          <span className={`${styles.reading} sig-btn-vd`} data-dim={source.dim || source.stance || undefined}>{source.label}</span>
-          <span className={`${styles.date} sig-btn-sub`}>{source.sub || (pick(zh, "View details", "查看详情"))}</span>
+          <span className={`${styles.reading} sig-btn-vd`} data-dim={source.dim || source.stance || undefined}>{(source === oracle ? oracleRead.label : source.label)}</span>
+          <span className={`${styles.date} sig-btn-sub${source === oracle && stanceHistory ? ` ${styles.stanceHistoryDetail}` : ""}`}>{(source === oracle ? (stanceHistory ?? oracleRead.sub) : source.sub) || (pick(zh, "View details", "查看详情"))}</span>
         </span>)}
     </span>
     {early && <span className={styles.prophet} data-testid="prophet-observation-launcher">
@@ -65,5 +75,13 @@ export default function SignalButton({ oracle, desk, oracleLabel, deskLabel, onV
         <span className={styles.sourceDate}>{prophet?.data?.clocks.source_session}</span>
       </span>}
     </span>}
+    {stanceHistory && <span className={styles.stanceHistory} data-testid="oracle-stance-history">{stanceHistory}</span>}
+    {/* Keep the three producer reads together before this full-width mobile row. */}
+    <span className={styles.entry} data-testid="oracle-entry-availability" data-status={entry.status}>
+      <span className={styles.entryCompact} data-testid="oracle-entry-compact">{pick(zh, "Oracle entry unverified · No current data", "神谕入场尚未核实 · 缺少当前数据")}</span>
+      <span className={styles.entryLabel}>{pick(zh, "Entry status now", "当前入场状态")}</span>
+      <span className={styles.entryValue}>{entry.label}</span>
+      <span className={styles.entryReason}>{entry.reason}</span>
+    </span>
   </button>;
 }

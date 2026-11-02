@@ -60,4 +60,35 @@ describe("Intelligence brief evidence access", () => {
     expect(el.textContent).toContain("本事件尚未提供业务含义分析");
     expect(el.textContent).toContain("本次事件暂无有来源支持的关注事项。");
   });
+
+  it.each([
+    { zh: false, missing: "No comparison is available for this event." },
+    { zh: true, missing: "本事件暂无可用的对比信息。" },
+  ])("marks honest unavailable cards as compact without losing copy or source footer (zh=$zh)", async ({ zh, missing }) => {
+    const el = await mount({ ...props(), zh, footer: <p data-source-footer="true">Source receipts retained</p> });
+    expect(el.querySelectorAll(".ci-paper-insight[data-empty='true']")).toHaveLength(2);
+    expect(el.querySelectorAll(".ci-paper-insight[data-empty='false']")).toHaveLength(1);
+    expect(el.querySelectorAll(".ci-paper-watch[data-empty='true']")).toHaveLength(1);
+    expect(el.textContent).toContain(missing);
+    expect(el.querySelector("[data-source-footer]")?.textContent).toContain("Source receipts retained");
+    expect(el.querySelector(".ci-paper-metrics button")).not.toBeNull();
+  });
+
+  it("does not compact populated panels or remove their original evidence actions", async () => {
+    const change = { id: "change", label: "Reported change", value: "Revenue growth, source-backed" };
+    const implication = { id: "impact", label: "Context", value: "Impact requires review" };
+    const value = {
+      ...props(),
+      changes: [change], implications: [implication], watch: [watch],
+      footer: <p data-source-footer="true">Original source boundary</p>,
+    };
+    const el = await mount(value);
+    expect(el.querySelectorAll(".ci-paper-insight[data-empty='false']")).toHaveLength(3);
+    expect(el.querySelectorAll(".ci-paper-insight[data-empty='true']")).toHaveLength(0);
+    expect(el.querySelector(".ci-paper-watch[data-empty='false']")).not.toBeNull();
+    const changeButton = el.querySelector<HTMLButtonElement>(".ci-paper-insight button")!;
+    await act(async () => changeButton.click());
+    expect(value.onSelect).toHaveBeenCalledWith(change);
+    expect(el.textContent).toContain("Original source boundary");
+  });
 });

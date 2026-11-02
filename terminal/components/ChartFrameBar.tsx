@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { ChartEngine } from "@/lib/chart-engine/api";
 import { EnginePriceScaleMode } from "@/lib/chart-engine";
 import { DEFAULT_CHART_RIGHT_OFFSET, withChartFutureOffset } from "@/lib/chart-engine/viewReset";
@@ -242,8 +242,8 @@ export default function ChartFrameBar({
   // Client-only clock: render nothing until mounted to avoid SSR/hydration mismatch.
   // The server renders at server-local time; the client's timezone may differ completely.
   const [mounted, setMounted] = useState(false);
-  const [clock, setClock] = useState("");
-  const [tzLabel, setTzLabel] = useState("");
+  const clockRef = useRef<HTMLSpanElement>(null);
+  const tzRef = useRef<HTMLSpanElement>(null);
   const [gearOpen, setGearOpen] = useState(false);
   const [subMenu, setSubMenu] = useState<SubMenu>(null);
   const [gotoOpen, setGotoOpen] = useState(false);
@@ -257,19 +257,28 @@ export default function ChartFrameBar({
 
   const isIntraday = isIntradayTf(timeframe);
 
-  // Client-only mount gate: set initial clock + tz label, then tick every second.
-  // Nothing is rendered until mounted=true, preventing SSR time from leaking in.
+  // Client-only mount gate: nothing is rendered until mounted=true, preventing SSR time from
+  // leaking in.
   useEffect(() => {
-    setClock(fmtHHMMSS(new Date()));
-    setTzLabel(utcOffsetLabel());
     setMounted(true);
     setShellMode(document.documentElement.getAttribute("data-shell") === "app");
-    const id = setInterval(() => {
-      setClock(fmtHHMMSS(new Date()));
-      setTzLabel(utcOffsetLabel());
-    }, 1000);
-    return () => clearInterval(id);
   }, []);
+  // The once-a-second tick writes the clock text straight into its spans instead of React state.
+  // A 1 Hz setState re-renders at Default priority, and in an English boot the /terminal route
+  // boundary hydrates at Offscreen priority, so its mount effects queue Idle-lane updates that a
+  // ~1 s TerminalShell render must finish to clear. Every tick interrupted that render and React
+  // restarted it, which kept the main thread busy with one long task per second indefinitely.
+  // Layout effect: the first paint after mount already shows the time.
+  useLayoutEffect(() => {
+    if (!mounted) return;
+    const paint = () => {
+      if (clockRef.current) clockRef.current.textContent = fmtHHMMSS(new Date());
+      if (tzRef.current) tzRef.current.textContent = utcOffsetLabel();
+    };
+    paint();
+    const id = setInterval(paint, 1000);
+    return () => clearInterval(id);
+  }, [mounted]);
 
   // Close gear popup when clicking outside
   useEffect(() => {
@@ -457,7 +466,7 @@ export default function ChartFrameBar({
       <div className="cfb-right">
         {mounted && (
           <span className="cfb-clock num">
-            {clock} <span className="cfb-tz">{tzLabel}</span>
+            <span ref={clockRef} /> <span ref={tzRef} className="cfb-tz" />
           </span>
         )}
         {/* ETH chip — active when on; muted+non-interactive on daily TFs (no tooltip per spec) */}

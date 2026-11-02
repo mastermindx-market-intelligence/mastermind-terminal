@@ -3,6 +3,7 @@ import { useLayoutEffect, useRef, useState, type ComponentProps } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import BrainWidget from "@/components/BrainWidget";
 import { createAiContextProvider, type AiContextClientV1, type AiContextProvider } from "@/lib/aiContext";
+import { currentThesisReadSelection } from "@/lib/thesisReadContext";
 import { ambientForAnalysisRoute, parseAnalysisSearchParams } from "@/lib/analysisRoute";
 import { createAnalysisBrainOpener } from "@/lib/analysisBrainEntry";
 import type { MastermindBrainHost } from "@/lib/mastermindBrain";
@@ -65,8 +66,24 @@ export default function AnalysisBrainHost({ active, onCommand, onAnnotate, onAut
   // unmount→remount included), cleared on unmount. The getter itself is created once so
   // BrainWidget's write-through effect never churns on a changed prop identity.
   const aliveRef = useRef(true);
+  // F11: the getter below is created exactly once, so it reads the LIVE panel
+  // through this ref — a panel transition after mount must be visible to the
+  // next read without re-creating the getter.
+  const panelRef = useRef(panel);
   const [getAiContext] = useState<() => AiContextClientV1 | undefined>(
-    () => () => (aliveRef.current ? provider.getAiContext() : undefined),
+    () => () => {
+      if (!aliveRef.current) return undefined;
+      const context = provider.getAiContext();
+      // Ambient thesis read identity — Analysis theses panel ONLY, and only
+      // while the workspace holds a verified-ready selected immutable version.
+      // No active selection ⇒ the field is OMITTED entirely (never an empty
+      // object); the chart Terminal never sets it. Read-only: composing the
+      // field here is not a context transition and does not bump the revision.
+      if (panelRef.current !== "theses") return context;
+      const selection = currentThesisReadSelection();
+      if (!selection) return context;
+      return { ...context, ambient: { ...context.ambient, thesis_read: selection } };
+    },
   );
   useLayoutEffect(() => {
     aliveRef.current = true;
@@ -76,6 +93,7 @@ export default function AnalysisBrainHost({ active, onCommand, onAnnotate, onAut
   }, []);
 
   useLayoutEffect(() => {
+    panelRef.current = panel;
     provider.noteContextChange({ symbol, page: "analysis", panel });
   }, [provider, path, panel, symbol]);
 

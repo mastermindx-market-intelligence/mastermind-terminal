@@ -12,7 +12,7 @@ Read ceiling: existing Terminal data. The one opt-in write adds a symbol to an o
 
 ## R1 — Scope
 
-v1 = personal keys, read-only by default. A key acts as the user who minted it and can read ONLY what that user already sees in the Terminal: theses (heads + versions), watchlists, alerts (definitions + recent fires), accuracy claims, briefs, portfolio positions.
+v1 = personal keys, read-only by default. A key acts as the user who minted it and can read ONLY what that user already sees in the Terminal: theses (heads + versions), watchlists, alerts (definitions + recent fires), accuracy claims, briefs, portfolio positions, and the existing event-impact projection over their own open holdings.
 
 A new key can explicitly opt into `watchlists:write`, which permits only adding a symbol to an existing owned watchlist. Existing keys are not upgraded; no remove, list creation, team, claim, portfolio or trading write is exposed. No team/workspace keys. Printed null:
 
@@ -20,7 +20,7 @@ A new key can explicitly opt into `watchlists:write`, which permits only adding 
 
 > 团队密钥暂未开放，目前仅支持个人密钥。
 
-No public-artifact proxying (the macro site already serves those publicly; do not re-serve them).
+Raw public-artifact pass-through and artifact dumps are excluded. The event-impact resource is the bounded existing join over the caller's own open holdings.
 
 ## R2 — Key lifecycle
 
@@ -74,11 +74,11 @@ Error JSON:
 }
 ```
 
-with the matching HTTP status. Read responses support `ETag` + `If-None-Match` → 304. The ETag includes the entire envelope except its volatile response `asof`, including metadata and `schema_version`; legacy cached responses therefore invalidate. Cursor pagination (opaque cursor, limit ≤ 200, default 50). UTC RFC-3339 everywhere. Ids are the same UUIDs the Terminal UI uses. The existing forbidden-field guard rejects model-score/probability/rank fields; a person's `stated_probability` remains their own assertion. The API never originates signals.
+with the matching HTTP status. Paginated record-read responses support `ETag` + `If-None-Match` → 304. The ETag includes the entire envelope except its volatile response `asof`, including metadata and `schema_version`; legacy cached responses therefore invalidate. Cursor pagination (opaque cursor, limit ≤ 200, default 50). UTC RFC-3339 everywhere. Ids are the same UUIDs the Terminal UI uses. The existing forbidden-field guard rejects model-score/probability/rank fields; a person's `stated_probability` remains their own assertion. The API never originates signals.
 
 ### MO-DELTA-037 — record evidence and assertions
 
-`schema_version: "1.1"` versions the read envelope separately from the retained API seat `version`. Both additions are additive: existing `data`, pagination and coverage consumers keep their fields. Successful GET read envelopes, including the index, carry metadata. Errors and the native OpenAPI document do not. R10 POST responses and their stored idempotency receipts are unchanged.
+`schema_version: "1.1"` versions the read envelope separately from the retained API seat `version`. Both additions are additive: existing `data`, pagination and coverage consumers keep their fields. GET read envelopes, including the index and event-impact unavailability envelopes, carry metadata. Authentication/request error bodies and the native OpenAPI document do not. R10 POST responses and their stored idempotency receipts are unchanged.
 
 `inference_metadata` describes this API projection only. `generated_by_api: false` means this endpoint generated no inference; it does **not** mean that stored text has no model-assisted authorship. Upstream model provenance is `unavailable`. Metadata never copies source values or guesses authorship, confidence, truth or provenance from prose.
 
@@ -116,6 +116,7 @@ const recordState = body.inference_metadata.evidence_fields.map(at);
 | `GET /api/v1/claims` | Accuracy claims (`UserClaim` in `terminal/lib/personalAccuracy.ts`) |
 | `GET /api/v1/briefs` | **Omitted.** No briefs table exists on master at build time. The index prints this null. |
 | `GET /api/v1/positions` | Portfolio positions (`Position` in `terminal/lib/portfolio.ts`) |
+| `GET /api/v1/event-impact` | Existing open-holdings/published-event join (`EventImpactRead`); complete bounded book only, explicit source-snapshot countdown |
 | `GET /api/v1/openapi.json` | OpenAPI 3.1 generated from these route contracts |
 
 Field lists mirror the existing UI read models. Nothing new is computed.
@@ -172,3 +173,63 @@ python3 terminal/scripts/watchlist_import.py \
 Retry only transport failures, `429`, `502`, `503`, and `504`, using the same operation identity. Honor `Retry-After`; if its delay exceeds the remaining deadline, stop and resume later with the same key instead of retrying early. Other `4xx` responses require correcting the request or permissions. The importer refuses credential-bearing redirects and non-HTTPS origins except local loopback tests.
 
 The minute/day quotas apply to every attempt, including replay. `503` with `Retry-After` represents transient write contention/unavailability; it never indicates a committed write is safe to duplicate under a fresh request ID.
+
+
+## Published event impact read (MO-DELTA-039 scoped slice)
+
+`GET /api/v1/event-impact` requires an existing personal key with `read` scope.
+It projects the same `joinEventImpact` read model as the Terminal: the caller's
+open positions joined to the installed published earnings calendar. The endpoint
+accepts no query parameters or identity selectors and creates no records.
+R4's ETag/304 and cursor/limit pagination do not apply to this resource. Its
+`page` is fixed at `{next_cursor: null, limit: 200}`; `If-None-Match` does not
+produce a 304 response.
+It uses the existing API authentication, revocation and quota RPCs and the
+existing owner-scoped positions RPC. No new grant or SQL function is introduced.
+
+With an already authorized key in `MMX_API_KEY`, an external client can read:
+
+```sh
+curl --fail-with-body --silent --show-error \
+  -H "Authorization: Bearer ${MMX_API_KEY}" \
+  https://app.mastermind-x.com/api/v1/event-impact
+```
+
+The included Node client uses the same read contract, refuses redirects and
+restricts the destination to the Terminal HTTPS origin or an explicit local test
+server. It accepts the key through the environment, never a command argument:
+
+```sh
+MMX_API_KEY="$MMX_API_KEY" node terminal/scripts/read_event_impact.mjs
+```
+
+A successful envelope has `schema: mm.api.v1.event_impact`, the standard API
+version and inference metadata, and the unchanged event-impact payload in
+`data`. `data.state` distinguishes `ok`, `no_events`, and `no_holdings`.
+A 503 envelope carries `holdings_unreadable` or `calendar_unreadable` instead
+of claiming an empty result. OpenAPI also declares the defensive
+`upstream_locked` state; the current disk-only reader does not emit it.
+More than 200 portfolio rows (open and closed combined), a malformed holdings row, or a failed holdings read is unavailable;
+no truncated join is returned. Missing `read` scope is 403; a revoked or invalid
+key is 401; quota exhaustion is 429 with the incumbent rate headers.
+`holdings_unreadable` can require underlying data correction: an over-limit
+book or malformed status/ticker fails this complete-book read even when the
+Terminal's lenient row mapper would coerce or skip that row. Repeating the
+request does not resolve those cases, and the client does not automatically
+retry them. Tickers use the existing owner's length/control-character guard.
+
+The calendar is read from the existing `MACRO_DATA_DIR/portfolio_ctx.json`
+(default `/opt/macro/site/data`). Missing or corrupt local data is unavailable.
+There is no HTTP fallback and no retained response cache. The source's snapshot
+clock is carried in `data.asof`; the outer `asof` is the API response clock.
+`snapshot.countdown_basis: source_snapshot` explicitly labels `daysUntil` as a
+source-snapshot value. `snapshot.freshness: not_evaluated` makes no claim that
+the snapshot is current. This distinction does not make the published snapshot live or establish source
+rights beyond the existing consumer contract. Responses are private and not
+stored in shared caches.
+
+This read adds no directions, rankings, scores, advice, hypothetical scenario
+calculation, or portfolio writes. Unstated source fields and unjoinable calendars
+retain the Terminal's existing semantics. This closes only the external
+existing-holdings event-impact projection; analyze/scenario APIs remain separate.
+Live key issuance and production consumption require their own authorized proof.
