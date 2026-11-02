@@ -6,13 +6,16 @@ import { NEWS_VIEW } from "../lib/__tests__/fixtures/newsEditorial";
 import type { TickerNewsContentKind, TickerNewsReportingState } from "../lib/newsTypes";
 
 /**
- * Wave B3 — news-flow strip responsive evidence matrix (design pin P13).
+ * The News rail's responsive evidence matrix (design pin P13) and the R2
+ * evidence-ladder matrix (spec §7).
  *
- * Live dark cells: D1/D2 (desktop EN/ZH), D3/D4 (tablet), D5/D6 (mobile), each in
- * seven states (busier, typical, quieter, thin, partial, unavailable, open). E1
- * proves the east convention leaves the live dot a neutral status token. The light
- * treatment ships only as the static specimen (seat ruling D-W1), so it is captured
- * as SPECIMEN renders of docs/specimens/news-flow.html (L1-L6) — never live cells.
+ * The news-flow strip is no longer mounted in the panel: the reading slice owns the
+ * column. The strip keeps its standalone component, its parser and its static
+ * specimen, so the light treatment is still captured as SPECIMEN renders of
+ * docs/specimens/news-flow.html (L1-L6). The live reading cell pins what the
+ * mounted panel DOES show — the reading controls, no flow strip, no horizontal
+ * overflow — and E1 still proves the east convention leaves the live dot a neutral
+ * status token.
  *
  * The spec runs once per project; viewports come from playwright.config.ts and are
  * never changed here. Crops land in NEWS_FLOW_CROPS_DIR, or test-results/news-flow-crops.
@@ -393,7 +396,6 @@ const flowProvenance = (publishedAt: number, receivedAt: number) => ({
 });
 
 const OK_DAILY = [2, 3, 1, 4, 2, 3, 0, 5, 2, 3, 2, 3, 1, 4, 2, 3, 2, 3, 1, 3, 2, 4, 2, 3, 2, 3, 2, 3];
-const THIN_DAILY = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0];
 
 const FLOW_OK = {
   schema: "ticker_news.flow.v1",
@@ -409,43 +411,6 @@ const FLOW_OK = {
   history_days_observed: 28,
   comparison: "busier",
   provenance: flowProvenance(6, 1),
-};
-
-const FLOW_PARTIAL = { ...FLOW_OK, coverage: "partial", comparison: null };
-
-const FLOW_THIN = {
-  schema: "ticker_news.flow.v1",
-  state: "thin_history",
-  reason: null,
-  coverage: "complete",
-  as_of: "2026-10-12T10:30:00Z",
-  reports_24h: 2,
-  reports_7d: 3,
-  stories_24h: 2,
-  median_daily_28d: null,
-  daily_counts_28d: THIN_DAILY,
-  history_days_observed: 6,
-  comparison: "insufficient_history",
-  provenance: flowProvenance(2, 0),
-};
-
-// Terminal-only fixtures (pin P13): the same shape at the two remaining comparisons.
-const FLOW_TYPICAL = {
-  ...FLOW_OK,
-  reports_24h: 3,
-  reports_7d: 17,
-  stories_24h: 2,
-  comparison: "typical",
-  provenance: flowProvenance(3, 0),
-};
-
-const FLOW_QUIETER = {
-  ...FLOW_OK,
-  reports_24h: 1,
-  reports_7d: 15,
-  stories_24h: 1,
-  comparison: "quieter",
-  provenance: flowProvenance(1, 0),
 };
 
 const FLOW_UNAVAILABLE = {
@@ -464,44 +429,10 @@ const FLOW_UNAVAILABLE = {
   provenance: null,
 };
 
-// ---- the cell matrix ------------------------------------------------------------
+// ---- viewport and language vocabulary --------------------------------------------
 
 type ProjectName = "desktop" | "tablet" | "mobile";
 type Lang = "en" | "zh";
-type StateName = "busier" | "typical" | "quieter" | "thin" | "partial" | "unavailable" | "open";
-
-const CELLS: Record<ProjectName, Record<Lang, string>> = {
-  desktop: { en: "D1", zh: "D2" },
-  tablet: { en: "D3", zh: "D4" },
-  mobile: { en: "D5", zh: "D6" },
-};
-
-// The partial cell rides a catching_up snapshot; every other cell is live.
-const STATE_FIXTURES: Record<StateName, { flow: unknown; snapshotState: "live" | "catching_up"; flowState: string }> = {
-  busier: { flow: FLOW_OK, snapshotState: "live", flowState: "ok" },
-  typical: { flow: FLOW_TYPICAL, snapshotState: "live", flowState: "ok" },
-  quieter: { flow: FLOW_QUIETER, snapshotState: "live", flowState: "ok" },
-  thin: { flow: FLOW_THIN, snapshotState: "live", flowState: "thin_history" },
-  partial: { flow: FLOW_PARTIAL, snapshotState: "catching_up", flowState: "ok" },
-  unavailable: { flow: FLOW_UNAVAILABLE, snapshotState: "live", flowState: "unavailable" },
-  open: { flow: FLOW_OK, snapshotState: "live", flowState: "ok" },
-};
-
-// Unavailable sentence copied from lib/newsFlowLex.ts ("state.unavailable") — the
-// strings are pinned here rather than imported, matching the e2e house style.
-const GLANCE: Record<StateName, Record<Lang, [string, string]>> = {
-  busier: { en: ["7 reports in 24h", "Busier than a typical day"], zh: ["24小时内 7 条报道", "比平日更密集"] },
-  typical: { en: ["3 reports in 24h", "About a typical day"], zh: ["24小时内 3 条报道", "与平日相当"] },
-  quieter: { en: ["1 report in 24h", "Quieter than a typical day"], zh: ["24小时内 1 条报道", "比平日清淡"] },
-  thin: { en: ["2 reports in 24h", "Too little history to compare"], zh: ["24小时内 2 条报道", "历史尚短，暂不比较"] },
-  partial: { en: ["7 reports in 24h", "Counts may be incomplete"], zh: ["24小时内 7 条报道", "计数可能不完整"] },
-  unavailable: { en: ["Report counts unavailable right now", ""], zh: ["报道计数暂不可用", ""] },
-  open: { en: ["7 reports in 24h", "Busier than a typical day"], zh: ["24小时内 7 条报道", "比平日更密集"] },
-};
-
-const MORE_LABEL: Record<Lang, string> = { en: "How these counts work", zh: "计数说明" };
-const DETAIL_TITLE: Record<Lang, string> = { en: "Report count, last 28 days", zh: "近28天报道数" };
-
 function snapshotFor(state: "live" | "catching_up", flow: unknown) {
   return {
     schema: "ticker_news.snapshot.v1",
@@ -650,103 +581,52 @@ async function liveDotColors(page: Page) {
   });
 }
 
-// ---- the live matrix: one test per state, one describe per language ---------------
+// ---- the live reading cell: one test per language --------------------------------
+//
+// The news-flow strip is no longer mounted in the panel — the reading slice owns
+// the column. The snapshot still carries a flow payload (the API is unchanged), and
+// the panel ignores it: this cell pins what the mounted panel DOES show.
 
-async function runCell(page: Page, baseURL: string | undefined, testInfo: TestInfo, lang: Lang, state: StateName) {
+async function runReadingCell(page: Page, baseURL: string | undefined, testInfo: TestInfo, lang: Lang, flow: unknown) {
   const project = testInfo.project.name as ProjectName;
-  const cell = CELLS[project][lang];
-  const { flow, snapshotState, flowState } = STATE_FIXTURES[state];
 
-  await prepare(page, testInfo, baseURL, flow, snapshotState);
+  await prepare(page, testInfo, baseURL, flow, "live");
   await setPresentation(page, lang);
-  const panel = await openNews(page, snapshotState);
+  const panel = await openNews(page);
 
-  const strip = panel.locator("[data-flow-state]");
-  await expect(strip).toHaveAttribute("data-flow-state", flowState);
+  // The activity strip is gone from the mounted panel, whatever the snapshot says.
+  await expect(panel.locator("[data-flow-state]")).toHaveCount(0);
 
-  const line = strip.locator(":scope > p");
-  await expect(line).toHaveCount(1);
-  if (state === "unavailable") {
-    // Only the unavailable sentence: no button, no tally, nothing else.
-    await expect(line).toHaveText(GLANCE.unavailable[lang][0]);
-    await expect(strip.locator("button")).toHaveCount(0);
-  } else {
-    const [countText, compareText] = GLANCE[state][lang];
-    await expect(line).toContainText(countText);
-    await expect(line).toContainText(compareText);
-    if (state === "partial") {
-      await expect(strip).toHaveAttribute("data-coverage", "partial");
-    }
-  }
-
-  if (state === "open") {
-    await panel.getByRole("button", { name: MORE_LABEL[lang] }).click();
-    const detail = strip.locator("section");
-    await expect(detail).toBeVisible();
-    await expect(detail).toContainText(DETAIL_TITLE[lang]);
-  }
+  // The reading controls are the column's content.
+  await expect(panel.locator("select[data-news-view-select]")).toBeVisible();
+  await expect(panel.locator("[data-news-headline]").first()).toBeVisible();
+  await expect(panel.locator("[data-news-ladder]").first()).toBeVisible();
 
   // The crop is taken before the assertion block so a red assertion still leaves
   // the cell's evidence image behind (an evidence spec captures first, judges after).
-  await panel.screenshot({ path: join(CROPS_DIR, `${cell}-${state}.png`) });
+  await panel.screenshot({ path: join(CROPS_DIR, `reading-${project}-${lang}.png`) });
 
-  if (state === "open") {
-    const boxes = await page.evaluate(() => {
-      const detailEl = document.querySelector('[data-testid="ticker-news-panel"] [data-flow-state] section');
-      const panelEl = document.querySelector('[data-testid="ticker-news-panel"]');
-      if (!detailEl || !panelEl) return null;
-      const d = detailEl.getBoundingClientRect();
-      const p = panelEl.getBoundingClientRect();
-      return {
-        d: { left: d.left, top: d.top, right: d.right, bottom: d.bottom },
-        p: { left: p.left, top: p.top, right: p.right, bottom: p.bottom },
-        vw: document.documentElement.clientWidth,
-        vh: document.documentElement.clientHeight,
-      };
-    });
-    if (!boxes) throw new Error("details section not measurable");
-    expect(boxes.d.left).toBeGreaterThanOrEqual(-1);
-    expect(boxes.d.top).toBeGreaterThanOrEqual(-1);
-    expect(boxes.d.right).toBeLessThanOrEqual(boxes.vw + 1);
-    expect(boxes.d.bottom).toBeLessThanOrEqual(boxes.vh + 1);
-    expect(boxes.d.left).toBeGreaterThanOrEqual(boxes.p.left - 1);
-    expect(boxes.d.top).toBeGreaterThanOrEqual(boxes.p.top - 1);
-    expect(boxes.d.right).toBeLessThanOrEqual(boxes.p.right + 1);
-    expect(boxes.d.bottom).toBeLessThanOrEqual(boxes.p.bottom + 1);
-  }
-
-  // Zero horizontal document overflow, every cell and state.
+  // Zero horizontal document overflow, every cell.
   const overflow = await page.evaluate(
     () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
   );
   expect(overflow).toBeLessThanOrEqual(0);
 
-  // EN glance line: one line at 1440/820, at most two lines at 390.
-  if (lang === "en") {
-    const lineHeight = await line.evaluate((el) => el.getBoundingClientRect().height);
-    expect(lineHeight).toBeLessThanOrEqual(project === "mobile" ? 36 : 20);
-  }
-
-  // Keyboard: the focus ring on the details control, where one exists.
-  if (state !== "unavailable") {
-    await assertFocusRing(page, strip.locator("button"));
-  }
-
   // Every live cell (and E1): the dot paints --brand-2, never a direction token.
-  if (snapshotState === "live") {
-    const colors = await liveDotColors(page);
-    if (!colors) throw new Error("live dot not rendered in a live cell");
-    expect(colors.dot).toBe(colors.brand2);
-  }
+  const colors = await liveDotColors(page);
+  if (!colors) throw new Error("live dot not rendered in a live cell");
+  expect(colors.dot).toBe(colors.brand2);
 }
 
+// One cell per language, each carrying a flow payload the retired strip would have
+// rendered: the busiest state and the degenerate one.
+const READING_FLOWS: Record<Lang, unknown> = { en: FLOW_OK, zh: FLOW_UNAVAILABLE };
+
 for (const lang of ["en", "zh"] as const) {
-  test.describe(`${lang.toUpperCase()} news-flow cells`, () => {
-    for (const state of ["busier", "typical", "quieter", "thin", "partial", "unavailable", "open"] as const) {
-      test(`${state} state renders inside its cell`, async ({ page, baseURL }, testInfo) => {
-        await runCell(page, baseURL, testInfo, lang, state);
-      });
-    }
+  test.describe(`${lang.toUpperCase()} news reading cell`, () => {
+    test("the panel reads the column without the flow strip", async ({ page, baseURL }, testInfo) => {
+      await runReadingCell(page, baseURL, testInfo, lang, READING_FLOWS[lang]);
+    });
   });
 }
 
@@ -759,7 +639,7 @@ test("E1 east convention keeps the live dot neutral", async ({ page, baseURL }, 
   const panel = await openNews(page);
   await page.evaluate(() => document.documentElement.setAttribute("data-updown", "east"));
 
-  await expect(panel.locator("[data-flow-state]")).toHaveAttribute("data-flow-state", "ok");
+  await expect(panel.locator("[data-flow-state]")).toHaveCount(0);
 
   const colors = await liveDotColors(page);
   if (!colors) throw new Error("live dot not rendered for E1");
@@ -795,9 +675,9 @@ test("light treatment SPECIMEN captures from the static specimen page", async ({
 // ---- R2 evidence ladder (spec NEWS_INTELLIGENCE_RAIL_R2_SPEC.md §7 matrix R1–R7) --
 //
 // One cell per project × lang × state; crops land in R2_CROPS_DIR/<cell>.png, taken
-// before the assertion block exactly as runCell does. Lexicon strings are pinned as
-// literals read from the tree's lib/newsLadderLex.ts and the panel COPY, matching
-// the e2e house style (GLANCE above) rather than importing them.
+// before the assertion block exactly as the reading cell does. Lexicon strings are pinned
+// as literals read from the tree's lib/newsLadderLex.ts and the panel COPY, matching the
+// e2e house style rather than importing them.
 
 // Compiled CSS-module classes (Turbopack: <File>-module__<hash>__<local>): the spec's
 // .topic/.clocks/.sourceLink/.moreReports selectors, matched by local-name suffix so
@@ -834,7 +714,7 @@ const R2_RETRY: Record<Lang, string> = { en: "Retry", zh: "重试" };
 const r2Row = (panel: ReturnType<Page["locator"]>, storyId: string) =>
   panel.locator(`[data-story-id="${storyId}"]`);
 
-/** Zero horizontal document overflow, the runCell pin, reused by every R2 cell. */
+/** Zero horizontal document overflow, the reading cell's pin, reused by every R2 cell. */
 async function r2Overflow(page: Page) {
   return page.evaluate(
     () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
@@ -869,7 +749,7 @@ test.describe("R2 evidence ladder", () => {
       const agree = r2Row(panel, "ev2_r2_agree");
       await agree.scrollIntoViewIfNeeded();
 
-      // Evidence first, judgement after (runCell's ordering).
+      // Evidence first, judgement after (the reading cell's ordering).
       await panel.screenshot({ path: join(R2_CROPS_DIR, `R2-${project}-${lang}-collapsed.png`) });
 
       await expect(agree.locator(R2_CLS.topic)).toHaveText(R2_TOPIC[lang]);
@@ -958,7 +838,7 @@ test.describe("R2 evidence ladder", () => {
       });
       expect(order).toEqual({ evidenceThenNext: true, nextThenMark: true });
 
-      // The evidence box stays inside the panel box (runCell's boxes idiom).
+      // The evidence box stays inside the panel box (the reading cell's boxes idiom).
       const boxes = await page.evaluate(() => {
         const evidenceEl = document.querySelector(
           '[data-testid="ticker-news-panel"] [data-story-id="ev2_r2_agree"] [role="group"]',
