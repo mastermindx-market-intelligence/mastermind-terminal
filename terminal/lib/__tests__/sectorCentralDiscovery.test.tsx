@@ -81,20 +81,45 @@ describe("Sector Central discovery and breadth", () => {
     const openButton = Array.from(host.querySelectorAll('[data-testid="company-table-selection"] button')).find(button => button.textContent?.includes("Open sector intelligence"))!;
     await act(async () => (openButton as HTMLButtonElement).click()); expect(open).toHaveBeenCalledWith("xlk");
   });
-  it("encodes the supplied share on a common zero-to-one-hundred bar and gives the breadth answer", async () => {
+  it("ranks the legacy snapshot by the share of moving names, with its true one-month basis", async () => {
     await render({ breadth: true });
     const selected = host.querySelector('[data-sector-choice="xlk"]')!;
-    expect(host.textContent).toContain("Breadth is narrow; Technology is the only sector with majority participation.");
-    expect(selected.textContent).toContain("59%"); expect(selected.textContent).toContain("47 advancing · 32 declining");
-    expect(selected.querySelector<HTMLElement>('span[style]')!.style.width).toBe("59%");
+    expect(host.textContent).toContain("positive one-month return");
+    expect(host.textContent).toContain("Comparable daily history is unavailable");
+    expect(selected.closest("tr")?.textContent).toContain("59.5%");
+    expect(selected.closest("tr")?.textContent).toContain("47 / 32");
     expect(selected.getAttribute("aria-pressed")).toBe("true");
-    expect(host.querySelector('[data-sector-choice="xlu"] span[style]')).toBeNull();
-    expect(host.querySelector('[data-sector-choice="xli"] span[style]')!.getAttribute("style")).toContain("0%");
+    expect(host.querySelector("[data-sector-choice]")).toBe(selected);
   });
-  it("rejects an invalid percentage instead of drawing beyond the track", async () => {
-    await render({ breadth: true, rows: [{ ...rows[0], heat: { breadth_pct: 150, adv: -1, dec: false } }] });
-    expect(host.querySelector('[data-sector-choice] span[style]')).toBeNull();
-    expect(host.textContent).not.toContain("150%"); expect(host.textContent).not.toContain("-1 advancing");
+  it("leaves invalid and zero-denominator snapshots unranked", async () => {
+    await render({ breadth: true, rows: [
+      { ...rows[0], heat: { breadth_pct: 150, adv: -1, dec: false } },
+      { ...rows[1], heat: { breadth_pct: 0, adv: 0, dec: 0 } },
+    ] });
+    expect(host.textContent).toContain("0/2 sectors ranked");
+    expect(host.querySelector("tbody i[style]")).toBeNull();
+  });
+  it("distinguishes high participation from expansion, calculates velocity, and ties ranks", async () => {
+    const history = { schema: "sector_breadth_close.v1", basis: "current_cohort_daily_closes",
+      dates: ["2026-09-18","2026-09-21","2026-09-22","2026-09-23","2026-09-24","2026-09-25"],
+      sectors: {
+        XLF: { matched: 10, eligible: 10, advancing: [3,3,3,3,3,8], declining: [4,4,4,4,4,0] },
+        XLK: { matched: 10, eligible: 10, advancing: [9,9,9,9,9,8], declining: [1,1,1,1,1,2] },
+        XLU: { matched: 1, eligible: 10, advancing: [1,1,1,1,1,1], declining: [0,0,0,0,0,0] } } };
+    await render({breadth: true, heatmapData: {...companyHeatmap, sector_breadth_close: history}});
+    const highlights = host.querySelector('[aria-label="All sectors"]')!;
+    expect(highlights.children[0].textContent).toContain("XLF · XLK");
+    expect(highlights.children[2].textContent).toContain("+50.0 pp");
+    expect(highlights.children[3].textContent).toContain("-10.0 pp");
+    const compare = Array.from(host.querySelectorAll("select")).find(el => el.closest("label")?.textContent?.includes("Compare closes"))!;
+    await act(async () => { compare.value = "5"; compare.dispatchEvent(new Event("change",{bubbles:true})); });
+    const row = host.querySelector('[data-sector-choice="xlf"]')!.closest("tr")!;
+    expect(row.textContent).toContain("+10.0 pp");
+    expect(row.textContent).toContain("#2 → #1");
+    expect(row.textContent).toContain("8 / 0 / 2");
+    expect(host.textContent).toContain("2/4 sectors ranked");
+    await render({breadth: true, heatmapData: {...companyHeatmap, sector_breadth_close: history}, heatmapStatus:"access"});
+    expect(host.textContent).not.toContain("+50.0 pp");
   });
   it("switches the same exact company population across four distinct Discover representations", async () => {
     await render(); expect(host.querySelectorAll("[data-company-table-row]")).toHaveLength(4);

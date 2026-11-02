@@ -14,6 +14,7 @@ import {
   type SectorDiscoveryMode,
   type SectorMatrixTimeframe,
 } from "@/lib/sectorIntelligence";
+import SectorBreadthBoard from "./SectorBreadthBoard";
 import SectorCompanyHeatmap from "./SectorCompanyHeatmap";
 import SectorCompanyTable from "./SectorCompanyTable";
 import SectorIndustryMatrix from "./SectorIndustryMatrix";
@@ -146,7 +147,9 @@ export default function SectorCentralDiscovery(props: SectorCentralDiscoveryProp
     {(["summary", "table", "heatmap", "matrix"] as const).map(mode => <button type="button" key={mode} aria-pressed={props.mode === mode} onClick={() => props.onMode(mode)}>{t(mode)}</button>)}
   </div>;
 
-  if (!props.breadth && props.mode === "summary") return <section className={styles.root} data-testid="sector-discovery">
+  if (props.breadth) return <SectorBreadthBoard {...props} />;
+
+  if (props.mode === "summary") return <section className={styles.root} data-testid="sector-discovery">
     {representationNavigation}
     <SectorIndustrySummary data={props.heatmapData} status={props.heatmapStatus} asOf={props.heatmapAsOf}
       sectors={readyRows} selectedSector={props.selected} selectedSectorName={selectedName}
@@ -207,16 +210,7 @@ export default function SectorCentralDiscovery(props: SectorCentralDiscoveryProp
     </div>
     {props.status !== "ready" ? <div className={styles.empty} role="status">{t(props.status === "loading" ? "loading" : props.status === "access" ? "access" : "unavailable")}</div>
       : visible.length === 0 ? <div className={styles.empty} role="status"><p>{t(readyRows.length ? "noMatches" : "unavailable")}</p>{props.query && <button type="button" onClick={() => props.onQuery("")}>{t("clear")}</button>}</div>
-      : props.breadth ? <div className={styles.breadthGrid}>{visible.map(row => {
-        const heat = object(row.heat), pct = share(heat.breadth_pct), adv = count(heat.adv), dec = count(heat.dec);
-        return <button type="button" key={text(row.id)} className={styles.breadthCard} data-sector-choice={text(row.id)} aria-pressed={props.selected === row.id}
-          aria-label={`${t("selected")}: ${name(row)}`} onClick={event => { event.currentTarget.focus({ preventScroll: true }); props.onSelect(text(row.id)); }}>
-          <span className={styles.cardName}>{name(row)}<small>{text(row.ticker)}</small></span>
-          <span className={styles.cardValue}>{formatValue(pct, 0, "%")}<small>{t("participation")}</small></span>
-          <span className={styles.track} aria-hidden="true">{pct !== null && <span style={{ width: `${pct}%` }} />}</span>
-          <span className={styles.coverage}>{formatValue(adv, 0)} {t("advancing")} · {formatValue(dec, 0)} {t("declining")}</span>
-        </button>;
-      })}</div> : <div className={styles.tableWrap}><table><thead><tr><th>{t("name")}</th><th>{t("return")}</th><th>{t("participation")}</th><th>{t("population")}</th><th>{t("trend")}</th></tr></thead>
+      : <div className={styles.tableWrap}><table><thead><tr><th>{t("name")}</th><th>{t("return")}</th><th>{t("participation")}</th><th>{t("population")}</th><th>{t("trend")}</th></tr></thead>
         <tbody>{visible.map(row => { const heat = object(row.heat), momentum = object(row.momentum), value = number(heat.heat_1M);
           return <tr key={text(row.id)} aria-selected={props.selected === row.id}>
             <th scope="row"><button type="button" data-sector-choice={text(row.id)} onClick={event => { event.currentTarget.focus({ preventScroll: true }); props.onSelect(text(row.id)); }} aria-label={`${t("selected")}: ${name(row)}`}>{name(row)}<small>{text(row.ticker)}</small></button></th>
