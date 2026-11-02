@@ -388,6 +388,13 @@ svg{display:block}
 .rail-tab:focus-visible{outline:2px solid var(--brand-2);outline-offset:-2px}
 .rail-tab.on{color:var(--brand-2);background:color-mix(in srgb,var(--brand) 15%,transparent)}
 .board.rail-hidden{display:none}
+/* News is the selected reading surface, not half of a hidden watchlist split.
+   Keep the detail board mounted (no state reset) but hidden on desktop only.
+   Tablet/phone retain the symbol detail board and natural document scroll. */
+@media (min-width:861px){
+  .rail-body:has(> #rail-panel-news) > #rail-panel-news{height:auto;flex:1;min-height:0}
+  .rail-body:has(> #rail-panel-news) > .detail-board{display:none}
+}
 .pf-board{height:52%;flex:none}
 .pf-board-ttl{font:650 11.5px/1 var(--font-ui);letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
 .pf-board-link{margin-left:auto;color:var(--brand-2);font:600 11px/1 var(--font-ui);text-decoration:none}
