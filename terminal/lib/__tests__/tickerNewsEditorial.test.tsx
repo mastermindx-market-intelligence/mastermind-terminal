@@ -124,6 +124,24 @@ describe("editorial view contract", () => {
 });
 
 describe("editorial views in the mounted Terminal", () => {
+  it.each(["en", "zh"] as const)("puts the actual news feed immediately under the header in %s", async (lang) => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(Response.json(snapshot())));
+    await mount(lang);
+    const rail = panel();
+
+    // The old explainer, news-flow help widget and all catch-up filters/controls
+    // are removed from the render tree, not merely visually collapsed.
+    expect(rail.children).toHaveLength(2);
+    expect(rail.children[1].firstElementChild?.tagName).toBe("ARTICLE");
+    expect(rail.querySelectorAll("[data-news-headline]")).toHaveLength(1);
+    expect(rail.querySelector("select[data-news-view-select]")).not.toBeNull();
+    expect(rail.querySelectorAll(
+      "[data-flow-state], [data-news-catchup], [data-news-filter], [data-news-source-filter], [data-news-mark-shown]",
+    )).toHaveLength(0);
+    expect(rail.textContent).not.toContain("Curated reports and announcements");
+    expect(rail.textContent).not.toContain("No reports in 24h");
+  });
+
   it.each(["en", "zh"] as const)("recovers a failed first read through an explicit localized retry in %s", async (lang) => {
     const pending = deferred();
     const fetcher = vi.fn()
