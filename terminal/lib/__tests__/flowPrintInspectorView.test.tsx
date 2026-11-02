@@ -10,8 +10,13 @@
 import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it } from "vitest";
+import { FlowGauge } from "@/components/flowdesk/FlowGauge";
 import { FlowCoverageLine, PrintInspector } from "@/components/flowdesk/PrintInspector";
+import { FD, gaugeMissingPrints } from "@/lib/flowdeskStrings";
 import { flowCoverage, type FlowPrintInput } from "@/lib/flowPrintInspector";
+import flowFixture from "@/public/data/flow_fixture.json";
+
+type GaugeFeed = React.ComponentProps<typeof FlowGauge>["feed"];
 
 // e1 of the W3A fixture tape — a fully supplied owner row (oi present).
 const E1: FlowPrintInput = {
@@ -130,6 +135,123 @@ describe("PrintInspector (view)", () => {
     expect(zh).toContain("认购 $2.3M · 认沽 $750.0K · 无符号权利金，非方向指示");
     // Unknown is never dropped from the line, in either language.
     expect(zh).toContain("12 %");
+  });
+
+  // The coverage line and the session gauge read the same loaded tape. When a print
+  // carries no premium or no call/put side, the gauge says the session totals would be
+  // incomplete — so the line must say the same instead of publishing call/put totals
+  // that silently leave that print out (delta audit of #1198, gauge-partial crops).
+  function expectDisclosedWithoutTotals(rows: FlowPrintInput[], n: number, m: number) {
+    const coverage = flowCoverage(rows);
+    expect(coverage.rows).toBe(m);
+    expect(coverage.missing).toBe(n);
+    const en = renderAt(<FlowCoverageLine coverage={coverage} lang="en" />);
+    expect(en).toContain(gaugeMissingPrints(n, m).en);
+    // The premium-weighted split is kept; no call/put total is published.
+    expect(en).toContain("% of eligible premium classified · ");
+    for (const absent of ["Calls", "Puts", "$", "unsigned premium"]) {
+      expect(en, `EN must not publish "${absent}"`).not.toContain(absent);
+    }
+    const zh = renderAgain(<FlowCoverageLine coverage={coverage} lang="zh" />);
+    expect(zh).toContain(gaugeMissingPrints(n, m).zh);
+    expect(zh).toContain("% 合格权利金已分类 · ");
+    for (const absent of ["认购 $", "认沽 $", "$", "无符号权利金"]) {
+      expect(zh, `ZH must not publish "${absent}"`).not.toContain(absent);
+    }
+  }
+
+  it("discloses an unpriced print instead of publishing call/put totals (12 rows, 1 unpriced)", () => {
+    const rows: FlowPrintInput[] = Array.from({ length: 12 }, (_, i) => ({ ...TAPE[i % TAPE.length], id: `w3a-u${i}` }));
+    rows[0] = { ...rows[0], premium: null };
+    expectDisclosedWithoutTotals(rows, 1, 12);
+  });
+
+  it("discloses a priced print with no call/put side instead of publishing call/put totals", () => {
+    const noRight: FlowPrintInput = { ...E1, id: "w3a-no-right", right: undefined };
+    // Alone, the totals would have read "Calls $0 · Puts $0" — unknown drawn as zero.
+    expectDisclosedWithoutTotals([noRight], 1, 1);
+    // Beside a complete tape, its $504K would have dropped out of both totals unsaid.
+    expectDisclosedWithoutTotals([...TAPE, noRight], 1, TAPE.length + 1);
+  });
+
+  it("renders a complete tape byte-identically to the line before the disclosure", () => {
+    const coverage = flowCoverage(TAPE);
+    renderAt(<FlowCoverageLine coverage={coverage} lang="en" />);
+    expect(container!.innerHTML).toBe(
+      '<div class="obs-print-coverage" data-testid="flow-coverage">'
+      + '<span class="obs-print-coverage-split">88 % of eligible premium classified · 12 % unknown</span>'
+      + '<span class="obs-print-coverage-totals num">Calls $2.3M · Puts $750.0K · unsigned premium, not a direction</span>'
+      + "</div>",
+    );
+    renderAgain(<FlowCoverageLine coverage={coverage} lang="zh" />);
+    expect(container!.innerHTML).toBe(
+      '<div class="obs-print-coverage" data-testid="flow-coverage">'
+      + '<span class="obs-print-coverage-split">88 % 合格权利金已分类 · 12 % 未知</span>'
+      + '<span class="obs-print-coverage-totals num">认购 $2.3M · 认沽 $750.0K · 无符号权利金，非方向指示</span>'
+      + "</div>",
+    );
+    expect(coverage.missing).toBe(0);
+  });
+
+  it("counts the same missing prints as the session gauge on the gauge-partial crop feed", () => {
+    // docs/pr-crops/flowdesk-unknown-truth-light/capture.mjs, state gauge-partial: the
+    // FLOW_FIXTURE feed with the first print's premium withheld.
+    const feed = flowFixture.feed;
+    const events = feed.events.map((ev, i) => (i === 0 ? { ...ev, premium: null } : ev));
+    const coverage = flowCoverage(events);
+    expect(coverage.missing).toBe(1);
+    expect(coverage.rows).toBe(feed.events.length);
+    for (const lang of ["en", "zh"] as const) {
+      const reason = gaugeMissingPrints(coverage.missing, coverage.rows)[lang];
+      // The gauge renders gaugeMissingPrints(summary.missing, summary.n): the same text
+      // means the same counts.
+      const gauge = renderAt(<FlowGauge feed={{ ...feed, events } as unknown as GaugeFeed} lang={lang} />);
+      expect(gauge).toContain(reason);
+      const line = renderAgain(<FlowCoverageLine coverage={coverage} lang={lang} />);
+      expect(line).toContain(reason);
+      act(() => root!.unmount());
+      container!.remove();
+      root = null;
+      container = null;
+    }
+  });
+
+  // Render the gauge and the coverage line on one loaded tape; both must state the
+  // same "n of m" disclosure, in EN and ZH.
+  function expectGaugeParity(events: readonly unknown[], n: number, m: number) {
+    const feed = flowFixture.feed;
+    const coverage = flowCoverage(events);
+    for (const lang of ["en", "zh"] as const) {
+      const reason = gaugeMissingPrints(n, m)[lang];
+      const gauge = renderAt(<FlowGauge feed={{ ...feed, events } as unknown as GaugeFeed} lang={lang} />);
+      expect(gauge, `gauge (${lang})`).toContain(reason);
+      const line = renderAgain(<FlowCoverageLine coverage={coverage} lang={lang} />);
+      expect(line, `coverage line (${lang})`).toContain(reason);
+      act(() => root!.unmount());
+      container!.remove();
+      root = null;
+      container = null;
+    }
+  }
+
+  it("states the gauge's own n of m when the tape holds a null and a negative-premium event", () => {
+    const events: unknown[] = [null, { ...flowFixture.feed.events[0], premium: -5_000 }, ...flowFixture.feed.events.slice(1)];
+    expectGaugeParity(events, 2, events.length);
+  });
+
+  it("discloses an all-unattributable tape as n of m, never as an empty tape", () => {
+    const events: unknown[] = [null, { right: "C" }];
+    expectGaugeParity(events, 2, 2);
+    const coverage = flowCoverage(events);
+    const en = renderAt(<FlowCoverageLine coverage={coverage} lang="en" />);
+    expect(en).toBe(gaugeMissingPrints(2, 2).en);
+    expect(en).not.toContain(FD.coverageEmpty.en);
+    // No eligible premium means no shares, so no split is drawn.
+    expect(en).not.toContain("% of eligible premium classified");
+    const zh = renderAgain(<FlowCoverageLine coverage={coverage} lang="zh" />);
+    expect(zh).toBe(gaugeMissingPrints(2, 2).zh);
+    expect(zh).not.toContain(FD.coverageEmpty.zh);
+    expect(zh).not.toContain("% 合格权利金已分类");
   });
 
   it("never uses opening, closing, bullish or bearish on the activity ratio", () => {

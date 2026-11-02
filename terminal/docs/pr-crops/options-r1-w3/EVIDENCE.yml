@@ -1,35 +1,28 @@
-capturedAtHead: 60769a1e5d310cdaa95b39d4c7874f014bd9730a
-capturedAtHeadSource: CAPTURE_HEAD (the commit the captured working tree is built on)
+capturedAtHead: daab948465d37a18f42a0682cf56a3ea2426e4fb
 command: "OPTIONS_R1_CROPS=1 npx playwright test e2e/options-r1-w3-crops.spec.ts --project=desktop --workers=1"
 theme: Terminal and Options routes are dark-only.
 sources: synthetic (e2e/fixtures/options-r1-w3a-flow.json, e2e/fixtures/options-r1-w3b-vol.json, e2e/fixtures/options-r1-w3-moves.json, mocked /data/AAPL.fund.json); not provider evidence.
-# #1200 H9: full recapture. All 24 crops were captured at capturedAtHead from one working tree, so the
-# earlier partialRecapture (flow-desk-inspector-* retained from 2ab6c0ab) and its pin-only restamp notes no
-# longer apply. 10 of 12 flow-desk-inspector crops changed against the retained bytes (the four 1440 crops
-# are 8 px taller, the 390/820 ZH crops break lines differently, the 390 EN crops differ in one text line);
-# 5 of 6 vol-compare-band crops changed with the H9 term-table layout; the 6 eod-expmove-method crops are
-# sha-identical to the committed bytes.
 layoutFiles:
   - path: terminal/app/globals.css
     sha256: b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517
   - path: terminal/app/observatory.css
     sha256: 09e9db8ecbc3be7858d609342b1ba3d5797298adfa17a5f936b04b9c00c31414
   - path: terminal/components/flowdesk/FeedPane.tsx
-    sha256: 54417d22c9cd0668d5244bf56641ae403f7d3114578017ebe8b13caf7efa48e1
+    sha256: e2e01341164c2eedefa6caf935064540cc133fc1166a36dd630b9207a9baca83
   - path: terminal/components/flowdesk/FlowCard.tsx
-    sha256: 4a48b5c1504e4ce4ade31a05ceafd4441a96dafe4c3639cfda036ad03f1606af
+    sha256: cef9c25c7e144c82200f89818bb679a2282f217debbf0229cf163cdddac1de37
   - path: terminal/components/flowdesk/FlowDeskView.tsx
-    sha256: 7c4ee44e695dbf928ebe5f7991bf7d0a7e8745420852c6773a3aa51456bae021
+    sha256: 801cf41437b4749d3ad449e60ab35be8ffcc7f0e193ce5773b9c1ec7e49c01c0
   - path: terminal/components/flowdesk/InspectorPane.tsx
-    sha256: 0eb1a6a12bc7450c4206055fbfdfc68e486a6c5fb97a6f710919bb6428ff79d7
+    sha256: 6b0c62f65a8c5696ffa712d69c6d55aeb8d1306dbe7dbd3d44fe8b8dbb832b79
   - path: terminal/components/flowdesk/PrintInspector.tsx
-    sha256: d85edad3f4fe5246a9a44c4af665b4303d3293217ac9adde567491715ee1435e
+    sha256: 9afd51d9d816790a5615d6680e57600c5278d60214ffcc6b61c1e3202540ab64
   - path: terminal/lib/flowPrintInspector.ts
-    sha256: 22cb5d4502919dfe695347ca33885160a12bc00cce035a6cd5955fbfb291caa3
+    sha256: 0a49d78882d4d84b195bd3d264029d0b8f2c842448d7fd6b758a898d6a7413b0
   - path: terminal/components/vol/VolComparePanel.tsx
-    sha256: 328fae04ab780530e2f7af18ce23dbb033e30885b197b42d8413ad39cba4e772
+    sha256: 5694464097d424943a5a3b3f4638a14256939ed2ab46c4fc6565931a09a0d57d
   - path: terminal/components/vol/volStrings.ts
-    sha256: 23f9b84cd166fd28155eee15122ff0774744e445208a6345bdaabe270c9a33ff
+    sha256: 108cc342397d9aa47337271be1c8ecd8db60cf8943e9e7ab32fa1c884db7e84d
   - path: terminal/lib/volTenorComparison.ts
     sha256: ba5e924630df32cf91c5e8c64880e91a2e5e4a241f19a0451f514283c180c3ac
   - path: terminal/components/ChartPanel.tsx
@@ -39,7 +32,7 @@ layoutFiles:
   - path: terminal/components/eodcontext/eodStrings.ts
     sha256: 4395f953dcc0f4beca53422786393ee792f297211a0eef655c64762f2b34f99f
   - path: terminal/components/vol/VolView.tsx
-    sha256: 167729cef3c6a64d419355e49c15f9d4ede068fd2a9dbe74f31d6c202d6ff9e3
+    sha256: 2f0d396f8163b628a5e241e3ec74b19271bef08474c3df11709ea81f57dd4fbe
   - path: terminal/lib/eodContext.ts
     sha256: 1d0ce3ccde7a2fa05948cc0ac2ee93d16ec06724a7edcbd8c95c61e39d98b9e7
   - path: terminal/lib/i18n.tsx
@@ -48,58 +41,52 @@ layoutFiles:
     sha256: 4098ca48d107fd2cf2bd40ce96fca87d51757f3e2578e7ea8f8301d1d8e6d7fc
   - path: terminal/lib/optionsLevelsStrings.ts
     sha256: 262fbc50b98e70599540cd8567d752b9a8cd2b3e59224142a4700ec9a73a4492
-  - path: terminal/e2e/fixtures/options-r1-w3a-flow.json
-    sha256: bc1f5d0ebfaa2f39fe4b542f25e5b2df84c37738b6da124c380e014d565b9f1f
-  - path: terminal/e2e/fixtures/options-r1-w3b-vol.json
-    sha256: 53ac40edf1aa282e4d0519726eae6968fec476e7627bac6e2d6e360d94910c6b
-  - path: terminal/e2e/fixtures/options-r1-w3-moves.json
-    sha256: 490befcff35facd8f73b867503e9a1320f71c024a49854a0b2dc17e6319d001e
 crops:
   - file: flow-desk-inspector-1440.png
     viewport: 1440x912
     lang: en
     state: flow-desk-inspector
-    sha256: 845ac3696217995c828f5652befce6886b00a399a7f8de90f7969de663dfca6f
+    sha256: ab1345f4a22fcecc29594cf6dd8b92083ca26d57c633c57186804fef87f3219e
   - file: flow-desk-inspector-print-end-1440.png
     viewport: 1440x912
     lang: en
     state: flow-desk-inspector-print-end
-    sha256: da8684ecf283896e6608dc94dc76bf250ac8bde3dde550444557ad70413672be
+    sha256: a0227ea89a1f56975307fc11478a2d464800fa84f5062cb9f9099f45f2e43dc6
   - file: flow-desk-inspector-820.png
     viewport: 820x2179
     lang: en
     state: flow-desk-inspector
-    sha256: 89739f497280955d8663101f71a0b0e0b0349be781205f828306ae071feb2520
+    sha256: 6741adcbeaf20c31a2373e1f711872ad699d870df384eba5989f0c862151fcf5
   - file: flow-desk-inspector-print-end-820.png
     viewport: 820x2179
     lang: en
     state: flow-desk-inspector-print-end
-    sha256: 03fe1fcd43e32cf2855a747b324999efdb49425acc1202fa7e39d356cf86bf65
+    sha256: a2df266c84dd30102340e656d8de4c8a476dc9ee09b1522db786f00d333b5853
   - file: flow-desk-inspector-390.png
-    viewport: 390x2924
+    viewport: 390x2906
     lang: en
     state: flow-desk-inspector
-    sha256: dfd498b4f6c53a6e396d990eea314ca8a5b5137e5b565a3a93879ab2282fb7d4
+    sha256: b6db69b1a52eca842f4d8425e58f79c103c7aad6eb0f3ddcf73dfc9ce1942e75
   - file: flow-desk-inspector-print-end-390.png
-    viewport: 390x2924
+    viewport: 390x2906
     lang: en
     state: flow-desk-inspector-print-end
-    sha256: 79ab07f9654fd120ce2e18f747fe014627cd7882ca4181dac46fe8b3fab098d1
+    sha256: bbb3997e1ed7a7c7d10a36e1c0d81c9b0ce14adf5341cdc9832a6ef5cb387a73
   - file: vol-compare-band-1440.png
     viewport: 1440x2783
     lang: en
     state: vol-compare-band
-    sha256: 39753533c63abb343d6774df2a1f50b03214d7bdeb7638d9bd40429477672d5b
+    sha256: 12ac7db2db88a4a36ab4ab873a253ec4acfc9d8d8e5a6b0f8b77552824e762a0
   - file: vol-compare-band-820.png
     viewport: 820x3190
     lang: en
     state: vol-compare-band
-    sha256: f1c7d1108a1a8c07e7669a2af04a53288cf63a65260861e1dd1faa61121808fb
+    sha256: 08fd3ef5f4d448f4be3fc7d676c7c86a49694e3b4f54be44efce65141fcd0166
   - file: vol-compare-band-390.png
-    viewport: 390x3791
+    viewport: 390x3775
     lang: en
     state: vol-compare-band
-    sha256: 8f055aa3e31918dceffd7a2a771c40967ac6b492e604c1712920af525e35e393
+    sha256: 9963cbeb0b689b97bc0d84f00027ab42ea27195b090ab6366564c2c9303797bc
   - file: eod-expmove-method-1440.png
     viewport: 1440x900
     lang: en
@@ -119,47 +106,47 @@ crops:
     viewport: 1440x912
     lang: zh
     state: flow-desk-inspector
-    sha256: 1bdd06b550618eff631d2fa6eb2fec29da3a48462a831206506e4ecf02037efd
+    sha256: 89c00d0005ecb4cf4be8ccba5cbd28420ad9cd34c7bfee97e10ec3eb6fdf746b
   - file: flow-desk-inspector-print-end-1440-zh.png
     viewport: 1440x912
     lang: zh
     state: flow-desk-inspector-print-end
-    sha256: 349279c7447f6591f90c6c3688767503ab23750b78154ebfd4911a0c4345ade1
+    sha256: 6e3c84011cc1a492b6950f1dcb0218826771da88836513ad2bc4e8756ad1503c
   - file: flow-desk-inspector-820-zh.png
     viewport: 820x2161
     lang: zh
     state: flow-desk-inspector
-    sha256: cfb67a3a137f34feede5d30ec65b8b57703b68189fb421d7bd6a00fd83781f6e
+    sha256: 4c31e7c0c6d0c3760a5aeedd4f4f9bdc9f95817c8e3f03c56766bfe540eed636
   - file: flow-desk-inspector-print-end-820-zh.png
     viewport: 820x2161
     lang: zh
     state: flow-desk-inspector-print-end
-    sha256: 450239b74b107bee7ab5b42a1e05337881f27fae0e83acb2885d991ddc874a76
+    sha256: 13af1ee0effe1d1827b7a939867c8a9585013dd169186bc33f0232dab91d9dd2
   - file: flow-desk-inspector-390-zh.png
     viewport: 390x2838
     lang: zh
     state: flow-desk-inspector
-    sha256: 617fa1b65f86f4e22729dff3dd27dba37893faad3a5c57f31abc90a760379e61
+    sha256: b309b305e5867de180b216fb2308304dddcba22efe7428f3fb6eb5f54d70983c
   - file: flow-desk-inspector-print-end-390-zh.png
     viewport: 390x2838
     lang: zh
     state: flow-desk-inspector-print-end
-    sha256: d004e336b75956f06e3070cd79ec345fc9100de2f55840b055769aeb61845819
+    sha256: 0e9e7bf3fff3f6fab972bc297e6b546777019c6eaaa22791aa940e395bc97ba3
   - file: vol-compare-band-1440-zh.png
     viewport: 1440x2730
     lang: zh
     state: vol-compare-band
-    sha256: b717c051028940a5e2f0e19bc77d66c67cc20fa451536b140d209bb8324d4026
+    sha256: 1eabb57e45bc5078bc4d61b55acf8f14ae8b36370fd6e1e113133545f434d18b
   - file: vol-compare-band-820-zh.png
     viewport: 820x3108
     lang: zh
     state: vol-compare-band
-    sha256: 4f4bdd169f3b8d5d2e50cb3a2f228b5f43bd16cfa7e6eebf728f7fb20978c561
+    sha256: 1daa2bec24a772381068896cfa13e624d69272904838310d99e51ab928d92d1d
   - file: vol-compare-band-390-zh.png
-    viewport: 390x3667
+    viewport: 390x3651
     lang: zh
     state: vol-compare-band
-    sha256: 1b9b3ec4ba25782577f56ccf64a3229255f8e1eb0b6ab94d75167eb089ff3d48
+    sha256: 2357dd3ca5c1baa8db8e9521941384a2fc79b56e34f41564207e6d5e52ad84a2
   - file: eod-expmove-method-1440-zh.png
     viewport: 1440x900
     lang: zh
