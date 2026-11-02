@@ -311,7 +311,7 @@ describe("editorial views in the mounted Terminal", () => {
     const marks = localStorage.getItem(NEWS_REVIEW_KEY);
     expect(marks).toBeTruthy();
     await select("company");
-    expect(host.textContent).toContain("Company-name coverage is limited");
+    expect(host.textContent).not.toContain("Company-name coverage is limited");
     expect(host.textContent).toContain("No matching company mentions");
     expect(host.querySelector("select[data-news-view-select]")).not.toBeNull();
     await select("all");
@@ -346,7 +346,7 @@ it.each(["view", "ticker"] as const)("requires a fresh acknowledgement when retu
   vi.stubGlobal("fetch", fetcher);
   await mount();
   expect(host.querySelector("[data-news-headline]")).not.toBeNull();
-  expect(host.querySelector('[data-flow-state]')).not.toBeNull();
+  expect(host.querySelector('[data-flow-state]')).toBeNull();
   const oldStream = Events.instances[0];
   if (transition === "view") {
     await select("company");
