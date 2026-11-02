@@ -1,3 +1,4 @@
+# Current scoped qualification: analysisPlanReopenComposition20261102; all earlier results remain historical.
 # Current scoped qualification: iw2LabNavigationComposition20261030; prior identities remain historical.
 # Current scoped qualification: iw2PlanMaster729Recapture20261029; earlier sections remain historical.
 # Current scoped source: composedDocumentLanguageProductionJoin20261024; parent records retain their original identities.
@@ -31,7 +32,7 @@ layoutFiles:
   terminal/lib/indicator-canvas/host.ts: "4f2949efb22b8c378cab1ff9d176466c4857073c14a36ee4f0eeab4ec1015a25"
   terminal/e2e/visual-intelligence.spec.ts: "ecedd0a313b0c46256978696768380a67c30b32097b5f4d2ce829acffeaef633"
   terminal/lib/chart-engine/lwc/index.ts: "b82beb4c9f266c525cb3296ece617e65b601aa6a5239235a87dcc7c8c811ada2"
-  terminal/components/TerminalShell.tsx: "7cdc6f96d3a18162382bbef936567610d60b156a6314fc93e89fda7a38528432"
+  terminal/components/TerminalShell.tsx: "16a1efcbfea184100c9835bf485edf8d5d154c8820c8eca2419a69d6df4509ef"
   terminal/components/ChartPane.tsx: "987d36ca27383e1eab71419f05fc41210e9c1806fd099aa516417b0875bd10c1"
   terminal/components/ChartContextDock.ts: "4029c8c4552fcdcd7973cb57fff0805ea1b068280a3d34db773e6bed27c51ec9"
   terminal/components/ChartContextPlacement.module.css: "62b9c6887f7ce9bd6db81f8339408ed671722d6dee3c713990d3fc8b164e36c0"
@@ -65,13 +66,14 @@ layoutFiles:
   terminal/lib/i18n.tsx: "a907bc3d1b49cf700c9b81a2c21fdadc653c2bb1baeaa13374c782e063b2a718"
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
   terminal/lib/flowActivity.ts: "eb1433e57c7b63a52978aa4e63419e62b3e1a0e0210869f93838a8b7529ce332"
+  terminal/components/ChartPositionEntry.tsx: "e8be598623acd0f5af8f574c87eab824c76dcc56a40ada78807b9785c9c08b4c"
 cropFiles:
-  desktop-context.png: "b0835967189dd5337a2a5e8f1968e717157afdcee305c4a14843a3b0478098db"
-  desktop-context-zh.png: "725aceb5f1ef8daa76194f69de3c2fd4577da0cd6658a72ab8bbb85697c62d42"
+  desktop-context.png: "d7414074f262445bd16eef1fbefff532857bb484e0d0a4dc60948c8432cacc2c"
+  desktop-context-zh.png: "37c7adcc0af08d53af3f50c2711bb28d39e967a43dce9fc9bcf23fa68df74b7a"
   mobile-context.png: "d785ce44fc2894ed800a47451196e36b0cf9f1a89b5592541ca2c6a90cb45509"
   mobile-context-zh.png: "2b14740fb99536970eabf74315e9df2bbb663aa0f7c9ee3ae8c5c272bd047025"
-  tablet-context.png: "e9429678ac8781c3d4f801a5b279f005f7f242a0691401305733bc90050018db"
-  tablet-context-zh.png: "3fa9a3f7a4f2d7b78687445d50ce3929c18eec646d7682393545b0d6f6acf7fa"
+  tablet-context.png: "965167c8796eac6dc96960f150dbd12780d9ca9a568c5e971ed4569943d6fe05"
+  tablet-context-zh.png: "dcf0781016934d466fe3ece9d189f6411e84b69678933f1e93676505694dc39e"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -94,8 +96,8 @@ browserResults:
   visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases
 browserReportPath: browser-report.json
 browserReportHashes:
-  visualReport: "e1b9dcb76f09cb0ca87dc692f0840e3b0b7969b761fd2710fea3723bec227b73"
-  mobileCrosshairReport: "e1b9dcb76f09cb0ca87dc692f0840e3b0b7969b761fd2710fea3723bec227b73"
+  visualReport: "7f5921b774225642062e6af8cbe41137e935b8eefd724c224a63bb4722c06390"
+  mobileCrosshairReport: "7f5921b774225642062e6af8cbe41137e935b8eefd724c224a63bb4722c06390"
 drawingDockRecapture:
   sourceHead: 8a3135bc6eaa307f3d581223e70471df8de49d95
   reason: DrawingSidebar.tsx and TerminalShell.tsx changed so the drawing dock's group button follows the tool the shell actually armed
@@ -389,7 +391,7 @@ captureHarnessFiles:
   terminal/e2e/overnight-refresh.spec.ts: "4aaccc8d8d4fc790bd7807d5ebf21a81c7a0a028a9586202990b046e6bb31f6c"
   terminal/e2e/phoneChrome.ts: "f42cdf73cd1fd604fe77bcfba0d21a598ac8bf814b955b9116f71f391e216657"
   terminal/e2e/terminal-chrome-responsive.spec.ts: "7182c4e8fa9f4dd1733fb93c3c3397b4c5841cab6e44a6a2f91e95c932e9afea"
-  terminal/e2e/tools/capture_pl6_batch1.cjs: "0001b8ad51bf44d5b83b2c2b38c207c505f9d6d722f3528b556d1127ce8419c1"
+  terminal/e2e/tools/capture_pl6_batch1.cjs: "113ef1b85b9f2f75b8bcba75b4fe252bf4eee5a483448e0f593ba71873ef61c4"
   terminal/e2e/visual-intelligence.spec.ts: "ecedd0a313b0c46256978696768380a67c30b32097b5f4d2ce829acffeaef633"
 priorPublished18d6e6eLocalGates:
   retainedFromHead: 18d6e6e6484c2a7161eb35124d4a7ff99d72fd3e
@@ -698,3 +700,16 @@ protectedEvidencePredecessor20261102:
 compositionEvidencePending20261102:
   acceptedPredecessor: 00cf938d40505a790a40834e01d044868f6c3bda
   qualification: Selected legacy placeholders retained until real capture of the completed composition; current source equality not claimed.
+
+analysisPlanReopenComposition20261102:
+  sourceHead: 3292ebeafa9b1d01524ab5ec964eb20f5260f520
+  browserExecution: Actual visual-intelligence.spec.ts EN/ZH desktop/tablet/mobile; 30 PASS, no failures, skips, retries or flaky cases
+  startedAt: 2026-11-02T22:15:19.130593+00:00
+  completedAt: 2026-11-02T22:19:58.212783+00:00
+  command: "NODE_OPTIONS=--no-experimental-webstorage TERMINAL_E2E_PORT=37188 PLAYWRIGHT_JSON_OUTPUT_NAME=docs/pr-crops/terminal-visual-intelligence/browser-report.json npm run test:e2e:responsive -- e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --reporter=list,json"
+  pixelReview: 4 changed desktop/tablet images individually viewed; 2 byte-identical accepted mobile reviews reused
+  scope: Controlled local fixtures only; no SQL, provider, installed or authenticated customer acceptance
+  harnessScope: Source identities only; no claim that unrelated harness cases listed above were rerun
+  predecessorManifests:
+    iw2: "git:00cf938d40505a790a40834e01d044868f6c3bda:terminal/docs/pr-crops/terminal-visual-intelligence/EVIDENCE.yml (blob f03adda0730936dfc754b80a3e009ba7c187e95a); historical only"
+    protected: "git:ed2e633852564dcd604afc26eb03eeed54954dee:terminal/docs/pr-crops/terminal-visual-intelligence/EVIDENCE.yml (blob 156cd59220dbcf93d13662eb999ffd0247e08275); historical only"
