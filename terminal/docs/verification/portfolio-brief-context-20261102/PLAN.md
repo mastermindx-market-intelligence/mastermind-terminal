@@ -3,7 +3,7 @@
 Owner: Sol / WS:MARKET-OS. Date: 2026-11-02.
 Application base: ff7d28228aa13e9ee9dc6248bba685c678f1edcc.
 Branch: sol/web-portfolio-brief-context-20261102.
-Status: ACCEPTED DESIGN; implementation commission follows the concrete Macro10551 producer contract. Draft/unarmed until independent review, custody, CI and Sol release.
+Status: ACCEPTED DESIGN against the concrete Macro10551 candidate below; implementation may proceed while independent producer review runs. Draft/unarmed until qualified producer compatibility, independent consumer review, custody, CI and Sol release.
 
 ## Outcome and dependencies
 
@@ -12,6 +12,28 @@ A brief may render its facts only for the authenticated owner and canonical port
 Terminal1214 (cache removal) merged as38031c9ee4f71d59fad5e04d45d0c963fdb70a34. Its source writer is accepted and stopped; do not restore the token cache. Terminal1212 (chart owner guard) merged asff7d28228aa13e9ee9dc6248bba685c678f1edcc. Preserve both. Macro10551 supplies a same-read raw snapshot witness; bind to its exact independently reviewed final contract, not a guessed wire shape.
 
 The event repair in Terminal1213 owns EventImpactPanel and its tests. Do not edit those paths. Foreign Terminal866 owns pending money/currency UI work; preserve its unresolved hunks and custody. Its old timestamp is not abandonment.
+
+## Concrete candidate wire and count domains
+
+Implementation reference: Macro10551 immutable head68adf1cf47af278efc09fa0692d4066d2182f697, treed1c28ff10d252777260c6b7669fe6d3dd7aa4c50. Read docs/verification/portfolio-brief-snapshot-20261102/WIRE_SCHEMA.md (blobed68c48af609433e775c2c15839836f495789721), actual producer code and shared tests/fixtures/portfolio_brief_context/projection_cases.json (blobe1b5702357256ceaf0b53631379b18c98bf9c1cf). This is interface admission only; the producer source is unaccepted, independent review and a known hosted-CI test-wiring repair remain required. Do not inherit a Python imitation as a canonical oracle. The consumer's actual unchanged Node normalizer/key and strict compatibility gate govern acceptance; report fixture/projection disagreements without bending that owner.
+
+The witness fields are schema, owner_id, population, raw rows, selected_position_ids, composer_input_source, composer_inputs and completeness. For this v1 contract require max_rows === 1000, positions_reads === 1, complete === true, source === portfolio_positions, watchlist === null for positions, and consistent finite integer count/range metadata. Empty ranges use null endpoints. Enforce both this explicit producer cap and imported Terminal MAX_POSITIONS2000. More than1000 raw rows is unsupported/unavailable in this version even when Terminal can display the larger book; never accept a truncated page or stitch pages. Declarative fields alone do not prove the producer's behavior; independently accepted producer source remains a release gate.
+
+owner_id must equal the existing server-verified authenticated UUID exactly. An email fallback never qualifies and must not be resolved, rewritten or stamped with that UUID. The producer document's synthetic u-example is a negative consumer fixture; positive fixtures use a valid matching synthetic UUID.
+
+Keep these count domains separate:
+
+| Domain | Meaning |
+| --- | --- |
+| exact_count / returned_count / rows.length / nonempty range length | All raw captured database rows, open and closed, before normalization |
+| open_count | Raw rows classified open by the existing canonical status rule |
+| selected_count / selected-ID count / composer-input count | Selected open position records or lots |
+| brief.book.n / brief.population.n | Unique normalized ticker names used by the composer |
+| Portfolio caller population.count / open.length | Canonical open position records shown on the page |
+
+Validate selected-ID membership and the complete expected composer-input projection with multiplicity. Do not reduce lots to a ticker set or assume index correspondence without establishing that contract from source/fixtures. Validate witness population, composer_input_source and the brief's own population together. Preserve raw currency/receipt fields for unchanged Node normalization even though composer_inputs contains only ticker, shares and entry_price.
+
+For the bound Portfolio renderer, current-book qualification comes from verified owner, canonical book key, explicit population and actual committed request scope. A position-count versus unique-name-count difference is not evidence of a different book. Retire the legacy size-only mismatch heuristic in this strict path; it may remain for callers that did not opt in. Keep displayed position count truthful. If both counts appear, label positions versus names, or keep a compact source disclosure that does not imply numerical equality. A watchlist_union response never enters qualified positions facts.
 
 ## Server boundary
 
@@ -68,7 +90,8 @@ Keep portfolio.ts, portfolioSnapshot.server.ts, portfolio routes/mutations, Even
 5. Ordinary proxy/Today behavior, 401/403/503, abort, rate limit, caller Authorization rejection, no-store and raw-witness stripping remain correct. Prove 401/403 remain observable for the current owner when a canonical key is absent, and late previous-owner status cannot paint. Malformed upstream text and thrown errors containing sentinel private witness fields must yield fixed safe unavailable bodies without leaking the sentinel.
 6. Initial checking versus failed-read unavailable; deliberate retry after read failure and same-owner mismatch must use the existing canonical reload before bound qualification. A pending/failed binding never selects legacy mode. Verify raw completeness before row filtering and strong committed-scope ABA rejection.
 7. Actual EN/ZH browser edit path at desktop/tablet/mobile with checking/unavailable/current states and existing light/dark coverage appropriate to this bounded change. Use the product's synthetic fixture route and real canonical reread; label served brief payload fixtures. No production account mutation or reuse of the consumed QA grant.
-8. Relevant focused suites, lint/typecheck, required hosted CI. Do not repeat unrelated giant suites without a concrete gate. Preserve evidence with exact source and hashes.
+8. Multiple position IDs sharing a ticker must qualify the same exact book with truthful positions-versus-names disclosure. Duplicate/missing composer inputs must fail even if a ticker set matches. Nonmatching email owner, unsupported cap and1001-row captures refuse without a legacy fallback.
+9. Relevant focused suites, lint/typecheck, required hosted CI. Do not repeat unrelated giant suites without a concrete gate. Preserve evidence with exact source and hashes.
 
 ## Release
 
