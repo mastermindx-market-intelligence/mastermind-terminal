@@ -238,6 +238,7 @@ const COPY = {
   observed: ["Observed", "观测"],
   oiAsOf: ["OI as of", "持仓量截至"],
   published: ["published", "发布"],
+  sourceAvailable: ["source available", "来源可用"],
   deltaExtension: ["EXT", "扩展"],
   deltaExtensionNote: ["Compatible per-cell Delta extension; the parent Gamma book is unchanged.", "兼容的逐单元 Delta 扩展；父级 Gamma 账簿保持不变。"],
   metricLocked: ["Not admitted for this book", "此账簿未开放该指标"],

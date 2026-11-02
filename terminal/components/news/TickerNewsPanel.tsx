@@ -9,6 +9,7 @@ import {
   NewsMarkReviewed,
   NewsReviewChange,
   NewsReviewTag,
+  NewsSavedBasis,
 } from "@/components/news/NewsCatchup";
 import NewsFlowStrip from "@/components/news/NewsFlowStrip";
 import NewsLiveDot from "@/components/news/NewsLiveDot";
@@ -113,6 +114,12 @@ function LadderSteps({ row, lang }: { row: TickerNewsStoryRow; lang: Lang }) {
   );
 }
 
+// R3 P2 (rev3 item 4): the open evidence group's DOM id, named by the ladder button's
+// aria-controls. story_id is engine text, so anything outside [A-Za-z0-9_-] is folded to _.
+function evidenceDomId(storyId: string): string {
+  return `news-evidence-${storyId.replace(/[^A-Za-z0-9_-]/g, "_")}`;
+}
+
 export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: string; lang: Lang; userId?: string }) {
   const copy = COPY[lang];
   const [view, setView] = useState<TickerNewsViewMode>("news");
@@ -129,7 +136,8 @@ export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: stri
   const curated = snapshot?.editorial_policy === "ticker_news.curated.v1";
   // Only rows of a successful load are presented, so only they can ever be marked reviewed.
   const presented = loadState === "ready" && snapshot ? snapshot.rows : NO_ROWS;
-  const catchup = useNewsCatchup({ userId, ticker: snapshot?.ticker ?? symbol, presented });
+  // Journey 6: the snapshot's rights receipt rides along so marks capture it as seen.
+  const catchup = useNewsCatchup({ userId, ticker: snapshot?.ticker ?? symbol, presented, rights: snapshot?.rights_basis ?? null });
 
   // Wave B3: the news-flow strip rides on page one of a ready snapshot only. It is
   // hidden for a null flow (old API, cursor page), no_accessible_sources, an empty
@@ -338,12 +346,14 @@ export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: stri
               )}
               {row.teaser && <p className={styles.teaser}>{row.teaser}</p>}
               <NewsReviewChange cls={review} lang={lang} />
+              <NewsSavedBasis drift={catchup.drift(row.story_id)} lang={lang} onOpenCurrent={() => void toggleStory(row)} />
               {row.item_count > 1 ? (
                 <button
                   type="button"
                   className={styles.ladder}
                   data-news-ladder
                   aria-expanded={!!detail}
+                  aria-controls={detail ? evidenceDomId(row.story_id) : undefined}
                   aria-label={newsLadderText(detail ? "ladder.close" : "ladder.open", lang)}
                   onClick={() => void toggleStory(row)}
                   disabled={activeDetailBusy?.storyId === row.story_id}
@@ -356,12 +366,12 @@ export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: stri
                 </span>
               )}
               {detail && (
-                <div className={styles.evidence} role="group" aria-label={copy.reports(detail.item_count)}>
+                <div id={evidenceDomId(row.story_id)} className={styles.evidence} role="group" aria-label={copy.reports(detail.item_count)}>
                   <p className={styles.clocks}>
-                    {clocks.map((clock, index) => (
+                    {clocks.map((clock) => (
                       <Fragment key={clock.key}>
-                        {index > 0 && <span aria-hidden="true">·</span>}
-                        <span>{newsLadderText(clock.key, lang)} {formatRailTime(clock.at, lang)}</span>
+                        <span className={styles.clockLabel}>{newsLadderText(clock.key, lang)}</span>
+                        <span className={styles.clockValue}>{formatRailTime(clock.at, lang)}</span>
                       </Fragment>
                     ))}
                   </p>

@@ -133,7 +133,8 @@ export function parseAnnotation(value: unknown): { event_type: string | null } |
   const obj = asRecord(value, "row_annotation");
   const raw = obj.event_type;
   if (raw === null || raw === undefined) return { event_type: null };
-  if (typeof raw === "string" && raw.length > 0 && raw.length <= 64) return { event_type: raw };
+  // R3 P2 (rev3 item 2): the same trim / empty / NUL / length rejection as parsePublisher.
+  if (typeof raw === "string") return { event_type: asText(raw, "row_annotation", 64) };
   throw new TickerNewsContractError("row_annotation");
 }
 

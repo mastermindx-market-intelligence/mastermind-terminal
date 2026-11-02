@@ -299,6 +299,10 @@ function PinnedResearchSharingOwner({ t, lang, identity }: Pick<SectionProps, "t
             && (body as { manifest?: unknown }).manifest !== null
             && typeof (body as { manifest?: unknown }).manifest === "object"
             ? ((body as { manifest: Record<string, unknown> }).manifest) : null;
+        if (!manifest) {
+          setScenario("failed");
+          return;
+        }
         const capture = manifest && manifest.scenario_capture !== undefined && manifest.scenario_capture !== null
           ? parseScenarioCapture(manifest.scenario_capture)
           : null;

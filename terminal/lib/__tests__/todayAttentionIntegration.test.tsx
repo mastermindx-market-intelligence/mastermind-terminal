@@ -33,11 +33,61 @@ describe("Today real attention composition",()=>{
   expect(container.textContent).toContain("View the curve");expect(container.textContent).toContain("Liquidity is mixed");
   expect(held.some(request=>request.url.includes("/research/read/")||request.url.includes("/investigations/"))).toBe(false);
  });
- it("starts independent source, catalog and owned-list reads without quota-metered background report reads",async()=>{
-  await mount();expect(held.map(request=>request.url).sort()).toEqual(["/api/shared-shell/research/catalog","/api/shared-shell/today","/api/watchlist"].sort());
+ it("starts independent source, catalog, owned-list and book-brief reads without quota-metered background report reads",async()=>{
+  await mount();expect(held.map(request=>request.url).sort()).toEqual(["/api/portfolio-brief","/api/shared-shell/research/catalog","/api/shared-shell/today","/api/watchlist"].sort());
+  // "Since your last visit" reads the book brief at mount; its per-request diff (POST /api/portfolio-changes) is sent only after the brief answers, never speculatively.
+  expect(held.some(request=>request.url==="/api/portfolio-changes")).toBe(false);
   await answer("/api/shared-shell/research/catalog",catalog);await answer("/api/watchlist",inventory);
   expect(container.textContent).toContain("PRIVATE REPORT");expect(container.textContent).toContain("PRIVATE WATCH");expect(held.some(request=>request.url.includes("/research/read/"))).toBe(false);
   await answer("/api/shared-shell/today",briefing);expect(container.textContent).toContain("Liquidity is mixed");expect(container.querySelectorAll("main")).toHaveLength(1);
+ });
+ it("withholds a live breadth reading once its live window closes while the tab stays open",async()=>{
+  vi.useFakeTimers({toFake:["setTimeout","clearTimeout","Date"]});
+  try{
+   const built=new Date(Date.now()-20*60_000).toISOString();
+   await mount();await answer("/api/shared-shell/today",briefing);await answer("/api/watchlist",inventory);
+   await answer("/api/market-breadth",{schema:"mmx.market_breadth.v1",asof:built,built_at:built,source_age_min:0,session:"rth",delay_min:15,usable:true,unusable_reason:null,coverage_pct:99.2,large:{n:503,adv_pct:44.31,pa200:60.37},comp:null});
+   expect(container.querySelector('[data-breadth="live"]')).toBeTruthy();
+   await act(async()=>{vi.advanceTimersByTime(4*60_000);});await flush();
+   expect(container.querySelector('[data-breadth="live"]')).toBeTruthy();
+   await act(async()=>{vi.advanceTimersByTime(2*60_000);});await flush();
+   const withheld=container.querySelector('[data-breadth="withheld"]');expect(withheld).toBeTruthy();
+   expect(withheld!.textContent).toContain("Live source is behind");expect(withheld!.textContent).not.toContain("%");
+   expect(container.querySelector('[data-breadth="live"]')).toBeNull();
+  }finally{vi.useRealTimers();}
+ });
+ it("re-checks a live breadth reading when the tab comes back after the machine slept",async()=>{
+  vi.useFakeTimers({toFake:["setTimeout","clearTimeout","Date"]});
+  try{
+   const built=new Date(Date.now()-20*60_000).toISOString();
+   await mount();await answer("/api/shared-shell/today",briefing);await answer("/api/watchlist",inventory);
+   await answer("/api/market-breadth",{schema:"mmx.market_breadth.v1",asof:built,built_at:built,source_age_min:0,session:"rth",delay_min:15,usable:true,unusable_reason:null,coverage_pct:99.2,large:{n:503,adv_pct:44.31,pa200:60.37},comp:null});
+   expect(container.querySelector('[data-breadth="live"]')).toBeTruthy();
+   vi.setSystemTime(Date.now()+60*60_000);
+   expect(container.querySelector('[data-breadth="live"]')).toBeTruthy();
+   await act(async()=>{document.dispatchEvent(new Event("visibilitychange"));});await flush();
+   const withheld=container.querySelector('[data-breadth="withheld"]');expect(withheld).toBeTruthy();
+   expect(withheld!.textContent).toContain("Live source is behind");expect(withheld!.textContent).not.toContain("%");
+  }finally{vi.useRealTimers();}
+ });
+ it("reads breadth only once the briefing renders, keeps it local on failure and treats its 401 as the session ending",async()=>{
+  const built=new Date(Date.now()-5*60_000).toISOString();
+  const breadth={schema:"mmx.market_breadth.v1",asof:built,built_at:built,source_age_min:0,session:"post",delay_min:15,usable:true,unusable_reason:null,coverage_pct:99.2,large:{n:503,adv_pct:44.31,pa200:60.37},comp:null};
+  await mount();expect(held.some(request=>request.url==="/api/market-breadth")).toBe(false);
+  await answer("/api/shared-shell/today",briefing);await answer("/api/watchlist",inventory);
+  const strip=container.querySelector('[aria-label="Source readings"]');expect(strip).toBeTruthy();expect(strip!.closest("details")).toBeNull();
+  await answer("/api/market-breadth",breadth);expect(strip!.textContent).toContain("S&P 500 breadth");expect(strip!.textContent).toContain("44% advancing");expect(strip!.textContent).toContain("60% above 200-day");
+  expect(container.querySelector('[data-breadth="live"]')?.closest("a")).toBeNull();
+  await act(async()=>root.unmount());root=createRoot(container);held=[];
+  await mount();await answer("/api/shared-shell/today",briefing);await answer("/api/watchlist",inventory);await answer("/api/market-breadth",{error:"breadth_unavailable"},503);
+  expect(container.textContent).toContain("Breadth reading unavailable");expect(container.textContent).not.toContain("advancing");expect(container.textContent).toContain("PRIVATE WATCH");expect(container.textContent).not.toContain("Private readings have been cleared");
+  // An answer that has aged past the live window by the time it renders is withheld, numbers and all.
+  await act(async()=>root.unmount());root=createRoot(container);held=[];
+  await mount();await answer("/api/shared-shell/today",briefing);await answer("/api/watchlist",inventory);await answer("/api/market-breadth",{...breadth,asof:"2026-10-30T22:59:11Z",built_at:"2026-10-30T22:59:11Z"});
+  const withheld=container.querySelector('[data-breadth="withheld"]');expect(withheld).toBeTruthy();expect(withheld!.textContent).not.toContain("%");expect(withheld!.textContent).not.toContain("delayed");
+  await act(async()=>root.unmount());root=createRoot(container);held=[];
+  await mount();await answer("/api/shared-shell/today",briefing);await answer("/api/watchlist",inventory);await answer("/api/market-breadth",{error:"unauthenticated"},401);
+  expect(container.textContent).toContain("Private readings have been cleared");expect(container.textContent).not.toContain("PRIVATE WATCH");expect(container.textContent).not.toContain("Liquidity is mixed");
  });
  it("keeps useful research and saved-list actions available through an unavailable macro briefing",async()=>{
   await mount();await answer("/api/shared-shell/today",{error:"unavailable"},503);await answer("/api/shared-shell/research/catalog",catalog);await answer("/api/watchlist",inventory);
@@ -52,7 +102,7 @@ describe("Today real attention composition",()=>{
  it("requires a fresh identity and can close a second expired generation after explicit recovery",async()=>{
   await mount();await answer("/api/shared-shell/research/catalog",{error:"unauthorized"},401);expect(container.textContent).toContain("Private readings have been cleared");
   const recheck=Array.from(container.querySelectorAll("button")).find(button=>button.textContent==="Recheck selected context");expect(recheck).toBeTruthy();await act(async()=>recheck!.click());await flush();
-  expect(held).toHaveLength(6);await answer("/api/shared-shell/today",briefing);await answer("/api/watchlist",inventory);expect(container.textContent).toContain("PRIVATE WATCH");
+  expect(held).toHaveLength(8);await answer("/api/shared-shell/today",briefing);await answer("/api/watchlist",inventory);expect(container.textContent).toContain("PRIVATE WATCH");
   await answer("/api/shared-shell/research/catalog",{error:"unauthorized"},401);expect(container.textContent).toContain("Private readings have been cleared");expect(container.textContent).not.toContain("PRIVATE WATCH");expect(container.textContent).not.toContain("Liquidity is mixed");
  });
  it("local research403 does not erase another authoritative source or watchlist",async()=>{
