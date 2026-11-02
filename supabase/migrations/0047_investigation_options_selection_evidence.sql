@@ -1,4 +1,4 @@
--- Ledger row: 0047_investigation_options_selection_evidence / PR pending (packet OPT006-V3-SAVE-ADMISSION); unapplied at authoring
+-- Ledger row: 0047_investigation_options_selection_evidence / PR #1222 (packet OPT006-V3-SAVE-ADMISSION); unapplied at authoring
 -- Rollback: restore only valid_investigation_manifest_v2(jsonb) to the installed 0042 body (evidence owner allow-list terminal.options_exposure / exposure_chart_request, sector_origin, rotation_measurement); drop function public.investigation_evidence_admitted_v2(text,text)
 -- Requires: the 0042 validator body installed first (the guard below refuses otherwise). Until this file is applied, every save carrying object_type options_matrix_selection answers invalid_payload (0039 pattern).
 -- Apply this file explicitly, never the entire migration directory.
@@ -12,7 +12,7 @@
 
 do $$
 begin
-  if pg_catalog.position('valid_investigation_scenario_reference_v1', pg_catalog.pg_get_functiondef('public.valid_investigation_manifest_v2(jsonb)'::pg_catalog.regprocedure)) = 0 then
+  if position('valid_investigation_scenario_reference_v1' in pg_catalog.pg_get_functiondef('public.valid_investigation_manifest_v2(jsonb)'::pg_catalog.regprocedure)) = 0 then
     raise exception '0047 requires the 0042 valid_investigation_manifest_v2 body (marker valid_investigation_scenario_reference_v1 absent)';
   end if;
 end $$;

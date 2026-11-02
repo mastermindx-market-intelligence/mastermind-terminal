@@ -68,6 +68,7 @@ describe("0047 investigation options selection evidence admission contract", () 
     expect(head).toMatch(/^-- Ledger row:/m);
     expect(head).toMatch(/^-- Rollback:/m);
     expect(ledgerRowHeaderLine(sql)).toContain("OPT006-V3-SAVE-ADMISSION");
+    expect(ledgerRowHeaderLine(sql)).toContain("PR #1222 (packet OPT006-V3-SAVE-ADMISSION)");
   });
 
   it("replaces exactly two functions: the widened validator and the admission probe", () => {
@@ -87,8 +88,9 @@ describe("0047 investigation options selection evidence admission contract", () 
     expect(body).toMatch(/set search_path = ''/);
     const grants = body.match(/grant execute on function [^;]+;/gi) ?? [];
     expect(grants.length).toBe(1);
-    expect(grants[0].replace(/;\s*$/, "").toLowerCase().endsWith("to authenticated")).toBe(true);
-    expect(grants[0].toLowerCase()).not.toMatch(/,\s*(public|anon|service_role)/);
+    const grant = (grants[0] ?? "").toLowerCase();
+    expect(grant.replace(/;\s*$/, "").endsWith("to authenticated")).toBe(true);
+    expect(grant).not.toMatch(/,\s*(public|anon|service_role)/);
     expect(body).toContain("revoke all on function public.investigation_evidence_admitted_v2(text,text) from public, anon");
     // The probe reads no table: its whole body is one schema-qualified validator call over a
     // jsonb_build_object manifest — no `from`, and every called function is public. or pg_catalog.
@@ -134,8 +136,13 @@ describe("0047 investigation options selection evidence admission contract", () 
     expect(widened).toEqual(collapse(v47));
   });
 
-  it("guards on the 0042-only marker before touching anything", () => {
-    expect(liveBody(sql)).toMatch(/do \$\$[\s\S]*raise exception[\s\S]*valid_investigation_scenario_reference_v1[\s\S]*end \$\$/);
+  it("guards on the 0042-only marker before touching anything, with the marker as the substring", () => {
+    const body = liveBody(sql);
+    expect(body).toMatch(/do \$\$[\s\S]*raise exception[\s\S]*valid_investigation_scenario_reference_v1[\s\S]*end \$\$/);
+    // position(<substring> in <string>): the marker is the substring, the installed body is the string.
+    expect(body).toMatch(/position\('valid_investigation_scenario_reference_v1' in pg_catalog\.pg_get_functiondef\('public\.valid_investigation_manifest_v2\(jsonb\)'::pg_catalog\.regprocedure\)\) = 0/);
+    // The two-argument call form is string-first: marker-first returns 0 on every database (seat falsifier, PostgreSQL 17.11).
+    expect(body).not.toMatch(/pg_catalog\.position\(\s*'valid_investigation_scenario_reference_v1'\s*,/);
   });
 
   it("reserves the prefix in the ledger as taken, source only, unapplied", () => {
@@ -144,5 +151,7 @@ describe("0047 investigation options selection evidence admission contract", () 
     expect(row.file).toBe(FILE);
     expect(row.packet).toBe("OPT006-V3-SAVE-ADMISSION");
     expect(row.applied_in_production).toBe(false);
+    expect(row.pr).toBe(1222);
+    expect(row.pr_state).toBe("open");
   });
 });
