@@ -331,6 +331,7 @@ class FixtureQuery implements WatchlistQuery {
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
             band_pct: 5,
+            role_label: null,
           }
           : {}),
         ...row,

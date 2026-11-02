@@ -5,7 +5,7 @@ import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import SearchModal from "@/components/SearchModal";
 import { LangProvider } from "@/lib/i18n";
 vi.mock("@/components/onboarding/OnboardingProvider",()=>({useOnboarding:()=>({open:vi.fn()})}));
-vi.mock("@/lib/useMediaQuery",()=>({useIsPhone:()=>false}));
+vi.mock("@/lib/useMediaQuery",()=>({useIsPhone:()=>false,useIsMobile:()=>false}));
 vi.mock("@/lib/searchTrack",()=>({trackSearch:vi.fn()}));
 (globalThis as {IS_REACT_ACT_ENVIRONMENT?:boolean}).IS_REACT_ACT_ENVIRONMENT=true;
 const manifest={BABA:{name:"Alibaba",col:"#aaa",verdict:"SELL",mkt:"NYSE",sec:"Equities"},"9988.HK":{name:"Alibaba",col:"#aaa",verdict:"BUY",mkt:"HKEX",sec:"Equities"},TEST:{name:"Alibaba unknown venue",col:"#aaa",verdict:null,sec:"Equities"},"BTC-USD":{name:"Alibaba token",col:"#aaa",verdict:null,mkt:"Crypto",sec:"Crypto"},"EURUSD=X":{name:"Alibaba FX",col:"#aaa",verdict:null,mkt:"US",sec:"Forex"},UNKNOWN:{name:"Alibaba unknown asset",col:"#aaa",verdict:null},QQQ:{name:"Alibaba ETF",col:"#aaa",verdict:null,sec:"Equities"},SPY:{name:"Alibaba fund",col:"#aaa",verdict:null,mkt:"US",sec:"Funds"}};

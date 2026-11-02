@@ -1,0 +1,137 @@
+/* EX-03: use the incumbent glass, type and motion tokens. This scope owns only symbol dialogs. */
+.scope {
+  outline: none;
+}
+
+.panel {
+  outline: none;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(91dvh - 16px);
+  min-height: 0;
+  animation: appear var(--t-fast) var(--ease-out);
+}
+
+.panel > :not(:global(.sres)) {
+  flex-shrink: 0;
+}
+
+.panel :global(.sres) {
+  min-height: 0;
+  overscroll-behavior: contain;
+}
+
+.panel :global(.sh input) {
+  min-width: 0;
+}
+
+.header:global(.smodal-title-bar) {
+  gap: 16px;
+  padding: 10px 12px 10px 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.title:global(.smodal-title) {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  color: var(--text);
+  font: 650 var(--fs-body)/1.4 var(--font-ui);
+}
+
+.title svg {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: var(--brand-2);
+  stroke-width: 1.8;
+}
+
+.close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex: none;
+  min-width: 32px;
+  min-height: 32px;
+  padding: 0 8px;
+  border: 1px solid transparent;
+  border-radius: var(--r-md);
+  color: var(--text-2);
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease-out), color var(--t-fast) var(--ease-out), border-color var(--t-fast) var(--ease-out);
+}
+
+.close:hover {
+  background: var(--panel-2);
+  border-color: var(--line);
+  color: var(--text);
+}
+
+.close:focus-visible {
+  outline: 2px solid var(--brand-2);
+  outline-offset: 2px;
+}
+
+.close kbd {
+  font: 500 var(--fs-label)/1 var(--font-ui);
+}
+
+.close svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
+
+@media (pointer: coarse) {
+  .close {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .close kbd {
+    display: none;
+  }
+}
+
+@media (max-width: 860px) {
+  .panel:global(.smodal-hub) {
+    max-height: calc(100dvh - 24px);
+  }
+}
+
+@keyframes appear {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel { animation: none; }
+  .close { transition: none; }
+}
+
+/* The symbol and quote form one real control; the event planner remains a sibling action. */
+.mobileTrigger {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  height: 100%;
+  padding: 0;
+  color: inherit;
+  text-align: left;
+  border-radius: var(--r);
+  cursor: pointer;
+}
+
+.mobileTrigger:focus-visible {
+  outline: 2px solid var(--brand-2);
+  outline-offset: 2px;
+}

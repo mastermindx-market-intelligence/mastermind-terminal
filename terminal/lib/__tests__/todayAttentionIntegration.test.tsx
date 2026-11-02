@@ -33,8 +33,10 @@ describe("Today real attention composition",()=>{
   expect(container.textContent).toContain("View the curve");expect(container.textContent).toContain("Liquidity is mixed");
   expect(held.some(request=>request.url.includes("/research/read/")||request.url.includes("/investigations/"))).toBe(false);
  });
- it("starts independent source, catalog and owned-list reads without quota-metered background report reads",async()=>{
-  await mount();expect(held.map(request=>request.url).sort()).toEqual(["/api/shared-shell/research/catalog","/api/shared-shell/today","/api/watchlist"].sort());
+ it("starts independent source, catalog, owned-list and book-brief reads without quota-metered background report reads",async()=>{
+  await mount();expect(held.map(request=>request.url).sort()).toEqual(["/api/portfolio-brief","/api/shared-shell/research/catalog","/api/shared-shell/today","/api/watchlist"].sort());
+  // "Since your last visit" reads the book brief at mount; its per-request diff (POST /api/portfolio-changes) is sent only after the brief answers, never speculatively.
+  expect(held.some(request=>request.url==="/api/portfolio-changes")).toBe(false);
   await answer("/api/shared-shell/research/catalog",catalog);await answer("/api/watchlist",inventory);
   expect(container.textContent).toContain("PRIVATE REPORT");expect(container.textContent).toContain("PRIVATE WATCH");expect(held.some(request=>request.url.includes("/research/read/"))).toBe(false);
   await answer("/api/shared-shell/today",briefing);expect(container.textContent).toContain("Liquidity is mixed");expect(container.querySelectorAll("main")).toHaveLength(1);
@@ -52,7 +54,7 @@ describe("Today real attention composition",()=>{
  it("requires a fresh identity and can close a second expired generation after explicit recovery",async()=>{
   await mount();await answer("/api/shared-shell/research/catalog",{error:"unauthorized"},401);expect(container.textContent).toContain("Private readings have been cleared");
   const recheck=Array.from(container.querySelectorAll("button")).find(button=>button.textContent==="Recheck selected context");expect(recheck).toBeTruthy();await act(async()=>recheck!.click());await flush();
-  expect(held).toHaveLength(6);await answer("/api/shared-shell/today",briefing);await answer("/api/watchlist",inventory);expect(container.textContent).toContain("PRIVATE WATCH");
+  expect(held).toHaveLength(8);await answer("/api/shared-shell/today",briefing);await answer("/api/watchlist",inventory);expect(container.textContent).toContain("PRIVATE WATCH");
   await answer("/api/shared-shell/research/catalog",{error:"unauthorized"},401);expect(container.textContent).toContain("Private readings have been cleared");expect(container.textContent).not.toContain("PRIVATE WATCH");expect(container.textContent).not.toContain("Liquidity is mixed");
  });
  it("local research403 does not erase another authoritative source or watchlist",async()=>{

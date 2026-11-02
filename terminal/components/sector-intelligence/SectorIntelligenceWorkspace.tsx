@@ -6,15 +6,17 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { useLang } from "@/lib/i18n";
 import { useSectorT } from "@/lib/sectorIntelligenceLex";
 import { useShellIdentity } from "@/components/chrome/AppShell";
-import { SECTOR_FEEDS, SECTOR_VIEWS, DEFAULT_SECTOR_STATE, object, text, number, sectorRows,
+import { SECTOR_FEEDS, FINVIZ_FEEDS, SECTOR_VIEWS, DEFAULT_SECTOR_STATE, object, text, number, sectorRows,
   groupRows, themeRows, themeEntryReady, themeStaleLegs, sectorRotationHistory, sectorRotationEpisodes, sectorMeasuredRead, members, concentration, sortMembers, parseSectorState, writeSectorState,
   formatValue, type FeedMap, type FeedPayload, type FeedStatus,
   type SectorFeed, type SectorState, type SectorView, type Row } from "@/lib/sectorIntelligence";
 import SectorGroupBrowser from "./SectorGroupBrowser";
+import FinvizDiscovery from "./FinvizDiscovery";
 import SectorCentralDiscovery from "./SectorCentralDiscovery";
 import SectorRotationMap, { ROTATION_BENCHMARK } from "./SectorRotationMap";
 import styles from "./SectorIntelligenceWorkspace.module.css";
 import SectorCompanyComparison from "./SectorCompanyComparison";
+import SectorIntradayComparison, { useSectorPresentationClock } from "./SectorIntradayComparison";
 import { sectorOriginFromState, withExposureOrigin } from "@/lib/exposureOrigin";
 import { sectorRotationRelativeTrend } from "@/lib/rotationRelativeTrend";
 import { holdingsCoverageFor, sectorHoldingsCoverage } from "@/lib/sectorHoldingsCoverage";
@@ -31,9 +33,9 @@ const RETURN_KEYS: Record<OuterWorkspace, string> = {
   rotation: "siReturnToRotation", discover: "siReturnToDiscover", breadth: "siReturnToBreadth",
 };
 const FEED_KEYS: Record<SectorFeed, string> = {
-  sector: "siFeedSector", confluence: "siFeedConfluence", themes: "siFeedThemes",
+  sector: "siFeedSector", confluence: "siFeedConfluence", themes: "siFeedThemes", finviz: "siFeedFinviz",
   heatmap: "siFeedHeatmap", risk: "siFeedRisk", history: "siFeedHistory", events: "siFeedEvents",
-  relative_trend: "siFeedRelativeTrend", holdings: "siFeedHoldings",
+  relative_trend: "siFeedRelativeTrend", holdings: "siFeedHoldings", intraday: "siFeedIntraday",
 };
 const STATUS_KEYS: Record<FeedStatus, string> = {
   loading: "siStatusLoading", ready: "siStatusReady", access: "siStatusAccess", unavailable: "siStatusUnavailable",
@@ -63,8 +65,14 @@ function Metric({ label, value, foot }: { label: string; value: string; foot: st
 export default function SectorIntelligenceWorkspace() {
   const t = useSectorT(), { lang } = useLang(), identity = useShellIdentity();
   const [state, setState] = useState<SectorState>(DEFAULT_SECTOR_STATE);
-  const [received, setReceived] = useState<{ identity: typeof identity; revision: number; feeds: FeedMap }>({ identity, revision: 0, feeds: {} });
   const [revision, setRevision] = useState(0);
+  const activeFeeds = state.workspace === "discover" && state.sourceFamily === "finviz" ? FINVIZ_FEEDS : SECTOR_FEEDS;
+  // Each visit owns fresh responses, even if a user leaves and re-enters Finviz
+  // before the intervening customer feeds settle. Neither access refusal nor
+  // retained internal data contributes to the ordinary customer workspace.
+  const requestOwner = useMemo(() => ({ identity, revision, activeFeeds }), [identity, revision, activeFeeds]);
+  const [received, setReceived] = useState<{ owner: typeof requestOwner | null; feeds: FeedMap; receivedAt: number }>({ owner: null, feeds: {}, receivedAt: 0 });
+  const presentationNow = useSectorPresentationClock(received.owner === requestOwner ? received.receivedAt : 0);
   const [groupBrowserOpen, setGroupBrowserOpen] = useState(false);
   const [returnWorkspace, setReturnWorkspace] = useState<OuterWorkspace>("rotation");
   const [returnState, setReturnState] = useState<SectorState | null>(null);
@@ -85,9 +93,9 @@ export default function SectorIntelligenceWorkspace() {
       focus: returnFocus ? `return:${returnFocus}` : choiceFocus ? `choice:${choiceFocus}` : null,
     };
   }, []);
-  // A changed account hides the previous account's data in the render itself,
-  // before effects run. Nothing is persisted in browser storage or shared caches.
-  const feeds = received.identity === identity && received.revision === revision ? received.feeds : {};
+  // A changed account, refresh or source surface hides prior responses before
+  // effects run. Nothing is persisted in browser storage or shared caches.
+  const feeds = received.owner === requestOwner ? received.feeds : {};
   useEffect(() => {
     const sync = () => {
       const next = parseSectorState(new URLSearchParams(window.location.search));
@@ -115,7 +123,7 @@ export default function SectorIntelligenceWorkspace() {
   }, [state.workspace]);
   useEffect(() => {
     const controller = new AbortController(); let alive = true;
-    for (const source of SECTOR_FEEDS) {
+    for (const source of requestOwner.activeFeeds) {
       void (async () => {
         let payload: FeedPayload;
         try {
@@ -139,12 +147,12 @@ export default function SectorIntelligenceWorkspace() {
           if (controller.signal.aborted) return;
           payload = emptyFeed(source, "error");
         }
-        if (alive) setReceived(previous => ({ identity, revision,
-          feeds: { ...(previous.identity === identity && previous.revision === revision ? previous.feeds : {}), [source]: payload } }));
+        if (alive) setReceived(previous => ({ owner: requestOwner, receivedAt: Date.now(),
+          feeds: { ...(previous.owner === requestOwner ? previous.feeds : {}), [source]: payload } }));
       })();
     }
     return () => { alive = false; controller.abort(); };
-  }, [identity, revision]);
+  }, [requestOwner]);
 
   const sectors = useMemo(() => sectorRows(feeds.sector?.data), [feeds.sector]);
   const groups = useMemo(() => groupRows(feeds.confluence?.data), [feeds.confluence]);
@@ -182,8 +190,8 @@ export default function SectorIntelligenceWorkspace() {
   const rotation = object(sector.rotation), conviction = object(sector.conviction), entry = object(group.entry), regime = object(group.regime);
   const status = feeds.sector?.receipt.status || "loading";
   const hasSector = !!sector.id;
-  const completed = SECTOR_FEEDS.filter(k => feeds[k]).length;
-  const ready = SECTOR_FEEDS.filter(k => feeds[k]?.receipt.status === "ready").length;
+  const completed = activeFeeds.filter(k => feeds[k]).length;
+  const ready = activeFeeds.filter(k => feeds[k]?.receipt.status === "ready").length;
   const sectorSourceName = text(sector.name);
   const sectorName = text(lang === "zh" ? sector.name_zh : sector.name) || sectorSourceName || text(sector.ticker);
   const groupName = text(lang === "zh" ? group.label_zh : group.label) || text(group.label);
@@ -236,7 +244,7 @@ export default function SectorIntelligenceWorkspace() {
     <div><h3>{t("siStrength")}</h3><p>{t("siRS")} {rank(momentum.rs_21d_rank)} · {t("siRS63")} {rank(momentum.rs_rank)}</p><span>{momentum.above_200d === true ? t("siAbove200") : momentum.above_200d === false ? t("siBelow200") : t("siTrendUnknown")}</span></div>
     <div><h3>{t("siFormation")}</h3><p>{t("siSlow")}: {stateLabel(conviction.label_en)} · {stateLabel(cycle.phaseLabel)}</p><span>{t("siFast")}: {stateLabel(rotation.state)}</span></div>
     <div><h3>{t("siEntry")}</h3><p>{t("siNotConnected")}</p><span>{t("siEntryCopy")}</span></div>
-    <div><h3>{t("siEvidence")}</h3><p>{ready} / {SECTOR_FEEDS.length} {t("siSourceCount")}</p><span>{t("siSourceRecordCopy")}</span></div>
+    <div><h3>{t("siEvidence")}</h3><p>{ready} / {activeFeeds.length} {t("siSourceCount")}</p><span>{t("siSourceRecordCopy")}</span></div>
   </div>;
   const pocket = <Card title={groupName || t("siPocket")} subtitle={t("siPocket")}>
     {!!group.key ? <><div className={styles.split}>
@@ -271,7 +279,7 @@ export default function SectorIntelligenceWorkspace() {
             : t(state.workspace === "rotation" ? "siRotation" : state.workspace === "breadth" ? "siMarketBreadth" : "siDiscoverSectors")}</p></div>
           <button type="button" className={styles.button} onClick={closeSources}>{t("siCloseSources")}</button></header>
         <div className={styles.sectionHeading}><h2>{t("siSourceRecord")}</h2><p>{t("siSourceRecordCopy")}</p></div><div className={styles.sourceGrid}>
-          {SECTOR_FEEDS.map(source => { const receipt = feeds[source]?.receipt; return <Card key={source} title={t(FEED_KEYS[source])} action={<span className={styles.badge}>{t(STATUS_KEYS[receipt?.status || "loading"])}</span>}>
+          {activeFeeds.map(source => { const receipt = feeds[source]?.receipt; return <Card key={source} title={t(FEED_KEYS[source])} action={<span className={styles.badge}>{t(STATUS_KEYS[receipt?.status || "loading"])}</span>}>
             <dl className={styles.pairs}><div><dt>{t("siSnapshotDate")}</dt><dd>{receipt?.asOf || t("siUnknownDate")}</dd></div><div><dt>{t("siFetched")}</dt><dd>{receipt?.observedAt || "—"}</dd></div></dl>
             {receipt?.stale && <p className={styles.note}>{t("siStale")}</p>}
             <details className={styles.explanation}><summary>{t("siReceipt")}</summary><p>{t("siSourcePath")}</p><code>{receipt?.path || "—"}</code><p>{t("siHash")}</p><code>{receipt?.contentHash || "—"}</code></details>
@@ -301,7 +309,11 @@ export default function SectorIntelligenceWorkspace() {
         <button type="button" data-testid="sector-detail-return" onClick={returnToOuterWorkspace}>← {t(RETURN_KEYS[returnWorkspace])}</button>
         <span>{t("siResearchDepth")} · {sectorName || state.sector.toUpperCase()}</span>
       </div>}
-      {state.workspace === "rotation" ? <SectorRotationMap rows={sectors} status={status} risk={feeds.risk}
+      {state.workspace === "discover" && <nav className={styles.workspaceNavigation} aria-label={t("siFinvizSourceFamily")}>
+        <button type="button" aria-pressed={state.sourceFamily === "sectors"} onClick={() => change({ sourceFamily: "sectors" }, true)}>{t("siFinvizSectors")}</button>
+        <button type="button" aria-pressed={state.sourceFamily === "finviz"} onClick={() => change({ sourceFamily: "finviz" }, true)}>{t("siFeedFinviz")}</button>
+      </nav>}
+      {state.workspace === "discover" && state.sourceFamily === "finviz" ? <FinvizDiscovery feed={feeds.finviz} state={state} onChange={patch => change(patch, !Object.hasOwn(patch, "discoveryQuery"))} /> : state.workspace === "rotation" ? <SectorRotationMap rows={sectors} status={status} risk={feeds.risk}
         asOf={feeds.sector?.receipt.asOf || null} measured={measuredRead} selected={state.sector} mode={state.rotationMode} query={state.rotationQuery}
         history={rotationHistory} historyStatus={feeds.history?.receipt.status || "loading"}
         historyRevision={feeds.history?.receipt.contentHash || null}
@@ -348,7 +360,7 @@ export default function SectorIntelligenceWorkspace() {
       </nav><button ref={sourceTrigger} type="button" className={styles.sourceTrigger} aria-haspopup="dialog"
         aria-expanded={state.sourcesOpen} onClick={event => openSources(event.currentTarget)}>{t("siSourcesPanel")}</button></div>
       <div className={styles.contextLine}><span className={styles.badge}>{t("siResearchOnly")}</span><span>{t("siDated")} · {feeds.sector?.receipt.asOf || t("siUnknownDate")}</span></div>
-      {completed === SECTOR_FEEDS.length && ready < SECTOR_FEEDS.length && <div className={styles.notice} role="status"><div><strong>{t("siCompactPartial")}</strong></div>{sourcesLink}</div>}
+      {completed === activeFeeds.length && ready < activeFeeds.length && <div className={styles.notice} role="status"><div><strong>{t("siCompactPartial")}</strong></div>{sourcesLink}</div>}
       <div role="tabpanel" id={`si-panel-${state.view}`} aria-labelledby={`si-tab-${state.view}`} tabIndex={0} className={styles.view}>
         {state.view === "intelligence" && <>
           {status === "loading" ? <div className={styles.empty} role="status">{t("siLoading")}</div> : !hasSector ? <div className={styles.empty} role="status">
@@ -371,6 +383,10 @@ export default function SectorIntelligenceWorkspace() {
             </div>
           </section>}
           {comparison}
+          {/* Catalyst: the owner's measured intraday interval, after the market summary and before
+              the detailed evidence disclosure. It adds no new state owner and no new route. */}
+          <SectorIntradayComparison data={feeds.intraday?.data} status={feeds.intraday?.receipt.status || "loading"}
+            asOf={feeds.intraday?.receipt.asOf || null} nowMs={presentationNow} />
           <details className={styles.studyDisclosure}><summary>{t("siShowEvidence")}</summary>
             <div className={styles.columns}><div className={styles.stack}><Card title={t("siFocus")} subtitle={t("siSeparate")}>{axes}</Card>{pocket}</div>
               <aside className={styles.stack}>{business}<Card title={t("siTaxonomy")}><p className={styles.note}>{t("siTaxonomyCopy")}</p></Card></aside></div>

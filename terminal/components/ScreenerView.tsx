@@ -368,6 +368,10 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
   const [fundOpen, setFundOpen] = useState(false);
   const [fundField, setFundField] = useState<FundamentalFieldId>("fund.net_margin_fy");
   const [fundPreds, setFundPreds] = useState<FundamentalPredicate[]>([]);
+  // Counts the times the table's conditions were replaced whole (Clear filters, a saved screen
+  // opened); the fundamental editor reloads its draft on each one, even when the selected field
+  // had no condition before or after — see FundamentalScreenBar.sourceEpoch (issue #916).
+  const [fundEpoch, setFundEpoch] = useState(0);
   const [evidence, setEvidence] = useState<FundamentalEvidenceTarget | null>(null);
   const [fundWanted, setFundWanted] = useState(false);
   const fund = useFundamentalScan(fundOpen || fundPreds.length > 0 || fundWanted);
@@ -817,6 +821,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
       setF(DEFAULT_FILTERS);
       setTechControls((c) => ({ ...TECH_DEFAULT_CONTROLS, tf: c.tf }));
       setFundPreds([]);
+      setFundEpoch((n) => n + 1);
     });
   }, []);
 
@@ -856,8 +861,10 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
     startTransition(() => {
       setActivePreset(null);
       setF(merged);
-      // A saved screen is applied whole: its fundamental conditions replace the table's.
+      // A saved screen is applied whole: its fundamental conditions replace the table's, and the
+      // editor's draft follows even where the screen has no condition on the selected field.
       setFundPreds(o.fund);
+      setFundEpoch((n) => n + 1);
       if (o.showAllMarkets !== null) setShowAllMarkets(o.showAllMarkets);
     });
   }, [reconcileTo]);
@@ -1212,6 +1219,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
             predicates={fundPreds}
             onPredicates={setFundPreds}
             summary={tableReady ? fundSummary : null}
+            sourceEpoch={fundEpoch}
           />
         )}
       </div>

@@ -83,6 +83,52 @@ def sandbox(tmp_path):
     bindir = sb / "bin"
     bindir.mkdir()
 
+    # Test-only Python clock pin. The shell `date` below is faked at 12:00, but the actual
+    # publication clock of the real driver is Python's dt.datetime.now(utc) inside
+    # regional_refresh.py — the clock CI ran on, whose 21:00–22:30 UTC window held every
+    # publication in the retained red run. The fixture pins that clock exactly like the shell
+    # one (12:00 UTC by default), so the whole lane is deterministic and the window guard is
+    # exercised on purpose instead of by accident of wall-clock time. The pin is installed
+    # only in the interpreter that runs regional_refresh.py (see the pyshim branch below);
+    # no production byte is touched and nothing outside the sandbox sees it.
+    clock_spec = bindir / "pinned_clock.json"
+    clock_spec.write_text(json.dumps({
+        "utc": "2026-10-22T12:00:00+00:00",
+        "receipt": str(sb / "clock_receipts.jsonl"),
+    }) + "\n")
+    (bindir / "regional_clock_pin.py").write_text('''"""Test-only sandbox fixture artifact; never imported by production code.
+
+Installs a deterministic ``datetime.datetime`` into the interpreter that runs the real
+``ingest/regional_refresh.py`` driver, so the 21:00-22:30 UTC publication-window guard
+reads the fixture instant instead of the wall clock. Every clock read is receipted so a
+test can prove the driver subprocess actually ran on the fixture clock.
+"""
+import datetime as _dt
+import json
+import os
+import sys
+
+
+def install(clock_dir):
+    with open(os.path.join(clock_dir, "pinned_clock.json")) as handle:
+        spec = json.load(handle)
+    moment = _dt.datetime.fromisoformat(spec["utc"])
+    receipt = spec.get("receipt")
+    origin = os.path.abspath(sys.argv[0]) if sys.argv else "?"
+
+    class PinnedDateTime(_dt.datetime):
+        @classmethod
+        def now(cls, tz=None):
+            if receipt:
+                with open(receipt, "a") as handle:
+                    handle.write(json.dumps(
+                        {"utc": moment.astimezone(_dt.timezone.utc).isoformat(),
+                         "script": origin, "pid": os.getpid()}) + "\\n")
+            return moment.astimezone(tz) if tz is not None else moment.replace(tzinfo=None)
+
+    _dt.datetime = PinnedDateTime
+''')
+
     def script(name: str, body: str) -> Path:
         p = bindir / name
         p.write_text(f"#!/usr/bin/env bash\n{body}")
@@ -102,7 +148,15 @@ if [ "$1" = "-" ]; then
 fi
 name="$(basename "$1")"
 if [ "$name" = "regional_refresh.py" ]; then
-  exec {REAL_PYTHON} "$@" --python "$0"
+  # Bootstrap the fixture's pinned publication clock into exactly this interpreter, then run
+  # the shipped driver bytes unchanged (runpy keeps __main__ semantics and the argv contract).
+  exec {REAL_PYTHON} -c 'import sys, runpy
+clock_dir = sys.argv.pop(1)
+sys.argv = sys.argv[1:]
+sys.path.insert(0, clock_dir)
+import regional_clock_pin
+regional_clock_pin.install(clock_dir)
+runpy.run_path(sys.argv[0], run_name="__main__")' "{bindir}" "$@" --python "$0"
 fi
 if [ "$name" = "run_bounded.py" ]; then
   exec {REAL_PYTHON} "$@"
@@ -212,6 +266,21 @@ def call_lines(sb: Path) -> list:
     return p.read_text().splitlines() if p.exists() else []
 
 
+def set_driver_clock(sb: Path, utc: str) -> None:
+    """Re-point the sandboxed driver's pinned Python publication clock (test-only fixture
+    state; the shipped driver bytes never change). The next regional_refresh.py subprocess
+    then runs — and window-guards — on exactly this instant."""
+    spec_path = sb / "bin" / "pinned_clock.json"
+    spec = json.loads(spec_path.read_text())
+    spec["utc"] = utc
+    spec_path.write_text(json.dumps(spec) + "\n")
+
+
+def clock_receipts(sb: Path) -> list:
+    p = sb / "clock_receipts.jsonl"
+    return [json.loads(line) for line in p.read_text().splitlines()] if p.exists() else []
+
+
 # ─────────────────────────────── real driver stage boundaries ───────────────────────────────
 def stage_status(sb):
     return json.loads((sb / "MACRO" / "cnhk_status.json").read_text())["markets"]
@@ -222,6 +291,37 @@ def test_cnhk_refresh_succeeds_only_after_both_markets_are_verified(sandbox):
     status = stage_status(sandbox)
     assert all(status[market]["intel"]["publication"] == "published" for market in ("cn","hk"))
     assert (sandbox / "served/430047.BJ.intel.json").is_file()
+    # The ordinary cases run the real driver subprocess on the pinned 12:00 fixture clock.
+    assert {entry["utc"] for entry in clock_receipts(sandbox)} == {"2026-10-22T12:00:00+00:00"}
+    assert all(entry["script"].endswith("regional_refresh.py") for entry in clock_receipts(sandbox))
+
+def test_blocked_publication_window_still_holds_and_transfers_nothing(sandbox):
+    """Discriminator for the pinned clock: the identical lane that publishes at the ordinary
+    12:00 fixture instant must still be stopped by the real in-driver window guard at
+    21:30 UTC — no ssh probe, no rsync, not one served byte moved. The clock receipts prove
+    the subprocess itself ran on the fixture instant, so this holds regardless of when CI
+    runs, and the guard is proven live rather than patched out."""
+    served = sandbox / "served"
+    served.mkdir()
+    for name in ("600519.SS.intel.json", "0700.HK.intel.json"):
+        shutil.copyfile(sandbox / "CA/terminal/public/data" / name, served / name)
+    before = {path.name: path.read_bytes() for path in served.iterdir()}
+    set_driver_clock(sandbox, "2026-10-22T21:30:00+00:00")
+    r = run(["bash", str(sandbox / "CA/ingest/refresh_cn_hk.sh")], sandbox)
+    assert r.returncode == 1, r.stdout + r.stderr
+    status = stage_status(sandbox)
+    for market in ("cn", "hk"):
+        assert status[market]["intel"]["publication"] == "held"
+        assert status[market]["intel"]["error"] == "publication window blocked (21:00–22:30 UTC)"
+    assert call_lines(sandbox), "the drivers must have run"
+    assert not any(line.startswith(("rsync ", "ssh ")) for line in call_lines(sandbox))
+    after = {path.name: path.read_bytes() for path in served.iterdir()}
+    assert after == before, "the blocked window must not transfer or rewrite a single served byte"
+    receipts = clock_receipts(sandbox)
+    assert receipts, "the pinned publication clock must have been consulted"
+    assert {entry["utc"] for entry in receipts} == {"2026-10-22T21:30:00+00:00"}
+    assert any(entry["script"].endswith("regional_refresh.py") for entry in receipts), \
+        "the real driver subprocess must have received the fixture clock"
 
 def test_cn_failure_publishes_hk_only_and_keeps_aggregate_red(sandbox):
     r = run(["bash", str(sandbox / "CA/ingest/refresh_cn_hk.sh")], sandbox,

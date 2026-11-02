@@ -44,7 +44,9 @@ for (const lang of ["en", "zh"] as const) {
 
 test("Options keeps the tape visible and every market context filter reachable", async ({ page }, testInfo) => {
   await page.goto("/options?tab=tape");
-  const rows = page.locator("table.scr tbody tr").filter({ has: page.locator("td") });
+  // The loading skeleton is visible too, but is replaced when the feed arrives.
+  // Measure only settled tape rows so readiness cannot pass on a detached placeholder.
+  const rows = page.locator('.scr-table table.scr:not([aria-busy="true"]) tbody tr').filter({ has: page.locator("td") });
   await expect(rows.first()).toBeVisible();
   if ((page.viewportSize()?.width ?? 1440) < 640) {
     const first = await rows.first().boundingBox();
