@@ -903,6 +903,15 @@ test.describe("R2 evidence ladder", () => {
       if (finePointer) expect(geometry.ladderHeight).toBe(24);
       else expect(geometry.ladderHeight).toBeGreaterThanOrEqual(40);
 
+      // Spec §7 R5: the Mark reviewed control is present on every row and at least 44px
+      // tall on the coarse-pointer viewport (rev4 P1-1).
+      const markOne = agree.locator("[data-news-mark-one]");
+      await expect(markOne).toBeVisible();
+      if (project === "mobile") {
+        const markBox = await markOne.boundingBox();
+        expect(markBox?.height ?? 0).toBeGreaterThanOrEqual(44);
+      }
+
       await assertFocusRing(page, ladder);
       expect(await r2Overflow(page)).toBeLessThanOrEqual(0);
     });
@@ -938,6 +947,24 @@ test.describe("R2 evidence ladder", () => {
       await expect(evidence.locator(R2_CLS.sourceLink)).toHaveCount(2);
       const more = evidence.locator(R2_CLS.moreReports);
       await expect(more).toHaveText(R2_MORE[lang]);
+
+      // Spec §3.6: inside the evidence view the clocks come first, then the group note,
+      // then the members, then "Show n more" (rev4 P1-2); checked before the click removes it.
+      const innerOrder = await evidence.evaluate((el, cls) => {
+        const clocksEl = el.querySelector(cls.clocks);
+        const noteEl = el.querySelector(cls.groupNote);
+        const linkEl = el.querySelector(cls.sourceLink);
+        const moreEl = el.querySelector(cls.moreReports);
+        if (!clocksEl || !noteEl || !linkEl || !moreEl) return null;
+        const following = (a: Element, b: Element) =>
+          !!(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
+        return {
+          clocksThenNote: following(clocksEl, noteEl),
+          noteThenMember: following(noteEl, linkEl),
+          memberThenMore: following(linkEl, moreEl),
+        };
+      }, R2_CLS);
+      expect(innerOrder).toEqual({ clocksThenNote: true, noteThenMember: true, memberThenMore: true });
       await more.click();
       await expect(evidence.locator(R2_CLS.sourceLink)).toHaveCount(3);
       await expect(more).toHaveCount(0);
