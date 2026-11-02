@@ -1,0 +1,37 @@
+.row:global(.r) {
+  flex-wrap: wrap;
+}
+
+.row:global(.r) > :global(.r-opt) {
+  flex-basis: 9rem;
+}
+
+/* All three overlaid states contribute their intrinsic text size. */
+.actions:global(.cmp-add-wrap) {
+  display: grid;
+  width: max-content;
+  height: auto;
+  min-width: 138px;
+  min-height: 26px;
+}
+
+.actions:global(.cmp-add-wrap) > * {
+  position: relative;
+  inset: auto;
+  grid-area: 1 / 1;
+}
+
+.actions:global(.cmp-add-wrap) > button:global(.add.cmp) {
+  height: auto;
+  min-height: 26px;
+  padding-block: 4px;
+}
+
+.actions > :global(.cmp-seg) {
+  height: auto;
+  min-height: 26px;
+}
+
+.actions :global(.cmp-seg-half:focus-visible) {
+  outline-offset: -2px;
+}

@@ -6,6 +6,7 @@ import {
   normalizeThesisSubject,
   normalizeThesisSubjectKey,
   readThesis,
+  readThesisVersion,
   type ThesisContent,
   type ThesisDb,
   type ThesisSubjectRef,
@@ -59,6 +60,26 @@ const create = (key: string, requestId: string) => applyThesisVersion(
 );
 
 beforeEach(() => resetFixtureStores());
+
+describe("exact retained Thesis version reads", () => {
+  it("reads the selected old version after the canonical head advances", async () => {
+    const first = await create("thesis-race", "72000000-0000-4000-8000-000000000001");
+    if (!first.ok) throw Error("fixture create failed");
+    const original = await readThesis(db(), owner, first.thesisId);
+    if (!original.ok) throw Error("fixture read failed");
+    const selected = original.thesis.current;
+    await applyThesisVersion(db(), owner, { action:"revise", id:first.thesisId, expectedVersion:1, clientRequestId:"72000000-0000-4000-8000-000000000002", subject, content:content("Changed belief") });
+    expect(await readThesisVersion(db(), owner, first.thesisId, selected.id)).toEqual({ok:true,version:selected});
+    expect(await readThesisVersion(db(), fixtureUserId("foreign"), first.thesisId, selected.id)).toMatchObject({ok:false,status:"not_found"});
+    expect(await readThesisVersion(db(), owner, "72000000-0000-4000-8000-000000000099", selected.id)).toMatchObject({ok:false,status:"not_found"});
+    expect(await readThesisVersion(db(), owner, first.thesisId, "72000000-0000-4000-8000-000000000099")).toMatchObject({ok:false,status:"not_found"});
+  });
+  it("refuses unavailable storage and malformed identity without falling back to current", async () => {
+    expect(await readThesisVersion(db(), owner, "bad", "bad")).toMatchObject({ok:false,status:"not_found"});
+    const unavailable = createFixtureDb("thesis-race", [FAULT_THESES_READ]) as ThesisDb;
+    expect(await readThesisVersion(unavailable, owner, "72000000-0000-4000-8000-000000000001", "72000000-0000-4000-8000-000000000002")).toMatchObject({ok:false,status:"unavailable"});
+  });
+});
 
 describe("the atomic thesis mutation boundary", () => {
   it("lets one of two expectedVersion=1 writers advance and leaves no split head or orphan", async () => {

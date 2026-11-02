@@ -1,43 +1,22 @@
-# 2026-10-20: actual FlowDesk EN/ZH desktop/mobile recapture for comparison-only detection labels; all unrelated source bindings and crops preserved.
-# 2026-10-19 F08: four actual AlertDetail EN/ZH desktop/mobile crops recaptured with CAPTURE_ONLY=AlertDetail. Only AlertDetail and its alerts.module.css bindings updated; other batch surfaces/bindings preserved.
-# 2026-10-10 data-cache stale serve (#911) changes HeatmapView.tsx (the refresh-failed wiring of the manifest and the flow index): HeatmapTreemap-1440/390 EN+ZH recaptured with CAPTURE_ONLY=HeatmapTreemap at a local commit holding master 2ded42f3 (#903) plus this change, and only the HeatmapView.tsx row re-stamped from the script's output. HeatmapTreemap-390 EN/ZH are pixel-identical to the crops here (max channel delta 0). At 1440 the treemap is pixel-identical too; every changed pixel (823 px EN, 1458 px ZH) sits at y 62-98 in the Discover tab strip, which now carries #879's "RS · 30m Pivot" / "相对强度·30分钟枢轴" tab. #879 merged after #891 captured the crops here, so that is master drift, not this change. The script's EVIDENCE.yml was discarded for the reason the #891 note below gives; the AlertDetail.tsx, flowdeskStrings.ts, i18n.tsx and PineEditor.tsx rows are left as they were.
-# 2026-10-09 EOD belt / Flow Desk chain heat / Heatmap flow layer load-failure states (branch claude/eod-heatmap-flowdesk-load-failure-state) changes HeatmapView.tsx, heatmapStrings.ts and flowdeskStrings.ts: HeatmapTreemap-1440/390 and FlowDesk-1440/390 EN+ZH recaptured with CAPTURE_ONLY=HeatmapTreemap,FlowDesk at 5248e459, and only those three rows re-stamped. All 8 crops are pixel-identical to #898's recapture of the same surfaces at base b7a3357b (9ce8a190), so this change moves none of them. HeatmapTreemap and FlowDesk-390 are also identical to the crops already here. FlowDesk-1440 EN/ZH differ from the 62f2782f crops by 30 px: the filter column's scrollbar down-arrow is gone, which is master drift before b7a3357b. The script's EVIDENCE.yml was discarded, as in the #891 note below; the AlertDetail.tsx, i18n.tsx and PineEditor.tsx rows are left as they were for #898. Whichever of this branch and #898 merges second must rebase and re-stamp the HeatmapView.tsx, heatmapStrings.ts and flowdeskStrings.ts rows after a recapture.
-# 2026-10-09 #891 (GEX/Levels/Heatmap load-failure states) changes HeatmapView.tsx and heatmapStrings.ts: HeatmapTreemap-1440/390 EN+ZH recaptured with CAPTURE_ONLY=HeatmapTreemap at 4e9ab8e4, and only those two rows re-stamped from the script's output. The tile region is pixel-identical in EN; in ZH it differs only in CJK glyph rasterization of unchanged labels (legend 520 px at 1440, tile caption 8 px at 390). Every other diff is master drift since 62f2782f: the new 板块中心 Discover tab, one fewer rail icon, banner punctuation. The script's EVIDENCE.yml was discarded because it re-stamps every row (it would have hidden the stale AlertDetail.tsx, flowdeskStrings.ts, i18n.tsx and PineEditor.tsx rows and dropped alerts.module.css). Those rows are left as they were; their crops were not recaptured.
-# 2026-10-05 #802/#808 source hash reconciliation: preserves captured PNG bytes/provenance; added Dislocations-only labels are not rendered by these capture surfaces.
-# 2026-09-19 #669 plain-language debt: hash-only restamp of heatmapStrings.ts, flowdeskStrings.ts, plainLabels.ts, i18n.tsx — copy-only change, crops unchanged
-# 2026-09-19 m_f119_detail: hash-only restamp of AlertDetail.tsx (adds kind prop; gates Symbol/What-changed rows for thesis detail), alerts.module.css (detailClose flows to its own row) — crops unchanged
 # B-PL-6 batch 3 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 62f2782f0c63607e3fdf4acfea4bd65e853e0b62
-# capturedAt: 2026-09-19T23:36:16.989Z
+# capturedAtHead: 5aa80158ff9d126242d1fddf126197be591f2f33
+# capturedAt: 2026-10-20T17:39:53.718Z
 # capturedAtHead is informational. The lock is layoutFiles.
-# 2026-09-19 seat merge of master 1c46b277 into #584 (B-F12-13): hash-only restamp of terminal/components/heatmap/HeatmapView.tsx, terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit.
-# 2026-09-19 seat merge of origin/master dd7c6dec712a (#584 B-F12-13, merge commit) into #586 (W9T_F08_13 targets readout): hash-only restamp of terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
-# 2026-09-19 seat merge of origin/master dd7c6dec712a (#584 B-F12-13, merge commit) into #587 (W9T_F13_9 team rollup): hash-only restamp of terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
-# 2026-09-19 seat merge of origin/master 5a48b845 (13 commits incl. #587 B-F13-9 team rollup, merge commit) into #586 (W9T/B-F08-13 targets readout): hash-only restamp to the merged working-tree bytes; crops NOT recaptured. Files: terminal/lib/i18n.tsx
-# 2026-09-19 seat merge of origin/master dd7c6dec712a (#584 B-F12-13, merge commit) into #588 (W9T_F12_17 invite link): hash-only restamp of terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
-# 2026-09-19 seat merge of origin/master dd7c6dec712a (#584 B-F12-13, merge commit) into #587 (W9T_F13_9 team rollup): hash-only restamp of terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
-# 2026-09-19 seat merge of origin/master 4c7a2eeb6f58 (#587 B-F13-9 team rollup + #659 + #660, merge commit) into #588 (B-F12-17 invite-link honesty): hash-only restamp of terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
-# 2026-09-19 seat merge of origin/master dafc016e (#588 B-F12-17 invite-link honesty, #664, #666) into #586 (W9T/B-F08-13 targets readout): hash-only restamp to the merged working-tree bytes; crops NOT recaptured. Files: terminal/lib/i18n.tsx
-# 2026-09-19 seat recapture at master 62f2782f (#670 AlertDetail follow-on merged + live): AlertDetail-1440/390 EN+ZH crops regenerated with CAPTURE_ONLY=AlertDetail; layoutFiles hashes unchanged (already restamped in 05de3537); capturedAtHead informational
-# 2026-10-04 #808 dislocations screen: hash-only restamp of plainLabels.ts — +18 added lines (EPISODE_STATE_WORDS / episodeStateLabel) imported only by components/dislocations/DislocationsView.tsx, which no surface in this capture renders; crops unchanged
 layoutFiles:
+  terminal/components/alerts/alerts.module.css: "24316b370fa4b336251ec638b6397c92cd903785c79554de50481f4a6218ec02"
   terminal/components/options/OptionsFlowBoardView.tsx: "96e0d1d0a4e7eaed7f2d2bbec6722725afacc093e205defa280a483bc6e14b8e"
   terminal/components/flowdesk/FiltersPanel.tsx: "3fad94845eed06acb8d6118f20667719e9292a37ea360c1bf518e4d9563f95a6"
   terminal/components/flowdesk/FlowCard.tsx: "4a48b5c1504e4ce4ade31a05ceafd4441a96dafe4c3639cfda036ad03f1606af"
   terminal/components/alerts/AlertDetail.tsx: "a5121ed88b6eb4e639292de53e402ee41ef3599a7bacaa24c278d2298c8ddce0"
-  terminal/components/alerts/alerts.module.css: "24316b370fa4b336251ec638b6397c92cd903785c79554de50481f4a6218ec02"
-  terminal/components/heatmap/HeatmapView.tsx: "814db62170e8377c8871e98c6804fe18e9f6b38b497c8820dd23af464c820d3e"
-  terminal/components/heatmap/Treemap.tsx: "0c5a7f2fd990c41f725d96b9aecb83f5f73eb6a42fbc66c811b43cd722947a0d"
+  terminal/components/heatmap/HeatmapView.tsx: "3b3ab5049715a33f167e344d3013b8f880356e8b96077b38c9a517c57b7a54cb"
+  terminal/components/heatmap/Treemap.tsx: "51b284e851011198374854f765c6efd6cb9f682450e7e52f62438adfb1bc995b"
   terminal/lib/heatmapStrings.ts: "26bb75eccce7429e5a37154f07f7f68faf9652da1f6f3560074cb558f0dda9c2"
   terminal/lib/flowdeskStrings.ts: "cb3c1fe82dc58abd4fd1a7a954f3f343bcb3511de5345955305b2b5b8d772dbc"
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
-  terminal/lib/i18n.tsx: "858306597ebbfc2d912cefc997ad88e4805cafb08794b5cd4d3dfeacb109371f"
-  terminal/components/PineEditor.tsx: "e48a009b44f32f9501d2890602cd5096257ad57b83bac59147d691e221a69f63"
-  terminal/components/flowdesk/InspectorPane.tsx: "661c7a7c4366988c1d2022e32cdeb0b67f76aabfb5b930be12a709b9eb148c29"
-  terminal/components/flowdesk/RadarStrip.tsx: "cb10431ff4082c587132cb57919c5e4f83502fa94df14f44acb8529514a00356"
-  terminal/lib/flowActivity.ts: "eb1433e57c7b63a52978aa4e63419e62b3e1a0e0210869f93838a8b7529ce332"
+  terminal/lib/i18n.tsx: "9acd67ddc1e85b1058b850b807f5e78c46c659192066dd3565f779ed51a11968"
+  terminal/components/PineEditor.tsx: "1d63397e5e692965016dfb2160b562929580a37eb8ea95472ed51709cb0a3eb7"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -54,7 +33,7 @@ heatmap_crops:
   - HeatmapTreemap-390-zh.png
 command: |
   cd terminal
-  CAPTURE_ONLY=HeatmapTreemap node e2e/tools/capture_pl6_batch3.cjs
+  node e2e/tools/capture_pl6_batch3.cjs
 files:
   - AlertDetail-1440-zh.png
   - AlertDetail-1440.png
@@ -73,65 +52,28 @@ files:
   - OptionsFlowBoard-390-zh.png
   - OptionsFlowBoard-390.png
   - PineLibrary-1440-zh.png
+  - PineLibrary-1440.png
   - PineLibrary-390-zh.png
-
-priorScopedDetectionCapture:
-  capturedAt: '2026-10-20T10:59:39.356269+00:00'
-  sourceBase: b0b88f82b9efd85e0593c200cff24ce3208211c2
-  note: Actual final working-source EN/ZH captures at 1440x900, 820x1180 and 390x844. Synthetic retained enrichment exercises
-    old intent prose; opening/closing remains unestablished. No production assertion.
-  layoutFiles:
-    terminal/components/flowdesk/FiltersPanel.tsx: 3fad94845eed06acb8d6118f20667719e9292a37ea360c1bf518e4d9563f95a6
-    terminal/components/flowdesk/FlowCard.tsx: 4a48b5c1504e4ce4ade31a05ceafd4441a96dafe4c3639cfda036ad03f1606af
-    terminal/components/flowdesk/InspectorPane.tsx: 63f044904f60d4099a9ec2c95b29f6b294f8c3bff980e9bfd19164a92727335c
-    terminal/lib/flowdeskStrings.ts: cb3c1fe82dc58abd4fd1a7a954f3f343bcb3511de5345955305b2b5b8d772dbc
+  - PineLibrary-390.png
+inheritedSupplementalEvidence:
+  source: bbc07037aae3e98597945e23448781a091d15281
+  scope: Exact upstream supplemental files retained with original upstream qualification; NOT recaptured or reattributed to this source
   files:
-    FlowDesk-1440-zh.png: 32159d5926f215a95cf3cf2d4a405acccb08ac498c7254fa2262260f6b75d519
-    FlowDesk-1440.png: 4d39f471e60bd316c2584a21df66a94dc04108225321a673e619bbeb44df1f4a
-    FlowDesk-390-zh.png: 1e2d45035c5651e2d2a4162cd204b922c53a1b4552fa0a0649b221dc0ebb3fc5
-    FlowDesk-390.png: bdb7ec964b7d6f95bdf2960e464e9f2526408860182c70188cf0c9a60306534a
-    FlowDesk-detections-1440-zh.png: 3785a7252842787a719d5c0ac269a1dad2712930e2706aaa8afe25d8e58df8c3
-    FlowDesk-detections-1440.png: d323e24e1f0dd62a0f403b26e2901819b3b4c5d4d75ed3b194d5ce968dbac4dc
-    FlowDesk-detections-390-zh.png: b817b40d9224cfd498c3aa9d850a08554fd23953acf0bd303fe196e33564bc4e
-    FlowDesk-detections-390.png: c4a25418f2f92cc0940935c387dd136d013757b2d07f5ef2499258b8e8f8efed
-    FlowDesk-detections-820-zh.png: f415da28db7bb6baeb8edce1d98f8848896daac0548720239351397cd0e8e70b
-    FlowDesk-detections-820.png: e02e2c44ba945fbcc7e49c9ebc98c2581767497bfe19435533780f422b85383d
-    FlowDesk-enriched-1440-zh.png: 5bc9a921f7c6b546136f9c55d8c48bd2897c54ebeb06d902a4300ae283a74cd6
-    FlowDesk-enriched-1440.png: c712604a73f79093291df2d98d66545ad2893bfa950c11e5ff207ffe43ef7be4
-    FlowDesk-enriched-390-zh.png: 0015d7146628181efc89256195030b500fd6cfbf30f3faaa29d065ce36a10c99
-    FlowDesk-enriched-390.png: aaf2083d806a6022bcd0c6ab8e43a25e1af5db1ea7679204deb60f041553aa23
-    FlowDesk-enriched-820-zh.png: 415b0e218de3dddf495154728392135b1e2336df08e4a1c4fcfe41723114a6ae
-    FlowDesk-enriched-820.png: ba6c20293d7884ec0d4b66c2408728bdab476838aa37dca2030e167d0d799d78
-    FlowDesk-inspector-1440-zh.png: 3cecfa7064c8aa0e12b5b97e9deb77eafaa48297177694a7fd631dbe4a55e867
-    FlowDesk-inspector-1440.png: 0393b397590d011f91f4e17ce03667cbae85744e35da2d93eaaf7040ccef10be
-    FlowDesk-inspector-390-zh.png: 4eee9668ec1c008a8881eda93c321015a7ec440d47be015dc6ff6ec4c17cbe84
-    FlowDesk-inspector-390.png: 11ca6f4930754a89256b53d772a9fb75b136df0c344bb15bb80877f281b75bb2
-    FlowDesk-inspector-820-zh.png: bc8844140b7c642d2de48c04d8e1583dd4f389df2281107eea7c36364318c84c
-    FlowDesk-inspector-820.png: 573aa2bd3dfe8b26f0e447adeca7c94a88079b8c16eaa6d49ac6096b75c51159
-  captureHarnessSha256: 1f6a59ebae6a79a9c8492b2a15acfaee030a49281f34ad250b9e3b909feb2f18
-
-signedActivityCapture:
-  sourceBase: 15c44ac36615c9116a32cc431f312081415cd2be
-  capturedAt: "2026-10-20T14:44:14.510032+00:00"
-  scope: Actual local fixture recapture after signed activity repair. Earlier capture sections retain their original source and qualification; no production claim.
-  sources:
-    terminal/components/flowdesk/InspectorPane.tsx: "661c7a7c4366988c1d2022e32cdeb0b67f76aabfb5b930be12a709b9eb148c29"
-    terminal/components/flowdesk/RadarStrip.tsx: "cb10431ff4082c587132cb57919c5e4f83502fa94df14f44acb8529514a00356"
-    terminal/lib/flowActivity.ts: "eb1433e57c7b63a52978aa4e63419e62b3e1a0e0210869f93838a8b7529ce332"
-  crops:
-    FlowDesk-1440-zh.png: "32159d5926f215a95cf3cf2d4a405acccb08ac498c7254fa2262260f6b75d519"
-    FlowDesk-1440.png: "4d39f471e60bd316c2584a21df66a94dc04108225321a673e619bbeb44df1f4a"
-    FlowDesk-390-zh.png: "1e2d45035c5651e2d2a4162cd204b922c53a1b4552fa0a0649b221dc0ebb3fc5"
-    FlowDesk-390.png: "bdb7ec964b7d6f95bdf2960e464e9f2526408860182c70188cf0c9a60306534a"
-    FlowDesk-enriched-1440-zh.png: "8077611147b423f8ab47c1097e8098c8dc55bb01d94673ab6644fd27bb8bd3c4"
-    FlowDesk-enriched-1440.png: "901b778a0dfecb3da6e543aa7acf125292457c62405d9ed9fbed7163df670f67"
-    FlowDesk-enriched-390-zh.png: "c6ddd547b37d06116d3d1f28c1b8580c34a1292f957f56a527d4e6a4ef18c2e4"
-    FlowDesk-enriched-390.png: "91c2af6cfe3e3f824503294b925a373c32fe28c21e5815bb1b02e25992ca7f47"
-    FlowDesk-enriched-820-zh.png: "11bb2405628a07b5939e5b8f828f360517dddeab8ff60aa7b4f25aea0b0ad739"
-    FlowDesk-enriched-820.png: "ae0a0e4756102299e3d3ca3c96df6c33519388b89f34bce8b42a5ae11958f63a"
-    FlowDesk-inspector-1440-zh.png: "d842bee96aa00b7b05b444669c456d868f88328bfdc73eb02b83314526bb9534"
-    FlowDesk-inspector-1440.png: "48935fc4007f742f804b4ae41f73f43e1df24aff58d23466f2d2d61ed3b88c0c"
-    FlowDesk-inspector-390-zh.png: "b858ec999586b20338471164ee12f63ddb96c36e1b59cba1d96802063e8e6006"
-    FlowDesk-inspector-390.png: "ca239ebf15a4ecb97df809c097a0294755a70deed888d809c2c09e5079e9588c"
-    FlowDesk-inspector-820-zh.png: "064c646e7eb33dd1587559bfb56a69296d61d9d609ae77962969c3d02372d14c"
-    FlowDesk-inspector-820.png: "9da9db766a03f5edf63ab2d940071e013176609cf8da4d9e6bf684f424be74e1"
+    - FlowDesk-detections-1440-zh.png
+    - FlowDesk-detections-1440.png
+    - FlowDesk-detections-390-zh.png
+    - FlowDesk-detections-390.png
+    - FlowDesk-detections-820-zh.png
+    - FlowDesk-detections-820.png
+    - FlowDesk-enriched-1440-zh.png
+    - FlowDesk-enriched-1440.png
+    - FlowDesk-enriched-390-zh.png
+    - FlowDesk-enriched-390.png
+    - FlowDesk-enriched-820-zh.png
+    - FlowDesk-enriched-820.png
+    - FlowDesk-inspector-1440-zh.png
+    - FlowDesk-inspector-1440.png
+    - FlowDesk-inspector-390-zh.png
+    - FlowDesk-inspector-390.png
+    - FlowDesk-inspector-820-zh.png
+    - FlowDesk-inspector-820.png

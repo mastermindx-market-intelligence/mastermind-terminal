@@ -1,0 +1,8 @@
+{
+  "at": "2026-10-14T10:06:50.311987+00:00",
+  "inherited_errors": 1,
+  "inherited_warnings": 3,
+  "added_errors": 0,
+  "added_warnings": 0,
+  "method": "Compare original stdin lint against current exact file by rule/severity/message; normalize source line shifts due to import only. New component/unit no findings."
+}

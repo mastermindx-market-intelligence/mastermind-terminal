@@ -1,10 +1,13 @@
 "use client";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { useLang, useT } from "@/lib/i18n";
 import { useRouter, useSearchParams } from "next/navigation";
 import { type Bar, type PineError } from "@/lib/pine-engine";
 import { createPineHost, type PineHost } from "@/lib/pine-engine/host";
 import { parseExpectedUpdatedAtMs } from "@/lib/savedScriptStamp";
+
+// Hydration is a one-way transition; there are no later external changes to subscribe to.
+const subscribeToHydration = () => () => {};
 
 type Script = { id: string; name: string; source: string; lang: string; params: Record<string, any>; updated_at: string; locked?: boolean };
 
@@ -124,6 +127,9 @@ export default function PineEditor({ scripts, isPro, email, libraryUnavailable =
   const [selectedId, setSelectedId] = useState<string | null>(initialId);
   const active = library.find((s) => s.id === selectedId) ?? library[0];
   const [src, setSrc] = useState(active?.source || "");
+  // Server-rendered source is visible before React can retain edits. Admit input only after
+  // hydration and the initial buffer-reset effect have committed.
+  const editorReady = useSyncExternalStore(subscribeToHydration, () => true, () => false);
   // SSR can display the source before React owns input events. Enable editing only
   // after the initial buffer-reset effect has settled, so early edits cannot be lost.
   const [bufferReady, setBufferReady] = useState(false);
@@ -476,7 +482,7 @@ export default function PineEditor({ scripts, isPro, email, libraryUnavailable =
                 </div>
               )}
               <div className="code">{lines.map((ln, i) => <div key={i} dangerouslySetInnerHTML={{ __html: hl(ln) || "&nbsp;" }} />)}</div>
-              <textarea ref={taRef} value={src} spellCheck={false} aria-label={`${active.name} source`} readOnly={isLocked} disabled={!bufferReady}
+              <textarea ref={taRef} value={src} spellCheck={false} aria-label={`${active.name} source`} readOnly={isLocked || !editorReady} disabled={!bufferReady}
                 onChange={(e) => { if (!isLocked) setSrc(e.target.value); }} onKeyDown={onKeyDown} />
             </div>
           </div>

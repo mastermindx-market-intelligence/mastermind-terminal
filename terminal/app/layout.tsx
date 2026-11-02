@@ -21,12 +21,10 @@ const inter = Inter({ variable: "--font-inter", subsets: ["latin"], display: "sw
 // no longer needs to preload on pages that never render a character cell.
 const jetbrainsMono = JetBrains_Mono({ variable: "--font-jetbrains-mono", subsets: ["latin"], display: "swap", preload: false });
 
-// Viewport config: device-width, no zoom (full-bleed chart UX), safe-area insets via viewportFit.
+// Viewport config: device-width, initial scale, safe-area insets via viewportFit.
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
   viewportFit: "cover",
 };
 

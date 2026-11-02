@@ -1,0 +1,240 @@
+{
+  "base": "46d78ee8ed742335a9cd8c600d7e9dfa2eb0fc2c",
+  "source_sha256": {
+    "terminal/components/TerminalShell.tsx": "6da9d177ffbf342be9410d1e55c663f5873886f3c9ece2ebd46d2aea27430820",
+    "terminal/components/MobileSymbolBar.module.css": "45eb0400c88f47d06e70ccc08f14e0c1a95240d954cb7ce4a25ce4b05f707bf2"
+  },
+  "original": {
+    "before": {
+      "symbol": "NVDA",
+      "price": "192.53",
+      "symbolRect": {
+        "left": 45,
+        "right": 93.19999694824219,
+        "top": 64,
+        "bottom": 85
+      },
+      "priceRect": {
+        "left": 189.28334045410156,
+        "right": 248.76666259765625,
+        "top": 63.5,
+        "bottom": 85.5
+      },
+      "overlap": false,
+      "inside": true,
+      "font": "17px",
+      "width": 320,
+      "height": 844
+    },
+    "enlarged": {
+      "symbol": "NVDA",
+      "price": "192.53",
+      "symbolRect": {
+        "left": 45,
+        "right": 140.23333740234375,
+        "top": 54,
+        "bottom": 95
+      },
+      "priceRect": {
+        "left": 81.44999694824219,
+        "right": 200.5,
+        "top": 53.5,
+        "bottom": 95.5
+      },
+      "overlap": true,
+      "inside": true,
+      "font": "34px",
+      "width": 320,
+      "height": 844
+    },
+    "reflowControl": {
+      "symbol": "NVDA",
+      "price": "192.53",
+      "symbolRect": {
+        "left": 45,
+        "right": 140.23333740234375,
+        "top": 52.5,
+        "bottom": 93.5
+      },
+      "priceRect": {
+        "left": 81.44999694824219,
+        "right": 200.5,
+        "top": 97,
+        "bottom": 139
+      },
+      "overlap": false,
+      "inside": true,
+      "font": "34px",
+      "width": 320,
+      "height": 844
+    },
+    "zoom": {
+      "textZoom": 2,
+      "fullZoom": 1,
+      "url": "http://127.0.0.1:3586/terminal?investigation=10000000-0000-4000-8000-000000000001&revision=1&layout_revision=20000000-0000-4000-8000-000000000001"
+    },
+    "writes": [],
+    "brain": []
+  },
+  "candidate": [
+    {
+      "before": {
+        "symbol": "NVDA",
+        "price": "192.53",
+        "symbolRect": {
+          "left": 45,
+          "right": 93.19999694824219,
+          "top": 64,
+          "bottom": 85
+        },
+        "priceRect": {
+          "left": 189.28334045410156,
+          "right": 248.76666259765625,
+          "top": 63.5,
+          "bottom": 85.5
+        },
+        "overlap": false,
+        "inside": true,
+        "font": "17px",
+        "width": 320,
+        "height": 844
+      },
+      "enlarged": {
+        "symbol": "NVDA",
+        "price": "192.53",
+        "symbolRect": {
+          "left": 45,
+          "right": 140.23333740234375,
+          "top": 52.5,
+          "bottom": 93.5
+        },
+        "priceRect": {
+          "left": 81.44999694824219,
+          "right": 200.5,
+          "top": 97,
+          "bottom": 139
+        },
+        "overlap": false,
+        "inside": true,
+        "font": "34px",
+        "width": 320,
+        "height": 844
+      },
+      "reflowControl": {
+        "symbol": "NVDA",
+        "price": "192.53",
+        "symbolRect": {
+          "left": 45,
+          "right": 140.23333740234375,
+          "top": 52.5,
+          "bottom": 93.5
+        },
+        "priceRect": {
+          "left": 81.44999694824219,
+          "right": 200.5,
+          "top": 97,
+          "bottom": 139
+        },
+        "overlap": false,
+        "inside": true,
+        "font": "34px",
+        "width": 320,
+        "height": 844
+      },
+      "zoom": {
+        "textZoom": 2,
+        "fullZoom": 1,
+        "url": "http://127.0.0.1:3586/terminal?investigation=10000000-0000-4000-8000-000000000001&revision=1&layout_revision=20000000-0000-4000-8000-000000000001"
+      },
+      "writes": [],
+      "brain": []
+    },
+    {
+      "before": {
+        "symbol": "NVDA",
+        "price": "192.53",
+        "symbolRect": {
+          "left": 45,
+          "right": 93.19999694824219,
+          "top": 64,
+          "bottom": 85
+        },
+        "priceRect": {
+          "left": 259.2833251953125,
+          "right": 318.7666473388672,
+          "top": 63.5,
+          "bottom": 85.5
+        },
+        "overlap": false,
+        "inside": true,
+        "font": "17px",
+        "width": 390,
+        "height": 844
+      },
+      "enlarged": {
+        "symbol": "NVDA",
+        "price": "192.53",
+        "symbolRect": {
+          "left": 45,
+          "right": 140.23333740234375,
+          "top": 52.5,
+          "bottom": 93.5
+        },
+        "priceRect": {
+          "left": 151.4499969482422,
+          "right": 270.5,
+          "top": 97,
+          "bottom": 139
+        },
+        "overlap": false,
+        "inside": true,
+        "font": "34px",
+        "width": 390,
+        "height": 844
+      },
+      "reflowControl": {
+        "symbol": "NVDA",
+        "price": "192.53",
+        "symbolRect": {
+          "left": 45,
+          "right": 140.23333740234375,
+          "top": 52.5,
+          "bottom": 93.5
+        },
+        "priceRect": {
+          "left": 151.4499969482422,
+          "right": 270.5,
+          "top": 97,
+          "bottom": 139
+        },
+        "overlap": false,
+        "inside": true,
+        "font": "34px",
+        "width": 390,
+        "height": 844
+      },
+      "zoom": {
+        "textZoom": 2,
+        "fullZoom": 1,
+        "url": "http://127.0.0.1:3586/terminal?investigation=10000000-0000-4000-8000-000000000001&revision=1&layout_revision=20000000-0000-4000-8000-000000000001"
+      },
+      "writes": [],
+      "brain": []
+    }
+  ],
+  "checks": {
+    "native_browser": 2,
+    "canonical_responsive": 3,
+    "extended_quote_tablet_mobile": 2,
+    "unit": 27,
+    "ts_exit": 0,
+    "lint_added": 0,
+    "lint_inherited_errors": 53,
+    "lint_inherited_warnings": 14
+  },
+  "pngs": {
+    "original-native200-320.png": "dbd723fb1cadedb73617deda98728dd8c5d1dd9c136af9f08d2fadd416a55751",
+    "native200-320.png": "a8e59e60887da07e69cf6ce2c0cd2d8f861a4060a67a947f6acf919a49117ded",
+    "native200-390.png": "1ab2609e4b07239c6bd51a7c67bedc942071e5f8b6996f0d364f45f26b3c1b0e"
+  }
+}

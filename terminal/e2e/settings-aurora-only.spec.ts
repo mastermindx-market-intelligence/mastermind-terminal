@@ -26,6 +26,8 @@ test("the original account settings structure remains unchanged", async ({ page 
   await expect(card.locator(".acs-seg-b")).toHaveCount(2);
   const mobile = info.project.name === "mobile";
   if (!mobile && info.project.name === "desktop") {
+    // Entry animation scales the rendered bounds until it completes.
+    await expect(card).toHaveCSS("transform", "none");
     const bounds = await card.boundingBox();
     expect(Math.round(bounds?.width ?? 0)).toBe(1140);
     expect(Math.round(bounds?.height ?? 0)).toBe(772);

@@ -1,0 +1,51 @@
+# Conductor fit chip in zh — capture evidence
+# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
+# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
+# capturedAtHead: a13b382fb961c96e0f69e0d04e7985fe9671e1aa
+# capturedAt: 2026-10-24T11:05:33.435Z
+# capturedAtHead is informational. The lock is layoutFiles.
+# before/ holds the same crops at the commit before the fix (before/BEFORE.yml); this tool never rewrites it.
+layoutFiles:
+  terminal/app/dev/theater/page.tsx: "0eac12bf5e47fb2e9add413c94824c047548820e530064ae544f92f8aa21c2af"
+  terminal/app/globals.css: "5a13bcd2fea57f4aeea71aa43bd0a1d58460f8c92bf11e99c9b92d3a1bc06cdf"
+  terminal/components/ChartConductor.tsx: "471a8972a8b8d4775abddc6a455dd50af0943fec18ad5a0a0c1a77243330d8b0"
+  terminal/lib/chartBus.ts: "96c1ac39db798d09f9ffc91223b33ee5e91ef26e793530f9d91ecdab26501b3d"
+  terminal/lib/conductorState.ts: "3333fae411ad63ff4bd19eace00ca93fd36709206b6806b7ef939e5425d0e33c"
+  terminal/lib/i18n.tsx: "0e217ccf6adef6f1848606851c414d35287a787970d175a7a63c71458d392abf"
+theme: dark
+languages: [en, zh]
+viewports:
+  - { name: desktop, width: 1440, height: 900 }
+  - { name: tablet, width: 820, height: 1180 }
+  - { name: mobile, width: 390, height: 844 }
+surface: ChartConductor live-steps rail on /dev/theater; queue drained (7 rows), done plate up, step-2 row scrolled into view
+capture_flag: TERMINAL_E2E_FIXTURE
+capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
+command: |
+  cd terminal
+  node e2e/tools/capture_conductor_fit_badge_zh.cjs
+# chipText: every fit chip's text in the rail when the crop was taken, in row order. The first is
+# the step-2 (ai_tl_1) chip, which every crop shows. Row captions are the demo's English model
+# captions, shown verbatim in both languages by design (conductorState captionFor).
+chipText:
+  rail-1440-zh.png: ["触及 8 次 · 0 ATR", "触及 16 次 · 1.725 ATR", "触及 41 次 · 6.997 ATR"]
+  rail-1440.png: ["8 touches · 0 ATR", "16 touches · 1.725 ATR", "41 touches · 6.997 ATR"]
+  rail-390-zh.png: ["触及 8 次 · 0 ATR", "触及 16 次 · 1.725 ATR", "触及 41 次 · 6.997 ATR"]
+  rail-390.png: ["8 touches · 0 ATR", "16 touches · 1.725 ATR", "41 touches · 6.997 ATR"]
+  rail-820-zh.png: ["触及 8 次 · 0 ATR", "触及 16 次 · 1.725 ATR", "触及 41 次 · 6.997 ATR"]
+  rail-820.png: ["8 touches · 0 ATR", "16 touches · 1.725 ATR", "41 touches · 6.997 ATR"]
+files:
+  - rail-1440-zh.png
+  - rail-1440.png
+  - rail-390-zh.png
+  - rail-390.png
+  - rail-820-zh.png
+  - rail-820.png
+
+iw2Upstream1160Recapture:
+  sourceHead: a13b382fb961c96e0f69e0d04e7985fe9671e1aa
+  historicalManifest: history/before-iw2-recapture-a13b382fb.yml
+  qualification: Actual native producer full matrix; local fixtures only; no runtime or live-account acceptance
+
+# Original captured bytes/identity retained; only unused pending-onboarding copy is projected.
+lexProjection: {"schema":"terminal.lex_capture_projection.v1","omittedProperty":"obDonePrefsSyncing","capturedRawSha256":"0e217ccf6adef6f1848606851c414d35287a787970d175a7a63c71458d392abf","projectedSha256":"811c41ae96cd66bd4e361dbb9cf0a2dbf1b42def38c1a55144f6bb7b9b8e58a5","sourceGitBlob":"4f6155bb0a1ebbe41f58dd2cb4e4a3da0f532b8f","sourceRecoveryCommit":"00bf547ee2473f3d5a2d69416512d16bc466c6ea","captureCommitLocallyAvailable":true}

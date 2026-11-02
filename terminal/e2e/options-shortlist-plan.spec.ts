@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { fixtureAuthSetup, signFixtureAccessToken, createFixtureSession, serializeFixtureSession } from "./fixtures/investigation-auth";
 import { response } from "../lib/__tests__/fixtures/optionsPlanPayoff";
 import type { PlanExpiryRequest } from "../lib/optionsPlanPayoff";
 
@@ -10,34 +11,21 @@ const rows = [
   { root: "SPY", right: "P", exp: "2026-11-06", strike: 764, mid: null, oi: 30, oi_prev: 15, d_oi: 15 },
   { root: "SPY", right: "C", exp: "2026-10-23", strike: 900, mid: 1, oi: 20, oi_prev: 10, d_oi: 10 },
 ];
-const userA = { id: "00000000-0000-4000-8000-000000000001", aud: "authenticated", role: "authenticated", email: "responsive@example.com", app_metadata: {}, user_metadata: {}, created_at: "2026-10-20T00:00:00Z" };
-const userB = { ...userA, id: "00000000-0000-4000-8000-000000000002" };
-const session = (user = userA) => ({ access_token: "local-plan-fixture-only", refresh_token: "local-plan-fixture-only", token_type: "bearer", expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600, user });
-async function changeFixtureAccount(page: Page, user: typeof userA) {
-  await page.evaluate(({ session }) => {
-    const channel = new BroadcastChannel("sb-127-auth-token");
+async function changeFixtureAccount(page: Page, storageKey: string, principal: string) {
+  const session = createFixtureSession(signFixtureAccessToken({ sub: principal }));
+  await page.evaluate(({ storageKey, session }) => {
+    const channel = new BroadcastChannel(storageKey);
     channel.postMessage({ event: "SIGNED_IN", session }); channel.close();
-  }, { session: session(user) });
+  }, { storageKey, session });
 }
 const pins = (page: Page) => page.locator("table.scr [data-contract-pin]");
 const tray = (page: Page) => page.locator("[data-contract-shortlist]");
 for (const lang of ["en", "zh"] as const) {
-  test(`mounted dated shortlist → authored Plan → curve/unavailable/scope reset ${lang}`, async ({ page, context, baseURL }, info) => {
+  test(`mounted dated shortlist → authored Plan → curve/unavailable/scope reset ${lang}`, async ({ page, baseURL }, info) => {
     test.setTimeout(90_000);
     const t = (en: string, zh: string) => lang === "zh" ? zh : en;
-    await context.addCookies([{ name: "sb-127-auth-token.0", value: "base64-" + Buffer.from(JSON.stringify(session())).toString("base64url"), url: baseURL! }]);
-    await page.addInitScript(({ lang, user }) => {
-      localStorage.setItem("mm.lang", lang);
-      const originalFetch = window.fetch.bind(window);
-      window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
-        const url = new URL(typeof input === "string" ? input : input instanceof Request ? input.url : input.toString(), window.location.href);
-        if (url.pathname.startsWith("/auth/v1/")) {
-          if (url.origin !== "http://127.0.0.1:54321" || url.pathname !== "/auth/v1/user") throw Error("Unexpected fixture Auth operation");
-          return new Response(JSON.stringify(user), { headers: { "content-type": "application/json" } });
-        }
-        return originalFetch(input, init);
-      };
-    }, { lang, user: userA });
+    const auth = await fixtureAuthSetup(page, baseURL!);
+    await page.addInitScript(lang => localStorage.setItem("mm.lang", lang), lang);
     await page.route(/\/api\/flow\?f=oi$/, route => route.fulfill({ json: { schema: "options_hub.oi_movers/v1", asof: "2026-10-20T08:43:25Z", stale: true, movers: rows } }));
     let requests = 0;
     await page.route("**/api/options/plan/expiry", route => {
@@ -59,6 +47,10 @@ for (const lang of ["en", "zh"] as const) {
     await page.goto("/options?tab=screener");
     await page.getByRole("button", { name: t("ΔOI Builds", "持仓增长"), exact: true }).click();
     await expect(pins(page)).toHaveCount(3);
+    // The actual SDK must verify before selection; pending -> ready correctly
+    // retires an earlier selection and cannot be simulated by a user object.
+    const ready = page.getByRole("button", { name: t("Open saved research", "打开已保存研究"), exact: true });
+    await expect(ready).toBeEnabled();
     const before = await page.locator("table.scr tbody").innerText();
     await pins(page).nth(0).click();
     const open = () => tray(page).getByRole("button", { name: t("Plan from pinned contracts", "用固定合约创建计划"), exact: true });
@@ -134,10 +126,46 @@ for (const lang of ["en", "zh"] as const) {
     await pins(page).nth(2).click(); await pins(page).nth(0).click();
     await open().click(); await author(); await calculate().click();
     await expect(panel().locator('svg[role="img"]')).toBeVisible(); expect(requests).toBe(3);
-    await changeFixtureAccount(page, userB);
+    await changeFixtureAccount(page, auth.storageKey, "e2e00000-0000-4000-8000-000000000002");
     await expect(panel()).toHaveCount(0); await expect(tray(page).locator("li[data-pin-key]")).toHaveCount(0);
-    await changeFixtureAccount(page, userA);
+    await expect(ready).toBeEnabled();
+    // A real B selection makes returning A's retirement observable, rather than
+    // letting an already-empty tray or B's ready state stand in for A's return.
+    await pins(page).nth(0).click(); await expect(tray(page).locator("li[data-pin-key]")).toHaveCount(1);
+    await changeFixtureAccount(page, auth.storageKey, auth.sub);
     await expect(panel()).toHaveCount(0); await expect(tray(page).locator("li[data-pin-key]")).toHaveCount(0);
+    await expect(ready).toBeEnabled();
     expect(requests).toBe(3);
   });
 }
+
+// Retain the old malformed token as a real negative control: a declared user and
+// valid authored inputs cannot replace the actual SDK's verified lifecycle.
+test("unverified legacy session cannot dispatch an authored Plan calculation", async ({ page, context, baseURL }) => {
+  const auth = await fixtureAuthSetup(page, baseURL!);
+  const invalid = createFixtureSession(signFixtureAccessToken({ sub: auth.sub }));
+  invalid.access_token = "local-plan-fixture-only";
+  await context.clearCookies({ name: new RegExp(`^${auth.storageKey}(?:\\.|$)`) });
+  await context.addCookies(serializeFixtureSession(auth.storageKey, invalid).map(cookie => ({ ...cookie, url: baseURL! })));
+  await page.addInitScript(() => localStorage.setItem("mm.lang", "en"));
+  await page.route(/\/api\/flow\?f=oi$/, route => route.fulfill({ json: { schema: "options_hub.oi_movers/v1", asof: "2026-10-20T08:43:25Z", stale: true, movers: [rows[0]] } }));
+  let requests = 0;
+  await page.route("**/api/options/plan/expiry", route => {
+    requests++;
+    return route.fulfill({ json: response(route.request().postDataJSON() as PlanExpiryRequest) });
+  });
+  await page.goto("/options?tab=screener");
+  await page.getByRole("button", { name: "ΔOI Builds", exact: true }).click();
+  await expect(pins(page)).toHaveCount(1); await pins(page).first().click();
+  await tray(page).getByRole("button", { name: "Plan from pinned contracts", exact: true }).click();
+  const panel = page.getByTestId("options-plan-payoff-panel");
+  await panel.getByRole("combobox", { name: "Your assumed side", exact: true }).selectOption("buy");
+  await panel.getByLabel("Your assumed quantity — contracts", { exact: true }).fill("1");
+  await panel.getByLabel("Your entry assumption — premium per unit", { exact: true }).fill("3");
+  await panel.getByRole("combobox", { name: "Assumed premium denomination", exact: true }).selectOption("USD");
+  await panel.getByRole("button", { name: "Calculate expiry payoff", exact: true }).click();
+  await expect(panel.getByRole("alert")).toHaveText("Sign in with Options access to check terms. Your draft stays here.");
+  await expect(panel.locator('svg[role="img"]')).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Open saved research", exact: true })).toBeDisabled();
+  expect(requests).toBe(0);
+});

@@ -1,0 +1,1184 @@
+[
+  {
+    "lang": "en",
+    "project": "desktop",
+    "evidence": [
+      {
+        "mode": {
+          "name": "light",
+          "theme": "light",
+          "auto": "0",
+          "hour": 12,
+          "expected": "light"
+        },
+        "metrics": {
+          "x": 510,
+          "width": 546,
+          "viewport": 1440,
+          "overflow": 0,
+          "color": "rgb(28, 36, 48)",
+          "background": "rgb(247, 248, 250)",
+          "hour": 12,
+          "theme": "light",
+          "cardBackground": "rgb(238, 241, 246)"
+        },
+        "pinned": "ba18a1e2-70e2-4637-86f6-d57bdb634477",
+        "ownerCurrent": "b73a6398-9518-478c-a94b-e5b1f9762603",
+        "ownerUnchanged": true,
+        "ownerWrites": 0,
+        "authWrites": 0
+      },
+      {
+        "mode": {
+          "name": "auto-day",
+          "theme": "dark",
+          "auto": "1",
+          "hour": 12,
+          "expected": "light"
+        },
+        "metrics": {
+          "x": 510,
+          "width": 546,
+          "viewport": 1440,
+          "overflow": 0,
+          "color": "rgb(28, 36, 48)",
+          "background": "rgb(247, 248, 250)",
+          "hour": 12,
+          "theme": "light",
+          "cardBackground": "rgb(238, 241, 246)"
+        },
+        "pinned": "ba18a1e2-70e2-4637-86f6-d57bdb634477",
+        "ownerCurrent": "b73a6398-9518-478c-a94b-e5b1f9762603",
+        "ownerUnchanged": true,
+        "ownerWrites": 0,
+        "authWrites": 0
+      },
+      {
+        "mode": {
+          "name": "auto-night",
+          "theme": "light",
+          "auto": "1",
+          "hour": 22,
+          "expected": "dark"
+        },
+        "metrics": {
+          "x": 510,
+          "width": 546,
+          "viewport": 1440,
+          "overflow": 0,
+          "color": "rgb(214, 218, 227)",
+          "background": "rgb(10, 11, 14)",
+          "hour": 22,
+          "theme": "dark",
+          "cardBackground": "rgb(30, 34, 42)"
+        },
+        "pinned": "ba18a1e2-70e2-4637-86f6-d57bdb634477",
+        "ownerCurrent": "b73a6398-9518-478c-a94b-e5b1f9762603",
+        "ownerUnchanged": true,
+        "ownerWrites": 0,
+        "authWrites": 0
+      }
+    ],
+    "reads": [
+      {
+        "id": "bc9b3fde-72d1-43ac-9dad-109dc99b274e",
+        "revision": 1,
+        "version": "ba18a1e2-70e2-4637-86f6-d57bdb634477"
+      },
+      {
+        "id": "bc9b3fde-72d1-43ac-9dad-109dc99b274e",
+        "revision": 1,
+        "version": "ba18a1e2-70e2-4637-86f6-d57bdb634477"
+      },
+      {
+        "id": "bc9b3fde-72d1-43ac-9dad-109dc99b274e",
+        "revision": 1,
+        "version": "ba18a1e2-70e2-4637-86f6-d57bdb634477"
+      }
+    ],
+    "scope": "Actual local mounted consumer with synthetic account metadata and isolated Thesis owner; Investigation transport fixture. No standalone inspector theme or live claim.",
+    "contrast": {
+      "light": [
+        {
+          "text": "Catalysts",
+          "color": "color(srgb 0.305647 0.330118 0.366824)",
+          "background": "rgb(238, 241, 246)",
+          "fontSize": "13px",
+          "ratio": 6.727360252985324
+        },
+        {
+          "text": "Falsifiers",
+          "color": "color(srgb 0.305647 0.330118 0.366824)",
+          "background": "rgb(238, 241, 246)",
+          "fontSize": "13px",
+          "ratio": 6.727360252985324
+        },
+        {
+          "text": "Risks",
+          "color": "color(srgb 0.305647 0.330118 0.366824)",
+          "background": "rgb(238, 241, 246)",
+          "fontSize": "13px",
+          "ratio": 6.727360252985324
+        },
+        {
+          "text": "Version recorded",
+          "color": "color(srgb 0.305647 0.330118 0.366824)",
+          "background": "rgb(238, 241, 246)",
+          "fontSize": "13px",
+          "ratio": 6.727360252985324
+        }
+      ],
+      "auto-day": [
+        {
+          "text": "Catalysts",
+          "color": "color(srgb 0.305647 0.330118 0.366824)",
+          "background": "rgb(238, 241, 246)",
+          "fontSize": "13px",
+          "ratio": 6.727360252985324
+        },
+        {
+          "text": "Falsifiers",
+          "color": "color(srgb 0.305647 0.330118 0.366824)",
+          "background": "rgb(238, 241, 246)",
+          "fontSize": "13px",
+          "ratio": 6.727360252985324
+        },
+        {
+          "text": "Risks",
+          "color": "color(srgb 0.305647 0.330118 0.366824)",
+          "background": "rgb(238, 241, 246)",
+          "fontSize": "13px",
+          "ratio": 6.727360252985324
+        },
+        {
+          "text": "Version recorded",
+          "color": "color(srgb 0.305647 0.330118 0.366824)",
+          "background": "rgb(238, 241, 246)",
+          "fontSize": "13px",
+          "ratio": 6.727360252985324
+        }
+      ],
+      "auto-night": [
+        {
+          "text": "Catalysts",
+          "color": "rgb(155, 163, 180)",
+          "background": "rgb(30, 34, 42)",
+          "fontSize": "13px",
+          "ratio": 6.293717295748454
+        },
+        {
+          "text": "Falsifiers",
+          "color": "rgb(155, 163, 180)",
+          "background": "rgb(30, 34, 42)",
+          "fontSize": "13px",
+          "ratio": 6.293717295748454
+        },
+        {
+          "text": "Risks",
+          "color": "rgb(155, 163, 180)",
+          "background": "rgb(30, 34, 42)",
+          "fontSize": "13px",
+          "ratio": 6.293717295748454
+        },
+        {
+          "text": "Version recorded",
+          "color": "rgb(155, 163, 180)",
+          "background": "rgb(30, 34, 42)",
+          "fontSize": "13px",
+          "ratio": 6.293717295748454
+        }
+      ]
+    },
+    "sourceBase": "ccd51f9c8",
+    "testedSourceSha256": {
+      "terminal/components/workspaces/InvestigationTheses.tsx": "6b7a1286a289daaf7af2031b42246d39618d40ca0c0bf2890f5aa10d01a443b1",
+      "terminal/components/workspaces/InvestigationWorkspace.module.css": "cb80c59f146884aeea3e6ba8957a13ba17db64b7b310bc32de848ab2ffd54a83",
+      "terminal/e2e/investigation-theses.spec.ts": "ff9e7e7ca5c930171d65777733a069e53c9fb727979c1c05be59c8f452859e48"
+    }
+  },
+  {
+    "lang": "en",
+    "project": "tablet",
+    "evidence": [
+      {
+        "mode": {
+          "name": "light",
+          "theme": "light",
+          "auto": "0",
+          "hour": 12,
+          "expected": "light"
+        },
+        "metrics": {
+          "x": 362,
+          "width": 394,
+          "viewport": 820,
+          "overflow": 0,
+          "color": "rgb(28, 36, 48)",
+          "background": "rgb(247, 248, 250)",
+          "hour": 12,
+          "theme": "light",
+          "cardBackground": "rgb(238, 241, 246)"
+        },
+        "pinned": "76e320f0-75b5-4d47-bf3a-90da4429a2ce",
+        "ownerCurrent": "33192a84-6538-42a4-80c0-035dbe334b25",
+        "ownerUnchanged": true,
+        "ownerWrites": 0,
+        "authWrites": 0
+      },
+      {
+        "mode": {
+          "name": "auto-day",
+          "theme": "dark",
+          "auto": "1",
+          "hour": 12,
+          "expected": "light"
+        },
+        "metrics": {
+          "x": 362,
+          "width": 394,
+          "viewport": 820,
+          "overflow": 0,
+          "color": "rgb(28, 36, 48)",
+          "background": "rgb(247, 248, 250)",
+          "hour": 12,
+          "theme": "light",
+          "cardBackground": "rgb(238, 241, 246)"
+        },
+        "pinned": "76e320f0-75b5-4d47-bf3a-90da4429a2ce",
+        "ownerCurrent": "33192a84-6538-42a4-80c0-035dbe334b25",
+        "ownerUnchanged": true,
+        "ownerWrites": 0,
+        "authWrites": 0
+      },
+      {
+        "mode": {
+          "name": "auto-night",
+          "theme": "light",
+          "auto": "1",
+          "hour": 22,
+          "expected": "dark"
+        },
+        "metrics": {
+          "x": 362,
+          "width": 394,
+          "viewport": 820,
+          "overflow": 0,
+          "color": "rgb(214, 218, 227)",
+          "background": "rgb(10, 11, 14)",
+          "hour": 22,
+          "theme": "dark",
+          "cardBackground": "rgb(30, 34, 42)"
+        },
+        "pinned": "76e320f0-75b5-4d47-bf3a-90da4429a2ce",
+        "ownerCurrent": "33192a84-6538-42a4-80c0-035dbe334b25",
+        "ownerUnchanged": true,
+        "ownerWrites": 0,
+        "authWrites": 0
+      }
+    ],
+    "reads": [
+      {
+        "id": "f8997986-4f61-4a6d-bec8-3985d88b609c",
+        "revision": 1,
+        "version": "76e320f0-75b5-4d47-bf3a-90da4429a2ce"
+      },
+      {
+        "id": "f8997986-4f61-4a6d-bec8-3985d88b609c",
+        "revision": 1,
+        "version": "76e320f0-75b5-4d47-bf3a-90da4429a2ce"
+      },
+      {
+        "id": "f8997986-4f61-4a6d-bec8-3985d88b609c",
+        "revision": 1,
+        "version": "76e320f0-75b5-4d47-bf3a-90da4429a2ce"
+      }
+    ],
+    "scope": "Actual local mounted consumer with synthetic account metadata and isolated Thesis owner; Investigation transport fixture. No standalone inspector theme or live claim.",
+    "contrast": {
+      "light": [
+        {
+          "text": "Catalysts",
+          "color": "color(srgb 0.305647 0.330118 0.366824)",
+          "background": "rgb(238, 241, 246)",
+          "fontSize": "13px",
+          "ratio": 6.727360252985324
+        },
+        {
+          "text": "Falsifiers",
+          "color": "color(srgb 0.305647 0.330118 0.366824)",
+          "background": "rgb(238, 241, 246)",
+          "fontSize": "13px",
+          "ratio": 6.727360252985324
+        },
+        {
+          "text": "Risks",
+          "color": "color(srgb 0.305647 0.330118 0.366824)",
+          "background": "rgb(238, 241, 246)",
+          "fontSize": "13px",
+          "ratio": 6.727360252985324
+        },
+        {
+          "text": "Version recorded",
+          "color": "color(srgb 0.305647 0.330118 0.366824)",
+          "background": "rgb(238, 241, 246)",
+          "fontSize": "13px",
+          "ratio": 6.727360252985324
+        }
+      ],
+      "auto-day": [
+        {
+          "text": "Catalysts",
+          "color": "color(srgb 0.305647 0.330118 0.366824)",
+          "background": "rgb(238, 241, 246)",
+          "fontSize": "13px",
+          "ratio": 6.727360252985324
+        },
+        {
+          "text": "Falsifiers",
+          "color": "color(srgb 0.305647 0.330118 0.366824)",
+          "background": "rgb(238, 241, 246)",
+          "fontSize": "13px",
+          "ratio": 6.727360252985324
+        },
+        {
+          "text": "Risks",
+          "color": "color(srgb 0.305647 0.330118 0.366824)",
+          "background": "rgb(238, 241, 246)",
+          "fontSize": "13px",
+          "ratio": 6.727360252985324
+        },
+        {
+          "text": "Version recorded",
+          "color": "color(srgb 0.305647 0.330118 0.366824)",
+          "background": "rgb(238, 241, 246)",
+          "fontSize": "13px",
+          "ratio": 6.727360252985324
+        }
+      ],
+      "auto-night": [
+        {
+          "text": "Catalysts",
+          "color": "rgb(155, 163, 180)",
+          "background": "rgb(30, 34, 42)",
+          "fontSize": "13px",
+          "ratio": 6.293717295748454
+        },
+        {
+          "text": "Falsifiers",
+          "color": "rgb(155, 163, 180)",
+          "background": "rgb(30, 34, 42)",
+          "fontSize": "13px",
+          "ratio": 6.293717295748454
+        },
+        {
+          "text": "Risks",
+          "color": "rgb(155, 163, 180)",
+          "background": "rgb(30, 34, 42)",
+          "fontSize": "13px",
+          "ratio": 6.293717295748454
+        },
+        {
+          "text": "Version recorded",
+          "color": "rgb(155, 163, 180)",
+          "background": "rgb(30, 34, 42)",
+          "fontSize": "13px",
+          "ratio": 6.293717295748454
+        }
+      ]
+    },
+    "sourceBase": "ccd51f9c8",
+    "testedSourceSha256": {
+      "terminal/components/workspaces/InvestigationTheses.tsx": "6b7a1286a289daaf7af2031b42246d39618d40ca0c0bf2890f5aa10d01a443b1",
+      "terminal/components/workspaces/InvestigationWorkspace.module.css": "cb80c59f146884aeea3e6ba8957a13ba17db64b7b310bc32de848ab2ffd54a83",
+      "terminal/e2e/investigation-theses.spec.ts": "ff9e7e7ca5c930171d65777733a069e53c9fb727979c1c05be59c8f452859e48"
+    }
+  },
+  {
+    "lang": "en",
+    "project": "mobile",
+    "evidence": [
+      {
+        "mode": {
+          "name": "light",
+          "theme": "light",
+          "auto": "0",
+          "hour": 12,
+          "expected": "light"
+        },
+        "metrics": {
+          "x": 48,
+          "width": 294,
+          "viewport": 390,
+          "overflow": 0,
+          "color": "rgb(28, 36, 48)",
+          "background": "rgb(247, 248, 250)",
+          "hour": 12,
+          "theme": "light",
+          "cardBackground": "rgb(238, 241, 246)"
+        },
+        "pinned": "cff38db9-1c02-4e65-be17-b7e187f068c9",
+        "ownerCurrent": "8bab84af-9e0e-418d-9267-2bd26181f434",
+        "ownerUnchanged": true,
+        "ownerWrites": 0,
+        "authWrites": 0
+      },
+      {
+        "mode": {
+          "name": "auto-day",
+          "theme": "dark",
+          "auto": "1",
+          "hour": 12,
+          "expected": "light"
+        },
+        "metrics": {
+          "x": 48,
+          "width": 294,
+          "viewport": 390,
+          "overflow": 0,
+          "color": "rgb(28, 36, 48)",
+          "background": "rgb(247, 248, 250)",
+          "hour": 12,
+          "theme": "light",
+          "cardBackground": "rgb(238, 241, 246)"
+        },
+        "pinned": "cff38db9-1c02-4e65-be17-b7e187f068c9",
+        "ownerCurrent": "8bab84af-9e0e-418d-9267-2bd26181f434",
+        "ownerUnchanged": true,
+        "ownerWrites": 0,
+        "authWrites": 0
+      },
+      {
+        "mode": {
+          "name": "auto-night",
+          "theme": "light",
+          "auto": "1",
+          "hour": 22,
+          "expected": "dark"
+        },
+        "metrics": {
+          "x": 48,
+          "width": 294,
+          "viewport": 390,
+          "overflow": 0,
+          "color": "rgb(214, 218, 227)",
+          "background": "rgb(10, 11, 14)",
+          "hour": 22,
+          "theme": "dark",
+          "cardBackground": "rgb(30, 34, 42)"
+        },
+        "pinned": "cff38db9-1c02-4e65-be17-b7e187f068c9",
+        "ownerCurrent": "8bab84af-9e0e-418d-9267-2bd26181f434",
+        "ownerUnchanged": true,
+        "ownerWrites": 0,
+        "authWrites": 0
+      }
+    ],
+    "reads": [
+      {
+        "id": "ad9822fd-8b16-4fc9-a55d-c8d2acd51a9a",
+        "revision": 1,
+        "version": "cff38db9-1c02-4e65-be17-b7e187f068c9"
+      },
+      {
+        "id": "ad9822fd-8b16-4fc9-a55d-c8d2acd51a9a",
+        "revision": 1,
+        "version": "cff38db9-1c02-4e65-be17-b7e187f068c9"
+      },
+      {
+        "id": "ad9822fd-8b16-4fc9-a55d-c8d2acd51a9a",
+        "revision": 1,
+        "version": "cff38db9-1c02-4e65-be17-b7e187f068c9"
+      }
+    ],
+    "scope": "Actual local mounted consumer with synthetic account metadata and isolated Thesis owner; Investigation transport fixture. No standalone inspector theme or live claim.",
+    "contrast": {
+      "light": [
+        {
+          "text": "Catalysts",
+          "color": "color(srgb 0.305647 0.330118 0.366824)",
+          "background": "rgb(238, 241, 246)",
+          "fontSize": "13px",
+          "ratio": 6.727360252985324
+        },
+        {
+          "text": "Falsifiers",
+          "color": "color(srgb 0.305647 0.330118 0.366824)",
+          "background": "rgb(238, 241, 246)",
+          "fontSize": "13px",
+          "ratio": 6.727360252985324
+        },
+        {
+          "text": "Risks",
+          "color": "color(srgb 0.305647 0.330118 0.366824)",
+          "background": "rgb(238, 241, 246)",
+          "fontSize": "13px",
+          "ratio": 6.727360252985324
+        },
+        {
+          "text": "Version recorded",
+          "color": "color(srgb 0.305647 0.330118 0.366824)",
+          "background": "rgb(238, 241, 246)",
+          "fontSize": "13px",
+          "ratio": 6.727360252985324
+        }
+      ],
+      "auto-day": [
+        {
+          "text": "Catalysts",
+          "color": "color(srgb 0.305647 0.330118 0.366824)",
+          "background": "rgb(238, 241, 246)",
+          "fontSize": "13px",
+          "ratio": 6.727360252985324
+        },
+        {
+          "text": "Falsifiers",
+          "color": "color(srgb 0.305647 0.330118 0.366824)",
+          "background": "rgb(238, 241, 246)",
+          "fontSize": "13px",
+          "ratio": 6.727360252985324
+        },
+        {
+          "text": "Risks",
+          "color": "color(srgb 0.305647 0.330118 0.366824)",
+          "background": "rgb(238, 241, 246)",
+          "fontSize": "13px",
+          "ratio": 6.727360252985324
+        },
+        {
+          "text": "Version recorded",
+          "color": "color(srgb 0.305647 0.330118 0.366824)",
+          "background": "rgb(238, 241, 246)",
+          "fontSize": "13px",
+          "ratio": 6.727360252985324
+        }
+      ],
+      "auto-night": [
+        {
+          "text": "Catalysts",
+          "color": "rgb(155, 163, 180)",
+          "background": "rgb(30, 34, 42)",
+          "fontSize": "13px",
+          "ratio": 6.293717295748454
+        },
+        {
+          "text": "Falsifiers",
+          "color": "rgb(155, 163, 180)",
+          "background": "rgb(30, 34, 42)",
+          "fontSize": "13px",
+          "ratio": 6.293717295748454
+        },
+        {
+          "text": "Risks",
+          "color": "rgb(155, 163, 180)",
+          "background": "rgb(30, 34, 42)",
+          "fontSize": "13px",
+          "ratio": 6.293717295748454
+        },
+        {
+          "text": "Version recorded",
+          "color": "rgb(155, 163, 180)",
+          "background": "rgb(30, 34, 42)",
+          "fontSize": "13px",
+          "ratio": 6.293717295748454
+        }
+      ]
+    },
+    "sourceBase": "ccd51f9c8",
+    "testedSourceSha256": {
+      "terminal/components/workspaces/InvestigationTheses.tsx": "6b7a1286a289daaf7af2031b42246d39618d40ca0c0bf2890f5aa10d01a443b1",
+      "terminal/components/workspaces/InvestigationWorkspace.module.css": "cb80c59f146884aeea3e6ba8957a13ba17db64b7b310bc32de848ab2ffd54a83",
+      "terminal/e2e/investigation-theses.spec.ts": "ff9e7e7ca5c930171d65777733a069e53c9fb727979c1c05be59c8f452859e48"
+    }
+  },
+  {
+    "lang": "zh",
+    "project": "desktop",
+    "evidence": [
+      {
+        "mode": {
+          "name": "light",
+          "theme": "light",
+          "auto": "0",
+          "hour": 12,
+          "expected": "light"
+        },
+        "metrics": {
+          "x": 510,
+          "width": 546,
+          "viewport": 1440,
+          "overflow": 0,
+          "color": "rgb(28, 36, 48)",
+          "background": "rgb(247, 248, 250)",
+          "hour": 12,
+          "theme": "light",
+          "cardBackground": "rgb(238, 241, 246)"
+        },
+        "pinned": "3696f861-5fe6-4668-b6fe-2ceaa30561c3",
+        "ownerCurrent": "9b75b359-827f-4133-9f32-be9e19e942e8",
+        "ownerUnchanged": true,
+        "ownerWrites": 0,
+        "authWrites": 0
+      },
+      {
+        "mode": {
+          "name": "auto-day",
+          "theme": "dark",
+          "auto": "1",
+          "hour": 12,
+          "expected": "light"
+        },
+        "metrics": {
+          "x": 510,
+          "width": 546,
+          "viewport": 1440,
+          "overflow": 0,
+          "color": "rgb(28, 36, 48)",
+          "background": "rgb(247, 248, 250)",
+          "hour": 12,
+          "theme": "light",
+          "cardBackground": "rgb(238, 241, 246)"
+        },
+        "pinned": "3696f861-5fe6-4668-b6fe-2ceaa30561c3",
+        "ownerCurrent": "9b75b359-827f-4133-9f32-be9e19e942e8",
+        "ownerUnchanged": true,
+        "ownerWrites": 0,
+        "authWrites": 0
+      },
+      {
+        "mode": {
+          "name": "auto-night",
+          "theme": "light",
+          "auto": "1",
+          "hour": 22,
+          "expected": "dark"
+        },
+        "metrics": {
+          "x": 510,
+          "width": 546,
+          "viewport": 1440,
+          "overflow": 0,
+          "color": "rgb(214, 218, 227)",
+          "background": "rgb(10, 11, 14)",
+          "hour": 22,
+          "theme": "dark",
+          "cardBackground": "rgb(30, 34, 42)"
+        },
+        "pinned": "3696f861-5fe6-4668-b6fe-2ceaa30561c3",
+        "ownerCurrent": "9b75b359-827f-4133-9f32-be9e19e942e8",
+        "ownerUnchanged": true,
+        "ownerWrites": 0,
+        "authWrites": 0
+      }
+    ],
+    "reads": [
+      {
+        "id": "81e104a3-f8d6-424e-b252-bd923a5ede6d",
+        "revision": 1,
+        "version": "3696f861-5fe6-4668-b6fe-2ceaa30561c3"
+      },
+      {
+        "id": "81e104a3-f8d6-424e-b252-bd923a5ede6d",
+        "revision": 1,
+        "version": "3696f861-5fe6-4668-b6fe-2ceaa30561c3"
+      },
+      {
+        "id": "81e104a3-f8d6-424e-b252-bd923a5ede6d",
+        "revision": 1,
+        "version": "3696f861-5fe6-4668-b6fe-2ceaa30561c3"
+      }
+    ],
+    "scope": "Actual local mounted consumer with synthetic account metadata and isolated Thesis owner; Investigation transport fixture. No standalone inspector theme or live claim.",
+    "contrast": {
+      "light": [
+        {
+          "text": "催化因素",
+          "color": "color(srgb 0.305647 0.330118 0.366824)",
+          "background": "rgb(238, 241, 246)",
+          "fontSize": "13px",
+          "ratio": 6.727360252985324
+        },
+        {
+          "text": "证伪条件",
+          "color": "color(srgb 0.305647 0.330118 0.366824)",
+          "background": "rgb(238, 241, 246)",
+          "fontSize": "13px",
+          "ratio": 6.727360252985324
+        },
+        {
+          "text": "风险",
+          "color": "color(srgb 0.305647 0.330118 0.366824)",
+          "background": "rgb(238, 241, 246)",
+          "fontSize": "13px",
+          "ratio": 6.727360252985324
+        },
+        {
+          "text": "版本记录时间",
+          "color": "color(srgb 0.305647 0.330118 0.366824)",
+          "background": "rgb(238, 241, 246)",
+          "fontSize": "13px",
+          "ratio": 6.727360252985324
+        }
+      ],
+      "auto-day": [
+        {
+          "text": "催化因素",
+          "color": "color(srgb 0.305647 0.330118 0.366824)",
+          "background": "rgb(238, 241, 246)",
+          "fontSize": "13px",
+          "ratio": 6.727360252985324
+        },
+        {
+          "text": "证伪条件",
+          "color": "color(srgb 0.305647 0.330118 0.366824)",
+          "background": "rgb(238, 241, 246)",
+          "fontSize": "13px",
+          "ratio": 6.727360252985324
+        },
+        {
+          "text": "风险",
+          "color": "color(srgb 0.305647 0.330118 0.366824)",
+          "background": "rgb(238, 241, 246)",
+          "fontSize": "13px",
+          "ratio": 6.727360252985324
+        },
+        {
+          "text": "版本记录时间",
+          "color": "color(srgb 0.305647 0.330118 0.366824)",
+          "background": "rgb(238, 241, 246)",
+          "fontSize": "13px",
+          "ratio": 6.727360252985324
+        }
+      ],
+      "auto-night": [
+        {
+          "text": "催化因素",
+          "color": "rgb(155, 163, 180)",
+          "background": "rgb(30, 34, 42)",
+          "fontSize": "13px",
+          "ratio": 6.293717295748454
+        },
+        {
+          "text": "证伪条件",
+          "color": "rgb(155, 163, 180)",
+          "background": "rgb(30, 34, 42)",
+          "fontSize": "13px",
+          "ratio": 6.293717295748454
+        },
+        {
+          "text": "风险",
+          "color": "rgb(155, 163, 180)",
+          "background": "rgb(30, 34, 42)",
+          "fontSize": "13px",
+          "ratio": 6.293717295748454
+        },
+        {
+          "text": "版本记录时间",
+          "color": "rgb(155, 163, 180)",
+          "background": "rgb(30, 34, 42)",
+          "fontSize": "13px",
+          "ratio": 6.293717295748454
+        }
+      ]
+    },
+    "sourceBase": "ccd51f9c8",
+    "testedSourceSha256": {
+      "terminal/components/workspaces/InvestigationTheses.tsx": "6b7a1286a289daaf7af2031b42246d39618d40ca0c0bf2890f5aa10d01a443b1",
+      "terminal/components/workspaces/InvestigationWorkspace.module.css": "cb80c59f146884aeea3e6ba8957a13ba17db64b7b310bc32de848ab2ffd54a83",
+      "terminal/e2e/investigation-theses.spec.ts": "ff9e7e7ca5c930171d65777733a069e53c9fb727979c1c05be59c8f452859e48"
+    }
+  },
+  {
+    "lang": "zh",
+    "project": "tablet",
+    "evidence": [
+      {
+        "mode": {
+          "name": "light",
+          "theme": "light",
+          "auto": "0",
+          "hour": 12,
+          "expected": "light"
+        },
+        "metrics": {
+          "x": 362,
+          "width": 394,
+          "viewport": 820,
+          "overflow": 0,
+          "color": "rgb(28, 36, 48)",
+          "background": "rgb(247, 248, 250)",
+          "hour": 12,
+          "theme": "light",
+          "cardBackground": "rgb(238, 241, 246)"
+        },
+        "pinned": "e7c8eff4-c115-4f35-b1cd-974b6ff77f9f",
+        "ownerCurrent": "c05447f2-e3ea-47a8-aead-758eebb289d6",
+        "ownerUnchanged": true,
+        "ownerWrites": 0,
+        "authWrites": 0
+      },
+      {
+        "mode": {
+          "name": "auto-day",
+          "theme": "dark",
+          "auto": "1",
+          "hour": 12,
+          "expected": "light"
+        },
+        "metrics": {
+          "x": 362,
+          "width": 394,
+          "viewport": 820,
+          "overflow": 0,
+          "color": "rgb(28, 36, 48)",
+          "background": "rgb(247, 248, 250)",
+          "hour": 12,
+          "theme": "light",
+          "cardBackground": "rgb(238, 241, 246)"
+        },
+        "pinned": "e7c8eff4-c115-4f35-b1cd-974b6ff77f9f",
+        "ownerCurrent": "c05447f2-e3ea-47a8-aead-758eebb289d6",
+        "ownerUnchanged": true,
+        "ownerWrites": 0,
+        "authWrites": 0
+      },
+      {
+        "mode": {
+          "name": "auto-night",
+          "theme": "light",
+          "auto": "1",
+          "hour": 22,
+          "expected": "dark"
+        },
+        "metrics": {
+          "x": 362,
+          "width": 394,
+          "viewport": 820,
+          "overflow": 0,
+          "color": "rgb(214, 218, 227)",
+          "background": "rgb(10, 11, 14)",
+          "hour": 22,
+          "theme": "dark",
+          "cardBackground": "rgb(30, 34, 42)"
+        },
+        "pinned": "e7c8eff4-c115-4f35-b1cd-974b6ff77f9f",
+        "ownerCurrent": "c05447f2-e3ea-47a8-aead-758eebb289d6",
+        "ownerUnchanged": true,
+        "ownerWrites": 0,
+        "authWrites": 0
+      }
+    ],
+    "reads": [
+      {
+        "id": "b45efe50-378f-4b3c-982c-4439477cb92c",
+        "revision": 1,
+        "version": "e7c8eff4-c115-4f35-b1cd-974b6ff77f9f"
+      },
+      {
+        "id": "b45efe50-378f-4b3c-982c-4439477cb92c",
+        "revision": 1,
+        "version": "e7c8eff4-c115-4f35-b1cd-974b6ff77f9f"
+      },
+      {
+        "id": "b45efe50-378f-4b3c-982c-4439477cb92c",
+        "revision": 1,
+        "version": "e7c8eff4-c115-4f35-b1cd-974b6ff77f9f"
+      }
+    ],
+    "scope": "Actual local mounted consumer with synthetic account metadata and isolated Thesis owner; Investigation transport fixture. No standalone inspector theme or live claim.",
+    "contrast": {
+      "light": [
+        {
+          "text": "催化因素",
+          "color": "color(srgb 0.305647 0.330118 0.366824)",
+          "background": "rgb(238, 241, 246)",
+          "fontSize": "13px",
+          "ratio": 6.727360252985324
+        },
+        {
+          "text": "证伪条件",
+          "color": "color(srgb 0.305647 0.330118 0.366824)",
+          "background": "rgb(238, 241, 246)",
+          "fontSize": "13px",
+          "ratio": 6.727360252985324
+        },
+        {
+          "text": "风险",
+          "color": "color(srgb 0.305647 0.330118 0.366824)",
+          "background": "rgb(238, 241, 246)",
+          "fontSize": "13px",
+          "ratio": 6.727360252985324
+        },
+        {
+          "text": "版本记录时间",
+          "color": "color(srgb 0.305647 0.330118 0.366824)",
+          "background": "rgb(238, 241, 246)",
+          "fontSize": "13px",
+          "ratio": 6.727360252985324
+        }
+      ],
+      "auto-day": [
+        {
+          "text": "催化因素",
+          "color": "color(srgb 0.305647 0.330118 0.366824)",
+          "background": "rgb(238, 241, 246)",
+          "fontSize": "13px",
+          "ratio": 6.727360252985324
+        },
+        {
+          "text": "证伪条件",
+          "color": "color(srgb 0.305647 0.330118 0.366824)",
+          "background": "rgb(238, 241, 246)",
+          "fontSize": "13px",
+          "ratio": 6.727360252985324
+        },
+        {
+          "text": "风险",
+          "color": "color(srgb 0.305647 0.330118 0.366824)",
+          "background": "rgb(238, 241, 246)",
+          "fontSize": "13px",
+          "ratio": 6.727360252985324
+        },
+        {
+          "text": "版本记录时间",
+          "color": "color(srgb 0.305647 0.330118 0.366824)",
+          "background": "rgb(238, 241, 246)",
+          "fontSize": "13px",
+          "ratio": 6.727360252985324
+        }
+      ],
+      "auto-night": [
+        {
+          "text": "催化因素",
+          "color": "rgb(155, 163, 180)",
+          "background": "rgb(30, 34, 42)",
+          "fontSize": "13px",
+          "ratio": 6.293717295748454
+        },
+        {
+          "text": "证伪条件",
+          "color": "rgb(155, 163, 180)",
+          "background": "rgb(30, 34, 42)",
+          "fontSize": "13px",
+          "ratio": 6.293717295748454
+        },
+        {
+          "text": "风险",
+          "color": "rgb(155, 163, 180)",
+          "background": "rgb(30, 34, 42)",
+          "fontSize": "13px",
+          "ratio": 6.293717295748454
+        },
+        {
+          "text": "版本记录时间",
+          "color": "rgb(155, 163, 180)",
+          "background": "rgb(30, 34, 42)",
+          "fontSize": "13px",
+          "ratio": 6.293717295748454
+        }
+      ]
+    },
+    "sourceBase": "ccd51f9c8",
+    "testedSourceSha256": {
+      "terminal/components/workspaces/InvestigationTheses.tsx": "6b7a1286a289daaf7af2031b42246d39618d40ca0c0bf2890f5aa10d01a443b1",
+      "terminal/components/workspaces/InvestigationWorkspace.module.css": "cb80c59f146884aeea3e6ba8957a13ba17db64b7b310bc32de848ab2ffd54a83",
+      "terminal/e2e/investigation-theses.spec.ts": "ff9e7e7ca5c930171d65777733a069e53c9fb727979c1c05be59c8f452859e48"
+    }
+  },
+  {
+    "lang": "zh",
+    "project": "mobile",
+    "evidence": [
+      {
+        "mode": {
+          "name": "light",
+          "theme": "light",
+          "auto": "0",
+          "hour": 12,
+          "expected": "light"
+        },
+        "metrics": {
+          "x": 48,
+          "width": 294,
+          "viewport": 390,
+          "overflow": 0,
+          "color": "rgb(28, 36, 48)",
+          "background": "rgb(247, 248, 250)",
+          "hour": 12,
+          "theme": "light",
+          "cardBackground": "rgb(238, 241, 246)"
+        },
+        "pinned": "86421c85-a569-46b9-91cb-82bb1217a608",
+        "ownerCurrent": "2fdfdf98-5890-4643-a7bb-0ee3931ef067",
+        "ownerUnchanged": true,
+        "ownerWrites": 0,
+        "authWrites": 0
+      },
+      {
+        "mode": {
+          "name": "auto-day",
+          "theme": "dark",
+          "auto": "1",
+          "hour": 12,
+          "expected": "light"
+        },
+        "metrics": {
+          "x": 48,
+          "width": 294,
+          "viewport": 390,
+          "overflow": 0,
+          "color": "rgb(28, 36, 48)",
+          "background": "rgb(247, 248, 250)",
+          "hour": 12,
+          "theme": "light",
+          "cardBackground": "rgb(238, 241, 246)"
+        },
+        "pinned": "86421c85-a569-46b9-91cb-82bb1217a608",
+        "ownerCurrent": "2fdfdf98-5890-4643-a7bb-0ee3931ef067",
+        "ownerUnchanged": true,
+        "ownerWrites": 0,
+        "authWrites": 0
+      },
+      {
+        "mode": {
+          "name": "auto-night",
+          "theme": "light",
+          "auto": "1",
+          "hour": 22,
+          "expected": "dark"
+        },
+        "metrics": {
+          "x": 48,
+          "width": 294,
+          "viewport": 390,
+          "overflow": 0,
+          "color": "rgb(214, 218, 227)",
+          "background": "rgb(10, 11, 14)",
+          "hour": 22,
+          "theme": "dark",
+          "cardBackground": "rgb(30, 34, 42)"
+        },
+        "pinned": "86421c85-a569-46b9-91cb-82bb1217a608",
+        "ownerCurrent": "2fdfdf98-5890-4643-a7bb-0ee3931ef067",
+        "ownerUnchanged": true,
+        "ownerWrites": 0,
+        "authWrites": 0
+      }
+    ],
+    "reads": [
+      {
+        "id": "98816f3c-b0db-4c74-8823-3b2690ad6f7d",
+        "revision": 1,
+        "version": "86421c85-a569-46b9-91cb-82bb1217a608"
+      },
+      {
+        "id": "98816f3c-b0db-4c74-8823-3b2690ad6f7d",
+        "revision": 1,
+        "version": "86421c85-a569-46b9-91cb-82bb1217a608"
+      },
+      {
+        "id": "98816f3c-b0db-4c74-8823-3b2690ad6f7d",
+        "revision": 1,
+        "version": "86421c85-a569-46b9-91cb-82bb1217a608"
+      }
+    ],
+    "scope": "Actual local mounted consumer with synthetic account metadata and isolated Thesis owner; Investigation transport fixture. No standalone inspector theme or live claim.",
+    "contrast": {
+      "light": [
+        {
+          "text": "催化因素",
+          "color": "color(srgb 0.305647 0.330118 0.366824)",
+          "background": "rgb(238, 241, 246)",
+          "fontSize": "13px",
+          "ratio": 6.727360252985324
+        },
+        {
+          "text": "证伪条件",
+          "color": "color(srgb 0.305647 0.330118 0.366824)",
+          "background": "rgb(238, 241, 246)",
+          "fontSize": "13px",
+          "ratio": 6.727360252985324
+        },
+        {
+          "text": "风险",
+          "color": "color(srgb 0.305647 0.330118 0.366824)",
+          "background": "rgb(238, 241, 246)",
+          "fontSize": "13px",
+          "ratio": 6.727360252985324
+        },
+        {
+          "text": "版本记录时间",
+          "color": "color(srgb 0.305647 0.330118 0.366824)",
+          "background": "rgb(238, 241, 246)",
+          "fontSize": "13px",
+          "ratio": 6.727360252985324
+        }
+      ],
+      "auto-day": [
+        {
+          "text": "催化因素",
+          "color": "color(srgb 0.305647 0.330118 0.366824)",
+          "background": "rgb(238, 241, 246)",
+          "fontSize": "13px",
+          "ratio": 6.727360252985324
+        },
+        {
+          "text": "证伪条件",
+          "color": "color(srgb 0.305647 0.330118 0.366824)",
+          "background": "rgb(238, 241, 246)",
+          "fontSize": "13px",
+          "ratio": 6.727360252985324
+        },
+        {
+          "text": "风险",
+          "color": "color(srgb 0.305647 0.330118 0.366824)",
+          "background": "rgb(238, 241, 246)",
+          "fontSize": "13px",
+          "ratio": 6.727360252985324
+        },
+        {
+          "text": "版本记录时间",
+          "color": "color(srgb 0.305647 0.330118 0.366824)",
+          "background": "rgb(238, 241, 246)",
+          "fontSize": "13px",
+          "ratio": 6.727360252985324
+        }
+      ],
+      "auto-night": [
+        {
+          "text": "催化因素",
+          "color": "rgb(155, 163, 180)",
+          "background": "rgb(30, 34, 42)",
+          "fontSize": "13px",
+          "ratio": 6.293717295748454
+        },
+        {
+          "text": "证伪条件",
+          "color": "rgb(155, 163, 180)",
+          "background": "rgb(30, 34, 42)",
+          "fontSize": "13px",
+          "ratio": 6.293717295748454
+        },
+        {
+          "text": "风险",
+          "color": "rgb(155, 163, 180)",
+          "background": "rgb(30, 34, 42)",
+          "fontSize": "13px",
+          "ratio": 6.293717295748454
+        },
+        {
+          "text": "版本记录时间",
+          "color": "rgb(155, 163, 180)",
+          "background": "rgb(30, 34, 42)",
+          "fontSize": "13px",
+          "ratio": 6.293717295748454
+        }
+      ]
+    },
+    "sourceBase": "ccd51f9c8",
+    "testedSourceSha256": {
+      "terminal/components/workspaces/InvestigationTheses.tsx": "6b7a1286a289daaf7af2031b42246d39618d40ca0c0bf2890f5aa10d01a443b1",
+      "terminal/components/workspaces/InvestigationWorkspace.module.css": "cb80c59f146884aeea3e6ba8957a13ba17db64b7b310bc32de848ab2ffd54a83",
+      "terminal/e2e/investigation-theses.spec.ts": "ff9e7e7ca5c930171d65777733a069e53c9fb727979c1c05be59c8f452859e48"
+    }
+  }
+]

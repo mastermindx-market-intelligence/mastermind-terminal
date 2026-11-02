@@ -1,0 +1,36 @@
+{
+  "at": "2026-10-14T10:38:45.015144+00:00",
+  "decision": "PARENT_ACCEPTED",
+  "parent": "e08f00a73793e2f423ed3ed5bafcbde20917f8f6",
+  "source": {
+    "terminal/components/workspaces/InvestigationNextObservation.tsx": "4210aac1b490e34d9e0178001790cefda19c945f3fb143c27eb597f2642a71e9"
+  },
+  "trigger": {
+    "run": 38549580895,
+    "job": 115804438638,
+    "tests": "12422PASS4TODO0FAIL;TS/disclosure/selfcheckSUCCESS",
+    "failure": "Only missing_zh on inline bilingual heading"
+  },
+  "repair": "Existing local LEX pair pattern; same English/Chinese strings, same props/value/IDs/DOM/styles. Guard itself untouched.",
+  "validation": {
+    "original_guard_exit": 1,
+    "candidate_guard_exit": 0,
+    "selfcheck_exit": 0,
+    "ssr_unit_passed": 6,
+    "exact_old_new_render_cases": 8,
+    "typescript_exit": 0,
+    "lint_exit": 0
+  },
+  "reuse": "All accepted observations/editing/browser/native-text and legacy pixels reused because rendered output is exact; original source attribution retained. No recapture/restamp or live claim.",
+  "worker": "Root bounded CI repair after original known quota/admission failure; no retry or replacement worker",
+  "holds": "All original release/schema/rights/live holds retained",
+  "receipts": {
+    "ORIGINAL_GUARD.log": "985903c64c28c4aaee271dbfb724a6c5bf898ea82310a3eddd3e9bfcd0ecb79f",
+    "GUARD_SELF_CHECK.log": "24cda5f8f3b651c996f217787394bdaeed8d89c8d2deb739191fc0fc7eacb83f",
+    "GUARD_CANDIDATE.log": "d94f2e3c4a2c4e70e4f67ff5e7f7cd624af669b82b1b35a7b5bcea6e7a558d27",
+    "SSR_UNIT.log": "9936677259f3d79d8707a68f2f12d737d19b9f706d5c2b8f1ac1f34392538dc7",
+    "RENDER_EQUALITY.json": "d95fb26afdf9a55a308f75a87e9dd580fe381867b6013b01c1f25a784110efdb",
+    "TS.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "LINT.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

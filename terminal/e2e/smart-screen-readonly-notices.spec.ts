@@ -1,0 +1,23 @@
+import {test,expect} from "@playwright/test";
+import {writeFileSync} from "node:fs";
+import {MANIFESTS,dataRows,openPanel} from "./smartScreensFixture";
+test.setTimeout(120000);
+for(const lang of ['en','zh'])test('newer saved screen notices stay readable without writes '+lang,async({page,baseURL},info)=>{
+ const future={id:'f'.repeat(32),rev:7,name:'Future screen '+ 'W'.repeat(26),schema:2};
+ const response={screens:[],readOnly:[future],invalid:1};const initial=JSON.stringify(response);let reads=0;const writes:string[]=[];const brain:string[]=[];
+ await page.context().addCookies([{name:'mm_e2e_rs30',value:'1',url:baseURL!},{name:'mm_e2e_wl',value:'readonly-native-'+info.project.name+'-'+Date.now(),url:baseURL!}]);
+ await page.addInitScript(l=>localStorage.setItem('mm.lang',l),lang);
+ await page.route('**/data/manifest.json**',r=>r.fulfill({json:MANIFESTS.g1}));
+ await page.route('**/api/smart-screens{,?*}',r=>{if(r.request().method()!=='GET'){writes.push(r.request().method());return r.abort();}reads++;return r.fulfill({json:response});});
+ page.on('request',r=>{const u=new URL(r.url());if(r.method()!=='GET'&&['/api/investigations','/api/theses','/api/layouts','/api/watchlists','/api/__e2e__/supabase/auth'].some(p=>u.pathname.startsWith(p)))writes.push(r.method()+' '+u.pathname);if(u.pathname.startsWith('/api/brain/')&&!['/api/brain/me','/api/brain/chart/state'].includes(u.pathname))brain.push(r.method()+' '+u.pathname);});
+ await page.goto('/discover?tab=screener');await expect(dataRows(page)).toHaveCount(5,{timeout:45000});const panel=await openPanel(page);await expect(panel).toHaveAttribute('data-ss-status','ready');
+ const row=panel.locator('[data-ss-readonly]');await expect(row).toHaveCount(1);await expect(row).toHaveAttribute('data-ss-readonly',future.id);await expect(row.locator('b')).toHaveText(future.name);await expect(row).toContainText(lang==='en'?'Saved by a newer Terminal version':'由较新版本的终端保存');
+ await expect(panel.locator('[data-ss-invalid]')).toHaveAttribute('data-ss-invalid','1');await expect(panel.locator('[data-ss-invalid]')).toContainText(lang==='en'?'left untouched':'已保持原样');
+ await expect(row.locator('[data-ss-open],[data-ss-overwrite],[data-ss-review]')).toHaveCount(0);
+ const contrast=async(locator:import("@playwright/test").Locator)=>locator.evaluate((e:HTMLElement)=>{const cs=getComputedStyle(e);let n:HTMLElement|null=e;let bg='';while(n){const c=getComputedStyle(n).backgroundColor;if(c!=='rgba(0, 0, 0, 0)'&&c!=='transparent'){bg=c;break;}n=n.parentElement;}const rgb=(s:string)=>s.match(/[0-9.]+/g)!.slice(0,3).map(Number);const lum=(s:string)=>rgb(s).map(x=>{x/=255;return x<=0.04045?x/12.92:((x+0.055)/1.055)**2.4;}).reduce((sum,v,i)=>sum+v*[0.2126,0.7152,0.0722][i],0);const a=lum(cs.color),b=lum(bg);return {color:cs.color,bg,font:cs.fontSize,ratio:(Math.max(a,b)+0.05)/(Math.min(a,b)+0.05)};});
+ const readonly=await contrast(row.locator('span').first()),invalid=await contrast(panel.locator('[data-ss-invalid]'));
+ await panel.locator('[data-ss-readonly]').screenshot({path:info.outputPath('preserved-notices.png')});writeFileSync(info.outputPath('contrast.json'),JSON.stringify({readonly,invalid,reads,writes,brain},null,2));
+ expect(readonly.ratio,'read-only notice contrast').toBeGreaterThanOrEqual(4.5);expect(invalid.ratio,'unreadable-record notice contrast').toBeGreaterThanOrEqual(4.5);expect(writes).toEqual([]);expect(brain).toEqual([]);expect(JSON.stringify(response)).toBe(initial);
+ const hint=row.locator('span').first();await hint.evaluate(e=>(e as HTMLElement).style.color='rgb(113, 122, 142)');expect((await contrast(hint)).ratio).toBeLessThan(4.5);await hint.evaluate(e=>(e as HTMLElement).style.removeProperty('color'));expect((await contrast(hint)).ratio).toBeGreaterThanOrEqual(4.5);
+ await expect(row.locator('[data-ss-delete-readonly]')).toBeEnabled();await page.reload();await expect(dataRows(page)).toHaveCount(5);const reopened=await openPanel(page);await expect(reopened.locator('[data-ss-readonly]')).toHaveAttribute('data-ss-readonly',future.id);expect(writes).toEqual([]);expect(brain).toEqual([]);expect(JSON.stringify(response)).toBe(initial);
+});

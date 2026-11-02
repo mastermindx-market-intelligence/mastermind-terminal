@@ -1,0 +1,13 @@
+# Watchlist numeric columns at native text enlargement
+
+The original fixed 82px/76px Last and Change tracks overlapped BTC-USD by 28.90px and ETH-USD by 13.57px at real Firefox 151 textZoom=2/fullZoom=1. Original native test failed. A separate visibility check proved the inner list clipped horizontally scrolled rows while their headers remained visible.
+
+The correction retains saved widths in their existing 16px-root units and expresses shared header/row tracks in rem. The list uses the same minimum width as the header. Pointer delta is converted back to saved units only in the resize event; rendering does not access document. Existing gaps, values, precision, ownership and settings schema are unchanged.
+
+Two actual native EN cases at 880x900 and 1440x900 pass: font doubles, values fit, all four numeric columns are reachable through horizontal scrolling and align with their headers, a 60px drag changes rendered width by 60px and stored width from82 to112, restoring normal text produces112px, and reload retains112. Reinstating old pixel tracks reproduces overlap; removing the shared list width reproduces clipping. The four published images show Last and Change at both widths. Each column is readable by scrolling; the images do not claim all columns simultaneously fit the rail.
+
+The initial sizing-only tests passed geometry but their scrolled screenshots were rejected because row clipping remained. That failure and its focused reproducer are retained externally. Native Chinese rendering, other page regions, live accounts and full-page accessibility are not accepted by this scoped proof. Fixture owner/auth writes and model commands remain zero; no live effects occurred.
+
+Parent corrected the original Fabric proposal; raw worker artifact is NOT_ACCEPTED. The original proposed current-font divisor would cancel enlargement, used document during rendering and omitted resize scaling. This is parent validation, not an independent review.
+
+Validation: final native2PASS; standard EN/ZH sizing/scroll/resize/reload2PASS; four existing Ext%/outage desktop/tablet/mobile cases PASS (two original desktop-only skips);10 existing settings/quote unit cases PASS; TypeScript0/newtestlint0/component53errors14warnings unchanged. Initial standard EN failure captured loading dashes before quotes; numeric readiness and polling readback corrected, original failure retained. Initial concurrent generated validator parse failure retained; settled TypeScript passed with server stopped. Existing image corpora and capture inputs outside this scoped component remain unchanged, with their original source attribution; no recapture/restamp or broad current-pixel claim.

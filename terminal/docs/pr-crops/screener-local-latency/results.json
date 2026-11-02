@@ -1,0 +1,214 @@
+{
+  "source_parent": "436a545bf1c93dcf65988f6b412671c6c25d9f0f",
+  "source_files": {
+    "app/observatory.css": "273758bb9f8e10b37bd4639f34d7f8a643d518397932b6e12310e3a3b3c21d0c",
+    "components/prophet/SelectionCohortCard.module.css": "9dcf3eb272a684a63728e79c5a94ca7efd4ae7474979fcdfdd11be35be86f2ff"
+  },
+  "runtime": "Next16.2.9 Webpack development / Chromium149.0.7827.55",
+  "scope": "EN 9500-row fixed routed manifest, desktop/mobile, warmed document server; scan-data endpoint not whole-page or production latency",
+  "samples": [
+    {
+      "device": "desktop",
+      "phase": "empty-client-storage",
+      "n": 10,
+      "scan_visible_ms": {
+        "median": 1070.9,
+        "min": 1019.4,
+        "max": 1668.8
+      },
+      "data_endpoint_ms": {
+        "median": 1094.1,
+        "min": 1037.8,
+        "max": 1682.1
+      },
+      "rows_in_dom": [
+        25
+      ],
+      "zero_owner_writes": true,
+      "zero_bad_scripts_at_endpoint": true,
+      "no_pending_financial_at_endpoint": true
+    },
+    {
+      "device": "desktop",
+      "phase": "native-idb-new-document",
+      "n": 10,
+      "scan_visible_ms": {
+        "median": 1030.0,
+        "min": 1014.1,
+        "max": 2290.8
+      },
+      "data_endpoint_ms": {
+        "median": 1055.6,
+        "min": 1042.6,
+        "max": 2308.4
+      },
+      "rows_in_dom": [
+        25
+      ],
+      "zero_owner_writes": true,
+      "zero_bad_scripts_at_endpoint": true,
+      "no_pending_financial_at_endpoint": true
+    },
+    {
+      "device": "desktop",
+      "phase": "delay750",
+      "n": 1,
+      "scan_visible_ms": {
+        "median": 1621.3,
+        "min": 1621.3,
+        "max": 1621.3
+      },
+      "data_endpoint_ms": {
+        "median": 1646.0,
+        "min": 1646.0,
+        "max": 1646.0
+      },
+      "rows_in_dom": [
+        25
+      ],
+      "zero_owner_writes": true,
+      "zero_bad_scripts_at_endpoint": true,
+      "no_pending_financial_at_endpoint": true,
+      "observed_manifest_ms": [
+        767.0
+      ]
+    },
+    {
+      "device": "desktop",
+      "phase": "unavailable503",
+      "n": 1,
+      "scan_visible_ms": {
+        "median": 1057.1,
+        "min": 1057.1,
+        "max": 1057.1
+      },
+      "data_endpoint_ms": {
+        "median": 1086.6,
+        "min": 1086.6,
+        "max": 1086.6
+      },
+      "rows_in_dom": [
+        0
+      ],
+      "zero_owner_writes": true,
+      "zero_bad_scripts_at_endpoint": true,
+      "no_pending_financial_at_endpoint": true
+    },
+    {
+      "device": "mobile",
+      "phase": "empty-client-storage",
+      "n": 10,
+      "scan_visible_ms": {
+        "median": 1050.6,
+        "min": 1025.7,
+        "max": 1081.7
+      },
+      "data_endpoint_ms": {
+        "median": 1061.0,
+        "min": 1034.4,
+        "max": 1098.9
+      },
+      "rows_in_dom": [
+        32
+      ],
+      "zero_owner_writes": true,
+      "zero_bad_scripts_at_endpoint": true,
+      "no_pending_financial_at_endpoint": true
+    },
+    {
+      "device": "mobile",
+      "phase": "native-idb-new-document",
+      "n": 10,
+      "scan_visible_ms": {
+        "median": 1013.8,
+        "min": 900.9,
+        "max": 1037.3
+      },
+      "data_endpoint_ms": {
+        "median": 1033.0,
+        "min": 937.8,
+        "max": 1058.7
+      },
+      "rows_in_dom": [
+        32
+      ],
+      "zero_owner_writes": true,
+      "zero_bad_scripts_at_endpoint": true,
+      "no_pending_financial_at_endpoint": true
+    },
+    {
+      "device": "mobile",
+      "phase": "delay750",
+      "n": 1,
+      "scan_visible_ms": {
+        "median": 1662.2,
+        "min": 1662.2,
+        "max": 1662.2
+      },
+      "data_endpoint_ms": {
+        "median": 1689.9,
+        "min": 1689.9,
+        "max": 1689.9
+      },
+      "rows_in_dom": [
+        32
+      ],
+      "zero_owner_writes": true,
+      "zero_bad_scripts_at_endpoint": true,
+      "no_pending_financial_at_endpoint": true,
+      "observed_manifest_ms": [
+        770.9
+      ]
+    },
+    {
+      "device": "mobile",
+      "phase": "unavailable503",
+      "n": 1,
+      "scan_visible_ms": {
+        "median": 1069.5,
+        "min": 1069.5,
+        "max": 1069.5
+      },
+      "data_endpoint_ms": {
+        "median": 1099.3,
+        "min": 1099.3,
+        "max": 1099.3
+      },
+      "rows_in_dom": [
+        0
+      ],
+      "zero_owner_writes": true,
+      "zero_bad_scripts_at_endpoint": true,
+      "no_pending_financial_at_endpoint": true
+    }
+  ],
+  "images": [
+    {
+      "file": "desktop-empty-client-storage.png",
+      "sha256": "74ea6f63bad138437bb76496fdc1bcb6e61e0bea8f2f5e196e14c9d0f446c777",
+      "reviewed": true
+    },
+    {
+      "file": "desktop-native-idb-new-document.png",
+      "sha256": "a611c63d0742bca60a6679eae24390e2de8a1ae8cc80cec13814fb56760032b9",
+      "reviewed": true
+    },
+    {
+      "file": "mobile-empty-client-storage.png",
+      "sha256": "2b694a5b2077eaf92fbc78c9bc2f4730add420ab412f0ede7a757be2b3bdbfd6",
+      "reviewed": true
+    },
+    {
+      "file": "mobile-native-idb-new-document.png",
+      "sha256": "a65e652f43eef9ee35042fa72329cf3df0c93312c589eda0fa971801f5dbed5e",
+      "reviewed": true
+    }
+  ],
+  "raw_measurement_sha256": {
+    "desktop": "aea648340c7d3f03bb15157d29ffee799e096c1fce0f9667c463c52e4a5b5942",
+    "mobile": "1f5f00283598e14a5b62479fbfc3096d25c25d3ba36df0779ac80f3b920fa2e3"
+  },
+  "manifest_bytes": 1003549,
+  "manifest_sha256": "69aa2df06e3bbdaeaeca92d56d40ba9459f08c96674444d97083bdd5acf85c56",
+  "native_idb_reopens_exact_record": 20
+}

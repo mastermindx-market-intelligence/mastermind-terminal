@@ -17,6 +17,7 @@ import {
 import { categoryBrowse, isCompanySearchRow, tabOf } from "@/lib/searchCategory";
 import { useIsMobile, useIsPhone } from "@/lib/useMediaQuery";
 import MobileSheet from "@/components/ui/MobileSheet";
+import compareStyles from "./SearchModalCompare.module.css";
 import { useDialogFocus } from "@/components/studyTemplates/useDialogFocus";
 import styles from "./SearchModal.module.css";
 import {
@@ -155,11 +156,66 @@ export default function SearchModal({
   const [pickerNewName, setPickerNewName] = useState("");
   const [justAdded, setJustAdded] = useState<{ sym: string; list: string } | null>(null);  // inline confirm
   const inputRef = useRef<HTMLInputElement>(null);
+  const compareDialogRef = useRef<HTMLDivElement>(null);
   const railInputRef = useRef<HTMLInputElement>(null);
   const pickerNewRef = useRef<HTMLInputElement>(null);
-  const compareChoiceRef = useRef<HTMLButtonElement>(null);
   const addedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const compareActions = useRef(new Map<string, HTMLDivElement>());
+  const compareFocus = useRef<{ symbol: string; selector: string; from: Element | null } | null>(null);
+  useEffect(() => {
+    if (!open || mode !== "compare") return;
+    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const scope = compareDialogRef.current?.closest(".app") ?? opener?.closest(".app");
+    const usable = (control: HTMLElement | null | undefined): control is HTMLElement => !!control &&
+      control.isConnected && control.tabIndex >= 0 &&
+      !control.matches(":disabled, [aria-disabled='true']") &&
+      !control.closest("[inert], [aria-hidden='true']") &&
+      control.getClientRects().length > 0 && getComputedStyle(control).visibility === "visible";
+    return () => {
+      if (usable(opener)) {
+        opener.focus({ preventScroll: true });
+        return;
+      }
+      // A resize can replace the entry control while Compare is open.
+      // Resolve its visible successor in this Terminal, never another app.
+      const fallback = Array.from(scope?.querySelectorAll<HTMLElement>(
+        '.topbar .cmp-btn, [data-testid="toolbar-more"], [data-testid="roller-more"]',
+      ) ?? []).find(usable);
+      fallback?.focus({ preventScroll: true });
+    };
+  }, [open, mode]);
+  const requestCompareFocus = useCallback((symbol: string, selector: string) => {
+    const target = compareActions.current.get(symbol)?.querySelector<HTMLButtonElement>(selector);
+    if (!target) {
+      compareFocus.current = null;
+      inputRef.current?.focus();
+    } else if (!target.closest("[inert]")) {
+      target.focus();
+      compareFocus.current = null;
+    } else {
+      compareFocus.current = { symbol, selector, from: document.activeElement };
+    }
+  }, []);
+
+  // A state switch makes the old control inert before its replacement can take focus.
+  // Keep the request until the parent's compare update renders, but never take focus
+  // back after the user has moved to another control.
+  useEffect(() => {
+    const pending = compareFocus.current;
+    if (!pending) return;
+    if (!open || mode !== "compare" ||
+        (document.activeElement !== pending.from && document.activeElement !== document.body)) {
+      compareFocus.current = null;
+      return;
+    }
+    const target = compareActions.current.get(pending.symbol)?.querySelector<HTMLButtonElement>(pending.selector);
+    if (target && !target.closest("[inert]")) {
+      compareFocus.current = null;
+      target.focus();
+    }
+  });
   const [dialogHost, setDialogHost] = useState<HTMLDivElement | null>(null);
+  const captureDialog = useCallback((scope:HTMLDivElement|null) => { compareDialogRef.current=scope; setDialogHost(scope); }, []);
   const pickerRef = useRef<HTMLDivElement>(null);
   const pickerTriggerRef = useRef<HTMLButtonElement>(null);
   const pickerCreateRef = useRef<HTMLButtonElement>(null);
@@ -200,10 +256,6 @@ export default function SearchModal({
       // back from a new task (Portfolio/sign-in) or from the control the user already reached.
     }
   }, [open, seed, mode, companyScope]);
-
-  useEffect(() => {
-    if (choosing) compareChoiceRef.current?.focus({ preventScroll: true });
-  }, [choosing]);
 
   useEffect(() => {
     if (railCreating) railInputRef.current?.focus({ preventScroll: true });
@@ -459,8 +511,8 @@ export default function SearchModal({
     // log go/add commits here; compare logging lives on the cmp-seg-half handlers.
     if (!cmp) track(sym);
     if (cmp) {
-      if (compare.includes(sym)) { onToggleCompare?.(sym); }
-      else { setChoosing(sym); }
+      if (compare.includes(sym)) { requestCompareFocus(sym, ".cmp-add-idle"); onToggleCompare?.(sym); }
+      else { requestCompareFocus(sym, ".cmp-seg-half"); setChoosing(sym); }
     } else if (isAdd) {
       if (inWatchlist.has(sym)) {
         // Already in watchlist — go to it.
@@ -485,7 +537,8 @@ export default function SearchModal({
 
   function dismissSearch() {
     if (picker) closePicker();
-    else if (choosing) { setChoosing(null); inputRef.current?.focus({ preventScroll: true }); }
+    // Compare choices are inline actions within this one dialog; Escape exits it.
+    else if (choosing && !cmp) { setChoosing(null); inputRef.current?.focus({ preventScroll: true }); }
     else if (railCreating) { setRailCreating(false); setRailName(""); }
     else onClose();
   }
@@ -755,7 +808,7 @@ export default function SearchModal({
               return (
                 <span className="scmp-chip" key={s}>
                   <i style={{ background: chipColor }} />{s}
-                  <button title={t("remove")} onClick={() => { inputRef.current?.focus({ preventScroll: true }); onToggleCompare?.(s); }}>
+                  <button title={t("remove")} onClick={() => { requestCompareFocus(s, ".cmp-add-idle"); onToggleCompare?.(s); }}>
                     <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" /></svg>
                   </button>
                 </span>
@@ -956,7 +1009,7 @@ export default function SearchModal({
                 <Fragment key={s}>
                 {seamHd}
                 <div
-                  className={`r${rowSel === sel ? " sel" : ""}${inCmp ? " r-on" : ""}`}
+                  className={`r${cmp ? " " + compareStyles.row : ""}${rowSel === sel ? " sel" : ""}${inCmp ? " r-on" : ""}`}
                   onMouseEnter={() => setSel(rowSel)}
                   onClick={(e) => choose(s, e.shiftKey)}
                 >
@@ -987,20 +1040,16 @@ export default function SearchModal({
                   </div>
                   <div className="r-act">
                     {cmp
-                      ? <div className={"cmp-add-wrap" + (inCmp ? " is-added" : choosing === s ? " is-choosing" : "")}>
-                          <button className="cmp-add-idle add cmp" title={t("addToCompare")}
-                            disabled={inCmp || choosing === s} aria-hidden={inCmp || choosing === s} onClick={(e) => { e.stopPropagation(); setChoosing(s); }}>
+                      ? <div ref={(node) => { if (node) compareActions.current.set(s, node); else compareActions.current.delete(s); }} className={compareStyles.actions + " cmp-add-wrap" + (inCmp ? " is-added" : choosing === s ? " is-choosing" : "")}>
+                          <button inert={inCmp || choosing === s} disabled={inCmp || choosing === s} aria-hidden={inCmp || choosing === s} className="cmp-add-idle add cmp" title={t("addToCompare")} onClick={(e) => { e.stopPropagation(); requestCompareFocus(s, ".cmp-seg-half"); setChoosing(s); }}>
                             <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg>{t("addToCompare")}
                           </button>
-                          <div className="cmp-seg" aria-hidden={inCmp || choosing !== s}>
-                            <button ref={choosing === s ? compareChoiceRef : undefined} className="cmp-seg-half" disabled={inCmp || choosing !== s}
-                              onClick={(e) => { e.stopPropagation(); inputRef.current?.focus({ preventScroll: true }); track(s); onToggleCompare?.(s, "price"); setChoosing(null); }}>{t("cmpPrice")}</button>
+                          <div inert={inCmp || choosing !== s} aria-hidden={inCmp || choosing !== s} className="cmp-seg">
+                            <button className="cmp-seg-half" disabled={inCmp || choosing !== s} onClick={(e) => { e.stopPropagation(); requestCompareFocus(s, ".cmp-add-done"); track(s); onToggleCompare?.(s, "price"); setChoosing(null); }}>{t("cmpPrice")}</button>
                             <span className="cmp-seg-div" />
-                            <button className="cmp-seg-half" disabled={inCmp || choosing !== s}
-                              onClick={(e) => { e.stopPropagation(); inputRef.current?.focus({ preventScroll: true }); track(s); onToggleCompare?.(s, "percent"); setChoosing(null); }}>{t("cmpPercent")}</button>
+                            <button className="cmp-seg-half" disabled={inCmp || choosing !== s} onClick={(e) => { e.stopPropagation(); requestCompareFocus(s, ".cmp-add-done"); track(s); onToggleCompare?.(s, "percent"); setChoosing(null); }}>{t("cmpPercent")}</button>
                           </div>
-                          <button className="cmp-add-done add cmp added" title={t("comparing")} disabled={!inCmp} aria-hidden={!inCmp}
-                            onClick={(e) => { e.stopPropagation(); inputRef.current?.focus({ preventScroll: true }); onToggleCompare?.(s); }}>
+                          <button inert={!inCmp} disabled={!inCmp} aria-hidden={!inCmp} className="cmp-add-done add cmp added" title={t("comparing")} onClick={(e) => { e.stopPropagation(); requestCompareFocus(s, ".cmp-add-idle"); onToggleCompare?.(s); }}>
                             <svg viewBox="0 0 24 24"><path d="M4 12l5 5L20 6" /></svg>{t("comparingNow")}
                           </button>
                         </div>
@@ -1058,7 +1107,7 @@ export default function SearchModal({
     : isAdd ? pick(lang === "zh", "Close add symbol", "关闭添加标的")
     : pick(lang === "zh", "Close symbol search", "关闭代码搜索");
 
-  return <SearchDialog onScopeChange={setDialogHost} title={title} titleId={`${uid}-title`}
+  return <SearchDialog onScopeChange={captureDialog} title={title} titleId={`${uid}-title`}
     closeLabel={closeLabel} onClose={onClose} onEscape={dismissSearch} compare={cmp} focusPanel={!focusSearchInput}
     panelClassName={`smodal${cmp ? " smodal-cmp" : ""}${isAdd ? " smodal-add" : ""}${isHub ? " smodal-hub" : ""}`}>
     {body}

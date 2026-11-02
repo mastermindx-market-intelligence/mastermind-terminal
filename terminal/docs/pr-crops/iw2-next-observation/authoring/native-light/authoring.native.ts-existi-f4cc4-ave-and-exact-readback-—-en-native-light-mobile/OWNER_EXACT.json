@@ -1,0 +1,439 @@
+{
+  "lang": "en",
+  "original": "{\"argument_relations\":[],\"continuation\":{\"next_observation\":\"Original observation\",\"next_question\":\"Retain next question\"},\"evidence_refs\":[],\"intent\":{\"question\":\"Which observation changes this view?\",\"subjects\":[],\"title\":\"Observation authoring source\"},\"layout_refs\":[],\"schema\":\"investigation_manifest.v2\",\"thesis_refs\":[]}",
+  "finalOriginal": "{\"argument_relations\":[],\"continuation\":{\"next_observation\":\"Original observation\",\"next_question\":\"Retain next question\"},\"evidence_refs\":[],\"intent\":{\"question\":\"Which observation changes this view?\",\"subjects\":[],\"title\":\"Observation authoring source\"},\"layout_refs\":[],\"schema\":\"investigation_manifest.v2\",\"thesis_refs\":[]}",
+  "commands": [
+    {
+      "id": "10000000-0000-4000-8000-000000000011",
+      "operation_id": "8dc656d4-e0aa-4c34-908b-0b63c75cff8b",
+      "expected_revision": 3,
+      "action": "revise",
+      "manifest": {
+        "argument_relations": [],
+        "continuation": {
+          "next_observation": "  Watch exact margin <5% & next report.\nExplicit condition  ",
+          "next_question": "Retain next question"
+        },
+        "evidence_refs": [],
+        "intent": {
+          "question": "Which observation changes this view?",
+          "subjects": [],
+          "title": "Observation authoring source"
+        },
+        "layout_refs": [],
+        "schema": "investigation_manifest.v2",
+        "thesis_refs": []
+      }
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000011",
+      "operation_id": "fc4ecb28-33a5-4dd9-a0ca-e63fbb7704f0",
+      "expected_revision": 4,
+      "action": "revise",
+      "manifest": {
+        "argument_relations": [],
+        "continuation": {
+          "next_question": "Retain next question"
+        },
+        "evidence_refs": [],
+        "intent": {
+          "question": "Which observation changes this view?",
+          "subjects": [],
+          "title": "Observation authoring source"
+        },
+        "layout_refs": [],
+        "schema": "investigation_manifest.v2",
+        "thesis_refs": []
+      }
+    },
+    {
+      "id": "f475e038-8c58-42b6-942f-a223dcafd78c",
+      "operation_id": "f12443a9-8078-42a1-906c-5f8aaa80fbdb",
+      "expected_revision": 0,
+      "action": "create",
+      "manifest": {
+        "argument_relations": [],
+        "continuation": {
+          "next_observation": "Independent copied observation",
+          "next_question": "Retain next question"
+        },
+        "evidence_refs": [],
+        "intent": {
+          "question": "Which observation changes this view?",
+          "subjects": [],
+          "title": "Independent question"
+        },
+        "layout_refs": [],
+        "schema": "investigation_manifest.v2",
+        "thesis_refs": []
+      }
+    }
+  ],
+  "otherWrites": [],
+  "telemetry": [
+    "POST",
+    "POST",
+    "POST",
+    "POST",
+    "POST",
+    "POST",
+    "POST"
+  ],
+  "zooms": [
+    {
+      "before": {
+        "font": "26px",
+        "width": 390,
+        "height": 844,
+        "dpr": 1,
+        "cssZoom": "1"
+      },
+      "after": {
+        "font": "52px",
+        "width": 390,
+        "height": 844,
+        "dpr": 1,
+        "cssZoom": "1"
+      },
+      "native": {
+        "session": {
+          "sessionId": "388bc058-3651-4331-9fc3-041d53502592",
+          "capabilities": {
+            "acceptInsecureCerts": false,
+            "browserName": "firefox",
+            "browserVersion": "151.0",
+            "platformName": "mac",
+            "setWindowRect": true,
+            "unhandledPromptBehavior": "dismiss and notify",
+            "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:151.0) Gecko/20100101 Firefox/151.0",
+            "moz:buildID": "20260611192437",
+            "moz:headless": true,
+            "moz:platformVersion": "25.5.0",
+            "moz:processID": 97860,
+            "moz:profile": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/next-observation-authoring/native-light/authoring.native.ts-existi-f4cc4-ave-and-exact-readback-—-en-native-light-mobile/isolated-firefox-profile",
+            "moz:shutdownTimeout": 60000,
+            "pageLoadStrategy": "normal",
+            "timeouts": {
+              "implicit": 0,
+              "pageLoad": 300000,
+              "script": 30000
+            },
+            "strictFileInteractability": false,
+            "moz:accessibilityChecks": false,
+            "moz:webdriverClick": true,
+            "moz:windowless": false,
+            "capabilities": {
+              "alwaysMatch": {
+                "acceptInsecureCerts": false
+              }
+            },
+            "proxy": {}
+          }
+        },
+        "native": {
+          "value": {
+            "textZoom": 2,
+            "fullZoom": 1,
+            "url": "http://127.0.0.1:3586/analysis?view=investigations&investigation=10000000-0000-4000-8000-000000000011&revision=3"
+          }
+        }
+      }
+    },
+    {
+      "before": {
+        "font": "26px",
+        "width": 390,
+        "height": 844,
+        "dpr": 1,
+        "cssZoom": "1"
+      },
+      "after": {
+        "font": "52px",
+        "width": 390,
+        "height": 844,
+        "dpr": 1,
+        "cssZoom": "1"
+      },
+      "native": {
+        "session": {
+          "sessionId": "a9fb517a-f7d1-4b2d-a44e-c6c4414a4160",
+          "capabilities": {
+            "acceptInsecureCerts": false,
+            "browserName": "firefox",
+            "browserVersion": "151.0",
+            "platformName": "mac",
+            "setWindowRect": true,
+            "unhandledPromptBehavior": "dismiss and notify",
+            "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:151.0) Gecko/20100101 Firefox/151.0",
+            "moz:buildID": "20260611192437",
+            "moz:headless": true,
+            "moz:platformVersion": "25.5.0",
+            "moz:processID": 97860,
+            "moz:profile": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/next-observation-authoring/native-light/authoring.native.ts-existi-f4cc4-ave-and-exact-readback-—-en-native-light-mobile/isolated-firefox-profile",
+            "moz:shutdownTimeout": 60000,
+            "pageLoadStrategy": "normal",
+            "timeouts": {
+              "implicit": 0,
+              "pageLoad": 300000,
+              "script": 30000
+            },
+            "strictFileInteractability": false,
+            "moz:accessibilityChecks": false,
+            "moz:webdriverClick": true,
+            "moz:windowless": false,
+            "capabilities": {
+              "alwaysMatch": {
+                "acceptInsecureCerts": false
+              }
+            },
+            "proxy": {}
+          }
+        },
+        "native": {
+          "value": {
+            "textZoom": 2,
+            "fullZoom": 1,
+            "url": "http://127.0.0.1:3586/analysis?view=investigations&investigation=10000000-0000-4000-8000-000000000011&revision=4"
+          }
+        }
+      }
+    },
+    {
+      "before": {
+        "font": "26px",
+        "width": 390,
+        "height": 844,
+        "dpr": 1,
+        "cssZoom": "1"
+      },
+      "after": {
+        "font": "52px",
+        "width": 390,
+        "height": 844,
+        "dpr": 1,
+        "cssZoom": "1"
+      },
+      "native": {
+        "session": {
+          "sessionId": "1cacd61d-6322-44cc-b36d-25bdacb6b2c0",
+          "capabilities": {
+            "acceptInsecureCerts": false,
+            "browserName": "firefox",
+            "browserVersion": "151.0",
+            "platformName": "mac",
+            "setWindowRect": true,
+            "unhandledPromptBehavior": "dismiss and notify",
+            "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:151.0) Gecko/20100101 Firefox/151.0",
+            "moz:buildID": "20260611192437",
+            "moz:headless": true,
+            "moz:platformVersion": "25.5.0",
+            "moz:processID": 97860,
+            "moz:profile": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/next-observation-authoring/native-light/authoring.native.ts-existi-f4cc4-ave-and-exact-readback-—-en-native-light-mobile/isolated-firefox-profile",
+            "moz:shutdownTimeout": 60000,
+            "pageLoadStrategy": "normal",
+            "timeouts": {
+              "implicit": 0,
+              "pageLoad": 300000,
+              "script": 30000
+            },
+            "strictFileInteractability": false,
+            "moz:accessibilityChecks": false,
+            "moz:webdriverClick": true,
+            "moz:windowless": false,
+            "capabilities": {
+              "alwaysMatch": {
+                "acceptInsecureCerts": false
+              }
+            },
+            "proxy": {}
+          }
+        },
+        "native": {
+          "value": {
+            "textZoom": 2,
+            "fullZoom": 1,
+            "url": "http://127.0.0.1:3586/analysis?view=investigations&investigation=10000000-0000-4000-8000-000000000011&revision=3"
+          }
+        }
+      }
+    },
+    {
+      "before": {
+        "font": "26px",
+        "width": 390,
+        "height": 844,
+        "dpr": 1,
+        "cssZoom": "1"
+      },
+      "after": {
+        "font": "52px",
+        "width": 390,
+        "height": 844,
+        "dpr": 1,
+        "cssZoom": "1"
+      },
+      "native": {
+        "session": {
+          "sessionId": "a153beb1-114f-4a57-8845-9cab71aeb498",
+          "capabilities": {
+            "acceptInsecureCerts": false,
+            "browserName": "firefox",
+            "browserVersion": "151.0",
+            "platformName": "mac",
+            "setWindowRect": true,
+            "unhandledPromptBehavior": "dismiss and notify",
+            "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:151.0) Gecko/20100101 Firefox/151.0",
+            "moz:buildID": "20260611192437",
+            "moz:headless": true,
+            "moz:platformVersion": "25.5.0",
+            "moz:processID": 97860,
+            "moz:profile": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/next-observation-authoring/native-light/authoring.native.ts-existi-f4cc4-ave-and-exact-readback-—-en-native-light-mobile/isolated-firefox-profile",
+            "moz:shutdownTimeout": 60000,
+            "pageLoadStrategy": "normal",
+            "timeouts": {
+              "implicit": 0,
+              "pageLoad": 300000,
+              "script": 30000
+            },
+            "strictFileInteractability": false,
+            "moz:accessibilityChecks": false,
+            "moz:webdriverClick": true,
+            "moz:windowless": false,
+            "capabilities": {
+              "alwaysMatch": {
+                "acceptInsecureCerts": false
+              }
+            },
+            "proxy": {}
+          }
+        },
+        "native": {
+          "value": {
+            "textZoom": 2,
+            "fullZoom": 1,
+            "url": "http://127.0.0.1:3586/analysis?view=investigations&investigation=10000000-0000-4000-8000-000000000011&revision=4"
+          }
+        }
+      }
+    },
+    {
+      "before": {
+        "font": "26px",
+        "width": 390,
+        "height": 844,
+        "dpr": 1,
+        "cssZoom": "1"
+      },
+      "after": {
+        "font": "52px",
+        "width": 390,
+        "height": 844,
+        "dpr": 1,
+        "cssZoom": "1"
+      },
+      "native": {
+        "session": {
+          "sessionId": "87b584bc-bfc0-46b2-9ee8-920c58440b21",
+          "capabilities": {
+            "acceptInsecureCerts": false,
+            "browserName": "firefox",
+            "browserVersion": "151.0",
+            "platformName": "mac",
+            "setWindowRect": true,
+            "unhandledPromptBehavior": "dismiss and notify",
+            "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:151.0) Gecko/20100101 Firefox/151.0",
+            "moz:buildID": "20260611192437",
+            "moz:headless": true,
+            "moz:platformVersion": "25.5.0",
+            "moz:processID": 97860,
+            "moz:profile": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/next-observation-authoring/native-light/authoring.native.ts-existi-f4cc4-ave-and-exact-readback-—-en-native-light-mobile/isolated-firefox-profile",
+            "moz:shutdownTimeout": 60000,
+            "pageLoadStrategy": "normal",
+            "timeouts": {
+              "implicit": 0,
+              "pageLoad": 300000,
+              "script": 30000
+            },
+            "strictFileInteractability": false,
+            "moz:accessibilityChecks": false,
+            "moz:webdriverClick": true,
+            "moz:windowless": false,
+            "capabilities": {
+              "alwaysMatch": {
+                "acceptInsecureCerts": false
+              }
+            },
+            "proxy": {}
+          }
+        },
+        "native": {
+          "value": {
+            "textZoom": 2,
+            "fullZoom": 1,
+            "url": "http://127.0.0.1:3586/analysis?view=investigations&investigation=f475e038-8c58-42b6-942f-a223dcafd78c&revision=1"
+          }
+        }
+      }
+    },
+    {
+      "before": {
+        "font": "26px",
+        "width": 390,
+        "height": 844,
+        "dpr": 1,
+        "cssZoom": "1"
+      },
+      "after": {
+        "font": "52px",
+        "width": 390,
+        "height": 844,
+        "dpr": 1,
+        "cssZoom": "1"
+      },
+      "native": {
+        "session": {
+          "sessionId": "05eab7e7-c2d6-4f71-b0ae-b85c09b63f49",
+          "capabilities": {
+            "acceptInsecureCerts": false,
+            "browserName": "firefox",
+            "browserVersion": "151.0",
+            "platformName": "mac",
+            "setWindowRect": true,
+            "unhandledPromptBehavior": "dismiss and notify",
+            "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:151.0) Gecko/20100101 Firefox/151.0",
+            "moz:buildID": "20260611192437",
+            "moz:headless": true,
+            "moz:platformVersion": "25.5.0",
+            "moz:processID": 97860,
+            "moz:profile": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/next-observation-authoring/native-light/authoring.native.ts-existi-f4cc4-ave-and-exact-readback-—-en-native-light-mobile/isolated-firefox-profile",
+            "moz:shutdownTimeout": 60000,
+            "pageLoadStrategy": "normal",
+            "timeouts": {
+              "implicit": 0,
+              "pageLoad": 300000,
+              "script": 30000
+            },
+            "strictFileInteractability": false,
+            "moz:accessibilityChecks": false,
+            "moz:webdriverClick": true,
+            "moz:windowless": false,
+            "capabilities": {
+              "alwaysMatch": {
+                "acceptInsecureCerts": false
+              }
+            },
+            "proxy": {}
+          }
+        },
+        "native": {
+          "value": {
+            "textZoom": 2,
+            "fullZoom": 1,
+            "url": "http://127.0.0.1:3586/analysis?view=investigations&investigation=10000000-0000-4000-8000-000000000011&revision=3"
+          }
+        }
+      }
+    }
+  ],
+  "scope": "Three explicitly clicked Saves, exact old revision and copy readback on isolated owner transport; not live persistence or lifecycle closure"
+}

@@ -377,6 +377,8 @@ export function ContractShortlistTray({
   active,
   onShowInList,
   scopeKey = "session",
+  scopeOwnerKey = "",
+  isScopeCurrent,
   onPlanDraftChange,
   onPlanDraftInputChange,
 }: {
@@ -384,6 +386,8 @@ export function ContractShortlistTray({
   active: boolean;
   onShowInList: (pin: ShortlistPin) => PinLocation;
   scopeKey?: string;
+  scopeOwnerKey?: string;
+  isScopeCurrent?: () => boolean;
   onPlanDraftChange?: (draft: OptionsPlanDraft) => void;
   onPlanDraftInputChange?: (draft: OptionsPlanDraft | null) => void;
 }) {
@@ -496,7 +500,7 @@ export function ContractShortlistTray({
       <p className={styles.status} role="status" aria-live="polite">
         {shortlist.message}
       </p>
-      {pins.length > 0 && <OptionsShortlistPlan pins={pins} scopeKey={scopeKey} lang={lang} onDraftChange={onPlanDraftChange} onDraftInputChange={onPlanDraftInputChange} />}
+      <OptionsShortlistPlan pins={pins} scopeKey={scopeKey} scopeOwnerKey={scopeOwnerKey} isScopeCurrent={isScopeCurrent} lang={lang} onDraftChange={onPlanDraftChange} onDraftInputChange={onPlanDraftInputChange} />
       {open && canCompare && <ComparePanel pins={pins} t={t} />}
     </div>
   );

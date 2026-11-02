@@ -1,0 +1,55 @@
+{
+  "at": "2026-10-14T10:53:47.720312+00:00",
+  "decision": "PARENT_ACCEPTED_SCOPED_SOURCE_RENDERED",
+  "source": "97cba4659294e14facd3dbf9b3e0a41712c67004",
+  "parents": [
+    "ebd46f98c3f566a1abfa9137c853f2e30d4888a9",
+    "541fea4a44651f34e41f5f71a816285c3bfc477f"
+  ],
+  "source_delta": "42 imported paths exact canonical upstream at source merge; root accepted guards and observation controls unchanged. No source conflicts. 13 evidence conflicts archived and reconciled.",
+  "checks": {
+    "affected_unit": 156,
+    "files": 7,
+    "TS": 0,
+    "new_base_forward_guard": 0,
+    "evidence_and_rollup_unit": 21,
+    "files_evidence": 3
+  },
+  "capture": {
+    "fresh": 24,
+    "unchanged_recipe_count": 2,
+    "identical_prior_accepted": 11,
+    "changed_directly_viewed": 13,
+    "source_hash_bindings": "all current for both fresh manifests",
+    "personal_empty_limitation": "desktop-en-empty shows personal empty and separate team loading. No settled team result is inferred from that crop.",
+    "rollup_scope": "EN/ZH desktop/mobile ok, no_rows and empty_members; same-team only and no cross-team ranking sentence visible."
+  },
+  "review": {
+    "changed_images": [
+      "terminal/docs/pr-crops/b-f13-5-personal-accuracy/desktop-en-empty.png",
+      "terminal/docs/pr-crops/w9t_f13_9-team-rollup-no-rank/mobile-zh-ok.png",
+      "terminal/docs/pr-crops/w9t_f13_9-team-rollup-no-rank/mobile-en-ok.png",
+      "terminal/docs/pr-crops/w9t_f13_9-team-rollup-no-rank/desktop-en-ok.png",
+      "terminal/docs/pr-crops/w9t_f13_9-team-rollup-no-rank/desktop-zh-ok.png",
+      "terminal/docs/pr-crops/w9t_f13_9-team-rollup-no-rank/mobile-zh-empty-members.png",
+      "terminal/docs/pr-crops/w9t_f13_9-team-rollup-no-rank/mobile-en-empty-members.png",
+      "terminal/docs/pr-crops/w9t_f13_9-team-rollup-no-rank/desktop-en-empty-members.png",
+      "terminal/docs/pr-crops/w9t_f13_9-team-rollup-no-rank/mobile-zh-no-rows.png",
+      "terminal/docs/pr-crops/w9t_f13_9-team-rollup-no-rank/desktop-zh-no-rows.png",
+      "terminal/docs/pr-crops/w9t_f13_9-team-rollup-no-rank/desktop-zh-empty-members.png",
+      "terminal/docs/pr-crops/w9t_f13_9-team-rollup-no-rank/desktop-en-no-rows.png",
+      "terminal/docs/pr-crops/w9t_f13_9-team-rollup-no-rank/mobile-en-no-rows.png"
+    ],
+    "finding": "Personal target state and team fixture states readable; Chinese glyphs legible in Chromium; no clipped target card content. No full-page accessibility, native-text, auth, merge or live claim."
+  },
+  "reuse": "Existing observation source/pixels and all unaffected original evidence retained at original source. Historical unrelated stale packages are unchanged and not newly accepted.",
+  "receipts": {
+    "SOURCE_ACCEPTANCE.json": "1b93b350d3090b49069fc82a5b5cd99a300956c93849f0efb7101da2c479a4da",
+    "ALL24_PIXEL_COMPARISON.json": "9a4cdc6ff98fcb88eb70fc0e54f9f2da8ee01d45447155f581b54302f9cf7806",
+    "b-f13-5-personal-accuracy.run.json": "4213acdd2cd67c2dc80fea6cec0ab21e3c2a69fd4c11c3f157d5ff16445c476e",
+    "w9t_f13_9-team-rollup-no-rank.run.json": "0f2d425e9c156d898442df732d1e2f712a878f01f8d44659c4bdc4d060d32123",
+    "capture-evidence-checks.log": "03d0951e52a4fdec6d14f50d04a1621fe181476e83b40b219c2ccf3e3b135f04",
+    "MERGED_GUARD.log": "8744b929bc001b8717f3e0a82cd4bf7ed5b8951c62c6e3ee72b9b61628a805c8"
+  },
+  "holds": "All original release/schema/rights/live holds retained"
+}

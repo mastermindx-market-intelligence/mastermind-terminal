@@ -1,0 +1,270 @@
+{
+  "captured_source": "0ce6f40051975dccf4da271210da2dbeff84cec5",
+  "scope": "Local Chromium149 fixture paths; no live/production/whole-page acceptance",
+  "cases": [
+    {
+      "consumer": "heatmap",
+      "language": "en",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "requests": 5,
+      "owner_writes": [],
+      "analytics": [],
+      "pixels": [
+        {
+          "file": "heatmap-1440-en-heatmap-reopened.png",
+          "sha256": "b93ca004894c6d13bc56b8d1519dfdbf8228f2350850cd8ce285d578a33c8b01"
+        }
+      ],
+      "original_measurements_sha256": "afeb7fdbf5d61185197f9b600922844c787766826f75a14b65f4d25aa49aa618",
+      "aged_record_sha256": "3b88e1885f3d88511b20930a16572fd2d44a489b496d93d845d41117018e2e98",
+      "persisted_record_sha256": "3b88e1885f3d88511b20930a16572fd2d44a489b496d93d845d41117018e2e98"
+    },
+    {
+      "consumer": "heatmap",
+      "language": "en",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "requests": 5,
+      "owner_writes": [],
+      "analytics": [],
+      "pixels": [
+        {
+          "file": "heatmap-390-en-heatmap-reopened.png",
+          "sha256": "cad6de1e9fa971732871b4b52f3cd765b4f11074b2ae86f30edb9566889c5b95"
+        }
+      ],
+      "original_measurements_sha256": "308c46a73f453ba434859e63b0f26c94cf97fb4e9f5264a3240446401624117a",
+      "aged_record_sha256": "911e3a9196284de935df2c74977c8cbc7651e2507190c97407b62cad7d39beed",
+      "persisted_record_sha256": "911e3a9196284de935df2c74977c8cbc7651e2507190c97407b62cad7d39beed"
+    },
+    {
+      "consumer": "heatmap",
+      "language": "zh",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "requests": 3,
+      "owner_writes": [],
+      "analytics": [],
+      "pixels": [
+        {
+          "file": "heatmap-1440-zh-heatmap-reopened.png",
+          "sha256": "cd2f4f0d4ee46b4f6230bde7fa79b330d1662decb083854edd46193dd0faa2fd"
+        }
+      ],
+      "original_measurements_sha256": "274b7ce15dccf7b90b22cf216b9961ea24247abaa92f12bc460135acb36d46b4",
+      "aged_record_sha256": "48bc519c4518400a69a6c7c09a45f064d7139547b85d4d1f72d216a71760ccf7",
+      "persisted_record_sha256": "48bc519c4518400a69a6c7c09a45f064d7139547b85d4d1f72d216a71760ccf7"
+    },
+    {
+      "consumer": "heatmap",
+      "language": "zh",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "requests": 3,
+      "owner_writes": [],
+      "analytics": [],
+      "pixels": [
+        {
+          "file": "heatmap-820-zh-heatmap-reopened.png",
+          "sha256": "b7d9ba031a941656ea837bcb4aa5ee142d69362d427e6498256a9e88cbfba834"
+        }
+      ],
+      "original_measurements_sha256": "3acf744a6b015896679237889bc443cab37c939be47bf2005df9755f1c8b37dd",
+      "aged_record_sha256": "5e49512ca63348877d17bbfde09a9b41880970e6a97a1169dc2fba7e793d5fb2",
+      "persisted_record_sha256": "5e49512ca63348877d17bbfde09a9b41880970e6a97a1169dc2fba7e793d5fb2"
+    },
+    {
+      "consumer": "heatmap",
+      "language": "zh",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "requests": 3,
+      "owner_writes": [],
+      "analytics": [],
+      "pixels": [
+        {
+          "file": "heatmap-390-zh-heatmap-reopened.png",
+          "sha256": "2f2522372e00216acdfdb4d9a9eb2a85f1d6d953185217af707cad9880c9a1c5"
+        }
+      ],
+      "original_measurements_sha256": "7c6928ee3c3136b1496d44d078c24bf914bd2744e181b6084310d111485649b4",
+      "aged_record_sha256": "89c585c40d964f5c959d1de1266c752c74f16949378f91851a4393ffdfc56d50",
+      "persisted_record_sha256": "89c585c40d964f5c959d1de1266c752c74f16949378f91851a4393ffdfc56d50"
+    },
+    {
+      "consumer": "heatmap",
+      "language": "en",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "requests": 5,
+      "owner_writes": [],
+      "analytics": [],
+      "pixels": [
+        {
+          "file": "heatmap-820-en-heatmap-reopened.png",
+          "sha256": "9911995aa849c5e26e281b90a252a66e706c29b6c68a577ea2b28504995d94f0"
+        }
+      ],
+      "original_measurements_sha256": "8a46ed0195ff43f85dfa34662d0073e1946f55b1307da249e272eed8fa81a127",
+      "aged_record_sha256": "18a2bf3fbe892934921383c8a7e097a01604352dc947c778e92aefa465b6765b",
+      "persisted_record_sha256": "18a2bf3fbe892934921383c8a7e097a01604352dc947c778e92aefa465b6765b"
+    },
+    {
+      "consumer": "picker",
+      "language": "zh",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "requests": 3,
+      "owner_writes": [],
+      "analytics": [
+        "POST /api/track/search"
+      ],
+      "pixels": [
+        {
+          "file": "picker-390-zh-picker-recovered.png",
+          "sha256": "bf4604693de6664a0dfc40d221262a08ba2cfb1d209e20babf52f2a5696fc8fe"
+        },
+        {
+          "file": "picker-390-zh-picker-unavailable.png",
+          "sha256": "e67a61eb5c2ee304acd69f307b465d855afa4b78140b7f4f7131e3675895c74c"
+        }
+      ],
+      "original_measurements_sha256": "9f2308540a3fc6a226259e4a20e55bc81fd820a8696912d98ebd3a3fc07e24e1"
+    },
+    {
+      "consumer": "picker",
+      "language": "en",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "requests": 2,
+      "owner_writes": [],
+      "analytics": [
+        "POST /api/track/search"
+      ],
+      "pixels": [
+        {
+          "file": "picker-390-en-picker-recovered.png",
+          "sha256": "6ccc01efcd8db5892016e842be66598af5a9581ae97d4613bba82452f58154f6"
+        },
+        {
+          "file": "picker-390-en-picker-unavailable.png",
+          "sha256": "9d23988c224fd253915ca5b14820535d9fdf8feed55211080a646b7d075fb684"
+        }
+      ],
+      "original_measurements_sha256": "9ad0ac3ac97c62947e211c6ecae0c4da1b89ae8aaec3e6635a08c4f5ddf770d3"
+    },
+    {
+      "consumer": "picker",
+      "language": "zh",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "requests": 3,
+      "owner_writes": [],
+      "analytics": [
+        "POST /api/track/search"
+      ],
+      "pixels": [
+        {
+          "file": "picker-820-zh-picker-recovered.png",
+          "sha256": "6c210fcb13ca07562880b3074bc04c9078f75c1b681a11663674e8e0ac860f92"
+        },
+        {
+          "file": "picker-820-zh-picker-unavailable.png",
+          "sha256": "66cbf02728c7a47fb0464b0e550b942f2fa18b49fb41f27297523627347b2de2"
+        }
+      ],
+      "original_measurements_sha256": "cd4321fae86a6d47cdd2bb1a551abfbb50275534b019ddf132b161b69a2e9d66"
+    },
+    {
+      "consumer": "picker",
+      "language": "zh",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "requests": 3,
+      "owner_writes": [],
+      "analytics": [
+        "POST /api/track/search"
+      ],
+      "pixels": [
+        {
+          "file": "picker-1440-zh-picker-recovered.png",
+          "sha256": "553a352f4d6def95ecca252e89f4f135413f0c577deeac081bdd80f1a09a7452"
+        },
+        {
+          "file": "picker-1440-zh-picker-unavailable.png",
+          "sha256": "d067e6017a5276f09d76b682de2364372488ade2bc54e5e05dcba7c5bcd18aae"
+        }
+      ],
+      "original_measurements_sha256": "c704142f462476ed169eef0004133471fd4b99be84b9f7487d5337cbb344d4aa"
+    },
+    {
+      "consumer": "picker",
+      "language": "en",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "requests": 3,
+      "owner_writes": [],
+      "analytics": [
+        "POST /api/track/search"
+      ],
+      "pixels": [
+        {
+          "file": "picker-1440-en-picker-recovered.png",
+          "sha256": "381a07775897c9f48d34097561963cec3d70a0452c82ee7a0b792b21b858f009"
+        },
+        {
+          "file": "picker-1440-en-picker-unavailable.png",
+          "sha256": "e5f2c34c7cbff299f0db3e70d6ed135611f264c378cf46e2d7f057c87d4b5c22"
+        }
+      ],
+      "original_measurements_sha256": "8d9565893b187b0cb1477bdd86ef5e39cc2520d19170d352acce185e51f4546a"
+    },
+    {
+      "consumer": "picker",
+      "language": "en",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "requests": 2,
+      "owner_writes": [],
+      "analytics": [
+        "POST /api/track/search"
+      ],
+      "pixels": [
+        {
+          "file": "picker-820-en-picker-recovered.png",
+          "sha256": "78bccf3deb8ee147dece32448f2f9de139b2b065abd19dab16ee5175d620bbc1"
+        },
+        {
+          "file": "picker-820-en-picker-unavailable.png",
+          "sha256": "4855f0ee62e035a26cea07f6ee45ac2e01585fbd20ce3b2e1ee0bd11c781e67e"
+        }
+      ],
+      "original_measurements_sha256": "d690528af3a7bb541fc75288571f77d9bd513e754b763c79b3a9d4efff0b6789"
+    }
+  ]
+}

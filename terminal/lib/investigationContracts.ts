@@ -1,25 +1,24 @@
+import { validateOptionsPlanDraft, type OptionsPlanDraft } from "./optionsPlanDraft";
+
 /**
  * P1 Investigation command boundary. This is NOT a persistence, identity, evidence,
  * or entitlement owner. An accepted shape still needs authenticated owner resolution
  * and a same-owner transaction. It cannot certify that a referenced object exists.
  *
- * Deliberately unconnected until Saved Research #777 owner convergence. Server-owned
- * clocks/authors/qualification and future P4/P5 payloads are rejected, not discarded.
- * No normalization of authored text, canonical digest, I/O, or implicit writes occurs.
+ * Server-owned clocks/authors/qualification are rejected, not discarded. Canonical
+ * serialization preserves authored text. No I/O or implicit writes occur.
  */
-
-// The typed scenario reference (v2 manifests only) is validated through the pure leaf module:
-// this boundary imports its parser; it never re-implements, re-derives or coerces it. A
-// reference is unresolved input metadata -- never a retention, entitlement or
-// source-availability claim.
+// Exact PR1144 pure reference parser; no source bytes/retention or scenario grants.
 import { parseScenarioCapture, type ScenarioCapture } from "./investigationScenario";
 
 export const INVESTIGATION_MANIFEST_SCHEMA = "investigation_manifest.v1" as const;
 export const INVESTIGATION_MANIFEST_MAX_BYTES = 64 * 1024;
 export const INVESTIGATION_MANIFEST_SCHEMA_V2 = "investigation_manifest.v2" as const;
 export const INVESTIGATION_MANIFEST_V2_MAX_BYTES = 128 * 1024;
+/** Retained Plan envelope. Persistence still requires the existing owner's version qualification. */
+export const INVESTIGATION_MANIFEST_SCHEMA_V3 = "investigation_manifest.v3" as const;
 const MAX_ERRORS = 32;
-const MAX_NODES = 4096;
+const MAX_NODES = 16384;
 const SUBJECT_KINDS = new Set([
   "security", "issuer", "industry", "subtheme", "theme", "regime", "economy",
   "event", "portfolio", "option_underlying", "option_contract", "policy_question",
@@ -52,7 +51,7 @@ export type InvestigationEvidenceRef = {
   selection?: { field: string };
 };
 export type InvestigationManifest = {
-  schema: typeof INVESTIGATION_MANIFEST_SCHEMA | typeof INVESTIGATION_MANIFEST_SCHEMA_V2;
+  schema: typeof INVESTIGATION_MANIFEST_SCHEMA | typeof INVESTIGATION_MANIFEST_SCHEMA_V2 | typeof INVESTIGATION_MANIFEST_SCHEMA_V3;
   intent: {
     title: string;
     question: string;
@@ -63,19 +62,37 @@ export type InvestigationManifest = {
   layout_refs: InvestigationLayoutRef[];
   thesis_refs: InvestigationThesisRef[];
   evidence_refs: InvestigationEvidenceRef[];
+  /** Required for new v2 commands; absent only in v1 or pre-repair stored rows. */
+  argument_relations?: InvestigationArgumentRelation[];
   continuation: { next_question?: string; next_observation?: string };
   review_baseline_ref?: InvestigationEvidenceRef;
-  review?: {
-    assessment: "confirmed" | "contradicted" | "inconclusive";
-    fire_event_id?: string;
-    note?: string;
-  };
-  /** Frozen typed saved-scenario reference; v2 manifests only, and only a value the pure leaf
-   *  parser accepts. A reference carries inputs plus source pointers/digests only -- it stores
-   *  no basis or result values and is never a retention, entitlement or source-availability
-   *  claim. */
+  /** v3-only retained research observations; not qualified evidence or executable prices. */
+  option_plan?: OptionsPlanDraft;
+  /** v2-only value-free reference, retaining the existing0042 source contract. */
   scenario_capture?: ScenarioCapture;
+  /** Review observations use the existing owner vocabulary across supported versions. */
+  review?: { assessment: "confirmed" | "contradicted" | "inconclusive"; fire_event_id?: string; note?: string };
 };
+export type InvestigationArgumentEndpoint =
+  | { kind: "thesis"; thesis_id: string; version_id: string }
+  | ({ kind: "evidence" } & Omit<InvestigationEvidenceRef, "fingerprint">);
+export type InvestigationArgumentRelation = {
+  source: InvestigationArgumentEndpoint;
+  target: InvestigationArgumentEndpoint;
+  relation: "supports" | "weakens" | "contradicts" | "unresolved_interpretation" | "discriminates_between";
+  rationale: string;
+  discrimination_criterion?: string;
+};
+
+/** Only call on validated semantic JSON. Retains the existing JS key ordering.
+ * V3 snapshot rows may have open source keys/numbers: this is not a claim of
+ * PostgreSQL canonical-byte parity; the database digest remains owner-supplied. */
+export function canonicalInvestigationJson(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(canonicalInvestigationJson).join(",")}]`;
+  if (value !== null && typeof value === "object") return `{${Object.keys(value).sort().map(key =>
+    `${JSON.stringify(key)}:${canonicalInvestigationJson((value as Obj)[key])}`).join(",")}}`;
+  return JSON.stringify(value);
+}
 /** Supplied by existing admitted adapters. This module owns no adapter registry. */
 export type InvestigationAdmission = {
   subjects?: readonly { owner: string; kinds: readonly string[] }[];
@@ -98,7 +115,7 @@ class Validator {
   private nodes = 0;
   private stringUnits = 0;
   private readonly ancestors = new WeakSet<object>();
-  constructor(private readonly admission: InvestigationAdmission) {}
+  constructor(private readonly admission: InvestigationAdmission, private readonly legacyStored = false) {}
   add(path: string, code: string): void {
     if (this.errors.length < MAX_ERRORS) this.errors.push({ path, code });
   }
@@ -196,6 +213,12 @@ class Validator {
     const days = [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
     if (year < 1 || month < 1 || month > 12 || day < 1 || day > days[month - 1]) this.add(path, "invalid_date");
   }
+  timestamp(value: unknown, path: string): void {
+    if (typeof value !== "string" || !/^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}Z$/.test(value)
+        || value.startsWith("0000") || !Number.isFinite(Date.parse(value)) || new Date(value).toISOString() !== value) {
+      this.add(path, "invalid_timestamp");
+    }
+  }
   list(value: unknown, path: string, max: number, item: (value: unknown, path: string) => string | null): void {
     if (!Array.isArray(value)) { this.add(path, "invalid_type"); return; }
     if (value.length > max) { this.add(path, "too_many_items"); return; }
@@ -258,15 +281,30 @@ class Validator {
     }
     return JSON.stringify([ref.owner, ref.object_type, ref.object_id, ref.mode, ref.version_ref, field]);
   }
+  endpoint(value: unknown, path: string, manifest: Obj): void {
+    if (!value || typeof value !== "object" || Array.isArray(value)) { this.add(path, "invalid_type"); return; }
+    const endpoint = value as Obj;
+    if (endpoint.kind === "thesis") {
+      this.object(endpoint, path, ["kind", "thesis_id", "version_id"]);
+      this.uuid(endpoint.thesis_id, `${path}.thesis_id`); this.uuid(endpoint.version_id, `${path}.version_id`);
+      if (!Array.isArray(manifest.thesis_refs) || !manifest.thesis_refs.some(r => r?.thesis_id === endpoint.thesis_id && r?.version_id === endpoint.version_id)) this.add(path, "unresolved_endpoint");
+    } else if (endpoint.kind === "evidence") {
+      this.object(endpoint, path, ["kind", "owner", "object_type", "object_id", "mode"], ["version_ref", "selection"]);
+      const { kind: _kind, ...ref } = endpoint;
+      const identity = this.evidence(ref, path);
+      const key = (r: Obj) => JSON.stringify([r.owner, r.object_type, r.object_id, r.mode, r.version_ref, (r.selection as Obj | undefined)?.field]);
+      if (!Array.isArray(manifest.evidence_refs) || !manifest.evidence_refs.some(r => r && key(r) === identity)) this.add(path, "unresolved_endpoint");
+    } else this.add(`${path}.kind`, "unsupported_value");
+  }
   manifest(raw: unknown): void {
-    // `scenario_capture` MUST ride this closed optional-key array: without it every capture
-    // bearing manifest is refused as an unknown top-level field before the typed check below.
-    const manifest = this.object(raw, "$", ["schema", "intent", "layout_refs", "thesis_refs", "evidence_refs", "continuation"], ["review_baseline_ref", "review", "scenario_capture"]);
+    const v3 = (raw as Obj)?.schema === INVESTIGATION_MANIFEST_SCHEMA_V3;
+    const v2 = (raw as Obj)?.schema === INVESTIGATION_MANIFEST_SCHEMA_V2 || v3;
+    const strictV2 = v2 && !this.legacyStored;
+    const manifest = this.object(raw, "$", ["schema", "intent", "layout_refs", "thesis_refs", "evidence_refs", "continuation", ...(strictV2 ? ["argument_relations"] : [])], ["review_baseline_ref", "review", "scenario_capture", ...(v3 ? ["option_plan"] : [])]);
     if (!manifest) return;
-    const v2 = manifest.schema === INVESTIGATION_MANIFEST_SCHEMA_V2;
     const questionLimit = v2 ? 4000 : 2000;
     if (!v2 && manifest.schema !== INVESTIGATION_MANIFEST_SCHEMA) this.add("$.schema", "unsupported_schema");
-    if (v2 && [manifest.layout_refs, manifest.thesis_refs, manifest.evidence_refs].reduce<number>((n, refs) => n + (Array.isArray(refs) ? refs.length : 0), 0) > 128) {
+    if (this.legacyStored && [manifest.layout_refs, manifest.thesis_refs, manifest.evidence_refs].reduce<number>((n, refs) => n + (Array.isArray(refs) ? refs.length : 0), 0) > 128) {
       this.add("$", "too_many_references");
     }
     const intent = this.object(manifest.intent, "$.intent", ["title", "question", "subjects"], ["horizon", "research_as_of"]);
@@ -274,7 +312,10 @@ class Validator {
       this.text(intent.title, "$.intent.title", 160, true); this.text(intent.question, "$.intent.question", questionLimit);
       this.list(intent.subjects, "$.intent.subjects", 16, (v, p) => this.subject(v, p));
       if (Object.hasOwn(intent, "horizon")) this.text(intent.horizon, "$.intent.horizon", 64, true);
-      if (Object.hasOwn(intent, "research_as_of")) this.date(intent.research_as_of, "$.intent.research_as_of");
+      if (Object.hasOwn(intent, "research_as_of")) {
+        if (strictV2) this.timestamp(intent.research_as_of, "$.intent.research_as_of");
+        else this.date(intent.research_as_of, "$.intent.research_as_of");
+      }
     }
     this.list(manifest.layout_refs, "$.layout_refs", 4, (v, p) => this.layout(v, p));
     this.list(manifest.thesis_refs, "$.thesis_refs", 16, (v, p) => this.thesis(v, p));
@@ -285,7 +326,18 @@ class Validator {
         if (Object.hasOwn(continuation, key)) this.text(continuation[key], `$.continuation.${key}`, questionLimit);
       }
     }
-    if (Object.hasOwn(manifest, "review_baseline_ref")) this.evidence(manifest.review_baseline_ref, "$.review_baseline_ref", true);
+    if (Object.hasOwn(manifest, "review_baseline_ref")) {
+      this.evidence(manifest.review_baseline_ref, "$.review_baseline_ref", true);
+      if (strictV2 && (!Array.isArray(manifest.evidence_refs) || !manifest.evidence_refs.some(ref => canonicalInvestigationJson(ref) === canonicalInvestigationJson(manifest.review_baseline_ref)))) this.add("$.review_baseline_ref", "baseline_not_member");
+    }
+    if (Object.hasOwn(manifest, "scenario_capture")) {
+      if (manifest.schema !== INVESTIGATION_MANIFEST_SCHEMA_V2) this.add("$.scenario_capture", "unsupported_schema");
+      else if (!parseScenarioCapture(manifest.scenario_capture)) this.add("$.scenario_capture", "invalid_scenario_capture");
+    }
+    if (v3 && Object.hasOwn(manifest, "option_plan")) {
+      const checked = validateOptionsPlanDraft(manifest.option_plan);
+      if (!checked.ok) this.add("$.option_plan", checked.reason);
+    }
     if (Object.hasOwn(manifest, "review")) {
       const review = this.object(manifest.review, "$.review", ["assessment"], ["fire_event_id", "note"]);
       if (review) {
@@ -298,27 +350,43 @@ class Validator {
         if (Object.hasOwn(review, "note")) this.text(review.note, "$.review.note", 2000);
       }
     }
-    if (Object.hasOwn(manifest, "scenario_capture")) {
-      // Only a v2 manifest may carry the typed scenario reference, and only when the pure leaf
-      // module accepts it: unknown, malformed, forged and superseded full-value payloads are
-      // refused, never coerced. Shape acceptance is not retention, entitlement, source
-      // availability or save success; actual source resolution stays with the native owner.
-      if (!v2) this.add("$.scenario_capture", "unsupported_schema");
-      else if (!parseScenarioCapture(manifest.scenario_capture)) {
-        this.add("$.scenario_capture", "invalid_scenario_capture");
-      }
-    }
+    if (strictV2) this.list(manifest.argument_relations, "$.argument_relations", 256, (value, path) => {
+      const edge = this.object(value, path, ["source", "target", "relation", "rationale"], ["discrimination_criterion"]);
+      if (!edge) return null;
+      this.endpoint(edge.source, `${path}.source`, manifest); this.endpoint(edge.target, `${path}.target`, manifest);
+      this.enumeration(edge.relation, `${path}.relation`, ["supports", "weakens", "contradicts", "unresolved_interpretation", "discriminates_between"]);
+      this.text(edge.rationale, `${path}.rationale`, 4000);
+      if (Object.hasOwn(edge, "discrimination_criterion")) this.text(edge.discrimination_criterion, `${path}.discrimination_criterion`, 4000);
+      return null; // Annotations are ordered authored statements, not owner identities.
+    });
   }
 }
 
 /** Shape acceptance is never authentication, referent existence, historical availability, or save success. */
 export function validateInvestigationManifest(raw: unknown, admission: InvestigationAdmission = {}): InvestigationValidationResult {
-  const validator = new Validator(admission);
+  return validate(raw, admission, false);
+}
+
+/** Read compatibility for immutable pre-repair rows. Never use at a write boundary.
+ * Returns their exact original value, without inventing relations or timestamps. */
+export function validateStoredInvestigationManifest(raw: unknown, admission: InvestigationAdmission = {}): InvestigationValidationResult {
+  const legacy = raw !== null && typeof raw === "object" && !Object.hasOwn(raw, "argument_relations") && (raw as Obj).schema === INVESTIGATION_MANIFEST_SCHEMA_V2;
+  return validate(raw, admission, legacy);
+}
+/** Explicit v3 authoring entry; uses the same strict validator as command/read/recovery. */
+export function validateInvestigationManifestV3Draft(raw: unknown, admission: InvestigationAdmission = {}): InvestigationValidationResult {
+  return validate(raw, admission, false, true);
+}
+function validate(raw: unknown, admission: InvestigationAdmission, legacyStored: boolean, planDraft = false): InvestigationValidationResult {
+  const validator = new Validator(admission, legacyStored);
   try {
     if (!validator.dataOnly(raw)) return { ok: false, errors: validator.errors };
-    const serialized = JSON.stringify(raw);
-    const maxBytes = raw !== null && typeof raw === "object" && (raw as Obj).schema === INVESTIGATION_MANIFEST_SCHEMA_V2
-      ? INVESTIGATION_MANIFEST_V2_MAX_BYTES : INVESTIGATION_MANIFEST_MAX_BYTES;
+    if (planDraft && (raw as Obj)?.schema !== INVESTIGATION_MANIFEST_SCHEMA_V3) {
+      return { ok: false, errors: [{ path: "$.schema", code: "unsupported_schema" }] };
+    }
+    const versioned = (raw as Obj)?.schema === INVESTIGATION_MANIFEST_SCHEMA_V2 || (raw as Obj)?.schema === INVESTIGATION_MANIFEST_SCHEMA_V3;
+    const serialized = versioned ? canonicalInvestigationJson(raw) : JSON.stringify(raw);
+    const maxBytes = versioned ? INVESTIGATION_MANIFEST_V2_MAX_BYTES : INVESTIGATION_MANIFEST_MAX_BYTES;
     if (new TextEncoder().encode(serialized).byteLength > maxBytes) {
       return { ok: false, errors: [{ path: "$", code: "manifest_too_large" }] };
     }

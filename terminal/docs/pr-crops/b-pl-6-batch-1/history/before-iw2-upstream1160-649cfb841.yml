@@ -1,0 +1,60 @@
+# B-PL-6 batch 1 — capture evidence
+# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
+# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
+# capturedAtHead: e4ab79d1ee3aa5573b513d3a496825c1322325f7
+# capturedAt: 2026-10-24T08:26:23.208Z
+# capturedAtHead is informational. The lock is layoutFiles.
+layoutFiles:
+  terminal/components/OptionsHubView.tsx: "158ce4599ff142bd5c1f6a3f575bf59ea1dc817c9cbf402e96c28900ad17c036"
+  terminal/components/SearchModal.tsx: "a7a9a97d9ce08b7e8b03ccfdfc8720c5d6fca80873663125f624dba98b99cc83"
+  terminal/components/SearchModal.module.css: "bc82bdeb1a4eb78fe9babe884c2ae8e7fc2773710e6399b5bf22733f70f102fb"
+  terminal/components/SearchModalCompare.module.css: "864d08191bf60d696b8e1f5233e9ddafec5ebfeeb8b307b61f629894bd48700c"
+  terminal/components/StockAnalysis.tsx: "376a907d0d8ea3dc5819e0092f02e19ce56fa1f4b71a3489551adf52fddb35c0"
+  terminal/components/workspaces/AnalysisWorkspace.tsx: "411b8a7e498b8af3f9337fdcf3835dd62e6a5854826f414171d8303efd8aa5bb"
+  terminal/components/ChartPanel.tsx: "07c37fd5c3f8044082d6fd1f7ca06edfd61c9833bca1a7fcc649d4660515c27a"
+  terminal/components/DayRange.tsx: "c84724652783da1897ab4eeb98550eaf3dbd7942eefe3ce127b6ada2b16dd672"
+  terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
+  terminal/lib/i18n.tsx: "9acd67ddc1e85b1058b850b807f5e78c46c659192066dd3565f779ed51a11968"
+  terminal/app/company-intelligence.css: "8b43f2046891837f6572fa2a59b7594547def9602b0454e1f14edba322da2a34"
+theme: dark
+languages: [en, zh]
+viewports:
+  - { name: desktop, width: 1440, height: 900 }
+  - { name: mobile, width: 390, height: 844 }
+surfaces: [OptionsHubView, DiscoverLeaders, SearchModal, StockAnalysis, AnalysisWorkspace, ChartChrome]
+capture_flag: TERMINAL_E2E_FIXTURE
+capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
+command: |
+  cd terminal
+  node e2e/tools/capture_pl6_batch1.cjs
+files:
+  - AnalysisWorkspace-1440-zh.png
+  - AnalysisWorkspace-1440.png
+  - AnalysisWorkspace-390-zh.png
+  - AnalysisWorkspace-390.png
+  - ChartChrome-1440-zh.png
+  - ChartChrome-1440.png
+  - ChartChrome-390-zh.png
+  - ChartChrome-390.png
+  - DiscoverLeaders-1440-zh.png
+  - DiscoverLeaders-1440.png
+  - DiscoverLeaders-390-zh.png
+  - DiscoverLeaders-390.png
+  - OptionsHubView-1440-zh.png
+  - OptionsHubView-1440.png
+  - OptionsHubView-390-zh.png
+  - OptionsHubView-390.png
+  - OptionsScreener-volume-1440-zh.png
+  - OptionsScreener-volume-1440.png
+  - OptionsScreener-volume-390-zh.png
+  - OptionsScreener-volume-390.png
+  - OptionsScreener-volume-820-zh.png
+  - OptionsScreener-volume-820.png
+  - SearchModal-1440-zh.png
+  - SearchModal-1440.png
+  - SearchModal-390-zh.png
+  - SearchModal-390.png
+  - StockAnalysis-1440-zh.png
+  - StockAnalysis-1440.png
+  - StockAnalysis-390-zh.png
+  - StockAnalysis-390.png

@@ -1,0 +1,140 @@
+{
+  "schema": 1,
+  "source_commit": "6a2a65630b740f550d8aaffe7592a0ed3f635e7e",
+  "source_tree": "780dadabca4034cdb2f4233dcaca13ea50ef3a56",
+  "base_commit": "1663abef9d8e3b43f9b1569ba9ee8348d2066684",
+  "scope": "J6 selected threshold readability; root-owned local isolated fixture only",
+  "source_delta": "Two lines: scoped select class and intrinsic width with220px floor bounded by100%; existing <=860px full width unchanged",
+  "checks": {
+    "red": {
+      "session": 36540,
+      "exit_code": 1,
+      "failed": 1
+    },
+    "same_test_green": {
+      "session": 44760,
+      "exit_code": 0,
+      "passed": 1
+    },
+    "native_en_DTM": {
+      "session": 28031,
+      "exit_code": 0,
+      "passed": 3,
+      "negative_control": "Restored220px correctly clips; returningtoCSS restoresexact full label"
+    },
+    "standard_ENZH_DTM": {
+      "session": 10950,
+      "exit_code": 0,
+      "passed": 6
+    },
+    "unit": {
+      "session": 92279,
+      "passed": 31,
+      "exit_code": 0
+    },
+    "typecheck": {
+      "session": 64498,
+      "exit_code": 0
+    },
+    "lint": {
+      "session": 9984,
+      "exit_code": 0
+    },
+    "workers": 1,
+    "retries": 0
+  },
+  "runtime": {
+    "native": "Externally pinned Firefox151; same-process native textZoom2/fullZoom1, DPR1, fixed viewports, CSSzoom1, font12->24",
+    "standard": "Existing Chromium responsive ENZH at1440x900,820x1180,390x844"
+  },
+  "owner_oracle": "Whole saved A unchanged; zero implicit writes; keyboardthreshold/Apply/Close/reload retain existing behavior",
+  "negative_control": "Same candidate/currentfont/currentvalue with width220px clips222px text into198px content; remove override restores262.0167px select",
+  "files": [
+    {
+      "file": "en-1440-native-text200.png",
+      "sha256": "72a5abc28025e6d9f4c638f4b9fa8069f09e19207a1504f6491402ca755292c6",
+      "source_commit": "6a2a65630b740f550d8aaffe7592a0ed3f635e7e",
+      "verdict": "ACCEPTED",
+      "pixels": "original unmodified capture; direct parent review"
+    },
+    {
+      "file": "en-820-native-text200.png",
+      "sha256": "cb89e22acac92a67abc274d04f9ca53304382c73cfa6a16fbd1deaeca83f20a3",
+      "source_commit": "6a2a65630b740f550d8aaffe7592a0ed3f635e7e",
+      "verdict": "ACCEPTED",
+      "pixels": "original unmodified capture; direct parent review"
+    },
+    {
+      "file": "en-390-native-text200.png",
+      "sha256": "10bd919aca457b4488fba1441bb56fe78122fd346a5e0104b163120298ef6aa0",
+      "source_commit": "6a2a65630b740f550d8aaffe7592a0ed3f635e7e",
+      "verdict": "ACCEPTED",
+      "pixels": "original unmodified capture; direct parent review"
+    },
+    {
+      "file": "en-1440-old-width-negative-control.png",
+      "sha256": "ab655d0ffd5344cb800a1927c4f7332c1a83ebc0f1f2c9ef6ad70fd4f3c6d3ff",
+      "source_commit": "6a2a65630b740f550d8aaffe7592a0ed3f635e7e",
+      "verdict": "EXPECTED_CLIPPING_CONTROL",
+      "pixels": "original unmodified capture; direct parent review"
+    },
+    {
+      "file": "en-1440-original-text200.png",
+      "sha256": "90c45b598d6150ff07a53524193d9d7f6dc5d4fefa24910b70a1390f97c14843",
+      "source_commit": "1663abef9d8e3b43f9b1569ba9ee8348d2066684",
+      "verdict": "ORIGINAL_RED",
+      "pixels": "original unmodified capture; direct parent review"
+    },
+    {
+      "file": "en-desktop-standard.png",
+      "sha256": "94fe3f72ad44df062fcf786e6bf9f30dbfa6c5570ce5adcaffc89915c54f348f",
+      "source_commit": "6a2a65630b740f550d8aaffe7592a0ed3f635e7e",
+      "verdict": "ACCEPTED",
+      "pixels": "original unmodified capture; direct parent review"
+    },
+    {
+      "file": "en-tablet-standard.png",
+      "sha256": "a32c544e69cfe9f9d3822d58bee7cf9cec4fb45eb69e26532be1ff25f19a7318",
+      "source_commit": "6a2a65630b740f550d8aaffe7592a0ed3f635e7e",
+      "verdict": "ACCEPTED",
+      "pixels": "original unmodified capture; direct parent review"
+    },
+    {
+      "file": "en-mobile-standard.png",
+      "sha256": "27b68ed7317a6773c40be6e71ce18ef2fd9d32d67f86af73c469bbc85f4c63df",
+      "source_commit": "6a2a65630b740f550d8aaffe7592a0ed3f635e7e",
+      "verdict": "ACCEPTED",
+      "pixels": "original unmodified capture; direct parent review"
+    },
+    {
+      "file": "zh-desktop-standard.png",
+      "sha256": "5d9e8e14f2e85e794bf5018bb09683b5b5be0cbede1e3faa251ccc5ddbee26fa",
+      "source_commit": "6a2a65630b740f550d8aaffe7592a0ed3f635e7e",
+      "verdict": "ACCEPTED",
+      "pixels": "original unmodified capture; direct parent review"
+    },
+    {
+      "file": "zh-tablet-standard.png",
+      "sha256": "1e60f2d86b128bdf900848f6c618586d94ae85ccde4ee9da28b493687ff4b202",
+      "source_commit": "6a2a65630b740f550d8aaffe7592a0ed3f635e7e",
+      "verdict": "ACCEPTED",
+      "pixels": "original unmodified capture; direct parent review"
+    },
+    {
+      "file": "zh-mobile-standard.png",
+      "sha256": "875dd016b37a938a9126d6ffab327fd7975f9c5d7fb50f94cddbe638f875d23c",
+      "source_commit": "6a2a65630b740f550d8aaffe7592a0ed3f635e7e",
+      "verdict": "ACCEPTED",
+      "pixels": "original unmodified capture; direct parent review"
+    }
+  ],
+  "original_failure": "Original selected text clips. Separate later native run failed webserver startup404 before tests; retained failed .next cache, identical source/test passed fresh cache. 404 cause unproved.",
+  "legacy": "Prior crop files/manifests unchanged and reused; no reattribution",
+  "limits": [
+    "Chinese Firefox151 native-text200 remains unaccepted",
+    "No supported H1/J6 LightAuto consumer claimed",
+    "Not full accessibility or live principal/production acceptance",
+    "All release/schema/rights/refusal holds retained"
+  ],
+  "review": "Parent reviewed exact two-line delta and actual red/green/negative-control/browser evidence. External Fabric review is tracked separately; no worker acceptance is inferred."
+}

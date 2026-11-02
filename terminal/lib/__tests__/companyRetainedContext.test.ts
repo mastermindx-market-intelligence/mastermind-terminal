@@ -282,7 +282,8 @@ describe('loadCompanyRetainedContext', () => {
     expect(fetchImpl).toHaveBeenCalledTimes(1);
     const { url, init } = requestedCall(fetchImpl);
     expect(url.pathname).toBe(ENDPOINT_PATH);
-    expect([...url.searchParams.keys()]).toEqual(['symbol']);
+    expect([...url.searchParams.keys()]).toEqual(['scope', 'symbol']);
+    expect(url.searchParams.get('scope')).toBe('company_context');
     expect(url.searchParams.get('symbol')).toBe(SYMBOL);
     expect(init.credentials).toBe('same-origin');
     expect(init.cache).toBe('no-store');
@@ -290,7 +291,7 @@ describe('loadCompanyRetainedContext', () => {
     expect(result.ok).toBe(true);
   });
 
-  it('sends the exact four endpoint keys for a retained pin', async () => {
+  it('sends the exact four identity keys and explicit Company scope for a retained pin', async () => {
     const fetchImpl = fetchReturning(okPayload());
     const result = await loadCompanyRetainedContext({ symbol: SYMBOL, pin: makePin(), fetchImpl });
     expect(fetchImpl).toHaveBeenCalledTimes(1);
@@ -301,7 +302,9 @@ describe('loadCompanyRetainedContext', () => {
       'event_id',
       'fingerprint',
       'generation_id',
+      'scope',
     ]);
+    expect(url.searchParams.get('scope')).toBe('company_context');
     expect(url.searchParams.get('event_id')).toBe(EVENT_ID);
     expect(url.searchParams.get('generation_id')).toBe(GENERATION_ID);
     expect(url.searchParams.get('company_id')).toBe(COMPANY_ID);

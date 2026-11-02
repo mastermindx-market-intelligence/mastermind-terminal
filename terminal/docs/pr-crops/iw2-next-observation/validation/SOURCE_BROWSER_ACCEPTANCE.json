@@ -1,0 +1,124 @@
+{
+  "at": "2026-10-14T10:34:38.504977+00:00",
+  "decision": "PARENT_ACCEPTED_SOURCE_AND_SCOPED_BROWSER",
+  "parent": "a7618e1a10ba23f26f19064d29da774de6614c28",
+  "source": {
+    "terminal/components/workspaces/InvestigationWorkspace.tsx": "9ed3758f04dc04ea43d7262e61452dbaf903a5b017bc4e0ede17c768ca0c8d5e",
+    "terminal/lib/__tests__/investigationDuplicateDraft.test.tsx": "ce44c1296a7974f39145177a750da137620b523ca2c32c217ed2dc121670521f",
+    "terminal/e2e/investigation-next-observation-validation.spec.ts": "b2f0a7f1e8052d39dc42a490d70ceab8f36051cb347633e6330e63ddfb46b6a2"
+  },
+  "scope": "Name the over-limit next observation in the existing status message; retain existing 4000-codepoint contract and every draft byte until explicit Save. No truncation or new write carrier.",
+  "original_red": {
+    "unit_exec": 79720,
+    "unit_failed": 1,
+    "browser_exec": 47617,
+    "browser_failed": 1,
+    "qualification": "First21528 route404 retained with original dev cache, causeUNPROVED; unchanged source/recipe with fresh cache reaches actual missing-message RED"
+  },
+  "candidate": {
+    "unit_exec": 59298,
+    "passed": 148,
+    "files": 4,
+    "browser_exec": 68001,
+    "browser_passed": 6,
+    "locales": [
+      "en",
+      "zh"
+    ],
+    "viewports": [
+      "1440x900",
+      "820x1180",
+      "390x844"
+    ],
+    "workers": 1,
+    "retries": 0
+  },
+  "discriminators": [
+    "4001 Unicode codepoints rejected with exact draft and zero writes",
+    "4000 codepoints (8000 UTF16 units) accepted only on explicit Save",
+    "One original revise expected_revision3; old revision3 and all other fields unchanged"
+  ],
+  "owner_receipts": [
+    {
+      "path": "candidate/validation-observation-lim-28672-nd-preserves-the-draft-—-en-desktop/OWNER_EXACT.json",
+      "sha256": "79c187ba4a89d6c91a9974f9ce608be5dac3601b9bc0658e6227bd93c7433b81"
+    },
+    {
+      "path": "candidate/validation-observation-lim-28672-nd-preserves-the-draft-—-en-mobile/OWNER_EXACT.json",
+      "sha256": "97d67ddf86840f4b6a74a97abb6b4c59f45cd67ad51ee869c5f748a327abfb81"
+    },
+    {
+      "path": "candidate/validation-observation-lim-28672-nd-preserves-the-draft-—-en-tablet/OWNER_EXACT.json",
+      "sha256": "15079171a88521b62dfde58b5365882f7305a160592978e1264d4124a1afcbc9"
+    },
+    {
+      "path": "candidate/validation-observation-lim-583fa-nd-preserves-the-draft-—-zh-desktop/OWNER_EXACT.json",
+      "sha256": "181f7a6314c743622429a4617b9133c791f488543acd342b4b04124bdf3445ea"
+    },
+    {
+      "path": "candidate/validation-observation-lim-583fa-nd-preserves-the-draft-—-zh-mobile/OWNER_EXACT.json",
+      "sha256": "f84c1a6c081d42a35dd88fda617541b3dae4b498a41ec8ebde4bb593666986b3"
+    },
+    {
+      "path": "candidate/validation-observation-lim-583fa-nd-preserves-the-draft-—-zh-tablet/OWNER_EXACT.json",
+      "sha256": "0777f70157921548bd2ad3f483e16c662bf4726dda747b25229fbe6066dc965c"
+    }
+  ],
+  "pixels": {
+    "directly_viewed": 6,
+    "files": [
+      {
+        "path": "candidate/validation-observation-lim-28672-nd-preserves-the-draft-—-en-desktop/limit-message.png",
+        "sha256": "f1227122f8e05dedff18250135689e2252290eedd300672bb5956a933f85bcce"
+      },
+      {
+        "path": "candidate/validation-observation-lim-28672-nd-preserves-the-draft-—-en-mobile/limit-message.png",
+        "sha256": "a692913447d776553c28427f0fc74e66c913d45ee2ee25b8f5a4445413154bb8"
+      },
+      {
+        "path": "candidate/validation-observation-lim-28672-nd-preserves-the-draft-—-en-tablet/limit-message.png",
+        "sha256": "af1a7fdc6377492520f448f7b372e608c3ecfd2eb8b863f3199ab20d028acaf2"
+      },
+      {
+        "path": "candidate/validation-observation-lim-583fa-nd-preserves-the-draft-—-zh-desktop/limit-message.png",
+        "sha256": "5992b240eafd1478936cf3f15d1964b9410c2e337f25d75d4701aa1a077073a6"
+      },
+      {
+        "path": "candidate/validation-observation-lim-583fa-nd-preserves-the-draft-—-zh-mobile/limit-message.png",
+        "sha256": "dfca360a18e0dcdfd068598995f181df1794fe257f0093772d96c34825c0813e"
+      },
+      {
+        "path": "candidate/validation-observation-lim-583fa-nd-preserves-the-draft-—-zh-tablet/limit-message.png",
+        "sha256": "db546b5a03317c85c6d8779f696a38e74cc6029bfc0df61038973a41e2a81af3"
+      }
+    ],
+    "verdict": "Named error readable and naturally wrapped at all six configurations"
+  },
+  "typescript_exit": 0,
+  "lint": {
+    "inherited_errors": 1,
+    "inherited_warnings": 3,
+    "added": 0
+  },
+  "whitespace_exit": 0,
+  "review": [
+    "Existing owner/epoch/edit lock remains first",
+    "Guard only inside create/revise branch; remove/restore behavior unchanged",
+    "Same Unicode counting as existing contract and displayed limit",
+    "No source change to frozen O1/O2, backend/schema or live persistence"
+  ],
+  "limits": [
+    "Isolated local authenticated fixture/API transport only",
+    "Not full H2 closure or production acceptance",
+    "No new native200 proof needed for unchanged field; message verified in standard matrix only",
+    "All release holds retained"
+  ],
+  "logs": {
+    "QUALIFIED_RED.log": "3de05100d1677624aed0dbbdff5718fbca090467aa36c92450bc46851f74eebb",
+    "UNIT_RED.log": "955a65f14307534ba3956cc638c747856eb95a97b06ee5401dedeb7e2464899c",
+    "UNIT_CANDIDATE.log": "677696517e009659e1c499d440c0269b64c69084e6eb1d0fa4137a4fe2701701",
+    "CANDIDATE.log": "c56cbc9d50d6b1ddadc695d16e30bd03cd8ab9c37f39dbdca20cc3a9d39f2dd0",
+    "FINAL_TS.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "FINAL_LINT.log": "f850962da16ec5456dd0511e441ee7acdeb46ee84413d7073c6f319f88ce2606"
+  }
+}

@@ -482,7 +482,8 @@ describe("plain-language call sites — batch 3 round 5", () => {
   it("PineEditor.tsx: the protected badge and lock chip still route through t(\"peProtected\")", () => {
     const src = readOwned("PineEditor.tsx");
     expect(src).toContain('title={t("peProtected")}');
-    expect(src).toContain("readOnly={isLocked}");
+    // Hydration adds a temporary guard; protected source must remain locked afterwards.
+    expect(src).toContain("readOnly={isLocked || !editorReady}");
   });
 
   it("companyIntelligenceLabels.ts: regulatory Chinese uses 披露, never 申报", () => {

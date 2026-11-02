@@ -51,6 +51,11 @@ export function useAdaptiveToolbar(signature: string) {
     };
 
     const measure = () => {
+      // Phone chrome hides this toolbar. Zero boxes are not reusable label metrics.
+      if (!root.getClientRects().length || root.clientWidth <= 0) {
+        metricsRef.current = null;
+        return;
+      }
       root.dataset.toolbarMeasuring = "true";
       const tools = root.querySelector<HTMLElement>(":scope > .tools");
       const title = root.querySelector<HTMLElement>(":scope > .ct");
@@ -85,8 +90,13 @@ export function useAdaptiveToolbar(signature: string) {
 
     measure();
     const observer = new ResizeObserver(() => {
+      if (!root.getClientRects().length || root.clientWidth <= 0) {
+        metricsRef.current = null;
+        return;
+      }
       const metrics = metricsRef.current;
       if (metrics) setMode(modeForWidth(readAvailableWidth(), metrics));
+      else measure();
     });
     observer.observe(root);
 

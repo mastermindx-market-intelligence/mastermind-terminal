@@ -786,12 +786,47 @@ def _guard(text: str, statements: list[str], *, allow_legacy: bool, path) -> lis
     raise MigrationError("; ".join(findings))
 
 
-def run_dry(path: Path, *, allow_legacy: bool = False, project_ref: Optional[str] = None, out=None) -> int:
+def _read_snapshot(path: Path) -> tuple[bytes, str]:
+    """One immutable read of the migration file: (raw bytes, utf-8 text).
+
+    The receipt's sha256 and the SQL that gets parsed and sent must
+    describe the SAME buffer. Reading the file twice -- read_text() for
+    the parser, then read_bytes() for the digest -- lets a concurrent
+    rewrite land between the two reads, so the receipt records a digest of
+    bytes that were never parsed, or the parser runs unrecorded bytes.
+    This reads the file exactly once (read_bytes()); the text is decoded
+    from that same buffer with an explicit UTF-8 decode, and the digest is
+    taken over the exact raw bytes -- CRLF line endings included -- so
+    nothing ever re-opens the file to hash it.
+    """
+    raw = path.read_bytes()
+    return raw, raw.decode("utf-8")
+
+
+def _guard_source_pin(digest: str, expected: Optional[str]) -> None:
+    """Compare source identity only; a supplied pin grants no apply authority."""
+    if expected is None:
+        return
+    if not isinstance(expected, str) or re.fullmatch(r"[0-9a-f]{64}", expected) is None:
+        raise MigrationError("expected source SHA256 must be exactly 64 lowercase hex characters")
+    if digest != expected:
+        raise MigrationError("source SHA256 does not match the expected source SHA256")
+
+
+def run_dry(path: Path, *, allow_legacy: bool = False, project_ref: Optional[str] = None,
+            expected_source_sha256: Optional[str] = None, out=None) -> int:
     if out is None:
         out = sys.stdout
-    text = path.read_text()
+    raw, text = _read_snapshot(path)
     statements = split_statements(text)
-    digest = hashlib.sha256(path.read_bytes()).hexdigest()
+    digest = hashlib.sha256(raw).hexdigest()
+
+    try:
+        _guard_source_pin(digest, expected_source_sha256)
+    except MigrationError as exc:
+        print(f"guards:  REFUSED -- {exc}", file=out)
+        print("no network call was made.", file=out)
+        return 3
 
     print(f"supabase_apply -- {path}", file=out)
     try:
@@ -907,15 +942,17 @@ def run_apply(
     project_ref: str,
     allow_legacy: bool = False,
     accept_unverifiable: bool = False,
+    expected_source_sha256: Optional[str] = None,
     out=None,
 ) -> int:
     if out is None:
         out = sys.stdout
-    text = path.read_text()
+    raw, text = _read_snapshot(path)
     statements = split_statements(text)
-    digest = hashlib.sha256(path.read_bytes()).hexdigest()
+    digest = hashlib.sha256(raw).hexdigest()
 
     try:
+        _guard_source_pin(digest, expected_source_sha256)
         _guard(text, statements, allow_legacy=allow_legacy, path=path)
     except MigrationError as exc:
         print(f"guard refusal: {exc}", file=out)
@@ -1105,6 +1142,7 @@ def main(argv: Optional[list[str]] = None) -> int:
     parser.add_argument("--allow-legacy", action="store_true")
     parser.add_argument("--accept-unverifiable", action="store_true")
     parser.add_argument("--timeout", type=int, default=120)
+    parser.add_argument("--expected-source-sha256", help="Expected raw UTF-8 source SHA256 (identity check, not apply approval)")
     args = parser.parse_args(argv)
 
     if args.apply and not args.receipt:
@@ -1119,7 +1157,8 @@ def main(argv: Optional[list[str]] = None) -> int:
         return 2
 
     if args.dry_run:
-        return run_dry(args.path, allow_legacy=args.allow_legacy, project_ref=args.project_ref)
+        return run_dry(args.path, allow_legacy=args.allow_legacy, project_ref=args.project_ref,
+                       expected_source_sha256=args.expected_source_sha256)
 
     try:
         token, ref = resolve_credentials(args.project_ref)
@@ -1135,6 +1174,7 @@ def main(argv: Optional[list[str]] = None) -> int:
         project_ref=ref,
         allow_legacy=args.allow_legacy,
         accept_unverifiable=args.accept_unverifiable,
+        expected_source_sha256=args.expected_source_sha256,
     )
 
 

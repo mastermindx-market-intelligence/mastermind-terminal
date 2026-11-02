@@ -19,7 +19,7 @@ const { spawn, execFileSync } = require("node:child_process");
 const { createHash } = require("node:crypto");
 const { mkdirSync, readdirSync, readFileSync, writeFileSync } = require("node:fs");
 const { join } = require("node:path");
-const { chromium } = require("@playwright/test");
+const { chromium, expect } = require("@playwright/test");
 
 const ROOT = join(__dirname, "..", "..");
 const REPO = join(ROOT, "..");
@@ -121,13 +121,20 @@ async function newPage(browser, width, lang) {
     locale: lang === "zh" ? "zh-CN" : "en-US",
     colorScheme: "dark",
   });
-  await context.addInitScript((l) => {
+  await context.addInitScript(({ l, origin }) => {
+    // The init script also runs in the opaque about:blank document. Seed the
+    // fixture origin only, and wait for the root element before touching it.
+    if (location.origin !== origin) return;
     localStorage.setItem("mm.lang", l);
     localStorage.setItem("theme", "dark");
     localStorage.setItem("theme_auto", "0");
-    document.documentElement.setAttribute("data-theme", "dark");
-    document.documentElement.setAttribute("data-lang", l);
-  }, lang);
+    const apply = () => {
+      document.documentElement.setAttribute("data-theme", "dark");
+      document.documentElement.setAttribute("data-lang", l);
+    };
+    if (document.documentElement) apply();
+    else document.addEventListener("DOMContentLoaded", apply, { once: true });
+  }, { l: lang, origin: BASE });
   const page = await context.newPage();
   page.setDefaultTimeout(45_000);
   return { context, page };
@@ -197,6 +204,12 @@ async function openIndicatorLibrary(page, width) {
 async function captureGuidePanel(page, width, lang, outPath) {
   await gotoReady(page, "/terminal?symbol=NVDA", lang);
   await page.locator(".workspace").waitFor({ state: "visible", timeout: 60_000 });
+  // Wait for the chart's mounted data path before the original library click.
+  const symbol = page.locator(width === 390 ? ".m-symbar .m-sym b" : ".topbar .pair b").first();
+  await expect(symbol).toHaveText("NVDA", { timeout: 45_000 });
+  const ohlc = page.locator(".statusline").first().locator(".status-ohlc b");
+  await expect(ohlc).toHaveCount(4);
+  for (const value of await ohlc.all()) await expect(value).toHaveText(/\d/);
   // The SSR toolbar can precede hydration on the first cold route. Wait for
   // the real chart consumer to mount before invoking its indicator controls.
   await page.locator(".chart-wrap canvas").first().waitFor({ state: "visible", timeout: 60_000 });
@@ -324,6 +337,12 @@ async function main() {
     stopServer(child);
   }
 
+  if (failed) process.exitCode = 1;
+  if (failed || ONLY.length) {
+    console.log('incomplete or diagnostic run: EVIDENCE.yml not written');
+    return;
+  }
+
   const evidence = [
     "# B-PL-6 batch 2 — capture evidence",
     "# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06",
@@ -354,7 +373,6 @@ async function main() {
   writeFileSync(join(OUT, "EVIDENCE.yml"), evidence);
   console.log(`capturedAtHead ${capturedAtHead}`);
   console.log(`wrote ${files.length} crops + EVIDENCE.yml to ${OUT}`);
-  if (failed) process.exitCode = 1;
 }
 
 main().catch((err) => {
