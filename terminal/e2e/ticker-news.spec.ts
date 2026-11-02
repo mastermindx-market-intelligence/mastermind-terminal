@@ -376,10 +376,11 @@ test("ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix", a
         // R2: the content kind moved from the source label into the evidence ladder's first step (spec §3.2).
         await expect(panel).toContainText("GlobeNewswire");
         await expect(panel).toContainText(lang === "zh" ? "公司公告" : "Company announcement");
-        await expect(panel.locator('option[value=""]')).toHaveText(lang === "zh" ? "全部精选来源" : "All curated sources");
-        await panel.locator("select[data-news-source-filter]").selectOption("benzinga");
-        await expect(panel.locator("[data-news-headline]")).toHaveCount(1);
-        await panel.locator("select[data-news-source-filter]").selectOption("");
+        // The compact rail presents both accessible sources directly, without the
+        // retired source selector, activity strip, or bulk review toolbar.
+        await expect(panel.locator("[data-news-source-filter]")).toHaveCount(0);
+        await expect(panel.locator("[data-news-catchup]")).toHaveCount(0);
+        await expect(panel.locator("[data-flow-state]")).toHaveCount(0);
         await expect(panel.locator("[data-news-headline]")).toHaveCount(2);
         await expect(panel.locator("[data-news-headline]").first()).toHaveAttribute(
           "href",
