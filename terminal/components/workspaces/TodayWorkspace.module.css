@@ -185,3 +185,19 @@
 .today .sinceRow > p { margin:0;min-width:0; }
 .today .sinceMeta { margin:10px 0 0;font-size:12px;color:var(--text-2); }
 .today .sinceFoot { margin:10px 0 0;font-size:11px;line-height:1.6;color:var(--muted); }
+
+/* Slice 2: the source-readings strip is visible at the foot of the brief. Every reading carries
+   its age in US sessions as words; ink only reinforces it (stale = warn), never health colours
+   that flip in the East-Asian theme. The breadth cell is a reading, not a link. */
+/* The age is a reading, not decoration: --muted is ~4.1:1 on the panel at 11px, so every kind uses
+   --text-2 and the words say current / behind; only stale changes ink. */
+.readingAge { font-size:11px;line-height:1.45;color:var(--text-2); }
+.readingAge[data-kind="stale"], .readingAge[data-kind="ahead"] { color:var(--warn); }
+.readingDate > em.readingAge { display:inline;margin-inline-start:10px;font-style:normal; }
+.readingClock + .readingAge { margin-top:-4px; }
+.reading.readingStatic:hover { background:transparent; }
+.today .reading > strong.readingQuiet { font-size:13px;font-weight:500;color:var(--text-2); }
+/* The global --warn is the dark-theme amber (#e8a33d, ~2.1:1 on a light panel); the light theme
+   uses the same ink the Portfolio dialogs use. The words carry the meaning either way. */
+:global(html[data-theme="light"]) .readingAge[data-kind="stale"],
+:global(html[data-theme="light"]) .readingAge[data-kind="ahead"] { color:var(--mx-light-ink-warn, #7D5922); }
