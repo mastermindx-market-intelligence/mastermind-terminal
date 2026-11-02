@@ -34,6 +34,14 @@ const MANIFEST = {
 
 type Accounts = { database: string; actorA: string; actorB: string };
 
+/** The committed verification crops for this journey (repo-relative to `terminal/`). */
+const SHOT_DIR = "docs/verification/portfolio-workspace/chart-position-owner-20261102";
+
+/** One element crop of the position form itself — the surface this change is about. */
+async function shotForm(page: Page, form: Locator, name: string) {
+  await form.screenshot({ path: `${SHOT_DIR}/${name}.png` });
+}
+
 /** Two accounts over one physical store. */
 function accounts(): Accounts {
   const database = `chart-owner-${Math.random().toString(36).slice(2, 10)}`;
@@ -114,6 +122,7 @@ test.describe(`chart position entry — the account that opened the form (${lang
 
     const form = await openChartPositionForm(page, "NVDA");
     await expect(form.locator("input[name='ticker']")).toHaveValue("NVDA");
+    await shotForm(page, form, `chart-position-owner-form-${testInfo.project.name}-${lang}`);
 
     // The session moves to B. A cookie change does NOT refresh the server component, so the page
     // still names A — the form's captured owner is still A, and that is what it must send.
@@ -127,6 +136,7 @@ test.describe(`chart position entry — the account that opened the form (${lang
     // The refusal is visible, in the form's own language.
     const refusal = form.locator("[role='alert']");
     await expect(refusal).toContainText(portfolioCopy(lang)("ownerChanged"));
+    await shotForm(page, form, `chart-position-owner-refusal-${testInfo.project.name}-${lang}`);
   });
 
   test("the refused write leaves the shared store with zero rows", async ({ page, baseURL }, testInfo) => {
