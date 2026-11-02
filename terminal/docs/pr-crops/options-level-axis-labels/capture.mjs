@@ -132,13 +132,16 @@ async function readProof(page) {
 // screenshot taken in that gap shows the shorter box before the chart has redrawn into it, so
 // the time axis is cut off (the 463px vs 345px mobile frame). Shoot only once the reported count
 // matches the panes the chart actually draws and the drawn rows reach the bottom of the box.
+// lightweight-charts lays the chart out as a table (one row per pane plus the time-axis row);
+// the mm renderer draws one [data-mm-pane] block per pane with the time axis inside the last.
 async function waitForSettledChart(page) {
   await page.waitForFunction(() => {
     const body = document.querySelector(".chart-body");
     const wrap = document.querySelector(".chart-wrap");
-    const rows = [...(wrap?.querySelectorAll("table tr") ?? [])].map((row) => row.getBoundingClientRect());
-    if (!body || !wrap || rows.length < 2) return false;
-    const drawnSubPanes = rows.filter((box) => box.height > 1).length - 2;
+    const mm = !!wrap?.querySelector("[data-mm-chart]");
+    const rows = [...(wrap?.querySelectorAll(mm ? "[data-mm-pane]" : "table tr") ?? [])].map((row) => row.getBoundingClientRect());
+    if (!body || !wrap || rows.length < (mm ? 1 : 2)) return false;
+    const drawnSubPanes = rows.filter((box) => box.height > 1).length - (mm ? 1 : 2);
     const reportedSubPanes = Number(getComputedStyle(body).getPropertyValue("--subpanes") || 0);
     return reportedSubPanes === drawnSubPanes
       && Math.abs(rows[rows.length - 1].bottom - wrap.getBoundingClientRect().bottom) <= 1;

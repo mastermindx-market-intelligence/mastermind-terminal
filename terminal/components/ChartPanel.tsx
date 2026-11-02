@@ -31,7 +31,8 @@ import {
   EngineLineType,
   EnginePriceScaleMode,
 } from "@/lib/chart-engine/api";
-import { ENGINE_REFUSAL_PROBE_OPTIONS, isRefusalProbeRequested, resolveMountEngineImpl } from "@/lib/chart-engine/select";
+import { ENGINE_REFUSAL_PROBE_OPTIONS, isRefusalProbeRequested, resolveMountEngineSelection } from "@/lib/chart-engine/select";
+import { reportEngineFallback, reportEngineMount } from "@/lib/chart-engine/telemetry";
 import {
   axisLogFormulaForRange,
   axisRangeFromLog,
@@ -97,6 +98,7 @@ import { boatsChartRefresh, boatsRefreshLogicalRange } from "@/lib/boatsChartRef
 import { isMacroSymbol, macroOnEtAxis } from "@/lib/macroSymbols";
 import { sessionVwap, openingRange, sessionLevels, pivotLevels, rvolSeries, ttmSqueeze, adx as calcAdx, cvdApprox, type Bar as IMBar, type DailyBar } from "@/lib/intradayMath";
 import { attachSessionShadingToHandle, detachSessionShadingFromHandle, type SessionShadingPrimitive } from "@/lib/sessionShading";
+import { attachSessionShadingEngineToHandle, type SessionShadingEnginePrimitive } from "@/lib/sessionShadingEngine";
 import { IND_DEFS, withDefaults, isIndKey } from "@/lib/indicators";
 import { isAdditionalStudyId, studyParamsWithDefaults, studyTypeOf } from "@/lib/studyInstances";
 import { expandStudyOrder, renderableStudyIds, studyInstanceMeta } from "@/lib/studyInstanceView";
@@ -1219,7 +1221,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
     } catch {}
   };
   // Session shading primitive attached to the candle series (intraday + market has sessions + dayMode).
-  const shadingPrimRef = useRef<SessionShadingPrimitive | null>(null);
+  const shadingPrimRef = useRef<SessionShadingPrimitive | SessionShadingEnginePrimitive | null>(null);
   // Countdown chip DOM element + its 1s timer (mounted in Effect 1, driven by dayMode effect).
   const countdownChipRef = useRef<HTMLDivElement | null>(null);
   const countdownTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -4257,19 +4259,26 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       // refuses, so the catch branch below mounts lwc on the wire (same data, same documents).
       ...(isRefusalProbeRequested(window.location.search) ? ENGINE_REFUSAL_PROBE_OPTIONS : {}),
     };
-    const requestedImpl = resolveMountEngineImpl(window.location.search);
+    const engineSelection = resolveMountEngineSelection(window.location.search);
+    const requestedImpl = engineSelection.impl;
     let engine: ChartEngine | undefined;
+    let engineRefusal: string | null = null;
     if (requestedImpl === "mm") {
       try {
         engine = createEngine(el, engineOptions, "mm");
       } catch (err) {
         try { engine?.destroy(); } catch {}
-        console.warn(`chart-engine: mm mount fell back to lwc: ${err instanceof Error ? err.message : String(err)}`);
+        engineRefusal = err instanceof Error ? err.message : String(err);
+        console.warn(`chart-engine: mm mount fell back to lwc: ${engineRefusal}`);
+        reportEngineFallback({ requested: "mm", impl: "lwc", refusal: engineRefusal });
         engine = createEngine(el, engineOptions);
       }
     } else {
       engine = createEngine(el, engineOptions);
     }
+    // P03 observability: exactly one chart_engine_mount event per mount (fallback: true
+    // after a refusal), so the default flip is never blind in production.
+    reportEngineMount({ impl: engine.impl, source: engineSelection.source, fallback: engineRefusal !== null, refusal: engineRefusal });
     engineRef.current = engine;
     const chart = engine;
     // ── v5 text watermark — the owned contract's pane-scoped setWatermark (M03) ──
@@ -10502,8 +10511,16 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
 
     if (canShade && priceH) {
       const imBars = barsRef.current as unknown as import("@/lib/sessionShading").ShadingBar[];
-      const prim = attachSessionShadingToHandle(priceH, imBars);
-      shadingPrimRef.current = prim;
+      // The mm renderer refuses an LWC ISeriesPrimitive (EngineRefusalError), so it gets the
+      // engine-neutral overlay; lwc keeps its own primitive. A refusal here must cost the tint,
+      // never the chart: an exception thrown from this effect would take the whole panel down.
+      try {
+        shadingPrimRef.current = engineRef.current?.impl === "mm"
+          ? attachSessionShadingEngineToHandle(priceH, imBars)
+          : attachSessionShadingToHandle(priceH, imBars);
+      } catch (err) {
+        console.warn(`session shading not attached: ${err instanceof Error ? err.message : String(err)}`);
+      }
     }
 
     // Countdown chip
