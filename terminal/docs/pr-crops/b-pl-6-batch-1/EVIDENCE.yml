@@ -39,7 +39,7 @@ layoutFiles:
   terminal/components/DrawingSidebar.module.css: "8f0452b49da704d0a0d3ea9f9317de1388fe5fbb169800bd8d5fac9ce007def2"
   terminal/components/DrawingSidebar.tsx: "464015295be55afd1e7c783aeb3dfb53047854f91788cacefb9fc7b30620db03"
   terminal/components/MobileNav.module.css: "ebc961c1a5ed307aca41b147d87a6373c8710d0a9298e3bfe0df215d287c6c15"
-  terminal/components/MobileNav.tsx: "807e623386587d369ee8a088f07815d5296539ea8ca787a39ed0b64d27935f52"
+  terminal/components/MobileNav.tsx: "b968af6eee6d724898bbd6cf4d76fb7066622f7ab76a8d4e0a03cdfbde8dcd7f"
   terminal/components/MobileNavModal.tsx: "62b4495cab5f8608b3413dad279b1bd48cdb4b6543dc07544428283665740498"
   terminal/components/TerminalShell.tsx: "ffe5771540e577792257c0db27c1062da62c47f914596e7960fcc45e59972498"
   terminal/components/ChartPositionEntry.tsx: "e8be598623acd0f5af8f574c87eab824c76dcc56a40ada78807b9785c9c08b4c"
@@ -495,4 +495,13 @@ chartPositionEntryOwnerRecapture20261102:
   actualBrowserResult: "Visual Intelligence 30 passed, 0 failed, 0 skipped, 0 flaky, 0 retries on the changed source; PL6 ChartChrome 4 crops captured on the changed source"
   cropDelta: "The accepted crops are RETAINED, not replaced. This capture host cannot load the next/font/google Inter face, so every recaptured crop renders the fallback typeface across the whole surface; committing those bytes would replace the accepted evidence with a visibly different rendering that no source change caused. Control captures settle the attribution: on the BASE source the PL6 ChartChrome crops and the Visual Intelligence tablet and mobile crops are BYTE-IDENTICAL to the same capture on the changed source, so the position-entry repair is pixel-inert on both surfaces. The Visual Intelligence DESKTOP crop is not byte-comparable in either direction — three consecutive captures on the SAME source produced three different byte sequences, a volatile full-page surface — so the tablet/mobile and PL6 controls carry that claim"
   scope: "layoutFiles only. cropFiles, browserReportHashes and every PNG on disk are unchanged and still bind the accepted capture."
+  productionProof: false
+
+sharedShellRegionIdentityRecapture20261102:
+  sourceHead: "ad827ba1032843bd063fedb76a93215d797002ba"
+  receipt: "terminal/docs/pr-crops/shared-shell-ss02-region-current-20261102/visual-source-qualification.json"
+  scope: "Only the MobileNav.tsx layoutFiles binding; all predecessor PNGs, cropFiles, full reports and report hashes remain unchanged."
+  actualBrowserResult: "Separate immutable successor PL6 8/8 and VI Chinese-context 3/3; exact matching-baseline B2 controls reused under their original source identity. No whole-matrix recapture claim."
+  comparison: "All eight PL6 pairs and VI tablet are byte-identical. Desktop differences remain in the changing clock/ticker footer; mobile differs at 45 edge pixels by at most 2/255. Actual distinct captures remain retained."
+  enabledBehavior: "Four actual Next plus unchanged Macrobridge SS02 region-switch/Back journeys and 20 identity unit cases separately qualify sharedShell=1 behavior."
   productionProof: false
