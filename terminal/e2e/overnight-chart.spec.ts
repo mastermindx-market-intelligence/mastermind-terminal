@@ -88,6 +88,10 @@ for (const lang of ["en","zh"] as const) for (const theme of ["dark","light"] as
 for (const tf of ["D", "12h"] as const) {
  test(`24H settings respect ${tf} timeframe eligibility without losing the saved preference`, async ({ page }) => {
   await page.addInitScript(({tf}) => {
+   const state = window as Window & { __overnightVisualReady?: { symbol: string; timeframe: string } };
+   window.addEventListener("mm:terminal-visual-ready", (event) => {
+    state.__overnightVisualReady = (event as CustomEvent<{ symbol: string; timeframe: string }>).detail;
+   });
    localStorage.setItem("mm.startTf",JSON.stringify(tf));
    localStorage.setItem("mm.inds",JSON.stringify([]));
    localStorage.setItem("mm.lang","en");
@@ -98,6 +102,12 @@ for (const tf of ["D", "12h"] as const) {
   await page.route("**/api/ext-quote?**", async route => route.fulfill({json:{quotes:{}}}));
   await page.goto("/terminal?symbol=NVDA");
   await expect(page.locator(".chart-wrap").first()).toBeVisible({timeout:45000});
+  // A visible shell can precede preference hydration and the tablet layout's
+  // final paint. Wait for this chart/timeframe's existing readiness boundary
+  // before clicking the gear, as the chart-settings lifecycle suite does.
+  await expect.poll(() => page.evaluate(() => (
+   window as Window & { __overnightVisualReady?: { symbol: string; timeframe: string } }
+  ).__overnightVisualReady), { timeout: 20_000 }).toMatchObject({ symbol: "NVDA", timeframe: tf });
   const dialog=await settings(page);
   const session=dialog.getByLabel("Session",{exact:true});
   if (tf === "D") {
