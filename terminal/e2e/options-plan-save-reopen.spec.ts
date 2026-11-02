@@ -14,11 +14,12 @@ for (const lang of ["en", "zh"] as const) {
     await page.addInitScript(l => localStorage.setItem("mm.lang", l), lang);
     const stamp = "2026-10-24T08:00:00.000Z", sourceAsOf = "2026-10-23T20:00:00Z";
     const row = { root: "SPY", right: "C", exp: "2026-10-30", strike: 765, oi: 100, oi_prev: 80, d_oi: 20, mid: 3 };
-    await page.route("**/api/flow?f=oi", route => route.fulfill({ json: { schema: "options_hub.oi_movers/v1", asof: sourceAsOf, movers: [row] } }));
+    await page.route("**/api/flow?f=oi", route => route.fulfill({ json: { schema: "options_hub.oi_movers/v1", asof: sourceAsOf, stale: true, movers: [row] } }));
     await page.route("**/api/flow?f=hot", route => route.fulfill({ json: { schema: "options_hub.hot/v1", asof: sourceAsOf, by_premium: [], by_volume: [] } }));
     await page.route("**/api/brain/me", route => route.fulfill({ json: { tier: "guest", quotas: {} } }));
     const commands: InvestigationCommand[] = [], forbidden: string[] = [], calculations: unknown[] = [], reads: URL[] = [];
     let saved: InvestigationCommand | undefined;
+    let returnedRevision = 1;
     await page.route("**/api/investigations{,?*}", async route => {
       const request = route.request(), u = new URL(request.url());
       if (request.method() === "POST") {
@@ -27,7 +28,7 @@ for (const lang of ["en", "zh"] as const) {
           investigation_id: saved.id, revision_id: "30000000-0000-4000-8000-000000000001", sequence: 1, parent_revision_id: null, author_ref: auth.sub, recorded_at: stamp, manifest_digest: "a".repeat(64) } });
       } else if (request.method() === "GET") {
         reads.push(u);
-        await route.fulfill({ json: u.searchParams.has("id") && saved ? { status: "found", id: saved.id, revision: 1, current_revision: 2, lifecycle: "active", manifest: saved.manifest, committed_at: stamp, layouts: [] }
+        await route.fulfill({ json: u.searchParams.has("id") && saved ? { status: "found", id: saved.id, revision: returnedRevision, current_revision: 2, lifecycle: "active", manifest: saved.manifest, committed_at: stamp, layouts: [] }
           : { status: "listed", items: saved ? [{ id: saved.id, revision: 1, lifecycle: "active", title: saved.manifest.intent.title, question: saved.manifest.intent.question, updated_at: stamp }] : [] } });
       } else { forbidden.push(request.method() + " " + u.pathname); await route.fulfill({ status: 500, json: {} }); }
     });
@@ -86,6 +87,35 @@ for (const lang of ["en", "zh"] as const) {
     await page.goto(`${baseURL}/analysis?view=investigations&investigation=${commands[0].id}&revision=1`);
     await expect(page.getByText("Whole Plan retained", { exact: true }).first()).toBeVisible();
     expect(reads.some(u => u.searchParams.get("id") === commands[0].id && u.searchParams.get("revision") === "1")).toBe(true);
+    await page.getByRole("button", { name: t("Open saved Plan inputs", "打开已保存计划输入"), exact: true }).click();
+    const reopened = page.getByTestId("saved-plan-inputs");
+    await expect(reopened).toHaveAttribute("data-investigation-id", commands[0].id);
+    await expect(reopened).toHaveAttribute("data-investigation-revision", "1");
+    await expect(reopened.locator("legend")).toHaveText(t("SPY · 2026-10-30 · 765 · Call", "SPY · 2026-10-30 · 765 · 看涨"));
+    await expect(reopened.getByLabel(t("Your entry assumption — premium per unit", "假设入场价——每单位权利金"), { exact: true })).toHaveValue("2");
+    await expect(reopened.getByRole("heading", { name: t("Plan inputs from saved research revision 1", "来自已保存研究版本的计划输入 1"), exact: true })).toBeFocused();
+    await page.screenshot({ path: info.outputPath("canonical-plan-open.png") });
+    await reopened.getByTestId("plan-original-source").locator("summary").click();
+    await expect(reopened.getByTestId("plan-original-source")).toContainText(sourceAsOf);
+    await expect(reopened.getByTestId("plan-original-source")).toContainText(t("Refresh failed at selection", "选择时刷新失败"));
+    await expect(reopened.locator('[data-plan-field="bid_ask"] dd')).toHaveAttribute("data-cell-state", "not_supplied");
     expect(commands).toHaveLength(1); expect(calculations).toHaveLength(1); expect(forbidden).toEqual([]);
+    // The panel belongs inside the scrollable investigation detail, including on desktop.
+    await expect(reopened.getByRole("combobox", { name: t("Your assumed side", "假设方向"), exact: true })).toBeVisible();
+    expect(await reopened.evaluate(panel => {
+      const bounds = panel.getBoundingClientRect();
+      const editor = panel.querySelector("fieldset")!.getBoundingClientRect();
+      return editor.top >= bounds.top && editor.bottom <= bounds.bottom && editor.height > 0;
+    })).toBe(true);
+    await reopened.locator('[data-plan-field="bid_ask"]').scrollIntoViewIfNeeded();
+    await page.screenshot({ path: info.outputPath("canonical-plan-source.png") });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+    // A newer revision returned for the same pinned URL must not substitute for the saved Plan.
+    returnedRevision = 2;
+    await page.reload();
+    await expect(page.getByText(t("This saved research link is unavailable.", "此研究链接暂不可用。"), { exact: true })).toBeVisible();
+    await expect(page.getByTestId("saved-plan-inputs")).toHaveCount(0);
+    await expect(page.getByRole("button", { name: t("Open saved Plan inputs", "打开已保存计划输入"), exact: true }).and(page.locator(":enabled"))).toHaveCount(0);
+    expect(commands).toHaveLength(1); expect(calculations).toHaveLength(1);
   });
 }

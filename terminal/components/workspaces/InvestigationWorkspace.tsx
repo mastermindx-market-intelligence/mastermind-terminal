@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useInvestigationTheme } from "@/lib/useInvestigationTheme";
-import { useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { useLang } from "@/lib/i18n";
 import { accountIdentity } from "@/lib/accountIdentity";
 import { investigationSubject, readInvestigationJournal, retainInvestigationJournal, rejectInvestigationJournal, clearCommittedInvestigationJournal, clearRejectedInvestigationJournal } from "@/lib/investigationJournal";
@@ -42,6 +42,7 @@ export type InvestigationOptionPlanEntry = (candidate:unknown)=>
 export type InvestigationOptionPlanRevisionReader = ()=>{id:string;revision:number;plan:OptionsPlanDraft}|null;
 type Props = { ownerKey:string; initialSymbol?:string; initialInvestigationId?:string; initialRevision?:number;
  historyMode?:"route"|"embedded";
+ savedPlanControls?:ReactNode;
  onOptionPlanAdmissionReady?:(admit:InvestigationOptionPlanEntry|null)=>void;
  onOptionPlanRevisionReady?:(read:InvestigationOptionPlanRevisionReader|null)=>void;
 };
@@ -92,7 +93,7 @@ function contextLabel(value:string,lang:"en"|"zh") {
 }
 const optionsTypeLabel=(type:string,c:(typeof COPY)[keyof typeof COPY])=>type==="exposure_chart_request"?c.typeExposure:type==="sector_origin"?c.typeOrigin:type==="rotation_measurement"?c.typeRotation:c.options;
 
-export default function InvestigationWorkspace({ownerKey,initialSymbol,initialInvestigationId,initialRevision,historyMode="route",onOptionPlanAdmissionReady,onOptionPlanRevisionReady}:Props) {
+export default function InvestigationWorkspace({ownerKey,initialSymbol,initialInvestigationId,initialRevision,historyMode="route",savedPlanControls,onOptionPlanAdmissionReady,onOptionPlanRevisionReady}:Props) {
  const {lang}=useLang(), c=COPY[lang], sc=SCENARIO_COPY[lang];
  const [boundAuth,setBoundAuth]=useState<BoundAuthProjection|null>(null);
  // An old effect's render projection cannot cross a changed Workspace lifetime.
@@ -656,6 +657,7 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
     </form>:detail?<>
      <p className={styles.eyebrow}>{c.saved} · {c.revision} {detail.revision}{detail.lifecycle==="removed"?` · ${c.removed}`:""}</p><h2 ref={detailTitle} tabIndex={-1}>{detail.manifest.intent.title}</h2><p className={styles.question}>{detail.manifest.intent.question}</p>
      <dl className={styles.context}>{detail.manifest.intent.subjects.map((s,i)=><div key={i}><dt>{contextLabel(s.kind,lang)}</dt><dd>{s.object_id}</dd></div>)}{detail.manifest.intent.horizon&&<div><dt>{c.horizon}</dt><dd>{detail.manifest.intent.horizon}</dd></div>}{detail.manifest.intent.research_as_of&&<div><dt>{c.asOf}</dt><dd>{detail.manifest.intent.research_as_of}</dd></div>}</dl>
+     {savedPlanControls}
      {detail.manifest.scenario_capture!==undefined&&<section className={styles.card} data-testid="saved-scenario"><h3>{sc.saved}</h3><p className={styles.eyebrow}>{sc.boundary}</p><SavedScenarioRead key={`scenario:${ownerKey}:${authProjection?.snapshot.auth_epoch??"unavailable"}:${detail.id}:${detail.revision}`} capture={detail.manifest.scenario_capture} lang={lang} revision={{id:detail.id,revision:detail.revision,grantId:null}} identity={scenarioIdentity} resolveGuard={scenarioResolveGuard}/></section>}
      <div className={styles.actions}><button disabled={frozen||detail.lifecycle==="removed"} onClick={()=>beginEdit()}>{c.edit}</button><button type="button" disabled={frozen||detailLoading||acknowledgedDetail!==detail||detail.lifecycle==="removed"||!duplicateReady} onClick={beginDuplicate}>{c.duplicate}</button>{detail.revision!==detail.current_revision&&<button disabled={locked} onClick={()=>void openRecord(detail.id)}>{c.viewLatest}</button>}{detail.revision>1&&<button disabled={locked} onClick={()=>void openRecord(detail.id,detail.revision-1)}>{c.previous}</button>}{detail.revision<detail.current_revision&&<button disabled={locked} onClick={()=>void openRecord(detail.id,detail.revision+1)}>{c.nextRevision}</button>}</div>
      {detail.lifecycle==="active"&&<InvestigationWatchPanel link={{investigation_id:detail.id,revision:detail.revision}} symbol={symbol} rows={alertRows} current={null} lang={lang} disabled={frozen} loadState={alertLoad} onArm={armWatch} onRearm={rearmWatch} onRetry={()=>void loadAlerts()}/>}
