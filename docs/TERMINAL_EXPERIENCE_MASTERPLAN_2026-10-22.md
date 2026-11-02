@@ -305,7 +305,7 @@ Prioritize task frequency × user cost × breadth, then confidence and risk. Saf
 |---|---|---|---|
 | EX-41 | Ready | Discover filter grouping and active-scope summary | Primary search remains visible; advanced filters disclose coherently; all current power retained |
 | EX-42 | Coordinate | Heatmap / sectors / leaders consistency | Reconcile existing sector and saved-view carriers; table/visual filters agree and unknown sizing stays honest |
-| EX-43 | Audit | Dislocations scan hierarchy and details | Relevant company/state/date before secondary metadata; accessible detail affordance; meaningful grouping |
+| EX-43 | In progress | Dislocations production upgrade (§12) | Complete discovery/evidence/history workflow, truthful source/session/coverage, robust API and fetch lifecycle, independent responsive and production proof |
 | EX-44 | Coordinate | Alerts create / dry run / cancel / enable / delivery | Reconcile #1073/#1009; pending and delivered remain distinct; no unintended subscriptions |
 | EX-45 | Audit | Scripts diagnostics, inputs and chart handoff | Readable grouped warnings, understandable unsupported behavior, clear run/cancel/apply and draft-versus-saved state; dirty-draft navigation/recovery proof |
 | EX-46 | Audit | Today / research / learning / embeds / shared views / auth | Purposeful entry and return, correct permissions, stable responsive states, no orphan route |
@@ -443,3 +443,58 @@ These are primary guidance sources, not proof that Terminal already meets them.
 - [WCAG 2.2](https://www.w3.org/TR/WCAG22/), [target size](https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html), [focus not obscured](https://www.w3.org/WAI/WCAG22/Understanding/focus-not-obscured-minimum.html): concrete accessibility review criteria.
 - [web.dev INP](https://web.dev/articles/inp) and [Core Web Vitals guidance](https://developers.google.com/search/docs/appearance/core-web-vitals): field responsiveness and stability targets.
 - [Responsive application architecture](RESPONSIVE_APP_ARCHITECTURE.md), [existing UI doctrine](TERMINAL_UI_DOCTRINE_2026-07-28.md), and [chart performance budget](chart-engine-completion/performance-budget.md): retained repository foundations.
+
+
+## 12. EX-43 Dislocations production upgrade — Chairman commission, 2 November 2026
+
+This section expands existing EX-43 under the current Chairman instruction to take leadership and upgrade Dislocations ambitiously at every level. It is the task tree for this scope, not a replacement lifecycle or detector. Related product authority and source context: Terminal issue #784; Macro WS:LIVE-ENTRY-RADAR; frozen V1 research/INTRADAY_DISLOCATION_TERMINAL_PRODUCT_SPEC_V1.md. V1 stays historical; the additive contract and design below govern this new consumer upgrade.
+
+**Source:** Terminal protected master ed2e633852564dcd604afc26eb03eeed54954dee. Protected procedure: Mastermind ab93f3ede66486e82e995c88a86e662677973732, skillpack 1.0.1/bootstrap 1. Original source operation: terminal-dislocations-production-upgrade-20261102-sol-001. Current assigned principal assumes leadership of this upgrade; no live source writer is displaced. PR #1147 is merged (3e08f8904272); preserve its ET/date/language behavior. Open adjacent #1038 is a Catalyst Opportunity surface with disjoint implementation paths. Historical Fable ownership is context, not proof of a current writer or a new execution grant.
+
+### Outcome and product thesis
+
+A user can discover an observed dislocation, understand its supplied evidence and condition, distinguish the latest source session from history, inspect what was known when, open the correct existing chart, and return without losing their investigation. The machine must preserve canonical episode identity, source clocks, partial coverage and entitlement boundaries while handling malformed, stale, conflicting and failed input safely.
+
+The source owner remains Macro Live Entry Radar. Terminal may validate, explain, filter, group, paginate and visualize supplied data. It must not construct a second detector, new lifecycle, inferred signal levels, synthetic history, opportunity score, confidence score, predictive edge, trade sizing or execution authority. Existing quote, watchlist, portfolio, catalyst and chart owners are reused. Missing evidence remains explicit.
+
+### Architecture and visual decision
+
+Replace the long three-group feed with a responsive investigation workspace: concise title and source/session context; My watchlist/Market scope; latest-source-session/history/all navigation; compact state counts; search, state and transparent ordering controls; a dense episode discovery table/list; and a selected-episode evidence inspector. On wide screens the inspector is beside the list; on narrower screens the same component flows below the selection. Avoid a new modal/focus trap unless the existing shared sheet is required. Whole-row selection and a separate obvious Open chart action must remain keyboard-accessible.
+
+Lead with symbol and the observed condition, then session/observation age and actual supplied quantitative context. Use shared neutral surfaces, restrained separators, tabular figures, readable type, clear selection and focus. Remove long colored left-edge rails. Color supports a textual condition only. Never add decorative fake charts or substitute visual sophistication for absent data.
+
+Default to the latest source session, displaying its exact date and freshness. Do not call an old source session 'today' or silently substitute old episodes into an empty current view. History is intentional. Preserve stable selection across refresh and reset it safely when scope changes; every inspector identifies its episode. URL-addressable scope/filter/episode state supports navigation and sharing. Refresh does not reorder an actively inspected episode unexpectedly.
+
+The inspector uses deterministic explanation from observed fields: what was reported, supplied episode milestones, owner-provided levels/price/context when valid, independent clock and coverage qualifications, source provenance, limitations and chart link including the canonical episode ID. If full transitions are absent, show only supplied milestones and label that limitation. Technical diagnostics are secondary disclosure, not the primary user flow.
+
+### Task tree and dependencies
+
+| ID | Editorial label | Dependencies | Outcome and acceptance | Intended owner/review |
+|---|---|---|---|---|
+| EX-43.P0 | in_progress | current source census | Persist this initial tree and read back; inspect producer/consumer contracts, prior accepted work and source custody | principal architecture |
+| EX-43.P1 | ready | P0 | Pin concrete markup/style and interaction states using existing tokens; desktop/tablet/phone, dark/light, EN/ZH, populated/empty/degraded/error | principal design; independent visual review |
+| EX-43.P2 | ready | P0 | Strengthen existing API/source contract: bounded query validation, deterministic episode identity, honest dropped/duplicate/total/truncation counts, session metadata and pagination, defensive clocks/shape validation, unchanged auth/entitlement/private cache policy | paid Fabric engineering; separate reviewer |
+| EX-43.P3 | proposed | P1,P2 | Implement explorer and evidence inspector, source and join disclosures, server-supported discovery, URL state, exact episode chart links and useful state-specific guidance | paid Fabric engineering; separate reviewer |
+| EX-43.P4 | proposed | P2,P3 | Prove fetch lifecycle under view switches, late responses, aborts, unmount, hidden/visible transitions, 429 and failed refresh; no stale private data across scope/auth changes | paid Fabric validation/repair |
+| EX-43.P5 | proposed | P3,P4 | Actual responsive browser journeys and adverse-state matrix; independent accessibility, data-integrity and visual review with exact-source captures | independent reviewer |
+| EX-43.P6 | blocked | P5, qualified CI and non-author review | Protected release through existing owner, deployed revision/readback and real-data journey; rollback/held dependencies recorded truthfully | independent release owner; principal acceptance |
+| EX-43.P7 | proposed | P0 source findings | Identify and qualify any missing producer contract needed for the consumer; use the incumbent Macro owner and preserve detector/research holds | principal boundary decision; separately bounded owner work |
+
+P2 and P1 are independent. One writer owns each path set; shared types/API schema is frozen before UI integration. No new provider spend outside the existing approved Fabric envelope. Native advisers provide judgment only; bounded labor uses admitted paid Fabric. WHY NOT FABLE: known consumer architecture and bounded engineering can be supervised here without scarce principal-builder continuity.
+
+### Release falsifiers and evidence requirements
+
+1. Distinct canonical episodes remain distinct; repeated identical identity cannot inflate discovery or create contradictory unqualified rows.
+2. A seven-day-old held reclaim cannot look like a fresh current-session confirmation. Retrieval time never advances source or episode clocks.
+3. Invalid/future clocks and nonfinite/nonpositive prices never produce fresh/favorable/zero-looking evidence. Source unavailability, invalid schema, partial joins and genuine zero matches remain distinguishable.
+4. Every filter, count, page and inspector describes the same scope and snapshot. The current silent 200-row cap must become explicit and navigable; server filters run before pagination.
+5. Partial watchlist/holdings joins never assert market absence. No missing watchlist silently becomes Market.
+6. The complete discover → inspect → exact episode chart → return journey retains intended context. No dead Track/Alert action is introduced.
+7. Late request completion cannot overwrite a newer scope. A failed refresh may retain an explicitly dated snapshot only within the same authorized scope; authentication/entitlement loss clears protected content.
+8. Desktop 1440×900, tablet 820×1180 and phone 390×844 work without horizontal document overflow; keyboard-only discovery/inspection, visible focus, enlarged text, reduced motion, dark/light and EN/ZH are covered.
+9. Tests must falsify actual failure modes, including mixed historical/current episodes, malformed nested objects, duplicated IDs, invalid dates, failed/partial joins, pagination and race conditions. Preserve existing route/chart/date tests.
+10. Independent exact-source review, qualified CI, committed real browser captures and deployed-path proof are separate gates. Fixture success is not live evidence; a profitable edge is not claimed.
+
+**Initial evidence:** API route silently slices sorted rows to 200 and lacks total/pagination disclosure; row validation currently checks identity/state and shallow clocks only. The view renders definitive per-group absence despite join_degraded. Existing generation/AbortController guards are present and must be preserved and tested, not described as absent. Producer payload supplies market_session and source session; consumer currently does not expose this separation. The source acquisition returned an unqualified response, then the original publisher and git worktree readback reconciled the exact original clean branch at the pinned base; no reacquisition or alternate carrier was used.
+
+**Persistence boundary:** this repository task tree is source evidence. Macro Agent OS linkage/checkpoint has not yet been written for this new consumer upgrade (PLAN_NOT_ORG_LINKED). No deployment, independent review, worker START or product acceptance is implied by this planning record.
