@@ -1,4 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Contract tests for the portfolio-brief proxy (app/api/portfolio-brief/route.ts).
@@ -315,5 +317,200 @@ describe("cancellation", () => {
     const res = await GET(request);
     expect(res.status).toBe(503);
     expect((await res.json()).error).toBe("gateway_unreachable");
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// The BOUND contract: `X-Mastermind-Portfolio-Context: snapshot-v1`.
+//
+// The opt-in selects a RESPONSE CONTRACT, not an authority. This half pins:
+//
+//   * the header is forwarded to the desk and the desk's answer is REBUILT, not relayed;
+//   * the private witness never crosses the boundary — not in a success, not in a
+//     failure, not in an exception;
+//   * 401 and 403 are classified BEFORE any witness qualification, and both stay
+//     observable without a witness or a canonical book key;
+//   * an unsupported header value is TOLD, never answered with an ordinary response a
+//     caller would read as a witness;
+//   * the ORDINARY branch is untouched: the same body, the same status, the same headers.
+//
+// The witness fixture is the shared synthetic one; the owner id is rewritten to the
+// server-verified user id the mocked session carries ("user-1"), because the contract
+// compares the witness's owner to THAT and never to a request-supplied value.
+// ─────────────────────────────────────────────────────────────────────────────
+
+const BOUND_HEADER = { "X-Mastermind-Portfolio-Context": "snapshot-v1" };
+
+function boundRequest(extra: Record<string, string> = {}): Request {
+  return req({ ...BOUND_HEADER, ...extra });
+}
+
+/** The shared synthetic witness, with the owner rewritten to the verified session user. */
+function boundBody(
+  mutate: (body: { portfolio_context: { owner_id: string } }) => void = () => {},
+): unknown {
+  const body = JSON.parse(
+    readFileSync(join(__dirname, "fixtures", "portfolio-brief-context", "witness_book.json"), "utf8"),
+  ) as { portfolio_context: { owner_id: string } };
+  body.portfolio_context.owner_id = "user-1";
+  mutate(body);
+  return body;
+}
+
+describe("bound mode — the opt-in is forwarded and the answer is rebuilt", () => {
+  it("forwards the opt-in header to the desk", async () => {
+    installFetchSpy(200, boundBody());
+    signedIn();
+    const res = await GET(boundRequest());
+    expect(res.status).toBe(200);
+    expect(calls).toHaveLength(1);
+    expect(calls[0].headers["x-mastermind-portfolio-context"]).toBe("snapshot-v1");
+  });
+
+  it("never forwards a client-supplied Authorization header", async () => {
+    installFetchSpy(200, boundBody());
+    signedIn("sess-token-real");
+    await GET(boundRequest({ authorization: "Bearer client-forged" }));
+    expect(calls[0].headers["authorization"]).toBe("Bearer sess-token-real");
+  });
+
+  it("answers with the public brief plus the minimal context — never the witness", async () => {
+    installFetchSpy(200, boundBody());
+    signedIn();
+    const res = await GET(boundRequest());
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.schema).toBe("portfolio_brief.v2");
+    expect(body.headline.en).toBeTruthy();
+    expect(body.context.version).toBe("snapshot-v1");
+    expect(body.context.owner).toBe("user-1");
+    expect(body.context.population).toBe("positions");
+    expect(body.context.bookKey).toMatch(/^[a-f0-9]{64}$/);
+    // The witness — the owner's rows, notes and currency receipts — does not cross.
+    expect(body.portfolio_context).toBeUndefined();
+    expect(JSON.stringify(body)).not.toContain("11111111-1111-4111-8111");
+    expect(JSON.stringify(body)).not.toContain("entry_currency_basis");
+    expect(JSON.stringify(body)).not.toContain("第二笔 加仓");
+  });
+
+  it("keeps the answer private and uncached", async () => {
+    installFetchSpy(200, boundBody());
+    signedIn();
+    const res = await GET(boundRequest());
+    expect(res.headers.get("cache-control")).toBe("private, no-store");
+    expect(calls[0].init.cache).toBe("no-store");
+  });
+
+  it("the ordinary branch is untouched: no header, the producer's own body", async () => {
+    installFetchSpy(200, { schema: "portfolio_brief.v2", asof: "2026-11-02" });
+    signedIn();
+    const res = await GET(req());
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.asof).toBe("2026-11-02");
+    expect(body.context).toBeUndefined();
+    expect(calls[0].headers["x-mastermind-portfolio-context"]).toBeUndefined();
+  });
+});
+
+describe("bound mode — the entitlement statuses are classified first", () => {
+  it("a 401 is observed without a witness or a book key", async () => {
+    installFetchSpy(401, { detail: { error: "unauthenticated" } });
+    signedIn();
+    const res = await GET(boundRequest());
+    expect(res.status).toBe(401);
+    expect(await res.json()).toEqual({ error: "unauthenticated" });
+  });
+
+  it("a 403 is observed as a teaser, with the tier when the producer states one", async () => {
+    installFetchSpy(403, { detail: { error: "pro_required", tier: "free" } });
+    signedIn();
+    const res = await GET(boundRequest());
+    expect(res.status).toBe(403);
+    expect(await res.json()).toEqual({ error: "pro_required", tier: "free" });
+  });
+
+  it("a 403 with an unknown tier carries no invented one", async () => {
+    installFetchSpy(403, { detail: { error: "pro_required", tier: "platinum" } });
+    signedIn();
+    const res = await GET(boundRequest());
+    expect(res.status).toBe(403);
+    expect(await res.json()).toEqual({ error: "pro_required" });
+  });
+
+  it("a 503 from the desk is an honest unavailable, with a safe body", async () => {
+    installFetchSpy(503, { detail: { error: "portfolio_snapshot_unavailable", reason: "count_mismatch" } });
+    signedIn();
+    const res = await GET(boundRequest());
+    expect(res.status).toBe(503);
+    expect(await res.json()).toEqual({ error: "unavailable" });
+  });
+});
+
+describe("bound mode — an unsupported version is told, never fudged", () => {
+  it("refuses an unknown contract version locally and never contacts the desk", async () => {
+    installFetchSpy(200, boundBody());
+    signedIn();
+    const res = await GET(req({ "X-Mastermind-Portfolio-Context": "snapshot-v2" }));
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({ error: "unsupported_portfolio_context" });
+    expect(calls).toHaveLength(0);
+  });
+});
+
+describe("bound mode — every failure is one fixed safe body", () => {
+  it("a witness owned by somebody else never reaches the browser", async () => {
+    installFetchSpy(200, boundBody((body) => {
+      body.portfolio_context.owner_id = "someone-else@example.com";
+    }));
+    signedIn();
+    const res = await GET(boundRequest());
+    expect(res.status).toBe(503);
+    const body = await res.json();
+    expect(body).toEqual({ error: "portfolio_snapshot_unavailable" });
+    expect(JSON.stringify(body)).not.toContain("someone-else");
+  });
+
+  it("a malformed upstream body never reaches the browser", async () => {
+    installFetchSpy(200, { schema: "portfolio_brief.v2", portfolio_context: { schema: "nope" } });
+    signedIn();
+    const res = await GET(boundRequest());
+    expect(res.status).toBe(503);
+    expect(await res.json()).toEqual({ error: "portfolio_snapshot_unavailable" });
+  });
+
+  it("a non-JSON upstream body never reaches the browser", async () => {
+    installFetchSpy(200, "not json at all");
+    signedIn();
+    const res = await GET(boundRequest());
+    expect(res.status).toBe(503);
+    expect(await res.json()).toEqual({ error: "portfolio_snapshot_unavailable" });
+  });
+
+  it("a thrown error carrying a sentinel never leaks the sentinel", async () => {
+    const sentinel = "SENTINEL-PRIVATE-WITNESS-CONTENT";
+    globalThis.fetch = vi.fn(async () => {
+      throw new Error(`upstream failed while reading ${sentinel}`);
+    }) as unknown as typeof globalThis.fetch;
+    signedIn();
+    const res = await GET(boundRequest());
+    expect(res.status).toBe(503);
+    const body = await res.json();
+    expect(body).toEqual({ error: "portfolio_snapshot_unavailable" });
+    expect(JSON.stringify(body)).not.toContain(sentinel);
+    expect(JSON.stringify(body)).not.toContain("upstream failed");
+  });
+
+  it("a malformed witness body carrying a sentinel never leaks the sentinel", async () => {
+    const sentinel = "SENTINEL-PRIVATE-WITNESS-CONTENT";
+    installFetchSpy(200, {
+      schema: "portfolio_brief.v2",
+      portfolio_context: { schema: "portfolio_snapshot_witness.v1", owner_id: sentinel },
+    });
+    signedIn();
+    const res = await GET(boundRequest());
+    expect(res.status).toBe(503);
+    const text = JSON.stringify(await res.json());
+    expect(text).not.toContain(sentinel);
   });
 });
