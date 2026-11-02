@@ -41,7 +41,7 @@ class TerminalInstructionRecoveryTests(unittest.TestCase):
     def test_claude_still_imports_exact_root_entrypoint(self):
         claude = (ROOT / "CLAUDE.md").read_text()
         self.assertTrue(claude.startswith("@AGENTS.md"))
-        self.assertIn("delivery contracts are imported from AGENTS.md", claude)
+        self.assertEqual(claude.count("@AGENTS.md"), 1)
 
 
 if __name__ == "__main__":
