@@ -96,7 +96,7 @@ export default function ExposureMap({ root, source, matrix, stale = false, sourc
   const read = useMemo(() => readScope(lens, metric, shock), [readScope, lens, metric, shock]);
   // A controlled select without a matching option displays its first item. Keep
   // the requested expiry visible until the trader explicitly changes the lens.
-  const unlistedExpiry = lens.kind === "one" && !read.expiries.includes(lens.exp);
+  const unlistedExpiry = lens.kind === "one" && typeof lens.exp === "string" && !read.expiries.includes(lens.exp);
   const bookHasNoExpiry = unlistedExpiry && sourceStatus === "data" && !!read.session && read.state === "unavailable";
   // Include each source actually used by this read, not merely its calendar day.
   // Qualified joint cells and all-expiry legacy reads do not consume the matrix.
