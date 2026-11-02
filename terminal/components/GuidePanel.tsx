@@ -16,6 +16,7 @@ import { useLang, useT } from "@/lib/i18n";
 import { planTierLabel } from "@/lib/plainLabels";
 import { SUITE_ALERT_EVENTS } from "@/lib/suiteAlerts";
 import { ACS_UPGRADE_URL } from "@/components/settings/types";
+import type { EntitlementVisualState } from "@/lib/entitlementVisualState";
 import {
   MODULE_CATALOG,
   MODULE_CATEGORIES,
@@ -31,6 +32,7 @@ export interface GuidePanelProps {
   moduleLabel: string;
   activeModules?: ReadonlySet<string>;
   userTier?: SuiteTier;
+  accessState?: EntitlementVisualState;
   onToggleModule?: (id: string) => void;
   onConfigureModule?: (id: string) => void;
   onClose: () => void;
@@ -212,6 +214,7 @@ export default function GuidePanel({
   moduleLabel,
   activeModules,
   userTier = "free",
+  accessState = "verified",
   onToggleModule,
   onConfigureModule,
   onClose,
@@ -422,7 +425,14 @@ export default function GuidePanel({
           </span>
           {enFallback && <span className="gp-enchip" title={t("guideEnFallback", "English guide — no Chinese version yet.")}>EN</span>}
           <div className="gp-head-actions">
-            {entry && onToggleModule && locked && (
+            {entry && onToggleModule && locked && accessState !== "verified" && (
+              <button type="button" className="gp-chart-action" disabled role="status">
+                {accessState === "checking"
+                  ? (zh ? "正在验证权限…" : "Checking access…")
+                  : (zh ? "暂时无法验证权限" : "Access unavailable")}
+              </button>
+            )}
+            {entry && onToggleModule && locked && accessState === "verified" && (
               <a
                 className="gp-chart-action upgrade"
                 href={ACS_UPGRADE_URL}
