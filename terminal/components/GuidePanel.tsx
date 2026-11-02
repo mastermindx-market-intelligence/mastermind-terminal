@@ -13,6 +13,7 @@ import GuideVisual from "@/components/guides/GuideVisual";
 import { parseGuideDocument, type GuideSectionKind, type ParsedGuideDocument } from "@/lib/guides/document";
 import { loadGuide } from "@/lib/guides/registry";
 import { useLang, useT } from "@/lib/i18n";
+import { pick } from "@/lib/finFormat";
 import { planTierLabel } from "@/lib/plainLabels";
 import { SUITE_ALERT_EVENTS } from "@/lib/suiteAlerts";
 import { ACS_UPGRADE_URL } from "@/components/settings/types";
@@ -428,8 +429,8 @@ export default function GuidePanel({
             {entry && onToggleModule && locked && accessState !== "verified" && (
               <button type="button" className="gp-chart-action" disabled role="status">
                 {accessState === "checking"
-                  ? (zh ? "正在验证权限…" : "Checking access…")
-                  : (zh ? "暂时无法验证权限" : "Access unavailable")}
+                  ? pick(zh, "Checking access…", "正在验证权限…")
+                  : pick(zh, "Access unavailable", "暂时无法验证权限")}
               </button>
             )}
             {entry && onToggleModule && locked && accessState === "verified" && (
