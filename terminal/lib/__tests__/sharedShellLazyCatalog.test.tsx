@@ -2,20 +2,26 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { act } from "react";
+import { act, type ComponentType } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import projection from "../sharedShellRoutes.generated.json";
 import SharedShellRuntime from "@/components/chrome/shared-shell/SharedShellRuntime";
 
-const state = vi.hoisted(() => ({ pathname: "/today", hostRenders: 0, directoryRenders: 0 }));
+const state = vi.hoisted(() => ({ pathname: "/today", hostRenders: 0, directoryRenders: 0, hostPending: false }));
 vi.mock("next/navigation", () => ({ usePathname: () => state.pathname }));
 // Replace only the Next dynamic chunk boundary; the actual Runtime conditional
-// mounts and retained-state effects execute under React.
+// mounts and retained-state effects execute under React. While a boundary is
+// deliberately held pending, it renders the real loading fallback supplied by
+// the Runtime, matching Next's chunk-boundary behavior.
 vi.mock("next/dynamic", () => ({
-  default: (loader: unknown) => {
+  default: (loader: unknown, options?: { loading?: ComponentType }) => {
     const name = String(loader);
     if (name.includes("LegacyPageHost")) return function FakeLegacyPageHost() {
       state.hostRenders++;
+      if (state.hostPending && options?.loading) {
+        const Loading = options.loading;
+        return <Loading />;
+      }
       return null;
     };
     if (name.includes("ShellDirectory")) return function FakeShellDirectory() {
@@ -29,6 +35,9 @@ vi.mock("@/components/chrome/AppShell", () => ({
   useShellIdentity: () => ({ userId: "", email: "" }),
 }));
 vi.mock("@/lib/accountIdentity", () => ({ identityOwnerKey: () => "guest" }));
+vi.mock("@/lib/sharedShellCopy", () => ({
+  useSharedShellT: () => (key: string) => key,
+}));
 vi.mock("@/components/chrome/shared-shell/SharedShellPresentation", () => ({
   useSharedShellPresentation: () => ({
     context: { theme: "dark", locale: "en", contextRevision: 0 },
@@ -52,6 +61,7 @@ beforeEach(() => {
   state.pathname = "/today";
   state.hostRenders = 0;
   state.directoryRenders = 0;
+  state.hostPending = false;
   container = document.createElement("div");
   document.body.appendChild(container);
   root = createRoot(container);
@@ -75,6 +85,22 @@ describe("Shared Shell native first-frame cost", () => {
     const first = state.hostRenders;
     await render("/today");
     expect(state.hostRenders).toBeGreaterThan(first);
+  });
+  it("drops the pending legacy opening status over native pages while the import stays pending", async () => {
+    const busy = () => container.querySelector('[aria-busy="true"]');
+    state.hostPending = true;
+    await render("/macro.html");
+    expect(state.hostRenders).toBeGreaterThan(0);
+    expect(busy()).not.toBeNull();
+    expect(container.textContent).toContain("shellOpening");
+    const first = state.hostRenders;
+    await render("/today");
+    expect(state.hostRenders).toBeGreaterThan(first);
+    expect(busy()).toBeNull();
+    expect(container.querySelector("main")).toBeNull();
+    await render("/macro.html");
+    expect(busy()).not.toBeNull();
+    expect(container.textContent).toContain("shellOpening");
   });
   it("keeps directory state mounted after its first open", async () => {
     await render("/today");

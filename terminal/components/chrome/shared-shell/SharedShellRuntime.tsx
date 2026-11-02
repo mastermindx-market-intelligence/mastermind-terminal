@@ -9,6 +9,10 @@ import { useSharedShellT } from "@/lib/sharedShellCopy";
 // during a native workspace's first paint adds a large, unused JS/JSON payload.
 function LegacyPageLoading() {
   const t = useSharedShellT();
+  const pathname = usePathname();
+  // The host stays mounted after the first legacy visit, so a still-pending
+  // import must not keep this busy opening state over a native workspace.
+  if (!pathname.endsWith(".html")) return null;
   return <main className="main2 shared-shell-content" id="shared-shell-content"
     aria-busy="true" role="status">
     <section className="shared-shell-boundary">
