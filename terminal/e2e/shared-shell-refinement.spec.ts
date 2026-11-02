@@ -158,6 +158,7 @@ test("company search selects one canonical company from desktop, tablet and phon
   : page.locator(".mobilebar").getByRole("button",{name:"Search companies",exact:true});
  await opener.click();
  const dialog=page.getByRole("dialog");await expect(dialog).toHaveCount(1);await expect(dialog).toBeVisible();
+ await expect(dialog).toHaveAccessibleName("Search companies");
  const panel=dialog.locator(".smodal").count().then(count=>count?dialog.locator(".smodal"):dialog);
  const box=await (await panel).boundingBox();
  expect(box!.x).toBeGreaterThanOrEqual(0);expect(box!.x+box!.width).toBeLessThanOrEqual(page.viewportSize()!.width+1);
@@ -168,4 +169,26 @@ test("company search selects one canonical company from desktop, tablet and phon
  await expect(page).toHaveURL(/\/analysis\?symbol=AAPL$/);
  await expect(page.getByRole("dialog")).toHaveCount(0);
  await noOverflow(page);
+});
+
+test("phone company search keeps its scope in both languages and dismisses by touch",async({page},info)=>{
+ test.skip(info.project.name!=="mobile","Actual phone sheet and touch context");
+ await page.goto("/discover");
+ await expect(page.getByRole("heading",{name:"Discover",exact:true})).toBeVisible();
+ const bar=page.locator(".mobilebar");
+ for(const chinese of [false,true]){
+  if(chinese){await bar.getByRole("button",{name:"Light theme",exact:true}).click();await bar.getByRole("button",{name:"Chinese language",exact:true}).click();}
+  const opener=bar.getByRole("button",{name:chinese?"搜索公司":"Search companies",exact:true});
+  await opener.tap();
+  const dialog=page.getByRole("dialog");await expect(dialog).toHaveCount(1);
+  await expect(dialog).toHaveAccessibleName(chinese?"搜索公司":"Search companies");
+  await expect(dialog).toBeVisible();
+  await page.screenshot({animations:"disabled",path:info.outputPath(`phone-scope-${chinese?"light-zh":"dark-en"}.png`)});
+  await page.setViewportSize({width:320,height:844});
+  await expect(dialog).toBeVisible();
+  await page.screenshot({animations:"disabled",path:info.outputPath(`phone-scope-320-${chinese?"light-zh":"dark-en"}.png`)});
+  await page.locator(".msheet-scrim").tap({position:{x:10,y:10}});
+  await expect(dialog).toHaveCount(0);await expect(opener).toBeFocused();
+  await page.setViewportSize({width:390,height:844});
+ }
 });
