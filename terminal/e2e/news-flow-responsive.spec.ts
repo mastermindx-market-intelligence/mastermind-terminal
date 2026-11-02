@@ -840,8 +840,8 @@ const R2_LADDER_TEXT: Record<Lang, string> = {
 };
 // R3 §4, the sixth fixture's ladder: 2 outlets / 2 reports, comparison limited.
 const R3_LADDER_LIMITED: Record<Lang, string> = {
-  en: "Reporting › 2 outlets › 2 reports › ~ Comparison limited",
-  zh: "媒体报道 › 2 家媒体 › 2 条报道 › ~ 比对受限",
+  en: "Reporting › 2 outlets › 2 reports › Comparison limited",
+  zh: "媒体报道 › 2 家媒体 › 2 条报道 › 比对受限",
 };
 const R2_CLOCK_LABELS: Record<Lang, string[]> = {
   en: ["Published", "Updated", "Received"],

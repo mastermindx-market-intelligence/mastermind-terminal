@@ -1,7 +1,4 @@
 .board{height:52%;flex:none;min-height:0;--flow-muted:color-mix(in srgb,var(--muted) 75%,var(--text-2))}
-/* R3 §1: the shared shell supplies no light --warn, and its dark #e8a33d fails 3:1 on
-   white — resolve the ledger-state ink to the sanctioned light value on this panel only. */
-:global(html[data-theme="light"]) .board{--warn:#7d5922}
 .bar{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:40px;padding:8px 11px;border-bottom:1px solid var(--line);flex:none}
 .heading{display:flex;align-items:baseline;gap:7px;min-width:0}
 .title{font:700 11.5px/1 var(--font-ui);letter-spacing:.06em;text-transform:uppercase;color:var(--text)}
@@ -18,8 +15,9 @@ a.headline:hover{color:var(--brand-2);text-decoration:underline;text-underline-o
 .headlineStatic{cursor:default}
 .teaser{display:-webkit-box;margin:6px 0 0;overflow:hidden;color:var(--text-2);font:450 12.5px/18.5px var(--font-ui);letter-spacing:.002em;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 .topic{color:var(--text-2);font-weight:600}
-.ladder{appearance:none;display:flex;flex-wrap:wrap;width:fit-content;max-width:100%;align-items:center;gap:0 6px;min-height:24px;margin-top:9px;padding:0;border:0;background:transparent;color:var(--text-2);font:600 12px/17px var(--font-ui);text-decoration:underline;text-decoration-color:var(--line-3);text-underline-offset:3px;cursor:pointer}
-.ladder:hover{text-decoration-color:var(--brand-2)}
+.ladder{appearance:none;display:flex;flex-wrap:wrap;width:fit-content;max-width:100%;align-items:center;gap:0 6px;min-height:24px;margin-top:9px;padding:0;border:0;background:transparent;color:var(--text-2);font:600 12px/17px var(--font-ui);cursor:pointer}
+.ladder .step{text-decoration:underline;text-decoration-color:var(--line-3);text-underline-offset:3px}
+.ladder:hover .step{text-decoration-color:var(--brand-2)}
 .ladder:focus-visible{outline:2px solid var(--brand-2);outline-offset:3px}
 .moreReports:focus-visible,.sourceLink:focus-visible{outline:2px solid var(--brand-2);outline-offset:2px}
 .ladderStatic{display:flex;flex-wrap:wrap;width:fit-content;max-width:100%;align-items:center;gap:0 6px;min-height:24px;margin-top:9px;color:var(--flow-muted);font:600 12px/17px var(--font-ui)}

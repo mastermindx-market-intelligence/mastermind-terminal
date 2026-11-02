@@ -36,6 +36,12 @@ before the cell's assertion block. Fixture snapshot: six R2/R3 stories on NVDA
   `comparison_limited` row `next.limited` in any snapshot state, so the line is
   present in the crop (see the R3 build return, DEVIATIONS).
 - E7 — restricted (no Retry) and unavailable (Retry) states unchanged.
+- Underline placement (R3 repair 1): the persistent underline is carried by the
+  ladder steps only (`.ladder .step`), never the `›` separators; hover recolors
+  the same step underlines.
+- Light theme: the news flow ships dark only (D-W1, lib/__tests__/newsFlowTokens.test.ts);
+  the light `--warn` value #7d5922 in the R3 spec is specimen documentation and is
+  not shipped in the panel CSS.
 
 ## R2 §7 cells (still served by the same crops)
 
