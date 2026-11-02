@@ -2,7 +2,7 @@
  * 0047 investigation options selection evidence — SAVE ADMISSION contract (packet
  * OPT006-V3-SAVE-ADMISSION, seat ruling D111, Lane 1a).
  *
- * The migration must ship exactly two live statements: the 0042 valid_investigation_manifest_v2
+ * The migration ships two function definitions behind one guard, then one revoke and one grant (plus the guarded service_role revoke), in one transaction: the 0042 valid_investigation_manifest_v2
  * body widened by the single object_type options_matrix_selection — proven by a whitespace-
  * collapsed identity against the 0042 file, so any other drift fails — behind a leading do-block
  * guard on the 0042-only marker token, plus one boolean admission probe
@@ -15,6 +15,7 @@
  * computation, and no second save path may ride in this file.
  */
 import { describe, expect, it } from "vitest";
+import { createHash } from "node:crypto";
 import { INVESTIGATION_ADMISSION } from "../investigations";
 import { ledgerRowHeaderLine, migrationExists, readMigration, reservationRow } from "./helpers/reservations";
 
@@ -60,6 +61,19 @@ function probeBody(text: string): string {
   if (at === -1 || open === -1 || close === -1) throw new Error("investigation_evidence_admitted_v2 definition not found");
   return text.slice(open + 2, close);
 }
+/** The raw validator source as PostgreSQL stores it in prosrc: the bytes between its two $function$ tags. */
+function prosrc(text: string): string {
+  const at = text.indexOf("create or replace function public.valid_investigation_manifest_v2(m jsonb)");
+  const open = text.indexOf("$function$", at);
+  const close = text.indexOf("$function$", open + "$function$".length);
+  if (at === -1 || open === -1 || close === -1) throw new Error("valid_investigation_manifest_v2 source not found");
+  return text.slice(open + "$function$".length, close);
+}
+const md5 = (s: string) => createHash("md5").update(s, "utf8").digest("hex");
+const QA = "begin; set local role authenticated; select public.investigation_evidence_admitted_v2('terminal.options_exposure','options_matrix_selection'); select public.investigation_evidence_admitted_v2('terminal.options_exposure','dealer_inventory'); rollback;";
+const QN = "begin; set local role anon; select public.investigation_evidence_admitted_v2('terminal.options_exposure','options_matrix_selection'); select public.investigation_evidence_admitted_v2('terminal.options_exposure','dealer_inventory'); rollback;";
+const QM = "select pg_catalog.md5(p.prosrc) from pg_catalog.pg_proc p where p.oid = 'public.valid_investigation_manifest_v2(jsonb)'::pg_catalog.regprocedure;";
+const QL = "select pg_catalog.pg_get_userbyid(p.proowner), p.prosecdef, pg_catalog.array_to_string(p.proconfig, ';'), pg_catalog.has_function_privilege('anon', p.oid, 'EXECUTE'), pg_catalog.has_function_privilege('authenticated', p.oid, 'EXECUTE') from pg_catalog.pg_proc p where p.oid = 'public.investigation_evidence_admitted_v2(text,text)'::pg_catalog.regprocedure;";
 
 describe("0047 investigation options selection evidence admission contract", () => {
   it("ships the migration with the ledger-row and rollback header lines", () => {
@@ -92,6 +106,8 @@ describe("0047 investigation options selection evidence admission contract", () 
     expect(grant.replace(/;\s*$/, "").endsWith("to authenticated")).toBe(true);
     expect(grant).not.toMatch(/,\s*(public|anon|service_role)/);
     expect(body).toContain("revoke all on function public.investigation_evidence_admitted_v2(text,text) from public, anon");
+    expect(body.match(/^\s*grant\b/gim) ?? []).toHaveLength(1);
+    expect(body).toContain("do $$ begin\n  revoke all on function public.investigation_evidence_admitted_v2(text,text)\n    from service_role;\nexception when undefined_object then null; end $$;");
     // The probe reads no table: its whole body is one schema-qualified validator call over a
     // jsonb_build_object manifest — no `from`, and every called function is public. or pg_catalog.
     expect(probe).toMatch(/^\s*select public\.valid_investigation_manifest_v2\(/);
@@ -134,6 +150,7 @@ describe("0047 investigation options selection evidence admission contract", () 
     const widened = c42.replace(oldToken, newToken);
     expect(widened).not.toEqual(c42);
     expect(widened).toEqual(collapse(v47));
+    expect(collapse(validatorBody(downBody(sql)))).toEqual(c42);
   });
 
   it("guards on the 0042-only marker before touching anything, with the marker as the substring", () => {
@@ -153,5 +170,26 @@ describe("0047 investigation options selection evidence admission contract", () 
     expect(row.applied_in_production).toBe(false);
     expect(row.pr).toBe(1222);
     expect(row.pr_state).toBe("open");
+  });
+  it("refuse-closes in one transaction behind the exact-body md5 guard", () => {
+    const live = liveBody(sql).trim();
+    expect(live.startsWith("begin;")).toBe(true);
+    expect(live.endsWith("commit;")).toBe(true);
+    expect(sql).toContain("-- split-on-semicolon Management API endpoint.");
+    expect(sql.split("\n")[2]).toBe("-- Requires 0042 applied and 0043 (#804) NOT applied; if 0043 is installed, recompose this widening over it in a new prefix. Until this file is applied, every save carrying object_type options_matrix_selection answers invalid_payload (0039 pattern).");
+    const m42 = md5(prosrc(readMigration(FILE42)));
+    const m47 = md5(prosrc(sql));
+    expect(m42).toMatch(/^[0-9a-f]{32}$/);
+    expect(m47).toMatch(/^[0-9a-f]{32}$/);
+    expect(m47).not.toBe(m42);
+    expect(live).toContain("select pg_catalog.md5(p.prosrc) into observed from pg_catalog.pg_proc p where p.oid = 'public.valid_investigation_manifest_v2(jsonb)'::pg_catalog.regprocedure;");
+    expect(live).toContain(`or observed is null or observed not in ('${m42}', '${m47}') then`);
+    expect(live).toContain("observed md5 %', observed;");
+  });
+  it("ships executable role-scoped probe readbacks, the md5 readback and the ACL readback", () => {
+    const readback = sql.slice(sql.indexOf("-- readback:"));
+    for (const query of [QA, QN, QM, QL]) expect(readback).toContain(`-- ${query}`);
+    expect(readback).toContain("permission denied for function investigation_evidence_admitted_v2");
+    expect(readback).not.toContain("run as authenticated");
   });
 });

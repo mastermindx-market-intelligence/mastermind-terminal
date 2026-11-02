@@ -27,7 +27,7 @@ describe("investigation admission probe",()=>{
   expect(rpc).not.toHaveBeenCalled();
  });
  it("refuses malformed and conflicting admission selectors",async()=>{
-  for(const q of ["?admission=terminal.options_exposure","?admission=:options_matrix_selection","?admission=a:b:c",Q+"&id=x",Q+"&admission=x"]){
+  for(const q of ["?admission=","?admission=terminal.options_exposure","?admission=:options_matrix_selection","?admission=a:b:c",Q+":x","?admission=%20terminal.options_exposure:options_matrix_selection","?admission=TERMINAL.OPTIONS_EXPOSURE:options_matrix_selection",Q+"&id=x",Q+"&admission=x"]){
    const response=await GET(new Request(U+q));
    expect(response.status).toBe(400);expect(await response.json()).toEqual({status:"invalid_payload"});
   }
@@ -37,6 +37,9 @@ describe("investigation admission probe",()=>{
   rpc.mockResolvedValue({data:null,error:{message:"x"}});
   const response=await GET(new Request(U+Q));
   expect(response.status).toBe(503);expect(await response.json()).toEqual({status:"unavailable"});
+  rpc.mockResolvedValue({data:true,error:{message:"x"}});
+  const errored=await GET(new Request(U+Q));
+  expect(errored.status).toBe(503);expect(await errored.json()).toEqual({status:"unavailable"});
  });
  it("maps a rejected probe call to unavailable",async()=>{
   rpc.mockRejectedValue(new Error("x"));
@@ -45,9 +48,9 @@ describe("investigation admission probe",()=>{
  });
  it("refuses probe results that are not a boolean",async()=>{
   rpc.mockResolvedValue({data:null,error:null});
-  expect((await GET(new Request(U+Q))).status).toBe(503);
+  const r1=await GET(new Request(U+Q));expect(r1.status).toBe(503);expect(await r1.json()).toEqual({status:"unavailable"});
   rpc.mockResolvedValue({data:"true",error:null});
-  expect((await GET(new Request(U+Q))).status).toBe(503);
+  const r2=await GET(new Request(U+Q));expect(r2.status).toBe(503);expect(await r2.json()).toEqual({status:"unavailable"});
  });
  it("keeps the admission responses private and uncacheable",async()=>{
   rpc.mockResolvedValue({data:true,error:null});

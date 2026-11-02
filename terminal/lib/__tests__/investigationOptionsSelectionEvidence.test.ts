@@ -51,7 +51,7 @@ describe("mintOptionsSelectionEvidence", () => {
     expect(minted.ref).toEqual(ANCHOR_REF);
     expect(minted.selection).toBe(ANCHOR_SELECTION);
     expect("selection" in minted.ref).toBe(false);
-    expect(selectionFromObjectId(minted.ref.object_id)).toBe(minted.selection);
+    expect(selectionFromObjectId(ANCHOR_REF.object_id)).toBe(ANCHOR_SELECTION);
     expect(manifestOk(minted.ref)).toBe(true);
     expect(selectionFromObjectId("v2/SPY/2026-10-12/2026-10-16,call,600//volume,all,all,table")).toBeNull();
     expect(selectionFromObjectId("v1/SPY/2026-10-12/2026-10-16,call,600/volume,all,all,table")).toBeNull();

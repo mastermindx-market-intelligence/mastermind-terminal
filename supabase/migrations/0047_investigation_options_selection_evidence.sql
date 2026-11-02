@@ -1,7 +1,10 @@
 -- Ledger row: 0047_investigation_options_selection_evidence / PR #1222 (packet OPT006-V3-SAVE-ADMISSION); unapplied at authoring
 -- Rollback: restore only valid_investigation_manifest_v2(jsonb) to the installed 0042 body (evidence owner allow-list terminal.options_exposure / exposure_chart_request, sector_origin, rotation_measurement); drop function public.investigation_evidence_admitted_v2(text,text)
--- Requires: the 0042 validator body installed first (the guard below refuses otherwise). Until this file is applied, every save carrying object_type options_matrix_selection answers invalid_payload (0039 pattern).
+-- Requires 0042 applied and 0043 (#804) NOT applied; if 0043 is installed, recompose this widening over it in a new prefix. Until this file is applied, every save carrying object_type options_matrix_selection answers invalid_payload (0039 pattern).
 -- Apply this file explicitly, never the entire migration directory.
+-- This file defines functions with dollar-quoted bodies containing semicolons (the 0006-style
+-- warning restated by 0014, 0021 and 0041): do NOT push it through the naive
+-- split-on-semicolon Management API endpoint.
 -- What this file installs (source only, UNAPPLIED): the valid_investigation_manifest_v2
 -- evidence allow-list widened by exactly one object_type, options_matrix_selection, under the
 -- existing owner terminal.options_exposure (every other byte the installed 0042 body, which the
@@ -10,10 +13,15 @@
 -- validator on a minimal manifest. It never creates or alters a table, policy or row; it adds
 -- no retention, no entitlement and no source read, computes no result, and grants only the probe.
 
+begin;
+
 do $$
+declare observed text;
 begin
-  if position('valid_investigation_scenario_reference_v1' in pg_catalog.pg_get_functiondef('public.valid_investigation_manifest_v2(jsonb)'::pg_catalog.regprocedure)) = 0 then
-    raise exception '0047 requires the 0042 valid_investigation_manifest_v2 body (marker valid_investigation_scenario_reference_v1 absent)';
+  select pg_catalog.md5(p.prosrc) into observed from pg_catalog.pg_proc p where p.oid = 'public.valid_investigation_manifest_v2(jsonb)'::pg_catalog.regprocedure;
+  if position('valid_investigation_scenario_reference_v1' in pg_catalog.pg_get_functiondef('public.valid_investigation_manifest_v2(jsonb)'::pg_catalog.regprocedure)) = 0
+     or observed is null or observed not in ('1e130e4c930163ecc4d3e6c17b5c8395', 'a554c15c1ae58dfbd34d04bcda9b5e48') then
+    raise exception '0047 requires the exact 0042 valid_investigation_manifest_v2 body (marker valid_investigation_scenario_reference_v1, md5 pin); observed md5 %', observed;
   end if;
 end $$;
 
@@ -116,6 +124,7 @@ begin
 exception when others then return false;
 end $function$;
 
+-- This placeholder ref must satisfy every per-type rule in valid_investigation_manifest_v2; a migration that adds one must re-run readback (iii).
 create or replace function public.investigation_evidence_admitted_v2(owner text, object_type text)
  returns boolean
  language sql
@@ -139,6 +148,13 @@ $$;
 
 revoke all on function public.investigation_evidence_admitted_v2(text,text) from public, anon;
 grant execute on function public.investigation_evidence_admitted_v2(text,text) to authenticated;
+
+do $$ begin
+  revoke all on function public.investigation_evidence_admitted_v2(text,text)
+    from service_role;
+exception when undefined_object then null; end $$;
+
+commit;
 
 -- down:
 -- Restore only the installed 0042 body (the live validator above minus the one widening) and
@@ -260,7 +276,11 @@ grant execute on function public.investigation_evidence_admitted_v2(text,text) t
 -- select public.valid_investigation_manifest_v2(m) as admits_options_matrix_selection_manifest,
 --        public.valid_investigation_manifest_v2(jsonb_set(m,'{evidence_refs,0,object_type}','"dealer_inventory"',true)) as refuses_dealer_inventory
 -- from sample;
--- (iii) the probe, positive, run as authenticated:
--- select public.investigation_evidence_admitted_v2('terminal.options_exposure','options_matrix_selection') as admitted; -- expected true (run as authenticated)
--- (iv) the probe, the falsifier that can fail, run as authenticated:
--- select public.investigation_evidence_admitted_v2('terminal.options_exposure','dealer_inventory') as admitted; -- expected false (run as authenticated; the falsifier)
+-- (iii) the probe as authenticated, run from the migration role (expected t, then f; the rollback leaves nothing):
+-- begin; set local role authenticated; select public.investigation_evidence_admitted_v2('terminal.options_exposure','options_matrix_selection'); select public.investigation_evidence_admitted_v2('terminal.options_exposure','dealer_inventory'); rollback;
+-- (iv) the same block as anon (expected ERROR: permission denied for function investigation_evidence_admitted_v2):
+-- begin; set local role anon; select public.investigation_evidence_admitted_v2('terminal.options_exposure','options_matrix_selection'); select public.investigation_evidence_admitted_v2('terminal.options_exposure','dealer_inventory'); rollback;
+-- (v) the installed validator body md5 (migration role; expected the guard's 0047 literal after apply, its 0042 literal before):
+-- select pg_catalog.md5(p.prosrc) from pg_catalog.pg_proc p where p.oid = 'public.valid_investigation_manifest_v2(jsonb)'::pg_catalog.regprocedure;
+-- (vi) the probe's owner, definer flag, search_path and ACL (migration role; expected postgres | t | search_path="" | f | t):
+-- select pg_catalog.pg_get_userbyid(p.proowner), p.prosecdef, pg_catalog.array_to_string(p.proconfig, ';'), pg_catalog.has_function_privilege('anon', p.oid, 'EXECUTE'), pg_catalog.has_function_privilege('authenticated', p.oid, 'EXECUTE') from pg_catalog.pg_proc p where p.oid = 'public.investigation_evidence_admitted_v2(text,text)'::pg_catalog.regprocedure;

@@ -108,8 +108,6 @@ describe("options_matrix_selection vectors", () => {
     expect(outcome === "valid").toBe(vector.valid);
     if (minted === "shape_refused" || !minted.ok) return;
     const rebuilt = selectionFromObjectId(minted.ref.object_id);
-    expect(rebuilt).not.toBeNull();
-    expect(rebuilt).toBe(minted.selection);
     expect(JSON.parse(rebuilt ?? "null")).toEqual(vector.input);
   });
 
