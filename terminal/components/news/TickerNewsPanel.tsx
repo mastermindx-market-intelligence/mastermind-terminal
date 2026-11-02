@@ -361,10 +361,10 @@ export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: stri
               {detail && (
                 <div className={styles.evidence} role="group" aria-label={copy.reports(detail.item_count)}>
                   <p className={styles.clocks}>
-                    {clocks.map((clock, index) => (
+                    {clocks.map((clock) => (
                       <Fragment key={clock.key}>
-                        {index > 0 && <span aria-hidden="true">·</span>}
-                        <span>{newsLadderText(clock.key, lang)} {formatRailTime(clock.at, lang)}</span>
+                        <span className={styles.clockLabel}>{newsLadderText(clock.key, lang)}</span>
+                        <span className={styles.clockValue}>{formatRailTime(clock.at, lang)}</span>
                       </Fragment>
                     ))}
                   </p>
