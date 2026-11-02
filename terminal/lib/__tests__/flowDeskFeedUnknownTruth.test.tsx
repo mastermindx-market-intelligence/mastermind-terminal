@@ -245,3 +245,71 @@ describe("copy and token repairs (m1, m2)", () => {
     expect(css).toMatch(/--hairline:\s*rgba\(255,255,255,\.08\);/);
   });
 });
+
+// Audit r6 G1: the held-feed note sat loose in the first card cell of the feed grid
+// (pushing the first card right), and the gauge drew the last read's totals unqualified.
+const GAUGE_HELD = { en: "Totals are from the last read", zh: "合计为上次读取的数据" };
+
+describe("G1: a held feed's note is its own row, and the gauge qualifies its totals", () => {
+  it("the feed grid's state-row helper spans every column", () => {
+    const css = readFileSync(join(__dirname, "../../app/observatory.css"), "utf8");
+    expect(css).toContain(".obs-fd-feed-state{grid-column:1/-1}");
+  });
+
+  it.each([
+    ["absent", "flowfeed-refresh-absent"],
+    ["unavailable", "flowfeed-refresh-failed"],
+  ] as const)("data then %s: the note is a full-width grid row before every card, not a card cell", async (status, testid) => {
+    const feed = feedPayload([feedEv({ id: "a" }), feedEv({ id: "b", root: "NVDA" })]);
+    await mountPane("en", { feed, status, stale: true, onRetry: () => {} });
+    const grid = host.querySelector(".obs-fd-list")!;
+    const note = host.querySelector<HTMLElement>(`[data-testid="${testid}"]`)!;
+    expect(note).not.toBeNull();
+    expect(note.parentElement).toBe(grid);
+    expect(note.classList.contains("obs-fd-feed-state")).toBe(true);
+    expect(note.closest(".obs-fc-card")).toBeNull();
+    const cards = grid.querySelectorAll(".obs-fc-card");
+    expect(cards.length).toBe(2);
+    for (const card of cards) {
+      expect(note.compareDocumentPosition(card) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    }
+    // Even borders on a neutral row: one border on every side, no single-edge rule.
+    const css = note.getAttribute("style") ?? "";
+    expect(css).toContain("border: 1px solid var(--line-2)");
+    expect(css).not.toMatch(/border-(left|right|top|bottom)/);
+  });
+
+  it.each([
+    ["absent", true, true],
+    ["unavailable", true, true],
+    ["absent", false, false],
+    ["data", false, false],
+  ] as const)("FlowDeskView: status %s, stale %s: the gauge's last-read qualifier shown=%s", async (status, stale, shown) => {
+    stream.data = feedPayload([feedEv({})]);
+    stream.status = status;
+    stream.stale = stale;
+    await render(<FlowDeskView />);
+    const g = host.querySelector('[data-tut="flow-gauge"]')!;
+    expect(g).not.toBeNull();
+    const q = g.querySelector('[data-testid="flow-gauge-held"]');
+    if (!shown) {
+      expect(q).toBeNull();
+      return;
+    }
+    expect(q).not.toBeNull();
+    expect(q!.textContent).toBe(GAUGE_HELD.en);
+    expect(q!.getAttribute("role")).toBe("note");
+    // The qualifier comes before the totals it qualifies.
+    const total = g.querySelector(".num")!;
+    expect(q!.compareDocumentPosition(total) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it.each(["en", "zh"] as const)("FlowGauge held: the qualifier reads in %s; without held there is none", async (lang) => {
+    const Real = actualGauge.FlowGauge;
+    await render(<Real feed={feedPayload([feedEv({})]) as never} lang={lang} held />);
+    expect(host.querySelector('[data-testid="flow-gauge-held"]')!.textContent).toBe(GAUGE_HELD[lang]);
+    expect(lang === "zh" ? FD.gaugeHeld.zh : FD.gaugeHeld.en).toBe(GAUGE_HELD[lang]);
+    await render(<Real feed={feedPayload([feedEv({})]) as never} lang={lang} />);
+    expect(host.querySelector('[data-testid="flow-gauge-held"]')).toBeNull();
+  });
+});

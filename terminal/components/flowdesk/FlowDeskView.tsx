@@ -24,6 +24,7 @@ import { useFlowStream } from "../../lib/flowStream";
 import { useLang } from "../../lib/i18n";
 import { makeFlowT } from "../../lib/flowdeskStrings";
 import { artifactSourceAgeMs } from "../../lib/flowFreshness";
+import { feedEvents } from "../../lib/flowPrintInspector";
 import { WatchlistRail } from "./WatchlistRail";
 import { RadarStrip } from "./RadarStrip";
 import { FlowGauge } from "./FlowGauge";
@@ -678,8 +679,8 @@ export function FlowDeskView() {
 
   const handlePickTicker = useCallback((root: string) => {
     // Selecting a ticker from the watchlist selects its most recent event (latest timestamp)
-    if (!feed) return;
-    const eventsForRoot = feed.events.filter((ev) => ev.root === root);
+    // Read through the one tape guard: a malformed `events` is no prints, so nothing is picked.
+    const eventsForRoot = feedEvents(feed).filter((ev) => ev.root === root);
     if (eventsForRoot.length === 0) return;
     // Pick the event with the latest timestamp
     const ev = eventsForRoot.reduce((best, cur) =>
@@ -758,7 +759,12 @@ export function FlowDeskView() {
             not rendered and the rail states below say what the read established. */}
         {feed !== null && (
           <div data-testid="flow-gauge-slot" style={{ display: "contents" }}>
-            <FlowGauge feed={feed} lang={lang} />
+            {/* Held exactly when the feed list says its cards are the last read. */}
+            <FlowGauge
+              feed={feed}
+              lang={lang}
+              held={feedStale && (feedStatus === "unavailable" || feedStatus === "absent")}
+            />
           </div>
         )}
 

@@ -194,6 +194,9 @@ const COPY = {
 mkdirSync(OUT, { recursive: true });
 
 function currentGitHead() {
+  // CAPTURE_HEAD names the commit an uncommitted tree builds on, for hosts where git is not
+  // run during a capture. capturedAtHead is informational either way; the lock is layoutFiles.
+  if (process.env.CAPTURE_HEAD) return process.env.CAPTURE_HEAD;
   return execFileSync("git", ["rev-parse", "HEAD"], { cwd: ROOT, encoding: "utf8" }).trim();
 }
 

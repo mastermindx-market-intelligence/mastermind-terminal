@@ -9,6 +9,7 @@ import { pick, fmtNum } from "../../lib/finFormat";
 import { useT, type Lang } from "../../lib/i18n";
 import type { FlowScore } from "./FeedPane";
 import { FD } from "../../lib/flowdeskStrings";
+import { feedEvents } from "../../lib/flowPrintInspector";
 import { RingGauge } from "../ui/RingGauge";
 
 // ─── Shared feed/tide shape ────────────────────────────────────────────────
@@ -66,11 +67,19 @@ export function WatchlistRail({ feed, tide, lang, watchlist, onToggleTicker, onP
   const zh = lang === "zh";
   const t = useT();
 
-  // Session overview
+  // The tape through the ONE guard the gauge, the coverage line and the feed list read it
+  // through: a malformed `events` reads as no prints, never a throw. For an array it is the
+  // identity, so the memos below keep their per-tape identity.
+  const events = feedEvents(feed);
+  const tapeRead = Array.isArray(feed.events);
+
+  // Session overview. Unknown is not zero: with no tide and a malformed tape the rail made
+  // no reading, so there is no total or call/put split (null), as for the gauge.
   const overview = useMemo(() => {
     if (!tide || !tide.minutes.length) {
+      if (!tapeRead) return null;
       let callPrem = 0; let putPrem = 0;
-      for (const ev of feed.events) {
+      for (const ev of events) {
         if (ev.right === "C") callPrem += ev.premium;
         else putPrem += ev.premium;
       }
@@ -85,18 +94,21 @@ export function WatchlistRail({ feed, tide, lang, watchlist, onToggleTicker, onP
     const putPrem = Math.abs(last.npp);
     const total = callPrem + putPrem;
     return { total, callPrem, putPrem, callShare: total > 0 ? callPrem / total : 0.5 };
-  }, [feed.events, tide]);
+  }, [events, tapeRead, tide]);
 
-  const pc = overview.callPrem > 0
-    ? (overview.putPrem / overview.callPrem).toFixed(2)
-    : "—";
+  const na = pick(zh, FD.gaugeNa.en, FD.gaugeNa.zh);
+  const pc = overview === null
+    ? na
+    : overview.callPrem > 0
+      ? (overview.putPrem / overview.callPrem).toFixed(2)
+      : "—";
 
   // Best score per ticker. Unknown is not zero: a root whose events carry no
   // finite score maps to null (a missing score is not a 0-scored root), and the
   // best-of is taken over FINITE scores only.
   const tickerBestScore = useMemo(() => {
     const map: Record<string, number | null> = {};
-    for (const ev of feed.events) {
+    for (const ev of events) {
       const score = ev.flowScore && Number.isFinite(ev.flowScore.score) ? ev.flowScore.score : null;
       const cur = map[ev.root];
       map[ev.root] = cur === undefined || (score !== null && (cur === null || score > cur))
@@ -104,7 +116,7 @@ export function WatchlistRail({ feed, tide, lang, watchlist, onToggleTicker, onP
         : cur;
     }
     return map;
-  }, [feed.events]);
+  }, [events]);
 
   const watchlistTickers = watchlist.filter((t) => t in tickerBestScore);
 
@@ -134,11 +146,11 @@ export function WatchlistRail({ feed, tide, lang, watchlist, onToggleTicker, onP
         <div className="obs-fd-stat-grid">
           <div className="obs-fd-stat-cell">
             <span className="obs-lbl">{pick(zh, "Premium", "权利金")}</span>
-            <span className="obs-fd-stat-val num">{fmtPrem(overview.total)}</span>
+            <span className="obs-fd-stat-val num">{overview ? fmtPrem(overview.total) : na}</span>
           </div>
           <div className="obs-fd-stat-cell">
             <span className="obs-lbl">{pick(zh, "Calls", "认购")}</span>
-            <span className="obs-fd-stat-val num">{fmtPct(overview.callShare)}</span>
+            <span className="obs-fd-stat-val num">{overview ? fmtPct(overview.callShare) : na}</span>
           </div>
           <div className="obs-fd-stat-cell">
             <span className="obs-lbl">P/C</span>
@@ -147,10 +159,13 @@ export function WatchlistRail({ feed, tide, lang, watchlist, onToggleTicker, onP
         </div>
         <div className="obs-fd-bar-wrap">
           <div className="obs-fd-bar-track">
-            <div
-              className="obs-fd-bar-fill"
-              style={{ width: `${Math.round(overview.callShare * 100)}%` }}
-            />
+            {/* No reading draws no split: an even 50% fill is a reading the rail never made. */}
+            {overview && (
+              <div
+                className="obs-fd-bar-fill"
+                style={{ width: `${Math.round(overview.callShare * 100)}%` }}
+              />
+            )}
           </div>
           <div className="obs-fd-bar-labels">
             <span className="obs-lbl" style={{ color: "var(--brand-2)" }}>

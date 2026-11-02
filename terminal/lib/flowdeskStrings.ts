@@ -192,6 +192,20 @@ const FLOW_LEX = {
     "最新读取未发现已发布的资金流数据 — 显示上次读取的数据。",
   ],
   watchlistFeedUnavailable: ["Session flow totals and the watchlist need the flow feed, which did not load.", "本时段资金流合计与观察列表依赖资金流数据，目前未能加载。"],
+  // Toolbar with no feed: the held state takes the count's place (no count of a tape
+  // that never loaded); the list below carries the reason.
+  countHeldUnavailable: ["Feed not loaded", "资金流未加载"],
+  countHeldAbsent:      ["No feed published", "资金流未发布"],
+  // Session gauge components the feed does not establish are unavailable, not zero.
+  gaugeNa:            ["N/A", "不可用"],
+  gaugeTotalsNa:      ["Session totals unavailable", "时段合计不可用"],
+  gaugeNoPrints: [
+    "No prints in this feed yet, so there is no premium to total or split.",
+    "本数据暂无成交记录，无可合计或拆分的权利金。",
+  ],
+  gaugeNoSplit:       ["No premium to split.", "无可拆分的权利金。"],
+  // A held feed (the latest read did not land): the gauge's totals are the last read's.
+  gaugeHeld:          ["Totals are from the last read", "合计为上次读取的数据"],
 
   // ── Misc ───────────────────────────────────────────────────────────────────
   scoreLabel:       ["Score", "评分"],
@@ -302,6 +316,13 @@ export const FD = {
   feedAbsent:          bi(...FLOW_LEX.feedAbsent),
   feedRefreshFailed:   bi(...FLOW_LEX.feedRefreshFailed),
   feedRefreshAbsent:   bi(...FLOW_LEX.feedRefreshAbsent),
+  countHeldUnavailable: bi(...FLOW_LEX.countHeldUnavailable),
+  countHeldAbsent:      bi(...FLOW_LEX.countHeldAbsent),
+  gaugeNa:              bi(...FLOW_LEX.gaugeNa),
+  gaugeTotalsNa:        bi(...FLOW_LEX.gaugeTotalsNa),
+  gaugeNoPrints:        bi(...FLOW_LEX.gaugeNoPrints),
+  gaugeNoSplit:         bi(...FLOW_LEX.gaugeNoSplit),
+  gaugeHeld:            bi(...FLOW_LEX.gaugeHeld),
   feedEmptyFiltered: bi("No signals match your filters", "无符合筛选条件的信号"),
   feedEmptyFilteredWhy: bi(
     "Every event on today's tape is excluded by the active filters. Clear them, or lower the min-premium / min-score threshold.",
@@ -479,6 +500,15 @@ const DETECTION_COPY: Record<string, { label: { en: string; zh: string }; tip: {
     ),
   },
 };
+
+/** "n of m prints carry no premium or call/put side" — the session gauge's
+ *  partial-tape reason (kept out of FD, whose entries are all plain pairs). */
+export function gaugeMissingPrints(n: number, m: number): BiStr {
+  return bi(
+    `${n} of ${m} prints carry no premium or call/put side, so the session totals would be incomplete.`,
+    `${m} 笔成交中有 ${n} 笔缺少权利金或认购/认沽方向，时段合计将不完整。`,
+  );
+}
 
 export function detectionCopy(badge: string, lang: Lang) {
   const copy = DETECTION_COPY[badge];

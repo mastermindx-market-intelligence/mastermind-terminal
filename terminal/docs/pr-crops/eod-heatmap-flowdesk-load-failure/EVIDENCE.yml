@@ -1,8 +1,8 @@
 # EOD belt, Flow Desk chain heat and Heatmap flow layer failure-state truth — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 22859e96ad44a906eff9b18cc6b2e3b0a89e819a
-# capturedAt: 2026-10-22T07:01:00.120Z
+# capturedAtHead: daab948465d37a18f42a0682cf56a3ea2426e4fb
+# capturedAt: 2026-11-01T13:04:34.676Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/app/globals.css: "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517"
@@ -10,12 +10,12 @@ layoutFiles:
   terminal/components/eodcontext/EodContextBelt.tsx: "983b21e1a030ab66aada5d773a9d0ae9abccf0e796452e9cd6e3df62d6761013"
   terminal/components/eodcontext/StructureStrip.tsx: "0baf8c1d09fe4427569c92360081d842018d81d978a8b98d76fb283f950f31d4"
   terminal/components/eodcontext/eodStrings.ts: "4395f953dcc0f4beca53422786393ee792f297211a0eef655c64762f2b34f99f"
-  terminal/components/flowdesk/FlowDeskView.tsx: "06534b5c6e86e7311c774d3233a3ecd74a0245b4957d9136ff747d7fb24f5f1d"
+  terminal/components/flowdesk/FlowDeskView.tsx: "801cf41437b4749d3ad449e60ab35be8ffcc7f0e193ce5773b9c1ec7e49c01c0"
   terminal/components/gexdesk/GexDeskView.tsx: "e7e12f9b3f1217c0b78692a5c65d5181552015ca0c1a91510e01d259432a7a14"
   terminal/components/heatmap/HeatmapView.tsx: "3b3ab5049715a33f167e344d3013b8f880356e8b96077b38c9a517c57b7a54cb"
   terminal/lib/dataCache.ts: "f8a7f978049e64482b385d43c13d49d05ddec2525e36457b365a2d083060e1be"
   terminal/lib/eodContext.ts: "1d0ce3ccde7a2fa05948cc0ac2ee93d16ec06724a7edcbd8c95c61e39d98b9e7"
-  terminal/lib/flowdeskStrings.ts: "f9bad0793492bdd040333c60a54fa6cd6bc02230817643c4f1437d8feb951d50"
+  terminal/lib/flowdeskStrings.ts: "580399a47bae6ab6aa16368d25ed54c94047799e4a600352385b5a9b7cc25c10"
   terminal/lib/heatmapStrings.ts: "26bb75eccce7429e5a37154f07f7f68faf9652da1f6f3560074cb558f0dda9c2"
 theme: dark
 languages: [en, zh]
@@ -285,33 +285,3 @@ files:
   - heatmap-no-match-390.png
   - heatmap-no-match-820-zh.png
   - heatmap-no-match-820.png
-
-labPlanNavigationRecapture20261030:
-  sourceHead: "284f09f748e6a7107ceffe0a0c54fc1e0af14fc9"
-  actualCases: 42
-  qualification: "terminal/docs/verification/lab-plan-handoff-20261030/evidence-lock-recapture.json"
-  qualificationSha256: "b34344fad4050563f59223f81056de0415527a98e6bc8047f99a6bfccbdc6be4"
-  scope: "Actual scoped browser captures on the navigation candidate. Other surfaces and earlier reports retain their historical identities; no production or full-matrix recapture claim."
-
-flowdeskUnknownTruthRecapture20261101:
-  base: "db6168c20ce42217ed99d9fa53e6048683505da5"
-  baseline: "master-equivalent: the seven Flow Desk and ui sources checked out from db6168c2 inside the head worktree, then restored"
-  sourceHead: "0b5e19f87acb2e71b0945d6de5b8ef0e236bcf5c"
-  host: "m2studio (Mac14,14)"
-  capturedAt:
-    base: "2026-11-01T12:06:44Z"
-    head: "2026-11-01T12:13:57.986Z"
-  command: "cd terminal && node e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs, run twice on the same day, once per source state; outputs compared in scratch, not committed"
-  changed: []
-  changedReason: "0 of 126 crops differ by sha256 between the same-day base and head captures. The chain-heat crops frame only the [data-tut=\"chain-heat\"] rail, the flow gauge renders identically whenever a feed is held, and the belt and heatmap crops do not mount the changed files."
-  unchanged: 126
-  flowDeskStates: "All 24 chainheat crops reach their claimed state: the tool asserts each state before it shoots and writes no EVIDENCE when any crop fails (rc 0)."
-  restamped:
-    - path: "terminal/components/flow/FlowDeskView.tsx"
-      from: "7c4ee44e695dbf928ebe5f7991bf7d0a7e8745420852c6773a3aa51456bae021"
-      to: "06534b5c6e86e7311c774d3233a3ecd74a0245b4957d9136ff747d7fb24f5f1d"
-    - path: "terminal/lib/flowdeskStrings.ts"
-      from: "7b2a88aca6cbddc408c6cc430cc70caa26b2a1b05889e5d1541649c470b3fa31"
-      to: "f9bad0793492bdd040333c60a54fa6cd6bc02230817643c4f1437d8feb951d50"
-  light: "Captured through the real Shared Shell light path (MMX_SHARED_SHELL=1, mmx.shell.theme=light; html data-theme=light asserted on every crop): 32 crops in terminal/docs/pr-crops/flowdesk-unknown-truth-light/ with their own EVIDENCE.yml. The NA ring track's computed stroke is rgba(31, 43, 62, 0.09), equal to the light --hairline token, on all four na-score crops."
-  scope: "No committed PNG in this directory was replaced. Only the two stale layoutFiles pins above were restamped; the dark-theme statement above still describes this packet."
