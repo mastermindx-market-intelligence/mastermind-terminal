@@ -1,14 +1,43 @@
-# News Intelligence rail — R2 evidence-ladder crops (spec §7 matrix)
+# News Intelligence rail — R2/R3 evidence-ladder crops (R2 §7 matrix + R3 §5 matrix)
 
 Produced by `e2e/news-flow-responsive.spec.ts` › `test.describe("R2 evidence ladder")`
-(commit run on BASE `32b6ba43704a5a87db2582b2b9617271382358b5` + this lane's spec
-extension). Every crop is a `panel.screenshot()` of the live rail at the project
-viewport, dark theme, taken before the cell's assertion block. Fixture snapshot:
-five R2 stories on NVDA (`ev2_r2_agree`, `ev2_r2_differ`, `ev2_r2_press`,
-`ev2_r2_single`, `ev2_r2_notcompared`); the `ev2_` prefix is required by the
-tree's story-id contract (`asStoryId`).
+(R3 build lane, port 3124 run on `claude/news-r3-build`). Every crop is a
+`panel.screenshot()` of the live rail at the project viewport, dark theme, taken
+before the cell's assertion block. Fixture snapshot: six R2/R3 stories on NVDA
+(`ev2_r2_agree`, `ev2_r2_differ`, `ev2_r2_press`, `ev2_r2_single`,
+`ev2_r2_notcompared`, and the R3 §4 comparison-limited row `ev2_r3_limited`); the
+`ev2_` prefix is required by the tree's story-id contract (`asStoryId`).
 
-## Spec §7 cells
+## R3 §5 evidence matrix (E1–E7)
+
+| R3 cell | viewport | lang | crop |
+|---|---|---|---|
+| E1 | 1440 | en | `R2-desktop-en-collapsed.png` |
+| E2 | 1440 | zh | `R2-desktop-zh-collapsed.png` |
+| E3 | 1440 | en | `R2-desktop-en-expanded.png` |
+| E4 | 820 | en | `R2-tablet-en-collapsed.png` (wrap cell pins the press row's ladder) |
+| E5 | 390 | zh | `R2-mobile-zh-collapsed.png` |
+| E6 | 1440 | en | `R3-desktop-en-limited.png` |
+| E7 | 1440 | en | `R2-desktop-en-restricted.png` + `R2-desktop-en-unavailable.png` |
+
+- E1 — collapsed agree row: 15px/21px headline, ladder sentence underlined, no chip
+  border, no row hover fill, no NEXT CHECK on the agree row under live.
+- E2 — the same row in ZH; the meta row may wrap the topic, never the time.
+- E3 — expanded differ row: hairline-topped evidence block, clock label/value grid,
+  group note, member grid, "Show 1 more report", NEXT CHECK label/line, Mark
+  reviewed last on its own line.
+- E4 — tablet press row: the ladder wraps at a step boundary, nothing clipped,
+  "– Not compared" fully visible (the `wrap cell (mobile)` test pins the same
+  no-clip condition by geometry at 390 px).
+- E5 — mobile ZH agree row: 15/21 headline, ladder ≥40px, Mark reviewed ≥44px and
+  on its own line.
+- E6 — limited row: "Reporting › 2 outlets › 2 reports › ~ Comparison limited" with
+  the `~ Comparison limited` step in `--text-2`. The frozen lexicon's rule 2 gives a
+  `comparison_limited` row `next.limited` in any snapshot state, so the line is
+  present in the crop (see the R3 build return, DEVIATIONS).
+- E7 — restricted (no Retry) and unavailable (Retry) states unchanged.
+
+## R2 §7 cells (still served by the same crops)
 
 | §7 cell | viewport | lang | crop |
 |---|---|---|---|
@@ -20,25 +49,18 @@ tree's story-id contract (`asStoryId`).
 | R6 | 1440 | en | `R2-desktop-en-static.png` |
 | R7 | 1440 | en | `R2-desktop-en-restricted.png` + `R2-desktop-en-unavailable.png` |
 
-- R1 — collapsed row: meta with topic slot ("Guidance"), 13px/18px headline, 24px
-  ladder chip "Reporting › 3 outlets › 3 reports › Reports agree", NEXT CHECK lines
-  on the differ/announcement rows, Mark reviewed.
-- R2 — the same row in ZH ("业绩指引", chip "媒体报道 › 3 家媒体 › 3 条报道 › 报道一致").
-- R3 — expanded evidence view: Published/Updated/Received clocks, group note, two
-  member reports, "Show 1 more report", NEXT CHECK below (on `ev2_r2_differ`),
-  Mark reviewed last.
-- R4 — tablet: ladder chip ≥40px tall, wrapped cleanly.
-- R5 — mobile ZH: 15px/20px headline, ≥40px chip, 44px Mark reviewed target.
-- R6 — 1-report row: static chain "Reporting › 1 outlet › 1 report", no NEXT CHECK,
-  not a button.
-- R7 — restricted EmptyState (`此账户或新闻源暂无新闻访问权限。`, no Retry) and
-  unavailable EmptyState (重试 button, kept per #1105).
+R3 geometry supersedes the R2 pins: the headline is 15px/21px at ALL projects and
+the ladder floor is 24px fine-pointer / ≥40px at max-width:860px or coarse pointer,
+measured with `>=`.
 
-## Extra cells beyond the matrix
+## Extra cells beyond the two matrices
 
 `R2-{desktop,tablet,mobile}-zh-collapsed.png`, `R2-{desktop,tablet,mobile}-{en,zh}-expanded.png`,
 `R2-{tablet,mobile}-en-static.png`, `R2-{desktop,tablet,mobile}-en-catchup.png`
 (catching-up snapshot: `ev2_r2_press` keeps `next.announcement`, `ev2_r2_notcompared`
-earns `next.catchup`), and `R2-desktop-zh-restricted.png` / `R2-desktop-zh-unavailable.png`.
-Every cell of the describe block runs in all three projects; restricted/unavailable
-are desktop-only by design.
+earns `next.catchup`), `R2-desktop-zh-restricted.png` / `R2-desktop-zh-unavailable.png`,
+`R3-{desktop,tablet,mobile}-{en,zh}-limited.png` (R3 §4 sixth fixture: ladder text
+pinned per lang, `data-agreement="comparison_limited"`, `next.limited`), and the
+`wrap cell (mobile)` run (no crop; pins `scrollWidth <= clientWidth` and the ladder's
+right edge ≤ panel right − 11 at 390 px). Every lang-loop cell of the describe block
+runs in all three projects; restricted/unavailable are desktop-only by design.

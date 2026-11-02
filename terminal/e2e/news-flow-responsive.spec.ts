@@ -149,10 +149,11 @@ const ROWS: NewsRow[] = [
 
 // ---- R2 fixtures (spec packet item 2; ROWS above is untouched) --------------------
 //
-// Five stories covering the evidence-ladder cells: an agreeing 3-report cluster
+// Six stories covering the evidence-ladder cells: an agreeing 3-report cluster
 // (ev2_r2_agree), a differing 2-report cluster (ev2_r2_differ), a company announcement
-// (ev2_r2_press), a 1-report static chain (ev2_r2_single) and a not-compared reporting row
-// (ev2_r2_notcompared) that only earns NEXT CHECK while the snapshot is catching up.
+// (ev2_r2_press), a 1-report static chain (ev2_r2_single), a not-compared reporting row
+// (ev2_r2_notcompared) that only earns NEXT CHECK while the snapshot is catching up, and —
+// R3 §4 — the comparison-limited row (ev2_r3_limited) whose ladder text the limited cell pins.
 
 type R2SnapshotState = "live" | "catching_up" | "restricted" | "unavailable";
 
@@ -247,6 +248,25 @@ const R2_ROWS: NewsRow[] = [
     received_at: "2026-10-05T18:06:01+00:00",
     universe_revision: "sp500-r1",
     reporting_state: "not_compared",
+    content_kind: "reporting",
+    publisher: "benzinga.com",
+    annotation: { event_type: null },
+  },
+  {
+    sequence: 16,
+    source: "benzinga",
+    source_item_id: "206",
+    story_id: "ev2_r3_limited",
+    source_count: 2,
+    item_count: 2,
+    title: "Nvidia export licence review timelines remain open between outlets",
+    url: "https://www.benzinga.com/news/206",
+    teaser: "",
+    published_at: "2026-10-05T17:50:00+00:00",
+    updated_at: "2026-10-05T17:51:00+00:00",
+    received_at: "2026-10-05T17:51:01+00:00",
+    universe_revision: "sp500-r1",
+    reporting_state: "comparison_limited",
     content_kind: "reporting",
     publisher: "benzinga.com",
     annotation: { event_type: null },
@@ -818,6 +838,11 @@ const R2_LADDER_TEXT: Record<Lang, string> = {
   en: "Reporting › 3 outlets › 3 reports › Reports agree",
   zh: "媒体报道 › 3 家媒体 › 3 条报道 › 报道一致",
 };
+// R3 §4, the sixth fixture's ladder: 2 outlets / 2 reports, comparison limited.
+const R3_LADDER_LIMITED: Record<Lang, string> = {
+  en: "Reporting › 2 outlets › 2 reports › ~ Comparison limited",
+  zh: "媒体报道 › 2 家媒体 › 2 条报道 › ~ 比对受限",
+};
 const R2_CLOCK_LABELS: Record<Lang, string[]> = {
   en: ["Published", "Updated", "Received"],
   zh: ["发布", "更新", "接收"],
@@ -883,8 +908,9 @@ test.describe("R2 evidence ladder", () => {
       await expect(r2Row(panel, "ev2_r2_press").locator("[data-next-check]"))
         .toHaveAttribute("data-next-check", "next.announcement");
 
-      // Spec §3/§4 geometry: 650 13px/18px headline on a fine pointer, 15px/20px at
-      // max-width:860px or coarse pointer; ladder chip 24px tall, ≥40px wrapped.
+      // R3 §2/§4 geometry: 650 15px/21px headline at ALL widths; the ladder sentence is
+      // 24px tall on a fine pointer and ≥40px at max-width:860px or coarse pointer,
+      // measured with ≥ (a wrapped sentence may exceed the floor).
       const finePointer = project === "desktop";
       const geometry = await agree.evaluate((el) => {
         const headline = el.querySelector("[data-news-headline]");
@@ -898,10 +924,9 @@ test.describe("R2 evidence ladder", () => {
         };
       });
       if (!geometry) throw new Error("ev2_r2_agree headline/ladder not measurable");
-      expect(geometry.fontSize).toBe(finePointer ? "13px" : "15px");
-      expect(geometry.lineHeight).toBe(finePointer ? "18px" : "20px");
-      if (finePointer) expect(geometry.ladderHeight).toBe(24);
-      else expect(geometry.ladderHeight).toBeGreaterThanOrEqual(40);
+      expect(geometry.fontSize).toBe("15px");
+      expect(geometry.lineHeight).toBe("21px");
+      expect(geometry.ladderHeight).toBeGreaterThanOrEqual(finePointer ? 24 : 40);
 
       // Spec §7 R5: the Mark reviewed control is present on every row and at least 44px
       // tall on the coarse-pointer viewport (rev4 P1-1).
@@ -1039,6 +1064,27 @@ test.describe("R2 evidence ladder", () => {
       await expect(panel.getByRole("button", { name: R2_RETRY[lang] })).toBeVisible();
       expect(await r2Overflow(page)).toBeLessThanOrEqual(0);
     });
+
+    test(`limited cell (${lang})`, async ({ page, baseURL }, testInfo) => {
+      const project = testInfo.project.name as ProjectName;
+      await prepare(page, testInfo, baseURL, FLOW_OK, "live", "live");
+      await setPresentation(page, lang);
+      const panel = await openNews(page);
+      const limited = r2Row(panel, "ev2_r3_limited");
+      await limited.scrollIntoViewIfNeeded();
+
+      await panel.screenshot({ path: join(R2_CROPS_DIR, `R3-${project}-${lang}-limited.png`) });
+
+      // R3 §4, the sixth fixture: the comparison-limited ladder sentence with its
+      // aria-hidden glyph, and the frozen lexicon's rule-2 NEXT CHECK (next.limited),
+      // which fires for comparison_limited in any snapshot state.
+      const ladder = limited.locator("[data-news-ladder]");
+      await expect(ladder).toHaveAttribute("aria-expanded", "false");
+      expect(await r2LadderText(ladder)).toBe(R3_LADDER_LIMITED[lang]);
+      await expect(limited.locator("[data-agreement]")).toHaveAttribute("data-agreement", "comparison_limited");
+      await expect(limited.locator("[data-next-check]")).toHaveAttribute("data-next-check", "next.limited");
+      expect(await r2Overflow(page)).toBeLessThanOrEqual(0);
+    });
   }
 
   test("static cell (en)", async ({ page, baseURL }, testInfo) => {
@@ -1058,6 +1104,32 @@ test.describe("R2 evidence ladder", () => {
     await expect(staticLadder.locator("[data-step]")).toHaveCount(3);
     expect(await staticLadder.getAttribute("aria-expanded")).toBeNull();
     await expect(single.locator("[data-next-check]")).toHaveCount(0);
+    expect(await r2Overflow(page)).toBeLessThanOrEqual(0);
+  });
+
+  test("wrap cell (mobile)", async ({ page, baseURL }, testInfo) => {
+    test.skip(testInfo.project.name !== "mobile", "the wrap cell pins mobile ladder wrapping (R3 §4).");
+    await prepare(page, testInfo, baseURL, FLOW_OK, "live", "live");
+    await setPresentation(page, "en");
+    const panel = await openNews(page);
+    const press = r2Row(panel, "ev2_r2_press");
+    await press.scrollIntoViewIfNeeded();
+
+    // R3 §4: at mobile the press row's ladder never clips — the sentence wraps at
+    // step boundaries inside its own box (scrollWidth ≤ clientWidth) and its right
+    // edge stays inside the panel's right edge minus the row's 11px inset floor.
+    const wrap = await press.locator("[data-news-ladder]").evaluate((el) => {
+      const panelEl = document.querySelector('[data-testid="ticker-news-panel"]');
+      return {
+        scrollWidth: el.scrollWidth,
+        clientWidth: el.clientWidth,
+        right: el.getBoundingClientRect().right,
+        panelRight: panelEl?.getBoundingClientRect().right ?? null,
+      };
+    });
+    expect(wrap.scrollWidth).toBeLessThanOrEqual(wrap.clientWidth);
+    if (wrap.panelRight === null) throw new Error("panel box not measurable");
+    expect(wrap.right).toBeLessThanOrEqual(wrap.panelRight - 11);
     expect(await r2Overflow(page)).toBeLessThanOrEqual(0);
   });
 
