@@ -26,7 +26,7 @@ import DashboardBackButton from "@/components/DashboardBackButton";
 import { AppNav } from "@/components/AppNav";
 import { initShellBridge, postToShell } from "@/lib/platform/shellBridge";
 import MobileNav from "@/components/MobileNav";
-import PositionModal from "@/components/PositionModal";
+import ChartPositionEntry, { type ChartPositionIntent } from "@/components/ChartPositionEntry";
 import { type DetectCmd } from "@/components/ChartPanel";
 import ChartPane from "@/components/ChartPane";
 import ChartConductor from "@/components/ChartConductor";
@@ -46,10 +46,8 @@ import { flowGet } from "@/lib/flowClientCache";
 import { parseGlanceState } from "@/lib/mscGlance";
 import { DEFAULT_START_TF, TF_CANONICAL_ORDER, mobileTimeframeOptions, readStartTf, resolveStartTf } from "@/lib/startTf";
 import { useMarketPrefs } from "@/lib/useMarketPrefs";
-import { accountIdentity, identityOwnerKey, isAccountOwner } from "@/lib/accountIdentity";
+import { accountIdentity, identityOwnerKey, identityUserId, isAccountOwner } from "@/lib/accountIdentity";
 import { portfolioRailOwner, usePortfolioRailRead } from "@/lib/usePortfolioRailRead";
-import { decodePositionRead } from "@/lib/portfolioWorkspace";
-import { mutationPostcondition, positionMutationFailure, type MutationReceipt } from "@/lib/portfolioMutation";
 // Import the page ids from the import-free leaf, NOT from MegaPane: MegaPane is mounted
 // through next/dynamic below, and a value import out of it here would statically pull its
 // entire graph (14 fundamentals pages + statement/intelligence/transcript libs, ~709 KB of
@@ -1085,9 +1083,33 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // folded into `lists`, written to `mm.wls`, or touched by the watchlist sync chain. Holding a
   // name and watching a name are different facts; the rail shows both without mixing them.
   const [railTab, setRailTab] = useState<"watchlists" | "portfolio" | "news">("watchlists");
-  /** Symbol queued for the "Add to → Portfolio" modal; `null` = closed. */
+  /** The chart's "Add to → Portfolio" opening; `null` = closed.
+   *
+   *  An OPENING is more than a symbol: the immutable owner that opened it is captured HERE, at
+   *  the moment the user asked for it, and travels with the form until it is dismissed. The
+   *  create that form eventually sends names that captured owner — never the account that happens
+   *  to be signed in when the user presses Save. `components/ChartPositionEntry.tsx` owns the
+   *  dispatch, the canonical readback and the retirement rules; this state owns only WHICH
+   *  opening is on screen, so opening and dismissal stay explicit decisions of this shell.
+   */
   const mobileQuoteId = useId();
-  const [pfAddSymbol, setPfAddSymbol] = useState<string | null>(null);
+  const [pfAddIntent, setPfAddIntent] = useState<ChartPositionIntent | null>(null);
+  /** Distinguishes one opening from the next, so a REPLACED opening is a new form (a fresh draft
+   *  and a fresh create-intent UUID) rather than the previous one resumed. */
+  const pfAddNonceRef = useRef(0);
+  /** Open the chart's position form for `symbol`, capturing the owner that opens it. */
+  const openChartPositionEntry = useCallback((symbol: string) => {
+    setPfAddIntent({
+      nonce: ++pfAddNonceRef.current,
+      symbol,
+      ownerId: identityUserId(identity),
+    });
+  }, [identity]);
+  /** Close the form. Scoped to the opening it belongs to, so a stale callback can never close a
+   *  newer opening. */
+  const dismissChartPositionEntry = useCallback((intent: ChartPositionIntent) => {
+    setPfAddIntent(current => (current === intent ? null : current));
+  }, []);
   // Live mirror of `lists` for the async migration: reading it from a ref keeps the effect keyed
   // on `loggedIn` alone, so a symbol edit mid-migration cannot restart the whole run.
   const listsRef = useRef(lists);
@@ -7143,35 +7165,22 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       {/* W5 "Add to → Portfolio". Opens the SAME modal `/portfolio` uses, so a position entered
           from the chart and one entered from the book are one object with one set of rules. Only a
           signed-in user sees the destination at all (`onAddToPortfolio` below is undefined for a
-          guest), so the guest picker keeps its pre-W5 shape. */}
-      {pfAddSymbol && (
-        <PositionModal
-          mode="add"
-          position={null}
-          initialTicker={pfAddSymbol}
-          onCancel={() => setPfAddSymbol(null)}
-          onSubmit={async (draft) => {
-            try {
-              const response = await fetch("/api/portfolio", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ action: "create", ...draft }),
-              });
-              const receipt = await response.json().catch(() => null) as MutationReceipt | null;
-              if (!response.ok) return positionMutationFailure(response.status, receipt);
-              if (!receipt) return { ok: false, reason: null };
-              const reread = await fetch("/api/portfolio?view=positions", { cache: "no-store" });
-              const canonical = reread.ok ? decodePositionRead(await reread.json().catch(() => null)) : null;
-              if (!canonical || !mutationPostcondition({ action: "create", ...draft }, receipt, canonical.positions)) return { ok: false, reason: null };
-            } catch { return { ok: false, reason: null }; }
-            setPfAddSymbol(null);
-            // The rail only holds a book while the Portfolio tab is open; refresh it there so the
-            // new row appears without a reload, and leave it alone otherwise.
-            if (railTab === "portfolio") void pfRail.load();
-            return { ok: true };
-          }}
-        />
-      )}
+          guest), so the guest picker keeps its pre-W5 shape.
+
+          The controller owns the OWNER BINDING: it carries the owner that opened the form into
+          the POST as `expectedOwnerId`, confirms the write against the canonical read, and
+          retires the form on an observed account transition. The shell keeps only the explicit
+          opening and dismissal. */}
+      <ChartPositionEntry
+        intent={pfAddIntent}
+        observedOwner={identityOwnerKey(identity)}
+        onDismiss={dismissChartPositionEntry}
+        onCommitted={() => {
+          // The rail only holds a book while the Portfolio tab is open; refresh it there so the
+          // new row appears without a reload, and leave it alone otherwise.
+          if (railTab === "portfolio") void pfRail.load();
+        }}
+      />
       {searchOpen && (
         <SearchModal open seed={seed} manifest={(man?.symbols as any) || {}} inWatchlist={inWl} mode={searchMode} compare={compare} compareCfg={compareCfg} active={active}
           quotes={quotes}
@@ -7182,7 +7191,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
           onSwitchList={switchList}
           onCreateList={createListNamed}
           onAddToList={addToList}
-          onAddToPortfolio={loggedIn ? (sym: string) => { setSearchOpen(false); setSearchMode("go"); setPfAddSymbol(sym); } : undefined}
+          onAddToPortfolio={loggedIn ? (sym: string) => { setSearchOpen(false); setSearchMode("go"); openChartPositionEntry(sym); } : undefined}
           marketPrefs={marketPrefs} prefsReady={prefsReady} onShowAllMarkets={showAllMarkets}
           onClose={() => { setSearchOpen(false); setSearchMode("go"); }} onPick={onSearchPick} onAdd={addSymbol} onRemove={removeSymbol}
           onToggleCompare={(s: string, mode?: CmpMode) => toggleCompare(s, mode)} />
