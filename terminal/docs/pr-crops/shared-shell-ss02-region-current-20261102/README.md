@@ -1,0 +1,11 @@
+# SS02 supported regional navigation
+
+P12.T20 repairs the current-region marker in existing shared chrome. The phone drawer already opens each supported regional overview. Its market links had truthful `aria-current` but no existing selected-row class; the primary fallback also marked Today current on regional URLs. The successor reuses `.on` for the exact regional route and prevents the five regional overviews from claiming the native Today page. Existing explicit Discover, Analysis/company, Research, Monitor and Portfolio rules remain ahead of the regional guard.
+
+Paper reference: [SS02 Today mobile](https://app.paper.design/file/01M2WGNCX9475G79JRKJTCM08P/p-23-0), node6O3R-0, actual JSX read. The regional drawer is the existing supported affordance. No new selector, user-global preference or regional Today data product is created.
+
+The distinct local journey is real Next AppShell/Today/native route admission/LegacyPageHost plus unchanged Macro child bridge, stylesheet and injection helper from101dd9816c98edddbdd7e2bfc6cd42a9e541a0fd. The parent uses the bridge's already-admitted loopback3100 origin and a separate loopback31998 child; no allowlist or protocol guard changed and no synthetic READY was fabricated. Fixed SDK identity, deterministic Today boundary payloads and simple labeled regional HTML are fixtures. Regional production content and authenticated acceptance are not claimed.
+
+Four journeys pass:390darkEN,390lightZH,820lightZH and1440darkEN. Today → China → Hong Kong → Back China → Back exact Today URL retains the same shell, language and theme. Every step has exactly one current-page link. China/Hong Kong visibly use the existing selected treatment; previous region and false Today markers clear. The Today return restores its truthful U.S. Macro Command briefing. All fixture API requests are GET, no outside network requests or page errors occurred. Source checks:20unitPASS, TypeScriptPASS, lint0errors/one inherited warning, diffPASS.
+
+The baseline route/real-bridge/Back proof passed but showed China without visible selection and duplicate page-current markers. Captures and source/bridge witnesses are in `qualification.json`. PR1228 source, its CI and its release remain independent. Chrome Person1, runtime/804 and SQL holds remain unchanged.
