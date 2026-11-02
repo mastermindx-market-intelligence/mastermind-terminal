@@ -229,8 +229,9 @@ describe("TickerNewsPanel", () => {
     expect(host.textContent).toContain("GlobeNewswire");
     expect(host.textContent).not.toContain(releaseLabel);
     expect(host.textContent).not.toContain("massive:");
-    expect(host.querySelector('option[value=""]')?.textContent)
-      .toBe(lang === "zh" ? "全部精选来源" : "All curated sources");
+    expect(host.querySelector("[data-news-source-filter]")).toBeNull();
+    expect(host.querySelector("[data-news-catchup]")).toBeNull();
+    expect(host.querySelector("[data-flow-state]")).toBeNull();
     expect(host.querySelector('[data-testid="ticker-news-panel"]')?.getAttribute("data-news-editorial-policy"))
       .toBe("ticker_news.curated.v1");
     const expand = host.querySelector<HTMLButtonElement>('button[aria-expanded="false"]')!;
