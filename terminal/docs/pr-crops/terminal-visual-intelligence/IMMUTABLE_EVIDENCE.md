@@ -67,3 +67,54 @@ These protections do not claim a durable operation journal, automatic recovery,
 live authenticated journey, or performance improvement. A new source change needs
 its own truthful compatible evidence; old failed or uncertain captures are not
 replayed by this tooling.
+
+## Explicit current source selection
+
+The two evidence readers explicitly select
+`terminal/docs/pr-crops/b-pl-6-batch-1/p1t9-hub-596e.composition.json`
+unless an explicit composition is supplied by the caller. This is a fixed source
+selection, not a latest pointer; source drift still refuses. The prior legacy
+packet bytes and their historical qualifications remain unchanged. The selected
+records bind both `useHubDiscovery.ts` and `mobile/RollerStrip.tsx`, which jointly
+own committed classification and the rendered More badge.
+
+This recapture uses synthetic loopback fixtures in new ephemeral browser contexts,
+with no saved browser profile or real principal. A process-inherited macOS sandbox
+allows outbound connections only to the two owned capture ports, 33961 and 33962;
+remote providers and the operational Quote Hub on 3100 are unavailable. The child
+process receives a scrubbed environment and fixture-only Supabase configuration.
+This qualifies local rendered evidence, not live data, authentication, hosted CI
+or the historical mobile failure's scheduling cause.
+
+The new records explicitly declare `compiler: webpack`; the installed Next16
+`--webpack` development path uses IPC pipes rather than Turbopack's dynamic TCP
+compiler callback. Set `TERMINAL_EVIDENCE_COMPILER=webpack` for both capture
+commands. Source hashes also bind the launch arguments. Unlabelled historical
+profiles keep their original shape and cannot be composed with this compiler.
+Normal responsive runs with the variable absent retain their existing compiler.
+The initial restricted Turbopack attempt retained only its start record and zero
+cases; it is ineligible and excluded from the new selection. The sandbox is
+unchanged for the distinct compiler operation. PL6 now bounds each server fetch
+inside its existing absolute180-second startup budget, including pending headers.
+
+### Retained intended font fixture
+
+Eligible new records also declare `fonts: retained-fonts-34fb`. The receipt in
+`e2e/fixtures/retained-fonts-34fb/receipt.json` binds generated font CSS/source-map
+content and13 actual WOFF2 buffers from existing Terminal source34fb2ea. Its
+Inter and JetBrains Mono constructor options and Next16.2.9 match this source.
+Subset comments, weight/style/display, Unicode ranges and preload metadata are
+retained; only the font-file transport URLs are localized through installed
+Next's `NEXT_FONT_GOOGLE_MOCKED_RESPONSES` test seam. This is retained generated
+font evidence, not a claim to possess original Google HTTP response bytes.
+
+Before each capture, the browser awaits both intended FontFace loads, verifies
+actual served font-buffer hashes/lengths against the receipt, and records loaded
+faces plus the computed Inter-first/tabular family where visible numeric content
+is present. The compositor refuses missing/fallback/nonloaded or wrong-hash font
+observations under this profile. No system-installed lookalike is substituted.
+The earlier20-case fallback-font record remains unselected; it cannot satisfy
+intended typography. The first intended-font attempt also remains incomplete and
+ineligible because its PL6 writer omitted the font observation; its emitted
+images are not upgraded. The corrected writer has a direct actual-statement
+transport regression before the new operation.

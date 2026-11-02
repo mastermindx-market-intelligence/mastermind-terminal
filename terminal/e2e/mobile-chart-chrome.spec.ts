@@ -21,10 +21,21 @@ async function openTerminal(page: Page) {
   });
   await page.goto("/terminal?symbol=NVDA");
   await expect(page.locator(".chart-wrap canvas").first()).toBeVisible();
+  let hubDiscoveryState: string | null = null;
   await expect.poll(
-    () => page.evaluate(() => Boolean((window as Window & { __mmPhoneReady?: boolean }).__mmPhoneReady)),
-    { message: "the interactive Terminal should finish hydrating", timeout: 20_000 },
+    async () => {
+      const observed = await page.evaluate(() => ({
+        chartReady: Boolean((window as Window & { __mmPhoneReady?: boolean }).__mmPhoneReady),
+        hubState: document.querySelector('[data-testid="roller-more"]')?.getAttribute("data-hub-discovery-state") ?? null,
+      }));
+      hubDiscoveryState = observed.hubState;
+      return observed.chartReady && (!phone(page) || hubDiscoveryState === "unseen" || hubDiscoveryState === "seen" || hubDiscoveryState === "storage-error");
+    },
+    { message: "the chart should be painted and phone hub storage classified", timeout: 20_000 },
   ).toBe(true);
+  if (phone(page)) {
+    expect(hubDiscoveryState, "phone hub storage must be readable").not.toBe("storage-error");
+  }
 }
 
 /** Pointer drags through dispatchEvent: deterministic in headless Chromium, and it is the same

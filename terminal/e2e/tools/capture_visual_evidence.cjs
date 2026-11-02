@@ -11,7 +11,7 @@ function main(argv = process.argv.slice(2)) {
   }
   if (!args["--id"] || !/^[0-9]{4,5}$/.test(args["--port"] || "")) throw new Error("EVIDENCE_ARGUMENT");
   const terminal = path.resolve(__dirname, "../.."), repoRoot = path.dirname(terminal);
-  const env = { ...process.env, NODE_OPTIONS: process.env.NODE_OPTIONS || "--no-experimental-webstorage", TERMINAL_E2E_PORT: args["--port"] };
+  const env = { ...evidence.fonts.environment(process.env), NODE_OPTIONS: process.env.NODE_OPTIONS || "--no-experimental-webstorage", TERMINAL_E2E_PORT: args["--port"] };
   const op = evidence.beginOperation({ repoRoot, packet: "vi", operationId: args["--id"], env });
   const cli = require.resolve("@playwright/test/cli");
   const command = [cli, "test", "e2e/visual-evidence-capture.spec.ts", "--project=desktop", "--project=tablet", "--project=mobile", "--workers=1", "--retries=0", "--reporter=./e2e/tools/visualEvidenceReporter.cjs"];

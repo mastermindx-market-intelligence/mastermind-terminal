@@ -4,6 +4,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const crypto = require("node:crypto");
 const { PNG } = require("pngjs");
+const fonts = require("./retainedFontFixture.cjs");
 const SOURCE_PATHS = require("./visualEvidenceSources.json");
 const PACKETS = Object.freeze({ pl6: "terminal/docs/pr-crops/b-pl-6-batch-1", vi: "terminal/docs/pr-crops/terminal-visual-intelligence" });
 const VIEWPORTS = Object.freeze({ desktop: { width: 1440, height: 900 }, tablet: { width: 820, height: 1180 }, mobile: { width: 390, height: 844 } });
@@ -57,7 +58,9 @@ function sourceSnapshot(repo) {
 }
 function profile(env = process.env) {
   const flag = name => { const v = env[name] || "0"; if (!["0", "1"].includes(v)) fail("PROFILE_FLAG"); return v; };
-  return { fixture: "terminal-e2e.v1", buildMode: "next-dev", sharedShell: flag("MMX_SHARED_SHELL"), investorShellPreview: flag("MMX_INVESTOR_SHELL_PREVIEW"), theme: "dark" };
+  if (env.TERMINAL_EVIDENCE_COMPILER !== undefined && env.TERMINAL_EVIDENCE_COMPILER !== "webpack") fail("PROFILE_COMPILER");
+  if (env.TERMINAL_EVIDENCE_FONTS !== undefined && env.TERMINAL_EVIDENCE_FONTS !== fonts.ID) fail("PROFILE_FONTS");
+  return { ...(env.TERMINAL_EVIDENCE_FONTS ? { fonts: env.TERMINAL_EVIDENCE_FONTS } : {}), ...(env.TERMINAL_EVIDENCE_COMPILER === "webpack" ? { compiler: "webpack" } : {}), fixture: "terminal-e2e.v1", buildMode: "next-dev", sharedShell: flag("MMX_SHARED_SHELL"), investorShellPreview: flag("MMX_INVESTOR_SHELL_PREVIEW"), theme: "dark" };
 }
 function key(packet, project, title, locale) { return `${packet}:${project}:${locale}:${title}`; }
 function requirements(packet) {
@@ -88,6 +91,7 @@ function composeCases({ operations, selections, requiredCases, currentSources, p
     const matches = op.cases.filter(c => c.key === s.key); if (matches.length !== 1) fail("CASE_BINDING");
     const c = matches[0], e = c.execution, v = c.observation, im = c.image;
     if (c.packet !== op.packet || c.packet !== spec.packet || !e || e.file !== spec.file || e.title !== spec.title || e.project !== spec.project || e.status !== "passed" || e.expectedStatus !== "passed" || e.retry !== 0 || !Array.isArray(e.errors) || e.errors.length || c.locale !== spec.locale || !equal(c.viewport, spec.viewport) || !v || v.lang !== spec.locale || v.theme !== expectedProfile.theme || !equal(v.viewport, spec.viewport) || !im || !HASH.test(im.sha256 || "") || !safeRelative(im.path) || im.path.includes("/") || !im.path.endsWith(".png") || !Number.isInteger(im.width) || !Number.isInteger(im.height) || im.width < 1 || im.height < 1 || im.width > spec.viewport.width || im.height > spec.viewport.height || (spec.packet === "vi" && (im.width !== spec.viewport.width || im.height !== spec.viewport.height))) fail("CASE_BINDING");
+    if (expectedProfile.fonts === fonts.ID) fonts.validate(v.fonts);
     chosen.set(s.key, c);
   }
   if (chosen.size !== required.size) fail("MISSING_CASE");
@@ -211,7 +215,7 @@ function readComposition({ repoRoot, compositionPath, expectedProfile = profile(
   if (!safeRelative(relative) || !Object.values(PACKETS).some(p => path.dirname(relative) === p) || !/^[A-Za-z0-9][A-Za-z0-9_-]{0,95}\.composition\.json$/.test(path.basename(relative))) fail("COMPOSITION_PATH");
   const d = walk(repo, path.dirname(relative)); let bytes;
   try { if (expectedParent && !equal(expectedParent, d.identity)) fail("DIRECTORY_REPLACED"); bytes = read(d, path.basename(relative), LIMIT.json, expectedFile?.identity); if (expectedFile && sha(bytes) !== expectedFile.sha256) fail("COMPOSITION_HASH"); } finally { d.close(); }
-  const c = JSON.parse(bytes); if (!["terminal.visual-composition.v1", "terminal.visual-composition.v2"].includes(c.schema) || c.mode !== "records" || !ID.test(c.id || "") || path.basename(relative) !== `${c.id}.composition.json` || !Array.isArray(c.operations) || c.operations.length < 2 || c.operations.length > 64 || !Array.isArray(c.selections) || c.selections.length > 64 || !equal(c.profile, profile(c.profile?.sharedShell === "1" ? { MMX_SHARED_SHELL: "1", MMX_INVESTOR_SHELL_PREVIEW: c.profile.investorShellPreview } : { MMX_INVESTOR_SHELL_PREVIEW: c.profile?.investorShellPreview }))) fail("COMPOSITION_SHAPE");
+  const c = JSON.parse(bytes); if (!["terminal.visual-composition.v1", "terminal.visual-composition.v2"].includes(c.schema) || c.mode !== "records" || !ID.test(c.id || "") || path.basename(relative) !== `${c.id}.composition.json` || !Array.isArray(c.operations) || c.operations.length < 2 || c.operations.length > 64 || !Array.isArray(c.selections) || c.selections.length > 64 || !equal(c.profile, profile({ MMX_SHARED_SHELL: c.profile?.sharedShell, MMX_INVESTOR_SHELL_PREVIEW: c.profile?.investorShellPreview, TERMINAL_EVIDENCE_COMPILER: c.profile?.compiler, TERMINAL_EVIDENCE_FONTS: c.profile?.fonts }))) fail("COMPOSITION_SHAPE");
   if (!equal(c.profile, expectedProfile)) fail("PROFILE_MISMATCH");
   const budget = { remaining: LIMIT.total - bytes.length }, ops = c.operations.map(ref => readOperation(repo, ref, budget));
   const version = c.schema.endsWith(".v2") ? 2 : 1;
@@ -236,4 +240,4 @@ function writeComposition({ repoRoot, id, packet = "pl6", operations, selections
   // Invalid explicit data stays immutable and ineligible; no legacy fallback or replacement.
   return readComposition({ repoRoot, compositionPath: `${PACKETS[packet]}/${id}.composition.json`, expectedProfile: captureProfile, expectedFile: created, expectedParent: d.identity });
 }
-module.exports = { PACKETS, VIEWPORTS, TITLES, SURFACES, requirements, key, sha, canonical, profile, sourceSnapshot, imageInfo, composeCases, beginOperation, openOperation, writePayload, writeCase, finishOperation, readOperation, readComposition, selectedComposition, writeComposition };
+module.exports = { fonts, PACKETS, VIEWPORTS, TITLES, SURFACES, requirements, key, sha, canonical, profile, sourceSnapshot, imageInfo, composeCases, beginOperation, openOperation, writePayload, writeCase, finishOperation, readOperation, readComposition, selectedComposition, writeComposition };
