@@ -11,6 +11,8 @@ import today from "./TodayWorkspace.module.css";
 import TodayResearchAttention from "./TodayResearchAttention";
 import TodayWatchAttention from "./TodayWatchAttention";
 import TodaySinceLastVisit from "./TodaySinceLastVisit";
+import TodayBreadthReading from "./TodayBreadthReading";
+import { ageLabel, freshnessLabel, readingFreshness } from "@/lib/shared-shell/readingFreshness";
 
 const COPY = {
  en: {
@@ -111,6 +113,8 @@ function TodayWorkspaceSession({ ownerKey }: { ownerKey: string }) {
   ? (lang === "zh" ? "来源核验未完成" : "Source verification failed") : status(workspace.state);
  const needsAttention = data?.workspaces.filter(workspace => workspace.failure || !workspace.state ||
   !["CURRENT", "HISTORICAL_AS_KNOWN"].includes(workspace.state)) ?? [];
+ const now = new Date();
+ const readAge = readingFreshness(data?.read.as_of, now);
  const sectionHref = (id: string) => data?.sections.find(section => section.id === id)?.href ?? "/macro_monetary.html";
  const summary = data?.read.clauses.map(clause =>
   `${localText(clause.topic, lang)}${lang === "zh" ? "" : " "}${localText(clause.predicate, lang)}${localText(clause.punct, lang)}`
@@ -140,11 +144,25 @@ function TodayWorkspaceSession({ ownerKey }: { ownerKey: string }) {
     </div>
     <h2 id="today-command" className={today.marketRead}>{summary || c.unavailable}</h2>
     {data.read.as_of && <p className={today.readingDate}>{c.asof}: <strong>{localText(data.read.as_of_display, lang) || data.read.as_of}</strong>
+     {readAge.kind !== "undated" && <em className={today.readingAge} data-kind={readAge.kind}>{[ageLabel(readAge, lang), freshnessLabel(readAge, lang)].filter(Boolean).join(" · ")}</em>}
      <span>{localText(data.read.as_of_meaning, lang)}</span>
     </p>}
     <div className={`${styles.actions} ${today.briefActions}`}>
      <Link className={`${styles.action} ${styles.primary}`} href="/macro_monetary.html">{c.command}<Arrow /></Link>
      <span className={styles.coverage}>{data.coverage.available} {c.of} {data.coverage.total} {c.sections}</span>
+    </div>
+    <div className={today.readings} aria-label={c.sourceReadings}>
+     {data.strip.filter(chip => chip.id !== "coverage").map(chip => {
+      const age = readingFreshness(chip.as_of, now);
+      return <Link className={today.reading} key={chip.id} href={sectionHref(chip.section)}>
+       <span className={today.readingLabel}>{localText(chip.label, lang)}<Arrow /></span>
+       <strong>{chip.null ? chip.cause === "see_curve" ? c.curve : c.noSummary : localText(chip.value, lang)}</strong>
+       {chip.note && <span className={today.readingNote}>{localText(chip.note, lang)}</span>}
+       <span className={today.readingClock}>{localText(chip.as_of_display, lang) || chip.as_of || c.noClock}</span>
+       {age.kind !== "undated" && <span className={today.readingAge} data-kind={age.kind}>{freshnessLabel(age, lang)}</span>}
+      </Link>;
+     })}
+     <TodayBreadthReading ownerKey={ownerKey} scope={scope} onUnauthenticated={endAttention} />
     </div>
     {data.read.omitted && <p className={today.coverageNote}>{c.omitted}</p>}
    </section>}
@@ -177,18 +195,6 @@ function TodayWorkspaceSession({ ownerKey }: { ownerKey: string }) {
      {data && <details><summary>{c.allSections}</summary><ul className={styles.list}>{data.sections.map(section =>
       <li className={styles.row} key={section.id}><Link href={section.href}>{localText(section.label, lang)} →</Link></li>
      )}</ul></details>}
-      {data && <details><summary>{c.sourceReadings}</summary>
-    <div className={today.readings} aria-label={c.sourceReadings}>
-     {data.strip.filter(chip => chip.id !== "coverage").map(chip =>
-      <Link className={today.reading} key={chip.id} href={sectionHref(chip.section)}>
-       <span className={today.readingLabel}>{localText(chip.label, lang)}<Arrow /></span>
-       <strong>{chip.null ? chip.cause === "see_curve" ? c.curve : c.noSummary : localText(chip.value, lang)}</strong>
-       <span className={today.readingClock}>{localText(chip.as_of_display, lang) || chip.as_of || c.noClock}</span>
-       {chip.note && <span className={today.readingNote}>{localText(chip.note, lang)}</span>}
-      </Link>
-     )}
-    </div>
-      </details>}
      </section>
     </div>} />
    {data && <details className={today.evidence}><summary>{c.clocks}</summary><p>{c.clockNote}</p><dl>

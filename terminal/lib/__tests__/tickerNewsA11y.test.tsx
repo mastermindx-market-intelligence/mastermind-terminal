@@ -296,6 +296,27 @@ describe("t-rail-a11y — interactive controls are named", () => {
     expect(accessibleName(disclosure)).toBe("Hide the reports");
   });
 
+  it("the disclosure carries aria-controls only while open, naming the evidence group's id", async () => {
+    feed((input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes("/stories/")) return response(groupDetail());
+      return response(snapshot("NVDA", richRows()));
+    });
+    await render(<TickerNewsPanel symbol="NVDA" lang="en" userId="user-a" />);
+
+    const disclosure = host.querySelector<HTMLButtonElement>("[data-testid=ticker-news-panel] button[aria-expanded]")!;
+    // Closed: no aria-controls (the group it would name is not in the DOM yet).
+    expect(disclosure.getAttribute("aria-controls")).toBeNull();
+
+    await act(async () => {
+      disclosure.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+    const controls = disclosure.getAttribute("aria-controls");
+    expect(controls).toMatch(/^news-evidence-[A-Za-z0-9_-]+$/);
+    const group = host.querySelector(`[id="${controls}"]`);
+    expect(group?.getAttribute("role")).toBe("group");
+  });
+
   it("does not render legacy bulk filters and preserves all source headlines", async () => {
     feed(() => response(snapshot("NVDA", richRows())));
     await render(<TickerNewsPanel symbol="NVDA" lang="en" userId="user-a" />);

@@ -293,6 +293,11 @@ describe("R2 row fields", () => {
       .toEqual({ event_type: "guidance_cut" });
   });
 
+  it("a padded event_type is trimmed and still round-trips", () => {
+    expect(parseStoryRow({ ...base, annotation: { event_type: " guidance_cut " } }).annotation)
+      .toEqual({ event_type: "guidance_cut" });
+  });
+
   it("a null event_type survives as null", () => {
     expect(parseStoryRow({ ...base, annotation: { event_type: null } }).annotation)
       .toEqual({ event_type: null });
@@ -303,6 +308,8 @@ describe("R2 row fields", () => {
     ["a whitespace-only publisher", { publisher: "   " }, "row_publisher"],
     ["a string annotation", { annotation: "x" }, "row_annotation"],
     ["a numeric event_type", { annotation: { event_type: 3 } }, "row_annotation"],
+    ["a whitespace-only event_type", { annotation: { event_type: "   " } }, "row_annotation"],
+    ["a NUL-bearing event_type", { annotation: { event_type: "guidance\u0000cut" } }, "row_annotation"],
   ])("rejects %s with %s", (_name, overrides, code) => {
     const attempt = (): TickerNewsContractError | null => {
       try {
