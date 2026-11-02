@@ -8,7 +8,7 @@ Parent plan: [News Intelligence Estate, E1 and E4](https://github.com/mastermind
 
 This document preserves the assessment from [unmerged Terminal PR #1081](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1081), source `a10657ee8eaa0aa12c98e2ba5563a8680bfb9c9b`. The historical UI table below describes that branch, **not current master or production**. Its review and screenshots do not qualify a successor against today's source.
 
-Recovery used Terminal master `fd1e500c54376c7ea763b8eaec23a0929b08f4c8` and Macro main `9af0a33eb38b08d902c3e593cb0e276d3f0d6a18`. Current News includes editorial views, the R2 evidence ladder, token-bound grouped details, and [Journey 6 saved-basis corrections, #1196](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1196). The old whole-panel rewrite must not replace those features.
+Recovery initially inspected Terminal master `fd1e500c54376c7ea763b8eaec23a0929b08f4c8` and Macro main `9af0a33eb38b08d902c3e593cb0e276d3f0d6a18`. During continuation, Terminal master and production advanced to `82a8cd89c0925f68301034f9b47d94261b88a82a`, including [#1129's ladder/review separation](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1129) and [#1209's implemented R3 News design](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1209). Integration uses that current source. Preserve its typography, sentence ladder, evidence clock/member grids, editorial views, token-bound grouped details, and [Journey 6 saved-basis corrections, #1196](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1196). The old whole-panel rewrite must not replace those features.
 
 ### Reading-surface continuation
 
@@ -18,12 +18,12 @@ The bounded successor is a proposal until implementation and current-head proof 
 | --- | --- |
 | Full-height reading | Change the existing desktop News board from 52% to the available rail height; preserve natural document flow on tablet/mobile. |
 | Company panel | Hide the mounted company panel only while authenticated, enabled News is selected. Restore it when leaving News. The phone's existing Symbol details action must leave News before scrolling to that panel. |
-| Activity strip | Remove the mounted NewsFlowStrip/activity block as an explicit narrow revision to the R2 layout; retain canonical flow data and standalone contracts. Verify the old “No reports in 24h” message is absent from this consumer before claiming removal. |
+| Activity strip | Remove the mounted NewsFlowStrip/activity block as an explicit narrow revision to the current R3 layout; retain canonical flow data and standalone contracts. Verify the old “No reports in 24h” message is absent from this consumer before claiming removal. |
 | Encoded source text | Salvage one-pass, inert display decoding for headlines, teasers and member titles. Keep source values, URLs, revision identities and saved evidence unchanged. |
 | Saved-story controls | Retain current catch-up, review tags, Mark reviewed, saved basis and Open current. Per-story Mark reviewed and bulk Mark shown as reviewed both capture the saved evidence basis through the same mark function; removing that workflow would strand the journey added by #1196. |
 | Original review-control removal | **Deferred, not completed.** The next product decision must reconcile a clear save action with reviewed/catch-up status. This slice does not silently delete or relabel that behavior. |
 | Evidence and editorial behavior | Preserve current view selection, evidence ladder/clocks, member expansion, NEXT CHECK, Retry, rights gates and token-bound correction/race handling. |
-| R3 exploration | [PR #1130](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1130) remains separate design work; this continuation does not implement it or overwrite the [#1129](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1129) ladder-layout lane. |
+| Current R3 design | [PR #1130](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1130) supplied the exploration; [#1209](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1209) has now implemented R3 on master. Apply this bounded continuation to that renderer and preserve the merged [#1129](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1129) ladder-layout fix. |
 
 The original request for a simpler reader remains the product goal. Keeping the newer save journey is partial fulfillment of the old cleanup, not a claim that every requested control has been removed. Current responsive screenshots and real-path proof are still required.
 
