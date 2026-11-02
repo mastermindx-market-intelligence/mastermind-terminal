@@ -45,4 +45,19 @@ describe("premium UI does not sell upgrades while entitlement is unresolved", ()
     expect(paywall).toContain('recoverMemberSession({');
     expect(paywall).toContain('verifySession && recovery !== "guest"');
   });
+
+  it("secondary Options route pages never equate a transient Auth failure with an upgrade", () => {
+    for (const leaf of ["futures", "equity-replay"]) {
+      const page = readFileSync(
+        path.resolve(__dirname, "..", "..", "app", "(shell)", "options", leaf, "page.tsx"),
+        "utf8",
+      );
+      expect(page).toContain("getLiveOptionsAccessDetail()");
+      expect(page).toContain('verifySession={access.reason === "authentication_denied"}');
+      expect(page).toContain('access.access === "unavailable"');
+      expect(page).toContain("<OptionsServiceUnavailable />");
+      expect(page).not.toContain("await hasLiveOptions()");
+    }
+  });
+
 });

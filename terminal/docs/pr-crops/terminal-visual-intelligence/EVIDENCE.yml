@@ -35,7 +35,7 @@ layoutFiles:
   terminal/lib/indicator-canvas/host.ts: "4f2949efb22b8c378cab1ff9d176466c4857073c14a36ee4f0eeab4ec1015a25"
   terminal/e2e/visual-intelligence.spec.ts: "ecedd0a313b0c46256978696768380a67c30b32097b5f4d2ce829acffeaef633"
   terminal/lib/chart-engine/lwc/index.ts: "b82beb4c9f266c525cb3296ece617e65b601aa6a5239235a87dcc7c8c811ada2"
-  terminal/components/TerminalShell.tsx: "d311f343d011c5d9d66a037b091b7dc25ad23b009d67430056b16cc3f29eefd1"
+  terminal/components/TerminalShell.tsx: "51c6fa210290ad98ba552e41c3620a9a29dfd4f015224ee288eb0e40695403fe"
   terminal/components/ChartPane.tsx: "987d36ca27383e1eab71419f05fc41210e9c1806fd099aa516417b0875bd10c1"
   terminal/components/ChartContextDock.ts: "4029c8c4552fcdcd7973cb57fff0805ea1b068280a3d34db773e6bed27c51ec9"
   terminal/components/ChartContextPlacement.module.css: "62b9c6887f7ce9bd6db81f8339408ed671722d6dee3c713990d3fc8b164e36c0"
@@ -70,12 +70,12 @@ layoutFiles:
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
   terminal/lib/flowActivity.ts: "eb1433e57c7b63a52978aa4e63419e62b3e1a0e0210869f93838a8b7529ce332"
 cropFiles:
-  desktop-context.png: "b736791aa903f615da64ec96d60f3957810b68ca3fae6d1d872a5026842c5f85"
-  desktop-context-zh.png: "ebc4457f93d09a56422c398eec5c1e56f73b0dc1326289e4f9b8eceb7119705a"
-  mobile-context.png: "4bb912458a311faed7e779e24dffda3907ce5af4eec95dbc1a9f21ae3978bbe7"
-  mobile-context-zh.png: "e405b67dd7664ccbe130e97c455a536b24e7b85ab51af9f96ec135e030608622"
-  tablet-context.png: "4980ef7d1881bf573b82c73e65048eb3f6f1298abfddba8c79d8139d81c65b00"
-  tablet-context-zh.png: "5278387301c027e7e3c0ae0c96f0b6a233ef43243208936437d7bdf84855fd5a"
+  desktop-context.png: "66153da19a3e71b90e6117448c515e3f6e36c2e05168136409f57f34df8bb4e9"
+  desktop-context-zh.png: "9ce0014f57b940c66f9e206ecaced37d9248758a1eac6f89009e74b5c2966090"
+  mobile-context.png: "c592422746c31aa8a0a7f9220fd7cf846b99a6fa770b27ade6a5981b0322ba7f"
+  mobile-context-zh.png: "7491db058f74a494459ddcbd0a2d9e76a4ee9516c0061183a8b0288e53fef8ef"
+  tablet-context.png: "8ed57f68b1e11561d73532f64de5d9daa5515b9004d06aa62de008ec468d3a2b"
+  tablet-context-zh.png: "096d3b4fdda00da5bde7347adee430b6a457337b81d08a771b0baafa2a51f383"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -98,8 +98,8 @@ browserResults:
   visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases
 browserReportPath: browser-report.json
 browserReportHashes:
-  visualReport: "caa135e0a1655999e44a9e20ffeca767c6ee818a388bf78ca0a76aca6af26950"
-  mobileCrosshairReport: "caa135e0a1655999e44a9e20ffeca767c6ee818a388bf78ca0a76aca6af26950"
+  visualReport: "7d7376998464e8e906a6ba1b3bc14446e3368b183f3772f2408561a08d6ccf0e"
+  mobileCrosshairReport: "7d7376998464e8e906a6ba1b3bc14446e3368b183f3772f2408561a08d6ccf0e"
 drawingDockRecapture:
   sourceHead: 8a3135bc6eaa307f3d581223e70471df8de49d95
   reason: DrawingSidebar.tsx and TerminalShell.tsx changed so the drawing dock's group button follows the tool the shell actually armed
@@ -721,3 +721,18 @@ drawingsSheetAcceptedRecentRecapture20261101:
   browserReportSha256: "caa135e0a1655999e44a9e20ffeca767c6ee818a388bf78ca0a76aca6af26950"
   cropDelta: "Tablet and mobile EN/ZH are byte-identical to the prior capture. Desktop EN/ZH differ only in the status clock (captured after the US DST change), the ETH session chip's off-hours shade and the movers-ticker scroll offset; the Chart context reader and drawing dock are unchanged"
   productionProof: false
+
+# Current-head real Playwright fixture recapture; earlier evidence remains historical.
+accessFlashRecapture20261101:
+  sourceHead: "5199aef3a6537f7a6dcdc20c2b81d3ddd9992cc9"
+  browserReportPath: "browser-report.json"
+  browserReportSha256: "7d7376998464e8e906a6ba1b3bc14446e3368b183f3772f2408561a08d6ccf0e"
+  actualRunStart: "2026-11-02T05:43:26.584Z"
+  actualRunDurationMs: 143744.557
+  matrix: "30/30 passed; EN/ZH desktop/tablet/mobile, no retries, skips or unexpected"
+  regeneratedCrops: 6
+  changedSource:
+    terminal/components/TerminalShell.tsx: "51c6fa210290ad98ba552e41c3620a9a29dfd4f015224ee288eb0e40695403fe"
+  sourceScope: "Terminal chart shell entitlement presentation, no billing/server grant"
+  productionAccountTested: false
+  historicalEvidencePreserved: true
