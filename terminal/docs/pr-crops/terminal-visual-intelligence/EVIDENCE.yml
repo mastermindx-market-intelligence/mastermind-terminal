@@ -1,3 +1,4 @@
+# Current scoped Drawings sheet recents: drawingsSheetAcceptedRecentRecapture20261101 below. Earlier source/report identities remain historical.
 # Current scoped launcher boot stability: launcherBootStabilityRecapture20261031 below. Earlier source/report identities remain historical.
 # Current scoped Plan composition: optionsPlanComposition20261024 below. Earlier source/report identities remain historical.
 # Current scoped qualification: optionsSharedShellCompositionRecapture20261024; prior records keep their original identities.
@@ -34,7 +35,7 @@ layoutFiles:
   terminal/lib/indicator-canvas/host.ts: "4f2949efb22b8c378cab1ff9d176466c4857073c14a36ee4f0eeab4ec1015a25"
   terminal/e2e/visual-intelligence.spec.ts: "ecedd0a313b0c46256978696768380a67c30b32097b5f4d2ce829acffeaef633"
   terminal/lib/chart-engine/lwc/index.ts: "b82beb4c9f266c525cb3296ece617e65b601aa6a5239235a87dcc7c8c811ada2"
-  terminal/components/TerminalShell.tsx: "14e4d5e271e54ccf3cbdcfdb7ee4e9bad30703bb85d34d05b4bf65dfec8cb85a"
+  terminal/components/TerminalShell.tsx: "d311f343d011c5d9d66a037b091b7dc25ad23b009d67430056b16cc3f29eefd1"
   terminal/components/ChartPane.tsx: "987d36ca27383e1eab71419f05fc41210e9c1806fd099aa516417b0875bd10c1"
   terminal/components/ChartContextDock.ts: "4029c8c4552fcdcd7973cb57fff0805ea1b068280a3d34db773e6bed27c51ec9"
   terminal/components/ChartContextPlacement.module.css: "62b9c6887f7ce9bd6db81f8339408ed671722d6dee3c713990d3fc8b164e36c0"
@@ -69,8 +70,8 @@ layoutFiles:
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
   terminal/lib/flowActivity.ts: "eb1433e57c7b63a52978aa4e63419e62b3e1a0e0210869f93838a8b7529ce332"
 cropFiles:
-  desktop-context.png: "02ccbed74bddc8d2f08aee0a077f708abe546ed53efe4135269f50d0769a6b77"
-  desktop-context-zh.png: "6822ae7ec24e9db23e5b1cf66fb5170e3a95a7dac65ce3e99e29c5d06394d5b1"
+  desktop-context.png: "b736791aa903f615da64ec96d60f3957810b68ca3fae6d1d872a5026842c5f85"
+  desktop-context-zh.png: "ebc4457f93d09a56422c398eec5c1e56f73b0dc1326289e4f9b8eceb7119705a"
   mobile-context.png: "4bb912458a311faed7e779e24dffda3907ce5af4eec95dbc1a9f21ae3978bbe7"
   mobile-context-zh.png: "e405b67dd7664ccbe130e97c455a536b24e7b85ab51af9f96ec135e030608622"
   tablet-context.png: "4980ef7d1881bf573b82c73e65048eb3f6f1298abfddba8c79d8139d81c65b00"
@@ -97,8 +98,8 @@ browserResults:
   visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases
 browserReportPath: browser-report.json
 browserReportHashes:
-  visualReport: "b427d7b30255982d0d9c319c049070f63daeebe0ac4e171cd65fb0b7f8c92a0c"
-  mobileCrosshairReport: "b427d7b30255982d0d9c319c049070f63daeebe0ac4e171cd65fb0b7f8c92a0c"
+  visualReport: "caa135e0a1655999e44a9e20ffeca767c6ee818a388bf78ca0a76aca6af26950"
+  mobileCrosshairReport: "caa135e0a1655999e44a9e20ffeca767c6ee818a388bf78ca0a76aca6af26950"
 drawingDockRecapture:
   sourceHead: 8a3135bc6eaa307f3d581223e70471df8de49d95
   reason: DrawingSidebar.tsx and TerminalShell.tsx changed so the drawing dock's group button follows the tool the shell actually armed
@@ -709,4 +710,14 @@ launcherBootStabilityRecapture20261031:
   actualBrowserResult: "30 passed; 0 failed, skipped, flaky or retries; full named matrix and same-run mobile crosshair"
   browserReportSha256: "b427d7b30255982d0d9c319c049070f63daeebe0ac4e171cd65fb0b7f8c92a0c"
   cropDelta: "Desktop and tablet EN/ZH bytes regenerated on the changed source merged with master; tablet bytes reproduce exactly across two runs; mobile EN/ZH are byte-identical to the prior capture"
+  productionProof: false
+
+drawingsSheetAcceptedRecentRecapture20261101:
+  baseHead: "e0f9d40641cd7f8ab6df2bd303826a22ed5af8b5"
+  reason: "TerminalShell.tsx hands activateDrawingTool to the phone DrawingsSheet as onPick so the sheet sees its accept/refuse result and records only accepted tools under Favorites"
+  sourceIdentity: "Actual uncommitted working source; layoutFiles and cropFiles bind the exact bytes"
+  command: "TERMINAL_E2E_PORT=39417 PLAYWRIGHT_JSON_OUTPUT_FILE=<scratch>/visual-intelligence.json npx playwright test e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --reporter=line,json; report copied to browser-report.json"
+  actualBrowserResult: "30 passed; 0 failed, skipped, flaky or retries; full named matrix and same-run mobile crosshair"
+  browserReportSha256: "caa135e0a1655999e44a9e20ffeca767c6ee818a388bf78ca0a76aca6af26950"
+  cropDelta: "Tablet and mobile EN/ZH are byte-identical to the prior capture. Desktop EN/ZH differ only in the status clock (captured after the US DST change), the ETH session chip's off-hours shade and the movers-ticker scroll offset; the Chart context reader and drawing dock are unchanged"
   productionProof: false
