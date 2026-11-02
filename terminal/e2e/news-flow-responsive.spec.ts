@@ -6,7 +6,7 @@ import { NEWS_VIEW } from "../lib/__tests__/fixtures/newsEditorial";
 import type { TickerNewsContentKind, TickerNewsReportingState } from "../lib/newsTypes";
 
 /**
- * Wave B3 — news-flow strip responsive evidence matrix (design pin P13).
+ * Regression suite for a hidden legacy activity strip with the real News feed visible.
  *
  * Live dark cells: D1/D2 (desktop EN/ZH), D3/D4 (tablet), D5/D6 (mobile), each in
  * seven states (busier, typical, quieter, thin, partial, unavailable, open). E1
@@ -672,98 +672,39 @@ async function liveDotColors(page: Page) {
 
 // ---- the live matrix: one test per state, one describe per language ---------------
 
+/** Regression: activity telemetry stays available to the data owner, but the
+ * reading rail does not mount its visual strip or help control at any viewport. */
 async function runCell(page: Page, baseURL: string | undefined, testInfo: TestInfo, lang: Lang, state: StateName) {
   const project = testInfo.project.name as ProjectName;
   const cell = CELLS[project][lang];
-  const { flow, snapshotState, flowState } = STATE_FIXTURES[state];
+  const { flow, snapshotState } = STATE_FIXTURES[state];
 
   await prepare(page, testInfo, baseURL, flow, snapshotState);
   await setPresentation(page, lang);
   const panel = await openNews(page, snapshotState);
 
-  const strip = panel.locator("[data-flow-state]");
-  await expect(strip).toHaveAttribute("data-flow-state", flowState);
-
-  const line = strip.locator(":scope > p");
-  await expect(line).toHaveCount(1);
-  if (state === "unavailable") {
-    // Only the unavailable sentence: no button, no tally, nothing else.
-    await expect(line).toHaveText(GLANCE.unavailable[lang][0]);
-    await expect(strip.locator("button")).toHaveCount(0);
-  } else {
-    const [countText, compareText] = GLANCE[state][lang];
-    await expect(line).toContainText(countText);
-    await expect(line).toContainText(compareText);
-    if (state === "partial") {
-      await expect(strip).toHaveAttribute("data-coverage", "partial");
-    }
-  }
-
-  if (state === "open") {
-    await panel.getByRole("button", { name: MORE_LABEL[lang] }).click();
-    const detail = strip.locator("section");
-    await expect(detail).toBeVisible();
-    await expect(detail).toContainText(DETAIL_TITLE[lang]);
-  }
-
-  // The crop is taken before the assertion block so a red assertion still leaves
-  // the cell's evidence image behind (an evidence spec captures first, judges after).
+  await expect(panel.locator("[data-flow-state]")).toHaveCount(0);
+  await expect(panel.locator("[data-news-catchup]")).toHaveCount(0);
+  await expect(panel.locator("[data-news-source-filter]")).toHaveCount(0);
+  await expect(panel.locator("[data-news-mark-shown]")).toHaveCount(0);
+  await expect(panel.locator("[data-news-headline]").first()).toBeVisible();
   await panel.screenshot({ path: join(CROPS_DIR, `${cell}-${state}.png`) });
 
-  if (state === "open") {
-    const boxes = await page.evaluate(() => {
-      const detailEl = document.querySelector('[data-testid="ticker-news-panel"] [data-flow-state] section');
-      const panelEl = document.querySelector('[data-testid="ticker-news-panel"]');
-      if (!detailEl || !panelEl) return null;
-      const d = detailEl.getBoundingClientRect();
-      const p = panelEl.getBoundingClientRect();
-      return {
-        d: { left: d.left, top: d.top, right: d.right, bottom: d.bottom },
-        p: { left: p.left, top: p.top, right: p.right, bottom: p.bottom },
-        vw: document.documentElement.clientWidth,
-        vh: document.documentElement.clientHeight,
-      };
-    });
-    if (!boxes) throw new Error("details section not measurable");
-    expect(boxes.d.left).toBeGreaterThanOrEqual(-1);
-    expect(boxes.d.top).toBeGreaterThanOrEqual(-1);
-    expect(boxes.d.right).toBeLessThanOrEqual(boxes.vw + 1);
-    expect(boxes.d.bottom).toBeLessThanOrEqual(boxes.vh + 1);
-    expect(boxes.d.left).toBeGreaterThanOrEqual(boxes.p.left - 1);
-    expect(boxes.d.top).toBeGreaterThanOrEqual(boxes.p.top - 1);
-    expect(boxes.d.right).toBeLessThanOrEqual(boxes.p.right + 1);
-    expect(boxes.d.bottom).toBeLessThanOrEqual(boxes.p.bottom + 1);
-  }
-
-  // Zero horizontal document overflow, every cell and state.
   const overflow = await page.evaluate(
     () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
   );
   expect(overflow).toBeLessThanOrEqual(0);
-
-  // EN glance line: one line at 1440/820, at most two lines at 390.
-  if (lang === "en") {
-    const lineHeight = await line.evaluate((el) => el.getBoundingClientRect().height);
-    expect(lineHeight).toBeLessThanOrEqual(project === "mobile" ? 36 : 20);
-  }
-
-  // Keyboard: the focus ring on the details control, where one exists.
-  if (state !== "unavailable") {
-    await assertFocusRing(page, strip.locator("button"));
-  }
-
-  // Every live cell (and E1): the dot paints --brand-2, never a direction token.
   if (snapshotState === "live") {
     const colors = await liveDotColors(page);
-    if (!colors) throw new Error("live dot not rendered in a live cell");
+    if (!colors) throw new Error("live dot not rendered for compact news");
     expect(colors.dot).toBe(colors.brand2);
   }
 }
 
 for (const lang of ["en", "zh"] as const) {
-  test.describe(`${lang.toUpperCase()} news-flow cells`, () => {
+  test.describe(`${lang.toUpperCase()} compact news-flow cells`, () => {
     for (const state of ["busier", "typical", "quieter", "thin", "partial", "unavailable", "open"] as const) {
-      test(`${state} state renders inside its cell`, async ({ page, baseURL }, testInfo) => {
+      test(`${state} activity never consumes the reading viewport`, async ({ page, baseURL }, testInfo) => {
         await runCell(page, baseURL, testInfo, lang, state);
       });
     }
@@ -779,7 +720,7 @@ test("E1 east convention keeps the live dot neutral", async ({ page, baseURL }, 
   const panel = await openNews(page);
   await page.evaluate(() => document.documentElement.setAttribute("data-updown", "east"));
 
-  await expect(panel.locator("[data-flow-state]")).toHaveAttribute("data-flow-state", "ok");
+  await expect(panel.locator("[data-flow-state]")).toHaveCount(0);
 
   const colors = await liveDotColors(page);
   if (!colors) throw new Error("live dot not rendered for E1");
