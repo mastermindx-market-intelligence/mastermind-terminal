@@ -1,8 +1,8 @@
 # EOD belt, Flow Desk chain heat and Heatmap flow layer failure-state truth — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 22859e96ad44a906eff9b18cc6b2e3b0a89e819a
-# capturedAt: 2026-10-22T07:01:00.120Z
+# capturedAtHead: daab948465d37a18f42a0682cf56a3ea2426e4fb
+# capturedAt: 2026-11-01T13:04:34.676Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/app/globals.css: "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517"
@@ -10,12 +10,12 @@ layoutFiles:
   terminal/components/eodcontext/EodContextBelt.tsx: "983b21e1a030ab66aada5d773a9d0ae9abccf0e796452e9cd6e3df62d6761013"
   terminal/components/eodcontext/StructureStrip.tsx: "0baf8c1d09fe4427569c92360081d842018d81d978a8b98d76fb283f950f31d4"
   terminal/components/eodcontext/eodStrings.ts: "4395f953dcc0f4beca53422786393ee792f297211a0eef655c64762f2b34f99f"
-  terminal/components/flowdesk/FlowDeskView.tsx: "7c4ee44e695dbf928ebe5f7991bf7d0a7e8745420852c6773a3aa51456bae021"
+  terminal/components/flowdesk/FlowDeskView.tsx: "801cf41437b4749d3ad449e60ab35be8ffcc7f0e193ce5773b9c1ec7e49c01c0"
   terminal/components/gexdesk/GexDeskView.tsx: "e7e12f9b3f1217c0b78692a5c65d5181552015ca0c1a91510e01d259432a7a14"
   terminal/components/heatmap/HeatmapView.tsx: "3b3ab5049715a33f167e344d3013b8f880356e8b96077b38c9a517c57b7a54cb"
   terminal/lib/dataCache.ts: "f8a7f978049e64482b385d43c13d49d05ddec2525e36457b365a2d083060e1be"
   terminal/lib/eodContext.ts: "1d0ce3ccde7a2fa05948cc0ac2ee93d16ec06724a7edcbd8c95c61e39d98b9e7"
-  terminal/lib/flowdeskStrings.ts: "7b2a88aca6cbddc408c6cc430cc70caa26b2a1b05889e5d1541649c470b3fa31"
+  terminal/lib/flowdeskStrings.ts: "580399a47bae6ab6aa16368d25ed54c94047799e4a600352385b5a9b7cc25c10"
   terminal/lib/heatmapStrings.ts: "26bb75eccce7429e5a37154f07f7f68faf9652da1f6f3560074cb558f0dda9c2"
 theme: dark
 languages: [en, zh]
@@ -285,10 +285,3 @@ files:
   - heatmap-no-match-390.png
   - heatmap-no-match-820-zh.png
   - heatmap-no-match-820.png
-
-labPlanNavigationRecapture20261030:
-  sourceHead: "284f09f748e6a7107ceffe0a0c54fc1e0af14fc9"
-  actualCases: 42
-  qualification: "terminal/docs/verification/lab-plan-handoff-20261030/evidence-lock-recapture.json"
-  qualificationSha256: "b34344fad4050563f59223f81056de0415527a98e6bc8047f99a6bfccbdc6be4"
-  scope: "Actual scoped browser captures on the navigation candidate. Other surfaces and earlier reports retain their historical identities; no production or full-matrix recapture claim."
