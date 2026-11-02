@@ -6,6 +6,8 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { GexDeskView } from "@/components/gexdesk/GexDeskView";
 import { makeGexT } from "@/components/gexdesk/gexStrings";
+import { StrikeLadder } from "@/components/gexdesk/StrikeLadder";
+import { matrixLensByStrike } from "@/lib/gexLadder";
 
 const input = vi.hoisted(() => ({ lang: "en" as "en" | "zh", gex: {} as unknown, matrix: {} as unknown }));
 vi.mock("@/lib/flowClientCache", () => ({
@@ -217,5 +219,85 @@ describe("mounted Exposure desk — one population for summary, WallChip and lad
     await mount();
     hoverStrike(771);
     expect(sharesShown()).toBe(false);
+  });
+});
+
+// #200 follow-through: exercise the real ladder's date admission and click guards,
+// independent of GexDeskView's upstream matrix-session fence. Coverage is deliberately
+// supplied for malformed rows so this proves the component does not equate coverage
+// with a valid expiry. No source selector or eligibility formula is copied here.
+async function mountDateAdmissionLadder(expiries: string[], asOf: string | null | undefined) {
+  const onLens = vi.fn();
+  await act(async () => root.render(
+    <StrikeLadder
+      strikes={[{ strike: 770, gamma_net: 1, gamma_call: 2, gamma_put: -1 }]}
+      spot={770}
+      levels={{ callWall: null, putWall: null, gammaFlip: null, hvl: null }}
+      greek="gamma"
+      byExpiry={expiries.map((exp) => ({ exp, gamma_net: 1 }))}
+      lens={{ kind: "all" }}
+      onLens={onLens}
+      lensValues={matrixLensByStrike(null, { kind: "all" }, asOf)}
+      lensCoverage={new Set(expiries)}
+      asOf={asOf}
+      lang={input.lang}
+    />
+  ));
+  await act(async () => (node.querySelector(`button[aria-label="${t()("expiryLensAria")}"]`) as HTMLButtonElement).click());
+  return onLens;
+}
+function dateAdmissionOption(label: string, singleExpiry = false) {
+  const opt = [...node.querySelectorAll<HTMLButtonElement>('[role="option"]')].find((b) =>
+    singleExpiry ? b.firstElementChild?.firstChild?.textContent === label
+      : b.firstElementChild?.textContent === label);
+  expect(opt, `expiry option ${label}`).toBeDefined();
+  return opt!;
+}
+
+describe("mounted StrikeLadder — unknown dates never authorize an expiry cut", () => {
+  it.each(["en", "zh"] as const)("%s: a real same-day row cannot lend admission to a malformed covered row", async (lang) => {
+    input.lang = lang;
+    const malformed = "not-a-date";
+    const onLens = await mountDateAdmissionLadder([session, malformed], `${session}T20:15:00Z`);
+    const exZero = dateAdmissionOption(t()("expiryLensExZero"));
+    const invalid = dateAdmissionOption(malformed, true);
+    expect(exZero.getAttribute("aria-disabled")).toBe("true");
+    expect(invalid.getAttribute("aria-disabled")).toBe("true");
+    await act(async () => { exZero.click(); invalid.click(); });
+    expect(onLens).not.toHaveBeenCalled();
+    const zero = dateAdmissionOption(t()("expiryLensZero"));
+    expect(zero.getAttribute("aria-disabled")).toBe("false");
+    await act(async () => zero.click());
+    expect(onLens).toHaveBeenCalledTimes(1);
+    expect(onLens).toHaveBeenCalledWith({ kind: "zero" });
+  });
+
+  it.each([null, undefined, "garbage", "2026-02-30"])("source day %s does not authorize even covered real expiries", async (asOf) => {
+    const onLens = await mountDateAdmissionLadder([session, later], asOf);
+    const one = dateAdmissionOption(session, true);
+    const other = dateAdmissionOption(later, true);
+    expect(one.getAttribute("aria-disabled")).toBe("true");
+    expect(other.getAttribute("aria-disabled")).toBe("true");
+    expect([...node.querySelectorAll<HTMLButtonElement>('[role="option"]')]
+      .some((b) => b.firstElementChild?.textContent === t()("expiryLensZero"))).toBe(false);
+    expect([...node.querySelectorAll<HTMLButtonElement>('[role="option"]')]
+      .some((b) => b.firstElementChild?.textContent === t()("expiryLensExZero"))).toBe(false);
+    await act(async () => { one.click(); other.click(); });
+    expect(onLens).not.toHaveBeenCalled();
+    // The all-expiry aggregate remains usable: unknown dates must not strand the desk.
+    await act(async () => dateAdmissionOption(t()("expiryDropdownLabel")).click());
+    expect(onLens).toHaveBeenCalledTimes(1);
+    expect(onLens).toHaveBeenCalledWith({ kind: "all" });
+  });
+
+  it("keeps a genuine future expiry selectable in the existing written-date-part convention", async () => {
+    const onLens = await mountDateAdmissionLadder([session, later], `${session}T23:30:00-07:00`);
+    expect(dateAdmissionOption(t()("expiryLensZero")).getAttribute("aria-disabled")).toBe("false");
+    const exZero = dateAdmissionOption(t()("expiryLensExZero"));
+    expect(exZero.getAttribute("aria-disabled")).toBe("false");
+    expect(dateAdmissionOption(later, true).getAttribute("aria-disabled")).toBe("false");
+    await act(async () => exZero.click());
+    expect(onLens).toHaveBeenCalledTimes(1);
+    expect(onLens).toHaveBeenCalledWith({ kind: "ex-zero" });
   });
 });

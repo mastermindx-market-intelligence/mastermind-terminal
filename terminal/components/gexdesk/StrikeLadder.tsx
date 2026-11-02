@@ -44,7 +44,7 @@ import { EodReplayTag } from "@/components/surface/EodReplayTag";
 import type { Lang } from "@/lib/i18n";
 import type { GexPayload, GreekLens } from "./GexDeskView";
 import { topExpiriesForStrike, type MatrixCell, type ExpiryShare } from "@/lib/surfaceContract";
-import { dteFrom, dteLabelFor, expLabel, isZeroDte } from "@/lib/dte";
+import { dteFrom, dteLabelFor, expLabel, isZeroDte, isoSession } from "@/lib/dte";
 import {
   fmtBn,
   fmtMn,
@@ -567,7 +567,7 @@ export function StrikeLadder({
         dteLabel: dteLabelFor(e.exp, asOf),
         netMn: e.gamma_net,
         isZero: isZeroDte(e.exp, asOf),
-        covered: lensCoverage.has(normExp(e.exp)),
+        covered: isoSession(normExp(asOf)) !== null && isoSession(normExp(e.exp)) !== null && lensCoverage.has(normExp(e.exp)),
       })),
     [byExpiry, asOf, lensCoverage]
   );
