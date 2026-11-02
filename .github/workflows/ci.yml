@@ -246,7 +246,10 @@ jobs:
     # and actual time saved must be measured before accepting this setting.
     # Retune after exact-head GREEN 41507479087: 44.0m, 462.7 job runner-min,
     # below both recent 50.8/53.8m baselines but not the <=40m acceptance
-    # target; 6 desktop / 5 tablet / 5 mobile tests are still experimental.
+    # target. Next exact-head GREEN 41514788591 measured 41.1m/489.5
+    # summed job-min (22/22 green, one desktop retry-pass flake); <=40m
+    # target remains unmet and budget must be rechecked. Trial 7/5/5 is
+    # experimental: only the desktop critical path is repartitioned.
     strategy:
       # NEVER fail-fast. One red shard must not delete the other shards' evidence — the
       # aggregator below already turns any red into a red required check.
@@ -267,21 +270,26 @@ jobs:
           # partitioning preserves the hang cap and does not fix assertions. Green
           # predecessor heads 7579 (desktop-1 PASS 58m50) and 60c2 (PASS 57m17) sat
           # about a minute under the cap while every other quarter ran 26-44 min.
-          # Six Playwright shards retain the complete project with less work per
-          # runner. tests/test_ci_e2e_shards.py rejects missing, duplicate or
+          # Seven contiguous Playwright shards retain complete coverage: the
+          # 6/5/5 GREEN trial 41514788591 moved the critical path to desktop-1
+          # (40.9m) and desktop-6 (39.7m); desktop-6 had one retry-pass flake.
+          # Retune only desktop and requalify exact-head CI and runner cost.
+          # tests/test_ci_e2e_shards.py rejects missing, duplicate or
           # inconsistent shards.
           - shard: desktop-1
-            projects: "--project=desktop --shard=1/6"
+            projects: "--project=desktop --shard=1/7"
           - shard: desktop-2
-            projects: "--project=desktop --shard=2/6"
+            projects: "--project=desktop --shard=2/7"
           - shard: desktop-3
-            projects: "--project=desktop --shard=3/6"
+            projects: "--project=desktop --shard=3/7"
           - shard: desktop-4
-            projects: "--project=desktop --shard=4/6"
+            projects: "--project=desktop --shard=4/7"
           - shard: desktop-5
-            projects: "--project=desktop --shard=5/6"
+            projects: "--project=desktop --shard=5/7"
           - shard: desktop-6
-            projects: "--project=desktop --shard=6/6"
+            projects: "--project=desktop --shard=6/7"
+          - shard: desktop-7
+            projects: "--project=desktop --shard=7/7"
           # tablet and mobile outgrew one job the same way. On 2026-10-12 the last eight green
           # runs measured tablet 47-59 min and mobile 44-56 min, and train 3 (#960, head
           # 1dc6c48e9) lost both at the 60-min cap: jobs 114632507605 (tablet) and
