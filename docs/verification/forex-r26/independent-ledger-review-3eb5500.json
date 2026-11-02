@@ -1,0 +1,26 @@
+{
+  "schema": "forex_r26.independent_ledger_review.v1",
+  "run_id": "forex-r26-0038-ledger-review-20261021-sol-001",
+  "root_id": "forex-r26-native-completion-20261020-sol-001",
+  "reviewed_head": "3eb5500f3b3d8d151537cb93b7f3050c586a2664",
+  "actual_base": "8196744cd837cbfd5924338439bd9a3f1f264c5c",
+  "verdict": "REQUEST_CHANGES",
+  "response_sha256": "e4a39c8b90cebe25c0ccf12fb21da0a5f72b4f8a5cf40a2ffe6e61c81d710783",
+  "parent_acceptance_scope": "Findings accepted, NOT source approval; original review wave terminal STOP.",
+  "blocking_findings": [
+    "Two overlapping ledger/README conflicts; master already reconciled0038 through #1103.",
+    "Original-base preservation receipt does not establish preservation of current-base0039; overlaying old ledger would drop0039."
+  ],
+  "independent_checks": [
+    "Public compare/files and actual merge identity checked.",
+    "Four original receipt source hashes matched.",
+    "Original-candidate strict namespace guard passed.",
+    "102 tests passed on a partial archive extract."
+  ],
+  "limitations": [
+    "Original macOS retained logs unavailable; reviewer reran commands rather than verifying their hashes.",
+    "Partial archive extraction makes test_referenced_migration_filenames_exist vacuous.",
+    "No production DB/browser/deployment acceptance; no current repair-head review yet."
+  ],
+  "parent_repair": "Current-base ledger and README retained byte-for-byte, including0039. History-preserving integration; updated qualification receipt and explicit historical labeling. New immutable repair review required."
+}
