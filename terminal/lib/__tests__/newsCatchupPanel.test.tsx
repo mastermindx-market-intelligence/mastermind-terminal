@@ -197,7 +197,8 @@ describe("AC-E13-01 — a failed or partial load never marks unseen stories revi
       row("ev2_b", "Second", 20),
     ], { hasMore: true })));
     await render(<TickerNewsPanel symbol="NVDA" lang="en" userId="user-a" />);
-    await click(host.querySelector("[data-news-mark-shown]"));
+    await click(markOne("ev2_c"));
+    await click(markOne("ev2_b"));
 
     const slot = JSON.parse(stored()!)["account:user-a"].NVDA;
     expect(Object.keys(slot.stories).sort()).toEqual(["ev2_b", "ev2_c"]);
@@ -214,7 +215,7 @@ describe("AC-E13-01 — a failed or partial load never marks unseen stories revi
 
     expect(reviewOf("ev2_late")).toBe("new");
     expect(reviewOf("ev2_b")).toBe("reviewed");
-    expect(host.querySelector("[data-news-catchup-summary]")?.textContent).toBe("1 new · 0 updated");
+    expect(host.querySelector("[data-news-catchup-summary]")).toBeNull();
   });
 
   it("an interrupted review keeps what was marked and leaves the rest new", async () => {
@@ -236,7 +237,8 @@ describe("AC-E13-02 — a corrected story is distinguishable from an unchanged r
   it("shows Updated with the kind of change, and Reviewed for the unchanged one", async () => {
     const { serve } = feed(() => response(snapshot("NVDA", [row("ev2_a", "Launch", 5), row("ev2_b", "Supply", 4)])));
     await render(<TickerNewsPanel symbol="NVDA" lang="en" userId="user-a" />);
-    await click(host.querySelector("[data-news-mark-shown]"));
+    await click(markOne("ev2_a"));
+    await click(markOne("ev2_b"));
     expect(reviewOf("ev2_a")).toBe("reviewed");
 
     serve.current = () => response(snapshot("NVDA", [
@@ -257,14 +259,14 @@ describe("AC-E13-02 — a corrected story is distinguishable from an unchanged r
     await pushChange();
     expect(host.querySelector(`article[data-story-id="ev2_a"] [data-news-change]`)?.textContent)
       .toBe("2 more reports since your review");
-    expect(host.querySelector("[data-news-catchup-summary]")?.textContent).toBe("0 new · 1 updated");
+    expect(host.querySelector("[data-news-catchup-summary]")).toBeNull();
   });
 
   it("renders the review states in Chinese", async () => {
     feed(() => response(snapshot("NVDA", [row("ev2_a", "Launch", 5), row("ev2_b", "Supply", 4)])));
     await render(<TickerNewsPanel symbol="NVDA" lang="zh" userId="user-a" />);
     await click(markOne("ev2_b"));
-    expect(host.querySelector("[data-news-catchup-summary]")?.textContent).toBe("1 条新 · 0 条更新");
+    expect(host.querySelector("[data-news-catchup-summary]")).toBeNull();
     expect(reviewOf("ev2_b")).toBe("reviewed");
     expect(markOne("ev2_b")).toBeNull();
     expect(host.querySelector(`article[data-story-id="ev2_b"]`)?.textContent).toContain("已读");
@@ -276,7 +278,8 @@ describe("AC-E13-03 — review state is private to the signed-in account", () =>
   it("an account switch shows the new account's own state and never the previous account's", async () => {
     feed(() => response(snapshot("NVDA", [row("ev2_a", "Launch", 5), row("ev2_b", "Supply", 4)])));
     await render(<TickerNewsPanel symbol="NVDA" lang="en" userId="user-a" />);
-    await click(host.querySelector("[data-news-mark-shown]"));
+    await click(markOne("ev2_a"));
+    await click(markOne("ev2_b"));
     expect(reviewOf("ev2_a")).toBe("reviewed");
 
     await render(<TickerNewsPanel symbol="NVDA" lang="en" userId="user-b" />);
@@ -322,7 +325,7 @@ describe("AC-E13-03 — review state is private to the signed-in account", () =>
   it("with no account identity it says marks need an account and offers no mark controls", async () => {
     feed(() => response(snapshot("NVDA", [row("ev2_a", "Launch", 5)])));
     await render(<TickerNewsPanel symbol="NVDA" lang="en" />);
-    expect(host.textContent).toContain("Review marks need a signed-in account.");
+    expect(host.querySelector("[data-news-catchup]")).toBeNull();
     expect(host.querySelector("[data-news-mark-one]")).toBeNull();
     expect(host.textContent).toContain("Launch");
     expect(stored()).toBeNull();
@@ -336,13 +339,14 @@ describe("AC-E13-03 — review state is private to the signed-in account", () =>
     });
     await click(markOne("ev2_a"));
     expect(reviewOf("ev2_a")).toBe("reviewed");
-    expect(host.textContent).toContain("Review marks can't be saved on this device. They last for this session only.");
+    // An unavailable local store does not reintroduce the retired toolbar.
+    expect(host.querySelector("[data-news-catchup]")).toBeNull();
     expect(stored()).toBeNull();
   });
 });
 
-describe("AC-E13-04 — filters use supplied metadata and keep honest states", () => {
-  it("filters by review state and by the feed's own source field; there is no topic filter", async () => {
+describe("AC-E13-04 — compact reading never filters the source feed", () => {
+  it("renders all presented stories including reviewed and different sources", async () => {
     feed(() => response(snapshot("NVDA", [
       row("ev2_a", "Launch", 5),
       row("ev2_b", "Supply", 4, 1, { source: "dowjones" }),
@@ -351,37 +355,27 @@ describe("AC-E13-04 — filters use supplied metadata and keep honest states", (
     await render(<TickerNewsPanel symbol="NVDA" lang="en" userId="user-a" />);
     await click(markOne("ev2_c"));
 
-    await click(host.querySelector('[data-news-filter="new"]'));
     expect([...host.querySelectorAll("article[data-story-id]")].map((a) => a.getAttribute("data-story-id")))
-      .toEqual(["ev2_a", "ev2_b"]);
-    await click(host.querySelector('[data-news-filter="reviewed"]'));
-    expect([...host.querySelectorAll("article[data-story-id]")].map((a) => a.getAttribute("data-story-id")))
-      .toEqual(["ev2_c"]);
-    await click(host.querySelector('[data-news-filter="updated"]'));
-    expect(host.querySelector("article[data-story-id]")).toBeNull();
-    expect(host.querySelector("[data-news-filter-empty]")?.textContent).toBe("No stories match this filter.");
-    await click(host.querySelector('[data-news-filter="all"]'));
-
-    const select = host.querySelector<HTMLSelectElement>("[data-news-source-filter]");
-    expect([...select!.options].map((o) => o.value)).toEqual(["", "benzinga", "dowjones"]);
-    await act(async () => {
-      select!.value = "dowjones";
-      select!.dispatchEvent(new Event("change", { bubbles: true }));
-    });
-    expect([...host.querySelectorAll("article[data-story-id]")].map((a) => a.getAttribute("data-story-id")))
-      .toEqual(["ev2_b"]);
-    expect(host.querySelector("[data-news-catchup-summary]")?.textContent).toBe("1 new · 0 updated");
-    expect(host.textContent?.toLowerCase()).not.toContain("topic");
+      .toEqual(["ev2_a", "ev2_b", "ev2_c"]);
+    expect(reviewOf("ev2_c")).toBe("reviewed");
+    expect(reviewOf("ev2_a")).toBe("new");
+    expect(host.querySelectorAll("[data-news-filter]")).toHaveLength(0);
+    expect(host.querySelector("[data-news-source-filter]")).toBeNull();
+    expect(host.querySelector("[data-news-catchup-summary]")).toBeNull();
+    expect(host.querySelector("[data-news-mark-shown]")).toBeNull();
+    expect(host.querySelector("[data-flow-state]")).toBeNull();
+    expect(host.querySelector("[data-news-filter-empty]")).toBeNull();
   });
 
-  it("shows no source filter when the feed supplies a single source", async () => {
+  it("single-source feeds also have no toolbar, with direct story access", async () => {
     feed(() => response(snapshot("NVDA", [row("ev2_a", "Launch", 5), row("ev2_b", "Supply", 4)])));
     await render(<TickerNewsPanel symbol="NVDA" lang="en" userId="user-a" />);
-    expect(host.querySelector("[data-news-catchup]")).toBeTruthy();
+    expect(host.querySelector("[data-news-catchup]")).toBeNull();
     expect(host.querySelector("[data-news-source-filter]")).toBeNull();
+    expect(host.querySelectorAll("article[data-story-id]")).toHaveLength(2);
   });
 
-  it("restricted and quiet feeds keep their own messages and show no review controls", async () => {
+  it("restricted and quiet feeds keep their correct messages and show no review toolbar", async () => {
     feed(() => response({ detail: "ticker news rights unavailable" }, 503));
     await render(<TickerNewsPanel symbol="NVDA" lang="en" userId="user-a" />);
     expect(host.textContent).toContain("News access is unavailable");
@@ -418,7 +412,7 @@ describe("AC-E13-05 — marking reviewed changes nothing at the source and sends
     const streams = FakeEventSource.instances.length;
 
     await click(markOne("ev2_a"));
-    await click(host.querySelector("[data-news-mark-shown]"));
+    await click(markOne("ev2_b"));
 
     expect(fn.mock.calls.length).toBe(fetches);
     expect(FakeEventSource.instances.length).toBe(streams);
