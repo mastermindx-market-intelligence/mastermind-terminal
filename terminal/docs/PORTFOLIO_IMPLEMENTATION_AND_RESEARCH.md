@@ -1,5 +1,33 @@
 # Portfolio workspace — implementation and research
 
+## Delivery continuation and task tree — 2026-11-02
+
+This section is the current source task tree for the remaining chart-entry repair. The dated implementation and recovery sections below remain historical evidence.
+
+**Assignment and outcome.** Continue the existing Portfolio Terminal delivery under `WS:MARKET-OS`. A chart-origin position draft must remain bound to the account that opened it; changing accounts must never relabel or submit that retained intent for the new account. Preserve the accepted Portfolio design, canonical records, monetary basis, and confirmation behavior.
+
+**Source boundary.** Recovery inspected protected Terminal master `82a8cd89c0925f68301034f9b47d94261b88a82a` and protected Mastermind procedure `ae3fc6fce8f704b32b01664f1b0d1c0d52a1c8ed` (Skillpack 1.0.1). This task tree is versioned in this existing report; its exact revision is the containing Git commit, to be bound in the commissioning/evidence receipt. Organizational continuation remains on the existing [Portfolio recovery carrier](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1044#issuecomment-6332922000); this document does not create another workstream, lifecycle or lease.
+
+**Recovered delivery.** Core #1044 merged as `8f00622096d0dc574458c134516e802ce78907ae`; the retained-target/Settings-owner/Treasury-consumer follow-up #1099 merged as `c6e62d7cd08b75f372535798d435cbf957f0cdb2`. Their [October 21 release receipt](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1099#issuecomment-6323145489) records deployment and scoped live observations. Those historical releases are not a fresh November 2 production measurement. The later recovery checkpoint also records completed controlled-record QA and cleanup; do not repeat that one-use account grant.
+
+**Current defect.** At the inspected master, `TerminalShell.tsx` retains only a pending symbol and its chart modal sends `{ action: "create", ...draft }` without `expectedOwnerId`. The server intentionally preserves legacy omission. A cookie/session change before refreshed page props can therefore submit A's draft as a valid B create. RLS remains the owner authority; the repair adds an intent precondition, not another authorization source. Unconditional late completion can also dismiss or refresh a newer chart context.
+
+| Task | Dependency | Editorial state | Acceptance and evidence |
+| --- | --- | --- | --- |
+| PC-1 Recover source, previous effects and exact defect | Existing released Portfolio source | accepted | Original 012 is terminal; released #1044/#1099 supersede its local candidate. The chart omission is directly visible in current master. Prior source/effect fences remain preserved. |
+| PC-2 Repair chart opening-intent ownership | PC-1 | ready | Capture immutable initiating owner and observed account generation at modal opening; reuse canonical identity and existing PositionModal UUID; send captured expectedOwnerId; retire committed A-to-B and A-to-B-to-A transitions and unmounts. Never reopen for B automatically. |
+| PC-3 Prove actual chart and server behavior | PC-2 | proposed | A discriminator fails the old chart wiring. Real chart/PositionModal submission plus real route boundary rejects A-intent/B-session with zero creates. Held POST/body/readback completions cannot close or refresh a new intent. Same-owner create, entry currency, retained retry UUID and canonical readback remain correct. EN/ZH and required desktop/tablet/mobile fixture checks pass. |
+| PC-4 Independent source review and hosted checks | PC-3 | proposed | Non-author exact-head review, required hosted checks and any material shared-shell composition are qualified. Do not substitute this review for held Risk PR #1143. |
+| PC-5 Normal release and production acceptance | PC-4 | blocked | Actual merged source, canonical build owner and served revision agree; fresh read-only entry proof is recorded. Any additional account-mutation acceptance uses a current designated identity/disposable-data grant, never the expired one-use QA grant. |
+
+**Implementation boundary.** Prefer a small chart-specific controller around the existing PositionModal, leaving chart opening/dismissal with TerminalShell. Keep the same visible layout, copy system, native-dialog and currency behavior. Reuse existing account identity/lifetime conventions; do not introduce a new auth listener/store, portfolio ledger, backend owner, API origin or migration. A key based only on an owner string is insufficient for observed A-to-B-to-A transitions; the server comparison independently covers a cookie change that the rendered props have not observed.
+
+**Completion semantics.** Check lifetime before dispatch and after each awaited response/body/readback, and before dismissal or rail refresh. A dispatched request may have committed for its original owner: retirement must neither claim rollback nor replay automatically. The route's authenticated session remains authoritative, and legacy omission compatibility for other callers is unchanged. The frozen source diff and meaningful red/green tests, not a helper-only mock, establish the repair.
+
+**Separate remaining Portfolio obligations.** Risk-copy PR #1143 is still draft at `9431e4e765d89d3f4bcb1b5c61251bc275673ec6`; its historical Fabric review request was explicitly rejected and is not retried or replaced by this chart operation. Genuine OHLC selected-generation and authenticated positive historical-risk/Treasury proof remain separate acceptance questions. The October 24 natural-publisher refusal is retained; no collector, deployment, receiver lock or source-access retry is authorized by this chart task. Brief/book and event-panel follow-ups retain their own evidence and boundaries.
+
+**Preservation.** Migration 0036 is already applied. Its SQL and original receipt bytes are immutable. Do not reuse merged branches, alter old worker artifacts, reset shared checkouts, change auth/RLS or weaken evidence/CI gates. No production portfolio mutation is part of PC-2/PC-3.
+
 ## Current owner recovery — 2026-10-21
 
 Status: **integration evidence qualified; final acceptance remains open**. Work continues on the original [PR #1044](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1044) and branch. The recovered original worker source `9704aa8e358d2cf8440e293a30a09a24be9038b2` was published without rewriting history. Current master `e3ca39a82d9713061e5e27ac0cd3ac1d249af127` was integrated through normal merge `59d7b65aa032e5dd0d2e58a9c8322ad2371a0d33`. The capture source is `da02d533f17e209abd63f8c23bcc8b68952d49ae`.
