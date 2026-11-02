@@ -23,6 +23,31 @@ The parent worktree `news-reading-current-20261102-c4` does not exist on this ho
 the operator host and was left untouched. The only pre-existing listener on this host was another
 lane's dev server on port 3199; it was neither used nor affected.
 
+### Parent head advanced during this run — proof still binds
+
+While the captures ran, the parent branch fast-forwarded by one commit
+(`995fbb9dc6d9b46a81766a04ac3b1c9026622c15`, "test(news): retain current R3 browser proof and CI
+selection proposal"); `5c9269d207e4cef89a60c39752d3233fbcb2fdc7` is its ancestor, so this was a
+fast-forward, not a history rewrite. PR #1207 remains Draft and OPEN at that head.
+
+This branch is deliberately based on `5c9269d2`, the exact base specified for this capture. The
+parent's new commit changed **93 files, all under `terminal/docs/pr-crops/`** — none inside the
+source-locked scope (`terminal/app`, `terminal/components`, `terminal/lib`, `terminal/e2e`) and
+none among the 148 explicit `SOURCE_PATHS` entries. This was verified by recomputing the owner's
+own snapshot at the parent's new head in a throwaway detached worktree:
+
+```
+parent head keys: 1761
+parent head sha : 250ec240c087a91a1e2544468f4a39f5912971d5dd12bc9c05a724061ce9d4f9
+SAME AS 5c9269d2: true
+```
+
+So the source lock is byte-identical at both commits, and this composition still validates against
+the parent's current head. If the parent's source scope changes before merge, the lock breaks and
+a fresh capture against that head is required — the owner does not restamp, and this worker did
+not attempt one. The throwaway worktree used for this check was removed; no repository state was
+modified by it.
+
 ## Runtime
 
 | Item | Value |
