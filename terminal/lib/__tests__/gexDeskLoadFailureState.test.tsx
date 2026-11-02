@@ -134,6 +134,8 @@ let root: Root;
 const originalScrollIntoView = Element.prototype.scrollIntoView;
 
 beforeEach(() => {
+  // View selection persists in the URL; every case starts from a fresh desk route.
+  window.history.replaceState({}, "", "/options?tab=gex");
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
   vi.stubGlobal("ResizeObserver", class { observe() {} unobserve() {} disconnect() {} });
   vi.stubGlobal("fetch", fetchMock);

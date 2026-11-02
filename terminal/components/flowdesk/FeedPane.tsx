@@ -16,10 +16,12 @@ import {
 } from "react";
 import { FlowCard } from "./FlowCard";
 import { FiltersPanel, DEFAULT_FILTERS } from "./FiltersPanel";
-import type { FlowFilters } from "./FiltersPanel";
+import type { BadgeFlag, DetectionFlag, FlowFilters } from "./FiltersPanel";
+import { FlowCoverageLine } from "./PrintInspector";
 import { trackSearch } from "@/lib/searchTrack";
 import { pick } from "@/lib/finFormat";
 import { FD } from "@/lib/flowdeskStrings";
+import { compareTape, flowCoverage } from "@/lib/flowPrintInspector";
 import { usOptionsSessionState } from "@/lib/flowFreshness";
 import { FlowFreshnessReceipt } from "./FlowFreshnessReceipt";
 import { useT } from "@/lib/i18n";
@@ -157,7 +159,7 @@ export function normalizeEnrichPayload(raw: any): EnrichPayload {
   };
 
   // Normalize events — real API: list; fixture may be dict
-  let eventsDict: Record<string, EnrichEvent> = {};
+  const eventsDict: Record<string, EnrichEvent> = {};
   const rawEvents = raw.events;
   if (Array.isArray(rawEvents)) {
     // Real production shape: list of event objects with inline enrichment
@@ -260,6 +262,64 @@ function savePrefs(p: PersistedPrefs) {
   }
 }
 
+// ── Filter persistence (W3A) — the whole filter set under flowdesk.filters.v1,
+//    beside flowdesk.views (which stays untouched). Sets serialise as arrays; a
+//    stored value that fails to parse falls back to the defaults.
+
+const FILTERS_KEY = "flowdesk.filters.v1";
+const SCORE_VALUES = [0, 50, 60, 70, 80, 90];
+const DTE_VALUES = ["0d", "1_7d", "8_30d", "31_90d", "90p"];
+const MNY_VALUES = ["itm", "atm", "near_otm", "far_otm"];
+const BADGE_VALUES = ["whale", "cluster", "sweep", "unusual", "block"];
+const DETECT_VALUES = ["MULTI_LEG", "LADDER", "REPEAT_HITTER", "SIZE_VS_OI", "WHALE", "FRESH", "Z_OUTLIER"];
+
+function loadStoredFilters(): FlowFilters | null {
+  try {
+    const raw = localStorage.getItem(FILTERS_KEY);
+    if (!raw) return null;
+    const v: unknown = JSON.parse(raw);
+    if (!v || typeof v !== "object" || Array.isArray(v)) return null;
+    const o = v as Record<string, unknown>;
+    const strArr = (x: unknown): string[] =>
+      Array.isArray(x) ? x.filter((m): m is string => typeof m === "string") : [];
+    return {
+      right: o.right === "C" || o.right === "P" ? o.right : "all",
+      lean: o.lean === "~buy" || o.lean === "~sell" || o.lean === "mixed" ? o.lean : "all",
+      minScore: SCORE_VALUES.includes(o.minScore as number)
+        ? (o.minScore as FlowFilters["minScore"])
+        : 0,
+      minPremium: typeof o.minPremium === "number" && Number.isFinite(o.minPremium) && o.minPremium >= 0
+        ? o.minPremium
+        : 0,
+      dteBuckets: strArr(o.dteBuckets).filter((m) => DTE_VALUES.includes(m)) as DteBucket[],
+      mnyBuckets: strArr(o.mnyBuckets).filter((m) => MNY_VALUES.includes(m)) as MnyBucket[],
+      badges: new Set(strArr(o.badges).filter((m) => BADGE_VALUES.includes(m)) as BadgeFlag[]),
+      detections: new Set(strArr(o.detections).filter((m) => DETECT_VALUES.includes(m)) as DetectionFlag[]),
+      exp: typeof o.exp === "string" ? o.exp : null,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function saveFilters(f: FlowFilters) {
+  try {
+    localStorage.setItem(FILTERS_KEY, JSON.stringify({
+      right: f.right,
+      lean: f.lean,
+      minScore: f.minScore,
+      minPremium: f.minPremium,
+      dteBuckets: f.dteBuckets,
+      mnyBuckets: f.mnyBuckets,
+      badges: [...f.badges],
+      detections: [...f.detections],
+      exp: f.exp,
+    }));
+  } catch {
+    // persistence is best-effort
+  }
+}
+
 // ── Preset → filter overrides ─────────────────────────────────────────────────
 
 function presetFilters(preset: ViewPreset): Partial<FlowFilters> {
@@ -323,6 +383,27 @@ export function FeedPane({
     setPrefs(merged);
     savePrefs(merged);
   }
+
+  // ── Filter persistence (W3A): load at mount, save on change ────────────────
+  // The filter STATE lives in the parent (FlowDeskView); the stored set is pushed
+  // up once at mount, and the first save is skipped so a stored set is never
+  // clobbered by the defaults.
+  const skipNextFilterSave = useRef(false);
+  useEffect(() => {
+    const stored = loadStoredFilters();
+    if (stored) {
+      skipNextFilterSave.current = true;
+      onFiltersChange(stored);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => {
+    if (skipNextFilterSave.current) {
+      skipNextFilterSave.current = false;
+      return;
+    }
+    saveFilters(filters);
+  }, [filters]);
 
   // Ticker search
   const [search, setSearch] = useState("");
@@ -390,6 +471,7 @@ export function FeedPane({
   // Any re-slice can drop the open card out of the rendered set, which would strand
   // the expansion state on an event nobody can see — so collapse alongside it.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- deliberate reset on filter/sort change, not derived state
     setVisibleCount(PAGE_SIZE);
     setExpandedId(null);
   }, [search, preset, sort, filters]);
@@ -408,6 +490,20 @@ export function FeedPane({
     };
   }, [filters, preset]);
 
+  // Coverage is computed over EVERY loaded event before the user's filters —
+  // unknown premium stays in every denominator (W3A A1).
+  const coverage = useMemo(() => flowCoverage(feed?.events ?? []), [feed]);
+
+  // Distinct expiries present in the feed, ascending — the expiry filter's options.
+  const expiryOptions = useMemo(
+    () => [...new Set(
+      (feed?.events ?? [])
+        .map((ev) => ev.exp)
+        .filter((e): e is string => typeof e === "string"),
+    )].sort(),
+    [feed],
+  );
+
   // Filter + sort pipeline (pure derivation from props — no internal state)
   const filtered = useMemo(() => {
     if (!feed) return [];
@@ -424,6 +520,11 @@ export function FeedPane({
     // Right (C/P)
     if (effectiveFilters.right !== "all") {
       events = events.filter((ev) => ev.right === effectiveFilters.right);
+    }
+
+    // Expiry (W3A) — exact ISO match; null = all expirations
+    if (effectiveFilters.exp) {
+      events = events.filter((ev) => ev.exp === effectiveFilters.exp);
     }
 
     // Lean
@@ -500,17 +601,10 @@ export function FeedPane({
       });
     }
 
-    // Sort
-    if (sort === "SCORE") {
-      events = [...events].sort(
-        (a, b) => (b.flowScore?.score ?? 0) - (a.flowScore?.score ?? 0)
-      );
-    } else {
-      // NEW: newest-first (feed is already newest-first from the poller, but re-sort for safety)
-      events = [...events].sort(
-        (a, b) => new Date(b.ts).getTime() - new Date(a.ts).getTime()
-      );
-    }
+    // Sort (W3A S5) — one shared comparator: the feed's own order is never trusted
+    // as stable; equal keys fall back to ascending id so rows never reorder across
+    // updates, and an invalid ts sinks below every valid one.
+    events = [...events].sort((a, b) => compareTape(a, b, sort));
 
     return events;
   }, [feed, enrich, search, effectiveFilters, preset, sort]);
@@ -634,8 +728,13 @@ export function FeedPane({
           filters={filters}
           onFiltersChange={onFiltersChange}
           lang={lang}
+          expiryOptions={expiryOptions}
         />
       )}
+
+      {/* ── Coverage line (W3A) — every loaded event, before the user's filters;
+          unknown premium stays in the denominator, C/P totals are unsigned ── */}
+      <FlowCoverageLine coverage={coverage} lang={lang} />
 
       {/* ── Feed list ── */}
       <div className="obs-fd-list obs-scroll" data-tut="flow-feed">
@@ -754,7 +853,8 @@ function isFiltersDirty(f: FlowFilters): boolean {
     f.dteBuckets.length > 0 ||
     f.mnyBuckets.length > 0 ||
     f.badges.size > 0 ||
-    f.detections.size > 0
+    f.detections.size > 0 ||
+    f.exp !== null
   );
 }
 

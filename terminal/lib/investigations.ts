@@ -9,7 +9,10 @@ export const INVESTIGATION_ADMISSION: InvestigationAdmission = {
     { owner: "terminal.analysis_symbol", kinds: ["security"] },
     { owner: "data_os.security_master", kinds: ["security", "issuer"] },
   ],
-  evidence: [{ owner: "earnings.workspace_generation", object_types: ["event_workspace"] }],
+  evidence: [
+    { owner: "earnings.workspace_generation", object_types: ["event_workspace"] },
+    { owner: "terminal.options_exposure", object_types: ["exposure_chart_request", "sector_origin", "rotation_measurement"] },
+  ],
 };
 export type InvestigationCommand = {
   id: string;

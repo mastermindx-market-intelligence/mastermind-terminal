@@ -1,0 +1,64 @@
+{
+  "schema": "options_hub.vol/v1",
+  "asof": "2026-10-20",
+  "root": "AAPL",
+  "iv_rank_252": 41,
+  "iv_rank_all": null,
+  "coverage_days_all": null,
+  "since_all": null,
+  "atm_iv": 36.9,
+  "iv_52w_lo": 18.4,
+  "iv_52w_hi": 61.2,
+  "rv20": 24.1,
+  "vrp": 12.8,
+  "term": [
+    { "dte": 2, "exp": "2026-10-23", "atm_iv": 36.9 },
+    { "dte": 7, "exp": "2026-10-28", "atm_iv": 34.8 },
+    { "dte": 10, "exp": "2026-10-31", "atm_iv": 33.5 },
+    { "dte": 14, "exp": "2026-11-04", "atm_iv": 32.2 },
+    { "dte": 30, "exp": "2026-11-20", "atm_iv": 29.4 },
+    { "dte": 60, "exp": "2026-12-20", "atm_iv": 27.8 },
+    { "dte": 90, "exp": "2027-01-19", "atm_iv": 27.1 }
+  ],
+  "smile": [
+    {
+      "exp": "2026-10-23",
+      "points": [
+        { "strike": 224.5, "call_iv": 41.2, "put_iv": 40.8 },
+        { "strike": 236.5, "call_iv": 37.1, "put_iv": 36.9 },
+        { "strike": 248, "call_iv": 34.0, "put_iv": 34.6 }
+      ]
+    },
+    {
+      "exp": "2026-11-20",
+      "points": [
+        { "strike": 212.5, "call_iv": 38.4, "put_iv": 38.2 },
+        { "strike": 236, "call_iv": 29.5, "put_iv": 29.4 },
+        { "strike": 255, "call_iv": 27.2, "put_iv": 27.6 }
+      ]
+    }
+  ],
+  "history": [
+    { "date": "2026-09-22", "iv_rank": null, "atm_iv": 28.4, "close": null },
+    { "date": "2026-09-23", "iv_rank": null, "atm_iv": 29.0, "close": null },
+    { "date": "2026-09-24", "iv_rank": null, "atm_iv": 28.6, "close": null },
+    { "date": "2026-09-25", "iv_rank": null, "atm_iv": 29.4, "close": null },
+    { "date": "2026-09-28", "iv_rank": null, "atm_iv": 30.1, "close": null },
+    { "date": "2026-09-29", "iv_rank": null, "atm_iv": 30.8, "close": null },
+    { "date": "2026-09-30", "iv_rank": null, "atm_iv": 31.5, "close": null },
+    { "date": "2026-10-01", "iv_rank": null, "atm_iv": 31.0, "close": null },
+    { "date": "2026-10-02", "iv_rank": null, "atm_iv": 31.9, "close": null },
+    { "date": "2026-10-05", "iv_rank": null, "atm_iv": 32.6, "close": null },
+    { "date": "2026-10-06", "iv_rank": null, "atm_iv": 33.2, "close": null },
+    { "date": "2026-10-07", "iv_rank": null, "atm_iv": 32.8, "close": null },
+    { "date": "2026-10-08", "iv_rank": null, "atm_iv": 33.7, "close": null },
+    { "date": "2026-10-09", "iv_rank": null, "atm_iv": 34.4, "close": null },
+    { "date": "2026-10-12", "iv_rank": null, "atm_iv": 34.1, "close": null },
+    { "date": "2026-10-13", "iv_rank": null, "atm_iv": 35.0, "close": null },
+    { "date": "2026-10-14", "iv_rank": null, "atm_iv": 35.6, "close": null },
+    { "date": "2026-10-15", "iv_rank": null, "atm_iv": 36.2, "close": null },
+    { "date": "2026-10-16", "iv_rank": null, "atm_iv": 37.0, "close": null },
+    { "date": "2026-10-19", "iv_rank": null, "atm_iv": 36.9, "close": null }
+  ],
+  "coverage": { "n_days": 20, "since": "2026-09-22" }
+}

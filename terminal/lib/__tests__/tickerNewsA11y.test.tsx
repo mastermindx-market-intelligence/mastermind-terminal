@@ -5,6 +5,7 @@
 // (characterization first) plus the a11y laws the rail is expected to hold. Known
 // defects are pinned with it.fails and/or characterization tests and listed as GAPs;
 // no component is edited here.
+import { NEWS_VIEW } from "./fixtures/newsEditorial";
 import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -35,7 +36,7 @@ const row = (
   published_at: "2026-10-05T14:00:00+00:00",
   updated_at: "2026-10-05T14:01:00+00:00",
   received_at: "2026-10-05T14:01:01+00:00",
-  universe_revision: "sp500-r1",
+  universe_revision: "sp500-r1", editorial_view: NEWS_VIEW,
   ...extra,
 });
 
@@ -48,7 +49,7 @@ const richRows = (): TickerNewsStoryRow[] => [
 ];
 
 const snapshot = (ticker: string, rows: TickerNewsStoryRow[], opts: { state?: string } = {}) => ({
-  schema: "ticker_news.snapshot.v1",
+  schema: "ticker_news.snapshot.v1", editorial_view: NEWS_VIEW,
   ticker,
   security_id: "SEC:" + ticker,
   state: opts.state ?? "live",
@@ -59,7 +60,7 @@ const snapshot = (ticker: string, rows: TickerNewsStoryRow[], opts: { state?: st
 });
 
 const groupDetail = () => ({
-  schema: "ticker_news.story.v1",
+  schema: "ticker_news.story.v1", editorial_view: NEWS_VIEW,
   story_id: "ev2_grp",
   source_count: 1,
   item_count: 2,
@@ -285,14 +286,14 @@ describe("t-rail-a11y — interactive controls are named", () => {
     await render(<TickerNewsPanel symbol="NVDA" lang="en" userId="user-a" />);
 
     const disclosure = host.querySelector<HTMLButtonElement>("[data-testid=ticker-news-panel] button[aria-expanded]")!;
-    expect(accessibleName(disclosure)).toBe("2 reports");
+    expect(accessibleName(disclosure)).toBe("Show the reports behind this story");
     expect(disclosure.getAttribute("aria-expanded")).toBe("false");
 
     await act(async () => {
       disclosure.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     });
     expect(disclosure.getAttribute("aria-expanded")).toBe("true");
-    expect(accessibleName(disclosure)).toBe("Hide reports");
+    expect(accessibleName(disclosure)).toBe("Hide the reports");
   });
 
   it("each filter chip exposes aria-pressed and exactly one is pressed", async () => {
@@ -441,7 +442,7 @@ describe("t-rail-a11y — load states announce themselves", () => {
       state: "restricted",
       serve: () => response({ detail: "forbidden" }, 403),
       never: false,
-      text: { en: "News access is unavailable for this account or feed.", zh: "此账户或新闻源当前不可用。" },
+      text: { en: "News access is unavailable for this account or feed.", zh: "此账户或新闻源暂无新闻访问权限。" },
     },
     {
       name: "unavailable",
@@ -545,6 +546,8 @@ describe("t-rail-a11y — EN/ZH parity", () => {
     const allowedShared = new Set([
       "NVDA", "Benzinga", "Dowjones",
       "Grouped coverage headline", "Supply story", "Launch story", "Short lead",
+      // R2 evidence ladder: language-neutral separators and agreement glyphs (spec §3.2).
+      "›", "=", "≠", "~", "–",
     ]);
     const offenders = shared.filter((text) => !allowedShared.has(text) && !/^\d+$/.test(text) && !/^\d{1,2}:\d{2}\s?(AM|PM)?$/.test(text));
     expect(offenders).toEqual([]);
@@ -572,7 +575,7 @@ describe("t-rail-a11y — no body or image from the feed", () => {
       const url = String(input);
       if (url.includes("/stories/")) {
         return response({
-          schema: "ticker_news.story.v1",
+          schema: "ticker_news.story.v1", editorial_view: NEWS_VIEW,
           story_id: "ev2_grp",
           source_count: 1,
           item_count: 2,
@@ -638,9 +641,11 @@ describe("t-rail-a11y — candidate defects probed (characterized, never fixed h
     expect(list?.getAttribute("role")).toBe("group");
     expect(accessibleName(list!)).toBe("2 reports");
     expect(list?.querySelectorAll("a[href]").length).toBe(2); // it holds the two member links
-    // The grouping note is the list's first child (Wave B3 row copy).
+    // R2 evidence view order (spec §3.6): the clocks line first, then the grouping note (Wave B3 row copy).
     expect(list?.firstElementChild?.tagName).toBe("P");
-    expect(list?.firstElementChild?.textContent).toContain(
+    expect(list?.firstElementChild?.textContent).toContain("Published");
+    expect(list?.children[1]?.tagName).toBe("P");
+    expect(list?.children[1]?.textContent).toContain(
       "Grouped because these reports describe the same event.",
     );
   });

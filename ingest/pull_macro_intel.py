@@ -91,6 +91,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from ingest.build_polygon_universe import DEFAULT, META  # noqa: E402
+from ingest.security_state_bridge import read_security_state  # noqa: E402
 
 # ── path ───────────────────────────────────────────────────────────────────────
 # Prefer the env var; fall back to the standard relative position from the repo root
@@ -660,6 +661,13 @@ def build_intel(sym: str, src: dict, today: date | None = None) -> dict:
     # This keeps old-data output identical to pre-contract (no empty {} noise).
     if analysis_extras:
         out["analysis"] = analysis_extras
+    # The owner envelope has its own identity, clocks and typed degradation.
+    # Forward it intact after validation; never apply the research score/age gate
+    # to this independent source or infer private exposure from a public symbol.
+    security_state, disposition = read_security_state(src.get("security_state"), sym)
+    out["security_state_read"] = {"disposition": disposition, "source_contract": "security_state.v1"}
+    if security_state is not None:
+        out["security_state"] = security_state
     return out
 
 

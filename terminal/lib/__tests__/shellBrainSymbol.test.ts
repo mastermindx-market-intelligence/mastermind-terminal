@@ -115,7 +115,7 @@ describe("AppShell wires BrainWidget's active prop to useShellBrainSymbol (regre
     // The host forwards its alive-guarded getter (PR #798 finding 1), never the raw provider
     // method: the singleton must answer undefined once the host has unmounted.
     expect(HOST_TSX).toMatch(/getAiContext=\{getAiContext\}/);
-    expect(HOST_TSX).toMatch(/aliveRef\.current \? provider\.getAiContext\(\) : undefined/);
+    // The retained getter is exercised after a real unmount in thesisReadIntegration.test.tsx.
   });
 });
 

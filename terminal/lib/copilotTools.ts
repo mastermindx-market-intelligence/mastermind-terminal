@@ -14,6 +14,7 @@
 // tests can drive them with small fixtures. Do NOT import this module from any
 // 'use client' component — it reads the server filesystem and internal upstreams.
 
+import { materializeRegionalFund } from "./regionalFinancialProjection";
 import { promises as fs } from "fs";
 import path from "path";
 import { computeRatings, type Row as RatingRow } from "@/lib/techRating";
@@ -26,6 +27,7 @@ import { nextDateCountdown } from "@/lib/finFormat";
 // app/api/nw/route.ts — the shared endpoint constants live in lib/upstreams (the routes
 // themselves must not be imported from a lib).
 import { FLOW_BACKEND, R2_BASE, NW_BASE } from "@/lib/upstreams";
+import { isUnadmittedGexFamilyArtifact } from "@/lib/ndxFamilyAdmission";
 
 const DATA = path.join(process.cwd(), "public", "data");
 
@@ -903,6 +905,11 @@ function bindGexSource(side: GexSide, raw: unknown, owner: string | undefined): 
       reason,
     },
   });
+  // This curator reads the same R2 GEX key as Flow but bypasses Flow transport.
+  // Never rebind an offline NDX+NDXP family as a measured single-root NDX ladder.
+  if (isUnadmittedGexFamilyArtifact(`gex:${owner ?? id.root ?? "NDX"}`, o)) {
+    return withheld(`${side} family_source is not admitted as a live single-root GEX book`);
+  }
   if (!id.root) return withheld(`${side} payload carries no producer root, so it cannot be bound to ${owner ?? "a symbol"}`);
   if (owner && id.root !== owner) return withheld(`${side} payload is for root ${id.root}, not ${owner}`);
   const measured =
@@ -1347,7 +1354,7 @@ export async function execTool(name: string, args: Record<string, unknown> | nul
         return capJson({ symbol: sym, iv, gex: curateGex(gexPair.gex, gexPair.state, sym) });
       }
       case "get_fundamentals": {
-        const fund = await readDataJson(`${sym}.fund.json`);
+        const fund = await materializeRegionalFund(await readDataJson(`${sym}.fund.json`), sym);
         return capJson({ symbol: sym, ...curateFundamentals(fund) });
       }
       case "get_insiders": {

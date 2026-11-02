@@ -4,6 +4,7 @@ import { createContext, runInContext } from "node:vm";
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
 import { planQuoteBatch } from "../quoteDemand";
+import { mergeFormingQuote } from "../formingCandles";
 
 type Quotes = Record<string, Record<string, unknown> | null>;
 const path = join(__dirname, "../../components/TerminalShell.tsx");
@@ -30,6 +31,8 @@ function shellQuotes(initial: Quotes = {}) {
     document: { hidden: false },
     useCallback: (callback: unknown) => callback,
     planQuoteBatch,
+    mergeFormingQuote,
+    chartQuoteTfsKeyRef: { current: "1m" },
     quotePriorityRef: { current: [{ key: "AAPL", symbols: ["AAPL"] }] },
     quoteRotatingRef: { current: [] }, quoteCursorRef: { current: 0 },
     quoteAliveRef: { current: true }, quoteMissRef: { current: {} },

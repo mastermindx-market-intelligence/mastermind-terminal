@@ -353,7 +353,7 @@ test("Company Intelligence keeps its context and evidence workflow responsive", 
   await expect(paperBrief.locator(".ci-paper-metrics > button")).toHaveCount(4);
   const whyItMatters = paperBrief.locator(".ci-paper-insight").filter({ hasText: "Why it matters" });
   await expect(whyItMatters).toBeVisible();
-  await expect(whyItMatters).toContainText("Not asserted");
+  await expect(whyItMatters).toContainText("Business implications are not available for this event.");
 
   await page.locator(".ci-lenses").getByRole("tab", { name: "Results" }).click();
   const paperResults = page.locator("[data-ci-paper-results]");
@@ -799,7 +799,7 @@ test("general highlights are not relabelled as Constructive without explicit pos
   });
   await page.goto("/analysis?symbol=NVDA&page=intelligence");
   const changed = page.locator(".ci-paper-insight").filter({ hasText: "What changed" });
-  await expect(changed).toContainText("No comparable change is asserted");
+  await expect(changed).toContainText("No comparison is available for this event.");
   await expect(changed.getByRole("button")).toHaveCount(0);
   await expect(changed).not.toContainText("Constructive");
 });
@@ -1016,7 +1016,7 @@ test("AAPL intelligence opens the verified FY2026 Q3 event workspace", async ({ 
   await expect(page.locator(".ci-inst-card")).toHaveCount(0);
   const whyItMatters = page.locator(".ci-paper-insight").filter({ hasText: "Why it matters" });
   await expect(whyItMatters).toBeVisible();
-  await expect(whyItMatters).toContainText("Not asserted");
+  await expect(whyItMatters).toContainText("Business implications are not available for this event.");
   await expect(page.locator(".ci-page")).not.toContainText("Current event");
   await page.screenshot({ path: testInfo.outputPath(`${testInfo.project.name}-aapl-brief.png`), fullPage: false });
 

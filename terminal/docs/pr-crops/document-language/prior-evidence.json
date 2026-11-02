@@ -1,0 +1,61 @@
+{
+  "source_base": "919114d1c27f0f588d9d5a4d52574f19b0137d6d",
+  "language_source": "e2846880681d4b9aff4a060e1321f50f240cafc7",
+  "records": [
+    {
+      "folder": "b-f11-10-analysis-theses-entry",
+      "prior_manifest_sha256": "99fc8611419d9b8fa27980e44473cca58fedcf205cc0db02259f931184674d3e",
+      "historical_snapshot": "docs/pr-crops/b-f11-10-analysis-theses-entry/history/before-document-language-20261024.yml"
+    },
+    {
+      "folder": "b-f12-b5-3-account-completeness",
+      "prior_manifest_sha256": "eeedc8603794c99dcd55309da344a3365204d1472a2b82b58e333f2fa98ba0c2",
+      "historical_snapshot": "docs/pr-crops/b-f12-b5-3-account-completeness/history/before-document-language-20261024.yml"
+    },
+    {
+      "folder": "b-pl-6-batch-1",
+      "prior_manifest_sha256": "29980fd64a5a34b726c322cec86f829bd929256f2348399f42a0e02dd9bd1915",
+      "historical_snapshot": "docs/pr-crops/b-pl-6-batch-1/history/before-document-language-20261024.yml"
+    },
+    {
+      "folder": "b-pl-6-batch-2",
+      "prior_manifest_sha256": "ace8ad7f215f359f284e723c275538c222b0528cc6af0e3b20c9802a85980ebb",
+      "historical_snapshot": "docs/pr-crops/b-pl-6-batch-2/history/before-document-language-20261024.yml"
+    },
+    {
+      "folder": "conductor-fit-badge-zh",
+      "prior_manifest_sha256": "bd588941ddbd4cb2e9dc3535ad93f18cf7fed9ac5e8b7e224e78786b85a1d066",
+      "historical_snapshot": "docs/pr-crops/conductor-fit-badge-zh/history/before-document-language-20261024.yml"
+    },
+    {
+      "folder": "b-f11-4-research-views",
+      "prior_manifest_sha256": "bc7d1e46607f8b9e330a3a91864d10579158d7d993289bdcb2a1d88515b5071b",
+      "historical_snapshot": "docs/pr-crops/b-f11-4-research-views/history/before-document-language-20261024.yml"
+    },
+    {
+      "folder": "w9t-f12-17-invite-link-honesty",
+      "prior_manifest_sha256": "072c58d40ff2762b94ac0948fbfad0223cd75671eb028d538887b5876aa5150c",
+      "historical_snapshot": "docs/pr-crops/w9t-f12-17-invite-link-honesty/history/before-document-language-20261024.yml"
+    },
+    {
+      "folder": "b-f12-8-team-roles",
+      "prior_manifest_sha256": "a9c02fd1b5cb15014b57ab264ca5b1e9cb7a1e45b39ed250a4623bf2d770b9e4",
+      "historical_snapshot": "docs/pr-crops/b-f12-8-team-roles/history/before-document-language-20261024.yml"
+    },
+    {
+      "folder": "b-f12-9-team-ownership-transfer",
+      "prior_manifest_sha256": "061eff8f1476095fe22ced1b88fcbc209815cc07299beb419434dda82401160e",
+      "historical_snapshot": "docs/pr-crops/b-f12-9-team-ownership-transfer/history/before-document-language-20261024.yml"
+    },
+    {
+      "folder": "b-f13-5-personal-accuracy",
+      "prior_manifest_sha256": "8327439c727774ed730807a55dca362a1f733ddfa038fef5126e03f623427b40",
+      "historical_snapshot": "docs/pr-crops/b-f13-5-personal-accuracy/history/before-document-language-20261024.yml"
+    },
+    {
+      "folder": "terminal-visual-intelligence",
+      "prior_manifest_sha256": "1370d8cac1493b04f886ab9f741abea0532e9d5d9a9014da695ccc7de167d92f",
+      "historical_snapshot": "docs/pr-crops/terminal-visual-intelligence/history/before-document-language-20261024.yml"
+    }
+  ]
+}

@@ -1,15 +1,14 @@
 # Volatility tab failure-state truth — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 59fc7ca283e40ec9ea9a224e9ee912753f788f98
-# capturedAt: 2026-10-10T01:48:50.578Z
+# capturedAtHead: 59b4ec01d3afd39c855661d57f1db7ca7b8c4d51
+# capturedAt: 2026-10-21T18:16:18.979Z
 # capturedAtHead is informational. The lock is layoutFiles.
-# 2026-10-10 recapture: all 48 crops recaptured at the head above by e2e/tools/capture_vol_load_failure.cjs, run unmodified, and compared with the 2026-10-09 crops: all 48 are byte-identical. No layoutFiles row changed.
 layoutFiles:
-  terminal/components/vol/VolView.tsx: "b5a9338761847fd1596d65140c30e6b2e7c3de848f5fde5f180fdec4e250e925"
+  terminal/components/vol/VolView.tsx: "2f0d396f8163b628a5e241e3ec74b19271bef08474c3df11709ea81f57dd4fbe"
   terminal/components/vol/VolVrpPanel.tsx: "8361849dfc7ad7a45f801b8aa66022c618e667a6ff113ef9e36064fa330a8cf5"
   terminal/components/vol/volShared.tsx: "e77a4159b46c9670201a03ab22e0408ec5eeb03725dc9e7dad54b49a07cfdd50"
-  terminal/components/vol/volStrings.ts: "2342dcd4dfc5015539315798b36901ccf60980e1e3acdf5389e820189be5a2a7"
+  terminal/components/vol/volStrings.ts: "108cc342397d9aa47337271be1c8ecd8db60cf8943e9e7ab32fa1c884db7e84d"
 theme: dark
 languages: [en, zh]
 viewports:

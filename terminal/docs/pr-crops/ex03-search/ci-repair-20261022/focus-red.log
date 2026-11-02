@@ -1,0 +1,124 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal
+
+ × lib/__tests__/dialogFocusNestedOwnership.test.tsx > dialog focus ownership with a later portalled task > allows a newly opened modal to receive and keep focus without closing Search
+   → expected <input …(2)></input> to be <button type="button"></button> // Object.is equality
+ × lib/__tests__/dialogFocusNestedOwnership.test.tsx > dialog focus ownership with a later portalled task > allows a previously hidden dialog to become the newer active task
+   → expected <input …(2)></input> to be <button type="button"></button> // Object.is equality
+ ✓ lib/__tests__/dialogFocusNestedOwnership.test.tsx > dialog focus ownership with a later portalled task > does not yield to a dialog that was already open behind Search
+ × lib/__tests__/dialogFocusNestedOwnership.test.tsx > dialog focus ownership with a later portalled task > continues blocking ordinary background focus after the newer dialog closes
+   → expected <input …(2)></input> to be <button type="button"></button> // Object.is equality
+ × lib/__tests__/dialogFocusNestedOwnership.test.tsx > dialog focus ownership with a later portalled task > does not restore the chart opener over a still-active newer dialog on unmount
+   → expected <button></button> to be <button type="button"></button> // Object.is equality
+ ✓ lib/__tests__/dialogFocusNestedOwnership.test.tsx > dialog focus ownership with a later portalled task > still returns focus to the opener when no newer modal owns it
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/__tests__/dialogFocusNestedOwnership.test.tsx > dialog focus ownership with a later portalled task > allows a newly opened modal to receive and keep focus without closing Search
+AssertionError: expected <input …(2)></input> to be <button type="button"></button> // Object.is equality
+
+- Expected
++ Received
+
+- <button
+-   type="button"
+- >
+-   Keep this device
+- </button>
++ <input
++   aria-label="Search"
++   data-autofocus="true"
++ />
+
+ ❯ lib/__tests__/dialogFocusNestedOwnership.test.tsx:74:36
+     72|     const newer = externalDialog();
+     73|     act(() => newer.first.focus());
+     74|     expect(document.activeElement).toBe(newer.first);
+       |                                    ^
+     75|     act(() => newer.last.focus());
+     76|     expect(document.activeElement).toBe(newer.last);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  lib/__tests__/dialogFocusNestedOwnership.test.tsx > dialog focus ownership with a later portalled task > allows a previously hidden dialog to become the newer active task
+AssertionError: expected <input …(2)></input> to be <button type="button"></button> // Object.is equality
+
+- Expected
++ Received
+
+- <button
+-   type="button"
+- >
+-   Keep this device
+- </button>
++ <input
++   aria-label="Search"
++   data-autofocus="true"
++ />
+
+ ❯ lib/__tests__/dialogFocusNestedOwnership.test.tsx:86:36
+     84|     newer.dialog.hidden = false;
+     85|     act(() => newer.first.focus());
+     86|     expect(document.activeElement).toBe(newer.first);
+       |                                    ^
+     87|   });
+     88| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  lib/__tests__/dialogFocusNestedOwnership.test.tsx > dialog focus ownership with a later portalled task > continues blocking ordinary background focus after the newer dialog closes
+AssertionError: expected <input …(2)></input> to be <button type="button"></button> // Object.is equality
+
+- Expected
++ Received
+
+- <button
+-   type="button"
+- >
+-   Keep this device
+- </button>
++ <input
++   aria-label="Search"
++   data-autofocus="true"
++ />
+
+ ❯ lib/__tests__/dialogFocusNestedOwnership.test.tsx:101:36
+     99|     const newer = externalDialog();
+    100|     act(() => newer.first.focus());
+    101|     expect(document.activeElement).toBe(newer.first);
+       |                                    ^
+    102|     newer.dialog.remove();
+    103|     act(() => background.focus());
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  lib/__tests__/dialogFocusNestedOwnership.test.tsx > dialog focus ownership with a later portalled task > does not restore the chart opener over a still-active newer dialog on unmount
+AssertionError: expected <button></button> to be <button type="button"></button> // Object.is equality
+
+- Expected
++ Received
+
+- <button
+-   type="button"
+- >
+-   Keep this device
++ <button>
++   Chart action
+  </button>
+
+ ❯ lib/__tests__/dialogFocusNestedOwnership.test.tsx:115:36
+    113|     act(() => root.unmount());
+    114|     mounted = false;
+    115|     expect(document.activeElement).toBe(newer.first);
+       |                                    ^
+    116|   });
+    117| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+ Test Files  1 failed (1)
+      Tests  4 failed | 2 passed (6)
+   Start at  12:39:34
+   Duration  1.44s (transform 42ms, setup 0ms, collect 71ms, tests 48ms, environment 707ms, prepare 78ms)
+
