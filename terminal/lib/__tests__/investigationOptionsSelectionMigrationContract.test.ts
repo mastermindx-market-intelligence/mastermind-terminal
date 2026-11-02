@@ -31,6 +31,44 @@ function downBody(text: string): string {
   const end = text.indexOf("-- readback:");
   return text.slice(at, end === -1 ? undefined : end).split("\n").map(l => l.replace(/^--\s?/, "")).join("\n");
 }
+/** The raw down block: every line after its `-- down:` line, up to `-- readback:`, nothing stripped. */
+function downRaw(text: string): string {
+  const at = text.indexOf("-- down:");
+  const end = text.indexOf("-- readback:");
+  const from = at === -1 ? -1 : text.indexOf("\n", at);
+  if (at === -1 || end === -1 || from === -1 || from > end) throw new Error("0047 down block not found");
+  return text.slice(from + 1, end);
+}
+/** What the operator applies: exactly one leading "-- " off each line; a bare "--" line becomes empty. */
+function uncomment(text: string): string {
+  return text.split("\n").map(l => (l.startsWith("-- ") ? l.slice(3) : l === "--" ? "" : l)).join("\n");
+}
+/** Decodes one PostgreSQL E'' literal body exactly: '' to ', \\ to \, \n to LF; any other quote, escape or raw line break throws. */
+function decodeE(body: string): string {
+  const pairs: Record<string, string | undefined> = { "''": "'", "\\\\": "\\", "\\n": "\n" };
+  let out = "";
+  for (let i = 0; i < body.length; ) {
+    const ch = body.charAt(i);
+    if (ch !== "'" && ch !== "\\" && ch !== "\n" && ch !== "\r") {
+      out += ch;
+      i += 1;
+      continue;
+    }
+    const decoded = pairs[body.slice(i, i + 2)];
+    if (decoded === undefined) throw new Error(`E'' literal: unsupported quote, escape or line break at offset ${i}`);
+    out += decoded;
+    i += 2;
+  }
+  return out;
+}
+/** The one restore line of the uncommented down, decoded to the statement it executes (without its final ';'). */
+function restoreStatement(text: string): string {
+  const lines = uncomment(downRaw(text)).split("\n").filter(l => l.startsWith("do $down$"));
+  if (lines.length !== 1) throw new Error(`expected one restore line, found ${lines.length}`);
+  const m = /^do \$down\$ begin execute E'(.*)'; end \$down\$;$/.exec(lines[0] ?? "");
+  if (!m) throw new Error("restore line is not do $down$ begin execute E'...'; end $down$;");
+  return decodeE(m[1] ?? "");
+}
 /** `(r->>'owner'='X' and r->>'object_type'='Y')` and `(... in ('a','b'))` → sorted owner → types. */
 function allowList(body: string): Record<string, string[]> {
   const out: Record<string, string[]> = {};
@@ -73,7 +111,7 @@ const md5 = (s: string) => createHash("md5").update(s, "utf8").digest("hex");
 const QA = "begin; set local role authenticated; select public.investigation_evidence_admitted_v2('terminal.options_exposure','options_matrix_selection'); select public.investigation_evidence_admitted_v2('terminal.options_exposure','dealer_inventory'); rollback;";
 const QN = "begin; set local role anon; select public.investigation_evidence_admitted_v2('terminal.options_exposure','options_matrix_selection'); select public.investigation_evidence_admitted_v2('terminal.options_exposure','dealer_inventory'); rollback;";
 const QM = "select pg_catalog.md5(p.prosrc) from pg_catalog.pg_proc p where p.oid = 'public.valid_investigation_manifest_v2(jsonb)'::pg_catalog.regprocedure;";
-const QL = "select pg_catalog.pg_get_userbyid(p.proowner), p.prosecdef, pg_catalog.array_to_string(p.proconfig, ';'), pg_catalog.has_function_privilege('anon', p.oid, 'EXECUTE'), pg_catalog.has_function_privilege('authenticated', p.oid, 'EXECUTE') from pg_catalog.pg_proc p where p.oid = 'public.investigation_evidence_admitted_v2(text,text)'::pg_catalog.regprocedure;";
+const QL = "select pg_catalog.pg_get_userbyid(p.proowner), p.prosecdef, pg_catalog.array_to_string(p.proconfig, ';'), pg_catalog.has_function_privilege('anon', p.oid, 'EXECUTE'), pg_catalog.has_function_privilege('authenticated', p.oid, 'EXECUTE'), pg_catalog.has_function_privilege('service_role', p.oid, 'EXECUTE') from pg_catalog.pg_proc p where p.oid = 'public.investigation_evidence_admitted_v2(text,text)'::pg_catalog.regprocedure;";
 
 describe("0047 investigation options selection evidence admission contract", () => {
   it("ships the migration with the ledger-row and rollback header lines", () => {
@@ -106,7 +144,7 @@ describe("0047 investigation options selection evidence admission contract", () 
     expect(grant.replace(/;\s*$/, "").endsWith("to authenticated")).toBe(true);
     expect(grant).not.toMatch(/,\s*(public|anon|service_role)/);
     expect(body).toContain("revoke all on function public.investigation_evidence_admitted_v2(text,text) from public, anon");
-    expect(body.match(/^\s*grant\b/gim) ?? []).toHaveLength(1);
+    expect(body.match(/(?:^|;)\s*grant\b/gim) ?? []).toHaveLength(1);
     expect(body).toContain("do $$ begin\n  revoke all on function public.investigation_evidence_admitted_v2(text,text)\n    from service_role;\nexception when undefined_object then null; end $$;");
     // The probe reads no table: its whole body is one schema-qualified validator call over a
     // jsonb_build_object manifest — no `from`, and every called function is public. or pg_catalog.
@@ -150,7 +188,7 @@ describe("0047 investigation options selection evidence admission contract", () 
     const widened = c42.replace(oldToken, newToken);
     expect(widened).not.toEqual(c42);
     expect(widened).toEqual(collapse(v47));
-    expect(collapse(validatorBody(downBody(sql)))).toEqual(c42);
+    expect(collapse(validatorBody(`${restoreStatement(sql)};`))).toEqual(c42);
   });
 
   it("guards on the 0042-only marker before touching anything, with the marker as the substring", () => {
@@ -175,6 +213,8 @@ describe("0047 investigation options selection evidence admission contract", () 
     const live = liveBody(sql).trim();
     expect(live.startsWith("begin;")).toBe(true);
     expect(live.endsWith("commit;")).toBe(true);
+    expect(live.match(/^\s*begin;/gim) ?? []).toHaveLength(1);
+    expect(live.match(/^\s*commit;/gim) ?? []).toHaveLength(1);
     expect(sql).toContain("-- split-on-semicolon Management API endpoint.");
     expect(sql.split("\n")[2]).toBe("-- Requires 0042 applied and 0043 (#804) NOT applied; if 0043 is installed, recompose this widening over it in a new prefix. Until this file is applied, every save carrying object_type options_matrix_selection answers invalid_payload (0039 pattern).");
     const m42 = md5(prosrc(readMigration(FILE42)));
@@ -191,5 +231,29 @@ describe("0047 investigation options selection evidence admission contract", () 
     for (const query of [QA, QN, QM, QL]) expect(readback).toContain(`-- ${query}`);
     expect(readback).toContain("permission denied for function investigation_evidence_admitted_v2");
     expect(readback).not.toContain("run as authenticated");
+    expect(readback).toContain('(migration role; expected postgres | t | search_path="" | f | t | f):');
+    expect(readback).not.toContain("| f | t):");
+  });
+  it("rolls back in one guarded transaction of single-line statements the house parser keeps", () => {
+    const m47 = md5(prosrc(sql));
+    const down = uncomment(downRaw(sql));
+    expect((down.split("\n")[0] ?? "").startsWith("-- Emergency rollback only: ")).toBe(true);
+    const steps = liveBody(down).trim().split("\n");
+    expect(steps).toHaveLength(5);
+    expect(steps[0]).toBe("begin;");
+    expect(steps[1]).toBe(`do $$ declare observed text; begin select pg_catalog.md5(p.prosrc) into observed from pg_catalog.pg_proc p where p.oid = 'public.valid_investigation_manifest_v2(jsonb)'::pg_catalog.regprocedure; if observed is distinct from '${m47}' then raise exception '0047 down requires the 0047 body; observed md5 %', observed; end if; end $$;`);
+    expect(steps[2] ?? "").toMatch(/^do \$down\$ begin execute E'.*'; end \$down\$;$/);
+    expect(steps[3]).toBe("drop function if exists public.investigation_evidence_admitted_v2(text,text);");
+    expect(steps[4]).toBe("commit;");
+    expect(down.match(/^begin;$/gm) ?? []).toHaveLength(1);
+    expect(down.match(/^commit;$/gm) ?? []).toHaveLength(1);
+  });
+  it("restores the exact 0042 validator bytes from one escaped E'' literal", () => {
+    expect(decodeE("a''b\\\\c\\nd")).toBe("a'b\\c\nd");
+    for (const bad of ["a'b", "a\\tb", "a\\'b", "a\nb", "a\\"]) expect(() => decodeE(bad)).toThrow();
+    const statement = restoreStatement(sql);
+    expect(statement.startsWith("create or replace function public.valid_investigation_manifest_v2(m jsonb)\n")).toBe(true);
+    expect(statement.endsWith("\nend $function$")).toBe(true);
+    expect(md5(prosrc(statement))).toBe(md5(prosrc(readMigration(FILE42))));
   });
 });
