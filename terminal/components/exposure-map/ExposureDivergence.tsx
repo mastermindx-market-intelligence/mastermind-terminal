@@ -3,7 +3,7 @@ import { exposureMapT } from "./exposureMapStrings";
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { ema, sma } from "@/lib/indicatorMath";
-import { getOhlcView } from "@/lib/dataCache";
+import { getOhlcView, ohlcObservationCutoff } from "@/lib/dataCache";
 import { etDisplay } from "@/lib/intradaySources";
 import type { Bar6 } from "@/lib/intradayShared";
 import type { SessionOhlcBar } from "@/lib/sessionBars";
@@ -51,10 +51,16 @@ export default function ExposureDivergence({ root, timeframe, onTimeframe, inspe
       const data = daily.status === "fulfilled" && daily.value.status === "data" ? daily.value : null;
       const rows = Array.isArray(data?.data?.bars) ? data.data.bars.slice(-700) : null;
       const symbol = data?.data?.symbol ?? data?.data?.t ?? data?.data?.sym;
+      const observedAt = data && ohlcObservationCutoff(root, data.data);
+      // Older persisted records lack a read clock. Only earlier sessions have a
+      // subsequent daily row establishing closure; withhold the trailing day.
+      const dailyCutoff = observedAt == null
+        ? Date.parse(String(rows?.at(-1)?.[0]) + "T00:00:00Z") / 1000
+        : etDisplay(Math.min(startedAt, observedAt)).epoch;
       const snapshot = intraday.status === "fulfilled" ? intraday.value : null;
       setRead({ root, daily: rows && (symbol == null || symbol === root) ? rows.map((b: unknown[]) => ({ time: b[0], o: b[1], h: b[2], l: b[3], c: b[4], v: b[5] })) as SessionOhlcBar[] : null,
         intraday: snapshot?.bars ?? null, intradayCutoff: snapshot?.cutoff ?? 0, staleIntraday: !!snapshot?.stale,
-        dailyCutoff: etDisplay(startedAt).epoch, staleDaily: !!data?.stale, attempt: request });
+        dailyCutoff, staleDaily: !!data?.stale, attempt: request });
       setNow(Date.now());
     });
     return () => { current = false; controller.abort(); };

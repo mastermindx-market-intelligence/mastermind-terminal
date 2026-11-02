@@ -128,3 +128,41 @@ it("renders the same profile and confirmation age in Chinese in the chart and in
   expect(inspector().textContent).toContain("确认时间 / 距今 K 线数");
   expect(inspector().textContent).not.toContain("Regular and hidden");
 });
+
+it("binds daily and weekly closes to the cached observation across refresh and reopen", async () => {
+  const cache = await vi.importActual<typeof import("../dataCache")>("../dataCache");
+  cache.invalidate();
+  daily.mockImplementation(cache.getOhlcView);
+  const days = [12, 13, 14, 15, 16, 19, 20, 21, 22, 23];
+  const prices = days.map(d => [`2026-10-${d}`, 100, 102, 98, 101, 5]);
+  const beforeClose = Date.parse("2026-10-23T19:59:50Z");
+  vi.setSystemTime(beforeClose);
+  let dailyRequests = 0;
+  let versionTime = beforeClose;
+  fetchBars.mockImplementation(async (url: string) => {
+    if (url.includes("/api/intraday")) return Response.json({ t: "QQQ", tf: "5m", bars: [] });
+    dailyRequests++;
+    return Response.json({ t: "QQQ", bars: prices }, { headers: { "last-modified": new Date(versionTime).toUTCString() } });
+  });
+  await mount();
+  const closes = () => ["D", "W"].map(frame => [...panel().querySelectorAll("tbody tr")]
+    .find(row => row.firstChild?.textContent === frame)?.lastChild?.textContent);
+  expect(closes()).toEqual(["2026-10-22 16:00 ET", "2026-10-16 16:00 ET"]);
+  await act(async () => vi.advanceTimersByTime(20_000));
+  await act(async () => button("Refresh price snapshot").click());
+  await mount("QQQ", "2026-10-19");
+  await mount();
+  expect(dailyRequests).toBe(1);
+  expect(closes()).toEqual(["2026-10-22 16:00 ET", "2026-10-16 16:00 ET"]);
+  // Even a new transport read can serve the pre-close version.
+  cache.invalidate();
+  await act(async () => button("Refresh price snapshot").click());
+  expect(closes()).toEqual(["2026-10-22 16:00 ET", "2026-10-16 16:00 ET"]);
+  cache.invalidate();
+  versionTime = Date.now();
+  prices.at(-1)![4] = 102;
+  await act(async () => button("Refresh price snapshot").click());
+  expect(closes()).toEqual(["2026-10-23 16:00 ET", "2026-10-23 16:00 ET"]);
+  expect(dailyRequests).toBe(3);
+  cache.invalidate();
+});
