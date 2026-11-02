@@ -42,6 +42,22 @@ describe("Today real attention composition",()=>{
   await answer("/api/shared-shell/today",briefing);expect(container.textContent).toContain("Liquidity is mixed");expect(container.querySelectorAll("main")).toHaveLength(1);
  });
 
+ it("ages newly loaded owner data at its first committed render after a boundary",async()=>{
+  vi.useFakeTimers({toFake:["setTimeout","clearTimeout","Date"]});
+  vi.setSystemTime(new Date("2026-11-02T20:30:00Z"));
+  const visibility=vi.spyOn(document,"visibilityState","get").mockReturnValue("visible");
+  try{
+   await mount();await answer("/api/shared-shell/today",{},503);
+   await answer("/api/shared-shell/research/catalog",catalog);await answer("/api/watchlist",inventory);
+   await answer("/api/portfolio-brief",{error:"pro_required"},403);
+   await act(async()=>vi.advanceTimersByTime(30*60_000+30_000));await flush();
+   const retry=Array.from(container.querySelectorAll("button")).find(button=>button.textContent==="Try again");
+   expect(retry).toBeTruthy();await act(async()=>retry!.click());await flush();
+   await answer("/api/shared-shell/today",briefing);
+   expect(container.textContent).toContain("11 sessions old");
+  }finally{visibility.mockRestore();vi.useRealTimers();}
+ });
+
  it.each([false,true])("updates completed-session ages without reads or marker writes (hidden=%s)",async(hidden)=>{
   vi.useFakeTimers({toFake:["setTimeout","clearTimeout","Date"]});
   vi.setSystemTime(new Date("2026-11-02T20:59:59Z"));

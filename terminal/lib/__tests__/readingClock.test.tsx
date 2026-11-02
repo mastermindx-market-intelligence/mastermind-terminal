@@ -255,25 +255,26 @@ describe("useReadingClock", () => {
     // Owner/data results land: the consumer re-renders with a finer bucket callback.
     act(() => { root.render(<BucketProbe bucket={minuteBucket} />); });
     expect(consumerCommits).toBe(2); // the prop change rerendered the consumer…
-    expect(probeMs(host)).toBe(P0.getTime()); // …but the clock held its Date
-    expect(bucketLabel(host)).toBe("h13m4");
+    expect(probeMs(host)).toBe(P_WAKE.getTime()); // ordinary renders use current wall time
+    expect(bucketLabel(host)).toBe("h13m7");
 
     // Still hidden — even a wake-shaped dispatch cannot move it.
     act(() => { document.dispatchEvent(new Event("visibilitychange")); });
     expect(consumerCommits).toBe(2);
     expect(vi.getTimerCount()).toBe(0);
 
+    vi.setSystemTime(new Date(2026, 10, 2, 13, 8, 3, 400));
     wakeVisible(); // the wake reads the LATEST callback and catches the changed bucket
     expect(consumerCommits).toBe(3); // under the old hour bucket this wake would have been silent
-    expect(probeMs(host)).toBe(P_WAKE.getTime());
-    expect(bucketLabel(host)).toBe("h13m7");
+    expect(probeMs(host)).toBe(new Date(2026, 10, 2, 13, 8, 3, 400).getTime());
+    expect(bucketLabel(host)).toBe("h13m8");
     expect(vi.getTimerCount()).toBe(1); // rearmed exactly once, on the minute grid
 
-    act(() => { vi.advanceTimersByTime(56_599); }); // 13:07:59.999 — armed to the true next minute
+    act(() => { vi.advanceTimersByTime(56_599); }); // 13:08:59.999 — armed to the true next minute
     expect(consumerCommits).toBe(3);
-    act(() => { vi.advanceTimersByTime(1); }); // 13:08:00.000 — the minute bucket moved once
-    expect(probeMs(host)).toBe(new Date(2026, 10, 2, 13, 8, 0, 0).getTime());
-    expect(bucketLabel(host)).toBe("h13m8");
+    act(() => { vi.advanceTimersByTime(1); }); // 13:09:00.000 — the minute bucket moved once
+    expect(probeMs(host)).toBe(new Date(2026, 10, 2, 13, 9, 0, 0).getTime());
+    expect(bucketLabel(host)).toBe("h13m9");
     expect(consumerCommits).toBe(4);
   });
 });
