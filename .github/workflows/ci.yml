@@ -94,6 +94,11 @@ jobs:
       - run: npx next typegen
       - run: npx tsc --noEmit
       - run: npm test
+      # Node's test runner owns this contract. A .test.cjs name made Playwright
+      # execute it during discovery in browser shards, outside its own report.
+      # Keep every assertion, run it once, and retain the required unit fan-in.
+      - name: Visual evidence writer-reader contract (once)
+        run: node --test e2e/tools/visualEvidence.node-unit.cjs
       # Quarantined journeys are disclosed on EVERY run: a green matrix must never be read as
       # full coverage. Bare `echo`, never a logger — a logger prefix pushes `::warning` off the
       # start of the line and GitHub silently drops the annotation.

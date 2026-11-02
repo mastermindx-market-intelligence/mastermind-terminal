@@ -10,7 +10,7 @@ import { isPhoneViewport } from "./phoneChrome";
  *
  * The mounted impl is RECORDED per test (`window.__mmChartEngineImpl?.()` falling back to
  * the `[data-chart-engine]` marker — the house precedent of chart-engine-drawings.spec.ts
- * and chart-engine-pine.spec.ts) and "mm" is NEVER asserted: ?engine=mm is opt-in and may
+ * and pine-chart-engine.spec.ts) and "mm" is NEVER asserted: ?engine=mm is opt-in and may
  * still fall back to lwc (F-13); every behaviour asserted here is impl-agnostic.
  *
  * Deterministic waits only (no fixed sleeps): boot = `.chart-wrap canvas` visible + the
