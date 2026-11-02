@@ -101,6 +101,7 @@ import {
   WL_NOTES_KEY,
 } from "@/lib/watchlistOwner";
 import { useGateEntitlement } from "@/lib/entitlementStore";
+import { entitlementVisualState } from "@/lib/entitlementVisualState";
 import { normalizeDevTierOverride } from "@/lib/subscriptionTier";
 import { CHART_PANE_CONTEXT_SCHEMA, useChartBus } from "@/lib/useChartBus";
 import { isV2Envelope, type IndicatorSpec } from "@/lib/chartBus";
@@ -1124,6 +1125,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // unreachable authority, or a same-owner last-good nobody re-checked — never unlocks a paid
   // surface, however good the cached news was.
   const ent = useGateEntitlement(identity);
+  const accessState = entitlementVisualState(ent);
   // dev-only tier override (localStorage mm.devTier = "essential" | "pro") — read post-mount to
   // avoid a hydration mismatch; the whole branch constant-folds away in production builds.
   // `insider` is the pre-rename name and is still ACCEPTED on read: a dev machine's localStorage
@@ -7195,7 +7197,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       )}
       {indOpen && (
         <IndicatorsModal open suspended={!!guide} active={inds} onClose={() => setIndOpen(false)} onToggle={toggleInd} onAddInstance={addIndInstance}
-          onApplyPreset={applySuitePreset} suiteParams={indParams} userTier={userTier}
+          onApplyPreset={applySuitePreset} suiteParams={indParams} userTier={userTier} accessState={accessState}
           activeModules={activeSuiteModuleIds} onToggleModule={toggleSuiteModule} onOpenModuleSettings={openSettings}
           onOpenGuide={(id) => {
             const entry = getSuiteModuleCatalogEntry(id);
