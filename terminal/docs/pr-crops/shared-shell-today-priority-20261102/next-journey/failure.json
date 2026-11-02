@@ -26,12 +26,12 @@
     }
   ],
   "scripts": [
-    "http://127.0.0.1:3197/_next/static/chunks/main-app.js?v=1793660392382",
+    "http://127.0.0.1:3197/_next/static/chunks/main-app.js?v=1793660721932",
     "http://127.0.0.1:3197/_next/static/chunks/app-pages-internals.js",
     "http://127.0.0.1:3197/_next/static/chunks/app/today/page.js",
     "http://127.0.0.1:3197/_next/static/chunks/app/layout.js",
     "http://127.0.0.1:3197/_next/static/chunks/polyfills.js",
-    "http://127.0.0.1:3197/_next/static/chunks/webpack.js?v=1793660392382"
+    "http://127.0.0.1:3197/_next/static/chunks/webpack.js?v=1793660721932"
   ],
   "resources": []
 }

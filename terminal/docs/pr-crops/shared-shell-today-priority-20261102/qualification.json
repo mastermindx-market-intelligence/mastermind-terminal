@@ -1,7 +1,7 @@
 {
-  "status": "SOURCE_LAYOUT_VERIFIED_NEXT_FIXTURE_STARTUP_UNRESOLVED",
+  "status": "SOURCE_LAYOUT_AND_FROZEN_NEXT_JOURNEYS_VERIFIED",
   "base": "e0ae63e43965ec1d1c93405ee903fd92b63e3470",
-  "qualification": "Local deterministic fixtures only; not authenticated beta or production. Current chrome excludes still-open PR1228. Final Next multi-case fixture is not accepted while its startup error is under diagnosis.",
+  "qualification": "Local deterministic fixtures only, not authenticated beta or production. Current protected chrome excludes still-open PR1228; final serving composition remains with the release owner.",
   "sourceSha256": {
     "components/workspaces/TodayWorkspace.tsx": "b76158ae429d5106b33833b69e4c0fc43d6ec5ad1ddebb7a33747b6430765abe",
     "components/workspaces/TodayWorkspace.module.css": "fb26ce1fc409caefe74d312badc4cc705d13e8404f7fb23dbbc1a420c80f93af",
@@ -92,5 +92,33 @@
     "initial": "today-personal-priority-20261102-c1",
     "mobile": "today-mobile-recompose-20261102-c1",
     "clockSeparate": "today-selective-clock-20261102-c1"
+  },
+  "frozenNext": {
+    "buildId": "FUxt-PubCgvKyjcDmSeNN",
+    "journeys": 2,
+    "reportSha256": "7e6a7e912546fa4727d4d0bf9d6ac8215736533f69dd0c915f5be1740d2401cc",
+    "entryCorrectionSha256": "930920c183a104e680b9297939f5b6d255957b03cc30d3355d974957ed6116d4",
+    "javascriptAssetsPerCase": 12,
+    "allDeliveredEqualCompiler": true,
+    "commonAssetsByteIdentical": 12,
+    "todayReportReads": 0,
+    "readerWindowsPerJourney": 1,
+    "returnExtraReads": 0,
+    "pageErrors": 0
+  },
+  "frozenNextCaptures": {
+    "next-frozen-journey/390-light-zh-today.png": "f7b118c686e592227bdc0542d5a76b9f9ced7966a77023a3a8b2849142449942",
+    "next-frozen-journey/390-light-zh-returned.png": "ba0a4fca5ffefceffbb291074a8c2807269d3630e8c9c5b56846d31350e27436",
+    "next-frozen-journey/1440-dark-en-today.png": "a79f6ad22d66a72937cc1fe2b6c32721b08f5733ffca45cfa87dcbfe55a8b3b1",
+    "next-frozen-journey/1440-dark-en-returned.png": "b947cc3f63319805e4feb2fda1ffe3741c6b5961d647fee2c776e753f651d5a3",
+    "next-frozen-journey/1440-dark-en-reading.png": "d9d1a891960c7064503047054cd8ddb79c24af65cd68146757e3f8d666b599aa",
+    "next-frozen-journey/390-light-zh-reading.png": "7030538c2e52477d5ff26e743418d0e683bd2277614f1111212e55619b31575a"
+  },
+  "negativeDevelopmentDelivery": {
+    "records": [
+      "next-diagnostics/today-layout-delivery-1440.json",
+      "next-diagnostics/today-layout-delivery-390.json"
+    ],
+    "qualification": "Failed delivered chunk was short and did not parse; complete compiler snapshots parsed. Development generations differed, so no exact-own-prefix claim is made. Positive proof uses one immutable production-like build."
   }
 }
