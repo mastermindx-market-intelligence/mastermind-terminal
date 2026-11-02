@@ -34,6 +34,28 @@ beforeEach(() => {
 });
 afterEach(async () => { await act(async () => root.unmount()); host.remove(); vi.restoreAllMocks(); vi.unstubAllGlobals(); vi.useRealTimers(); });
 describe("Company save through the existing watchlist owner", () => {
+  it("accepts the watchlist owner's mixed instrument inventory while saving only the selected company", async () => {
+    const mixed=inventory();
+    mixed.lists[0].symbols=["GC=F","SI=F","0700.HK","BTC-USD"].map((symbol,position)=>({symbol,section:"Markets",position}));
+    const confirmed=structuredClone(mixed);confirmed.lists[1].symbols.push({symbol:"AAPL",section:"Watchlist",position:0});
+    fetchMock.mockResolvedValueOnce(json(mixed)).mockResolvedValueOnce(json({ok:true})).mockResolvedValueOnce(json(confirmed));
+    await render();expect(host.querySelector("select")).not.toBeNull();
+    expect(host.textContent).not.toContain("Watchlists unavailable");
+    await chooseResearch();await click("Save");
+    expect(JSON.parse(fetchMock.mock.calls[1][1].body)).toEqual({action:"add",listId:L2,symbols:["AAPL"],section:"Watchlist"});
+    expect(host.textContent).toContain("AAPL saved to watchlist");
+  });
+  it.each(["BAD\u0000SYMBOL","X".repeat(129)," lower "])("rejects malformed owner inventory symbol %s without a save",async symbol=>{
+    const malformed=inventory();malformed.lists[0].symbols=[{symbol,section:"Markets",position:0}];
+    fetchMock.mockResolvedValueOnce(json(malformed));await render();
+    expect(host.textContent).toContain("Watchlists unavailable");expect(host.querySelector("select")).toBeNull();
+    expect(fetchMock.mock.calls.some(([,init])=>init?.method==="POST")).toBe(false);
+  });
+  it("does not turn a supported watchlist futures symbol into a Company save target",async()=>{
+    fetchMock.mockResolvedValueOnce(json(inventory()));await render("GC=F");
+    expect(host.textContent).toContain("Company unavailable for saving");
+    expect(fetchMock.mock.calls.some(([,init])=>init?.method==="POST")).toBe(false);
+  });
   it("distinguishes guest, restricted, unavailable and real empty", async () => {
     state.identity = { kind: "guest" }; await render(); expect(host.textContent).toContain("Sign in to save"); expect(fetchMock).not.toHaveBeenCalled();
     state.identity = { kind: "account", userId: A, email: "same@example.test" }; fetchMock.mockResolvedValueOnce(json({}, 403)); await render(); expect(host.textContent).toContain("access restricted");

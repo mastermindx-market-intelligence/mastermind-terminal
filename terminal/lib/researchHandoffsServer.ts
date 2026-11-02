@@ -18,6 +18,11 @@
 // forwarded. An RPC error, a null result and a body that fails its shape check all answer 503
 // `unavailable` — same convention as `lib/investigations.ts`.
 
+// The typed scenario reference is accepted only through the pure leaf module's parser -- never
+// re-implemented or coerced here. It is unresolved input metadata: not a retention, entitlement
+// or source-availability claim, and never stored basis/result values.
+import { parseScenarioCapture } from "./investigationScenario";
+
 export type HandoffUser = { id?: string | null };
 
 export type HandoffRpcDb = {
@@ -70,10 +75,17 @@ type SummaryRaw = {
   shared_by: string;
   grantee_user_id: string;
   created_at: string;
+  scenario_included?: true;
 };
 
 function summary(v: unknown): SummaryRaw | null {
-  if (!record(v) || !exact(v, ["grant_id", "investigation_id", "revision", "title", "shared_by", "grantee_user_id", "created_at"])) return null;
+  const summaryKeys = ["grant_id", "investigation_id", "revision", "title", "shared_by", "grantee_user_id", "created_at"] as const;
+  if (!record(v)) return null;
+  // Exactly the plain seven-key summary, or the same seven keys plus `scenario_included: true`
+  // on an opted-in row. Any other key set -- including `scenario_included: false`, which the
+  // SQL never emits -- is refused rather than read as a summary.
+  const optedIn = exact(v, [...summaryKeys, "scenario_included"]) && v.scenario_included === true;
+  if (!optedIn && !exact(v, summaryKeys)) return null;
   if (!isUuid(v.grant_id) || !isUuid(v.investigation_id) || !isUuid(v.shared_by) || !isUuid(v.grantee_user_id)) return null;
   if (!isPosInt(v.revision) || typeof v.title !== "string" || !isIso(v.created_at)) return null;
   return v as SummaryRaw;
@@ -124,7 +136,11 @@ function listPayload(v: unknown, sentAfter: string | null, receivedAfter: string
 function readPayload(v: unknown): Record<string, unknown> | null {
   if (!record(v) || v.status !== "found" || !exact(v, ["status", "handoff"]) || !record(v.handoff)) return null;
   const h = v.handoff;
-  if (!exact(h, ["schema", "grant_id", "investigation_id", "revision", "shared_by", "committed_at", "intent", "continuation"])) return null;
+  const readKeys = ["schema", "grant_id", "investigation_id", "revision", "shared_by", "committed_at", "intent", "continuation"] as const;
+  // Exactly the plain eight-key read DTO, or the same eight keys plus `scenario_capture` on an
+  // opted-in same-pinned-revision grant. Any other key set is refused, never truncated.
+  const withCapture = exact(h, [...readKeys, "scenario_capture"]);
+  if (!withCapture && !exact(h, readKeys)) return null;
   if (h.schema !== HANDOFF_SCHEMA_V1 || !isUuid(h.grant_id) || !isUuid(h.investigation_id) || !isUuid(h.shared_by)) return null;
   if (!isPosInt(h.revision) || !isIso(h.committed_at)) return null;
   const intent = h.intent;
@@ -136,6 +152,10 @@ function readPayload(v: unknown): Record<string, unknown> | null {
   if (keys.length > 2 || keys.some((k) => k !== "next_question" && k !== "next_observation")) return null;
   if (continuation.next_question !== undefined && typeof continuation.next_question !== "string") return null;
   if (continuation.next_observation !== undefined && typeof continuation.next_observation !== "string") return null;
+  // The stored typed reference is accepted only when the pure module re-derives it: a malformed,
+  // forged or superseded full-value payload makes the whole read unavailable, never a truncated
+  // success. The value is reference metadata only.
+  if (withCapture && !parseScenarioCapture(h.scenario_capture)) return null;
   return v;
 }
 
@@ -263,16 +283,28 @@ export async function handleHandoffPost(request: HandoffRequestLike, deps: Hando
     if (!jsonOk(request)) return BAD;
     const body = await readBody(request);
     if (body === null) return TOO_BIG_OR_BAD(request);
-    if (!exact(body, ["investigation_id", "revision", "grantee_user_id"])) return BAD;
+    const createKeys = ["investigation_id", "revision", "grantee_user_id"] as const;
+    if (!exact(body, createKeys) && !exact(body, [...createKeys, "include_scenario"])) return BAD;
+    // An absent or false flag is the exact plain share (routing to the plain create RPC, the
+    // body never naming the flag); a present flag must be the boolean true and routes to the
+    // scenario create RPC. Any non-boolean value is a 400, never silently ignored.
+    let includeScenario = false;
+    if (Object.hasOwn(body, "include_scenario")) {
+      if (typeof body.include_scenario !== "boolean") return BAD;
+      includeScenario = body.include_scenario;
+    }
     const investigationId = body.investigation_id;
     const grantee = body.grantee_user_id;
     if (!isUuid(investigationId) || !isUuid(grantee)) return BAD;
     if (!isPosInt(body.revision) || Number(body.revision) > 2147483647) return BAD;
-    const { data, error } = await auth.db.rpc("create_investigation_handoff_v1", {
-      p_id: investigationId.toLowerCase(),
-      p_revision: body.revision,
-      p_grantee: grantee.toLowerCase(),
-    });
+    const { data, error } = await auth.db.rpc(
+      includeScenario ? "create_investigation_scenario_handoff_v1" : "create_investigation_handoff_v1",
+      {
+        p_id: investigationId.toLowerCase(),
+        p_revision: body.revision,
+        p_grantee: grantee.toLowerCase(),
+      },
+    );
     if (rpcMiss(error, data)) return UNAVAILABLE;
     if (!record(data) || typeof data.status !== "string") return UNAVAILABLE;
     if (data.status === CREATED_OK || data.status === ALREADY_OK) {
@@ -282,6 +314,9 @@ export async function handleHandoffPost(request: HandoffRequestLike, deps: Hando
       if (!handoff || handoff.investigation_id !== investigationId.toLowerCase()
           || handoff.grantee_user_id !== grantee.toLowerCase() || handoff.shared_by !== auth.userId
           || handoff.revision !== body.revision) return UNAVAILABLE;
+      // The echo must carry exactly the projection this request asked for: a scenario share
+      // never converges without its flag, and a plain share never grows one.
+      if (includeScenario !== (handoff.scenario_included === true)) return UNAVAILABLE;
       return { status: data.status === CREATED_OK ? 201 : 200, body: data };
     }
     if (data.status === "share_conflict" && exact(data, ["status"])) return CONFLICT;

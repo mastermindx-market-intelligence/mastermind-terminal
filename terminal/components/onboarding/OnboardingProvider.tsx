@@ -2,9 +2,9 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { createClient } from "@/lib/supabase/client";
-import { SS_OPEN, normalizePlanKey, type OnboardMode, type PlanKey, type Period, type OnboardingSheetProps } from "./types";
+import { SS_OPEN, SS_WIZARD, normalizeWizardStash, normalizePlanKey, type OnboardMode, type PlanKey, type Period, type OnboardingSheetProps, type PendingPrefs } from "./types";
 import { sendScopedAccountWrite } from "@/lib/accountPrefs";
-import { deliverPendingPrefs, readPendingPrefs } from "@/lib/onboardingPrefsOutbox";
+import { deliverPendingPrefs, readPendingPrefs, writePendingPrefs } from "@/lib/onboardingPrefsOutbox";
 
 // The wizard itself is code-split (ssr:false) so it never bloats first paint — it only loads
 // when the user actually opens onboarding. Generic pinned to the shared contract so the JSX
@@ -149,24 +149,56 @@ export function OnboardingProvider({ email, children }: { email: string; childre
   // StrictMode double-invocation, a re-render mid-flight), not against ever trying again — a
   // failure releases it, so the next authed mount retries.
   const prefsInFlight = useRef(false);
+  const prefsEmail = useRef(email);
+  prefsEmail.current = email;
+  const [prefsTurn, setPrefsTurn] = useState(0);
   useEffect(() => {
     if (prefsInFlight.current || email === "") return;
-    if (!readPendingPrefs()) return;
+    let wizardRaw: string | null = null;
+    if (!readPendingPrefs()) {
+      try { wizardRaw = sessionStorage.getItem(SS_WIZARD); } catch { return; }
+      let saved;
+      try { saved = wizardRaw ? normalizeWizardStash(JSON.parse(wizardRaw)) : null; } catch { return; }
+      if (!saved?.prefsPending || saved.prefsActorEmail !== email) return;
+    }
     prefsInFlight.current = true;
     const supabase = createClient();
-    void deliverPendingPrefs((data) => sendScopedAccountWrite(
-      (scoped) => supabase.auth.updateUser({ data: scoped }),
-      data,
-    ))
-      .then((outcome) => {
-        if (outcome.status === "failed") {
-          // Keep the record AND re-arm, so a later mount (or a later `email` transition) tries again.
-          prefsInFlight.current = false;
-          console.warn("[onboarding] preferences still pending delivery", outcome);
+    const currentSubject = async () => {
+      const result = await supabase.auth.getUser();
+      return result.error || prefsEmail.current !== email ? null : result.data.user?.id ?? null;
+    };
+    void (async () => {
+      try {
+        if (wizardRaw) {
+          const saved = normalizeWizardStash(JSON.parse(wizardRaw));
+          const result = await supabase.auth.getUser();
+          const user = result.error ? null : result.data.user;
+          // Email is only the retained context label, never the binding ID.
+          if (prefsEmail.current !== email || !user?.id || user.email !== email || saved?.prefsActorEmail !== user.email
+            || sessionStorage.getItem(SS_WIZARD) !== wizardRaw) return;
+          const payload: PendingPrefs = { first_name: saved.firstName, last_name: saved.lastName,
+            ...saved.prefs, onboarded_at: new Date().toISOString() };
+          if (!writePendingPrefs(payload, user.id)) return;
         }
-      })
-      .catch((e) => { prefsInFlight.current = false; console.warn("[onboarding] preference delivery threw:", e); });
-  }, [email]);
+        const outcome = await deliverPendingPrefs((data) => sendScopedAccountWrite(
+          (scoped) => supabase.auth.updateUser({ data: scoped }), data,
+        ), currentSubject);
+        if (outcome.status === "delivered" && wizardRaw && sessionStorage.getItem(SS_WIZARD) === wizardRaw) {
+          const saved = JSON.parse(wizardRaw);
+          delete saved.prefsPending; delete saved.prefsActorEmail;
+          sessionStorage.setItem(SS_WIZARD, JSON.stringify(saved));
+        }
+        if (outcome.status === "failed" || outcome.status === "held")
+          console.warn("[onboarding] preferences still pending delivery", outcome);
+      } catch (e) { console.warn("[onboarding] preference delivery threw:", e); }
+      finally {
+        prefsInFlight.current = false;
+        // A genuine account transition while busy owes one pass to the latest
+        // actor. No timer or unchanged-account retry loop is introduced.
+        if (prefsEmail.current !== email) setPrefsTurn(turn => turn + 1);
+      }
+    })();
+  }, [email, prefsTurn]);
 
   return (
     <OnboardingCtx.Provider value={api}>

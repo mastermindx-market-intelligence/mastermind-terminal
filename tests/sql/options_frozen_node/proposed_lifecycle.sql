@@ -53,14 +53,17 @@
 --     where tgrelid='public.alerts'::regclass and not tgisinternal;
 -- Rerunnable: every statement is create-or-replace / if-exists guarded and no statement
 -- touches stored rows, so re-applying preserves an existing frozen_runtime verbatim.
--- Installation is ONE atomic transaction, including CREATE and final REVOKE/GRANT.
--- A later approved migration applier must preserve this unit; statement-at-a-time
--- nontransactional application would expose PostgreSQL's initial PUBLIC EXECUTE.
+-- Installation is ONE DO statement, including CREATE and final REVOKE/GRANT.
+-- scripts/supabase_apply.py sends one top-level statement per request; a file-level
+-- BEGIN/COMMIT wrapper would not be atomic there. This unit follows migration 0038.
+-- Namespace reservation, installer admission/readback and target qualification remain
+-- required before any later promotion/application; this proposal grants none of them.
 
 -- ---------------------------------------------------------------------------
 -- 1. The single protected column
 -- ---------------------------------------------------------------------------
-begin;
+do $frozen_lifecycle$
+begin
 alter table public.alerts add column if not exists frozen_runtime jsonb;
 
 -- ---------------------------------------------------------------------------
@@ -617,4 +620,5 @@ grant execute on function public.frozen_node_runtime_valid(jsonb,uuid,uuid,jsonb
 -- Trigger invocation remains available to owner CRUD; PostgreSQL does not require caller EXECUTE.
 revoke execute on function public.alerts_frozen_runtime_guard() from public, anon, authenticated;
 grant execute on function public.alerts_frozen_runtime_guard() to service_role;
-commit;
+end;
+$frozen_lifecycle$;

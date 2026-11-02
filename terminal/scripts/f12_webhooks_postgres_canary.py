@@ -125,9 +125,31 @@ def apply_migrations(conn: "psycopg.Connection", migrations_dir: Path, applied: 
     for path in sorted(migrations_dir.glob("*.sql")):
         sql = path.read_text()
         sha = hashlib.sha256(sql.encode("utf8")).hexdigest()
+        entry = {"file": path.name, "sha256": sha}
+        # These two native fixtures establish the platform baseline required
+        # by the existing invoker migrations, not new production permissions.
+        prerequisite = {
+            "0001_init.sql": ("public.alerts", "tests/test_forex_watch_postgres.py"),
+            "0002_drawings.sql": ("public.drawings", "tests/sql/audit04/fixture-ddl.sql"),
+        }.get(path.name)
         with conn.cursor() as cur:
+            fresh_table = False
+            if prerequisite:
+                cur.execute("select to_regclass(%s) is null", (prerequisite[0],))
+                fresh_table = cur.fetchone()[0] is True
             cur.execute(sql)
-        applied.append({"file": path.name, "sha256": sha})
+            # ONLY a table created from nothing in this scratch replay receives
+            # fixture grants. Never fix an existing environment's missing grant:
+            # 0031/0038 must still reject it before publishing invoker RPCs.
+            if fresh_table:
+                table, basis = prerequisite
+                cur.execute(f"grant select, insert, update, delete on {table} to authenticated")
+                entry["scratch_fixture_grant"] = {
+                    "table": table, "role": "authenticated",
+                    "privileges": ["SELECT", "INSERT", "UPDATE", "DELETE"],
+                    "basis": "new scratch table; " + basis,
+                }
+        applied.append(entry)
         print(f"::notice title=f12-webhooks-canary::applied {path.name}", flush=True)
 
 

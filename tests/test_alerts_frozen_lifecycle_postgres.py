@@ -142,7 +142,7 @@ class Server:
 
 
 
-def make_server(base_dir):
+def make_server(base_dir, *, apply_lifecycle=True):
     """Start the disposable socket-only cluster and apply baseline + lifecycle SQL.
 
     Returns (server, None) or (None, skip_reason); never raises for a missing
@@ -174,8 +174,9 @@ def make_server(base_dir):
             return None, f"SKIP: PostgreSQL too old for pg_catalog.gen_random_uuid: {version_num}"
         server.run(BASELINE)
         server.run(f"insert into auth.users(id) values ('{A}'),('{B}')")
-        server.apply_lifecycle()
-        server.apply_lifecycle()  # source must be rerunnable: apply twice at startup
+        if apply_lifecycle:
+            server.apply_lifecycle()
+            server.apply_lifecycle()  # source must be rerunnable: apply twice at startup
         (base / 'fixture-source.json').write_text(json.dumps({
             'sql_sha256': hashlib.sha256(LIFECYCLE_SQL.read_bytes()).hexdigest(),
             'test_sha256': hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
@@ -890,6 +891,71 @@ def test_current_forex_guard_coexists_with_frozen_runtime(pg):
                         f"({q(A)},'EURUSD','{{\"type\":\"forex_price_close\"}}',true)",
                         role='authenticated', claims={'sub': A}, check=False)
         assert denied.returncode != 0 and 'forex_activation_unavailable' in denied.stderr
+    finally:
+        server.stop()
+
+
+def test_statement_at_a_time_installation_is_one_atomic_unit(pg):
+    """Use the real installer splitter with one fresh SQL session per statement.
+
+    This exercises application semantics without bypassing the installer's
+    namespace guard or invoking its credentials/network path. The proposal
+    remains unreserved; this disposable cluster is not an installation target.
+    """
+    import importlib.util
+    spec = importlib.util.spec_from_file_location(
+        'frozen_fixture_supabase_apply', HERE.parent / 'scripts/supabase_apply.py')
+    installer = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = installer
+    spec.loader.exec_module(installer)
+    base = pg.data.parent / 'atomic-installation'
+    server, skip = make_server(base, apply_lifecycle=False)
+    if server is None:
+        if pytest is not None:
+            pytest.skip(skip)
+        raise RuntimeError(skip)
+    try:
+        source = LIFECYCLE_SQL.read_text()
+        # Late failure occurs after the column, functions and trigger have been
+        # created, immediately before the privilege section finishes installation.
+        marker = 'revoke execute on function public.read_frozen_node_runtime'
+        assert source.count(marker) == 1
+        failed = source.replace(marker, "raise exception 'atomic_installation_probe';\n" + marker)
+        statements = installer.split_statements(failed)
+        assert installer.apply_mode(statements) == 'statement-at-a-time'
+        failure = None
+        for statement in statements:
+            result = server.run(installer.strip_sql_comments(statement), check=False)
+            if result.returncode:
+                failure = result
+                break
+        assert failure is not None and 'atomic_installation_probe' in failure.stderr
+        # No partially installed column, callable default-PUBLIC function or
+        # guard may survive the failed application. Legacy owner CRUD survives.
+        assert server("select count(*) from information_schema.columns where "
+                      "table_schema='public' and table_name='alerts' and column_name='frozen_runtime'") == '0'
+        assert server("select count(*) from pg_proc p join pg_namespace n on n.oid=p.pronamespace "
+                      "where n.nspname='public' and (p.proname like 'frozen_node_%' or "
+                      "p.proname in ('read_frozen_node_runtime','arm_frozen_node_runtime',"
+                      "'commit_frozen_node_state','alerts_frozen_runtime_guard'))") == '0'
+        assert server("select count(*) from pg_trigger where tgrelid='public.alerts'::regclass "
+                      "and not tgisinternal") == '0'
+        insert_alert(server, condition={'type': 'price_above', 'value': 100},
+                     role='authenticated', claims={'sub': A})
+        server('truncate public.alerts')
+        success = installer.split_statements(source)
+        assert len(success) == 1, 'installer must receive exactly one atomic SQL statement'
+        for _ in range(2):  # same one-unit application remains rerunnable
+            for statement in success:
+                server.run(installer.strip_sql_comments(statement))
+        test_rpc_executable_by_service_role_only_and_jwt_role_claim_cannot_escalate(server)
+        reset(server)
+        native = json.loads((HERE / 'fixtures/options_frozen_node_native_target.json').read_text())
+        pred = native['condition']
+        insert_alert(server, condition=pred, symbol='QQQ', role='authenticated', claims={'sub': A})
+        result = call(server, 'arm_frozen_node_runtime', [ALERT_IDS[0], A, pred, None, None])
+        assert result['kind'] == 'data'
+        assert call(server, 'read_frozen_node_runtime', [ALERT_IDS[0], A, pred]) == result
     finally:
         server.stop()
 
