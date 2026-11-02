@@ -8,6 +8,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useOnboarding } from "@/components/onboarding/OnboardingProvider";
 import { useLang, useT } from "@/lib/i18n";
+import { pick } from "@/lib/finFormat";
 import { createClient } from "@/lib/supabase/client";
 import { recoverMemberSession, type RecoveryResult } from "@/lib/supabase/sessionRecovery";
 
@@ -45,17 +46,17 @@ export default function OptionsPaywall({ verifySession = false }: { verifySessio
       <main id="shared-shell-content" tabIndex={-1} style={{ display: "flex", minHeight: "100%", alignItems: "center", justifyContent: "center", padding: 24 }}>
         <div role="status" aria-live="polite" style={{ maxWidth: 420, textAlign: "center" }}>
           <h1 style={{ fontSize: 19, marginBottom: 10 }}>
-            {lang === "zh"
-              ? (unavailable ? "暂时无法验证账户权限" : "正在恢复账户权限…")
-              : (unavailable ? "Unable to verify account access" : "Restoring account access…")}
+            {unavailable
+              ? pick(lang === "zh", "Unable to verify account access", "暂时无法验证账户权限")
+              : pick(lang === "zh", "Restoring account access…", "正在恢复账户权限…")}
           </h1>
           <p style={{ fontSize: 13, opacity: .75, lineHeight: 1.6 }}>
-            {lang === "zh" ? "账户验证完成前，受保护的功能保持关闭。" : "Protected features remain unavailable until your session is verified."}
+            {pick(lang === "zh", "Protected features remain unavailable until your session is verified.", "账户验证完成前，受保护的功能保持关闭。")}
           </p>
           {unavailable && (
             <button type="button" onClick={() => { void checkSession(true); }}
               style={{ padding: "10px 16px", background: "var(--brand)", border: 0, borderRadius: 6, color: "white", cursor: "pointer" }}>
-              {lang === "zh" ? "重试" : "Try again"}
+              {t("errTryAgain")}
             </button>
           )}
         </div>
