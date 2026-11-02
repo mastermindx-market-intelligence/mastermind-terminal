@@ -50,8 +50,11 @@ test("seven-category Options IA stays addressable, honest, and contained", async
   await expect(freshness).toContainText(zh ? "快照" : "Snapshot");
   await expect(freshness).toContainText(zh ? "源响应" : "Source responses");
   await expect(freshness).toContainText(zh ? "实测周期" : "Observed cycle");
+  // The cycle must be observed, never a hard-coded 2-min / 120 s cadence. Match the
+  // seconds unit so the fixture's own age ("120d ago" from 2026-11-02 to 2026-11-03)
+  // cannot trip the guard.
   await expect(freshness).not.toContainText("2-min");
-  await expect(freshness).not.toContainText("120");
+  await expect(freshness).not.toContainText(/120\s*s(?:ec(?:onds?)?)?\b/);
   const freshnessContainment = await page.evaluate(() => {
     const receipt = document.querySelector<HTMLElement>(".options-flow-freshness");
     return {
