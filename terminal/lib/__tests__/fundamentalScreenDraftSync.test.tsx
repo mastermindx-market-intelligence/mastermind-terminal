@@ -7,7 +7,10 @@
  * leaving the selected field alone. The bar used to reload its draft only on a FIELD change, so a
  * saved screen whose condition sat on the already-selected field left the previous threshold in
  * the inputs, and Update then wrote that stale threshold over the condition the table had just
- * received. Range ↔ unknown and "also include unknown" disagreed the same way.
+ * received. Range ↔ unknown and "also include unknown" disagreed the same way. A draft typed on a
+ * field with NO committed condition could not be blanked by value at all (the source read the same
+ * before and after), so the parent now also bumps `sourceEpoch` whenever it replaces the table's
+ * conditions whole.
  *
  * These mount the real bar with react-dom/client + act (the house component-test pattern) under
  * the real language provider; no source module is mocked. The scan prop is a genuinely parsed
@@ -172,6 +175,37 @@ describe("FundamentalScreenBar — the draft follows the committed source (#916)
     expect(inclBox()!.checked).toBe(false);
   });
 
+  it("Clear filters with NO condition on the selected field: the parent's reset signal blanks the draft", async () => {
+    await mount({ predicates: [atLeast(O, 0.2)] });
+    await type(minInput()!, "17");
+    await click(inclBox()!);
+    expect(inclBox()!.checked).toBe(true);
+    // ScreenerView.clearAll: the predicates are emptied AND sourceEpoch is bumped in one transition.
+    await rerender({ predicates: [], sourceEpoch: 1 });
+    expect(minInput()!.value).toBe("");
+    expect(inclBox()!.checked).toBe(false);
+    expect(commitBtn().textContent).toBe("Add filter");
+  });
+
+  it("a saved screen opened with the SAME condition the table already had reloads the committed value over typing", async () => {
+    await mount();
+    await type(minInput()!, "17");
+    await rerender({ predicates: [atLeast(F, 0.1)], sourceEpoch: 1 });
+    expect(minInput()!.value).toBe("10");
+    await click(commitBtn());
+    expect(lastCommitted()).toEqual([atLeast(F, 0.1)]);
+  });
+
+  it("a saved screen with no condition on the selected field blanks a typed draft and clears a stale error", async () => {
+    await mount({ predicates: [] });
+    await type(minInput()!, "abc");
+    await click(commitBtn());
+    expect(errorEl()?.getAttribute("data-fund-error")).toBe("number");
+    await rerender({ predicates: [atLeast(O, 0.2)], sourceEpoch: 1 });
+    expect(minInput()!.value).toBe("");
+    expect(errorEl()).toBeNull();
+  });
+
   it("a condition arriving from the table clears a stale validation error", async () => {
     await mount();
     await type(minInput()!, "abc");
@@ -215,11 +249,21 @@ describe("FundamentalScreenBar — an unchanged source never discards typing", (
     expect(lastCommitted()).toEqual([atLeast(F, 0.3), atLeast(O, 0.2)]);
   });
 
-  it("known residual, not fixed here: with no condition on the selected field, an identical empty table cannot signal a reset", async () => {
-    await mount({ predicates: [] });
+  it("an identical empty table WITHOUT the reset signal (another chip removed, a scan answer) keeps typing on an uncommitted field", async () => {
+    await mount({ predicates: [atLeast(O, 0.2)] });
     await type(minInput()!, "17");
     await rerender({ predicates: [] });
+    await rerender({ scan: { ...props.scan, pending: true } });
     expect(minInput()!.value).toBe("17");
+  });
+
+  it("the same epoch re-sent is not a reset; only a new one is", async () => {
+    await mount({ predicates: [], sourceEpoch: 3 });
+    await type(minInput()!, "17");
+    await rerender({ predicates: [], sourceEpoch: 3 });
+    expect(minInput()!.value).toBe("17");
+    await rerender({ predicates: [], sourceEpoch: 4 });
+    expect(minInput()!.value).toBe("");
   });
 });
 
