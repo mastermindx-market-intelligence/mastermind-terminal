@@ -238,7 +238,8 @@ describe("editorial views in the mounted Terminal", () => {
     expect(panel().dataset.newsView).toBe("news");
     expect(Events.instances[0].url).toContain("after_sequence=29");
     expect(Events.instances[0].url).toContain("view_revision=" + "a".repeat(64));
-    expect(host.textContent).toContain("Identified roundups");
+    expect(host.querySelectorAll("[data-news-headline]")).toHaveLength(1);
+    expect(host.textContent).not.toContain("Identified roundups");
   });
 
   it.each([undefined, editorialView("all")])("fails closed without the requested server acknowledgement", async (ack) => {

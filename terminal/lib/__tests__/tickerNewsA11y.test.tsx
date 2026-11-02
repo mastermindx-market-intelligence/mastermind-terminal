@@ -411,7 +411,7 @@ describe("t-rail-a11y — keyboard reachability", () => {
 describe("t-rail-a11y — load states announce themselves", () => {
   // For each load state: the panel's data-news-state matches AND a role="status" or
   // aria-live region with non-empty text is exposed. Ready-with-rows is announced by the
-  // catch-up summary's aria-live="polite" span (NewsCatchup.tsx:57).
+  // screen-reader-only status in the existing compact header (no bulk review bar).
   const cases = [
     {
       name: "loading",
@@ -425,7 +425,7 @@ describe("t-rail-a11y — load states announce themselves", () => {
       state: "live",
       serve: () => response(snapshot("NVDA", richRows())),
       never: false,
-      text: { en: "3 new · 0 updated", zh: "3 条新 · 0 条更新" },
+      text: { en: "3 stories available", zh: "3 条新闻可阅读" },
     },
     {
       name: "quiet empty",

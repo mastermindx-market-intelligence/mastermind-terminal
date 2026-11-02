@@ -406,7 +406,8 @@ test("ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix", a
           await expect(panel).toHaveAttribute("data-news-view", mode);
           await expect(panel.locator("[data-news-headline]")).toHaveCount(mode === "all" ? 3 : 2);
           if (mode === "company") {
-            await expect(panel).toContainText(lang === "zh" ? "提及可能并非报道重点" : "Mentions may be incidental");
+            // The company view keeps its server-filtered stories without the retired explainer.
+            await expect(panel).not.toContainText(lang === "zh" ? "提及可能并非报道重点" : "Mentions may be incidental");
           }
           if (mode === "all") await expect(panel).toContainText(lang === "zh" ? "综述" : "Roundup");
           if (viewport.width <= 820) {

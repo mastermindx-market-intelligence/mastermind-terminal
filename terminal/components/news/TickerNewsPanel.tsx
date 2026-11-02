@@ -250,6 +250,11 @@ export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: stri
         </label>
         {state === "live" && <NewsLiveDot lang={lang} />}
         {state === "catching_up" && <span className={styles.stateChip}>{copy.catchingUp}</span>}
+        {presented.length > 0 && (
+          <span className={styles.srOnly} role="status" aria-atomic="true">
+            {lang === "zh" ? `${presented.length} 条新闻可阅读` : `${presented.length} stories available`}
+          </span>
+        )}
       </div>
 
       {/* News starts immediately below the compact header: no editorial explainer,
