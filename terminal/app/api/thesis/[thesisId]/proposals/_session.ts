@@ -88,7 +88,7 @@ function createProposalsFixtureDb(key: string): AmendmentDb {
           })();
           const list = rows
             .filter((row) =>
-              (q._filters ?? []).every(([col, val]) => col !== "__order" && (row as Record<string, unknown>)[col] === val),
+              (q._filters ?? []).every(([col, val]) => col === "__order" || (row as Record<string, unknown>)[col] === val),
             )
             .sort((a, b) => {
               const av = (a as Record<string, unknown>).created_at as string;

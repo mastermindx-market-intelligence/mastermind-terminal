@@ -1,0 +1,1027 @@
+{
+  "source_parent": "d6d90bcdd3c61d806d5525d84fbe81cb24d4ddd5",
+  "stylesheet_sha256": "1d237adaf3a98a42f5a003310eda6d7745cd4650b3f32432fd95126415708d2d",
+  "cases": [
+    {
+      "case": "en-desktop",
+      "modes": [
+        {
+          "mode": {
+            "name": "light",
+            "theme": "light",
+            "auto": "0",
+            "hour": 12,
+            "expected": "light"
+          },
+          "groups": {
+            "intro": {
+              "count": 1,
+              "minimum": 5.106805344742057,
+              "maximum": 5.106805344742057,
+              "colors": [
+                "rgb(93, 107, 126)"
+              ]
+            },
+            "library-summary": {
+              "count": 1,
+              "minimum": 7.6165728100849615,
+              "maximum": 7.6165728100849615,
+              "colors": [
+                "color(srgb 0.305647 0.330118 0.366824)"
+              ]
+            },
+            "revision": {
+              "count": 1,
+              "minimum": 7.6165728100849615,
+              "maximum": 7.6165728100849615,
+              "colors": [
+                "color(srgb 0.305647 0.330118 0.366824)"
+              ]
+            },
+            "context-and-clocks": {
+              "count": 15,
+              "minimum": 6.727360252985324,
+              "maximum": 7.6165728100849615,
+              "colors": [
+                "color(srgb 0.305647 0.330118 0.366824)"
+              ]
+            },
+            "editor-counters": {
+              "count": 4,
+              "minimum": 7.6165728100849615,
+              "maximum": 7.6165728100849615,
+              "colors": [
+                "color(srgb 0.305647 0.330118 0.366824)"
+              ]
+            }
+          },
+          "ownerUnchanged": true,
+          "writes": [],
+          "image": "en-desktop-light.png",
+          "image_sha256": "f49b57fd21c620de319e5ac71f46980229143d624b1d72bf862669dd259f1c9d"
+        },
+        {
+          "mode": {
+            "name": "auto-day",
+            "theme": "dark",
+            "auto": "1",
+            "hour": 12,
+            "expected": "light"
+          },
+          "groups": {
+            "intro": {
+              "count": 1,
+              "minimum": 5.106805344742057,
+              "maximum": 5.106805344742057,
+              "colors": [
+                "rgb(93, 107, 126)"
+              ]
+            },
+            "library-summary": {
+              "count": 1,
+              "minimum": 7.6165728100849615,
+              "maximum": 7.6165728100849615,
+              "colors": [
+                "color(srgb 0.305647 0.330118 0.366824)"
+              ]
+            },
+            "revision": {
+              "count": 1,
+              "minimum": 7.6165728100849615,
+              "maximum": 7.6165728100849615,
+              "colors": [
+                "color(srgb 0.305647 0.330118 0.366824)"
+              ]
+            },
+            "context-and-clocks": {
+              "count": 15,
+              "minimum": 6.727360252985324,
+              "maximum": 7.6165728100849615,
+              "colors": [
+                "color(srgb 0.305647 0.330118 0.366824)"
+              ]
+            },
+            "editor-counters": {
+              "count": 4,
+              "minimum": 7.6165728100849615,
+              "maximum": 7.6165728100849615,
+              "colors": [
+                "color(srgb 0.305647 0.330118 0.366824)"
+              ]
+            }
+          },
+          "ownerUnchanged": true,
+          "writes": [],
+          "image": "en-desktop-light.png",
+          "image_sha256": "f49b57fd21c620de319e5ac71f46980229143d624b1d72bf862669dd259f1c9d"
+        },
+        {
+          "mode": {
+            "name": "auto-night",
+            "theme": "light",
+            "auto": "1",
+            "hour": 22,
+            "expected": "dark"
+          },
+          "groups": {
+            "intro": {
+              "count": 1,
+              "minimum": 4.569844409082535,
+              "maximum": 4.569844409082535,
+              "colors": [
+                "rgb(113, 122, 142)"
+              ]
+            },
+            "library-summary": {
+              "count": 1,
+              "minimum": 6.293717295748454,
+              "maximum": 6.293717295748454,
+              "colors": [
+                "rgb(155, 163, 180)"
+              ]
+            },
+            "revision": {
+              "count": 1,
+              "minimum": 6.293717295748454,
+              "maximum": 6.293717295748454,
+              "colors": [
+                "rgb(155, 163, 180)"
+              ]
+            },
+            "context-and-clocks": {
+              "count": 15,
+              "minimum": 6.293717295748454,
+              "maximum": 7.5733449016766565,
+              "colors": [
+                "rgb(155, 163, 180)"
+              ]
+            },
+            "editor-counters": {
+              "count": 4,
+              "minimum": 7.5733449016766565,
+              "maximum": 7.5733449016766565,
+              "colors": [
+                "rgb(155, 163, 180)"
+              ]
+            }
+          },
+          "ownerUnchanged": true,
+          "writes": [],
+          "image": "en-desktop-auto-night.png",
+          "image_sha256": "59704a6ba45f7eebf98459a8df4da25b56846a6958f6a5db72e3ecb14a57887c"
+        }
+      ]
+    },
+    {
+      "case": "en-mobile",
+      "modes": [
+        {
+          "mode": {
+            "name": "light",
+            "theme": "light",
+            "auto": "0",
+            "hour": 12,
+            "expected": "light"
+          },
+          "groups": {
+            "intro": {
+              "count": 1,
+              "minimum": 5.106805344742057,
+              "maximum": 5.106805344742057,
+              "colors": [
+                "rgb(93, 107, 126)"
+              ]
+            },
+            "library-summary": {
+              "count": 1,
+              "minimum": 7.6165728100849615,
+              "maximum": 7.6165728100849615,
+              "colors": [
+                "color(srgb 0.305647 0.330118 0.366824)"
+              ]
+            },
+            "revision": {
+              "count": 1,
+              "minimum": 7.6165728100849615,
+              "maximum": 7.6165728100849615,
+              "colors": [
+                "color(srgb 0.305647 0.330118 0.366824)"
+              ]
+            },
+            "context-and-clocks": {
+              "count": 15,
+              "minimum": 6.727360252985324,
+              "maximum": 7.6165728100849615,
+              "colors": [
+                "color(srgb 0.305647 0.330118 0.366824)"
+              ]
+            },
+            "editor-counters": {
+              "count": 4,
+              "minimum": 7.6165728100849615,
+              "maximum": 7.6165728100849615,
+              "colors": [
+                "color(srgb 0.305647 0.330118 0.366824)"
+              ]
+            }
+          },
+          "ownerUnchanged": true,
+          "writes": [],
+          "image": "en-mobile-light.png",
+          "image_sha256": "15cde1f135adc0344714855b528cdd7991dfb4331d51e85228e3793c112554ef"
+        },
+        {
+          "mode": {
+            "name": "auto-day",
+            "theme": "dark",
+            "auto": "1",
+            "hour": 12,
+            "expected": "light"
+          },
+          "groups": {
+            "intro": {
+              "count": 1,
+              "minimum": 5.106805344742057,
+              "maximum": 5.106805344742057,
+              "colors": [
+                "rgb(93, 107, 126)"
+              ]
+            },
+            "library-summary": {
+              "count": 1,
+              "minimum": 7.6165728100849615,
+              "maximum": 7.6165728100849615,
+              "colors": [
+                "color(srgb 0.305647 0.330118 0.366824)"
+              ]
+            },
+            "revision": {
+              "count": 1,
+              "minimum": 7.6165728100849615,
+              "maximum": 7.6165728100849615,
+              "colors": [
+                "color(srgb 0.305647 0.330118 0.366824)"
+              ]
+            },
+            "context-and-clocks": {
+              "count": 15,
+              "minimum": 6.727360252985324,
+              "maximum": 7.6165728100849615,
+              "colors": [
+                "color(srgb 0.305647 0.330118 0.366824)"
+              ]
+            },
+            "editor-counters": {
+              "count": 4,
+              "minimum": 7.6165728100849615,
+              "maximum": 7.6165728100849615,
+              "colors": [
+                "color(srgb 0.305647 0.330118 0.366824)"
+              ]
+            }
+          },
+          "ownerUnchanged": true,
+          "writes": [],
+          "image": "en-mobile-light.png",
+          "image_sha256": "15cde1f135adc0344714855b528cdd7991dfb4331d51e85228e3793c112554ef"
+        },
+        {
+          "mode": {
+            "name": "auto-night",
+            "theme": "light",
+            "auto": "1",
+            "hour": 22,
+            "expected": "dark"
+          },
+          "groups": {
+            "intro": {
+              "count": 1,
+              "minimum": 4.569844409082535,
+              "maximum": 4.569844409082535,
+              "colors": [
+                "rgb(113, 122, 142)"
+              ]
+            },
+            "library-summary": {
+              "count": 1,
+              "minimum": 6.293717295748454,
+              "maximum": 6.293717295748454,
+              "colors": [
+                "rgb(155, 163, 180)"
+              ]
+            },
+            "revision": {
+              "count": 1,
+              "minimum": 6.293717295748454,
+              "maximum": 6.293717295748454,
+              "colors": [
+                "rgb(155, 163, 180)"
+              ]
+            },
+            "context-and-clocks": {
+              "count": 15,
+              "minimum": 6.293717295748454,
+              "maximum": 7.5733449016766565,
+              "colors": [
+                "rgb(155, 163, 180)"
+              ]
+            },
+            "editor-counters": {
+              "count": 4,
+              "minimum": 7.5733449016766565,
+              "maximum": 7.5733449016766565,
+              "colors": [
+                "rgb(155, 163, 180)"
+              ]
+            }
+          },
+          "ownerUnchanged": true,
+          "writes": [],
+          "image": "en-mobile-auto-night.png",
+          "image_sha256": "d8234633f02787cb9f33f0a9e98cd979d663d92f7edb862d4be17d2afacbe475"
+        }
+      ]
+    },
+    {
+      "case": "en-tablet",
+      "modes": [
+        {
+          "mode": {
+            "name": "light",
+            "theme": "light",
+            "auto": "0",
+            "hour": 12,
+            "expected": "light"
+          },
+          "groups": {
+            "intro": {
+              "count": 1,
+              "minimum": 5.106805344742057,
+              "maximum": 5.106805344742057,
+              "colors": [
+                "rgb(93, 107, 126)"
+              ]
+            },
+            "library-summary": {
+              "count": 1,
+              "minimum": 7.6165728100849615,
+              "maximum": 7.6165728100849615,
+              "colors": [
+                "color(srgb 0.305647 0.330118 0.366824)"
+              ]
+            },
+            "revision": {
+              "count": 1,
+              "minimum": 7.6165728100849615,
+              "maximum": 7.6165728100849615,
+              "colors": [
+                "color(srgb 0.305647 0.330118 0.366824)"
+              ]
+            },
+            "context-and-clocks": {
+              "count": 15,
+              "minimum": 6.727360252985324,
+              "maximum": 7.6165728100849615,
+              "colors": [
+                "color(srgb 0.305647 0.330118 0.366824)"
+              ]
+            },
+            "editor-counters": {
+              "count": 4,
+              "minimum": 7.6165728100849615,
+              "maximum": 7.6165728100849615,
+              "colors": [
+                "color(srgb 0.305647 0.330118 0.366824)"
+              ]
+            }
+          },
+          "ownerUnchanged": true,
+          "writes": [],
+          "image": "en-tablet-light.png",
+          "image_sha256": "eb34c9a212b4ae3148ffe7906e8952a8fd117411024f7a09a4eef6d992a37094"
+        },
+        {
+          "mode": {
+            "name": "auto-day",
+            "theme": "dark",
+            "auto": "1",
+            "hour": 12,
+            "expected": "light"
+          },
+          "groups": {
+            "intro": {
+              "count": 1,
+              "minimum": 5.106805344742057,
+              "maximum": 5.106805344742057,
+              "colors": [
+                "rgb(93, 107, 126)"
+              ]
+            },
+            "library-summary": {
+              "count": 1,
+              "minimum": 7.6165728100849615,
+              "maximum": 7.6165728100849615,
+              "colors": [
+                "color(srgb 0.305647 0.330118 0.366824)"
+              ]
+            },
+            "revision": {
+              "count": 1,
+              "minimum": 7.6165728100849615,
+              "maximum": 7.6165728100849615,
+              "colors": [
+                "color(srgb 0.305647 0.330118 0.366824)"
+              ]
+            },
+            "context-and-clocks": {
+              "count": 15,
+              "minimum": 6.727360252985324,
+              "maximum": 7.6165728100849615,
+              "colors": [
+                "color(srgb 0.305647 0.330118 0.366824)"
+              ]
+            },
+            "editor-counters": {
+              "count": 4,
+              "minimum": 7.6165728100849615,
+              "maximum": 7.6165728100849615,
+              "colors": [
+                "color(srgb 0.305647 0.330118 0.366824)"
+              ]
+            }
+          },
+          "ownerUnchanged": true,
+          "writes": [],
+          "image": "en-tablet-light.png",
+          "image_sha256": "eb34c9a212b4ae3148ffe7906e8952a8fd117411024f7a09a4eef6d992a37094"
+        },
+        {
+          "mode": {
+            "name": "auto-night",
+            "theme": "light",
+            "auto": "1",
+            "hour": 22,
+            "expected": "dark"
+          },
+          "groups": {
+            "intro": {
+              "count": 1,
+              "minimum": 4.569844409082535,
+              "maximum": 4.569844409082535,
+              "colors": [
+                "rgb(113, 122, 142)"
+              ]
+            },
+            "library-summary": {
+              "count": 1,
+              "minimum": 6.293717295748454,
+              "maximum": 6.293717295748454,
+              "colors": [
+                "rgb(155, 163, 180)"
+              ]
+            },
+            "revision": {
+              "count": 1,
+              "minimum": 6.293717295748454,
+              "maximum": 6.293717295748454,
+              "colors": [
+                "rgb(155, 163, 180)"
+              ]
+            },
+            "context-and-clocks": {
+              "count": 15,
+              "minimum": 6.293717295748454,
+              "maximum": 7.5733449016766565,
+              "colors": [
+                "rgb(155, 163, 180)"
+              ]
+            },
+            "editor-counters": {
+              "count": 4,
+              "minimum": 7.5733449016766565,
+              "maximum": 7.5733449016766565,
+              "colors": [
+                "rgb(155, 163, 180)"
+              ]
+            }
+          },
+          "ownerUnchanged": true,
+          "writes": [],
+          "image": "en-tablet-auto-night.png",
+          "image_sha256": "11dc74858b5c63bada8aa0a0599d6448d983c458a6e59bd69b75535acce5c5a2"
+        }
+      ]
+    },
+    {
+      "case": "zh-desktop",
+      "modes": [
+        {
+          "mode": {
+            "name": "light",
+            "theme": "light",
+            "auto": "0",
+            "hour": 12,
+            "expected": "light"
+          },
+          "groups": {
+            "intro": {
+              "count": 1,
+              "minimum": 5.106805344742057,
+              "maximum": 5.106805344742057,
+              "colors": [
+                "rgb(93, 107, 126)"
+              ]
+            },
+            "library-summary": {
+              "count": 1,
+              "minimum": 7.6165728100849615,
+              "maximum": 7.6165728100849615,
+              "colors": [
+                "color(srgb 0.305647 0.330118 0.366824)"
+              ]
+            },
+            "revision": {
+              "count": 1,
+              "minimum": 7.6165728100849615,
+              "maximum": 7.6165728100849615,
+              "colors": [
+                "color(srgb 0.305647 0.330118 0.366824)"
+              ]
+            },
+            "context-and-clocks": {
+              "count": 15,
+              "minimum": 6.727360252985324,
+              "maximum": 7.6165728100849615,
+              "colors": [
+                "color(srgb 0.305647 0.330118 0.366824)"
+              ]
+            },
+            "editor-counters": {
+              "count": 4,
+              "minimum": 7.6165728100849615,
+              "maximum": 7.6165728100849615,
+              "colors": [
+                "color(srgb 0.305647 0.330118 0.366824)"
+              ]
+            }
+          },
+          "ownerUnchanged": true,
+          "writes": [],
+          "image": "zh-desktop-light.png",
+          "image_sha256": "493267dc09c4d88576a498985ed003c640335b5a2de4f044c4ad118f74968b6c"
+        },
+        {
+          "mode": {
+            "name": "auto-day",
+            "theme": "dark",
+            "auto": "1",
+            "hour": 12,
+            "expected": "light"
+          },
+          "groups": {
+            "intro": {
+              "count": 1,
+              "minimum": 5.106805344742057,
+              "maximum": 5.106805344742057,
+              "colors": [
+                "rgb(93, 107, 126)"
+              ]
+            },
+            "library-summary": {
+              "count": 1,
+              "minimum": 7.6165728100849615,
+              "maximum": 7.6165728100849615,
+              "colors": [
+                "color(srgb 0.305647 0.330118 0.366824)"
+              ]
+            },
+            "revision": {
+              "count": 1,
+              "minimum": 7.6165728100849615,
+              "maximum": 7.6165728100849615,
+              "colors": [
+                "color(srgb 0.305647 0.330118 0.366824)"
+              ]
+            },
+            "context-and-clocks": {
+              "count": 15,
+              "minimum": 6.727360252985324,
+              "maximum": 7.6165728100849615,
+              "colors": [
+                "color(srgb 0.305647 0.330118 0.366824)"
+              ]
+            },
+            "editor-counters": {
+              "count": 4,
+              "minimum": 7.6165728100849615,
+              "maximum": 7.6165728100849615,
+              "colors": [
+                "color(srgb 0.305647 0.330118 0.366824)"
+              ]
+            }
+          },
+          "ownerUnchanged": true,
+          "writes": [],
+          "image": "zh-desktop-light.png",
+          "image_sha256": "493267dc09c4d88576a498985ed003c640335b5a2de4f044c4ad118f74968b6c"
+        },
+        {
+          "mode": {
+            "name": "auto-night",
+            "theme": "light",
+            "auto": "1",
+            "hour": 22,
+            "expected": "dark"
+          },
+          "groups": {
+            "intro": {
+              "count": 1,
+              "minimum": 4.569844409082535,
+              "maximum": 4.569844409082535,
+              "colors": [
+                "rgb(113, 122, 142)"
+              ]
+            },
+            "library-summary": {
+              "count": 1,
+              "minimum": 6.293717295748454,
+              "maximum": 6.293717295748454,
+              "colors": [
+                "rgb(155, 163, 180)"
+              ]
+            },
+            "revision": {
+              "count": 1,
+              "minimum": 6.293717295748454,
+              "maximum": 6.293717295748454,
+              "colors": [
+                "rgb(155, 163, 180)"
+              ]
+            },
+            "context-and-clocks": {
+              "count": 15,
+              "minimum": 6.293717295748454,
+              "maximum": 7.5733449016766565,
+              "colors": [
+                "rgb(155, 163, 180)"
+              ]
+            },
+            "editor-counters": {
+              "count": 4,
+              "minimum": 7.5733449016766565,
+              "maximum": 7.5733449016766565,
+              "colors": [
+                "rgb(155, 163, 180)"
+              ]
+            }
+          },
+          "ownerUnchanged": true,
+          "writes": [],
+          "image": "zh-desktop-auto-night.png",
+          "image_sha256": "ff6668c2dba49bfddf3777c088ac472e434c7227d246feccacd5f4ed94c85f92"
+        }
+      ]
+    },
+    {
+      "case": "zh-mobile",
+      "modes": [
+        {
+          "mode": {
+            "name": "light",
+            "theme": "light",
+            "auto": "0",
+            "hour": 12,
+            "expected": "light"
+          },
+          "groups": {
+            "intro": {
+              "count": 1,
+              "minimum": 5.106805344742057,
+              "maximum": 5.106805344742057,
+              "colors": [
+                "rgb(93, 107, 126)"
+              ]
+            },
+            "library-summary": {
+              "count": 1,
+              "minimum": 7.6165728100849615,
+              "maximum": 7.6165728100849615,
+              "colors": [
+                "color(srgb 0.305647 0.330118 0.366824)"
+              ]
+            },
+            "revision": {
+              "count": 1,
+              "minimum": 7.6165728100849615,
+              "maximum": 7.6165728100849615,
+              "colors": [
+                "color(srgb 0.305647 0.330118 0.366824)"
+              ]
+            },
+            "context-and-clocks": {
+              "count": 15,
+              "minimum": 6.727360252985324,
+              "maximum": 7.6165728100849615,
+              "colors": [
+                "color(srgb 0.305647 0.330118 0.366824)"
+              ]
+            },
+            "editor-counters": {
+              "count": 4,
+              "minimum": 7.6165728100849615,
+              "maximum": 7.6165728100849615,
+              "colors": [
+                "color(srgb 0.305647 0.330118 0.366824)"
+              ]
+            }
+          },
+          "ownerUnchanged": true,
+          "writes": [],
+          "image": "zh-mobile-light.png",
+          "image_sha256": "a881dcba4b0ad3d1e1da737399a4a7669eb0776787534acaae3aa47bab926ec3"
+        },
+        {
+          "mode": {
+            "name": "auto-day",
+            "theme": "dark",
+            "auto": "1",
+            "hour": 12,
+            "expected": "light"
+          },
+          "groups": {
+            "intro": {
+              "count": 1,
+              "minimum": 5.106805344742057,
+              "maximum": 5.106805344742057,
+              "colors": [
+                "rgb(93, 107, 126)"
+              ]
+            },
+            "library-summary": {
+              "count": 1,
+              "minimum": 7.6165728100849615,
+              "maximum": 7.6165728100849615,
+              "colors": [
+                "color(srgb 0.305647 0.330118 0.366824)"
+              ]
+            },
+            "revision": {
+              "count": 1,
+              "minimum": 7.6165728100849615,
+              "maximum": 7.6165728100849615,
+              "colors": [
+                "color(srgb 0.305647 0.330118 0.366824)"
+              ]
+            },
+            "context-and-clocks": {
+              "count": 15,
+              "minimum": 6.727360252985324,
+              "maximum": 7.6165728100849615,
+              "colors": [
+                "color(srgb 0.305647 0.330118 0.366824)"
+              ]
+            },
+            "editor-counters": {
+              "count": 4,
+              "minimum": 7.6165728100849615,
+              "maximum": 7.6165728100849615,
+              "colors": [
+                "color(srgb 0.305647 0.330118 0.366824)"
+              ]
+            }
+          },
+          "ownerUnchanged": true,
+          "writes": [],
+          "image": "zh-mobile-light.png",
+          "image_sha256": "a881dcba4b0ad3d1e1da737399a4a7669eb0776787534acaae3aa47bab926ec3"
+        },
+        {
+          "mode": {
+            "name": "auto-night",
+            "theme": "light",
+            "auto": "1",
+            "hour": 22,
+            "expected": "dark"
+          },
+          "groups": {
+            "intro": {
+              "count": 1,
+              "minimum": 4.569844409082535,
+              "maximum": 4.569844409082535,
+              "colors": [
+                "rgb(113, 122, 142)"
+              ]
+            },
+            "library-summary": {
+              "count": 1,
+              "minimum": 6.293717295748454,
+              "maximum": 6.293717295748454,
+              "colors": [
+                "rgb(155, 163, 180)"
+              ]
+            },
+            "revision": {
+              "count": 1,
+              "minimum": 6.293717295748454,
+              "maximum": 6.293717295748454,
+              "colors": [
+                "rgb(155, 163, 180)"
+              ]
+            },
+            "context-and-clocks": {
+              "count": 15,
+              "minimum": 6.293717295748454,
+              "maximum": 7.5733449016766565,
+              "colors": [
+                "rgb(155, 163, 180)"
+              ]
+            },
+            "editor-counters": {
+              "count": 4,
+              "minimum": 7.5733449016766565,
+              "maximum": 7.5733449016766565,
+              "colors": [
+                "rgb(155, 163, 180)"
+              ]
+            }
+          },
+          "ownerUnchanged": true,
+          "writes": [],
+          "image": "zh-mobile-auto-night.png",
+          "image_sha256": "9fec518362d5a2d8e32653d6142ae891afab76347cabc39e3c195e14c0795596"
+        }
+      ]
+    },
+    {
+      "case": "zh-tablet",
+      "modes": [
+        {
+          "mode": {
+            "name": "light",
+            "theme": "light",
+            "auto": "0",
+            "hour": 12,
+            "expected": "light"
+          },
+          "groups": {
+            "intro": {
+              "count": 1,
+              "minimum": 5.106805344742057,
+              "maximum": 5.106805344742057,
+              "colors": [
+                "rgb(93, 107, 126)"
+              ]
+            },
+            "library-summary": {
+              "count": 1,
+              "minimum": 7.6165728100849615,
+              "maximum": 7.6165728100849615,
+              "colors": [
+                "color(srgb 0.305647 0.330118 0.366824)"
+              ]
+            },
+            "revision": {
+              "count": 1,
+              "minimum": 7.6165728100849615,
+              "maximum": 7.6165728100849615,
+              "colors": [
+                "color(srgb 0.305647 0.330118 0.366824)"
+              ]
+            },
+            "context-and-clocks": {
+              "count": 15,
+              "minimum": 6.727360252985324,
+              "maximum": 7.6165728100849615,
+              "colors": [
+                "color(srgb 0.305647 0.330118 0.366824)"
+              ]
+            },
+            "editor-counters": {
+              "count": 4,
+              "minimum": 7.6165728100849615,
+              "maximum": 7.6165728100849615,
+              "colors": [
+                "color(srgb 0.305647 0.330118 0.366824)"
+              ]
+            }
+          },
+          "ownerUnchanged": true,
+          "writes": [],
+          "image": "zh-tablet-light.png",
+          "image_sha256": "6ae3a22b68fb6d4a7b351ad34612da11455dca9f181baa4c3bc8223bfa6942d8"
+        },
+        {
+          "mode": {
+            "name": "auto-day",
+            "theme": "dark",
+            "auto": "1",
+            "hour": 12,
+            "expected": "light"
+          },
+          "groups": {
+            "intro": {
+              "count": 1,
+              "minimum": 5.106805344742057,
+              "maximum": 5.106805344742057,
+              "colors": [
+                "rgb(93, 107, 126)"
+              ]
+            },
+            "library-summary": {
+              "count": 1,
+              "minimum": 7.6165728100849615,
+              "maximum": 7.6165728100849615,
+              "colors": [
+                "color(srgb 0.305647 0.330118 0.366824)"
+              ]
+            },
+            "revision": {
+              "count": 1,
+              "minimum": 7.6165728100849615,
+              "maximum": 7.6165728100849615,
+              "colors": [
+                "color(srgb 0.305647 0.330118 0.366824)"
+              ]
+            },
+            "context-and-clocks": {
+              "count": 15,
+              "minimum": 6.727360252985324,
+              "maximum": 7.6165728100849615,
+              "colors": [
+                "color(srgb 0.305647 0.330118 0.366824)"
+              ]
+            },
+            "editor-counters": {
+              "count": 4,
+              "minimum": 7.6165728100849615,
+              "maximum": 7.6165728100849615,
+              "colors": [
+                "color(srgb 0.305647 0.330118 0.366824)"
+              ]
+            }
+          },
+          "ownerUnchanged": true,
+          "writes": [],
+          "image": "zh-tablet-light.png",
+          "image_sha256": "6ae3a22b68fb6d4a7b351ad34612da11455dca9f181baa4c3bc8223bfa6942d8"
+        },
+        {
+          "mode": {
+            "name": "auto-night",
+            "theme": "light",
+            "auto": "1",
+            "hour": 22,
+            "expected": "dark"
+          },
+          "groups": {
+            "intro": {
+              "count": 1,
+              "minimum": 4.569844409082535,
+              "maximum": 4.569844409082535,
+              "colors": [
+                "rgb(113, 122, 142)"
+              ]
+            },
+            "library-summary": {
+              "count": 1,
+              "minimum": 6.293717295748454,
+              "maximum": 6.293717295748454,
+              "colors": [
+                "rgb(155, 163, 180)"
+              ]
+            },
+            "revision": {
+              "count": 1,
+              "minimum": 6.293717295748454,
+              "maximum": 6.293717295748454,
+              "colors": [
+                "rgb(155, 163, 180)"
+              ]
+            },
+            "context-and-clocks": {
+              "count": 15,
+              "minimum": 6.293717295748454,
+              "maximum": 7.5733449016766565,
+              "colors": [
+                "rgb(155, 163, 180)"
+              ]
+            },
+            "editor-counters": {
+              "count": 4,
+              "minimum": 7.5733449016766565,
+              "maximum": 7.5733449016766565,
+              "colors": [
+                "rgb(155, 163, 180)"
+              ]
+            }
+          },
+          "ownerUnchanged": true,
+          "writes": [],
+          "image": "zh-tablet-auto-night.png",
+          "image_sha256": "cff2934b36b0b5e8e5f6d2bd175ddb0ab45d432791b4b85269d4d05e84b66b8f"
+        }
+      ]
+    }
+  ],
+  "scope": "Local mounted Investigation consumer, isolated synthetic account metadata and read-only Investigation/baseline transport fixtures; no live or full-page accessibility acceptance."
+}

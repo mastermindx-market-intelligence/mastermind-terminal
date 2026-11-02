@@ -1,0 +1,44 @@
+{
+  "lang": "zh",
+  "original": [
+    "{\"argument_relations\":[],\"continuation\":{\"next_observation\":\"  观察报告利润率：<script>仅为文本</script> & 不自动操作。\\n保留第一项观察。  \",\"next_question\":\"Retained next question\"},\"evidence_refs\":[],\"intent\":{\"question\":\"Which observation would change this view?\",\"subjects\":[],\"title\":\"Exact saved observation\"},\"layout_refs\":[],\"schema\":\"investigation_manifest.v2\",\"thesis_refs\":[]}",
+    "{\"argument_relations\":[],\"continuation\":{\"next_observation\":\"第二项观察仅属于版本 2。\",\"next_question\":\"Retained next question\"},\"evidence_refs\":[],\"intent\":{\"question\":\"Which observation would change this view?\",\"subjects\":[],\"title\":\"Exact saved observation\"},\"layout_refs\":[],\"schema\":\"investigation_manifest.v2\",\"thesis_refs\":[]}",
+    "{\"argument_relations\":[],\"continuation\":{\"next_question\":\"Retained next question\"},\"evidence_refs\":[],\"intent\":{\"question\":\"Which observation would change this view?\",\"subjects\":[],\"title\":\"Exact saved observation\"},\"layout_refs\":[],\"schema\":\"investigation_manifest.v2\",\"thesis_refs\":[]}"
+  ],
+  "final": [
+    "{\"argument_relations\":[],\"continuation\":{\"next_observation\":\"  观察报告利润率：<script>仅为文本</script> & 不自动操作。\\n保留第一项观察。  \",\"next_question\":\"Retained next question\"},\"evidence_refs\":[],\"intent\":{\"question\":\"Which observation would change this view?\",\"subjects\":[],\"title\":\"Exact saved observation\"},\"layout_refs\":[],\"schema\":\"investigation_manifest.v2\",\"thesis_refs\":[]}",
+    "{\"argument_relations\":[],\"continuation\":{\"next_observation\":\"第二项观察仅属于版本 2。\",\"next_question\":\"Retained next question\"},\"evidence_refs\":[],\"intent\":{\"question\":\"Which observation would change this view?\",\"subjects\":[],\"title\":\"Exact saved observation\"},\"layout_refs\":[],\"schema\":\"investigation_manifest.v2\",\"thesis_refs\":[]}",
+    "{\"argument_relations\":[],\"continuation\":{\"next_question\":\"Retained next question\"},\"evidence_refs\":[],\"intent\":{\"question\":\"Which observation would change this view?\",\"subjects\":[],\"title\":\"Exact saved observation\"},\"layout_refs\":[],\"schema\":\"investigation_manifest.v2\",\"thesis_refs\":[]}"
+  ],
+  "writes": [],
+  "telemetry": [
+    "POST",
+    "POST",
+    "POST",
+    "POST"
+  ],
+  "reads": [
+    "",
+    "id=10000000-0000-4000-8000-000000000011&revision=1",
+    "",
+    "id=10000000-0000-4000-8000-000000000011&revision=2",
+    "",
+    "id=10000000-0000-4000-8000-000000000011&revision=1",
+    "",
+    "id=10000000-0000-4000-8000-000000000011&revision=1",
+    "",
+    "id=10000000-0000-4000-8000-000000000011&revision=3",
+    "",
+    "id=10000000-0000-4000-8000-000000000011&revision=3"
+  ],
+  "geometry": {
+    "x": 29,
+    "right": 361,
+    "width": 332,
+    "viewport": 390,
+    "overflow": 0,
+    "whiteSpace": "pre-wrap"
+  },
+  "deniedReadbackNoStale": true,
+  "scope": "Existing saved read-only consumer; isolated transport fixtures only, not production persistence or full H2"
+}

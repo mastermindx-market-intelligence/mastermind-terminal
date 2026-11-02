@@ -1,4 +1,5 @@
 import type { BrowserContext } from "@playwright/test";
+import {createHash,randomUUID} from "node:crypto";
 
 // Options R1 W2C — the saved-research API as an in-memory store shared by every context of one test, so a revision
 // written by one browser context can be reopened by another. Revisions are immutable; a re-read never rewrites one.
@@ -7,9 +8,18 @@ export const SAVED_HASH = `sha256:${"a1b2c3d4e5f60718".repeat(4)}`, CORRECTED_HA
 export const digest = (hash: string) => hash.slice("sha256:".length);
 export type Ref = Record<string, unknown>;
 export type Manifest = { intent: { title: string; question: string }; evidence_refs: Ref[] };
-export type Command = { id: string; expected_revision: number; action: string; manifest: Manifest };
-export type Saved = { id: string; revision: number; lifecycle: "active"; manifest: Manifest; committed_at: string; layouts: never[] };
+export type Command = { id: string; operation_id:string; expected_revision: number; action: string; manifest: Manifest };
+export type Saved = { id: string; revision: number; revision_id:string; lifecycle: "active"; manifest: Manifest; committed_at: string; layouts: never[] };
 export class ResearchStore { commands: Command[] = []; records = new Map<string, Saved[]>(); }
+
+// Synthetic in-memory owner metadata only. The JSON digest is opaque to the
+// browser and is NOT PostgreSQL canonical-digest or authenticated-owner proof.
+export function fixtureRevisionIdentity(saved: Saved, operationId: string, parentRevisionId: string | null) {
+  return { investigation_id: saved.id, revision_id: saved.revision_id, sequence: saved.revision,
+    parent_revision_id: parentRevisionId, operation_id: operationId,
+    author_ref: "40000000-0000-4000-8000-000000000001", recorded_at: saved.committed_at,
+    manifest_digest: createHash("sha256").update(JSON.stringify(saved.manifest)).digest("hex") };
+}
 
 export async function routeResearch(context: BrowserContext, store: ResearchStore, access: "granted" | "revoked" = "granted") {
   await context.route("**/api/layouts", route => route.fulfill({ json: { layouts: [], teams: [], teamRead: { ok: true } } }));
@@ -21,10 +31,12 @@ export async function routeResearch(context: BrowserContext, store: ResearchStor
       store.commands.push(command);
       const revisions = store.records.get(command.id) ?? [];
       if ((revisions.at(-1)?.revision ?? 0) !== command.expected_revision) return route.fulfill({ status: 409, json: { status: "version_conflict" } });
-      const saved: Saved = { id: command.id, revision: revisions.length + 1, lifecycle: "active", manifest: command.manifest,
+      const saved: Saved = { id: command.id, revision: revisions.length + 1, revision_id:randomUUID(), lifecycle: "active", manifest: structuredClone(command.manifest),
         committed_at: new Date(Date.UTC(2026, 9, 19, 14, 0, revisions.length)).toISOString(), layouts: [] };
-      store.records.set(command.id, [...revisions, saved]);
-      return route.fulfill({ json: { status: "committed", id: saved.id, revision: saved.revision, lifecycle: "active", manifest: saved.manifest, committed_at: saved.committed_at } });
+      // Persist the same immutable fixture identity for exact GET readback.
+      const identified = { ...saved, ...fixtureRevisionIdentity(saved, command.operation_id, revisions.at(-1)?.revision_id ?? null) };
+      store.records.set(command.id, [...revisions, identified]);
+      return route.fulfill({ json: { ...identified, status: "committed" } });
     }
     const id = url.searchParams.get("id");
     if (id) {

@@ -1,0 +1,1777 @@
+{
+  "source_commit": "8648a7e0a6a557f87f0d67c72880a70fc3527ed9",
+  "source_sha256": {
+    "terminal/components/ScreenerView.tsx": "aeb81fa716a403e50df0fceffa164306a3be1679247315dba9aee2ad6a6ed25e",
+    "terminal/e2e/screener-virtualization.spec.ts": "a9c238388164cca13391ea0730fbe760fe09399d691f166055db68a490958af1"
+  },
+  "browser_config_sha256": "922edec83bb6ae3de7c55f342e34b38bd0d4ad36b19c45054ff87b3849c3c46d",
+  "test_results": "6PASS workers1/retries0; D1440x900 T820x1180 M390x844, tablet/mobile hasTouchtrue",
+  "cells": [
+    {
+      "n": 100,
+      "browser": "149.0.7827.55",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "manifestBytes": 10399,
+      "manifestSha256": "42fc0be4e283f64020475c21c913178cf29c753cf64a2e101e39ab88a82c8536",
+      "fixedMovePartition": [
+        null,
+        2.999,
+        3,
+        6
+      ],
+      "expectedUp3": 50,
+      "external": [],
+      "checkpoints": [
+        {
+          "name": "all-rows-counted-rendered-count-retained",
+          "visibleRows": 25,
+          "resultCount": "100",
+          "dataRequests": [
+            {
+              "path": "/api/flow?f=gexstate_index",
+              "method": "GET",
+              "type": "fetch",
+              "at": 4960.519041,
+              "phase": "initial",
+              "status": 404,
+              "complete": true
+            },
+            {
+              "path": "/data/manifest.json",
+              "method": "GET",
+              "type": "fetch",
+              "at": 4975.679166,
+              "phase": "initial",
+              "status": 200,
+              "complete": true,
+              "bodyBytes": 10399
+            }
+          ],
+          "geometry": {
+            "clientHeight": 532,
+            "scrollHeight": 4433,
+            "documentHeight": 900,
+            "scrollTop": 0,
+            "windowY": 0
+          },
+          "at": 5198.413375
+        },
+        {
+          "name": "tail-exact",
+          "visibleRows": 1,
+          "resultCount": "1",
+          "dataRequests": [
+            {
+              "path": "/api/flow?f=gexstate_index",
+              "method": "GET",
+              "type": "fetch",
+              "at": 4960.519041,
+              "phase": "initial",
+              "status": 404,
+              "complete": true
+            },
+            {
+              "path": "/data/manifest.json",
+              "method": "GET",
+              "type": "fetch",
+              "at": 4975.679166,
+              "phase": "initial",
+              "status": 200,
+              "complete": true,
+              "bodyBytes": 10399
+            }
+          ],
+          "geometry": {
+            "clientHeight": 532,
+            "scrollHeight": 532,
+            "documentHeight": 900,
+            "scrollTop": 0,
+            "windowY": 0
+          },
+          "at": 5482.257541
+        },
+        {
+          "name": "boundary-tail-minus-1",
+          "visibleRows": 1,
+          "resultCount": "1",
+          "dataRequests": [
+            {
+              "path": "/api/flow?f=gexstate_index",
+              "method": "GET",
+              "type": "fetch",
+              "at": 4960.519041,
+              "phase": "initial",
+              "status": 404,
+              "complete": true
+            },
+            {
+              "path": "/data/manifest.json",
+              "method": "GET",
+              "type": "fetch",
+              "at": 4975.679166,
+              "phase": "initial",
+              "status": 200,
+              "complete": true,
+              "bodyBytes": 10399
+            }
+          ],
+          "geometry": {
+            "clientHeight": 530,
+            "scrollHeight": 530,
+            "documentHeight": 900,
+            "scrollTop": 0,
+            "windowY": 0
+          },
+          "at": 5724.843333
+        },
+        {
+          "name": "boundary-tail-minus-2",
+          "visibleRows": 1,
+          "resultCount": "1",
+          "dataRequests": [
+            {
+              "path": "/api/flow?f=gexstate_index",
+              "method": "GET",
+              "type": "fetch",
+              "at": 4960.519041,
+              "phase": "initial",
+              "status": 404,
+              "complete": true
+            },
+            {
+              "path": "/data/manifest.json",
+              "method": "GET",
+              "type": "fetch",
+              "at": 4975.679166,
+              "phase": "initial",
+              "status": 200,
+              "complete": true,
+              "bodyBytes": 10399
+            }
+          ],
+          "geometry": {
+            "clientHeight": 530,
+            "scrollHeight": 530,
+            "documentHeight": 900,
+            "scrollTop": 0,
+            "windowY": 0
+          },
+          "at": 5776.086083
+        },
+        {
+          "name": "boundary-tail-minus-3",
+          "visibleRows": 0,
+          "resultCount": "0",
+          "dataRequests": [
+            {
+              "path": "/api/flow?f=gexstate_index",
+              "method": "GET",
+              "type": "fetch",
+              "at": 4960.519041,
+              "phase": "initial",
+              "status": 404,
+              "complete": true
+            },
+            {
+              "path": "/data/manifest.json",
+              "method": "GET",
+              "type": "fetch",
+              "at": 4975.679166,
+              "phase": "initial",
+              "status": 200,
+              "complete": true,
+              "bodyBytes": 10399
+            }
+          ],
+          "geometry": {
+            "clientHeight": 530,
+            "scrollHeight": 530,
+            "documentHeight": 900,
+            "scrollTop": 0,
+            "windowY": 0
+          },
+          "at": 5831.549666
+        },
+        {
+          "name": "boundary-tail-minus-4",
+          "visibleRows": 0,
+          "resultCount": "0",
+          "dataRequests": [
+            {
+              "path": "/api/flow?f=gexstate_index",
+              "method": "GET",
+              "type": "fetch",
+              "at": 4960.519041,
+              "phase": "initial",
+              "status": 404,
+              "complete": true
+            },
+            {
+              "path": "/data/manifest.json",
+              "method": "GET",
+              "type": "fetch",
+              "at": 4975.679166,
+              "phase": "initial",
+              "status": 200,
+              "complete": true,
+              "bodyBytes": 10399
+            }
+          ],
+          "geometry": {
+            "clientHeight": 530,
+            "scrollHeight": 530,
+            "documentHeight": 900,
+            "scrollTop": 0,
+            "windowY": 0
+          },
+          "at": 5869.919916
+        },
+        {
+          "name": "sorted-scrolled-tail",
+          "visibleRows": 18,
+          "resultCount": "100",
+          "dataRequests": [
+            {
+              "path": "/api/flow?f=gexstate_index",
+              "method": "GET",
+              "type": "fetch",
+              "at": 4960.519041,
+              "phase": "initial",
+              "status": 404,
+              "complete": true
+            },
+            {
+              "path": "/data/manifest.json",
+              "method": "GET",
+              "type": "fetch",
+              "at": 4975.679166,
+              "phase": "initial",
+              "status": 200,
+              "complete": true,
+              "bodyBytes": 10399
+            }
+          ],
+          "geometry": {
+            "clientHeight": 532,
+            "scrollHeight": 4433,
+            "documentHeight": 900,
+            "scrollTop": 3901,
+            "windowY": 0
+          },
+          "at": 6824.691416
+        }
+      ],
+      "ownerWrites": [],
+      "error": null,
+      "scope": "Actual Chromium browser request census with route-fulfilled manifest bytes, fixed absent flow/coverage, fresh context per cell and prewarmed devserver. Positive control verifies request classifier only, not cache-mediated app calls. Not production, wire-transfer bytes, pipeline, Brain, full saved-screen integration, cache-attempt count or SLO acceptance.",
+      "project": "desktop",
+      "raw_measurement_sha256": "0128184daece36ee4808c9a9f7f3ecbcd31e5d4596cfd0d0cde5033020aef199",
+      "financial_events": [
+        {
+          "path": "/api/flow?f=gexstate_index",
+          "method": "GET",
+          "type": "fetch",
+          "at": 4960.519041,
+          "phase": "initial",
+          "status": 404,
+          "complete": true
+        },
+        {
+          "path": "/data/manifest.json",
+          "method": "GET",
+          "type": "fetch",
+          "at": 4975.679166,
+          "phase": "initial",
+          "status": 200,
+          "complete": true,
+          "bodyBytes": 10399
+        },
+        {
+          "path": "/data/IWDETECT.slice.json",
+          "method": "GET",
+          "type": "fetch",
+          "at": 7074.31175,
+          "phase": "detector-positive-control",
+          "status": 200,
+          "complete": true
+        }
+      ]
+    },
+    {
+      "n": 100,
+      "browser": "149.0.7827.55",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "manifestBytes": 10399,
+      "manifestSha256": "42fc0be4e283f64020475c21c913178cf29c753cf64a2e101e39ab88a82c8536",
+      "fixedMovePartition": [
+        null,
+        2.999,
+        3,
+        6
+      ],
+      "expectedUp3": 50,
+      "external": [],
+      "checkpoints": [
+        {
+          "name": "all-rows-counted-rendered-count-retained",
+          "visibleRows": 32,
+          "resultCount": "100",
+          "dataRequests": [
+            {
+              "path": "/api/flow?f=gexstate_index",
+              "method": "GET",
+              "type": "fetch",
+              "at": 6457.1535,
+              "phase": "initial",
+              "status": 404,
+              "complete": true
+            },
+            {
+              "path": "/data/manifest.json",
+              "method": "GET",
+              "type": "fetch",
+              "at": 6493.902333,
+              "phase": "initial",
+              "status": 200,
+              "complete": true,
+              "bodyBytes": 10399
+            }
+          ],
+          "geometry": {
+            "clientHeight": 844,
+            "scrollHeight": 4434,
+            "documentHeight": 1436,
+            "scrollTop": 0,
+            "windowY": 0
+          },
+          "at": 7035.188458
+        },
+        {
+          "name": "tail-exact",
+          "visibleRows": 1,
+          "resultCount": "1",
+          "dataRequests": [
+            {
+              "path": "/api/flow?f=gexstate_index",
+              "method": "GET",
+              "type": "fetch",
+              "at": 6457.1535,
+              "phase": "initial",
+              "status": 404,
+              "complete": true
+            },
+            {
+              "path": "/data/manifest.json",
+              "method": "GET",
+              "type": "fetch",
+              "at": 6493.902333,
+              "phase": "initial",
+              "status": 200,
+              "complete": true,
+              "bodyBytes": 10399
+            }
+          ],
+          "geometry": {
+            "clientHeight": 252,
+            "scrollHeight": 252,
+            "documentHeight": 844,
+            "scrollTop": 0,
+            "windowY": 0
+          },
+          "at": 7356.635458
+        },
+        {
+          "name": "boundary-tail-minus-1",
+          "visibleRows": 1,
+          "resultCount": "1",
+          "dataRequests": [
+            {
+              "path": "/api/flow?f=gexstate_index",
+              "method": "GET",
+              "type": "fetch",
+              "at": 6457.1535,
+              "phase": "initial",
+              "status": 404,
+              "complete": true
+            },
+            {
+              "path": "/data/manifest.json",
+              "method": "GET",
+              "type": "fetch",
+              "at": 6493.902333,
+              "phase": "initial",
+              "status": 200,
+              "complete": true,
+              "bodyBytes": 10399
+            }
+          ],
+          "geometry": {
+            "clientHeight": 249,
+            "scrollHeight": 249,
+            "documentHeight": 844,
+            "scrollTop": 0,
+            "windowY": 0
+          },
+          "at": 7794.568333
+        },
+        {
+          "name": "boundary-tail-minus-2",
+          "visibleRows": 1,
+          "resultCount": "1",
+          "dataRequests": [
+            {
+              "path": "/api/flow?f=gexstate_index",
+              "method": "GET",
+              "type": "fetch",
+              "at": 6457.1535,
+              "phase": "initial",
+              "status": 404,
+              "complete": true
+            },
+            {
+              "path": "/data/manifest.json",
+              "method": "GET",
+              "type": "fetch",
+              "at": 6493.902333,
+              "phase": "initial",
+              "status": 200,
+              "complete": true,
+              "bodyBytes": 10399
+            }
+          ],
+          "geometry": {
+            "clientHeight": 249,
+            "scrollHeight": 249,
+            "documentHeight": 844,
+            "scrollTop": 0,
+            "windowY": 0
+          },
+          "at": 7852.390916
+        },
+        {
+          "name": "boundary-tail-minus-3",
+          "visibleRows": 0,
+          "resultCount": "0",
+          "dataRequests": [
+            {
+              "path": "/api/flow?f=gexstate_index",
+              "method": "GET",
+              "type": "fetch",
+              "at": 6457.1535,
+              "phase": "initial",
+              "status": 404,
+              "complete": true
+            },
+            {
+              "path": "/data/manifest.json",
+              "method": "GET",
+              "type": "fetch",
+              "at": 6493.902333,
+              "phase": "initial",
+              "status": 200,
+              "complete": true,
+              "bodyBytes": 10399
+            }
+          ],
+          "geometry": {
+            "clientHeight": 294,
+            "scrollHeight": 294,
+            "documentHeight": 889,
+            "scrollTop": 0,
+            "windowY": 0
+          },
+          "at": 7916.569291
+        },
+        {
+          "name": "boundary-tail-minus-4",
+          "visibleRows": 0,
+          "resultCount": "0",
+          "dataRequests": [
+            {
+              "path": "/api/flow?f=gexstate_index",
+              "method": "GET",
+              "type": "fetch",
+              "at": 6457.1535,
+              "phase": "initial",
+              "status": 404,
+              "complete": true
+            },
+            {
+              "path": "/data/manifest.json",
+              "method": "GET",
+              "type": "fetch",
+              "at": 6493.902333,
+              "phase": "initial",
+              "status": 200,
+              "complete": true,
+              "bodyBytes": 10399
+            }
+          ],
+          "geometry": {
+            "clientHeight": 294,
+            "scrollHeight": 294,
+            "documentHeight": 889,
+            "scrollTop": 0,
+            "windowY": 0
+          },
+          "at": 8080.943458
+        },
+        {
+          "name": "sorted-scrolled-tail",
+          "visibleRows": 25,
+          "resultCount": "100",
+          "dataRequests": [
+            {
+              "path": "/api/flow?f=gexstate_index",
+              "method": "GET",
+              "type": "fetch",
+              "at": 6457.1535,
+              "phase": "initial",
+              "status": 404,
+              "complete": true
+            },
+            {
+              "path": "/data/manifest.json",
+              "method": "GET",
+              "type": "fetch",
+              "at": 6493.902333,
+              "phase": "initial",
+              "status": 200,
+              "complete": true,
+              "bodyBytes": 10399
+            }
+          ],
+          "geometry": {
+            "clientHeight": 844,
+            "scrollHeight": 4434,
+            "documentHeight": 1436,
+            "scrollTop": 3589,
+            "windowY": 540
+          },
+          "at": 9195.243666
+        }
+      ],
+      "ownerWrites": [],
+      "error": null,
+      "scope": "Actual Chromium browser request census with route-fulfilled manifest bytes, fixed absent flow/coverage, fresh context per cell and prewarmed devserver. Positive control verifies request classifier only, not cache-mediated app calls. Not production, wire-transfer bytes, pipeline, Brain, full saved-screen integration, cache-attempt count or SLO acceptance.",
+      "project": "mobile",
+      "raw_measurement_sha256": "9756913d1cd59a41b9e45f22f8c538cff9868dfef89a4ab96f6925356914f1ae",
+      "financial_events": [
+        {
+          "path": "/api/flow?f=gexstate_index",
+          "method": "GET",
+          "type": "fetch",
+          "at": 6457.1535,
+          "phase": "initial",
+          "status": 404,
+          "complete": true
+        },
+        {
+          "path": "/data/manifest.json",
+          "method": "GET",
+          "type": "fetch",
+          "at": 6493.902333,
+          "phase": "initial",
+          "status": 200,
+          "complete": true,
+          "bodyBytes": 10399
+        },
+        {
+          "path": "/data/IWDETECT.slice.json",
+          "method": "GET",
+          "type": "fetch",
+          "at": 9386.813958,
+          "phase": "detector-positive-control",
+          "status": 200,
+          "complete": true
+        }
+      ]
+    },
+    {
+      "n": 100,
+      "browser": "149.0.7827.55",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "manifestBytes": 10399,
+      "manifestSha256": "42fc0be4e283f64020475c21c913178cf29c753cf64a2e101e39ab88a82c8536",
+      "fixedMovePartition": [
+        null,
+        2.999,
+        3,
+        6
+      ],
+      "expectedUp3": 50,
+      "external": [],
+      "checkpoints": [
+        {
+          "name": "all-rows-counted-rendered-count-retained",
+          "visibleRows": 39,
+          "resultCount": "100",
+          "dataRequests": [
+            {
+              "path": "/api/flow?f=gexstate_index",
+              "method": "GET",
+              "type": "fetch",
+              "at": 12962.767792,
+              "phase": "initial",
+              "status": 404,
+              "complete": true
+            },
+            {
+              "path": "/data/manifest.json",
+              "method": "GET",
+              "type": "fetch",
+              "at": 12974.048292,
+              "phase": "initial",
+              "status": 200,
+              "complete": true,
+              "bodyBytes": 10399
+            }
+          ],
+          "geometry": {
+            "clientHeight": 1180,
+            "scrollHeight": 4434,
+            "documentHeight": 1570,
+            "scrollTop": 0,
+            "windowY": 0
+          },
+          "at": 13433.268792
+        },
+        {
+          "name": "tail-exact",
+          "visibleRows": 1,
+          "resultCount": "1",
+          "dataRequests": [
+            {
+              "path": "/api/flow?f=gexstate_index",
+              "method": "GET",
+              "type": "fetch",
+              "at": 12962.767792,
+              "phase": "initial",
+              "status": 404,
+              "complete": true
+            },
+            {
+              "path": "/data/manifest.json",
+              "method": "GET",
+              "type": "fetch",
+              "at": 12974.048292,
+              "phase": "initial",
+              "status": 200,
+              "complete": true,
+              "bodyBytes": 10399
+            }
+          ],
+          "geometry": {
+            "clientHeight": 790,
+            "scrollHeight": 790,
+            "documentHeight": 1180,
+            "scrollTop": 0,
+            "windowY": 0
+          },
+          "at": 13974.678375
+        },
+        {
+          "name": "boundary-tail-minus-1",
+          "visibleRows": 1,
+          "resultCount": "1",
+          "dataRequests": [
+            {
+              "path": "/api/flow?f=gexstate_index",
+              "method": "GET",
+              "type": "fetch",
+              "at": 12962.767792,
+              "phase": "initial",
+              "status": 404,
+              "complete": true
+            },
+            {
+              "path": "/data/manifest.json",
+              "method": "GET",
+              "type": "fetch",
+              "at": 12974.048292,
+              "phase": "initial",
+              "status": 200,
+              "complete": true,
+              "bodyBytes": 10399
+            }
+          ],
+          "geometry": {
+            "clientHeight": 787,
+            "scrollHeight": 787,
+            "documentHeight": 1180,
+            "scrollTop": 0,
+            "windowY": 0
+          },
+          "at": 14296.222542
+        },
+        {
+          "name": "boundary-tail-minus-2",
+          "visibleRows": 1,
+          "resultCount": "1",
+          "dataRequests": [
+            {
+              "path": "/api/flow?f=gexstate_index",
+              "method": "GET",
+              "type": "fetch",
+              "at": 12962.767792,
+              "phase": "initial",
+              "status": 404,
+              "complete": true
+            },
+            {
+              "path": "/data/manifest.json",
+              "method": "GET",
+              "type": "fetch",
+              "at": 12974.048292,
+              "phase": "initial",
+              "status": 200,
+              "complete": true,
+              "bodyBytes": 10399
+            }
+          ],
+          "geometry": {
+            "clientHeight": 787,
+            "scrollHeight": 787,
+            "documentHeight": 1180,
+            "scrollTop": 0,
+            "windowY": 0
+          },
+          "at": 14382.692209
+        },
+        {
+          "name": "boundary-tail-minus-3",
+          "visibleRows": 0,
+          "resultCount": "0",
+          "dataRequests": [
+            {
+              "path": "/api/flow?f=gexstate_index",
+              "method": "GET",
+              "type": "fetch",
+              "at": 12962.767792,
+              "phase": "initial",
+              "status": 404,
+              "complete": true
+            },
+            {
+              "path": "/data/manifest.json",
+              "method": "GET",
+              "type": "fetch",
+              "at": 12974.048292,
+              "phase": "initial",
+              "status": 200,
+              "complete": true,
+              "bodyBytes": 10399
+            }
+          ],
+          "geometry": {
+            "clientHeight": 787,
+            "scrollHeight": 787,
+            "documentHeight": 1180,
+            "scrollTop": 0,
+            "windowY": 0
+          },
+          "at": 14447.151584
+        },
+        {
+          "name": "boundary-tail-minus-4",
+          "visibleRows": 0,
+          "resultCount": "0",
+          "dataRequests": [
+            {
+              "path": "/api/flow?f=gexstate_index",
+              "method": "GET",
+              "type": "fetch",
+              "at": 12962.767792,
+              "phase": "initial",
+              "status": 404,
+              "complete": true
+            },
+            {
+              "path": "/data/manifest.json",
+              "method": "GET",
+              "type": "fetch",
+              "at": 12974.048292,
+              "phase": "initial",
+              "status": 200,
+              "complete": true,
+              "bodyBytes": 10399
+            }
+          ],
+          "geometry": {
+            "clientHeight": 787,
+            "scrollHeight": 787,
+            "documentHeight": 1180,
+            "scrollTop": 0,
+            "windowY": 0
+          },
+          "at": 14532.146625
+        },
+        {
+          "name": "sorted-scrolled-tail",
+          "visibleRows": 33,
+          "resultCount": "100",
+          "dataRequests": [
+            {
+              "path": "/api/flow?f=gexstate_index",
+              "method": "GET",
+              "type": "fetch",
+              "at": 12962.767792,
+              "phase": "initial",
+              "status": 404,
+              "complete": true
+            },
+            {
+              "path": "/data/manifest.json",
+              "method": "GET",
+              "type": "fetch",
+              "at": 12974.048292,
+              "phase": "initial",
+              "status": 200,
+              "complete": true,
+              "bodyBytes": 10399
+            }
+          ],
+          "geometry": {
+            "clientHeight": 1180,
+            "scrollHeight": 4434,
+            "documentHeight": 1570,
+            "scrollTop": 3253,
+            "windowY": 359
+          },
+          "at": 15439.988875
+        }
+      ],
+      "ownerWrites": [],
+      "error": null,
+      "scope": "Actual Chromium browser request census with route-fulfilled manifest bytes, fixed absent flow/coverage, fresh context per cell and prewarmed devserver. Positive control verifies request classifier only, not cache-mediated app calls. Not production, wire-transfer bytes, pipeline, Brain, full saved-screen integration, cache-attempt count or SLO acceptance.",
+      "project": "tablet",
+      "raw_measurement_sha256": "81049549ab1cf9cd1404593f6c9fc05d3cc9142899c53fc2ce9070a1e56822fd",
+      "financial_events": [
+        {
+          "path": "/api/flow?f=gexstate_index",
+          "method": "GET",
+          "type": "fetch",
+          "at": 12962.767792,
+          "phase": "initial",
+          "status": 404,
+          "complete": true
+        },
+        {
+          "path": "/data/manifest.json",
+          "method": "GET",
+          "type": "fetch",
+          "at": 12974.048292,
+          "phase": "initial",
+          "status": 200,
+          "complete": true,
+          "bodyBytes": 10399
+        },
+        {
+          "path": "/data/IWDETECT.slice.json",
+          "method": "GET",
+          "type": "fetch",
+          "at": 15554.88975,
+          "phase": "detector-positive-control",
+          "status": 200,
+          "complete": true
+        }
+      ]
+    },
+    {
+      "n": 9500,
+      "browser": "149.0.7827.55",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "manifestBytes": 1003549,
+      "manifestSha256": "69aa2df06e3bbdaeaeca92d56d40ba9459f08c96674444d97083bdd5acf85c56",
+      "fixedMovePartition": [
+        null,
+        2.999,
+        3,
+        6
+      ],
+      "expectedUp3": 4750,
+      "external": [],
+      "checkpoints": [
+        {
+          "name": "all-rows-counted-rendered-count-retained",
+          "visibleRows": 25,
+          "resultCount": "9,500",
+          "dataRequests": [
+            {
+              "path": "/api/flow?f=gexstate_index",
+              "method": "GET",
+              "type": "fetch",
+              "at": 13873.616416,
+              "phase": "initial",
+              "status": 404,
+              "complete": true
+            },
+            {
+              "path": "/data/manifest.json",
+              "method": "GET",
+              "type": "fetch",
+              "at": 13881.096875,
+              "phase": "initial",
+              "status": 200,
+              "complete": true,
+              "bodyBytes": 1003549
+            }
+          ],
+          "geometry": {
+            "clientHeight": 532,
+            "scrollHeight": 418033,
+            "documentHeight": 900,
+            "scrollTop": 0,
+            "windowY": 0
+          },
+          "at": 14432.171916
+        },
+        {
+          "name": "tail-exact",
+          "visibleRows": 1,
+          "resultCount": "1",
+          "dataRequests": [
+            {
+              "path": "/api/flow?f=gexstate_index",
+              "method": "GET",
+              "type": "fetch",
+              "at": 13873.616416,
+              "phase": "initial",
+              "status": 404,
+              "complete": true
+            },
+            {
+              "path": "/data/manifest.json",
+              "method": "GET",
+              "type": "fetch",
+              "at": 13881.096875,
+              "phase": "initial",
+              "status": 200,
+              "complete": true,
+              "bodyBytes": 1003549
+            }
+          ],
+          "geometry": {
+            "clientHeight": 532,
+            "scrollHeight": 532,
+            "documentHeight": 900,
+            "scrollTop": 0,
+            "windowY": 0
+          },
+          "at": 15185.420416
+        },
+        {
+          "name": "boundary-tail-minus-1",
+          "visibleRows": 1,
+          "resultCount": "1",
+          "dataRequests": [
+            {
+              "path": "/api/flow?f=gexstate_index",
+              "method": "GET",
+              "type": "fetch",
+              "at": 13873.616416,
+              "phase": "initial",
+              "status": 404,
+              "complete": true
+            },
+            {
+              "path": "/data/manifest.json",
+              "method": "GET",
+              "type": "fetch",
+              "at": 13881.096875,
+              "phase": "initial",
+              "status": 200,
+              "complete": true,
+              "bodyBytes": 1003549
+            }
+          ],
+          "geometry": {
+            "clientHeight": 530,
+            "scrollHeight": 530,
+            "documentHeight": 900,
+            "scrollTop": 0,
+            "windowY": 0
+          },
+          "at": 15483.034875
+        },
+        {
+          "name": "boundary-tail-minus-2",
+          "visibleRows": 1,
+          "resultCount": "1",
+          "dataRequests": [
+            {
+              "path": "/api/flow?f=gexstate_index",
+              "method": "GET",
+              "type": "fetch",
+              "at": 13873.616416,
+              "phase": "initial",
+              "status": 404,
+              "complete": true
+            },
+            {
+              "path": "/data/manifest.json",
+              "method": "GET",
+              "type": "fetch",
+              "at": 13881.096875,
+              "phase": "initial",
+              "status": 200,
+              "complete": true,
+              "bodyBytes": 1003549
+            }
+          ],
+          "geometry": {
+            "clientHeight": 530,
+            "scrollHeight": 530,
+            "documentHeight": 900,
+            "scrollTop": 0,
+            "windowY": 0
+          },
+          "at": 15925.378416
+        },
+        {
+          "name": "boundary-tail-minus-3",
+          "visibleRows": 0,
+          "resultCount": "0",
+          "dataRequests": [
+            {
+              "path": "/api/flow?f=gexstate_index",
+              "method": "GET",
+              "type": "fetch",
+              "at": 13873.616416,
+              "phase": "initial",
+              "status": 404,
+              "complete": true
+            },
+            {
+              "path": "/data/manifest.json",
+              "method": "GET",
+              "type": "fetch",
+              "at": 13881.096875,
+              "phase": "initial",
+              "status": 200,
+              "complete": true,
+              "bodyBytes": 1003549
+            }
+          ],
+          "geometry": {
+            "clientHeight": 530,
+            "scrollHeight": 530,
+            "documentHeight": 900,
+            "scrollTop": 0,
+            "windowY": 0
+          },
+          "at": 16008.9405
+        },
+        {
+          "name": "boundary-tail-minus-4",
+          "visibleRows": 0,
+          "resultCount": "0",
+          "dataRequests": [
+            {
+              "path": "/api/flow?f=gexstate_index",
+              "method": "GET",
+              "type": "fetch",
+              "at": 13873.616416,
+              "phase": "initial",
+              "status": 404,
+              "complete": true
+            },
+            {
+              "path": "/data/manifest.json",
+              "method": "GET",
+              "type": "fetch",
+              "at": 13881.096875,
+              "phase": "initial",
+              "status": 200,
+              "complete": true,
+              "bodyBytes": 1003549
+            }
+          ],
+          "geometry": {
+            "clientHeight": 530,
+            "scrollHeight": 530,
+            "documentHeight": 900,
+            "scrollTop": 0,
+            "windowY": 0
+          },
+          "at": 16362.227875
+        },
+        {
+          "name": "sorted-scrolled-tail",
+          "visibleRows": 18,
+          "resultCount": "9,500",
+          "dataRequests": [
+            {
+              "path": "/api/flow?f=gexstate_index",
+              "method": "GET",
+              "type": "fetch",
+              "at": 13873.616416,
+              "phase": "initial",
+              "status": 404,
+              "complete": true
+            },
+            {
+              "path": "/data/manifest.json",
+              "method": "GET",
+              "type": "fetch",
+              "at": 13881.096875,
+              "phase": "initial",
+              "status": 200,
+              "complete": true,
+              "bodyBytes": 1003549
+            }
+          ],
+          "geometry": {
+            "clientHeight": 532,
+            "scrollHeight": 418033,
+            "documentHeight": 900,
+            "scrollTop": 417501,
+            "windowY": 0
+          },
+          "at": 17377.4565
+        }
+      ],
+      "ownerWrites": [],
+      "error": null,
+      "scope": "Actual Chromium browser request census with route-fulfilled manifest bytes, fixed absent flow/coverage, fresh context per cell and prewarmed devserver. Positive control verifies request classifier only, not cache-mediated app calls. Not production, wire-transfer bytes, pipeline, Brain, full saved-screen integration, cache-attempt count or SLO acceptance.",
+      "project": "desktop",
+      "raw_measurement_sha256": "7a9e3dec541282028b50f1a0e3acfb9c4173c8ed64bea1004131fe9c441cd829",
+      "financial_events": [
+        {
+          "path": "/api/flow?f=gexstate_index",
+          "method": "GET",
+          "type": "fetch",
+          "at": 13873.616416,
+          "phase": "initial",
+          "status": 404,
+          "complete": true
+        },
+        {
+          "path": "/data/manifest.json",
+          "method": "GET",
+          "type": "fetch",
+          "at": 13881.096875,
+          "phase": "initial",
+          "status": 200,
+          "complete": true,
+          "bodyBytes": 1003549
+        },
+        {
+          "path": "/data/IWDETECT.slice.json",
+          "method": "GET",
+          "type": "fetch",
+          "at": 17538.343,
+          "phase": "detector-positive-control",
+          "status": 200,
+          "complete": true
+        }
+      ]
+    },
+    {
+      "n": 9500,
+      "browser": "149.0.7827.55",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "manifestBytes": 1003549,
+      "manifestSha256": "69aa2df06e3bbdaeaeca92d56d40ba9459f08c96674444d97083bdd5acf85c56",
+      "fixedMovePartition": [
+        null,
+        2.999,
+        3,
+        6
+      ],
+      "expectedUp3": 4750,
+      "external": [],
+      "checkpoints": [
+        {
+          "name": "all-rows-counted-rendered-count-retained",
+          "visibleRows": 32,
+          "resultCount": "9,500",
+          "dataRequests": [
+            {
+              "path": "/api/flow?f=gexstate_index",
+              "method": "GET",
+              "type": "fetch",
+              "at": 11286.625625,
+              "phase": "initial",
+              "status": 404,
+              "complete": true
+            },
+            {
+              "path": "/data/manifest.json",
+              "method": "GET",
+              "type": "fetch",
+              "at": 11302.807041,
+              "phase": "initial",
+              "status": 200,
+              "complete": true,
+              "bodyBytes": 1003549
+            }
+          ],
+          "geometry": {
+            "clientHeight": 844,
+            "scrollHeight": 418034,
+            "documentHeight": 1436,
+            "scrollTop": 0,
+            "windowY": 0
+          },
+          "at": 11656.747166
+        },
+        {
+          "name": "tail-exact",
+          "visibleRows": 1,
+          "resultCount": "1",
+          "dataRequests": [
+            {
+              "path": "/api/flow?f=gexstate_index",
+              "method": "GET",
+              "type": "fetch",
+              "at": 11286.625625,
+              "phase": "initial",
+              "status": 404,
+              "complete": true
+            },
+            {
+              "path": "/data/manifest.json",
+              "method": "GET",
+              "type": "fetch",
+              "at": 11302.807041,
+              "phase": "initial",
+              "status": 200,
+              "complete": true,
+              "bodyBytes": 1003549
+            }
+          ],
+          "geometry": {
+            "clientHeight": 252,
+            "scrollHeight": 252,
+            "documentHeight": 844,
+            "scrollTop": 0,
+            "windowY": 0
+          },
+          "at": 12019.945291
+        },
+        {
+          "name": "boundary-tail-minus-1",
+          "visibleRows": 1,
+          "resultCount": "1",
+          "dataRequests": [
+            {
+              "path": "/api/flow?f=gexstate_index",
+              "method": "GET",
+              "type": "fetch",
+              "at": 11286.625625,
+              "phase": "initial",
+              "status": 404,
+              "complete": true
+            },
+            {
+              "path": "/data/manifest.json",
+              "method": "GET",
+              "type": "fetch",
+              "at": 11302.807041,
+              "phase": "initial",
+              "status": 200,
+              "complete": true,
+              "bodyBytes": 1003549
+            }
+          ],
+          "geometry": {
+            "clientHeight": 249,
+            "scrollHeight": 249,
+            "documentHeight": 844,
+            "scrollTop": 0,
+            "windowY": 0
+          },
+          "at": 12326.613333
+        },
+        {
+          "name": "boundary-tail-minus-2",
+          "visibleRows": 1,
+          "resultCount": "1",
+          "dataRequests": [
+            {
+              "path": "/api/flow?f=gexstate_index",
+              "method": "GET",
+              "type": "fetch",
+              "at": 11286.625625,
+              "phase": "initial",
+              "status": 404,
+              "complete": true
+            },
+            {
+              "path": "/data/manifest.json",
+              "method": "GET",
+              "type": "fetch",
+              "at": 11302.807041,
+              "phase": "initial",
+              "status": 200,
+              "complete": true,
+              "bodyBytes": 1003549
+            }
+          ],
+          "geometry": {
+            "clientHeight": 249,
+            "scrollHeight": 249,
+            "documentHeight": 844,
+            "scrollTop": 0,
+            "windowY": 0
+          },
+          "at": 12392.789
+        },
+        {
+          "name": "boundary-tail-minus-3",
+          "visibleRows": 0,
+          "resultCount": "0",
+          "dataRequests": [
+            {
+              "path": "/api/flow?f=gexstate_index",
+              "method": "GET",
+              "type": "fetch",
+              "at": 11286.625625,
+              "phase": "initial",
+              "status": 404,
+              "complete": true
+            },
+            {
+              "path": "/data/manifest.json",
+              "method": "GET",
+              "type": "fetch",
+              "at": 11302.807041,
+              "phase": "initial",
+              "status": 200,
+              "complete": true,
+              "bodyBytes": 1003549
+            }
+          ],
+          "geometry": {
+            "clientHeight": 294,
+            "scrollHeight": 294,
+            "documentHeight": 889,
+            "scrollTop": 0,
+            "windowY": 0
+          },
+          "at": 12495.108625
+        },
+        {
+          "name": "boundary-tail-minus-4",
+          "visibleRows": 0,
+          "resultCount": "0",
+          "dataRequests": [
+            {
+              "path": "/api/flow?f=gexstate_index",
+              "method": "GET",
+              "type": "fetch",
+              "at": 11286.625625,
+              "phase": "initial",
+              "status": 404,
+              "complete": true
+            },
+            {
+              "path": "/data/manifest.json",
+              "method": "GET",
+              "type": "fetch",
+              "at": 11302.807041,
+              "phase": "initial",
+              "status": 200,
+              "complete": true,
+              "bodyBytes": 1003549
+            }
+          ],
+          "geometry": {
+            "clientHeight": 294,
+            "scrollHeight": 294,
+            "documentHeight": 889,
+            "scrollTop": 0,
+            "windowY": 0
+          },
+          "at": 12553.235375
+        },
+        {
+          "name": "sorted-scrolled-tail",
+          "visibleRows": 25,
+          "resultCount": "9,500",
+          "dataRequests": [
+            {
+              "path": "/api/flow?f=gexstate_index",
+              "method": "GET",
+              "type": "fetch",
+              "at": 11286.625625,
+              "phase": "initial",
+              "status": 404,
+              "complete": true
+            },
+            {
+              "path": "/data/manifest.json",
+              "method": "GET",
+              "type": "fetch",
+              "at": 11302.807041,
+              "phase": "initial",
+              "status": 200,
+              "complete": true,
+              "bodyBytes": 1003549
+            }
+          ],
+          "geometry": {
+            "clientHeight": 844,
+            "scrollHeight": 418034,
+            "documentHeight": 1436,
+            "scrollTop": 417189,
+            "windowY": 540
+          },
+          "at": 13601.387125
+        }
+      ],
+      "ownerWrites": [],
+      "error": null,
+      "scope": "Actual Chromium browser request census with route-fulfilled manifest bytes, fixed absent flow/coverage, fresh context per cell and prewarmed devserver. Positive control verifies request classifier only, not cache-mediated app calls. Not production, wire-transfer bytes, pipeline, Brain, full saved-screen integration, cache-attempt count or SLO acceptance.",
+      "project": "mobile",
+      "raw_measurement_sha256": "d650505808e9fe2b4486a4b909ecaa58f81d75427e9ae9381e8c22517acb9235",
+      "financial_events": [
+        {
+          "path": "/api/flow?f=gexstate_index",
+          "method": "GET",
+          "type": "fetch",
+          "at": 11286.625625,
+          "phase": "initial",
+          "status": 404,
+          "complete": true
+        },
+        {
+          "path": "/data/manifest.json",
+          "method": "GET",
+          "type": "fetch",
+          "at": 11302.807041,
+          "phase": "initial",
+          "status": 200,
+          "complete": true,
+          "bodyBytes": 1003549
+        },
+        {
+          "path": "/data/IWDETECT.slice.json",
+          "method": "GET",
+          "type": "fetch",
+          "at": 13842.598041,
+          "phase": "detector-positive-control",
+          "status": 200,
+          "complete": true
+        }
+      ]
+    },
+    {
+      "n": 9500,
+      "browser": "149.0.7827.55",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "manifestBytes": 1003549,
+      "manifestSha256": "69aa2df06e3bbdaeaeca92d56d40ba9459f08c96674444d97083bdd5acf85c56",
+      "fixedMovePartition": [
+        null,
+        2.999,
+        3,
+        6
+      ],
+      "expectedUp3": 4750,
+      "external": [],
+      "checkpoints": [
+        {
+          "name": "all-rows-counted-rendered-count-retained",
+          "visibleRows": 39,
+          "resultCount": "9,500",
+          "dataRequests": [
+            {
+              "path": "/api/flow?f=gexstate_index",
+              "method": "GET",
+              "type": "fetch",
+              "at": 17341.696792,
+              "phase": "initial",
+              "status": 404,
+              "complete": true
+            },
+            {
+              "path": "/data/manifest.json",
+              "method": "GET",
+              "type": "fetch",
+              "at": 17400.714375,
+              "phase": "initial",
+              "status": 200,
+              "complete": true,
+              "bodyBytes": 1003549
+            }
+          ],
+          "geometry": {
+            "clientHeight": 1180,
+            "scrollHeight": 418034,
+            "documentHeight": 1570,
+            "scrollTop": 0,
+            "windowY": 0
+          },
+          "at": 17899.099334
+        },
+        {
+          "name": "tail-exact",
+          "visibleRows": 1,
+          "resultCount": "1",
+          "dataRequests": [
+            {
+              "path": "/api/flow?f=gexstate_index",
+              "method": "GET",
+              "type": "fetch",
+              "at": 17341.696792,
+              "phase": "initial",
+              "status": 404,
+              "complete": true
+            },
+            {
+              "path": "/data/manifest.json",
+              "method": "GET",
+              "type": "fetch",
+              "at": 17400.714375,
+              "phase": "initial",
+              "status": 200,
+              "complete": true,
+              "bodyBytes": 1003549
+            }
+          ],
+          "geometry": {
+            "clientHeight": 790,
+            "scrollHeight": 790,
+            "documentHeight": 1180,
+            "scrollTop": 0,
+            "windowY": 0
+          },
+          "at": 18419.609125
+        },
+        {
+          "name": "boundary-tail-minus-1",
+          "visibleRows": 1,
+          "resultCount": "1",
+          "dataRequests": [
+            {
+              "path": "/api/flow?f=gexstate_index",
+              "method": "GET",
+              "type": "fetch",
+              "at": 17341.696792,
+              "phase": "initial",
+              "status": 404,
+              "complete": true
+            },
+            {
+              "path": "/data/manifest.json",
+              "method": "GET",
+              "type": "fetch",
+              "at": 17400.714375,
+              "phase": "initial",
+              "status": 200,
+              "complete": true,
+              "bodyBytes": 1003549
+            }
+          ],
+          "geometry": {
+            "clientHeight": 787,
+            "scrollHeight": 787,
+            "documentHeight": 1180,
+            "scrollTop": 0,
+            "windowY": 0
+          },
+          "at": 19305.232375
+        },
+        {
+          "name": "boundary-tail-minus-2",
+          "visibleRows": 1,
+          "resultCount": "1",
+          "dataRequests": [
+            {
+              "path": "/api/flow?f=gexstate_index",
+              "method": "GET",
+              "type": "fetch",
+              "at": 17341.696792,
+              "phase": "initial",
+              "status": 404,
+              "complete": true
+            },
+            {
+              "path": "/data/manifest.json",
+              "method": "GET",
+              "type": "fetch",
+              "at": 17400.714375,
+              "phase": "initial",
+              "status": 200,
+              "complete": true,
+              "bodyBytes": 1003549
+            }
+          ],
+          "geometry": {
+            "clientHeight": 787,
+            "scrollHeight": 787,
+            "documentHeight": 1180,
+            "scrollTop": 0,
+            "windowY": 0
+          },
+          "at": 19434.933834
+        },
+        {
+          "name": "boundary-tail-minus-3",
+          "visibleRows": 0,
+          "resultCount": "0",
+          "dataRequests": [
+            {
+              "path": "/api/flow?f=gexstate_index",
+              "method": "GET",
+              "type": "fetch",
+              "at": 17341.696792,
+              "phase": "initial",
+              "status": 404,
+              "complete": true
+            },
+            {
+              "path": "/data/manifest.json",
+              "method": "GET",
+              "type": "fetch",
+              "at": 17400.714375,
+              "phase": "initial",
+              "status": 200,
+              "complete": true,
+              "bodyBytes": 1003549
+            }
+          ],
+          "geometry": {
+            "clientHeight": 787,
+            "scrollHeight": 787,
+            "documentHeight": 1180,
+            "scrollTop": 0,
+            "windowY": 0
+          },
+          "at": 19792.434625
+        },
+        {
+          "name": "boundary-tail-minus-4",
+          "visibleRows": 0,
+          "resultCount": "0",
+          "dataRequests": [
+            {
+              "path": "/api/flow?f=gexstate_index",
+              "method": "GET",
+              "type": "fetch",
+              "at": 17341.696792,
+              "phase": "initial",
+              "status": 404,
+              "complete": true
+            },
+            {
+              "path": "/data/manifest.json",
+              "method": "GET",
+              "type": "fetch",
+              "at": 17400.714375,
+              "phase": "initial",
+              "status": 200,
+              "complete": true,
+              "bodyBytes": 1003549
+            }
+          ],
+          "geometry": {
+            "clientHeight": 787,
+            "scrollHeight": 787,
+            "documentHeight": 1180,
+            "scrollTop": 0,
+            "windowY": 0
+          },
+          "at": 19940.564625
+        },
+        {
+          "name": "sorted-scrolled-tail",
+          "visibleRows": 33,
+          "resultCount": "9,500",
+          "dataRequests": [
+            {
+              "path": "/api/flow?f=gexstate_index",
+              "method": "GET",
+              "type": "fetch",
+              "at": 17341.696792,
+              "phase": "initial",
+              "status": 404,
+              "complete": true
+            },
+            {
+              "path": "/data/manifest.json",
+              "method": "GET",
+              "type": "fetch",
+              "at": 17400.714375,
+              "phase": "initial",
+              "status": 200,
+              "complete": true,
+              "bodyBytes": 1003549
+            }
+          ],
+          "geometry": {
+            "clientHeight": 1180,
+            "scrollHeight": 418034,
+            "documentHeight": 1570,
+            "scrollTop": 416853,
+            "windowY": 359
+          },
+          "at": 21651.554375
+        }
+      ],
+      "ownerWrites": [],
+      "error": null,
+      "scope": "Actual Chromium browser request census with route-fulfilled manifest bytes, fixed absent flow/coverage, fresh context per cell and prewarmed devserver. Positive control verifies request classifier only, not cache-mediated app calls. Not production, wire-transfer bytes, pipeline, Brain, full saved-screen integration, cache-attempt count or SLO acceptance.",
+      "project": "tablet",
+      "raw_measurement_sha256": "c04e2af9102943df8e876fda89ef0854da569a24e1e7e58ac35d6d2dc93d8d40",
+      "financial_events": [
+        {
+          "path": "/api/flow?f=gexstate_index",
+          "method": "GET",
+          "type": "fetch",
+          "at": 17341.696792,
+          "phase": "initial",
+          "status": 404,
+          "complete": true
+        },
+        {
+          "path": "/data/manifest.json",
+          "method": "GET",
+          "type": "fetch",
+          "at": 17400.714375,
+          "phase": "initial",
+          "status": 200,
+          "complete": true,
+          "bodyBytes": 1003549
+        },
+        {
+          "path": "/data/IWDETECT.slice.json",
+          "method": "GET",
+          "type": "fetch",
+          "at": 24189.960417,
+          "phase": "detector-positive-control",
+          "status": 200,
+          "complete": true
+        }
+      ]
+    }
+  ],
+  "images_sha256": {
+    "desktop-tail.png": "253952106b8547dc3c8a46f26c9a5ec4152d2d1589c81d21b5ddc1d2db213027",
+    "desktop-universe-bottom.png": "0e5a80f24088fe4ee2456ac389e87f9b224e46177b576fff08b59c084258b0d0",
+    "mobile-tail.png": "c83337d59aeed058ad0b72770a59b35d42dacfba36387f88484d1ca9188a440c",
+    "mobile-universe-bottom.png": "5d15da357d32d19a3ee80a42074921fbcb3be1d6fbbd907aeb7fef187f063dfd",
+    "tablet-tail.png": "e407ce560f5cc907a9e414b7ef58f6018a5bdea099ff7b037250e18cde1b9c16",
+    "tablet-universe-bottom.png": "1aef1931436c6671cf5f81718f0ce6b5ed6ddbe749632b41626c046aab71bb26"
+  }
+}

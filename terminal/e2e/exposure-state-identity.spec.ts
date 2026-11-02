@@ -23,15 +23,14 @@ for (const oldFails of [false, true]) {
     try {
       await page.goto("/options?tab=prism");
       await expect.poll(() => spyWaiting).toBe(true);
-      // mapFirst viewports collapse the quick picks into a closed <details> chooser; open it first.
+      // Data arrival moves the loading-state quick picks into a closed chooser.
+      // Wait for that transition before opening it, independently of the held SPY state read.
       const qqq = page.getByRole("button", { name: "QQQ", exact: true });
       const chooserSummary = page.locator("details.obs-gexdesk-root-chooser > summary");
-      await expect(qqq.or(chooserSummary).first()).toBeVisible();
-      if (await chooserSummary.isVisible()) {
-        await chooserSummary.click();
-        for (const root of await page.locator("details.obs-gexdesk-root-chooser button").all()) {
-          await expect(root).toBeInViewport({ ratio: 1 });
-        }
+      await expect(chooserSummary).toBeVisible();
+      await chooserSummary.click();
+      for (const root of await page.locator("details.obs-gexdesk-root-chooser button").all()) {
+        await expect(root).toBeInViewport({ ratio: 1 });
       }
       await page.screenshot({ path: info.outputPath(`${info.project.name}-root-chooser-${oldFails ? "error" : "success"}.png`), fullPage: false });
       await qqq.click();
@@ -44,7 +43,8 @@ for (const oldFails of [false, true]) {
       await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
       await expect(page.getByRole("combobox", { name: zh ? "代码" : "Ticker", exact: true })).toHaveValue("QQQ");
       // Switching the route root remounts the desk with its chooser closed.
-      if (await chooserSummary.isVisible() && await chooserSummary.locator("..").getAttribute("open") === null) {
+      await expect(chooserSummary).toBeVisible();
+      if (await chooserSummary.locator("..").getAttribute("open") === null) {
         await chooserSummary.click();
       }
       await expect(page.getByRole("button", { name: "QQQ", exact: true })).toHaveClass(/\bon\b/);

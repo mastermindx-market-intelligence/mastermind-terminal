@@ -1,0 +1,202 @@
+{
+  "base": "57c3abc72af0a9c05e05fe535f0fd1b2a9341060",
+  "product_sources": {
+    "terminal/components/mobile/RollerStrip.tsx": "e42aba1cf4fd1f6fc632a1806c7753ade110516548f40ef40939721bbc98842d",
+    "terminal/components/mobile/RollerStrip.module.css": "3b61dc51a53a2d5b0b14f05d27e938872f72b05ed8a633218de06ae249be2ba5"
+  },
+  "browser": "external pinned Firefox 151; native textZoom2/fullZoom1; viewport and DPR unchanged; CSS zoom1",
+  "cases": [
+    {
+      "viewport": 390,
+      "normal": {
+        "text": {
+          "left": 13.300003051757812,
+          "right": 63.21665954589844,
+          "top": 456.1000061035156,
+          "bottom": 479.1000061035156,
+          "width": 49.916656494140625,
+          "height": 23
+        },
+        "box": {
+          "left": 13.300003051757812,
+          "right": 96.69999694824219,
+          "top": 456.1000061035156,
+          "bottom": 479.1000061035156,
+          "width": 83.39999389648438,
+          "height": 23
+        },
+        "wheel": {
+          "left": 13.300003051757812,
+          "right": 96.69999694824219,
+          "top": 444.6000061035156,
+          "bottom": 490.6000061035156,
+          "width": 83.39999389648438,
+          "height": 46
+        },
+        "font": "17px",
+        "lineHeight": "23px",
+        "fit": true,
+        "width": 390,
+        "height": 844,
+        "dpr": 1,
+        "cssZoom": "1"
+      },
+      "enlarged": {
+        "text": {
+          "left": 13.300003051757812,
+          "right": 113.10000610351562,
+          "top": 444.6000061035156,
+          "bottom": 490.6000061035156,
+          "width": 99.80000305175781,
+          "height": 46
+        },
+        "box": {
+          "left": 13.300003051757812,
+          "right": 119.30000305175781,
+          "top": 444.6000061035156,
+          "bottom": 490.6000061035156,
+          "width": 106,
+          "height": 46
+        },
+        "wheel": {
+          "left": 13.300003051757812,
+          "right": 119.30000305175781,
+          "top": 444.6000061035156,
+          "bottom": 490.6000061035156,
+          "width": 106,
+          "height": 46
+        },
+        "font": "34px",
+        "lineHeight": "46px",
+        "fit": true,
+        "width": 390,
+        "height": 844,
+        "dpr": 1,
+        "cssZoom": "1"
+      },
+      "controls": {
+        "current": "NVDA",
+        "next": "AAPL",
+        "control": {
+          "clipped": true,
+          "textWidth": 99.80000305175781,
+          "availableWidth": 40,
+          "textHeight": 46,
+          "availableHeight": 23
+        },
+        "writes": [],
+        "brain": [],
+        "ownerUnchanged": true
+      }
+    },
+    {
+      "viewport": 320,
+      "normal": {
+        "text": {
+          "left": 13.300003051757812,
+          "right": 63.21665954589844,
+          "top": 456.1000061035156,
+          "bottom": 479.1000061035156,
+          "width": 49.916656494140625,
+          "height": 23
+        },
+        "box": {
+          "left": 13.300003051757812,
+          "right": 96.69999694824219,
+          "top": 456.1000061035156,
+          "bottom": 479.1000061035156,
+          "width": 83.39999389648438,
+          "height": 23
+        },
+        "wheel": {
+          "left": 13.300003051757812,
+          "right": 96.69999694824219,
+          "top": 444.6000061035156,
+          "bottom": 490.6000061035156,
+          "width": 83.39999389648438,
+          "height": 46
+        },
+        "font": "17px",
+        "lineHeight": "23px",
+        "fit": true,
+        "width": 320,
+        "height": 844,
+        "dpr": 1,
+        "cssZoom": "1"
+      },
+      "enlarged": {
+        "text": {
+          "left": 13.300003051757812,
+          "right": 113.10000610351562,
+          "top": 444.6000061035156,
+          "bottom": 490.6000061035156,
+          "width": 99.80000305175781,
+          "height": 46
+        },
+        "box": {
+          "left": 13.300003051757812,
+          "right": 119.30000305175781,
+          "top": 444.6000061035156,
+          "bottom": 490.6000061035156,
+          "width": 106,
+          "height": 46
+        },
+        "wheel": {
+          "left": 13.300003051757812,
+          "right": 119.30000305175781,
+          "top": 444.6000061035156,
+          "bottom": 490.6000061035156,
+          "width": 106,
+          "height": 46
+        },
+        "font": "34px",
+        "lineHeight": "46px",
+        "fit": true,
+        "width": 320,
+        "height": 844,
+        "dpr": 1,
+        "cssZoom": "1"
+      },
+      "controls": {
+        "current": "NVDA",
+        "next": "AAPL",
+        "control": {
+          "clipped": true,
+          "textWidth": 99.80000305175781,
+          "availableWidth": 40,
+          "textHeight": 46,
+          "availableHeight": 23
+        },
+        "writes": [],
+        "brain": [],
+        "ownerUnchanged": true
+      }
+    }
+  ],
+  "checks": {
+    "mounted_unit": 5,
+    "native_enlargement": 2,
+    "native_pointer_and_restore": 1,
+    "existing_mobile": 7,
+    "existing_desktop_tablet": 2,
+    "typecheck_exit": 0,
+    "lint_exit": 0
+  },
+  "pngs": {
+    "original-native200-390.png": "7ba387a68f4cb7b7c856f499e48dbc88b70dd4e159bd05dc12613b449eb40e41",
+    "normal-390.png": "bb626240b06c5149ebcfbd4cf66f2b853661959d4f498d02409670ccae02d8bd",
+    "native200-390.png": "74e5eaaed51e4e1a31eabfd600481030b0ef0ccde667a356b88f92149587d30b",
+    "native200-320.png": "b8fca4040fbf1809747e275fd432a114488caf24230af2015381cd08e6220502",
+    "native-pointer-detent.png": "227d5c7dd53a4b3d7e1a1a571eed8a8c2683649437df24473b77583c20a74389",
+    "normal-restored.png": "e74e4f7c7f41bd6c376da37f040e9ae97a545e795525ab679aa963d765220c8b"
+  },
+  "native_pointer": {
+    "row": 46,
+    "held": "3D",
+    "released": "2D",
+    "restored": "W",
+    "writes": [],
+    "brain": [],
+    "ownerUnchanged": true
+  }
+}

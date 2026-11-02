@@ -1,157 +1,245 @@
-# Investigation v2 — #777 integrated owner
+# Investigation v2 — the single Terminal owner
 
-This document supersedes the implementation scope of the plan-only Saved Research
-proposal on #777. The Chairman authorized continuation past the unfinished
-Executive/source-custody backend on 2026-10-03; #8338 comment 5976062668 records START.
-No separate Saved Research tables are introduced. Migration 0028 belongs to #777.
+The existing Saved Research / Investigation aggregate owns persistence. #777 and
+migration 0028 established it; #804 and applied migration 0029 added exact Thesis
+references. The kernel repair remains on #804 as forward migration 0030. Do not
+edit or reapply 0028/0029 to install this repair. #804 remains Draft under the
+integration review at comment 5989604142; local proof is not release approval.
 
-## Envelope
+## Closed command and canonical identity
 
-`investigation_manifest.v1` remains the published 2000-scalar / 64-KiB contract.
-`investigation_manifest.v2` uses the same typed reference grammar, with a 4000-scalar
-question, 4000-scalar continuation fields, and 128-KiB serialized UTF-8 envelope.
-Title is at most 160 scalars; subjects at most 16; layouts at most 4; Thesis references
-at most 16; all layout/Thesis/evidence references together at most 128. Author text
-retains whitespace, CRLF, and composed/decomposed Unicode exactly. Unknown fields,
-unsupported owner/kind combinations, invalid scalars and source/layout/AI bodies
-are rejected. Future relation/notes/scenario fields require an explicit contract
-extension; this G1 slice does not advertise them as implemented.
+Published `investigation_manifest.v1` keeps its 2,000-scalar / 64-KiB contract.
+New `investigation_manifest.v2` commands require `schema`, `intent`, `layout_refs`,
+`thesis_refs`, `evidence_refs`, `argument_relations`, and `continuation`, with only
+`review_baseline_ref` optional. There is no generic metadata or source-body bag.
 
-JSON object order is not mutation identity. Arrays and exact string values are.
-The PostgreSQL RPC fingerprints its typed JSONB request, including principal,
-action, target UUID, expected revision, manifest, and optional layout capture.
-This fingerprint is a server operation identity, not a cross-language layout hash.
-A principal-scoped operation UUID is locked before its immutable receipt is read.
-Exact retries return the original committed result before evaluating current head,
-layout state or reference availability. Changed reuse conflicts. A second target
-lock serializes create and compare-and-swap. Failed validations commit no rows.
+The v2 bounds are 160 title scalars, 4,000 question/continuation/annotation scalars,
+16 typed subjects, 4 layouts, 16 Thesis references, 128 distinct evidence identities,
+and 256 argument annotations. Layout and Thesis references do not consume evidence
+slots. An optional baseline must be pinned and fully semantically identical to one
+evidence member, including fingerprint and selection; it never consumes another slot.
+Evidence identity is `(owner, object_type, object_id, mode, version_ref, selection.field)`;
+fingerprint is not identity. Thesis identity is `(thesis_id, version_id)`, excluding role.
 
-## Layout ownership
+Each argument annotation has exactly `source`, `target`, `relation`, `rationale`, and
+optional `discrimination_criterion`. Relations are `supports`, `weakens`, `contradicts`,
+`unresolved_interpretation`, or `discriminates_between`. Endpoints name an existing
+exact Thesis or evidence identity in the same manifest; they introduce no new reference.
+Annotations carry no client author, clock, rights, confidence, or accepted-review claims.
 
-`chart_layouts` remains the mutable current-layout owner. `chart_layout_revisions`
-is its owner-native immutable retention table. Investigation only stores references.
-An explicit save can request retention of a named owned workspace with an expected
-workspace revision. The transaction reads the owner row under lock, retains its
-exact configuration, inserts the reference, and commits the Investigation revision
-and operation receipt together. Opening an Investigation only reads retained rows;
-it never writes the current layout. Stored digest identifies PostgreSQL's retained
-JSONB representation and does not redefine workspace_layout.v1 golden digests.
+Canonical v2 bytes are UTF-8 JSON with recursively sorted object keys, original array
+order, compact separators, direct non-ASCII text and no trailing newline. Authored
+whitespace, CRLF and composed/decomposed Unicode remain significant. The ceiling is
+exactly 131,072 canonical bytes. TypeScript, Python and PostgreSQL consume the same
+48-case kernel corpus, including exact byte boundaries. PostgreSQL persists SHA-256
+of the final owner-prepared manifest in the immutable revision wrapper.
 
-## Persistence and read isolation
+A present `research_as_of` is exactly `YYYY-MM-DDTHH:mm:ss.sssZ`, with a real Gregorian
+date and time. Date-only, offsets, alternate precision and normalization to another
+instant refuse. The G1 editor has no date-only input and invents no midnight cutoff.
+A saved cutoff is intent, never a source's historical-availability guarantee.
 
-`investigations` is the mutable head index. `investigation_revisions` is immutable.
-`investigation_mutation_receipts` is the single retry authority. Direct client writes
-are revoked. Authenticated principal comes only from auth.uid(), never request data.
-Owner-only SELECT policies cover heads, revisions, receipts, and retained layouts.
-Missing and foreign objects produce the same not_found result. A missing operation
-receipt is not a license to replace the operation UUID after a response is lost.
+## Immutable revisions and layout retention
 
-References are references, not proof of entitlement or perpetual source retention.
-The Earnings owner resolver must recheck the exact generation's semantic subject,
-event, schema, authority, complete dependency/qualification identity, bytes/hash,
-and current rights on read/export. It must report HISTORICAL_UNAVAILABLE instead of
-substituting today's data. Pure manifest/storage acceptance does not certify this.
+`investigations` stores the mutable owner-scoped head, lifecycle and numeric revision.
+`investigation_revisions` retains the integer as a sequence, with a server-minted UUID,
+exact previous revision UUID, authenticated author (`user_id` exposed as `author_ref`),
+originating operation UUID, manifest, digest and server timestamp. Scoped foreign keys
+bind each parent to sequence N-1 and the head to its exact immutable row. Head, revision,
+retained layout and committed receipt are atomic. Remove/restore preserve the manifest
+and digest while producing a new revision identity and lifecycle.
 
-Migration 0028 was applied on 2026-10-04 after independent SQL review. Catalog
-readback verified all 19 objects and owner-only table grants. G1 acceptance still
-requires authenticated leave/fresh-session resume. Neither the storage tests nor a fixture pass completes G1.
+Forward migration 0030 backfills identity only when each old row has exactly one matching
+principal/target/action/revision/manifest receipt. Ambiguity aborts migration. Old manifest
+values and historical operation results are not rewritten. The explicit stored-read
+validator permits those pre-repair values unchanged; new create/revise commands use the
+strict contract. Legacy operation recovery uses the same owner receipt and fence path.
 
-## Implemented G1 reads and UI
+`chart_layouts` remains current-layout authority. Capture intent is exactly
+`{layout_id, expected_revision}`. Its owner mints or reuses one retained UUID for
+`(user_id, layout_id, source_revision)` under lock. Equal bytes/digest reuse identity;
+divergent content at the same source revision refuses. Retained N survives current
+N+1 and deletion of the mutable layout. Reopen never writes the current head.
+The layout digest retains the existing PostgreSQL JSONB owner law; it is not the
+Investigation digest or a redefinition of `workspace_layout.v1` golden bytes.
 
-The authenticated `/api/investigations` GET lists owner heads, reads one exact
-revision, or looks up the original operation receipt. `/analysis?view=investigations`
-uses those reads for Saved Research. `investigation=<uuid>&revision=<n>` retains an
-exact revision link. Opening and refreshing do not create revisions, receipts,
-layouts, Brain runs or schedules. The browser retains one pending command per
-principal in session storage before sending it; this is a recovery buffer, not a
-second retry authority. A missing receipt keeps the original command and key.
-Account changes clear in-memory data and abort outstanding requests.
+## Owner API read lifetime
 
-The additive migration serializes new mutations by principal before testing
-capacity: 500 lifetime records and 2000 retained revisions per principal. Removed
-records count because their immutable history remains. At capacity the operation
-returns `limit_reached` without writes; exact committed replay remains available.
-These are explicit storage bounds, not subscription or ranking rules.
+A current `401` from `/api/investigations` (including its query forms) ends the
+Workspace's existing private-view lifetime before parsing the response body.
+It aborts that scope and clears displayed private detail and local admission;
+it does not call SDK sign-out or clear the original owner's pending-save storage.
+An unresolved write remains unresolved under its original operation. A stale
+response from an older scope cannot end a newly rebound view. `403`, `404` and
+`503` remain unavailable/refused reads, not invented sign-out or no-effect proof.
+This is local display/admission fencing, not live authentication or cutover proof.
 
-`/api/investigations/baseline` delegates to the existing Earnings reader. Exact
-historical reads require event, generation, company and complete fingerprint. The
-fingerprint binds immutable manifest and workspace bytes, including transcript,
-qualification and exclusion changes, rather than only the issuer release hash.
-The read projects public-known, platform-known and generation-emitted clocks
-separately. The client adds a session-local viewed time, never a backdated stored
-observation.
+## Same-owner response-loss recovery
 
-Current access for this G1 adapter is intentionally limited to personal public-primary
-context display. Every byte-replayed source must have an explicit
-`rp_public_primary_v1` annotation in the retained object and a fresh current owner
-publication. Missing, changed, private or unknown current declarations deny display.
-This is not a license registry, nor an export, team-sharing or AI-reuse permission.
-No general rights grant is inferred from an old receipt or an unmerged rights row.
-Unavailable retained generations remain `HISTORICAL_UNAVAILABLE`.
+The operation lock and immutable receipt bind authenticated principal, operation UUID,
+action, target, expected sequence, exact semantic manifest and capture intent. Exact
+replay precedes CAS and returns the original result; changed reuse conflicts.
+Direct table writes remain revoked and owner-only RLS protects all reads.
 
-A retained layout opens through the existing Terminal layout host and its existing
-migration/validation code. The local working copy has no current-row write target;
-a subsequent Save creates a copy unless the user explicitly selects an overwrite.
-Loading retained N never writes current N+1.
+`GET /api/investigations?operation_id=...` is read-only. A miss remains inconclusive.
+`PUT /api/investigations` reconciles the exact original command under the same operation
+lock as apply. It returns an existing receipt or atomically records terminal `not_applied`.
+A delayed original apply then returns that fence without creating any record or capture.
 
-## Verification status — source and fixture proof
+Receipt cap (I1): once reconcile returns a no-effect status for (principal, operation),
+no later apply of that operation can commit. Apply and reconcile share one cap
+definition (`investigation_receipt_capacity_reached_v2`, checked under the capacity lock
+after the receipt lookup). At the cap, apply of a new operation returns `limit_reached`
+and writes nothing; reconcile of a new operation returns the conclusive
+`not_applied` with `reason: "limit_reached"` and writes nothing, distinct from
+`unavailable`. A delayed original then also returns `limit_reached`, because receipts are
+monotone: authenticated callers cannot delete them, no migration deletes them and the
+only cascade is account deletion. A service-role receipt deletion voids I1. Existing
+receipts still replay at the cap, changed reuse still conflicts, and each principal has
+its own cap. Because no receipt is stored, a later receipt GET stays inconclusive; the
+client keeps the conclusive answer locally.
 
-The preceding backend checkpoint `1fdefeaf` passed all hosted CI suites. Hosted
-PostgreSQL invariants also passed at `9d70e2ec`, including lifecycle content guards.
-At `f2220413`, hosted type generation/typecheck and 7095 unit cases passed; two
-source-bound Analysis visual locks required actual recapture. Those ten affected
-images have now been recaptured through the browser harness with per-viewport
-source hashes, routes and timestamps; both visual-lock suites pass (9 cases).
+Pending/uncertain UI offers only **Check original outcome**. It never resends a mutation.
+Only an exact owner `not_applied` result without a reason permits **Try save again** with
+a new operation UUID and retained draft. The at-cap `not_applied` ends the uncertainty with
+a limit message, keeps the draft and permits neither the original nor a replacement; a
+later new save receives `limit_reached`. An unknown reason stays uncertain.
+Local storage is a principal-partitioned draft buffer, not an
+outcome authority. On reload, a stored plain `not_applied` claim is not trusted: it
+returns as uncertain, and the page reads the original receipt from the owner once,
+read-only, without resending. A stored `limit_reached` rejection stays local: it shows
+the limit message, keeps the draft, is not retryable and grants nothing. Other stored
+definitive rejections (for example `version_conflict`) also stay local and show the
+conflict message. Logout/account changes abort in-flight reads and clear the mounted
+private state.
 
-Local browser journeys passed all 12 cases across desktop 1440x900, tablet
-820x1180 and mobile 390x844: exact save/readback/reopen, lost response and temporary
-receipt miss, 320px doubled text, and bilingual Analysis entry captures. Six
-additional browser cases prove rejected stale drafts survive reload without a new
-create, and successful saves retain their exact revision URL during a read outage.
-These use transport fixtures and the existing local preview seam, not real-user
-production authentication. Local full typecheck passes after the shared-shell and
-browser-crypto compatibility fixes. Recovery unit checks pass six cases. Native
-retained-layout host and existing workspace golden vectors pass 78 cases.
+## Native Options Plan draft entry
 
-Rejected commands remain in the same principal-partitioned recovery buffer until
-an explicit new edit/save replaces them; they do not become automatic retries.
-The immutable success receipt remains the only commit/retry authority. The independent 0028 source review returned PASS for the unchanged executable
-SQL; its normal-completion receipt proves zero residual workers. This accepts
-the SQL review scope only, not production G1.
+The Workspace optionally registers `onOptionPlanAdmissionReady(admit | null)`.
+Only an already-open fresh unsaved draft and a current ready authenticated lifetime
+can admit a whole canonical `OptionsPlanDraft`; the anonymous preview carrier cannot.
+The consumer calls `admit(candidate)` deliberately. Registration does not capture,
+save, allocate an identity, clear an uncertain command or select a different subject.
+The admitted detached/frozen Plan leaves the authored title, question and subject
+unchanged. It uses v3 through the existing explicit Save command, with its captured
+principal/epoch checked again before that command can be sent.
 
-Production read-only inventory confirmed the existing `chart_layouts` table and
-absence of both new owners before migration. The connected Terminal project has
-no team rows; G7 requires a designated real team and approved existing principals.
-Migration 0028 is applied; production Investigation writes, source merge and
-application deployment remain pending. These source and fixture results are not G1 or G0-G9 acceptance.
+`onOptionPlanRevisionReady(read | null)` registers a pure current-lifetime getter.
+`read()` returns `{id, revision, plan}` only for the acknowledged exact saved revision;
+a stale account/epoch, departed selection or cleaned-up Workspace returns null.
+Selection departure invalidates the previous getter synchronously; ordinary
+same-record Edit receives a newly bound getter for its acknowledged saved Plan.
+This is an authored-input read, not an immutable previous calculation. It performs
+no payoff recomputation or source refresh. A future calculation must be explicit and
+carry its own dated terms/source boundary through its existing owner.
 
-## Paired language contract and SQL admission
+`historyMode="embedded"` suppresses only the Workspace's programmatic route-history
+writes for New/open/save, so the existing host retains its URL and navigation lifetime.
+The default `"route"` behavior and explicit canonical links remain unchanged. Neither
+mode serializes a Plan in a URL or creates another store/router. These optional source
+interfaces do not enable live Save, change any SQL grant or clear cutover/release holds.
 
-`api/investigation_contracts.py` validates already-decoded manifests using the same
-v1/v2 limits and caller-supplied owner admission as the existing TypeScript
-contract. It performs no wire decoding, persistence, authorization or compiler
-work. Both consume 47 frozen full-manifest cases, including exact Unicode, typed
-references, duplicate identity, dates, modes and aggregate/byte limits. The SQL
-admission boundary consumes the same corpus with explicit G1-only restrictions
-(v2 and no Thesis references). Distinct versions and ordered reference identities
-use JSONB equality; JSONB containment would incorrectly collapse them.
+## Selected Earnings evidence and current rights
 
-## Recovery and real-owner proof
+The immutable Earnings generation is a container, not a rights grant. The first new
+baseline selector is `selection.field = issuer_release`. Its adapter requires one
+byte-replayed issuer release with document identity, source SHA-256 and the already
+verified event/company/generation binding. It emits a bounded reference projection,
+selected source clocks (unknown stays unknown), container hashes/byte counts and a
+separate selection fingerprint. It emits no transcript, QA, facts, excerpts, model
+output, other source bodies, or whole workspace payload.
 
-Local PostgreSQL 17 now passes 13 cases, including a full custom-format dump and
-restore into a second disposable database, whole-row equality for heads, revisions,
-receipts and retained layouts, original-receipt replay after restore, foreign-user
-read denial, and the documented write-disable/read-preserving rollback followed
-by grant restoration. This is an isolated restore proof, not a production backup.
+The no-scope selected baseline, saved review and platform-snapshot replay routes
+supply `createSelectedIssuerReleaseReadOptions(user.id, request.signal)` using the
+principal returned by the existing server `getUser`. This is a narrow executable
+read policy, not a general source-family or whole-workspace grant. An absent
+callback still denies; a historical `rp_public_primary_v1` label, a SEC-looking URL
+or `byte_replayed` alone cannot authorize display.
 
-The actual current Apple owner generation `9054efc5f27850f6c063ba52` was resolved
-through the repository adapter with fresh public-context rights on 2026-10-04.
-Its 111562-byte workspace and 2339-byte manifest passed byte/hash and semantic
-identity checks. The sanitized receipt is in
-`terminal/docs/verification/iw2-g1/current-owner-retention-receipt.json`. This proves
-a genuine retained owner baseline read, not authenticated product save/reopen.
-The existing Chris production session was observed signed in; no account, team
-or membership was created. Migration 0028 is applied; application release remains
-outstanding. The initial wrapper receipt reported incomplete readback queries;
-a supplemental catalog query verified all 19 objects without replaying DDL.
-[Posted migration receipt](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/777#issuecomment-5977275494).
+The immutable owner may supply `acquisition_receipt` conforming to
+`earnings_release.sec_acquisition.v1`. The checked-in schema and synthetic byte
+vector are exact copies from Macro commit `2b17d6c4c3e03cfb49f6d3cd8c4ce781e9d3b607` (the synthetic byte
+vector is unchanged from `2b4408859faf5002093000b6ecf6e4e69983d455`).
+The consumer strictly validates closed fields, selected URL/hash/filing binding,
+canonical HTTPS SEC filing URLs, at most five contiguous same-filing redirects
+with raw Location validation, status 200, recorded entity/UTF8 digests and lengths,
+strict decoder policy and a real acquisition timestamp no later than its immutable
+generation cutoff. The producer computes that conservative whole-second cutoff
+from actual observations, including acquisition; it is not a measured wall-clock
+emission time. This bound uses the generation cutoff, not a carried-forward source
+first-observation clock, and preserves sub-millisecond acquisition precision. Filing index and index-header URLs are refused. Valid records are copied
+and deeply frozen. A present malformed receipt invalidates the owner record; an
+old record without one remains readable by its existing non-grant consumers but
+is unavailable to this selected read policy. No old timestamp or receipt is
+synthesized. The entity is `requests.content` after content decoding, not raw wire
+bytes. Parsing retained declarations does not independently replay acquired bytes
+or prove the producer was correctly installed; producer qualification and actual
+retained publication remain separate acceptance obligations.
+
+`SELECTED_SEC_READ_POLICY` records the reviewed SEC public-filing basis, exact
+acquisition-schema digest, read purpose, eligibility and exclusions. Its
+`local_executable_policy.sha256:` revision hashes our canonical executable policy;
+it is not an SEC-issued policy version or an external registry revision. The
+policy does not grant transcript/QA, mixed Company context, model input, export,
+owner writes, or use of SEC logos/artwork/trademarks.
+
+For each selected document evaluation the authorization callback separately
+receives a frozen `IssuerReleaseSourceContext`: the retained source URL,
+`provenance="retained_owner_metadata"`, optional validated acquisition receipt,
+and current request scope. The server creates a fresh `checked_at` evaluation
+clock and binds the decision to the exact authenticated principal, `read` action,
+`investigation.selected_issuer_release` purpose, company, event, generation,
+document and source digest. An acquisition later than the evaluation is refused without truncating its
+microseconds or nanoseconds to the request clock's milliseconds.
+Review evaluates the saved and current generations separately; replay reauthorizes
+the saved root and every actual selected generation. A stale checked-at value,
+other tuple/principal/purpose, or wrong policy version/revision is unavailable.
+
+The callback context and current decision scope add no direct fields to
+`IssuerReleaseIdentity`, the bounded selection projection or its fingerprint
+formula. The acquisition receipt is part of the immutable raw owner JSON, so
+newly retained receipt bytes legitimately change the existing container and
+transitive selection fingerprints; identical retained bytes keep their existing
+fingerprints. The decision carries its binding separately in selection rights;
+acquisition and request clocks do not fill unknown source/publication clocks.
+The checked-in emitted synthetic fixture retains two unique exact producer rows
+and manifests (three cases including an identical refresh). Consumer integration
+checks their original wire hashes, cutoff ordering, bounded selected projection
+and retained replay. Its mocked acquisition date is not a live observation.
+Synthetic tests establish this source contract, not real authenticated acquisition,
+production source-use permission, migration qualification or release acceptance.
+
+The shared baseline endpoint has two explicit consumer contracts. Existing IW2
+requests without `scope` keep the selected issuer-release projection. The Company
+retained-context client sends `scope=company_context` alongside either its symbol
+or its exact four-field retained pin; only the whole immutable workspace resolver
+may answer that scope. Unknown or duplicate scopes and mixed selectors are invalid.
+The Company client continues to reject a selected projection, including one paired
+with a superficially valid whole-workspace receipt; it never falls back to current.
+The whole resolver is still called without an authorizer and refuses before
+fetching retained generation bytes. The selected factory cannot be borrowed by
+that scope. This separation repairs the endpoint/schema collision; it does not
+restore the withdrawn public-primary grant, qualify full Company availability,
+change the original admission/release holds, or assert producer installation.
+Symbol bootstrap still reads the current owner to establish the exact company and
+generation; the zero-retained-generation-read denial is not a zero-network claim
+for that bootstrap. Client and server scope changes require coupled adoption:
+an old server rejects the new scope, and an old Company client cannot treat the
+new server's no-scope selection response as full context. These are fail-closed
+availability limits, not transparent rolling compatibility.
+
+## Installation and proof boundary
+
+0030 is not applied. Its safe rollback disables apply/reconcile grants and retains all
+user history; recovery proceeds through reviewed forward repair or verified restore.
+The migration is rerun against an isolated PostgreSQL database as part of the existing
+Python all-tests CI job. Missing PostgreSQL binaries fail CI. Binaries are discovered
+with `pg_config --bindir`; no separate Investigation CI denominator is added.
+
+The integration review's raw-ingress requirement B5 remains outstanding pending the
+original handoff's carrier restriction: do not copy or recreate the denied #792 follow-up.
+The current HTTP body parser must not be claimed as strict UTF-8/duplicate-key proof.
+New independent review, hosted CI, 0030 apply/readback, exact merged deployment and a
+repeated real authenticated private journey are required before G1 release acceptance.
+The earlier private save/resume proof remains a narrow historical receipt, not acceptance
+of this repaired kernel or the full G0–G9 program.

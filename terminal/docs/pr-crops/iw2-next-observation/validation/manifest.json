@@ -1,0 +1,64 @@
+{
+  "source": "afc6210ed3305813220104e8dd8089a193ddf8c2",
+  "pixels": 6,
+  "cases": 6,
+  "files": [
+    {
+      "path": "candidate/validation-observation-lim-28672-nd-preserves-the-draft-\u2014-en-desktop/OWNER_EXACT.json",
+      "sha256": "79c187ba4a89d6c91a9974f9ce608be5dac3601b9bc0658e6227bd93c7433b81"
+    },
+    {
+      "path": "candidate/validation-observation-lim-28672-nd-preserves-the-draft-\u2014-en-desktop/limit-message.png",
+      "sha256": "f1227122f8e05dedff18250135689e2252290eedd300672bb5956a933f85bcce"
+    },
+    {
+      "path": "candidate/validation-observation-lim-28672-nd-preserves-the-draft-\u2014-en-mobile/OWNER_EXACT.json",
+      "sha256": "97d67ddf86840f4b6a74a97abb6b4c59f45cd67ad51ee869c5f748a327abfb81"
+    },
+    {
+      "path": "candidate/validation-observation-lim-28672-nd-preserves-the-draft-\u2014-en-mobile/limit-message.png",
+      "sha256": "a692913447d776553c28427f0fc74e66c913d45ee2ee25b8f5a4445413154bb8"
+    },
+    {
+      "path": "candidate/validation-observation-lim-28672-nd-preserves-the-draft-\u2014-en-tablet/OWNER_EXACT.json",
+      "sha256": "15079171a88521b62dfde58b5365882f7305a160592978e1264d4124a1afcbc9"
+    },
+    {
+      "path": "candidate/validation-observation-lim-28672-nd-preserves-the-draft-\u2014-en-tablet/limit-message.png",
+      "sha256": "af1a7fdc6377492520f448f7b372e608c3ecfd2eb8b863f3199ab20d028acaf2"
+    },
+    {
+      "path": "candidate/validation-observation-lim-583fa-nd-preserves-the-draft-\u2014-zh-desktop/OWNER_EXACT.json",
+      "sha256": "181f7a6314c743622429a4617b9133c791f488543acd342b4b04124bdf3445ea"
+    },
+    {
+      "path": "candidate/validation-observation-lim-583fa-nd-preserves-the-draft-\u2014-zh-desktop/limit-message.png",
+      "sha256": "5992b240eafd1478936cf3f15d1964b9410c2e337f25d75d4701aa1a077073a6"
+    },
+    {
+      "path": "candidate/validation-observation-lim-583fa-nd-preserves-the-draft-\u2014-zh-mobile/OWNER_EXACT.json",
+      "sha256": "f84c1a6c081d42a35dd88fda617541b3dae4b498a41ec8ebde4bb593666986b3"
+    },
+    {
+      "path": "candidate/validation-observation-lim-583fa-nd-preserves-the-draft-\u2014-zh-mobile/limit-message.png",
+      "sha256": "dfca360a18e0dcdfd068598995f181df1794fe257f0093772d96c34825c0813e"
+    },
+    {
+      "path": "candidate/validation-observation-lim-583fa-nd-preserves-the-draft-\u2014-zh-tablet/OWNER_EXACT.json",
+      "sha256": "0777f70157921548bd2ad3f483e16c662bf4726dda747b25229fbe6066dc965c"
+    },
+    {
+      "path": "candidate/validation-observation-lim-583fa-nd-preserves-the-draft-\u2014-zh-tablet/limit-message.png",
+      "sha256": "db546b5a03317c85c6d8779f696a38e74cc6029bfc0df61038973a41e2a81af3"
+    },
+    {
+      "path": "SOURCE_BROWSER_ACCEPTANCE.json",
+      "sha256": "be0bbc0adf0737835f2a3290e7630339a0d545a44740bf821c039aca1cc723b1"
+    },
+    {
+      "path": "SOURCE_COMMIT.json",
+      "sha256": "f6669e0c7bb2b83469db7e38809323b52fdc9000060130ff7a7c7d4dbf831405"
+    }
+  ],
+  "scope": "Precise over-limit status, codepoint boundary, exact draft and explicit Save; standardENZHDTM only"
+}

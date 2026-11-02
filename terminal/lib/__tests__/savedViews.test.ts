@@ -33,6 +33,19 @@ class FakeQuery implements WatchlistQuery {
     this.predicates.push((row) => row[column] === value);
     return this;
   }
+  like(column: string, pattern: string): WatchlistQuery {
+    let expression = "^";
+    const literal = (char: string) => char.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    for (let i = 0; i < pattern.length; i++) {
+      const char = pattern[i];
+      expression += char === "\\" && i + 1 < pattern.length ? literal(pattern[++i])
+        : char === "%" ? ".*" : char === "_" ? "." : literal(char);
+    }
+    const matcher = new RegExp(`${expression}$`, "s");
+    this.predicates.push((row) => typeof row[column] === "string" && matcher.test(row[column] as string));
+    return this;
+  }
+
   in(): WatchlistQuery { return this; }
   order(): WatchlistQuery { return this; }
   limit(): WatchlistQuery { return this; }

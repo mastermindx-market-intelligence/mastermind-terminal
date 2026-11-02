@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const { rpc, getUser, getSession } = vi.hoisted(() => ({ rpc: vi.fn(), getUser: vi.fn(), getSession: vi.fn() }));
 vi.mock("@/lib/supabase/server", () => ({ createClient: async () => ({ rpc, auth: { getUser, getSession } }) }));
 vi.mock("@/lib/rateLimit", () => ({ rateLimit: () => ({ ok: true }) }));
-import { GET, POST } from "@/app/api/investigations/route";
+import { GET, POST, PUT } from "@/app/api/investigations/route";
 import { qualifyScenarioCaptureSave } from "@/lib/investigationScenarioServer";
 
 const user = "10000000-0000-4000-8000-000000000001";
@@ -44,6 +44,7 @@ const FULL_VALUE = {
 
 const manifest = (scenario_capture: unknown) => ({
   schema: "investigation_manifest.v2" as const,
+  argument_relations: [],
   intent: { title: "Hedge demand at 600", question: "What does the ladder demand if spot slips?", subjects: [{ owner: "terminal.analysis_symbol", kind: "security" as const, object_id: "SPX" }] },
   layout_refs: [] as const,
   thesis_refs: [] as const,
@@ -57,6 +58,10 @@ const legacyManifest = { ...manifest(undefined) };
 delete (legacyManifest as Record<string, unknown>).scenario_capture;
 const legacyCommand = { id: inv, operation_id: op, expected_revision: 0, action: "create" as const, manifest: legacyManifest };
 
+const committed=(command:{manifest:unknown},revision:number,lifecycle="active")=>({status:"committed",id:inv,revision,lifecycle,
+ manifest:command.manifest,committed_at:"2026-10-16T20:00:00Z",investigation_id:inv,sequence:revision,
+ revision_id:"50000000-0000-4000-8000-000000000005",operation_id:op,author_ref:user,
+ parent_revision_id:revision===1?null:"60000000-0000-4000-8000-000000000006",recorded_at:"2026-10-16T20:00:00Z",manifest_digest:"a".repeat(64)});
 const post = (body: unknown, headers: Record<string, string> = {}) =>
   POST(new Request("https://terminal.test/api/investigations", { method: "POST", headers, body: JSON.stringify(body) }));
 
@@ -115,7 +120,7 @@ describe("scenario owner binding and source preflight on the Investigation route
   });
 
   it("remove/restore preserve the reference metadata without acquiring the source: no preflight refusal", async () => {
-    rpc.mockResolvedValue({ data: { status: "committed", id: inv, revision: 2, lifecycle: "removed", manifest: legacyManifest, committed_at: "2026-10-16T20:00:00Z" }, error: null });
+    rpc.mockResolvedValue({ data: committed(removeCommand,2,"removed"), error: null });
     const response = await post(removeCommand, { "Content-Type": "application/json", "x-mm-scenario-owner": user });
     expect(response.status).toBe(200);
     expect(rpc.mock.calls[0][0]).toBe("apply_investigation_revision_v2");
@@ -125,8 +130,8 @@ describe("scenario owner binding and source preflight on the Investigation route
     expect(sent.scenario_capture).toEqual(REF);
   });
 
-  it("keeps legacy non-scenario saves header-free and unchanged", async () => {
-    rpc.mockResolvedValue({ data: { status: "committed", id: inv, revision: 1, lifecycle: "active", manifest: legacyManifest, committed_at: "2026-10-16T20:00:00Z" }, error: null });
+  it("keeps new non-scenario saves header-free and unchanged", async () => {
+    rpc.mockResolvedValue({ data: committed(legacyCommand as typeof scenarioCommand,1), error: null });
     const response = await post(legacyCommand);
     expect(response.status).toBe(200);
     expect(rpc.mock.calls[0][0]).toBe("apply_investigation_revision_v2");
@@ -138,4 +143,16 @@ describe("scenario owner binding and source preflight on the Investigation route
     expect(found.status).toBe(404);
     expect(rpc.mock.calls[0]).toEqual(["read_investigation_v2", { p_id: inv, p_revision: 1 }]);
   });
+});
+
+it.each(["PUT","legacyPOST"])("keeps %s scenario recovery on the original full-request owner without source retention",async mode=>{
+ const legacy={...scenarioCommand,manifest:{...scenarioCommand.manifest}} as typeof scenarioCommand&{manifest:Record<string,unknown>};
+ delete (legacy.manifest as Record<string,unknown>).argument_relations;
+ rpc.mockResolvedValue({data:{status:"not_applied",id:inv,operation_id:op},error:null});
+ const request=new Request("https://terminal.test/api/investigations",{method:mode==="PUT"?"PUT":"POST",body:JSON.stringify(legacy)});
+ const response=await (mode==="PUT"?PUT:POST)(request);
+ expect(response.status).toBe(200);expect(await response.json()).toEqual({status:"not_applied",id:inv,operation_id:op});
+ expect(rpc.mock.calls.map(([name])=>name)).toEqual(["reconcile_investigation_operation_v2"]);
+ expect(rpc.mock.calls[0][1].p_manifest).toEqual(legacy.manifest);
+ expect(getSession).not.toHaveBeenCalled();expect(fetch).not.toHaveBeenCalled();
 });

@@ -91,7 +91,8 @@ async function readAllSavedViews(
   db: WatchlistDb,
   userId: string,
 ): Promise<{ ok: true; views: SavedView[] } | { ok: false; error: string }> {
-  const result = await userSettingsQuery(db, userId);
+  // Other personal settings (including retained screen archives) must not consume the page.
+  const result = await userSettingsQuery(db, userId).like("key", "rms\\_saved\\_view.%");
   if (result.error) return { ok: false, error: result.error.message ?? "unavailable" };
   const views = rowsOf(result)
     .map(parseSavedView)

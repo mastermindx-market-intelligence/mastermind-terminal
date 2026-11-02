@@ -7,13 +7,16 @@ import InvestigationWorkspace from "@/components/workspaces/InvestigationWorkspa
 import SavedScenarioRead from "@/components/research/SavedScenarioRead";
 import PinnedResearchSharing from "@/components/settings/PinnedResearchSharing";
 
+// Controlled ready projection for non-auth contract cases. Dedicated guard tests
+// exercise the real lifecycle; this fixture makes no live-authentication claim.
+vi.mock("@/lib/supabase/investigationAuthOwner",()=>({subscribeInvestigationAuthOwner:()=>({getSnapshot:()=>({availability:"ready",principal_partition:"10000000-0000-4000-8000-000000000001",auth_epoch:"fixture-ready"}),unsubscribe(){}})}));
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 const user = "10000000-0000-4000-8000-000000000001", recipient = "20000000-0000-4000-8000-000000000002";
 const inv = "30000000-0000-4000-8000-000000000003";
 const shell = vi.hoisted(() => ({ identity: { kind: "account", userId: "10000000-0000-4000-8000-000000000001", email: "owner@test" } }));
 vi.mock("@/components/chrome/AppShell", () => ({ useShellIdentity: () => shell.identity }));
 vi.mock("@/lib/i18n",()=>({useLang:()=>({lang:"en"})}));
-vi.mock("@/lib/supabase/client",()=>({createClient:()=>({auth:{onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})}})}));
+vi.mock("@/lib/supabase/client",()=>({createClient:()=>({auth:{getUser:async()=>({data:{user:null},error:null}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})}})}));
 const handoff = vi.hoisted(() => ({ listHandoffs: vi.fn(), readHandoff: vi.fn(), shareHandoff: vi.fn(), revokeHandoff: vi.fn(), isHandoffOwnerChangeError: () => false }));
 vi.mock("@/lib/researchHandoffs", () => handoff);
 const capture = {
@@ -69,19 +72,26 @@ it("retains only inputs and exact references before a lost POST response, then c
   for (const forbidden of ["gexMn", "totalMn", "referenceSpot", "moveFraction", "result", "basis\""]) expect(raw).not.toContain(forbidden);
   fetcher.mockResolvedValue(response({ status: "unavailable" }, false));
   await click(button("Check original outcome"));
-  expect(fetcher.mock.calls[1][0]).toContain(`operation_id=${pending.command.operation_id}`);
+  expect(fetcher.mock.calls[1][0]).toBe("/api/investigations");
+  expect(fetcher.mock.calls[1][1].method).toBe("PUT");
+  expect(JSON.parse(fetcher.mock.calls[1][1].body)).toEqual(pending.command);
   expect(fetcher.mock.calls.filter(([, init]) => init?.method === "POST")).toHaveLength(1);
   expect(el.textContent).toContain("not confirmed");
-  await click(button("Retry original save"));
+  expect([...el.querySelectorAll("button")].some(b=>b.textContent==="Retry checked save")).toBe(false);
+  fetcher.mockResolvedValue(response({status:"not_applied",id:pending.command.id,operation_id:pending.command.operation_id}));
+  await click(button("Check original outcome"));
+  await click(button("Retry checked save"));
   const posts=fetcher.mock.calls.filter(([,init])=>init?.method==="POST");
   expect(posts).toHaveLength(2);
   expect(posts[1][1].headers["x-mm-scenario-capture"]).toBe("recover");
-  expect(JSON.parse(posts[1][1].body)).toEqual(pending.command);
+  const retried=JSON.parse(posts[1][1].body);expect(retried.operation_id).not.toBe(pending.command.operation_id);
+  expect({...retried,operation_id:pending.command.operation_id}).toEqual(pending.command);
+
 });
 it("keeps confirmed metadata success when its GET fails and never substitutes a changed live scenario", async () => {
-  let sent: { id: string; manifest: unknown };
+  let sent: { id: string; operation_id:string; manifest: unknown };
   fetcher.mockImplementation(async (_url, init) => {
-    if (init?.method === "POST") { sent = JSON.parse(init.body); return response({ status: "committed", id: sent.id, revision: 1, lifecycle: "active", manifest: sent.manifest, committed_at: "2026-10-16T20:00:00Z" }); }
+    if (init?.method === "POST") { sent = JSON.parse(init.body); return response({ status: "committed", id: sent.id, revision: 1, lifecycle: "active", manifest: sent.manifest, committed_at: "2026-10-16T20:00:00Z",investigation_id:sent.id,sequence:1,revision_id:inv,operation_id:sent.operation_id,author_ref:user,parent_revision_id:null,recorded_at:"2026-10-16T20:00:00Z",manifest_digest:"a".repeat(64) }); }
     throw new TypeError("GET unavailable");
   });
   await startSave();
@@ -155,9 +165,18 @@ it("capture UNKNOWN navigates/reloads through actual raw claims.sub Workspace pr
  expect(fetcher.mock.calls.filter(([,init])=>init?.method==="POST")).toHaveLength(0);
  expect(sessionStorage.getItem(key)).toBe(journal);expect(button("Start new research").disabled).toBe(true);
  await mount(<span/>);await mount(<InvestigationWorkspace ownerKey={user}/>);
- expect(sessionStorage.getItem(key)).toBe(journal);await click(button("Retry original save"));
+ expect(sessionStorage.getItem(key)).toBe(journal);
+ expect(fetcher.mock.calls.filter(([,init])=>init?.method==="POST")).toHaveLength(0);
+ fetcher.mockImplementation(async(url,init)=>init?.method==="PUT"?response({status:"not_applied",id:pending.command.id,operation_id:pending.command.operation_id}):workspaceRead(url));
+ await click(button("Check original outcome"));
+ const checks=fetcher.mock.calls.filter(([,init])=>init?.method==="PUT");expect(checks).toHaveLength(1);
+ expect(JSON.parse(checks[0][1].body)).toEqual(pending.command);
+ expect(fetcher.mock.calls.filter(([,init])=>init?.method==="POST")).toHaveLength(0);
+ await click(button("Try save again"));
  const posts=fetcher.mock.calls.filter(([,init])=>init?.method==="POST");expect(posts).toHaveLength(1);
- expect(JSON.parse(posts[0][1].body)).toEqual(pending.command);expect(posts[0][1].headers["x-mm-scenario-capture"]).toBe("recover");
+ const retried=JSON.parse(posts[0][1].body);expect(retried.operation_id).not.toBe(pending.command.operation_id);
+ expect({...retried,operation_id:pending.command.operation_id}).toEqual(pending.command);
+ expect(posts[0][1].headers["x-mm-scenario-capture"]).toBe("recover");
 });
 it("capture respects existing raw-UUID UNKNOWN journal instead of admitting a fresh operation",async()=>{
  fetcher.mockRejectedValue(new Error("unknown"));await startSave();const original=JSON.parse(sessionStorage.getItem(key)!);
@@ -173,4 +192,23 @@ it("different UNKNOWN operations in both namespaces block recovery/retry/new dra
  expect(fetcher.mock.calls.some(([url])=>String(url).includes("operation_id="))).toBe(false);
  expect(fetcher.mock.calls.filter(([,init])=>init?.method==="POST")).toHaveLength(0);
  expect(sessionStorage.getItem(key)).toBe(original);expect(sessionStorage.getItem(rawKey)).toBe(other);
+});
+
+it.each(["raw","prefixed"] as const)("duplicate-alias %s owner recheck forces the full original PUT before a result-only committed receipt can settle",async recheck=>{
+ fetcher.mockRejectedValue(new Error("unknown"));await startSave();
+ const pending=JSON.parse(sessionStorage.getItem(key)!);
+ const plainRaw=JSON.stringify({...pending,owner:user}),plainPrefixed=JSON.stringify(pending);
+ const raw=recheck==="raw"?JSON.stringify({...pending,owner:user,phase:"rejected",reason:"invalid_payload"}):plainRaw;
+ const prefixed=recheck==="prefixed"?JSON.stringify({...pending,phase:"rejected",reason:"invalid_payload"}):plainPrefixed;
+ sessionStorage.setItem(rawKey,raw);sessionStorage.setItem(key,prefixed);
+ fetcher.mockReset().mockImplementation(async(url,init)=>{
+  if(init?.method==="PUT")return response({status:"unavailable"},false);
+  if(String(url).includes("operation_id="))return response({status:"committed",id:pending.command.id,operation_id:pending.command.operation_id,revision:1,lifecycle:"active",manifest:pending.command.manifest,committed_at:"2026-10-16T20:00:00Z",investigation_id:pending.command.id,sequence:1,revision_id:inv,author_ref:user,parent_revision_id:null,recorded_at:"2026-10-16T20:00:00Z",manifest_digest:"a".repeat(64)});
+  return workspaceRead(url);
+ });
+ await mount(<InvestigationWorkspace ownerKey={user}/>);
+ expect(fetcher.mock.calls.filter(([,init])=>init?.method==="PUT").map(([,init])=>JSON.parse(init.body))).toEqual([pending.command]);
+ expect(fetcher.mock.calls.filter(([,init])=>init?.method==="POST")).toHaveLength(0);
+ expect(fetcher.mock.calls.some(([url])=>String(url).includes(`id=${pending.command.id}`))).toBe(false);
+ expect(el.textContent).toContain("not confirmed");expect(sessionStorage.getItem(rawKey)).toBe(raw);expect(sessionStorage.getItem(key)).toBe(prefixed);
 });

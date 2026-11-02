@@ -1,0 +1,136 @@
+{
+  "before": {
+    "font": "26px",
+    "width": 390,
+    "height": 844,
+    "dpr": 1,
+    "cssZoom": "1"
+  },
+  "after": {
+    "font": "52px",
+    "width": 390,
+    "height": 844,
+    "dpr": 1,
+    "cssZoom": "1"
+  },
+  "actual": {
+    "session": {
+      "sessionId": "0368cb94-291e-4237-ac10-f7b8612d0b71",
+      "capabilities": {
+        "acceptInsecureCerts": false,
+        "browserName": "firefox",
+        "browserVersion": "151.0",
+        "platformName": "mac",
+        "setWindowRect": true,
+        "unhandledPromptBehavior": "dismiss and notify",
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:151.0) Gecko/20100101 Firefox/151.0",
+        "moz:buildID": "20260611192437",
+        "moz:headless": true,
+        "moz:platformVersion": "25.5.0",
+        "moz:processID": 60260,
+        "moz:profile": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/next-observation-retained-draft/native-output/retained.native.ts-rejecte-d2eae-exact-request-snapshot-—-en-native-mobile/isolated-firefox-profile",
+        "moz:shutdownTimeout": 60000,
+        "pageLoadStrategy": "normal",
+        "timeouts": {
+          "implicit": 0,
+          "pageLoad": 300000,
+          "script": 30000
+        },
+        "strictFileInteractability": false,
+        "moz:accessibilityChecks": false,
+        "moz:webdriverClick": true,
+        "moz:windowless": false,
+        "capabilities": {
+          "alwaysMatch": {
+            "acceptInsecureCerts": false
+          }
+        },
+        "proxy": {}
+      }
+    },
+    "native": {
+      "value": {
+        "textZoom": 2,
+        "fullZoom": 1,
+        "url": "http://127.0.0.1:3586/analysis?view=investigations"
+      }
+    }
+  },
+  "readable": {
+    "font": "26px",
+    "box": {
+      "left": 50,
+      "right": 342,
+      "top": 1088.300048828125,
+      "bottom": 1244.300048828125
+    },
+    "rects": [
+      {
+        "left": 50,
+        "right": 325.6333312988281,
+        "top": 1091.800048828125,
+        "bottom": 1123.800048828125
+      },
+      {
+        "left": 50,
+        "right": 218.86666870117188,
+        "top": 1130.800048828125,
+        "bottom": 1162.800048828125
+      },
+      {
+        "left": 50,
+        "right": 246,
+        "top": 1169.800048828125,
+        "bottom": 1201.800048828125
+      },
+      {
+        "left": 50,
+        "right": 171.13333129882812,
+        "top": 1208.800048828125,
+        "bottom": 1240.800048828125
+      }
+    ],
+    "fits": true,
+    "documentWidth": 390,
+    "viewport": 390
+  },
+  "clipped": {
+    "font": "26px",
+    "box": {
+      "left": 50,
+      "right": 342,
+      "top": 1088.300048828125,
+      "bottom": 1089.300048828125
+    },
+    "rects": [
+      {
+        "left": 50,
+        "right": 325.6333312988281,
+        "top": 1091.800048828125,
+        "bottom": 1123.800048828125
+      },
+      {
+        "left": 50,
+        "right": 218.86666870117188,
+        "top": 1130.800048828125,
+        "bottom": 1162.800048828125
+      },
+      {
+        "left": 50,
+        "right": 246,
+        "top": 1169.800048828125,
+        "bottom": 1201.800048828125
+      },
+      {
+        "left": 50,
+        "right": 171.13333129882812,
+        "top": 1208.800048828125,
+        "bottom": 1240.800048828125
+      }
+    ],
+    "fits": false,
+    "documentWidth": 390,
+    "viewport": 390
+  },
+  "scope": "Real native text200 at390, unchanged pending request, keyboard disclosure; no Chinese/full-accessibility/live claim"
+}

@@ -1,0 +1,9 @@
+# Retained platform snapshot inspection
+
+Saved research can explicitly inspect an Earnings platform snapshot at a timezone-qualified cutoff. The GET route reads one owned Investigation revision and starts from its exact retained baseline. It follows at most32 existing owner history links, verifying every manifest hash and descending emission time. The newest retained snapshot at or before the cutoff is read through the existing owner adapter with fresh current authorization. A missing selected event, broken link, absent clock, future observation, denied access or exhausted history never substitutes current data.
+
+The scope ends at the saved baseline. This is platform snapshot inspection, not public-known or user-seen replay. Those policies explicitly return unsupported. Source release time remains separately labeled metadata; it is not treated as the availability time for every item in a later snapshot.
+
+The EN/ZH UI makes no request on mount or reopen. An explicit action makes a private, non-cacheable GET and renders facts through the existing owner presenter. Editing the cutoff or a failed refresh clears the prior result. Record/principal changes abort in-flight reads. No replay result can advance the saved baseline, write a layout, pin Brain, run analysis, or enable a subscription.
+
+Verification:88 distinct focused/regression cases across the recorded runs, six responsive replay cases in EN/ZH at three viewports, nine prior save/review browser regressions, and scoped independent static PASS. See `terminal/docs/verification/iw2-g4/source-verification.json` for exact scope and amendments. Browser data uses fixtures. The fresh live retained-root check returned denied; a separate current-publication metadata read returned HTTP403. No revocation cause or live replay acceptance is inferred. Public-known, user-seen, real corrected-vintage production replay and authenticated product acceptance remain open G4 work.

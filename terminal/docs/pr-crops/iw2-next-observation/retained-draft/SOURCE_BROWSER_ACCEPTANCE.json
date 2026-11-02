@@ -1,0 +1,142 @@
+{
+  "recorded_at": "2026-10-14T11:13:10.645808+00:00",
+  "verdict": "ACCEPTED_SCOPED_PARENT_REVIEW",
+  "root": "01a104c8-6e11-7e52-93c1-6b8dbc45bb9c",
+  "base": "0954cecd117ea2775c39aaf2f1fa2e2caf7c0268",
+  "captured_source": {
+    "terminal/components/workspaces/InvestigationWorkspace.tsx": "8cc42271cc8ea58b821b36537616196fb37b9c6d5520ca4a9f2a87ea382e81af",
+    "terminal/lib/__tests__/investigationRecoveryMount.test.tsx": "9eab1e7ea1c5e96ac4a3d2e74d8216cea864e8cb21ede1c41acc8680ff813370",
+    "terminal/e2e/investigation-retained-observation.spec.ts": "b6b7bc17aa77ffe94e8316d17b26f15d1cbf0a524382038963271df187811987"
+  },
+  "product_delta": "Exactly one existing read-only InvestigationNextObservation invocation inside rejected-command Retained draft; no state, handler, request, owner, schema, styles or copy changes.",
+  "original_red": {
+    "qualified_unit": "2FAIL2PASS: ENZH missing heading/text; absent optional controls pass",
+    "browser": "1FAIL actual mobileEN missing retained observation region",
+    "invalid_initial_fixture": "Two additional failures were explicit empty optional values rejected by existing contract; original log retained; qualified valid fixture omits absent field."
+  },
+  "candidate": {
+    "unit": "136PASS3files, including all109recovery mounted tests",
+    "standard_browser": "6PASS ENZH D/T/M; workers1/retries0",
+    "native_browser": "1PASS EN390 actual pinnedFirefox151 textZoom2/fullZoom1, fixedviewport/DPR1/CSSzoom1, font26->52, keyboarddisclosure, wrapping/clippingnegativecontrol",
+    "typecheck_exit": 0,
+    "lint": "Newtest0errors0warnings; product1error3warnings byte-identical original messages; zeroadded",
+    "whitespace_exit": 0
+  },
+  "oracles": [
+    "Exact original command/session storage remains byte-identical after local textarea change and later owner revision read",
+    "Later owner observation remains distinct; reload restores original retained editor value",
+    "Zero owner writes, zero operation receipt reads/reconciliation",
+    "Native clipping control fails and restored original style passes"
+  ],
+  "pixels": [
+    {
+      "path": "terminal/docs/pr-crops/iw2-next-observation/retained-draft/candidate-output/investigation-retained-obs-e8c77-exact-request-snapshot-\u2014-zh-mobile/original-request-observation.png",
+      "sha256": "2c7804a0a5ee972e8af4c2941489070a966978f27f0d61ab8a55241454fe8062"
+    },
+    {
+      "path": "terminal/docs/pr-crops/iw2-next-observation/retained-draft/candidate-output/investigation-retained-obs-e8c77-exact-request-snapshot-\u2014-zh-mobile/retained-beside-newer-owner.png",
+      "sha256": "c7e5563b20ece523e90fe2869d74d8b9bb0460ad0ec2a15491c8fd68a2b88c5c"
+    },
+    {
+      "path": "terminal/docs/pr-crops/iw2-next-observation/retained-draft/candidate-output/investigation-retained-obs-28885-exact-request-snapshot-\u2014-en-tablet/original-request-observation.png",
+      "sha256": "11ca4e32edab90bf06d78e029aedea2c78c8063f2999b01f31cf4b7c69572d0a"
+    },
+    {
+      "path": "terminal/docs/pr-crops/iw2-next-observation/retained-draft/candidate-output/investigation-retained-obs-28885-exact-request-snapshot-\u2014-en-tablet/retained-beside-newer-owner.png",
+      "sha256": "07402fb9670e2d95590042aa04e49902ce54afb0e16ea26421f4c90b77a309d4"
+    },
+    {
+      "path": "terminal/docs/pr-crops/iw2-next-observation/retained-draft/candidate-output/investigation-retained-obs-e8c77-exact-request-snapshot-\u2014-zh-desktop/original-request-observation.png",
+      "sha256": "c6444dab9f12af88394edf4c24d6786bb7138dc3703b22eaf841fba371c89d6d"
+    },
+    {
+      "path": "terminal/docs/pr-crops/iw2-next-observation/retained-draft/candidate-output/investigation-retained-obs-e8c77-exact-request-snapshot-\u2014-zh-desktop/retained-beside-newer-owner.png",
+      "sha256": "91c94aab80ee9fb23bfdc6f0e129a259c36efbd02e4348a64e6c75d95490daa3"
+    },
+    {
+      "path": "terminal/docs/pr-crops/iw2-next-observation/retained-draft/candidate-output/investigation-retained-obs-e8c77-exact-request-snapshot-\u2014-zh-tablet/original-request-observation.png",
+      "sha256": "1ef4396f4cf99fa1cb5eb39e60f63b56a362aa910ebaf6d537dae5bde6b5aa05"
+    },
+    {
+      "path": "terminal/docs/pr-crops/iw2-next-observation/retained-draft/candidate-output/investigation-retained-obs-e8c77-exact-request-snapshot-\u2014-zh-tablet/retained-beside-newer-owner.png",
+      "sha256": "9211a1b87d9905cc6b9d605e4a9e1b9911413ae2b8475c09aeb3c8fc6c464c55"
+    },
+    {
+      "path": "terminal/docs/pr-crops/iw2-next-observation/retained-draft/candidate-output/investigation-retained-obs-28885-exact-request-snapshot-\u2014-en-desktop/original-request-observation.png",
+      "sha256": "13029160cda8c313912ab96f1ee6c17244045c46b8e303848ed83bd5b49be4ec"
+    },
+    {
+      "path": "terminal/docs/pr-crops/iw2-next-observation/retained-draft/candidate-output/investigation-retained-obs-28885-exact-request-snapshot-\u2014-en-desktop/retained-beside-newer-owner.png",
+      "sha256": "c31bc5078a9e050645bef15379140d40e2bcd7d0364978f7cd9a102c1699faf4"
+    },
+    {
+      "path": "terminal/docs/pr-crops/iw2-next-observation/retained-draft/candidate-output/investigation-retained-obs-28885-exact-request-snapshot-\u2014-en-mobile/original-request-observation.png",
+      "sha256": "d609589cefd85aa9d6497204ba15053b04d1c60a5bca588d03b4dd6f62a54bc8"
+    },
+    {
+      "path": "terminal/docs/pr-crops/iw2-next-observation/retained-draft/candidate-output/investigation-retained-obs-28885-exact-request-snapshot-\u2014-en-mobile/retained-beside-newer-owner.png",
+      "sha256": "7d618219f59ec5d0854ea662d52ea26073ced692e36541630ee957929d1c41d0"
+    },
+    {
+      "path": "terminal/docs/pr-crops/iw2-next-observation/retained-draft/native-output/retained.native.ts-rejecte-d2eae-exact-request-snapshot-\u2014-en-native-mobile/original-request-observation.png",
+      "sha256": "d710b2f4bb39824a0227877cb0258a6fdad6f150237b86d5f11469a5d7baffad"
+    },
+    {
+      "path": "terminal/docs/pr-crops/iw2-next-observation/retained-draft/native-output/retained.native.ts-rejecte-d2eae-exact-request-snapshot-\u2014-en-native-mobile/retained-beside-newer-owner.png",
+      "sha256": "13790a48faaf18d5e8c0aba58906155c05d6800ce936ab03d74e3be4ca0460b0"
+    }
+  ],
+  "owner_receipts": [
+    {
+      "path": "terminal/docs/pr-crops/iw2-next-observation/retained-draft/candidate-output/investigation-retained-obs-e8c77-exact-request-snapshot-\u2014-zh-mobile/OWNER_EXACT.json",
+      "sha256": "0ee63b76df71edb287f5d1c338411ed914a972eca63ed27f07244580d31ab014"
+    },
+    {
+      "path": "terminal/docs/pr-crops/iw2-next-observation/retained-draft/candidate-output/investigation-retained-obs-28885-exact-request-snapshot-\u2014-en-tablet/OWNER_EXACT.json",
+      "sha256": "bf647403cf38380703354b0e6a4d028dd6fa75563acf9e19d7795f863b04d8dc"
+    },
+    {
+      "path": "terminal/docs/pr-crops/iw2-next-observation/retained-draft/candidate-output/investigation-retained-obs-e8c77-exact-request-snapshot-\u2014-zh-desktop/OWNER_EXACT.json",
+      "sha256": "0ee63b76df71edb287f5d1c338411ed914a972eca63ed27f07244580d31ab014"
+    },
+    {
+      "path": "terminal/docs/pr-crops/iw2-next-observation/retained-draft/candidate-output/investigation-retained-obs-e8c77-exact-request-snapshot-\u2014-zh-tablet/OWNER_EXACT.json",
+      "sha256": "9af1cda57d2e4e0e01f7008026fec1a45c2879686831c06500eb5f3f853da357"
+    },
+    {
+      "path": "terminal/docs/pr-crops/iw2-next-observation/retained-draft/candidate-output/investigation-retained-obs-28885-exact-request-snapshot-\u2014-en-desktop/OWNER_EXACT.json",
+      "sha256": "bf647403cf38380703354b0e6a4d028dd6fa75563acf9e19d7795f863b04d8dc"
+    },
+    {
+      "path": "terminal/docs/pr-crops/iw2-next-observation/retained-draft/candidate-output/investigation-retained-obs-28885-exact-request-snapshot-\u2014-en-mobile/OWNER_EXACT.json",
+      "sha256": "bf647403cf38380703354b0e6a4d028dd6fa75563acf9e19d7795f863b04d8dc"
+    },
+    {
+      "path": "terminal/docs/pr-crops/iw2-next-observation/retained-draft/native-output/retained.native.ts-rejecte-d2eae-exact-request-snapshot-\u2014-en-native-mobile/NATIVE_READABILITY.json",
+      "sha256": "c94c5cb65c8b4c82317fc3564879cb80671e80464d1c23865677038a8a142c3c"
+    },
+    {
+      "path": "terminal/docs/pr-crops/iw2-next-observation/retained-draft/native-output/retained.native.ts-rejecte-d2eae-exact-request-snapshot-\u2014-en-native-mobile/OWNER_EXACT.json",
+      "sha256": "86c4da6eeb38d72b3e6dc4a544bd957db9ac06ff884e60996ec03435c764cfa5"
+    }
+  ],
+  "logs": {
+    "original-unit.log": "122e1ad70778520ef1c8b65ef8c4aba0ca7a18b807ba1e50ae005a13bc5f651b",
+    "qualified-original-unit.log": "b5fe142566ca22a463989f5247fc095e5e274e454bb9fc5fc66bc532b7e95dac",
+    "original-browser.log": "3fbdeae77e894144b809c3c5937a6c1bda3bb12f35e1185ee60c8722581dd13d",
+    "candidate-unit.log": "26ec4a38643ad26327613b413696beb69374611701d3086e19e3a5fe838701f7",
+    "candidate-browser.log": "74a5745e60793ce821371b9f076399aa11b63d9377f557aeb73bf3bf0f2f2696",
+    "native-browser.log": "69a7d891a68e93b0df2efdaeeed9b112dedca2320abc5bfb932fc6f56b52f066",
+    "typecheck.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "original-lint.json": "6773236fe7ce4df2d34b613fcb0e560f3d09562b37fe08549585c26f971df258",
+    "candidate-lint.json": "677c8d89c94c98ddc724da730d4066331e3aca00a3cf9792e1b14fb42ea3d84c"
+  },
+  "reuse": "All previously accepted legacy, accuracy, observation saved/editor/limit captures and their source bindings unchanged. Only rejected snapshot output changed; no recapture/restamp of unchanged paths.",
+  "limits": [
+    "Isolated fixture transport, not live owner/account or original frozen operation recovery",
+    "No Chinese native text200/full-accessibility/fulljourney claim",
+    "Prior userGET404 fixture logs retained, no cause/repair claim",
+    "All release/schema/rights/principal/live/unknown/refused controls remain held"
+  ],
+  "review": "Original root reviewed exact one-insertion product delta, unchanged renderer and handlers, qualified RED/GREEN, all14actualimages, same-id owner snapshots. No independent-worker-review claim."
+}

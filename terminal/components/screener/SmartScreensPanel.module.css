@@ -41,6 +41,7 @@
 .notice:empty { display: none; }
 .line { margin: 0; color: var(--text-2); }
 .meta { color: var(--muted); }
+.preservedNotice { color: var(--text-2); }
 
 .saveRow { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 8px; }
 .input {
@@ -51,6 +52,7 @@
 }
 .input:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
 .inputSm { width: 140px; }
+.assumptionSelect { width: auto; min-width: min(220px, 100%); }
 
 .btn { height: 28px; padding: 0 10px; }
 .btn:disabled { opacity: .45; cursor: not-allowed; }

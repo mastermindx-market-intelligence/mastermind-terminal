@@ -9,6 +9,9 @@ import InvestigationWorkspaceMount from "@/components/mounts/InvestigationWorksp
 import InvestigationWorkspace from "@/components/workspaces/InvestigationWorkspace";
 import { fmtMovePct, fmtScenarioMn, localScenarioValue, type ScenarioBasis, type ScenarioInputs, type ScenarioValue } from "@/lib/exposureScenario";
 
+// Controlled ready projection for non-auth contract cases. Dedicated guard tests
+// exercise the real lifecycle; this fixture makes no live-authentication claim.
+vi.mock("@/lib/supabase/investigationAuthOwner",()=>({subscribeInvestigationAuthOwner:()=>({getSnapshot:()=>({availability:"ready",principal_partition:"10000000-0000-4000-8000-000000000001",auth_epoch:"fixture-ready"}),unsubscribe(){}})}));
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 const user = "10000000-0000-4000-8000-000000000001", recipient = "20000000-0000-4000-8000-000000000002";
@@ -20,6 +23,7 @@ vi.mock("@/lib/researchHandoffs", () => handoff);
 const supabase = vi.hoisted(() => ({ createClient: vi.fn() }));
 vi.mock("@/lib/supabase/client", () => supabase);
 vi.mock("@/lib/supabase/server",()=>({createClient:async()=>({auth:{getClaims:async()=>({data:{claims:{sub:"10000000-0000-4000-8000-000000000001"}}})}})}));
+vi.mock("next/headers",()=>({cookies:async()=>({get:()=>undefined})}));
 const i18n = vi.hoisted(() => ({ useLang: vi.fn() }));
 vi.mock("@/lib/i18n", () => i18n);
 

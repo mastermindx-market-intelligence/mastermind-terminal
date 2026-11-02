@@ -1,0 +1,59 @@
+{
+  "scope": "Same React SSR/runtime, identical CSS binding; exact old/candidate output across both languages, empty/missing/literal/markup inputs. Complements original six actual SSR unit cases. No browser reattribution.",
+  "cases": [
+    {
+      "lang": "en",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "equal": true
+    },
+    {
+      "lang": "en",
+      "value": "",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "equal": true
+    },
+    {
+      "lang": "en",
+      "value": "Retained observation",
+      "bytes": 146,
+      "sha256": "be391dc146876e44d080995fcc7696a9eff42e3f6d36b08c43fee20976428b64",
+      "equal": true
+    },
+    {
+      "lang": "en",
+      "value": "  Observe <script>unsafe()</script> & \"quoted\"\nSecond line  ",
+      "bytes": 212,
+      "sha256": "fbf3f7422f30e2c0aadaee0f492188e6a0d0ba934dfea1a15e0c51dd9d197364",
+      "equal": true
+    },
+    {
+      "lang": "zh",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "equal": true
+    },
+    {
+      "lang": "zh",
+      "value": "",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "equal": true
+    },
+    {
+      "lang": "zh",
+      "value": "Retained observation",
+      "bytes": 145,
+      "sha256": "27c2bc119b32ba0dc5789e8da5334ba8818d88b098799448d077b499e4582500",
+      "equal": true
+    },
+    {
+      "lang": "zh",
+      "value": "  Observe <script>unsafe()</script> & \"quoted\"\nSecond line  ",
+      "bytes": 211,
+      "sha256": "bcac5b9df15e8793f00122954ea80526290171bf0f5f75bb3f8c154b45ddfaa7",
+      "equal": true
+    }
+  ]
+}

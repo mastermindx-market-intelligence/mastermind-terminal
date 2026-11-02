@@ -1,0 +1,221 @@
+{
+  "original": {
+    "id": "8e1c6eae-0897-4e09-8ecc-4787a4a6ec47",
+    "currentVersion": 1,
+    "lifecycleState": "active",
+    "subject": {
+      "schema": "mastermind.thesis-subject-ref/v1",
+      "kind": "issuer",
+      "owner": "terminal.analysis_symbol",
+      "key": "AAPL",
+      "identityState": "listing_scoped",
+      "listing": {
+        "symbol": "AAPL",
+        "mic": null,
+        "securityId": null
+      },
+      "companyId": null,
+      "display": "AAPL · listing scoped"
+    },
+    "title": "Date precision",
+    "createdAt": "2026-10-14T09:41:12.595Z",
+    "updatedAt": "2026-10-14T09:41:12.595Z",
+    "current": {
+      "id": "27e02ad6-ce9f-4e92-9cea-69c98752f6eb",
+      "thesisId": "8e1c6eae-0897-4e09-8ecc-4787a4a6ec47",
+      "version": 1,
+      "previousVersion": null,
+      "transition": "create",
+      "lifecycleState": "active",
+      "subject": {
+        "schema": "mastermind.thesis-subject-ref/v1",
+        "kind": "issuer",
+        "owner": "terminal.analysis_symbol",
+        "key": "AAPL",
+        "identityState": "listing_scoped",
+        "listing": {
+          "symbol": "AAPL",
+          "mic": null,
+          "securityId": null
+        },
+        "companyId": null,
+        "display": "AAPL · listing scoped"
+      },
+      "content": {
+        "schema": "mastermind.thesis-content/v1",
+        "title": "Date precision",
+        "statement": "Read the whole draft date before deciding to save.",
+        "catalysts": [
+          "Next disclosure"
+        ],
+        "falsifiers": [
+          "Utilization falls"
+        ],
+        "risks": [
+          "Incomplete attribution"
+        ],
+        "horizon": "quarters",
+        "effectiveAt": "2026-10-01T09:30:00.123Z",
+        "revisionNote": "Keep milliseconds and the original instant."
+      },
+      "clientRequestId": "44066ceb-e0a5-4416-9f89-0fb6469a05d6",
+      "systemRecordedAt": "2026-10-14T09:41:12.595Z",
+      "effectiveAt": "2026-10-01T09:30:00.123Z"
+    },
+    "history": [
+      {
+        "id": "27e02ad6-ce9f-4e92-9cea-69c98752f6eb",
+        "thesisId": "8e1c6eae-0897-4e09-8ecc-4787a4a6ec47",
+        "version": 1,
+        "previousVersion": null,
+        "transition": "create",
+        "lifecycleState": "active",
+        "subject": {
+          "schema": "mastermind.thesis-subject-ref/v1",
+          "kind": "issuer",
+          "owner": "terminal.analysis_symbol",
+          "key": "AAPL",
+          "identityState": "listing_scoped",
+          "listing": {
+            "symbol": "AAPL",
+            "mic": null,
+            "securityId": null
+          },
+          "companyId": null,
+          "display": "AAPL · listing scoped"
+        },
+        "content": {
+          "schema": "mastermind.thesis-content/v1",
+          "title": "Date precision",
+          "statement": "Read the whole draft date before deciding to save.",
+          "catalysts": [
+            "Next disclosure"
+          ],
+          "falsifiers": [
+            "Utilization falls"
+          ],
+          "risks": [
+            "Incomplete attribution"
+          ],
+          "horizon": "quarters",
+          "effectiveAt": "2026-10-01T09:30:00.123Z",
+          "revisionNote": "Keep milliseconds and the original instant."
+        },
+        "clientRequestId": "44066ceb-e0a5-4416-9f89-0fb6469a05d6",
+        "systemRecordedAt": "2026-10-14T09:41:12.595Z",
+        "effectiveAt": "2026-10-01T09:30:00.123Z"
+      }
+    ],
+    "historyTruncated": false
+  },
+  "final": {
+    "id": "8e1c6eae-0897-4e09-8ecc-4787a4a6ec47",
+    "currentVersion": 1,
+    "lifecycleState": "active",
+    "subject": {
+      "schema": "mastermind.thesis-subject-ref/v1",
+      "kind": "issuer",
+      "owner": "terminal.analysis_symbol",
+      "key": "AAPL",
+      "identityState": "listing_scoped",
+      "listing": {
+        "symbol": "AAPL",
+        "mic": null,
+        "securityId": null
+      },
+      "companyId": null,
+      "display": "AAPL · listing scoped"
+    },
+    "title": "Date precision",
+    "createdAt": "2026-10-14T09:41:12.595Z",
+    "updatedAt": "2026-10-14T09:41:12.595Z",
+    "current": {
+      "id": "27e02ad6-ce9f-4e92-9cea-69c98752f6eb",
+      "thesisId": "8e1c6eae-0897-4e09-8ecc-4787a4a6ec47",
+      "version": 1,
+      "previousVersion": null,
+      "transition": "create",
+      "lifecycleState": "active",
+      "subject": {
+        "schema": "mastermind.thesis-subject-ref/v1",
+        "kind": "issuer",
+        "owner": "terminal.analysis_symbol",
+        "key": "AAPL",
+        "identityState": "listing_scoped",
+        "listing": {
+          "symbol": "AAPL",
+          "mic": null,
+          "securityId": null
+        },
+        "companyId": null,
+        "display": "AAPL · listing scoped"
+      },
+      "content": {
+        "schema": "mastermind.thesis-content/v1",
+        "title": "Date precision",
+        "statement": "Read the whole draft date before deciding to save.",
+        "catalysts": [
+          "Next disclosure"
+        ],
+        "falsifiers": [
+          "Utilization falls"
+        ],
+        "risks": [
+          "Incomplete attribution"
+        ],
+        "horizon": "quarters",
+        "effectiveAt": "2026-10-01T09:30:00.123Z",
+        "revisionNote": "Keep milliseconds and the original instant."
+      },
+      "clientRequestId": "44066ceb-e0a5-4416-9f89-0fb6469a05d6",
+      "systemRecordedAt": "2026-10-14T09:41:12.595Z",
+      "effectiveAt": "2026-10-01T09:30:00.123Z"
+    },
+    "history": [
+      {
+        "id": "27e02ad6-ce9f-4e92-9cea-69c98752f6eb",
+        "thesisId": "8e1c6eae-0897-4e09-8ecc-4787a4a6ec47",
+        "version": 1,
+        "previousVersion": null,
+        "transition": "create",
+        "lifecycleState": "active",
+        "subject": {
+          "schema": "mastermind.thesis-subject-ref/v1",
+          "kind": "issuer",
+          "owner": "terminal.analysis_symbol",
+          "key": "AAPL",
+          "identityState": "listing_scoped",
+          "listing": {
+            "symbol": "AAPL",
+            "mic": null,
+            "securityId": null
+          },
+          "companyId": null,
+          "display": "AAPL · listing scoped"
+        },
+        "content": {
+          "schema": "mastermind.thesis-content/v1",
+          "title": "Date precision",
+          "statement": "Read the whole draft date before deciding to save.",
+          "catalysts": [
+            "Next disclosure"
+          ],
+          "falsifiers": [
+            "Utilization falls"
+          ],
+          "risks": [
+            "Incomplete attribution"
+          ],
+          "horizon": "quarters",
+          "effectiveAt": "2026-10-01T09:30:00.123Z",
+          "revisionNote": "Keep milliseconds and the original instant."
+        },
+        "clientRequestId": "44066ceb-e0a5-4416-9f89-0fb6469a05d6",
+        "systemRecordedAt": "2026-10-14T09:41:12.595Z",
+        "effectiveAt": "2026-10-01T09:30:00.123Z"
+      }
+    ],
+    "historyTruncated": false
+  },
+  "writes": []
+}

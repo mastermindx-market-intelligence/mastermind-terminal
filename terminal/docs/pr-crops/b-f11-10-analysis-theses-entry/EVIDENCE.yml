@@ -1,13 +1,13 @@
 # B-F11-10a Analysis context-bar theses entry — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: e2846880681d4b9aff4a060e1321f50f240cafc7
-# capturedAt: 2026-10-24T05:29:47.034Z
+# capturedAtHead: a13b382fb961c96e0f69e0d04e7985fe9671e1aa
+# capturedAt: 2026-10-24T11:02:42.829Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/components/workspaces/AnalysisWorkspace.tsx: "411b8a7e498b8af3f9337fdcf3835dd62e6a5854826f414171d8303efd8aa5bb"
   terminal/app/company-intelligence.css: "8b43f2046891837f6572fa2a59b7594547def9602b0454e1f14edba322da2a34"
-  terminal/lib/i18n.tsx: "13f33e3178b105a64f1f5df35974cd99041ef06f05bdece95939dd07a8b9fe7c"
+  terminal/lib/i18n.tsx: "0e217ccf6adef6f1848606851c414d35287a787970d175a7a63c71458d392abf"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -34,12 +34,10 @@ files:
   - mobile-en.png
   - mobile-zh.png
 
-documentLanguageRecapture20261024:
-  sourceHead: e2846880681d4b9aff4a060e1321f50f240cafc7
-  qualification: Actual native producer executed in original managed language workspace; existing fixture data, no live-account or production claim
-  historicalManifest: history/before-document-language-20261024.yml
-  historicalSource: 919114d1c27f0f588d9d5a4d52574f19b0137d6d
-  receiptIndex: ../document-language/recapture-index.json
+iw2Upstream1160Recapture:
+  sourceHead: a13b382fb961c96e0f69e0d04e7985fe9671e1aa
+  historicalManifest: history/before-iw2-recapture-a13b382fb.yml
+  qualification: Actual native producer full matrix; local fixtures only; no runtime or live-account acceptance
 
-# Raw capture identity and every upstream source/crop lock remain unchanged; omit only unused pending-copy dependency.
-lexProjection: {"schema":"terminal.lex_capture_projection.v1","omittedProperty":"obDonePrefsSyncing","capturedRawSha256":"13f33e3178b105a64f1f5df35974cd99041ef06f05bdece95939dd07a8b9fe7c","projectedSha256":"d6dcc2df7615a1c5782f4d755178fbb76bcf9ee42b93dffe7c7c95317a652de5","sourceGitBlob":"664d68043f472919f7b581f545a334bf66d9782f","sourceRecoveryCommit":"e2846880681d4b9aff4a060e1321f50f240cafc7","captureCommitLocallyAvailable":true}
+# Original captured bytes/identity retained; only unused pending-onboarding copy is projected.
+lexProjection: {"schema":"terminal.lex_capture_projection.v1","omittedProperty":"obDonePrefsSyncing","capturedRawSha256":"0e217ccf6adef6f1848606851c414d35287a787970d175a7a63c71458d392abf","projectedSha256":"811c41ae96cd66bd4e361dbb9cf0a2dbf1b42def38c1a55144f6bb7b9b8e58a5","sourceGitBlob":"4f6155bb0a1ebbe41f58dd2cb4e4a3da0f532b8f","sourceRecoveryCommit":"00bf547ee2473f3d5a2d69416512d16bc466c6ea","captureCommitLocallyAvailable":true}

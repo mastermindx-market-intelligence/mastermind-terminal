@@ -218,7 +218,8 @@ async function waitForServer(timeoutMs) {
     try {
       const res = await fetch(`${BASE}${URLS.gex}`, { redirect: "manual" });
       last = String(res.status);
-      if (res.status >= 200 && res.status < 500) return;
+      // A Next404 is a responding server, not a compiled Options route.
+      if (res.status === 200) return;
     } catch (err) {
       last = err.cause?.code || err.message;
     }
@@ -700,6 +701,10 @@ async function main() {
     } else {
       console.log(`CAPTURE_ONLY run: ${files.length} crops, ${failed} failed; EVIDENCE.yml not written`);
     }
+    return;
+  }
+  if (failed) {
+    console.log('run with failures: EVIDENCE.yml not written');
     return;
   }
   files.sort();

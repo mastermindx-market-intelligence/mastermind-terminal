@@ -59,11 +59,18 @@ describe("0039 investigation options evidence owner contract", () => {
     expect(body).not.toMatch(/\b(alter|drop|grant|revoke|create table|create policy|insert|update|delete)\b/i);
   });
 
-  it("admits exactly the evidence owners and object types the Terminal registry admits", () => {
+  it("preserves the applied Options owner subset and exposes the held kernel composition gap", () => {
     const fromSql = allowList(liveBody(sql));
     const fromRegistry = registry();
-    expect(Object.keys(fromSql).sort()).toEqual(Object.keys(fromRegistry).sort());
-    expect(fromSql).toEqual(fromRegistry);
+    // 0039 is applied historical SQL: never rewrite its receipt-bound body to hide
+    // the independent 804 kernel. The latter is held and cannot be stacked after
+    // 0039/0040 without a forward composition that retains both owners.
+    expect(Object.fromEntries(Object.keys(fromSql).map(owner=>[owner,fromRegistry[owner]]))).toEqual(fromSql);
+    expect(Object.keys(fromRegistry).filter(owner=>!Object.hasOwn(fromSql,owner))).toEqual(["terminal.smart_screen"]);
+    const kernel=readMigration("0030_investigation_kernel.sql");
+    expect(kernel).toContain("if r->>'owner'='terminal.smart_screen' then");
+    expect(kernel).toContain("public.valid_investigation_screen_ref_v2(r)");
+    expect(kernel).not.toContain("terminal.options_exposure");
     expect(fromSql["terminal.options_exposure"]).toEqual(["exposure_chart_request", "rotation_measurement", "sector_origin"]);
     expect(fromSql["earnings.workspace_generation"]).toEqual(["event_workspace"]);
   });

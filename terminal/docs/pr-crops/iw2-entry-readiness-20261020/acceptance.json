@@ -1,0 +1,86 @@
+{
+  "accepted_at": "2026-10-20T17:35:33.545798+00:00",
+  "base_head": "0e377d24d96e1beeeb2b43fba7510075170c09d8",
+  "verdict": "CORRECTED_PARENT_SOURCE_AND_LOCAL_BROWSER_ACCEPTED",
+  "original_worker_artifact": "NOT_ACCEPTED_AS_FINAL: extra effect introduced one lint error; root correction joins existing initialization batch",
+  "defect": "Native SSR Start new research click lost before client initialization, sustained five-second post-bootstrap control; second click opens form",
+  "change": "Initially disable existing entry until existing owner/recovery initialization batch finishes; preserve original frozen condition and handlers",
+  "browser": {
+    "passed": 6,
+    "locales": [
+      "en",
+      "zh"
+    ],
+    "devices": [
+      "desktop",
+      "tablet",
+      "mobile"
+    ],
+    "owner_auth_model_writes": 0,
+    "save_invoked": false,
+    "fresh_png": 9,
+    "unique_reviewed": 5,
+    "identical_reuse": 4,
+    "server_cleanup_exit": 0
+  },
+  "checks": {
+    "typescript_exit": 0,
+    "permanent_test_lint_errors": 0,
+    "component_baseline_lint_errors": 1,
+    "component_candidate_lint_errors": 1,
+    "component_baseline_warnings": 3,
+    "component_candidate_warnings": 3,
+    "added_lint_errors": 0,
+    "inverse_diff_exact_original_handlers": true
+  },
+  "sql0030": {
+    "bytes": 41139,
+    "sha256": "e98d5a59cfb1932ebf4e562ecf89b6d08b7a5c9365b3e2fbe0b612eaaeff4694",
+    "changed": false,
+    "manual_sql_executed": false
+  },
+  "limits": [
+    "Original hosted Title-fill retry causes UNPROVED; no CI repair claim",
+    "Local fixtures, not live authentication or production acceptance",
+    "Release5989604142, original T03k refusal/EFFECT_UNKNOWN and cutover gates retained",
+    "Old403 images/recipes/before unchanged; no broad recapture/restamp"
+  ],
+  "images": [
+    {
+      "path": "desktop-zh-entry-before-activation.png",
+      "sha256": "3491ad2b2fd90ae37fc9314317041a32e0033333b2602ba3818086f3431e51b5"
+    },
+    {
+      "path": "mobile-zh-entry-before-activation.png",
+      "sha256": "82af0f3c9c13ff3463d3f951d16eff10fff663166c4e1ef7529a30a9f509eb1b"
+    },
+    {
+      "path": "tablet-zh-entry-before-activation.png",
+      "sha256": "3491ad2b2fd90ae37fc9314317041a32e0033333b2602ba3818086f3431e51b5"
+    },
+    {
+      "path": "desktop-en-entry-after-activation.png",
+      "sha256": "42c5f3759db7a7dfbcc248fd750d74a2df466dbe97cb186b449c570505f1361c"
+    },
+    {
+      "path": "desktop-en-entry-before-activation.png",
+      "sha256": "3491ad2b2fd90ae37fc9314317041a32e0033333b2602ba3818086f3431e51b5"
+    },
+    {
+      "path": "mobile-en-entry-after-activation.png",
+      "sha256": "06ad2620040ee866f1c6b0e4237667b1845ade1e19f764ce3f1a6ae8bd349da2"
+    },
+    {
+      "path": "mobile-en-entry-before-activation.png",
+      "sha256": "82af0f3c9c13ff3463d3f951d16eff10fff663166c4e1ef7529a30a9f509eb1b"
+    },
+    {
+      "path": "tablet-en-entry-after-activation.png",
+      "sha256": "640a56e9194783e0113fc2bf37dd99465e40ac5a44d1da530a13fd13ed9fcbfc"
+    },
+    {
+      "path": "tablet-en-entry-before-activation.png",
+      "sha256": "3491ad2b2fd90ae37fc9314317041a32e0033333b2602ba3818086f3431e51b5"
+    }
+  ]
+}
