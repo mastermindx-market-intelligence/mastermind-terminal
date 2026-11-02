@@ -901,6 +901,11 @@ test.describe("R2 evidence ladder", () => {
       const ladder = agree.locator("[data-news-ladder]");
       await expect(ladder).toHaveAttribute("aria-expanded", "false");
       expect(await r2LadderText(ladder)).toBe(R2_LADDER_TEXT[lang]);
+      // rev4 item 5: the › separators are real text between the steps (steps − 1 of them).
+      const stepCount = await ladder.locator("[data-step]").count();
+      expect(((await ladder.textContent()) ?? "").split("›").length - 1).toBe(stepCount - 1);
+      // rev4 item 7: Mark reviewed sits below the ladder on its own line and is visible.
+      await expect(agree.locator("[data-news-mark-one]")).toBeVisible();
       // live + reports agree → no NEXT CHECK on this row; the neighbours show theirs.
       await expect(agree.locator("[data-next-check]")).toHaveCount(0);
       await expect(r2Row(panel, "ev2_r2_differ").locator("[data-next-check]"))
@@ -1095,13 +1100,17 @@ test.describe("R2 evidence ladder", () => {
     const single = r2Row(panel, "ev2_r2_single");
     await single.scrollIntoViewIfNeeded();
 
-    await panel.screenshot({ path: join(R2_CROPS_DIR, `R2-${project}-en-static.png`) });
+    // rev4 items 3+4: a crop of the static ROW, not the panel at scroll 0 (which was
+    // byte-identical to the collapsed panel crop at 820 px).
+    await single.screenshot({ path: join(R2_CROPS_DIR, `R2-${project}-en-static.png`) });
 
     // A 1-report row renders the static chain: not a button, three steps, nothing
     // to expand and no NEXT CHECK (never on a 1-report row).
     const staticLadder = single.locator('[data-news-ladder="static"]');
     expect(await staticLadder.evaluate((el) => el.tagName)).not.toBe("BUTTON");
     await expect(staticLadder.locator("[data-step]")).toHaveCount(3);
+    // rev4 item 6: the exact static label (lexicon kind.reporting › outlets.one › reports.one).
+    expect(await r2LadderText(staticLadder)).toBe("Reporting › 1 outlet › 1 report");
     expect(await staticLadder.getAttribute("aria-expanded")).toBeNull();
     await expect(single.locator("[data-next-check]")).toHaveCount(0);
     expect(await r2Overflow(page)).toBeLessThanOrEqual(0);
