@@ -1,3 +1,4 @@
+# Current scoped chart position ownership: chartPositionEntryOwnerRecapture20261102 below. Earlier source/report identities remain historical.
 # Current scoped Drawings sheet recents: drawingsSheetAcceptedRecentRecapture20261101 below. Earlier source/report identities remain historical.
 # Current scoped launcher boot stability: launcherBootStabilityRecapture20261031 below. Earlier source/report identities remain historical.
 # Current scoped Plan composition: optionsPlanComposition20261024 below. Earlier source/report identities remain historical.
@@ -35,7 +36,8 @@ layoutFiles:
   terminal/lib/indicator-canvas/host.ts: "4f2949efb22b8c378cab1ff9d176466c4857073c14a36ee4f0eeab4ec1015a25"
   terminal/e2e/visual-intelligence.spec.ts: "ecedd0a313b0c46256978696768380a67c30b32097b5f4d2ce829acffeaef633"
   terminal/lib/chart-engine/lwc/index.ts: "b82beb4c9f266c525cb3296ece617e65b601aa6a5239235a87dcc7c8c811ada2"
-  terminal/components/TerminalShell.tsx: "d311f343d011c5d9d66a037b091b7dc25ad23b009d67430056b16cc3f29eefd1"
+  terminal/components/TerminalShell.tsx: "ffe5771540e577792257c0db27c1062da62c47f914596e7960fcc45e59972498"
+  terminal/components/ChartPositionEntry.tsx: "e8be598623acd0f5af8f574c87eab824c76dcc56a40ada78807b9785c9c08b4c"
   terminal/components/ChartPane.tsx: "987d36ca27383e1eab71419f05fc41210e9c1806fd099aa516417b0875bd10c1"
   terminal/components/ChartContextDock.ts: "4029c8c4552fcdcd7973cb57fff0805ea1b068280a3d34db773e6bed27c51ec9"
   terminal/components/ChartContextPlacement.module.css: "62b9c6887f7ce9bd6db81f8339408ed671722d6dee3c713990d3fc8b164e36c0"
@@ -720,4 +722,14 @@ drawingsSheetAcceptedRecentRecapture20261101:
   actualBrowserResult: "30 passed; 0 failed, skipped, flaky or retries; full named matrix and same-run mobile crosshair"
   browserReportSha256: "caa135e0a1655999e44a9e20ffeca767c6ee818a388bf78ca0a76aca6af26950"
   cropDelta: "Tablet and mobile EN/ZH are byte-identical to the prior capture. Desktop EN/ZH differ only in the status clock (captured after the US DST change), the ETH session chip's off-hours shade and the movers-ticker scroll offset; the Chart context reader and drawing dock are unchanged"
+  productionProof: false
+
+chartPositionEntryOwnerRecapture20261102:
+  baseHead: "558f96faf7a7add8fd9b90ce835754c17dde3bf5"
+  reason: "TerminalShell.tsx binds the chart's Add-to-Portfolio form to the account that opened it: the opening now carries the captured immutable owner and is rendered by the new chart-specific controller components/ChartPositionEntry.tsx, which sends that captured owner as expectedOwnerId and retires the opening on an observed account transition. The captured chart-context and ChartChrome surfaces do not render the position form, so their pixels are unaffected — proven by control captures, not asserted."
+  sourceIdentity: "Actual working source; layoutFiles binds the exact bytes of TerminalShell.tsx and the new ChartPositionEntry.tsx"
+  command: "TERMINAL_E2E_PORT=39420 PLAYWRIGHT_JSON_OUTPUT_FILE=<scratch>/visual-intelligence.json npx playwright test e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --reporter=line,json (Visual Intelligence, 30/30 passed); CAPTURE_ONLY=ChartChrome TERMINAL_CROP_PORT=39418 node e2e/tools/capture_pl6_batch1.cjs (PL6 ChartChrome, 4 crops captured); both re-run on the BASE source as the control"
+  actualBrowserResult: "Visual Intelligence 30 passed, 0 failed, 0 skipped, 0 flaky, 0 retries on the changed source; PL6 ChartChrome 4 crops captured on the changed source"
+  cropDelta: "The accepted crops are RETAINED, not replaced. This capture host cannot load the next/font/google Inter face, so every recaptured crop renders the fallback typeface across the whole surface; committing those bytes would replace the accepted evidence with a visibly different rendering that no source change caused. Control captures settle the attribution: on the BASE source the PL6 ChartChrome crops and the Visual Intelligence tablet and mobile crops are BYTE-IDENTICAL to the same capture on the changed source, so the position-entry repair is pixel-inert on both surfaces. The Visual Intelligence DESKTOP crop is not byte-comparable in either direction — three consecutive captures on the SAME source produced three different byte sequences, a volatile full-page surface — so the tablet/mobile and PL6 controls carry that claim"
+  scope: "layoutFiles only. cropFiles, browserReportHashes and every PNG on disk are unchanged and still bind the accepted capture."
   productionProof: false
