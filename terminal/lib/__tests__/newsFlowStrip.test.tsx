@@ -1,10 +1,7 @@
 // @vitest-environment jsdom
-// Wave B3 — render pins for components/news/NewsFlowStrip.tsx and its mount inside
-// TickerNewsPanel (design pin P6/P7). Strip-level cases cover every spec section 5
-// state; panel-level cases pin the hiding rules, the keyboard path and the
-// accessible wiring. @testing-library is not a dependency of this repo, so this
-// suite uses the same createRoot + act + accessibleName pattern as
-// tickerNewsA11y.test.tsx.
+// Legacy NewsFlowStrip retains standalone analytics and accessibility contracts,
+// but the Chairman's compact reading layout intentionally does not mount it in
+// TickerNewsPanel. This suite separately protects those two different guarantees.
 import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -161,7 +158,7 @@ function accessibleName(el: Element): string {
 
 const stripEl = () => host.querySelector("[data-testid=ticker-news-panel] [data-flow-state]");
 const moreButton = () =>
-  host.querySelector<HTMLButtonElement>("[data-testid=ticker-news-panel] [data-flow-state] button");
+  host.querySelector<HTMLButtonElement>("[data-flow-state] button");
 
 beforeEach(() => {
   Object.defineProperty(window, "localStorage", { value: jsdomWindow().localStorage, configurable: true, writable: true });
@@ -249,48 +246,40 @@ describe("NewsFlowStrip — glance line per state (spec section 5)", () => {
   });
 });
 
-// ---- panel-level: mount and hiding rules --------------------------------------
+// ---- panel-level: the activity strip is deliberately retired ---------------
 
-describe("TickerNewsPanel — news-flow strip mount (design pin P6)", () => {
+describe("TickerNewsPanel — no news-flow activity chrome", () => {
   const renderPanel = async (over: Parameters<typeof panelSnapshot>[0], symbol = "NVDA", lang: "en" | "zh" = "en") => {
     M.feed.snapshot = panelSnapshot(over);
     M.feed.loadState = "ready";
     await render(<TickerNewsPanel symbol={symbol} lang={lang} userId="user-a" />);
   };
 
-  it("mounts the strip for a ready snapshot with flow", async () => {
-    await renderPanel({ flow: flow(FLOW_OK) });
-    const strip = stripEl();
-    expect(strip).toBeTruthy();
-    expect(strip!.getAttribute("data-flow-state")).toBe("ok");
-    expect(strip!.getAttribute("data-comparison")).toBe("busier");
-    expect(strip!.getAttribute("data-coverage")).toBe("complete");
-  });
-
-  it("mounts the strip directly after the rail bar, outside the scroll area", async () => {
-    await renderPanel({ flow: flow(FLOW_OK) });
+  it.each(["en", "zh"] as const)("shows the story list directly below the header, not a flow strip (%s)", async (lang) => {
+    await renderPanel({ flow: flow(FLOW_OK) }, "NVDA", lang);
     const panel = host.querySelector("[data-testid=ticker-news-panel]")!;
-    expect(panel.children[0].tagName).toBe("DIV"); // .bar
-    expect(panel.children[1]).toBe(stripEl());
+    expect(panel.children).toHaveLength(2);
+    expect(panel.children[0].tagName).toBe("DIV"); // compact header
+    expect(panel.children[1].querySelectorAll("article[data-story-id]")).toHaveLength(2);
+    expect(stripEl()).toBeNull();
+    expect(panel.querySelector("[data-news-catchup]")).toBeNull();
+    expect(panel.querySelector("[data-news-source-filter]")).toBeNull();
   });
 
   it.each([
-    ["flow null (old API, or a cursor page)", { flow: null }],
-    ["reason no_accessible_sources", { flow: flow(FLOW_NO_ACCESS) }],
-    ["zero rows (the empty state already speaks)", { flow: flow(FLOW_OK), rows: [] }],
-    ["snapshot state restricted", { flow: flow(FLOW_OK), state: "restricted" as const }],
-    ["snapshot state unavailable", { flow: flow(FLOW_OK), state: "unavailable" as const }],
-  ])("the strip is hidden when %s", async (_name, over) => {
+    ["flow null", { flow: null }],
+    ["no accessible sources", { flow: flow(FLOW_NO_ACCESS) }],
+    ["zero rows", { flow: flow(FLOW_OK), rows: [] }],
+    ["restricted snapshot", { flow: flow(FLOW_OK), state: "restricted" as const }],
+    ["unavailable snapshot", { flow: flow(FLOW_OK), state: "unavailable" as const }],
+    ["mismatched ticker", { flow: flow(FLOW_OK), ticker: "MSFT" }],
+    ["normal flow", { flow: flow(FLOW_OK) }],
+  ])("never mounts the obsolete strip for %s", async (_name, over) => {
     await renderPanel(over);
     expect(stripEl()).toBeNull();
   });
 
-  it("the strip is hidden while snapshot.ticker differs from the symbol prop", async () => {
-    await renderPanel({ flow: flow(FLOW_OK), ticker: "MSFT" }, "NVDA");
-    expect(stripEl()).toBeNull();
-  });
-
-  it("the strip is hidden while the feed is not ready", async () => {
+  it("never mounts the strip while the feed is loading", async () => {
     M.feed.snapshot = panelSnapshot({ flow: flow(FLOW_OK) });
     M.feed.loadState = "loading";
     await render(<TickerNewsPanel symbol="NVDA" lang="en" userId="user-a" />);
@@ -314,11 +303,9 @@ describe("TickerNewsPanel — news-flow strip mount (design pin P6)", () => {
 
 // ---- panel-level: details interaction (G9) ------------------------------------
 
-describe("TickerNewsPanel — news-flow details control (G9)", () => {
+describe("NewsFlowStrip — standalone details remain accessible (G9)", () => {
   const openDetails = async () => {
-    M.feed.snapshot = panelSnapshot({ flow: flow(FLOW_OK) });
-    M.feed.loadState = "ready";
-    await render(<TickerNewsPanel symbol="NVDA" lang="en" userId="user-a" />);
+    await render(<NewsFlowStrip flow={flow(FLOW_OK)} lang="en" />);
     const button = moreButton()!;
     await act(async () => {
       button.dispatchEvent(new MouseEvent("click", { bubbles: true }));
@@ -327,9 +314,7 @@ describe("TickerNewsPanel — news-flow details control (G9)", () => {
   };
 
   it("the control is a native button, so Enter and Space toggle it (platform behavior)", async () => {
-    M.feed.snapshot = panelSnapshot({ flow: flow(FLOW_OK) });
-    M.feed.loadState = "ready";
-    await render(<TickerNewsPanel symbol="NVDA" lang="en" userId="user-a" />);
+    await render(<NewsFlowStrip flow={flow(FLOW_OK)} lang="en" />);
     const button = moreButton()!;
     expect(button.tagName).toBe("BUTTON");
     expect(button.getAttribute("type")).toBe("button");
@@ -362,14 +347,14 @@ describe("TickerNewsPanel — news-flow details control (G9)", () => {
     expect(document.activeElement).toBe(button);
   });
 
-  it("no element inside the panel carries a title attribute (details open)", async () => {
+  it("no element inside the standalone strip carries a title attribute (details open)", async () => {
     await openDetails();
-    expect(host.querySelectorAll("[data-testid=ticker-news-panel] [title]")).toHaveLength(0);
+    expect(host.querySelectorAll("[data-flow-state] [title]")).toHaveLength(0);
   });
 
   it("the tally aria-label carries the numbers", async () => {
     await openDetails();
-    const svg = host.querySelector("[data-testid=ticker-news-panel] [data-flow-state] svg[role=img]");
+    const svg = host.querySelector("[data-flow-state] svg[role=img]");
     expect(svg).toBeTruthy();
     const label = svg!.getAttribute("aria-label") ?? "";
     expect(label).toContain("28 days on record");
@@ -379,7 +364,7 @@ describe("TickerNewsPanel — news-flow details control (G9)", () => {
 
   it("the details list the facts as dt/dd pairs with the fixture numbers", async () => {
     await openDetails();
-    const facts = host.querySelector("[data-testid=ticker-news-panel] dl");
+    const facts = host.querySelector("[data-flow-state] dl");
     expect(facts).toBeTruthy();
     const dts = [...facts!.querySelectorAll("dt")].map((el) => el.textContent);
     expect(dts).toEqual([
