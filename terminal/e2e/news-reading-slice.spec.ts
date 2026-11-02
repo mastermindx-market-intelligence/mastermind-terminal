@@ -1,4 +1,5 @@
 import { expect, test, type Locator, type Page, type TestInfo } from "@playwright/test";
+import { join } from "node:path";
 import { NEWS_VIEW } from "../lib/__tests__/fixtures/newsEditorial";
 import { isolateWatchlistStore } from "./watchlistStore";
 
@@ -18,6 +19,15 @@ import { isolateWatchlistStore } from "./watchlistStore";
 test.setTimeout(120_000);
 
 const ACTION = { timeout: 30_000 };
+
+async function captureReading(page: Page, testInfo: TestInfo, step: string) {
+  const file = `${testInfo.project.name}-${step}-attempt-${testInfo.retry}.png`;
+  const path = process.env.NEWS_READING_CROPS_DIR
+    ? join(process.env.NEWS_READING_CROPS_DIR, file)
+    : testInfo.outputPath(file);
+  await page.screenshot({ path });
+  await testInfo.attach(`News reading: ${step}`, { path, contentType: "image/png" });
+}
 
 const MANIFEST = {
   symbols: {
@@ -220,6 +230,7 @@ test.describe("News reading slice", () => {
     await expect(page.locator("[data-news-ladder]").first()).toBeVisible();
 
     expect(await documentOverflow(page)).toBeLessThanOrEqual(0);
+    await captureReading(page, testInfo, "full-height-reader");
   });
 
   test("the company card comes back when News is left", async ({ page, baseURL }, testInfo) => {
@@ -244,6 +255,8 @@ test.describe("News reading slice", () => {
       expect(style!.maxHeight).toBe("none");
     }
 
+    await captureReading(page, testInfo, "news-selected");
+
     // Leaving News for the watchlists restores the company card and unmounts the panel.
     const watchlists = page.locator("#rail-tab-watchlists");
     await watchlists.scrollIntoViewIfNeeded();
@@ -252,6 +265,7 @@ test.describe("News reading slice", () => {
     await expect(page.getByTestId("ticker-news-panel")).toHaveCount(0);
 
     expect(await documentOverflow(page)).toBeLessThanOrEqual(0);
+    await captureReading(page, testInfo, "company-restored");
   });
 
   test("the phone's Symbol details leaves News and reveals the dossier", async ({ page, baseURL }, testInfo) => {
@@ -283,5 +297,6 @@ test.describe("News reading slice", () => {
     }, { message: "the dossier should be scrolled into view", timeout: 20_000 }).toBe(true);
 
     expect(await documentOverflow(page)).toBeLessThanOrEqual(0);
+    await captureReading(page, testInfo, "symbol-details");
   });
 });
