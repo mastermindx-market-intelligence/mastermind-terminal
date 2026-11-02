@@ -239,6 +239,11 @@ jobs:
     # This cap is a hang detector, not a budget to grow into: when a shard creeps toward it,
     # split that shard (as desktop, tablet and mobile are below), never just raise the number.
     timeout-minutes: 60
+    # 2026-11-02 bounded critical-path experiment. Hosted green 41496257793
+    # measured desktop 20-45m, tablet 26-51m, mobile 36-49m. Split more
+    # finely without changing test selection, one-worker stability, retries,
+    # the 60m cap, other jobs, or protected fan-in. Added runner startup cost
+    # and actual time saved must be measured before accepting this setting.
     strategy:
       # NEVER fail-fast. One red shard must not delete the other shards' evidence — the
       # aggregator below already turns any red into a red required check.
@@ -259,19 +264,21 @@ jobs:
           # partitioning preserves the hang cap and does not fix assertions. Green
           # predecessor heads 7579 (desktop-1 PASS 58m50) and 60c2 (PASS 57m17) sat
           # about a minute under the cap while every other quarter ran 26-44 min.
-          # Five Playwright shards retain the complete project with less work per
+          # Six Playwright shards retain the complete project with less work per
           # runner. tests/test_ci_e2e_shards.py rejects missing, duplicate or
           # inconsistent shards.
           - shard: desktop-1
-            projects: "--project=desktop --shard=1/5"
+            projects: "--project=desktop --shard=1/6"
           - shard: desktop-2
-            projects: "--project=desktop --shard=2/5"
+            projects: "--project=desktop --shard=2/6"
           - shard: desktop-3
-            projects: "--project=desktop --shard=3/5"
+            projects: "--project=desktop --shard=3/6"
           - shard: desktop-4
-            projects: "--project=desktop --shard=4/5"
+            projects: "--project=desktop --shard=4/6"
           - shard: desktop-5
-            projects: "--project=desktop --shard=5/5"
+            projects: "--project=desktop --shard=5/6"
+          - shard: desktop-6
+            projects: "--project=desktop --shard=6/6"
           # tablet and mobile outgrew one job the same way. On 2026-10-12 the last eight green
           # runs measured tablet 47-59 min and mobile 44-56 min, and train 3 (#960, head
           # 1dc6c48e9) lost both at the 60-min cap: jobs 114632507605 (tablet) and
@@ -281,24 +288,28 @@ jobs:
           # `--shard` coverage contract as desktop; tests/test_ci_e2e_shards.py guards these too.
           # Tablet halves now approach the same cap: #1061 run 39416005343
           # tablet-1 passed in 56m47s, and #1090 run 39415184138 in 55m40s.
-          # Three complete shards preserve coverage and leave runner margin.
+          # Four contiguous shards preserve coverage and leave runner margin.
           - shard: tablet-1
-            projects: "--project=tablet --shard=1/3"
+            projects: "--project=tablet --shard=1/4"
           - shard: tablet-2
-            projects: "--project=tablet --shard=2/3"
+            projects: "--project=tablet --shard=2/4"
           - shard: tablet-3
-            projects: "--project=tablet --shard=3/3"
+            projects: "--project=tablet --shard=3/4"
+          - shard: tablet-4
+            projects: "--project=tablet --shard=4/4"
           # A mobile HALF still reached the cap: on 2026-10-20 run 39403170318
           # job 118563127930 started 09:48:07 UTC, selected 513 tests with the single CI
           # worker at 09:49:29, and was still passing with no assertion failure when the
           # host cancelled it at 10:48:24 — 60m17s, the unchanged cap (#1061). Three
           # contiguous Playwright shards, same coverage contract as desktop above.
           - shard: mobile-1
-            projects: "--project=mobile --shard=1/3"
+            projects: "--project=mobile --shard=1/4"
           - shard: mobile-2
-            projects: "--project=mobile --shard=2/3"
+            projects: "--project=mobile --shard=2/4"
           - shard: mobile-3
-            projects: "--project=mobile --shard=3/3"
+            projects: "--project=mobile --shard=3/4"
+          - shard: mobile-4
+            projects: "--project=mobile --shard=4/4"
           # The company-intelligence chain uses Playwright `dependencies`
           # (playwright.config.ts:69-87) and MUST stay whole inside one shard, or the
           # dependency projects re-run in every shard that touches them.
