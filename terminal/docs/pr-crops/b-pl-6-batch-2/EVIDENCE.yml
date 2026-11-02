@@ -1,11 +1,11 @@
 # B-PL-6 batch 2 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: e2846880681d4b9aff4a060e1321f50f240cafc7
-# capturedAt: 2026-10-24T05:32:40.846Z
+# capturedAtHead: fbb0e5e1bf685ffd4d2b8a8fecd44856395d735a
+# capturedAt: 2026-11-02T06:24:05.110Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/GuidePanel.tsx: "336b14b87b7f997150b801942da1c0267d9e24426587097eebb7d740f1cd39c4"
+  terminal/components/GuidePanel.tsx: "877597eca26d11815d2f047e6be666f9f573df81c00445ac73c39318f4e6c7af"
   terminal/components/levels/LevelsView.tsx: "91a4d6fd86b12225e657c8a9c4b2b185e3940356af3cd11466ca30e04f05b0c9"
   terminal/components/levels/LevelsLearn.tsx: "ca8923e68f511cb525db2bac1b41e9e1d93c3c1492cb345162085de1412cee05"
   terminal/components/ChartConductor.tsx: "471a8972a8b8d4775abddc6a455dd50af0943fec18ad5a0a0c1a77243330d8b0"
@@ -63,3 +63,17 @@ accessFlashRecapture20261101:
   refreshedSourceHashes:
     terminal/components/GuidePanel.tsx: "336b14b87b7f997150b801942da1c0267d9e24426587097eebb7d740f1cd39c4"
   note: "Actual Playwright fixture captures passed at this source head; no production entitlement grant inferred"
+
+accessFlashI18nRecapture20261102:
+  sourceHead: "fbb0e5e1bf685ffd4d2b8a8fecd44856395d735a"
+  capturedAt: "2026-11-02T06:24:05.110Z"
+  captureScript: "terminal/e2e/tools/capture_pl6_batch2.cjs"
+  captureOnly: "GuidePanel"
+  loopbackPort: 3563
+  productionAccountTested: false
+  screenshotsCaptured: 4
+  languages: [en, zh]
+  viewports: [1440x900, 390x844]
+  sourceHash: "877597eca26d11815d2f047e6be666f9f573df81c00445ac73c39318f4e6c7af"
+  historicalRecordsPreserved: true
+  note: "Actual isolated Playwright fixture recapture; no production authorization proof"
