@@ -11,7 +11,9 @@ claims reader. It retains `getClaims`, calls no additional `getUser`, and return
 only a verified UUID and display email on success. A proven missing session or
 successful anonymous read remains guest. Other claims-verification errors,
 including unrelated HTTP 401/403 errors, thrown failures and the existing 12-second
-deadline, remain unavailable even when claims accompany the error. The existing
+deadline, remain unavailable even when claims accompany the error. A non-null
+malformed claims object also remains unavailable; only an absent/null successful
+claims result establishes anonymous access. The existing
 `readShellMember`/`getUser` behavior and error policy are preserved.
 
 Analysis and the server layout select the existing
@@ -53,6 +55,13 @@ bounded implementation continued in the admitted isolated local writer under the
 original root and parent commission.
 
 One fresh nonauthor auth-risk review and the normal protected release are required.
+A limited auth-risk review repair added malformed-claims discrimination: 6
+focused old-branch failures reproduced the false guest, followed by **44 passing
+helper, Analysis/layout and incumbent-member checks**, plus repaired-source
+typecheck and scoped lint. The independent reviewer will consume
+the exact repaired delta; the earlier full affected checks remain scoped to their
+unchanged source.
+
 Source checks do not establish served acceptance, authenticated recovery, private
 data access or programme completion. Original browser refusals, runtime holds,
 unresolved operations and installation ownership remain in force.

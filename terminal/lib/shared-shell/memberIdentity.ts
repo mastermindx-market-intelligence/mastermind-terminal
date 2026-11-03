@@ -41,8 +41,8 @@ export async function readShellClaims(): Promise<ShellClaims> {
     // provenance is a guest result; a bare HTTP status is not that provenance.
     if (error) return authFailure(error, false);
     const claims = data?.claims;
-    return typeof claims?.sub === "string" && isUuid(claims.sub)
-      ? { state: "ready", subjectId: claims.sub, email: typeof claims.email === "string" ? claims.email : "" }
-      : { state: "guest" };
+    if (claims == null) return { state: "guest" };
+    if (typeof claims.sub !== "string" || !isUuid(claims.sub)) return { state: "unavailable" };
+    return { state: "ready", subjectId: claims.sub, email: typeof claims.email === "string" ? claims.email : "" };
   });
 }

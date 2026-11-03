@@ -52,6 +52,14 @@ describe("AUTH-03 Analysis and shared chrome", () => {
     expect((await analysis()).type).toBe(MemberVerificationUnavailable);
     expect((await shell()).type).toBe(MemberVerificationUnavailable);
   });
+  it.each([{}, { sub: "not-a-uuid" }, { sub: 42 }])("does not mount guest chrome or private Analysis from malformed identity %s", async malformedClaims => {
+    edges.getClaims.mockResolvedValue({ data: { claims: malformedClaims }, error: null });
+    const page = await analysis(); const layout = await shell();
+    expect(page.type).toBe(MemberVerificationUnavailable);
+    expect(layout.type).toBe(MemberVerificationUnavailable);
+    expect(page.props.children).toBeUndefined(); expect(layout.props.children).toBeUndefined();
+    expect(edges.getUser).not.toHaveBeenCalled();
+  });
   it("handles a thrown verification failure as unavailable", async () => {
     edges.getClaims.mockRejectedValue(new Error("verification offline"));
     expect((await analysis()).type).toBe(MemberVerificationUnavailable);

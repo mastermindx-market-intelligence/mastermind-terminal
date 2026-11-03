@@ -20,9 +20,13 @@ describe("bounded local shell claims identity", () => {
     auth.getClaims.mockResolvedValue({ data: { claims: { sub: subject, email: 42 } }, error: null });
     expect(await readShellClaims()).toEqual({ state: "ready", subjectId: subject, email: "" });
   });
-  it.each([null, {}, { sub: "not-a-uuid" }, { sub: 42 }])("does not create an account from absent or malformed claims %s", async claims => {
+  it.each([null, undefined])("preserves an actual absent claims result %s as guest", async claims => {
     auth.getClaims.mockResolvedValue({ data: { claims }, error: null });
     expect(await readShellClaims()).toEqual({ state: "guest" });
+  });
+  it.each([{}, { sub: "not-a-uuid" }, { sub: 42 }])("keeps malformed non-null claims %s unavailable", async claims => {
+    auth.getClaims.mockResolvedValue({ data: { claims }, error: null });
+    expect(await readShellClaims()).toEqual({ state: "unavailable" });
   });
   it("distinguishes a proven missing session", async () => {
     auth.getClaims.mockResolvedValue({ data: null, error: { name: "AuthSessionMissingError" } });
