@@ -1033,6 +1033,7 @@ export default function SearchModal({
       </>
   );
 
+  const title = companyScope ? pick(lang === "zh", "Search companies", "搜索公司") : t(cmp ? "compareTitle" : titleKey);
   // R2c — on the phone the ticker picker is a DRAWER, the idiom the Drawings sheet established:
   // it presents over a live chart at 62%, drags to full and back, and a short flick down
   // dismisses it. Compare and Add Symbol keep the centred modal — they are sub-tasks of a
@@ -1042,7 +1043,7 @@ export default function SearchModal({
       <MobileSheet
         open
         onClose={onClose}
-        title={t(titleKey)}
+        title={title}
         detents={SEARCH_DETENTS}
         className="msheet-search"
         initialFocus="sheet"
@@ -1052,7 +1053,6 @@ export default function SearchModal({
     );
   }
 
-  const title = companyScope ? pick(lang === "zh", "Search companies", "搜索公司") : t(cmp ? "compareTitle" : titleKey);
   const closeLabel = companyScope ? pick(lang === "zh", "Close company search", "关闭公司搜索")
     : cmp ? pick(lang === "zh", "Close comparison", "关闭对比")
     : isAdd ? pick(lang === "zh", "Close add symbol", "关闭添加标的")

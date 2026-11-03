@@ -491,6 +491,17 @@
       "applied_date": "2026-10-31",
       "note": "PR #1182 protected merged b1ba8e7c21e8864a0f11f87c4ae6aaab7bb54133. Applied once 2026-10-31T07:08:54Z after positively settled0045 by original operation oem-01a156f1-schema0046-20261031-v1 under META disposition6540397272; native receipt status applied/error null/missing_after empty, five pre/post readbacks. Immutable SQL SHA256eb1e6598f82d18b228eb4d72162a7d9be9062f017e8f15026173dd857aa828a5; receipt SHA25616a7f7cb447526d9de30c8a56e58948fa80fdcb46f8cece9be92d888b3a3e8a0. Source-linked owner readback: PR #1182 comment6540453300. Final seven-argument arm contract installed; five/six-argument overloads absent. Four entry/reader/publisher switches remain absent/OFF. No activation, enrollment, live-product acceptance or adoption/replay of the Oct26 uncertain operation.",
       "merged_sha": "b1ba8e7c21e8864a0f11f87c4ae6aaab7bb54133"
+    },
+    "0047": {
+      "state": "taken",
+      "file": "0047_investigation_options_selection_evidence.sql",
+      "packet": "OPT006-V3-SAVE-ADMISSION",
+      "pr": 1222,
+      "pr_state": "merged",
+      "merged_sha": "3cc8da8432d8d2d4e4cb597f49c4eaa95f1980c9",
+      "applied_in_production": false,
+      "applied_date": null,
+      "note": "Protected PR #1222 merged 2026-11-03T05:38:21Z at 3cc8da8432d8d2d4e4cb597f49c4eaa95f1980c9; source-only merge, still UNAPPLIED. Claimed on branch claude/oi-opt006l1-20261102 after the item-2 census on 2026-11-02 (166 open PRs, no 0047+ migration file on origin/master or in any uncapped open PR; ten open PRs sit at the 100-file API cap and could hide a claim); draft PR #1222 opened 2026-11-02 after Lane 1a (marked ready only after Lane 1b and the independent grant review). Widens valid_investigation_manifest_v2 by one object_type options_matrix_selection over the 0042 body (guarded) and adds the investigation_evidence_admitted_v2(text,text) boolean probe granted to authenticated; source only, UNAPPLIED, the applied date is not recorded because no application has occurred, and application is a separate user-only step."
     }
   }
 }

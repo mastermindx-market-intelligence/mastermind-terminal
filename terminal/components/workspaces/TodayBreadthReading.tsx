@@ -1,13 +1,21 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useLang } from "@/lib/i18n";
 import { breadthExpiresAt, marketBreadthPayload, type BreadthSession, type MarketBreadth } from "@/lib/shared-shell/marketBreadth";
 import { freshnessLabel, readingFreshness } from "@/lib/shared-shell/readingFreshness";
 import { readingJson } from "@/lib/shared-shell/useReadingScope";
 import today from "./TodayWorkspace.module.css";
 
-type Props = { ownerKey: string; scope: { current: AbortController | null }; onUnauthenticated: () => void };
+type Props = {
+  ownerKey: string;
+  scope: { current: AbortController | null };
+  onUnauthenticated: () => void;
+  /** False holds the cell back and pauses the fetch; an owner switch still resets to loading. */
+  enabled?: boolean;
+  /** Presentation slot: by default the cell itself, so standalone strip use is unchanged. */
+  render?: (cell: ReactNode) => ReactNode;
+};
 type Phase = "loading" | "ready" | "unavailable" | "ended";
 
 const BREADTH_URL = "/api/market-breadth";
@@ -72,9 +80,12 @@ export function breadthClock(asof: string, lang: "en" | "zh"): string | null {
   return lang === "zh" ? `${CLOCK.zh.format(new Date(t))}${c.zone}` : `${CLOCK.en.format(new Date(t))} ${c.zone}`;
 }
 
-/** One extra, non-link cell in the Today source-readings strip: the S&P 500 tier of Macro's
- *  live breadth file, read through the session-gated /api/market-breadth proxy. */
-export default function TodayBreadthReading({ ownerKey, scope, onUnauthenticated }: Props) {
+/** One extra, non-link reading in the Today source-readings set: the S&P 500 tier of Macro's
+ *  live breadth file, read through the session-gated /api/market-breadth proxy. The component
+ *  is a stable holder that owns its fetch once `enabled` turns true and hands the pure cell to
+ *  `render`; repositioning the cell (desktop strip ↔ narrow section) never remounts the holder,
+ *  so a resize never refetches. */
+export default function TodayBreadthReading({ ownerKey, scope, onUnauthenticated, enabled = true, render }: Props) {
   const { lang } = useLang();
   const c = COPY[lang];
   // The answer is remembered with the owner it was read for, so a new owner starts as loading
@@ -84,8 +95,12 @@ export default function TodayBreadthReading({ ownerKey, scope, onUnauthenticated
   const reading = answer?.owner === ownerKey ? answer.reading : null;
   const onUnauthenticatedRef = useRef(onUnauthenticated);
   useEffect(() => { onUnauthenticatedRef.current = onUnauthenticated; });
+  // Every return goes through one presentation helper: `render` places the cell (or the ended
+  // holder's nothing) while this instance keeps its state at a stable tree position.
+  const present = (cell: ReactNode): ReactNode => (render ? render(cell) : cell);
 
   useEffect(() => {
+    if (!enabled) return;
     let live = true;
     const settle = (next: Phase, value: MarketBreadth | null = null) => { if (live) setAnswer({ owner: ownerKey, phase: next, reading: value }); };
     (async () => {
@@ -100,7 +115,7 @@ export default function TodayBreadthReading({ ownerKey, scope, onUnauthenticated
       }
     })();
     return () => { live = false; };
-  }, [ownerKey, scope]);
+  }, [enabled, ownerKey, scope]);
 
   // A tab left open must not keep a live reading past its window: when the window closes the
   // reading is re-checked on the reader's clock and withheld like any other old file. A timer
@@ -118,13 +133,13 @@ export default function TodayBreadthReading({ ownerKey, scope, onUnauthenticated
     return () => { clearTimeout(id); document.removeEventListener("visibilitychange", onVisible); };
   }, [phase, reading, ownerKey]);
 
-  if (phase === "ended") return null;
+  if (phase === "ended") return present(null);
   if (phase !== "ready" || !reading) {
-    return (
+    return present(
       <div className={`${today.reading} ${today.readingStatic}`} aria-busy={phase === "loading"}>
         <span className={today.readingLabel}>{c.label}</span>
         <strong className={today.readingQuiet}>{phase === "loading" ? c.loading : c.unavailable}</strong>
-      </div>
+      </div>,
     );
   }
 
@@ -134,16 +149,16 @@ export default function TodayBreadthReading({ ownerKey, scope, onUnauthenticated
   if (!usable) {
     // A withheld reading keeps only its own timestamp: the session word, the delay and the age
     // all describe a live reading, which this is not.
-    return (
+    return present(
       <div className={`${today.reading} ${today.readingStatic}`} data-breadth="withheld">
         <span className={today.readingLabel}>{c.label}</span>
         <strong className={today.readingQuiet}>{breadthReason(reading.unusable_reason, lang)}</strong>
         {clock && <span className={today.readingClock}>{clock}</span>}
-      </div>
+      </div>,
     );
   }
   const age = readingFreshness(reading.asof, new Date());
-  return (
+  return present(
     <div className={`${today.reading} ${today.readingStatic}`} data-breadth="live">
       <span className={today.readingLabel}>{c.label}</span>
       <strong>{c.advancing(Math.round(large.adv_pct as number))}</strong>
@@ -152,6 +167,6 @@ export default function TodayBreadthReading({ ownerKey, scope, onUnauthenticated
         {[clock, c.session[reading.session], reading.delay_min ? c.delayed(reading.delay_min) : null].filter(Boolean).join(" · ")}
       </span>
       <span className={today.readingAge} data-kind={age.kind}>{freshnessLabel(age, lang)}</span>
-    </div>
+    </div>,
   );
 }
