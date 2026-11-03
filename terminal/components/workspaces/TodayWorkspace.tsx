@@ -13,6 +13,7 @@ import TodayWatchAttention from "./TodayWatchAttention";
 import TodaySinceLastVisit from "./TodaySinceLastVisit";
 import TodayBreadthReading from "./TodayBreadthReading";
 import { ageLabel, freshnessLabel, readingFreshness } from "@/lib/shared-shell/readingFreshness";
+import { useReadingClock } from "@/lib/shared-shell/useReadingClock";
 import { useMediaQuery } from "@/lib/useMediaQuery";
 
 const COPY = {
@@ -118,7 +119,14 @@ function TodayWorkspaceSession({ ownerKey }: { ownerKey: string }) {
   ? (lang === "zh" ? "来源核验未完成" : "Source verification failed") : status(workspace.state);
  const needsAttention = data?.workspaces.filter(workspace => workspace.failure || !workspace.state ||
   !["CURRENT", "HISTORICAL_AS_KNOWN"].includes(workspace.state)) ?? [];
- const now = new Date();
+ const readingClockBucket = useCallback((at: Date) => {
+  const header = readingFreshness(data?.read.as_of, at);
+  return JSON.stringify([header.kind, header.sessions, header.days, ...(data?.strip ?? []).map(chip => {
+   const age = readingFreshness(chip.as_of, at);
+   return [age.kind, age.sessions];
+  })]);
+ }, [data]);
+ const now = useReadingClock(readingClockBucket);
  const readAge = readingFreshness(data?.read.as_of, now);
  const sectionHref = (id: string) => data?.sections.find(section => section.id === id)?.href ?? "/macro_monetary.html";
  const summary = data?.read.clauses.map(clause =>
