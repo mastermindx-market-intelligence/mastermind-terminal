@@ -166,7 +166,9 @@ test("company search selects one canonical company from desktop, tablet and phon
  await expect(dialog.locator(".r .tk").first()).toHaveText("AAPL");
  await page.screenshot({animations:"disabled",path:info.outputPath("company-search-selection.png")});
  await dialog.getByRole("combobox").press("Enter");
- await expect(page).toHaveURL(/\/analysis\?symbol=AAPL$/);
+ await expect(dialog.getByRole("button",{name:"Open Analysis",exact:true})).toBeVisible();
+ await dialog.getByRole("button",{name:"Open Analysis",exact:true}).click();
+ await expect(page).toHaveURL(/\/analysis\?symbol=AAPL&company_query=Apple$/);
  await expect(page.getByRole("dialog")).toHaveCount(0);
  await noOverflow(page);
 });
