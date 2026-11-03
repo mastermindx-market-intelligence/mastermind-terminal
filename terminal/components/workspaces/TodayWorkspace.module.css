@@ -129,6 +129,17 @@
  .researchJob { grid-column:1;grid-row:3; }
  .coverageJob { grid-column:1 / -1;grid-row:4;padding-top:20px;border-top:1px solid var(--line); }
 }
+
+/* Teaser state: the unpaid read yields the opening slot. Watch and continuation open row 1,
+   briefing sits row 2, the compact teaser row 3, coverage row 4 — no blank row is left where
+   the paid read would have stood. */
+@media(min-width:700px) {
+ .jobs[data-since-state="teaser"] .watchJob { grid-column:1;grid-row:1; }
+ .jobs[data-since-state="teaser"] .continuationJob { grid-column:2;grid-row:1 / span 2; }
+ .jobs[data-since-state="teaser"] .researchJob { grid-column:1;grid-row:2; }
+ .jobs[data-since-state="teaser"] .sinceJob { grid-column:1 / -1;grid-row:3;padding-bottom:0;border-bottom:0; }
+ .jobs[data-since-state="teaser"] .coverageJob { grid-column:1 / -1;grid-row:4; }
+}
 .today .marketRead { margin-top:14px; }
 .today .readingDate > span { display:inline;margin:0 0 0 8px; }
 .today .jobHeader { display:flex;justify-content:space-between;align-items:center;gap:16px;min-height:40px;margin-bottom:8px; }
@@ -170,6 +181,7 @@
  .watchRow { gap:12px;min-height:80px; }
  .watchRow .quietAction { font-size:11px; }
  .today .quietAction,.today .libraryLink { min-height:44px; }
+ .today .sinceTeaser a { min-height:44px; }
  .watchFooter { gap:4px 14px; }
  .today .watchFooter > p { min-width:200px; }
  .coverageJob { padding-top:20px;border-top:1px solid var(--line); }
@@ -185,6 +197,10 @@
 .today .sinceRow > p { margin:0;min-width:0; }
 .today .sinceMeta { margin:10px 0 0;font-size:12px;color:var(--text-2); }
 .today .sinceFoot { margin:10px 0 0;font-size:11px;line-height:1.6;color:var(--muted); }
+/* Teaser copy — quiet inline text with one destination action, heading retained above. */
+.today .jobs .sinceTeaser { margin:0;font-size:13px;line-height:1.7;color:var(--text-2); }
+.today .sinceTeaser a { display:inline-flex;align-items:center;gap:6px;min-height:40px;margin-inline-start:10px;color:var(--link);font-size:12px;text-decoration:none;vertical-align:middle; }
+.today .sinceTeaser a:hover { text-decoration:underline;text-underline-offset:4px; }
 
 /* Slice 2: the source-readings strip is visible at the foot of the brief. Every reading carries
    its age in US sessions as words; ink only reinforces it (stale = warn), never health colours
@@ -201,3 +217,33 @@
    uses the same ink the Portfolio dialogs use. The words carry the meaning either way. */
 :global(html[data-theme="light"]) .readingAge[data-kind="stale"],
 :global(html[data-theme="light"]) .readingAge[data-kind="ahead"] { color:var(--mx-light-ink-warn, #7D5922); }
+
+/* 390-class phones: the strip becomes one reading per row. Label and value share the first
+   line; the note, the clock, and the age wrap to the second and third. Nothing is clipped,
+   hidden, scrolled, or folded into a disclosure — every date and stale label keeps the same
+   DOM order the wider layouts use. */
+@media(max-width:429px) {
+ .readings { grid-template-columns:minmax(0,1fr); }
+ .today .reading { flex-direction:row;flex-wrap:wrap;align-items:baseline;gap:4px 12px;padding:14px 16px;border-inline-end:0; }
+ .today .reading > strong { flex:0 1 auto;margin-inline-start:auto;text-align:end; }
+ .today .reading .readingNote { flex:1 1 100%; }
+ .today .reading .readingClock { margin-top:0; }
+ .today .reading .readingClock + .readingAge { margin-top:0;margin-inline-start:auto; }
+}
+
+/* Narrow recomposition: below 700px the source-readings strip leaves the brief and stands in
+   its own always-expanded jobs section, directly after the reading continuation. It is the
+   same DOM the desktop brief mounts (the boolean that moves it is the same breakpoint the
+   media queries use), so no reading is duplicated, hidden, or newly disclosed. */
+.today .readingsJob { min-width:0; }
+.today .readingsJob .readings { border:1px solid var(--line);border-radius:12px; }
+/* The jump target is programmatically focused, so the outline is a real, token-scoped rule —
+   never suppressed. */
+.today .readingsJob > h2:focus { outline:2px solid var(--link);outline-offset:4px; }
+/* The named jump from the brief: a 44px target that spans a 390px viewport, same vocabulary
+   as the resume link it sits among. */
+.today .jumpReadings { display:flex;align-items:center;justify-content:space-between;gap:10px;width:calc(100% - 36px);margin:14px 18px 18px;padding:10px 14px;min-height:44px;font-size:13px;font-weight:550;color:var(--text);background:var(--panel-2);border:1px solid var(--line-3);border-radius:8px;cursor:pointer; }
+.today .jumpReadings svg { width:14px;height:14px;color:var(--muted); }
+.today .jumpReadings:hover { background:var(--panel-3); }
+
+@media(max-width:699px) { .today .jobHeader > a { min-height:44px; } }
