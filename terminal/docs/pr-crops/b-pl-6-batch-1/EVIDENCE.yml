@@ -20,7 +20,7 @@ layoutFiles:
   terminal/app/workspace-chrome.css: "97e32bc24ed20479ea7b2e024ef6bc3883b9ead764098344f3ad4acea52b4bdd"
   terminal/app/layout.tsx: "9b675d52a647b4a92407958aa0ab7ffcc2632d95d003c89ca2eed2a1f4e35264"
   terminal/components/OptionsHubView.tsx: "0edbb1f902005dad5813beb7e406c04a3c0509aae4487f087fb101dd0ceb4c25"
-  terminal/components/SearchModal.tsx: "5b3a466a06215231f1b458c382aaae268b4f2f9f206d6f985f312f603fa4a5aa"
+  terminal/components/SearchModal.tsx: "36880f1100bbcfa051a0c46131dd84c48a7278f0adb5678ee969a8db190774e9"
   terminal/components/StockAnalysis.tsx: "376a907d0d8ea3dc5819e0092f02e19ce56fa1f4b71a3489551adf52fddb35c0"
   terminal/components/workspaces/AnalysisWorkspace.tsx: "411b8a7e498b8af3f9337fdcf3835dd62e6a5854826f414171d8303efd8aa5bb"
   terminal/components/ChartPanel.tsx: "56457ac4fe11f5c4fcfe4ab0e14f487ac3b3eaa70d9daa81f21526ed1b47b871"
@@ -47,7 +47,7 @@ layoutFiles:
   terminal/components/VisualIntelligencePanel.tsx: "a7ac590db5d9ae07a689c297d15ffc062ce00bbc3a9a05f16dbb529659185356"
   terminal/components/chrome/AppShell.tsx: "7054ce108b9701b29c8d608bc102f775858cb232b4289032d2afac66338cee43"
   terminal/components/chrome/investor-shell-preview.css: "83d1842b9b057014f698d5e62627c3e492a1061d0e8713b7a2bdc3ca8753650e"
-  terminal/components/chrome/shared-shell/shared-shell.css: "aa6555ac18306f31fb317d8941bd1dd530ab7c61c18e67d2a73a439329950339"
+  terminal/components/chrome/shared-shell/shared-shell.css: "97bf53925b7e843d6ea4639b8a8b50f467f5fff8355c2a828d990e8db477f5d2"
   terminal/components/mobile/AnalysisHubSheet.module.css: "b54a3356b41a9e1f7838df62d4510375bf7421d34fc535345bee36d8d996a846"
   terminal/components/mobile/AnalysisHubSheet.tsx: "f52b30fe5e7832077db8902a2651e0c47faabe7df1d892cc3b787e23ce8c9b24"
   terminal/components/options-companion/OptionsCompanion.module.css: "56fa1b120238409ee3089696414a07b9296f43e7071d5996218697d89f981091"
@@ -504,4 +504,13 @@ sharedShellRegionIdentityRecapture20261102:
   actualBrowserResult: "Separate immutable successor PL6 8/8 and VI Chinese-context 3/3; exact matching-baseline B2 controls reused under their original source identity. No whole-matrix recapture claim."
   comparison: "All eight PL6 pairs and VI tablet are byte-identical. Desktop differences remain in the changing clock/ticker footer; mobile differs at 45 edge pixels by at most 2/255. Actual distinct captures remain retained."
   enabledBehavior: "Four actual Next plus unchanged Macrobridge SS02 region-switch/Back journeys and 20 identity unit cases separately qualify sharedShell=1 behavior."
+  productionProof: false
+
+sharedShellResponsiveParityRecapture20261102:
+  sourceHead: "04c9269d64da34f2b4229e0574622e65fc2e2ddc"
+  receipt: "terminal/docs/pr-crops/shared-shell-parity-20261102/visual-source-qualification.json"
+  scope: "Only SearchModal.tsx and shared-shell.css layoutFiles bindings; predecessor cropFiles, PNG bytes, full browser reports and report hashes are unchanged."
+  actualBrowserResult: "New immutable PL6 8/8 and VI Chinese-context 3/3 plus same-source VI repeat 3/3; separate matching-base controls PL6 8/8 and VI 3/3. No whole-matrix recapture claim."
+  comparison: "PL6 all eight and VI tablet are byte-identical to controls. Desktop footer clock/ticker varies even at the same source; mobile differs from base at 45 edge pixels by at most 2/255, with exact candidate repeat. All distinct captures remain retained."
+  historicalQualification: "Historical complete functional reports retain their original identity; scoped new operations qualify only the current source rows above."
   productionProof: false

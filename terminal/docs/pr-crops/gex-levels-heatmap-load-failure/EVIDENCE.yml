@@ -12,7 +12,7 @@ layoutFiles:
   terminal/components/gexdesk/StrikeLadder.tsx: "55dccbef4e3bfebc09477f6d9a0133cf0bc5d70531d32d532e760ff214ed4596"
   terminal/components/gexdesk/gexStrings.ts: "15fb1e6b89725ae7bf5762b3b0cd9749e85331f6733c34efc710979430132d7b"
   terminal/components/heatmap/HeatmapView.tsx: "3b3ab5049715a33f167e344d3013b8f880356e8b96077b38c9a517c57b7a54cb"
-  terminal/lib/dataCache.ts: "f8a7f978049e64482b385d43c13d49d05ddec2525e36457b365a2d083060e1be"
+  terminal/lib/dataCache.ts: "ce28db3a3bcb3425320ac7e6845df02be5d21daebfa084756830c631623c7a3a"
   terminal/components/levels/LevelsView.tsx: "91a4d6fd86b12225e657c8a9c4b2b185e3940356af3cd11466ca30e04f05b0c9"
   terminal/components/levels/levelsLabels.ts: "361124ec9293623fefe69128212f5a25bfddf2c3d716252126d56ec5f356d0d9"
   terminal/lib/heatmapStrings.ts: "26bb75eccce7429e5a37154f07f7f68faf9652da1f6f3560074cb558f0dda9c2"
@@ -267,3 +267,11 @@ labPlanNavigationRecapture20261030:
   qualification: "terminal/docs/verification/lab-plan-handoff-20261030/evidence-lock-recapture.json"
   qualificationSha256: "b34344fad4050563f59223f81056de0415527a98e6bc8047f99a6bfccbdc6be4"
   scope: "Actual scoped browser captures on the navigation candidate. Other surfaces and earlier reports retain their historical identities; no production or full-matrix recapture claim."
+
+currentCacheQualification:
+  sourceHead: "ca43fd0f9d1aaf13658a1553ea244c8815369591"
+  previousCacheSha256: "f8a7f978049e64482b385d43c13d49d05ddec2525e36457b365a2d083060e1be"
+  cases: 114
+  report: "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/1224-cache-ca43fd0f/result.json"
+  reportSha256: "4f1b2c7cea9606d01f803d03c802d03853567dd032d56ebc7f41a918dd5bf567"
+  scope: "The report maps every current capture to its actual file and digest. Packet-root PNGs and earlier capture records retain their historical identity."
