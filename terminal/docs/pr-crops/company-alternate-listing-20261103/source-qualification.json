@@ -65,5 +65,21 @@
     "reviewer": "independent non-author acceptance",
     "record": "FINAL_BROWSER_ACCEPTANCE_CONTRACT.md:171",
     "scope": "HK onward local fixture; BABA/USD source+DOM only; source/36stepPNG hashes and raw public fixture bytes verified; no served or authenticated acceptance"
+  },
+  "theses_entry_follow_up": {
+    "cause": "Natural CI41563394646 found third active Analysis source lock; local reproducer1FAIL4PASS",
+    "source_head": "246ae1579e88ff9c7583eff5061a404644bed05a",
+    "producer": "terminal/e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs",
+    "producer_sha256": "f9dbddc41f49cdfe940c1a9f8f1c8db52245f1bf365b8272c3c7aec15daed798",
+    "rendering_change": "none; OUT declaration redirected only",
+    "start": "terminal/docs/pr-crops/company-alternate-listing-20261103/theses-entry-20261103/start.json",
+    "start_sha256": "746aa977b4f43507a7e26745df9e814c398d0969fb4d983b38f72c6d2bcecb92",
+    "result": "terminal/docs/pr-crops/company-alternate-listing-20261103/theses-entry-20261103/result.json",
+    "result_sha256": "8e03850d31ecd1ac9e41b255f207bf520a384294619f78cfd111a96e12f06fa2",
+    "case_count": 6,
+    "source_files_match_A2_operations": true,
+    "historical_six_crops_unchanged": true,
+    "actual_images_inspected": 6,
+    "scope": "NVDA context bar / Your theses visible, EN/ZH at1440/820/390, dark incumbent fixture/sharedShell0; body honestly unavailable. Existing beta-enabled company journey proof remains separate."
   }
 }
