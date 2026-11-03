@@ -1,5 +1,7 @@
 "use client";
 import dynamic from "next/dynamic";
+import { useLayoutEffect } from "react";
+import { flowInvalidate } from "@/lib/flowClientCache";
 import Link from "next/link";
 import { useLang } from "@/lib/i18n";
 import { useReadingScope } from "@/lib/shared-shell/useReadingScope";
@@ -14,6 +16,13 @@ export default function IntelligenceToolWorkspace({ownerKey,kind}:{ownerKey:stri
 function Session({ownerKey,kind}:{ownerKey:string;kind:"prophet"|"sectors"}) {
  const {lang} = useLang(), zh = lang === "zh";
  const {ready,ended,unavailable,retryIdentity} = useReadingScope(ownerKey);
+ // Reuse the incumbent display-cache invalidation before child passive reads.
+ // An old account's module cache must not seed a newly verified tool lifetime.
+ useLayoutEffect(()=>{
+  if (kind !== "prophet" || !ready) return;
+  flowInvalidate();
+  return ()=>flowInvalidate();
+ },[kind,ready]);
  const title = kind === "prophet" ? "Prophet" : zh ? "行业情报" : "Sector Intelligence";
  return <div className={`main2 ${s.workspace}`} data-intelligence-tool={kind}>
   <header className={s.workspaceHeader}><h1>{title}</h1><IntelligenceNav /></header>

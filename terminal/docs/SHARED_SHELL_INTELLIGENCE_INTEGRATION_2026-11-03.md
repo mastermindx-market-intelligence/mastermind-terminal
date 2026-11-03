@@ -147,3 +147,36 @@ observation was ACTIVE_OR_WAITING, not proof of accepted execution or return.
 Next: canonical Macro route registration/export, complete integration regression
 and real-browser qualification, independent exact-head review, normal protected
 landing and beta-only release. No deployment or final acceptance is claimed.
+
+## Recovered original source and consumer defect - November 3 UTC
+
+The current attended receiver resumed the same operation and verified Terminal
+PR1244 at 844e5a68 and Macro PR10639 at ab88dac5. The managed Terminal owner
+reused the original base350a61f9 workspace; no replacement branch or worktree was
+created. The original census returned; its source-pin mismatch inference is not
+accepted as a runtime defect: the bundled client/server registry tuple is the
+actual compatibility boundary. No implementation worker wrote this source.
+
+The existing Prophet cache invalidation repair passed 25 tests across the new
+tool-lifetime suite and both incumbent flow-cache suites. It clears the existing
+cache before new child reads and on departure, without creating another cache.
+
+The local browser matrix rendered the six 1440/820/390 dark-English/light-Chinese
+overview cells without overflow, but the complete journey remains NOT_ACCEPTED:
+selecting MU under /sectors, opening Overview, then Back loses sectorCompany.
+The installed Next history owner skips router synchronization when application
+code forwards its private __NA/_N flags. The incumbent sector writer does that.
+The next bounded repair must use application-owned history state, preserve the
+newly merged PR1229 depth-return receipt, and prove Back without a manual reload.
+This is a required integration repair, not a breadth redesign; PR1232 changes a
+disjoint breadth-render hunk. The merged PR1235 Today ordering must also survive.
+
+Macro PR10639 has one independent read-only Fabric review requested as
+beta-intelligence-registry-review-20261103-r1 on the original root. Controller
+creation is observed; reviewer execution/return/formal approval are separate.
+A separate attempted implementation delegation was explicitly blocked and is
+not being replayed. The original published source remains the delivery carrier.
+
+The generated route working copy is provisional. Only the existing exporter
+against the normally merged Macro registry/inventory can establish final route
+publication. No beta deployment or authenticated product acceptance is claimed.
