@@ -314,6 +314,17 @@ def test_native_weighted_e2e_shards_preserve_the_original_exact_cover():
         sizes = [int(x) for x in hit.group(1).split(":")]
         assert len(sizes) == count, f"{project}: native shard total mismatch"
         assert min(sizes) > 0, f"{project}: no empty/zero-weight shard"
+    # The current candidate is bounded to two-run desktop/tablet calibration.
+    # Mobile is an explicit conservative uniform hold until a second complete
+    # independent mobile run is available (the prior had a cancelled shard).
+    vectors = {
+        "desktop": [147, 192, 183, 223, 177, 227, 138],
+        "tablet": [208, 309, 303, 301, 166],
+        "mobile": [1, 1, 1, 1, 1],
+    }
+    for project, sizes in vectors.items():
+        fragment = ":".join(map(str, sizes))
+        assert f"startsWith(matrix.shard, '{project}-') && '{fragment}'" in weighted
     assert weighted.rstrip().endswith("|| '' }}"), "serial must retain ordinary sharding"
     assert "grep -q 'PWTEST_SHARD_WEIGHTS'" in step["run"]
     assert "npm run test:e2e:responsive -- ${{ matrix.projects }}" in step["run"]

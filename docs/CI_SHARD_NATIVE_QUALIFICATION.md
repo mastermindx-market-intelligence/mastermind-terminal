@@ -522,3 +522,62 @@ false-green/retry increases, measured queue/wall/runner minutes against
 comparable green runs, and multiple independent observations before
 any P50/P90 or >=20% speedup claim. Keep source Draft and no merge,
 Ready, queue, deploy or fleet modification.
+
+
+## T3 continuation: first weighted candidate falsified on independent run
+
+The first published native weight vectors on source 0199d5e09
+were trained using one hosted run per project and initially projected
+27–29% reduction in maximum clean-test workload. Those **single-run
+projections are NOT accepted**: a different run's test IDs and actual
+successful-attempt durations falsified the extrapolation.
+
+Holdout run41593139616 desktop: old uniform maximum **25.09m**
+versus first weighted counterfactual **25.52m**, worse. Holdout
+run41588139155 tablet: old uniform maximum **26.87m** versus
+weighted **30.00m**, worse. Mobile reference run41588139155 lacked
+a completed fifth shard (cancelled), so its four-shard comparison
+cannot establish project speed and the first mobile weight vector
+remains unqualified. Raw native JSON reports and reproducible
+counterfactual script are preserved in:
+`artifacts/ci-shard-critical-path-20261102/weighted-cross-validation-20261103/`.
+Holdout index SHA256:
+`1a5b5e77f927250499a7904d32f157fa9094bbe59e4074b564276435f09c4c3d`.
+
+**Conservative revised SOURCE CANDIDATE, not yet hosted-qualified:**
+two-run minimax allocation using independent first-pass performance
+cohorts from 41588139155 and 41593139616, with zero execution weight
+for existing skips and successful-attempt time for flaky cases. Desktop
+`147:192:183:223:177:227:138`, Tablet
+`208:309:303:301:166`. Actual native Playwright 1.61.1
+`--list --project=… --shard=i/N` independently proved exact
+1,287-case coverage across each 7-/5-shard group, no duplicates.
+Worst reconstructed clean-time in the *same two training runs*:
+Desktop **20.406/20.403m**; Tablet **21.392/21.310m**.
+The failed desktop Investigation case has no successful duration
+on one reference and uses its other-run successful duration;
+no missing source test identities. Predictions do **not** include
+setup, queue, server interference, retry budgets or growth in merged
+source cases, and MUST NOT be called a prospective hosted speedup.
+Native proof SHA256 Desktop
+`48d6e5162f26e5931a5ef9d46befafccd4af4968fa869f84f2b4d3fbeb3d7867`,
+Tablet
+`e63d4a378fabfbecbb18cdc60fc26ea4fd3f2b5a145d989af1ee2b4177f1c732`.
+
+The Mobile weight vector is intentionally **reverted to
+`1:1:1:1:1`**, equivalent to the existing uniform native shard
+allocation, pending a second FULL independent mobile cohort. Native
+Playwright 1.61.1 `--list` rechecked all five mobile shards with
+counts **258/258/257/257/257**, exact source-identity union 1,287
+with no missing or duplicated cases; proof SHA256
+`24a3322f8af7c24838e9647e0fd3de743d41db62253cae57d3c0656125450a1d`.
+This is a source-selection proof, not an executed browser workload.
+Company Intelligence and opt-in serial group are unweighted
+and unchanged. No new jobs, new runners, runtime installs, retry
+or timeout changes. Existing test coverage and protected aggregate
+remain in force. If the previously published weighted run
+41598822826 is still active, do NOT push an updated head that would
+cancel its remaining execution/evidence; reconcile that run first.
+Separate product/source holds: Investigation #804, migration #1250,
+static fast lane #1251, mobile navigation #1236/#1244. No merge,
+Ready, un-draft, queue, relabel or deployment requested.

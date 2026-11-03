@@ -383,7 +383,7 @@ jobs:
           MMX_CI_ATTEMPT_REPORT_PATH: ci-attempt-reports/${{ matrix.shard }}/main.json
           # Same Playwright native distribution weights for every shard of
           # one project. Counts differ, test identities and shard count do not.
-          PWTEST_SHARD_WEIGHTS: "${{ startsWith(matrix.shard, 'desktop-') && '133:197:214:297:126:204:116' || startsWith(matrix.shard, 'tablet-') && '340:201:292:314:140' || startsWith(matrix.shard, 'mobile-') && '169:272:209:485:152' || '' }}"
+          PWTEST_SHARD_WEIGHTS: "${{ startsWith(matrix.shard, 'desktop-') && '147:192:183:223:177:227:138' || startsWith(matrix.shard, 'tablet-') && '208:309:303:301:166' || startsWith(matrix.shard, 'mobile-') && '1:1:1:1:1' || '' }}"
         run: |
           # Fail closed if a future Playwright update removes native weights.
           if [ -n "$PWTEST_SHARD_WEIGHTS" ]; then
