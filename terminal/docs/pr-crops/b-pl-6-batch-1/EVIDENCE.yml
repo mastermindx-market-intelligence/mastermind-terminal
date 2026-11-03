@@ -514,3 +514,14 @@ sharedShellResponsiveParityRecapture20261102:
   comparison: "PL6 all eight and VI tablet are byte-identical to controls. Desktop footer clock/ticker varies even at the same source; mobile differs from base at 45 edge pixels by at most 2/255, with exact candidate repeat. All distinct captures remain retained."
   historicalQualification: "Historical complete functional reports retain their original identity; scoped new operations qualify only the current source rows above."
   productionProof: false
+
+sharedShellRegionProtectedComposition20261103:
+  sourceHead: "41d7a7b20e1a34eb0689ff96282f0ca5287c2254"
+  protectedBase: "4f9fad0beed2c77983bec7a1f7cf540f194cba86"
+  receipt: "terminal/docs/pr-crops/shared-shell-ss02-region-current-20261102/combined-source-qualification-20261103.json"
+  receiptSha256: "0747a2d849524b7cf96b2a005d6b19a590f86a650015a16266db8de680dff50a"
+  scope: "Actual combined MobileNav, SearchModal and shared-shell.css layout bindings only. All predecessor operations, PNGs, cropFiles, full reports and report hashes remain unchanged."
+  actualBrowserResult: "New immutable PL6 8/8 and VI Chinese-context 3/3 with separate same-profile protected-source controls 8/8 and3/3; no whole-matrix recapture."
+  comparison: "All eight PL6 pairs and VI tablet/mobile are byte-identical. Desktop has changing footer clock/ticker pixels plus16 edge pixels differing by at most2/255; actual distinct captures retained and inspected."
+  enabledBehavior: "Accepted source-bound SS02 switch/Back journeys and #1228 portal/title/hit-area proofs retain their exact product bytes and independent fixture scope."
+  productionProof: false
