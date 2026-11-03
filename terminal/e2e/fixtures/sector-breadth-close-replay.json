@@ -1,5 +1,5 @@
 {
-  "producer": "2e302aba8ccff549b68a8b70ef5182954708b51e",
+  "producer": "3b76190b39ad6b0a25db4a1003e004412581bc84",
   "closeMatrixSha256": "92ad36feb952d7bbca3ac0275044bd70a071817437334ddca28caf8d297c6774",
   "heatmapSha256": "c6564a626ac9399456dcfd56f0893cded14f3d66a43b25ffbc6c01375f0f3fce",
   "rows": [
@@ -82,24 +82,24 @@
       "2026-10-22"
     ],
     "sectors": {
-      "XLK": {
-        "eligible": 79,
-        "matched": 79,
+      "XLB": {
+        "eligible": 19,
+        "matched": 19,
         "advancing": [
-          40,
+          16,
+          11,
           8,
-          64,
-          47,
-          61,
-          28
+          13,
+          11,
+          13
         ],
         "declining": [
-          39,
-          71,
-          15,
-          32,
-          18,
-          51
+          3,
+          8,
+          11,
+          6,
+          8,
+          6
         ]
       },
       "XLC": {
@@ -122,24 +122,24 @@
           7
         ]
       },
-      "XLY": {
-        "eligible": 53,
-        "matched": 53,
+      "XLE": {
+        "eligible": 21,
+        "matched": 21,
         "advancing": [
-          52,
-          22,
-          23,
-          43,
-          17,
-          39
+          1,
+          21,
+          5,
+          13,
+          12,
+          6
         ],
         "declining": [
-          1,
-          31,
-          29,
-          10,
-          36,
-          14
+          20,
+          0,
+          16,
+          8,
+          9,
+          15
         ]
       },
       "XLF": {
@@ -182,84 +182,64 @@
           29
         ]
       },
-      "XLB": {
-        "eligible": 19,
-        "matched": 19,
+      "XLK": {
+        "eligible": 81,
+        "matched": 81,
         "advancing": [
-          16,
-          11,
+          41,
           8,
-          13,
-          11,
-          13
+          66,
+          48,
+          63,
+          28
         ],
         "declining": [
-          3,
-          8,
-          11,
-          6,
-          8,
-          6
-        ]
-      },
-      "XLE": {
-        "eligible": 21,
-        "matched": 21,
-        "advancing": [
-          1,
-          21,
-          5,
-          13,
-          12,
-          6
-        ],
-        "declining": [
-          20,
-          0,
-          16,
-          8,
-          9,
-          15
-        ]
-      },
-      "XLV": {
-        "eligible": 59,
-        "matched": 59,
-        "advancing": [
-          56,
-          19,
-          23,
-          54,
-          24,
-          46
-        ],
-        "declining": [
-          3,
           40,
-          36,
-          5,
-          35,
-          13
+          73,
+          15,
+          33,
+          18,
+          53
         ]
       },
       "XLP": {
-        "eligible": 32,
-        "matched": 32,
+        "eligible": 33,
+        "matched": 33,
         "advancing": [
           24,
           27,
-          4,
-          25,
-          6,
+          5,
+          26,
+          7,
           32
         ],
         "declining": [
-          8,
-          5,
+          9,
+          6,
           28,
           7,
           26,
-          0
+          1
+        ]
+      },
+      "XLRE": {
+        "eligible": 30,
+        "matched": 30,
+        "advancing": [
+          29,
+          23,
+          1,
+          29,
+          11,
+          24
+        ],
+        "declining": [
+          1,
+          7,
+          29,
+          1,
+          19,
+          6
         ]
       },
       "XLU": {
@@ -282,24 +262,44 @@
           4
         ]
       },
-      "XLRE": {
-        "eligible": 30,
-        "matched": 30,
+      "XLV": {
+        "eligible": 60,
+        "matched": 60,
         "advancing": [
-          29,
+          56,
+          19,
+          24,
+          55,
+          25,
+          46
+        ],
+        "declining": [
+          4,
+          41,
+          36,
+          5,
+          35,
+          14
+        ]
+      },
+      "XLY": {
+        "eligible": 53,
+        "matched": 53,
+        "advancing": [
+          52,
+          22,
           23,
-          1,
-          29,
-          11,
-          24
+          43,
+          17,
+          39
         ],
         "declining": [
           1,
-          7,
+          31,
           29,
-          1,
-          19,
-          6
+          10,
+          36,
+          14
         ]
       }
     }

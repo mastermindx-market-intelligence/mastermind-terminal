@@ -29,6 +29,7 @@ describe("Sector Central discovery and breadth", () => {
   const render = async (patch: Partial<SectorCentralDiscoveryProps> = {}) => {
     await act(async () => root.render(<LangProvider><SectorCentralDiscovery rows={rows} status="ready" asOf="2026-09-25"
       selected="xlk" selectedSourceName="Technology" selectedCompany="" query="" companyTableQuery="" sort="source" companyTableSort="source"
+      breadthSort="strong" breadthWindow={5} onBreadthSort={vi.fn()} onBreadthWindow={vi.fn()}
       breadth={false} mode="table" heatmapData={companyHeatmap} heatmapStatus="ready"
       heatmapAsOf="2026-09-25" matrixTimeframe="1D" matrixIndustry="" matrixBand=""
       onQuery={query} onCompanyTableQuery={companyQuery} onSort={sort} onCompanyTableSort={companySort}
@@ -86,10 +87,21 @@ describe("Sector Central discovery and breadth", () => {
     const selected = host.querySelector('[data-sector-choice="xlk"]')!;
     expect(host.textContent).toContain("positive one-month return");
     expect(host.textContent).toContain("Comparable daily history is unavailable");
+    expect(host.querySelector('[data-readout="expand"]')).toBeNull();
     expect(selected.closest("tr")?.textContent).toContain("59.5%");
     expect(selected.closest("tr")?.textContent).toContain("47 / 32");
     expect(selected.getAttribute("aria-pressed")).toBe("true");
     expect(host.querySelector("[data-sector-choice]")).toBe(selected);
+  });
+  it("holds the ranking when two sector identities share the same ETF", async () => {
+    await render({breadth:true, rows:[rows[0], {...rows[1],ticker:rows[0].ticker}]});
+    expect(host.textContent).toContain("Two sector records share a ticker.");
+    expect(host.querySelector("[data-sector-choice]")).toBeNull();
+  });
+  it("waits for an in-flight daily source without briefly labeling a monthly market leader", async () => {
+    await render({breadth:true, heatmapStatus:"loading"});
+    expect(host.textContent).toContain("Loading closing comparisons");
+    expect(host.querySelector("[data-readout]")).toBeNull();
   });
   it("leaves invalid and zero-denominator snapshots unranked", async () => {
     await render({ breadth: true, rows: [
@@ -108,9 +120,11 @@ describe("Sector Central discovery and breadth", () => {
         XLU: { matched: 1, eligible: 10, advancing: [1,1,1,1,1,1], declining: [0,0,0,0,0,0] } } };
     await render({breadth: true, heatmapData: {...companyHeatmap, sector_breadth_close: history}});
     const highlights = host.querySelector('[aria-label="All sectors"]')!;
-    expect(highlights.children[0].textContent).toContain("XLF · XLK");
-    expect(highlights.children[2].textContent).toContain("+50.0 pp");
-    expect(highlights.children[3].textContent).toContain("-10.0 pp");
+    expect(highlights.querySelector('[data-readout="strong"]')?.textContent).toContain("XLF · XLK");
+    expect(highlights.querySelector('[data-readout="expand"]')?.textContent).toContain("+50.0 pp");
+    expect(highlights.querySelector('[data-readout="contract"]')?.textContent).toContain("-10.0 pp");
+    expect(highlights.textContent).toContain("1 expanding · 1 contracting · 0 flat");
+    expect(highlights.textContent).toContain("2 of 2 ranked sectors above 50% advancing");
     const compare = Array.from(host.querySelectorAll("select")).find(el => el.closest("label")?.textContent?.includes("Compare closes"))!;
     await act(async () => { compare.value = "5"; compare.dispatchEvent(new Event("change",{bubbles:true})); });
     const row = host.querySelector('[data-sector-choice="xlf"]')!.closest("tr")!;
@@ -172,6 +186,7 @@ describe("Discovery to detail URL continuity", () => {
   it.each(["rotation", "discover", "breadth", "detail"] as const)("retains %s, representations, matrix context and the selected object", workspace => {
     const state = { ...DEFAULT_SECTOR_STATE, workspace, discoveryQuery: "Tech", discoverySort: "participation" as const,
       companyTableQuery: "ON Semiconductor", companyTableSort: "performance" as const, discoveryMode: "matrix" as const, matrixTimeframe: "1M" as const, matrixIndustry: "Semiconductors", matrixBand: "mega" as const,
+      breadthSort: "contract" as const, breadthWindow: 1 as const,
       rotationMode: "list" as const, rotationQuery: "Technology", view: "companies" as const, company: "MU", query: "MU", sourcesOpen: true };
     const href = writeSectorState(new URL("https://example.test/discover?from=map"), state);
     const url = new URL(href, "https://example.test"); expect(parseSectorState(url.searchParams)).toEqual(state);

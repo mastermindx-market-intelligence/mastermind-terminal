@@ -329,6 +329,9 @@ export default function SectorIntelligenceWorkspace() {
         selectedCompany={state.company} query={state.discoveryQuery} companyTableQuery={state.companyTableQuery}
         sort={state.discoverySort} companyTableSort={state.companyTableSort}
         breadth={state.workspace === "breadth"} mode={state.discoveryMode}
+        breadthSort={state.breadthSort} breadthWindow={state.breadthWindow}
+        onBreadthSort={breadthSort => change({ breadthSort })}
+        onBreadthWindow={breadthWindow => change({ breadthWindow })}
         heatmapData={feeds.heatmap?.data} heatmapStatus={feeds.heatmap?.receipt.status || "loading"}
         heatmapAsOf={feeds.heatmap?.receipt.asOf || null} matrixTimeframe={state.matrixTimeframe}
         matrixIndustry={state.matrixIndustry} matrixBand={state.matrixBand}

@@ -1,7 +1,7 @@
-import { object, type Row } from "./sectorIntelligence";
+import { object, type Row, type SectorBreadthWindow } from "./sectorIntelligence";
 
 export const BREADTH_COVERAGE = 0.9;
-export type BreadthWindow = 1 | 5;
+export type BreadthWindow = SectorBreadthWindow;
 
 export interface BreadthSector {
   row: Row;

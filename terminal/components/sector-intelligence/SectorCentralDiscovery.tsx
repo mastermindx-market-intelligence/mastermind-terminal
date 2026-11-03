@@ -9,6 +9,8 @@ import {
   text,
   type FeedStatus,
   type Row,
+  type SectorBreadthSort,
+  type SectorBreadthWindow,
   type SectorCapBand,
   type SectorCompanyTableSort,
   type SectorDiscoveryMode,
@@ -34,6 +36,10 @@ export interface SectorCentralDiscoveryProps {
   sort: DiscoverySort;
   companyTableSort: SectorCompanyTableSort;
   breadth: boolean;
+  breadthSort: SectorBreadthSort;
+  breadthWindow: SectorBreadthWindow;
+  onBreadthSort: (sort: SectorBreadthSort) => void;
+  onBreadthWindow: (window: SectorBreadthWindow) => void;
   mode: SectorDiscoveryMode;
   heatmapData: unknown;
   heatmapStatus: FeedStatus;

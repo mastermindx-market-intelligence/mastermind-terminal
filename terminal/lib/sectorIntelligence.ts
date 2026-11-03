@@ -28,6 +28,8 @@ export const SECTOR_VIEWS = ["intelligence", "companies", "signals", "drivers", 
 export type SectorView = typeof SECTOR_VIEWS[number];
 export type MemberSort = "source" | "return" | "relative" | "ticker";
 export type SectorWorkspace = "rotation" | "discover" | "breadth" | "detail";
+export type SectorBreadthSort = "strong" | "weak" | "expand" | "contract";
+export type SectorBreadthWindow = 1 | 5;
 export type SectorDiscoverySort = "source" | "return" | "participation";
 export type SectorCompanyTableSort = "source" | "performance" | "marketcap" | "ticker";
 export type SectorDiscoveryMode = "summary" | "table" | "heatmap" | "matrix";
@@ -42,6 +44,7 @@ export type SectorRotationMethod = "incumbent" | "relative_trend_ema";
 export type SectorState = {
   sourceFamily: "sectors" | "finviz"; finvizMode: FinvizMode; finvizTheme: string; finvizSubtheme: string; bubbleX: FinvizAxis; bubbleY: FinvizAxis; bubbleSize: "members" | "equal";
   view: SectorView; sector: string; group: string; sort: MemberSort; query: string; theme: "dark" | "light"; company: string; expanded: boolean; sourcesOpen: boolean;
+  breadthSort: SectorBreadthSort; breadthWindow: SectorBreadthWindow;
   workspace: SectorWorkspace; discoveryQuery: string; discoverySort: SectorDiscoverySort; companyTableQuery: string; companyTableSort: SectorCompanyTableSort;
   discoveryMode: SectorDiscoveryMode; matrixTimeframe: SectorMatrixTimeframe; matrixIndustry: string; matrixBand: SectorCapBand | "";
   rotationMode: SectorRotationMode; rotationQuery: string; rotationMethod: SectorRotationMethod;
@@ -49,6 +52,7 @@ export type SectorState = {
 export const DEFAULT_SECTOR_STATE: SectorState = {
   sourceFamily: "sectors", finvizMode: "heatmap", finvizTheme: "", finvizSubtheme: "", bubbleX: "1W", bubbleY: "1M", bubbleSize: "members",
   view: "intelligence", sector: "xlk", group: "semiconductors", sort: "source", query: "", theme: "dark", company: "", expanded: false, sourcesOpen: false,
+  breadthSort: "strong", breadthWindow: 5,
   workspace: "discover", discoveryQuery: "", discoverySort: "source", companyTableQuery: "", companyTableSort: "source", discoveryMode: "summary", matrixTimeframe: "1D", matrixIndustry: "", matrixBand: "",
   rotationMode: "map", rotationQuery: "", rotationMethod: "incumbent",
 };
@@ -358,6 +362,7 @@ export function parseSectorState(params: URLSearchParams): SectorState {
   const view = params.get("sectorView") || "", sector = params.get("sector") || "", group = params.get("group") || "";
   const sort = params.get("sectorSort") || "";
   const workspace = params.get("sectorWorkspace"), discoverySort = params.get("sectorDiscoverySort");
+  const breadthSort = params.get("sectorBreadthSort");
   const companyTableSort = params.get("sectorCompanyTableSort");
   const discoveryMode = params.get("sectorDiscoveryMode"), matrixTimeframe = params.get("sectorMatrixTimeframe");
   const matrixBand = params.get("sectorMatrixBand"), rotationMode = params.get("sectorRotationMode");
@@ -369,6 +374,8 @@ export function parseSectorState(params: URLSearchParams): SectorState {
     finvizTheme: (params.get("finvizTheme") || "").slice(0, 180), finvizSubtheme: (params.get("finvizSubtheme") || "").slice(0, 180),
     bubbleX: axis("bubbleX", "1W"), bubbleY: axis("bubbleY", "1M"), bubbleSize: params.get("bubbleSize") === "equal" ? "equal" : "members",
     workspace: workspace === "rotation" || workspace === "discover" || workspace === "breadth" || workspace === "detail" ? workspace : legacyDetail ? "detail" : "discover",
+    breadthSort: breadthSort === "weak" || breadthSort === "expand" || breadthSort === "contract" ? breadthSort : "strong",
+    breadthWindow: params.get("sectorBreadthWindow") === "1" ? 1 : 5,
     discoveryQuery: (params.get("sectorDiscoveryQuery") || "").slice(0, 60),
     discoverySort: discoverySort === "return" || discoverySort === "participation" ? discoverySort : "source",
     companyTableQuery: (params.get("sectorCompanyTableQuery") || "").slice(0, 60),
@@ -402,6 +409,10 @@ export function writeSectorState(url: URL, state: SectorState): string {
     if (state[key] !== DEFAULT_SECTOR_STATE[key]) url.searchParams.set(key, state[key]); else url.searchParams.delete(key);
   }
   url.searchParams.set("sectorWorkspace", state.workspace);
+  if (state.breadthSort !== "strong") url.searchParams.set("sectorBreadthSort", state.breadthSort);
+  else url.searchParams.delete("sectorBreadthSort");
+  if (state.breadthWindow === 1) url.searchParams.set("sectorBreadthWindow", "1");
+  else url.searchParams.delete("sectorBreadthWindow");
   url.searchParams.set("sectorDiscoverySort", state.discoverySort);
   url.searchParams.set("sectorCompanyTableSort", state.companyTableSort);
   if (state.discoveryQuery) url.searchParams.set("sectorDiscoveryQuery", state.discoveryQuery); else url.searchParams.delete("sectorDiscoveryQuery");
