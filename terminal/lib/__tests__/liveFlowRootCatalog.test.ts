@@ -138,6 +138,31 @@ describe("ticker artifact receipt binding", () => {
 });
 
 describe("ticker candidate rows", () => {
+  it("matches both Alphabet share classes and issuer names only within coverage", () => {
+    const entries = parseLiveFlowRootCatalog(VALID_META)!;
+    const catalog = ["GOOGL", "AMZN", "GOOG"].map((root, i) => ({ ...entries[i], root }));
+    const companyNames = {
+      AMZN: { name: "Amazon.com Inc.", zh: "亚马逊" },
+      WMT: { name: "Walmart" },
+    };
+    const find = (query: string, rows = catalog) => buildTickerCandidateRows({
+      catalog: rows, impacts: new Map(), fallbackRoots: [], companyNames, query,
+    }).map((row) => row.root);
+    expect(find(" goog ")).toEqual(["GOOG", "GOOGL"]);
+    expect(find("$GOOGL")).toEqual(["GOOGL"]);
+    expect(find("Google")).toEqual(["GOOGL", "GOOG"]);
+    expect(find("Alphabet")).toEqual(["GOOGL", "GOOG"]);
+    expect(find("谷歌")).toEqual(["GOOGL", "GOOG"]);
+    expect(find("Google", catalog.slice(0, 1))).toEqual(["GOOGL"]);
+    expect(find("Amazon")).toEqual(["AMZN"]);
+    expect(find("亚马逊")).toEqual(["AMZN"]);
+    expect(find("Walmart")).toEqual([]);
+    expect(find("")).toEqual(["GOOGL", "AMZN", "GOOG"]);
+    expect(buildTickerCandidateRows({
+      catalog: null, impacts: new Map(), fallbackRoots: ["AMZN"], companyNames, query: "Amazon",
+    }).map((row) => row.root)).toEqual(["AMZN"]);
+  });
+
   it("normalizes ticker-friendly search", () => {
     expect(normalizeRootQuery("  $amd ")).toBe("AMD");
     expect(normalizeRootQuery("$$amd")).toBe("$AMD");

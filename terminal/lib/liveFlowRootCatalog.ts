@@ -22,6 +22,7 @@ interface CandidateArgs {
   fallbackRoots: readonly string[];
   query: string;
   fallbackLimit?: number;
+  companyNames?: OptionsCompanyNames;
 }
 
 const ROOT_PATTERN = /^[A-Z][A-Z0-9.-]{0,9}$/;
@@ -182,31 +183,42 @@ function impactFor(root: string, impacts: ReadonlyMap<string, number>): number |
   return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
 
+export type OptionsCompanyNames = Readonly<Record<string, { name?: string; zh?: string }>>;
+
+export function tickerCompanyLabel(root: string, names: OptionsCompanyNames, lang: "en" | "zh"): string {
+  if (root === "GOOG") return lang === "zh" ? "Alphabet · C类" : "Alphabet · Class C";
+  if (root === "GOOGL") return lang === "zh" ? "Alphabet · A类" : "Alphabet · Class A";
+  const company = names[root];
+  const name = lang === "zh" && typeof company?.zh === "string" && company.zh ? company.zh : company?.name;
+  return typeof name === "string" ? name : "";
+}
+
 export function buildTickerCandidateRows({
   catalog,
   impacts,
   fallbackRoots,
   query,
+  companyNames = {},
   fallbackLimit = 20,
 }: CandidateArgs): TickerCandidateRow[] {
-  const normalizedQuery = normalizeRootQuery(query);
-
-  if (catalog) {
-    return catalog
-      .filter((entry) => !normalizedQuery || entry.root.includes(normalizedQuery))
-      .map((entry) => ({
-        root: entry.root,
-        impact: impactFor(entry.root, impacts),
-        catalog: entry,
-      }));
-  }
-
-  const matches = normalizeFallbackRoots(fallbackRoots)
-    .filter((root) => !normalizedQuery || root.includes(normalizedQuery));
-  const visible = normalizedQuery ? matches : matches.slice(0, Math.max(0, fallbackLimit));
+  const term = normalizeRootQuery(query);
+  const tickerOnly = query.trimStart().startsWith("$");
+  const roots = catalog ? catalog.map((entry) => entry.root) : normalizeFallbackRoots(fallbackRoots);
+  const catalogByRoot = new Map(catalog?.map((entry) => [entry.root, entry]));
+  const matches = roots.filter((root) => {
+    if (!term || root.includes(term)) return true;
+    if (tickerOnly) return false;
+    if ((root === "GOOG" || root === "GOOGL") && (term === "GOOGLE" || term === "谷歌")) return true;
+    return tickerCompanyLabel(root, companyNames, "en").toUpperCase().includes(term)
+      || tickerCompanyLabel(root, companyNames, "zh").toUpperCase().includes(term);
+  });
+  // Promote an exact symbol without disturbing producer order among other matches.
+  const exact = term ? matches.indexOf(term) : -1;
+  if (exact > 0) matches.unshift(...matches.splice(exact, 1));
+  const visible = !term && !catalog ? matches.slice(0, Math.max(0, fallbackLimit)) : matches;
   return visible.map((root) => ({
     root,
     impact: impactFor(root, impacts),
-    catalog: null,
+    catalog: catalogByRoot.get(root) ?? null,
   }));
 }
