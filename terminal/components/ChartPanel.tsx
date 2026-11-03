@@ -5185,17 +5185,31 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       while (layer.firstChild) layer.removeChild(layer.firstChild);
       if (priceProjHidden()) return;   // sub-pane maximized → price-anchored markers stay cleared
 
-      // Prophet receipts are deliberately outside the Oracle study toggle. A sapphire diamond
-      // says "another system surfaced this name here" without borrowing Oracle's star/pill grammar.
+      // Prophet receipts stay independent of Oracle and its star/pill grammar.
+      // The forecast pulse is a tiny sapphire lens with a rising trajectory, not
+      // a letter stamped into a diamond. Reversal watches retain their R identity.
       for (const m of sigMarksRef.current) {
         if (m.type !== "PROPHET") continue;
         const x = xOf(m.t), y = yOf(m.price); if (x == null || y == null) continue;
-        const cy = y + 22, r = 7, fill = "#5b8cff";
+        const cy = y + 22;
         const glyph = opportunityMarkerGlyph(m.source);
-        const g = mk("g", { opacity: 0.96, "data-signal-source": glyph === "R" ? "reversal_watch" : "prophet_board" });
-        g.appendChild(mk("path", { d: `M${x} ${cy - r} L${x + r} ${cy} L${x} ${cy + r} L${x - r} ${cy} Z`, fill, stroke: "#9bb7ff", "stroke-width": 1 }));
-        const tEl = mk("text", { x, y: cy + 3.2, fill: "#fff", "font-size": 8.5, "font-weight": 900, "text-anchor": "middle", "font-family": "var(--font-ui)" });
-        tEl.textContent = glyph; g.appendChild(tEl);
+        const g = mk("g", { opacity: 0.98, "data-signal-source": glyph === "R" ? "reversal_watch" : "prophet_board" });
+        if (glyph === "P") {
+          // A soft outer halo and crisp rim keep the badge readable at chart scale.
+          g.appendChild(mk("circle", { cx: x, cy, r: 10.5, fill: "#4b8cff", opacity: 0.19 }));
+          g.appendChild(mk("circle", { cx: x, cy, r: 8.35, fill: "#163f91", stroke: "#9bc8ff", "stroke-width": 1.05 }));
+          g.appendChild(mk("circle", { cx: x - 2.3, cy: cy - 3.2, r: 3, fill: "#8db7ff", opacity: 0.15 }));
+          g.appendChild(mk("path", {
+            d: `M${x - 4.6} ${cy + 2.5} L${x - 1.45} ${cy - 0.8} L${x + 0.65} ${cy + 0.85} L${x + 4.15} ${cy - 3.15}`,
+            fill: "none", stroke: "#f2fbff", "stroke-width": 1.75, "stroke-linecap": "round", "stroke-linejoin": "round",
+          }));
+          g.appendChild(mk("circle", { cx: x + 4.15, cy: cy - 3.15, r: 1.3, fill: "#71edff" }));
+        } else {
+          const r = 7;
+          g.appendChild(mk("path", { d: `M${x} ${cy - r} L${x + r} ${cy} L${x} ${cy + r} L${x - r} ${cy} Z`, fill: "#5b8cff", stroke: "#9bb7ff", "stroke-width": 1 }));
+          const tEl = mk("text", { x, y: cy + 3.2, fill: "#fff", "font-size": 8.5, "font-weight": 900, "text-anchor": "middle", "font-family": "var(--font-ui)" });
+          tEl.textContent = glyph; g.appendChild(tEl);
+        }
         addMarkerTitle(g, m); layer.appendChild(g);
       }
 

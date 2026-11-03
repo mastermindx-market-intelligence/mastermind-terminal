@@ -21,7 +21,7 @@
 layoutFiles:
   terminal/app/workspace-chrome.css: "97e32bc24ed20479ea7b2e024ef6bc3883b9ead764098344f3ad4acea52b4bdd"
   terminal/app/layout.tsx: "9b675d52a647b4a92407958aa0ab7ffcc2632d95d003c89ca2eed2a1f4e35264"
-  terminal/components/ChartPanel.tsx: "56457ac4fe11f5c4fcfe4ab0e14f487ac3b3eaa70d9daa81f21526ed1b47b871"
+  terminal/components/ChartPanel.tsx: "09eb4b24955b7e71a4c6c356f1db6ca8876ec2ff3ceaee22318cced06ef5e631"
   terminal/components/ChartSettingsModal.tsx: "e1a22018044d0baee02eb84ea2396b3e135b0f7a3ef586bf3bc241f117df3928"
   terminal/components/ChartSettingsModal.module.css: "a1685d103511e11882f8d379b22570f018e47aed88266db5ca6fec8808100b0a"
   terminal/components/DrawingSidebar.tsx: "464015295be55afd1e7c783aeb3dfb53047854f91788cacefb9fc7b30620db03"
@@ -732,4 +732,14 @@ chartPositionEntryOwnerRecapture20261102:
   actualBrowserResult: "Visual Intelligence 30 passed, 0 failed, 0 skipped, 0 flaky, 0 retries on the changed source; PL6 ChartChrome 4 crops captured on the changed source"
   cropDelta: "The accepted crops are RETAINED, not replaced. This capture host cannot load the next/font/google Inter face, so every recaptured crop renders the fallback typeface across the whole surface; committing those bytes would replace the accepted evidence with a visibly different rendering that no source change caused. Control captures settle the attribution: on the BASE source the PL6 ChartChrome crops and the Visual Intelligence tablet and mobile crops are BYTE-IDENTICAL to the same capture on the changed source, so the position-entry repair is pixel-inert on both surfaces. The Visual Intelligence DESKTOP crop is not byte-comparable in either direction — three consecutive captures on the SAME source produced three different byte sequences, a volatile full-page surface — so the tablet/mobile and PL6 controls carry that claim"
   scope: "layoutFiles only. cropFiles, browserReportHashes and every PNG on disk are unchanged and still bind the accepted capture."
+  productionProof: false
+
+
+prophetForecastPulseRecapture20261102:
+  sourceHead: "6065cc744e081083eeee61bd00cfa8e15442a34d"
+  chartPanelSha256: "09eb4b24955b7e71a4c6c356f1db6ca8876ec2ff3ceaee22318cced06ef5e631"
+  actualBrowserResult: "30 passed; 0 failed, skipped, flaky or retries; EN/ZH desktop/tablet/mobile"
+  actualReportSha256: "bfebb3ca70634498fb96df12b4dad759f893bc08e835365eb8d5af04fc0d2854"
+  evidence: "../../verification/prophet-marker-20261102/README.md"
+  cropDisposition: "Six actual context captures performed. Four tablet/mobile images byte-identical to prior accepted; two desktop captures differ in bytes and are retained as local diagnostics. Accepted PNG and report hashes remain historical and unchanged; only source binding updated. This fixture has no Prophet receipt, so no new icon was claimed visible in these screenshots."
   productionProof: false
