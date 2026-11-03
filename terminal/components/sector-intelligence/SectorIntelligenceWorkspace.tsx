@@ -204,10 +204,11 @@ export default function SectorIntelligenceWorkspace() {
   // Options R1: a holding opens its options exposure with the sector origin beside the
   // address, so the reader can step the same cohort and return to this exact selection.
   const exposureHref = useCallback((ticker: string) => {
-    const origin = sectorOriginFromState({ state, company: ticker, roster: visibleMembers.map(member => member.ticker),
+    const depthReturn = returnState && encodeSectorDepthReturn(returnState) ? returnState : null;
+    const origin = sectorOriginFromState({ state, depthReturn, company: ticker, roster: visibleMembers.map(member => member.ticker),
       asOf: feeds.confluence?.receipt.asOf ?? null, contentHash: feeds.confluence?.receipt.contentHash ?? null, benchmark: ROTATION_BENCHMARK });
     return origin ? withExposureOrigin(`/options?tab=prism&symbol=${encodeURIComponent(ticker)}&view=chart`, origin) : null;
-  }, [state, visibleMembers, feeds.confluence]);
+  }, [state, returnState, visibleMembers, feeds.confluence]);
   const landed = useRef(false);
   useEffect(() => {
     // A return address names an exact holding: land on it once, without a scroll jump.
