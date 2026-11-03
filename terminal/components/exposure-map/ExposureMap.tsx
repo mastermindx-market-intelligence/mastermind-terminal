@@ -84,6 +84,7 @@ export default function ExposureMap({ root, source, matrix, stale = false, sourc
   const [ready, setReady] = useState<TerminalVisualReadyDetail | null>(null);
   const [selection, setSelection] = useState<{ identity: string; strike: number } | null>(null);
   const [pin, setPin] = useState<{ identity: string; strike: number } | null>(null);
+  const [momentumHost, setMomentumHost] = useState<HTMLDivElement | null>(null);
   const inspector = useRef<HTMLElement>(null);
   const chartHost = useRef<HTMLDivElement>(null);
   const returnFocus = useRef<HTMLElement | null>(null);
@@ -268,6 +269,7 @@ export default function ExposureMap({ root, source, matrix, stale = false, sourc
           <dt>{t("gross")}</dt><dd>{focus.grossMn == null ? "—" : `${exposureValue(focus.grossMn)}M`}</dd>
           <dt>{t("share")}</dt><dd>{focus.grossShare == null ? "—" : `${exposureValue(focus.grossShare * 100)}%`}</dd>
         </dl><ExposureDistance root={root} session={read.session} spot={read.spot} target={focus.strike} zh={zh} /><div className={styles.route}><span className={styles.eyebrow}>{t("interveningStrikes")}</span>{structure.intervening.length ? structure.intervening.slice(0, 5).map(n => <button key={n.strike} type="button" onClick={e => select(n.strike, e.currentTarget)}><b>{n.strike}</b><span>{signed(n.netMn)}M</span></button>) : <p className={styles.note}>{t("noSuppliedStrikesBetweenTheReferenceSpotAnd")}</p>}<small>{t("distanceInvestigationNoPathOrArrivalProbability")}</small></div></>}
+        {!archivedSession && <div ref={setMomentumHost} />}
         {selected && <FrozenNodeEntry key={`${identity}|${selected.strike}|${identityUserId(shellIdentity)}`} owner={identityUserId(shellIdentity)} identity={`${identity}|${selected.strike}`} root={root} source={source} lens={lens} price={selected.strike} metric={metric} shock={shock} now={clock} zh={zh} />}
         {selected && <div className={styles.inspectorActions}><button type="button" className={styles.primary} aria-pressed={pinned?.price === selected.strike} onClick={() => setPin(pinned?.price === selected.strike ? null : { identity, strike: selected.strike })}>{pinned?.price === selected.strike ? t("unpin") : t("pin")}</button><button type="button" disabled={linkState?.key === linkKey && linkState.status === "pending"} onClick={() => void openMainChart()}>{t("openOnMainChart")}</button><button type="button" onClick={close}>{t("close")}</button></div>}
         {linkState?.key === linkKey && linkState.status === "failed" && <p role="status" className={styles.note}>{t("referenceLinkFailed")}</p>}
@@ -318,7 +320,7 @@ export default function ExposureMap({ root, source, matrix, stale = false, sourc
           <div className={styles.chartBody}><ChartPanel symbol={root} indicators={NONE} timeframe={tf} onChartApi={setApi} onVisualReady={onVisualReady} optionsLevel={pinned} userTier="free" /></div>
           <div className={styles.caption}><span>{t("positiveExposureNegativeExposureSelectedNode")}</span><span>{t("reference")}</span></div>
         </div>
-        {!archivedSession && <ExposureDivergence root={root} onAverages={onAverages} />}
+        {!archivedSession && <ExposureDivergence key={JSON.stringify([root, read.session])} root={root} timeframe={tf} onTimeframe={setTf} inspectorHost={momentumHost} onAverages={onAverages} />}
       </div>
       {phone ? <MobileSheet open={!!selected} onClose={close} title={`${root} · ${t("inspect")}`} ariaLabel={t("inspect")} detents={[60,94]} maxHeight="94svh" initialFocus="sheet" escapeKey="bubble" className={`${styles.map} ${styles.inspectorSheet}`}>{inspectorPanel}</MobileSheet> : inspectorPanel}
     </div>
