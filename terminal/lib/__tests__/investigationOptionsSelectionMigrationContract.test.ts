@@ -206,8 +206,10 @@ describe("0047 investigation options selection evidence admission contract", () 
     expect(row.file).toBe(FILE);
     expect(row.packet).toBe("OPT006-V3-SAVE-ADMISSION");
     expect(row.applied_in_production).toBe(false);
+    expect(row.applied_date).toBeNull();
     expect(row.pr).toBe(1222);
-    expect(row.pr_state).toBe("open");
+    // PR #1222 merged; this source reservation is merged, not production-applied.
+    expect(row.pr_state).toBe("merged");
   });
   it("refuse-closes in one transaction behind the exact-body md5 guard", () => {
     const live = liveBody(sql).trim();
