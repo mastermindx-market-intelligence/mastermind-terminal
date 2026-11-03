@@ -381,7 +381,16 @@ jobs:
       - name: Run responsive E2E shard with native attempt timing
         env:
           MMX_CI_ATTEMPT_REPORT_PATH: ci-attempt-reports/${{ matrix.shard }}/main.json
-        run: npm run test:e2e:responsive -- ${{ matrix.projects }}
+          # Same Playwright native distribution weights for every shard of
+          # one project. Counts differ, test identities and shard count do not.
+          PWTEST_SHARD_WEIGHTS: "${{ startsWith(matrix.shard, 'desktop-') && '133:197:214:297:126:204:116' || startsWith(matrix.shard, 'tablet-') && '340:201:292:314:140' || startsWith(matrix.shard, 'mobile-') && '169:272:209:485:152' || '' }}"
+        run: |
+          # Fail closed if a future Playwright update removes native weights.
+          if [ -n "$PWTEST_SHARD_WEIGHTS" ]; then
+            grep -q 'PWTEST_SHARD_WEIGHTS' node_modules/playwright/lib/cli/testActions.js ||
+              { echo 'Native weighted sharding unavailable; requalify Playwright' >&2; exit 1; }
+          fi
+          npm run test:e2e:responsive -- ${{ matrix.projects }}
       # This feature is default-off; the ordinary matrix skips its browser tests.
       # Exercise it with the SAME harness, without altering production flags.
       - name: Qualify investor shell opt-in

@@ -443,3 +443,82 @@ Title timeouts and Portfolio state-transition failures are NOT resolved
 by this narrowly scoped geometry change; source ownership of the former
 remains with independent Draft #804. PR #1250 separately repairs the stale
 merged 0047 metadata and does not apply SQL.
+
+
+## T3 continuation: native weighted Playwright shards (offline proof)
+
+This is an **experimental distribution change** on the same source branch.
+It does not increase the number of GitHub runner jobs, remove or duplicate any
+tests, change the one-worker-per-job policy, alter two CI retries, change the
+60-minute hang cap, weaken assertions, or alter the protected required
+Terminal aggregate and CodeQL checks.
+
+The **installed Playwright 1.61.1** source natively reads
+`PWTEST_SHARD_WEIGHTS` (colon-separated positive integer weights).
+`filterForShard` distributes each project's ordered test groups
+proportionally across the *existing* `--shard=i/N` entries. It preserves
+the original project and exact-cover sharding mechanism. To fail closed
+if Playwright later changes that internal feature, the main CI test step
+checks for the installed implementation before starting any weighted test.
+
+Weights were computed offline from the first actual native JSON per-attempt
+reports: for each test, successful-attempt execution duration where present;
+skipped tests contribute 0ms. This **excludes failed attempt overhead and
+retry tails from the model**. Exact-source test ids absent from a candidate
+would receive a source-recorded median, not be dropped. The first prototype
+incorrectly imputed cost to skips and is retained as superseded evidence;
+the corrected vectors below are the only candidates.
+
+| Project | Native source cases | Existing shard count | New weight vector | Historical max clean execution* | Offline predicted max* |
+|---|---:|---:|---|---:|---:|
+| Desktop | 1,287 | 7 | `133:197:214:297:126:204:116` | 24.87m | 17.59m |
+| Tablet | 1,287 | 5 | `340:201:292:314:140` | 24.91m | 18.15m |
+| Mobile | 1,287 | 5 | `169:272:209:485:152` | 27.53m | 19.90m |
+
+*Historical = reconstructed successful-attempt durations on actual GitHub
+shards, excluding five incoming merge-only test identities in affected
+historical groups. Offline = same training observations repartitioned on
+the pinned local branch. These are **in-sample predictions**, not measured
+hosted wall time or causal savings. Training data source: run41588139155
+for Desktop, run41593139616 for Tablet and Mobile. Natural hosted results
+can change with runner contention, test order, setup time, new source and
+flaky attempts. The vectors contain no provider, placement or quota claim.
+
+**Exact-cover proof by executing native Playwright `--list` once per shard,
+with each vector and the unchanged project selector:** Desktop 1,287/1,287
+with no duplicate test identity across 7 shards; Tablet 1,287/1,287
+across 5; Mobile 1,287/1,287 across 5. Every expected project/test id
+appears exactly once; **3,861 responsive cases** preserved. The existing
+serial group is unweighted and retains its **112** cases. Total local
+selection **3,973**, unchanged. As actual merge checkouts may add
+source tests, the native shard weights are normalized by that checkout's
+discovered count; no stale explicit test list is used. The existing static
+Python exact-cover guards remain; their new weight-vector guard verifies
+7/5/5 positive entries and no override of the serial group. Local
+`tests/test_ci_e2e_shards.py` passed 24 tests.
+
+Canonical retained source-bound proof paths:
+- `artifacts/ci-shard-critical-path-20261102/duration-balanced-trial-20261103/weighted-desktop-proof.json`,
+  SHA256 `cb69868a284b8216ca222392862549442d1320b187f83b3de7cfb38c9eb8569b`.
+- `artifacts/ci-shard-critical-path-20261102/weighted-shards-41593139616/mobile-weighted-proof.json`,
+  SHA256 `271c08c5a338f6c351d82a7072212a9df16006a1e1dad27f234b5da2d07635cb`.
+- `artifacts/ci-shard-critical-path-20261102/weighted-shards-41593139616/tablet-weighted-proof.json`,
+  SHA256 `36ddaf02ba2b5eaf78d03e2f1e1aae87b3afd0fe6e468ee19d029b72444ca513`.
+- New run's ten raw mobile/tablet ZIPs have indexed SHA256 and exact
+  artifact IDs; manifest SHA256
+  `0148d0ce841d66a15c0691fe81a24adab8f75222b42075a5333077a6e621eabe`.
+  All raw artifacts remain under the original workspace, outside Playwright
+  `test-results`. GitHub artifacts have their own expiry.
+
+**Acceptance and falsifiers:** The original full hosted run41593139616
+finished red on Desktop-3 Investigation first-click/Title, the stale
+0047 migration ledger guard, and required aggregation. Investigation's
+separate Draft #804 already has a distinct client activation repair;
+Draft #1250 repairs the migrated ledger and accompanying stale test.
+Neither is installed or merged by this sharding change. The weighted
+candidate must undergo its own naturally triggered hosted CI, all 18
+main shard jobs plus nonbrowser checks, same selected tests, no new
+false-green/retry increases, measured queue/wall/runner minutes against
+comparable green runs, and multiple independent observations before
+any P50/P90 or >=20% speedup claim. Keep source Draft and no merge,
+Ready, queue, deploy or fleet modification.

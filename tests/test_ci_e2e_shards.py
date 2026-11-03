@@ -294,3 +294,26 @@ def test_ci_attempt_json_reporter_is_complete_and_phase_disjoint():
     assert re.search(r'\["github"\]', config)
     assert '"json", { outputFile: nativeAttemptReportPath }' in config
     assert 'reporter: process.env.CI ? ciReporters : "list"' in config
+
+
+
+def test_native_weighted_e2e_shards_preserve_the_original_exact_cover():
+    """Native weight vectors affect only sizes, never project identity or number of shards."""
+    step = next(
+        s for s in ci_workflow()["jobs"]["terminal-e2e"]["steps"]
+        if s.get("name") == "Run responsive E2E shard with native attempt timing"
+    )
+    weighted = step["env"]["PWTEST_SHARD_WEIGHTS"]
+    expected = {"desktop": 7, "tablet": 5, "mobile": 5}
+    for project, count in expected.items():
+        hit = re.search(
+            rf"startsWith\(matrix\.shard, '{project}-'\) && '([0-9:]+)'",
+            weighted,
+        )
+        assert hit, f"{project}: missing shared native weight vector"
+        sizes = [int(x) for x in hit.group(1).split(":")]
+        assert len(sizes) == count, f"{project}: native shard total mismatch"
+        assert min(sizes) > 0, f"{project}: no empty/zero-weight shard"
+    assert weighted.rstrip().endswith("|| '' }}"), "serial must retain ordinary sharding"
+    assert "grep -q 'PWTEST_SHARD_WEIGHTS'" in step["run"]
+    assert "npm run test:e2e:responsive -- ${{ matrix.projects }}" in step["run"]
