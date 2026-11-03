@@ -94,6 +94,9 @@ jobs:
       - run: npx next typegen
       - run: npx tsc --noEmit
       - run: npm test
+        env:
+          TERMINAL_EVIDENCE_MODE: records
+          TERMINAL_EVIDENCE_COMPOSITION: terminal/docs/pr-crops/b-pl-6-batch-1/asc1233-current-20261103.composition.json
       # Quarantined journeys are disclosed on EVERY run: a green matrix must never be read as
       # full coverage. Bare `echo`, never a logger — a logger prefix pushes `::warning` off the
       # start of the line and GitHub silently drops the annotation.
