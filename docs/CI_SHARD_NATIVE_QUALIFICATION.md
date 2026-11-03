@@ -360,3 +360,48 @@ writers and the real storage fence; a barrier before competing writes could
 mask the production race. Workers2 remains unqualified against the shared dev
 server and serial-group constraints. No new capacity, runner assignment,
 cache deletion, protection change, or merge step is part of this repair.
+
+
+## T3 continuation: native per-attempt timing recorded per invocation
+
+This is a **source implementation**, not performance acceptance. The original
+7/5/5 experiment remains Draft; hosted CI run 41568490896 is red on the
+Investigation transition and its required aggregate. This slice changes no
+test selection, asserted behavior, CI retry setting (2), worker count (1),
+60-minute job cap or protected aggregate/fan-in.
+
+The Playwright config retains the GitHub CI reporter and adds the built-in
+JSON reporter only when MMX_CI_ATTEMPT_REPORT_PATH is supplied. The existing
+CI job supplies separate main, investor-shell and shared-shell report paths.
+The existing always() upload includes both test-results and the new
+ci-attempt-reports root, outside Playwright's disposable outputDir.
+A reporter file absent after interruption is INCOMPLETE, never zero work.
+
+The native 1.61.1 hermetic fixture produced exactly one pass, one flaky
+initial-failure/retry-pass, one permanent three-attempt failure and one skip,
+with attempt startTime/duration/retry/workerIndex/parallelIndex/status.
+The intentionally red command exited 1; mixed.json was 28,289 bytes with
+SHA256 64cf82ac11b09e57b744695c4b64854ba1115312dc4431f568733e0d6c3ecaf8.
+A subsequent pass-only command exited 0; corrected.json was 3,812 bytes with
+SHA256 e8614b198dea5c536dbcd6d9a3283b2890188d3ecdd9eba4af5bf6a7f3e31c2d.
+Its Playwright outputDir cleanup removed a sentinel without modifying the
+first JSON hash. A corrected no-browser pass also proved automatic creation
+of missing nested JSON report directories. A first incorrect anchored grep
+was retained as a separate no-tests diagnostic, not a qualified result.
+
+Actual Terminal config, CI=1, --list mobile shard 4/5: 257 selected tests in
+52 files and a 191,052-byte JSON report. This was collection-only, not a
+browser run. The existing shard guard plus the new output-path assertions:
+23 passed. The first local TypeScript run was obstructed by a previously
+retained, ignored Investigation probe.config.ts invalid extension import.
+An otherwise identical temporary project config excluding only test-results
+passed TypeScript exit 0; the existing diagnostic was preserved unchanged.
+All positive checks are macOS/Node26 local, not hosted Linux/Node20 proof.
+
+Hosted attempt timing status: BUILT_NOT_PROVEN. First natural hosted CI must
+bind each report to actual checkout, run, job, shard and invocation, retain
+failed/incomplete reporting distinctly, and measure attempt-zero/retry costs.
+Nominal timeout allowance is not measured savings. Original Investigation
+component PR #804 remains a distinct incumbent source writer; this CI slice
+does not overwrite its product code or imply the Portfolio cases are fixed.
+No merge, queue, Ready, un-draft or relabel is authorized here.

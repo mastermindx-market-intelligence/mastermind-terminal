@@ -378,7 +378,10 @@ jobs:
       - name: Ensure browser present on cache hit
         if: steps.pwcache.outputs.cache-hit == 'true'
         run: npx playwright install chromium
-      - run: npm run test:e2e:responsive -- ${{ matrix.projects }}
+      - name: Run responsive E2E shard with native attempt timing
+        env:
+          MMX_CI_ATTEMPT_REPORT_PATH: ci-attempt-reports/${{ matrix.shard }}/main.json
+        run: npm run test:e2e:responsive -- ${{ matrix.projects }}
       # This feature is default-off; the ordinary matrix skips its browser tests.
       # Exercise it with the SAME harness, without altering production flags.
       - name: Qualify investor shell opt-in
@@ -387,6 +390,7 @@ jobs:
           MMX_INVESTOR_SHELL_PREVIEW: '1'
           CI: '1'
           TERMINAL_E2E_PORT: '31991'
+          MMX_CI_ATTEMPT_REPORT_PATH: ci-attempt-reports/serial/investor-shell.json
         run: >-
           npm run test:e2e:responsive -- e2e/investor-shell-preview.spec.ts
           --project=desktop --project=tablet --project=mobile
@@ -398,6 +402,7 @@ jobs:
           MMX_SHARED_SHELL: '1'
           CI: '1'
           TERMINAL_E2E_PORT: '31992'
+          MMX_CI_ATTEMPT_REPORT_PATH: ci-attempt-reports/serial/shared-shell.json
         run: >-
           npm run test:e2e:responsive -- e2e/shared-shell-refinement.spec.ts
           --project=desktop --project=tablet --project=mobile
@@ -410,7 +415,9 @@ jobs:
           # upload-artifact@v4 HARD-FAILS on duplicate names across a matrix. The shard
           # suffix is mandatory, not cosmetic.
           name: responsive-qa-${{ github.run_id }}-${{ matrix.shard }}
-          path: terminal/test-results
+          path: |
+            terminal/test-results
+            terminal/ci-attempt-reports
           if-no-files-found: ignore
 
   terminal:

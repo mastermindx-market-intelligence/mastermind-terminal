@@ -268,3 +268,29 @@ def test_a_duplicate_shard_name_is_reported():
     entry(include, "desktop-2")["shard"] = "desktop-1"
     errors = matrix_coverage_errors(include, playwright_projects())
     assert any("'desktop-1' is used by 2" in error for error in errors), errors
+
+
+def test_ci_attempt_json_reporter_is_complete_and_phase_disjoint():
+    """Native attempt evidence must not replace GitHub annotations or alter shard selection."""
+    import re
+
+    steps = ci_workflow()["jobs"]["terminal-e2e"]["steps"]
+    main = next(step for step in steps if step.get("name") == "Run responsive E2E shard with native attempt timing")
+    assert "test:e2e:responsive -- ${{ matrix.projects }}" in main["run"]
+    assert main["env"]["MMX_CI_ATTEMPT_REPORT_PATH"] == "ci-attempt-reports/${{ matrix.shard }}/main.json"
+    expected = {
+        "Qualify investor shell opt-in": "ci-attempt-reports/serial/investor-shell.json",
+        "Qualify Shared Shell beta presentation": "ci-attempt-reports/serial/shared-shell.json",
+    }
+    for name, path in expected.items():
+        step = next(step for step in steps if step.get("name") == name)
+        assert step["if"] == "matrix.shard == 'serial'"
+        assert step["env"]["MMX_CI_ATTEMPT_REPORT_PATH"] == path
+    upload = next(step for step in steps if step.get("name") == "Upload responsive QA screenshots")
+    assert upload["if"] == "always()"
+    paths = upload["with"]["path"].splitlines()
+    assert {part.strip() for part in paths} == {"terminal/test-results", "terminal/ci-attempt-reports"}
+    config = (ROOT / "terminal" / "playwright.config.ts").read_text()
+    assert re.search(r'\["github"\]', config)
+    assert '"json", { outputFile: nativeAttemptReportPath }' in config
+    assert 'reporter: process.env.CI ? ciReporters : "list"' in config
