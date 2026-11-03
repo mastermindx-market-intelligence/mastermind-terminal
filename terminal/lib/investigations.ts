@@ -11,7 +11,7 @@ export const INVESTIGATION_ADMISSION: InvestigationAdmission = {
   ],
   evidence: [
     { owner: "earnings.workspace_generation", object_types: ["event_workspace"] },
-    { owner: "terminal.options_exposure", object_types: ["exposure_chart_request", "sector_origin", "rotation_measurement"] },
+    { owner: "terminal.options_exposure", object_types: ["exposure_chart_request", "sector_origin", "rotation_measurement", "options_matrix_selection"] },
   ],
 };
 export type InvestigationCommand = {
