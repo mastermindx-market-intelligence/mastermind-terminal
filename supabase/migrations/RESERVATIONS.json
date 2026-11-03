@@ -501,7 +501,7 @@
       "merged_sha": "3cc8da8432d8d2d4e4cb597f49c4eaa95f1980c9",
       "applied_in_production": false,
       "applied_date": null,
-      "note": "Claimed on branch claude/oi-opt006l1-20261102 after the item-2 census on 2026-11-02 (166 open PRs, no 0047+ migration file on origin/master or in any uncapped open PR; ten open PRs sit at the 100-file API cap and could hide a claim); draft PR #1222 opened 2026-11-02 after Lane 1a (marked ready only after Lane 1b and the independent grant review). Widens valid_investigation_manifest_v2 by one object_type options_matrix_selection over the 0042 body (guarded) and adds the investigation_evidence_admitted_v2(text,text) boolean probe granted to authenticated; source only, UNAPPLIED, the applied date is not recorded because no application has occurred, and application is a separate user-only step."
+      "note": "Protected PR #1222 merged 2026-11-03T05:38:21Z at 3cc8da8432d8d2d4e4cb597f49c4eaa95f1980c9; source-only merge, still UNAPPLIED. Claimed on branch claude/oi-opt006l1-20261102 after the item-2 census on 2026-11-02 (166 open PRs, no 0047+ migration file on origin/master or in any uncapped open PR; ten open PRs sit at the 100-file API cap and could hide a claim); draft PR #1222 opened 2026-11-02 after Lane 1a (marked ready only after Lane 1b and the independent grant review). Widens valid_investigation_manifest_v2 by one object_type options_matrix_selection over the 0042 body (guarded) and adds the investigation_evidence_admitted_v2(text,text) boolean probe granted to authenticated; source only, UNAPPLIED, the applied date is not recorded because no application has occurred, and application is a separate user-only step."
     }
   }
 }
