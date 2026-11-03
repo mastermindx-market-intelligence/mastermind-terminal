@@ -303,7 +303,16 @@ export function GexDeskView({ onMapFirstChange, onOpenPlan }: { onMapFirstChange
     return q.get("tab") === "prism" ? "matrix" : "strike";
   });
   const axisMenu = useRef<HTMLDetailsElement>(null);
+  const restoreAxisFocus = useRef(false);
+  useEffect(() => {
+    if (!restoreAxisFocus.current) return;
+    restoreAxisFocus.current = false;
+    const chooser = axisMenu.current?.querySelector("summary");
+    chooser?.focus({ preventScroll: true });
+  }, [view]);
   const chooseView = (next: typeof view) => {
+    restoreAxisFocus.current = isPhone && next !== view;
+    if (next === view) axisMenu.current?.querySelector("summary")?.focus();
     if (axisMenu.current) axisMenu.current.open = false;
     setView(next);
     const url = new URL(window.location.href);
@@ -1018,7 +1027,7 @@ export function GexDeskView({ onMapFirstChange, onOpenPlan }: { onMapFirstChange
         {/* Greek exposure lens — GEX / DEX / VEX / CHEX. Switches which per-strike
             greek the ladder renders from the by_strike payload (data already present). */}
         {!mapFirst && legacyControls}
-        {mapFirst && <details className="obs-gexdesk-view-chooser"><summary>{t("exposureMap")}</summary>{axisControls}</details>}
+        {mapFirst && <details ref={axisMenu} className="obs-gexdesk-view-chooser"><summary>{t("exposureMap")}</summary>{axisControls}</details>}
         {/* Keep this entry in the existing 44px toolbar. A separate row pushes
             the phone's map and selected Inspect below the viewport. */}
         <button ref={researchEntryRef} type="button" className="chip"
@@ -1055,7 +1064,7 @@ export function GexDeskView({ onMapFirstChange, onOpenPlan }: { onMapFirstChange
           a "Loading…" skeleton, so an absent, unread or missing-session payload would
           leave it claiming a read that is not happening — the ladder region names which
           of those it is. */}
-      {!mapFirst && (isPhone && activePayload ? (
+      {!mapFirst && (isPhone && activePayload && effectiveLens.kind === "all" ? (
         <details className={workspace.levels}>
           <summary>{t("deskLevels")}</summary>
           {legacySummary}
