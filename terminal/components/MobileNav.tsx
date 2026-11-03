@@ -223,6 +223,7 @@ export default function MobileNav({
                 <Link
                   key={mk.k}
                   href={mk.href}
+                  className={navPath === mk.href ? "on" : undefined}
                   aria-current={navPath === mk.href ? "page" : undefined}
                   onClick={closeDrawer}
                 >

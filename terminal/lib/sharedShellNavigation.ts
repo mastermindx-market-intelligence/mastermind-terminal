@@ -23,6 +23,8 @@ export function sharedShellActiveKey(path: string): string {
   if (path.startsWith("/portfolio")) return "portfolio";
   if (path.includes("watchlist") || path.startsWith("/alerts")) return "shellMonitor";
   if (/^\/(?:research|learn|blog|stocks\/earnings)/.test(path)) return "shellResearch";
+  // Regional overviews own their current-market row, not the native Today page.
+  if (SHARED_SHELL_MARKETS.some(market => market.href === path)) return "";
   return "shellToday";
 }
 
