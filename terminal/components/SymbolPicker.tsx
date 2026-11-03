@@ -57,6 +57,10 @@ export interface SymbolPickerProps {
   scope?: "symbols" | "companies";
   /** Commit a new company. The host owns what that means (URL, cursor, refetch). */
   onPick: (symbol: string) => void;
+  /** A company search retains the typed query separately from the listing identity. */
+  onCompanyPick?: (symbol: string, query: string) => void;
+  searchSeed?: string;
+  initialSelection?: string;
   /** Controlled, so a host can also open the picker from elsewhere (e.g. a recovery button). */
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -75,7 +79,7 @@ export interface SymbolPickerProps {
 }
 
 export default function SymbolPicker({
-  symbol, displayLabel, scope = "symbols", onPick, open, onOpenChange,
+  symbol, displayLabel, scope = "symbols", onPick, onCompanyPick, searchSeed = "", initialSelection, open, onOpenChange,
   className = "", eyebrow, label, mark, trackSource, portalDialog = false,
 }: SymbolPickerProps) {
   const identity = useShellIdentity();
@@ -137,7 +141,8 @@ export default function SymbolPicker({
     open
     mode="pick"
     companyScope={scope === "companies"}
-    seed=""
+    seed={searchSeed}
+    initialSelection={initialSelection}
     active={symbol}
     manifest={symbols ?? {}}
     universeState={universeState}
@@ -149,6 +154,7 @@ export default function SymbolPicker({
     trackSource={trackSource}
     onClose={() => onOpenChange(false)}
     onPick={(next) => { onOpenChange(false); onPick(next); }}
+    onCompanyPick={onCompanyPick ? (next, query) => { onOpenChange(false); onCompanyPick(next, query); } : undefined}
   /> : null;
 
   return (

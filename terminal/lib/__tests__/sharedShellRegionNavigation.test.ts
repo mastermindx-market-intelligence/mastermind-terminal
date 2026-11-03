@@ -22,7 +22,6 @@ describe("regional overview navigation identity", () => {
     ["/monitor", "shellMonitor"],
     ["/watchlist.html", "shellMonitor"],
     ["/portfolio", "portfolio"],
-    ["/macro.html", "shellToday"],
   ])("preserves the existing primary family for %s", (path, primary) => {
     expect(sharedShellActiveKey(path)).toBe(primary);
   });

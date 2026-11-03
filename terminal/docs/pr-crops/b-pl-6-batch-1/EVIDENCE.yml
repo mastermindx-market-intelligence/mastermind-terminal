@@ -20,9 +20,9 @@ layoutFiles:
   terminal/app/workspace-chrome.css: "97e32bc24ed20479ea7b2e024ef6bc3883b9ead764098344f3ad4acea52b4bdd"
   terminal/app/layout.tsx: "9b675d52a647b4a92407958aa0ab7ffcc2632d95d003c89ca2eed2a1f4e35264"
   terminal/components/OptionsHubView.tsx: "0edbb1f902005dad5813beb7e406c04a3c0509aae4487f087fb101dd0ceb4c25"
-  terminal/components/SearchModal.tsx: "36880f1100bbcfa051a0c46131dd84c48a7278f0adb5678ee969a8db190774e9"
+  terminal/components/SearchModal.tsx: "d1522bfdaa7c5cd223e5024aa3698104ea404d9c46a5854b17e86da3ea570818"
   terminal/components/StockAnalysis.tsx: "376a907d0d8ea3dc5819e0092f02e19ce56fa1f4b71a3489551adf52fddb35c0"
-  terminal/components/workspaces/AnalysisWorkspace.tsx: "411b8a7e498b8af3f9337fdcf3835dd62e6a5854826f414171d8303efd8aa5bb"
+  terminal/components/workspaces/AnalysisWorkspace.tsx: "28a1d3b6d318a7e04297d2ba958a93da602761d01d5b587d66c14a9e78e6c39b"
   terminal/components/ChartPanel.tsx: "56457ac4fe11f5c4fcfe4ab0e14f487ac3b3eaa70d9daa81f21526ed1b47b871"
   terminal/components/DayRange.tsx: "c84724652783da1897ab4eeb98550eaf3dbd7942eefe3ce127b6ada2b16dd672"
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
@@ -66,6 +66,12 @@ layoutFiles:
   terminal/lib/visualIntelligenceCopy.ts: "cc3e00f03aa49d502fcd0d960371fd3d86e0d0da60fb945e1e5c35bf61bd96f3"
   terminal/next.config.ts: "2fa9402645a4312f9846e9f73b6df076e6747723041a5f2da4c6ada3c4cf375e"
   terminal/lib/flowActivity.ts: "eb1433e57c7b63a52978aa4e63419e62b3e1a0e0210869f93838a8b7529ce332"
+  terminal/components/SearchModal.module.css: "c07ad2028e36b1c70be969a9ab55d8d289dfcfeeceb18be5c5de3d1b18bbbaa9"
+  terminal/components/SymbolPicker.tsx: "0aa9f20b5f5a76b917dbb0e54bd3d5f467d8bb23bc8e642befe1fd10525f252f"
+  terminal/components/chrome/shared-shell/ShellSearch.tsx: "6ec2cdc819392b1c9a13bc7bbd066d49955061d166f33d498be37c57a9af0c69"
+  terminal/components/CompanyListingIdentity.tsx: "6d4347aafef93cfdaa1de89dada550f0f61953488e7166b146fdfc349bea77b7"
+  terminal/components/CompanyListingIdentity.module.css: "29788c51e58e5e972be0335d490685cb8512a3fbd8bdbe35aa4663e2fe2f70a3"
+  terminal/lib/companySearchContext.ts: "ee780295ea796509bbfdf92688ddd522144cd38f0fb82925a8ca31acfdaf4b12"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -515,6 +521,13 @@ sharedShellResponsiveParityRecapture20261102:
   historicalQualification: "Historical complete functional reports retain their original identity; scoped new operations qualify only the current source rows above."
   productionProof: false
 
+companyAlternateListingSourceRecapture20261103:
+  sourceHead: "c072cf92c"
+  receipt: "terminal/docs/pr-crops/company-alternate-listing-20261103/source-qualification.json"
+  scope: "Eight named T25 runtime source rows only; predecessor PNGs, cropFiles, browserReportHashes and complete historical reports keep their original identities."
+  actualBrowserResult: "Fresh immutable PL6 SearchModal+AnalysisWorkspace EN/ZH desktop/mobile 8/8 and VI Chinese-context desktop/tablet/mobile 3/3 at current source, no retries. The separate beta-enabled alternate-listing journey passes12/12 at1440/820/390 dark/light EN/ZH with keyboard/taps and exactBack."
+  historicalQualification: "A1 operations remain historical before the company-only tablet-gap repair. A2 operations bind the current source union. No whole historical functional matrix is relabelled as recaptured."
+  productionProof: false
 sharedShellRegionProtectedComposition20261103:
   sourceHead: "41d7a7b20e1a34eb0689ff96282f0ca5287c2254"
   protectedBase: "4f9fad0beed2c77983bec7a1f7cf540f194cba86"

@@ -1,7 +1,7 @@
 "use client";
 // Segment-level error boundary — wraps all routes except the root layout itself.
 // LangProvider is available here (it lives in RootLayout above this boundary).
-import { useEffect, useRef, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, type CSSProperties } from "react";
 import { useT } from "@/lib/i18n";
 import { BrandMark } from "@/components/BrandMark";
 import DashboardBackButton from "@/components/DashboardBackButton";
@@ -24,6 +24,38 @@ function subscribeErrorReturn(onChange: () => void) {
     for (const event of events) window.removeEventListener(event, onChange);
   };
 }
+
+// The failed subtree's presentation owner is still reflected in the document
+// during fallback render. Its cleanup then restores native dark. Retain only
+// that already-rendered public presentation on this fallback's own element;
+// never reconstruct account preferences or change the document/owner lifecycle.
+const ERROR_PRESENTATION_VARS = [
+  "--bg", "--panel", "--panel-2", "--panel-3", "--line", "--line-3",
+  "--text", "--text-2", "--muted", "--brand", "--brand-2", "--brand-hov",
+  "--link", "--shadow-card", "--font-ui",
+] as const;
+type ErrorPresentation = { theme: "dark" | "light"; tokens: CSSProperties };
+function readErrorPresentation(): ErrorPresentation | null {
+  if (typeof window === "undefined" || typeof document === "undefined") return null;
+  try {
+    const root = document.documentElement;
+    const theme = root.dataset.theme;
+    if (theme !== "light" && theme !== "dark") return null;
+    const computed = window.getComputedStyle(root);
+    const values: Record<string, string> = {};
+    for (const name of ERROR_PRESENTATION_VARS) {
+      const value = computed.getPropertyValue(name).trim();
+      if (value) values[name] = value;
+    }
+    if (!values["--bg"] || !values["--text"]) return null;
+    return { theme, tokens: values as CSSProperties };
+  } catch {
+    return null; // Missing presentation remains the incumbent native fallback.
+  }
+}
+const subscribeClientReady = () => () => {};
+const clientReady = () => true;
+const serverNotReady = () => false;
 
 // Stale-chunk-after-deploy self-heal (Wave-1 INFRA, options-crash audit). When an old shell served
 // inside its SWR window resolves a lazy tab against a purged content-hashed chunk, Turbopack throws
@@ -72,6 +104,8 @@ export default function ErrorPage({
   unstable_retry: () => void;
 }) {
   const t = useT();
+  const [presentation] = useState(readErrorPresentation);
+  const hydrated = useSyncExternalStore(subscribeClientReady, clientReady, serverNotReady);
   const returnHref = useSyncExternalStore(subscribeErrorReturn, currentErrorReturn, serverErrorReturn);
   const returnRow = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -85,14 +119,14 @@ export default function ErrorPage({
   }, [returnHref]);
 
   return (
-    <main className="center">
-      <div className="hero">
+    <main className={`center ${styles.recovery}`} data-error-theme={hydrated ? presentation?.theme : undefined} style={hydrated ? presentation?.tokens : undefined}>
+      <div className={`hero ${styles.surface}`}>
         <div className="mk"><BrandMark size={48} /></div>
         <h1 style={{ fontSize: 22, marginBottom: 8 }}>{t("errTitle")}</h1>
         <p className="tag" style={{ marginBottom: 20 }}>
           {t("errBody")}
           {error.digest && (
-            <span style={{ display: "block", marginTop: 8, color: "var(--muted)", fontSize: 11, fontFamily: "monospace" }}>
+            <span className={styles.reference}>
               ref: {error.digest}
             </span>
           )}
@@ -104,7 +138,7 @@ export default function ErrorPage({
             if (currentErrorReturn() === returnHref) backToMacro(returnHref);
           }} />
         </div>}
-        <div className="cta">
+        <div className={`cta ${styles.actions}`}>
           <button className="btn btn-primary" onClick={() => unstable_retry()}>
             {t("errRetry")}
           </button>

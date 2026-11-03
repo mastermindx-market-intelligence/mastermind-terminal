@@ -210,7 +210,7 @@ export default function MobileNav({
                     key={it.k}
                     href={navHref(it, activeSymbol, navPath)}
                     className={on ? "on" : ""}
-                    aria-current={on ? "page" : undefined}
+                    aria-current={on ? navPath === it.href ? "page" : "location" : undefined}
                     onClick={closeDrawer}
                   >
                     <NavGlyph k={it.k} />
