@@ -10,6 +10,7 @@ const identity=vi.hoisted(()=>({user:"11111111-1111-4111-8111-111111111111",list
 vi.mock("@/lib/i18n",()=>({useLang:()=>({lang:"en"})}));
 vi.mock("@/components/onboarding/OnboardingProvider",()=>({useOnboarding:()=>({open:identity.open})}));
 vi.mock("@/lib/supabase/client",()=>({createClient:()=>({auth:{getUser:async()=>{identity.reads++;return{data:{user:{id:identity.user}},error:null};},onAuthStateChange:(listener:typeof identity.listener)=>{identity.listener=listener;return{data:{subscription:{unsubscribe:vi.fn()}}};}}})}));
+vi.mock("@/lib/useMediaQuery",()=>({useMediaQuery:()=>false}));
 vi.mock("next/link",()=>({default:({children,...props}:React.AnchorHTMLAttributes<HTMLAnchorElement>)=><a {...props}>{children}</a>}));
 const briefing={schema:"mastermind.macro_command_read.v1",state:"ready",source:{served_root_qualified:true,manifest_generated_at:"2026-10-20T10:00:00Z",manifest_sha256:"d".repeat(64),composed_at:"2026-10-21T12:00:00Z"},read:{as_of:"2026-10-18",as_of_display:{en:"18 October 2026",zh:"2026年10月18日"},as_of_meaning:{en:"Oldest dated reading",zh:"最早读数"},clauses:[{topic:{en:"Liquidity",zh:"流动性"},predicate:{en:"is mixed",zh:"不均衡"},punct:{en:".",zh:"。"},section:"liquidity"}],omitted:false},strip:[],coverage:{available:1,total:1},sections:[{id:"liquidity",label:{en:"Liquidity",zh:"流动性"},href:"/macro_monetary.html#liquidity"}],workspaces:[]};
 const inventory={lists:[{id:"owned-list",name:"PRIVATE WATCH",position:0,symbols:[{symbol:"AAPL",section:"",position:0}]}],sharedWithMe:[]};

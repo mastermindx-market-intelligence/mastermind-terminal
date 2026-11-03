@@ -14,6 +14,7 @@ import TodaySinceLastVisit from "./TodaySinceLastVisit";
 import TodayBreadthReading from "./TodayBreadthReading";
 import { ageLabel, freshnessLabel, readingFreshness } from "@/lib/shared-shell/readingFreshness";
 import { useReadingClock } from "@/lib/shared-shell/useReadingClock";
+import { useMediaQuery } from "@/lib/useMediaQuery";
 
 const COPY = {
  en: {
@@ -34,7 +35,7 @@ const COPY = {
   clockNote: "Manifest generation and publication verification do not certify the freshness of every source. Each reading keeps its own clock.",
   hash: "Manifest SHA-256", monitor: "Open Monitor", curve: "View the curve", noSummary: "Open source reading",
   keepGoing: "Keep researching", keepGoingNote: "Open a workspace to inspect its published evidence while this reading recovers.",
-  discover: "Discover companies", brief: "Your market", sourceReadings: "Source readings",
+  discover: "Discover companies", brief: "Your market", sourceReadings: "Source readings", viewReadings: "View all source readings",
  },
  zh: {
   title: "今日", intro: "以来源证据为起点，开始研究。", owner: "宏观指挥台 · 美国",
@@ -54,7 +55,7 @@ const COPY = {
   clockNote: "清单生成与发布核验并不证明所有来源均为最新。每项读数保留各自时间。",
   hash: "清单 SHA-256", monitor: "打开监控", curve: "查看曲线", noSummary: "打开来源读数",
   keepGoing: "继续研究", keepGoingNote: "在读数恢复期间，可打开工作区查看已发布的来源证据。",
-  discover: "发现公司", brief: "市场概览", sourceReadings: "来源读数",
+  discover: "发现公司", brief: "市场概览", sourceReadings: "来源读数", viewReadings: "查看全部来源读数",
  },
 } as const;
 
@@ -72,6 +73,10 @@ function Arrow() {
 function sourceHref(href: string) {
  return typeof href === "string" && /^\/macro_[a-z0-9_]+\.html$/.test(href) ? href : null;
 }
+
+// The narrow placement follows the stylesheet's own phone breakpoint, so the boolean and the
+// CSS move together: this one boolean decides where the source-readings strip is mounted.
+const NARROW_READINGS_QUERY = "(max-width: 699px)";
 
 function TodayWorkspaceSession({ ownerKey }: { ownerKey: string }) {
  const onboarding = useOnboarding();
@@ -127,8 +132,40 @@ function TodayWorkspaceSession({ ownerKey }: { ownerKey: string }) {
  const summary = data?.read.clauses.map(clause =>
   `${localText(clause.topic, lang)}${lang === "zh" ? "" : " "}${localText(clause.predicate, lang)}${localText(clause.punct, lang)}`
  ).join("") ?? "";
+ // The phone placement is driven by the same breakpoint the stylesheet uses, so the boolean and
+ // the CSS move together. The narrow jump lands on the retitled section heading below.
+ const narrow = useMediaQuery(NARROW_READINGS_QUERY);
+ const sourceReadingsHeading = useRef<HTMLHeadingElement | null>(null);
+ const jumpToSourceReadings = useCallback(() => {
+  const heading = sourceReadingsHeading.current;
+  if (!heading) return;
+  heading.focus({ preventScroll: true });
+  heading.scrollIntoView({ block: "start" });
+ }, []);
 
- return <main id="shared-shell-content" tabIndex={-1} className={`${styles.root} ${today.today}`}>
+ // One stable breadth holder sits above <main>: it fetches only after Today's own data exists
+ // (`enabled`), and hands the pure cell down to whichever placement the width calls for.
+ // Resizing moves the cell between placements without a refetch, because `enabled` stays true
+ // and the holder never remounts.
+ return <TodayBreadthReading ownerKey={ownerKey} scope={scope} onUnauthenticated={endAttention}
+  enabled={ready && !!data}
+  render={breadthCell => {
+  // The strip body is built once — the existing chips plus the pure breadth cell — so the
+  // desktop brief and the narrow jobs section mount the same nodes, never two copies.
+  const readingsBody = data ? <>
+   {data.strip.filter(chip => chip.id !== "coverage").map(chip => {
+    const age = readingFreshness(chip.as_of, now);
+    return <Link className={today.reading} key={chip.id} href={sectionHref(chip.section)}>
+     <span className={today.readingLabel}>{localText(chip.label, lang)}<Arrow /></span>
+     <strong>{chip.null ? chip.cause === "see_curve" ? c.curve : c.noSummary : localText(chip.value, lang)}</strong>
+     {chip.note && <span className={today.readingNote}>{localText(chip.note, lang)}</span>}
+     <span className={today.readingClock}>{localText(chip.as_of_display, lang) || chip.as_of || c.noClock}</span>
+     {age.kind !== "undated" && <span className={today.readingAge} data-kind={age.kind}>{freshnessLabel(age, lang)}</span>}
+    </Link>;
+   })}
+   {breadthCell}
+  </> : null;
+  return <main id="shared-shell-content" tabIndex={-1} className={`${styles.root} ${today.today}`}>
   <header className={`${styles.heading} ${today.pageHeading}`}>
    <div><h1>{c.title}</h1><p>{c.intro}</p></div>
    <Link className={today.overviewLink} href="/macro.html">{c.overview}<Arrow /></Link>
@@ -159,30 +196,33 @@ function TodayWorkspaceSession({ ownerKey }: { ownerKey: string }) {
      <Link className={`${styles.action} ${styles.primary}`} href="/macro_monetary.html">{c.command}<Arrow /></Link>
      <span className={styles.coverage}>{data.coverage.available} {c.of} {data.coverage.total} {c.sections}</span>
     </div>
-    <div className={today.readings} aria-label={c.sourceReadings}>
-     {data.strip.filter(chip => chip.id !== "coverage").map(chip => {
-      const age = readingFreshness(chip.as_of, now);
-      return <Link className={today.reading} key={chip.id} href={sectionHref(chip.section)}>
-       <span className={today.readingLabel}>{localText(chip.label, lang)}<Arrow /></span>
-       <strong>{chip.null ? chip.cause === "see_curve" ? c.curve : c.noSummary : localText(chip.value, lang)}</strong>
-       {chip.note && <span className={today.readingNote}>{localText(chip.note, lang)}</span>}
-       <span className={today.readingClock}>{localText(chip.as_of_display, lang) || chip.as_of || c.noClock}</span>
-       {age.kind !== "undated" && <span className={today.readingAge} data-kind={age.kind}>{freshnessLabel(age, lang)}</span>}
-      </Link>;
-     })}
-     <TodayBreadthReading ownerKey={ownerKey} scope={scope} onUnauthenticated={endAttention} />
-    </div>
+    {/* Desktop keeps the full strip inside the brief; on narrow phones the same nodes move to
+        the titled jobs section below, so the readings exist exactly once in the DOM. */}
+    {!narrow && <div className={today.readings} aria-label={c.sourceReadings}>{readingsBody}</div>}
     {data.read.omitted && <p className={today.coverageNote}>{c.omitted}</p>}
+    {narrow && <button type="button" className={today.jumpReadings} onClick={jumpToSourceReadings}>{c.viewReadings}<Arrow /></button>}
    </section>}
 
+   {/* The since-last-visit holder composes the desk's jobs: its paid read holds the opening
+       slot in every state; its teaser alone moves below watch attention, continuation, and
+       briefing. The holder renders the jobs itself, so no phase change remounts anything. */}
    <TodayResearchAttention ownerKey={ownerKey} scope={scope} onUnauthenticated={endAttention}
-    render={({ continuation, briefing }) => <div className={today.jobs}>
-     <TodaySinceLastVisit ownerKey={ownerKey} scope={scope} onUnauthenticated={endAttention} />
+    render={({ continuation, briefing }) => <TodaySinceLastVisit ownerKey={ownerKey} scope={scope}
+    onUnauthenticated={endAttention} render={({ priority, teaser, phase: sincePhase }) => <div className={today.jobs} data-since-state={sincePhase}>
+     {priority}
      <section className={today.watchJob} aria-label={c.attentionLabel}>
       <TodayWatchAttention ownerKey={ownerKey} scope={scope} onUnauthenticated={endAttention} />
      </section>
      <aside className={today.continuationJob}>{continuation}</aside>
+     {/* Narrow-only: the same strip nodes, retitled and always expanded, right after the
+         reading continuation. The breadth cell inside is the holder's pure node — no second
+         fetch, and no DOM copy of the desktop strip. */}
+     {narrow && data && <section className={today.readingsJob} aria-labelledby="today-source-readings">
+      <h2 id="today-source-readings" tabIndex={-1} ref={sourceReadingsHeading}>{c.sourceReadings}</h2>
+      <div className={today.readings} aria-label={c.sourceReadings}>{readingsBody}</div>
+     </section>}
      <div className={today.researchJob}>{briefing}</div>
+     {teaser}
      <section className={today.coverageJob} aria-labelledby="today-coverage">
       <h2 id="today-coverage">{c.attention}</h2>
      {!data ? <div className={today.nextSteps}><p className={styles.muted}>{c.keepGoingNote}</p>
@@ -205,12 +245,14 @@ function TodayWorkspaceSession({ ownerKey }: { ownerKey: string }) {
      )}</ul></details>}
      </section>
     </div>} />
+   } />
    {data && <details className={today.evidence}><summary>{c.clocks}</summary><p>{c.clockNote}</p><dl>
     <div><dt>{c.manifest}</dt><dd>{data.source.manifest_generated_at || c.noClock}</dd></div>
     <div><dt>{c.hash}</dt><dd className={styles.source}>{data.source.manifest_sha256}</dd></div>
    </dl></details>}
   </>}
  </main>;
+  }} />;
 }
 
 /** A subject switch destroys the reader lifetime, including A→B→A re-entry. */
