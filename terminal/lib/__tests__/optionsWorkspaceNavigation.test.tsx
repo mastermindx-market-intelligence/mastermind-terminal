@@ -83,7 +83,7 @@ it("follows later query changes in the same mounted workspace and retains the Hu
   await navigate("?tab=structure&root=QQQ&keep=original");
   expect(view()).toBe("structure");
   expect(active("cat-structure")).toBe("true");
-  expect(active("structure")).toBe("true");
+  expect(node.querySelector("#wtab-structure")).toBeNull(); // a single-view category has no redundant second row
   await navigate("?tab=prism&root=QQQ&keep=original");
   expect(view()).toBe("gex");
   expect(active("cat-exposure")).toBe("true");

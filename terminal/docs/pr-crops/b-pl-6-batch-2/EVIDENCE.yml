@@ -6,7 +6,7 @@
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/components/GuidePanel.tsx: "edf89e1861d998371bfd7bdf67939228d3b194f57222d8b12aab3115633c2d41"
-  terminal/components/levels/LevelsView.tsx: "91a4d6fd86b12225e657c8a9c4b2b185e3940356af3cd11466ca30e04f05b0c9"
+  terminal/components/levels/LevelsView.tsx: "a3c1af0dd72065398cf40586ddff1919e47d091690707924a957a709b00ae0ef"
   terminal/components/levels/LevelsLearn.tsx: "ca8923e68f511cb525db2bac1b41e9e1d93c3c1492cb345162085de1412cee05"
   terminal/components/ChartConductor.tsx: "471a8972a8b8d4775abddc6a455dd50af0943fec18ad5a0a0c1a77243330d8b0"
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
@@ -49,3 +49,20 @@ documentLanguageRecapture20261024:
 
 # Raw capture identity and every upstream source/crop lock remain unchanged; omit only unused pending-copy dependency.
 lexProjection: {"schema":"terminal.lex_capture_projection.v1","omittedProperty":"obDonePrefsSyncing","capturedRawSha256":"13f33e3178b105a64f1f5df35974cd99041ef06f05bdece95939dd07a8b9fe7c","projectedSha256":"d6dcc2df7615a1c5782f4d755178fbb76bcf9ee42b93dffe7c7c95317a652de5","sourceGitBlob":"664d68043f472919f7b581f545a334bf66d9782f","sourceRecoveryCommit":"e2846880681d4b9aff4a060e1321f50f240cafc7","captureCommitLocallyAvailable":true}
+optionsWorkspaceRecapture:
+  capturedAt: "2026-11-03T04:23:22.657616+00:00"
+  sourceBase: "ac3762717ad150fd4f18614afd78072115a7c80a"
+  command: "CAPTURE_ONLY=LevelsView,LevelsLearn node e2e/tools/capture_pl6_batch2.cjs"
+  actualCases: 8
+  logSha256: "1e30045f42d456f4f41f715b558ced1af7c3d5dddd49e51a34fc589cb9a42c6c"
+  sources:
+    terminal/components/levels/LevelsView.tsx: "a3c1af0dd72065398cf40586ddff1919e47d091690707924a957a709b00ae0ef"
+  crops:
+    LevelsLearn-1440-zh.png: "4d80312504f35723f62937424b0402eb33682325524d787e6bfd5fca112f8b67"
+    LevelsLearn-1440.png: "603e6794dc95d79e3d4d862213af788e956df6c11c8551e72f8e5fc9996d573f"
+    LevelsLearn-390-zh.png: "d71394c5f20eea3bb204b505615975d24826dcc28312d8d888eb93f5f17551e5"
+    LevelsLearn-390.png: "6a86954b5e3d84cc6c34ed6aafeb0600ae408114c678f7604e8fb1830731f197"
+    LevelsView-1440-zh.png: "cfb674c9d0bf128b64f951b64d3007fe0794f5fe7fa94b3a7121ac988425958c"
+    LevelsView-1440.png: "5b67406189c957d84e44d571c73a4a14aab1998ab3d9663aeb3f50c680120da0"
+    LevelsView-390-zh.png: "b2ee9f732016a62d52f2e40af1298c78993d17b10948de08135c01cc22d34c48"
+    LevelsView-390.png: "e07350d2d263f92bdbb1fc87198928fbb65ae8ee4c4300a69ef203c533232ccd"

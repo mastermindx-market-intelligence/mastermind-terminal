@@ -61,6 +61,13 @@ function etOffsetSuffix(sessionDate: string): string {
   return "-04:00"; // EDT fallback
 }
 
+const easternTime = new Intl.DateTimeFormat("en-GB", {
+  timeZone: "America/New_York", hour: "2-digit", minute: "2-digit", hourCycle: "h23",
+});
+function tideTimeLabel(time: unknown): string {
+  return typeof time === "number" ? easternTime.format(time * 1000) : "";
+}
+
 const TideChart = memo(function TideChart({ minutes, spy, height, sessionDate }: TideChartProps) {
   const ref = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
@@ -114,7 +121,8 @@ const TideChart = memo(function TideChart({ minutes, spy, height, sessionDate }:
         horzLine: { color: "rgba(214,218,227,.3)", labelBackgroundColor: panel3 },
       },
       rightPriceScale: { borderColor: lineColor, scaleMargins: { top: 0.05, bottom: 0.05 } },
-      timeScale: { borderColor: lineColor, timeVisible: true, secondsVisible: false },
+      localization: { timeFormatter: (time: unknown) => `${tideTimeLabel(time)} ET` },
+      timeScale: { borderColor: lineColor, timeVisible: true, secondsVisible: false, tickMarkFormatter: tideTimeLabel },
     });
     chartRef.current = chart;
 

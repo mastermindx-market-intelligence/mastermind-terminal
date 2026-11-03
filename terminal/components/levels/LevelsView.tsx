@@ -1,4 +1,5 @@
 "use client";
+import { pick } from "@/lib/finFormat";
 /**
  * LevelsView — the Terminal "Levels" board (Voltick Gamma-Levels WP-A3).
  *
@@ -250,6 +251,7 @@ export function LevelsView() {
   const [inputVal, setInputVal] = useState("SPY");
   const [payload, setPayload]   = useState<LevelsPayload | null>(null);
   const [read, setRead]         = useState<LevelsRead>("loading");
+  const [showVoids, setShowVoids] = useState(false);
   const [colorblind, setColorblind] = useState(false);
   const [selected, setSelected] = useState<{ key: string; label: string; note: string } | null>(null);
 
@@ -460,6 +462,10 @@ export function LevelsView() {
               {t("lvAsOf")} {asofStr}{asofStale && <span style={{ marginLeft: 5, fontWeight: 600 }}>{t("lvPriorSession")}</span>}
             </span>
           )}
+          {voidNodes.length > 0 && <button type="button" className={`chip${showVoids ? " on" : ""}`}
+            aria-pressed={showVoids} onClick={() => { setShowVoids(!showVoids); if (selected?.key.startsWith("void-")) setSelected(null); }}>
+            {pick(lang === "zh", "Low-friction zones", "低阻力区间")} · {voidNodes.length}
+          </button>}
           <button
             className={`chip${colorblind ? " on" : ""}`}
             style={{ height: 24, fontSize: 11, fontWeight: 700, letterSpacing: "0.02em" }}
@@ -518,7 +524,7 @@ export function LevelsView() {
           ) : (
             <div style={COLUMN_STAGE}>
               {/* void bands (thin, low-friction stretches) */}
-              {band && voidNodes.map((v, i) => {
+              {band && showVoids && voidNodes.map((v, i) => {
                 const yTop = projY(v.strike_hi as number) * 100;
                 const yBot = projY(v.strike_lo as number) * 100;
                 return (

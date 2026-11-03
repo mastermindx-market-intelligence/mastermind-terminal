@@ -112,6 +112,13 @@ const SURFACE_LEX = {
   noFrame: ["No frame for this time.", "该时间点暂无数据。"],
 
   // ── Replay bar ──────────────────────────────────────────────────────────────
+  laterRegime: ["Regime updated {date} · after this session", "{date} 更新的状态晚于本交易日"],
+  releaseToView: ["Release to view", "松开查看"],
+  dragToSelect: ["Drag to select a snapshot", "拖动选择快照"],
+  overlayAfterSession: ["Source dated {date}, after this session", "来源日期 {date} 晚于当前交易日"],
+  replayTitle: ["Session replay", "交易时段回放"],
+  observation: ["Observation", "观测时点"],
+  chartControls: ["Chart settings", "图表设置"],
   replayFirst: ["First frame", "首帧"],
   replayPrev: ["Previous frame", "上一帧"],
   replayPlay: ["Play", "播放"],

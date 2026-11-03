@@ -21,7 +21,7 @@ import { windowGexRows } from "@/lib/windowGexRows.mjs";
 import { flowGet, flowGetFresh, flowInvalidate, flowPrefetch } from "@/lib/flowClientCache";
 import { useFlowStream } from "@/lib/flowStream";
 import { FD } from "@/lib/flowdeskStrings";
-import { usOptionsSessionState } from "@/lib/flowFreshness";
+import { usOptionsMarketClock } from "@/lib/flowFreshness";
 import { trackSearch } from "@/lib/searchTrack";
 import { normalizeVolUnits } from "@/lib/eodContext";
 import {
@@ -1917,7 +1917,7 @@ export default function OptionsHubView({
   const activeStale       = onTide ? tideStale        : dataStale;
   const activeSessionDate = onTide ? tideData?.session_date : feed?.session_date;
   const activeConnected   = onTide ? tideConnected : feedConnected;
-  const marketOpenNow     = usOptionsSessionState(activeSessionDate, new Date()) === "regular";
+  const marketOpenNow     = usOptionsMarketClock(new Date())?.open;
   const activeProblem     = activeUnavailable || (activeDelayed && marketOpenNow);
   const activeUpdatedLabel = activeAsof
     ? `${activeSessionDate ? activeSessionDate + " · " : ""}${fmtAsof(activeAsof)} ET`
@@ -2018,6 +2018,13 @@ export default function OptionsHubView({
   const [scrSortKey, setScrSortKey] = useState<string>("");
   const [scrSortDir, setScrSortDir] = useState<1 | -1>(-1);
 
+  const sortHeader = (key: string, en: string, cn: string, tip?: string) => (
+    <th aria-sort={scrSortKey === key ? (scrSortDir === -1 ? "descending" : "ascending") : undefined} className={scrSortKey === key ? "sorted" : ""}>
+      <button type="button" className="scr-sort-action" onClick={() => scrSort(key)} title={tip}>
+        {lang === "zh" ? cn : en}{scrSortKey === key ? (scrSortDir === -1 ? " ↓" : " ↑") : ""}
+      </button>
+    </th>
+  );
   function scrSort(key: string) {
     if (scrSortKey === key) setScrSortDir((d) => (d === -1 ? 1 : -1));
     else { setScrSortKey(key); setScrSortDir(-1); }
@@ -2345,7 +2352,7 @@ export default function OptionsHubView({
           // workspace. A Discover single-tab embed (one allowed tab) is a bare mount of one
           // surface, not a hub header, and must stay bare.
           const showVol = stripTabs.length > 1 && !(activeTab === "gex" && exposureMapFirst);
-          const showAsof = !!activeAsof && !(activeTab === "gex" && exposureMapFirst);
+          const showAsof = showFlowTiming && !!activeAsof;
           if (!showStrip && !showFlowTiming && !showAsof && !showVol) return null;
           return (
         <div className="options-flow-status-row" style={{ display: "flex", alignItems: "center", padding: "8px 14px", borderBottom: "1px solid var(--line)", flexShrink: 0, gap: 8 }}>
@@ -2395,7 +2402,7 @@ export default function OptionsHubView({
         })()}
 
         {/* ── Source status banner (Tape + Tide are intraday session artifacts) ── */}
-        {(onTapeFeed || onTide) && (activeUnavailable || activeDelayed) && (
+        {(onTapeFeed || onTide) && (activeUnavailable || (activeDelayed && marketOpenNow !== false)) && (
           <div
             role="status"
             style={{
@@ -2417,8 +2424,8 @@ export default function OptionsHubView({
                     ? `${onTide ? "市场潮汐" : "期权流"}延迟 — 最近源快照 ${activeUpdatedLabel}，${onTide ? "潮汐" : "盘口"}可能未在刷新。`
                     : `${onTide ? "Market tide" : "Options flow"} delayed — last source snapshot ${activeUpdatedLabel}; ${onTide ? "the tide" : "the tape"} may not be refreshing.`)
                 : (lang === "zh"
-                    ? `市场休市 — 显示上一交易时段（${activeUpdatedLabel}）。下次开盘后恢复新的源数据快照。`
-                    : `Market closed — showing the last session (${activeUpdatedLabel}). New source snapshots resume after the next open.`)}
+                    ? `显示最近可用快照（${activeUpdatedLabel}）。`
+                    : `Last available snapshot · ${activeUpdatedLabel}.`)}
             </span>
           </div>
         )}
@@ -2534,7 +2541,7 @@ export default function OptionsHubView({
               <div className="flow-filter-bar">
                 {/* Presets dropdown */}
                 <div ref={presetsRef} style={{ position: "relative" }}>
-                  <button className={`chip${showPresets ? " on" : ""}`} style={{ height: 26, fontSize: 11 }} onClick={() => setShowPresets((v) => !v)}>
+                  <button className={`chip${showPresets ? " on" : ""}`} style={{ height: 26, fontSize: 11 }} aria-expanded={showPresets} onClick={() => setShowPresets((v) => !v)}>
                     {t("presets", "Presets")} ▾
                   </button>
                   {showPresets && (
@@ -2560,6 +2567,7 @@ export default function OptionsHubView({
                 <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
                   <span className="hub-cap obs-lbl">{t("minPrem", "Min prem")}</span>
                   <select
+                    aria-label={t("minPrem", "Min prem")}
                     value={minPrem}
                     onChange={(e) => setMinPrem(Number(e.target.value))}
                     style={{ height: 28, padding: "0 8px", borderRadius: "var(--r-md)", background: "var(--inset)", border: "1px solid var(--line)", color: "var(--text)", font: "600 12px var(--font-ui)", cursor: "pointer" }}
@@ -2572,10 +2580,11 @@ export default function OptionsHubView({
                 {/* DTE buckets */}
                 <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
                   <span className="hub-cap obs-lbl">{t("dte", "DTE")}</span>
-                  <button className={`chip${dteMidOn ? " on" : ""}`} style={{ height: 26, fontSize: 11 }} onClick={toggleDteMid} title={lang === "zh" ? "8–90天快选" : "8–90d preset"}>8–90d</button>
+                  <button className={`chip${dteMidOn ? " on" : ""}`} style={{ height: 26, fontSize: 11 }} aria-pressed={dteMidOn} onClick={toggleDteMid} title={lang === "zh" ? "8–90天快选" : "8–90d preset"}>8–90d</button>
                   {DTE_BUCKETS.map((b) => (
                     <button
                       key={b.key}
+                      aria-pressed={dteBuckets.has(b.key)}
                       className={`chip${dteBuckets.has(b.key) ? " on" : ""}`}
                       style={{ height: 26, fontSize: 11 }}
                       onClick={() => setDteBuckets((prev) => { const next = new Set(prev); if (next.has(b.key)) next.delete(b.key); else next.add(b.key); return next; })}
@@ -2591,6 +2600,7 @@ export default function OptionsHubView({
                   {MNY_BUCKETS.map((b) => (
                     <button
                       key={b.key}
+                      aria-pressed={mnyBuckets.has(b.key)}
                       className={`chip${mnyBuckets.has(b.key) ? " on" : ""}`}
                       style={{ height: 26, fontSize: 11 }}
                       onClick={() => setMnyBuckets((prev) => { const next = new Set(prev); if (next.has(b.key)) next.delete(b.key); else next.add(b.key); return next; })}
@@ -2877,6 +2887,7 @@ export default function OptionsHubView({
               ordering and receipts stay descriptive/display-only. */}
           {(activeTab === "zero_dte" || activeTab === "largest") && (
             <OptionsFlowBoardView
+              key={activeTab}
               mode={activeTab === "zero_dte" ? "zero_dte" : "largest"}
               lang={lang}
               events={feed?.events ?? null}
@@ -2919,11 +2930,11 @@ export default function OptionsHubView({
                     <div style={{ display: "flex", gap: 12, fontSize: 12, color: "var(--text-2)", marginLeft: 8 }}>
                       <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
                         <span style={{ display: "inline-block", width: 14, height: 3, background: "var(--up)", borderRadius: 2 }} />
-                        {lang === "zh" ? "净认购保费（~累计）" : "NCP (~cumulative)"}
+                        {pick(lang, "Net call premium ($M, ~cumulative)", "净认购权利金（百万美元，约累计）")}
                       </span>
                       <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
                         <span style={{ display: "inline-block", width: 14, height: 3, background: "var(--down)", borderRadius: 2 }} />
-                        {lang === "zh" ? "净认沽保费（~累计）" : "NPP (~cumulative)"}
+                        {pick(lang, "Net put premium ($M, ~cumulative)", "净认沽权利金（百万美元，约累计）")}
                       </span>
                       {tideData.spy.length > 0 && (
                         <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
@@ -3669,16 +3680,7 @@ export default function OptionsHubView({
               {/* ── Top Premium view — unusual_names sorted by gross_premium_today ── */}
               {screenerPreset === "top_prem" && feed && (() => {
                 const rows = topPremiumRows;
-                const hdr = (key: string, en: string, zh: string, tip?: string) => (
-                  <th
-                    style={{ cursor: "pointer" }}
-                    className={scrSortKey === key ? "sorted" : ""}
-                    onClick={() => scrSort(key)}
-                    title={tip}
-                  >
-                    {lang === "zh" ? zh : en}{scrSortKey === key ? (scrSortDir === -1 ? " ↓" : " ↑") : ""}
-                  </th>
-                );
+                const hdr = sortHeader;
                 return (
                   <div className="obs-card" style={{ overflow: "hidden" }}>
                     <div className="obs-card-hd" style={{ borderBottom: "1px solid var(--line)" }}>
@@ -3701,7 +3703,8 @@ export default function OptionsHubView({
                               style={{ cursor: "pointer" }}
                               onClick={() => { switchTab("tickers"); setSelectedTicker(u.root); }}
                             >
-                              <td style={{ textAlign: "left", fontWeight: 700 }}>{u.root}</td>
+                              <td style={{ textAlign: "left", fontWeight: 700 }}><button className="scr-ticker-action" type="button"
+                                onClick={(event) => { event.stopPropagation(); switchTab("tickers"); setSelectedTicker(u.root); }}>{u.root}</button></td>
                               <td style={{ textAlign: "left", color: "var(--text-2)", fontSize: 11 }}>
                                 {lang === "zh" ? u.group_zh : abbrevSector(u.group)}
                               </td>
@@ -3730,15 +3733,12 @@ export default function OptionsHubView({
               {screenerPreset === "unusual_z" && feed && (() => {
                 const rows = unusualRows;
                 const warming = (feed.unusual_names ?? []).filter((u) => u.prem_z == null);
-                const hdr = (key: string, en: string, zh: string, tip?: string) => (
-                  <th style={{ cursor: "pointer" }} className={scrSortKey === key ? "sorted" : ""} onClick={() => scrSort(key)} title={tip}>
-                    {lang === "zh" ? zh : en}{scrSortKey === key ? (scrSortDir === -1 ? " ↓" : " ↑") : ""}
-                  </th>
-                );
+                const hdr = sortHeader;
                 return (
                   <div className="obs-card" style={{ overflow: "hidden" }}>
                     <div className="obs-card-hd" style={{ borderBottom: "1px solid var(--line)" }}>
                       <span className="obs-lbl">{t("ohUnusualActivity")}</span>
+                      <span className="scr-ranking-note">{pick(lang, "Largest departures from normal, above or below", "高于或低于常态的幅度")}</span>
                       {warming.length > 0 && (
                         <span style={{ fontSize: 11, color: "var(--text-dim)" }}>
                           {lang === "zh" ? `${warming.length} 基线积累中（未显示）` : `${warming.length} warming baselines hidden`}
@@ -3761,7 +3761,8 @@ export default function OptionsHubView({
                             const absZ = Math.abs(u.prem_z ?? 0);
                             return (
                               <tr key={u.root} style={{ cursor: "pointer" }} onClick={() => { switchTab("tickers"); setSelectedTicker(u.root); }}>
-                                <td style={{ textAlign: "left", fontWeight: 700 }}>{u.root}</td>
+                                <td style={{ textAlign: "left", fontWeight: 700 }}><button className="scr-ticker-action" type="button"
+                                onClick={(event) => { event.stopPropagation(); switchTab("tickers"); setSelectedTicker(u.root); }}>{u.root}</button></td>
                                 <td style={{ textAlign: "left", color: "var(--text-2)", fontSize: 11 }}>
                                   {lang === "zh" ? u.group_zh : abbrevSector(u.group)}
                                 </td>
@@ -3794,11 +3795,7 @@ export default function OptionsHubView({
               {/* ── Fresh Positioning view — unusual_names with vol>OI flow count ── */}
               {screenerPreset === "fresh" && feed && (() => {
                 const rows = freshRows;
-                const hdr = (key: string, en: string, zh: string, tip?: string) => (
-                  <th style={{ cursor: "pointer" }} className={scrSortKey === key ? "sorted" : ""} onClick={() => scrSort(key)} title={tip}>
-                    {lang === "zh" ? zh : en}{scrSortKey === key ? (scrSortDir === -1 ? " ↓" : " ↑") : ""}
-                  </th>
-                );
+                const hdr = sortHeader;
                 return (
                   <div className="obs-card" style={{ overflow: "hidden" }}>
                     <div className="obs-card-hd" style={{ borderBottom: "1px solid var(--line)" }}>
@@ -3842,11 +3839,7 @@ export default function OptionsHubView({
               {screenerPreset === "doi" && oiData && (() => {
                 const rows = oiRows;
                 const reportDate = sessionOf(oiData.asof);
-                const hdr = (key: string, en: string, zh: string, tip?: string) => (
-                  <th style={{ cursor: "pointer" }} className={scrSortKey === key ? "sorted" : ""} onClick={() => scrSort(key)} title={tip}>
-                    {lang === "zh" ? zh : en}{scrSortKey === key ? (scrSortDir === -1 ? " ↓" : " ↑") : ""}
-                  </th>
-                );
+                const hdr = sortHeader;
                 return (
                   <div className="obs-card" style={{ overflow: "hidden" }}>
                     <div className="obs-card-hd" style={{ borderBottom: "1px solid var(--line)" }}>
@@ -3907,11 +3900,7 @@ export default function OptionsHubView({
               {/* ── 0DTE Heavy view — aggregate 0DTE premium per ticker ── */}
               {screenerPreset === "zerodte" && feed && (() => {
                 const rows = zeroDteRows;
-                const hdr = (key: string, en: string, zh: string, tip?: string) => (
-                  <th style={{ cursor: "pointer" }} className={scrSortKey === key ? "sorted" : ""} onClick={() => scrSort(key)} title={tip}>
-                    {lang === "zh" ? zh : en}{scrSortKey === key ? (scrSortDir === -1 ? " ↓" : " ↑") : ""}
-                  </th>
-                );
+                const hdr = sortHeader;
                 return (
                   <div className="obs-card" style={{ overflow: "hidden" }}>
                     <div className="obs-card-hd" style={{ borderBottom: "1px solid var(--line)" }}>

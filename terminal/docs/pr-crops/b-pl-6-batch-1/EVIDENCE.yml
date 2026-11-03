@@ -19,7 +19,7 @@
 layoutFiles:
   terminal/app/workspace-chrome.css: "97e32bc24ed20479ea7b2e024ef6bc3883b9ead764098344f3ad4acea52b4bdd"
   terminal/app/layout.tsx: "9b675d52a647b4a92407958aa0ab7ffcc2632d95d003c89ca2eed2a1f4e35264"
-  terminal/components/OptionsHubView.tsx: "0edbb1f902005dad5813beb7e406c04a3c0509aae4487f087fb101dd0ceb4c25"
+  terminal/components/OptionsHubView.tsx: "c8ec7b55c891971021d434d1db84df410787520d2cb6fecef8a509ee57ebf385"
   terminal/components/SearchModal.tsx: "5b3a466a06215231f1b458c382aaae268b4f2f9f206d6f985f312f603fa4a5aa"
   terminal/components/StockAnalysis.tsx: "376a907d0d8ea3dc5819e0092f02e19ce56fa1f4b71a3489551adf52fddb35c0"
   terminal/components/workspaces/AnalysisWorkspace.tsx: "411b8a7e498b8af3f9337fdcf3835dd62e6a5854826f414171d8303efd8aa5bb"
@@ -496,3 +496,16 @@ chartPositionEntryOwnerRecapture20261102:
   cropDelta: "The accepted crops are RETAINED, not replaced. This capture host cannot load the next/font/google Inter face, so every recaptured crop renders the fallback typeface across the whole surface; committing those bytes would replace the accepted evidence with a visibly different rendering that no source change caused. Control captures settle the attribution: on the BASE source the PL6 ChartChrome crops and the Visual Intelligence tablet and mobile crops are BYTE-IDENTICAL to the same capture on the changed source, so the position-entry repair is pixel-inert on both surfaces. The Visual Intelligence DESKTOP crop is not byte-comparable in either direction — three consecutive captures on the SAME source produced three different byte sequences, a volatile full-page surface — so the tablet/mobile and PL6 controls carry that claim"
   scope: "layoutFiles only. cropFiles, browserReportHashes and every PNG on disk are unchanged and still bind the accepted capture."
   productionProof: false
+optionsWorkspaceRecapture:
+  capturedAt: "2026-11-03T04:23:22.506207+00:00"
+  sourceBase: "ac3762717ad150fd4f18614afd78072115a7c80a"
+  command: "CAPTURE_ONLY=OptionsHubView node e2e/tools/capture_pl6_batch1.cjs"
+  actualCases: 4
+  logSha256: "1f0270b1cd82e21b4ebb45ae20f1b521c76533169d060593c9c6fc40b15fe2e7"
+  sources:
+    terminal/components/OptionsHubView.tsx: "c8ec7b55c891971021d434d1db84df410787520d2cb6fecef8a509ee57ebf385"
+  crops:
+    OptionsHubView-1440-zh.png: "faa61e0213aaf223f46a4cb6d635c577523907d932ea6ddccdcdeb4e763b2ba6"
+    OptionsHubView-1440.png: "55b2bd35cd97573e2ee0d5f35379f53c810a2d5a855d2537eb524cfdedf15e76"
+    OptionsHubView-390-zh.png: "e15179cb78919b2828907bc478c4d22622244eadf046a5d7c5ac3022193e2f79"
+    OptionsHubView-390.png: "d8ac7fb11dbd8184e03a324243c4f8cfd614666f30722f2528d90e35df7bda36"

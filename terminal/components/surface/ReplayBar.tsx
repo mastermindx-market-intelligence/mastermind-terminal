@@ -13,26 +13,18 @@
  * the today-only control it always was.
  */
 
-import React from "react";
+import React, { useState } from "react";
+import ui from "./SurfaceWorkspace.module.css";
 import { useReplay } from "./replayContext";
 import { makeSurfaceT } from "./surfaceStrings";
-import type { SurfaceKey } from "./surfaceStrings";
 import {
   REPLAY_SPEEDS,
   fmtStamp,
   frameClockPositions,
   frameGapStats,
   sessionBands,
-  type ScrubberBandKey,
 } from "@/lib/replayEngine";
 import type { Lang } from "@/lib/i18n";
-
-/** Label + aria key per session-structure band. */
-const BAND_STR: Record<ScrubberBandKey, { label: SurfaceKey; aria: SurfaceKey }> = {
-  open: { label: "bandOpen", aria: "bandOpenAria" },
-  power: { label: "bandPower", aria: "bandPowerAria" },
-  close: { label: "bandClose", aria: "bandCloseAria" },
-};
 
 function fmtGap(seconds: number | null): string {
   if (seconds == null) return "—";
@@ -60,17 +52,29 @@ export function ReplayBar({
   const { stamps, frame, playing, speed } = state;
   const hasFrames = stamps.length > 0;
   const hasSelection = asOfStamp != null;
-  const bands = sessionBands(stamps);
   const positions = frameClockPositions(stamps);
   const gaps = frameGapStats(stamps);
-  const currentPosition = positions[frame] ?? 0;
+  const [dragStamp, setDragStamp] = useState<string | null>(null);
+  const previewFrame = dragStamp == null ? -1 : stamps.indexOf(dragStamp);
+  const displayFrame = previewFrame < 0 ? frame : previewFrame;
+  const currentPosition = positions[displayFrame] ?? 0;
+  const canSeek = stamps.length > 1;
+  function frameAtPointer(event: React.PointerEvent<HTMLDivElement>) {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const fraction = Math.max(0, Math.min(1, (event.clientX - rect.left) / Math.max(1, rect.width)));
+    let nearest = 0;
+    positions.forEach((position, index) => {
+      if (Math.abs(position - fraction) < Math.abs(positions[nearest] - fraction)) nearest = index;
+    });
+    return nearest;
+  }
   const showPicker = sessions.length > 0 && !!onSessionDate;
   // Transport geometry, dimmed when there is nothing to step through. The .obs-chip
   // primitive has no :disabled state of its own, so the affordance is carried here.
   const btn: React.CSSProperties = hasFrames ? ICON_BTN : { ...ICON_BTN, ...ICON_BTN_OFF };
 
   return (
-    <div style={BAR} className="obs-surf-replay" role="group" aria-label="replay">
+    <div style={BAR} className={`obs-surf-replay ${ui.replay}`} role="group" aria-label={t("replayTitle")}>
       {/* Session picker — multi-day replay. A native select keeps the keyboard and the
           mobile pickers for free, and stays out of the replay keybinds (the provider
           ignores keys while a form control has focus). */}
@@ -93,117 +97,100 @@ export function ReplayBar({
           primary-action tint at rest and goes fully brand-filled (.on) while running,
           so "is it playing?" is answerable from across the desk. */}
       <div style={BTN_GROUP} className="obs-surf-replay-transport">
-        <button className="obs-chip" style={btn} aria-label={t("replayFirst")} disabled={!hasFrames}
+        <button className="obs-chip" style={btn} aria-label={t("replayFirst")} disabled={!canSeek || (frame === 0 && !state.missingStamp)}
           onClick={() => dispatch({ type: "toFirst" })}>
           <Icon d="M18 6l-6 6 6 6M8 6v12" />
         </button>
-        <button className="obs-chip" style={btn} aria-label={t("replayPrev")} disabled={!hasFrames}
+        <button className="obs-chip" style={btn} aria-label={t("replayPrev")} disabled={!canSeek || frame === 0}
           onClick={() => dispatch({ type: "stepBack" })}>
           <Icon d="M15 6l-6 6 6 6" />
         </button>
         <button className={`obs-chip${playing ? " on" : ""}`}
           style={{ ...btn, ...(playing ? undefined : PLAY_BTN) }}
           aria-label={playing ? t("replayPause") : t("replayPlay")}
-          disabled={!hasFrames} onClick={() => dispatch({ type: "togglePlay" })}>
+          disabled={!canSeek} onClick={() => dispatch({ type: "togglePlay" })}>
           {playing ? <Icon d="M7 5h3v14H7zM14 5h3v14h-3z" fill /> : <Icon d="M7 5l12 7-12 7z" fill />}
         </button>
-        <button className="obs-chip" style={btn} aria-label={t("replayNext")} disabled={!hasFrames}
+        <button className="obs-chip" style={btn} aria-label={t("replayNext")} disabled={!canSeek || frame === stamps.length - 1}
           onClick={() => dispatch({ type: "stepFwd" })}>
           <Icon d="M9 6l6 6-6 6" />
         </button>
-        <button className="obs-chip" style={btn} aria-label={t("replayLast")} disabled={!hasFrames}
+        <button className="obs-chip" style={btn} aria-label={t("replayLast")} disabled={!canSeek && !state.missingStamp}
           onClick={() => dispatch({ type: "toLast" })}>
           <Icon d="M6 6l6 6-6 6M16 6v12" />
         </button>
       </div>
 
-      {/* Speeds */}
-      <div style={SPEED_GROUP} className="obs-surf-replay-speeds" role="group" aria-label={t("replaySpeedAria")}>
-        {REPLAY_SPEEDS.map((s) => (
-          <button key={s} className={`obs-chip${speed === s ? " on" : ""}`} style={SPEED_CHIP}
-            aria-pressed={speed === s} onClick={() => dispatch({ type: "setSpeed", speed: s })}>
-            {s}x
-          </button>
-        ))}
-      </div>
+      <label className={`obs-surf-replay-speeds ${ui.speed}`}>
+        <span>{t("replaySpeedAria")}</span>
+        <select aria-label={t("replaySpeedAria")} disabled={!canSeek} value={speed}
+          onChange={(event) => dispatch({ type: "setSpeed", speed: Number(event.target.value) as typeof speed })}>
+          {REPLAY_SPEEDS.map((value) => <option key={value} value={value}>{value}×</option>)}
+        </select>
+      </label>
 
       {/* Observed-frame rail. Dots sit at their real wall-clock positions, so a missing
           interval becomes a visible gap instead of one innocent-looking range-input notch. */}
       <div style={SCRUB_WRAP} className="obs-surf-replay-rail-wrap">
         <div className="obs-surf-replay-rail-head">
-          <span>{t("frameRailLabel")}</span>
+          <strong>{t("replayTitle")}</strong>
           {gaps.medianSec != null && (
             <span className={gaps.irregular ? "is-irregular" : ""}>
               {gaps.irregular ? t("frameGapIrregular") : t("frameGapRegular")} · {fmtGap(gaps.medianSec)}
             </span>
           )}
         </div>
-        {hasFrames && bands.length > 0 && (
-          <div style={BAND_RAIL} className="obs-surf-replay-bands" role="group" aria-label={t("bandsAria")}>
-            {bands.map((b) => {
-              const isSpan = b.to > b.from;
-              const s = BAND_STR[b.key];
-              // Label placement, by what the landmark is and where it sits. A full session
-              // crowds power hour and the bell into the last ~15% of the track, so the three
-              // labels each claim a different side and never stack:
-              //   span   → OUTSIDE its left edge, in the empty pre-15:00 stretch;
-              //   marker past the midpoint (the bell) → left of its tick, inside the rail;
-              //   marker before it (the open) → right of its tick.
-              const labelPos: React.CSSProperties = isSpan
-                ? { right: "100%", marginRight: 3 }
-                : b.from > 0.5
-                ? { right: 0 }
-                : { left: 0 };
-              return (
-                <span
-                  key={b.key}
-                  style={{
-                    ...(isSpan ? BAND_SPAN : BAND_MARK),
-                    left: `${b.from * 100}%`,
-                    ...(isSpan ? { width: `${(b.to - b.from) * 100}%` } : null),
-                  }}
-                  aria-label={t(s.aria)}
-                >
-                  <span style={{ ...BAND_LABEL, ...labelPos }}>{t(s.label)}</span>
-                </span>
-              );
-            })}
-          </div>
-        )}
         <div
-          className={`obs-surf-frame-rail${hasFrames ? "" : " is-disabled"}`}
+          className={`obs-surf-frame-rail ${ui.rail}${canSeek ? "" : " is-disabled"}`}
           role="slider"
-          tabIndex={hasFrames ? 0 : -1}
+          tabIndex={canSeek ? 0 : -1}
+          aria-disabled={!canSeek}
           aria-valuemin={1}
           aria-valuemax={Math.max(1, stamps.length)}
-          aria-valuenow={hasFrames ? frame + 1 : 1}
-          aria-valuetext={state.missingStamp ? `${fmtStamp(state.missingStamp)} · ${t("replaySelectionUnavailable")}` : hasFrames ? `${fmtStamp(asOfStamp)}, ${frame + 1} of ${stamps.length}` : t("replayNoFrames")}
+          aria-valuenow={hasFrames ? displayFrame + 1 : 1}
+          aria-valuetext={state.missingStamp ? `${fmtStamp(state.missingStamp)} · ${t("replaySelectionUnavailable")}` : hasFrames ? `${fmtStamp(stamps[displayFrame])} ET · ${displayFrame + 1}/${stamps.length}` : t("replayNoFrames")}
           aria-label={t("frameRailAria")}
-          onPointerDown={(e) => {
-            if (!hasFrames) return;
-            const rect = e.currentTarget.getBoundingClientRect();
-            const at = Math.min(1, Math.max(0, (e.clientX - rect.left) / Math.max(1, rect.width)));
-            let nearest = 0;
-            let distance = Infinity;
-            positions.forEach((p, i) => {
-              const d = Math.abs(p - at);
-              if (d < distance) { distance = d; nearest = i; }
-            });
-            dispatch({ type: "setFrame", frame: nearest });
+          onPointerDown={(event) => {
+            if (!canSeek || !event.isPrimary || event.button !== 0) return;
+            event.currentTarget.focus({ preventScroll: true });
+            event.currentTarget.setPointerCapture(event.pointerId);
+            if (playing) dispatch({ type: "pause" });
+            setDragStamp(stamps[frameAtPointer(event)]);
           }}
+          onPointerMove={(event) => {
+            if (event.currentTarget.hasPointerCapture(event.pointerId)) setDragStamp(stamps[frameAtPointer(event)]);
+          }}
+          onPointerUp={(event) => {
+            if (!event.currentTarget.hasPointerCapture(event.pointerId)) return;
+            if (canSeek) dispatch({ type: "setFrame", frame: frameAtPointer(event) });
+            event.currentTarget.releasePointerCapture(event.pointerId);
+            setDragStamp(null);
+          }}
+          onLostPointerCapture={() => setDragStamp(null)}
+          onPointerCancel={() => setDragStamp(null)}
         >
+          {sessionBands(stamps).map((band) => (
+            <span key={band.key} className={ui.landmark}
+              title={t(band.key === "power" ? "bandPowerAria" : band.key === "open" ? "bandOpenAria" : "bandCloseAria")}
+              style={{ left: `${band.from * 100}%`, width: `${(band.to - band.from) * 100}%` }} />
+          ))}
           <span className="obs-surf-frame-track" aria-hidden />
           <span className="obs-surf-frame-progress" style={{ width: `${currentPosition * 100}%` }} aria-hidden />
           {stamps.map((stamp, i) => (
             <span
               key={`${stamp}:${i}`}
-              className={`obs-surf-frame-dot${hasSelection && i === frame ? " is-current" : i < frame ? " is-past" : ""}`}
+              className={`obs-surf-frame-dot${hasSelection && i === displayFrame ? " is-current" : i < displayFrame ? " is-past" : ""}`}
               style={{ left: `${(positions[i] ?? 0) * 100}%` }}
               aria-hidden
               data-frame-position={(positions[i] ?? 0).toFixed(4)}
             />
           ))}
         </div>
+        {hasFrames && <div className={ui.endpoints}>
+          <span>{fmtStamp(stamps[0])} ET</span>
+          {canSeek && (previewFrame >= 0 ? <strong>{t("releaseToView")} {fmtStamp(stamps[previewFrame])} ET</strong> : <span>{t("dragToSelect")}</span>)}
+          {stamps.length > 1 && <span>{fmtStamp(stamps[stamps.length - 1])} ET</span>}
+        </div>}
       </div>
 
       {/* Time + frame counter + LIVE / archived-session badge */}
@@ -212,7 +199,13 @@ export function ReplayBar({
           <span role="status">{fmtStamp(state.missingStamp)} · {t("replaySelectionUnavailable")}</span>
         ) : hasFrames ? (
           <>
-            <span style={STAMP_TXT} className="num">{fmtStamp(asOfStamp)}</span>
+            <label className={ui.observation}>
+              <span>{t("observation")}</span>
+              <select aria-label={t("observation")} value={asOfStamp ?? ""} disabled={!canSeek}
+                onChange={(event) => dispatch({ type: "setFrame", frame: stamps.indexOf(event.target.value) })}>
+                {stamps.map((stamp) => <option key={stamp} value={stamp}>{fmtStamp(stamp)} ET</option>)}
+              </select>
+            </label>
             <span style={FRAME_TXT} className="num">
               {frame + 1}/{stamps.length} {t("replayFrameOf")}
             </span>
@@ -302,13 +295,7 @@ const PLAY_BTN: React.CSSProperties = {
 
 /* Playing needs no override — .obs-chip.on carries the full brand fill. */
 
-const SPEED_GROUP: React.CSSProperties = { display: "flex", gap: "var(--sp-1)" };
 
-const SPEED_CHIP: React.CSSProperties = {
-  height: 28, minWidth: 32, justifyContent: "center",
-  fontSize: "var(--fs-micro)", fontWeight: 600, padding: "0 var(--sp-2)",
-  fontFamily: "var(--font-num)", fontVariantNumeric: "tabular-nums",
-};
 
 const SESSION_SELECT: React.CSSProperties = {
   height: 32,
@@ -333,42 +320,11 @@ const SCRUB_WRAP: React.CSSProperties = {
   gap: 2,
 };
 
-const BAND_RAIL: React.CSSProperties = {
-  position: "relative",
-  height: 11,
-  pointerEvents: "none",
-};
 
 /** A zero-width landmark (open / close): a hairline tick with its label beside it. */
-const BAND_MARK: React.CSSProperties = {
-  position: "absolute",
-  top: 0,
-  bottom: 0,
-  width: 1,
-  background: "color-mix(in srgb, var(--text-2) 55%, transparent)",
-};
 
 /** A spanned window (power hour): a tinted block across its share of the track. */
-const BAND_SPAN: React.CSSProperties = {
-  position: "absolute",
-  top: 2,
-  bottom: 0,
-  background: "color-mix(in srgb, var(--signal) 16%, transparent)",
-  borderLeft: "1px solid color-mix(in srgb, var(--signal) 55%, transparent)",
-  borderRadius: 2,
-};
 
-const BAND_LABEL: React.CSSProperties = {
-  position: "absolute",
-  top: 0,
-  fontSize: 7.5,
-  lineHeight: "10px",
-  fontWeight: 700,
-  letterSpacing: "0.07em",
-  color: "var(--muted)",
-  whiteSpace: "nowrap",
-  padding: "0 3px",
-};
 
 const READOUT: React.CSSProperties = {
   display: "flex",
@@ -379,14 +335,6 @@ const READOUT: React.CSSProperties = {
 };
 
 /** The replay clock is the readout's anchor: tabular, in the numeral face, one step up. */
-const STAMP_TXT: React.CSSProperties = {
-  color: "var(--text)",
-  fontSize: "var(--fs-ui)",
-  fontWeight: 700,
-  letterSpacing: "0.01em",
-  fontVariantNumeric: "tabular-nums",
-  fontFamily: "var(--font-num)",
-};
 
 const FRAME_TXT: React.CSSProperties = {
   color: "var(--text-2)",

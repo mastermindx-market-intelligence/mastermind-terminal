@@ -20,6 +20,7 @@ test("seven-category Options IA stays addressable, honest, and contained", async
     });
   }
 
+  await page.clock.setFixedTime(new Date("2026-11-01T18:00:00Z")); // Sunday: closed independently of the feed date.
   await page.goto("/options?tab=tape");
   const workspace = page.locator('[data-options-ia="seven-category-stage-a"]');
   await expect(workspace).toBeVisible({ timeout: 15_000 });
@@ -167,7 +168,7 @@ test("seven-category Options IA stays addressable, honest, and contained", async
   await expect(page).toHaveURL(/\/options\?tab=largest$/);
   const largestBoard = page.locator('[data-options-flow-board="largest-events"]');
   await expect(largestBoard).toBeVisible();
-  await expect(largestBoard).toContainText(zh ? "并非单笔成交排名" : "not an individual-trade ranking");
+  await expect(largestBoard).toContainText(zh ? "每行汇总同一批次内的合格成交" : "groups qualifying prints from one feed batch");
   await expect(largestBoard.locator(".options-flow-board-receipt").nth(1).locator("strong")).toHaveText("12");
   const largestRows = testInfo.project.name === "mobile"
     ? largestBoard.locator(".options-flow-board-card")

@@ -732,6 +732,7 @@ test("Intraday Surface separates session, observed frames, and candle interval a
   await page.goto("/options?tab=surface");
 
   await expect(page.getByText("Intraday Flow Surface", { exact: true })).toBeVisible({ timeout: 15_000 });
+  await page.locator(".obs-surf-controls details > summary").click();
   const candleInterval = page.getByRole("group", { name: "Candle interval" });
   await expect(candleInterval).toBeVisible();
   await expect(candleInterval).toContainText("Candles");

@@ -13,9 +13,42 @@ layoutFiles:
   terminal/components/gexdesk/gexStrings.ts: "15fb1e6b89725ae7bf5762b3b0cd9749e85331f6733c34efc710979430132d7b"
   terminal/components/heatmap/HeatmapView.tsx: "3b3ab5049715a33f167e344d3013b8f880356e8b96077b38c9a517c57b7a54cb"
   terminal/lib/dataCache.ts: "f8a7f978049e64482b385d43c13d49d05ddec2525e36457b365a2d083060e1be"
-  terminal/components/levels/LevelsView.tsx: "91a4d6fd86b12225e657c8a9c4b2b185e3940356af3cd11466ca30e04f05b0c9"
+  terminal/components/levels/LevelsView.tsx: "a3c1af0dd72065398cf40586ddff1919e47d091690707924a957a709b00ae0ef"
   terminal/components/levels/levelsLabels.ts: "361124ec9293623fefe69128212f5a25bfddf2c3d716252126d56ec5f356d0d9"
   terminal/lib/heatmapStrings.ts: "26bb75eccce7429e5a37154f07f7f68faf9652da1f6f3560074cb558f0dda9c2"
+optionsWorkspaceRecapture:
+  capturedAt: "2026-11-03T04:23:22.807129+00:00"
+  sourceBase: "ac3762717ad150fd4f18614afd78072115a7c80a"
+  command: "CAPTURE_ONLY='^levels-' node e2e/tools/capture_gex_levels_heatmap_load_failure.cjs"
+  actualCases: 24
+  logSha256: "465590617428dc332789ad2e2450a42299f550033706ed2463b4e70d4ed93c19"
+  sources:
+    terminal/components/levels/LevelsView.tsx: "a3c1af0dd72065398cf40586ddff1919e47d091690707924a957a709b00ae0ef"
+  crops:
+    levels-absent-1440-zh.png: "0c0587f788de411b21b079d8969d068fc3a4e81eb236c35cca210d5eecb350eb"
+    levels-absent-1440.png: "cdca3d17829f77f1162c0ba8310963306451aad5e1f4e597b2b48ff024e30491"
+    levels-absent-390-zh.png: "60b21559ea78024916033513c54aa159ae32cff669831a698e8f034154ec9185"
+    levels-absent-390.png: "7d3fcf4a669125a3fbe85afbfa648301e77d114c226f567b5412499dc4f44497"
+    levels-absent-820-zh.png: "07932ee814ea2700be2dd3308e7aa9d86158410ce97119b1b1bba17bebb48ac8"
+    levels-absent-820.png: "577a26b87bfcc804c51fbcdf5e894cd4967bf1921da0bb491bfc9e927f2116d5"
+    levels-refresh-failed-1440-zh.png: "a57164b2fada3b229d2b4f5a887c35ad1b20c430391fbf091def8d4115a4589f"
+    levels-refresh-failed-1440.png: "507422334429eb457e050ed17ebf99ec6064123f6c0725886b6a3fdd664ce9ae"
+    levels-refresh-failed-390-zh.png: "1cd4524b32a648714482c3d576881328970320c169d278e0c79156ac367d43e9"
+    levels-refresh-failed-390.png: "cb4c815e01ab2eb09dbf4ee87c822f6f8da7a0ecc92bee1256454706c13cd50a"
+    levels-refresh-failed-820-zh.png: "04858bbd428b6e92e7b4490d6e87d29895cc415fcfbf6d47c7eb04d929fa10c0"
+    levels-refresh-failed-820.png: "88401e321c8f565f2e6ebd808672c53478dc0145adadcb1f2d6039ef2f3f0471"
+    levels-retried-1440-zh.png: "f48adbf6e76e10beb6f453338ce6cbd7206ef1720185f6e641431249b900c6b6"
+    levels-retried-1440.png: "4413c8b0558622fe3c7bcded10e836cc00c44b7b4a0d72b3f3c5b751713eedb7"
+    levels-retried-390-zh.png: "18cf38c22cec3c5092cb7572e82ab9a932bc6b65bd508267431de8466fa5de7e"
+    levels-retried-390.png: "15469f763464694992fefb0ae4b91db37098fea8699f5957fd3c2ff52d8b7842"
+    levels-retried-820-zh.png: "4f9c906dee182cd95786bc91df7dbb1a63dedb25253a0e69565303c09c22c9a7"
+    levels-retried-820.png: "b2b0495a5653f311e4f94119a61105c58e207b7588347afcda08939fe1fb1bd3"
+    levels-unavailable-1440-zh.png: "c657ddc3dceef6e3dfefe5d5f52d26782c0344873d762a56b2d0dddd189d83cb"
+    levels-unavailable-1440.png: "7d8001a05f02717158d26c0f69b54e209abc2e8099289b57d4419201a02c5961"
+    levels-unavailable-390-zh.png: "2ada896285e9f132e8714d2686b3870eb8d02a89f9814609e4d729098c8e3dfc"
+    levels-unavailable-390.png: "bd6189a660cfb51cf87f09d985e72eddcccc8226918fee5c020cb8bb39e4f59b"
+    levels-unavailable-820-zh.png: "284b73019b3529db5c2d11085ea4ae442761bea605046eaa692f67e76936d2ac"
+    levels-unavailable-820.png: "0ca0f54f25587b629cc9de5b7f2d3526756e925ffd650391f6f3f37cec344f34"
 theme: dark
 languages: [en, zh]
 viewports:

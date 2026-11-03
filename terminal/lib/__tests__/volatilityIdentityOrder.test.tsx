@@ -55,7 +55,9 @@ describe("IV − realized-vol spread admits each session date once, in ascending
     const dup = aggHistory();
     dup.series = [...dup.series!, { ...dup.series!.at(-1)! }];
     await render(<VolVrpPanel vrp={1.1} agg={dup} sourceAsOf={last} lang="en" />);
-    expect(tile("1-session change")?.querySelector(".v")?.textContent).toBe("—");
+    expect(tile("1-session change")).toBeUndefined();
+    expect(host.querySelector('[data-testid="vrp-history-session"]')?.textContent)
+      .toContain("Current range, trend and change are withheld");
     expect(vertexCount()).toBeLessThanOrEqual(cleanVertices);
     expect(strictlyAscending(deriveVrpSeries(dup).map((p) => p.d))).toBe(true);
     expect(host.innerHTML).not.toMatch(/NaN|Infinity/);

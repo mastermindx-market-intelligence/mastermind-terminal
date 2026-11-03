@@ -30,7 +30,7 @@ import {
  * IA layer only: OptionsHubView remains the one implementation of every live pane.
  *
  * Reads resolve synchronously from `?tab=` on first render. Writes stay shallow
- * through history.replaceState. `statistics` is a category home with an explicit
+ * through native history. `statistics` is a category home with an explicit
  * validated prospective Statistics snapshot; no values are inferred from Tape.
  */
 
@@ -70,8 +70,9 @@ const FUNDAMENTALS_HREF = "/analysis";
 
 function writeTabToUrl(pageKey: string) {
   const url = new URL(window.location.href);
+  if (url.searchParams.get("tab") === pageKey) return;
   url.searchParams.set("tab", pageKey);
-  window.history.replaceState(null, "", url.toString());
+  window.history.pushState(null, "", url.toString());
 }
 
 export default function OptionsWorkspace() {
@@ -155,7 +156,7 @@ export default function OptionsWorkspace() {
           </div>
           <p className={s.navHint} aria-hidden="true">{optionsWorkspaceCopy(lang).browseCategories} <span>↔</span></p>
         </div>
-        <div className="options-ia-row options-ia-view-row">
+        {viewTabs.length !== 1 && <div className="options-ia-row options-ia-view-row">
           <span className="options-ia-row-label">{t("optionsIaViewLabel", "View")}</span>
           {viewTabs.length > 0 ? (
             <WorkspaceTabs
@@ -170,7 +171,7 @@ export default function OptionsWorkspace() {
               {optionsWorkspaceCopy(lang).statisticsSummary}
             </div>
           )}
-        </div>
+        </div>}
       </header>
 
       {activeView === "statistics" ? (

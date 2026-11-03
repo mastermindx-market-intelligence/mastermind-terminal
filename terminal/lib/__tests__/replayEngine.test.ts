@@ -435,3 +435,12 @@ describe("createEngagementTracker", () => {
     expect(tr.engaged()).toBe(false);
   });
 });
+
+it("disables playback for empty or single-observation sessions, including an index refresh", () => {
+  for (const stamps of [[], ["0931"]]) {
+    const state = initReplay(stamps);
+    expect(replayReducer(state, { type: "play" }).playing).toBe(false);
+    expect(replayReducer(state, { type: "togglePlay" }).playing).toBe(false);
+    expect(replayReducer(stateAt(2, { playing: true }), { type: "setStamps", stamps }).playing).toBe(false);
+  }
+});

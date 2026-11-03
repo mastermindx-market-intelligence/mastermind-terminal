@@ -1,0 +1,62 @@
+/* Keep the observation clock and elapsed-time rail together beneath the field. */
+.replay:global(.obs-surf-replay) {
+  grid-template-columns: auto auto auto minmax(0, 1fr) !important;
+  grid-template-areas: "session transport speeds readout" "rail rail rail rail" !important;
+  gap: 2px 12px !important;
+  padding: 5px 18px 9px !important;
+  border-block: 1px solid var(--line);
+  background: var(--panel);
+}
+.replay select {
+  height: 34px;
+  padding: 0 8px;
+  max-width: 100%;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-md);
+  background: var(--inset);
+  color: var(--text);
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+}
+.replay :is(button,select,summary):focus-visible,
+.settings summary:focus-visible { outline: 2px solid var(--brand-2); outline-offset: 2px; }
+.speed, .observation { display: flex; align-items: center; gap: 6px; color: var(--text-2); font-size: 11px; }
+.observation select { color: var(--text); font-weight: 650; }
+.replay :global(.obs-surf-replay-rail-head) { font-size: 10px; line-height: 1.2; letter-spacing: .03em; text-transform: none; }
+.rail:global(.obs-surf-frame-rail) { height: 44px; margin-inline: 6px; touch-action: pan-y; user-select: none; cursor: ew-resize; }
+.rail :global(.obs-surf-frame-track), .rail :global(.obs-surf-frame-progress) { top: calc(50% - 2px); height: 4px; }
+.rail :global(.obs-surf-frame-progress) { transition: none; }
+.rail :global(.obs-surf-frame-dot) { top: 50%; transform: translate(-50%, -50%); pointer-events: none; }
+.rail :global(.obs-surf-frame-dot.is-current) { width: 15px; height: 15px; top: 50%; }
+.endpoints { display: flex; justify-content: space-between; margin-top: -6px; color: var(--text-2); font: 10px/1.2 var(--font-ui); font-variant-numeric: tabular-nums; }
+.endpoints strong { color: var(--brand-2); }
+.controls:global(.obs-surf-controls) {
+  display: flex; flex-wrap: wrap !important; align-items: center; overflow: visible;
+  position: relative; z-index: 5; gap: 6px 14px !important;
+}
+.settings { margin-left: auto; }
+.settings summary { cursor: pointer; padding: 7px 10px; color: var(--text-2); font-size: 12px; border: 1px solid var(--line-2); border-radius: var(--r-md); }
+.settings[open] summary { color: var(--brand-2); }
+.settingsBody { position: absolute; top: 100%; right: 8px; width: min(400px, calc(100% - 16px)); z-index: 5;
+  display: grid; gap: 12px; max-height: 48dvh; overflow: auto; padding: 16px;
+  border: 1px solid var(--line-2); border-radius: var(--r-tile); background: var(--panel); box-shadow: 0 12px 28px #0006; }
+.settingsBody > div { min-width: 0; flex-wrap: wrap; }
+.replay :global(.obs-surf-replay-transport) button:disabled { opacity: .38; }
+@media (max-width: 820px) {
+  .replay:global(.obs-surf-replay) {
+    grid-template-columns: 1fr auto !important;
+    grid-template-areas: "session readout" "rail rail" "transport speeds" !important;
+    padding: 6px 12px !important;
+  }
+  .replay :global(.obs-surf-replay-readout) { max-width: none; overflow: visible; gap: 4px; flex-wrap: wrap; }
+  .replay :global(.obs-surf-replay-transport) button { width: 44px !important; height: 44px !important; }
+  .replay select, .settings summary { min-height: 44px; }
+  .observation > span, .speed > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .settings { margin-left: 0; }
+  .controls:global(.obs-surf-controls) { overflow: visible; }
+}
+
+.replay .observation select { font-size: 14px; font-weight: 650; }
+.replay :global(.obs-surf-replay-rail-head) strong { color: var(--text); font-size: 12px; }
+
+.landmark { position: absolute; top: 10px; bottom: 10px; min-width: 1px; border-radius: 3px; background: color-mix(in srgb, var(--signal) 12%, transparent); }

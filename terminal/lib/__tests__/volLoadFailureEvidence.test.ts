@@ -11,6 +11,7 @@ const CROP_DIR = join(__dirname, "../../docs/pr-crops/vol-load-failure");
 const EVIDENCE = join(CROP_DIR, "EVIDENCE.yml");
 // The sources e2e/tools/capture_vol_load_failure.cjs stamps (its LAYOUT_FILES).
 const LAYOUT_FILES = [
+  "terminal/components/options/ResearchGrid.module.css",
   "terminal/components/vol/VolView.tsx",
   "terminal/components/vol/VolVrpPanel.tsx",
   "terminal/components/vol/volShared.tsx",

@@ -332,6 +332,7 @@ export function VolVrpPanel({
           <span className="v">{fmtPts(vrp)}</span>
           <span className="s">{t("vrpUnit")}</span>
         </div>
+        {(!enough || sessionsAligned) && <>
         <div className="fin-kpi">
           <span className="k">{t("vrpRegime")}</span>
           <span className="v" style={{ color: regimeTone }}>
@@ -349,6 +350,7 @@ export function VolVrpPanel({
           <span className="v">{currentStats ? fmtPts(currentStats.velocity, true) : "—"}</span>
           <span className="s">{currentStats ? t("vrpVelocityCaption") : enough ? t("vrpWithheldCaption") : t("vrpVelocityCaption")}</span>
         </div>
+        </>}
       </div>
 
       <div ref={boxRef} style={{ width: "100%", minWidth: 0 }}>

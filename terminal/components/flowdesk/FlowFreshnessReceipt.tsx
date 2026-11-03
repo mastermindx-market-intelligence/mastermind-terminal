@@ -9,6 +9,7 @@ import {
   formatObservedCycle,
   parseLiveFlowMetaTiming,
   usOptionsSessionState,
+  usOptionsMarketClock,
 } from "@/lib/flowFreshness";
 
 type FlowLang = "en" | "zh";
@@ -16,6 +17,8 @@ type FlowLang = "en" | "zh";
 const LEX = {
   connected: ["Connected", "已连接"],
   timingUnavailable: ["Timing unavailable", "时间信息不可用"],
+  details: ["Feed details", "数据源详情"],
+  marketOpen: ["Market open", "市场开市"],
   marketClosed: ["Market closed", "市场休市"],
   lastSession: ["Last session", "上一交易时段"],
   snapshot: ["Snapshot", "快照"],
@@ -64,9 +67,8 @@ export function FlowFreshnessReceipt({
   const nowMs = useRenderClock();
   const parsed = useMemo(() => parseLiveFlowMetaTiming(meta), [meta]);
   const freshness = nowMs === null ? null : deriveLiveFlowFreshness(meta, nowMs);
-  const sessionState = nowMs === null
-    ? "last_session"
-    : usOptionsSessionState(sessionDate, new Date(nowMs));
+  const marketClock = nowMs === null ? null : usOptionsMarketClock(new Date(nowMs));
+  const sessionState = marketClock?.open && marketClock.date === sessionDate ? "regular" : "last_session";
 
   const snapshotAge = freshness ? formatFlowAge(freshness.snapshotAgeMs) : null;
   const sourceAgeMin = freshness ? formatFlowAge(freshness.sourceResponseAgeMinMs) : null;
@@ -86,17 +88,18 @@ export function FlowFreshnessReceipt({
         ? `snapshot ${parsed.snapshotAt}; source responses ${parsed.sourceResponseAtFirst} — ${parsed.sourceResponseAtLast}`
         : word("timingUnavailable", lang)}
     >
+      {marketClock && <span className="flow-freshness-item">{word(marketClock.open ? "marketOpen" : "marketClosed", lang)}</span>}
+      {sessionState === "last_session" && sessionDate && (
+        <span className="flow-freshness-item">{word("lastSession", lang)} · {sessionDate}</span>
+      )}
+      <details className="flow-source-details">
+        <summary>{word("details", lang)}</summary>
+        <div className="flow-source-details-body">
       {connected && (
         <span className="flow-freshness-item flow-freshness-connected" data-flow-transport="connected">
           <span className="flow-freshness-dot" aria-hidden="true" />
           {word("connected", lang)}
         </span>
-      )}
-      {sessionState === "last_session" && (
-        <>
-          <span className="flow-freshness-item flow-freshness-closed">{word("marketClosed", lang)}</span>
-          <span className="flow-freshness-item">{word("lastSession", lang)}</span>
-        </>
       )}
       {!measured ? (
         <span className="flow-freshness-item">{word("timingUnavailable", lang)}</span>
@@ -113,6 +116,8 @@ export function FlowFreshnessReceipt({
           </span>
         </>
       )}
+        </div>
+      </details>
     </div>
   );
 }

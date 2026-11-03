@@ -10,6 +10,7 @@ test("Flow Desk separates Connected transport from measured source freshness", a
     });
   }
 
+  await page.clock.setFixedTime(new Date("2026-11-01T18:00:00Z")); // Sunday: closed independently of the feed date.
   await page.goto("/options?tab=desk");
   await expect(page.locator('[data-options-ia="seven-category-stage-a"]')).toBeVisible({ timeout: 15_000 });
 

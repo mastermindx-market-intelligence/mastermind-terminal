@@ -60,7 +60,7 @@ layoutFiles:
   terminal/lib/sharedShellContracts.ts: "dc7c893852c287b2a18c6b71cbced07bfa0996c1168490c5a8c24e4d3de01266"
   terminal/app/company-intelligence.css: "8b43f2046891837f6572fa2a59b7594547def9602b0454e1f14edba322da2a34"
   terminal/components/DayRange.tsx: "c84724652783da1897ab4eeb98550eaf3dbd7942eefe3ce127b6ada2b16dd672"
-  terminal/components/OptionsHubView.tsx: "0edbb1f902005dad5813beb7e406c04a3c0509aae4487f087fb101dd0ceb4c25"
+  terminal/components/OptionsHubView.tsx: "c8ec7b55c891971021d434d1db84df410787520d2cb6fecef8a509ee57ebf385"
   terminal/components/SearchModal.tsx: "5b3a466a06215231f1b458c382aaae268b4f2f9f206d6f985f312f603fa4a5aa"
   terminal/components/StockAnalysis.tsx: "376a907d0d8ea3dc5819e0092f02e19ce56fa1f4b71a3489551adf52fddb35c0"
   terminal/components/workspaces/AnalysisWorkspace.tsx: "411b8a7e498b8af3f9337fdcf3835dd62e6a5854826f414171d8303efd8aa5bb"
@@ -72,8 +72,8 @@ layoutFiles:
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
   terminal/lib/flowActivity.ts: "eb1433e57c7b63a52978aa4e63419e62b3e1a0e0210869f93838a8b7529ce332"
 cropFiles:
-  desktop-context.png: "b736791aa903f615da64ec96d60f3957810b68ca3fae6d1d872a5026842c5f85"
-  desktop-context-zh.png: "ebc4457f93d09a56422c398eec5c1e56f73b0dc1326289e4f9b8eceb7119705a"
+  desktop-context.png: "f487f9892f9a9c2aef4eae2ac56cfeda1cd1097fde9ee0796f70d81fb4df8d09"
+  desktop-context-zh.png: "19732ba37997e095c39f16ef56f9f55197acde4dfcb30d77cddf36c474b55476"
   mobile-context.png: "4bb912458a311faed7e779e24dffda3907ce5af4eec95dbc1a9f21ae3978bbe7"
   mobile-context-zh.png: "e405b67dd7664ccbe130e97c455a536b24e7b85ab51af9f96ec135e030608622"
   tablet-context.png: "4980ef7d1881bf573b82c73e65048eb3f6f1298abfddba8c79d8139d81c65b00"
@@ -100,8 +100,8 @@ browserResults:
   visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases
 browserReportPath: browser-report.json
 browserReportHashes:
-  visualReport: "caa135e0a1655999e44a9e20ffeca767c6ee818a388bf78ca0a76aca6af26950"
-  mobileCrosshairReport: "caa135e0a1655999e44a9e20ffeca767c6ee818a388bf78ca0a76aca6af26950"
+  visualReport: "5796fa68801634fc24f0f706099256c88564895a2ca9e7905fe46491fe869431"
+  mobileCrosshairReport: "5796fa68801634fc24f0f706099256c88564895a2ca9e7905fe46491fe869431"
 drawingDockRecapture:
   sourceHead: 8a3135bc6eaa307f3d581223e70471df8de49d95
   reason: DrawingSidebar.tsx and TerminalShell.tsx changed so the drawing dock's group button follows the tool the shell actually armed
@@ -733,3 +733,8 @@ chartPositionEntryOwnerRecapture20261102:
   cropDelta: "The accepted crops are RETAINED, not replaced. This capture host cannot load the next/font/google Inter face, so every recaptured crop renders the fallback typeface across the whole surface; committing those bytes would replace the accepted evidence with a visibly different rendering that no source change caused. Control captures settle the attribution: on the BASE source the PL6 ChartChrome crops and the Visual Intelligence tablet and mobile crops are BYTE-IDENTICAL to the same capture on the changed source, so the position-entry repair is pixel-inert on both surfaces. The Visual Intelligence DESKTOP crop is not byte-comparable in either direction — three consecutive captures on the SAME source produced three different byte sequences, a volatile full-page surface — so the tablet/mobile and PL6 controls carry that claim"
   scope: "layoutFiles only. cropFiles, browserReportHashes and every PNG on disk are unchanged and still bind the accepted capture."
   productionProof: false
+
+optionsWorkspaceQualification:
+  successfulCases: 30
+  reportSha256: "5796fa68801634fc24f0f706099256c88564895a2ca9e7905fe46491fe869431"
+  hubSha256: "c8ec7b55c891971021d434d1db84df410787520d2cb6fecef8a509ee57ebf385"

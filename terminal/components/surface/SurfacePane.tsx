@@ -32,6 +32,7 @@
  * gutter) zooms continuously between them.
  */
 
+import ui from "./SurfaceWorkspace.module.css";
 import React, {
   useEffect,
   useMemo,
@@ -335,6 +336,17 @@ export function SurfacePane({
   const [metricState, setMetricState] = useState<Metric>("netprem");
   const metric: Metric = fixedMetric ?? metricState;
   const [aggMin, setAggMin] = useState<number>(5);
+  const settingsRef = useRef<HTMLDetailsElement>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  useEffect(() => {
+    if (!settingsOpen) return;
+    const closeOutside = (event: PointerEvent) => {
+      const details = settingsRef.current;
+      if (details && !details.contains(event.target as Node)) details.open = false;
+    };
+    document.addEventListener("pointerdown", closeOutside);
+    return () => document.removeEventListener("pointerdown", closeOutside);
+  }, [settingsOpen]);
   const [opacity, setOpacity] = useState<number>(1);
   const [rangeQ, setRangeQ] = useState<number>(80);
   const [frameResult, setFrameResult] = useState<{ root: string; stamp: string; data: SurfaceFrame } | null>(null);
@@ -739,6 +751,15 @@ export function SurfacePane({
     () => (oiChangeStore && oiChangeStore.root === root ? parseOiChangeRows(oiChangeStore.data, root) : []),
     [oiChangeStore, root],
   );
+  const oiChangeAsofDate = (() => {
+    if (!oiChangeStore || oiChangeStore.root !== root) return null;
+    const raw = (oiChangeStore.data as { asof?: unknown } | null)?.asof;
+    const s = typeof raw === "string" ? raw.slice(0, 10) : "";
+    return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : null;
+  })();
+  const surfaceDay = frame?.session_date;
+  const laterLevels = !!(surfaceDay && optLevels.asofDate && optLevels.asofDate > surfaceDay);
+  const laterOi = !!(surfaceDay && oiChangeAsofDate && oiChangeAsofDate > surfaceDay);
   const topOiStrikes = useMemo(() => topOiChangeStrikes(oiChangeCells, 5), [oiChangeCells]);
 
   // ── Intraday candles (per agg) ───────────────────────────────────────────────
@@ -1104,7 +1125,7 @@ export function SurfacePane({
     // removePriceLine() silently no-ops on a foreign series.
     removeHostedLines(levelLinesRef.current);
     levelLinesRef.current = [];
-    if (!levelsOn || optLevels.status !== "ok") return;
+    if (!levelsOn || laterLevels || optLevels.status !== "ok") return;
     const style: Record<OptLevelKey, { color: string; dash: number; title: string }> = {
       call_wall: { color: css("--brand-2") || "#4d82ff", dash: 0, title: t("levelCallWall") },
       put_wall: { color: css("--down") || "#f0566b", dash: 0, title: t("levelPutWall") },
@@ -1127,7 +1148,7 @@ export function SurfacePane({
            on the next data/root change. */
       }
     }
-  }, [levelsOn, optLevels, t, hasDrawnBars]);
+  }, [levelsOn, laterLevels, optLevels, t, hasDrawnBars]);
 
   // ── OI Δ toggle: badge the top-5 strikes by |ΔOI| on the strike axis. `lineVisible:
   // false` draws NOTHING across the pane's width — only the coloured axis-label badge —
@@ -1145,7 +1166,7 @@ export function SurfacePane({
     oiLinesRef.current = [];
     // F1: withdrawn outright during an archived session — never draw badges from TODAY's
     // oi_change: data under a past session's field.
-    if (!oiDeltaOn || overlayPolicy.oiDeltaWithdrawn || !topOiStrikes.size) return;
+    if (!oiDeltaOn || laterOi || overlayPolicy.oiDeltaWithdrawn || !topOiStrikes.size) return;
     const badge = css("--signal") || "#e8b339";
     for (const strike of topOiStrikes.keys()) {
       try {
@@ -1159,7 +1180,7 @@ export function SurfacePane({
         /* LWC rejected the level (no price scale yet) — retries on the next data change. */
       }
     }
-  }, [oiDeltaOn, topOiStrikes, hasDrawnBars, overlayPolicy.oiDeltaWithdrawn]);
+  }, [oiDeltaOn, laterOi, topOiStrikes, hasDrawnBars, overlayPolicy.oiDeltaWithdrawn]);
 
   // Candles → chart.
   // PIT: the heat field is server-truncated to the scrubbed stamp, so the candles must stop
@@ -1248,7 +1269,7 @@ export function SurfacePane({
         ? "unavailable"
         : "ok";
   // F1: archived Levels — loading / no-dated-snapshot / EM-omitted-but-drawn / no-coverage.
-  const levelsNote = overlayPolicy.useDatedLevels
+  const levelsNote = laterLevels ? t("overlayAfterSession").replace("{date}", optLevels.asofDate!) : overlayPolicy.useDatedLevels
     ? archivedLevelsLoading
       ? t("nightlyLoading")
       : archivedLevelsMissing
@@ -1279,15 +1300,9 @@ export function SurfacePane({
       : oiChangeStore.data == null
         ? "unavailable"
         : "ok";
-  const oiChangeAsofDate = (() => {
-    if (oiChangeFetchState !== "ok" || !oiChangeStore) return null;
-    const raw = (oiChangeStore.data as { asof?: unknown } | null)?.asof;
-    const s = typeof raw === "string" ? raw.slice(0, 10) : "";
-    return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : null;
-  })();
   // F11: Σ|ΔOI| conflates strikes being built and strikes being unwound — the note leads
   // with that honesty phrase (mirrors the toggle's aria-label) rather than only the date.
-  const oiDeltaNote =
+  const oiDeltaNote = laterOi ? t("overlayAfterSession").replace("{date}", oiChangeAsofDate!) :
     oiChangeFetchState === "loading"
       ? t("nightlyLoading")
       : oiChangeFetchState === "unavailable"
@@ -1300,6 +1315,7 @@ export function SurfacePane({
   // dot and ticker page already use (lib/mscGlance REGIME_COLORS + gexStrings `regime*`).
   // REGIME-DYNAMICS LAW: the state word never stands alone — stability and dist-to-flip
   // ride with it, same as MarketStateCard / StockAnalysis.
+  const laterRegime = !!(glanceRow?.asofDate && frame?.session_date && glanceRow.asofDate > frame.session_date);
   const regimeLabel = glanceRow ? plainRegime(gexT, glanceRow.regime, lang) : null;
   const regimeNote = glanceRow ? nightlyDateNote(glanceRow.asofDate, true) : "";
   // R3: the ≤460px compact-slot text — whichever of dist-to-flip/stability the payload
@@ -1336,7 +1352,7 @@ export function SurfacePane({
     <div style={PANE} className="obs-surf-pane">
       {/* Controls row — the quad's shared toolbar owns these in cell mode. */}
       {!isCell && (
-      <div style={CONTROLS} className="obs-surf-controls">
+      <div style={CONTROLS} className={`obs-surf-controls ${ui.controls}`}>
         {/* Metric tabs — greek tabs feature-detect on the loaded frame's grids. */}
         <div style={GROUP} role="group" aria-label={t("metricLensAria")}>
           {METRICS.map((m) => {
@@ -1360,6 +1376,15 @@ export function SurfacePane({
           })}
         </div>
 
+        <details className={ui.settings} ref={settingsRef} onToggle={(event) => setSettingsOpen(event.currentTarget.open)}
+          onKeyDown={(event) => {
+            if (event.key === "Escape") {
+              event.currentTarget.open = false;
+              event.currentTarget.querySelector("summary")?.focus();
+            }
+          }}>
+          <summary>{t("chartControls")}</summary>
+          <div className={ui.settingsBody}>
         {/* X-axis framing. "Surface window" is the useful default for a sparse live field;
             "Full session" restores open-to-close context and makes manual pan/zoom useful. */}
         <div style={GROUP} role="group" aria-label={t("timeWindowAria")}>
@@ -1383,6 +1408,7 @@ export function SurfacePane({
             {t("timeWindowSession")}
           </button>
         </div>
+
 
         {/* Candle interval. These controls never change or resample the field snapshots. */}
         <div style={GROUP} role="group" aria-label={t("aggAria")}>
@@ -1481,7 +1507,8 @@ export function SurfacePane({
             <EodReplayTag lang={lang} />
           )}
         </div>
-
+          </div>
+        </details>
       </div>
       )}
 
@@ -1522,6 +1549,10 @@ export function SurfacePane({
           {overlayPolicy.regimeWithdrawn ? (
             <span className="obs-surf-data-item" aria-label={t("regimeChipAria")}>
               <span style={WITHDRAWN_NOTE}>{t("archivedOverlaysWithdrawn")}</span>
+            </span>
+          ) : laterRegime ? (
+            <span className="obs-surf-data-item" aria-label={t("regimeChipAria")}>
+              {t("laterRegime").replace("{date}", glanceRow!.asofDate!)}
             </span>
           ) : glanceRow && regimeLabel && (
             <span className="obs-surf-data-item" aria-label={t("regimeChipAria")}>
