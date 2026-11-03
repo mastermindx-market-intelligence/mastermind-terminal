@@ -12,6 +12,7 @@ const EVIDENCE = join(CROP_DIR, "EVIDENCE.yml");
 // The sources e2e/tools/capture_gex_levels_heatmap_load_failure.cjs stamps (its LAYOUT_FILES).
 const LAYOUT_FILES = [
   "terminal/app/globals.css",
+  "terminal/components/gexdesk/ExposureWorkspace.module.css",
   "terminal/components/gexdesk/GexDeskView.tsx",
   "terminal/components/gexdesk/HeatSeekerCard.tsx",
   "terminal/components/gexdesk/MarketStateCard.tsx",
