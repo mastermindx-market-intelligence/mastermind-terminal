@@ -525,3 +525,11 @@ sharedShellRegionProtectedComposition20261103:
   comparison: "All eight PL6 pairs and VI tablet/mobile are byte-identical. Desktop has changing footer clock/ticker pixels plus16 edge pixels differing by at most2/255; actual distinct captures retained and inspected."
   enabledBehavior: "Accepted source-bound SS02 switch/Back journeys and #1228 portal/title/hit-area proofs retain their exact product bytes and independent fixture scope."
   productionProof: false
+
+ascPineBuildEvidence20261103:
+  sourceHead: "595dfe471796705cbcd3843506f7d3443a1ce209"
+  sourceSha256: "7713c63146e5821e4d2c5df8e0495e7b1af76344c2299879150065fbeb1098b1"
+  operation: "terminal/docs/pr-crops/b-pl-6-batch-1/asc1233-pl6-20261103--operation.json"
+  operationSha256: "407a5a3b56a8aad979fa8147f19ce50296ed8a52bea5435ddbf3eb2ce23c54ad"
+  actualCases: 24
+  scope: "Current synthetic fixture captures qualify the Pine build configuration source. Earlier capture timestamps and image files remain historical; current screenshots, execution report and source snapshots are in the immutable operation above. No real-market reference or production acceptance."
