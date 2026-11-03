@@ -20,7 +20,7 @@ import SectorIntradayComparison, { useSectorPresentationClock } from "./SectorIn
 import { sectorOriginFromState, withExposureOrigin } from "@/lib/exposureOrigin";
 import { sectorRotationRelativeTrend } from "@/lib/rotationRelativeTrend";
 import { holdingsCoverageFor, sectorHoldingsCoverage } from "@/lib/sectorHoldingsCoverage";
-import { encodeSectorDepthReturn, resolveSectorDepthReturn, sectorDepthReturnQuery,
+import { encodeSectorDepthReturn, resolveSectorDepthReturn, sectorDepthReturnQuery, sectorDepthReturnHistory,
   SECTOR_DEPTH_RETURN_PARAM, SECTOR_DEPTH_RETURN_HISTORY_KEY } from "@/lib/sectorDepthReturn";
 
 const VIEW_KEYS: Record<SectorView, string> = {
@@ -212,13 +212,9 @@ export default function SectorIntelligenceWorkspace() {
     const url = new URL(window.location.href);
     const snapshot = next.workspace === "detail" && opener ? encodeSectorDepthReturn(opener) : null;
     const publicSnapshot = snapshot && opener ? sectorDepthReturnQuery(opener) : null;
-    const historyState = { ...window.history.state };
-    if (publicSnapshot) {
-      url.searchParams.set(SECTOR_DEPTH_RETURN_PARAM, publicSnapshot);
-      historyState[SECTOR_DEPTH_RETURN_HISTORY_KEY] = snapshot;
-    }
+    const historyState = sectorDepthReturnHistory(publicSnapshot ? snapshot : null);
+    if (publicSnapshot) url.searchParams.set(SECTOR_DEPTH_RETURN_PARAM, publicSnapshot);
     else url.searchParams.delete(SECTOR_DEPTH_RETURN_PARAM);
-    if (!publicSnapshot) delete historyState[SECTOR_DEPTH_RETURN_HISTORY_KEY];
     const href = writeSectorState(url, next);
     if (push) window.history.pushState(historyState, "", href);
     else window.history.replaceState(historyState, "", href);
