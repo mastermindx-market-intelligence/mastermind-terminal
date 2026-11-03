@@ -101,7 +101,7 @@ jobs:
       - run: npx tsc --noEmit
       - name: Check immutable evidence orchestration (synthetic)
         timeout-minutes: 1
-        run: node --test e2e/tools/capture_ci_evidence.test.cjs
+        run: node --test e2e/tools/capture_ci_evidence.test.cjs e2e/tools/capture_visual_evidence.test.cjs
       - name: Prepare Chromium for original mock captures
         timeout-minutes: 10
         run: npx playwright install --with-deps chromium
