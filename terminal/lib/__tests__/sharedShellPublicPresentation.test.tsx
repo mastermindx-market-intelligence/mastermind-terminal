@@ -96,6 +96,11 @@ async function renderShell(props: Partial<ComponentProps<typeof AppShell>> = {})
   await act(async () => {
     root.render(<LangProvider><AppShell sharedShell sharedShellLegacyOrigin={LEGACY} {...props}>{null}</AppShell></LangProvider>);
   });
+  // AppShell -> SharedShellRuntime -> LegacyPageHost now has two lazy
+  // boundaries. Flush both React commits before asserting the real iframe.
+  // This preserves every gate/bridge/identity assertion below; it only waits
+  // for a deferred component that was previously imported eagerly.
+  await act(async () => { await vi.dynamicImportSettled(); });
   await act(async () => { await vi.dynamicImportSettled(); });
 }
 function iframe() {
