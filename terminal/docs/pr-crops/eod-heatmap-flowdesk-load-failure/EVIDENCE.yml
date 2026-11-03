@@ -11,7 +11,7 @@ layoutFiles:
   terminal/components/eodcontext/StructureStrip.tsx: "0baf8c1d09fe4427569c92360081d842018d81d978a8b98d76fb283f950f31d4"
   terminal/components/eodcontext/eodStrings.ts: "4395f953dcc0f4beca53422786393ee792f297211a0eef655c64762f2b34f99f"
   terminal/components/flowdesk/FlowDeskView.tsx: "801cf41437b4749d3ad449e60ab35be8ffcc7f0e193ce5773b9c1ec7e49c01c0"
-  terminal/components/gexdesk/GexDeskView.tsx: "3f83dabea69d9461005e53aac3d812e73fcb0ac2f7ea515c60f91a3de38f7c02"
+  terminal/components/gexdesk/GexDeskView.tsx: "391513c29185cbcce2d9a121ae60d6413ccd5bba2fd89ebc5046bf48a5ebff2b"
   terminal/components/heatmap/HeatmapView.tsx: "3b3ab5049715a33f167e344d3013b8f880356e8b96077b38c9a517c57b7a54cb"
   terminal/lib/dataCache.ts: "ce28db3a3bcb3425320ac7e6845df02be5d21daebfa084756830c631623c7a3a"
   terminal/lib/eodContext.ts: "1d0ce3ccde7a2fa05948cc0ac2ee93d16ec06724a7edcbd8c95c61e39d98b9e7"
@@ -353,3 +353,18 @@ composedSectorReturnQualification:
   report: "terminal/docs/pr-crops/sector-exposure-depth-return-20261102/composition-c8a/receipt.json"
   reportSha256: "fb88d89decf0f21f3a25b5b537baa97522d0d308b2bf747a199419343318ab3a"
   scope: "Actual96 Gex/belt assertions and18sector-return journeys on composed GexDesk/dataCache bytes; original histories preserved; ancillary pick observation disclosed."
+
+archiveSelectionQualification1254:
+  sourceHead: "6c629ce900e3954cc2374c05a063b75a7cf08c36"
+  cases: 42
+  report: "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/1254-archive-6c629ce9/result.json"
+  reportSha256: "6a95f10a0242a7fddb093615686ff6113b3361d7de0891178df2dc4a3b54e4be"
+  scope: "Actual EOD-belt-only recapture for awaited archive selection. Other boards, packet-root images and earlier records retain their historical identities."
+
+sectorArchiveComposition1254:
+  sourceHead: "c82b70d2cfa676405db574315c93de84fe8bc13d"
+  protectedBase: "d1f4f42f5b5d170bd65e75e57d24ffb891207ca4"
+  cases: 42
+  report: "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/1254-sector-c82b70d2/result.json"
+  reportSha256: "3b011660dc0ec923ca5c19d72a156fdb75e829e74b8ba0b1ecb3c2973786a889"
+  scope: "Actual scoped recapture on combined Sector and archive source. Both earlier histories and other boards remain unchanged."
