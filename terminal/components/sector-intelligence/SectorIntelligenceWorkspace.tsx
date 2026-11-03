@@ -20,6 +20,8 @@ import SectorIntradayComparison, { useSectorPresentationClock } from "./SectorIn
 import { sectorOriginFromState, withExposureOrigin } from "@/lib/exposureOrigin";
 import { sectorRotationRelativeTrend } from "@/lib/rotationRelativeTrend";
 import { holdingsCoverageFor, sectorHoldingsCoverage } from "@/lib/sectorHoldingsCoverage";
+import { encodeSectorDepthReturn, resolveSectorDepthReturn, sectorDepthReturnQuery,
+  SECTOR_DEPTH_RETURN_PARAM, SECTOR_DEPTH_RETURN_HISTORY_KEY } from "@/lib/sectorDepthReturn";
 
 const VIEW_KEYS: Record<SectorView, string> = {
   intelligence: "siOverview", companies: "siCompaniesTab", signals: "siSignals", drivers: "siDrivers", history: "siHistory",
@@ -98,9 +100,15 @@ export default function SectorIntelligenceWorkspace() {
   const feeds = received.owner === requestOwner ? received.feeds : {};
   useEffect(() => {
     const sync = () => {
-      const next = parseSectorState(new URLSearchParams(window.location.search));
+      const params = new URLSearchParams(window.location.search);
+      const next = parseSectorState(params);
       if (next.workspace !== currentWorkspace.current) saveWorkspaceScroll();
       if (next.workspace !== "detail") { setReturnWorkspace(next.workspace); setReturnState(null); }
+      else {
+        const opener = resolveSectorDepthReturn(params.get(SECTOR_DEPTH_RETURN_PARAM), window.history.state?.[SECTOR_DEPTH_RETURN_HISTORY_KEY]);
+        setReturnState(opener);
+        setReturnWorkspace(opener?.workspace === "discover" || opener?.workspace === "breadth" ? opener.workspace : "rotation");
+      }
       setState(next);
       setGroupBrowserOpen(false);
     };
@@ -170,10 +178,11 @@ export default function SectorIntelligenceWorkspace() {
   // Options R1: a holding opens its options exposure with the sector origin beside the
   // address, so the reader can step the same cohort and return to this exact selection.
   const exposureHref = useCallback((ticker: string) => {
-    const origin = sectorOriginFromState({ state, company: ticker, roster: visibleMembers.map(member => member.ticker),
+    const depthReturn = returnState && encodeSectorDepthReturn(returnState) ? returnState : null;
+    const origin = sectorOriginFromState({ state, depthReturn, company: ticker, roster: visibleMembers.map(member => member.ticker),
       asOf: feeds.confluence?.receipt.asOf ?? null, contentHash: feeds.confluence?.receipt.contentHash ?? null, benchmark: ROTATION_BENCHMARK });
     return origin ? withExposureOrigin(`/options?tab=prism&symbol=${encodeURIComponent(ticker)}&view=chart`, origin) : null;
-  }, [state, visibleMembers, feeds.confluence]);
+  }, [state, returnState, visibleMembers, feeds.confluence]);
   const landed = useRef(false);
   useEffect(() => {
     // A return address names an exact holding: land on it once, without a scroll jump.
@@ -197,21 +206,31 @@ export default function SectorIntelligenceWorkspace() {
   const groupName = text(lang === "zh" ? group.label_zh : group.label) || text(group.label);
   const localName = (r: Row, en = "name", zh = "name_zh") => text(lang === "zh" ? r[zh] : r[en]) || text(r[en]);
   const stateLabel = (v: unknown) => t(STATE_KEYS[text(v).toLowerCase()] || "siUnavailable");
-  const change = useCallback((patch: Partial<SectorState>, push = false) => {
+  const change = useCallback((patch: Partial<SectorState>, push = false, opener = returnState) => {
     const next = { ...state, ...patch };
     if (next.workspace !== state.workspace) saveWorkspaceScroll();
     setState(next);
-    const href = writeSectorState(new URL(window.location.href), next);
-    if (push) window.history.pushState(window.history.state, "", href);
-    else window.history.replaceState(window.history.state, "", href);
-  }, [state, saveWorkspaceScroll]);
+    const url = new URL(window.location.href);
+    const snapshot = next.workspace === "detail" && opener ? encodeSectorDepthReturn(opener) : null;
+    const publicSnapshot = snapshot && opener ? sectorDepthReturnQuery(opener) : null;
+    const historyState = { ...window.history.state };
+    if (publicSnapshot) {
+      url.searchParams.set(SECTOR_DEPTH_RETURN_PARAM, publicSnapshot);
+      historyState[SECTOR_DEPTH_RETURN_HISTORY_KEY] = snapshot;
+    }
+    else url.searchParams.delete(SECTOR_DEPTH_RETURN_PARAM);
+    if (!publicSnapshot) delete historyState[SECTOR_DEPTH_RETURN_HISTORY_KEY];
+    const href = writeSectorState(url, next);
+    if (push) window.history.pushState(historyState, "", href);
+    else window.history.replaceState(historyState, "", href);
+  }, [state, saveWorkspaceScroll, returnState]);
   const openOuterWorkspace = (workspace: OuterWorkspace) => {
     setReturnWorkspace(workspace); setReturnState(null);
     change({ workspace, sourcesOpen: false }, true);
   };
   const openSectorResearch = (sectorId: string) => {
     if (state.workspace !== "detail") { setReturnWorkspace(state.workspace); setReturnState(state); }
-    change({ sector: sectorId, workspace: "detail", view: "intelligence", group: "", company: "", query: "", expanded: false, sourcesOpen: false }, true);
+    change({ sector: sectorId, workspace: "detail", view: "intelligence", group: "", company: "", query: "", expanded: false, sourcesOpen: false }, true, state.workspace !== "detail" ? state : returnState);
   };
   const returnToOuterWorkspace = () => {
     const target = returnState ? { ...returnState, sourcesOpen: false } : { workspace: returnWorkspace, sourcesOpen: false };
