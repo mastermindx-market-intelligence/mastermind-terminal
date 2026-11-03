@@ -223,3 +223,140 @@ exact-head hosted browser execution, total <=40m wall time, the existing <=10%
 job-minute-increase bound, independent nonauthor review, protected integration
 and representative postmerge evidence are still required. Queue admission is
 an independent constraint; trace collection alone does not resolve it.
+
+
+## Hosted trace result and readiness repair — 2026-11-03
+
+### Completed hosted result: faster wall time, reliability not accepted
+
+The exact `ec642aa1d3dfe7c3e8616b7e11f78a90c7e4e70f` candidate completed
+[run 41559833666](https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/41559833666)
+with all 23 jobs successful. The preceding `5d28d9ecf7e2f98ed980f2fc8e59dc91e878e8d9`
+[run 41535132670](https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/41535132670)
+used the same 7/5/5 broad shard layout.
+
+| Measure | Preceding head | Trace candidate |
+| --- | ---: | ---: |
+| Whole workflow wall time | 79m29s | 33m31s |
+| Sum of job execution minutes | 443.900 | 445.233 |
+| Initial job queue delay | 7m17s–31m04s | 2–10s |
+| Final required-gate queue delay | 18m42s | 1s |
+| Browser cases that passed only after retry | 1 | 63 |
+
+The 57.8% elapsed reduction is largely associated with runner availability;
+job execution minutes increased 0.30%. This comparison does **not** establish
+that tracing caused the elapsed improvement or the reliability regression.
+The <=40m elapsed target and <=10% job-minute bound were met on this run, but
+first-attempt reliability and independent review remain unaccepted.
+
+All 18 browser job logs were consumed. The complete native matrix accounts for
+**3,973 selected = 3,031 passed + 879 existing skips + 63 retry-pass cases + 0 final failures**.
+The serial job's additional opt-ins reported 16 passed/8 skipped and 7 passed/2 skipped.
+The longest job was tablet-4 at 33m20s; desktop-7 followed at 32m39s.
+A green final gate must not hide the additional retry cost.
+
+### Bounded repair on top of ec642aa
+
+A local zero-retry reproduction exposed early observation in four test files:
+
+| Path | Preserved outcome and repaired synchronization |
+| --- | --- |
+| `terminal/e2e/mobile-chart-chrome.spec.ts` | Poll the existing >0.9 viewport-height predicate in the two reproduced expansion cases after the detent changes. Keep subsequent scrolling, scrim and drag assertions. |
+| `terminal/e2e/onboarding-signin-completion.spec.ts` | Arm DOMContentLoaded before releasing the sign-in response. Retain proof of a new document, one submission, exact URL state, sheet closure and chart visibility. |
+| `terminal/e2e/search-accessibility.spec.ts` | Poll the existing >1 accessible-option count while search rows load. Keep the active-option and ARIA assertions. |
+| `terminal/e2e/mobile-chart-touch-upgrade.spec.ts` | Wait for the same Chinese no-samples substring in the January title before reading it and matching the visible detail. |
+
+These changes do not alter application code, retry policy, worker count,
+project/shard selection, existing timeouts, declared skips, or required gates.
+No fixed sleeps or weaker expected values were introduced. The first three
+files fixed the reproduced geometry/navigation/search failures; the next run
+exposed the independently observed language transition, which the fourth file repairs.
+
+### Positive and negative qualification
+
+Same local M2/macOS, Node 26.5.0 and locked Playwright 1.61.1; tablet and mobile,
+repeat three, workers one, retries zero. The 54 selections include six existing
+project skips. These are behavioral proofs, not controlled speed measurements
+or substitutes for Ubuntu/Node20 hosted execution.
+
+| Source | Passed | Existing skips | Unexpected failures | Retry-pass | Native exit |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| ec642aa baseline | 38 | 6 | 10 | 0 | 1 |
+| First three repairs | 47 | 6 | 1 | 0 | 1 |
+| All four repairs | 48 | 6 | 0 | 0 | 0 |
+
+The final run took 265.961s. Its wrapper mistakenly set `PORT=57161`, while
+this configuration reads `TERMINAL_E2E_PORT`; the real fresh CI server used
+3108. Listener PID/CWD and the native configuration report establish this,
+and `transition-final-port-correction.json` preserves the correction. The
+server was started by this invocation with reuse disabled; the timing is not
+an A/B performance claim. The initial baseline and intermediate run used their
+recorded explicit ports. A native-esbuild invocation error during fault-fixture
+preparation was corrected before any fault run; it is not a test outcome.
+
+Five disposable faults were then run once through the real browser harness,
+mobile, workers one, retries zero, with a fresh server on port65198:
+
+| Injected fault | Observed rejection |
+| --- | --- |
+| Cap Drawings sheet at 62vh | Same >0.9 predicate failed at 0.61998 within its existing 5s assertion budget. |
+| Cap analysis hub at 60vh | Same >0.9 predicate failed at 0.59999 within its existing 5s assertion budget. |
+| Keep the no-samples label in English | Chinese title assertion failed on `Jan · no samples`. |
+| Withhold sign-in response completion | Armed document-load wait failed at 15s; no false sign-in success. |
+| Remove option semantics from all but one row | Same >1 predicate failed with count1. |
+
+Native fault run: **exit1, five intended failures, zero passes/skips/retries,
+62.126s, no wrapper timeout**. Each failure reached its intended new readiness
+assertion. Fault copies and reports remain outside normal test discovery.
+
+Full TypeScript `--noEmit` passes. Full native `--list --reporter=json`
+returns **3,973 cases and identical parsed suite objects** to the trace
+candidate, including project/title/location/status metadata. The earlier
+identity digest remains unchanged. `git diff --check` passes.
+
+Reproduce the positive cohort from `terminal/` with `CI=1` and an unused
+`TERMINAL_E2E_PORT`, retaining JSON output separately:
+
+```sh
+node node_modules/@playwright/test/cli.js test \
+  e2e/search-accessibility.spec.ts e2e/onboarding-signin-completion.spec.ts \
+  e2e/mobile-chart-chrome.spec.ts e2e/mobile-chart-touch-upgrade.spec.ts \
+  e2e/transcript-compare.spec.ts --project=tablet --project=mobile \
+  --grep 'combobox whose|deadline notice reads|acknowledged sign-in closes|the Drawings sheet opens at|opens the analysis hub at|sparse history announces' \
+  --retries=0 --repeat-each=3 --workers=1 --reporter=line,json
+```
+
+The retained `transition-readiness-artifact-index.json` binds source hashes,
+reports, negative failure analysis and native discovery under the existing
+investigation directory. Key receipt SHA256 values:
+
+- `transition-baseline-receipt.json`: `be296d53e5b919d369e6663a1dfcb2f5fb5eb4fc798cef54f63b6c4c7052d750`.
+- `transition-final-receipt.json`: `a3d4a796956e02d13efde62736ed79a5d33a7b8e729f699fe185239b20cda131`.
+- `transition-final-static-receipt.json`: `f0585aeb9cd28842a671978b2170ce39dfedf76b163973f0f8957691221277af`.
+- `transition-negative-run-receipt.json`: `2854045914cd2b268143c478a656c9a2661c6ee79ae833fcddde5264f3846f02`.
+
+### Remaining decision and next experiment
+
+This is a qualified local readiness repair inside the existing Draft PR, not
+acceptance of the full trace/shard experiment. The 63 hosted retry-pass cases
+also include drawing-journal, Portfolio, Options Tape and other failures not
+resolved by this cohort. Do not declare them fixed from these results.
+The existing technical-review request was refused before launch; no review,
+approval, alternate reviewer route, merge or deployment is claimed.
+
+Freeze the repaired head, then compare the complete actual critical shard
+under `retain-on-failure` and `on-first-retry` on comparable hosted resources,
+with workers1, unchanged retries/timeouts, fresh servers and the same cache
+condition. Bound the experiment to at most two counterbalanced pairs. Record
+identities, attempt-zero and retry durations/outcomes, setup versus test wall
+time, queue delay, runner resources and failure signatures. Do not infer
+causality from different queue conditions or rebalance based on retry tails.
+The existing CI dispatch only accepts `pr_number`; there is no current bounded
+trace-comparison carrier in this source. A concrete diagnostic carrier must
+preserve the full required CI path and cannot replace its checks.
+
+Further drawing-journal synchronization must preserve deliberately stale
+writers and the real storage fence; a barrier before competing writes could
+mask the production race. Workers2 remains unqualified against the shared dev
+server and serial-group constraints. No new capacity, runner assignment,
+cache deletion, protection change, or merge step is part of this repair.

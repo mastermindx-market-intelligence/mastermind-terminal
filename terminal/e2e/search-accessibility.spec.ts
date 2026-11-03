@@ -48,8 +48,8 @@ test("the search field is a combobox whose results are machine-readable options"
   const listbox = page.locator(`[id="${listboxId}"]`);
   await expect(listbox).toHaveAttribute("role", "listbox");
 
-  // 2. The rows are options, not anonymous divs.
-  expect(await listbox.locator('[role="option"]').count()).toBeGreaterThan(1);
+  // 2. The asynchronously loaded rows are options, not anonymous divs.
+  await expect.poll(() => listbox.locator('[role="option"]').count()).toBeGreaterThan(1);
 
   // 3. The ACTIVE option is named — the thing that was entirely absent before.
   const active = await input.getAttribute("aria-activedescendant");
