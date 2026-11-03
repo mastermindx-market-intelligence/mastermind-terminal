@@ -441,13 +441,29 @@ export function LineSeries({ labels, series, fmtY = fmtNum, vw = 320, vh = 180, 
         {refLine != null && <line className="fin-refline" x1={PAD.l} x2={vw - PR} y1={y(refLine)} y2={y(refLine)} />}
         {series.map((s, si) => {
           const col = s.color ?? PALETTE[si % PALETTE.length];
-          const pts: string[] = [];
-          s.values.forEach((v, i) => { if (num(v)) pts.push(`${x(i)},${y(v as number)}`); });
-          if (pts.length === 0) return null;
+          const runs: string[][] = [];
+          let run: string[] = [];
+          for (let i = 0; i < s.values.length; i++) {
+            const v = s.values[i];
+            if (num(v)) {
+              run.push(`${x(i)},${y(v)}`);
+            } else if (run.length > 0) {
+              runs.push(run);
+              run = [];
+            }
+          }
+          if (run.length > 0) runs.push(run);
+          if (runs.length === 0) return null;
           return (
             <g key={si}>
-              <polyline className={"fin-line" + (isDotted(s, si) ? " fin-line-dotted" : "")} points={pts.join(" ")} fill="none" stroke={col} />
-              {markers && s.values.map((v, i) => num(v) ? <circle key={i} className="fin-node" cx={x(i)} cy={y(v as number)} r={2.4} fill={col} /> : null)}
+              {runs.map((points, ri) => (
+                <polyline key={ri}
+                  className={"fin-line" + (isDotted(s, si) ? " fin-line-dotted" : "")}
+                  points={points.join(" ")} fill="none" stroke={col} />
+              ))}
+              {markers && s.values.map((v, i) => num(v)
+                ? <circle key={i} className="fin-node" cx={x(i)} cy={y(v)} r={2.4} fill={col} />
+                : null)}
             </g>
           );
         })}

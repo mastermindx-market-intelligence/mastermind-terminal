@@ -19,7 +19,7 @@ import { promises as fs } from "fs";
 import path from "path";
 import { computeRatings, type Row as RatingRow } from "@/lib/techRating";
 import { ema, atr, supertrend, bollingerBands, type Bar } from "@/lib/indicatorMath";
-import { verdictIsStale, ORACLE_STALE_DAYS, anchorSignal, signalKnownTs, isBlockedSignal, sliceSignalBasis } from "@/lib/signalVerdict";
+import { deskVerdict, verdictIsStale, ORACLE_STALE_DAYS, anchorSignal, signalKnownTs, isBlockedSignal, sliceSignalBasis } from "@/lib/signalVerdict";
 import { isStalePlane, type MarketPlane } from "@/lib/nwPlane";
 import { normalizeMarketRisk } from "@/lib/marketRisk";
 import { nextDateCountdown } from "@/lib/finFormat";
@@ -1142,7 +1142,7 @@ export function curateInsiders(ins: unknown): Record<string, unknown> {
   };
 }
 
-export function curateIntel(intel: unknown): Record<string, unknown> {
+export function curateIntel(intel: unknown, nowMs: number = Date.now()): Record<string, unknown> {
   const it = intel as Record<string, unknown> | null;
   if (!it || typeof it !== "object") return { no_data: true, reason: "no research-desk intel for symbol" };
   const cards = (it.cards ?? {}) as Record<string, unknown>;
@@ -1151,12 +1151,17 @@ export function curateIntel(intel: unknown): Record<string, unknown> {
   const aj = cards.ai_judgment as Record<string, unknown> | undefined;
   const conv = cards.conviction as Record<string, unknown> | undefined;
   const lean = tape.ai_lean as Record<string, unknown> | undefined;
+  const read = deskVerdict(it, false, nowMs);
+  const currentLean = read.raw !== null && !read.dim;
   const sm = (cards.smart_money ?? analysis.smart_money) as Record<string, unknown> | undefined;
   const pulse = tape.sector_pulse as Record<string, unknown> | undefined;
 
   const holders = Array.isArray(sm?.holders) ? (sm!.holders as Record<string, unknown>[]) : [];
   const out: Record<string, unknown> = {
     asof: tape.asof ?? it.asof ?? null,
+    cards_asof: typeof it.asof === "string" ? it.asof : null,
+    cards_current: currentLean && typeof it.asof === "string" && typeof tape.asof === "string"
+      && it.asof.slice(0, 10) === tape.asof.slice(0, 10),
     ai_judgment: aj ? { verdict: aj.verdict ?? null, gloss: trimStr(aj.gloss, 200), size_pct: num(aj.size_pct) } : null,
     conviction: conv
       ? {
@@ -1166,7 +1171,11 @@ export function curateIntel(intel: unknown): Record<string, unknown> {
           cautions: Array.isArray(conv.cautions) ? (conv.cautions as unknown[]).slice(0, 4).map((d) => trimStr(d, 120)) : null,
         }
       : null,
-    ai_lean: lean ? { dir: lean.dir ?? null, band: lean.band ?? null, entry: lean.entry ?? null, score: num(lean.score) } : null,
+    ai_lean: !lean ? null : currentLean ? {
+      dir: read.raw === "NO_SETUP" || read.raw === "POSTURE" ? null : read.raw,
+      band: trimStr(lean.band, 32), entry: trimStr(lean.entry, 48), score: num(lean.score),
+      reading: read.label,
+    } : { dir: null, band: null, entry: null, score: null, abstain: true },
     key_levels: scalarize(cards.levels),
     smart_money_summary: sm
       ? {

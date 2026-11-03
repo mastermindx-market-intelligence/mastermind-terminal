@@ -2,7 +2,7 @@
 
 Owner carrier: [Terminal #612](https://github.com/mastermindx-market-intelligence/mastermind-terminal/issues/612).
 
-Design source: [Terminal · Intelligence Workspace · 2026-10](https://app.paper.design/file/01M3NSZGE8JWN2EZCSF0DT05RM/p-I-1).
+The four-view AMZN revision is artboard `1MX1-0`. [Terminal · Stock Intelligence R4](https://app.paper.design/file/01M3NSZGE8JWN2EZCSF0DT05RM/p-I-1?node=1MX1-0).
 
 ## Product behavior
 
@@ -20,10 +20,10 @@ Close, Escape, focus return, keyboard tab navigation and reduced motion are supp
 
 | View | Purpose |
 | --- | --- |
-| Summary | Oracle stance and known date, supplied performance metrics, market risk, research drivers and cautions, recent activity |
-| Oracle | Existing entry/position interpretation, complete supplied performance curve, source dates and methodology |
-| Research | Research conviction, supporting and opposing evidence, technical and sector context, source-owned company state |
-| Activity | Complete signal history with filters and pagination, chart navigation, candidate receipts |
+| Summary | Current Oracle entry availability, dated evidence rows, market risk and access to activity |
+| Oracle | Historical signals, regime, source-qualified risk measures and gap-aware strategy equity |
+| Research | Current setup, saved research notes, cautions, technical and sector context, and company evidence |
+| Activity | Chronological signals and candidate receipts, category counts, chart jumps and pagination |
 
 The desktop chart-jump action keeps the workspace open. On mobile it closes the
 sheet so the selected chart point can be seen. Changing watchlist symbols updates
@@ -56,6 +56,14 @@ mismatches cannot become an empty history or a contradictory stance. A failed
 refresh is labeled while the last accepted source remains visible; a completed
 refresh containing malformed data is rejected. Each module exposes its own
 source status and recovery action.
+
+The research producer withholds directional readings for missing, future or expired
+source sessions. Newly published leans carry the configured age limit so cached
+observations expire locally too. A named timing posture remains usable when the
+producer supplies it independently of a direction. The backtest displays drawdown
+and Sharpe only when supplied, and splits the equity line at missing observations.
+Legacy activity bars retain their chart date with an explicit label when the
+first-observable date is absent.
 
 ## Security-state bridge
 

@@ -4,7 +4,7 @@ export type SourceClock = { kind: "dated"; date: string; ageDays: number } | { k
 export function workspaceSourceClock(value: unknown, now = Date.now()): SourceClock {
   if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}(?:T|$)/.test(value)) return { kind: "unknown" }
   const timestamp = Date.parse(value.length === 10 ? `${value}T00:00:00Z` : value)
-  if (!Number.isFinite(timestamp) || timestamp > now + 86_400_000) return { kind: "unknown" }
+  if (!Number.isFinite(timestamp) || timestamp > now) return { kind: "unknown" }
   const day = value.slice(0, 10)
   // Reject normalized impossible dates such as February 30.
   if (new Date(Date.parse(`${day}T00:00:00Z`)).toISOString().slice(0, 10) !== day) return { kind: "unknown" }
