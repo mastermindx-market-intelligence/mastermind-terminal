@@ -214,9 +214,9 @@ const GEX_POLL_MS = 60_000;
 // Every desk read keeps its outcome (failure-state truth law): only a 404/410 is a
 // published absence; a 5xx, a refused fetch or an unparseable body is a read that did
 // not land, and it renders as a load error with a Retry — never as a coverage gap.
-async function readFlow(f: string): Promise<FlowOutcome> {
+async function readFlow(f: string, options: { refresh?: boolean } = {}): Promise<FlowOutcome> {
   try {
-    return await flowGetResult(f);
+    return await flowGetResult(f, options);
   } catch {
     return { status: "unavailable", reason: "network" };
   }
@@ -522,7 +522,8 @@ export function GexDeskView({ onMapFirstChange, onOpenPlan }: { onMapFirstChange
       setArchivedError(false);
       setArchivedPayload(null);
       void (async () => {
-        const outcome = await readFlow(`gex_at:${ticker}:${date}`);
+        // Explicit selection must consume the read, not leave a corrected book in background cache.
+        const outcome = await readFlow(`gex_at:${ticker}:${date}`, { refresh: true });
         if (sessionReqRef.current !== req) return;
         const data = outcome.status === "data" ? (outcome.data as GexPayload) : null;
         const ok = !!data && data.root === ticker && gexSessionOf(data.asof) === date && Array.isArray(data.by_strike) && data.by_strike.length > 0;
