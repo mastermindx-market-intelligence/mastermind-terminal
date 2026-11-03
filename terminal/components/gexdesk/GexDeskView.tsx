@@ -1,5 +1,7 @@
 "use client";
 import { VolRegimeChip } from "@/components/eodcontext/VolRegimeChip";
+import { useIsPhone } from "@/lib/useMediaQuery";
+import workspace from "./ExposureWorkspace.module.css";
 import ExposureMap from "@/components/exposure-map/ExposureMap";
 import { parseExposureChartRequest } from "@/lib/exposureChartLink";
 import { EXPOSURE_ORIGIN_PARAM, exposureOriginForCompany, parseExposureOrigin, withExposureOrigin, type ExposureOrigin } from "@/lib/exposureOrigin";
@@ -229,6 +231,10 @@ type ReadStatus = "loading" | "data" | "absent" | "unavailable";
 
 export function GexDeskView({ onMapFirstChange, onOpenPlan }: { onMapFirstChange?: (active: boolean) => void; onOpenPlan?: () => void } = {}) {
   const { lang } = useLang();
+  const isPhone = useIsPhone();
+  const analysisPane = useRef<HTMLDivElement>(null);
+  const statePane = useRef<HTMLDivElement>(null);
+  const historyPane = useRef<HTMLElement>(null);
   const t = makeGexT(lang);
 
   // ── State ────────────────────────────────────────────────────────────────────
@@ -296,7 +302,9 @@ export function GexDeskView({ onMapFirstChange, onOpenPlan }: { onMapFirstChange
     if (axis === "strike" || axis === "expiry" || axis === "matrix" || axis === "chart") return axis;
     return q.get("tab") === "prism" ? "matrix" : "strike";
   });
+  const axisMenu = useRef<HTMLDetailsElement>(null);
   const chooseView = (next: typeof view) => {
+    if (axisMenu.current) axisMenu.current.open = false;
     setView(next);
     const url = new URL(window.location.href);
     url.searchParams.set("view", next);
@@ -879,32 +887,35 @@ export function GexDeskView({ onMapFirstChange, onOpenPlan }: { onMapFirstChange
         </div>
       )}
   </>;
-  const legacyCards = <>
-{/* HeatSeeker — the ONLY consumer of the matrix payload's published
-                heat_seeker field. It rode in from the retired PRISM tab (§5.3) rather
-                than dying with it. A current-session read like the state card below,
-                so it is withdrawn during archived replay along with them. */}
-            <div style={HEATSEEKER_SLOT}>
-              <HeatSeekerCard
-                pick={visibleMatrix?.heat_seeker ?? null}
-                spot={visibleMatrix?.spot ?? spot ?? null}
-                sessionAnchor={visibleMatrix?._build_meta?.asof_date ?? null}
-                lang={lang}
-                reading={matrixStatus === "loading"}
-                readFailed={matrixUnread}
-                onRetry={retryMatrix}
-                absent={matrixStatus === "absent" && !visibleMatrix}
-              />
-            </div>
-            <MarketStateCard
-              statePayload={visibleStatePayload}
-              gexPayload={gexPayload}
-              isIndexProduct={isIndex}
-              lang={lang}
-              stateRead={stateStatus}
-              onRetry={retryState}
-            />
-  </>;
+  function showSection(section: HTMLElement | null) {
+    section?.focus({ preventScroll: true });
+    section?.scrollIntoView({ block: "start" });
+  }
+
+  const legacyCards = (
+    <>
+      <MarketStateCard
+        statePayload={visibleStatePayload}
+        gexPayload={gexPayload}
+        isIndexProduct={isIndex}
+        lang={lang}
+        stateRead={stateStatus}
+        onRetry={retryState}
+      />
+      <div className={workspace.heat}>
+        <HeatSeekerCard
+          pick={visibleMatrix?.heat_seeker ?? null}
+          spot={visibleMatrix?.spot ?? spot ?? null}
+          sessionAnchor={visibleMatrix?._build_meta?.asof_date ?? null}
+          lang={lang}
+          reading={matrixStatus === "loading"}
+          readFailed={matrixUnread}
+          onRetry={retryMatrix}
+          absent={matrixStatus === "absent" && !visibleMatrix}
+        />
+      </div>
+    </>
+  );
 
   const quickRoots = <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
             {GEX_QUICK_ROOTS.map((r) => (
@@ -970,7 +981,7 @@ export function GexDeskView({ onMapFirstChange, onOpenPlan }: { onMapFirstChange
   );
 
   return (
-    <div style={DESK_OUTER} className={`obs obs-ambient${mapFirst ? " obs-gexdesk-map-first" : ""}`} data-gex-map-first={mapFirst ? "true" : undefined}>
+    <div style={mapFirst ? DESK_OUTER : undefined} className={`obs obs-ambient ${mapFirst ? "obs-gexdesk-map-first" : workspace.desk}`} data-gex-map-first={mapFirst ? "true" : undefined}>
 
       {/* ── Controls bar ──────────────────────────────────────────────────── */}
       <div style={view === "chart" ? { display: "none" } : mapFirst ? { ...CONTROLS_BAR, padding: "4px 8px", gap: 6, flexWrap: "nowrap" } : CONTROLS_BAR} className="obs-gexdesk-controls">
@@ -1001,7 +1012,7 @@ export function GexDeskView({ onMapFirstChange, onOpenPlan }: { onMapFirstChange
               {spotStr}
             </span>
           )}
-          {mapFirst ? <details className="obs-gexdesk-root-chooser"><summary>{t("quickRoots")}</summary>{quickRoots}</details> : quickRoots}
+          {mapFirst || isPhone ? <details className="obs-gexdesk-root-chooser"><summary>{t("quickRoots")}</summary>{quickRoots}</details> : quickRoots}
         </div>
 
         {/* Greek exposure lens — GEX / DEX / VEX / CHEX. Switches which per-strike
@@ -1044,78 +1055,43 @@ export function GexDeskView({ onMapFirstChange, onOpenPlan }: { onMapFirstChange
           a "Loading…" skeleton, so an absent, unread or missing-session payload would
           leave it claiming a read that is not happening — the ladder region names which
           of those it is. */}
-      {!mapFirst && legacySummary}
-
-      {/* ── GEX history strip — the session scrubber, now also the date picker for the
-             dated-ladder plane (R0.10). Deliberately reads the LIVE payload's history in
-             both modes: it is the navigation surface, not part of the replay. ──────
-          PP1-D — in the Matrix view the strip sits BELOW the shared gamma map (the
-          user reaches it by scrolling the wrapper). mapFirst gates the top-level
-          render; the Matrix view renders the same component with the same props
-          inside the wrapper. Picking an archived session turns mapFirst off and the
-          strip remounts at the top — its internal `sel` resets by design (see DEVIATIONS). */}
-      {!mapFirst && (
-      <GexHistory
-        history={gexPayload?.history}
-        lang={lang}
-        sessionDates={sessionDates}
-        activeSession={sessionDate}
-        liveDate={gexSessionOf(gexPayload?.asof)}
-        onLoadSession={loadSession}
-        historyState={
-          liveStatus === "loading" ? "pending" : liveStatus === "unavailable" ? "unavailable" : undefined
-        }
-      />
-      )}
-
-      {/* ── EOD context belt (OEU T-E) ───────────────────────────────────────
-          Settled-close structure + off-exchange positioning for the SAME root, sitting
-          between the live-transport summary bar and the ladder. It reads different stores
-          than the bar above it (gex_state, options_hub/moves, options_hub/vol) and stamps
-          every value with that store's own session, so the cadence boundary between the
-          desk's live spine and macro's nightly close is visible rather than assumed. */}
-      {/* Hidden during replay: every belt store (gex_state, moves, vol) is a CURRENT-
-          session read with no dated twin — an archived ladder wearing today's context
-          would be the exact cross-session adjacency the belt exists to prevent. */}
-      {/* PP1-D — in the Matrix view the belt sits BELOW the shared gamma map (under
-          the session picker). It is rendered here for every non-Matrix state so the
-          non-Matrix views keep their belt on the ladder's first paint. */}
-      {!isArchived && !mapFirst && (
-        <EodContextBelt
-          root={ticker}
-          gexState={visibleStatePayload}
-          gex={gexPayload}
-          lang={lang}
-          levelReads={beltLevelReads}
-          onRetryLevels={retryBeltLevels}
-        />
-      )}
+      {!mapFirst && (isPhone && activePayload ? (
+        <details className={workspace.levels}>
+          <summary>{t("deskLevels")}</summary>
+          {legacySummary}
+        </details>
+      ) : legacySummary)}
 
       {/* ── Body (two-pane) ──────────────────────────────────────────────── */}
-      <div style={BODY_ROW} className="obs-gexdesk-body">
+      <div style={mapFirst ? BODY_ROW : undefined} className={`obs-gexdesk-body ${mapFirst ? "" : workspace.body}`}>
 
         {/* ── Left pane: Guide + Ladder ─────────────────────────────────── */}
-        <div style={LEFT_PANE} className="obs-gexdesk-left">
+        <div ref={analysisPane} tabIndex={mapFirst ? undefined : -1} style={mapFirst ? LEFT_PANE : undefined} className={`obs-gexdesk-left ${mapFirst ? "" : workspace.primary}`}>
           {/* GexGuide documents the LADDER's colour ramp (greek exposure on the
               direction tokens). The matrix view paints a dealer HEDGE on the
               aggressor-side pair — a different, deliberately non-flipping law — so
               showing the ladder's legend beside it would teach the wrong key, and it
               costs ~70px the 40-row grid needs. The matrix ships its own legend. */}
-          {view !== "matrix" && <GexGuide lang={lang} />}
+          {!mapFirst && (
+            <div className={workspace.toolbar}>
+              {isPhone ? (
+                <details ref={axisMenu} className={workspace.axisMenu}>
+                  <summary>{t(view === "expiry" ? "viewByExpiry" : view === "matrix" ? "viewMatrix" : "viewByStrike")}</summary>
+                  {axisControls}
+                </details>
+              ) : axisControls}
+              <nav className={workspace.jumps} aria-label={t("deskSections")}>
+                <button type="button" onClick={() => showSection(statePane.current)}>{t("stateTitle")}</button>
+                <button type="button" onClick={() => showSection(historyPane.current)}>{t("deskHistory")}</button>
+              </nav>
+            </div>
+          )}
           {/* Exposure axis: By Strike (ladder) / By Expiration (bars). The by_expiry
               series is already in the payload — previously used only as a filter. */}
-          {!mapFirst && axisControls}
-          {/* Ladder region — the ONLY part of the left column that flexes. It owns its own
-              overflow, so the drawer below can expand without pushing anything out of the
-              desk (and, crucially, without changing the RIGHT column's height at all).
-              The class carries the ≤860px floor (observatory.css): in the phone/tablet
-              page-scroll mode every ancestor height is auto, so flex:1 1 0px resolves to
-              a 0px band and the whole ladder vanishes. PP1-D — when the Matrix view
-              mounts inside, the additional class lets the ≤860px rule grow the region
-              to fit the matrix content (the inner matrix view is page content too). */}
+          {/* The table owns a bounded row viewport. Secondary panels grow the desk below it. */}
           <div
-            style={LADDER_REGION}
-            className={`obs-gexdesk-ladder-region${mapFirst ? " obs-gexdesk-matrix-region" : ""}`}
+            style={mapFirst ? LADDER_REGION : undefined}
+            className={`obs-gexdesk-ladder-region${mapFirst ? " obs-gexdesk-matrix-region" : " " + workspace.ladder}`}
           >
             {isArchived && archivedLoading ? (
               <div style={LADDER_LOADING}>{t("archivedLoading")}</div>
@@ -1287,39 +1263,24 @@ export function GexDeskView({ onMapFirstChange, onOpenPlan }: { onMapFirstChange
             )}
           </div>
 
-          {/* ── Exposure-by-Expiry term-structure drawer (RECON §4.5) ──────────
-              CONTAINMENT: the drawer lives INSIDE the left column, below the ladder it
-              annotates. It used to be a sibling of BODY_ROW in the desk's outer column,
-              which meant opening it stole height from the whole two-pane row: the Market
-              State card was squeezed until its own overflow:auto kicked in, the user
-              scrolled inside it, and collapsing the drawer left that scrollTop parked —
-              the card came back "pushed up" with its header off-screen and no obvious way
-              to recover. Scoped here, expanding/collapsing can only ever re-flow the
-              ladder (which has its own internal scroll and self-restores), and the right
-              column's height never changes. */}
+          {view !== "matrix" && <GexGuide lang={lang} />}
+
           {/* Withdrawn in matrix view: the drawer is a by-expiry term structure of the
               greek ladder, and the matrix IS the strike × expiry breakdown — keeping both
               would duplicate the expiry axis under two different colour conventions. */}
           {view !== "matrix" && (
-          <div style={XDRAWER_SLOT}>
             <ExposureExpiryDrawer
               byExpiry={activePayload?.by_expiry ?? null}
               greek={greek}
               asOf={activePayload?.asof ?? null}
               lang={lang}
             />
-          </div>
           )}
         </div>
 
-        {/* ── Right pane: Market state ──────────────────────────────────────
-            An independent min-height:0 / overflow-y:auto region (see CARD_OUTER in
-            MarketStateCard) — it derives its scroll geometry from BODY_ROW's height alone,
-            never from what the left column is doing. During replay the state card (a
-            current-session read, like the belt) is withdrawn and REPLACED by a card that
-            says so — an empty rail would read as breakage, not honesty. */}
+        {/* Current Market State is withheld during a dated replay. */}
         {isArchived ? (
-          <div className="obs-card" style={ARCHIVED_PANE}>
+          <div ref={statePane} id="gex-state" tabIndex={-1} className={`obs-card ${workspace.rail}`}>
             <div className="obs-card-hd" style={{ padding: "10px 14px 0" }}>
               <span className="obs-lbl">{t("archivedPaneTitle")}</span>
             </div>
@@ -1335,11 +1296,40 @@ export function GexDeskView({ onMapFirstChange, onOpenPlan }: { onMapFirstChange
             </div>
           </div>
         ) : !mapFirst ? (
-          <div style={RIGHT_RAIL}>
+          <div ref={statePane} id="gex-state" tabIndex={-1} className={workspace.rail}>
             {legacyCards}
           </div>
         ) : null}
       </div>
+      {!mapFirst && (
+        <section ref={historyPane} id="gex-history" tabIndex={-1} className={workspace.context} aria-label={t("deskHistory")}>
+          <GexHistory
+            history={gexPayload?.history}
+            lang={lang}
+            sessionDates={sessionDates}
+            activeSession={sessionDate}
+            liveDate={gexSessionOf(gexPayload?.asof)}
+            onLoadSession={(date) => {
+              loadSession(date);
+              showSection(analysisPane.current);
+            }}
+            historyState={
+              liveStatus === "loading" ? "pending" : liveStatus === "unavailable" ? "unavailable" : undefined
+            }
+          />
+          {!isArchived && (
+            <EodContextBelt
+              className={workspace.settled}
+              root={ticker}
+              gexState={visibleStatePayload}
+              gex={gexPayload}
+              lang={lang}
+              levelReads={beltLevelReads}
+              onRetryLevels={retryBeltLevels}
+            />
+          )}
+        </section>
+      )}
       </>}
     </div>
   );
@@ -1505,21 +1495,6 @@ const ARCHIVED_BACK: React.CSSProperties = {
   cursor: "pointer",
 };
 
-/* Mirrors MarketStateCard's CARD_OUTER geometry so swapping the rail's content during
-   replay never re-flows the two-pane row. */
-const ARCHIVED_PANE: React.CSSProperties = {
-  borderLeft: "1px solid var(--hairline)",
-  borderRadius: 0,
-  display: "flex",
-  flexDirection: "column",
-  minWidth: 0,
-  width: 360,
-  maxWidth: "100%",
-  flexShrink: 0,
-  minHeight: 0,
-  overflowY: "auto",
-};
-
 const ARCHIVED_PANE_BODY: React.CSSProperties = {
   display: "flex",
   flexDirection: "column",
@@ -1538,45 +1513,6 @@ const ARCHIVED_PANE_NOTE: React.CSSProperties = {
   fontSize: 11,
   color: "var(--muted)",
   lineHeight: 1.55,
-};
-
-/**
- * The desk's RIGHT RAIL. §5.3 made it a container: it now holds the HeatSeeker pick
- * (which rode in from the retired PRISM tab) above the Market State card. The rail —
- * not the card — is the bounded scroll region, carrying the containment invariant that
- * used to live on MarketStateCard's CARD_OUTER: sized only by BODY_ROW's height, so a
- * drawer opening in the LEFT column can never re-flow what is in here.
- */
-/**
- * Fixed slot for the HeatSeeker card. The card mounts asynchronously (it waits on the
- * matrix fetch) and can swap between its pick and its empty state at any time. Without a
- * reserved height that swap changes RIGHT_RAIL's scrollHeight underneath MarketStateCard,
- * and a rail scrolled part-way jumps — the same class of defect the v7b containment fix
- * removed one level up.
- */
-const HEATSEEKER_SLOT: React.CSSProperties = {
-  flexShrink: 0,
-  minHeight: 96,
-};
-
-const RIGHT_RAIL: React.CSSProperties = {
-  borderLeft: "1px solid var(--hairline)",
-  display: "flex",
-  flexDirection: "column",
-  gap: "var(--sp-2)",
-  /* 360px rail on desktop; on a phone the row has already wrapped, so cap at the track
-     width instead of demanding a minimum and pushing a horizontal scrollbar. */
-  width: 360,
-  minWidth: 0,
-  maxWidth: "100%",
-  flexShrink: 0,
-  minHeight: 0,
-  alignSelf: "stretch",
-  maxHeight: "100%",
-  overflowY: "auto",
-  overscrollBehavior: "contain",
-  scrollbarWidth: "thin" as const,
-  scrollbarColor: "var(--line-3) transparent",
 };
 
 const LOADING_BADGE: React.CSSProperties = {
@@ -1637,20 +1573,6 @@ const MATRIX_VIEW: React.CSSProperties = {
   gap: "var(--sp-3)",
   overflowY: "auto",
   overflowX: "hidden",
-};
-
-/**
- * Height budget for the expanded drawer INSIDE the left column. Without a cap a tall drawer
- * on a short viewport would drive the ladder region to 0 and then overflow the column itself
- * — the same failure this fix removes, one level down. 58% leaves the ladder a usable band at
- * every viewport height; the drawer body scrolls inside whatever it is given.
- */
-const XDRAWER_SLOT: React.CSSProperties = {
-  flexShrink: 0,
-  minHeight: 0,
-  maxHeight: "58%",
-  display: "flex",
-  flexDirection: "column",
 };
 
 const LADDER_LOADING: React.CSSProperties = {

@@ -1,0 +1,144 @@
+/* The outer Terminal shell is fixed on desktop. Let this desk scroll as a page.
+   Only the long strike list needs its own bounded viewport to keep spot centered. */
+.desk {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  background: var(--bg);
+}
+.body {
+  display: grid;
+  flex: none;
+  grid-template-columns: minmax(0, 1fr) minmax(292px, 340px);
+  align-items: start;
+  gap: var(--sp-3);
+  padding: var(--sp-3);
+}
+.primary, .rail {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--r-tile, 10px);
+  background: var(--panel);
+}
+.primary {
+  display: flex;
+  flex-direction: column;
+}
+.rail {
+  display: grid;
+  gap: var(--sp-2);
+  overflow: visible;
+}
+.rail :global(.obs-gex-state) {
+  overflow: visible;
+}
+.heat {
+  min-width: 0;
+}
+.ladder {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  height: clamp(480px, 61dvh, 780px);
+}
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0 var(--sp-2);
+  border-bottom: 1px solid var(--line);
+}
+.toolbar > div {
+  flex-wrap: wrap;
+}
+.jumps {
+  display: flex;
+  gap: var(--sp-3);
+  padding: 0 var(--sp-3);
+}
+.jumps button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  color: var(--brand-2);
+  font-size: var(--fs-label);
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.context {
+  display: grid;
+  gap: var(--sp-3);
+  flex: none;
+  min-width: 0;
+  margin: 0 var(--sp-3) var(--sp-3);
+}
+.settled {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(292px, 340px);
+  align-items: start;
+  gap: var(--sp-3);
+}
+.settled > section {
+  border: 1px solid var(--line);
+  border-radius: var(--r-tile, 10px);
+  background: var(--panel);
+}
+.settled > section:first-child {
+  flex-direction: column;
+}
+@media (max-width: 860px) {
+  .desk {
+    flex: 1 1 0%;
+    overflow: visible;
+  }
+  .body, .settled {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .body {
+    padding: var(--sp-2);
+  }
+  .context {
+    margin: 0 var(--sp-2) var(--sp-2);
+  }
+  .jumps button {
+    min-height: 44px;
+  }
+}
+
+.levels {
+  flex: none;
+  border-bottom: 1px solid var(--line);
+}
+.levels summary, .axisMenu summary {
+  min-height: 44px;
+  padding: 12px var(--sp-3);
+  cursor: pointer;
+  color: var(--text-2);
+  font-size: var(--fs-label);
+  font-weight: 600;
+}
+.axisMenu {
+  position: relative;
+}
+.axisMenu[open] > div {
+  position: absolute;
+  z-index: 4;
+  left: 0;
+  top: 100%;
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  padding: var(--sp-2);
+  flex-wrap: wrap;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+}

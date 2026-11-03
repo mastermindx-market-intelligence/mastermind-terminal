@@ -32,6 +32,7 @@ import React, { useMemo } from "react";
 import { makeGexT } from "./gexStrings";
 import type { Lang } from "@/lib/i18n";
 import type { GexPayload } from "./GexDeskView";
+import { gexSessionOf } from "@/lib/gexSessions";
 import { RingGauge } from "@/components/ui/RingGauge";
 import { Tip } from "@/components/ui/Tip";
 // R3.2: the regime colour table lives in lib/mscGlance.ts so the desk and every
@@ -457,7 +458,8 @@ export function MarketStateCard({
   const thesisText = t(thesisKey) || t("thesisUNKNOWN");
   const regimeLabel = plainRegime(t, state, lang);
 
-  const stabilityPct = Math.round(statePayload.stability_pct ?? 0);
+  const stabilityPct = Number.isFinite(statePayload.stability_pct) ? Math.round(statePayload.stability_pct) : null;
+  const stateDay = gexSessionOf(statePayload.asof);
 
   // Distance from spot to the gamma-flip level, % of spot — how close we are to a
   // long-γ ↔ short-γ regime change (the most actionable dealer-positioning read).
@@ -487,9 +489,13 @@ export function MarketStateCard({
 
   return (
     <div className="obs-card obs-scroll obs-gex-state" style={CARD_OUTER} data-tut="gex-state-card">
-      {/* ── Header: title only ──────────────────────────────────────────────── */}
       <div className="obs-card-hd" style={CARD_HEADER}>
         <span className="obs-lbl">{t("stateTitle")}</span>
+        {stateDay && (
+          <time dateTime={statePayload.asof} style={{ marginLeft: "auto", color: "var(--muted)", fontSize: "var(--fs-label)" }}>
+            {t("stateAsOf")} {stateDay}
+          </time>
+        )}
       </div>
 
       {/* A refresh that did not land keeps the last state on screen and says so. */}
@@ -560,7 +566,7 @@ export function MarketStateCard({
             <div style={STAB_STAT}>
               <span className="obs-lbl">{t("stateStability")}</span>
               <span className="num" style={STAB_VAL}>
-                {stabilityPct}%
+                {stabilityPct == null ? "—" : `${stabilityPct}%`}
               </span>
             </div>
             {distToFlipPct != null && (
@@ -763,15 +769,7 @@ function PassportBlock({
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
-/**
- * CONTAINMENT (v7b, re-homed in §5.3): the rail's width, left edge and — critically —
- * its bounded scroll region now live ONE level up, on GexDeskView's RIGHT_RAIL, because
- * the rail holds two cards (HeatSeeker + this one) instead of one. The invariant is
- * unchanged and still load-bearing: the rail is sized only by the desk's two-pane row,
- * so a drawer opening in the LEFT column can never change this card's scroll geometry —
- * that was what left it "pushed up" with its header parked off-screen after a collapse.
- * `minHeight:0` here lets the card shrink inside that rail rather than forcing it taller.
- */
+/* Keep all regime sections in normal flow within the containing workspace. */
 const CARD_OUTER: React.CSSProperties = {
   borderRadius: 0,
   display: "flex",
