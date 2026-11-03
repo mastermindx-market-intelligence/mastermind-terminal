@@ -15,3 +15,9 @@ Explicit archived-session selection now awaits the existing cache refresh instea
 The GexDeskView baseline already has one `react-hooks/set-state-in-effect` error and one `react-hooks/exhaustive-deps` warning. The archive change adds no lint finding; the changed tests lint cleanly.
 
 Originating integrated cache/API/reader finding: https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1224#issuecomment-6597591787 . The production-source publication and original unknown effects remain separate.
+
+## Protected-base composition
+
+Composition `e7c07bf49c8e13f1ea3518b9b997d3e0e6b3ebeb` contains protected #1224 `c8a1d0e23255c2d5374258b52197bdf1aed85b27`. All 83 affected tests (including its momentum consumer) and all nine browser cases pass. `composed-e7c07bf4/index.json` binds the new capture: five images are byte-identical and retained; seven fresh images are versioned separately. Earlier images remain historical.
+
+A local typecheck found malformed generated `.next/dev/types` files after the browser run. The failed generated files were retained outside the checkout; the stopped test server's generated cache was replaced using the installed Next.js `next typegen` command. The final typecheck passed after generation, without skipping route validation or changing application code.
