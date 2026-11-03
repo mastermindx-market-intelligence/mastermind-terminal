@@ -11,7 +11,7 @@ layoutFiles:
   terminal/components/eodcontext/StructureStrip.tsx: "0baf8c1d09fe4427569c92360081d842018d81d978a8b98d76fb283f950f31d4"
   terminal/components/eodcontext/eodStrings.ts: "4395f953dcc0f4beca53422786393ee792f297211a0eef655c64762f2b34f99f"
   terminal/components/flowdesk/FlowDeskView.tsx: "801cf41437b4749d3ad449e60ab35be8ffcc7f0e193ce5773b9c1ec7e49c01c0"
-  terminal/components/gexdesk/GexDeskView.tsx: "e7e12f9b3f1217c0b78692a5c65d5181552015ca0c1a91510e01d259432a7a14"
+  terminal/components/gexdesk/GexDeskView.tsx: "b2f57adffb20546e057bbfca40c530b649a531cb82b40750976017d199b0ff59"
   terminal/components/heatmap/HeatmapView.tsx: "3b3ab5049715a33f167e344d3013b8f880356e8b96077b38c9a517c57b7a54cb"
   terminal/lib/dataCache.ts: "ce28db3a3bcb3425320ac7e6845df02be5d21daebfa084756830c631623c7a3a"
   terminal/lib/eodContext.ts: "1d0ce3ccde7a2fa05948cc0ac2ee93d16ec06724a7edcbd8c95c61e39d98b9e7"
@@ -293,3 +293,10 @@ currentCacheQualification:
   report: "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/1224-cache-ca43fd0f/result.json"
   reportSha256: "0e27d4fe814ed4fc3ca70af77c5b0484f34e09a8ce151d25635d6061f30cd5ec"
   scope: "The report maps every current capture to its actual file and digest. Packet-root PNGs and earlier capture records retain their historical identity."
+
+archiveSelectionQualification1254:
+  sourceHead: "6c629ce900e3954cc2374c05a063b75a7cf08c36"
+  cases: 42
+  report: "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/1254-archive-6c629ce9/result.json"
+  reportSha256: "6a95f10a0242a7fddb093615686ff6113b3361d7de0891178df2dc4a3b54e4be"
+  scope: "Actual EOD-belt-only recapture for awaited archive selection. Other boards, packet-root images and earlier records retain their historical identities."

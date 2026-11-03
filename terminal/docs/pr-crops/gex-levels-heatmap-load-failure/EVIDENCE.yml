@@ -6,7 +6,7 @@
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/app/globals.css: "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517"
-  terminal/components/gexdesk/GexDeskView.tsx: "e7e12f9b3f1217c0b78692a5c65d5181552015ca0c1a91510e01d259432a7a14"
+  terminal/components/gexdesk/GexDeskView.tsx: "b2f57adffb20546e057bbfca40c530b649a531cb82b40750976017d199b0ff59"
   terminal/components/gexdesk/HeatSeekerCard.tsx: "308295e2b0143fe933948c97a14584e1e0d1eff9249a58104dd3587a2642c93a"
   terminal/components/gexdesk/MarketStateCard.tsx: "069c4a2f1a5f53e8f611e3231b78751948cc0264c8af6efd167f7b3e4902bbe2"
   terminal/components/gexdesk/StrikeLadder.tsx: "55dccbef4e3bfebc09477f6d9a0133cf0bc5d70531d32d532e760ff214ed4596"
@@ -275,3 +275,10 @@ currentCacheQualification:
   report: "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/1224-cache-ca43fd0f/result.json"
   reportSha256: "4f1b2c7cea9606d01f803d03c802d03853567dd032d56ebc7f41a918dd5bf567"
   scope: "The report maps every current capture to its actual file and digest. Packet-root PNGs and earlier capture records retain their historical identity."
+
+archiveSelectionQualification1254:
+  sourceHead: "6c629ce900e3954cc2374c05a063b75a7cf08c36"
+  cases: 54
+  report: "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/1254-archive-6c629ce9/result.json"
+  reportSha256: "6b643e25f1e3c0dc507d7601354fe8af0a538c68c5bcb47256460625a5e5447f"
+  scope: "Actual GEX-only recapture for awaited archive selection. Other boards, packet-root images and earlier records retain their historical identities."
