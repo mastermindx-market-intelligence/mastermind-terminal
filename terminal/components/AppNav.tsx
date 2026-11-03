@@ -1,7 +1,9 @@
 "use client";
 import Link from "next/link";
+import IntelligenceNav from "@/components/intelligence/IntelligenceNav";
+import { intelligenceActiveKey } from "@/lib/shared-shell/intelligenceNavigation";
 import { Suspense } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useSharedShellT } from "@/lib/sharedShellCopy";
 import { useActiveSymbol } from "@/lib/activeSymbol";
 import { MACRO_OVERVIEW_HREF } from "@/lib/investorShellPreview";
@@ -78,6 +80,7 @@ export function AppNav({ labelled = false, id, overviewBridge = false, sharedShe
 
 function AppNavInner({ labelled = false, id, overviewBridge = false, sharedShell = false, onOpenDirectory }: AppNavPresentation) {
   const path = usePathname();
+  const intelligenceKey = intelligenceActiveKey(path, useSearchParams().toString());
   const router = useRouter();
   const t = useSharedShellT();
   const activeSymbol = useActiveSymbol();
@@ -116,7 +119,7 @@ function AppNavInner({ labelled = false, id, overviewBridge = false, sharedShell
         </>
       )}
       {(sharedShell ? SHARED_SHELL_NAV : TOP).map((it) => {
-        const on = it.k === activeKey;
+        const on = it.k === activeKey && !(sharedShell && intelligenceKey);
         return (
           <Tip key={it.k} label={t(it.k, it.label)} side="right" size="mini" disabled={sharedShell && labelled}>
             <Link
@@ -129,6 +132,7 @@ function AppNavInner({ labelled = false, id, overviewBridge = false, sharedShell
           </Tip>
         );
       })}
+      {sharedShell && <IntelligenceNav mode="rail" labelled={labelled} />}
       {sharedShell && <div className="shared-shell-market-nav">
         {labelled && <h2>{t("shellMarkets")}</h2>}
         {SHARED_SHELL_MARKETS.map(item => <Link key={item.k} href={item.href}

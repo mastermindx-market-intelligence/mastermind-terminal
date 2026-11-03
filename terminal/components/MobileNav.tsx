@@ -1,7 +1,9 @@
 "use client";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import IntelligenceNav from "@/components/intelligence/IntelligenceNav";
+import { intelligenceActiveKey } from "@/lib/shared-shell/intelligenceNavigation";
 import { BrandLockup, BrandMark } from "@/components/BrandMark";
 import DashboardBackButton from "@/components/DashboardBackButton";
 import { TOP, Glyph as NavGlyph } from "@/components/AppNav";
@@ -83,6 +85,7 @@ export default function MobileNav({
 }: MobileNavProps) {
   const [drawer, setDrawer] = useState(false);
   const navPath = usePathname();
+  const intelligenceKey = intelligenceActiveKey(navPath, useSearchParams().toString());
   const t = useSharedShellT();
   // Carries the company you are looking at through the drawer — see lib/navSymbol. This drawer
   // is the surface the gap was reported on: tapping Analysis while charting SMR opened NVDA.
@@ -204,7 +207,7 @@ export default function MobileNav({
             <div className="m-drawer-h"><BrandLockup /></div>
             <nav className="m-nav">
               {SHARED_SHELL_NAV.map((it) => {
-                const on = it.k === derivedKey;
+                const on = it.k === derivedKey && !(sharedShell && intelligenceKey);
                 return (
                   <Link
                     key={it.k}
@@ -218,6 +221,7 @@ export default function MobileNav({
                   </Link>
                 );
               })}
+              <IntelligenceNav mode="drawer" onNavigate={closeDrawer} />
               <span className="m-nav-sect">{t("shellMarkets")}</span>
               {SHARED_SHELL_MARKETS.map((mk) => (
                 <Link
@@ -264,7 +268,7 @@ export default function MobileNav({
             <div className="m-drawer-h"><BrandLockup /></div>
             <nav className="m-nav">
               {TOP.map((it) => {
-                const on = it.k === derivedKey;
+                const on = it.k === derivedKey && !(sharedShell && intelligenceKey);
                 return (
                   <Link
                     key={it.k}

@@ -112,3 +112,38 @@ Terminal source carrier is `sol/web-beta-intelligence-integration-20261103-sol`.
 The Fabric census request is `beta-intel-consumer-census-20261103-r1`, under root
 `market-os-shared-shell-design-20260924-sol-001`; controller creation is observed,
 worker execution and return remain to be verified. No deploy has been attempted.
+
+## Implementation milestone (November 3 UTC)
+
+The first implementation adds the shared navigation family, owner-keyed overview,
+member/paid native entrances, and incumbent Macro/sector/Prophet drill links.
+The UI remains research-only and preserves the existing full workspaces.
+
+Actual source inspection found a 1,905,873-byte sector-cycle object and an
+11,898,398-byte Prophet object. Instead of downloading those history stores into
+an overview, the existing authenticated handlers now support an optional bounded
+`view=intelligence` display projection. Their original auth, rate limiting,
+upstream selection and cache stay authoritative; ordinary responses are unchanged.
+There is no new endpoint, private proxy, cache, identity plane or signal engine.
+The sector summary follows the incumbent `sector_cycles.js` published phase and
+position, not the separately published v2 diagnostics. Prophet publication, source
+and each plan's price-basis clocks remain distinct; active_count is not open_count.
+The exact pinned-source projection receipt is retained beside the browser evidence.
+
+Observed verification so far: 90 targeted contract, route, gateway and flow tests;
+33 overview/Today/Research component tests; one exact pinned-owner snapshot test;
+initial TypeScript check and scoped implementation lint. The Node 26 host's native
+Web Storage interferes with existing jsdom suites; passing local component runs
+use NODE_OPTIONS=--no-experimental-webstorage, without changing application or CI
+configuration. The original red/green observations are not production evidence.
+
+The Fabric implementation request beta-intel-native-integration-build-20261103-r1
+was reconciled as REQUEST_REFUSED_BEFORE_LAUNCH, execution_absence_proven=true,
+request_retained=true, same_run_replay_allowed=false. No worker wrote this branch.
+The parent continued permitted direct implementation instead of replaying that
+request. The original read-only census remains on its original run; its last
+observation was ACTIVE_OR_WAITING, not proof of accepted execution or return.
+
+Next: canonical Macro route registration/export, complete integration regression
+and real-browser qualification, independent exact-head review, normal protected
+landing and beta-only release. No deployment or final acceptance is claimed.

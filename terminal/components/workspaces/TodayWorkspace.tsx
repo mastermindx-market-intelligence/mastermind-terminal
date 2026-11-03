@@ -12,6 +12,7 @@ import TodayResearchAttention from "./TodayResearchAttention";
 import TodayWatchAttention from "./TodayWatchAttention";
 import TodaySinceLastVisit from "./TodaySinceLastVisit";
 import TodayBreadthReading from "./TodayBreadthReading";
+import TodayIntelligenceEntry from "@/components/intelligence/TodayIntelligenceEntry";
 import { ageLabel, freshnessLabel, readingFreshness } from "@/lib/shared-shell/readingFreshness";
 
 const COPY = {
@@ -125,6 +126,7 @@ function TodayWorkspaceSession({ ownerKey }: { ownerKey: string }) {
    <div><h1>{c.title}</h1><p>{c.intro}</p></div>
    <Link className={today.overviewLink} href="/macro.html">{c.overview}<Arrow /></Link>
   </header>
+  <TodayIntelligenceEntry />
   {ended || phase === "auth" ? <div role="status" className={styles.notice}>
    <p>{c.auth}</p><div className={styles.actions}><button onClick={() => onboarding.open("signin")}>{c.signIn}</button>
    <button onClick={retryIdentity}>{lang === "zh" ? "重新验证所选内容" : "Recheck selected context"}</button></div>
