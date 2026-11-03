@@ -184,7 +184,7 @@
   .shared-shell .mobilebar .shared-shell-presentation { gap:2px; }
   .shared-shell .mobilebar .shared-shell-presentation-toggle { width:44px;height:44px;padding:0; }
   .shared-shell .mobilebar .shared-shell-theme-label { display:none; }
-  .shared-shell .mobilebar .m-ic { width:40px;height:44px; }
+  .shared-shell .mobilebar .m-ic { width:44px;height:44px; }
   .shared-shell .mobilebar .m-right > button[aria-label="Mastermind AI"] { display:none; }
   .shared-shell .m-nav a,.shared-shell .m-nav button { min-height:46px; }
   .shared-shell-directory { width:calc(100vw - 20px);max-height:calc(100dvh - 20px);margin:10px auto;border-radius:10px; }
@@ -214,7 +214,6 @@
 @media (max-width:359px) {
   .shared-shell .mobilebar .m-brand b { font-size:10px;letter-spacing:0; }
   .shared-shell .mobilebar .m-brand svg { width:18px;height:18px; }
-  .shared-shell .mobilebar .m-ic { width:36px; }
   .shared-directory-grid { grid-template-columns:minmax(0,1fr); }
 }
 @media (prefers-reduced-motion:reduce) {
