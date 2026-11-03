@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import dynamic from "next/dynamic";
 import { getJSONResult } from "@/lib/dataCache";
@@ -151,10 +151,25 @@ export default function SymbolPicker({
     onPick={(next) => { onOpenChange(false); onPick(next); }}
   /> : null;
 
+  // Portal mode (ShellSearch's cold open) swaps a focused placeholder for this trigger in the
+  // same commit that opens the dialog: React removes the placeholder, so by the time effects
+  // run focus has already fallen back to <body> and the dialog would remember no opener at all
+  // — closing it would strand the keyboard. Focus the live trigger here, as a layout effect so
+  // it lands before the dialog's passive focus effect reads document.activeElement as its
+  // opener. Only a lost opener falls back: a live external opener keeps focus, and the default
+  // (non-portal) host opens from this very button, so its behaviour is untouched.
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  useLayoutEffect(() => {
+    if (!portalDialog || !open) return;
+    if (document.activeElement !== document.body) return;
+    triggerRef.current?.focus();
+  }, [portalDialog, open]);
+
   return (
     <>
       <button
         type="button"
+        ref={triggerRef}
         className={`sym-pick${className ? ` ${className}` : ""}`}
         aria-label={label}
         aria-haspopup="dialog"
