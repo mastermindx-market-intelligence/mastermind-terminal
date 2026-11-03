@@ -8,7 +8,7 @@ const A="11111111-1111-4111-8111-111111111111",B="22222222-2222-4222-8222-222222
 const state=vi.hoisted(()=>({owner:"11111111-1111-4111-8111-111111111111",failure:false,lang:"en",listener:null as null|((event:string,session:{user:{id:string}}|null)=>void)}));
 vi.mock("@/lib/i18n",()=>({useLang:()=>({lang:state.lang})}));
 vi.mock("next/navigation",()=>({usePathname:()=>"/intelligence",useSearchParams:()=>new URLSearchParams()}));
-vi.mock("next/link",()=>({default:({children,prefetch:_p,...props}:React.AnchorHTMLAttributes<HTMLAnchorElement>&{prefetch?:boolean})=><a {...props}>{children}</a>}));
+vi.mock("next/link",()=>({default:({children,prefetch:_p,...props}:React.AnchorHTMLAttributes<HTMLAnchorElement>&{prefetch?:boolean})=>{void _p;return <a {...props}>{children}</a>;}}));
 vi.mock("@/lib/supabase/client",()=>({createClient:()=>({auth:{getUser:async()=>({data:{user:{id:state.owner}},error:state.failure?Error("unavailable"):null}),onAuthStateChange:(listener:typeof state.listener)=>{state.listener=listener;return{data:{subscription:{unsubscribe:vi.fn()}}};}}})}));
 type Held={url:string;init?:RequestInit;resolve:(response:Response)=>void};
 let root:Root,host:HTMLDivElement,held:Held[];

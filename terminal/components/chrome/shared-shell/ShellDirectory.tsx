@@ -91,7 +91,6 @@ export default function ShellDirectory({ open, onClose, onSearchCompanies }: {
     return result;
   }, [tokens, category]);
 
-  useEffect(() => { setLimit(48); }, [query, category]);
   useEffect(() => {
     const element = dialog.current;
     if (!open || !element) return;
@@ -129,13 +128,13 @@ export default function ShellDirectory({ open, onClose, onSearchCompanies }: {
         </header>
         <div className="shared-directory-search">
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" /><path d="m16 16 5 5" /></svg>
-          <input ref={input} type="search" value={query} onChange={event => setQuery(event.target.value)}
+          <input ref={input} type="search" value={query} onChange={event => { setQuery(event.target.value); setLimit(48); }}
             placeholder={t("shellFindPage")} aria-label={t("shellFindPage")} autoComplete="off" />
           <kbd>esc</kbd>
         </div>
         <div className="shared-directory-filters" role="group" aria-label={t("shellCategories")}>
           {SECTIONS.map(item => <button key={item} type="button" aria-pressed={category === item}
-            onClick={() => setCategory(item)}>{t("shellSection_" + item)}</button>)}
+            onClick={() => { setCategory(item); setLimit(48); }}>{t("shellSection_" + item)}</button>)}
         </div>
         <div className="shared-directory-results" aria-live="polite">
           {!matches.length ? (
