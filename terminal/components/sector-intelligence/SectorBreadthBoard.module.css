@@ -178,3 +178,7 @@
 .rotationCell small { color: var(--text-2); font-size: 11px; }
 .rotation footer { border-top: 1px solid var(--line); padding-top: 10px; }
 @media (max-width: 600px) { .rotationGrid { grid-template-columns: minmax(0,1fr); } }
+
+.methodNote { color:var(--text-2); font-size:12px; }
+.methodNote summary { display:list-item; align-content:center; min-height:44px; cursor:pointer; }
+.methodNote p { margin:0 0 10px; }

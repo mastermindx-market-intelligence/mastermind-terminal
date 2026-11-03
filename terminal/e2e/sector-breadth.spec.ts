@@ -82,7 +82,9 @@ test("historical producer replay ranks eleven sectors and exposes the six closes
   await toggle.focus(); await toggle.press("Enter");
   const groups = board.getByRole("region", {name:"Breadth rotation",exact:true});
   await expect(groups).toBeVisible();
-  await expect(groups).toContainText("7 of those 9 lost breadth");
+  await expect(board.getByText("How breadth is measured", {exact:true})).toBeVisible();
+  await expect(board.locator("details").filter({hasText:"Rankings require 90%"})).not.toHaveAttribute("open", "");
+  await expect(groups).toContainText("9 above 50% · 7 of them losing breadth");
   const cohort = (key:string) => groups.locator(`[data-breadth-regime="${key}"]`);
   await expect(cohort("broad-up").getByRole("button")).toHaveCount(2);
   await expect(cohort("broad-down").getByRole("button")).toHaveCount(7);

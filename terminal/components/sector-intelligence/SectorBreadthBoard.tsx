@@ -147,7 +147,7 @@ export default function SectorBreadthBoard(props: SectorCentralDiscoveryProps) {
               onOpen={e => { e.currentTarget.focus({preventScroll:true}); props.onOpenResearch(id); }} />
           </td></tr>}</Fragment>;
         })}</tbody></table></div>}
-      {daily && <p className={styles.note}>{daily.dates[5 - horizon]} → {daily.dates[5]} · {tr("Change uses unrounded shares and is shown in percentage points. Rankings require 90% matched coverage. Flat stocks count in the denominator.", "变化按未取整的占比计算，以百分点显示。覆盖率达到90%才参与排名，持平股票计入分母。")}</p>}
+      {daily && <details className={styles.methodNote}><summary>{tr("How breadth is measured", "广度怎么算")}</summary><p>{daily.dates[5 - horizon]} → {daily.dates[5]} · {tr("Change uses unrounded shares and is shown in percentage points. Rankings require 90% matched coverage. Flat stocks count in the denominator.", "变化按未取整的占比计算，以百分点显示。覆盖率达到90%才参与排名，持平股票计入分母。")}</p></details>}
     </>}
   </section>;
 }
