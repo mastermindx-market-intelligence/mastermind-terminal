@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import dynamic from "next/dynamic";
 import { getJSONResult } from "@/lib/dataCache";
 import { useShellIdentity } from "@/components/chrome/AppShell";
@@ -69,11 +70,13 @@ export interface SymbolPickerProps {
   mark?: ReactNode;
   /** Names this desk in the /admin Search Log. */
   trackSource?: string;
+  /** A responsive host may hide its trigger bar while another opener stays visible. */
+  portalDialog?: boolean;
 }
 
 export default function SymbolPicker({
   symbol, displayLabel, scope = "symbols", onPick, open, onOpenChange,
-  className = "", eyebrow, label, mark, trackSource,
+  className = "", eyebrow, label, mark, trackSource, portalDialog = false,
 }: SymbolPickerProps) {
   const identity = useShellIdentity();
   // The same preference store the chart's picker reads, so a user who switched HK off does not
@@ -130,6 +133,23 @@ export default function SymbolPicker({
   }, [loadUniverse]);
 
   const universeState = symbols ? "ready" : failed ? "unavailable" : "loading";
+  const dialog = open ? <SearchModal
+    open
+    mode="pick"
+    companyScope={scope === "companies"}
+    seed=""
+    active={symbol}
+    manifest={symbols ?? {}}
+    universeState={universeState}
+    onRetryUniverse={loadUniverse}
+    inWatchlist={NO_WATCHLIST}
+    marketPrefs={marketPrefs}
+    prefsReady={prefsReady}
+    onShowAllMarkets={showAllMarkets}
+    trackSource={trackSource}
+    onClose={() => onOpenChange(false)}
+    onPick={(next) => { onOpenChange(false); onPick(next); }}
+  /> : null;
 
   return (
     <>
@@ -154,25 +174,7 @@ export default function SymbolPicker({
         <svg className="sym-pick-car" viewBox="0 0 24 24" aria-hidden><path d="M6 9l6 6 6-6" /></svg>
       </button>
 
-      {open && (
-        <SearchModal
-          open
-          mode="pick"
-          companyScope={scope === "companies"}
-          seed=""
-          active={symbol}
-          manifest={symbols ?? {}}
-          universeState={universeState}
-          onRetryUniverse={loadUniverse}
-          inWatchlist={NO_WATCHLIST}
-          marketPrefs={marketPrefs}
-          prefsReady={prefsReady}
-          onShowAllMarkets={showAllMarkets}
-          trackSource={trackSource}
-          onClose={() => onOpenChange(false)}
-          onPick={(next) => { onOpenChange(false); onPick(next); }}
-        />
-      )}
+      {portalDialog && dialog && typeof document !== "undefined" ? createPortal(dialog, document.body) : dialog}
     </>
   );
 }

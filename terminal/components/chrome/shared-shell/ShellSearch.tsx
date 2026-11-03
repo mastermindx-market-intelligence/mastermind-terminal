@@ -37,7 +37,7 @@ export default function ShellSearch({ open, onOpenChange }: {
       </button>
     );
   }
-  return <SymbolPicker scope="companies" symbol={symbol ?? ""} open={open} onOpenChange={onOpenChange}
+  return <SymbolPicker scope="companies" portalDialog symbol={symbol ?? ""} open={open} onOpenChange={onOpenChange}
     onPick={next => {
       writeActiveSymbol(next);
       onOpenChange(false);
