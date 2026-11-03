@@ -64,7 +64,7 @@ layoutFiles:
   terminal/lib/suites/trend/candlePainter.ts: "8384d2bce3af939a51e88584b1436ee2898a89f0fbf1aedc09ffee624a3e12e1"
   terminal/lib/visualIntelligence.ts: "ae2bdd1f804e34f966ed5fde72cad9eabdfc1bbcb0d33d8a3390d158d6950970"
   terminal/lib/visualIntelligenceCopy.ts: "cc3e00f03aa49d502fcd0d960371fd3d86e0d0da60fb945e1e5c35bf61bd96f3"
-  terminal/next.config.ts: "2fa9402645a4312f9846e9f73b6df076e6747723041a5f2da4c6ada3c4cf375e"
+  terminal/next.config.ts: "7713c63146e5821e4d2c5df8e0495e7b1af76344c2299879150065fbeb1098b1"
   terminal/lib/flowActivity.ts: "eb1433e57c7b63a52978aa4e63419e62b3e1a0e0210869f93838a8b7529ce332"
 theme: dark
 languages: [en, zh]
@@ -496,3 +496,11 @@ chartPositionEntryOwnerRecapture20261102:
   cropDelta: "The accepted crops are RETAINED, not replaced. This capture host cannot load the next/font/google Inter face, so every recaptured crop renders the fallback typeface across the whole surface; committing those bytes would replace the accepted evidence with a visibly different rendering that no source change caused. Control captures settle the attribution: on the BASE source the PL6 ChartChrome crops and the Visual Intelligence tablet and mobile crops are BYTE-IDENTICAL to the same capture on the changed source, so the position-entry repair is pixel-inert on both surfaces. The Visual Intelligence DESKTOP crop is not byte-comparable in either direction — three consecutive captures on the SAME source produced three different byte sequences, a volatile full-page surface — so the tablet/mobile and PL6 controls carry that claim"
   scope: "layoutFiles only. cropFiles, browserReportHashes and every PNG on disk are unchanged and still bind the accepted capture."
   productionProof: false
+
+ascPineBuildEvidence20261103:
+  sourceHead: "595dfe471796705cbcd3843506f7d3443a1ce209"
+  sourceSha256: "7713c63146e5821e4d2c5df8e0495e7b1af76344c2299879150065fbeb1098b1"
+  operation: "terminal/docs/pr-crops/b-pl-6-batch-1/asc1233-pl6-20261103--operation.json"
+  operationSha256: "407a5a3b56a8aad979fa8147f19ce50296ed8a52bea5435ddbf3eb2ce23c54ad"
+  actualCases: 24
+  scope: "Current synthetic fixture captures qualify the Pine build configuration source. Earlier capture timestamps and image files remain historical; current screenshots, execution report and source snapshots are in the immutable operation above. No real-market reference or production acceptance."

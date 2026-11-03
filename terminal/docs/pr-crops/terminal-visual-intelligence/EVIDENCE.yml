@@ -55,7 +55,7 @@ layoutFiles:
   terminal/components/chrome/investor-shell-preview.css: "83d1842b9b057014f698d5e62627c3e492a1061d0e8713b7a2bdc3ca8753650e"
   terminal/components/chrome/shared-shell/shared-shell.css: "aa6555ac18306f31fb317d8941bd1dd530ab7c61c18e67d2a73a439329950339"
   terminal/app/(shell)/layout.tsx: "76270446f1ff2b2f60393eacb81d3ccb1c5f6e7c7b20b96d85b535c7d1da5b9a"
-  terminal/next.config.ts: "2fa9402645a4312f9846e9f73b6df076e6747723041a5f2da4c6ada3c4cf375e"
+  terminal/next.config.ts: "7713c63146e5821e4d2c5df8e0495e7b1af76344c2299879150065fbeb1098b1"
   terminal/lib/investorShellPreview.ts: "d0e7797ffba0bfdda2fdabc1312abe07e631b5060ed9c58bbb320ed4b50624e9"
   terminal/lib/sharedShellContracts.ts: "dc7c893852c287b2a18c6b71cbced07bfa0996c1168490c5a8c24e4d3de01266"
   terminal/app/company-intelligence.css: "8b43f2046891837f6572fa2a59b7594547def9602b0454e1f14edba322da2a34"
@@ -733,3 +733,11 @@ chartPositionEntryOwnerRecapture20261102:
   cropDelta: "The accepted crops are RETAINED, not replaced. This capture host cannot load the next/font/google Inter face, so every recaptured crop renders the fallback typeface across the whole surface; committing those bytes would replace the accepted evidence with a visibly different rendering that no source change caused. Control captures settle the attribution: on the BASE source the PL6 ChartChrome crops and the Visual Intelligence tablet and mobile crops are BYTE-IDENTICAL to the same capture on the changed source, so the position-entry repair is pixel-inert on both surfaces. The Visual Intelligence DESKTOP crop is not byte-comparable in either direction — three consecutive captures on the SAME source produced three different byte sequences, a volatile full-page surface — so the tablet/mobile and PL6 controls carry that claim"
   scope: "layoutFiles only. cropFiles, browserReportHashes and every PNG on disk are unchanged and still bind the accepted capture."
   productionProof: false
+
+ascPineBuildEvidence20261103:
+  sourceHead: "595dfe471796705cbcd3843506f7d3443a1ce209"
+  sourceSha256: "7713c63146e5821e4d2c5df8e0495e7b1af76344c2299879150065fbeb1098b1"
+  operation: "terminal/docs/pr-crops/terminal-visual-intelligence/asc1233-vi-ci-20261103--operation.json"
+  operationSha256: "2059b401bf0ed609be6d090c39f16428616c71844f06d7dcf8807d45023eb584"
+  actualCases: 30
+  scope: "Current synthetic fixture captures qualify the Pine build configuration source. Earlier capture timestamps and image files remain historical; current screenshots, execution report and source snapshots are in the immutable operation above. No real-market reference or production acceptance."
