@@ -25,6 +25,9 @@ const PUBLIC_SNAPSHOT_LIMIT = 1024;
 /** Fixed workspace key emitted by the incumbent serializer (spec-pinned). */
 const SECTOR_WORKSPACE_PARAM = "sectorWorkspace";
 
+/** Fixed tab key emitted by the incumbent serializer (spec-pinned). */
+const SECTOR_TAB_PARAM = "tab";
+
 /** Maximum serialized snapshot length in characters. */
 // All parser-bounded fields, even simultaneously full of percent-encoded CJK,
 // fit here. The complete value only travels in same-tab history when it exceeds
@@ -113,6 +116,26 @@ export function sectorDepthReturnQuery(state: SectorState): string | null {
   if (!full || full.length <= PUBLIC_SNAPSHOT_LIMIT) return full;
   return encodeSectorDepthReturn({ ...DEFAULT_SECTOR_STATE,
     workspace: state.workspace, sector: state.sector, theme: state.theme });
+}
+
+/** The /discover href for a native sector detail entry that must land back on
+ * its opener: the live state's canonical compact params with `tab` and
+ * `sectorWorkspace` always retained — dropping default-identical entries still
+ * parses back to the same selection — plus the opener carried in sectorReturn.
+ * Null when the opener cannot be captured at all. */
+export function compactSectorReturnHref(state: SectorState, opener: SectorState): string | null {
+  const snapshot = sectorDepthReturnQuery(opener);
+  if (snapshot === null) return null;
+  const defaultsByKey = new Map(canonicalSectorEntries(DEFAULT_SECTOR_STATE));
+  const compact = new URLSearchParams();
+  for (const [key, value] of canonicalSectorEntries(state)) {
+    const differsFromDefault = defaultsByKey.get(key) !== value;
+    if (key === SECTOR_TAB_PARAM || key === SECTOR_WORKSPACE_PARAM || differsFromDefault) {
+      compact.append(key, value);
+    }
+  }
+  compact.append(SECTOR_DEPTH_RETURN_PARAM, snapshot);
+  return `/discover?${compact.toString()}`;
 }
 
 /** Browser history is advisory navigation state. Validate its bytes and bind it
