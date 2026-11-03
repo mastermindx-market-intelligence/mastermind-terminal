@@ -405,3 +405,41 @@ Nominal timeout allowance is not measured savings. Original Investigation
 component PR #804 remains a distinct incumbent source writer; this CI slice
 does not overwrite its product code or imply the Portfolio cases are fixed.
 No merge, queue, Ready, un-draft or relabel is authorized here.
+
+
+## T3 continuation: mobile ticker-picker full-detent readiness
+
+New hosted run `41588139155`, Mobile-2, reproduced the existing ticker-picker
+drawer retry: after the touch drag, `data-detent=full` was set while the
+actual height was 0.619982968 of the viewport, below the unchanged required
+`>0.9`. The earlier natural run `41568490896` had the same signature. The
+original source read geometry immediately after the detent attribute, even
+though the sheet animates. On the same original CI branch, only that immediate
+assertion became `await expect.poll(ratio).toBeGreaterThan(0.9)`. The original
+full-height threshold, drag gesture, post-drag behavior, skips, worker/retry
+configuration and timeout settings remain unchanged. No product CSS or
+event-handler changes.
+
+Native M2/macOS Playwright 1.61.1 mobile real-route run on a fresh Next dev
+server: same existing target repeated three times, retries=0, workers=1:
+**three passes, no skips and no retry-pass**. `positive.json` records those
+three independent executions; runner command exit0, 63.741s selected-run wall.
+Fault-only copy of the same test injected CSS clamping the drawer to 62vh
+*after initial geometry*, leaving the original detent actions and assertion
+intact. One zero-retry execution ended at the intended `>0.9` assertion,
+actual ratio 0.619982968, after native 5000ms poll timeout; command exit1.
+The diagnostic copy was moved out of `terminal/e2e` into the original
+managed workspace's dedicated evidence directory, so its extra test is
+not part of the source candidate or native suite selection.
+
+Evidence outside Playwright's ordinary cleanable output:
+`artifacts/ci-shard-critical-path-20261102/drawer-geometry-20261103/`.
+The seven-file proof index is SHA256
+`24e4759e1a204372de982a2d0b445c7d8441ae7a08d08acc5010c26effa2e54f`;
+the positive/negative native JSON, fault source and failure screenshot are
+retained with per-file hashes. This is local functional qualification only.
+The full hosted run remains a separate release/reliability gate. Investigation
+Title timeouts and Portfolio state-transition failures are NOT resolved
+by this narrowly scoped geometry change; source ownership of the former
+remains with independent Draft #804. PR #1250 separately repairs the stale
+merged 0047 metadata and does not apply SQL.

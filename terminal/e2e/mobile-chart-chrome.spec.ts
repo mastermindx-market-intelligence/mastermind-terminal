@@ -471,7 +471,8 @@ test("phone: tapping the symbol wheel opens the ticker picker as a drawer", asyn
   const row = (await drawer.locator(".sres .r").first().boundingBox())!;
   await pointerDrag(page, ".msheet.msheet-search", { x: row.x + row.width * 0.4, y: row.y + 4 }, -240);
   await expect(drawer).toHaveAttribute("data-detent", "full");
-  expect(await ratio()).toBeGreaterThan(0.9);
+  // Detent state precedes the height transition; preserve the same full-height invariant.
+  await expect.poll(ratio).toBeGreaterThan(0.9);
 
   // A short, quick flick down steps one detent back rather than needing a full-height drag.
   await pointerDrag(page, ".msheet.msheet-search", { x: 195, y: 120 }, 70);
