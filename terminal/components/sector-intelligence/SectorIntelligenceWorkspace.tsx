@@ -131,35 +131,61 @@ export default function SectorIntelligenceWorkspace() {
   }, [state.workspace]);
   useEffect(() => {
     const controller = new AbortController(); let alive = true;
-    for (const source of requestOwner.activeFeeds) {
-      void (async () => {
-        let payload: FeedPayload;
-        try {
-          const res = await fetch(`/api/sector-intelligence?source=${source}`, {
-            credentials: "same-origin", cache: "no-store", signal: controller.signal,
-          });
-          const body = object(await res.json()), receipt = object(body.receipt);
-          const status = text(receipt.status) as FeedStatus;
-          if (receipt.source !== source || !Object.hasOwn(STATUS_KEYS, status) || (status === "ready" && !res.ok)) {
-            payload = emptyFeed(source, "invalid");
-          } else {
-            payload = { data: res.ok ? body.data : null, receipt: {
-              source, status, path: text(receipt.path), asOf: text(receipt.asOf) || null,
-              observedAt: text(receipt.observedAt) || null, contentHash: text(receipt.contentHash) || null,
-              stale: receipt.stale === true,
-              qualificationReasons: Array.isArray(receipt.qualificationReasons)
-                ? receipt.qualificationReasons.filter((value): value is string => typeof value === "string") : undefined,
-            } };
-          }
-        } catch {
-          if (controller.signal.aborted) return;
-          payload = emptyFeed(source, "error");
+    const pending = new Set<SectorFeed>();
+    async function read(source: SectorFeed) {
+      if (pending.has(source)) return;
+      pending.add(source);
+      let payload: FeedPayload;
+      try {
+        const res = await fetch(`/api/sector-intelligence?source=${source}`, {
+          credentials: "same-origin", cache: "no-store", signal: controller.signal,
+        });
+        const body = object(await res.json()), receipt = object(body.receipt);
+        const status = text(receipt.status) as FeedStatus;
+        if (receipt.source !== source || !Object.hasOwn(STATUS_KEYS, status) || (status === "ready" && !res.ok)) {
+          payload = emptyFeed(source, "invalid");
+        } else {
+          payload = { data: res.ok ? body.data : null, receipt: {
+            source, status, path: text(receipt.path), asOf: text(receipt.asOf) || null,
+            observedAt: text(receipt.observedAt) || null, contentHash: text(receipt.contentHash) || null,
+            stale: receipt.stale === true,
+            qualificationReasons: Array.isArray(receipt.qualificationReasons)
+              ? receipt.qualificationReasons.filter((value): value is string => typeof value === "string") : undefined,
+          } };
         }
-        if (alive) setReceived(previous => ({ owner: requestOwner, receivedAt: Date.now(),
-          feeds: { ...(previous.owner === requestOwner ? previous.feeds : {}), [source]: payload } }));
-      })();
+      } catch {
+        if (controller.signal.aborted) return;
+        payload = emptyFeed(source, "error");
+      } finally { pending.delete(source); }
+      if (alive) setReceived(previous => {
+        const prior = previous.owner === requestOwner ? previous.feeds : {};
+        const last = prior[source];
+        const sameBytes = payload.receipt.status === "ready" && payload.receipt.contentHash && last?.receipt.status === "ready"
+          && last.receipt.contentHash === payload.receipt.contentHash;
+        const feed = sameBytes ? { ...payload, data: last.data } : payload;
+        return { owner: requestOwner, receivedAt: Date.now(), feeds: { ...prior, [source]: feed } };
+      });
     }
-    return () => { alive = false; controller.abort(); };
+    for (const source of requestOwner.activeFeeds) void read(source);
+    // Quote ticks update prices. Revalidate the much slower owner snapshots separately,
+    // so a tab left open overnight also picks up revised membership, caps and history.
+    const cadence = 5 * 60_000;
+    let nextRead = Date.now() + cadence;
+    function refreshDiscover() {
+      if (document.hidden || currentWorkspace.current !== "discover" || requestOwner.activeFeeds !== SECTOR_FEEDS
+          || Date.now() < nextRead) return;
+      nextRead = Date.now() + cadence;
+      void read("sector");
+      void read("heatmap");
+    }
+    const timer = setInterval(refreshDiscover, cadence);
+    document.addEventListener("visibilitychange", refreshDiscover);
+    return () => {
+      alive = false;
+      controller.abort();
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", refreshDiscover);
+    };
   }, [requestOwner]);
 
   const sectors = useMemo(() => sectorRows(feeds.sector?.data), [feeds.sector]);
