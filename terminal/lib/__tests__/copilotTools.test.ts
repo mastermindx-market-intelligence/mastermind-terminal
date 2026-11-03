@@ -463,6 +463,25 @@ describe("curateInsiders / curateIntel", () => {
     }
   });
 
+  it.each([
+    [undefined, false],
+    [null, false],
+    ["2026-07-10garbage", false],
+    ["2026-07-10T21:00:00Z", false],
+    ["2026-07-10T18:00:00Z", true],
+    ["2026-07-10T12:00:00Z", true],
+    ["2026-07-10", true],
+    ["2026-07-09", false],
+  ])("qualifies the research-card session %s before calling it current", (asof, current) => {
+    const out = curateIntel({
+      asof,
+      tape: { asof: "2026-07-10", ai_lean: { dir: "BULL", band: "high" } },
+      cards: { ai_judgment: { verdict: "Saved assessment" } },
+    }, Date.parse("2026-07-10T18:00:00Z"));
+    expect(out.cards_current).toBe(current);
+    expect((out.ai_judgment as Obj).verdict).toBe("Saved assessment");
+  });
+
   it("retains sourced timing postures and zero without promoting them to directional calls", () => {
     const now = Date.parse("2026-07-10T18:00:00Z");
     const lean = (ai_lean: Obj) => curateIntel({ tape: { asof: "2026-07-10", ai_lean } }, now).ai_lean;

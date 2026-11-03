@@ -121,10 +121,29 @@ describe("LineSeries preserves source gaps in rendered SVG", () => {
     expect(host.querySelectorAll("circle.fin-node")).toHaveLength(7);
   });
 
-  it.each([false, true])("retains existing marker choice for isolated observations: %s", markers => {
+  it.each([undefined, false, true])("keeps isolated observations visible with markers %s", markers => {
     const host = renderLine({ labels, series: [{ name: "Equity", values: [1, null, 3, null, 5] }], markers });
     expectRuns(host, [[0], [2], [4]]);
-    expect(host.querySelectorAll("circle.fin-node")).toHaveLength(markers ? 3 : 0);
+    const nodes = Array.from(host.querySelectorAll("circle.fin-node"));
+    const centers = hitCenters(host);
+    expect(nodes).toHaveLength(3);
+    nodes.forEach((node, index) => {
+      expect(Number(node.getAttribute("cx"))).toBeCloseTo(centers[index * 2], 8);
+      expect(Number.isFinite(Number(node.getAttribute("cy")))).toBe(true);
+      expect(Number(node.getAttribute("r"))).toBeGreaterThan(0);
+    });
+  });
+
+  it("shows a lone observation with the default marker setting", () => {
+    const host = renderLine({ labels: ["Jan 1"], series: [{ name: "Equity", values: [1] }] });
+    expectRuns(host, [[0]]);
+    expect(host.querySelectorAll("circle.fin-node")).toHaveLength(1);
+  });
+
+  it("adds a singleton marker without marking a contiguous run", () => {
+    const host = renderLine({ labels, series: [{ name: "Equity", values: [1, null, 3, 4, 5] }] });
+    expectRuns(host, [[0], [2, 3, 4]]);
+    expect(host.querySelectorAll("circle.fin-node")).toHaveLength(1);
   });
 
   it("keeps the empty placeholder when no valid numeric observation exists", () => {

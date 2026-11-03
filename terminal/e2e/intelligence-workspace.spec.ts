@@ -144,6 +144,26 @@ test("Intelligence tabs, performance and paged activity work at every supported 
   }
 })
 
+test("Oracle keeps isolated equity observations visible without joining missing sessions", async ({ page }, info) => {
+  const launcher = await prepare(page)
+  await page.route(/\/data\/COST\.backtest\.json(?:\?.*)?$/, route => route.fulfill({ contentType: "application/json", body: JSON.stringify({
+    ticker: "COST", status: "ok", as_of: "2026-10-16",
+    equity: { t: ["2026-01-01", "2026-03-01", "2026-06-01", "2026-08-01", "2026-10-16"], v: [100, null, 106, null, 112] },
+  }) }))
+  await launcher.click()
+  const workspace = page.getByTestId("intelligence-workspace")
+  await workspace.getByRole("tab", { name: "Oracle", exact: true }).click()
+  const curve = workspace.getByTestId("workspace-equity-curve")
+  await expect(curve).toBeVisible()
+  await expect(curve.locator("polyline.fin-line")).toHaveCount(3)
+  const observations = curve.locator("circle.fin-node")
+  await expect(observations).toHaveCount(3)
+  for (const observation of await observations.all()) await expect(observation).toBeVisible()
+  expect(await curve.locator("polyline.fin-line").evaluateAll(lines => lines.every(line =>
+    line.getAttribute("points")!.trim().split(/\s+/).length === 1))).toBe(true)
+  await curve.screenshot({ path: info.outputPath("isolated-equity-observations.png") })
+})
+
 test("Intelligence reduced motion and breakpoint changes retain usable focus", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "One cross-breakpoint case")
   await page.emulateMedia({ reducedMotion: "reduce" })

@@ -20,6 +20,7 @@ import path from "path";
 import { computeRatings, type Row as RatingRow } from "@/lib/techRating";
 import { ema, atr, supertrend, bollingerBands, type Bar } from "@/lib/indicatorMath";
 import { deskVerdict, verdictIsStale, ORACLE_STALE_DAYS, anchorSignal, signalKnownTs, isBlockedSignal, sliceSignalBasis } from "@/lib/signalVerdict";
+import { workspaceSourceClock } from "@/lib/intelligenceWorkspaceView";
 import { isStalePlane, type MarketPlane } from "@/lib/nwPlane";
 import { normalizeMarketRisk } from "@/lib/marketRisk";
 import { nextDateCountdown } from "@/lib/finFormat";
@@ -1153,6 +1154,8 @@ export function curateIntel(intel: unknown, nowMs: number = Date.now()): Record<
   const lean = tape.ai_lean as Record<string, unknown> | undefined;
   const read = deskVerdict(it, false, nowMs);
   const currentLean = read.raw !== null && !read.dim;
+  const cardsClock = workspaceSourceClock(it.asof, nowMs);
+  const tapeClock = workspaceSourceClock(tape.asof, nowMs);
   const sm = (cards.smart_money ?? analysis.smart_money) as Record<string, unknown> | undefined;
   const pulse = tape.sector_pulse as Record<string, unknown> | undefined;
 
@@ -1160,8 +1163,8 @@ export function curateIntel(intel: unknown, nowMs: number = Date.now()): Record<
   const out: Record<string, unknown> = {
     asof: tape.asof ?? it.asof ?? null,
     cards_asof: typeof it.asof === "string" ? it.asof : null,
-    cards_current: currentLean && typeof it.asof === "string" && typeof tape.asof === "string"
-      && it.asof.slice(0, 10) === tape.asof.slice(0, 10),
+    cards_current: currentLean && cardsClock.kind === "dated" && tapeClock.kind === "dated"
+      && cardsClock.date.slice(0, 10) === tapeClock.date.slice(0, 10),
     ai_judgment: aj ? { verdict: aj.verdict ?? null, gloss: trimStr(aj.gloss, 200), size_pct: num(aj.size_pct) } : null,
     conviction: conv
       ? {

@@ -461,9 +461,13 @@ export function LineSeries({ labels, series, fmtY = fmtNum, vw = 320, vh = 180, 
                   className={"fin-line" + (isDotted(s, si) ? " fin-line-dotted" : "")}
                   points={points.join(" ")} fill="none" stroke={col} />
               ))}
-              {markers && s.values.map((v, i) => num(v)
-                ? <circle key={i} className="fin-node" cx={x(i)} cy={y(v)} r={2.4} fill={col} />
-                : null)}
+              {s.values.map((v, i) => {
+                if (!num(v)) return null;
+                const isolated = !num(s.values[i - 1]) && !num(s.values[i + 1]);
+                return markers || isolated
+                  ? <circle key={i} className="fin-node" cx={x(i)} cy={y(v)} r={2.4} fill={col} />
+                  : null;
+              })}
             </g>
           );
         })}

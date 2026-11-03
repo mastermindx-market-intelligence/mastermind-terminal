@@ -849,7 +849,7 @@ export default function OracleDash({ sym, row, bars, zh = false, open = true, on
           )
         })}
       </div>
-      {visibleActivity.some(event => event.kind === "signal" && isRetroOverride(event.signal)) && <div className="sd-sig-legend">{retroLegendCopy(zh)}</div>}
+      {sigs.some(isRetroOverride) && <div className="sd-sig-legend">{retroLegendCopy(zh)}</div>}
       {!activity.length && <p className={styles.empty}>{hasFilteredSource ? pick(zh, "No matching events.", "无匹配事件。")
         : filter === "receipts" ? pick(zh, "Candidate history not supplied.", "未提供候选记录。")
         : pick(zh, "Signal history not supplied.", "未提供信号历史。")}</p>}
