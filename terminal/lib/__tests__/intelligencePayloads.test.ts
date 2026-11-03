@@ -72,3 +72,43 @@ describe("shared intelligence navigation", () => {
     expect(intelligenceActiveKey("/sectors-impostor")).toBeNull();
   });
 });
+
+
+describe("intelligence summary coherence", () => {
+  it("rejects a summary whose preview contradicts its published count", () => {
+    const value = projectProphetIntelligence(prophet())!;
+    expect(decodeProphetIntelligence({ ...value, openCount: 0 })).toBeNull();
+    expect(decodeProphetIntelligence({ ...value, openCount: 4 })).toBeNull();
+    expect(decodeProphetIntelligence({ ...value, openCount: 2, plans: [] })).toBeNull();
+    expect(decodeProphetIntelligence({ ...value, openCount: 0, plans: [] })).not.toBeNull();
+  });
+  it("rejects duplicate plan identities without ranking or reordering the source", () => {
+    const source = prophet();
+    const plan = source.plans[1];
+    source.plans = [plan, { ...plan, asset: "MSFT" }]; source.open_count = 2;
+    expect(projectProphetIntelligence(source)).toBeNull();
+    const value = projectProphetIntelligence(prophet())!;
+    expect(decodeProphetIntelligence({ ...value, openCount: 2,
+      plans: [value.plans[0], { ...value.plans[0], symbol: "MSFT" }] })).toBeNull();
+  });
+  it("does not accept a known source date and an unknown-date flag together", () => {
+    const value = projectProphetIntelligence(prophet())!;
+    expect(decodeProphetIntelligence({ ...value, sourceUnknown: true })).toBeNull();
+    expect(decodeProphetIntelligence({ ...value, sourceAsOf: null })).toBeNull();
+    expect(decodeProphetIntelligence({ ...value, sourceAsOf: null, sourceUnknown: true })).not.toBeNull();
+  });
+  it("rejects duplicate sector identities even when their ticker strings differ", () => {
+    const source = cycles(); source.data.meta.n_sectors = 2;
+    source.data.sectors.push({ ...source.data.sectors[0], ticker: "XLE" });
+    expect(projectCycleIntelligence(source)).toBeNull();
+    const value = projectCycleIntelligence(cycles())!;
+    expect(decodeCycleIntelligence({ ...value, coverage: 2,
+      rows: [value.rows[0], { ...value.rows[0], ticker: "XLE" }] })).toBeNull();
+  });
+  it.each(["../energy", "XLK", "energy space", "?sector=xlk"])("rejects sector IDs the incumbent URL reader cannot preserve: %s", id => {
+    const source = cycles(); source.data.sectors[0].id = id;
+    expect(projectCycleIntelligence(source)).toBeNull();
+    const value = projectCycleIntelligence(cycles())!;
+    expect(decodeCycleIntelligence({ ...value, rows: [{ ...value.rows[0], id }] })).toBeNull();
+  });
+});

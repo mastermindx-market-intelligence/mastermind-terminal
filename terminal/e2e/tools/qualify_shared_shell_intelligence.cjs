@@ -16,15 +16,33 @@ require.extensions['.ts'] = (module, filename) => {
   module._compile(code,filename);
 };
 const {sectorFixture} = require('../fixtures/sector-company-v3.ts');
-const OUT = path.join(ROOT,'docs/pr-crops/shared-shell-intelligence-20261103');
+const EVIDENCE_ROOT = path.join(ROOT,'docs/pr-crops/shared-shell-intelligence-20261103');
+const VARIANT = process.env.INTELLIGENCE_TEST_VARIANT || '';
+if (VARIANT && !/^[a-z][a-z0-9-]{0,63}$/.test(VARIANT)) throw Error('invalid evidence variant');
+const OUT = VARIANT ? path.join(EVIDENCE_ROOT,VARIANT) : EVIDENCE_ROOT;
 fs.mkdirSync(OUT,{recursive:true});
 const OWNER = '11111111-1111-4111-8111-111111111111';
 const PORT = Number(process.env.INTELLIGENCE_TEST_PORT || 3347);
 if (!Number.isInteger(PORT) || PORT < 1024 || PORT > 65535) throw Error('invalid test port');
 const BASE = `http://127.0.0.1:${PORT}`;
-const proof = JSON.parse(fs.readFileSync(path.join(OUT,'source-projection-receipt.json')));
+const proof = JSON.parse(fs.readFileSync(path.join(EVIDENCE_ROOT,'source-projection-receipt.json')));
 const macro = {schema:'mastermind.macro_command_read.v1',state:'partial',source:{served_root_qualified:true,manifest_generated_at:'2026-11-02T00:00:00Z',manifest_sha256:'d'.repeat(64),composed_at:'2026-11-02T00:00:00Z'},read:{as_of:'2026-10-30',as_of_display:null,as_of_meaning:null,omitted:true,clauses:[{topic:{en:'Liquidity',zh:'流动性'},predicate:{en:'is mixed',zh:'不均衡'},punct:{en:'.',zh:'。'},section:'liquidity'}]},strip:[{id:'liquidity',section:'liquidity',label:{en:'Liquidity',zh:'流动性'},value:{en:'Mixed',zh:'不均衡'},tone:'neutral',null:false,cause:null,note:null,meaning:null,as_of:'2026-10-30',as_of_display:null}],coverage:{available:2,total:5},sections:[{id:'liquidity',label:{en:'Liquidity',zh:'流动性'},href:'/macro_monetary.html#liquidity'}],workspaces:[]};
 const report = {proof:'LOCAL_FIXTURE_BROWSER_NOT_PRODUCTION',cspProof:'NOT_COVERED: isolated loopback authority fixture uses context-only bypassCSP; production headers unchanged',source:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),startedAt:new Date().toISOString(),cells:[],errors:[],externalRequests:[],fixtureWrites:[],passed:false};
+report.variant=VARIANT || 'candidate';
+report.sourceFiles=Object.fromEntries([
+ 'components/AppNav.tsx', 'components/MobileNav.tsx',
+ 'components/intelligence/IntelligenceNav.tsx',
+ 'components/intelligence/SharedShellPrimaryNav.tsx',
+ 'lib/shared-shell/intelligenceNavigation.ts',
+ 'components/intelligence/IntelligenceWorkspace.tsx',
+ 'components/intelligence/IntelligenceToolWorkspace.tsx',
+ 'components/sector-intelligence/SectorIntelligenceWorkspace.tsx',
+ 'lib/sectorDepthReturn.ts', 'lib/sharedShellRoutes.generated.json',
+ 'app/(shell)/intelligence/loading.tsx',
+ 'app/(shell)/prophet/loading.tsx', 'app/(shell)/sectors/loading.tsx',
+ 'e2e/tools/qualify_shared_shell_intelligence.cjs'
+].map(file=>[file,crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT,file))).digest('hex')]));
+report.trackedWorkingChanges=execFileSync('git',['diff','--name-only'],{encoding:'utf8'}).trim().split('\n').filter(Boolean);
 let theme='dark',locale='en', browser, child, fixture;
 const now = Math.floor(Date.now()/1000);
 const enc = v=>Buffer.from(JSON.stringify(v)).toString('base64url');
@@ -104,7 +122,35 @@ async function overflow(page){return page.evaluate(()=>({document:document.docum
   await page.locator('[data-intelligence-nav="context"] a[href="/prophet"]').click();await expect(page).toHaveURL(BASE+'/prophet');await expect(page.locator('.obs-prophet-grid')).toBeVisible({timeout:45000});await expect(page.getByText('UBER',{exact:true}).first()).toBeVisible();
   await page.screenshot({path:path.join(OUT,'prophet-native-desktop.png')});await page.goBack();await expect(page).toHaveURL(BASE+'/intelligence');
   await page.locator('[data-intelligence-nav="context"] a[href="/sectors"]').click();await expect(page.locator('[data-testid="sector-intelligence"]')).toBeVisible({timeout:45000});
-  await page.goto(BASE+'/sectors?sector=xlk&group=semiconductors&sectorTheme=light');const sector=page.getByTestId('sector-intelligence');await expect(sector.locator('[data-company-choice="MU"]')).toBeVisible();await sector.locator('[data-company-choice="MU"]').click();await expect(sector.getByTestId('sector-company-inspector').getByRole('heading',{name:'MU',exact:true})).toBeVisible();await expect(page).toHaveURL(/sectorCompany=MU/);const companyHref=await sector.getByTestId('sector-company-inspector').getByRole('link',{name:/Open company research/}).getAttribute('href');if(companyHref!=='/analysis?symbol=MU&page=overview')throw Error('company handoff changed');report.sectorCompanyHandoff=companyHref;await page.screenshot({path:path.join(OUT,'sectors-native-desktop.png')});await page.locator('[data-intelligence-nav="context"] a[href="/intelligence"]').click();await page.goBack();await expect(page).toHaveURL(/sectorCompany=MU/);await page.locator('[data-intelligence-nav="context"] a[href="/intelligence"]').click();await expect(page).toHaveURL(BASE+'/intelligence');
+  await page.goto(BASE+'/sectors?sector=xlk&group=semiconductors&sectorTheme=light');
+  const sector=page.getByTestId('sector-intelligence');
+  await expect(sector.locator('[data-company-choice="MU"]')).toBeVisible();
+  await sector.locator('[data-company-choice="MU"]').click();
+  await expect(sector.getByTestId('sector-company-inspector').getByRole('heading',{name:'MU',exact:true})).toBeVisible();
+  await expect(page).toHaveURL(/sectorCompany=MU/);
+  const selectedHref=page.url();
+  const companyHref=await sector.getByTestId('sector-company-inspector').getByRole('link',{name:/Open company research/}).getAttribute('href');
+  if(companyHref!=='/analysis?symbol=MU&page=overview')throw Error('company handoff changed');
+  report.sectorCompanyHandoff=companyHref;
+  report.sectorReturnJourney={selectedHref};
+  await page.screenshot({path:path.join(OUT,'sectors-native-desktop.png')});
+  await page.locator('[data-intelligence-nav="context"] a[href="/intelligence"]').click();
+  // Prove that the requested destination committed before exercising Back.
+  // An immediate goBack can race the asynchronous route commit and tests no journey.
+  await expect(page).toHaveURL(BASE+'/intelligence');
+  await expect(page.locator('[data-intelligence-source="macro"]')).toHaveAttribute('data-read-state','ready');
+  report.sectorReturnJourney.overviewArrived=page.url();
+  await page.goBack();
+  await expect(page).toHaveURL(selectedHref);
+  await expect(page.getByTestId('sector-company-inspector').getByRole('heading',{name:'MU',exact:true})).toBeVisible();
+  report.sectorReturnJourney.returnedHref=page.url();
+  await page.screenshot({path:path.join(OUT,'sectors-selected-company-after-back.png')});
+  await page.reload();
+  await expect(page).toHaveURL(selectedHref);
+  await expect(page.getByTestId('sector-company-inspector').getByRole('heading',{name:'MU',exact:true})).toBeVisible();
+  report.sectorReturnJourney.reloadPreserved=true;
+  await page.locator('[data-intelligence-nav="context"] a[href="/intelligence"]').click();
+  await expect(page).toHaveURL(BASE+'/intelligence');
   await page.setViewportSize({width:320,height:844});const stress=await overflow(page);if(stress.document>321)throw Error('320px document overflow');report.stress320=stress;
   await page.route('**/api/flow?f=prophet_idx&view=intelligence',r=>r.fulfill({status:403,json:{error:'pro_required'}}));
   await page.locator('[data-intelligence-source="prophet"] button').click();await expect(page.locator('[data-intelligence-source="prophet"]')).toHaveAttribute('data-read-state','access');await expect(page.locator('[data-intelligence-source="macro"]')).toHaveAttribute('data-read-state','ready');

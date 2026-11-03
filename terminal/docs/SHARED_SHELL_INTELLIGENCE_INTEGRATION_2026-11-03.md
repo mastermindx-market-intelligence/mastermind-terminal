@@ -180,3 +180,72 @@ not being replayed. The original published source remains the delivery carrier.
 The generated route working copy is provisional. Only the existing exporter
 against the normally merged Macro registry/inventory can establish final route
 publication. No beta deployment or authenticated product acceptance is claimed.
+
+## History diagnosis correction and narrowed scope
+
+The controlled counter-test restored the incumbent history-state behavior while
+requiring the Overview URL and real source card to be visible before Back. It
+passed the exact selected-company URL and inspector restoration, then reload.
+The prior failed journey raced Back against asynchronous navigation; it did not
+prove a product history regression. The proposed sector owner/helper changes
+were therefore reverted, preserving the adjacent sector lane's original source.
+The stronger committed-arrival, exact-query, inspector and reload assertions
+remain in the harness. Both candidate and old-behavior control passed; neither
+is authenticated production evidence. Control receipts are retained separately.
+
+Macro review run beta-intelligence-registry-review-20261103-r1 returned
+REQUEST_REFUSED_BEFORE_LAUNCH / EXECUTION_NOT_ELIGIBLE, controller exit75, with no
+reviewer START or result. Result retrieval reports ROOT_UNVERIFIED; that is not
+proof of why admission failed. The Executive root reader independently returned
+backend_unavailable before sending its request. No same-effect reroute or replay
+was attempted. Source implementation, tests and CI repair continue on the two
+original PRs; independent review remains an explicit release gate.
+
+
+## November 3 source/CI and joined-user-path repair
+
+The November 2/3 resumed Chairman-assigned session reused the same managed
+Terminal operation workspace and unpublished history-revert commit (3d2ec4b7a)
+without resetting the branch or replaying denied Fabric requests. Current protected
+procedure is Mastermind@b2326bbe30e9988d26199f5e774a482b9c09068a
+(schema mastermind.sol_skillpack.v1, version 1.0.1). Branch-head/workspace and
+remote PR identities were reconciled before the next source mutation.
+
+Terminal draft PR #1244's CI failure run 41577716646 proved 31 failures in
+four suites: the beta navigation's unconditional useSearchParams reached ordinary
+investor-shell test mocks; new beta route segments lacked their own loading.tsx;
+and two incumbent visual-evidence source locks were invalidated. The source
+repair now isolates the query-sensitive intelligence nav into a beta-only
+SharedShellPrimaryNav, preserves default AppNav/MobileNav behavior, and gives
+/intelligence, /prophet and /sectors normal per-route loading boundaries.
+Eleven explicit wrapper tests cover selected destination, options/discover query
+identity, language, symbols and mobile override. The initially failing
+investorShellPreview and adminPageStatusContract suites now pass: 88/88 focused
+regressions, plus 49/49 paired new-nav/incumbent tests.
+A TypeScript --noEmit run passed; scoped ESLint returned zero errors and one
+pre-existing _isTerminal unused-binding warning.
+
+Current joined-user-path fixture browser run (source plus uncommitted repair)
+is saved as docs/pr-crops/shared-shell-intelligence-20261103/nav-source-bound-v3/.
+The browser-qualification.json reports six 1440/820/390 dark-English/light-Chinese
+cells, zero page errors, 320px overflow check, guest/denied simulation, real
+native Prophet and Sector tool mounts, and exact chosen-sector MU ->
+Overview source card -> Back -> reload continuity. This is actual Next +
+intercepted local fixture, explicitly not authenticated beta production or
+CSP proof. Unlike the earlier hurried Back diagnostic, the corrected harness
+waits for the committed Overview route and source card before pressing Back.
+No duplicate sector history writer or alternative router was introduced.
+
+The earlier uncommitted Prophet/sector summary reader hardening rejects duplicate
+identities, incoherent summary counts and invalid sector URL IDs; it adds
+failing-first negative controls, not new signal/rank authority.
+The generated route registry in this workspace remains PROVISIONAL and is
+excluded from source publication pending Macro PR #10639's normal reviewed
+protected landing and exact unchanged exporter. #10639 currently has a
+separate formal GitHub review request to non-author mastermindx-2, but
+request != submitted review or approval. The prior Fabric registry review
+refusal remains bound to its original operation; no same-task Fabric retry.
+Two legacy visual-evidence source locks need current-source recapture/
+qualification under the existing immutable evidence law, not blind hash edits.
+Normal CI, independent exact-head reviews, protected merges, beta-only release,
+and authenticated live acceptance remain separate pending gates.

@@ -1,5 +1,6 @@
 /** Bounded display projections of incumbent producer contracts. No scoring or signal authority. */
 import { readingDate } from "./readingFreshness";
+import { parseSectorState } from "@/lib/sectorIntelligence";
 const obj = (x: unknown): x is Record<string, unknown> => !!x && typeof x === "object" && !Array.isArray(x);
 const text = (x: unknown, max = 160): string | null => typeof x === "string" && x.trim().length > 0 && x.length <= max ? x : null;
 const count = (x: unknown): x is number => typeof x === "number" && Number.isSafeInteger(x) && x >= 0 && x <= 100_000;
@@ -7,6 +8,10 @@ const symbol = (x: unknown): x is string => typeof x === "string" && /^[A-Z0-9][
 const date = (x: unknown): string | null => readingDate(x);
 const nullableDate = (x: unknown) => x === null || (typeof x === "string" && date(x) === x);
 const phases = new Set(["Trough", "Recovery", "Expansion", "Peak", "Downturn"]);
+// Retain the incumbent URL owner's accepted identity rather than silently
+// linking a malformed source ID to that owner's default sector.
+const sectorId = (x: unknown): x is string => typeof x === "string" && !!text(x, 64)
+  && parseSectorState(new URLSearchParams({ sector: x })).sector === x;
 export type ProphetIntelligence = {
   schema: "mmx.intelligence.prophet.v1"; publishedAt: string | null; sourceAsOf: string | null;
   sourceUnknown: boolean; sourceDelayed: boolean; mixedVintage: boolean; stale: boolean;
@@ -26,9 +31,10 @@ export function projectProphetIntelligence(value: unknown): ProphetIntelligence 
   if (unclosed.length !== value.open_count) return null;
   const selected = unclosed.slice(0, 3);
   if (value.open_count > 0 && selected.length === 0) return null;
-  const plans: ProphetIntelligence["plans"] = [];
+  const plans: ProphetIntelligence["plans"] = [], seen = new Set<string>();
   for (const raw of selected) {
-    if (!obj(raw) || !text(raw.id) || !symbol(raw.asset)) return null;
+    if (!obj(raw) || !text(raw.id) || !symbol(raw.asset) || seen.has(raw.id as string)) return null;
+    seen.add(raw.id as string);
     plans.push({ id: raw.id as string, symbol: raw.asset, phase: text(raw.phase, 64),
       priceAsOf: date(raw.price_basis_date), planAsOf: date(raw.plan_asof) });
   }
@@ -45,10 +51,11 @@ export function projectCycleIntelligence(value: unknown): CycleIntelligence | nu
       || !["ready", "stale"].includes(String(receipt.status)) || !Array.isArray(data.sectors)
       || !count(meta.n_sectors) || meta.n_sectors > 100 || data.sectors.length !== meta.n_sectors
       || date(receipt.asOf) !== date(meta.asOf)) return null;
-  const rows: CycleIntelligence["rows"] = [], seen = new Set<string>();
+  const rows: CycleIntelligence["rows"] = [], seen = new Set<string>(), seenIds = new Set<string>();
   for (const raw of data.sectors) {
-    if (!obj(raw) || !text(raw.id, 64) || !symbol(raw.ticker) || !text(raw.name) || !obj(raw.now) || seen.has(raw.ticker)) return null;
-    seen.add(raw.ticker);
+    if (!obj(raw) || !sectorId(raw.id) || !symbol(raw.ticker) || !text(raw.name) || !obj(raw.now)
+        || seen.has(raw.ticker) || seenIds.has(raw.id)) return null;
+    seen.add(raw.ticker); seenIds.add(raw.id);
     // Match the incumbent sector_cycles.js phase/position display. Do not promote
     // a separate v2 diagnostic merely because the producer also publishes it.
     const phase = raw.now.phase;
@@ -65,20 +72,22 @@ export function projectCycleIntelligence(value: unknown): CycleIntelligence | nu
 export function decodeProphetIntelligence(v: unknown): ProphetIntelligence | null {
   if (!obj(v) || v.schema !== "mmx.intelligence.prophet.v1" || !nullableDate(v.publishedAt) || !nullableDate(v.sourceAsOf)
     || ![v.sourceUnknown, v.sourceDelayed, v.mixedVintage, v.stale].every(x => typeof x === "boolean")
-    || !count(v.openCount) || v.previewLimit !== 3 || !Array.isArray(v.plans) || v.plans.length > 3
-    || (v.openCount > 0 && v.plans.length === 0)
+    || !count(v.openCount) || v.openCount > 10_000 || v.previewLimit !== 3 || !Array.isArray(v.plans)
+    || v.plans.length !== Math.min(v.openCount, 3) || v.sourceUnknown !== (v.sourceAsOf === null)
     || !v.plans.every(p => obj(p) && !!text(p.id) && symbol(p.symbol) && (p.phase === null || !!text(p.phase, 64))
       && nullableDate(p.priceAsOf) && nullableDate(p.planAsOf))) return null;
+  if (new Set(v.plans.map(p => (p as { id: string }).id)).size !== v.plans.length) return null;
   return v as ProphetIntelligence;
 }
 export function decodeCycleIntelligence(v: unknown): CycleIntelligence | null {
   if (!obj(v) || v.schema !== "mmx.intelligence.cycles.v1" || !nullableDate(v.sourceAsOf) || typeof v.stale !== "boolean"
     || !(v.benchmark === null || symbol(v.benchmark)) || !count(v.coverage) || v.coverage > 100
     || !Array.isArray(v.rows) || v.rows.length !== v.coverage
-    || !v.rows.every(r => obj(r) && !!text(r.id, 64) && symbol(r.ticker) && !!text(r.name)
+    || !v.rows.every(r => obj(r) && sectorId(r.id) && symbol(r.ticker) && !!text(r.name)
       && (r.nameZh === null || !!text(r.nameZh)) && (r.phase === null || phases.has(String(r.phase)))
       && (r.position === null || (typeof r.position === "number" && Number.isFinite(r.position) && r.position >= 0 && r.position <= 100))
       && r.model === "published")) return null;
-  if (new Set(v.rows.map(r => (r as { ticker: string }).ticker)).size !== v.rows.length) return null;
+  if (new Set(v.rows.map(r => (r as { ticker: string }).ticker)).size !== v.rows.length
+    || new Set(v.rows.map(r => (r as { id: string }).id)).size !== v.rows.length) return null;
   return v as CycleIntelligence;
 }
