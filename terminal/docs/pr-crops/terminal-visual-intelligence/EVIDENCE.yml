@@ -61,9 +61,9 @@ layoutFiles:
   terminal/app/company-intelligence.css: "8b43f2046891837f6572fa2a59b7594547def9602b0454e1f14edba322da2a34"
   terminal/components/DayRange.tsx: "c84724652783da1897ab4eeb98550eaf3dbd7942eefe3ce127b6ada2b16dd672"
   terminal/components/OptionsHubView.tsx: "0edbb1f902005dad5813beb7e406c04a3c0509aae4487f087fb101dd0ceb4c25"
-  terminal/components/SearchModal.tsx: "36880f1100bbcfa051a0c46131dd84c48a7278f0adb5678ee969a8db190774e9"
+  terminal/components/SearchModal.tsx: "d1522bfdaa7c5cd223e5024aa3698104ea404d9c46a5854b17e86da3ea570818"
   terminal/components/StockAnalysis.tsx: "376a907d0d8ea3dc5819e0092f02e19ce56fa1f4b71a3489551adf52fddb35c0"
-  terminal/components/workspaces/AnalysisWorkspace.tsx: "411b8a7e498b8af3f9337fdcf3835dd62e6a5854826f414171d8303efd8aa5bb"
+  terminal/components/workspaces/AnalysisWorkspace.tsx: "28a1d3b6d318a7e04297d2ba958a93da602761d01d5b587d66c14a9e78e6c39b"
   terminal/lib/aiContext.ts: "607d1a191e129b15248a457daff82ae9f433909b29c14b0e4bacdcb38900624b"
   terminal/lib/chartPresentation.ts: "069f5af2dfc47c7c2f31ae21d23438825912c5e442cded7f18d794ebec834df3"
   terminal/lib/chartPriceWindow.ts: "1bcf4496ece02d755f75e9ddd0966e244d42dc86d62acba0a77f7c0208c33dd8"
@@ -71,6 +71,12 @@ layoutFiles:
   terminal/lib/i18n.tsx: "13f33e3178b105a64f1f5df35974cd99041ef06f05bdece95939dd07a8b9fe7c"
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
   terminal/lib/flowActivity.ts: "eb1433e57c7b63a52978aa4e63419e62b3e1a0e0210869f93838a8b7529ce332"
+  terminal/components/SearchModal.module.css: "c07ad2028e36b1c70be969a9ab55d8d289dfcfeeceb18be5c5de3d1b18bbbaa9"
+  terminal/components/SymbolPicker.tsx: "0aa9f20b5f5a76b917dbb0e54bd3d5f467d8bb23bc8e642befe1fd10525f252f"
+  terminal/components/chrome/shared-shell/ShellSearch.tsx: "6ec2cdc819392b1c9a13bc7bbd066d49955061d166f33d498be37c57a9af0c69"
+  terminal/components/CompanyListingIdentity.tsx: "6d4347aafef93cfdaa1de89dada550f0f61953488e7166b146fdfc349bea77b7"
+  terminal/components/CompanyListingIdentity.module.css: "29788c51e58e5e972be0335d490685cb8512a3fbd8bdbe35aa4663e2fe2f70a3"
+  terminal/lib/companySearchContext.ts: "ee780295ea796509bbfdf92688ddd522144cd38f0fb82925a8ca31acfdaf4b12"
 cropFiles:
   desktop-context.png: "b736791aa903f615da64ec96d60f3957810b68ca3fae6d1d872a5026842c5f85"
   desktop-context-zh.png: "ebc4457f93d09a56422c398eec5c1e56f73b0dc1326289e4f9b8eceb7119705a"
@@ -741,4 +747,12 @@ sharedShellResponsiveParityRecapture20261102:
   actualBrowserResult: "New immutable PL6 8/8 and VI Chinese-context 3/3 plus same-source VI repeat 3/3; separate matching-base controls PL6 8/8 and VI 3/3. No whole-matrix recapture claim."
   comparison: "PL6 all eight and VI tablet are byte-identical to controls. Desktop footer clock/ticker varies even at the same source; mobile differs from base at 45 edge pixels by at most 2/255, with exact candidate repeat. All distinct captures remain retained."
   historicalQualification: "Historical complete functional reports retain their original identity; scoped new operations qualify only the current source rows above."
+  productionProof: false
+
+companyAlternateListingSourceRecapture20261103:
+  sourceHead: "c072cf92c"
+  receipt: "terminal/docs/pr-crops/company-alternate-listing-20261103/source-qualification.json"
+  scope: "Eight named T25 runtime source rows only; predecessor PNGs, cropFiles, browserReportHashes and complete historical reports keep their original identities."
+  actualBrowserResult: "Fresh immutable PL6 SearchModal+AnalysisWorkspace EN/ZH desktop/mobile 8/8 and VI Chinese-context desktop/tablet/mobile 3/3 at current source, no retries. The separate beta-enabled alternate-listing journey passes12/12 at1440/820/390 dark/light EN/ZH with keyboard/taps and exactBack."
+  historicalQualification: "A1 operations remain historical before the company-only tablet-gap repair. A2 operations bind the current source union. No whole historical functional matrix is relabelled as recaptured."
   productionProof: false
