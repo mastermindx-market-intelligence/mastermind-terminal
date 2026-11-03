@@ -5,6 +5,7 @@ import { useLang } from "@/lib/i18n";
 import { formatValue, text, type Row, type SectorBreadthSort } from "@/lib/sectorIntelligence";
 import { breadthMove, breadthRank, dailyBreadth, monthlyBreadth, type BreadthSector } from "@/lib/sectorBreadth";
 import type { SectorCentralDiscoveryProps } from "./SectorCentralDiscovery";
+import BreadthRotationGroups from "./BreadthRotationGroups";
 import BreadthSectorDetail from "./BreadthSectorDetail";
 import styles from "./SectorBreadthBoard.module.css";
 
@@ -15,6 +16,7 @@ export default function SectorBreadthBoard(props: SectorCentralDiscoveryProps) {
   const tr = (en: string, zh: string) => lang === "zh" ? zh : en;
   const name = (row: Row) => text(lang === "zh" ? row.name_zh : row.name) || text(row.name) || text(row.ticker);
   const delta = (v: number | null) => formatValue(v, 1, tr(" pp", " 个百分点"), true);
+  const [rotationOpen, setRotationOpen] = useState(false);
   const [collapsed, setCollapsed] = useState<string | null>(null);
   const rows = props.status === "ready" ? props.rows : [];
   const daily = props.heatmapStatus === "ready" ? dailyBreadth(props.heatmapData, props.heatmapAsOf, rows) : null;
@@ -79,9 +81,11 @@ export default function SectorBreadthBoard(props: SectorCentralDiscoveryProps) {
           : tr("Monthly snapshot · share of moving stocks with a positive one-month return.", "月度快照 · 一个月内价格上涨股票占有涨跌股票的比例。")}</p></div>
       <div className={styles.receipt}><span>{daily ? tr("Session close", "收盘日期") : tr("Snapshot", "快照")}</span>
         {session ? <time dateTime={session}>{session}</time> : <span>—</span>}
+        {daily && !ambiguous && ranked > 0 && <button type="button" data-sector-return-focus="breadth-rotation" aria-expanded={rotationOpen}
+          aria-controls={rotationOpen ? "breadth-rotation-groups" : undefined} onClick={() => setRotationOpen(v => !v)}>{tr("Rotation groups", "轮动分组")}</button>}
         <button type="button" onClick={e => { e.currentTarget.focus({preventScroll:true}); props.onSources(); }}>{tr("Sources", "来源")}</button></div>
     </header>
-    {ambiguous ? <p className={styles.message} role="status">{tr("Two sector records share a ticker. Rankings are unavailable until the source identities agree.", "两个板块记录使用了相同的代码。待来源标识一致后再显示排名。")}</p> : !rows.length || loadingHistory ? <p className={styles.message} role="status" aria-busy={loadingHistory || props.status === "loading"}>{loadingHistory ? tr("Loading closing comparisons…", "正在加载收盘比较…") : unavailable}</p> : <>
+    {ambiguous ? <p className={styles.message} role="status">{tr("Sector records share a ticker. Rankings are unavailable until the source identities agree.", "板块记录之间存在重复代码。待来源标识一致后再显示排名。")}</p> : !rows.length || loadingHistory ? <p className={styles.message} role="status" aria-busy={loadingHistory || props.status === "loading"}>{loadingHistory ? tr("Loading closing comparisons…", "正在加载收盘比较…") : unavailable}</p> : <>
       <div className={styles.brief} aria-label={tr("All sectors", "全部板块")}>
         <section className={styles.briefGroup}><h3>{daily ? tr("Participation at the close", "收盘参与度") : tr("Monthly participation", "月度参与度")}</h3>
           <div className={styles.pair}>{readout("strong", tr("Broadest", "最广"))}{readout("weak", tr("Narrowest", "最窄"))}</div>
@@ -97,6 +101,7 @@ export default function SectorBreadthBoard(props: SectorCentralDiscoveryProps) {
           {ranked > 0 && <p className={styles.summaryLine}>{tr(expanding + " expanding · " + contracting + " contracting · " + flat + " flat", expanding + " 个扩张 · " + contracting + " 个收缩 · " + flat + " 个持平")}</p>}
         </section>}
       </div>
+      {rotationOpen && daily && ranked > 0 && <BreadthRotationGroups sectors={series} horizon={horizon} dates={daily.dates} onOpen={props.onOpenResearch} />}
       {!daily && <p className={styles.note}>{tr("Comparable daily history is unavailable. Unchanged stocks are excluded from the monthly share.", "暂无可比较的日度历史。月度占比不含价格持平股票。")}</p>}
       <div className={styles.bar}><div><h3>{tr("Sector ranking", "板块排名")}</h3>
         <span role="status">{query ? visible.length + " / " + series.length + " " + tr("shown", "个已显示") : ranked + "/" + series.length + " " + tr("sectors ranked", "板块已排名")}</span>
@@ -142,7 +147,7 @@ export default function SectorBreadthBoard(props: SectorCentralDiscoveryProps) {
               onOpen={e => { e.currentTarget.focus({preventScroll:true}); props.onOpenResearch(id); }} />
           </td></tr>}</Fragment>;
         })}</tbody></table></div>}
-      {daily && <p className={styles.note}>{daily.dates[5 - horizon]} → {daily.dates[5]} · {tr("Change is in percentage points. Rankings require 90% matched coverage. Flat stocks count in the advancing-share denominator.", "变化以百分点计。覆盖率达到90%才参与排名。持平股票计入上涨占比的分母。")}</p>}
+      {daily && <p className={styles.note}>{daily.dates[5 - horizon]} → {daily.dates[5]} · {tr("Change uses unrounded shares and is shown in percentage points. Rankings require 90% matched coverage. Flat stocks count in the denominator.", "变化按未取整的占比计算，以百分点显示。覆盖率达到90%才参与排名，持平股票计入分母。")}</p>}
     </>}
   </section>;
 }

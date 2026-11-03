@@ -6,6 +6,8 @@
   color: var(--text);
   font-variant-numeric: tabular-nums;
 }
+/* Scope corrected ink to the breadth board, not the user's other workspaces. */
+:global([data-sector-theme="light"]) .root { --text-2: #536277; --link: #244dd8; }
 .root :is(button, input, select, summary):focus-visible {
   outline: 2px solid var(--link);
   outline-offset: -2px;
@@ -152,3 +154,27 @@
 @media (max-width: 600px) {
   .summaryLine { padding: 3px 10px; }
 }
+
+/* Responsive translation of the Sector Intelligence R4 Paper rotation board. */
+.rotation { margin-block: 12px; border: 1px solid var(--line); border-radius: var(--r-card); padding: clamp(12px,2vw,24px); background: var(--panel); }
+.rotation header, .rotation h4, .rotation footer { display: flex; align-items: baseline; justify-content: space-between; gap: 8px 18px; }
+.rotation header, .rotation footer { flex-wrap: wrap; }
+.rotation h3 { margin: 0; font: 650 clamp(20px,2vw,28px)/1.2 var(--font-ui); letter-spacing: -.035em; }
+.rotation header span, .rotation > p, .rotation footer, .rotationCell > p { color: var(--text-2); font-size: 12px; }
+.rotation > p { margin-block: 6px 12px; }
+.rotationGrid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; margin-block: 12px; }
+.rotationCell { --cell-accent: var(--text-2); min-width: 0; border: 1px solid color-mix(in srgb,var(--cell-accent) 30%,var(--line)); border-radius: var(--r-ctl); padding: 12px; background: color-mix(in srgb,var(--cell-accent) 5%,var(--panel)); }
+.rotationCell[data-breadth-regime="broad-up"] { --cell-accent:var(--breadth-up); }
+.rotationCell[data-breadth-regime="broad-down"] { --cell-accent:var(--warn,var(--text-2)); }
+.rotationCell[data-breadth-regime="narrow-up"] { --cell-accent:var(--link); }
+.rotationCell[data-breadth-regime="narrow-down"] { --cell-accent:var(--breadth-down); }
+.rotation h4 { margin: 0; font-size: 14px; line-height: 1.3; }
+.rotation h4 b { font: 600 17px/1 var(--font-num); }
+.rotation ul { display: flex; flex-wrap: wrap; gap: 2px 14px; margin: 8px 0 0; padding: 0; list-style: none; }
+.rotation li { max-width: 100%; }
+.rotationCell button { display: grid; align-content: center; gap: 2px; padding: 3px 2px; min-height: 44px; border: 0; background: transparent; color: var(--link); text-align: start; max-width: 100%; }
+.rotationCell button span { overflow-wrap: anywhere; font-size: 13px; font-weight: 600; }
+.rotationCell button:hover span { text-decoration: underline; }
+.rotationCell small { color: var(--text-2); font-size: 11px; }
+.rotation footer { border-top: 1px solid var(--line); padding-top: 10px; }
+@media (max-width: 600px) { .rotationGrid { grid-template-columns: minmax(0,1fr); } }

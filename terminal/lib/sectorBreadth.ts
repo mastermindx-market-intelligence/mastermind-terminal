@@ -57,6 +57,16 @@ export function breadthMove(sector: BreadthSector, window: BreadthWindow) {
   return sector.history.length === 6 ? sector.history[5] - sector.history[5 - window] : null;
 }
 
+/** Descriptive participation vs change, never a proxy for flows or a forecast. */
+export function breadthRegime(sector: BreadthSector, window: BreadthWindow) {
+  const level = sector.pct, change = breadthMove(sector, window);
+  if (level === null || change === null || !Number.isFinite(level) || !Number.isFinite(change)) return "unknown";
+  if (level === 50) return "even";
+  if (change === 0) return "flat";
+  if (level > 50) return change > 0 ? "broad-up" : "broad-down";
+  return change > 0 ? "narrow-up" : "narrow-down";
+}
+
 export function breadthRank(values: (number | null)[], value: number | null) {
   return value === null ? null : 1 + values.filter(v => v !== null && v > value + 1e-8).length;
 }

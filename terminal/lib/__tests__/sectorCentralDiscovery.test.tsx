@@ -95,7 +95,7 @@ describe("Sector Central discovery and breadth", () => {
   });
   it("holds the ranking when two sector identities share the same ETF", async () => {
     await render({breadth:true, rows:[rows[0], {...rows[1],ticker:rows[0].ticker}]});
-    expect(host.textContent).toContain("Two sector records share a ticker.");
+    expect(host.textContent).toContain("Sector records share a ticker.");
     expect(host.querySelector("[data-sector-choice]")).toBeNull();
   });
   it("waits for an in-flight daily source without briefly labeling a monthly market leader", async () => {

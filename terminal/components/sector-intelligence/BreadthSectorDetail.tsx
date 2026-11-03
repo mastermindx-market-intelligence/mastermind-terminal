@@ -39,8 +39,8 @@ export default function BreadthSectorDetail({sector, series, dates, horizon, pri
       <div><dt>{tr("Declining", "下跌")}</dt><dd>{sector.dec}</dd></div>
       {dates && <><div><dt>{tr("Unchanged", "持平")}</dt><dd>{sector.flat}</dd></div>
         <div><dt>{tr("Coverage", "覆盖")}</dt><dd>{sector.matched} / {sector.eligible}</dd></div>
-        <div><dt>{tr("Rank", "名次")}</dt><dd>#{priorRank} → #{rank}</dd></div>
-        <div><dt>{tr("Velocity per session", "每交易日速度")}</dt><dd>{move === null ? "—" : pp(move / horizon)}</dd></div></>}
+        <div><dt>{tr("Rank since " + dateLabel(dates[5 - horizon]), "名次变化（自" + dateLabel(dates[5 - horizon]) + "）")}</dt><dd>#{priorRank} → #{rank}</dd></div>
+        <div><dt>{tr("Average change / session", "每交易日平均变化")}</dt><dd>{move === null ? "—" : pp(move / horizon)}</dd></div></>}
     </dl>
     {dates && sector.history.length === 6 && <div className={styles.evidence}>
       <figure className={styles.trail}><figcaption>{tr("Advancing share at six closes", "六次收盘上涨占比")}</figcaption>
