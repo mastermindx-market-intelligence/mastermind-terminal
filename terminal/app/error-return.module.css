@@ -1,0 +1,11 @@
+.returnRow {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.returnRow :global(.m-back-prom) {
+  min-height: 44px;
+  /* Error recovery is a stable action, not a live status signal. */
+  animation: none;
+}
