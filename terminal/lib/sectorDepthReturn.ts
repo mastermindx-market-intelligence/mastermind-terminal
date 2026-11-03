@@ -123,10 +123,3 @@ export function resolveSectorDepthReturn(raw: string | null, historySnapshot: un
   if (retained && sectorDepthReturnQuery(retained) === raw) return retained;
   return parseSectorDepthReturn(raw);
 }
-
-/** Application navigation supplies only its owned state. Next copies its own
- * history internals; forwarding __NA/_N would skip its URL synchronization and
- * cause a subsequent workspace Back navigation to restore the previous query. */
-export function sectorDepthReturnHistory(snapshot: string | null): Record<string, unknown> {
-  return snapshot ? { [SECTOR_DEPTH_RETURN_HISTORY_KEY]: snapshot } : {};
-}

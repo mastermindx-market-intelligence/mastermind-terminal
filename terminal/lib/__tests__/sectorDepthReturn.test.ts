@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { DEFAULT_SECTOR_STATE } from "../sectorIntelligence";
-import { encodeSectorDepthReturn, parseSectorDepthReturn, resolveSectorDepthReturn, sectorDepthReturnQuery, sectorDepthReturnHistory, SECTOR_DEPTH_RETURN_HISTORY_KEY } from "../sectorDepthReturn";
+import { encodeSectorDepthReturn, parseSectorDepthReturn, resolveSectorDepthReturn, sectorDepthReturnQuery } from "../sectorDepthReturn";
 
 describe("sector research depth return", () => {
   it("keeps the ordinary Discover opener compact", () => {
@@ -55,25 +55,5 @@ describe("sector research depth return", () => {
     expect(resolveSectorDepthReturn(query, null)).toEqual({ ...DEFAULT_SECTOR_STATE, workspace: "breadth", sector: "xle", theme: "light" });
     expect(resolveSectorDepthReturn("sectorWorkspace=rotation", snapshot)?.workspace).toBe("rotation");
     expect(resolveSectorDepthReturn(query, { snapshot })).toEqual(resolveSectorDepthReturn(query, null));
-  });
-});
-
-
-describe("sector application history does not impersonate the router", () => {
-  it("passes only the owned opener snapshot so Next synchronizes the new URL", () => {
-    const snapshot = encodeSectorDepthReturn({ ...DEFAULT_SECTOR_STATE, sector: "xle", workspace: "rotation" });
-    const state = sectorDepthReturnHistory(snapshot);
-    expect(state).toEqual({ [SECTOR_DEPTH_RETURN_HISTORY_KEY]: snapshot });
-    expect(state).not.toHaveProperty("__NA");
-    expect(state).not.toHaveProperty("_N");
-    expect(state).not.toHaveProperty("__PRIVATE_NEXTJS_INTERNALS_TREE");
-    // The installed Next owner treats either flag as an internal update and
-    // skips application URL synchronization. This is the observed Back defect.
-    const wouldSynchronize = !(state as Record<string, unknown>).__NA && !(state as Record<string, unknown>)._N;
-    expect(wouldSynchronize).toBe(true);
-    expect(resolveSectorDepthReturn(sectorDepthReturnQuery({ ...DEFAULT_SECTOR_STATE, sector: "xle", workspace: "rotation" }), state[SECTOR_DEPTH_RETURN_HISTORY_KEY])).toMatchObject({ sector: "xle", workspace: "rotation" });
-  });
-  it("drops the old opener when leaving research without borrowing framework state", () => {
-    expect(sectorDepthReturnHistory(null)).toEqual({});
   });
 });
