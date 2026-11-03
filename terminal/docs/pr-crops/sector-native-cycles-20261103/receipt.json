@@ -1,0 +1,137 @@
+{
+  "kind": "LOCAL_BETA_TERMINAL_COMPOSITION",
+  "production": false,
+  "authentication": "incumbent loopback fixture",
+  "marketData": "unmodified pinned Macro JSON returned at browser test boundary",
+  "composition": "297f4f585f502be8063db4a1e411cf57a4072d4b",
+  "blobs": {
+    "history": "7893fd4855ec3dc35aaf85b2380cced272c11bde",
+    "sector": "c7f42913f28c309f9367ff512ea8c941c77ef551"
+  },
+  "date": "2026-10-30",
+  "sectorCount": 11,
+  "basketCount": 49,
+  "cells": [
+    {
+      "entry": "terminal",
+      "w": 1440,
+      "h": 900,
+      "lang": "en",
+      "theme": "dark",
+      "bounds": {
+        "root": 0,
+        "page": 0
+      },
+      "sectorReturn": true,
+      "sourceReadMatched": true,
+      "themeCompare": true,
+      "accessClear": true
+    },
+    {
+      "entry": "terminal",
+      "w": 820,
+      "h": 1180,
+      "lang": "en",
+      "theme": "light",
+      "bounds": {
+        "root": 0,
+        "page": 0
+      },
+      "sectorReturn": true,
+      "sourceReadMatched": true,
+      "themeCompare": true,
+      "accessClear": true
+    },
+    {
+      "entry": "terminal",
+      "w": 390,
+      "h": 844,
+      "lang": "zh",
+      "theme": "light",
+      "bounds": {
+        "root": 0,
+        "page": 0
+      },
+      "sectorReturn": true,
+      "sourceReadMatched": true,
+      "themeCompare": true,
+      "accessClear": true
+    },
+    {
+      "entry": "terminal",
+      "w": 320,
+      "h": 740,
+      "lang": "en",
+      "theme": "dark",
+      "bounds": {
+        "root": 0,
+        "page": 0
+      },
+      "sectorReturn": true,
+      "sourceReadMatched": true,
+      "themeCompare": true,
+      "accessClear": true
+    },
+    {
+      "entry": "beta",
+      "w": 1440,
+      "h": 900,
+      "lang": "en",
+      "theme": "dark",
+      "bounds": {
+        "root": 0,
+        "page": 0
+      },
+      "sectorReturn": true,
+      "sourceReadMatched": true,
+      "themeCompare": true,
+      "accessClear": true
+    },
+    {
+      "entry": "beta",
+      "w": 820,
+      "h": 1180,
+      "lang": "en",
+      "theme": "light",
+      "bounds": {
+        "root": 0,
+        "page": 0
+      },
+      "sectorReturn": true,
+      "sourceReadMatched": true,
+      "themeCompare": true,
+      "accessClear": true
+    },
+    {
+      "entry": "beta",
+      "w": 390,
+      "h": 844,
+      "lang": "zh",
+      "theme": "light",
+      "bounds": {
+        "root": 0,
+        "page": 0
+      },
+      "sectorReturn": true,
+      "sourceReadMatched": true,
+      "themeCompare": true,
+      "accessClear": true
+    },
+    {
+      "entry": "beta",
+      "w": 320,
+      "h": 740,
+      "lang": "en",
+      "theme": "dark",
+      "bounds": {
+        "root": 0,
+        "page": 0
+      },
+      "sectorReturn": true,
+      "sourceReadMatched": true,
+      "themeCompare": true,
+      "accessClear": true
+    }
+  ],
+  "guestHidesData": true
+}
