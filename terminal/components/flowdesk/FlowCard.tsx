@@ -26,7 +26,7 @@
 
 import { memo, useEffect, useRef, useState } from "react";
 import type { FlowEvent, EnrichEvent } from "./FeedPane";
-import { fmtNum } from "@/lib/finFormat";
+import { fmtNum, pick } from "@/lib/finFormat";
 import { detectionCopy, makeFlowT, scoreComponentLabel } from "@/lib/flowdeskStrings";
 import { flowSideLabel, statTokenLabel } from "@/lib/plainLabels";
 import { RingGauge } from "../ui/RingGauge";
@@ -156,14 +156,17 @@ export const FlowCard = memo(function FlowCard({
       // When the panel is open the card itself is the close affordance (alongside
       // the chevron, Esc and outside-click). Otherwise a card click selects, as before.
       onClick={() => { if (expanded) onToggleExpand(ev.id); else onSelect(ev); }}
-      role="option"
-      aria-selected={selected}
       data-tut="flow-card"
       data-fc-open={expanded ? "1" : undefined}
     >
       {/* ── Identity row: ticker / score ring / time ── */}
       <div className="obs-fc-row1">
-        <span className="obs-fc-ticker">{ev.root}</span>
+        <button type="button" className="obs-fc-ticker command-inspect-trigger" id={`inspect-flow-${ev.id}`}
+          aria-label={`${pick(zh, "Inspect", "查看")} ${ev.root} · ${ev.strike}${ev.right} · ${ev.exp}`}
+          aria-pressed={selected}
+          onClick={(e) => { e.stopPropagation(); onSelect(ev); }}>
+          {ev.root}
+        </button>
 
         {/* Score ring — compact sm size, magnitude tone (never asserted side) */}
         <span className="obs-fc-ring-wrap obs-fc-ring-inline">

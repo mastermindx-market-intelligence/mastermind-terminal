@@ -16,6 +16,8 @@ const LAYOUT_FILES = [
   "terminal/components/eodcontext/EodContextBelt.tsx",
   "terminal/components/eodcontext/StructureStrip.tsx",
   "terminal/components/eodcontext/eodStrings.ts",
+  "terminal/components/flowdesk/ChainHeat.module.css",
+  "terminal/components/flowdesk/CommandWorkspace.module.css",
   "terminal/components/flowdesk/FlowDeskView.tsx",
   "terminal/components/gexdesk/GexDeskView.tsx",
   "terminal/components/heatmap/HeatmapView.tsx",

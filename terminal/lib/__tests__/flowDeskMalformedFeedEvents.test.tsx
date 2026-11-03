@@ -11,7 +11,7 @@
  *   - FlowDeskView's watchlist pick reads the same guard, so a click on a watched root with
  *     a malformed tape selects nothing instead of throwing.
  *   - An array tape is unchanged: a non-empty one gives the same totals and a pick selects the
- *     latest print; an empty one keeps its current totals.
+ *     latest print; an empty one has no measured split.
  */
 import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
@@ -121,11 +121,11 @@ async function render(ui: React.ReactElement) {
 
 const statValues = () => Array.from(host.querySelectorAll(".obs-fd-stat-val")).map((n) => n.textContent);
 
-function mountRail(lang: "en" | "zh", events: unknown) {
+function mountRail(lang: "en" | "zh", events: unknown, tide: unknown = null) {
   return render(
     <WatchlistRail
       feed={feedWith(events) as never}
-      tide={null}
+      tide={tide as never}
       lang={lang}
       watchlist={["SPX"]}
       onToggleTicker={() => {}}
@@ -158,14 +158,25 @@ describe("WatchlistRail reads a malformed tape as no prints (G8.1)", () => {
       expect(host.textContent ?? "").not.toContain("NaN");
     });
 
-    it(`an empty array tape keeps its current totals (${lang})`, async () => {
-      await mountRail(lang, []);
-      expect(errors).toEqual([]);
-      // Characterization of current behaviour, not a correctness claim: with no tide and an empty tape the
-      // rail shows $0 / 50% while FlowGauge shows no call share. This is a known defect tracked in terminal
-      // #1202 item 9; the fix for item 9 must change these assertions in the same change.
-      expect(statValues()).toEqual(["$0", "50%", "—"]);
-      expect(host.querySelector<HTMLElement>(".obs-fd-bar-fill")?.style.width).toBe("50%");
+    for (const [label, events, tide] of [
+      ["empty tape", [], null],
+      ["null print", [null], null],
+      ["unknown premium", [feedEv({ premium: Number.NaN })], null],
+      ["malformed tide", [], { minutes: "x" }],
+      ["unmeasured minute", [], { minutes: [{}] }],
+    ] as const) {
+      it(`${label} has no session totals or share (${lang})`, async () => {
+        await mountRail(lang, events, tide);
+        expect(errors).toEqual([]);
+        expect(statValues()).toEqual([NA[lang], NA[lang], NA[lang]]);
+        expect(host.querySelector(".obs-fd-bar-fill")).toBeNull();
+      });
+    }
+
+    it(`observed zero premium has a measured total and no call share (${lang})`, async () => {
+      await mountRail(lang, [feedEv({ premium: 0 })]);
+      expect(statValues()).toEqual(["$0", NA[lang], "—"]);
+      expect(host.querySelector(".obs-fd-bar-fill")).toBeNull();
     });
   }
 });

@@ -6,10 +6,11 @@
 import { useMemo } from "react";
 import type React from "react";
 import { pick, fmtNum } from "../../lib/finFormat";
-import { useT, type Lang } from "../../lib/i18n";
+import type { Lang } from "../../lib/i18n";
 import type { FlowScore } from "./FeedPane";
 import { FD } from "../../lib/flowdeskStrings";
-import { feedEvents } from "../../lib/flowPrintInspector";
+import { feedEvents, printAttributable } from "../../lib/flowPrintInspector";
+import styles from "./EvidenceDisclosure.module.css";
 import { RingGauge } from "../ui/RingGauge";
 
 // ─── Shared feed/tide shape ────────────────────────────────────────────────
@@ -45,7 +46,6 @@ export interface WatchlistRailProps {
   watchlist: string[];
   onToggleTicker: (root: string) => void;
   onPickTicker: (root: string) => void;
-  onOpenTutorial?: () => void;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────
@@ -63,38 +63,34 @@ function fmtPct(v: number): string {
 
 // ─── Component ────────────────────────────────────────────────────────────
 
-export function WatchlistRail({ feed, tide, lang, watchlist, onToggleTicker, onPickTicker, onOpenTutorial }: WatchlistRailProps) {
+export function WatchlistRail({ feed, tide, lang, watchlist, onToggleTicker, onPickTicker }: WatchlistRailProps) {
   const zh = lang === "zh";
-  const t = useT();
 
   // The tape through the ONE guard the gauge, the coverage line and the feed list read it
   // through: a malformed `events` reads as no prints, never a throw. For an array it is the
   // identity, so the memos below keep their per-tape identity.
   const events = feedEvents(feed);
-  const tapeRead = Array.isArray(feed.events);
-
-  // Session overview. Unknown is not zero: with no tide and a malformed tape the rail made
-  // no reading, so there is no total or call/put split (null), as for the gauge.
+  // With no tide, use only a fully attributable loaded tape, just like FlowGauge.
+  // Zero premium is measured; its call/put split has no denominator.
   const overview = useMemo(() => {
-    if (!tide || !tide.minutes.length) {
-      if (!tapeRead) return null;
-      let callPrem = 0; let putPrem = 0;
+    let callPrem = 0, putPrem = 0;
+    if (tide && !Array.isArray(tide.minutes)) return null;
+    if (tide?.minutes.length) {
+      const last = tide.minutes[tide.minutes.length - 1];
+      if (!last || !Number.isFinite(last.ncp) || !Number.isFinite(last.npp)) return null;
+      callPrem = Math.abs(last.ncp);
+      putPrem = Math.abs(last.npp);
+    } else {
+      if (!events.length) return null;
       for (const ev of events) {
+        if (!printAttributable(ev)) return null;
         if (ev.right === "C") callPrem += ev.premium;
         else putPrem += ev.premium;
       }
-      const total = callPrem + putPrem;
-      return { total, callPrem, putPrem, callShare: total > 0 ? callPrem / total : 0.5 };
     }
-    // ncp/npp are CUMULATIVE signed nets — the last minute IS the session total.
-    // (Summing every minute double-counts the running total → billions.) npp is
-    // stored negative (net put premium); take magnitudes for the call/put split.
-    const last = tide.minutes[tide.minutes.length - 1];
-    const callPrem = Math.abs(last.ncp);
-    const putPrem = Math.abs(last.npp);
     const total = callPrem + putPrem;
-    return { total, callPrem, putPrem, callShare: total > 0 ? callPrem / total : 0.5 };
-  }, [events, tapeRead, tide]);
+    return { total, callPrem, putPrem, callShare: total > 0 ? callPrem / total : null };
+  }, [events, tide]);
 
   const na = pick(zh, FD.gaugeNa.en, FD.gaugeNa.zh);
   const pc = overview === null
@@ -109,6 +105,7 @@ export function WatchlistRail({ feed, tide, lang, watchlist, onToggleTicker, onP
   const tickerBestScore = useMemo(() => {
     const map: Record<string, number | null> = {};
     for (const ev of events) {
+      if (!ev || typeof ev.root !== "string") continue;
       const score = ev.flowScore && Number.isFinite(ev.flowScore.score) ? ev.flowScore.score : null;
       const cur = map[ev.root];
       map[ev.root] = cur === undefined || (score !== null && (cur === null || score > cur))
@@ -123,34 +120,20 @@ export function WatchlistRail({ feed, tide, lang, watchlist, onToggleTicker, onP
   return (
     <aside style={{ display: "flex", flexDirection: "column", gap: "var(--sp-2)" }}>
       {/* ── Session stats card ── */}
-      <div className="obs-card obs-fd-session" data-tut="session-overview">
-        <div className="obs-card-hd">
-          <span className="obs-lbl">{pick(zh, FD.sessionOverview.en, FD.sessionOverview.zh)}</span>
-          <span style={{ display: "flex", alignItems: "center", gap: "var(--sp-2)" }}>
-            <span className="obs-lbl" style={{ color: "var(--muted)" }}>
-              {pick(zh, "nightly + intraday", "夜盘+盘中")}
-            </span>
-            {onOpenTutorial && (
-              <button
-                onClick={onOpenTutorial}
-                aria-label={t("openTutorial")}
-                style={TUT_ICON_BTN}
-                title={t("openTutorial")}
-              >
-                ?
-              </button>
-            )}
-          </span>
-        </div>
+      <details className={`obs-card obs-fd-session ${styles.session}`} data-tut="session-overview">
+        <summary>
+          {pick(zh, "Session breakdown", "时段明细")}
+          <small>{!overview ? na : tide?.minutes?.length ? pick(zh, "Tide", "潮汐") : pick(zh, "Loaded prints", "已载入成交")}</small>
+        </summary>
         <div className="obs-card-hr" />
         <div className="obs-fd-stat-grid">
           <div className="obs-fd-stat-cell">
-            <span className="obs-lbl">{pick(zh, "Premium", "权利金")}</span>
+            <span className="obs-lbl">{tide?.minutes?.length ? pick(zh, "Net magnitudes", "净额绝对值之和") : pick(zh, "Premium", "权利金")}</span>
             <span className="obs-fd-stat-val num">{overview ? fmtPrem(overview.total) : na}</span>
           </div>
           <div className="obs-fd-stat-cell">
             <span className="obs-lbl">{pick(zh, "Calls", "认购")}</span>
-            <span className="obs-fd-stat-val num">{overview ? fmtPct(overview.callShare) : na}</span>
+            <span className="obs-fd-stat-val num">{overview?.callShare != null ? fmtPct(overview.callShare) : na}</span>
           </div>
           <div className="obs-fd-stat-cell">
             <span className="obs-lbl">P/C</span>
@@ -160,7 +143,7 @@ export function WatchlistRail({ feed, tide, lang, watchlist, onToggleTicker, onP
         <div className="obs-fd-bar-wrap">
           <div className="obs-fd-bar-track">
             {/* No reading draws no split: an even 50% fill is a reading the rail never made. */}
-            {overview && (
+            {overview?.callShare != null && (
               <div
                 className="obs-fd-bar-fill"
                 style={{ width: `${Math.round(overview.callShare * 100)}%` }}
@@ -174,7 +157,7 @@ export function WatchlistRail({ feed, tide, lang, watchlist, onToggleTicker, onP
             <span className="obs-lbl">{pick(zh, "Puts", "认沽")}</span>
           </div>
         </div>
-      </div>
+      </details>
 
       {/* ── Watchlist card ── */}
       <div className="obs-card obs-fd-wl" data-tut="watchlist">
@@ -256,22 +239,6 @@ interface WatchRowProps {
   onRemove: () => void;
   isWatch?: boolean;
 }
-
-const TUT_ICON_BTN: React.CSSProperties = {
-  width: 18,
-  height: 18,
-  borderRadius: "50%",
-  border: "1px solid color-mix(in srgb, var(--brand) 40%, transparent)",
-  background: "color-mix(in srgb, var(--brand) 10%, transparent)",
-  color: "var(--brand-2)",
-  font: "700 var(--fs-micro)/1 var(--font-ui)",
-  cursor: "pointer",
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-  flexShrink: 0,
-  padding: 0,
-};
 
 const WATCH_ROW_BTN: React.CSSProperties = {
   flex: 1,

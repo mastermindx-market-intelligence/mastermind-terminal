@@ -1,4 +1,5 @@
 "use client";
+import tapeStyles from "./options/TapeControls.module.css";
 import {
   memo,
   useCallback, useDeferredValue, useEffect, useMemo, useRef, useState, useSyncExternalStore,
@@ -20,7 +21,7 @@ import { abbrevSector } from "@/lib/sectorAbbrev";
 import { windowGexRows } from "@/lib/windowGexRows.mjs";
 import { flowGet, flowGetFresh, flowInvalidate, flowPrefetch } from "@/lib/flowClientCache";
 import { useFlowStream } from "@/lib/flowStream";
-import { FD } from "@/lib/flowdeskStrings";
+import { FD, getFlowStr } from "@/lib/flowdeskStrings";
 import { usOptionsMarketClock } from "@/lib/flowFreshness";
 import { trackSearch } from "@/lib/searchTrack";
 import { normalizeVolUnits } from "@/lib/eodContext";
@@ -608,6 +609,12 @@ const PREM_FILTERS = [
   { label: "$500K", value: 500_000 }, { label: "$1M", value: 1_000_000 },
   { label: "$5M", value: 5_000_000 },
 ];
+
+function defaultTapeHref(params: { toString(): string }): string {
+  const query = new URLSearchParams(params.toString());
+  query.delete("tapeView");
+  return `?${query.toString()}`;
+}
 
 /** Tape loading skeleton: shimmer-bar width per column, in the tape's column order
  *  (Time · Ticker · Sector · Side · C/P · Contract · DTE · Mny · Size · Prem · Flags).
@@ -1696,6 +1703,7 @@ export default function OptionsHubView({
   const [sortDir, setSortDir] = useState<1 | -1>(initialTapeView.view.sortDir);
   const [showPresets, setShowPresets] = useState(false);
   const presetsRef = useRef<HTMLDivElement>(null);
+  const presetsButton = useRef<HTMLButtonElement>(null);
 
   // One application path for URL restoration and saved display preferences.
   const applyTapeView = (next: TapeViewState) => {
@@ -1838,6 +1846,7 @@ export default function OptionsHubView({
     io.observe(el);
     return () => io.disconnect();
   }, [events, tapeLimit]);
+  const [inspectedPrint, setInspectedPrint] = useState<string | null>(null);
   const tapeRows = useMemo(() => events.slice(0, tapeLimit), [events, tapeLimit]);
 
   const drillUnusual = useMemo<UnusualName | null>(() => {
@@ -2295,13 +2304,23 @@ export default function OptionsHubView({
   // before and after the first SSE frame — nothing reflows when data lands.
   // COLUMN ORDER IS LOAD-BEARING: the ≤640px rules hide `.scr-table table.scr`
   // columns 3/5/6/7/8/9 by nth-child. Never reorder these.
+  const contractFilters = [
+    ...DTE_BUCKETS.filter(b => dteBuckets.has(b.key)),
+    ...MNY_BUCKETS.filter(b => mnyBuckets.has(b.key)),
+  ].map(b => lang === "zh" ? b.zh : b.en);
+  function toggleTapeRoot(root: string) {
+    setGroupFilter("");
+    setTapeTickerSearch("");
+    setDrillTicker(current => current === root ? null : root);
+  }
+
   const tapeThead = (
     <thead>
       <tr>
-        <th style={{ textAlign: "left", cursor: "pointer" }} className={sortKey === "ts" ? "sorted" : ""} onClick={() => handleSort("ts")}>
-          {t("colTime", "Time")} ET{sortKey === "ts" ? (sortDir === -1 ? " ↓" : " ↑") : ""}
+        <th scope="col" className={sortKey === "ts" ? "sorted" : ""} aria-sort={sortKey === "ts" ? (sortDir === -1 ? "descending" : "ascending") : undefined}>
+          <button type="button" className={tapeStyles.columnButton} onClick={() => handleSort("ts")}>{t("colTime", "Time")} ET{sortKey === "ts" ? (sortDir === -1 ? " ↓" : " ↑") : ""}</button>
         </th>
-        <th style={{ textAlign: "left" }}>{t("colTicker", "Ticker")}</th>
+        <th style={{ textAlign: "left" }}><span className={tapeStyles.wideLabel}>{t("colTicker", "Ticker")}</span><span className={tapeStyles.compactLabel}>{t("colContract", "Contract")}</span></th>
         <th style={{ textAlign: "left" }}>{t("colSector", "Sector")}</th>
         <th>{t("colSide", "Side")}</th>
         <th>{t("colCP", "C/P")}</th>
@@ -2309,10 +2328,10 @@ export default function OptionsHubView({
         <th>{t("colDte", "DTE")}</th>
         <th>{t("colMny", "Mny")}</th>
         <th>{t("colSize", "Size")}</th>
-        <th style={{ cursor: "pointer" }} className={sortKey === "premium" ? "sorted" : ""} onClick={() => handleSort("premium")}>
-          {t("colPrem", "Prem")}{sortKey === "premium" ? (sortDir === -1 ? " ↓" : " ↑") : ""}
+        <th scope="col" className={sortKey === "premium" ? "sorted" : ""} aria-sort={sortKey === "premium" ? (sortDir === -1 ? "descending" : "ascending") : undefined}>
+          <button type="button" className={tapeStyles.columnButton} onClick={() => handleSort("premium")}>{t("colPrem", "Prem")}{sortKey === "premium" ? (sortDir === -1 ? " ↓" : " ↑") : ""}</button>
         </th>
-        <th>{t("colFlags", "Flags")}</th>
+        <th><span className={tapeStyles.wideLabel}>{t("colFlags", "Flags")}</span><span className={tapeStyles.compactLabel}>{pick(lang, "Details", "详情")}</span></th>
       </tr>
     </thead>
   );
@@ -2449,12 +2468,7 @@ export default function OptionsHubView({
             <div className="fin-empty fin-empty-lg" role="alert" data-options-tape-view="invalid">
               <div className="fin-empty-title">{viewText("tapeViewInvalid")}</div>
               <p>{viewText("tapeViewInvalidBody")}</p>
-              <button className="chip" onClick={() => {
-                const url = new URL(window.location.href);
-                url.searchParams.delete("tapeView");
-                window.history.replaceState(null, "", url);
-                setInvalidTapeView(false);
-              }}>{viewText("tapeViewOpenDefault")}</button>
+              <a className="chip" href={defaultTapeHref(tapeParams)}>{viewText("tapeViewOpenDefault")}</a>
             </div>
           )}
           {activeTab === "tape" && !invalidTapeView && (
@@ -2468,7 +2482,7 @@ export default function OptionsHubView({
                   <button
                     key={r}
                     className={`chip${drillTicker === r ? " on" : ""}`}
-                    onClick={() => { setGroupFilter(""); setTapeTickerSearch(""); setDrillTicker((d) => (d === r ? null : r)); }}
+                    onClick={() => toggleTapeRoot(r)}
                     aria-pressed={drillTicker === r}
                   >
                     {r}
@@ -2507,41 +2521,33 @@ export default function OptionsHubView({
                 )}
               </div>
 
-              {/* Highlights — the session's loudest events. Display-only: an ordering over
-                  fields the feed already ships, never a score. Click drills the tape. */}
-              {hasHighlights && (
-                <div className="flow-highlights">
-                  <span className="belt-cap">{t("highlights")}</span>
-                  {highlights.biggest.length > 0 && (
-                    <span className="hl-group">
-                      <span className="hl-lbl">{t("hlBiggest")}</span>
-                      {highlights.biggest.map((e) => (
-                        <button key={`b-${e.id}`} className="chip hl-chip" onClick={() => { setGroupFilter(""); setDrillTicker((d) => (d === e.root ? null : e.root)); }}>
-                          <span className="hl-tk">{e.root}</span>
-                          <span className="hl-v">{fmtPremium(e.premium)}</span>
-                        </button>
-                      ))}
-                    </span>
-                  )}
-                  {highlights.repeats.length > 0 && (
-                    <span className="hl-group">
-                      <span className="hl-lbl">{t("hlRepeats")}</span>
-                      {highlights.repeats.map((e) => (
-                        <button key={`r-${e.id}`} className="chip hl-chip" onClick={() => { setGroupFilter(""); setDrillTicker((d) => (d === e.root ? null : e.root)); }}>
-                          <span className="hl-tk">{e.root}</span>
-                          <span className="hl-v">×{e.n_prints}</span>
-                        </button>
-                      ))}
-                    </span>
-                  )}
-                </div>
-              )}
-
               {/* Filter bar */}
-              <div className="flow-filter-bar">
+              <div className={`flow-filter-bar ${tapeStyles.bar}`}>
+                {/* Ticker search */}
+                <input
+                  type="search"
+                  id="options-tape-ticker-search"
+                  name="options-tape-ticker-search"
+                  autoComplete="off"
+                  autoCapitalize="characters"
+                  spellCheck={false}
+                  aria-label={t("tapeTickerPlaceholder", "Ticker…")}
+                  placeholder={t("tapeTickerPlaceholder", "Ticker…")}
+                  // The SSR value is visible before React can preserve user edits.
+                  disabled={!tapeInputHydrated}
+                  value={tapeTickerSearch}
+                  onChange={(e) => { setTapeTickerSearch(e.target.value); setDrillTicker(null); }}
+                  style={{ height: 28, padding: "0 10px", borderRadius: "var(--r-md)", background: "var(--inset)", border: "1px solid var(--line)", color: "var(--text)", font: "13px var(--font-ui)", width: 110 }}
+                />
                 {/* Presets dropdown */}
-                <div ref={presetsRef} style={{ position: "relative" }}>
-                  <button className={`chip${showPresets ? " on" : ""}`} style={{ height: 26, fontSize: 11 }} aria-expanded={showPresets} onClick={() => setShowPresets((v) => !v)}>
+                <div ref={presetsRef} style={{ position: "relative" }} onKeyDown={event => {
+                  if (event.key === "Escape" && showPresets) {
+                    event.stopPropagation();
+                    setShowPresets(false);
+                    presetsButton.current?.focus();
+                  }
+                }}>
+                  <button ref={presetsButton} className={`chip${showPresets ? " on" : ""}`} style={{ height: 26, fontSize: 11 }} aria-expanded={showPresets} onClick={() => setShowPresets((v) => !v)}>
                     {t("presets", "Presets")} ▾
                   </button>
                   {showPresets && (
@@ -2554,6 +2560,7 @@ export default function OptionsHubView({
                           onClick={() => {
                             p.apply({ setMinPrem, setDteBuckets, setMnyBuckets, setSideFilter, setFlagFilter });
                             setShowPresets(false);
+                            presetsButton.current?.focus();
                           }}
                         >
                           {t(p.labelKey, p.key)}
@@ -2577,55 +2584,75 @@ export default function OptionsHubView({
                   </select>
                 </div>
 
-                {/* DTE buckets */}
-                <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                  <span className="hub-cap obs-lbl">{t("dte", "DTE")}</span>
-                  <button className={`chip${dteMidOn ? " on" : ""}`} style={{ height: 26, fontSize: 11 }} aria-pressed={dteMidOn} onClick={toggleDteMid} title={lang === "zh" ? "8–90天快选" : "8–90d preset"}>8–90d</button>
-                  {DTE_BUCKETS.map((b) => (
-                    <button
-                      key={b.key}
-                      aria-pressed={dteBuckets.has(b.key)}
-                      className={`chip${dteBuckets.has(b.key) ? " on" : ""}`}
-                      style={{ height: 26, fontSize: 11 }}
-                      onClick={() => setDteBuckets((prev) => { const next = new Set(prev); if (next.has(b.key)) next.delete(b.key); else next.add(b.key); return next; })}
-                    >
-                      {lang === "zh" ? b.zh : b.en}
-                    </button>
-                  ))}
-                </div>
+                <details className={tapeStyles.disclosure} name="tape-tools">
+                  <summary>
+                    {pick(lang, "Contract filters", "合约筛选")}
+                    {contractFilters.length > 0 && <strong>{contractFilters.join(" · ")}</strong>}
+                  </summary>
+                  <div className={tapeStyles.groups}>
+                    {/* DTE buckets */}
+                    <div className={tapeStyles.filterGroup}>
+                      <span className="hub-cap obs-lbl">{pick(lang, "Days to expiry", "到期天数")}</span>
+                      <button className={`chip${dteMidOn ? " on" : ""}`} style={{ height: 26, fontSize: 11 }} aria-pressed={dteMidOn} onClick={toggleDteMid} title={lang === "zh" ? "8–90天快选" : "8–90d preset"}>8–90d</button>
+                      {DTE_BUCKETS.map((b) => (
+                        <button
+                          key={b.key}
+                          aria-pressed={dteBuckets.has(b.key)}
+                          className={`chip${dteBuckets.has(b.key) ? " on" : ""}`}
+                          style={{ height: 26, fontSize: 11 }}
+                          onClick={() => setDteBuckets((prev) => { const next = new Set(prev); if (next.has(b.key)) next.delete(b.key); else next.add(b.key); return next; })}
+                        >
+                          {lang === "zh" ? b.zh : b.en}
+                        </button>
+                      ))}
+                    </div>
 
-                {/* Moneyness */}
-                <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                  <span className="hub-cap obs-lbl">{t("mny", "Mny")}</span>
-                  {MNY_BUCKETS.map((b) => (
-                    <button
-                      key={b.key}
-                      aria-pressed={mnyBuckets.has(b.key)}
-                      className={`chip${mnyBuckets.has(b.key) ? " on" : ""}`}
-                      style={{ height: 26, fontSize: 11 }}
-                      onClick={() => setMnyBuckets((prev) => { const next = new Set(prev); if (next.has(b.key)) next.delete(b.key); else next.add(b.key); return next; })}
-                    >
-                      {lang === "zh" ? b.zh : b.en}
-                    </button>
-                  ))}
-                </div>
-
-                {/* Ticker search */}
-                <input
-                  type="search"
-                  id="options-tape-ticker-search"
-                  name="options-tape-ticker-search"
-                  autoComplete="off"
-                  autoCapitalize="characters"
-                  spellCheck={false}
-                  aria-label={t("tapeTickerPlaceholder", "Ticker…")}
-                  placeholder={t("tapeTickerPlaceholder", "Ticker…")}
-                  // The SSR value is visible before React can preserve user edits.
-                  disabled={!tapeInputHydrated}
-                  value={tapeTickerSearch}
-                  onChange={(e) => { setTapeTickerSearch(e.target.value); setDrillTicker(null); }}
-                  style={{ height: 28, padding: "0 10px", borderRadius: "var(--r-md)", background: "var(--inset)", border: "1px solid var(--line)", color: "var(--text)", font: "13px var(--font-ui)", width: 110 }}
-                />
+                    {/* Moneyness */}
+                    <div className={tapeStyles.filterGroup}>
+                      <span className="hub-cap obs-lbl">{pick(lang, "Moneyness", "实虚值")}</span>
+                      {MNY_BUCKETS.map((b) => (
+                        <button
+                          key={b.key}
+                          aria-pressed={mnyBuckets.has(b.key)}
+                          className={`chip${mnyBuckets.has(b.key) ? " on" : ""}`}
+                          style={{ height: 26, fontSize: 11 }}
+                          onClick={() => setMnyBuckets((prev) => { const next = new Set(prev); if (next.has(b.key)) next.delete(b.key); else next.add(b.key); return next; })}
+                        >
+                          {lang === "zh" ? b.zh : b.en}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </details>
+                {hasHighlights && (
+                  <details className={tapeStyles.disclosure} name="tape-tools">
+                    <summary>{t("highlights")}</summary>
+                    <div className={tapeStyles.groups}>
+                    {highlights.biggest.length > 0 && (
+                      <span className="hl-group">
+                        <span className="hl-lbl">{t("hlBiggest")}</span>
+                        {highlights.biggest.map((e) => (
+                          <button key={`b-${e.id}`} className="chip hl-chip" aria-pressed={drillTicker === e.root} onClick={() => toggleTapeRoot(e.root)}>
+                            <span className="hl-tk">{e.root}</span>
+                            <span className="hl-v">{fmtPremium(e.premium)}</span>
+                          </button>
+                        ))}
+                      </span>
+                  )}
+                    {highlights.repeats.length > 0 && (
+                      <span className="hl-group">
+                        <span className="hl-lbl">{t("hlRepeats")}</span>
+                        {highlights.repeats.map((e) => (
+                          <button key={`r-${e.id}`} className="chip hl-chip" aria-pressed={drillTicker === e.root} onClick={() => toggleTapeRoot(e.root)}>
+                            <span className="hl-tk">{e.root}</span>
+                            <span className="hl-v">×{e.n_prints}</span>
+                          </button>
+                        ))}
+                      </span>
+                  )}
+                    </div>
+                  </details>
+              )}
 
                 {sideFilter && <button className="chip" onClick={() => setSideFilter("")}
                   title={t("clearFilter")}>{viewText("tapeViewSide")}: {sideFilter} ×</button>}
@@ -2720,7 +2747,7 @@ export default function OptionsHubView({
                       longest leg of a cold load, and a blank stare there reads as broken. */}
                   {!fetchError && !feed && (
                     <table
-                      className="scr"
+                      className={`scr ${tapeStyles.feedTable}`}
                       style={{ fontSize: 12 }}
                       role="status"
                       aria-busy="true"
@@ -2748,7 +2775,7 @@ export default function OptionsHubView({
                     </table>
                   )}
                   {feed && (
-                    <table className="scr" style={{ fontSize: 12 }}>
+                    <table className={`scr ${tapeStyles.feedTable}`} style={{ fontSize: 12 }}>
                       {tapeThead}
                       <tbody>
                         {events.length === 0 && (
@@ -2783,16 +2810,45 @@ export default function OptionsHubView({
                         )}
                         {tapeRows.map((e) => {
                           const isBuy = e.side === "~buy"; const isSell = e.side === "~sell";
+                          const expanded = inspectedPrint === e.id;
+                          const detailId = `options-print-${encodeURIComponent(e.id)}`;
+                          const toggleDetails = () => setInspectedPrint(current => current === e.id ? null : e.id);
+                          const confirmed = oiConfSet.has(`${e.root}|${e.right}|${e.exp}|${e.strike}`);
+                          const flagged = e.zerodte || e.vol_gt_oi || e.repeated || e.swept || confirmed;
+                          const mny = MNY_BUCKETS.find(bucket => bucket.key === e.mny_bucket);
+                          const moneyness = (lang === "zh" ? mny?.zh : mny?.en) ?? e.mny_bucket;
+                          const flags = (
+                            <span style={{ display: "flex", gap: 4, justifyContent: "flex-end", flexWrap: "wrap", alignItems: "flex-start" }}>
+                              {e.zerodte && <span className="flow-flag-chip">{lang === "zh" ? "当日" : "0DTE"}</span>}
+                              {e.vol_gt_oi && <span className="flow-flag-chip is-long">{volAboveOi(lang)}</span>}
+                              {e.repeated && <span className="flow-flag-chip">{lang === "zh" ? "重复" : "repeat"}</span>}
+                              {e.swept && <span className="flow-flag-chip" style={{ color: "var(--warn)", borderColor: "color-mix(in srgb, var(--warn) 40%, transparent)" }}>{lang === "zh" ? "扫单" : "swept"}</span>}
+                              {confirmed && (
+                                <span className="flow-flag-chip" style={{ color: "var(--brand-2)", borderColor: "color-mix(in srgb, var(--brand) 35%, transparent)" }}>{t("tapeOiConfirmed", "OI-confirmed")}</span>
+                              )}
+                            </span>
+                          );
                           return (
-                            <tr key={e.id} style={{ cursor: "pointer" }} onClick={() => setDrillTicker((d) => (d === e.root ? null : e.root))}>
+                            <tr key={e.id} data-tape-print={e.id} style={{ cursor: "pointer" }} onClick={() => {
+                              if (window.matchMedia("(max-width: 640px)").matches) toggleDetails();
+                              else toggleTapeRoot(e.root);
+                            }}>
                               <td style={{ textAlign: "left", fontVariantNumeric: "tabular-nums", color: "var(--text-dim)" }}>{fmtTime(e.ts)}</td>
-                              <td style={{ textAlign: "left", fontWeight: 600 }}>{e.root}</td>
+                              <td style={{ textAlign: "left" }}>
+                                <button type="button" className={tapeStyles.tickerButton}
+                                  aria-pressed={drillTicker === e.root}
+                                  aria-label={e.root}
+                                  aria-describedby={`${detailId}-contract`}
+                                  onClick={event => { event.stopPropagation(); toggleTapeRoot(e.root); }}>
+                                  {e.root}<span className={tapeStyles.contractLine} id={`${detailId}-contract`}>{fmtContract(e.right, e.exp, e.strike)}</span>
+                                </button>
+                              </td>
                               <td style={{ textAlign: "left", color: "var(--text-2)", fontSize: 11 }}>
                                 {lang === "zh" ? e.group_zh : abbrevSector(e.group)}
                               </td>
                               <td>
                                 <span className={isBuy ? "pill buy" : isSell ? "pill sell" : ""} style={!isBuy && !isSell ? { color: "var(--muted)", fontSize: 11 } : {}}>
-                                  {e.side}
+                                  {getFlowStr(lang, isBuy ? "filterLeanBuy" : isSell ? "filterLeanSell" : "filterLeanMixed")}
                                 </span>
                               </td>
                               <td>
@@ -2806,28 +2862,42 @@ export default function OptionsHubView({
                               </td>
                               <td>
                                 <span className="flow-mny-chip">
-                                  {lang === "zh" ? MNY_BUCKETS.find((b) => b.key === e.mny_bucket)?.zh ?? e.mny_bucket : MNY_BUCKETS.find((b) => b.key === e.mny_bucket)?.en ?? e.mny_bucket}
+                                  {moneyness}
                                 </span>
                               </td>
                               <td style={{ fontVariantNumeric: "tabular-nums" }}>{e.size.toLocaleString("en-US")}</td>
-                              <td style={{ fontVariantNumeric: "tabular-nums" }}>{fmtPremium(e.premium)}</td>
-                              <td>
-                                <span style={{ display: "flex", gap: 4, justifyContent: "flex-end", flexWrap: "wrap", alignItems: "flex-start" }}>
-                                  {e.zerodte && <span className="flow-flag-chip">{lang === "zh" ? "当日" : "0DTE"}</span>}
-                                  {e.vol_gt_oi && <span className="flow-flag-chip is-long">{volAboveOi(lang)}</span>}
-                                  {e.repeated && <span className="flow-flag-chip">{lang === "zh" ? "重复" : "repeat"}</span>}
-                                  {e.swept && <span className="flow-flag-chip" style={{ color: "var(--warn)", borderColor: "color-mix(in srgb, var(--warn) 40%, transparent)" }}>{lang === "zh" ? "扫单" : "swept"}</span>}
-                                  {oiConfSet.has(`${e.root}|${e.right}|${e.exp}|${e.strike}`) && (
-                                    <span className="flow-flag-chip" style={{ color: "var(--brand-2)", borderColor: "color-mix(in srgb, var(--brand) 35%, transparent)" }}>{t("tapeOiConfirmed", "OI-confirmed")}</span>
-                                  )}
-                                </span>
+                              <td style={{ fontVariantNumeric: "tabular-nums" }}>{fmtPremium(e.premium)}
+                                <span className={tapeStyles.sizeLine}>{e.size.toLocaleString("en-US")} {pick(lang, "ct", "张")}</span>
+                              </td>
+                              <td className={tapeStyles.flagsCell}>
+                                <span className={tapeStyles.wideFlags}>{flags}</span>
+                                <button type="button" className={tapeStyles.inspect} aria-expanded={expanded}
+                                  aria-controls={expanded ? detailId : undefined}
+                                  aria-label={`${pick(lang, "Print details", "成交详情")} · ${e.root} ${e.strike}${e.right} · ${e.exp}`}
+                                  onClick={event => { event.stopPropagation(); toggleDetails(); }}>
+                                  <svg aria-hidden="true" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="m4 6 4 4 4-4" /></svg>
+                                </button>
+                                {expanded && <div className={tapeStyles.printDetails} id={detailId} onClick={event => event.stopPropagation()}>
+                                  <dl>
+                                    <div><dt>{pick(lang, "Expiry", "到期日")}</dt><dd>{e.exp}</dd></div>
+                                    <div><dt>{t("colSize", "Size")}</dt><dd>{e.size.toLocaleString("en-US")}</dd></div>
+                                    <div><dt>{t("colDte", "DTE")}</dt><dd>{e.dte ?? "—"}</dd></div>
+                                    <div><dt>{t("colMny", "Mny")}</dt><dd>{moneyness}</dd></div>
+                                    <div><dt>{t("colSector", "Sector")}</dt><dd>{lang === "zh" ? e.group_zh : e.group}</dd></div>
+                                  </dl>
+                                  <div className={tapeStyles.detailFlags}>
+                                    <strong>{t("colFlags", "Flags")}</strong>
+                                    {flagged ? flags : pick(lang, "None reported", "未报告标记")}
+                                    {e.vol_gt_oi == null && <span>{pick(lang, "Volume vs OI unavailable", "成交量与持仓量比较不可用")}</span>}
+                                  </div>
+                                </div>}
                               </td>
                             </tr>
                           );
                         })}
                         {events.length > tapeLimit && (
                           <tr ref={tapeSentinelRef}>
-                            <td colSpan={10} style={{ textAlign: "center", padding: "8px", color: "var(--muted)", fontSize: 11 }}>
+                            <td colSpan={11} style={{ textAlign: "center", padding: "8px", color: "var(--muted)", fontSize: 11 }}>
                               {lang === "zh" ? `显示 ${tapeLimit} / ${events.length} 条 · 向下滚动加载更多` : `showing ${tapeLimit} of ${events.length} · scroll for more`}
                             </td>
                           </tr>
@@ -2848,7 +2918,8 @@ export default function OptionsHubView({
                       <button
                         key={u.root}
                         className={`flow-unusual-row${drillTicker === u.root ? " on" : ""}`}
-                        onClick={() => setDrillTicker((d) => (d === u.root ? null : u.root))}
+                        aria-pressed={drillTicker === u.root}
+                        onClick={() => toggleTapeRoot(u.root)}
                       >
                         <span className="flow-unusual-symbol">{u.root}</span>
                         <span className="flow-unusual-group">{lang === "zh" ? u.group_zh : u.group}</span>

@@ -43,7 +43,9 @@ for (const { query, pill, category } of CASES) {
       expect(m, `pill wtab-${key} present in SSR HTML`).not.toBeNull();
       return m![0];
     };
-    expect(pillTag(pill)).toContain('aria-selected="true"');
+    const selectedOption = html.match(new RegExp(`<option[^>]*value="${pill}"[^>]*>`))?.[0];
+    expect(selectedOption).toMatch(/\bselected\b/);
+    if (category !== "volatility") expect(pillTag(pill)).toContain('aria-selected="true"');
     expect(pillTag(`cat-${category}`)).toContain('aria-selected="true"');
     expect(pillTag("cat-flow")).toContain(
       category === "flow" ? 'aria-selected="true"' : 'aria-selected="false"',
@@ -51,7 +53,8 @@ for (const { query, pill, category } of CASES) {
 
     // 2) Hydrated cold load: both category and requested child view stay active.
     await page.goto(`/options?tab=${query}`);
-    await expect(page.locator(`#wtab-${pill}`)).toHaveAttribute("aria-selected", "true", { timeout: 15_000 });
+    await expect(page.locator(".options-ia-category-row select")).toHaveValue(pill);
+    if (category !== "volatility") await expect(page.locator(`#wtab-${pill}`)).toHaveAttribute("aria-selected", "true", { timeout: 15_000 });
     await expect(page.locator(`#wtab-cat-${category}`)).toHaveAttribute("aria-selected", "true");
     await expect(page).toHaveURL(new RegExp(`/options\\?tab=${query}$`));
     await page.screenshot({
@@ -115,7 +118,7 @@ test("Options follows query navigation and Back/Forward while retaining visited 
   await expect(page.locator("#wtab-gex")).toHaveAttribute("aria-selected", "true");
   await expect(page).toHaveURL(/tab=prism&root=QQQ&keep=original#details$/);
 
-  await page.locator("#wtab-cat-structure").click();
+  await page.locator(".options-ia-category-row select").selectOption("structure");
   await expect(structureRoot).toBeVisible();
   await expect(structureRoot).toHaveValue("IWM");
   await expect(page).toHaveURL(/tab=structure&root=QQQ&keep=original#details$/);

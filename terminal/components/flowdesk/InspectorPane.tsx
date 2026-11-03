@@ -22,6 +22,7 @@ import { pick, fmtDate } from "../../lib/finFormat";
 import type { Lang } from "../../lib/i18n";
 import { FD, detectionCopy, getFlowStr, makeFlowT, scoreComponentLabel } from "../../lib/flowdeskStrings";
 import { RingGauge } from "../ui/RingGauge";
+import layout from "./CommandResearch.module.css";
 import { PrintInspector } from "./PrintInspector";
 import type { EnrichEvent, FlowScore } from "./FeedPane";
 
@@ -57,6 +58,7 @@ interface TickerPayload {
 }
 
 export interface InspectorPaneProps {
+  onReturn?: () => void;
   event: FlowEvent | null;
   tickerCtx: TickerPayload | null;
   enrichEv: EnrichEvent | null;
@@ -113,27 +115,19 @@ const TICK_CAVEAT_ZH = "方向倾向基于逐笔规则推断——大小才是�
 
 // ─── Component ────────────────────────────────────────────────────────────
 
-export function InspectorPane({ event, tickerCtx, enrichEv, lang }: InspectorPaneProps) {
+export function InspectorPane({ event, tickerCtx, enrichEv, lang, onReturn }: InspectorPaneProps) {
   const zh = lang === "zh";
   const cardRef = useRef<HTMLDivElement>(null);
   const eventId = event?.id ?? null;
 
-  // Below 1000px the right rail is a horizontal strip and this card sits after
-  // Chain Heat, off to the right: a tapped print changed nothing on screen until
-  // the reader dragged the strip. Reveal the card inside the strip when the
-  // selection changes. Only the strip scrolls, never the page, so the feed the
-  // reader is picking from stays put; in the desktop column the strip has no
-  // horizontal overflow and this is a no-op. jsdom has no element `scrollTo`,
-  // hence the optional call.
+  // A print selection is a deliberate navigation. Focus its heading after the DOM
+  // updates; refreshing the same print leaves the reader's position untouched.
   useEffect(() => {
-    if (eventId == null) return;
-    const el = cardRef.current;
-    const strip = el?.parentElement;
-    if (!el || !strip || strip.scrollWidth <= strip.clientWidth + 1) return;
-    const left = el.getBoundingClientRect().left - strip.getBoundingClientRect().left + strip.scrollLeft;
-    const reduced = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-    strip.scrollTo?.({ left, behavior: reduced ? "auto" : "smooth" });
-  }, [eventId]);
+    const card = cardRef.current;
+    if (!card || !eventId || !onReturn) return;
+    card.focus({ preventScroll: true });
+    card.scrollIntoView?.({ block: "nearest", inline: "nearest" });
+  }, [eventId, onReturn]);
 
   if (!event) {
     // Blank-until-selection is a real state, so it says what a selection buys you
@@ -153,7 +147,12 @@ export function InspectorPane({ event, tickerCtx, enrichEv, lang }: InspectorPan
   }
 
   return (
-    <div ref={cardRef} className="obs-card obs-fd-inspector has-event" data-tut="flow-inspector">
+    <div ref={cardRef} tabIndex={-1} role="region" aria-label={`${event.root} · ${pick(zh, "Print inspector", "事件详情")}`}
+      className={`obs-card obs-fd-inspector has-event ${layout.inspector}`} data-tut="flow-inspector"
+      onKeyDown={(e) => { if (e.key === "Escape" && !e.defaultPrevented && onReturn) { e.preventDefault(); onReturn(); } }}>
+      {onReturn && <button type="button" className="command-return" onClick={onReturn}>
+        <span aria-hidden="true">←</span> {pick(zh, "Back to flow", "返回资金流")}
+      </button>}
       {/* Hero is OUTSIDE the scroller — identity stays on screen while the field
           breakdown below scrolls. */}
       <InspectorHero event={event} lang={lang} zh={zh} />
@@ -211,7 +210,7 @@ function InspectorHero({ event, lang, zh }: { event: FlowEvent; lang: Lang; zh: 
         <div className="obs-insp-hero-nums">
           <span className="obs-insp-hero-prem num">{fmtPrem(event.premium)}</span>
           <span className="obs-insp-hero-sub num">
-            {event.size.toLocaleString()}{pick(zh, " ct", " 张")} · {event.dte}d · {sideLean(event.side, zh)}
+            {event.size.toLocaleString()}{pick(zh, " ct", " 张")} · {event.dte}d · {fmtTs(event.ts)}
           </span>
         </div>
       </div>
@@ -230,14 +229,14 @@ function EventDetail({ event, zh, lang, tickerCtx, enrichEv }: { event: FlowEven
   return (
     <>
       {/* ── Score components — full-width bars, labels wrap instead of truncating ── */}
-      <div className="obs-insp-section">
+      {components.length > 0 && <div className="obs-insp-section">
         <div className="obs-insp-section-label obs-lbl">{t("inspectorComponents")}</div>
         <div className="obs-insp-comp-bars">
           {components.map((c) => (
             <ComponentBar key={c.key} component={c} lang={lang} t={t} />
           ))}
         </div>
-      </div>
+      </div>}
 
       {/* ── Session context (ticker day roll-up) — shown when tickerCtx available ── */}
       {tickerCtx && (
@@ -342,7 +341,7 @@ function EventDetail({ event, zh, lang, tickerCtx, enrichEv }: { event: FlowEven
       </div>
 
       {/* ── Ticker context (top contracts) ── */}
-      {tickerCtx && tickerCtx.top_contracts.length > 0 && (
+      {tickerCtx && Array.isArray(tickerCtx.top_contracts) && tickerCtx.top_contracts.length > 0 && (
         <div className="obs-insp-section">
           <div className="obs-insp-section-label obs-lbl">
             {pick(zh, `${tickerCtx.root} — Top Contracts`, `${tickerCtx.root} — 主要合约`)}

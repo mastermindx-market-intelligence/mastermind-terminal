@@ -34,8 +34,12 @@ for (const lang of ["en", "zh"] as const) {
     await bar.getByRole("button", { name: lang === "zh" ? "预设视图 ▾" : "Presets ▾" }).click();
     // The existing preset carries the inferred side filter into the shared view.
     await bar.locator(".menu-row").first().click();
+    const contractFilters = bar.locator("details").filter({ has: page.locator("summary", { hasText: lang === "zh" ? "合约筛选" : "Contract filters" }) });
+    await contractFilters.locator("summary").click();
     await bar.getByRole("button", { name: lang === "zh" ? "8–30天" : "8–30d", exact: true }).click();
     await bar.getByRole("button", { name: lang === "zh" ? "平值" : "ATM", exact: true }).click();
+    await contractFilters.locator("summary").click();
+    await expect(contractFilters.locator("summary")).toContainText(lang === "zh" ? "8–30天 · 平值" : "8–30d · ATM");
     await bar.locator("input").fill("nvda");
     await expect(exporter).toContainText("2");
     const premium = page.locator("table.scr th").filter({ hasText: lang === "zh" ? "权利金" : "Prem" }).last();
@@ -90,12 +94,35 @@ test("unsupported Tape links withhold results until explicit recovery", async ({
   await expect(invalid).toBeVisible();
   await expect(page.locator("table.scr")).toHaveCount(0);
   await expect(page.locator('[data-options-export="tape-csv-v1"]')).toHaveCount(0);
-  await invalid.getByRole("button").click();
+  await invalid.getByRole("link").click();
   await expect(invalid).toHaveCount(0);
   await expect(page.locator('[data-options-tape-view="share"]')).toBeVisible();
   expect(new URL(page.url()).searchParams.has("tapeView")).toBe(false);
 });
 
+
+test("the recovery link opens a clean Tape and preserves unrelated parameters", async ({ page }) => {
+  await page.goto("/options?tab=tape&keep=1&tapeView=invalid");
+  const recovery = page.getByRole("link", { name: "Open default Tape" });
+  await expect(recovery).toHaveAttribute("href", "?tab=tape&keep=1");
+  await recovery.click();
+  await expect(page).toHaveURL(/tab=tape&keep=1$/);
+  await expect(page.locator('[data-options-tape-view="invalid"]')).toHaveCount(0);
+});
+
+test("a session highlight replaces a conflicting ticker search", async ({ page }) => {
+  await page.goto("/options?tab=tape");
+  const search = page.locator("#options-tape-ticker-search");
+  await search.fill("ZZZZZZ");
+  const tools = page.locator(".flow-filter-bar details").filter({ has: page.locator("summary", { hasText: "Highlights" }) });
+  await tools.locator("summary").click();
+  const selected = tools.locator("button.hl-chip").first();
+  const ticker = await selected.locator(".hl-tk").innerText();
+  await selected.click();
+  await expect(search).toHaveValue("");
+  await expect(page.locator(".flow-drill-card")).toContainText(ticker);
+  await expect(page.locator("table.scr tbody tr").first().locator("td").nth(1)).toContainText(ticker);
+});
 
 test("client navigation restores a different shared view without resetting unrelated edits", async ({ page }) => {
   const viewUrl = (search: string) => `/options?${new URLSearchParams({ tab: 'tape', tapeView: encodeTapeView({ ...createDefaultTapeView(), tapeTickerSearch: search }) })}`;

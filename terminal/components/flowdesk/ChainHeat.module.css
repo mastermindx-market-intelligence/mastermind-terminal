@@ -1,0 +1,88 @@
+.heading {
+  display: grid;
+  gap: 6px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+}
+.headingLine, .identity, .proxyLine {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 5px 8px;
+}
+.count, .threshold, .expiry, .coverage {
+  font-size: 11px;
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-2);
+}
+.threshold { margin-left: auto; }
+.source {
+  padding-inline: 14px;
+  border-bottom: 1px solid var(--line);
+  color: var(--text-2);
+  font-size: 12px;
+}
+.source summary { width: fit-content; padding: 8px 0; cursor: pointer; }
+.source p { margin: 0; padding: 0 0 12px; line-height: 1.5; overflow-wrap: anywhere; }
+.campaign:global(.obs-fd-chain-row) { padding: 0; border-color: var(--line); }
+.contract {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 10px;
+  grid-template-areas: "identity premium toggle" "expiry expiry toggle";
+  align-items: center;
+  gap: 4px 8px;
+  min-height: 52px;
+  padding: 9px 14px;
+  cursor: pointer;
+  list-style: none;
+}
+.contract::-webkit-details-marker { display: none; }
+.contract:hover, .campaign[open] > .contract { background: var(--panel-2, var(--inset)); }
+.contract:focus-visible, .source summary:focus-visible, .tapeLink:focus-visible {
+  outline: 2px solid var(--brand-2);
+  outline-offset: -2px;
+}
+.identity { grid-area: identity; min-width: 0; overflow-wrap: anywhere; }
+.option { color: var(--text-2); font-size: 12px; font-variant-numeric: tabular-nums; }
+.premium { grid-area: premium; text-align: end; color: var(--text); font-size: 15px; font-variant-numeric: tabular-nums; }
+.expiry { grid-area: expiry; }
+.chevron {
+  grid-area: toggle;
+  width: 7px;
+  height: 7px;
+  border: solid var(--text-2);
+  border-width: 0 1.5px 1.5px 0;
+  transform: rotate(-45deg);
+}
+.campaign[open] .chevron { transform: rotate(45deg); }
+.breakdown {
+  display: grid;
+  min-width: 0;
+  gap: 6px;
+  padding: 4px 14px 10px;
+  background: var(--panel-2, var(--inset));
+}
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin: 0 0 3px;
+}
+.stats dt, .proxyLine { color: var(--text-2); font-size: 11px; }
+.stats dd { margin: 1px 0 0; color: var(--text); font-size: 12px; font-variant-numeric: tabular-nums; }
+.proxyLine { justify-content: space-between; }
+.proxyLine strong { color: var(--text); }
+.tapeLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  justify-self: start;
+  min-height: 32px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--brand-2);
+}
+@media (max-width: 999px) {
+  .source summary, .tapeLink { min-height: 44px; align-content: center; }
+}

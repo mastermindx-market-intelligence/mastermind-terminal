@@ -3,7 +3,7 @@
   background: var(--panel);
 }
 .nav :global(.options-ia-row) {
-  grid-template-columns: minmax(max-content, 5.5rem) minmax(0, 1fr);
+  grid-template-columns: minmax(max-content, 6.25rem) minmax(0, 1fr);
   gap: 12px;
   padding: 0 16px;
 }
@@ -138,19 +138,66 @@
   .workspace :global(.flow-filter-bar .chip) { white-space: nowrap; flex-shrink: 0; }
 }
 
-.navHint { display: none; }
+.activePanel {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+.viewPicker {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  min-width: 0;
+  min-height: 32px;
+  padding: 4px 8px;
+  color: var(--text);
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-md);
+  background: var(--panel-2);
+  font: 600 12px/1.25 var(--font-ui);
+  cursor: pointer;
+}
+.viewPicker:hover { border-color: var(--brand-2); }
+.viewPicker:focus-within { outline: 2px solid var(--brand-2); outline-offset: 2px; }
+.viewPicker select {
+  position: absolute;
+  inset: -1px;
+  width: calc(100% + 2px);
+  height: calc(100% + 2px);
+  opacity: 0;
+  cursor: pointer;
+}
+.pickerIcon { flex: none; width: 14px; color: var(--brand-2); }
+.pickerChevron { flex: none; width: 10px; color: var(--text-2); }
+.pickerLocation { display: none; }
+@media (max-width: 900px) {
+  .nav :global(.options-ia-category-row) {
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: 8px;
+  }
+}
+@media (pointer: coarse) {
+  .viewPicker { min-height: 44px; }
+}
 @media (max-width: 640px) {
-  .navHint {
+  .nav :global(.options-ia-category-row) {
     display: flex;
     align-items: center;
-    gap: 5px;
-    grid-column: 1 / -1;
-    margin: 0;
-    padding: 0 3px 5px;
-    color: var(--text-2);
-    font: 450 9px/1.4 var(--font-ui);
+    padding-block: 4px;
   }
-  .navHint > span { font-size: 12px; }
+  .nav :global(.options-ia-main) { width: auto; flex: none; }
+  .nav :global(.options-category-tabs) { display: none; }
+  .viewPicker { flex: 1; min-height: 44px; justify-content: flex-start; gap: 8px; }
+  .pickerCaption { display: none; }
+  .pickerLocation { min-width: 0; display: grid; gap: 1px; text-align: start; }
+  .pickerLocation small { color: var(--text-2); font: 500 10px/1.2 var(--font-ui); }
+  .pickerLocation strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pickerChevron { margin-inline-start: auto; }
 }
 
 .statisticsSummary { padding: 10px 0; color: var(--text-2); font-size: 11px; line-height: 1.6; }
@@ -161,6 +208,13 @@
 }
 .workspace :global(.scr-sort-action), .workspace :global(.scr-ticker-action) {
   background: none; border: 0; padding: 4px 0; font: inherit; color: inherit; cursor: pointer;
+}
+/* A sortable header is one hit target, including the space around its label. */
+.workspace :global(table.scr thead th:has(> .scr-sort-action)) { padding: 0; }
+.workspace :global(.scr-sort-action) { display: block; width: 100%; min-height: 34px; padding: 10px 16px; text-align: inherit; }
+.workspace :global(.scr-sort-action:focus-visible) { outline: 2px solid var(--brand-2); outline-offset: -2px; }
+@media (pointer: coarse) {
+  .workspace :global(.scr-sort-action) { min-height: 44px; }
 }
 .workspace :global(.scr-ticker-action) { color: var(--brand-2); }
 .workspace :global(.scr-ranking-note) { font-size: 12px; color: var(--text-2); }

@@ -69,6 +69,8 @@ it.each([
   ["?tab=0dte", "zero_dte", "flow"],
   ["?tab=screener", "screener", "flow"],
   ["?tab=unknown", "tape", "flow"],
+  ["?tab=constructor", "tape", "flow"],
+  ["?tab=__proto__", "tape", "flow"],
   ["", "tape", "flow"],
 ])("selects %s synchronously without rewriting its URL", async (query, expectedView, category) => {
   await navigate(query);
@@ -124,5 +126,29 @@ it("preserves unrelated query context and the Hub on category and internal drill
   });
   expect(url.hash).toBe("#details");
   expect(node.querySelector("[data-hub-instance]")).toBe(instance);
+  expect(hub.mounts).toBe(1);
+});
+
+it("offers every desk in its owning group and changes view without losing the existing path context", async () => {
+  await navigate("?tab=prism&root=QQQ#details");
+  const picker = node.querySelector<HTMLSelectElement>(".options-ia-category-row select")!;
+  expect(picker.value).toBe("gex");
+  expect([...picker.querySelectorAll("optgroup")].map(group => group.children.length)).toEqual([1, 7, 3, 1, 1, 1, 1]);
+  expect(node.querySelector("#options-active-view")?.getAttribute("aria-labelledby")).toBe("wtab-gex");
+
+  await act(async () => {
+    picker.value = "0dte";
+    picker.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+  await render();
+  expect(view()).toBe("zero_dte");
+  expect(picker.value).toBe("0dte");
+  expect(window.location.search + window.location.hash).toBe("?tab=0dte&root=QQQ#details");
+
+  const before = window.history.length;
+  await act(async () => node.querySelector<HTMLButtonElement>("#wtab-cat-flow")!.click());
+  await render();
+  expect(view()).toBe("zero_dte");
+  expect(window.history.length).toBe(before);
   expect(hub.mounts).toBe(1);
 });

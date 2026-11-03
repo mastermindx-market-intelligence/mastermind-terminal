@@ -19,7 +19,7 @@
 layoutFiles:
   terminal/app/workspace-chrome.css: "97e32bc24ed20479ea7b2e024ef6bc3883b9ead764098344f3ad4acea52b4bdd"
   terminal/app/layout.tsx: "9b675d52a647b4a92407958aa0ab7ffcc2632d95d003c89ca2eed2a1f4e35264"
-  terminal/components/OptionsHubView.tsx: "c8ec7b55c891971021d434d1db84df410787520d2cb6fecef8a509ee57ebf385"
+  terminal/components/OptionsHubView.tsx: "d2e1875ab038737cd6a917d07f46c6339f3245b2ab7ca73bcccafb7dce103b19"
   terminal/components/SearchModal.tsx: "5b3a466a06215231f1b458c382aaae268b4f2f9f206d6f985f312f603fa4a5aa"
   terminal/components/StockAnalysis.tsx: "376a907d0d8ea3dc5819e0092f02e19ce56fa1f4b71a3489551adf52fddb35c0"
   terminal/components/workspaces/AnalysisWorkspace.tsx: "411b8a7e498b8af3f9337fdcf3835dd62e6a5854826f414171d8303efd8aa5bb"
@@ -509,3 +509,16 @@ optionsWorkspaceRecapture:
     OptionsHubView-1440.png: "55b2bd35cd97573e2ee0d5f35379f53c810a2d5a855d2537eb524cfdedf15e76"
     OptionsHubView-390-zh.png: "e15179cb78919b2828907bc478c4d22622244eadf046a5d7c5ac3022193e2f79"
     OptionsHubView-390.png: "d8ac7fb11dbd8184e03a324243c4f8cfd614666f30722f2528d90e35df7bda36"
+commandDeskRecapture:
+  capturedAt: "2026-11-03T05:57:07.354772+00:00"
+  sourceBase: "7bd947615ce5c806197dd52305c6dbedc2198e24"
+  command: "capture_pl6_batch1.cjs, CAPTURE_ONLY=OptionsHubView, shared fixture server on 3521"
+  actualCases: 4
+  logSha256: "35bb4d4e384cab4f2881cc6a03aff450d8a37d8a955813b127f881956070c471"
+  sources:
+    terminal/components/OptionsHubView.tsx: "d2e1875ab038737cd6a917d07f46c6339f3245b2ab7ca73bcccafb7dce103b19"
+  crops:
+    OptionsHubView-1440-zh.png: "f58d65bd434f33d82b4e941514aa9c8484b5e1d50c5e1bc93f34b75ededbe1e8"
+    OptionsHubView-1440.png: "03418d9a9508b386edaaf853834e267e3ba07c2d51b9f3db8f832b0631f1ab57"
+    OptionsHubView-390-zh.png: "6502b4aabcba46a045eac71f21a0ae77abbb679795d0c89468603d3369252a1a"
+    OptionsHubView-390.png: "ea3efb7c0d5f962e366f091c8dc3c8fce1ae006ca8d1d9e288565b089c9a0e4e"

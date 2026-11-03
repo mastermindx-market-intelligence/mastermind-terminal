@@ -44,7 +44,7 @@ test("older flow can be inspected during an open exchange session", async ({ pag
   await expect(receipt).not.toContainText("Market closed");
   await receipt.getByText("Feed details", { exact: true }).click();
   await expect(receipt.getByText(/Observed cycle/)).toBeVisible();
-  await page.locator("#wtab-cat-structure").click();
+  await page.locator(".options-ia-category-row select").selectOption("structure");
   await expect(page.locator(".options-flow-status-row")).not.toContainText("as of");
   await expect(page.locator(".options-ia-view-row")).toHaveCount(0);
   const cards = page.locator(".options-research-pair > section");
@@ -92,6 +92,12 @@ test("the selected category stays inside the navigation rail after a window resi
   await active.click();
   await expect(active).toHaveAttribute("aria-selected", "true");
   await page.setViewportSize({ width: 390, height: 844 });
+  const picker = page.getByRole("combobox", { name: "Switch Options view" });
+  await expect(picker).toBeVisible();
+  await expect(picker).toHaveValue("prophet");
+  await expect(active).toBeHidden();
+  await page.setViewportSize({ width: 700, height: 900 });
+  await expect(active).toBeVisible();
   await expect.poll(() => active.evaluate((tab) => {
     const button = tab.getBoundingClientRect(), rail = tab.closest("nav")!.getBoundingClientRect();
     return button.left >= rail.left - 1 && button.right <= rail.right + 1;

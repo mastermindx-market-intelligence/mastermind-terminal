@@ -83,7 +83,7 @@ export default function OptionsWorkspace() {
   const rawTab = searchParams.get("tab");
   // Native history changes and Back/Forward update useSearchParams through
   // Next's router. Derive the view on every render so the URL stays authoritative.
-  const activeView = (rawTab && ROUTE_VIEW[rawTab]) || DEFAULT_VIEW;
+  const activeView = rawTab && Object.hasOwn(ROUTE_VIEW, rawTab) ? ROUTE_VIEW[rawTab] : DEFAULT_VIEW;
 
   // Redirected legacy destinations are handled before this component in normal
   // requests. Keep a client guard for a passthrough or stale cached route.
@@ -100,11 +100,12 @@ export default function OptionsWorkspace() {
     writeTabToUrl(pageKey);
   }, []);
 
+  const activeCategory = optionsCategoryForView(activeView);
   const onCategorySelect = useCallback((categoryTab: string) => {
     const category = CATEGORY_BY_TAB[categoryTab];
-    if (!category) return;
+    if (!category || category === activeCategory) return;
     selectView(OPTIONS_IA_BY_CATEGORY[category].defaultView);
-  }, [selectView]);
+  }, [activeCategory, selectView]);
 
   const onViewSelect = useCallback((pageKey: string) => {
     const view = ROUTE_VIEW[pageKey];
@@ -121,7 +122,6 @@ export default function OptionsWorkspace() {
     selectView(tab);
   }, [selectView]);
 
-  const activeCategory = optionsCategoryForView(activeView);
   const activeCategoryConfig = OPTIONS_IA_BY_CATEGORY[activeCategory];
   const activePageKey = activeView === "statistics"
     ? "statistics"
@@ -131,6 +131,11 @@ export default function OptionsWorkspace() {
     labelKey: view.labelKey,
   }));
 
+  const copy = optionsWorkspaceCopy(lang);
+  const viewLabel = t(activeView === "statistics" ? activeCategoryConfig.labelKey : OPTIONS_IA_VIEW_BY_KEY[activeView].labelKey);
+  const categoryLabel = t(activeCategoryConfig.labelKey);
+  const panelId = "options-active-view";
+
   return (
     <main
       className={`main2 options-workspace ${s.workspace}`}
@@ -139,13 +144,35 @@ export default function OptionsWorkspace() {
     >
       <header className={`options-ia-nav ${s.nav}`}>
         <div className="options-ia-row options-ia-category-row">
-          <span className="options-ia-row-label">{t("optionsIaCategoryLabel", "Category")}</span>
+          <label className={s.viewPicker}>
+            <svg className={s.pickerIcon} aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <rect x="2" y="2" width="4.5" height="4.5" rx="1" /><rect x="9.5" y="2" width="4.5" height="4.5" rx="1" />
+              <rect x="2" y="9.5" width="4.5" height="4.5" rx="1" /><rect x="9.5" y="9.5" width="4.5" height="4.5" rx="1" />
+            </svg>
+            <span className={s.pickerCaption} aria-hidden="true">{copy.allViews}</span>
+            <span className={s.pickerLocation} aria-hidden="true">
+              {categoryLabel !== viewLabel && <small>{categoryLabel}</small>}
+              <strong>{viewLabel}</strong>
+            </span>
+            <svg className={s.pickerChevron} aria-hidden="true" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="m2 4 4 4 4-4" /></svg>
+            <select aria-label={copy.switchView} value={activePageKey} aria-controls={panelId}
+              onChange={event => selectView(ROUTE_VIEW[event.currentTarget.value])}>
+              {OPTIONS_IA_CATEGORIES.map(category => (
+                <optgroup key={category.key} label={t(category.labelKey)}>
+                  {category.views.length ? category.views.map(view =>
+                    <option key={view.key} value={view.pageKey}>{t(view.labelKey)}</option>
+                  ) : <option value={category.defaultView}>{t(category.labelKey)}</option>}
+                </optgroup>
+              ))}
+            </select>
+          </label>
           <div className="options-ia-main">
             <WorkspaceTabs
               tabs={CATEGORY_TABS}
               active={`cat-${activeCategory}`}
               onSelect={onCategorySelect}
               aria-label={t("optionsCategoriesAria")}
+              panelId={panelId}
               className="options-category-tabs"
             />
             <Link href="/options/futures" data-testid="options-futures-link"
@@ -154,7 +181,6 @@ export default function OptionsWorkspace() {
             </Link>
             <OptionsWorkflowGuide activeView={activeView} onOpenView={selectView} />
           </div>
-          <p className={s.navHint} aria-hidden="true">{optionsWorkspaceCopy(lang).browseCategories} <span>↔</span></p>
         </div>
         {viewTabs.length !== 1 && <div className="options-ia-row options-ia-view-row">
           <span className="options-ia-row-label">{t("optionsIaViewLabel", "View")}</span>
@@ -164,26 +190,30 @@ export default function OptionsWorkspace() {
               active={activePageKey}
               onSelect={onViewSelect}
               aria-label={t("optionsViewsAria")}
+              panelId={panelId}
               className="options-view-tabs"
             />
           ) : (
             <div className={s.statisticsSummary} data-options-ia-gate="statistics-r3">
-              {optionsWorkspaceCopy(lang).statisticsSummary}
+              {copy.statisticsSummary}
             </div>
           )}
         </div>}
       </header>
 
-      {activeView === "statistics" ? (
-        <OptionsStatisticsView />
-      ) : (
-        <OptionsHubView
-          allowedTabs={RESEARCH_ALLOWED}
-          activeTab={activeView}
-          onTab={onHubTab}
-          hideTabStrip
-        />
-      )}
+      <div id={panelId} role="tabpanel" className={s.activePanel}
+        aria-labelledby={`wtab-${viewTabs.length > 1 ? activePageKey : `cat-${activeCategory}`}`}>
+        {activeView === "statistics" ? (
+          <OptionsStatisticsView />
+        ) : (
+          <OptionsHubView
+            allowedTabs={RESEARCH_ALLOWED}
+            activeTab={activeView}
+            onTab={onHubTab}
+            hideTabStrip
+          />
+        )}
+      </div>
     </main>
   );
 }

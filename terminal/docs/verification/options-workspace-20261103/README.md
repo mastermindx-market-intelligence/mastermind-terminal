@@ -2,6 +2,25 @@
 
 The reported journey starts in Options, compares flow at different points within a trading session, and moves into a desk to inspect a contract or price level. The initial Exposure repair is tracked in [#1243](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1243). This change follows the existing category, tab, replay and data owners.
 
+## From Command to a contract
+
+The [Options journey directory](https://app.paper.design/file/01M3NSZGE8JWN2EZCSF0DT05RM/p-2-0) groups discovery, investigation and follow-up. The [U05 print inspector](https://app.paper.design/file/01M5EPQ16VBT7SBW2NQVX2RJG4/p-2-0) pairs a stable feed with the selected contract. The [U08 phone study](https://app.paper.design/file/01M5FNCKAND6CBSJNYM5FZWR8Y/p-1-0) leads with the observation, then presents its supporting evidence. These are design references. The screenshots below show the implemented Terminal with repository fixture data.
+
+| Task | Desktop | Phone |
+| --- | --- | --- |
+| Find a desk and scan Command | [Flow Desk](command-desk-1440.webp) | [Flow Desk](command-desk-390.webp) |
+| Inspect a print, see its price and check how the side was inferred | [Selected print](command-print-1440.webp) | [Selected print](command-print-390.webp) |
+| Scan contracts and narrow the Tape | [Options Tape](tape-scan-1440.webp) | [Options Tape](tape-scan-390.webp) · [One print expanded](tape-print-detail-390.webp) |
+| Compare Chain Heat contracts | [Contract list](../../pr-crops/eod-heatmap-flowdesk-load-failure/chainheat-retried-1440.png) | [Contract list](../../pr-crops/eod-heatmap-flowdesk-load-failure/chainheat-retried-390.png) |
+
+The phone inspector can be compared on the same controlled print in the [previous build](https://github.com/mastermindx-market-intelligence/mastermind-terminal/blob/7bd947615ce5c806197dd52305c6dbedc2198e24/terminal/docs/pr-crops/options-r1-w3/flow-desk-inspector-390.png) and the [revised build](../../pr-crops/options-r1-w3/flow-desk-inspector-390.png). On the 390 × 844 Command desk, opening advanced filters previously left 70 CSS pixels for a 121-pixel print. In the revised layout the feed retained 357 pixels.
+
+- The view picker groups all 15 destinations. A second click on the active category keeps the current desk. Malformed and legacy links have explicit landing behavior.
+- In Command, select a print by pointer or keyboard. Its contract, premium, price and side estimate are visible first. Open **Print evidence** for arithmetic and source limitations. **Back to flow** restores focus to the originating print.
+- In Chain Heat, expand a contract to inspect timing, inferred lean and coverage. Open its ticker in Tape and use browser Back to return to the same expanded contract. The link applies the ticker filter across the Tape. Individual print matching would require a shared source identifier.
+- In Tape, open **Contract filters** for expiry and moneyness. Active values remain visible when it closes. Selecting a session highlight replaces a prior ticker search. On phone the compact row shows the contract and quantity, and **Details** exposes the full expiration, sector, moneyness and flags.
+- **0DTE** and **Largest Events** keep pagination and counts visible. Expand **How events are counted** for the aggregation method and source timestamp.
+
 ## User journeys and release checks
 
 | Desk | Behavior to exercise |

@@ -1,6 +1,7 @@
 "use client";
 
 import { useDeferredValue, useMemo, useRef, useState } from "react";
+import methodStyles from "./FlowEventMethod.module.css";
 import type { Lang } from "@/lib/i18n";
 import { pick } from "@/lib/finFormat";
 import { flowSideLabel, optionRightLabel, volAboveOiLabel } from "@/lib/plainLabels";
@@ -336,20 +337,19 @@ export function OptionsFlowBoardView({
           <button type="button" className="chip" disabled={currentPage === 0} onClick={() => changePage(currentPage - 1)}>{pick(lang === "zh", "Previous", "上一页")}</button>
           <button type="button" className="chip" disabled={currentPage + 1 >= pageCount} onClick={() => changePage(currentPage + 1)}>{pick(lang === "zh", "Next", "下一页")}</button>
         </nav>}
-        <span>
-          {pick(
-            lang === "zh",
-            "Display only · each row is one contract aggregate within a poll batch · premium = summed price × contracts × 100 · inferred side is still an estimate",
-            "仅供展示 · 每行是单轮询批次内单一合约的聚合事件 · 权利金 = 成交价 × 张数 × 100 的总和 · 推断方向仍为估计",
-          )}
-        </span>
+        <details className={methodStyles.method}>
+          <summary>{pick(lang === "zh", "How events are counted", "事件计数方式")}</summary>
+          <p>{pick(lang === "zh",
+            "One row groups prints for one contract in a feed batch. Premium sums price × contracts × 100. Side is estimated.",
+            "每行汇总一批数据中同一合约的成交。权利金为成交价 × 张数 × 100 的总和。方向为估计值。")}</p>
+          {feedAsof && <time dateTime={feedAsof}>{feedAsof}</time>}
+        </details>
         <span>
           {!events
             ? pick(lang === "zh", "Awaiting source", "等待数据源")
             : pageCount > 1
               ? `${start + 1}–${start + visibleEvents.length} / ${selectedEvents.length.toLocaleString("en-US")}`
               : (lang === "zh" ? `${selectedEvents.length.toLocaleString("en-US")} 条事件` : `${selectedEvents.length.toLocaleString("en-US")} events`)}
-          {feedAsof ? ` · ${feedAsof}` : ""}
         </span>
       </footer>
     </section>

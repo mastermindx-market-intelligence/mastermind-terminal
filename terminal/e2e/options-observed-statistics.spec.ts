@@ -33,7 +33,7 @@ for (const lang of ["en", "zh"]) {
     await expect(workspace.locator('[data-statistics-state="unavailable"]')).toBeVisible();
     await expect(workspace).toContainText(lang === "zh" ? "未知，并非为零" : "unknown, not zero");
     await expect(workspace).not.toContainText("$600.00");
-    await page.locator("#wtab-cat-flow").click();
+    await page.locator(".options-ia-category-row select").selectOption("tape");
     await expect(page).toHaveURL(/tab=tape/);
     await expect(workspace).toHaveCount(0);
   });

@@ -11,7 +11,7 @@
       "--workers=2",
       "--retries=0",
       "--reporter=list,json",
-      "--output=.next/options-ux-qa/visual-frozen-results"
+      "--output=.next/options-ux-qa/cmd-frozen-visual-results"
     ],
     "configFile": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/playwright.config.ts",
     "rootDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/e2e",
@@ -30,7 +30,7 @@
     "preserveOutput": "always",
     "projects": [
       {
-        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-ux-qa/visual-frozen-results",
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-ux-qa/cmd-frozen-visual-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -50,7 +50,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-ux-qa/visual-frozen-results",
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-ux-qa/cmd-frozen-visual-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -70,7 +70,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-ux-qa/visual-frozen-results",
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-ux-qa/cmd-frozen-visual-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -90,7 +90,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-ux-qa/visual-frozen-results",
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-ux-qa/cmd-frozen-visual-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -106,7 +106,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-ux-qa/visual-frozen-results",
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-ux-qa/cmd-frozen-visual-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -122,7 +122,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-ux-qa/visual-frozen-results",
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-ux-qa/cmd-frozen-visual-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -138,7 +138,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-ux-qa/visual-frozen-results",
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-ux-qa/cmd-frozen-visual-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -154,7 +154,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-ux-qa/visual-frozen-results",
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-ux-qa/cmd-frozen-visual-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -190,8 +190,8 @@
     "version": "1.61.1",
     "workers": 2,
     "webServer": {
-      "command": "npm run dev -- --hostname 127.0.0.1 --port 3498",
-      "url": "http://127.0.0.1:3498/terminal?symbol=NVDA",
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 3521",
+      "url": "http://127.0.0.1:3521/terminal?symbol=NVDA",
       "reuseExistingServer": true,
       "timeout": 120000,
       "env": {
@@ -232,12 +232,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 4053,
+                  "duration": 6526,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-03T04:20:21.890Z",
+                  "startTime": "2026-11-03T05:55:34.420Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -275,12 +275,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 1,
                   "status": "passed",
-                  "duration": 24745,
+                  "duration": 32461,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-03T04:20:21.882Z",
+                  "startTime": "2026-11-03T05:55:34.432Z",
                   "annotations": [
                     {
                       "type": "slow",
@@ -295,7 +295,7 @@
                     {
                       "name": "chart-context-en",
                       "contentType": "image/png",
-                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-ux-qa/visual-frozen-results/visual-intelligence-defaul-aa21e-erlays-and-persists-choices-desktop/attachments/chart-context-en-6f96bedec0912538646f79b8f4a212e28a4b1c86.png"
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-ux-qa/cmd-frozen-visual-results/visual-intelligence-defaul-aa21e-erlays-and-persists-choices-desktop/attachments/chart-context-en-6f96bedec0912538646f79b8f4a212e28a4b1c86.png"
                     }
                   ]
                 }
@@ -324,12 +324,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 10909,
+                  "duration": 17210,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-03T04:20:26.578Z",
+                  "startTime": "2026-11-03T05:55:41.270Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -358,12 +358,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6915,
+                  "duration": 9587,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-03T04:20:37.515Z",
+                  "startTime": "2026-11-03T05:55:58.521Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -389,15 +389,15 @@
               "projectName": "desktop",
               "results": [
                 {
-                  "workerIndex": 0,
-                  "parallelIndex": 0,
+                  "workerIndex": 1,
+                  "parallelIndex": 1,
                   "status": "passed",
-                  "duration": 9457,
+                  "duration": 8624,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-03T04:20:44.452Z",
+                  "startTime": "2026-11-03T05:56:07.185Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -423,15 +423,15 @@
               "projectName": "desktop",
               "results": [
                 {
-                  "workerIndex": 1,
-                  "parallelIndex": 1,
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 17534,
+                  "duration": 17854,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-03T04:20:47.261Z",
+                  "startTime": "2026-11-03T05:56:08.131Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -457,15 +457,15 @@
               "projectName": "desktop",
               "results": [
                 {
-                  "workerIndex": 0,
-                  "parallelIndex": 0,
+                  "workerIndex": 1,
+                  "parallelIndex": 1,
                   "status": "passed",
-                  "duration": 11534,
+                  "duration": 10888,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-03T04:20:53.938Z",
+                  "startTime": "2026-11-03T05:56:15.838Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -500,15 +500,15 @@
               "projectName": "desktop",
               "results": [
                 {
-                  "workerIndex": 1,
-                  "parallelIndex": 1,
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 14764,
+                  "duration": 14184,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-03T04:21:04.827Z",
+                  "startTime": "2026-11-03T05:56:26.080Z",
                   "annotations": [
                     {
                       "type": "slow",
@@ -552,15 +552,15 @@
               "projectName": "desktop",
               "results": [
                 {
-                  "workerIndex": 0,
-                  "parallelIndex": 0,
+                  "workerIndex": 1,
+                  "parallelIndex": 1,
                   "status": "passed",
-                  "duration": 14660,
+                  "duration": 13918,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-03T04:21:05.485Z",
+                  "startTime": "2026-11-03T05:56:26.744Z",
                   "annotations": [
                     {
                       "type": "slow",
@@ -595,21 +595,21 @@
               "projectName": "desktop",
               "results": [
                 {
-                  "workerIndex": 1,
-                  "parallelIndex": 1,
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 7298,
+                  "duration": 8066,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-03T04:21:19.634Z",
+                  "startTime": "2026-11-03T05:56:40.289Z",
                   "annotations": [],
                   "attachments": [
                     {
                       "name": "chart-context-zh",
                       "contentType": "image/png",
-                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-ux-qa/visual-frozen-results/visual-intelligence-Chines-75b9f-emains-keyboard-dismissible-desktop/attachments/chart-context-zh-9145df304dd245dc1f6cb456b7bc942972c2ebc3.png"
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-ux-qa/cmd-frozen-visual-results/visual-intelligence-Chines-75b9f-emains-keyboard-dismissible-desktop/attachments/chart-context-zh-9145df304dd245dc1f6cb456b7bc942972c2ebc3.png"
                     }
                   ]
                 }
@@ -636,14 +636,14 @@
               "results": [
                 {
                   "workerIndex": 2,
-                  "parallelIndex": 0,
+                  "parallelIndex": 1,
                   "status": "passed",
-                  "duration": 3558,
+                  "duration": 8468,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-03T04:21:22.004Z",
+                  "startTime": "2026-11-03T05:56:43.049Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -679,14 +679,14 @@
               "results": [
                 {
                   "workerIndex": 3,
-                  "parallelIndex": 1,
+                  "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 28712,
+                  "duration": 43294,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-03T04:21:28.198Z",
+                  "startTime": "2026-11-03T05:56:49.500Z",
                   "annotations": [
                     {
                       "type": "slow",
@@ -701,7 +701,7 @@
                     {
                       "name": "chart-context-en",
                       "contentType": "image/png",
-                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-ux-qa/visual-frozen-results/visual-intelligence-defaul-aa21e-erlays-and-persists-choices-tablet/attachments/chart-context-en-d068ce63195aa0f297764e1b0e280596ad33fb03.png"
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-ux-qa/cmd-frozen-visual-results/visual-intelligence-defaul-aa21e-erlays-and-persists-choices-tablet/attachments/chart-context-en-d068ce63195aa0f297764e1b0e280596ad33fb03.png"
                     }
                   ]
                 }
@@ -728,14 +728,14 @@
               "results": [
                 {
                   "workerIndex": 2,
-                  "parallelIndex": 0,
+                  "parallelIndex": 1,
                   "status": "passed",
-                  "duration": 13253,
+                  "duration": 14786,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-03T04:21:27.174Z",
+                  "startTime": "2026-11-03T05:56:51.894Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -762,14 +762,14 @@
               "results": [
                 {
                   "workerIndex": 2,
-                  "parallelIndex": 0,
+                  "parallelIndex": 1,
                   "status": "passed",
-                  "duration": 9108,
+                  "duration": 12233,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-03T04:21:40.454Z",
+                  "startTime": "2026-11-03T05:57:06.695Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -796,14 +796,14 @@
               "results": [
                 {
                   "workerIndex": 2,
-                  "parallelIndex": 0,
+                  "parallelIndex": 1,
                   "status": "passed",
-                  "duration": 9805,
+                  "duration": 10612,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-03T04:21:49.587Z",
+                  "startTime": "2026-11-03T05:57:18.952Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -829,15 +829,15 @@
               "projectName": "tablet",
               "results": [
                 {
-                  "workerIndex": 3,
+                  "workerIndex": 2,
                   "parallelIndex": 1,
                   "status": "passed",
-                  "duration": 17131,
+                  "duration": 19886,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-03T04:21:57.959Z",
+                  "startTime": "2026-11-03T05:57:29.591Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -863,15 +863,15 @@
               "projectName": "tablet",
               "results": [
                 {
-                  "workerIndex": 2,
+                  "workerIndex": 3,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 10034,
+                  "duration": 12692,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-03T04:21:59.475Z",
+                  "startTime": "2026-11-03T05:57:33.367Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -906,15 +906,15 @@
               "projectName": "tablet",
               "results": [
                 {
-                  "workerIndex": 2,
+                  "workerIndex": 3,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 11846,
+                  "duration": 10232,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-03T04:22:09.530Z",
+                  "startTime": "2026-11-03T05:57:46.220Z",
                   "annotations": [
                     {
                       "type": "slow",
@@ -958,15 +958,15 @@
               "projectName": "tablet",
               "results": [
                 {
-                  "workerIndex": 3,
+                  "workerIndex": 2,
                   "parallelIndex": 1,
                   "status": "passed",
-                  "duration": 13484,
+                  "duration": 13323,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-03T04:22:15.123Z",
+                  "startTime": "2026-11-03T05:57:49.498Z",
                   "annotations": [
                     {
                       "type": "slow",
@@ -1001,21 +1001,21 @@
               "projectName": "tablet",
               "results": [
                 {
-                  "workerIndex": 2,
+                  "workerIndex": 3,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6457,
+                  "duration": 5461,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-03T04:22:21.410Z",
+                  "startTime": "2026-11-03T05:57:56.476Z",
                   "annotations": [],
                   "attachments": [
                     {
                       "name": "chart-context-zh",
                       "contentType": "image/png",
-                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-ux-qa/visual-frozen-results/visual-intelligence-Chines-75b9f-emains-keyboard-dismissible-tablet/attachments/chart-context-zh-593f3cefa934c84d9df2bc38a570edcb325e993d.png"
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-ux-qa/cmd-frozen-visual-results/visual-intelligence-Chines-75b9f-emains-keyboard-dismissible-tablet/attachments/chart-context-zh-593f3cefa934c84d9df2bc38a570edcb325e993d.png"
                     }
                   ]
                 }
@@ -1044,12 +1044,12 @@
                   "workerIndex": 4,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2477,
+                  "duration": 6281,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-03T04:22:28.646Z",
+                  "startTime": "2026-11-03T05:58:03.296Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1087,12 +1087,12 @@
                   "workerIndex": 5,
                   "parallelIndex": 1,
                   "status": "passed",
-                  "duration": 23853,
+                  "duration": 28491,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-03T04:22:29.446Z",
+                  "startTime": "2026-11-03T05:58:05.153Z",
                   "annotations": [
                     {
                       "type": "slow",
@@ -1107,7 +1107,7 @@
                     {
                       "name": "chart-context-en",
                       "contentType": "image/png",
-                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-ux-qa/visual-frozen-results/visual-intelligence-defaul-aa21e-erlays-and-persists-choices-mobile/attachments/chart-context-en-a4de0098035fc1c9ab0273a416de102519c7b93a.png"
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-ux-qa/cmd-frozen-visual-results/visual-intelligence-defaul-aa21e-erlays-and-persists-choices-mobile/attachments/chart-context-en-a4de0098035fc1c9ab0273a416de102519c7b93a.png"
                     }
                   ]
                 }
@@ -1136,12 +1136,12 @@
                   "workerIndex": 4,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 14253,
+                  "duration": 13027,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-03T04:22:32.315Z",
+                  "startTime": "2026-11-03T05:58:12.618Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1170,12 +1170,12 @@
                   "workerIndex": 4,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5546,
+                  "duration": 9005,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-03T04:22:46.598Z",
+                  "startTime": "2026-11-03T05:58:25.665Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1204,12 +1204,12 @@
                   "workerIndex": 4,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5539,
+                  "duration": 7486,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-03T04:22:52.169Z",
+                  "startTime": "2026-11-03T05:58:34.716Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1238,12 +1238,12 @@
                   "workerIndex": 5,
                   "parallelIndex": 1,
                   "status": "passed",
-                  "duration": 18107,
+                  "duration": 18084,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-03T04:22:53.832Z",
+                  "startTime": "2026-11-03T05:58:35.397Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1272,12 +1272,12 @@
                   "workerIndex": 4,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 7583,
+                  "duration": 6552,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-03T04:22:57.722Z",
+                  "startTime": "2026-11-03T05:58:42.221Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1315,12 +1315,12 @@
                   "workerIndex": 4,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 9559,
+                  "duration": 9456,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-03T04:23:05.329Z",
+                  "startTime": "2026-11-03T05:58:48.783Z",
                   "annotations": [
                     {
                       "type": "slow",
@@ -1367,12 +1367,12 @@
                   "workerIndex": 5,
                   "parallelIndex": 1,
                   "status": "passed",
-                  "duration": 9850,
+                  "duration": 10674,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-03T04:23:11.956Z",
+                  "startTime": "2026-11-03T05:58:53.494Z",
                   "annotations": [
                     {
                       "type": "slow",
@@ -1410,18 +1410,18 @@
                   "workerIndex": 4,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5309,
+                  "duration": 6771,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-03T04:23:14.914Z",
+                  "startTime": "2026-11-03T05:58:58.247Z",
                   "annotations": [],
                   "attachments": [
                     {
                       "name": "chart-context-zh",
                       "contentType": "image/png",
-                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-ux-qa/visual-frozen-results/visual-intelligence-Chines-75b9f-emains-keyboard-dismissible-mobile/attachments/chart-context-zh-5cc6820e5fadec967da8d16af09b4ac2ca3c26e3.png"
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-ux-qa/cmd-frozen-visual-results/visual-intelligence-Chines-75b9f-emains-keyboard-dismissible-mobile/attachments/chart-context-zh-5cc6820e5fadec967da8d16af09b4ac2ca3c26e3.png"
                     }
                   ]
                 }
@@ -1439,8 +1439,8 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-11-03T04:20:01.464Z",
-    "duration": 200665.315,
+    "startTime": "2026-11-03T05:55:31.246Z",
+    "duration": 214187.577,
     "expected": 30,
     "skipped": 0,
     "unexpected": 0,

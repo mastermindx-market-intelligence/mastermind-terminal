@@ -37,6 +37,8 @@ const CHAINHEAT = {
   asof: "2026-09-17T14:00:00Z",
   session_date: "2026-09-17",
   threshold_mn: 3,
+  note_en: "Published source methodology",
+  note_zh: "来源统计方法",
   campaigns: [
     camp("AAPL", { category_proxy: { ...PROXY, share: 0.8, ...MASS } }),
     camp("MSFT", {
@@ -85,6 +87,12 @@ for (const lang of ["en", "zh"] as const) {
     await chain.scrollIntoViewIfNeeded();
     await expect(page.locator(".obs-fd-chain-row")).toHaveCount(8, { timeout: 30_000 });
 
+    const source = chain.locator("details").filter({ has: page.getByText(lang === "zh" ? "来源统计方法" : "Published source methodology", { exact: true }) });
+    await expect(source.locator("p")).toBeHidden();
+    await source.locator("summary").click();
+    await expect(source.locator("p")).toBeVisible();
+    await source.locator("summary").click();
+
     const unavail = lang === "zh" ? "不可用" : "unavailable";
     const cov = lang === "zh" ? "覆盖 4.0M / 5.0M" : "coverage 4.0M / 5.0M";
     const legacy = lang === "zh"
@@ -98,12 +106,22 @@ for (const lang of ["en", "zh"] as const) {
     expect(bounds).not.toBeNull();
     expect(bounds!.width).toBeGreaterThanOrEqual(280);
     expect(bounds!.height).toBeGreaterThanOrEqual(150);
-    await expect(valid.locator(".obs-fd-chain-caveat").last()).toBeVisible();
+    await expect(valid.locator(".obs-fd-chain-caveat")).toBeHidden();
+    const disclosure = valid.locator("summary");
+    await expect(disclosure).toContainText("2026-01-16");
+    expect((await disclosure.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    await disclosure.focus();
+    await page.keyboard.press("Enter");
+    await expect(valid.locator(".obs-fd-chain-caveat")).toBeVisible();
     await expect(valid).toContainText("80%");
     await expect(valid).toContainText(cov);
     await expect(valid).not.toContainText("99%");
     await expect(valid.locator(".obs-fd-chain-askbar-fill")).toHaveAttribute("style", /width:\s*80%/);
 
+    await expect(row(page, "MSFT").getByRole("link")).toHaveCount(0);
+    for (const ticker of ["MSFT", "NVDA", "TSLA", "META", "AMZN", "GOOG", "NFLX"]) {
+      await row(page, ticker).locator("summary").click();
+    }
     await expect(row(page, "MSFT")).toContainText(unavail);
     await assertNoFill(page, "MSFT");
 
@@ -125,6 +143,15 @@ for (const lang of ["en", "zh"] as const) {
     await assertNoFill(page, "NFLX");
     await expect(legNull).not.toContainText("42%");
 
+    for (const ticker of ["MSFT", "NVDA", "TSLA", "META", "AMZN", "GOOG", "NFLX"]) {
+      await row(page, ticker).locator("summary").click();
+    }
+    await valid.scrollIntoViewIfNeeded();
     await chain.screenshot({ path: info.outputPath(`${info.project.name}-${lang}-chainheat.png`) });
+    await valid.getByRole("link", { name: lang === "zh" ? /查看 AAPL 成交流/ : /View AAPL tape/ }).click();
+    await expect(page.locator(".flow-drill-card")).toContainText("AAPL");
+    await page.goBack();
+    await expect(row(page, "AAPL")).toHaveAttribute("open", "");
+    await expect(row(page, "AAPL").locator("summary")).toBeFocused();
   });
 }

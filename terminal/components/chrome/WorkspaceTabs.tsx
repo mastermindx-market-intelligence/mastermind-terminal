@@ -36,6 +36,8 @@ export interface WorkspaceTabsProps {
   /** Accessible name for the tablist (e.g. "Discover tabs"). */
   "aria-label"?: string;
   className?: string;
+  /** A workspace may keep one mounted panel for all destinations. */
+  panelId?: string;
 }
 
 export default function WorkspaceTabs({
@@ -44,6 +46,7 @@ export default function WorkspaceTabs({
   onSelect,
   "aria-label": ariaLabel,
   className,
+  panelId,
 }: WorkspaceTabsProps) {
   const t = useT();
   const { lang } = useLang();
@@ -131,7 +134,7 @@ export default function WorkspaceTabs({
             role="tab"
             id={`wtab-${tb.key}`}
             aria-selected={on}
-            aria-controls={`wpanel-${tb.key}`}
+            aria-controls={panelId ?? `wpanel-${tb.key}`}
             tabIndex={on ? 0 : -1}
             className={`obs-pillnav-tab${on ? " on" : ""}`}
             onClick={() => onSelect(tb.key)}
