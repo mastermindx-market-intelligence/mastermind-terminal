@@ -4,6 +4,7 @@ import { rateLimit, tooMany } from "@/lib/rateLimit";
 import { applyInvestigationRevision, listInvestigations, parseInvestigationCommand, readInvestigation, readInvestigationOperation, type InvestigationDb } from "@/lib/investigations";
 import { qualifyScenarioCaptureSave } from "@/lib/investigationScenarioServer";
 import { INVESTIGATION_ADMISSION } from "@/lib/investigations";
+import { investigationApiUnavailable } from "@/lib/investigationApiAdmission";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 const headers = { "Cache-Control": "private, no-store", "Vary": "Cookie" };
@@ -19,6 +20,8 @@ async function session(): Promise<{ db: InvestigationDb; userId: string } | null
   return { db: db as unknown as InvestigationDb, userId: user.id };
 }
 export async function GET(request: Request) {
+  const unavailable = investigationApiUnavailable();
+  if (unavailable) return unavailable;
   try {
     const authed = await session();
     if (!authed) return respond({ status: "unauthenticated" }, 401);
@@ -54,6 +57,8 @@ export async function GET(request: Request) {
   } catch { return respond({ status: "unavailable" }, 503); }
 }
 export async function POST(request: Request) {
+  const unavailable = investigationApiUnavailable();
+  if (unavailable) return unavailable;
   const limit = rateLimit(request, { name: "investigations-save", max: 30 });
   if (!limit.ok) {
     const response = tooMany(limit);

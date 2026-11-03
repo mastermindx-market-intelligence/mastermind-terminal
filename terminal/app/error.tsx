@@ -1,9 +1,29 @@
 "use client";
 // Segment-level error boundary — wraps all routes except the root layout itself.
 // LangProvider is available here (it lives in RootLayout above this boundary).
-import { useEffect } from "react";
+import { useEffect, useRef, useSyncExternalStore } from "react";
 import { useT } from "@/lib/i18n";
 import { BrandMark } from "@/components/BrandMark";
+import DashboardBackButton from "@/components/DashboardBackButton";
+import { backToMacro, safeMacroHref } from "@/lib/originNav";
+import styles from "./error-return.module.css";
+
+// An error can replace the chart's own chrome before its Back control mounts.
+// Only this load's explicit, validated return is authoritative here; a cached
+// dashboard visit must not turn an unrelated failure into a return handoff.
+function currentErrorReturn(): string {
+  if (typeof window === "undefined") return "";
+  const params = new URLSearchParams(window.location.search);
+  return safeMacroHref(params.get("ret") || params.get("return"));
+}
+const serverErrorReturn = () => "";
+function subscribeErrorReturn(onChange: () => void) {
+  const events = ["popstate", "hashchange", "mmx:shell-location"];
+  for (const event of events) window.addEventListener(event, onChange);
+  return () => {
+    for (const event of events) window.removeEventListener(event, onChange);
+  };
+}
 
 // Stale-chunk-after-deploy self-heal (Wave-1 INFRA, options-crash audit). When an old shell served
 // inside its SWR window resolves a lazy tab against a purged content-hashed chunk, Turbopack throws
@@ -52,10 +72,17 @@ export default function ErrorPage({
   unstable_retry: () => void;
 }) {
   const t = useT();
+  const returnHref = useSyncExternalStore(subscribeErrorReturn, currentErrorReturn, serverErrorReturn);
+  const returnRow = useRef<HTMLDivElement>(null);
   useEffect(() => {
     console.error("[ErrorBoundary]", error);
     tryChunkReload(error);
   }, [error]);
+  useEffect(() => {
+    if (returnHref && currentErrorReturn() === returnHref) {
+      returnRow.current?.querySelector<HTMLButtonElement>("button")?.focus({ preventScroll: true });
+    }
+  }, [returnHref]);
 
   return (
     <main className="center">
@@ -70,6 +97,13 @@ export default function ErrorPage({
             </span>
           )}
         </p>
+        {returnHref && <div className={styles.returnRow} ref={returnRow}>
+          <DashboardBackButton variant="mobile" returnHref={returnHref} onClick={() => {
+            // URL replacement may precede the next subscribed render. Never
+            // activate the previous target under the previous button label.
+            if (currentErrorReturn() === returnHref) backToMacro(returnHref);
+          }} />
+        </div>}
         <div className="cta">
           <button className="btn btn-primary" onClick={() => unstable_retry()}>
             {t("errRetry")}
