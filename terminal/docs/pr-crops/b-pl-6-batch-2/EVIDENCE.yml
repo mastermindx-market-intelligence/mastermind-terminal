@@ -6,11 +6,31 @@
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/components/GuidePanel.tsx: "edf89e1861d998371bfd7bdf67939228d3b194f57222d8b12aab3115633c2d41"
-  terminal/components/levels/LevelsView.tsx: "a3c1af0dd72065398cf40586ddff1919e47d091690707924a957a709b00ae0ef"
-  terminal/components/levels/LevelsLearn.tsx: "ca8923e68f511cb525db2bac1b41e9e1d93c3c1492cb345162085de1412cee05"
+  terminal/components/levels/LevelsView.tsx: "d200204df1cae5ee1401c152df8ce4992d5e88fa852d2505d6c64b1074128e17"
+  terminal/components/levels/LevelsLearn.tsx: "7e23b843cbf90176b22f482fb2dee2f523a8b9f1f37c0bd8a10f6bcaef9912cf"
   terminal/components/ChartConductor.tsx: "471a8972a8b8d4775abddc6a455dd50af0943fec18ad5a0a0c1a77243330d8b0"
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
   terminal/lib/i18n.tsx: "13f33e3178b105a64f1f5df35974cd99041ef06f05bdece95939dd07a8b9fe7c"
+levelsGuideNavigationQualification:
+  sourceBase: "a6a88081be25c37e7da59f2c9102fee5c5d20b82"
+  capturedAt: "2026-11-03T06:25:31.008584+00:00"
+  command: "CAPTURE_ONLY=LevelsView,LevelsLearn capture_pl6_batch2.cjs"
+  fixture: "Candidate Next development server, shared at port 3521; original browser cases and selectors"
+  actualCases: 8
+  logSha256: "17db53e5700c675b6557ac4dc0ea0c1c07bf1878d42da9778ce46ad69d4a9e4d"
+  sources:
+    terminal/components/levels/LevelsView.tsx: "d200204df1cae5ee1401c152df8ce4992d5e88fa852d2505d6c64b1074128e17"
+    terminal/components/levels/LevelsLearn.tsx: "7e23b843cbf90176b22f482fb2dee2f523a8b9f1f37c0bd8a10f6bcaef9912cf"
+    terminal/components/levels/levelsNavigation.ts: "c92295f5e11007a5cef612b0803120e69d20a2dcc0987834bbd2b6cafcc87807"
+  files:
+    LevelsLearn-1440-zh.png: "4d80312504f35723f62937424b0402eb33682325524d787e6bfd5fca112f8b67"
+    LevelsLearn-1440.png: "603e6794dc95d79e3d4d862213af788e956df6c11c8551e72f8e5fc9996d573f"
+    LevelsLearn-390-zh.png: "d71394c5f20eea3bb204b505615975d24826dcc28312d8d888eb93f5f17551e5"
+    LevelsLearn-390.png: "6a86954b5e3d84cc6c34ed6aafeb0600ae408114c678f7604e8fb1830731f197"
+    LevelsView-1440-zh.png: "cfb674c9d0bf128b64f951b64d3007fe0794f5fe7fa94b3a7121ac988425958c"
+    LevelsView-1440.png: "5b67406189c957d84e44d571c73a4a14aab1998ab3d9663aeb3f50c680120da0"
+    LevelsView-390-zh.png: "566ef4ad5cc8c6aa0a3d617090b3c6c7ebaa4ce017c91255123e1894b0443f56"
+    LevelsView-390.png: "dbe2d899a2fca3d51932f008b0735b326a20d154220a4824e7b0c1252b3c44d3"
 theme: dark
 languages: [en, zh]
 viewports:

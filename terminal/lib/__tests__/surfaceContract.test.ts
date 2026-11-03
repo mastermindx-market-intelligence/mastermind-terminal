@@ -16,6 +16,8 @@ import {
   toAbsolute,
   composeSessionSeries,
   topExpiriesForStrike,
+  readSurfaceExpiryMatrix,
+  matrixForSurfaceObservation,
   metricEnabled,
   expiryPanelState,
   buildStrikeSeries,
@@ -644,9 +646,60 @@ describe("buildStrikeSeries — one strike's session series + replay truncation"
     expect(buildStrikeSeries(null, 0, "netprem", null).points).toEqual([]);
     expect(buildStrikeSeries({ ...FRAME, time_steps: [] }, 2, "netprem", null).points).toEqual([]);
   });
-  it("coerces a non-finite cell to 0 (no NaN leaks into the chart)", () => {
-    const f: SurfaceFrame = { ...FRAME, grids: { netprem: [[NaN, 2, 3], [1, 2, 3], [1, 2, 3], [1, 2, 3], [1, 2, 3]] } };
-    expect(buildStrikeSeries(f, 0, "netprem", null).points[0]).toEqual({ t: "09:31", v: 0 });
+  it("retains null, non-finite, zero, and truncated columns with their original times", () => {
+    const values = [null, NaN, 0] as unknown as number[];
+    const full = { ...FRAME, grids: { netprem: [values] } };
+    expect(buildStrikeSeries(full, 0, "netprem", null).points).toEqual([
+      { t: "09:31", v: null }, { t: "09:41", v: null }, { t: "09:51", v: 0 },
+    ]);
+    const truncated = { ...FRAME, grids: { netprem: [[5]] } };
+    expect(buildStrikeSeries(truncated, 0, "netprem", null)).toMatchObject({
+      points: [{ t: "09:31", v: 5 }, { t: "09:41", v: null }, { t: "09:51", v: null }],
+      nowT: "09:51", nowValue: null, total: 3,
+    });
+    expect(buildStrikeSeries(truncated, 0, "netprem", 1)).toMatchObject({ nowT: "09:41", nowValue: null });
+  });
+});
+
+describe("Surface expiry context keeps the matrix root, session and publication clock", () => {
+  const session = "2026-07-06";
+  const frame = { ...FRAME, session_date: session, root: "SPY" };
+  const cell = { strike: 100, expiry: "2026-07-17", gex: -300 };
+  const matrix = {
+    schema: "options_structure.matrix/v1", root: "SPY", session,
+    asof: "2026-07-06T09:50:00-04:00", cells: [cell],
+  };
+  function qualified(raw: unknown, target = frame, archived = false) {
+    return matrixForSurfaceObservation(readSurfaceExpiryMatrix(raw, "SPY"), "SPY", target, archived);
+  }
+
+  it("preserves signed and measured-zero cells without fabricating invalid dollar amounts", () => {
+    const cells = [cell, { ...cell, expiry: "2026-07-24", gex: 0 },
+      { ...cell, expiry: "2026-07-31", gex: null }, { ...cell, expiry: "2026-08-07", gex: "" }];
+    expect(qualified({ ...matrix, session: undefined, _build_meta: { asof_date: session }, cells })).toBeNull();
+    const { session: omitted, ...withoutSession } = matrix;
+    expect(qualified({ ...withoutSession, _build_meta: { asof_date: session }, cells })?.cells).toEqual(cells.slice(0, 2));
+    expect(qualified(matrix)?.session).toBe(session);
+  });
+
+  it("refuses missing or conflicting dates, wrong root, duplicates and unknown build instants", () => {
+    for (const raw of [
+      { ...matrix, session: null }, { ...matrix, session: "2026-02-30" },
+      { ...matrix, _build_meta: { asof_date: "2026-07-07" } }, { ...matrix, root: "QQQ" },
+      { ...matrix, cells: [cell, cell] }, { ...matrix, asof: "2026-07-06" },
+      { ...matrix, asof: "2026-07-06T09:50:00" }, { ...matrix, asof: "2026-02-30T12:00:00Z" },
+    ]) expect(qualified(raw)).toBeNull();
+    expect(matrixForSurfaceObservation(readSurfaceExpiryMatrix(matrix, "SPY"), "QQQ", frame, false)).toBeNull();
+  });
+
+  it("withholds an archive, a different source session, or a build later than the held observation", () => {
+    expect(qualified(matrix, frame, true)).toBeNull();
+    expect(qualified(matrix, { ...frame, session_date: "2026-07-07" })).toBeNull();
+    expect(qualified({ ...matrix, asof: "2026-07-06T13:51:01Z" })).toBeNull();
+    const rebuilt = { ...frame, asof: "2026-07-07T00:30:00Z" };
+    expect(qualified({ ...matrix, asof: "2026-07-06T19:30:00Z" }, rebuilt)).toBeNull();
+    expect(qualified({ ...matrix, asof: "2026-07-05T19:00:00Z" })).toBeNull();
+    expect(qualified(matrix, { ...frame, asof: "09:51" })).toBeNull();
   });
 });
 

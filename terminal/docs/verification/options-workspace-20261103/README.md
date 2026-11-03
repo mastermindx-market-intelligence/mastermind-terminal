@@ -2,6 +2,17 @@
 
 The reported journey starts in Options, compares flow at different points within a trading session, and moves into a desk to inspect a contract or price level. The initial Exposure repair is tracked in [#1243](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1243). This change follows the existing category, tab, replay and data owners.
 
+## Follow a strike or ticker across desks
+
+| Journey | Observed behavior | Browser evidence |
+| --- | --- | --- |
+| Surface → strike | Open **Inspect strike** or tap a price on the heatmap. The dialog opens on a stored observation, shows its session and measurement, and lets the user change strikes. A missing measurement displays a dash and a measured zero retains its value. Pinning and price-alert setup use the selected strike. | [Desktop](surface-strike-1440.webp) · [Phone](surface-strike-390.webp) |
+| Screener → Tickers | Switching symbols replaces all three reads. A late reply for the last symbol cannot change the current ticker. Ticker flow, volatility and activity can recover independently. Charts and contract rows fit inside the phone viewport. | [Desktop](ticker-drill-1440.webp) · [Phone](ticker-drill-390.webp) |
+| Levels → guide → Levels | The guide identifies the return symbol and restores its board. Keyboard navigation, Back and Forward preserve the ticker. Invalid or ambiguous symbol links open the default SPY board. | [Phone guide](levels-guide-390.webp) |
+| Exposure → Command → Back | A local preview combined this navigation with the companion Exposure ladder. It showed 12 complete strikes at 1440 × 900, five at 1280 × 720, 18 at 820 × 1180 and six at 390 × 844, both on entry and after Back. Market State had zero internal vertical overflow at all four sizes. | [Phone ladder](combined-exposure-390.webp) · [Phone Market State](combined-market-state-390.webp) |
+
+The inspector's numeric GEX breakdown requires a matching root, a matching source session and a publication clock no later than the inspection. The price alert uses the existing alerts service. Its browser test intercepted the request and checked the selected direction and strike with fixture data.
+
 ## From Command to a contract
 
 The [Options journey directory](https://app.paper.design/file/01M3NSZGE8JWN2EZCSF0DT05RM/p-2-0) groups discovery, investigation and follow-up. The [U05 print inspector](https://app.paper.design/file/01M5EPQ16VBT7SBW2NQVX2RJG4/p-2-0) pairs a stable feed with the selected contract. The [U08 phone study](https://app.paper.design/file/01M5FNCKAND6CBSJNYM5FZWR8Y/p-1-0) leads with the observation, then presents its supporting evidence. These are design references. The screenshots below show the implemented Terminal with repository fixture data.

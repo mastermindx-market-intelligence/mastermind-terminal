@@ -60,3 +60,54 @@
 .replay :global(.obs-surf-replay-rail-head) strong { color: var(--text); font-size: 12px; }
 
 .landmark { position: absolute; top: 10px; bottom: 10px; min-width: 1px; border-radius: 3px; background: color-mix(in srgb, var(--signal) 12%, transparent); }
+
+.inspectStrike, .strikeLabel select {
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-md);
+  background: var(--inset);
+  color: var(--text);
+  font: 600 12px/1.25 var(--font-ui);
+  cursor: pointer;
+}
+.inspectStrike { padding: 6px 10px; pointer-events: auto; }
+.inspectStrike:disabled { opacity: .45; cursor: default; }
+.inspectStrike:focus-visible, .strikeDialog :focus-visible { outline: 2px solid var(--brand-2); outline-offset: 2px; }
+.strikeDialog:global(.obs-modal) {
+  color: var(--text); margin: auto; padding: 0;
+  width: min(740px, calc(100vw - 24px)); max-height: min(88dvh, 760px);
+  border-color: var(--line-2); background: var(--panel);
+}
+.strikeDialog:not([open]) { display: none; }
+.strikeDialog::backdrop { background: rgb(6 8 12 / 70%); }
+.inspectionHead {
+  display: grid; align-items: center; grid-template-columns: minmax(0, 1fr) auto auto; gap: 2px 12px;
+  grid-template-areas: "context value close" "strike value close";
+  padding: 12px 16px; border-bottom: 1px solid var(--line);
+}
+.inspectionContext { grid-area: context; }
+.inspectionContext time { white-space: nowrap; }
+.inspectionHead > button { grid-area: close; justify-self: end; }
+.escapeHint { margin-inline-start: auto; color: var(--muted); }
+.strikeLabel { grid-area: strike; display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.strikeLabel > span, .inspectionValue > span { font-size: 12px; color: var(--text-2); }
+.strikeLabel select { padding: 4px 8px; font: 650 16px/1.2 var(--font-num); }
+.inspectionValue { grid-area: value; display: grid; gap: 4px; justify-items: end; margin-inline-start: auto; }
+.inspectionValue strong { font: 650 18px/1.2 var(--font-num); }
+@media (max-width: 820px) {
+  .inspectStrike, .strikeLabel select, .strikeDialog :global(.obs-modal-close), .strikeDialog :global(.obs-modal-actions button) { min-height: 44px; }
+  .inspectionHead { grid-template-columns: minmax(0,1fr) auto; grid-template-areas: "context close" "strike value"; gap: 4px 8px; padding: 8px 12px; }
+  .inspectionValue > span { text-align: end; }
+  .strikeDialog:global(.obs-modal) { max-height: calc(100dvh - 20px); }
+}
+
+.matrixBasis { display: block; color: var(--text-2); font-size: 12px; margin-bottom: 6px; }
+.alertDetails { min-width: 0; color: var(--text-2); }
+.alertDetails summary { width: fit-content; padding: 6px 8px; cursor: pointer; }
+.alertDetails[open] { flex-basis: 100%; }
+.alertCondition { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 6px; }
+.alertCondition select { padding: 4px 8px; background: var(--inset); color: var(--text); border: 1px solid var(--line-2); border-radius: var(--r-md); font: inherit; }
+@media (max-width: 820px) {
+  .alertDetails summary, .alertCondition select { min-height: 44px; align-content: center; }
+}
+
+@media (pointer: coarse) { .escapeHint { display: none; } }

@@ -13,7 +13,7 @@ layoutFiles:
   terminal/components/gexdesk/gexStrings.ts: "15fb1e6b89725ae7bf5762b3b0cd9749e85331f6733c34efc710979430132d7b"
   terminal/components/heatmap/HeatmapView.tsx: "3b3ab5049715a33f167e344d3013b8f880356e8b96077b38c9a517c57b7a54cb"
   terminal/lib/dataCache.ts: "f8a7f978049e64482b385d43c13d49d05ddec2525e36457b365a2d083060e1be"
-  terminal/components/levels/LevelsView.tsx: "a3c1af0dd72065398cf40586ddff1919e47d091690707924a957a709b00ae0ef"
+  terminal/components/levels/LevelsView.tsx: "d200204df1cae5ee1401c152df8ce4992d5e88fa852d2505d6c64b1074128e17"
   terminal/components/levels/levelsLabels.ts: "361124ec9293623fefe69128212f5a25bfddf2c3d716252126d56ec5f356d0d9"
   terminal/lib/heatmapStrings.ts: "26bb75eccce7429e5a37154f07f7f68faf9652da1f6f3560074cb558f0dda9c2"
 optionsWorkspaceRecapture:
@@ -49,6 +49,41 @@ optionsWorkspaceRecapture:
     levels-unavailable-390.png: "bd6189a660cfb51cf87f09d985e72eddcccc8226918fee5c020cb8bb39e4f59b"
     levels-unavailable-820-zh.png: "284b73019b3529db5c2d11085ea4ae442761bea605046eaa692f67e76936d2ac"
     levels-unavailable-820.png: "0ca0f54f25587b629cc9de5b7f2d3526756e925ffd650391f6f3f37cec344f34"
+levelsGuideNavigationQualification:
+  sourceBase: "a6a88081be25c37e7da59f2c9102fee5c5d20b82"
+  capturedAt: "2026-11-03T06:23:30.684703+00:00"
+  command: "CAPTURE_ONLY=^levels- capture_gex_levels_heatmap_load_failure.cjs"
+  fixture: "Candidate Next development server, shared at port 3521; original browser cases and selectors"
+  actualCases: 24
+  logSha256: "da9bba2b65f8fcc86834e06ce12edadfda48bd42fb0b605d8d6ce5290e4bc813"
+  sources:
+    terminal/components/levels/LevelsView.tsx: "d200204df1cae5ee1401c152df8ce4992d5e88fa852d2505d6c64b1074128e17"
+    terminal/components/levels/levelsNavigation.ts: "c92295f5e11007a5cef612b0803120e69d20a2dcc0987834bbd2b6cafcc87807"
+  files:
+    levels-absent-1440-zh.png: "0c0587f788de411b21b079d8969d068fc3a4e81eb236c35cca210d5eecb350eb"
+    levels-absent-1440.png: "cdca3d17829f77f1162c0ba8310963306451aad5e1f4e597b2b48ff024e30491"
+    levels-absent-390-zh.png: "0e389eb5398f1e512a1f6aa675ea7dc0621cd11afbbcf60caa86e7fa449d6217"
+    levels-absent-390.png: "20c95c59e4180fc748f228a36a7c40d779e88a969a185c65d46be0377cfb7467"
+    levels-absent-820-zh.png: "24f667b8b9a1d642b297150482236fe2ee6eadbfb62139f39667d869dd842be1"
+    levels-absent-820.png: "4473bcc3d6a3f4099a01e695b0907f2a9a3093ce1ebf9970e1764d5efd63b87e"
+    levels-refresh-failed-1440-zh.png: "a57164b2fada3b229d2b4f5a887c35ad1b20c430391fbf091def8d4115a4589f"
+    levels-refresh-failed-1440.png: "507422334429eb457e050ed17ebf99ec6064123f6c0725886b6a3fdd664ce9ae"
+    levels-refresh-failed-390-zh.png: "e65f5ffa90d3e00f231a57504d64e51ba4df85f7b322291c76b40035d1e1c023"
+    levels-refresh-failed-390.png: "7d13a37b3d440f0e98823ac8000cd29249235fa6fedebc6bb1d073b0f2bb20bb"
+    levels-refresh-failed-820-zh.png: "90d8eca3bb76aba4bc6b9b11f43105be95dbda36a3c17fe7d92f8cddd892f54f"
+    levels-refresh-failed-820.png: "ae73a27cdb8454e9ac587446dacbf57a89848d39ba9d6ffcf198fd5ecf681c01"
+    levels-retried-1440-zh.png: "f48adbf6e76e10beb6f453338ce6cbd7206ef1720185f6e641431249b900c6b6"
+    levels-retried-1440.png: "4413c8b0558622fe3c7bcded10e836cc00c44b7b4a0d72b3f3c5b751713eedb7"
+    levels-retried-390-zh.png: "38877cfb4dfdd90a7779811034a470969663f85d69a6f7fbe1d29f9dc5fd3a32"
+    levels-retried-390.png: "08fcded9bb0cfdb64175390f3b5c733cbfa5a8f4246e44376884d621bf38af41"
+    levels-retried-820-zh.png: "a13e4e7147e7a0bc89e3a3ca4aac447c7cc2af32639f3fdd8026f4f89a3a4bac"
+    levels-retried-820.png: "811458dc92352abb17a556bc4d4264346f31d0ad45d6784f2b7db500098593e8"
+    levels-unavailable-1440-zh.png: "c657ddc3dceef6e3dfefe5d5f52d26782c0344873d762a56b2d0dddd189d83cb"
+    levels-unavailable-1440.png: "7d8001a05f02717158d26c0f69b54e209abc2e8099289b57d4419201a02c5961"
+    levels-unavailable-390-zh.png: "189cdb968950fc9db8b04bf390a32a36b98fac802d907ff72f2e28667bbd2fdb"
+    levels-unavailable-390.png: "61154466ce9b676c0ee5eaac6dc885b2ecf07008b4288fbdb3c774ed4931a8fa"
+    levels-unavailable-820-zh.png: "24d2fd128f84d8e471752fd212ca30b0fe1639758a0ab66bf94ae233926080ae"
+    levels-unavailable-820.png: "baf0d252ef54e5919b7366239d4ae7849d318da89352ad62b8a96a262f237edc"
 theme: dark
 languages: [en, zh]
 viewports:

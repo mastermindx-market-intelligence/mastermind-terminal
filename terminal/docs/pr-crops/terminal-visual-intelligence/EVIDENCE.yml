@@ -60,7 +60,7 @@ layoutFiles:
   terminal/lib/sharedShellContracts.ts: "dc7c893852c287b2a18c6b71cbced07bfa0996c1168490c5a8c24e4d3de01266"
   terminal/app/company-intelligence.css: "8b43f2046891837f6572fa2a59b7594547def9602b0454e1f14edba322da2a34"
   terminal/components/DayRange.tsx: "c84724652783da1897ab4eeb98550eaf3dbd7942eefe3ce127b6ada2b16dd672"
-  terminal/components/OptionsHubView.tsx: "d2e1875ab038737cd6a917d07f46c6339f3245b2ab7ca73bcccafb7dce103b19"
+  terminal/components/OptionsHubView.tsx: "44b4889738d258d69af37b0a00ad9e152290a3aa950bd076b1e829972666d7a3"
   terminal/components/SearchModal.tsx: "5b3a466a06215231f1b458c382aaae268b4f2f9f206d6f985f312f603fa4a5aa"
   terminal/components/StockAnalysis.tsx: "376a907d0d8ea3dc5819e0092f02e19ce56fa1f4b71a3489551adf52fddb35c0"
   terminal/components/workspaces/AnalysisWorkspace.tsx: "411b8a7e498b8af3f9337fdcf3835dd62e6a5854826f414171d8303efd8aa5bb"
@@ -72,12 +72,12 @@ layoutFiles:
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
   terminal/lib/flowActivity.ts: "eb1433e57c7b63a52978aa4e63419e62b3e1a0e0210869f93838a8b7529ce332"
 cropFiles:
-  desktop-context.png: "7e350e0ac6ea87fe833b051c3cbd6af4074f33eb6f0570a9c550327f20acce12"
-  desktop-context-zh.png: "703bf013bea8e92b54b109895b7563635f7a157d336cf6f86a232bff49141730"
+  desktop-context.png: "a81e0d1fd7ac383275c5a233931195e5c91f45a0ce61985a8892618007b3fe05"
+  desktop-context-zh.png: "243de7f435a9b2bf80e46286af405145a400e6541c548c916e89a79806c9b262"
   mobile-context.png: "4bb912458a311faed7e779e24dffda3907ce5af4eec95dbc1a9f21ae3978bbe7"
   mobile-context-zh.png: "e405b67dd7664ccbe130e97c455a536b24e7b85ab51af9f96ec135e030608622"
   tablet-context.png: "4980ef7d1881bf573b82c73e65048eb3f6f1298abfddba8c79d8139d81c65b00"
-  tablet-context-zh.png: "546cf355154124c8086997539ffdf3ae5d5915e6c6dd9e98aabad4e32bdbc8d1"
+  tablet-context-zh.png: "5278387301c027e7e3c0ae0c96f0b6a233ef43243208936437d7bdf84855fd5a"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -100,8 +100,8 @@ browserResults:
   visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases
 browserReportPath: browser-report.json
 browserReportHashes:
-  visualReport: "a1966797b23ec3237a44b5049e0bc39005f951860646636b81171a2266819a0b"
-  mobileCrosshairReport: "a1966797b23ec3237a44b5049e0bc39005f951860646636b81171a2266819a0b"
+  visualReport: "fbeff25815a2c2fea92f11d9dac230b02482906a0af71c873b97cc64a6d0671d"
+  mobileCrosshairReport: "fbeff25815a2c2fea92f11d9dac230b02482906a0af71c873b97cc64a6d0671d"
 drawingDockRecapture:
   sourceHead: 8a3135bc6eaa307f3d581223e70471df8de49d95
   reason: DrawingSidebar.tsx and TerminalShell.tsx changed so the drawing dock's group button follows the tool the shell actually armed
@@ -743,3 +743,8 @@ commandDeskQualification:
   successfulCases: 30
   reportSha256: "a1966797b23ec3237a44b5049e0bc39005f951860646636b81171a2266819a0b"
   hubSha256: "d2e1875ab038737cd6a917d07f46c6339f3245b2ab7ca73bcccafb7dce103b19"
+
+tickerDrillQualification:
+  successfulCases: 30
+  reportSha256: "fbeff25815a2c2fea92f11d9dac230b02482906a0af71c873b97cc64a6d0671d"
+  hubSha256: "44b4889738d258d69af37b0a00ad9e152290a3aa950bd076b1e829972666d7a3"

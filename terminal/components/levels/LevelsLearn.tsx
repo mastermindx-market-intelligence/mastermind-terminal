@@ -7,7 +7,9 @@
  * The whole point is honesty: this teaches what the map is AND what it is not.
  */
 
-import React from "react";
+import React, { Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+import { levelsSymbol } from "./levelsNavigation";
 import Link from "next/link";
 import { BrandLockup } from "@/components/BrandMark";
 import { useT } from "@/lib/i18n";
@@ -96,15 +98,37 @@ function lessons(t: (key: string) => string): Lesson[] {
   ];
 }
 
+interface BoardLinkProps {
+  style: React.CSSProperties;
+  children: React.ReactNode;
+  showSymbol?: boolean;
+}
+
+function ResolvedBoardLink({ style, children, showSymbol }: BoardLinkProps) {
+  const root = levelsSymbol(useSearchParams());
+  const href = root ? `/options?tab=levels&symbol=${encodeURIComponent(root)}` : "/options?tab=levels";
+  return <Link href={href} style={style}>
+    {children}{showSymbol && root && <span style={{ fontFamily: "var(--font-mono)" }}>{` · ${root}`}</span>}
+  </Link>;
+}
+
+function BoardLink({ style, children, showSymbol }: BoardLinkProps) {
+  // The lessons stay statically rendered and cacheable. Bind just their links
+  // to the requested symbol before offering a destination.
+  return <Suspense fallback={<span style={style}>{children}</span>}>
+    <ResolvedBoardLink style={style} showSymbol={showSymbol}>{children}</ResolvedBoardLink>
+  </Suspense>;
+}
+
 export function LevelsLearn() {
   const t = useT();
   return (
     <div style={PAGE}>
       <header style={TOPBAR}>
-        <Link href="/options?tab=levels" style={{ textDecoration: "none" }}>
+        <BoardLink style={{ textDecoration: "none" }}>
           <BrandLockup />
-        </Link>
-        <Link href="/options?tab=levels" style={BACK_LINK}>{t("llBack")}</Link>
+        </BoardLink>
+        <BoardLink style={BACK_LINK} showSymbol>{t("llBack")}</BoardLink>
       </header>
 
       <main style={MAIN}>
@@ -131,7 +155,7 @@ export function LevelsLearn() {
         </ol>
 
         <div style={FOOT}>
-          <Link href="/options?tab=levels" style={FOOT_CTA}>{t("llOpenBoard")}</Link>
+          <BoardLink style={FOOT_CTA} showSymbol>{t("llOpenBoard")}</BoardLink>
           <span style={FOOT_NOTE}>{t("llFootNote")}</span>
         </div>
       </main>
