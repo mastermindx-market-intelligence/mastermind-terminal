@@ -122,6 +122,7 @@ export async function authenticateApiKey(
   request: Request,
   deps?: ApiV1Deps,
   retryAvailabilityErrors = false,
+  requiredScope?: "read",
 ): Promise<{ ok: true; auth: ApiKeyAuth } | { ok: false; response: NextResponse }> {
   const token = bearerToken(request.headers.get("authorization"));
   if (!token || !isWellFormedApiKey(token)) {
@@ -182,6 +183,11 @@ export async function authenticateApiKey(
       response: jsonError("rate_limited", { retryAfter, limit, remaining: 0 }),
     };
   }
+  // New read projections can require an explicit persisted scope; missing or
+  // malformed scope data must not inherit the legacy read default.
+  if (requiredScope && (!Array.isArray(row.scopes) || row.scopes.some((scope) => typeof scope !== "string") || !auth.scopes.includes(requiredScope))) {
+    return { ok: false, response: jsonError("forbidden", { limit: auth.limit, remaining: auth.remaining }) };
+  }
   return { ok: true, auth };
 }
 
@@ -190,6 +196,7 @@ export async function readAsUser(
   resource: string,
   args: Record<string, unknown>,
   deps?: ApiV1Deps,
+  strictRows = false,
 ): Promise<{ ok: true; rows: Record<string, unknown>[] } | { ok: false; code: ApiV1ErrorCode }> {
   const service = deps?.service ?? createServiceClient();
   if (!service) return { ok: false, code: "unauthorized" };
@@ -203,6 +210,12 @@ export async function readAsUser(
   if (rec?.ok === false) {
     const err = rec.error === "not_found" ? "not_found" : rec.error === "unauthorized" ? "unauthorized" : "invalid_request";
     return { ok: false, code: err };
+  }
+  // Complete-book projections must not turn malformed/missing rows into an empty book.
+  // Existing paginated consumers retain their established mapping behavior by default.
+  if (strictRows && (!rec || rec.ok !== true || !Array.isArray(rec.rows) ||
+    rec.rows.some((row) => !row || typeof row !== "object" || Array.isArray(row)))) {
+    return { ok: false, code: "invalid_request" };
   }
   return { ok: true, rows: asRows(result.data) };
 }
@@ -472,7 +485,8 @@ async function handleV1GetInternal(
   }
 
   const body = envelope(schema, data, page, coverageOf(coverageRows, coverageFields));
-  const etag = await etagFor({ schema: body.schema, version: body.version, data: body.data, page: body.page, coverage: body.coverage });
+  const { asof: _asof, ...stableBody } = body;
+  const etag = await etagFor(stableBody);
   if (ifNoneMatchHits(request.headers.get("if-none-match"), etag)) {
     return new NextResponse(null, {
       status: 304,
@@ -514,7 +528,8 @@ export async function handleV1Index(request: Request, deps?: ApiV1Deps): Promise
   };
   assertNoForbiddenFields(data);
   const body = envelope(schemaFor("index"), data, { next_cursor: null, limit: API_V1_DEFAULT_LIMIT }, { rows: 1, nulls: [] });
-  const etag = await etagFor({ schema: body.schema, version: body.version, data: body.data });
+  const { asof: _asof, ...stableBody } = body;
+  const etag = await etagFor(stableBody);
   if (ifNoneMatchHits(request.headers.get("if-none-match"), etag)) {
     return new NextResponse(null, {
       status: 304,

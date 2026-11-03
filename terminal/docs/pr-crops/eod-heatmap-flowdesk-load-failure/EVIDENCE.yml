@@ -1,21 +1,21 @@
 # EOD belt, Flow Desk chain heat and Heatmap flow layer failure-state truth — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: f168c998c764ed6210a0a5d4e974d91480adcbbe
-# capturedAt: 2026-10-14T04:49:24.724Z
+# capturedAtHead: daab948465d37a18f42a0682cf56a3ea2426e4fb
+# capturedAt: 2026-11-01T13:04:34.676Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/app/globals.css: "e2346b09969625a05d69a3dcd91501617374d795c748bd1edfa57708d92c3bd2"
+  terminal/app/globals.css: "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517"
   terminal/components/eodcontext/DarkPoolMini.tsx: "1a32c139addae19531a4c9463e6f9b278e0c6b6626c59d0092bc2a0a45527420"
   terminal/components/eodcontext/EodContextBelt.tsx: "983b21e1a030ab66aada5d773a9d0ae9abccf0e796452e9cd6e3df62d6761013"
-  terminal/components/eodcontext/StructureStrip.tsx: "e4edc9df9e58a544a30930ac3369c77491e0d5323748b3c1ac600adfc7ee23d3"
-  terminal/components/eodcontext/eodStrings.ts: "ab2495bbe114389851a11550fe67ed94b9d2d46e43f05ddfd94a7752aa85fa2d"
-  terminal/components/flowdesk/FlowDeskView.tsx: "7c4ee44e695dbf928ebe5f7991bf7d0a7e8745420852c6773a3aa51456bae021"
-  terminal/components/gexdesk/GexDeskView.tsx: "4b7481f824085c0b7f79d57a00a0e013efeecf6d8942ab065e34149e408ce1bc"
+  terminal/components/eodcontext/StructureStrip.tsx: "0baf8c1d09fe4427569c92360081d842018d81d978a8b98d76fb283f950f31d4"
+  terminal/components/eodcontext/eodStrings.ts: "4395f953dcc0f4beca53422786393ee792f297211a0eef655c64762f2b34f99f"
+  terminal/components/flowdesk/FlowDeskView.tsx: "801cf41437b4749d3ad449e60ab35be8ffcc7f0e193ce5773b9c1ec7e49c01c0"
+  terminal/components/gexdesk/GexDeskView.tsx: "e7e12f9b3f1217c0b78692a5c65d5181552015ca0c1a91510e01d259432a7a14"
   terminal/components/heatmap/HeatmapView.tsx: "3b3ab5049715a33f167e344d3013b8f880356e8b96077b38c9a517c57b7a54cb"
-  terminal/lib/dataCache.ts: "f8a7f978049e64482b385d43c13d49d05ddec2525e36457b365a2d083060e1be"
-  terminal/lib/eodContext.ts: "a942505fa38c3bb86242508d3c88cb75e13160054c4e8dbf79088d44a6ae9032"
-  terminal/lib/flowdeskStrings.ts: "ef323513f39c37a55a152642bfc7c7ac5dfa0de50dde2c32244e7d171bf868fa"
+  terminal/lib/dataCache.ts: "ce28db3a3bcb3425320ac7e6845df02be5d21daebfa084756830c631623c7a3a"
+  terminal/lib/eodContext.ts: "1d0ce3ccde7a2fa05948cc0ac2ee93d16ec06724a7edcbd8c95c61e39d98b9e7"
+  terminal/lib/flowdeskStrings.ts: "580399a47bae6ab6aa16368d25ed54c94047799e4a600352385b5a9b7cc25c10"
   terminal/lib/heatmapStrings.ts: "26bb75eccce7429e5a37154f07f7f68faf9652da1f6f3560074cb558f0dda9c2"
 theme: dark
 languages: [en, zh]
@@ -285,3 +285,11 @@ files:
   - heatmap-no-match-390.png
   - heatmap-no-match-820-zh.png
   - heatmap-no-match-820.png
+
+currentCacheQualification:
+  sourceHead: "ca43fd0f9d1aaf13658a1553ea244c8815369591"
+  previousCacheSha256: "f8a7f978049e64482b385d43c13d49d05ddec2525e36457b365a2d083060e1be"
+  cases: 126
+  report: "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/1224-cache-ca43fd0f/result.json"
+  reportSha256: "0e27d4fe814ed4fc3ca70af77c5b0484f34e09a8ce151d25635d6061f30cd5ec"
+  scope: "The report maps every current capture to its actual file and digest. Packet-root PNGs and earlier capture records retain their historical identity."

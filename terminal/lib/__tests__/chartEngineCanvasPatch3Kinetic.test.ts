@@ -420,18 +420,21 @@ describe("F4 — wheel deltaMode is forwarded and reaches the controller", () =>
   }
 
   it("a line-mode notch zooms harder than a pixel-mode unit at the same deltaY", () => {
-    const span = (deltaY: number, deltaMode: number): number => {
+    // The first frame measures the price axis and narrows the plot with the bar spacing
+    // kept (LWC resize), so each zoom is read against the span the wheel actually starts from.
+    const change = (deltaY: number, deltaMode: number): number => {
       const { engine, overlay } = mount();
+      const r0 = engine.timeScale().getVisibleLogicalRange()!;
       dispatchWheel(overlay, 50, 30, deltaY, { ctrlKey: true, deltaMode });
       const r = engine.timeScale().getVisibleLogicalRange()!;
       engine.destroy();
-      return r.to - r.from;
+      return Math.abs((r.to - r.from) - (r0.to - r0.from));
     };
-    const px = span(-3, 0);
-    const line = span(-3, 1);
-    expect(Math.abs(px - 20)).toBeLessThan(0.2);
-    expect(Math.abs(line - 20)).toBeGreaterThan(0.8);
-    expect(Math.abs(line - 20)).toBeLessThan(3);
+    const px = change(-3, 0);
+    const line = change(-3, 1);
+    expect(px).toBeLessThan(0.2);
+    expect(line).toBeGreaterThan(0.8);
+    expect(line).toBeLessThan(3);
   });
 });
 
@@ -466,13 +469,14 @@ describe("F5b — producer side: each pane's painted price-axis strip reaches th
     const pane = engine.chartElement().querySelector("canvas[data-mm-pane-canvas='0']") as HTMLCanvasElement;
     const pctx = pane.getContext("2d") as unknown as FakeCtx;
     pctx.measureText = (() => ({ width: 60 })) as unknown as typeof pctx.measureText;
-    scheduler.flush();                       // frame.ts now paints strip = max(40, ceil(60 + 8)) = 68
+    // LWC PriceAxisWidget.optimalWidth: ceil(border 1 + tick 5 + padding 5 + 5 + 5 + text 60) = 81, made even.
+    scheduler.flush();
     const m = engine.unwrap<{ time: { visibleFrom: number; visibleTo: number }; priceAxisStripPx: readonly number[] }>();
-    expect(m.priceAxisStripPx[0]).toBe(68);
+    expect(m.priceAxisStripPx[0]).toBe(82);
     const overlay = engine.chartElement().querySelector("[data-mm-overlay]") as HTMLCanvasElement;
     const from0 = m.time.visibleFrom;
     const to0 = m.time.visibleTo;
-    // x=140 is inside the painted strip (>= 200 - 68 = 132) but outside the 40px floor (< 160).
+    // x=140 is inside the painted strip (>= 200 - 82 = 118) but outside the 40px floor (< 160).
     dispatchPointer(overlay, "pointerdown", 140, 30, { timeStamp: 10 });
     dispatchPointer(overlay, "pointermove", 141, 70, { timeStamp: 30 });
     expect(m.time.visibleFrom).toBe(from0);
@@ -480,11 +484,10 @@ describe("F5b — producer side: each pane's painted price-axis strip reaches th
     engine.destroy();
   });
 
-  // Multi-pane half: the strip is per pane, so a scalar publication leaves pane 0
-  // broken. RED with a scalar `priceAxisStripPx = 0` field (measured:
-  // `AssertionError: expected 40 not to be 40` — pane 1's floor overwrote pane 0's
-  // 68); GREEN with the per-pane array above.
-  it("(ii) each pane is hit-tested against its own painted strip", () => {
+  // Multi-pane half: LWC ChartWidget gives every pane's price axis the widest optimal
+  // width, so a pane with short labels still hit-tests against the strip its
+  // neighbour's long labels set (and painted, not the 40px floor).
+  it("(ii) each pane is hit-tested against the shared painted strip", () => {
     const scheduler = createManualScheduler();
     const engine = createCanvasEngine(container, {
       width: 200, height: 100, devicePixelRatio: 1, scheduler,
@@ -498,16 +501,19 @@ describe("F5b — producer side: each pane's painted price-axis strip reaches th
     const root = engine.chartElement();
     const c0 = (root.querySelector("canvas[data-mm-pane-canvas='0']") as HTMLCanvasElement).getContext("2d") as unknown as FakeCtx;
     const c1 = (root.querySelector("canvas[data-mm-pane-canvas='1']") as HTMLCanvasElement).getContext("2d") as unknown as FakeCtx;
-    c0.measureText = (() => ({ width: 60 })) as unknown as typeof c0.measureText;  // pane 0 strip 68
-    c1.measureText = (() => ({ width: 4 })) as unknown as typeof c1.measureText;   // pane 1 strip 40
+    c0.measureText = (() => ({ width: 60 })) as unknown as typeof c0.measureText;  // pane 0 optimal 82
+    c1.measureText = (() => ({ width: 4 })) as unknown as typeof c1.measureText;   // pane 1 optimal 26
     scheduler.flush();
-    const m = engine.unwrap<{ time: { visibleFrom: number }; priceAxisStripPx: readonly number[] }>();
-    expect([...m.priceAxisStripPx]).toEqual([68, 40]);
+    const m = engine.unwrap<{ time: { visibleFrom: number }; priceAxisStripPx: readonly number[]; panes: { height: number }[] }>();
+    expect([...m.priceAxisStripPx]).toEqual([82, 82]);
     const overlay = root.querySelector("[data-mm-overlay]") as HTMLCanvasElement;
-    const from0 = m.time.visibleFrom;
-    dispatchPointer(overlay, "pointerdown", 140, 20, { timeStamp: 10 });   // y=20 -> pane 0
-    dispatchPointer(overlay, "pointermove", 141, 40, { timeStamp: 30 });
-    expect(Math.abs(m.time.visibleFrom - from0)).toBeLessThan(0.001);
+    for (const y of [20, m.panes[0].height + 10]) {                         // pane 0, then pane 1
+      const from0 = m.time.visibleFrom;
+      dispatchPointer(overlay, "pointerdown", 140, y, { timeStamp: 10 });
+      dispatchPointer(overlay, "pointermove", 141, y + 20, { timeStamp: 30 });
+      dispatchPointer(overlay, "pointerup", 141, y + 20, { timeStamp: 40 });
+      expect(Math.abs(m.time.visibleFrom - from0)).toBeLessThan(0.001);
+    }
     engine.destroy();
   });
 });

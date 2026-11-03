@@ -84,19 +84,19 @@ const GROUPS: Array<{
 }> = [
   {
     key: "confirmed",
-    label: ["Confirmed · 已确认", "Confirmed · 已确认"],
+    label: ["Confirmed", "已确认"],
     empty: ["No reclaim has held yet this session.", "本节尚无站稳的收复。"],
     states: new Set(["CANDIDATE"]),
   },
   {
     key: "forming",
-    label: ["Forming · 形成中", "Forming · 形成中"],
+    label: ["Forming", "形成中"],
     empty: ["No washout under watch right now.", "当前没有观察中的洗盘。"],
     states: new Set(["PROBING", "ARMED", "TURNING"]),
   },
   {
     key: "ended",
-    label: ["Ended · 已结束", "Ended · 已结束"],
+    label: ["Ended", "已结束"],
     empty: ["Nothing has ended this session.", "本节尚无已结束的事件。"],
     states: new Set(["INVALIDATED", "EXPIRED", "RESOLVED"]),
   },
@@ -139,9 +139,32 @@ type ReadState =
 const ET_CLOCK = new Intl.DateTimeFormat("en-US", {
   hour: "2-digit",
   minute: "2-digit",
-  hour12: false,
+  hourCycle: "h23",
   timeZone: "America/New_York",
 });
+
+const ET_DAY_PARTS = new Intl.DateTimeFormat("en-US", {
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  timeZone: "America/New_York",
+});
+const ET_ROW_DATE: Record<Lang, Intl.DateTimeFormat> = {
+  en: new Intl.DateTimeFormat("en-US", {
+    month: "short", day: "numeric", timeZone: "America/New_York",
+  }),
+  zh: new Intl.DateTimeFormat("zh-CN", {
+    month: "short", day: "numeric", timeZone: "America/New_York",
+  }),
+};
+
+/** ET calendar boundaries are not UTC dates and DST days need not be 24 hours. */
+function etDay(epoch: number): { year: string; key: string } {
+  const parts = ET_DAY_PARTS.formatToParts(epoch);
+  const item = (type: string) => parts.find((part) => part.type === type)?.value ?? "";
+  const year = item("year");
+  return { year, key: [year, item("month"), item("day")].join("-") };
+}
 
 /** "11:30 ET" -> ["11:30", " ET"]: the digits carry the row, the zone is a small suffix (textContent unchanged). */
 export function splitClock(clock: string): [string, string] {
@@ -158,19 +181,48 @@ export function fmtClock(iso: string | null | undefined, lang: Lang): string {
 }
 
 export function fmtAge(iso: string | null | undefined, now: number, lang: Lang): string {
-  if (!iso) return "—";
-  const ms = now - Date.parse(iso);
-  const totalMin = Math.max(0, Math.floor(ms / 60_000));
-  if (lang === "zh") {
-    if (totalMin < 60) return `${totalMin} 分钟前`;
-    const h = Math.floor(totalMin / 60);
-    const m = totalMin % 60;
-    return `${h} 小时 ${m} 分钟前`;
-  }
-  if (totalMin < 60) return `${totalMin} min ago`;
+  const instant = iso ? Date.parse(iso) : NaN;
+  if (!Number.isFinite(instant) || !Number.isFinite(now)) return "—";
+  // Future event timestamps are not newly observed signals. Never label them "0 min ago".
+  if (instant > now) return lang === "zh" ? "时间超前" : "Timestamp ahead";
+  const totalMin = Math.floor((now - instant) / 60_000);
+  if (totalMin < 60) return lang === "zh" ? `${totalMin} 分钟前` : `${totalMin} min ago`;
   const h = Math.floor(totalMin / 60);
-  const m = totalMin % 60;
-  return `${h}h ${m}min ago`;
+  if (h < 24) {
+    const m = totalMin % 60;
+    return lang === "zh" ? `${h} 小时 ${m} 分钟前` : `${h}h ${m}min ago`;
+  }
+  const days = Math.floor(h / 24);
+  const hours = h % 24;
+  return lang === "zh" ? `${days} 天 ${hours} 小时前` : `${days}d ${hours}h ago`;
+}
+
+/** On older ET calendar days, lead with the date, not a misleading time-of-day.
+ * Keep the exact clock below it and show a year when the event crosses one. */
+export function fmtEpisodeWhen(
+  iso: string | null | undefined, now: number, lang: Lang,
+): { primary: string; secondary: string; dated: boolean; valid: boolean } {
+  const instant = iso ? Date.parse(iso) : NaN;
+  if (!Number.isFinite(instant)) {
+    return { primary: "—", secondary: lang === "zh" ? " 美东" : " ET", dated: false, valid: false };
+  }
+  const clock = fmtClock(iso, lang);
+  if (!Number.isFinite(now) || etDay(instant).key === etDay(now).key) {
+    const [primary, secondary] = splitClock(clock);
+    return { primary, secondary, dated: false, valid: true };
+  }
+  const eventDay = etDay(instant);
+  const currentDay = etDay(now);
+  const date = ET_ROW_DATE[lang].format(instant);
+  const primary = eventDay.year === currentDay.year
+    ? date
+    : lang === "zh" ? `${eventDay.year}年${date}` : `${date}, ${eventDay.year}`;
+  return { primary, secondary: clock, dated: true, valid: true };
+}
+
+function fmtAsOf(iso: string | null | undefined, now: number, lang: Lang): string {
+  const when = fmtEpisodeWhen(iso, now, lang);
+  return when.dated ? `${when.primary} · ${when.secondary.trim()}` : fmtClock(iso, lang);
 }
 
 export function fmtPx(v: unknown): string {
@@ -405,11 +457,11 @@ export default function DislocationsView() {
     if (st === "stale" && episodes.length > 0) {
       return {
         mode: "stale_warn" as const,
-        text: STALE_WARN(fmtClock(source.asof, lang), lang),
+        text: STALE_WARN(fmtAsOf(source.asof, now, lang), lang),
       };
     }
     return { mode: "none" as const };
-  }, [L, body, episodes.length, lang, read, source]);
+  }, [L, body, episodes.length, lang, now, read, source]);
 
   const groupsVisible =
     body != null &&
@@ -426,7 +478,7 @@ export default function DislocationsView() {
         <div className={s.status} role="status" data-testid="dislo-status">
           <span className={s.badge}>{display.delay_badge}</span>
           <span className={s.dot} aria-hidden="true">·</span>
-          <span className={s.asof}>{UPDATED[L]} {fmtClock(source.asof, lang)}</span>
+          <span className={s.asof}>{UPDATED[L]} {fmtAsOf(source.asof, now, lang)}</span>
           {source.pack_fresh === false && source.pack_as_of != null && (
             <span className={`${s.chip} ${s.chipWarn}`}>
               {PACK_STALE(source.pack_as_of, lang)}
@@ -503,6 +555,7 @@ export default function DislocationsView() {
                     {rows.map((ep) => {
                       const fresh = ep.freshness as { quote_age_s?: number; pack_as_of?: string } | undefined;
                       const quoteAge = fresh?.quote_age_s;
+                      const when = fmtEpisodeWhen(ep.display.knowable_at, now, lang);
                       return (
                         <li
                           key={ep.episode_id}
@@ -516,9 +569,12 @@ export default function DislocationsView() {
                           }
                         >
                           <div className={s.rail}>
-                            <time className={s.when} dateTime={ep.display.knowable_at ?? undefined}>
-                              {splitClock(fmtClock(ep.display.knowable_at, lang))[0]}
-                              <span className={s.tz}>{splitClock(fmtClock(ep.display.knowable_at, lang))[1]}</span>
+                            <time
+                              className={when.dated ? `${s.when} ${s.whenDated}` : s.when}
+                              dateTime={when.valid ? ep.display.knowable_at ?? undefined : undefined}
+                            >
+                              {when.primary}
+                              <span className={s.tz}>{when.secondary}</span>
                             </time>
                             <span className={s.age} data-testid="dislo-age">
                               {fmtAge(ep.display.knowable_at, now, lang)}

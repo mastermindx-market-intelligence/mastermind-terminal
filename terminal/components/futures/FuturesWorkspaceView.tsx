@@ -8,6 +8,7 @@ import { futuresQuery, parseFuturesRequest, type FuturesRequest } from "@/lib/fu
 import { useFuturesText } from "@/lib/futuresUiCopy";
 import { useFuturesWorkspace } from "./useFuturesWorkspace";
 import FuturesMicrostructureChart from "./FuturesMicrostructureChart";
+import FuturesCotPanel from "./FuturesCotPanel";
 import css from "./futuresLab.module.css";
 
 export default function FuturesWorkspaceView({ initialRequest }: { initialRequest: FuturesRequest }) {
@@ -33,7 +34,7 @@ export default function FuturesWorkspaceView({ initialRequest }: { initialReques
   return <main className="main2" style={{ overflow: "auto", minWidth: 0 }}>
     <section className={css.page} data-testid="futures-workspace" lang={lang}>
       <header className={css.header}><div><h1>{t("title")}</h1><p>{t("subtitle")}</p>
-        <p><Link href="/options">{t("back")}</Link> · <Link href="/terminal">{t("chart")}</Link></p></div>
+        <p><Link href="/options">{t("back")}</Link> · <Link href="/terminal">{t("chart")}</Link> · <Link href="/options/equity-replay" data-testid="equity-replay-link">{t("equityReplay")}</Link></p></div>
         <button aria-label="Language" onClick={() => applyLang(lang === "en" ? "zh" : "en")}>{lang === "en" ? "中文" : "English"}</button>
       </header>
       <section className={css.controls} aria-label={t("title")}>
@@ -94,6 +95,8 @@ export default function FuturesWorkspaceView({ initialRequest }: { initialReques
           </details>}
         </section>
       </>}
+      {!(state.status === "unavailable" && state.reason === "access_required") &&
+        <FuturesCotPanel pair={request.pair} refresh={refresh} />}
       <p className={css.warning}>{t("notice")}</p>
     </section>
   </main>;

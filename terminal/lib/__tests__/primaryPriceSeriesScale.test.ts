@@ -99,7 +99,7 @@ describe("ChartPanel primary price-series construction", () => {
 
     const build = new Function(
       "exports",
-      "LineType", "withAlpha",
+      "EngineLineType", "withAlpha",
       "priceFmt", "chartSettingsRef", "chartTypeRef",
       `${transpiled}
 return addPriceSeries;`,

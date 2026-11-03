@@ -1,3 +1,5 @@
+# 2026-10-21 Forex R26: recaptured all eight affected Alerts list/empty EN/ZH desktop/mobile crops at 5969bf5408c16626487831496d0083ce2fe31deb. Subscription navigation again timed out after those eight succeeded; no subscription recapture is claimed. Four subscription source bindings and all four subscription crops were verified unchanged against the existing manifest/head. Only the rendered AlertsCockpit binding advances. See docs/verification/forex-r26/ci-evidence-recapture.json.
+# 2026-10-19 F08: all eight affected Alerts brief-list/empty EN/ZH desktop/mobile crops recaptured using native script; its unrelated subscription navigation timed out. Subscription controls/source/crops retained unchanged; only the actually rendered AlertsCockpit binding updated.
 # B-F11-7 Recurring briefs — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
@@ -9,7 +11,7 @@ layoutFiles:
   terminal/components/briefs/BriefSubscribeControls.tsx: "ae6cd7b26f6ce48b2bc56e98ec7eedf72d163b1e04ae95d9b951d7c1b8ab9a56"
   terminal/components/briefs/briefs.module.css: "bdec4855420f396e8ad30565741c70904d55090310298e396f75e3e44c41b573"
   terminal/lib/briefs.ts: "45e085b000b79481d5a7ad0b73ab9f76300d21efde8e64bc0d9ef36f0a9159cb"
-  terminal/components/alerts/AlertsCockpit.tsx: "6f10a31635043273d4f77cb812aaca671af36a5732eca54e0f4ada1796ce9040"
+  terminal/components/alerts/AlertsCockpit.tsx: "16bcae31ac1b6c2c181afd35d96a8d5d6db18aa37d51dca47a65c6d9178aa71b"
 theme: dark
 languages: [en, zh]
 viewports:

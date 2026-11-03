@@ -261,6 +261,29 @@ describe("drawing bridge: readiness gate (D01-A03)", () => {
     expect(h.bridge.anchorToPixel(anchor({ paneIndex: 0 }))).toBeNull();
   });
 
+  it("accepts a legitimate zero price on a usable inverted coordinate map", () => {
+    // price(y) = 75 - y, so price 0 lands exactly on the gate's upper probe row
+    // (0.25 * 300 = 75): a gate that mistook a zero price for a collapsed map
+    // would refuse this pane.
+    const h = make({ specs: [{ width: 600, height: 300, priceAtTop: 75, priceAtBottom: -224 }] });
+    expect(h.series[0].coordinateToPrice(75)).toBe(0);
+    expect(h.bridge.ready(0)).toBe(true);
+    const pixel = h.bridge.anchorToPixel(anchor({ paneIndex: 0, price: 0 }));
+    expect(pixel).not.toBeNull();
+    expect(pixel!.y).toBeCloseTo(75, 9);
+  });
+
+  it("rejects a collapsed inverse map even when forward coordinates differ", () => {
+    const h = make();
+    // Only the inverse collapses, and onto a price (0) that pane 1 legitimately shows.
+    h.series[1].coordinateToPrice = () => 0;
+    expect(h.series[1].priceToCoordinate(100)).not.toBe(h.series[1].priceToCoordinate(200));
+    expect(h.bridge.ready(1)).toBe(false);
+    expect(h.bridge.anchorToPixel(anchor({ paneIndex: 1 }))).toBeNull();
+    expect(h.bridge.pixelToAnchor(1, 200, 150, "raw")).toBeNull();
+    expect(h.bridge.ready(0)).toBe(true);
+  });
+
   it("fires an already-ready pane's subscriber immediately, without an engine subscription", () => {
     const h = make();
     const onReady = vi.fn();
@@ -421,5 +444,43 @@ describe("drawing bridge: future anchors (D01-A04)", () => {
     expect(snapped!.time).toBeNull();
     expect(snapped!.future).toBeUndefined();
     expect(snapped!.logical).toBe(-1);
+  });
+});
+
+describe("drawing bridge: Y-only projection (priceToY)", () => {
+  it("answers each pane's own price scale and agrees with anchorToPixel when the pane is ready", () => {
+    const h = make();
+    for (const paneIndex of [0, 1]) {
+      const y = h.bridge.priceToY(paneIndex, 50);
+      expect(y).toBe(h.series[paneIndex].priceToCoordinate(50));
+      expect(y).toBeCloseTo(h.bridge.anchorToPixel(anchor({ paneIndex }))!.y, 9);
+    }
+    expect(h.bridge.priceToY(0, 50)).not.toBeCloseTo(h.bridge.priceToY(1, 50)!, 3);
+  });
+
+  it("keeps answering while the time axis is unmeasured, where the full anchor projection is null", () => {
+    const h = make();
+    h.setRange(5, 5); // collapsed visible logical range: no x geometry at all
+    expect(h.bridge.anchorToPixel(anchor({ paneIndex: 0 }))).toBeNull();
+    expect(h.bridge.priceToY(0, 50)).toBe(h.series[0].priceToCoordinate(50));
+    // An anchor whose x cannot resolve (unknown time, no logical) is null too; y is not.
+    expect(h.bridge.anchorToPixel(anchor({ paneIndex: 0, time: "1999-01-01", logical: Number.NaN }))).toBeNull();
+    expect(h.bridge.priceToY(0, 120)).toBe(h.series[0].priceToCoordinate(120));
+  });
+
+  it("fails closed with no primary series, a throwing series, a non-finite price or coordinate", () => {
+    const h = make();
+    h.setPrimary(1, false);
+    expect(h.bridge.priceToY(1, 50)).toBeNull();
+    h.setPrimary(1, true);
+    expect(h.bridge.priceToY(1, 50)).not.toBeNull();
+    expect(h.bridge.priceToY(0, Number.NaN)).toBeNull();
+    expect(h.bridge.priceToY(0, Number.POSITIVE_INFINITY)).toBeNull();
+    h.series[0].priceToCoordinate = () => null;
+    expect(h.bridge.priceToY(0, 50)).toBeNull();
+    h.series[0].priceToCoordinate = () => Number.NaN;
+    expect(h.bridge.priceToY(0, 50)).toBeNull();
+    h.series[0].priceToCoordinate = () => { throw new Error("removed"); };
+    expect(h.bridge.priceToY(0, 50)).toBeNull();
   });
 });

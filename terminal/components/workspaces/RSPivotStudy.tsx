@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useShellIdentity } from "@/components/chrome/AppShell";
 import { useLang } from "@/lib/i18n";
 import { prepareStudyBarsFrom5m, runRSPivotStudy, type StudyReport, type StudySummary, STUDY_ARMS } from "@/lib/rsPivotStudy";
@@ -99,7 +99,14 @@ async function loadBars(sym: string, signal: AbortSignal): Promise<SourceRespons
   return data;
 }
 
+const subscribeHydration = () => () => {};
+const clientHydrated = () => true;
+const serverHydrated = () => false;
+
 export default function RSPivotStudy() {
+  // The lazy workspace can stream its HTML before its event handlers arrive.
+  // Keep the action disabled through SSR and the matching first hydration render.
+  const hydrated = useSyncExternalStore(subscribeHydration, clientHydrated, serverHydrated);
   const { lang } = useLang();
   const identity = useShellIdentity();
   const t = L[lang];
@@ -126,7 +133,7 @@ export default function RSPivotStudy() {
   };
   const run = async () => {
     // Synchronous ownership also covers two clicks before the disabled render.
-    if (identity.kind !== "account" || request.current) return;
+    if (!hydrated || identity.kind !== "account" || request.current) return;
     const sym = symbol.trim().toUpperCase(), bm = benchmark.trim().toUpperCase();
     invalidate(); setError(""); setSelectedTrade("");
     if (!/^[A-Z][A-Z0-9.-]{0,14}$/.test(sym) || !/^[A-Z][A-Z0-9.-]{0,14}$/.test(bm) || sym === bm) {
@@ -203,7 +210,7 @@ export default function RSPivotStudy() {
               <option value="13">13 × 30m</option><option value="26">26 × 30m</option><option value="39">39 × 30m</option>
             </select></label>
             <label style={label}>{t.costs}<input aria-label={t.costs} style={field} type="number" min="0" max="150" step="1" value={cost} disabled={busy} onChange={e => { setCost(Math.max(0, Math.min(150, Number(e.target.value)))); invalidate(); }} /></label>
-            <button type="button" disabled={busy || identity.kind !== "account"} onClick={run} style={{ ...field, width: "auto", minWidth: 155, color: "var(--text)", cursor: busy ? "wait" : "pointer", fontWeight: 700, borderColor: "var(--brand-2)" }}>{busy ? t.running : t.run}</button>
+            <button type="button" disabled={!hydrated || busy || identity.kind !== "account"} onClick={run} style={{ ...field, width: "auto", minWidth: 155, color: "var(--text)", cursor: busy ? "wait" : "pointer", fontWeight: 700, borderColor: "var(--brand-2)" }}>{busy ? t.running : t.run}</button>
           </div>
           <p style={{ fontSize: 12, color: "var(--muted)", marginTop: 12 }}>{t.condition}</p>
           <p style={{ fontSize: 12, color: "var(--muted)", marginTop: 4 }}>{t.pivot}</p>
