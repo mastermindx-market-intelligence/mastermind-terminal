@@ -6,7 +6,7 @@
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/app/globals.css: "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517"
-  terminal/components/gexdesk/GexDeskView.tsx: "3f83dabea69d9461005e53aac3d812e73fcb0ac2f7ea515c60f91a3de38f7c02"
+  terminal/components/gexdesk/GexDeskView.tsx: "391513c29185cbcce2d9a121ae60d6413ccd5bba2fd89ebc5046bf48a5ebff2b"
   terminal/components/gexdesk/HeatSeekerCard.tsx: "308295e2b0143fe933948c97a14584e1e0d1eff9249a58104dd3587a2642c93a"
   terminal/components/gexdesk/MarketStateCard.tsx: "069c4a2f1a5f53e8f611e3231b78751948cc0264c8af6efd167f7b3e4902bbe2"
   terminal/components/gexdesk/StrikeLadder.tsx: "55dccbef4e3bfebc09477f6d9a0133cf0bc5d70531d32d532e760ff214ed4596"
@@ -354,3 +354,11 @@ archiveSelectionQualification1254:
   report: "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/1254-archive-6c629ce9/result.json"
   reportSha256: "6b643e25f1e3c0dc507d7601354fe8af0a538c68c5bcb47256460625a5e5447f"
   scope: "Actual GEX-only recapture for awaited archive selection. Other boards, packet-root images and earlier records retain their historical identities."
+
+sectorArchiveComposition1254:
+  sourceHead: "c82b70d2cfa676405db574315c93de84fe8bc13d"
+  protectedBase: "d1f4f42f5b5d170bd65e75e57d24ffb891207ca4"
+  cases: 54
+  report: "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/1254-sector-c82b70d2/result.json"
+  reportSha256: "ac3a8f6c0c26d7d01faa8fea3248fd123b437d164046576b6bd02662f78fe16f"
+  scope: "Actual scoped recapture on combined Sector and archive source. Both earlier histories and other boards remain unchanged."
