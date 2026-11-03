@@ -64,7 +64,9 @@ def test_missing_root_safety_or_forward_action_clause_is_a_regression(guard: str
     root, nested = _read("AGENTS.md"), _read("terminal/AGENTS.md")
     normal = _norm(root)
     assert guard in normal
-    assert not _contract_ok(normal.replace(guard, "", 1), nested)
+    # The keyword may legitimately appear in several root clauses; absence of the
+    # clause means removing every occurrence of it.
+    assert not _contract_ok(normal.replace(guard, ""), nested)
 
 
 @pytest.mark.parametrize("guard", NESTED_GUARDS + WORKSPACE_GUARDS)
