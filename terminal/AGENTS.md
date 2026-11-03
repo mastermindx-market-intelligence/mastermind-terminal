@@ -38,6 +38,10 @@ their mapped positions (never `i % n` on a value-mapped axis); tick formatting d
 precision from the step so two ticks can't render identically. The v7b wave fixed five charts
 that each violated several of these — do not hand-roll a sixth way.
 
+## Risk-proportional T0 exception
+
+Terminal root `AGENTS.md` and `docs/FAST_DELIVERY_POLICY.md` define a trusted static-only fast CI path for inert isolated icon assets and bounded product copy. After its protected release, a verified T0 change needs no dedicated independent review and no full responsive/ingest suite, but still must satisfy the exact three GitHub branch-protection status contexts (lightweight fast mode), the protected merge-on-green rules and a user-visible deployment check. This does not waive the ordinary incognito/viewport validation for *behavioral* UI changes or allow arbitrary TSX/CSS to assert T0. The standalone Prophet icon art can qualify only after its visual definition is isolated from the executable ChartPanel renderer. Unknown or unsafe diffs run the full route.
+
 ## Verification law (what "done" means)
 - A user-facing flow is NOT done until a fresh incognito end-to-end pass succeeds with zero manual workarounds — no reload-to-recover. If you hit a race and work around it, the bug is yours to fix, not to route around.
 - Every UI PR carries its verification artifact in the body: screenshots/crops of each step and state (light + dark + zh via the LEX i18n tuples — zh strings must never leak into the EN view, and vice versa).

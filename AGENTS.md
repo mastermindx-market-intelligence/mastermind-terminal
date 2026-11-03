@@ -107,6 +107,10 @@ action; never an archived chat as the only actor.
   route policy) while remaining untouched on the web.
 - Native binaries are build artifacts, never VPS deploys; the web delivery chain is unchanged.
 
+## Static-only fast-delivery exception (risk-proportional)
+
+See `docs/FAST_DELIVERY_POLICY.md` and `scripts/ci_fast_lane.py`. A verified T0 static-only change (safe copy or standalone inert artwork in the explicit allowlist) does **not** need a dedicated independent Fabric/Dot/GitHub reviewer unless currently effective protected branch/org rules explicitly require one. The base-pinned classifier is authoritative for CI routing; a PR label, user description or an agent's own self-assessment cannot claim T0. Preserve the three protected check contexts, native auto-merge and git-gated release. A change to executable code, chart engine, security, trading intelligence, governance, CI, build/deploy, DB or any unknown path always takes the existing full release process until a separately qualified tier is adopted. A full route cannot be weakened by an ad hoc "simple edit" label. This exception becomes operational only after the policy/workflow PR is accepted into protected master.
+
 ## Definition of done
 
 For every substantive, verified change, complete the full delivery chain without
