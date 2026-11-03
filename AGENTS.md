@@ -149,6 +149,16 @@ direct writes to evade a refusal. Report the exact blocker and recovery action
 only when no safe useful work remains. Never leave completed work only as
 uncommitted changes when lawful publication is available.
 
+## Risk-scoped Terminal CI (throughput relief)
+
+The frozen required status contexts remain `Quote Hub tests`, `Terminal typecheck + tests`, and `Ingest + signal-layer tests`. Their integrity is NOT replaced by blanket skipped-check success. The exact `scripts/ci_terminal_pr_scope.py` from the **protected PR base commit**, not the candidate's own file, qualifies a bounded, 12-file/200-line, same-repository, complete Git diff for the shorter PR path:
+
+- **PASSIVE:** only evidence attachments in `docs/pr-crops/` or `terminal/docs/pr-crops/`; keep Hub, Next typecheck, unit tests and the stable Terminal/ingest required checks, but skip browser-matrix/evidence-capture and unrelated backend tests.
+- **VISUAL:** bounded ordinary stylesheet changes in `terminal/app/` or `terminal/styles/` (no remote CSS imports/URLs), possibly with passive evidence. Preserve Hub, typecheck/unit tests, and a real canonical Terminal-shell smoke across 1440x900 desktop, 820x1180 tablet and 390x844 mobile; do not spend a full 12-shard e2e run for this limited change.
+- **FULL:** all runtime/behavior/API/auth/CI/test/source-law and unknown/unqualified/forked/missing/renamed/deleted/executable source, plus every `merge_group` or `workflow_dispatch`; unchanged full responsive E2E matrix and original ingest/PostgreSQL proof.
+
+The risk scope has no merge/deploy/approval authority. The required `Terminal typecheck + tests` aggregator passes only for that exact trusted shorter path and its successful required prerequisites. A missing first-install scope selector defaults to FULL and an invalid source cannot fake PASSIVE. User-facing release verification still follows the responsive/incognito product contract appropriate to the modified behavior, plus git-gated deployment/live proof; a short CI receipt is not production acceptance.
+
 ## Merge-on-green controller
 
 - After opening a non-draft pull request that is ready to ship, add the
