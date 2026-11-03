@@ -1,4 +1,7 @@
 const COPY = {
+  expiryNotListed: ["Not listed in this book", "此快照未列出"],
+  requestedExpiry: ["Requested expiry", "所选到期日"],
+  showAllExpiries: ["Show all expiries", "显示所有到期日"],
   openOnMainChart: ["Open on main chart", "在主图表打开"],
   exposureReference: ["Exposure reference", "敞口参考线"],
   referenceRechecked: ["The selected book and scope match. This dated level can be shown on the chart.", "所选快照与范围一致。可在图表上显示该日期的参考线。"],
