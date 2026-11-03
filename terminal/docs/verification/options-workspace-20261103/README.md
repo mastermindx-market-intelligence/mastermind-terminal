@@ -2,6 +2,10 @@
 
 The reported journey starts in Options, compares flow at different points within a trading session, and moves into a desk to inspect a contract or price level. The initial Exposure repair is tracked in [#1243](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1243). This change follows the existing category, tab, replay and data owners.
 
+## Command print: one scroll on compact layouts
+
+The selected Command print previously had two independent vertical scrollers: the desk itself and a `max-height`-capped evidence pane. On a 390px phone with expanded Print evidence, hundreds of pixels of source fields existed but were clipped until users found the pane's invisible inner scroll. The final compact layout uses the desk's existing native page scroll for the full print inspector; the separate desktop research rail retains its bounded scroll. The original feed, filters, source details and Chain Heat are unchanged. Browser regression checks EN and ZH at desktop 1440px, tablet 820px, phone 390px and an additional 320px layout, covering expanded evidence, full lower rows, keyboard return and no horizontal overflow. [End-of-print / Chain Heat transition on phone](command-print-evidence-scroll-390.webp).
+
 ## Follow a strike or ticker across desks
 
 | Journey | Observed behavior | Browser evidence |

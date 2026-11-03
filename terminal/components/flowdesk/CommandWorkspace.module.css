@@ -59,7 +59,14 @@
   .desk :global(.obs-fd-right > .obs-fd-chain.obs-card) {
     flex: none; width: 100%; max-height: none; box-sizing: border-box;
   }
-  .desk :global(.obs-fd-right > .obs-fd-inspector.has-event) { max-height: max(440px, 80dvh); }
+  /* The compact desk itself already scrolls. A second capped inspector scroller
+     hid source evidence after the first viewport and trapped touch gestures.
+     Let the selected print expand naturally; desktop rails keep their own cap. */
+  .desk :global(.obs-fd-right > .obs-fd-inspector.has-event .obs-insp-body) {
+    flex: 0 0 auto;
+    min-height: auto;
+    overflow-y: visible;
+  }
   .desk :global(.obs-fd-right > .obs-fd-chain.obs-card) { max-height: max(340px, 68dvh); }
   .desk :global(.command-return), .desk :global(.command-inspect-trigger), .desk :global(.command-clear) { min-height: 44px; }
   .desk :global(.obs-fd-toolbar input), .desk :global(.obs-fd-toolbar button), .desk :global(.obs-fd-preset-bar button) { min-height: 36px; }

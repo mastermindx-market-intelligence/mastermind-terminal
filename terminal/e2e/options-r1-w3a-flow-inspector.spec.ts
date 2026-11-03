@@ -219,3 +219,64 @@ test("a slow previous ticker cannot replace the selected print's context", async
   await expect(inspector).toContainText("$6.5M");
   await expect(inspector).not.toContainText("$1.5M");
 });
+
+for (const lang of ["en", "zh"] as const) {
+  test(`selected Command print has one natural page scroll on compact screens (${lang})`, async ({ page, viewport }, testInfo) => {
+    await openDesk(page, lang);
+    const source = page.locator("#inspect-flow-w3a-e1");
+    await source.focus();
+    await source.press("Enter");
+    const selected = page.locator(".obs-fd-inspector.has-event");
+    const body = selected.locator(".obs-insp-body");
+    await expect(selected).toBeVisible();
+    const evidence = selected.locator('[data-testid="flow-print-inspector"] details');
+    await evidence.locator("summary").click();
+    await expect(evidence).toHaveAttribute("open", "");
+
+    const compact = !!viewport && viewport.width <= 999;
+    const metrics = await body.evaluate(el => {
+      const scroll = el.closest(".obs-flowdesk")!;
+      const inspector = el.closest(".obs-fd-inspector")!;
+      return {
+        overflow: getComputedStyle(el).overflowY,
+        bodyOverflow: el.scrollHeight - el.clientHeight,
+        cardOverflow: inspector.scrollHeight - inspector.clientHeight,
+        cardHeight: inspector.getBoundingClientRect().height,
+        deskOverflow: scroll.scrollHeight - scroll.clientHeight,
+        horizontalOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      };
+    });
+    expect(metrics.horizontalOverflow).toBeLessThanOrEqual(1);
+    if (compact) {
+      expect(metrics.overflow).toBe("visible");
+      expect(metrics.bodyOverflow).toBeLessThanOrEqual(2);
+      expect(metrics.cardOverflow).toBeLessThanOrEqual(2);
+      expect(metrics.deskOverflow).toBeGreaterThan(20);
+      // Evidence is in the page's one native scroll path, not clipped behind
+      // an independently scrolling, capped card.
+      const last = body.locator(":scope > :last-child");
+      await last.scrollIntoViewIfNeeded();
+      await expect(last).toBeInViewport();
+      if (testInfo.project.name === "mobile") {
+        await page.setViewportSize({ width: 320, height: 700 });
+        const narrow = await body.evaluate(el => ({
+          bodyOverflow: el.scrollHeight - el.clientHeight,
+          cardOverflow: el.closest(".obs-fd-inspector")!.scrollHeight - el.closest(".obs-fd-inspector")!.clientHeight,
+          horizontalOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+        }));
+        expect(narrow.bodyOverflow).toBeLessThanOrEqual(2);
+        expect(narrow.cardOverflow).toBeLessThanOrEqual(2);
+        expect(narrow.horizontalOverflow).toBeLessThanOrEqual(1);
+        await last.scrollIntoViewIfNeeded();
+        await expect(last).toBeInViewport();
+      }
+    } else {
+      // Desktop uses its dedicated research rail; keep that bounded scroller.
+      expect(metrics.overflow).toBe("auto");
+      expect(metrics.bodyOverflow).toBeGreaterThan(20);
+    }
+    await page.screenshot({ path: testInfo.outputPath(`command-inspector-scroll-${lang}-${testInfo.project.name}.png`) });
+    await selected.press("Escape");
+    await expect(source).toBeFocused();
+  });
+}
