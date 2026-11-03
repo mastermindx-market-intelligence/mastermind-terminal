@@ -13,6 +13,9 @@ import { SECTOR_FEEDS, FINVIZ_FEEDS, SECTOR_VIEWS, DEFAULT_SECTOR_STATE, object,
 import SectorGroupBrowser from "./SectorGroupBrowser";
 import FinvizDiscovery from "./FinvizDiscovery";
 import SectorCentralDiscovery from "./SectorCentralDiscovery";
+import SectorCycleLens from "./SectorCycleLens";
+import { cycleBaskets } from "@/lib/sectorCycleBaskets";
+import { cycleUniverse } from "@/lib/sectorCycleSnapshot";
 import SectorRotationMap, { ROTATION_BENCHMARK } from "./SectorRotationMap";
 import styles from "./SectorIntelligenceWorkspace.module.css";
 import SectorCompanyComparison from "./SectorCompanyComparison";
@@ -198,6 +201,9 @@ export default function SectorIntelligenceWorkspace() {
   const rotation = object(sector.rotation), conviction = object(sector.conviction), entry = object(group.entry), regime = object(group.regime);
   const status = feeds.sector?.receipt.status || "loading";
   const hasSector = !!sector.id;
+  const cycleRows = useMemo(() => feeds.history?.receipt.status === "ready" ? cycleUniverse(feeds.history.data, feeds.history.receipt.asOf, rotationHistory) : [], [feeds.history, rotationHistory]);
+  const baskets = useMemo(() => feeds.history?.receipt.status === "ready" ? cycleBaskets(feeds.history.data, feeds.history.receipt.asOf) : null, [feeds.history]);
+  const currentCycle = status === "ready" && hasSector ? cycleRows.find(row => row.id === state.sector && row.ticker === text(sector.ticker)) : undefined;
   const completed = activeFeeds.filter(k => feeds[k]).length;
   const ready = activeFeeds.filter(k => feeds[k]?.receipt.status === "ready").length;
   const sectorSourceName = text(sector.name);
@@ -227,9 +233,9 @@ export default function SectorIntelligenceWorkspace() {
     setReturnWorkspace(workspace); setReturnState(null);
     change({ workspace, sourcesOpen: false }, true);
   };
-  const openSectorResearch = (sectorId: string) => {
+  const openSectorResearch = (sectorId: string, view: SectorView = "intelligence") => {
     if (state.workspace !== "detail") { setReturnWorkspace(state.workspace); setReturnState(state); }
-    change({ sector: sectorId, workspace: "detail", view: "intelligence", group: "", company: "", query: "", expanded: false, sourcesOpen: false }, true, state.workspace !== "detail" ? state : returnState);
+    change({ sector: sectorId, workspace: "detail", view, group: "", company: "", query: "", expanded: false, sourcesOpen: false }, true, state.workspace !== "detail" ? state : returnState);
   };
   const returnToOuterWorkspace = () => {
     const target = returnState ? { ...returnState, sourcesOpen: false } : { workspace: returnWorkspace, sourcesOpen: false };
@@ -305,7 +311,7 @@ export default function SectorIntelligenceWorkspace() {
       </div>
     </MobileSheet>
     <div className={styles.page}>
-      <header className={styles.header}><div><p className={styles.eyebrow}>{t("siEyebrow")}</p><h1>{t("siTitle")}</h1><p className={styles.subtitle}>{t("siSubtitle")}</p></div>
+      <header className={styles.header}><div><p className={styles.eyebrow}>{t("siEyebrow")}</p><h1>{t("siTitle")}</h1></div>
         <div className={`${styles.controls} ${state.workspace === "detail" ? styles.detailControls : styles.utilityControls}`}>
           {state.workspace === "detail" && <><label>{t("siSector")}<select aria-label={t("siSector")} value={state.sector} onChange={e => change({ sector: e.target.value, group: "", query: "", company: "", expanded: false })}>
             {!sectors.some(r => r.id === state.sector) && <option value={state.sector}>{state.sector.toUpperCase()}</option>}
@@ -322,6 +328,8 @@ export default function SectorIntelligenceWorkspace() {
         {OUTER_WORKSPACES.map(workspace => <button key={workspace} type="button"
           aria-current={state.workspace === workspace ? "page" : undefined}
           onClick={() => openOuterWorkspace(workspace)}>{t(WORKSPACE_KEYS[workspace])}</button>)}
+        <button type="button" aria-current={state.workspace === "detail" && state.view === "history" ? "page" : undefined}
+          onClick={() => openSectorResearch(state.sector, "history")}>{t("siCycleLens")}</button>
       </nav>
       {state.workspace === "detail" && <div className={styles.depthNavigation} data-testid="sector-detail-depth">
         <button type="button" data-testid="sector-detail-return" onClick={returnToOuterWorkspace}>← {t(RETURN_KEYS[returnWorkspace])}</button>
@@ -433,10 +441,10 @@ export default function SectorIntelligenceWorkspace() {
         {state.view === "drivers" && <>{business}<details className={styles.studyDisclosure}><summary>{t("siThemesDisclosure")}</summary><div className={styles.sectionHeading}><h2>{t("siThemeContext")}</h2><p>{t("siThemeScope")}</p>{themeStaleLegs(feeds.themes?.data).length > 0 && <p role="status">{t("siThemeFreshnessLimited")}</p>}</div><div className={styles.themeGrid}>
           {themes.map(row => <Card key={text(row.theme_id)} title={localName(row, "name_en", "name_zh")}><dl className={styles.pairs}><div><dt>{t("siThemeStage")}</dt><dd>{stateLabel(object(row.foresight).stage)}</dd></div><div><dt>{t("siThemeReady")}</dt><dd>{themeEntryReady(row) === null ? t("siUnavailable") : themeEntryReady(row) ? t("siYes") : t("siNo")}</dd></div><div><dt>{t("siSnapshotDate")}</dt><dd>{feeds.themes?.receipt.asOf || t("siUnknownDate")}</dd></div></dl></Card>)}
           {!themes.length && <p className={styles.empty}>{t("siNoThemes")}</p>}</div><div className={styles.columns}><Card title={t("siTaxonomy")}><p className={styles.note}>{t("siTaxonomyCopy")}</p></Card></div></details></>}
-        {state.view === "history" && <Card title={t("siHistoryEmpty")}>
-          <p className={styles.muted}>{t("siReplayCopy")}</p>
-          <p className={styles.note}>{t("siHistoryContext")}</p>{sourcesLink}
-        </Card>}
+        {state.view === "history" && (currentCycle ? <SectorCycleLens key={`${currentCycle.id}:${feeds.history?.receipt.contentHash ?? currentCycle.asOf}`}
+          current={currentCycle} baskets={baskets} rows={cycleRows.filter(row => sectors.some(s => text(s.id) === row.id && text(s.ticker) === row.ticker))}
+          stale={feeds.history?.receipt.stale === true} onSelect={id => { if (id !== state.sector) openSectorResearch(id, "history"); }} />
+          : <Card title={t(status === "access" || feeds.history?.receipt.status === "access" ? "siCycleAccess" : status === "loading" || !feeds.history || feeds.history.receipt.status === "loading" ? "siCycleLoading" : "siHistoryEmpty")}>{sourcesLink}</Card>)}
       </div>
       </>}
       <footer className={styles.footer}>{t("siResearchCopy")}</footer>
