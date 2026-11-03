@@ -346,3 +346,10 @@ currentCacheQualification:
   report: "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/1224-cache-ca43fd0f/result.json"
   reportSha256: "0e27d4fe814ed4fc3ca70af77c5b0484f34e09a8ce151d25635d6061f30cd5ec"
   scope: "The report maps every current capture to its actual file and digest. Packet-root PNGs and earlier capture records retain their historical identity."
+
+composedSectorReturnQualification:
+  sourceHead: "7f1a7982ba0bb14f3845f83c883eeb815c62a6b8"
+  protectedBase: "c8a1d0e23255c2d5374258b52197bdf1aed85b27"
+  report: "terminal/docs/pr-crops/sector-exposure-depth-return-20261102/composition-c8a/receipt.json"
+  reportSha256: "fb88d89decf0f21f3a25b5b537baa97522d0d308b2bf747a199419343318ab3a"
+  scope: "Actual96 Gex/belt assertions and18sector-return journeys on composed GexDesk/dataCache bytes; original histories preserved; ancillary pick observation disclosed."
