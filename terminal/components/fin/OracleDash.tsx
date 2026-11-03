@@ -477,12 +477,21 @@ export default function OracleDash({ sym, row, bars, zh = false, open = true, on
   const conv = cards?.conviction ?? null           // score + band + drivers + cautions
   const sectorPulse = tape?.sector_pulse ?? null   // theme + heat + reco (supporting read)
 
-  const researchTitle = pick(zh, aj?.verdict ?? "", aj?.verdict_zh ?? "")
-  const researchGloss = pick(zh, aj?.gloss ?? "", aj?.gloss_zh ?? "")
+  const researchTitle = (zh ? aj?.verdict_zh : aj?.verdict) ?? ""
+  const researchGloss = (zh ? aj?.gloss_zh : aj?.gloss) ?? ""
   const convScore = typeof conv?.score === "number" ? conv.score : null
-  const drivers = Array.isArray(conv?.drivers) ? (conv!.drivers as string[]) : []
-  const cautionSource = zh && Array.isArray(conv?.cautions_zh) ? conv.cautions_zh : conv?.cautions
+  const driverSource = zh ? conv?.drivers_zh : conv?.drivers
+  const drivers: string[] = Array.isArray(driverSource) ? driverSource : []
+  const cautionSource = zh ? conv?.cautions_zh : conv?.cautions
   const cautions: string[] = Array.isArray(cautionSource) ? cautionSource : []
+
+  // Owner narratives may be English-only. Keep them available under their language.
+  const originalNotes: string[] = zh ? [
+    ...(!researchTitle && aj?.verdict ? [aj.verdict] : []),
+    ...(!researchGloss && aj?.gloss ? [aj.gloss] : []),
+    ...(!drivers.length && Array.isArray(conv?.drivers) ? conv.drivers : []),
+  ] : []
+  const originalCautions: string[] = zh && !cautions.length && Array.isArray(conv?.cautions) ? conv.cautions : []
 
   // ── Live tech rating (D1/D2) ──
   const barsArr: Bar[] = Array.isArray(bars) ? (bars as Bar[]) : []
@@ -656,13 +665,19 @@ export default function OracleDash({ sym, row, bars, zh = false, open = true, on
       {currentResearch && d2Improve && <div className="sig-context-chip">{pick(zh, "Technical tape improving", "技术面转强")}</div>}
       {!currentResearch && (aj?.verdict || drivers.length > 0 || cautions.length > 0) && <p className={styles.sourceDate}>{pick(zh, "Saved research", "已保存的研究")} · {researchDate}</p>}
       {cautions.length > 0 && <><h4 className={styles.detailHeading}>{pick(zh, "Cautions", "注意事项")}</h4><ul className={styles.evidenceList}>{cautions.map((item, i) => <li key={i}>{item}</li>)}</ul></>}
-      {(drivers.length > 0 || aj?.gloss || aj?.verdict) && <details className={styles.method}><summary>{pick(zh, "Research notes", "研究笔记")}</summary>
+      {(drivers.length > 0 || researchGloss || (!currentResearch && researchTitle)) && <details className={styles.method}><summary>{pick(zh, "Research notes", "研究笔记")}</summary>
         {!currentResearch && researchTitle && <strong>{researchTitle}</strong>}
         {researchGloss && <p>{researchGloss}</p>}
         <ul className={styles.evidenceList}>{drivers.map((item, i) => <li key={i}>{item}</li>)}</ul>
       </details>}
+      {(originalNotes.length > 0 || originalCautions.length > 0) && <details className={styles.method} data-testid="research-original">
+        <summary>{pick(zh, "Source notes in English", "英文来源笔记")}{originalCautions.length > 0 && pick(zh, ` · ${originalCautions.length} cautions`, ` · ${originalCautions.length}条注意事项`)}</summary>
+        <ul lang="en" className={styles.evidenceList}>{[...originalCautions, ...originalNotes].map((note, i) => <li key={i}>{note}</li>)}</ul>
+      </details>}
       {techVerdict != null && techOverall != null && <div className={styles.callout}><strong>{pick(zh, "Technical rating", "技术评级")}</strong><br />{techVerdictLabel(techVerdict, zh)} · {techOverall >= 0 ? "+" : ""}{techOverall.toFixed(2)}</div>}
-      {currentSetup && sectorPulse?.theme_name && <div className={styles.callout}><strong>{pick(zh, "Sector context", "板块信息")}</strong><br />{sectorPulse.theme_name}{sectorPulse.label ? ` · ${sectorPulse.label}` : ""}
+      {currentSetup && sectorPulse?.theme_name && <div className={styles.callout}><strong>{pick(zh, "Sector context", "板块信息")}</strong><br />{zh && !sectorPulse.theme_name_zh ? <details className={styles.method}><summary>{pick(zh, "Original sector name", "查看英文板块名称")}</summary>
+          <span lang="en">{sectorPulse.theme_name}{sectorPulse.label ? ` · ${sectorPulse.label}` : ""}</span>
+        </details> : <>{zh ? sectorPulse.theme_name_zh : sectorPulse.theme_name}{(zh ? sectorPulse.label_zh : sectorPulse.label) && ` · ${zh ? sectorPulse.label_zh : sectorPulse.label}`}</>}
         {sectorPulse.rank != null && sectorPulse.n_themes != null && <p className={styles.meta}>#{sectorPulse.rank} / {sectorPulse.n_themes}</p>}
       </div>}
       {currentResearch && finalScore != null && <details className={styles.method}><summary>{pick(zh, "Conviction method", "信念度计算方法")}</summary>

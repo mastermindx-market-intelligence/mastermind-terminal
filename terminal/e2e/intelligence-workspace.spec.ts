@@ -174,6 +174,14 @@ for (const lang of ["en", "zh"] as const) {
     await setup.click()
     await expect(workspace.getByTestId("workspace-research").getByRole("heading", { name: zh ? "暂无当前判断" : "No current reading" })).toBeVisible()
     await expect(workspace.getByTestId("workspace-research").getByRole("img")).toHaveCount(0)
+    if (zh) {
+      const original = workspace.getByTestId("research-original")
+      await expect(original.locator("summary")).toContainText("1条注意事项")
+      const caution = original.getByText("Valuation remains elevated", { exact: true })
+      await expect(caution).toBeHidden()
+      await original.locator("summary").click()
+      await expect(caution).toBeVisible()
+    }
     await workspace.getByText(zh ? "研究笔记" : "Research notes", { exact: true }).click()
     await expect(workspace.getByTestId("workspace-research").getByText(zh ? "偏积极" : "Constructive", { exact: true })).toBeVisible()
     await workspace.getByRole("tab", { name: zh ? "神谕" : "Oracle", exact: true }).click()

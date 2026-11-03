@@ -51,15 +51,15 @@
   "captures": {
     "desktop-activity.webp": "76929d1fe1658736c25032f06dee30425d7a946874edad32bfbf0cba91946725",
     "desktop-oracle.webp": "bb9edc95c1c5d38cd490d442274efdf58944ab00f0104a189cbab1c1e0580466",
-    "desktop-research.webp": "f284397b657bd69bec68f46c44dc48c9a13800527c0aeb7e04174796abfe5a92",
-    "desktop-summary.webp": "b0689d34327977923d11466922d05f3a374ff6e80c5a6ee33a15c3332f66ef89",
+    "desktop-research.webp": "a5a6fc919a0b31c9f45437f1b3014a8947caec8d3c641a952ba3f76419f56519",
+    "desktop-summary.webp": "c9c4c18935d6f130c4e812d750b913a5bbe7d97030fc37fc65ef42342258b599",
     "mobile-activity.webp": "8b040788adc76e5f4c2919600ad39fb6cb8911538c34affd7ca6426470c0878e",
     "mobile-oracle.webp": "55887e7aa19bd0425cb687cc098c36147b147e574aaa337e6776af8e5a169e66",
     "mobile-research.webp": "848bfe8532e06026da590b690d73420990aaf41fe36f82036e6b688e667839f1",
-    "mobile-summary.webp": "01d789bec340116a98a3443b946d0c6037cd0baa1ec606dc4ca9935ab1cf6145",
+    "mobile-summary.webp": "a91bf8d2955a095325f7f467754b8d53daa9bdab60b8e07b9e71086100438613",
     "tablet-activity.webp": "0b3b3ada728735fc1a46ac71e26ceb016048e76b231599917527cfcc2c3e7a60",
-    "tablet-oracle.webp": "a50302c3238a3b32334e054678635c1004d7d675966e085cd602ee7624b5216b",
-    "tablet-research.webp": "15839723d4446203c696fe6fb0b8a3497a55b83a85544e262d6f408b3e072047",
+    "tablet-oracle.webp": "161c1be5249e5b35f5b70abb9c0edcfdf151638baeec82612c8410d18aee8159",
+    "tablet-research.webp": "1a887b824373732e1fafd21a1fb5bad29bb4a464308df589801e9bb98581d47f",
     "tablet-summary.webp": "1b887afcadc8f9a0b73ec9f1684dfb881122bbf5c63b5027e3751049300ef060"
   }
 }
