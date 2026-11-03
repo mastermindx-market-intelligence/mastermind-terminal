@@ -8,10 +8,13 @@ promises or “memory” recorded only inside one chat do not carry to another s
 
 1. Read `terminal/AGENTS.md` and `terminal/CLAUDE.md` in full before changing the
    Next.js application.
-2. Search the Claude project memory index at
+2. Treat local Claude project memory as optional context, not a startup or
+   delivery gate. The historical index at
    `~/.claude/projects/-Users-chriswong-Documents-Cluade-charting-app/memory/MEMORY.md`
-   and open the relevant entries. Delivery work must include
-   `git-flow-commit-pr-merge-habit`, `prod-repo-is-stale`, and `deploy-topology`.
+   and its `git-flow-commit-pr-merge-habit`, `prod-repo-is-stale`, and
+   `deploy-topology` notes may be read when relevant and accessible. If absent,
+   recover from current source and canonical Agent OS instead. Local memory
+   never establishes a live owner, permission, or effect clearance.
 3. Treat `/Users/chriswong/Documents/Cluade/Macro Dashboard` as the connected
    dashboard/backend repository. Authentication, subscriptions, data contracts,
    APIs, Caddy routes, and deployment changes may require checking both repos.
@@ -40,6 +43,17 @@ promises or “memory” recorded only inside one chat do not carry to another s
   execution, schedules work, ranks priorities, or proves a worker is alive.
   Terminal delivery remains governed entirely by this file — CI, merge-on-green,
   the git-gated deploy, and live verification are unchanged.
+
+## Current receiver and executable handoffs
+
+A handoff that says "only the original writer/parent must act" is a custody
+clue, not a living session or approval gate. The currently assigned receiver
+inspects the original PR/workspace, live writer/lease and unresolved effects,
+then executes the next permitted recovery action or safe independent work.
+Keep STARTed exact-session bindings and EFFECT_UNKNOWN on the existing carrier;
+handoff text never transfers those effects, releases a lease, or proves ACK. A successor handoff names the current or next valid receiver,
+exact source/effect checks, real CI/review/release gates and a reachable next
+action; never an archived chat as the only actor.
 
 ## Workspace and git
 

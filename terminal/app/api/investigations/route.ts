@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { rateLimit, tooMany } from "@/lib/rateLimit";
 import { applyInvestigationRevision, listInvestigations, parseInvestigationCommand, readInvestigation, readInvestigationOperation, type InvestigationDb } from "@/lib/investigations";
 import { qualifyScenarioCaptureSave } from "@/lib/investigationScenarioServer";
+import { INVESTIGATION_ADMISSION } from "@/lib/investigations";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 const headers = { "Cache-Control": "private, no-store", "Vary": "Cookie" };
@@ -27,6 +28,15 @@ export async function GET(request: Request) {
     if (!keys.length) {
       const result=await listInvestigations(db);
       return respond(result,result.status==="listed"?200:503);
+    }
+    if (keys.includes("admission")) {
+      const parts = (params.get("admission") ?? "").split(":");
+      const owner = parts[0] ?? ""; const objectType = parts[1] ?? "";
+      const registered = (INVESTIGATION_ADMISSION.evidence ?? []).some(adapter => adapter.owner === owner && adapter.object_types.includes(objectType));
+      if (keys.length !== 1 || parts.length !== 2 || !owner || !objectType || !registered) return respond({ status: "invalid_payload" }, 400);
+      const { data, error } = await db.rpc("investigation_evidence_admitted_v2", { owner, object_type: objectType });
+      if (error || typeof data !== "boolean") return respond({ status: "unavailable" }, 503);
+      return respond({ status: "admission", admitted: data });
     }
     if (new Set(keys).size !== keys.length || keys.some(k => !["id", "revision", "operation_id"].includes(k))) return respond({ status: "invalid_payload" }, 400);
     const operation = params.get("operation_id");
