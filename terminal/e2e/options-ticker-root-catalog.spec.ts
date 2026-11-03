@@ -269,3 +269,50 @@ test("live coverage expands every per-root options selector", async ({ page }) =
     await expect(page.locator(`#${datalist} option[value="SPX"]`)).toHaveCount(1);
   }
 });
+
+test("company search opens the correct Alphabet share class beyond the activity shortlist", async ({ page }, testInfo) => {
+  const zh = testInfo.project.name === "tablet";
+  await page.addInitScript((zh) => {
+    // Exercise the REST snapshot transport with deterministic per-share-class fixtures.
+    Reflect.deleteProperty(window, "EventSource");
+    localStorage.setItem("mm.lang", zh ? "zh" : "en");
+  }, zh);
+  const receipt = "2026-09-21T15:00:00Z";
+  const roots = [...Array.from({ length: 25 }, (_, i) => `T${i}`), "GOOGL", "GOOG", "AMZN"];
+  await page.route(/\/api\/flow\?f=meta$/, (route) => route.fulfill({ json: {
+    schema: "live_flow.meta/v2", asof: receipt, built_at: receipt, roots_configured: roots.length,
+    root_catalog: roots.map((root, index) => ({
+      root, tier: "rotating", scheduled_this_cycle: true, source_ok_this_cycle: true,
+      last_source_success: receipt, has_session_data: root !== "AMZN", activity_rank: root === "AMZN" ? null : index + 1,
+    })),
+  } }));
+  await page.route("**/data/manifest.json", (route) => route.fulfill({ json: { symbols: {
+    AMZN: { name: "Amazon.com Inc.", zh: "亚马逊" }, WMT: { name: "Walmart" },
+  } } }));
+  for (const [root, gross] of [["GOOG", 123_000], ["GOOGL", 456_000]] as const) {
+    await page.route(new RegExp(`/api/flow\\?f=ticker(?:%3A|:)${root}$`), (route) => route.fulfill({ json: {
+      schema: "live_flow.ticker/v1", root, asof: receipt, group: "Technology", group_zh: "科技",
+      day: { gross, net_soft: 0, call_share: 0.5, n_events: 1, prem_z: null, baseline_source: "eod252" },
+      minutes: [], strikes: [], expiries: [], top_contracts: [],
+    } }));
+  }
+  await page.goto("/options?tab=tickers");
+  const rail = page.locator('[data-options-root-source="catalog"]');
+  const search = rail.getByRole("searchbox");
+  await search.fill("Google");
+  await expect(rail.getByRole("button")).toHaveCount(2);
+  for (const [root, shareClass, gross] of [["GOOG", "C", "$123K"], ["GOOGL", "A", "$456K"]]) {
+    const button = rail.getByRole("button", { name: zh ? `打开 ${root} 期权详情` : `Open ${root} ticker drill` });
+    await expect(button).toContainText(zh ? `${shareClass}类` : `Class ${shareClass}`);
+    await button.click();
+    await expect(page.getByText(gross, { exact: true })).toBeVisible();
+  }
+  await search.fill("Alphabet");
+  await expect(rail.getByRole("button")).toHaveCount(2);
+  await page.screenshot({ path: testInfo.outputPath("alphabet-share-classes.png") });
+  await search.fill(zh ? "亚马逊" : "Amazon");
+  await expect(rail.getByRole("button")).toHaveCount(1);
+  await expect(rail.getByRole("button")).toContainText("AMZN");
+  await search.fill("Walmart");
+  await expect(rail.getByRole("button")).toHaveCount(0);
+});

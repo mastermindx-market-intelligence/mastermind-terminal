@@ -16,12 +16,15 @@ import { flowGet, flowInvalidate, flowPrefetch } from "@/lib/flowClientCache";
 import { useFlowStream } from "@/lib/flowStream";
 import { usOptionsSessionState } from "@/lib/flowFreshness";
 import { trackSearch } from "@/lib/searchTrack";
+import { getJSONResult } from "@/lib/dataCache";
 import { normalizeVolUnits } from "@/lib/eodContext";
 import {
   buildOptionsRootChoices,
   buildTickerCandidateRows,
   parseLiveFlowRootCatalog,
   tickerArtifactMatchesCatalogReceipt,
+  tickerCompanyLabel,
+  type OptionsCompanyNames,
   type LiveFlowRootCatalogEntry,
 } from "@/lib/liveFlowRootCatalog";
 import { GEX_AUTOCOMPLETE_ROOTS } from "@/lib/optionsRoots";
@@ -1632,6 +1635,23 @@ export default function OptionsHubView({
 
   // ── Ticker drill ─────────────────────────────────────────────────────────
   const [tickerSearch, setTickerSearch] = useState("");
+  const [companyNames, setCompanyNames] = useState<OptionsCompanyNames | null>(null);
+  const [namesUnavailable, setNamesUnavailable] = useState(false);
+  useEffect(() => {
+    if (activeTab !== "tickers") return;
+    let cancelled = false;
+    setNamesUnavailable(false);
+    const apply = (manifest: { symbols?: OptionsCompanyNames } | null) => {
+      if (cancelled) return;
+      const symbols = manifest?.symbols;
+      if (symbols && typeof symbols === "object" && !Array.isArray(symbols)) setCompanyNames(symbols);
+      else setNamesUnavailable(true);
+    };
+    void getJSONResult("/data/manifest.json", { onRevalidate: apply })
+      .then((result) => apply(result.status === "data" ? result.data : null))
+      .catch(() => { if (!cancelled) setNamesUnavailable(true); });
+    return () => { cancelled = true; };
+  }, [activeTab]);
   const [tickerDrill, setTickerDrill] = useState<{
     selectedTicker: string | null;
     tickerData: TickerPayload | null;
@@ -1897,7 +1917,8 @@ export default function OptionsHubView({
     impacts: tickerImpacts,
     fallbackRoots: fallbackTickerCandidates,
     query: tickerSearch,
-  }), [rootCatalog, tickerImpacts, fallbackTickerCandidates, tickerSearch]);
+    companyNames: companyNames ?? undefined,
+  }), [rootCatalog, tickerImpacts, fallbackTickerCandidates, tickerSearch, companyNames]);
   const selectedTickerCatalog = useMemo(
     () => rootCatalog?.find((row) => row.root === selectedTicker) ?? null,
     [rootCatalog, selectedTicker],
@@ -3118,9 +3139,9 @@ export default function OptionsHubView({
                   <input
                     type="search"
                     aria-label={pick(lang, "Search covered options tickers", "搜索期权覆盖代码")}
-                    placeholder={lang === "zh" ? "搜索代码…" : "Search ticker…"}
+                    placeholder={pick(lang, "Ticker or company…", "代码或公司名…")}
                     value={tickerSearch}
-                    maxLength={12}
+                    maxLength={100}
                     onChange={(e) => setTickerSearch(e.target.value)}
                     style={{
                       width: "100%", height: 30, padding: "0 10px",
@@ -3152,6 +3173,7 @@ export default function OptionsHubView({
                 >
                   {tickerCandidateRows.map((candidate) => {
                     const { root, impact, catalog } = candidate;
+                    const companyLabel = tickerCompanyLabel(root, companyNames ?? {}, lang);
                     const isPos = impact !== null ? impact > 0 : null;
                     const tierLabel = catalog?.tier === "core"
                       ? (lang === "zh" ? "核心" : "CORE")
@@ -3185,7 +3207,13 @@ export default function OptionsHubView({
                         onMouseEnter={(e) => { if (selectedTicker !== root) e.currentTarget.style.background = "var(--panel-2)"; }}
                         onMouseLeave={(e) => { if (selectedTicker !== root) e.currentTarget.style.background = "none"; }}
                       >
-                        <span style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis" }}>{root}</span>
+                        <span style={{ minWidth: 0, flex: 1 }}>
+                          {root}
+                          {companyLabel && <span title={companyLabel} style={{
+                            display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                            fontSize: 10, fontWeight: 400, color: "var(--muted)",
+                          }}>{companyLabel}</span>}
+                        </span>
                         {impact !== null ? (
                           <span style={{ marginLeft: "auto", fontSize: 11, color: isPos ? "var(--up)" : "var(--down)", fontVariantNumeric: "tabular-nums" }}>
                             {fmtPremSigned(impact)}
@@ -3207,13 +3235,15 @@ export default function OptionsHubView({
                   {tickerCandidateRows.length === 0 && (
                     <div style={{ padding: "20px 12px" }}>
                       <div className="fin-empty-title" style={{ fontSize: 12 }}>
-                        {t("ohNoResults")}
+                        {companyNames || namesUnavailable ? t("ohNoResults") : pick(lang, "Loading company names…", "正在加载公司名…")}
                       </div>
                       <div className="fin-empty-why" style={{ marginTop: 5 }}>
-                        {rootCatalog
+                        {!companyNames
+                          ? (namesUnavailable ? pick(lang, "Company names unavailable. Try a ticker.", "公司名暂不可用，请输入代码。") : null)
+                          : rootCatalog
                           ? (lang === "zh"
-                              ? `${rootCatalog.length} 个覆盖标的中没有匹配“${tickerSearch.trim()}”的代码。`
-                              : `No covered root matches “${tickerSearch.trim()}” across ${rootCatalog.length} tickers.`)
+                              ? `${rootCatalog.length} 个覆盖标的中没有匹配“${tickerSearch.trim()}”的结果。`
+                              : `No covered symbol or company matches “${tickerSearch.trim()}” across ${rootCatalog.length} tickers.`)
                           : fallbackTickerCandidates.length === 0
                             ? t("ohNoFlowNames")
                             : (lang === "zh"
