@@ -55,7 +55,10 @@ export default defineConfig({
   use: {
     baseURL,
     screenshot: "only-on-failure",
-    trace: "retain-on-failure",
+    // Avoid recording and discarding a trace for every successful CI attempt.
+    // Keep the first retry trace even when it passes; initial failures still
+    // retain screenshots/errors. Use --trace=retain-on-failure for diagnosis.
+    trace: process.env.CI ? "on-first-retry" : "retain-on-failure",
   },
   projects: [
     // Keep the broad responsive suite fully parallel. The Company Intelligence
