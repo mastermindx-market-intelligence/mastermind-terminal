@@ -507,8 +507,8 @@
       "state": "taken",
       "file": "0048_brief_delivery_team_sharing.sql",
       "packet": "MMOS-AT20-BRIEF-TEAM-ACCESS",
-      "pr": null,
-      "pr_state": null,
+      "pr": 1279,
+      "pr_state": "open",
       "applied_in_production": false,
       "applied_date": null,
       "note": "Root01a15741 approved source-only single-team view-only delivered brief sharing; child01a1a4df owns exact source. No DDL/application/share/grant effect. Existing team/RLS and immutable logical delivery producer remain owners."
