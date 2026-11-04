@@ -39,6 +39,15 @@ const LABELS = {
   rangePrefix: ["Show range", "显示区间"],
   // ?fs=1 — the native host's "open the full chart" affordance at the end of the range row.
   fullscreen: ["Open full chart", "打开完整图表"],
+  fullscreenEnter: ["Enter full screen", "进入全屏"],
+  fullscreenExit: ["Exit full screen", "退出全屏"],
+  fullscreenPending: ["Changing full screen…", "正在切换全屏…"],
+  fullscreenUnavailable: ["Full screen is unavailable here.", "此处无法使用全屏。"],
+  fullscreenEnterFailed: ["Couldn’t enter full screen.", "无法进入全屏。"],
+  fullscreenExitFailed: ["Couldn’t exit full screen. Use your browser’s exit control.", "无法退出全屏，请使用浏览器的退出控件。"],
+  fullscreenNativeFailed: ["Couldn’t request the full chart.", "无法请求打开完整图表。"],
+  fullscreenRequested: ["Full chart requested.", "已请求打开完整图表。"],
+
 } satisfies Record<string, Pair>;
 
 export type LabelKey = keyof typeof LABELS;

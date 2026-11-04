@@ -183,6 +183,11 @@ for (const lang of ["en", "zh"] as const) {
 }
 
 test("preserves compact native variants in short and narrow frames", async ({ page }, info) => {
+  // Native preview simulation: its existing bridge owns the full-chart handoff.
+  await page.addInitScript(() => {
+    const messages: unknown[] = [];
+    Object.assign(window, { __d06NativeMessages: messages, webkit: { messageHandlers: { mm: { postMessage(message: unknown) { messages.push(message); } } } } });
+  });
   const errors = watchRuntimeErrors(page);
   await page.setViewportSize({ width: info.project.name === "desktop" ? 900 : info.project.name === "tablet" ? 390 : 320, height: 300 });
   await page.emulateMedia({ reducedMotion: "reduce" });
@@ -202,6 +207,8 @@ test("preserves compact native variants in short and narrow frames", async ({ pa
       await expect(page.locator(".embed-legend")).toHaveCount(0);
       const initialUrl = page.url();
       await page.locator(".embed-fs").click();
+      expect(await page.evaluate(() => document.fullscreenElement)).toBeNull();
+      expect(await page.evaluate(() => (window as unknown as {__d06NativeMessages: unknown[]}).__d06NativeMessages)).toEqual([{type:"openFullChart"}]);
       expect(page.url()).toBe(initialUrl);
       await expect(page.locator(".embed-chart-host canvas").first()).toBeVisible();
     }

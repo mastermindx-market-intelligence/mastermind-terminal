@@ -44,7 +44,7 @@ import {
   type Lang,
 } from "@/lib/embed/chartData";
 import { palette, CLEAN, type EmbedPalette } from "@/lib/embed/theme";
-import { makeT } from "@/lib/embed/labels";
+import { makeT, type LabelKey } from "@/lib/embed/labels";
 
 export interface EmbedChartProps {
   symbol: string;
@@ -59,19 +59,16 @@ export interface EmbedChartProps {
    *  candles ONLY (no SMA overlays, no legend, no volume band), quiet canvas, TV palette,
    *  dashed prior-close rule, TV-styled range capsules. Off ⇒ the widget is unchanged. */
   clean?: boolean;
-  /** fs=1 — append the native "open full chart" affordance to the right end of the range
-   *  row. Posts `openFullChart` to a native host; a plain browser is a no-op. */
+  /** fs=1 — native full-chart handoff when hosted; browser fullscreen otherwise. */
   fullscreenBtn?: boolean;
 }
 
-/** Ask the native host to open the full chart. No host (browser / e2e) ⇒ silent no-op. */
-function postOpenFullChart(): void {
-  try {
-    (window as unknown as { webkit?: { messageHandlers?: { mm?: { postMessage(m: unknown): void } } } })
-      .webkit?.messageHandlers?.mm?.postMessage({ type: "openFullChart" });
-  } catch {
-    /* not hosted by a native shell */
-  }
+type NativeChartHandler = { postMessage(message: { type: "openFullChart" }): void };
+function nativeChartHandler(): NativeChartHandler | undefined {
+  if (typeof window === "undefined") return undefined;
+  const handler = (window as unknown as { webkit?: { messageHandlers?: { mm?: NativeChartHandler } } })
+    .webkit?.messageHandlers?.mm;
+  return typeof handler?.postMessage === "function" ? handler : undefined;
 }
 
 type LoadState = { kind: "loading" } | DailyHistoryState;
@@ -107,6 +104,62 @@ export default function EmbedChart({ symbol, theme, lang, transparent, initialRa
   const [sma200On, setSma200On] = useState(true);
   // Crosshair OHLC readout — null when the pointer is off the chart (show the day-quote instead).
   const [hover, setHover] = useState<Bar | null>(null);
+
+  const rootRef = useRef<HTMLDivElement>(null);
+  const [nativeFullscreen, setNativeFullscreen] = useState(false);
+  const [fullscreen, setFullscreen] = useState(false);
+  const [fullscreenPending, setFullscreenPending] = useState(false);
+  const [fullscreenMessage, setFullscreenMessage] = useState<LabelKey | null>(null);
+  const fullscreenPendingRef = useRef(false);
+  const fullscreenAliveRef = useRef(true);
+  useEffect(() => {
+    fullscreenAliveRef.current = true;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- read the pre-existing native host capability after hydration.
+    setNativeFullscreen(!!nativeChartHandler());
+    let wasFullscreen = document.fullscreenElement === rootRef.current;
+    const sync = () => {
+      const active = document.fullscreenElement === rootRef.current;
+      setFullscreen(active);
+      if (wasFullscreen && !active) rootRef.current?.querySelector<HTMLButtonElement>(".embed-fs")?.focus();
+      wasFullscreen = active;
+    };
+    document.addEventListener("fullscreenchange", sync);
+    return () => { fullscreenAliveRef.current = false; document.removeEventListener("fullscreenchange", sync); };
+  }, []);
+  async function toggleFullscreen() {
+    if (fullscreenPendingRef.current) return;
+    const handler = nativeChartHandler();
+    if (handler) {
+      // The native preview already owns this handoff. A throw is not permission
+      // to replay the action through the browser's fullscreen mechanism.
+      setNativeFullscreen(true);
+      try { handler.postMessage({ type: "openFullChart" }); setFullscreenMessage("fullscreenRequested"); }
+      catch { setFullscreenMessage("fullscreenNativeFailed"); }
+      return;
+    }
+    const root = rootRef.current;
+    if (!root) return;
+    const exiting = document.fullscreenElement === root;
+    if (!exiting && (typeof root.requestFullscreen !== "function" || !document.fullscreenEnabled)) {
+      setFullscreenMessage("fullscreenUnavailable"); return;
+    }
+    fullscreenPendingRef.current = true; setFullscreenPending(true); setFullscreenMessage(null);
+    try {
+      // Directly inside the user's click: retain browser transient activation.
+      if (exiting) await document.exitFullscreen();
+      else await root.requestFullscreen();
+    } catch {
+      if (fullscreenAliveRef.current) setFullscreenMessage(exiting ? "fullscreenExitFailed" : "fullscreenEnterFailed");
+    } finally {
+      fullscreenPendingRef.current = false;
+      if (fullscreenAliveRef.current) {
+        setFullscreenPending(false);
+        if (exiting && document.fullscreenElement !== root) requestAnimationFrame(() => {
+          if (fullscreenAliveRef.current) root.querySelector<HTMLButtonElement>(".embed-fs")?.focus();
+        });
+      }
+    }
+  }
 
   const hostRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
@@ -336,7 +389,9 @@ export default function EmbedChart({ symbol, theme, lang, transparent, initialRa
 
   return (
     <div
+      ref={rootRef}
       className="embed-root"
+      data-fullscreen={fullscreen ? "1" : "0"}
       lang={lang === "zh" ? "zh-CN" : "en"}
       data-theme={theme}
       data-transparent={transparent ? "1" : "0"}
@@ -353,6 +408,10 @@ export default function EmbedChart({ symbol, theme, lang, transparent, initialRa
         range={range}
         onRange={setRange}
         showFullscreen={fullscreenBtn}
+        fullscreenLabel={t(fullscreenPending ? "fullscreenPending" : nativeFullscreen ? "fullscreen" : fullscreen ? "fullscreenExit" : "fullscreenEnter")}
+        fullscreenActive={nativeFullscreen ? undefined : fullscreen}
+        fullscreenPending={fullscreenPending}
+        onFullscreen={toggleFullscreen}
         legend={
           // Clean mode is candles-only — no SMA series exist, so no legend to drive them.
           state.kind === "ready" && !clean ? (
@@ -367,6 +426,8 @@ export default function EmbedChart({ symbol, theme, lang, transparent, initialRa
           ) : null
         }
       />
+
+      {fullscreenMessage && <p className={fullscreenMessage === "fullscreenRequested" ? "embed-status" : "embed-fullscreen-note"} role="status" aria-live="polite">{t(fullscreenMessage)}</p>}
 
       <div className="embed-body" aria-busy={state.kind === "loading"}>
         {state.kind === "loading" && <Skeleton pal={pal} />}
@@ -396,7 +457,7 @@ export default function EmbedChart({ symbol, theme, lang, transparent, initialRa
         <span aria-hidden="true" className="embed-attr-arrow">↗</span>
       </a>
 
-      <StyleTag pal={pal} />
+      <StyleTag pal={pal} fullscreenBackground={palette(theme, false, clean).pageBg} />
     </div>
   );
 }
@@ -411,7 +472,7 @@ function Header({
   range,
   onRange,
   legend,
-  showFullscreen,
+  showFullscreen, fullscreenLabel, fullscreenActive, fullscreenPending, onFullscreen,
 }: {
   symbol: string;
   state: LoadState;
@@ -421,8 +482,11 @@ function Header({
   range: RangeKey;
   onRange: (r: RangeKey) => void;
   legend?: React.ReactNode;
-  /** fs=1 — render the native fullscreen affordance at the right end of the range row. */
   showFullscreen?: boolean;
+  fullscreenLabel: string;
+  fullscreenActive: boolean | undefined;
+  fullscreenPending: boolean;
+  onFullscreen: () => void;
 }) {
   const quote = state.kind === "ready" ? state.quote : null;
   // When hovering the chart, the header becomes an OHLC status line (house pattern).
@@ -480,14 +544,15 @@ function Header({
           </button>
         ))}
         {showFullscreen && (
-          /* TV's ⤢ — four corner strokes in a ~34px square at the right end of the range row.
-             Tapping asks the native host to open the full chart; a browser gets a no-op. */
+          /* The same control preserves the native handoff and owns browser fullscreen. */
           <button
             type="button"
             className="embed-fs"
-            aria-label={t("fullscreen")}
-            title={t("fullscreen")}
-            onClick={postOpenFullChart}
+            aria-label={fullscreenLabel}
+            title={fullscreenLabel}
+            aria-pressed={fullscreenActive}
+            disabled={fullscreenPending}
+            onClick={onFullscreen}
           >
             <svg viewBox="0 0 18 18" width="18" height="18" aria-hidden="true">
               <path
@@ -657,10 +722,10 @@ export function EmbedError({ theme, lang, transparent }: { theme: ThemeName; lan
 }
 
 // ── Scoped styles (component-owned; palette drives every color via CSS custom props) ──
-function StyleTag({ pal }: { pal: EmbedPalette }) {
+function StyleTag({ pal, fullscreenBackground = pal.pageBg }: { pal: EmbedPalette; fullscreenBackground?: string }) {
   const css = `
   .embed-root{
-    --e-page:${pal.pageBg}; --e-text:${pal.text}; --e-dim:${pal.textDim}; --e-muted:${pal.muted};
+    --e-fullscreen:${fullscreenBackground}; --e-page:${pal.pageBg}; --e-text:${pal.text}; --e-dim:${pal.textDim}; --e-muted:${pal.muted};
     --e-chip:${pal.chipBg}; --e-chip-active:${pal.chipActiveBg}; --e-chip-border:${pal.chipBorder};
     --e-up:${pal.up}; --e-down:${pal.down}; --e-brand:${pal.brand}; --e-skel-base:${pal.skelBase};
     position:fixed; inset:0; display:flex; flex-direction:column; background:var(--e-page);
@@ -668,6 +733,9 @@ function StyleTag({ pal }: { pal: EmbedPalette }) {
     font-family:var(--font-inter),-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
     -webkit-font-smoothing:antialiased; letter-spacing:.005em;
   }
+  .embed-root:fullscreen{width:100%;height:100%;background:var(--e-fullscreen);}
+  .embed-root::backdrop{background:var(--e-fullscreen);}
+  .embed-fullscreen-note{flex:none;order:0;margin:0;padding:10px 12px;font-size:13px;line-height:1.5;color:var(--e-text);background:var(--e-chip);overflow-wrap:anywhere;}
   .embed-root .num{font-family:var(--font-inter),-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;}
   .embed-root *{box-sizing:border-box;}
   .embed-status{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
@@ -724,7 +792,7 @@ function StyleTag({ pal }: { pal: EmbedPalette }) {
     background:color-mix(in srgb,var(--e-page) 62%,transparent);border:1px solid transparent;cursor:pointer;
     transition:color 120ms,background 120ms,opacity 120ms;}
   .embed-leg:hover{color:var(--e-text);}
-  .embed-leg.is-off{opacity:.4;}
+  .embed-leg.is-off{text-decoration:line-through;text-decoration-thickness:1px;}
   .embed-leg.is-off .embed-leg-dot{opacity:.5;}
   .embed-leg:focus-visible{outline:2px solid var(--e-brand);outline-offset:1px;}
   .embed-leg-dot{width:12px;height:2.5px;border-radius:2px;flex:none;}
@@ -786,11 +854,17 @@ function StyleTag({ pal }: { pal: EmbedPalette }) {
   .embed-root[data-clean="1"] .embed-chip.is-active,
   .embed-root[data-clean="1"] .embed-chip.is-active:hover{background:#2e2e2e;color:#dbdbdb;border:0;}
   /* fs=1 — the ⤢ corner-bracket square, pinned to the right end of the range row. */
-  .embed-fs{flex:none;margin-left:auto;width:34px;height:34px;display:inline-flex;align-items:center;
-    justify-content:center;border-radius:8px;background:transparent;border:0;color:#8c8c8c;cursor:pointer;
+  .embed-fs{flex:none;margin-left:auto;width:44px;height:44px;display:inline-flex;align-items:center;
+    justify-content:center;border-radius:8px;background:transparent;border:0;color:var(--e-muted);cursor:pointer;
     transition:color 120ms cubic-bezier(.4,0,.2,1),background 120ms cubic-bezier(.4,0,.2,1);}
-  .embed-fs:hover{color:#dbdbdb;}
+  .embed-fs:hover{color:var(--e-text);background:var(--e-chip);}
+  .embed-fs:disabled{opacity:.6;cursor:wait;}
   .embed-fs:focus-visible{outline:2px solid var(--e-brand);outline-offset:1px;}
+
+  .embed-root[data-hdr="0"]:fullscreen .embed-head-quote{display:flex;}
+  .embed-root[data-clean="1"]:fullscreen .embed-header{order:0;padding:8px 12px;}
+  .embed-root[data-clean="1"]:fullscreen .embed-attr{display:flex;order:3;}
+  .embed-root[data-clean="1"] .embed-fullscreen-note{order:3;}
 
   /* Narrow phones (~360px): header stacks, keep everything inside the frame. */
   @media (max-width:430px){
