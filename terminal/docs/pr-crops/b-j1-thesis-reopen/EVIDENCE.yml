@@ -1,8 +1,8 @@
 {
   "task": "B-J1-HISTORY-SELECTION",
-  "capturedAtHead": "3a27290b29da76daf312aa6567f31867852c921d",
+  "capturedAtHead": "bbc07037aae3e98597945e23448781a091d15281",
   "layoutFiles": {
-    "terminal/components/workspaces/ThesisWorkspace.tsx": "996cfc62493b59626de79cdae138a5360b5c14833dfe0a74132d21dd5454dfff",
+    "terminal/components/workspaces/ThesisWorkspace.tsx": "f8aa79a228b85a0c10050b06d24665a95fc149ea56a00e8610472cc7a2a7849c",
     "terminal/components/workspaces/ThesisWorkspace.module.css": "c7fcd07d13cf3d7453bb51cd47ffb13c80af05e327bf9662368e97988023320c",
     "terminal/e2e/market-ontology-context.spec.ts": "aa25bbce7bfde624c2facb548c937a08ea83b344c7512fe3a069628305d1bce3"
   },
@@ -17,23 +17,21 @@
     820,
     390
   ],
-  "command": "cd terminal && TERMINAL_E2E_PORT=3693 npx playwright test e2e/market-ontology-context.spec.ts --project=desktop --grep 'carries through Analysis|reopening an existing|natural saved-thesis|Forward before A settles' --workers=1 --retries=0",
+  "command": "TERMINAL_E2E_PORT=3179 NODE_PATH=./node_modules node_modules/.bin/playwright test --config <retained f11-thesis-grounding/j1-playwright.config.cjs> market-ontology-context.spec.ts --grep \"natural saved-thesis path\" --project=desktop --workers=1 --retries=0",
   "producer": "terminal/e2e/market-ontology-context.spec.ts",
   "files": {
-    "terminal/e2e/proof/mo-context-strip/desktop-reopen-thesis-1440-zh.png": "3e38986fb0afc361b49e6a020a006b3023cee2d1fafb5149459d1d57559ce4b0",
+    "terminal/e2e/proof/mo-context-strip/desktop-reopen-thesis-1440-zh.png": "0029b35669b15c221a8bac2bf3c886c6486189d19188307c0caac0872e1329c1",
     "terminal/e2e/proof/mo-context-strip/desktop-reopen-thesis-1440.png": "151b477e87579ca0cbfab892533d442ca06a0d724d114562fe470f4b801ccdbc",
-    "terminal/e2e/proof/mo-context-strip/desktop-reopen-thesis-390-zh.png": "d96ecadff1bcfa3632997fdeb51f544ff364aac047631f171ff5dee87011cb95",
-    "terminal/e2e/proof/mo-context-strip/desktop-reopen-thesis-390.png": "1963c2b4b1a49e115a5ec539df1f3c9535aed2b2109f55551436da35b5faaee2",
-    "terminal/e2e/proof/mo-context-strip/desktop-reopen-thesis-820-zh.png": "5f394c92f32630393156dfe5fa9567084fe0c6a2e0692a5c6d302bc49f8294c3",
-    "terminal/e2e/proof/mo-context-strip/desktop-reopen-thesis-820.png": "b4667423ec17fe8f76c9c6e0b80b0752f832faef3edfe7c7d6bb252cdb4f79a0"
+    "terminal/e2e/proof/mo-context-strip/desktop-reopen-thesis-390-zh.png": "215d617bdf15b6efc0cea4657f4227b6547691f7d06de5be4430191090816492",
+    "terminal/e2e/proof/mo-context-strip/desktop-reopen-thesis-390.png": "9fbbc777b4404850f59d43c425d22d2a657b7ea4fafe1d3fdf973b2775189cea",
+    "terminal/e2e/proof/mo-context-strip/desktop-reopen-thesis-820-zh.png": "fdea9fec07b307aed2947cf87fa717c0d89a8b5867d0ca77562540207328e09f",
+    "terminal/e2e/proof/mo-context-strip/desktop-reopen-thesis-820.png": "2d847ac4ec3651b90fcbd383d1a21de037a85320a0217834c983ad4aae655f07"
   },
-  "adjudication": "All six actual EN/ZH 1440/820/390 PNGs were regenerated after the bounded review repair. Parent viewed the four changed mobile/tablet PNGs; the two desktop PNGs are byte-identical to previously viewed accepted captures. Confirmed context and the exact return action remain readable with intact responsive composition. Styles and copy are unchanged.",
-  "scope": "Actual local fixture browser captures. Controlled request ordering is not evidence of natural production timing; postmerge live proof remains required.",
+  "adjudication": "Fresh original producer, six EN/ZH1440/820/390 reload/Back/Forward captures; five PNGs differ and await parent visual adjudication. Desktop EN is byte-identical to prior accepted capture.",
+  "scope": "Actual local fixture browser only; no live account/data/production release proof. Existing native config with global warmup omitted to avoid unrelated routes, supported webpack mode, own server3179 and reuseExistingServer=false.",
   "checks": [
-    "35 mounted J1 controls pass, including seven reproduced symbol-disproof regressions now green",
-    "184 research/context/token neighbors and 25 proposal completion/read controls remain accepted for unchanged paths",
-    "Type generation, TypeScript and targeted ESLint pass with zero errors and one inherited mount-effect warning",
-    "Four affected browser cases pass, including cross-company URL/reload, Save/New/Back and API isolation, six EN/ZH responsive cells and three explicit held-A/B-settled/late-A ordering cells"
+    "Original single browser case PASS29.1s;6 language/viewport cells; no retry",
+    "198 affected behavioral checks PASS;14 evidence-lock checks PASS;full projecttypecheck PASS"
   ],
-  "liveAcceptance": "Required after protected merge through existing release owner, using only the two archived MU records read-only."
+  "observed_browser_log": "Internal Next.js error: Router action dispatched before initialization. Retained in capture-j1.log despite passing case; no zero-exception claim. Changed read-source layout effect only installs/removes a getter and reads current URL; it performs no router/history dispatch. Full production history behavior remains parent-owned."
 }

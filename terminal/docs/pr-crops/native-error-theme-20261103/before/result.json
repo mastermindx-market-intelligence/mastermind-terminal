@@ -1,0 +1,265 @@
+{
+  "phase": "before",
+  "os_profile": "(version 1)(allow default)(deny network*)",
+  "source_receipt": {
+    "phase": "before",
+    "base": "3eb42cc4c145bc38e389fcccac737b45dc9ab1ad",
+    "sourceState": "?? terminal/docs/pr-crops/native-error-theme-20261103/",
+    "sourcePreimages": {
+      "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-paper-targets-20261102-2cf2aff394e4d007/terminal/node_modules/react/cjs/react.production.js": "6a3554a5287116df819640334924348287618dcdcd7124a05eb126dcbbecd5f9",
+      "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-paper-targets-20261102-2cf2aff394e4d007/terminal/node_modules/react/index.js": "60caffdecbdc5db3bc4ec4e83df9488345ccb271d07533b9210bf5750918d97e",
+      "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-paper-targets-20261102-2cf2aff394e4d007/terminal/node_modules/scheduler/cjs/scheduler.production.js": "679adff761d31e9426604f80c0e99be44a3e6f4c6834b0218ecf0312a67c171f",
+      "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-paper-targets-20261102-2cf2aff394e4d007/terminal/node_modules/scheduler/index.js": "145965504d60007bc25486ab930b0367867dcd5d579ccd343c148d69349a7cfb",
+      "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-paper-targets-20261102-2cf2aff394e4d007/terminal/node_modules/react-dom/cjs/react-dom.production.js": "7a5e56724be242e34ddc14f9d0dc7fc6a32f1367ae994f02d3699b00c085eff4",
+      "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-paper-targets-20261102-2cf2aff394e4d007/terminal/node_modules/react-dom/index.js": "ba1a3e33489f868371561777607e3ee5091df0f7ea3f1a10f789d6b86e4c1505",
+      "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-paper-targets-20261102-2cf2aff394e4d007/terminal/node_modules/react-dom/cjs/react-dom-client.production.js": "764ffa6adc2c9b02b4dc00f4a58ef13d050e7825898bd9e5dc808d3a3f9d4bb9",
+      "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-paper-targets-20261102-2cf2aff394e4d007/terminal/node_modules/react-dom/client.js": "00e348ab3d6bc2eef908345d0bc4e008c95bcfecec060dfda5c4967953761396",
+      "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-native-error-theme-p12t21s2-7bdf1c032aa098fe/terminal/lib/chatQuotas.ts": "da3ea57cb9c22b5ed7bfb12f2ab85a1a86809a202c720661f481ad7be7967b2f",
+      "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-paper-targets-20261102-2cf2aff394e4d007/terminal/node_modules/react/cjs/react-jsx-runtime.production.js": "1e46f15002696985e80c61d47aaa30dabb03c954270a690f5f7dfbbacfa9002b",
+      "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-paper-targets-20261102-2cf2aff394e4d007/terminal/node_modules/react/jsx-runtime.js": "b392951a77d0a2e6a6bd017e49d768481ae5b63c4109c6c31f622cf7b2433edc",
+      "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-native-error-theme-p12t21s2-7bdf1c032aa098fe/terminal/lib/i18n.tsx": "92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435",
+      "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-native-error-theme-p12t21s2-7bdf1c032aa098fe/terminal/components/BrandMark.tsx": "adde4b9fbd9953d87f971aac9cf571b80aaab8090cba6cf76a19fc49d0395cbd",
+      "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-native-error-theme-p12t21s2-7bdf1c032aa098fe/terminal/lib/originNav.ts": "517038a8bc557760d43ad25c919761b252268747f63eabc725129fa88d951d1d",
+      "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-native-error-theme-p12t21s2-7bdf1c032aa098fe/terminal/components/DashboardBackButton.tsx": "6a28b0f29da3ab9054d52745d49b953b93bf0db4309f1531314f53b99445abfa",
+      "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-native-error-theme-p12t21s2-7bdf1c032aa098fe/terminal/app/error-return.module.css": "4be47178b7b1e5776773a93d6470865c647d8555befe9c2b797761279efb91c0",
+      "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-native-error-theme-p12t21s2-7bdf1c032aa098fe/terminal/app/error.tsx": "1c3c258dabe697e413358caf6f3012656420b74b2c0c4a9455724a0131285e4f",
+      "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-native-error-theme-p12t21s2-7bdf1c032aa098fe/terminal/lib/accountIdentity.ts": "84240a1d43343ae57288ca2d72ed8b9d8128e561448a6b0daae51f3441fede1c",
+      "/Volumes/Mastermind/evidence/native-error-theme-p12t21s2-20261103/fixture-prefs.ts": "61577e79492a49f84f2d06190b0c61656099438e62352a86a8f9f1962c2c9490",
+      "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-native-error-theme-p12t21s2-7bdf1c032aa098fe/terminal/components/chrome/shared-shell/SharedShellPresentation.tsx": "d0e1eb7c4a16b45bfad93e17a56cef9387df197dc3de83b3cb516b6e7a125a0d",
+      "/Volumes/Mastermind/evidence/native-error-theme-p12t21s2-20261103/fixture-entry.tsx": "4a4de6d25b14217e9edb311d8afc1a523c2309b8fab9087a1fb8413a68ec1e00",
+      "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-native-error-theme-p12t21s2-7bdf1c032aa098fe/terminal/app/globals.css": "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517",
+      "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-native-error-theme-p12t21s2-7bdf1c032aa098fe/terminal/components/chrome/shared-shell/shared-shell.css": "97bf53925b7e843d6ea4639b8a8b50f467f5fff8355c2a828d990e8db477f5d2"
+    },
+    "localResources": {
+      "fixture.css": "46761977ff0e2f9935140ad7ae7555e95a442aefa5729496383b1ccdccc9be58",
+      "fixture.html": "ab4bf26dda7b431a3087328b84d81d766360cd0e14940e6b4f786f2ba6ca238b",
+      "fixture.js": "dac5fd7637ca509c8933b765303fe597d0bce81cb3bfc7ad6e6fb16e2558980d",
+      "native-globals.css": "3b6cc212aca1d48d1faf10743417660b3e9de9a6e4ead1b7ad6a20f28c2621a5",
+      "native-presentation.css": "97bf53925b7e843d6ea4639b8a8b50f467f5fff8355c2a828d990e8db477f5d2",
+      "return.html": "e72a06333f2e6519f76901ec9b7322887de29ee7b725b6b35bb9754c096c4db8",
+      "fonts/Inter-400.woff2": "8909904ab6c872eb994093482a88a28eca2cd95912d7b6fecd72103b0dc07edc",
+      "fonts/Inter-600.woff2": "f9a06e79cd3a2a20951c0f0e28f66dd0e6d3fda73911d640a2125c8fcb78f21a",
+      "fonts/Inter-700.woff2": "6f56409fd3d64bb85f7d070bce20749db2d66b6d63cec586cc22d1c761be2491"
+    },
+    "fixtureSeam": "Pure guest preference input; actual ErrorPage/PresentationOwner/locale/Back/validators, React boundary and all CSS; no Next/inShell/principal/Portfolio persistence claim"
+  },
+  "scope": "Actual React error/owner/CSS component fixture, pure preference seam, hashed local resources and local fulfilled return; not Next/inShell/normal principal/Portfolio persistence/runtime/production proof",
+  "cells": [
+    {
+      "width": 1440,
+      "theme": "light",
+      "lang": "en",
+      "outcome": "REPRODUCED_LIGHT_PRESENTATION_LOSS",
+      "healthy": {
+        "theme": "light",
+        "owner": "1",
+        "background": "rgb(247, 248, 250)"
+      },
+      "metrics": {
+        "rootTheme": "dark",
+        "rootOwner": null,
+        "theme": null,
+        "background": "rgba(0, 0, 0, 0)",
+        "bodyBackground": "rgb(10, 11, 14)",
+        "text": "rgb(214, 218, 227)",
+        "overflow": false,
+        "actions": [
+          {
+            "text": "Portfolio",
+            "label": "Back to Portfolio",
+            "href": null,
+            "width": 101.109375,
+            "height": 44,
+            "animation": "none",
+            "outline": "rgb(77, 130, 255) solid 2px",
+            "color": "rgb(214, 218, 227)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "text": "Try again",
+            "label": null,
+            "href": null,
+            "width": 94.265625,
+            "height": 38,
+            "animation": "none",
+            "outline": "rgb(255, 255, 255) none 3px",
+            "color": "rgb(255, 255, 255)",
+            "background": "rgb(41, 98, 255)"
+          },
+          {
+            "text": "Go to chart",
+            "label": null,
+            "href": "/terminal",
+            "width": 108.609375,
+            "height": 38,
+            "animation": "none",
+            "outline": "rgb(214, 218, 227) none 3px",
+            "color": "rgb(214, 218, 227)",
+            "background": "rgba(0, 0, 0, 0)"
+          }
+        ],
+        "snapshot": [
+          {
+            "phase": "before-failure",
+            "theme": "light",
+            "marker": "1"
+          },
+          {
+            "phase": "fallback-render",
+            "theme": "light",
+            "marker": "1"
+          },
+          {
+            "phase": "fallback-render",
+            "theme": "light",
+            "marker": "1"
+          }
+        ]
+      },
+      "screenshot": "/Volumes/Mastermind/evidence/native-error-theme-p12t21s2-20261103/captures-before/1440-light-en-error.png",
+      "screenshot_sha256": "00a5762cecda958b105c4259a8e2ce460b2df871739383cfbb0dbd6609bd1150",
+      "fulfilled_local_resources": [
+        {
+          "kind": "local-file",
+          "resource": "fixture.html"
+        },
+        {
+          "kind": "local-file",
+          "resource": "native-globals.css"
+        },
+        {
+          "kind": "local-file",
+          "resource": "native-presentation.css"
+        },
+        {
+          "kind": "local-file",
+          "resource": "fixture.css"
+        },
+        {
+          "kind": "local-file",
+          "resource": "fixture.js"
+        },
+        {
+          "kind": "local-file",
+          "resource": "fonts/Inter-400.woff2"
+        },
+        {
+          "kind": "local-file",
+          "resource": "fonts/Inter-600.woff2"
+        }
+      ],
+      "blocked_requests": [],
+      "page_errors": []
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "zh",
+      "outcome": "REPRODUCED_LIGHT_PRESENTATION_LOSS",
+      "healthy": {
+        "theme": "light",
+        "owner": "1",
+        "background": "rgb(247, 248, 250)"
+      },
+      "metrics": {
+        "rootTheme": "dark",
+        "rootOwner": null,
+        "theme": null,
+        "background": "rgba(0, 0, 0, 0)",
+        "bodyBackground": "rgb(10, 11, 14)",
+        "text": "rgb(214, 218, 227)",
+        "overflow": false,
+        "actions": [
+          {
+            "text": "投资组合",
+            "label": "返回投资组合",
+            "href": null,
+            "width": 97,
+            "height": 44,
+            "animation": "none",
+            "outline": "rgb(214, 218, 227) none 3px",
+            "color": "rgb(214, 218, 227)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "text": "重试",
+            "label": null,
+            "href": null,
+            "width": 62,
+            "height": 38,
+            "animation": "none",
+            "outline": "rgb(255, 255, 255) none 3px",
+            "color": "rgb(255, 255, 255)",
+            "background": "rgb(41, 98, 255)"
+          },
+          {
+            "text": "返回图表",
+            "label": null,
+            "href": "/terminal",
+            "width": 90,
+            "height": 38,
+            "animation": "none",
+            "outline": "rgb(214, 218, 227) none 3px",
+            "color": "rgb(214, 218, 227)",
+            "background": "rgba(0, 0, 0, 0)"
+          }
+        ],
+        "snapshot": [
+          {
+            "phase": "before-failure",
+            "theme": "light",
+            "marker": "1"
+          },
+          {
+            "phase": "fallback-render",
+            "theme": "light",
+            "marker": "1"
+          },
+          {
+            "phase": "fallback-render",
+            "theme": "light",
+            "marker": "1"
+          }
+        ]
+      },
+      "screenshot": "/Volumes/Mastermind/evidence/native-error-theme-p12t21s2-20261103/captures-before/390-light-zh-error.png",
+      "screenshot_sha256": "871368a865dcb0699b6102fc2fd1acae27168cbc85ea75e0a34ec0d01c447f83",
+      "fulfilled_local_resources": [
+        {
+          "kind": "local-file",
+          "resource": "fixture.html"
+        },
+        {
+          "kind": "local-file",
+          "resource": "native-globals.css"
+        },
+        {
+          "kind": "local-file",
+          "resource": "native-presentation.css"
+        },
+        {
+          "kind": "local-file",
+          "resource": "fixture.css"
+        },
+        {
+          "kind": "local-file",
+          "resource": "fixture.js"
+        },
+        {
+          "kind": "local-file",
+          "resource": "fonts/Inter-400.woff2"
+        },
+        {
+          "kind": "local-file",
+          "resource": "fonts/Inter-600.woff2"
+        },
+        {
+          "kind": "local-file",
+          "resource": "fonts/Inter-700.woff2"
+        }
+      ],
+      "blocked_requests": [],
+      "page_errors": []
+    }
+  ]
+}

@@ -2,10 +2,12 @@
 
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { PriceScaleMode, type IChartApi } from "lightweight-charts";
+import type { ChartEngine } from "@/lib/chart-engine/api";
+import { EnginePriceScaleMode } from "@/lib/chart-engine";
 import { DEFAULT_CHART_SETTINGS, type ChartSettings } from "@/components/ChartFrameBar";
 import { visualText } from "@/lib/visualIntelligenceCopy";
 import { useLang, useT } from "@/lib/i18n";
+import { boatsChartCopy } from "@/lib/extQuoteCopy";
 import { activateSettingsDialog, colorInputHex, commitNumber, parseSettingTemplates, previewNumber } from "@/lib/chartSettingsUi";
 import styles from "./ChartSettingsModal.module.css";
 
@@ -38,15 +40,17 @@ export default function ChartSettingsModal({
   chartApi,
   extendedEligible = false,
   intraday = false,
+  overnightEligible = false,
 }: {
   open: boolean;
   tab: ChartSettingsTab;
   settings: ChartSettings;
   onSettings: Patch;
   onClose: () => void;
-  chartApi?: IChartApi | null;
+  chartApi?: ChartEngine | null;
   extendedEligible?: boolean;
   intraday?: boolean;
+  overnightEligible?: boolean;
 }) {
   const t = useT();
   const backdropRef = useRef<HTMLDialogElement>(null);
@@ -113,7 +117,7 @@ export default function ChartSettingsModal({
   function resetTab() {
     const defaults = DEFAULT_CHART_SETTINGS;
     const keys: Record<ChartSettingsTab, (keyof ChartSettings)[]> = {
-      symbol: ["colorBarsPrevClose", "candleBodyVisible", "candleBordersVisible", "candleWicksVisible", "candleUpColor", "candleDownColor", "candleUpBorder", "candleDownBorder", "candleUpWick", "candleDownWick", "extHours", "precision"],
+      symbol: ["colorBarsPrevClose", "candleBodyVisible", "candleBordersVisible", "candleWicksVisible", "candleUpColor", "candleDownColor", "candleUpBorder", "candleDownBorder", "candleUpWick", "candleDownWick", "extHours", "overnightHours", "precision"],
       status: ["showLogo", "showSymbolName", "titleMode", "showOHLC", "showBarChange", "showVolume", "showLastDayChange", "showIndicatorTitles", "indicatorBackgroundOpacity"],
       scales: ["mode", "invertScale", "scaleLeft", "autoScale", "lastValueVisible", "priceLineVisible", "countdownVisible", "extendedLineVisible", "preMarketColor", "postMarketColor", "overnightColor", "hourFormat"],
       canvas: ["visualContext", "visualRegime", "visualVolume", "visualLevels", "visualEvents", "showWatermark", "backgroundType", "backgroundTop", "backgroundBottom", "gridHVisible", "gridVVisible", "gridHColor", "gridVColor", "paneSeparatorColor", "crosshairColor", "watermarkColor", "scaleTextColor", "scaleFontSize", "scaleLineColor", "paneButtons", "scaleMarginsTop", "scaleMarginsBottom", "rightOffsetBars"],
@@ -166,7 +170,7 @@ export default function ChartSettingsModal({
           </nav>
 
           <section className="sm-content" ref={contentRef} role="tabpanel" id={`${dialogId}-panel`} aria-labelledby={`${dialogId}-${tab}`}>
-            {tab === "symbol" && <SymbolTab settings={settings} onSettings={onSettings} extendedEligible={extendedEligible} intraday={intraday} />}
+            {tab === "symbol" && <SymbolTab settings={settings} onSettings={onSettings} extendedEligible={extendedEligible} intraday={intraday} overnightEligible={overnightEligible} />}
             {tab === "status" && <StatusTab settings={settings} onSettings={onSettings} />}
             {tab === "scales" && <ScalesTab settings={settings} onSettings={onSettings} chartApi={chartApi} />}
             {tab === "canvas" && <CanvasTab settings={settings} onSettings={onSettings} />}
@@ -300,13 +304,15 @@ function NumberRow({ label, value, min, max, suffix, onChange }: {
   </div></div>;
 }
 
-function SymbolTab({ settings, onSettings, extendedEligible, intraday }: {
+function SymbolTab({ settings, onSettings, extendedEligible, intraday, overnightEligible }: {
   settings: ChartSettings;
   onSettings: Patch;
   extendedEligible: boolean;
   intraday: boolean;
+  overnightEligible: boolean;
 }) {
   const t = useT();
+  const { lang } = useLang();
   const s = settings;
   return <div className="sm-section-list">
     <Section title={t("smCandles")}>
@@ -324,11 +330,12 @@ function SymbolTab({ settings, onSettings, extendedEligible, intraday }: {
     <Section title={t("smDataMod")}>
       <SelectRow
         label={t("smSession")}
-        value={extendedEligible && s.extHours ? "extended" : "regular"}
+        value={extendedEligible && overnightEligible && s.overnightHours ? "24h" : extendedEligible && s.extHours ? "extended" : "regular"}
         disabled={!extendedEligible}
-        onChange={(value) => onSettings({ extHours: extendedEligible && value === "extended" })}
-        options={[{ value: "regular", label: t("smSessionRegular") }, { value: "extended", label: t("smSessionExtended") }]}
+        onChange={(value) => onSettings({ extHours: extendedEligible && value !== "regular", overnightHours: extendedEligible && value === "24h" })}
+        options={[{ value: "regular", label: t("smSessionRegular") }, { value: "extended", label: t("smSessionExtended") }, ...(extendedEligible && overnightEligible ? [{ value: "24h", label: boatsChartCopy(lang).label }] : [])]}
       />
+      {extendedEligible && overnightEligible && s.overnightHours && <p className="sm-help">{boatsChartCopy(lang).coverage}</p>}
       {!extendedEligible && <p className="sm-help">{t("smExtUsOnly")}</p>}
       {extendedEligible && !intraday && <p className="sm-help">{t("smExtIntradayOnly")}</p>}
       <SelectRow label={t("smPrecision")} value={s.precision} onChange={(value) => onSettings({ precision: value as ChartSettings["precision"] })}
@@ -361,7 +368,7 @@ function StatusTab({ settings: s, onSettings }: { settings: ChartSettings; onSet
   </div>;
 }
 
-function ScalesTab({ settings: s, onSettings, chartApi }: { settings: ChartSettings; onSettings: Patch; chartApi?: IChartApi | null }) {
+function ScalesTab({ settings: s, onSettings, chartApi }: { settings: ChartSettings; onSettings: Patch; chartApi?: ChartEngine | null }) {
   function applyAuto(value: boolean) {
     onSettings({ autoScale: value });
     try { chartApi?.priceScale(s.scaleLeft ? "left" : "right").setAutoScale(value); } catch {}
@@ -369,8 +376,8 @@ function ScalesTab({ settings: s, onSettings, chartApi }: { settings: ChartSetti
   const t = useT();
   return <div className="sm-section-list">
     <Section title={t("smPriceScale")}>
-      <SelectRow label={t("smScaleMode")} value={s.mode} onChange={(value) => onSettings({ mode: Number(value) as PriceScaleMode })}
-        options={[{ value: PriceScaleMode.Normal, label: t("qsgRegular") }, { value: PriceScaleMode.Percentage, label: t("qsgPercent") }, { value: PriceScaleMode.IndexedTo100, label: t("qsgIndexed") }, { value: PriceScaleMode.Logarithmic, label: t("qsgLog") }]} />
+      <SelectRow label={t("smScaleMode")} value={s.mode} onChange={(value) => onSettings({ mode: Number(value) as EnginePriceScaleMode })}
+        options={[{ value: EnginePriceScaleMode.Normal, label: t("qsgRegular") }, { value: EnginePriceScaleMode.Percentage, label: t("qsgPercent") }, { value: EnginePriceScaleMode.IndexedTo100, label: t("qsgIndexed") }, { value: EnginePriceScaleMode.Logarithmic, label: t("qsgLog") }]} />
       <SelectRow label={t("smScalePlacement")} value={s.scaleLeft ? "left" : "right"} onChange={(value) => onSettings({ scaleLeft: value === "left" })}
         options={[{ value: "right", label: t("smPlacementRight") }, { value: "left", label: t("smPlacementLeft") }]} />
       <CheckRow label={t("smAutoScale")} value={s.autoScale} onChange={applyAuto} />

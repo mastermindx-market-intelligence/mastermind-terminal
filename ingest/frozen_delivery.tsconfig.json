@@ -1,0 +1,6 @@
+{
+  "extends": "../terminal/tsconfig.json",
+  "compilerOptions": {"noEmit": true, "incremental": false, "types": ["node"], "typeRoots": ["../terminal/node_modules/@types"]},
+  "include": ["webhook_delivery.ts", "frozen_delivery_client.ts", "../terminal/lib/__tests__/frozenWebhookDelivery.test.ts"],
+  "exclude": ["../terminal/node_modules"]
+}

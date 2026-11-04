@@ -128,7 +128,7 @@ test("the canonical Terminal shell works at its supported responsive widths", as
     const viewToggle = searchHub.locator(".sh-view-toggle");
     const closeSearch = async () => {
       if (phone) await page.keyboard.press("Escape");
-      else await searchHub.locator(".smodal-title-bar .esc").click();
+      else await searchHub.getByRole("button", { name: "Close symbol search", exact: true }).click();
     };
     await expect(searchHub.locator(".s-home")).toBeVisible();
     await expect(searchInput).not.toBeFocused();
@@ -1268,43 +1268,28 @@ test("Golden Oracle shows the session a 3D signal became knowable", async ({ pag
     await expect(settings).toBeHidden();
     await signalButton.scrollIntoViewIfNeeded();
   }
-  const expectedDate = zh ? "7月28日" : "Jul 28";
+  const expectedDate = zh ? "2026年7月28日" : "Jul 28, 2026";
 
-  await expect(signalButton.locator(".sig-btn-go .sig-btn-vd")).toHaveText(zh ? "买入" : "Buy");
+  await expect(signalButton.locator(".sig-btn-go .sig-btn-vd")).toHaveText(zh ? "已确认买入" : "Confirmed Buy");
   await expect(signalButton.locator(".sig-btn-go .sig-btn-sub")).toHaveText(expectedDate);
-  const gradientSkin = await signalButton.evaluate((button) => {
-    const read = (selector: string) => {
-      const half = button.querySelector<HTMLElement>(selector)!;
-      const halfStyle = getComputedStyle(half);
-      const railStyle = getComputedStyle(half, "::before");
-      return {
-        background: halfStyle.backgroundImage,
-        rail: railStyle.backgroundImage,
-        railShadow: railStyle.boxShadow,
-      };
-    };
-    return { oracle: read(".sig-btn-go"), research: read(".sig-btn-rd") };
-  });
-  for (const half of [gradientSkin.oracle, gradientSkin.research]) {
-    expect(half.background).toContain("radial-gradient");
-    expect(half.background).toContain("linear-gradient");
-    expect(half.rail).toContain("linear-gradient");
-    expect(half.railShadow).not.toBe("none");
-  }
-  await signalButton.screenshot({
-    path: testInfo.outputPath(`${testInfo.project.name}-oracle-research-gradient-card.png`),
-  });
+  await expect(signalButton.getByTestId("oracle-entry-availability")).toHaveAttribute("data-status", "UNAVAILABLE_DATA");
+  await expect(signalButton.getByTestId("oracle-entry-availability")).toContainText(zh ? "入场机会尚未核实" : "Entry unverified");
+  await expect(signalButton).toHaveAttribute("aria-expanded", "false");
+  await expect(signalButton).toHaveAccessibleName(zh ? "打开情报工作区" : "Open Intelligence workspace");
+  await signalButton.screenshot({ path: testInfo.outputPath(`${testInfo.project.name}-intelligence-launcher.png`) });
   await signalButton.click();
 
-  const dialog = page.locator(".sd-scrim");
+  const dialog = page.getByTestId("intelligence-workspace");
   await expect(dialog).toBeVisible();
-  await expect(dialog).toHaveAttribute("role", "dialog");
-  await expect(dialog).toHaveAttribute(
-    "aria-label",
-    zh ? "研究台与黄金神谕" : "Research Desk and Golden Oracle",
-  );
+  await expect(dialog).toHaveAccessibleName(zh ? "情报" : "Intelligence");
+  await expect(signalButton).toHaveAttribute("aria-expanded", "true");
+  const historicalRow = dialog.getByRole("button", { name: zh ? /历史信号/ : /Historical signal/ });
+  await expect(historicalRow).toContainText(expectedDate);
+  await historicalRow.click();
   await expect(dialog.locator(".sd-go .od-vsub")).toHaveText(expectedDate);
+  await expect(dialog.getByTestId("workspace-oracle-entry-availability")).toHaveAttribute("data-status", "UNAVAILABLE_DATA");
 
+  await dialog.getByRole("tab", { name: zh ? "动态" : "Activity", exact: true }).click();
   const latest = dialog.locator(".sd-go .sd-sigrow").first();
   await latest.scrollIntoViewIfNeeded();
   await expect(latest.locator(".sd-sig-date")).toHaveText(
@@ -1313,8 +1298,8 @@ test("Golden Oracle shows the session a 3D signal became knowable", async ({ pag
   await expect(latest).toHaveAttribute(
     "title",
     zh
-      ? /确认于 2026年7月28日 · 3日K线始于 2026年7月24日/
-      : /Confirmed Jul 28, 2026 · 3D bar opened Jul 24, 2026/,
+      ? /首次可见于 2026年7月28日 · 3日K线始于 2026年7月24日/
+      : /First observed Jul 28, 2026 · 3D bar opened Jul 24, 2026/,
   );
   await dialog.locator(".sd-go").screenshot({
     path: testInfo.outputPath(`${testInfo.project.name}-oracle-known-date.png`),
@@ -1416,9 +1401,11 @@ test("HK-O1: a structure stop and a refused entry are labelled for what they are
   });
 
   await signalButton.click();
-  const dialog = page.locator(".sd-scrim");
+  const dialog = page.getByTestId("intelligence-workspace");
   await expect(dialog).toBeVisible();
 
+  await expect(dialog.getByTestId("workspace-summary")).toContainText(zh ? "入场被拦截" : "entry blocked");
+  await dialog.getByRole("tab", { name: zh ? "神谕" : "Oracle", exact: true }).click();
   // ── the refused entry gets its own disclosure, never the entry scorecard ──
   await expect(dialog.locator(".sd-go .sig-conflict").filter({ hasText: zh ? "非入场信号" : "not an entry" }))
     .toBeVisible();
@@ -1426,6 +1413,7 @@ test("HK-O1: a structure stop and a refused entry are labelled for what they are
   await expect(dialog.locator(".sd-go .sig-dims")).toHaveCount(0);
 
   // ── signal history: BLOCKED (newest) above STOP, neither wearing a buy pill ──
+  await dialog.getByRole("tab", { name: zh ? "动态" : "Activity", exact: true }).click();
   const rows = dialog.locator(".sd-go .sd-sigrow");
   const blockedRow = rows.first();
   await blockedRow.scrollIntoViewIfNeeded();
