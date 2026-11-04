@@ -68,6 +68,7 @@ let requests: GateRequest[];
 let container: HTMLDivElement;
 let root: Root;
 let serial: number;
+let activeIdentityKey = "guest";
 
 function browserHref() {
   return window.location.pathname + window.location.search + window.location.hash;
@@ -95,7 +96,7 @@ function renderRouteTree(href: string, mode: CommitMode) {
   navigation.params = new URLSearchParams(url.search);
   root.render(<>
     <HistoryCommit href={href} mode={mode} commit={++serial} />
-    <LegacyPageHost legacyOrigin={LEGACY} identityKey="guest" context={context}
+    <LegacyPageHost legacyOrigin={LEGACY} identityKey={activeIdentityKey} context={context}
       onContextRequest={onContextRequest} onTitle={onTitle} />
   </>);
 }
@@ -185,6 +186,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   requests = [];
   serial = 0;
+  activeIdentityKey = "guest";
   navigation.renders.length = 0;
   window.history.replaceState({}, "", INITIAL);
   vi.spyOn(HTMLIFrameElement.prototype, "contentWindow", "get").mockReturnValue(childWindow);
@@ -410,6 +412,145 @@ describe("Shared Shell committed navigation", () => {
     expectPersistent(owned);
   });
 
+  it("restores a saved entry when Next commits before the popstate listener, without arming the next push", async () => {
+    const owned = await start();
+    const view = { x: 0, y: 650, focusId: "risk-summary" };
+    await childMessage({ type: "VIEW_STATE", view });
+    const macroEntry = window.history.state.mmxSharedShellEntry;
+    const about = "/about.html?lang=en#mission";
+    await navigate(about);
+    await resolveGate();
+    await loadFrame();
+    await childMessage(readyBody(about));
+    expect(window.history.state.mmxSharedShellEntry).not.toBe(macroEntry);
+
+    // Real Next can install the traversed route in its insertion effect before
+    // the host's popstate callback. Recreate that browser ordering explicitly.
+    await act(async () => {
+      window.history.replaceState({ ...window.history.state, mmxSharedShellEntry: macroEntry }, "", INITIAL);
+      renderRouteTree(INITIAL, "traverse");
+    });
+    await resolveGate();
+    const restored = await loadFrame();
+    expect(restored.canonicalPath).toBe(INITIAL);
+    expect(restored.restore).toEqual(view);
+    await childMessage(readyBody(INITIAL));
+    // A late popstate must not leave traversal armed for a fresh route entry.
+    await act(async () => { window.dispatchEvent(new PopStateEvent("popstate", { state: window.history.state })); });
+    const fresh = "/china.html";
+    await navigate(fresh);
+    await resolveGate();
+    const next = await loadFrame();
+    expect(next.restore).toBeNull();
+    await childMessage(readyBody(fresh));
+    expectPersistent(owned);
+  });
+
+  it("resets previous account snapshots and rejects late old-generation packets on A→B", async () => {
+    activeIdentityKey = "account:fixture-A";
+    const first = await start();
+    const generationA = latestFrameNavigation().generation;
+    await childMessage({ type: "VIEW_STATE", view: { x: 0, y: 650, focusId: "account-A-focus" } });
+
+    // The actual AppShell ownership key changes independently of route/URL.
+    // This is a synthetic identity fixture, not a proof of auth admission.
+    activeIdentityKey = "account:fixture-B";
+    await renderCommittedRoute(INITIAL, "replace");
+    expect(iframe()).not.toBe(first.frame);
+    expectVisible(false);
+    await resolveGate();
+    const generationB = latestFrameNavigation().generation;
+    expect(generationB).not.toBe(generationA);
+    let init = await loadFrame();
+    expect(init.frameGeneration).toBe(generationB);
+    expect(init.restore).toBeNull();
+
+    // Same-origin/window old packets must not re-admit identity A or mutate route.
+    const beforeRoute = browserHref();
+    const beforeCalls = navigation.router.push.mock.calls.length;
+    await childMessage(readyBody(INITIAL), generationA);
+    await childMessage({ type: "VIEW_STATE", view: { x: 0, y: 999, focusId: "account-A-secret" } }, generationA);
+    await childMessage({ type: "NAVIGATE", href: "/about.html", mode: "push", sameDocument: false,
+      requestId: "stale-A-account" }, generationA);
+    expectVisible(false);
+    expect(browserHref()).toBe(beforeRoute);
+    expect(navigation.router.push).toHaveBeenCalledTimes(beforeCalls);
+    await childMessage(readyBody(INITIAL), generationB);
+    expectVisible(true);
+
+    const about = "/about.html?lang=en#mission";
+    await navigate(about);
+    await resolveGate();
+    await loadFrame();
+    await childMessage(readyBody(about));
+    await traverse(-1, INITIAL);
+    await resolveGate();
+    init = await loadFrame();
+    expect(init.canonicalPath).toBe(INITIAL);
+    // A's original history entry may be selected by Back, but B must not
+    // inherit A's focus or scroll; no canonical-path-keyed fallback is allowed.
+    expect(init.restore).toBeNull();
+    await childMessage(readyBody(INITIAL));
+    expectVisible(true);
+  });
+
+  it("B04: duplicate child navigation request ID never pushes twice", async () => {
+    const owned = await start();
+    const original = browserHref();
+    const before = requests.length;
+    const message = { type: "NAVIGATE", href: "/about.html", mode: "push",
+      sameDocument: false, requestId: "duplicate-b04" };
+    await childMessage(message);
+    expect(navigation.router.push).toHaveBeenCalledTimes(1);
+    expect(requests).toHaveLength(before);
+    await childMessage(message);
+    expect(navigation.router.push).toHaveBeenCalledTimes(1);
+    expect(browserHref()).toBe(original);
+    expect(requests).toHaveLength(before);
+    expectPersistent(owned);
+  });
+
+  it("B04: rejected same-document pathname cannot mutate parent history", async () => {
+    const owned = await start();
+    const original = browserHref();
+    const originalKey = window.history.state.mmxSharedShellEntry;
+    const originalLength = window.history.length;
+    await childMessage({ type: "NAVIGATE", href: "/about.html#wrong-document",
+      mode: "push", sameDocument: true, requestId: "wrong-b04" });
+    expect(browserHref()).toBe(original);
+    expect(window.history.state.mmxSharedShellEntry).toBe(originalKey);
+    expect(window.history.length).toBe(originalLength);
+    expect(navigation.router.push).not.toHaveBeenCalled();
+    expect(navigation.router.replace).not.toHaveBeenCalled();
+    expect(iframe().style.visibility).toBe("hidden");
+    expect(container.querySelector('main')?.getAttribute('data-shared-shell-failure')).toBe("navigation-target");
+    expectPersistent(owned);
+  });
+
+  it("H05: evicts the first of 65 saved entries rather than borrowing an unrelated view", async () => {
+    const owned = await start();
+    const oldest = { x: 0, y: 650, focusId: "initial-focus" };
+    await childMessage({ type: "VIEW_STATE", view: oldest });
+    const firstId = window.history.state.mmxSharedShellEntry;
+    for (let i = 1; i <= 65; i++) {
+      const href = `/about.html?entry=${i}`;
+      await navigate(href);
+      await resolveGate();
+      await loadFrame();
+      await childMessage(readyBody(href));
+      await childMessage({ type: "VIEW_STATE", view: { x: 0, y: i * 7, focusId: `entry-${i}` } });
+    }
+    expect(window.history.state.mmxSharedShellEntry).not.toBe(firstId);
+    await traverse(-65, INITIAL);
+    await resolveGate();
+    const back = await loadFrame();
+    expect(back.canonicalPath).toBe(INITIAL);
+    expect(back.restore).toBeNull();
+    await childMessage(readyBody(INITIAL));
+    expectVisible(true);
+    expectPersistent(owned);
+  });
+
   it("aborts an older admission and cannot install its frame after a faster later navigation", async () => {
     const owned = await start();
     await navigate("/about.html");
@@ -450,74 +591,23 @@ describe("Shared Shell committed navigation", () => {
     expect(container.querySelector('[role="alert"]')).not.toBeNull();
   });
 
-  it("starts one no-store gate at child NAVIGATE and consumes it after the committed RSC route", async () => {
-    await start();
-    const prior = requests.length;
+  it("SECURITY: commits a fresh gate after NAVIGATE and denies a rollback between intent and commit", async () => {
+    const owned = await start();
+    const priorRequests = requests.length;
+    const priorNavigations = replaceFrame.mock.calls.length;
     await childMessage({ type: "NAVIGATE", href: "/about.html", mode: "push",
-      sameDocument: false, requestId: "overlap-1" });
-    // Crucially, this request starts before HistoryCommit changes the browser URL.
-    expect(browserHref()).toBe(INITIAL);
-    expect(requests).toHaveLength(prior + 1);
-    expect(replaceFrame).toHaveBeenCalledTimes(1);
-    const early = requests.at(-1)!;
+      sameDocument: false, requestId: "rollback-between-intent-and-commit" });
+    // No early response can authorize a future document that has not committed.
+    expect(requests).toHaveLength(priorRequests);
+    expect(replaceFrame).toHaveBeenCalledTimes(priorNavigations);
     await renderCommittedRoute("/about.html", "push");
-    expect(requests).toHaveLength(prior + 1); // never a duplicate late gate
-    await resolveGate(early);
-    expect(latestFrameNavigation().url.pathname).toBe("/about.html");
-    expect(replaceFrame).toHaveBeenCalledTimes(2);
-  });
-
-  it("fails closed when an early gate sees a changed running build", async () => {
-    await start();
-    await childMessage({ type: "NAVIGATE", href: "/about.html", mode: "push",
-      sameDocument: false, requestId: "overlap-mismatch" });
-    const early = requests.at(-1)!;
-    await resolveGate(early, { buildId: "different-running-build" });
-    await renderCommittedRoute("/about.html", "push");
-    expect(replaceFrame).toHaveBeenCalledTimes(1);
+    expect(requests).toHaveLength(priorRequests + 1);
+    await resolveGate(requests.at(-1)!, { enabled: false });
+    expect(replaceFrame).toHaveBeenCalledTimes(priorNavigations);
+    expect(iframe().style.visibility).toBe("hidden");
+    expect(container.querySelector("[role=alert]")).not.toBeNull();
     expect(container.textContent).toContain("shellRefreshTitle");
-    expect(requests).toHaveLength(2);
-  });
-
-  it("aborts an unrelated early target and uses a fresh gate for the actual committed URL", async () => {
-    await start();
-    await childMessage({ type: "NAVIGATE", href: "/about.html", mode: "push",
-      sameDocument: false, requestId: "overlap-superseded" });
-    const stale = requests.at(-1)!;
-    const actual = "/macro.html?scope=latest#intel";
-    await renderCommittedRoute(actual, "push");
-    expect(stale.signal.aborted).toBe(true);
-    const current = requests.at(-1)!;
-    expect(current).not.toBe(stale);
-    await resolveGate(current);
-    expect(latestFrameNavigation().url.pathname).toBe("/macro.html");
-    expect(latestFrameNavigation().url.hash).toBe("#intel");
-  });
-
-  it("never consumes an early build verdict older than the bounded freshness window", async () => {
-    await start();
-    vi.useFakeTimers();
-    try {
-      await childMessage({ type: "NAVIGATE", href: "/about.html", mode: "push",
-        sameDocument: false, requestId: "overlap-expired" });
-      const old = requests.at(-1)!;
-      const before = performance.now();
-      const monotonic = vi.spyOn(performance, "now").mockReturnValue(before);
-      try {
-        await act(async () => { vi.advanceTimersByTime(751); });
-        monotonic.mockReturnValue(before + 751);
-        await renderCommittedRoute("/about.html", "push");
-      } finally {
-        monotonic.mockRestore();
-      }
-      expect(old.signal.aborted).toBe(true);
-      const fresh = requests.at(-1)!;
-      expect(fresh).not.toBe(old);
-      await resolveGate(fresh);
-      expect(latestFrameNavigation().url.pathname).toBe("/about.html");
-    } finally {
-      vi.useRealTimers();
-    }
+    expectPersistent(owned);
   });
 
   it("keeps runtime build admission ahead of every iframe navigation", async () => {

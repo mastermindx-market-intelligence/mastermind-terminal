@@ -29,18 +29,6 @@ const INITIAL_DIAGNOSTIC: FrameDiagnostic = { phase: "location-pending", failure
 const ENTRY_KEY = "mmxSharedShellEntry";
 const LOCATION_EVENT = "mmx:shell-location";
 
-// Start a *single* no-store status request on a validated legacy NAVIGATE intent,
-// overlapping the router's RSC trip. Never admit a frame from a stale or unmatched
-// response. Direct links, history and expired requests use the original live gate.
-const EARLY_GATE_MAX_AGE_MS = 750;
-type GateReply = { response: Response | null; error: unknown };
-type EarlyGate = { href: string; started: number; controller: AbortController; result: Promise<GateReply> };
-function requestGate(signal: AbortSignal): Promise<GateReply> {
-  return fetch("/api/shared-shell/status", { cache: "no-store", credentials: "same-origin", signal })
-    .then(response => ({ response, error: null }))
-    .catch((error: unknown) => ({ response: null, error }));
-}
-
 /** One document at a time. The AppShell layout, not the route page, owns this host. */
 export default function LegacyPageHost({
   legacyOrigin, identityKey, context, onContextRequest, onTitle,
@@ -67,11 +55,6 @@ export default function LegacyPageHost({
   const previousEntry = useRef<{ key: string; canonical: string } | null>(null);
   const traversal = useRef(false);
   const sameDocument = useRef<string | null>(null);
-  const earlyGate = useRef<EarlyGate | null>(null);
-  useEffect(() => () => {
-    earlyGate.current?.controller.abort();
-    earlyGate.current = null;
-  }, []);
   const active = isLegacyShellPath(path);
   const [canonical, setCanonical] = useState<string | null>(null);
   const [diagnostic, setDiagnostic] = useState<FrameDiagnostic>(INITIAL_DIAGNOSTIC);
@@ -120,7 +103,12 @@ export default function LegacyPageHost({
 
   useEffect(() => {
     const changed = () => setRevision(value => value + 1);
-    const back = () => { traversal.current = true; changed(); };
+    const back = () => {
+      // Next can commit the target entry before this popstate listener runs.
+      // A late event must not arm an unrelated subsequent push.
+      traversal.current = previousEntry.current?.key !== window.history.state?.[ENTRY_KEY];
+      changed();
+    };
     window.addEventListener("popstate", back);
     window.addEventListener("hashchange", changed);
     window.addEventListener(LOCATION_EVENT, changed);
@@ -171,7 +159,10 @@ export default function LegacyPageHost({
       key = crypto.randomUUID();
       window.history.replaceState({ ...(state || {}), [ENTRY_KEY]: key }, "", window.location.href);
     }
-    const restoring = traversal.current;
+    // Next can render the traversed route before its popstate callback runs.
+    // A saved, distinct history-entry ID independently establishes a return.
+    // A fresh push has no saved ID and must not inherit prior scroll or focus.
+    const restoring = traversal.current || (!!previous && previous.key !== key && views.current.has(key));
     traversal.current = false;
     previousEntry.current = { key, canonical };
     if (sameDocument.current === canonical && live.current) {
@@ -190,16 +181,7 @@ export default function LegacyPageHost({
     setDiagnostic({ ...INITIAL_DIAGNOSTIC, phase: "gate-pending" });
     setStatus("loading");
     onTitle(shellPageLabel(path, contextRef.current.locale));
-    const pending = earlyGate.current;
-    earlyGate.current = null;
-    // Exact target and a short freshness cap are both mandatory. A slow RSC
-    // response discards the early request and performs the original live check.
-    const reuse = pending !== null && pending.href === canonical
-      && !pending.controller.signal.aborted
-      && performance.now() - pending.started <= EARLY_GATE_MAX_AGE_MS;
-    if (pending && !reuse) pending.controller.abort();
-    const abort = reuse && pending ? pending.controller : new AbortController();
-    const gateRequest = reuse && pending ? pending.result : requestGate(abort.signal);
+    const abort = new AbortController();
     let expired = false;
     let gateHttpFailed = false;
     let frameRequested = false;
@@ -211,10 +193,9 @@ export default function LegacyPageHost({
 
     // Check the actual running sibling service on every document navigation.
     // A stale client cannot treat a rollback/disabled server as a successful integration.
-    gateRequest
-      .then(async ({ response, error }) => {
-        if (error) throw error;
-        if (!response?.ok) { gateHttpFailed = true; throw new Error("Shared Shell unavailable"); }
+    fetch("/api/shared-shell/status", { cache: "no-store", credentials: "same-origin", signal: abort.signal })
+      .then(async response => {
+        if (!response.ok) { gateHttpFailed = true; throw new Error("Shared Shell unavailable"); }
         const gate = await response.json();
         if (expired || abort.signal.aborted || live.current !== current) return;
         if (gate.buildId !== SHARED_SHELL_BUILD || gate.protocol !== SHARED_SHELL_PROTOCOL || gate.bridgeVersion !== SHARED_SHELL_BRIDGE_VERSION
@@ -294,17 +275,6 @@ export default function LegacyPageHost({
             type: "LOCATION_ACCEPTED", requestId: message.requestId, canonicalPath: target.href });
           window.dispatchEvent(new Event(LOCATION_EVENT));
         } else {
-          // Only a validated legacy destination may start the early no-store
-          // gate. Native destinations remain on their existing route path.
-          earlyGate.current?.controller.abort();
-          earlyGate.current = null;
-          if (target.kind === "legacy") {
-            const controller = new AbortController();
-            earlyGate.current = {
-              href: target.href, started: performance.now(), controller,
-              result: requestGate(controller.signal),
-            };
-          }
           if (message.mode === "replace") router.replace(target.href, { scroll: false });
           else router.push(target.href, { scroll: false });
         }
