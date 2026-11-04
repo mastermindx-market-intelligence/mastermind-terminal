@@ -26,6 +26,23 @@ export default function ShellSearch({ open, onOpenChange }: {
       }
     }
     onOpenChange(next);
+    if (!next && !committing.current) {
+      // Closing a phone search opened from the directory destroys the directory
+      // button that originally owned focus. Restore a visible search trigger only
+      // if the sheet's teardown left focus on BODY; never steal new task focus.
+      window.requestAnimationFrame(() => {
+        if (document.activeElement !== document.body) return;
+        const mobile = [...document.querySelectorAll<HTMLButtonElement>(".mobilebar button")]
+          .find(button => button.getAttribute("aria-label") === t("shellSearchCompanies"));
+        const desktop = document.querySelector<HTMLElement>(".sym-pick.shared-shell-company-search");
+        for (const target of [mobile, desktop]) {
+          if (!target?.isConnected || target.getClientRects().length === 0
+            || target.closest('[aria-hidden="true"], [hidden], [inert]')) continue;
+          target.focus({ preventScroll: true });
+          if (document.activeElement === target) break;
+        }
+      });
+    }
   };
   useEffect(() => {
     const restore = () => {
