@@ -62,4 +62,3 @@ export function fixturePublicJwk(): Record<string, unknown> {
 export function fixtureJwksDocument(): { keys: Record<string, unknown>[] } {
   return { keys: [fixturePublicJwk()] };
 }
-
