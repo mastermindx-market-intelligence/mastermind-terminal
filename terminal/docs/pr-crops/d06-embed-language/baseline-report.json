@@ -1,0 +1,701 @@
+{
+  "config": {
+    "argv": [
+      "/opt/homebrew/Cellar/node/26.5.0/bin/node",
+      "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/node_modules/.bin/playwright",
+      "test",
+      "e2e/embed-content-language.spec.ts",
+      "--project=desktop",
+      "--workers=2",
+      "--retries=0",
+      "--reporter=json",
+      "--output=test-results-d06-embed-language-baseline"
+    ],
+    "configFile": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/playwright.config.ts",
+    "rootDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/globalSetup.ts",
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 2
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-embed-language-baseline",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "desktop",
+        "name": "desktop",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-embed-language-baseline",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "tablet",
+        "name": "tablet",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-embed-language-baseline",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "mobile",
+        "name": "mobile",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-embed-language-baseline",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "company-intelligence-desktop",
+        "name": "company-intelligence-desktop",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-embed-language-baseline",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "company-intelligence-tablet",
+        "name": "company-intelligence-tablet",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-embed-language-baseline",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "company-intelligence-mobile",
+        "name": "company-intelligence-mobile",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-embed-language-baseline",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "terminal-chrome-intermediate",
+        "name": "terminal-chrome-intermediate",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/terminal-chrome-responsive\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-embed-language-baseline",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "w2a-workspaces",
+        "name": "w2a-workspaces",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.1",
+    "workers": 2,
+    "webServer": {
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 50354",
+      "url": "http://127.0.0.1:50354/terminal?symbol=NVDA",
+      "reuseExistingServer": false,
+      "timeout": 120000,
+      "env": {
+        "ANALYSIS_LOCAL_PREVIEW": "1",
+        "ADMIN_DEV": "1",
+        "TERMINAL_E2E_FIXTURE": "1",
+        "TERMINAL_E2E_EMAIL": "responsive@example.com",
+        "TERMINAL_E2E_ENTITLEMENT": "unlimited",
+        "RATE_LIMIT_MAX": "100000",
+        "HUB_REALTIME_QUOTES": "1",
+        "TICKER_NEWS_RAIL": "1",
+        "FLOW_FIXTURE": "1",
+        "INVESTIGATION_API_ADMISSION": "open",
+        "NEXT_PUBLIC_SUPABASE_URL": "http://127.0.0.1:54321",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY": "fixture-anon-key"
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "embed-content-language.spec.ts",
+      "file": "embed-content-language.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "embed en keeps its own language from loading through ready",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 924,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoMatchObject\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 1\u001b[39m\n\n\u001b[2m  Object {\u001b[22m\n\u001b[2m    \"applicationLanguage\": \"zh\",\u001b[22m\n\u001b[32m-   \"contentLanguage\": \"en\",\u001b[39m\n\u001b[31m+   \"contentLanguage\": \"zh-CN\",\u001b[39m\n\u001b[2m    \"documentLanguage\": \"zh-CN\",\u001b[22m\n\u001b[2m    \"storedLanguage\": \"zh\",\u001b[22m\n\u001b[2m  }\u001b[22m",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoMatchObject\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 1\u001b[39m\n\n\u001b[2m  Object {\u001b[22m\n\u001b[2m    \"applicationLanguage\": \"zh\",\u001b[22m\n\u001b[32m-   \"contentLanguage\": \"en\",\u001b[39m\n\u001b[31m+   \"contentLanguage\": \"zh-CN\",\u001b[39m\n\u001b[2m    \"documentLanguage\": \"zh-CN\",\u001b[22m\n\u001b[2m    \"storedLanguage\": \"zh\",\u001b[22m\n\u001b[2m  }\u001b[22m\n    at checkLanguage (/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-content-language.spec.ts:30:22)\n    at /Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-content-language.spec.ts:55:7",
+                    "location": {
+                      "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-content-language.spec.ts",
+                      "column": 22,
+                      "line": 30
+                    },
+                    "snippet": "  28 |       contentType: \"application/json\",\n  29 |     });\n> 30 |     expect(observed).toMatchObject({\n     |                      ^\n  31 |       contentLanguage, documentLanguage,\n  32 |       applicationLanguage: preference, storedLanguage: preference,\n  33 |     });"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-content-language.spec.ts",
+                        "column": 22,
+                        "line": 30
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoMatchObject\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 1\u001b[39m\n\n\u001b[2m  Object {\u001b[22m\n\u001b[2m    \"applicationLanguage\": \"zh\",\u001b[22m\n\u001b[32m-   \"contentLanguage\": \"en\",\u001b[39m\n\u001b[31m+   \"contentLanguage\": \"zh-CN\",\u001b[39m\n\u001b[2m    \"documentLanguage\": \"zh-CN\",\u001b[22m\n\u001b[2m    \"storedLanguage\": \"zh\",\u001b[22m\n\u001b[2m  }\u001b[22m\n\n  28 |       contentType: \"application/json\",\n  29 |     });\n> 30 |     expect(observed).toMatchObject({\n     |                      ^\n  31 |       contentLanguage, documentLanguage,\n  32 |       applicationLanguage: preference, storedLanguage: preference,\n  33 |     });\n    at checkLanguage (/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-content-language.spec.ts:30:22)\n    at /Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-content-language.spec.ts:55:7"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:41:52.199Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "language-loading",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiemgtQ04iLAogICJkb2N1bWVudExhbmd1YWdlIjogInpoLUNOIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJ6aCIsCiAgInN0b3JlZExhbmd1YWdlIjogInpoIiwKICAiZG9jdW1lbnRXaWR0aCI6IDE0NDAsCiAgInNjcm9sbFdpZHRoIjogMTQ0MAp9"
+                    },
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-embed-language-baseline/embed-content-language-emb-53286--from-loading-through-ready-desktop/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-embed-language-baseline/embed-content-language-emb-53286--from-loading-through-ready-desktop/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-embed-language-baseline/embed-content-language-emb-53286--from-loading-through-ready-desktop/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-content-language.spec.ts",
+                    "column": 22,
+                    "line": 30
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "9ad0462ad6c32686eea6-54d5fbb48917233e4af4",
+          "file": "embed-content-language.spec.ts",
+          "line": 43,
+          "column": 7
+        },
+        {
+          "title": "embed en keeps its own language with no price history",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 1,
+                  "status": "failed",
+                  "duration": 864,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoMatchObject\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 1\u001b[39m\n\n\u001b[2m  Object {\u001b[22m\n\u001b[2m    \"applicationLanguage\": \"zh\",\u001b[22m\n\u001b[32m-   \"contentLanguage\": \"en\",\u001b[39m\n\u001b[31m+   \"contentLanguage\": \"zh-CN\",\u001b[39m\n\u001b[2m    \"documentLanguage\": \"zh-CN\",\u001b[22m\n\u001b[2m    \"storedLanguage\": \"zh\",\u001b[22m\n\u001b[2m  }\u001b[22m",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoMatchObject\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 1\u001b[39m\n\n\u001b[2m  Object {\u001b[22m\n\u001b[2m    \"applicationLanguage\": \"zh\",\u001b[22m\n\u001b[32m-   \"contentLanguage\": \"en\",\u001b[39m\n\u001b[31m+   \"contentLanguage\": \"zh-CN\",\u001b[39m\n\u001b[2m    \"documentLanguage\": \"zh-CN\",\u001b[22m\n\u001b[2m    \"storedLanguage\": \"zh\",\u001b[22m\n\u001b[2m  }\u001b[22m\n    at checkLanguage (/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-content-language.spec.ts:30:22)\n    at /Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-content-language.spec.ts:79:5",
+                    "location": {
+                      "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-content-language.spec.ts",
+                      "column": 22,
+                      "line": 30
+                    },
+                    "snippet": "  28 |       contentType: \"application/json\",\n  29 |     });\n> 30 |     expect(observed).toMatchObject({\n     |                      ^\n  31 |       contentLanguage, documentLanguage,\n  32 |       applicationLanguage: preference, storedLanguage: preference,\n  33 |     });"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-content-language.spec.ts",
+                        "column": 22,
+                        "line": 30
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoMatchObject\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 1\u001b[39m\n\n\u001b[2m  Object {\u001b[22m\n\u001b[2m    \"applicationLanguage\": \"zh\",\u001b[22m\n\u001b[32m-   \"contentLanguage\": \"en\",\u001b[39m\n\u001b[31m+   \"contentLanguage\": \"zh-CN\",\u001b[39m\n\u001b[2m    \"documentLanguage\": \"zh-CN\",\u001b[22m\n\u001b[2m    \"storedLanguage\": \"zh\",\u001b[22m\n\u001b[2m  }\u001b[22m\n\n  28 |       contentType: \"application/json\",\n  29 |     });\n> 30 |     expect(observed).toMatchObject({\n     |                      ^\n  31 |       contentLanguage, documentLanguage,\n  32 |       applicationLanguage: preference, storedLanguage: preference,\n  33 |     });\n    at checkLanguage (/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-content-language.spec.ts:30:22)\n    at /Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-content-language.spec.ts:79:5"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:41:52.196Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "language-empty",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiemgtQ04iLAogICJkb2N1bWVudExhbmd1YWdlIjogInpoLUNOIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJ6aCIsCiAgInN0b3JlZExhbmd1YWdlIjogInpoIiwKICAiZG9jdW1lbnRXaWR0aCI6IDE0NDAsCiAgInNjcm9sbFdpZHRoIjogMTQ0MAp9"
+                    },
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-embed-language-baseline/embed-content-language-emb-3d09f-guage-with-no-price-history-desktop/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-embed-language-baseline/embed-content-language-emb-3d09f-guage-with-no-price-history-desktop/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-embed-language-baseline/embed-content-language-emb-3d09f-guage-with-no-price-history-desktop/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-content-language.spec.ts",
+                    "column": 22,
+                    "line": 30
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "9ad0462ad6c32686eea6-f97a9d7f698d1787052d",
+          "file": "embed-content-language.spec.ts",
+          "line": 72,
+          "column": 7
+        },
+        {
+          "title": "embed en keeps its own language for missing and invalid symbols",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 1,
+                  "status": "failed",
+                  "duration": 520,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoMatchObject\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 1\u001b[39m\n\n\u001b[2m  Object {\u001b[22m\n\u001b[2m    \"applicationLanguage\": \"zh\",\u001b[22m\n\u001b[32m-   \"contentLanguage\": \"en\",\u001b[39m\n\u001b[31m+   \"contentLanguage\": \"zh-CN\",\u001b[39m\n\u001b[2m    \"documentLanguage\": \"zh-CN\",\u001b[22m\n\u001b[2m    \"storedLanguage\": \"zh\",\u001b[22m\n\u001b[2m  }\u001b[22m",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoMatchObject\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 1\u001b[39m\n\n\u001b[2m  Object {\u001b[22m\n\u001b[2m    \"applicationLanguage\": \"zh\",\u001b[22m\n\u001b[32m-   \"contentLanguage\": \"en\",\u001b[39m\n\u001b[31m+   \"contentLanguage\": \"zh-CN\",\u001b[39m\n\u001b[2m    \"documentLanguage\": \"zh-CN\",\u001b[22m\n\u001b[2m    \"storedLanguage\": \"zh\",\u001b[22m\n\u001b[2m  }\u001b[22m\n    at checkLanguage (/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-content-language.spec.ts:30:22)\n    at /Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-content-language.spec.ts:89:7",
+                    "location": {
+                      "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-content-language.spec.ts",
+                      "column": 22,
+                      "line": 30
+                    },
+                    "snippet": "  28 |       contentType: \"application/json\",\n  29 |     });\n> 30 |     expect(observed).toMatchObject({\n     |                      ^\n  31 |       contentLanguage, documentLanguage,\n  32 |       applicationLanguage: preference, storedLanguage: preference,\n  33 |     });"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-content-language.spec.ts",
+                        "column": 22,
+                        "line": 30
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoMatchObject\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 1\u001b[39m\n\n\u001b[2m  Object {\u001b[22m\n\u001b[2m    \"applicationLanguage\": \"zh\",\u001b[22m\n\u001b[32m-   \"contentLanguage\": \"en\",\u001b[39m\n\u001b[31m+   \"contentLanguage\": \"zh-CN\",\u001b[39m\n\u001b[2m    \"documentLanguage\": \"zh-CN\",\u001b[22m\n\u001b[2m    \"storedLanguage\": \"zh\",\u001b[22m\n\u001b[2m  }\u001b[22m\n\n  28 |       contentType: \"application/json\",\n  29 |     });\n> 30 |     expect(observed).toMatchObject({\n     |                      ^\n  31 |       contentLanguage, documentLanguage,\n  32 |       applicationLanguage: preference, storedLanguage: preference,\n  33 |     });\n    at checkLanguage (/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-content-language.spec.ts:30:22)\n    at /Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-content-language.spec.ts:89:7"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:41:54.057Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "language-missing",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiemgtQ04iLAogICJkb2N1bWVudExhbmd1YWdlIjogInpoLUNOIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJ6aCIsCiAgInN0b3JlZExhbmd1YWdlIjogInpoIiwKICAiZG9jdW1lbnRXaWR0aCI6IDE0NDAsCiAgInNjcm9sbFdpZHRoIjogMTQ0MAp9"
+                    },
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-embed-language-baseline/embed-content-language-emb-71d9a-missing-and-invalid-symbols-desktop/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-embed-language-baseline/embed-content-language-emb-71d9a-missing-and-invalid-symbols-desktop/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-embed-language-baseline/embed-content-language-emb-71d9a-missing-and-invalid-symbols-desktop/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-content-language.spec.ts",
+                    "column": 22,
+                    "line": 30
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "9ad0462ad6c32686eea6-8958a38f30fa5f31fb81",
+          "file": "embed-content-language.spec.ts",
+          "line": 83,
+          "column": 7
+        },
+        {
+          "title": "embed zh keeps its own language from loading through ready",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 616,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoMatchObject\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 1\u001b[39m\n\n\u001b[2m  Object {\u001b[22m\n\u001b[2m    \"applicationLanguage\": \"en\",\u001b[22m\n\u001b[32m-   \"contentLanguage\": \"zh-CN\",\u001b[39m\n\u001b[31m+   \"contentLanguage\": \"en\",\u001b[39m\n\u001b[2m    \"documentLanguage\": \"en\",\u001b[22m\n\u001b[2m    \"storedLanguage\": \"en\",\u001b[22m\n\u001b[2m  }\u001b[22m",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoMatchObject\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 1\u001b[39m\n\n\u001b[2m  Object {\u001b[22m\n\u001b[2m    \"applicationLanguage\": \"en\",\u001b[22m\n\u001b[32m-   \"contentLanguage\": \"zh-CN\",\u001b[39m\n\u001b[31m+   \"contentLanguage\": \"en\",\u001b[39m\n\u001b[2m    \"documentLanguage\": \"en\",\u001b[22m\n\u001b[2m    \"storedLanguage\": \"en\",\u001b[22m\n\u001b[2m  }\u001b[22m\n    at checkLanguage (/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-content-language.spec.ts:30:22)\n    at /Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-content-language.spec.ts:55:7",
+                    "location": {
+                      "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-content-language.spec.ts",
+                      "column": 22,
+                      "line": 30
+                    },
+                    "snippet": "  28 |       contentType: \"application/json\",\n  29 |     });\n> 30 |     expect(observed).toMatchObject({\n     |                      ^\n  31 |       contentLanguage, documentLanguage,\n  32 |       applicationLanguage: preference, storedLanguage: preference,\n  33 |     });"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-content-language.spec.ts",
+                        "column": 22,
+                        "line": 30
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoMatchObject\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 1\u001b[39m\n\n\u001b[2m  Object {\u001b[22m\n\u001b[2m    \"applicationLanguage\": \"en\",\u001b[22m\n\u001b[32m-   \"contentLanguage\": \"zh-CN\",\u001b[39m\n\u001b[31m+   \"contentLanguage\": \"en\",\u001b[39m\n\u001b[2m    \"documentLanguage\": \"en\",\u001b[22m\n\u001b[2m    \"storedLanguage\": \"en\",\u001b[22m\n\u001b[2m  }\u001b[22m\n\n  28 |       contentType: \"application/json\",\n  29 |     });\n> 30 |     expect(observed).toMatchObject({\n     |                      ^\n  31 |       contentLanguage, documentLanguage,\n  32 |       applicationLanguage: preference, storedLanguage: preference,\n  33 |     });\n    at checkLanguage (/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-content-language.spec.ts:30:22)\n    at /Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-content-language.spec.ts:55:7"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:41:54.127Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "language-loading",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiZW4iLAogICJkb2N1bWVudExhbmd1YWdlIjogImVuIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJlbiIsCiAgInN0b3JlZExhbmd1YWdlIjogImVuIiwKICAiZG9jdW1lbnRXaWR0aCI6IDE0NDAsCiAgInNjcm9sbFdpZHRoIjogMTQ0MAp9"
+                    },
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-embed-language-baseline/embed-content-language-emb-39382--from-loading-through-ready-desktop/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-embed-language-baseline/embed-content-language-emb-39382--from-loading-through-ready-desktop/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-embed-language-baseline/embed-content-language-emb-39382--from-loading-through-ready-desktop/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-content-language.spec.ts",
+                    "column": 22,
+                    "line": 30
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "9ad0462ad6c32686eea6-f4ed12141aac2e085108",
+          "file": "embed-content-language.spec.ts",
+          "line": 43,
+          "column": 7
+        },
+        {
+          "title": "embed zh keeps its own language with no price history",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 4,
+                  "parallelIndex": 1,
+                  "status": "failed",
+                  "duration": 673,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoMatchObject\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 1\u001b[39m\n\n\u001b[2m  Object {\u001b[22m\n\u001b[2m    \"applicationLanguage\": \"en\",\u001b[22m\n\u001b[32m-   \"contentLanguage\": \"zh-CN\",\u001b[39m\n\u001b[31m+   \"contentLanguage\": \"en\",\u001b[39m\n\u001b[2m    \"documentLanguage\": \"en\",\u001b[22m\n\u001b[2m    \"storedLanguage\": \"en\",\u001b[22m\n\u001b[2m  }\u001b[22m",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoMatchObject\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 1\u001b[39m\n\n\u001b[2m  Object {\u001b[22m\n\u001b[2m    \"applicationLanguage\": \"en\",\u001b[22m\n\u001b[32m-   \"contentLanguage\": \"zh-CN\",\u001b[39m\n\u001b[31m+   \"contentLanguage\": \"en\",\u001b[39m\n\u001b[2m    \"documentLanguage\": \"en\",\u001b[22m\n\u001b[2m    \"storedLanguage\": \"en\",\u001b[22m\n\u001b[2m  }\u001b[22m\n    at checkLanguage (/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-content-language.spec.ts:30:22)\n    at /Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-content-language.spec.ts:79:5",
+                    "location": {
+                      "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-content-language.spec.ts",
+                      "column": 22,
+                      "line": 30
+                    },
+                    "snippet": "  28 |       contentType: \"application/json\",\n  29 |     });\n> 30 |     expect(observed).toMatchObject({\n     |                      ^\n  31 |       contentLanguage, documentLanguage,\n  32 |       applicationLanguage: preference, storedLanguage: preference,\n  33 |     });"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-content-language.spec.ts",
+                        "column": 22,
+                        "line": 30
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoMatchObject\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 1\u001b[39m\n\n\u001b[2m  Object {\u001b[22m\n\u001b[2m    \"applicationLanguage\": \"en\",\u001b[22m\n\u001b[32m-   \"contentLanguage\": \"zh-CN\",\u001b[39m\n\u001b[31m+   \"contentLanguage\": \"en\",\u001b[39m\n\u001b[2m    \"documentLanguage\": \"en\",\u001b[22m\n\u001b[2m    \"storedLanguage\": \"en\",\u001b[22m\n\u001b[2m  }\u001b[22m\n\n  28 |       contentType: \"application/json\",\n  29 |     });\n> 30 |     expect(observed).toMatchObject({\n     |                      ^\n  31 |       contentLanguage, documentLanguage,\n  32 |       applicationLanguage: preference, storedLanguage: preference,\n  33 |     });\n    at checkLanguage (/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-content-language.spec.ts:30:22)\n    at /Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-content-language.spec.ts:79:5"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:41:55.204Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "language-empty",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiZW4iLAogICJkb2N1bWVudExhbmd1YWdlIjogImVuIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJlbiIsCiAgInN0b3JlZExhbmd1YWdlIjogImVuIiwKICAiZG9jdW1lbnRXaWR0aCI6IDE0NDAsCiAgInNjcm9sbFdpZHRoIjogMTQ0MAp9"
+                    },
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-embed-language-baseline/embed-content-language-emb-fc54e-guage-with-no-price-history-desktop/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-embed-language-baseline/embed-content-language-emb-fc54e-guage-with-no-price-history-desktop/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-embed-language-baseline/embed-content-language-emb-fc54e-guage-with-no-price-history-desktop/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-content-language.spec.ts",
+                    "column": 22,
+                    "line": 30
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "9ad0462ad6c32686eea6-c6241a34087f08234723",
+          "file": "embed-content-language.spec.ts",
+          "line": 72,
+          "column": 7
+        },
+        {
+          "title": "embed zh keeps its own language for missing and invalid symbols",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 5,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 587,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoMatchObject\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 1\u001b[39m\n\n\u001b[2m  Object {\u001b[22m\n\u001b[2m    \"applicationLanguage\": \"en\",\u001b[22m\n\u001b[32m-   \"contentLanguage\": \"zh-CN\",\u001b[39m\n\u001b[31m+   \"contentLanguage\": \"en\",\u001b[39m\n\u001b[2m    \"documentLanguage\": \"en\",\u001b[22m\n\u001b[2m    \"storedLanguage\": \"en\",\u001b[22m\n\u001b[2m  }\u001b[22m",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoMatchObject\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 1\u001b[39m\n\n\u001b[2m  Object {\u001b[22m\n\u001b[2m    \"applicationLanguage\": \"en\",\u001b[22m\n\u001b[32m-   \"contentLanguage\": \"zh-CN\",\u001b[39m\n\u001b[31m+   \"contentLanguage\": \"en\",\u001b[39m\n\u001b[2m    \"documentLanguage\": \"en\",\u001b[22m\n\u001b[2m    \"storedLanguage\": \"en\",\u001b[22m\n\u001b[2m  }\u001b[22m\n    at checkLanguage (/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-content-language.spec.ts:30:22)\n    at /Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-content-language.spec.ts:89:7",
+                    "location": {
+                      "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-content-language.spec.ts",
+                      "column": 22,
+                      "line": 30
+                    },
+                    "snippet": "  28 |       contentType: \"application/json\",\n  29 |     });\n> 30 |     expect(observed).toMatchObject({\n     |                      ^\n  31 |       contentLanguage, documentLanguage,\n  32 |       applicationLanguage: preference, storedLanguage: preference,\n  33 |     });"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-content-language.spec.ts",
+                        "column": 22,
+                        "line": 30
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoMatchObject\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 1\u001b[39m\n\n\u001b[2m  Object {\u001b[22m\n\u001b[2m    \"applicationLanguage\": \"en\",\u001b[22m\n\u001b[32m-   \"contentLanguage\": \"zh-CN\",\u001b[39m\n\u001b[31m+   \"contentLanguage\": \"en\",\u001b[39m\n\u001b[2m    \"documentLanguage\": \"en\",\u001b[22m\n\u001b[2m    \"storedLanguage\": \"en\",\u001b[22m\n\u001b[2m  }\u001b[22m\n\n  28 |       contentType: \"application/json\",\n  29 |     });\n> 30 |     expect(observed).toMatchObject({\n     |                      ^\n  31 |       contentLanguage, documentLanguage,\n  32 |       applicationLanguage: preference, storedLanguage: preference,\n  33 |     });\n    at checkLanguage (/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-content-language.spec.ts:30:22)\n    at /Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-content-language.spec.ts:89:7"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:41:55.358Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "language-missing",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiZW4iLAogICJkb2N1bWVudExhbmd1YWdlIjogImVuIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJlbiIsCiAgInN0b3JlZExhbmd1YWdlIjogImVuIiwKICAiZG9jdW1lbnRXaWR0aCI6IDE0NDAsCiAgInNjcm9sbFdpZHRoIjogMTQ0MAp9"
+                    },
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-embed-language-baseline/embed-content-language-emb-a2a50-missing-and-invalid-symbols-desktop/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-embed-language-baseline/embed-content-language-emb-a2a50-missing-and-invalid-symbols-desktop/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-embed-language-baseline/embed-content-language-emb-a2a50-missing-and-invalid-symbols-desktop/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-content-language.spec.ts",
+                    "column": 22,
+                    "line": 30
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "9ad0462ad6c32686eea6-680b8454e6fb051d9f01",
+          "file": "embed-content-language.spec.ts",
+          "line": 83,
+          "column": 7
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-04T06:41:44.503Z",
+    "duration": 11891.186,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 6,
+    "flaky": 0
+  }
+}

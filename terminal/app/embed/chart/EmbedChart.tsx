@@ -342,6 +342,7 @@ export default function EmbedChart({ symbol, theme, lang, transparent, initialRa
   return (
     <div
       className="embed-root"
+      lang={lang === "zh" ? "zh-CN" : "en"}
       data-theme={theme}
       data-transparent={transparent ? "1" : "0"}
       data-hdr={hideQuote ? "0" : undefined}
@@ -645,7 +646,7 @@ export function EmbedError({ theme, lang, transparent }: { theme: ThemeName; lan
   const t = makeT(lang);
   useTransparentRoot(transparent);
   return (
-    <div className="embed-root" data-theme={theme} data-transparent={transparent ? "1" : "0"}>
+    <div className="embed-root" lang={lang === "zh" ? "zh-CN" : "en"} data-theme={theme} data-transparent={transparent ? "1" : "0"}>
       <div className="embed-body embed-body-solo">
         <EmptyOrError kind="error" symbol={null} terminalHref={TERMINAL_BASE} pal={pal} t={t} />
       </div>
