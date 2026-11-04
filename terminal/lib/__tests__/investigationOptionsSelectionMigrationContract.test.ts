@@ -200,13 +200,14 @@ describe("0047 investigation options selection evidence admission contract", () 
     expect(body).not.toMatch(/pg_catalog\.position\(\s*'valid_investigation_scenario_reference_v1'\s*,/);
   });
 
-  it("records the prefix as taken and merged by #1222, still unapplied", () => {
+  it("records the protected source merge while keeping the migration unapplied", () => {
     const row = reservationRow("0047");
     expect(row.state).toBe("taken");
     expect(row.file).toBe(FILE);
     expect(row.packet).toBe("OPT006-V3-SAVE-ADMISSION");
     expect(row.applied_in_production).toBe(false);
     expect(row.pr).toBe(1222);
+    // #1222 has landed; source custody is distinct from applying its SQL.
     expect(row.pr_state).toBe("merged");
     expect(row.merged_sha).toBe("3cc8da8432d8d2d4e4cb597f49c4eaa95f1980c9");
     expect(row.merged_sha ?? "").toMatch(/^[0-9a-f]{40}$/);

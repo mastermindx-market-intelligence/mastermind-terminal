@@ -7,6 +7,17 @@ This version has breaking changes — APIs, conventions, and file structure may 
 <!-- BEGIN:mastermind-agent-laws (added 2026-07-23 after the onboarding-flow postmortem) -->
 # Mastermind Terminal — agent laws
 
+## Review without another session
+
+Use the root [session-owned review rule](../AGENTS.md#session-owned-prsource-review-chairman-2026-11-03). For assigned attended CEO Web source work, **FAST, STANDARD, and CRITICAL each have no blanket independent reviewer requirement**: self-check the immutable diff, run focused tests and required CI, and prove the relevant security and real user path. Neither ordinary executable/non-T0 source nor an elevated tier alone creates a reviewer Job, separate ChatGPT chat, Fabric commission, native child or new formal GitHub approval. Only actual native GitHub/CODEOWNERS requirements, explicit security/release holds or a separately authorized manual review request can require external review. Preserve the distinct default-OFF signed automatic GitHub/Executive machine reviewer policy; no attended-Web waiver authorizes machine review bypass.
+
+Mastermind #2018/#2026/#2030 and Terminal #1251 have their own protected and installed acceptance gates: do not assume a proposed PR is live, and do not treat an author's `routine` label or T0 classifier as GitHub authorization. Codex/Claude builders should likewise finish assigned work within their session, without another top-level chat; apply any actually binding technical/native review gate. If distinct scrutiny is truly owed, use a read-only, independently qualified in-session native Codex/Claude/Web child or admitted Fabric, verify exact head and findings, and adjudicate in the parent. `SELF_REVIEWED` is not independent proof and a child is not GitHub non-author `APPROVED`. No account switching, denied/EFFECT_UNKNOWN reroute, self-approval, self-merge, CI weakening or held-release shortcut.
+
+
+## Original-PR delivery ownership
+
+This application session must complete the existing PR's verification and authorized release path; a source commit, Draft, PR, CI wait or review request is not a terminal result. Repair CI on its original carrier, make stable PRs Ready, meet actual formal approval/hold checks, and verify final merge and required responsive/browser proof. See the root [finish-to-release rule](../AGENTS.md#finish-the-existing-release-not-the-draft). Do not invent review recipients or bypass protected merge.
+
 ## Model routing
 Opus builds and reviews code. Design choices are judgment work — made in the session's main loop (or an Opus designer agent), never delegated to Sonnet; builders only implement fully-specified designs (exact markup/classes handed to them). Sonnet = mechanical non-code sweeps only; Haiku = trivial extraction.
 

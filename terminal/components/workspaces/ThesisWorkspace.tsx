@@ -2655,6 +2655,21 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
                       </div>)}
                     </section>}
 
+                    <form className={styles.form} onSubmit={(event) => { event.preventDefault(); submit(selectedId ? "revise" : "create"); }}>
+                      <label>{copy.subject}<input aria-label={copy.subject} value={detail?.subject.key ?? subjectDraft} disabled={!!detail || carrierLocked} onChange={(event) => { changeSubjectDraft(event.target.value); setMessage(null); }} placeholder="NVDA" /></label>
+                      <label>{copy.titleLabel}<input aria-label={copy.titleLabel} value={draft.title} disabled={!editable || carrierLocked} maxLength={160} onChange={(event) => changeDraft("title", event.target.value)} /></label>
+                      <label className={styles.full}>{copy.statement}<textarea aria-label={copy.statement} value={draft.statement} disabled={!editable || carrierLocked} maxLength={12000} rows={8} onChange={(event) => changeDraft("statement", event.target.value)} /></label>
+                      {(["catalysts", "falsifiers", "risks"] as const).map((field) => <label key={field}>{copy[field]}<small>{copy.onePerLine}</small><textarea aria-label={copy[field]} value={draft[field]} disabled={!editable || carrierLocked} rows={5} onChange={(event) => changeDraft(field, event.target.value)} /></label>)}
+                      <label>{copy.horizon}<select aria-label={copy.horizon} value={draft.horizon} disabled={!editable || carrierLocked} onChange={(event) => changeDraft("horizon", event.target.value as ThesisHorizon)}>{(["unspecified", "days", "weeks", "months", "quarters", "years"] as ThesisHorizon[]).map((value) => <option key={value} value={value}>{HORIZON_LABELS[lang][value]}</option>)}</select></label>
+                      <label>{copy.effective}<input aria-label={copy.effective} type="datetime-local" step="0.001" value={draft.effectiveAt} disabled={!editable || carrierLocked} onChange={(event) => { setEffectiveEdited(true); changeDraft("effectiveAt", event.target.value); }} /></label>
+                      <label className={styles.full}>{copy.revision}<textarea aria-label={copy.revision} value={draft.revisionNote} disabled={carrierLocked} maxLength={1000} rows={3} onChange={(event) => changeDraft("revisionNote", event.target.value)} /></label>
+                      <div className={`${styles.actions} ${styles.full}`}>
+                        {editable && <button className={styles.primaryButton} type="submit" disabled={saving || ambiguous || carrierLocked}>{saving ? copy.saving : copy.save}</button>}
+                        {detail && lifecycle === "active" && <><button type="button" disabled={saving || ambiguous || carrierLocked} onClick={() => submit("archive")}>{copy.archive}</button><button type="button" className={styles.dangerButton} disabled={saving || ambiguous || carrierLocked} onClick={() => submit("invalidate")}>{copy.invalidate}</button></>}
+                        {detail && lifecycle !== "active" && <button type="button" className={styles.primaryButton} disabled={saving || ambiguous || carrierLocked} onClick={() => submit("reopen")}>{copy.reopen}</button>}
+                      </div>
+                    </form>
+
                     {detail && <div data-testid="thesis-amendment-panel">
                     <section className={styles.assistantNotes} data-testid="thesis-assistant-notes" aria-label={copy.assistantNotes}>
                       <div className={styles.historyHeading}><h2>{copy.assistantNotes}</h2></div>
@@ -2723,21 +2738,6 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
                         })}
                     </section>
                     </div>}
-
-                    <form className={styles.form} onSubmit={(event) => { event.preventDefault(); submit(selectedId ? "revise" : "create"); }}>
-                      <label>{copy.subject}<input aria-label={copy.subject} value={detail?.subject.key ?? subjectDraft} disabled={!!detail || carrierLocked} onChange={(event) => { changeSubjectDraft(event.target.value); setMessage(null); }} placeholder="NVDA" /></label>
-                      <label>{copy.titleLabel}<input aria-label={copy.titleLabel} value={draft.title} disabled={!editable || carrierLocked} maxLength={160} onChange={(event) => changeDraft("title", event.target.value)} /></label>
-                      <label className={styles.full}>{copy.statement}<textarea aria-label={copy.statement} value={draft.statement} disabled={!editable || carrierLocked} maxLength={12000} rows={8} onChange={(event) => changeDraft("statement", event.target.value)} /></label>
-                      {(["catalysts", "falsifiers", "risks"] as const).map((field) => <label key={field}>{copy[field]}<small>{copy.onePerLine}</small><textarea aria-label={copy[field]} value={draft[field]} disabled={!editable || carrierLocked} rows={5} onChange={(event) => changeDraft(field, event.target.value)} /></label>)}
-                      <label>{copy.horizon}<select aria-label={copy.horizon} value={draft.horizon} disabled={!editable || carrierLocked} onChange={(event) => changeDraft("horizon", event.target.value as ThesisHorizon)}>{(["unspecified", "days", "weeks", "months", "quarters", "years"] as ThesisHorizon[]).map((value) => <option key={value} value={value}>{HORIZON_LABELS[lang][value]}</option>)}</select></label>
-                      <label>{copy.effective}<input aria-label={copy.effective} type="datetime-local" step="0.001" value={draft.effectiveAt} disabled={!editable || carrierLocked} onChange={(event) => { setEffectiveEdited(true); changeDraft("effectiveAt", event.target.value); }} /></label>
-                      <label className={styles.full}>{copy.revision}<textarea aria-label={copy.revision} value={draft.revisionNote} disabled={carrierLocked} maxLength={1000} rows={3} onChange={(event) => changeDraft("revisionNote", event.target.value)} /></label>
-                      <div className={`${styles.actions} ${styles.full}`}>
-                        {editable && <button className={styles.primaryButton} type="submit" disabled={saving || ambiguous || carrierLocked}>{saving ? copy.saving : copy.save}</button>}
-                        {detail && lifecycle === "active" && <><button type="button" disabled={saving || ambiguous || carrierLocked} onClick={() => submit("archive")}>{copy.archive}</button><button type="button" className={styles.dangerButton} disabled={saving || ambiguous || carrierLocked} onClick={() => submit("invalidate")}>{copy.invalidate}</button></>}
-                        {detail && lifecycle !== "active" && <button type="button" className={styles.primaryButton} disabled={saving || ambiguous || carrierLocked} onClick={() => submit("reopen")}>{copy.reopen}</button>}
-                      </div>
-                    </form>
 
                     {detail && <section className={styles.history} aria-label={copy.history}>
                       <div className={styles.historyHeading}><h2>{copy.history}</h2><span>{detail.history.length}</span></div>

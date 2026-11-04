@@ -1,0 +1,29 @@
+
+Running 18 tests using 1 worker
+
+(node:49202) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 [desktop] › e2e/sector-exposure-depth-return.spec.ts:18:5 › an over-budget cohort step is disabled without changing the current symbol or valid origin (4.4s)
+  ✓   2 [desktop] › e2e/sector-exposure-depth-return.spec.ts:39:5 › stepping and Back preserve unrelated query and existing appearance preferences (9.1s)
+  ✓   3 [desktop] › e2e/sector-exposure-depth-return.spec.ts:77:7 › Exposure explicit return preserves the sector research opener: en dark (10.1s)
+  ✓   4 [desktop] › e2e/sector-exposure-depth-return.spec.ts:77:7 › Exposure explicit return preserves the sector research opener: en light (10.6s)
+  ✓   5 [desktop] › e2e/sector-exposure-depth-return.spec.ts:77:7 › Exposure explicit return preserves the sector research opener: zh dark (9.9s)
+  ✓   6 [desktop] › e2e/sector-exposure-depth-return.spec.ts:77:7 › Exposure explicit return preserves the sector research opener: zh light (10.8s)
+(node:52331) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   7 [tablet] › e2e/sector-exposure-depth-return.spec.ts:18:5 › an over-budget cohort step is disabled without changing the current symbol or valid origin (4.3s)
+  ✓   8 [tablet] › e2e/sector-exposure-depth-return.spec.ts:39:5 › stepping and Back preserve unrelated query and existing appearance preferences (10.8s)
+  ✓   9 [tablet] › e2e/sector-exposure-depth-return.spec.ts:77:7 › Exposure explicit return preserves the sector research opener: en dark (13.1s)
+  ✓  10 [tablet] › e2e/sector-exposure-depth-return.spec.ts:77:7 › Exposure explicit return preserves the sector research opener: en light (15.1s)
+  ✓  11 [tablet] › e2e/sector-exposure-depth-return.spec.ts:77:7 › Exposure explicit return preserves the sector research opener: zh dark (13.5s)
+  ✓  12 [tablet] › e2e/sector-exposure-depth-return.spec.ts:77:7 › Exposure explicit return preserves the sector research opener: zh light (9.6s)
+(node:55437) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  13 [mobile] › e2e/sector-exposure-depth-return.spec.ts:18:5 › an over-budget cohort step is disabled without changing the current symbol or valid origin (6.0s)
+  ✓  14 [mobile] › e2e/sector-exposure-depth-return.spec.ts:39:5 › stepping and Back preserve unrelated query and existing appearance preferences (8.2s)
+  ✓  15 [mobile] › e2e/sector-exposure-depth-return.spec.ts:77:7 › Exposure explicit return preserves the sector research opener: en dark (10.1s)
+  ✓  16 [mobile] › e2e/sector-exposure-depth-return.spec.ts:77:7 › Exposure explicit return preserves the sector research opener: en light (8.9s)
+  ✓  17 [mobile] › e2e/sector-exposure-depth-return.spec.ts:77:7 › Exposure explicit return preserves the sector research opener: zh dark (9.4s)
+  ✓  18 [mobile] › e2e/sector-exposure-depth-return.spec.ts:77:7 › Exposure explicit return preserves the sector research opener: zh light (10.4s)
+
+  18 passed (3.1m)
