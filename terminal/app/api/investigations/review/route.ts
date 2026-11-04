@@ -1,3 +1,5 @@
+import {createIntlInvestigationHandlers} from "@/lib/investigationIntlApi";
+import * as intlCodec from "@/lib/investigationIntlGenerationCodec";
 import {NextResponse} from "next/server";
 import {createClient} from "@/lib/supabase/server";
 import {R2_BASE} from "@/lib/upstreams";
@@ -7,6 +9,7 @@ import {resolveCurrentEventWorkspaceFromR2,resolveRetainedEventWorkspaceFromR2,a
 import {createSelectedIssuerReleaseReadOptions,resolveInvestigationIssuerRelease} from "@/lib/investigationIssuerRelease";
 import {reviewRetainedEarnings,reviewSelectedIssuerRelease} from "@/lib/investigationEarningsReview";
 import {investigationApiUnavailable} from "@/lib/investigationApiAdmission";
+const intlHandlers=createIntlInvestigationHandlers(intlCodec);
 export const runtime="nodejs";
 export const dynamic="force-dynamic";
 const response=(value:unknown,status=200)=>NextResponse.json(value,{status,headers:{"Cache-Control":"private, no-store","Vary":"Cookie"}});
@@ -27,6 +30,11 @@ export async function GET(request:Request){
   if(saved.status!=="found")return response({status:saved.status==="not_found"?"not_found":"unavailable"},saved.status==="not_found"?404:503);
   const manifest=validateStoredInvestigationManifest("manifest" in saved?saved.manifest:null,INVESTIGATION_ADMISSION);
   if(!manifest.ok)return unavailable("invalid_saved_reference");
+  if(manifest.value.evidence_refs.some(ref=>ref.owner==="intl.workspace_generation")){
+   if(saved.id!==id||saved.revision!==Number(revision)||!("committed_at" in saved)||typeof saved.committed_at!=="string")return unavailable("invalid_saved_reference");
+   const result=await intlHandlers.review(request,{id,revision:Number(revision),committed_at:saved.committed_at,manifest:manifest.value},user.id);
+   return response(result.body,result.status);
+  }
   const ref=manifest.value.review_baseline_ref;
   const issuers=manifest.value.intent.subjects.filter(subject=>subject.owner==="data_os.security_master"&&subject.kind==="issuer");
   if(!ref||ref.owner!=="earnings.workspace_generation"||ref.object_type!=="event_workspace"||ref.mode!=="pinned"||!ref.version_ref||!ref.fingerprint||issuers.length!==1)return unavailable("baseline_unavailable");

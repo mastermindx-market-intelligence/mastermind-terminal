@@ -1,9 +1,12 @@
+import {createIntlInvestigationHandlers} from "@/lib/investigationIntlApi";
+import * as intlCodec from "@/lib/investigationIntlGenerationCodec";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { rateLimit, tooMany } from "@/lib/rateLimit";
 import { investigationApiUnavailable } from "@/lib/investigationApiAdmission";
 import { applyInvestigationRevision, listInvestigations, parseInvestigationCommand, readInvestigation, readInvestigationOperation, reconcileInvestigationOperation, type InvestigationDb } from "@/lib/investigations";
 import { qualifyScenarioCaptureSave } from "@/lib/investigationScenarioServer";
+const intlHandlers=createIntlInvestigationHandlers(intlCodec);
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 const headers = { "Cache-Control": "private, no-store", "Vary": "Cookie" };
@@ -82,6 +85,10 @@ async function mutate(request: Request, reconcile: boolean) {
         const claimed = request.headers.get("x-mm-scenario-owner");
         if (claimed === null || claimed.trim() !== userId) return respond({ status: "invalid_payload" }, 400);
       }
+      // Source preparation only: this read cannot prove a prior valid POST had
+      // no effect. Keep source failure UNKNOWN/unavailable; PUT and legacy
+      // reconciliation never reacquire or replace the original pinned request.
+      if(!await intlHandlers.newCommand(request,command,userId))return respond({status:"unavailable",reason:"international_source_unavailable"},503);
       // Before canonical CAS, qualify this exact prospective owner/revision/operation through
       // the private native source reader and existing TS engine. Real current source-use and
       // destination bindings must still qualify; no retained reference is authority by itself.

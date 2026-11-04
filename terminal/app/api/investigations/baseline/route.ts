@@ -1,9 +1,12 @@
+import {createIntlInvestigationHandlers} from "@/lib/investigationIntlApi";
+import * as intlCodec from "@/lib/investigationIntlGenerationCodec";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { R2_BASE } from "@/lib/upstreams";
 import { normalizeCompanyIntelligenceSymbol, resolveCurrentEventWorkspaceFromR2, resolveRetainedEventWorkspaceFromR2, type RetainedEventWorkspacePin } from "@/lib/eventWorkspace";
 import { createSelectedIssuerReleaseReadOptions, resolveInvestigationIssuerRelease } from "@/lib/investigationIssuerRelease";
 import { investigationApiUnavailable } from "@/lib/investigationApiAdmission";
+const intlHandlers=createIntlInvestigationHandlers(intlCodec);
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 const headers = { "Cache-Control": "private, no-store", "Vary": "Cookie" };
@@ -17,6 +20,7 @@ export async function GET(request: Request) {
     const { data: { user }, error } = await db.auth.getUser();
     if (error || !user) return response({ status: "unauthenticated" }, 401);
     const query = new URL(request.url).searchParams;
+    if(query.get("kind")==="international"){const result=await intlHandlers.baseline(request,user.id);return response(result.body,result.status);}
     const keys = [...query.keys()];
     if (new Set(keys).size !== keys.length) return response({ status: "invalid_payload" }, 400);
     const scope = query.get("scope");

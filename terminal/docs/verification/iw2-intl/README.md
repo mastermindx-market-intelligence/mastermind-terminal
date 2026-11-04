@@ -38,8 +38,8 @@ using JavaScript JSON serialization.
 Public files contain no account, question, private Saved context or auth epoch.
 The native read sends no credentials to R2. Mutable current must byte-match its
 immutable descriptor sidecar; every artifact name is constructed from the exact
-native UUID/digest. The native decoder and actual producer bytes must be joined
-before source acceptance. Private responses are fenced by principal, epoch,
+native UUID/digest. The native decoder is mounted through the existing baseline/review/strict POST
+handlers; actual producer bytes must still be joined before complete source acceptance. Private responses are fenced by principal, epoch,
 acknowledged id/revision, view lifetime and authored question before display.
 
 New POST source preflight must return the existing503/unavailable outcome on a
@@ -56,7 +56,14 @@ release qualification. No SQL has been executed. Namespace numbering, PostgreSQL
 qualification, exact0030, all-ingress/drain/direct-RPC controls and release5989604142
 remain separate held obligations. Original0030/0043 bytes remain unchanged.
 
-Next source join: accepted Macro generation/current-policy bytes -> native codec
-and existing API integration -> scoped non-author auth/admission review. IM10 then
+The original decoder artifact was not accepted as returned: its scratch stubs
+missed actual native enum/types, structured receipts/decision bindings and nullable
+source clocks. Parent integration corrects those against the native producer, adds
+the explicit GB.policy_rate/percent domain, and preserves date-only/missing clocks
+without timestamps. Synthetic bytes test the actual transport/codec/getUser/RPC
+route join; they are not actual publication, database or authenticated proof.
+
+Next source join: accepted Macro generation/current-policy bytes -> exact native
+fixture equivalence and scoped non-author auth/admission review. IM10 then
 reuses the existing controlled PolicyComparison/session and Python comparator;
 there is no second Macro UI or JavaScript policy arithmetic.
