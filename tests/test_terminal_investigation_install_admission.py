@@ -1934,3 +1934,826 @@ def test_systemd_environment_file_supported_single_line_declaration(verifier, tm
     app.mkdir()
     host = FakeGitHost(tree_listing=primitive_entry(), unit=closed_beta_unit(str(env_file)))
     assert _decide(verifier, host, app=app, profile="beta", unit_name="terminal-beta", env_dir=str(tmp_path)) == 0
+
+
+# ── canonical production ExecStartPre hook contract ──────────────────────────
+# The two approved production prehooks are bound the way the deployment shows
+# them: declaring drop-ins as real bounded files, typed effective argv as an
+# injected busctl reply and the guard body as an injected reader. Custody
+# fakes use os.geteuid() exactly as the deployed verifier does: it always runs
+# under the privileged installer identity, so root custody on the deployment
+# host is this same effective identity. No fixture executes anything.
+
+APPROVED_BUILD_ID_COMMAND = (
+    "test -f /opt/terminal/terminal/.next/BUILD_ID || "
+    "{ echo no-build-refusing-start; exit 1; }")
+APPROVED_GUARD_PATH = "/usr/local/sbin/terminal-volume-guard"
+PINNED_GUARD_SHA256 = (
+    "1a7e39a4188d9dcfd55907e741a1b27850ed65835f4525cc6bc3a48eca122de9")
+HARDENING_DROPIN_TEXT = (
+    "[Service]\n"
+    'ExecStartPre=/bin/sh -c "test -f /opt/terminal/terminal/.next/BUILD_ID || '
+    '{ echo no-build-refusing-start; exit 1; }"\n'
+    "NoNewPrivileges=yes\n"
+)
+STORAGE_DROPIN_TEXT = (
+    "[Service]\n"
+    "ExecStartPre=/usr/local/sbin/terminal-volume-guard --service\n"
+    "ProtectSystem=strict\n"
+)
+NEUTRAL_DROPIN_TEXT = "[Service]\nEnvironment=MMX_TICKER_CACHE=1\n"
+GUARD_SCRIPT_BODY = "\n".join([
+    "#!/bin/bash",
+    "set -euo pipefail",
+    'if [[ "${1:-}" != --service && -e /etc/terminal-storage-maintenance ]]; '
+    "then exit 75; fi",
+    "check_mount() {",
+    " local rec uuid kind root extra",
+    ' rec=$(findmnt -rn --mountpoint "$1" -o UUID,FSTYPE,FSROOT) || return 1',
+    ' [[ -n "$rec" && "$rec" != *$' + "'" + "\\n" + "'*" + " ]] || return 1",
+    ' read -r uuid kind root extra <<< "$rec"',
+    ' [[ "$uuid" == 71dc6155-3f93-4370-a971-b89a6d87a203 && "$kind" == ext4 '
+    '&& "$root" == "$2" && -z "$extra" ]]',
+    "}",
+    "check_mount /mnt/terminal_storage /",
+    "check_mount /opt/terminal /live-terminal",
+    "[[ \"$(stat -Lc '%d' /opt/terminal)\" == \"$(stat -Lc '%d' "
+    '/mnt/terminal_storage)\" ]]',
+]) + "\n"
+
+
+def hook_identity(link_uid, link_gid, symlink, resolved, target_uid,
+                  target_gid, target_mode, target_regular, target_size):
+    return (link_uid, link_gid, symlink, resolved, target_uid, target_gid,
+            target_mode, target_regular, target_size)
+
+
+def busctl_exec_row(path, argv, ignore_errors=False):
+    # One a(sasbttttuii) row: path, argv, ignore_errors, four timestamps,
+    # exit state fields.
+    return [path, list(argv), ignore_errors, 0, 0, 0, 0, 0, 0, 0]
+
+
+def approved_exec_rows():
+    return [
+        busctl_exec_row("/bin/sh", ["/bin/sh", "-c", APPROVED_BUILD_ID_COMMAND]),
+        busctl_exec_row(APPROVED_GUARD_PATH, [APPROVED_GUARD_PATH, "--service"]),
+    ]
+
+
+def approved_hook_reply(rows=None):
+    return {"type": "a(sasbttttuii)", "data": list(approved_exec_rows() if rows is None else rows)}
+
+
+def write_hook_sources(tmp_path, texts=None):
+    sources = tmp_path / "terminal.service.d"
+    sources.mkdir(exist_ok=True)
+    fragment = tmp_path / "terminal.service"
+    if not fragment.exists():
+        fragment.write_text("[Service]\nType=simple\n")
+    contents = {
+        "boats-history.conf": NEUTRAL_DROPIN_TEXT,
+        "hardening.conf": HARDENING_DROPIN_TEXT,
+        "storage.conf": STORAGE_DROPIN_TEXT,
+        "ticker-news-rail.conf": NEUTRAL_DROPIN_TEXT,
+    }
+    for name, text in (texts or {}).items():
+        contents[name] = text
+    for name, text in contents.items():
+        if text is not None:
+            (sources / name).write_text(text, encoding="utf-8")
+    return sources, contents
+
+
+def approved_dropin_paths(sources,
+                          names=("boats-history.conf", "hardening.conf",
+                                 "storage.conf", "ticker-news-rail.conf")):
+    return " ".join(str(sources / name) for name in names)
+
+
+EXEC_START_PRE_APPROVED = (
+    "{ path=/bin/sh ; argv[]=/bin/sh -c " + APPROVED_BUILD_ID_COMMAND + " ; "
+    "ignore_errors=no ; } "
+    "{ path=/usr/local/sbin/terminal-volume-guard ; "
+    "argv[]=/usr/local/sbin/terminal-volume-guard --service ; "
+    "ignore_errors=no ; }"
+)
+
+
+def approved_hook_host(tmp_path, texts=None, dropin_paths=None, **overrides):
+    sources, _ = write_hook_sources(tmp_path, texts)
+    if dropin_paths is None:
+        dropin_paths = approved_dropin_paths(sources)
+    overrides.setdefault("ExecStartPre", EXEC_START_PRE_APPROVED)
+    overrides.setdefault("ExecSearchPath", "")
+    overrides.setdefault("Id", "terminal.service")
+    overrides.setdefault("FragmentPath", str(tmp_path / "terminal.service"))
+    return FakeGitHost(
+        tree_listing=primitive_entry(),
+        unit=closed_prod_unit(DropInPaths=dropin_paths, **overrides))
+
+
+def install_hook_fakes(ns, reply=None, identities=None,
+                       guard_body=GUARD_SCRIPT_BODY):
+    reply = approved_hook_reply() if reply is None else reply
+    euid = os.geteuid()
+    table = {
+        "/bin/sh": hook_identity(euid, euid, True, "/usr/bin/dash",
+                                 euid, euid, 0o755, True, 129784),
+        APPROVED_GUARD_PATH: hook_identity(
+            euid, euid, False, APPROVED_GUARD_PATH, euid, euid, 0o755, True,
+            len(guard_body)),
+    }
+    table.update(identities or {})
+
+    # Keep real bounded reads on local fixture files. Only the fixed production
+    # path constants are mapped to that fixture, never an approval helper.
+    # FakeGitHost is installed later by _decide, so hook source constants are
+    # set by the loaded unit-property wrapper below rather than host reads.
+    original_classify = ns["classify_supported_prehooks"]
+    def mapped_classify(unit_name):
+        fragment = ns["unit_property"](unit_name, "FragmentPath")
+        ns["PREHOOK_FRAGMENT_PATH"] = fragment
+        ns["PREHOOK_SOURCE_DIR"] = str(Path(fragment).parent / "terminal.service.d")
+        return original_classify(unit_name)
+    ns["classify_supported_prehooks"] = mapped_classify
+
+    def fake_rows(unit_name):
+        return reply
+
+    def fake_identity(path):
+        if path not in table:
+            raise ns["Refused"]("prehook-custody-unavailable")
+        return table[path]
+
+    def fake_guard_body():
+        return guard_body
+
+    ns["unit_execstartpre_rows"] = fake_rows
+    ns["trusted_path_identity"] = fake_identity
+    ns["guard_script_payload"] = fake_guard_body
+    # Real source parser still runs; only nonsecret host filesystem metadata
+    # is injected. Dedicated tests below execute the actual custody checker.
+    ns["qualify_prehook_search_tools"] = lambda directories: None
+
+
+def test_guard_fixture_is_the_exact_deployed_body():
+    assert len(GUARD_SCRIPT_BODY.encode()) == 600
+    assert hashlib.sha256(GUARD_SCRIPT_BODY.encode()).hexdigest() == PINNED_GUARD_SHA256
+
+
+def test_approved_pair_of_prehooks_admit_closed_production(verifier, tmp_path, capsys):
+    app = tmp_path / "app"
+    app.mkdir()
+    host = approved_hook_host(tmp_path)
+    install_hook_fakes(verifier)
+    assert _decide(verifier, host, app=app) == 0
+    assert capsys.readouterr().out.strip() == "explicitly-closed"
+
+
+def test_approved_prehooks_stay_bound_after_start(verifier, tmp_path, capsys):
+    app = tmp_path / "app"
+    app.mkdir()
+    host = approved_hook_host(tmp_path, ActiveState="active", MainPID=str(MAIN_PID))
+    install_hook_fakes(verifier)
+    install_proc_fakes(verifier, serving_fixture(), (7, 99))
+    host.install(verifier)
+    assert verifier["main"](
+        [str(app), NEW_SHA, "poststart", str(app), "terminal", "/tmp",
+         "production"]) == 0
+    assert capsys.readouterr().out.strip() == "explicitly-closed"
+
+
+@pytest.mark.parametrize("environment,code", [
+    (PROD_OPEN_ENV, "unit-admission-not-closed"),
+    ('"NODE_ENV=production"', "missing-explicit-closed"),
+    (PROD_CLOSED_ENV + ' "INVESTIGATION_API_ADMISSION=closed"',
+     "conflicting-admission-declaration"),
+])
+def test_approved_prehooks_do_not_shortcut_closed_admission(
+    verifier, tmp_path, environment, code
+):
+    app = tmp_path / "app"
+    app.mkdir()
+    host = approved_hook_host(tmp_path, Environment=environment)
+    install_hook_fakes(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        _decide(verifier, host, app=app)
+    assert raised.value.code == code
+
+
+def test_approved_prehooks_do_not_shortcut_dotenv_conflict(verifier, tmp_path):
+    app = tmp_path / "app"
+    app.mkdir()
+    (app / ".env").write_text("INVESTIGATION_API_ADMISSION=closed\n")
+    host = approved_hook_host(tmp_path)
+    install_hook_fakes(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        _decide(verifier, host, app=app)
+    assert raised.value.code == "dotenv-admission-conflict"
+
+
+def test_approved_prehooks_do_not_shortcut_poststart_process_environment(
+    verifier, tmp_path
+):
+    app = tmp_path / "app"
+    app.mkdir()
+    host = approved_hook_host(tmp_path, ActiveState="active", MainPID=str(MAIN_PID))
+    procs = serving_fixture()
+    procs[SHIM_PID]["environ"] = b"INVESTIGATION_API_ADMISSION=open\0"
+    install_hook_fakes(verifier)
+    install_proc_fakes(verifier, procs, (7, 99))
+    host.install(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        verifier["main"]([str(app), NEW_SHA, "poststart", str(app), "terminal",
+                          "/tmp", "production"])
+    assert raised.value.code == "serving-process-admission-not-closed"
+
+
+VARYING_HOOK_REPLIES = {
+    "reordered": approved_hook_reply(list(reversed(approved_exec_rows()))),
+    "single-hook": approved_hook_reply(approved_exec_rows()[:1]),
+    "duplicated-hook": approved_hook_reply(
+        approved_exec_rows() + approved_exec_rows()[:1]),
+    "changed-buildid-argv": approved_hook_reply([
+        busctl_exec_row("/bin/sh", ["/bin/sh", "-c",
+                                    "test -f /opt/terminal/terminal/.next/BUILD_ID || exit 1"]),
+        approved_exec_rows()[1]]),
+    "changed-guard-argv": approved_hook_reply([
+        approved_exec_rows()[0],
+        busctl_exec_row(APPROVED_GUARD_PATH,
+                        [APPROVED_GUARD_PATH, "--service", "--force"])]),
+    "unrelated-second-hook": approved_hook_reply([
+        approved_exec_rows()[0],
+        busctl_exec_row("/usr/bin/env", ["/usr/bin/env", "unrelated-preload"])]),
+    "unqualified-interpreter": approved_hook_reply([
+        busctl_exec_row("/bin/bash", ["/bin/bash", "-c",
+                                      APPROVED_BUILD_ID_COMMAND]),
+        approved_exec_rows()[1]]),
+    "generic-shell-hook": approved_hook_reply([
+        busctl_exec_row("/bin/sh", ["/bin/sh", "-c", "echo unapproved"]),
+        approved_exec_rows()[1]]),
+    "ignore-errors": approved_hook_reply([
+        approved_exec_rows()[0],
+        busctl_exec_row(APPROVED_GUARD_PATH, [APPROVED_GUARD_PATH, "--service"],
+                        True)]),
+    "path-only-drift": approved_hook_reply([
+        approved_exec_rows()[0],
+        busctl_exec_row(APPROVED_GUARD_PATH,
+                        [APPROVED_GUARD_PATH + ".bak", "--service"])]),
+}
+
+
+@pytest.mark.parametrize("name", sorted(VARYING_HOOK_REPLIES))
+def test_only_the_exact_approved_prehook_pair_is_bound(verifier, tmp_path, name):
+    app = tmp_path / "app"
+    app.mkdir()
+    host = approved_hook_host(tmp_path)
+    install_hook_fakes(verifier, reply=VARYING_HOOK_REPLIES[name])
+    with pytest.raises(verifier["Refused"]) as raised:
+        _decide(verifier, host, app=app)
+    assert raised.value.code == "unsupported-prehook-shape"
+
+
+MALFORMED_HOOK_REPLIES = [
+    "not-a-reply",
+    [],
+    [[]],
+    [["/bin/sh", ["/bin/sh", "-c", APPROVED_BUILD_ID_COMMAND], False,
+      0, 0, 0, 0, 0, 0]],
+    [["/bin/sh", [], False, 0, 0, 0, 0, 0, 0, 0]],
+    [["/bin/sh", ["/bin/sh", "-c", APPROVED_BUILD_ID_COMMAND], "no",
+      0, 0, 0, 0, 0, 0, 0]],
+    [[7, ["/bin/sh", "-c", APPROVED_BUILD_ID_COMMAND], False,
+      0, 0, 0, 0, 0, 0, 0]],
+    [["/bin/sh", ["/bin/sh", "-c", APPROVED_BUILD_ID_COMMAND, 7], False,
+      0, 0, 0, 0, 0, 0, 0]],
+]
+
+
+@pytest.mark.parametrize("reply", MALFORMED_HOOK_REPLIES)
+def test_malformed_typed_prehook_evidence_fails_closed(verifier, tmp_path, reply):
+    app = tmp_path / "app"
+    app.mkdir()
+    host = approved_hook_host(tmp_path)
+    if isinstance(reply, list):
+        reply = {"type": "a(sasbttttuii)", "data": reply}
+    install_hook_fakes(verifier, reply=reply)
+    with pytest.raises(verifier["Refused"]) as raised:
+        _decide(verifier, host, app=app)
+    assert raised.value.code == "unsupported-prehook-shape"
+
+
+@pytest.mark.parametrize("prop", [
+    "ExecStartPost", "ExecCondition", "ExecStopPost", "RootDirectory",
+    "RootImage", "PAMName"])
+def test_other_launch_hooks_stay_refused_with_approved_prehooks(
+    verifier, tmp_path, prop
+):
+    app = tmp_path / "app"
+    app.mkdir()
+    host = approved_hook_host(tmp_path, **{prop: "/untrusted/hook"})
+    install_hook_fakes(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        _decide(verifier, host, app=app)
+    assert raised.value.code == "unsupported-service-launch-hook"
+
+
+def test_unapproved_canonical_prehook_still_refuses_hermetically(
+    verifier, tmp_path
+):
+    app = tmp_path / "app"
+    app.mkdir()
+    host = FakeGitHost(
+        tree_listing=primitive_entry(),
+        unit=closed_prod_unit(ExecStartPre="/untrusted/hook"))
+    with pytest.raises(verifier["Refused"]):
+        _decide(verifier, host, app=app)
+
+
+def test_other_unit_names_keep_the_zero_hook_refusal(verifier, tmp_path):
+    app = tmp_path / "app"
+    app.mkdir()
+    host = approved_hook_host(tmp_path)
+    install_hook_fakes(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        _decide(verifier, host, app=app, unit_name="terminal-beta")
+    assert raised.value.code == "unsupported-service-launch-hook"
+
+
+def test_beta_profile_keeps_the_zero_hook_refusal(verifier, tmp_path):
+    env_file = tmp_path / "environment"
+    env_file.write_text("INVESTIGATION_API_ADMISSION=closed\n")
+    app = tmp_path / "app"
+    app.mkdir()
+    sources, _ = write_hook_sources(tmp_path)
+    host = FakeGitHost(
+        tree_listing=primitive_entry(),
+        unit=closed_beta_unit(str(env_file), ExecStartPre="/bin/sh -c x",
+                              DropInPaths=approved_dropin_paths(sources)))
+    with pytest.raises(verifier["Refused"]) as raised:
+        _decide(verifier, host, app=app, profile="beta",
+                unit_name="terminal-beta", env_dir=str(tmp_path))
+    assert raised.value.code == "unsupported-service-launch-hook"
+
+
+def test_missing_declared_owner_fails_closed(verifier, tmp_path):
+    app = tmp_path / "app"
+    app.mkdir()
+    sources, _ = write_hook_sources(tmp_path)
+    host = approved_hook_host(
+        tmp_path,
+        dropin_paths=f"{sources}/boats-history.conf {sources}/storage.conf")
+    install_hook_fakes(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        _decide(verifier, host, app=app)
+    assert raised.value.code == "prehook-declaration-missing"
+
+    host = approved_hook_host(tmp_path, dropin_paths="")
+    install_hook_fakes(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        _decide(verifier, host, app=app)
+    assert raised.value.code == "prehook-declaration-missing"
+
+
+def test_extra_prehook_declaration_in_another_source_fails_closed(
+    verifier, tmp_path
+):
+    app = tmp_path / "app"
+    app.mkdir()
+    host = approved_hook_host(tmp_path, texts={
+        "ticker-news-rail.conf": "[Service]\nExecStartPre=/usr/bin/extra\n"})
+    install_hook_fakes(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        _decide(verifier, host, app=app)
+    assert raised.value.code == "prehook-declaration-extra"
+
+
+@pytest.mark.parametrize("mutated_storage", [
+    "[Service]\nExecStartPre=/usr/local/sbin/terminal-volume-guard --service"
+    " --audit\n",
+    "[Service]\nExecStartPre=\n",
+    "[Service]\nExecStartPre=/usr/local/sbin/terminal-volume-guard"
+    " --service\nExecStartPre=/usr/local/sbin/terminal-volume-guard"
+    " --service\n",
+])
+def test_storage_owner_declaration_is_bound_exactly(verifier, tmp_path,
+                                                    mutated_storage):
+    app = tmp_path / "app"
+    app.mkdir()
+    host = approved_hook_host(tmp_path, texts={"storage.conf": mutated_storage})
+    install_hook_fakes(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        _decide(verifier, host, app=app)
+    assert raised.value.code == "prehook-declaration-mismatch"
+
+
+def test_hardening_owner_declaration_is_bound_exactly(verifier, tmp_path):
+    app = tmp_path / "app"
+    app.mkdir()
+    host = approved_hook_host(tmp_path, texts={
+        "hardening.conf":
+            '[Service]\nExecStartPre=/bin/sh -c "echo substituted"\n'})
+    install_hook_fakes(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        _decide(verifier, host, app=app)
+    assert raised.value.code == "prehook-declaration-mismatch"
+
+
+def test_owner_source_order_and_location_are_bound(verifier, tmp_path):
+    app = tmp_path / "app"
+    app.mkdir()
+    sources, _ = write_hook_sources(tmp_path)
+    swapped = approved_dropin_paths(
+        sources, names=("boats-history.conf", "storage.conf",
+                        "hardening.conf", "ticker-news-rail.conf"))
+    host = approved_hook_host(tmp_path, dropin_paths=swapped)
+    install_hook_fakes(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        _decide(verifier, host, app=app)
+    assert raised.value.code == "prehook-declaration-ambiguous"
+
+    split_a = tmp_path / "first" / "terminal.service.d"
+    split_b = tmp_path / "second" / "terminal.service.d"
+    split_a.mkdir(parents=True)
+    split_b.mkdir(parents=True)
+    (split_a / "hardening.conf").write_text(HARDENING_DROPIN_TEXT)
+    (split_b / "storage.conf").write_text(STORAGE_DROPIN_TEXT)
+    host = approved_hook_host(
+        tmp_path,
+        dropin_paths=f"{split_a}/hardening.conf {split_b}/storage.conf")
+    install_hook_fakes(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        _decide(verifier, host, app=app)
+    assert raised.value.code == "prehook-declaration-ambiguous"
+
+    misplaced = tmp_path / "elsewhere.d"
+    misplaced.mkdir()
+    (misplaced / "hardening.conf").write_text(HARDENING_DROPIN_TEXT)
+    (misplaced / "storage.conf").write_text(STORAGE_DROPIN_TEXT)
+    host = approved_hook_host(
+        tmp_path, dropin_paths=approved_dropin_paths(misplaced, names=(
+            "hardening.conf", "storage.conf")))
+    install_hook_fakes(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        _decide(verifier, host, app=app)
+    assert raised.value.code == "prehook-declaration-ambiguous"
+
+
+def test_ambiguous_dropin_rendering_fails_closed(verifier, tmp_path):
+    app = tmp_path / "app"
+    app.mkdir()
+    host = approved_hook_host(tmp_path, dropin_paths="/etc/a.conf /b conf.conf")
+    install_hook_fakes(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        _decide(verifier, host, app=app)
+    assert raised.value.code == "unit-source-list-unusable"
+
+
+def test_symlinked_owner_source_is_refused(verifier, tmp_path):
+    app = tmp_path / "app"
+    app.mkdir()
+    sources, contents = write_hook_sources(tmp_path)
+    real = sources / "hardening-real.conf"
+    real.write_text(contents["hardening.conf"])
+    (sources / "hardening.conf").unlink()
+    (sources / "hardening.conf").symlink_to(real)
+    host = FakeGitHost(
+        tree_listing=primitive_entry(),
+        unit=closed_prod_unit(Id="terminal.service", FragmentPath=str(tmp_path / "terminal.service"),
+                              DropInPaths=approved_dropin_paths(sources),
+                              ExecStartPre=EXEC_START_PRE_APPROVED))
+    install_hook_fakes(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        _decide(verifier, host, app=app)
+    assert raised.value.code == "unit-source-unreadable"
+
+
+def test_writable_owner_source_is_refused(verifier, tmp_path):
+    app = tmp_path / "app"
+    app.mkdir()
+    sources, _ = write_hook_sources(tmp_path)
+    (sources / "storage.conf").chmod(0o664)
+    host = FakeGitHost(
+        tree_listing=primitive_entry(),
+        unit=closed_prod_unit(Id="terminal.service", FragmentPath=str(tmp_path / "terminal.service"),
+                              DropInPaths=approved_dropin_paths(sources),
+                              ExecStartPre=EXEC_START_PRE_APPROVED))
+    install_hook_fakes(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        _decide(verifier, host, app=app)
+    assert raised.value.code == "unit-source-group-or-other-writable"
+
+
+@pytest.mark.parametrize("hardening_text,code", [
+    ("[Service]\nNoNewPrivileges=" + chr(92) + "\nyes\n"
+     'ExecStartPre=/bin/sh -c "x"\n',
+     "unit-source-unsupported-syntax"),
+    ("[Service]\nOTHER=a\x00b\n", "unit-source-unsupported-syntax"),
+    ("[Service]\nno assignment here\n", "unit-source-unsupported-syntax"),
+])
+def test_unsupported_owner_source_syntax_fails_closed(verifier, tmp_path,
+                                                      hardening_text, code):
+    app = tmp_path / "app"
+    app.mkdir()
+    host = approved_hook_host(tmp_path, texts={"hardening.conf": hardening_text})
+    install_hook_fakes(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        _decide(verifier, host, app=app)
+    assert raised.value.code == code
+
+
+def test_changed_guard_body_is_refused_without_execution(verifier, tmp_path):
+    app = tmp_path / "app"
+    app.mkdir()
+    marker = tmp_path / "envfile-mutation-marker"
+    mutated = GUARD_SCRIPT_BODY.replace(
+        "check_mount /mnt/terminal_storage /",
+        "printf mutated >> " + str(marker) + "\n"
+        "check_mount /mnt/terminal_storage /", 1)
+    assert mutated != GUARD_SCRIPT_BODY
+    host = approved_hook_host(tmp_path)
+    install_hook_fakes(verifier, guard_body=mutated)
+    with pytest.raises(verifier["Refused"]) as raised:
+        _decide(verifier, host, app=app)
+    assert raised.value.code == "prehook-guard-body-mismatch"
+    assert not marker.exists(), "a refused guard body must never run"
+
+
+def test_guard_body_is_bound_beyond_size(verifier, tmp_path):
+    app = tmp_path / "app"
+    app.mkdir()
+    twiddled = GUARD_SCRIPT_BODY.replace("exit 75", "exit 76")
+    assert len(twiddled.encode()) == 600
+    host = approved_hook_host(tmp_path)
+    install_hook_fakes(verifier, guard_body=twiddled)
+    with pytest.raises(verifier["Refused"]) as raised:
+        _decide(verifier, host, app=app)
+    assert raised.value.code == "prehook-guard-body-mismatch"
+
+
+def test_oversized_guard_body_is_refused(verifier, tmp_path):
+    app = tmp_path / "app"
+    app.mkdir()
+    host = approved_hook_host(tmp_path)
+    install_hook_fakes(verifier, guard_body=GUARD_SCRIPT_BODY + "tail\n")
+    with pytest.raises(verifier["Refused"]) as raised:
+        _decide(verifier, host, app=app)
+    assert raised.value.code == "prehook-guard-body-mismatch"
+
+
+@pytest.mark.parametrize("guard_identity", [
+    hook_identity(os.geteuid(), os.geteuid(), True, "/usr/local/sbin/other",
+                  os.geteuid(), os.geteuid(), 0o755, True, 600),
+    hook_identity(os.geteuid(), os.geteuid(), False, "/usr/local/sbin/other",
+                  os.geteuid(), os.geteuid(), 0o755, True, 600),
+    hook_identity(os.geteuid() + 1, os.geteuid(), False,
+                  "/usr/local/sbin/terminal-volume-guard", os.geteuid(),
+                  os.geteuid(), 0o755, True, 600),
+    hook_identity(os.geteuid(), os.geteuid(), False,
+                  "/usr/local/sbin/terminal-volume-guard", os.geteuid() + 1,
+                  os.geteuid(), 0o755, True, 600),
+    hook_identity(os.geteuid(), os.geteuid(), False,
+                  "/usr/local/sbin/terminal-volume-guard", os.geteuid(),
+                  os.geteuid(), 0o775, True, 600),
+    hook_identity(os.geteuid(), os.geteuid(), False,
+                  "/usr/local/sbin/terminal-volume-guard", os.geteuid(),
+                  os.geteuid(), 0o755, False, 600),
+])
+def test_guard_custody_is_bound(verifier, tmp_path, guard_identity):
+    app = tmp_path / "app"
+    app.mkdir()
+    host = approved_hook_host(tmp_path)
+    install_hook_fakes(verifier, identities={APPROVED_GUARD_PATH: guard_identity})
+    with pytest.raises(verifier["Refused"]) as raised:
+        _decide(verifier, host, app=app)
+    assert raised.value.code == "prehook-guard-custody"
+
+
+@pytest.mark.parametrize("interpreter_identity", [
+    hook_identity(os.geteuid(), os.geteuid(), False, "/bin/sh",
+                  os.geteuid(), os.geteuid(), 0o755, True, 129784),
+    hook_identity(os.geteuid(), os.geteuid(), True, "/bin/dash",
+                  os.geteuid(), os.geteuid(), 0o755, True, 129784),
+    hook_identity(os.geteuid(), os.geteuid(), True, "/usr/bin/dash",
+                  os.geteuid() + 1, os.geteuid(), 0o755, True, 129784),
+    hook_identity(os.geteuid(), os.geteuid(), True, "/usr/bin/dash",
+                  os.geteuid(), os.geteuid(), 0o775, True, 129784),
+    hook_identity(os.geteuid(), os.geteuid(), True, "/usr/bin/dash",
+                  os.geteuid(), os.geteuid(), 0o755, False, 129784),
+    hook_identity(os.geteuid() + 1, os.geteuid(), True, "/usr/bin/dash",
+                  os.geteuid(), os.geteuid(), 0o755, True, 129784),
+])
+def test_interpreter_custody_is_bound(verifier, tmp_path, interpreter_identity):
+    app = tmp_path / "app"
+    app.mkdir()
+    host = approved_hook_host(tmp_path)
+    install_hook_fakes(verifier, identities={"/bin/sh": interpreter_identity})
+    with pytest.raises(verifier["Refused"]) as raised:
+        _decide(verifier, host, app=app)
+    assert raised.value.code == "prehook-interpreter-custody"
+
+
+# Parent integration regressions: drive the real collector and actual wire shape.
+def test_prehook_collector_uses_exact_property_interface(verifier, monkeypatch):
+    calls = []
+    payload = {"type": "a(sasbttttuii)", "data": approved_exec_rows()}
+    def collect(argv, **kwargs):
+        calls.append(argv)
+        return SimpleNamespace(returncode=0, stdout=json.dumps(payload).encode())
+    monkeypatch.setattr(verifier["subprocess"], "run", collect)
+    assert verifier["unit_execstartpre_rows"]("terminal") == payload
+    assert calls == [["/usr/bin/busctl", "--json=short", "get-property",
+        "org.freedesktop.systemd1", "/org/freedesktop/systemd1/unit/terminal_2eservice",
+        "org.freedesktop.systemd1.Service", "ExecStartPre"]]
+
+
+def test_actual_busctl_property_envelope_is_admitted(verifier, tmp_path, capsys):
+    app = tmp_path / "app"
+    app.mkdir()
+    host = approved_hook_host(tmp_path)
+    install_hook_fakes(verifier, reply={"type": "a(sasbttttuii)", "data": approved_exec_rows()})
+    assert _decide(verifier, host, app=app) == 0
+    assert capsys.readouterr().out.strip() == "explicitly-closed"
+
+
+def test_fragment_extra_prehook_is_not_ignored(verifier, tmp_path):
+    app = tmp_path / "app"
+    app.mkdir()
+    fragment = tmp_path / "terminal.service"
+    fragment.write_text("[Service]\nExecStartPre=/bin/false\n")
+    host = approved_hook_host(tmp_path, FragmentPath=str(fragment))
+    install_hook_fakes(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        _decide(verifier, host, app=app)
+    assert raised.value.code == "prehook-declaration-extra"
+
+
+@pytest.mark.parametrize("reply", [
+    {"type": "a(sasb)", "data": approved_exec_rows()},
+    {"type": "a(sasbttttuii)", "data": "not-an-array"},
+    {"type": "a(sasbttttuii)", "data": approved_exec_rows(), "extra": True},
+])
+def test_wrong_busctl_type_or_envelope_refuses(verifier, tmp_path, reply):
+    app = tmp_path / "app"
+    app.mkdir()
+    host = approved_hook_host(tmp_path)
+    install_hook_fakes(verifier, reply=reply)
+    with pytest.raises(verifier["Refused"], match="unsupported-prehook-shape"):
+        _decide(verifier, host, app=app)
+
+
+def test_nested_typed_out_argument_is_supported(verifier, tmp_path):
+    app = tmp_path / "app"
+    app.mkdir()
+    host = approved_hook_host(tmp_path)
+    install_hook_fakes(verifier, reply={"type": "a(sasbttttuii)", "data": [approved_exec_rows()]})
+    assert _decide(verifier, host, app=app) == 0
+
+
+@pytest.mark.parametrize("section", ["Unit", "Install", "service", ""])
+def test_hook_declaration_requires_actual_service_section(verifier, tmp_path, section):
+    app = tmp_path / "app"
+    app.mkdir()
+    text = HARDENING_DROPIN_TEXT.replace("[Service]", "[" + section + "]")
+    host = approved_hook_host(tmp_path, texts={"hardening.conf": text})
+    install_hook_fakes(verifier)
+    with pytest.raises(verifier["Refused"], match="unit-source-unsupported-syntax"):
+        _decide(verifier, host, app=app)
+
+
+def test_wrong_effective_service_identity_is_refused(verifier, tmp_path):
+    app = tmp_path / "app"
+    app.mkdir()
+    host = approved_hook_host(tmp_path, Id="other.service")
+    install_hook_fakes(verifier)
+    with pytest.raises(verifier["Refused"], match="prehook-unit-source-unqualified"):
+        _decide(verifier, host, app=app)
+
+
+def test_production_hook_contract_has_fixed_source_paths(verifier):
+    assert verifier["CANONICAL_PRODUCTION_UNIT"] == "terminal"
+    assert verifier["PREHOOK_FRAGMENT_PATH"] == "/etc/systemd/system/terminal.service"
+    assert verifier["PREHOOK_SOURCE_DIR"] == "/etc/systemd/system/terminal.service.d"
+
+
+def test_unqualified_fragment_path_is_not_admitted(verifier, tmp_path):
+    # No source-path fixture mapping here: the production constant must refuse.
+    host = approved_hook_host(tmp_path)
+    host.install(verifier)
+    with pytest.raises(verifier["Refused"], match="prehook-unit-source-unqualified"):
+        verifier["classify_supported_prehooks"]("terminal")
+
+
+@pytest.mark.parametrize("manager", [
+    "PATH=/tmp/evil-hook-bin", "PATH=", "PATH=relative/bin",
+    "PATH=/usr/bin::/bin", "PATH=/usr/bin:/usr/bin",
+    "PATH=$PATH:/tmp/evil", 'PATH="/usr/bin"',
+    "PATH=/usr/bin\nPATH=/usr/bin", "export PATH=/usr/bin",
+])
+def test_prehook_manager_path_rejects_unqualified_resolution(verifier, tmp_path, manager):
+    app = tmp_path / "app"
+    app.mkdir()
+    host = approved_hook_host(tmp_path)
+    host.manager = manager
+    install_hook_fakes(verifier)
+    with pytest.raises(verifier["Refused"], match="prehook-search-path-unqualified"):
+        _decide(verifier, host, app=app)
+
+
+@pytest.mark.parametrize("manager", [
+    "", "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin",
+    "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+])
+def test_prehook_standard_or_absent_path_keeps_closed_checks(verifier, tmp_path, manager):
+    app = tmp_path / "app"
+    app.mkdir()
+    host = approved_hook_host(tmp_path)
+    host.manager = manager
+    install_hook_fakes(verifier)
+    observed = []
+    verifier["qualify_prehook_search_tools"] = lambda dirs: observed.append(dirs)
+    assert _decide(verifier, host, app=app) == 0
+    assert observed and observed[0][:4] == verifier["PREHOOK_DEFAULT_SEARCH_DIRS"]
+    host.unit["Environment"] = PROD_OPEN_ENV
+    with pytest.raises(verifier["Refused"], match="unit-admission-not-closed"):
+        _decide(verifier, host, app=app)
+
+
+def test_prehook_exec_search_path_override_is_refused(verifier, tmp_path):
+    app = tmp_path / "app"
+    app.mkdir()
+    host = approved_hook_host(tmp_path, ExecSearchPath="/tmp/evil-hook-bin")
+    install_hook_fakes(verifier)
+    with pytest.raises(verifier["Refused"], match="prehook-search-path-unqualified"):
+        _decide(verifier, host, app=app)
+
+
+def test_zero_hook_manager_path_behavior_is_unchanged(verifier, tmp_path):
+    app = tmp_path / "app"
+    app.mkdir()
+    host = FakeGitHost(tree_listing=primitive_entry(), unit=closed_prod_unit(),
+                       manager="PATH=/tmp/not-used-by-supported-prehooks")
+    assert _decide(verifier, host, app=app) == 0
+
+
+@pytest.mark.parametrize("mutation,code", [
+    (None, None), ("writable-directory", "prehook-search-directory-custody"),
+    ("foreign-directory", "prehook-search-directory-custody"),
+    ("directory-alias", "prehook-search-directory-custody"),
+    ("first-shadow", "prehook-search-tool-custody"),
+    ("foreign-tool", "prehook-search-tool-custody"),
+    ("writable-tool", "prehook-search-tool-custody"),
+    ("missing-tool", "prehook-search-tool-unavailable"),
+])
+def test_real_prehook_path_custody_checker(verifier, monkeypatch, mutation, code):
+    import stat as stat_module
+    uid = os.geteuid()
+    def identity(path):
+        if path.endswith(("/findmnt", "/stat")):
+            foreign = mutation == "foreign-tool"
+            resolved = "/usr/bin/" + path.rsplit("/", 1)[-1]
+            if mutation == "first-shadow" and path.startswith("/usr/local/bin/"):
+                resolved = path
+            return hook_identity(uid, uid, False, resolved,
+                uid + int(foreign), uid,
+                stat_module.S_IFREG | (0o775 if mutation == "writable-tool" else 0o755),
+                True, 123)
+        resolved = {"/bin": "/usr/bin", "/sbin": "/usr/sbin"}.get(path, path)
+        if mutation == "directory-alias" and path == "/usr/local/bin":
+            resolved = "/tmp/evil"
+        return hook_identity(uid, uid, path in ("/bin", "/sbin"), resolved,
+            uid + int(mutation == "foreign-directory"), uid,
+            stat_module.S_IFDIR | (0o777 if mutation == "writable-directory" else 0o755),
+            False, 0)
+    verifier["trusted_path_identity"] = identity
+    def exists(path):
+        if mutation == "missing-tool":
+            return False
+        return path.startswith("/usr/bin/") or (
+            mutation == "first-shadow" and path.startswith("/usr/local/bin/"))
+    monkeypatch.setattr(verifier["os"].path, "lexists", exists)
+    directories = (*verifier["PREHOOK_DEFAULT_SEARCH_DIRS"], "/sbin", "/bin")
+    if code:
+        with pytest.raises(verifier["Refused"], match=code):
+            verifier["qualify_prehook_search_tools"](directories)
+    else:
+        verifier["qualify_prehook_search_tools"](directories)
+
+
+@pytest.mark.parametrize("phase", ["poststart", "restoration"])
+def test_hooks_allow_npm_process_path_but_reject_unsafe_manager_path(verifier, tmp_path, phase):
+    app = tmp_path / "app"
+    app.mkdir()
+    host = approved_hook_host(tmp_path, MainPID=str(MAIN_PID))
+    install_hook_fakes(verifier)
+    procs = serving_fixture()
+    for proc in procs.values():
+        proc["environ"] += b"PATH=/opt/terminal/terminal/node_modules/.bin:/usr/bin\0"
+    install_proc_fakes(verifier, procs, (7, 99))
+    host.install(verifier)
+    args = [str(app), NEW_SHA, phase, str(app), "terminal", "/tmp", "production"]
+    assert verifier["main"](args) == 0
+    host.manager = "PATH=/tmp/evil-hook-bin"
+    with pytest.raises(verifier["Refused"], match="prehook-search-path-unqualified"):
+        verifier["main"](args)
