@@ -1,0 +1,304 @@
+{
+  "schema": "terminal.workspace-design-validation.v1",
+  "recorded_at": "2026-10-22T09:55:04.110803+00:00",
+  "base_sha": "f27c4004d57d256ba867e2c94401d611c2b7a2e8",
+  "source_sha256": {
+    "app/layout.tsx": "84ba7f7a8e7a569ab0e71c88cba0fefbbd19bccb38ddc112e65d603a3be5e1de",
+    "app/workspace-chrome.css": "97e32bc24ed20479ea7b2e024ef6bc3883b9ead764098344f3ad4acea52b4bdd",
+    "components/PortfolioWorkspace.tsx": "cfdfddf6eee42566f7b38aac0050da6a935c0334bb124c617384c3de435fd22d",
+    "components/PortfolioWorkspace.module.css": "44c92cf281693c8e1f444c8551cfd603ce99338190ea85aa0326072caf92cabf",
+    "components/fin/CompanyIntelligenceBriefLayout.tsx": "ba4eaa4568a1580101f1da6de27124f009a1b96ba5eb1f255a4ae7b96622d730",
+    "components/fin/CompanyIntelligenceBriefLayout.module.css": "0c294466aa4fe7d699f677eaebd23f508342c3d29e43724a4ecdcf4728150276",
+    "components/workspaces/OptionsWorkspace.tsx": "03665c61a3e28ba92fda4e8fc6450c458534e3286fe8bcebdcecf006419e6f6c",
+    "components/workspaces/OptionsWorkspace.module.css": "c36f19d33cb72b1d62b39e2ed36c279bcb9a4fdf950d418e0cf3b111ea0759e3",
+    "lib/portfolioWorkspace.ts": "e9e272210920bf26b42e40ffaeb76d880049a241680ffc22b1eff61c0f7e2d0f",
+    "lib/__tests__/companyIntelligenceBriefLayout.test.tsx": "7090e2ce4948f4bfce15f219db7fd8e78bc86596e1b828127c85e6e0e23078e3",
+    "e2e/company-intelligence.spec.ts": "c949d1e759702ceed19d7d7c02357d6ef75eb16340208a3290191e1098f8a87f",
+    "e2e/terminal-chrome-responsive.spec.ts": "7182c4e8fa9f4dd1733fb93c3c3397b4c5841cab6e44a6a2f91e95c932e9afea",
+    "e2e/workspace-refinement.spec.ts": "068348040a46d892e9ff2611ef5c9c66565b717de29207654cb6cda4c23063d5",
+    "lib/optionsWorkspaceCopy.ts": "c30ca19be444825375641c1801925ba817eae9fe226787bd3e91630409c1ceeb",
+    "e2e/selection-cohort-tile.spec.ts": "f11f0585b6df3cb14eca5f03d6c2c7a2e8fc56bf46bd8a4adc908c6f559e88bf"
+  },
+  "checks": [
+    {
+      "name": "focused visual and behavior matrix",
+      "result": "PASS",
+      "passed": 31,
+      "log": "focused-visual-matrix.log.gz",
+      "scope": "Portfolio EN/ZH dark/light at three viewports; Options; AAPL Intelligence; intermediate chart widths. Before final chart wrapping correction."
+    },
+    {
+      "name": "final chart correction and recovery workflows",
+      "result": "PASS",
+      "passed": 13,
+      "command": "NODE_OPTIONS=--no-experimental-webstorage TERMINAL_E2E_PORT=3247 npm run test:e2e:responsive -- e2e/terminal-chrome-responsive.spec.ts e2e/workspace-refinement.spec.ts --workers=2",
+      "log": "chart-fix-and-recovery.log.gz",
+      "scope": "Final intermediate chart bounds and EN/ZH incomplete Portfolio recovery and Options tape. Before addition of the three standard chart-readout cases."
+    },
+    {
+      "name": "final chart standard viewports",
+      "result": "PASS",
+      "passed": 3,
+      "command": "NODE_OPTIONS=--no-experimental-webstorage TERMINAL_E2E_PORT=3247 npm run test:e2e:responsive -- e2e/workspace-refinement.spec.ts --grep 'Chart readouts' --workers=2 --output=test-results-chart-readout",
+      "log": "chart-contract.log.gz",
+      "viewports": [
+        "1440x900",
+        "820x1180",
+        "390x844"
+      ]
+    },
+    {
+      "name": "full unit suite",
+      "result": "ONE_TIMEOUT",
+      "passed": 15974,
+      "failed": 1,
+      "todo": 4,
+      "files_passed": 946,
+      "files_failed": 1,
+      "command": "NODE_OPTIONS=--no-experimental-webstorage npm test",
+      "log": "full-unit.log.gz",
+      "failure": "Unchanged tiingoBoatsLiveHistory demand-record bound test exceeded its 5000ms limit while browser tests were concurrently running."
+    },
+    {
+      "name": "failed unit in isolation",
+      "result": "PASS",
+      "passed": 1,
+      "skipped": 45,
+      "duration_ms": 1529,
+      "command": "NODE_OPTIONS=--no-experimental-webstorage npx vitest run lib/__tests__/tiingoBoatsLiveHistory.test.ts -t 'bounds regular demand records'",
+      "log": "unit-timeout-isolated.log.gz",
+      "note": "No source or timeout change; isolated after the broad browser run stopped."
+    },
+    {
+      "name": "host runtime compatibility diagnostic",
+      "result": "PASS",
+      "passed": 36,
+      "log": "unit-webstorage-diagnostic.log.gz",
+      "note": "Host is Node 26.5.0, repository CI is Node 20. Disable experimental webstorage per process so jsdom owns localStorage; no global/runtime/config changes."
+    },
+    {
+      "name": "broad local responsive run",
+      "result": "STOPPED_BY_PRINCIPAL",
+      "passed_before_stop": 93,
+      "skipped_before_stop": 10,
+      "total_selected": 3556,
+      "log": "responsive-partial.log.gz",
+      "note": "No failing case observed before stop. The full suite is delegated to the repository parallel CI matrix; this partial run is not a full pass."
+    },
+    {
+      "name": "TypeScript",
+      "result": "PASS",
+      "command": "npx tsc --noEmit --incremental false",
+      "note": "Final chart and standard viewport test additions also passed (exit 0, 79.03 seconds)."
+    },
+    {
+      "name": "scoped ESLint",
+      "result": "PASS",
+      "command": "npx eslint app/layout.tsx components/PortfolioWorkspace.tsx components/fin/CompanyIntelligenceBriefLayout.tsx components/workspaces/OptionsWorkspace.tsx lib/portfolioWorkspace.ts e2e/workspace-refinement.spec.ts e2e/terminal-chrome-responsive.spec.ts e2e/company-intelligence.spec.ts lib/__tests__/companyIntelligenceBriefLayout.test.tsx"
+    },
+    {
+      "name": "Plain-language guard",
+      "result": "PASS",
+      "command": "node scripts/check_plain_language.mjs --self-check; node scripts/check_plain_language.mjs --mode enforce-added --diff-file /tmp/terminal-experience-plain-language.diff",
+      "note": "The category-browsing hint uses the established feature-copy pick(en, zh) pattern through useLang. The shared global lexicon remains byte-identical to the protected base.",
+      "log": "plain-language.log.gz"
+    },
+    {
+      "name": "CI initial head",
+      "result": "EVIDENCE_LOCK_FAILURE",
+      "run_id": 39751730141,
+      "head": "52b2d1660a7f7c871ff5863454daaa7db85e133a",
+      "passed": 15963,
+      "failed": 12,
+      "todo": 4,
+      "note": "All twelve failures are unchanged historical evidence locks on the shared i18n.tsx file. The correction restores that file exactly and keeps the bilingual hint in an Options copy module; no test or evidence lock is relaxed."
+    },
+    {
+      "name": "Global evidence locks after scoped-copy correction",
+      "result": "PASS",
+      "files_passed": 11,
+      "passed": 73,
+      "log": "copy-owner-repair.log.gz",
+      "note": "All previously failing evidence files pass unchanged. Feature copy module lint and plain-language enforcement pass."
+    },
+    {
+      "name": "CI unit and typecheck at e5e7e99",
+      "result": "PASS",
+      "run_id": 39753486902,
+      "job_id": 119739632140,
+      "head": "e5e7e99e5067398455a1b6f40691dabe428c9a04",
+      "files_passed": 947,
+      "passed": 15975,
+      "todo": 4,
+      "note": "Includes TypeScript and plain-language gates. The subsequent label regression adds one unit case; the new head still requires its full CI run."
+    },
+    {
+      "name": "CI serial browser failure at e5e7e99",
+      "result": "STALE_COPY_ASSERTION",
+      "run_id": 39753486902,
+      "job_id": 119739631899,
+      "failed": 1,
+      "passed": 53,
+      "skipped": 4,
+      "did_not_run": 54,
+      "note": "One expected string still used the old comparison empty-state wording. The exact-copy assertion was aligned without removing its zero-action or no-Constructive safeguards."
+    },
+    {
+      "name": "Full Intelligence family and intermediate chart widths after correction",
+      "result": "PASS",
+      "passed": 52,
+      "skipped": 33,
+      "total_selected": 85,
+      "command": "NODE_OPTIONS=--no-experimental-webstorage TERMINAL_E2E_PORT=3247 npm run test:e2e:responsive -- --project=company-intelligence-desktop --project=company-intelligence-tablet --project=company-intelligence-mobile --project=terminal-chrome-intermediate --workers=2",
+      "log": "intelligence-complete.log.gz",
+      "note": "The first full diagnostic also caught the lost Chinese Revenue label after takeaway deduplication. The promoted fact now uses the existing localized takeaway label; original metric object and source action are retained. Existing viewport-specific skips are unchanged."
+    },
+    {
+      "name": "Localized fact-label and source-action regression",
+      "result": "PASS",
+      "passed": 3,
+      "log": "intelligence-label-regression.log.gz",
+      "note": "New Chinese deduplication case verifies visible label, no duplicate takeaway, and original item passed to onSelect. Scoped ESLint and fresh TypeScript compilation also pass."
+    },
+    {
+      "name": "CI unit and typecheck at def175c",
+      "result": "PASS",
+      "run_id": 39757439915,
+      "job_id": 119753570342,
+      "head": "def175c8215830c23bea93a04a4080f8c86208bf",
+      "files_passed": 947,
+      "passed": 15976,
+      "todo": 4,
+      "note": "Includes TypeScript and plain-language gates. The following geometry-test baseline correction still requires protected CI at its published head."
+    },
+    {
+      "name": "Options navigation and Prophet grid geometry",
+      "result": "PASS",
+      "passed": 1,
+      "log": "options-geometry.log.gz",
+      "measurement": "options-geometry.json",
+      "note": "Flat navigation is 86px rather than 100px. The grid grows by exactly 14px, from 476.234375px to 490.234375px. Popover open and closed heights are identical; document height equals the 900px viewport. The geometry test baseline is updated to 490px with the same <=1px tolerance, state checks and no-overflow assertion."
+    },
+    {
+      "name": "Complete existing selection cohort interaction family",
+      "result": "PASS",
+      "passed": 6,
+      "log": "options-cohort.log.gz",
+      "command": "NODE_OPTIONS=--no-experimental-webstorage TERMINAL_E2E_PORT=3247 npm run test:e2e:responsive -- e2e/selection-cohort-tile.spec.ts --project=desktop --workers=1 --output=/tmp/terminal-experience-options-cohort-results",
+      "note": "Covers exact grid height closed/open, masthead alignment, keyboard/pointer/focus/stacking, media switch, unavailable value and single API request."
+    },
+    {
+      "name": "CI unit and typecheck after Options R1 W3 integration",
+      "result": "PASS",
+      "head": "e13c4d8a5d69fa74c99011080026a7632c617b70",
+      "run_id": 39759943790,
+      "job_id": 119761701782,
+      "files_passed": 956,
+      "passed": 16048,
+      "todo": 4
+    },
+    {
+      "name": "Integrated chart, workspace recovery and cohort checks",
+      "result": "PASS",
+      "passed": 22,
+      "skipped": 12,
+      "log": "integrated-workspace-checks.log.gz",
+      "note": "Existing viewport skips. Source tree at af737295 is identical to native protected-base merge e13c4d8."
+    },
+    {
+      "name": "Migration namespace after truthful upstream merge-state correction",
+      "result": "PASS",
+      "passed": 97,
+      "log": "migration-namespace.log.gz",
+      "note": "PULL_REQUEST #1125 mode. Test code, 0040 SQL and applied=false/null remain unchanged."
+    },
+    {
+      "name": "Regional integration snapshot/routing and brief units",
+      "result": "PASS",
+      "head": "4bccdc7cd2763a3655c27331ae8198a132a5bbfb",
+      "passed": 71,
+      "files_passed": 3,
+      "log": "regional-unit.log.gz"
+    },
+    {
+      "name": "Regional integration Intelligence browser compatibility",
+      "result": "PASS",
+      "head": "4bccdc7cd2763a3655c27331ae8198a132a5bbfb",
+      "passed": 36,
+      "skipped": 21,
+      "log": "regional-intelligence.log.gz",
+      "note": "Existing viewport skips; full desktop/tablet dependency projects plus selected mobile EN/ZH journeys."
+    },
+    {
+      "name": "0040 reviewed-applier readback repair",
+      "result": "PASS",
+      "passed": 198,
+      "contract_passed": 3,
+      "proof": "0040-readback-qualification.json",
+      "receipts": "0040-readback-local-receipts.json",
+      "note": "Disposable PostgreSQL first application, replay, missing-catalog and no-op controls. Production not applied."
+    }
+  ],
+  "independent_review": {
+    "scope": "Rendered screenshot product/visual judgment",
+    "result": "PASS",
+    "chart_followup": "1024px numeric clipping fixed and independently re-reviewed; 1180px remained clear.",
+    "technical_review": "Paid Fabric source review not admitted; exact run was reconciled without retry. Not counted as completed.",
+    "options_prophet_followup": "Rendered 1440x900 layout reviewed independently: hierarchy, three columns, selected state and footer remain readable; no visible clipping or overlap. Visual scope only."
+  },
+  "delivery": {
+    "required_ci": "PENDING",
+    "merge": "PENDING",
+    "production": "PENDING"
+  },
+  "artifacts_sha256": {
+    "chart-desktop-readout.png": "b6ee29d725fbaf4a87b2abfc621ba4e1e416b7dcfc5fd773a135576aa03e2551",
+    "chart-en-1024-terminal-chrome.png": "45b03bb7093cc92f8101a0ec198a4ad20aba7c104f68f879af9c863f1287deb6",
+    "chart-en-1180-terminal-chrome.png": "e2d0586bb0d7ec7fc4200161386d4c4984f2317a0089bf0cdfbf796f94e8755e",
+    "chart-mobile-readout.png": "327ed1ffe9d33790dff4a93be7e8db9d244fbc5d6c1de5f88a8316b31b30d7dc",
+    "chart-tablet-readout.png": "8080592a9a5ced5e674d8e2b24b2f4b640b2fc2a6511fd6fc602f051b61f2a95",
+    "chart-zh-1024-terminal-chrome.png": "c66584554fa9d6a1c743fa2684b6eeee617a0e9147af560cf78d4fd8414fa01f",
+    "chart-zh-1180-terminal-chrome.png": "f503771f4246c8508a6f6e36c99193d3e326a39cc2488f88d5510942e1a31838",
+    "intelligence-desktop-aapl-brief.png": "a76857a36c3c045f57ce291c6604d851c5281fa870f09c231080006362e1a97b",
+    "intelligence-mobile-aapl-brief.png": "bd1234e25ef2c3411fb0b6203945bafb99d7c191d75af119645130b95cd49215",
+    "intelligence-tablet-aapl-brief.png": "3519577a4039779d55403fab0130708dbbb32f646e46f1391d87e4c8fb2ebc9b",
+    "options-desktop.png": "36e0ea7d2bb11906814bb35b723e8a48b7b4d9fa9992a1ba0123c773938c26db",
+    "options-mobile.png": "8bc5f392d3bb21430025e0901bf9a59733d813a8f0f8ab6c7b97688935c84985",
+    "options-tablet.png": "d904dfce09fce47410706c603a735a1f288d932d16fabc444a9c8783ac753eb0",
+    "portfolio-incomplete-en-desktop.png": "90d8162a5b6890c671f8e58bd036db6571671907506a3ea1e28c66047acab0b4",
+    "portfolio-incomplete-en-mobile.png": "b8ab7833cd535f77cec62b16de8a20db06b15247d19252aa1760df7016866475",
+    "portfolio-incomplete-en-tablet.png": "c38a4e58b3e29d2a3c0c9977e81b749a21333cdce891387e5ff61edd41cdfb27",
+    "portfolio-incomplete-zh-desktop.png": "809182252186d7540d9f333cf740e8113e127a2eac3be89dd6bb1d5e59b2945d",
+    "portfolio-incomplete-zh-mobile.png": "69b25a921de09dcb3f5c12c7063ffa68a7b12df0deeb1528a4fab0a2793f42d4",
+    "portfolio-incomplete-zh-tablet.png": "8300ce6e10437e075c41c9f425cf211bdfb788cf7fde114d93a52883cb1da99b",
+    "portfolio-populated-desktop-en-dark-overview.png": "79ee2aee2b7018ed2cbb370c736bd95a77995bfb4d6a7fb23a2b009c1741e33e",
+    "portfolio-populated-desktop-en-light-overview.png": "f6d98b5de6555087ff7de1fda3f006b56e904deca24eb4e017920b9974c738f6",
+    "portfolio-populated-desktop-zh-dark-overview.png": "988d1cbbc362ee30dbd156f62a1a30b78f4147573e93b330fd347efa1c5d4032",
+    "portfolio-populated-desktop-zh-light-overview.png": "e88dac55e986d5da0eecdb78accdd9beabc172aae4b25b94b0332a575099ce71",
+    "portfolio-populated-mobile-en-dark-overview.png": "c2a7e40c5d6bf5c6319ae5a7619503f8479006cc53b3f70d27194028b466350a",
+    "portfolio-populated-mobile-en-light-overview.png": "923cdbbf84d3c092edb17a73261ebede55fe86189a17e4b566ced14df89fc423",
+    "portfolio-populated-mobile-zh-dark-overview.png": "f334a14e9e068e89de2e2eb6bbe3f2cdbebdb8b27b7eb664dd48aee78484ba22",
+    "portfolio-populated-mobile-zh-light-overview.png": "15103f9f4843ae6e874b48132fb1e0e2e4195015f12d5f8b0245f34748072dca",
+    "portfolio-populated-tablet-en-dark-overview.png": "c0249dbc1a38d29915e28bed9d391ffada168e6d3c51a4e93c04c4e8362b4259",
+    "portfolio-populated-tablet-en-light-overview.png": "2a7a6c798b7c117fdd4e0230bf8722e8cc1875067308b8a83a81d179095745b7",
+    "portfolio-populated-tablet-zh-dark-overview.png": "4e21ad3a438a08b5e6e45a325128d1e432fa9f77ec55bc4ee11639cd36f48b62",
+    "portfolio-populated-tablet-zh-light-overview.png": "e255ea28a3e5862a95d12299aeffc5e39563b0706c4b85434a5dddf694a278d8",
+    "intelligence-complete.log.gz": "c89c0219a0cffd4635a6a50236dbe80411b24ab293dd4253f4b57b76e9544507",
+    "intelligence-label-regression.log.gz": "f4dd483c4a8020de3998deddb212df082ea79ffe9eada6d4118b343cbf53ddc0",
+    "options-geometry.log.gz": "3c770892777201268b204b1736587d0c2d96dde71e8284154820736ece85e7c8",
+    "options-cohort.log.gz": "a8cf28ab8f079e537d8a6d08daa8fb645525fca5190a8cd79800d07351a59a23",
+    "options-prophet-refined.png": "5e0c70e65bfe31c976673dcaa57823acf2d0e65b8e2ffaba1ee0a343bf80ec2c",
+    "options-geometry.json": "4c91f8988b7d563a1b7d9174f25fc8163774af8b43910944339d69d018fef203",
+    "upstream-release-prerequisite.json": "5d060f2ebb29e72d67d49c1e9f0bde88a03ce2444c48ea6dd243cb83142f73b2",
+    "migration-namespace.log.gz": "b7f7879f2d3daefbb50faa0d6a0d81431864f5254dd0c20e13a44b9637f8310f",
+    "integrated-workspace-checks.log.gz": "35c068e90167538232b29a4f73c9f072575d8963bffe67dacf84422ac5cf5eaa",
+    "upstream-0040-dry-run.log.gz": "273bf2cafda902563e2448639e676584676461efe2912a905c3eedd6981674cf",
+    "0040-readback-red.log.gz": "96176421e06878ef46dadafde5976068d515a08e78c3633a5c440b83c3ef5644",
+    "0040-readback-qualified.log.gz": "6359a96ff25f778d27610595fd124b56e49bd53827c48477e142fa5603103085",
+    "0040-contract.log.gz": "2f63aa8f34fb0e4c3bb26fff257a3931996170ffaf5edfd3f005da83f982b1b3",
+    "regional-unit.log.gz": "4baac80ad66ecbbd4a7a3e392eac722a9aaf88fbaf51bafdd1020263872e5d56",
+    "regional-intelligence.log.gz": "f14c01a1188a99b14733f2d38560a669666254e92cee58dfb30855be36a96e9a",
+    "0040-readback-qualification.json": "892cc11859f036ef9d9fe07d1b0f5f0c9a53daac9e669eae04478651a3960b5c",
+    "0040-readback-local-receipts.json": "f33a3f0037d12af0cc807ddca6e9755eaae4d39d339a252b8403244cd9b266a9"
+  }
+}

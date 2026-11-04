@@ -1,0 +1,12 @@
+{
+ "asof": "2026-07-14",
+ "profile": {
+  "industry": "Consumer Electronics",
+  "sector": "Technology"
+ },
+ "quote_currency": "KRW",
+ "src": {
+  "statements": "yfinance"
+ },
+ "ticker": "005930.KS"
+}

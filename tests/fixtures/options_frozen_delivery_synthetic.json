@@ -1,0 +1,471 @@
+{
+  "synthetic": true,
+  "scope": "disposable private PostgreSQL committed event; no live source/account/send",
+  "origin": "https://synthetic.invalid",
+  "email": {
+    "id": "0a7290ce-2314-443e-97a9-01dd6e04781b",
+    "user_id": "10000000-0000-4000-8000-000000000001",
+    "alert_id": "30000000-0000-4000-8000-000000000001",
+    "fire_event_id": "57eacb389d6a63e5cb23d79e3eb1119ae2ba040c44add6638cdf70c4586f434d",
+    "channel": "email",
+    "status": "pending",
+    "payload": {
+      "value": 159.1,
+      "ticker": "QQQ",
+      "subject": "QQQ alert: QQQ's qualified current quote nears my selected frozen options price level 159 from dated source 2026-10-20 (observed partial coverage; sampled proximity, no exact intrabar touch claim)",
+      "category": "options_exposure_node",
+      "fired_at": "2026-10-24T13:14:49.801033Z",
+      "subject_zh": "QQQ\u63d0\u9192\uff1aQQQ\u7684\u5f53\u524d\u5408\u683c\u62a5\u4ef7\u63a5\u8fd1\u6211\u9009\u5b9a\u5e76\u56fa\u5b9a\u7684\u671f\u6743\u4ef7\u4f4d159\uff1b\u65e5\u671f\u6765\u6e902026-10-20\uff0c\u4ec5\u89c2\u5bdf\u5230\u90e8\u5206\u8986\u76d6\uff0c\u6309\u79bb\u6563\u62a5\u4ef7\u5224\u65ad\u63a5\u8fd1\uff0c\u4e0d\u4ee3\u8868\u76d8\u4e2d\u7cbe\u786e\u89e6\u53ca",
+      "frozen_node": {
+        "quote": {
+          "asof": "2026-10-24T13:14:49.801033Z",
+          "basis": "LIVE"
+        },
+        "target": {
+          "root": "QQQ",
+          "price": 159,
+          "members": [
+            {
+              "right": "C",
+              "expiry": "2026-11-06",
+              "strike": 159
+            },
+            {
+              "right": "P",
+              "expiry": "2026-11-06",
+              "strike": 159
+            }
+          ],
+          "scopeKey": "[\"all\",null]",
+          "sourceKey": "124989846ac06f544cc88318d78a59eb0886a9d833b196effcc7caa6a760db96",
+          "securityId": "SEC:US-XNAS-QQQ",
+          "availableAt": "2026-10-20T12:04:48.959845+00:00",
+          "definitionKey": "[\"dated_provider_approximation\",\"assumed_long_call_short_put\",\"dollars\",\"usd_delta_per_1pct_spot\",\"provider_observed\",\"https://www.thetadata.net/docs/Articles/Data-And-Requests/Option-Greeks.html#eod-version-1\",\"delta_per_underlying_price_unit\",\"provider_eod_whole_days_0dte_0.15\",\"/v3/option/history/greeks/eod\",\"1\",null,\"https://www.thetadata.net/docs/Articles/Data-And-Requests/Option-Greeks.html\",\"session_only\"]",
+          "qualification": "observed_partial",
+          "sourceBinding": {
+            "clocks": {
+              "available_at": "2026-10-20T12:04:48.959845+00:00",
+              "published_at": null,
+              "correction_ref": null,
+              "oi_report_date": "2026-10-20",
+              "source_session": "2026-10-20",
+              "oi_available_at": "2026-10-20T11:20:00+00:00",
+              "option_observed_at": null,
+              "greeks_available_at": "2026-10-20T11:20:00+00:00",
+              "oi_position_session": null,
+              "underlying_observed_at": null
+            },
+            "sourceRef": "synthetic:QQQ-market-book",
+            "inputSha256": "34fa684931073e215da75408046a1b0fb28db3783e59a48aedbf02a6b05ec69e",
+            "populationId": "a1343ac9423cfd391d089267ef38018958be96761f089bab1b259213302ceba9"
+          },
+          "sourceSession": "2026-10-20"
+        },
+        "within_pct": 0.25,
+        "publication_receipt": {
+          "quote": {
+            "asof": "2026-10-24T13:14:49.801033Z",
+            "spot": 159.1,
+            "basis": "LIVE"
+          },
+          "schema": "options.frozen_hit_receipt/v1",
+          "runtime": {
+            "schema": "options.frozen_runtime/v1",
+            "alertId": "30000000-0000-4000-8000-000000000001",
+            "revision": 1,
+            "createdAt": "2026-10-24T13:14:49.739129Z",
+            "predicate": {
+              "root": "QQQ",
+              "type": "opt_frozen_node_proximity",
+              "target": {
+                "root": "QQQ",
+                "price": 159,
+                "members": [
+                  {
+                    "right": "C",
+                    "expiry": "2026-11-06",
+                    "strike": 159
+                  },
+                  {
+                    "right": "P",
+                    "expiry": "2026-11-06",
+                    "strike": 159
+                  }
+                ],
+                "scopeKey": "[\"all\",null]",
+                "sourceKey": "124989846ac06f544cc88318d78a59eb0886a9d833b196effcc7caa6a760db96",
+                "securityId": "SEC:US-XNAS-QQQ",
+                "availableAt": "2026-10-20T12:04:48.959845+00:00",
+                "definitionKey": "[\"dated_provider_approximation\",\"assumed_long_call_short_put\",\"dollars\",\"usd_delta_per_1pct_spot\",\"provider_observed\",\"https://www.thetadata.net/docs/Articles/Data-And-Requests/Option-Greeks.html#eod-version-1\",\"delta_per_underlying_price_unit\",\"provider_eod_whole_days_0dte_0.15\",\"/v3/option/history/greeks/eod\",\"1\",null,\"https://www.thetadata.net/docs/Articles/Data-And-Requests/Option-Greeks.html\",\"session_only\"]",
+                "qualification": "observed_partial",
+                "sourceBinding": {
+                  "clocks": {
+                    "available_at": "2026-10-20T12:04:48.959845+00:00",
+                    "published_at": null,
+                    "correction_ref": null,
+                    "oi_report_date": "2026-10-20",
+                    "source_session": "2026-10-20",
+                    "oi_available_at": "2026-10-20T11:20:00+00:00",
+                    "option_observed_at": null,
+                    "greeks_available_at": "2026-10-20T11:20:00+00:00",
+                    "oi_position_session": null,
+                    "underlying_observed_at": null
+                  },
+                  "sourceRef": "synthetic:QQQ-market-book",
+                  "inputSha256": "34fa684931073e215da75408046a1b0fb28db3783e59a48aedbf02a6b05ec69e",
+                  "populationId": "a1343ac9423cfd391d089267ef38018958be96761f089bab1b259213302ceba9"
+                },
+                "sourceSession": "2026-10-20"
+              }
+            },
+            "principal": "10000000-0000-4000-8000-000000000001",
+            "generation": "512b7e1c-e619-4d06-96af-ee5b0f7d640f",
+            "priorState": {
+              "inside": false,
+              "withinPct": 0.25,
+              "armingEpoch": "2026-10-24T13:14:49.739129Z",
+              "lastQuoteAt": "2026-10-24T13:14:49.753914Z",
+              "lastQuoteBasis": "LIVE",
+              "targetFingerprint": "2df1b54772531d0bef893cdfd0adcd7afb18f3dfb08a89c5fe1af0da5ee0c411"
+            },
+            "armingEpoch": "2026-10-24T13:14:49.739129Z"
+          },
+          "vintage": "2026-10-24T13:14Z",
+          "admission": {
+            "action": "frozen_node_proximity",
+            "rights": {
+              "allowed": true,
+              "checked_at": "2026-10-24T13:14:49.801033Z",
+              "policy_version": "options.frozen_node_proximity/account/v1"
+            },
+            "target": {
+              "root": "QQQ",
+              "price": 159,
+              "members": [
+                {
+                  "right": "C",
+                  "expiry": "2026-11-06",
+                  "strike": 159
+                },
+                {
+                  "right": "P",
+                  "expiry": "2026-11-06",
+                  "strike": 159
+                }
+              ],
+              "scopeKey": "[\"all\",null]",
+              "sourceKey": "124989846ac06f544cc88318d78a59eb0886a9d833b196effcc7caa6a760db96",
+              "securityId": "SEC:US-XNAS-QQQ",
+              "availableAt": "2026-10-20T12:04:48.959845+00:00",
+              "definitionKey": "[\"dated_provider_approximation\",\"assumed_long_call_short_put\",\"dollars\",\"usd_delta_per_1pct_spot\",\"provider_observed\",\"https://www.thetadata.net/docs/Articles/Data-And-Requests/Option-Greeks.html#eod-version-1\",\"delta_per_underlying_price_unit\",\"provider_eod_whole_days_0dte_0.15\",\"/v3/option/history/greeks/eod\",\"1\",null,\"https://www.thetadata.net/docs/Articles/Data-And-Requests/Option-Greeks.html\",\"session_only\"]",
+              "qualification": "observed_partial",
+              "sourceBinding": {
+                "clocks": {
+                  "available_at": "2026-10-20T12:04:48.959845+00:00",
+                  "published_at": null,
+                  "correction_ref": null,
+                  "oi_report_date": "2026-10-20",
+                  "source_session": "2026-10-20",
+                  "oi_available_at": "2026-10-20T11:20:00+00:00",
+                  "option_observed_at": null,
+                  "greeks_available_at": "2026-10-20T11:20:00+00:00",
+                  "oi_position_session": null,
+                  "underlying_observed_at": null
+                },
+                "sourceRef": "synthetic:QQQ-market-book",
+                "inputSha256": "34fa684931073e215da75408046a1b0fb28db3783e59a48aedbf02a6b05ec69e",
+                "populationId": "a1343ac9423cfd391d089267ef38018958be96761f089bab1b259213302ceba9"
+              },
+              "sourceSession": "2026-10-20"
+            },
+            "createdAt": "2026-10-24T13:14:49.739129Z",
+            "principal": "10000000-0000-4000-8000-000000000001",
+            "priorState": {
+              "inside": false,
+              "withinPct": 0.25,
+              "armingEpoch": "2026-10-24T13:14:49.739129Z",
+              "lastQuoteAt": "2026-10-24T13:14:49.753914Z",
+              "lastQuoteBasis": "LIVE",
+              "targetFingerprint": "2df1b54772531d0bef893cdfd0adcd7afb18f3dfb08a89c5fe1af0da5ee0c411"
+            },
+            "armingEpoch": "2026-10-24T13:14:49.739129Z",
+            "evaluationAt": "2026-10-24T13:14:49.801033Z",
+            "rights_decision_ref": "DEC:COMMERCIAL-DATA-RIGHTS-CHAIRMAN-ATTESTATION-20261023"
+          },
+          "nextState": {
+            "inside": true,
+            "withinPct": 0.25,
+            "armingEpoch": "2026-10-24T13:14:49.739129Z",
+            "lastQuoteAt": "2026-10-24T13:14:49.801033Z",
+            "lastQuoteBasis": "LIVE",
+            "targetFingerprint": "2df1b54772531d0bef893cdfd0adcd7afb18f3dfb08a89c5fe1af0da5ee0c411"
+          },
+          "invocation": {
+            "lane": "prepared_test",
+            "runId": "512b7e1c-e619-4d06-96af-ee5b0f7d640f"
+          },
+          "fireEventId": "57eacb389d6a63e5cb23d79e3eb1119ae2ba040c44add6638cdf70c4586f434d",
+          "evaluationAt": "2026-10-24T13:14:49.801033Z",
+          "conditionVersion": "3a1255d8e44ce702"
+        }
+      },
+      "evidence_url": "/alerts",
+      "requires_tier": "essential",
+      "summary_plain": "Your alert fired: QQQ's qualified current quote nears my selected frozen options price level 159 from dated source 2026-10-20 (observed partial coverage; sampled proximity, no exact intrabar touch claim).",
+      "condition_plain": "QQQ's qualified current quote nears my selected frozen options price level 159 from dated source 2026-10-20 (observed partial coverage; sampled proximity, no exact intrabar touch claim)",
+      "summary_plain_zh": "\u4f60\u7684\u63d0\u9192\u5df2\u89e6\u53d1\uff1aQQQ\u7684\u5f53\u524d\u5408\u683c\u62a5\u4ef7\u63a5\u8fd1\u6211\u9009\u5b9a\u5e76\u56fa\u5b9a\u7684\u671f\u6743\u4ef7\u4f4d159\uff1b\u65e5\u671f\u6765\u6e902026-10-20\uff0c\u4ec5\u89c2\u5bdf\u5230\u90e8\u5206\u8986\u76d6\uff0c\u6309\u79bb\u6563\u62a5\u4ef7\u5224\u65ad\u63a5\u8fd1\uff0c\u4e0d\u4ee3\u8868\u76d8\u4e2d\u7cbe\u786e\u89e6\u53ca\u3002",
+      "condition_plain_zh": "QQQ\u7684\u5f53\u524d\u5408\u683c\u62a5\u4ef7\u63a5\u8fd1\u6211\u9009\u5b9a\u5e76\u56fa\u5b9a\u7684\u671f\u6743\u4ef7\u4f4d159\uff1b\u65e5\u671f\u6765\u6e902026-10-20\uff0c\u4ec5\u89c2\u5bdf\u5230\u90e8\u5206\u8986\u76d6\uff0c\u6309\u79bb\u6563\u62a5\u4ef7\u5224\u65ad\u63a5\u8fd1\uff0c\u4e0d\u4ee3\u8868\u76d8\u4e2d\u7cbe\u786e\u89e6\u53ca"
+    },
+    "attempts": 0,
+    "deliver_after": null,
+    "value_text": "159.1"
+  },
+  "delivery": {
+    "id": "113560c2-8ea0-4557-82a6-26ef7638ba67",
+    "endpoint_id": "50000000-0000-4000-8000-000000000001",
+    "team_id": "40000000-0000-4000-8000-000000000001",
+    "event_id": "57eacb389d6a63e5cb23d79e3eb1119ae2ba040c44add6638cdf70c4586f434d",
+    "event_type": "alert.fired",
+    "payload": {
+      "value": "159.1",
+      "schema": "mastermind.alert-fired/v1",
+      "ticker": "QQQ",
+      "subject": "QQQ alert: QQQ's qualified current quote nears my selected frozen options price level 159 from dated source 2026-10-20 (observed partial coverage; sampled proximity, no exact intrabar touch claim)",
+      "team_id": "40000000-0000-4000-8000-000000000001",
+      "user_id": "10000000-0000-4000-8000-000000000001",
+      "alert_id": "30000000-0000-4000-8000-000000000001",
+      "category": "options_exposure_node",
+      "fired_at": "2026-10-24T13:14:49.801033Z",
+      "subject_zh": "QQQ\u63d0\u9192\uff1aQQQ\u7684\u5f53\u524d\u5408\u683c\u62a5\u4ef7\u63a5\u8fd1\u6211\u9009\u5b9a\u5e76\u56fa\u5b9a\u7684\u671f\u6743\u4ef7\u4f4d159\uff1b\u65e5\u671f\u6765\u6e902026-10-20\uff0c\u4ec5\u89c2\u5bdf\u5230\u90e8\u5206\u8986\u76d6\uff0c\u6309\u79bb\u6563\u62a5\u4ef7\u5224\u65ad\u63a5\u8fd1\uff0c\u4e0d\u4ee3\u8868\u76d8\u4e2d\u7cbe\u786e\u89e6\u53ca",
+      "frozen_node": {
+        "quote": {
+          "asof": "2026-10-24T13:14:49.801033Z",
+          "basis": "LIVE"
+        },
+        "target": {
+          "root": "QQQ",
+          "price": 159,
+          "members": [
+            {
+              "right": "C",
+              "expiry": "2026-11-06",
+              "strike": 159
+            },
+            {
+              "right": "P",
+              "expiry": "2026-11-06",
+              "strike": 159
+            }
+          ],
+          "scopeKey": "[\"all\",null]",
+          "sourceKey": "124989846ac06f544cc88318d78a59eb0886a9d833b196effcc7caa6a760db96",
+          "securityId": "SEC:US-XNAS-QQQ",
+          "availableAt": "2026-10-20T12:04:48.959845+00:00",
+          "definitionKey": "[\"dated_provider_approximation\",\"assumed_long_call_short_put\",\"dollars\",\"usd_delta_per_1pct_spot\",\"provider_observed\",\"https://www.thetadata.net/docs/Articles/Data-And-Requests/Option-Greeks.html#eod-version-1\",\"delta_per_underlying_price_unit\",\"provider_eod_whole_days_0dte_0.15\",\"/v3/option/history/greeks/eod\",\"1\",null,\"https://www.thetadata.net/docs/Articles/Data-And-Requests/Option-Greeks.html\",\"session_only\"]",
+          "qualification": "observed_partial",
+          "sourceBinding": {
+            "clocks": {
+              "available_at": "2026-10-20T12:04:48.959845+00:00",
+              "published_at": null,
+              "correction_ref": null,
+              "oi_report_date": "2026-10-20",
+              "source_session": "2026-10-20",
+              "oi_available_at": "2026-10-20T11:20:00+00:00",
+              "option_observed_at": null,
+              "greeks_available_at": "2026-10-20T11:20:00+00:00",
+              "oi_position_session": null,
+              "underlying_observed_at": null
+            },
+            "sourceRef": "synthetic:QQQ-market-book",
+            "inputSha256": "34fa684931073e215da75408046a1b0fb28db3783e59a48aedbf02a6b05ec69e",
+            "populationId": "a1343ac9423cfd391d089267ef38018958be96761f089bab1b259213302ceba9"
+          },
+          "sourceSession": "2026-10-20"
+        },
+        "within_pct": 0.25,
+        "publication_receipt": {
+          "quote": {
+            "asof": "2026-10-24T13:14:49.801033Z",
+            "spot": 159.1,
+            "basis": "LIVE"
+          },
+          "schema": "options.frozen_hit_receipt/v1",
+          "runtime": {
+            "schema": "options.frozen_runtime/v1",
+            "alertId": "30000000-0000-4000-8000-000000000001",
+            "revision": 1,
+            "createdAt": "2026-10-24T13:14:49.739129Z",
+            "predicate": {
+              "root": "QQQ",
+              "type": "opt_frozen_node_proximity",
+              "target": {
+                "root": "QQQ",
+                "price": 159,
+                "members": [
+                  {
+                    "right": "C",
+                    "expiry": "2026-11-06",
+                    "strike": 159
+                  },
+                  {
+                    "right": "P",
+                    "expiry": "2026-11-06",
+                    "strike": 159
+                  }
+                ],
+                "scopeKey": "[\"all\",null]",
+                "sourceKey": "124989846ac06f544cc88318d78a59eb0886a9d833b196effcc7caa6a760db96",
+                "securityId": "SEC:US-XNAS-QQQ",
+                "availableAt": "2026-10-20T12:04:48.959845+00:00",
+                "definitionKey": "[\"dated_provider_approximation\",\"assumed_long_call_short_put\",\"dollars\",\"usd_delta_per_1pct_spot\",\"provider_observed\",\"https://www.thetadata.net/docs/Articles/Data-And-Requests/Option-Greeks.html#eod-version-1\",\"delta_per_underlying_price_unit\",\"provider_eod_whole_days_0dte_0.15\",\"/v3/option/history/greeks/eod\",\"1\",null,\"https://www.thetadata.net/docs/Articles/Data-And-Requests/Option-Greeks.html\",\"session_only\"]",
+                "qualification": "observed_partial",
+                "sourceBinding": {
+                  "clocks": {
+                    "available_at": "2026-10-20T12:04:48.959845+00:00",
+                    "published_at": null,
+                    "correction_ref": null,
+                    "oi_report_date": "2026-10-20",
+                    "source_session": "2026-10-20",
+                    "oi_available_at": "2026-10-20T11:20:00+00:00",
+                    "option_observed_at": null,
+                    "greeks_available_at": "2026-10-20T11:20:00+00:00",
+                    "oi_position_session": null,
+                    "underlying_observed_at": null
+                  },
+                  "sourceRef": "synthetic:QQQ-market-book",
+                  "inputSha256": "34fa684931073e215da75408046a1b0fb28db3783e59a48aedbf02a6b05ec69e",
+                  "populationId": "a1343ac9423cfd391d089267ef38018958be96761f089bab1b259213302ceba9"
+                },
+                "sourceSession": "2026-10-20"
+              }
+            },
+            "principal": "10000000-0000-4000-8000-000000000001",
+            "generation": "512b7e1c-e619-4d06-96af-ee5b0f7d640f",
+            "priorState": {
+              "inside": false,
+              "withinPct": 0.25,
+              "armingEpoch": "2026-10-24T13:14:49.739129Z",
+              "lastQuoteAt": "2026-10-24T13:14:49.753914Z",
+              "lastQuoteBasis": "LIVE",
+              "targetFingerprint": "2df1b54772531d0bef893cdfd0adcd7afb18f3dfb08a89c5fe1af0da5ee0c411"
+            },
+            "armingEpoch": "2026-10-24T13:14:49.739129Z"
+          },
+          "vintage": "2026-10-24T13:14Z",
+          "admission": {
+            "action": "frozen_node_proximity",
+            "rights": {
+              "allowed": true,
+              "checked_at": "2026-10-24T13:14:49.801033Z",
+              "policy_version": "options.frozen_node_proximity/account/v1"
+            },
+            "target": {
+              "root": "QQQ",
+              "price": 159,
+              "members": [
+                {
+                  "right": "C",
+                  "expiry": "2026-11-06",
+                  "strike": 159
+                },
+                {
+                  "right": "P",
+                  "expiry": "2026-11-06",
+                  "strike": 159
+                }
+              ],
+              "scopeKey": "[\"all\",null]",
+              "sourceKey": "124989846ac06f544cc88318d78a59eb0886a9d833b196effcc7caa6a760db96",
+              "securityId": "SEC:US-XNAS-QQQ",
+              "availableAt": "2026-10-20T12:04:48.959845+00:00",
+              "definitionKey": "[\"dated_provider_approximation\",\"assumed_long_call_short_put\",\"dollars\",\"usd_delta_per_1pct_spot\",\"provider_observed\",\"https://www.thetadata.net/docs/Articles/Data-And-Requests/Option-Greeks.html#eod-version-1\",\"delta_per_underlying_price_unit\",\"provider_eod_whole_days_0dte_0.15\",\"/v3/option/history/greeks/eod\",\"1\",null,\"https://www.thetadata.net/docs/Articles/Data-And-Requests/Option-Greeks.html\",\"session_only\"]",
+              "qualification": "observed_partial",
+              "sourceBinding": {
+                "clocks": {
+                  "available_at": "2026-10-20T12:04:48.959845+00:00",
+                  "published_at": null,
+                  "correction_ref": null,
+                  "oi_report_date": "2026-10-20",
+                  "source_session": "2026-10-20",
+                  "oi_available_at": "2026-10-20T11:20:00+00:00",
+                  "option_observed_at": null,
+                  "greeks_available_at": "2026-10-20T11:20:00+00:00",
+                  "oi_position_session": null,
+                  "underlying_observed_at": null
+                },
+                "sourceRef": "synthetic:QQQ-market-book",
+                "inputSha256": "34fa684931073e215da75408046a1b0fb28db3783e59a48aedbf02a6b05ec69e",
+                "populationId": "a1343ac9423cfd391d089267ef38018958be96761f089bab1b259213302ceba9"
+              },
+              "sourceSession": "2026-10-20"
+            },
+            "createdAt": "2026-10-24T13:14:49.739129Z",
+            "principal": "10000000-0000-4000-8000-000000000001",
+            "priorState": {
+              "inside": false,
+              "withinPct": 0.25,
+              "armingEpoch": "2026-10-24T13:14:49.739129Z",
+              "lastQuoteAt": "2026-10-24T13:14:49.753914Z",
+              "lastQuoteBasis": "LIVE",
+              "targetFingerprint": "2df1b54772531d0bef893cdfd0adcd7afb18f3dfb08a89c5fe1af0da5ee0c411"
+            },
+            "armingEpoch": "2026-10-24T13:14:49.739129Z",
+            "evaluationAt": "2026-10-24T13:14:49.801033Z",
+            "rights_decision_ref": "DEC:COMMERCIAL-DATA-RIGHTS-CHAIRMAN-ATTESTATION-20261023"
+          },
+          "nextState": {
+            "inside": true,
+            "withinPct": 0.25,
+            "armingEpoch": "2026-10-24T13:14:49.739129Z",
+            "lastQuoteAt": "2026-10-24T13:14:49.801033Z",
+            "lastQuoteBasis": "LIVE",
+            "targetFingerprint": "2df1b54772531d0bef893cdfd0adcd7afb18f3dfb08a89c5fe1af0da5ee0c411"
+          },
+          "invocation": {
+            "lane": "prepared_test",
+            "runId": "512b7e1c-e619-4d06-96af-ee5b0f7d640f"
+          },
+          "fireEventId": "57eacb389d6a63e5cb23d79e3eb1119ae2ba040c44add6638cdf70c4586f434d",
+          "evaluationAt": "2026-10-24T13:14:49.801033Z",
+          "conditionVersion": "3a1255d8e44ce702"
+        }
+      },
+      "evidence_url": "/alerts",
+      "fire_event_id": "57eacb389d6a63e5cb23d79e3eb1119ae2ba040c44add6638cdf70c4586f434d",
+      "requires_tier": "essential",
+      "summary_plain": "Your alert fired: QQQ's qualified current quote nears my selected frozen options price level 159 from dated source 2026-10-20 (observed partial coverage; sampled proximity, no exact intrabar touch claim).",
+      "condition_plain": "QQQ's qualified current quote nears my selected frozen options price level 159 from dated source 2026-10-20 (observed partial coverage; sampled proximity, no exact intrabar touch claim)",
+      "summary_plain_zh": "\u4f60\u7684\u63d0\u9192\u5df2\u89e6\u53d1\uff1aQQQ\u7684\u5f53\u524d\u5408\u683c\u62a5\u4ef7\u63a5\u8fd1\u6211\u9009\u5b9a\u5e76\u56fa\u5b9a\u7684\u671f\u6743\u4ef7\u4f4d159\uff1b\u65e5\u671f\u6765\u6e902026-10-20\uff0c\u4ec5\u89c2\u5bdf\u5230\u90e8\u5206\u8986\u76d6\uff0c\u6309\u79bb\u6563\u62a5\u4ef7\u5224\u65ad\u63a5\u8fd1\uff0c\u4e0d\u4ee3\u8868\u76d8\u4e2d\u7cbe\u786e\u89e6\u53ca\u3002",
+      "condition_plain_zh": "QQQ\u7684\u5f53\u524d\u5408\u683c\u62a5\u4ef7\u63a5\u8fd1\u6211\u9009\u5b9a\u5e76\u56fa\u5b9a\u7684\u671f\u6743\u4ef7\u4f4d159\uff1b\u65e5\u671f\u6765\u6e902026-10-20\uff0c\u4ec5\u89c2\u5bdf\u5230\u90e8\u5206\u8986\u76d6\uff0c\u6309\u79bb\u6563\u62a5\u4ef7\u5224\u65ad\u63a5\u8fd1\uff0c\u4e0d\u4ee3\u8868\u76d8\u4e2d\u7cbe\u786e\u89e6\u53ca"
+    },
+    "attempt": 0,
+    "status": "pending",
+    "claimed_at": null,
+    "next_retry_at": null
+  },
+  "endpoint": {
+    "id": "50000000-0000-4000-8000-000000000001",
+    "team_id": "40000000-0000-4000-8000-000000000001",
+    "url": "https://synthetic.invalid/webhook",
+    "secret": "synthetic-secret",
+    "enabled": true,
+    "event_filter": [
+      "alert.fired"
+    ],
+    "created_by": "10000000-0000-4000-8000-000000000001",
+    "created_at": "2026-10-24T06:14:49.674146-07:00",
+    "secret_previous": null,
+    "secret_version": 1,
+    "secret_rotated_at": null,
+    "secret_previous_expires_at": null
+  },
+  "member": {
+    "team_id": "40000000-0000-4000-8000-000000000001",
+    "user_id": "10000000-0000-4000-8000-000000000001"
+  },
+  "consent": {
+    "team_id": "40000000-0000-4000-8000-000000000001",
+    "user_id": "10000000-0000-4000-8000-000000000001",
+    "enabled": true
+  }
+}

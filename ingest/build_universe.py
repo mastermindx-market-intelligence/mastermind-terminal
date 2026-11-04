@@ -19,7 +19,8 @@ and writes two things the Next app serves out of terminal/public/data/:
                              searchable; the chart shows "No data" until backfilled.
 
 Markets & sources (relative to MACRO_REPO):
-    US      data/breadth/constituents.parquet     +  data/stocks/<T>.parquet
+    US      data/{breadth,smallcap_breadth,midcap_breadth,russell_breadth}/constituents.parquet
+            + data/stocks/<T>.parquet when present (otherwise the normal backfill)
     China   data/china_search/members.parquet     +  data/china_stocks/<T>.parquet
     HK      data/hk_breadth/constituents.parquet  +  data/hk_stocks/<T>.parquet
     Canada  data/canada_search/members.parquet    +  (no OHLC store yet)
@@ -49,6 +50,11 @@ import urllib.parse
 from pathlib import Path
 
 import pandas as pd
+
+try:
+    from ingest.polygon_bars import load_view_contract, view_block  # package context (tests)
+except ImportError:  # run as `python ingest/build_universe.py` — same-dir import
+    from polygon_bars import load_view_contract, view_block
 
 ROOT = Path(__file__).resolve().parents[1]                       # charting-app/
 OUT = Path(os.environ.get("TERMINAL_DATA_DIR") or (ROOT / "terminal" / "public" / "data"))
@@ -85,6 +91,33 @@ STORES = [
     # mkt label is read from the parquet's `market` column (e.g. "Japan", "United Kingdom").
     ("Intl",   "data/intl_search/members.parquet",      "name",    "data/intl_stocks",   None),
 ]
+
+
+def load_us_members(macro: Path) -> pd.DataFrame:
+    """Use the dossier's existing US constituent floor, independently of liquidity rank.
+
+    The four groups are the same sources and priority as Macro's stock-library
+    universe(). Membership supplies identity only: it does not assert a quote,
+    history, adjustment basis or observation date. Existing rich manifest rows
+    still win in main(); missing history stays with the normal backfill.
+    """
+    groups = []
+    for group in ("breadth", "smallcap_breadth", "midcap_breadth", "russell_breadth"):
+        path = macro / "data" / group / "constituents.parquet"
+        if not path.exists():
+            print(f"  [US] members parquet missing: {path} — group skipped")
+            continue
+        try:
+            members = pd.read_parquet(path)
+        except Exception as exc:
+            print(f"  [US] members parquet unreadable: {path} ({type(exc).__name__}) — group skipped")
+            continue
+        groups.append(members)
+    if not groups:
+        return pd.DataFrame()
+    members = pd.concat(groups)
+    return members.loc[~members.index.duplicated(keep="first")]
+
 
 # Polygon primary_exchange MIC -> display label
 MIC_LABEL = {
@@ -139,9 +172,15 @@ def _drop_non_trading_placeholders(df: pd.DataFrame) -> pd.DataFrame:
     return df.loc[~(finite_prices & flat & explicit_zero_volume)]
 
 
-def build_ohlc_json(ticker: str, df: pd.DataFrame) -> dict:
+def build_ohlc_json(ticker: str, df: pd.DataFrame, view_contract: dict | None = None,
+                    contract_refusals=("VIEW_CONTRACT_ABSENT",)) -> dict:
     """Candle contract; reconstruct open = prior close and clamp h/l to include it
-    (verbatim with the macro build_chart_data.py / sample_from_macro.py)."""
+    (verbatim with the macro build_chart_data.py / sample_from_macro.py).
+
+    U01: adds the `view` provenance block (one deep synthetic-open segment) built from
+    the Macro-emitted contract passed in — the producer never re-derives basis/as-of
+    itself. The legacy t/o/src/bar_quality/bars output is unchanged.
+    """
     df = _drop_non_trading_placeholders(df.dropna(subset=["close"])).sort_index().tail(MAX_BARS)
     closes = df["close"].astype(float)
     prev = closes.shift(1).fillna(closes)
@@ -153,7 +192,11 @@ def build_ohlc_json(ticker: str, df: pd.DataFrame) -> dict:
         lo = min(_round(lo) or c, c, o)
         vol = _round(df.at[dt, "volume"], 0) if "volume" in df else None
         bars.append([dt.strftime("%Y-%m-%d"), _round(o), hi, lo, _round(c), vol])
-    return {"t": ticker, "o": 1, "src": "deep", "bar_quality": "synthetic_open_deepstore", "bars": bars}
+    segments = ([{"from": bars[0][0], "to": bars[-1][0],
+                  "src": "deep", "bar_quality": "synthetic_open_deepstore"}] if bars else [])
+    doc = {"t": ticker, "o": 1, "src": "deep", "bar_quality": "synthetic_open_deepstore", "bars": bars}
+    doc["view"] = view_block(ticker, view_contract, tuple(contract_refusals), segments)
+    return doc
 
 
 # ---------------------------------------------------------------- polygon exchange map
@@ -376,12 +419,18 @@ def main(argv: list[str]) -> None:
 
     for key, members_rel, name_col, ohlc_rel, mkt_fn in STORES:
         mp = MACRO / members_rel
-        if not mp.exists():
-            print(f"  [{key}] members parquet missing: {mp} — skipped")
-            continue
-        meta = pd.read_parquet(mp)
+        if key == "US":
+            meta = load_us_members(MACRO)
+        else:
+            if not mp.exists():
+                print(f"  [{key}] members parquet missing: {mp} — skipped")
+                continue
+            meta = pd.read_parquet(mp)
         tickers = list(meta.index.astype(str))
         ohlc_dir = MACRO / ohlc_rel
+        # U01: ONE contract read per store — the producer copies Macro's emitted view
+        # contract verbatim; absence (today, pre-C01) is reported, never invented.
+        view_contract, contract_refusals = load_view_contract(ohlc_dir)
 
         # decide which tickers get OHLC this run
         do_ohlc = key in ohlc_markets
@@ -425,7 +474,7 @@ def main(argv: list[str]) -> None:
                     try:
                         df = pd.read_parquet(p)
                         if "close" in df and len(df.dropna(subset=["close"])):
-                            oj = build_ohlc_json(tk, df)
+                            oj = build_ohlc_json(tk, df, view_contract, contract_refusals)
                             out_path.write_text(json.dumps(oj, separators=(",", ":")))
                             ohlc_written[key] += 1
                             last_dates.append(oj["bars"][-1][0])

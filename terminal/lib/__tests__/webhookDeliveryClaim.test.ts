@@ -21,6 +21,9 @@ const endpoint: EndpointRow = {
   url: "https://hooks.example.com/mastermind",
   secret: "whsec_test_not_a_real_secret",
   enabled: true,
+  secret_previous: null,
+  secret_previous_expires_at: null,
+  secret_version: 1,
 };
 
 function fakeSupa(claimRows: unknown[]) {

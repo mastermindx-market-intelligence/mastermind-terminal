@@ -1,0 +1,62 @@
+{
+  "schema": "mmx.commodities.oauth_ci_repair.v1",
+  "observed_at_utc": "2026-10-20T20:50:00Z",
+  "accepted_base": "e3ca39a82d9713061e5e27ac0cd3ac1d249af127",
+  "validation_parent_head": "a984b54203981bed0f2a495719775f9ad851ba73",
+  "files_sha256": {
+    "terminal/e2e/large-trades.spec.ts": "e15e0be3155ecdfeefa0f1980764ae977761c4f74e2cd0e0fc137f610c5bee95",
+    "terminal/components/onboarding/oauth.ts": "586637dcb25da12e68049965501d4c32b1d9720dcd6bc8c556d99d0cc2695db3",
+    "terminal/e2e/onboarding-oauth-context.spec.ts": "b58f90d3aabd5af7d569952edfb6a3c23797743c3ac904a81d30cf44de3c1916"
+  },
+  "initial_ci": {
+    "run": 39487158771,
+    "head": "e07c59ff1f6c2b4f457df4582798966eec906915",
+    "job": 118850436122,
+    "artifact": 12295687212,
+    "artifact_sha256": "e44f6ef6e7fe878d68350ab6cbf26703894ab3ee6b675f5af03be68f6227a9b8",
+    "failing_test": "native PNG freezes its admitted symbol and marker frame across asynchronous decoding",
+    "initial_and_two_retries": {
+      "different_channel_bytes": 274,
+      "image_dimensions": [
+        1934,
+        1788
+      ],
+      "difference_bbox_exclusive": [
+        1,
+        505,
+        1025,
+        509
+      ]
+    },
+    "source_unchanged_from_base": true,
+    "base_runtime_reproduced": false
+  },
+  "local_native_png": {
+    "startTime": "2026-10-20T20:40:45.745Z",
+    "duration": 147633.40099999998,
+    "expected": 9,
+    "skipped": 9,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "local_oauth": {
+    "startTime": "2026-10-20T20:46:00.570Z",
+    "duration": 50098.769,
+    "expected": 12,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "focused_units": {
+    "total": 128,
+    "passed": 128,
+    "failed": 0
+  },
+  "typegen_exit": 0,
+  "typecheck_exit": 0,
+  "repair": "Finite two-identical-raster readiness before the two challenged admissions, while metadata remains held; actual baseline index and diagnostics before unchanged assertions",
+  "production_chart_code_changed": false,
+  "pixel_tolerance_changed": false,
+  "linux_ci_repair_verified": false,
+  "real_google_authentication_verified": false
+}
