@@ -140,7 +140,7 @@ async function seedBook(page: Page) {
     { ticker: "ZZTD", shares: "150", entryPrice: "94.30", entryDate: "2026-02-11" },
   ];
   for (const row of rows) {
-    const r = await page.request.post("/api/portfolio", { data: { action: "create", ...row } });
+    const r = await page.request.post("/api/portfolio", { data: { action: "create", entryCurrency: "USD", ...row } });
     expect(r.ok()).toBe(true);
   }
 }
@@ -149,6 +149,7 @@ test("risk readout — mixed/outage book, EN", async ({ page, baseURL }, testInf
   await prepare(page, testInfo, baseURL, false);
   await seedBook(page);
   await page.goto("/portfolio");
+  await page.locator("#portfolio-tab-risk").click();
   const shape = page.getByTestId("portfolio-shape");
   await expect(shape).toBeVisible({ timeout: 20_000 });
   // MAJOR 2 (round-2 review): the ONLY DOM proof this crop actually exercised the credentialed
@@ -178,6 +179,7 @@ test("risk readout — mixed/outage book, ZH", async ({ page, baseURL }, testInf
   await prepare(page, testInfo, baseURL, true);
   await seedBook(page);
   await page.goto("/portfolio");
+  await page.locator("#portfolio-tab-risk").click();
   const shape = page.getByTestId("portfolio-shape");
   await expect(shape).toBeVisible({ timeout: 20_000 });
   await expect(shape).toHaveAttribute("data-coverage-source", "credentialed");
@@ -198,17 +200,18 @@ test("risk readout — signed-out caller never renders data-coverage-source=cred
   await prepare(page, testInfo, baseURL, false, /* isSignedIn */ false);
   await seedBook(page);
   await page.goto("/portfolio");
+  await page.locator("#portfolio-tab-risk").click();
   const shape = page.getByTestId("portfolio-shape");
   await expect(shape).toBeVisible({ timeout: 20_000 });
   await expect(shape).not.toHaveAttribute("data-coverage-source", "credentialed");
   await expect(shape).toHaveAttribute("data-coverage-source", "anonymous");
 });
 
-test("risk readout — empty book renders nothing", async ({ page, baseURL }, testInfo) => {
+test("risk readout — empty overview does not present computed exposure", async ({ page, baseURL }, testInfo) => {
   test.skip(MODE !== "mixed", "Empty-book crop only needed once.");
   await prepare(page, testInfo, baseURL, false);
   await page.goto("/portfolio");
-  await expect(page.locator(".pf-empty")).toBeVisible();
-  await expect(page.getByTestId("portfolio-shape")).toHaveCount(0);
+  await expect(page.getByTestId("portfolio-empty")).toBeVisible();
+  await expect(page.getByTestId("portfolio-shape")).not.toBeVisible();
   await shot(page, "risk-empty", testInfo);
 });

@@ -75,6 +75,7 @@ function installFetch(theses: ThesisSummary[], details: Map<string, ThesisDetail
     const url = new URL(raw, "https://x.test");
     if (url.pathname === "/api/thesis-saved-views") return jsonResponse({ views: [] });
     if (url.pathname === "/api/thesis-fire-status") return jsonResponse({ states: {} });
+    if (/^\/api\/thesis\/[^/]+\/proposals/.test(url.pathname)) return jsonResponse({ proposals: [] });
     if (url.pathname !== "/api/theses") return jsonResponse({ error: "not_found" }, 404);
     const ids = url.searchParams.getAll("ids");
     if (ids.length > 0) {
@@ -108,12 +109,12 @@ async function flush() {
   });
 }
 
-async function mount(props: { ownerKey: string }) {
+async function mount(props: { ownerKey: string; initialSymbol?: string }) {
   container = document.createElement("div");
   document.body.appendChild(container);
   root = createRoot(container);
   await act(async () => {
-    root!.render(<ThesisWorkspace ownerKey={props.ownerKey} />);
+    root!.render(<ThesisWorkspace ownerKey={props.ownerKey} initialSymbol={props.initialSymbol} />);
   });
   await flush();
   return container;
@@ -163,6 +164,24 @@ function tabs(el: HTMLElement): HTMLButtonElement[] {
 }
 
 describe("ThesisWorkspace lens rail (B-F11-2, M2)", () => {
+  it("keeps MarketOntology context when a lowercase subject stays the same", async () => {
+    installFetch([], new Map());
+    window.history.replaceState(null, "", "/analysis?view=theses&symbol=aapl&mo_from=ontology&mo_chain=chain_1");
+    const element = await mount({ ownerKey: "owner-mo-same-subject", initialSymbol: "aapl" });
+
+    const subject = element.querySelector<HTMLInputElement>('input[aria-label="Subject"]');
+    expect(subject).not.toBeNull();
+    const typeIntoInput = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value")!.set!;
+    await act(async () => {
+      typeIntoInput.call(subject!, "aapl");
+      subject!.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    await flush();
+
+    expect(element.querySelector('[data-testid="mo-context-strip"]')).not.toBeNull();
+    expect(new URL(window.location.href).searchParams.get("mo_chain")).toBe("chain_1");
+  });
+
   it("tablist: roving tabIndex, and Home/End jump to the first/last lens", async () => {
     const t1: ThesisSummary = { id: "t1", currentVersion: 1, lifecycleState: "active", subject: subject("AAA", "Alpha Co"), title: "Alpha", updatedAt: "2026-09-01T00:00:00.000Z" };
     installFetch([t1], new Map());

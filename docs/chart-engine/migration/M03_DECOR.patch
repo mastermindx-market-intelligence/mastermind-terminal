@@ -1,0 +1,1096 @@
+diff --git a/terminal/components/ChartPanel.tsx b/terminal/components/ChartPanel.tsx
+index 4c581220..c4891fc2 100644
+--- a/terminal/components/ChartPanel.tsx
++++ b/terminal/components/ChartPanel.tsx
+@@ -12,12 +12,18 @@ function cpMark(name: string) {
+   console.log(`[boottrace] ${name} +${(now - _cpStart).toFixed(1)}ms`);
+ }
+ import {
+-  CandlestickSeries, BarSeries, LineSeries, AreaSeries, HistogramSeries, BaselineSeries,
+-  createSeriesMarkers, type ISeriesMarkersPluginApi,
+-  createTextWatermark,
+-  CrosshairMode, ColorType, LineStyle, LineType, MismatchDirection, PriceScaleMode, type IChartApi, type ISeriesApi, type IPaneApi, type IPriceLine,
++  LineSeries, HistogramSeries, BaselineSeries,
++  CrosshairMode, ColorType, LineStyle, LineType, MismatchDirection, PriceScaleMode, type IChartApi, type ISeriesApi, type IPaneApi,
+ } from "lightweight-charts";
+-import { createEngine, type ChartEngine } from "@/lib/chart-engine";
++import {
++  createEngine,
++  type ChartEngine,
++  type EngineSeriesKind,
++  type MarkerSpec,
++  type PriceLineHandle,
++  type SeriesHandle,
++  type WatermarkSpec,
++} from "@/lib/chart-engine";
+ import {
+   axisLogFormulaForRange,
+   axisRangeFromLog,
+@@ -66,7 +72,7 @@ import type { LiveEntryEpisode } from "@/lib/dislocations/types";
+ import { liveDisplayEpoch, mutateLiveCandle } from "@/lib/liveCandle";
+ import { isMacroSymbol, macroOnEtAxis } from "@/lib/macroSymbols";
+ import { sessionVwap, openingRange, sessionLevels, pivotLevels, rvolSeries, ttmSqueeze, adx as calcAdx, cvdApprox, type Bar as IMBar, type DailyBar } from "@/lib/intradayMath";
+-import { attachSessionShading, detachSessionShading, type SessionShadingPrimitive } from "@/lib/sessionShading";
++import { attachSessionShadingToHandle, detachSessionShadingFromHandle, type SessionShadingPrimitive } from "@/lib/sessionShading";
+ import { IND_DEFS, withDefaults, isIndKey } from "@/lib/indicators";
+ import { isAdditionalStudyId, studyParamsWithDefaults, studyTypeOf } from "@/lib/studyInstances";
+ import { expandStudyOrder, renderableStudyIds, studyInstanceMeta } from "@/lib/studyInstanceView";
+@@ -643,19 +649,26 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators,
+     }
+   };
+   const priceSeriesRef = useRef<ISeriesApi<any> | null>(null);
++  // The SAME price series through the owned contract (M03): decorations (markers, pooled
++  // price lines, the shading primitive) hang off the handle; priceSeriesRef keeps the raw
++  // view for the series-creation clusters still on the unwrap path (M01).
++  const priceSeriesHRef = useRef<SeriesHandle | null>(null);
+   const priceFamilyRef = useRef<string | null>(null);   // which series family is on the chart now
+   const indSeriesRef = useRef<Map<string, ISeriesApi<any>[]>>(new Map());   // indKey → its series
+   const cmpSeriesRef = useRef<Map<string, ISeriesApi<any>>>(new Map());      // compare-sym → series
+   const paneMapRef = useRef<Map<string, number>>(new Map());                 // sub-pane indKey → pane index
+   // ── custom-script (Pine) render state (parallels the built-in indicator refs) ──
+   const pineSeriesRef = useRef<Map<string, ISeriesApi<any>[]>>(new Map());   // scriptId → its series (all panes)
+-  const pineMarkersRef = useRef<Map<string, ISeriesMarkersPluginApi<any>>>(new Map()); // scriptId → its markers plugin
+-  const ttmsqMarkersRef = useRef<ISeriesMarkersPluginApi<any> | null>(null); // ttmsq squeeze-tier dots plugin
+-  const macdMarkersRef = useRef<ISeriesMarkersPluginApi<any> | null>(null);  // TH_RSIMACD+ crossover dots plugin (on the MACD-RSI line series)
+-  const episodeMarkersRef = useRef<ISeriesMarkersPluginApi<any> | null>(null); // dislocation episode transition marks (spec §4.3)
++  // Shapes an OVERLAY script anchored on the SHARED price series (no series of its own).
++  // setMarkers REPLACES a series' marker set, so price-anchored shapes from every script
++  // merge with the episode marks into ONE applyPriceMarkers() call (M03-A01) — the
++  // per-script plugin stack on the shared series is gone.
++  const pinePriceShapesRef = useRef<Map<string, MarkerSpec[]>>(new Map());
++  // The MACD-RSI line's owned handle — host of the crossover-dot marker set (M03).
++  const macdLineHRef = useRef<SeriesHandle | null>(null);
+   const episodeRef = useRef<LiveEntryEpisode | null>(null);
+   const renderEpisodeMarksRef = useRef<() => void>(() => {});
+-  const episodeSpecsRef = useRef<Array<{ time: unknown }>>([]); // what the pane currently draws for ?episode= (witness)
++  const episodeSpecsRef = useRef<MarkerSpec[]>([]); // what the pane currently draws for ?episode= (witness)
+   const pinePaneMapRef = useRef<Map<string, number>>(new Map());             // sub-pane scriptId → pane index (overlay scripts absent)
+   const pineErrRef = useRef<Map<string, string>>(new Map());                 // scriptId → error text (surfaced in the legend)
+   const pineCacheRef = useRef<Map<string, { key: string; result: RunResult | null; error: string | null }>>(new Map()); // memo: scriptId → last run
+@@ -1046,7 +1059,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators,
+   // this coordinate: an independent foreground DOM label follows it. The ref remains observable
+   // for crosshair-continuity tests and mirrored panes.
+   const crossLabelYRef = useRef<number | null>(null);
+-  const watermarkPluginRef = useRef<{ applyOptions: (opts: Record<string, any>) => void } | null>(null); // v5 text watermark plugin
++  const watermarkSpecRef = useRef<WatermarkSpec | null>(null); // the live pane-0 watermark spec (engine.setWatermark replaces; M03-A01)
+   const brandBugRef = useRef<HTMLDivElement | null>(null);  // C5 — shell-only DOM brand bug (never created on web)
+   // Mirrors the last `visible` passed to the watermark plugin. The plugin API is write-only
+   // (IPanePrimitiveWrapper exposes applyOptions, never options), and the wordmark is canvas-drawn,
+@@ -1078,19 +1091,19 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators,
+   const dayModeRef = useRef<boolean>(dayMode); dayModeRef.current = dayMode;
+   // Price lines created on the price series for slevels / pivots — must be removed explicitly on clear.
+   // Keyed per indicator so removing ONE of slevels/pivots doesn't clear the survivor's lines.
+-  const indPriceLinesRef = useRef<Map<string, IPriceLine[]>>(new Map());
+-  const extendedPriceLineRef = useRef<IPriceLine | null>(null);
+-  const pushIndPriceLine = (key: string, pl: IPriceLine) => {
++  const indPriceLinesRef = useRef<Map<string, PriceLineHandle[]>>(new Map());
++  const extendedPriceLineRef = useRef<PriceLineHandle | null>(null);
++  const pushIndPriceLine = (key: string, pl: PriceLineHandle) => {
+     const m = indPriceLinesRef.current;
+     if (!m.has(key)) m.set(key, []);
+     m.get(key)!.push(pl);
+   };
+   const removeIndPriceLines = (key?: string) => {
+-    const priceS = priceSeriesRef.current;
++    const priceH = priceSeriesHRef.current;
+     const m = indPriceLinesRef.current;
+     const keys = key ? [key] : [...m.keys()];
+     for (const k of keys) {
+-      for (const pl of m.get(k) ?? []) { try { priceS?.removePriceLine(pl); } catch {} }
++      for (const pl of m.get(k) ?? []) { try { priceH?.removePriceLine(pl); } catch {} }
+       m.delete(k);
+     }
+   };
+@@ -1098,15 +1111,15 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators,
+     if (extendedTagRef.current) extendedTagRef.current.style.display = "none";
+     const line = extendedPriceLineRef.current;
+     if (!line) return;
+-    try { priceSeriesRef.current?.removePriceLine(line); } catch {}
++    try { priceSeriesHRef.current?.removePriceLine(line); } catch {}
+     extendedPriceLineRef.current = null;
+   };
+   const applyExtendedPriceLine = () => {
+     clearExtendedPriceLine();
+-    const priceSeries = priceSeriesRef.current;
++    const priceH = priceSeriesHRef.current;
+     const quote = liveQuoteRef.current;
+     const settings = chartSettingsRef.current;
+-    if (!priceSeries || isIntradayRef.current || replayIdxRef.current != null) return;
++    if (!priceH || isIntradayRef.current || replayIdxRef.current != null) return;
+     if (chartDataSymRef.current !== symbolRef.current) return;   // never annotate another symbol's series
+     if (classify(symbolRef.current) !== "us" || isMacroSymbol(symbolRef.current)) return;
+     if (settings.extendedLineVisible === false) return;
+@@ -1117,7 +1130,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators,
+         ? settings.postMarketColor || "#2962ff"
+         : settings.overnightColor || "#9c27b0";
+     try {
+-      extendedPriceLineRef.current = priceSeries.createPriceLine({
++      extendedPriceLineRef.current = priceH.createPriceLine({
+         price: quote.extPrice,
+         color,
+         lineWidth: 1,
+@@ -1272,7 +1285,14 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators,
+   };
+ 
+   // Create the price series (removed+re-added when the chartType actually changes).
+-  const addPriceSeries = (chart: IChartApi, t: Tokens) => {
++  // The price series rides the owned contract (M03): decorations anchored on it (episode
++  // marks, pooled price lines, the shading primitive) need its SeriesHandle — kept in
++  // priceSeriesHRef. Same options bags, same pane 0 (engine.addSeries maps 1:1 onto
++  // chart.addSeries(def, opts, pane)). M01 handoff: the RAW view is returned so the
++  // series-creation clusters still reading priceSeriesRef keep working unchanged.
++  const addPriceSeries = (t: Tokens): ISeriesApi<any> => {
++    const engine = engineRef.current;
++    if (!engine) throw new Error("chart-engine: engine not mounted");
+     const pf = priceFmt();
+     const settings = chartSettingsRef.current;
+     const common = {
+@@ -1281,28 +1301,41 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators,
+       lastValueVisible: false,
+       priceLineVisible: settings.priceLineVisible !== false,
+     };
+-    if (chartTypeRef.current === "line") return chart.addSeries(LineSeries, { ...common, color: t.brand2, lineWidth: 2 }, 0);
+-    if (chartTypeRef.current === "line-markers") return chart.addSeries(LineSeries, { ...common, color: t.brand2, lineWidth: 2, pointMarkersVisible: true, pointMarkersRadius: 2.5 }, 0);
+-    if (chartTypeRef.current === "step") return chart.addSeries(LineSeries, { ...common, color: t.brand2, lineWidth: 2, lineType: LineType.WithSteps }, 0);
+-    if (chartTypeRef.current === "area") return chart.addSeries(AreaSeries, { ...common, lineColor: t.brand2, topColor: "rgba(41,98,255,.30)", bottomColor: "rgba(41,98,255,.02)", lineWidth: 2 }, 0);
+-    if (chartTypeRef.current === "baseline") return chart.addSeries(BaselineSeries, {
+-      ...common,
+-      baseValue: { type: "price", price: 0 }, relativeGradient: true, lineWidth: 2,
+-      topLineColor: t.up, topFillColor1: withAlpha(t.up, 0.28), topFillColor2: withAlpha(t.up, 0.03),
+-      bottomLineColor: t.down, bottomFillColor1: withAlpha(t.down, 0.03), bottomFillColor2: withAlpha(t.down, 0.28),
+-    }, 0);
+-    if (chartTypeRef.current === "bars") return chart.addSeries(BarSeries, { ...common, upColor: settings.candleUpColor || t.up, downColor: settings.candleDownColor || t.down }, 0);
+-    return chart.addSeries(CandlestickSeries, {
+-      ...common,
+-      upColor: settings.candleBodyVisible === false || chartTypeRef.current === "hollow" ? "rgba(0,0,0,0)" : settings.candleUpColor || t.up,
+-      downColor: settings.candleBodyVisible === false ? "rgba(0,0,0,0)" : settings.candleDownColor || t.down,
+-      wickUpColor: settings.candleUpWick || settings.candleUpColor || t.up,
+-      wickDownColor: settings.candleDownWick || settings.candleDownColor || t.down,
+-      borderUpColor: settings.candleUpBorder || settings.candleUpColor || t.up,
+-      borderDownColor: settings.candleDownBorder || settings.candleDownColor || t.down,
+-      borderVisible: settings.candleBordersVisible !== false,
+-      wickVisible: settings.candleWicksVisible !== false,
+-    }, 0);
++    const kindFor = (ct: string): EngineSeriesKind =>
++      ct === "area" ? "area" : ct === "baseline" ? "baseline" : ct === "bars" ? "bars"
++        : ct === "line" || ct === "line-markers" || ct === "step" ? "line" : "candles";
++    const kind = kindFor(chartTypeRef.current);
++    let h: SeriesHandle;
++    if (kind === "line") {
++      const stepExtra = chartTypeRef.current === "step" ? { lineType: LineType.WithSteps } : {};
++      const dotExtra = chartTypeRef.current === "line-markers" ? { pointMarkersVisible: true, pointMarkersRadius: 2.5 } : {};
++      h = engine.addSeries("line", { ...common, color: t.brand2, lineWidth: 2, ...stepExtra, ...dotExtra }, 0);
++    } else if (kind === "area") {
++      h = engine.addSeries("area", { ...common, lineColor: t.brand2, topColor: "rgba(41,98,255,.30)", bottomColor: "rgba(41,98,255,.02)", lineWidth: 2 }, 0);
++    } else if (kind === "baseline") {
++      h = engine.addSeries("baseline", {
++        ...common,
++        baseValue: { type: "price", price: 0 }, relativeGradient: true, lineWidth: 2,
++        topLineColor: t.up, topFillColor1: withAlpha(t.up, 0.28), topFillColor2: withAlpha(t.up, 0.03),
++        bottomLineColor: t.down, bottomFillColor1: withAlpha(t.down, 0.03), bottomFillColor2: withAlpha(t.down, 0.28),
++      }, 0);
++    } else if (kind === "bars") {
++      h = engine.addSeries("bars", { ...common, upColor: settings.candleUpColor || t.up, downColor: settings.candleDownColor || t.down }, 0);
++    } else {
++      h = engine.addSeries("candles", {
++        ...common,
++        upColor: settings.candleBodyVisible === false || chartTypeRef.current === "hollow" ? "rgba(0,0,0,0)" : settings.candleUpColor || t.up,
++        downColor: settings.candleBodyVisible === false ? "rgba(0,0,0,0)" : settings.candleDownColor || t.down,
++        wickUpColor: settings.candleUpWick || settings.candleUpColor || t.up,
++        wickDownColor: settings.candleDownWick || settings.candleDownColor || t.down,
++        borderUpColor: settings.candleUpBorder || settings.candleUpColor || t.up,
++        borderDownColor: settings.candleDownBorder || settings.candleDownColor || t.down,
++        borderVisible: settings.candleBordersVisible !== false,
++        wickVisible: settings.candleWicksVisible !== false,
++      }, 0);
++    }
++    priceSeriesHRef.current = h;
++    return h.unwrap() as ISeriesApi<any>;
+   };
+ 
+   // per-indicator params merged over the registry defaults (drives the Settings dialog + the math/style).
+@@ -1367,9 +1400,13 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators,
+   // rsi and stochrsi each get their own pane (formerly combined into one shared "osc" pane)
+   // `id` is the instance id: the primary "rsi" or an additional "rsi__<token>" with its own params/pane.
+   const buildRsiPane = (chart: IChartApi, rows: Bar[], closes: number[], pane: number, id = "rsi"): ISeriesApi<any>[] => {
+-    const p = P(id); const rS = chart.addSeries(LineSeries, { color: p.col, lineWidth: p.width as any, lastValueVisible: true, title: axTitle(id === "rsi" ? "RSI" : `RSI ${p.length}`) }, pane);
++    const p = P(id);
++    // The RSI line rides the owned contract (M03): its ob/os guide lines are price lines
++    // on the handle. Raw view returned for the in-place setData path.
++    const rH = engineRef.current!.addSeries("line", { color: p.col, lineWidth: p.width as any, lastValueVisible: true, title: axTitle(id === "rsi" ? "RSI" : `RSI ${p.length}`) }, pane);
++    const rS = rH.unwrap() as ISeriesApi<any>;
+     rS.setData(toLine(rows, rsi(closes, p.length)));
+-    if (p.showLevels) { try { rS.createPriceLine({ price: p.obLevel, color: "rgba(214,218,227,.25)", lineWidth: 1, lineStyle: 2, axisLabelVisible: false } as any); rS.createPriceLine({ price: p.osLevel, color: "rgba(214,218,227,.25)", lineWidth: 1, lineStyle: 2, axisLabelVisible: false } as any); } catch {} }
++    if (p.showLevels) { try { rH.createPriceLine({ price: p.obLevel, color: "rgba(214,218,227,.25)", lineWidth: 1, lineStyle: 2, axisLabelVisible: false }); rH.createPriceLine({ price: p.osLevel, color: "rgba(214,218,227,.25)", lineWidth: 1, lineStyle: 2, axisLabelVisible: false }); } catch {} }
+     return [rS];
+   };
+   // CM_Stochastic crossover-highlight bars (Pine bgcolor port): value 1 (full-pane
+@@ -1389,35 +1426,39 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators,
+     const hlS = chart.addSeries(HistogramSeries, { priceScaleId: "stochsig", base: 0, priceLineVisible: false, lastValueVisible: false, autoscaleInfoProvider: () => ({ priceRange: { minValue: 0, maxValue: 1 } }) }, pane);
+     try { chart.priceScale("stochsig").applyOptions({ scaleMargins: { top: 0, bottom: 0 } }); } catch {}   // full-pane-height bars (default overlay margins are 0.2/0.1)
+     hlS.setData(stochHiData(rows, sr.k, sr.d, p.upLine, p.lowLine) as any);
+-    const kS = chart.addSeries(LineSeries, { color: p.kCol, lineWidth: p.width as any, lastValueVisible: true, title: axTitle("%K") }, pane);
++    const kH = engineRef.current!.addSeries("line", { color: p.kCol, lineWidth: p.width as any, lastValueVisible: true, title: axTitle("%K") }, pane);
++    const kS = kH.unwrap() as ISeriesApi<any>;
+     const dS = chart.addSeries(LineSeries, { color: p.dCol, lineWidth: 1, lastValueVisible: true, title: axTitle("%D") }, pane);
+     kS.setData(toLine(rows, sr.k)); dS.setData(toLine(rows, sr.d));
+     // CM_Stochastic_MTF upper/lower/mid guide lines (80 / 20 / 50 by default). Overbought is the
+     // down side and oversold the up side, so both ride the tokens and flip with the setting.
+-    try { kS.createPriceLine({ price: p.upLine, color: withAlpha(dirDown(), 0.25), lineWidth: 1, lineStyle: 2, axisLabelVisible: false } as any); kS.createPriceLine({ price: p.lowLine, color: withAlpha(dirUp(), 0.25), lineWidth: 1, lineStyle: 2, axisLabelVisible: false } as any); kS.createPriceLine({ price: 50, color: "rgba(214,218,227,.15)", lineWidth: 1, lineStyle: 2, axisLabelVisible: false } as any); } catch {}
++    try { kH.createPriceLine({ price: p.upLine, color: withAlpha(dirDown(), 0.25), lineWidth: 1, lineStyle: 2, axisLabelVisible: false }); kH.createPriceLine({ price: p.lowLine, color: withAlpha(dirUp(), 0.25), lineWidth: 1, lineStyle: 2, axisLabelVisible: false }); kH.createPriceLine({ price: 50, color: "rgba(214,218,227,.15)", lineWidth: 1, lineStyle: 2, axisLabelVisible: false }); } catch {}
+     // Return order keeps kS@0/dS@1 stable for the in-place update path; the highlight histogram rides at [2]
+     // (a real series → the teardown loops removeSeries it for free).
+     return [kS, dS, hlS];
+   };
+   // TH_RSIMACD+ crossover dots (Pine plotshape port): a circle at the mid-price of every
+-  // macd/signal cross — bullish (line crosses ABOVE signal) green, bearish red. Rebuilt on the
+-  // passed LINE series and cached in macdMarkersRef (detached on teardown, like ttmsqMarkersRef).
+-  const applyMacdMarkers = (lineSeries: ISeriesApi<any>, rows: Bar[], line: (number | null)[], sig: (number | null)[]) => {
+-    if (macdMarkersRef.current) { try { macdMarkersRef.current.detach(); } catch {} macdMarkersRef.current = null; }
+-    const up = crossUps(line, sig); const dn = crossDowns(line, sig); const markers: any[] = [];
++  // macd/signal cross — bullish (line crosses ABOVE signal) green, bearish red. setMarkers on
++  // the MACD line's OWNED handle REPLACES the previous set (M03-A01) — no plugin to detach,
++  // no ref to leak; the marker set dies with the series on teardown.
++  const applyMacdMarkers = (lineH: SeriesHandle, rows: Bar[], line: (number | null)[], sig: (number | null)[]) => {
++    const up = crossUps(line, sig); const dn = crossDowns(line, sig); const markers: MarkerSpec[] = [];
+     for (let i = 0; i < rows.length; i++) {
+       if (!up[i] && !dn[i]) continue;
+       markers.push({ time: rows[i].time, position: "atPriceMiddle", price: (line[i]! + sig[i]!) / 2, shape: "circle", size: 1, color: up[i] ? dirUp() : dirDown() });
+     }
+-    try { macdMarkersRef.current = createSeriesMarkers(lineSeries, markers as any); } catch {}
++    try { lineH.setMarkers(markers); } catch {}
+   };
+   const buildMacd = (chart: IChartApi, rows: Bar[], closes: number[], pane: number): ISeriesApi<any>[] => {
+     const p = P("macd"); const m = rsiMacd(closes, p.rsiLen, p.fastLen, p.baseLen, p.signalLen);
+     const hs = chart.addSeries(HistogramSeries, {}, pane); hs.setData(rows.map((r, i) => (m.hist[i] != null ? { time: r.time, value: m.hist[i]!, color: m.hist[i]! >= 0 ? p.upHist : p.downHist } : null)).filter(Boolean) as any);
+-    const lS = chart.addSeries(LineSeries, { color: p.macdCol, lineWidth: p.width as any, title: axTitle("MACD-RSI") }, pane); const sS = chart.addSeries(LineSeries, { color: p.signalCol, lineWidth: 1, title: axTitle("signal") }, pane);
++    const lH = engineRef.current!.addSeries("line", { color: p.macdCol, lineWidth: p.width as any, title: axTitle("MACD-RSI") }, pane);
++    const lS = lH.unwrap() as ISeriesApi<any>;
++    const sS = chart.addSeries(LineSeries, { color: p.signalCol, lineWidth: 1, title: axTitle("signal") }, pane);
+     lS.setData(toLine(rows, m.line)); sS.setData(toLine(rows, m.sig));
+-    try { lS.createPriceLine({ price: 0, color: "rgba(214,218,227,.2)", lineWidth: 1, lineStyle: 2, axisLabelVisible: false } as any); } catch {}
+-    applyMacdMarkers(lS, rows, m.line, m.sig);
++    try { lH.createPriceLine({ price: 0, color: "rgba(214,218,227,.2)", lineWidth: 1, lineStyle: 2, axisLabelVisible: false }); } catch {}
++    macdLineHRef.current = lH;
++    applyMacdMarkers(lH, rows, m.line, m.sig);
+     return [hs, lS, sS];
+   };
+ 
+@@ -1470,33 +1511,51 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators,
+     return outcome;
+   };
+ 
+-  // Map a Pine PlotKind → a Lightweight-Charts series on `pane`. Histogram/columns → HistogramSeries
+-  // (per-bar colors preserved); area → AreaSeries; everything else (line/stepline/circles/cross) → a
+-  // LineSeries. Returns the series (or null if the plot has no finite points).
+-  const addPinePlot = (chart: IChartApi, plot: RunResult["plots"][number], pane: number): ISeriesApi<any> | null => {
++  // ONE writer for the shared price series' marker set (M03-A01): the contract's setMarkers
++  // REPLACES a series' marker set, so every creator that anchors marks on the SHARED price
++  // series (episode marks + price-anchored Pine shapes) merges here into a single call.
++  // Ordering: LWC wants markers ascending by time; a chart's times are homogeneous (date
++  // strings on daily, epoch numbers intraday), so a plain comparison sorts either kind.
++  const applyPriceMarkers = () => {
++    const priceH = priceSeriesHRef.current;
++    if (!priceH) return;
++    const all: MarkerSpec[] = [...episodeSpecsRef.current, ...[...pinePriceShapesRef.current.values()].flat()];
++    all.sort((a, b) => (a.time < b.time ? -1 : a.time > b.time ? 1 : 0));
++    try { priceH.setMarkers(all); } catch {}
++  };
++
++  // Map a Pine PlotKind → an owned-contract series on `pane` (M03: hlines/markers anchor on
++  // the handle). Histogram/columns → histogram (per-bar colors preserved); area → area;
++  // everything else (line/stepline/circles/cross) → line. Returns the owned handle (or
++  // null if the plot has no finite points); the raw view is kept by the caller.
++  const addPinePlot = (chart: IChartApi, plot: RunResult["plots"][number], pane: number): SeriesHandle | null => {
+     const data = plot.data.filter((d) => d.value != null && isFinite(d.value));
+     if (!data.length) return null;
+     const lw = Math.max(1, plot.linewidth || 1) as any;
+-    let s: ISeriesApi<any>;
++    const engine = engineRef.current;
++    if (!engine) return null;
+     if (plot.kind === "histogram" || plot.kind === "columns") {
+-      s = chart.addSeries(HistogramSeries, { priceLineVisible: false, lastValueVisible: false, title: plot.title }, pane);
+-      s.setData(data.map((d) => ({ time: d.time, value: d.value, color: d.color || plot.color })) as any);
+-    } else if (plot.kind === "area") {
+-      s = chart.addSeries(AreaSeries, { lineColor: plot.color, topColor: plot.color, bottomColor: "rgba(0,0,0,0)", lineWidth: lw, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false }, pane);
+-      s.setData(data.map((d) => ({ time: d.time, value: d.value })) as any);
+-    } else {
+-      s = chart.addSeries(LineSeries, { color: plot.color, lineWidth: lw, lineStyle: plot.kind === "stepline" ? 0 : 0, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false, title: plot.title }, pane);
+-      s.setData(data.map((d) => ({ time: d.time, value: d.value })) as any);
++      const h = engine.addSeries("histogram", { priceLineVisible: false, lastValueVisible: false, title: plot.title }, pane);
++      h.setData(data.map((d) => ({ time: d.time, value: d.value, color: d.color || plot.color })));
++      return h;
++    }
++    if (plot.kind === "area") {
++      const h = engine.addSeries("area", { lineColor: plot.color, topColor: plot.color, bottomColor: "rgba(0,0,0,0)", lineWidth: lw, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false }, pane);
++      h.setData(data.map((d) => ({ time: d.time, value: d.value })));
++      return h;
+     }
+-    return s;
++    const h = engine.addSeries("line", { color: plot.color, lineWidth: lw, lineStyle: plot.kind === "stepline" ? 0 : 0, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false, title: plot.title }, pane);
++    h.setData(data.map((d) => ({ time: d.time, value: d.value })));
++    return h;
+   };
+ 
+   // Build ONE script's series onto the chart. Overlay scripts (meta.overlay) plot on the price pane
+   // (pane 0); non-overlay scripts get their own sub-pane at index `subPane` (caller-assigned). hlines
+-  // → createPriceLine on the first series (or the price series for empty overlay scripts); shapes →
+-  // one markers plugin. Records series/markers/pane in the pine refs. Returns true if it got a pane.
++  // → createPriceLine on the first series' OWNED handle (or the price series' handle for empty
++  // overlay scripts); shapes → setMarkers on the anchor handle. Records series/pane in the pine
++  // refs. Returns true if it got a pane.
+   const buildPineScript = (script: PineScript, rows: Bar[], subPane: number): { ok: boolean; usedPane: boolean } => {
+-    const chart = chartRef.current, priceS = priceSeriesRef.current; if (!chart || !priceS) return { ok: false, usedPane: false };
++    const chart = chartRef.current, priceH = priceSeriesHRef.current; if (!chart || !priceH) return { ok: false, usedPane: false };
+     // Consume the memoized outcome (a fresh cache hit). Callers (buildAllPine) only invoke this for
+     // scripts already resolved into pineCacheRef; a miss here means the async run hasn't landed yet.
+     const outcome = pineCached(script, rows);
+@@ -1507,9 +1566,13 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators,
+     const overlay = result.meta.overlay;
+     const pane = overlay ? 0 : subPane;
+     const series: ISeriesApi<any>[] = [];
+-    for (const plot of result.plots) { const s = addPinePlot(chart, plot, pane); if (s) series.push(s); }
+-    // hlines → price lines on the anchor series (first plot series, else the price series for overlays)
+-    const anchor = series[0] || (overlay ? priceS : null);
++    const plotHs: SeriesHandle[] = [];
++    for (const plot of result.plots) {
++      const h = addPinePlot(chart, plot, pane);
++      if (h) { plotHs.push(h); series.push(h.unwrap() as ISeriesApi<any>); }
++    }
++    // hlines → price lines on the anchor (first plot series' handle, else the price handle for overlays)
++    const anchor: SeriesHandle | null = plotHs[0] || (overlay ? priceH : null);
+     // OWNERSHIP: a line on the script's OWN series is disposed when clearAllPine removes that
+     // series. An overlay script that rendered no series at all — an hline-only levels script, or
+     // one whose plots are entirely `na` over the loaded bars — anchors on the SHARED price series,
+@@ -1517,20 +1580,26 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators,
+     // removed by key, exactly like slevels/pivots/optlevels. Without that, each build strands
+     // another full set (and buildAllPine's slow path paints twice per build), growing without
+     // bound for the life of the tab.
+-    const anchoredOnPrice = anchor != null && anchor === priceS;
++    const anchoredOnPrice = anchor != null && anchor === priceH;
+     if (anchoredOnPrice) removeIndPriceLines(pineKeyOf(script.id));   // defensive: never double-draw
+     if (anchor) for (const hl of result.hlines) {
+       try {
+-        const pl = anchor.createPriceLine({ price: hl.price, color: hl.color, lineWidth: 1, lineStyle: hl.style === "dashed" ? 2 : hl.style === "dotted" ? 1 : 0, axisLabelVisible: true, title: hl.title } as any);
++        const pl = anchor.createPriceLine({ price: hl.price, color: hl.color, lineWidth: 1, lineStyle: hl.style === "dashed" ? 2 : hl.style === "dotted" ? 1 : 0, axisLabelVisible: true, title: hl.title });
+         if (anchoredOnPrice) pushIndPriceLine(pineKeyOf(script.id), pl);
+       } catch {}
+     }
+-    // shapes → markers on the anchor series (only meaningful when there's a series to hang them on)
++    // shapes → markers on the anchor handle (only meaningful with a series to hang them on).
++    // A script with its OWN series owns that series' whole marker set (it dies with the
++    // series); a price-anchored script's shapes join the SHARED set via applyPriceMarkers.
+     if (anchor && result.shapes.length) {
+       try {
+-        const markers = result.shapes.map((sh) => ({ time: sh.time as any, position: sh.position, shape: sh.shape, color: sh.color, text: sh.text }));
+-        const plugin = createSeriesMarkers(anchor, markers as any);
+-        pineMarkersRef.current.set(script.id, plugin);
++        const markers: MarkerSpec[] = result.shapes.map((sh) => ({ time: sh.time as MarkerSpec["time"], position: sh.position, shape: sh.shape, color: sh.color, text: sh.text }));
++        if (anchoredOnPrice) {
++          pinePriceShapesRef.current.set(script.id, markers);
++          applyPriceMarkers();
++        } else {
++          anchor.setMarkers(markers);
++        }
+       } catch {}
+     }
+     pineSeriesRef.current.set(script.id, series);
+@@ -1543,8 +1612,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators,
+   // Remove EVERY tracked pine series + markers (price/compare/built-ins/drawings survive).
+   const clearAllPine = () => {
+     const chart = chartRef.current; if (!chart) return;
+-    for (const plugin of pineMarkersRef.current.values()) { try { plugin.detach(); } catch {} }
+-    pineMarkersRef.current.clear();
++    pinePriceShapesRef.current.clear();
++    applyPriceMarkers();   // price-anchored shapes leave the shared marker set now
+     // Price lines an overlay script anchored on the shared price series are NOT reclaimed by
+     // removing the script's own series — that series is not where they live (see buildPineScript).
+     // Read the pool rather than pineSeriesRef so the removal still happens for a script whose
+@@ -1779,12 +1848,13 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators,
+     const p = P("rsistack");
+     const rs = rsiStack(rows, p.len1, p.len2, p.len3);
+     const s1 = chart.addSeries(LineSeries, { color: p.col1, lineWidth: p.width as any, lastValueVisible: true, title: axTitle(`RSI${p.len1}`) }, pane);
+-    const s2 = chart.addSeries(LineSeries, { color: p.col2, lineWidth: p.width as any, lastValueVisible: true, title: axTitle(`RSI${p.len2}`) }, pane);
++    const s2H = engineRef.current!.addSeries("line", { color: p.col2, lineWidth: p.width as any, lastValueVisible: true, title: axTitle(`RSI${p.len2}`) }, pane);
++    const s2 = s2H.unwrap() as ISeriesApi<any>;
+     const s3 = chart.addSeries(LineSeries, { color: p.col3, lineWidth: p.width as any, lastValueVisible: true, title: axTitle(`RSI${p.len3}`) }, pane);
+     s1.setData(toLine(rows, rs.r1)); s2.setData(toLine(rows, rs.r2)); s3.setData(toLine(rows, rs.r3));
+     if (p.showLevels) {
+-      try { s2.createPriceLine({ price: p.ob, color: "rgba(214,218,227,.25)", lineWidth: 1, lineStyle: 2, axisLabelVisible: false } as any); } catch {}
+-      try { s2.createPriceLine({ price: p.os, color: "rgba(214,218,227,.25)", lineWidth: 1, lineStyle: 2, axisLabelVisible: false } as any); } catch {}
++      try { s2H.createPriceLine({ price: p.ob, color: "rgba(214,218,227,.25)", lineWidth: 1, lineStyle: 2, axisLabelVisible: false }); } catch {}
++      try { s2H.createPriceLine({ price: p.os, color: "rgba(214,218,227,.25)", lineWidth: 1, lineStyle: 2, axisLabelVisible: false }); } catch {}
+     }
+     return [s1, s2, s3];
+   };
+@@ -1793,11 +1863,12 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators,
+   const buildAccum = (chart: IChartApi, rows: Bar[], pane: number): ISeriesApi<any>[] => {
+     const p = P("accum");
+     const vals = accumPct(rows, p.win);
+-    const ln = chart.addSeries(LineSeries, { color: "#4d82ff", lineWidth: 1.4 as any, lastValueVisible: true, title: axTitle("Accum%") }, pane);
++    const lnH = engineRef.current!.addSeries("line", { color: "#4d82ff", lineWidth: 1.4 as any, lastValueVisible: true, title: axTitle("Accum%") }, pane);
++    const ln = lnH.unwrap() as ISeriesApi<any>;
+     ln.setData(toLine(rows, vals));
+     if (p.showBands) {
+       for (const band of [75, 50, 35]) {
+-        try { ln.createPriceLine({ price: band, color: "rgba(214,218,227,.3)", lineWidth: 1, lineStyle: 2, axisLabelVisible: true, title: "ref" } as any); } catch {}
++        try { lnH.createPriceLine({ price: band, color: "rgba(214,218,227,.3)", lineWidth: 1, lineStyle: 2, axisLabelVisible: true, title: "ref" }); } catch {}
+       }
+     }
+     return [ln];
+@@ -1867,12 +1938,12 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators,
+     return [];
+   };
+ 
+-  // buildSlevels: Session Levels as createPriceLine on the price series.
++  // buildSlevels: Session Levels as createPriceLine on the price series' OWNED handle (M03).
+   // Daily bars fetched from dailyCacheRef (populated async before this call in the intraday flow).
+   const buildSlevels = (rows: Bar[]): ISeriesApi<any>[] => {
+     removeIndPriceLines("slevels");   // defensive: never double-draw this key's lines
+     if (!isIntradayRef.current) return [];
+-    const priceS = priceSeriesRef.current; if (!priceS) return [];
++    const priceH = priceSeriesHRef.current; if (!priceH) return [];
+     const p = P("slevels");
+     const market = classify(symbolRef.current);
+     const imBars = toIMBars(rows);
+@@ -1894,10 +1965,10 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators,
+       }[lv.key] ?? true;
+       if (!on) continue;
+       try {
+-        const pl = priceS.createPriceLine({
++        const pl = priceH.createPriceLine({
+           price: lv.value, color: st.color, lineWidth: st.lineWidth,
+           lineStyle: st.lineStyle, axisLabelVisible: true, title: lv.label,
+-        } as any);
++        });
+         pushIndPriceLine("slevels", pl);
+       } catch {}
+     }
+@@ -1905,11 +1976,11 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators,
+     return [];
+   };
+ 
+-  // buildPivots: Pivot levels as createPriceLine on the price series.
++  // buildPivots: Pivot levels as createPriceLine on the price series' OWNED handle (M03).
+   const buildPivots = (rows: Bar[]): ISeriesApi<any>[] => {
+     removeIndPriceLines("pivots");    // defensive: never double-draw this key's lines
+     if (!isIntradayRef.current) return [];
+-    const priceS = priceSeriesRef.current; if (!priceS) return [];
++    const priceH = priceSeriesHRef.current; if (!priceH) return [];
+     const p = P("pivots");
+     const daily = dailyCacheRef.current?.sym === symbolRef.current ? dailyCacheRef.current.bars : [];
+     if (!daily.length) return [];
+@@ -1938,10 +2009,10 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators,
+       const color = isPP ? (p.ppCol as string) : isR ? resolvedDn : isS ? resolvedUp : (p.ppCol as string);
+       const lineWidth = isPP ? 2 : 1;
+       try {
+-        const pl = priceS.createPriceLine({
++        const pl = priceH.createPriceLine({
+           price: lv.value, color, lineWidth, lineStyle: 2 /* dashed */,
+           axisLabelVisible: true, title: lv.label,
+-        } as any);
++        });
+         pushIndPriceLine("pivots", pl);
+       } catch {}
+     }
+@@ -1970,15 +2041,15 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators,
+     };
+   };
+ 
+-  // buildOptLevels: Options Levels (R3.1) as createPriceLine on the price series.
+-  // Draws from optLevelsStateRef (populated by the fetch effect) — data-fed, so unlike
++  // buildOptLevels: Options Levels (R3.1) as createPriceLine on the price series' OWNED
++  // handle (M03). Draws from optLevelsStateRef (populated by the fetch effect) — data-fed, so unlike
+   // slevels/pivots there is nothing to compute from `rows`; the guard against a stale
+   // root is the sym key on the state ref. Colors resolve from the options desk's level
+   // convention at build time (LWC renders to canvas and cannot resolve var()); put wall
+   // rides var(--down) so the East-Asian flip stays correct (directional-color law).
+   const buildOptLevels = (): ISeriesApi<any>[] => {
+     removeIndPriceLines("optlevels");   // defensive: never double-draw this key's lines
+-    const priceS = priceSeriesRef.current; if (!priceS) return [];
++    const priceH = priceSeriesHRef.current; if (!priceH) return [];
+     const st = optLevelsStateRef.current;
+     if (!st || st.sym !== symbolRef.current || st.status !== "ok" || !st.res) return [];
+     // Never draw until this symbol's bars are on the canvas (see chartDataSymRef) — the
+@@ -1992,7 +2063,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators,
+       const s = styles[lv.key];
+       if (!s.on) continue;
+       try {
+-        const pl = priceS.createPriceLine({
++        const pl = priceH.createPriceLine({
+           price: lv.price, color: s.color, lineWidth: s.lineWidth,
+           lineStyle: s.lineStyle,
+           // Native LWC labels overlap when several structural levels share a tight range.
+@@ -2000,7 +2071,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators,
+           // collision-resolved DOM scale layer instead.
+           axisLabelVisible: false,
+           title: "",
+-        } as any);
++        });
+         pushIndPriceLine("optlevels", pl);
+       } catch {}
+     }
+@@ -2031,14 +2102,15 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators,
+     }, pane);
+     histS.setData(rows.map((r, i) => rv.slot[i] != null ? { time: r.time, value: rv.slot[i]!, color: p.histCol as string } : null).filter(Boolean) as any);
+     out.push(histS);
+-    const lineS = chart.addSeries(LineSeries, {
++    const lineH = engineRef.current!.addSeries("line", {
+       color: p.lineCol as string, lineWidth: p.width as any,
+       lastValueVisible: true, title: axTitle("RVOL"),
+     }, pane);
++    const lineS = lineH.unwrap() as ISeriesApi<any>;
+     lineS.setData(toLine(rows, rv.cum));
+     out.push(lineS);
+     // 1.0 reference priceLine
+-    try { lineS.createPriceLine({ price: 1, color: "var(--muted)", lineWidth: 1, lineStyle: 2, axisLabelVisible: true, title: "1.0" } as any); } catch {}
++    try { lineH.createPriceLine({ price: 1, color: "var(--muted)", lineWidth: 1, lineStyle: 2, axisLabelVisible: true, title: "1.0" }); } catch {}
+     // Stash for legend value
+     indOverlayRef.current["rvol_last"] = rv.cum[rv.cum.length - 1] ?? null;
+     return out;
+@@ -2064,23 +2136,22 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators,
+       const prev = i > 0 ? sq.mom[i - 1] : null;
+       histData.push({ time: rows[i].time, value: v, color: momColor(v, prev) });
+     }
+-    const histS = chart.addSeries(HistogramSeries, { lastValueVisible: false, priceLineVisible: false }, pane);
++    const histH = engineRef.current!.addSeries("histogram", { lastValueVisible: false, priceLineVisible: false }, pane);
++    const histS = histH.unwrap() as ISeriesApi<any>;
+     histS.setData(histData);
+     // Squeeze-tier dots as series markers on the histogram (dots ONLY while squeezed — tier>0).
+     // Non-directional intensity ramp (never --up/--down): tier 1 amber → tier 3 red.
+-    if (ttmsqMarkersRef.current) { try { ttmsqMarkersRef.current.detach(); } catch {} ttmsqMarkersRef.current = null; }
++    // setMarkers REPLACES the previous set (M03-A01) — the pre-clear detach dance is gone;
++    // the dots die with the series on teardown.
+     if (p.showDots) {
+       const TIER_COL: Record<number, string> = { 1: "#e8a33d", 2: "#e8734d", 3: "#f0566b" };
+-      const markers: any[] = [];
++      const markers: MarkerSpec[] = [];
+       for (let i = 0; i < rows.length; i++) {
+         const t = sq.squeeze[i];
+         if (t == null || t === 0) continue;
+         markers.push({ time: rows[i].time, position: "inBar", shape: "circle", color: TIER_COL[t], size: 1 });
+       }
+-      try {
+-        const plugin = createSeriesMarkers(histS, markers as any);
+-        ttmsqMarkersRef.current = plugin;
+-      } catch {}
++      try { histH.setMarkers(markers); } catch {}
+     }
+     return [histS];
+   };
+@@ -2091,14 +2162,15 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators,
+     const imBars = toIMBars(rows);
+     const res = calcAdx(imBars, p.len as number);
+     const out: ISeriesApi<any>[] = [];
+-    const adxS = chart.addSeries(LineSeries, {
++    const adxH = engineRef.current!.addSeries("line", {
+       color: p.col as string, lineWidth: p.width as any,
+       lastValueVisible: true, title: axTitle("ADX"),
+     }, pane);
++    const adxS = adxH.unwrap() as ISeriesApi<any>;
+     adxS.setData(toLine(rows, res.adx));
+     // 20 / 25 hlines
+-    try { adxS.createPriceLine({ price: 25, color: "rgba(214,218,227,.25)", lineWidth: 1, lineStyle: 2, axisLabelVisible: true, title: "25" } as any); } catch {}
+-    try { adxS.createPriceLine({ price: 20, color: "rgba(214,218,227,.20)", lineWidth: 1, lineStyle: 2, axisLabelVisible: true, title: "20" } as any); } catch {}
++    try { adxH.createPriceLine({ price: 25, color: "rgba(214,218,227,.25)", lineWidth: 1, lineStyle: 2, axisLabelVisible: true, title: "25" }); } catch {}
++    try { adxH.createPriceLine({ price: 20, color: "rgba(214,218,227,.20)", lineWidth: 1, lineStyle: 2, axisLabelVisible: true, title: "20" }); } catch {}
+     out.push(adxS);
+     if (p.showDi as boolean) {
+       const upC = getComputedStyle(document.documentElement).getPropertyValue("--up").trim() || "#26c281";
+@@ -2423,7 +2495,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators,
+       const vis = !h.has(k) && tfVisible(k); for (const s of arr) { try { s.applyOptions({ visible: vis } as any); } catch {} }
+     }
+     // price-line-only overlays (slevels/pivots/optlevels) plot no series — the eye must flip
+-    // their pooled IPriceLines directly or the toggle silently no-ops on them.
++    // their pooled PriceLineHandles directly or the toggle silently no-ops on them.
+     for (const [k, lines] of indPriceLinesRef.current) {
+       // A script's pooled hlines are keyed by its namespaced pane key, but its eye tracks the
+       // raw script id (the pine loop below) — resolve before asking, or hiding a script would
+@@ -2444,9 +2516,9 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators,
+   // Remove EVERY tracked indicator series (price/compare/drawings survive). Used by the bounded rebuild.
+   const clearAllIndicators = () => {
+     const chart = chartRef.current; if (!chart) return;
+-    // Detach marker plugins (ttmsq dots, macd crossover dots) BEFORE removing their host series.
+-    if (ttmsqMarkersRef.current) { try { ttmsqMarkersRef.current.detach(); } catch {} ttmsqMarkersRef.current = null; }
+-    if (macdMarkersRef.current) { try { macdMarkersRef.current.detach(); } catch {} macdMarkersRef.current = null; }
++    // Marker sets (ttmsq dots, macd crossover dots) live ON their host handles now (M03) —
++    // they are disposed with the series below; only the macd host handle ref is dropped here.
++    macdLineHRef.current = null;
+     for (const arr of indSeriesRef.current.values()) for (const s of arr) { try { chart.removeSeries(s); } catch {} }
+     indSeriesRef.current.clear(); paneMapRef.current.clear();
+     indOverlayRef.current = {};
+@@ -2461,15 +2533,16 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators,
+   const buildSuitePane = (chart: IChartApi, rows: Bar[], key: string, pane: number): ISeriesApi<any>[] => {
+     const def = getSuiteDef(key); if (!def || def.kind !== "pane" || !def.pane || !rows.length) return [];
+     const { min, max } = def.pane;
+-    const anchor = chart.addSeries(LineSeries, {
++    const anchorH = engineRef.current!.addSeries("line", {
+       color: "rgba(0,0,0,0)", lineWidth: 1 as any, lastValueVisible: false, priceLineVisible: false,
+       crosshairMarkerVisible: false,
+       autoscaleInfoProvider: () => ({ priceRange: { minValue: min, maxValue: max } }),
+     } as any, pane);
++    const anchor = anchorH.unwrap() as ISeriesApi<any>;
+     const mid = (min + max) / 2;
+     try { anchor.setData([{ time: rows[0].time as any, value: mid }, { time: rows[rows.length - 1].time as any, value: mid }]); } catch {}
+     for (const ln of def.pane.lines ?? []) {
+-      try { anchor.createPriceLine({ price: ln.p, color: "rgba(214,218,227,.22)", lineWidth: 1, lineStyle: ln.dashed ? 2 : 0, axisLabelVisible: true, title: ln.label ?? String(ln.p) } as any); } catch {}
++      try { anchorH.createPriceLine({ price: ln.p, color: "rgba(214,218,227,.22)", lineWidth: 1, lineStyle: ln.dashed ? 2 : 0, axisLabelVisible: true, title: ln.label ?? String(ln.p) }); } catch {}
+     }
+     return [anchor];
+   };
+@@ -2575,7 +2648,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators,
+       if (sArr[0]) sArr[0].setData(rows.map((r, i) => (m.hist[i] != null ? { time: r.time, value: m.hist[i]!, color: m.hist[i]! >= 0 ? p.upHist : p.downHist } : null)).filter(Boolean) as any);
+       if (sArr[1]) sArr[1].setData(toLine(rows, m.line));
+       if (sArr[2]) sArr[2].setData(toLine(rows, m.sig));
+-      if (sArr[1]) applyMacdMarkers(sArr[1], rows, m.line, m.sig);   // refresh crossover dots on the line series
++      if (sArr[1] && macdLineHRef.current) applyMacdMarkers(macdLineHRef.current, rows, m.line, m.sig);   // refresh crossover dots on the line series' owned handle
+     }
+   };
+ 
+@@ -3016,8 +3089,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators,
+    * symbol-guarded consumer (splice, options levels, drawings) that this pane is unpainted.
+    */
+   const clearChartData = () => {
+-    try { episodeMarkersRef.current?.detach(); } catch {}
+-    episodeMarkersRef.current = null;
++    episodeSpecsRef.current = [];
++    applyPriceMarkers();   // drop the episode marks from the shared price-series marker set
+     barsRef.current = []; fullBarsRef.current = []; fullBarsTfRef.current = ""; dailyBarsRef.current = []; closesRef.current = [];
+     barIdxRef.current = { src: null, map: new Map() };
+     sliceRef.current = null; sigMarksRef.current = []; earlyDotsRef.current = []; warnMarksRef.current = [];
+@@ -3355,7 +3428,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators,
+     // pooling it would be the bug. The price series outlives every generation, so anything
+     // drawn on it must be pooled for explicit removal — that is what this pair checks.
+     let pricePaneLines = 0;
+-    try { pricePaneLines = priceSeriesRef.current?.priceLines().length ?? 0; } catch { pricePaneLines = 0; }
++    try { pricePaneLines = priceSeriesHRef.current?.priceLines().length ?? 0; } catch { pricePaneLines = 0; }
+     const trackedPricePaneLines = pooledPriceLines + (extendedPriceLineRef.current ? 1 : 0);
+     return {
+       engine: engine ? 1 : 0,
+@@ -3367,8 +3440,11 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators,
+       pricePaneLines,
+       trackedPricePaneLines,
+       orphanPricePaneLines: pricePaneLines - trackedPricePaneLines,
++      // Price-series marker WRITERS (M03): episode marks + price-anchored Pine shapes merge
++      // into ONE setMarkers call; per-series marker sets (macd/ttmsq/pine plots) live on
++      // their host handles and die with the series — no plugin refs to count.
+       markerPlugins:
+-        pineMarkersRef.current.size + (ttmsqMarkersRef.current ? 1 : 0) + (macdMarkersRef.current ? 1 : 0),
++        (episodeSpecsRef.current.length ? 1 : 0) + pinePriceShapesRef.current.size,
+       // Generation-scoped subscription owner. Effect 1's own crosshair/range handlers are
+       // mount-once and chart-owned (chart.remove() drops them with the delegate), so this
+       // registration — re-made on every symbol/timeframe generation — is the only one that
+@@ -3935,31 +4011,29 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators,
+     // migrates behind the contract in P2, and this unwrap dies with the last one.
+     const chart = engine.unwrap<IChartApi>();
+     chartRef.current = chart;
+-    // ── v5 text watermark (createTextWatermark plugin — chart.applyOptions({ watermark }) removed in v5) ──
+-    // Created once on mount; Effect 7 toggles visibility via applyOptions on the plugin instance.
++    // ── v5 text watermark — the owned contract's pane-scoped setWatermark (M03) ──
++    // Created once on mount; Effect 7 toggles visibility by REPLACING the spec (the
++    // adapter detaches the previous plugin, so exactly one instance is ever live — M03-A01).
+     try {
+-      const pane = chart.panes()[0];
+-      if (pane) {
+-        // C5 (revises D10) — the plugin's bottom-left placement puts the shell brand bug INSIDE the
+-        // volume overlay, and TextWatermarkOptions carries no padding/offset field, so the inset is
+-        // unreachable through it. Shell mode keeps the plugin off and paints the .mm-brandbug DOM
+-        // node below instead; web keeps the centred ghost wordmark byte-for-byte.
+-        const wmShell = shellAxis();
+-        const wm = createTextWatermark(pane, {
+-          visible: !wmShell,
+-          horzAlign: "center",
+-          vertAlign: "center",
+-          lines: [{
+-            text: "Mastermind Terminal",
+-            color: chartSettingsRef.current?.watermarkColor || "rgba(214,218,227,0.04)",
+-            fontSize: 48,
+-            fontStyle: "bold",
+-            fontFamily: "var(--font-ui, system-ui, sans-serif)",
+-          }],
+-        });
+-        watermarkPluginRef.current = wm;
+-        watermarkVisibleRef.current = !wmShell;
+-      }
++      // C5 (revises D10) — the plugin's bottom-left placement puts the shell brand bug INSIDE the
++      // volume overlay, and TextWatermarkOptions carries no padding/offset field, so the inset is
++      // unreachable through it. Shell mode keeps the plugin off and paints the .mm-brandbug DOM
++      // node below instead; web keeps the centred ghost wordmark byte-for-byte.
++      const wmShell = shellAxis();
++      watermarkSpecRef.current = {
++        visible: !wmShell,
++        horzAlign: "center",
++        vertAlign: "center",
++        lines: [{
++          text: "Mastermind Terminal",
++          color: chartSettingsRef.current?.watermarkColor || "rgba(214,218,227,0.04)",
++          fontSize: 48,
++          fontStyle: "bold",
++          fontFamily: "var(--font-ui, system-ui, sans-serif)",
++        }],
++      };
++      engine.setWatermark(0, watermarkSpecRef.current);
++      watermarkVisibleRef.current = !wmShell;
+     } catch {}
+ 
+     const wrap = el.parentElement as HTMLElement;
+@@ -4567,9 +4641,10 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators,
+     renderHoverTagRef.current = renderHoverTag;
+     // `point.y` is PANE-relative — the same space priceToCoordinate returns — but LWC reports the
+     // ORIGINAL pointer point even after Magnet has snapped its horizontal line. Mirror LWC's own
+-    // Magnet candidate selection from the event's public seriesData: visible, non-overlay series in
+-    // this pane, using each series' close/value transformed through its own scale. This covers
+-    // Heikin-Ashi and price-pane studies without reaching into Lightweight Charts internals.
++    // Magnet candidate selection from the event's public seriesData — keyed by the OWNED handles
++    // the engine registered (M03-A03): visible, non-overlay series in this pane, using each
++    // series' close/value transformed through its own scale. This covers Heikin-Ashi and
++    // price-pane studies without reaching into Lightweight Charts internals.
+     const onTagCrosshair = (p: any) => {
+       let y: number | null = null;
+       let snappedPrice: number | null = null;
+@@ -4577,14 +4652,14 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators,
+       if (pt && Number.isFinite(pt.y) && (p.paneIndex == null || p.paneIndex === priceIdx())) {
+         y = pt.y;
+         if (chartSettingsRef.current.crosshairMode === 1) {
+-          const s = priceSeriesRef.current;
++          const s = priceSeriesHRef.current;
+           let nearestY: number | null = null;
+           let nearestDistance = Infinity;
+           const data = p?.seriesData;
+           if (data instanceof Map) {
+-            for (const [candidate, datum] of data as Map<ISeriesApi<any>, any>) {
++            for (const [candidate, datum] of data as Map<SeriesHandle, any>) {
+               try {
+-                if (candidate.options()?.visible === false || candidate.getPane()?.paneIndex() !== priceIdx()) continue;
++                if (candidate.options()?.visible === false || candidate.paneIndex() !== priceIdx()) continue;
+                 const scaleId = candidate.options()?.priceScaleId;
+                 if (scaleId && scaleId !== "left" && scaleId !== "right") continue; // explicit overlay scale
+                 const value = Number.isFinite(datum?.close) ? datum.close : Number.isFinite(datum?.value) ? datum.value : null;
+@@ -4608,7 +4683,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators,
+       crossLabelYRef.current = y;
+       renderHoverTag(y, snappedPrice);
+     };
+-    chart.subscribeCrosshairMove(onTagCrosshair);
++    engine.subscribeCrosshairMove(onTagCrosshair);
+     tagTimerRef.current = window.setInterval(() => { if (!dead) renderAllPriceTags(); }, 1000);
+ 
+     // ── coordinate helpers (read *Ref.current so they stay valid across reloads) ──
+@@ -7173,7 +7248,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators,
+     wrap.addEventListener("pointerdown", onProjectionPointerDown, true);
+     window.addEventListener("pointerup", onProjectionPointerEnd);
+     window.addEventListener("pointercancel", onProjectionPointerEnd);
+-    chart.subscribeCrosshairMove(onCrosshairProjection);
++    engine.subscribeCrosshairMove(onCrosshairProjection);
+     const onVisualCrosshair = (event: any) => {
+       if (!event?.point || event.time == null || toolRef.current || !activeRef.current || !visualPanelRef.current?.isInspecting()) return;
+       const time = typeof event.time === "object"
+@@ -7181,7 +7256,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators,
+         : event.time;
+       inspectVisualTime(time);
+     };
+-    chart.subscribeCrosshairMove(onVisualCrosshair);
++    engine.subscribeCrosshairMove(onVisualCrosshair);
+     if (shellAxis()) {
+       // pointermove/pointerdown are the presence signals, not just pointerenter: headless
+       // Chromium (CI) synthesizes moves without reliable boundary events, and a real
+@@ -7192,7 +7267,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators,
+       wrap.addEventListener("pointerdown", onScrubEnter);
+       wrap.addEventListener("pointerleave", onScrubLeave);
+       wrap.addEventListener("pointercancel", onScrubLeave);
+-      chart.subscribeCrosshairMove(scrubStatus);
++      engine.subscribeCrosshairMove(scrubStatus);
+     }
+     renderSignals(); renderIndOverlays(); renderDraw();
+ 
+@@ -8477,8 +8552,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators,
+     return () => {
+       dead = true; if (rafId != null) cancelAnimationFrame(rafId); if (measRaf != null) cancelAnimationFrame(measRaf);
+       paneDrawingReadiness.dispose();
+-      try { chart.unsubscribeCrosshairMove(onTagCrosshair); } catch {}
+-      try { chart.unsubscribeCrosshairMove(onVisualCrosshair); } catch {}
++      try { engine.unsubscribeCrosshairMove(onTagCrosshair); } catch {}
++      try { engine.unsubscribeCrosshairMove(onVisualCrosshair); } catch {}
+       if (drawRaf != null) cancelAnimationFrame(drawRaf); if (resizeRaf != null) cancelAnimationFrame(resizeRaf);
+       if (pineLiveTimerRef.current != null) { clearTimeout(pineLiveTimerRef.current); pineLiveTimerRef.current = null; }
+       if (pineHostRef.current) { try { pineHostRef.current.dispose(); } catch {} pineHostRef.current = null; }
+@@ -8540,28 +8615,23 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators,
+       if (countdownTimerRef.current) { clearInterval(countdownTimerRef.current); countdownTimerRef.current = null; }
+       if (countdownChipRef.current) { try { countdownChipRef.current.remove(); } catch {} countdownChipRef.current = null; }
+       if (shadingPrimRef.current) {
+-        // Detach only if the series is still there; drop the reference either way. Gating the
+-        // NULLING on priceSeriesRef too would strand this ref whenever the price series was
++        // Detach only if the host handle is still there; drop the reference either way. Gating the
++        // NULLING on the handle too would strand this ref whenever the price series was
+         // already gone (a symbol that dead-ended before one was built).
+-        if (priceSeriesRef.current) { try { detachSessionShading(priceSeriesRef.current, shadingPrimRef.current); } catch {} }
++        if (priceSeriesHRef.current) { try { detachSessionShadingFromHandle(priceSeriesHRef.current, shadingPrimRef.current); } catch {} }
+         shadingPrimRef.current = null;
+       }
+       clearExtendedPriceLine();
+       indPriceLinesRef.current = new Map();
+       indSeriesRef.current.clear(); cmpSeriesRef.current.clear(); paneMapRef.current.clear();
+-      pineSeriesRef.current.clear(); pineMarkersRef.current.clear(); pinePaneMapRef.current.clear(); pineErrRef.current.clear(); pineCacheRef.current.clear(); pineAstRef.current.clear();
+-      // The two singleton marker plugins had no teardown line, unlike every sibling above. The
+-      // chart disposes the primitives themselves, but an ISeriesMarkersPluginApi holds its host
+-      // ISeriesApi, which holds the whole ChartModel — so a ref left set keeps the entire
+-      // disposed chart graph reachable for as long as anything holds this component's refs.
+-      // Nulled unconditionally: the plugin is already gone with the chart, so there is nothing
+-      // to detach, only a reference to drop.
+-      ttmsqMarkersRef.current = null; macdMarkersRef.current = null;
+-      try { episodeMarkersRef.current?.detach(); } catch {}
+-      episodeMarkersRef.current = null;
+-      priceSeriesRef.current = null; priceFamilyRef.current = null;
++      pineSeriesRef.current.clear(); pinePriceShapesRef.current.clear(); pinePaneMapRef.current.clear(); pineErrRef.current.clear(); pineCacheRef.current.clear(); pineAstRef.current.clear();
++      // Marker sets live ON their host handles (M03): engine.destroy() disposes every series
++      // with its attached plugin, so there is nothing to detach — only refs to drop (the old
++      // plugin refs kept the whole disposed chart graph reachable; that class of leak is gone).
++      macdLineHRef.current = null;
++      priceSeriesRef.current = null; priceSeriesHRef.current = null; priceFamilyRef.current = null;
+       futureAxisRef.current = null;   // the engine disposes every series with the chart
+-      watermarkPluginRef.current = null;   // plugin is attached to a pane; engine.destroy() tears it down
++      watermarkSpecRef.current = null;   // engine.destroy() detaches the pane watermark
+       // The engine owns disposal (its destroy() is the one chart.remove() call); chartRef
+       // was only ever the unwrap bridge, so it just drops.
+       if (engineRef.current) { try { engineRef.current.destroy(); } catch {} engineRef.current = null; }
+@@ -8746,8 +8816,12 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators,
+         const wantFamily = priceSeriesFamily(chartType);
+         let priceS = priceSeriesRef.current;
+         if (!priceS || priceFamilyRef.current !== wantFamily) {
+-          if (priceS) { clearExtendedPriceLine(); try { chart.removeSeries(priceS); } catch {} }
+-          priceS = addPriceSeries(chart, tokensRef.current);
++          if (priceS) {
++            clearExtendedPriceLine();
++            const oldH = priceSeriesHRef.current;
++            if (oldH) { try { engineRef.current?.removeSeries(oldH); } catch {} }
++          }
++          priceS = addPriceSeries(tokensRef.current);
+           priceFamilyRef.current = wantFamily;
+           priceSeriesRef.current = priceS;
+         } else { priceS.applyOptions({ priceFormat: priceFmt() }); }
+@@ -8917,8 +8991,12 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators,
+       const wantFamily = priceSeriesFamily(chartType);
+       let priceS = priceSeriesRef.current;
+       if (!priceS || priceFamilyRef.current !== wantFamily) {
+-        if (priceS) { clearExtendedPriceLine(); try { chart.removeSeries(priceS); } catch {} }
+-        priceS = addPriceSeries(chart, tokensRef.current);
++        if (priceS) {
++          clearExtendedPriceLine();
++          const oldH = priceSeriesHRef.current;
++          if (oldH) { try { engineRef.current?.removeSeries(oldH); } catch {} }
++        }
++        priceS = addPriceSeries(tokensRef.current);
+         priceFamilyRef.current = wantFamily;
+         priceSeriesRef.current = priceS;
+       } else {
+@@ -9046,11 +9124,11 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators,
+     // v5 subscribe* return void; unsubscribe by passing the SAME handler reference back.
+     const onCross = (p: any) => { broadcastCrosshair(syncId, (p.time ?? null) as any); };
+     const onRange = (r: any) => { broadcastRange(syncId, r as any); };
+-    chart.subscribeCrosshairMove(onCross);
++    engineRef.current?.subscribeCrosshairMove(onCross);
+     chart.timeScale().subscribeVisibleLogicalRangeChange(onRange);
+     syncCleanupRef.current = () => {
+       try { cleanup && cleanup(); } catch {}
+-      try { chart.unsubscribeCrosshairMove(onCross); } catch {}
++      try { engineRef.current?.unsubscribeCrosshairMove(onCross); } catch {}
+       try { chart.timeScale().unsubscribeVisibleLogicalRangeChange(onRange); } catch {}
+     };
+   };
+@@ -9128,8 +9206,9 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators,
+       // ── incremental sub-pane edits ──
+       // removals (highest sub-pane only, by the guard above)
+       for (const r of removed) {
+-        if (r === "ttmsq" && ttmsqMarkersRef.current) { try { ttmsqMarkersRef.current.detach(); } catch {} ttmsqMarkersRef.current = null; }
+-        if (r === "macd" && macdMarkersRef.current) { try { macdMarkersRef.current.detach(); } catch {} macdMarkersRef.current = null; }
++        // Marker sets die with their host series (chart.removeSeries disposes attached
++        // plugins); the macd host handle ref is the only decoration state to drop (M03).
++        if (r === "macd") macdLineHRef.current = null;
+         const arr = indSeriesRef.current.get(r) || []; for (const s of arr) { try { chart.removeSeries(s); } catch {} } indSeriesRef.current.delete(r); paneMapRef.current.delete(r);
+       }
+       // additions (tail append, by the guard above) — assign the next free pane index
+@@ -9300,11 +9379,10 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators,
+ 
+   // ── Dislocation episode marks (product spec §4.3) — transition markers at knowable-at bars; NO levels (G7). ──
+   const renderEpisodeMarks = () => {
+-    try { episodeMarkersRef.current?.detach(); } catch {}
+-    episodeMarkersRef.current = null;
+     episodeSpecsRef.current = [];
+-    const ep = episodeRef.current; const priceS = priceSeriesRef.current; const bars = barsRef.current;
+-    if (!ep || !priceS || !bars.length) return;
++    applyPriceMarkers();   // clear first: every early return below leaves the pane clean (was: detach the plugin)
++    const ep = episodeRef.current; const priceH = priceSeriesHRef.current; const bars = barsRef.current;
++    if (!ep || !priceH || !bars.length) return;
+     if (ep.ticker.toUpperCase() !== symbolRef.current.toUpperCase()) return;
+     const marks = toChartMarks(episodeMarks(ep), bars.map((b) => b.time as unknown as number | string), isIntradayRef.current);
+     if (!marks.length) return;
+@@ -9315,7 +9393,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators,
+     };
+     const lang = typeof document !== "undefined" && document.documentElement.getAttribute("data-lang") === "zh" ? "zh" as const : "en" as const;
+     const specs = chartMarkerSpecs(marks, palette, lang);
+-    try { episodeMarkersRef.current = createSeriesMarkers(priceS, specs as any); episodeSpecsRef.current = specs; } catch { episodeSpecsRef.current = []; }
++    episodeSpecsRef.current = specs;
++    applyPriceMarkers();
+   };
+   renderEpisodeMarksRef.current = renderEpisodeMarks;
+   // ── EFFECT 3-episode — [episodeId, symbol]: fetch the deep-linked episode; the chart draws nothing on 401/403/absent (the screen owns the honest state). ──
+@@ -9717,24 +9796,23 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators,
+           ...chartTimeAxisOptions(chartSettings.hourFormat ?? "24", visibleCalendarSpanDays),
+         } as any,
+       });
+-      // Watermark visibility — v5 uses the createTextWatermark plugin (chart-level watermark removed in v5).
++      // Watermark visibility — toggled by REPLACING the spec through the owned contract
++      // (setWatermark detaches the previous plugin; exactly one instance stays live — M03-A01).
+       if (showWatermark != null) {
+         try {
+           // C5 — the plugin stays off in shell mode (it cannot be inset clear of the volume band);
+           // the .mm-brandbug DOM node carries the setting there instead.
+           const wmShell = shellAxis();
+-          watermarkPluginRef.current?.applyOptions({
+-            visible: showWatermark && !wmShell,
+-            horzAlign: "center",
+-            vertAlign: "center",
+-            lines: [{
+-              text: "Mastermind Terminal",
+-              color: chartSettings.watermarkColor || "rgba(214,218,227,0.04)",
+-              fontSize: 48,
+-              fontStyle: "bold",
+-              fontFamily: "var(--font-ui, system-ui, sans-serif)",
+-            }],
+-          });
++          const base = watermarkSpecRef.current;
++          if (base) {
++            const next: WatermarkSpec = {
++              ...base,
++              visible: showWatermark && !wmShell,
++              lines: [{ ...base.lines[0], color: chartSettings.watermarkColor || "rgba(214,218,227,0.04)" }],
++            };
++            engineRef.current?.setWatermark(0, next);
++            watermarkSpecRef.current = next;
++          }
+           watermarkVisibleRef.current = showWatermark && !wmShell;
+           if (brandBugRef.current) brandBugRef.current.style.display = showWatermark ? "" : "none";
+         } catch {}
+@@ -9809,9 +9887,10 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators,
+ 
+   // ── DT-D1: session shading + countdown chip (dayMode × intraday × market) ──
+   // Runs whenever dayMode, timeframe, or symbol changes. Attaches / detaches the
+-  // SessionShadingPrimitive on the candle series, and starts/stops the 1s countdown timer.
++  // SessionShadingPrimitive on the candle series' OWNED handle (M03), and starts/stops
++  // the 1s countdown timer.
+   useEffect(() => {
+-    const priceS = priceSeriesRef.current;
++    const priceH = priceSeriesHRef.current;
+     const market = classify(symbol);
+     const isIntraday = isIntradayTf(timeframe);
+     // US-session shading assumes the bars' display axis runs on US Eastern wall clock. An
+@@ -9823,14 +9902,14 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators,
+       && !(isMacroSymbol(symbol) && !macroOnEtAxis(symbol));
+ 
+     // Detach any existing shading primitive first
+-    if (shadingPrimRef.current && priceS) {
+-      try { detachSessionShading(priceS, shadingPrimRef.current); } catch {}
++    if (shadingPrimRef.current && priceH) {
++      try { detachSessionShadingFromHandle(priceH, shadingPrimRef.current); } catch {}
+       shadingPrimRef.current = null;
+     }
+ 
+-    if (canShade && priceS) {
++    if (canShade && priceH) {
+       const imBars = barsRef.current as unknown as import("@/lib/sessionShading").ShadingBar[];
+-      const prim = attachSessionShading(priceS, imBars);
++      const prim = attachSessionShadingToHandle(priceH, imBars);
+       shadingPrimRef.current = prim;
+     }
+ 
+diff --git a/terminal/lib/chart-engine/lwc/index.ts b/terminal/lib/chart-engine/lwc/index.ts
+index efd86dcc..d6c32323 100644
+--- a/terminal/lib/chart-engine/lwc/index.ts
++++ b/terminal/lib/chart-engine/lwc/index.ts
+@@ -130,6 +130,18 @@ const KIND_DEF: Record<EngineSeriesKind, SeriesDefinition<SeriesType>> = {
+   baseline: BaselineSeries as SeriesDefinition<SeriesType>,
+ };
+ 
++// LWC TSeriesType ("Candlestick" | …) → contract kind, for ADOPTING a series the
++// engine did not create (M03-A03: a consumer still on the unwrap path creates raw
++// series; the event payload must still never leak a raw identity).
++const ADOPT_KIND: Record<string, EngineSeriesKind> = {
++  Candlestick: "candles",
++  Bar: "bars",
++  Line: "line",
++  Area: "area",
++  Histogram: "histogram",
++  Baseline: "baseline",
++};
++
+ // The contract passes open bags (Record<string, unknown>) at the boundary; LWC's option
+ // and data types are exact per-kind unions. These casts are the single documented
+ // pass-through point — the contract deliberately does not model LWC's option surface
+@@ -661,12 +673,67 @@ class LwcChartEngine implements ChartEngine {
+   private wrapMouse(handler: EngineMouseHandler): (p: MouseEventParams) => void {
+     let w = this.mouseWrappers.get(handler);
+     if (!w) {
+-      w = (p: MouseEventParams) => handler(p as unknown as EngineMouseEventParams);
++      w = (p: MouseEventParams) => handler(this.ownMouseParams(p));
+       this.mouseWrappers.set(handler, w);
+     }
+     return w;
+   }
+ 
++  // M03-A03: the contract's EngineMouseEventParams.seriesData is keyed by OWNED
++  // SeriesHandles, never by raw ISeriesApi. LWC delivers a raw-keyed map; re-key every
++  // entry through the engine's native→handle registry. A series created outside the
++  // engine (a consumer still on the unwrap path) is ADOPTED here — wrapped in a handle
++  // and registered — so no raw series identity crosses the contract boundary and the
++  // candidate set is preserved for consumers that migrate before their series do.
++  // Cheap and lazy: adoption happens once per series (WeakMap), the rebuild is
++  // O(series on chart) per event, and a non-Map payload passes through untouched.
++  private ownMouseParams(p: MouseEventParams): EngineMouseEventParams {
++    const data = p.seriesData;
++    if (!(data instanceof Map)) return p as unknown as EngineMouseEventParams;
++    const owned = new Map<SeriesHandle, unknown>();
++    for (const [raw, datum] of data) {
++      const h = this.byNativeSeries.get(raw) ?? this.adoptSeries(raw);
++      if (h) owned.set(h, datum);
++    }
++    const ownMaybe = (raw: ISeriesApi<SeriesType> | null | undefined): unknown =>
++      raw == null ? raw : this.byNativeSeries.get(raw) ?? this.adoptSeries(raw);
++    const hovered = ownMaybe(p.hoveredSeries);
++    const hoveredInfo =
++      p.hoveredInfo === undefined || p.hoveredInfo === null
++        ? p.hoveredInfo
++        : { ...p.hoveredInfo, series: ownMaybe(p.hoveredInfo.series) };
++    return { ...p, seriesData: owned, hoveredSeries: hovered, hoveredInfo } as unknown as EngineMouseEventParams;
++  }
++
++  // Wrap a raw ISeriesApi the engine did not create in an owned handle and register it,
++  // so lookups (events, pane.getSeries()) resolve the SAME handle from then on. Returns
++  // null when the series' type cannot be determined (defensive: drop the entry rather
++  // than leak the raw identity).
++  private adoptSeries(raw: ISeriesApi<SeriesType>): LwcSeriesHandle | null {
++    if (!this.chart) return null;
++    let seriesTypeName: string | undefined;
++    try {
++      seriesTypeName = raw.seriesType?.();
++    } catch {
++      return null;
++    }
++    const kind = ADOPT_KIND[seriesTypeName ?? ""];
++    if (!kind) return null;
++    const handle = new LwcSeriesHandle(
++      kind,
++      this.chart,
++      raw,
++      () => this.ensure(),
++      (h) => this.series.delete(h),
++      this.lookupSeries,
++      this.lookupLine,
++      this.registerLine,
++    );
++    this.series.add(handle);
++    this.byNativeSeries.set(raw, handle);
++    return handle;
++  }
++
+   subscribeCrosshairMove(handler: EngineMouseHandler): void {
+     this.ensure().subscribeCrosshairMove(this.wrapMouse(handler));
+   }
