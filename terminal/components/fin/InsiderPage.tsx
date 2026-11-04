@@ -202,7 +202,7 @@ function InsiderPage({ sym, bars = [], zh = false }: InsiderPageProps) {
           <span className="fin-empty-why">
             {pick(zh, `Could not load the Form 4 data for ${sym}. Try again.`, `无法加载 ${sym} 的 Form 4 数据。请重试。`)}
           </span>
-          <button className="btn btn-ghost" onClick={() => setRetryNonce((value) => value + 1)}>
+          <button className="btn btn-ghost load-retry" onClick={() => setRetryNonce((value) => value + 1)}>
             {pick(zh, "Retry", "重试")}
           </button>
         </div>
