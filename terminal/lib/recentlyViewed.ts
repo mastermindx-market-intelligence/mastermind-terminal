@@ -41,8 +41,8 @@ export function prependRecentlyViewed(list: readonly unknown[], symbol: string):
 }
 
 function readRaw(): string[] {
-  if (typeof localStorage === "undefined") return [];
   try {
+    if (typeof localStorage === "undefined") return [];
     const value = localStorage.getItem(RECENTLY_VIEWED_KEY);
     const parsed: unknown = value ? JSON.parse(value) : [];
     return Array.isArray(parsed) ? prependRecentlyViewed(parsed, "") : [];
@@ -52,15 +52,14 @@ function readRaw(): string[] {
 }
 
 function writeRaw(list: string[]): void {
-  if (typeof localStorage === "undefined") return;
   try {
+    if (typeof localStorage === "undefined") return;
     localStorage.setItem(RECENTLY_VIEWED_KEY, JSON.stringify(list));
   } catch {}
 }
 
 /** Record a chart view, most-recent first. Repeated symbols move back to the front. */
 export function pushRecentlyViewed(symbol: string): void {
-  if (typeof localStorage === "undefined") return;
   const next = prependRecentlyViewed(readRaw(), symbol);
   if (!next.length) return;
   writeRaw(next);
