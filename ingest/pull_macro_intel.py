@@ -84,7 +84,7 @@ import time
 import urllib.parse
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -425,14 +425,14 @@ def _build_washout_turn(src_wt: object) -> dict | None:
 
 
 def _is_stale(asof: str | None, today: date, max_days: int) -> bool:
-    """Return True if asof is absent or older than max_days calendar days."""
-    if not asof:
+    """Qualify only real, observed ISO sessions in the configured calendar window."""
+    if not isinstance(asof, str) or not re.fullmatch(r"\d{4}-\d{2}-\d{2}(?:[T ]\d{2}:\d{2}.*)?", asof):
         return True
     try:
-        src_date = date.fromisoformat(str(asof)[:10])
-    except (ValueError, TypeError):
+        src_date = datetime.fromisoformat(asof.replace("Z", "+00:00")).date()
+    except ValueError:
         return True
-    return (today - src_date).days >= max_days
+    return not 0 <= (today - src_date).days < max_days
 
 
 # ── core builder ───────────────────────────────────────────────────────────────
@@ -481,6 +481,13 @@ def build_intel(sym: str, src: dict, today: date | None = None) -> dict:
         # Abstain entirely when data is stale; the panel/copilot must not display
         # a lean that may be many days out of date.
         ai_lean: dict = {"abstain": True, "reason": "stale"}
+    elif not (decision_band or "").strip():
+        # No directional assessment without its source band. An independently
+        # published timing posture can still be read as a posture.
+        if entry_status and entry_status.strip():
+            ai_lean = {"entry": entry_status, "max_age_days": MAX_STALE_DAYS}
+        else:
+            ai_lean = {"abstain": True, "reason": "missing_direction"}
     else:
         ai_dir = _map_ai_dir(decision_band, entry_status)
         conviction_score = _r(conviction.get("score"), 1)
@@ -495,6 +502,8 @@ def build_intel(sym: str, src: dict, today: date | None = None) -> dict:
             "score": conviction_score,
             "band": decision_band,
             "entry": entry_status,
+            # Retained snapshots expire under the same policy as a new build.
+            "max_age_days": MAX_STALE_DAYS,
         }
 
     tape: dict = {
