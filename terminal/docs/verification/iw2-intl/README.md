@@ -153,3 +153,11 @@ percent syntax, and2048 bound remain unchanged. Original cross-market tests had
 3 RED; the repaired38-case intake/mounted slice proves JP return leaves the saved
 EZ subject/pins untouched. Producer href/bridge compatibility must still pass on
 its corrected actual artifacts; it is not inferred from this receiver change.
+
+The incumbent reducer also has a canonical no-focus state (`selected_market:null`,
+serialized required `market=`). The return validator accepts this present-empty
+navigation value while continuing to reject missing or malformed nonempty values.
+No country is invented. Two original RED controls become45 intake/mounted PASS;
+both JP and no-focus entries traverse the native parser and preserve the exact
+server-qualified EZ subject, references, question and saved revision. This narrow
+additional navigation-only delta has its own nonauthor verification boundary.

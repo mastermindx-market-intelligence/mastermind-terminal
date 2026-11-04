@@ -5,6 +5,7 @@ import {expect,it,vi} from "vitest";
 import {readFileSync,readdirSync} from "node:fs";
 import {join} from "node:path";
 import InvestigationWorkspace from "@/components/workspaces/InvestigationWorkspace";
+import {parseAnalysisRoute} from "../analysisRoute";
 import type {IntlEntrySelectors} from "../investigationIntlEntry";
 import type {InvestigationManifest} from "../investigationContracts";
 const {rpc,getUser,principal}=vi.hoisted(()=>({rpc:vi.fn(),getUser:vi.fn(),principal:"90000000-0000-4000-8000-000000000009"}));
@@ -20,12 +21,12 @@ import {GET as baselineGET} from "@/app/api/investigations/baseline/route";
 import {GET as reviewGET} from "@/app/api/investigations/review/route";
 const fixture=join(__dirname,"fixtures/intl_policy_generation_actual_20261104"),generation="im-workspace-generation:f180e9f4-eeee-488d-b312-5a68d09ccf5c",fingerprint="0dc2265e5985adaff29f0c2efbf7191be9f80472a6c0f73646a4ac1b5776f8b8";
 const document=JSON.parse(readFileSync(join(fixture,`intl_generation_f180e9f4-eeee-488d-b312-5a68d09ccf5c_${fingerprint}.json`),"utf8"));
-it("keeps caller-selected JP return navigation out of server-qualified EZ draft, Save and exact reopen",async()=>{
+it.each(["JP",""])("keeps navigation market=%s out of server-qualified EZ draft, Save and exact reopen",async(navigationMarket)=>{
  (globalThis as {IS_REACT_ACT_ENVIRONMENT?:boolean}).IS_REACT_ACT_ENVIRONMENT=true;
  const originalScroll=Object.getOwnPropertyDescriptor(Element.prototype,"scrollIntoView");Object.defineProperty(Element.prototype,"scrollIntoView",{configurable:true,value:vi.fn()});
  const host=documentGlobal(),root=createRoot(host),selected=document.contexts.find((c:{market:string;horizon:string;currency_basis:string})=>c.market==="EZ"&&c.horizon==="3m"&&c.currency_basis==="local");
  const selection:IntlEntrySelectors={context:selected.id,generation,fingerprint,fields:[...selected.measure_ids]};
- const back="https://www.mastermind-x.com/intl.html?view=risk&market=JP&pins=JP,TW&horizon=3m&basis=local&return_basis=price&group=";
+ const back=`https://www.mastermind-x.com/intl.html?view=risk&market=${navigationMarket}&pins=${navigationMarket?"JP,TW":""}&horizon=3m&basis=local&return_basis=price&group=`;
  let saved:Record<string,unknown>|null=null;const history=new Map<number,Record<string,unknown>>();const posted:InvestigationManifest[]=[],calls:Array<{url:string;method:string}>=[];
  // Native owner/auth and database are explicit doubles; published generation
  // bytes, source-policy reads, codec, route owners and mounted consumer are real.
@@ -53,7 +54,8 @@ it("keeps caller-selected JP return navigation out of server-qualified EZ draft,
  const click=async(label:string)=>act(async()=>{const b=[...host.querySelectorAll("button")].find(x=>x.textContent===label);expect(b,label).toBeDefined();b!.click();});
  const fill=async(label:string,value:string)=>act(async()=>{const el=host.querySelector<HTMLInputElement|HTMLTextAreaElement>(`[aria-label="${label}"]`)!;expect(el).not.toBeNull();const proto=el instanceof HTMLInputElement?HTMLInputElement.prototype:HTMLTextAreaElement.prototype;Object.getOwnPropertyDescriptor(proto,"value")!.set!.call(el,value);el.dispatchEvent(new Event("input",{bubbles:true}));});
  try{
-  await act(async()=>root.render(<InvestigationWorkspace key="actual-entry" ownerKey={principal} initialIntlEntry={selection} intlReturnTo={back}/>));
+  const routed=parseAnalysisRoute({view:"investigations",intl_context:selection.context,intl_generation:generation,intl_fingerprint:fingerprint,intl_field:selection.fields,intl_return:back});expect(routed.kind).toBe("investigations");if(routed.kind!=="investigations")throw Error("native intake refused");
+  expect(routed.intlEntry).toEqual(selection);await act(async()=>root.render(<InvestigationWorkspace key="actual-entry" ownerKey={principal} initialIntlEntry={routed.intlEntry} intlReturnTo={routed.intlReturnTo}/>));
   await click("Use this International selection");expect(host.querySelector<HTMLInputElement>('[aria-label="Title"]')?.value).toBe("");expect(host.querySelector<HTMLTextAreaElement>('[aria-label="Research question"]')?.value).toBe("");expect(posted).toEqual([]);
   await fill("Title","Authored actual-source research");await fill("Research question","Does this exact selected Eurozone evidence support my thesis?");await click("Save research");
   expect(posted).toHaveLength(1);const before=structuredClone(posted[0]);expect(before.intent.question).toBe("Does this exact selected Eurozone evidence support my thesis?");expect(before.evidence_refs.map(ref=>ref.selection?.field)).toEqual(selection.fields);expect(before.intent.subjects).toEqual([{owner:"intl.workspace_context",kind:"economy",object_id:selection.context}]);expect(JSON.stringify(before)).not.toContain("JP");expect(before.evidence_refs.every(ref=>ref.object_id===selection.context&&ref.version_ref===generation&&ref.fingerprint===fingerprint)).toBe(true);

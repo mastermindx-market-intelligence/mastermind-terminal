@@ -8,13 +8,14 @@ export const INTL_ENTRY_URL_LIMIT=2048;
 export type IntlReturnContext={researchMarket:string;periodIdentity:string;currencyBasis:string;returnBasis:string};
 /** Navigation market is not the evidence subject: a JP-focused overview may
  * open an EZ row. Only the authenticated baseline sets that subject/pin. Keep
- * duration/currency/return dimensions aligned; no return parameter is a grant. */
+ * duration/currency/return dimensions aligned; present-empty market is the
+ * incumbent no-focus navigation state. No return parameter is a grant. */
 export function safeIntlReturn(value:unknown,context?:IntlReturnContext):string|null {
  if(typeof value!=="string"||value.length>INTL_ENTRY_URL_LIMIT||/[\u0000-\u0020\u007f\\%#]/.test(value))return null;
  try{const url=new URL(value),keys=[...url.searchParams.keys()];
   if(url.href!==value||url.origin!=="https://www.mastermind-x.com"||url.pathname!=="/intl.html"||url.username||url.password||url.hash
    ||keys.length<5||keys.length>7||new Set(keys).size!==keys.length||keys.some(k=>!["view","market","horizon","basis","return_basis","pins","group"].includes(k))
-   ||!["macro","risk"].includes(url.searchParams.get("view")!)||!/^[A-Z]{2,3}$/.test(url.searchParams.get("market")!)
+   ||!["macro","risk"].includes(url.searchParams.get("view")!)||url.searchParams.get("market")===null||!/^(?:[A-Z]{2,3})?$/.test(url.searchParams.get("market")!)
    ||!/^[1-9][0-9]{0,2}[dwmy]$/.test(url.searchParams.get("horizon")!)||!["local","usd_unhedged"].includes(url.searchParams.get("basis")!)||url.searchParams.get("return_basis")!=="price")return null;
   const pins=url.searchParams.get("pins"),members=pins?pins.split(","):[];
   if(members.length>4||new Set(members).size!==members.length||members.some(m=>!/^[A-Z]{2,3}$/.test(m))||(url.searchParams.has("group")&&url.searchParams.get("group")!==""))return null;

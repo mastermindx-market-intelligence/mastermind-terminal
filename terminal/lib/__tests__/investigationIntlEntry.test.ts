@@ -22,3 +22,7 @@ it("baseline BFF parses selectors only and rejects account/question/path authori
 
 it.each(["JP","GB"])("keeps navigation market %s separate from qualified EZ subject",market=>{const context={researchMarket:"EZ",periodIdentity:"3m",currencyBasis:"local",returnBasis:"price"},url=back.replace("market=EZ","market="+market);expect(safeIntlReturn(url,context)).toBe(url);});
 it.each([{periodIdentity:"6m"},{currencyBasis:"usd_unhedged"},{returnBasis:"total_return"}])("retains non-market qualified return dimensions %j",change=>{expect(safeIntlReturn(back,{researchMarket:"EZ",periodIdentity:"3m",currencyBasis:"local",returnBasis:"price",...change})).toBeNull();});
+
+it("accepts present-but-empty canonical navigation market without inventing an evidence subject",()=>{const url=back.replace("market=EZ","market=")+"&pins=&group=";expect(safeIntlReturn(url,{researchMarket:"EZ",periodIdentity:"3m",currencyBasis:"local",returnBasis:"price"})).toBe(url);});
+it.each(["jp","JPGB","null","0"])("rejects nonempty malformed navigation market %s",market=>{expect(safeIntlReturn(back.replace("market=EZ","market="+market))).toBeNull();});
+it("still rejects missing navigation market with otherwise complete optional query",()=>{expect(safeIntlReturn(back.replace("&market=EZ","")+"&pins=")).toBeNull();});
