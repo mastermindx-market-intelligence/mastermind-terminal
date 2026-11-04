@@ -50,7 +50,7 @@ const { chromium } = require("@playwright/test");
 
 const ROOT = join(__dirname, "..", "..");
 const REPO = join(ROOT, "..");
-const OUT = join(ROOT, "docs", "pr-crops", "gex-levels-heatmap-load-failure");
+const OUT = process.env.TERMINAL_CROP_OUTPUT_DIR || join(ROOT, "docs", "pr-crops", "gex-levels-heatmap-load-failure");
 const LAYOUT_FILES = [
   "terminal/app/globals.css",
   "terminal/components/gexdesk/ExposureWorkspace.module.css",
