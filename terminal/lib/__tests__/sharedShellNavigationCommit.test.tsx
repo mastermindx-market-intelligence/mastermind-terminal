@@ -410,6 +410,40 @@ describe("Shared Shell committed navigation", () => {
     expectPersistent(owned);
   });
 
+  it("restores a saved entry when Next commits before the popstate listener, without arming the next push", async () => {
+    const owned = await start();
+    const view = { x: 0, y: 650, focusId: "risk-summary" };
+    await childMessage({ type: "VIEW_STATE", view });
+    const macroEntry = window.history.state.mmxSharedShellEntry;
+    const about = "/about.html?lang=en#mission";
+    await navigate(about);
+    await resolveGate();
+    await loadFrame();
+    await childMessage(readyBody(about));
+    expect(window.history.state.mmxSharedShellEntry).not.toBe(macroEntry);
+
+    // Real Next can install the traversed route in its insertion effect before
+    // the host's popstate callback. Recreate that browser ordering explicitly.
+    await act(async () => {
+      window.history.replaceState({ ...window.history.state, mmxSharedShellEntry: macroEntry }, "", INITIAL);
+      renderRouteTree(INITIAL, "traverse");
+    });
+    await resolveGate();
+    const restored = await loadFrame();
+    expect(restored.canonicalPath).toBe(INITIAL);
+    expect(restored.restore).toEqual(view);
+    await childMessage(readyBody(INITIAL));
+    // A late popstate must not leave traversal armed for a fresh route entry.
+    await act(async () => { window.dispatchEvent(new PopStateEvent("popstate", { state: window.history.state })); });
+    const fresh = "/china.html";
+    await navigate(fresh);
+    await resolveGate();
+    const next = await loadFrame();
+    expect(next.restore).toBeNull();
+    await childMessage(readyBody(fresh));
+    expectPersistent(owned);
+  });
+
   it("aborts an older admission and cannot install its frame after a faster later navigation", async () => {
     const owned = await start();
     await navigate("/about.html");
