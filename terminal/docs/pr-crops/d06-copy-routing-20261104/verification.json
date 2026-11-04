@@ -1,0 +1,78 @@
+{
+  "schema": "d06.terminal.copy_routing.v1",
+  "status": "passed",
+  "finished_at": "2026-11-04T12:14:47.415916+00:00",
+  "parent": "496ab37cbbbb236d9fe17e55595cd4171f2ff222",
+  "source": "terminal/lib/scriptEditorCopy.ts",
+  "source_before_sha256": "109095c8f0432e7659047fb3bbc46e86eaed7b7744dc0ebca6177ade96aad50d",
+  "source_after_sha256": "6fdb008195e15ddb131033d5143c519ba031400b49590e6f21281148f68a6464",
+  "original_ci": {
+    "run": 41823483280,
+    "job": 126552192106,
+    "base": "cd2a335f8f8fcf4fa947aa8a47f7dbf5748b2fdc",
+    "blocking_findings": 49,
+    "rule": "missing_zh"
+  },
+  "change": "Use the existing real pick(lang,en,zh) copy pattern on each paired line and precompute both dictionaries.",
+  "locales": 2,
+  "keys_per_locale": 56,
+  "unchanged_values": 112,
+  "stable_per_language_identity": true,
+  "guard_or_waiver_changes": false,
+  "runs": [
+    {
+      "name": "copy-parity",
+      "exit_code": 0,
+      "command": [
+        "node",
+        "-e",
+        "const fs=require('fs'),vm=require('vm'),ts=require('typescript'),assert=require('assert/strict'),crypto=require('crypto');\nconst src=fs.readFileSync('lib/scriptEditorCopy.ts','utf8');\nconst output=ts.transpileModule(src,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText;\nconst box={exports:{}};vm.runInNewContext(output,box);\nconst expected=JSON.parse(fs.readFileSync('/tmp/d06-terminal-copy-routing-20261104/expected.json','utf8'));\nfor(const lang of ['en','zh']){\n const actual=box.exports.scriptEditorCopy(lang);\n assert.deepEqual(JSON.parse(JSON.stringify(actual)),expected[lang]);\n assert.equal(actual,box.exports.scriptEditorCopy(lang));\n}\nconsole.log(JSON.stringify({locales:2,keysPerLocale:56,unchangedValues:112,stablePerLanguageIdentity:true,valueSha256:crypto.createHash('sha256').update(JSON.stringify(expected)).digest('hex')}));\n"
+      ],
+      "log": "copy-parity.log"
+    },
+    {
+      "name": "plain-language",
+      "exit_code": 0,
+      "command": [
+        "node",
+        "terminal/scripts/check_plain_language.mjs",
+        "--mode",
+        "enforce-added",
+        "--diff-file",
+        "/tmp/d06-terminal-copy-routing-20261104/plain-language.diff"
+      ],
+      "log": "plain-language.log"
+    },
+    {
+      "name": "pine-editor-unit",
+      "exit_code": 0,
+      "command": [
+        "npm",
+        "test",
+        "--",
+        "lib/__tests__/pineEditorIdBuffer.test.tsx"
+      ],
+      "log": "pine-editor-unit.log"
+    },
+    {
+      "name": "copy-lint",
+      "exit_code": 0,
+      "command": [
+        "npx",
+        "eslint",
+        "lib/scriptEditorCopy.ts"
+      ],
+      "log": "copy-lint.log"
+    }
+  ],
+  "diff_sha256": "4da4554034261cf54a86d1243919f4a78e90b35b701565f2b786f3fd5416cfdc",
+  "limits": "Dictionary representation only; no UI wording, DOM, save logic or generated screenshot bytes changed. Hosted full CI remains separate.",
+  "consumer_dom_tests_passed": 20,
+  "copy_value_proof": {
+    "locales": 2,
+    "keysPerLocale": 56,
+    "unchangedValues": 112,
+    "stablePerLanguageIdentity": true,
+    "valueSha256": "30b48c8793cc72bcdaee8c06a681b1d7933e66727cdc9b7564e59a3dcdd0ae3c"
+  }
+}
