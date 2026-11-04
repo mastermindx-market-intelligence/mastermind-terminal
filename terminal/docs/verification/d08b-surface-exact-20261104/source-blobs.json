@@ -1,0 +1,14 @@
+{
+  "sourceBase": "2ded360882b9c721e690907ff363b553781fb920",
+  "operation": "d08b-surface-exact-values-20261104-c3",
+  "review": "Native independent advisory PASS; not formal RIG",
+  "blobs": {
+    "terminal/components/exposure-map/ExposureSurface.tsx": "18e46611ce56d5935c9e1df5baa09dd6f201c08a",
+    "terminal/components/exposure-map/ExposureSurface.module.css": "e5b8929a20a1de7216907f14f23d409f18fd33ba",
+    "terminal/components/exposure-map/exposureSurfaceStrings.ts": "e7e0b954036c50579ed6fd6b835198796cb29120",
+    "terminal/lib/__tests__/exposureSurfaceView.test.tsx": "ce9347b3909fd1bb3b1a50cb50d3dda8410336e6",
+    "terminal/e2e/options-exposure-surface-exact.spec.ts": "49a16c68d1bfcb0d15db30e4feb555a9c15cb065",
+    "terminal/lib/exposureSurface.ts": "56624b371218f574428d3eb4c3baf6d68ab286a0"
+  },
+  "unchangedCalculationOwner": "terminal/lib/exposureSurface.ts"
+}

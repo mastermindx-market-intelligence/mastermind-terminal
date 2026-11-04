@@ -1,5 +1,5 @@
 .surface { --ex-positive:var(--exposure-positive,#4cc6cc); --ex-negative:var(--exposure-negative,#d896f0); --ex-gold:var(--exposure-selected,#d4a017);
-  display:flex; flex-direction:column; gap:12px; min-width:0; padding:12px 16px 16px; color:var(--text); background:var(--bg); font-variant-numeric:tabular-nums; }
+  display:flex; flex-direction:column; gap:12px; min-width:0; padding:12px 16px 16px; color:var(--text); background:var(--bg); font-variant-numeric:tabular-nums; container:exposure-surface / inline-size; }
 .surface button,.surface select { font:inherit; color:inherit; }
 .surface button { cursor:pointer; }
 .surface button:disabled { cursor:default; opacity:.48; }
@@ -20,17 +20,19 @@
 @media(min-width:641px){ .fieldWrap{min-height:360px} }
 .field { display:block; width:100%; }
 .floor line { stroke:var(--line); stroke-width:1; }
-.prism { cursor:pointer; }
+.prism { cursor:pointer; --tier-opacity:1; }
+.prism[data-tier="4"] { --tier-opacity:.8; } .prism[data-tier="3"] { --tier-opacity:.62; }
+.prism[data-tier="2"] { --tier-opacity:.45; } .prism[data-tier="1"] { --tier-opacity:.3; } .prism[data-tier="0"] { --tier-opacity:.18; }
 .prism polygon { stroke:var(--panel); stroke-width:.5; }
-.prism [data-sign="positive"].faceTop { fill:var(--ex-positive); fill-opacity:.9; }
-.prism [data-sign="positive"].faceLeft { fill:var(--ex-positive); fill-opacity:.55; }
-.prism [data-sign="positive"].faceRight { fill:var(--ex-positive); fill-opacity:.72; }
-.prism [data-sign="negative"].faceTop { fill:var(--ex-negative); fill-opacity:.9; }
-.prism [data-sign="negative"].faceLeft { fill:var(--ex-negative); fill-opacity:.55; }
-.prism [data-sign="negative"].faceRight { fill:var(--ex-negative); fill-opacity:.72; }
-.prism[data-sign="abs"] .faceTop { fill:var(--text-dim); fill-opacity:.9; }
-.prism[data-sign="abs"] .faceLeft { fill:var(--text-dim); fill-opacity:.55; }
-.prism[data-sign="abs"] .faceRight { fill:var(--text-dim); fill-opacity:.72; }
+.prism[data-sign="positive"] .faceTop { fill:var(--ex-positive); fill-opacity:calc(.9 * var(--tier-opacity)); }
+.prism[data-sign="positive"] .faceLeft { fill:var(--ex-positive); fill-opacity:calc(.55 * var(--tier-opacity)); }
+.prism[data-sign="positive"] .faceRight { fill:var(--ex-positive); fill-opacity:calc(.72 * var(--tier-opacity)); }
+.prism[data-sign="negative"] .faceTop { fill:var(--ex-negative); fill-opacity:calc(.9 * var(--tier-opacity)); }
+.prism[data-sign="negative"] .faceLeft { fill:var(--ex-negative); fill-opacity:calc(.55 * var(--tier-opacity)); }
+.prism[data-sign="negative"] .faceRight { fill:var(--ex-negative); fill-opacity:calc(.72 * var(--tier-opacity)); }
+.prism[data-sign="abs"] .faceTop { fill:var(--text-dim); fill-opacity:calc(.9 * var(--tier-opacity)); }
+.prism[data-sign="abs"] .faceLeft { fill:var(--text-dim); fill-opacity:calc(.55 * var(--tier-opacity)); }
+.prism[data-sign="abs"] .faceRight { fill:var(--text-dim); fill-opacity:calc(.72 * var(--tier-opacity)); }
 .prism.selected polygon { stroke:var(--ex-gold); stroke-width:1.5; }
 .absentMark { fill:none; stroke:var(--text-dim); stroke-width:1; stroke-dasharray:2 2; }
 .spotPlane polygon { fill:rgba(212,160,23,.08); stroke:var(--ex-gold); stroke-width:1; stroke-dasharray:4 3; }
@@ -38,9 +40,10 @@
 .axisCaption { fill:var(--muted); font-size:10px; font-weight:600; letter-spacing:.09em; }
 .focusLabel rect { fill:var(--panel); stroke:var(--line); stroke-width:1; }
 .focusLabel text { fill:var(--text); font-family:var(--font-code); font-size:10px; }
-.legend { display:flex; flex-direction:column; gap:6px; padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:var(--panel); }
+.legend { display:flex; flex-direction:column; gap:6px; min-width:0; padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:var(--panel); overflow-wrap:anywhere; }
+.legend > *,.legendRow > * { min-width:0; }
 .legendRow { display:flex; align-items:center; gap:6px; font-size:10px; color:var(--text-2); }
-.swatches { display:inline-flex; gap:3px; }
+.swatches { display:inline-flex; flex-shrink:0; gap:3px; }
 .swatches i { width:14px; height:8px; clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%); }
 .swatches i[data-sign="positive"] { background:var(--ex-positive); }
 .swatches i[data-sign="negative"] { background:var(--ex-negative); }
@@ -72,9 +75,65 @@
   .surface{padding:10px 12px 12px}
   .toolbar{min-height:0}
   .toolbar .chip,.toolbar .tool,.toolbar select{min-height:44px}
-  .body{grid-template-columns:1fr}
+  .body{grid-template-columns:minmax(0,1fr)}
   .fieldWrap{min-height:260px}
-  .legend{grid-column:1/-1; display:grid; grid-template-columns:1fr 1fr; gap:4px 12px}
+  .legend{grid-column:1/-1; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:4px 12px}
   .footer{flex-direction:column; align-items:flex-start; gap:2px}
 }
 @media(max-width:420px){ .focusLabel{display:none} }
+
+/* The 2D path shares scope and selection with the surface, with no nested scroll trap. */
+.viewBar,.selectionBar { display:flex; align-items:center; flex-wrap:wrap; gap:8px 12px; min-width:0; }
+.viewHint,.selectionStatus { font-size:12px; color:var(--text-2); line-height:1.5; margin:0; }
+.selectionStatus { flex:1 1 260px; overflow-wrap:anywhere; }
+.viewBar .chip,.selectionBar .tool { min-height:44px; }
+.exactTable { width:100%; table-layout:fixed; border-collapse:collapse; font-size:12px; }
+.exactTable caption { text-align:left; padding:12px; font-size:12px; line-height:1.5; color:var(--text-2); }
+.exactTable th,.exactTable td { padding:8px 12px; border-top:1px solid var(--line); text-align:left; vertical-align:middle; overflow-wrap:anywhere; }
+.exactTable thead th { color:var(--text-2); font-size:11px; font-weight:600; }
+.exactTable th:first-child { width:46%; }
+.exactTable tbody th { padding:4px 8px; font-weight:400; }
+.cellButton { display:flex; flex-direction:column; align-items:flex-start; justify-content:center; gap:3px; width:100%; min-height:48px; padding:8px; border:1px solid transparent; border-radius:6px; background:transparent; text-align:left; overflow-wrap:anywhere; }
+.cellButton[aria-pressed="true"] { background:var(--panel-3); border-color:var(--ex-gold); }
+.cellButton strong { font-family:var(--font-code); font-size:13px; }
+.cellButton span,.tableUnit,.tableStatus { display:block; font-size:11px; line-height:1.5; color:var(--text-2); }
+.exactValue { font-family:var(--font-code); font-size:13px; }
+.body[data-view="table"] .fieldWrap { min-height:0!important; }
+.inspector { min-width:0; overflow-wrap:anywhere; }
+.inspector:focus { outline:2px solid var(--brand-2); outline-offset:3px; }
+.inspector dl { grid-template-columns:minmax(0,1fr) minmax(0,1.4fr); }
+.hero strong { overflow-wrap:anywhere; }
+.sourceDetails { min-width:0; padding:10px 12px; border:1px solid var(--line); border-radius:8px; font-size:12px; }
+.sourceDetails summary { min-height:24px; cursor:pointer; font-weight:600; }
+.sourceDetails summary:focus-visible { outline:2px solid var(--brand-2); outline-offset:3px; }
+.sourceDetails dl { display:grid; grid-template-columns:minmax(100px,.6fr) minmax(0,2fr); gap:8px 12px; }
+.sourceDetails dt { color:var(--text-2); }
+.sourceDetails dd { margin:0; font-family:var(--font-code); overflow-wrap:anywhere; }
+.sourceDetails p { color:var(--text-2); line-height:1.5; margin:8px 0 0; }
+.sourceTag { white-space:normal; overflow-wrap:anywhere; }
+@media(max-width:640px){
+  .actions .tool { min-height:44px; }
+  .sourceDetails summary { min-height:44px; display:flex; align-items:center; }
+  .sourceDetails dl { grid-template-columns:1fr; gap:4px; }
+  .sourceDetails dd { margin-bottom:8px; }
+  .exactTable th,.exactTable td { padding:8px; }
+}
+
+.rowDetails { width:100%; min-height:44px; margin-top:4px; }
+
+.surface .chip,.surface .tool,.surface select,.sourceDetails summary { min-height:44px; }
+
+/* A split pane or CSS zoom can narrow the component without a viewport change. */
+@container exposure-surface (max-width:900px){
+  .body{grid-template-columns:minmax(0,1fr) 190px}
+  .inspector{grid-column:1/-1}
+}
+@container exposure-surface (max-width:640px){
+  .body{grid-template-columns:minmax(0,1fr)}
+  .fieldWrap{min-height:260px}
+  .legend{grid-column:1/-1; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:4px 12px}
+  .footer{flex-direction:column; align-items:flex-start; gap:2px}
+  .sourceDetails dl{grid-template-columns:minmax(0,1fr); gap:4px}
+  .sourceDetails dd{margin-bottom:8px}
+}
+@container exposure-surface (max-width:420px){ .focusLabel{display:none} }

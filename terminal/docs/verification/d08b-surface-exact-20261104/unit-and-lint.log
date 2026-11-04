@@ -1,0 +1,16 @@
+[Reading 13 new lines (total: 13 lines)]
+
+The CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/web/d08b-surface-exact-values-20261104-c3/terminal
+
+ ✓ lib/__tests__/exposureSurface.test.ts (14 tests) 7ms
+ ✓ lib/__tests__/exposureSurfaceView.test.tsx (34 tests) 517ms
+
+ Test Files  2 passed (2)
+      Tests  48 passed (48)
+   Start at  18:52:22
+   Duration  1.53s (transform 165ms, setup 0ms, collect 241ms, tests 524ms, environment 527ms, prepare 93ms)
+
+
+✅ Process completed with exit code 0 (runtime: 6.61s)
