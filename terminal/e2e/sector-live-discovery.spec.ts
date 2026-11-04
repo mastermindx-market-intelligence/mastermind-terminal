@@ -43,4 +43,30 @@ test("Sector Discover updates session returns and rankings in an open tab", asyn
   await page.clock.fastForward(5 * 60_000);
   await expect(table.getByTestId("company-table-answer")).toContainText("CCC leads 1W performance (+8.00%)");
   await expect(table.locator("[data-company-table-row]")).toHaveCount(3);
+
+  await page.getByRole("group", { name: "Discover representation" }).getByRole("button", { name: "Heatmap" }).click();
+  const heatmap = page.getByTestId("sector-company-heatmap");
+  await expect(heatmap).toBeVisible();
+  const disclosure = heatmap.getByTestId("heatmap-map-disclosure");
+  if (!(await disclosure.evaluate(element => element.hasAttribute("open")))) await disclosure.locator("summary").click();
+  const label = heatmap.locator('[data-company-heatmap-tile="AAA"] [data-heatmap-label]');
+  await expect(label).toBeVisible();
+  const legibility = await label.evaluate(element => {
+    const plate = getComputedStyle(element), ticker = getComputedStyle(element.querySelector("strong")!);
+    return { shadow: ticker.textShadow, plateShadow: plate.textShadow, background: plate.backgroundColor,
+      fontPx: parseFloat(ticker.fontSize) };
+  });
+  expect(legibility.shadow).toBe("none");
+  expect(legibility.plateShadow).toBe("none");
+  expect(legibility.background).not.toMatch(/^(transparent|rgba\(0, 0, 0, 0\))$/);
+  expect(legibility.fontPx).toBeGreaterThanOrEqual(8);
+  const heatmapShot = info.outputPath("sector-heatmap-labels-dark-" + info.project.name + ".png");
+  await heatmap.getByTestId("heatmap-map").screenshot({ path: heatmapShot });
+  await info.attach("sector-heatmap-labels-dark", { path: heatmapShot, contentType: "image/png" });
+  await page.getByTestId("sector-intelligence").locator("header").getByRole("button", { name: /light/i }).click();
+  await expect(page.getByTestId("sector-intelligence")).toHaveAttribute("data-sector-theme", "light");
+  await expect(label).toBeVisible();
+  const lightShot = info.outputPath("sector-heatmap-labels-light-" + info.project.name + ".png");
+  await heatmap.getByTestId("heatmap-map").screenshot({ path: lightShot });
+  await info.attach("sector-heatmap-labels-light", { path: lightShot, contentType: "image/png" });
 });
