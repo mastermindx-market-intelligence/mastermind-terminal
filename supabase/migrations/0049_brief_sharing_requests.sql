@@ -1,12 +1,14 @@
 -- Mastermind Terminal -- explicit brief sharing-review requests (companion to EXISTING0048)
+-- Ledger row: MMOS-AT04-EXPLICIT-BRIEF-SHARING-REQUEST (PR #1290)
+-- Rollback: NONE: preserve request/grant history; disable callers and use reviewed forward repair.
 --
 -- SOURCE ONLY / UNAPPLIED. No new table, queue, role, policy or registry: the one
 -- immutable sharing-review request per delivery lives in new sharing_request_* columns of
 -- the already owner-scoped public.brief_deliveries row, under that table's existing RLS
 -- and grants. EXISTING0048 (MMOS-AT20-BRIEF-TEAM-ACCESS) is referenced, never replaced,
--- redefined or re-granted. Ledger assignment is owned by the integrating parent, as is
--- reservation of the Terminal principal/session scope namespace: this file only emits the
--- exact reserved scope strings below, with no Auth0 equivalence claim.
+-- redefined or re-granted. Namespace 0049 is claimed by PR #1290 after the complete
+-- protected-source/open-PR census. The exact Terminal principal/session scopes below
+-- carry no Auth0 equivalence claim.
 --
 -- The explicit request is a review/navigation source only; it never grants access by
 -- itself, and content digest equality is an integrity precondition, never an access

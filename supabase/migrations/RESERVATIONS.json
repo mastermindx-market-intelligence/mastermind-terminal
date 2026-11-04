@@ -512,6 +512,16 @@
       "applied_in_production": false,
       "applied_date": null,
       "note": "Application date not recorded because this source-only migration remains unapplied. No live DDL, sharing or grant effect has occurred. Existing team/RLS and immutable logical delivery producer remain owners."
+    },
+    "0049": {
+      "state": "taken",
+      "file": "0049_brief_sharing_requests.sql",
+      "packet": "MMOS-AT04-EXPLICIT-BRIEF-SHARING-REQUEST",
+      "pr": 1290,
+      "pr_state": "open",
+      "applied_in_production": false,
+      "applied_date": null,
+      "note": "Application date not recorded because this source-only migration remains unapplied. PR #1290 claims 0049 after the complete 2026-11-04 protected-source and 197-open-PR census, including fully paginated capped file lists; maximum existing claim was 0048 in original PR #1279. Requires that unchanged 0048 source and the same migration owner. No live DDL, grant, authentication or sharing effect is authorized by source publication."
     }
   }
 }

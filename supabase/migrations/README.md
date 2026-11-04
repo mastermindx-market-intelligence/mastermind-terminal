@@ -477,3 +477,30 @@ Reverse-order hazard: if 0043 (#804) is already applied, do not apply 0047 or it
 Adds access metadata to the existing `brief_deliveries` object. The existing producer, subscription ownership and team membership remain authoritative. The authenticated database requires the exact owned delivery, current team owner/admin, current content digest and the server-derived prospective effect digest before writing one stable grant. An exact repeated operation returns its original grant/time; a changed recipient, body or operation conflicts. Recipient reads use one fixed redacted RPC and current dynamic membership, with no private subscription or target identifiers and no additional whole-row team SELECT policy. A recorded receipt is distinct from current access and from native Mastermind OS product acceptance.
 
 The file is one atomic `DO` statement, compatible with the existing statement-at-a-time source applier. It is UNAPPLIED. Apply only through the established qualified source/application owner after focused security/exactly-once review; no SQL application or sharing effect is authorized merely by this documentation or source publication. The file's readback queries verify function ACLs, pinned search paths and preservation of private table write denial. Existing subscriptions and source-target access remain private; teams grant no paid entitlement. No automatic destructive down operation is supplied.
+
+
+### 0049 — Explicit delivered-brief sharing review requests (source only)
+
+PR #1290, packet `MMOS-AT04-EXPLICIT-BRIEF-SHARING-REQUEST`, claims
+`0049_brief_sharing_requests.sql`. The 2026-11-04 census inspected protected
+`master` 3832ec6699062aafe58d5d2f69e7bccfb0b19275, its SQL files and reservation
+ledger, and all 197 open PRs, fully paginating every capped file list. The highest
+existing claim was 0048 in original #1279; 0049 was the next free number.
+
+An explicit authenticated delivery-owner action saves one immutable review request
+on the existing delivery row, bound to the actual content digest and intended team.
+Ready status and the team catalogue do not issue requests. The current owner and
+team owner/admin must remain qualified at review and resolution. Sharing calls the
+existing 0048 atomic grant owner; Keep private records a disposition without a grant.
+The native feed verifies its own current Terminal principal/session and returns only
+qualified request data, with truthful coverage and dynamic membership. Web review
+retains the incumbent cookie authentication. No Auth0 mapping or generic decision
+queue is introduced.
+
+This file requires 0048 first, applied by the same migration owner. It remains
+**UNAPPLIED**: application date is not recorded because no application has occurred.
+The single outer DO statement preserves atomicity with the existing statement-at-a-time
+applier. The readback comments qualify schema/ACL state; they do not establish live
+sharing behavior. Rollback disables callers and preserves request/grant history for a
+reviewed forward repair. No destructive down operation or production application is
+authorized by this source claim.
