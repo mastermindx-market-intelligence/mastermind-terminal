@@ -125,3 +125,52 @@ test("guest cannot start rotation source reads", async ({ page, baseURL }) => {
   await expect(page.getByRole("button", { name: "Open rotation monitor", exact: true })).toBeDisabled();
   expect(reads.quotes()).toBe(0); expect(reads.bars()).toBe(0);
 });
+
+
+test("R2 opening-range preview uses the existing visible source reader and responsive chart", async ({ page }, info) => {
+  const errors: string[] = [];
+  page.on("pageerror", error => errors.push(error.message));
+  const reads = await fixture(page, () => "normal");
+  await open(page);
+  const preview = page.getByTestId("rotation-pivot-preview");
+  await expect(preview.getByRole("heading", { name: "Opening-range pivot preview" })).toBeVisible();
+  await expect(page.getByTestId("rotation-pivot-chart")).toBeVisible();
+  await expect(page.getByTestId("rotation-pivot-bottom")).toHaveAttribute("data-state", /^(watching|approaching|forming|confirmed|failed|expired)$/);
+  await expect(page.getByTestId("rotation-pivot-top")).toBeVisible();
+  await expect(preview).toContainText("not an issued watch or a forecast");
+  const chart = await page.getByTestId("rotation-pivot-chart").locator("svg").evaluate(node => ({
+    userWidth: (node as SVGSVGElement).viewBox.baseVal.width,
+    cssWidth: node.getBoundingClientRect().width,
+    documentWidth: document.documentElement.scrollWidth,
+    viewportWidth: window.innerWidth,
+  }));
+  expect(Math.abs(chart.userWidth - chart.cssWidth)).toBeLessThan(2);
+  expect(chart.documentWidth).toBeLessThanOrEqual(chart.viewportWidth);
+  expect(reads.bars()).toBe(12);
+  await page.getByTestId("rotation-pivot-sector").selectOption("XLP");
+  await expect(preview).toContainText("Opening-range low");
+  await preview.screenshot({ path: "docs/rotation-regime/r2/" + info.project.name + "-en.png" });
+  expect(errors).toEqual([]);
+});
+
+test("R2 missing common benchmark interval withholds reconstructed chart and outcome", async ({ page }) => {
+  await fixture(page, () => "benchmark");
+  await open(page);
+  await expect(page.getByTestId("rotation-pivot-preview")).toBeVisible();
+  await expect(page.getByTestId("rotation-pivot-unavailable")).toContainText("Comparable completed 5m sector/SPY interval unavailable");
+  await expect(page.getByTestId("rotation-pivot-chart")).toHaveCount(0);
+  await expect(page.getByTestId("rotation-pivot-bottom")).toHaveCount(0);
+});
+
+test("R2 Chinese source evidence and mobile layout remain distinct from trading authority", async ({ page }, info) => {
+  await fixture(page, () => "normal");
+  await page.addInitScript(() => localStorage.setItem("mm.lang", "zh"));
+  await page.goto("/discover?tab=rs-pivot");
+  await page.getByRole("button", { name: "打开轮动监测", exact: true }).click();
+  const preview = page.getByTestId("rotation-pivot-preview");
+  await expect(preview).toContainText("开盘区间枢轴预览");
+  await expect(preview).toContainText("不是已发布的观察或预测");
+  await expect(page.getByTestId("rotation-pivot-chart")).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  await preview.screenshot({ path: "docs/rotation-regime/r2/" + info.project.name + "-zh.png" });
+});
