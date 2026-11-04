@@ -23,38 +23,58 @@ const H = vi.hoisted(() => {
   interface FakePriceLine {
     __opts: unknown;
     applyOptions: Spy;
+    options: Spy;
   }
   interface FakeSeries {
     __def: unknown;
     __opts: unknown;
     __paneIndex: number;
+    __data: unknown[];
     setData: Spy;
     update: Spy;
     applyOptions: Spy;
+    options: Spy;
+    data: Spy;
+    dataByIndex: Spy;
     createPriceLine: Spy;
     removePriceLine: Spy;
     priceToCoordinate: Spy;
     coordinateToPrice: Spy;
     moveToPane: Spy;
     getPane: Spy;
+    priceScale: Spy;
     attachPrimitive: Spy;
     detachPrimitive: Spy;
-    priceLines: FakePriceLine[];
+    // Real LWC exposes priceLines() as a METHOD returning only the custom lines
+    // (createPriceLine), with removePriceLine splicing the same array. inventory()
+    // reads exactly that, so the stand-in has to own the array rather than just
+    // record the calls.
+    __priceLines: FakePriceLine[];
+    priceLines: Spy;
   }
   interface FakePane {
     __index: number;
+    // Series really live in panes in LWC, and pane.getSeries() is how inventory()
+    // counts them — so membership is modelled, not faked with a flat list.
+    __series: FakeSeries[];
+    getSeries: Spy;
     paneIndex: Spy;
     getHeight: Spy;
     setHeight: Spy;
     getStretchFactor: Spy;
     setStretchFactor: Spy;
     getHTMLElement: Spy;
+    priceScale: Spy;
   }
   interface FakePriceScale {
     __id: string;
     __paneIndex: number | undefined;
     width: Spy;
     applyOptions: Spy;
+    options: Spy;
+    getVisibleRange: Spy;
+    setVisibleRange: Spy;
+    setAutoScale: Spy;
   }
   interface FakeMarkersPlugin {
     __series: FakeSeries;
@@ -78,6 +98,13 @@ const H = vi.hoisted(() => {
     scrollToPosition: Spy;
     applyOptions: Spy;
     fitContent: Spy;
+    getVisibleRange: Spy;
+    setVisibleRange: Spy;
+    logicalToCoordinate: Spy;
+    coordinateToLogical: Spy;
+    width: Spy;
+    timeToIndex: Spy;
+    options: Spy;
   }
   interface FakeChart {
     __opts: unknown;
@@ -98,6 +125,10 @@ const H = vi.hoisted(() => {
     paneSize: Spy;
     swapPanes: Spy;
     takeScreenshot: Spy;
+    chartElement: Spy;
+    options: Spy;
+    setCrosshairPosition: Spy;
+    clearCrosshairPosition: Spy;
     __ts: FakeTimeScale;
     __panes: FakePane[];
     __priceScales: FakePriceScale[];
@@ -116,29 +147,70 @@ const H = vi.hoisted(() => {
     },
   };
 
-  const makePane = (index: number): FakePane => ({
+  const makePane = (index: number): FakePane => {
+    const pane: FakePane = {
     __index: index,
-    paneIndex: vi.fn(() => index),
-    getHeight: vi.fn(() => 100 + index),
+    __series: [],
+    getSeries: vi.fn(() => pane.__series),
+    // paneIndex() mirrors LWC's live resolution: reads the live __index (which
+    // swapPanes updates). The original (positional) variant closed over the
+    // make-time index, which made identity and slot collapse for the conformance
+    // Q01-C11b case.
+    paneIndex: vi.fn(() => pane.__index),
+    getHeight: vi.fn(() => 100 + pane.__index),
     setHeight: vi.fn(),
-    getStretchFactor: vi.fn(() => index + 1),
+    getStretchFactor: vi.fn(() => pane.__index + 1),
     setStretchFactor: vi.fn(),
-    getHTMLElement: vi.fn(() => ({ __paneEl: index }) as unknown),
-  });
+    getHTMLElement: vi.fn(() => ({ __paneEl: pane.__index }) as unknown),
+    priceScale: vi.fn((id: string): FakePriceScale => ({
+      __id: id,
+      __paneIndex: pane.__index,
+      width: vi.fn(() => 57),
+      applyOptions: vi.fn(),
+      options: vi.fn(() => ({ tickMarkDensity: 2, autoScale: true })),
+      getVisibleRange: vi.fn(() => ({ from: 1, to: 2 })),
+      setVisibleRange: vi.fn(),
+      setAutoScale: vi.fn(),
+    })),
+    };
+    return pane;
+  };
 
   const makeSeries = (def: unknown, opts: unknown, paneIndex: number, chart: FakeChart): FakeSeries => {
     const s: FakeSeries = {
       __def: def,
       __opts: opts,
       __paneIndex: paneIndex,
-      priceLines: [],
-      setData: vi.fn(),
+      __priceLines: [],
+      __data: [],
+      priceLines: vi.fn(() => s.__priceLines),
+      setData: vi.fn((rows: unknown[]) => { s.__data = rows; }),
       update: vi.fn(),
       applyOptions: vi.fn(),
+      options: vi.fn(() => s.__opts ?? {}),
+      data: vi.fn(() => s.__data),
+      dataByIndex: vi.fn((i: number) => (s.__data[i] ?? null) as unknown),
+      priceScale: vi.fn((): FakePriceScale => ({
+        __id: "right",
+        __paneIndex: s.__paneIndex,
+        width: vi.fn(() => 57),
+        applyOptions: vi.fn(),
+        options: vi.fn(() => ({ mode: 0, autoScale: true })),
+        getVisibleRange: vi.fn(() => ({ from: 10, to: 20 })),
+        setVisibleRange: vi.fn(),
+        setAutoScale: vi.fn(),
+      })),
       priceToCoordinate: vi.fn((p: number) => p * 2),
       coordinateToPrice: vi.fn((y: number) => y / 2),
       moveToPane: vi.fn((idx: number) => {
+        const from = chart.__panes[s.__paneIndex];
+        if (from) {
+          const at = from.__series.indexOf(s);
+          if (at !== -1) from.__series.splice(at, 1);
+        }
         s.__paneIndex = idx;
+        while (chart.__panes.length <= idx) chart.__panes.push(makePane(chart.__panes.length));
+        chart.__panes[Math.min(idx, chart.__panes.length - 1)].__series.push(s);
       }),
       getPane: vi.fn(() => {
         // Mirror LWC's getOrCreatePane clamp: an out-of-range index resolves to the
@@ -150,11 +222,18 @@ const H = vi.hoisted(() => {
       attachPrimitive: vi.fn(),
       detachPrimitive: vi.fn(),
       createPriceLine: vi.fn((o: unknown) => {
-        const pl: FakePriceLine = { __opts: o, applyOptions: vi.fn() };
-        s.priceLines.push(pl);
+        const pl: FakePriceLine = {
+          __opts: o,
+          applyOptions: vi.fn(),
+          options: vi.fn(() => (typeof o === "object" && o ? o : { price: 0 })),
+        };
+        s.__priceLines.push(pl);
         return pl;
       }),
-      removePriceLine: vi.fn(),
+      removePriceLine: vi.fn((line: FakePriceLine) => {
+        const at = s.__priceLines.indexOf(line);
+        if (at !== -1) s.__priceLines.splice(at, 1);
+      }),
     };
     return s;
   };
@@ -170,6 +249,13 @@ const H = vi.hoisted(() => {
     scrollToPosition: vi.fn(),
     applyOptions: vi.fn(),
     fitContent: vi.fn(),
+    getVisibleRange: vi.fn(() => ({ from: 1_700_000_000, to: 1_700_086_400 })),
+    setVisibleRange: vi.fn(),
+    logicalToCoordinate: vi.fn((i: number) => i * 10),
+    coordinateToLogical: vi.fn((x: number) => x / 10),
+    width: vi.fn(() => 800),
+    timeToIndex: vi.fn(() => 4),
+    options: vi.fn(() => ({ borderColor: "#333", rightOffset: 12 })),
   });
 
   const createChart = vi.fn((_container: unknown, opts: unknown): FakeChart => {
@@ -185,9 +271,19 @@ const H = vi.hoisted(() => {
         // Grow panes to model addSeries(paneIndex) clamp+append.
         const idx = Math.min(chart.__panes.length, pi);
         while (chart.__panes.length <= idx) chart.__panes.push(makePane(chart.__panes.length));
-        return makeSeries(def, o, idx, chart);
+        const series = makeSeries(def, o, idx, chart);
+        chart.__panes[idx].__series.push(series);
+        return series;
       }),
-      removeSeries: vi.fn(),
+      // LWC disposes a removed series together with everything hanging off it — its
+      // price lines and primitives go with it. Modelled, because "the line died with
+      // its series" is precisely the ownership claim these tests exist to check.
+      removeSeries: vi.fn((series: FakeSeries) => {
+        for (const pane of chart.__panes) {
+          const at = pane.__series.indexOf(series);
+          if (at !== -1) { pane.__series.splice(at, 1); series.__priceLines.length = 0; return; }
+        }
+      }),
       applyOptions: vi.fn(),
       subscribeCrosshairMove: vi.fn(),
       unsubscribeCrosshairMove: vi.fn(),
@@ -199,13 +295,46 @@ const H = vi.hoisted(() => {
       remove: vi.fn(),
       __priceScales: [],
       priceScale: vi.fn((id: string, paneIndex?: number): FakePriceScale => {
-        const ps: FakePriceScale = { __id: id, __paneIndex: paneIndex, width: vi.fn(() => 57), applyOptions: vi.fn() };
+        const ps: FakePriceScale = {
+          __id: id,
+          __paneIndex: paneIndex,
+          width: vi.fn(() => 57),
+          applyOptions: vi.fn(),
+          options: vi.fn(() => ({ autoScale: true, scaleMargins: { top: 0.1, bottom: 0.1 } })),
+          getVisibleRange: vi.fn(() => ({ from: 10, to: 20 })),
+          setVisibleRange: vi.fn(),
+          setAutoScale: vi.fn(),
+        };
         chart.__priceScales.push(ps);
         return ps;
       }),
       paneSize: vi.fn((paneIndex?: number) => ({ width: 800, height: 400 + (paneIndex ?? 0) })),
-      swapPanes: vi.fn(),
+      // Mirror LWC's swapPanes: swap the panes in the chart's internal array and update
+      // each pane's __index so paneIndex() reports the NEW slot. The conformance case
+      // Q01-C11b asserts PaneHandle identity, which only round-trips if swapPanes here
+      // actually reorders the array (a no-op vi.fn() makes identity and slot collapse).
+      swapPanes: vi.fn((first: number, second: number) => {
+        if (first === second) return;
+        const a = chart.__panes[first];
+        const b = chart.__panes[second];
+        if (!a || !b) return;
+        chart.__panes[first] = b;
+        chart.__panes[second] = a;
+        // Update each pane's paneIndex() so a stored LwcPaneHandle (which now resolves
+        // through the same underlying __index) reports its pane's NEW position.
+        (a as { __index: number }).__index = second;
+        (b as { __index: number }).__index = first;
+        // Series follow their pane: __paneIndex must move with the pane object.
+        for (const pane of chart.__panes) {
+          const slot = chart.__panes.indexOf(pane);
+          for (const s of pane.__series) (s as { __paneIndex: number }).__paneIndex = slot;
+        }
+      }),
       takeScreenshot: vi.fn(() => ({ __canvas: true }) as unknown),
+      chartElement: vi.fn(() => ({ __chartEl: true }) as unknown),
+      options: vi.fn(() => ({ layout: { fontSize: 12 } })),
+      setCrosshairPosition: vi.fn(),
+      clearCrosshairPosition: vi.fn(),
     };
     reg.charts.push(chart);
     return chart;
@@ -233,7 +362,9 @@ const H = vi.hoisted(() => {
     BaselineSeries: { seriesType: "Baseline" },
   };
 
-  return { reg, createChart, createSeriesMarkers, createTextWatermark, defs };
+  const MismatchDirection = { NearestLeft: -1, None: 0, NearestRight: 1 } as const;
+
+  return { reg, createChart, createSeriesMarkers, createTextWatermark, defs, MismatchDirection };
 });
 
 vi.mock("lightweight-charts", () => ({
@@ -246,14 +377,18 @@ vi.mock("lightweight-charts", () => ({
   AreaSeries: H.defs.AreaSeries,
   HistogramSeries: H.defs.HistogramSeries,
   BaselineSeries: H.defs.BaselineSeries,
+  MismatchDirection: H.MismatchDirection,
 }));
 
 // Imported AFTER the mock is registered (vi.mock is hoisted, so this resolves to the mock).
 import { createEngine } from "../chart-engine";
-import { createLwcEngine } from "../chart-engine/lwc";
+import { createLwcEngine, LWC_CAPABILITIES } from "../chart-engine/lwc";
 import type { EngineSeriesKind } from "../chart-engine";
 
 const container = {} as unknown as HTMLElement;
+
+/** Shared detach spy for the primitive-bridge block. */
+const detachedSpy = vi.fn();
 
 beforeEach(() => {
   H.reg.reset();
@@ -275,6 +410,36 @@ describe("lwc adapter — construction & options", () => {
   it("createEngine passes {} to createChart when options are omitted", () => {
     createEngine(container);
     expect(H.createChart.mock.calls[0][1]).toEqual({});
+  });
+
+  it("forwards every modelled EngineOptions group verbatim, kineticScroll included (ChartPanel:4040, C01-A03 F-1)", () => {
+    // Full bag mirrors the subset of EngineOptions groups ChartPanel actually sets on
+    // its createChart call (layout / grid / crosshair / timeScale / rightPriceScale /
+    // leftPriceScale / localization / handleScroll / handleScale / kineticScroll,
+    // plus width/height/autoSize). The adapter must forward every group 1:1 — a
+    // dropped group (the F-1 mutant: strip kineticScroll before forwarding) breaks
+    // `expect(createChart.mock.calls[0][1]).toEqual(bag)` via deep equality.
+    const bag = {
+      width: 900,
+      height: 600,
+      kineticScroll: { mouse: true, touch: true },
+      rightPriceScale: { borderVisible: true, borderColor: "#3a3f4b" },
+      leftPriceScale: { visible: false },
+      localization: { locale: "en-GB" },
+      handleScroll: { mouseWheel: true },
+      handleScale: { mouseWheel: true },
+      autoSize: false,
+    };
+    // Snapshot BEFORE the call: `createChart.mock.calls[0][1]` is the very object we
+    // handed in, so asserting against `bag` would also match an adapter that strips a
+    // group IN PLACE (`delete options.kineticScroll`) — the caller's bag loses the key
+    // and both sides of toEqual() agree. A pre-call deep copy pins what was forwarded.
+    const expected = structuredClone(bag);
+    createEngine(container, bag);
+    expect(H.createChart).toHaveBeenCalledTimes(1);
+    expect(H.createChart.mock.calls[0][0]).toBe(container);
+    expect(H.createChart.mock.calls[0][1]).toEqual(expected);
+    expect(bag).toEqual(expected); // the adapter must not mutate the caller's options
   });
 
   it("createEngine throws on an unknown impl", () => {
@@ -453,10 +618,10 @@ describe("lwc adapter — price lines", () => {
     const raw = c.addSeries.mock.results[0].value as {
       createPriceLine: ReturnType<typeof vi.fn>;
       removePriceLine: ReturnType<typeof vi.fn>;
-      priceLines: { __opts: unknown }[];
+      __priceLines: { __opts: unknown }[];
     };
     expect(raw.createPriceLine).toHaveBeenCalledWith(opts);
-    expect(raw.priceLines[0].__opts).toBe(opts);
+    expect(raw.__priceLines[0].__opts).toBe(opts);
     pl.remove();
     expect(raw.removePriceLine).toHaveBeenCalledTimes(1);
     // Idempotent — a second remove is a no-op.
@@ -470,8 +635,8 @@ describe("lwc adapter — price lines", () => {
     const pl = s.createPriceLine({ price: 50 });
     pl.applyOptions({ color: "#123" });
     const c = H.reg.lastChart();
-    const raw = c.addSeries.mock.results[0].value as { priceLines: { applyOptions: ReturnType<typeof vi.fn> }[] };
-    expect(raw.priceLines[0].applyOptions).toHaveBeenCalledWith({ color: "#123" });
+    const raw = c.addSeries.mock.results[0].value as { __priceLines: { applyOptions: ReturnType<typeof vi.fn> }[] };
+    expect(raw.__priceLines[0].applyOptions).toHaveBeenCalledWith({ color: "#123" });
   });
 });
 
@@ -736,7 +901,245 @@ describe("lwc adapter — unwrap escape hatch", () => {
     expect(e.timeScale().unwrap()).toBe(c.__ts);
     expect(e.panes()[0].unwrap()).toBe(c.__panes[0]);
     const pl = s.createPriceLine({ price: 1 });
-    const rawPl = (rawSeries as { priceLines: unknown[] }).priceLines[0];
+    const rawPl = (rawSeries as { __priceLines: unknown[] }).__priceLines[0];
     expect(pl.unwrap()).toBe(rawPl);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// inventory() — the live-resource census.
+//
+// This is the contract the chart-engine quality gate's "no leak across 50
+// symbol/timeframe switches" claim rests on, so the tests below are written against
+// the ownership SEMANTICS rather than the delegation: they build resources, tear them
+// down the way ChartPanel does, and assert the census follows.
+//
+// The census deliberately reads the renderer, not the engine's own `series` Set —
+// ChartPanel still creates most series on the unwrapped IChartApi, and a census that
+// only saw engine-created handles would report a clean bill of health for exactly the
+// call sites most likely to leak. Several cases below therefore add series RAW, the
+// way ChartPanel does, and check the census still sees them.
+// ─────────────────────────────────────────────────────────────────────────────
+describe("lwc adapter — inventory()", () => {
+  type RawChart = {
+    addSeries: (def: unknown, opts?: unknown, pane?: number) => RawSeries;
+    removeSeries: (s: RawSeries) => void;
+    panes: () => unknown[];
+  };
+  type RawSeries = { createPriceLine: (o: unknown) => RawLine; removePriceLine: (l: RawLine) => void };
+  type RawLine = { __opts: unknown };
+
+  it("an empty chart reports one pane and nothing else", () => {
+    const e = createEngine(container);
+    expect(e.inventory()).toEqual({ alive: true, panes: 1, series: 0, seriesByPane: [0], priceLines: 0, watermarks: 0 });
+  });
+
+  it("counts series per pane, in pane order", () => {
+    const e = createEngine(container);
+    e.addSeries("candles", {}, 0);
+    e.addSeries("line", {}, 0);
+    e.addSeries("histogram", {}, 1);
+    const inv = e.inventory();
+    expect(inv.panes).toBe(2);
+    expect(inv.series).toBe(3);
+    expect(inv.seriesByPane).toEqual([2, 1]);
+  });
+
+  it("sees series created RAW through unwrap(), not just engine-created ones", () => {
+    const e = createEngine(container);
+    const raw = e.unwrap<RawChart>();
+    raw.addSeries(H.defs.LineSeries, {}, 0);
+    raw.addSeries(H.defs.LineSeries, {}, 1);
+    // Nothing went through engine.addSeries, so an engine-side registry would say 0.
+    expect(e.inventory().series).toBe(2);
+  });
+
+  it("removing a series drops it and its price lines from the census", () => {
+    const e = createEngine(container);
+    const s = e.addSeries("line");
+    s.createPriceLine({ price: 1 });
+    s.createPriceLine({ price: 2 });
+    expect(e.inventory()).toMatchObject({ series: 1, priceLines: 2 });
+    s.remove();
+    expect(e.inventory()).toMatchObject({ series: 0, priceLines: 0 });
+  });
+
+  it("a price line removed explicitly leaves the census, and its series stays", () => {
+    const e = createEngine(container);
+    const s = e.addSeries("line");
+    const a = s.createPriceLine({ price: 1 });
+    s.createPriceLine({ price: 2 });
+    a.remove();
+    expect(e.inventory()).toMatchObject({ series: 1, priceLines: 1 });
+  });
+
+  it("moveToPane relocates a series without changing the total", () => {
+    const e = createEngine(container);
+    e.addSeries("line", {}, 0);
+    const s = e.addSeries("line", {}, 1);
+    expect(e.inventory().seriesByPane).toEqual([1, 1]);
+    s.moveToPane(0);
+    const inv = e.inventory();
+    expect(inv.series).toBe(2);
+    expect(inv.seriesByPane).toEqual([2, 0]);
+  });
+
+  it("counts watermarks the engine owns, and a replacement does not stack", () => {
+    const e = createEngine(container);
+    e.setWatermark(0, [{ text: "a" }]);
+    expect(e.inventory().watermarks).toBe(1);
+    e.setWatermark(0, [{ text: "b" }]);
+    expect(e.inventory().watermarks).toBe(1);
+  });
+
+  // The defect class this census exists to catch: a price line drawn on a series the
+  // creator does NOT own outlives the creator's own teardown. Removing the creator's
+  // series cannot reclaim it, so it has to be removed explicitly — and until it is,
+  // the count climbs once per generation with nothing else looking different.
+  it("a price line drawn on a FOREIGN series survives that creator's teardown", () => {
+    const e = createEngine(container);
+    const priceSeries = e.addSeries("candles", {}, 0);   // long-lived, survives generations
+    for (let generation = 0; generation < 5; generation++) {
+      const own = e.addSeries("line", {}, 0);            // this generation's own series
+      own.createPriceLine({ price: 10 });                // disposed with `own`
+      priceSeries.createPriceLine({ price: 20 });        // NOT disposed with `own`
+      own.remove();
+    }
+    const inv = e.inventory();
+    expect(inv.series).toBe(1);        // every generation's own series was reclaimed
+    expect(inv.priceLines).toBe(5);    // ...but the foreign-anchored lines were not
+  });
+
+  it("explicitly removing the foreign-anchored lines returns the census to steady state", () => {
+    const e = createEngine(container);
+    const priceSeries = e.addSeries("candles", {}, 0);
+    for (let generation = 0; generation < 5; generation++) {
+      const pooled = [priceSeries.createPriceLine({ price: 20 }), priceSeries.createPriceLine({ price: 30 })];
+      const own = e.addSeries("line", {}, 0);
+      own.remove();
+      for (const line of pooled) line.remove();          // the pool is the disposal owner
+      expect(e.inventory().priceLines).toBe(0);
+    }
+    expect(e.inventory()).toMatchObject({ series: 1, priceLines: 0 });
+  });
+
+  it("stays bounded across 50 add/remove generations", () => {
+    const e = createEngine(container);
+    const baseline = e.inventory();
+    for (let generation = 0; generation < 50; generation++) {
+      const overlay = e.addSeries("line", {}, 0);
+      const sub = e.addSeries("histogram", {}, 1);
+      sub.createPriceLine({ price: generation });
+      sub.setMarkers([{ time: 1, position: "aboveBar", shape: "circle", color: "#fff" }]);
+      overlay.remove();
+      sub.remove();
+    }
+    const after = e.inventory();
+    expect(after.series).toBe(baseline.series);
+    expect(after.priceLines).toBe(0);
+    // Panes are allowed to persist — LWC keeps an emptied pane rather than resplicing
+    // indices under live series — so assert they are BOUNDED, not that they vanish.
+    expect(after.panes).toBeLessThanOrEqual(2);
+  });
+
+  it("a destroyed engine reports alive:false with zeroes instead of throwing", () => {
+    const e = createEngine(container);
+    e.addSeries("line").createPriceLine({ price: 1 });
+    e.setWatermark(0, [{ text: "x" }]);
+    e.destroy();
+    expect(() => e.inventory()).not.toThrow();
+    expect(e.inventory()).toEqual({ alive: false, panes: 0, series: 0, seriesByPane: [], priceLines: 0, watermarks: 0 });
+  });
+
+  it("survives a renderer that throws mid-census", () => {
+    const e = createEngine(container);
+    e.addSeries("line");
+    const c = H.reg.lastChart();
+    c.__panes[0].getSeries.mockImplementationOnce(() => { throw new Error("pane gone"); });
+    expect(() => e.inventory()).not.toThrow();
+    expect(e.inventory().alive).toBe(true);
+  });
+});
+
+describe("lwc adapter — C02 identity + capabilities", () => {
+  it("reports impl 'lwc' and the full LWC capability set", () => {
+    const e = createEngine(container);
+    expect(e.impl).toBe("lwc");
+    expect(LWC_CAPABILITIES.seriesKinds).toEqual(["candles", "bars", "line", "area", "histogram", "baseline"]);
+    expect(LWC_CAPABILITIES.priceScaleModes).toEqual(["normal", "log", "percent", "indexed100"]);
+    expect(LWC_CAPABILITIES).toMatchObject({
+      watermark: true,
+      markers: true,
+      primitives: true,
+      screenshot: true,
+      kineticScroll: true,
+    });
+  });
+});
+
+// ── Primitive bridge (lane LWCPRIM) ──────────────────────────────────────────
+// The lifecycle semantics of the wrapper (attached once, one update per generation,
+// paint through the pane view, detach exactly once) are tested in
+// chartEngineLwcPrimitive.test.ts, whose stand-in drives the LWC plugin hooks. This
+// stand-in records the calls only, so what is checked here is delegation: which
+// object reaches the native series.
+
+type PrimitiveSpy = ReturnType<typeof vi.fn>;
+
+describe("lwc adapter — SeriesHandle primitive bridge", () => {
+  it("forwards a native LWC primitive to the series untouched, both directions", () => {
+    const e = createEngine(container);
+    const s = e.addSeries("candles", {}, 0);
+    const raw = s.unwrap<{ attachPrimitive: PrimitiveSpy; detachPrimitive: PrimitiveSpy }>();
+    const plugin = { paneViews: () => [], attached: () => undefined };
+
+    s.attachPrimitive(plugin);
+    expect(raw.attachPrimitive).toHaveBeenCalledTimes(1);
+    expect(raw.attachPrimitive.mock.calls[0][0]).toBe(plugin);
+
+    s.detachPrimitive(plugin);
+    expect(raw.detachPrimitive).toHaveBeenCalledTimes(1);
+    expect(raw.detachPrimitive.mock.calls[0][0]).toBe(plugin);
+  });
+
+  it("wraps an EnginePrimitive, ignores a repeat attach, and detaches the same wrapper", () => {
+    const e = createEngine(container);
+    const s = e.addSeries("candles", {}, 0);
+    const raw = s.unwrap<{ attachPrimitive: PrimitiveSpy; detachPrimitive: PrimitiveSpy }>();
+    const primitive = {
+      id: "engine-overlay",
+      attached: () => undefined,
+      detached: detachedSpy,
+      update: () => undefined,
+    };
+
+    s.attachPrimitive(primitive);
+    expect(raw.attachPrimitive).toHaveBeenCalledTimes(1);
+    const wrapper = raw.attachPrimitive.mock.calls[0][0];
+    expect(wrapper).not.toBe(primitive);
+
+    s.attachPrimitive(primitive); // same object again: the first attach owns it
+    expect(raw.attachPrimitive).toHaveBeenCalledTimes(1);
+
+    s.detachPrimitive(primitive);
+    expect(raw.detachPrimitive).toHaveBeenCalledTimes(1);
+    expect(raw.detachPrimitive.mock.calls[0][0]).toBe(wrapper);
+  });
+
+  it("releases bridges on destroy() without detaching what was never wired", () => {
+    const e = createEngine(container);
+    const s = e.addSeries("candles", {}, 0);
+    const primitive = {
+      id: "never-wired",
+      attached: () => undefined,
+      detached: detachedSpy,
+      update: () => undefined,
+    };
+    s.attachPrimitive(primitive);
+    // This stand-in never calls the wrapper's attached() (no render pass), so the
+    // engine primitive was never wired: C03-A03 forbids a detached() for it.
+    e.destroy();
+    expect(detachedSpy).not.toHaveBeenCalled();
+    detachedSpy.mockClear();
   });
 });

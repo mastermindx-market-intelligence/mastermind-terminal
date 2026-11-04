@@ -640,3 +640,35 @@ export function timeZoneLabel(zone: string, lang: PlainLang, at: Date = new Date
   if (!offset) return name;
   return lang === "zh" ? `${name}（${offset}）` : `${name} (${offset})`;
 }
+
+/** ArcGauge state → localized label for aria-label. */
+export const ARC_STATE_LABEL: Record<string, [string, string]> = {
+  bull: ["bullish", "看涨"],
+  bear: ["bearish", "看跌"],
+  neutral: ["neutral", "中性"],
+  warn: ["warning", "警示"],
+};
+
+export function arcStateLabel(state: string, lang: PlainLang): string {
+  const pair = ARC_STATE_LABEL[state];
+  if (!pair) return notClassified(lang);
+  return lang === "zh" ? pair[1] : pair[0];
+}
+
+/** Live Radar episode owner states (mastermind.live_entry_episode.v1) as plain words. */
+const EPISODE_STATE_WORDS: Record<string, [string, string]> = {
+  PROBING: ["probing", "探测中"],
+  ARMED: ["armed", "已就位"],
+  TURNING: ["turning", "转向中"],
+  CANDIDATE: ["candidate", "候选"],
+  INVALIDATED: ["invalidated", "已失效"],
+  EXPIRED: ["expired", "已过期"],
+  RESOLVED: ["resolved", "已结束"],
+};
+
+export function episodeStateLabel(value: string | null | undefined, lang: PlainLang): string {
+  if (value == null || value === "") return notClassified(lang);
+  const pair = EPISODE_STATE_WORDS[value];
+  if (!pair) return value.toLowerCase();
+  return pair[lang === "zh" ? 1 : 0];
+}

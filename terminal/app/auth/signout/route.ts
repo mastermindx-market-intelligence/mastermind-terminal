@@ -30,7 +30,28 @@ export async function POST(request: NextRequest) {
       },
     },
   );
-  await supabase.auth.signOut();
+  // Signing out here must not revoke sessions on other devices. Even when
+  // the Auth API returns an error, expire the CURRENT browser's cookies at
+  // both parent-domain and legacy host-only scope so a subsequent visit
+  // cannot accidentally restore the session during an Auth outage.
+  try {
+    await supabase.auth.signOut({ scope: "local" });
+  } catch {
+    // An offline Auth service must not trap the visitor in a signed-in tab.
+  } finally {
+    const authCookies = request.cookies.getAll().filter(({ name }) =>
+      /^sb-[a-z0-9]+-auth-token(?:\.\d+|-code-verifier(?:\.\d+)?)?$/.test(name),
+    );
+    applySupabaseResponseCookies(
+      response.headers,
+      authCookies.map(({ name }) => ({
+        name,
+        value: "",
+        options: { ...authCookieOptions(), maxAge: 0, expires: new Date(0) },
+      })),
+      {},
+    );
+  }
   // Path-relative Location (not NextResponse.redirect): behind the reverse proxy Next
   // normalizes request.url to its internal listen origin (https://localhost:3000), and the
   // CSP form-action 'self' then blocks that cross-origin redirect after the form POST —

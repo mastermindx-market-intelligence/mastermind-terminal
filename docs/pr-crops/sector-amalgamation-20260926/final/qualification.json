@@ -1,0 +1,469 @@
+{
+  "sourceRevision": "79dbe3f2431b9e21cabf23071f02eab5add57eb4",
+  "purpose": "Sector Central unified destinations and contextual evidence",
+  "nativePaperModified": false,
+  "authenticatedProduction": false,
+  "independentDesignAcceptance": false,
+  "transport": "local interception with unmodified owner JSON",
+  "checks": [
+    {
+      "name": "chromium-1440-en-light: exactly five unified destinations",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: Sources is not a competing destination",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: source overlay preserves view and query",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: exact current source clocks",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: technical receipt stays in disclosure",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: Escape restores exact filtered view",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: evidence close preserves scroll",
+      "passed": true,
+      "details": {
+        "beforeScroll": {
+          "inner": 0,
+          "outer": 0
+        },
+        "afterScroll": {
+          "inner": 0,
+          "outer": 0
+        }
+      }
+    },
+    {
+      "name": "chromium-1440-en-light: Forward/open then close keeps company",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: signal destination retains selected group",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: parent-sector and selected-group signal scopes remain explicit",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: no lost theme depth in consolidation",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: missing history does not fabricate a chart",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: browser Back closes Sources before losing History",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: no horizontal overflow",
+      "passed": true,
+      "details": {
+        "inner": 0,
+        "document": 0
+      }
+    },
+    {
+      "name": "chromium-1440-en-light: old dossier link retains MU",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: old themes link retains MU",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: direct legacy Sources closes without leaving workspace",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: exactly five unified destinations",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: Sources is not a competing destination",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: source overlay preserves view and query",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: exact current source clocks",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: technical receipt stays in disclosure",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: Escape restores exact filtered view",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: evidence close preserves scroll",
+      "passed": true,
+      "details": {
+        "beforeScroll": {
+          "inner": 0,
+          "outer": 0
+        },
+        "afterScroll": {
+          "inner": 0,
+          "outer": 0
+        }
+      }
+    },
+    {
+      "name": "chromium-820-en-dark: Forward/open then close keeps company",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: signal destination retains selected group",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: parent-sector and selected-group signal scopes remain explicit",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: no lost theme depth in consolidation",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: missing history does not fabricate a chart",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: browser Back closes Sources before losing History",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: no horizontal overflow",
+      "passed": true,
+      "details": {
+        "inner": 0,
+        "document": 0
+      }
+    },
+    {
+      "name": "chromium-820-en-dark: old dossier link retains MU",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: old themes link retains MU",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: direct legacy Sources closes without leaving workspace",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: exactly five unified destinations",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: Sources is not a competing destination",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: source overlay preserves view and query",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: exact current source clocks",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: technical receipt stays in disclosure",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: Escape restores exact filtered view",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: evidence close preserves scroll",
+      "passed": true,
+      "details": {
+        "beforeScroll": {
+          "inner": 0,
+          "outer": 0
+        },
+        "afterScroll": {
+          "inner": 0,
+          "outer": 0
+        }
+      }
+    },
+    {
+      "name": "chromium-390-en-light: Forward/open then close keeps company",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: signal destination retains selected group",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: parent-sector and selected-group signal scopes remain explicit",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: no lost theme depth in consolidation",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: missing history does not fabricate a chart",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: browser Back closes Sources before losing History",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: no horizontal overflow",
+      "passed": true,
+      "details": {
+        "inner": 0,
+        "document": 0
+      }
+    },
+    {
+      "name": "chromium-390-en-light: old dossier link retains MU",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: old themes link retains MU",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: direct legacy Sources closes without leaving workspace",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: exactly five unified destinations",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: Sources is not a competing destination",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: source overlay preserves view and query",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: exact current source clocks",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: technical receipt stays in disclosure",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: Escape restores exact filtered view",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: evidence close preserves scroll",
+      "passed": true,
+      "details": {
+        "beforeScroll": {
+          "inner": 0,
+          "outer": 0
+        },
+        "afterScroll": {
+          "inner": 0,
+          "outer": 0
+        }
+      }
+    },
+    {
+      "name": "webkit-1440-en-dark: Forward/open then close keeps company",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: signal destination retains selected group",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: parent-sector and selected-group signal scopes remain explicit",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: no lost theme depth in consolidation",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: missing history does not fabricate a chart",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: browser Back closes Sources before losing History",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: no horizontal overflow",
+      "passed": true,
+      "details": {
+        "inner": 0,
+        "document": 0
+      }
+    },
+    {
+      "name": "webkit-1440-en-dark: old dossier link retains MU",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: old themes link retains MU",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: direct legacy Sources closes without leaving workspace",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: exactly five unified destinations",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: Sources is not a competing destination",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: source overlay preserves view and query",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: exact current source clocks",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: technical receipt stays in disclosure",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: Escape restores exact filtered view",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: evidence close preserves scroll",
+      "passed": true,
+      "details": {
+        "beforeScroll": {
+          "inner": 0,
+          "outer": 0
+        },
+        "afterScroll": {
+          "inner": 0,
+          "outer": 0
+        }
+      }
+    },
+    {
+      "name": "webkit-390-zh-light: Forward/open then close keeps company",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: signal destination retains selected group",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: parent-sector and selected-group signal scopes remain explicit",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: no lost theme depth in consolidation",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: missing history does not fabricate a chart",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: browser Back closes Sources before losing History",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: no horizontal overflow",
+      "passed": true,
+      "details": {
+        "inner": 0,
+        "document": 0
+      }
+    },
+    {
+      "name": "webkit-390-zh-light: old dossier link retains MU",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: old themes link retains MU",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: direct legacy Sources closes without leaving workspace",
+      "passed": true
+    },
+    {
+      "name": "zero page exceptions",
+      "passed": true,
+      "details": []
+    }
+  ],
+  "screenshots": [
+    {
+      "name": "chromium-1440-en-light-sources.png",
+      "sha256": "c2b23306b2aa5d2c2070137a81ed87829b708845b005a1fdea4a013900f6c7e0"
+    },
+    {
+      "name": "chromium-1440-en-light-signals.png",
+      "sha256": "3a5563dfbfd3183b453a11c8fe361825070a2170ef98f39e820b9a2fe2e5c57e"
+    },
+    {
+      "name": "chromium-820-en-dark-sources.png",
+      "sha256": "d7ba6a85b9dc527dbbcc4e2d66e50928e8220c01ad69ff542db306851863cadc"
+    },
+    {
+      "name": "chromium-820-en-dark-signals.png",
+      "sha256": "4ea2d5b2567786bd2f25af1da25763e49a20b39b064a03bad026d14e70235cf3"
+    },
+    {
+      "name": "chromium-390-en-light-sources.png",
+      "sha256": "9556c24f117431c26c62ddef3ce2654e42c8d988c8856dcac0bcb496df233c7f"
+    },
+    {
+      "name": "chromium-390-en-light-signals.png",
+      "sha256": "c8694d34a9b9ce5feb69860627e4b4e07e8e46177a7b89615c563d8ffecd9e6f"
+    },
+    {
+      "name": "webkit-1440-en-dark-sources.png",
+      "sha256": "1ef231a5533ff5f13fced2c33065fb9b232158b7a73004a052addcc8ef8104a1"
+    },
+    {
+      "name": "webkit-1440-en-dark-signals.png",
+      "sha256": "0bc2ce702549c488f0a6f3e0dccc654ad0bd6a536385a440a2ba0a966b90259a"
+    },
+    {
+      "name": "webkit-390-zh-light-sources.png",
+      "sha256": "4c9ecf6a8e4f942ec217f88ba589ac9e5526ddb79095350851b6023c533f0195"
+    },
+    {
+      "name": "webkit-390-zh-light-signals.png",
+      "sha256": "43cc2fe80d348ca1a5cb2fbad550476bc2654a7e8d28a11fc4fd93a75c37ef28"
+    }
+  ],
+  "errors": [],
+  "passed": true
+}

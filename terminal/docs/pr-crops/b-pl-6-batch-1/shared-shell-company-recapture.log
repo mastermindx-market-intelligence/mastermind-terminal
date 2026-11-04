@@ -1,0 +1,26 @@
+[dev] - Local:         http://127.0.0.1:3123
+- Network:       http://127.0.0.1:3123
+✓ Ready in 4.1s
+[dev:err] ⚠ Slow filesystem detected. The benchmark took 472ms. If /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/shared-shell-beta-design-20261022/terminal/.next/dev is a network drive, consider moving it to a local folder.
+See more: https://nextjs.org/docs/app/guides/local-development
+[warmup] /terminal?symbol=NVDA → 200 in 226ms
+[warmup] /options → 200 in 361ms
+[warmup] /portfolio → 200 in 207ms
+[warmup] /alerts → 200 in 140ms
+[warmup] /analysis → 200 in 281ms
+[warmup] /discover → 200 in 176ms
+[warmup] /admin → 200 in 91ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 79ms
+[warmup] /login → 200 in 114ms
+[warmup] /reset-password → 200 in 146ms
+[warmup] /api/me → 200 in 141ms
+[warmup] /api/watchlist → 200 in 57ms
+[warmup] /api/layouts → 200 in 83ms
+[warmup] /api/watchlist/annotations → 409 in 50ms
+[warmup] 14 routes compiled in 2s
+capture AnalysisWorkspace-1440.png … ok
+capture AnalysisWorkspace-1440-zh.png … ok
+capture AnalysisWorkspace-390.png … ok
+capture AnalysisWorkspace-390-zh.png … ok
+capturedAtHead 6c9cde3550d2ab6281c2ea309c56f714f58b2ae1
+wrote 4 crops + EVIDENCE.yml to /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/shared-shell-beta-design-20261022/terminal/docs/pr-crops/b-pl-6-batch-1
