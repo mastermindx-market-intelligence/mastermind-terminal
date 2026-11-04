@@ -1,0 +1,394 @@
+{
+  "config": {
+    "argv": [
+      "/opt/homebrew/Cellar/node/26.5.0/bin/node",
+      "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/node_modules/.bin/playwright",
+      "test",
+      "e2e/embed-data-state.spec.ts",
+      "--grep",
+      "reports unavailable",
+      "--project=mobile",
+      "--workers=1",
+      "--retries=0",
+      "--reporter=json",
+      "--output=d06-embed-data-baseline/results"
+    ],
+    "configFile": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/playwright.config.ts",
+    "rootDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/globalSetup.ts",
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-baseline/results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "desktop",
+        "name": "desktop",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-baseline/results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "tablet",
+        "name": "tablet",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-baseline/results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "mobile",
+        "name": "mobile",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-baseline/results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-desktop",
+        "name": "company-intelligence-desktop",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-baseline/results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-tablet",
+        "name": "company-intelligence-tablet",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-baseline/results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-mobile",
+        "name": "company-intelligence-mobile",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-baseline/results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "terminal-chrome-intermediate",
+        "name": "terminal-chrome-intermediate",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/terminal-chrome-responsive\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-baseline/results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "w2a-workspaces",
+        "name": "w2a-workspaces",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.1",
+    "workers": 1,
+    "webServer": {
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 50354",
+      "url": "http://127.0.0.1:50354/terminal?symbol=NVDA",
+      "reuseExistingServer": false,
+      "timeout": 120000,
+      "env": {
+        "ANALYSIS_LOCAL_PREVIEW": "1",
+        "ADMIN_DEV": "1",
+        "TERMINAL_E2E_FIXTURE": "1",
+        "TERMINAL_E2E_EMAIL": "responsive@example.com",
+        "TERMINAL_E2E_ENTITLEMENT": "unlimited",
+        "RATE_LIMIT_MAX": "100000",
+        "HUB_REALTIME_QUOTES": "1",
+        "TICKER_NEWS_RAIL": "1",
+        "FLOW_FIXTURE": "1",
+        "INVESTIGATION_API_ADMISSION": "open",
+        "NEXT_PUBLIC_SUPABASE_URL": "http://127.0.0.1:54321",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY": "fixture-anon-key"
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "embed-data-state.spec.ts",
+      "file": "embed-data-state.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "daily data en",
+          "file": "embed-data-state.spec.ts",
+          "line": 46,
+          "column": 8,
+          "specs": [
+            {
+              "title": "reports unavailable data without claiming the symbol has no history",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 8200,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('.embed-empty-title')\nExpected: \u001b[32m\"\u001b[7mDaily\u001b[27m chart \u001b[7munavailable\u001b[27m\"\u001b[39m\nReceived: \u001b[31m\"\u001b[7mNo\u001b[27m chart \u001b[7mdata yet\u001b[27m\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.embed-empty-title')\u001b[22m\n\u001b[2m    14 × locator resolved to <div class=\"embed-empty-title\">No chart data yet</div>\u001b[22m\n\u001b[2m       - unexpected value \"No chart data yet\"\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('.embed-empty-title')\nExpected: \u001b[32m\"\u001b[7mDaily\u001b[27m chart \u001b[7munavailable\u001b[27m\"\u001b[39m\nReceived: \u001b[31m\"\u001b[7mNo\u001b[27m chart \u001b[7mdata yet\u001b[27m\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.embed-empty-title')\u001b[22m\n\u001b[2m    14 × locator resolved to <div class=\"embed-empty-title\">No chart data yet</div>\u001b[22m\n\u001b[2m       - unexpected value \"No chart data yet\"\u001b[22m\n\n    at /Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-data-state.spec.ts:135:58",
+                        "location": {
+                          "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-data-state.spec.ts",
+                          "column": 58,
+                          "line": 135
+                        },
+                        "snippet": "  133 |         });\n  134 |         await page.goto(`${url}&case=${scenario}`);\n> 135 |         await expect(page.locator(\".embed-empty-title\")).toHaveText(unavailableTitle);\n      |                                                          ^\n  136 |         await expect(page.locator(\".embed-empty-body\")).toContainText(\"NVDA\");\n  137 |         await expect(page.locator(\".embed-empty-title\")).not.toHaveText(emptyTitle);\n  138 |         await expect(page.locator(\".embed-day-skel, .embed-skel, .embed-date, .embed-chart-host\")).toHaveCount(0);"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-data-state.spec.ts",
+                            "column": 58,
+                            "line": 135
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('.embed-empty-title')\nExpected: \u001b[32m\"\u001b[7mDaily\u001b[27m chart \u001b[7munavailable\u001b[27m\"\u001b[39m\nReceived: \u001b[31m\"\u001b[7mNo\u001b[27m chart \u001b[7mdata yet\u001b[27m\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.embed-empty-title')\u001b[22m\n\u001b[2m    14 × locator resolved to <div class=\"embed-empty-title\">No chart data yet</div>\u001b[22m\n\u001b[2m       - unexpected value \"No chart data yet\"\u001b[22m\n\n\n  133 |         });\n  134 |         await page.goto(`${url}&case=${scenario}`);\n> 135 |         await expect(page.locator(\".embed-empty-title\")).toHaveText(unavailableTitle);\n      |                                                          ^\n  136 |         await expect(page.locator(\".embed-empty-body\")).toContainText(\"NVDA\");\n  137 |         await expect(page.locator(\".embed-empty-title\")).not.toHaveText(emptyTitle);\n  138 |         await expect(page.locator(\".embed-day-skel, .embed-skel, .embed-date, .embed-chart-host\")).toHaveCount(0);\n    at /Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-data-state.spec.ts:135:58"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-04T07:16:34.317Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-baseline/results/embed-data-state-daily-dat-567bf-g-the-symbol-has-no-history-mobile/test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-baseline/results/embed-data-state-daily-dat-567bf-g-the-symbol-has-no-history-mobile/error-context.md"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-baseline/results/embed-data-state-daily-dat-567bf-g-the-symbol-has-no-history-mobile/trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-data-state.spec.ts",
+                        "column": 58,
+                        "line": 135
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "e7e3b37fbb022ea4b11a-4ecec612c1699ce373ff",
+              "file": "embed-data-state.spec.ts",
+              "line": 118,
+              "column": 9
+            }
+          ]
+        },
+        {
+          "title": "daily data zh",
+          "file": "embed-data-state.spec.ts",
+          "line": 46,
+          "column": 8,
+          "specs": [
+            {
+              "title": "reports unavailable data without claiming the symbol has no history",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 5732,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('.embed-empty-title')\nExpected: \u001b[32m\"日线图表暂不可用\"\u001b[39m\nReceived: \u001b[31m\"暂无图表数据\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.embed-empty-title')\u001b[22m\n\u001b[2m    14 × locator resolved to <div class=\"embed-empty-title\">暂无图表数据</div>\u001b[22m\n\u001b[2m       - unexpected value \"暂无图表数据\"\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('.embed-empty-title')\nExpected: \u001b[32m\"日线图表暂不可用\"\u001b[39m\nReceived: \u001b[31m\"暂无图表数据\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.embed-empty-title')\u001b[22m\n\u001b[2m    14 × locator resolved to <div class=\"embed-empty-title\">暂无图表数据</div>\u001b[22m\n\u001b[2m       - unexpected value \"暂无图表数据\"\u001b[22m\n\n    at /Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-data-state.spec.ts:135:58",
+                        "location": {
+                          "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-data-state.spec.ts",
+                          "column": 58,
+                          "line": 135
+                        },
+                        "snippet": "  133 |         });\n  134 |         await page.goto(`${url}&case=${scenario}`);\n> 135 |         await expect(page.locator(\".embed-empty-title\")).toHaveText(unavailableTitle);\n      |                                                          ^\n  136 |         await expect(page.locator(\".embed-empty-body\")).toContainText(\"NVDA\");\n  137 |         await expect(page.locator(\".embed-empty-title\")).not.toHaveText(emptyTitle);\n  138 |         await expect(page.locator(\".embed-day-skel, .embed-skel, .embed-date, .embed-chart-host\")).toHaveCount(0);"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-data-state.spec.ts",
+                            "column": 58,
+                            "line": 135
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('.embed-empty-title')\nExpected: \u001b[32m\"日线图表暂不可用\"\u001b[39m\nReceived: \u001b[31m\"暂无图表数据\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.embed-empty-title')\u001b[22m\n\u001b[2m    14 × locator resolved to <div class=\"embed-empty-title\">暂无图表数据</div>\u001b[22m\n\u001b[2m       - unexpected value \"暂无图表数据\"\u001b[22m\n\n\n  133 |         });\n  134 |         await page.goto(`${url}&case=${scenario}`);\n> 135 |         await expect(page.locator(\".embed-empty-title\")).toHaveText(unavailableTitle);\n      |                                                          ^\n  136 |         await expect(page.locator(\".embed-empty-body\")).toContainText(\"NVDA\");\n  137 |         await expect(page.locator(\".embed-empty-title\")).not.toHaveText(emptyTitle);\n  138 |         await expect(page.locator(\".embed-day-skel, .embed-skel, .embed-date, .embed-chart-host\")).toHaveCount(0);\n    at /Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-data-state.spec.ts:135:58"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-04T07:16:48.494Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-baseline/results/embed-data-state-daily-dat-04420-g-the-symbol-has-no-history-mobile/test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-baseline/results/embed-data-state-daily-dat-04420-g-the-symbol-has-no-history-mobile/error-context.md"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-baseline/results/embed-data-state-daily-dat-04420-g-the-symbol-has-no-history-mobile/trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-data-state.spec.ts",
+                        "column": 58,
+                        "line": 135
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "e7e3b37fbb022ea4b11a-7ef5aa8fae30b8bf253a",
+              "file": "embed-data-state.spec.ts",
+              "line": 118,
+              "column": 9
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-04T07:16:15.418Z",
+    "duration": 39908.393,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 2,
+    "flaky": 0
+  }
+}

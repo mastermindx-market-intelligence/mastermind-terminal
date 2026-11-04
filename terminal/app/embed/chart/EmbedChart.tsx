@@ -28,8 +28,7 @@ import {
   type Time,
 } from "lightweight-charts";
 import {
-  toBars,
-  computeQuote,
+  parseDailyHistory,
   sma,
   visibleRange,
   fmtPrice,
@@ -38,6 +37,7 @@ import {
   fmtVolume,
   RANGE_KEYS,
   type Bar,
+  type DailyHistoryState,
   type Quote,
   type RangeKey,
   type ThemeName,
@@ -74,15 +74,7 @@ function postOpenFullChart(): void {
   }
 }
 
-type LoadState =
-  | { kind: "loading" }
-  | { kind: "empty" } // valid symbol, but no bars
-  | { kind: "ready"; bars: Bar[]; quote: Quote };
-
-// Reduced-motion: skip the ribbon sweep + shimmer.
-function prefersReducedMotion(): boolean {
-  return typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-}
+type LoadState = { kind: "loading" } | DailyHistoryState;
 
 const TERMINAL_BASE = "https://app.mastermind-x.com/terminal";
 
@@ -127,24 +119,23 @@ export default function EmbedChart({ symbol, theme, lang, transparent, initialRa
   useTransparentRoot(transparent);
 
   // ── Fetch daily bars (same-origin static file) ────────────────────────────────
-  // Small self-contained fetch (not lib/dataCache) so the embed doesn't pull the coverage/neg404
-  // machinery. A 404/empty file → clean empty state; never a crash, never a blank white box.
+  // Keep the existing self-contained request. Only an explicit 404 or empty bars confirms
+  // absence; transport and unusable-data failures must not claim the symbol has no history.
   useEffect(() => {
     let alive = true;
     setState({ kind: "loading" });
     fetch(`/data/${encodeURIComponent(symbol)}.json`, { cache: "force-cache" })
-      .then((r) => (r.ok ? r.json() : null))
-      .catch(() => null)
-      .then((json) => {
+      .then(async (response): Promise<DailyHistoryState> => {
+        if (response.status === 404) return { kind: "empty" };
+        if (!response.ok) return { kind: "unavailable" };
+        return parseDailyHistory(await response.json());
+      })
+      .catch((): DailyHistoryState => ({ kind: "unavailable" }))
+      .then((next) => {
         if (!alive) return;
-        const bars = toBars(json);
-        const quote = computeQuote(bars);
-        if (bars.length === 0 || !quote) {
-          setState({ kind: "empty" });
-          return;
-        }
-        barsRef.current = bars;
-        setState({ kind: "ready", bars, quote });
+        barsRef.current = next.kind === "ready" ? next.bars : [];
+        setHover(null);
+        setState(next);
       });
     return () => {
       alive = false;
@@ -338,6 +329,10 @@ export default function EmbedChart({ symbol, theme, lang, transparent, initialRa
 
   // ── Render ────────────────────────────────────────────────────────────────────
   const terminalHref = `${TERMINAL_BASE}?sym=${encodeURIComponent(symbol)}&from=embed`;
+  const statusText = state.kind === "loading" ? t("loading", { sym: symbol })
+    : state.kind === "ready" ? t("loaded", { sym: symbol, date: state.quote.asOf })
+    : state.kind === "empty" ? t("emptyBody", { sym: symbol })
+    : t("unavailableBody", { sym: symbol });
 
   return (
     <div
@@ -348,6 +343,7 @@ export default function EmbedChart({ symbol, theme, lang, transparent, initialRa
       data-hdr={hideQuote ? "0" : undefined}
       data-clean={clean ? "1" : undefined}
     >
+      <div className="embed-status" role="status" aria-atomic="true">{statusText}</div>
       <Header
         symbol={symbol}
         state={state}
@@ -372,12 +368,12 @@ export default function EmbedChart({ symbol, theme, lang, transparent, initialRa
         }
       />
 
-      <div className="embed-body">
+      <div className="embed-body" aria-busy={state.kind === "loading"}>
         {state.kind === "loading" && <Skeleton pal={pal} />}
 
-        {state.kind === "empty" && (
+        {(state.kind === "empty" || state.kind === "unavailable") && (
           <EmptyOrError
-            kind="empty"
+            kind={state.kind}
             symbol={symbol}
             terminalHref={terminalHref}
             pal={pal}
@@ -392,13 +388,13 @@ export default function EmbedChart({ symbol, theme, lang, transparent, initialRa
             <PriceRibbon dir={state.quote.dir} pal={pal} />
           </>
         )}
-
-        {/* Attribution is always present (brand + funnel), quiet like TradingView's mark. */}
-        <a className="embed-attr" href={terminalHref} target="_blank" rel="noopener noreferrer">
-          {t("attribution")}
-          <span aria-hidden="true" className="embed-attr-arrow">↗</span>
-        </a>
       </div>
+
+      {/* A separate row keeps the link and its focus outline clear of the plot and time axis. */}
+      <a className="embed-attr" href={terminalHref} target="_blank" rel="noopener noreferrer">
+        {t("attribution")}
+        <span aria-hidden="true" className="embed-attr-arrow">↗</span>
+      </a>
 
       <StyleTag pal={pal} />
     </div>
@@ -431,6 +427,7 @@ function Header({
   const quote = state.kind === "ready" ? state.quote : null;
   // When hovering the chart, the header becomes an OHLC status line (house pattern).
   const showOhlc = hover != null && quote != null;
+  const displayedDate = showOhlc ? hover.time : quote?.asOf;
 
   return (
     <header className="embed-header">
@@ -456,9 +453,14 @@ function Header({
               </span>
             ) : null}
           </span>
-        ) : (
+        ) : state.kind === "loading" ? (
           <span className="embed-day num embed-day-skel" aria-hidden="true">
             <span className="embed-skel-pill" />
+          </span>
+        ) : null}
+        {displayedDate && (
+          <span className="embed-date">
+            {t(showOhlc ? "dailyBar" : "latestDailyBar")}<time dateTime={displayedDate}>{displayedDate}</time>
           </span>
         )}
       </div>
@@ -531,10 +533,9 @@ function Ohlc({
 // ── Signature: the day-direction price ribbon (single left→right draw-in sweep) ──
 function PriceRibbon({ dir, pal }: { dir: Quote["dir"]; pal: EmbedPalette }) {
   const color = dir === "up" ? pal.up : dir === "down" ? pal.down : pal.muted;
-  const reduced = prefersReducedMotion();
   return (
     <div
-      className={"embed-ribbon" + (reduced ? " no-anim" : "")}
+      className="embed-ribbon"
       style={{ ["--ribbon-color" as string]: color }}
       aria-hidden="true"
     />
@@ -585,11 +586,10 @@ function Legend({
 
 // ── Loading skeleton (subtle shimmer; reduced-motion → static) ───────────────────
 function Skeleton({ pal }: { pal: EmbedPalette }) {
-  const reduced = prefersReducedMotion();
   // A few faux candles + a baseline volume band so the shape reads before data lands.
   const heights = [42, 58, 50, 66, 48, 72, 60, 54, 68, 46, 62, 56, 70, 52, 64];
   return (
-    <div className={"embed-skel" + (reduced ? " no-anim" : "")} aria-hidden="true">
+    <div className="embed-skel" aria-hidden="true">
       <div className="embed-skel-candles">
         {heights.map((h, i) => (
           <span key={i} className="embed-skel-candle" style={{ height: `${h}%` }} />
@@ -608,14 +608,15 @@ function EmptyOrError({
   pal,
   t,
 }: {
-  kind: "empty" | "error";
+  kind: "empty" | "unavailable" | "error";
   symbol: string | null;
   terminalHref: string;
   pal: EmbedPalette;
   t: ReturnType<typeof makeT>;
 }) {
-  const title = kind === "empty" ? t("emptyTitle") : t("errorTitle");
-  const body = kind === "empty" ? t("emptyBody", { sym: symbol ?? "" }) : t("errorBody");
+  const title = kind === "empty" ? t("emptyTitle") : kind === "unavailable" ? t("unavailableTitle") : t("errorTitle");
+  const body = kind === "empty" ? t("emptyBody", { sym: symbol ?? "" })
+    : kind === "unavailable" ? t("unavailableBody", { sym: symbol ?? "" }) : t("errorBody");
   return (
     <div className="embed-empty">
       <svg className="embed-empty-glyph" viewBox="0 0 48 32" width="48" height="32" aria-hidden="true">
@@ -630,8 +631,8 @@ function EmptyOrError({
         />
       </svg>
       <div className="embed-empty-title">{title}</div>
-      <div className="embed-empty-body">{body}</div>
-      {kind === "empty" && symbol ? (
+      <div className="embed-empty-body" style={kind === "unavailable" ? { color: pal.text } : undefined}>{body}</div>
+      {kind !== "error" && symbol ? (
         <a className="embed-empty-link" href={terminalHref} target="_blank" rel="noopener noreferrer" style={{ color: pal.brand }}>
           {t("openTerminal")} <span aria-hidden="true">↗</span>
         </a>
@@ -669,11 +670,15 @@ function StyleTag({ pal }: { pal: EmbedPalette }) {
   }
   .embed-root .num{font-family:var(--font-inter),-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;}
   .embed-root *{box-sizing:border-box;}
+  .embed-status{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
+    clip-path:inset(50%);white-space:nowrap;border:0;}
 
   /* Header — one compact line, wraps to two on narrow phones. */
   .embed-header{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
     padding:8px 12px 7px;min-height:38px;}
-  .embed-head-quote{display:flex;align-items:baseline;gap:10px;min-width:0;flex:1 1 auto;}
+  .embed-head-quote{display:flex;align-items:baseline;gap:3px 10px;min-width:0;flex:1 1 auto;flex-wrap:wrap;}
+  .embed-date{flex-basis:100%;font-size:10.5px;line-height:1.4;color:var(--e-text);}
+  .embed-date time{font-variant-numeric:tabular-nums;}
   .embed-root[data-hdr="0"] .embed-head-quote{display:none;}
   .embed-ticker{font-weight:700;font-size:15px;letter-spacing:.02em;color:var(--e-text);flex:none;}
   .embed-day{display:inline-flex;align-items:baseline;gap:8px;min-width:0;}
@@ -708,12 +713,11 @@ function StyleTag({ pal }: { pal: EmbedPalette }) {
   .embed-ribbon{position:absolute;top:0;left:0;right:0;height:2px;pointer-events:none;z-index:6;
     background:linear-gradient(90deg,var(--ribbon-color) 0%,color-mix(in srgb,var(--ribbon-color) 45%,transparent) 55%,transparent 100%);
     transform-origin:left center;animation:embedRibbon 640ms cubic-bezier(.22,1,.36,1) both;}
-  .embed-ribbon.no-anim{animation:none;}
   @keyframes embedRibbon{from{transform:scaleX(0);opacity:.2;}to{transform:scaleX(1);opacity:1;}}
 
   /* Legend — quiet, bottom-left, floated ABOVE the LWC time-axis strip (~22px) so it never
      collides with the date labels the chart canvas paints along the bottom edge. */
-  .embed-head-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end;}
+  .embed-head-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end;min-width:0;max-width:100%;}
   .embed-legend{display:flex;gap:7px;}
   .embed-leg{display:inline-flex;align-items:center;gap:5px;padding:2px 6px;border-radius:5px;
     font-size:10.5px;font-weight:600;letter-spacing:.02em;color:var(--e-muted);
@@ -725,9 +729,9 @@ function StyleTag({ pal }: { pal: EmbedPalette }) {
   .embed-leg:focus-visible{outline:2px solid var(--e-brand);outline-offset:1px;}
   .embed-leg-dot{width:12px;height:2.5px;border-radius:2px;flex:none;}
 
-  /* Attribution — bottom-right, whisper-quiet, floated above the time-axis strip, brightens on hover. */
-  .embed-attr{position:absolute;left:10px;bottom:6px;z-index:7;display:inline-flex;align-items:center;gap:3px;
-    padding:2px 5px;border-radius:5px;font-size:10px;font-weight:600;letter-spacing:.03em;
+  /* Attribution owns a row outside the canvas; no guessed time-axis height or plot overlay. */
+  .embed-attr{flex:0 0 auto;align-self:flex-start;display:inline-flex;align-items:center;gap:3px;
+    margin:2px 10px 4px;min-height:24px;padding:3px 5px;border-radius:5px;font-size:10px;font-weight:600;letter-spacing:.03em;
     color:var(--e-dim);background:color-mix(in srgb,var(--e-page) 55%,transparent);
     transition:color 120ms cubic-bezier(.4,0,.2,1);}
   .embed-attr:hover{color:var(--e-text);}
@@ -740,7 +744,6 @@ function StyleTag({ pal }: { pal: EmbedPalette }) {
     gap:2%;padding:14% 8% 20%;}
   .embed-skel-candle{width:3.2%;border-radius:2px;background:var(--e-skel-base);}
   .embed-skel-shimmer{position:absolute;inset:0;transform:translateX(-100%);animation:embedShimmer 1.35s ease-in-out infinite;}
-  .embed-skel.no-anim .embed-skel-shimmer{display:none;}
   @keyframes embedShimmer{100%{transform:translateX(100%);}}
 
   /* Empty / error. */
@@ -796,6 +799,9 @@ function StyleTag({ pal }: { pal: EmbedPalette }) {
     .embed-last{font-size:14px;}
     .embed-ranges{width:100%;order:3;}
     .embed-ohlc{font-size:10.5px;gap:7px;}
+  }
+  @media (pointer:coarse){
+    .embed-attr{min-height:44px;}
   }
   @media (prefers-reduced-motion:reduce){
     .embed-ribbon{animation:none;}
