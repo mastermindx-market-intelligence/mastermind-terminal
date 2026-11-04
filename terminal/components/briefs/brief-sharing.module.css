@@ -333,3 +333,7 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* The disclosure is a full touch target in both art directions. */
+.summary { min-height: 44px; display: flex; align-items: center; }
+.wrap:lang(zh) .eyebrow, .wrap:lang(zh) .bodyHead { letter-spacing: normal; text-transform: none; }

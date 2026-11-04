@@ -71,8 +71,8 @@ const COPY = {
   accessActive: ["The view-only grant is active for current team members. This receipt does not show who opened the brief.", "只读授权目前对团队现有成员生效。此回执不表示已有成员打开简报。"],
   recordedTitle: ["Sharing recorded; current access not established.", "分享已记录；尚未确认当前访问。"],
   notObservedNote: [
-    "No recorded grant is visible for this sharing address yet. Nothing failed — the address stays on this page and you can check again.",
-    "此分享地址还没有可见的记录授权。没有任何失败 —— 地址仍保留在本页，可以再次检查。",
+    "No sharing record is visible yet. The outcome is not confirmed. Check this original sharing again; do not send another request.",
+    "尚未看到分享记录，结果仍未确认。请再次检查这次原有分享，不要重新发送请求。",
   ],
   conflictNote: ["The sharing on record doesn't match what this page expects.", "已记录的分享与此页面所预期的不一致。"],
   grantMismatchNote: [
@@ -94,7 +94,7 @@ const COPY = {
   errUnavailable: ["Briefs could not load right now. Try again in a moment.", "暂时无法加载简报，请稍后再试。"],
   errInvalid: ["That request was not complete. Check the fields and try again.", "请求不完整。请检查填写项后重试。"],
   errEffectUnknown: ["This sharing address isn't recorded for this brief.", "此简报没有记录这个分享地址。"],
-  errUnexpected: ["That didn't work. Nothing was changed here.", "操作未成功。此处没有任何更改。"],
+  errUnexpected: ["The request was not completed here. Check the original sharing status.", "请求未在此处完成。请检查原有分享状态。"],
   checkingIdentity: ["Checking your account…", "正在核对账户…"],
   addressUnavailable: ["The original sharing address could not be retained. Nothing was sent.", "无法保留原有分享地址，未发送任何内容。"],
   signInPrompt: ["Sign in to share a brief.", "登录后即可分享简报。"],
@@ -590,7 +590,7 @@ function BriefSharingReviewLifecycle({
 
   if (!signedIn) {
     return (
-      <div className={s.wrap} data-brief-sharing="" data-brief-sharing-state="signed-out">
+      <div lang={lang} className={s.wrap} data-brief-sharing="" data-brief-sharing-state="signed-out">
         <header className={s.head}>
           <span className={s.eyebrow}>{t("eyebrow")}</span>
           <h1 className={s.heading}>{t("heading")}</h1>
@@ -612,7 +612,8 @@ function BriefSharingReviewLifecycle({
 
   const artifact = review !== null && (
     <section className={s.panel} data-brief-sharing-artifact="">
-      <h2 className={s.artifactTitle}>{review.delivery.body.target.name}</h2>
+      <h2 className={s.artifactTitle}>{review.delivery.body.artifact.name}</h2>
+      <p className={s.meta}>{review.delivery.body.target.name}</p>
       <p className={s.meta}>{review.audience.name}</p>
       <p className={s.note}>{t("audiencePolicy")}</p>
       <p className={s.meta}>
@@ -690,11 +691,11 @@ function BriefSharingReviewLifecycle({
   );
 
   return (
-    <div className={s.wrap} data-brief-sharing="" data-brief-sharing-state={stateSlug}>
+    <div lang={lang} className={s.wrap} data-brief-sharing="" data-brief-sharing-state={stateSlug}>
       <header className={s.head}>
         <span className={s.eyebrow}>{t("eyebrow")}</span>
-        <h1 className={s.heading}>{t("heading")}</h1>
-        <p className={s.lede}>{t("lede")}</p>
+        <h1 className={s.heading}>{sendState === "unknown" ? t("unknownTitle") : receiptQualified ? t("sharedTitle") : t("heading")}</h1>
+        <p className={s.lede}>{receiptQualified ? [teamNameFor(receipt?.grant?.team_id ?? null), t("accessActive")].filter(Boolean).join(" · ") : sendState === "unknown" ? t("unknownNote") : t("lede")}</p>
       </header>
 
       {artifact}

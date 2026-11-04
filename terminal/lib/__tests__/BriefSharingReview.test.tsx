@@ -238,6 +238,8 @@ describe("BriefSharingReview", () => {
     expect(host.textContent).toContain("US session digest");
     expect(host.textContent).toContain("The view-only grant is active for current team members.");
     expect(stateAttr()).toBe("shared");
+    expect(host.querySelector("h1")?.textContent).toBe("Shared with your team.");
+    expect(host.querySelector("[data-brief-sharing-artifact] h2")?.textContent).toBe("US session digest");
     // a source grant means no fresh send and no keep-private
     expect(host.querySelector("[data-brief-sharing-send]")).toBeNull();
     expect(host.textContent).not.toContain("Keep private");
@@ -317,6 +319,7 @@ describe("BriefSharingReview", () => {
     await click("Share with team");
     expect(stateAttr()).toBe("unknown");
     expect(host.textContent).toContain("We couldn't confirm what happened.");
+    expect(host.querySelector("h1")?.textContent).toBe("We couldn't confirm what happened.");
     expect(host.textContent).not.toContain("Shared with your team");
     // the body is withheld while the outcome is unknown
     expect(host.querySelector("[data-brief-sharing-toggle]")).toBeNull();
@@ -361,7 +364,7 @@ describe("BriefSharingReview", () => {
     await click("Share with team");
     expect(postCalls()).toHaveLength(1);
     expect(host.textContent).toContain("Sharing recorded; current access not established.");
-    expect(host.textContent).toContain("No recorded grant is visible");
+    expect(host.textContent).toContain("No sharing record is visible yet.");
     expect(host.textContent).not.toContain("Shared with your team");
     expect(receiptCalls()).toHaveLength(1);
     await flush();
@@ -450,6 +453,7 @@ describe("BriefSharingReview", () => {
     expect(host.textContent).toContain("分享这份简报？");
     expect(host.textContent).toContain("哪个团队可以看到这份简报？");
     expect(host.textContent).not.toContain("Share the brief?");
+    expect(host.querySelector("[data-brief-sharing]")?.getAttribute("lang")).toBe("zh");
     await chooseTeam(TEAM);
     await click("查看分享状态");
     expect(host.textContent).toContain("NVDA cycle"); // source title stays source
