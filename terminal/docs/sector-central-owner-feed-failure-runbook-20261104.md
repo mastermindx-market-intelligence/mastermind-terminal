@@ -34,7 +34,7 @@ output.
 
 All of these are public `GET`s. None of them changes state.
 
-### 2.1 Is the owner API answering?
+### 2.1 Is the owner origin reachable?
 
 ```bash
 curl -sS -o /dev/null -D - https://www.mastermind-x.com/marketdata/sp500_heatmap.json
@@ -42,13 +42,48 @@ curl -sS -o /dev/null -D - https://www.mastermind-x.com/marketdata/sp500_heatmap
 
 | answer | meaning |
 |---|---|
+| `curl: (35) OpenSSL SSL_connect: SSL_ERROR_SYSCALL`, `http_code` `000` | **the edge closed the TLS handshake.** No certificate was presented, so no request reached the origin at all. This is a CDN/edge-zone failure, not a feed failure — see §2.0. |
 | `HTTP/2 401` + `x-regwall: deny` | owner API answered; the gate refused an anonymous request. **Healthy.** |
-| `HTTP/2 502` + body `upstream connect error or disconnect/reset before headers` | the owner API did **not** answer; Caddy could not reach it. |
+| `HTTP/2 502` + body `upstream connect error or disconnect/reset before headers` | the edge reached the origin, but the owner API did **not** answer; Caddy could not reach it. |
 | `HTTP/2 503` + `x-regwall: deny` | the gate failed closed because a check service was unavailable. |
 
 Run it for each feed path in the table above. All of them take the same owner
 check, so a 401 on some paths and a 502 on others in the same minute means the
 owner API is flapping, not that one feed is broken.
+
+### 2.0 Live incident, 2026-11-04 09:41–09:44 UTC: the `www` edge zone fails TLS
+
+Measured from outside the estate, read-only:
+
+```
+openssl s_client -connect www.mastermind-x.com:443 -servername www.mastermind-x.com
+→ error:0A000126:SSL routines:ssl3_read_n:unexpected eof while reading
+   (the peer closes during the handshake; no certificate is presented)
+
+openssl s_client -connect beta.mastermind-x.com:443 -servername beta.mastermind-x.com
+→ CONNECTION ESTABLISHED, TLSv1.3, CN = beta.mastermind-x.com, Verification: OK
+```
+
+`www.mastermind-x.com` and the apex fail on **both** edge IPs the zone resolves
+to; `beta`, `app` and `admin` are healthy on the same network. Eight consecutive
+probes over 90 s all returned `000`.
+
+**Why this matters.** Every Sector Central feed is transported from the Terminal
+by a server-side fetch to `https://www.mastermind-x.com/…`. If that host cannot
+complete a TLS handshake, the fetch never reaches the origin, so **all ten feeds
+fail together** and the Company Heatmap has no names to draw. That is the
+2026-11-04 symptom. The Terminal route, Macro's producer, Macro's Caddy
+`@vps_external` branch and the owner-envelope gate are all sound and were
+verified individually; the failure is upstream of all of them, in the CDN zone.
+
+**Check the zone, not the feeds.** `curl -sS -o /dev/null -w '%{http_code}\n'
+https://www.mastermind-x.com/api/status` returning `000` while
+`https://beta.mastermind-x.com/api/status` returns `404`/`401` means the zone,
+not the data.
+
+**Owner.** CDN/edge operator for the `www` and apex zones (certificate
+provisioning or origin-pull TLS on the edge nodes serving those zones). The
+Terminal gate and Macro's producer need no change for this symptom.
 
 ### 2.2 How fresh is the live plane?
 
@@ -111,6 +146,7 @@ indistinguishable. The response now names the class:
 
 | observation | conclusion |
 |---|---|
+| `000` / `SSL_ERROR_SYSCALL` on `www` and the apex, while `beta`/`app`/`admin` are healthy | the `www` CDN zone is failing TLS. **All ten feeds fail together** because every one of them is fetched from that host. This is the 2026-11-04 symptom. |
 | `401` + `x-regwall: deny` on every gated path | owner API is alive; a 502 seen earlier was a transient owner-API outage or restart, not a feed defect |
 | `502` on some paths and `401` on others in the same minute | owner API flapping; the per-path difference is timing, not path |
 | Terminal `429` + `rate_limited` | this Terminal's per-IP limiter. Note the Sector Central page requests **10 feeds per load**; repeated loads exhaust a 60/min budget. |
@@ -152,3 +188,7 @@ automated run holds. The merged label CSS is not in question: the fix is
 
 Until the owner path returns qualified data, the acceptance is **NOT_ACCEPTED**.
 Do not substitute a stale or fixture payload to make the panel look populated.
+
+**As of 2026-11-04 09:41–09:44 UTC the blocking condition is the `www` edge zone
+failing TLS (§2.0), not any source defect.** Restoring that zone is the
+precondition for the acceptance, and it is owned by the CDN/edge operator.
