@@ -104,3 +104,26 @@ browser cookies/Authorization or allocates identities.49 transport and92 admissi
 cases pass. Original Fabric proxy return ended provider_output_limit/no artifact;
 this is parent source. Native host integration/consequential review are pending;
 no installed/authenticated/publication acceptance follows from these tests.
+
+The native `InvestigationIntlPolicyControls` now composes the existing reviewed
+panel/session. It uses an empty comparator, explicit read-only preview, exact
+private ticket, native settings review and the existing Workspace Save/CAS owner.
+The raw original two-file Fabric artifact is NOT accepted unchanged: parent controls
+found StrictMode liveness, non-200 preview adoption and disabled-revision actions
+(3 original RED); the corrected source passes those controls plus pending-preview
+deduplication. The original source-close test needed the actual jsdom toggle event
+turn (`waitFor`), not only microtask flushing. No product timing was changed.
+
+Real-repository mounted checks:19 host cases, the actual-byte owner callback case,
+and the complete real panel→private proxy→actual helper response→settings-only
+Save→conditional Undo→exact historical reopen case pass. The latter uses actual
+final generation/descriptor/response bytes with explicit synthetic auth/RPC/HTTP
+seams; it performs no SQL, login, external source/provider request or browser proof.
+Both existing Options host5 and Plan/native23 cases also pass (49 across5 files).
+Pending owner acknowledgement withholds Undo; competing Save clicks allocate one
+native operation. Saved data contains only settings intent, never preview numbers.
+Reopen does not preview, Save or replay an old Undo. Whole TypeScript passes; new
+modules have no lint findings, Workspace retains its inherited2errors/3warnings.
+The joined consequential source review is still pending. Actual installed catalog,
+service settings, source publication, authenticated product and release acceptance
+remain separate and held.

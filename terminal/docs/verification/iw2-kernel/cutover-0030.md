@@ -45,6 +45,15 @@ legacy-reconciliation paths. Admission does not override authentication or RLS.
 A request admitted while open may finish after configuration changes; checking
 new entries does not cancel, drain or erase already submitted work.
 
+The additive read-only `POST /api/investigations/policy-preview` uses this same
+request-time gate before session verification, body consumption or Macro fetch.
+Its private response also varies on `Authorization`; it sends only the incumbent
+verifier's exact bearer to the fixed canonical Macro origin. Its in-memory closed
+coverage is included in the existing admission handler table (92 total cases).
+It adds no bypass, drain signal, migration action, owner write or source grant.
+The separately deployed Macro route has its own existing authentication; native
+closure does not assert that every possible external or direct-RPC ingress closed.
+
 The in-memory tests explicitly select open only for the test environment. An
 eventual service installation must independently set and verify its own policy.
 No installer or runtime setting is changed by this source patch. Reading the

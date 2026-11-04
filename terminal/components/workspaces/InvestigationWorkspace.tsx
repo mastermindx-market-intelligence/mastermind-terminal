@@ -3,6 +3,10 @@
 import Link from "next/link";
 import { InvestigationIntlEvidence, type InvestigationIntlRead, type InvestigationIntlSelection } from "@/components/research/InvestigationIntlEvidence";
 import {intlBaselineUrl,parseIntlBaselineReply,safeIntlReturn,type IntlEntrySelectors,type IntlDraftSource} from "@/lib/investigationIntlEntry";
+import InvestigationIntlPolicyControls from "@/components/research/InvestigationIntlPolicyControls";
+import {intlPolicySettingsRevision,intlPolicySettingsUndo} from "@/lib/investigationIntlPolicy";
+import {parseIntlEvidenceReference} from "@/lib/investigationIntlReference";
+import type {ReviewSnapshot} from "@/lib/intlPolicyPreviewSession";
 import {parseIntlSelectedRead} from "@/lib/investigationIntlRead";
 import { useInvestigationTheme } from "@/lib/useInvestigationTheme";
 import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode, type KeyboardEvent as ReactKeyboardEvent } from "react";
@@ -130,6 +134,8 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
  function acknowledgeDetail(value:Detail|null){acknowledgedDetailRef.current=value;setAcknowledgedDetail(value);}
  const [editing,setEditing]=useState(false),[draft,setDraft]=useState<Draft>(emptyDraft(initialSymbol));
  const [intlEntryLoading,setIntlEntryLoading]=useState(false);
+ const [intlPolicyUndo,setIntlPolicyUndo]=useState<{id:string;savedRevision:number;before:InvestigationManifest;after:InvestigationManifest}|null>(null);
+ const intlPolicyDetails=useRef<HTMLDetailsElement>(null);
  const [intlProjection,setIntlProjection]=useState<{value:ReturnType<InvestigationIntlRead>;guard:DuplicateGuard;getter:InvestigationAuthProjection["getSnapshot"];lang:"en"|"zh"}|null>(null);
  const intlAuthKey=JSON.stringify(authProjection?.snapshot??null),intlAuthGetter=authProjection?.getSnapshot;
 
@@ -361,7 +367,7 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
   let active=true;
   const found=acknowledgedDetail;
   if(!readIntlEvidence&&found&&found===detail&&!detailLoading&&!editing&&entryActive&&!authEnded
-   &&found.manifest.evidence_refs.some(ref=>ref.owner==="intl.workspace_generation"))void loadIntlDetail(found,detailSeq.current,()=>active);
+   &&found.manifest.review_baseline_ref?.owner==="intl.workspace_generation")void loadIntlDetail(found,detailSeq.current,()=>active);
   return()=>{active=false;};
   // The original getter and primitive scope keys deduplicate identical owner
   // notifications. loadIntlDetail rechecks that same scope on settlement.
@@ -432,7 +438,7 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
  }
  useEffect(()=>{
   const controller=new AbortController();scope.current=controller;
-  acknowledgeDetail(null);setAuthEnded(false);setItems(null);setListError(false);setDetail(null);setBaseline(null);setIntlProjection(null);setSave({phase:"idle"});setStorageBlocked(false);setRetainedCapture(null);setDuplicate(null);setLegacyScenario(false);setIntlEntryLoading(false);
+  acknowledgeDetail(null);setAuthEnded(false);setItems(null);setListError(false);setDetail(null);setBaseline(null);setIntlProjection(null);setSave({phase:"idle"});setStorageBlocked(false);setRetainedCapture(null);setDuplicate(null);setLegacyScenario(false);setIntlEntryLoading(false);setIntlPolicyUndo(null);
   setAlertRows(null);setOutbox(null);setAlertLoad("loading");
   void inventory();
   void loadLayouts();
@@ -583,7 +589,7 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
   }
   if(detail)retainedBaseline(detail.manifest);
  }
- function save(action:InvestigationCommand["action"]=detail?"revise":"create", manifestOverride?:InvestigationManifest) {
+ function save(action:InvestigationCommand["action"]=detail?"revise":"create", manifestOverride?:InvestigationManifest, manifestOnly=false) {
   if(editLocked())return;
   if(legacyScenario){setMessage(sc.legacy);return;}
   // A duplicate draft may become a send only while the captured getter still shows the same ready
@@ -622,10 +628,10 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
    if(!draft.observation)delete manifest.continuation.next_observation;
   }
   const layout=layouts.find(l=>l.id===draft.layoutId);
-  const capture=action==="remove"||action==="restore"?null:draft.layoutId===RETAINED_LAYOUT&&retainedCapture?{layout_id:retainedCapture.layout_id,expected_revision:retainedCapture.expected_revision}:layout?{layout_id:layout.id,expected_revision:layout.config.revision}:null;
+  const capture=manifestOnly||action==="remove"||action==="restore"?null:draft.layoutId===RETAINED_LAYOUT&&retainedCapture?{layout_id:retainedCapture.layout_id,expected_revision:retainedCapture.expected_revision}:layout?{layout_id:layout.id,expected_revision:layout.config.revision}:null;
   // A chosen layout the current list does not show has no confirmed revision; it is never dropped silently.
-  if((action==="create"||action==="revise")&&draft.layoutId&&draft.layoutId!==RETAINED_LAYOUT&&draft.layoutId!==KEPT_LAYOUT&&!layout){setMessage(c.layoutMissing);return;}
-  const command:InvestigationCommand={id:detail?.id??crypto.randomUUID(),operation_id:crypto.randomUUID(),expected_revision:detail?.revision??0,action,manifest,...(capture?{layout_capture:capture}:{}),...((action==="create"||action==="revise")&&draft.screenCapture?{screen_capture:draft.screenCapture}:{})};
+  if(!manifestOnly&&(action==="create"||action==="revise")&&draft.layoutId&&draft.layoutId!==RETAINED_LAYOUT&&draft.layoutId!==KEPT_LAYOUT&&!layout){setMessage(c.layoutMissing);return;}
+  const command:InvestigationCommand={id:detail?.id??crypto.randomUUID(),operation_id:crypto.randomUUID(),expected_revision:detail?.revision??0,action,manifest,...(capture?{layout_capture:capture}:{}),...(!manifestOnly&&(action==="create"||action==="revise")&&draft.screenCapture?{screen_capture:draft.screenCapture}:{})};
   // A definitive reference refusal is final for that exact set: say why and what to change, send nothing.
   if(resendsRefusedReferences(stateRef.current,ownerKey,command)){setMessage(refusal(stateRef.current,!!detail));return;}
   const next=beginInvestigationSave(ownerKey,command,stateRef.current);
@@ -635,7 +641,9 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
   // A competing mutation cancels pending evidence selection before taking the
   // synchronous operation lock. A late GET cannot change this saved baseline.
   ++baselineSeq.current;setBaselineState(baseline?"ready":baselineState==="loading"?"unavailable":baselineState);
-  setSave(next);void send(next.command);
+  // Return the SAME original send/readback handle for scoped settings callers;
+  // ordinary event callers retain their existing asynchronous behavior.
+  setSave(next);return send(next.command);
  }
  /** The deliberate path for a calendar as-of date: the instant comes only from what the user typed, checked by the strict parser. */
  function applyExactTime() {
@@ -694,6 +702,37 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
   return intlCurrent()?value:null;
  }:null;
 
+ // The comparison uses only the acknowledged native source projection. A
+ // supplied external pure reader does not confer this private Save capability.
+ // React state projects visibility only. Every asynchronous action independently
+ // rechecks the incumbent synchronous auth/getter/scope fence in intlCurrent.
+ const intlPolicyVisible=!readIntlEvidence&&entryActive&&!authEnded&&!editing&&!detailLoading&&!frozen
+  &&detail===acknowledgedDetail&&intlGuard&&intlProjection?.getter===authProjection?.getSnapshot
+  &&intlProjection?.lang===lang&&intlProjection.guard.principal===intlGuard.principal&&intlProjection.guard.epoch===intlGuard.epoch
+  &&intlProjection.value?.selection.id===detail?.id&&intlProjection.value?.selection.revision===detail?.revision;
+ const intlPolicyInput=intlPolicyVisible&&intlProjection?.value?.input.disposition==="resolved"?intlProjection.value.input:null;
+ const intlPolicyRef=detail?parseIntlEvidenceReference(detail.manifest.review_baseline_ref):null;
+ async function saveIntlPolicySettings(review:ReviewSnapshot){
+  if(!intlCurrent()||!intlPolicyInput||!detail||detail.lifecycle!=="active"||detail.revision!==detail.current_revision)return;
+  const before=detail,getter=authGetterRef.current,controller=scope.current,guard=intlGuard;
+  if(!getter||!controller||!guard||review.binding.principal_partition!==guard.principal||review.binding.auth_epoch!==guard.epoch
+   ||review.binding.saved_id!==before.id||review.binding.saved_revision!==before.revision)return;
+  const after=intlPolicySettingsRevision(before.manifest,review.settings,intlPolicyInput.exactContext.researchMarket);
+  if(!after||!intlCurrent())return;
+  setIntlPolicyUndo(null);await save("revise",after,true);
+  // A response is not acknowledgement. Offer an inverse only after the normal
+  // owner readback selects the exact new revision in this same private scope.
+  const ack=acknowledgedDetailRef.current,change={id:before.id,savedRevision:before.revision+1,before:before.manifest,after};
+  if(scope.current!==controller||controller.signal.aborted||authGetterRef.current!==getter||!duplicateAdmittedAgain(guard)
+   ||stateRef.current.phase!=="committed"||!ack||ack.current_revision!==ack.revision||!intlPolicySettingsUndo(ack,change))return;
+  setIntlPolicyUndo(change);
+ }
+ async function undoIntlPolicySettings(){
+  if(!intlCurrent()||!detail||!intlPolicyUndo||detail.lifecycle!=="active"||detail.current_revision!==detail.revision)return;
+  const before=intlPolicySettingsUndo(detail,intlPolicyUndo);if(!before||!intlCurrent())return;
+  setIntlPolicyUndo(null);await save("revise",before,true);
+ }
+
  if(authEnded)return <InvestigationAuthContext.Provider value={authProjection}><main className={`main2 ws-shell ${styles.root}`} data-investigation-theme={investigationTheme}><h1>{c.title}</h1><p role="status">{c.auth}</p><Link href="/login">{c.signIn}</Link></main></InvestigationAuthContext.Provider>;
  return <InvestigationAuthContext.Provider value={authProjection}><main className={`main2 ws-shell ${styles.root}`} data-investigation-theme={investigationTheme}>
   <Link className={styles.back} href={`/analysis${symbol?`?symbol=${encodeURIComponent(symbol)}`:""}`}>← {c.back}</Link>
@@ -737,6 +776,16 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
      <dl className={styles.context}>{detail.manifest.intent.subjects.map((s,i)=><div key={i}><dt>{contextLabel(s.kind,lang)}</dt><dd>{s.object_id}</dd></div>)}{detail.manifest.intent.horizon&&<div><dt>{c.horizon}</dt><dd>{detail.manifest.intent.horizon}</dd></div>}{detail.manifest.intent.research_as_of&&<div><dt>{c.asOf}</dt><dd>{detail.manifest.intent.research_as_of}</dd></div>}</dl>
      {savedPlanControls}
      {intlSelection&&<InvestigationIntlEvidence key={`intl-read:${ownerKey}:${authProjection?.snapshot.auth_epoch??"unavailable"}:${detail.id}:${detail.revision}`} lang={lang} selection={intlSelection} read={intlRead}/> }
+     {intlPolicyInput&&intlPolicyRef?.version_ref&&intlPolicyRef.fingerprint&&intlGuard&&<details key={`intl-policy:${ownerKey}:${intlGuard.epoch}:${detail.id}:${detail.revision}`} ref={intlPolicyDetails} className={styles.card}>
+      <summary>{lang==="zh"?"比较政策设置并明确保存":"Compare policy settings and save deliberately"}</summary>
+      <InvestigationIntlPolicyControls binding={{principal_partition:intlGuard.principal,auth_epoch:intlGuard.epoch,saved_id:detail.id,saved_revision:detail.revision,source_generation:intlPolicyRef.version_ref,instrument_mapping_identity:null,qualification_identity:null}}
+       pin={{generation:intlPolicyRef.version_ref,fingerprint:intlPolicyRef.fingerprint}} question={detail.manifest.intent.question}
+       focusMarket={intlPolicyInput.exactContext.researchMarket} horizon={intlPolicyInput.exactContext.periodIdentity} initialSettings={detail.manifest.intl_policy_comparison} locale={lang}
+       disabled={detail.lifecycle!=="active"||detail.revision!==detail.current_revision} isCurrent={intlCurrent}
+       onSave={saveIntlPolicySettings} onCancel={()=>intlPolicyDetails.current?.removeAttribute("open")} onUnauthenticated={()=>{if(intlCurrent()&&scope.current)endOwnerView(scope.current);}}/>
+     </details>}
+     {intlPolicyUndo&&detail.id===intlPolicyUndo.id&&detail.revision===intlPolicyUndo.savedRevision&&<button type="button" disabled={!intlPolicyInput||detail.lifecycle!=="active"||detail.revision!==detail.current_revision} onClick={()=>void undoIntlPolicySettings()}>{lang==="zh"?"撤销本次政策设置更改":"Undo this policy settings change"}</button>}
+
      {detail.manifest.scenario_capture!==undefined&&<section className={styles.card} data-testid="saved-scenario"><h3>{sc.saved}</h3><p className={styles.eyebrow}>{sc.boundary}</p><SavedScenarioRead key={`scenario:${ownerKey}:${authProjection?.snapshot.auth_epoch??"unavailable"}:${detail.id}:${detail.revision}`} capture={detail.manifest.scenario_capture} lang={lang} revision={{id:detail.id,revision:detail.revision,grantId:null}} identity={scenarioIdentity} resolveGuard={scenarioResolveGuard}/></section>}
      <div className={styles.actions}><button disabled={frozen||detail.lifecycle==="removed"} onClick={()=>beginEdit()}>{c.edit}</button><button type="button" disabled={frozen||detailLoading||acknowledgedDetail!==detail||detail.lifecycle==="removed"||!duplicateReady} onClick={beginDuplicate}>{c.duplicate}</button>{detail.revision!==detail.current_revision&&<button disabled={locked} onClick={()=>void openRecord(detail.id)}>{c.viewLatest}</button>}{detail.revision>1&&<button disabled={locked} onClick={()=>void openRecord(detail.id,detail.revision-1)}>{c.previous}</button>}{detail.revision<detail.current_revision&&<button disabled={locked} onClick={()=>void openRecord(detail.id,detail.revision+1)}>{c.nextRevision}</button>}</div>
      {detail.lifecycle==="active"&&<InvestigationWatchPanel link={{investigation_id:detail.id,revision:detail.revision}} symbol={symbol} rows={alertRows} current={null} lang={lang} disabled={frozen} loadState={alertLoad} onArm={armWatch} onRearm={rearmWatch} onRetry={()=>void loadAlerts()}/>}
