@@ -29,6 +29,7 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import json
+import math
 import os
 import sys
 import tempfile
@@ -57,7 +58,7 @@ SPARK_BATCH = 18
 MIN_OHLC_BARS = 30
 # This benchmark underpins multi-decade Shanghai Composite charts. Yahoo's daily series
 # begins around 1997, but range=max silently returns 1mo bars even with interval=1d.
-# A bounded period1/period2 request was live-verified with 7279 genuine 1d bars
+# Owner staging verified 7107 non-null daily candles from 7279 timestamps
 # (1997-07-02 to 2026-11-04); other symbols remain on the cheaper rolling 5y leg.
 FULL_HISTORY_SYMBOLS = frozenset({"000001.SS"})
 FULL_HISTORY_START_TS = int(dt.datetime(1990, 1, 1, tzinfo=dt.timezone.utc).timestamp())
@@ -124,10 +125,34 @@ def publish_decision(fetched: int, have: int) -> str:
     return "drop" if 0 < have < MIN_OHLC_BARS else "keep"
 
 
-def existing_bar_count(path: Path) -> int:
-    """Bars already published for this symbol — 0 when there is no readable file yet."""
+def _valid_deep_bar(row: object) -> bool:
+    """Qualify a stored or provider Shanghai candle before counting or retaining it."""
+    if not isinstance(row, list) or len(row) != 6 or not isinstance(row[0], str):
+        return False
     try:
-        return len(json.loads(path.read_text()).get("bars") or [])
+        if dt.date.fromisoformat(row[0]).isoformat() != row[0]:
+            return False
+    except ValueError:
+        return False
+    values = row[1:]
+    if any(isinstance(value, bool) or not isinstance(value, (int, float)) for value in values):
+        return False
+    try:
+        if not all(math.isfinite(value) for value in values):
+            return False
+    except OverflowError:
+        return False
+    opening, high, low, close, volume = values
+    return 0 < low <= min(opening, close) <= max(opening, close) <= high and volume >= 0
+
+
+def existing_bar_count(path: Path, *, deep_history: bool = False) -> int:
+    """Published depth, counting only qualified unique dates for the deep-history index."""
+    try:
+        bars = json.loads(path.read_text()).get("bars") or []
+        if deep_history:
+            return len({row[0] for row in bars if _valid_deep_bar(row)}) if isinstance(bars, list) else 0
+        return len(bars)
     except (OSError, json.JSONDecodeError, AttributeError):
         return 0
 
@@ -142,7 +167,8 @@ def fetch_ohlc(sym: str) -> list[list]:
         return []
     res = ((j.get("chart") or {}).get("result") or [{}])[0]
     ts = res.get("timestamp") or []
-    if sym in FULL_HISTORY_SYMBOLS:
+    deep_history = sym in FULL_HISTORY_SYMBOLS
+    if deep_history:
         granularity = (res.get("meta") or {}).get("dataGranularity")
         if granularity != "1d" or (ts and len(ts) < MIN_DEEP_DAILY_BARS):
             print(
@@ -159,6 +185,24 @@ def fetch_ohlc(sym: str) -> list[list]:
     # no daily chart at all for macro symbols and KeyError'd the hydrate pass (found 2026-07-27).
     bars: list[list] = []
     for i, t in enumerate(ts):
+        if deep_history:
+            # Missing or malformed prices must not become synthetic real-OHLC candles.
+            if isinstance(t, bool) or not isinstance(t, (int, float)):
+                continue
+            try:
+                day = time.strftime("%Y-%m-%d", time.gmtime(t))
+            except (OSError, OverflowError, ValueError):
+                continue
+            row = [day] + [
+                values[i] if isinstance(values, list) and i < len(values) else None
+                for values in (o, h, l, c, v)
+            ]
+            if not _valid_deep_bar(row):
+                continue
+            row = [day, *(round(float(value), 6) for value in row[1:5]), int(row[5])]
+            if _valid_deep_bar(row):
+                bars.append(row)
+            continue
         # A null close means the session did not print — skip rather than forward-fill, so a
         # holiday never appears as a real flat bar.
         if i >= len(c) or c[i] is None:
@@ -173,6 +217,16 @@ def fetch_ohlc(sym: str) -> list[list]:
             cv,
             int(v[i]) if i < len(v) and v[i] is not None else 0,
         ])
+    if deep_history:
+        by_day = {row[0]: row for row in bars}
+        if len(by_day) < MIN_DEEP_DAILY_BARS:
+            print(
+                f"  ohlc {sym}: refusing non-daily/truncated history "
+                f"(valid_daily_bars={len(by_day)})",
+                file=sys.stderr,
+            )
+            return []
+        return [by_day[day] for day in sorted(by_day)]
     return bars
 
 
@@ -194,12 +248,12 @@ def merge_deep_history(sym: str, path: Path, fetched: list[list]) -> list[list]:
 
     by_day = {
         row[0]: row for row in stored
-        if isinstance(row, list) and len(row) == 6 and isinstance(row[0], str)
+        if _valid_deep_bar(row)
     }
     if len(by_day) < MIN_OHLC_BARS:
         return fetched
     # Latest provider values win on overlap; earlier published dates stay available.
-    by_day.update((row[0], row) for row in fetched)
+    by_day.update((row[0], row) for row in fetched if _valid_deep_bar(row))
     return [by_day[day] for day in sorted(by_day)]
 
 
@@ -294,7 +348,7 @@ def main() -> int:
         for sym in targets:
             bars = fetch_ohlc(sym)
             path = out_dir / f"{sym}.json"
-            have = existing_bar_count(path)
+            have = existing_bar_count(path, deep_history=sym in FULL_HISTORY_SYMBOLS)
             bars = merge_deep_history(sym, path, bars)
             decision = publish_decision(len(bars), have)
             if decision == "write":
