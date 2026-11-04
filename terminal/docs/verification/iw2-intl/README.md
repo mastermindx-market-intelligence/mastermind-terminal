@@ -71,8 +71,8 @@ Original independent source review iw2-intl-selected-source-review-20261104-r1
 returned PASS_SCOPED at744ee321; reviewer tests NOT_RUN. Corrected actual-byte
 composition is775dc7fa. No formal GitHub approval or release is implied.
 
-Next source join: IM10 original proxy/controlled-host artifacts -> existing
-private pending-preview/session and settings-only native CAS composition. IM10 then
+The IM10 source join consumes the original controlled-host artifact through the
+existing private pending-preview/session and settings-only native CAS owner. It
 reuses the existing controlled PolicyComparison/session and Python comparator;
 there is no second Macro UI or JavaScript policy arithmetic.
 
@@ -86,7 +86,8 @@ and whole after-manifest still match. The existing explicit Save/CAS owner remai
 sole writer. Valid settings do not require a qualified numerical preview. Native
 preflight checks focus against actual selected-generation market. This additional
 settings-source scope is not covered by the frozen744ee B5 source review and is
-not mounted/accepted as the complete IM10 consumer yet. SQL remains source-only.
+accepted only as a bounded synthetic native source composition at3f42b7c5;
+no installed/authenticated complete-consumer claim follows. SQL remains source-only.
 
 The additive final Macro3998a2d generation is retained verbatim in
 `intl_policy_generation_actual_20261104`: generation28646B/hash0dc2265e, current
@@ -102,7 +103,8 @@ request/settings to the canonical HTTPS Macro owner, bounds actual streamed byte
 rejects duplicate decoded JSON keys and never retries, follows redirects, forwards
 browser cookies/Authorization or allocates identities.49 transport and92 admission
 cases pass. Original Fabric proxy return ended provider_output_limit/no artifact;
-this is parent source. Native host integration/consequential review are pending;
+this is parent source. Native host integration/repaired consequential review
+are source-accepted at3f42b7c5;
 no installed/authenticated/publication acceptance follows from these tests.
 
 The native `InvestigationIntlPolicyControls` now composes the existing reviewed
@@ -124,7 +126,8 @@ Pending owner acknowledgement withholds Undo; competing Save clicks allocate one
 native operation. Saved data contains only settings intent, never preview numbers.
 Reopen does not preview, Save or replay an old Undo. Whole TypeScript passes; new
 modules have no lint findings, Workspace retains its inherited2errors/3warnings.
-The joined consequential source review is still pending. Actual installed catalog,
+The original joined review required two repairs, now accepted by the separate
+Website principal on exact3f42b7c5 after the causal checks below. Actual installed catalog,
 service settings, source publication, authenticated product and release acceptance
 remain separate and held.
 
@@ -135,8 +138,11 @@ clears inspection at new-ticket start and every non-qualified settlement;401
 settles that original ticket before notifying the owner. `openRecord` clears Undo
 when its detail ticket advances; post-ack exact-manifest matching is still the
 only arming site. The changed cases plus joined consumer checks pass65 cases;
-independent verification of these narrow repairs remains separate from the
-review's unchanged accepted source findings.
+nonauthor source review by Website root01a1101f on exact3f42b7c5 closed both
+findings with no new finding. Reviewer ran no tests; it consumed the actual source
+and retained causal evidence. This is source review, not a GitHub approval or
+release waiver. Raw worker artifact remains unaccepted unchanged; corrected parent
+source is the accepted outcome.
 
 A separate producer/consumer contract decision distinguishes return navigation
 from qualified evidence focus. A canonical JP overview may Investigate an EZ row:
