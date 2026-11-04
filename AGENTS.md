@@ -11,6 +11,10 @@ The assigned session handles its own adversarial diff review, evidence and repai
 For elevated/critical risk, a truly separate **native reviewer subagent in this same working session** is an eligible technical-review avenue when its launch, context separation, read-only access, exact source head, returned findings and parent adjudication are verified. ChatGPT Web Pro native spawn must be actually exposed; Codex and Claude may use their available native reviewer subagents; paid Fabric is optional under its real root/parent/admission. An author's own second pass is `SELF_REVIEWED`, not independent reviewer proof. Distinct technical child review is **not** a GitHub non-author `APPROVED` review. Preserve branch protection, CI, holds, source/effect custody, true security requirements and the existing protected merge-on-green controller; no account switching, fabricated approval, self-merge, or denial bypass. Repository text does not edit live ChatGPT Project/memory settings.
 
 
+## Finish the existing release, not the draft
+
+The assigned session owns the original PR through qualified source/tests, failing-CI repair, Ready when reviewable, genuinely required technical/formal review, authorized protected merge-on-green, exact merge readback, git-gated deployment and owed live browser proof. An open Draft, PR, pending CI, review request, label or handoff is **not done**. Do not open another PR to bypass failing checks, an inactive reviewer account or a held original; preserve the source carrier and get the next real release step done this turn. Continue safe unblocked work while any real external wait proceeds through the existing verified observer. Branch protection, review findings, recorded HOLD, source custody, denied/unknown effects, no self-approval and no self-merge remain binding.
+
 ## Required context at the start of every task
 
 1. Read `terminal/AGENTS.md` and `terminal/CLAUDE.md` in full before changing the
