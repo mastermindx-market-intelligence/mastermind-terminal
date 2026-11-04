@@ -1,0 +1,40 @@
+{
+  "schema": "d08b.vol_skew_verification.v1",
+  "outcome": "BUILT_NOT_PROVEN",
+  "unit": {
+    "passed": 57
+  },
+  "lint": "PASS",
+  "build": "PASS",
+  "browser": {
+    "passed": 10,
+    "skipped_duplicate_widths": 2,
+    "surface_recheck_passed": 7
+  },
+  "captures": {
+    "skew": 41,
+    "surface_light_tokens": 12,
+    "before_superseded": 35
+  },
+  "contrast": {
+    "text_samples": 660,
+    "text_min": 5.554996509050376,
+    "mark_samples": 84,
+    "mark_min": 4.989557388118669
+  },
+  "proof_limits": [
+    "Controlled source fixtures through actual route",
+    "Light-token compatibility; production theme owner not activated",
+    "CSS zoom2; not native browser/text zoom or400percent reflow",
+    "No deployment or whole-program acceptance"
+  ],
+  "held_actions": [
+    "merge",
+    "Ready",
+    "un-draft",
+    "enqueue",
+    "held relabel",
+    "deployment"
+  ],
+  "source_review": "PASS at exact current blobs"
+}

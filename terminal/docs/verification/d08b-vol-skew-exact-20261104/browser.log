@@ -1,0 +1,37 @@
+
+> terminal@0.1.0 test:e2e:responsive
+> playwright test --config=docs/verification/d08b-vol-skew-exact-20261104/playwright.config.ts e2e/options-vol-skew-exact.spec.ts e2e/options-vol-exact-expiry.spec.ts --project=desktop --project=tablet --project=mobile --workers=1
+
+[warmup] /terminal?symbol=NVDA → 200 in 93ms
+[warmup] /options → 200 in 251ms
+[warmup] /portfolio → 200 in 126ms
+[warmup] /alerts → 200 in 97ms
+[warmup] /analysis → 200 in 162ms
+[warmup] /discover → 200 in 316ms
+[warmup] /admin → 200 in 83ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 62ms
+[warmup] /login → 200 in 105ms
+[warmup] /reset-password → 200 in 99ms
+[warmup] /api/me → 200 in 63ms
+[warmup] /api/watchlist → 200 in 37ms
+[warmup] /api/layouts → 200 in 29ms
+[warmup] /api/watchlist/annotations → 409 in 29ms
+[warmup] 14 routes compiled in 2s
+
+Running 12 tests using 1 worker
+
+  ✓   1 [desktop] › e2e/options-vol-exact-expiry.spec.ts:6:5 › Volatility keeps one exact expiry across term, context and smile (1.8s)
+  ✓   2 [desktop] › e2e/options-vol-skew-exact.spec.ts:89:7 › Skew en: exact IV, range, shared missing expiry, keyboard and themes (1.8s)
+  ✓   3 [desktop] › e2e/options-vol-skew-exact.spec.ts:89:7 › Skew zh: exact IV, range, shared missing expiry, keyboard and themes (2.0s)
+  ✓   4 [desktop] › e2e/options-vol-skew-exact.spec.ts:161:5 › Skew dense 320, CSS magnification and narrow-pane exact route (1.7s)
+  ✓   5 [tablet] › e2e/options-vol-exact-expiry.spec.ts:6:5 › Volatility keeps one exact expiry across term, context and smile (992ms)
+  ✓   6 [tablet] › e2e/options-vol-skew-exact.spec.ts:89:7 › Skew en: exact IV, range, shared missing expiry, keyboard and themes (1.7s)
+  ✓   7 [tablet] › e2e/options-vol-skew-exact.spec.ts:89:7 › Skew zh: exact IV, range, shared missing expiry, keyboard and themes (1.8s)
+  -   8 [tablet] › e2e/options-vol-skew-exact.spec.ts:161:5 › Skew dense 320, CSS magnification and narrow-pane exact route
+  ✓   9 [mobile] › e2e/options-vol-exact-expiry.spec.ts:6:5 › Volatility keeps one exact expiry across term, context and smile (955ms)
+  ✓  10 [mobile] › e2e/options-vol-skew-exact.spec.ts:89:7 › Skew en: exact IV, range, shared missing expiry, keyboard and themes (1.7s)
+  ✓  11 [mobile] › e2e/options-vol-skew-exact.spec.ts:89:7 › Skew zh: exact IV, range, shared missing expiry, keyboard and themes (1.9s)
+  -  12 [mobile] › e2e/options-vol-skew-exact.spec.ts:161:5 › Skew dense 320, CSS magnification and narrow-pane exact route
+
+  2 skipped
+  10 passed (31.2s)

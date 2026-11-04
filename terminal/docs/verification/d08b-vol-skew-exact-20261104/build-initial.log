@@ -1,0 +1,137 @@
+
+> terminal@0.1.0 prebuild
+> python3 ../scripts/build_data_coverage.py
+
+[coverage] wrote /Volumes/Mastermind/agent-workspaces/terminal/web/d08b-surface-exact-values-20261104-c3/terminal/public/data/coverage.json — intel:2 fund:0 opts:0 ohlc:56 generation:1793769832
+
+> terminal@0.1.0 build
+> next build
+
+▲ Next.js 16.2.9 (Turbopack)
+
+  Creating an optimized production build ...
+Turbopack build encountered 5 warnings:
+./lib/tiingoBoatsLiveHistory.ts:485:62
+The file pattern ('null/' <dynamic> | <dynamic> '/' <dynamic> | 'null' <dynamic> | <dynamic>) matches 13972 files in [project]/
+  [90m483 |[0m ...
+  [90m484 |[0m ...mbol) {
+[31m[1m>[0m [90m485 |[0m ...![36mawait[0m readInterestRecord(path.join(requestsDir, entry.name))) {
+  [90m    |[0m                              [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m486 |[0m ...[32m"target_not_owned_interest"[0m, nightSession, requestedAt);
+  [90m487 |[0m ...
+  [90m488 |[0m ...
+
+Overly broad patterns can lead to build performance issues and over bundling.
+
+Import traces:
+  #1 [App Route]:
+    ./lib/tiingoBoatsLiveHistory.ts
+    ./app/api/intraday/route.ts
+
+  #2 [App Route]:
+    ./lib/tiingoBoatsLiveHistory.ts
+    ./lib/flowSource.ts
+    ./app/api/flow/route.ts
+
+
+./lib/tiingoBoatsLiveHistory.ts:501:51
+The file pattern ('null/' <dynamic> | <dynamic> '/' <dynamic> | 'null' <dynamic> | <dynamic>) matches 13972 files in [project]/
+  [90m499 |[0m         [90m// Capacity pressure: remove only schema-valid expired owned records.[0m
+  [90m500 |[0m         [36mfor[0m ([36mconst[0m name [36mof[0m candidates) {
+[31m[1m>[0m [90m501 |[0m           [36mconst[0m record = [36mawait[0m readInterestRecord(path.join(requestsDir, name));
+  [90m    |[0m                                                   [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m502 |[0m           [36mif[0m (!record) [36mcontinue[0m;
+  [90m503 |[0m           [36mconst[0m requestedMs = parseIsoEpochMs(record.requested_at_utc);
+  [90m504 |[0m           [36mif[0m (requestedMs == [36mnull[0m || requestedMs + [33mREQUEST_TTL_MS[0m <= nowMs) {
+
+Overly broad patterns can lead to build performance issues and over bundling.
+
+Import traces:
+  #1 [App Route]:
+    ./lib/tiingoBoatsLiveHistory.ts
+    ./app/api/intraday/route.ts
+
+  #2 [App Route]:
+    ./lib/tiingoBoatsLiveHistory.ts
+    ./lib/flowSource.ts
+    ./app/api/flow/route.ts
+
+
+./lib/tiingoBoatsLiveHistory.ts:507:24
+The file pattern ('null/' <dynamic> | <dynamic> '/' <dynamic> | 'null' <dynamic> | <dynamic>) matches 13972 files in [project]/
+  [90m505 |[0m             [90m// unlink(2) never follows the final symlink component.[0m
+  [90m506 |[0m             [36mtry[0m {
+[31m[1m>[0m [90m507 |[0m               [36mawait[0m rm(path.join(requestsDir, name), { force: [36mfalse[0m });
+  [90m    |[0m                        [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m508 |[0m               regularRecords -= [35m1[0m;
+  [90m509 |[0m             } [36mcatch[0m { [90m/* Failed removal does not create a capacity slot. */[0m }
+  [90m510 |[0m           }
+
+Overly broad patterns can lead to build performance issues and over bundling.
+
+Import traces:
+  #1 [App Route]:
+    ./lib/tiingoBoatsLiveHistory.ts
+    ./app/api/intraday/route.ts
+
+  #2 [App Route]:
+    ./lib/tiingoBoatsLiveHistory.ts
+    ./lib/flowSource.ts
+    ./app/api/flow/route.ts
+
+
+./next.config.ts
+Encountered unexpected file in NFT list
+A file was traced that indicates that the whole project was traced unintentionally. Somewhere in the import trace below, there are:
+- filesystem operations (like path.join, path.resolve or fs.readFile), or
+- very dynamic requires (like require('./' + foo)).
+To resolve this, you can
+- remove them if possible, or
+- only use them in development, or
+- make sure they are statically scoped to some subfolder: path.join(process.cwd(), 'data', bar), or
+- add ignore comments: path.join(/*turbopackIgnore: true*/ process.cwd(), bar)
+
+Import trace:
+  App Route:
+    ./next.config.ts
+    ./lib/flowSource.ts
+    ./app/api/flow/route.ts
+
+
+./next.config.ts
+Encountered unexpected file in NFT list
+A file was traced that indicates that the whole project was traced unintentionally. Somewhere in the import trace below, there are:
+- filesystem operations (like path.join, path.resolve or fs.readFile), or
+- very dynamic requires (like require('./' + foo)).
+To resolve this, you can
+- remove them if possible, or
+- only use them in development, or
+- make sure they are statically scoped to some subfolder: path.join(process.cwd(), 'data', bar), or
+- add ignore comments: path.join(/*turbopackIgnore: true*/ process.cwd(), bar)
+
+Output asset trace:
+  [output]/.next/server/app/api/alerts/route.js
+  [output]/.next/server/chunks/[root-of-the-server]__0jwonhd._.js
+
+Import trace:
+  App Route:
+    ./next.config.ts
+    ./lib/flowSource.ts
+    ./app/api/flow/route.ts
+
+
+✓ Compiled successfully in 17.5s
+  Running TypeScript ...
+Failed to type check.
+
+./e2e/d08bPanelPresentation.ts:16:37
+Type error: Property 'id' does not exist on type 'Node'.
+
+  [90m14 |[0m   [36mif[0m (![36mawait[0m page.locator([32m"#d08b-panel-light-token-fixture"[0m).count()) {
+  [90m15 |[0m     [36mconst[0m style = [36mawait[0m page.addStyleTag({ content: [32m`[data-d08b-light-token-fixture="true"...[0m
+[31m[1m>[0m [90m16 |[0m     [36mawait[0m style.evaluate(el => { el.id = [32m"d08b-panel-light-token-fixture"[0m; });
+  [90m   |[0m                                     [31m[1m^[0m
+  [90m17 |[0m   }
+  [90m18 |[0m   [36mawait[0m panel.evaluate((el, selected) => {
+  [90m19 |[0m     [36mif[0m (selected === [32m"light-tokens"[0m) el.setAttribute([32m"data-d08b-light-token-fixture"[0m, [32m"tru..[0m.
+Next.js build worker exited with code: 1 and signal: null

@@ -12,16 +12,18 @@
  * Neutral palette (vol is non-directional): call = --brand-2, put = --ai.
  */
 
-import React, { useMemo, useRef, useState } from "react";
+import React, { useId, useMemo, useRef, useState } from "react";
 import {
   useChartWidth, niceTicks, fmtTick, thinLabels, padDomain,
 } from "@/components/charts/svgChart";
 import type { Lang } from "@/lib/i18n";
 import { Tip } from "@/components/ui/Tip";
 import { makeVolT } from "./volStrings";
+import { makeVolSkewT } from "./volSkewStrings";
+import styles from "./VolSkewPanel.module.css";
 import type { VolSmileExp, VolSmilePoint } from "./volTypes";
 import {
-  admitVolSmileExpiries, finiteSegments, reportedVolNumber, ProvenanceLine, PanelEmpty, PLOT_PAD, AXIS_TXT, REF_TXT, NEUTRAL_CHIP,
+  admitVolSmileExpiries, finiteSegments, reportedVolNumber, ProvenanceLine, PanelEmpty, PLOT_PAD, AXIS_TXT, REF_TXT,
 } from "./volShared";
 
 const H = 210; // two overlaid series + legend want a little more than the 190 floor
@@ -42,7 +44,10 @@ export function VolSkewPanel({
   onSelectExp?: (exp: string) => void;
 }) {
   const t = makeVolT(lang);
+  const tx = makeVolSkewT(lang);
+  const descriptionId = useId();
   const boxRef = useRef<HTMLDivElement | null>(null);
+  const tableButtonRef = useRef<HTMLButtonElement | null>(null);
   const w = useChartWidth(boxRef);
 
   const admission = useMemo(() => admitVolSmileExpiries(smile), [smile]);
@@ -54,6 +59,7 @@ export function VolSkewPanel({
   const expsKey = useMemo(() => exps.map((s) => s.exp).join("|"), [exps]);
   const [sel, setSel] = useState<{ key: string; exp: string } | null>(null);
   const [fullChain, setFullChain] = useState(false);
+  const [view, setView] = useState<"chart" | "table">("chart");
 
   const controlledSelection = selectedExp !== undefined;
   const active = controlledSelection
@@ -67,7 +73,7 @@ export function VolSkewPanel({
 
   // Strike admission is already normalized by the shared source-truth owner.
   // Duplicate strikes remain NaN placeholders so line/interpolation continuity breaks.
-  const allPts = active?.points ?? [];
+  const allPts = useMemo(() => active?.points ?? [], [active]);
   const activeConflictCount = active?.conflictStrikes.size ?? 0;
   const selectedExpiryConflict = selectedExp != null && admission.conflictExpiries.has(selectedExp);
   const activeHasFinite = allPts.some((point) =>
@@ -174,64 +180,114 @@ export function VolSkewPanel({
     seg.map((p, i) => `${i === 0 ? "M" : "L"}${xOf(p.strike).toFixed(1)},${yOf(reportedVolNumber(p[leg])).toFixed(1)}`).join("");
 
   return (
-    <section className="fin-card" style={{ minWidth: 0 }}>
-      <div className="fin-card-h" style={{ flexWrap: "wrap", rowGap: 6 }}>
-        <span>{t("skewTitle")}</span>
-        <span style={{ flex: 1 }} />
-        {/* legend — the two non-directional legs */}
-        <span style={LEGEND_ITEM}><span style={{ ...LEGEND_SWATCH, background: CALL_COLOR }} />{t("skewCallLeg")}</span>
-        <span style={LEGEND_ITEM}><span style={{ ...LEGEND_SWATCH, background: PUT_COLOR }} />{t("skewPutLeg")}</span>
+    <section className={`fin-card ${styles.panel}`} data-testid="vol-skew-panel">
+      <div className={`fin-card-h ${styles.header}`}>
+        <span className={styles.title}>{t("skewTitle")}</span>
+        <span className={styles.legend} role="img" aria-label={tx("callKey")}>
+          <span className={styles.key} aria-hidden="true" />{t("skewCallLeg")}
+        </span>
+        <span className={styles.legend} role="img" aria-label={tx("putKey")}>
+          <span className={`${styles.key} ${styles.putKey}`} aria-hidden="true" />{t("skewPutLeg")}
+        </span>
       </div>
       {exps.length > 0 && (
-        <div role="group" aria-label={t("skewExpAria")} style={CONTROLS_ROW}>
+        <div role="group" aria-label={t("skewExpAria")} className={styles.controls}>
           {exps.map((s) => (
             <button
               key={s.exp}
-              className={`chip${(active?.exp ?? "") === s.exp ? " on" : ""}`}
-              style={EXP_CHIP}
+              type="button"
+              className={styles.button}
               aria-pressed={(active?.exp ?? "") === s.exp}
               onClick={() => selectExpiry(s.exp)}
             >
               {s.exp}
             </button>
           ))}
-          <span style={{ flex: 1 }} />
+        </div>
+      )}
+      {active && (
+        <>
+          <div className={styles.toolbar}>
+            <div role="group" aria-label={tx("view")} className={styles.viewGroup}>
+              <button type="button" className={styles.button} aria-pressed={view === "chart"} onClick={() => setView("chart")}>
+                {tx("chart")}
+              </button>
+              <button ref={tableButtonRef} type="button" className={styles.button} aria-pressed={view === "table"} onClick={() => setView("table")}>
+                {tx("exact")}
+              </button>
+            </div>
+            <p className={styles.context} role="status" data-testid="smile-range-status">
+              {active.exp} · {tx("count").replace("{shown}", String(pts.length)).replace("{total}", String(allPts.length))}
+            </p>
+          </div>
+          <div className={styles.controls}>
           {skewRead && (
             <Tip label={t("skewReadTip")} size="card">
-              <span style={{ ...NEUTRAL_CHIP, cursor: "help", fontVariantNumeric: "tabular-nums" }} tabIndex={0}>
+              <button type="button" className={styles.button}>
                 {t("skewRead")} {skewRead.v > 0 ? "+" : skewRead.v < 0 ? "−" : ""}
                 {Math.abs(skewRead.v).toFixed(1)} · {t(skewRead.biasKey)}
-              </span>
+              </button>
             </Tip>
           )}
           {trimming && (
             <Tip label={t("skewTrimTip")} size="card">
-              <button type="button" style={{ ...NEUTRAL_CHIP, cursor: "help" }}>
+              <button type="button" className={styles.button}>
                 {t("skewTrimmedChip")}
               </button>
             </Tip>
           )}
           {/* Only offered when the trim actually removed strikes — otherwise the
               toggle highlights and changes nothing, a dead control. */}
-          {(fullChain || trimmedPts.length < allPts.length) && (
+          {trimmedPts.length < allPts.length && (
             <button
-              className={`chip${fullChain ? " on" : ""}`}
-              style={EXP_CHIP}
+              type="button"
+              className={styles.button}
               aria-pressed={fullChain}
               onClick={() => setFullChain((v) => !v)}
             >
               {t("skewFullChain")}
             </button>
           )}
-        </div>
+          </div>
+        </>
       )}
       {conflictSummary && (
-        <div data-testid="smile-conflict-status" role="status" style={CONFLICT_NOTE}>
+        <div data-testid="smile-conflict-status" role="status" className={`${styles.note} ${styles.conflict}`}>
           {conflictSummary}
         </div>
       )}
-      <div ref={boxRef} style={{ width: "100%", minWidth: 0 }}>
-        {!drawable ? (
+      <div ref={boxRef} className={styles.content}>
+        {view === "table" && active && pts.length > 0 ? (
+          <>
+            <table className={styles.table} data-testid="smile-exact-table">
+              <caption>{tx("caption").replace("{exp}", active.exp)}</caption>
+              <thead><tr>
+                <th scope="col">{tx("strike")}</th>
+                <th scope="col">{tx("call")}</th>
+                <th scope="col">{tx("put")}</th>
+              </tr></thead>
+              <tbody>{pts.map(point => (
+                <tr key={point.strike}>
+                  <th scope="row">{String(point.strike)}</th>
+                  {(["call_iv", "put_iv"] as const).map(leg => {
+                    const value = reportedVolNumber(point[leg]);
+                    const state = active.conflictStrikes.has(point.strike) ? "conflict"
+                      : Number.isFinite(value) ? "supplied" : "unavailable";
+                    return <td key={leg} data-state={state}>
+                      {state === "supplied" ? String(value) : tx(state === "conflict" ? "conflict" : "unavailable")}
+                    </td>;
+                  })}
+                </tr>
+              ))}</tbody>
+            </table>
+            <details className={styles.source}>
+              <summary>{tx("source")}</summary>
+              <p className={styles.note}>{tx("precision")}</p>
+              <p className={styles.note}>{tx("scope")}</p>
+              <p className={styles.note}>{tx("method")}</p>
+            </details>
+          </>
+        ) : !drawable ? (
           <PanelEmpty
             title={conflictEmpty
               ? t("skewSelectedConflictTitle")
@@ -244,7 +300,15 @@ export function VolSkewPanel({
             minHeight={H}
           />
         ) : (
-          <svg viewBox={`0 0 ${w} ${H}`} width={w} height={H} role="img" aria-label={conflictSummary ? `${t("skewTitle")}. ${conflictSummary}` : t("skewTitle")}>
+          <>
+          <div className={styles.narrow}>
+            <p className={styles.note}>{tx("narrow")}</p>
+            <button type="button" className={styles.button} onClick={() => { setView("table"); tableButtonRef.current?.focus(); }}>{tx("exact")}</button>
+          </div>
+          <svg className={styles.plot} viewBox={`0 0 ${w} ${H}`} width={w} height={H} role="img"
+            aria-label={`${t("skewTitle")} · ${active?.exp ?? ""}${conflictSummary ? `. ${conflictSummary}` : ""}`}
+            aria-describedby={descriptionId}>
+            <desc id={descriptionId}>{tx("chartDescription")}</desc>
             {yTicks.map((v) => (
               <g key={`y${v}`}>
                 <line x1={PLOT_PAD.l} x2={w - PLOT_PAD.r} y1={yOf(v)} y2={yOf(v)} stroke="var(--grid)" />
@@ -268,61 +332,22 @@ export function VolSkewPanel({
             ))}
             {putSegs.map((seg, i) => (
               <path key={`p${i}`} d={pathOf(seg, "put_iv")} fill="none" stroke={PUT_COLOR}
-                strokeWidth={1.6} strokeLinejoin="round" strokeLinecap="round" />
+                strokeWidth={1.6} strokeDasharray="5 4" strokeLinejoin="round" strokeLinecap="round" />
             ))}
             {pts.map((p) => {
               const c = reportedVolNumber(p.call_iv), q = reportedVolNumber(p.put_iv);
               return (
                 <g key={p.strike}>
-                  {Number.isFinite(c) && <circle cx={xOf(p.strike)} cy={yOf(c)} r={2} fill={CALL_COLOR} />}
-                  {Number.isFinite(q) && <circle cx={xOf(p.strike)} cy={yOf(q)} r={2} fill={PUT_COLOR} />}
+                  {Number.isFinite(c) && <circle data-vol-leg="call" cx={xOf(p.strike)} cy={yOf(c)} r={2.5} fill={CALL_COLOR} />}
+                  {Number.isFinite(q) && <polygon data-vol-leg="put" points={`${xOf(p.strike)},${yOf(q) - 3.5} ${xOf(p.strike) + 3.5},${yOf(q)} ${xOf(p.strike)},${yOf(q) + 3.5} ${xOf(p.strike) - 3.5},${yOf(q)}`} fill={PUT_COLOR} />}
                 </g>
               );
             })}
           </svg>
+          </>
         )}
       </div>
-      <ProvenanceLine lang={lang} />
+      <div className={styles.provenance}><ProvenanceLine lang={lang} /></div>
     </section>
   );
 }
-
-const CONFLICT_NOTE: React.CSSProperties = {
-  margin: "0 0 8px",
-  fontSize: 10.5,
-  lineHeight: 1.45,
-  color: "var(--warn)",
-};
-
-const CONTROLS_ROW: React.CSSProperties = {
-  display: "flex",
-  alignItems: "center",
-  gap: 6,
-  flexWrap: "wrap",
-  marginBottom: 8,
-};
-
-const EXP_CHIP: React.CSSProperties = {
-  height: 24,
-  padding: "0 9px",
-  fontSize: 11,
-  fontWeight: 600,
-  letterSpacing: "0.02em",
-  fontVariantNumeric: "tabular-nums",
-};
-
-const LEGEND_ITEM: React.CSSProperties = {
-  display: "inline-flex",
-  alignItems: "center",
-  gap: 5,
-  fontSize: 10.5,
-  fontWeight: 500,
-  color: "var(--text-2)",
-};
-
-const LEGEND_SWATCH: React.CSSProperties = {
-  width: 12,
-  height: 3,
-  borderRadius: 2,
-  display: "inline-block",
-};

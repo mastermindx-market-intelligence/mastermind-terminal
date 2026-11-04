@@ -1,0 +1,14 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/web/d08b-surface-exact-values-20261104-c3/terminal
+
+ ✓ lib/__tests__/volSkewExactValues.test.tsx (10 tests) 155ms
+ ✓ lib/__tests__/volatilityMissingness.test.tsx (33 tests) 169ms
+ ✓ lib/__tests__/volatilityConflictContinuity.test.tsx (8 tests) 177ms
+ ✓ lib/__tests__/volatilityExpiryInvestigation.test.tsx (6 tests) 338ms
+
+ Test Files  4 passed (4)
+      Tests  57 passed (57)
+   Start at  21:21:17
+   Duration  1.92s (transform 506ms, setup 0ms, collect 1.04s, tests 839ms, environment 2.95s, prepare 415ms)
+

@@ -1,0 +1,998 @@
+{
+  "schema": "d08b.evidence_manifest.v1",
+  "selfHashExcluded": true,
+  "files": {
+    "README.md": {
+      "bytes": 16789,
+      "sha256": "ab4763cd00d40086ed0e894316230857af5386b5a9ae23cfe291f7773c3d3890",
+      "gitBlob": "6be41dc7100c8bedb08b6d2a0bc999928d8849b8"
+    },
+    "VERIFICATION_RESULT.json": {
+      "bytes": 928,
+      "sha256": "de0abd637355f25315ac5f29b722c1769ce84d8a736d659574140f045e955dba",
+      "gitBlob": "de4c47bd32885ffadfb0c91fbe82ee40778fde60"
+    },
+    "before/d08b-skew-320-zh-dense-controls.png": {
+      "bytes": 50485,
+      "sha256": "35242adb3df6a3aa2f34f5795b8be1476226ec5bb7a45aecb7ff0e9b4d1561fc",
+      "gitBlob": "053920e4a4c131a0a31ec196aeca9e440fcab1f2",
+      "dimensions": [
+        320,
+        844
+      ]
+    },
+    "before/d08b-skew-320-zh-dense-last-row.png": {
+      "bytes": 69108,
+      "sha256": "eb0b5e179ad6a696ab206fc3aec850701b8ac9cf233ca016480d8d156c70d4d1",
+      "gitBlob": "0816f8a518193b00a5647a200a30a562cfb87e13",
+      "dimensions": [
+        320,
+        844
+      ]
+    },
+    "before/d08b-skew-css-200percent-zh-controls.png": {
+      "bytes": 111639,
+      "sha256": "03a064edf4726ae6f08f70ea690eaf45a31d889382ac8bee2d184f358d39c42e",
+      "gitBlob": "fbd31eec6634ebbc5c058779ae0b4655d71c6daf",
+      "dimensions": [
+        1440,
+        900
+      ]
+    },
+    "before/d08b-skew-css-200percent-zh-last-row.png": {
+      "bytes": 124561,
+      "sha256": "83a2109e3d6d88a246f6ee80bfb7990c2b33010f29dfcaa773020059e85378b1",
+      "gitBlob": "09492de5cf8c81bbbea4e93eb96e611617d33234",
+      "dimensions": [
+        1440,
+        900
+      ]
+    },
+    "before/d08b-skew-desktop-en-dark-chart.png": {
+      "bytes": 43139,
+      "sha256": "31420c02b30862b2dd97890fbd1d1c6bcbf7a003c505445389f7e7db1981a203",
+      "gitBlob": "38321a0a7f12b6d8e6c757a6fb8704661c89b6f9",
+      "dimensions": [
+        1352,
+        494
+      ]
+    },
+    "before/d08b-skew-desktop-en-dark-exact.png": {
+      "bytes": 65868,
+      "sha256": "f32389cc96095841791f10c664eca01f14ede6644af674ab05e04d1eb25443de",
+      "gitBlob": "4409d454fe24b58914bbf6afd1d800e0aa81e6c7",
+      "dimensions": [
+        1352,
+        662
+      ]
+    },
+    "before/d08b-skew-desktop-en-light-chart.png": {
+      "bytes": 43139,
+      "sha256": "31420c02b30862b2dd97890fbd1d1c6bcbf7a003c505445389f7e7db1981a203",
+      "gitBlob": "38321a0a7f12b6d8e6c757a6fb8704661c89b6f9",
+      "dimensions": [
+        1352,
+        494
+      ]
+    },
+    "before/d08b-skew-desktop-en-light-exact.png": {
+      "bytes": 65868,
+      "sha256": "f32389cc96095841791f10c664eca01f14ede6644af674ab05e04d1eb25443de",
+      "gitBlob": "4409d454fe24b58914bbf6afd1d800e0aa81e6c7",
+      "dimensions": [
+        1352,
+        662
+      ]
+    },
+    "before/d08b-skew-desktop-en-missing.png": {
+      "bytes": 22106,
+      "sha256": "22101e1b3decf5556357f12ffca723d8dfd1339c802071bb81fa741900004d8d",
+      "gitBlob": "6039dd2e5c1bd43f91efafb077d5603785f62b8d",
+      "dimensions": [
+        1352,
+        355
+      ]
+    },
+    "before/d08b-skew-desktop-zh-dark-chart.png": {
+      "bytes": 46327,
+      "sha256": "f54caf908f89dfb8833ac225c28cebc7745a215dc3f2a4b0e6d8fb4d25ff9c3b",
+      "gitBlob": "2a276379526d1de8acccb23c53fe8a8b0532322d",
+      "dimensions": [
+        1352,
+        494
+      ]
+    },
+    "before/d08b-skew-desktop-zh-dark-exact.png": {
+      "bytes": 72278,
+      "sha256": "03067b2e90cf4c089f81e0da3b5bf365079bc132c40df43d76f8704a6ba61e66",
+      "gitBlob": "9b285f76d93023e09cfa62e0922a43913e4456f8",
+      "dimensions": [
+        1352,
+        663
+      ]
+    },
+    "before/d08b-skew-desktop-zh-light-chart.png": {
+      "bytes": 46327,
+      "sha256": "f54caf908f89dfb8833ac225c28cebc7745a215dc3f2a4b0e6d8fb4d25ff9c3b",
+      "gitBlob": "2a276379526d1de8acccb23c53fe8a8b0532322d",
+      "dimensions": [
+        1352,
+        494
+      ]
+    },
+    "before/d08b-skew-desktop-zh-light-exact.png": {
+      "bytes": 72278,
+      "sha256": "03067b2e90cf4c089f81e0da3b5bf365079bc132c40df43d76f8704a6ba61e66",
+      "gitBlob": "9b285f76d93023e09cfa62e0922a43913e4456f8",
+      "dimensions": [
+        1352,
+        663
+      ]
+    },
+    "before/d08b-skew-desktop-zh-missing.png": {
+      "bytes": 27322,
+      "sha256": "af16aa38709f68750680889782f2cb341af10360dd088b71fc5192866b78b0b9",
+      "gitBlob": "457f7d6e00cf4e464953b641fd170dc379c291cb",
+      "dimensions": [
+        1352,
+        355
+      ]
+    },
+    "before/d08b-skew-mobile-en-dark-chart.png": {
+      "bytes": 33638,
+      "sha256": "0bb49044c6b3e6a22f970dfc535589f6a62688de67659d2791202fac9ca05dca",
+      "gitBlob": "7bde10996ad1ac2ca77b3fbf671937e0cb347f8a",
+      "dimensions": [
+        362,
+        573
+      ]
+    },
+    "before/d08b-skew-mobile-en-dark-exact.png": {
+      "bytes": 58801,
+      "sha256": "9adff9db82b677eda0fca0dbc574cf0a21b84ad81c25bf39e01e2a4bbecbc00d",
+      "gitBlob": "8259116dc881370cb504e4ed1c9bfbdb35ab5846",
+      "dimensions": [
+        362,
+        835
+      ]
+    },
+    "before/d08b-skew-mobile-en-light-chart.png": {
+      "bytes": 33638,
+      "sha256": "0bb49044c6b3e6a22f970dfc535589f6a62688de67659d2791202fac9ca05dca",
+      "gitBlob": "7bde10996ad1ac2ca77b3fbf671937e0cb347f8a",
+      "dimensions": [
+        362,
+        573
+      ]
+    },
+    "before/d08b-skew-mobile-en-light-exact.png": {
+      "bytes": 58801,
+      "sha256": "9adff9db82b677eda0fca0dbc574cf0a21b84ad81c25bf39e01e2a4bbecbc00d",
+      "gitBlob": "8259116dc881370cb504e4ed1c9bfbdb35ab5846",
+      "dimensions": [
+        362,
+        835
+      ]
+    },
+    "before/d08b-skew-mobile-en-missing.png": {
+      "bytes": 19616,
+      "sha256": "20b878631261c816a4882caa790e157adba56bba4a68607fb86ba6dc3765269a",
+      "gitBlob": "879d6ed62ad64e33b9d7bda9187952e2cb168687",
+      "dimensions": [
+        362,
+        355
+      ]
+    },
+    "before/d08b-skew-mobile-zh-dark-chart.png": {
+      "bytes": 35694,
+      "sha256": "938b5c90720b970f9e1003d88195f4520128fdcdd9e2efa813ee01d032f10a41",
+      "gitBlob": "904ba30ad55d19efd7873c457ae3abdc9cbe614b",
+      "dimensions": [
+        362,
+        494
+      ]
+    },
+    "before/d08b-skew-mobile-zh-dark-exact.png": {
+      "bytes": 63658,
+      "sha256": "262b206f4ab1bd741109a34ada5c47a5099fb91f6929a4e98c16c352c7ba5b85",
+      "gitBlob": "48433451e9e1419f17b5da6b70a6202e028992f6",
+      "dimensions": [
+        362,
+        721
+      ]
+    },
+    "before/d08b-skew-mobile-zh-light-chart.png": {
+      "bytes": 35694,
+      "sha256": "938b5c90720b970f9e1003d88195f4520128fdcdd9e2efa813ee01d032f10a41",
+      "gitBlob": "904ba30ad55d19efd7873c457ae3abdc9cbe614b",
+      "dimensions": [
+        362,
+        494
+      ]
+    },
+    "before/d08b-skew-mobile-zh-light-exact.png": {
+      "bytes": 63658,
+      "sha256": "262b206f4ab1bd741109a34ada5c47a5099fb91f6929a4e98c16c352c7ba5b85",
+      "gitBlob": "48433451e9e1419f17b5da6b70a6202e028992f6",
+      "dimensions": [
+        362,
+        721
+      ]
+    },
+    "before/d08b-skew-mobile-zh-missing.png": {
+      "bytes": 23635,
+      "sha256": "46b90e75b4d6037358d029c10742c0c2d9b59b8fa3016ea578e02f087ab08cac",
+      "gitBlob": "1b464f8c0436864258d53f62c7300b4e154e68ae",
+      "dimensions": [
+        362,
+        355
+      ]
+    },
+    "before/d08b-skew-narrow-230-zh-exact.png": {
+      "bytes": 118975,
+      "sha256": "6bdb2afe18f1af7215807bd172a8e679d4149a1483f16a63474cecb4ca7bb01c",
+      "gitBlob": "660a253437951917bfb121bab428850e28e3dba4",
+      "dimensions": [
+        1440,
+        900
+      ]
+    },
+    "before/d08b-skew-tablet-en-dark-chart.png": {
+      "bytes": 38054,
+      "sha256": "25f05609bd5c5271ea8a45fd82296efb1691a7f72c2229958b1460f964013b2e",
+      "gitBlob": "7f85c4626d1c572b2448b000b764fe1110a9b485",
+      "dimensions": [
+        792,
+        494
+      ]
+    },
+    "before/d08b-skew-tablet-en-dark-exact.png": {
+      "bytes": 63271,
+      "sha256": "8bdf58ef6bc3f94453f4d4cd568404e3d96e4e1244906d52e351102e264aa9ca",
+      "gitBlob": "5429bf20cd07365d74d1c2bb27ff5273eda6091f",
+      "dimensions": [
+        792,
+        682
+      ]
+    },
+    "before/d08b-skew-tablet-en-light-chart.png": {
+      "bytes": 38054,
+      "sha256": "25f05609bd5c5271ea8a45fd82296efb1691a7f72c2229958b1460f964013b2e",
+      "gitBlob": "7f85c4626d1c572b2448b000b764fe1110a9b485",
+      "dimensions": [
+        792,
+        494
+      ]
+    },
+    "before/d08b-skew-tablet-en-light-exact.png": {
+      "bytes": 63271,
+      "sha256": "8bdf58ef6bc3f94453f4d4cd568404e3d96e4e1244906d52e351102e264aa9ca",
+      "gitBlob": "5429bf20cd07365d74d1c2bb27ff5273eda6091f",
+      "dimensions": [
+        792,
+        682
+      ]
+    },
+    "before/d08b-skew-tablet-en-missing.png": {
+      "bytes": 20888,
+      "sha256": "b82be415e431f2fbe37532185cacf5545293905c30cb7375c941fa6726b75660",
+      "gitBlob": "9cba106cff903072209b6e486dea8ac2c8f49f8e",
+      "dimensions": [
+        792,
+        355
+      ]
+    },
+    "before/d08b-skew-tablet-zh-dark-chart.png": {
+      "bytes": 41289,
+      "sha256": "9d89bb840092938e77738086e22dca47874b9af7ba5714de328fbfecd2f6f171",
+      "gitBlob": "5f233b9bf0cedc23a875e3fed80b59fff7a74e89",
+      "dimensions": [
+        792,
+        494
+      ]
+    },
+    "before/d08b-skew-tablet-zh-dark-exact.png": {
+      "bytes": 67856,
+      "sha256": "7c1089c71c8f9767f4684bafbcccd4243beb2e6528f5900d28568f609b800157",
+      "gitBlob": "0c83bc573238df6283c7fad3cf118496def7a0f0",
+      "dimensions": [
+        792,
+        662
+      ]
+    },
+    "before/d08b-skew-tablet-zh-light-chart.png": {
+      "bytes": 41289,
+      "sha256": "9d89bb840092938e77738086e22dca47874b9af7ba5714de328fbfecd2f6f171",
+      "gitBlob": "5f233b9bf0cedc23a875e3fed80b59fff7a74e89",
+      "dimensions": [
+        792,
+        494
+      ]
+    },
+    "before/d08b-skew-tablet-zh-light-exact.png": {
+      "bytes": 67856,
+      "sha256": "7c1089c71c8f9767f4684bafbcccd4243beb2e6528f5900d28568f609b800157",
+      "gitBlob": "0c83bc573238df6283c7fad3cf118496def7a0f0",
+      "dimensions": [
+        792,
+        662
+      ]
+    },
+    "before/d08b-skew-tablet-zh-missing.png": {
+      "bytes": 25895,
+      "sha256": "f1d4f73fe65f09b32c07e3eab075c79f4e61bd0885c083dd2e3303785f169c85",
+      "gitBlob": "86b0a3b39e30d4ab956f8cc7e0c8fc51b63e8f15",
+      "dimensions": [
+        792,
+        354
+      ]
+    },
+    "browser/d08b-skew-320-zh-dense-controls.png": {
+      "bytes": 46194,
+      "sha256": "b50eb4549d39ecbd1a21d93cac836303b8c1ec05855a46827fe0d5a8362b53ea",
+      "gitBlob": "f36710e4a455f734d22bf64c532af23109596653",
+      "dimensions": [
+        320,
+        844
+      ]
+    },
+    "browser/d08b-skew-320-zh-dense-last-row.png": {
+      "bytes": 62008,
+      "sha256": "c7fa6facb6edc3b81e2902cfb4c1fbbc37bc782bb0a06f17a4e084b81095c4a3",
+      "gitBlob": "aaecb043699ba680456cdd60c78238d91731d093",
+      "dimensions": [
+        320,
+        844
+      ]
+    },
+    "browser/d08b-skew-css-200percent-zh-controls.png": {
+      "bytes": 98197,
+      "sha256": "7a90ca456023712b7cc4819f6c1e688c01a184b98bf3b2b80eafd45f35487f80",
+      "gitBlob": "17195fba19f979623c762db631a3fb0d6824e87a",
+      "dimensions": [
+        1440,
+        900
+      ]
+    },
+    "browser/d08b-skew-css-200percent-zh-last-row.png": {
+      "bytes": 93691,
+      "sha256": "b898fcf06a8abe0aa6189dc75c37da11d2a5a5f262edf60f8620cd3571d08573",
+      "gitBlob": "d5c7382b1a724464571c5ce06f11ca7043d06e35",
+      "dimensions": [
+        1440,
+        900
+      ]
+    },
+    "browser/d08b-skew-desktop-en-dark-chart.png": {
+      "bytes": 43744,
+      "sha256": "8b874054400237d6a32090fa0d0ca29b187cc705bd1608f76508227633df1f13",
+      "gitBlob": "a5d2c2bbb26cc217b06a0ebc93c7253305b66324",
+      "dimensions": [
+        1352,
+        495
+      ]
+    },
+    "browser/d08b-skew-desktop-en-dark-exact.png": {
+      "bytes": 51246,
+      "sha256": "12cb9559081b03b974a6628009102dafe043632d29dcc14e7c04c43c57605a5e",
+      "gitBlob": "f168960137a1560be95d7db590e3d6e36227775e",
+      "dimensions": [
+        1352,
+        638
+      ]
+    },
+    "browser/d08b-skew-desktop-en-light-tokens-chart.png": {
+      "bytes": 43017,
+      "sha256": "17e9c01ca27026a6d82bb8fd644e26e93b986f8510b61df98c76092fb7946b81",
+      "gitBlob": "48e8da6d14cf19528c8edd097cfa1c25f82d30d0",
+      "dimensions": [
+        1352,
+        495
+      ]
+    },
+    "browser/d08b-skew-desktop-en-light-tokens-exact.png": {
+      "bytes": 50919,
+      "sha256": "2ce95135393c8e0b430c3cb3d1f28ec607bce940ecf0f3c638773f1f4086a4d1",
+      "gitBlob": "b62d4edbb90d4f8c050e8e3089f12d3c818a5a5b",
+      "dimensions": [
+        1352,
+        638
+      ]
+    },
+    "browser/d08b-skew-desktop-en-missing.png": {
+      "bytes": 22516,
+      "sha256": "21ef2e5cf19dc7ea19c110cd05d7be264efc5c7c529935880333ec10819f77ea",
+      "gitBlob": "1ca63f51d647268fecd1ea0e42923c18d74e4fda",
+      "dimensions": [
+        1352,
+        356
+      ]
+    },
+    "browser/d08b-skew-desktop-en-source-method.png": {
+      "bytes": 56416,
+      "sha256": "f3ae85a508cabc8f6999836b99296e7ad4cea48e9662b059c14a52361f2020c4",
+      "gitBlob": "5212e1c1e7f17c08921ea566bdc55db34cf81e9c",
+      "dimensions": [
+        1352,
+        720
+      ]
+    },
+    "browser/d08b-skew-desktop-zh-dark-chart.png": {
+      "bytes": 47393,
+      "sha256": "3bf6ecec65fb8a34d93ae1917d98ad181b0c124f394621c3712126b56dfb8d28",
+      "gitBlob": "8e1c164840fa10551594a753aaa5a386ec6ced4b",
+      "dimensions": [
+        1352,
+        495
+      ]
+    },
+    "browser/d08b-skew-desktop-zh-dark-exact.png": {
+      "bytes": 55353,
+      "sha256": "88c9b79b31b5cff8282873a3f6e24e2e52cffbbbcc4b8b942bfc17afe1cde614",
+      "gitBlob": "b5b45d67bfe42a7ce73d2616f96b7f7f9d4386ed",
+      "dimensions": [
+        1352,
+        638
+      ]
+    },
+    "browser/d08b-skew-desktop-zh-light-tokens-chart.png": {
+      "bytes": 46745,
+      "sha256": "ef4cecbb12bfde39f4ae3c27f65a711f1cfd12823866aae2f95a8a8fa5be88f8",
+      "gitBlob": "071b0d8eb4490423ae056f0530cf7c54fa26925f",
+      "dimensions": [
+        1352,
+        495
+      ]
+    },
+    "browser/d08b-skew-desktop-zh-light-tokens-exact.png": {
+      "bytes": 55039,
+      "sha256": "8deb32766a9d1c4952030eb6672a1682055b9c5b0e65c94c8d0e07251c32fdf6",
+      "gitBlob": "c0e0c252348b646e7e5d373a216473d77a1b39bc",
+      "dimensions": [
+        1352,
+        638
+      ]
+    },
+    "browser/d08b-skew-desktop-zh-missing.png": {
+      "bytes": 28203,
+      "sha256": "5945ed6a5afb43af5f703e86d80b91f66a457ad2c165f15120edbe655b6b1446",
+      "gitBlob": "d2d6a13f9dbdcd588f9932005e849d08cffc5a45",
+      "dimensions": [
+        1352,
+        356
+      ]
+    },
+    "browser/d08b-skew-desktop-zh-source-method.png": {
+      "bytes": 59956,
+      "sha256": "7c36adb6c064e1cd8a3a2fce827beccc298c19c17dd2033415d30535351baea1",
+      "gitBlob": "405b59aeb45937a4732ee67e84c383c4c2bbbffa",
+      "dimensions": [
+        1352,
+        720
+      ]
+    },
+    "browser/d08b-skew-mobile-en-dark-chart.png": {
+      "bytes": 34154,
+      "sha256": "5a1a21896af478cd0c5123ec41428d0645073cd6d7db7d4e34f16feb11ece66d",
+      "gitBlob": "aed1c0ce99eaa5186c3fc5f18313786f32e5b3d3",
+      "dimensions": [
+        362,
+        575
+      ]
+    },
+    "browser/d08b-skew-mobile-en-dark-exact.png": {
+      "bytes": 45010,
+      "sha256": "052cb4aebe7e478b1d16908d502d1e287d1b7686559f156650929b230b489d93",
+      "gitBlob": "95d7f8929b31dfacc77ad2c3b58f8c4d4ff5ce92",
+      "dimensions": [
+        362,
+        754
+      ]
+    },
+    "browser/d08b-skew-mobile-en-light-tokens-chart.png": {
+      "bytes": 33611,
+      "sha256": "b6dfad0128652c4c9e99439d4b5fec817ab6a8cbf34d202602f4fcfea64f00cd",
+      "gitBlob": "d31e463bc2e4b53d7a9769a4ae943dc44fc0aa93",
+      "dimensions": [
+        362,
+        575
+      ]
+    },
+    "browser/d08b-skew-mobile-en-light-tokens-exact.png": {
+      "bytes": 44508,
+      "sha256": "e52a42e781fa5cae9657b556e7941f1f7e2315d84fb1fe1ce071a8fd0fb545ec",
+      "gitBlob": "b408254da4e370eff72dbe499cda85a8b3a96325",
+      "dimensions": [
+        362,
+        754
+      ]
+    },
+    "browser/d08b-skew-mobile-en-missing.png": {
+      "bytes": 20050,
+      "sha256": "de1fa5fc2c8ac09d277b5a35c9b26b357304cb50e038177ec356b464163c0be0",
+      "gitBlob": "8cb7d39972f68b0ce731d96058e82c474ed80763",
+      "dimensions": [
+        362,
+        356
+      ]
+    },
+    "browser/d08b-skew-mobile-en-source-method.png": {
+      "bytes": 61215,
+      "sha256": "1f7f3bbb91710ce17c5462a33219ea6bc7f3173a97c9b7908f240d54b3f192a0",
+      "gitBlob": "80fdfb84fb3b348a2180c15e0d1f7da9ef09a1fc",
+      "dimensions": [
+        362,
+        893
+      ]
+    },
+    "browser/d08b-skew-mobile-zh-dark-chart.png": {
+      "bytes": 36482,
+      "sha256": "31bc55a95f3a031541f553f347330fb0d0969276b5c03ce30535db538c813476",
+      "gitBlob": "c5d5c5b057caf7ee6961f7f38e37ee12caf2f707",
+      "dimensions": [
+        362,
+        496
+      ]
+    },
+    "browser/d08b-skew-mobile-zh-dark-exact.png": {
+      "bytes": 47365,
+      "sha256": "abb7b4cba30057cfe6fc7079633e63da8becd0fe6d3cf592f219fdf14f6d8b31",
+      "gitBlob": "23ee62552c35b4c98e5166dd93469692b58bbb6d",
+      "dimensions": [
+        362,
+        676
+      ]
+    },
+    "browser/d08b-skew-mobile-zh-light-tokens-chart.png": {
+      "bytes": 35874,
+      "sha256": "4466d81a51803f3739a222d8b7b05f58025ce88ee3a7a1e8d241c93f77077a8b",
+      "gitBlob": "b92e7b596d0404225fe842f55abb38b35ad67fc1",
+      "dimensions": [
+        362,
+        496
+      ]
+    },
+    "browser/d08b-skew-mobile-zh-light-tokens-exact.png": {
+      "bytes": 46794,
+      "sha256": "540932f49574530b373a664c3f19795c78e77bebb9f837042119bcd5e8be3b2e",
+      "gitBlob": "62078988fa116485eaf8d4d5624729b622375a6d",
+      "dimensions": [
+        362,
+        676
+      ]
+    },
+    "browser/d08b-skew-mobile-zh-missing.png": {
+      "bytes": 24483,
+      "sha256": "3d0b4c6809009ebd0a14779c4f0d041234dd62ce77fd992abebdfc563c656f55",
+      "gitBlob": "530b93bff99c4176f37feb5debc3058d96e828e6",
+      "dimensions": [
+        362,
+        357
+      ]
+    },
+    "browser/d08b-skew-mobile-zh-source-method.png": {
+      "bytes": 66816,
+      "sha256": "2d1b027c7deee4e9ecaa0ef9e10bcdf7d866df2155c2733a193eed0c40f8570b",
+      "gitBlob": "e494c6d186b2a1389c40a4c17e21c48b9f2bf3a8",
+      "dimensions": [
+        362,
+        796
+      ]
+    },
+    "browser/d08b-skew-narrow-230-zh-exact.png": {
+      "bytes": 114206,
+      "sha256": "37aa59832bc16bf9d14ae08521f8307118907a88943bcb24706f54d569ae7f07",
+      "gitBlob": "8c9315a5903dff69cb5a00c7ea766b964069a51c",
+      "dimensions": [
+        1440,
+        900
+      ]
+    },
+    "browser/d08b-skew-tablet-en-dark-chart.png": {
+      "bytes": 38537,
+      "sha256": "a2a88e80d00f79adc9cce9a32e1fa777645b2486e8b1fa1212cfc7bc7ac740c9",
+      "gitBlob": "83121aed84dd116de511f151f8d971ef3cd5ee1e",
+      "dimensions": [
+        792,
+        495
+      ]
+    },
+    "browser/d08b-skew-tablet-en-dark-exact.png": {
+      "bytes": 47011,
+      "sha256": "e65b3b1fa45738fcc6ebdd2f048adb1c5adc187962f7cc8b10b3b7e1d65b4c7a",
+      "gitBlob": "9cfd24f26982f7c411117bdc5a3312eb9adf5265",
+      "dimensions": [
+        792,
+        638
+      ]
+    },
+    "browser/d08b-skew-tablet-en-light-tokens-chart.png": {
+      "bytes": 38002,
+      "sha256": "9f1e29968592da540beada6509f01f93255baf58a23f48174764ef6c61abb634",
+      "gitBlob": "29570c4c1b0db2097cfd54d11105edb10baa6fdb",
+      "dimensions": [
+        792,
+        495
+      ]
+    },
+    "browser/d08b-skew-tablet-en-light-tokens-exact.png": {
+      "bytes": 46677,
+      "sha256": "20133edc19cd9f61ff04a8f48ff349efa7c834955ff3b08d9f7438d7c0b3b5f0",
+      "gitBlob": "6f95a72a6eaa0206da6c193e3545409c1675f503",
+      "dimensions": [
+        792,
+        638
+      ]
+    },
+    "browser/d08b-skew-tablet-en-missing.png": {
+      "bytes": 21339,
+      "sha256": "5ca73dcb13122f58df7e62457ef8892eeaad9300952e8d62d4cab25fc27d3f55",
+      "gitBlob": "39f761b0940e16218a08fccd9b21e3f6cf6d8c30",
+      "dimensions": [
+        792,
+        356
+      ]
+    },
+    "browser/d08b-skew-tablet-en-source-method.png": {
+      "bytes": 65148,
+      "sha256": "a43adda12d11aafc0c19bc818233ea59353034812ced4e48abd466b370301229",
+      "gitBlob": "460fd808d5c243a259130b269bfc4700baae54c6",
+      "dimensions": [
+        792,
+        739
+      ]
+    },
+    "browser/d08b-skew-tablet-zh-dark-chart.png": {
+      "bytes": 42100,
+      "sha256": "bf5727b1924d718e0e3256f412595e91f5f8f80bf1be5e168250a81499153002",
+      "gitBlob": "ad6c1873133517e2c5f735904b250f0845b5c7ca",
+      "dimensions": [
+        792,
+        495
+      ]
+    },
+    "browser/d08b-skew-tablet-zh-dark-exact.png": {
+      "bytes": 49987,
+      "sha256": "6a90fcc936c6974bcad3b9393b0f166275b4ff0e2a53f25a953e0f3ee1914c11",
+      "gitBlob": "f153002b5912ca18dba5382bca2bb92d62b5424f",
+      "dimensions": [
+        792,
+        638
+      ]
+    },
+    "browser/d08b-skew-tablet-zh-light-tokens-chart.png": {
+      "bytes": 41568,
+      "sha256": "b12ddf36e18eccb0048c9e7b8934a6cde7cbfce0ff9d58d623374fdf0abfc5c8",
+      "gitBlob": "a6aa1c5cfccb6a405cb546db8008af9f78af824c",
+      "dimensions": [
+        792,
+        495
+      ]
+    },
+    "browser/d08b-skew-tablet-zh-light-tokens-exact.png": {
+      "bytes": 49612,
+      "sha256": "6a8a60259741af7b8e5bc250e4d81bb53804b388a06caf14d371adf6d874712d",
+      "gitBlob": "4d5363ccc36e310d6f6fd5931b82f83091c5464c",
+      "dimensions": [
+        792,
+        638
+      ]
+    },
+    "browser/d08b-skew-tablet-zh-missing.png": {
+      "bytes": 26818,
+      "sha256": "a54605396bc4b8afce2b1ad9fa03b3a86c818d9bf9480c4c839eb2e1a17c10aa",
+      "gitBlob": "39d7d61a8c1435ff57b4429720ebaeba44a2c136",
+      "dimensions": [
+        792,
+        356
+      ]
+    },
+    "browser/d08b-skew-tablet-zh-source-method.png": {
+      "bytes": 69769,
+      "sha256": "9e9a9ee5d921a9e03d20aa203f2b18ed2ab4416161101f5db5b9a2c6e35e2cfb",
+      "gitBlob": "0b01d3bd2851b71d8d04e134766d5d50bafea8e4",
+      "dimensions": [
+        792,
+        720
+      ]
+    },
+    "browser-before-theme-correction.log": {
+      "bytes": 2588,
+      "sha256": "3cd35822e71709a8fc99430a733f0bf51e59169517638410833b2db9c3c4c191",
+      "gitBlob": "78606156511d9ff5cb1fc902630fe690ba10ee4c"
+    },
+    "browser-startup-timeout.log": {
+      "bytes": 251,
+      "sha256": "1dc6a99117e6e3d1e9ff75e70d9a608bd59815e25579328e9d05069d521fc1c7",
+      "gitBlob": "76e895a602f020f11850441a5ca6e7a4f2a6cd72"
+    },
+    "browser-surface-theme-correction.log": {
+      "bytes": 4178,
+      "sha256": "85a6d257d7e8bd590988dbb2bf6e0e399039b4c77a89f12ff42eca3f76b93fb0",
+      "gitBlob": "33e4107507c1f7f2956308e4cdf351e37ffadfe9"
+    },
+    "browser.log": {
+      "bytes": 2591,
+      "sha256": "1f0734e9df4b15f7872f237881d5326f8c47fcbb425bc74cd06a2134cf8fbe7e",
+      "gitBlob": "00727e2f6ed10bf559dcc9bc4a7a043bfba73e16"
+    },
+    "build-initial.log": {
+      "bytes": 5854,
+      "sha256": "05bde68c66f572fb3c4405c94643b6692695e75d7d93138447f257164f5881d4",
+      "gitBlob": "f6c8e63bf70302db19163b437128abca8bce0daa"
+    },
+    "build.log": {
+      "bytes": 8869,
+      "sha256": "b497bd4ce58e37b2ddd884379512dfbf9f117f59870b0d413ecf0733e1eae93f",
+      "gitBlob": "23c1c7a8288b393c22bc83a3172f9474bebaba27"
+    },
+    "contrast/d08b-skew-desktop-en-dark-chart-contrast.json": {
+      "bytes": 2093,
+      "sha256": "add33ca66ca8a2fb43305c8dd2e5630046cc3ccb22f8de838744464d49344401",
+      "gitBlob": "421e420c9c308dc8c28e1f903303df14b2f6276e"
+    },
+    "contrast/d08b-skew-desktop-en-dark-table-contrast.json": {
+      "bytes": 2816,
+      "sha256": "e5323925bf2cbb40cc98edb4c3c5be4be0d9ef3c6cad98245fe940d2f79431ec",
+      "gitBlob": "752ff4a6a83a4c2e833faffd32e1fb1fc557695f"
+    },
+    "contrast/d08b-skew-desktop-en-light-tokens-chart-contrast.json": {
+      "bytes": 2079,
+      "sha256": "d7154f2a16fb10c672adb9af77bcdc79d7c5afb59a62f4f3206d50bd9308c1b0",
+      "gitBlob": "9cf149f20307d90cbc85ce922859d5293d087474"
+    },
+    "contrast/d08b-skew-desktop-en-light-tokens-table-contrast.json": {
+      "bytes": 2806,
+      "sha256": "98118911f9b10e1bd5221f411be5c0cbffba4bfbf32019e30fd068844bb9febe",
+      "gitBlob": "59f30dafd9d08fff3f899d694883207566904a43"
+    },
+    "contrast/d08b-skew-desktop-zh-dark-chart-contrast.json": {
+      "bytes": 2117,
+      "sha256": "19cb926b4a9085504768d9b9bffe82f139d146bfee3cf16014b14d032cdb24e9",
+      "gitBlob": "908431110fbe0d1d4306b358d4480aeaf3fb2d0a"
+    },
+    "contrast/d08b-skew-desktop-zh-dark-table-contrast.json": {
+      "bytes": 2900,
+      "sha256": "c7950d10e649d508b8c3c27b8b88c80f64a58e81204a80c06eef4f6545935fb5",
+      "gitBlob": "e307260abdaadd2dea72efe8c14f0faa9a04a509"
+    },
+    "contrast/d08b-skew-desktop-zh-light-tokens-chart-contrast.json": {
+      "bytes": 2103,
+      "sha256": "65537199d098e9660648339fce977c0674045e9b0b177a875d725e9af92b75f4",
+      "gitBlob": "ecfcaaacff0cd6569a3e230a5c8d53a16a461a25"
+    },
+    "contrast/d08b-skew-desktop-zh-light-tokens-table-contrast.json": {
+      "bytes": 2890,
+      "sha256": "430cf55eba3e2b3e283b5892f14e5c364a4fdd4fd592421e2c6b128f02d08e88",
+      "gitBlob": "14415b2969205424744e1f38283802877e79ae57"
+    },
+    "contrast/d08b-skew-mobile-en-dark-chart-contrast.json": {
+      "bytes": 2093,
+      "sha256": "add33ca66ca8a2fb43305c8dd2e5630046cc3ccb22f8de838744464d49344401",
+      "gitBlob": "421e420c9c308dc8c28e1f903303df14b2f6276e"
+    },
+    "contrast/d08b-skew-mobile-en-dark-table-contrast.json": {
+      "bytes": 2816,
+      "sha256": "e5323925bf2cbb40cc98edb4c3c5be4be0d9ef3c6cad98245fe940d2f79431ec",
+      "gitBlob": "752ff4a6a83a4c2e833faffd32e1fb1fc557695f"
+    },
+    "contrast/d08b-skew-mobile-en-light-tokens-chart-contrast.json": {
+      "bytes": 2079,
+      "sha256": "d7154f2a16fb10c672adb9af77bcdc79d7c5afb59a62f4f3206d50bd9308c1b0",
+      "gitBlob": "9cf149f20307d90cbc85ce922859d5293d087474"
+    },
+    "contrast/d08b-skew-mobile-en-light-tokens-table-contrast.json": {
+      "bytes": 2806,
+      "sha256": "98118911f9b10e1bd5221f411be5c0cbffba4bfbf32019e30fd068844bb9febe",
+      "gitBlob": "59f30dafd9d08fff3f899d694883207566904a43"
+    },
+    "contrast/d08b-skew-mobile-zh-dark-chart-contrast.json": {
+      "bytes": 2117,
+      "sha256": "19cb926b4a9085504768d9b9bffe82f139d146bfee3cf16014b14d032cdb24e9",
+      "gitBlob": "908431110fbe0d1d4306b358d4480aeaf3fb2d0a"
+    },
+    "contrast/d08b-skew-mobile-zh-dark-table-contrast.json": {
+      "bytes": 2900,
+      "sha256": "c7950d10e649d508b8c3c27b8b88c80f64a58e81204a80c06eef4f6545935fb5",
+      "gitBlob": "e307260abdaadd2dea72efe8c14f0faa9a04a509"
+    },
+    "contrast/d08b-skew-mobile-zh-light-tokens-chart-contrast.json": {
+      "bytes": 2103,
+      "sha256": "65537199d098e9660648339fce977c0674045e9b0b177a875d725e9af92b75f4",
+      "gitBlob": "ecfcaaacff0cd6569a3e230a5c8d53a16a461a25"
+    },
+    "contrast/d08b-skew-mobile-zh-light-tokens-table-contrast.json": {
+      "bytes": 2890,
+      "sha256": "430cf55eba3e2b3e283b5892f14e5c364a4fdd4fd592421e2c6b128f02d08e88",
+      "gitBlob": "14415b2969205424744e1f38283802877e79ae57"
+    },
+    "contrast/d08b-skew-tablet-en-dark-chart-contrast.json": {
+      "bytes": 2093,
+      "sha256": "add33ca66ca8a2fb43305c8dd2e5630046cc3ccb22f8de838744464d49344401",
+      "gitBlob": "421e420c9c308dc8c28e1f903303df14b2f6276e"
+    },
+    "contrast/d08b-skew-tablet-en-dark-table-contrast.json": {
+      "bytes": 2816,
+      "sha256": "e5323925bf2cbb40cc98edb4c3c5be4be0d9ef3c6cad98245fe940d2f79431ec",
+      "gitBlob": "752ff4a6a83a4c2e833faffd32e1fb1fc557695f"
+    },
+    "contrast/d08b-skew-tablet-en-light-tokens-chart-contrast.json": {
+      "bytes": 2079,
+      "sha256": "d7154f2a16fb10c672adb9af77bcdc79d7c5afb59a62f4f3206d50bd9308c1b0",
+      "gitBlob": "9cf149f20307d90cbc85ce922859d5293d087474"
+    },
+    "contrast/d08b-skew-tablet-en-light-tokens-table-contrast.json": {
+      "bytes": 2806,
+      "sha256": "98118911f9b10e1bd5221f411be5c0cbffba4bfbf32019e30fd068844bb9febe",
+      "gitBlob": "59f30dafd9d08fff3f899d694883207566904a43"
+    },
+    "contrast/d08b-skew-tablet-zh-dark-chart-contrast.json": {
+      "bytes": 2117,
+      "sha256": "19cb926b4a9085504768d9b9bffe82f139d146bfee3cf16014b14d032cdb24e9",
+      "gitBlob": "908431110fbe0d1d4306b358d4480aeaf3fb2d0a"
+    },
+    "contrast/d08b-skew-tablet-zh-dark-table-contrast.json": {
+      "bytes": 2900,
+      "sha256": "c7950d10e649d508b8c3c27b8b88c80f64a58e81204a80c06eef4f6545935fb5",
+      "gitBlob": "e307260abdaadd2dea72efe8c14f0faa9a04a509"
+    },
+    "contrast/d08b-skew-tablet-zh-light-tokens-chart-contrast.json": {
+      "bytes": 2103,
+      "sha256": "65537199d098e9660648339fce977c0674045e9b0b177a875d725e9af92b75f4",
+      "gitBlob": "ecfcaaacff0cd6569a3e230a5c8d53a16a461a25"
+    },
+    "contrast/d08b-skew-tablet-zh-light-tokens-table-contrast.json": {
+      "bytes": 2890,
+      "sha256": "430cf55eba3e2b3e283b5892f14e5c364a4fdd4fd592421e2c6b128f02d08e88",
+      "gitBlob": "14415b2969205424744e1f38283802877e79ae57"
+    },
+    "eslint-initial.log": {
+      "bytes": 5139,
+      "sha256": "3b52efb8864ca0cfb2ef34c4f86dacd01d3d356ede9745bd12122175075b6e76",
+      "gitBlob": "e44d60edc6b3ecf44bf2c42d1fe21f6f90f90a27"
+    },
+    "eslint.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "playwright.config.ts": {
+      "bytes": 794,
+      "sha256": "b2e69edffd9335faca13183fd47558d6cf46b7fd56731d2d85c023f9e18900bf",
+      "gitBlob": "e05a98f5277296e6a3d0f4be41ca17c0f474c61a"
+    },
+    "source-blobs.json": {
+      "bytes": 3053,
+      "sha256": "4759d1a693757b6a47c393184ba791cff1ed437734581c8f8336a9027ea842b8",
+      "gitBlob": "2681d1ad5f2dbaa85ce21ecc2acaf2345d0d0d8d"
+    },
+    "source-review.json": {
+      "bytes": 1897,
+      "sha256": "ed36e15394390c52133159f3827b4e3b54f3fed9e6a60a715b29b3bbfab1495b",
+      "gitBlob": "5c29ed56a258bf4e47df468c3db766c1732ea7b5"
+    },
+    "surface-theme-correction/d08b-surface-desktop-en-light-tokens-3d.png": {
+      "bytes": 103982,
+      "sha256": "e2b2ddd3165d99583aef7b6df824b1dc1e33aa38194604a6f8e7f2e823101511",
+      "gitBlob": "134e373e184268ca4b32ad5562e771a647618605",
+      "dimensions": [
+        1306,
+        794
+      ]
+    },
+    "surface-theme-correction/d08b-surface-desktop-en-light-tokens-exact.png": {
+      "bytes": 192162,
+      "sha256": "8ceb5abf91c0b1f922c9862fb62da517f2ff5de801ead1ca828564962ac438e6",
+      "gitBlob": "4cd8992a28c7b83656eb311a26c9a8e504193fac",
+      "dimensions": [
+        1306,
+        971
+      ]
+    },
+    "surface-theme-correction/d08b-surface-desktop-zh-light-tokens-3d.png": {
+      "bytes": 113929,
+      "sha256": "d6cc7fa7e3b52f1deaad78392a19b203be630f9d08c2061ced54b981cc0f2e8e",
+      "gitBlob": "6830e580a969e825c7688c1b5b42d257b0d60893",
+      "dimensions": [
+        1306,
+        806
+      ]
+    },
+    "surface-theme-correction/d08b-surface-desktop-zh-light-tokens-exact.png": {
+      "bytes": 199239,
+      "sha256": "1969049c6a25df284920d375a74a5f2b0259c5641ce79315a89fb0a4a3993e3f",
+      "gitBlob": "eee02ae00400f8bd540e0b4f3afeb79bbb6e6936",
+      "dimensions": [
+        1306,
+        1003
+      ]
+    },
+    "surface-theme-correction/d08b-surface-mobile-en-light-tokens-3d.png": {
+      "bytes": 95436,
+      "sha256": "f87c9e6afc87cac1558981bfef51d0f10664d4cde1a2352717b2e5421bb00cf7",
+      "gitBlob": "1737a0d0215cc42960ebeae7ad0337a89f9741ff",
+      "dimensions": [
+        348,
+        1443
+      ]
+    },
+    "surface-theme-correction/d08b-surface-mobile-en-light-tokens-exact.png": {
+      "bytes": 140175,
+      "sha256": "974ce1b49143c19f6800a53cf657f0e6c61884ae4529921052230d885a8ef16b",
+      "gitBlob": "e95221cfb51588bb3d7da3fecbe33cc641ff5681",
+      "dimensions": [
+        348,
+        1983
+      ]
+    },
+    "surface-theme-correction/d08b-surface-mobile-zh-light-tokens-3d.png": {
+      "bytes": 105450,
+      "sha256": "7be738232601789cfbba81ca7ead3355d4fa3be8baafdfd113ea9b2e3a8dc1b2",
+      "gitBlob": "f6b8aa1686dea138166df679dfc52ac40a598ff2",
+      "dimensions": [
+        348,
+        1445
+      ]
+    },
+    "surface-theme-correction/d08b-surface-mobile-zh-light-tokens-exact.png": {
+      "bytes": 151836,
+      "sha256": "b739a569e445ec81a179caf0dd727bc11433732be17bbf040de00e9da2abae39",
+      "gitBlob": "948e54b0a730c772a6b1ce700ce48548e29d0081",
+      "dimensions": [
+        348,
+        1949
+      ]
+    },
+    "surface-theme-correction/d08b-surface-tablet-en-light-tokens-3d.png": {
+      "bytes": 104677,
+      "sha256": "c9a326774b1e1e0c142df45aa2740528f0f73f5b2693bc899865630a8b8a607f",
+      "gitBlob": "9edbbc324ab29d3aa884c853b7656880cc6631a5",
+      "dimensions": [
+        762,
+        1174
+      ]
+    },
+    "surface-theme-correction/d08b-surface-tablet-en-light-tokens-exact.png": {
+      "bytes": 146750,
+      "sha256": "b35e0fe76a8f59e92e46e8a6a341fdc46f2ec5ab3e28742907ac0e91067db215",
+      "gitBlob": "6ee17192ffb893c0e015c97d331c7c90342358a9",
+      "dimensions": [
+        762,
+        1437
+      ]
+    },
+    "surface-theme-correction/d08b-surface-tablet-zh-light-tokens-3d.png": {
+      "bytes": 113285,
+      "sha256": "ad4b1d6bf3545e147e906e59c15007ea6985ec12dc141a8e6d816bd592f09edc",
+      "gitBlob": "c106b650186175b0a29bb14a3ee73996f395a8b6",
+      "dimensions": [
+        762,
+        1095
+      ]
+    },
+    "surface-theme-correction/d08b-surface-tablet-zh-light-tokens-exact.png": {
+      "bytes": 157078,
+      "sha256": "9fee09d89581c2f43e5e7d5350a448748fcfaf803905609652bffa11603afc5f",
+      "gitBlob": "b763da37c8e4afd39c6b0d94c8601b136604b104",
+      "dimensions": [
+        762,
+        1367
+      ]
+    },
+    "unit-initial.log": {
+      "bytes": 1875,
+      "sha256": "e4cc7ea6f20504705aec29f97c9e9573855639c3211f6f6d8dc3f59ab6b0d62c",
+      "gitBlob": "31175437d2d37d0581e9f0019a9965a279c8fe72"
+    },
+    "unit.log": {
+      "bytes": 731,
+      "sha256": "15898b482ccd6050acd762aef326000696867978e85703c702fad5d9e9ff2b93",
+      "gitBlob": "76c06d0fd2b42b423fe3a81c6d4fa28d5ca82c21"
+    },
+    "verify_package.py": {
+      "bytes": 3358,
+      "sha256": "da41dc61fabed03c6989d096e41ec0d62c21b4ddcdc0a6b2ca04f71018c3a351",
+      "gitBlob": "71a409105f57a45855c60438c92af46a8471af01"
+    }
+  }
+}

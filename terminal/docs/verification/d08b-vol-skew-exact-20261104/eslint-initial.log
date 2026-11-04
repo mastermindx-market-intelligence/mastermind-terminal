@@ -1,0 +1,44 @@
+
+/Volumes/Mastermind/agent-workspaces/terminal/web/d08b-surface-exact-values-20261104-c3/terminal/components/vol/VolSkewPanel.tsx
+   76:9  warning  The 'allPts' logical expression could make the dependencies of useMemo Hook (at line 100) change on every render. To fix this, wrap the initialization of 'allPts' in its own useMemo() Hook                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            react-hooks/exhaustive-deps
+   76:9  warning  The 'allPts' logical expression could make the dependencies of useMemo Hook (at line 110) change on every render. To fix this, wrap the initialization of 'allPts' in its own useMemo() Hook                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            react-hooks/exhaustive-deps
+   76:9  warning  The 'allPts' logical expression could make the dependencies of useMemo Hook (at line 143) change on every render. To fix this, wrap the initialization of 'allPts' in its own useMemo() Hook                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            react-hooks/exhaustive-deps
+  100:7  error    Compilation Skipped: Existing memoization could not be preserved
+
+React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. This dependency may be mutated later, which could cause the value to change unexpectedly.
+
+/Volumes/Mastermind/agent-workspaces/terminal/web/d08b-surface-exact-values-20261104-c3/terminal/components/vol/VolSkewPanel.tsx:100:7
+   98 |     }
+   99 |     return best;
+> 100 |   }, [allPts]);
+      |       ^^^^^^ This dependency may be modified later
+  101 |
+  102 |   // Default view trims the wings to ±20% of the ATM proxy; a trim that would
+  103 |   // leave a degenerate chart (<2 strikes) falls back to the full chain                                                                        react-hooks/preserve-manual-memoization
+  110:7  error    Compilation Skipped: Existing memoization could not be preserved
+
+React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. This dependency may be mutated later, which could cause the value to change unexpectedly.
+
+/Volumes/Mastermind/agent-workspaces/terminal/web/d08b-surface-exact-values-20261104-c3/terminal/components/vol/VolSkewPanel.tsx:110:7
+  108 |     const kept = allPts.filter((p) => p.strike >= lo && p.strike <= hi);
+  109 |     return kept.length >= 2 ? kept : allPts;
+> 110 |   }, [allPts, atmProxy]);
+      |       ^^^^^^ This dependency may be modified later
+  111 |
+  112 |   const trimming = !fullChain && trimmedPts.length < allPts.length;
+  113 |   const pts = fullChain ? allPts : trimmedPts;  react-hooks/preserve-manual-memoization
+  143:7  error    Compilation Skipped: Existing memoization could not be preserved
+
+React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. This dependency may be mutated later, which could cause the value to change unexpectedly.
+
+/Volumes/Mastermind/agent-workspaces/terminal/web/d08b-surface-exact-values-20261104-c3/terminal/components/vol/VolSkewPanel.tsx:143:7
+  141 |       v > 0.5 ? "skewPutBias" : v < -0.5 ? "skewCallBias" : "skewFlat";
+  142 |     return { v, biasKey };
+> 143 |   }, [allPts, atmProxy]);
+      |       ^^^^^^ This dependency may be modified later
+  144 |
+  145 |   const drawable =
+  146 |     pts.length >= 1 && (callSegs.length > 0 || putSegs.length > 0);                                                 react-hooks/preserve-manual-memoization
+
+✖ 6 problems (3 errors, 3 warnings)
+

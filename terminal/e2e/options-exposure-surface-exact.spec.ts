@@ -1,4 +1,5 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
+import { applyD08BPanelPresentation } from "./d08bPanelPresentation";
 import producer from "../lib/__tests__/fixtures/exposure-projection.json";
 
 // Controlled source values exercise the production /options route and its
@@ -81,8 +82,8 @@ for (const lang of ["en", "zh"] as const) {
     expect(geometry).toHaveLength(3);
     expect(geometry.every(cell => cell.within && cell.fill !== "rgb(0, 0, 0)")).toBe(true);
     expect(geometry.find(cell => cell.sign === "positive")?.fill).not.toBe(geometry.find(cell => cell.sign === "negative")?.fill);
-    for (const theme of ["dark", "light"] as const) {
-      await page.evaluate(value => document.documentElement.setAttribute("data-theme", value), theme);
+    for (const theme of ["dark", "light-tokens"] as const) {
+      await applyD08BPanelPresentation(surface, theme);
       await expectHorizontalFit(surface);
       await surface.screenshot({ path: `test-results/d08b-surface-${info.project.name}-${lang}-${theme}-3d.png` });
     }
@@ -119,8 +120,8 @@ for (const lang of ["en", "zh"] as const) {
     await surface.locator("summary").filter({ hasText: lang === "en" ? "Source and scope" : "来源与范围" }).click();
     await expect(surface).toContainText(session);
     await expect(surface).toContainText(producer.source_snapshot_ref);
-    for (const theme of ["dark", "light"] as const) {
-      await page.evaluate(value => document.documentElement.setAttribute("data-theme", value), theme);
+    for (const theme of ["dark", "light-tokens"] as const) {
+      await applyD08BPanelPresentation(surface, theme);
       await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
       await expectHorizontalFit(surface);
       const measured = await surface.evaluate(el => {

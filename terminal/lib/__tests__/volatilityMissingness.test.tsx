@@ -15,7 +15,8 @@ async function render(v:React.ReactNode) { await act(async()=>root.render(v)); }
 const term=(ivs:Array<number|null|undefined>)=>ivs.map((atm_iv,i)=>({dte:[7,14,21,28,56,84][i],exp:["2026-10-02","2026-10-09","2026-10-16","2026-10-23","2026-11-20","2026-12-18"][i],atm_iv})) as VolTermRow[];
 const history=(values:Array<number|null>)=>values.map((atm_iv,i)=>({date:`2026-09-${String(i+1).padStart(2,"0")}`,atm_iv,iv_rank:null,close:null}));
 const paths=(stroke="var(--brand-2)")=>[...el.querySelectorAll<SVGPathElement>("path")].filter(p=>p.getAttribute("stroke")===stroke);
-const dots=(fill="var(--brand-2)")=>[...el.querySelectorAll("circle")].filter(p=>p.getAttribute("fill")===fill);
+// Count supplied observations regardless of call-circle / put-diamond encoding.
+const dots=(fill="var(--brand-2)")=>[...el.querySelectorAll("circle, polygon[data-vol-leg]")].filter(p=>p.getAttribute("fill")===fill);
 const smile=(points:VolSmilePoint[])=>[{exp:"2026-10-23",points}];
 const point=(strike:number,c:number|null,q:number|null)=>({strike,call_iv:c,put_iv:q});
 

@@ -1,0 +1,39 @@
+{
+  "schema": "d08b.native_source_review.v1",
+  "status": "PASS",
+  "reviewer": "native cognitive adviser /root/skew_contract_check",
+  "review_kind": "independent read-only source and final-delta check; optional under Chairman Web waiver",
+  "original_source_blob": "1ab7126600da2fc306de937405527cfedc1cdb63",
+  "inspected_blobs": {
+    "components/vol/VolSkewPanel.tsx": "800c719765ef7f6952ee61e94c2617ffd8194eb0",
+    "components/vol/VolSkewPanel.module.css": "3aaadb06629b144c4e95e5c10e993b4e67f4d696",
+    "components/vol/volSkewStrings.ts": "182f30a8c9a141fa17e081fb5ce3ce3129b15d18",
+    "e2e/d08bPanelPresentation.ts": "f5d80679dd4ac5fc44dbd554b6aefeb3f6220a10",
+    "e2e/options-vol-skew-exact.spec.ts": "3537b0fd8be3cb3c547af3880b3641b1cb0d37b4",
+    "lib/__tests__/volSkewExactValues.test.tsx": "727062ab01dc4595172e76d0598b1d0d8581df4b",
+    "lib/__tests__/volatilityMissingness.test.tsx": "27abe052096ef9a5b2c077902ed218f3f35af5e4"
+  },
+  "verified": [
+    "expiry ownership unchanged",
+    "trim, interpolation, skew signs, chart domains and paths unchanged",
+    "same admitted pts in chart/table",
+    "zero/tiny/unavailable/conflict distinctions",
+    "exact numeric value without rescaling or display rounding",
+    "native disclosure and narrow fallback focus",
+    "local paint changes only",
+    "light helper matches existing gated stylesheet and never enables the owner"
+  ],
+  "light_source": {
+    "commit": "4741b1ceb2e8718d59ab74654bbeefd9eb6c4484",
+    "path": "terminal/components/chrome/shared-shell/shared-shell.css",
+    "blob": "0355fd6f02c265c76f96497fadd64a1e9951c620",
+    "scope": "controlled panel-token compatibility, not production theme activation"
+  },
+  "limits": [
+    "No independent test or browser rerun",
+    "No independent contrast reproduction",
+    "No assistive technology audit",
+    "No Term review"
+  ],
+  "disposition": "ACCEPTED / STOP"
+}
