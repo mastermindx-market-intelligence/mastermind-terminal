@@ -22,7 +22,7 @@ const object = (v: unknown): v is Record<string, unknown> => !!v && typeof v ===
 const keys = (v: Record<string, unknown>, names: string[]) => Object.keys(v).length === names.length && names.every(n => Object.hasOwn(v, n));
 const uuid = (v: unknown): v is string => isUuid(v) && v === v.toLowerCase();
 const digest = (v: unknown): v is string => typeof v === "string" && /^[0-9a-f]{64}$/.test(v);
-const title = (v: unknown): v is string => typeof v === "string" && v.trim().length > 0 && v.length <= 240 && !/[\u0000-\u001f\u007f]/.test(v);
+const title = (v: unknown): v is string => typeof v === "string" && v.trim().length > 0 && Array.from(v).length <= 240 && !/[\u0000-\u001f\u007f]/.test(v);
 const instant = (v: unknown): v is string => typeof v === "string" && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}Z$/.test(v) && Number.isFinite(Date.parse(v));
 const date = (v: unknown): v is string => typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v) && Number.isFinite(Date.parse(v)) && new Date(v).toISOString().slice(0, 10) === v;
 function request(v: unknown): v is SharingRequest {
@@ -50,4 +50,70 @@ export async function readSharingRequestFeed(db: SharingDb, viewer: Pick<Termina
     const value = decodeSharingRequestFeed(result.data, viewer);
     return value ? { ok: true, value } : { ok: false, code: "unavailable" };
   } catch { return { ok: false, code: "unavailable" }; }
+}
+
+import { decodeSharingReview, type SharingReview } from "./briefDeliverySharing";
+export interface SharingRequestSelection { delivery_id: string; request_ref: string; revision: 1 }
+export interface SharingRequestRecord {
+  schema: "mastermind.brief_sharing_request.v1"; request_ref: string; revision: 1;
+  issued_at: string; disposition: "OPEN" | "SHARED" | "KEPT_PRIVATE"; resolved_at: string | null;
+  review: SharingReview;
+}
+export type SharingRequestCommand =
+  | { action: "ISSUE"; request_ref: string; team_id: string; expected_content_sha256: string }
+  | { action: "SHARE"; request_ref: string; revision: 1; expected_content_sha256: string; expected_effect_sha256: string }
+  | { action: "KEEP_PRIVATE"; request_ref: string; revision: 1; expected_content_sha256: string };
+export function decodeSharingRequestRecord(value: unknown, selected: SharingRequestSelection): SharingRequestRecord | null {
+  try {
+    if (!uuid(selected.delivery_id) || !uuid(selected.request_ref) || selected.revision !== 1 || new TextEncoder().encode(JSON.stringify(value)).length > 131072 || !object(value) || !keys(value, ["schema", "request_ref", "revision", "issued_at", "disposition", "resolved_at", "review"]) || value.schema !== "mastermind.brief_sharing_request.v1" || value.request_ref !== selected.request_ref || value.revision !== 1 || !instant(value.issued_at) || !["OPEN", "SHARED", "KEPT_PRIVATE"].includes(value.disposition as string) || (value.disposition === "OPEN" ? value.resolved_at !== null : !instant(value.resolved_at))) return null;
+    if (!object(value.review) || !object(value.review.audience) || !uuid(value.review.audience.team_id)) return null;
+    const review = decodeSharingReview(value.review, selected.delivery_id, value.review.audience.team_id);
+    if (!review || (value.disposition === "SHARED" && !review.grant) || (value.disposition === "KEPT_PRIVATE" && review.grant !== null)) return null;
+    return { ...value, review } as unknown as SharingRequestRecord;
+  } catch { return null; }
+}
+export function parseSharingRequestCommand(text: string): SharingRequestCommand | null {
+  try {
+    if (new TextEncoder().encode(text).length > 16384) return null;
+    const v = JSON.parse(text);
+    if (!object(v) || !uuid(v.request_ref) || !digest(v.expected_content_sha256)) return null;
+    // Flat UUID/digest/action strings plus revision1 only. Reject duplicate
+    // spelling (including escaped keys) before invoking any owner mutation.
+    const seen = new Set<string>();
+    for (const match of text.matchAll(/"((?:[^"\\]|\\.)*)"\s*:/g)) {
+      const key = JSON.parse('"' + match[1] + '"') as string;
+      if (seen.has(key)) return null;
+      seen.add(key);
+    }
+    if (seen.size !== Object.keys(v).length) return null;
+    if (v.action === "ISSUE" && keys(v, ["action", "request_ref", "team_id", "expected_content_sha256"]) && uuid(v.team_id)) return v as unknown as SharingRequestCommand;
+    if (v.action === "SHARE" && keys(v, ["action", "request_ref", "revision", "expected_content_sha256", "expected_effect_sha256"]) && v.revision === 1 && digest(v.expected_effect_sha256)) return v as unknown as SharingRequestCommand;
+    if (v.action === "KEEP_PRIVATE" && keys(v, ["action", "request_ref", "revision", "expected_content_sha256"]) && v.revision === 1) return v as unknown as SharingRequestCommand;
+    return null;
+  } catch { return null; }
+}
+async function requestCall(db: SharingDb, name: string, args: Record<string, string>, selected: SharingRequestSelection, mutating: boolean): Promise<SharingResult<SharingRequestRecord>> {
+  try {
+    const result = await db.rpc(name, args);
+    if (result.error) return { ok: false, code: result.error.code === "42501" ? "denied" : result.error.code === "40001" ? "conflict" : ["22023", "22P02"].includes(result.error.code ?? "") ? "invalid_input" : mutating ? "effect_unknown" : "unavailable" };
+    const value = decodeSharingRequestRecord(result.data, selected);
+    return value ? { ok: true, value } : { ok: false, code: mutating ? "effect_unknown" : "unavailable" };
+  } catch { return { ok: false, code: mutating ? "effect_unknown" : "unavailable" }; }
+}
+export function readSharingRequest(db: SharingDb, selected: SharingRequestSelection) {
+  if (!uuid(selected.delivery_id) || !uuid(selected.request_ref) || selected.revision !== 1) return Promise.resolve<SharingResult<SharingRequestRecord>>({ ok: false, code: "invalid_input" });
+  return requestCall(db, "read_brief_sharing_request", { p_delivery_id: selected.delivery_id, p_request_ref: selected.request_ref, p_revision: "1" }, selected, false);
+}
+export async function executeSharingRequest(db: SharingDb, deliveryId: string, command: SharingRequestCommand): Promise<SharingResult<SharingRequestRecord>> {
+  if (!uuid(deliveryId) || !parseSharingRequestCommand(JSON.stringify(command))) return { ok: false, code: "invalid_input" };
+  const selected: SharingRequestSelection = { delivery_id: deliveryId, request_ref: command.request_ref, revision: 1 };
+  const args: Record<string, string> = { p_delivery_id: deliveryId, p_request_ref: command.request_ref, p_expected_content_sha256: command.expected_content_sha256 };
+  if (command.action === "ISSUE") args.p_team_id = command.team_id;
+  else args.p_revision = "1";
+  if (command.action === "SHARE") args.p_expected_effect_sha256 = command.expected_effect_sha256;
+  const result = await requestCall(db, command.action === "ISSUE" ? "issue_brief_sharing_request" : command.action === "SHARE" ? "share_requested_brief" : "keep_requested_brief_private", args, selected, true);
+  if (!result.ok) return result;
+  const v = result.value;
+  if (v.review.delivery.content_sha256 !== command.expected_content_sha256 || (command.action === "ISSUE" && v.review.audience.team_id !== command.team_id) || (command.action === "SHARE" && (v.disposition !== "SHARED" || v.review.expected_effect_sha256 !== command.expected_effect_sha256 || v.review.grant?.effect_sha256 !== command.expected_effect_sha256)) || (command.action === "KEEP_PRIVATE" && v.disposition !== "KEPT_PRIVATE")) return { ok: false, code: "effect_unknown" };
+  return result;
 }

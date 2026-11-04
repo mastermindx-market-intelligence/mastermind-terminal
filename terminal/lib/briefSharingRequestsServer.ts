@@ -51,3 +51,29 @@ export async function readNativeSharingRequestFeed(request: Request): Promise<Re
   } catch { return sharingFailure("denied", 403); }
   return result.ok ? sharingResponse(result.value) : sharingFailure(result.code, result.code === "denied" ? 403 : 503);
 }
+
+import { createClient as cookieClient } from "./supabase/server";
+import type { SharingResult } from "./briefDeliverySharing";
+import type { SharingRequestRecord, SharingRequestSelection } from "./briefSharingRequests";
+/** Same Terminal cookie owner, with an original REQUEST receipt address. */
+export async function authenticatedSharingRequest(
+  operation: (db: SharingDb) => Promise<SharingResult<SharingRequestRecord>>,
+  selected: SharingRequestSelection, mutating: boolean,
+): Promise<Response> {
+  const failure = (code: string, status: number) => sharingResponse({ ok: false, code, request: selected }, status);
+  let db: Awaited<ReturnType<typeof cookieClient>>, principal: string;
+  try {
+    db = await cookieClient();
+    const before = await db.auth.getUser();
+    if (before.error || !before.data.user?.id) return failure("not_signed_in", 401);
+    principal = before.data.user.id;
+  } catch { return failure("unavailable", 503); }
+  let result: SharingResult<SharingRequestRecord>;
+  try { result = await operation(db as unknown as SharingDb); }
+  catch { return failure(mutating ? "effect_unknown" : "unavailable", 503); }
+  try {
+    const after = await db.auth.getUser();
+    if (after.error || after.data.user?.id !== principal) return failure(mutating ? "effect_unknown" : "denied", mutating ? 503 : 403);
+  } catch { return failure(mutating ? "effect_unknown" : "denied", mutating ? 503 : 403); }
+  return result.ok ? sharingResponse(result.value) : failure(result.code, result.code === "denied" ? 403 : result.code === "conflict" ? 409 : result.code === "invalid_input" ? 400 : 503);
+}
