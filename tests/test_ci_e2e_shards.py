@@ -13,6 +13,8 @@ any such gap; the mutation tests below prove the checker can fail.
 from __future__ import annotations
 
 import re
+import os
+import subprocess
 from collections import Counter, defaultdict
 from copy import deepcopy
 from pathlib import Path
@@ -47,9 +49,38 @@ def playwright_projects() -> set[str]:
     return set(re.findall(r'\bname:\s*"([^"]+)"', text[start:end]))
 
 
+def playwright_dependencies() -> dict[str, tuple[str, ...]]:
+    """The implicit `dependencies:` edges declared in playwright.config.ts.
+
+    A project that names `dependencies` runs its dependency FIRST, inside the
+    SAME Playwright invocation, even when that dependency was not selected on
+    the command line. The relationship never appears as a --project= flag, so
+    counting flags cannot see a matrix that splits a dependency chain across
+    two entries: every project still appears exactly once while the
+    dependent's entry silently re-runs the upstream project's specs."""
+    text = PLAYWRIGHT_CONFIG.read_text(encoding="utf-8")
+    start = text.index("projects: [")
+    end = text.index("webServer:", start)
+    region = text[start:end]
+    declarations = [
+        (match.start(), match.group(1))
+        for match in re.finditer(r'name:\s*"([^"]+)"', region)
+    ]
+    edges: dict[str, tuple[str, ...]] = {}
+    for index, (position, name) in enumerate(declarations):
+        stop = declarations[index + 1][0] if index + 1 < len(declarations) else len(region)
+        block = region[position:stop]
+        found = re.search(r"dependencies:\s*\[([^\]]*)\]", block)
+        if found:
+            edges[name] = tuple(re.findall(r'"([^"]+)"', found.group(1)))
+    return edges
+
+
 def matrix_coverage_errors(include: list[dict[str, Any]], projects: set[str]) -> list[str]:
     """Every problem that would make the e2e matrix run a project zero times,
-    more than once, or only partly. An empty list means full coverage."""
+    more than once, only partly, or twice because an implicit Playwright
+    dependency chain was split across two entries. An empty list means full
+    coverage."""
     errors: list[str] = []
 
     # upload-artifact@v4 hard-fails on a duplicate artifact name across a matrix,
@@ -59,6 +90,9 @@ def matrix_coverage_errors(include: list[dict[str, Any]], projects: set[str]) ->
             errors.append(f"shard name {name!r} is used by {count} matrix entries")
 
     runs: Counter[str] = Counter()
+    # Which matrix entry selects each project, so an IMPLICIT Playwright
+    # dependency edge can be checked for straddling two entries below.
+    entry_projects: dict[str, list[str]] = defaultdict(list)
     sharded: dict[tuple[str, ...], list[tuple[str, int, int]]] = defaultdict(list)
     for entry in include:
         label = entry.get("shard")
@@ -76,6 +110,8 @@ def matrix_coverage_errors(include: list[dict[str, Any]], projects: set[str]) ->
         if not selected:
             errors.append(f"{label}: selects no --project, so it would run every project")
             continue
+        for project in selected:
+            entry_projects[project].append(label)
         if shard is None:
             runs.update(selected)
             continue
@@ -103,6 +139,22 @@ def matrix_coverage_errors(include: list[dict[str, Any]], projects: set[str]) ->
             errors.append(f"{project}: run by {runs[project]} separate matrix entries / shard sets")
     for project in sorted(set(runs) - projects):
         errors.append(f"{project}: not a project in playwright.config.ts")
+    # A Playwright `dependencies` edge is implicit: selecting the dependent
+    # project pulls its dependency into the SAME entry. A matrix that splits
+    # such a chain across two entries therefore still lists every --project=
+    # exactly once -- invisible to the run counts above -- while the
+    # dependent's entry re-runs the upstream project's specs.
+    for dependent, dependencies in playwright_dependencies().items():
+        for dependency in dependencies:
+            dependent_entries = set(entry_projects.get(dependent, ()))
+            dependency_entries = set(entry_projects.get(dependency, ()))
+            if dependent_entries and dependency_entries and dependent_entries != dependency_entries:
+                errors.append(
+                    f"{dependent}: implicit dependency {dependency} is selected by a different "
+                    f"matrix entry ({sorted(dependency_entries)} vs {sorted(dependent_entries)}) "
+                    f"- Playwright pulls {dependency} into {dependent}'s entry, so a split "
+                    f"dependency chain runs those specs twice"
+                )
     return errors
 
 
@@ -268,3 +320,115 @@ def test_a_duplicate_shard_name_is_reported():
     entry(include, "desktop-2")["shard"] = "desktop-1"
     errors = matrix_coverage_errors(include, playwright_projects())
     assert any("'desktop-1' is used by 2" in error for error in errors), errors
+
+
+# The Company Intelligence chain is the only project set with an implicit
+# Playwright `dependencies` edge (playwright.config.ts). Playwright runs a
+# declared dependency FIRST, inside the SAME invocation, even when that
+# dependency was not selected on the command line. The chain therefore has to
+# live in ONE matrix entry: two entries would each pull the upstream project
+# in and run its specs twice.
+COMPANY_CHAIN = (
+    "company-intelligence-desktop",
+    "company-intelligence-tablet",
+    "company-intelligence-mobile",
+)
+
+STANDALONE_PROJECTS = ("terminal-chrome-intermediate", "w2a-workspaces")
+
+
+def test_the_company_dependency_chain_stays_in_one_matrix_entry():
+    include = e2e_matrix(ci_workflow())
+    carriers = {
+        project: tuple(item["shard"] for item in project_entries(include, project))
+        for project in COMPANY_CHAIN
+    }
+    assert all(carriers[project] for project in COMPANY_CHAIN), carriers
+    assert len(set(carriers.values())) == 1, carriers
+    row = next(item for item in include if item["shard"] == carriers[COMPANY_CHAIN[0]][0])
+    assert not any(SHARD_FLAG.match(token) for token in str(row["projects"]).split()), row
+
+
+def test_the_two_standalone_projects_run_whole_in_their_own_row():
+    include = e2e_matrix(ci_workflow())
+    rows = [
+        item for item in include
+        if {f"--project={project}" for project in STANDALONE_PROJECTS}
+        <= set(str(item["projects"]).split())
+    ]
+    assert len(rows) == 1, rows
+    row = rows[0]
+    # No --shard and no filter: neither project has a Playwright dependency and
+    # both are excluded from desktop/tablet/mobile, so they run once, whole.
+    assert not any(SHARD_FLAG.match(token) for token in str(row["projects"]).split()), row
+    # Their row is not the chain's row, and it is not `serial`: the two opt-in
+    # qualification steps stay bound to `serial` and must run exactly once.
+    assert row["shard"] != "serial", row
+    chain_row = next(
+        item for item in include
+        if f"--project={COMPANY_CHAIN[0]}" in str(item["projects"]).split()
+    )
+    assert chain_row["shard"] != row["shard"], (chain_row, row)
+
+
+def test_the_two_opt_in_qualifications_still_run_only_in_the_serial_row():
+    steps = ci_workflow()["jobs"]["terminal-e2e"]["steps"]
+    opt_ins = [step for step in steps if str(step.get("name", "")).startswith("Qualify ")]
+    assert len(opt_ins) == 2, opt_ins
+    for step in opt_ins:
+        assert step.get("if") == "matrix.shard == 'serial'", step
+
+
+def test_e2e_artifacts_stay_distinct_per_matrix_row():
+    steps = ci_workflow()["jobs"]["terminal-e2e"]["steps"]
+    uploads = [
+        step for step in steps
+        if str(step.get("uses", "")).startswith("actions/upload-artifact")
+    ]
+    assert len(uploads) == 1, uploads
+    assert "${{ matrix.shard }}" in uploads[0]["with"]["name"], uploads[0]
+    shards = [item["shard"] for item in e2e_matrix(ci_workflow())]
+    assert len(set(shards)) == len(shards), shards
+
+
+def test_a_split_implicit_dependency_chain_is_reported():
+    # The Company chain's dependency edges live in playwright.config.ts, not in
+    # the workflow, so splitting the chain across two entries still lists every
+    # --project= exactly once. The explicit run counts cannot see it; only the
+    # implicit-edge check can.
+    include = mutated()
+    chain = entry(include, "serial")
+    chain["projects"] = (
+        "--project=company-intelligence-desktop --project=company-intelligence-tablet"
+    )
+    include.append({
+        "shard": "serial-split",
+        "projects": "--project=company-intelligence-mobile",
+    })
+    errors = matrix_coverage_errors(include, playwright_projects())
+    assert any(
+        "company-intelligence-mobile" in error and "company-intelligence-tablet" in error
+        for error in errors
+    ), errors
+    # The explicit run counts really cannot see this one.
+    assert not any("run by 2" in error for error in errors), errors
+
+
+@pytest.mark.parametrize("matrix_result", ["success", "failure", "cancelled", "skipped"])
+def test_required_aggregate_rejects_unsuccessful_expanded_matrix(matrix_result):
+    workflow = ci_workflow()
+    include = e2e_matrix(workflow)
+    assert any(item["shard"] == "serial-standalone" for item in include)
+    aggregate = workflow["jobs"]["terminal"]
+    assert "terminal-e2e" in aggregate["needs"]
+    assert aggregate["if"] == "always()"
+    step = next(step for step in aggregate["steps"] if step.get("name") == "Assert every terminal shard succeeded")
+    # Run the actual aggregate shell with the matrix-level result GitHub supplies.
+    # A new row remains inside terminal-e2e, so its failure/cancellation makes this
+    # matrix result unsuccessful; no new optional job or aggregate exception exists.
+    result = subprocess.run(
+        ["bash", "-c", step["run"]],
+        env={**os.environ, "UNIT": "success", "E2E": matrix_result},
+        capture_output=True, text=True, check=False,
+    )
+    assert (result.returncode == 0) is (matrix_result == "success"), result.stdout
