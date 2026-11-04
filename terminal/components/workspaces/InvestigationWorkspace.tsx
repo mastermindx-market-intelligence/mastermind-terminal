@@ -108,6 +108,7 @@ const optionsTypeLabel=(type:string,c:(typeof COPY)[keyof typeof COPY])=>type===
 
 export default function InvestigationWorkspace({ownerKey,initialSymbol,initialInvestigationId,initialRevision,historyMode="route",savedPlanControls,readIntlEvidence,initialIntlEntry,intlReturnTo,onOptionPlanAdmissionReady,onOptionPlanRevisionReady}:Props) {
  const {lang}=useLang(), c=COPY[lang], sc=SCENARIO_COPY[lang];
+ const pick=(en:string,zh:string)=>lang==="zh"?zh:en;
  const intlEntryKey=JSON.stringify(initialIntlEntry??null);
  const [boundAuth,setBoundAuth]=useState<BoundAuthProjection|null>(null);
  // An old effect's render projection cannot cross a changed Workspace lifetime.
@@ -744,8 +745,8 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
  return <InvestigationAuthContext.Provider value={authProjection}><main className={`main2 ws-shell ${styles.root}`} data-investigation-theme={investigationTheme}>
   <Link className={styles.back} href={`/analysis${symbol?`?symbol=${encodeURIComponent(symbol)}`:""}`}>← {c.back}</Link>
   <header className={styles.heading}><div><h1>{c.title}</h1><p>{c.intro}</p></div><button disabled={!entryActive||frozen} onClick={()=>beginEdit(true)}>{c.start}</button></header>
-  {intlReturnHref&&<Link className={styles.back} href={intlReturnHref} prefetch={false}>{lang==="zh"?"返回国际市场":"Return to International Markets"}</Link>}
-  {initialIntlEntry&&!editing&&!detail&&<section className={styles.card}><h2>{lang==="zh"?"以所选国际证据开始研究":"Start research from selected International evidence"}</h2><p>{lang==="zh"?"先核验所选引用，再填写你的问题。只有选择保存才会保存研究。":"Verify the selected references, then write your question. Research saves only when you choose Save."}</p><button type="button" disabled={!entryActive||frozen||intlEntryLoading} onClick={()=>void startIntlResearch()}>{intlEntryLoading?c.loading:lang==="zh"?"使用此国际选择":"Use this International selection"}</button></section>}
+  {intlReturnHref&&<Link className={styles.back} href={intlReturnHref} prefetch={false}>{pick("Return to International Markets","返回国际市场")}</Link>}
+  {initialIntlEntry&&!editing&&!detail&&<section className={styles.card}><h2>{pick("Start research from selected International evidence","以所选国际证据开始研究")}</h2><p>{pick("Verify the selected references, then write your question. Research saves only when you choose Save.","先核验所选引用，再填写你的问题。只有选择保存才会保存研究。")}</p><button type="button" disabled={!entryActive||frozen||intlEntryLoading} onClick={()=>void startIntlResearch()}>{intlEntryLoading?c.loading:pick("Use this International selection","使用此国际选择")}</button></section>}
   {storageBlocked&&<p className={styles.notice} role="alert">{c.storage}</p>}
   {locked&&<section className={styles.notice} aria-label={c.operation}><p role="status">{c.uncertain}</p><div className={styles.actions}><button onClick={()=>void checkOutcome()}>{c.check}</button></div></section>}
   {message&&<p role="status" className={styles.notice}>{message}</p>}
@@ -784,14 +785,14 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
      {savedPlanControls}
      {intlSelection&&<InvestigationIntlEvidence key={`intl-read:${ownerKey}:${authProjection?.snapshot.auth_epoch??"unavailable"}:${detail.id}:${detail.revision}`} lang={lang} selection={intlSelection} read={intlRead}/> }
      {intlPolicyInput&&intlPolicyRef?.version_ref&&intlPolicyRef.fingerprint&&intlGuard&&<details key={`intl-policy:${ownerKey}:${intlGuard.epoch}:${detail.id}:${detail.revision}`} ref={intlPolicyDetails} className={styles.card}>
-      <summary>{lang==="zh"?"比较政策设置并明确保存":"Compare policy settings and save deliberately"}</summary>
+      <summary>{pick("Compare policy settings and save deliberately","比较政策设置并明确保存")}</summary>
       <InvestigationIntlPolicyControls binding={{principal_partition:intlGuard.principal,auth_epoch:intlGuard.epoch,saved_id:detail.id,saved_revision:detail.revision,source_generation:intlPolicyRef.version_ref,instrument_mapping_identity:null,qualification_identity:null}}
        pin={{generation:intlPolicyRef.version_ref,fingerprint:intlPolicyRef.fingerprint}} question={detail.manifest.intent.question}
        focusMarket={intlPolicyInput.exactContext.researchMarket} horizon={intlPolicyInput.exactContext.periodIdentity} initialSettings={detail.manifest.intl_policy_comparison} locale={lang}
        disabled={detail.lifecycle!=="active"||detail.revision!==detail.current_revision} isCurrent={intlCurrent}
        onSave={saveIntlPolicySettings} onCancel={()=>intlPolicyDetails.current?.removeAttribute("open")} onUnauthenticated={()=>{if(intlCurrent()&&scope.current)endOwnerView(scope.current);}}/>
      </details>}
-     {intlPolicyUndo&&detail.id===intlPolicyUndo.id&&detail.revision===intlPolicyUndo.savedRevision&&<button type="button" disabled={!intlPolicyInput||detail.lifecycle!=="active"||detail.revision!==detail.current_revision} onClick={()=>void undoIntlPolicySettings()}>{lang==="zh"?"撤销本次政策设置更改":"Undo this policy settings change"}</button>}
+     {intlPolicyUndo&&detail.id===intlPolicyUndo.id&&detail.revision===intlPolicyUndo.savedRevision&&<button type="button" disabled={!intlPolicyInput||detail.lifecycle!=="active"||detail.revision!==detail.current_revision} onClick={()=>void undoIntlPolicySettings()}>{pick("Undo this policy settings change","撤销本次政策设置更改")}</button>}
 
      {detail.manifest.scenario_capture!==undefined&&<section className={styles.card} data-testid="saved-scenario"><h3>{sc.saved}</h3><p className={styles.eyebrow}>{sc.boundary}</p><SavedScenarioRead key={`scenario:${ownerKey}:${authProjection?.snapshot.auth_epoch??"unavailable"}:${detail.id}:${detail.revision}`} capture={detail.manifest.scenario_capture} lang={lang} revision={{id:detail.id,revision:detail.revision,grantId:null}} identity={scenarioIdentity} resolveGuard={scenarioResolveGuard}/></section>}
      <div className={styles.actions}><button disabled={frozen||detail.lifecycle==="removed"} onClick={()=>beginEdit()}>{c.edit}</button><button type="button" disabled={frozen||detailLoading||acknowledgedDetail!==detail||detail.lifecycle==="removed"||!duplicateReady} onClick={beginDuplicate}>{c.duplicate}</button>{detail.revision!==detail.current_revision&&<button disabled={locked} onClick={()=>void openRecord(detail.id)}>{c.viewLatest}</button>}{detail.revision>1&&<button disabled={locked} onClick={()=>void openRecord(detail.id,detail.revision-1)}>{c.previous}</button>}{detail.revision<detail.current_revision&&<button disabled={locked} onClick={()=>void openRecord(detail.id,detail.revision+1)}>{c.nextRevision}</button>}</div>

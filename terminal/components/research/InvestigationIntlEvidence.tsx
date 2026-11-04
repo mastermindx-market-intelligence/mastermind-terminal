@@ -68,40 +68,61 @@ export interface InvestigationIntlReceiverCopy {
   disposition: Record<IntlCallerDisposition, string>;
 }
 
+/** Private bilingual factory: each message pairs en and zh through pick. */
+function receiverCopy(lang: "en" | "zh"): InvestigationIntlReceiverCopy {
+  const pick = (en: string, zh: string) => (lang === "zh" ? zh : en);
+  return {
+    unavailable: pick(
+      "No evidence projection is available for this selection right now.",
+      "此选择当前没有可用的证据投影。"
+    ),
+    selectionScopeChanged: pick(
+      "The supplied selection no longer matches the saved investigation this workspace is holding. Nothing was compared.",
+      "所提供的选择与工作区持有的已保存研究不再匹配。未进行任何对比。"
+    ),
+    refusedComposition: pick(
+      "The evidence result was invalid under the composition contract, so nothing is shown.",
+      "证据结果在组合契约下无效，因此不显示任何内容。"
+    ),
+    disposition: {
+      unauthenticated: pick(
+        "Sign-in is required before this saved investigation can be read.",
+        "需要先登录才能读取该已保存研究。"
+      ),
+      not_found: pick(
+        "No saved investigation exists for this selection.",
+        "此选择不存在已保存的研究。"
+      ),
+      not_admitted: pick(
+        "This saved investigation is not admitted for viewing.",
+        "该已保存研究未获准查看。"
+      ),
+      denied: pick(
+        "Access to this saved investigation was denied.",
+        "对该已保存研究的访问被拒绝。"
+      ),
+      unavailable: pick(
+        "This saved investigation is unavailable right now.",
+        "该已保存研究当前不可用。"
+      ),
+      invalid: pick(
+        "This saved investigation could not be read as valid evidence.",
+        "无法将该已保存研究读取为有效证据。"
+      ),
+      scope_changed: pick(
+        "The saved investigation was read under a different scope than this selection.",
+        "该已保存研究的读取范围与此选择不同。"
+      ),
+    },
+  };
+}
+
 export const INVESTIGATION_INTL_RECEIVER_COPY: Record<
   "en" | "zh",
   InvestigationIntlReceiverCopy
 > = {
-  en: {
-    unavailable: "No evidence projection is available for this selection right now.",
-    selectionScopeChanged:
-      "The supplied selection no longer matches the saved investigation this workspace is holding. Nothing was compared.",
-    refusedComposition:
-      "The evidence result was invalid under the composition contract, so nothing is shown.",
-    disposition: {
-      unauthenticated: "Sign-in is required before this saved investigation can be read.",
-      not_found: "No saved investigation exists for this selection.",
-      not_admitted: "This saved investigation is not admitted for viewing.",
-      denied: "Access to this saved investigation was denied.",
-      unavailable: "This saved investigation is unavailable right now.",
-      invalid: "This saved investigation could not be read as valid evidence.",
-      scope_changed: "The saved investigation was read under a different scope than this selection.",
-    },
-  },
-  zh: {
-    unavailable: "此选择当前没有可用的证据投影。",
-    selectionScopeChanged: "所提供的选择与工作区持有的已保存研究不再匹配。未进行任何对比。",
-    refusedComposition: "证据结果在组合契约下无效，因此不显示任何内容。",
-    disposition: {
-      unauthenticated: "需要先登录才能读取该已保存研究。",
-      not_found: "此选择不存在已保存的研究。",
-      not_admitted: "该已保存研究未获准查看。",
-      denied: "对该已保存研究的访问被拒绝。",
-      unavailable: "该已保存研究当前不可用。",
-      invalid: "无法将该已保存研究读取为有效证据。",
-      scope_changed: "该已保存研究的读取范围与此选择不同。",
-    },
-  },
+  en: receiverCopy("en"),
+  zh: receiverCopy("zh"),
 };
 
 type ReceiverScreen =
