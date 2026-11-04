@@ -293,6 +293,7 @@ function Session(props: InvestigationIntlPolicyControlsProps) {
     if (disabled || savingRef.current || stateRef.current.pending!==null || !aliveRef.current || !isCurrent()) return;
     const begun = beginPolicyPreview(stateRef.current);
     if (begun.ticket === null) return;
+    setEvidence([]); // A new ticket owns no prior source inspection.
     const controller = new AbortController();
     const flight = { ticket: begun.ticket, controller };
     flightRef.current = flight;
@@ -318,6 +319,7 @@ function Session(props: InvestigationIntlPolicyControlsProps) {
           // Only the current live session may notify; the parent ends the
           // native private view (never an SDK signout from here).
           if (flightRef.current === flight) flightRef.current = null;
+          settle(ticket,null); // Clear this original pending ticket before notifying the owner.
           if (aliveRef.current && isCurrent()) onUnauthenticated?.();
           return;
         }
@@ -361,7 +363,7 @@ function Session(props: InvestigationIntlPolicyControlsProps) {
       : receivePublishedPolicyPreview(current, ticket, pin, raw);
     if (next === current) return;
     commit(next);
-    if (next.preview?.state === "qualified") setEvidence(extractEvidence(raw));
+    setEvidence(next.preview?.state === "qualified" ? extractEvidence(raw) : []);
   };
 
   const runReview = () => {

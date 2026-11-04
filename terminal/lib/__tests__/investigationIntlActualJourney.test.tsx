@@ -26,7 +26,7 @@ import {GET as baselineGET} from "@/app/api/investigations/baseline/route";
 import {GET as reviewGET} from "@/app/api/investigations/review/route";
 const fixture=join(__dirname,"fixtures/intl_generation_actual_20261104/corrected"),generation="im-workspace-generation:5c75f77b-96ff-4d0d-a156-5641fc3f6140",fingerprint="4e1101d873ee047d6b49703ac977bd9587b127e9423bcac9d098dbb9ec23c39e";
 const document=JSON.parse(readFileSync(join(fixture,`intl_generation_5c75f77b-96ff-4d0d-a156-5641fc3f6140_${fingerprint}.json`),"utf8"));
-it("composes exact actual producer bytes through native blank authoring, explicit Save, private readback and exact reopen",async()=>{
+it.each([false,true])("composes exact actual producer bytes through native blank authoring, explicit Save, private readback and exact reopen (navigate=%s)",async(navigate)=>{
  (globalThis as {IS_REACT_ACT_ENVIRONMENT?:boolean}).IS_REACT_ACT_ENVIRONMENT=true;
  const originalScroll=Object.getOwnPropertyDescriptor(Element.prototype,"scrollIntoView");Object.defineProperty(Element.prototype,"scrollIntoView",{configurable:true,value:vi.fn()});
  const host=documentGlobal(),root=createRoot(host),selected=document.contexts.find((c:{market:string;horizon:string;currency_basis:string})=>c.market==="EZ"&&c.horizon==="3m"&&c.currency_basis==="local");
@@ -79,6 +79,9 @@ it("composes exact actual producer bytes through native blank authoring, explici
   expect(posted).toHaveLength(2);expect(posted[1].intl_policy_comparison).toMatchObject({economy_a:"EZ",economy_b:"GB"});expect({...posted[1],intl_policy_comparison:undefined}).toEqual({...before,intl_policy_comparison:undefined});
   const apply=rpc.mock.calls.filter(([name])=>name==="apply_investigation_revision_v2");expect(apply[1][1]).toMatchObject({p_id:id,p_expected_revision:1,p_action:"revise",p_layout_capture:null});expect(apply[1][1]).not.toHaveProperty("p_screen_capture");
   expect(host.querySelector('[data-testid="native-policy-settings"]')?.textContent).toContain('"economy_b":"GB"');
+  if(navigate){
+   await click("Previous revision");await click("Next revision");expect(posted).toHaveLength(2);expect(history.get(2)?.manifest).toEqual(posted[1]);expect(host.textContent).not.toContain("Undo this policy settings change");return;
+  }
   await click("Undo this policy settings change");expect(posted).toHaveLength(3);expect(posted[2]).toEqual(before);expect(history.get(1)?.manifest).toEqual(before);expect(history.get(2)?.manifest).toEqual(posted[1]);
   const commands=rpc.mock.calls.filter(([name])=>name==="apply_investigation_revision_v2");expect(commands.map(([,p])=>p.p_expected_revision)).toEqual([0,1,2]);expect(new Set(commands.map(([,p])=>p.p_operation_id)).size).toBe(3);expect(host.textContent).not.toContain("Undo this policy settings change");
   const beforeReopen=posted.length;await act(async()=>root.render(<InvestigationWorkspace key="policy-reopen" ownerKey={principal} initialInvestigationId={id} initialRevision={3} intlReturnTo={back}/>));expect(posted).toHaveLength(beforeReopen);expect(host.textContent).toContain(before.intent.question);expect(host.querySelector('[data-testid="native-policy-settings"]')?.textContent).toBe("null");

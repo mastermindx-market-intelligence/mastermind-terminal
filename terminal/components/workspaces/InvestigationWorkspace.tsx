@@ -332,7 +332,7 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
  }
  async function openRecord(id:string,revision?:number,afterSave=false) {
   acknowledgeDetail(null);
-  const ticket=++detailSeq.current;++baselineSeq.current;setBaseline(null);setBaselineState("none");setIntlProjection(null);setDetailLoading(true);
+  const ticket=++detailSeq.current;++baselineSeq.current;setIntlPolicyUndo(null);setBaseline(null);setBaselineState("none");setIntlProjection(null);setDetailLoading(true);
   if(!afterSave)setMessage("");
   try {
    const value=await json(`/api/investigations?${new URLSearchParams({id,...(revision?{revision:String(revision)}:{})})}`);

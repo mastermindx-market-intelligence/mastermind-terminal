@@ -429,3 +429,11 @@ it("parent: disabled existing revision cannot edit, preview, review or cancel",(
 it("parent: competing preview clicks retain one original pending ticket",()=>{
  const m=mount({initialSettings:FIXED_SEED});const button=screen.getByText("Update preview");act(()=>{button.click();button.click();});expect(m.calls).toHaveLength(1);
 });
+
+it("review repair: refreshing clears captured evidence before a new result",async()=>{
+ const m=mount({initialSettings:FIXED_SEED});fireEvent.click(screen.getByText("Update preview"));await m.calls[0].resolve(jsonResponse(envelope()));await flush();expect(screen.getByText("Captured evidence source references")).toBeTruthy();fireEvent.click(screen.getByText("Update preview"));expect(screen.queryByText("Captured evidence source references")).toBeNull();
+});
+it.each([401,503,"unavailable","transport"])("review repair: %s clears captured evidence and settles the original pending ticket",async mode=>{
+ const m=mount({initialSettings:FIXED_SEED});fireEvent.click(screen.getByText("Update preview"));await m.calls[0].resolve(jsonResponse(envelope()));await flush();fireEvent.click(screen.getByText("Update preview"));
+ if(mode==="transport")m.calls[1].reject(Error("offline"));else await m.calls[1].resolve(mode==="unavailable"?jsonResponse({...envelope(),state:"unavailable",mapping_identity:null,qualification_identity:null,result:{state:"unavailable",reasons:["mapping_not_supplied"],missing_refs:[]}}):jsonResponse({},Number(mode)));await flush();expect(screen.queryByText("Captured evidence source references")).toBeNull();expect(m.onUnauthenticated).toHaveBeenCalledTimes(mode===401?1:0);fireEvent.click(screen.getByText("Update preview"));expect(m.calls).toHaveLength(3);
+});

@@ -6,6 +6,9 @@ export type IntlEntrySelectors={context:string;generation:string;fingerprint:str
 type Query=Record<string,string|string[]|undefined>;
 export const INTL_ENTRY_URL_LIMIT=2048;
 export type IntlReturnContext={researchMarket:string;periodIdentity:string;currencyBasis:string;returnBasis:string};
+/** Navigation market is not the evidence subject: a JP-focused overview may
+ * open an EZ row. Only the authenticated baseline sets that subject/pin. Keep
+ * duration/currency/return dimensions aligned; no return parameter is a grant. */
 export function safeIntlReturn(value:unknown,context?:IntlReturnContext):string|null {
  if(typeof value!=="string"||value.length>INTL_ENTRY_URL_LIMIT||/[\u0000-\u0020\u007f\\%#]/.test(value))return null;
  try{const url=new URL(value),keys=[...url.searchParams.keys()];
@@ -15,7 +18,7 @@ export function safeIntlReturn(value:unknown,context?:IntlReturnContext):string|
    ||!/^[1-9][0-9]{0,2}[dwmy]$/.test(url.searchParams.get("horizon")!)||!["local","usd_unhedged"].includes(url.searchParams.get("basis")!)||url.searchParams.get("return_basis")!=="price")return null;
   const pins=url.searchParams.get("pins"),members=pins?pins.split(","):[];
   if(members.length>4||new Set(members).size!==members.length||members.some(m=>!/^[A-Z]{2,3}$/.test(m))||(url.searchParams.has("group")&&url.searchParams.get("group")!==""))return null;
-  if(context&&(url.searchParams.get("market")!==context.researchMarket||url.searchParams.get("horizon")!==context.periodIdentity||url.searchParams.get("basis")!==context.currencyBasis||url.searchParams.get("return_basis")!==context.returnBasis))return null;
+  if(context&&(url.searchParams.get("horizon")!==context.periodIdentity||url.searchParams.get("basis")!==context.currencyBasis||url.searchParams.get("return_basis")!==context.returnBasis))return null;
   return value;
  }catch{return null;}
 }

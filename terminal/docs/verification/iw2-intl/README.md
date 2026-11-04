@@ -127,3 +127,23 @@ modules have no lint findings, Workspace retains its inherited2errors/3warnings.
 The joined consequential source review is still pending. Actual installed catalog,
 service settings, source publication, authenticated product and release acceptance
 remain separate and held.
+
+The original independent joined review at16aa8a42 requested two repairs, each
+reproduced: captured source references survived refresh failure, and a prior
+session Undo reappeared after Previous/Next (6 RED controls). Corrected refresh
+clears inspection at new-ticket start and every non-qualified settlement;401
+settles that original ticket before notifying the owner. `openRecord` clears Undo
+when its detail ticket advances; post-ack exact-manifest matching is still the
+only arming site. The changed cases plus joined consumer checks pass65 cases;
+independent verification of these narrow repairs remains separate from the
+review's unchanged accepted source findings.
+
+A separate producer/consumer contract decision distinguishes return navigation
+from qualified evidence focus. A canonical JP overview may Investigate an EZ row:
+return market is navigation only, while server-qualified context/refs continue to
+supply the exact saved subject. Horizon, currency basis and return basis still
+match; canonical origin/path/view/query/pins/empty-group grammar, no fragments or
+percent syntax, and2048 bound remain unchanged. Original cross-market tests had
+3 RED; the repaired38-case intake/mounted slice proves JP return leaves the saved
+EZ subject/pins untouched. Producer href/bridge compatibility must still pass on
+its corrected actual artifacts; it is not inferred from this receiver change.
