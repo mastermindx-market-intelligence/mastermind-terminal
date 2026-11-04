@@ -11,7 +11,9 @@ const root = fileURLToPath(new URL("../../", import.meta.url));
 test("Vercel frontend routing, identity, and backend custody are fail-closed", () => {
   const result = spawnSync(
     process.execPath,
-    ["--test", path.join(root, "scripts/vercel-frontend-contract.test.mjs")],
+    ["--test",
+      path.join(root, "scripts/vercel-frontend-contract.test.mjs"),
+      path.join(root, "scripts/verify-vercel-staging-guest.test.mjs")],
     { cwd: root, encoding: "utf8", timeout: 30_000 },
   );
   expect(result.error).toBeUndefined();

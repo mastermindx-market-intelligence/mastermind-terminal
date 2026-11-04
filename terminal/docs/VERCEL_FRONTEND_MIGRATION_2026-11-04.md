@@ -126,3 +126,16 @@ The new Vercel-only Next config fails at build/config evaluation when these Supa
 **Preview/auth boundary:** `lib/supabase/cookies.ts` defaults production cookies to `Domain=.mastermind-x.com`. A `*.vercel.app` preview cannot set that cookie domain and **does not qualify as authenticated continuity proof**, even if its guest page loads. Use an approved staging/preview hostname under `mastermind-x.com` and exact Supabase OAuth redirect/PKCE configuration for real signed-in acceptance; no blanket wildcard provider callback allowlist or cookie downgrade. Preview guest-only checks and authenticated first-party staging are distinct evidence. Never claim the latter from the former.
 
 Additional independent blockers remain DNS/EdgeOne/TLS origins, signed-in browser API/CSRF and POST/streaming verification, protected reviews and current-head CI, beta rollback before Terminal cutover, and controlled commercial Vercel account change. None is solved by creating a Vercel project name.
+
+## Staged-host guest acceptance — executable, read-only proof
+
+A deterministic `terminal/scripts/verify-vercel-staging-guest.mjs` now implements the **guest-only** staging gate, separate from authentication/production acceptance. It accepts an exact staged HTTPS origin under `mastermind-x.com` or the connected Vercel team's deployment-host suffix, the explicitly expected 40-hex source SHA, and the beta/Terminal mode. It refuses live app/beta domains as staging targets to prevent a false pass against the incumbent frontend. Redirects are not followed. The tool sends **no cookies, tokens, writes, domain changes or browser state**.
+
+For a qualified first-party beta staging hostname, run only after DNS/TLS/API/data origin readiness:
+```bash
+node terminal/scripts/verify-vercel-staging-guest.mjs --target=https://beta-stage.mastermind-x.com --mode=beta --sha=ACTUAL_FORTY_HEX_GIT_SHA
+```
+
+The canary checks `/api/shared-shell/status` against the **exact staged source SHA**, expected beta/Terminal enabled state, protocol and registry hash, private/no-store response headers, and compares the real `/data/manifest.json` bytes and publisher `as_of` with the corresponding still-live original domain at the same acceptance interval. It returns a typed JSON receipt containing only source/data hashes and publisher metadata, with `authenticatedProof=false` and `productionCutoverProof=false`. Publisher updates between reads legitimately fail closed and must be reconciled against the original source; a stale snapshot must never be accepted because JSON shape matches.
+
+Seven synthetic, in-memory network tests cover approved target scopes, exact source/mode, byte-identical publisher, stale data, unsafe public caching and untrusted redirects without accessing any real hostname. The existing required Vitest CI harness now runs these seven and the 28 Vercel config tests together. **No live staging hostname, provider entitlement or authenticated session has been proven.** Full Playwright 1440/820/390, identity/OAuth/paid entitlements, API mutations and stream paths, beta/Terminal rollback and production switch remain separate gates.
