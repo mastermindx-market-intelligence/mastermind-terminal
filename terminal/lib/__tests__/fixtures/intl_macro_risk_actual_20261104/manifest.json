@@ -1,0 +1,57 @@
+{
+  "scope": "ACTUAL_SOURCE_COLLECTOR_STORE_BUILDER_PACKET_AND_RISK_MOUNT; NOT NORMAL_PUBLISHER_OR_AUTHENTICATED_SAVED_ACCEPTANCE",
+  "head": "e07da6a342cdccec4bbd0dbc65003d5e3fc5aa82",
+  "evaluated_at": "2026-11-04T09:29:09.619029+00:00",
+  "generation": "im-workspace-generation:54b26d48-c09c-4dbf-bdba-b8ebcb22a48d",
+  "packet": "/Volumes/Mastermind/evidence/intl-real-data-20261103-01a1a4b1/s5-annual-actual/IntlResolvedPacket.json",
+  "packet_sha256": "061599958f1afb683e94289cbb521b7645c4a3a7594fa149f59a888c44f47e80",
+  "provenance_sha256": "d3b72178dcb07e688e962d73b3158740ecaf72d93be15a0ec2807c8f945c5565",
+  "source_sha256": {
+    "lib/intl_investigation_owner.py": "b920b0cd1dcde8c1115029e5437aa2e55f8a1486a342a01b3e302f6cff850523",
+    "lib/intl_investigation_projection.py": "6c51cd24170458d949ce3dbf5afd8ebc4068b740c40ce40f9f656236f6cc41f5",
+    "scripts/build_intl.py": "489cd25feae1a5b4803510fad7605955af411c75151d1ab6e9d3c5f1e4fc7662",
+    "collectors/base.py": "f7339e08ec11b58f3f727be36a7c5a3fd2e8e0efc90e9477b69713f969d21291",
+    "collectors/intl_macro.py": "da33573b1c7799e0948e345c9acdb6ab829b887f2f0e81e88a9a516a8e47a586",
+    "lib/intl_eurostat_source.py": "937adb034e6b2bbca34c627c85c37cddbff7171e7ded080fe19854d45cd3f1bb",
+    "lib/intl_eurostat_publication.py": "3318fa638cc43fd69c4ed32a30e661f3e46fe31817da0239a6b09600dfaabcdb",
+    "lib/intl_workspace_risk_pressure.py": "1016193ec2bfb538b26b1bdb22999876e023b01225219c5e66e213ae5abf220e",
+    "lib/intl_risk_mount.py": "b443943b480e1068f001d4267bc01c8f71088e314cd01264207c7a7fa8cc9215",
+    "templates/intl_workspace/risk.html.j2": "1c60aaf7002cfce92a8a65b2405a4e000e563f15f62a0d7c7ac9c4db0be0c605",
+    "templates/intl_workspace/shell.html.j2": "e988e8233c2f1a78f554340c95f2e91042d14dcfa1b1cb61011beeee4744cd02",
+    "config.yml": "326f7b04306437386b3d54022851538585458b1348dbbe418517ad28203ee3de"
+  },
+  "values": {
+    "EZ.gdp_yoy": {
+      "value": 1.3,
+      "unit": "percent",
+      "basis": "local",
+      "cohort": "EA21 selected native fields"
+    },
+    "EZ.cpi_yoy": {
+      "value": 3.8,
+      "unit": "percent",
+      "basis": "local",
+      "cohort": "EA21 selected native fields"
+    },
+    "EZ.policy_rate": {
+      "value": 2.5,
+      "unit": "percent",
+      "basis": "local",
+      "cohort": "EA21 selected native fields"
+    },
+    "EZ.annual_current_account": {
+      "value": 1.7,
+      "unit": "percent_gdp",
+      "basis": "local",
+      "cohort": "EA21 selected native fields"
+    }
+  },
+  "new_provider_requests": 0,
+  "source_store_result": "/Volumes/Mastermind/evidence/intl-real-data-20261103-01a1a4b1/eurostat-annual-current/result.json",
+  "annual_successful_commit": "2026-11-04T09:16:34.299937+00:00",
+  "prior": null,
+  "caller_record_clocks": "all explicitly null; no generation/rights time invented",
+  "receiver": "not invoked here; root/IW2 own authenticated reader fences and native panel join",
+  "legacy_other_inputs": "fixture render inputs are not used to authorize any packet field",
+  "required_checks": "442passed+46subtests;3overlapping render cases passed after correcting expected canonical number text; see retained receipts"
+}

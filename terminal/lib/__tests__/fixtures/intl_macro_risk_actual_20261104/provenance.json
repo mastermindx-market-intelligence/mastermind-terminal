@@ -1,0 +1,229 @@
+{
+  "generation": "im-workspace-generation:54b26d48-c09c-4dbf-bdba-b8ebcb22a48d",
+  "bindingVersion": "2",
+  "researchMarket": "EZ",
+  "enumeratedMeasureIds": [
+    "EZ.gdp_yoy",
+    "EZ.cpi_yoy",
+    "EZ.policy_rate",
+    "EZ.annual_current_account"
+  ],
+  "priorScopeChanged": false,
+  "publicationClock": null,
+  "measures": {
+    "EZ.gdp_yoy": {
+      "quality": "qualified",
+      "availability": "available",
+      "qualified": true,
+      "excluded": false,
+      "correction": false,
+      "reason": null,
+      "receiptIdentity": {
+        "receipt_sha256": "3a8efa4852ee307d2fbef914ed3040921054a862a37b1b19ecc6d2cc6ea331a8"
+      },
+      "publicationDecision": {
+        "owner_ref": "scripts/build_intl.py",
+        "policy_ref": "docs/INTERNATIONAL_MACRO_DATA_CONTRACT.md#official-eurostat-ea21-gdp-and-hicp",
+        "decision_ref": "im-workspace-generation:54b26d48-c09c-4dbf-bdba-b8ebcb22a48d:EZ.gdp_yoy",
+        "metadata": "allowed",
+        "value_permission": "allowed",
+        "binding": {
+          "field": "EZ.gdp_yoy",
+          "receipt_sha256": "3a8efa4852ee307d2fbef914ed3040921054a862a37b1b19ecc6d2cc6ea331a8"
+        }
+      },
+      "policyReference": "docs/INTERNATIONAL_MACRO_DATA_CONTRACT.md#official-eurostat-ea21-gdp-and-hicp",
+      "clocks": {
+        "observation_at": "2026-09-30",
+        "calculation_at": null,
+        "period": {
+          "start": "2026-07-01",
+          "end": "2026-10-01",
+          "count": 1,
+          "count_basis": "release_periods"
+        },
+        "vintage_at": null,
+        "dataset_updated_at": "2026-10-30T23:00:00+0100",
+        "source_updated_at": null,
+        "requested_at": "2026-11-04T06:13:14.111799+00:00",
+        "response_received_at": null,
+        "input_verified_at": "2026-11-04T06:53:03.433850+00:00",
+        "committed_at": "2026-11-04T06:53:03.542392+00:00"
+      },
+      "period": {
+        "start": "2026-07-01",
+        "end": "2026-10-01",
+        "count": 1,
+        "count_basis": "release_periods"
+      },
+      "sourceReference": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/namq_10_gdp?lang=en&geo=EA21&na_item=B1GQ&s_adj=SCA&unit=CLV_PCH_SM&freq=Q&sinceTimePeriod=2024-Q1",
+      "instrument": {
+        "kind": "macro_yoy",
+        "id": "NAMQ_10_GDP/Q/CLV_PCH_SM/SCA/B1GQ/EA21",
+        "market_id": "EZ"
+      },
+      "contentIdentity": "12f9261ebd08f9614c0da7bd86ec674a5ffb52622b5c50e834df47934710e93b",
+      "qualificationIdentity": "0161bcf52633ed48946bd284f04cdf899e269723cd452d21f0d5bbb94b55038f"
+    },
+    "EZ.cpi_yoy": {
+      "quality": "qualified",
+      "availability": "available",
+      "qualified": true,
+      "excluded": false,
+      "correction": false,
+      "reason": null,
+      "receiptIdentity": {
+        "receipt_sha256": "701ef848e06feeff61d29a6428f9cf64e0684175d6326a248725c4a16d0a311c"
+      },
+      "publicationDecision": {
+        "owner_ref": "scripts/build_intl.py",
+        "policy_ref": "docs/INTERNATIONAL_MACRO_DATA_CONTRACT.md#official-eurostat-ea21-gdp-and-hicp",
+        "decision_ref": "im-workspace-generation:54b26d48-c09c-4dbf-bdba-b8ebcb22a48d:EZ.cpi_yoy",
+        "metadata": "allowed",
+        "value_permission": "allowed",
+        "binding": {
+          "field": "EZ.cpi_yoy",
+          "receipt_sha256": "701ef848e06feeff61d29a6428f9cf64e0684175d6326a248725c4a16d0a311c"
+        }
+      },
+      "policyReference": "docs/INTERNATIONAL_MACRO_DATA_CONTRACT.md#official-eurostat-ea21-gdp-and-hicp",
+      "clocks": {
+        "observation_at": "2026-09-30",
+        "calculation_at": null,
+        "period": {
+          "start": "2026-09-01",
+          "end": "2026-10-01",
+          "count": 1,
+          "count_basis": "release_periods"
+        },
+        "vintage_at": null,
+        "dataset_updated_at": "2026-10-16T23:00:00+0200",
+        "source_updated_at": null,
+        "requested_at": "2026-11-04T06:13:16.148756+00:00",
+        "response_received_at": null,
+        "input_verified_at": "2026-11-04T06:53:03.439322+00:00",
+        "committed_at": "2026-11-04T06:53:03.691275+00:00"
+      },
+      "period": {
+        "start": "2026-09-01",
+        "end": "2026-10-01",
+        "count": 1,
+        "count_basis": "release_periods"
+      },
+      "sourceReference": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/prc_hicp_minr?lang=en&geo=EA21&unit=RCH_A&freq=M&sinceTimePeriod=2026-01",
+      "instrument": {
+        "kind": "macro_yoy",
+        "id": "PRC_HICP_MINR/M/RCH_A/TOTAL/EA21",
+        "market_id": "EZ"
+      },
+      "contentIdentity": "2ac4c34341c11f5673a4cbd17b647f596fe9ada03c32c70ce9934b581a8527bb",
+      "qualificationIdentity": "4639c104ba1075734f9b8e527f63d8f4668f8670e5c4ed9876e4fbfcee40bc76"
+    },
+    "EZ.policy_rate": {
+      "quality": "qualified",
+      "availability": "available",
+      "qualified": true,
+      "excluded": false,
+      "correction": false,
+      "reason": null,
+      "receiptIdentity": {
+        "artifact_sha256": "b9f67f13748c1581984f9b4d7a35932f9a75c5403273313d44948342e2673cb3",
+        "provenance_sha256": "2cc6133e797f7d023d6eaa0626211f38ada0ac25906f08ca5f753bec6c3a9f48"
+      },
+      "publicationDecision": {
+        "owner_ref": "scripts/build_intl.py",
+        "policy_ref": "docs/INTERNATIONAL_MACRO_DATA_CONTRACT.md#official-ecb-deposit-level-admission",
+        "decision_ref": "im-workspace-generation:54b26d48-c09c-4dbf-bdba-b8ebcb22a48d:EZ.policy_rate",
+        "metadata": "allowed",
+        "value_permission": "allowed",
+        "binding": {
+          "market_id": "EZ",
+          "field": "policy_rate",
+          "instrument_id": "deposit_facility",
+          "source_id": "D.U2.EUR.4F.KR.DFR.LEV",
+          "artifact_sha256": "b9f67f13748c1581984f9b4d7a35932f9a75c5403273313d44948342e2673cb3",
+          "provenance_sha256": "2cc6133e797f7d023d6eaa0626211f38ada0ac25906f08ca5f753bec6c3a9f48",
+          "observation_at": "2026-11-04",
+          "value": 2.5,
+          "unit": "percent"
+        }
+      },
+      "policyReference": "docs/INTERNATIONAL_MACRO_DATA_CONTRACT.md#official-ecb-deposit-level-admission",
+      "clocks": {
+        "observation_at": "2026-11-04",
+        "calculation_at": null,
+        "period": null,
+        "vintage_at": null,
+        "dataset_updated_at": null,
+        "source_updated_at": null,
+        "requested_at": null,
+        "response_received_at": null,
+        "input_verified_at": null,
+        "committed_at": null
+      },
+      "period": null,
+      "sourceReference": "https://data.ecb.europa.eu/data/datasets/FM/FM.D.U2.EUR.4F.KR.DFR.LEV#artifact=b9f67f13748c1581984f9b4d7a35932f9a75c5403273313d44948342e2673cb3&provenance=2cc6133e797f7d023d6eaa0626211f38ada0ac25906f08ca5f753bec6c3a9f48",
+      "instrument": {
+        "kind": "official_policy",
+        "id": "deposit_facility",
+        "market_id": "EZ"
+      },
+      "contentIdentity": "9c0a7efe7eb47b6186257f4edcb02eaff3e9bf350b991a6dc2dcb6928c56c552",
+      "qualificationIdentity": "583c1c2bbf9366acd8df143bcf93cc6aec15c2e14105b014a32a0ccde47517ec"
+    },
+    "EZ.annual_current_account": {
+      "quality": "qualified",
+      "availability": "available",
+      "qualified": true,
+      "excluded": false,
+      "correction": false,
+      "reason": null,
+      "receiptIdentity": {
+        "receipt_sha256": "bea1ab4e9e9487a9bfc681866a62b06fa728712abedbb53a47d9ff9f18762700"
+      },
+      "publicationDecision": {
+        "owner_ref": "scripts/build_intl.py",
+        "policy_ref": "docs/INTERNATIONAL_MACRO_DATA_CONTRACT.md#official-eurostat-ea21-annual-current-account",
+        "decision_ref": "im-workspace-generation:54b26d48-c09c-4dbf-bdba-b8ebcb22a48d:EZ.annual_current_account",
+        "metadata": "allowed",
+        "value_permission": "allowed",
+        "binding": {
+          "field": "EZ.annual_current_account",
+          "receipt_sha256": "bea1ab4e9e9487a9bfc681866a62b06fa728712abedbb53a47d9ff9f18762700"
+        }
+      },
+      "policyReference": "docs/INTERNATIONAL_MACRO_DATA_CONTRACT.md#official-eurostat-ea21-annual-current-account",
+      "clocks": {
+        "observation_at": "2025-12-31",
+        "calculation_at": null,
+        "period": {
+          "start": "2025-01-01",
+          "end": "2026-01-01",
+          "count": 1,
+          "count_basis": "release_periods"
+        },
+        "vintage_at": null,
+        "dataset_updated_at": "2026-10-28T23:00:00+0100",
+        "source_updated_at": null,
+        "requested_at": "2026-11-04T08:13:06.578582+00:00",
+        "response_received_at": "2026-11-04T08:13:07.981575+00:00",
+        "input_verified_at": "2026-11-04T09:16:34.182518+00:00",
+        "committed_at": "2026-11-04T09:16:34.299937+00:00"
+      },
+      "period": {
+        "start": "2025-01-01",
+        "end": "2026-01-01",
+        "count": 1,
+        "count_basis": "release_periods"
+      },
+      "sourceReference": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/tipsbp20?lang=en&geo=EA21&unit=PC_GDP&freq=A&sinceTimePeriod=2023",
+      "instrument": {
+        "kind": "current_account",
+        "id": "TIPSBP20/A/PC_GDP/CA/S1/S1/BAL/EXT_EA21/NSA/EA21",
+        "market_id": "EZ"
+      },
+      "contentIdentity": "58dd286477bb35bc43ed9475766da3930ade5760ff87d9deef9247c55907aee3",
+      "qualificationIdentity": "830809a991021a379e8eb93dadfcd6a1fcc2215340f60380f9f330cfff1f3768"
+    }
+  }
+}

@@ -114,6 +114,7 @@ export default defineConfig({
       // Production runs `next start` and can never satisfy it.
       ADMIN_DEV: "1",
       TERMINAL_E2E_FIXTURE: "1",
+      TERMINAL_E2E_VERIFIED_AUTH: "1",
       TERMINAL_E2E_EMAIL: "responsive@example.com",
       TERMINAL_E2E_ENTITLEMENT: "unlimited",
       // All browser projects share one loopback IP. The fully-parallel matrix can
@@ -130,7 +131,8 @@ export default defineConfig({
       // exact literal "open" per request. This dev-server-only env block opts the fixture
       // origin in; production never receives the value, so the unset default stays closed.
       INVESTIGATION_API_ADMISSION: "open",
-      NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
+      // Same-origin public-only JWKS for the development-only verified-auth fixture.
+      NEXT_PUBLIC_SUPABASE_URL: `http://127.0.0.1:${port}/api/__e2e__/supabase`,
       NEXT_PUBLIC_SUPABASE_ANON_KEY: "fixture-anon-key",
     },
   },
