@@ -4,6 +4,8 @@ import Link from "next/link";
 import { InvestigationIntlEvidence, type InvestigationIntlRead, type InvestigationIntlSelection } from "@/components/research/InvestigationIntlEvidence";
 import {intlBaselineUrl,parseIntlBaselineReply,safeIntlReturn,type IntlEntrySelectors,type IntlDraftSource} from "@/lib/investigationIntlEntry";
 import InvestigationIntlPolicyControls from "@/components/research/InvestigationIntlPolicyControls";
+import {useOptionalSharedShellPresentation} from "@/components/chrome/shared-shell/SharedShellPresentation";
+import {resolveSharedShellLink} from "@/lib/sharedShellRoutes";
 import {intlPolicySettingsRevision,intlPolicySettingsUndo} from "@/lib/investigationIntlPolicy";
 import {parseIntlEvidenceReference} from "@/lib/investigationIntlReference";
 import type {ReviewSnapshot} from "@/lib/intlPolicyPreviewSession";
@@ -120,7 +122,12 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
  useLayoutEffect(()=>{authGetterRef.current=authProjection?.getSnapshot??null;authSnapshotRef.current=authProjection?.snapshot??null;},[authProjection]);
  const historyModeRef=useRef(historyMode);
  useLayoutEffect(()=>{historyModeRef.current=historyMode;},[historyMode]);
+ const sharedPresentation=useOptionalSharedShellPresentation();
  const intlReturn=safeIntlReturn(intlReturnTo);
+ // Presentation routing only. The saved/history selector stays canonical and
+ // no shell dataset, query flag or frame message can appoint this native owner.
+ const shellReturn=intlReturn&&sharedPresentation?resolveSharedShellLink(intlReturn,"/intl.html"):null;
+ const intlReturnHref=sharedPresentation?(shellReturn&&(shellReturn.kind==="legacy"||shellReturn.kind==="native")?shellReturn.href:null):intlReturn;
  function replaceInvestigationHistory(url:string){if(historyModeRef.current!=="embedded"){
   const target=new URL(url,window.location.origin);if(intlReturn)target.searchParams.set("intl_return",intlReturn);
   window.history.replaceState({},"",target.pathname+target.search+target.hash);
@@ -737,7 +744,7 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
  return <InvestigationAuthContext.Provider value={authProjection}><main className={`main2 ws-shell ${styles.root}`} data-investigation-theme={investigationTheme}>
   <Link className={styles.back} href={`/analysis${symbol?`?symbol=${encodeURIComponent(symbol)}`:""}`}>← {c.back}</Link>
   <header className={styles.heading}><div><h1>{c.title}</h1><p>{c.intro}</p></div><button disabled={!entryActive||frozen} onClick={()=>beginEdit(true)}>{c.start}</button></header>
-  {intlReturn&&<a className={styles.back} href={intlReturn}>{lang==="zh"?"返回国际市场":"Return to International Markets"}</a>}
+  {intlReturnHref&&<Link className={styles.back} href={intlReturnHref} prefetch={false}>{lang==="zh"?"返回国际市场":"Return to International Markets"}</Link>}
   {initialIntlEntry&&!editing&&!detail&&<section className={styles.card}><h2>{lang==="zh"?"以所选国际证据开始研究":"Start research from selected International evidence"}</h2><p>{lang==="zh"?"先核验所选引用，再填写你的问题。只有选择保存才会保存研究。":"Verify the selected references, then write your question. Research saves only when you choose Save."}</p><button type="button" disabled={!entryActive||frozen||intlEntryLoading} onClick={()=>void startIntlResearch()}>{intlEntryLoading?c.loading:lang==="zh"?"使用此国际选择":"Use this International selection"}</button></section>}
   {storageBlocked&&<p className={styles.notice} role="alert">{c.storage}</p>}
   {locked&&<section className={styles.notice} aria-label={c.operation}><p role="status">{c.uncertain}</p><div className={styles.actions}><button onClick={()=>void checkOutcome()}>{c.check}</button></div></section>}

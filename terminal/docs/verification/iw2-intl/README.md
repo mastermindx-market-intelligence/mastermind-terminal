@@ -161,3 +161,16 @@ No country is invented. Two original RED controls become45 intake/mounted PASS;
 both JP and no-focus entries traverse the native parser and preserve the exact
 server-qualified EZ subject, references, question and saved revision. This narrow
 additional navigation-only delta has its own nonauthor verification boundary.
+
+The Intl return link now uses the incumbent Shared Shell presentation context and
+route resolver. Within that real owner, the validated canonical Intl target is
+projected to the catalog-admitted relative route and rendered through Next Link
+with prefetch off. Outside the owner it retains the canonical www fallback.
+Stored/history return context remains canonical; neither DOM flags nor URL flags
+can appoint a shell owner or change source/auth admission. Two original owner-on
+RED cases become4 mounted controls (JP and no-focus, owner off/on);2 source-context
+and1 actual policy join regressions also pass. Tests mount the real presentation
+provider with synthetic preference/auth/HTTP seams; they are not Beta flag,
+service, navigation-browser or authenticated acceptance. An initial resolver call
+used an absolute canonical base and withheld the link; the corrected call uses
+its existing relative `/intl.html` base contract, without changing that resolver.
