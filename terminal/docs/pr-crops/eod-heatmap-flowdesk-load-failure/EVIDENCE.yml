@@ -11,7 +11,7 @@ layoutFiles:
   terminal/components/eodcontext/StructureStrip.tsx: "0baf8c1d09fe4427569c92360081d842018d81d978a8b98d76fb283f950f31d4"
   terminal/components/eodcontext/eodStrings.ts: "4395f953dcc0f4beca53422786393ee792f297211a0eef655c64762f2b34f99f"
   terminal/components/flowdesk/FlowDeskView.tsx: "801cf41437b4749d3ad449e60ab35be8ffcc7f0e193ce5773b9c1ec7e49c01c0"
-  terminal/components/gexdesk/GexDeskView.tsx: "391513c29185cbcce2d9a121ae60d6413ccd5bba2fd89ebc5046bf48a5ebff2b"
+  terminal/components/gexdesk/GexDeskView.tsx: "45e534f221754d1bf3a3214d9a1cbaa4e297623482cb0c9832f8e904ed944bb9"
   terminal/components/heatmap/HeatmapView.tsx: "3b3ab5049715a33f167e344d3013b8f880356e8b96077b38c9a517c57b7a54cb"
   terminal/lib/dataCache.ts: "ce28db3a3bcb3425320ac7e6845df02be5d21daebfa084756830c631623c7a3a"
   terminal/lib/eodContext.ts: "1d0ce3ccde7a2fa05948cc0ac2ee93d16ec06724a7edcbd8c95c61e39d98b9e7"
@@ -368,3 +368,10 @@ sectorArchiveComposition1254:
   report: "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/1254-sector-c82b70d2/result.json"
   reportSha256: "3b011660dc0ec923ca5c19d72a156fdb75e829e74b8ba0b1ecb3c2973786a889"
   scope: "Actual scoped recapture on combined Sector and archive source. Both earlier histories and other boards remain unchanged."
+
+labGammaMountedRecapture20261104:
+  sourceHead: "3bd342b59cb3df2cb920725870e41ff582581a48"
+  actualCases: 42
+  qualification: "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/lab-gamma-recapture-20261104.json"
+  qualificationSha256: "58ffdbfc7821e7a59baff21c0afb99b582c9aa0f505bc18539f85fcebcb37955"
+  scope: "Actual scoped GEX/EOD capture; unrelated sources, historical packets and assertions preserved; not production."
