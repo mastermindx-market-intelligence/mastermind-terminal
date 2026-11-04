@@ -1,0 +1,274 @@
+{
+  "sourceBase": "f528a219cc5d73e94e058575e3df83d689632bf9",
+  "scope": "LOCAL_FIXTURE_ONLY_NO_AUTH_OR_BETA_PROOF",
+  "outcomes": [
+    {
+      "width": 390,
+      "height": 844,
+      "zh": true,
+      "light": true,
+      "verdict": "PASS",
+      "hit": {
+        "reachable": true,
+        "parent": "BODY",
+        "panel": "rgba(0, 0, 0, 0)",
+        "rect": {
+          "x": 330,
+          "y": 16,
+          "width": 44,
+          "height": 44
+        }
+      },
+      "tokens": [
+        {
+          "name": "--panel",
+          "layer": "#fff",
+          "owner": "#fff"
+        },
+        {
+          "name": "--text",
+          "layer": "#202632",
+          "owner": "#202632"
+        },
+        {
+          "name": "--rcpt-exact",
+          "layer": "#3168df",
+          "owner": "#3168df"
+        },
+        {
+          "name": "--rcpt-absent",
+          "layer": "#69768a",
+          "owner": "#69768a"
+        }
+      ],
+      "baselineCalls": [
+        "symbol=AAPL",
+        "symbol=AAPL",
+        "event_id=evt_cik0000320193_2026q3_results&generation_id=f709a0a6ec514282d5769e7d&company_id=cik%3A0000320193&fingerprint=cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "event_id=evt_cik0000320193_2026q3_results&generation_id=f709a0a6ec514282d5769e7d&company_id=cik%3A0000320193&fingerprint=cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+      ],
+      "pageErrors": [],
+      "scope": "LOCAL_FIXTURE_ONLY"
+    },
+    {
+      "width": 820,
+      "height": 1180,
+      "zh": false,
+      "light": false,
+      "verdict": "PASS",
+      "hit": {
+        "reachable": true,
+        "parent": "BODY",
+        "panel": "rgba(0, 0, 0, 0)",
+        "rect": {
+          "x": 751,
+          "y": 35,
+          "width": 34,
+          "height": 36
+        }
+      },
+      "tokens": [
+        {
+          "name": "--panel",
+          "layer": "#181b21",
+          "owner": "#181b21"
+        },
+        {
+          "name": "--text",
+          "layer": "#d7dce3",
+          "owner": "#d7dce3"
+        },
+        {
+          "name": "--rcpt-exact",
+          "layer": "#7aa7e0",
+          "owner": "#7aa7e0"
+        },
+        {
+          "name": "--rcpt-absent",
+          "layer": "#8b93a1",
+          "owner": "#8b93a1"
+        }
+      ],
+      "baselineCalls": [
+        "symbol=AAPL",
+        "symbol=AAPL",
+        "event_id=evt_cik0000320193_2026q3_results&generation_id=f709a0a6ec514282d5769e7d&company_id=cik%3A0000320193&fingerprint=cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+      ],
+      "pageErrors": [],
+      "scope": "LOCAL_FIXTURE_ONLY"
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "zh": false,
+      "light": false,
+      "verdict": "PASS",
+      "hit": {
+        "reachable": true,
+        "parent": "BODY",
+        "panel": "rgba(0, 0, 0, 0)",
+        "rect": {
+          "x": 1371,
+          "y": 81,
+          "width": 34,
+          "height": 36
+        }
+      },
+      "tokens": [
+        {
+          "name": "--panel",
+          "layer": "#181b21",
+          "owner": "#181b21"
+        },
+        {
+          "name": "--text",
+          "layer": "#d7dce3",
+          "owner": "#d7dce3"
+        },
+        {
+          "name": "--rcpt-exact",
+          "layer": "#7aa7e0",
+          "owner": "#7aa7e0"
+        },
+        {
+          "name": "--rcpt-absent",
+          "layer": "#8b93a1",
+          "owner": "#8b93a1"
+        }
+      ],
+      "baselineCalls": [
+        "symbol=AAPL",
+        "symbol=AAPL",
+        "event_id=evt_cik0000320193_2026q3_results&generation_id=f709a0a6ec514282d5769e7d&company_id=cik%3A0000320193&fingerprint=cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+      ],
+      "pageErrors": [],
+      "scope": "LOCAL_FIXTURE_ONLY"
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "zh": true,
+      "light": false,
+      "verdict": "PASS",
+      "hit": {
+        "reachable": true,
+        "parent": "BODY",
+        "panel": "rgba(0, 0, 0, 0)",
+        "rect": {
+          "x": 330,
+          "y": 16,
+          "width": 44,
+          "height": 44
+        }
+      },
+      "tokens": [
+        {
+          "name": "--panel",
+          "layer": "#181b21",
+          "owner": "#181b21"
+        },
+        {
+          "name": "--text",
+          "layer": "#d7dce3",
+          "owner": "#d7dce3"
+        },
+        {
+          "name": "--rcpt-exact",
+          "layer": "#7aa7e0",
+          "owner": "#7aa7e0"
+        },
+        {
+          "name": "--rcpt-absent",
+          "layer": "#8b93a1",
+          "owner": "#8b93a1"
+        }
+      ],
+      "baselineCalls": [
+        "symbol=AAPL",
+        "symbol=AAPL",
+        "event_id=evt_cik0000320193_2026q3_results&generation_id=f709a0a6ec514282d5769e7d&company_id=cik%3A0000320193&fingerprint=cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "event_id=evt_cik0000320193_2026q3_results&generation_id=f709a0a6ec514282d5769e7d&company_id=cik%3A0000320193&fingerprint=cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+      ],
+      "pageErrors": [],
+      "scope": "LOCAL_FIXTURE_ONLY"
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "zh": false,
+      "light": true,
+      "verdict": "PASS",
+      "hit": {
+        "reachable": true,
+        "parent": "BODY",
+        "panel": "rgba(0, 0, 0, 0)",
+        "rect": {
+          "x": 1371,
+          "y": 81,
+          "width": 34,
+          "height": 36
+        }
+      },
+      "tokens": [
+        {
+          "name": "--panel",
+          "layer": "#fff",
+          "owner": "#fff"
+        },
+        {
+          "name": "--text",
+          "layer": "#202632",
+          "owner": "#202632"
+        },
+        {
+          "name": "--rcpt-exact",
+          "layer": "#3168df",
+          "owner": "#3168df"
+        },
+        {
+          "name": "--rcpt-absent",
+          "layer": "#69768a",
+          "owner": "#69768a"
+        }
+      ],
+      "baselineCalls": [
+        "symbol=AAPL",
+        "symbol=AAPL",
+        "event_id=evt_cik0000320193_2026q3_results&generation_id=f709a0a6ec514282d5769e7d&company_id=cik%3A0000320193&fingerprint=cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "event_id=evt_cik0000320193_2026q3_results&generation_id=f709a0a6ec514282d5769e7d&company_id=cik%3A0000320193&fingerprint=cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+      ],
+      "pageErrors": [],
+      "scope": "LOCAL_FIXTURE_ONLY"
+    }
+  ],
+  "status": "PASS_SCOPED_SOURCE_FIXTURE",
+  "sourceFiles": {
+    "terminal/components/fin/EvidenceRail.tsx": "aef0f37d1e437b5591d854133eb08eed0bf93563ea8b152641af0a50cc233f30",
+    "terminal/app/company-intelligence.css": "69ccaa32ccb27f674896b0fdf286a1126e3ca8d1c9d4d53035c7f7d6e6fdc0fb",
+    "terminal/lib/__tests__/CompanyRetainedSelection.test.tsx": "9e4518be32d5e011d87df06d723920525b6ccfa1dfcfae550534e7e939d66b7d",
+    "terminal/lib/__tests__/CompanyIntelligenceNativeResults.test.tsx": "47d3a15be12a0c362fba96e6513eb0f947022094cca3afdc98f417b6d1e6736b",
+    "terminal/lib/__tests__/companyBriefWatchpointMeaning.test.tsx": "0370a66ac573e5451e254ded713f0e78ca7a4d72147edc8415cdbbdafc48de6c"
+  },
+  "captures": {
+    "b1-evidence-close-390-light-zh.png": "87a155ee801dee04efebb84bcdddee17376988567500f2a9f4b96f31f5900b79",
+    "b1-evidence-close-1440-dark-en.png": "881b5bd4aa28d9827cee91489b5bc2ac001b0b4120f64644ad26b9609d1bde03"
+  },
+  "discriminators": {
+    "original_failure": "390px light ZH metric receipt rendered, but mobile account avatar intercepted normal Close tapping for the full action timeout",
+    "review_failure": "initially-open overlay with stable onClose lost focus to BODY on portal move",
+    "regressions": "both failures reproduced before their respective repair; existing component suite now has 18 passing cases",
+    "browser_activation": "normal Close and keyboard Escape return focus; animated mobile chart Back used one visible hit-tested touchscreen tap, without force/reload",
+    "narrow": "each 390px Chinese run also changed to320px on returned Analysis, checked no overflow and reachable chart action"
+  },
+  "fabric": {
+    "run": "b1-investigation-acceptance-20261103-01a1a4b2",
+    "state": "TERMINAL",
+    "rc": 0,
+    "result_sha256": "874bb13030d92097b252873daa3d0def4d9b52b52a6f12ad2e3f501898ba1e52",
+    "acceptance": "NOT_ACCEPTED",
+    "observation_refusal": "original_run_observation_unconfirmed",
+    "export_refusal": "destination_outside_approved_evidence_root",
+    "artifact_received": false,
+    "retry_or_reconstruction": false
+  }
+}

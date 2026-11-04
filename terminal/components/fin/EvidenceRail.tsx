@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useLang } from "../../lib/i18n";
 import { pick } from "../../lib/finFormat";
 import type {
@@ -69,6 +70,7 @@ export default function EvidenceRail({
   const zh = lang === "zh";
   const closeRef = useRef<HTMLButtonElement>(null);
   const railRef = useRef<HTMLElement>(null);
+  const [portalReady, setPortalReady] = useState(false);
   const txId = evidence?.v2?.transcript_id ?? transcriptId(evidence?.source ?? null);
   const receipt = receiptValue(evidence?.source ?? null);
   const precision = evidence?.source?.citation_precision ?? "metadata";
@@ -76,7 +78,13 @@ export default function EvidenceRail({
   const period = periodCode ?? `${event.fiscal_year}Q${event.fiscal_quarter}`;
 
   useEffect(() => {
-    if (!open || !overlay) return;
+    // Keep the first client render identical to SSR before moving the overlay out of the pane.
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- document.body is a client-only portal host.
+    setPortalReady(true);
+  }, []);
+
+  useEffect(() => {
+    if (!open || !overlay || !portalReady) return;
     closeRef.current?.focus();
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -105,9 +113,9 @@ export default function EvidenceRail({
     return () => {
       window.removeEventListener("keydown", onKey, true);
     };
-  }, [onClose, open, overlay]);
+  }, [onClose, open, overlay, portalReady]);
 
-  return (
+  const content = (
     <>
       <button
         className={`ci-evidence-scrim${open ? " open" : ""}`}
@@ -320,4 +328,9 @@ export default function EvidenceRail({
       </aside>
     </>
   );
+  // The research pane owns a stacking context. Its fixed descendants cannot cover shared chrome.
+  // Reuse the inspector's existing layer order at the document boundary instead of raising it.
+  return overlay && portalReady
+    ? createPortal(<div className="ci-evidence-layer">{content}</div>, document.body)
+    : content;
 }

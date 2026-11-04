@@ -35,6 +35,8 @@
   width:min(1500px,100%);
   min-height:100%;
   margin:0 auto;
+}
+.ci-page,.ci-evidence-layer{
   color:var(--text);
   --rcpt-exact:var(--brand-2);
   --rcpt-absent:var(--muted);
@@ -42,7 +44,7 @@
   --rcpt-withheld:var(--text-dim);
   --rcpt-meta:color-mix(in srgb,var(--muted) 80%,var(--text-2));
 }
-.ci-page button,.ci-page select,.ci-page a{min-height:36px}
+.ci-page button,.ci-page select,.ci-page a,.ci-evidence-layer button,.ci-evidence-layer select,.ci-evidence-layer a{min-height:36px}
 .ci-hero{position:relative;margin-bottom:var(--sp-3);border:1px solid var(--hairline);border-radius:var(--r-card);background:
   radial-gradient(900px 180px at 18% -40%,color-mix(in srgb,var(--brand) 24%,transparent),transparent 62%),
   linear-gradient(180deg,color-mix(in srgb,var(--panel-2) 86%,var(--brand) 4%),var(--panel));
