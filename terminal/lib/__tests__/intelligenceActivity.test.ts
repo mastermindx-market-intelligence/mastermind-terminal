@@ -87,6 +87,22 @@ describe("R6 source-faithful activity exploration", () => {
     expect(result.events[0].kind === "signal" && result.events[0].signal).toBe(source[1])
   })
 
+  it.each([
+    [187, "187.00"], [97.2, "97.20"], [922.1571, "922.16"],
+    [1029.9178, "1029.92"], [225.4777, "225.48"], [0.0049, "0.00"], [0, "0.00"],
+  ])("finds the displayed two-decimal price %s as %s without changing source precision", (price, query) => {
+    const signal = { type: "BUY", ts, price }
+    const candidate = { system: "prophet", surfaced_at: ts, entry_price: price }
+    const records = workspaceActivity([signal, { type: "BUY", ts }], [candidate], "all")
+    const result = exploreWorkspaceActivity(records, { query })
+    expect(result.events).toHaveLength(2)
+    expect(result.counts).toMatchObject({ all: 2, entries: 1, receipts: 1 })
+    expect(result.events.find(event => event.kind === "signal")?.signal).toBe(signal)
+    expect(result.events.find(event => event.kind === "receipt")?.receipt).toBe(candidate)
+    expect(result.events.map(event => activityEventPresentation(event).price)).toEqual([price, price])
+    expect(exploreWorkspaceActivity(records, { query: String(price) }).events).toEqual(expect.arrayContaining(result.events))
+  })
+
   it("uses normalized literal AND matching, not regular expressions or arbitrary expressions", () => {
     expect(exploreWorkspaceActivity(events, { query: "  ＳＴＡＲＴＥＲ   failed  " }).events).toHaveLength(1)
     expect(exploreWorkspaceActivity(events, { query: "starter prophet" }).events).toHaveLength(0)

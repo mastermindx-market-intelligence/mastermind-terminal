@@ -267,7 +267,7 @@ for (const lang of ["en", "zh"] as const) {
     await expect(search).toHaveValue("")
     await expect(search).toBeFocused()
     await expect(workspace.locator(".sd-sigrow")).toHaveCount(30)
-    await search.fill("100")
+    await search.fill("100.00")
     await expect(workspace.locator(".sd-sigrow")).toHaveCount(1)
     await expect(workspace.locator(".sd-sig-price")).toHaveText("100.00")
     await search.fill(zh ? "止损" : "stop")

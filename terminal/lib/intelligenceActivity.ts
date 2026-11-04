@@ -127,7 +127,9 @@ function searchText(event: WorkspaceActivityEvent): string {
     return searchDateFormatters.map(formatter => formatter.format(date))
   })
   return [en.label, en.detail, en.source, zh.label, zh.detail, zh.source,
-    categoryTerms[event.category], event.date, event.chartDate, ...displayDates, en.price, ...source]
+    categoryTerms[event.category], event.date, event.chartDate, ...displayDates,
+    // Match the exact price users see, without rounding or replacing producer data.
+    en.price, en.price === null ? null : en.price.toFixed(2), ...source]
     .filter(value => value !== null && value !== undefined).join(" ").normalize("NFKC").toLocaleLowerCase("en-US")
 }
 
