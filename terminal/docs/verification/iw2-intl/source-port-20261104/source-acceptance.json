@@ -87,5 +87,20 @@
     "release5989604142",
     "no installation/admission/live Saved or auth acceptance",
     "1275 next landing; candidate Draft/unarmed"
-  ]
+  ],
+  "corpus_placement_repair": {
+    "historical_fixture_exact_master_sha256": "4ebec87f1c3c20d53d1795b3a4edfb14107987362265e161d9a19811a5384124",
+    "affected_typescript_pass": 159,
+    "affected_files": 3,
+    "python_in_memory_pass": 48,
+    "sql_bodies_or_queries_changed": false,
+    "native_runtime_changed": false,
+    "overlap_with_initial1812_not_summed": true
+  },
+  "nonauthor_source_review": {
+    "verdict": "PASS_SCOPED",
+    "snapshot": "f6874b38e29926664380816874623604a9c5bf34",
+    "tests": "NOT_RUN",
+    "result_sha256": "34156be9dcf83d947d0af0231354bd8a5f21b4c12e7a545b5169a13949f0c3b0"
+  }
 }
