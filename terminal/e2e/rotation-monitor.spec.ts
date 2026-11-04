@@ -143,9 +143,16 @@ test("R2 opening-range preview uses the existing visible source reader and respo
     cssWidth: node.getBoundingClientRect().width,
     documentWidth: document.documentElement.scrollWidth,
     viewportWidth: window.innerWidth,
+    // A known level must never paint a line across bars that preceded its origin.
+    levelKnownX: Number(node.querySelector('[data-testid="rotation-pivot-known-at-line"]')?.getAttribute("x1")),
+    supportStartsX: Number(node.querySelector('[data-testid="rotation-pivot-level-bottom"]')?.getAttribute("x1")),
+    resistanceStartsX: Number(node.querySelector('[data-testid="rotation-pivot-level-top"]')?.getAttribute("x1")),
   }));
   expect(Math.abs(chart.userWidth - chart.cssWidth)).toBeLessThan(2);
   expect(chart.documentWidth).toBeLessThanOrEqual(chart.viewportWidth);
+  expect(chart.levelKnownX).toBeGreaterThan(54);
+  expect(chart.supportStartsX).toBeCloseTo(chart.levelKnownX, 5);
+  expect(chart.resistanceStartsX).toBeCloseTo(chart.levelKnownX, 5);
   expect(reads.bars()).toBe(12);
   await page.getByTestId("rotation-pivot-sector").selectOption("XLP");
   await expect(preview).toContainText("Opening-range low");

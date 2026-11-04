@@ -111,15 +111,19 @@ function PivotReconstructionChart({ report, zh }: {
         <line x1={left} x2={width-right} y1={y(tick)} y2={y(tick)} stroke="var(--line)" strokeWidth={0.6} />
         <text x={left-7} y={y(tick)+3} fontSize={10} fill="var(--muted)" textAnchor="end">{fmtTick(tick, yTicks.step)}</text>
       </g>)}
-      {[low, high].map(row => row.levelPrice === null ? null : <g key={row.side}>
-        <line x1={left} x2={width-right} y1={y(row.levelPrice)} y2={y(row.levelPrice)}
+      {[low, high].map(row => row.levelPrice === null || row.levelKnownAtDisplayEpoch === null ? null : <g key={row.side}>
+        {/* Freeze the visual level at the first time it could have been known. */}
+        <line data-testid={"rotation-pivot-level-" + row.side}
+          x1={x(row.levelKnownAtDisplayEpoch)} x2={width-right}
+          y1={y(row.levelPrice)} y2={y(row.levelPrice)}
           stroke={row.side === "bottom" ? "var(--up)" : "var(--down)"} strokeDasharray="6 4" strokeWidth={1.5} />
-        <text x={left+5} y={y(row.levelPrice)-5} fontSize={10} fill="var(--muted)">
+        <text x={x(row.levelKnownAtDisplayEpoch) + 5} y={y(row.levelPrice)-5}
+          fontSize={10} fill="var(--muted)">
           {row.side === "bottom" ? label("Support", "支撑") : label("Resistance", "阻力")} {fmt(row.levelPrice)}</text>
       </g>)}
       <path d={line} stroke="var(--brand-2)" strokeWidth={2} fill="none" strokeLinejoin="round" strokeLinecap="round" />
       {report.levelKnownAtDisplayEpoch !== null && report.levelKnownAtDisplayEpoch >= start && <line
-        x1={x(report.levelKnownAtDisplayEpoch)} x2={x(report.levelKnownAtDisplayEpoch)}
+        data-testid="rotation-pivot-known-at-line" x1={x(report.levelKnownAtDisplayEpoch)} x2={x(report.levelKnownAtDisplayEpoch)}
         y1={top} y2={height-bottom} stroke="var(--muted)" strokeWidth={1} strokeDasharray="2 4" />}
       {report.rows.flatMap(row => [marker(row, row.firstEncounterAtDisplayEpoch, false), marker(row, row.resolutionAtDisplayEpoch, true)])}
       {xTicks.map(tick => <text key={"x-" + tick} x={x(tick)} y={height-10}

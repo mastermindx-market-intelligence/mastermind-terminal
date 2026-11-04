@@ -11,7 +11,7 @@ Open **Discover → RS · 30m Pivot → Open rotation monitor** and inspect **Op
 - First **six complete 5m bars** define the regular-session opening range. Its low/high only become known at the **sixth bar's close**. Source timestamps are ET display epochs, not source receipt UTC timestamps.
 - A fixed zone is 10% of the opening-range span. It is a descriptive UI parameter, **not optimized**. `approaching` means a completed close within three zone widths on the non-encounter side; a first completed bar that overlaps the zone becomes `forming`.
 - A `confirmed` state requires a **later completed bar** to clear its frozen witness threshold. Invalidation on the same OHLC bar wins over a purported reclaim because intrabar path order is unknown. Watches can expire; a failed or expired watch is not silently hidden.
-- This is **reconstructed corrected history**, not as-issued observations. Known-level, first-encounter and later-resolution markers are distinct; no historical event issuance time, PIT admission, predictive probability or profitability is asserted.
+- This is **reconstructed corrected history**, not as-issued observations. Known-level, first-encounter and later-resolution markers are distinct; **chart support/resistance lines begin only at the level-known timestamp, never over earlier bars**. No historical event issuance time, PIT admission, predictive probability or profitability is asserted.
 - Strict source-basis qualification requires symbol, regular 5m scope and ET display-clock basis; reject stale cache, malformed/gapped bars, incomplete/over-age common SPY endpoint, and session mismatches. A missing benchmark never fabricates a pivot.
 
 ## Verification on the original R2 worktree
