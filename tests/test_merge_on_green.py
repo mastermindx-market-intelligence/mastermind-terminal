@@ -1122,3 +1122,372 @@ def test_re_run_posts_to_the_exact_run():
     api.rerun_workflow_run(38370600573)
 
     assert api.calls == [("POST", "/actions/runs/38370600573/rerun", None)]
+
+
+# --- optional target_pr workflow_dispatch input --------------------------------
+#
+# A manually dispatched run may name exactly one pull request. The input is
+# validated before any API client is built, and a targeted run reconciles only
+# that pull request: every incumbent guard still applies to it, and no other
+# pull request is ever considered, merged, refreshed or enqueued as a fallback.
+#
+# Every test here drives a stub in place of the HTTP layer: nothing touches the
+# network.
+
+
+def mog_workflow_text() -> str:
+    return (
+        Path(__file__).resolve().parents[1]
+        / ".github"
+        / "workflows"
+        / "merge-on-green.yml"
+    ).read_text(encoding="utf-8")
+
+
+def mog_workflow() -> dict[str, Any]:
+    return yaml.safe_load(mog_workflow_text())
+
+
+def workflow_triggers(workflow: dict[str, Any]) -> dict[str, Any]:
+    # PyYAML resolves the bare key `on` to the boolean True (YAML 1.1), so the
+    # trigger map may be stored under either spelling.
+    triggers = workflow.get("on")
+    if not isinstance(triggers, dict):
+        triggers = workflow.get(True)
+    return triggers or {}
+
+
+def test_the_dispatch_trigger_gains_an_optional_string_target_pr_input():
+    triggers = workflow_triggers(mog_workflow())
+
+    # The incumbent triggers are untouched; only workflow_dispatch gains an input.
+    assert set(triggers) == {
+        "workflow_run",
+        "pull_request_target",
+        "schedule",
+        "workflow_dispatch",
+    }
+    inputs = triggers["workflow_dispatch"]["inputs"]
+    assert inputs["target_pr"]["required"] is False
+    assert inputs["target_pr"]["default"] == ""
+    assert inputs["target_pr"]["type"] == "string"
+
+
+def test_target_pr_reaches_the_script_through_env_never_the_shell():
+    workflow = mog_workflow()
+
+    step = workflow["jobs"]["sweep"]["steps"][1]
+    env = step["env"]
+    # Routed as workflow-context expressions through the step environment, so the
+    # shell never interpolates the value.
+    assert env["TARGET_PR"] == "${{ inputs.target_pr }}"
+    assert env["GITHUB_EVENT_NAME"] == "${{ github.event_name }}"
+    assert env["TRIGGER_PR_NUMBER"] == "${{ github.event.pull_request.number }}"
+    assert "${{" not in step["run"]
+    assert "target_pr" not in step["run"]
+    assert "TARGET_PR" not in step["run"]
+
+
+@pytest.mark.parametrize(
+    "raw",
+    ["7", "861", "2147483647"],
+)
+def test_target_pr_accepts_exactly_a_canonical_ascii_positive_number(raw):
+    assert mog.parse_target_pr(raw) == int(raw)
+
+
+def test_an_omitted_or_empty_target_pr_means_no_target():
+    assert mog.parse_target_pr(None) is None
+    assert mog.parse_target_pr("") is None
+
+
+@pytest.mark.parametrize(
+    "raw",
+    [
+        pytest.param(" 7", id="leading-space"),
+        pytest.param("7 ", id="trailing-space"),
+        pytest.param("7\n", id="newline"),
+        pytest.param("+7", id="plus-sign"),
+        pytest.param("-7", id="minus-sign"),
+        pytest.param("0", id="zero"),
+        pytest.param("00", id="double-zero"),
+        pytest.param("1_000", id="underscore"),
+        pytest.param("0x10", id="hex-prefix"),
+        pytest.param("7.0", id="decimal-point"),
+        pytest.param("seven", id="word"),
+        pytest.param("١٢", id="arabic-indic-digits"),
+        pytest.param("７", id="fullwidth-digit"),
+        pytest.param("²", id="superscript-two"),
+        pytest.param("2147483648", id="just-past-2^31-1"),
+        pytest.param("99999999999", id="far-overflow"),
+    ],
+)
+def test_target_pr_rejects_anything_but_a_plain_positive_number(raw):
+    with pytest.raises(ValueError):
+        mog.parse_target_pr(raw)
+
+
+def main_env(monkeypatch, *, event="workflow_dispatch", trigger=None, target=None):
+    monkeypatch.setenv("GH_REPO", "owner/repo")
+    monkeypatch.setenv("MERGE_TOKEN", "token")
+    if event is None:
+        monkeypatch.delenv("GITHUB_EVENT_NAME", raising=False)
+    else:
+        monkeypatch.setenv("GITHUB_EVENT_NAME", event)
+    if trigger is None:
+        monkeypatch.delenv("TRIGGER_PR_NUMBER", raising=False)
+    else:
+        monkeypatch.setenv("TRIGGER_PR_NUMBER", str(trigger))
+    if target is None:
+        monkeypatch.delenv("TARGET_PR", raising=False)
+    else:
+        monkeypatch.setenv("TARGET_PR", str(target))
+
+
+@pytest.mark.parametrize(
+    "raw",
+    [" 7", "+7", "-7", "0", "７", "2147483648", "seven"],
+)
+def test_an_invalid_target_pr_fails_before_any_api_client_exists(monkeypatch, capsys, raw):
+    main_env(monkeypatch, event="workflow_dispatch", target=raw)
+    constructed = []
+
+    def forbidden(repo, token):
+        constructed.append((repo, token))
+        raise AssertionError("GitHubApi must not be constructed for an invalid target_pr")
+
+    monkeypatch.setattr(mog, "GitHubApi", forbidden)
+    monkeypatch.setattr(mog, "sweep", forbidden)
+
+    assert mog.main() == 2
+    assert "target_pr" in capsys.readouterr().err
+    assert constructed == []
+
+
+@pytest.mark.parametrize(
+    "event",
+    ["schedule", "workflow_run", "pull_request_target", None],
+    ids=["schedule", "workflow_run", "pull_request_target", "event-unset"],
+)
+def test_a_target_pr_is_rejected_on_any_non_dispatch_event_before_api_construction(
+    monkeypatch, capsys, event
+):
+    main_env(monkeypatch, event=event, target="861")
+    constructed = []
+    monkeypatch.setattr(mog, "GitHubApi", lambda repo, token: constructed.append((repo, token)))
+
+    assert mog.main() == 2
+    assert constructed == []
+    assert "workflow_dispatch" in capsys.readouterr().err
+
+
+def test_a_target_pr_conflicting_with_the_event_trigger_is_rejected(monkeypatch, capsys):
+    main_env(monkeypatch, event="workflow_dispatch", trigger=5, target="861")
+    constructed = []
+    monkeypatch.setattr(mog, "GitHubApi", lambda repo, token: constructed.append((repo, token)))
+
+    assert mog.main() == 2
+    assert constructed == []
+    assert "conflicts" in capsys.readouterr().err
+
+
+@pytest.mark.parametrize("target", [None, ""], ids=["unset", "empty"])
+def test_an_omitted_or_empty_target_pr_preserves_the_untargeted_sweep(monkeypatch, target):
+    main_env(monkeypatch, event="workflow_dispatch", target=target)
+    calls = []
+
+    def recording_sweep(api, trigger_number=None, **kwargs):
+        calls.append((api, trigger_number, kwargs))
+        return []
+
+    monkeypatch.setattr(mog, "sweep", recording_sweep)
+
+    assert mog.main() == 0
+    assert len(calls) == 1
+    api, trigger_number, kwargs = calls[0]
+    assert isinstance(api, mog.GitHubApi)
+    assert trigger_number is None
+    # No target argument at all: the incumbent sweep entry point is unchanged.
+    assert kwargs == {}
+
+
+def test_an_explicit_target_pr_is_routed_into_the_sweep(monkeypatch, capsys):
+    main_env(monkeypatch, event="workflow_dispatch", target="861")
+    calls = []
+
+    def recording_sweep(api, trigger_number=None, **kwargs):
+        calls.append((api, trigger_number, kwargs))
+        return ["#861: merged and deleted claude/pr-861"]
+
+    monkeypatch.setattr(mog, "sweep", recording_sweep)
+
+    assert mog.main() == 0
+    assert calls[0][2] == {"target_number": 861}
+    assert "#861: merged and deleted claude/pr-861" in capsys.readouterr().out
+
+
+def test_a_targeted_sweep_considers_only_the_named_pull_request():
+    api = FakeApi([pull(7), pull(8)])
+
+    result = sweep(api, target_number=8)
+
+    assert ("merge", 8, "head-8") in api.actions
+    assert ("delete", "claude/pr-8") in api.actions
+    # The other armed green pull request was never evaluated, let alone acted on.
+    assert not any(len(action) > 1 and action[1] == 7 for action in api.actions)
+    assert result == [
+        "#8: merged and deleted claude/pr-8",
+        "no additional armed green branch required a base refresh",
+    ]
+
+
+@pytest.mark.parametrize(
+    "candidate",
+    [
+        pytest.param(dict(labels=[]), id="unarmed"),
+        pytest.param(dict(labels=[ARM_LABEL, "hold"]), id="hold"),
+        pytest.param(dict(labels=[ARM_LABEL, "do-not-merge"]), id="do-not-merge"),
+        pytest.param(dict(draft=True), id="draft"),
+        pytest.param(dict(fork=True), id="fork"),
+    ],
+)
+def test_a_targeted_sweep_never_falls_back_when_the_target_is_not_a_candidate(candidate):
+    # Pull request #9 is armed and green: a fallback sweep would merge it.
+    api = FakeApi([pull(8, **candidate), pull(9)])
+
+    assert sweep(api, target_number=8) == []
+    assert api.actions == []
+
+
+def test_a_targeted_sweep_keeps_the_red_ci_quarantine_for_the_target_alone():
+    api = FakeApi(
+        [pull(7), pull(8)],
+        runs={"head-7": checks(conclusion="failure")},
+    )
+
+    result = sweep(api, target_number=7)
+
+    assert result == ["#7: red"]
+    assert ("add_labels", 7, (BLOCK_LABEL,)) in api.actions
+    assert sum(action[0] == "comment" for action in api.actions) == 1
+    assert not any(action[0] == "merge" for action in api.actions)
+    assert not any(len(action) > 1 and action[1] == 8 for action in api.actions)
+
+
+def test_a_targeted_sweep_quarantines_a_conflicting_target_without_admin_merge():
+    api = FakeApi([pull(7, mergeable=False), pull(8)])
+
+    result = sweep(api, target_number=7)
+
+    assert result[0] == "#7: conflict"
+    assert ("add_labels", 7, (BLOCK_LABEL,)) in api.actions
+    assert not any(action[0] == "merge" for action in api.actions)
+    assert not any(len(action) > 1 and action[1] == 8 for action in api.actions)
+
+
+def test_a_targeted_sweep_refreshes_a_stale_head_instead_of_merging_it():
+    api = FakeApi([pull(7, mergeable_state="behind"), pull(8)])
+
+    result = sweep(api, target_number=7)
+
+    assert ("update", 7, "head-7") in api.actions
+    assert ("rerun", 9101) in api.actions
+    assert not any(action[0] == "merge" for action in api.actions)
+    assert not any(len(action) > 1 and action[1] == 8 for action in api.actions)
+    assert result == ["#7: " + REFRESHED.format(n=7)]
+
+
+def test_a_targeted_sweep_merges_a_current_clean_base_and_touches_nothing_else():
+    api = FakeApi([pull(7, mergeable_state="clean"), pull(8, mergeable_state="behind")])
+
+    result = sweep(api, target_number=7)
+
+    assert ("merge", 7, "head-7") in api.actions
+    assert not any(action[0] == "update" for action in api.actions)
+    assert not any(len(action) > 1 and action[1] == 8 for action in api.actions)
+
+
+def test_a_targeted_sweep_waits_on_a_blocked_state_without_a_held_run():
+    api = FakeApi([pull(7, mergeable_state="blocked"), pull(8)])
+
+    result = sweep(api, target_number=7)
+
+    assert result == ["#7: waiting (mergeable_state=blocked)"]
+    assert api.actions == []
+
+
+def test_a_targeted_sweep_releases_only_the_targets_held_run():
+    api = FakeApi(
+        [pull(7, mergeable_state="blocked"), pull(8, mergeable_state="blocked")],
+        ci_runs={"head-7": [ci_run(38370600573, sha="head-7")]},
+    )
+
+    result = sweep(api, target_number=7)
+
+    assert api.actions == [("rerun", 38370600573)]
+    assert result == [
+        "#7: re-ran held pull_request CI run 38370600573 for head-7; awaiting PR-linked CI"
+    ]
+
+
+def test_a_targeted_sweep_enqueues_only_the_target_when_the_queue_is_enabled():
+    api = FakeApi([pull(7), pull(8)], queue_enabled=True)
+
+    result = sweep(api, target_number=7)
+
+    assert api.actions == [("enqueue", "PR-node-7", "head-7")]
+    assert result == ["#7: enqueued in merge queue (MQE-PR-node-7)"]
+
+
+def test_a_main_run_with_a_target_merges_only_that_pull_request(monkeypatch, capsys):
+    main_env(monkeypatch, event="workflow_dispatch", target="7")
+    api = FakeApi([pull(7), pull(8)])
+    monkeypatch.setattr(mog, "GitHubApi", lambda repo, token: api)
+
+    assert mog.main() == 0
+
+    assert ("merge", 7, "head-7") in api.actions
+    assert not any(action[0] == "merge" and action[1] == 8 for action in api.actions)
+    out = capsys.readouterr().out
+    assert "#7: merged and deleted claude/pr-7" in out
+    assert "#8" not in out
+
+
+def test_a_main_run_with_an_untargetable_target_considers_nothing_else(monkeypatch, capsys):
+    main_env(monkeypatch, event="workflow_dispatch", target="8")
+    api = FakeApi([pull(8, labels=[]), pull(9)])  # only #9 is armed and green
+    monkeypatch.setattr(mog, "GitHubApi", lambda repo, token: api)
+
+    assert mog.main() == 0
+
+    assert api.actions == []
+    out = capsys.readouterr().out
+    assert "no other pull request was considered" in out
+    assert "#9" not in out
+
+
+def test_a_missing_explicit_target_never_sweeps_an_armed_neighbor():
+    api = FakeApi([pull(9)])
+    assert sweep(api, target_number=8) == []
+    assert api.actions == []
+
+
+def test_a_target_for_another_base_never_reaches_release():
+    target = pull(8)
+    target["base"]["ref"] = "other-branch"
+    api = FakeApi([target, pull(9)])
+    assert sweep(api, target_number=8) == []
+    assert api.actions == []
+
+
+def test_a_targeted_run_proves_the_refreshed_head_instead_of_the_listed_head():
+    class AdvancedHeadApi(FakeApi):
+        def pull(self, number):
+            current = super().pull(number)
+            current["head"]["sha"] = "new-head-without-checks"
+            return current
+
+    api = AdvancedHeadApi([pull(8), pull(9)])
+    result = sweep(api, target_number=8)
+    assert "missing trusted App" in result[0]
+    assert api.actions == []
