@@ -1,0 +1,186 @@
+{
+  "schema": "F01.directory_gesture_proof.v1",
+  "parent": "b14436dd7b9c1296d17455c89f63960c774ab9be",
+  "source_contract": "F01-F02-SHELL/1.0.0-candidate.4",
+  "candidate5": "PROPOSED_NOT_ADOPTED",
+  "final_sources": {
+    "terminal/components/chrome/shared-shell/ShellDirectory.tsx": {
+      "bytes": 19543,
+      "sha256": "5ac51ef33f210fa50fdaadc04fc2b75bbeeb1de80e5987d03d4b4cee857e9bd3",
+      "git_blob_sha": "5a34390cd314833451cea9fad2506aa1b7bd1fc7"
+    },
+    "terminal/lib/__tests__/sharedShellDirectoryConformance.test.tsx": {
+      "bytes": 26103,
+      "sha256": "66b83ac65fabaa6c4c1121264bbef75cbbc358fbdf8299ab8d277b3de54e6096",
+      "git_blob_sha": "a3ad71b10d80abf452f085556cf350b43be15eaf"
+    },
+    "terminal/e2e/shared-shell-directory-hardening.spec.ts": {
+      "bytes": 27431,
+      "sha256": "186bde53d98d9f7bac09e0975154e213811e074130be86d779d8495b04396813",
+      "git_blob_sha": "3b32a11fb3031a1479deb894ad360fe30a3ed1d5"
+    }
+  },
+  "browser_stats": {
+    "baseline-browser": {
+      "startTime": "2026-11-04T08:10:42.721Z",
+      "duration": 45202.075,
+      "expected": 0,
+      "skipped": 0,
+      "unexpected": 3,
+      "flaky": 0
+    },
+    "final-browser": {
+      "startTime": "2026-11-04T08:12:35.881Z",
+      "duration": 101692.083,
+      "expected": 37,
+      "skipped": 2,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "capture-browser": {
+      "startTime": "2026-11-04T08:20:47.825Z",
+      "duration": 25232.153000000002,
+      "expected": 3,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    }
+  },
+  "unit": {
+    "numTotalTests": 95,
+    "numPassedTests": 95,
+    "numFailedTests": 0,
+    "numPendingTests": 0,
+    "success": true
+  },
+  "final_commands": [
+    {
+      "name": "unit-capture",
+      "command": [
+        "./node_modules/.bin/vitest",
+        "run",
+        "lib/__tests__/sharedShellDirectoryConformance.test.tsx",
+        "lib/__tests__/sharedShellPublicPresentation.test.tsx",
+        "lib/__tests__/sharedShellContracts.test.ts",
+        "lib/__tests__/sharedShellRouteIdentity.test.ts",
+        "lib/__tests__/sharedShellRegionNavigation.test.ts",
+        "--reporter=json",
+        "--outputFile",
+        "/Volumes/Mastermind/agent-workspaces/terminal/web/f01-directory-focus-correction-20261104-c4/.f01-gesture-evidence/unit-capture.json"
+      ],
+      "started_at": "2026-11-04T08:20:43.195783+00:00",
+      "exit": 0,
+      "duration_seconds": 7.51,
+      "before_sources": {
+        "components/chrome/shared-shell/ShellDirectory.tsx": "5ac51ef33f210fa50fdaadc04fc2b75bbeeb1de80e5987d03d4b4cee857e9bd3",
+        "lib/__tests__/sharedShellDirectoryConformance.test.tsx": "66b83ac65fabaa6c4c1121264bbef75cbbc358fbdf8299ab8d277b3de54e6096",
+        "e2e/shared-shell-directory-hardening.spec.ts": "186bde53d98d9f7bac09e0975154e213811e074130be86d779d8495b04396813"
+      },
+      "after_sources": {
+        "components/chrome/shared-shell/ShellDirectory.tsx": "5ac51ef33f210fa50fdaadc04fc2b75bbeeb1de80e5987d03d4b4cee857e9bd3",
+        "lib/__tests__/sharedShellDirectoryConformance.test.tsx": "66b83ac65fabaa6c4c1121264bbef75cbbc358fbdf8299ab8d277b3de54e6096",
+        "e2e/shared-shell-directory-hardening.spec.ts": "186bde53d98d9f7bac09e0975154e213811e074130be86d779d8495b04396813"
+      }
+    },
+    {
+      "name": "lint-capture",
+      "command": [
+        "./node_modules/.bin/eslint",
+        "components/chrome/shared-shell/ShellDirectory.tsx",
+        "lib/__tests__/sharedShellDirectoryConformance.test.tsx",
+        "e2e/shared-shell-directory-hardening.spec.ts",
+        "--max-warnings=0"
+      ],
+      "started_at": "2026-11-04T08:20:50.702506+00:00",
+      "exit": 0,
+      "duration_seconds": 11.17,
+      "before_sources": {
+        "components/chrome/shared-shell/ShellDirectory.tsx": "5ac51ef33f210fa50fdaadc04fc2b75bbeeb1de80e5987d03d4b4cee857e9bd3",
+        "lib/__tests__/sharedShellDirectoryConformance.test.tsx": "66b83ac65fabaa6c4c1121264bbef75cbbc358fbdf8299ab8d277b3de54e6096",
+        "e2e/shared-shell-directory-hardening.spec.ts": "186bde53d98d9f7bac09e0975154e213811e074130be86d779d8495b04396813"
+      },
+      "after_sources": {
+        "components/chrome/shared-shell/ShellDirectory.tsx": "5ac51ef33f210fa50fdaadc04fc2b75bbeeb1de80e5987d03d4b4cee857e9bd3",
+        "lib/__tests__/sharedShellDirectoryConformance.test.tsx": "66b83ac65fabaa6c4c1121264bbef75cbbc358fbdf8299ab8d277b3de54e6096",
+        "e2e/shared-shell-directory-hardening.spec.ts": "186bde53d98d9f7bac09e0975154e213811e074130be86d779d8495b04396813"
+      }
+    },
+    {
+      "name": "type-capture",
+      "command": [
+        "./node_modules/.bin/tsc",
+        "--noEmit",
+        "--incremental",
+        "false"
+      ],
+      "started_at": "2026-11-04T08:21:01.876324+00:00",
+      "exit": 0,
+      "duration_seconds": 82.73,
+      "before_sources": {
+        "components/chrome/shared-shell/ShellDirectory.tsx": "5ac51ef33f210fa50fdaadc04fc2b75bbeeb1de80e5987d03d4b4cee857e9bd3",
+        "lib/__tests__/sharedShellDirectoryConformance.test.tsx": "66b83ac65fabaa6c4c1121264bbef75cbbc358fbdf8299ab8d277b3de54e6096",
+        "e2e/shared-shell-directory-hardening.spec.ts": "186bde53d98d9f7bac09e0975154e213811e074130be86d779d8495b04396813"
+      },
+      "after_sources": {
+        "components/chrome/shared-shell/ShellDirectory.tsx": "5ac51ef33f210fa50fdaadc04fc2b75bbeeb1de80e5987d03d4b4cee857e9bd3",
+        "lib/__tests__/sharedShellDirectoryConformance.test.tsx": "66b83ac65fabaa6c4c1121264bbef75cbbc358fbdf8299ab8d277b3de54e6096",
+        "e2e/shared-shell-directory-hardening.spec.ts": "186bde53d98d9f7bac09e0975154e213811e074130be86d779d8495b04396813"
+      }
+    },
+    {
+      "name": "capture-browser",
+      "command": [
+        "npm",
+        "run",
+        "test:e2e:responsive",
+        "--",
+        "e2e/shared-shell-directory-hardening.spec.ts",
+        "--grep",
+        "cross-boundary drags",
+        "--project=desktop",
+        "--project=tablet",
+        "--project=mobile",
+        "--workers=1",
+        "--retries=0",
+        "--reporter=json",
+        "--output=/Volumes/Mastermind/agent-workspaces/terminal/web/f01-directory-focus-correction-20261104-c4/.f01-gesture-evidence/capture-browser"
+      ],
+      "started_at": "2026-11-04T08:20:45.775319+00:00",
+      "exit": 0,
+      "duration_seconds": 27.33,
+      "before_sources": {
+        "components/chrome/shared-shell/ShellDirectory.tsx": "5ac51ef33f210fa50fdaadc04fc2b75bbeeb1de80e5987d03d4b4cee857e9bd3",
+        "lib/__tests__/sharedShellDirectoryConformance.test.tsx": "66b83ac65fabaa6c4c1121264bbef75cbbc358fbdf8299ab8d277b3de54e6096",
+        "e2e/shared-shell-directory-hardening.spec.ts": "186bde53d98d9f7bac09e0975154e213811e074130be86d779d8495b04396813"
+      },
+      "after_sources": {
+        "components/chrome/shared-shell/ShellDirectory.tsx": "5ac51ef33f210fa50fdaadc04fc2b75bbeeb1de80e5987d03d4b4cee857e9bd3",
+        "lib/__tests__/sharedShellDirectoryConformance.test.tsx": "66b83ac65fabaa6c4c1121264bbef75cbbc358fbdf8299ab8d277b3de54e6096",
+        "e2e/shared-shell-directory-hardening.spec.ts": "186bde53d98d9f7bac09e0975154e213811e074130be86d779d8495b04396813"
+      }
+    }
+  ],
+  "full_browser_source_qualification": "Full 37-pass matrix preceded the final five-line capture-loss guard; the three affected real gesture cases and all 95 component/neighbor tests were requalified on the final exact source.",
+  "optional_local_traces_excluded_from_compact_archive": [
+    {
+      "path": "baseline-browser/shared-shell-directory-har-e9655-ses-only-a-backdrop-gesture-desktop/trace.zip",
+      "bytes": 1612674,
+      "sha256": "18fb9d4249244a8228dc7b7ce53f105509978460a88d906ba46ecc77a9be1f99",
+      "git_blob_sha": "ad9f93b5f3f176da7781c31e1d8d3c27312d72e0"
+    },
+    {
+      "path": "baseline-browser/shared-shell-directory-har-e9655-ses-only-a-backdrop-gesture-mobile/trace.zip",
+      "bytes": 881806,
+      "sha256": "afa806b744fd53cbd355efbe9c3294f8dd588d5de210bcf04b2f4cb6fc36abb4",
+      "git_blob_sha": "83cd727c428bebedb9bbd289f35546493bfda37e"
+    },
+    {
+      "path": "baseline-browser/shared-shell-directory-har-e9655-ses-only-a-backdrop-gesture-tablet/trace.zip",
+      "bytes": 939753,
+      "sha256": "c05abcb779e51e470a069084b0fa9c3f1a2151a0aa0915a0006c81a39d45fe13",
+      "git_blob_sha": "559d8e9a47b01573de38eee51d408c85e28a328f"
+    }
+  ],
+  "release": "DRAFT_ONLY_NO_READY_MERGE_ENQUEUE_DEPLOY",
+  "programme_86": "NOT_RUN"
+}

@@ -353,3 +353,49 @@ test("real Next Link keeps the current directory on modified activation", async 
   await expect(directory(page).getByRole("searchbox")).toHaveValue("options");
   await link.click(); await expect(page).toHaveURL(/\/options$/); await expect(directory(page)).toHaveCount(0);
 });
+
+
+test("directory retains the task after cross-boundary drags and dismisses only a backdrop gesture", async ({ page }, info) => {
+  await open(page);
+  const dialog = directory(page);
+  const search = dialog.getByRole("searchbox");
+  await search.fill("options");
+  await dialog.getByRole("button", { name: "Options & futures", exact: true }).click();
+  const href = page.url();
+  const box = (await dialog.boundingBox())!;
+  const field = (await search.boundingBox())!;
+  const outside = { x: Math.max(1, box.x / 2), y: field.y + field.height / 2 };
+  const inside = { x: field.x + field.width / 2, y: outside.y };
+
+  // A real text-selection drag can end on ::backdrop. Native click retargeting
+  // then names the dialog; that alone is not an intentional dismiss gesture.
+  await page.mouse.move(inside.x, inside.y);
+  await page.mouse.down();
+  await page.mouse.move(outside.x, outside.y, { steps: 8 });
+  await page.mouse.up();
+  await expect(dialog, "Dragging from the task onto backdrop must preserve it").toBeVisible();
+  await expect(search).toHaveValue("options");
+  await expect(dialog.getByRole("button", { name: "Options & futures", exact: true })).toHaveAttribute("aria-pressed", "true");
+  expect(page.url()).toBe(href);
+
+  // The opposite direction also has the dialog as the common click ancestor.
+  await page.mouse.move(outside.x, outside.y);
+  await page.mouse.down();
+  await page.mouse.move(inside.x, inside.y, { steps: 8 });
+  await page.mouse.up();
+  await expect(dialog, "A gesture ending inside the task must not dismiss it").toBeVisible();
+  await expect(search).toHaveValue("options");
+  await info.attach("gesture-retained", { body: await page.screenshot(), contentType: "image/png" });
+
+  // Deliberate backdrop activation remains available for pointer and touch.
+  if (info.project.use.hasTouch) await page.touchscreen.tap(outside.x, outside.y);
+  else await page.mouse.click(outside.x, outside.y);
+  await expect(directory(page)).toHaveCount(0);
+  const returnTarget = page.viewportSize()!.width <= 860
+    ? page.getByRole("button", { name: "Open navigation", exact: true })
+    : page.locator(".topbar .shared-shell-directory-trigger");
+  await expect(returnTarget).toBeFocused();
+  await open(page);
+  await expect(directory(page).getByRole("searchbox")).toHaveValue("options");
+  await expect(directory(page).getByRole("button", { name: "Options & futures", exact: true })).toHaveAttribute("aria-pressed", "true");
+});

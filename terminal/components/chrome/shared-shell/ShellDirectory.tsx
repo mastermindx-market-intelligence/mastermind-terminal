@@ -23,6 +23,14 @@ function section(entry: Entry): string {
   return "markets";
 }
 const normalize = (value: string) => value.normalize("NFKC").toLocaleLowerCase().trim();
+// Native click retargeting can name the dialog after a drag crosses its edge.
+// Only a gesture whose endpoints are both on the backdrop is a dismiss intent.
+const isBackdrop = (event: { target: EventTarget; currentTarget: HTMLDialogElement; clientX: number; clientY: number }) => {
+  if (event.target !== event.currentTarget) return false;
+  const box = event.currentTarget.getBoundingClientRect();
+  return event.clientX < box.left || event.clientX >= box.right
+    || event.clientY < box.top || event.clientY >= box.bottom;
+};
 const canReceiveFocus = (element: HTMLElement | null): element is HTMLElement => !!element
   && element !== document.body && element !== document.documentElement
   && element.isConnected && element.getClientRects().length > 0
@@ -65,6 +73,7 @@ export default function ShellDirectory({ open, onClose, onSearchCompanies }: {
   const selected = useRef(false);
   const focusOwned = useRef(false);
   const composing = useRef(false);
+  const backdropGesture = useRef<{ pointerId: number; released: boolean } | null>(null);
   const escapeRequest = useRef<{ event: KeyboardEvent; protected: boolean; expiry: number } | null>(null);
   const revealFocus = useRef<{ button: HTMLButtonElement; index: number } | null>(null);
   const tokens = useMemo(() => normalize(query).split(/\s+/).filter(Boolean), [query]);
@@ -132,6 +141,7 @@ export default function ShellDirectory({ open, onClose, onSearchCompanies }: {
     selected.current = false;
     focusOwned.current = false;
     composing.current = false;
+    backdropGesture.current = null;
     const invoker = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     lastFocus.current = canReceiveFocus(invoker) ? invoker : null;
     const shell = element.closest(".shared-shell") ?? document;
@@ -140,6 +150,7 @@ export default function ShellDirectory({ open, onClose, onSearchCompanies }: {
     const previous = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
+      backdropGesture.current = null;
       if (escapeRequest.current) window.clearTimeout(escapeRequest.current.expiry);
       escapeRequest.current = null;
       const active = document.activeElement;
@@ -220,6 +231,7 @@ export default function ShellDirectory({ open, onClose, onSearchCompanies }: {
         escapeRequest.current = null;
       }}
       onCancel={event => {
+        backdropGesture.current = null;
         event.preventDefault();
         const request = escapeRequest.current;
         if (request) window.clearTimeout(request.expiry);
@@ -227,7 +239,31 @@ export default function ShellDirectory({ open, onClose, onSearchCompanies }: {
         if (!composing.current && !request?.protected
           && !request?.event.defaultPrevented) onClose();
       }}
-      onClick={event => { if (event.target === event.currentTarget) onClose(); }}>
+      onPointerDownCapture={event => {
+        backdropGesture.current = event.isPrimary && event.button === 0 && isBackdrop(event)
+          ? { pointerId: event.pointerId, released: false } : null;
+      }}
+      onPointerUpCapture={event => {
+        const gesture = backdropGesture.current;
+        if (gesture && gesture.pointerId === event.pointerId && event.isPrimary
+          && event.button === 0 && isBackdrop(event)) gesture.released = true;
+        else backdropGesture.current = null;
+      }}
+      onPointerCancelCapture={() => { backdropGesture.current = null; }}
+      onLostPointerCaptureCapture={() => {
+        // Implicit touch capture releases after pointerup, before click.
+        // Preserve only that completed gesture; discard interrupted capture.
+        if (!backdropGesture.current?.released) backdropGesture.current = null;
+      }}
+      onClick={event => {
+        const gesture = backdropGesture.current;
+        backdropGesture.current = null;
+        // Older engines expose click as MouseEvent, newer engines as PointerEvent.
+        // Neither a synthetic/keyboard click nor a different pointer may consume it.
+        const pointerId = (event.nativeEvent as MouseEvent & { pointerId?: number }).pointerId;
+        if (gesture?.released && (pointerId === undefined || pointerId === gesture.pointerId)
+          && event.detail > 0 && event.button === 0 && isBackdrop(event)) onClose();
+      }}>
       <div className="shared-directory-surface">
         <header className="shared-directory-header">
           <div><span className="shared-directory-eyebrow">{t("shellWorkspace")}</span>

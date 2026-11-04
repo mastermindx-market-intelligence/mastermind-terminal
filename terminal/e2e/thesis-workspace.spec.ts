@@ -13,6 +13,10 @@ async function prepare(page: Page, testInfo: TestInfo, baseURL: string | undefin
   await page.context().route("**/api/brain/me", route => route.fulfill({
     json: { tier: "guest", quotas: { fast: { remaining: 0, limit: 0, period: "day" }, pro: { remaining: 0, limit: 0, period: "day" } } },
   }));
+  // Keep the unrelated external widget deterministic in primary and stale tabs.
+  await page.context().route("https://www.mastermind-x.com/mm_brain.js", route => route.fulfill({
+    contentType: "application/javascript", body: "",
+  }));
   await page.addInitScript((useZh) => {
     localStorage.setItem("mm.lang", useZh ? "zh" : "en");
     document.documentElement?.setAttribute("data-lang", useZh ? "zh" : "en");

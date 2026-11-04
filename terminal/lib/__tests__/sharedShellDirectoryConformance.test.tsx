@@ -369,3 +369,90 @@ describe("incumbent directory conformance", () => {
     expect(document.body.style.overflow).toBe("clip");
   });
 });
+
+
+// Pointer lifecycle and boundary checks are outcome tests for canceled/mixed
+// gestures; real common-ancestor retargeting and touch run in Playwright.
+async function pointer(target: HTMLElement, type: string, options: { pointerId?: number; isPrimary?: boolean; clientX?: number; clientY?: number; button?: number } = {}) {
+  const { pointerId = 1, isPrimary = true, clientX = 10, clientY = 50, button = 0 } = options;
+  const event = new MouseEvent(type, { bubbles: true, cancelable: true, clientX, clientY, button });
+  Object.defineProperties(event, { pointerId: { value: pointerId }, isPrimary: { value: isPrimary } });
+  await act(async () => { target.dispatchEvent(event); });
+}
+async function backdropClick(target: HTMLElement, options: MouseEventInit = {}) {
+  await act(async () => { target.dispatchEvent(new MouseEvent("click", {
+    bubbles: true, cancelable: true, button: 0, detail: 1, clientX: 10, clientY: 50, ...options,
+  })); });
+}
+function gestureDialog() {
+  const element = container.querySelector("dialog")!;
+  vi.spyOn(element, "getBoundingClientRect").mockReturnValue(new DOMRect(20, 20, 300, 400));
+  return element;
+}
+
+describe("directory backdrop intent", () => {
+  it("preserves the query after cancellation, a different pointer or a secondary press", async () => {
+    await mount(); await type("options");
+    const dialog = gestureDialog();
+    await pointer(dialog, "pointerdown");
+    await pointer(dialog, "lostpointercapture");
+    await pointer(dialog, "pointerup");
+    await backdropClick(dialog);
+    expect(fixture.closes).not.toHaveBeenCalled();
+
+    await pointer(dialog, "pointerdown", { button: 2 });
+    await pointer(dialog, "pointerup", { button: 2 });
+    await backdropClick(dialog);
+    expect(fixture.closes).not.toHaveBeenCalled();
+
+    await pointer(dialog, "pointerdown");
+    await pointer(dialog, "pointercancel");
+    await pointer(dialog, "pointerup");
+    await backdropClick(dialog);
+    expect(fixture.closes).not.toHaveBeenCalled();
+
+    await pointer(dialog, "pointerdown", { pointerId: 1 });
+    await pointer(dialog, "pointerup", { pointerId: 2 });
+    await backdropClick(dialog);
+    expect(fixture.closes).not.toHaveBeenCalled();
+
+    await pointer(dialog, "pointerdown", { isPrimary: false });
+    await pointer(dialog, "pointerup", { isPrimary: false });
+    await backdropClick(dialog);
+    expect(fixture.closes).not.toHaveBeenCalled();
+    expect(container.querySelector<HTMLInputElement>("input")?.value).toBe("options");
+  });
+
+  it("keeps a click without a pointer gesture and an inside-edge click within the task", async () => {
+    await mount(); await type("options");
+    const dialog = gestureDialog();
+    await backdropClick(dialog);
+    expect(fixture.closes).not.toHaveBeenCalled();
+
+    await pointer(dialog, "pointerdown", { clientX: 20.5 });
+    await pointer(dialog, "pointerup", { clientX: 20.5 });
+    await backdropClick(dialog, { clientX: 20.5 });
+    expect(fixture.closes).not.toHaveBeenCalled();
+    expect(dialog.open).toBe(true);
+    expect(container.querySelector<HTMLInputElement>("input")?.value).toBe("options");
+  });
+
+  it("dismisses one deliberate backdrop gesture and consumes it before reopening", async () => {
+    await mount(); await type("options");
+    const dialog = gestureDialog();
+    await pointer(dialog, "pointerdown");
+    await pointer(dialog, "pointerup");
+    await pointer(dialog, "lostpointercapture");
+    await backdropClick(dialog);
+    expect(fixture.closes).toHaveBeenCalledTimes(1);
+    expect(document.body.style.overflow).toBe("clip");
+    expect(document.activeElement).toBe(button("Tools opener"));
+
+    await click(button("Tools opener"));
+    const reopened = gestureDialog();
+    await backdropClick(reopened);
+    expect(fixture.closes).toHaveBeenCalledTimes(1);
+    expect(reopened.open).toBe(true);
+    expect(container.querySelector<HTMLInputElement>("input")?.value).toBe("options");
+  });
+});
