@@ -100,7 +100,7 @@ The source-only policy-preview proxy retains the existing request-time CLOSED
 Investigation gate and exact-token verifier. It forwards only the pinned public
 request/settings to the canonical HTTPS Macro owner, bounds actual streamed bytes,
 rejects duplicate decoded JSON keys and never retries, follows redirects, forwards
-browser cookies/Authorization or allocates identities.46 transport and92 admission
+browser cookies/Authorization or allocates identities.49 transport and92 admission
 cases pass. Original Fabric proxy return ended provider_output_limit/no artifact;
 this is parent source. Native host integration/consequential review are pending;
 no installed/authenticated/publication acceptance follows from these tests.

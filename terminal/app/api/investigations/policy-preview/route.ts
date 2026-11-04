@@ -9,7 +9,7 @@ const REQUEST_LIMIT=16*1024,REPLY_LIMIT=256*1024;
 const headers={"Cache-Control":"private, no-store","Vary":"Cookie, Authorization","X-Content-Type-Options":"nosniff","X-Robots-Tag":"noindex, noarchive"};
 const record=(v:unknown):v is Record<string,unknown>=>!!v&&typeof v==="object"&&!Array.isArray(v);
 const exact=(v:unknown,keys:string[]):v is Record<string,unknown>=>record(v)&&Object.keys(v).length===keys.length&&keys.every(k=>Object.hasOwn(v,k));
-const text=(v:unknown,max=256):v is string=>typeof v==="string"&&v.length>0&&v.length<=max&&!/[\u0000-\u001f\u007f]/.test(v);
+const text=(v:unknown,max=256):v is string=>typeof v==="string"&&v.length>0&&v.length<=max&&v.trim()===v&&!/[\u0000-\u001f\u007f]/.test(v);
 const hash=(v:unknown)=>typeof v==="string"&&/^[0-9a-f]{64}$/.test(v);
 const reply=(body:unknown,status=200,extra:Record<string,string>={})=>NextResponse.json(body,{status,headers:{...headers,...extra}});
 class BodyLimit extends Error{}
@@ -72,7 +72,7 @@ function settingsShape(s:unknown):boolean{
  if(!exact(s,["economy_a","economy_b","lens","definition","method_version","period","instrument_a_ref","instrument_b_ref","revision_policy"]))return false;
  if(!text(s.economy_a,2)||!/^[A-Z]{2}$/.test(s.economy_a)||!text(s.economy_b,2)||!/^[A-Z]{2}$/.test(s.economy_b)
   ||s.lens!=="nominal_policy_point_gap"||s.definition!=="absolute_gap_change_bp"||!text(s.method_version)
-  ||!["latest_vintage","original_known"].includes(String(s.revision_policy))
+  ||typeof s.revision_policy!=="string"||!["latest_vintage","original_known"].includes(s.revision_policy)
   ||(s.instrument_a_ref!==null&&!text(s.instrument_a_ref))||(s.instrument_b_ref!==null&&!text(s.instrument_b_ref)))return false;
  const p=s.period;
  return exact(p,["mode","key"])&&p.mode==="owner_horizon"&&text(p.key,32)
@@ -80,10 +80,10 @@ function settingsShape(s:unknown):boolean{
 }
 function validReply(raw:unknown,request:Record<string,unknown>):boolean{
  if(!exact(raw,["schema","state","source_generation","artifact_sha256","mapping_identity","qualification_identity","result"])
-  ||raw.schema!=="intl.policy_preview.v1"||!["qualified","unavailable","invalid"].includes(String(raw.state))
+  ||raw.schema!=="intl.policy_preview.v1"||typeof raw.state!=="string"||!["qualified","unavailable","invalid"].includes(raw.state)
   ||raw.source_generation!==request.generation||raw.artifact_sha256!==request.fingerprint||!record(raw.result)||raw.result.state!==raw.state)return false;
- for(const key of ["mapping_identity","qualification_identity"])if(raw[key]!==null&&!text(raw[key]))return false;
- return raw.state!=="qualified"||(text(raw.mapping_identity)&&text(raw.qualification_identity));
+ for(const key of ["mapping_identity","qualification_identity"])if(raw[key]!==null&&!text(raw[key],4096))return false;
+ return raw.state!=="qualified"||(text(raw.mapping_identity,4096)&&text(raw.qualification_identity,4096));
 }
 /** Read-only proxy under the incumbent admission/auth owners. It never saves,
  * allocates identities, retries, follows a caller URL or forwards cookie headers. */
