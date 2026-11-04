@@ -129,4 +129,35 @@ describe("EOD / heatmap / flow desk load-failure evidence lock is the sha256 of 
       expect(yml).toMatch(new RegExp(`name:\\s*${name},\\s*width:\\s*${width},\\s*height:\\s*${height}`));
     }
   });
+  it("validates the archived-refresh operation capture without replacing historical packet crops", () => {
+    const evidence = evidenceText();
+    const separator = "\nexposureArchivedRefreshRecapture:\n";
+    const index = evidence.indexOf(separator);
+    expect(index).toBeGreaterThan(0);
+    const receipt = evidence.slice(index + 1);
+    const folder = "operations/exposure-1243-archive-refresh-20261104";
+    const sourcePath = "terminal/components/gexdesk/GexDeskView.tsx";
+    expect(receipt).toContain(`  source: "${sourcePath}"`);
+    expect(receipt).toContain(`  currentSourceSha256: "${sha256Of(join(REPO, sourcePath))}"`);
+    expect(receipt).toContain(`  outputDir: "${folder}"`);
+    expect(receipt).toContain("  actualCases: 42");
+    expect(receipt).toContain("  failedCases: 0");
+    expect(receipt).toContain('  packetRootCrops: "preserved at original committed bytes"');
+    let count = 0;
+    const states = ["eod-darkpool-unavailable", "eod-darkpool-retried", "eod-darkpool-absent", "eod-structure-partial", "eod-structure-retried", "eod-structure-unavailable", "eod-structure-absent"];
+    for (const state of states) {
+      for (const width of [1440, 820, 390]) {
+        for (const language of ["", "-zh"]) {
+          const file = `${state}-${width}${language}.png`;
+          const path = join(CROP_DIR, folder, file);
+          expect(existsSync(path), file).toBe(true);
+          expect(statSync(path).size, file).toBeGreaterThan(1000);
+          expect(receipt).toContain(`    ${file}: "${sha256Of(path)}"`);
+          count++;
+        }
+      }
+    }
+    expect(count).toBe(42);
+  });
+
 });

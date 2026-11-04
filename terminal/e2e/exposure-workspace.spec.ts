@@ -64,6 +64,44 @@ test("Exposure opens on usable strikes and reaches Market State and history", as
   await expect(page.locator(".obs-gex-state")).toHaveCount(0);
 });
 
+// Protected-main compatibility: a deliberately re-opened archived book must await
+// a new response, not merely display a 25-second cached result while revalidating
+// invisibly. A changed source for the same date must be observable by the reader.
+for (const lang of ["en", "zh"] as const) {
+  test(`revisiting an archived Exposure book consumes its corrected source (${lang})`, async ({ page }) => {
+    await page.addInitScript((locale) => localStorage.setItem("mm.lang", locale), lang);
+    let datedReads = 0;
+    await page.route((url) => url.pathname === "/api/flow" &&
+      url.searchParams.get("f") === "gex_at:SPY:2026-07-02", async (route) => {
+      datedReads += 1;
+      const strike = datedReads === 1 ? 756 : 757;
+      await route.fulfill({ json: {
+        schema: "options_hub.gex/v1", root: "SPY", asof: "2026-07-02",
+        spot_ref: 756, by_strike_full_n: 1,
+        by_strike: [{ strike, gamma_net: 45, gamma_call: 55, gamma_put: -10 }],
+        by_expiry: [],
+      } });
+    });
+    await page.goto("/options?tab=gex&view=strike&symbol=SPY");
+    const picker = page.getByRole("combobox", { name: makeGexT(lang)("sessionPickerAria") });
+    await expect(picker).toBeVisible();
+    await picker.selectOption("2026-07-02");
+    await expect(page.getByTestId("gex-archived-chip")).toContainText("2026-07-02");
+    await expect(page.locator('[data-tut="gex-ladder"] [data-strike="756"]')).toHaveCount(1);
+    expect(datedReads).toBe(1);
+
+    await picker.selectOption("");
+    await expect(page.getByTestId("gex-archived-chip")).toHaveCount(0);
+    await picker.selectOption("2026-07-02");
+    await expect.poll(() => datedReads, { timeout: 15_000 }).toBe(2);
+    await expect(page.locator('[data-tut="gex-ladder"] [data-strike="757"]')).toHaveCount(1);
+    await expect(page.locator('[data-tut="gex-ladder"] [data-strike="756"]')).toHaveCount(0);
+    await expect(page.getByTestId("gex-archived-chip")).toContainText("2026-07-02");
+    // The archived pane must never advertise present-session Market State.
+    await expect(page.locator(".obs-gex-state")).toHaveCount(0);
+  });
+}
+
 test("a sparse GOOGL book keeps the page in place and identifies older history", async ({ page }) => {
   // Synthetic mismatched clocks reproduce the user's screen. Only one strike is published.
   await page.route((url) => url.pathname === "/api/flow/stream", (route) => route.abort());
