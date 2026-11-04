@@ -175,6 +175,8 @@ describe("SharedBrief recipient consumer", () => {
     let text = m.container.textContent ?? "";
     expect(text).toContain("Weekly research brief");
     expect(text).toContain("An authored sentence.");
+    expect(text).toContain("Content as of");
+    expect(text).toContain("Access reflects this read. The brief’s dates are shown above.");
     expect(text).not.toContain("原有句子。");
     expect(text).toContain(
       "View only. Members of Research can read this brief. Access changes with team membership.",
@@ -194,7 +196,7 @@ describe("SharedBrief recipient consumer", () => {
     expect(text).toContain("原有句子。");
     expect(text).toContain("平稳。");
     expect(text).not.toContain("An authored sentence.");
-    expect(text).toContain("仅可查看。成员为动态：Research 的当前成员可以读取此简报。");
+    expect(text).toContain("仅可查看。Research 的当前成员可以阅读此简报，访问权限随团队成员变动而变化。");
     expect(m.container.firstElementChild?.getAttribute("lang")).toBe("zh");
     // Switching locale never refetches: still exactly one read.
     expect(fetchMock).toHaveBeenCalledTimes(1);
