@@ -1,423 +1,314 @@
 "use client";
-/**
- * TechLabPanel — "Lab" tab in the MegaPane financials rail.
- *
- * Shows the Macro Dashboard Technical Lab signal profiles for the current symbol:
- *   (a) Header: asof timestamp + descriptive framing caveat.
- *   (b) "Firing now" list: signals with state==1 in intel.tech.events.
- *   (c) Per-signal profile stats: WR 21d vs base (bar), edge, era split, fires+months,
- *       up-tape %.
- *   (d) Empty state when no tech block is available.
- *   (e) Footer link to the Technical Lab page.
- *
- * House laws:
- *   - Display-tier only. No "BUY"/"SELL" wording. No "validated" in UI strings.
- *     (TLT-R3: the Terminal only RENDERS data produced by the macro Python engine.)
- *   - TLT-R4: lab markers on chart are default OFF (handled in ChartPanel.tsx).
- *   - Survivor-universe caveat rides with every statistic shown (copied from the source).
- *   - No "danny"/"whale" vocabulary (DT-R20).
- *
- * Props: {sym, intel?, zh?}
- *   intel — the full <SYM>.intel.json payload (may be null or missing the "tech" key).
- */
-import { memo, useMemo } from "react";
-import { pick, fmtDate } from "../../lib/finFormat";
 
-// ── Types (narrow — only what we render) ──────────────────────────────────────
+import { memo, useId, useMemo, useState } from "react";
+import Link from "next/link";
+import { pick } from "../../lib/finFormat";
+import { buildLabModel, sortLabSetups, type LabModel, type LabSetup, type LabSort } from "../../lib/techLabView";
+import styles from "./TechLabPanel.module.css";
 
-interface TechSignalProfile {
-  display_en?: string | null;
-  family?: string | null;
-  direction?: number | null;    // +1 up, -1 down, 0 neutral
-  n_fires?: number | null;
-  n_months?: number | null;
-  wr_21d?: number | null;
-  base_wr?: number | null;
-  edge_wr?: number | null;
-  mfe_mae_med?: number | null;
-  durable_rate?: number | null;
-  up_tape_pct?: number | null;
-  wr_pre2010?: number | null;
-  wr_post2010?: number | null;
-  kind?: string | null;
+interface TechLabPanelProps { sym: string; intel?: unknown; zh?: boolean }
+type EvidenceFilter = "ranked" | "above" | "below" | "unrated";
+
+const FAMILIES: Record<string, [string, string]> = {
+  ma_crosses: ["Moving averages", "均线"], pivot_patterns: ["Price pivots", "价格枢轴"],
+  rsi_extremes: ["RSI", "RSI"], pattern_recognition: ["Price patterns", "价格形态"],
+  bollinger_signals: ["Bollinger bands", "布林带"], trend_regime: ["Trend", "趋势"],
+  momentum_breakout: ["Momentum", "动量"], return_z: ["Returns", "收益"],
+  strength_flag: ["Relative strength", "相对强度"], fundamental_valuation: ["Valuation", "估值"],
+  valuation: ["Valuation", "估值"], insider: ["Insiders", "内部人"],
+  ma_stars: ["Moving averages", "均线"], ichimoku: ["Ichimoku", "一目均衡"],
+  trend_ribbon: ["Trend ribbon", "趋势带"], rsi_stack: ["RSI stack", "多周期 RSI"],
+  trend_strength: ["Trend strength", "趋势强度"], compression: ["Breakouts", "突破"],
+  volume_flow: ["Volume", "成交量"], adaptive_trend: ["Adaptive trend", "自适应趋势"],
+  atr_adaptive_trend: ["Supertrend", "超级趋势"], rank_trend: ["Trend consistency", "趋势一致性"],
+  path_risk: ["Volatility", "波动率"], momentum_context: ["Momentum", "动量"],
+  performance: ["Performance", "表现"],
+};
+const NAMES: Record<string, [string, string]> = {
+  return_1d: ["One-day return", "单日收益"],
+  valuation_pctile: ["Valuation percentile", "估值百分位"],
+  insider_power_state: ["Insider activity score", "内部人活动评分"],
+  ichimoku_above_cloud: ["Price above the Ichimoku cloud", "价格位于一目云层上方"],
+  ichimoku_tk_cross_up: ["Ichimoku bullish crossover", "一目均衡看涨交叉"],
+  ribbon_up: ["Moving-average ribbon trending up", "均线带向上"],
+  rsi_stack_curl_up: ["Three RSI periods turning up", "三个周期的 RSI 转升"],
+  adx_weak: ["Weak trend / ranging market", "趋势较弱 / 区间震荡"],
+  aroon_cross_up: ["Aroon bullish crossover", "阿隆指标看涨交叉"],
+  vi_cross_up: ["Vortex bullish crossover", "涡流指标看涨交叉"],
+  elder_bulls_dominant: ["Buyers dominating the Elder Ray", "艾尔德力量指标显示买方占优"],
+  donch_break_up: ["Price breaking the 20-day high", "价格突破 20 日高点"],
+  obv_slope_dn: ["Volume trend pointing down", "成交量趋势向下"],
+  kama_slope_up: ["Adaptive moving average rising", "自适应均线上升"],
+  er_efficient: ["Efficient price trend", "价格趋势效率较高"],
+  st_flip_up: ["Supertrend turning up", "超级趋势转升"],
+  st_bull_state: ["Price holding above trend support", "价格保持在趋势支撑上方"],
+  sprm_strong_up: ["Consistent upward price trend", "价格持续向上"],
+  natr_low: ["Low relative volatility", "相对波动率较低"],
+  mom121_pos: ["Positive medium-term momentum", "中期动量为正"],
+};
+function nameOf(s: LabSetup, zh: boolean) {
+  const label = Object.hasOwn(NAMES, s.id) ? NAMES[s.id] : undefined;
+  return label ? pick(zh, ...label) : s.name;
 }
-
-interface TechSignalState {
-  dir?: 1 | -1 | 0 | null;
-  kind?: "event" | "state" | null;
-  fires?: string[];
-  state?: 0 | 1 | null;
+function familyOf(s: LabSetup, zh: boolean) {
+  const label = Object.hasOwn(FAMILIES, s.family) ? FAMILIES[s.family] : undefined;
+  return label ? pick(zh, ...label) : s.family.replace(/_/g, " ");
 }
-
-interface TechEventsPayload {
-  ticker?: string;
-  generated_utc?: string;
-  window_start?: string;
-  signals?: Record<string, TechSignalState>;
+const percentage = (v: number | null) => v === null ? "—" : (v * 100).toFixed(1) + "%";
+function difference(v: number | null, zh: boolean) {
+  if (v === null) return "—";
+  if (v !== 0 && Math.abs(v) < 0.001) return (v > 0 ? "+" : "-") + "<0.1" + pick(zh, " pp", " 个百分点");
+  const rounded = Math.round(v * 1000) / 10;
+  return (rounded > 0 ? "+" : "") + rounded.toFixed(1) + pick(zh, " pp", " 个百分点");
 }
-
-interface TechBlock {
-  events?: TechEventsPayload | null;
-  profiles?: Record<string, TechSignalProfile> | null;
-  asof?: string | null;
+const number = (v: number | null, zh: boolean) => v === null ? "—" : v.toLocaleString(zh ? "zh-CN" : "en-US");
+function date(value: string | null, zh: boolean, time = false) {
+  if (!value) return pick(zh, "Not reported", "未提供");
+  return new Intl.DateTimeFormat(zh ? "zh-CN" : "en-US", {
+    year: "numeric", month: "short", day: "numeric", timeZone: "UTC",
+    ...(time && value.length > 10 ? { hour: "2-digit", minute: "2-digit", timeZoneName: "short" } as const : {}),
+  }).format(new Date(value.length === 10 ? value + "T00:00:00Z" : value));
 }
-
-interface TechLabPanelProps {
-  sym: string;
-  intel?: any | null;
-  zh?: boolean;
+function directionLabel(s: LabSetup, zh: boolean) {
+  if (s.direction === null) return pick(zh, "Not reported", "未提供");
+  return s.direction === 1 ? pick(zh, "Up", "向上") : s.direction === -1 ? pick(zh, "Down", "向下") : pick(zh, "Neutral", "中性");
 }
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-/** Direction glyph: +1 → ▲, -1 → ▼, 0 → ○ */
-function dirGlyph(dir: number | null | undefined): string {
-  if (dir === 1) return "▲";
-  if (dir === -1) return "▼";
-  return "○";
+function stateLabel(s: LabSetup, zh: boolean) {
+  if (s.contextOnly) return pick(zh, "Context", "背景指标");
+  if (s.active === null) return pick(zh, "State unavailable", "状态未提供");
+  if (!s.active) return pick(zh, "Inactive", "未触发");
+  return s.kind === "event" ? pick(zh, "Event", "事件") : pick(zh, "Ongoing state", "持续状态");
 }
-
-/** CSS class for direction colouring. */
-function dirClass(dir: number | null | undefined): string {
-  if (dir === 1) return "up";
-  if (dir === -1) return "down";
-  return "mut";
-}
-
-/** Direction → the design-system colour token that feeds the .fin-tag tint (--c).
- *  Tokens only: the east red-up flip rides --up/--down for free. */
-function dirTone(dir: number | null | undefined): string {
-  if (dir === 1) return "var(--up)";
-  if (dir === -1) return "var(--down)";
-  return "var(--muted)";
-}
-
-/** Format a win-rate as a percentage string, or "—". */
-function fmtWr(v: number | null | undefined): string {
-  if (v == null || !isFinite(v)) return "—";
-  return (v * 100).toFixed(1) + "%";
-}
-
-/** Days since a date string ("YYYY-MM-DD") to today. */
-function daysSince(dateStr: string): number | null {
-  try {
-    const ms = Date.now() - new Date(dateStr + "T00:00:00Z").getTime();
-    return Math.max(0, Math.floor(ms / 86_400_000));
-  } catch {
-    return null;
-  }
-}
-
-/** Most recent fire date from a fires array. */
-function lastFireDate(fires: string[] | undefined): string | null {
-  if (!fires || !fires.length) return null;
-  return fires[fires.length - 1];
-}
-
-/** Family label → display name (bilingual). */
-function familyLabel(family: string | null | undefined, zh: boolean): string {
-  if (!family) return "";
-  const map: Record<string, [string, string]> = {
-    ma_crosses: ["MA Cross", "均线交叉"],
-    pivot_patterns: ["Pivot", "枢轴"],
-    rsi_extremes: ["RSI", "RSI 极值"],
-    pattern_recognition: ["Pattern", "形态"],
-    bollinger_signals: ["Bollinger", "布林带"],
-    trend_regime: ["Trend", "趋势"],
-    momentum_breakout: ["Momentum", "动量突破"],
-    return_z: ["Return", "收益 Z 值"],
-    strength_flag: ["Strength", "强度"],
-    valuation: ["Valuation", "估值"],
-    insider: ["Insider", "内部人"],
-    ma_stars: ["MA Star", "均线星"],
-  };
-  const hit = map[family];
-  return hit ? pick(zh, hit[0], hit[1]) : family.replace(/_/g, " ");
-}
-
-// ── Small bar: WR vs base ─────────────────────────────────────────────────────
-
-function WrBar({ wr, base, zh }: { wr: number | null | undefined; base: number | null | undefined; zh: boolean }) {
-  if (wr == null || base == null) return <span className="fin-tl-dim">—</span>;
-  const maxPct = 80; // clamp to 80% for display
-  const wrPct = Math.min(wr * 100, maxPct);
-  const basePct = Math.min(base * 100, maxPct);
-  const ahead = wr > base;
-  return (
-    <div
-      className="tl-wr-bar fin-tl-wr"
-      title={pick(
-        zh,
-        `21d win rate: ${(wr * 100).toFixed(1)}% · universe base: ${(base * 100).toFixed(1)}%`,
-        `21日胜率：${(wr * 100).toFixed(1)}% · 样本基准：${(base * 100).toFixed(1)}%`,
-      )}
-    >
-      <div className="tl-wr-track fin-tl-wr-track">
-        {/* base marker */}
-        <div className="tl-wr-base fin-tl-wr-base" style={{ left: `${basePct}%` }} />
-        {/* actual bar */}
-        <div
-          className={`tl-wr-fill fin-tl-wr-fill ${ahead ? "up" : "down"}`}
-          style={{ width: `${wrPct}%` }}
-        />
-      </div>
-      <span className={`tl-wr-num fin-tl-wr-num ${ahead ? "up" : "down"}`}>{(wr * 100).toFixed(1)}%</span>
-    </div>
-  );
-}
-
-// ── Signal row ────────────────────────────────────────────────────────────────
-
-function SignalRow({
-  id,
-  profile,
-  firing,
-  daysSinceFire,
-  zh,
-}: {
-  id: string;
-  profile: TechSignalProfile | undefined;
-  firing: boolean;
-  daysSinceFire: number | null;
-  zh: boolean;
-}) {
-  const dir = profile?.direction ?? null;
-  const name = profile?.display_en || id;
-  const family = familyLabel(profile?.family, zh);
-
-  return (
-    <div className={`tl-sig-row fin-card${firing ? " tl-sig-row--firing fin-tl-firing" : ""}`}>
-      {/* Signal name + family + direction */}
-      <div className="tl-sig-head fin-tl-sighead">
-        <span
-          className={`tl-dir ${dirClass(dir)} fin-tag`}
-          style={{ "--c": dirTone(dir) } as React.CSSProperties}
-        >
-          {dirGlyph(dir)}
-        </span>
-        <span className="tl-sig-name fin-tl-signame">{name}</span>
-        {family && (
-          <span className="tl-family fin-tag" style={{ "--c": "var(--muted)" } as React.CSSProperties}>
-            {family}
-          </span>
-        )}
-        {firing && daysSinceFire !== null && (
-          <span className="tl-days-ago fin-tag" style={{ "--c": "var(--signal)" } as React.CSSProperties}>
-            {daysSinceFire === 0
-              ? pick(zh, "today", "今日")
-              : pick(zh, `${daysSinceFire}d ago`, `${daysSinceFire}天前`)}
-          </span>
-        )}
-      </div>
-
-      {/* Profile stats (omit when profile unavailable) */}
-      {profile && (
-        <div className="tl-sig-stats fin-tl-stats">
-          <div className="tl-stat-pair fin-tl-wrpair">
-            <span className="tl-stat-label fin-tl-k">{pick(zh, "Win rate 21d vs base", "21日胜率 vs 基准")}</span>
-            <WrBar wr={profile.wr_21d} base={profile.base_wr} zh={zh} />
-          </div>
-
-          <div className="tl-stat-grid fin-kpis">
-            <div className="tl-stat fin-kpi">
-              <span className="tl-stat-label k">{pick(zh, "Edge WR", "胜率优势")}</span>
-              <span className={`tl-stat-val v ${(profile.edge_wr ?? 0) >= 0 ? "up" : "down"}`}>
-                {profile.edge_wr != null ? `${(profile.edge_wr * 100) >= 0 ? "+" : ""}${(profile.edge_wr * 100).toFixed(1)}pp` : "—"}
-              </span>
-            </div>
-            <div className="tl-stat fin-kpi">
-              <span className="tl-stat-label k">{pick(zh, "MFE/MAE", "盈亏幅度比")}</span>
-              <span className="tl-stat-val v">{profile.mfe_mae_med != null ? profile.mfe_mae_med.toFixed(2) : "—"}</span>
-            </div>
-            <div className="tl-stat fin-kpi">
-              <span className="tl-stat-label k">{pick(zh, "Fires", "触发次数")}</span>
-              <span className="tl-stat-val v">{profile.n_fires != null ? profile.n_fires.toLocaleString() : "—"}</span>
-            </div>
-            <div className="tl-stat fin-kpi">
-              <span className="tl-stat-label k">{pick(zh, "Up-tape %", "上行行情占比")}</span>
-              <span className="tl-stat-val v">{profile.up_tape_pct != null ? (profile.up_tape_pct * 100).toFixed(0) + "%" : "—"}</span>
-            </div>
-          </div>
-
-          {/* Era split: pre/post 2010 */}
-          <div className="tl-era-split fin-tl-era">
-            {profile.wr_pre2010 != null ? (
-              <>
-                <span className="tl-era-label">{pick(zh, "Pre-2010", "2010 年前")}</span>
-                <span className="tl-era-val fin-tl-era-v">{fmtWr(profile.wr_pre2010)}</span>
-                <span className="tl-era-sep">·</span>
-              </>
-            ) : (
-              <>
-                <span className="tl-era-label">{pick(zh, "Pre-2010", "2010 年前")}</span>
-                <span className="tl-era-val">{pick(zh, "n/a", "无")}</span>
-                <span className="tl-era-sep">·</span>
-              </>
-            )}
-            <span className="tl-era-label">{pick(zh, "Post-2010", "2010 年后")}</span>
-            <span className="tl-era-val fin-tl-era-v">{fmtWr(profile.wr_post2010)}</span>
-            {profile.n_months != null && (
-              <span className="tl-era-months">
-                {pick(zh, ` (${profile.n_months}mo of history)`, `（${profile.n_months} 个月样本）`)}
-              </span>
-            )}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ── Main panel ────────────────────────────────────────────────────────────────
+function tone(s: LabSetup) { return s.direction === 1 ? styles.up : s.direction === -1 ? styles.down : styles.muted; }
 
 export default memo(TechLabPanel);
 function TechLabPanel({ sym, intel = null, zh = false }: TechLabPanelProps) {
-  const tech: TechBlock | null = intel?.tech ?? null;
+  const model = useMemo(() => buildLabModel(sym, intel), [sym, intel]);
+  // Ticker changes reset local exploration; no state is persisted or shared with chart markers.
+  return <LabWorkspace key={sym} sym={sym} model={model} zh={zh} />;
+}
 
-  // Derive lists of firing and non-firing signals from the tech block.
-  const { firing, other } = useMemo(() => {
-    if (!tech?.events?.signals) return { firing: [] as string[], other: [] as string[] };
-    const signals = tech.events.signals as Record<string, TechSignalState>;
-    const firingIds: string[] = [];
-    const otherIds: string[] = [];
-    for (const [id, state] of Object.entries(signals)) {
-      if (state?.state === 1) firingIds.push(id);
-      else otherIds.push(id);
-    }
-    return { firing: firingIds, other: otherIds };
-  }, [tech]);
-
-  const profiles = tech?.profiles ?? null;
-  const events = tech?.events ?? null;
-  const asof = tech?.asof ?? null;
-
-  // ── Empty state ─────────────────────────────────────────────────────────────
-  if (!tech) {
-    return (
-      <div className="fin-body">
-        <div className="fin-empty fin-empty-lg" role="status">
-          <span className="fin-empty-title">
-            {pick(zh, "No Lab profile for this symbol", "该标的暂无实验室档案")}
-          </span>
-          <span className="fin-empty-why">
-            {pick(
-              zh,
-              `The Technical Lab publishes signal profiles for its research universe only — ${sym} carries no tech block in its intel payload yet.`,
-              `技术实验室仅为其研究样本发布信号档案 — ${sym} 的 intel 数据中尚无 tech 区块。`,
-            )}
-          </span>
-        </div>
-        <LabFooter zh={zh} />
-      </div>
-    );
-  }
+function LabWorkspace({ sym, model, zh }: { sym: string; model: LabModel; zh: boolean }) {
+  const [library, setLibrary] = useState(false);
+  const [filter, setFilter] = useState<EvidenceFilter>("ranked");
+  const [search, setSearch] = useState("");
+  const [dir, setDir] = useState("all");
+  const [sort, setSort] = useState<LabSort>("lift");
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [open, setOpen] = useState<string | null>(null);
+  const uid = useId();
+  const active = model.setups.filter(s => s.active === true && !s.contextOnly);
+  const ranked = active.filter(s => s.comparison);
+  const above = ranked.filter(s => s.history.lift! > 0);
+  const below = ranked.filter(s => s.history.lift! < 0);
+  const unrated = active.filter(s => !s.comparison);
+  const candidates = library ? model.setups : filter === "unrated" ? unrated : filter === "above" ? above : filter === "below" ? below : ranked;
+  const query = search.trim().toLocaleLowerCase();
+  const rows = sortLabSetups(candidates.filter(s =>
+    (dir === "all" || String(s.direction) === dir) &&
+    (!query || [s.id, s.name, nameOf(s, zh), familyOf(s, zh)].some(v => v?.toLocaleLowerCase().includes(query))),
+  ), sort);
+  const chartUrl = "/terminal?symbol=" + encodeURIComponent(sym);
+  const changeFilter = (next: EvidenceFilter) => { setFilter(next); setLibrary(false); setOpen(null); };
+  const reset = () => { setSearch(""); setDir("all"); setFilter("ranked"); };
+  const hasFilters = Boolean(search || dir !== "all" || filter !== "ranked");
 
   return (
-    <div className="fin-body tl-panel">
-      {/* ── Header ─────────────────────────────────────────────────────────── */}
-      <div className="tl-header fin-tl-header">
-        <div className="tl-caveat fin-sec-cap">
-          {pick(
-            zh,
-            "Descriptive research profiles from the Macro Dashboard Technical Lab — survivor universe, not a verdict.",
-            "Macro Dashboard 技术实验室的描述性研究档案——幸存者样本，仅供参考，非投资建议。",
+    <section className={styles.panel} aria-label={pick(zh, "Technical Lab", "技术实验室")} data-testid="lab-workspace" data-lab-version="active-setups-v1">
+      <header className={styles.header}>
+        <div>
+          <div className={styles.eyebrow}>{pick(zh, "LAB", "实验室")} <span> / {sym}</span></div>
+          <h2>{library ? pick(zh, "Research library", "研究库") : pick(zh, "Active setups", "活跃形态")}</h2>
+          <p>{pick(zh, "Compare active conditions and their historical outcomes.", "比较活跃条件及其历史表现。")}</p>
+        </div>
+        <Link className={styles.chartLink} href={chartUrl} aria-label={pick(zh, "View price chart", "查看价格图表")}><span className={styles.actionLabel}>{pick(zh, "View price chart", "查看价格图表")}</span><span aria-hidden="true">↗</span></Link>
+      </header>
+
+      {model.status !== "ready" ? (
+        <div className={styles.empty} role="status">
+          <h3>{model.status === "unbound" ? pick(zh, "This snapshot cannot be matched to " + sym, "无法确认此快照属于 " + sym) : pick(zh, "No Lab snapshot for " + sym, sym + " 暂无实验室快照")}</h3>
+          <p>{pick(zh, "Current setups need a published, symbol-specific Lab evaluation. Explore the price chart while coverage is unavailable.", "当前形态需要该标的已发布的实验室评估。暂无数据时，可先查看价格图表。")}</p>
+        </div>
+      ) : (
+        <>
+          <div className={styles.snapshot}>
+            <span className={styles.snapshotDot} aria-hidden="true" />
+            <span>{pick(zh, "Latest published snapshot", "最近发布的快照")}</span>
+            <strong>{date(model.publishedAt, zh, true)}</strong>
+          </div>
+          <div className={styles.tabs} role="group" aria-label={pick(zh, "Lab view", "实验室视图")}>
+            <button type="button" aria-pressed={!library} onClick={() => { setLibrary(false); setOpen(null); }}>
+              {pick(zh, "Active setups", "活跃形态")} <span>{active.length}</span>
+            </button>
+            <button type="button" aria-pressed={library} onClick={() => { setLibrary(true); setOpen(null); }}>
+              {pick(zh, "All research", "全部研究")} <span>{model.setups.length}</span>
+            </button>
+          </div>
+
+          {!library && (
+            <div className={styles.summary} role="group" aria-label={pick(zh, "Filter historical evidence", "筛选历史证据")}>
+              {([
+                ["ranked", ranked.length, pick(zh, "With history", "有历史比较"), styles.neutral],
+                ["above", above.length, pick(zh, "Above baseline", "高于基准"), styles.positive],
+                ["below", below.length, pick(zh, "Below baseline", "低于基准"), styles.negative],
+                ["unrated", unrated.length, pick(zh, "No comparison", "无可用比较"), styles.neutral],
+              ] as const).map(([value, total, label, color]) => (
+                <button type="button" key={value} className={color} aria-pressed={filter === value} onClick={() => changeFilter(value)}>
+                  <span>{label}</span><strong>{total}</strong>
+                </button>
+              ))}
+            </div>
           )}
-        </div>
-        {asof && (
-          <div className="tl-asof fin-asof">
-            {pick(
-              zh,
-              `Macro Dashboard Technical Lab · as of ${asof.slice(0, 10)}`,
-              `Macro Dashboard 技术实验室 · 截至 ${asof.slice(0, 10)}`,
-            )}
-          </div>
-        )}
-      </div>
 
-      {/* ── Firing now ──────────────────────────────────────────────────────── */}
-      <div className="fin-sec">
-        <div className="fin-eyebrow">{pick(zh, "Active state", "当前状态")}</div>
-        <div
-          className="fin-sec-h fin-rail fin-rule"
-          style={{ "--rail": "var(--brand)" } as React.CSSProperties}
-        >
-          {pick(zh, "Firing now", "当前触发")}
-          {firing.length > 0 && (
-            <span
-              className="tl-firing-count fin-tag"
-              style={{ "--c": "var(--signal)" } as React.CSSProperties}
-            >
-              {firing.length}
-            </span>
+          <button type="button" className={styles.refineButton} aria-label={pick(zh, "Filter & sort setups", "筛选与排序形态")} aria-expanded={filtersOpen} aria-controls={uid + "-filters"} onClick={() => setFiltersOpen(!filtersOpen)}>
+            <span>{pick(zh, "Filter & sort", "筛选与排序")}</span>
+            <span>{sort === "recent" ? pick(zh, "Latest trigger", "最近触发") : sort === "history" ? pick(zh, "Most observations", "最多历史记录") : pick(zh, "Historical lift", "历史胜率差")}</span>
+            <span aria-hidden="true">{filtersOpen ? "−" : "+"}</span>
+          </button>
+          <div id={uid + "-filters"} className={styles.toolbar} data-open={filtersOpen}>
+            <label className={styles.search}>
+              <span className={styles.srOnly}>{pick(zh, "Search setups", "搜索形态")}</span>
+              <span aria-hidden="true">⌕</span>
+              <input type="search" value={search} onChange={e => setSearch(e.target.value)} placeholder={pick(zh, "Search a setup or indicator", "搜索形态或指标")} />
+            </label>
+            <label>
+              <span>{pick(zh, "Direction", "方向")}</span>
+              <select aria-label={pick(zh, "Direction", "方向")} value={dir} onChange={e => setDir(e.target.value)}>
+                <option value="all">{pick(zh, "All directions", "全部方向")}</option>
+                <option value="1">{pick(zh, "Up", "向上")}</option>
+                <option value="-1">{pick(zh, "Down", "向下")}</option>
+                <option value="0">{pick(zh, "Neutral", "中性")}</option>
+              </select>
+            </label>
+            <label>
+              <span>{pick(zh, "Sort", "排序")}</span>
+              <select aria-label={pick(zh, "Sort", "排序")} value={sort} onChange={e => setSort(e.target.value as LabSort)}>
+                <option value="lift">{pick(zh, "Historical lift", "历史胜率差")}</option>
+                <option value="recent">{pick(zh, "Latest trigger", "最近触发")}</option>
+                <option value="history">{pick(zh, "Most observations", "最多历史记录")}</option>
+              </select>
+            </label>
+          </div>
+
+          <div className={styles.listIntro}>
+            <span role="status">{pick(zh, rows.length + (library ? (rows.length === 1 ? " research profile" : " research profiles") : (rows.length === 1 ? " setup" : " setups")), rows.length + (library ? " 项研究" : " 个形态"))}</span>
+            <span>{pick(zh, "21 trading days · Pooled survivor-universe history", "21 个交易日 · 幸存者样本的合并历史")}</span>
+          </div>
+          {library && <p className={styles.contextNote}>{pick(zh, "Context indicators and inactive conditions remain here for research. Only active, discrete setups enter the ranking.", "背景指标和未触发的条件保留供研究；排名仅包含活跃的离散形态。")}</p>}
+          {!library && filter === "unrated" && <p className={styles.contextNote}>{pick(zh, "These conditions are active in the source snapshot, but cannot be ranked without a consistent historical comparison.", "这些条件在来源快照中处于活跃状态，但缺少一致的历史比较，无法排名。")}</p>}
+
+          {rows.length === 0 ? (
+            <div className={styles.empty} role="status">
+              <h3>{hasFilters ? pick(zh, "No setups match these filters", "没有符合筛选条件的形态") : active.length > 0 ? pick(zh, "Active conditions need more evidence", "活跃条件尚缺历史证据") : pick(zh, "No active setups in this snapshot", "此快照中没有活跃形态")}</h3>
+              <p>{pick(zh, "Explore all research or adjust the filters to see the available conditions.", "可查看全部研究，或调整筛选以浏览已有条件。")}</p>
+              <div className={styles.emptyActions}>
+                {hasFilters && <button type="button" onClick={reset}>{pick(zh, "Clear filters", "清除筛选")}</button>}
+                <button type="button" onClick={() => { reset(); setLibrary(true); }}>{pick(zh, "Explore all research", "查看全部研究")}</button>
+              </div>
+            </div>
+          ) : (
+            <div className={styles.list}>
+              <div className={styles.columns} aria-hidden="true">
+                <span>{library || filter === "unrated" ? "" : "#"}</span><span>{pick(zh, "Setup / latest trigger", "形态 / 最近触发")}</span>
+                <span>{pick(zh, "Direction", "方向")}</span><span>{pick(zh, "21d win rate", "21 日胜率")}</span>
+                <span>{pick(zh, "Vs baseline", "相比基准")}</span><span>{pick(zh, "Observations", "历史记录")}</span><span />
+              </div>
+              <ol className={styles.rows}>
+                {rows.map((setup, i) => (
+                  <SetupRow key={setup.id} setup={setup} rank={!library && setup.comparison ? i + 1 : null} zh={zh} sym={sym}
+                    expanded={open === setup.id} onToggle={() => setOpen(open === setup.id ? null : setup.id)}
+                    detailId={uid + "-" + encodeURIComponent(setup.id)} chartUrl={chartUrl} />
+                ))}
+              </ol>
+            </div>
           )}
-        </div>
 
-        {firing.length === 0 ? (
-          <div className="fin-empty">
-            {pick(zh, "No signals in active state for this symbol.", "该标的目前无活跃信号。")}
-          </div>
-        ) : (
-          <div className="tl-sig-list fin-tl-siglist">
-            {firing.map((id) => {
-              const state = events?.signals?.[id];
-              const lastFire = lastFireDate(state?.fires);
-              const daysAgo = lastFire ? daysSince(lastFire) : null;
-              return (
-                <SignalRow
-                  key={id}
-                  id={id}
-                  profile={profiles?.[id]}
-                  firing
-                  daysSinceFire={daysAgo}
-                  zh={zh}
-                />
-              );
-            })}
-          </div>
-        )}
-      </div>
-
-      {/* ── Other signals with profiles ──────────────────────────────────── */}
-      {other.length > 0 && profiles && (
-        <div className="fin-sec">
-          <div className="fin-eyebrow">{pick(zh, "Research", "研究")}</div>
-          <div
-            className="fin-sec-h fin-rail fin-rule"
-            style={{ "--rail": "var(--brand)" } as React.CSSProperties}
-          >
-            {pick(zh, "Signal profiles", "信号档案")}
-          </div>
-          <div className="tl-sig-list tl-sig-list--other fin-tl-siglist">
-            {other.map((id) => (
-              <SignalRow
-                key={id}
-                id={id}
-                profile={profiles?.[id]}
-                firing={false}
-                daysSinceFire={null}
-                zh={zh}
-              />
-            ))}
-          </div>
-        </div>
+          {!library && filter !== "unrated" && unrated.length > 0 && (
+            <button type="button" className={styles.unrated} onClick={() => changeFilter("unrated")}>
+              {pick(zh, unrated.length + (unrated.length === 1 ? " more active condition has no usable historical comparison" : " more active conditions have no usable historical comparison"), "另有 " + unrated.length + " 个活跃条件缺少可用历史比较")} <span aria-hidden="true">→</span>
+            </button>
+          )}
+          <details className={styles.method}>
+            <summary>{pick(zh, "How to read this ranking", "如何理解排名")}</summary>
+            <p>{pick(zh, "Historical lift is the supplied 21-trading-day win rate minus its direction-matched baseline, in percentage points. Higher values come first; observation count and trigger date break ties. The direction describes the condition, while the lift describes its historical performance.", "历史胜率差为来源提供的 21 个交易日胜率减去同方向基准，以百分点表示。默认差值越高越靠前，同值时按历史记录数和触发日期排序。方向描述形态，差值描述其历史表现。")}</p>
+            <p>{pick(zh, "Above and below baseline are subsets of With history. Exact-zero differences remain in With history; smaller nonzero differences are shown as less than 0.1 percentage points.", "高于和低于基准均为有历史比较的子集。差值恰好为零的形态保留在有历史比较中；较小的非零差值显示为不足 0.1 个百分点。")}</p>
+            <p>{pick(zh, "History is pooled across the Lab's surviving research universe. It is descriptive, with potentially overlapping observations; it is not a probability for " + sym + " or evidence of independent confirmation. Publication time is not the latest market-bar time. Open a row to inspect its source definition and trigger dates.", "历史数据合并自实验室的幸存者研究样本，记录可能重叠。这是描述性统计，并非 " + sym + " 的预测概率，也不能视为独立确认。发布时间不代表最新行情时间。展开形态可核查来源定义和触发日期。")}</p>
+          </details>
+        </>
       )}
-
-      <LabFooter zh={zh} />
-    </div>
+    </section>
   );
 }
 
-function LabFooter({ zh }: { zh: boolean }) {
+function SetupRow({ setup: s, rank, zh, sym, expanded, onToggle, detailId, chartUrl }: {
+  setup: LabSetup; rank: number | null; zh: boolean; sym: string; expanded: boolean;
+  onToggle: () => void; detailId: string; chartUrl: string;
+}) {
+  const h = s.history;
+  const liftTone = !s.comparison || h.lift === 0 ? styles.muted : h.lift! > 0 ? styles.positive : styles.negative;
+  const comparable = s.comparison;
   return (
-    <div className="tl-footer fin-tl-footer">
-      <a
-        href="https://mastermind-x.com/tech_lab.html"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="tl-footer-link fin-tl-footer-link"
-      >
-        {pick(zh, "Open Technical Lab ↗", "打开技术实验室 ↗")}
-      </a>
-    </div>
+    <li className={styles.row} data-setup-id={s.id} data-expanded={expanded}>
+      <button type="button" className={styles.rowButton} onClick={onToggle} aria-expanded={expanded} aria-controls={expanded ? detailId : undefined} id={detailId + "-button"}>
+        <span className={styles.rank}>{rank ?? "—"}</span>
+        <span className={styles.setupName}>
+          <strong>{nameOf(s, zh)}</strong>
+          <span>{familyOf(s, zh)}{s.family ? " · " : ""}{stateLabel(s, zh)}{s.latestFire ? " · " + date(s.latestFire, zh) : ""}<span className={styles.compactHistory}>{h.observations !== null && h.observations > 0 ? " · " + number(h.observations, zh) + pick(zh, " observations", " 条历史记录") : ""}</span></span>
+        </span>
+        <span className={styles.direction + " " + tone(s)}><span aria-hidden="true">{s.direction === 1 ? "↗" : s.direction === -1 ? "↘" : "—"}</span> {directionLabel(s, zh)}</span>
+        <span className={styles.winCell}>
+          <strong>{comparable ? percentage(h.wins) : "—"}</strong>
+          <small>{comparable ? pick(zh, "Base ", "基准 ") + percentage(h.baseline) : pick(zh, "No comparison", "无可用比较")}</small>
+        </span>
+        <span className={styles.lift + " " + liftTone}>
+          <strong>{comparable ? difference(h.lift, zh) : "—"}</strong>
+          <small>{!comparable ? pick(zh, "Unranked", "未排名") : h.lift! > 0 ? pick(zh, "Above baseline", "高于基准") : h.lift! < 0 ? pick(zh, "Below baseline", "低于基准") : pick(zh, "At baseline", "与基准相同")}</small>
+        </span>
+        <span className={styles.observations}>{number(h.observations, zh)}</span>
+        <span className={styles.chevron} aria-hidden="true">{expanded ? "−" : "+"}</span>
+      </button>
+      {expanded && (
+        <div id={detailId} className={styles.detail} role="region" aria-labelledby={detailId + "-button"}>
+          <div className={styles.detailMain}>
+            <div>
+              <h3>{pick(zh, "What this condition means", "此条件的含义")}</h3>
+              <p>{s.name}</p>
+              <div className={styles.sourceId}>{s.id}</div>
+              <p className={styles.muted}>{s.contextOnly
+                ? pick(zh, "This is a context indicator, not a discrete setup for the active ranking.", "这是背景指标，不是活跃排名中的离散形态。")
+                : s.active === true ? pick(zh, "Reported active in the published snapshot. The source does not provide the latest evaluated market-bar timestamp or current indicator value.", "在已发布的快照中处于活跃状态。来源未提供最近评估的行情时间或当前指标数值。")
+                  : pick(zh, "Not reported active in this snapshot. Historical triggers do not establish a current setup.", "此快照未报告活跃状态。历史触发不代表当前形态。")}</p>
+            </div>
+            <div>
+              <h3>{pick(zh, "Recent triggers for " + sym, sym + " 的近期触发")}</h3>
+              {s.fires.length ? <div className={styles.dates}>{s.fires.slice(-6).reverse().map(d => <time dateTime={d} key={d}>{date(d, zh)}</time>)}</div>
+                : <p className={styles.muted}>{pick(zh, "No dated triggers supplied.", "未提供带日期的触发记录。")}</p>}
+              <p className={styles.muted}>{pick(zh, "Dates mark source-reported events or state transitions, not time held in a trade.", "日期表示来源报告的事件或状态转变，并非持仓时长。")}</p>
+              <Link className={styles.chartLink} href={chartUrl}>{pick(zh, "Inspect " + sym + " on chart", "在图表中查看 " + sym)} <span aria-hidden="true">↗</span></Link>
+            </div>
+          </div>
+          <div className={styles.history}>
+            <h3>{pick(zh, "Historical comparison", "历史比较")}</h3>
+            <p className={styles.historyScope}>{pick(zh, "Pooled research universe · 21 trading days · " + directionLabel(s, false).toLowerCase() + " direction", "研究样本合并统计 · 21 个交易日 · " + directionLabel(s, true))}</p>
+            {comparable ? (
+              <>
+                <div className={styles.rateLine}><span>{pick(zh, "After this setup", "此形态之后")}</span><strong>{percentage(h.wins)}</strong></div>
+                <div className={styles.track}><span style={{ width: (h.wins! * 100) + "%" }} /></div>
+                <div className={styles.rateLine}><span>{pick(zh, "Direction-matched baseline", "同方向基准")}</span><strong>{percentage(h.baseline)}</strong></div>
+                <div className={styles.track + " " + styles.baseTrack}><span style={{ width: (h.baseline! * 100) + "%" }} /></div>
+                <p className={liftTone}>{difference(h.lift, zh)} {pick(zh, "versus baseline", "相比基准")}</p>
+                <dl>
+                  <div><dt>{pick(zh, "Historical observations", "历史记录")}</dt><dd>{number(h.observations, zh)}</dd></div>
+                  {h.months !== null && <div><dt>{pick(zh, "Months with observations", "有记录的月份")}</dt><dd>{number(h.months, zh)}</dd></div>}
+                  {h.excursionRatio !== null && <div><dt>{pick(zh, "Median favorable / adverse excursion", "有利 / 不利波动幅度中位比")}</dt><dd>{h.excursionRatio.toFixed(2)}</dd></div>}
+                  {h.pre2010 !== null && <div><dt>{pick(zh, "Win rate before 2010", "2010 年前胜率")}</dt><dd>{percentage(h.pre2010)}</dd></div>}
+                  {h.post2010 !== null && <div><dt>{pick(zh, "Win rate from 2010", "2010 年起胜率")}</dt><dd>{percentage(h.post2010)}</dd></div>}
+                </dl>
+              </>
+            ) : <p>{s.inconsistent ? pick(zh, "The supplied profile fields disagree. This condition is excluded from historical ranking until the source is consistent.", "来源档案字段存在冲突。在来源一致前，此条件不参与历史排名。") : pick(zh, "The source has not supplied a complete win rate, baseline and observation count for this condition.", "来源尚未提供此条件完整的胜率、基准和历史记录数。")}</p>}
+          </div>
+        </div>
+      )}
+    </li>
   );
 }

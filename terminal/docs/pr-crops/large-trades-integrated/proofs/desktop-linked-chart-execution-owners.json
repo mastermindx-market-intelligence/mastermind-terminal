@@ -1,0 +1,202 @@
+{
+  "feedMode": "Explicit synthetic execution fixtures; no real-data or provider-rights claim",
+  "sameTimeframe": "5s",
+  "quantitiesDistinguishOwners": true,
+  "reports": [
+    {
+      "index": 0,
+      "symbol": "AAPL",
+      "filename": "AAPL_5s_20261011.png",
+      "expected": [
+        1301,
+        1500,
+        1800,
+        1600
+      ],
+      "markers": [
+        {
+          "id": "fixture:owner:AAPL:2026-10-05:AAPL:fixture:buy:1",
+          "quantity": 1301,
+          "reports": 3
+        },
+        {
+          "id": "fixture:owner:AAPL:2026-10-05:AAPL:fixture:sell:1",
+          "quantity": 1500,
+          "reports": 2
+        },
+        {
+          "id": "fixture:owner:AAPL:2026-10-05:AAPL:fixture:unknown:1",
+          "quantity": 1800,
+          "reports": 1
+        },
+        {
+          "id": "fixture:owner:AAPL:2026-10-05:AAPL:fixture:sell:continues",
+          "quantity": 1600,
+          "reports": 1
+        }
+      ],
+      "footer": [
+        "Large trades \u00b7 Test fixture \u00b7 AAPL \u00b7 SIMULATED \u00b7 This venue only \u00b7 shares \u00b7 2026-10-05",
+        "Minimum executed quantity: 100 shares \u00b7 Distinct orders: Not available",
+        "Synthetic executions for deterministic testing. This is not a market feed.",
+        "Synthetic fixture. No market transactions or investment evidence."
+      ]
+    },
+    {
+      "index": 1,
+      "symbol": "NVDA",
+      "filename": "NVDA_5s_20261011.png",
+      "expected": [
+        2602,
+        3000,
+        3600,
+        3200
+      ],
+      "markers": [
+        {
+          "id": "fixture:owner:NVDA:2026-10-05:NVDA:fixture:buy:1",
+          "quantity": 2602,
+          "reports": 3
+        },
+        {
+          "id": "fixture:owner:NVDA:2026-10-05:NVDA:fixture:sell:1",
+          "quantity": 3000,
+          "reports": 2
+        },
+        {
+          "id": "fixture:owner:NVDA:2026-10-05:NVDA:fixture:unknown:1",
+          "quantity": 3600,
+          "reports": 1
+        },
+        {
+          "id": "fixture:owner:NVDA:2026-10-05:NVDA:fixture:sell:continues",
+          "quantity": 3200,
+          "reports": 1
+        }
+      ],
+      "footer": [
+        "Large trades \u00b7 Test fixture \u00b7 NVDA \u00b7 SIMULATED \u00b7 This venue only \u00b7 shares \u00b7 2026-10-05",
+        "Minimum executed quantity: 100 shares \u00b7 Distinct orders: Not available",
+        "Synthetic executions for deterministic testing. This is not a market feed.",
+        "Synthetic fixture. No market transactions or investment evidence."
+      ]
+    },
+    {
+      "index": 1,
+      "symbol": "MSFT",
+      "filename": "MSFT_5s_20261011.png",
+      "expected": [
+        3903,
+        4500,
+        5400,
+        4800
+      ],
+      "markers": [
+        {
+          "id": "fixture:owner:MSFT:2026-10-05:MSFT:fixture:buy:1",
+          "quantity": 3903,
+          "reports": 3
+        },
+        {
+          "id": "fixture:owner:MSFT:2026-10-05:MSFT:fixture:sell:1",
+          "quantity": 4500,
+          "reports": 2
+        },
+        {
+          "id": "fixture:owner:MSFT:2026-10-05:MSFT:fixture:unknown:1",
+          "quantity": 5400,
+          "reports": 1
+        },
+        {
+          "id": "fixture:owner:MSFT:2026-10-05:MSFT:fixture:sell:continues",
+          "quantity": 4800,
+          "reports": 1
+        }
+      ],
+      "footer": [
+        "Large trades \u00b7 Test fixture \u00b7 MSFT \u00b7 SIMULATED \u00b7 This venue only \u00b7 shares \u00b7 2026-10-05",
+        "Minimum executed quantity: 100 shares \u00b7 Distinct orders: Not available",
+        "Synthetic executions for deterministic testing. This is not a market feed.",
+        "Synthetic fixture. No market transactions or investment evidence."
+      ]
+    },
+    {
+      "index": 1,
+      "symbol": "MSFT",
+      "filename": "MSFT_5s_20261011.png",
+      "expected": [
+        3903,
+        4500,
+        5400,
+        4800
+      ],
+      "markers": [
+        {
+          "id": "fixture:owner:MSFT:2026-10-05:MSFT:fixture:buy:1",
+          "quantity": 3903,
+          "reports": 3
+        },
+        {
+          "id": "fixture:owner:MSFT:2026-10-05:MSFT:fixture:sell:1",
+          "quantity": 4500,
+          "reports": 2
+        },
+        {
+          "id": "fixture:owner:MSFT:2026-10-05:MSFT:fixture:unknown:1",
+          "quantity": 5400,
+          "reports": 1
+        },
+        {
+          "id": "fixture:owner:MSFT:2026-10-05:MSFT:fixture:sell:continues",
+          "quantity": 4800,
+          "reports": 1
+        }
+      ],
+      "footer": [
+        "Large trades \u00b7 Test fixture \u00b7 MSFT \u00b7 SIMULATED \u00b7 This venue only \u00b7 shares \u00b7 2026-10-05",
+        "Minimum executed quantity: 100 shares \u00b7 Distinct orders: Not available",
+        "Synthetic executions for deterministic testing. This is not a market feed.",
+        "Synthetic fixture. No market transactions or investment evidence."
+      ]
+    },
+    {
+      "index": 0,
+      "symbol": "AAPL",
+      "filename": "AAPL_5s_20261011.png",
+      "expected": [
+        1301,
+        1500,
+        1800,
+        1600
+      ],
+      "markers": [
+        {
+          "id": "fixture:owner:AAPL:2026-10-05:AAPL:fixture:buy:1",
+          "quantity": 1301,
+          "reports": 3
+        },
+        {
+          "id": "fixture:owner:AAPL:2026-10-05:AAPL:fixture:sell:1",
+          "quantity": 1500,
+          "reports": 2
+        },
+        {
+          "id": "fixture:owner:AAPL:2026-10-05:AAPL:fixture:unknown:1",
+          "quantity": 1800,
+          "reports": 1
+        },
+        {
+          "id": "fixture:owner:AAPL:2026-10-05:AAPL:fixture:sell:continues",
+          "quantity": 1600,
+          "reports": 1
+        }
+      ],
+      "footer": [
+        "Large trades \u00b7 Test fixture \u00b7 AAPL \u00b7 SIMULATED \u00b7 This venue only \u00b7 shares \u00b7 2026-10-05",
+        "Minimum executed quantity: 100 shares \u00b7 Distinct orders: Not available",
+        "Synthetic executions for deterministic testing. This is not a market feed.",
+        "Synthetic fixture. No market transactions or investment evidence."
+      ]
+    }
+  ]
+}

@@ -46,6 +46,7 @@ async function readStore(sym: string, base: "1h" | "5m") {
 export async function withStoredHistory(
   sym: string, tf: string, ext: boolean, live: Bar6[],
   capture?: (trace: IntradayAssemblyTrace) => void,
+  overnight = false,
 ): Promise<Bar6[]> {
   const storeReads: StoreRead[] = [];
   const finish = (bars: Bar6[], origins: Array<[number, BarOrigin]>) => {
@@ -62,7 +63,7 @@ export async function withStoredHistory(
     return snapshot.bars;
   };
   let stored: Bar6[] = [];
-  if (!ext && tfMinutes(tf) >= 60) {
+  if ((!ext || overnight) && tfMinutes(tf) >= 60) {
     stored = await read("5m");
     if (stored.length) base = "5m";
   }
@@ -70,9 +71,11 @@ export async function withStoredHistory(
   if (!stored.length) return liveOnly();
   const baseMin = base === "1h" ? 60 : 5;
   const session = ext ? "extended" : "regular";
+  // Hourly history cannot be split truthfully at the 09:30 phase boundary.
+  if (overnight && base === "1h") return liveOnly();
   const selected = filterUsEquitySession(stored, session);
   const targetMin = tfMinutes(tf);
-  const hb = targetMin === baseMin ? selected : resampleUsEquitySession(selected, targetMin, session);
+  const hb = targetMin === baseMin && !overnight ? selected : resampleUsEquitySession(selected, targetMin, overnight ? "24h" : session);
   const liveEp = new Set(live.map(bar => bar[0]));
   const origin: BarOrigin = base === "5m" ? "stored_5m" : "stored_1h";
   const merged: Array<{ bar: Bar6; origin: BarOrigin }> = [];

@@ -8,10 +8,13 @@ promises or “memory” recorded only inside one chat do not carry to another s
 
 1. Read `terminal/AGENTS.md` and `terminal/CLAUDE.md` in full before changing the
    Next.js application.
-2. Search the Claude project memory index at
+2. Treat local Claude project memory as optional context, not a startup or
+   delivery gate. The historical index at
    `~/.claude/projects/-Users-chriswong-Documents-Cluade-charting-app/memory/MEMORY.md`
-   and open the relevant entries. Delivery work must include
-   `git-flow-commit-pr-merge-habit`, `prod-repo-is-stale`, and `deploy-topology`.
+   and its `git-flow-commit-pr-merge-habit`, `prod-repo-is-stale`, and
+   `deploy-topology` notes may be read when relevant and accessible. If absent,
+   recover from current source and canonical Agent OS instead. Local memory
+   never establishes a live owner, permission, or effect clearance.
 3. Treat `/Users/chriswong/Documents/Cluade/Macro Dashboard` as the connected
    dashboard/backend repository. Authentication, subscriptions, data contracts,
    APIs, Caddy routes, and deployment changes may require checking both repos.
@@ -41,14 +44,29 @@ promises or “memory” recorded only inside one chat do not carry to another s
   Terminal delivery remains governed entirely by this file — CI, merge-on-green,
   the git-gated deploy, and live verification are unchanged.
 
+## Current receiver and executable handoffs
+
+A handoff that says "only the original writer/parent must act" is a custody
+clue, not a living session or approval gate. The currently assigned receiver
+inspects the original PR/workspace, live writer/lease and unresolved effects,
+then executes the next permitted recovery action or safe independent work.
+Keep STARTed exact-session bindings and EFFECT_UNKNOWN on the existing carrier;
+handoff text never transfers those effects, releases a lease, or proves ACK. A successor handoff names the current or next valid receiver,
+exact source/effect checks, real CI/review/release gates and a reachable next
+action; never an archived chat as the only actor.
+
 ## Workspace and git
 
 - The canonical project home is `/Users/chriswong/Documents/Cluade`.
 - Never create project work in `~/.codex/worktrees`, `/private/tmp`, or another
   Codex-only location. Never use a `codex/` branch for these repositories.
-- The primary checkout is shared and commonly dirty. Do not change its files or git
-  state. Fetch `origin/master`, then create a fresh worktree under this repository's
-  `.claude/worktrees/<task>/` using a `claude/<task>` branch.
+- The primary checkout is shared and commonly dirty. Never change its files or git
+  state. Attended ChatGPT Web/Studio sessions acquire or reuse one exact source-pinned
+  operation workspace through the installed `mmx-workspace` owner, as authorized for
+  this repository. Native/harness sessions use their actual assigned source launcher
+  and workspace; only those with an approved direct-worktree contract may create one
+  under its designated root. Do not create an alternate worktree or force/re-home an
+  existing operation to bypass a refusal, exclusive writer, or uncertain effect.
 - Never reuse a squash/merge-completed branch and never use the repo-global stash.
 
 ## `ingest/` runs as scripts, not modules
@@ -107,12 +125,29 @@ The operator granted standing authorization on 2026-07-30 for this entire
 commit → push → PR → CI → merge → production deploy → live verification chain.
 Do not wait for a separate request to commit, push, merge, or deploy.
 
-Do not stop at a local commit or open PR. The only holds are an explicit operator
-request to hold, a genuine failing check, or a real deployment blocker. Direct
-working-tree rsync/scp is not a deployment; production builds only merged master.
-If a later step is blocked, first commit and push the completed work to a
-recoverable remote branch, then report the exact blocker. Never leave completed
-work only as uncommitted changes in a session.
+Do not stop at a local commit or open PR. Release holds include an explicit
+operator hold, required CI or independent review that is pending or failing,
+and a genuine deployment blocker. Never arm a protected merge while its required
+review or current-head checks remain unqualified.
+
+Direct working-tree rsync/scp is not a deployment; production builds only
+merged master. A held release step blocks that effect, not the whole session.
+Before finalizing an incomplete assignment, name and execute the next
+independent authorized source, test, integration, or real-path verification action.
+An issue, reviewer request, CI observation, or preserved branch is not completion.
+
+Preserve completed work in the original managed workspace; commit and push to its
+recoverable branch only through a lawful original publisher. If commit/push is
+unavailable, distinguish a proven pre-effect technical failure from an explicit
+safety/permission denial or EFFECT_UNKNOWN. A technical failure may be requalified
+only on material same-carrier recovery evidence and the applicable typed preflight.
+An explicit safety/permission denial ends retries of that effect; an uncertain
+effect must be reconciled on its original carrier before retry. Keep exact local
+source/custody recoverable and continue genuinely independent permitted work.
+Do not force, create a replacement branch, switch accounts/tools, or use GitHub
+direct writes to evade a refusal. Report the exact blocker and recovery action
+only when no safe useful work remains. Never leave completed work only as
+uncommitted changes when lawful publication is available.
 
 ## Merge-on-green controller
 
@@ -127,6 +162,16 @@ work only as uncommitted changes in a session.
   refuses forks/drafts/conflicts, SHA-pins the squash merge, and deletes the remote
   branch. It is the orphaned-PR fallback and defense-in-depth behind native
   auto-merge, not a second definition of green.
+- A branch update or commit written with `GITHUB_TOKEN` leaves the new head's
+  `pull_request` CI run held (`action_required`, no jobs). The pull request's
+  required checks are read from that run only, so green checks from a dispatched
+  run on the same commit leave it BLOCKED (#874). The controller therefore
+  re-runs its own held run once (`POST /actions/runs/{id}/rerun`; verified to
+  execute under `GITHUB_TOKEN` on 2026-10-13), both right after a refresh and
+  whenever an armed PR is pending or blocked on one. Dispatching CI is only the
+  fallback when no `pull_request` run appears. A run held for anyone else, or
+  held again after that re-run, is reported for a maintainer to re-run; never
+  bypass protection for it.
 - `merge-blocked` means the latest required CI is red or the branch has a real
   conflict. Fix the head; do not use an admin bypass. The controller removes the
   label automatically after the new head is green.

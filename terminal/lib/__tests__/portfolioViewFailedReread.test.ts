@@ -26,6 +26,12 @@ vi.mock("next/link", () => ({
 vi.mock("@/components/PortfolioRisk.module.css", () => ({
   default: new Proxy({}, { get: (_t, key) => String(key) }),
 }));
+vi.mock("@/components/PortfolioRiskHistory.module.css", () => ({
+  default: new Proxy({}, { get: (_t, key) => String(key) }),
+}));
+vi.mock("@/components/PortfolioTargets.module.css", () => ({
+  default: new Proxy({}, { get: (_t, key) => String(key) }),
+}));
 
 vi.mock("@/lib/dataCache", () => ({
   getJSON: vi.fn(async () => null),

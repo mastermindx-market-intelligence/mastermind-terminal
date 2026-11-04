@@ -84,7 +84,7 @@ export function FlowFreshnessReceipt({
       data-flow-session={sessionState}
       title={parsed
         ? `snapshot ${parsed.snapshotAt}; source responses ${parsed.sourceResponseAtFirst} — ${parsed.sourceResponseAtLast}`
-        : "live_flow.meta/v2 timing clocks unavailable"}
+        : word("timingUnavailable", lang)}
     >
       {connected && (
         <span className="flow-freshness-item flow-freshness-connected" data-flow-transport="connected">
