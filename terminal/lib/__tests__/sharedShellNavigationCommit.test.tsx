@@ -494,6 +494,63 @@ describe("Shared Shell committed navigation", () => {
     expectVisible(true);
   });
 
+  it("B04: duplicate child navigation request ID never pushes twice", async () => {
+    const owned = await start();
+    const original = browserHref();
+    const before = requests.length;
+    const message = { type: "NAVIGATE", href: "/about.html", mode: "push",
+      sameDocument: false, requestId: "duplicate-b04" };
+    await childMessage(message);
+    expect(navigation.router.push).toHaveBeenCalledTimes(1);
+    expect(requests).toHaveLength(before);
+    await childMessage(message);
+    expect(navigation.router.push).toHaveBeenCalledTimes(1);
+    expect(browserHref()).toBe(original);
+    expect(requests).toHaveLength(before);
+    expectPersistent(owned);
+  });
+
+  it("B04: rejected same-document pathname cannot mutate parent history", async () => {
+    const owned = await start();
+    const original = browserHref();
+    const originalKey = window.history.state.mmxSharedShellEntry;
+    const originalLength = window.history.length;
+    await childMessage({ type: "NAVIGATE", href: "/about.html#wrong-document",
+      mode: "push", sameDocument: true, requestId: "wrong-b04" });
+    expect(browserHref()).toBe(original);
+    expect(window.history.state.mmxSharedShellEntry).toBe(originalKey);
+    expect(window.history.length).toBe(originalLength);
+    expect(navigation.router.push).not.toHaveBeenCalled();
+    expect(navigation.router.replace).not.toHaveBeenCalled();
+    expect(iframe().style.visibility).toBe("hidden");
+    expect(container.querySelector('main')?.getAttribute('data-shared-shell-failure')).toBe("navigation-target");
+    expectPersistent(owned);
+  });
+
+  it("H05: evicts the first of 65 saved entries rather than borrowing an unrelated view", async () => {
+    const owned = await start();
+    const oldest = { x: 0, y: 650, focusId: "initial-focus" };
+    await childMessage({ type: "VIEW_STATE", view: oldest });
+    const firstId = window.history.state.mmxSharedShellEntry;
+    for (let i = 1; i <= 65; i++) {
+      const href = `/about.html?entry=${i}`;
+      await navigate(href);
+      await resolveGate();
+      await loadFrame();
+      await childMessage(readyBody(href));
+      await childMessage({ type: "VIEW_STATE", view: { x: 0, y: i * 7, focusId: `entry-${i}` } });
+    }
+    expect(window.history.state.mmxSharedShellEntry).not.toBe(firstId);
+    await traverse(-65, INITIAL);
+    await resolveGate();
+    const back = await loadFrame();
+    expect(back.canonicalPath).toBe(INITIAL);
+    expect(back.restore).toBeNull();
+    await childMessage(readyBody(INITIAL));
+    expectVisible(true);
+    expectPersistent(owned);
+  });
+
   it("aborts an older admission and cannot install its frame after a faster later navigation", async () => {
     const owned = await start();
     await navigate("/about.html");
