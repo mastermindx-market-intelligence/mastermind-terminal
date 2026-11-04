@@ -13,7 +13,14 @@ Two live defects sit behind these guards.
 """
 from __future__ import annotations
 
-from ingest.build_macro_symbols import MIN_OHLC_BARS, publish_decision
+import json
+from datetime import date, timedelta
+from unittest.mock import patch
+
+from ingest.build_macro_symbols import (
+    MIN_OHLC_BARS, fetch_ohlc, merge_deep_history, ohlc_history_range,
+    publish_decision,
+)
 from ingest.macro_catalog import CATALOG, fred_symbols, ohlc_symbols, yahoo_symbols
 
 CN_INDICES = {"000001.SS", "000300.SS", "000905.SS", "399001.SZ", "399006.SZ"}
@@ -69,3 +76,53 @@ def test_publish_drops_a_stub_already_on_disk():
     assert publish_decision(0, 5) == "drop"
     # …but a series with real depth is never deleted, whatever the fetch returned.
     assert publish_decision(0, 1210) == "keep"
+
+
+def _bars(start: str, count: int, close: int = 100) -> list[list]:
+    first = date.fromisoformat(start)
+    return [[(first + timedelta(days=i)).isoformat(), close, close + 1,
+             close - 1, close, 100] for i in range(count)]
+
+
+def test_shanghai_composite_requests_full_yahoo_history_not_rolling_five_years():
+    assert ohlc_history_range("000001.SS") == "max"
+    for sym in ("000300.SS", "399001.SZ", "^GSPC", "EURUSD=X"):
+        assert ohlc_history_range(sym) == "5y"
+
+    # Check the actual request route as well as the selector, without a live API dependency.
+    with patch("ingest.build_macro_symbols._get", return_value={"chart": {"result": []}}) as get:
+        assert fetch_ohlc("000001.SS") == []
+        assert fetch_ohlc("000300.SS") == []
+    assert "000001.SS?range=max&interval=1d" in get.call_args_list[0].args[0]
+    assert "000300.SS?range=5y&interval=1d" in get.call_args_list[1].args[0]
+
+
+def test_shanghai_history_backfill_preserves_old_dates_and_prefers_fresh_overlap(tmp_path):
+    path = tmp_path / "000001.SS.json"
+    old_1997 = _bars("1997-07-01", 35, 100)
+    old_recent = _bars("2026-07-01", 35, 200)
+    path.write_text(json.dumps({"bars": old_1997 + old_recent}))
+    recent_refresh = _bars("2026-07-01", 35, 250)
+
+    got = merge_deep_history("000001.SS", path, recent_refresh)
+    assert got == old_1997 + recent_refresh
+    assert len({row[0] for row in got}) == len(got), "never emit duplicate dates"
+    assert publish_decision(len(got), len(old_1997 + old_recent)) == "write"
+
+
+def test_shanghai_history_never_promotes_single_candle_stubs(tmp_path):
+    path = tmp_path / "000001.SS.json"
+    old = _bars("1997-07-01", 35) + _bars("2026-07-01", 35)
+    path.write_text(json.dumps({"bars": old}))
+    stub = _bars("2026-11-01", 1)
+    assert merge_deep_history("000001.SS", path, stub) == stub
+    assert publish_decision(len(stub), len(old)) == "keep"
+
+
+def test_deep_history_merge_is_index_scoped_and_safe_on_corrupt_disk(tmp_path):
+    path = tmp_path / "other.json"
+    path.write_text(json.dumps({"bars": _bars("1997-07-01", 35)}))
+    fresh = _bars("2026-07-01", 35, 300)
+    assert merge_deep_history("000300.SS", path, fresh) == fresh
+    path.write_text("{not json")
+    assert merge_deep_history("000001.SS", path, fresh) == fresh
