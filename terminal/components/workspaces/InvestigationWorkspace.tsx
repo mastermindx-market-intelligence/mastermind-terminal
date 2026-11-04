@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { InvestigationIntlEvidence, type InvestigationIntlRead, type InvestigationIntlSelection } from "@/components/research/InvestigationIntlEvidence";
+import {intlBaselineUrl,parseIntlBaselineReply,safeIntlReturn,type IntlEntrySelectors,type IntlDraftSource} from "@/lib/investigationIntlEntry";
+import {parseIntlSelectedRead} from "@/lib/investigationIntlRead";
 import { useInvestigationTheme } from "@/lib/useInvestigationTheme";
 import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { useLang } from "@/lib/i18n";
@@ -46,18 +48,20 @@ type Props = { ownerKey:string; initialSymbol?:string; initialInvestigationId?:s
  savedPlanControls?:ReactNode;
  /** Pure, trusted native owner read only. Absence never invents International admission. */
  readIntlEvidence?:(selection:InvestigationIntlSelection)=>ReturnType<InvestigationIntlRead>;
+ initialIntlEntry?:IntlEntrySelectors;
+ intlReturnTo?:string;
  onOptionPlanAdmissionReady?:(admit:InvestigationOptionPlanEntry|null)=>void;
  onOptionPlanRevisionReady?:(read:InvestigationOptionPlanRevisionReader|null)=>void;
 };
 type Detail = { id:string; revision:number; current_revision:number; lifecycle:"active"|"removed"; manifest:InvestigationManifest; committed_at:string; layouts:Array<{id:string;layout_id:string;digest:string;config:unknown}>;screen_definitions?:unknown[] };
 type Baseline = {workspace:EventWorkspace | import("@/lib/investigationIssuerRelease").IssuerReleaseProjection;receipt:RetainedEventWorkspaceReceipt;reference:InvestigationEvidenceRef};
 type Layout = {id:string;name:string;config:{schema:string;revision:number};userId?:string;mine?:boolean};
-type Draft = {title:string;question:string;symbol:string;next:string;observation:string;horizon:string;asOf:string;layoutId:string;theses:InvestigationThesisRef[];screenCapture:ScreenCapture|null;screenRefs:InvestigationEvidenceRef[];optionPlan?:{value:OptionsPlanDraft;guard:Readonly<DuplicateGuard>}};
+type Draft = {title:string;question:string;symbol:string;next:string;observation:string;horizon:string;asOf:string;layoutId:string;theses:InvestigationThesisRef[];screenCapture:ScreenCapture|null;screenRefs:InvestigationEvidenceRef[];optionPlan?:{value:OptionsPlanDraft;guard:Readonly<DuplicateGuard>};intl?:IntlDraftSource&{guard:Readonly<DuplicateGuard>}};
 /** A local unsaved duplicate of one acknowledged revision: the exact copied source, the auth
  * guard captured at the click, and the original detail kept so Cancel can restore it without a fetch. */
 type Duplicate = { source:DuplicateSource; guard:DuplicateGuard; detail:Detail };
 type BoundAuthProjection = {
- ownerKey: string; initialInvestigationId: string | undefined; initialRevision: number | undefined;
+ ownerKey: string; initialInvestigationId: string | undefined; initialRevision: number | undefined;intlEntryKey:string;
  projection: InvestigationAuthProjection;
 };
 const emptyDraft=(symbol=""):Draft=>({title:"",question:"",symbol,next:"",observation:"",horizon:"",asOf:"",layoutId:"",theses:[],screenCapture:null,screenRefs:[]});
@@ -96,21 +100,27 @@ function contextLabel(value:string,lang:"en"|"zh") {
 }
 const optionsTypeLabel=(type:string,c:(typeof COPY)[keyof typeof COPY])=>type==="exposure_chart_request"?c.typeExposure:type==="sector_origin"?c.typeOrigin:type==="rotation_measurement"?c.typeRotation:c.options;
 
-export default function InvestigationWorkspace({ownerKey,initialSymbol,initialInvestigationId,initialRevision,historyMode="route",savedPlanControls,readIntlEvidence,onOptionPlanAdmissionReady,onOptionPlanRevisionReady}:Props) {
+export default function InvestigationWorkspace({ownerKey,initialSymbol,initialInvestigationId,initialRevision,historyMode="route",savedPlanControls,readIntlEvidence,initialIntlEntry,intlReturnTo,onOptionPlanAdmissionReady,onOptionPlanRevisionReady}:Props) {
  const {lang}=useLang(), c=COPY[lang], sc=SCENARIO_COPY[lang];
+ const intlEntryKey=JSON.stringify(initialIntlEntry??null);
  const [boundAuth,setBoundAuth]=useState<BoundAuthProjection|null>(null);
  // An old effect's render projection cannot cross a changed Workspace lifetime.
  const authProjection=boundAuth?.ownerKey===ownerKey
-  &&boundAuth.initialInvestigationId===initialInvestigationId&&boundAuth.initialRevision===initialRevision
+  &&boundAuth.initialInvestigationId===initialInvestigationId&&boundAuth.initialRevision===initialRevision&&boundAuth.intlEntryKey===intlEntryKey
   ?boundAuth.projection:null;
  // The owner's original synchronous getter, tracked after commit so an async settlement can
  // re-read the actual current lifetime even before React's projected snapshot catches up. Only a
  // re-bound or cleaned-up lifetime has a different getter; a recreated projection keeps this one.
  const authGetterRef=useRef<InvestigationAuthProjection["getSnapshot"]|null>(null);
- useLayoutEffect(()=>{authGetterRef.current=authProjection?.getSnapshot??null;},[authProjection?.getSnapshot]);
+ const authSnapshotRef=useRef<AuthLifecycleSnapshot|null>(null);
+ useLayoutEffect(()=>{authGetterRef.current=authProjection?.getSnapshot??null;authSnapshotRef.current=authProjection?.snapshot??null;},[authProjection]);
  const historyModeRef=useRef(historyMode);
  useLayoutEffect(()=>{historyModeRef.current=historyMode;},[historyMode]);
- function replaceInvestigationHistory(url:string){if(historyModeRef.current!=="embedded")window.history.replaceState({},"",url);}
+ const intlReturn=safeIntlReturn(intlReturnTo);
+ function replaceInvestigationHistory(url:string){if(historyModeRef.current!=="embedded"){
+  const target=new URL(url,window.location.origin);if(intlReturn)target.searchParams.set("intl_return",intlReturn);
+  window.history.replaceState({},"",target.pathname+target.search+target.hash);
+ }}
  const [items,setItems]=useState<InvestigationSummary[]|null>(null), [listError,setListError]=useState(false);
  const [detail,setDetail]=useState<Detail|null>(null),[detailLoading,setDetailLoading]=useState(false);
  const [duplicate,setDuplicate]=useState<Duplicate|null>(null);
@@ -119,6 +129,10 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
  const acknowledgedDetailRef=useRef<Detail|null>(null);
  function acknowledgeDetail(value:Detail|null){acknowledgedDetailRef.current=value;setAcknowledgedDetail(value);}
  const [editing,setEditing]=useState(false),[draft,setDraft]=useState<Draft>(emptyDraft(initialSymbol));
+ const [intlEntryLoading,setIntlEntryLoading]=useState(false);
+ const [intlProjection,setIntlProjection]=useState<{value:ReturnType<InvestigationIntlRead>;guard:DuplicateGuard;getter:InvestigationAuthProjection["getSnapshot"];lang:"en"|"zh"}|null>(null);
+ const intlAuthKey=JSON.stringify(authProjection?.snapshot??null),intlAuthGetter=authProjection?.getSnapshot;
+
  const [baseline,setBaseline]=useState<Baseline|null>(null),[baselineState,setBaselineState]=useState<"none"|"loading"|"ready"|"unavailable">("none"),[seenAt,setSeenAt]=useState<string|null>(null);
  const [layouts,setLayouts]=useState<Layout[]>([]),[layoutError,setLayoutError]=useState(false);
  const [saveState,setSaveState]=useState<InvestigationSaveState>({phase:"idle"}),[message,setMessage]=useState("");
@@ -133,6 +147,7 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
  const [legacyScenario,setLegacyScenario]=useState(false);
  const investigationTheme=useInvestigationTheme(ownerKey,authEnded);
  const scope=useRef<AbortController|null>(null),inventorySeq=useRef(0),layoutSeq=useRef(0),detailSeq=useRef(0),baselineSeq=useRef(0),stateRef=useRef<InvestigationSaveState>({phase:"idle"});
+
  const storageBlockedRef=useRef(false);
  const setStorageBlocked=(blocked:boolean)=>{storageBlockedRef.current=blocked;setStorageBlockedState(blocked);};
  const editLocked=()=>stateRef.current.phase==="pending"||stateRef.current.phase==="uncertain"||storageBlockedRef.current||!!scope.current?.signal.aborted;
@@ -197,7 +212,7 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
  // uncertain write. Exact pending storage stays with its original owner/key.
  function endOwnerView(controller:AbortController) {
   if(scope.current!==controller||controller.signal.aborted)return;
-  controller.abort();acknowledgeDetail(null);++detailSeq.current;++baselineSeq.current;setAuthEnded(true);setItems(null);setDetail(null);setBaseline(null);++optionsSeq.current;setOptionsRefs([]);setOptionsStatus(null);setAlertRows(null);setOutbox(null);setAlertLoad("loading");setDraft(emptyDraft());setRetainedCapture(null);setDuplicate(null);setSave({phase:"idle"});setLayouts([]);setMessage("");
+  controller.abort();acknowledgeDetail(null);++detailSeq.current;++baselineSeq.current;setAuthEnded(true);setItems(null);setDetail(null);setBaseline(null);setIntlProjection(null);++optionsSeq.current;setOptionsRefs([]);setOptionsStatus(null);setAlertRows(null);setOutbox(null);setAlertLoad("loading");setDraft(emptyDraft());setRetainedCapture(null);setDuplicate(null);setSave({phase:"idle"});setLayouts([]);setMessage("");
  }
  async function json(url:string,init?:RequestInit):Promise<unknown> {
   const controller=scope.current;
@@ -206,7 +221,7 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
   // Check the captured scope before even interpreting an old response. A 403
   // can be a source/plan restriction; only this owner's 401 ends this view.
   if(controller!==scope.current||controller.signal.aborted)throw Error("inactive");
-  if(response.status===401&&(url==="/api/investigations"||url.startsWith("/api/investigations?"))){endOwnerView(controller);throw Error("unauthenticated");}
+  if(response.status===401&&(url==="/api/investigations"||url.startsWith("/api/investigations?")||url.startsWith("/api/investigations/"))){endOwnerView(controller);throw Error("unauthenticated");}
   const value:unknown=await response.json();
   if(controller!==scope.current||controller.signal.aborted) throw Error("inactive");
   return value;
@@ -311,7 +326,7 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
  }
  async function openRecord(id:string,revision?:number,afterSave=false) {
   acknowledgeDetail(null);
-  const ticket=++detailSeq.current;++baselineSeq.current;setBaseline(null);setBaselineState("none");setDetailLoading(true);
+  const ticket=++detailSeq.current;++baselineSeq.current;setBaseline(null);setBaselineState("none");setIntlProjection(null);setDetailLoading(true);
   if(!afterSave)setMessage("");
   try {
    const value=await json(`/api/investigations?${new URLSearchParams({id,...(revision?{revision:String(revision)}:{})})}`);
@@ -322,6 +337,36 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
   } catch {if(ticket===detailSeq.current&&!scope.current?.signal.aborted){setMessage(afterSave?c.readbackFailed:c.invalidLink);if(!afterSave)setDetail(null);}}
   finally {if(ticket===detailSeq.current)setDetailLoading(false);}
  }
+ /** Whether the synchronous getter still shows the ready principal and epoch a duplicate was admitted
+  * with. The same boundary the reviewed-baseline follow-up uses: a stale projection, a same-user epoch
+  * change, another account or a lost ready lifetime refuses even before React's snapshot catches up. */
+ function duplicateAdmittedAgain(guard:DuplicateGuard) {
+  if(ownerKey==="local-preview")return true;
+  const again=authGetterRef.current?.()??null;
+  return !!again&&again.availability==="ready"&&again.principal_partition===ownerKey
+   &&again.principal_partition===guard.principal&&again.auth_epoch===guard.epoch;
+ }
+ async function loadIntlDetail(found:Detail,ticket:number,active:()=>boolean){
+  const getter=authGetterRef.current,controller=scope.current;
+  const guard=ownerKey!=="local-preview"?duplicateGuard(ownerKey,authSnapshotRef.current):null;
+  const current=()=>!!guard&&!!getter&&!!controller&&scope.current===controller&&!controller.signal.aborted&&authGetterRef.current===getter
+   &&active()&&detailSeq.current===ticket&&acknowledgedDetailRef.current===found&&duplicateAdmittedAgain(guard);
+  if(!current())return;
+  try{
+   const raw=await json(`/api/investigations/review?${new URLSearchParams({id:found.id,revision:String(found.revision)})}`,{headers:{"Accept-Language":lang}});
+   if(!current())return;const projection=parseIntlSelectedRead(raw,found);if(current()&&guard&&getter)setIntlProjection({value:projection,guard,getter,lang});
+  }catch{if(current())setIntlProjection(null);}
+ }
+ useEffect(()=>{
+  let active=true;
+  const found=acknowledgedDetail;
+  if(!readIntlEvidence&&found&&found===detail&&!detailLoading&&!editing&&entryActive&&!authEnded
+   &&found.manifest.evidence_refs.some(ref=>ref.owner==="intl.workspace_generation"))void loadIntlDetail(found,detailSeq.current,()=>active);
+  return()=>{active=false;};
+  // The original getter and primitive scope keys deduplicate identical owner
+  // notifications. loadIntlDetail rechecks that same scope on settlement.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+ },[acknowledgedDetail,detail,detailLoading,editing,entryActive,authEnded,readIntlEvidence,ownerKey,intlAuthKey,intlAuthGetter,lang]);
  async function settle(command:InvestigationCommand,response:unknown) {
   const current=stateRef.current;
   // An original response may arrive after an explicit no-effect fence admitted
@@ -387,7 +432,7 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
  }
  useEffect(()=>{
   const controller=new AbortController();scope.current=controller;
-  acknowledgeDetail(null);setAuthEnded(false);setItems(null);setListError(false);setDetail(null);setBaseline(null);setSave({phase:"idle"});setStorageBlocked(false);setRetainedCapture(null);setDuplicate(null);setLegacyScenario(false);
+  acknowledgeDetail(null);setAuthEnded(false);setItems(null);setListError(false);setDetail(null);setBaseline(null);setIntlProjection(null);setSave({phase:"idle"});setStorageBlocked(false);setRetainedCapture(null);setDuplicate(null);setLegacyScenario(false);setIntlEntryLoading(false);
   setAlertRows(null);setOutbox(null);setAlertLoad("loading");
   void inventory();
   void loadLayouts();
@@ -423,7 +468,7 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
   const publish=(snapshot:AuthLifecycleSnapshot)=>{
    if(!active)return;
    const projection:InvestigationAuthProjection=Object.freeze({snapshot,getSnapshot});
-   setBoundAuth({ownerKey,initialInvestigationId,initialRevision,projection});
+   setBoundAuth({ownerKey,initialInvestigationId,initialRevision,intlEntryKey,projection});
   };
   if(ownerKey!=="local-preview")try{
    auth=subscribeInvestigationAuthOwner(publish,principal=>{
@@ -437,7 +482,7 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
   return()=>{active=false;setBoundAuth(null);controller.abort();++detailSeq.current;++baselineSeq.current;invalidateOptionsReads();auth?.unsubscribe();};
   // Owner changes are remounted by the authenticated server page; every request also has a scope fence.
   // eslint-disable-next-line react-hooks/exhaustive-deps
- },[ownerKey,initialInvestigationId,initialRevision]);
+ },[ownerKey,initialInvestigationId,initialRevision,intlEntryKey]);
  function beginEdit(fresh=false) {
   // Async selection must consult current admission, never the render that
   // started its GET. The boolean return pairs baseline installation with edit.
@@ -446,6 +491,22 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
    if(fresh){try{clearRejectedInvestigationJournal(sessionStorage,ownerKey,stateRef.current);}catch{setStorageBlocked(true);return false;}setPlanEntryGeneration(generation=>generation+1);setSave({phase:"idle"});setRetainedCapture(null);setDetail(null);setDraft(emptyDraft(initialSymbol));setBaseline(null);setBaselineState("none");++optionsSeq.current;setOptionsRefs([]);setOptionsStatus(null);setOptionsChecking(false);replaceInvestigationHistory("/analysis?view=investigations");}
   else if(detail){const m=detail.manifest;setRetainedCapture(null);setDraft({title:m.intent.title,question:m.intent.question,symbol:m.intent.subjects.find(s=>s.owner==="terminal.analysis_symbol")?.object_id??"",next:m.continuation.next_question??"",observation:m.continuation.next_observation??"",horizon:m.intent.horizon??"",asOf:m.intent.research_as_of??"",layoutId:m.layout_refs.length?KEPT_LAYOUT:"",theses:m.thesis_refs,screenCapture:null,screenRefs:m.evidence_refs.filter(r=>r.owner===SCREEN_EVIDENCE_OWNER)});setBaselineState(baseline?"ready":"unavailable");}
   setEditing(true);return true;
+ }
+ async function startIntlResearch(){
+  if(!initialIntlEntry||intlEntryLoading||editLocked()||!entryActive||authEnded)return;
+  const getter=authGetterRef.current,controller=scope.current;
+  const guard=ownerKey!=="local-preview"?duplicateGuard(ownerKey,getter?.()??null):null;
+  if(!guard||!controller||controller.signal.aborted)return;
+  const ticket=++detailSeq.current;setIntlEntryLoading(true);
+  try{
+   const value=await json(intlBaselineUrl(initialIntlEntry));
+   if(scope.current!==controller||controller.signal.aborted||ticket!==detailSeq.current||authGetterRef.current!==getter||!duplicateAdmittedAgain(guard))return;
+   const source=parseIntlBaselineReply(value,initialIntlEntry);if(!source||(intlReturn&&!safeIntlReturn(intlReturn,source.context)))throw Error("unavailable");
+   if(!beginEdit(true)||!duplicateAdmittedAgain(guard))return;
+   // Exact owner-qualified references only. Both authored fields start empty.
+   setDraft({...emptyDraft(),intl:{...source,guard}});
+  }catch{if(scope.current===controller&&!controller.signal.aborted&&ticket===detailSeq.current)setMessage(c.unavailable);}
+  finally{if(scope.current===controller&&!controller.signal.aborted)setIntlEntryLoading(false);}
  }
  async function selectReviewedBaseline(receipt:RetainedEventWorkspaceReceipt,reference?:InvestigationEvidenceRef) {
   if(!detail||editLocked()||detail.lifecycle!=="active"||detail.revision!==detail.current_revision)return;
@@ -480,15 +541,6 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
    setBaselineState(baseline?"ready":"unavailable");
    if(stillAdmitted)setMessage(c.reviewFailed);
   }
- }
- /** Whether the synchronous getter still shows the ready principal and epoch a duplicate was admitted
-  * with. The same boundary the reviewed-baseline follow-up uses: a stale projection, a same-user epoch
-  * change, another account or a lost ready lifetime refuses even before React's snapshot catches up. */
- function duplicateAdmittedAgain(guard:DuplicateGuard) {
-  if(ownerKey==="local-preview")return true;
-  const again=authGetterRef.current?.()??null;
-  return !!again&&again.availability==="ready"&&again.principal_partition===ownerKey
-   &&again.principal_partition===guard.principal&&again.auth_epoch===guard.epoch;
  }
  function beginDuplicate() {
   // A duplicate is a deliberate local unsaved draft: no id, no operation, no request. Only an
@@ -539,6 +591,7 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
   // here before any request, and the retained draft is never adopted on a stale identity.
   if(!detail&&duplicate&&!duplicateAdmittedAgain(duplicate.guard)){setMessage(c.auth);return;}
   if(!detail&&draft.optionPlan&&!duplicateAdmittedAgain(draft.optionPlan.guard)){setMessage(c.auth);return;}
+  if(!detail&&draft.intl&&!duplicateAdmittedAgain(draft.intl.guard)){setMessage(c.auth);return;}
   if(!detail&&saveState.phase==="rejected"&&saveState.command.expected_revision>0){setMessage(refusal(saveState,false));return;}
   let manifest:InvestigationManifest;
   // A deliberate assessment starts a new command, never rewrites an uncertain original.
@@ -555,16 +608,16 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
    const prior=detail?.manifest??duplicate?.source.manifest??recoveredCreate(stateRef.current);
    // A duplicate sends the acknowledged revision's own references verbatim: the baseline kept on
    // screen is display context, never a silent refresh or replacement of the copied pins.
-   const reference=duplicate?prior?.review_baseline_ref:baseline?.reference??prior?.review_baseline_ref;
-   const evidence=(prior?.evidence_refs??optionsRefs).filter(ref=>ref.owner!==SCREEN_EVIDENCE_OWNER||draft.screenRefs.some(kept=>canonicalInvestigationJson(kept)===canonicalInvestigationJson(ref)));
+   const reference=duplicate?prior?.review_baseline_ref:baseline?.reference??prior?.review_baseline_ref??draft.intl?.baseline;
+   const evidence=(prior?.evidence_refs??draft.intl?.refs??optionsRefs).filter(ref=>ref.owner!==SCREEN_EVIDENCE_OWNER||draft.screenRefs.some(kept=>canonicalInvestigationJson(kept)===canonicalInvestigationJson(ref)));
    const retainedEvidence=reference&&!evidence.some(ref=>canonicalInvestigationJson(ref)===canonicalInvestigationJson(reference))?[...evidence,reference]:evidence;
    const issuer=!duplicate&&baseline?[{owner:"data_os.security_master",kind:"issuer",object_id:baseline.receipt.company_id}]:[];
-   const subjects=detail?.manifest.intent.subjects??(prior?[...prior.intent.subjects,...issuer.filter(s=>!prior.intent.subjects.some(r=>canonicalInvestigationJson(r)===canonicalInvestigationJson(s)))]:[...(draft.symbol?[{owner:"terminal.analysis_symbol",kind:"security",object_id:draft.symbol}]:[]),...issuer]);
+   const subjects=detail?.manifest.intent.subjects??(prior?[...prior.intent.subjects,...issuer.filter(s=>!prior.intent.subjects.some(r=>canonicalInvestigationJson(r)===canonicalInvestigationJson(s)))]:draft.intl?[draft.intl.subject]:[...(draft.symbol?[{owner:"terminal.analysis_symbol",kind:"security",object_id:draft.symbol}]:[]),...issuer]);
    const optionPlan=draft.optionPlan?.value??prior?.option_plan;
    // Preserve the canonical Scenario reference only in its v2 contract. Never
    // convert it into a Plan v3 payload or discard it to make a different save pass.
    if(optionPlan&&prior?.scenario_capture!==undefined){setMessage(sc.planConflict);return;}
-   manifest={schema:optionPlan||prior?.schema==="investigation_manifest.v3"?"investigation_manifest.v3":"investigation_manifest.v2",...(optionPlan?{option_plan:optionPlan}:{}),...(prior?.scenario_capture!==undefined?{scenario_capture:prior.scenario_capture}:{}),...(prior?.review?{review:prior.review}:{}),argument_relations:prior?.argument_relations??[],intent:{title:draft.title,question:draft.question,subjects,...(draft.horizon?{horizon:draft.horizon}:{}),...(draft.asOf?{research_as_of:draft.asOf}:{})},layout_refs:draft.layoutId===KEPT_LAYOUT?prior?.layout_refs??[]:[],thesis_refs:draft.theses,evidence_refs:retainedEvidence,continuation:{...(prior?.continuation??{}),...(draft.next?{next_question:draft.next}:{}),...(draft.observation?{next_observation:draft.observation}:{})},...(reference?{review_baseline_ref:reference}:{})};
+   manifest={schema:optionPlan||draft.intl||prior?.schema==="investigation_manifest.v3"?"investigation_manifest.v3":"investigation_manifest.v2",...(optionPlan?{option_plan:optionPlan}:{}),...(prior?.scenario_capture!==undefined?{scenario_capture:prior.scenario_capture}:{}),...(prior?.review?{review:prior.review}:{}),argument_relations:prior?.argument_relations??[],intent:{title:draft.title,question:draft.question,subjects,...(draft.horizon?{horizon:draft.horizon}:{}),...(draft.asOf?{research_as_of:draft.asOf}:{})},layout_refs:draft.layoutId===KEPT_LAYOUT?prior?.layout_refs??[]:[],thesis_refs:draft.theses,evidence_refs:retainedEvidence,continuation:{...(prior?.continuation??{}),...(draft.next?{next_question:draft.next}:{}),...(draft.observation?{next_observation:draft.observation}:{})},...(reference?{review_baseline_ref:reference}:{})};
    if(!draft.next)delete manifest.continuation.next_question;
    if(!draft.observation)delete manifest.continuation.next_observation;
   }
@@ -632,9 +685,11 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
   const now=scenarioGetter?.();
   return !!now&&now.availability==="ready"&&now.principal_partition===intlGuard.principal&&now.auth_epoch===intlGuard.epoch;
  };
- const intlRead:InvestigationIntlRead|null=readIntlEvidence&&intlSelection&&intlCurrent()?()=>{
+ const intlSource=readIntlEvidence??(()=>intlProjection&&intlProjection.getter===scenarioGetter&&intlProjection.lang===lang
+  &&intlProjection.guard.principal===intlGuard?.principal&&intlProjection.guard.epoch===intlGuard?.epoch?intlProjection.value:null);
+ const intlRead:InvestigationIntlRead|null=intlSelection&&intlCurrent()?()=>{
   if(!intlCurrent())return null;
-  const value=readIntlEvidence({...intlSelection});
+  const value=intlSource({...intlSelection});
   // A synchronous reader can revoke its source/owner before returning.
   return intlCurrent()?value:null;
  }:null;
@@ -643,6 +698,8 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
  return <InvestigationAuthContext.Provider value={authProjection}><main className={`main2 ws-shell ${styles.root}`} data-investigation-theme={investigationTheme}>
   <Link className={styles.back} href={`/analysis${symbol?`?symbol=${encodeURIComponent(symbol)}`:""}`}>← {c.back}</Link>
   <header className={styles.heading}><div><h1>{c.title}</h1><p>{c.intro}</p></div><button disabled={!entryActive||frozen} onClick={()=>beginEdit(true)}>{c.start}</button></header>
+  {intlReturn&&<a className={styles.back} href={intlReturn}>{lang==="zh"?"返回国际市场":"Return to International Markets"}</a>}
+  {initialIntlEntry&&!editing&&!detail&&<section className={styles.card}><h2>{lang==="zh"?"以所选国际证据开始研究":"Start research from selected International evidence"}</h2><p>{lang==="zh"?"先核验所选引用，再填写你的问题。只有选择保存才会保存研究。":"Verify the selected references, then write your question. Research saves only when you choose Save."}</p><button type="button" disabled={!entryActive||frozen||intlEntryLoading} onClick={()=>void startIntlResearch()}>{intlEntryLoading?c.loading:lang==="zh"?"使用此国际选择":"Use this International selection"}</button></section>}
   {storageBlocked&&<p className={styles.notice} role="alert">{c.storage}</p>}
   {locked&&<section className={styles.notice} aria-label={c.operation}><p role="status">{c.uncertain}</p><div className={styles.actions}><button onClick={()=>void checkOutcome()}>{c.check}</button></div></section>}
   {message&&<p role="status" className={styles.notice}>{message}</p>}
@@ -658,7 +715,7 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
      <fieldset disabled={frozen}>
       <label>{c.name}<input ref={draftTitle} aria-label={c.name} required value={draft.title} onChange={e=>setDraft({...draft,title:e.target.value})}/><small>{Array.from(draft.title).length} / 160</small></label>
       <label>{c.question}<textarea aria-label={c.question} required rows={5} value={draft.question} onChange={e=>setDraft({...draft,question:e.target.value})}/><small>{Array.from(draft.question).length} / 4000</small></label>
-      <label>{c.symbol}<input value={draft.symbol} disabled={!!detail||!!duplicate||!!recoveredCreate(saveState)} onChange={e=>{++baselineSeq.current;setDraft({...draft,symbol:e.target.value.toUpperCase()});setBaseline(null);setBaselineState("none");}} autoCapitalize="characters"/></label>
+      {!draft.intl&&!detail?.manifest.evidence_refs.some(ref=>ref.owner==="intl.workspace_generation")&&<label>{c.symbol}<input value={draft.symbol} disabled={!!detail||!!duplicate||!!recoveredCreate(saveState)} onChange={e=>{++baselineSeq.current;setDraft({...draft,symbol:e.target.value.toUpperCase()});setBaseline(null);setBaselineState("none");}} autoCapitalize="characters"/></label>}
       <div className={styles.pair}><label>{c.horizon}<input value={draft.horizon} onChange={e=>setDraft({...draft,horizon:e.target.value})}/></label></div>
       {(draft.asOf||asOfCleared)&&<dl className={styles.context}><div><dt>{c.asOf}</dt><dd>{draft.asOf||c.asOfNone}</dd></div></dl>}
       {draft.asOf&&!exactAsOf(draft.asOf)&&<div role="group" aria-labelledby={asOfHeading} className={styles.card}>

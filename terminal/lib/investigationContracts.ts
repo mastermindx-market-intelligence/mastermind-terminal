@@ -1,4 +1,5 @@
 import { validateOptionsPlanDraft, type OptionsPlanDraft } from "./optionsPlanDraft";
+import {validIntlManifestReferences} from "./investigationIntlReference";
 
 /**
  * P1 Investigation command boundary. This is NOT a persistence, identity, evidence,
@@ -359,6 +360,8 @@ class Validator {
       if (Object.hasOwn(edge, "discrimination_criterion")) this.text(edge.discrimination_criterion, `${path}.discrimination_criterion`, 4000);
       return null; // Annotations are ordered authored statements, not owner identities.
     });
+    if(Array.isArray(manifest.evidence_refs)&&manifest.evidence_refs.every(v=>v&&typeof v==="object")&&intent&&Array.isArray(intent.subjects)&&intent.subjects.every(v=>v&&typeof v==="object")
+      &&!validIntlManifestReferences(manifest as unknown as InvestigationManifest))this.add("$.evidence_refs","invalid_intl_reference_scope");
   }
 }
 

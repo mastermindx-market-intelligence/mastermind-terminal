@@ -5,6 +5,7 @@ import {afterEach,beforeEach,describe,expect,it,vi} from "vitest";
 import InvestigationWorkspace,{type InvestigationOptionPlanEntry,type InvestigationOptionPlanRevisionReader} from "@/components/workspaces/InvestigationWorkspace";
 import type {AuthLifecycleSnapshot} from "../supabase/authLifecycle";
 import type {InvestigationCommand} from "../investigations";
+import type {IntlEntrySelectors} from "@/lib/investigationIntlEntry";
 import intlPacket from "./fixtures/intl_macro_risk_actual_20261104/IntlResolvedPacket.json";
 import type {IntlResolvedPacket} from "@/lib/intlInvestigationCaller";
 import {INVESTIGATION_INTL_RECEIVER_COPY} from "@/components/research/InvestigationIntlEvidence";
@@ -19,10 +20,10 @@ vi.mock("@/components/options/OptionsPlanPayoffPanel",()=>({OptionsPlanPayoffPan
 vi.mock("@/lib/i18n",()=>({useLang:()=>({lang:"en"})}));
 vi.mock("@/lib/useInvestigationTheme",()=>({useInvestigationTheme:()=>"dark"}));
 vi.mock("next/link",()=>({default:({children,href}:React.PropsWithChildren<{href:string}>)=><a href={href}>{children}</a>}));
-const auth=vi.hoisted(()=>({snapshot:null as AuthLifecycleSnapshot|null}));
-vi.mock("@/lib/supabase/investigationAuthOwner",()=>({subscribeInvestigationAuthOwner:()=>({
+const auth=vi.hoisted(()=>({snapshot:null as AuthLifecycleSnapshot|null,publish:null as ((snapshot:AuthLifecycleSnapshot)=>void)|null}));
+vi.mock("@/lib/supabase/investigationAuthOwner",()=>({subscribeInvestigationAuthOwner:(publish:(snapshot:AuthLifecycleSnapshot)=>void)=>{auth.publish=publish;return {
  getSnapshot:()=>auth.snapshot,unsubscribe:vi.fn(),
-})}));
+};}}));
 const owner="40000000-0000-4000-8000-000000000001",stamp="2026-10-24T08:00:00.000Z";
 let root:Root,host:HTMLDivElement,entry:InvestigationOptionPlanEntry|null,reader:InvestigationOptionPlanRevisionReader|null;
 let posts:InvestigationCommand[],requests:Array<{url:string;method:string}>,saved:InvestigationCommand|null;
@@ -39,14 +40,14 @@ async function fill(label:string,value:string){
  await act(async()=>{const proto=el instanceof HTMLInputElement?HTMLInputElement.prototype:HTMLTextAreaElement.prototype;
   Object.getOwnPropertyDescriptor(proto,"value")!.set!.call(el,value);el.dispatchEvent(new Event("input",{bubbles:true}));});
 }
-async function mount(id?:string,revision?:number,key="first",historyMode:"route"|"embedded"="route",readIntlEvidence?:(selection:InvestigationIntlSelection)=>ReturnType<InvestigationIntlRead>){
+async function mount(id?:string,revision?:number,key="first",historyMode:"route"|"embedded"="route",readIntlEvidence?:(selection:InvestigationIntlSelection)=>ReturnType<InvestigationIntlRead>,initialIntlEntry?:IntlEntrySelectors,intlReturnTo?:string){
  await act(async()=>{root.render(<InvestigationWorkspace key={key} ownerKey={owner} initialSymbol="AAPL" initialInvestigationId={id} initialRevision={revision}
-  historyMode={historyMode} readIntlEvidence={readIntlEvidence} onOptionPlanAdmissionReady={onEntry} onOptionPlanRevisionReady={onReader}/>);});
+  historyMode={historyMode} readIntlEvidence={readIntlEvidence} initialIntlEntry={initialIntlEntry} intlReturnTo={intlReturnTo} onOptionPlanAdmissionReady={onEntry} onOptionPlanRevisionReady={onReader}/>);});
 }
 beforeEach(()=>{
  (globalThis as {IS_REACT_ACT_ENVIRONMENT?:boolean}).IS_REACT_ACT_ENVIRONMENT=true;
  Object.defineProperty(Element.prototype,"scrollIntoView",{configurable:true,writable:true,value:vi.fn()});
- auth.snapshot=ready();entry=null;reader=null;posts=[];requests=[];saved=null;currentRevision=2;sessionStorage.clear();
+ auth.snapshot=ready();auth.publish=null;entry=null;reader=null;posts=[];requests=[];saved=null;currentRevision=2;sessionStorage.clear();
  host=document.createElement("div");document.body.append(host);root=createRoot(host);
  vi.stubGlobal("fetch",vi.fn((input:RequestInfo|URL,init?:RequestInit)=>{
   const url=String(input),method=init?.method??"GET";requests.push({url,method});
@@ -280,5 +281,79 @@ describe("native International selected-detail receiver fence",()=>{
   const id=selectedRecord();auth.snapshot={availability:"unavailable",principal_partition:null,auth_epoch:"none"};
   const read=vi.fn((selection:InvestigationIntlSelection)=>({selection,input:{disposition:"not_admitted" as const}}));
   await mount(id,1,"intl","route",read);expect(read).not.toHaveBeenCalled();expect(posts).toEqual([]);
+ });
+});
+
+
+describe("native International authenticated asynchronous selected read",()=>{
+ const context="intl-workspace-context:sha256:"+"c".repeat(64),generation="im-workspace-generation:11111111-1111-4111-8111-111111111111";
+ function selected(){
+  const ref={owner:"intl.workspace_generation",object_type:"selected_generation",object_id:context,mode:"pinned" as const,version_ref:generation,fingerprint:"a".repeat(64),selection:{field:"EZ.gdp_yoy"}};
+  saved={id:"50000000-0000-4000-8000-000000000001",operation_id:"50000000-0000-4000-8000-000000000002",expected_revision:0,action:"create",manifest:{schema:"investigation_manifest.v3",argument_relations:[],intent:{title:"Private International record",question:"My exact authored question",subjects:[{owner:"intl.workspace_context",kind:"economy",object_id:context}]},layout_refs:[],thesis_refs:[],evidence_refs:[ref],review_baseline_ref:ref,continuation:{}}};return saved.id;
+ }
+ function review(reply:()=>Promise<Response>){const original=vi.mocked(fetch).getMockImplementation()!;vi.mocked(fetch).mockImplementation((input,init)=>{
+  if(String(input).startsWith("/api/investigations/review?")){requests.push({url:String(input),method:init?.method??"GET"});return reply();}return original(input,init);
+ });}
+ const reviews=()=>requests.filter(r=>r.url.startsWith("/api/investigations/review?"));
+ const frame=(disposition:string)=>({status:"international",id:saved!.id,revision:1,input:{disposition}});
+ async function publish(snapshot:AuthLifecycleSnapshot){await act(async()=>{auth.snapshot=snapshot;auth.publish!(snapshot);});}
+ it("waits for actual auth readiness after detail arrives and ignores identical lifecycle notifications",async()=>{
+  const id=selected();auth.snapshot={availability:"unavailable",principal_partition:null,auth_epoch:"initial-pending"};review(()=>response(frame("not_admitted")));
+  await mount(id,1,"intl-auth-pending");expect(reviews()).toHaveLength(0);
+  await publish(ready());expect(reviews()).toHaveLength(1);expect(host.textContent).toContain(INVESTIGATION_INTL_RECEIVER_COPY.en.disposition.not_admitted);
+  await publish({...ready()});expect(reviews()).toHaveLength(1);expect(posts).toEqual([]);
+ });
+ it("does not let a late earlier-epoch review overwrite the newly acknowledged private projection",async()=>{
+  const id=selected();let release!:(r:Response)=>void;let n=0;review(()=>++n===1?new Promise<Response>(r=>{release=r;}):response(frame("not_admitted")));
+  await mount(id,1,"intl-auth-rebind");expect(reviews()).toHaveLength(1);
+  await publish({...ready(),auth_epoch:"epoch-2"});expect(reviews()).toHaveLength(2);expect(host.textContent).toContain(INVESTIGATION_INTL_RECEIVER_COPY.en.disposition.not_admitted);
+  await act(async()=>release(new Response(JSON.stringify(frame("denied")),{status:200})));
+  expect(host.textContent).not.toContain(INVESTIGATION_INTL_RECEIVER_COPY.en.disposition.denied);expect(host.textContent).toContain(INVESTIGATION_INTL_RECEIVER_COPY.en.disposition.not_admitted);expect(posts).toEqual([]);
+ });
+});
+
+
+describe("native International authoring ingress",()=>{
+ const selection:IntlEntrySelectors={context:"intl-workspace-context:sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",generation:"im-workspace-generation:11111111-1111-4111-8111-111111111111",fingerprint:"a".repeat(64),fields:["EZ.gdp_yoy","EZ.cpi_yoy"]};
+ const source=()=>{const refs=selection.fields.map(field=>({owner:"intl.workspace_generation",object_type:"selected_generation",object_id:selection.context,mode:"pinned",version_ref:selection.generation,fingerprint:selection.fingerprint,selection:{field}}));return {status:"international_baseline",context:{researchMarket:"EZ",periodIdentity:"3m",currencyBasis:"local",returnBasis:"price"},refs,baseline:refs[0],subject:{owner:"intl.workspace_context",kind:"economy",object_id:selection.context}};};
+ function transport(reply:()=>Promise<Response>){const original=vi.mocked(fetch).getMockImplementation()!;vi.mocked(fetch).mockImplementation((input,init)=>{
+  if(String(input).startsWith("/api/investigations/baseline?kind=international")){requests.push({url:String(input),method:init?.method??"GET"});return reply();}
+  return original(input,init);
+ });}
+ it("qualifies selectors before blank authoring and explicitly saves/reopens the exact question and references",async()=>{
+  const qualified=source();transport(()=>response(qualified));
+  const back="https://www.mastermind-x.com/intl.html?view=risk&market=EZ&horizon=3m&basis=local&return_basis=price";
+  await mount(undefined,undefined,"intl-entry","route",undefined,selection,back);
+  expect(host.querySelector('[aria-label="Research question"]')).toBeNull();expect(posts).toEqual([]);
+  await click("Use this International selection");
+  expect(host.querySelector<HTMLTextAreaElement>('[aria-label="Research question"]')?.value).toBe("");
+  expect(host.querySelector<HTMLInputElement>('[aria-label="Title"]')?.value).toBe("");
+  expect(host.querySelector('[aria-label="Symbol"]')).toBeNull();expect(posts).toEqual([]);
+  await fill("Title","My authored International research");await fill("Research question","What does my selected economic evidence imply?");await click("Save research");
+  expect(posts).toHaveLength(1);const command=posts[0];
+  expect(command.manifest).toMatchObject({schema:"investigation_manifest.v3",intent:{question:"What does my selected economic evidence imply?",subjects:[qualified.subject]},evidence_refs:qualified.refs,review_baseline_ref:qualified.refs[0]});
+  expect(command.manifest).not.toHaveProperty("option_plan");
+  expect(new URL(window.location.href).searchParams.get("intl_return")).toBe(back);
+  await mount(command.id,1,"intl-reopen","route",undefined,undefined,back);
+  expect(host.textContent).toContain("What does my selected economic evidence imply?");expect(posts).toHaveLength(1);
+  expect(host.querySelector<HTMLAnchorElement>('a[href^="https://www.mastermind-x.com"]')?.href).toBe(back);
+  expect(requests.filter(r=>r.method!=="GET")).toEqual([{url:"/api/investigations",method:"POST"}]);
+ });
+ it("does not open a draft from a substituted source digest",async()=>{
+  const reply=source();reply.refs[0].fingerprint="b".repeat(64);transport(()=>response(reply));
+  await mount(undefined,undefined,"intl-bad","route",undefined,selection);await click("Use this International selection");
+  expect(host.querySelector('[aria-label="Research question"]')).toBeNull();expect(posts).toEqual([]);
+ });
+ it("discards the held baseline answer after an unnotified auth epoch changes",async()=>{
+  let release!:(response:Response)=>void;transport(()=>new Promise<Response>(resolve=>{release=resolve;}));
+  await mount(undefined,undefined,"intl-held","route",undefined,selection);
+  await act(async()=>button("Use this International selection").click());auth.snapshot={...ready(),auth_epoch:"new-epoch"};
+  await act(async()=>release(new Response(JSON.stringify(source()),{status:200})));
+  expect(host.querySelector('[aria-label="Research question"]')).toBeNull();expect(posts).toEqual([]);
+ });
+ it("refuses Save after the admitted native draft owner epoch changes",async()=>{
+  transport(()=>response(source()));await mount(undefined,undefined,"intl-epoch","route",undefined,selection);await click("Use this International selection");
+  await fill("Title","Held draft");await fill("Research question","Only the admitted principal may send this");
+  auth.snapshot={...ready(),auth_epoch:"changed-after-entry"};await click("Save research");expect(posts).toEqual([]);
  });
 });

@@ -1,4 +1,5 @@
 import { isScreenEvidenceReference, parseScreenCapture, SCREEN_EVIDENCE_OWNER, SCREEN_EVIDENCE_TYPE, type ScreenCapture } from "./investigationScreen";
+import {INTL_EVIDENCE_OWNER,INTL_EVIDENCE_TYPE,INTL_SUBJECT_OWNER} from "./investigationIntlReference";
 import {
   INVESTIGATION_MANIFEST_SCHEMA_V2, INVESTIGATION_MANIFEST_SCHEMA_V3, validateInvestigationManifest, validateStoredInvestigationManifest,
   type InvestigationAdmission, type InvestigationManifest,
@@ -9,10 +10,12 @@ export const INVESTIGATION_ADMISSION: InvestigationAdmission = {
   subjects: [
     { owner: "terminal.analysis_symbol", kinds: ["security"] },
     { owner: "data_os.security_master", kinds: ["security", "issuer"] },
+    { owner: INTL_SUBJECT_OWNER, kinds: ["economy"] },
   ],
   evidence: [{ owner: "earnings.workspace_generation", object_types: ["event_workspace"] },
     { owner: "terminal.options_exposure", object_types: ["exposure_chart_request", "sector_origin", "rotation_measurement"] },
-    { owner: SCREEN_EVIDENCE_OWNER, object_types: [SCREEN_EVIDENCE_TYPE] }],
+    { owner: SCREEN_EVIDENCE_OWNER, object_types: [SCREEN_EVIDENCE_TYPE] },
+    { owner: INTL_EVIDENCE_OWNER, object_types: [INTL_EVIDENCE_TYPE] }],
 };
 export type InvestigationCommand = {
   id: string;

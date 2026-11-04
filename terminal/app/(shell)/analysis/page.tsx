@@ -45,7 +45,7 @@ export default async function AnalysisPage({ searchParams }: AnalysisPageProps) 
   ) : route.kind === "investigations" ? (
     // Canonical saved-Plan reopen through the shared revision control: normal
     // history and authenticated owner; the key isolates sessions across A→B→A.
-    <InvestigationPlanReopenRoute key={`${ownerKey}:${route.investigationId ?? "library"}:${route.revision ?? "head"}`} ownerKey={ownerKey} initialSymbol={route.symbol} initialInvestigationId={route.investigationId} initialRevision={route.revision} />
+    <InvestigationPlanReopenRoute key={`${ownerKey}:${route.investigationId ?? "library"}:${route.revision ?? "head"}:${JSON.stringify(route.intlEntry??null)}`} ownerKey={ownerKey} initialSymbol={route.symbol} initialInvestigationId={route.investigationId} initialRevision={route.revision} initialIntlEntry={route.intlEntry} intlReturnTo={route.intlReturnTo} />
   ) : route.kind === "invalid_thesis" ? (
     <ThesisWorkspaceMount key={`${ownerKey}:invalid`} ownerKey={ownerKey} invalidLink />
   ) : (
