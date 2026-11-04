@@ -47,6 +47,7 @@ const COPY = {
   sharing: ["Sharing…", "分享中…"],
   keepPrivate: ["Keep private", "保持私有"],
   noteOtherWork: ["Other project work continues while you decide.", "你可以先处理其他项目工作，之后再决定。"],
+  openTeamView: ["Open team view", "打开团队视图"],
   openBrief: ["Open brief", "打开简报"],
   closeBrief: ["Close brief", "收起简报"],
   technical: ["Technical detail", "技术信息"],
@@ -93,7 +94,7 @@ const COPY = {
   errConflict: ["That request conflicts with the sharing on record.", "该请求与已记录的分享冲突。"],
   errUnavailable: ["Briefs could not load right now. Try again in a moment.", "暂时无法加载简报，请稍后再试。"],
   errInvalid: ["That request was not complete. Check the fields and try again.", "请求不完整。请检查填写项后重试。"],
-  errEffectUnknown: ["This sharing address isn't recorded for this brief.", "此简报没有记录这个分享地址。"],
+  errEffectUnknown: ["The outcome for this sharing address is not confirmed.", "此分享地址的结果尚未确认。"],
   errUnexpected: ["The request was not completed here. Check the original sharing status.", "请求未在此处完成。请检查原有分享状态。"],
   checkingIdentity: ["Checking your account…", "正在核对账户…"],
   addressUnavailable: ["The original sharing address could not be retained. Nothing was sent.", "无法保留原有分享地址，未发送任何内容。"],
@@ -340,6 +341,10 @@ function BriefSharingReviewLifecycle({
           } else {
             setReceipt(decoded);
             setReceiptError(null);
+            // A decoded owner receipt can settle an earlier ambiguous response.
+            // It changes presentation only; no second send is authorized.
+            if (decoded.observation === "MATCHED" && decoded.grant?.effect_sha256 === expectedEffect)
+              setSendState(previous => previous === "unknown" ? "recorded" : previous);
           }
         }
         setReceiptRead(true);
@@ -695,7 +700,7 @@ function BriefSharingReviewLifecycle({
       <header className={s.head}>
         <span className={s.eyebrow}>{t("eyebrow")}</span>
         <h1 className={s.heading}>{sendState === "unknown" ? t("unknownTitle") : receiptQualified ? t("sharedTitle") : t("heading")}</h1>
-        <p className={s.lede}>{receiptQualified ? [teamNameFor(receipt?.grant?.team_id ?? null), t("accessActive")].filter(Boolean).join(" · ") : sendState === "unknown" ? t("unknownNote") : t("lede")}</p>
+        <p className={s.lede}>{sendState === "unknown" ? t("unknownNote") : receiptQualified ? [teamNameFor(receipt?.grant?.team_id ?? null), t("accessActive")].filter(Boolean).join(" · ") : t("lede")}</p>
       </header>
 
       {artifact}
@@ -775,6 +780,7 @@ function BriefSharingReviewLifecycle({
         )}
 
         <div className={s.actions} data-brief-sharing-actions="">
+          {receiptQualified && <a className={s.control} href={`/briefs/shared/${deliveryId}`}>{t("openTeamView")}</a>}
           {showSend && (
             <button
               type="button"

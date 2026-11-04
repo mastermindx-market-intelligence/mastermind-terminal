@@ -238,6 +238,7 @@ describe("BriefSharingReview", () => {
     expect(host.textContent).toContain("US session digest");
     expect(host.textContent).toContain("The view-only grant is active for current team members.");
     expect(stateAttr()).toBe("shared");
+    expect(host.querySelector(`a[href="/briefs/shared/${DELIVERY}"]`)?.textContent).toBe("Open team view");
     expect(host.querySelector("h1")?.textContent).toBe("Shared with your team.");
     expect(host.querySelector("[data-brief-sharing-artifact] h2")?.textContent).toBe("US session digest");
     // a source grant means no fresh send and no keep-private
@@ -334,6 +335,19 @@ describe("BriefSharingReview", () => {
     expect(host.textContent).not.toContain("Try again");
   });
 
+  it("an ambiguous response is settled only by the exact recorded owner receipt", async () => {
+    servePost = () => { throw Error("response lost"); };
+    await mount(); await chooseTeam(TEAM); await click("Review sharing");
+    await click("Share with team");
+    expect(host.querySelector("h1")?.textContent).toBe("We couldn't confirm what happened.");
+    expect(host.textContent).not.toContain("The view-only grant is active");
+    serveReceipt = () => jsonRes(receiptRaw({ observation: "MATCHED", grant: grantRaw(), current_access: true }));
+    await click("Check original sharing");
+    expect(host.querySelector("h1")?.textContent).toBe("Shared with your team.");
+    expect(host.textContent).toContain("The view-only grant is active for current team members.");
+    expect(postCalls()).toHaveLength(1); expect(receiptCalls()).toHaveLength(1);
+  });
+
   it("an initial reference recovers by reading the original receipt only", async () => {
     serveReceipt = () => jsonRes(receiptRaw({ observation: "MATCHED", grant: grantRaw(), current_access: true }));
     await mount({ initialExpectedEffect: EFFECT });
@@ -365,6 +379,7 @@ describe("BriefSharingReview", () => {
     expect(postCalls()).toHaveLength(1);
     expect(host.textContent).toContain("Sharing recorded; current access not established.");
     expect(host.textContent).toContain("No sharing record is visible yet.");
+    expect(host.querySelector(`a[href="/briefs/shared/${DELIVERY}"]`)).toBeNull();
     expect(host.textContent).not.toContain("Shared with your team");
     expect(receiptCalls()).toHaveLength(1);
     await flush();
