@@ -13,6 +13,11 @@ async function prepare(page: Page, testInfo: TestInfo, baseURL: string | undefin
   await page.context().route("**/api/brain/me", route => route.fulfill({
     json: { tier: "guest", quotas: { fast: { remaining: 0, limit: 0, period: "day" }, pro: { remaining: 0, limit: 0, period: "day" } } },
   }));
+  // Thesis persistence does not exercise the separately owned Brain embed.
+  // Avoid a public-domain script dependency while retaining strict browser-error checks.
+  await page.context().route("https://www.mastermind-x.com/mm_brain.js", route => route.fulfill({
+    status: 200, contentType: "application/javascript", body: "/* isolated Brain embed in thesis e2e */",
+  }));
   await page.addInitScript((useZh) => {
     localStorage.setItem("mm.lang", useZh ? "zh" : "en");
     document.documentElement?.setAttribute("data-lang", useZh ? "zh" : "en");
