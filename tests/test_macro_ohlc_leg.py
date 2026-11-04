@@ -14,12 +14,13 @@ Two live defects sit behind these guards.
 from __future__ import annotations
 
 import json
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
+from urllib.parse import parse_qs, urlparse
 from unittest.mock import patch
 
 from ingest.build_macro_symbols import (
-    MIN_OHLC_BARS, fetch_ohlc, merge_deep_history, ohlc_history_range,
-    publish_decision,
+    FULL_HISTORY_START_TS, MIN_DEEP_DAILY_BARS, MIN_OHLC_BARS,
+    fetch_ohlc, merge_deep_history, ohlc_history_query, publish_decision,
 )
 from ingest.macro_catalog import CATALOG, fred_symbols, ohlc_symbols, yahoo_symbols
 
@@ -84,17 +85,59 @@ def _bars(start: str, count: int, close: int = 100) -> list[list]:
              close - 1, close, 100] for i in range(count)]
 
 
-def test_shanghai_composite_requests_full_yahoo_history_not_rolling_five_years():
-    assert ohlc_history_range("000001.SS") == "max"
+def test_shanghai_composite_requests_bounded_daily_yahoo_history():
+    assert FULL_HISTORY_START_TS == 631152000  # 1990-01-01 UTC; Yahoo serves 1997 onward
+    assert ohlc_history_query("000001.SS", now_ts=1762300000) == (
+        "period1=631152000&period2=1762386400&interval=1d"
+    )
     for sym in ("000300.SS", "399001.SZ", "^GSPC", "EURUSD=X"):
-        assert ohlc_history_range(sym) == "5y"
+        assert ohlc_history_query(sym) == "range=5y&interval=1d"
 
-    # Check the actual request route as well as the selector, without a live API dependency.
+    # Check actual request URLs; range=max auto-downsamples to monthly despite interval=1d.
     with patch("ingest.build_macro_symbols._get", return_value={"chart": {"result": []}}) as get:
         assert fetch_ohlc("000001.SS") == []
         assert fetch_ohlc("000300.SS") == []
-    assert "000001.SS?range=max&interval=1d" in get.call_args_list[0].args[0]
+    index_url = get.call_args_list[0].args[0]
+    index_query = parse_qs(urlparse(index_url).query)
+    assert urlparse(index_url).path.endswith("/000001.SS")
+    assert index_query["period1"] == [str(FULL_HISTORY_START_TS)]
+    assert int(index_query["period2"][0]) > FULL_HISTORY_START_TS
+    assert index_query["interval"] == ["1d"]
+    assert "range" not in index_query
     assert "000300.SS?range=5y&interval=1d" in get.call_args_list[1].args[0]
+
+
+def _yahoo_bars(granularity: str, count: int) -> dict:
+    start = datetime(1997, 7, 2, tzinfo=timezone.utc)
+    timestamps = [int((start + timedelta(days=i)).timestamp()) for i in range(count)]
+    return {"chart": {"result": [{
+        "meta": {"dataGranularity": granularity},
+        "timestamp": timestamps,
+        "indicators": {"quote": [{
+            "open": [100.0] * count, "high": [101.0] * count,
+            "low": [99.0] * count, "close": [100.5] * count,
+            "volume": [1000] * count,
+        }]},
+    }]}}
+
+
+def test_shanghai_rejects_monthly_or_truncated_responses(capsys):
+    with patch("ingest.build_macro_symbols._get", return_value=_yahoo_bars("1mo", 353)):
+        assert fetch_ohlc("000001.SS") == []
+    assert "granularity=1mo" in capsys.readouterr().err
+
+    with patch("ingest.build_macro_symbols._get", return_value=_yahoo_bars("1d", 353)):
+        assert fetch_ohlc("000001.SS") == []
+    assert "refusing non-daily/truncated history" in capsys.readouterr().err
+
+
+def test_shanghai_accepts_genuine_deep_daily_ohlc():
+    with patch("ingest.build_macro_symbols._get",
+               return_value=_yahoo_bars("1d", MIN_DEEP_DAILY_BARS)):
+        rows = fetch_ohlc("000001.SS")
+    assert len(rows) == MIN_DEEP_DAILY_BARS
+    assert rows[0] == ["1997-07-02", 100.0, 101.0, 99.0, 100.5, 1000]
+    assert rows[1][0] == "1997-07-03"
 
 
 def test_shanghai_history_backfill_preserves_old_dates_and_prefers_fresh_overlap(tmp_path):
