@@ -174,3 +174,16 @@ provider with synthetic preference/auth/HTTP seams; they are not Beta flag,
 service, navigation-browser or authenticated acceptance. An initial resolver call
 used an absolute canonical base and withheld the link; the corrected call uses
 its existing relative `/intl.html` base contract, without changing that resolver.
+
+Actual producer/native input join now passes15 source checks: the exact original
+19732B/SHA4ad58819 d1c5 helper result is consumed verbatim; all12 hrefs traverse
+strict native intake and current-policy qualified baseline without fetching the
+comparison companion. Both actual GB Macro hrefs (JP/no-focus) then traverse the
+mounted real native owners through blank authoring, one explicit Save, readback
+and exact reopen. Only the single selected GB field/subject is saved and shown;
+return navigation does not add EZ or JP evidence or trigger another Save. Auth,
+HTTP/feed reads and RPC are explicit doubles. This is source interoperability
+against retained qualified immutable0dc, not a new publisher build, HTML/bridge,
+real navigation, real authentication, SQL, installation or served acceptance.
+The original normal build's withheld generation remains a separate producer
+failure; this test neither reruns it nor substitutes a new publication.
