@@ -15,6 +15,9 @@ const w2aWorkspacesSpec = /w2a-workspaces\.spec\.ts/;
 
 export default defineConfig({
   testDir: "./e2e",
+  // Browser cases use .spec.ts; Node tool tests run in their dedicated CI step.
+  // Collecting .test.cjs here makes Playwright reject their shared Node test imports.
+  testMatch: "**/*.spec.ts",
   // Compile every route the suite uses BEFORE any spec's clock starts. The suite runs against a
   // DEV server, so a route's first request pays a Turbopack compile inside whichever spec
   // happens to touch it first — the measured cause of CI's rotating e2e failures. See the
