@@ -7,6 +7,11 @@ This version has breaking changes — APIs, conventions, and file structure may 
 <!-- BEGIN:mastermind-agent-laws (added 2026-07-23 after the onboarding-flow postmortem) -->
 # Mastermind Terminal — agent laws
 
+## Review without another session
+
+Use the root [session-owned review rule](../AGENTS.md#session-owned-prsource-review-chairman-2026-11-03) and the accepted protected Mastermind review policy. The current builder may finish its own focused, evidence-based review for routine changes. Where a distinct independent technical review is actually owed, start a true read-only native Codex/Claude reviewer child (or Web Pro native child if exposed, or admitted Fabric child) **under the same parent session**; verify its result and adjudicate findings here. Do not require another top-level chat or a particular historical reviewer. Author self-review is not a distinct subagent or formal GitHub non-author approval. Maintain required CI, real change-risk classification, holds and protected release checks.
+
+
 ## Model routing
 Opus builds and reviews code. Design choices are judgment work — made in the session's main loop (or an Opus designer agent), never delegated to Sonnet; builders only implement fully-specified designs (exact markup/classes handed to them). Sonnet = mechanical non-code sweeps only; Haiku = trivial extraction.
 
