@@ -19,12 +19,26 @@ function evaluate(overrides = {}) {
     ...(overrides.VERCEL === "1" ? { VERCEL_GIT_COMMIT_SHA: "a".repeat(40) } : {}),
     ...overrides,
   };
+  // Terminal's required CI job runs Node 20, which cannot strip TypeScript.
+  // Compile the actual next.config.ts in-memory using the already pinned
+  // TypeScript dependency, maintaining the source filename and __dirname.
   const code = [
-    "globalThis.__dirname = process.cwd();",
-    "const config = (await import('./next.config.ts')).default;",
-    "console.log('RESULT:' + JSON.stringify({rewrites: await config.rewrites(), deploymentId: config.deploymentId, shell: config.env.MMX_SHARED_SHELL, headers: await config.headers()}));",
+    "const fs = require('node:fs');",
+    "const path = require('node:path');",
+    "const Module = require('node:module');",
+    "const ts = require('typescript');",
+    "const filename = path.resolve('next.config.ts');",
+    "const source = fs.readFileSync(filename, 'utf8');",
+    "const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, esModuleInterop: true } }).outputText;",
+    "const loaded = new Module(filename, module); loaded.filename = filename;",
+    "loaded.paths = Module._nodeModulePaths(process.cwd());",
+    "loaded._compile(compiled, filename);",
+    "const config = loaded.exports.default;",
+    "Promise.resolve(config.rewrites()).then(async rewrites => {",
+    "  console.log('RESULT:' + JSON.stringify({ rewrites, deploymentId: config.deploymentId, shell: config.env.MMX_SHARED_SHELL, headers: await config.headers() }));",
+    "}).catch(error => { console.error(error); process.exit(1); });",
   ].join("\n");
-  const run = spawnSync(process.execPath, ["--experimental-strip-types", "--input-type=module", "-e", code], {
+  const run = spawnSync(process.execPath, ["-e", code], {
     env,
     cwd: terminal,
     encoding: "utf8",
