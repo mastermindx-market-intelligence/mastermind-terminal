@@ -44,6 +44,10 @@ const LAYOUT_FILES = [
   "terminal/lib/i18n.tsx",
   "terminal/lib/optionsLevels.ts",
   "terminal/lib/optionsLevelsStrings.ts",
+  // The synthetic fixtures every crop reads: a fixture byte change stales the lock (#1200 H5)
+  "terminal/e2e/fixtures/options-r1-w3a-flow.json",
+  "terminal/e2e/fixtures/options-r1-w3b-vol.json",
+  "terminal/e2e/fixtures/options-r1-w3-moves.json",
 ];
 const VIEWPORTS = { 1440: { width: 1440, height: 900 }, 820: { width: 820, height: 1180 }, 390: { width: 390, height: 844 } } as const;
 type Width = keyof typeof VIEWPORTS;
@@ -135,7 +139,7 @@ test.describe("Options R1 W3 crop packet", () => {
 
     test(`volatility compare panel with the published band wired / ${lang}`, async ({ page }) => {
       await page.addInitScript((locale) => { localStorage.setItem("mm.lang", locale); }, lang);
-      // Freeze the clock at the W3B fixture's read day + 1 (2026-10-21) so tenor labels
+      // Freeze the clock at the W3B fixture's read day (asof 2026-10-21) so tenor labels
       // and horizons stay deterministic at every viewport.
       await page.clock.setFixedTime(new Date("2026-10-21T15:00:00Z"));
       await page.route("**/api/flow?*", async (route) => {
@@ -192,9 +196,12 @@ test.describe("Options R1 W3 crop packet", () => {
   test.afterAll(() => {
     const root = path.resolve(__dirname, "../..");
     const sha = (file: string) => createHash("sha256").update(readFileSync(path.join(root, file))).digest("hex");
-    const head = execSync("git rev-parse HEAD", { cwd: root }).toString().trim();
+    // CAPTURE_HEAD names the commit an uncommitted working tree is built on; git is the fallback.
+    const pinned = process.env.CAPTURE_HEAD ?? "";
+    const head = /^[0-9a-f]{40}$/.test(pinned) ? pinned : execSync("git rev-parse HEAD", { cwd: root }).toString().trim();
     const lines = [
       `capturedAtHead: ${head}`,
+      `capturedAtHeadSource: ${head === pinned ? "CAPTURE_HEAD (the commit the captured working tree is built on)" : "git rev-parse HEAD"}`,
       `command: "OPTIONS_R1_CROPS=1 npx playwright test e2e/options-r1-w3-crops.spec.ts --project=desktop --workers=1"`,
       `theme: Terminal and Options routes are dark-only.`,
       `sources: synthetic (e2e/fixtures/options-r1-w3a-flow.json, e2e/fixtures/options-r1-w3b-vol.json, e2e/fixtures/options-r1-w3-moves.json, mocked /data/AAPL.fund.json); not provider evidence.`,

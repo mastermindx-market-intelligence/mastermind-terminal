@@ -1,4 +1,5 @@
-import { parseSectorState, writeSectorState, type MemberSort, type SectorState } from "@/lib/sectorIntelligence";
+import { DEFAULT_SECTOR_STATE, parseSectorState, writeSectorState, type MemberSort, type SectorState } from "@/lib/sectorIntelligence";
+import { compactSectorReturnHref, resolveSectorDepthReturn, SECTOR_DEPTH_RETURN_PARAM } from "@/lib/sectorDepthReturn";
 
 /** Where an Exposure reading came from: a Sector Central holding, carried so the
  * reader can step the same cohort and return to the exact selection. The envelope
@@ -48,6 +49,42 @@ const calendarDay = (value: unknown): value is string => {
 const isTickerLike = (value: unknown): value is string =>
   typeof value === "string" && value.length <= 20 && TICKER_PATTERN.test(value);
 
+/** The return address this envelope carries. Without an opener it is the incumbent
+ * serialization, exactly as before. With one, it is the compact href that embeds
+ * the opener snapshot in sectorReturn; an over-budget first attempt is retried
+ * once with the opener reduced to its identity (workspace/sector/theme) — the
+ * correct landing spot survives, while the exact full outer filters are only
+ * promised when the full snapshot fits. Null when nothing fits: the budget is
+ * never increased. */
+function originReturnHref(state: SectorState, opener: SectorState | null): string | null {
+  if (opener === null) {
+    const written = writeSectorState(new URL(LOCAL_URL), state);
+    const hashAt = written.indexOf("#");
+    const href = hashAt === -1 ? written : written.slice(0, hashAt);
+    return href.length >= 1 && href.length <= EXPOSURE_ORIGIN_MAX_RETURN ? href : null;
+  }
+  const compact = compactSectorReturnHref(state, opener);
+  if (compact === null) return null;
+  if (compact.length <= EXPOSURE_ORIGIN_MAX_RETURN) return compact;
+  const minimal = compactSectorReturnHref(state, {
+    ...DEFAULT_SECTOR_STATE, workspace: opener.workspace, sector: opener.sector, theme: opener.theme,
+  });
+  return minimal !== null && minimal.length <= EXPOSURE_ORIGIN_MAX_RETURN ? minimal : null;
+}
+
+/** A valid return address may still overflow the separately bounded wire
+ * envelope after percent encoding. A carried opener must fit both, or the
+ * caller gets no action rather than an Exposure link that drops its origin. */
+function boundedOrigin(origin: ExposureOrigin, state: SectorState, opener: SectorState | null): ExposureOrigin | null {
+  if (!isExposureOrigin(origin)) return null;
+  if (!opener || encodeExposureOrigin(origin) !== null) return origin;
+  const returnHref = originReturnHref(state, { ...DEFAULT_SECTOR_STATE,
+    workspace: opener.workspace, sector: opener.sector, theme: opener.theme });
+  if (returnHref === null) return null;
+  const candidate = { ...origin, returnHref };
+  return encodeExposureOrigin(candidate) !== null ? candidate : null;
+}
+
 /** The return address must stay a bounded relative /discover selection that reads
  * back into exactly the sector state this envelope claims to come from. */
 function returnHrefMatches(origin: ExposureOrigin): boolean {
@@ -57,6 +94,11 @@ function returnHrefMatches(origin: ExposureOrigin): boolean {
   if (href.includes("#") || href.includes("\\") || href.includes("//") || /\s/.test(href) || /[\u0000-\u001f]/.test(href)) return false;
   const params = new URLSearchParams(href.slice(href.indexOf("?") + 1));
   if (params.get("tab") !== "sectors") return false;
+  // A carried opener snapshot must appear at most once and must itself decode;
+  // nested, duplicated or foreign snapshot bytes are rejected outright.
+  const snapshots = params.getAll(SECTOR_DEPTH_RETURN_PARAM);
+  if (snapshots.length > 1) return false;
+  if (snapshots.length === 1 && resolveSectorDepthReturn(snapshots[0], null) === null) return false;
   const state = parseSectorState(params);
   return state.sector === origin.sector && state.group === origin.group
     && state.sort === origin.sort && state.query === origin.query && state.company === origin.company;
@@ -142,13 +184,12 @@ export function stripExposureOrigin(href: string): string {
 export function sectorOriginFromState(input: {
   state: SectorState; company: string; roster: readonly string[];
   asOf: string | null; contentHash: string | null; benchmark: string | null;
+  depthReturn?: SectorState | null;
 }): ExposureOrigin | null {
   const { state, company, roster } = input;
   if (!isTickerLike(company)) return null;
-  const written = writeSectorState(new URL(LOCAL_URL), { ...state, company });
-  const hashAt = written.indexOf("#");
-  const returnHref = hashAt === -1 ? written : written.slice(0, hashAt);
-  if (returnHref.length < 1 || returnHref.length > EXPOSURE_ORIGIN_MAX_RETURN) return null;
+  const returnHref = originReturnHref({ ...state, company }, input.depthReturn ?? null);
+  if (returnHref === null) return null;
   const at = roster.indexOf(company);
   const count = roster.length >= 1 && roster.length <= EXPOSURE_ORIGIN_MAX_COUNT ? roster.length : null;
   const origin: ExposureOrigin = {
@@ -159,7 +200,7 @@ export function sectorOriginFromState(input: {
     method: EXPOSURE_ORIGIN_METHOD,
     benchmark: isTickerLike(input.benchmark) ? input.benchmark : null,
   };
-  return isExposureOrigin(origin) ? origin : null;
+  return boundedOrigin(origin, { ...state, company }, input.depthReturn ?? null);
 }
 
 export function exposureOriginStep(origin: ExposureOrigin, roster: readonly string[], direction: -1 | 1): { company: string; index: number } | null {
@@ -177,9 +218,18 @@ export function exposureOriginRosterState(origin: ExposureOrigin, receipt: { con
 }
 
 export function exposureOriginForCompany(origin: ExposureOrigin, company: string, index: number): ExposureOrigin {
-  const state = parseSectorState(new URLSearchParams(origin.returnHref.slice(origin.returnHref.indexOf("?") + 1)));
-  const written = writeSectorState(new URL(LOCAL_URL), { ...state, company });
-  const hashAt = written.indexOf("#");
-  const candidate: ExposureOrigin = { ...origin, company, index, returnHref: hashAt === -1 ? written : written.slice(0, hashAt) };
-  return isExposureOrigin(candidate) ? candidate : origin;
+  const params = new URLSearchParams(origin.returnHref.slice(origin.returnHref.indexOf("?") + 1));
+  const state = parseSectorState(params);
+  const opener = resolveSectorDepthReturn(params.get(SECTOR_DEPTH_RETURN_PARAM), null);
+  const returnHref = originReturnHref({ ...state, company }, opener);
+  if (returnHref === null) return origin;
+  const candidate: ExposureOrigin = { ...origin, company, index, returnHref };
+  return boundedOrigin(candidate, { ...state, company }, opener) ?? origin;
+}
+
+/** A proposed step is atomic: neither the chart symbol nor its origin changes
+ * when the complete next selection cannot be represented within the budgets. */
+export function exposureOriginForStep(origin: ExposureOrigin, next: { company: string; index: number }): ExposureOrigin | null {
+  const target = exposureOriginForCompany(origin, next.company, next.index);
+  return target.company === next.company && target.index === next.index && encodeExposureOrigin(target) !== null ? target : null;
 }

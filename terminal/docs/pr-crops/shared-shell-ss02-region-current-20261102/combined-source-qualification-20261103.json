@@ -1,0 +1,82 @@
+{
+  "schema": "shared-shell.scoped-source-witness.v1",
+  "candidate_source_head": "41d7a7b20e1a34eb0689ff96282f0ca5287c2254",
+  "candidate_source_tree": "a354053cada7164668cf5430c6ec60997ea392b3",
+  "protected_base": "4f9fad0beed2c77983bec7a1f7cf540f194cba86",
+  "control_source_head": "a802ccf88bb918eecf1a73a318383cb0df2707e6",
+  "control_source_tree": "2fcb3319dfd84de57660a2afc51b7a462373c238",
+  "qualified_source_paths": {
+    "terminal/components/MobileNav.tsx": "b968af6eee6d724898bbd6cf4d76fb7066622f7ab76a8d4e0a03cdfbde8dcd7f",
+    "terminal/components/SearchModal.tsx": "36880f1100bbcfa051a0c46131dd84c48a7278f0adb5678ee969a8db190774e9",
+    "terminal/components/chrome/shared-shell/shared-shell.css": "97bf53925b7e843d6ea4639b8a8b50f467f5fff8355c2a828d990e8db477f5d2"
+  },
+  "source_snapshot_difference": [
+    "terminal/components/MobileNav.tsx",
+    "terminal/lib/sharedShellNavigation.ts"
+  ],
+  "source_snapshot_files": 1768,
+  "operations": [
+    {
+      "id": "ss1236-combined-pl6-20261103-c1",
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ss1236-combined-pl6-20261103-c1--operation.json",
+      "sha256": "6926265cc5ece3e4c1defcd2dfb27461330b50ddcc8e32c274e0d9f0abd97561",
+      "case_count": 8,
+      "profile": {
+        "buildMode": "next-dev",
+        "fixture": "terminal-e2e.v1",
+        "investorShellPreview": "0",
+        "sharedShell": "0",
+        "theme": "dark"
+      }
+    },
+    {
+      "id": "ss1236-combined-pl6-20261103-b1",
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ss1236-combined-pl6-20261103-b1--operation.json",
+      "sha256": "3b5e1cff8a15d03cbe3f50956b0d9fdbe1747df60ad8a0982ed625c3711d4c1f",
+      "case_count": 8,
+      "profile": {
+        "buildMode": "next-dev",
+        "fixture": "terminal-e2e.v1",
+        "investorShellPreview": "0",
+        "sharedShell": "0",
+        "theme": "dark"
+      }
+    },
+    {
+      "id": "ss1236-combined-vi-20261103-c1",
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ss1236-combined-vi-20261103-c1--operation.json",
+      "sha256": "9e730d21034b65b65e3ec6278826c793e61d99483f42d86ad503078b2eac336d",
+      "case_count": 3,
+      "profile": {
+        "buildMode": "next-dev",
+        "fixture": "terminal-e2e.v1",
+        "investorShellPreview": "0",
+        "sharedShell": "0",
+        "theme": "dark"
+      }
+    },
+    {
+      "id": "ss1236-combined-vi-20261103-b1",
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ss1236-combined-vi-20261103-b1--operation.json",
+      "sha256": "2b42af5ff6f71e8ec0789288860a029da3a41e263d2b900b0f0714cc101b85ec",
+      "case_count": 3,
+      "profile": {
+        "buildMode": "next-dev",
+        "fixture": "terminal-e2e.v1",
+        "investorShellPreview": "0",
+        "sharedShell": "0",
+        "theme": "dark"
+      }
+    }
+  ],
+  "actual_new_cases": "8 PL6 SearchModal/ChartChrome EN/ZH desktop/mobile and 3 VI Chinese-context cases, plus 11 distinct matching protected-source controls. No whole-matrix recapture.",
+  "comparisons": {
+    "pl6": "All eight candidate/control PNG pairs are byte-identical.",
+    "vi_tablet": "Byte-identical.",
+    "vi_mobile": "Byte-identical.",
+    "vi_desktop": "11397 changed pixels. 11381 are in changing footer clock/ticker y854-891. The other 16 are edge antialias pixels at y64-66 and88-90, maximum channel difference2/255. All other pixels are identical. Both actual images retained and visually inspected."
+  },
+  "profile_boundary": "Ordinary next-dev terminal-e2e.v1 profile with sharedShell=0/investorShellPreview=0; enabled selected-market behavior retains the independently accepted four actual Next/Macrobridge SS02 journeys. #1228 portal/title/44px behavior retains its exact reviewed runtime bytes on the protected base.",
+  "historical_artifacts": "Predecessor operations, PNGs, cropFiles, complete historical reports and report hashes remain immutable. This append qualifies only the actual combined current layout source rows, not a whole-matrix or production acceptance.",
+  "production_proof": false
+}

@@ -1,0 +1,55 @@
+{
+  "status": "PASS_SCOPED_SOURCE_AND_LOCAL_RENDER",
+  "task": "P12.T24",
+  "source": "0d35b973168b99d37c402e51c00fe31ed33c241d",
+  "tree": "ca8572c6f800fe1d3e4e2023c2d5b639745f8740",
+  "predecessor": "21d2660533943adffbc55fb432a8d24e41358c89 / PR1236",
+  "capturedAtUtc": "2026-11-03T01:30:51.434518+00:00",
+  "sourceSha256": {
+    "terminal/lib/sharedShellNavigation.ts": "cb338dd3eb2170ca96b4481f3111b534d31ec7555bf1705b56a3038dcce1f073",
+    "terminal/components/AppNav.tsx": "a09aab88274155a1282a8df34dbbc04d2ad35a19a50bf13df3b8f035a53f971d",
+    "terminal/components/MobileNav.tsx": "4ab705115eb01659bfe37757dcff085e1ffa76e0790c4006eb3a252fbffda64a",
+    "terminal/lib/__tests__/sharedShellRegionNavigation.test.ts": "ab174aa8a9dbc2e27c27efe959babbfa05fd24a4a6b3dfa860b376573298b9da",
+    "terminal/lib/__tests__/sharedShellRouteIdentity.test.ts": "5d9f7a7583ee3ab014ac662f39e4f16d67e94d11bfb4bb45567929f6b06a89d1"
+  },
+  "files": {
+    "390-light-zh-today.png": "5a458e877da3a043613b938281b70c91385fbfa8683e5fec7a6afcf331e30b2b",
+    "390-light-zh-china.png": "d9086fefab00b64821eeb496c7d151cde812a35b2377fcc959b96409f993be32",
+    "390-light-zh-research-location.png": "a2bf6a68ef57b7f3064dffc7f5b4a83f7605a1a759d9ed4f03965bc9d3b48cc6",
+    "1440-dark-en-today.png": "f61a20e49b60213784ecd94c888d3881eff548416deab383ab826ebaa1e85191",
+    "fabric-adjudication.json": "fdb5b4132a0ce79052f5d9891db0c0b28a12b30af90b6762ee409c73c6e225bc",
+    "1440-dark-en-china.png": "ecc4c346e9d0fcc30c0e8ad38399650aba0724d2c3627217ee5075049c77a424",
+    "result.json": "cd1d79c0915c8d0cc21d8d048277f0440794a3ddc578a80b641de6088e7cbcdf",
+    "390-light-zh-vector.png": "1462d6899bca2505061f95fb976955b6349bac73847a32000f35ae30aca47e6c",
+    "1440-dark-en-back-crypto.png": "19f7b15dd4bd472e2bee7d38ef2d0a41bb395bf8c099a3a6c63d09f75f6bbe3a",
+    "390-light-zh-back-crypto.png": "9cd3eb611cc973689f01b48138f43dc15844e0124e25d2842d3c256360bab8ec",
+    "1440-dark-en-research-location.png": "bd8ebbc76cdf3df6f3fc471d6428943ee2f3aee74ae51705fd9515e7ea22a19a",
+    "capture-route-identity.mjs": "a972179079e4d9364bfda6e9fecfdde4d1f279ff707b1d577a3169ee0d197b2a",
+    "1440-dark-en-vector.png": "ff62560d203b75c3090d3849b6fefcc363b3072d9a88a679e4d4aebaf98b040c",
+    "fixture-source.json": "c2cdfb750310aff0a003dd1079525e9d84dac519e16fb05dca039204e8c46287"
+  },
+  "fixtureStatusProducer": {
+    "enabled": true,
+    "protocol": "mmx.shared-shell.v1",
+    "buildId": "0d35b973168b99d37c402e51c00fe31ed33c241d",
+    "bridgeVersion": "20261018.1",
+    "documentVersion": "20261018.1",
+    "registrySha256": "868b5ff4ab2dd974228ec53a857dbba24c07ce164e2996e8721524a47e1edd8f"
+  },
+  "checks": {
+    "affectedUnit": "30PASS",
+    "typecheck": "PASS",
+    "lint": "0errors; inherited MobileNav _isTerminal warning",
+    "actualFrozenNextBrowser": "2PASS:1440darkEN and390lightZH; actual Crypto\u2192Vector\u2192Back and positive Today/China/Research-location probes"
+  },
+  "review": "Pending independent source/visual review of this follow-on; prior source decisions approved by root",
+  "release": "Source-ready successor only. No push/new PR/parallel CI. Serialize after1236; final source composition and affected global evidence witnesses remain release obligations.",
+  "limits": [
+    "Representative local owner fixture, not authenticated deployment or production proof",
+    "Actual Macro/public Crypto/Vector source reused byte-for-byte from peer accepted reproduction",
+    "Core Crypto/Vector/Back/Today/China had no outside requests; additional Learn location probe asserts and blocks one Google Fonts CSS request",
+    "Vector chart loading is an inherited fixture limit, unrelated to navigation identity",
+    "Prior rejected recipe attempts remain untouched in external evidence directory; qualified-v3 is the only accepted local render operation",
+    "PL6/VI historical captures and manifests untouched; final composed-source witness requalification remains before successor release"
+  ]
+}
