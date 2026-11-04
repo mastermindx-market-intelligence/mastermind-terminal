@@ -137,7 +137,12 @@ const VisualIntelligencePanel = forwardRef<VisualIntelligenceHandle, Props>(func
         onPointerDown={(event) => event.stopPropagation()} onKeyDown={(event) => event.stopPropagation()}>
         <header className={styles.header}>
           <div><h3>{tx("title")}</h3><p>{symbol} <span aria-hidden="true">·</span> {timeframe}</p></div>
-          <button type="button" className={styles.iconButton} data-context-focus="close" aria-label={tx("close")} onClick={() => close()}>×</button>
+          <div className={styles.headerActions}>
+            {dock?.onToggleFocus && <button type="button" className={styles.iconButton} data-context-focus="workspace"
+              aria-label={tx(dock.focused ? "returnWorkspace" : "focusChart")} title={tx(dock.focused ? "returnWorkspace" : "focusChart")}
+              onClick={dock.onToggleFocus}><span aria-hidden="true">{dock.focused ? "↙" : "↗"}</span></button>}
+            <button type="button" className={styles.iconButton} data-context-focus="close" aria-label={tx("close")} onClick={() => close()}>×</button>
+          </div>
         </header>
         {!settings.visualContext ? <div className={styles.empty}>
           <p>{tx("disabled")}</p><button className={styles.enable} data-context-focus="enable" type="button" onClick={() => setting("visualContext", true)}>{tx("enable")}</button>

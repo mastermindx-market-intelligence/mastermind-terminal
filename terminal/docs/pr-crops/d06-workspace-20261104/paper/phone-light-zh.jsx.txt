@@ -1,0 +1,626 @@
+(
+    <div style={{ backgroundColor: 'var(--mx-light-bg)', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', fontSize: '12px', fontSynthesis: 'none', height: 'fit-content', lineHeight: '16px', MozOsxFontSmoothing: 'grayscale', overflow: 'clip', overflowWrap: 'anywhere', WebkitFontSmoothing: 'antialiased', width: '390px' }}>
+      <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', gap: '154px', paddingBottom: '19px', paddingInline: '24px', paddingTop: '21px' }}>
+        <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexBasis: '0%', flexDirection: 'column', flexGrow: '1', justifyContent: 'center' }}>
+          <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-text)', fontFamily: 'system-ui, sans-serif', fontSize: '17px', fontWeight: 600, lineHeight: '22px', textAlign: 'center', width: 'max-content' }}>
+            9:41
+          </div>
+        </div>
+        <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexBasis: '0%', flexDirection: 'column', flexGrow: '1', justifyContent: 'center' }}>
+          <svg width="82" height="22" viewBox="0 0 82 22" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: '0', display: 'inline-block' }}>
+            <path d="M3.7 13H2.5a1 1 0 0 0-1 1v2.5a1 1 0 0 0 1 1h1.2a1 1 0 0 0 1-1V14a1 1 0 0 0-1-1m5.2-2.5H7.7a1 1 0 0 0-1 1v5a1 1 0 0 0 1 1h1.2a1 1 0 0 0 1-1v-5a1 1 0 0 0-1-1M14.1 8h-1.2a1 1 0 0 0-1 1v7.5a1 1 0 0 0 1 1h1.2a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1m5.2-2.5h-1.2a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h1.2a1 1 0 0 0 1-1v-10a1 1 0 0 0-1-1" fill="#1C2430" />
+            <path fillRule="evenodd" d="M36.57 7.8c2.49 0 4.88.92 6.68 2.58.14.13.36.12.49 0l1.3-1.27a.34.34 0 0 0 0-.5 12.55 12.55 0 0 0-16.93 0 .34.34 0 0 0 0 .5l1.3 1.26c.13.13.34.14.48 0a10 10 0 0 1 6.68-2.57m0 4.22a5.4 5.4 0 0 1 3.67 1.44c.14.13.35.13.48 0l1.3-1.33a.37.37 0 0 0-.01-.52 7.9 7.9 0 0 0-10.88 0 .37.37 0 0 0 0 .52l1.29 1.32c.13.14.34.14.48 0 1-.92 2.31-1.43 3.67-1.43m2.52 2.8q0 .15-.1.28l-2.18 2.45a.3.3 0 0 1-.24.11.3.3 0 0 1-.24-.1l-2.18-2.46a.43.43 0 0 1 .01-.56 3.44 3.44 0 0 1 4.82 0 .4.4 0 0 1 .11.28" clipRule="evenodd" fill="#1C2430" />
+            <path fillRule="evenodd" d="M70.5 5c2.05 0 3.08 0 3.88.34a4.3 4.3 0 0 1 2.28 2.28c.34.8.34 1.83.34 3.88s0 3.08-.34 3.88a4.3 4.3 0 0 1-2.28 2.28c-.8.34-1.83.34-3.88.34h-12c-2.05 0-3.08 0-3.88-.34a4.3 4.3 0 0 1-2.28-2.28c-.34-.8-.34-1.83-.34-3.88s0-3.08.34-3.88a4.3 4.3 0 0 1 2.28-2.28C55.42 5 56.45 5 58.5 5zM58.28 6c-1.85 0-2.77 0-3.48.36a3.3 3.3 0 0 0-1.44 1.44C53 8.5 53 9.43 53 11.28v.44c0 1.85 0 2.77.36 3.48a3.3 3.3 0 0 0 1.44 1.44c.7.36 1.63.36 3.48.36h12.44c1.85 0 2.77 0 3.48-.36a3.3 3.3 0 0 0 1.44-1.44c.36-.7.36-1.63.36-3.48v-.44c0-1.85 0-2.77-.36-3.48a3.3 3.3 0 0 0-1.44-1.44C73.5 6 72.57 6 70.72 6z" clipRule="evenodd" fill="#1C2430" style={{ opacity: '0.35' }} />
+            <path d="M54 11c0-1.4 0-2.1.27-2.63a2.5 2.5 0 0 1 1.1-1.1C55.9 7 56.6 7 58 7h13c1.4 0 2.1 0 2.64.27q.72.37 1.09 1.1C75 8.9 75 9.6 75 11v1c0 1.4 0 2.1-.27 2.64a2.5 2.5 0 0 1-1.1 1.09C73.1 16 72.4 16 71 16H58c-1.4 0-2.1 0-2.63-.27a2.5 2.5 0 0 1-1.1-1.1C54 14.1 54 13.4 54 12z" fill="#1C2430" />
+            <path d="M78 9.5v4.08a2.2 2.2 0 0 0 1.33-2.04A2.2 2.2 0 0 0 78 9.5" fill="#1C2430" style={{ opacity: '0.35' }} />
+          </svg>
+        </div>
+      </div>
+      <div style={{ backgroundColor: 'var(--mx-light-bg)', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: '14px', paddingBlock: '12px', paddingInline: '16px' }}>
+        <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', justifyContent: 'space-between' }}>
+          <div style={{ boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: '3px' }}>
+            <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-text)', fontFamily: 'system-ui, sans-serif', fontSize: '16px', fontWeight: 600, lineHeight: '20px' }}>
+              002326.SZ
+            </div>
+            <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-muted)', fontFamily: 'system-ui, sans-serif', fontSize: '10px', lineHeight: '12px' }}>
+              3 日 · 最新图表柱
+            </div>
+          </div>
+          <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-text)', fontFamily: 'system-ui, sans-serif', fontSize: '20px', fontWeight: 600, lineHeight: '24px' }}>
+            16.54
+          </div>
+        </div>
+        <svg width="358" height="245" viewBox="0 0 1028 560" xmlns="http://www.w3.org/2000/svg" style={{ display: 'inline-block', flexShrink: 0 }}>
+          <path d="M0 0V510" fill="none" stroke="#DCE1E8" />
+          <path d="M160 0V510" fill="none" stroke="#DCE1E8" />
+          <path d="M80 0V510" fill="none" stroke="#DCE1E8" />
+          <path d="M240 0V510" fill="none" stroke="#DCE1E8" />
+          <path d="M320 0V510" fill="none" stroke="#DCE1E8" />
+          <path d="M480 0V510" fill="none" stroke="#DCE1E8" />
+          <path d="M400 0V510" fill="none" stroke="#DCE1E8" />
+          <path d="M560 0V510" fill="none" stroke="#DCE1E8" />
+          <path d="M640 0V510" fill="none" stroke="#DCE1E8" />
+          <path d="M800 0V510" fill="none" stroke="#DCE1E8" />
+          <path d="M720 0V510" fill="none" stroke="#DCE1E8" />
+          <path d="M960 0V510" fill="none" stroke="#DCE1E8" />
+          <path d="M880 0V510" fill="none" stroke="#DCE1E8" />
+          <path d="M0 94H980" fill="none" stroke="#DCE1E8" />
+          <path d="M0 30H980" fill="none" stroke="#DCE1E8" />
+          <path d="M0 158H980" fill="none" stroke="#DCE1E8" />
+          <path d="M0 222H980" fill="none" stroke="#DCE1E8" />
+          <path d="M0 350H980" fill="none" stroke="#DCE1E8" />
+          <path d="M0 286H980" fill="none" stroke="#DCE1E8" />
+          <path d="M0 478H980" fill="none" stroke="#DCE1E8" />
+          <path d="M0 414H980" fill="none" stroke="#DCE1E8" />
+          <rect x="15.2" y="357.0" width="5.6" height="2.0" fill="#1F9A55" />
+          <path d="M18.0 344.2V362.7" fill="none" stroke="#1F9A55" />
+          <rect x="15.2" y="492.0" width="5.6" height="12.0" fill="#1F9A55" style={{ opacity: '0.42' }} />
+          <path d="M26.4 314.8V343.5" fill="none" stroke="#CF4040" />
+          <rect x="23.6" y="481.0" width="5.6" height="23.0" fill="#CF4040" style={{ opacity: '0.42' }} />
+          <rect x="23.6" y="331.6" width="5.6" height="6.2" fill="#CF4040" />
+          <rect x="32.1" y="341.8" width="5.6" height="9.2" fill="#1F9A55" />
+          <path d="M34.9 322.5V356.7" fill="none" stroke="#1F9A55" />
+          <path d="M43.3 326.1V358.8" fill="none" stroke="#CF4040" />
+          <rect x="32.1" y="475.8" width="5.6" height="28.2" fill="#1F9A55" style={{ opacity: '0.42' }} />
+          <rect x="40.5" y="345.8" width="5.6" height="7.3" fill="#CF4040" />
+          <rect x="40.5" y="479.1" width="5.6" height="24.9" fill="#CF4040" style={{ opacity: '0.42' }} />
+          <rect x="49.0" y="347.5" width="5.6" height="2.0" fill="#1F9A55" />
+          <path d="M51.8 329.9V354.8" fill="none" stroke="#1F9A55" />
+          <path d="M60.3 323.3V347.8" fill="none" stroke="#1F9A55" />
+          <rect x="49.0" y="489.2" width="5.6" height="14.8" fill="#1F9A55" style={{ opacity: '0.42' }} />
+          <rect x="57.5" y="483.3" width="5.6" height="20.7" fill="#1F9A55" style={{ opacity: '0.42' }} />
+          <rect x="57.5" y="337.1" width="5.6" height="5.0" fill="#1F9A55" />
+          <path d="M68.7 330.5V354.7" fill="none" stroke="#CF4040" />
+          <rect x="65.9" y="340.1" width="5.6" height="8.9" fill="#CF4040" />
+          <path d="M77.1 368.7V389.2" fill="none" stroke="#1F9A55" />
+          <rect x="65.9" y="476.3" width="5.6" height="27.7" fill="#CF4040" style={{ opacity: '0.42' }} />
+          <rect x="74.3" y="477.6" width="5.6" height="26.4" fill="#1F9A55" style={{ opacity: '0.42' }} />
+          <rect x="74.3" y="375.3" width="5.6" height="8.2" fill="#1F9A55" />
+          <rect x="82.8" y="382.4" width="5.6" height="3.2" fill="#CF4040" />
+          <path d="M85.6 376.7V391.3" fill="none" stroke="#CF4040" />
+          <rect x="82.8" y="486.4" width="5.6" height="17.6" fill="#CF4040" style={{ opacity: '0.42' }} />
+          <path d="M94.0 368.3V384.8" fill="none" stroke="#CF4040" />
+          <rect x="91.3" y="485.8" width="5.6" height="18.2" fill="#CF4040" style={{ opacity: '0.42' }} />
+          <rect x="91.3" y="375.6" width="5.6" height="3.5" fill="#CF4040" />
+          <rect x="99.7" y="383.3" width="5.6" height="8.4" fill="#1F9A55" />
+          <path d="M102.5 372.6V397.4" fill="none" stroke="#1F9A55" />
+          <path d="M110.9 378.6V408.1" fill="none" stroke="#CF4040" />
+          <rect x="99.7" y="477.3" width="5.6" height="26.7" fill="#1F9A55" style={{ opacity: '0.42' }} />
+          <rect x="108.1" y="393.6" width="5.6" height="8.8" fill="#CF4040" />
+          <rect x="108.1" y="476.5" width="5.6" height="27.5" fill="#CF4040" style={{ opacity: '0.42' }} />
+          <rect x="116.6" y="407.9" width="5.6" height="4.6" fill="#1F9A55" />
+          <path d="M119.4 389.5V418.3" fill="none" stroke="#1F9A55" />
+          <path d="M127.8 369.8V397.3" fill="none" stroke="#1F9A55" />
+          <rect x="116.6" y="483.8" width="5.6" height="20.2" fill="#1F9A55" style={{ opacity: '0.42' }} />
+          <rect x="125.0" y="488.5" width="5.6" height="15.5" fill="#1F9A55" style={{ opacity: '0.42' }} />
+          <rect x="125.0" y="389.7" width="5.6" height="2.0" fill="#1F9A55" />
+          <path d="M136.3 348.1V380.2" fill="none" stroke="#CF4040" />
+          <rect x="133.5" y="366.9" width="5.6" height="7.5" fill="#CF4040" />
+          <path d="M144.8 364.0V394.6" fill="none" stroke="#1F9A55" />
+          <rect x="133.5" y="478.7" width="5.6" height="25.3" fill="#CF4040" style={{ opacity: '0.42' }} />
+          <rect x="141.9" y="379.7" width="5.6" height="9.2" fill="#1F9A55" />
+          <rect x="141.9" y="475.9" width="5.6" height="28.1" fill="#1F9A55" style={{ opacity: '0.42' }} />
+          <rect x="150.4" y="378.4" width="5.6" height="6.0" fill="#CF4040" />
+          <path d="M153.2 366.9V390.0" fill="none" stroke="#CF4040" />
+          <rect x="150.4" y="481.5" width="5.6" height="22.5" fill="#CF4040" style={{ opacity: '0.42' }} />
+          <path d="M161.6 361.3V375.1" fill="none" stroke="#CF4040" />
+          <rect x="158.8" y="491.3" width="5.6" height="12.7" fill="#CF4040" style={{ opacity: '0.42' }} />
+          <rect x="158.8" y="369.1" width="5.6" height="2.0" fill="#CF4040" />
+          <rect x="167.3" y="354.8" width="5.6" height="6.5" fill="#1F9A55" />
+          <path d="M170.1 349.0V367.0" fill="none" stroke="#1F9A55" />
+          <path d="M178.5 349.6V370.7" fill="none" stroke="#CF4040" />
+          <rect x="167.3" y="480.5" width="5.6" height="23.5" fill="#1F9A55" style={{ opacity: '0.42' }} />
+          <rect x="175.7" y="355.8" width="5.6" height="9.2" fill="#CF4040" />
+          <rect x="175.7" y="475.8" width="5.6" height="28.2" fill="#CF4040" style={{ opacity: '0.42' }} />
+          <rect x="184.2" y="386.3" width="5.6" height="7.1" fill="#1F9A55" />
+          <path d="M187.0 377.4V399.1" fill="none" stroke="#1F9A55" />
+          <path d="M195.4 376.6V396.5" fill="none" stroke="#CF4040" />
+          <rect x="184.2" y="479.5" width="5.6" height="24.5" fill="#1F9A55" style={{ opacity: '0.42' }} />
+          <rect x="192.6" y="489.8" width="5.6" height="14.2" fill="#CF4040" style={{ opacity: '0.42' }} />
+          <rect x="192.6" y="389.6" width="5.6" height="2.0" fill="#CF4040" />
+          <path d="M203.9 363.4V391.3" fill="none" stroke="#CF4040" />
+          <rect x="201.1" y="380.3" width="5.6" height="5.3" fill="#CF4040" />
+          <path d="M212.3 378.1V412.2" fill="none" stroke="#1F9A55" />
+          <rect x="201.1" y="482.7" width="5.6" height="21.3" fill="#CF4040" style={{ opacity: '0.42' }} />
+          <rect x="209.5" y="476.1" width="5.6" height="27.9" fill="#1F9A55" style={{ opacity: '0.42' }} />
+          <rect x="209.5" y="397.5" width="5.6" height="9.0" fill="#1F9A55" />
+          <rect x="218.0" y="411.9" width="5.6" height="8.0" fill="#CF4040" />
+          <path d="M220.8 392.3V425.6" fill="none" stroke="#CF4040" />
+          <rect x="218.0" y="477.9" width="5.6" height="26.1" fill="#CF4040" style={{ opacity: '0.42' }} />
+          <path d="M229.2 405.3V431.2" fill="none" stroke="#1F9A55" />
+          <rect x="226.4" y="487.0" width="5.6" height="17.0" fill="#1F9A55" style={{ opacity: '0.42' }} />
+          <rect x="226.4" y="422.7" width="5.6" height="2.8" fill="#1F9A55" />
+          <rect x="234.9" y="404.0" width="5.6" height="3.9" fill="#1F9A55" />
+          <path d="M237.7 390.5V413.6" fill="none" stroke="#1F9A55" />
+          <path d="M246.1 374.4V398.0" fill="none" stroke="#CF4040" />
+          <rect x="234.9" y="485.2" width="5.6" height="18.8" fill="#1F9A55" style={{ opacity: '0.42' }} />
+          <rect x="243.3" y="383.8" width="5.6" height="8.5" fill="#CF4040" />
+          <rect x="243.3" y="477.0" width="5.6" height="27.0" fill="#CF4040" style={{ opacity: '0.42' }} />
+          <rect x="251.8" y="397.3" width="5.6" height="8.7" fill="#1F9A55" />
+          <path d="M254.6 390.9V411.7" fill="none" stroke="#1F9A55" />
+          <path d="M263.0 383.5V399.2" fill="none" stroke="#CF4040" />
+          <rect x="251.8" y="476.7" width="5.6" height="27.3" fill="#1F9A55" style={{ opacity: '0.42' }} />
+          <rect x="260.2" y="484.4" width="5.6" height="19.6" fill="#CF4040" style={{ opacity: '0.42' }} />
+          <rect x="260.2" y="389.2" width="5.6" height="4.3" fill="#CF4040" />
+          <path d="M271.5 358.4V373.9" fill="none" stroke="#CF4040" />
+          <rect x="268.7" y="365.9" width="5.6" height="2.3" fill="#CF4040" />
+          <path d="M279.9 335.6V360.1" fill="none" stroke="#1F9A55" />
+          <rect x="268.7" y="487.9" width="5.6" height="16.1" fill="#CF4040" style={{ opacity: '0.42' }} />
+          <rect x="277.1" y="478.3" width="5.6" height="25.7" fill="#1F9A55" style={{ opacity: '0.42' }} />
+          <rect x="277.1" y="346.7" width="5.6" height="7.8" fill="#1F9A55" />
+          <rect x="285.6" y="340.4" width="5.6" height="9.1" fill="#CF4040" />
+          <path d="M288.4 325.2V355.2" fill="none" stroke="#CF4040" />
+          <rect x="285.6" y="476.0" width="5.6" height="28.0" fill="#CF4040" style={{ opacity: '0.42' }} />
+          <path d="M296.8 339.3V369.2" fill="none" stroke="#1F9A55" />
+          <rect x="294.0" y="482.0" width="5.6" height="22.0" fill="#1F9A55" style={{ opacity: '0.42' }} />
+          <rect x="294.0" y="357.8" width="5.6" height="5.7" fill="#1F9A55" />
+          <rect x="302.5" y="348.6" width="5.6" height="2.0" fill="#1F9A55" />
+          <path d="M305.3 328.8V355.1" fill="none" stroke="#1F9A55" />
+          <path d="M313.8 311.3V342.5" fill="none" stroke="#CF4040" />
+          <rect x="302.5" y="490.7" width="5.6" height="13.3" fill="#1F9A55" style={{ opacity: '0.42' }} />
+          <rect x="310.9" y="330.0" width="5.6" height="6.8" fill="#CF4040" />
+          <rect x="310.9" y="480.1" width="5.6" height="23.9" fill="#CF4040" style={{ opacity: '0.42' }} />
+          <rect x="319.4" y="347.4" width="5.6" height="9.2" fill="#1F9A55" />
+          <path d="M322.2 331.9V362.3" fill="none" stroke="#1F9A55" />
+          <rect x="319.4" y="475.8" width="5.6" height="28.2" fill="#1F9A55" style={{ opacity: '0.42' }} />
+          <path d="M330.6 350.9V374.7" fill="none" stroke="#CF4040" />
+          <rect x="327.8" y="479.9" width="5.6" height="24.1" fill="#CF4040" style={{ opacity: '0.42' }} />
+          <rect x="327.8" y="362.2" width="5.6" height="6.8" fill="#CF4040" />
+          <path d="M339.1 364.2V378.4" fill="none" stroke="#1F9A55" />
+          <rect x="336.3" y="371.9" width="5.6" height="2.0" fill="#1F9A55" />
+          <path d="M347.5 352.8V369.8" fill="none" stroke="#1F9A55" />
+          <rect x="336.3" y="490.5" width="5.6" height="13.5" fill="#1F9A55" style={{ opacity: '0.42' }} />
+          <rect x="344.7" y="482.2" width="5.6" height="21.8" fill="#1F9A55" style={{ opacity: '0.42' }} />
+          <rect x="344.7" y="358.6" width="5.6" height="5.6" fill="#1F9A55" />
+          <path d="M356.0 341.8V362.9" fill="none" stroke="#CF4040" />
+          <path d="M364.4 359.7V382.3" fill="none" stroke="#1F9A55" />
+          <rect x="353.2" y="348.1" width="5.6" height="9.1" fill="#CF4040" />
+          <rect x="353.2" y="476.0" width="5.6" height="28.0" fill="#CF4040" style={{ opacity: '0.42' }} />
+          <rect x="361.6" y="368.8" width="5.6" height="7.8" fill="#1F9A55" />
+          <rect x="361.6" y="478.2" width="5.6" height="25.8" fill="#1F9A55" style={{ opacity: '0.42' }} />
+          <path d="M372.9 349.2V370.6" fill="none" stroke="#CF4040" />
+          <rect x="370.1" y="362.5" width="5.6" height="2.5" fill="#CF4040" />
+          <rect x="378.5" y="484.6" width="5.6" height="19.4" fill="#CF4040" style={{ opacity: '0.42' }} />
+          <rect x="370.1" y="487.7" width="5.6" height="16.3" fill="#CF4040" style={{ opacity: '0.42' }} />
+          <path d="M381.3 317.6V344.7" fill="none" stroke="#CF4040" />
+          <rect x="378.5" y="334.8" width="5.6" height="4.2" fill="#CF4040" />
+          <path d="M389.8 300.2V334.1" fill="none" stroke="#1F9A55" />
+          <rect x="387.0" y="319.8" width="5.6" height="8.6" fill="#1F9A55" />
+          <path d="M398.2 293.5V327.3" fill="none" stroke="#CF4040" />
+          <rect x="387.0" y="476.8" width="5.6" height="27.2" fill="#1F9A55" style={{ opacity: '0.42' }} />
+          <rect x="395.4" y="313.1" width="5.6" height="8.6" fill="#CF4040" />
+          <rect x="403.9" y="321.6" width="5.6" height="4.0" fill="#1F9A55" />
+          <rect x="395.4" y="476.9" width="5.6" height="27.1" fill="#CF4040" style={{ opacity: '0.42' }} />
+          <path d="M406.7 304.4V331.2" fill="none" stroke="#1F9A55" />
+          <rect x="403.9" y="485.0" width="5.6" height="19.0" fill="#1F9A55" style={{ opacity: '0.42' }} />
+          <path d="M415.1 289.7V311.3" fill="none" stroke="#1F9A55" />
+          <rect x="412.3" y="303.0" width="5.6" height="2.7" fill="#1F9A55" />
+          <rect x="412.3" y="487.2" width="5.6" height="16.8" fill="#1F9A55" style={{ opacity: '0.42' }} />
+          <path d="M432.0 291.2V312.3" fill="none" stroke="#1F9A55" />
+          <path d="M423.6 270.4V293.3" fill="none" stroke="#CF4040" />
+          <rect x="420.8" y="279.6" width="5.6" height="8.0" fill="#CF4040" />
+          <rect x="420.8" y="478.0" width="5.6" height="26.0" fill="#CF4040" style={{ opacity: '0.42' }} />
+          <rect x="429.2" y="297.6" width="5.6" height="9.0" fill="#1F9A55" />
+          <rect x="429.2" y="476.1" width="5.6" height="27.9" fill="#1F9A55" style={{ opacity: '0.42' }} />
+          <rect x="437.7" y="310.1" width="5.6" height="5.4" fill="#CF4040" />
+          <path d="M440.5 304.4V321.2" fill="none" stroke="#CF4040" />
+          <rect x="437.7" y="482.6" width="5.6" height="21.4" fill="#CF4040" style={{ opacity: '0.42' }} />
+          <rect x="446.1" y="490.0" width="5.6" height="14.0" fill="#CF4040" style={{ opacity: '0.42' }} />
+          <path d="M448.9 306.0V320.4" fill="none" stroke="#CF4040" />
+          <rect x="446.1" y="313.6" width="5.6" height="2.0" fill="#CF4040" />
+          <path d="M457.4 293.9V317.8" fill="none" stroke="#1F9A55" />
+          <rect x="454.6" y="305.1" width="5.6" height="7.0" fill="#1F9A55" />
+          <rect x="454.6" y="479.6" width="5.6" height="24.4" fill="#1F9A55" style={{ opacity: '0.42' }} />
+          <path d="M465.8 288.2V318.6" fill="none" stroke="#CF4040" />
+          <rect x="471.5" y="330.7" width="5.6" height="6.6" fill="#1F9A55" />
+          <rect x="463.0" y="303.7" width="5.6" height="9.2" fill="#CF4040" />
+          <rect x="463.0" y="475.8" width="5.6" height="28.2" fill="#CF4040" style={{ opacity: '0.42' }} />
+          <path d="M474.3 312.0V342.9" fill="none" stroke="#1F9A55" />
+          <rect x="471.5" y="480.4" width="5.6" height="23.6" fill="#1F9A55" style={{ opacity: '0.42' }} />
+          <path d="M482.7 310.0V336.0" fill="none" stroke="#CF4040" />
+          <rect x="479.9" y="491.1" width="5.6" height="12.9" fill="#CF4040" style={{ opacity: '0.42' }} />
+          <rect x="479.9" y="329.8" width="5.6" height="2.0" fill="#CF4040" />
+          <path d="M491.2 276.8V307.0" fill="none" stroke="#CF4040" />
+          <path d="M499.6 266.5V296.6" fill="none" stroke="#1F9A55" />
+          <rect x="488.4" y="295.4" width="5.6" height="5.9" fill="#CF4040" />
+          <rect x="488.4" y="462.4" width="5.6" height="41.6" fill="#CF4040" style={{ opacity: '0.42' }} />
+          <rect x="496.8" y="281.8" width="5.6" height="9.1" fill="#1F9A55" />
+          <rect x="496.8" y="461.7" width="5.6" height="42.3" fill="#1F9A55" style={{ opacity: '0.42' }} />
+          <path d="M508.1 260.0V284.4" fill="none" stroke="#CF4040" />
+          <rect x="505.3" y="271.1" width="5.6" height="7.6" fill="#CF4040" />
+          <rect x="513.8" y="462.1" width="5.6" height="41.9" fill="#1F9A55" style={{ opacity: '0.42' }} />
+          <rect x="505.3" y="431.0" width="5.6" height="73.0" fill="#CF4040" style={{ opacity: '0.42' }} />
+          <path d="M516.5 258.2V273.5" fill="none" stroke="#1F9A55" />
+          <rect x="513.8" y="265.7" width="5.6" height="2.1" fill="#1F9A55" />
+          <path d="M525.0 227.3V243.3" fill="none" stroke="#1F9A55" />
+          <rect x="522.2" y="233.1" width="5.6" height="4.5" fill="#1F9A55" />
+          <path d="M533.4 192.7V213.6" fill="none" stroke="#CF4040" />
+          <rect x="522.2" y="477.7" width="5.6" height="26.3" fill="#1F9A55" style={{ opacity: '0.42' }} />
+          <rect x="530.6" y="199.2" width="5.6" height="8.8" fill="#CF4040" />
+          <rect x="539.1" y="207.8" width="5.6" height="8.4" fill="#1F9A55" />
+          <rect x="530.6" y="430.6" width="5.6" height="73.4" fill="#CF4040" style={{ opacity: '0.42' }} />
+          <path d="M541.9 198.4V221.8" fill="none" stroke="#1F9A55" />
+          <rect x="539.1" y="444.8" width="5.6" height="59.2" fill="#1F9A55" style={{ opacity: '0.42' }} />
+          <path d="M550.3 193.6V216.4" fill="none" stroke="#CF4040" />
+          <rect x="547.5" y="207.1" width="5.6" height="3.6" fill="#CF4040" />
+          <rect x="547.5" y="487.6" width="5.6" height="16.4" fill="#CF4040" style={{ opacity: '0.42' }} />
+          <path d="M567.3 159.9V193.4" fill="none" stroke="#1F9A55" />
+          <path d="M558.8 175.2V201.3" fill="none" stroke="#CF4040" />
+          <rect x="556.0" y="192.6" width="5.6" height="3.1" fill="#CF4040" />
+          <rect x="556.0" y="443.4" width="5.6" height="60.6" fill="#CF4040" style={{ opacity: '0.42' }} />
+          <rect x="564.5" y="179.5" width="5.6" height="8.1" fill="#1F9A55" />
+          <rect x="564.5" y="440.1" width="5.6" height="63.9" fill="#1F9A55" style={{ opacity: '0.42' }} />
+          <rect x="572.9" y="176.7" width="5.6" height="8.9" fill="#CF4040" />
+          <path d="M575.7 157.2V191.3" fill="none" stroke="#CF4040" />
+          <rect x="572.9" y="486.7" width="5.6" height="17.3" fill="#CF4040" style={{ opacity: '0.42' }} />
+          <rect x="581.4" y="443.8" width="5.6" height="60.2" fill="#1F9A55" style={{ opacity: '0.42' }} />
+          <path d="M584.1 182.1V209.9" fill="none" stroke="#1F9A55" />
+          <rect x="581.4" y="199.1" width="5.6" height="5.0" fill="#1F9A55" />
+          <path d="M592.6 178.3V198.5" fill="none" stroke="#1F9A55" />
+          <rect x="589.8" y="191.3" width="5.6" height="2.0" fill="#1F9A55" />
+          <rect x="589.8" y="447.5" width="5.6" height="56.5" fill="#1F9A55" style={{ opacity: '0.42' }} />
+          <path d="M601.0 152.3V174.3" fill="none" stroke="#CF4040" />
+          <rect x="606.7" y="159.0" width="5.6" height="9.2" fill="#1F9A55" />
+          <rect x="598.3" y="161.3" width="5.6" height="7.3" fill="#CF4040" />
+          <rect x="598.3" y="484.3" width="5.6" height="19.7" fill="#CF4040" style={{ opacity: '0.42' }} />
+          <path d="M609.5 152.8V173.9" fill="none" stroke="#1F9A55" />
+          <rect x="606.7" y="441.4" width="5.6" height="62.6" fill="#1F9A55" style={{ opacity: '0.42' }} />
+          <path d="M617.9 148.7V166.5" fill="none" stroke="#CF4040" />
+          <rect x="615.1" y="435.8" width="5.6" height="68.2" fill="#CF4040" style={{ opacity: '0.42' }} />
+          <rect x="615.1" y="154.5" width="5.6" height="6.3" fill="#CF4040" />
+          <path d="M626.4 138.0V151.5" fill="none" stroke="#1F9A55" />
+          <path d="M634.8 98.9V122.2" fill="none" stroke="#1F9A55" />
+          <rect x="623.6" y="145.8" width="5.6" height="2.0" fill="#1F9A55" />
+          <rect x="623.6" y="488.6" width="5.6" height="15.4" fill="#1F9A55" style={{ opacity: '0.42' }} />
+          <rect x="632.0" y="110.4" width="5.6" height="6.1" fill="#1F9A55" />
+          <rect x="632.0" y="452.6" width="5.6" height="51.4" fill="#1F9A55" style={{ opacity: '0.42' }} />
+          <path d="M643.3 76.1V106.6" fill="none" stroke="#CF4040" />
+          <rect x="640.5" y="91.7" width="5.6" height="9.2" fill="#CF4040" />
+          <rect x="649.0" y="467.7" width="5.6" height="36.3" fill="#1F9A55" style={{ opacity: '0.42' }} />
+          <rect x="640.5" y="428.7" width="5.6" height="75.3" fill="#CF4040" style={{ opacity: '0.42' }} />
+          <path d="M651.8 94.2V126.1" fill="none" stroke="#1F9A55" />
+          <rect x="649.0" y="113.0" width="5.6" height="7.4" fill="#1F9A55" />
+          <path d="M660.2 100.0V127.3" fill="none" stroke="#CF4040" />
+          <rect x="657.4" y="119.9" width="5.6" height="2.0" fill="#CF4040" />
+          <path d="M668.6 89.4V118.3" fill="none" stroke="#CF4040" />
+          <rect x="657.4" y="467.0" width="5.6" height="37.0" fill="#CF4040" style={{ opacity: '0.42' }} />
+          <rect x="665.9" y="107.8" width="5.6" height="4.9" fill="#CF4040" />
+          <rect x="674.3" y="109.5" width="5.6" height="8.9" fill="#1F9A55" />
+          <rect x="665.9" y="435.5" width="5.6" height="68.5" fill="#CF4040" style={{ opacity: '0.42' }} />
+          <path d="M677.1 94.5V124.1" fill="none" stroke="#1F9A55" />
+          <rect x="674.3" y="457.5" width="5.6" height="46.5" fill="#1F9A55" style={{ opacity: '0.42' }} />
+          <path d="M685.5 112.4V137.1" fill="none" stroke="#CF4040" />
+          <rect x="682.8" y="123.2" width="5.6" height="8.2" fill="#CF4040" />
+          <rect x="682.8" y="462.8" width="5.6" height="41.2" fill="#CF4040" style={{ opacity: '0.42' }} />
+          <path d="M702.4 157.9V172.7" fill="none" stroke="#1F9A55" />
+          <path d="M694.0 150.5V166.8" fill="none" stroke="#1F9A55" />
+          <rect x="691.2" y="157.9" width="5.6" height="3.3" fill="#1F9A55" />
+          <rect x="691.2" y="438.6" width="5.6" height="65.4" fill="#1F9A55" style={{ opacity: '0.42' }} />
+          <rect x="699.6" y="163.6" width="5.6" height="3.4" fill="#1F9A55" />
+          <rect x="699.6" y="460.2" width="5.6" height="43.8" fill="#1F9A55" style={{ opacity: '0.42' }} />
+          <rect x="708.1" y="153.4" width="5.6" height="8.3" fill="#CF4040" />
+          <path d="M710.9 146.9V167.4" fill="none" stroke="#CF4040" />
+          <rect x="708.1" y="470.6" width="5.6" height="33.4" fill="#CF4040" style={{ opacity: '0.42' }} />
+          <rect x="716.5" y="430.3" width="5.6" height="73.7" fill="#1F9A55" style={{ opacity: '0.42' }} />
+          <path d="M719.3 167.7V191.8" fill="none" stroke="#1F9A55" />
+          <rect x="716.5" y="177.3" width="5.6" height="8.8" fill="#1F9A55" />
+          <path d="M727.8 181.4V205.6" fill="none" stroke="#CF4040" />
+          <rect x="725.0" y="195.2" width="5.6" height="4.7" fill="#CF4040" />
+          <rect x="725.0" y="451.7" width="5.6" height="52.3" fill="#CF4040" style={{ opacity: '0.42' }} />
+          <path d="M736.2 181.5V206.6" fill="none" stroke="#CF4040" />
+          <rect x="741.9" y="184.1" width="5.6" height="7.5" fill="#1F9A55" />
+          <rect x="733.4" y="199.0" width="5.6" height="2.0" fill="#CF4040" />
+          <rect x="733.4" y="490.2" width="5.6" height="13.8" fill="#CF4040" style={{ opacity: '0.42' }} />
+          <path d="M744.7 164.4V197.3" fill="none" stroke="#1F9A55" />
+          <rect x="741.9" y="478.8" width="5.6" height="25.2" fill="#1F9A55" style={{ opacity: '0.42' }} />
+          <path d="M753.1 151.1V185.4" fill="none" stroke="#CF4040" />
+          <rect x="750.4" y="475.9" width="5.6" height="28.1" fill="#CF4040" style={{ opacity: '0.42' }} />
+          <rect x="750.4" y="170.5" width="5.6" height="9.2" fill="#CF4040" />
+          <path d="M761.6 174.6V203.1" fill="none" stroke="#1F9A55" />
+          <path d="M770.0 179.4V198.1" fill="none" stroke="#1F9A55" />
+          <rect x="758.8" y="191.4" width="5.6" height="6.0" fill="#1F9A55" />
+          <rect x="758.8" y="481.4" width="5.6" height="22.6" fill="#1F9A55" style={{ opacity: '0.42' }} />
+          <rect x="767.3" y="192.2" width="5.6" height="2.0" fill="#1F9A55" />
+          <rect x="767.3" y="491.5" width="5.6" height="12.5" fill="#1F9A55" style={{ opacity: '0.42' }} />
+          <path d="M778.5 160.3V181.2" fill="none" stroke="#CF4040" />
+          <rect x="775.7" y="169.1" width="5.6" height="6.4" fill="#CF4040" />
+          <rect x="784.1" y="475.8" width="5.6" height="28.2" fill="#1F9A55" style={{ opacity: '0.42' }} />
+          <rect x="775.7" y="480.7" width="5.6" height="23.3" fill="#CF4040" style={{ opacity: '0.42' }} />
+          <path d="M786.9 163.5V184.6" fill="none" stroke="#1F9A55" />
+          <rect x="784.1" y="169.7" width="5.6" height="9.2" fill="#1F9A55" />
+          <path d="M795.4 175.7V194.4" fill="none" stroke="#CF4040" />
+          <rect x="792.6" y="181.6" width="5.6" height="7.2" fill="#CF4040" />
+          <path d="M803.8 200.3V215.2" fill="none" stroke="#1F9A55" />
+          <rect x="792.6" y="479.4" width="5.6" height="24.6" fill="#CF4040" style={{ opacity: '0.42' }} />
+          <rect x="801.0" y="208.2" width="5.6" height="2.0" fill="#1F9A55" />
+          <rect x="809.5" y="208.9" width="5.6" height="5.2" fill="#1F9A55" />
+          <rect x="801.0" y="489.6" width="5.6" height="14.4" fill="#1F9A55" style={{ opacity: '0.42' }} />
+          <path d="M812.3 197.2V219.7" fill="none" stroke="#1F9A55" />
+          <rect x="809.5" y="482.9" width="5.6" height="21.1" fill="#1F9A55" style={{ opacity: '0.42' }} />
+          <path d="M820.7 185.2V215.8" fill="none" stroke="#CF4040" />
+          <rect x="817.9" y="201.1" width="5.6" height="9.0" fill="#CF4040" />
+          <rect x="817.9" y="476.2" width="5.6" height="27.8" fill="#CF4040" style={{ opacity: '0.42' }} />
+          <path d="M837.6 236.3V264.8" fill="none" stroke="#CF4040" />
+          <path d="M829.2 213.8V246.4" fill="none" stroke="#1F9A55" />
+          <rect x="826.4" y="232.7" width="5.6" height="8.1" fill="#1F9A55" />
+          <rect x="826.4" y="477.8" width="5.6" height="26.2" fill="#1F9A55" style={{ opacity: '0.42' }} />
+          <rect x="834.9" y="256.1" width="5.6" height="2.9" fill="#CF4040" />
+          <rect x="834.9" y="486.9" width="5.6" height="17.1" fill="#CF4040" style={{ opacity: '0.42' }} />
+          <rect x="843.3" y="258.3" width="5.6" height="3.8" fill="#CF4040" />
+          <path d="M846.1 240.0V267.8" fill="none" stroke="#CF4040" />
+          <rect x="843.3" y="485.4" width="5.6" height="18.6" fill="#CF4040" style={{ opacity: '0.42' }} />
+          <rect x="851.8" y="477.1" width="5.6" height="26.9" fill="#1F9A55" style={{ opacity: '0.42' }} />
+          <path d="M854.5 237.1V266.0" fill="none" stroke="#1F9A55" />
+          <rect x="851.8" y="251.9" width="5.6" height="8.5" fill="#1F9A55" />
+          <path d="M863.0 237.0V262.0" fill="none" stroke="#CF4040" />
+          <rect x="860.2" y="247.6" width="5.6" height="8.7" fill="#CF4040" />
+          <rect x="860.2" y="476.6" width="5.6" height="27.4" fill="#CF4040" style={{ opacity: '0.42' }} />
+          <path d="M871.4 263.6V280.8" fill="none" stroke="#1F9A55" />
+          <rect x="877.1" y="267.3" width="5.6" height="2.2" fill="#1F9A55" />
+          <rect x="868.6" y="270.7" width="5.6" height="4.4" fill="#1F9A55" />
+          <rect x="868.6" y="484.2" width="5.6" height="19.8" fill="#1F9A55" style={{ opacity: '0.42' }} />
+          <path d="M879.9 261.6V275.2" fill="none" stroke="#1F9A55" />
+          <rect x="877.1" y="488.1" width="5.6" height="15.9" fill="#1F9A55" style={{ opacity: '0.42' }} />
+          <path d="M888.3 232.7V252.7" fill="none" stroke="#CF4040" />
+          <rect x="885.5" y="478.5" width="5.6" height="25.5" fill="#CF4040" style={{ opacity: '0.42' }} />
+          <rect x="885.5" y="239.3" width="5.6" height="7.7" fill="#CF4040" />
+          <path d="M896.8 230.6V255.2" fill="none" stroke="#1F9A55" />
+          <path d="M905.2 235.6V261.0" fill="none" stroke="#CF4040" />
+          <rect x="894.0" y="240.4" width="5.6" height="9.1" fill="#1F9A55" />
+          <rect x="894.0" y="475.9" width="5.6" height="28.1" fill="#1F9A55" style={{ opacity: '0.42' }} />
+          <rect x="902.4" y="249.6" width="5.6" height="5.8" fill="#CF4040" />
+          <rect x="902.4" y="481.9" width="5.6" height="22.1" fill="#CF4040" style={{ opacity: '0.42' }} />
+          <path d="M913.7 246.8V270.8" fill="none" stroke="#CF4040" />
+          <rect x="910.9" y="264.5" width="5.6" height="2.0" fill="#CF4040" />
+          <rect x="919.4" y="480.2" width="5.6" height="23.8" fill="#1F9A55" style={{ opacity: '0.42' }} />
+          <rect x="910.9" y="490.9" width="5.6" height="13.1" fill="#CF4040" style={{ opacity: '0.42' }} />
+          <path d="M922.1 238.4V270.5" fill="none" stroke="#1F9A55" />
+          <rect x="919.4" y="258.1" width="5.6" height="6.7" fill="#1F9A55" />
+          <path d="M930.6 230.6V264.8" fill="none" stroke="#CF4040" />
+          <rect x="927.8" y="249.9" width="5.6" height="9.2" fill="#CF4040" />
+          <path d="M939.0 288.8V307.3" fill="none" stroke="#1F9A55" />
+          <rect x="927.8" y="475.8" width="5.6" height="28.2" fill="#CF4040" style={{ opacity: '0.42' }} />
+          <rect x="936.3" y="292.5" width="5.6" height="7.0" fill="#1F9A55" />
+          <path d="M18.0 357.0 L26.4 355.5 L34.9 354.4 L43.3 354.3 L51.8 353.7 L60.3 352.4 L68.7 352.1 L77.1 354.0 L85.6 356.5 L94.0 358.3 L102.5 360.3 L110.9 363.7 L119.4 367.2 L127.8 369.0 L136.3 369.5 L144.8 370.3 L153.2 371.4 L161.6 371.3 L170.1 369.9 L178.5 369.5 L187.0 370.9 L195.4 372.5 L203.9 373.5 L212.3 375.5 L220.8 379.0 L229.2 382.5 L237.7 384.2 L246.1 384.9 L254.6 385.9 L263.0 386.5 L271.5 385.0 L279.9 382.0 L288.4 379.4 L296.8 377.6 L305.3 375.3 L313.8 372.2 L322.2 370.2 L330.6 370.2 L339.1 370.3 L347.5 369.4 L356.0 368.4 L364.4 368.4 L372.9 368.1 L381.3 365.8 L389.8 362.1 L398.2 358.9 L406.7 355.9 L415.1 351.7 L423.6 346.5 L432.0 342.6 L440.5 340.5 L448.9 338.4 L457.4 335.7 L465.8 333.9 L474.3 333.6 L482.7 333.4 L491.2 330.8 L499.6 326.9 L508.1 323.0 L516.5 318.5 L525.0 311.6 L533.4 303.3 L541.9 295.7 L550.3 288.9 L558.8 281.4 L567.3 273.3 L575.7 266.3 L584.1 260.9 L592.6 255.3 L601.0 248.4 L609.5 241.2 L617.9 234.8 L626.4 227.7 L634.8 218.3 L643.3 208.9 L651.8 201.2 L660.2 194.9 L668.6 188.3 L677.1 182.0 L685.5 177.9 L694.0 176.3 L702.4 175.3 L710.9 174.2 L719.3 174.5 L727.8 176.5 L736.2 178.5 L744.7 178.9 L753.1 179.0 L761.6 180.0 L770.0 180.9 L778.5 180.5 L786.9 179.7 L795.4 180.4 L803.8 182.6 L812.3 184.7 L820.7 186.7 L829.2 190.4 L837.6 195.9 L846.1 201.2 L854.5 205.3 L863.0 209.3 L871.4 214.3 L879.9 218.5 L888.3 220.8 L896.8 222.4 L905.2 225.0 L913.7 228.2 L922.1 230.6 L930.6 232.9 L939.0 237.7" fill="none" stroke="#2F63C4" strokeWidth="1.6" />
+          <rect x="936.3" y="479.8" width="5.6" height="24.2" fill="#1F9A55" style={{ opacity: '0.42' }} />
+          <path d="M18.0 357.0 L26.4 354.0 L34.9 352.2 L43.3 352.3 L51.8 351.6 L60.3 349.4 L68.7 349.3 L77.1 353.3 L85.6 358.3 L94.0 361.5 L102.5 364.8 L110.9 370.6 L119.4 376.4 L127.8 378.4 L136.3 377.8 L144.8 378.1 L153.2 379.1 L161.6 377.6 L170.1 374.1 L178.5 372.7 L187.0 374.8 L195.4 377.3 L203.9 378.5 L212.3 381.5 L220.8 387.4 L229.2 392.8 L237.7 394.5 L246.1 394.2 L254.6 394.7 L263.0 394.5 L271.5 390.5 L279.9 383.7 L288.4 378.5 L296.8 375.3 L305.3 371.2 L313.8 365.9 L322.2 363.0 L330.6 364.0 L339.1 365.2 L347.5 364.2 L356.0 363.1 L364.4 364.0 L372.9 364.1 L381.3 360.3 L389.8 354.0 L398.2 349.0 L406.7 344.8 L415.1 338.4 L423.6 330.6 L432.0 325.5 L440.5 324.0 L448.9 322.5 L457.4 319.9 L465.8 318.8 L474.3 320.6 L482.7 322.1 L491.2 318.9 L499.6 313.2 L508.1 307.9 L516.5 301.4 L525.0 290.9 L533.4 278.1 L541.9 267.3 L550.3 258.6 L558.8 248.9 L567.3 238.2 L575.7 230.1 L584.1 225.4 L592.6 220.1 L601.0 212.2 L609.5 204.0 L617.9 197.4 L626.4 189.4 L634.8 177.3 L643.3 165.5 L651.8 157.4 L660.2 151.9 L668.6 145.9 L677.1 140.3 L685.5 138.9 L694.0 141.9 L702.4 145.2 L710.9 147.7 L719.3 152.3 L727.8 159.6 L736.2 166.0 L744.7 168.8 L753.1 170.4 L761.6 173.7 L770.0 176.5 L778.5 176.4 L786.9 175.3 L795.4 177.4 L803.8 182.1 L812.3 186.3 L820.7 189.9 L829.2 196.5 L837.6 206.1 L846.1 214.7 L854.5 220.5 L863.0 226.0 L871.4 232.9 L879.9 238.2 L888.3 239.5 L896.8 239.7 L905.2 242.1 L913.7 245.6 L922.1 247.5 L930.6 249.3 L939.0 256.0" fill="none" stroke="#B06A25" strokeWidth="1.6" />
+          <path d="M0 292.532H980" fill="none" stroke="#1F9A55" strokeDasharray="3 5" style={{ opacity: '0.7' }} />
+          <rect x="978" y="282.532" width="49" height="21" rx="3" fill="#1F9A55" />
+          <text x="983" y="296.532" fontFamily="Inter" fontSize="11" fill="#0A0B0D">{"16.54"}</text>
+          <text x="990" y="32" fontFamily="Inter" fontSize="10" fill="#5D6B7E">{"34.00"}</text>
+          <text x="990" y="259" fontFamily="Inter" fontSize="10" fill="#5D6B7E">{"18.00"}</text>
+          <text x="990" y="88" fontFamily="Inter" fontSize="10" fill="#5D6B7E">{"30.00"}</text>
+          <text x="990" y="145" fontFamily="Inter" fontSize="10" fill="#5D6B7E">{"26.00"}</text>
+          <text x="990" y="203" fontFamily="Inter" fontSize="10" fill="#5D6B7E">{"22.00"}</text>
+          <text x="990" y="317" fontFamily="Inter" fontSize="10" fill="#5D6B7E">{"14.00"}</text>
+          <text x="990" y="374" fontFamily="Inter" fontSize="10" fill="#5D6B7E">{"10.00"}</text>
+          <text x="206" y="541" fontFamily="Inter" fontSize="11" fill="#5D6B7E">{"Mar"}</text>
+          <text x="22" y="541" fontFamily="Inter" fontSize="11" fill="#5D6B7E">{"Jan"}</text>
+          <text x="400" y="541" fontFamily="Inter" fontSize="11" fill="#5D6B7E">{"May"}</text>
+          <text x="602" y="541" fontFamily="Inter" fontSize="11" fill="#5D6B7E">{"Jul"}</text>
+          <text x="818" y="541" fontFamily="Inter" fontSize="11" fill="#5D6B7E">{"Sep"}</text>
+          <text x="926" y="541" fontFamily="Inter" fontSize="11" fill="#5D6B7E">{"Oct"}</text>
+        </svg>
+        <div style={{ alignItems: 'center', borderTopColor: 'var(--mx-light-line)', borderTopStyle: 'solid', borderTopWidth: '1px', boxSizing: 'border-box', display: 'flex', flexShrink: 0, height: '44px', justifyContent: 'space-between' }}>
+          <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-muted)', fontFamily: 'system-ui, sans-serif', fontSize: '11px', lineHeight: '14px' }}>
+            002326.SZ
+          </div>
+          <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-muted)', fontFamily: 'system-ui, sans-serif', fontSize: '11px', lineHeight: '14px' }}>
+            3 日⌄
+          </div>
+          <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-muted)', fontFamily: 'system-ui, sans-serif', fontSize: '11px', lineHeight: '14px' }}>
+            绘图
+          </div>
+          <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-muted)', fontFamily: 'system-ui, sans-serif', fontSize: '11px', lineHeight: '14px' }}>
+            更多
+          </div>
+        </div>
+      </div>
+      <div style={{ backgroundColor: 'var(--mx-light-bg)', borderBottomColor: 'var(--mx-light-line)', borderBottomStyle: 'solid', borderBottomWidth: '1px', borderTopColor: 'var(--mx-light-line)', borderTopStyle: 'solid', borderTopWidth: '1px', boxSizing: 'border-box', display: 'none', paddingBlock: '14px', paddingInline: '16px' }}>
+        <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-text)', fontFamily: 'system-ui, sans-serif', fontSize: '12px', fontWeight: 600, lineHeight: '16px' }}>
+          图表解读
+        </div>
+        <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-link)', fontFamily: 'system-ui, sans-serif', fontSize: '12px', fontWeight: 600, lineHeight: '16px' }}>
+          −
+        </div>
+      </div>
+      <div style={{ boxSizing: 'border-box', display: 'flex', flexDirection: 'column', flexShrink: '0', gap: '10px', height: 'fit-content', paddingBlock: '14px', paddingInline: '16px', width: '390px' }}>
+        <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', justifyContent: 'space-between', width: '358px' }}>
+          <div style={{ boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-text)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '17px', fontWeight: 600, lineHeight: '22px' }}>
+              图表解读
+            </div>
+            <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-muted)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
+              002326.SZ · 3 日
+            </div>
+          </div>
+          <div style={{ alignItems: 'center', borderColor: 'var(--mx-light-line)', borderRadius: '8px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'flex', flexShrink: 0, height: '44px', justifyContent: 'center', minHeight: '44px', minWidth: '44px', width: '44px' }}>
+            <svg width="14" height="14" viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg" style={{ display: 'inline-block', flexShrink: 0 }}>
+              <path d="M3 3l8 8M11 3l-8 8" fill="#000000" stroke="#8B93A1" strokeWidth="1.5" />
+            </svg>
+          </div>
+        </div>
+        <div style={{ alignItems: 'center', backgroundColor: 'var(--mx-light-panel)', borderColor: 'var(--mx-light-line)', borderRadius: '8px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'flex', flexShrink: 0, gap: '8px', height: '64px', paddingBlock: '8px', paddingInline: '10px', width: '358px' }}>
+          <div style={{ boxSizing: 'border-box', display: 'flex', flexBasis: '0%', flexDirection: 'column', flexGrow: '1', gap: '3px' }}>
+            <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-muted)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '10px', lineHeight: '12px' }}>
+              最新图表柱
+            </div>
+            <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-text)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '13px', fontWeight: 600, lineHeight: '16px' }}>
+              2026年10月15日
+            </div>
+          </div>
+          <div style={{ alignItems: 'center', borderColor: 'var(--mx-light-line)', borderRadius: '6px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'flex', flexShrink: 0, height: '44px', justifyContent: 'center', minHeight: '44px', minWidth: '44px', width: '44px' }}>
+            <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-text)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '16px', lineHeight: '20px' }}>
+              ‹
+            </div>
+          </div>
+          <div style={{ alignItems: 'center', borderColor: 'var(--mx-light-line)', borderRadius: '6px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'flex', flexShrink: 0, height: '44px', justifyContent: 'center', minHeight: '44px', minWidth: '44px', width: '44px' }}>
+            <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-muted)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '16px', lineHeight: '20px' }}>
+              ›
+            </div>
+          </div>
+          <div style={{ alignContent: 'center', boxSizing: 'border-box', color: 'var(--mx-light-link)', flexShrink: 0, fontFamily: 'var(--font-ui)', fontSize: '12px', height: '44px', lineHeight: '16px', minWidth: '48px', textAlign: 'center', width: '48px' }}>
+            最新
+          </div>
+        </div>
+        <div style={{ boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: '10px', paddingBottom: '2px', paddingTop: '4px', width: '358px' }}>
+          <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-text)', display: 'inline-block', fontFamily: 'var(--font-ui)', fontSize: '22px', fontWeight: 600, lineHeight: '130%' }}>
+            下行趋势中的上涨柱
+          </div>
+          <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', gap: '6px' }}>
+            <div style={{ backgroundColor: 'var(--mx-light-muted)', borderRadius: '3px', boxSizing: 'border-box', flexShrink: 0, height: '6px', width: '6px' }} />
+            <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-muted)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
+              动能分化
+            </div>
+          </div>
+        </div>
+        <div style={{ alignItems: 'center', backgroundColor: 'var(--mx-light-panel)', borderColor: 'var(--mx-light-line)', borderRadius: '10px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'flex', justifyContent: 'space-between', paddingBlock: '13px', paddingInline: '14px', width: '358px' }}>
+          <div style={{ boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: '5px' }}>
+            <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-text)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '13px', fontWeight: 500, lineHeight: '16px' }}>
+              本柱涨跌
+            </div>
+            <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-muted)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '11px', lineHeight: '14px' }}>
+              3 日 · 开盘 → 收盘
+            </div>
+          </div>
+          <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-up)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '25px', fontWeight: 600, lineHeight: '30px' }}>
+            +3.05%
+          </div>
+        </div>
+        <div style={{ backgroundColor: 'var(--mx-light-panel)', borderColor: 'var(--mx-light-line)', borderRadius: '10px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: '12px', padding: '14px', width: '358px' }}>
+          <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', justifyContent: 'space-between' }}>
+            <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-text)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '13px', fontWeight: 500, lineHeight: '16px' }}>
+              趋势
+            </div>
+            <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', gap: '6px' }}>
+              <svg width="18" height="14" viewBox="0 0 18 14" xmlns="http://www.w3.org/2000/svg" style={{ display: 'inline-block', flexShrink: 0 }}>
+                <path d="M2 3l5 5 4-3 5 6M11 11h5V6" fill="none" stroke="#E06464" strokeWidth="1.6" />
+              </svg>
+              <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-down)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '13px', fontWeight: 600, lineHeight: '16px' }}>
+                下行
+              </div>
+            </div>
+          </div>
+          <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-muted)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
+            价格低于两条均线
+          </div>
+          <div style={{ boxSizing: 'border-box', display: 'flex', gap: '8px' }}>
+            <div style={{ borderTopColor: 'var(--mx-light-text)', borderTopStyle: 'solid', borderTopWidth: '2px', boxSizing: 'border-box', display: 'flex', flexBasis: '0%', flexDirection: 'column', flexGrow: '1', gap: '4px', paddingTop: '7px' }}>
+              <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-muted)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '10px', lineHeight: '12px' }}>
+                价格
+              </div>
+              <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-text)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '15px', fontWeight: 600, lineHeight: '18px' }}>
+                16.54
+              </div>
+            </div>
+            <div style={{ borderTopColor: 'var(--mx-light-orange)', borderTopStyle: 'solid', borderTopWidth: '2px', boxSizing: 'border-box', display: 'flex', flexBasis: '0%', flexDirection: 'column', flexGrow: '1', gap: '4px', paddingTop: '7px' }}>
+              <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-muted)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '10px', lineHeight: '12px' }}>
+                EMA 20
+              </div>
+              <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-text)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '15px', fontWeight: 600, lineHeight: '18px' }}>
+                18.21
+              </div>
+            </div>
+            <div style={{ borderTopColor: 'var(--mx-light-info)', borderTopStyle: 'solid', borderTopWidth: '2px', boxSizing: 'border-box', display: 'flex', flexBasis: '0%', flexDirection: 'column', flexGrow: '1', gap: '4px', paddingTop: '7px' }}>
+              <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-muted)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '10px', lineHeight: '12px' }}>
+                EMA 50
+              </div>
+              <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-text)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '15px', fontWeight: 600, lineHeight: '18px' }}>
+                19.88
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style={{ backgroundColor: 'var(--mx-light-panel)', borderColor: 'var(--mx-light-line)', borderRadius: '10px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: '10px', padding: '14px', width: '358px' }}>
+          <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', justifyContent: 'space-between' }}>
+            <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-text)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '13px', fontWeight: 500, lineHeight: '16px' }}>
+              动能
+            </div>
+            <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-muted)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '13px', fontWeight: 600, lineHeight: '16px' }}>
+              分化
+            </div>
+          </div>
+          <div style={{ alignItems: 'baseline', boxSizing: 'border-box', display: 'flex', gap: '8px' }}>
+            <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-text)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '24px', fontWeight: 600, lineHeight: '30px' }}>
+              40.19
+            </div>
+            <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-muted)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '11px', lineHeight: '14px' }}>
+              RSI 14
+            </div>
+          </div>
+          <div style={{ boxSizing: 'border-box', display: 'flex', flexShrink: 0, gap: '3px', height: '8px', position: 'relative', width: '330px' }}>
+            <div style={{ backgroundColor: 'var(--mx-light-down)', borderBottomLeftRadius: '4px', borderTopLeftRadius: '4px', boxSizing: 'border-box', height: '8px', opacity: '0.45', width: 'round(40%, 1px)' }} />
+            <div style={{ backgroundColor: 'var(--mx-light-muted)', boxSizing: 'border-box', height: '8px', opacity: '0.35', width: 'round(20%, 1px)' }} />
+            <div style={{ backgroundColor: 'var(--mx-light-up)', borderBottomRightRadius: '4px', borderTopRightRadius: '4px', boxSizing: 'border-box', flexBasis: '0%', flexGrow: '1', height: '8px', opacity: '0.45' }} />
+            <div style={{ backgroundColor: 'var(--mx-light-text)', borderRadius: '2px', boxSizing: 'border-box', height: '14px', left: '119px', position: 'absolute', top: '-3px', width: '3px' }} />
+          </div>
+          <div style={{ boxSizing: 'border-box', display: 'flex', justifyContent: 'space-between' }}>
+            <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-muted)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '10px', lineHeight: '12px' }}>
+              0 · 向下
+            </div>
+            <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-muted)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '10px', lineHeight: '12px' }}>
+              40
+            </div>
+            <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-muted)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '10px', lineHeight: '12px' }}>
+              60
+            </div>
+            <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-muted)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '10px', lineHeight: '12px' }}>
+              向上 · 100
+            </div>
+          </div>
+        </div>
+        <div style={{ backgroundColor: 'var(--mx-light-panel)', borderColor: 'var(--mx-light-line)', borderRadius: '10px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: '10px', padding: '14px', width: '358px' }}>
+          <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', justifyContent: 'space-between' }}>
+            <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-text)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '13px', fontWeight: 500, lineHeight: '16px' }}>
+              成交量分位
+            </div>
+            <div style={{ alignItems: 'baseline', boxSizing: 'border-box', display: 'flex', gap: '5px' }}>
+              <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-text)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '23px', fontWeight: 600, lineHeight: '28px' }}>
+                5
+              </div>
+              <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-muted)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '11px', lineHeight: '14px' }}>
+                / 100
+              </div>
+            </div>
+          </div>
+          <div style={{ backgroundColor: 'var(--mx-light-line)', borderRadius: '3px', boxSizing: 'border-box', display: 'flex', flexShrink: 0, height: '6px', width: '330px' }}>
+            <div style={{ backgroundColor: 'var(--mx-light-info)', borderRadius: '3px', boxSizing: 'border-box', flexShrink: 0, height: '6px', width: '15px' }} />
+          </div>
+          <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-muted)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '11px', lineHeight: '14px' }}>
+            第 5 百分位 · 与此前 100 根柱比较
+          </div>
+        </div>
+        <div style={{ boxSizing: 'border-box', display: 'flex', flexDirection: 'column', width: '358px' }}>
+          <div style={{ alignItems: 'center', borderBottomColor: 'var(--mx-light-line)', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', flexShrink: 0, height: '44px', justifyContent: 'space-between', minHeight: '44px' }}>
+            <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-text)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
+              区间与公司事件
+            </div>
+            <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-muted)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
+              ›
+            </div>
+          </div>
+          <div style={{ alignItems: 'center', borderBottomColor: 'var(--mx-light-line)', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', flexShrink: 0, height: '44px', justifyContent: 'space-between', minHeight: '44px' }}>
+            <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-text)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
+              图表图层
+            </div>
+            <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-muted)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
+              ›
+            </div>
+          </div>
+          <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexShrink: 0, height: '44px', justifyContent: 'space-between', minHeight: '44px' }}>
+            <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-muted)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
+              如何解读
+            </div>
+            <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-muted)', display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
+              ›
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style={{ boxSizing: 'border-box', padding: '16px' }}>
+        <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-muted)', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '10px', lineHeight: '12px', whiteSpace: 'pre-wrap' }}>
+          图表示例 · 3 日周期<br />解读跟随所选图表柱。更多高级工具可在「更多」中找到。
+        </div>
+      </div>
+    </div>
+  )

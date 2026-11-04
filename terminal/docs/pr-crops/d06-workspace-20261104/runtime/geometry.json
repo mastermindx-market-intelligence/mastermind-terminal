@@ -1,0 +1,135 @@
+[
+  {
+    "placement": "rail",
+    "requested": 520,
+    "railWidth": 520,
+    "paneWidth": 807,
+    "plotWidth": 744,
+    "available": 1327,
+    "hostWidth": 807,
+    "axisWidth": 62,
+    "pageHeight": 900,
+    "viewportHeight": 900,
+    "tracks": 3,
+    "overflow": 0,
+    "saved": "520",
+    "range": {
+      "from": 179,
+      "to": 445
+    }
+  },
+  {
+    "placement": "rail",
+    "requested": 520,
+    "railWidth": 464,
+    "paneWidth": 703,
+    "plotWidth": 640,
+    "available": 1167,
+    "hostWidth": 703,
+    "axisWidth": 62,
+    "pageHeight": 900,
+    "viewportHeight": 900,
+    "tracks": 3,
+    "overflow": 0,
+    "saved": "520",
+    "range": {
+      "from": 179,
+      "to": 445
+    }
+  },
+  {
+    "placement": "below",
+    "requested": 520,
+    "railWidth": 964,
+    "paneWidth": 911,
+    "plotWidth": 848,
+    "available": 911,
+    "hostWidth": 911,
+    "axisWidth": 62,
+    "pageHeight": 900,
+    "viewportHeight": 900,
+    "tracks": 2,
+    "overflow": 0,
+    "saved": "520",
+    "range": {
+      "from": 179,
+      "to": 445
+    }
+  },
+  {
+    "placement": "below",
+    "requested": 520,
+    "railWidth": 801,
+    "paneWidth": 748,
+    "plotWidth": 686,
+    "available": 748,
+    "hostWidth": 748,
+    "axisWidth": 62,
+    "pageHeight": 900,
+    "viewportHeight": 900,
+    "tracks": 2,
+    "overflow": 0,
+    "saved": "520",
+    "range": {
+      "from": 179,
+      "to": 445
+    }
+  },
+  {
+    "placement": "below",
+    "requested": 520,
+    "railWidth": 964,
+    "paneWidth": 911,
+    "plotWidth": 848,
+    "available": 911,
+    "hostWidth": 911,
+    "axisWidth": 62,
+    "pageHeight": 900,
+    "viewportHeight": 900,
+    "tracks": 2,
+    "overflow": 0,
+    "saved": "520",
+    "range": {
+      "from": 179,
+      "to": 445
+    }
+  },
+  {
+    "placement": "rail",
+    "requested": 520,
+    "railWidth": 464,
+    "paneWidth": 703,
+    "plotWidth": 640,
+    "available": 1167,
+    "hostWidth": 703,
+    "axisWidth": 62,
+    "pageHeight": 900,
+    "viewportHeight": 900,
+    "tracks": 3,
+    "overflow": 0,
+    "saved": "520",
+    "range": {
+      "from": 179,
+      "to": 445
+    }
+  },
+  {
+    "placement": "rail",
+    "requested": 520,
+    "railWidth": 520,
+    "paneWidth": 807,
+    "plotWidth": 744,
+    "available": 1327,
+    "hostWidth": 807,
+    "axisWidth": 62,
+    "pageHeight": 900,
+    "viewportHeight": 900,
+    "tracks": 3,
+    "overflow": 0,
+    "saved": "520",
+    "range": {
+      "from": 179,
+      "to": 445
+    }
+  }
+]

@@ -23,6 +23,7 @@ const serverSnapshot = () => false;
 export interface OptionsRailHandle { open: () => void }
 interface Props {
   children: ReactNode; symbol: string; enabled: boolean; access: "loading" | "allowed" | "locked";
+  contextPlacement?: "rail" | "below"; widthControl?: ReactNode;
   contextOpen?: boolean; contextAvailable?: boolean; onContextChange?: (open: boolean, launcher?: HTMLElement | null) => void; contextHostRef?: (node: HTMLDivElement | null) => void;
   pinned: OptionsChartLevel | null; onPin: (level: OptionsChartLevel | null) => void; replayActive: boolean;
 }
@@ -32,7 +33,7 @@ interface Props {
  *  hidden) so a newer build that arrives while the chart is visible queues and re-presents
  *  onto the held map. The parked chip returns to the same held state.
  *  Reference: PP2-UI-b / accepted Paper contract #723 falsifiers 4, 5, 9, 10. */
-const OptionsRail = forwardRef<OptionsRailHandle, Props>(function OptionsRail({ children, symbol, enabled, access, pinned, onPin, replayActive, contextOpen = false, contextAvailable = true, onContextChange, contextHostRef }, ref) {
+const OptionsRail = forwardRef<OptionsRailHandle, Props>(function OptionsRail({ children, symbol, enabled, access, pinned, onPin, replayActive, contextOpen = false, contextAvailable = true, onContextChange, contextHostRef, contextPlacement = "rail", widthControl }, ref) {
   const { lang } = useLang(); const t = optionsT(lang);
   const small = useSyncExternalStore(subscribeViewport, smallSnapshot, serverSnapshot);
   const [open, setOpen] = useState(false);
@@ -101,7 +102,7 @@ const OptionsRail = forwardRef<OptionsRailHandle, Props>(function OptionsRail({ 
   const sheetKeepMounted = showing && small && (parked || contextOpen);
   return <>
     {enabled && hasExposureLink && <ExposureChartReference symbol={symbol} active={access === "allowed" && !replayActive} pinned={pinned} onPin={onPin} />}
-    <aside className="rail" data-options-rail={showing && !small && !contextOpen ? "open" : "closed"}>
+    <aside id="terminal-context-rail" className="rail" data-options-rail={showing && !small && !contextOpen ? "open" : "closed"}>
       {enabled && <div className={styles.railSwitch} role="group" aria-label={t("perspectives")}>
         <button type="button" aria-pressed={!showing && !contextOpen} onClick={() => { onContextChange?.(false); close(); }}>{t("overview")}</button>
         {onContextChange && <button type="button" data-context-launcher disabled={!contextAvailable} aria-pressed={contextOpen}
@@ -109,10 +110,11 @@ const OptionsRail = forwardRef<OptionsRailHandle, Props>(function OptionsRail({ 
         <button type="button" ref={launcher} data-testid="options-rail-toggle" aria-pressed={showing && !contextOpen} aria-label={t("open")} onClick={() => { onContextChange?.(false); if (showing && !contextOpen) close(); else { returnFocus.current = launcher.current; setOpen(true); } }}>
           <svg viewBox="0 0 18 18" aria-hidden="true"><path d="M2 2h14v14H2zM2 7h14M2 12h14M7 2v14M12 2v14" /></svg>{t("options")}
         </button>
+        {widthControl}
       </div>}
       <div className={styles.overview} hidden={(showing || contextOpen) && !small}>{children}</div>
       {showing && !small && <div className={styles.contextPreservedOptions} hidden={contextOpen}>{panel}</div>}
-      <div ref={contextHostRef} className={styles.contextHost} data-context-dock="rail" hidden={!contextOpen || small} />
+      <div ref={contextHostRef} className={styles.contextHost} data-context-dock={contextPlacement} hidden={!contextOpen || small} />
     </aside>
     {enabled && <MobileSheet open={sheetOpen} keepMounted={sheetKeepMounted} onClose={close} title={<span className={styles.sheetTitle}><span>{t("options")} · {symbol}</span><button type="button" className={styles.close} onClick={close} aria-label={t("close")}>×</button></span>} ariaLabel={t("open")}
       detents={[60, 94]} maxHeight="94svh" initialFocus="sheet" escapeKey="bubble" className={styles.sheet}>

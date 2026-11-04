@@ -2727,6 +2727,10 @@ export const LEX: Record<string, [string, string]> = {
   cfbExtendedHours: ["Extended trading hours", "盘前盘后交易时段"],
   dsDayStats: ["Day Stats", "当日数据"],
   shResizeSidebar: ["Resize sidebar", "调整侧栏宽度"],
+  shResetSidebar: ["Reset sidebar width", "重置侧栏宽度"],
+  shResizeSidebarHelp: ["Left and Right arrows resize; Home and End choose a limit.", "使用左右方向键调整宽度；Home 和 End 选择边界。"],
+  shSidebarPixels: ["pixels", "像素"],
+  shSidebarPreferred: ["preferred", "偏好宽度"],
   shLogoCredit: ["Logos provided by Logo.dev", "图标由 Logo.dev 提供"],
   customColor: ["custom color", "自定义颜色"],
 

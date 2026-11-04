@@ -11,6 +11,8 @@ import contextStyles from "./ChartContextPlacement.module.css";
 import rollerSlotStyles from "./mobile/RollerStripSlot.module.css";
 import searchStyles from "./SearchModal.module.css";
 import type { ChartContextDock } from "./ChartContextDock";
+import { useChartRailLayout } from "@/lib/useChartRailLayout";
+import { clampRailWidth, DEFAULT_RAIL_WIDTH, MIN_RAIL_WIDTH, railWidthForKey } from "@/lib/chartRailLayout";
 import { visualText } from "@/lib/visualIntelligenceCopy";
 import { track } from "@/lib/analytics";
 import { DndContext, DragOverlay, PointerSensor, KeyboardSensor, useDroppable, useSensor, useSensors, closestCenter, type CollisionDetection, type DragEndEvent, type DragStartEvent, type Modifier } from "@dnd-kit/core";
@@ -1752,12 +1754,21 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   const contextReturnFocus = useRef<HTMLElement | null>(null);
   const contextInline = isMobile || fullChart || shellMode;
   const contextAvailable = !paneOpen && !tableViewOpen && !(shellMode && shellDossier);
+  // Keep the existing persisted preference separate from temporary fitted geometry.
+  // The SSR default remains identical on the first client render.
+  const [railW, setRailW] = useState<number>(DEFAULT_RAIL_WIDTH);
+  const railLayout = useChartRailLayout(railW,
+    !isMobile && !fullChart && !shellMode && !paneOpen && !tableViewOpen,
+    activePane, panes.length);
+  const railBelow = railLayout.placement === "below";
+  const effectiveRailW = railLayout.width;
+  const railCanResize = !isMobile && !fullChart && !shellMode && !railBelow && railLayout.maximum > MIN_RAIL_WIDTH;
   const changeContext = useCallback((next: boolean, launcher?: HTMLElement | null) => {
     if (next) contextReturnFocus.current = launcher ?? document.activeElement as HTMLElement | null;
     setContextOpen(next);
     if (next) requestAnimationFrame(() => {
       const reader = document.querySelector<HTMLElement>("[data-context-reader]");
-      reader?.querySelector<HTMLButtonElement>("header button")?.focus({ preventScroll: true });
+      reader?.querySelector<HTMLButtonElement>('[data-context-focus="close"]')?.focus({ preventScroll: true });
       if (reader?.closest('[data-context-dock="inline"]')) reader.querySelector("header")?.scrollIntoView({ block: "nearest" });
     });
   }, []);
@@ -1780,7 +1791,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     target: contextInline ? contextInlineHost : contextRailHost,
     onOpen: (launcher) => { if (contextAvailable) changeContext(true, launcher); },
     onClose: closeContext,
-  }), [contextOpen, contextAvailable, contextInline, contextInlineHost, contextRailHost, changeContext, closeContext]);
+    focused: fullChart,
+    onToggleFocus: shellMode ? undefined : () => setFullChart((focused) => !focused),
+  }), [contextOpen, contextAvailable, contextInline, contextInlineHost, contextRailHost, changeContext, closeContext, fullChart, shellMode]);
   // ── phone chart chrome (R2): the roller strip's two sheets ──
   const [drawSheetOpen, setDrawSheetOpen] = useState(false);
   const [hubOpen, setHubOpen] = useState(false);
@@ -1799,9 +1812,6 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // Optimistic "seen" so the ••• badge cannot flash before localStorage is read on mount.
   const [hubSeen, setHubSeen] = useState(true);
   useEffect(() => { try { setHubSeen(localStorage.getItem("mm.hubSeen") === "1"); } catch {} }, []);
-  // SSR-consistent default; the persisted width is read after mount (below) so the server- and
-  // client-rendered `--rail-w` style always agree on the first paint (no hydration mismatch).
-  const [railW, setRailW] = useState<number>(360);
   // only surface a "back" affordance when the user actually arrived from the Macro Dashboard — for direct
   // visitors a back button would just throw them onto whatever unrelated site they were last on.
   const { fromMacro, macroHref } = useFromMacro();
@@ -5756,23 +5766,69 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     const up = () => { window.removeEventListener("mousemove", move); window.removeEventListener("mouseup", up); document.body.classList.remove("col-resizing"); };
     window.addEventListener("mousemove", move); window.addEventListener("mouseup", up); document.body.classList.add("col-resizing");
   };
-  const startRailResize = (e: React.MouseEvent) => {
-    e.preventDefault();
-    const startX = e.clientX, startW = railW;
-    let latest = railW;
-    const move = (ev: MouseEvent) => {
-      latest = Math.min(520, Math.max(300, startW - (ev.clientX - startX)));
-      setRailW(latest);
+  const railResizeCleanup = useRef<((commit: boolean, restore?: boolean) => void) | null>(null);
+  const railFocusedHandle = useRef<HTMLElement | null>(null);
+  const commitRailWidth = (width: number) => {
+    const next = clampRailWidth(width);
+    setRailW(next);
+    try { localStorage.setItem("mm.railW", String(next)); } catch { /* Preference storage can be unavailable. */ }
+  };
+  useEffect(() => {
+    // A resize cannot retain listeners/cursor ownership after its geometry disappears.
+    railResizeCleanup.current?.(false);
+  }, [railCanResize, railLayout.maximum]);
+  useEffect(() => () => railResizeCleanup.current?.(false, false), []);
+  useLayoutEffect(() => {
+    const prior = railFocusedHandle.current;
+    if (railCanResize || !prior) return;
+    if (document.activeElement === prior || (!prior.isConnected && document.activeElement === document.body)) {
+      const target = ['[data-context-focus="close"]', '[data-context-launcher]', '[data-testid="roller-more"]']
+        .flatMap((selector) => Array.from(document.querySelectorAll<HTMLElement>(selector)))
+        .find((node) => node.getClientRects().length > 0 && !node.matches(":disabled"));
+      target?.focus({ preventScroll: true });
+    }
+    railFocusedHandle.current = null;
+  }, [railCanResize]);
+  const startRailResize = (event: React.PointerEvent) => {
+    if (!railCanResize || !event.isPrimary || event.button !== 0) return;
+    event.preventDefault(); event.stopPropagation();
+    railResizeCleanup.current?.(false);
+    const startX = event.clientX, startW = effectiveRailW, preferred = railW, pointerId = event.pointerId;
+    let latest = startW, moved = false, done = false;
+    const move = (next: PointerEvent) => {
+      if (next.pointerId !== pointerId) return;
+      const width = clampRailWidth(startW - (next.clientX - startX), railLayout.maximum);
+      if (width === latest) return;
+      latest = width; moved = true; setRailW(width);
     };
-    const up = () => {
-      window.removeEventListener("mousemove", move);
-      window.removeEventListener("mouseup", up);
+    const finish = (commit: boolean, restore = true) => {
+      if (done) return;
+      done = true;
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      window.removeEventListener("pointercancel", cancel);
+      window.removeEventListener("blur", blur);
       document.body.classList.remove("rail-resizing");
-      localStorage.setItem("mm.railW", String(latest));
+      railResizeCleanup.current = null;
+      if (!moved) return;
+      if (commit) { try { localStorage.setItem("mm.railW", String(latest)); } catch {} }
+      else if (restore) setRailW(preferred);
     };
-    window.addEventListener("mousemove", move);
-    window.addEventListener("mouseup", up);
+    const up = (next: PointerEvent) => { if (next.pointerId === pointerId) finish(true); };
+    const cancel = (next: PointerEvent) => { if (next.pointerId === pointerId) finish(false); };
+    const blur = () => finish(false);
+    railResizeCleanup.current = finish;
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+    window.addEventListener("pointercancel", cancel);
+    window.addEventListener("blur", blur);
     document.body.classList.add("rail-resizing");
+  };
+  const resizeRailKey = (event: React.KeyboardEvent) => {
+    if (!railCanResize || event.nativeEvent.isComposing || event.altKey || event.ctrlKey || event.metaKey) return;
+    const next = railWidthForKey(event.key, effectiveRailW, railLayout.maximum, event.shiftKey);
+    if (next === null) return;
+    event.preventDefault(); event.stopPropagation(); commitRailWidth(next);
   };
   const drawingOwnerMatches = drawingOwnerKey === currentDrawingOwnerKey;
   // Click callbacks can be held by memoized descendants across render transitions.
@@ -5963,7 +6019,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         TerminalShell, so useSettings() *here* would be the no-op — the buttons
         below are children of it, which is what matters. */}
     <SettingsProvider identity={identity} defaultSection="terminal">
-    <div className={`app${fullChart ? " fs" : ""}${shellMode ? " shell-app" : ""}`} data-shell={shellMode ? "app" : undefined} data-tray={shellMode && shellTray ? "1" : undefined} data-dossier={dossierMode ? "1" : undefined} style={{ ["--rail-w" as any]: `${railW}px` }}>
+    <div ref={railLayout.rootRef} className={`app${fullChart ? " fs" : ""}${shellMode ? " shell-app" : ""}${railBelow ? " rail-below" : ""}`} data-rail-layout={isMobile ? "inline" : railBelow ? "below" : "rail"} data-rail-requested={railW} data-shell={shellMode ? "app" : undefined} data-tray={shellMode && shellTray ? "1" : undefined} data-dossier={dossierMode ? "1" : undefined} style={{ ["--rail-w" as any]: `${effectiveRailW}px` }}>
       {!shellMode && <RetainedInvestigationLayout search={urlSearch} owner={wlOwner} onOpen={(config,name)=>{
         loadLayout({id:"",name,config,updated_at:null,rowState:"ok"});
         // A historical read is an unnamed local working copy. It must never target the
@@ -6428,7 +6484,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             />
             <div className={`pane-grid ${contextStyles.paneGrid}`} data-n={panes.length}>
               {panes.map((sym, i) => (
-                <ChartPane key={i} idx={i} contextDock={contextDock} optionsLevel={ent.optionsRead && !replayOn && i === activePane && optionsLevel?.pane === i ? optionsLevel : null} symbol={sym} drawingOwnerKey={currentDrawingOwnerKey} isActive={i === activePane} onActivate={setActivePane} row={paneRows[i]} tf={paneTfs[i] ?? "D"} episodeId={initialEpisode && initialSymbol && sym.toUpperCase() === initialSymbol.toUpperCase() ? initialEpisode : null} chartType={chartType} inds={inds} tool={drawingsReadyFor(sym) ? activeDrawingTool : null} toolActivation={toolState.activation} drawingSticky={drawingCreationDisabledReason ? false : drawingKeepsActive} drawingCreationDisabled={drawingCreationDisabledReason !== null} drawStyle={drawStyle} detectCmd={detectCmd} compare={compare} compareCfg={compareCfg} onCompareCfgChange={setCompareCfg} magnet={magnet} replayCutoff={replayOn && i === 0 ? replayCutoff : null} onMeta={onPaneMeta} drawings={[...(drawingOwnerMatches ? (drawStore[sym] ?? []) : []), ...chartBus.aiDrawingsFor(sym)]} drawingsVisible={drawingsVisible} onDrawingsChange={(d) => setSymbolDrawings(sym, d)} onDetectedDrawingCount={i === activePane ? setActivePaneDetectedDrawingCount : undefined} liveQuote={{ ...(quotes[sym] ?? {}), ...(isPublicBoatsQuote(extQuotes[sym], extClockMs) ? extQuotes[sym] : {}) }} dataReady={prefsHydrated} initialTimeframe={startTfRef.current} indParams={indParams} hidden={hidden} onToggleHidden={toggleHidden} onRemoveInd={removeInd} onOpenSettings={openSettings} onOpenSource={openSource} pineScripts={pineScripts} dayMode={dtm} userTier={userTier}
+                <ChartPane key={i} idx={i} contextDock={contextDock} onPlotGeometry={railLayout.onPlotGeometry} optionsLevel={ent.optionsRead && !replayOn && i === activePane && optionsLevel?.pane === i ? optionsLevel : null} symbol={sym} drawingOwnerKey={currentDrawingOwnerKey} isActive={i === activePane} onActivate={setActivePane} row={paneRows[i]} tf={paneTfs[i] ?? "D"} episodeId={initialEpisode && initialSymbol && sym.toUpperCase() === initialSymbol.toUpperCase() ? initialEpisode : null} chartType={chartType} inds={inds} tool={drawingsReadyFor(sym) ? activeDrawingTool : null} toolActivation={toolState.activation} drawingSticky={drawingCreationDisabledReason ? false : drawingKeepsActive} drawingCreationDisabled={drawingCreationDisabledReason !== null} drawStyle={drawStyle} detectCmd={detectCmd} compare={compare} compareCfg={compareCfg} onCompareCfgChange={setCompareCfg} magnet={magnet} replayCutoff={replayOn && i === 0 ? replayCutoff : null} onMeta={onPaneMeta} drawings={[...(drawingOwnerMatches ? (drawStore[sym] ?? []) : []), ...chartBus.aiDrawingsFor(sym)]} drawingsVisible={drawingsVisible} onDrawingsChange={(d) => setSymbolDrawings(sym, d)} onDetectedDrawingCount={i === activePane ? setActivePaneDetectedDrawingCount : undefined} liveQuote={{ ...(quotes[sym] ?? {}), ...(isPublicBoatsQuote(extQuotes[sym], extClockMs) ? extQuotes[sym] : {}) }} dataReady={prefsHydrated} initialTimeframe={startTfRef.current} indParams={indParams} hidden={hidden} onToggleHidden={toggleHidden} onRemoveInd={removeInd} onOpenSettings={openSettings} onOpenSource={openSource} pineScripts={pineScripts} dayMode={dtm} userTier={userTier}
                   onAddAlert={(price) => { window.location.href = `/alerts?sym=${encodeURIComponent(active)}&price=${encodeURIComponent(price.toFixed(4))}&type=price_above`; }}
                   onTableView={() => setTableViewOpen(true)}
                   onObjectTree={() => setObjectTreeOpen((o) => !o)}
@@ -6680,12 +6736,22 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       {/* The rail and the chart workspace are INDEPENDENT surfaces (the rail's intel/fund/opts
           fetches never touch ChartPanel), so shell mode drops the rail while dossier mode keeps
           it and drops the chart. The resizer is desktop-only chrome — never in a native shell. */}
-      {!shellMode && (
-      <div className="rail-resizer" role="separator" aria-orientation="vertical" aria-label={t("shResizeSidebar")} onMouseDown={startRailResize}><span /></div>
+      {railCanResize && (
+      <div className="rail-resizer" role="separator" tabIndex={0} aria-orientation="vertical"
+        aria-label={t("shResizeSidebar")} aria-controls="terminal-context-rail"
+        aria-valuemin={MIN_RAIL_WIDTH} aria-valuemax={railLayout.maximum} aria-valuenow={effectiveRailW}
+        aria-valuetext={`${effectiveRailW} ${t("shSidebarPixels")}${effectiveRailW !== railW ? `; ${t("shSidebarPreferred")} ${railW}` : ""}`}
+        title={t("shResizeSidebarHelp")} onPointerDown={startRailResize} onKeyDown={resizeRailKey}
+        onFocus={(event) => { railFocusedHandle.current = event.currentTarget; }}
+        onBlur={(event) => { if (event.relatedTarget) railFocusedHandle.current = null; }}><span /></div>
       )}
       {(!shellMode || dossierMode) && (<>
       <OptionsRail ref={optionsRailRef} symbol={active} enabled={!shellMode && !dossierMode}
         contextOpen={contextOpen && contextAvailable} contextAvailable={contextAvailable} onContextChange={changeContext} contextHostRef={setContextRailHost}
+        contextPlacement={railBelow ? "below" : "rail"}
+        widthControl={!isMobile && !fullChart && !shellMode ? <button type="button" className={contextStyles.railReset}
+          aria-label={t("shResetSidebar")} title={`${t("shResetSidebar")} · ${t("shSidebarPreferred")} ${railW} ${t("shSidebarPixels")}`}
+          onClick={() => commitRailWidth(DEFAULT_RAIL_WIDTH)}><span aria-hidden="true">↺</span></button> : undefined}
         access={ent.loading ? "loading" : ent.optionsRead ? "allowed" : "locked"}
         pinned={optionsLevel?.pane === activePane ? optionsLevel : null} onPin={pinOptionsLevel} replayActive={replayOn}>
         <div className="rail-body">
