@@ -152,3 +152,5 @@
   }
   .navHint > span { font-size: 12px; }
 }
+
+.statisticsSummary { padding: 10px 0; color: var(--text-2); font-size: 11px; line-height: 1.6; }

@@ -5,5 +5,14 @@
 .input { flex: 1 1 240px; width: 0; min-width: 0; min-height: 36px; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--bg); color: var(--text); padding: 6px 8px; font: 12px var(--font-ui); }
 .action { min-height: 36px; font-size: 12px; }
 .note { margin: 8px 0 0; color: var(--text-dim); font-size: 12px; line-height: 1.5; }
+/* The global narrow-screen .chip rule is !important. Keep new screen actions
+   comfortably tappable without changing other Tape/share controls. */
+.savedControl.savedControl { min-height: 44px !important; height: auto; }
 @media (pointer: coarse) { .launch, .action, .input { min-height: 44px; } }
 @media (max-width: 640px) { .input { flex-basis: 100%; } }
+/* Saved-screen launchers add a wrapped row on phones. Recover vertical space
+   between filter rows so the first Tape result stays visible at 390 × 844,
+   while keeping every saved-screen action's 44px touch target. */
+@media (max-width: 640px) {
+  :global(.flow-filter-bar):has(.savedControl) { row-gap: 2px; }
+}

@@ -49,7 +49,7 @@ const { chromium } = require("@playwright/test");
 
 const ROOT = join(__dirname, "..", "..");
 const REPO = join(ROOT, "..");
-const OUT = join(ROOT, "docs", "pr-crops", "eod-heatmap-flowdesk-load-failure");
+const OUT = process.env.TERMINAL_CROP_OUTPUT_DIR || join(ROOT, "docs", "pr-crops", "eod-heatmap-flowdesk-load-failure");
 const LAYOUT_FILES = [
   "terminal/app/globals.css",
   "terminal/components/eodcontext/DarkPoolMini.tsx",
@@ -194,6 +194,9 @@ const COPY = {
 mkdirSync(OUT, { recursive: true });
 
 function currentGitHead() {
+  // CAPTURE_HEAD names the commit an uncommitted tree builds on, for hosts where git is not
+  // run during a capture. capturedAtHead is informational either way; the lock is layoutFiles.
+  if (process.env.CAPTURE_HEAD) return process.env.CAPTURE_HEAD;
   return execFileSync("git", ["rev-parse", "HEAD"], { cwd: ROOT, encoding: "utf8" }).trim();
 }
 

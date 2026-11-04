@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
-import { readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { readFileSync, readdirSync } from "node:fs";
 import path from "path";
 
 const isProd = process.env.NODE_ENV === "production";
@@ -27,6 +28,22 @@ function readDeploymentMarker(): string | undefined {
 
 const DEPLOYMENT_ID =
   process.env.GIT_SHA || process.env.NEXT_DEPLOYMENT_ID || readDeploymentMarker();
+
+// Bind this worker build to its actual Pine sources and the shared session implementation.
+function pineSourceDigest(): string {
+  try {
+    const files = readdirSync(path.join(__dirname, "lib/pine-engine"))
+      .filter(name => name.endsWith(".ts")).map(name => "lib/pine-engine/" + name);
+    const hash = createHash("sha256");
+    for (const file of [...files, "lib/sessionBars.ts"].sort()) {
+      const bytes = readFileSync(path.join(__dirname, file));
+      hash.update(file + "\0" + bytes.length + "\0").update(bytes);
+    }
+    return hash.digest("hex");
+  } catch {
+    return "";  // Source identity is unavailable on this build. Ordinary runs still work.
+  }
+}
 
 // ── Content-Security-Policy ───────────────────────────────────────────────────
 // Derived from an audit of every external resource the BROWSER actually reaches:
@@ -155,7 +172,13 @@ const nextConfig: NextConfig = {
   outputFileTracingExcludes: { "/*": [".local-futures/**/*", "**/.local-futures/**/*"] },
   // Distinct-per-build id → version-skew protection + stale-chunk self-heal (see DEPLOYMENT_ID above).
   deploymentId: DEPLOYMENT_ID,
-  env: { NEXT_PUBLIC_SHARED_SHELL_BUILD: DEPLOYMENT_ID || (isProd ? "unversioned" : "development") },
+  env: {
+    NEXT_PUBLIC_PINE_SOURCE_SHA256: pineSourceDigest(),
+    NEXT_PUBLIC_SHARED_SHELL_BUILD: DEPLOYMENT_ID || (isProd ? "unversioned" : "development"),
+    // Pin activation to this build. An older flag-off build stays off if restored;
+    // the production unit's inert BUILD flag is only release-owner admission.
+    MMX_SHARED_SHELL: process.env.MMX_SHARED_SHELL === "1" ? "1" : "0",
+  },
   // pin the workspace root (sibling lockfiles exist) so Turbopack stops warning
   turbopack: { root: path.resolve(__dirname) },
   // The shared pure validators also export Node-side digest helpers. For webpack's

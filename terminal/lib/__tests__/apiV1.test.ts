@@ -299,7 +299,9 @@ describe("impersonation path", () => {
       if (rel.endsWith("openapi.json/route.ts") || rel.endsWith("v1/route.ts")) continue;
       const text = readFileSync(join(REPO, rel), "utf8");
       expect(text, rel).not.toMatch(/\.from\(/);
-      expect(text, rel).toContain(rel.endsWith("/symbols/route.ts") ? "handleV1WatchlistAdd" : "handleV1Get");
+      const handler = rel.endsWith("/symbols/route.ts") ? "handleV1WatchlistAdd"
+        : rel.endsWith("/event-impact/route.ts") ? "handleV1EventImpact" : "handleV1Get";
+      expect(text, rel).toContain(handler);
     }
   });
 });

@@ -1,0 +1,47 @@
+{
+  "provenance": "SYNTHETIC incumbent native QQQ reportedGamma fixture; full canonical document VALUE fingerprint; no live source/rights",
+  "condition": {
+    "type": "opt_frozen_node_proximity",
+    "root": "QQQ",
+    "target": {
+      "root": "QQQ",
+      "securityId": "SEC:US-XNAS-QQQ",
+      "sourceSession": "2026-10-20",
+      "sourceKey": "124989846ac06f544cc88318d78a59eb0886a9d833b196effcc7caa6a760db96",
+      "definitionKey": "[\"dated_provider_approximation\",\"assumed_long_call_short_put\",\"dollars\",\"usd_delta_per_1pct_spot\",\"provider_observed\",\"https://www.thetadata.net/docs/Articles/Data-And-Requests/Option-Greeks.html#eod-version-1\",\"delta_per_underlying_price_unit\",\"provider_eod_whole_days_0dte_0.15\",\"/v3/option/history/greeks/eod\",\"1\",null,\"https://www.thetadata.net/docs/Articles/Data-And-Requests/Option-Greeks.html\",\"session_only\"]",
+      "scopeKey": "[\"all\",null]",
+      "availableAt": "2026-10-20T12:04:48.959845+00:00",
+      "sourceBinding": {
+        "inputSha256": "34fa684931073e215da75408046a1b0fb28db3783e59a48aedbf02a6b05ec69e",
+        "populationId": "a1343ac9423cfd391d089267ef38018958be96761f089bab1b259213302ceba9",
+        "sourceRef": "synthetic:QQQ-market-book",
+        "clocks": {
+          "source_session": "2026-10-20",
+          "oi_report_date": "2026-10-20",
+          "oi_position_session": null,
+          "oi_available_at": "2026-10-20T11:20:00+00:00",
+          "option_observed_at": null,
+          "underlying_observed_at": null,
+          "greeks_available_at": "2026-10-20T11:20:00+00:00",
+          "available_at": "2026-10-20T12:04:48.959845+00:00",
+          "published_at": null,
+          "correction_ref": null
+        }
+      },
+      "members": [
+        {
+          "expiry": "2026-11-06",
+          "strike": 159,
+          "right": "C"
+        },
+        {
+          "expiry": "2026-11-06",
+          "strike": 159,
+          "right": "P"
+        }
+      ],
+      "price": 159,
+      "qualification": "observed_partial"
+    }
+  }
+}

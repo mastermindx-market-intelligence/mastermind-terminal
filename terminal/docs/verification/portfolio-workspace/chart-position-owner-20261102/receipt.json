@@ -1,0 +1,181 @@
+{
+  "schema": "mastermind.portfolio.chart-position-owner.v1",
+  "capturedAt": "2026-11-02",
+  "scope": "PC-2 (repair) and PC-3 (proof) for the chart Add-to-Portfolio account-ownership defect. PC-4 (independent review + hosted checks) and PC-5 (release) are the parent's gate and are NOT claimed here.",
+  "identity": {
+    "repository": "mastermindx-market-intelligence/mastermind-terminal",
+    "branch": "sol/web-portfolio-chart-owner-20261102",
+    "pullRequest": 1212,
+    "baseHead": "558f96faf7a7add8fd9b90ce835754c17dde3bf5",
+    "codeHead": "935ae23aa57a0cb0b36e8232c5890f316ff472d6",
+    "codeTree": "5bde05b852c265cfbd3e3c6250e5f8621ea65f4d",
+    "codeHeadParent": "558f96faf7a7add8fd9b90ce835754c17dde3bf5",
+    "publication": "ordinary non-force fast-forward push (558f96fa..935ae23a); remote head re-checked as 558f96f immediately before the push; local and remote identical afterwards with a clean tree",
+    "note": "This receipt and the crops are committed in a follow-up commit on the same branch; the source change is the commit named by codeHead."
+  },
+  "changedPaths": [
+    "terminal/components/ChartPositionEntry.tsx",
+    "terminal/components/TerminalShell.tsx",
+    "terminal/docs/PORTFOLIO_IMPLEMENTATION_AND_RESEARCH.md",
+    "terminal/docs/pr-crops/b-pl-6-batch-1/EVIDENCE.yml",
+    "terminal/docs/pr-crops/terminal-visual-intelligence/EVIDENCE.yml",
+    "terminal/e2e/portfolio-chart-owner.spec.ts",
+    "terminal/lib/__tests__/chartPositionEntryOwner.test.tsx"
+  ],
+  "sourceBlobs": {
+    "terminal/components/ChartPositionEntry.tsx": {
+      "gitBlob": "6101bb7873fc69cb5727c9326e332c079c0042a0",
+      "sha256": "e8be598623acd0f5af8f574c87eab824c76dcc56a40ada78807b9785c9c08b4c"
+    },
+    "terminal/components/TerminalShell.tsx": {
+      "gitBlob": "85a2847437d6505f98118e1130806c9aba69e716",
+      "sha256": "ffe5771540e577792257c0db27c1062da62c47f914596e7960fcc45e59972498"
+    },
+    "terminal/lib/__tests__/chartPositionEntryOwner.test.tsx": {
+      "gitBlob": "ddf76e9d2f4766740b1319b928550f56c7a8180b",
+      "sha256": "f43a78f189fb63360e6a8011dc2e91bb9924bc517b3fe86322ace8572a190d9b"
+    },
+    "terminal/e2e/portfolio-chart-owner.spec.ts": {
+      "gitBlob": "6efc14190b4e309027e8b9f2c15af8d17080a47e",
+      "sha256": "66e435eab8eaa7f685d3a2de6c48f73ab9d53acf7ece4fdc65ec5935bcbafb9e"
+    }
+  },
+  "routeIdentityAsExposed": {
+    "request": "POST /api/portfolio {action:'create', ticker:'NVDA', shares:'10', entryPrice:'100', entryCurrency:'USD', expectedOwnerId:<the owner that opened the form>}",
+    "response": {
+      "status": 409,
+      "body": {
+        "error": "owner mismatch"
+      }
+    },
+    "server": "app/api/portfolio/route.ts — the existing comparison-only expectedOwnerId precondition, refused BEFORE any action dispatch or store call. No server, auth, RLS or legacy-omission change was made.",
+    "storeEffect": "zero rows written; the shared fixture store and both accounts' books read empty after the refusal"
+  },
+  "commands": [
+    {
+      "command": "npx vitest run lib/__tests__/chartPositionEntryOwner.test.tsx",
+      "result": "20 passed",
+      "kind": "focused unit"
+    },
+    {
+      "command": "CI=1 TERMINAL_E2E_PORT=3142 npx playwright test e2e/portfolio-chart-owner.spec.ts --retries=0 --workers=1",
+      "result": "18 passed (3 cases x EN/ZH x desktop 1440x900, tablet 820x1180, mobile 390x844)",
+      "kind": "browser fixture journey"
+    },
+    {
+      "command": "npx vitest run",
+      "result": "17523 passed, 47 skipped, 4 todo, 0 failed (1032 files passed, 5 skipped)",
+      "kind": "full unit suite"
+    },
+    {
+      "command": "npx tsc --noEmit -p tsconfig.json",
+      "result": "clean",
+      "kind": "typecheck"
+    },
+    {
+      "command": "npx eslint components/ChartPositionEntry.tsx lib/__tests__/chartPositionEntryOwner.test.tsx e2e/portfolio-chart-owner.spec.ts",
+      "result": "clean",
+      "kind": "scoped lint"
+    },
+    {
+      "command": "npx eslint components/TerminalShell.tsx",
+      "result": "71 problems (54 errors, 17 warnings) — identical before and after the change; all pre-existing",
+      "kind": "lint baseline"
+    },
+    {
+      "command": "mutation harness (11 mutants, one guard removed per mutant, focused unit suite re-run)",
+      "result": "9 killed, 2 survived and characterised: the check before success/dismissal is an EQUIVALENT mutant (no await separates it from the decode checkpoint) and the pre-dispatch replaced-intent guard is UNREACHABLE (a replaced opening remounts the form, so it cannot submit). Both are kept because the frozen semantics require the checkpoint.",
+      "kind": "mutation proof"
+    }
+  ],
+  "redBaseline": {
+    "e2e": "On the base source (TerminalShell.tsx at 558f96f) the same spec fails 4 of its 6 desktop cases: the stale A form against a B fixture session is ACCEPTED (expected 409, received 200) and becomes a valid B create. The 2 same-owner controls pass on base and on the candidate, as they must. See e2e-baseline-red.log.",
+    "unit": "The focused unit file cannot collect on the base source: components/ChartPositionEntry.tsx does not exist there. See unit-baseline-red.log."
+  },
+  "evidenceLocks": {
+    "files": [
+      "terminal/docs/pr-crops/terminal-visual-intelligence/EVIDENCE.yml",
+      "terminal/docs/pr-crops/b-pl-6-batch-1/EVIDENCE.yml"
+    ],
+    "section": "chartPositionEntryOwnerRecapture20261102",
+    "method": "Real recapture (Visual Intelligence 30/30 passed; PL6 ChartChrome 4 crops captured) plus BASE-SOURCE CONTROL captures. On the base source the PL6 ChartChrome crops and the Visual Intelligence tablet/mobile crops are byte-identical to the same capture on the changed source, so the repair is pixel-inert on both surfaces. The accepted crops were RETAINED: this capture host cannot load the next/font/google Inter face, so a recapture renders the fallback typeface across the whole surface and committing those bytes would replace good evidence with a visibly different rendering that no source change caused. No PNG, cropFiles row or browser report changed."
+  },
+  "crops": {
+    "chart-position-owner-form-desktop-en.png": {
+      "sha256": "f996a3e3276634758a8cfac22dd5131f091c7dfb86d24afa487d619b0f4bb322",
+      "pixels": "480x686"
+    },
+    "chart-position-owner-form-desktop-zh.png": {
+      "sha256": "0daf16d304b577b8b8577a4ba48484cc7d620f94eac2943239ff90367b12fc31",
+      "pixels": "480x668"
+    },
+    "chart-position-owner-form-mobile-en.png": {
+      "sha256": "9b6cd5b64014a7f2ea56cc93c5e315d1244a3819f79ae0c7c2f12b416535a11b",
+      "pixels": "366x790"
+    },
+    "chart-position-owner-form-mobile-zh.png": {
+      "sha256": "995ac2508d758596ee7c5c2e99b6977ff0fb25519ed8b020bb84e8b4ae1e973a",
+      "pixels": "366x756"
+    },
+    "chart-position-owner-form-tablet-en.png": {
+      "sha256": "e61c9f2eb9381592c23c9268fa2d210bed3336de038962e541150fe853fae331",
+      "pixels": "480x686"
+    },
+    "chart-position-owner-form-tablet-zh.png": {
+      "sha256": "16d012fb6fb32a067d50c981275f99cf026ce3963c2c38682b014285e76f1ab0",
+      "pixels": "480x668"
+    },
+    "chart-position-owner-refusal-desktop-en.png": {
+      "sha256": "586f37b33dcbc14531b3ad2fbe575250342dcb1bc4c38b876dad3ee1979a0979",
+      "pixels": "480x738"
+    },
+    "chart-position-owner-refusal-desktop-zh.png": {
+      "sha256": "e1c14d69501a7cc39348eb244e7f4752d011a32439988510382c98668cad0685",
+      "pixels": "480x702"
+    },
+    "chart-position-owner-refusal-mobile-en.png": {
+      "sha256": "a8ecd7aaed79e8ce5269bbecc78fc56ccfb2663f8fb1a42d6e7e32cd48636a4c",
+      "pixels": "366x820"
+    },
+    "chart-position-owner-refusal-mobile-zh.png": {
+      "sha256": "4e40accc75762b583e7d765f8f7a4eaa3cca11de2f5ef180c357dba83ec674c7",
+      "pixels": "366x808"
+    },
+    "chart-position-owner-refusal-tablet-en.png": {
+      "sha256": "bdbe845622933d1440f6fd513b9fb284bf23079bb33a3faf951677c5b9552d5c",
+      "pixels": "480x738"
+    },
+    "chart-position-owner-refusal-tablet-zh.png": {
+      "sha256": "740d6f19ce5d842fd0276452655b7f1de186eed43e00491e2e9e5dc7f835ad5e",
+      "pixels": "480x702"
+    }
+  },
+  "logs": {
+    "e2e-baseline-red.log": {
+      "sha256": "ddb902ccf941514d71955979e1ac9f7cecb67c0ec7873b562835fbf5486544a6",
+      "bytes": 15972
+    },
+    "e2e-responsive-green.log": {
+      "sha256": "ff6d9ad4d4c5bb4c1765f4561bd7f904834c8d025072e59d3eb5a6dfe5f0f7bf",
+      "bytes": 826
+    },
+    "mutation-proof.log": {
+      "sha256": "77c330a40c603021158b6c9d207b9637bbb9e96a479b872916a6e5dccd4074b6",
+      "bytes": 4423
+    },
+    "unit-baseline-red.log": {
+      "sha256": "dc08c06b19f5263d1edcec1466c4892f2349585a866687235be7c921727500aa",
+      "bytes": 2062
+    },
+    "unit-full.log": {
+      "sha256": "d9f2935af302cd86a0a72f28b2f94c27710ec127dad4e21ea36ee1493ee185f4",
+      "bytes": 606
+    }
+  },
+  "limits": [
+    "Observed-transition semantics (A->B, A->B->A, unmount, replaced opening, held POST/body/canonical-readback completions) are proven at component level against the real PositionModal and the real portfolioMutation helpers; the browser journey proves the UNOBSERVED cookie change the client cannot see, which the server precondition catches. The transition half is not driven through a browser here.",
+    "The Visual Intelligence desktop crop is not byte-comparable in either direction: three consecutive captures on the SAME source produced three different byte sequences, so the tablet/mobile and PL6 controls carry the pixel-inertness claim.",
+    "Full hosted checks, the non-author independent review, the merge and the release remain PC-4 and PC-5. This draft is unarmed: no ready label, no auto-merge, no merge, no deploy.",
+    "mastermind-terminal master advanced by one unrelated commit (bf9826e3, the Today workspace slice) during this work. It touches none of the changed paths, the merge tree has zero conflict markers, and the branch was left on its assigned base rather than rebased."
+  ]
+}
