@@ -391,3 +391,10 @@ it("retains actual configured empty domains without adding a supported measure",
  const artifact=buildArtifact(BASE_SPECS);(artifact.document.contexts as unknown[]).push({id:expectedContextId("KR","3m","local"),market:"KR",horizon:"3m",currency_basis:"local",return_basis:"price",measure_ids:[]});
  expect(decode(artifact)).not.toBeNull();const empty=decode(artifact,expectedContextId("KR","3m","local"));expect(empty?.supportedMeasureIds).toEqual([]);expect(empty?.result.observations).toEqual([]);
 });
+
+
+it("validates only the additive same-generation immutable policy pointer, with no fetch or grant",()=>{
+ const artifact=buildArtifact(BASE_SPECS),ref={artifact_name:`intl_policy_points_${GENERATION.slice("im-workspace-generation:".length)}_${"a".repeat(64)}.json`,artifact_sha256:"a".repeat(64),artifact_bytes:8192,mapping_identity:"b".repeat(64),qualification_identity:"c".repeat(64)};artifact.document.policy_points_ref=ref;
+ expect(decode(artifact)?.result.observations[0].value).toBe(1.24);
+ for(const change of [{artifact_name:"https://elsewhere.test/points"},{artifact_name:ref.artifact_name.replace(GENERATION.slice("im-workspace-generation:".length),"another-generation")},{artifact_bytes:0},{artifact_bytes:4*1024*1024+1},{mapping_identity:null},{extra:"grant"}]){artifact.document.policy_points_ref={...ref,...change};expect(decode(artifact)).toBeNull();}
+});

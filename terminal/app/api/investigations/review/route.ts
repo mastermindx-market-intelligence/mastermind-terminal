@@ -30,7 +30,7 @@ export async function GET(request:Request){
   if(saved.status!=="found")return response({status:saved.status==="not_found"?"not_found":"unavailable"},saved.status==="not_found"?404:503);
   const manifest=validateStoredInvestigationManifest("manifest" in saved?saved.manifest:null,INVESTIGATION_ADMISSION);
   if(!manifest.ok)return unavailable("invalid_saved_reference");
-  if(manifest.value.evidence_refs.some(ref=>ref.owner==="intl.workspace_generation")){
+  if(manifest.value.review_baseline_ref?.owner==="intl.workspace_generation"){
    if(saved.id!==id||!("revision" in saved)||saved.revision!==Number(revision)||!("committed_at" in saved)||typeof saved.committed_at!=="string")return unavailable("invalid_saved_reference");
    const result=await intlHandlers.review(request,{id,revision:Number(revision),committed_at:saved.committed_at,manifest:manifest.value},user.id);
    return response(result.body,result.status);

@@ -1,13 +1,13 @@
 import "server-only";
 import {createHash} from "node:crypto";
 import {R2_BASE} from "./upstreams";
-import {isIntlGenerationIdentity} from "./investigationIntlReference";
+import {isIntlGenerationIdentity,parseIntlPolicyPointsReference} from "./investigationIntlReference";
 
 export const INTL_GENERATION_BYTE_LIMIT=8*1024*1024;
 const DESCRIPTOR_LIMIT=256*1024;
 type Options={signal?:AbortSignal;fetcher?:typeof fetch;base?:string};
 export type IntlGenerationArtifact={generation:string;fingerprint:string;bytes:number;document:Record<string,unknown>};
-export type IntlGenerationDescriptor={schema:"intl.workspace_generation_current.v1";asof:null;state:"ready";generation:string;artifact_name:string;artifact_sha256:string;artifact_bytes:number;current_policies:unknown};
+export type IntlGenerationDescriptor={schema:"intl.workspace_generation_current.v1";asof:null;state:"ready";generation:string;artifact_name:string;artifact_sha256:string;artifact_bytes:number;current_policies:unknown;current_policy_points?:{metadata:"allowed";value_permission:"allowed";mapping_identity:string}};
 const record=(value:unknown):value is Record<string,unknown>=>!!value&&typeof value==="object"&&!Array.isArray(value);
 const digest=(bytes:Uint8Array)=>createHash("sha256").update(bytes).digest("hex");
 const artifactName=(generation:string,fingerprint:string)=>`intl_generation_${generation.slice("im-workspace-generation:".length)}_${fingerprint}.json`;
@@ -45,8 +45,12 @@ export async function readIntlGenerationArtifact(pin:{generation:string;fingerpr
 export async function readCurrentIntlGeneration(options:Options={}):Promise<{descriptor:IntlGenerationDescriptor;descriptorDigest:string;artifact:IntlGenerationArtifact}|null>{
  const current=await feed("intl_generation_current.json",DESCRIPTOR_LIMIT,options);
  if(!current)return null;
- const d=current.document;
- if(Object.keys(d).length!==8||Object.keys(d).some(k=>!["schema","asof","state","generation","artifact_name","artifact_sha256","artifact_bytes","current_policies"].includes(k))
+ const d=current.document,hasPoints=Object.hasOwn(d,"current_policy_points");
+ if(hasPoints){const p=d.current_policy_points;
+  if(!record(p)||Object.keys(p).length!==3||Object.keys(p).some(k=>!["metadata","value_permission","mapping_identity"].includes(k))
+   ||p.metadata!=="allowed"||p.value_permission!=="allowed"||typeof p.mapping_identity!=="string"||!/^[0-9a-f]{64}$/.test(p.mapping_identity))return null;
+ }
+ if(Object.keys(d).length!==8+(hasPoints?1:0)||Object.keys(d).some(k=>!["schema","asof","state","generation","artifact_name","artifact_sha256","artifact_bytes","current_policies","current_policy_points"].includes(k))
   ||d.schema!=="intl.workspace_generation_current.v1"||d.asof!==null||d.state!=="ready"||!isIntlGenerationIdentity(d.generation)
   ||typeof d.artifact_sha256!=="string"||!/^[0-9a-f]{64}$/.test(d.artifact_sha256)||d.artifact_name!==artifactName(d.generation,d.artifact_sha256)
   ||!Number.isSafeInteger(d.artifact_bytes)||Number(d.artifact_bytes)<1||Number(d.artifact_bytes)>INTL_GENERATION_BYTE_LIMIT||!record(d.current_policies))return null;
@@ -54,5 +58,10 @@ export async function readCurrentIntlGeneration(options:Options={}):Promise<{des
  if(!sidecar||!sidecar.bytes.equals(current.bytes))return null;
  const artifact=await readIntlGenerationArtifact({generation:d.generation,fingerprint:d.artifact_sha256},options);
  if(!artifact||artifact.bytes!==d.artifact_bytes)return null;
+ const pointRef=artifact.document.policy_points_ref;
+ if(pointRef!==undefined&&pointRef!==null){
+  const parsed=parseIntlPolicyPointsReference(pointRef,artifact.generation);
+  if(!parsed||!hasPoints||!record(d.current_policy_points)||d.current_policy_points.mapping_identity!==parsed.mapping_identity)return null;
+ }else if(hasPoints)return null;
  return {descriptor:d as IntlGenerationDescriptor,descriptorDigest:current.sha256,artifact};
 }

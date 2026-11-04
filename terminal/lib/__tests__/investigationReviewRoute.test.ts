@@ -48,3 +48,10 @@ it("routes a selected reference through the scoped receipt-gated selection adapt
  expect(typeof selected.mock.calls[0][2].authorize).toBe("function");expect(selected.mock.calls[0][2].requestScope.principal_id).toBe("11111111-1111-4111-8111-111111111111");
  expect(retained).not.toHaveBeenCalled();expect(current).not.toHaveBeenCalled();
 });
+
+it("keeps a mixed-owner manifest's selected Earnings baseline with its existing owner",async()=>{
+ const ref={owner:"intl.workspace_generation",object_type:"selected_generation",object_id:"intl-workspace-context:sha256:"+"c".repeat(64),mode:"pinned",version_ref:"im-workspace-generation:11111111-1111-4111-8111-111111111111",fingerprint:"b".repeat(64),selection:{field:"EZ.gdp_yoy"}};
+ const mixed={...manifest,schema:"investigation_manifest.v3",intent:{...manifest.intent,subjects:[...manifest.intent.subjects,{owner:"intl.workspace_context",kind:"economy",object_id:ref.object_id}]},evidence_refs:[reference,ref]};
+ read.mockResolvedValue({status:"found",id,revision:1,manifest:mixed,committed_at:"2026-11-04T10:00:00.000Z"});const forbiddenFetch=vi.fn(()=>{throw Error("Unexpected International owner read");});vi.stubGlobal("fetch",forbiddenFetch);
+ try{const response=await GET(request());expect(response.status).toBe(200);expect(await response.json()).toMatchObject({status:"reviewed",baseline:owner.receipt});expect(retained).toHaveBeenCalled();expect(forbiddenFetch).not.toHaveBeenCalled();}finally{vi.unstubAllGlobals();}
+});

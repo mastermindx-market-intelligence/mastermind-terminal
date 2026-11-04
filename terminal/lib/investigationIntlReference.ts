@@ -39,3 +39,17 @@ export function validIntlManifestReferences(manifest:InvestigationManifest):bool
  }
  return true;
 }
+
+
+/** Additive native publication pointer only, never a Saved reference or grant.
+ * The B5 reader validates it without following it. Macro owns the sole preview
+ * engine and current policy/series qualification. Mirrors3998a2d producer. */
+export type IntlPolicyPointsReference={artifact_name:string;artifact_sha256:string;artifact_bytes:number;mapping_identity:string;qualification_identity:string};
+export function parseIntlPolicyPointsReference(raw:unknown,generation:string):IntlPolicyPointsReference|null{
+ if(!isIntlGenerationIdentity(generation)||!record(raw)||Object.keys(raw).length!==5
+  ||Object.keys(raw).some(k=>!["artifact_name","artifact_sha256","artifact_bytes","mapping_identity","qualification_identity"].includes(k))
+  ||![raw.artifact_sha256,raw.mapping_identity,raw.qualification_identity].every(v=>typeof v==="string"&&/^[0-9a-f]{64}$/.test(v))
+  ||!Number.isSafeInteger(raw.artifact_bytes)||Number(raw.artifact_bytes)<1||Number(raw.artifact_bytes)>4*1024*1024
+  ||raw.artifact_name!==`intl_policy_points_${generation.slice("im-workspace-generation:".length)}_${raw.artifact_sha256}.json`)return null;
+ return raw as IntlPolicyPointsReference;
+}

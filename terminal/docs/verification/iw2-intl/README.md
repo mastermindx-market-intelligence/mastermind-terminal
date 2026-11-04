@@ -87,3 +87,20 @@ sole writer. Valid settings do not require a qualified numerical preview. Native
 preflight checks focus against actual selected-generation market. This additional
 settings-source scope is not covered by the frozen744ee B5 source review and is
 not mounted/accepted as the complete IM10 consumer yet. SQL remains source-only.
+
+The additive final Macro3998a2d generation is retained verbatim in
+`intl_policy_generation_actual_20261104`: generation28646B/hash0dc2265e, current
+and immutable descriptors include `policy_points_ref`/`current_policy_points`.
+B5 validates exact syntax/mapping agreement without following the 1.1MiB companion
+or treating it as a grant (5 actual generation/helper joins). The mixed-owner
+regression originally failed; review now follows the selected baseline owner,
+so an Intl reference cannot replace a selected Earnings baseline.
+
+The source-only policy-preview proxy retains the existing request-time CLOSED
+Investigation gate and exact-token verifier. It forwards only the pinned public
+request/settings to the canonical HTTPS Macro owner, bounds actual streamed bytes,
+rejects duplicate decoded JSON keys and never retries, follows redirects, forwards
+browser cookies/Authorization or allocates identities.46 transport and92 admission
+cases pass. Original Fabric proxy return ended provider_output_limit/no artifact;
+this is parent source. Native host integration/consequential review are pending;
+no installed/authenticated/publication acceptance follows from these tests.

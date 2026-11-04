@@ -1,6 +1,6 @@
 import "server-only";
 import {createHash} from "node:crypto";
-import {isIntlContextIdentity,isIntlGenerationIdentity} from "./investigationIntlReference";
+import {isIntlContextIdentity,isIntlGenerationIdentity,parseIntlPolicyPointsReference} from "./investigationIntlReference";
 import type {IntlGenerationArtifact} from "./investigationIntlGeneration";
 import type {IntlNativeGeneration,IntlPublicationPolicy} from "./investigationIntlOwner";
 
@@ -221,10 +221,10 @@ export function decodeIntlGeneration(artifact:IntlGenerationArtifact,contextId:s
  if(!isRecord(document)||!bounded(document,0,{nodes:0}))return null;
  const keys=Object.keys(document);
  const hasPointsRef=keys.includes("policy_points_ref");
- // policy_points_ref is absent or null in the initial supported shape; any
- // nonnull reference is an unsupported descriptor and must not be interpreted.
+ // Optional additive pointer is syntax-checked only, never followed or used
+ // as a policy grant by the B5 reader. Preview remains an explicit owner read.
  if(keys.length!==DOCUMENT_KEYS.length+(hasPointsRef?1:0)||keys.some(key=>!(DOCUMENT_KEYS as readonly string[]).includes(key)&&key!=="policy_points_ref"))return null;
- if(hasPointsRef&&document.policy_points_ref!==null)return null;
+ if(hasPointsRef&&document.policy_points_ref!==null&&!parseIntlPolicyPointsReference(document.policy_points_ref,artifact.generation))return null;
  if(document.schema!==SCHEMA||document.asof!==null||document.generation!==artifact.generation)return null;
  if(document.binding_version!==2)return null;
  const evaluatedAt=clock(document.evaluated_at);

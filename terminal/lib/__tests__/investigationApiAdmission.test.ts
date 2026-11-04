@@ -48,6 +48,7 @@ vi.mock("@/lib/theses", () => ({ readThesisVersion: vi.fn() }));
 import { GET as mainGET, POST as mainPOST, PUT as mainPUT } from "@/app/api/investigations/route";
 import { GET as baselineGET } from "@/app/api/investigations/baseline/route";
 import { GET as reviewGET } from "@/app/api/investigations/review/route";
+import { POST as policyPreviewPOST } from "@/app/api/investigations/policy-preview/route";
 import { GET as replayGET } from "@/app/api/investigations/replay/route";
 import { GET as thesesGET } from "@/app/api/investigations/theses/route";
 import { investigationApiAdmission, investigationApiUnavailable } from "@/lib/investigationApiAdmission";
@@ -62,6 +63,7 @@ const handlerTable = [
   { name: "main PUT", run: mainPUT, request: () => new Request(url(""), { method: "PUT", body: "{}" }) },
   { name: "baseline GET", run: baselineGET, request: () => new Request(url("/baseline?event_id=e&generation_id=g&company_id=c&fingerprint=f")) },
   { name: "Company baseline GET", run: baselineGET, request: () => new Request(url("/baseline?scope=company_context&event_id=e&generation_id=g&company_id=c&fingerprint=f")) },
+  { name: "policy preview POST", run: policyPreviewPOST, request: () => new Request(url("/policy-preview"), { method: "POST", body: "{}" }) },
   { name: "review GET", run: reviewGET, request: () => new Request(url(`/review?id=${id}&revision=1`)) },
   { name: "replay GET", run: replayGET, request: () => new Request(url(`/replay?id=${id}&revision=1&policy=public_known&cutoff=2026-01-01T00:00:00Z`)) },
   { name: "theses GET", run: thesesGET, request: () => new Request(url(`/theses?id=${id}&revision=1`)) },
@@ -133,13 +135,13 @@ describe.each(closedValues)("INVESTIGATION_API_ADMISSION=%j closes every handler
     fetchMock.mockClear();
   });
 
-  it.each(handlerTable)("$name refuses closed mode before any dependency", async ({ run, request }) => {
+  it.each(handlerTable)("$name refuses closed mode before any dependency", async ({ name, run, request }) => {
     const input = request();
     const response = await run(input);
     expect(response.status).toBe(503);
     expect(await response.json()).toEqual({ status: "unavailable" });
     expect(response.headers.get("cache-control")).toBe("private, no-store");
-    expect(response.headers.get("vary")).toBe("Cookie");
+    expect(response.headers.get("vary")).toBe(name==="policy preview POST"?"Cookie, Authorization":"Cookie");
     expect(input.bodyUsed).toBe(false);
     expect(createClient).not.toHaveBeenCalled();
     expect(getUser).not.toHaveBeenCalled();
