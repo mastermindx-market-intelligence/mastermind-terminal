@@ -1,0 +1,95 @@
+# Self-hosted e2e CANARY (Chairman 2026-11-04, Mastermind #917 workflow-acceleration program).
+#
+# Purpose: measure ONE Terminal Playwright shard on the ubuntu0 self-hosted runner
+# (32 cores / 29 GB, ephemeral JIT registration, label `ubuntu0-canary`) against the
+# identical hosted `terminal-e2e` shard in ci.yml. ci.yml is untouched: hosted shards
+# remain the required checks and the fallback. This workflow is NOT a required check,
+# writes no artifact the merge path consumes, and needs no secret.
+#
+# Safety posture (public repository):
+#   * `workflow_dispatch` ONLY — never pull_request / push, so a fork can never schedule
+#     code onto the self-hosted host. Only collaborators can dispatch, from this repo's refs.
+#   * `permissions: contents: read` — the job token can read the checkout and nothing else.
+#   * The runner is registered ephemeral (one job, then deregistered) under an
+#     unprivileged user with no sudo, so a job leaves no state for the next one.
+#   * Same steps as the hosted shard, minus `--with-deps` (system libs are preinstalled
+#     once by the host operator; the unprivileged runner user cannot apt).
+name: Self-hosted e2e canary (ubuntu0)
+
+on:
+  workflow_dispatch:
+    inputs:
+      shard:
+        description: Shard label (artifact suffix only)
+        default: desktop-1
+        type: string
+      projects:
+        description: Playwright project/shard selector, identical to the ci.yml matrix entry
+        default: "--project=desktop --shard=1/5"
+        type: string
+      workers:
+        description: Playwright --workers (1 = apples-to-apples with hosted; >1 measures the 32-core gain)
+        default: "1"
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: selfhosted-e2e-canary
+  cancel-in-progress: false
+
+jobs:
+  canary:
+    name: Canary ${{ inputs.shard }} on ubuntu0 (workers=${{ inputs.workers }})
+    runs-on: [self-hosted, linux, x64, ubuntu0-canary]
+    # Same hang cap as the hosted shard; the point is to come in far under it.
+    timeout-minutes: 60
+    env:
+      CI: "1"
+    defaults:
+      run:
+        working-directory: terminal
+    steps:
+      - name: Host facts
+        working-directory: .
+        run: |
+          echo "runner=$RUNNER_NAME host=$(hostname) started=$(date -u +%FT%TZ)"
+          echo "cpus=$(nproc) mem=$(free -g | awk '/Mem:/{print $2}')G load=$(cut -d' ' -f1-3 /proc/loadavg)"
+          echo "node_system=$(node -v 2>/dev/null || echo none) kernel=$(uname -r)"
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: terminal/package-lock.json
+      - name: npm ci (timed)
+        run: |
+          t0=$(date +%s); npm ci; echo "npm_ci_seconds=$(( $(date +%s) - t0 ))"
+      - run: npx next typegen
+      - name: Resolve Playwright version
+        id: pw
+        run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+      - name: Cache Playwright browsers
+        id: pwcache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: pw-${{ runner.os }}-selfhosted-${{ steps.pw.outputs.version }}
+      # No `--with-deps`: the runner user has no sudo. System libraries were installed once
+      # on the host (`playwright install-deps chromium`); a missing lib fails loudly here.
+      - name: Install Playwright browser (browser only)
+        timeout-minutes: 12
+        run: npx playwright install chromium
+      - name: Run shard (timed)
+        run: |
+          t0=$(date +%s)
+          npm run test:e2e:responsive -- ${{ inputs.projects }} --workers=${{ inputs.workers }}
+          echo "shard_seconds=$(( $(date +%s) - t0 )) projects='${{ inputs.projects }}' workers=${{ inputs.workers }}"
+      - name: Upload responsive QA screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: selfhosted-canary-${{ github.run_id }}-${{ inputs.shard }}
+          path: terminal/test-results
+          if-no-files-found: ignore
