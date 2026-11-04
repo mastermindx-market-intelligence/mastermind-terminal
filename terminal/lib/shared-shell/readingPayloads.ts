@@ -23,7 +23,17 @@ export function readingBody(value: unknown, docId: string, selected: ReadingSele
   return { selection, segments: value.segments as ReadingSegment[], total: value.segment_count_total as number, textLayer: value.text_layer_state as ReadingBody["textLayer"], catalogGeneratedAt: record(value.source) && typeof value.source.catalog_generated_at === "string" ? value.source.catalog_generated_at : null };
 }
 export type TodayChip = { id: string; section: string; label: Pair; tone: string; cause: unknown; note: Pair | null; meaning: Pair | null; as_of: string | null; as_of_display: Pair | null } & ({ null: false; value: Pair } | { null: true; value: null });
-export type TodayPayload = { schema: string; state: "ready" | "partial" | "unavailable"; source: { manifest_generated_at: string | null; manifest_sha256: string; composed_at: string }; read: { as_of: string | null; as_of_display: Pair | null; as_of_meaning: Pair | null; omitted: boolean; clauses: { topic: Pair; predicate: Pair; punct: Pair; section: string }[] }; strip: TodayChip[]; coverage: { available: number; total: number }; sections: { id: string; label: Pair; href: string }[]; workspaces: { workspace_id: string; title: Pair; state: string | null; effective_date: string | null; calculation_as_of: string | null; failure: unknown; availability: unknown; href: string }[] };
+export type TodayPayload = { schema: string; state: "ready" | "partial" | "unavailable"; source: { manifest_generated_at: string | null; manifest_sha256: string; composed_at: string }; read: { as_of: string | null; as_of_display: Pair | null; as_of_meaning: Pair | null; omitted: boolean; clauses: { topic: Pair; predicate: Pair; punct: Pair; section: string }[] }; strip: TodayChip[]; coverage: { available: number; total: number }; sections: { id: string; label: Pair; href: string }[]; workspaces: { workspace_id: string; title: Pair; state: string | null; effective_date: string | null; calculation_as_of: string | null; failure: unknown; availability: unknown; href: string; clock_qualification?: unknown }[] };
+
+export type BusinessClockQualification = { presence_only: true; reference_period: string | null; label: Pair; note: Pair; tone: "neutral" };
+/** Optional metadata must not invalidate a usable failure or rights response. */
+export function businessClockQualification(value: unknown): BusinessClockQualification | null {
+  if (!record(value) || value.presence_only !== true || value.tone !== "neutral" ||
+    !(value.reference_period === null || typeof value.reference_period === "string" && !!value.reference_period.trim()) ||
+    !pair(value.label) || !value.label.en.trim() || !value.label.zh.trim() ||
+    !pair(value.note) || !value.note.en.trim() || !value.note.zh.trim()) return null;
+  return value as BusinessClockQualification;
+}
 export function todayPayload(value: unknown): TodayPayload | null {
   if (!record(value) || value.schema !== "mastermind.macro_command_read.v1" || !["ready","partial","unavailable"].includes(value.state as string) || !record(value.source) || value.source.served_root_qualified !== true || !record(value.read) || !record(value.coverage)) return null;
   if (!Number.isSafeInteger(value.coverage.available) || !Number.isSafeInteger(value.coverage.total) || (value.coverage.available as number) < 0 || (value.coverage.available as number) > (value.coverage.total as number)) return null;
