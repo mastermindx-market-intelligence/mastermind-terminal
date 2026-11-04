@@ -30,7 +30,7 @@ import { useLang } from "@/lib/i18n";
 import { trackSearch } from "@/lib/searchTrack";
 import { useFlowStream } from "@/lib/flowStream";
 import { flowGet } from "@/lib/flowClientCache";
-import { isSurfaceDates, isSurfaceIndex } from "@/lib/surfaceContract";
+import { isSurfaceDates } from "@/lib/surfaceContract";
 import { ReplayProvider, useReplay } from "./replayContext";
 import { SurfacePane, type SurfaceTimeWindow } from "./SurfacePane";
 import { ReplayBar } from "./ReplayBar";
@@ -82,7 +82,7 @@ function GroupRoot({
   onSessionDate: (date: string | null) => void;
 }) {
   const { lang } = useLang();
-  const { bindGroupRef, archived } = useReplay();
+  const { bindGroupRef, archived, indexDate } = useReplay();
   // Surface is the primary workspace; the supporting tide stays one click away without
   // taking half the chart on first load (especially at laptop and mobile heights).
   const [sessionOpen, setSessionOpen] = useState(false);
@@ -123,7 +123,7 @@ function GroupRoot({
         </SurfaceSyncProvider>
       )}
 
-      <ReplayBar lang={lang} sessions={sessions} onSessionDate={onSessionDate} />
+      <ReplayBar lang={lang} sessions={archived ? sessions : sessions.filter(d => d !== indexDate)} onSessionDate={onSessionDate} />
 
       {/* The session's premium tide, under the same scrubber. Collapsible and capped so the
           paint field — the reason this tab exists — always keeps the bulk of the height.
@@ -173,27 +173,18 @@ export function SurfaceView() {
   const tideMinutes = Array.isArray(tide?.minutes) ? tide!.minutes! : [];
 
   // ── Multi-day replay: which sessions can be replayed ─────────────────────────
-  // `sessions` are the ARCHIVED ones — the retained list minus whichever date the live index
-  // is currently on, so "Today · LIVE" and its own date never appear as two options. Both
-  // fetches go through flowGet, which dedupes with SurfacePane's identical index request.
-  // Any failure (absent dates.json, malformed payload, unreachable) leaves `sessions` empty,
-  // the picker unrendered, and the tab on its original today-only behaviour.
+  // Retained dates are enumerated here; only the replay provider owns the live
+  // index. GroupRoot filters its accepted date from the archive picker. Root
+  // selection resets its context synchronously, not after a late dates response.
   const [sessions, setSessions] = useState<string[]>([]);
   const [sessionDate, setSessionDate] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const [datesRaw, idxRaw] = await Promise.all([
-        flowGet(`surface_dates:${root}`),
-        flowGet(`surface_idx:${root}`),
-      ]);
+      const datesRaw = await flowGet(`surface_dates:${root}`);
       if (cancelled) return;
-      const liveDate = isSurfaceIndex(idxRaw) ? idxRaw.date : "";
-      setSessions(isSurfaceDates(datesRaw) ? datesRaw.dates.filter((d) => d !== liveDate) : []);
-      // A root switch always returns to the live session — the previous root's archived date
-      // says nothing about this one, and R2 retention is per-root.
-      setSessionDate(null);
+      setSessions(isSurfaceDates(datesRaw) && datesRaw.root === root ? datesRaw.dates : []);
     })();
     return () => { cancelled = true; };
   }, [root]);
@@ -223,13 +214,20 @@ export function SurfaceView() {
     if (!SURFACE_ROOTS.includes(r)) { setMissingRoot(r); return; }
     trackSearch(r, "surface");
     setMissingRoot(null);
+    setSessionDate(null);
+    setSessions([]);
+    setPins([]);
     setRoot(r);
   };
 
   const selectRoot = (r: string) => {
-    if (r !== root) trackSearch(r, "surface");
     setMissingRoot(null);
     setInputVal(r);
+    if (r === root) return;
+    trackSearch(r, "surface");
+    setSessionDate(null);
+    setSessions([]);
+    setPins([]);
     setRoot(r);
   };
 
@@ -368,11 +366,9 @@ export function SurfaceView() {
           </div>
         </div>
       ) : (
-        /* Keyed by root, view AND session so a ticker change re-seeds the replay stamps
-           cleanly, a layout switch gives the new charts a fresh mount, and switching sessions
-           starts the new day pinned to its own head instead of inheriting a frame index from
-           a session with a different stamp count. */
-        <ReplayProvider key={`${root}:${view}:${sessionDate ?? "live"}`} sessionDate={sessionDate}>
+        /* Root/session changes start their own replay. A presentation-only layout
+           switch remounts charts without resetting the shared selected time. */
+        <ReplayProvider key={`${root}:${sessionDate ?? "live"}`} root={root} sessionDate={sessionDate}>
           <GroupRoot
             root={root}
             view={view}

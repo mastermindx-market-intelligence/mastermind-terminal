@@ -682,3 +682,29 @@ describe("prevSessionChg — three-state RTH / post-close / overnight", () => {
       `chg retains the completed-session move overnight; got ${q.chg}`);
   });
 });
+
+it("completed reference retains the actual calendar-qualified daily bar identity", () => {
+  const dir = makeTmpDir();
+  try {
+    const cache = new AnchorCache({ dataDir: dir });
+    const pre = Date.parse("2026-10-23T12:00:00Z");
+    writeDailyFile(dir, "NVDA", [bar("2026-10-21", 90), bar("2026-10-22", 100), bar("2026-10-23", 101)]);
+    const before = cache._fromDailyFile("NVDA", "2026-10-23", pre);
+    assert.equal(before.completedRegularClose, 100);
+    assert.equal(before.completedRegularSessionDate, "2026-10-22");
+    assert.equal(before.completedRegularSource, "daily_file");
+    const after = cache._fromDailyFile("NVDA", "2026-10-23", Date.parse("2026-10-23T20:00:00Z"));
+    assert.equal(after.completedRegularClose, 101);
+    assert.equal(after.completedRegularSessionDate, "2026-10-23");
+    for (const bars of [
+      [bar("2026-10-22", 100), bar("2026-10-21", 90)],
+      [bar("2026-10-22", 100), bar("2026-10-26", 102)],
+      [bar("bad", 90), bar("2026-10-22", 100)],
+      [bar("2026-10-21", 90), bar("2026-10-22", 0)],
+    ]) {
+      writeDailyFile(dir, "NVDA", bars);
+      const result = cache._fromDailyFile("NVDA", "2026-10-23", pre);
+      assert.equal(result?.completedRegularClose, undefined);
+    }
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});

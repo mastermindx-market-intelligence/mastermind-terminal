@@ -1,21 +1,31 @@
 "use client";
-import { useEffect, useState } from "react";
-import { useT } from "@/lib/i18n";
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import { useLang, useT } from "@/lib/i18n";
 import { getBars } from "@/lib/fund";
 import { MAX_YEARS } from "@/lib/seasonal";
-
-const M = ["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"];
-const MN = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+import styles from "./SeasonalityCard.module.css";
 
 type MonthStat = { avg: number; wr: number; n: number } | null;
 
+const MONTHS = Array.from({ length: 12 }, (_, index) => new Date(Date.UTC(2020, index, 1)));
+
 // Average monthly return from history → a TrendSpider-style seasonality read (display-only).
-// Every month's bar grows UP from a shared baseline (negative months are simply red, not inverted),
-// so the row reads as a single comparable magnitude chart. Hover a bar for its avg return + win rate.
+// Every month's bar grows UP from a shared baseline (negative months are red, not inverted).
 export default function SeasonalityCard({ symbol, onOpenPane }: { symbol: string; onOpenPane?: () => void }) {
   const t = useT();
-  // per-month { average return %, win rate %, sample count }, or null for months with no samples
+  const { lang } = useLang();
   const [stats, setStats] = useState<MonthStat[] | null>(null);
+  const [selectedMonth, setSelectedMonth] = useState(() => new Date().getUTCMonth());
+  const monthRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const locale = lang === "zh" ? "zh-CN" : "en-US";
+  const monthNames = useMemo(() => {
+    const formatter = new Intl.DateTimeFormat(locale, { month: "short", timeZone: "UTC" });
+    return MONTHS.map((month) => formatter.format(month));
+  }, [locale]);
+  const monthMarks = useMemo(() => {
+    const formatter = new Intl.DateTimeFormat(locale, { month: "narrow", timeZone: "UTC" });
+    return MONTHS.map((month) => formatter.format(month));
+  }, [locale]);
 
   useEffect(() => {
     let dead = false;
@@ -23,57 +33,139 @@ export default function SeasonalityCard({ symbol, onOpenPane }: { symbol: string
     getBars(symbol).then((allBars) => {
       if (dead || !allBars.length) { setStats(null); return; }
       // 10y lookback (MAX_YEARS): keep only bars from the last N complete years +
-      // the current YTD, so the mini read matches the full Seasonals page default
-      // instead of blending decades of regimes.
+      // the current YTD, so the mini read matches the full Seasonals page default.
       const curYear = new Date().getUTCFullYear();
-      const cutYear = curYear - MAX_YEARS; // e.g. 2016 for a 2026 view (inclusive of 2016 Dec → 2017 Jan return)
+      const cutYear = curYear - MAX_YEARS;
       const bars = allBars.filter((b) => parseInt(String(b.time).slice(0, 4), 10) >= cutYear);
       if (!bars.length) { setStats(null); return; }
       const byMonthRet: number[][] = Array.from({ length: 12 }, () => []);
-      // monthly close series → monthly returns bucketed by calendar month
       const monthly: { ym: string; c: number }[] = [];
-      bars.forEach((b) => { const ym = String(b.time).slice(0, 7); const last = monthly[monthly.length - 1]; if (!last || last.ym !== ym) monthly.push({ ym, c: b.c }); else last.c = b.c; });
-      for (let i = 1; i < monthly.length; i++) { const m = parseInt(monthly[i].ym.slice(5, 7)) - 1; byMonthRet[m].push((monthly[i].c - monthly[i - 1].c) / monthly[i - 1].c); }
-      setStats(byMonthRet.map((a) => (a.length
-        ? { avg: (a.reduce((x, y) => x + y, 0) / a.length) * 100, wr: (a.filter((x) => x > 0).length / a.length) * 100, n: a.length }
+      bars.forEach((b) => {
+        const ym = String(b.time).slice(0, 7);
+        const last = monthly[monthly.length - 1];
+        if (!last || last.ym !== ym) monthly.push({ ym, c: b.c });
+        else last.c = b.c;
+      });
+      for (let i = 1; i < monthly.length; i++) {
+        const month = parseInt(monthly[i].ym.slice(5, 7), 10) - 1;
+        byMonthRet[month].push((monthly[i].c - monthly[i - 1].c) / monthly[i - 1].c);
+      }
+      setStats(byMonthRet.map((returns) => (returns.length
+        ? {
+          avg: (returns.reduce((sum, value) => sum + value, 0) / returns.length) * 100,
+          wr: (returns.filter((value) => value > 0).length / returns.length) * 100,
+          n: returns.length,
+        }
         : null)));
+
     }).catch(() => setStats(null));
     return () => { dead = true; };
   }, [symbol]);
 
   if (!stats) return null;
-  const max = Math.max(...stats.map((s) => (s ? Math.abs(s.avg) : 0)), 1);
-  const now = new Date().getUTCMonth();
+
+  const max = Math.max(...stats.map((stat) => (stat ? Math.abs(stat.avg) : 0)), 1);
+  const currentMonth = new Date().getUTCMonth();
+  const describeMonth = (index: number) => {
+    const stat = stats[index];
+    if (stat == null) return `${monthNames[index]} · ${t("noSamples")}`;
+    const sign = stat.avg >= 0 ? "+" : "";
+    return `${monthNames[index]} · ${sign}${stat.avg.toFixed(1)}% ${t("avgShort")} · ${t("winRateShort")} ${stat.wr.toFixed(0)}% · n=${stat.n}`;
+  };
+  const selectedDetail = describeMonth(selectedMonth);
+  const sourceFoot = t("seasonalityFoot").replace("{sym}", symbol);
+  const footParts = sourceFoot.split(" · ");
+  const contextFoot = footParts.length >= 3
+    ? [footParts[0], ...footParts.slice(2)].join(" · ")
+    : sourceFoot;
+
+  function moveFocus(event: KeyboardEvent<HTMLButtonElement>, index: number) {
+    let next: number | null = null;
+    if (event.key === "ArrowLeft" || event.key === "ArrowUp") next = (index + 11) % 12;
+    else if (event.key === "ArrowRight" || event.key === "ArrowDown") next = (index + 1) % 12;
+    else if (event.key === "Home") next = 0;
+    else if (event.key === "End") next = 11;
+    if (next == null) return;
+    event.preventDefault();
+    setSelectedMonth(next);
+    monthRefs.current[next]?.focus();
+  }
+
   return (
-    <div className="card" style={{ borderTop: "1px solid var(--line)" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 7, font: "600 10px/1 var(--font-ui)", letterSpacing: ".09em", textTransform: "uppercase", color: "var(--text-2)", marginBottom: 12 }}>
-        <svg width="13" height="13" viewBox="0 0 24 24" style={{ stroke: "var(--brand-2)", fill: "none", strokeWidth: 2 }}><rect x="3" y="4" width="18" height="17" rx="2" /><path d="M3 9h18M8 2v4M16 2v4" /></svg>
+    <div className={`card ${styles.card}`} data-testid="seasonality-card">
+      <div className={styles.header}>
+        <svg className={styles.icon} width="13" height="13" viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="3" y="4" width="18" height="17" rx="2" />
+          <path d="M3 9h18M8 2v4M16 2v4" />
+        </svg>
         {t("seasonalityTitle")}
-        <span style={{ marginLeft: "auto", font: "600 9px/1 var(--font-num)", fontVariantNumeric: "tabular-nums", letterSpacing: ".04em", color: "var(--text-dim)" }}>{MAX_YEARS}y</span>
+        <span className={styles.years}>{MAX_YEARS}y</span>
       </div>
-      {/* every bar shares the bottom baseline (align-items:flex-end) and grows up; sign only drives color */}
-      <div style={{ display: "flex", alignItems: "flex-end", gap: 4, height: 66 }}>
-        {stats.map((s, i) => {
-          const up = (s?.avg ?? 0) >= 0;
-          const tip = s == null
-            ? `${MN[i]} · ${t("noSamples")}`
-            : `${MN[i]} · ${up ? "+" : ""}${s.avg.toFixed(1)}% ${t("avgShort")} · ${t("winRateShort")} ${s.wr.toFixed(0)}% · n=${s.n}`;
+      <div className={styles.plot} role="radiogroup" aria-label={t("seasonalityTitle")}>
+        {stats.map((stat, index) => {
+          const direction = stat == null ? "empty" : stat.avg >= 0 ? "up" : "down";
+          const detail = describeMonth(index);
+          const selected = index === selectedMonth;
           return (
-            <div key={i} title={tip}
-              style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end", height: "100%", cursor: "default" }}>
-              <div style={{ width: "100%", height: 52, display: "flex", alignItems: "flex-end", justifyContent: "center" }}>
-                {s == null
-                  ? <div style={{ height: 2, width: "100%", background: "var(--line-3)", borderRadius: 2, opacity: 0.7 }} />
-                  : <div style={{ width: "100%", height: `${Math.max(4, (Math.abs(s.avg) / max) * 100)}%`, minHeight: 2, background: up ? "var(--up)" : "var(--down)", borderRadius: "2px 2px 0 0", opacity: i === now ? 1 : 0.55, outline: i === now ? "1px solid var(--brand-2)" : "none" }} />}
-              </div>
-              <span style={{ fontSize: 9, color: i === now ? "var(--brand-2)" : "var(--text-dim)", marginTop: 4 }}>{M[i]}</span>
-            </div>
+            <button
+              key={index}
+              ref={(node) => { monthRefs.current[index] = node; }}
+              type="button"
+              className={styles.month}
+              data-testid={`seasonality-month-${index}`}
+              data-current={index === currentMonth ? "true" : "false"}
+              data-selected={selected ? "true" : "false"}
+              title={detail}
+              role="radio"
+              aria-label={detail}
+              aria-checked={selected}
+              tabIndex={selected ? 0 : -1}
+              onClick={() => setSelectedMonth(index)}
+              onFocus={() => setSelectedMonth(index)}
+              onKeyDown={(event) => moveFocus(event, index)}
+            >
+              <span className={styles.barTrack} aria-hidden="true">
+                {stat == null ? (
+                  <span className={styles.emptyBar} />
+                ) : (
+                  <span
+                    className={styles.bar}
+                    data-direction={direction}
+                    style={{ height: `${Math.max(4, (Math.abs(stat.avg) / max) * 100)}%` }}
+                  />
+                )}
+              </span>
+              <span className={styles.monthMark}>{monthMarks[index]}</span>
+            </button>
           );
         })}
       </div>
-      <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 10 }}>{t("seasonalityFoot").replace("{sym}", symbol)}</div>
+      <div className={styles.detailControls}>
+        <select
+          className={styles.monthSelect}
+          data-testid="seasonality-month-select"
+          aria-label={`${t("seasonalityTitle")} · ${monthNames[0]}–${monthNames[11]}`}
+          value={selectedMonth}
+          onChange={(event) => setSelectedMonth(Number(event.target.value))}
+        >
+          {monthNames.map((month, index) => (
+            <option key={index} value={index}>{month}</option>
+          ))}
+        </select>
+        <output
+          className={styles.detail}
+          data-testid="seasonality-detail"
+          aria-live="polite"
+          aria-atomic="true"
+        >
+          {selectedDetail}
+        </output>
+      </div>
+      <div className={styles.context} data-testid="seasonality-context">{contextFoot}</div>
       {onOpenPane && (
-        <button className="sa-more-btn" style={{ marginTop: 10 }} onClick={onOpenPane}>{t("moreSeasonals")} ›</button>
+        <button className="sa-more-btn" style={{ marginTop: 10 }} onClick={onOpenPane}>
+          {t("moreSeasonals")} ›
+        </button>
       )}
     </div>
   );
