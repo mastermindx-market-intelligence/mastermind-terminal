@@ -115,8 +115,8 @@ test.describe("native shell mode", () => {
     const fs = page.locator(".embed-fs");
     await expect(fs).toBeVisible();
     const fsBox = await fs.boundingBox();
-    expect(fsBox!.width).toBeGreaterThanOrEqual(30);
-    expect(fsBox!.height).toBeGreaterThanOrEqual(30);
+    expect(fsBox!.width).toBeGreaterThanOrEqual(44);
+    expect(fsBox!.height).toBeGreaterThanOrEqual(44);
     await fs.click();
     expect(await page.evaluate(() => document.fullscreenElement)).toBeNull();
     expect(await page.evaluate(() => (window as unknown as {__d06NativeMessages: unknown[]}).__d06NativeMessages)).toEqual([{type:"openFullChart"}]);
@@ -133,9 +133,10 @@ test.describe("native shell mode", () => {
     expect(fsBox2.x + fsBox2.width).toBeGreaterThan(rangeBox.x + rangeBox.width / 2);
     await expect(fs).toBeVisible();
     await fs.click();
-    // …the pills sit ~8px above the widget's bottom edge (.embed-root is position:fixed;inset:0).
+    // …the complete control row, including the reserved fullscreen action,
+    // sits ~8px above the widget's bottom edge.
     const bottomGap = await page.evaluate(
-      () => window.innerHeight - document.querySelector(".embed-ranges")!.getBoundingClientRect().bottom,
+      () => window.innerHeight - document.querySelector(".embed-range-controls")!.getBoundingClientRect().bottom,
     );
     expect(bottomGap).toBeGreaterThanOrEqual(6);
     expect(bottomGap).toBeLessThanOrEqual(12);
