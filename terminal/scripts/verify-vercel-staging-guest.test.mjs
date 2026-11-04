@@ -58,6 +58,7 @@ test("only exact first-party or project-team staging origins qualify", () => {
     assert.throws(() => validateStagingTarget(origin, "beta", SHA), /UNAPPROVED|EQUALS_LIVE/);
   }
   assert.throws(() => validateStagingTarget(STAGE, "wrong", SHA), /MODE_REQUIRED/);
+  assert.throws(() => validateStagingTarget(STAGE, "toString", SHA), /MODE_REQUIRED/);
   assert.throws(() => validateStagingTarget(STAGE, "beta", "short"), /EXACT_SOURCE_SHA_REQUIRED/);
 });
 
@@ -83,6 +84,21 @@ test("staged shell must report the build that was actually deployed", async () =
   const { requests } = mockTransport({ statusOverride: { buildId: "c".repeat(40) } });
   await assert.rejects(runGuestCanary({ target: STAGE, mode: "beta", sha: SHA }, requests),
     /WRONG_FRONTEND_BUILD_OR_BRIDGE/);
+});
+
+test("missing version contract is never accepted as a valid stage", async () => {
+  const { requests } = mockTransport({ statusOverride: { documentVersion: "" } });
+  await assert.rejects(runGuestCanary({ target: STAGE, mode: "beta", sha: SHA }, requests),
+    /WRONG_FRONTEND_BUILD_OR_BRIDGE/);
+});
+
+test("malformed publisher symbol object is not accepted", async () => {
+  const malformed = JSON.stringify({
+    source: "macro-multimarket", as_of: "2026-11-03", symbols: "not-an-object",
+  });
+  const { requests } = mockTransport({ manifest: malformed, legacyManifest: malformed });
+  await assert.rejects(runGuestCanary({ target: STAGE, mode: "beta", sha: SHA }, requests),
+    /MISSING_MARKET_PUBLISHER_IDENTITY/);
 });
 
 test("market publisher byte mismatch blocks any staging claim", async () => {

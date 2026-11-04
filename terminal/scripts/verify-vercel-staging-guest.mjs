@@ -12,7 +12,7 @@ const LEGACY = {
 };
 
 export function validateStagingTarget(raw, mode, sha) {
-  if (!(mode in LEGACY)) throw new Error("MODE_REQUIRED: beta or terminal");
+  if (!Object.hasOwn(LEGACY, mode)) throw new Error("MODE_REQUIRED: beta or terminal");
   if (!/^[0-9a-f]{40}$/.test(sha ?? "")) throw new Error("EXACT_SOURCE_SHA_REQUIRED");
   if (typeof raw !== "string") throw new Error("STAGING_ORIGIN_REQUIRED");
   let parsed;
@@ -57,7 +57,9 @@ export async function runGuestCanary({ target, mode, sha }, fetcher = fetch) {
   if (status.body.enabled !== expectedEnabled ||
       status.body.buildId !== sha ||
       status.body.protocol !== "mmx.shared-shell.v1" ||
-      !/^[a-f0-9]{64}$/.test(status.body.registrySha256 ?? "")) {
+      !/^[a-f0-9]{64}$/.test(status.body.registrySha256 ?? "") ||
+      typeof status.body.bridgeVersion !== "string" || !status.body.bridgeVersion ||
+      typeof status.body.documentVersion !== "string" || !status.body.documentVersion) {
     throw new Error("WRONG_FRONTEND_BUILD_OR_BRIDGE: staged app status does not match exact release");
   }
   const cache = (status.headers.get("cache-control") ?? "").toLowerCase();
@@ -68,7 +70,8 @@ export async function runGuestCanary({ target, mode, sha }, fetcher = fetch) {
   const fresh = await fetchJson(fetcher, config.target, "/data/manifest.json");
   const incumbent = await fetchJson(fetcher, config.incumbent, "/data/manifest.json");
   if (!fresh.body?.source || !fresh.body?.as_of ||
-      !fresh.body?.symbols || Object.keys(fresh.body.symbols).length === 0) {
+      !fresh.body?.symbols || typeof fresh.body.symbols !== "object" ||
+      Array.isArray(fresh.body.symbols) || Object.keys(fresh.body.symbols).length === 0) {
     throw new Error("MISSING_MARKET_PUBLISHER_IDENTITY");
   }
   const upstreamDigest = createHash("sha256").update(fresh.bytes).digest("hex");
