@@ -24,6 +24,30 @@ const request = (source = "sector") => new Request(
   { headers: { Cookie: AUTH_COOKIE } },
 );
 
+/** An owner body that starts arriving and then never completes.
+ *
+ * The headers are already in and the body read is genuinely under way; the
+ * pending read only settles when the given signal aborts it. That is the
+ * boundary the body-phase classification has to get right: the interruption
+ * happens *after* the response resolved, not before it.
+ */
+function stallingBody(signal: AbortSignal | null | undefined, onRead: () => void) {
+  let controller: ReadableStreamDefaultController<Uint8Array> | null = null;
+  let sent = false;
+  const cut = () => controller?.error(new DOMException("The operation was aborted.", "AbortError"));
+  if (signal?.aborted) cut();
+  else signal?.addEventListener("abort", cut, { once: true });
+  return new ReadableStream<Uint8Array>({
+    start(c) { controller = c; },
+    pull(c) {
+      onRead();
+      if (sent) return;
+      sent = true;
+      c.enqueue(new TextEncoder().encode('{"as_of":"2026-09-25"'));
+    },
+  });
+}
+
 let upstream: ReturnType<typeof vi.fn>;
 beforeEach(() => {
   vi.clearAllMocks();
@@ -60,15 +84,32 @@ describe("sector feed owner-failure classification", () => {
     expect((await response.json()).receipt.failure).toBe("upstream_rate_limited");
   });
 
-  it("relays a Caddy upstream connect error as a reset, not as a generic 5xx", async () => {
+  it("names an owner 502 without claiming a reset the status does not prove", async () => {
     upstream.mockResolvedValue(new Response(
       "upstream connect error or disconnect/reset before headers. reset reason: remote connection failure",
       { status: 502, headers: { "Content-Type": "text/plain" } },
     ));
     const response = await GET(request()), result = await response.json();
     expect(response.status).toBe(502);
-    expect(result.receipt.failure).toBe("upstream_reset");
+    expect(result.receipt.failure).toBe("upstream_bad_gateway");
     expect(result.receipt.status).toBe("error");
+    expect(result.data).toBeNull();
+  });
+
+  // The counterexample for the defect the root review named: the production
+  // branch classified every 502 as a proven reset without ever looking at the
+  // body, so an unrelated gateway failure was reported as a proven reset.
+  it("does not claim a reset for a generic owner 502 either", async () => {
+    upstream.mockResolvedValue(new Response(
+      "other gateway failure", { status: 502, headers: { "Content-Type": "text/plain" } },
+    ));
+    const response = await GET(request()), result = await response.json();
+    expect(response.status).toBe(502);
+    expect(result.receipt.status).toBe("error");
+    expect(result.receipt.failure).toBe("upstream_bad_gateway");
+    expect(result.receipt.failure).not.toBe("upstream_reset");
+    expect(response.headers.get("x-sector-failure")).toBe("upstream_bad_gateway");
+    expect(result.data).toBeNull();
   });
 
   it("keeps another owner 5xx on the unavailable class", async () => {
@@ -102,6 +143,72 @@ describe("sector feed owner-failure classification", () => {
     } finally { vi.useRealTimers(); }
   });
 
+  // The body-phase boundary the root review named: the headers are already in
+  // and the body read has begun when the budget elapses. The inner catch used
+  // to answer payload_invalid here and the transport classifier never ran.
+  it("classifies a body read interrupted by the elapsed owner fetch budget as a timeout", async () => {
+    vi.useFakeTimers();
+    try {
+      let markReadStarted!: () => void;
+      const readStarted = new Promise<void>(resolve => { markReadStarted = resolve; });
+      upstream.mockImplementation(async (_input: unknown, init: unknown) => {
+        const signal = (init as RequestInit).signal;
+        const body = stallingBody(signal, markReadStarted);
+        return new Response(body, { status: 200, headers: { "Content-Type": "application/json" } });
+      });
+      const pending = GET(request());
+      // The owner response resolved and the body consumption is under way.
+      await readStarted;
+      await vi.advanceTimersByTimeAsync(6000);
+      const response = await pending, result = await response.json();
+      expect(response.status).toBe(504);
+      expect(result.receipt.status).toBe("error");
+      expect(result.receipt.failure).toBe("upstream_timeout");
+      expect(response.headers.get("x-sector-failure")).toBe("upstream_timeout");
+      expect(result.data).toBeNull();
+    } finally { vi.useRealTimers(); }
+  });
+
+  it("classifies a body read interrupted by the caller hanging up as a request abort", async () => {
+    const aborted = new AbortController();
+    let markReadStarted!: () => void;
+    const readStarted = new Promise<void>(resolve => { markReadStarted = resolve; });
+    upstream.mockImplementation(async (_input: unknown, init: unknown) => {
+      const signal = (init as RequestInit).signal;
+      const body = stallingBody(signal, markReadStarted);
+      return new Response(body, { status: 200, headers: { "Content-Type": "application/json" } });
+    });
+    const req = new Request("http://localhost/api/sector-intelligence?source=sector",
+      { headers: { Cookie: AUTH_COOKIE }, signal: aborted.signal });
+    const pending = GET(req);
+    await readStarted;
+    aborted.abort();
+    const response = await pending, result = await response.json();
+    expect(response.status).toBe(499);
+    expect(result.receipt.status).toBe("error");
+    expect(result.receipt.failure).toBe("request_aborted");
+    expect(response.headers.get("x-sector-failure")).toBe("request_aborted");
+    expect(result.data).toBeNull();
+  });
+
+  // The forbidden inference: an abort-shaped exception is not evidence that the
+  // request was cancelled. With no recorded deadline and no cancelled caller
+  // signal, the interruption stays an unnamed transport failure.
+  it("does not infer a cancellation from an abort-shaped body rejection alone", async () => {
+    upstream.mockResolvedValue(new Response(
+      new ReadableStream<Uint8Array>({
+        start(controller) { controller.error(new DOMException("The operation was aborted.", "AbortError")); },
+      }),
+      { status: 200, headers: { "Content-Type": "application/json" } },
+    ));
+    const response = await GET(request()), result = await response.json();
+    expect(response.status).toBe(502);
+    expect(result.receipt.status).toBe("error");
+    expect(result.receipt.failure).not.toBe("request_aborted");
+    expect(result.receipt.failure).not.toBe("upstream_timeout");
+    expect(result.receipt.failure).toBe("upstream_transport");
+  });
+
   it("labels this gateway's own per-IP limiter distinctly", async () => {
     limiter.rateLimit.mockReturnValue({ ok: false, remaining: 0, retryAfterSec: 17 });
     const response = await GET(request()), result = await response.json();
@@ -111,7 +218,7 @@ describe("sector feed owner-failure classification", () => {
     expect(upstream).not.toHaveBeenCalled();
   });
 
-  // The defect this covers: the owner origin's 429, its 502 upstream-reset, its 503
+  // The defect this covers: the owner origin's 429, its 502, its 503
   // and an unreachable origin all answered HTTP 503 with receipt.status "error" and
   // no Retry-After, so the observed outage could not be told apart from a rate limit.
   it("no longer collapses the owner failure classes into one indistinguishable response", async () => {
@@ -130,7 +237,7 @@ describe("sector feed owner-failure classification", () => {
     await capture();
     expect(observed).toEqual([
       "429|error|upstream_rate_limited",
-      "502|error|upstream_reset",
+      "502|error|upstream_bad_gateway",
       "503|error|upstream_unavailable",
       "502|error|upstream_transport",
     ]);

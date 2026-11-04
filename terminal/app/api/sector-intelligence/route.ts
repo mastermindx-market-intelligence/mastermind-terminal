@@ -65,12 +65,33 @@ async function currentSupabaseCookieHeader(): Promise<string | null> {
   return filteredSupabaseCookieValues(store.getAll());
 }
 
+/** The owner body completed and failed a content check.
+ *
+ * This is a payload verdict: the owner answered, and what it sent is not the
+ * owner envelope. It is deliberately distinct from an interrupted read, so a
+ * body that never arrived is never reported as an invalid payload.
+ */
+class InvalidOwnerBody extends Error {
+  constructor(readonly verdict: string) { super(`invalid_owner_body:${verdict}`); }
+}
+
+/** The owner body did not complete: the read was cut mid-stream.
+ *
+ * The headers already arrived, so the owner did answer — what failed is the
+ * transport carrying the body. The established transport classifier decides
+ * whether that was the fetch budget, the caller hanging up, or neither. The
+ * interruption is never inferred from the shape or name of the exception.
+ */
+class InterruptedOwnerBody extends Error {
+  constructor() { super("interrupted_owner_body"); }
+}
+
 async function readJson(response: Response): Promise<{ data: unknown; hash: string }> {
   const length = Number(response.headers.get("content-length"));
-  if (Number.isFinite(length) && length > MAX_BYTES) throw new Error("size");
+  if (Number.isFinite(length) && length > MAX_BYTES) throw new InvalidOwnerBody("size");
   const type = response.headers.get("content-type") || "";
-  if (!type.toLowerCase().includes("application/json")) throw new Error("content_type");
-  if (!response.body) throw new Error("empty");
+  if (!type.toLowerCase().includes("application/json")) throw new InvalidOwnerBody("content_type");
+  if (!response.body) throw new InvalidOwnerBody("empty");
   const reader = response.body.getReader(), chunks: Uint8Array[] = [];
   let size = 0;
   try {
@@ -78,27 +99,33 @@ async function readJson(response: Response): Promise<{ data: unknown; hash: stri
       const { value, done } = await reader.read();
       if (done) break;
       size += value.byteLength;
-      if (size > MAX_BYTES) throw new Error("size");
+      if (size > MAX_BYTES) throw new InvalidOwnerBody("size");
       chunks.push(value);
     }
   } catch (error) {
     await reader.cancel().catch(() => undefined);
-    throw error;
+    // A body that completed and failed a content check is a payload verdict and
+    // stays one. Anything else means the read was cut before the body completed.
+    if (error instanceof InvalidOwnerBody) throw error;
+    throw new InterruptedOwnerBody();
   } finally { reader.releaseLock(); }
-  const buffer = Buffer.concat(chunks), data: unknown = JSON.parse(buffer.toString("utf8"));
-  if (!data || typeof data !== "object") throw new Error("shape");
+  const buffer = Buffer.concat(chunks);
+  let data: unknown;
+  try { data = JSON.parse(buffer.toString("utf8")); }
+  catch { throw new InvalidOwnerBody("json"); }
+  if (!data || typeof data !== "object") throw new InvalidOwnerBody("shape");
   return { data, hash: createHash("sha256").update(buffer).digest("hex") };
 }
 
 /** Exact cause of a failed Sector Central owner fetch.
  *
  * The receipt status alone cannot separate the causes an operator must act on:
- * this gateway's own per-IP limiter, the owner origin's own 429, a Caddy
- * "upstream connect error or disconnect/reset before headers" 502, another 5xx
- * from the owner origin, an elapsed fetch budget, an unreachable owner origin and
- * a body the owner-envelope check rejected all collapsed into one
- * indistinguishable response. This classification rides on the receipt and the
- * HTTP status so the exact cause is readable without a server log.
+ * this gateway's own per-IP limiter, the owner origin's own 429, an owner 502
+ * (that origin lost its own upstream), another 5xx from the owner origin, an
+ * elapsed fetch budget, an unreachable owner origin and a body the
+ * owner-envelope check rejected all collapsed into one indistinguishable
+ * response. This classification rides on the receipt and the HTTP status so
+ * the cause is readable without a server log.
  *
  * It is additive: the shared FeedReceipt interface is owned by an open PR, so the
  * field is not declared there. Clients that do not know it ignore it.
@@ -116,13 +143,15 @@ export type FeedFailure =
   | "upstream_unauthorized"
   /** The owner origin answered 404. */
   | "upstream_not_found"
-  /** The owner origin answered 502 — its own upstream was reset or refused. */
-  | "upstream_reset"
+  /** The owner origin answered 502 — its own upstream failed or was refused.
+   *  The status alone does not prove which upstream fault occurred, so the
+   *  class stays neutral: it is not evidence of a reset. */
+  | "upstream_bad_gateway"
   /** The owner origin answered another non-ok status. */
   | "upstream_unavailable"
-  /** The owner fetch budget elapsed before the origin answered. */
+  /** The owner fetch budget elapsed before the answer completed. */
   | "upstream_timeout"
-  /** The owner origin could not be reached at all. */
+  /** The owner connection failed before a complete answer arrived. */
   | "upstream_transport"
   /** The caller hung up before the origin answered. */
   | "request_aborted"
@@ -205,13 +234,23 @@ export async function GET(req: Request): Promise<Response> {
       const retryAfter = response.headers.get("retry-after");
       return failure(429, "error", "upstream_rate_limited", retryAfter ? { "Retry-After": retryAfter } : undefined);
     }
-    // A 502 from the owner origin is that origin's own "upstream connect error or
-    // disconnect/reset before headers" — it lost ITS upstream. It is a different
-    // class from another 5xx and is relayed as the owner sent it.
-    if (response.status === 502) return failure(502, "error", "upstream_reset");
+    // A 502 from the owner origin is that origin's own upstream failing — it
+    // lost ITS upstream. It is a different class from another 5xx and is
+    // relayed as the owner sent it. The status does not say which upstream
+    // fault it was, so the class stays neutral and no reset is claimed.
+    if (response.status === 502) return failure(502, "error", "upstream_bad_gateway");
     if (!response.ok) return failure(503, "error", "upstream_unavailable");
     let parsed: { data: unknown; hash: string };
-    try { parsed = await readJson(response); } catch { return failure(502, "invalid", "payload_invalid"); }
+    try { parsed = await readJson(response); }
+    catch (error) {
+      // The headers already arrived, so the transport classifier below has not
+      // run yet. A body read that did not complete is a transport question, not
+      // a payload verdict: hand it to that classifier so the recorded deadline
+      // and caller-abort evidence decides the class. A body that completed and
+      // failed a content check stays payload_invalid.
+      if (error instanceof InterruptedOwnerBody) throw error;
+      return failure(502, "invalid", "payload_invalid");
+    }
     if (!readableOwnerEnvelope(key, parsed.data)) return failure(502, "invalid", "payload_invalid");
     const riskRead = key === "risk" ? qualifyRiskEnvelope(parsed.data) : null;
     const receipt: FeedReceipt = { ...baseReceipt, status: "ready", asOf: feedSourceStamp(key, parsed.data),
@@ -239,7 +278,8 @@ export async function GET(req: Request): Promise<Response> {
   } catch {
     // The three transport outcomes are distinct and must stay distinct: an
     // elapsed fetch budget is not an unreachable origin, and neither is the
-    // caller hanging up.
+    // caller hanging up. This classifier also owns a body read that was cut
+    // mid-stream, which is a transport failure for the same reason.
     if (timedOut) return failure(504, "error", "upstream_timeout");
     if (req.signal.aborted) return failure(499, "error", "request_aborted");
     return failure(502, "error", "upstream_transport");
