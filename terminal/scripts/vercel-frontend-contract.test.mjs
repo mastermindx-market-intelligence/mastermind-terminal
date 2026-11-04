@@ -12,11 +12,17 @@ delete base.MMX_SHARED_SHELL;
 delete base.MMX_MARKET_DATA_ORIGIN;
 delete base.MMX_TERMINAL_API_ORIGIN;
 delete base.VERCEL_GIT_COMMIT_SHA;
+delete base.NEXT_PUBLIC_SUPABASE_URL;
+delete base.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 function evaluate(overrides = {}) {
   const env = {
     ...base,
-    ...(overrides.VERCEL === "1" ? { VERCEL_GIT_COMMIT_SHA: "a".repeat(40) } : {}),
+    ...(overrides.VERCEL === "1" ? {
+      VERCEL_GIT_COMMIT_SHA: "a".repeat(40),
+      NEXT_PUBLIC_SUPABASE_URL: "https://fixture.supabase.co",
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: "synthetic-public-test-key",
+    } : {}),
     ...overrides,
   };
   // Terminal's required CI job runs Node 20, which cannot strip TypeScript.
@@ -159,6 +165,37 @@ for (const origin of [
     });
     assert.notEqual(run.status, 0);
     assert.match(run.stderr, /VERCEL_TERMINAL_API_ORIGIN_UNAPPROVED/);
+  });
+}
+
+test("Vercel fails closed with missing publishable Supabase auth inputs", () => {
+  const run = evaluate({
+    VERCEL: "1",
+    MMX_SHARED_SHELL: "1",
+    MMX_MARKET_DATA_ORIGIN: "https://data.mastermind-x.com",
+    MMX_TERMINAL_API_ORIGIN: "https://beta-origin.mastermind-x.com",
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: "",
+  });
+  assert.notEqual(run.status, 0);
+  assert.match(run.stderr, /VERCEL_SUPABASE_PUBLIC_ENV_REQUIRED/);
+});
+
+for (const invalid of [
+  "http://fixture.supabase.co",
+  "https://fixture.supabase.co/secret",
+  "https://fixture.supabase.co?test=true",
+  "https://user@fixture.supabase.co",
+]) {
+  test("Vercel rejects unsafe Supabase URL: " + invalid, () => {
+    const run = evaluate({
+      VERCEL: "1",
+      MMX_SHARED_SHELL: "0",
+      MMX_MARKET_DATA_ORIGIN: "https://data.mastermind-x.com",
+      MMX_TERMINAL_API_ORIGIN: "https://terminal-origin.mastermind-x.com",
+      NEXT_PUBLIC_SUPABASE_URL: invalid,
+    });
+    assert.notEqual(run.status, 0);
+    assert.match(run.stderr, /VERCEL_SUPABASE_URL_UNAPPROVED/);
   });
 }
 

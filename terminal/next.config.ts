@@ -66,6 +66,29 @@ const VPS_SHARED_SHELL_APIS = [
   "research/:path*",
 ] as const;
 
+// Both the browser client and the server auth/callback/session refresh paths
+// require these publishable Supabase settings. Vercel must not quietly build a
+// login-looking shell that cannot exchange sessions after its domain moves.
+// This validates presence and HTTPS shape only; secret values are never logged.
+if (isVercel) {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !anon?.trim()) {
+    throw new Error("VERCEL_SUPABASE_PUBLIC_ENV_REQUIRED: auth public inputs missing");
+  }
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    throw new Error("VERCEL_SUPABASE_URL_INVALID");
+  }
+  if (parsed.protocol !== "https:" || !parsed.hostname || parsed.username ||
+      parsed.password || parsed.port || parsed.search || parsed.hash ||
+      (parsed.pathname !== "/" && parsed.pathname !== "")) {
+    throw new Error("VERCEL_SUPABASE_URL_UNAPPROVED: exact HTTPS origin required");
+  }
+}
+
 // ── Deployment id (version-skew protection / stale-chunk self-heal) ───────────
 // Each production deploy gets a DISTINCT id: prefer the git sha wired in by
 // ops/terminal-build.sh (GIT_SHA / NEXT_DEPLOYMENT_ID), then read the deploy marker that the
