@@ -27,18 +27,23 @@ export default function SharedShellPrimaryNav({ mode, labelled, activeSymbol, ac
   return <>
     {SHARED_SHELL_NAV.map(item => {
       const selected = item.k === activeKey;
+      // Top-level destination is the current page; nested routes are its current
+      // workspace location. Match the protected shell's aria-current semantics.
+      const ariaCurrent = selected
+        ? (activeKeyOverride || path === item.href ? "page" : "location")
+        : undefined;
       const label = t(item.k, item.label);
       const href = navHref(item, activeSymbol, path);
       return mode === "rail" ? (
         <Tip key={item.k} label={label} side="right" size="mini" disabled={labelled}>
           <Link href={href} className={`navbtn${selected ? " on" : ""}`}
-            aria-current={selected ? "page" : undefined} aria-label={label}>
+            aria-current={ariaCurrent} aria-label={label}>
             {renderGlyph(item.k)}{labelled && <span className="investor-nav-label">{label}</span>}
           </Link>
         </Tip>
       ) : (
         <Link key={item.k} href={href} className={selected ? "on" : ""}
-          aria-current={selected ? "page" : undefined} onClick={onNavigate}>
+          aria-current={ariaCurrent} onClick={onNavigate}>
           {renderGlyph(item.k)}{label}
         </Link>
       );

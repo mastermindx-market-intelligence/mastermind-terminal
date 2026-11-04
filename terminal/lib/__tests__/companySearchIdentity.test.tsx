@@ -28,6 +28,9 @@ it("distinguishes supported listings by exact symbol and source venue without a 
  expect(rows.some(row=>row.querySelector(".tk")?.textContent==="UNKNOWN")).toBe(false);
  expect(Array.from(host.querySelectorAll('[role="tab"]')).some(tab=>tab.textContent?.includes("Crypto"))).toBe(false);
  await act(async()=>{(hk as HTMLElement).click();});
+ expect(onPick).not.toHaveBeenCalled();
+ expect(host.textContent).toContain("Open Analysis");
+ await act(async()=>{(Array.from(host.querySelectorAll("button")).find(button=>button.textContent?.includes("Open Analysis")) as HTMLButtonElement).click();});
  expect(onPick).toHaveBeenCalledWith("9988.HK");
 });
 it("keeps hook order when the same picker is closed and reopened",async()=>{

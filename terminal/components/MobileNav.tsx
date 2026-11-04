@@ -204,6 +204,8 @@ export default function MobileNav({
           >
             <div className="m-drawer-h"><BrandLockup /></div>
             <nav className="m-nav">
+              {/* The beta primary navigation owns this list. Preserve upstream's
+                  exact-route versus workspace-location accessibility in that owner. */}
               <SharedShellPrimaryNav mode="drawer" labelled activeSymbol={activeSymbol}
                 activeKeyOverride={activeKeyProp} onNavigate={closeDrawer}
                 renderGlyph={key => <NavGlyph k={key} />} />
@@ -212,6 +214,7 @@ export default function MobileNav({
                 <Link
                   key={mk.k}
                   href={mk.href}
+                  className={navPath === mk.href ? "on" : undefined}
                   aria-current={navPath === mk.href ? "page" : undefined}
                   onClick={closeDrawer}
                 >

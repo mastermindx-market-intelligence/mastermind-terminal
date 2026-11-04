@@ -55,6 +55,15 @@ describe("beta-only primary nav and intelligence current-page policy", () => {
     expect([...nav("drawer","shellMonitor").querySelectorAll('a[aria-current="page"]')]
       .map(a=>a.getAttribute("href"))).toEqual(["/monitor"]);
   });
+  it("marks nested workspace navigation as a location without a caller override", () => {
+    mock.path="/research/notes";
+    for (const mode of ["rail", "drawer"] as const) {
+      const host=nav(mode);
+      const current=host.querySelector('a[aria-current="location"]');
+      expect(current?.getAttribute("href")).toBe("/research");
+      expect(host.querySelectorAll('a[aria-current="page"]')).toHaveLength(0);
+    }
+  });
   it("preserves original symbol decoration for Analysis only", () => {
     mock.path="/today";
     const host=nav("rail");

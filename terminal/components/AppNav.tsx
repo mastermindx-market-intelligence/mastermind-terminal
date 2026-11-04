@@ -125,7 +125,7 @@ function AppNavInner({ labelled = false, id, overviewBridge = false, sharedShell
               href={navHref(it, activeSymbol, path)}
               onClick={path.startsWith("/terminal") && it.k === "chart" ? () => window.dispatchEvent(new CustomEvent("mm:close-pane")) : undefined}
               className={`navbtn${on ? " on" : ""}`}
-              aria-current={on ? "page" : undefined}
+              aria-current={on ? sharedShell && path !== it.href ? "location" : "page" : undefined}
               aria-label={t(it.k, it.label)}
             ><Glyph k={it.k} />{labelled && <span className="investor-nav-label">{t(it.k, it.label)}</span>}</Link>
           </Tip>
