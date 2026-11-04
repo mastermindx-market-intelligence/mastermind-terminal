@@ -111,7 +111,8 @@ def test_shanghai_composite_requests_bounded_daily_yahoo_history():
     assert int(index_query["period2"][0]) > FULL_HISTORY_START_TS
     assert index_query["interval"] == ["1d"]
     assert "range" not in index_query
-    assert "^GSPC?period1=-2208988800" in get.call_args_list[1].args[0]
+    assert urlparse(get.call_args_list[1].args[0]).path.endswith("/%5EGSPC")
+    assert parse_qs(urlparse(get.call_args_list[1].args[0]).query)["period1"] == [str(INDEX_ARCHIVE_START_TS)]
     assert "000300.SS?range=5y&interval=1d" in get.call_args_list[2].args[0]
 
 
