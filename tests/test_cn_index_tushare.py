@@ -82,15 +82,16 @@ def test_source_integration_calls_only_macro_owned_index_daily(sym):
 
 @pytest.mark.parametrize("sym", sorted(CN_INDEX_SYMBOLS))
 def test_filter_prelaunch_zero_and_malformed_ohlc_without_inventing_bars(sym):
-    candidate = rows(sym=sym)
+    # Keep the qualified remainder above the hard 1,000-daily-bar publication floor.
+    candidate = rows(sym=sym, n=MIN_VALID_DAILY_BARS + 4)
     candidate[:3] = [
         item(sym=sym, date="20020101", o=0, h=0, l=0, c=0, vol=0),
         item(sym=sym, date="20020102", o=100, h=90, l=80, c=95),
         item(sym=sym, date="20020103", o=100, h=120, l=90, c=110, vol=-1),
     ]
     got = normalize_index_daily(sym, candidate, as_of=AS_OF)
-    assert len(got) == MIN_VALID_DAILY_BARS-2
-    assert got[0][0] == (AS_OF-dt.timedelta(days=MIN_VALID_DAILY_BARS-3)).isoformat()
+    assert len(got) == MIN_VALID_DAILY_BARS+1
+    assert got[0][0] == (AS_OF-dt.timedelta(days=MIN_VALID_DAILY_BARS)).isoformat()
 
 
 @pytest.mark.parametrize(("field", "bad"), [
