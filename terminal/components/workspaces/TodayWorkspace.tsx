@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from
 import Link from "next/link";
 import { useLang } from "@/lib/i18n";
 import { useOnboarding } from "@/components/onboarding/OnboardingProvider";
-import { localText, todayPayload, type TodayPayload } from "@/lib/shared-shell/readingPayloads";
+import { businessClockQualification, localText, todayPayload, type TodayPayload } from "@/lib/shared-shell/readingPayloads";
 import { readingJson, useReadingScope } from "@/lib/shared-shell/useReadingScope";
 import styles from "./ReadingWorkspace.module.css";
 import today from "./TodayWorkspace.module.css";
@@ -27,6 +27,8 @@ const COPY = {
   partial: "Some sources are unavailable", missing: "No sources could be verified", asof: "Reading as of", manifest: "Publication manifest generated",
   noClock: "Source date unavailable", omitted: "Some source readings are omitted. Inspect each source's coverage before drawing a conclusion.",
   attentionLabel: "Needs your attention", attention: "Coverage to inspect", noAttention: "No source failures are reported. Check each source date and availability below.",
+  period: "Reference period", noPeriod: "Reference period unavailable", presence: "Source present; freshness unverified",
+  periodNote: "Period labels do not establish observation dates, calculation cut-offs or source freshness.",
   effective: "Effective date", calculated: "Calculated as of", details: "All source coverage and dates",
   allSections: "Explore Macro Command sections", local: "Research", continue: "Pick up where you left off",
   localNote: "Your reading position is saved in this browser. Access is checked when you reopen.",
@@ -47,6 +49,8 @@ const COPY = {
   partial: "部分来源不可用", missing: "暂无通过核验的来源", asof: "读数截至", manifest: "发布清单生成于",
   noClock: "来源日期不可用", omitted: "部分来源读数未显示。请先查看各来源覆盖，再作判断。",
   attentionLabel: "关注事项", attention: "需要查看的覆盖", noAttention: "未报告来源失败。请检查下方各来源日期与可用状态。",
+  period: "参考期间", noPeriod: "参考期间不可用", presence: "来源已提供；时效性未核实",
+  periodNote: "期间标记不能证明观察日期、计算截止时间或来源时效性。",
   effective: "生效日期", calculated: "计算截至", details: "全部来源覆盖与日期",
   allSections: "查看宏观指挥台板块", local: "研究", continue: "接续上次阅读",
   localNote: "阅读位置保存在此浏览器中。重新打开时会核验当前权限。",
@@ -66,6 +70,21 @@ const AVAILABILITY: Record<string, readonly [string, string]> = {
  NOT_COVERED: ["Not covered", "未覆盖"], HISTORICAL_AS_KNOWN: ["Historical as known", "当时已知的历史数据"],
  COMPUTATION_REFUSED: ["Computation unavailable", "计算不可用"], DISAGREEMENT: ["Sources disagree", "来源存在分歧"],
 };
+
+type TodayWorkspaceRow = TodayPayload["workspaces"][number];
+const isBusiness = (workspace: TodayWorkspaceRow) => workspace.workspace_id === "business_activity";
+function businessClocks(workspace: TodayWorkspaceRow) {
+ const qualifier = businessClockQualification(workspace.clock_qualification);
+ // Legacy effective dates describe the Business reference period, not an observed clock.
+ const period = qualifier ? qualifier.reference_period : workspace.effective_date;
+ const calculation = workspace.calculation_as_of;
+ // A bare month and a period alias cannot establish a calculation cut-off. Keep distinct
+ // explicitly supplied calendar clocks; never derive month-end or parse a period as a Date.
+ const calendar = calculation?.match(/^(\d{4})-(\d{2})-(\d{2})(?:T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2}))?$/);
+ const validCalendar = !!calendar && !Number.isNaN(Date.parse(calculation!)) && Number(calendar[2]) >= 1 && Number(calendar[2]) <= 12 &&
+  Number(calendar[3]) >= 1 && Number(calendar[3]) <= new Date(Date.UTC(Number(calendar[1]), Number(calendar[2]), 0)).getUTCDate();
+ return { qualifier, period, calculation: validCalendar && calculation !== period && calculation !== workspace.effective_date ? calculation : null };
+}
 
 function Arrow() {
  return <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M4 10h12m-5-5 5 5-5 5" /></svg>;
@@ -116,7 +135,11 @@ function TodayWorkspaceSession({ ownerKey }: { ownerKey: string }) {
  const status = (state: string | null) => AVAILABILITY[state || ""]?.[lang === "zh" ? 1 : 0] ||
   (lang === "zh" ? "来源状态不可用" : "Source availability unavailable");
  const sourceStatus = (workspace: TodayPayload["workspaces"][number]) => workspace.failure
-  ? (lang === "zh" ? "来源核验未完成" : "Source verification failed") : status(workspace.state);
+  ? (lang === "zh" ? "来源核验未完成" : "Source verification failed") : isBusiness(workspace) && workspace.state === "CURRENT"
+   ? localText(businessClocks(workspace).qualifier?.label, lang) || c.presence : status(workspace.state);
+ const workspaceDate = (workspace: TodayWorkspaceRow) => isBusiness(workspace)
+  ? `${c.period}: ${businessClocks(workspace).period || c.noPeriod}`
+  : `${c.effective}: ${workspace.effective_date || c.noClock}`;
  const needsAttention = data?.workspaces.filter(workspace => workspace.failure || !workspace.state ||
   !["CURRENT", "HISTORICAL_AS_KNOWN"].includes(workspace.state)) ?? [];
  const readingClockBucket = useCallback((at: Date) => {
@@ -232,13 +255,15 @@ function TodayWorkspaceSession({ ownerKey }: { ownerKey: string }) {
       const href = sourceHref(workspace.href);
       return <li className={today.attentionRow} key={workspace.workspace_id}>
        <div><h3>{href ? <Link href={href}>{localText(workspace.title, lang) || workspace.workspace_id}<Arrow /></Link> : localText(workspace.title, lang) || workspace.workspace_id}</h3>
-        <span>{c.effective}: {workspace.effective_date || c.noClock}</span></div>
+        <span>{workspaceDate(workspace)}</span></div>
        <span className={today.sourceStatus}>{sourceStatus(workspace)}</span>
       </li>;
      })}</ul>}
      {data && <details><summary>{c.details}</summary><ul className={styles.list}>{data.workspaces.map(workspace =>
       <li className={styles.row} key={workspace.workspace_id}><h3>{localText(workspace.title, lang) || workspace.workspace_id}</h3>
-       <p>{sourceStatus(workspace)}</p><small>{c.effective}: {workspace.effective_date || c.noClock}<br />{c.calculated}: {workspace.calculation_as_of || c.noClock}</small>
+       <p>{sourceStatus(workspace)}</p>
+       {isBusiness(workspace) && !workspace.failure && workspace.state === "CURRENT" && <p className={styles.muted}>{localText(businessClocks(workspace).qualifier?.note, lang) || c.periodNote}</p>}
+       <small>{workspaceDate(workspace)}<br />{c.calculated}: {(isBusiness(workspace) ? businessClocks(workspace).calculation : workspace.calculation_as_of) || c.noClock}</small>
       </li>)}</ul></details>}
      {data && <details><summary>{c.allSections}</summary><ul className={styles.list}>{data.sections.map(section =>
       <li className={styles.row} key={section.id}><Link href={section.href}>{localText(section.label, lang)} →</Link></li>
