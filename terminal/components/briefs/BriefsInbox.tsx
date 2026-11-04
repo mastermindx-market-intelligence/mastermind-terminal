@@ -10,6 +10,7 @@ import {
   monitorsSummary,
   deliveryIsMiss,
   validateBriefBody,
+  isUuid,
   type BriefLang,
   type PinnedDelivery,
 } from "@/lib/briefs";
@@ -71,6 +72,7 @@ export default function BriefsInbox({ lang }: { lang: BriefLang }) {
               >
                 <span className={b.briefName} data-brief-name="">{name}</span>
                 <span className={b.briefDate} data-brief-date="">{row.slotAsof}</span>
+                {!miss && body && isUuid(row.deliveryId) && <a className="btn btn-ghost" href={`/briefs/${row.deliveryId}/sharing`}>{L === "zh" ? "查看团队分享" : "Review team sharing"}</a>}
                 {row.pinned && <span className={b.pinned}>{briefCopy("lastGood", L)}</span>}
                 {miss ? (
                   <span className={b.sentence} data-brief-sentence="">{degradedLine(row.subscription.cadence, L)}</span>

@@ -285,3 +285,14 @@ def test_expired_invitation_does_not_create_team_membership_or_share_authority(p
        f"(select subscription_id from public.brief_deliveries where delivery_id={q(delivery(3))});")
     result = pg(f"select public.read_brief_delivery_sharing({q(delivery(3))},{q(TEAM)});", OUTSIDER, False)
     assert result.returncode != 0 and "42501" in result.stderr
+
+
+def test_route_handlers_join_the_real_database_owner(pg):
+    vitest = ROOT / "terminal/node_modules/vitest/vitest.mjs"
+    if not shutil.which("node") or not vitest.is_file():
+        pytest.skip("Node/Vitest source integration runtime is unavailable")
+    environment = dict(os.environ, MM_BRIEF_TEST_PSQL_ARGV=json.dumps(pg.command))
+    result = subprocess.run(["node", str(vitest), "run",
+        "lib/__tests__/briefDeliverySharing.postgres.integration.test.ts"],
+        cwd=ROOT / "terminal", env=environment, text=True, capture_output=True, timeout=90)
+    assert result.returncode == 0, result.stdout + result.stderr
