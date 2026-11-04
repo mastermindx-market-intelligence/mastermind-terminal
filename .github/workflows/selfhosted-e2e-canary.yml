@@ -10,6 +10,12 @@
 #   * `workflow_dispatch` ONLY — never pull_request / push, so a fork can never schedule
 #     code onto the self-hosted host. Only collaborators can dispatch, from this repo's refs.
 #   * `permissions: contents: read` — the job token can read the checkout and nothing else.
+#   * Dispatch inputs are bound as job `env` DATA and validated by
+#     .github/scripts/selfhosted_canary_inputs.sh (fixed shard table mirroring the hosted
+#     matrix, integer workers) before any use. No `${{ inputs.* }}` is ever spliced into a
+#     `run:` block — expression text inside shell source is injectable, and quoting around
+#     the expression does not escape a quote inside the value (review finding on #1277).
+#     tests/test_selfhosted_canary_workflow.py pins this contract with negative tests.
 #   * The runner is registered ephemeral (one job, then deregistered) under an
 #     unprivileged user with no sudo, so a job leaves no state for the next one.
 #   * Same steps as the hosted shard, minus `--with-deps` (system libs are preinstalled
@@ -20,15 +26,11 @@ on:
   workflow_dispatch:
     inputs:
       shard:
-        description: Shard label (artifact suffix only)
+        description: ci.yml terminal-e2e shard label (desktop-1..5, tablet-1..3, mobile-1..3, serial); mapped to its exact Playwright selector by .github/scripts/selfhosted_canary_inputs.sh
         default: desktop-1
         type: string
-      projects:
-        description: Playwright project/shard selector, identical to the ci.yml matrix entry
-        default: "--project=desktop --shard=1/5"
-        type: string
       workers:
-        description: Playwright --workers (1 = apples-to-apples with hosted; >1 measures the 32-core gain)
+        description: Playwright --workers, integer 1..16 (1 = apples-to-apples with hosted; >1 measures the 32-core gain)
         default: "1"
         type: string
 
@@ -47,6 +49,9 @@ jobs:
     timeout-minutes: 60
     env:
       CI: "1"
+      # Dispatch inputs enter the job ONLY here, as environment data. See header.
+      CANARY_SHARD: ${{ inputs.shard }}
+      CANARY_WORKERS: ${{ inputs.workers }}
     defaults:
       run:
         working-directory: terminal
@@ -58,6 +63,9 @@ jobs:
           echo "cpus=$(nproc) mem=$(free -g | awk '/Mem:/{print $2}')G load=$(cut -d' ' -f1-3 /proc/loadavg)"
           echo "node_system=$(node -v 2>/dev/null || echo none) kernel=$(uname -r)"
       - uses: actions/checkout@v4
+      - name: Validate dispatch inputs (fixed shard table, integer workers)
+        working-directory: .
+        run: bash .github/scripts/selfhosted_canary_inputs.sh
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -82,14 +90,17 @@ jobs:
         timeout-minutes: 12
         run: npx playwright install chromium
       - name: Run shard (timed)
+        # CANARY_PROJECTS comes from the fixed table in the validation script, so word
+        # splitting it into an argument array is safe; CANARY_WORKERS_OK is a validated integer.
         run: |
+          read -r -a projects <<< "$CANARY_PROJECTS"
           t0=$(date +%s)
-          npm run test:e2e:responsive -- ${{ inputs.projects }} --workers=${{ inputs.workers }}
-          echo "shard_seconds=$(( $(date +%s) - t0 )) projects='${{ inputs.projects }}' workers=${{ inputs.workers }}"
+          npm run test:e2e:responsive -- "${projects[@]}" --workers="$CANARY_WORKERS_OK"
+          echo "shard_seconds=$(( $(date +%s) - t0 )) shard=$CANARY_SHARD workers=$CANARY_WORKERS_OK"
       - name: Upload responsive QA screenshots
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: selfhosted-canary-${{ github.run_id }}-${{ inputs.shard }}
+          name: selfhosted-canary-${{ github.run_id }}
           path: terminal/test-results
           if-no-files-found: ignore
