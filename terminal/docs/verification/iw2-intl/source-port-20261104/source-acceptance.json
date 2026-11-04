@@ -102,5 +102,67 @@
     "snapshot": "f6874b38e29926664380816874623604a9c5bf34",
     "tests": "NOT_RUN",
     "result_sha256": "34156be9dcf83d947d0af0231354bd8a5f21b4c12e7a545b5169a13949f0c3b0"
+  },
+  "native_interface_restoration": {
+    "source": "e90ec466a050a5a636f0efc0de4a0176bb4a3445",
+    "component_sha256": "8ec7b34ab28efffeb7c83b2e5072e26071d925be76ff7d3049ee1d69a0542fb5",
+    "byte_exact": true,
+    "mounted_pass": 35,
+    "typescript_exit": 0,
+    "central_journal_save_scenario_helpers_unchanged": true,
+    "original_raw_worker": "NOT_ACCEPTED",
+    "independent_review": "FINDING_CONSUMED_RESOLVED; not a blanket final-source approval"
+  },
+  "composed_browser_regressions": {
+    "passed": 69,
+    "failed": 3,
+    "cause": "obsolete malformed-session control bypassed by stronger current shell admission",
+    "corrected_negative_controls": {
+      "passed": 3,
+      "failed": 0,
+      "scope": "DTM account service unavailable; Options not mounted; payoff request count0"
+    },
+    "prior_native_workspace_exact_save_reopen": 3,
+    "prior_whole_plan_enzh_dtm": 6,
+    "counts_overlap_possible": "Do not sum with other receipts"
+  },
+  "whole_node20_diagnostic": {
+    "source": "intermediate parent correction before accepted component restoration",
+    "files": 1154,
+    "passed": 20097,
+    "failed_timeout": 2,
+    "skipped": 47,
+    "todo": 4,
+    "source_snapshot_suite_errors": 2,
+    "timeout_isolation": {
+      "files": 2,
+      "passed": 59,
+      "failed": 0,
+      "workers": 1,
+      "timeouts_unchanged": true
+    },
+    "current_delta": "35 mounted cases plus restored final TypeScript; final evidence selection owed; no single whole-run green claim"
+  },
+  "ci_failure_consumed": {
+    "run": 41847928588,
+    "head": "df1a04013ebf85bcde99b054349c96da46689cb2",
+    "metadata_only": true,
+    "conclusion": "failure",
+    "pg_invariant_job": "success",
+    "observer_exit": 0,
+    "state": "RETIRED",
+    "no_payload_collection": true
+  },
+  "final_visual_composition": {
+    "path": "terminal/docs/pr-crops/b-pl-6-batch-1/iw2-source-port-current-20261104-r3.composition.json",
+    "actual_cases": 54,
+    "selected_required_cases": 50,
+    "pl6_pass": 24,
+    "vi_pass": 30,
+    "evidence_tests_pass": 2,
+    "failed": 0,
+    "changed_pixel_contact_review": 15,
+    "identical_predecessor_review_reuse": 39,
+    "historical_captures": "r1 and r2 retained under actual source snapshots, not selected or relabeled"
   }
 }

@@ -1,0 +1,16 @@
+{
+  "decision": "RESTORE_OMITTED_ACCEPTED_COMPONENT",
+  "reference": "e90ec466a050a5a636f0efc0de4a0176bb4a3445",
+  "path": "terminal/components/research/SavedScenarioCapture.tsx",
+  "sha256": "8ec7b34ab28efffeb7c83b2e5072e26071d925be76ff7d3049ee1d69a0542fb5",
+  "byte_exact": true,
+  "unchanged_helpers": [
+    "investigationJournal.ts",
+    "investigationSave.ts",
+    "investigationScenario.ts"
+  ],
+  "mounted_pass": 35,
+  "old_simplified_candidate": "SUPERSEDED_NOT_FINAL",
+  "source_only": true,
+  "release_controls": "UNCHANGED_CLOSED"
+}

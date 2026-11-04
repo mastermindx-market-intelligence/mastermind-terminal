@@ -1,0 +1,14 @@
+{
+  "run": "iw2-source-snapshot-guard-review-20261104-r1",
+  "verdict": "ACCEPTED_PASS_SCOPED_NONAUTHOR_SOURCE",
+  "reviewer": "Grok4.7/ubuntu0",
+  "result_sha256": "4ef088fa6a5588ba4399207d74cdf4cb481199526d2ea961a21c5f3337c80b4a",
+  "source_sha256": {
+    "terminal/e2e/tools/visualEvidenceFs.py": "e2028567947e8c5f055411935aa05f1ef8f5bd954fd3a958aaac3313369f93ab",
+    "terminal/e2e/tools/visualEvidenceSourcePaths.test.cjs": "6fd1309332c5d6071c43444c581318cb442e2b0e62eac83f066c31760396b482"
+  },
+  "reviewer_tests": "9 source-path tests PASS plus namespace/read/write/link probes; SQL/browser/network NOT_RUN",
+  "parent_tests": "39 required tool tests PASS; 0047 sourcecontract12PASS; scenario route8PASS",
+  "residual": "non-hashed regular percent-named file cannot coexist with required route directory; forced source path remains rejected",
+  "no_activation_or_SQL_admission": true
+}
