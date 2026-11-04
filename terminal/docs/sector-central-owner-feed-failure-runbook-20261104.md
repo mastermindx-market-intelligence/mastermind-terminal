@@ -85,6 +85,18 @@ not the data.
 provisioning or origin-pull TLS on the edge nodes serving those zones). The
 Terminal gate and Macro's producer need no change for this symptom.
 
+**It recovered on its own.** At **10:13 UTC** the `www` zone was serving again:
+`/api/status` returned `200` with `"status":"ok"`, and all five Terminal feed
+paths answered `401` + `x-regwall: deny`, which proves the owner API answered
+every one of them. The apex was still failing at that moment; `www` — the host
+the Terminal actually fetches — was healthy. The live plane read
+`overlay.age_min ≈ 675` and `bars.age_min ≈ 755` with `fast`/`snapshot` current,
+exactly as the schedule in §2.2 predicts.
+
+**=> Re-probe before escalating.** This class of symptom is transient and
+self-healing; the owner origin being back is the precondition for the tile
+acceptance, not a source change.
+
 ### 2.2 How fresh is the live plane?
 
 ```bash
