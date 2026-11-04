@@ -501,8 +501,15 @@ describe("Shared Shell committed navigation", () => {
       await childMessage({ type: "NAVIGATE", href: "/about.html", mode: "push",
         sameDocument: false, requestId: "overlap-expired" });
       const old = requests.at(-1)!;
-      await act(async () => { vi.advanceTimersByTime(751); });
-      await renderCommittedRoute("/about.html", "push");
+      const before = performance.now();
+      const monotonic = vi.spyOn(performance, "now").mockReturnValue(before);
+      try {
+        await act(async () => { vi.advanceTimersByTime(751); });
+        monotonic.mockReturnValue(before + 751);
+        await renderCommittedRoute("/about.html", "push");
+      } finally {
+        monotonic.mockRestore();
+      }
       expect(old.signal.aborted).toBe(true);
       const fresh = requests.at(-1)!;
       expect(fresh).not.toBe(old);
