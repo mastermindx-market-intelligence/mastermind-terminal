@@ -95,6 +95,10 @@ export default function ExposureMap({ root, source, matrix, stale = false, sourc
   const today = new Date(clock).toLocaleDateString("en-CA", { timeZone: "America/New_York" });
   const readScope = useMemo(() => createExposureMapReader(source, root, matrix, today, clock), [source, root, matrix, today, clock]);
   const read = useMemo(() => readScope(lens, metric, shock), [readScope, lens, metric, shock]);
+  // A controlled select without a matching option displays its first item. Keep
+  // the requested expiry visible until the trader explicitly changes the lens.
+  const unlistedExpiry = lens.kind === "one" && typeof lens.exp === "string" && !read.expiries.includes(lens.exp);
+  const bookHasNoExpiry = unlistedExpiry && sourceStatus === "data" && !!read.session && read.state === "unavailable";
   // Include each source actually used by this read, not merely its calendar day.
   // Qualified joint cells and all-expiry legacy reads do not consume the matrix.
   const selectionMatrix = read.qualification === "legacy" && lens.kind !== "all" ? matrix : null;
@@ -291,6 +295,7 @@ export default function ExposureMap({ root, source, matrix, stale = false, sourc
     <div className={styles.toolbar}>
       <div role="group" aria-label={t("metric")} className={styles.metricControl}>{METRICS.map(m => { const lock = metricLocks[m]; return <button type="button" key={m} aria-pressed={metric === m} data-locked={lock ? "true" : undefined} title={lock ?? (m === "delta" ? t("deltaAssumedInventory") : m === "combined" ? t("scenarioStress") : undefined)} onClick={() => { setMetric(m); setScope("all"); setMode("net"); setDual(false); }}>{t(m === "delta" ? "deltaShort" : m === "combined" ? "combinedShort" : m)}{m === "delta" && ["qualified", "dated"].includes(read.qualification) && <em title={t("deltaExtensionNote")}>{t("deltaExtension")}</em>}{lock && <i aria-hidden="true">🔒</i>}</button>; })}</div>
       <label>{t("scope")}<select aria-label={t("scope")} value={scope} disabled={metric !== "gamma" && read.qualification !== "qualified"} onChange={(e) => setScope(e.target.value)}>
+        {unlistedExpiry && <option value={scope} disabled>{scope} · {t(bookHasNoExpiry ? "expiryNotListed" : "requestedExpiry")}</option>}
         <option value="all">{t("all")}</option><option value="zero">{t("zero")}</option>
         <option value="next-live" disabled={read.qualification !== "qualified"}>{t("nextLive")}</option><option value="week" disabled={read.qualification !== "qualified"}>{t("week")}</option>
         {read.expiries.map((exp) => <option key={exp} value={exp}>{exp}</option>)}
@@ -303,6 +308,7 @@ export default function ExposureMap({ root, source, matrix, stale = false, sourc
       {(["spotPercent", "ivPoints", "calendarDays"] as const).map((key) => <label key={key}>{t(key)}<input type="number" step={0.25} min={key === "calendarDays" ? 0 : key === "spotPercent" ? -3 : -5} max={key === "spotPercent" ? 3 : 5} value={Number.isNaN(shock[key]) ? "" : shock[key]} onChange={(e) => setShock({ ...shock, [key]: e.target.value === "" ? NaN : Number(e.target.value) })} /></label>)}
     </div>{attribution.length > 0 && <div className={styles.attribution}>{attribution.map(a => <div key={a.greek}><span>{a.greek[0].toUpperCase() + a.greek.slice(1)} × {a.weight}</span><strong data-sign={(a.value ?? 0) < 0 ? "negative" : "positive"}>{signed(a.value)} M</strong></div>)}<div><span>{t("jointQualifiedPopulationTotal")}</span><strong>{signed(s.netTotalMn)} M</strong></div></div>}<p className={styles.note}>{t("localScenario")} {t("positiveIsModeledHedgeBuyingNegativeIsSelling")}</p></section>}
     {read.state !== "data" && <div className={styles.empty} role="status">{sourceStatus === "loading" ? t("loading") : sourceStatus === "absent" ? t("absent") : sourceStatus === "unavailable" ? t("readFailed") : ["wrong_root", "future", "malformed"].includes(read.state) ? t("invalid") : t("noData")}
+      {bookHasNoExpiry && <button type="button" onClick={() => setScope("all")}>{t("showAllExpiries")}</button>}
       {sourceStatus === "unavailable" && onRetry && <button type="button" onClick={onRetry}>{t("retry")}</button>}{metric === "combined" && <p>{t("noCombination")}</p>}</div>}
     {s.coveredOnly && read.coverage && <p className={styles.note} data-testid="exposure-partial-coverage"><strong>{t("measuredContracts")}: {read.coverage.qualified.toLocaleString()} / {(read.coverage.qualified + read.coverage.missing).toLocaleString()} · {t("missing")}: {read.coverage.missing.toLocaleString()}.</strong></p>}
     <div className={styles.leaders}>

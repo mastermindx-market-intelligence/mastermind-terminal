@@ -8,7 +8,7 @@ vi.mock("@/components/chrome/AppShell", () => ({ default: () => null }));
 
 beforeEach(() => {
   fixture.jar.clear(); fixture.claims.mockReset();
-  fixture.claims.mockResolvedValue({ data: { claims: { sub: "verified-subject", email: "verified@example.com" } } });
+  fixture.claims.mockResolvedValue({ data: { claims: { sub: "11111111-1111-4111-8111-111111111111", email: "verified@example.com" } } });
   vi.stubEnv("TERMINAL_E2E_FIXTURE", "1"); vi.stubEnv("TERMINAL_E2E_EMAIL", "fixture@example.com");
 });
 afterEach(() => vi.unstubAllEnvs());
@@ -17,13 +17,13 @@ describe("research shell fixture stays outside production and unrelated suites",
   it("production ignores both fixture flags and a forged fixture guest cookie", async () => {
     vi.stubEnv("NODE_ENV", "production"); fixture.jar.set("mm_e2e_rs30", "1"); fixture.jar.set("mm_e2e_guest", "1");
     const view = await ShellLayout({ children: null });
-    expect(view.props).toMatchObject({ userId: "verified-subject", email: "verified@example.com" });
+    expect(view.props).toMatchObject({ userId: "11111111-1111-4111-8111-111111111111", email: "verified@example.com" });
     expect(fixture.claims).toHaveBeenCalledOnce();
   });
   it("unrelated development suites retain their existing verified-claims identity", async () => {
     vi.stubEnv("NODE_ENV", "development");
     const view = await ShellLayout({ children: null });
-    expect(view.props).toMatchObject({ userId: "verified-subject", email: "verified@example.com" });
+    expect(view.props).toMatchObject({ userId: "11111111-1111-4111-8111-111111111111", email: "verified@example.com" });
     expect(fixture.claims).toHaveBeenCalledOnce();
   });
   it("only explicitly opted-in development research tests receive the account fixture", async () => {
