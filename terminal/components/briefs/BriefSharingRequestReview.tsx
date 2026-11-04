@@ -16,9 +16,10 @@ export interface BriefSharingRequestReviewProps {
 }
 export default function BriefSharingRequestReview(props: BriefSharingRequestReviewProps) {
   const identity = useShellIdentity(), { lang } = useLang();
+  const t = (en: string, zh: string) => lang === "zh" ? zh : en;
   const id = identity.kind === "account" ? identity.userId : "";
   const scope = useReadingScope(id === props.principalId ? id : "");
-  if (!scope.ready) return <section className={s.wrap} aria-live="polite"><p>{lang === "zh" ? "正在核对这次分享请求的账户。" : "Checking the account for this sharing request."}</p></section>;
+  if (!scope.ready) return <section className={s.wrap} aria-live="polite"><p>{t("Checking the account for this sharing request.", "正在核对这次分享请求的账户。")}</p></section>;
   return <RequestLifecycle key={[id, props.principalId, props.selected.delivery_id, props.selected.request_ref, props.selected.revision].join("|")} {...props} zh={lang === "zh"} />;
 }
 function RequestLifecycle({ selected, principalId, originalAction, originalEffect, originalIssue, zh }: BriefSharingRequestReviewProps & { zh: boolean }) {

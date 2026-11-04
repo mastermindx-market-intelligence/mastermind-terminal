@@ -6,7 +6,8 @@ import { decodeSharingRequestRecord } from "@/lib/briefSharingRequests";
 import type { SharingReview } from "@/lib/briefDeliverySharing";
 import s from "./brief-sharing.module.css";
 export default function BriefSharingRequestIssuer({ review, onBegin }: { review: SharingReview; onBegin?: () => void }) {
-  const { lang } = useLang(), zh = lang === "zh";
+  const { lang } = useLang();
+  const t = (en: string, zh: string) => lang === "zh" ? zh : en;
   const [requestRef] = useState(() => crypto.randomUUID());
   const [unknown, setUnknown] = useState(false), [pending, setPending] = useState(false);
   const [preflight, setPreflight] = useState(false);
@@ -38,9 +39,9 @@ export default function BriefSharingRequestIssuer({ review, onBegin }: { review:
     })();
   };
   return <div className={s.actions} data-brief-sharing-request-issuer="">
-    {!unknown && <button type="button" className={s.control} disabled={pending || spent.current} onClick={issue}>{pending ? (zh ? "正在保存收件箱请求…" : "Saving Inbox request…") : (zh ? "稍后在收件箱中查看" : "Review later in Inbox")}</button>}
-    <p className={s.note}>{zh ? "此操作保存审阅请求，不会分享简报。" : "This saves a review request. It does not share the brief."}</p>
-    {preflight && <p role="alert" className={s.note}>{zh ? "无法保留这次请求的地址，未发送请求。" : "The original request address could not be retained. Nothing was sent."}</p>}
-    {unknown && <><p className={s.note}>{zh ? "这次原有请求的结果尚未确认，请检查原有请求，不要重新发送。" : "The outcome of this original request is not confirmed. Check it without sending again."}</p><a className={s.control} href={`/briefs/${review.delivery.delivery_id}/sharing?request=${requestRef}&revision=1&attempt=ISSUE&request_team_id=${review.audience.team_id}&expected_content_sha256=${review.delivery.content_sha256}`}>{zh ? "检查原有请求" : "Check original request"}</a></>}
+    {!unknown && <button type="button" className={s.control} disabled={pending || spent.current} onClick={issue}>{pending ? (t("Saving Inbox request…", "正在保存收件箱请求…")) : (t("Review later in Inbox", "稍后在收件箱中查看"))}</button>}
+    <p className={s.note}>{t("This saves a review request. It does not share the brief.", "此操作保存审阅请求，不会分享简报。")}</p>
+    {preflight && <p role="alert" className={s.note}>{t("The original request address could not be retained. Nothing was sent.", "无法保留这次请求的地址，未发送请求。")}</p>}
+    {unknown && <><p className={s.note}>{t("The outcome of this original request is not confirmed. Check it without sending again.", "这次原有请求的结果尚未确认，请检查原有请求，不要重新发送。")}</p><a className={s.control} href={`/briefs/${review.delivery.delivery_id}/sharing?request=${requestRef}&revision=1&attempt=ISSUE&request_team_id=${review.audience.team_id}&expected_content_sha256=${review.delivery.content_sha256}`}>{t("Check original request", "检查原有请求")}</a></>}
   </div>;
 }
