@@ -43,6 +43,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from macro_catalog import (  # noqa: E402
     CATALOG, duplicates, manifest_rows, ohlc_symbols, retired_symbols, yahoo_symbols,
 )
+from cn_index_tushare import (  # noqa: E402
+    CN_INDEX_SYMBOLS, TU_SOURCE, fetch_cn_index_history, retain_prior_tushare_bars,
+)
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "terminal" / "public" / "data"
@@ -346,14 +349,42 @@ def main() -> int:
         wrote, thin, dropped = 0, [], []
         targets = ohlc_symbols()
         for sym in targets:
-            bars = fetch_ohlc(sym)
+            china_index = sym in CN_INDEX_SYMBOLS
+            if china_index:
+                # The exact native index levels are available through the Macro-owned
+                # licensed TuShare client. Yahoo returns a one-candle stub for these codes.
+                # A missing/denied/invalid TuShare response must NEVER delete an old file.
+                bars = fetch_cn_index_history(sym)
+                if not bars:
+                    print(f"  ohlc {sym}: TuShare history unavailable; keeping prior file",
+                          file=sys.stderr)
+                    continue
+            else:
+                bars = fetch_ohlc(sym)
             path = out_dir / f"{sym}.json"
-            have = existing_bar_count(path, deep_history=sym in FULL_HISTORY_SYMBOLS)
-            bars = merge_deep_history(sym, path, bars)
+            have = existing_bar_count(
+                path, deep_history=sym in FULL_HISTORY_SYMBOLS or china_index,
+            )
+            bars = (
+                retain_prior_tushare_bars(path, bars, is_valid_bar=_valid_deep_bar)
+                if china_index else merge_deep_history(sym, path, bars)
+            )
             decision = publish_decision(len(bars), have)
             if decision == "write":
-                payload = {"t": sym, "o": 1, "src": "yahoo", "bar_quality": "real_ohlc", "bars": bars}
-                if sym in FULL_HISTORY_SYMBOLS:
+                payload = {
+                    "t": sym, "o": 1,
+                    "src": TU_SOURCE if china_index else "yahoo",
+                    "bar_quality": "real_ohlc", "bars": bars,
+                }
+                if china_index:
+                    # TuShare index_daily vol is index-constituent lots (100 shares),
+                    # not entire-exchange market volume. Preserve the basis on disk.
+                    payload.update({
+                        "source_endpoint": "index_daily",
+                        "volume_unit": "shares",
+                        "volume_scope": "index_constituents",
+                    })
+                if sym in FULL_HISTORY_SYMBOLS or china_index:
                     # A multi-decade payload is never exposed half-written to the chart.
                     write_atomic(path, payload)
                     print(f"  ohlc {sym}: {len(bars)} bars ({bars[0][0]} to {bars[-1][0]})")
