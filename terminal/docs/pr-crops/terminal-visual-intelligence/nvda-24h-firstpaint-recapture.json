@@ -1,0 +1,30 @@
+{
+  "schema": "terminal.chart.evidence_recapture.v1",
+  "sourceHead": "6ce81592295e23e0a7625228e779871eff967a1a",
+  "recordedAtUtc": "2026-10-22T18:48:15.626207+00:00",
+  "change": "Withhold 24H partial daytime pending bars during initial chart paint",
+  "scope": "Six real responsive EN/ZH Chart context browser captures on candidate source; earlier 30-test report is retained as historical",
+  "command": "PLAYWRIGHT_JSON_OUTPUT_NAME=docs/pr-crops/terminal-visual-intelligence/nvda-firstpaint-capture-report.json TERMINAL_E2E_PORT=32777 npx playwright test e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --max-failures=1 --grep 'default context explains|Chinese context uses' --reporter=line,json",
+  "sourceFile": "terminal/components/ChartPanel.tsx",
+  "sourceSha256": "5abf19001a671191cc062a2de963767e3dd7141a521fe610594333a249bdb7df",
+  "captures": {
+    "desktop-context.png": "7d91c54740fe00cafb9e0fe8c5dbd21255176df32c713e527db0ab0640cffb97",
+    "desktop-context-zh.png": "9d81265ddcfa58b8ed13116b5d54e46844bd0ead46ca904e2503d01e7af27299",
+    "tablet-context.png": "371cb5a97f7571295ff71c117eb6c7869d180c1a3b72c68551783ce1cf41be23",
+    "tablet-context-zh.png": "83e2284520987798d68f92c1db4bba81d4293ff82d48e9044ec5aedf50d2c4bf",
+    "mobile-context.png": "4bb912458a311faed7e779e24dffda3907ce5af4eec95dbc1a9f21ae3978bbe7",
+    "mobile-context-zh.png": "026a5eec18bd550659368edb3ad69d20dacd542bdd898b16b971d0284a67d087"
+  },
+  "browserReport": "nvda-firstpaint-capture-report.json",
+  "browserReportSha256": "6e51c100e604430f93b2d361bb6805fb01746647e971c2d7412b501da22f05f0",
+  "browserStats": {
+    "startTime": "2026-10-22T18:44:54.652Z",
+    "duration": 123242.99500000001,
+    "expected": 6,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "historicalFullMatrixPreserved": true,
+  "productionProof": false
+}

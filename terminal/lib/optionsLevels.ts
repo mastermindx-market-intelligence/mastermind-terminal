@@ -33,6 +33,20 @@ export type OptLevelKey =
 export interface OptLevel {
   key: OptLevelKey;
   price: number;
+  /**
+   * em_lo/em_hi only (W3S): the published band's own statement, carried verbatim from
+   * `options_hub.moves/v1` so the legend can name the method honestly. `method` is the
+   * fixed marker that the source states no method — the producer's `band_mult` is shown
+   * as the producer's number, never as a stated statistical level of any kind.
+   */
+  band?: EmBandMeta;
+}
+
+export interface EmBandMeta {
+  bandMult: number | null;
+  horizonDays: number | null;
+  asof: string | null;
+  method: "not_stated";
 }
 
 export interface OptLevelsResult {
@@ -41,6 +55,12 @@ export interface OptLevelsResult {
   levels: OptLevel[];
   /** Oldest contributing session date, or null when any contributing lane is undated. */
   asofDate: string | null;
+  /**
+   * Newest contributing session date (null when any contributing lane is undated): the day the
+   * overlay as drawn first existed. Bar Replay hides the overlay on charts rewound before it.
+   * Optional so hand-built empty results (SurfacePane) need not carry it.
+   */
+  newestDate?: string | null;
   /**
    * True when a dealer-SIGNED level (wall or flip) is drawn — the legend's Tier-B
    * "signed estimate" disclosure rides this. An EM-only or abs-gamma-only set is Tier A
@@ -164,6 +184,7 @@ export function deriveOptLevels(
     status: "empty",
     levels: [],
     asofDate: null,
+    newestDate: null,
     signed: false,
     spot: null,
     netGexBn: null,
@@ -206,13 +227,21 @@ export function deriveOptLevels(
 
   // EM band: the published lo/hi at the payload's band_mult — Tier A, and calibrated
   // upstream (moves.calibration). Optional: a missing moves payload drops the band only.
+  // The band's own statement (multiple, horizon, clock) rides on the levels (W3S) so the
+  // legend can show the producer's numbers beside the band.
   const mp = pickRootPayload<MscMoves & { root?: unknown; asof?: unknown }>(movesRaw, root);
   const emLo = posNum(mp?.expected_move?.lo);
   const emHi = posNum(mp?.expected_move?.hi);
   const hasExpectedMove = emLo != null && emHi != null && emLo < emHi;
   if (hasExpectedMove) {
-    levels.push({ key: "em_lo", price: emLo });
-    levels.push({ key: "em_hi", price: emHi });
+    const band: EmBandMeta = {
+      bandMult: isNum(mp?.expected_move?.band_mult) ? mp!.expected_move!.band_mult! : null,
+      horizonDays: isNum(mp?.expected_move?.horizon_days) ? mp!.expected_move!.horizon_days! : null,
+      asof: typeof mp?.asof === "string" && mp.asof ? mp.asof : null,
+      method: "not_stated",
+    };
+    levels.push({ key: "em_lo", price: emLo, band });
+    levels.push({ key: "em_hi", price: emHi, band });
   }
 
   if (!levels.length) return empty;
@@ -239,6 +268,7 @@ export function deriveOptLevels(
     status: "ok",
     levels,
     asofDate: hasUndatedContributor ? null : dates[0] ?? null,
+    newestDate: hasUndatedContributor ? null : dates[dates.length - 1] ?? null,
     signed: levels.some(
       (level) => level.key === "call_wall" || level.key === "put_wall" || level.key === "gamma_flip",
     ),

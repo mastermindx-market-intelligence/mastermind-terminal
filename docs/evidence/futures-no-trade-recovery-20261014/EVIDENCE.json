@@ -1,0 +1,38 @@
+{
+  "schema": "futures.no_trade_recovery_evidence/v1",
+  "recoveredHead": "54bf1bc931832655b7c0ca4de24e26fbab598d11",
+  "sources": {
+    "hub/lib/futuresWorkspaceProjection.js": "bd0a5c3d2687f76d59c51f173c972f26082e0ec0d3c167013e96f5a727d89540",
+    "hub/tests/futuresNoTradeIntervals.test.js": "399d00293876d1310cc874c42d821613d2dcaa583175e99bd6102156f67a0d5b",
+    "hub/tests/futuresReviewArithmetic.test.js": "0a78386ab141f759282b740fe984136555d7df819430e21751848fd42e8608f9",
+    "terminal/lib/futuresWorkspace.ts": "b559db8586feffc0a1baa5cae36ceccc08ae985c4ba303b85a1f4f6913cb974b",
+    "terminal/lib/futuresTransport.ts": "f379b012eac3d0efa22272a7ab35d7e7c34e92a838bec605ba53a13cd5b0ad7b",
+    "terminal/components/futures/FuturesMicrostructureChart.tsx": "efceef7a777483bff53b827bb91cb153d8e346edfaf6e477b747a683d1d70fbc",
+    "terminal/components/futures/FuturesWorkspaceView.tsx": "9e4e5aa17ca395ebb7c48106ef4bf9471335240c219c5acb0779c1ce929b17c5",
+    "terminal/lib/futuresUiCopy.ts": "74bd0b9ede8a09ac71cbf5b38d944dc9f0509314fed3f0902893974c8c798551",
+    "terminal/lib/__tests__/futuresNoTradeWire.test.ts": "28ecdef4135d8ae01026c408235d544de5a046ede304e2570e262cdbb98649e9",
+    "terminal/lib/__tests__/futuresGammaReviewControls.test.ts": "8eb2df2c4d30923f41f5ba4e5dbd98c4e5cb6e792740e85e46cd2e87104fcf02",
+    "terminal/lib/__tests__/futuresPollingReview.test.tsx": "bc10a44741488a8bb06b7c7a9d4018f0ff264f120eb7ea6acc355b0ae2034dd2",
+    "terminal/e2e/futures-no-trades.spec.ts": "e8bac7561fb50b028c7827e577e6f930b055d738e63b5b787c6f2ae429e9873c",
+    "terminal/playwright.futures-no-trades.config.ts": "9135599daf5f91a460b3f7fece00bd2cb84f054f666a2d5f5169a26bf37eefbe"
+  },
+  "screenshots": {
+    "docs/pr-crops/futures-no-trades-20261014/desktop-book_only-depth.png": "6e025ac5fc713aee51d925bc91807c314b28e9424a0447bb0bcb395e6a63b199",
+    "docs/pr-crops/futures-no-trades-20261014/desktop-one_empty_interval-depth.png": "7b30f0bd9935ed5b16a3f90e72bade80d3ea7823aeb4ef328208fa76e7db3a8f",
+    "docs/pr-crops/futures-no-trades-20261014/mobile-book_only-depth.png": "8679769814df8c3585ef01fa9be322240172867fc7e767ede89316c5ab9a510b",
+    "docs/pr-crops/futures-no-trades-20261014/mobile-one_empty_interval-depth.png": "640116f28ad07819fcf149ece6477b5a4bac388c1ace939b9c5d1628bd979e92",
+    "docs/pr-crops/futures-no-trades-20261014/tablet-book_only-depth.png": "551a3e54d61ad298063ebf5b1ed6c287a6edaf0f3fd47111e52a60eada5b6e93",
+    "docs/pr-crops/futures-no-trades-20261014/tablet-one_empty_interval-depth.png": "191845bc01060ff0e385842c54cb1c1f2abed164f086d8fee161ba2aa74c57b7"
+  },
+  "verification": {
+    "hub": 595,
+    "focusedTerminal": 232,
+    "noTradeBrowser": 6,
+    "reviewControls": 10,
+    "typecheckExit": 0,
+    "lintExit": 0
+  },
+  "synthetic": true,
+  "liveSourceActivated": false,
+  "deployed": false
+}

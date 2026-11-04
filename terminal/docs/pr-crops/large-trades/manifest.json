@@ -1,0 +1,1089 @@
+{
+  "schemaVersion": 1,
+  "title": "Large Trades and Absorption: bounded UI evidence",
+  "assembledAtUtc": "2026-10-11T10:13:31.780974+00:00",
+  "source": {
+    "uiCommit": "4d6d81876d245b45adc0df235ab4439944a06b00",
+    "integrationCommit": "28851b8d823ee38516c8902da3c9b3453a95ee7e",
+    "sourceHashes": {
+      "terminal/components/ChartPanel.tsx": "6210ada239f30556ff2ff2be1f1359b173a2d104e8c347d4615d267f6a740938",
+      "terminal/components/IndicatorSettings.tsx": "aaca596377c579748326d93f83ad4d020acfb42cdddfcb84e96d3041eafc5f53",
+      "terminal/components/IndicatorsModal.tsx": "7cf62b612d9a10d10ffaec1c90ac3084bdf169b309b7024d4e05899f9aa2a097",
+      "terminal/lib/indicators.ts": "0f5149c3c29d31c2f9d57d5638123ccd02611c8a8eacafa670f0c5fb8c0aaf72",
+      "terminal/lib/liveBarProjection.ts": "79034ce4354351229b79cacbecbdf65c5fb353c6172252a0224811a0176ce66b",
+      "terminal/components/LargeTradesOverlay.tsx": "3785437d84b9b1d404ddf03280cf6a9ebf367b40746f861238706bd11a1f6b71",
+      "terminal/components/LargeTradesOverlay.module.css": "1d14ddb27af03f0f7407eee5d8ca177714832a6fb85d0b220a84bbc25baf82f1",
+      "terminal/lib/largeTrades/chartProjection.ts": "772352a6969221a3a635415842f74c782321fb50234357ef8d609c3816b48502",
+      "terminal/lib/largeTrades/client.ts": "01ccba2f576668f9a8459cc750fcb0c748a188510675fef620017860decddd05",
+      "terminal/lib/largeTrades/labels.ts": "4f59ae651684728701552c69225fd291aff397c4f3f635d6ce70a38d52a5deb8",
+      "terminal/lib/largeTrades/sourceAdmission.ts": "3ed0038c92a3fcf5973968e4a1e73cda8236151fb5e921d36c191463f1c5c8ff",
+      "terminal/app/api/large-trades/route.ts": "8d4703d776b9da7ca7ca5465fbda7051a812f8b13b58f96d807c7ae6dcde6c77",
+      "terminal/lib/__tests__/largeTradesProjection.test.ts": "5bcabefd60884c38000495e00a4d761eb93324b74cd2fc2dd27539f33e4ebc98",
+      "terminal/lib/__tests__/largeTradesClient.test.ts": "eb96fe9191cf8101119d28afafefb0a985cf1cdd8a7382dc1e43c1c11ebfcfa5",
+      "terminal/lib/__tests__/largeTradesRoute.test.ts": "f90115f7ab85255c3b1e4631f41e65e52095ab8ebc5a88e3144c579569e4132b",
+      "terminal/e2e/large-trades.spec.ts": "a303e240c37dbf758662fb0c042926bb01551e33c96bfaa295c198aa6db5c950",
+      "terminal/e2e/large-trades-historical.spec.ts": "beb7ae35e934298ce18c2eea2ac8c498b17013ee6810979ab53a2c401dcd4ba4",
+      "terminal/lib/__tests__/largeTradesSettings.test.ts": "b772595e9103edac1f382b2cc1cf185d9c9478473204247e45e321d24114417c"
+    },
+    "dependencyHashes": {
+      "terminal/lib/largeTrades/types.ts": "caaf4fbde97518400930a1dd2b90a349534108d2f67680161392e8264e9cebec",
+      "terminal/lib/largeTrades/engine.ts": "1936357255e27951d051f2c8fe93349292c7b12a63c66fed8c9246cbfb898483",
+      "terminal/lib/largeTrades/fixtures.ts": "ed34d800b7d81b7cd7625eb844a3e0a1b4acac18a81e12bd8cea1b502ba1c5c2",
+      "terminal/lib/i18n.tsx": "cfad0a8290b9b872fe919b7b9855bbd3a4cee095eb26ebd902c399942196a65d"
+    },
+    "verifiedAgainstWorkingTreeAndBothCommits": true,
+    "sharedI18nExactBase": "fc76cf495781e5f53254aa3c457411de0cb64654",
+    "settingsOnlyFilesChangedAfterResponsiveCaptures": [
+      "terminal/components/IndicatorSettings.tsx",
+      "terminal/lib/indicators.ts",
+      "terminal/e2e/large-trades.spec.ts",
+      "terminal/lib/__tests__/largeTradesSettings.test.ts"
+    ]
+  },
+  "appearance": "Terminal supports dark appearance; EN and ZH are language variants, not theme variants.",
+  "viewports": {
+    "desktop": {
+      "width": 1440,
+      "height": 900
+    },
+    "tablet": {
+      "width": 820,
+      "height": 1180
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  "verificationSequence": [
+    {
+      "id": "baseline-full-24",
+      "startedAtUtc": "2026-10-11T09:44:47.326867+00:00",
+      "completedAtUtc": "2026-10-11T09:48:52.778313+00:00",
+      "exitCode": 0,
+      "passedJourneys": 24,
+      "sourceUnchangedDuringRun": true,
+      "sourceHashes": {
+        "terminal/components/ChartPanel.tsx": "6210ada239f30556ff2ff2be1f1359b173a2d104e8c347d4615d267f6a740938",
+        "terminal/components/IndicatorSettings.tsx": "ea04fa1ae7216683ee8eb81b0b993b06241ab3680638fce828944795679c12f5",
+        "terminal/components/IndicatorsModal.tsx": "7cf62b612d9a10d10ffaec1c90ac3084bdf169b309b7024d4e05899f9aa2a097",
+        "terminal/lib/indicators.ts": "7e4b8b28977eed555eef51b952680a9215379dcf0da247fe883f4e120c0f61d6",
+        "terminal/lib/liveBarProjection.ts": "79034ce4354351229b79cacbecbdf65c5fb353c6172252a0224811a0176ce66b",
+        "terminal/components/LargeTradesOverlay.tsx": "3785437d84b9b1d404ddf03280cf6a9ebf367b40746f861238706bd11a1f6b71",
+        "terminal/components/LargeTradesOverlay.module.css": "0c61b02bbc561914ed725780210f293f05e7abdf36f235329f8223974e3e838e",
+        "terminal/lib/largeTrades/chartProjection.ts": "772352a6969221a3a635415842f74c782321fb50234357ef8d609c3816b48502",
+        "terminal/lib/largeTrades/client.ts": "01ccba2f576668f9a8459cc750fcb0c748a188510675fef620017860decddd05",
+        "terminal/lib/largeTrades/labels.ts": "4f59ae651684728701552c69225fd291aff397c4f3f635d6ce70a38d52a5deb8",
+        "terminal/lib/largeTrades/sourceAdmission.ts": "3ed0038c92a3fcf5973968e4a1e73cda8236151fb5e921d36c191463f1c5c8ff",
+        "terminal/app/api/large-trades/route.ts": "8d4703d776b9da7ca7ca5465fbda7051a812f8b13b58f96d807c7ae6dcde6c77",
+        "terminal/lib/__tests__/largeTradesProjection.test.ts": "5bcabefd60884c38000495e00a4d761eb93324b74cd2fc2dd27539f33e4ebc98",
+        "terminal/lib/__tests__/largeTradesClient.test.ts": "eb96fe9191cf8101119d28afafefb0a985cf1cdd8a7382dc1e43c1c11ebfcfa5",
+        "terminal/lib/__tests__/largeTradesRoute.test.ts": "f90115f7ab85255c3b1e4631f41e65e52095ab8ebc5a88e3144c579569e4132b",
+        "terminal/e2e/large-trades.spec.ts": "00d257d682f5ce094c870cd68fa7d0be67a3238b45e1ce7a1558a10210e53ef1",
+        "terminal/e2e/large-trades-historical.spec.ts": "387215205a28dadea24257f73de1d235f10e3858182b082e11241604783b0df5"
+      },
+      "dependencyHashes": {
+        "terminal/lib/largeTrades/types.ts": "caaf4fbde97518400930a1dd2b90a349534108d2f67680161392e8264e9cebec",
+        "terminal/lib/largeTrades/engine.ts": "1936357255e27951d051f2c8fe93349292c7b12a63c66fed8c9246cbfb898483",
+        "terminal/lib/largeTrades/fixtures.ts": "ed34d800b7d81b7cd7625eb844a3e0a1b4acac18a81e12bd8cea1b502ba1c5c2",
+        "terminal/lib/i18n.tsx": "cfad0a8290b9b872fe919b7b9855bbd3a4cee095eb26ebd902c399942196a65d"
+      },
+      "testSelector": "e2e/large-trades",
+      "log": "baseline-24.log",
+      "meaning": "Full then-current matrix: 21 deterministic fixture journeys and three historical transport journeys. Superseded historical v2 screenshots are excluded from this packet.",
+      "historicalEnvelopeRevision": "v2, superseded",
+      "historicalEnvelopeSha256": "cbb1708679a0f05f1d12f65888c13c69df57dc217254e2b7442c36be08986fa5"
+    },
+    {
+      "id": "responsive-inspection-six",
+      "startedAtUtc": "2026-10-11T09:52:00.431840+00:00",
+      "completedAtUtc": "2026-10-11T09:52:45.738524+00:00",
+      "exitCode": 0,
+      "passedJourneys": 6,
+      "sourceUnchangedDuringRun": true,
+      "sourceHashes": {
+        "terminal/components/ChartPanel.tsx": "6210ada239f30556ff2ff2be1f1359b173a2d104e8c347d4615d267f6a740938",
+        "terminal/components/IndicatorSettings.tsx": "ea04fa1ae7216683ee8eb81b0b993b06241ab3680638fce828944795679c12f5",
+        "terminal/components/IndicatorsModal.tsx": "7cf62b612d9a10d10ffaec1c90ac3084bdf169b309b7024d4e05899f9aa2a097",
+        "terminal/lib/indicators.ts": "7e4b8b28977eed555eef51b952680a9215379dcf0da247fe883f4e120c0f61d6",
+        "terminal/lib/liveBarProjection.ts": "79034ce4354351229b79cacbecbdf65c5fb353c6172252a0224811a0176ce66b",
+        "terminal/components/LargeTradesOverlay.tsx": "3785437d84b9b1d404ddf03280cf6a9ebf367b40746f861238706bd11a1f6b71",
+        "terminal/components/LargeTradesOverlay.module.css": "1d14ddb27af03f0f7407eee5d8ca177714832a6fb85d0b220a84bbc25baf82f1",
+        "terminal/lib/largeTrades/chartProjection.ts": "772352a6969221a3a635415842f74c782321fb50234357ef8d609c3816b48502",
+        "terminal/lib/largeTrades/client.ts": "01ccba2f576668f9a8459cc750fcb0c748a188510675fef620017860decddd05",
+        "terminal/lib/largeTrades/labels.ts": "4f59ae651684728701552c69225fd291aff397c4f3f635d6ce70a38d52a5deb8",
+        "terminal/lib/largeTrades/sourceAdmission.ts": "3ed0038c92a3fcf5973968e4a1e73cda8236151fb5e921d36c191463f1c5c8ff",
+        "terminal/app/api/large-trades/route.ts": "8d4703d776b9da7ca7ca5465fbda7051a812f8b13b58f96d807c7ae6dcde6c77",
+        "terminal/lib/__tests__/largeTradesProjection.test.ts": "5bcabefd60884c38000495e00a4d761eb93324b74cd2fc2dd27539f33e4ebc98",
+        "terminal/lib/__tests__/largeTradesClient.test.ts": "eb96fe9191cf8101119d28afafefb0a985cf1cdd8a7382dc1e43c1c11ebfcfa5",
+        "terminal/lib/__tests__/largeTradesRoute.test.ts": "f90115f7ab85255c3b1e4631f41e65e52095ab8ebc5a88e3144c579569e4132b",
+        "terminal/e2e/large-trades.spec.ts": "baddef3ba953f9f376d1ff8a80358f06dd848cfba74fe08c3f06ebf8e9196198",
+        "terminal/e2e/large-trades-historical.spec.ts": "beb7ae35e934298ce18c2eea2ac8c498b17013ee6810979ab53a2c401dcd4ba4"
+      },
+      "dependencyHashes": {
+        "terminal/lib/largeTrades/types.ts": "caaf4fbde97518400930a1dd2b90a349534108d2f67680161392e8264e9cebec",
+        "terminal/lib/largeTrades/engine.ts": "1936357255e27951d051f2c8fe93349292c7b12a63c66fed8c9246cbfb898483",
+        "terminal/lib/largeTrades/fixtures.ts": "ed34d800b7d81b7cd7625eb844a3e0a1b4acac18a81e12bd8cea1b502ba1c5c2",
+        "terminal/lib/i18n.tsx": "cfad0a8290b9b872fe919b7b9855bbd3a4cee095eb26ebd902c399942196a65d"
+      },
+      "testSelector": "e2e/large-trades.spec.ts --grep \"exact executions, reports and responsive inspection\"",
+      "log": "responsive-six.log",
+      "meaning": "EN/ZH inspection at all three viewports after scoped stacking and sticky Close refinement. These 21 final visual fixture images predate the subsequent settings normalization."
+    },
+    {
+      "id": "final-settings-and-v4-nine",
+      "startedAtUtc": "2026-10-11T09:59:20.644967+00:00",
+      "completedAtUtc": "2026-10-11T10:01:54.984969+00:00",
+      "exitCode": 0,
+      "passedJourneys": 9,
+      "sourceUnchangedDuringRun": true,
+      "sourceHashes": {
+        "terminal/components/ChartPanel.tsx": "6210ada239f30556ff2ff2be1f1359b173a2d104e8c347d4615d267f6a740938",
+        "terminal/components/IndicatorSettings.tsx": "aaca596377c579748326d93f83ad4d020acfb42cdddfcb84e96d3041eafc5f53",
+        "terminal/components/IndicatorsModal.tsx": "7cf62b612d9a10d10ffaec1c90ac3084bdf169b309b7024d4e05899f9aa2a097",
+        "terminal/lib/indicators.ts": "0f5149c3c29d31c2f9d57d5638123ccd02611c8a8eacafa670f0c5fb8c0aaf72",
+        "terminal/lib/liveBarProjection.ts": "79034ce4354351229b79cacbecbdf65c5fb353c6172252a0224811a0176ce66b",
+        "terminal/components/LargeTradesOverlay.tsx": "3785437d84b9b1d404ddf03280cf6a9ebf367b40746f861238706bd11a1f6b71",
+        "terminal/components/LargeTradesOverlay.module.css": "1d14ddb27af03f0f7407eee5d8ca177714832a6fb85d0b220a84bbc25baf82f1",
+        "terminal/lib/largeTrades/chartProjection.ts": "772352a6969221a3a635415842f74c782321fb50234357ef8d609c3816b48502",
+        "terminal/lib/largeTrades/client.ts": "01ccba2f576668f9a8459cc750fcb0c748a188510675fef620017860decddd05",
+        "terminal/lib/largeTrades/labels.ts": "4f59ae651684728701552c69225fd291aff397c4f3f635d6ce70a38d52a5deb8",
+        "terminal/lib/largeTrades/sourceAdmission.ts": "3ed0038c92a3fcf5973968e4a1e73cda8236151fb5e921d36c191463f1c5c8ff",
+        "terminal/app/api/large-trades/route.ts": "8d4703d776b9da7ca7ca5465fbda7051a812f8b13b58f96d807c7ae6dcde6c77",
+        "terminal/lib/__tests__/largeTradesProjection.test.ts": "5bcabefd60884c38000495e00a4d761eb93324b74cd2fc2dd27539f33e4ebc98",
+        "terminal/lib/__tests__/largeTradesClient.test.ts": "eb96fe9191cf8101119d28afafefb0a985cf1cdd8a7382dc1e43c1c11ebfcfa5",
+        "terminal/lib/__tests__/largeTradesRoute.test.ts": "f90115f7ab85255c3b1e4631f41e65e52095ab8ebc5a88e3144c579569e4132b",
+        "terminal/e2e/large-trades.spec.ts": "a303e240c37dbf758662fb0c042926bb01551e33c96bfaa295c198aa6db5c950",
+        "terminal/e2e/large-trades-historical.spec.ts": "beb7ae35e934298ce18c2eea2ac8c498b17013ee6810979ab53a2c401dcd4ba4",
+        "terminal/lib/__tests__/largeTradesSettings.test.ts": "b772595e9103edac1f382b2cc1cf185d9c9478473204247e45e321d24114417c"
+      },
+      "dependencyHashes": {
+        "terminal/lib/largeTrades/types.ts": "caaf4fbde97518400930a1dd2b90a349534108d2f67680161392e8264e9cebec",
+        "terminal/lib/largeTrades/engine.ts": "1936357255e27951d051f2c8fe93349292c7b12a63c66fed8c9246cbfb898483",
+        "terminal/lib/largeTrades/fixtures.ts": "ed34d800b7d81b7cd7625eb844a3e0a1b4acac18a81e12bd8cea1b502ba1c5c2",
+        "terminal/lib/i18n.tsx": "cfad0a8290b9b872fe919b7b9855bbd3a4cee095eb26ebd902c399942196a65d"
+      },
+      "testSelector": "e2e/large-trades --grep \"settings cap|settings normalize|decoded IEX archive\"",
+      "log": "settings-and-v4-nine.log",
+      "meaning": "Six settings journeys plus three reviewed-v4 historical journeys on the final committed UI bytes.",
+      "historicalEnvelopeRevision": "v4, reviewed",
+      "historicalEnvelopeSha256": "015eab741c6bc40ef9931a4683584cdafee9eedfffc299e75824b1560cccd2b9"
+    }
+  ],
+  "countingRule": "Runs are sequential verification stages. Repeated journeys must not be added to claim a larger unique test matrix.",
+  "unitVerification": {
+    "command": "./node_modules/.bin/vitest run lib/__tests__/largeTradesProjection.test.ts lib/__tests__/largeTradesClient.test.ts lib/__tests__/largeTradesRoute.test.ts lib/__tests__/largeTradesSettings.test.ts lib/__tests__/indicatorUpDownColors.test.ts",
+    "exitCode": 0,
+    "passedTests": 121,
+    "passedFiles": 5,
+    "featureTests": 111,
+    "existingIndicatorTests": 10,
+    "log": "ui-focused-tests.log"
+  },
+  "typecheck": {
+    "command": "./node_modules/.bin/tsc --noEmit",
+    "exitCode": 0,
+    "log": "typecheck.log"
+  },
+  "reproduction": {
+    "workingDirectory": "terminal/",
+    "server": "A local dev server using the existing playwright.config.ts explicit non-production E2E environment.",
+    "commandsAre": "Reproduction templates with caller-owned artifact and output locations; run-stage logs record the original outcomes.",
+    "baseline": "TERMINAL_E2E_PORT=3117 MMX_LARGE_TRADES_RESEARCH_ARTIFACT=<then-current-reviewed-artifact> ./node_modules/.bin/playwright test e2e/large-trades --workers=1 --output=<owned-output>",
+    "responsive": "TERMINAL_E2E_PORT=3117 ./node_modules/.bin/playwright test e2e/large-trades.spec.ts --grep \"exact executions, reports and responsive inspection\" --workers=1 --reporter=line --output=<owned-output>",
+    "finalSettingsAndHistorical": "TERMINAL_E2E_PORT=3117 MMX_LARGE_TRADES_RESEARCH_ARTIFACT=<reviewed-v4-NVDA-envelope> ./node_modules/.bin/playwright test e2e/large-trades --grep \"settings cap|settings normalize|decoded IEX archive\" --workers=1 --reporter=line --output=<owned-output>",
+    "supplementalManual": "node <owned-capture-helper.mjs> <terminal-app-directory> <reviewed-v4-NVDA-envelope> <owned-output>"
+  },
+  "historicalSource": {
+    "envelopeSha256": "015eab741c6bc40ef9931a4683584cdafee9eedfffc299e75824b1560cccd2b9",
+    "provenance": {
+      "provider": "IEX",
+      "dataset": "HIST DEEP+ 1.0",
+      "venue": "IEX",
+      "scope": "venue",
+      "coverage": "partial",
+      "dataMode": "historical",
+      "evidenceMode": "HISTORICAL_REPLAY",
+      "sourceSha256": "2e41ba84c2a24ccd541d079c2bb05a6da38e988790d8e97a19c1527b1195b0dd",
+      "attribution": "Data provided for free by IEX. By accessing or using IEX Historical Data, you agree to the IEX Historical Data Terms of Use.",
+      "termsUrl": "https://www.iex.io/legal/hist-data-terms",
+      "receiptBasis": "archive_acquisition",
+      "acquiredAtNs": "1791353317000000000",
+      "generatedAtNs": "1791712347072532000",
+      "delayMs": null,
+      "sequenceGaps": 0,
+      "sourceRef": "https://www.googleapis.com/download/storage/v1/b/iex/o/data%2Ffeeds%2F20261005%2F20261005_IEXTP1_DPLS1.0.pcap.gz?generation=1791255403745129&alt=media"
+    },
+    "instrument": {
+      "symbol": "NVDA",
+      "instrumentId": "IEX:NVDA",
+      "assetClass": "equity",
+      "quantityUnit": "shares",
+      "timezone": "America/New_York"
+    },
+    "sessionDate": "2026-10-05",
+    "capturedTradeReports": 408,
+    "eligibleCapturedShares": 37667,
+    "defaultMinimumExecutedShares": 100,
+    "defaultRetainedClusters": 153,
+    "defaultShownShares": 34704,
+    "availability": "Later-acquired historical reconstruction; original decision-time availability is not established.",
+    "response": "Qualified response data unavailable; absorption not established.",
+    "transport": "Explicit same-origin browser interception of the exact reviewed v4 envelope. Coordinate OHLC bars derive from the same partial IEX executions with no gap filling.",
+    "surroundingUi": "Header, watchlist and other unrelated page context use Terminal E2E fixtures. Their prices and status do not establish a coherent historical market page.",
+    "publicationClaim": false,
+    "range": {
+      "endNs": "1791207038243197233",
+      "startNs": "1791203397605792370"
+    }
+  },
+  "supplementalManualJourney": {
+    "startedAtUtc": "2026-10-11T10:07:57.571Z",
+    "completedAtUtc": "2026-10-11T10:08:17.107Z",
+    "exitCode": 0,
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "artifactSha256": "015eab741c6bc40ef9931a4683584cdafee9eedfffc299e75824b1560cccd2b9",
+    "sourceSha256": "2e41ba84c2a24ccd541d079c2bb05a6da38e988790d8e97a19c1527b1195b0dd",
+    "baselineMarkerCount": 153,
+    "selectedMarkerCount": 3,
+    "selectedQuantity": "1,200",
+    "selectedReportCount": "4",
+    "savedParams": {
+      "minQuantity": 1000,
+      "aggregate": true,
+      "maxGapMs": 250,
+      "maxSpanTicks": 2,
+      "maxDurationMs": 1000,
+      "adaptive": false,
+      "percentile": 95,
+      "baselineCount": 500,
+      "minBaseline": 30,
+      "responseWindowMs": 30000,
+      "maxResponseTicks": 2,
+      "reversalTicks": 2,
+      "showLabels": true,
+      "maxMarkers": 250,
+      "_vis": {
+        "days": {
+          "on": true,
+          "min": 1,
+          "max": 366
+        },
+        "weeks": {
+          "on": true,
+          "min": 1,
+          "max": 52
+        },
+        "months": {
+          "on": true,
+          "min": 1,
+          "max": 12
+        }
+      }
+    },
+    "dataMode": "historical",
+    "sourceScope": "IEX venue only, partial archive",
+    "transport": "Explicit same-origin browser interception on the reviewed v4 bytes; chart-coordinate bars derive from the same executions.",
+    "controlAction": "Minimum executed quantity changed from 100 to 1000 using the existing Settings input.",
+    "interpretation": "Manual display filter; 1000 is not calibrated or recommended as a trading threshold.",
+    "id": "manual-minimum-1000-desktop",
+    "passedJourneys": 1,
+    "sourceUiCommit": "4d6d81876d245b45adc0df235ab4439944a06b00",
+    "sourceIntegrationCommit": "28851b8d823ee38516c8902da3c9b3453a95ee7e",
+    "helperSha256": "c5b13f03a3ae887bd9a52ec95d54f4bd7c2dfb2e051e8070ba9ed8dbafa150df",
+    "sourceChange": "none; actual Settings UI action only",
+    "retainedClusters": [
+      {
+        "executedShares": 1200,
+        "tradeReports": 4,
+        "sideEvidence": "unknown"
+      },
+      {
+        "executedShares": 1100,
+        "tradeReports": 5,
+        "sideEvidence": "unknown"
+      },
+      {
+        "executedShares": 1200,
+        "tradeReports": 6,
+        "sideEvidence": "unknown"
+      }
+    ],
+    "distinctOrderCount": null,
+    "selectedQuantityUnit": "shares",
+    "captures": [
+      "iex-v4-desktop-min1000-chart.png",
+      "iex-v4-desktop-min1000-inspector.png"
+    ]
+  },
+  "boundaries": {
+    "fixture": "Synthetic deterministic execution records; the 1,301-share marker is 500 + 501 + 300 shares in three reports. Distinct order count is unavailable. Coordinate candles do not supply marker quantities.",
+    "historical": "Real executed prints from the reviewed IEX archive, limited to the captured venue and partial archive. The browser transport is intercepted for this verification.",
+    "production": "This packet does not prove authenticated production serving, ordinary artifact publication, deployment or production browser behavior.",
+    "crowding": "The 100-share default view preserves label overlap as a stress case. The supplemental 1,000-share filter yields three clusters; it is not a calibrated trading recommendation.",
+    "nativeChartPngExport": "The existing native chart Snapshot PNG/share exporter omits this HTML marker/dock layer. These PNGs are browser captures.",
+    "visualReference": "The original Skylit ZIP/screenshots were unavailable during implementation, so exact screenshot parity remains unproven."
+  },
+  "visualReview": {
+    "reviewerRole": "implementation worker, with independent representative historical review by the integration owner",
+    "reviewedRepresentatives": [
+      "fixture-en-desktop-chart.png",
+      "fixture-en-desktop-inspector.png",
+      "fixture-en-mobile-inspector.png",
+      "fixture-en-mobile-reports.png",
+      "fixture-zh-mobile-inspector.png",
+      "iex-v4-desktop-min100-chart.png",
+      "iex-v4-desktop-min100-inspector.png",
+      "iex-v4-desktop-min100-evidence.png",
+      "iex-v4-mobile-min100-chart.png",
+      "iex-v4-mobile-min100-inspector.png",
+      "iex-v4-mobile-min100-evidence.png",
+      "iex-v4-desktop-min1000-chart.png",
+      "iex-v4-desktop-min1000-inspector.png"
+    ],
+    "outcome": "Inspectors show quantity/report/order distinctions and historical provenance. Phone Close remains reachable after scrolling. Default historical marker density visibly overlaps; manual 1,000-share view is clearer."
+  },
+  "imageCount": 32,
+  "images": [
+    {
+      "file": "fixture-en-desktop-chart.png",
+      "sha256": "e66b846123df3aa2d388372491c57035754941e6c151651fab52b081064479d6",
+      "bytes": 224591,
+      "stage": "responsive-inspection-six",
+      "viewport": "desktop",
+      "pixels": {
+        "width": 1440,
+        "height": 900
+      },
+      "language": "en",
+      "appearance": "dark",
+      "view": "chart",
+      "dataMode": "fixture",
+      "minimumExecutedQuantity": 100,
+      "captureWindowUtc": {
+        "startedAt": "2026-10-11T09:52:00.431840+00:00",
+        "completedAt": "2026-10-11T09:52:45.738524+00:00"
+      },
+      "pngWrittenAtUtc": "2026-10-11T09:52:18.136403+00:00",
+      "captureTimeEvidence": "original PNG filesystem modification time, bounded by the recorded test run"
+    },
+    {
+      "file": "fixture-en-desktop-inspector.png",
+      "sha256": "61ed792f5070df277d2e65317c650fae6a5a25c6d895da0389e23c2b31b0d30c",
+      "bytes": 280060,
+      "stage": "responsive-inspection-six",
+      "viewport": "desktop",
+      "pixels": {
+        "width": 1440,
+        "height": 900
+      },
+      "language": "en",
+      "appearance": "dark",
+      "view": "inspector",
+      "dataMode": "fixture",
+      "minimumExecutedQuantity": 100,
+      "captureWindowUtc": {
+        "startedAt": "2026-10-11T09:52:00.431840+00:00",
+        "completedAt": "2026-10-11T09:52:45.738524+00:00"
+      },
+      "pngWrittenAtUtc": "2026-10-11T09:52:19.440935+00:00",
+      "captureTimeEvidence": "original PNG filesystem modification time, bounded by the recorded test run"
+    },
+    {
+      "file": "fixture-en-desktop-reports.png",
+      "sha256": "ee48fd55ee0c6575e25b6e11dc6c5ef2ba358bbf218e2522c21f6448f3619754",
+      "bytes": 278451,
+      "stage": "responsive-inspection-six",
+      "viewport": "desktop",
+      "pixels": {
+        "width": 1440,
+        "height": 900
+      },
+      "language": "en",
+      "appearance": "dark",
+      "view": "reports",
+      "dataMode": "fixture",
+      "minimumExecutedQuantity": 100,
+      "captureWindowUtc": {
+        "startedAt": "2026-10-11T09:52:00.431840+00:00",
+        "completedAt": "2026-10-11T09:52:45.738524+00:00"
+      },
+      "pngWrittenAtUtc": "2026-10-11T09:52:19.701285+00:00",
+      "captureTimeEvidence": "original PNG filesystem modification time, bounded by the recorded test run"
+    },
+    {
+      "file": "fixture-en-desktop-selling-continued.png",
+      "sha256": "dff122e8b2d2d26ff2c946ac03ea9986ed0e13e6bb22bf07c4d0df08d1fa925e",
+      "bytes": 279278,
+      "stage": "responsive-inspection-six",
+      "viewport": "desktop",
+      "pixels": {
+        "width": 1440,
+        "height": 900
+      },
+      "language": "en",
+      "appearance": "dark",
+      "view": "selling-continued",
+      "dataMode": "fixture",
+      "minimumExecutedQuantity": 100,
+      "captureWindowUtc": {
+        "startedAt": "2026-10-11T09:52:00.431840+00:00",
+        "completedAt": "2026-10-11T09:52:45.738524+00:00"
+      },
+      "pngWrittenAtUtc": "2026-10-11T09:52:19.959070+00:00",
+      "captureTimeEvidence": "original PNG filesystem modification time, bounded by the recorded test run"
+    },
+    {
+      "file": "fixture-en-mobile-chart.png",
+      "sha256": "5abc59c08df6d2c414e9b2a5791b0ccf745a132310fdc6168f1d269f74187949",
+      "bytes": 95841,
+      "stage": "responsive-inspection-six",
+      "viewport": "mobile",
+      "pixels": {
+        "width": 390,
+        "height": 844
+      },
+      "language": "en",
+      "appearance": "dark",
+      "view": "chart",
+      "dataMode": "fixture",
+      "minimumExecutedQuantity": 100,
+      "captureWindowUtc": {
+        "startedAt": "2026-10-11T09:52:00.431840+00:00",
+        "completedAt": "2026-10-11T09:52:45.738524+00:00"
+      },
+      "pngWrittenAtUtc": "2026-10-11T09:52:40.735961+00:00",
+      "captureTimeEvidence": "original PNG filesystem modification time, bounded by the recorded test run"
+    },
+    {
+      "file": "fixture-en-mobile-inspector.png",
+      "sha256": "55479b85993eed055bb9134bc80cd0c0535629af95266f423bc412dacc382408",
+      "bytes": 95450,
+      "stage": "responsive-inspection-six",
+      "viewport": "mobile",
+      "pixels": {
+        "width": 390,
+        "height": 844
+      },
+      "language": "en",
+      "appearance": "dark",
+      "view": "inspector",
+      "dataMode": "fixture",
+      "minimumExecutedQuantity": 100,
+      "captureWindowUtc": {
+        "startedAt": "2026-10-11T09:52:00.431840+00:00",
+        "completedAt": "2026-10-11T09:52:45.738524+00:00"
+      },
+      "pngWrittenAtUtc": "2026-10-11T09:52:41.016772+00:00",
+      "captureTimeEvidence": "original PNG filesystem modification time, bounded by the recorded test run"
+    },
+    {
+      "file": "fixture-en-mobile-reports.png",
+      "sha256": "126e277807778717d99bdbe163a63a8e3674632974c9270f60d4534d76745f79",
+      "bytes": 90386,
+      "stage": "responsive-inspection-six",
+      "viewport": "mobile",
+      "pixels": {
+        "width": 390,
+        "height": 844
+      },
+      "language": "en",
+      "appearance": "dark",
+      "view": "reports",
+      "dataMode": "fixture",
+      "minimumExecutedQuantity": 100,
+      "captureWindowUtc": {
+        "startedAt": "2026-10-11T09:52:00.431840+00:00",
+        "completedAt": "2026-10-11T09:52:45.738524+00:00"
+      },
+      "pngWrittenAtUtc": "2026-10-11T09:52:41.333241+00:00",
+      "captureTimeEvidence": "original PNG filesystem modification time, bounded by the recorded test run"
+    },
+    {
+      "file": "fixture-en-mobile-selling-continued.png",
+      "sha256": "b167f4966ec49cb473798ceaafb8030952e564ecb53bcb4e17fd1b0d4ef16e37",
+      "bytes": 95923,
+      "stage": "responsive-inspection-six",
+      "viewport": "mobile",
+      "pixels": {
+        "width": 390,
+        "height": 844
+      },
+      "language": "en",
+      "appearance": "dark",
+      "view": "selling-continued",
+      "dataMode": "fixture",
+      "minimumExecutedQuantity": 100,
+      "captureWindowUtc": {
+        "startedAt": "2026-10-11T09:52:00.431840+00:00",
+        "completedAt": "2026-10-11T09:52:45.738524+00:00"
+      },
+      "pngWrittenAtUtc": "2026-10-11T09:52:41.698630+00:00",
+      "captureTimeEvidence": "original PNG filesystem modification time, bounded by the recorded test run"
+    },
+    {
+      "file": "fixture-en-tablet-chart.png",
+      "sha256": "621616bf3804fd1fb34826695a6f84e8c2bee50b89526b65f7bce26e2d562451",
+      "bytes": 162153,
+      "stage": "responsive-inspection-six",
+      "viewport": "tablet",
+      "pixels": {
+        "width": 820,
+        "height": 1180
+      },
+      "language": "en",
+      "appearance": "dark",
+      "view": "chart",
+      "dataMode": "fixture",
+      "minimumExecutedQuantity": 100,
+      "captureWindowUtc": {
+        "startedAt": "2026-10-11T09:52:00.431840+00:00",
+        "completedAt": "2026-10-11T09:52:45.738524+00:00"
+      },
+      "pngWrittenAtUtc": "2026-10-11T09:52:29.872925+00:00",
+      "captureTimeEvidence": "original PNG filesystem modification time, bounded by the recorded test run"
+    },
+    {
+      "file": "fixture-en-tablet-inspector.png",
+      "sha256": "8e03fd2adf263e790495a392f2164acb6c3029cef6e9a3ea97f2be1963cc4b16",
+      "bytes": 188585,
+      "stage": "responsive-inspection-six",
+      "viewport": "tablet",
+      "pixels": {
+        "width": 820,
+        "height": 1180
+      },
+      "language": "en",
+      "appearance": "dark",
+      "view": "inspector",
+      "dataMode": "fixture",
+      "minimumExecutedQuantity": 100,
+      "captureWindowUtc": {
+        "startedAt": "2026-10-11T09:52:00.431840+00:00",
+        "completedAt": "2026-10-11T09:52:45.738524+00:00"
+      },
+      "pngWrittenAtUtc": "2026-10-11T09:52:30.115125+00:00",
+      "captureTimeEvidence": "original PNG filesystem modification time, bounded by the recorded test run"
+    },
+    {
+      "file": "fixture-en-tablet-reports.png",
+      "sha256": "aaa3c3c47d411d18bdab2b290b3fefc2b5a4f580a0149c6b41719be05d54cb90",
+      "bytes": 174375,
+      "stage": "responsive-inspection-six",
+      "viewport": "tablet",
+      "pixels": {
+        "width": 820,
+        "height": 1180
+      },
+      "language": "en",
+      "appearance": "dark",
+      "view": "reports",
+      "dataMode": "fixture",
+      "minimumExecutedQuantity": 100,
+      "captureWindowUtc": {
+        "startedAt": "2026-10-11T09:52:00.431840+00:00",
+        "completedAt": "2026-10-11T09:52:45.738524+00:00"
+      },
+      "pngWrittenAtUtc": "2026-10-11T09:52:30.320174+00:00",
+      "captureTimeEvidence": "original PNG filesystem modification time, bounded by the recorded test run"
+    },
+    {
+      "file": "fixture-en-tablet-selling-continued.png",
+      "sha256": "63d4fddd2454d8d754f7cdc36ea75036d1f9ab3e4a667a0d30a40f1c166742cc",
+      "bytes": 191245,
+      "stage": "responsive-inspection-six",
+      "viewport": "tablet",
+      "pixels": {
+        "width": 820,
+        "height": 1180
+      },
+      "language": "en",
+      "appearance": "dark",
+      "view": "selling-continued",
+      "dataMode": "fixture",
+      "minimumExecutedQuantity": 100,
+      "captureWindowUtc": {
+        "startedAt": "2026-10-11T09:52:00.431840+00:00",
+        "completedAt": "2026-10-11T09:52:45.738524+00:00"
+      },
+      "pngWrittenAtUtc": "2026-10-11T09:52:30.537483+00:00",
+      "captureTimeEvidence": "original PNG filesystem modification time, bounded by the recorded test run"
+    },
+    {
+      "file": "fixture-zh-desktop-chart.png",
+      "sha256": "97414e552e66f5c685700d58f05aa3748d300312ac01f1ab5748f01aa8640b3e",
+      "bytes": 230951,
+      "stage": "responsive-inspection-six",
+      "viewport": "desktop",
+      "pixels": {
+        "width": 1440,
+        "height": 900
+      },
+      "language": "zh",
+      "appearance": "dark",
+      "view": "chart",
+      "dataMode": "fixture",
+      "minimumExecutedQuantity": 100,
+      "captureWindowUtc": {
+        "startedAt": "2026-10-11T09:52:00.431840+00:00",
+        "completedAt": "2026-10-11T09:52:45.738524+00:00"
+      },
+      "pngWrittenAtUtc": "2026-10-11T09:52:23.837025+00:00",
+      "captureTimeEvidence": "original PNG filesystem modification time, bounded by the recorded test run"
+    },
+    {
+      "file": "fixture-zh-desktop-inspector.png",
+      "sha256": "21fececaaa1ef77537efc1cf278ee2e4445d3ce0c96c926d1c450dfa63b0ae2a",
+      "bytes": 281488,
+      "stage": "responsive-inspection-six",
+      "viewport": "desktop",
+      "pixels": {
+        "width": 1440,
+        "height": 900
+      },
+      "language": "zh",
+      "appearance": "dark",
+      "view": "inspector",
+      "dataMode": "fixture",
+      "minimumExecutedQuantity": 100,
+      "captureWindowUtc": {
+        "startedAt": "2026-10-11T09:52:00.431840+00:00",
+        "completedAt": "2026-10-11T09:52:45.738524+00:00"
+      },
+      "pngWrittenAtUtc": "2026-10-11T09:52:24.181045+00:00",
+      "captureTimeEvidence": "original PNG filesystem modification time, bounded by the recorded test run"
+    },
+    {
+      "file": "fixture-zh-desktop-reports.png",
+      "sha256": "bbd3d688cf2a07b9c8f70f4f4b23dd9e4c1f007db93f56d4478cfdd42b065ec9",
+      "bytes": 282185,
+      "stage": "responsive-inspection-six",
+      "viewport": "desktop",
+      "pixels": {
+        "width": 1440,
+        "height": 900
+      },
+      "language": "zh",
+      "appearance": "dark",
+      "view": "reports",
+      "dataMode": "fixture",
+      "minimumExecutedQuantity": 100,
+      "captureWindowUtc": {
+        "startedAt": "2026-10-11T09:52:00.431840+00:00",
+        "completedAt": "2026-10-11T09:52:45.738524+00:00"
+      },
+      "pngWrittenAtUtc": "2026-10-11T09:52:24.864642+00:00",
+      "captureTimeEvidence": "original PNG filesystem modification time, bounded by the recorded test run"
+    },
+    {
+      "file": "fixture-zh-mobile-chart.png",
+      "sha256": "11cc53a94816ce133afc05d5a7f2f546e2ac3516527f5af131ca9c4f5c435eec",
+      "bytes": 94602,
+      "stage": "responsive-inspection-six",
+      "viewport": "mobile",
+      "pixels": {
+        "width": 390,
+        "height": 844
+      },
+      "language": "zh",
+      "appearance": "dark",
+      "view": "chart",
+      "dataMode": "fixture",
+      "minimumExecutedQuantity": 100,
+      "captureWindowUtc": {
+        "startedAt": "2026-10-11T09:52:00.431840+00:00",
+        "completedAt": "2026-10-11T09:52:45.738524+00:00"
+      },
+      "pngWrittenAtUtc": "2026-10-11T09:52:45.039317+00:00",
+      "captureTimeEvidence": "original PNG filesystem modification time, bounded by the recorded test run"
+    },
+    {
+      "file": "fixture-zh-mobile-inspector.png",
+      "sha256": "b8927115ce0315145bf5380812945242d07a29203709677ae0340bebf646cbff",
+      "bytes": 92980,
+      "stage": "responsive-inspection-six",
+      "viewport": "mobile",
+      "pixels": {
+        "width": 390,
+        "height": 844
+      },
+      "language": "zh",
+      "appearance": "dark",
+      "view": "inspector",
+      "dataMode": "fixture",
+      "minimumExecutedQuantity": 100,
+      "captureWindowUtc": {
+        "startedAt": "2026-10-11T09:52:00.431840+00:00",
+        "completedAt": "2026-10-11T09:52:45.738524+00:00"
+      },
+      "pngWrittenAtUtc": "2026-10-11T09:52:45.276294+00:00",
+      "captureTimeEvidence": "original PNG filesystem modification time, bounded by the recorded test run"
+    },
+    {
+      "file": "fixture-zh-mobile-reports.png",
+      "sha256": "5b43fc0b93a169e5811445170ebf3009d0cf63180642a9da9b469ed80b79bad1",
+      "bytes": 96080,
+      "stage": "responsive-inspection-six",
+      "viewport": "mobile",
+      "pixels": {
+        "width": 390,
+        "height": 844
+      },
+      "language": "zh",
+      "appearance": "dark",
+      "view": "reports",
+      "dataMode": "fixture",
+      "minimumExecutedQuantity": 100,
+      "captureWindowUtc": {
+        "startedAt": "2026-10-11T09:52:00.431840+00:00",
+        "completedAt": "2026-10-11T09:52:45.738524+00:00"
+      },
+      "pngWrittenAtUtc": "2026-10-11T09:52:45.502064+00:00",
+      "captureTimeEvidence": "original PNG filesystem modification time, bounded by the recorded test run"
+    },
+    {
+      "file": "fixture-zh-tablet-chart.png",
+      "sha256": "3114a5f2afbd923750a0ac0a357aff98f105d75b75d0222f1c4f4d19327ece5a",
+      "bytes": 160343,
+      "stage": "responsive-inspection-six",
+      "viewport": "tablet",
+      "pixels": {
+        "width": 820,
+        "height": 1180
+      },
+      "language": "zh",
+      "appearance": "dark",
+      "view": "chart",
+      "dataMode": "fixture",
+      "minimumExecutedQuantity": 100,
+      "captureWindowUtc": {
+        "startedAt": "2026-10-11T09:52:00.431840+00:00",
+        "completedAt": "2026-10-11T09:52:45.738524+00:00"
+      },
+      "pngWrittenAtUtc": "2026-10-11T09:52:35.172178+00:00",
+      "captureTimeEvidence": "original PNG filesystem modification time, bounded by the recorded test run"
+    },
+    {
+      "file": "fixture-zh-tablet-inspector.png",
+      "sha256": "ba73af3eaba67264926444d5809785858a1fbf3c52d45019dc3e90aa5193ae23",
+      "bytes": 183790,
+      "stage": "responsive-inspection-six",
+      "viewport": "tablet",
+      "pixels": {
+        "width": 820,
+        "height": 1180
+      },
+      "language": "zh",
+      "appearance": "dark",
+      "view": "inspector",
+      "dataMode": "fixture",
+      "minimumExecutedQuantity": 100,
+      "captureWindowUtc": {
+        "startedAt": "2026-10-11T09:52:00.431840+00:00",
+        "completedAt": "2026-10-11T09:52:45.738524+00:00"
+      },
+      "pngWrittenAtUtc": "2026-10-11T09:52:35.434701+00:00",
+      "captureTimeEvidence": "original PNG filesystem modification time, bounded by the recorded test run"
+    },
+    {
+      "file": "fixture-zh-tablet-reports.png",
+      "sha256": "206ab0d4587753dd49f4d93f03b97bc59f227cc17f94f8d37031582025113129",
+      "bytes": 178675,
+      "stage": "responsive-inspection-six",
+      "viewport": "tablet",
+      "pixels": {
+        "width": 820,
+        "height": 1180
+      },
+      "language": "zh",
+      "appearance": "dark",
+      "view": "reports",
+      "dataMode": "fixture",
+      "minimumExecutedQuantity": 100,
+      "captureWindowUtc": {
+        "startedAt": "2026-10-11T09:52:00.431840+00:00",
+        "completedAt": "2026-10-11T09:52:45.738524+00:00"
+      },
+      "pngWrittenAtUtc": "2026-10-11T09:52:35.677381+00:00",
+      "captureTimeEvidence": "original PNG filesystem modification time, bounded by the recorded test run"
+    },
+    {
+      "file": "iex-v4-desktop-min100-chart.png",
+      "sha256": "4a9c6d17c454039d5cf325b9aa9f30acae916b3c9c0891c8d1b4cc7089b0f0ba",
+      "bytes": 320600,
+      "stage": "final-settings-and-v4-nine",
+      "viewport": "desktop",
+      "pixels": {
+        "width": 1440,
+        "height": 900
+      },
+      "language": "en",
+      "appearance": "dark",
+      "view": "chart",
+      "dataMode": "historical",
+      "minimumExecutedQuantity": 100,
+      "captureWindowUtc": {
+        "startedAt": "2026-10-11T09:59:20.644967+00:00",
+        "completedAt": "2026-10-11T10:01:54.984969+00:00"
+      },
+      "pngWrittenAtUtc": "2026-10-11T09:59:29.573439+00:00",
+      "captureTimeEvidence": "original PNG filesystem modification time, bounded by the recorded test run",
+      "envelopeSha256": "015eab741c6bc40ef9931a4683584cdafee9eedfffc299e75824b1560cccd2b9"
+    },
+    {
+      "file": "iex-v4-desktop-min100-evidence.png",
+      "sha256": "96bf2294c104358981d1ff30779d45aebc86a9a714d7838f2688322139cf76d7",
+      "bytes": 257161,
+      "stage": "final-settings-and-v4-nine",
+      "viewport": "desktop",
+      "pixels": {
+        "width": 1440,
+        "height": 900
+      },
+      "language": "en",
+      "appearance": "dark",
+      "view": "evidence",
+      "dataMode": "historical",
+      "minimumExecutedQuantity": 100,
+      "captureWindowUtc": {
+        "startedAt": "2026-10-11T09:59:20.644967+00:00",
+        "completedAt": "2026-10-11T10:01:54.984969+00:00"
+      },
+      "pngWrittenAtUtc": "2026-10-11T09:59:30.248718+00:00",
+      "captureTimeEvidence": "original PNG filesystem modification time, bounded by the recorded test run",
+      "envelopeSha256": "015eab741c6bc40ef9931a4683584cdafee9eedfffc299e75824b1560cccd2b9"
+    },
+    {
+      "file": "iex-v4-desktop-min100-inspector.png",
+      "sha256": "76acce90e09438e9bdc52fc460359b40cc40afd4423c3e0be1e3415c3ab27845",
+      "bytes": 274627,
+      "stage": "final-settings-and-v4-nine",
+      "viewport": "desktop",
+      "pixels": {
+        "width": 1440,
+        "height": 900
+      },
+      "language": "en",
+      "appearance": "dark",
+      "view": "inspector",
+      "dataMode": "historical",
+      "minimumExecutedQuantity": 100,
+      "captureWindowUtc": {
+        "startedAt": "2026-10-11T09:59:20.644967+00:00",
+        "completedAt": "2026-10-11T10:01:54.984969+00:00"
+      },
+      "pngWrittenAtUtc": "2026-10-11T09:59:29.970581+00:00",
+      "captureTimeEvidence": "original PNG filesystem modification time, bounded by the recorded test run",
+      "envelopeSha256": "015eab741c6bc40ef9931a4683584cdafee9eedfffc299e75824b1560cccd2b9"
+    },
+    {
+      "file": "iex-v4-desktop-min1000-chart.png",
+      "sha256": "2c664d3f33a026c18c53a06c0aea1ac6fb8dcf37c12b9e081d54f57c771458d0",
+      "bytes": 224228,
+      "stage": "manual-minimum-1000-desktop",
+      "viewport": "desktop",
+      "pixels": {
+        "width": 1440,
+        "height": 900
+      },
+      "language": "en",
+      "appearance": "dark",
+      "view": "chart",
+      "dataMode": "historical",
+      "minimumExecutedQuantity": 1000,
+      "captureWindowUtc": {
+        "startedAt": "2026-10-11T10:07:57.571Z",
+        "completedAt": "2026-10-11T10:08:17.107Z"
+      },
+      "capturedAtUtc": "2026-10-11T10:08:11.782Z",
+      "captureTimeEvidence": "timestamp recorded immediately after page.screenshot returned",
+      "envelopeSha256": "015eab741c6bc40ef9931a4683584cdafee9eedfffc299e75824b1560cccd2b9"
+    },
+    {
+      "file": "iex-v4-desktop-min1000-inspector.png",
+      "sha256": "3f2982d9c51971e0438b407de063a9dad8cdf50d883b2e7cc522756bea78dead",
+      "bytes": 271406,
+      "stage": "manual-minimum-1000-desktop",
+      "viewport": "desktop",
+      "pixels": {
+        "width": 1440,
+        "height": 900
+      },
+      "language": "en",
+      "appearance": "dark",
+      "view": "inspector",
+      "dataMode": "historical",
+      "minimumExecutedQuantity": 1000,
+      "captureWindowUtc": {
+        "startedAt": "2026-10-11T10:07:57.571Z",
+        "completedAt": "2026-10-11T10:08:17.107Z"
+      },
+      "capturedAtUtc": "2026-10-11T10:08:16.841Z",
+      "captureTimeEvidence": "timestamp recorded immediately after page.screenshot returned",
+      "envelopeSha256": "015eab741c6bc40ef9931a4683584cdafee9eedfffc299e75824b1560cccd2b9"
+    },
+    {
+      "file": "iex-v4-mobile-min100-chart.png",
+      "sha256": "fb5ba9217a80a4bacc30a4d34525b0626fff7619e7d3903905132e5c8bf30b8a",
+      "bytes": 120533,
+      "stage": "final-settings-and-v4-nine",
+      "viewport": "mobile",
+      "pixels": {
+        "width": 390,
+        "height": 844
+      },
+      "language": "en",
+      "appearance": "dark",
+      "view": "chart",
+      "dataMode": "historical",
+      "minimumExecutedQuantity": 100,
+      "captureWindowUtc": {
+        "startedAt": "2026-10-11T09:59:20.644967+00:00",
+        "completedAt": "2026-10-11T10:01:54.984969+00:00"
+      },
+      "pngWrittenAtUtc": "2026-10-11T10:01:03.577653+00:00",
+      "captureTimeEvidence": "original PNG filesystem modification time, bounded by the recorded test run",
+      "envelopeSha256": "015eab741c6bc40ef9931a4683584cdafee9eedfffc299e75824b1560cccd2b9"
+    },
+    {
+      "file": "iex-v4-mobile-min100-evidence.png",
+      "sha256": "816317850af41a0e55ce8d2a642afb24a5be8e517dca981968cf13462fca558b",
+      "bytes": 94096,
+      "stage": "final-settings-and-v4-nine",
+      "viewport": "mobile",
+      "pixels": {
+        "width": 390,
+        "height": 844
+      },
+      "language": "en",
+      "appearance": "dark",
+      "view": "evidence",
+      "dataMode": "historical",
+      "minimumExecutedQuantity": 100,
+      "captureWindowUtc": {
+        "startedAt": "2026-10-11T09:59:20.644967+00:00",
+        "completedAt": "2026-10-11T10:01:54.984969+00:00"
+      },
+      "pngWrittenAtUtc": "2026-10-11T10:01:04.096269+00:00",
+      "captureTimeEvidence": "original PNG filesystem modification time, bounded by the recorded test run",
+      "envelopeSha256": "015eab741c6bc40ef9931a4683584cdafee9eedfffc299e75824b1560cccd2b9"
+    },
+    {
+      "file": "iex-v4-mobile-min100-inspector.png",
+      "sha256": "db8e7658959725ec68a469fa73f11cc70c09506f9b1276577b1b85db85cde0c4",
+      "bytes": 94982,
+      "stage": "final-settings-and-v4-nine",
+      "viewport": "mobile",
+      "pixels": {
+        "width": 390,
+        "height": 844
+      },
+      "language": "en",
+      "appearance": "dark",
+      "view": "inspector",
+      "dataMode": "historical",
+      "minimumExecutedQuantity": 100,
+      "captureWindowUtc": {
+        "startedAt": "2026-10-11T09:59:20.644967+00:00",
+        "completedAt": "2026-10-11T10:01:54.984969+00:00"
+      },
+      "pngWrittenAtUtc": "2026-10-11T10:01:03.879742+00:00",
+      "captureTimeEvidence": "original PNG filesystem modification time, bounded by the recorded test run",
+      "envelopeSha256": "015eab741c6bc40ef9931a4683584cdafee9eedfffc299e75824b1560cccd2b9"
+    },
+    {
+      "file": "iex-v4-tablet-min100-chart.png",
+      "sha256": "8417821dcf9f460073e6b4d7052ccf2a20cd3bf5bcd0097ff5b96014e5d444c9",
+      "bytes": 208942,
+      "stage": "final-settings-and-v4-nine",
+      "viewport": "tablet",
+      "pixels": {
+        "width": 820,
+        "height": 1180
+      },
+      "language": "en",
+      "appearance": "dark",
+      "view": "chart",
+      "dataMode": "historical",
+      "minimumExecutedQuantity": 100,
+      "captureWindowUtc": {
+        "startedAt": "2026-10-11T09:59:20.644967+00:00",
+        "completedAt": "2026-10-11T10:01:54.984969+00:00"
+      },
+      "pngWrittenAtUtc": "2026-10-11T10:00:08.813177+00:00",
+      "captureTimeEvidence": "original PNG filesystem modification time, bounded by the recorded test run",
+      "envelopeSha256": "015eab741c6bc40ef9931a4683584cdafee9eedfffc299e75824b1560cccd2b9"
+    },
+    {
+      "file": "iex-v4-tablet-min100-evidence.png",
+      "sha256": "751fd8bf5250244a2c6ec8e053f70dbb7c10c539d98acf40755b832b2e713700",
+      "bytes": 165594,
+      "stage": "final-settings-and-v4-nine",
+      "viewport": "tablet",
+      "pixels": {
+        "width": 820,
+        "height": 1180
+      },
+      "language": "en",
+      "appearance": "dark",
+      "view": "evidence",
+      "dataMode": "historical",
+      "minimumExecutedQuantity": 100,
+      "captureWindowUtc": {
+        "startedAt": "2026-10-11T09:59:20.644967+00:00",
+        "completedAt": "2026-10-11T10:01:54.984969+00:00"
+      },
+      "pngWrittenAtUtc": "2026-10-11T10:00:09.452020+00:00",
+      "captureTimeEvidence": "original PNG filesystem modification time, bounded by the recorded test run",
+      "envelopeSha256": "015eab741c6bc40ef9931a4683584cdafee9eedfffc299e75824b1560cccd2b9"
+    },
+    {
+      "file": "iex-v4-tablet-min100-inspector.png",
+      "sha256": "3842c4475899a05325d745d745d5476456bc9e728dbce2b5c6e0b577ccc2bba9",
+      "bytes": 182158,
+      "stage": "final-settings-and-v4-nine",
+      "viewport": "tablet",
+      "pixels": {
+        "width": 820,
+        "height": 1180
+      },
+      "language": "en",
+      "appearance": "dark",
+      "view": "inspector",
+      "dataMode": "historical",
+      "minimumExecutedQuantity": 100,
+      "captureWindowUtc": {
+        "startedAt": "2026-10-11T09:59:20.644967+00:00",
+        "completedAt": "2026-10-11T10:01:54.984969+00:00"
+      },
+      "pngWrittenAtUtc": "2026-10-11T10:00:09.227519+00:00",
+      "captureTimeEvidence": "original PNG filesystem modification time, bounded by the recorded test run",
+      "envelopeSha256": "015eab741c6bc40ef9931a4683584cdafee9eedfffc299e75824b1560cccd2b9"
+    }
+  ],
+  "logs": {
+    "baseline-24.log": {
+      "sha256": "67de1a4ddc09884ec19e64c6e98df8ab56f92b8ab6ac3a03169a810f6cf099c5",
+      "sanitization": "ANSI controls removed; absolute worktree path replaced with [repository]"
+    },
+    "responsive-six.log": {
+      "sha256": "0938e5aad80e4e6efb4f9cf3a478d2b2cfb2227b28ddede43960e91adff931fb",
+      "sanitization": "ANSI controls removed; absolute worktree path replaced with [repository]"
+    },
+    "settings-and-v4-nine.log": {
+      "sha256": "0c06f989f1a2d2d09672651d2c21eae640dc91f0139c7ef440391db848c4c5f6",
+      "sanitization": "ANSI controls removed; absolute worktree path replaced with [repository]"
+    },
+    "ui-focused-tests.log": {
+      "sha256": "69f54954b9ba8fac39aebd675a5a7ebc1094aa85a786946320115f94c736d3dd",
+      "sanitization": "ANSI controls removed; absolute worktree path replaced with [repository]; trailing blank lines removed for repository whitespace checks"
+    },
+    "typecheck.log": {
+      "sha256": "faf81816931e050598a9078507720a13317a82a117455fbc3234cdc9b8e4926d",
+      "sanitization": "summary of the observed successful command; the original compiler log was empty"
+    }
+  }
+}

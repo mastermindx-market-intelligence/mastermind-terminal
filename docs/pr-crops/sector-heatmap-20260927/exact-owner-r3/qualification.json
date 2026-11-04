@@ -1,0 +1,44 @@
+{
+  "sourceRevision": "79dbe3f2431b9e21cabf23071f02eab5add57eb4",
+  "sourceBodiesChanged": false,
+  "transport": "local interception",
+  "productionProof": false,
+  "independentReviewRequired": false,
+  "themeRightsAdmitted": false,
+  "checks": [
+    {
+      "name": "chromium-1440-en-light: exact Technology population",
+      "passed": true,
+      "details": "Technology\n\nCompany heatmap · Area = market cap · color = performance\n\n2026-09-25 · 79 names · 1D\n\nMARKET READ\n\nSemiconductors holds 41% of market cap; Computer Hardware has the broadest participation (7/7 up).\n\nSector\nTechnology · XLK\nCommunication Services · XLC\nHealth Care · XLV\nEnergy · XLE\nConsumer Discretionary · XLY\nUtilities · XLU\nFinancials · XLF\nConsumer Staples · XLP\nIndustrials · XLI\nReal Estate · XLRE\nMaterials · XLB\nPerformance window\n1D\n1W\nMTD\n1M\n3M\n6M\nYTD\n1Y\nIndustry\nAll industries\nInformation Technology Services\nSoftware - Infrastructure\nSemiconductors\nElectronic Components\nConsumer Electronics\nSemiconductor Equipment & Materials\nSoftware - Application\nCommunication Equipment\nComputer Hardware\nSolar\nScientific & Technical Instruments\nMarket-cap band\nAll market caps\n≥ $200B\n$50–200B\n$10–50B\n< $10B\nReview sources →\nLARGEST COMPANY IN SCOPE\nNVDA\n\nNvidia\n\nIndustry\nSemiconductors\nMarket cap\n$5.42T\n1D Performance\n+0.22%\nOpen company intelligence →\nOpen sector intelligence →\n-6.3%\n+6.3%\n\nExact owner labels only. Filters never rescale color; the smallest industry blocks receive a visibility floor so no source name disappears."
+    },
+    {
+      "name": "chromium-1440-en-light: exact source date",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: distinct Information Technology row excluded",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: full-population fixed domain",
+      "passed": true,
+      "details": {
+        "expected": 6.3,
+        "actual": 6.3
+      }
+    },
+    {
+      "name": "chromium-1440-en-light: answer names the cap owner and breadth leader",
+      "passed": true,
+      "details": "MARKET READ\n\nSemiconductors holds 41% of market cap; Computer Hardware has the broadest participation (7/7 up)."
+    },
+    {
+      "name": "chromium-1440-en-light: default inspector is the largest company",
+      "passed": true
+    }
+  ],
+  "screenshots": [],
+  "errors": [],
+  "passed": false,
+  "error": "Error: expect(locator).toBeVisible() failed\n\nLocator:  getByTestId('sector-company-heatmap').getByTestId('heatmap-map')\nExpected: visible\nReceived: hidden\nTimeout:  5000ms\n\nCall log:\n  - Expect \"to.be.visible\" with timeout 5000ms\n  - waiting for getByTestId('sector-company-heatmap').getByTestId('heatmap-map')\n    14 × locator resolved to <div data-domain=\"6.3\" data-testid=\"heatmap-map\" class=\"SectorCompanyHeatmap-module__R9GgYq__mapViewport\">…</div>\n       - unexpected value \"hidden\"\n\n    at captureRawStack (/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/sector-intelligence-terminal-20260926-sol-001/terminal/node_modules/playwright-core/lib/coreBundle.js:3172:17)\n    at callMatcherAsStep (/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/sector-intelligence-terminal-20260926-sol-001/terminal/node_modules/playwright/lib/matchers/expect.js:12877:57)\n    at Object.toBeVisible (/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/sector-intelligence-terminal-20260926-sol-001/terminal/node_modules/playwright/lib/matchers/expect.js:12867:23)\n    at /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/sector-intelligence-terminal-20260926-sol-001/terminal/e2e/tools/qualify_sector_heatmap.cjs:85:22"
+}

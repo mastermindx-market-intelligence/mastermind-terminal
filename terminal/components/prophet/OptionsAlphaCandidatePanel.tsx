@@ -1,0 +1,624 @@
+"use client";
+
+/**
+ * OptionsAlphaCandidatePanel.tsx — verified formed_candidates-v2 panel.
+ *
+ * Renders the Options Alpha candidate feed as a coupled payload/receipt view.
+ * The component owns its own scoped fetch state: it does NOT use the module-wide
+ * SWR cache (flowGetFresh), because that cache silently turns 503 into a
+ * "healthy empty feed" — a property the candidate panel refuses.
+ *
+ * Behaviour summary:
+ *   - 200 + verified shape → render validated payload (server authoritative).
+ *   - 503 / network / fetch error → retain LAST GOOD value in component state,
+ *     mark stale, never silently empty.
+ *   - 401 / 403 → PURGE all candidate rows immediately, even if an earlier
+ *     in-flight request later succeeds (cancelled by AbortController + sequence id).
+ *   - Unmount / logout → abort the active request; no state update follows.
+ *   - Polling: no overlapping polls (refresh action is gated by an in-flight guard).
+ */
+
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useLang, type Lang } from "@/lib/i18n";
+import { makeProphetT, type ProphetKey } from "./prophetStrings";
+import {
+  isCandidateFeedResponse,
+  normalizeCandidateFeed,
+  OPTIONS_ALPHA_CANDIDATE_HORIZONS,
+  type OptionsAlphaCandidateActivation,
+  type OptionsAlphaCandidateAbstention,
+  type OptionsAlphaCandidateFeedSource,
+  type OptionsAlphaCandidateHorizon,
+  type OptionsAlphaCandidateHorizonOutcome,
+  type OptionsAlphaCandidateItem,
+  type OptionsAlphaCandidateReceiptEntry,
+} from "./optionsAlphaCandidateFeed";
+
+type T = ReturnType<typeof makeProphetT>;
+type Source = OptionsAlphaCandidateFeedSource | null;
+type FetchStatus = "idle" | "loading" | "stale" | "purge" | "unavailable";
+
+type PanelMessageKey = "auth" | "stale" | "unavailable";
+
+interface PanelState {
+  source: Source;
+  status: FetchStatus;
+  messageKey: PanelMessageKey | null;
+}
+
+const EMPTY_STATE: PanelState = { source: null, status: "idle", messageKey: null };
+
+const PANEL_STATUS_MESSAGES = {
+  auth: "candidatePanelAuthPurged",
+  stale: "candidatePanelStale",
+  unavailable: "candidatePanelUnavailable",
+} as const satisfies Record<PanelMessageKey, ProphetKey>;
+
+export interface OptionsAlphaCandidatePanelProps {
+  /** Optional override for the refresh cadence (ms). Defaults to 60s — the desk's existing pace. */
+  cadenceMs?: number;
+  /** Locale to render. Required so the panel can build its own scoped copy. */
+  lang?: Lang;
+}
+
+function fmtPercent(value: number | null, digits = 2): string {
+  if (value == null) return "—";
+  return `${(value * 100).toFixed(digits)}%`;
+}
+
+function fmtClock(value: string | null, t: T): string {
+  return value ?? t("optionsClockUnavailable");
+}
+
+function fenceLabel(fence: string, t: T): string {
+  if (fence === "pre_policy_freeze") return t("candidateFencePrePolicy");
+  if (fence === "post_policy_freeze_pre_activation") return t("candidateFencePostPolicyPreActivation");
+  return t("candidateFencePostActivation");
+}
+
+const CANDIDATE_REASON_FALLBACK: readonly [string, string] = [
+  "Reason not recognised by this version of the page.",
+  "此版本页面无法识别该原因。",
+];
+
+const HORIZON_REASON_FALLBACK: readonly [string, string] = [
+  "This horizon has a recorded reason this version of the page does not recognise.",
+  "此期限有一条本版本页面无法识别的记录原因。",
+];
+
+const HORIZON_REASON_LABELS: Record<string, readonly [string, string]> = {
+  quarantined_campaign_outcome: [
+    "This campaign's outcome was quarantined, so no return is shown for this horizon.",
+    "该活动的结果已被隔离，因此此期限不显示回报。",
+  ],
+  admitted_campaign_outcome_not_yet_present: [
+    "This campaign's outcome has not been published for this horizon yet.",
+    "此期限的活动结果尚未发布。",
+  ],
+};
+
+const CANDIDATE_REASON_LABELS: Record<string, readonly [string, string]> = {
+  BEFORE_POLICY_FREEZE: [
+    "This campaign was recorded before the formation policy was frozen, so no candidate was formed.",
+    "该活动记录于形成策略冻结之前，因此未形成候选。",
+  ],
+  BEFORE_ACTIVATION_BOUNDARY: [
+    "This campaign was recorded before the activation boundary, so no candidate was formed.",
+    "该活动记录于激活边界之前，因此未形成候选。",
+  ],
+  CAMPAIGN_RECEIPT_INVALID: [
+    "The campaign receipt did not check out, so no candidate was formed.",
+    "该活动的凭据未通过校验，因此未形成候选。",
+  ],
+  CAMPAIGN_NOT_PROSPECTIVE: [
+    "This campaign was not a forward-looking campaign at the decision time, so no candidate was formed.",
+    "该活动在决策时不是向前看的活动，因此未形成候选。",
+  ],
+  INSUFFICIENT_CAMPAIGN_MEMBERS: [
+    "This campaign did not have enough members, so no candidate was formed.",
+    "该活动的成员数量不足，因此未形成候选。",
+  ],
+  FINAL_MEMBER_MICROSTRUCTURE_MISSING: [
+    "The last member of this campaign had no measured quote record, so no candidate was formed.",
+    "该活动最后一名成员没有已测量的报价记录，因此未形成候选。",
+  ],
+  NO_VALID_NBBO_MEASUREMENT: [
+    "No valid bid/ask quote was measured for this campaign, so no candidate was formed.",
+    "该活动没有测到有效的买卖报价，因此未形成候选。",
+  ],
+  EVIDENCE_CLOCK_INVALID: [
+    "The evidence clock for this campaign was not a valid time, so no candidate was formed.",
+    "该活动的证据时间不是有效时间，因此未形成候选。",
+  ],
+  SOURCE_EXPLICITLY_STALE_OR_UNAVAILABLE: [
+    "The source marked this campaign's evidence as stale or unavailable, so no candidate was formed.",
+    "来源标明该活动的证据已过期或不可用，因此未形成候选。",
+  ],
+  UPSTREAM_AUTHORITY_VIOLATION: [
+    "An upstream rule blocked this campaign from forming a candidate.",
+    "上游规则阻止该活动形成候选。",
+  ],
+};
+
+export function candidateReasonLabel(code: string, zh: boolean): string {
+  const pair = CANDIDATE_REASON_LABELS[code];
+  if (!pair?.[0] || !pair[1]) return zh ? CANDIDATE_REASON_FALLBACK[1] : CANDIDATE_REASON_FALLBACK[0];
+  return zh ? pair[1] : pair[0];
+}
+
+function horizonReasonLabel(code: string, zh: boolean): string {
+  const pair = HORIZON_REASON_LABELS[code];
+  if (!pair?.[0] || !pair[1]) return zh ? HORIZON_REASON_FALLBACK[1] : HORIZON_REASON_FALLBACK[0];
+  return zh ? pair[1] : pair[0];
+}
+
+function ReasonList({ reasons, t, zh }: { reasons: string[]; t: T; zh: boolean }) {
+  return (
+    <ul className="obs-options-alpha-why">
+      {reasons.map((reason) => {
+        const recognised = Object.prototype.hasOwnProperty.call(CANDIDATE_REASON_LABELS, reason);
+        return (
+          <li key={reason}>
+            {candidateReasonLabel(reason, zh)}
+            {recognised ? null : (
+              <details>
+                <summary>{t("candidateReasonCode")}</summary>
+                <span>{reason}</span>
+              </details>
+            )}
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+function dispositionLabel(state: string, t: T): string {
+  if (state === "research_candidate") return t("candidateDispositionResearch");
+  if (state === "abstain") return t("candidateDispositionAbstain");
+  if (state === "degraded") return t("candidateDispositionDegraded");
+  return state;
+}
+
+function horizonStatus(state: OptionsAlphaCandidateHorizonOutcome["state"], t: T): string {
+  if (state === "available") return t("candidateHorizonAvailable");
+  if (state === "pending") return t("candidateHorizonPending");
+  return t("candidateHorizonUnavailable");
+}
+
+function underlyingLabel(outcome: OptionsAlphaCandidateHorizonOutcome, t: T): string {
+  const ret = outcome.underlying?.ret;
+  if (outcome.underlying?.status === "complete") {
+    if (ret == null) return t("candidateHorizonUnderlyingUnv");
+    return `${(ret * 100).toFixed(2)}%`;
+  }
+  if (outcome.underlying == null) return t("candidateHorizonUnderlyingUnv");
+  return t("candidateHorizonUnderlyingUnv");
+}
+
+function eligibilityLabel(state: string | null, t: T): string {
+  if (state === "synthetic_until_publisher_validates_activation") return t("candidateEligibilitySynthetic");
+  return t("candidateEligibilityInactive");
+}
+
+/**
+ * For a receipt entry whose first_receipt_id matches the current receipt AND whose
+ * first_consumer_published_at is null, the only clock a client may display is the
+ * external last-modified time carried in metadata.receipt_last_modified. Historical
+ * entries keep their stored clock and never inherit the current receipt's clock.
+ */
+function displayFirstConsumerClock(
+  entry: OptionsAlphaCandidateReceiptEntry | null,
+  currentReceiptId: string | null,
+  externalLastModified: string | null,
+  t: T,
+): string {
+  if (!entry) return t("optionsClockUnavailable");
+  if (entry.first_consumer_published_at) return entry.first_consumer_published_at;
+  if (!currentReceiptId || entry.first_receipt_id !== currentReceiptId) return t("optionsClockUnavailable");
+  return externalLastModified ?? t("optionsClockUnavailable");
+}
+
+function Metric({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="obs-options-alpha-metric">
+      <span>{label}</span>
+      <b>{value}</b>
+    </div>
+  );
+}
+
+function HorizonRow({ horizon, outcome, t, zh }: { horizon: OptionsAlphaCandidateHorizon; outcome: OptionsAlphaCandidateHorizonOutcome; t: T; zh: boolean }) {
+  const reason = outcome.reason;
+  const recognised = reason != null && Object.prototype.hasOwnProperty.call(HORIZON_REASON_LABELS, reason);
+  return (
+    <article className="obs-options-alpha-horizon" data-testid={`options-alpha-candidate-horizon-${horizon}`}>
+      <div>
+        <b>{horizon.toUpperCase()}</b>
+        <span>{horizonStatus(outcome.state, t)}</span>
+      </div>
+      <strong>{underlyingLabel(outcome, t)}</strong>
+      <small>
+        {outcome.campaign_available_at ? `${t("candidateHorizonEvidence")} ${outcome.campaign_available_at}` : t("optionsClockUnavailable")}
+        {reason ? ` · ${horizonReasonLabel(reason, zh)}` : ""}
+        {reason && !recognised ? (
+          <details>
+            <summary>{t("candidateReasonCode")}</summary>
+            <span>{reason}</span>
+          </details>
+        ) : null}
+      </small>
+    </article>
+  );
+}
+
+function contractHeading(item: OptionsAlphaCandidateItem, t: T): string {
+  const ctx = item.campaign_context;
+  if (!ctx) return t("candidateContractUnavailable");
+  const right = ctx.group.right === "C" ? t("candidateContractCall") : t("candidateContractPut");
+  return t("candidateContractHeading")
+    .replace("{ticker}", ctx.group.ticker)
+    .replace("{right}", right)
+    .replace("{expiration}", ctx.group.expiration)
+    .replace("{strike}", formatStrike(ctx.group.strike));
+}
+
+function frozenCurrentLabel(item: OptionsAlphaCandidateItem, t: T): string {
+  const frozenId = item.frozen_formation.campaign_revision_id;
+  const currentId = item.current_revision?.campaign_revision_id ?? item.current_campaign_revision_id;
+  if (frozenId && currentId && frozenId === currentId) return t("candidateFrozenSame");
+  return t("candidateFrozenChanged");
+}
+
+function formatStrike(value: number): string {
+  if (!Number.isFinite(value)) return "—";
+  // Strikes are usually whole dollars; keep the print integer-shaped but allow decimals.
+  if (Number.isInteger(value)) return String(value);
+  return value.toString();
+}
+
+const PREREQ_KEYS: Record<string, ProphetKey> = {
+  // The 4 named preconditions, in the wire order they appear in activation_preconditions.
+  oa1t_measured_source_consumer_proven: "candidatePrereqOa1t",
+  ad1t2_consumer_availability_production_accepted: "candidatePrereqAd1t2",
+  campaign_integrity_publication_runtime_accepted: "candidatePrereqCampaignIntegrity",
+  source_collision_review_clear: "candidatePrereqSourceCollision",
+};
+
+function PrerequisiteList({ activation, t }: { activation: OptionsAlphaCandidateActivation; t: T }) {
+  const aggregate = activation.all_preconditions_cleared ? t("candidatePrereqCleared") : t("candidatePrereqPending");
+  const named = activation.activation_preconditions.filter((id): id is keyof typeof PREREQ_KEYS => id in PREREQ_KEYS);
+  return (
+    <div className="obs-options-alpha-prereqs" data-testid="options-alpha-candidate-prereqs">
+      <div className="obs-options-alpha-prereqs-head">
+        <span>{t("candidatePrereqHeading")}</span>
+        <b>{aggregate}</b>
+      </div>
+      <ul>
+        {named.map((id) => (
+          <li key={id}>
+            <span>{t(PREREQ_KEYS[id])}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function CampaignContextBlock({
+  item,
+  t,
+}: {
+  item: OptionsAlphaCandidateItem;
+  t: T;
+}) {
+  const ctx = item.campaign_context;
+  return (
+    <section className="obs-options-alpha-context" data-testid="options-alpha-candidate-context">
+      <div className="obs-options-alpha-context-head">
+        <b>{t("candidateContextHeading")}</b>
+        <small>{t("candidateContextFrozenNote")}</small>
+      </div>
+      {!ctx ? (
+        <p className="obs-options-alpha-context-absent" data-testid="options-alpha-candidate-context-absent">{t("candidateContextAbsent")}</p>
+      ) : (
+        <div className="obs-options-alpha-context-grid">
+          <Metric label={t("candidateContextContract")} value={`${ctx.group.ticker} ${ctx.group.right} ${ctx.group.expiration} ${formatStrike(ctx.group.strike)}`} />
+          <Metric label={t("candidateContextSession")} value={ctx.group.session_date} />
+          <div className="obs-options-alpha-context-flow">
+            <span>{t("candidateContextFlowSide")}</span>
+            <ul>
+              <li><b>{t("candidateContextFlowBuy")}</b><span>{ctx.flow_side_counts["~buy"]}</span></li>
+              <li><b>{t("candidateContextFlowSell")}</b><span>{ctx.flow_side_counts["~sell"]}</span></li>
+              <li><b>{t("candidateContextFlowMixed")}</b><span>{ctx.flow_side_counts.mixed}</span></li>
+            </ul>
+          </div>
+          <div className="obs-options-alpha-context-intent">
+            <span>{t("candidateContextIntent")}</span>
+            <ul>
+              <li><b>{t("candidateContextOpeningClosing")}</b><span>{t("candidateContextUnavailable")}</span></li>
+              <li><b>{t("candidateContextDirectionReliability")}</b><span>{t("candidateContextDirectionSoft")}</span></li>
+              <li><b>{t("candidateContextAccumulationDistribution")}</b><span>{t("candidateContextUnavailable")}</span></li>
+            </ul>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function CandidateCard({
+  item,
+  receiptEntry,
+  currentReceiptId,
+  externalLastModified,
+  t,
+  zh,
+}: {
+  item: OptionsAlphaCandidateItem;
+  receiptEntry: OptionsAlphaCandidateReceiptEntry | null;
+  currentReceiptId: string | null;
+  externalLastModified: string | null;
+  t: T;
+  zh: boolean;
+}) {
+  const frozen = item.frozen_formation;
+  const micro = item.measured;
+  const heading = contractHeading(item, t);
+  const firstConsumerClock = displayFirstConsumerClock(receiptEntry, currentReceiptId, externalLastModified, t);
+  return (
+    <article className="obs-card obs-options-alpha-candidate is-candidate" data-testid="options-alpha-candidate-item">
+      <div className="obs-options-alpha-candidate-head">
+        <strong data-testid="options-alpha-candidate-heading">{heading}</strong>
+        <span className="obs-tag" style={{ "--c": "var(--muted)" } as React.CSSProperties}>{dispositionLabel(item.state, t)}</span>
+      </div>
+      <p className="obs-options-alpha-candidate-meta" data-testid="options-alpha-candidate-revision-note">{frozenCurrentLabel(item, t)}</p>
+      <div className="obs-options-alpha-clocks">
+        <div>
+          <span>{t("candidateDecisionAt")}</span>
+          {item.decision_at
+            ? <time dateTime={item.decision_at}>{item.decision_at}</time>
+            : <b>{t("optionsClockUnavailable")}</b>}
+        </div>
+        <div>
+          <span>{t("candidateAvailableAt")}</span>
+          {item.first_observed_at
+            ? <time dateTime={item.first_observed_at}>{item.first_observed_at}</time>
+            : <b>{t("optionsClockUnavailable")}</b>}
+        </div>
+        <div>
+          <span>{t("candidateFirstConsumerPub")}</span>
+          {/^\d{4}-\d\d-\d\dT/.test(firstConsumerClock)
+            ? <time dateTime={firstConsumerClock}>{firstConsumerClock}</time>
+            : <b>{firstConsumerClock}</b>}
+        </div>
+      </div>
+      {receiptEntry == null ? (
+        <p className="obs-options-alpha-footnote" data-testid="options-alpha-candidate-receipt-missing">{t("candidateReceiptMissing")}</p>
+      ) : null}
+      <div className="obs-options-alpha-metrics">
+        <Metric label={t("candidatePolicyVersion")} value={frozen.policy_version == null ? "—" : String(frozen.policy_version)} />
+        <Metric label={t("candidateMicrostructure")} value={micro ? `${fmtPercent(micro.nbbo_premium_coverage, 1)}` : t("candidateNoMicrostructure")} />
+        <Metric label={t("optionsNormPremium")} value={micro?.nbbo_covered_premium_usd == null ? "—" : `$${micro.nbbo_covered_premium_usd.toLocaleString("en-US", { maximumFractionDigits: 0 })}`} />
+        <Metric label={t("candidateNbboPrints")} value={micro ? `${micro.nbbo_valid_print_count ?? "—"}/${micro.source_print_count ?? "—"}` : "—"} />
+        <Metric label={t("candidateDisposition")} value={dispositionLabel(item.current_disposition.state, t)} />
+      </div>
+      <p className="obs-options-alpha-footnote" data-testid="options-alpha-candidate-nbbo-caption">{t("candidateNbboPrintsCaption")}</p>
+      {item.current_disposition.reasons.length > 0 && (
+        <ReasonList reasons={item.current_disposition.reasons} t={t} zh={zh} />
+      )}
+      <CampaignContextBlock item={item} t={t} />
+      {item.post_formation_outcomes ? (
+        <div className="obs-options-alpha-horizons" data-testid="options-alpha-candidate-horizons">
+          {OPTIONS_ALPHA_CANDIDATE_HORIZONS.map((horizon) => (
+            <HorizonRow key={horizon} horizon={horizon} outcome={item.post_formation_outcomes![horizon]} t={t} zh={zh} />
+          ))}
+        </div>
+      ) : null}
+      <details className="obs-options-alpha-candidate-disclosure">
+        <summary>{t("candidateDisclosure")}</summary>
+        <ul>
+          <li><b>{t("candidateDisclosureCandidateId")}</b> <span>{item.candidate_id}</span></li>
+          <li><b>{t("candidateDisclosureCampaignId")}</b> <span>{item.campaign_id}</span></li>
+          <li><b>{t("candidateDisclosureFrozenRevision")}</b> <span>{frozen.campaign_revision_id ?? t("optionsClockUnavailable")}</span></li>
+          <li><b>{t("candidateDisclosureCurrentRevision")}</b> <span>{item.current_revision?.campaign_revision_id ?? t("optionsClockUnavailable")}</span></li>
+          {item.campaign_context ? <li><b>{t("candidateDisclosureContextRevision")}</b> <span>{item.campaign_context.campaign_revision_id}</span></li> : null}
+          <li><b>{t("candidateDisclosureCampaignDigest")}</b> <span>{item.evidence_digests.campaign_row_digest_sha256 ?? t("optionsClockUnavailable")}</span></li>
+          <li><b>{t("candidateDisclosureMicroDigest")}</b> <span>{item.evidence_digests.microstructure_row_digest_sha256 ?? t("optionsClockUnavailable")}</span></li>
+          <li><b>{t("candidateDisclosurePolicyDigest")}</b> <span>{item.evidence_digests.policy_digest_sha256 ?? frozen.policy_digest_sha256 ?? t("optionsClockUnavailable")}</span></li>
+        </ul>
+      </details>
+      <p className="obs-options-alpha-footnote">{t("candidateOptionPerformanceUnavailable")}</p>
+    </article>
+  );
+}
+
+function AbstentionRow({ item, t, zh }: { item: OptionsAlphaCandidateAbstention; t: T; zh: boolean }) {
+  return (
+    <article className="obs-options-alpha-candidate is-watch" data-testid="options-alpha-candidate-abstention">
+      <div className="obs-options-alpha-candidate-head">
+        <strong>{item.campaign_id}</strong>
+        <span className="obs-tag" style={{ "--c": "var(--warn)" } as React.CSSProperties}>{t("candidateAbstention")}</span>
+      </div>
+      <ReasonList reasons={item.reasons} t={t} zh={zh} />
+    </article>
+  );
+}
+
+export function OptionsAlphaCandidatePanel(props: OptionsAlphaCandidatePanelProps) {
+  const externalLang = useLang().lang;
+  const lang = (props.lang ?? externalLang) as Lang;
+  const t = makeProphetT(lang);
+  const cadenceMs = props.cadenceMs ?? 60_000;
+
+  const [state, setState] = useState<PanelState>(EMPTY_STATE);
+  const seqRef = useRef(0);
+  const inflightRef = useRef(false);
+  const controllerRef = useRef<AbortController | null>(null);
+
+  const fetchOnce = useCallback(async () => {
+    if (inflightRef.current) return;
+    inflightRef.current = true;
+    const controller = new AbortController();
+    controllerRef.current = controller;
+    const seq = seqRef.current + 1;
+    seqRef.current = seq;
+    try {
+      setState((prev) => ({ source: prev.source, status: prev.source ? "stale" : "loading", messageKey: null }));
+      const response = await fetch("/api/flow?f=options_alpha_candidate_feed", {
+        cache: "no-store",
+        credentials: "same-origin",
+        signal: controller.signal,
+      });
+      if (controller.signal.aborted || seqRef.current !== seq) return;
+      if (response.status === 401 || response.status === 403) {
+        seqRef.current++;
+        controllerRef.current?.abort();
+        setState({ source: null, status: "purge", messageKey: "auth" });
+        return;
+      }
+      if (!response.ok) {
+        setState((prev) => ({
+          source: prev.source,
+          status: prev.source ? "stale" : "unavailable",
+          messageKey: prev.source ? "stale" : "unavailable",
+        }));
+        return;
+      }
+      const body = await response.json().catch(() => null);
+      if (controller.signal.aborted || seqRef.current !== seq) return;
+      if (!isCandidateFeedResponse(body)) {
+        setState((prev) => ({
+          source: prev.source,
+          status: prev.source ? "stale" : "unavailable",
+          messageKey: prev.source ? "stale" : "unavailable",
+        }));
+        return;
+      }
+      const normalized = normalizeCandidateFeed(body);
+      if (!normalized) {
+        setState((prev) => ({
+          source: prev.source,
+          status: prev.source ? "stale" : "unavailable",
+          messageKey: prev.source ? "stale" : "unavailable",
+        }));
+        return;
+      }
+      setState({ source: normalized, status: "idle", messageKey: null });
+    } catch (err) {
+      if (controller.signal.aborted || seqRef.current !== seq) return;
+      setState((prev) => ({
+        source: prev.source,
+        status: prev.source ? "stale" : "unavailable",
+        messageKey: prev.source ? "stale" : "unavailable",
+      }));
+      void err;
+    } finally {
+      inflightRef.current = false;
+    }
+  }, []);
+
+  useEffect(() => {
+    void fetchOnce();
+    const timer = window.setInterval(() => {
+      void fetchOnce();
+    }, cadenceMs);
+    return () => {
+      window.clearInterval(timer);
+      seqRef.current++;
+      controllerRef.current?.abort();
+      controllerRef.current = null;
+      inflightRef.current = false;
+    };
+  }, [fetchOnce, cadenceMs]);
+
+  const source = state.source;
+  const isInactive = source
+    ? source.feed.activation.fence_state !== "post_activation" || !source.feed.activation.all_preconditions_cleared
+    : false;
+
+  const candidateCount = source ? String(source.feed.formed_candidates.length) : "—";
+
+  return (
+    <section className="obs-options-alpha-section obs-options-alpha-candidate-history" data-testid="options-alpha-candidate-panel">
+      <div className="obs-options-alpha-section-head">
+        <div>
+          <span>{t("candidatePanelEyebrow")}</span>
+          <h3 className="obs-options-alpha-history-title">{t("candidatePanelTitle")}</h3>
+          <small>{t("candidatePanelNote")}</small>
+        </div>
+        <span data-testid="options-alpha-candidate-count">{candidateCount}</span>
+      </div>
+      {state.status === "purge" ? (
+        <p className="obs-options-alpha-footnote" role="status" data-testid="options-alpha-candidate-purge">{state.messageKey ? t(PANEL_STATUS_MESSAGES[state.messageKey]) : null}</p>
+      ) : null}
+      {state.status === "stale" && state.messageKey ? (
+        <p className="obs-options-alpha-footnote" role="status" data-testid="options-alpha-candidate-stale">{t(PANEL_STATUS_MESSAGES[state.messageKey])}</p>
+      ) : null}
+      {state.status === "unavailable" && state.messageKey ? (
+        <p className="obs-options-alpha-footnote" role="status" data-testid="options-alpha-candidate-unavailable">{t(PANEL_STATUS_MESSAGES[state.messageKey])}</p>
+      ) : null}
+      {source ? (
+        <>
+          <div className="obs-options-alpha-metrics" data-testid="options-alpha-candidate-status">
+            <Metric label={t("candidateActivation")} value={source.feed.activation.all_preconditions_cleared ? t("candidateAllClear") : t("candidatePending")} />
+            <Metric label={t("candidateFenceState")} value={fenceLabel(source.feed.activation.fence_state, t)} />
+            <Metric label={t("candidateEligibility")} value={eligibilityLabel(source.feed.eligibility_state, t)} />
+            <Metric label={t("candidateDecisionAt")} value={fmtClock(source.feed.generated_at, t)} />
+            <Metric label={t("candidateServedAt")} value={fmtClock(source.metadata.served_at, t)} />
+          </div>
+          <details className="obs-options-alpha-feed-details" data-testid="options-alpha-candidate-feed-details">
+            <summary>{t("candidateFeedDetails")}</summary>
+            <ul>
+              <li><b>{t("candidateFeedPolicyId")}</b> <span>{source.feed.policy.policy_id ?? t("optionsClockUnavailable")}</span></li>
+              <li><b>{t("candidateFeedPolicyDigest")}</b> <span>{source.feed.policy.policy_digest_sha256 ?? t("optionsClockUnavailable")}</span></li>
+              <li><b>{t("candidateFeedPayloadHash")}</b> <span>{source.receipt.payload_sha256 ?? t("optionsClockUnavailable")}</span></li>
+              <li><b>{t("candidateFeedEtag")}</b> <span>{source.metadata.payload_etag ?? t("optionsClockUnavailable")}</span></li>
+              <li><b>{t("candidateFeedReceiptId")}</b> <span>{source.receipt.receipt_id ?? t("optionsClockUnavailable")}</span></li>
+              <li><b>{t("candidateFeedPriorReceipt")}</b> <span>{source.receipt.prior_receipt_id ?? t("optionsClockUnavailable")}</span></li>
+              <li><b>{t("candidateReceiptLastModified")}</b> <span>{source.metadata.receipt_last_modified ?? t("optionsClockUnavailable")}</span></li>
+              <li><b>{t("candidateFeedDurabilityClock")}</b> <span>{source.receipt.local_durability_confirmed_at ?? t("optionsClockUnavailable")}</span></li>
+              <li><b>{t("candidateFeedConfirmationClock")}</b> <span>{source.receipt.payload_r2_confirmed_at ?? t("optionsClockUnavailable")}</span></li>
+              <li><b>{t("candidateFeedImplementationCarrier")}</b> <span>{source.feed.implementation_carrier ?? t("optionsClockUnavailable")}</span></li>
+              <li>
+                <b>{t("candidateFeedPrereqIds")}</b>
+                <span>{source.feed.activation.activation_preconditions.join(", ") || t("optionsClockUnavailable")}</span>
+              </li>
+            </ul>
+          </details>
+          <PrerequisiteList activation={source.feed.activation} t={t} />
+          {isInactive ? <p className="obs-options-alpha-footnote">{t("candidatePanelInactive")}</p> : null}
+          {source.feed.formed_candidates.length === 0 && source.feed.abstentions.length === 0 ? (
+            <p className="obs-options-alpha-empty">{t("candidatePanelEmpty")}</p>
+          ) : null}
+          {source.feed.formed_candidates.length > 0 ? (
+            <div className="obs-options-alpha-candidate-grid">
+              {source.feed.formed_candidates.map((item) => (
+                <CandidateCard
+                  key={item.candidate_id}
+                  item={item}
+                  receiptEntry={source.receipt.candidates[item.candidate_id] ?? null}
+                  currentReceiptId={source.receipt.receipt_id}
+                  externalLastModified={source.metadata.receipt_last_modified}
+                  t={t}
+                  zh={lang === "zh"}
+                />
+              ))}
+            </div>
+          ) : null}
+          {source.feed.abstentions.length > 0 ? (
+            <div className="obs-options-alpha-candidate-grid">
+              {source.feed.abstentions.map((item) => (
+                <AbstentionRow key={`${item.campaign_id}-${item.campaign_revision_id}`} item={item} t={t} zh={lang === "zh"} />
+              ))}
+            </div>
+          ) : null}
+          <footer className="obs-options-alpha-method">
+            <b>{t("optionsMethod")}</b>
+            <span>{t("candidatePanelFooter")}</span>
+          </footer>
+        </>
+      ) : null}
+    </section>
+  );
+}

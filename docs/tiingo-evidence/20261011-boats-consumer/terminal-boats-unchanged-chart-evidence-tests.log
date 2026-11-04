@@ -1,0 +1,13 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/tiingo-boats-quotehub-b2b25c10fd296613/terminal
+
+ ✓ lib/__tests__/optionsLevelAxisEvidence.test.ts (3 tests) 5ms
+ ✓ lib/__tests__/b_pl_6Batch1Evidence.test.ts (4 tests) 10ms
+ ✓ lib/__tests__/visualIntelligenceEvidence.test.ts (3 tests) 12ms
+
+ Test Files  3 passed (3)
+      Tests  10 passed (10)
+   Start at  14:41:09
+   Duration  443ms (transform 73ms, setup 0ms, collect 87ms, tests 27ms, environment 1ms, prepare 207ms)
+
