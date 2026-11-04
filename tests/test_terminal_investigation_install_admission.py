@@ -1077,6 +1077,22 @@ def _tree_digest(root: Path) -> str:
     return digest.hexdigest()
 
 
+def _tree_manifest(root: Path) -> dict[str, tuple[str, ...]]:
+    """Identify changed paths without printing fixture file contents."""
+    result = {}
+    for path in sorted(root.rglob("*")):
+        if path.is_symlink():
+            entry = ("symlink", os.readlink(path))
+        elif path.is_file():
+            entry = ("file", hashlib.sha256(path.read_bytes()).hexdigest())
+        elif path.is_dir():
+            entry = ("directory",)
+        else:
+            entry = ("other",)
+        result[str(path.relative_to(root))] = entry
+    return result
+
+
 def _owner_globals(repo: Path, app: Path, profile="production") -> str:
     return (
         f'TARGET={profile}\nSRC="{repo}"\nAPP="{app}"\n'
@@ -1369,16 +1385,32 @@ def test_refusals_leave_no_filesystem_effects(tmp_path):
     repo, sha = _fixture_repo(tmp_path, with_primitive=True)
     app = tmp_path / "app"
     app.mkdir()
+    # Establish every fixture file before measuring the refused operation.
+    shim = _systemctl_shim(tmp_path, {"LoadState": "not-found"})
+    before_manifest = _tree_manifest(tmp_path)
     before = _tree_digest(tmp_path)
     result = run_gen(
         f"""
         {_owner_globals(repo, app)}
         require_investigation_closed_before_start "{sha}"; printf 'HOOK=%s\\n' "$?"
         """,
+        env=shim,
     )
-    assert "HOOK=65" in result.stdout
-    assert _tree_digest(tmp_path) == before, (
-        "a refused admission must not mutate the checkout, app root or repo"
+    combined = result.stdout + result.stderr
+    assert "HOOK=65" in result.stdout, combined
+    assert "reason=unit-configuration-unqualified" in combined, combined
+    after = _tree_digest(tmp_path)
+    after_manifest = _tree_manifest(tmp_path)
+    changes = {
+        path: {"before": before_manifest.get(path), "after": after_manifest.get(path)}
+        for path in sorted(before_manifest.keys() | after_manifest.keys())
+        if before_manifest.get(path) != after_manifest.get(path)
+    }
+    assert after == before, (
+        "a refused admission must not mutate the checkout, app root or repo; "
+        f"before={before}; after={after}; "
+        f"changes={json.dumps(changes, sort_keys=True)}; "
+        f"stdout={result.stdout!r}; stderr={result.stderr!r}"
     )
 
 
