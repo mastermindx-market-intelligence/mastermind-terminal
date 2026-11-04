@@ -29,6 +29,12 @@ This one bounded integration slice restores the exact protected Git blobs for `l
 
 This is a **single-parent, same-branch compatibility source edit**, not a merge with protected master. It does not assert that the remaining protected evidence-manifest conflicts are resolved or that the sector-origin caller on the protected branch has been functionally integrated with this candidate.
 
+## Non-merge integration regression: cohort navigation + archived replay
+
+The existing source fixes are now exercised **together**, not merely as two separate passing journeys. The fixture test in [`sector-exposure-journey.spec.ts`](../../../e2e/sector-exposure-journey.spec.ts) starts from a Sector Central MU holding, selects its 2026-10-16 archived Exposure book (visible strike **1070**), steps to NXPI while confirming the archive is cleared and the sector return URL still identifies NXPI, then goes Back to MU and deliberately reopens the same date. The second archive response is a source correction to visible strike **1080**; the old 1070 row must disappear, the fetch count must advance to two, and Return to Sector must restore the MU holding. The test reads the shared **Exact values** view on desktop and phone; it does not assume the desktop-ranked inspector exists on mobile.
+
+The final full regression run passed **24/24** across desktop/tablet/phone with both English and Chinese for this composed flow and the original Sector → Exposure journeys. The isolated TypeScript source check passed. This slice changes only the end-to-end regression and its verification documentation; production code, source-hash locks and screenshot crops were not modified. Results use synthetic controlled market books and are **not** a live-feed, production-deployment or current-protected-base merge proof.
+
 ## Remaining gates
 
 Original PR: #1243, same protected source custody and managed publisher. Protected Terminal main has advanced and still conflicts in shared evidence manifests; the newer protected contracts must be retained when composing the final candidate. Fresh exact-head hosted CI, a genuinely independent GitHub review and signed-in production verification are separate release requirements. No merge, queue, Ready/un-draft, SQL or deployment effect is part of this validation.
