@@ -12,6 +12,10 @@ This version has breaking changes — APIs, conventions, and file structure may 
 Use the root [session-owned review rule](../AGENTS.md#session-owned-prsource-review-chairman-2026-11-03) and the accepted protected Mastermind review policy. The current builder may finish its own focused, evidence-based review for routine changes. Where a distinct independent technical review is actually owed, start a true read-only native Codex/Claude reviewer child (or Web Pro native child if exposed, or admitted Fabric child) **under the same parent session**; verify its result and adjudicate findings here. Do not require another top-level chat or a particular historical reviewer. Author self-review is not a distinct subagent or formal GitHub non-author approval. Maintain required CI, real change-risk classification, holds and protected release checks.
 
 
+## Original-PR delivery ownership
+
+This application session must complete the existing PR's verification and authorized release path; a source commit, Draft, PR, CI wait or review request is not a terminal result. Repair CI on its original carrier, make stable PRs Ready, meet actual formal approval/hold checks, and verify final merge and required responsive/browser proof. See the root [finish-to-release rule](../AGENTS.md#finish-the-existing-release-not-the-draft). Do not invent review recipients or bypass protected merge.
+
 ## Model routing
 Opus builds and reviews code. Design choices are judgment work — made in the session's main loop (or an Opus designer agent), never delegated to Sonnet; builders only implement fully-specified designs (exact markup/classes handed to them). Sonnet = mechanical non-code sweeps only; Haiku = trivial extraction.
 
