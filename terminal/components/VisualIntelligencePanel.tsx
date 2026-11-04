@@ -3,6 +3,7 @@
 import { forwardRef, useEffect, useId, useImperativeHandle, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { ChartContextDock } from "./ChartContextDock";
+import { useChartContextPresentation } from "./useChartContextPresentation";
 import { useLang } from "@/lib/i18n";
 import { getFund } from "@/lib/fund";
 import { track } from "@/lib/analytics";
@@ -37,7 +38,8 @@ const VisualIntelligencePanel = forwardRef<VisualIntelligenceHandle, Props>(func
   const { lang } = useLang();
   const tx = (key: VisualCopyKey) => visualText(key, lang);
   const id = useId();
-  const open = !!dock?.open && visible && !!dock.target;
+  const logicalOpen = !!dock?.open && visible;
+  const open = logicalOpen && !!dock?.target;
   const openRef = useRef(false); openRef.current = open && settings.visualContext;
   const [availability, setAvailability] = useState<"loading" | "empty">("loading");
   const [frame, setFrame] = useState<VisualFrame | null>(null);
@@ -47,6 +49,7 @@ const VisualIntelligencePanel = forwardRef<VisualIntelligenceHandle, Props>(func
   const latestFrame = useRef<VisualFrame | null>(null);
   const callbacks = useRef(props); callbacks.current = props;
   const root = useRef<HTMLElement>(null);
+  const presentation = useChartContextPresentation(root, JSON.stringify([symbol, timeframe, replay]), logicalOpen, dock?.target ?? null);
   useImperativeHandle(ref, () => ({
     isInspecting: () => openRef.current,
     update(next) {
@@ -124,16 +127,16 @@ const VisualIntelligencePanel = forwardRef<VisualIntelligenceHandle, Props>(func
         onPointerDown={(event) => event.stopPropagation()} onKeyDown={(event) => event.stopPropagation()}>
         <header className={styles.header}>
           <div><h3>{tx("title")}</h3><p>{symbol} <span aria-hidden="true">·</span> {timeframe}</p></div>
-          <button type="button" className={styles.iconButton} aria-label={tx("close")} onClick={() => close()}>×</button>
+          <button type="button" className={styles.iconButton} data-context-focus="close" aria-label={tx("close")} onClick={() => close()}>×</button>
         </header>
         {!settings.visualContext ? <div className={styles.empty}>
-          <p>{tx("disabled")}</p><button className={styles.enable} type="button" onClick={() => setting("visualContext", true)}>{tx("enable")}</button>
+          <p>{tx("disabled")}</p><button className={styles.enable} data-context-focus="enable" type="button" onClick={() => setting("visualContext", true)}>{tx("enable")}</button>
         </div> : !fact || !current ? <div className={styles.empty} role="status"><span className={styles.emptyIcon} aria-hidden="true">—</span><p>{tx(availability === "empty" ? "empty" : "loading")}</p></div> : <>
           <div className={styles.barNav}>
             <div><small>{replay ? tx("replay") : historical ? tx("selectedBar") : tx("latestBar")}</small><time data-context-bar-time>{formatVisualTime(fact.time)}{typeof fact.time === "number" ? " UTC" : ""}</time></div>
-            <button type="button" aria-label={tx("previous")} disabled={selectedIndex <= 0} onClick={() => inspect(selectedIndex - 1)}>‹</button>
-            <button type="button" aria-label={tx("next")} disabled={selectedIndex >= lastIndex} onClick={() => inspect(selectedIndex + 1)}>›</button>
-            <button type="button" className={styles.latest} disabled={selected === null} onClick={() => inspect(null)}>{tx("latest")}</button>
+            <button type="button" data-context-focus="previous" aria-label={tx("previous")} disabled={selectedIndex <= 0} onClick={() => inspect(selectedIndex - 1)}>‹</button>
+            <button type="button" data-context-focus="next" aria-label={tx("next")} disabled={selectedIndex >= lastIndex} onClick={() => inspect(selectedIndex + 1)}>›</button>
+            <button type="button" data-context-focus="latest" className={styles.latest} disabled={selected === null} onClick={() => inspect(null)}>{tx("latest")}</button>
           </div>
           <div className={styles.synthesis}>
             <h4 data-context-synthesis>{visualHeadline(fact, lang)}</h4>
@@ -171,7 +174,7 @@ const VisualIntelligencePanel = forwardRef<VisualIntelligenceHandle, Props>(func
             </section>
           </div>
           <div className={styles.details}>
-            <details><summary><span>{tx("rangeEvents")}</span><span aria-hidden="true">›</span></summary><div className={styles.detailBody}>
+            <details open={presentation.expanded.range}><summary data-context-focus="range" onClick={(event) => { event.preventDefault(); presentation.toggle("range"); }}><span>{tx("rangeEvents")}</span><span aria-hidden="true">›</span></summary><div className={styles.detailBody}>
               <section><h4>{tx("range")}</h4><strong data-context-range>{number(fact.priorLow20)} / {number(fact.priorHigh20)}</strong>
                 {fact.priorLow20 === null && <p>{tx("rangeMissing")}</p>}<p>{tx("rangeBasis")}</p></section>
               <section data-context-calendar={calendar.state}><h4>{tx("events")}</h4>
@@ -182,25 +185,25 @@ const VisualIntelligencePanel = forwardRef<VisualIntelligenceHandle, Props>(func
                   <small>{tx("asof")}: {calendar.asof ?? tx("unknown")}</small><p>{tx("eventsBasis")}</p></>}
               </section>
             </div></details>
-            <details><summary><span>{tx("chartLayers")}</span><span aria-hidden="true">›</span></summary><div className={styles.detailBody}>
+            <details open={presentation.expanded.layers}><summary data-context-focus="layers" onClick={(event) => { event.preventDefault(); presentation.toggle("layers"); }}><span>{tx("chartLayers")}</span><span aria-hidden="true">›</span></summary><div className={styles.detailBody}>
               <fieldset className={styles.layers}><legend>{tx("layers")}</legend>{optional.map(([key, label]) => <button key={key} type="button"
-                role="switch" aria-checked={settings[key]} aria-label={tx(label)} onClick={() => setting(key, !settings[key])}>
+                role="switch" data-context-focus={key} aria-checked={settings[key]} aria-label={tx(label)} onClick={() => setting(key, !settings[key])}>
                 <span>{tx(label)}</span><span className={`${styles.switch} ${settings[key] ? styles.on : ""}`} aria-hidden="true" />
               </button>)}<p>{tx("layerHint")}</p></fieldset>
             </div></details>
-            <details><summary><span>{tx("howToRead")}</span><span aria-hidden="true">›</span></summary><div className={styles.detailBody}>
+            <details open={presentation.expanded.help}><summary data-context-focus="help" onClick={(event) => { event.preventDefault(); presentation.toggle("help"); }}><span>{tx("howToRead")}</span><span aria-hidden="true">›</span></summary><div className={styles.detailBody}>
               <p>{tx("movementHint")}</p><p>{tx("priceBasis")}</p>
               <section><h4>{tx("candles")} · {candleModeText(current.series.mode, lang)}</h4>
                 <strong className={tone(fact.state)} data-context-candle-state>{candleStateText(fact.state, lang)}</strong>
                 <p>{visualSynthesis(fact, lang)}</p><p>{tx("momentumBasis")}</p><p>{tx("trendBasis")}</p>
-                {props.onCandleSettings && <button type="button" className={styles.textButton} onClick={() => { close(false); callbacks.current.onCandleSettings?.(); }}>{tx("settings")} ↗</button>}
+                {props.onCandleSettings && <button type="button" data-context-focus="settings" className={styles.textButton} onClick={() => { close(false); callbacks.current.onCandleSettings?.(); }}>{tx("settings")} ↗</button>}
               </section>
               <p>{tx("volumeBasis")}</p><p>{tx("disclaimer")}</p>
               <div className={styles.feedback}>{feedback ? <span>{tx("thanks")}</span> : <>
-                <button type="button" onClick={() => { telemetry("feedback", { useful: true }); setFeedback("helpful"); }}>{tx("useful")}</button>
-                <button type="button" onClick={() => { telemetry("feedback", { useful: false }); setFeedback("unclear"); }}>{tx("unclear")}</button>
+                <button type="button" data-context-focus="useful" onClick={() => { telemetry("feedback", { useful: true }); setFeedback("helpful"); }}>{tx("useful")}</button>
+                <button type="button" data-context-focus="unclear" onClick={() => { telemetry("feedback", { useful: false }); setFeedback("unclear"); }}>{tx("unclear")}</button>
               </>}</div>
-              <button type="button" className={styles.textButton} onClick={() => { setting("visualContext", false); close(); }}>{tx("hide")}</button>
+              <button type="button" data-context-focus="hide" className={styles.textButton} onClick={() => { setting("visualContext", false); close(); }}>{tx("hide")}</button>
             </div></details>
           </div>
           <footer className={styles.footer}>{tx("quoteSource")}: {tx(quoteCopy)}</footer>

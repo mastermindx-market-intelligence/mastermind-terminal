@@ -75,5 +75,5 @@
 .enable { border:1px solid var(--line-3); border-radius:6px; background:var(--panel); padding:8px 12px; margin-top:12px; }
 .up { color:var(--up); }.down { color:var(--down); }.warn { color:var(--warn); }.neutral { color:var(--text-2); }
 @media(max-width:860px) { .panel { height:auto; overflow:visible; padding:16px; } .synthesis h4 { max-width:420px; } }
-@media(pointer:coarse) { .barNav button,.iconButton { min-width:44px; min-height:44px; } .layers button,.textButton,.feedback button,.details summary { min-height:44px; } }
+@media(max-width:640px), (pointer:coarse) { .panel button { min-width:44px; min-height:44px; } .details summary { min-height:44px; } }
 @media(prefers-reduced-motion:reduce) { .panel * { animation:none!important; transition:none!important; } }
