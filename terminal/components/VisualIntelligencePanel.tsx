@@ -96,6 +96,8 @@ const VisualIntelligencePanel = forwardRef<VisualIntelligenceHandle, Props>(func
   const lastIndex = (current?.series.facts.length ?? 0) - 1;
   const selectedIndex = selected === null ? lastIndex : current?.series.indexByTime.get(selected) ?? lastIndex;
   const fact = current?.series.facts[selectedIndex] ?? null;
+  const formattedTime = fact ? formatVisualTime(fact.time, timeframe) : "";
+  const hasChartTime = typeof fact?.time === "number" && formattedTime !== "";
   const historical = selectedIndex !== lastIndex;
   const calendar = replay || historical ? { state: "withheld" as const, asof: null, events: [] }
     : source.symbol === symbol ? source.calendar : { state: "loading" as const, asof: null, events: [] };
@@ -133,7 +135,10 @@ const VisualIntelligencePanel = forwardRef<VisualIntelligenceHandle, Props>(func
           <p>{tx("disabled")}</p><button className={styles.enable} data-context-focus="enable" type="button" onClick={() => setting("visualContext", true)}>{tx("enable")}</button>
         </div> : !fact || !current ? <div className={styles.empty} role="status"><span className={styles.emptyIcon} aria-hidden="true">—</span><p>{tx(availability === "empty" ? "empty" : "loading")}</p></div> : <>
           <div className={styles.barNav}>
-            <div><small>{replay ? tx("replay") : historical ? tx("selectedBar") : tx("latestBar")}</small><time data-context-bar-time>{formatVisualTime(fact.time)}{typeof fact.time === "number" ? " UTC" : ""}</time></div>
+            <div><small>{replay ? tx("replay") : historical ? tx("selectedBar") : tx("latestBar")}</small>
+              <time data-context-bar-time aria-describedby={hasChartTime ? `${id}-clock-basis` : undefined}>{formattedTime || tx("unknown")}</time>
+              {hasChartTime && <small id={`${id}-clock-basis`} data-context-clock-basis>{tx("chartTime")}</small>}
+            </div>
             <button type="button" data-context-focus="previous" aria-label={tx("previous")} disabled={selectedIndex <= 0} onClick={() => inspect(selectedIndex - 1)}>‹</button>
             <button type="button" data-context-focus="next" aria-label={tx("next")} disabled={selectedIndex >= lastIndex} onClick={() => inspect(selectedIndex + 1)}>›</button>
             <button type="button" data-context-focus="latest" className={styles.latest} disabled={selected === null} onClick={() => inspect(null)}>{tx("latest")}</button>
@@ -193,6 +198,7 @@ const VisualIntelligencePanel = forwardRef<VisualIntelligenceHandle, Props>(func
             </div></details>
             <details open={presentation.expanded.help}><summary data-context-focus="help" onClick={(event) => { event.preventDefault(); presentation.toggle("help"); }}><span>{tx("howToRead")}</span><span aria-hidden="true">›</span></summary><div className={styles.detailBody}>
               <p>{tx("movementHint")}</p><p>{tx("priceBasis")}</p>
+              {hasChartTime && <p data-context-time-note>{tx("chartTimeBasis")}</p>}
               <section><h4>{tx("candles")} · {candleModeText(current.series.mode, lang)}</h4>
                 <strong className={tone(fact.state)} data-context-candle-state>{candleStateText(fact.state, lang)}</strong>
                 <p>{visualSynthesis(fact, lang)}</p><p>{tx("momentumBasis")}</p><p>{tx("trendBasis")}</p>

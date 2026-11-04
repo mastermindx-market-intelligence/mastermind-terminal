@@ -1,5 +1,7 @@
 # D06 reader resilience — implementation slice
 
+**Historical implementation and verification record.** The original candidate is now published at `2d29878cf52b6a8ac950b93ea9a78ec0fae60aff` in [Draft #1270](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1270). The [current chart-time continuation](d06-chart-time.md) records publisher recovery, the next bounded correction and its new proof. Earlier publisher-refusal and source identities below remain historical.
+
 ## Authority and source custody
 
 D06 remains with Astra Pro / ChatGPT4 (mastermidx4), the owner of the existing

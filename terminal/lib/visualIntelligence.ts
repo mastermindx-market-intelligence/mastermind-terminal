@@ -1,5 +1,6 @@
 /** Read-only chart projection. No forecasts, trading commands, persistent store or new data feed. */
 import type { Bar, Fund } from "@/lib/fund";
+import { isSecondTf } from "@/lib/intradayShared";
 import { analyzeCandleSeries, normalizeCandleMode, type CandleFacts, type CandleMode } from "@/lib/suites/trend/candlePainter";
 import type { CoordMapper, Prim, SuiteColors, SuiteRenderBundle, TooltipDef } from "@/lib/indicator-canvas/types";
 
@@ -124,10 +125,12 @@ export function chartDay(time: Bar["time"]): string | null {
   const date = new Date(time * 1000);
   return Number.isFinite(date.getTime()) ? date.toISOString().slice(0, 10) : null;
 }
-export function formatVisualTime(time: Bar["time"]): string {
+/** Format the plotted coordinate without asserting its timezone or converting it again. */
+export function formatVisualTime(time: Bar["time"], timeframe?: string): string {
   if (typeof time === "number") {
     const date = new Date(time * 1000);
-    return Number.isFinite(date.getTime()) ? date.toISOString().slice(0, 16).replace("T", " ") : "";
+    const precision = isSecondTf(timeframe ?? "") ? 19 : 16;
+    return Number.isFinite(date.getTime()) ? date.toISOString().slice(0, precision).replace("T", " ") : "";
   }
   return String(time).slice(0, 24);
 }
@@ -177,7 +180,7 @@ export function visualOverlayBundle(series: VisualSeries, settings: VisualIntell
       out.prims.push({ kind: "line", id, a: { i: Math.max(0, index - 20), p: price }, b: { i: "right", p: price }, color: colors.muted, w: 1, dash: "4 4", alpha: .7 });
       out.prims.push({ kind: "label", id: id + ":label", i: "right", p: price, text: label + " " + price.toFixed(2), place: "left", style: "bare", color: colors.muted, minPxPerBar: 1 });
       const tip: TooltipDef = { id, title: label, rows: [
-        { k: copy("Selected bar", "所选K线"), v: formatVisualTime(fact.time) },
+        { k: copy("Selected bar", "所选K线"), v: formatVisualTime(fact.time, series.timeframe) },
         { k: copy("Basis", "依据"), v: copy("Previous 20 plotted bars; current bar excluded. Reference, not a forecast.", "前20根已绘制K线，不含当前K线。仅供参考，非预测。") },
       ] };
       out.tooltips.set(id, tip); out.tooltips.set(id + ":label", { ...tip, id: id + ":label" });
