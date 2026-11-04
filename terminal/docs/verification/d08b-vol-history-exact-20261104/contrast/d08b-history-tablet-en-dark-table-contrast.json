@@ -1,0 +1,189 @@
+{
+  "text": [
+    {
+      "text": "ATM IV history",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "14 sessions · since 2026-10-01 through 2026-10-16",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "Partial IV history · 1 conflicting date unavailable",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "Chart",
+      "ratio": 7.073661363306059
+    },
+    {
+      "text": "Exact history values",
+      "ratio": 12.010292353016952
+    },
+    {
+      "text": "14 IV observations · 16 supplied dates",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "Reported ATM IV by observation date",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "Observation date",
+      "ratio": 12.794044188667254
+    },
+    {
+      "text": "ATM IV (%)",
+      "ratio": 12.794044188667254
+    },
+    {
+      "text": "2026-10-01",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "0",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "2026-10-02",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "17.1234567890123",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "2026-10-03",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "1e-9",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "2026-10-04",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "17.3",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "2026-10-05",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "Unavailable",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "2026-10-06",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "17.5",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "2026-10-07",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "17.6",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "2026-10-08",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "17.7",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "2026-10-09",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "Conflicting records",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "2026-10-10",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "17.9",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "2026-10-11",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "18",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "2026-10-12",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "18.1",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "2026-10-13",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "18.2",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "2026-10-14",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "18.3",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "2026-10-15",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "18.4",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "2026-10-16",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "18.5",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "Source & method",
+      "ratio": 12.794044188667254
+    },
+    {
+      "text": "Values use the supplied percentage scale, without display rounding. Mi",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "Each date identifies a supplied observation. Its availability timestam",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "Only valid supplied dates appear here. Duplicate dates retain one conf",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "options_hub · nightly EOD",
+      "ratio": 7.5733449016766565
+    }
+  ],
+  "marks": []
+}

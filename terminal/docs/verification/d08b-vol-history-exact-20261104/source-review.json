@@ -1,0 +1,43 @@
+{
+  "schema": "d08b.native_source_review.v1",
+  "status": "PASS_WITH_EXPLICIT_FINAL_PRESENTATION_DELTA",
+  "drafter": "/root/history_gap_assessment",
+  "independent_verifier": "/root/history_contract_check",
+  "original_source_blob": "ef5d8110de2f24feb96bf9dacecc8fbda24f7dac",
+  "original_shared_blob": "17b49ca0772fe9bb1dca503abfa4465df67bd5b4",
+  "independently_inspected_blobs": {
+    "components/vol/VolHistoryPanel.tsx": "a182878f0361d2c16a9d3e93561f83cbd0ab4698",
+    "components/vol/VolHistoryPanel.module.css": "6e1817d8c485d6f12c8024ba6815d6f650d30e32",
+    "components/vol/volHistoryStrings.ts": "fb1ac10386a22e4dce8c3dc6eca609252d549481",
+    "lib/__tests__/volHistoryExactValues.test.tsx": "c121869885429d9e651c8241e3f36e9a0428831b",
+    "e2e/options-vol-history-exact.spec.ts": "d1446132842307250b18fc38ab235adc8ab3707e"
+  },
+  "current_blobs": {
+    "components/vol/VolHistoryPanel.tsx": "a182878f0361d2c16a9d3e93561f83cbd0ab4698",
+    "components/vol/VolHistoryPanel.module.css": "19d15f83bad0221bc02feb96764ff6d4f00c2f40",
+    "components/vol/volHistoryStrings.ts": "fb1ac10386a22e4dce8c3dc6eca609252d549481",
+    "lib/__tests__/volHistoryExactValues.test.tsx": "c121869885429d9e651c8241e3f36e9a0428831b",
+    "e2e/options-vol-history-exact.spec.ts": "c4ed3be0bf1390174a2b717a38bcff19b0ac79ed"
+  },
+  "final_delta": {
+    "owner": "/root",
+    "css": "Date-column allocation47percent to42percent; no other production change",
+    "test": "Add320px one-line assertion for supplied25.1234567890123 fixture",
+    "proof": "Final focused History browser8PASS/4intentional skips; root visual inspection of corrected phone and narrow captures"
+  },
+  "verified": [
+    "Same admitted rows and exact percent-number values",
+    "Byte-identical admission-through-reference calculation block",
+    "Ten-finite chart threshold, gaps, domains, scales and52w eligibility retained",
+    "Missing, zero, duplicate conflict and source-disappearance semantics",
+    "No selected date, replay, parent, source clock, rank/close or Plan/Save owner",
+    "Semantic read-only table, persistent controls and narrow focus",
+    "Hit-tested viewport screenshot design"
+  ],
+  "limits": [
+    "Independent verifier did not run unit, browser, build or render checks",
+    "Final CSS/test delta was root-reviewed and browser-verified, not re-reviewed by the separate verifier",
+    "Not formal GitHub non-author approval or complete accessibility certification"
+  ],
+  "disposition": "Both native advisers ACCEPTED / STOP; no watcher"
+}

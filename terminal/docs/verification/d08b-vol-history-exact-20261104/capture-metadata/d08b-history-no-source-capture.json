@@ -1,0 +1,20 @@
+{
+  "schema": "d08b.viewport_capture.v1",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "fullPage": false,
+  "innerWidth": 1440,
+  "innerHeight": 900,
+  "devicePixelRatio": 1,
+  "cssZoom": "1",
+  "target": {
+    "tag": "DIV",
+    "text": "Not enough IV history to draw yet",
+    "left": 296.21875,
+    "top": 562.484375,
+    "width": 225.546875,
+    "height": 16.796875
+  }
+}
