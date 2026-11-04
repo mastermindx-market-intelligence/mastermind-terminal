@@ -36,7 +36,7 @@ async function flush(){for(let n=0;n<4;n++)await act(async()=>{await Promise.res
 async function answer(index:number,value:unknown,status=200){await act(async()=>{held[index].resolve(json(value,status));});await flush();}
 async function click(text:string){const button=Array.from(container.querySelectorAll("button")).find(node=>node.textContent?.includes(text));expect(button, text).toBeTruthy();await act(async()=>button!.click());await flush();}
 async function mount(component:React.ReactNode){await act(async()=>root.render(component));await flush();}
-beforeEach(()=>{auth.lang="en";auth.user=A;auth.failure=false;auth.holdUser=false;auth.resolvers=[];auth.open.mockClear();auth.listener=null;held=[];window.history.replaceState({},"","/research");window.localStorage.clear();container=document.createElement("div");document.body.appendChild(container);root=createRoot(container);vi.stubGlobal("requestAnimationFrame",(cb:FrameRequestCallback)=>{cb(0);return 1;});vi.stubGlobal("fetch",vi.fn((input:RequestInfo|URL,init?:RequestInit)=>new Promise<Response>(resolve=>held.push({url:String(input),init,resolve}))));});
+beforeEach(()=>{vi.stubGlobal("matchMedia",(query:string)=>({matches:false,media:query,addEventListener:vi.fn(),removeEventListener:vi.fn()}));auth.lang="en";auth.user=A;auth.failure=false;auth.holdUser=false;auth.resolvers=[];auth.open.mockClear();auth.listener=null;held=[];window.history.replaceState({},"","/research");window.localStorage.clear();container=document.createElement("div");document.body.appendChild(container);root=createRoot(container);vi.stubGlobal("requestAnimationFrame",(cb:FrameRequestCallback)=>{cb(0);return 1;});vi.stubGlobal("fetch",vi.fn((input:RequestInfo|URL,init?:RequestInit)=>new Promise<Response>(resolve=>held.push({url:String(input),init,resolve}))));});
 afterEach(async()=>{await act(async()=>root.unmount());container.remove();vi.unstubAllGlobals();});
 async function library(){await answer(0,{items:[{id:"report-one",title:"First source report",institution:"Source desk",published_at:"2026-10-19"},{id:"report-two",title:"Second source report"}],preview:false});}
 
@@ -249,4 +249,91 @@ describe("Today Business period and source presence",()=>{
  it("retains non-Business source state, dates and navigation",async()=>{
   await mount(<TodayWorkspace ownerKey={A}/>);const payload=businessPayload();payload.workspaces=payload.workspaces.map(row=>row.workspace_id==="liquidity"?{...row,clock_qualification:qualification}:row);await answer(0,payload);const rows=Array.from(container.querySelectorAll("li")).filter(row=>row.querySelector("h3")?.textContent==="Liquidity source");expect(rows.at(-1)?.textContent).toContain("Source is behind");expect(rows.at(-1)?.textContent).toContain("Effective date: 2026-10-18");expect(rows.at(-1)?.textContent).toContain("Calculated as of: 2026-10-19");expect(container.querySelector('a[href="/macro_liquidity.html"]')).toBeTruthy();expect(container.querySelector('a[href="/macro.html"]')).toBeTruthy();
  });
+});
+
+
+describe("Research editorial source-page composition", () => {
+ const outline = [{segment_index:0,page_start:1,page_end:1},{segment_index:1,page_start:2,page_end:2},{segment_index:2,page_start:3,page_end:3}];
+ it("navigates supplied source pages with both pins and inspects the exact passage without another read", async () => {
+  await mount(<ResearchWorkspace ownerKey={A}/>);await library();await click("Open current revision");
+  await answer(1,{...body(),outline});
+  await click("Source page 3");
+  expect(held).toHaveLength(3);
+  const request = new URL(held[2].url,"https://example.test");
+  expect(request.searchParams.get("segment_start")).toBe("2");
+  expect(request.searchParams.get("source_pdf_sha256")).toBe(selection.sourcePdfSha256);
+  expect(request.searchParams.get("extracted_text_sha256")).toBe(selection.extractedTextSha256);
+  const third = body("EXACT THIRD SOURCE PASSAGE",2);
+  third.segments[0].page_start=3;third.segments[0].page_end=3;
+  await answer(2,{...third,outline});
+  expect(window.location.search).toContain("segment_start=2");
+  expect(window.location.search).toContain(encodeURIComponent(selection.extractorVersion));
+  await click("Inspect source passage");
+  expect(document.activeElement?.getAttribute("aria-label")).toBe("Selected passage evidence");
+  expect(container.textContent).toContain("EXACT THIRD SOURCE PASSAGE");
+  expect(container.textContent).toContain(third.segments[0].segment_text_sha256);
+  expect(held).toHaveLength(3);
+  expect(JSON.stringify(window.localStorage)).not.toContain("EXACT THIRD SOURCE PASSAGE");
+  await click("Return to passage");expect(document.activeElement?.id).toBe("research-segment-2");
+  auth.lang="zh";await mount(<ResearchWorkspace ownerKey={A}/>);expect(held).toHaveLength(3);
+ });
+ it("withholds a new window when its supplied outline disagrees with the source range", async () => {
+  await mount(<ResearchWorkspace ownerKey={A}/>);await library();await click("Open current revision");
+  await answer(1,{...body(),outline});await click("Next text window");
+  const malformed=body("DO NOT DISPLAY THIS WRONG WINDOW",1);
+  await answer(2,{...malformed,outline});
+  expect(container.textContent).toContain("Research is unavailable");
+  expect(container.textContent).not.toContain("DO NOT DISPLAY THIS WRONG WINDOW");
+  expect(container.textContent).not.toContain("PRIVATE SELECTED SOURCE");
+  expect(held).toHaveLength(3);
+ });
+});
+
+
+it("filters and sorts only the loaded catalog selection without a private body read", async () => {
+ await mount(<ResearchWorkspace ownerKey={A}/>);
+ const items=Array.from({length:10},(_,index)=>({id:`report-${index}`,title:`Report ${String(index+1).padStart(2,"0")}`,institution:index<5?"Desk A":"Desk B",tags:[index%2===0?"Macro":"Credit"],published_at:`2026-10-${String(index+1).padStart(2,"0")}`}));
+ await answer(0,{items,preview:false});
+ expect(container.textContent).toContain("8 shown · 10 matching in 10 loaded reports");
+ const selects=Array.from(container.querySelectorAll("label select"));
+ async function select(index:number,value:string){await act(async()=>{(selects[index] as HTMLSelectElement).value=value;selects[index].dispatchEvent(new Event("change",{bubbles:true}));});await flush();}
+ await select(0,"Macro");await select(1,"Desk A");await select(2,"date-oldest");
+ expect(container.textContent).toContain("3 shown · 3 matching in 10 loaded reports");
+ expect(Array.from(container.querySelectorAll("li h3")).map(node=>node.textContent)).toEqual(["Report 01","Report 03","Report 05"]);
+ expect(held).toHaveLength(1);
+});
+
+
+it("marks the supplied source page when reopening its second segment", async () => {
+ window.history.replaceState({},"",readingHref(selection,1));
+ await mount(<ResearchWorkspace ownerKey={A}/>);await library();
+ const outline=[{segment_index:0,page_start:1,page_end:1},{segment_index:1,page_start:1,page_end:1},{segment_index:2,page_start:2,page_end:2}];
+ await answer(1,{...body("SECOND SEGMENT ON SOURCE PAGE ONE",1),outline});
+ const current=Array.from(container.querySelectorAll('button[aria-current="page"]'));
+ expect(current).toHaveLength(1);expect(current[0].textContent).toContain("Source page 1");
+ expect(window.location.search).toContain("segment_start=1");expect(held).toHaveLength(2);
+});
+
+
+it("opens the canonical source-page sheet before the text, closes back to its trigger and reads a destination once with both pins", async () => {
+ await mount(<ResearchWorkspace ownerKey={A}/>);await library();await click("Open current revision");
+ const outline=[{segment_index:0,page_start:1,page_end:1},{segment_index:1,page_start:2,page_end:2},{segment_index:2,page_start:3,page_end:3}];
+ await answer(1,{...body(),outline});
+ const trigger=container.querySelector<HTMLButtonElement>('button[aria-haspopup="dialog"]')!;
+ expect(trigger.compareDocumentPosition(container.querySelector("#research-segment-0")!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+ trigger.focus();await act(async()=>trigger.click());await flush();
+ let dialog=document.querySelector('[role="dialog"][aria-modal="true"]')!;
+ expect(dialog).toBeTruthy();expect(container.contains(dialog)).toBe(false);
+ expect(document.activeElement?.getAttribute("aria-label")).toBe("Close source pages");
+ expect(dialog.textContent).toContain("Current source page: 1");
+ await act(async()=>document.dispatchEvent(new KeyboardEvent("keydown",{key:"Escape",bubbles:true})));await flush();
+ expect(document.querySelector('[role="dialog"][aria-modal="true"]')).toBeNull();expect(document.activeElement).toBe(trigger);expect(held).toHaveLength(2);
+ await act(async()=>trigger.click());await flush();dialog=document.querySelector('[role="dialog"]')!;
+ const destination=Array.from(dialog.querySelectorAll("button")).find(button=>button.textContent?.includes("Source page 3"))!;
+ await act(async()=>destination.click());await flush();
+ expect(document.querySelector('[role="dialog"][aria-modal="true"]')).toBeNull();expect(held).toHaveLength(3);
+ const url=new URL(held[2].url,"https://example.test");expect(url.searchParams.get("source_pdf_sha256")).toBe(selection.sourcePdfSha256);expect(url.searchParams.get("extracted_text_sha256")).toBe(selection.extractedTextSha256);expect(url.searchParams.get("segment_start")).toBe("2");
+ const titleFocus=vi.spyOn(container.querySelector<HTMLElement>("#research-reader-title")!,"focus");
+ const third=body("EXACT SHEET DESTINATION",2);third.segments[0].page_start=3;third.segments[0].page_end=3;
+ await answer(2,{...third,outline});expect(document.activeElement?.id).toBe("research-segment-2");expect(titleFocus).not.toHaveBeenCalled();expect(held).toHaveLength(3);
 });

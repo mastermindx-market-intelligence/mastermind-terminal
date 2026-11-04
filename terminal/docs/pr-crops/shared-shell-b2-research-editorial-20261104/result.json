@@ -1,0 +1,594 @@
+{
+  "scope": "LOCAL_SOURCE_FIXTURE_ONLY_NO_REAL_ACCOUNT_ENTITLEMENT_OR_BETA_ACCEPTANCE",
+  "base": "20ae5fde2e156298f965e51ba1063a47f8ad36a1",
+  "sourceFiles": [
+    {
+      "path": "terminal/components/workspaces/ResearchWorkspace.tsx",
+      "sha256": "52f6a8e008c935d1a82929886563ea0ccdf2a7399e022cb71f28414372a6db03"
+    },
+    {
+      "path": "terminal/components/workspaces/ResearchWorkspace.module.css",
+      "sha256": "c343ce325707567dabeb9373fcc6c0db15df9247f5a718320a2df23d2a34137c"
+    },
+    {
+      "path": "terminal/lib/shared-shell/readingPayloads.ts",
+      "sha256": "952b699f272923ae1ab1457ac6b6b4cc59e7755c8e8212b6e3565deaf06e65f8"
+    },
+    {
+      "path": "terminal/lib/shared-shell/researchLibrary.ts",
+      "sha256": "9f7792888aeedd1fe3c65443b61fb563973fa4850ee45e46e5781de7c9b09568"
+    },
+    {
+      "path": "terminal/lib/shared-shell/researchOutline.ts",
+      "sha256": "eadf5c0d02abd4fb606cc8fcb5106a1d0d05990d0f85daf2cca6bddb581701c9"
+    },
+    {
+      "path": "terminal/lib/__tests__/researchLibrary.test.ts",
+      "sha256": "8f35f3e313a7a48361f9e1a1945406ef02358f99cf844b41a4020aace5722273"
+    },
+    {
+      "path": "terminal/lib/__tests__/researchOutline.test.ts",
+      "sha256": "783d32dabecbedd80fb119416d238cb44d28ac55061f2f4c00e2f792c34b1560"
+    },
+    {
+      "path": "terminal/lib/__tests__/readingWorkspaces.test.tsx",
+      "sha256": "127f5a855ed86e999a2e5747fcabeac2def788da55422f122e9b1b13df6d9ae3"
+    }
+  ],
+  "outcomes": [
+    {
+      "width": 1440,
+      "height": 1000,
+      "zh": false,
+      "light": false,
+      "scope": "LOCAL_SOURCE_FIXTURE_ONLY_NO_REAL_ACCOUNT_OR_ENTITLEMENT",
+      "privateReads": [
+        {
+          "id": "research-fixture-0",
+          "start": 0,
+          "max": 2,
+          "pdf": null,
+          "text": null
+        },
+        {
+          "id": "research-fixture-0",
+          "start": 0,
+          "max": 2,
+          "pdf": "04d4c551d135800876978b522cf365927130e686015ae779a3d0c58b6f23e32c",
+          "text": "efb4c464f33ef9c58a97630173bf20f84cd987aa217410a7b41748ef29950098"
+        },
+        {
+          "id": "research-fixture-0",
+          "start": 2,
+          "max": 2,
+          "pdf": "04d4c551d135800876978b522cf365927130e686015ae779a3d0c58b6f23e32c",
+          "text": "efb4c464f33ef9c58a97630173bf20f84cd987aa217410a7b41748ef29950098"
+        },
+        {
+          "id": "research-fixture-0",
+          "start": 2,
+          "max": 2,
+          "pdf": "04d4c551d135800876978b522cf365927130e686015ae779a3d0c58b6f23e32c",
+          "text": "efb4c464f33ef9c58a97630173bf20f84cd987aa217410a7b41748ef29950098"
+        }
+      ],
+      "pageErrors": [],
+      "entry": "http://127.0.0.1:3100/research?doc_id=research-fixture-0&source_pdf_sha256=04d4c551d135800876978b522cf365927130e686015ae779a3d0c58b6f23e32c&extracted_text_sha256=efb4c464f33ef9c58a97630173bf20f84cd987aa217410a7b41748ef29950098&extractor_version=research_vault.ingest.extract_pdf_text.v1&segmenter_version=page-byte-v1&segment_start=0",
+      "initialReads": 2,
+      "filterCount": [
+        "5 shown · 5 matching in 10 loaded reports"
+      ],
+      "resumed": "http://127.0.0.1:3100/research?doc_id=research-fixture-0&source_pdf_sha256=04d4c551d135800876978b522cf365927130e686015ae779a3d0c58b6f23e32c&extracted_text_sha256=efb4c464f33ef9c58a97630173bf20f84cd987aa217410a7b41748ef29950098&extractor_version=research_vault.ingest.extract_pdf_text.v1&segmenter_version=page-byte-v1&segment_start=2",
+      "pinPreserved": true,
+      "overflow": false,
+      "originalPdf": "/api/shared-shell/research/pdf/research-fixture-0",
+      "blockedOrigins": [],
+      "verdict": "PASS"
+    },
+    {
+      "width": 1440,
+      "height": 1000,
+      "zh": false,
+      "light": true,
+      "scope": "LOCAL_SOURCE_FIXTURE_ONLY_NO_REAL_ACCOUNT_OR_ENTITLEMENT",
+      "privateReads": [
+        {
+          "id": "research-fixture-0",
+          "start": 0,
+          "max": 2,
+          "pdf": null,
+          "text": null
+        },
+        {
+          "id": "research-fixture-0",
+          "start": 0,
+          "max": 2,
+          "pdf": "04d4c551d135800876978b522cf365927130e686015ae779a3d0c58b6f23e32c",
+          "text": "efb4c464f33ef9c58a97630173bf20f84cd987aa217410a7b41748ef29950098"
+        },
+        {
+          "id": "research-fixture-0",
+          "start": 2,
+          "max": 2,
+          "pdf": "04d4c551d135800876978b522cf365927130e686015ae779a3d0c58b6f23e32c",
+          "text": "efb4c464f33ef9c58a97630173bf20f84cd987aa217410a7b41748ef29950098"
+        },
+        {
+          "id": "research-fixture-0",
+          "start": 2,
+          "max": 2,
+          "pdf": "04d4c551d135800876978b522cf365927130e686015ae779a3d0c58b6f23e32c",
+          "text": "efb4c464f33ef9c58a97630173bf20f84cd987aa217410a7b41748ef29950098"
+        }
+      ],
+      "pageErrors": [],
+      "entry": "http://127.0.0.1:3100/research?doc_id=research-fixture-0&source_pdf_sha256=04d4c551d135800876978b522cf365927130e686015ae779a3d0c58b6f23e32c&extracted_text_sha256=efb4c464f33ef9c58a97630173bf20f84cd987aa217410a7b41748ef29950098&extractor_version=research_vault.ingest.extract_pdf_text.v1&segmenter_version=page-byte-v1&segment_start=0",
+      "initialReads": 2,
+      "filterCount": [
+        "5 shown · 5 matching in 10 loaded reports"
+      ],
+      "resumed": "http://127.0.0.1:3100/research?doc_id=research-fixture-0&source_pdf_sha256=04d4c551d135800876978b522cf365927130e686015ae779a3d0c58b6f23e32c&extracted_text_sha256=efb4c464f33ef9c58a97630173bf20f84cd987aa217410a7b41748ef29950098&extractor_version=research_vault.ingest.extract_pdf_text.v1&segmenter_version=page-byte-v1&segment_start=2",
+      "pinPreserved": true,
+      "overflow": false,
+      "originalPdf": "/api/shared-shell/research/pdf/research-fixture-0",
+      "blockedOrigins": [],
+      "verdict": "PASS"
+    },
+    {
+      "width": 1440,
+      "height": 1000,
+      "zh": true,
+      "light": false,
+      "scope": "LOCAL_SOURCE_FIXTURE_ONLY_NO_REAL_ACCOUNT_OR_ENTITLEMENT",
+      "privateReads": [
+        {
+          "id": "research-fixture-0",
+          "start": 0,
+          "max": 2,
+          "pdf": null,
+          "text": null
+        },
+        {
+          "id": "research-fixture-0",
+          "start": 0,
+          "max": 2,
+          "pdf": "04d4c551d135800876978b522cf365927130e686015ae779a3d0c58b6f23e32c",
+          "text": "efb4c464f33ef9c58a97630173bf20f84cd987aa217410a7b41748ef29950098"
+        },
+        {
+          "id": "research-fixture-0",
+          "start": 2,
+          "max": 2,
+          "pdf": "04d4c551d135800876978b522cf365927130e686015ae779a3d0c58b6f23e32c",
+          "text": "efb4c464f33ef9c58a97630173bf20f84cd987aa217410a7b41748ef29950098"
+        },
+        {
+          "id": "research-fixture-0",
+          "start": 2,
+          "max": 2,
+          "pdf": "04d4c551d135800876978b522cf365927130e686015ae779a3d0c58b6f23e32c",
+          "text": "efb4c464f33ef9c58a97630173bf20f84cd987aa217410a7b41748ef29950098"
+        }
+      ],
+      "pageErrors": [],
+      "entry": "http://127.0.0.1:3100/research?doc_id=research-fixture-0&source_pdf_sha256=04d4c551d135800876978b522cf365927130e686015ae779a3d0c58b6f23e32c&extracted_text_sha256=efb4c464f33ef9c58a97630173bf20f84cd987aa217410a7b41748ef29950098&extractor_version=research_vault.ingest.extract_pdf_text.v1&segmenter_version=page-byte-v1&segment_start=0",
+      "initialReads": 2,
+      "filterCount": [
+        "已显示 5 份 · 10 份已加载报告中有 5 份符合条件"
+      ],
+      "resumed": "http://127.0.0.1:3100/research?doc_id=research-fixture-0&source_pdf_sha256=04d4c551d135800876978b522cf365927130e686015ae779a3d0c58b6f23e32c&extracted_text_sha256=efb4c464f33ef9c58a97630173bf20f84cd987aa217410a7b41748ef29950098&extractor_version=research_vault.ingest.extract_pdf_text.v1&segmenter_version=page-byte-v1&segment_start=2",
+      "pinPreserved": true,
+      "overflow": false,
+      "originalPdf": "/api/shared-shell/research/pdf/research-fixture-0",
+      "blockedOrigins": [],
+      "verdict": "PASS"
+    },
+    {
+      "width": 1440,
+      "height": 1000,
+      "zh": true,
+      "light": true,
+      "scope": "LOCAL_SOURCE_FIXTURE_ONLY_NO_REAL_ACCOUNT_OR_ENTITLEMENT",
+      "privateReads": [
+        {
+          "id": "research-fixture-0",
+          "start": 0,
+          "max": 2,
+          "pdf": null,
+          "text": null
+        },
+        {
+          "id": "research-fixture-0",
+          "start": 0,
+          "max": 2,
+          "pdf": "04d4c551d135800876978b522cf365927130e686015ae779a3d0c58b6f23e32c",
+          "text": "efb4c464f33ef9c58a97630173bf20f84cd987aa217410a7b41748ef29950098"
+        },
+        {
+          "id": "research-fixture-0",
+          "start": 2,
+          "max": 2,
+          "pdf": "04d4c551d135800876978b522cf365927130e686015ae779a3d0c58b6f23e32c",
+          "text": "efb4c464f33ef9c58a97630173bf20f84cd987aa217410a7b41748ef29950098"
+        },
+        {
+          "id": "research-fixture-0",
+          "start": 2,
+          "max": 2,
+          "pdf": "04d4c551d135800876978b522cf365927130e686015ae779a3d0c58b6f23e32c",
+          "text": "efb4c464f33ef9c58a97630173bf20f84cd987aa217410a7b41748ef29950098"
+        }
+      ],
+      "pageErrors": [],
+      "entry": "http://127.0.0.1:3100/research?doc_id=research-fixture-0&source_pdf_sha256=04d4c551d135800876978b522cf365927130e686015ae779a3d0c58b6f23e32c&extracted_text_sha256=efb4c464f33ef9c58a97630173bf20f84cd987aa217410a7b41748ef29950098&extractor_version=research_vault.ingest.extract_pdf_text.v1&segmenter_version=page-byte-v1&segment_start=0",
+      "initialReads": 2,
+      "filterCount": [
+        "已显示 5 份 · 10 份已加载报告中有 5 份符合条件"
+      ],
+      "resumed": "http://127.0.0.1:3100/research?doc_id=research-fixture-0&source_pdf_sha256=04d4c551d135800876978b522cf365927130e686015ae779a3d0c58b6f23e32c&extracted_text_sha256=efb4c464f33ef9c58a97630173bf20f84cd987aa217410a7b41748ef29950098&extractor_version=research_vault.ingest.extract_pdf_text.v1&segmenter_version=page-byte-v1&segment_start=2",
+      "pinPreserved": true,
+      "overflow": false,
+      "originalPdf": "/api/shared-shell/research/pdf/research-fixture-0",
+      "blockedOrigins": [],
+      "verdict": "PASS"
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "zh": false,
+      "light": false,
+      "scope": "LOCAL_SOURCE_FIXTURE_ONLY_NO_REAL_ACCOUNT_OR_ENTITLEMENT",
+      "privateReads": [
+        {
+          "id": "research-fixture-0",
+          "start": 0,
+          "max": 2,
+          "pdf": null,
+          "text": null
+        },
+        {
+          "id": "research-fixture-0",
+          "start": 0,
+          "max": 2,
+          "pdf": "04d4c551d135800876978b522cf365927130e686015ae779a3d0c58b6f23e32c",
+          "text": "efb4c464f33ef9c58a97630173bf20f84cd987aa217410a7b41748ef29950098"
+        },
+        {
+          "id": "research-fixture-0",
+          "start": 2,
+          "max": 2,
+          "pdf": "04d4c551d135800876978b522cf365927130e686015ae779a3d0c58b6f23e32c",
+          "text": "efb4c464f33ef9c58a97630173bf20f84cd987aa217410a7b41748ef29950098"
+        },
+        {
+          "id": "research-fixture-0",
+          "start": 2,
+          "max": 2,
+          "pdf": "04d4c551d135800876978b522cf365927130e686015ae779a3d0c58b6f23e32c",
+          "text": "efb4c464f33ef9c58a97630173bf20f84cd987aa217410a7b41748ef29950098"
+        }
+      ],
+      "pageErrors": [],
+      "entry": "http://127.0.0.1:3100/research?doc_id=research-fixture-0&source_pdf_sha256=04d4c551d135800876978b522cf365927130e686015ae779a3d0c58b6f23e32c&extracted_text_sha256=efb4c464f33ef9c58a97630173bf20f84cd987aa217410a7b41748ef29950098&extractor_version=research_vault.ingest.extract_pdf_text.v1&segmenter_version=page-byte-v1&segment_start=0",
+      "initialReads": 2,
+      "outlineTrigger": {
+        "x": 37,
+        "y": 613.34375,
+        "width": 316,
+        "height": 48
+      },
+      "beforeSheetScroll": 0,
+      "sheetClose": {
+        "x": 326,
+        "y": 420.8285827636719,
+        "width": 44,
+        "height": 44.390625
+      },
+      "afterSheetScroll": 0,
+      "filterCount": [
+        "5 shown · 5 matching in 10 loaded reports"
+      ],
+      "resumed": "http://127.0.0.1:3100/research?doc_id=research-fixture-0&source_pdf_sha256=04d4c551d135800876978b522cf365927130e686015ae779a3d0c58b6f23e32c&extracted_text_sha256=efb4c464f33ef9c58a97630173bf20f84cd987aa217410a7b41748ef29950098&extractor_version=research_vault.ingest.extract_pdf_text.v1&segmenter_version=page-byte-v1&segment_start=2",
+      "pinPreserved": true,
+      "overflow": false,
+      "originalPdf": "/api/shared-shell/research/pdf/research-fixture-0",
+      "blockedOrigins": [],
+      "verdict": "PASS"
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "zh": false,
+      "light": true,
+      "scope": "LOCAL_SOURCE_FIXTURE_ONLY_NO_REAL_ACCOUNT_OR_ENTITLEMENT",
+      "privateReads": [
+        {
+          "id": "research-fixture-0",
+          "start": 0,
+          "max": 2,
+          "pdf": null,
+          "text": null
+        },
+        {
+          "id": "research-fixture-0",
+          "start": 0,
+          "max": 2,
+          "pdf": "04d4c551d135800876978b522cf365927130e686015ae779a3d0c58b6f23e32c",
+          "text": "efb4c464f33ef9c58a97630173bf20f84cd987aa217410a7b41748ef29950098"
+        },
+        {
+          "id": "research-fixture-0",
+          "start": 2,
+          "max": 2,
+          "pdf": "04d4c551d135800876978b522cf365927130e686015ae779a3d0c58b6f23e32c",
+          "text": "efb4c464f33ef9c58a97630173bf20f84cd987aa217410a7b41748ef29950098"
+        },
+        {
+          "id": "research-fixture-0",
+          "start": 2,
+          "max": 2,
+          "pdf": "04d4c551d135800876978b522cf365927130e686015ae779a3d0c58b6f23e32c",
+          "text": "efb4c464f33ef9c58a97630173bf20f84cd987aa217410a7b41748ef29950098"
+        }
+      ],
+      "pageErrors": [],
+      "entry": "http://127.0.0.1:3100/research?doc_id=research-fixture-0&source_pdf_sha256=04d4c551d135800876978b522cf365927130e686015ae779a3d0c58b6f23e32c&extracted_text_sha256=efb4c464f33ef9c58a97630173bf20f84cd987aa217410a7b41748ef29950098&extractor_version=research_vault.ingest.extract_pdf_text.v1&segmenter_version=page-byte-v1&segment_start=0",
+      "initialReads": 2,
+      "outlineTrigger": {
+        "x": 37,
+        "y": 613.34375,
+        "width": 316,
+        "height": 48
+      },
+      "beforeSheetScroll": 0,
+      "sheetClose": {
+        "x": 326,
+        "y": 368.5625,
+        "width": 44,
+        "height": 44.390625
+      },
+      "sheetMaterial": {
+        "background": "rgb(255, 255, 255)",
+        "text": "rgb(32, 38, 50)",
+        "controlBackground": "rgb(255, 255, 255)",
+        "theme": "light"
+      },
+      "afterSheetScroll": 0,
+      "filterCount": [
+        "5 shown · 5 matching in 10 loaded reports"
+      ],
+      "resumed": "http://127.0.0.1:3100/research?doc_id=research-fixture-0&source_pdf_sha256=04d4c551d135800876978b522cf365927130e686015ae779a3d0c58b6f23e32c&extracted_text_sha256=efb4c464f33ef9c58a97630173bf20f84cd987aa217410a7b41748ef29950098&extractor_version=research_vault.ingest.extract_pdf_text.v1&segmenter_version=page-byte-v1&segment_start=2",
+      "pinPreserved": true,
+      "overflow": false,
+      "originalPdf": "/api/shared-shell/research/pdf/research-fixture-0",
+      "blockedOrigins": [],
+      "verdict": "PASS"
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "zh": true,
+      "light": false,
+      "scope": "LOCAL_SOURCE_FIXTURE_ONLY_NO_REAL_ACCOUNT_OR_ENTITLEMENT",
+      "privateReads": [
+        {
+          "id": "research-fixture-0",
+          "start": 0,
+          "max": 2,
+          "pdf": null,
+          "text": null
+        },
+        {
+          "id": "research-fixture-0",
+          "start": 0,
+          "max": 2,
+          "pdf": "04d4c551d135800876978b522cf365927130e686015ae779a3d0c58b6f23e32c",
+          "text": "efb4c464f33ef9c58a97630173bf20f84cd987aa217410a7b41748ef29950098"
+        },
+        {
+          "id": "research-fixture-0",
+          "start": 2,
+          "max": 2,
+          "pdf": "04d4c551d135800876978b522cf365927130e686015ae779a3d0c58b6f23e32c",
+          "text": "efb4c464f33ef9c58a97630173bf20f84cd987aa217410a7b41748ef29950098"
+        },
+        {
+          "id": "research-fixture-0",
+          "start": 2,
+          "max": 2,
+          "pdf": "04d4c551d135800876978b522cf365927130e686015ae779a3d0c58b6f23e32c",
+          "text": "efb4c464f33ef9c58a97630173bf20f84cd987aa217410a7b41748ef29950098"
+        }
+      ],
+      "pageErrors": [],
+      "entry": "http://127.0.0.1:3100/research?doc_id=research-fixture-0&source_pdf_sha256=04d4c551d135800876978b522cf365927130e686015ae779a3d0c58b6f23e32c&extracted_text_sha256=efb4c464f33ef9c58a97630173bf20f84cd987aa217410a7b41748ef29950098&extractor_version=research_vault.ingest.extract_pdf_text.v1&segmenter_version=page-byte-v1&segment_start=0",
+      "initialReads": 2,
+      "outlineTrigger": {
+        "x": 37,
+        "y": 536.71875,
+        "width": 316,
+        "height": 48
+      },
+      "beforeSheetScroll": 0,
+      "sheetClose": {
+        "x": 326,
+        "y": 410.5544128417969,
+        "width": 44,
+        "height": 44.390625
+      },
+      "afterSheetScroll": 0,
+      "filterCount": [
+        "已显示 5 份 · 10 份已加载报告中有 5 份符合条件"
+      ],
+      "resumed": "http://127.0.0.1:3100/research?doc_id=research-fixture-0&source_pdf_sha256=04d4c551d135800876978b522cf365927130e686015ae779a3d0c58b6f23e32c&extracted_text_sha256=efb4c464f33ef9c58a97630173bf20f84cd987aa217410a7b41748ef29950098&extractor_version=research_vault.ingest.extract_pdf_text.v1&segmenter_version=page-byte-v1&segment_start=2",
+      "pinPreserved": true,
+      "overflow": false,
+      "originalPdf": "/api/shared-shell/research/pdf/research-fixture-0",
+      "blockedOrigins": [],
+      "verdict": "PASS"
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "zh": true,
+      "light": true,
+      "scope": "LOCAL_SOURCE_FIXTURE_ONLY_NO_REAL_ACCOUNT_OR_ENTITLEMENT",
+      "privateReads": [
+        {
+          "id": "research-fixture-0",
+          "start": 0,
+          "max": 2,
+          "pdf": null,
+          "text": null
+        },
+        {
+          "id": "research-fixture-0",
+          "start": 0,
+          "max": 2,
+          "pdf": "04d4c551d135800876978b522cf365927130e686015ae779a3d0c58b6f23e32c",
+          "text": "efb4c464f33ef9c58a97630173bf20f84cd987aa217410a7b41748ef29950098"
+        },
+        {
+          "id": "research-fixture-0",
+          "start": 2,
+          "max": 2,
+          "pdf": "04d4c551d135800876978b522cf365927130e686015ae779a3d0c58b6f23e32c",
+          "text": "efb4c464f33ef9c58a97630173bf20f84cd987aa217410a7b41748ef29950098"
+        },
+        {
+          "id": "research-fixture-0",
+          "start": 2,
+          "max": 2,
+          "pdf": "04d4c551d135800876978b522cf365927130e686015ae779a3d0c58b6f23e32c",
+          "text": "efb4c464f33ef9c58a97630173bf20f84cd987aa217410a7b41748ef29950098"
+        }
+      ],
+      "pageErrors": [],
+      "entry": "http://127.0.0.1:3100/research?doc_id=research-fixture-0&source_pdf_sha256=04d4c551d135800876978b522cf365927130e686015ae779a3d0c58b6f23e32c&extracted_text_sha256=efb4c464f33ef9c58a97630173bf20f84cd987aa217410a7b41748ef29950098&extractor_version=research_vault.ingest.extract_pdf_text.v1&segmenter_version=page-byte-v1&segment_start=0",
+      "initialReads": 2,
+      "outlineTrigger": {
+        "x": 37,
+        "y": 536.71875,
+        "width": 316,
+        "height": 48
+      },
+      "beforeSheetScroll": 0,
+      "sheetClose": {
+        "x": 326,
+        "y": 368.5625,
+        "width": 44,
+        "height": 44.390625
+      },
+      "sheetMaterial": {
+        "background": "rgb(255, 255, 255)",
+        "text": "rgb(32, 38, 50)",
+        "controlBackground": "rgb(255, 255, 255)",
+        "theme": "light"
+      },
+      "afterSheetScroll": 0,
+      "filterCount": [
+        "已显示 5 份 · 10 份已加载报告中有 5 份符合条件"
+      ],
+      "resumed": "http://127.0.0.1:3100/research?doc_id=research-fixture-0&source_pdf_sha256=04d4c551d135800876978b522cf365927130e686015ae779a3d0c58b6f23e32c&extracted_text_sha256=efb4c464f33ef9c58a97630173bf20f84cd987aa217410a7b41748ef29950098&extractor_version=research_vault.ingest.extract_pdf_text.v1&segmenter_version=page-byte-v1&segment_start=2",
+      "pinPreserved": true,
+      "overflow": false,
+      "originalPdf": "/api/shared-shell/research/pdf/research-fixture-0",
+      "blockedOrigins": [],
+      "verdict": "PASS"
+    }
+  ],
+  "captures": [
+    {
+      "path": "b2-reader-1440-dark-en.png",
+      "sha256": "badd1656583acfcb92a24a4bd3db3ae52f6523eba752917b23a551f56fdd3ebc"
+    },
+    {
+      "path": "b2-library-1440-dark-en.png",
+      "sha256": "c30b2f43f091817bc098fa568c374aa6b715b86ca31d777eaa5fc6075e5e7c77"
+    },
+    {
+      "path": "b2-reader-1440-light-en.png",
+      "sha256": "cad615eac3e749469d6bfc84718488659a3d02dc9a200f0af0bc1c5aebc915ee"
+    },
+    {
+      "path": "b2-library-1440-light-en.png",
+      "sha256": "678ab2cafb5875830b4e516342344e190c9ab055eb0871ba8ca5912bf49f9109"
+    },
+    {
+      "path": "b2-reader-1440-dark-zh.png",
+      "sha256": "d9a692cc942de4fad10da9ae905ffc315cf3373fa39a0776a09779b659386426"
+    },
+    {
+      "path": "b2-library-1440-dark-zh.png",
+      "sha256": "f0150ab8938ef0e18980fc77cca0836e5bc8ac90fa81d3f391afd702290dc36a"
+    },
+    {
+      "path": "b2-reader-1440-light-zh.png",
+      "sha256": "273c603c6126165d15e28c7c031f729280cfd3ae896223204d84e7a31b78819a"
+    },
+    {
+      "path": "b2-library-1440-light-zh.png",
+      "sha256": "c54a5a2239a9efa721b8c39b08df330e6294964fee7236338de389a00851520d"
+    },
+    {
+      "path": "b2-reader-390-dark-en.png",
+      "sha256": "0199d769446169b1ad571080df181b8b9d9a6b838d2278469bade5e2596ee353"
+    },
+    {
+      "path": "b2-library-390-dark-en.png",
+      "sha256": "26b40cf435b9a68a7c4e7b8d0f62a6c66349943fbca0f63ac68fd0b2fbe7a77c"
+    },
+    {
+      "path": "b2-source-pages-390-dark-en.png",
+      "sha256": "041707bc81b8a7bbd6c852031620b7351f5f1d64789528f5491fbf06829dd9ea"
+    },
+    {
+      "path": "b2-reader-390-light-en.png",
+      "sha256": "bc10502fe8b1b8d6f1817f4d020710830b0598487d52cd532603ac082d54c7f7"
+    },
+    {
+      "path": "b2-library-390-light-en.png",
+      "sha256": "8e9844e71af8941e04fcd9f3162969cdf85f58f9cbb47428bc4276f604d731c6"
+    },
+    {
+      "path": "b2-source-pages-390-light-en.png",
+      "sha256": "67366392e4c5563be53d4d0d8375ade1edd6b72a884906c461b18f17230382ac"
+    },
+    {
+      "path": "b2-reader-390-dark-zh.png",
+      "sha256": "8b8e173ee3d84c6d3a99f37a44f754d84f20f1b02c7dfc08b57f70627c8fd47c"
+    },
+    {
+      "path": "b2-library-390-dark-zh.png",
+      "sha256": "a6b1d87490a4aa668bb4e2004d398067db2c7be1ded19285731c193ab7497376"
+    },
+    {
+      "path": "b2-source-pages-390-dark-zh.png",
+      "sha256": "095dc20f7f28a6cd0552e826f2b456c5ddda9edcd364ac94db6d7c6ed9a59a28"
+    },
+    {
+      "path": "b2-reader-390-light-zh.png",
+      "sha256": "47a4c3c101c8727e2fd24fa13fa63a93079a094b1c5afd5390547a2851afae72"
+    },
+    {
+      "path": "b2-library-390-light-zh.png",
+      "sha256": "2425232bf653ee87afc8cccd0f29f0658334866e5897ecf9cf67599bf680c4cd"
+    },
+    {
+      "path": "b2-source-pages-390-light-zh.png",
+      "sha256": "342279a77fb61f88f6aca117afe5c66b8069b2f6a250e4bcbf62f9ec21fb70b1"
+    }
+  ],
+  "checks": {
+    "affectedTests": 118,
+    "typecheck": "PASS",
+    "scopedESLint": "PASS"
+  },
+  "refresh": "Final light mobile sheet material correction refreshed only EN/ZH light phone cells. Other six cell behavior/presentation unchanged. The same owned fixture server was restarted normally after its stale style bundle was observed; final light sheet computed background/control both rgb(255,255,255), text rgb(32,38,50). Captures wait for the canonical finite entrance animation to finish.",
+  "paperReferences": {
+    "file": "01M2WGNCX9475G79JRKJTCM08P",
+    "tokenHash": "cfd3d65c",
+    "desktop": "1QF6 / p-1U source-reader anatomy",
+    "mobile": "1QN9-1 source-pages trigger and sheet anatomy"
+  }
+}
