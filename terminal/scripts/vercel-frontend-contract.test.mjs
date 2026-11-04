@@ -12,7 +12,11 @@ delete base.MMX_MARKET_DATA_ORIGIN;
 delete base.VERCEL_GIT_COMMIT_SHA;
 
 function evaluate(overrides = {}) {
-  const env = { ...base, ...overrides };
+  const env = {
+    ...base,
+    ...(overrides.VERCEL === "1" ? { VERCEL_GIT_COMMIT_SHA: "a".repeat(40) } : {}),
+    ...overrides,
+  };
   const code = [
     "globalThis.__dirname = process.cwd();",
     "const config = (await import('./next.config.ts')).default;",
@@ -70,12 +74,12 @@ for (const [mode, origin] of [
   test(`Vercel forwards data before static files with mode ${mode}`, () => {
     const run = evaluate({
       VERCEL: "1",
-      VERCEL_GIT_COMMIT_SHA: "1234abcde",
+      VERCEL_GIT_COMMIT_SHA: "b".repeat(40),
       MMX_SHARED_SHELL: mode,
       MMX_MARKET_DATA_ORIGIN: origin,
     });
     assert.equal(run.status, 0, run.stderr);
-    assert.equal(run.result.deploymentId, "1234abcde");
+    assert.equal(run.result.deploymentId, "b".repeat(40));
     assert.equal(run.result.shell, mode);
     assert.deepEqual(run.result.rewrites, {
       beforeFiles: [{ source: "/data/:path*", destination: `${origin}/data/:path*` }],
@@ -89,6 +93,29 @@ for (const [mode, origin] of [
     }
   });
 }
+
+test("Vercel rejects missing source commit despite legacy fallback", () => {
+  const run = evaluate({
+    VERCEL: "1",
+    MMX_SHARED_SHELL: "1",
+    MMX_MARKET_DATA_ORIGIN: "https://data.mastermind-x.com",
+    VERCEL_GIT_COMMIT_SHA: "",
+    GIT_SHA: "c".repeat(40),
+  });
+  assert.notEqual(run.status, 0);
+  assert.match(run.stderr, /VERCEL_GIT_COMMIT_SHA_REQUIRED/);
+});
+
+test("Vercel rejects malformed source identity", () => {
+  const run = evaluate({
+    VERCEL: "1",
+    MMX_SHARED_SHELL: "0",
+    MMX_MARKET_DATA_ORIGIN: "https://data.mastermind-x.com",
+    VERCEL_GIT_COMMIT_SHA: "short",
+  });
+  assert.notEqual(run.status, 0);
+  assert.match(run.stderr, /VERCEL_GIT_COMMIT_SHA_REQUIRED/);
+});
 
 test("Vercel prebuild never writes a fixture-derived freshness index", () => {
   const run = spawnSync(process.execPath, [path.join(terminal, "scripts", "prepare-data-coverage.mjs")], {

@@ -52,8 +52,13 @@ function readDeploymentMarker(): string | undefined {
   }
 }
 
-const DEPLOYMENT_ID =
-  process.env.GIT_SHA || process.env.NEXT_DEPLOYMENT_ID || (isVercel ? process.env.VERCEL_GIT_COMMIT_SHA : undefined) || readDeploymentMarker();
+const vercelCommit = process.env.VERCEL_GIT_COMMIT_SHA;
+if (isVercel && (!vercelCommit || !/^[0-9a-f]{40}$/.test(vercelCommit))) {
+  throw new Error("VERCEL_GIT_COMMIT_SHA_REQUIRED: source-bound release identity unavailable");
+}
+const DEPLOYMENT_ID = isVercel
+  ? vercelCommit
+  : process.env.GIT_SHA || process.env.NEXT_DEPLOYMENT_ID || readDeploymentMarker();
 
 // Bind this worker build to its actual Pine sources and the shared session implementation.
 function pineSourceDigest(): string {
