@@ -98,10 +98,10 @@ function RequestLifecycle({ selected, principalId, originalAction, originalEffec
   const shared = record?.disposition === "SHARED" && receipt?.observation === "MATCHED" && receipt.current_access;
   const kept = record?.disposition === "KEPT_PRIVATE" && record.review.grant === null;
   const closed = record?.disposition !== "OPEN";
-  const title = unknown ? t("We couldn't confirm what happened.", "无法确认结果。") : shared ? t("Shared with your team.", "已与你的团队分享。") : kept ? t("Kept private.", "已保持私有。") : record?.disposition === "SHARED" ? t("Sharing recorded.", "分享已记录。") : t("Share the brief?", "分享这份简报？");
+  const title = pending ? (attempted === "KEEP_PRIVATE" ? t("Keeping private…", "正在保持私有…") : t("Sharing…", "正在分享…")) : unknown ? t("We couldn't confirm what happened.", "无法确认结果。") : shared ? t("Shared with your team.", "已与你的团队分享。") : kept ? t("Kept private.", "已保持私有。") : record?.disposition === "SHARED" ? t("Sharing recorded.", "分享已记录。") : t("Share the brief?", "分享这份简报？");
   return <div lang={zh ? "zh" : "en"} className={s.wrap} data-brief-sharing-request="" aria-busy={loading || pending}>
     <header className={s.head}><span className={s.eyebrow}>Terminal</span><h1 className={s.heading}>{title}</h1>
-      <p className={s.lede}>{unknown ? t("Check this original request. Do not send another request.", "请检查这次原有请求，不要重新发送。") : shared ? t("The view-only grant is active for the team's current members.", "只读授权目前对团队现有成员生效。") : kept ? t("This request was closed without granting team access.", "这次请求已关闭，未授予团队访问权限。") : t("Review the brief and the team named in this request.", "请查看这次请求中的简报和指定团队。")}</p></header>
+      <p className={s.lede}>{pending ? t("Waiting for this original request to finish.", "正在等待这次原有请求的结果。") : unknown ? t("Check this original request. Do not send another request.", "请检查这次原有请求，不要重新发送。") : shared ? t("The view-only grant is active for the team's current members.", "只读授权目前对团队现有成员生效。") : kept ? t("This request was closed without granting team access.", "这次请求已关闭，未授予团队访问权限。") : t("Review the brief and the team named in this request.", "请查看这次请求中的简报和指定团队。")}</p></header>
     {failed && <section className={s.panel}><p role="alert">{t("This original request or its current access could not be checked. No further request was sent.", "暂时无法检查这次原有请求或当前访问状态，未再发送请求。")}</p></section>}
     {record && <section className={s.panel}>
       <h2 className={s.artifactTitle}>{record.review.delivery.body.artifact.name}</h2>
@@ -110,6 +110,24 @@ function RequestLifecycle({ selected, principalId, originalAction, originalEffec
       <p className={s.meta}>{t("Brief slot", "简报时段")} {record.review.delivery.slot_asof} · {t("Content as of", "内容截至")} {record.review.delivery.artifact_asof ?? record.review.delivery.body.artifact.asof}</p>
       <button type="button" className={s.toggle} onClick={() => setBodyOpen(!bodyOpen)} aria-expanded={bodyOpen}>{bodyOpen ? t("Close brief", "收起简报") : t("Open brief", "打开简报")}</button>
       {bodyOpen && <div className={s.bodyBlock}>{record.review.delivery.body.market_read.map((line, i) => <p className={s.sentence} key={i}>{zh ? line.sentence_zh : line.sentence_en}</p>)}{record.review.delivery.body.monitors.map((line, i) => <p className={s.monitorRow} key={i}>{line.name} · {zh ? line.state_zh : line.state_en}</p>)}</div>}
+      <details className={s.details}>
+        <summary className={s.summary}>{t("Sharing details", "分享详情")}</summary>
+        <dl className={s.detailGrid}>
+          {[
+            [t("Request", "请求"), record.request_ref],
+            [t("Request revision", "请求修订号"), String(record.revision)],
+            [t("Request saved", "请求保存时间"), record.issued_at],
+            ...(record.resolved_at ? [[t("Request resolved", "请求处理时间"), record.resolved_at]] : []),
+            [t("Brief delivery", "简报交付"), selected.delivery_id],
+            [t("Content digest", "内容摘要"), record.review.delivery.content_sha256],
+            [t("Intended team", "指定团队"), record.review.audience.team_id],
+            [t("Sharing operation", "分享操作摘要"), record.review.expected_effect_sha256],
+            ...(receipt?.grant ? [[t("Grant recorded", "授权记录时间"), receipt.grant.shared_at],
+              [t("Grant validity for current team members", "面向团队当前成员的授权有效性"),
+                receipt.current_access ? t("Active at this read", "本次读取时有效") : t("Not established at this read", "本次读取时未确认有效")]] : []),
+          ].map(([label, value]) => <div className={s.detailRow} key={label}><dt className={s.detailKey}>{label}</dt><dd className={s.detailVal}>{value}</dd></div>)}
+        </dl>
+      </details>
       {record.disposition === "SHARED" && !shared && !unknown && <p className={s.note}>{t("Current team access is not established by this read.", "本次读取尚未确认团队当前访问权限。")}</p>}
     </section>}
     <section className={s.composer}><div className={s.actions}>

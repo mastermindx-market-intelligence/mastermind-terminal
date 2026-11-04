@@ -113,3 +113,14 @@ it("confirmed original ISSUE read clears only its issuance marker; later ambiguo
   expect(host.querySelector("h1")?.textContent).toBe("We couldn't confirm what happened.");
   expect(button("Share with team")).toBeUndefined();expect(new URL(window.location.href).searchParams.get("attempt")).toBe("SHARE");
 });
+
+
+it("in-progress send is pending, then ambiguous; actual details remain closed by default",async()=>{
+ let settle!:(r:Response)=>void;
+ fetchMock.mockImplementation(async(_url:string,options:RequestInit={})=>options.method==="POST"?new Promise<Response>(r=>{settle=r;}):json(produced));
+ await mount();expect(host.querySelector("details")?.open).toBe(false);expect(host.textContent).toContain("Request revision");
+ await click("Share with team");expect(host.querySelector("h1")?.textContent).toBe("Sharing…");
+ expect(host.textContent).not.toContain("We couldn't confirm what happened.");
+ await act(async()=>settle(json({ok:false},503)));await tick();
+ expect(host.querySelector("h1")?.textContent).toBe("We couldn't confirm what happened.");expect(posts()).toHaveLength(1);
+});
