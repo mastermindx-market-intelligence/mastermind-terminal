@@ -1,0 +1,276 @@
+
+> terminal@0.1.0 test:e2e:responsive
+> playwright test --config=docs/verification/d08b-vol-skew-exact-20261104/playwright.config.ts e2e/options-vol-term-exact.spec.ts e2e/options-vol-exact-expiry.spec.ts e2e/options-vol-term-mobile-overflow.spec.ts --project=desktop --project=tablet --project=mobile --workers=1
+
+[warmup] /terminal?symbol=NVDA → 200 in 114ms
+[warmup] /options → 200 in 205ms
+[warmup] /portfolio → 200 in 121ms
+[warmup] /alerts → 200 in 132ms
+[warmup] /analysis → 200 in 284ms
+[warmup] /discover → 200 in 124ms
+[warmup] /admin → 200 in 149ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 105ms
+[warmup] /login → 200 in 146ms
+[warmup] /reset-password → 200 in 90ms
+[warmup] /api/me → 200 in 114ms
+[warmup] /api/watchlist → 200 in 85ms
+[warmup] /api/layouts → 200 in 61ms
+[warmup] /api/watchlist/annotations → 409 in 61ms
+[warmup] 14 routes compiled in 2s
+
+Running 15 tests using 1 worker
+
+  ✓   1 [desktop] › e2e/options-vol-exact-expiry.spec.ts:6:5 › Volatility keeps one exact expiry across term, context and smile (2.5s)
+  ✘   2 [desktop] › e2e/options-vol-term-exact.spec.ts:89:7 › Term en: exact long expiry to smile, unavailable recovery and token presentation (2.0s)
+  ✘   3 [desktop] › e2e/options-vol-term-exact.spec.ts:89:7 › Term zh: exact long expiry to smile, unavailable recovery and token presentation (2.8s)
+  ✓   4 [desktop] › e2e/options-vol-term-exact.spec.ts:140:5 › Term 320px and narrow composition retain exact long-expiry keyboard selection (3.0s)
+  -   5 [desktop] › e2e/options-vol-term-mobile-overflow.spec.ts:3:5 › Volatility term-structure card stays inside the phone viewport
+  ✓   6 [tablet] › e2e/options-vol-exact-expiry.spec.ts:6:5 › Volatility keeps one exact expiry across term, context and smile (1.6s)
+  ✘   7 [tablet] › e2e/options-vol-term-exact.spec.ts:89:7 › Term en: exact long expiry to smile, unavailable recovery and token presentation (2.2s)
+  ✘   8 [tablet] › e2e/options-vol-term-exact.spec.ts:89:7 › Term zh: exact long expiry to smile, unavailable recovery and token presentation (2.4s)
+  -   9 [tablet] › e2e/options-vol-term-exact.spec.ts:140:5 › Term 320px and narrow composition retain exact long-expiry keyboard selection
+  -  10 [tablet] › e2e/options-vol-term-mobile-overflow.spec.ts:3:5 › Volatility term-structure card stays inside the phone viewport
+  ✓  11 [mobile] › e2e/options-vol-exact-expiry.spec.ts:6:5 › Volatility keeps one exact expiry across term, context and smile (1.4s)
+  ✘  12 [mobile] › e2e/options-vol-term-exact.spec.ts:89:7 › Term en: exact long expiry to smile, unavailable recovery and token presentation (1.3s)
+  ✘  13 [mobile] › e2e/options-vol-term-exact.spec.ts:89:7 › Term zh: exact long expiry to smile, unavailable recovery and token presentation (1.5s)
+  -  14 [mobile] › e2e/options-vol-term-exact.spec.ts:140:5 › Term 320px and narrow composition retain exact long-expiry keyboard selection
+  ✓  15 [mobile] › e2e/options-vol-term-mobile-overflow.spec.ts:3:5 › Volatility term-structure card stays inside the phone viewport (864ms)
+
+
+  1) [desktop] › e2e/options-vol-term-exact.spec.ts:89:7 › Term en: exact long expiry to smile, unavailable recovery and token presentation 
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 6
+
+    - Array []
+    + Array [
+    +   Object {
+    +     "ratio": 4.454100311232657,
+    +     "text": "6 supplied expiry rows",
+    +   },
+    + ]
+
+      107 |       const contrast = await measureContrast(panel);
+      108 |       writeFileSync(`test-results/d08b-term-${info.project.name}-${lang}-${theme}-contrast.json`, JSON.stringify(contrast, null, 2));
+    > 109 |       expect(contrast.text.filter(item => item.ratio < 4.5)).toEqual([]);
+          |                                                              ^
+      110 |       expect(contrast.marks.filter(item => item.ratio < 3)).toEqual([]);
+      111 |       await panel.screenshot({ path: `test-results/d08b-term-${info.project.name}-${lang}-${theme}-long-expiry.png` });
+      112 |     }
+        at /Volumes/Mastermind/agent-workspaces/terminal/web/d08b-surface-exact-values-20261104-c3/terminal/e2e/options-vol-term-exact.spec.ts:109:62
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/options-vol-term-exact-Ter-5edcc-very-and-token-presentation-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/options-vol-term-exact-Ter-5edcc-very-and-token-presentation-desktop/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/options-vol-term-exact-Ter-5edcc-very-and-token-presentation-desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/options-vol-term-exact-Ter-5edcc-very-and-token-presentation-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [desktop] › e2e/options-vol-term-exact.spec.ts:89:7 › Term zh: exact long expiry to smile, unavailable recovery and token presentation 
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 6
+
+    - Array []
+    + Array [
+    +   Object {
+    +     "ratio": 4.454100311232657,
+    +     "text": "已提供 6 个到期日行",
+    +   },
+    + ]
+
+      107 |       const contrast = await measureContrast(panel);
+      108 |       writeFileSync(`test-results/d08b-term-${info.project.name}-${lang}-${theme}-contrast.json`, JSON.stringify(contrast, null, 2));
+    > 109 |       expect(contrast.text.filter(item => item.ratio < 4.5)).toEqual([]);
+          |                                                              ^
+      110 |       expect(contrast.marks.filter(item => item.ratio < 3)).toEqual([]);
+      111 |       await panel.screenshot({ path: `test-results/d08b-term-${info.project.name}-${lang}-${theme}-long-expiry.png` });
+      112 |     }
+        at /Volumes/Mastermind/agent-workspaces/terminal/web/d08b-surface-exact-values-20261104-c3/terminal/e2e/options-vol-term-exact.spec.ts:109:62
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/options-vol-term-exact-Ter-91bf3-very-and-token-presentation-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/options-vol-term-exact-Ter-91bf3-very-and-token-presentation-desktop/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/options-vol-term-exact-Ter-91bf3-very-and-token-presentation-desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/options-vol-term-exact-Ter-91bf3-very-and-token-presentation-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) [tablet] › e2e/options-vol-term-exact.spec.ts:89:7 › Term en: exact long expiry to smile, unavailable recovery and token presentation 
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 6
+
+    - Array []
+    + Array [
+    +   Object {
+    +     "ratio": 4.454100311232657,
+    +     "text": "6 supplied expiry rows",
+    +   },
+    + ]
+
+      107 |       const contrast = await measureContrast(panel);
+      108 |       writeFileSync(`test-results/d08b-term-${info.project.name}-${lang}-${theme}-contrast.json`, JSON.stringify(contrast, null, 2));
+    > 109 |       expect(contrast.text.filter(item => item.ratio < 4.5)).toEqual([]);
+          |                                                              ^
+      110 |       expect(contrast.marks.filter(item => item.ratio < 3)).toEqual([]);
+      111 |       await panel.screenshot({ path: `test-results/d08b-term-${info.project.name}-${lang}-${theme}-long-expiry.png` });
+      112 |     }
+        at /Volumes/Mastermind/agent-workspaces/terminal/web/d08b-surface-exact-values-20261104-c3/terminal/e2e/options-vol-term-exact.spec.ts:109:62
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/options-vol-term-exact-Ter-5edcc-very-and-token-presentation-tablet/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/options-vol-term-exact-Ter-5edcc-very-and-token-presentation-tablet/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/options-vol-term-exact-Ter-5edcc-very-and-token-presentation-tablet/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/options-vol-term-exact-Ter-5edcc-very-and-token-presentation-tablet/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  4) [tablet] › e2e/options-vol-term-exact.spec.ts:89:7 › Term zh: exact long expiry to smile, unavailable recovery and token presentation 
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 6
+
+    - Array []
+    + Array [
+    +   Object {
+    +     "ratio": 4.454100311232657,
+    +     "text": "已提供 6 个到期日行",
+    +   },
+    + ]
+
+      107 |       const contrast = await measureContrast(panel);
+      108 |       writeFileSync(`test-results/d08b-term-${info.project.name}-${lang}-${theme}-contrast.json`, JSON.stringify(contrast, null, 2));
+    > 109 |       expect(contrast.text.filter(item => item.ratio < 4.5)).toEqual([]);
+          |                                                              ^
+      110 |       expect(contrast.marks.filter(item => item.ratio < 3)).toEqual([]);
+      111 |       await panel.screenshot({ path: `test-results/d08b-term-${info.project.name}-${lang}-${theme}-long-expiry.png` });
+      112 |     }
+        at /Volumes/Mastermind/agent-workspaces/terminal/web/d08b-surface-exact-values-20261104-c3/terminal/e2e/options-vol-term-exact.spec.ts:109:62
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/options-vol-term-exact-Ter-91bf3-very-and-token-presentation-tablet/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/options-vol-term-exact-Ter-91bf3-very-and-token-presentation-tablet/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/options-vol-term-exact-Ter-91bf3-very-and-token-presentation-tablet/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/options-vol-term-exact-Ter-91bf3-very-and-token-presentation-tablet/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  5) [mobile] › e2e/options-vol-term-exact.spec.ts:89:7 › Term en: exact long expiry to smile, unavailable recovery and token presentation 
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 6
+
+    - Array []
+    + Array [
+    +   Object {
+    +     "ratio": 4.454100311232657,
+    +     "text": "6 supplied expiry rows",
+    +   },
+    + ]
+
+      107 |       const contrast = await measureContrast(panel);
+      108 |       writeFileSync(`test-results/d08b-term-${info.project.name}-${lang}-${theme}-contrast.json`, JSON.stringify(contrast, null, 2));
+    > 109 |       expect(contrast.text.filter(item => item.ratio < 4.5)).toEqual([]);
+          |                                                              ^
+      110 |       expect(contrast.marks.filter(item => item.ratio < 3)).toEqual([]);
+      111 |       await panel.screenshot({ path: `test-results/d08b-term-${info.project.name}-${lang}-${theme}-long-expiry.png` });
+      112 |     }
+        at /Volumes/Mastermind/agent-workspaces/terminal/web/d08b-surface-exact-values-20261104-c3/terminal/e2e/options-vol-term-exact.spec.ts:109:62
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/options-vol-term-exact-Ter-5edcc-very-and-token-presentation-mobile/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/options-vol-term-exact-Ter-5edcc-very-and-token-presentation-mobile/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/options-vol-term-exact-Ter-5edcc-very-and-token-presentation-mobile/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/options-vol-term-exact-Ter-5edcc-very-and-token-presentation-mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  6) [mobile] › e2e/options-vol-term-exact.spec.ts:89:7 › Term zh: exact long expiry to smile, unavailable recovery and token presentation 
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 6
+
+    - Array []
+    + Array [
+    +   Object {
+    +     "ratio": 4.454100311232657,
+    +     "text": "已提供 6 个到期日行",
+    +   },
+    + ]
+
+      107 |       const contrast = await measureContrast(panel);
+      108 |       writeFileSync(`test-results/d08b-term-${info.project.name}-${lang}-${theme}-contrast.json`, JSON.stringify(contrast, null, 2));
+    > 109 |       expect(contrast.text.filter(item => item.ratio < 4.5)).toEqual([]);
+          |                                                              ^
+      110 |       expect(contrast.marks.filter(item => item.ratio < 3)).toEqual([]);
+      111 |       await panel.screenshot({ path: `test-results/d08b-term-${info.project.name}-${lang}-${theme}-long-expiry.png` });
+      112 |     }
+        at /Volumes/Mastermind/agent-workspaces/terminal/web/d08b-surface-exact-values-20261104-c3/terminal/e2e/options-vol-term-exact.spec.ts:109:62
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/options-vol-term-exact-Ter-91bf3-very-and-token-presentation-mobile/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/options-vol-term-exact-Ter-91bf3-very-and-token-presentation-mobile/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/options-vol-term-exact-Ter-91bf3-very-and-token-presentation-mobile/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/options-vol-term-exact-Ter-91bf3-very-and-token-presentation-mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  6 failed
+    [desktop] › e2e/options-vol-term-exact.spec.ts:89:7 › Term en: exact long expiry to smile, unavailable recovery and token presentation 
+    [desktop] › e2e/options-vol-term-exact.spec.ts:89:7 › Term zh: exact long expiry to smile, unavailable recovery and token presentation 
+    [tablet] › e2e/options-vol-term-exact.spec.ts:89:7 › Term en: exact long expiry to smile, unavailable recovery and token presentation 
+    [tablet] › e2e/options-vol-term-exact.spec.ts:89:7 › Term zh: exact long expiry to smile, unavailable recovery and token presentation 
+    [mobile] › e2e/options-vol-term-exact.spec.ts:89:7 › Term en: exact long expiry to smile, unavailable recovery and token presentation 
+    [mobile] › e2e/options-vol-term-exact.spec.ts:89:7 › Term zh: exact long expiry to smile, unavailable recovery and token presentation 
+  4 skipped
+  5 passed (43.7s)

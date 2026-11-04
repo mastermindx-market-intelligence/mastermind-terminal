@@ -1,0 +1,66 @@
+{
+  "source": {
+    "components/vol/VolTermPanel.tsx": {
+      "bytes": 17086,
+      "sha256": "1111992d42519860f2aed70f0c2902441a8a7909255f018a4a6add507f0451b6",
+      "gitBlob": "fc3c4a62163cc3b50323c4c840ea9ed1ff9a998d"
+    },
+    "components/vol/VolTermPanel.module.css": {
+      "bytes": 3231,
+      "sha256": "ce55415900125ce06bab08ac9ed9b2159b8c1d16b3fbb34ba767d527ee84b0d7",
+      "gitBlob": "ac6fb7150f776d8d70d1b5f5cb91cc5004c5ceba"
+    },
+    "components/vol/volTermStrings.ts": {
+      "bytes": 2233,
+      "sha256": "506d2db02b81af1b53971a65a8e49fb9ca7f1addcf890d1b355981f2dee437c0",
+      "gitBlob": "9a55ffc3ebb72576a0207109a243de543c1b3588"
+    },
+    "lib/__tests__/volTermExactValues.test.tsx": {
+      "bytes": 8219,
+      "sha256": "a0dfb1b288d67a80d0c68fa0539a8a42e2decef5f5bbb59cbc7bf5ec3b537aed",
+      "gitBlob": "d337d0299c8b8262afb10bee6fe9730076f7ecf8"
+    },
+    "e2e/options-vol-term-exact.spec.ts": {
+      "bytes": 12116,
+      "sha256": "19a657f3a36ff0bcf7212bc3c0072658705a20efc708238569d11a3e367e68fd",
+      "gitBlob": "be7f9df7ee65ec27f5c84b8f6c755c8f21844b29"
+    }
+  },
+  "unchanged_owners": {
+    "components/vol/volShared.tsx": {
+      "bytes": 11178,
+      "sha256": "e77a4159b46c9670201a03ab22e0408ec5eeb03725dc9e7dad54b49a07cfdd50",
+      "gitBlob": "17b49ca0772fe9bb1dca503abfa4465df67bd5b4"
+    },
+    "components/vol/volTypes.ts": {
+      "bytes": 1721,
+      "sha256": "1d90dfd9d9659679c0354bb13987dee6b51807655bf2de430db5ff036961cc1b",
+      "gitBlob": "bf25665f1bc8a68b9be13e795451b801cdb0d7ca"
+    },
+    "components/vol/VolView.tsx": {
+      "bytes": 31131,
+      "sha256": "167729cef3c6a64d419355e49c15f9d4ede068fd2a9dbe74f31d6c202d6ff9e3",
+      "gitBlob": "5b0a1293166d517be2281f03d9f94f81fd2e3c21"
+    },
+    "components/vol/volStrings.ts": {
+      "bytes": 27905,
+      "sha256": "23f9b84cd166fd28155eee15122ff0774744e445208a6345bdaabe270c9a33ff",
+      "gitBlob": "28f097f0ca90bacf7a162dee3562c61c49854ca2"
+    },
+    "components/charts/svgChart.ts": {
+      "bytes": 6967,
+      "sha256": "0aeab3062dbb59b19a95d476ab445c69c69426c65e5acee35d298f0743cb2aad",
+      "gitBlob": "35c845d79f84d952511165f14a03efe884581945"
+    },
+    "lib/exposureSurface.ts": {
+      "bytes": 8254,
+      "sha256": "ad73c6e40fbf852003137bc90b1a92181a1050a112d8f39f82e50f55ef87dab1",
+      "gitBlob": "56624b371218f574428d3eb4c3baf6d68ab286a0"
+    },
+    "e2e/d08bPanelPresentation.ts": {
+      "bytes": 1558,
+      "sha256": "0020f52f9d8b823ecded0510818fead0a23e0bd27a7839d7c8bc6012135dcb20",
+      "gitBlob": "f5d80679dd4ac5fc44dbd554b6aefeb3f6220a10"
+    }
+  }
+}
