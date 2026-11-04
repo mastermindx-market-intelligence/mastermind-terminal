@@ -1,0 +1,2144 @@
+{
+  "browser-r1": {
+    "stats": {
+      "startTime": "2026-11-04T07:19:24.454Z",
+      "duration": 107921.933,
+      "expected": 34,
+      "skipped": 2,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "errors": [],
+    "cases": [
+      {
+        "title": "four-identity facet preserves the real query corpus through keyboard and touch recovery",
+        "project": "desktop",
+        "status": "expected",
+        "attempts": 1,
+        "attachments": [
+          {
+            "name": "facet-corpus-and-input",
+            "data": {
+              "before": [
+                "/options/futures",
+                "/options",
+                "/options.html",
+                "/options_screener.html",
+                "/learn/options/charm-and-time-drift.html",
+                "/learn/options/dealer-hedging-mechanics.html",
+                "/learn/options/gamma-flip-levels.html",
+                "/learn/options/gamma-regimes.html",
+                "/learn/options/market-makers-middleman.html",
+                "/learn/options/open-interest-limits.html",
+                "/learn/options/zero-dte-regime.html",
+                "/tools/calculators/options-profit.html"
+              ],
+              "facet": [
+                "/options/futures",
+                "/options",
+                "/options.html",
+                "/options_screener.html"
+              ],
+              "touch": false,
+              "pointers": [
+                "mouse"
+              ]
+            }
+          },
+          {
+            "name": "browser-observations",
+            "data": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 1440,
+                "height": 900
+              },
+              "url": "http://127.0.0.1:3139/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [],
+                "failedRequests": [],
+                "httpErrors": []
+              }
+            }
+          }
+        ]
+      },
+      {
+        "title": "empty facet recovers a real query with more than 48 results to its first batch",
+        "project": "desktop",
+        "status": "expected",
+        "attempts": 1,
+        "attachments": [
+          {
+            "name": "facet-batch-recovery",
+            "data": {
+              "query": "fund",
+              "total": 104,
+              "firstBatch": [
+                "/fundamental_forensics.html",
+                "/fund_ako.html",
+                "/fund_akre.html",
+                "/fund_altarock.html",
+                "/fund_altimeter.html",
+                "/fund_appaloosa.html",
+                "/fund_aquamarine.html",
+                "/fund_bakerbros.html",
+                "/fund_basswood.html",
+                "/fund_baupost.html",
+                "/fund_berkshire.html",
+                "/fund_casdin.html",
+                "/fund_coatue.html",
+                "/fund_corvex.html",
+                "/fund_d1capital.html",
+                "/fund_dorsey.html",
+                "/fund_dragoneer.html",
+                "/fund_duquesne.html",
+                "/fund_durable.html",
+                "/fund_egerton.html",
+                "/fund_elliott.html",
+                "/fund_engaged.html",
+                "/fund_fairholme.html",
+                "/etfs.html",
+                "/fund_gates.html",
+                "/fund_giverny.html",
+                "/fund_greenlea.html",
+                "/fund_himalaya.html",
+                "/fund_icahn.html",
+                "/fund_index.html",
+                "/fund_jana.html",
+                "/fund_kimmeridge.html",
+                "/fund_lightstreet.html",
+                "/fund_lonepine.html",
+                "/fund_mudrick.html",
+                "/fund_oaktree.html",
+                "/fund_pabrai.html",
+                "/fund_perceptive.html",
+                "/fund_pershing.html",
+                "/fund_polen.html",
+                "/fund_punchcard.html",
+                "/fund_racapital.html",
+                "/fund_rtw.html",
+                "/fund_sachem.html",
+                "/fund_scion.html",
+                "/fund_soros.html",
+                "/fund_starboard.html",
+                "/fund_tci.html"
+              ]
+            }
+          },
+          {
+            "name": "browser-observations",
+            "data": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 1440,
+                "height": 900
+              },
+              "url": "http://127.0.0.1:3139/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "title": "facet follows actual locale controls without expanding Chinese search aliases",
+        "project": "desktop",
+        "status": "expected",
+        "attempts": 1,
+        "attachments": [
+          {
+            "name": "facet-locale-corpus",
+            "data": {
+              "chineseAll": [
+                "/options",
+                "/options.html"
+              ],
+              "chineseFacet": [
+                "/options",
+                "/options.html"
+              ],
+              "englishFacet": [
+                "/options/futures",
+                "/options",
+                "/options.html",
+                "/options_screener.html"
+              ]
+            }
+          },
+          {
+            "name": "browser-observations",
+            "data": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 320,
+                "height": 420
+              },
+              "url": "http://127.0.0.1:3139/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "title": "query-wide recovery is distinct from category scope in the real catalogue",
+        "project": "desktop",
+        "status": "expected",
+        "attempts": 1,
+        "attachments": [
+          {
+            "name": "browser-observations",
+            "data": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 1440,
+                "height": 900
+              },
+              "url": "http://127.0.0.1:3139/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "title": "clear query, batching and same-instance reopen retain the correct state",
+        "project": "desktop",
+        "status": "expected",
+        "attempts": 1,
+        "attachments": [
+          {
+            "name": "browser-observations",
+            "data": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 1440,
+                "height": 900
+              },
+              "url": "http://127.0.0.1:3139/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "title": "actual locale/theme controls preserve a filtered directory across reopen",
+        "project": "desktop",
+        "status": "expected",
+        "attempts": 1,
+        "attachments": [
+          {
+            "name": "browser-observations",
+            "data": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 320,
+                "height": 420
+              },
+              "url": "http://127.0.0.1:3139/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "title": "drawer-to-directory and resize close return to a visible persistent control",
+        "project": "desktop",
+        "status": "expected",
+        "attempts": 1,
+        "attachments": [
+          {
+            "name": "browser-observations",
+            "data": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 320,
+                "height": 844
+              },
+              "url": "http://127.0.0.1:3139/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "title": "shortcut from BODY returns to a meaningful visible shell control",
+        "project": "desktop",
+        "status": "expected",
+        "attempts": 1,
+        "attachments": [
+          {
+            "name": "browser-observations",
+            "data": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 1440,
+                "height": 900
+              },
+              "url": "http://127.0.0.1:3139/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "title": "Show all reveals its focused category inside the scrolled strip",
+        "project": "desktop",
+        "status": "expected",
+        "attempts": 1,
+        "attachments": [
+          {
+            "name": "browser-observations",
+            "data": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 320,
+                "height": 844
+              },
+              "url": "http://127.0.0.1:3139/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "title": "directory transfers once to the real company picker and respects composing Escape",
+        "project": "desktop",
+        "status": "expected",
+        "attempts": 1,
+        "attachments": [
+          {
+            "name": "browser-observations",
+            "data": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 1440,
+                "height": 900
+              },
+              "url": "http://127.0.0.1:3139/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "title": "native dialog cancellation respects the captured Escape owner",
+        "project": "desktop",
+        "status": "expected",
+        "attempts": 1,
+        "attachments": [
+          {
+            "name": "browser-observations",
+            "data": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 1440,
+                "height": 900
+              },
+              "url": "http://127.0.0.1:3139/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "title": "real Next Link keeps the current directory on modified activation",
+        "project": "desktop",
+        "status": "expected",
+        "attempts": 1,
+        "attachments": [
+          {
+            "name": "browser-observations",
+            "data": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 1440,
+                "height": 900
+              },
+              "url": "http://127.0.0.1:3139/options",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "title": "four-identity facet preserves the real query corpus through keyboard and touch recovery",
+        "project": "tablet",
+        "status": "expected",
+        "attempts": 1,
+        "attachments": [
+          {
+            "name": "facet-corpus-and-input",
+            "data": {
+              "before": [
+                "/options/futures",
+                "/options",
+                "/options.html",
+                "/options_screener.html",
+                "/learn/options/charm-and-time-drift.html",
+                "/learn/options/dealer-hedging-mechanics.html",
+                "/learn/options/gamma-flip-levels.html",
+                "/learn/options/gamma-regimes.html",
+                "/learn/options/market-makers-middleman.html",
+                "/learn/options/open-interest-limits.html",
+                "/learn/options/zero-dte-regime.html",
+                "/tools/calculators/options-profit.html"
+              ],
+              "facet": [
+                "/options/futures",
+                "/options",
+                "/options.html",
+                "/options_screener.html"
+              ],
+              "touch": true,
+              "pointers": [
+                "touch",
+                "touch"
+              ]
+            }
+          },
+          {
+            "name": "browser-observations",
+            "data": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 820,
+                "height": 1180
+              },
+              "url": "http://127.0.0.1:3139/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "title": "empty facet recovers a real query with more than 48 results to its first batch",
+        "project": "tablet",
+        "status": "expected",
+        "attempts": 1,
+        "attachments": [
+          {
+            "name": "facet-batch-recovery",
+            "data": {
+              "query": "fund",
+              "total": 104,
+              "firstBatch": [
+                "/fundamental_forensics.html",
+                "/fund_ako.html",
+                "/fund_akre.html",
+                "/fund_altarock.html",
+                "/fund_altimeter.html",
+                "/fund_appaloosa.html",
+                "/fund_aquamarine.html",
+                "/fund_bakerbros.html",
+                "/fund_basswood.html",
+                "/fund_baupost.html",
+                "/fund_berkshire.html",
+                "/fund_casdin.html",
+                "/fund_coatue.html",
+                "/fund_corvex.html",
+                "/fund_d1capital.html",
+                "/fund_dorsey.html",
+                "/fund_dragoneer.html",
+                "/fund_duquesne.html",
+                "/fund_durable.html",
+                "/fund_egerton.html",
+                "/fund_elliott.html",
+                "/fund_engaged.html",
+                "/fund_fairholme.html",
+                "/etfs.html",
+                "/fund_gates.html",
+                "/fund_giverny.html",
+                "/fund_greenlea.html",
+                "/fund_himalaya.html",
+                "/fund_icahn.html",
+                "/fund_index.html",
+                "/fund_jana.html",
+                "/fund_kimmeridge.html",
+                "/fund_lightstreet.html",
+                "/fund_lonepine.html",
+                "/fund_mudrick.html",
+                "/fund_oaktree.html",
+                "/fund_pabrai.html",
+                "/fund_perceptive.html",
+                "/fund_pershing.html",
+                "/fund_polen.html",
+                "/fund_punchcard.html",
+                "/fund_racapital.html",
+                "/fund_rtw.html",
+                "/fund_sachem.html",
+                "/fund_scion.html",
+                "/fund_soros.html",
+                "/fund_starboard.html",
+                "/fund_tci.html"
+              ]
+            }
+          },
+          {
+            "name": "browser-observations",
+            "data": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 820,
+                "height": 1180
+              },
+              "url": "http://127.0.0.1:3139/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "title": "facet follows actual locale controls without expanding Chinese search aliases",
+        "project": "tablet",
+        "status": "expected",
+        "attempts": 1,
+        "attachments": [
+          {
+            "name": "facet-locale-corpus",
+            "data": {
+              "chineseAll": [
+                "/options",
+                "/options.html"
+              ],
+              "chineseFacet": [
+                "/options",
+                "/options.html"
+              ],
+              "englishFacet": [
+                "/options/futures",
+                "/options",
+                "/options.html",
+                "/options_screener.html"
+              ]
+            }
+          },
+          {
+            "name": "browser-observations",
+            "data": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 320,
+                "height": 420
+              },
+              "url": "http://127.0.0.1:3139/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "title": "query-wide recovery is distinct from category scope in the real catalogue",
+        "project": "tablet",
+        "status": "expected",
+        "attempts": 1,
+        "attachments": [
+          {
+            "name": "browser-observations",
+            "data": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 820,
+                "height": 1180
+              },
+              "url": "http://127.0.0.1:3139/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "title": "clear query, batching and same-instance reopen retain the correct state",
+        "project": "tablet",
+        "status": "expected",
+        "attempts": 1,
+        "attachments": [
+          {
+            "name": "browser-observations",
+            "data": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 820,
+                "height": 1180
+              },
+              "url": "http://127.0.0.1:3139/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "title": "actual locale/theme controls preserve a filtered directory across reopen",
+        "project": "tablet",
+        "status": "expected",
+        "attempts": 1,
+        "attachments": [
+          {
+            "name": "browser-observations",
+            "data": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 320,
+                "height": 420
+              },
+              "url": "http://127.0.0.1:3139/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "title": "drawer-to-directory and resize close return to a visible persistent control",
+        "project": "tablet",
+        "status": "expected",
+        "attempts": 1,
+        "attachments": [
+          {
+            "name": "browser-observations",
+            "data": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 820,
+                "height": 1180
+              },
+              "url": "http://127.0.0.1:3139/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "title": "shortcut from BODY returns to a meaningful visible shell control",
+        "project": "tablet",
+        "status": "expected",
+        "attempts": 1,
+        "attachments": [
+          {
+            "name": "browser-observations",
+            "data": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 820,
+                "height": 1180
+              },
+              "url": "http://127.0.0.1:3139/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "title": "Show all reveals its focused category inside the scrolled strip",
+        "project": "tablet",
+        "status": "expected",
+        "attempts": 1,
+        "attachments": [
+          {
+            "name": "browser-observations",
+            "data": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 320,
+                "height": 844
+              },
+              "url": "http://127.0.0.1:3139/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "title": "directory transfers once to the real company picker and respects composing Escape",
+        "project": "tablet",
+        "status": "expected",
+        "attempts": 1,
+        "attachments": [
+          {
+            "name": "browser-observations",
+            "data": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 820,
+                "height": 1180
+              },
+              "url": "http://127.0.0.1:3139/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "title": "native dialog cancellation respects the captured Escape owner",
+        "project": "tablet",
+        "status": "expected",
+        "attempts": 1,
+        "attachments": [
+          {
+            "name": "browser-observations",
+            "data": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 820,
+                "height": 1180
+              },
+              "url": "http://127.0.0.1:3139/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "title": "real Next Link keeps the current directory on modified activation",
+        "project": "tablet",
+        "status": "skipped",
+        "attempts": 1,
+        "attachments": [
+          {
+            "name": "browser-observations",
+            "data": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 820,
+                "height": 1180
+              },
+              "url": "http://127.0.0.1:3139/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "title": "four-identity facet preserves the real query corpus through keyboard and touch recovery",
+        "project": "mobile",
+        "status": "expected",
+        "attempts": 1,
+        "attachments": [
+          {
+            "name": "facet-corpus-and-input",
+            "data": {
+              "before": [
+                "/options/futures",
+                "/options",
+                "/options.html",
+                "/options_screener.html",
+                "/learn/options/charm-and-time-drift.html",
+                "/learn/options/dealer-hedging-mechanics.html",
+                "/learn/options/gamma-flip-levels.html",
+                "/learn/options/gamma-regimes.html",
+                "/learn/options/market-makers-middleman.html",
+                "/learn/options/open-interest-limits.html",
+                "/learn/options/zero-dte-regime.html",
+                "/tools/calculators/options-profit.html"
+              ],
+              "facet": [
+                "/options/futures",
+                "/options",
+                "/options.html",
+                "/options_screener.html"
+              ],
+              "touch": true,
+              "pointers": [
+                "touch",
+                "touch"
+              ]
+            }
+          },
+          {
+            "name": "browser-observations",
+            "data": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 390,
+                "height": 844
+              },
+              "url": "http://127.0.0.1:3139/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "title": "empty facet recovers a real query with more than 48 results to its first batch",
+        "project": "mobile",
+        "status": "expected",
+        "attempts": 1,
+        "attachments": [
+          {
+            "name": "facet-batch-recovery",
+            "data": {
+              "query": "fund",
+              "total": 104,
+              "firstBatch": [
+                "/fundamental_forensics.html",
+                "/fund_ako.html",
+                "/fund_akre.html",
+                "/fund_altarock.html",
+                "/fund_altimeter.html",
+                "/fund_appaloosa.html",
+                "/fund_aquamarine.html",
+                "/fund_bakerbros.html",
+                "/fund_basswood.html",
+                "/fund_baupost.html",
+                "/fund_berkshire.html",
+                "/fund_casdin.html",
+                "/fund_coatue.html",
+                "/fund_corvex.html",
+                "/fund_d1capital.html",
+                "/fund_dorsey.html",
+                "/fund_dragoneer.html",
+                "/fund_duquesne.html",
+                "/fund_durable.html",
+                "/fund_egerton.html",
+                "/fund_elliott.html",
+                "/fund_engaged.html",
+                "/fund_fairholme.html",
+                "/etfs.html",
+                "/fund_gates.html",
+                "/fund_giverny.html",
+                "/fund_greenlea.html",
+                "/fund_himalaya.html",
+                "/fund_icahn.html",
+                "/fund_index.html",
+                "/fund_jana.html",
+                "/fund_kimmeridge.html",
+                "/fund_lightstreet.html",
+                "/fund_lonepine.html",
+                "/fund_mudrick.html",
+                "/fund_oaktree.html",
+                "/fund_pabrai.html",
+                "/fund_perceptive.html",
+                "/fund_pershing.html",
+                "/fund_polen.html",
+                "/fund_punchcard.html",
+                "/fund_racapital.html",
+                "/fund_rtw.html",
+                "/fund_sachem.html",
+                "/fund_scion.html",
+                "/fund_soros.html",
+                "/fund_starboard.html",
+                "/fund_tci.html"
+              ]
+            }
+          },
+          {
+            "name": "browser-observations",
+            "data": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 390,
+                "height": 844
+              },
+              "url": "http://127.0.0.1:3139/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "title": "facet follows actual locale controls without expanding Chinese search aliases",
+        "project": "mobile",
+        "status": "expected",
+        "attempts": 1,
+        "attachments": [
+          {
+            "name": "facet-locale-corpus",
+            "data": {
+              "chineseAll": [
+                "/options",
+                "/options.html"
+              ],
+              "chineseFacet": [
+                "/options",
+                "/options.html"
+              ],
+              "englishFacet": [
+                "/options/futures",
+                "/options",
+                "/options.html",
+                "/options_screener.html"
+              ]
+            }
+          },
+          {
+            "name": "browser-observations",
+            "data": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 320,
+                "height": 420
+              },
+              "url": "http://127.0.0.1:3139/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "title": "query-wide recovery is distinct from category scope in the real catalogue",
+        "project": "mobile",
+        "status": "expected",
+        "attempts": 1,
+        "attachments": [
+          {
+            "name": "browser-observations",
+            "data": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 390,
+                "height": 844
+              },
+              "url": "http://127.0.0.1:3139/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "title": "clear query, batching and same-instance reopen retain the correct state",
+        "project": "mobile",
+        "status": "expected",
+        "attempts": 1,
+        "attachments": [
+          {
+            "name": "browser-observations",
+            "data": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 390,
+                "height": 844
+              },
+              "url": "http://127.0.0.1:3139/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "title": "actual locale/theme controls preserve a filtered directory across reopen",
+        "project": "mobile",
+        "status": "expected",
+        "attempts": 1,
+        "attachments": [
+          {
+            "name": "browser-observations",
+            "data": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 320,
+                "height": 420
+              },
+              "url": "http://127.0.0.1:3139/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "title": "drawer-to-directory and resize close return to a visible persistent control",
+        "project": "mobile",
+        "status": "expected",
+        "attempts": 1,
+        "attachments": [
+          {
+            "name": "browser-observations",
+            "data": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 390,
+                "height": 844
+              },
+              "url": "http://127.0.0.1:3139/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "title": "shortcut from BODY returns to a meaningful visible shell control",
+        "project": "mobile",
+        "status": "expected",
+        "attempts": 1,
+        "attachments": [
+          {
+            "name": "browser-observations",
+            "data": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 390,
+                "height": 844
+              },
+              "url": "http://127.0.0.1:3139/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "title": "Show all reveals its focused category inside the scrolled strip",
+        "project": "mobile",
+        "status": "expected",
+        "attempts": 1,
+        "attachments": [
+          {
+            "name": "browser-observations",
+            "data": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 390,
+                "height": 844
+              },
+              "url": "http://127.0.0.1:3139/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "title": "directory transfers once to the real company picker and respects composing Escape",
+        "project": "mobile",
+        "status": "expected",
+        "attempts": 1,
+        "attachments": [
+          {
+            "name": "browser-observations",
+            "data": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 390,
+                "height": 844
+              },
+              "url": "http://127.0.0.1:3139/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "title": "native dialog cancellation respects the captured Escape owner",
+        "project": "mobile",
+        "status": "expected",
+        "attempts": 1,
+        "attachments": [
+          {
+            "name": "browser-observations",
+            "data": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 390,
+                "height": 844
+              },
+              "url": "http://127.0.0.1:3139/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "title": "real Next Link keeps the current directory on modified activation",
+        "project": "mobile",
+        "status": "skipped",
+        "attempts": 1,
+        "attachments": [
+          {
+            "name": "browser-observations",
+            "data": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 390,
+                "height": 844
+              },
+              "url": "http://127.0.0.1:3139/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "browser-r2": {
+    "stats": {
+      "startTime": "2026-11-04T07:22:47.407Z",
+      "duration": 29637.4,
+      "expected": 12,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "errors": [],
+    "cases": [
+      {
+        "title": "four-identity facet preserves the real query corpus through keyboard and touch recovery",
+        "project": "desktop",
+        "status": "expected",
+        "attempts": 1,
+        "attachments": [
+          {
+            "name": "facet-corpus-and-input",
+            "data": {
+              "before": [
+                "/options/futures",
+                "/options",
+                "/options.html",
+                "/options_screener.html",
+                "/learn/options/charm-and-time-drift.html",
+                "/learn/options/dealer-hedging-mechanics.html",
+                "/learn/options/gamma-flip-levels.html",
+                "/learn/options/gamma-regimes.html",
+                "/learn/options/market-makers-middleman.html",
+                "/learn/options/open-interest-limits.html",
+                "/learn/options/zero-dte-regime.html",
+                "/tools/calculators/options-profit.html"
+              ],
+              "facet": [
+                "/options/futures",
+                "/options",
+                "/options.html",
+                "/options_screener.html"
+              ],
+              "touch": false,
+              "pointers": [
+                "mouse"
+              ]
+            }
+          },
+          {
+            "name": "browser-observations",
+            "data": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 1440,
+                "height": 900
+              },
+              "url": "http://127.0.0.1:3139/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "title": "empty facet recovers a real query with more than 48 results to its first batch",
+        "project": "desktop",
+        "status": "expected",
+        "attempts": 1,
+        "attachments": [
+          {
+            "name": "facet-batch-recovery",
+            "data": {
+              "query": "fund",
+              "total": 104,
+              "firstBatch": [
+                "/fundamental_forensics.html",
+                "/fund_ako.html",
+                "/fund_akre.html",
+                "/fund_altarock.html",
+                "/fund_altimeter.html",
+                "/fund_appaloosa.html",
+                "/fund_aquamarine.html",
+                "/fund_bakerbros.html",
+                "/fund_basswood.html",
+                "/fund_baupost.html",
+                "/fund_berkshire.html",
+                "/fund_casdin.html",
+                "/fund_coatue.html",
+                "/fund_corvex.html",
+                "/fund_d1capital.html",
+                "/fund_dorsey.html",
+                "/fund_dragoneer.html",
+                "/fund_duquesne.html",
+                "/fund_durable.html",
+                "/fund_egerton.html",
+                "/fund_elliott.html",
+                "/fund_engaged.html",
+                "/fund_fairholme.html",
+                "/etfs.html",
+                "/fund_gates.html",
+                "/fund_giverny.html",
+                "/fund_greenlea.html",
+                "/fund_himalaya.html",
+                "/fund_icahn.html",
+                "/fund_index.html",
+                "/fund_jana.html",
+                "/fund_kimmeridge.html",
+                "/fund_lightstreet.html",
+                "/fund_lonepine.html",
+                "/fund_mudrick.html",
+                "/fund_oaktree.html",
+                "/fund_pabrai.html",
+                "/fund_perceptive.html",
+                "/fund_pershing.html",
+                "/fund_polen.html",
+                "/fund_punchcard.html",
+                "/fund_racapital.html",
+                "/fund_rtw.html",
+                "/fund_sachem.html",
+                "/fund_scion.html",
+                "/fund_soros.html",
+                "/fund_starboard.html",
+                "/fund_tci.html"
+              ]
+            }
+          },
+          {
+            "name": "browser-observations",
+            "data": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 1440,
+                "height": 900
+              },
+              "url": "http://127.0.0.1:3139/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "title": "facet follows actual locale controls without expanding Chinese search aliases",
+        "project": "desktop",
+        "status": "expected",
+        "attempts": 1,
+        "attachments": [
+          {
+            "name": "facet-locale-corpus",
+            "data": {
+              "chineseAll": [
+                "/options",
+                "/options.html"
+              ],
+              "chineseFacet": [
+                "/options",
+                "/options.html"
+              ],
+              "englishFacet": [
+                "/options/futures",
+                "/options",
+                "/options.html",
+                "/options_screener.html"
+              ]
+            }
+          },
+          {
+            "name": "browser-observations",
+            "data": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 320,
+                "height": 420
+              },
+              "url": "http://127.0.0.1:3139/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "title": "Show all reveals its focused category inside the scrolled strip",
+        "project": "desktop",
+        "status": "expected",
+        "attempts": 1,
+        "attachments": [
+          {
+            "name": "browser-observations",
+            "data": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 320,
+                "height": 844
+              },
+              "url": "http://127.0.0.1:3139/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "title": "four-identity facet preserves the real query corpus through keyboard and touch recovery",
+        "project": "tablet",
+        "status": "expected",
+        "attempts": 1,
+        "attachments": [
+          {
+            "name": "facet-corpus-and-input",
+            "data": {
+              "before": [
+                "/options/futures",
+                "/options",
+                "/options.html",
+                "/options_screener.html",
+                "/learn/options/charm-and-time-drift.html",
+                "/learn/options/dealer-hedging-mechanics.html",
+                "/learn/options/gamma-flip-levels.html",
+                "/learn/options/gamma-regimes.html",
+                "/learn/options/market-makers-middleman.html",
+                "/learn/options/open-interest-limits.html",
+                "/learn/options/zero-dte-regime.html",
+                "/tools/calculators/options-profit.html"
+              ],
+              "facet": [
+                "/options/futures",
+                "/options",
+                "/options.html",
+                "/options_screener.html"
+              ],
+              "touch": true,
+              "pointers": [
+                "touch",
+                "touch"
+              ]
+            }
+          },
+          {
+            "name": "browser-observations",
+            "data": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 820,
+                "height": 1180
+              },
+              "url": "http://127.0.0.1:3139/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "title": "empty facet recovers a real query with more than 48 results to its first batch",
+        "project": "tablet",
+        "status": "expected",
+        "attempts": 1,
+        "attachments": [
+          {
+            "name": "facet-batch-recovery",
+            "data": {
+              "query": "fund",
+              "total": 104,
+              "firstBatch": [
+                "/fundamental_forensics.html",
+                "/fund_ako.html",
+                "/fund_akre.html",
+                "/fund_altarock.html",
+                "/fund_altimeter.html",
+                "/fund_appaloosa.html",
+                "/fund_aquamarine.html",
+                "/fund_bakerbros.html",
+                "/fund_basswood.html",
+                "/fund_baupost.html",
+                "/fund_berkshire.html",
+                "/fund_casdin.html",
+                "/fund_coatue.html",
+                "/fund_corvex.html",
+                "/fund_d1capital.html",
+                "/fund_dorsey.html",
+                "/fund_dragoneer.html",
+                "/fund_duquesne.html",
+                "/fund_durable.html",
+                "/fund_egerton.html",
+                "/fund_elliott.html",
+                "/fund_engaged.html",
+                "/fund_fairholme.html",
+                "/etfs.html",
+                "/fund_gates.html",
+                "/fund_giverny.html",
+                "/fund_greenlea.html",
+                "/fund_himalaya.html",
+                "/fund_icahn.html",
+                "/fund_index.html",
+                "/fund_jana.html",
+                "/fund_kimmeridge.html",
+                "/fund_lightstreet.html",
+                "/fund_lonepine.html",
+                "/fund_mudrick.html",
+                "/fund_oaktree.html",
+                "/fund_pabrai.html",
+                "/fund_perceptive.html",
+                "/fund_pershing.html",
+                "/fund_polen.html",
+                "/fund_punchcard.html",
+                "/fund_racapital.html",
+                "/fund_rtw.html",
+                "/fund_sachem.html",
+                "/fund_scion.html",
+                "/fund_soros.html",
+                "/fund_starboard.html",
+                "/fund_tci.html"
+              ]
+            }
+          },
+          {
+            "name": "browser-observations",
+            "data": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 820,
+                "height": 1180
+              },
+              "url": "http://127.0.0.1:3139/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "title": "facet follows actual locale controls without expanding Chinese search aliases",
+        "project": "tablet",
+        "status": "expected",
+        "attempts": 1,
+        "attachments": [
+          {
+            "name": "facet-locale-corpus",
+            "data": {
+              "chineseAll": [
+                "/options",
+                "/options.html"
+              ],
+              "chineseFacet": [
+                "/options",
+                "/options.html"
+              ],
+              "englishFacet": [
+                "/options/futures",
+                "/options",
+                "/options.html",
+                "/options_screener.html"
+              ]
+            }
+          },
+          {
+            "name": "browser-observations",
+            "data": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 320,
+                "height": 420
+              },
+              "url": "http://127.0.0.1:3139/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "title": "Show all reveals its focused category inside the scrolled strip",
+        "project": "tablet",
+        "status": "expected",
+        "attempts": 1,
+        "attachments": [
+          {
+            "name": "browser-observations",
+            "data": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 320,
+                "height": 844
+              },
+              "url": "http://127.0.0.1:3139/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "title": "four-identity facet preserves the real query corpus through keyboard and touch recovery",
+        "project": "mobile",
+        "status": "expected",
+        "attempts": 1,
+        "attachments": [
+          {
+            "name": "facet-corpus-and-input",
+            "data": {
+              "before": [
+                "/options/futures",
+                "/options",
+                "/options.html",
+                "/options_screener.html",
+                "/learn/options/charm-and-time-drift.html",
+                "/learn/options/dealer-hedging-mechanics.html",
+                "/learn/options/gamma-flip-levels.html",
+                "/learn/options/gamma-regimes.html",
+                "/learn/options/market-makers-middleman.html",
+                "/learn/options/open-interest-limits.html",
+                "/learn/options/zero-dte-regime.html",
+                "/tools/calculators/options-profit.html"
+              ],
+              "facet": [
+                "/options/futures",
+                "/options",
+                "/options.html",
+                "/options_screener.html"
+              ],
+              "touch": true,
+              "pointers": [
+                "touch",
+                "touch"
+              ]
+            }
+          },
+          {
+            "name": "browser-observations",
+            "data": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 390,
+                "height": 844
+              },
+              "url": "http://127.0.0.1:3139/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "title": "empty facet recovers a real query with more than 48 results to its first batch",
+        "project": "mobile",
+        "status": "expected",
+        "attempts": 1,
+        "attachments": [
+          {
+            "name": "facet-batch-recovery",
+            "data": {
+              "query": "fund",
+              "total": 104,
+              "firstBatch": [
+                "/fundamental_forensics.html",
+                "/fund_ako.html",
+                "/fund_akre.html",
+                "/fund_altarock.html",
+                "/fund_altimeter.html",
+                "/fund_appaloosa.html",
+                "/fund_aquamarine.html",
+                "/fund_bakerbros.html",
+                "/fund_basswood.html",
+                "/fund_baupost.html",
+                "/fund_berkshire.html",
+                "/fund_casdin.html",
+                "/fund_coatue.html",
+                "/fund_corvex.html",
+                "/fund_d1capital.html",
+                "/fund_dorsey.html",
+                "/fund_dragoneer.html",
+                "/fund_duquesne.html",
+                "/fund_durable.html",
+                "/fund_egerton.html",
+                "/fund_elliott.html",
+                "/fund_engaged.html",
+                "/fund_fairholme.html",
+                "/etfs.html",
+                "/fund_gates.html",
+                "/fund_giverny.html",
+                "/fund_greenlea.html",
+                "/fund_himalaya.html",
+                "/fund_icahn.html",
+                "/fund_index.html",
+                "/fund_jana.html",
+                "/fund_kimmeridge.html",
+                "/fund_lightstreet.html",
+                "/fund_lonepine.html",
+                "/fund_mudrick.html",
+                "/fund_oaktree.html",
+                "/fund_pabrai.html",
+                "/fund_perceptive.html",
+                "/fund_pershing.html",
+                "/fund_polen.html",
+                "/fund_punchcard.html",
+                "/fund_racapital.html",
+                "/fund_rtw.html",
+                "/fund_sachem.html",
+                "/fund_scion.html",
+                "/fund_soros.html",
+                "/fund_starboard.html",
+                "/fund_tci.html"
+              ]
+            }
+          },
+          {
+            "name": "browser-observations",
+            "data": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 390,
+                "height": 844
+              },
+              "url": "http://127.0.0.1:3139/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "title": "facet follows actual locale controls without expanding Chinese search aliases",
+        "project": "mobile",
+        "status": "expected",
+        "attempts": 1,
+        "attachments": [
+          {
+            "name": "facet-locale-corpus",
+            "data": {
+              "chineseAll": [
+                "/options",
+                "/options.html"
+              ],
+              "chineseFacet": [
+                "/options",
+                "/options.html"
+              ],
+              "englishFacet": [
+                "/options/futures",
+                "/options",
+                "/options.html",
+                "/options_screener.html"
+              ]
+            }
+          },
+          {
+            "name": "browser-observations",
+            "data": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 320,
+                "height": 420
+              },
+              "url": "http://127.0.0.1:3139/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "title": "Show all reveals its focused category inside the scrolled strip",
+        "project": "mobile",
+        "status": "expected",
+        "attempts": 1,
+        "attachments": [
+          {
+            "name": "browser-observations",
+            "data": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 390,
+                "height": 844
+              },
+              "url": "http://127.0.0.1:3139/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

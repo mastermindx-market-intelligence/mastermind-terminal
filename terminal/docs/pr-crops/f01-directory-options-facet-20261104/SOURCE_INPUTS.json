@@ -1,0 +1,12 @@
+{
+  "base": "1364256763ba505399399afe7a6b54021f141953",
+  "procedure_pin": "690e5316629815ae3e78f65ebdec2eb87f0cad16",
+  "files": {
+    "terminal/components/chrome/shared-shell/ShellDirectory.tsx": "f915c6ca84ddb33bf8e00d298044ef2a50281d45cafb5f266c6f7be8b6567b1d",
+    "terminal/components/chrome/shared-shell/shared-shell.css": "e9ff4dc94d5289cbdab9bfe287edc0e7366c758e70ec05c5158846aa4c7991ac",
+    "terminal/lib/sharedShellCopy.ts": "b47b1e03d8b6587892392b5c5b956e63f4252cd5967df7548023b314b6922b5f",
+    "terminal/lib/__tests__/sharedShellDirectoryConformance.test.tsx": "8e55864a432222d2c5b12029e9196cd3ee699748ddcbcc3daf325a80a384851a",
+    "terminal/e2e/shared-shell-directory-hardening.spec.ts": "040fa14432ef14faef59ca05ef2f0984315e44a9802af1e5b845a1581b6a2eb8",
+    "terminal/lib/sharedShellRoutes.generated.json": "2bfc0bf51e405abdd61032470d0b04cf1e1114370bd1c1f9b8e9e137d807f8cc"
+  }
+}

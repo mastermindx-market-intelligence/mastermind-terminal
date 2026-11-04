@@ -43,6 +43,7 @@ export const SHARED_SHELL_COPY: Record<string, (lang: ShellLang) => string> = {
   shellCategories: (lang) => pick(lang, "Page categories","页面类别"),
   shellSection_all: (lang) => pick(lang, "All","全部"),
   shellSection_workspaces: (lang) => pick(lang, "Workspaces","工作区"),
+  shellSection_options_futures: (lang) => pick(lang, "Options & futures","期权与期货"),
   shellSection_markets: (lang) => pick(lang, "Markets","市场"),
   shellSection_research: (lang) => pick(lang, "Research","研究"),
   shellSection_learn: (lang) => pick(lang, "Learn","学习"),

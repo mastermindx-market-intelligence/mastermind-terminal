@@ -1,0 +1,80 @@
+{
+  "scope": "Exact raw JSON/log/exit reports; screenshots are separate files in this directory",
+  "files": [
+    {
+      "path": "baseline-unit.json",
+      "bytes": 19579,
+      "sha256": "3cd48501ae75d5872600bffc9b105e2a6098cdeba81e73e2d683ce43e6b53069"
+    },
+    {
+      "path": "baseline-unit.log",
+      "bytes": 308,
+      "sha256": "cb2f94b4cfe6ef5734371a1bd59211348b74f7e6a57b338e6402e341b5511d0d"
+    },
+    {
+      "path": "browser-r1-exit.json",
+      "bytes": 493,
+      "sha256": "f9916ad678e2b238bec30b3cd9ee40314570ee634eb0b07e77ddef96f53a6cae"
+    },
+    {
+      "path": "browser-r1.json",
+      "bytes": 95220,
+      "sha256": "b4f59d22b8ef2688f987021d23b7895a1f2ea7af83077fb6ac91ee335e264e4d"
+    },
+    {
+      "path": "browser-r1.log",
+      "bytes": 6450,
+      "sha256": "d07ff0a77fe01943ce9b9303090e18374b552a5af6bdbdb1ebcd087129b759e3"
+    },
+    {
+      "path": "browser-r2-exit.json",
+      "bytes": 585,
+      "sha256": "0309629571772f8efc03ea99943ae5371f1493663e41305fec698fc42c52969a"
+    },
+    {
+      "path": "browser-r2.json",
+      "bytes": 42596,
+      "sha256": "4653eba51d25db547a59bdf29de75448e1040cef26d9d015d9e6bb146d6bd0bb"
+    },
+    {
+      "path": "browser-r2.log",
+      "bytes": 2972,
+      "sha256": "ace74984585016221dc21d6f2b0012757337c7316178ec08deeb01278c0c164b"
+    },
+    {
+      "path": "checks-final.json",
+      "bytes": 1109,
+      "sha256": "99b3575dc1627bf615f7d1548f37bbd6def14d67d73568ef721a519e5569ec20"
+    },
+    {
+      "path": "lint-final.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "source-inputs-final.json",
+      "bytes": 899,
+      "sha256": "2ae1b9ea205fffdf6ff416dc229ffbd783608f1f3043d66c4d33d5d9a238d6c8"
+    },
+    {
+      "path": "source-inputs.json",
+      "bytes": 767,
+      "sha256": "1ce4fc8a6a8a1ec255a0872ddcf70ff35c852d102ebc9c456d2a9e9ce298b230"
+    },
+    {
+      "path": "type-final.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "unit-final.json",
+      "bytes": 32997,
+      "sha256": "55fe2cb45a4de5002cd5d9bea1228cf3e403ded95996495adcb05f2e414015c4"
+    },
+    {
+      "path": "unit-final.log",
+      "bytes": 305,
+      "sha256": "84abbf15b0a8766d8f2b0f008b1027c55c879c59bcd6eb96a2766744f7aae0df"
+    }
+  ]
+}

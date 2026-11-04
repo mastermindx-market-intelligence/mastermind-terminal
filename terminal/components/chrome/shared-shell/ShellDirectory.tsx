@@ -7,8 +7,13 @@ import { SHARED_SHELL_COPY, useSharedShellT } from "@/lib/sharedShellCopy";
 import { sharedShellCatalog, sharedShellDirectory } from "@/lib/sharedShellRoutes";
 import { SHARED_SHELL_NAV } from "@/lib/sharedShellNavigation";
 
-type Entry = { href: string; kind: string; title: { en: string; zh: string }; group: string };
-const SECTIONS = ["all", "workspaces", "markets", "research", "learn", "tools", "about"] as const;
+type Entry = { id?: string; href: string; kind: string; title: { en: string; zh: string }; group: string };
+const SECTIONS = ["all", "workspaces", "options_futures", "markets", "research", "learn", "tools", "about"] as const;
+// F03 concurred with this four-identity presentation facet. The existing
+// projection and matcher still own eligibility, exact routes and title aliases.
+const OPTIONS_FUTURES_IDS = new Set([
+  "terminal:options_futures", "terminal:options", "macro:options", "macro:options_screener",
+]);
 function section(entry: Entry): string {
   if (entry.kind === "native") return "workspaces";
   if (/^\/learn(?:[/.]|$)|^\/reference/.test(entry.href)) return "learn";
@@ -103,8 +108,12 @@ export default function ShellDirectory({ open, onClose, onSearchCompanies }: {
       }
       return result;
     };
-    const matches = collect(category);
-    return { matches, allCount: category === "all" ? matches.length : collect("all").length };
+    const allMatches = collect("all");
+    const matches = category === "all" ? allMatches
+      : category === "options_futures"
+        ? allMatches.filter(entry => entry.id !== undefined && OPTIONS_FUTURES_IDS.has(entry.id))
+        : collect(category);
+    return { matches, allCount: allMatches.length };
   }, [tokens, category]);
 
   useLayoutEffect(() => {
@@ -265,7 +274,7 @@ export default function ShellDirectory({ open, onClose, onSearchCompanies }: {
               </button>
             </div>
           ) : (
-            <div className="shared-directory-grid">
+            <div className="shared-directory-grid" data-directory-facet={category}>
               {matches.slice(0, limit).map(entry => (
                 <Link key={entry.href} href={entry.href} prefetch={false}
                   onNavigate={() => { selected.current = true; onClose(); }}
@@ -273,7 +282,7 @@ export default function ShellDirectory({ open, onClose, onSearchCompanies }: {
                   <span className="shared-directory-link-icon" aria-hidden="true">
                     {entry.kind === "native" ? "↗" : "◫"}
                   </span>
-                  <span><strong>{entryTitle(entry)}</strong><small>{t("shellSection_" + section(entry))}</small></span>
+                  <span><strong>{entryTitle(entry)}</strong><small>{category === "options_futures" ? entry.href : t("shellSection_" + section(entry))}</small></span>
                   <span className="shared-directory-arrow" aria-hidden="true">→</span>
                 </Link>
               ))}

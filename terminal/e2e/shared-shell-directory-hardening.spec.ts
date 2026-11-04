@@ -59,6 +59,107 @@ async function contained(page: Page) {
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
 }
 
+
+test("four-identity facet preserves the real query corpus through keyboard and touch recovery", async ({ page }, info) => {
+  await open(page);
+  const dialog = directory(page);
+  await dialog.getByRole("searchbox").fill("options");
+  const before = await dialog.locator(".shared-directory-link").evaluateAll(nodes => nodes.map(node => node.getAttribute("href")));
+  expect(before).toHaveLength(12);
+  const expected = before.filter(href => ["/options", "/options.html", "/options_screener.html", "/options/futures"].includes(href!));
+  const touch = info.project.use.hasTouch === true;
+  await dialog.evaluate(element => {
+    Reflect.set(window, "__f01FacetPointers", []);
+    element.addEventListener("pointerdown", event => {
+      (Reflect.get(window, "__f01FacetPointers") as string[]).push((event as PointerEvent).pointerType);
+    });
+  });
+  const facet = dialog.getByRole("button", { name: "Options & futures", exact: true });
+  if (touch) await facet.tap(); else await facet.click();
+  await expect(facet).toHaveAttribute("aria-pressed", "true");
+  await expect(dialog.getByRole("status")).toHaveText("4 in this category");
+  expect(await dialog.locator(".shared-directory-link").evaluateAll(nodes => nodes.map(node => node.getAttribute("href")))).toEqual(expected);
+  expect(await dialog.locator(".shared-directory-link small").allTextContents()).toEqual(expected);
+  const reset = dialog.getByRole("button", { name: "Show all 12 matches", exact: true });
+  expect((await reset.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+  await contained(page);
+  await page.screenshot({ animations: "disabled", path: info.outputPath("options-facet-dark-en.png") });
+  if (touch) await reset.tap(); else { await reset.focus(); await page.keyboard.press("Enter"); }
+  await expect(dialog.getByRole("button", { name: "All", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await expect(dialog.getByRole("searchbox")).toHaveValue("options");
+  expect(await dialog.locator(".shared-directory-link").evaluateAll(nodes => nodes.map(node => node.getAttribute("href")))).toEqual(before);
+  expect(await page.evaluate(() => document.activeElement?.isConnected && !!document.querySelector(".shared-shell-directory[open]")?.contains(document.activeElement))).toBe(true);
+  const pointers = await page.evaluate(() => Reflect.get(window, "__f01FacetPointers") as string[]);
+  if (touch) expect(pointers.filter(kind => kind === "touch")).toHaveLength(2);
+  await info.attach("facet-corpus-and-input", { body: JSON.stringify({ before, facet: expected, touch, pointers }), contentType: "application/json" });
+});
+
+test("empty facet recovers a real query with more than 48 results to its first batch", async ({ page }, info) => {
+  await open(page);
+  const dialog = directory(page);
+  await dialog.getByRole("searchbox").fill("fund");
+  await expect(dialog.locator(".shared-directory-link")).toHaveCount(48);
+  const firstBatch = await dialog.locator(".shared-directory-link").evaluateAll(nodes => nodes.map(node => node.getAttribute("href")));
+  const countText = await dialog.getByRole("status").innerText();
+  const total = Number(countText.match(/^([\d,]+) matches/)?.[1].replaceAll(",", ""));
+  expect(total).toBeGreaterThan(48);
+  await dialog.getByRole("button", { name: "Show more", exact: true }).click();
+  await expect(dialog.locator(".shared-directory-link")).toHaveCount(Math.min(total, 96));
+  await dialog.getByRole("button", { name: "Options & futures", exact: true }).click();
+  await expect(dialog.locator(".shared-directory-link")).toHaveCount(0);
+  await expect(dialog.getByRole("heading", { name: "No matches in this category", exact: true })).toBeVisible();
+  const reset = dialog.getByRole("button", { name: `Show all ${total} matches`, exact: true });
+  if (info.project.use.hasTouch) await reset.tap(); else { await reset.focus(); await page.keyboard.press("Enter"); }
+  await expect(dialog.getByRole("searchbox")).toHaveValue("fund");
+  await expect(dialog.locator(".shared-directory-link")).toHaveCount(48);
+  expect(await dialog.locator(".shared-directory-link").evaluateAll(nodes => nodes.map(node => node.getAttribute("href")))).toEqual(firstBatch);
+  await expect(dialog.getByRole("status")).toContainText(`Showing 48 of ${total}`);
+  await expect(dialog.getByRole("button", { name: "Show more", exact: true })).toBeVisible();
+  await contained(page);
+  await info.attach("facet-batch-recovery", { body: JSON.stringify({ query: "fund", total, firstBatch }), contentType: "application/json" });
+});
+
+test("facet follows actual locale controls without expanding Chinese search aliases", async ({ page }, info) => {
+  await open(page);
+  let dialog = directory(page);
+  await dialog.getByRole("searchbox").fill("options");
+  await dialog.getByRole("button", { name: "Options & futures", exact: true }).click();
+  const retained = await dialog.locator(".shared-directory-link").evaluateAll(nodes => nodes.map(node => node.getAttribute("href")));
+  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: "Light theme", exact: true }).click();
+  await page.getByRole("button", { name: "Chinese language", exact: true }).click();
+  await expect(page.locator("html")).toHaveAttribute("data-lang", "zh");
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+  await page.locator("main").first().click({ position: { x: 5, y: 5 } });
+  await page.keyboard.press("ControlOrMeta+k");
+  dialog = directory(page);
+  await expect(dialog.getByRole("button", { name: "期权与期货", exact: true })).toHaveAttribute("aria-pressed", "true");
+  expect(await dialog.locator(".shared-directory-link").evaluateAll(nodes => nodes.map(node => node.getAttribute("href")))).toEqual(retained);
+  await expect(dialog.getByRole("searchbox")).toHaveValue("options");
+  await page.setViewportSize({ width: 320, height: 420 });
+  await contained(page);
+  await page.screenshot({ animations: "disabled", path: info.outputPath("options-facet-short-light-zh.png") });
+  const lastDestination = dialog.locator(".shared-directory-link").last();
+  await lastDestination.scrollIntoViewIfNeeded();
+  const lastBox = await lastDestination.boundingBox();
+  const viewport = await dialog.locator(".shared-directory-results").boundingBox();
+  expect(lastBox!.y).toBeGreaterThanOrEqual(viewport!.y - 1);
+  expect(lastBox!.y + lastBox!.height).toBeLessThanOrEqual(viewport!.y + viewport!.height + 1);
+  await expect(lastDestination).toHaveAttribute("href", "/options_screener.html");
+  await page.screenshot({ animations: "disabled", path: info.outputPath("options-facet-short-last-destination.png") });
+  await dialog.getByRole("button", { name: "全部", exact: true }).click();
+  await dialog.getByRole("searchbox").fill("期权");
+  const chineseAll = await dialog.locator(".shared-directory-link").evaluateAll(nodes => nodes.map(node => node.getAttribute("href")));
+  expect(chineseAll.length).toBeGreaterThan(0);
+  await dialog.getByRole("button", { name: "期权与期货", exact: true }).click();
+  const chineseFacet = await dialog.locator(".shared-directory-link").evaluateAll(nodes => nodes.map(node => node.getAttribute("href")));
+  expect(chineseFacet).toEqual(chineseAll.filter(href => retained.includes(href)));
+  await dialog.getByRole("button", { name: "全部", exact: true }).click();
+  expect(await dialog.locator(".shared-directory-link").evaluateAll(nodes => nodes.map(node => node.getAttribute("href")))).toEqual(chineseAll);
+  await expect(dialog.getByRole("searchbox")).toHaveValue("期权");
+  await info.attach("facet-locale-corpus", { body: JSON.stringify({ chineseAll, chineseFacet, englishFacet: retained }), contentType: "application/json" });
+});
+
 test("query-wide recovery is distinct from category scope in the real catalogue", async ({ page }, info) => {
   await open(page);
   const dialog = directory(page);

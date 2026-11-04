@@ -217,6 +217,14 @@
   .shared-directory-footer button { min-height:44px; }
   .shared-shell-boundary { padding:24px; }
 }
+/* The four-destination facet follows F01\'s readable phone list composition. */
+@media (max-width:600px) {
+  .shared-directory-grid[data-directory-facet="options_futures"] { grid-template-columns:minmax(0,1fr);gap:4px; }
+  .shared-directory-grid[data-directory-facet="options_futures"] .shared-directory-link { min-height:76px;padding:14px 10px;border-bottom-color:var(--line);border-radius:0; }
+  .shared-directory-grid[data-directory-facet="options_futures"] .shared-directory-link:last-child { border-bottom-color:transparent; }
+  .shared-directory-grid[data-directory-facet="options_futures"] .shared-directory-link strong { font-size:14px;font-weight:550; }
+  .shared-directory-grid[data-directory-facet="options_futures"] .shared-directory-link small { font-size:12px;overflow-wrap:anywhere; }
+}
 @media (max-width:479px) {
   /* Keep the mark and every action in the existing single-row mobile topbar.
      The wordmark remains available to assistive technology at narrow widths. */

@@ -9,7 +9,7 @@ import ShellDirectory from "@/components/chrome/shared-shell/ShellDirectory";
 // Native focus trapping/IME/new-tab behavior is covered separately in a browser.
 const fixture = vi.hoisted(() => ({
   lang: "en" as "en" | "zh",
-  directory: [] as { href: string; kind: string; title: { en: string; zh: string }; group: string }[],
+  directory: [] as { id?: string; href: string; kind: string; title: { en: string; zh: string }; group: string }[],
   paths: [] as string[], navigation: vi.fn(), companies: vi.fn(), closes: vi.fn(),
 }));
 vi.mock("@/lib/sharedShellRoutes", () => ({
@@ -36,7 +36,7 @@ vi.mock("next/link", () => ({ default: ({ children, href, onNavigate, prefetch: 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 let root: Root;
 let container: HTMLDivElement;
-const entry = (href: string, kind = "legacy", group = "nav.tools", title = href) => ({ href, kind, group, title: { en: title, zh: title } });
+const entry = (href: string, kind = "legacy", group = "nav.tools", title = href, id = `fixture:${href}`) => ({ id, href, kind, group, title: { en: title, zh: title } });
 function Harness() {
   const [open, setOpen] = useState(false);
   return <div className="shared-shell">
@@ -77,10 +77,10 @@ async function mount() {
 beforeEach(() => {
   fixture.lang = "en";
   fixture.directory = [
-    entry("/options", "native", "nav.options", "Options hub"),
-    entry("/options.html", "legacy", "nav.options", "Options hub"),
-    entry("/options_screener.html", "legacy", "nav.options", "Options scanner"),
-    entry("/options/futures", "native", "nav.options", "Futures"),
+    entry("/options", "native", "nav.options", "Options hub", "terminal:options"),
+    entry("/options.html", "legacy", "nav.options", "Options hub", "macro:options"),
+    entry("/options_screener.html", "legacy", "nav.options", "Options scanner", "macro:options_screener"),
+    entry("/options/futures", "native", "nav.options", "Futures", "terminal:options_futures"),
     entry("/learn/options.html", "legacy", "nav.learn", "期权课堂"),
     entry("/tools/options-calc.html"),
     entry("/about-options.html", "legacy", "footer.test", "Options information"),
@@ -102,6 +102,70 @@ afterEach(async () => {
 });
 
 describe("incumbent directory conformance", () => {
+
+  it("facets only the four reviewed identities and restores the ordered All results", async () => {
+    const sourceBefore = JSON.stringify(fixture.directory);
+    await mount(); await type("options");
+    const all = hrefs();
+    await click(button("Options & futures"));
+    expect(hrefs()).toEqual(["/options", "/options.html", "/options_screener.html", "/options/futures"]);
+    expect(status()).toBe("4 in this category");
+    expect(links().map(node => node.querySelector("small")?.textContent)).toEqual(hrefs());
+    await click(button("Show all 8 matches"));
+    expect(hrefs()).toEqual(all);
+    expect(container.querySelector<HTMLInputElement>("input")?.value).toBe("options");
+    expect(document.activeElement).toBe(button("All"));
+    expect(JSON.stringify(fixture.directory)).toBe(sourceBefore);
+  });
+
+  it("counts additional matching lessons without adding them to the platform facet", async () => {
+    fixture.directory.push(entry("/learn/options-added.html", "legacy", "nav.learn", "Options added lesson", "macro:options_lesson"));
+    await mount(); await type("options");
+    expect(links()).toHaveLength(9);
+    await click(button("Options & futures"));
+    expect(links()).toHaveLength(4);
+    expect(button("Show all 9 matches")).toBeTruthy();
+    await click(button("Show all 9 matches"));
+    expect(hrefs()).toContain("/learn/options-added.html");
+    expect(hrefs()).toContain("/tools/options-calc.html");
+  });
+
+  it("does not promote a canonical fallback path without its reviewed directory identity", async () => {
+    fixture.directory = fixture.directory.filter(row => row.id !== "macro:options");
+    await mount(); await type("options");
+    expect(hrefs()).toContain("/options.html"); // incumbent finite-path fallback remains reachable
+    await click(button("Options & futures"));
+    expect(links()).toHaveLength(3);
+    expect(hrefs()).not.toContain("/options.html");
+    expect(button("Show all 8 matches")).toBeTruthy();
+  });
+
+  it("recovers a zero-result facet to the first batch of more than 48 matching lessons", async () => {
+    await mount(); await type("lesson"); await click(button("Show more"));
+    expect(links()).toHaveLength(96);
+    await click(button("Options & futures"));
+    expect(links()).toHaveLength(0);
+    expect(status()).toBe("0 in this category");
+    await click(button("Show all 100 matches"));
+    expect(links()).toHaveLength(48);
+    expect(status()).toContain("Showing 48 of 100");
+    expect(container.querySelector<HTMLInputElement>("input")?.value).toBe("lesson");
+    expect(document.activeElement).toBe(button("All"));
+  });
+
+  it("localizes the facet control while retaining its source labels and query on reopen", async () => {
+    fixture.lang = "zh";
+    await mount(); await type("options"); await click(button("期权与期货"));
+    const exactHrefs = hrefs();
+    expect(links()).toHaveLength(4);
+    expect(status()).toBe("此分类中有 4 个匹配结果");
+    await escape(); await click(button("Tools opener"));
+    expect(button("期权与期货").getAttribute("aria-pressed")).toBe("true");
+    expect(hrefs()).toEqual(exactHrefs);
+    expect(container.querySelector<HTMLInputElement>("input")?.value).toBe("options");
+    expect(button("查看全部 8 个匹配结果")).toBeTruthy();
+  });
+
   it("recovers zero-in-category matches without changing the typed query", async () => {
     await mount(); await type("options"); await click(button("Research"));
     expect(links()).toHaveLength(0);
