@@ -1,0 +1,2843 @@
+{
+  "config": {
+    "argv": [
+      "/opt/homebrew/Cellar/node/26.5.0/bin/node",
+      "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/node_modules/.bin/playwright",
+      "test",
+      "e2e/chart-context-feedback.spec.ts",
+      "e2e/chart-context-resilience.spec.ts",
+      "e2e/chart-context-time.spec.ts",
+      "--project=desktop",
+      "--project=tablet",
+      "--project=mobile",
+      "--workers=2",
+      "--retries=0",
+      "--reporter=json",
+      "--output=test-results-d06-reader-feedback"
+    ],
+    "configFile": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/playwright.config.ts",
+    "rootDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/globalSetup.ts",
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 2
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-reader-feedback",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "desktop",
+        "name": "desktop",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-reader-feedback",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "tablet",
+        "name": "tablet",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-reader-feedback",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "mobile",
+        "name": "mobile",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-reader-feedback",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "company-intelligence-desktop",
+        "name": "company-intelligence-desktop",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-reader-feedback",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "company-intelligence-tablet",
+        "name": "company-intelligence-tablet",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-reader-feedback",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "company-intelligence-mobile",
+        "name": "company-intelligence-mobile",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-reader-feedback",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "terminal-chrome-intermediate",
+        "name": "terminal-chrome-intermediate",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/terminal-chrome-responsive\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-reader-feedback",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "w2a-workspaces",
+        "name": "w2a-workspaces",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.1",
+    "workers": 2,
+    "webServer": {
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 50354",
+      "url": "http://127.0.0.1:50354/terminal?symbol=NVDA",
+      "reuseExistingServer": false,
+      "timeout": 120000,
+      "env": {
+        "ANALYSIS_LOCAL_PREVIEW": "1",
+        "ADMIN_DEV": "1",
+        "TERMINAL_E2E_FIXTURE": "1",
+        "TERMINAL_E2E_EMAIL": "responsive@example.com",
+        "TERMINAL_E2E_ENTITLEMENT": "unlimited",
+        "RATE_LIMIT_MAX": "100000",
+        "HUB_REALTIME_QUOTES": "1",
+        "TICKER_NEWS_RAIL": "1",
+        "FLOW_FIXTURE": "1",
+        "INVESTIGATION_API_ADMISSION": "open",
+        "NEXT_PUBLIC_SUPABASE_URL": "http://127.0.0.1:54321",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY": "fixture-anon-key"
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "chart-context-feedback.spec.ts",
+      "file": "chart-context-feedback.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "feedback acknowledgement keeps keyboard focus and Escape return in en / useful",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 8209,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:28:48.481Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "feedback-success",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-reader-feedback/chart-context-feedback-fee-991e8--Escape-return-in-en-useful-desktop/attachments/feedback-success-bfdd70782e1160ba438a5e060f2d7ec180444d49.png"
+                    },
+                    {
+                      "name": "focus-after-feedback",
+                      "contentType": "application/json",
+                      "body": "ewogICJhY3RpdmVUYWciOiAiQlVUVE9OIiwKICAiYWN0aXZlS2V5IjogInVzZWZ1bCIsCiAgInJlYWRlck93bnNGb2N1cyI6IHRydWUsCiAgInZpZXdwb3J0IjogewogICAgIndpZHRoIjogMTQ0MCwKICAgICJoZWlnaHQiOiA5MDAKICB9LAogICJkb2N1bWVudFdpZHRoIjogMTQ0MCwKICAic2Nyb2xsV2lkdGgiOiAxNDQwCn0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "4425857c690163a02024-d257d505b4c091d11f0a",
+          "file": "chart-context-feedback.spec.ts",
+          "line": 7,
+          "column": 9
+        },
+        {
+          "title": "feedback acknowledgement keeps keyboard focus and Escape return in en / unclear",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 8475,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:28:48.482Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "feedback-success",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-reader-feedback/chart-context-feedback-fee-1b7c0-Escape-return-in-en-unclear-desktop/attachments/feedback-success-73abee2d371ed659e09def0c2ec6887be7ad9099.png"
+                    },
+                    {
+                      "name": "focus-after-feedback",
+                      "contentType": "application/json",
+                      "body": "ewogICJhY3RpdmVUYWciOiAiQlVUVE9OIiwKICAiYWN0aXZlS2V5IjogInVuY2xlYXIiLAogICJyZWFkZXJPd25zRm9jdXMiOiB0cnVlLAogICJ2aWV3cG9ydCI6IHsKICAgICJ3aWR0aCI6IDE0NDAsCiAgICAiaGVpZ2h0IjogOTAwCiAgfSwKICAiZG9jdW1lbnRXaWR0aCI6IDE0NDAsCiAgInNjcm9sbFdpZHRoIjogMTQ0MAp9"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "4425857c690163a02024-7a2db36080f1d15150ed",
+          "file": "chart-context-feedback.spec.ts",
+          "line": 7,
+          "column": 9
+        },
+        {
+          "title": "feedback acknowledgement keeps keyboard focus and Escape return in zh / useful",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6588,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:28:57.229Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "feedback-success",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-reader-feedback/chart-context-feedback-fee-867d2--Escape-return-in-zh-useful-desktop/attachments/feedback-success-a5acebd90a89578c249f8da1789802fdaa328242.png"
+                    },
+                    {
+                      "name": "focus-after-feedback",
+                      "contentType": "application/json",
+                      "body": "ewogICJhY3RpdmVUYWciOiAiQlVUVE9OIiwKICAiYWN0aXZlS2V5IjogInVzZWZ1bCIsCiAgInJlYWRlck93bnNGb2N1cyI6IHRydWUsCiAgInZpZXdwb3J0IjogewogICAgIndpZHRoIjogMTQ0MCwKICAgICJoZWlnaHQiOiA5MDAKICB9LAogICJkb2N1bWVudFdpZHRoIjogMTQ0MCwKICAic2Nyb2xsV2lkdGgiOiAxNDQwCn0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "4425857c690163a02024-7e3ee0f13c18b47739f8",
+          "file": "chart-context-feedback.spec.ts",
+          "line": 7,
+          "column": 9
+        },
+        {
+          "title": "feedback acknowledgement keeps keyboard focus and Escape return in zh / unclear",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 6059,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:28:57.434Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "feedback-success",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-reader-feedback/chart-context-feedback-fee-60c4a-Escape-return-in-zh-unclear-desktop/attachments/feedback-success-8f3af2f59e6588b9d9915abd143f47757411ecf1.png"
+                    },
+                    {
+                      "name": "focus-after-feedback",
+                      "contentType": "application/json",
+                      "body": "ewogICJhY3RpdmVUYWciOiAiQlVUVE9OIiwKICAiYWN0aXZlS2V5IjogInVuY2xlYXIiLAogICJyZWFkZXJPd25zRm9jdXMiOiB0cnVlLAogICJ2aWV3cG9ydCI6IHsKICAgICJ3aWR0aCI6IDE0NDAsCiAgICAiaGVpZ2h0IjogOTAwCiAgfSwKICAiZG9jdW1lbnRXaWR0aCI6IDE0NDAsCiAgInNjcm9sbFdpZHRoIjogMTQ0MAp9"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "4425857c690163a02024-aa65afe1df7074bc1040",
+          "file": "chart-context-feedback.spec.ts",
+          "line": 7,
+          "column": 9
+        },
+        {
+          "title": "feedback acknowledgement keeps keyboard focus and Escape return in en / useful",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5024,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:30:09.835Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "feedback-success",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-reader-feedback/chart-context-feedback-fee-991e8--Escape-return-in-en-useful-tablet/attachments/feedback-success-cfe3de670afef0beac5901982d6160f12861a8dd.png"
+                    },
+                    {
+                      "name": "focus-after-feedback",
+                      "contentType": "application/json",
+                      "body": "ewogICJhY3RpdmVUYWciOiAiQlVUVE9OIiwKICAiYWN0aXZlS2V5IjogInVzZWZ1bCIsCiAgInJlYWRlck93bnNGb2N1cyI6IHRydWUsCiAgInZpZXdwb3J0IjogewogICAgIndpZHRoIjogODIwLAogICAgImhlaWdodCI6IDExODAKICB9LAogICJkb2N1bWVudFdpZHRoIjogODIwLAogICJzY3JvbGxXaWR0aCI6IDgyMAp9"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "4425857c690163a02024-5db43e73f405492a0480",
+          "file": "chart-context-feedback.spec.ts",
+          "line": 7,
+          "column": 9
+        },
+        {
+          "title": "feedback acknowledgement keeps keyboard focus and Escape return in en / unclear",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 6083,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:30:11.269Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "feedback-success",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-reader-feedback/chart-context-feedback-fee-1b7c0-Escape-return-in-en-unclear-tablet/attachments/feedback-success-7d632afbc33b4287d1a413b88c4c1689b1394e43.png"
+                    },
+                    {
+                      "name": "focus-after-feedback",
+                      "contentType": "application/json",
+                      "body": "ewogICJhY3RpdmVUYWciOiAiQlVUVE9OIiwKICAiYWN0aXZlS2V5IjogInVuY2xlYXIiLAogICJyZWFkZXJPd25zRm9jdXMiOiB0cnVlLAogICJ2aWV3cG9ydCI6IHsKICAgICJ3aWR0aCI6IDgyMCwKICAgICJoZWlnaHQiOiAxMTgwCiAgfSwKICAiZG9jdW1lbnRXaWR0aCI6IDgyMCwKICAic2Nyb2xsV2lkdGgiOiA4MjAKfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "4425857c690163a02024-b477b4bf24c67644315f",
+          "file": "chart-context-feedback.spec.ts",
+          "line": 7,
+          "column": 9
+        },
+        {
+          "title": "feedback acknowledgement keeps keyboard focus and Escape return in zh / useful",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6339,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:30:15.091Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "feedback-success",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-reader-feedback/chart-context-feedback-fee-867d2--Escape-return-in-zh-useful-tablet/attachments/feedback-success-a71686b4de741838eb6dbb269da66a424d82d6b0.png"
+                    },
+                    {
+                      "name": "focus-after-feedback",
+                      "contentType": "application/json",
+                      "body": "ewogICJhY3RpdmVUYWciOiAiQlVUVE9OIiwKICAiYWN0aXZlS2V5IjogInVzZWZ1bCIsCiAgInJlYWRlck93bnNGb2N1cyI6IHRydWUsCiAgInZpZXdwb3J0IjogewogICAgIndpZHRoIjogODIwLAogICAgImhlaWdodCI6IDExODAKICB9LAogICJkb2N1bWVudFdpZHRoIjogODIwLAogICJzY3JvbGxXaWR0aCI6IDgyMAp9"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "4425857c690163a02024-d5ce203c3ccc5a6db31e",
+          "file": "chart-context-feedback.spec.ts",
+          "line": 7,
+          "column": 9
+        },
+        {
+          "title": "feedback acknowledgement keeps keyboard focus and Escape return in zh / unclear",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 7197,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:30:17.556Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "feedback-success",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-reader-feedback/chart-context-feedback-fee-60c4a-Escape-return-in-zh-unclear-tablet/attachments/feedback-success-4fdbd9862293cbb1fa931876c0a7cb009f1f3cce.png"
+                    },
+                    {
+                      "name": "focus-after-feedback",
+                      "contentType": "application/json",
+                      "body": "ewogICJhY3RpdmVUYWciOiAiQlVUVE9OIiwKICAiYWN0aXZlS2V5IjogInVuY2xlYXIiLAogICJyZWFkZXJPd25zRm9jdXMiOiB0cnVlLAogICJ2aWV3cG9ydCI6IHsKICAgICJ3aWR0aCI6IDgyMCwKICAgICJoZWlnaHQiOiAxMTgwCiAgfSwKICAiZG9jdW1lbnRXaWR0aCI6IDgyMCwKICAic2Nyb2xsV2lkdGgiOiA4MjAKfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "4425857c690163a02024-d6c9c3fbddc72b2a619a",
+          "file": "chart-context-feedback.spec.ts",
+          "line": 7,
+          "column": 9
+        },
+        {
+          "title": "feedback acknowledgement keeps keyboard focus and Escape return in en / useful",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 4,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5831,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:30:44.628Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "feedback-success",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-reader-feedback/chart-context-feedback-fee-991e8--Escape-return-in-en-useful-mobile/attachments/feedback-success-5f7a8842f18a02ef8d725e1551c30ee412656554.png"
+                    },
+                    {
+                      "name": "focus-after-feedback",
+                      "contentType": "application/json",
+                      "body": "ewogICJhY3RpdmVUYWciOiAiQlVUVE9OIiwKICAiYWN0aXZlS2V5IjogInVzZWZ1bCIsCiAgInJlYWRlck93bnNGb2N1cyI6IHRydWUsCiAgInZpZXdwb3J0IjogewogICAgIndpZHRoIjogMzkwLAogICAgImhlaWdodCI6IDg0NAogIH0sCiAgImRvY3VtZW50V2lkdGgiOiAzOTAsCiAgInNjcm9sbFdpZHRoIjogMzkwCn0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "4425857c690163a02024-5a63b8ae6f909659c334",
+          "file": "chart-context-feedback.spec.ts",
+          "line": 7,
+          "column": 9
+        },
+        {
+          "title": "feedback acknowledgement keeps keyboard focus and Escape return in en / unclear",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 5,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 5705,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:30:46.028Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "feedback-success",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-reader-feedback/chart-context-feedback-fee-1b7c0-Escape-return-in-en-unclear-mobile/attachments/feedback-success-57dc2b2767d466149531e0622f11f0b92a51b4be.png"
+                    },
+                    {
+                      "name": "focus-after-feedback",
+                      "contentType": "application/json",
+                      "body": "ewogICJhY3RpdmVUYWciOiAiQlVUVE9OIiwKICAiYWN0aXZlS2V5IjogInVuY2xlYXIiLAogICJyZWFkZXJPd25zRm9jdXMiOiB0cnVlLAogICJ2aWV3cG9ydCI6IHsKICAgICJ3aWR0aCI6IDM5MCwKICAgICJoZWlnaHQiOiA4NDQKICB9LAogICJkb2N1bWVudFdpZHRoIjogMzkwLAogICJzY3JvbGxXaWR0aCI6IDM5MAp9"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "4425857c690163a02024-8151b1f4ab92548bb323",
+          "file": "chart-context-feedback.spec.ts",
+          "line": 7,
+          "column": 9
+        },
+        {
+          "title": "feedback acknowledgement keeps keyboard focus and Escape return in zh / useful",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 4,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6623,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:30:50.686Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "feedback-success",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-reader-feedback/chart-context-feedback-fee-867d2--Escape-return-in-zh-useful-mobile/attachments/feedback-success-ef1b285966c1e6cae9a9232cb7f533bd99292714.png"
+                    },
+                    {
+                      "name": "focus-after-feedback",
+                      "contentType": "application/json",
+                      "body": "ewogICJhY3RpdmVUYWciOiAiQlVUVE9OIiwKICAiYWN0aXZlS2V5IjogInVzZWZ1bCIsCiAgInJlYWRlck93bnNGb2N1cyI6IHRydWUsCiAgInZpZXdwb3J0IjogewogICAgIndpZHRoIjogMzkwLAogICAgImhlaWdodCI6IDg0NAogIH0sCiAgImRvY3VtZW50V2lkdGgiOiAzOTAsCiAgInNjcm9sbFdpZHRoIjogMzkwCn0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "4425857c690163a02024-4cee91245156e367b801",
+          "file": "chart-context-feedback.spec.ts",
+          "line": 7,
+          "column": 9
+        },
+        {
+          "title": "feedback acknowledgement keeps keyboard focus and Escape return in zh / unclear",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 5,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 6558,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:30:51.932Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "feedback-success",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-reader-feedback/chart-context-feedback-fee-60c4a-Escape-return-in-zh-unclear-mobile/attachments/feedback-success-de2e3bfe959d4a2f6d42c0687de142559e2d131f.png"
+                    },
+                    {
+                      "name": "focus-after-feedback",
+                      "contentType": "application/json",
+                      "body": "ewogICJhY3RpdmVUYWciOiAiQlVUVE9OIiwKICAiYWN0aXZlS2V5IjogInVuY2xlYXIiLAogICJyZWFkZXJPd25zRm9jdXMiOiB0cnVlLAogICJ2aWV3cG9ydCI6IHsKICAgICJ3aWR0aCI6IDM5MCwKICAgICJoZWlnaHQiOiA4NDQKICB9LAogICJkb2N1bWVudFdpZHRoIjogMzkwLAogICJzY3JvbGxXaWR0aCI6IDM5MAp9"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "4425857c690163a02024-055b18738ab8c3f617d0",
+          "file": "chart-context-feedback.spec.ts",
+          "line": 7,
+          "column": 9
+        }
+      ]
+    },
+    {
+      "title": "chart-context-resilience.spec.ts",
+      "file": "chart-context-resilience.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "an open historical reader keeps disclosures, internal scroll and owned focus across dock changes",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [
+                {
+                  "type": "slow",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/chart-context-resilience.spec.ts",
+                    "line": 19,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 9247,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:29:03.516Z",
+                  "annotations": [
+                    {
+                      "type": "slow",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/chart-context-resilience.spec.ts",
+                        "line": 19,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "f4faf1272ebd0bf941c1-b8223b1e5997ab6c3850",
+          "file": "chart-context-resilience.spec.ts",
+          "line": 17,
+          "column": 5
+        },
+        {
+          "title": "reader keyboard controls and return navigation remain usable in en",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6551,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:29:03.835Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "reader-capture",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-reader-feedback/chart-context-resilience-r-f1b60-igation-remain-usable-in-en-desktop/attachments/reader-capture-13622d16f4a17a455e16bdb24cbb82a43d42aded.png"
+                    },
+                    {
+                      "name": "reader-geometry",
+                      "contentType": "application/json",
+                      "body": "ewogICJwcm9vZiI6ICJsb2NhbCByZWFsIFRlcm1pbmFsIHJvdXRlIHdpdGggZXhpc3RpbmcgZGV0ZXJtaW5pc3RpYyBmaXh0dXJlIiwKICAidmlld3BvcnQiOiB7CiAgICAid2lkdGgiOiAxNDQwLAogICAgImhlaWdodCI6IDkwMAogIH0sCiAgImRvY3VtZW50V2lkdGgiOiAxNDQwLAogICJzY3JvbGxXaWR0aCI6IDE0NDAsCiAgInJlYWRlcldpZHRoIjogMzYwLAogICJyZWFkZXJMZWZ0IjogMTA4MCwKICAicmVhZGVyUmlnaHQiOiAxNDQwLAogICJiYWNrZ3JvdW5kIjogInJnYigxMCwgMTEsIDE0KSIsCiAgImNvYXJzZSI6IGZhbHNlLAogICJ0aGVtZSI6ICJkYXJrIiwKICAibG9jYWxlIjogImVuIiwKICAiY29udHJvbHMiOiBbCiAgICB7CiAgICAgICJrZXkiOiAiY2xvc2UiLAogICAgICAid2lkdGgiOiAzMiwKICAgICAgImhlaWdodCI6IDMyCiAgICB9LAogICAgewogICAgICAia2V5IjogInByZXZpb3VzIiwKICAgICAgIndpZHRoIjogMjgsCiAgICAgICJoZWlnaHQiOiAzMgogICAgfSwKICAgIHsKICAgICAgImtleSI6ICJuZXh0IiwKICAgICAgIndpZHRoIjogMjgsCiAgICAgICJoZWlnaHQiOiAzMgogICAgfSwKICAgIHsKICAgICAgImtleSI6ICJsYXRlc3QiLAogICAgICAid2lkdGgiOiAzNCwKICAgICAgImhlaWdodCI6IDMyCiAgICB9LAogICAgewogICAgICAia2V5IjogInJhbmdlIiwKICAgICAgIndpZHRoIjogMzI4LAogICAgICAiaGVpZ2h0IjogNDAKICAgIH0sCiAgICB7CiAgICAgICJrZXkiOiAibGF5ZXJzIiwKICAgICAgIndpZHRoIjogMzI4LAogICAgICAiaGVpZ2h0IjogNDAKICAgIH0sCiAgICB7CiAgICAgICJrZXkiOiAidmlzdWFsUmVnaW1lIiwKICAgICAgIndpZHRoIjogMzI4LAogICAgICAiaGVpZ2h0IjogMzYKICAgIH0sCiAgICB7CiAgICAgICJrZXkiOiAidmlzdWFsVm9sdW1lIiwKICAgICAgIndpZHRoIjogMzI4LAogICAgICAiaGVpZ2h0IjogMzYKICAgIH0sCiAgICB7CiAgICAgICJrZXkiOiAidmlzdWFsTGV2ZWxzIiwKICAgICAgIndpZHRoIjogMzI4LAogICAgICAiaGVpZ2h0IjogMzYKICAgIH0sCiAgICB7CiAgICAgICJrZXkiOiAidmlzdWFsRXZlbnRzIiwKICAgICAgIndpZHRoIjogMzI4LAogICAgICAiaGVpZ2h0IjogMzYKICAgIH0sCiAgICB7CiAgICAgICJrZXkiOiAiaGVscCIsCiAgICAgICJ3aWR0aCI6IDMyOCwKICAgICAgImhlaWdodCI6IDQwCiAgICB9LAogICAgewogICAgICAia2V5IjogInNldHRpbmdzIiwKICAgICAgIndpZHRoIjogOTMuNTMxMjUsCiAgICAgICJoZWlnaHQiOiAzMy41OTM3NQogICAgfSwKICAgIHsKICAgICAgImtleSI6ICJ1c2VmdWwiLAogICAgICAid2lkdGgiOiAxMTQuNDUzMTI1LAogICAgICAiaGVpZ2h0IjogMjYKICAgIH0sCiAgICB7CiAgICAgICJrZXkiOiAidW5jbGVhciIsCiAgICAgICJ3aWR0aCI6IDY5Ljg1OTM3NSwKICAgICAgImhlaWdodCI6IDI2CiAgICB9LAogICAgewogICAgICAia2V5IjogImhpZGUiLAogICAgICAid2lkdGgiOiA5Ny4wOTM3NSwKICAgICAgImhlaWdodCI6IDMzLjU5Mzc1CiAgICB9CiAgXQp9"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "f4faf1272ebd0bf941c1-4a289a8af6141221e433",
+          "file": "chart-context-resilience.spec.ts",
+          "line": 54,
+          "column": 7
+        },
+        {
+          "title": "320px fine-pointer reader keeps 44px targets in en",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6677,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:29:10.398Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "phone-fine-pointer",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-reader-feedback/chart-context-resilience-3-78116-er-keeps-44px-targets-in-en-desktop/attachments/phone-fine-pointer-06d886a9b1bc77c8196e6f79e6c232f2aba4075e.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "f4faf1272ebd0bf941c1-c262a4dd11c39d1816fb",
+          "file": "chart-context-resilience.spec.ts",
+          "line": 103,
+          "column": 7
+        },
+        {
+          "title": "reader keyboard controls and return navigation remain usable in zh",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 7949,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:29:12.775Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "reader-capture",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-reader-feedback/chart-context-resilience-r-73f91-igation-remain-usable-in-zh-desktop/attachments/reader-capture-0b057829073b0a6baf3aea1aeaa12a2687db4b5d.png"
+                    },
+                    {
+                      "name": "reader-geometry",
+                      "contentType": "application/json",
+                      "body": "ewogICJwcm9vZiI6ICJsb2NhbCByZWFsIFRlcm1pbmFsIHJvdXRlIHdpdGggZXhpc3RpbmcgZGV0ZXJtaW5pc3RpYyBmaXh0dXJlIiwKICAidmlld3BvcnQiOiB7CiAgICAid2lkdGgiOiAxNDQwLAogICAgImhlaWdodCI6IDkwMAogIH0sCiAgImRvY3VtZW50V2lkdGgiOiAxNDQwLAogICJzY3JvbGxXaWR0aCI6IDE0NDAsCiAgInJlYWRlcldpZHRoIjogMzYwLAogICJyZWFkZXJMZWZ0IjogMTA4MCwKICAicmVhZGVyUmlnaHQiOiAxNDQwLAogICJiYWNrZ3JvdW5kIjogInJnYigxMCwgMTEsIDE0KSIsCiAgImNvYXJzZSI6IGZhbHNlLAogICJ0aGVtZSI6ICJkYXJrIiwKICAibG9jYWxlIjogInpoLUNOIiwKICAiY29udHJvbHMiOiBbCiAgICB7CiAgICAgICJrZXkiOiAiY2xvc2UiLAogICAgICAid2lkdGgiOiAzMiwKICAgICAgImhlaWdodCI6IDMyCiAgICB9LAogICAgewogICAgICAia2V5IjogInByZXZpb3VzIiwKICAgICAgIndpZHRoIjogMjgsCiAgICAgICJoZWlnaHQiOiAzMgogICAgfSwKICAgIHsKICAgICAgImtleSI6ICJuZXh0IiwKICAgICAgIndpZHRoIjogMjgsCiAgICAgICJoZWlnaHQiOiAzMgogICAgfSwKICAgIHsKICAgICAgImtleSI6ICJsYXRlc3QiLAogICAgICAid2lkdGgiOiAyOCwKICAgICAgImhlaWdodCI6IDMyCiAgICB9LAogICAgewogICAgICAia2V5IjogInJhbmdlIiwKICAgICAgIndpZHRoIjogMzI4LAogICAgICAiaGVpZ2h0IjogNDAKICAgIH0sCiAgICB7CiAgICAgICJrZXkiOiAibGF5ZXJzIiwKICAgICAgIndpZHRoIjogMzI4LAogICAgICAiaGVpZ2h0IjogNDAKICAgIH0sCiAgICB7CiAgICAgICJrZXkiOiAidmlzdWFsUmVnaW1lIiwKICAgICAgIndpZHRoIjogMzI4LAogICAgICAiaGVpZ2h0IjogMzYKICAgIH0sCiAgICB7CiAgICAgICJrZXkiOiAidmlzdWFsVm9sdW1lIiwKICAgICAgIndpZHRoIjogMzI4LAogICAgICAiaGVpZ2h0IjogMzYKICAgIH0sCiAgICB7CiAgICAgICJrZXkiOiAidmlzdWFsTGV2ZWxzIiwKICAgICAgIndpZHRoIjogMzI4LAogICAgICAiaGVpZ2h0IjogMzYKICAgIH0sCiAgICB7CiAgICAgICJrZXkiOiAidmlzdWFsRXZlbnRzIiwKICAgICAgIndpZHRoIjogMzI4LAogICAgICAiaGVpZ2h0IjogMzYKICAgIH0sCiAgICB7CiAgICAgICJrZXkiOiAiaGVscCIsCiAgICAgICJ3aWR0aCI6IDMyOCwKICAgICAgImhlaWdodCI6IDQwCiAgICB9LAogICAgewogICAgICAia2V5IjogInNldHRpbmdzIiwKICAgICAgIndpZHRoIjogNTIuNjg3NSwKICAgICAgImhlaWdodCI6IDMzLjU5Mzc1CiAgICB9LAogICAgewogICAgICAia2V5IjogInVzZWZ1bCIsCiAgICAgICJ3aWR0aCI6IDcxLjU0Njg3NSwKICAgICAgImhlaWdodCI6IDI2CiAgICB9LAogICAgewogICAgICAia2V5IjogInVuY2xlYXIiLAogICAgICAid2lkdGgiOiA3MS41NDY4NzUsCiAgICAgICJoZWlnaHQiOiAyNgogICAgfSwKICAgIHsKICAgICAgImtleSI6ICJoaWRlIiwKICAgICAgIndpZHRoIjogNjcuNDUzMTI1LAogICAgICAiaGVpZ2h0IjogMzMuNTkzNzUKICAgIH0KICBdCn0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "f4faf1272ebd0bf941c1-147af80b77193dc6a4c0",
+          "file": "chart-context-resilience.spec.ts",
+          "line": 54,
+          "column": 7
+        },
+        {
+          "title": "320px fine-pointer reader keeps 44px targets in zh",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 8279,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:29:17.092Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "phone-fine-pointer",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-reader-feedback/chart-context-resilience-3-69986-er-keeps-44px-targets-in-zh-desktop/attachments/phone-fine-pointer-78d8ef2fb946b7f79996ec4347c2be2534fc62a9.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "f4faf1272ebd0bf941c1-00dadcbdfa5a9b83389f",
+          "file": "chart-context-resilience.spec.ts",
+          "line": 103,
+          "column": 7
+        },
+        {
+          "title": "moving the reader never takes focus from another chart control",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 8669,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:29:20.742Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "f4faf1272ebd0bf941c1-13c86a4d4ae8eecb3cf7",
+          "file": "chart-context-resilience.spec.ts",
+          "line": 128,
+          "column": 5
+        },
+        {
+          "title": "fullscreen preserves disclosure and internal position with its bounded inline scroller",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 13549,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:29:25.393Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "f4faf1272ebd0bf941c1-3347e9efcfe1ef62d1b2",
+          "file": "chart-context-resilience.spec.ts",
+          "line": 142,
+          "column": 5
+        },
+        {
+          "title": "Candle settings takes focus without a delayed reader restoration",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 10587,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:29:29.422Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "f4faf1272ebd0bf941c1-a3c4c5c82c296f167bf3",
+          "file": "chart-context-resilience.spec.ts",
+          "line": 165,
+          "column": 5
+        },
+        {
+          "title": "an open historical reader keeps disclosures, internal scroll and owned focus across dock changes",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "One transition sequence; native viewport cases run separately.",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/chart-context-resilience.spec.ts",
+                    "line": 18,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 167,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:30:21.476Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "One transition sequence; native viewport cases run separately.",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/chart-context-resilience.spec.ts",
+                        "line": 18,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "f4faf1272ebd0bf941c1-0bc2556c021b11ce2044",
+          "file": "chart-context-resilience.spec.ts",
+          "line": 17,
+          "column": 5
+        },
+        {
+          "title": "reader keyboard controls and return navigation remain usable in en",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 9462,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:30:21.664Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "reader-capture",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-reader-feedback/chart-context-resilience-r-f1b60-igation-remain-usable-in-en-tablet/attachments/reader-capture-f08865f9c9e5d1e89f8fe83e9be0c57263dbdeaf.png"
+                    },
+                    {
+                      "name": "reader-geometry",
+                      "contentType": "application/json",
+                      "body": "ewogICJwcm9vZiI6ICJsb2NhbCByZWFsIFRlcm1pbmFsIHJvdXRlIHdpdGggZXhpc3RpbmcgZGV0ZXJtaW5pc3RpYyBmaXh0dXJlIiwKICAidmlld3BvcnQiOiB7CiAgICAid2lkdGgiOiA4MjAsCiAgICAiaGVpZ2h0IjogMTE4MAogIH0sCiAgImRvY3VtZW50V2lkdGgiOiA4MjAsCiAgInNjcm9sbFdpZHRoIjogODIwLAogICJyZWFkZXJXaWR0aCI6IDgyMCwKICAicmVhZGVyTGVmdCI6IDAsCiAgInJlYWRlclJpZ2h0IjogODIwLAogICJiYWNrZ3JvdW5kIjogInJnYigxMCwgMTEsIDE0KSIsCiAgImNvYXJzZSI6IHRydWUsCiAgInRoZW1lIjogImRhcmsiLAogICJsb2NhbGUiOiAiZW4iLAogICJjb250cm9scyI6IFsKICAgIHsKICAgICAgImtleSI6ICJjbG9zZSIsCiAgICAgICJ3aWR0aCI6IDQ0LAogICAgICAiaGVpZ2h0IjogNDQKICAgIH0sCiAgICB7CiAgICAgICJrZXkiOiAicHJldmlvdXMiLAogICAgICAid2lkdGgiOiA0NCwKICAgICAgImhlaWdodCI6IDQ0CiAgICB9LAogICAgewogICAgICAia2V5IjogIm5leHQiLAogICAgICAid2lkdGgiOiA0NCwKICAgICAgImhlaWdodCI6IDQ0CiAgICB9LAogICAgewogICAgICAia2V5IjogImxhdGVzdCIsCiAgICAgICJ3aWR0aCI6IDQ0LAogICAgICAiaGVpZ2h0IjogNDQKICAgIH0sCiAgICB7CiAgICAgICJrZXkiOiAicmFuZ2UiLAogICAgICAid2lkdGgiOiA3ODgsCiAgICAgICJoZWlnaHQiOiA0NAogICAgfSwKICAgIHsKICAgICAgImtleSI6ICJsYXllcnMiLAogICAgICAid2lkdGgiOiA3ODgsCiAgICAgICJoZWlnaHQiOiA0NAogICAgfSwKICAgIHsKICAgICAgImtleSI6ICJ2aXN1YWxSZWdpbWUiLAogICAgICAid2lkdGgiOiA3ODgsCiAgICAgICJoZWlnaHQiOiA0NAogICAgfSwKICAgIHsKICAgICAgImtleSI6ICJ2aXN1YWxWb2x1bWUiLAogICAgICAid2lkdGgiOiA3ODgsCiAgICAgICJoZWlnaHQiOiA0NAogICAgfSwKICAgIHsKICAgICAgImtleSI6ICJ2aXN1YWxMZXZlbHMiLAogICAgICAid2lkdGgiOiA3ODgsCiAgICAgICJoZWlnaHQiOiA0NAogICAgfSwKICAgIHsKICAgICAgImtleSI6ICJ2aXN1YWxFdmVudHMiLAogICAgICAid2lkdGgiOiA3ODgsCiAgICAgICJoZWlnaHQiOiA0NAogICAgfSwKICAgIHsKICAgICAgImtleSI6ICJoZWxwIiwKICAgICAgIndpZHRoIjogNzg4LAogICAgICAiaGVpZ2h0IjogNDQKICAgIH0sCiAgICB7CiAgICAgICJrZXkiOiAic2V0dGluZ3MiLAogICAgICAid2lkdGgiOiA5My41MzEyNSwKICAgICAgImhlaWdodCI6IDQ0CiAgICB9LAogICAgewogICAgICAia2V5IjogInVzZWZ1bCIsCiAgICAgICJ3aWR0aCI6IDExNC40NTMxMjUsCiAgICAgICJoZWlnaHQiOiA0NAogICAgfSwKICAgIHsKICAgICAgImtleSI6ICJ1bmNsZWFyIiwKICAgICAgIndpZHRoIjogNjkuODU5Mzc1LAogICAgICAiaGVpZ2h0IjogNDQKICAgIH0sCiAgICB7CiAgICAgICJrZXkiOiAiaGlkZSIsCiAgICAgICJ3aWR0aCI6IDk3LjA5Mzc1LAogICAgICAiaGVpZ2h0IjogNDQKICAgIH0KICBdCn0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "f4faf1272ebd0bf941c1-6fc6895189b9a69d3037",
+          "file": "chart-context-resilience.spec.ts",
+          "line": 54,
+          "column": 7
+        },
+        {
+          "title": "320px fine-pointer reader keeps 44px targets in en",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "The desktop project provides a genuine fine-pointer context.",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/chart-context-resilience.spec.ts",
+                    "line": 104,
+                    "column": 10
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 1,
+                  "status": "skipped",
+                  "duration": 129,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:30:24.767Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "The desktop project provides a genuine fine-pointer context.",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/chart-context-resilience.spec.ts",
+                        "line": 104,
+                        "column": 10
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "f4faf1272ebd0bf941c1-16c5a64e82d711bfc326",
+          "file": "chart-context-resilience.spec.ts",
+          "line": 103,
+          "column": 7
+        },
+        {
+          "title": "reader keyboard controls and return navigation remain usable in zh",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 5423,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:30:24.912Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "reader-capture",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-reader-feedback/chart-context-resilience-r-73f91-igation-remain-usable-in-zh-tablet/attachments/reader-capture-2d257d4622b2197a09b6a46527bfd9b0059c8f6f.png"
+                    },
+                    {
+                      "name": "reader-geometry",
+                      "contentType": "application/json",
+                      "body": "ewogICJwcm9vZiI6ICJsb2NhbCByZWFsIFRlcm1pbmFsIHJvdXRlIHdpdGggZXhpc3RpbmcgZGV0ZXJtaW5pc3RpYyBmaXh0dXJlIiwKICAidmlld3BvcnQiOiB7CiAgICAid2lkdGgiOiA4MjAsCiAgICAiaGVpZ2h0IjogMTE4MAogIH0sCiAgImRvY3VtZW50V2lkdGgiOiA4MjAsCiAgInNjcm9sbFdpZHRoIjogODIwLAogICJyZWFkZXJXaWR0aCI6IDgyMCwKICAicmVhZGVyTGVmdCI6IDAsCiAgInJlYWRlclJpZ2h0IjogODIwLAogICJiYWNrZ3JvdW5kIjogInJnYigxMCwgMTEsIDE0KSIsCiAgImNvYXJzZSI6IHRydWUsCiAgInRoZW1lIjogImRhcmsiLAogICJsb2NhbGUiOiAiemgtQ04iLAogICJjb250cm9scyI6IFsKICAgIHsKICAgICAgImtleSI6ICJjbG9zZSIsCiAgICAgICJ3aWR0aCI6IDQ0LAogICAgICAiaGVpZ2h0IjogNDQKICAgIH0sCiAgICB7CiAgICAgICJrZXkiOiAicHJldmlvdXMiLAogICAgICAid2lkdGgiOiA0NCwKICAgICAgImhlaWdodCI6IDQ0CiAgICB9LAogICAgewogICAgICAia2V5IjogIm5leHQiLAogICAgICAid2lkdGgiOiA0NCwKICAgICAgImhlaWdodCI6IDQ0CiAgICB9LAogICAgewogICAgICAia2V5IjogImxhdGVzdCIsCiAgICAgICJ3aWR0aCI6IDQ0LAogICAgICAiaGVpZ2h0IjogNDQKICAgIH0sCiAgICB7CiAgICAgICJrZXkiOiAicmFuZ2UiLAogICAgICAid2lkdGgiOiA3ODgsCiAgICAgICJoZWlnaHQiOiA0NAogICAgfSwKICAgIHsKICAgICAgImtleSI6ICJsYXllcnMiLAogICAgICAid2lkdGgiOiA3ODgsCiAgICAgICJoZWlnaHQiOiA0NAogICAgfSwKICAgIHsKICAgICAgImtleSI6ICJ2aXN1YWxSZWdpbWUiLAogICAgICAid2lkdGgiOiA3ODgsCiAgICAgICJoZWlnaHQiOiA0NAogICAgfSwKICAgIHsKICAgICAgImtleSI6ICJ2aXN1YWxWb2x1bWUiLAogICAgICAid2lkdGgiOiA3ODgsCiAgICAgICJoZWlnaHQiOiA0NAogICAgfSwKICAgIHsKICAgICAgImtleSI6ICJ2aXN1YWxMZXZlbHMiLAogICAgICAid2lkdGgiOiA3ODgsCiAgICAgICJoZWlnaHQiOiA0NAogICAgfSwKICAgIHsKICAgICAgImtleSI6ICJ2aXN1YWxFdmVudHMiLAogICAgICAid2lkdGgiOiA3ODgsCiAgICAgICJoZWlnaHQiOiA0NAogICAgfSwKICAgIHsKICAgICAgImtleSI6ICJoZWxwIiwKICAgICAgIndpZHRoIjogNzg4LAogICAgICAiaGVpZ2h0IjogNDQKICAgIH0sCiAgICB7CiAgICAgICJrZXkiOiAic2V0dGluZ3MiLAogICAgICAid2lkdGgiOiA1Mi42ODc1LAogICAgICAiaGVpZ2h0IjogNDQKICAgIH0sCiAgICB7CiAgICAgICJrZXkiOiAidXNlZnVsIiwKICAgICAgIndpZHRoIjogNzEuNTQ2ODc1LAogICAgICAiaGVpZ2h0IjogNDQKICAgIH0sCiAgICB7CiAgICAgICJrZXkiOiAidW5jbGVhciIsCiAgICAgICJ3aWR0aCI6IDcxLjU0Njg3NSwKICAgICAgImhlaWdodCI6IDQ0CiAgICB9LAogICAgewogICAgICAia2V5IjogImhpZGUiLAogICAgICAid2lkdGgiOiA2Ny40NTMxMjUsCiAgICAgICJoZWlnaHQiOiA0NAogICAgfQogIF0KfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "f4faf1272ebd0bf941c1-86ef6baa02315965db9c",
+          "file": "chart-context-resilience.spec.ts",
+          "line": 54,
+          "column": 7
+        },
+        {
+          "title": "320px fine-pointer reader keeps 44px targets in zh",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "The desktop project provides a genuine fine-pointer context.",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/chart-context-resilience.spec.ts",
+                    "line": 104,
+                    "column": 10
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 1,
+                  "status": "skipped",
+                  "duration": 95,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:30:30.344Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "The desktop project provides a genuine fine-pointer context.",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/chart-context-resilience.spec.ts",
+                        "line": 104,
+                        "column": 10
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "f4faf1272ebd0bf941c1-c75dd43a3aeefb728f36",
+          "file": "chart-context-resilience.spec.ts",
+          "line": 103,
+          "column": 7
+        },
+        {
+          "title": "moving the reader never takes focus from another chart control",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "One crossing with an outside chart focus owner.",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/chart-context-resilience.spec.ts",
+                    "line": 129,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 1,
+                  "status": "skipped",
+                  "duration": 83,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:30:30.447Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "One crossing with an outside chart focus owner.",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/chart-context-resilience.spec.ts",
+                        "line": 129,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "f4faf1272ebd0bf941c1-d9b582a858ee6df58198",
+          "file": "chart-context-resilience.spec.ts",
+          "line": 128,
+          "column": 5
+        },
+        {
+          "title": "fullscreen preserves disclosure and internal position with its bounded inline scroller",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "One rail-to-focused-to-rail sequence.",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/chart-context-resilience.spec.ts",
+                    "line": 143,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 1,
+                  "status": "skipped",
+                  "duration": 85,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:30:30.544Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "One rail-to-focused-to-rail sequence.",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/chart-context-resilience.spec.ts",
+                        "line": 143,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "f4faf1272ebd0bf941c1-977c98bc4e952e16fed6",
+          "file": "chart-context-resilience.spec.ts",
+          "line": 142,
+          "column": 5
+        },
+        {
+          "title": "Candle settings takes focus without a delayed reader restoration",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 4096,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:30:30.636Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "f4faf1272ebd0bf941c1-e98a733a38b316e4c1d2",
+          "file": "chart-context-resilience.spec.ts",
+          "line": 165,
+          "column": 5
+        },
+        {
+          "title": "an open historical reader keeps disclosures, internal scroll and owned focus across dock changes",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "One transition sequence; native viewport cases run separately.",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/chart-context-resilience.spec.ts",
+                    "line": 18,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 4,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 120,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:30:57.336Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "One transition sequence; native viewport cases run separately.",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/chart-context-resilience.spec.ts",
+                        "line": 18,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "f4faf1272ebd0bf941c1-a387aa06b252e463cee6",
+          "file": "chart-context-resilience.spec.ts",
+          "line": 17,
+          "column": 5
+        },
+        {
+          "title": "reader keyboard controls and return navigation remain usable in en",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 4,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7370,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:30:57.472Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "reader-capture",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-reader-feedback/chart-context-resilience-r-f1b60-igation-remain-usable-in-en-mobile/attachments/reader-capture-9b87298642ee31bf4975d3172f7481c5f1e84a32.png"
+                    },
+                    {
+                      "name": "reader-geometry",
+                      "contentType": "application/json",
+                      "body": "ewogICJwcm9vZiI6ICJsb2NhbCByZWFsIFRlcm1pbmFsIHJvdXRlIHdpdGggZXhpc3RpbmcgZGV0ZXJtaW5pc3RpYyBmaXh0dXJlIiwKICAidmlld3BvcnQiOiB7CiAgICAid2lkdGgiOiAzOTAsCiAgICAiaGVpZ2h0IjogODQ0CiAgfSwKICAiZG9jdW1lbnRXaWR0aCI6IDM5MCwKICAic2Nyb2xsV2lkdGgiOiAzOTAsCiAgInJlYWRlcldpZHRoIjogMzkwLAogICJyZWFkZXJMZWZ0IjogMCwKICAicmVhZGVyUmlnaHQiOiAzOTAsCiAgImJhY2tncm91bmQiOiAicmdiKDEwLCAxMSwgMTQpIiwKICAiY29hcnNlIjogdHJ1ZSwKICAidGhlbWUiOiAiZGFyayIsCiAgImxvY2FsZSI6ICJlbiIsCiAgImNvbnRyb2xzIjogWwogICAgewogICAgICAia2V5IjogImNsb3NlIiwKICAgICAgIndpZHRoIjogNDQsCiAgICAgICJoZWlnaHQiOiA0NAogICAgfSwKICAgIHsKICAgICAgImtleSI6ICJwcmV2aW91cyIsCiAgICAgICJ3aWR0aCI6IDQ0LAogICAgICAiaGVpZ2h0IjogNDQKICAgIH0sCiAgICB7CiAgICAgICJrZXkiOiAibmV4dCIsCiAgICAgICJ3aWR0aCI6IDQ0LAogICAgICAiaGVpZ2h0IjogNDQKICAgIH0sCiAgICB7CiAgICAgICJrZXkiOiAibGF0ZXN0IiwKICAgICAgIndpZHRoIjogNDQsCiAgICAgICJoZWlnaHQiOiA0NAogICAgfSwKICAgIHsKICAgICAgImtleSI6ICJyYW5nZSIsCiAgICAgICJ3aWR0aCI6IDM1OCwKICAgICAgImhlaWdodCI6IDQ0CiAgICB9LAogICAgewogICAgICAia2V5IjogImxheWVycyIsCiAgICAgICJ3aWR0aCI6IDM1OCwKICAgICAgImhlaWdodCI6IDQ0CiAgICB9LAogICAgewogICAgICAia2V5IjogInZpc3VhbFJlZ2ltZSIsCiAgICAgICJ3aWR0aCI6IDM1OCwKICAgICAgImhlaWdodCI6IDQ0CiAgICB9LAogICAgewogICAgICAia2V5IjogInZpc3VhbFZvbHVtZSIsCiAgICAgICJ3aWR0aCI6IDM1OCwKICAgICAgImhlaWdodCI6IDQ0CiAgICB9LAogICAgewogICAgICAia2V5IjogInZpc3VhbExldmVscyIsCiAgICAgICJ3aWR0aCI6IDM1OCwKICAgICAgImhlaWdodCI6IDQ0CiAgICB9LAogICAgewogICAgICAia2V5IjogInZpc3VhbEV2ZW50cyIsCiAgICAgICJ3aWR0aCI6IDM1OCwKICAgICAgImhlaWdodCI6IDQ0CiAgICB9LAogICAgewogICAgICAia2V5IjogImhlbHAiLAogICAgICAid2lkdGgiOiAzNTgsCiAgICAgICJoZWlnaHQiOiA0NAogICAgfSwKICAgIHsKICAgICAgImtleSI6ICJzZXR0aW5ncyIsCiAgICAgICJ3aWR0aCI6IDkzLjUzMTI1LAogICAgICAiaGVpZ2h0IjogNDQKICAgIH0sCiAgICB7CiAgICAgICJrZXkiOiAidXNlZnVsIiwKICAgICAgIndpZHRoIjogMTE0LjQ1MzEyNSwKICAgICAgImhlaWdodCI6IDQ0CiAgICB9LAogICAgewogICAgICAia2V5IjogInVuY2xlYXIiLAogICAgICAid2lkdGgiOiA2OS44NTkzNzUsCiAgICAgICJoZWlnaHQiOiA0NAogICAgfSwKICAgIHsKICAgICAgImtleSI6ICJoaWRlIiwKICAgICAgIndpZHRoIjogOTcuMDkzNzUsCiAgICAgICJoZWlnaHQiOiA0NAogICAgfQogIF0KfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "f4faf1272ebd0bf941c1-72dac72807abd83ec751",
+          "file": "chart-context-resilience.spec.ts",
+          "line": 54,
+          "column": 7
+        },
+        {
+          "title": "320px fine-pointer reader keeps 44px targets in en",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "The desktop project provides a genuine fine-pointer context.",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/chart-context-resilience.spec.ts",
+                    "line": 104,
+                    "column": 10
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 5,
+                  "parallelIndex": 1,
+                  "status": "skipped",
+                  "duration": 91,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:30:58.507Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "The desktop project provides a genuine fine-pointer context.",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/chart-context-resilience.spec.ts",
+                        "line": 104,
+                        "column": 10
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "f4faf1272ebd0bf941c1-a4533fde5cab0100a341",
+          "file": "chart-context-resilience.spec.ts",
+          "line": 103,
+          "column": 7
+        },
+        {
+          "title": "reader keyboard controls and return navigation remain usable in zh",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 5,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 8123,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:30:58.605Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "reader-capture",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-reader-feedback/chart-context-resilience-r-73f91-igation-remain-usable-in-zh-mobile/attachments/reader-capture-062fb3bacbfd1e9d9402f5720682a04326d2ad17.png"
+                    },
+                    {
+                      "name": "reader-geometry",
+                      "contentType": "application/json",
+                      "body": "ewogICJwcm9vZiI6ICJsb2NhbCByZWFsIFRlcm1pbmFsIHJvdXRlIHdpdGggZXhpc3RpbmcgZGV0ZXJtaW5pc3RpYyBmaXh0dXJlIiwKICAidmlld3BvcnQiOiB7CiAgICAid2lkdGgiOiAzOTAsCiAgICAiaGVpZ2h0IjogODQ0CiAgfSwKICAiZG9jdW1lbnRXaWR0aCI6IDM5MCwKICAic2Nyb2xsV2lkdGgiOiAzOTAsCiAgInJlYWRlcldpZHRoIjogMzkwLAogICJyZWFkZXJMZWZ0IjogMCwKICAicmVhZGVyUmlnaHQiOiAzOTAsCiAgImJhY2tncm91bmQiOiAicmdiKDEwLCAxMSwgMTQpIiwKICAiY29hcnNlIjogdHJ1ZSwKICAidGhlbWUiOiAiZGFyayIsCiAgImxvY2FsZSI6ICJ6aC1DTiIsCiAgImNvbnRyb2xzIjogWwogICAgewogICAgICAia2V5IjogImNsb3NlIiwKICAgICAgIndpZHRoIjogNDQsCiAgICAgICJoZWlnaHQiOiA0NAogICAgfSwKICAgIHsKICAgICAgImtleSI6ICJwcmV2aW91cyIsCiAgICAgICJ3aWR0aCI6IDQ0LAogICAgICAiaGVpZ2h0IjogNDQKICAgIH0sCiAgICB7CiAgICAgICJrZXkiOiAibmV4dCIsCiAgICAgICJ3aWR0aCI6IDQ0LAogICAgICAiaGVpZ2h0IjogNDQKICAgIH0sCiAgICB7CiAgICAgICJrZXkiOiAibGF0ZXN0IiwKICAgICAgIndpZHRoIjogNDQsCiAgICAgICJoZWlnaHQiOiA0NAogICAgfSwKICAgIHsKICAgICAgImtleSI6ICJyYW5nZSIsCiAgICAgICJ3aWR0aCI6IDM1OCwKICAgICAgImhlaWdodCI6IDQ0CiAgICB9LAogICAgewogICAgICAia2V5IjogImxheWVycyIsCiAgICAgICJ3aWR0aCI6IDM1OCwKICAgICAgImhlaWdodCI6IDQ0CiAgICB9LAogICAgewogICAgICAia2V5IjogInZpc3VhbFJlZ2ltZSIsCiAgICAgICJ3aWR0aCI6IDM1OCwKICAgICAgImhlaWdodCI6IDQ0CiAgICB9LAogICAgewogICAgICAia2V5IjogInZpc3VhbFZvbHVtZSIsCiAgICAgICJ3aWR0aCI6IDM1OCwKICAgICAgImhlaWdodCI6IDQ0CiAgICB9LAogICAgewogICAgICAia2V5IjogInZpc3VhbExldmVscyIsCiAgICAgICJ3aWR0aCI6IDM1OCwKICAgICAgImhlaWdodCI6IDQ0CiAgICB9LAogICAgewogICAgICAia2V5IjogInZpc3VhbEV2ZW50cyIsCiAgICAgICJ3aWR0aCI6IDM1OCwKICAgICAgImhlaWdodCI6IDQ0CiAgICB9LAogICAgewogICAgICAia2V5IjogImhlbHAiLAogICAgICAid2lkdGgiOiAzNTgsCiAgICAgICJoZWlnaHQiOiA0NAogICAgfSwKICAgIHsKICAgICAgImtleSI6ICJzZXR0aW5ncyIsCiAgICAgICJ3aWR0aCI6IDUyLjY4NzUsCiAgICAgICJoZWlnaHQiOiA0NAogICAgfSwKICAgIHsKICAgICAgImtleSI6ICJ1c2VmdWwiLAogICAgICAid2lkdGgiOiA3MS41NDY4NzUsCiAgICAgICJoZWlnaHQiOiA0NAogICAgfSwKICAgIHsKICAgICAgImtleSI6ICJ1bmNsZWFyIiwKICAgICAgIndpZHRoIjogNzEuNTQ2ODc1LAogICAgICAiaGVpZ2h0IjogNDQKICAgIH0sCiAgICB7CiAgICAgICJrZXkiOiAiaGlkZSIsCiAgICAgICJ3aWR0aCI6IDY3LjQ1MzEyNSwKICAgICAgImhlaWdodCI6IDQ0CiAgICB9CiAgXQp9"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "f4faf1272ebd0bf941c1-56ef920c658dd4489ca7",
+          "file": "chart-context-resilience.spec.ts",
+          "line": 54,
+          "column": 7
+        },
+        {
+          "title": "320px fine-pointer reader keeps 44px targets in zh",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "The desktop project provides a genuine fine-pointer context.",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/chart-context-resilience.spec.ts",
+                    "line": 104,
+                    "column": 10
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 4,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 125,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:31:04.853Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "The desktop project provides a genuine fine-pointer context.",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/chart-context-resilience.spec.ts",
+                        "line": 104,
+                        "column": 10
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "f4faf1272ebd0bf941c1-64e91a20129656a8ad16",
+          "file": "chart-context-resilience.spec.ts",
+          "line": 103,
+          "column": 7
+        },
+        {
+          "title": "moving the reader never takes focus from another chart control",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "One crossing with an outside chart focus owner.",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/chart-context-resilience.spec.ts",
+                    "line": 129,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 4,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 126,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:31:04.995Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "One crossing with an outside chart focus owner.",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/chart-context-resilience.spec.ts",
+                        "line": 129,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "f4faf1272ebd0bf941c1-decc4bddb420ea5744d8",
+          "file": "chart-context-resilience.spec.ts",
+          "line": 128,
+          "column": 5
+        },
+        {
+          "title": "fullscreen preserves disclosure and internal position with its bounded inline scroller",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "One rail-to-focused-to-rail sequence.",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/chart-context-resilience.spec.ts",
+                    "line": 143,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 4,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 116,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:31:05.133Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "One rail-to-focused-to-rail sequence.",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/chart-context-resilience.spec.ts",
+                        "line": 143,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "f4faf1272ebd0bf941c1-a583a21d46d91f38d838",
+          "file": "chart-context-resilience.spec.ts",
+          "line": 142,
+          "column": 5
+        },
+        {
+          "title": "Candle settings takes focus without a delayed reader restoration",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 4,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 11617,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:31:05.263Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "f4faf1272ebd0bf941c1-3ddeb0a422244afca23d",
+          "file": "chart-context-resilience.spec.ts",
+          "line": 165,
+          "column": 5
+        }
+      ]
+    },
+    {
+      "title": "chart-context-time.spec.ts",
+      "file": "chart-context-time.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "numeric 1s chart time stays truthful and navigable in en",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 8617,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:29:38.963Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "chart-time",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-reader-feedback/chart-context-time-numeric-4e708-ruthful-and-navigable-in-en-desktop/attachments/chart-time-254271503fdb41a1e96913498466ae2b4f3e9d94.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2c7a3080bbe75fe09492-437b2378c25261696444",
+          "file": "chart-context-time.spec.ts",
+          "line": 25,
+          "column": 9
+        },
+        {
+          "title": "numeric 1m chart time stays truthful and navigable in en",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 7837,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:29:40.026Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2c7a3080bbe75fe09492-0a88c0f460e50d2de7c8",
+          "file": "chart-context-time.spec.ts",
+          "line": 25,
+          "column": 9
+        },
+        {
+          "title": "daily chart dates remain date-only in en",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 8467,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:29:47.596Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2c7a3080bbe75fe09492-b6d6f98dcd0b596d38d5",
+          "file": "chart-context-time.spec.ts",
+          "line": 58,
+          "column": 7
+        },
+        {
+          "title": "second precision and controls fit a 320px fine-pointer reader in en",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 10480,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:29:47.876Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "chart-time-320",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-reader-feedback/chart-context-time-second--1f98a-x-fine-pointer-reader-in-en-desktop/attachments/chart-time-320-10f9e65112daca089686634b74c25c4e41d414d7.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2c7a3080bbe75fe09492-7767ca53554b88dbe829",
+          "file": "chart-context-time.spec.ts",
+          "line": 68,
+          "column": 7
+        },
+        {
+          "title": "numeric 1s chart time stays truthful and navigable in zh",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6544,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:29:56.072Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "chart-time",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-reader-feedback/chart-context-time-numeric-660db-ruthful-and-navigable-in-zh-desktop/attachments/chart-time-b0f826efbab2e910ea9b8499f78e5e3ff01cbc26.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2c7a3080bbe75fe09492-1ae14b703e1b9667001e",
+          "file": "chart-context-time.spec.ts",
+          "line": 25,
+          "column": 9
+        },
+        {
+          "title": "numeric 1m chart time stays truthful and navigable in zh",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 6464,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:29:58.355Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2c7a3080bbe75fe09492-0a3c9ed4eb57e9c42f62",
+          "file": "chart-context-time.spec.ts",
+          "line": 25,
+          "column": 9
+        },
+        {
+          "title": "daily chart dates remain date-only in zh",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6468,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:30:02.630Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2c7a3080bbe75fe09492-5b35d291076f6711c248",
+          "file": "chart-context-time.spec.ts",
+          "line": 58,
+          "column": 7
+        },
+        {
+          "title": "second precision and controls fit a 320px fine-pointer reader in zh",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 5801,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:30:04.828Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "chart-time-320",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-reader-feedback/chart-context-time-second--37966-x-fine-pointer-reader-in-zh-desktop/attachments/chart-time-320-853bf045618af5b0438ae49e8cb0373403228a24.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2c7a3080bbe75fe09492-e6be8df5394833c89c37",
+          "file": "chart-context-time.spec.ts",
+          "line": 68,
+          "column": 7
+        },
+        {
+          "title": "numeric 1s chart time stays truthful and navigable in en",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2956,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:30:31.156Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "chart-time",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-reader-feedback/chart-context-time-numeric-4e708-ruthful-and-navigable-in-en-tablet/attachments/chart-time-9f99d74b7296bce916a201fb2758cd8b92812b6d.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2c7a3080bbe75fe09492-5f351e0e8b07f5cc9362",
+          "file": "chart-context-time.spec.ts",
+          "line": 25,
+          "column": 9
+        },
+        {
+          "title": "numeric 1m chart time stays truthful and navigable in en",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3165,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:30:34.120Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2c7a3080bbe75fe09492-f12bb7e8895bc534e0f4",
+          "file": "chart-context-time.spec.ts",
+          "line": 25,
+          "column": 9
+        },
+        {
+          "title": "daily chart dates remain date-only in en",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 6641,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:30:34.742Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2c7a3080bbe75fe09492-7940f6fbd2313bfb053f",
+          "file": "chart-context-time.spec.ts",
+          "line": 58,
+          "column": 7
+        },
+        {
+          "title": "second precision and controls fit a 320px fine-pointer reader in en",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "One fine-pointer context; native viewport projects cover 390/820 widths.",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/chart-context-time.spec.ts",
+                    "line": 69,
+                    "column": 10
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 77,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:30:37.291Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "One fine-pointer context; native viewport projects cover 390/820 widths.",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/chart-context-time.spec.ts",
+                        "line": 69,
+                        "column": 10
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "2c7a3080bbe75fe09492-43acc068270517284a01",
+          "file": "chart-context-time.spec.ts",
+          "line": 68,
+          "column": 7
+        },
+        {
+          "title": "numeric 1s chart time stays truthful and navigable in zh",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2629,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:30:37.376Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "chart-time",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-reader-feedback/chart-context-time-numeric-660db-ruthful-and-navigable-in-zh-tablet/attachments/chart-time-3eef15a24747dcb78cafa7fab44fddce660430fb.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2c7a3080bbe75fe09492-f9b0e0956f6f25a08931",
+          "file": "chart-context-time.spec.ts",
+          "line": 25,
+          "column": 9
+        },
+        {
+          "title": "numeric 1m chart time stays truthful and navigable in zh",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4095,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:30:40.013Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2c7a3080bbe75fe09492-c7a68af0858710bd7175",
+          "file": "chart-context-time.spec.ts",
+          "line": 25,
+          "column": 9
+        },
+        {
+          "title": "daily chart dates remain date-only in zh",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 4294,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:30:41.389Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2c7a3080bbe75fe09492-33d436ae971cc837ff24",
+          "file": "chart-context-time.spec.ts",
+          "line": 58,
+          "column": 7
+        },
+        {
+          "title": "second precision and controls fit a 320px fine-pointer reader in zh",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "One fine-pointer context; native viewport projects cover 390/820 widths.",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/chart-context-time.spec.ts",
+                    "line": 69,
+                    "column": 10
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 104,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:30:44.115Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "One fine-pointer context; native viewport projects cover 390/820 widths.",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/chart-context-time.spec.ts",
+                        "line": 69,
+                        "column": 10
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "2c7a3080bbe75fe09492-8786aac8c632a0845c1b",
+          "file": "chart-context-time.spec.ts",
+          "line": 68,
+          "column": 7
+        },
+        {
+          "title": "numeric 1s chart time stays truthful and navigable in en",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 5,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 5782,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:31:06.741Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "chart-time",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-reader-feedback/chart-context-time-numeric-4e708-ruthful-and-navigable-in-en-mobile/attachments/chart-time-0a55dcb9fbd6b2e9d5c1db55844349ce05635bf3.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2c7a3080bbe75fe09492-69d3c179f296b0e9a2bb",
+          "file": "chart-context-time.spec.ts",
+          "line": 25,
+          "column": 9
+        },
+        {
+          "title": "numeric 1m chart time stays truthful and navigable in en",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 5,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 9888,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:31:12.534Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2c7a3080bbe75fe09492-1180020b1b3ef65123d1",
+          "file": "chart-context-time.spec.ts",
+          "line": 25,
+          "column": 9
+        },
+        {
+          "title": "daily chart dates remain date-only in en",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 4,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5496,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:31:16.901Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2c7a3080bbe75fe09492-33a8ee82ae6f57bbb000",
+          "file": "chart-context-time.spec.ts",
+          "line": 58,
+          "column": 7
+        },
+        {
+          "title": "second precision and controls fit a 320px fine-pointer reader in en",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "One fine-pointer context; native viewport projects cover 390/820 widths.",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/chart-context-time.spec.ts",
+                    "line": 69,
+                    "column": 10
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 4,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 92,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:31:22.410Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "One fine-pointer context; native viewport projects cover 390/820 widths.",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/chart-context-time.spec.ts",
+                        "line": 69,
+                        "column": 10
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "2c7a3080bbe75fe09492-70cc56e441ad763cdefa",
+          "file": "chart-context-time.spec.ts",
+          "line": 68,
+          "column": 7
+        },
+        {
+          "title": "numeric 1s chart time stays truthful and navigable in zh",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 5,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 5991,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:31:22.432Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "chart-time",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-reader-feedback/chart-context-time-numeric-660db-ruthful-and-navigable-in-zh-mobile/attachments/chart-time-bd25e5706e45618d6d928c11656c4b57336e7dc1.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2c7a3080bbe75fe09492-b359fd8a327ef74226b8",
+          "file": "chart-context-time.spec.ts",
+          "line": 25,
+          "column": 9
+        },
+        {
+          "title": "numeric 1m chart time stays truthful and navigable in zh",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 4,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4268,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:31:22.509Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2c7a3080bbe75fe09492-0e3a3ce187638674b966",
+          "file": "chart-context-time.spec.ts",
+          "line": 25,
+          "column": 9
+        },
+        {
+          "title": "daily chart dates remain date-only in zh",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 4,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4487,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:31:26.784Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2c7a3080bbe75fe09492-73906aee605e78b0768e",
+          "file": "chart-context-time.spec.ts",
+          "line": 58,
+          "column": 7
+        },
+        {
+          "title": "second precision and controls fit a 320px fine-pointer reader in zh",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "One fine-pointer context; native viewport projects cover 390/820 widths.",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/chart-context-time.spec.ts",
+                    "line": 69,
+                    "column": 10
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 5,
+                  "parallelIndex": 1,
+                  "status": "skipped",
+                  "duration": 80,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:31:28.432Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "One fine-pointer context; native viewport projects cover 390/820 widths.",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/chart-context-time.spec.ts",
+                        "line": 69,
+                        "column": 10
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "2c7a3080bbe75fe09492-d77ef8561a8ee7f90187",
+          "file": "chart-context-time.spec.ts",
+          "line": 68,
+          "column": 7
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-04T06:28:41.329Z",
+    "duration": 170220.67599999998,
+    "expected": 46,
+    "skipped": 14,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

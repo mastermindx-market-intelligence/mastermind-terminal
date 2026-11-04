@@ -44,7 +44,8 @@ const VisualIntelligencePanel = forwardRef<VisualIntelligenceHandle, Props>(func
   const [availability, setAvailability] = useState<"loading" | "empty">("loading");
   const [frame, setFrame] = useState<VisualFrame | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
-  const [feedback, setFeedback] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<"helpful" | "unclear" | null>(null);
+  const feedbackRecorded = useRef(false);
   const [source, setSource] = useState<{ symbol: string; calendar: VisualCalendar }>({ symbol, calendar: EMPTY_VISUAL_CALENDAR });
   const latestFrame = useRef<VisualFrame | null>(null);
   const callbacks = useRef(props); callbacks.current = props;
@@ -105,6 +106,13 @@ const VisualIntelligencePanel = forwardRef<VisualIntelligenceHandle, Props>(func
     type: "click", ticker: symbol,
     meta: { feature: "visual_intelligence", action, timeframe, language: lang, ...details },
   });
+  const submitFeedback = (useful: boolean) => {
+    // Guard synchronously: another activation can arrive before React commits the acknowledgement.
+    if (feedbackRecorded.current) return;
+    feedbackRecorded.current = true;
+    setFeedback(useful ? "helpful" : "unclear");
+    telemetry("feedback", { useful });
+  };
   const inspect = (index: number | null) => {
     const time = index === null ? null : current?.series.facts[index]?.time ?? null;
     setSelected(time === null ? null : String(time));
@@ -205,10 +213,14 @@ const VisualIntelligencePanel = forwardRef<VisualIntelligenceHandle, Props>(func
                 {props.onCandleSettings && <button type="button" data-context-focus="settings" className={styles.textButton} onClick={() => { close(false); callbacks.current.onCandleSettings?.(); }}>{tx("settings")} ↗</button>}
               </section>
               <p>{tx("volumeBasis")}</p><p>{tx("disclaimer")}</p>
-              <div className={styles.feedback}>{feedback ? <span>{tx("thanks")}</span> : <>
-                <button type="button" data-context-focus="useful" onClick={() => { telemetry("feedback", { useful: true }); setFeedback("helpful"); }}>{tx("useful")}</button>
-                <button type="button" data-context-focus="unclear" onClick={() => { telemetry("feedback", { useful: false }); setFeedback("unclear"); }}>{tx("unclear")}</button>
-              </>}</div>
+              <div className={styles.feedback}>
+                {/* Keep the activated control mounted and focusable through acknowledgement. */}
+                <button type="button" data-context-focus="useful" hidden={feedback === "unclear"} aria-disabled={feedback ? true : undefined}
+                  onClick={() => submitFeedback(true)}>{feedback === "helpful" ? tx("thanks") : tx("useful")}</button>
+                <button type="button" data-context-focus="unclear" hidden={feedback === "helpful"} aria-disabled={feedback ? true : undefined}
+                  onClick={() => submitFeedback(false)}>{feedback === "unclear" ? tx("thanks") : tx("unclear")}</button>
+                <span className={styles.feedbackStatus} role="status">{feedback ? tx("thanks") : ""}</span>
+              </div>
               <button type="button" data-context-focus="hide" className={styles.textButton} onClick={() => { setting("visualContext", false); close(); }}>{tx("hide")}</button>
             </div></details>
           </div>
