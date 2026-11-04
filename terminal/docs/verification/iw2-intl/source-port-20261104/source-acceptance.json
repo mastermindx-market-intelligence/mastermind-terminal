@@ -1,0 +1,91 @@
+{
+  "scope": "LOCAL_SOURCE_BROWSER_AND_IN_MEMORY_SOURCE_INTEGRATION_ONLY",
+  "source_commit": "f6874b38e29926664380816874623604a9c5bf34",
+  "base": "3832ec6699062aafe58d5d2f69e7bccfb0b19275",
+  "unit": {
+    "files": 95,
+    "passed": 1812,
+    "failed": 0
+  },
+  "browser": {
+    "passed": 6,
+    "failed": 0,
+    "workers": 1,
+    "retries": 0,
+    "local_http_rpc_auth_fixtures": true,
+    "viewports": [
+      "1440x900",
+      "820x1180",
+      "390x844"
+    ],
+    "languages": [
+      "en",
+      "zh"
+    ],
+    "assertions": [
+      "explicit wholePlan transfer",
+      "one native Save",
+      "exact acknowledged revision reopen",
+      "no implicit calculation or Save",
+      "calculation separately requested"
+    ]
+  },
+  "typescript_exit": 0,
+  "lint": {
+    "errors": 31,
+    "warnings": 20,
+    "accepted_source_same_current_config_errors": 31,
+    "accepted_source_same_current_config_warnings": 23,
+    "new_rule_message_findings": 0,
+    "whole_lint_pass": false
+  },
+  "actual_normal_publisher": {
+    "hrefs": 50,
+    "html_sha256": "f95fa7d293d1fb3ebe53192e98305a4d38e5e8ae02b73b32a56ba772ac44ec74",
+    "handoff_sha256": "77dea2c2ac9aedd6cc6edcaca6aa48ca139799d5a580155c6bc4549e5f670acf",
+    "all_hrefs_equal_original_html_links": true,
+    "strict_native_intake_and_baseline_pass": true,
+    "source_fetch_and_principal_doubles": true,
+    "derived_controls_not_page_evidence": 2
+  },
+  "pixels": [
+    {
+      "file": "canonical-plan-source-en-desktop.png",
+      "sha256": "a27f84eda3266d21b74aa593bb925f73d0f31cd6ce89fab1e2656271b1ba4d05",
+      "parent_viewed": true
+    },
+    {
+      "file": "canonical-plan-source-en-mobile.png",
+      "sha256": "f433a7c6aa498cbc09aef84cb7d610f6c29f2b16bdf30bed79e6786878e0bd93",
+      "parent_viewed": true
+    },
+    {
+      "file": "canonical-plan-source-en-tablet.png",
+      "sha256": "baef3ed575ed8e25092f788f7b1b67f2f4f9a89b172465f922db3444013db54c",
+      "parent_viewed": true
+    },
+    {
+      "file": "canonical-plan-source-zh-desktop.png",
+      "sha256": "753e8bab7f32ceba8a6806e28bb84f33266fe925d1e0a2ec8f78a1a274f63652",
+      "parent_viewed": true
+    },
+    {
+      "file": "canonical-plan-source-zh-mobile.png",
+      "sha256": "91978a5c5a7707df1d59c3f66165dc0dd6a85a9620fb918d0872b4d6d7b7022f",
+      "parent_viewed": true
+    },
+    {
+      "file": "canonical-plan-source-zh-tablet.png",
+      "sha256": "279601aa437d6bff298d70788a8f2222137f0a61b9f5c89963b4d13138655984",
+      "parent_viewed": true
+    }
+  ],
+  "holds": [
+    "T03k original refusal / EFFECT_UNKNOWN",
+    "SQL0030 and0043 unqualified",
+    "all-ingress closure/drain/directRPC exclusion",
+    "release5989604142",
+    "no installation/admission/live Saved or auth acceptance",
+    "1275 next landing; candidate Draft/unarmed"
+  ]
+}
