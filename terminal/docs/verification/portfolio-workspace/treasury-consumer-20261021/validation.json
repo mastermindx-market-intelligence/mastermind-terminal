@@ -1,0 +1,68 @@
+{
+  "schema": "portfolio.treasury-consumer.qualification.v1",
+  "qualifiedAt": "2026-10-21T10:56:59.125060+00:00",
+  "sourceBase": "8f00622096d0dc574458c134516e802ce78907ae",
+  "patchSha256": "c794d3f276ecb6d57a0e6ae91a630ff9d4eeeaf81d7a2a6a1e095b81a13094e6",
+  "sourceComment": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1044#issuecomment-6308643716",
+  "sourceSha256": {
+    "terminal/app/api/portfolio/risk-history/route.ts": "6b10d78519ba88f7c506037f8a8ffe0bc91413d10f115b27e0e364d31672569c",
+    "terminal/lib/__tests__/portfolioRiskHistoryRoute.test.ts": "c82fa4a71921f8968db5d6617a3204ff143d8da0675b5606c5ba192f70117449",
+    "terminal/lib/portfolioTreasuryHistory.server.ts": "7f47b4d4dd3b92ffb5cf7b9eb84c2638d9c502040efcd36873fa83c88bf1c289",
+    "terminal/lib/__tests__/portfolioTreasuryHistory.test.ts": "ca745ce15fec497c34917db73371755ad9e6b75c4ef4a2e1beefc28ee88b222e",
+    "terminal/lib/__tests__/portfolioRiskHistoryTreasuryRoute.test.ts": "3bfd2cffe8dc4b9d53c3caf8e19c4e85a931cfdf8b27062d1da2e406e98c8fa9"
+  },
+  "dependencyInstall": {
+    "node": "v26.5.0",
+    "npm": "11.17.0",
+    "lockSha256": "ecb0e5d1f6119efbbbf84ad2058dab315ad1c1326537aff6de7597e4ad5358a9",
+    "exitCode": 0,
+    "lockUnchanged": true
+  },
+  "checks": [
+    {
+      "name": "affected-tests",
+      "command": [
+        "/opt/homebrew/bin/node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "lib/__tests__/portfolioRiskHistory.test.ts",
+        "lib/__tests__/portfolioRiskHistoryRoute.test.ts",
+        "lib/__tests__/portfolioTreasuryHistory.test.ts",
+        "lib/__tests__/portfolioRiskHistoryTreasuryRoute.test.ts"
+      ],
+      "node": "v26.5.0",
+      "startedAt": "2026-10-21T10:55:18.346495+00:00",
+      "exitCode": 0,
+      "completedAt": "2026-10-21T10:55:20.939509+00:00",
+      "logSha256": "e44e1024667a863e8e2c04533728070c7f65502798d43b9d3874fabc57b64598"
+    },
+    {
+      "name": "typecheck",
+      "command": [
+        "/opt/homebrew/bin/node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "--incremental",
+        "false"
+      ],
+      "node": "v26.5.0",
+      "startedAt": "2026-10-21T10:55:20.940022+00:00",
+      "exitCode": 0,
+      "completedAt": "2026-10-21T10:55:54.454459+00:00",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "scope": "Fresh local exact-source checks; not hosted CI, producer installation, price-data access, or authenticated production acceptance.",
+  "rawLogArtifacts": {
+    "affected-tests": {
+      "path": "affected-tests.log.gz",
+      "compression": "gzip",
+      "sha256": "9c10a7ceaf8431a3687d7bf9078e3ba76dce8f6127418bbe28250277fe4024f2",
+      "uncompressedSha256": "e44e1024667a863e8e2c04533728070c7f65502798d43b9d3874fabc57b64598"
+    },
+    "typecheck": {
+      "path": "typecheck.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  }
+}

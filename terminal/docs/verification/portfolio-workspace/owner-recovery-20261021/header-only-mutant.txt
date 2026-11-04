@@ -1,0 +1,84 @@
+npm notice run terminal@0.1.0 npx
+npm notice run 'vitest' run lib/__tests__/visualIntelligenceEvidence.test.ts -t decoded screenshot evidence controls
+The CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.
+
+ RUN  v2.1.9 /home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal
+
+ ❯ lib/__tests__/visualIntelligenceEvidence.test.ts (10 tests | 5 failed | 3 skipped) 6ms
+   × decoded screenshot evidence controls > rejects a padded PNG-header impostor with otherwise matching dimensions 2ms
+     → expected [Function] to throw an error
+   × decoded screenshot evidence controls > rejects truncated pixel data and a missing PNG terminator 0ms
+     → expected [Function] to throw an error
+   × decoded screenshot evidence controls > rejects a corrupt chunk checksum 0ms
+     → expected [Function] to throw an error
+   × decoded screenshot evidence controls > rejects a valid uniform blank image 0ms
+     → expected [Function] to throw an error
+   × decoded screenshot evidence controls > rejects an entirely transparent image even when its hidden RGB values vary 0ms
+     → expected [Function] to throw an error
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/__tests__/visualIntelligenceEvidence.test.ts > decoded screenshot evidence controls > rejects a padded PNG-header impostor with otherwise matching dimensions
+AssertionError: expected [Function] to throw an error
+ ❯ lib/__tests__/visualIntelligenceEvidence.test.ts:54:55
+     52|     const impostor = Buffer.alloc(60_000);
+     53|     valid.copy(impostor, 0, 0, 24);
+     54|     expect(() => expectDecodedCrop(impostor, [2, 2])).toThrow();
+       |                                                       ^
+     55|   });
+     56|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  lib/__tests__/visualIntelligenceEvidence.test.ts > decoded screenshot evidence controls > rejects truncated pixel data and a missing PNG terminator
+AssertionError: expected [Function] to throw an error
+ ❯ lib/__tests__/visualIntelligenceEvidence.test.ts:58:68
+     56|
+     57|   it("rejects truncated pixel data and a missing PNG terminator", () =…
+     58|     expect(() => expectDecodedCrop(valid.subarray(0, 40), [2, 2])).toT…
+       |                                                                    ^
+     59|     expect(() => expectDecodedCrop(valid.subarray(0, valid.length - 12…
+     60|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  lib/__tests__/visualIntelligenceEvidence.test.ts > decoded screenshot evidence controls > rejects a corrupt chunk checksum
+AssertionError: expected [Function] to throw an error
+ ❯ lib/__tests__/visualIntelligenceEvidence.test.ts:65:54
+     63|     const corrupt = Buffer.from(valid);
+     64|     corrupt[corrupt.length - 1] ^= 1;
+     65|     expect(() => expectDecodedCrop(corrupt, [2, 2])).toThrow();
+       |                                                      ^
+     66|   });
+     67|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+ FAIL  lib/__tests__/visualIntelligenceEvidence.test.ts > decoded screenshot evidence controls > rejects a valid uniform blank image
+AssertionError: expected [Function] to throw an error
+ ❯ lib/__tests__/visualIntelligenceEvidence.test.ts:74:52
+     72|   it("rejects a valid uniform blank image", () => {
+     73|     const blank = fixture(Array.from({ length: 4 }, () => [255, 255, 2…
+     74|     expect(() => expectDecodedCrop(blank, [2, 2])).toThrow();
+       |                                                    ^
+     75|   });
+     76|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯
+
+ FAIL  lib/__tests__/visualIntelligenceEvidence.test.ts > decoded screenshot evidence controls > rejects an entirely transparent image even when its hidden RGB values vary
+AssertionError: expected [Function] to throw an error
+ ❯ lib/__tests__/visualIntelligenceEvidence.test.ts:79:58
+     77|   it("rejects an entirely transparent image even when its hidden RGB v…
+     78|     const transparent = fixture(pixels.map(([r, g, b]) => [r, g, b, 0]…
+     79|     expect(() => expectDecodedCrop(transparent, [2, 2])).toThrow();
+       |                                                          ^
+     80|   });
+     81| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯
+
+ Test Files  1 failed (1)
+      Tests  5 failed | 2 passed | 3 skipped (10)
+   Start at  20:14:07
+   Duration  221ms (transform 19ms, setup 0ms, collect 24ms, tests 6ms, environment 0ms, prepare 33ms)

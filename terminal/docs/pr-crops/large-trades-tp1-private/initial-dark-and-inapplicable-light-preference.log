@@ -1,0 +1,156 @@
+
+> terminal@0.1.0 test:e2e:responsive
+> playwright test e2e/large-trades.spec.ts --grep native TP-1 gross executions --workers=1 --project=desktop --project=tablet --project=mobile
+
+[warmup] /terminal?symbol=NVDA → 200 in 67ms
+[warmup] /options → 200 in 831ms
+[warmup] /portfolio → 200 in 386ms
+[warmup] /alerts → 200 in 435ms
+[warmup] /analysis → 200 in 718ms
+[warmup] /discover → 200 in 586ms
+[warmup] /admin → 200 in 298ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 263ms
+[warmup] /login → 200 in 57ms
+[warmup] /reset-password → 200 in 291ms
+[warmup] /api/me → 200 in 267ms
+[warmup] /api/watchlist → 200 in 102ms
+[warmup] /api/layouts → 200 in 115ms
+[warmup] /api/watchlist/annotations → 409 in 95ms
+[warmup] 14 routes compiled in 5s
+
+Running 9 tests using 1 worker
+
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓  1 [desktop] › e2e/large-trades.spec.ts:1293:7 › native TP-1 gross executions en dark (6.2s)
+  ✘  2 [desktop] › e2e/large-trades.spec.ts:1293:7 › native TP-1 gross executions en light (8.9s)
+  ✓  3 [desktop] › e2e/large-trades.spec.ts:1293:7 › native TP-1 gross executions zh dark (3.7s)
+  ✓  4 [tablet] › e2e/large-trades.spec.ts:1293:7 › native TP-1 gross executions en dark (6.2s)
+  ✘  5 [tablet] › e2e/large-trades.spec.ts:1293:7 › native TP-1 gross executions en light (9.6s)
+  ✓  6 [tablet] › e2e/large-trades.spec.ts:1293:7 › native TP-1 gross executions zh dark (4.5s)
+  ✓  7 [mobile] › e2e/large-trades.spec.ts:1293:7 › native TP-1 gross executions en dark (5.9s)
+  ✘  8 [mobile] › e2e/large-trades.spec.ts:1293:7 › native TP-1 gross executions en light (8.1s)
+  ✓  9 [mobile] › e2e/large-trades.spec.ts:1293:7 › native TP-1 gross executions zh dark (3.3s)
+
+
+  1) [desktop] › e2e/large-trades.spec.ts:1293:7 › native TP-1 gross executions en light ───────────
+
+    Error: expect(locator).toHaveAttribute(expected) failed
+
+    Locator:  locator('html')
+    Expected: "light"
+    Received: "dark"
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toHaveAttribute" with timeout 5000ms
+      - waiting for locator('html')
+        14 × locator resolved to <html lang="en" data-lang="en" data-theme="dark" data-updown="west" class="inter_7b064e0d-module__MOT0tq__variable jetbrains_mono_29bcc33-module__Rz8LTW__variable">…</html>
+           - unexpected value "dark"
+
+
+      1306 |     await expect(overlay).toHaveAttribute("data-quantity-basis", "gross_as_reported");
+      1307 |     await expect(overlay).toHaveAttribute("data-correction-coverage", "unsupported");
+    > 1308 |     await expect(page.locator("html")).toHaveAttribute("data-theme", variant.theme);
+           |                                        ^
+      1309 |     await expect(page.getByTestId("large-trade-marker")).toHaveCount(3, { timeout: 45_000 });
+      1310 |     const mark = page.getByTestId("large-trade-marker").filter({ hasText: "1,301" });
+      1311 |     await expect(mark).toHaveAttribute("data-quantity", "1301");
+        at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-large-trades-tp1-20261017-sol-001/terminal/e2e/large-trades.spec.ts:1308:40
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/large-trades-native-TP-1-gross-executions-en-light-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/large-trades-native-TP-1-gross-executions-en-light-desktop/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/large-trades-native-TP-1-gross-executions-en-light-desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/large-trades-native-TP-1-gross-executions-en-light-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [tablet] › e2e/large-trades.spec.ts:1293:7 › native TP-1 gross executions en light ────────────
+
+    Error: expect(locator).toHaveAttribute(expected) failed
+
+    Locator:  locator('html')
+    Expected: "light"
+    Received: "dark"
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toHaveAttribute" with timeout 5000ms
+      - waiting for locator('html')
+        14 × locator resolved to <html lang="en" data-lang="en" data-theme="dark" data-updown="west" class="inter_7b064e0d-module__MOT0tq__variable jetbrains_mono_29bcc33-module__Rz8LTW__variable">…</html>
+           - unexpected value "dark"
+
+
+      1306 |     await expect(overlay).toHaveAttribute("data-quantity-basis", "gross_as_reported");
+      1307 |     await expect(overlay).toHaveAttribute("data-correction-coverage", "unsupported");
+    > 1308 |     await expect(page.locator("html")).toHaveAttribute("data-theme", variant.theme);
+           |                                        ^
+      1309 |     await expect(page.getByTestId("large-trade-marker")).toHaveCount(3, { timeout: 45_000 });
+      1310 |     const mark = page.getByTestId("large-trade-marker").filter({ hasText: "1,301" });
+      1311 |     await expect(mark).toHaveAttribute("data-quantity", "1301");
+        at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-large-trades-tp1-20261017-sol-001/terminal/e2e/large-trades.spec.ts:1308:40
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/large-trades-native-TP-1-gross-executions-en-light-tablet/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/large-trades-native-TP-1-gross-executions-en-light-tablet/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/large-trades-native-TP-1-gross-executions-en-light-tablet/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/large-trades-native-TP-1-gross-executions-en-light-tablet/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) [mobile] › e2e/large-trades.spec.ts:1293:7 › native TP-1 gross executions en light ────────────
+
+    Error: expect(locator).toHaveAttribute(expected) failed
+
+    Locator:  locator('html')
+    Expected: "light"
+    Received: "dark"
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toHaveAttribute" with timeout 5000ms
+      - waiting for locator('html')
+        13 × locator resolved to <html lang="en" data-lang="en" data-theme="dark" data-updown="west" class="inter_7b064e0d-module__MOT0tq__variable jetbrains_mono_29bcc33-module__Rz8LTW__variable">…</html>
+           - unexpected value "dark"
+
+
+      1306 |     await expect(overlay).toHaveAttribute("data-quantity-basis", "gross_as_reported");
+      1307 |     await expect(overlay).toHaveAttribute("data-correction-coverage", "unsupported");
+    > 1308 |     await expect(page.locator("html")).toHaveAttribute("data-theme", variant.theme);
+           |                                        ^
+      1309 |     await expect(page.getByTestId("large-trade-marker")).toHaveCount(3, { timeout: 45_000 });
+      1310 |     const mark = page.getByTestId("large-trade-marker").filter({ hasText: "1,301" });
+      1311 |     await expect(mark).toHaveAttribute("data-quantity", "1301");
+        at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-large-trades-tp1-20261017-sol-001/terminal/e2e/large-trades.spec.ts:1308:40
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/large-trades-native-TP-1-gross-executions-en-light-mobile/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/large-trades-native-TP-1-gross-executions-en-light-mobile/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/large-trades-native-TP-1-gross-executions-en-light-mobile/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/large-trades-native-TP-1-gross-executions-en-light-mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3 failed
+    [desktop] › e2e/large-trades.spec.ts:1293:7 › native TP-1 gross executions en light ────────────
+    [tablet] › e2e/large-trades.spec.ts:1293:7 › native TP-1 gross executions en light ─────────────
+    [mobile] › e2e/large-trades.spec.ts:1293:7 › native TP-1 gross executions en light ─────────────
+  6 passed (1.2m)

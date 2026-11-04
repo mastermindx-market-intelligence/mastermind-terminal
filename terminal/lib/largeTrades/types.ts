@@ -34,6 +34,14 @@ export interface TradeProvenance {
   conditionPolicy: string;
   attribution: string;
   termsUrl: string | null;
+  timestampBasis?: "source_event" | "sip_reporting_time";
+  timestampPrecision?: "nanoseconds" | "milliseconds";
+}
+/** Complete correction evidence covers only its stated source range, as known at its receipt. */
+export interface TradeAccounting {
+  quantityBasis: "gross_as_reported" | "net_of_observed_cancels";
+  correctionCoverage: "complete" | "unsupported" | "unknown";
+  correctionEvidence: null | { startNs: string; endNs: string; knownAtNs: string; sourceRef: string };
 }
 export interface TradePrint {
   id: string;
@@ -68,6 +76,8 @@ export interface LargeTradesEnvelope {
   instrument: TradeInstrument;
   provenance: TradeProvenance;
   range: { startNs: string; endNs: string };
+  /** Absent legacy metadata resolves to net of observed cancels with unknown completeness. */
+  accounting?: TradeAccounting;
   prints: TradePrint[];
   responses: ResponseObservation[];
   responseCoverage: "complete" | "partial" | "unavailable";
@@ -148,6 +158,7 @@ export interface LargeTradeCluster {
   response: ClusterResponse;
 }
 export interface LargeTradesSnapshot {
+  accounting: TradeAccounting;
   clusters: LargeTradeCluster[];
   visiblePrints: TradePrint[];
   diagnostics: {

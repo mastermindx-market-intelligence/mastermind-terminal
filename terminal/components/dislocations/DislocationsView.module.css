@@ -23,6 +23,8 @@
 .row[data-state="INVALIDATED"] { border-left-color: var(--down); }
 .rail { display: flex; flex-direction: column; }
 .when { white-space: nowrap; font-size: var(--fs-num-lg); font-variant-numeric: tabular-nums; line-height: 1; color: var(--text); }
+.whenDated { white-space: normal; font-size: var(--fs-label); line-height: 1.2; font-weight: 600; overflow-wrap: normal; }
+.whenDated .tz { display: block; margin-top: 3px; font-weight: 400; white-space: normal; }
 .age  { white-space: nowrap; margin-top: 2px; font-size: var(--fs-micro); color: var(--text-3); font-variant-numeric: tabular-nums; }
 .tz   { font-size: var(--fs-micro); letter-spacing: .06em; color: var(--text-3); font-variant-numeric: normal; }
 .sym  { font-weight: 600; color: var(--text); text-decoration: none; align-self: baseline; }

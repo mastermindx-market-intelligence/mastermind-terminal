@@ -16,8 +16,6 @@
 // Mode, alerts — contract §2 anti-duplication law, carried forward verbatim from `layoutConfig.ts`).
 // It never becomes their canonical data owner.
 
-import { createHash } from "node:crypto";
-
 export const SCHEMA = "workspace_layout.v1" as const;
 
 // --- frozen vocabularies (contract §1-§8) -----------------------------------------------------
@@ -666,7 +664,7 @@ function stringifySorted(value: unknown): string {
 }
 
 /** Canonical (sorted-key, compact, `ensure_ascii=False`, numeric-bounds-checked) JSON serialization
- *  — used for the size check above and for `envelopeDigest` below. Mirrors Python's
+ *  — used for the size check above and by the Node-only workspaceLayoutDigest helper. Mirrors Python's
  *  `json.dumps(obj, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False)`
  *  over the same numeric-normalized structure (Amendment A2 ruling 4 / A3 ruling 2). Throws on a
  *  non-finite/out-of-range number or a lone surrogate — callers convert that into
@@ -674,19 +672,4 @@ function stringifySorted(value: unknown): string {
 export function canonicalJson(value: unknown): string {
   checkNumericBounds(value);
   return stringifySorted(value);
-}
-
-/** SHA-256 over the canonical serialization — the digest used to pin golden vectors and to prove
- *  this module byte-identical to the Macro reference (contract §10). Never throws: an undigestable
- *  structure (non-finite/out-of-range number, lone surrogate) still returns a stable 64-char hex
- *  string rather than crashing — callers are expected to validate with `validateEnvelope` first.
- *  Node-only (uses `node:crypto`); callers in this repo only ever run server-side or under vitest. */
-export function envelopeDigest(envelope: unknown): string {
-  let encoded: Buffer;
-  try {
-    encoded = Buffer.from(canonicalJson(envelope), "utf8");
-  } catch {
-    encoded = Buffer.from("\x00invalid-envelope", "utf8");
-  }
-  return createHash("sha256").update(encoded).digest("hex");
 }
