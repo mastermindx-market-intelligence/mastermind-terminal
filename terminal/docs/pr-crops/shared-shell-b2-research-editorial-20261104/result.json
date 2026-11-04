@@ -4,7 +4,7 @@
   "sourceFiles": [
     {
       "path": "terminal/components/workspaces/ResearchWorkspace.tsx",
-      "sha256": "52f6a8e008c935d1a82929886563ea0ccdf2a7399e022cb71f28414372a6db03"
+      "sha256": "bb1c9120dcce251620d8896f623d11f37295b1770002f4525c219d8aefd9c61b"
     },
     {
       "path": "terminal/components/workspaces/ResearchWorkspace.module.css",
@@ -32,7 +32,7 @@
     },
     {
       "path": "terminal/lib/__tests__/readingWorkspaces.test.tsx",
-      "sha256": "127f5a855ed86e999a2e5747fcabeac2def788da55422f122e9b1b13df6d9ae3"
+      "sha256": "86ff85bb4cb932c146e077cb2c4f011225929cd7749fe51b2375d84fafaa15d8"
     }
   ],
   "outcomes": [
@@ -580,7 +580,7 @@
     }
   ],
   "checks": {
-    "affectedTests": 118,
+    "affectedTests": 119,
     "typecheck": "PASS",
     "scopedESLint": "PASS"
   },
@@ -590,5 +590,12 @@
     "tokenHash": "cfd3d65c",
     "desktop": "1QF6 / p-1U source-reader anatomy",
     "mobile": "1QN9-1 source-pages trigger and sheet anatomy"
+  },
+  "errorPathCorrection": {
+    "readyFlowCapturesRetainedFrom": "3473b0804a3112112df8fe0e8bae3e3f496cccb7",
+    "scope": "Only pending mobile destination focus on nonloading failure/invalidation; no ready flow/presentation change",
+    "regression": "Canonical sheet→unloadedpage→409 leaves originalURL/no stale text; focus settles to selected heading; explicit current-revision recovery makes one unpinned read and owns heading focus",
+    "red": "1 failed / 58 passed at3473 source",
+    "green": "119 affected tests pass after correction"
   }
 }

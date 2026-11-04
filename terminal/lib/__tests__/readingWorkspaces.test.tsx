@@ -337,3 +337,19 @@ it("opens the canonical source-page sheet before the text, closes back to its tr
  const third=body("EXACT SHEET DESTINATION",2);third.segments[0].page_start=3;third.segments[0].page_end=3;
  await answer(2,{...third,outline});expect(document.activeElement?.id).toBe("research-segment-2");expect(titleFocus).not.toHaveBeenCalled();expect(held).toHaveLength(3);
 });
+
+
+it("settles failed sheet destination focus and lets an explicit current-revision recovery focus its heading", async () => {
+ await mount(<ResearchWorkspace ownerKey={A}/>);await library();await click("Open current revision");
+ const outline=[{segment_index:0,page_start:1,page_end:1},{segment_index:1,page_start:2,page_end:2},{segment_index:2,page_start:3,page_end:3}];
+ await answer(1,{...body(),outline});const originalUrl=window.location.href;
+ const trigger=container.querySelector<HTMLButtonElement>('button[aria-haspopup="dialog"]')!;trigger.focus();await act(async()=>trigger.click());await flush();
+ const dialog=document.querySelector('[role="dialog"]')!;const destination=Array.from(dialog.querySelectorAll("button")).find(button=>button.textContent?.includes("Source page 3"))!;
+ await act(async()=>destination.click());await flush();await answer(2,{error:"selected_revision_unavailable"},409);
+ expect(window.location.href).toBe(originalUrl);expect(held).toHaveLength(3);expect(container.textContent).not.toContain("PRIVATE SELECTED SOURCE");
+ expect(document.activeElement?.id).toBe("research-reader-title");
+ const headingFocus=vi.spyOn(container.querySelector<HTMLElement>("#research-reader-title")!,"focus");
+ await click("Open current revision");await answer(3,{...body("EXPLICIT CURRENT REVISION RECOVERY"),outline});
+ expect(held).toHaveLength(4);expect(new URL(held[3].url,"https://example.test").searchParams.has("source_pdf_sha256")).toBe(false);
+ expect(document.activeElement?.id).toBe("research-reader-title");expect(headingFocus).toHaveBeenCalledOnce();expect(window.location.search).toContain("segment_start=0");
+});

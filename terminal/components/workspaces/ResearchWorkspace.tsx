@@ -57,6 +57,13 @@ function ResearchWorkspaceSession({ ownerKey }: { ownerKey: string }) {
 
  useEffect(() => {
   if (pageSheetOpen || shown.phase === "loading" || destinationFocus.current === null) return;
+  if (shown.phase !== "ready") {
+   // A refused/unavailable read does not publish its destination URL. Settle this
+   // intent now so a later explicit retry/current read owns its normal focus.
+   destinationFocus.current = null;
+   const frame = requestAnimationFrame(() => (titleRef.current ?? document.getElementById("shared-shell-content"))?.focus());
+   return () => cancelAnimationFrame(frame);
+  }
   // Native history writes are observed by Next. Wait for that exact query commit so
   // its route-focus lifecycle cannot reclaim the source-page destination.
   if (shown.selection && routeQuery !== new URL(readingHref(shown.selection, shown.start), window.location.href).searchParams.toString()) return;
