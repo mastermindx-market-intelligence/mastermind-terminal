@@ -68,6 +68,7 @@ let requests: GateRequest[];
 let container: HTMLDivElement;
 let root: Root;
 let serial: number;
+let activeIdentityKey = "guest";
 
 function browserHref() {
   return window.location.pathname + window.location.search + window.location.hash;
@@ -95,7 +96,7 @@ function renderRouteTree(href: string, mode: CommitMode) {
   navigation.params = new URLSearchParams(url.search);
   root.render(<>
     <HistoryCommit href={href} mode={mode} commit={++serial} />
-    <LegacyPageHost legacyOrigin={LEGACY} identityKey="guest" context={context}
+    <LegacyPageHost legacyOrigin={LEGACY} identityKey={activeIdentityKey} context={context}
       onContextRequest={onContextRequest} onTitle={onTitle} />
   </>);
 }
@@ -185,6 +186,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   requests = [];
   serial = 0;
+  activeIdentityKey = "guest";
   navigation.renders.length = 0;
   window.history.replaceState({}, "", INITIAL);
   vi.spyOn(HTMLIFrameElement.prototype, "contentWindow", "get").mockReturnValue(childWindow);
@@ -442,6 +444,54 @@ describe("Shared Shell committed navigation", () => {
     expect(next.restore).toBeNull();
     await childMessage(readyBody(fresh));
     expectPersistent(owned);
+  });
+
+  it("resets previous account snapshots and rejects late old-generation packets on A→B", async () => {
+    activeIdentityKey = "account:fixture-A";
+    const first = await start();
+    const generationA = latestFrameNavigation().generation;
+    await childMessage({ type: "VIEW_STATE", view: { x: 0, y: 650, focusId: "account-A-focus" } });
+
+    // The actual AppShell ownership key changes independently of route/URL.
+    // This is a synthetic identity fixture, not a proof of auth admission.
+    activeIdentityKey = "account:fixture-B";
+    await renderCommittedRoute(INITIAL, "replace");
+    expect(iframe()).not.toBe(first.frame);
+    expectVisible(false);
+    await resolveGate();
+    const generationB = latestFrameNavigation().generation;
+    expect(generationB).not.toBe(generationA);
+    let init = await loadFrame();
+    expect(init.frameGeneration).toBe(generationB);
+    expect(init.restore).toBeNull();
+
+    // Same-origin/window old packets must not re-admit identity A or mutate route.
+    const beforeRoute = browserHref();
+    const beforeCalls = navigation.router.push.mock.calls.length;
+    await childMessage(readyBody(INITIAL), generationA);
+    await childMessage({ type: "VIEW_STATE", view: { x: 0, y: 999, focusId: "account-A-secret" } }, generationA);
+    await childMessage({ type: "NAVIGATE", href: "/about.html", mode: "push", sameDocument: false,
+      requestId: "stale-A-account" }, generationA);
+    expectVisible(false);
+    expect(browserHref()).toBe(beforeRoute);
+    expect(navigation.router.push).toHaveBeenCalledTimes(beforeCalls);
+    await childMessage(readyBody(INITIAL), generationB);
+    expectVisible(true);
+
+    const about = "/about.html?lang=en#mission";
+    await navigate(about);
+    await resolveGate();
+    await loadFrame();
+    await childMessage(readyBody(about));
+    await traverse(-1, INITIAL);
+    await resolveGate();
+    init = await loadFrame();
+    expect(init.canonicalPath).toBe(INITIAL);
+    // A's original history entry may be selected by Back, but B must not
+    // inherit A's focus or scroll; no canonical-path-keyed fallback is allowed.
+    expect(init.restore).toBeNull();
+    await childMessage(readyBody(INITIAL));
+    expectVisible(true);
   });
 
   it("aborts an older admission and cannot install its frame after a faster later navigation", async () => {
