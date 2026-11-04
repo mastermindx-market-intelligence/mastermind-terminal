@@ -2,7 +2,45 @@
 
 Owner carrier: [Terminal #612](https://github.com/mastermindx-market-intelligence/mastermind-terminal/issues/612).
 
-The four-view AMZN revision is artboard `1MX1-0`. [Terminal · Stock Intelligence R4](https://app.paper.design/file/01M3NSZGE8JWN2EZCSF0DT05RM/p-I-1?node=1MX1-0).
+The R4 four-view AMZN predecessor is artboard `1MX1-0`. [Terminal · Stock Intelligence R4](https://app.paper.design/file/01M3NSZGE8JWN2EZCSF0DT05RM/p-I-1?node=1MX1-0). Preserve it as the source-accurate baseline.
+
+The R5 design study uses the same Terminal Paper file and page `p-I-1`:
+desktop contextual command deck `1NT3-0` (1600 × 980) and mobile
+decision overview `1NXH-0` (390 × 844). These are editable Paper
+boards, not deployed routes. The desktop price curve is **schematic**,
+explicitly labeled in the specimen; it must never be substituted for
+real market series in the application.
+
+### R5 first-glance and progressive disclosure
+
+The R5 responsive code remains in the **existing** single Intelligence
+workspace and source owners. It is not a second chart, route, data
+pipeline or signal spine. The hierarchy is:
+
+1. **Current Oracle entry** — one source-qualified status. Unverified
+   data remains unverified regardless of historical buys or a bullish
+   regime. The subline distinguishes historical evidence from a new call.
+2. **Evidence** — compact, clickable Oracle and research observations,
+   each with its own dates and statuses. Prophet is a separate
+   early-evidence source, not an entry instruction.
+3. **Historical validation** — trades and source-supplied risk, clearly
+   labeled as a past sample. Drawdown and scores never become a
+   probability of future returns.
+4. **Deep detail** — Oracle history/equity comparison, Research
+   methods/cautions and the complete Activity timeline remain available.
+   Summary is a triage view, not a replacement for those functions.
+
+Desktop still docks against the existing chart and rail without resizing
+the chart. Mobile continues to use the same bottom-sheet state
+and accessible four-view navigation. The R5 Paper command deck visually
+explores a wider contextual option; it is an *exploration*, not a claim
+that the current product has adopted new chart placement or new data.
+
+Production-quality acceptance requires actual localized English/Chinese
+and narrow/wide browser screenshots, preserved source identity/freshness,
+correct error/permission states, full repository checks and protected
+non-author review. Paper screenshots and local fixture-browser captures
+are separate from deployed production acceptance.
 
 ## Product behavior
 

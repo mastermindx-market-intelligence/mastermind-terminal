@@ -94,6 +94,11 @@ test("Intelligence tabs, performance and paged activity work at every supported 
   await expect(workspace.getByTestId("workspace-oracle-entry-availability")).toBeVisible()
   await expect(workspace.getByTestId("workspace-oracle")).toHaveCount(0)
   await expect(workspace.getByTestId("workspace-research")).toHaveCount(0)
+  const firstGlance = workspace.getByTestId("workspace-summary")
+  await expect(firstGlance.getByText("Historical signals are not current entry calls.")).toBeVisible()
+  await expect(firstGlance.locator('[data-evidence-source="oracle"]')).toBeVisible()
+  await expect(firstGlance.locator('[data-evidence-source="research"]')).toBeVisible()
+  await expect(firstGlance.getByRole("button", { name: /Historical backtest/ })).toContainText("25")
   const researchRow = workspace.getByRole("button", { name: /Research setup/ })
   await expect(researchRow).toBeVisible()
   await researchRow.click()
@@ -119,6 +124,13 @@ test("Intelligence tabs, performance and paged activity work at every supported 
   await expect(workspace.locator(".sd-sig-badge").first()).toHaveText("STOP")
   await page.screenshot({ path: testInfo.outputPath(`${testInfo.project.name}-intelligence-activity.png`) })
   expect(await workspace.evaluate(element => element.scrollWidth <= element.clientWidth)).toBe(true)
+  if (testInfo.project.name === "mobile") {
+    const chips = workspace.getByRole("group", { name: "Filter activity" })
+    expect(await chips.evaluate(element => getComputedStyle(element).flexWrap)).toBe("nowrap")
+    expect(await chips.evaluate(element => element.scrollWidth > element.clientWidth)).toBe(true)
+    await workspace.getByRole("button", { name: "Not entered", exact: true }).click()
+    await expect(workspace.getByText("No matching events.")).toBeVisible()
+  }
   if (testInfo.project.name !== "desktop") {
     await expect(workspace).toHaveAttribute("data-mode", "sheet")
     await expect(workspace).toHaveAttribute("aria-modal", "true")

@@ -717,7 +717,7 @@ export default function OracleDash({ sym, row, bars, zh = false, open = true, on
   const activityView = <section className="sd-go" data-testid="workspace-activity">
     <h3 className={styles.sectionHeading}>{pick(zh, "Signal activity", "信号动态")}<span aria-live="polite">{sliceRead.status === "ready" && hasFilteredSource && pick(zh, `${activity.length} ${activity.length === 1 ? "event" : "events"}`, `${activity.length}条记录`)}</span></h3>
     <div className={styles.filters} role="group" aria-label={pick(zh, "Filter activity", "筛选动态")}>
-      {([ ["all", "All", "全部"], ["entries", "Entries", "入场"], ["exits", "Exits", "离场"], ["watches", "Watches", "观察"], ["refused", "Refused / retro", "拦截 / 事后"], ["receipts", "Candidates", "候选"] ] as const).map(([id, en, cn]) =>
+      {([ ["all", "All", "全部"], ["entries", "Entries", "入场"], ["exits", "Exits", "离场"], ["watches", "Watches", "观察"], ["refused", "Not entered", "未入场"], ["receipts", "Candidates", "候选"] ] as const).map(([id, en, cn]) =>
         <button key={id} aria-pressed={filter === id} onClick={() => setFilter(id)}>{pick(zh, en, cn)}</button>)}
     </div>
     <SourceState read={sliceRead} label={pick(zh, "Signal history", "信号历史")} zh={zh} />
@@ -860,36 +860,82 @@ export default function OracleDash({ sym, row, bars, zh = false, open = true, on
   const researchSetup = currentSetup ? dv.label : pick(zh, "No current reading", "暂无当前判断")
   const sourceLabel = (status: WorkspaceSource<unknown>["status"]) => status === "loading" ? pick(zh, "Loading…", "加载中…")
     : status === "absent" ? pick(zh, "Not published", "尚未发布") : pick(zh, "Source unavailable", "数据源不可用")
-  const evidenceRow = (name: string, value: string, date: string | null, onClick: () => void) =>
-    <button className={styles.evidenceRow} onClick={onClick}>
-      <span><small>{name}</small><strong>{value}</strong></span>
-      {date && <span className={styles.rowDate}>{date}</span>}<span aria-hidden="true">›</span>
+  const evidenceRow = (source: "oracle" | "research", name: string, value: string, note: string | null, observed: string | null, onClick: () => void) =>
+    <button className={styles.evidenceRow} data-evidence-source={source} onClick={onClick}>
+      <span className={styles.evidenceIcon} aria-hidden="true">{source === "oracle" ? "O" : "R"}</span>
+      <span className={styles.evidenceBody}>
+        <small className={styles.evidenceLabel}>{name}</small>
+        <strong>{value}</strong>
+        {note && <small className={styles.evidenceNote}>{note}</small>}
+      </span>
+      <span className={styles.evidenceAside}>
+        {observed && <small>{observed}</small>}
+        <span aria-hidden="true">›</span>
+      </span>
     </button>
+  const researchObserved = sourceClock.kind === "dated" ? signalHistoryDate(sourceClock.date, zh) : null
+  const activityTotal = (slice?.indicator?.signals?.length ?? 0) + (slice?.opportunities?.events?.length ?? 0)
   return <IntelligenceWorkspaceShell open={open} symbol={sym} zh={zh} tab={tab} onTabChange={setTab} onClose={() => onClose?.()}
     status={null}>
-    {tab === "summary" && <section data-testid="workspace-summary">
+    {tab === "summary" && <section className={styles.summaryPage} data-testid="workspace-summary">
       <div className={styles.entryHero} data-testid="workspace-oracle-entry-availability" data-status={entry.status}>
-        <span className={styles.eyebrow}>{pick(zh, "Oracle entry", "神谕入场")}</span>
-        <h3>{entry.label}</h3><p>{entry.reason}</p>
+        <div className={styles.entryHeroTop}>
+          <span className={styles.eyebrow}>{pick(zh, "Current Oracle entry", "当前神谕入场")}</span>
+          <span className={styles.entryBadge}>{pick(zh, "Unverified source", "来源未核实")}</span>
+        </div>
+        <h3>{entry.label}</h3>
+        <p>{entry.reason}</p>
+        <div className={styles.entryHeroRule} />
+        <small>{pick(zh, "Historical signals are not current entry calls.", "历史信号不代表当前入场许可。")}</small>
       </div>
-      <h3 className={styles.sectionHeading}>{pick(zh, "Evidence", "依据")}</h3>
-      {evidenceRow(sliceRead.status === "ready" ? oracleRead.heading : pick(zh, "Oracle", "神谕"),
-        sliceRead.status === "ready" ? oracleRead.label : sourceLabel(sliceRead.status),
-        sliceRead.status === "ready" ? oracleRead.sub : null, () => setTab("oracle"))}
-      {sliceRead.status === "ready" && sliceRead.refresh === "failed" && <SourceState read={sliceRead} label={pick(zh, "Oracle signals", "神谕信号")} zh={zh} />}
-      {sliceRead.status === "ready" && ov.stance && ov.historicalSignal &&
-        <p className={styles.meta}>{pick(zh, "Historical signal", "历史信号")} · {ov.historicalSignal.label} · {ov.historicalSignal.date}</p>}
-      {ov.line2 && <p className={styles.heroNote}>{ov.line2}</p>}
-      {freshWarn && <p className={styles.heroNote}>{freshWarn.kind === "confirm" ? pick(zh, "Structure break confirmed", "结构破位已确认") : pick(zh, "Structure-break warning", "结构破位预警")} · {signalHistoryDate(freshWarn.ts, zh)}</p>}
-      {evidenceRow(pick(zh, "Research setup", "研究机会状态"), intelRead.status === "ready" ? researchSetup : sourceLabel(intelRead.status),
-        intelRead.status === "ready" ? dv.sub ?? null : null, () => setTab("research"))}
-      {intelRead.status === "ready" && intelRead.refresh === "failed" && <SourceState read={intelRead} label={pick(zh, "Research", "研究")} zh={zh} />}
-      {prophet && early && <details key={sym} className={styles.earlyEvidence}><summary>
-        <span><small>Prophet</small><strong>{early.label}</strong></span>
-        {early.detail && <span className={styles.rowDate}>{early.detail}</span>}<span aria-hidden="true">⌄</span>
-      </summary><ProphetObservationEvidence read={prophet} zh={zh} /></details>}
+      <div className={styles.evidenceHeader}>
+        <h3 className={styles.sectionHeading}>{pick(zh, "Evidence", "依据")}</h3>
+        <span>{pick(zh, "Dated observations", "有日期的观察记录")}</span>
+      </div>
+      <div className={styles.evidenceGroup}>
+        {evidenceRow("oracle",
+          sliceRead.status === "ready" ? oracleRead.heading : pick(zh, "Oracle", "神谕"),
+          sliceRead.status === "ready" ? oracleRead.label : sourceLabel(sliceRead.status),
+          sliceRead.status === "ready" ? oracleRead.sub : null,
+          sliceRead.status === "ready" ? ov.historicalSignal?.date ?? null : null, () => setTab("oracle"))}
+        {sliceRead.status === "ready" && sliceRead.refresh === "failed" && <SourceState read={sliceRead} label={pick(zh, "Oracle signals", "神谕信号")} zh={zh} />}
+        {ov.line2 && <p className={styles.heroNote}>{ov.line2}</p>}
+        {freshWarn && <p className={styles.heroNote}>{freshWarn.kind === "confirm" ? pick(zh, "Structure break confirmed", "结构破位已确认") : pick(zh, "Structure-break warning", "结构破位预警")} · {signalHistoryDate(freshWarn.ts, zh)}</p>}
+        {evidenceRow("research", pick(zh, "Research setup", "研究机会状态"),
+          intelRead.status === "ready" ? researchSetup : sourceLabel(intelRead.status),
+          intelRead.status === "ready" && currentSetup ? dv.sub ?? null : null,
+          intelRead.status === "ready" ? researchObserved : null, () => setTab("research"))}
+        {intelRead.status === "ready" && intelRead.refresh === "failed" && <SourceState read={intelRead} label={pick(zh, "Research", "研究")} zh={zh} />}
+        {prophet && early ? <details key={sym} className={styles.earlyEvidence}>
+          <summary>
+            <span className={styles.evidenceIcon} aria-hidden="true">P</span>
+            <span className={styles.evidenceBody}>
+              <small className={styles.evidenceLabel}>{pick(zh, "Prophet · early evidence", "Prophet · 早期证据")}</small>
+              <strong>{early.label}</strong>
+              {early.detail && <small className={styles.evidenceNote}>{early.detail}</small>}
+            </span>
+            <span className={styles.evidenceAside} aria-hidden="true">⌄</span>
+          </summary>
+          <ProphetObservationEvidence read={prophet} zh={zh} />
+        </details> : <div className={styles.evidenceMissing}>
+          <span className={styles.evidenceIcon} aria-hidden="true">P</span>
+          <span className={styles.evidenceBody}>
+            <small className={styles.evidenceLabel}>{pick(zh, "Prophet · early evidence", "Prophet · 早期证据")}</small>
+            <strong>{pick(zh, "Source not supplied", "未提供数据源")}</strong>
+          </span>
+        </div>}
+      </div>
+      {nTrades != null && Number.isFinite(nTrades) && <button className={styles.historicalSample} onClick={() => setTab("oracle")}>
+        <span className={styles.sampleLabel}>{pick(zh, "Historical backtest", "历史回测")}</span>
+        <span><strong>{nTrades}</strong> {pick(zh, "trades", "笔交易")}</span>
+        {Number.isFinite(metrics?.max_dd) && <span><strong>{fmtPctLocal(metrics?.max_dd, true)}</strong> {pick(zh, "max drawdown", "最大回撤")}</span>}
+        <span aria-hidden="true">›</span>
+      </button>}
       <MarketRiskChip zh={zh} />
-      <button className={styles.activityLink} onClick={() => setTab("activity")}>{pick(zh, "Signal activity", "信号动态")} <span aria-hidden="true">→</span></button>
+      <button className={styles.activityLink} onClick={() => setTab("activity")}>
+        <span>{pick(zh, "Signal activity", "信号动态")}</span>
+        <span>{activityTotal > 0 ? pick(zh, `${activityTotal} events  →`, `${activityTotal}条记录  →`) : "→"}</span>
+      </button>
     </section>}
     {tab === "oracle" && <>{oracleView}<MarketRiskChip zh={zh} />
       <button className={styles.textButton} onClick={() => setTab("activity")}>{pick(zh, "View complete signal history", "查看完整信号历史")} →</button></>}
