@@ -1,12 +1,12 @@
 import { expect, test, type Page } from "@playwright/test"
 
-async function prepare(page: Page) {
-  await page.addInitScript(() => {
-    localStorage.setItem("mm.lang", "en")
+async function prepare(page: Page, lang: "en" | "zh" = "en", savedResearch = false) {
+  await page.addInitScript(language => {
+    localStorage.setItem("mm.lang", language)
     sessionStorage.removeItem("mm.intelligence.width.v1")
     ;(window as Window & { __iwReady?: boolean }).__iwReady = false
     window.addEventListener("mm:terminal-visual-ready", () => { (window as Window & { __iwReady?: boolean }).__iwReady = true }, { once: true })
-  })
+  }, lang)
   const signals = Array.from({ length: 75 }, (_, index) => ({
     type: index % 3 === 0 ? "SELL" : "BUY", ts: `2026-08-${String(index % 27 + 1).padStart(2, "0")}`,
     known_ts: `2026-08-${String(index % 27 + 1).padStart(2, "0")}`, price: 100 + index,
@@ -14,10 +14,10 @@ async function prepare(page: Page) {
   }))
   await page.route(/\/data\/COST\.slice\.json(?:\?.*)?$/, route => route.fulfill({ contentType: "application/json", body: JSON.stringify({
     ticker: "COST", indicator: { signals, warnings: [], state: { position_hint: "long", last_signal: "BUY", last_scored_signal: "BUY", last_scored_ts: "2026-08-21", strong_bull: true, weeklyBull: true, above200: true } },
-    backtest: { metrics: { win_rate: .6, profit_factor: 2.2, cagr: .12, n_trades: 25 } },
+    backtest: { metrics: { win_rate: .6, profit_factor: 2.2, cagr: .12, n_trades: 25, max_dd: -.17, sharpe: 0, strat_total_return: .32, vs_buy_hold: { bh_total_return: .40, bh_max_dd: -.24 } } },
   }) }))
   await page.route(/\/data\/COST\.intel\.json(?:\?.*)?$/, route => route.fulfill({ contentType: "application/json", body: JSON.stringify({
-    ticker: "COST", asof: "2026-10-16", cards: { ai_judgment: { verdict: "Constructive", gloss: "Evidence is improving." }, conviction: { score: 65, band: "Constructive", drivers: ["Durable demand", "Stable margins"], cautions: ["Valuation remains elevated"] } }, tape: { ai_lean: { dir: "BULL" } },
+    ticker: "COST", asof: "2026-10-16", cards: { ai_judgment: { verdict: "Constructive", verdict_zh: "偏积极", gloss: "Evidence is improving." }, conviction: { score: 65, band: "Constructive", drivers: ["Durable demand", "Stable margins"], cautions: ["Valuation remains elevated"] } }, tape: { asof: "2026-10-16", stale: savedResearch, ai_lean: savedResearch ? { abstain: true, reason: "stale" } : { dir: "BULL" } },
   }) }))
   await page.route(/\/data\/COST\.backtest\.json(?:\?.*)?$/, route => route.fulfill({ contentType: "application/json", body: JSON.stringify({
     ticker: "COST", status: "ok", as_of: "2026-10-16", equity: { t: ["2026-01-01", "2026-06-01", "2026-10-16"], v: [100, 106, 112] }, universe: { start: "2026-01-01", end: "2026-10-16" },
@@ -91,8 +91,19 @@ test("Intelligence tabs, performance and paged activity work at every supported 
   const workspace = page.getByTestId("intelligence-workspace")
   await expect(workspace).toHaveAttribute("data-phase", "open")
   await expect(workspace.getByRole("heading", { name: "Intelligence", exact: true })).toBeVisible()
+  await expect(workspace.getByTestId("workspace-oracle-entry-availability")).toBeVisible()
+  await expect(workspace.getByTestId("workspace-oracle")).toHaveCount(0)
+  await expect(workspace.getByTestId("workspace-research")).toHaveCount(0)
+  const firstGlance = workspace.getByTestId("workspace-summary")
+  await expect(firstGlance.getByText("Historical signals are not current entry calls.")).toBeVisible()
+  await expect(firstGlance.locator('[data-evidence-source="oracle"]')).toBeVisible()
+  await expect(firstGlance.locator('[data-evidence-source="research"]')).toBeVisible()
+  await expect(firstGlance.getByRole("button", { name: /Historical backtest/ })).toContainText("25")
+  const researchRow = workspace.getByRole("button", { name: /Research setup/ })
+  await expect(researchRow).toBeVisible()
+  await researchRow.click()
   await expect(workspace).toContainText("Valuation remains elevated")
-  await expect(workspace.getByRole("button", { name: "1 research caution", exact: false })).toBeVisible()
+  await workspace.getByRole("tab", { name: "Summary", exact: true }).click()
   expect(await workspace.getByRole("tab").evaluateAll(tabs => tabs.every(tab => {
     const target = tab.getAttribute("aria-controls")
     return target && document.getElementById(target)?.getAttribute("role") === "tabpanel"
@@ -113,6 +124,13 @@ test("Intelligence tabs, performance and paged activity work at every supported 
   await expect(workspace.locator(".sd-sig-badge").first()).toHaveText("STOP")
   await page.screenshot({ path: testInfo.outputPath(`${testInfo.project.name}-intelligence-activity.png`) })
   expect(await workspace.evaluate(element => element.scrollWidth <= element.clientWidth)).toBe(true)
+  if (testInfo.project.name === "mobile") {
+    const chips = workspace.getByRole("group", { name: "Filter activity" })
+    expect(await chips.evaluate(element => getComputedStyle(element).flexWrap)).toBe("nowrap")
+    expect(await chips.evaluate(element => element.scrollWidth > element.clientWidth)).toBe(true)
+    await workspace.getByRole("button", { name: "Not entered", exact: true }).click()
+    await expect(workspace.getByText("No matching events.")).toBeVisible()
+  }
   if (testInfo.project.name !== "desktop") {
     await expect(workspace).toHaveAttribute("data-mode", "sheet")
     await expect(workspace).toHaveAttribute("aria-modal", "true")
@@ -138,6 +156,26 @@ test("Intelligence tabs, performance and paged activity work at every supported 
   }
 })
 
+test("Oracle keeps isolated equity observations visible without joining missing sessions", async ({ page }, info) => {
+  const launcher = await prepare(page)
+  await page.route(/\/data\/COST\.backtest\.json(?:\?.*)?$/, route => route.fulfill({ contentType: "application/json", body: JSON.stringify({
+    ticker: "COST", status: "ok", as_of: "2026-10-16",
+    equity: { t: ["2026-01-01", "2026-03-01", "2026-06-01", "2026-08-01", "2026-10-16"], v: [100, null, 106, null, 112] },
+  }) }))
+  await launcher.click()
+  const workspace = page.getByTestId("intelligence-workspace")
+  await workspace.getByRole("tab", { name: "Oracle", exact: true }).click()
+  const curve = workspace.getByTestId("workspace-equity-curve")
+  await expect(curve).toBeVisible()
+  await expect(curve.locator("polyline.fin-line")).toHaveCount(3)
+  const observations = curve.locator("circle.fin-node")
+  await expect(observations).toHaveCount(3)
+  for (const observation of await observations.all()) await expect(observation).toBeVisible()
+  expect(await curve.locator("polyline.fin-line").evaluateAll(lines => lines.every(line =>
+    line.getAttribute("points")!.trim().split(/\s+/).length === 1))).toBe(true)
+  await curve.screenshot({ path: info.outputPath("isolated-equity-observations.png") })
+})
+
 test("Intelligence reduced motion and breakpoint changes retain usable focus", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "One cross-breakpoint case")
   await page.emulateMedia({ reducedMotion: "reduce" })
@@ -153,3 +191,38 @@ test("Intelligence reduced motion and breakpoint changes retain usable focus", a
   await workspace.getByRole("button", { name: "Close Intelligence workspace", exact: true }).click()
   await expect(workspace).toHaveCount(0)
 })
+
+for (const lang of ["en", "zh"] as const) {
+  test(`Research abstention, dated history and backtest risk remain distinct (${lang})`, async ({ page }, info) => {
+    const zh = lang === "zh"
+    const launcher = await prepare(page, lang, true)
+    await launcher.click()
+    const workspace = page.getByTestId("intelligence-workspace")
+    await expect(workspace.getByTestId("workspace-oracle-entry-availability")).toHaveAttribute("data-status", "UNAVAILABLE_DATA")
+    const setup = workspace.getByRole("button", { name: zh ? /研究机会状态/ : /Research setup/ })
+    await expect(setup).toContainText(zh ? "暂无当前判断" : "No current reading")
+    await expect(workspace.getByTestId("workspace-equity-curve")).toHaveCount(0)
+    await workspace.screenshot({ path: info.outputPath(`summary-${lang}.png`) })
+    await setup.click()
+    await expect(workspace.getByTestId("workspace-research").getByRole("heading", { name: zh ? "暂无当前判断" : "No current reading" })).toBeVisible()
+    await expect(workspace.getByTestId("workspace-research").getByRole("img")).toHaveCount(0)
+    if (zh) {
+      const original = workspace.getByTestId("research-original")
+      await expect(original.locator("summary")).toContainText("1条注意事项")
+      const caution = original.getByText("Valuation remains elevated", { exact: true })
+      await expect(caution).toBeHidden()
+      await original.locator("summary").click()
+      await expect(caution).toBeVisible()
+    }
+    await workspace.getByText(zh ? "研究笔记" : "Research notes", { exact: true }).click()
+    await expect(workspace.getByTestId("workspace-research").getByText(zh ? "偏积极" : "Constructive", { exact: true })).toBeVisible()
+    await workspace.getByRole("tab", { name: zh ? "神谕" : "Oracle", exact: true }).click()
+    const risk = workspace.locator("details").filter({ has: page.locator("summary", { hasText: zh ? "风险与基准对比" : "Risk measures" }) })
+    await risk.locator("summary").click()
+    await expect(risk).toContainText("0.00")
+    await expect(risk).toContainText("17.0%")
+    await expect(risk.getByRole("row", { name: zh ? /总收益/ : /Total return/ })).toContainText("40.0%")
+    await expect(workspace.getByTestId("workspace-equity-curve")).toBeVisible()
+    await workspace.screenshot({ path: info.outputPath(`oracle-${lang}.png`) })
+  })
+}
