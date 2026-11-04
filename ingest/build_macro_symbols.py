@@ -27,6 +27,7 @@ claim; lib/intradaySources.ts marks these quotes DELAYED_15M at request time.
 from __future__ import annotations
 
 import argparse
+import datetime as dt
 import json
 import os
 import sys
@@ -54,13 +55,23 @@ SPARK_BATCH = 18
 # Minimum daily bars for a macro series to be worth publishing. Every instrument in the catalog
 # is decades old, so anything thinner is Yahoo failing to serve history, not a young symbol.
 MIN_OHLC_BARS = 30
-# This benchmark underpins multi-decade Shanghai Composite charts. Yahoo's available
-# daily series begins around 1997; keep the other macro symbols on the cheaper 5y leg.
+# This benchmark underpins multi-decade Shanghai Composite charts. Yahoo's daily series
+# begins around 1997, but range=max silently returns 1mo bars even with interval=1d.
+# A bounded period1/period2 request was live-verified with 7279 genuine 1d bars
+# (1997-07-02 to 2026-11-04); other symbols remain on the cheaper rolling 5y leg.
 FULL_HISTORY_SYMBOLS = frozenset({"000001.SS"})
+FULL_HISTORY_START_TS = int(dt.datetime(1990, 1, 1, tzinfo=dt.timezone.utc).timestamp())
+# A 353-point monthly series must never be published as three decades of daily candles.
+MIN_DEEP_DAILY_BARS = 1000
 
 
-def ohlc_history_range(sym: str) -> str:
-    return "max" if sym in FULL_HISTORY_SYMBOLS else "5y"
+def ohlc_history_query(sym: str, now_ts: int | None = None) -> str:
+    """Yahoo chart query: explicit daily bounds avoid range=max auto-downsampling."""
+    if sym in FULL_HISTORY_SYMBOLS:
+        # period2 is exclusive. Include the current session even during UTC/CN date rollover.
+        end = (int(time.time()) if now_ts is None else now_ts) + 86400
+        return f"period1={FULL_HISTORY_START_TS}&period2={end}&interval=1d"
+    return "range=5y&interval=1d"
 
 
 
@@ -123,7 +134,7 @@ def existing_bar_count(path: Path) -> int:
 
 def fetch_ohlc(sym: str) -> list[list]:
     """Daily OHLC in the same shape chart.js already reads for equities."""
-    url = f"{CHART}/{urllib.parse.quote(sym)}?range={ohlc_history_range(sym)}&interval=1d"
+    url = f"{CHART}/{urllib.parse.quote(sym)}?{ohlc_history_query(sym)}"
     try:
         j = _get(url)
     except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as e:
@@ -131,6 +142,15 @@ def fetch_ohlc(sym: str) -> list[list]:
         return []
     res = ((j.get("chart") or {}).get("result") or [{}])[0]
     ts = res.get("timestamp") or []
+    if sym in FULL_HISTORY_SYMBOLS:
+        granularity = (res.get("meta") or {}).get("dataGranularity")
+        if granularity != "1d" or (ts and len(ts) < MIN_DEEP_DAILY_BARS):
+            print(
+                f"  ohlc {sym}: refusing non-daily/truncated history "
+                f"(granularity={granularity}, bars={len(ts)})",
+                file=sys.stderr,
+            )
+            return []
     q = ((res.get("indicators") or {}).get("quote") or [{}])[0]
     o, h, l, c, v = (q.get(k) or [] for k in ("open", "high", "low", "close", "volume"))
     # POSITIONAL rows [date, o, h, l, c, v] — the house OHLC contract (AAPL.json et al).
@@ -157,7 +177,7 @@ def fetch_ohlc(sym: str) -> list[list]:
 
 
 def merge_deep_history(sym: str, path: Path, fetched: list[list]) -> list[list]:
-    """Keep older published bars when Yahoo's max response temporarily loses depth.
+    """Keep older published bars when Yahoo's bounded daily response loses depth.
 
     The nightly request can refresh/repair overlapping days, but must not erase
     decades already backfilled. This is index-specific: other macro assets retain
