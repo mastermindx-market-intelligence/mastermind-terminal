@@ -83,7 +83,7 @@ export interface ScreenerZeroDteRow {
   group_zh: string;
   zd_prem: number;
   total_prem: number;
-  zd_share: number;
+  zd_share: number | null;
 }
 
 export interface ScreenerHotRow extends ScreenerHotSource {
@@ -103,6 +103,15 @@ function matchesFilter(
 ): boolean {
   return (!filter.root || row.root === filter.root)
     && (!filter.group || row.group === filter.group);
+}
+
+/** Missing and non-finite values sort last in both directions; a real zero remains a value. */
+function compareFiniteLast(a: number | null, b: number | null, direction: ScreenerSortDirection): number {
+  const hasA = a !== null && Number.isFinite(a);
+  const hasB = b !== null && Number.isFinite(b);
+  if (hasA !== hasB) return hasA ? -1 : 1;
+  if (!hasA || !hasB) return 0;
+  return ((a as number) - (b as number)) * direction;
 }
 
 export function selectTopPremiumRows(
@@ -185,7 +194,7 @@ export function selectOiRows(
     .sort((a, b) => {
       if (sortKey === "doi") return (Math.abs(a.d_oi) - Math.abs(b.d_oi)) * sortDir;
       if (sortKey === "oi") return (a.oi - b.oi) * sortDir;
-      if (sortKey === "mid") return ((a.mid ?? 0) - (b.mid ?? 0)) * sortDir;
+      if (sortKey === "mid") return compareFiniteLast(a.mid, b.mid, sortDir);
       return Math.abs(b.d_oi) - Math.abs(a.d_oi);
     });
 }
@@ -213,12 +222,12 @@ export function selectZeroDteRows(
       root,
       zd_prem: zeroDtePremium[root],
       total_prem: totalPremium[root] ?? 0,
-      zd_share: zeroDtePremium[root] / (totalPremium[root] || 1),
+      zd_share: (totalPremium[root] ?? 0) > 0 ? zeroDtePremium[root] / totalPremium[root] : null,
       group: nameMap[root]?.group ?? "",
       group_zh: nameMap[root]?.group_zh ?? "",
     }))
     .sort((a, b) => {
-      if (sortKey === "share") return (a.zd_share - b.zd_share) * sortDir;
+      if (sortKey === "share") return compareFiniteLast(a.zd_share, b.zd_share, sortDir);
       if (sortKey === "prem") return (a.zd_prem - b.zd_prem) * sortDir;
       return b.zd_prem - a.zd_prem;
     });

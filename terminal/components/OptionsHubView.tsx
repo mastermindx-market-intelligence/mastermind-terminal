@@ -3935,8 +3935,9 @@ export default function OptionsHubView({
                                 {lang === "zh" ? r.group_zh : abbrevSector(r.group)}
                               </td>
                               <td style={{ fontVariantNumeric: "tabular-nums" }}>{fmtPremium(r.zd_prem)}</td>
-                              <td style={{ fontVariantNumeric: "tabular-nums", color: r.zd_share > 0.5 ? "var(--warn)" : "var(--text)" }}>
-                                {(r.zd_share * 100).toFixed(1)}%
+                              <td style={{ fontVariantNumeric: "tabular-nums", color: r.zd_share !== null && r.zd_share > 0.5 ? "var(--warn)" : "var(--text)" }}
+                                title={r.zd_share === null ? (lang === "zh" ? "总权利金为零，比例不可用" : "No total premium denominator") : undefined}>
+                                {r.zd_share === null ? (lang === "zh" ? "不可用" : "Unavailable") : `${(r.zd_share * 100).toFixed(1)}%`}
                               </td>
                             </tr>
                           ))}
