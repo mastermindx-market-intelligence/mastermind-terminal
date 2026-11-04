@@ -174,7 +174,7 @@ def assert_admission_wiring(wf: dict[str, Any]) -> None:
     checkouts = [step for step in steps if step.get("uses", "").startswith("actions/checkout@")]
     assert len(checkouts) == 1 and steps.index(checkouts[0]) == 1
     assert checkouts[0]["with"] == {
-        "ref": "${{ steps.source.outputs.sha }}", "persist-credentials": False
+        "ref": "${{ github.sha }}", "persist-credentials": False
     }
     validator = [i for i, step in enumerate(steps)
                  if "selfhosted_canary_inputs.sh" in step.get("run", "")]
@@ -191,7 +191,7 @@ def assert_admission_wiring(wf: dict[str, Any]) -> None:
                       if step.get("uses", "").startswith("actions/checkout@")]
     assert len(host_checkouts) == 1
     assert host_checkouts[0]["with"] == {
-        "ref": "${{ needs.admit.outputs.sha }}", "persist-credentials": False
+        "ref": "${{ github.sha }}", "persist-credentials": False
     }
     assert job["env"] == {
         "CI": "1",
@@ -209,6 +209,7 @@ def test_selfhosted_allocation_waits_for_trusted_admission() -> None:
 @pytest.mark.parametrize("mutation", [
     "no-needs", "unconditional", "floating-checkout", "raw-host-input",
     "selfhosted-admission", "checkout-before-source", "late-validation",
+    "hosted-output-checkout", "selfhosted-output-checkout",
 ])
 def test_admission_wiring_mutations_are_rejected(mutation: str) -> None:
     wf = copy.deepcopy(canary())
@@ -220,6 +221,11 @@ def test_admission_wiring_mutations_are_rejected(mutation: str) -> None:
     elif mutation == "floating-checkout":
         next(step for step in job["steps"]
              if step.get("uses", "").startswith("actions/checkout@"))["with"]["ref"] = "master"
+    elif mutation == "hosted-output-checkout":
+        admission["steps"][1]["with"]["ref"] = '${{ steps.source.outputs.sha }}'
+    elif mutation == "selfhosted-output-checkout":
+        next(step for step in job["steps"]
+             if step.get("uses", "").startswith("actions/checkout@"))["with"]["ref"] = '${{ needs.admit.outputs.sha }}'
     elif mutation == "raw-host-input":
         job["env"]["CANARY_WORKERS"] = "${{ inputs.workers }}"
     elif mutation == "selfhosted-admission":

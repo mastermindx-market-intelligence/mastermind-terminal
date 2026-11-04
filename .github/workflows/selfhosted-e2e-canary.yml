@@ -105,7 +105,7 @@ jobs:
           printf 'sha=%s\n' "$CANARY_EVENT_SHA" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@v4
         with:
-          ref: ${{ steps.source.outputs.sha }}
+          ref: ${{ github.sha }}
           persist-credentials: false
       - name: Validate dispatch inputs before self-hosted allocation
         run: bash .github/scripts/selfhosted_canary_inputs.sh
@@ -146,7 +146,7 @@ jobs:
           echo "node_system=$(node -v 2>/dev/null || echo none) kernel=$(uname -r)"
       - uses: actions/checkout@v4
         with:
-          ref: ${{ needs.admit.outputs.sha }}
+          ref: ${{ github.sha }}
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
