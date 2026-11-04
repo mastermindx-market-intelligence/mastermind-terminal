@@ -65,7 +65,11 @@ jobs:
   terminal-unit:
     name: Terminal unit + typecheck (shard)
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # Existing stages had20min. Add bounded10min browser setup +55min captures
+    # +5min retention margin. Original30-case M2 report took1,018,995ms (~17min)
+    # before the24layout cases; this90min cap is not a hosted timing claim.
+    # See8f1dc846: terminal/docs/pr-crops/terminal-visual-intelligence/asc1233-vi-ci-20261103--report.json.
+    timeout-minutes: 90
     defaults:
       run:
         working-directory: terminal
@@ -88,12 +92,24 @@ jobs:
           node-version: 20
           cache: npm
           cache-dependency-path: terminal/package-lock.json
+      - name: Retain actual checkout and observed event identities
+        run: node e2e/tools/capture_ci_evidence.cjs --checkout-only
       - run: npm ci
       # next-env.d.ts and .next/ route types are gitignored; generate them first
       # so tsc checks the same project a `next build` would.
       - run: npx next typegen
       - run: npx tsc --noEmit
+      - name: Check immutable evidence orchestration (synthetic)
+        timeout-minutes: 1
+        run: node --test e2e/tools/capture_ci_evidence.test.cjs e2e/tools/capture_visual_evidence.test.cjs
+      - name: Prepare Chromium for original mock captures
+        timeout-minutes: 10
+        run: npx playwright install --with-deps chromium
+      - name: Capture and validate evidence on this checkout
+        timeout-minutes: 55
+        run: node e2e/tools/capture_ci_evidence.cjs
       - run: npm test
+        timeout-minutes: 20
       # Node's test runner owns this contract. A .test.cjs name made Playwright
       # execute it during discovery in browser shards, outside its own report.
       # Keep every assertion, run it once, and retain the required unit fan-in.
@@ -227,6 +243,18 @@ jobs:
           fi
           git diff --unified=0 "$BASE" HEAD -- ':/terminal' > "${RUNNER_TEMP}/plain-language.diff"
           node scripts/check_plain_language.mjs --mode enforce-added --diff-file "${RUNNER_TEMP}/plain-language.diff"
+
+      - name: Retain current-checkout mock evidence and failure diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/terminal-ci-evidence/
+            terminal/test-results/
+            terminal/docs/pr-crops/b-pl-6-batch-1/ci-${{ github.run_id }}-${{ github.run_attempt }}-*
+            terminal/docs/pr-crops/terminal-visual-intelligence/ci-${{ github.run_id }}-${{ github.run_attempt }}-*
+          if-no-files-found: warn
 
   terminal-e2e:
     name: Terminal e2e ${{ matrix.shard }} (shard)

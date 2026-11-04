@@ -7,6 +7,15 @@ This version has breaking changes — APIs, conventions, and file structure may 
 <!-- BEGIN:mastermind-agent-laws (added 2026-07-23 after the onboarding-flow postmortem) -->
 # Mastermind Terminal — agent laws
 
+## Review without another session
+
+Use the root [session-owned review rule](../AGENTS.md#session-owned-prsource-review-chairman-2026-11-03). Mastermind #2026 remains a **proposed** source until accepted on protected master; its reference grants no early waiver. The builder must do a `SELF_REVIEWED` adversarial check, but this is not an independent reviewer. Only a fully source-verified tier after the actual protected and installed risk policy permits skipping a reviewer; Terminal #1251's proposed trusted T0 static classifier does **not** exempt an author's undefined `routine` label. Until that consumer is accepted/enrolled, preserve required independent review, CI and formal approval checks for governance, executable, unknown and other non-T0 changes. Where a distinct independent technical review is actually owed, start a true read-only native Codex/Claude reviewer child (or Web Pro native child if exposed, or admitted Fabric child) **under the same parent session**; verify its result and adjudicate findings here. Do not require another top-level chat or a particular historical reviewer. Author self-review is not a distinct subagent or formal GitHub non-author approval. Maintain required CI, real change-risk classification, holds and protected release checks.
+
+
+## Original-PR delivery ownership
+
+This application session must complete the existing PR's verification and authorized release path; a source commit, Draft, PR, CI wait or review request is not a terminal result. Repair CI on its original carrier, make stable PRs Ready, meet actual formal approval/hold checks, and verify final merge and required responsive/browser proof. See the root [finish-to-release rule](../AGENTS.md#finish-the-existing-release-not-the-draft). Do not invent review recipients or bypass protected merge.
+
 ## Model routing
 Opus builds and reviews code. Design choices are judgment work — made in the session's main loop (or an Opus designer agent), never delegated to Sonnet; builders only implement fully-specified designs (exact markup/classes handed to them). Sonnet = mechanical non-code sweeps only; Haiku = trivial extraction.
 
