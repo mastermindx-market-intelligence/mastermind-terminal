@@ -54,6 +54,14 @@ SPARK_BATCH = 18
 # Minimum daily bars for a macro series to be worth publishing. Every instrument in the catalog
 # is decades old, so anything thinner is Yahoo failing to serve history, not a young symbol.
 MIN_OHLC_BARS = 30
+# This benchmark underpins multi-decade Shanghai Composite charts. Yahoo's available
+# daily series begins around 1997; keep the other macro symbols on the cheaper 5y leg.
+FULL_HISTORY_SYMBOLS = frozenset({"000001.SS"})
+
+
+def ohlc_history_range(sym: str) -> str:
+    return "max" if sym in FULL_HISTORY_SYMBOLS else "5y"
+
 
 
 def _get(url: str, timeout: int = 20) -> dict:
@@ -115,7 +123,7 @@ def existing_bar_count(path: Path) -> int:
 
 def fetch_ohlc(sym: str) -> list[list]:
     """Daily OHLC in the same shape chart.js already reads for equities."""
-    url = f"{CHART}/{urllib.parse.quote(sym)}?range=5y&interval=1d"
+    url = f"{CHART}/{urllib.parse.quote(sym)}?range={ohlc_history_range(sym)}&interval=1d"
     try:
         j = _get(url)
     except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as e:
@@ -146,6 +154,33 @@ def fetch_ohlc(sym: str) -> list[list]:
             int(v[i]) if i < len(v) and v[i] is not None else 0,
         ])
     return bars
+
+
+def merge_deep_history(sym: str, path: Path, fetched: list[list]) -> list[list]:
+    """Keep older published bars when Yahoo's max response temporarily loses depth.
+
+    The nightly request can refresh/repair overlapping days, but must not erase
+    decades already backfilled. This is index-specific: other macro assets retain
+    the established rolling 5y replacement and publish-decision safeguards.
+    """
+    if sym not in FULL_HISTORY_SYMBOLS or len(fetched) < MIN_OHLC_BARS:
+        return fetched
+    try:
+        stored = json.loads(path.read_text()).get("bars")
+    except (OSError, json.JSONDecodeError, AttributeError):
+        return fetched
+    if not isinstance(stored, list) or len(stored) < MIN_OHLC_BARS:
+        return fetched
+
+    by_day = {
+        row[0]: row for row in stored
+        if isinstance(row, list) and len(row) == 6 and isinstance(row[0], str)
+    }
+    if len(by_day) < MIN_OHLC_BARS:
+        return fetched
+    # Latest provider values win on overlap; earlier published dates stay available.
+    by_day.update((row[0], row) for row in fetched)
+    return [by_day[day] for day in sorted(by_day)]
 
 
 def write_atomic(path: Path, payload: dict) -> None:
@@ -240,11 +275,16 @@ def main() -> int:
             bars = fetch_ohlc(sym)
             path = out_dir / f"{sym}.json"
             have = existing_bar_count(path)
+            bars = merge_deep_history(sym, path, bars)
             decision = publish_decision(len(bars), have)
             if decision == "write":
-                path.write_text(json.dumps(
-                    {"t": sym, "o": 1, "src": "yahoo", "bar_quality": "real_ohlc", "bars": bars},
-                    separators=(",", ":")))
+                payload = {"t": sym, "o": 1, "src": "yahoo", "bar_quality": "real_ohlc", "bars": bars}
+                if sym in FULL_HISTORY_SYMBOLS:
+                    # A multi-decade payload is never exposed half-written to the chart.
+                    write_atomic(path, payload)
+                    print(f"  ohlc {sym}: {len(bars)} bars ({bars[0][0]} to {bars[-1][0]})")
+                else:
+                    path.write_text(json.dumps(payload, separators=(",", ":")))
                 wrote += 1
             else:
                 if decision == "drop":
