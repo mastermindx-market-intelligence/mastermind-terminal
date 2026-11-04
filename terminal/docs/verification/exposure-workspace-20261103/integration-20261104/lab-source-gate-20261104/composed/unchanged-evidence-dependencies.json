@@ -1,0 +1,16 @@
+[
+  {
+    "packet": "terminal-visual-intelligence",
+    "manifestSha256": "f1b9beb8204985d12d679c618b7431aef1caea614b28b94182bfb6fa2915f21f",
+    "declaredDependencies": 58,
+    "mismatches": [],
+    "qualification": "Historical native proof reused only within its unchanged declared dependency set; no new run claimed."
+  },
+  {
+    "packet": "b-pl-6-batch-1",
+    "manifestSha256": "92a17f1e61499e7831fca588b9cff1f8eebb40d8d9bb762db0aa3aa6ffacce0a",
+    "declaredDependencies": 55,
+    "mismatches": [],
+    "qualification": "Historical native proof reused only within its unchanged declared dependency set; no new run claimed."
+  }
+]

@@ -1,5 +1,9 @@
 # Options Exposure — combined implementation qualification
 
+## Latest completed increment
+
+The [final Research Lab integration and source-state qualification](lab-source-gate-20261104/README.md) completes the bounded protected `4df7aad16ea775ad8112858a5095210c076efe08` composition. It records the reproduced retained-source defect, its implemented repair, 24/24 original and 30/30 composed browser journeys, current static checks, and fresh affected capture evidence. The record below preserves the earlier cd2 qualification and its original results.
+
 This package preserves the completed Paper implementation and its actual combined browser proof from the original C3 operation. It is evidence for a composed preview, not a Git merge or a production release.
 
 ## Source and design
@@ -27,8 +31,8 @@ The original branch retains the two-line wait for the asynchronously mounted cho
 
 The returned Fabric technical review is terminal, with CHANGES_REQUIRED, not formal GitHub approval. The composition retains SectorDepthReturn and protected evidence history. The ladder guard, source/pixel qualification and VI repair address the observed gaps. Current Web policy adds no separate reviewer ceremony; native protection still binds.
 
-## Remaining integration
+## Subsequent integration
 
-The assigned session recovered the original operation after the other runner finished; no live writer was displaced. New protected base `4df7aad16ea775ad8112858a5095210c076efe08` adds Research Lab current-GEX forwarding and related modules. Its bounded compatibility qualification follows this saved snapshot.
+The assigned session recovered the original operation after the other runner finished; no live writer was displaced. Protected base `4df7aad16ea775ad8112858a5095210c076efe08` adds Research Lab current-GEX forwarding and related modules. Its bounded compatibility qualification is completed in the latest increment linked above. This cd2 snapshot remains immutable historical evidence.
 
 Original PR source, this preview, an integrated Git candidate, hosted CI, release and signed-in production proof are separate stages. No merge, queue, Ready/un-draft, label, deploy, purchase or alternate publisher is authorized here. Preserve the accepted six Paper boards and these captures absent a relevant source change.

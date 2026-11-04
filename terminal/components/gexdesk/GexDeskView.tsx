@@ -1001,6 +1001,16 @@ export function GexDeskView({ onMapFirstChange, onOpenPlan }: { onMapFirstChange
   if (researchOpen) return (
     <OptionsResearchLab key={ticker} root={ticker}
       matrix={isArchived ? null : visibleMatrix}
+      // Reuse the qualified current Exposure book; null prevents a separate live fallback.
+      currentGexSnapshot={
+        !isArchived &&
+        rootOk &&
+        liveStatus === "data" &&
+        stream.status !== "absent" &&
+        stream.status !== "unavailable"
+          ? activePayload
+          : null
+      }
       matrixReadStatus={isArchived || !rootOk ? "data" : matrixStatus}
       onRetryMatrix={isArchived || !rootOk ? undefined : retryMatrix}
       volatility={researchEod.vol}

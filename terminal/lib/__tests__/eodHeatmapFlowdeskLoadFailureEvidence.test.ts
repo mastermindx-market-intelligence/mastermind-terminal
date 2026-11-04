@@ -242,7 +242,7 @@ describe("EOD / heatmap / flow desk load-failure evidence lock is the sha256 of 
     expect(count).toBe(42);
   });
 
-  it("binds the Paper hierarchy recapture to current sources and immutable operation crops", () => {
+  it("preserves the Paper hierarchy receipt and immutable operation crops", () => {
     const receipt = receiptSection(evidenceText(), "exposureHierarchyRecapture");
     const folder = "operations/exposure-1243-paper-hierarchy-fit-20261104";
     expect(receipt).toContain(`  outputDir: "${folder}"`);
@@ -250,11 +250,12 @@ describe("EOD / heatmap / flow desk load-failure evidence lock is the sha256 of 
     expect(receipt).toContain("  failedCases: 0");
     expect(receipt).toContain("  sourceStableAcrossCapture: true");
     expect(receipt).toContain('  packetRootCrops: "preserved at original committed bytes"');
-    for (const rel of [...LAYOUT_FILES, "terminal/lib/exposureOrigin.ts", "terminal/lib/sectorDepthReturn.ts"]) {
-      expect(receipt).toContain(`    ${rel}: "${sha256Of(join(REPO, rel))}"`);
-    }
-    const harness = "terminal/e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs";
-    expect(receipt).toContain(`  captureHarnessSha256: "${sha256Of(join(REPO, harness))}"`);
+    // Preserve the accepted Paper operation as history. The following test binds
+    // the newer source gate to its own capture and exact current source bytes.
+    const priorPath = join(CROP_DIR, "operations/exposure-1243-lab-source-gate-20261104/EVIDENCE.before.yml");
+    expect(sha256Of(priorPath)).toBe("4d263695f06e595b917250d39e9fee6bcfb48e0fb37f857f6f8af26aea3aa360");
+    const prior = readFileSync(priorPath, "utf8");
+    expect(receipt).toBe(receiptSection(prior, "exposureHierarchyRecapture"));
     const expected = STATES.filter((state) => state.startsWith("eod-"))
       .flatMap((state) => [1440, 820, 390].flatMap((width) =>
         [`${state}-${width}.png`, `${state}-${width}-zh.png`]));
@@ -265,6 +266,46 @@ describe("EOD / heatmap / flow desk load-failure evidence lock is the sha256 of 
       const file = join(CROP_DIR, folder, name);
       expect(statSync(file).size, name).toBeGreaterThan(1000);
       expect(receipt).toContain(`    ${name}: "${sha256Of(file)}"`);
+    }
+  });
+
+
+  it("verifies the qualified Lab source gate against current sources and native operation crops", () => {
+    const record = receiptSection(evidenceText(), "labSourceGateRecapture20261104");
+    const folder = "operations/exposure-1243-lab-source-gate-20261104";
+    expect(record).toContain(`  outputDir: "${folder}/gate-fixed"`);
+    expect(record).toContain("  actualCases: 42");
+    expect(record).toContain("  failedCases: 0");
+    expect(record).toContain("  sourceStableAcrossCapture: true");
+    const receiptPath = join(CROP_DIR, folder, "capture-receipt.json");
+    expect(record).toContain(`  captureReceiptSha256: "${sha256Of(receiptPath)}"`);
+    const native = JSON.parse(readFileSync(receiptPath, "utf8"));
+    expect(native.exit).toBe(0);
+    expect(native.source_stable).toBe(true);
+    expect(native.failed_frames).toEqual([]);
+    for (const rel of [...LAYOUT_FILES,
+      "terminal/components/researchlab/OptionsResearchLab.tsx",
+      "terminal/components/options-companion/GexMarketMemory.tsx",
+      "terminal/components/researchlab/ResearchReportedGammaPanel.tsx",
+      "terminal/components/researchlab/researchReportedGamma.ts",
+    ]) {
+      const actual = sha256Of(join(REPO, rel));
+      expect(record).toContain(`    ${rel}: "${actual}"`);
+      expect(native.source_sha256[rel]).toBe(actual);
+    }
+    const harness = "terminal/e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs";
+    expect(record).toContain(`  currentCaptureHarnessSha256: "${sha256Of(join(REPO, harness))}"`);
+    expect(native.source_sha256[harness]).toBe(sha256Of(join(REPO, harness)));
+    const expected = CROPS.filter(name => name.startsWith("eod-"));
+    expect(expected).toHaveLength(42);
+    expect(Object.keys(native.image_sha256).sort()).toEqual([...expected].sort());
+    expect(readdirSync(join(CROP_DIR, folder, "gate-fixed")).filter(name => name.endsWith(".png")).sort())
+      .toEqual([...expected].sort());
+    for (const name of expected) {
+      const file = join(CROP_DIR, folder, "gate-fixed", name);
+      expect(statSync(file).size, name).toBeGreaterThan(1000);
+      expect(sha256Of(file), name).toBe(native.image_sha256[name]);
+      expect(record).toContain(`    ${name}: "${sha256Of(file)}"`);
     }
   });
 

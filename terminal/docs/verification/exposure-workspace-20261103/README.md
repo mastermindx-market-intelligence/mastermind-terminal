@@ -2,7 +2,7 @@
 
 ## Current qualification
 
-See the [November 4 combined implementation qualification](integration-20261104/README.md). The records below are earlier increments and retain their original scope and results.
+See the [final November 4 Lab integration and source-state qualification](integration-20261104/lab-source-gate-20261104/README.md) and its [preceding combined implementation record](integration-20261104/README.md). The records below are earlier increments and retain their original scope and results.
 
 # Exposure workspace — archived source correction compatibility
 
