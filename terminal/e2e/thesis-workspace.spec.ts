@@ -10,6 +10,11 @@ async function prepare(page: Page, testInfo: TestInfo, baseURL: string | undefin
   // This suite proves thesis persistence, not the external Brain usage authority.
   // Scope the deterministic read to the context so the stale second tab shares it.
   // Keep the zero-browser-error assertion; never spend the production proxy rate bucket.
+  // The production widget bundle is a separate dependency too. Keep this
+  // persistence suite deterministic across reloads and the stale second tab.
+  await page.context().route("https://www.mastermind-x.com/mm_brain.js", route => route.fulfill({
+    contentType: "application/javascript", body: "",
+  }));
   await page.context().route("**/api/brain/me", route => route.fulfill({
     json: { tier: "guest", quotas: { fast: { remaining: 0, limit: 0, period: "day" }, pro: { remaining: 0, limit: 0, period: "day" } } },
   }));
@@ -176,6 +181,9 @@ async function routeCreatedThesisReads(page: Page, serializedBody: string, write
 }
 
 test("create → deep link → reload → revise → conflict → archive/invalidate/reopen keeps immutable history", async ({ page, baseURL }, testInfo) => {
+  // Reproduce the hosted outage without contacting the production widget origin.
+  // prepare() must isolate this unrelated script for reload and the second tab.
+  await page.context().route("https://www.mastermind-x.com/mm_brain.js", route => route.abort("connectionclosed"));
   await prepare(page, testInfo, baseURL);
   const proofDir = path.join(process.cwd(), "e2e/proof/f11-theses");
   const browserErrors: string[] = [];
