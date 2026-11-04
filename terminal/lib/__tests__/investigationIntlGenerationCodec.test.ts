@@ -68,7 +68,7 @@ const measureEntry=(spec:MeasureSpec):Record<string,unknown>=>{
    evidence_key:pick(spec.evidenceKey,qualified?spec.sid+":primary":null),
   },
   native_evidence:{
-   receipt_identity:pick(spec.receipt,qualified?(spec.sid==="EZ.policy_rate"?{artifact_sha256:"1".repeat(64),provenance_sha256:"2".repeat(64)}:{receipt_sha256:"3".repeat(64)}):null),
+   receipt_identity:pick<unknown>(spec.receipt,qualified?(spec.sid==="EZ.policy_rate"?{artifact_sha256:"1".repeat(64),provenance_sha256:"2".repeat(64)}:{receipt_sha256:"3".repeat(64)}):null),
    publication_decision:qualified?{
     owner_ref:spec.ownerRef??OWNER_REF,
     policy_ref:pick(spec.decisionPolicyRef,pick(spec.policyRef,POLICY_REF)),
@@ -384,4 +384,10 @@ describe("actual producer contract integration corrections",()=>{
   Object.assign(artifact.document.measures as object,gb.document.measures);Object.assign(artifact.document.policies as object,gb.document.policies);(artifact.document.contexts as unknown[]).push(...gb.document.contexts as unknown[]);
   expect(decode(artifact,EZ_CONTEXT)?.supportedMeasureIds).toEqual(["EZ.gdp_yoy"]);expect(decode(artifact,expectedContextId("GB","annual","local"))?.supportedMeasureIds).toEqual(["GB.policy_rate"]);
  });
+});
+
+
+it("retains actual configured empty domains without adding a supported measure",()=>{
+ const artifact=buildArtifact(BASE_SPECS);(artifact.document.contexts as unknown[]).push({id:expectedContextId("KR","3m","local"),market:"KR",horizon:"3m",currency_basis:"local",return_basis:"price",measure_ids:[]});
+ expect(decode(artifact)).not.toBeNull();const empty=decode(artifact,expectedContextId("KR","3m","local"));expect(empty?.supportedMeasureIds).toEqual([]);expect(empty?.result.observations).toEqual([]);
 });

@@ -253,13 +253,13 @@ export function decodeIntlGeneration(artifact:IntlGenerationArtifact,contextId:s
   const record=exactKeys(raw,CONTEXT_KEYS);
   if(!record)return null;
   const market=ascii(record.market,8),horizon=ascii(record.horizon,128),currencyBasis=ascii(record.currency_basis,64);
-  if(!market||!horizon||!currencyBasis||!MARKET_LABELS[market]||record.return_basis!=="price")return null;
+  if(!market||!horizon||!currencyBasis||record.return_basis!=="price")return null;
   if(typeof record.id!=="string"||!isIntlContextIdentity(record.id)||seen.has(record.id))return null;
   seen.add(record.id);
   // The advertised id must be exactly the hash of its own tuple.
   if(contextIdentity({market,horizon,currencyBasis})!==record.id)return null;
   const ids=record.measure_ids;
-  if(!Array.isArray(ids)||ids.length<1||ids.length>MAX_FIELDS)return null;
+  if(!Array.isArray(ids)||ids.length>MAX_FIELDS)return null;
   const measureIds:string[]=[];
   for(const item of ids){
    if(typeof item!=="string"||!IDENTIFIER_PATTERN.test(item)||measureIds.includes(item))return null;
@@ -272,7 +272,9 @@ export function decodeIntlGeneration(artifact:IntlGenerationArtifact,contextId:s
   if(record.id===contextId)invoked={id:record.id,market,horizon,currencyBasis,measureIds};
  }
  if(!invoked)return null;
- const label=MARKET_LABELS[invoked.market];
+ // Empty native domains remain empty, including configured markets without
+ // an admitted macro source. A display code never grants field support.
+ const label=MARKET_LABELS[invoked.market]??[invoked.market,invoked.market];
  const observations=invoked.measureIds.map(sid=>{
   const measure=measures[sid];
   return {
