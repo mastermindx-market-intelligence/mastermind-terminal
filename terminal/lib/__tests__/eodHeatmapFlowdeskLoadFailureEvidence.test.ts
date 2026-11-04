@@ -130,4 +130,41 @@ describe("EOD / heatmap / flow desk load-failure evidence lock is the sha256 of 
       expect(yml).toMatch(new RegExp(`name:\\s*${name},\\s*width:\\s*${width},\\s*height:\\s*${height}`));
     }
   });
+  it("validates the operation-scoped Chain Heat recapture without replacing earlier packet crops", () => {
+    const yml = evidenceText();
+    const sectionAt = yml.indexOf("\ncommandChainHeatFollowup:\n");
+    expect(sectionAt).toBeGreaterThan(0);
+    const record = yml.slice(sectionAt + 1);
+    const folder = "operations/options-1248-chain-history-20261104";
+    expect(record).toContain(`  outputDir: "${folder}"`);
+    expect(record).toContain("  actualCases: 24");
+    expect(record).toContain("  failedCases: 0");
+    expect(record).toContain('  packetRootCrops: "restored to their previous committed bytes"');
+    for (const source of [
+      "terminal/components/flowdesk/ChainHeat.module.css",
+      "terminal/components/flowdesk/CommandWorkspace.module.css",
+      "terminal/components/flowdesk/FlowDeskView.tsx",
+      "terminal/components/flowdesk/FlowFreshnessReceipt.tsx",
+      "terminal/app/observatory.css",
+      "terminal/e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs",
+    ]) {
+      expect(record).toContain(`    ${source}: "${sha256Of(join(REPO, source))}"`);
+    }
+    const cases = ["chainheat-unavailable", "chainheat-retried", "chainheat-absent", "chainheat-refresh-failed"];
+    let tested = 0;
+    for (const state of cases) {
+      for (const viewport of [1440, 820, 390]) {
+        for (const lang of ["", "-zh"]) {
+          const file = `${state}-${viewport}${lang}.png`;
+          const path = join(CROP_DIR, folder, file);
+          expect(existsSync(path), file).toBe(true);
+          expect(statSync(path).size, file).toBeGreaterThan(1000);
+          expect(record).toContain(`    ${file}: "${sha256Of(path)}"`);
+          tested += 1;
+        }
+      }
+    }
+    expect(tested).toBe(24);
+  });
+
 });

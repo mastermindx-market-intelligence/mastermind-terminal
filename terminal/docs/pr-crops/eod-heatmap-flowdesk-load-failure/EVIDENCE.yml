@@ -11,7 +11,7 @@ layoutFiles:
   terminal/components/eodcontext/StructureStrip.tsx: "0baf8c1d09fe4427569c92360081d842018d81d978a8b98d76fb283f950f31d4"
   terminal/components/eodcontext/eodStrings.ts: "4395f953dcc0f4beca53422786393ee792f297211a0eef655c64762f2b34f99f"
   terminal/components/flowdesk/ChainHeat.module.css: "7a0393fecc5a10b09b95679fcbecc529afbf601e8fd8f5e3addc39641c9b6bc0"
-  terminal/components/flowdesk/CommandWorkspace.module.css: "4f68349a5c21bf68204ca502b58bdc0b0c75d55e98a859b6659e9c4540a06c78"
+  terminal/components/flowdesk/CommandWorkspace.module.css: "e064e4a85df0613f4eb913d1cbe867a919cbf02bb0aa0498d98ff5a865b9d390"
   terminal/components/flowdesk/FlowDeskView.tsx: "d4217612605cfa8fad398ed198b503a6e32b709982473ff6e03a5765650c1d4f"
   terminal/components/gexdesk/GexDeskView.tsx: "e7e12f9b3f1217c0b78692a5c65d5181552015ca0c1a91510e01d259432a7a14"
   terminal/components/heatmap/HeatmapView.tsx: "3b3ab5049715a33f167e344d3013b8f880356e8b96077b38c9a517c57b7a54cb"
@@ -322,3 +322,48 @@ files:
   - heatmap-no-match-390.png
   - heatmap-no-match-820-zh.png
   - heatmap-no-match-820.png
+
+commandChainHeatFollowup:
+  capturedAt: "2026-11-04T00:26:50+0000"
+  capturedAtHead: "2f06c165ed6bc144c947fbc9cd60fe21bc34b79e"
+  operation: "options-1248-chain-history-20261104"
+  outputDir: "operations/options-1248-chain-history-20261104"
+  command: "TERMINAL_CROP_PORT=3568 CAPTURE_ONLY=^chainheat- node e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs"
+  states: [unavailable, retried, absent, refresh-failed]
+  viewports: [1440, 820, 390]
+  languages: [en, zh]
+  actualCases: 24
+  failedCases: 0
+  packetRootCrops: "restored to their previous committed bytes"
+  sources:
+    terminal/components/flowdesk/ChainHeat.module.css: "7a0393fecc5a10b09b95679fcbecc529afbf601e8fd8f5e3addc39641c9b6bc0"
+    terminal/components/flowdesk/CommandWorkspace.module.css: "e064e4a85df0613f4eb913d1cbe867a919cbf02bb0aa0498d98ff5a865b9d390"
+    terminal/components/flowdesk/FlowDeskView.tsx: "d4217612605cfa8fad398ed198b503a6e32b709982473ff6e03a5765650c1d4f"
+    terminal/components/flowdesk/FlowFreshnessReceipt.tsx: "5c8f3f13889a2d0bbbdc17d2a7b09a4404b634b6847ea42415f89f161b7ba900"
+    terminal/app/observatory.css: "3af5e1731b87d91576dfeaf4d7d91952951010438e5523ba42f8fee38c4fa51a"
+    terminal/e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs: "0704e5770ff650c473c067a57b84dde7064fd6aa70d5eb0c5def56a443290578"
+  cropSha256:
+    chainheat-absent-1440-zh.png: "a95ed7cc8d1f94f38ecf566b7f3a50cfa55215be91c204a13d3b62f30a05d1c1"
+    chainheat-absent-1440.png: "69a27c8cee056b86fe721b52693ead034e7ce83aac1855052b9c6fc793704566"
+    chainheat-absent-390-zh.png: "64a142911721b7bd5695ba5eade5f7458d5c8d4d301402a567881aece519a4c3"
+    chainheat-absent-390.png: "df782c5ea0dd4f684741cdc81f85db8f2cc145e639a3e8740dfce18422645cfa"
+    chainheat-absent-820-zh.png: "13340e5bd13b08326685687e24eb39acf54c95962f33546a01e2757dcc7fea02"
+    chainheat-absent-820.png: "ccc7402bea622547b4221ea1450a37dc7aea5d8b90e892fb561688ef31aadbae"
+    chainheat-refresh-failed-1440-zh.png: "3b855cbf6f2fa5fdd8e57b5a2d9f02beda93d13fd7b4fda94c5678b0c4bf0d60"
+    chainheat-refresh-failed-1440.png: "0aea7f6efaa142361359f64e5dc0ac94cb93b3133e89bafe0ed2437aab4c1864"
+    chainheat-refresh-failed-390-zh.png: "88985df3b2cf2d6071bcd687e053929d60bbf3ecced2246926e94bb6bb0fb374"
+    chainheat-refresh-failed-390.png: "928fe28394f5c7827aaf2bb2d6dbede19c54d23b76f850c2877e1617071041c1"
+    chainheat-refresh-failed-820-zh.png: "4101087bd60cca282c51722bd9b3dd4fd4b62f28993051a1ce6047fd9eccbd99"
+    chainheat-refresh-failed-820.png: "dafd4c9af57f08c310512b8217e841a577f08649b0bb46be7d90944a42fcb869"
+    chainheat-retried-1440-zh.png: "9e51cec0263207ac316a0b637ab90eccb5b38bbf28052e0f137423457672664f"
+    chainheat-retried-1440.png: "6935a809874285d6f6f2c1e30b159c7cb8532aac903f3ba1590d1451606dc38f"
+    chainheat-retried-390-zh.png: "e8d0f1a0038d3c884c2673da2d9f42a48f4d4d89ee72b025e6b156b01101a1c2"
+    chainheat-retried-390.png: "1f5e3645cbbc887cd45f65dd72da5205e3461c9cbaece2642854fc19e4368b98"
+    chainheat-retried-820-zh.png: "b31349475ddaa7e9bab8948b44ca25b32d90760236ff843e530546b0e687d761"
+    chainheat-retried-820.png: "1ea3622b4db150bd221553f7ee3c16005e2e9955307463aacfcee2ebddf82098"
+    chainheat-unavailable-1440-zh.png: "06f6cb8b8db1e7d79c188f7cf0f0e4577d01949ab4d7289c813d710c5b09fe6b"
+    chainheat-unavailable-1440.png: "5aa9c990f26a204fa8632a8ae416d4c200f50980e0e823d98fbaaff93ebba958"
+    chainheat-unavailable-390-zh.png: "4a25307531d5196b0bb63ce660cb9f3d5550dc3fda87579956f086aa6dcaede8"
+    chainheat-unavailable-390.png: "fb0575e6a02e664db6a42c1b89b75dc90630888a639e6e985c947efcdeed618b"
+    chainheat-unavailable-820-zh.png: "c48e2bd0f1de1e7a56eece592230eeca6635bd077614ca4426f2fba3d27acb05"
+    chainheat-unavailable-820.png: "4f552cc74096e354deaf381a0ea0f2ae9119b9139ecd88d5b74d1b33bce238af"
