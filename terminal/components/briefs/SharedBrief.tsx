@@ -29,10 +29,10 @@ const COPY = {
   unavailable: ["The shared brief could not be read just now.", "共享简报暂时无法读取。"],
   reading: ["Reading…", "正在读取……"], nothing: ["Nothing in this section.", "本节无内容。"],
   title: ["Shared brief", "共享简报"],
-  policy: ["View only. Membership is dynamic: current members of {team} can read this brief.", "仅可查看。成员为动态：{team} 的当前成员可以读取此简报。"],
-  slot: ["Slot", "档期"], asof: ["As of", "成文于"],
+  policy: ["View only. Members of {team} can read this brief. Access changes with team membership.", "仅可查看。{team} 的当前成员可以阅读此简报，访问权限随团队成员变动而变化。"],
+  slot: ["Slot", "档期"], asof: ["Content as of", "内容截至"],
   market: ["Market read", "市场解读"], monitors: ["Monitors", "监测项"],
-  refresh: ["Refresh", "刷新"], atRead: ["This reflects the state at the time of this read only.", "内容仅反映本次读取时的状态。"],
+  refresh: ["Refresh", "刷新"], atRead: ["Access reflects this read. The brief’s dates are shown above.", "访问权限以本次读取时为准；简报日期见上方。"],
 } as const;
 function pick(key: keyof typeof COPY, lang: string) { return COPY[key][lang === "zh" ? 1 : 0]; }
 

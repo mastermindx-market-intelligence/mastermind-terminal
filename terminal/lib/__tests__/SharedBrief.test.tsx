@@ -177,7 +177,7 @@ describe("SharedBrief recipient consumer", () => {
     expect(text).toContain("An authored sentence.");
     expect(text).not.toContain("原有句子。");
     expect(text).toContain(
-      "View only. Membership is dynamic: current members of Research can read this brief.",
+      "View only. Members of Research can read this brief. Access changes with team membership.",
     );
     expect(m.container.querySelector("h1")?.textContent).toBe(
       "Weekly research brief",
