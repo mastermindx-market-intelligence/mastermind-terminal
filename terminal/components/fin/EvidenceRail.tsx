@@ -10,6 +10,7 @@ import type {
 } from "../../lib/companyIntelligence";
 import type { EventWorkspaceEvidenceView } from "../../lib/eventWorkspacePresent";
 import { typedAbsenceReasonLabel } from "../../lib/companyIntelligenceLabels";
+import "./EvidenceRail.css";
 
 export type CompanyEvidenceKind = "summary" | "highlight" | "quote" | "metric";
 
