@@ -25,6 +25,7 @@ export interface MastermindBrainHost {
   };
   MM_BRAIN_CFG?: {
     principal?: string | null;
+    authorizeOptionsQuestion?: (expectedPrincipal: string) => Promise<boolean>;
     symbol?: () => string;
     getCompanySourceSpan?: () => CompanySourceContextRef | null | undefined;
     onChartStop?: (request: ChartStopRequest) => ChartStopResult | undefined;

@@ -29,7 +29,7 @@ describe("actual Terminal stream proxy with exact Options reference", () => {
     const fetch = vi.fn(async () => new Response(response, { headers: { "content-type": "text/event-stream" } }));
     vi.stubGlobal("fetch", fetch);
     const result = await POST(new Request("https://terminal.example/api/brain/stream", { method: "POST", body,
-      headers: { "content-type": "application/json", authorization: "Bearer forged-client-token",
+      headers: { "content-type": "application/json", authorization: "Bearer forged-client-token", "x-mm-options-principal": "fixture-principal",
         "x-forwarded-for": unknown ? "192.0.2.201" : "192.0.2.202" } }), { params: Promise.resolve({ path: ["stream"] }) });
     expect(await result.text()).toBe(response);
     expect(fetch).toHaveBeenCalledTimes(1);
@@ -46,12 +46,20 @@ describe("actual Terminal stream proxy with exact Options reference", () => {
     vi.stubGlobal("fetch", fetch);
     const result = await POST(new Request("https://terminal.example/api/brain/stream", { method: "POST",
       body: JSON.stringify({ message: "selection", options_question_reference: reference() }),
-      headers: { authorization: "Bearer forged-client-token", "x-forwarded-for": "192.0.2.203" } }),
+      headers: { authorization: "Bearer forged-client-token", "x-mm-options-principal": "fixture-principal", "x-forwarded-for": "192.0.2.203" } }),
       { params: Promise.resolve({ path: ["stream"] }) });
     expect(result.status).toBe(403);
-    expect(await result.json()).toEqual({ error: "options_question_unavailable" });
-    expect(fetch).toHaveBeenCalledTimes(1);
-    const [, init] = fetch.mock.calls[0] as unknown as [string, RequestInit];
-    expect(new Headers(init.headers).get("authorization")).toBeNull();
+    expect(await result.json()).toEqual({ error: "options_question_principal_mismatch" });
+    expect(fetch).not.toHaveBeenCalled();
   });
+});
+
+
+it.each([undefined, "", "other-account"])("rejects absent or mismatched expected principal %s before transport", async principal => {
+  const fetch = vi.fn(); vi.stubGlobal("fetch", fetch);
+  const headers: Record<string, string> = { "content-type": "application/json", "x-forwarded-for": "192.0.2.204" };
+  if (principal !== undefined) headers["x-mm-options-principal"] = principal;
+  const result = await POST(new Request("https://terminal.example/api/brain/stream", {method:"POST", headers,
+    body:JSON.stringify({message:"selection",options_question_reference:reference()})}), {params:Promise.resolve({path:["stream"]})});
+  expect(result.status).toBe(403); expect(fetch).not.toHaveBeenCalled();
 });
