@@ -1,0 +1,35 @@
+# Phone Drawings sheet: Favorites record only tools the shell arms — capture evidence
+# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
+# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
+# capturedAtHead: e0f9d40641cd7f8ab6df2bd303826a22ed5af8b5
+# capturedAt: 2026-11-01
+# capturedAtHead is informational. The lock is layoutFiles (the fixed tree; before/ ran master's).
+layoutFiles:
+  terminal/components/mobile/DrawingsSheet.tsx: "a868e271b5787756c3ae651cadee12b825cd00a9cb46ea267807c46e947e44dc"
+  terminal/components/TerminalShell.tsx: "d311f343d011c5d9d66a037b091b7dc25ad23b009d67430056b16cc3f29eefd1"
+theme: dark
+languages: [en, zh]
+viewports:
+  - { name: mobile, width: 390, height: 844 }
+# The defect lives in the phone-only sheet; desktop and tablet arm tools from the dock, whose
+# refusal path was already closed by #1086.
+harness:
+  before/favorites-after-refused-390.png: { url: "/terminal?symbol=NVDA", tree: master, injected: { "GET /api/drawings": 500 }, then: "tapped Trend lines > Trend line (refused), reopened sheet, Favorites", observed: { mm.drawRecents: '["trendline"]' } }
+  before/favorites-after-refused-390-zh.png: { url: "/terminal?symbol=NVDA", tree: master, injected: { "GET /api/drawings": 500 }, then: "tapped Trend lines > Trend line (refused), reopened sheet, Favorites", observed: { mm.drawRecents: '["trendline"]' } }
+  favorites-after-refused-390.png: { url: "/terminal?symbol=NVDA", tree: fixed, injected: { "GET /api/drawings": 500 }, then: "tapped Trend lines > Trend line (refused), reopened sheet, Favorites", observed: { mm.drawRecents: null } }
+  favorites-after-refused-390-zh.png: { url: "/terminal?symbol=NVDA", tree: fixed, injected: { "GET /api/drawings": 500 }, then: "tapped Trend lines > Trend line (refused), reopened sheet, Favorites", observed: { mm.drawRecents: null } }
+surfaces: [DrawingsSheet]
+injection: page.route on **/api/drawings answers every GET 500, so drawingsReadyFor(NVDA) stays false and activateDrawingTool refuses
+capture_flag: TERMINAL_E2E_FIXTURE
+capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set.
+# The capture was a one-off Playwright spec that replays the committed falsifier
+# (e2e/mobile-chart-chrome.spec.ts "phone: a tile the shell refuses is never recorded under
+# Favorites") and adds a page screenshot; it was not committed. That committed test is the gate.
+command: |
+  cd terminal
+  TERMINAL_E2E_FIXTURE=1 npx playwright test e2e/mobile-chart-chrome.spec.ts --project=mobile -g "refuses is never recorded"
+files:
+  - before/favorites-after-refused-390-zh.png
+  - before/favorites-after-refused-390.png
+  - favorites-after-refused-390-zh.png
+  - favorites-after-refused-390.png

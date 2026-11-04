@@ -11,7 +11,7 @@
  */
 
 import { GRAMMAR_VERSION, normalizeDefinition, type ScreenDefinition } from "./predicate";
-import { normalizeReview, REVIEW_VERSION, type ReviewSnapshot } from "./review";
+import { normalizeReview, REVIEW_VERSION, reviewableDefinition, type ReviewSnapshot } from "./review";
 
 export const RECORD_SCHEMA = 1 as const;
 export const SCREEN_KEY_PREFIX = "scr_screen.";
@@ -84,7 +84,7 @@ export function parseScreenRecord(value: unknown, keyId?: string): ParsedRecord 
   let review: ReviewSnapshot | null = null;
   if (v.review !== null && v.review !== undefined) {
     const checked = normalizeReview(v.review, normalized.hash);
-    if (!checked.ok) return { kind: "invalid" };
+    if (!checked.ok || !reviewableDefinition(normalized.def)) return { kind: "invalid" };
     review = checked.review;
   }
   return {

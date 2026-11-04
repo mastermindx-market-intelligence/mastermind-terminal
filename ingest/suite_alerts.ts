@@ -34,13 +34,19 @@
  * Missing data file / malformed condition / fetch error → SKIP log, never disarm.
  *
  * Usage: node ingest/dist/suite_alerts.mjs [--dry-run] [--data-dir DIR] [--env-file FILE]
- *                                          [--demo] [--symbol SYM]
+ *                                          [--demo] [--symbol SYM] [--held-material-events]
+ *   --held-material-events: dormant MO-PAID-027 source composition. Writes existing
+ *     private outbox only when explicitly selected. No deployment/cron enables it.
+ *     Activation requires the parent's privacy/exactly-once and send-policy review;
+ *     this source change does not authorize email, enrollment or a live-book canary.
  *   --demo: no Supabase needed — lists what WOULD be evaluated for --symbol (default
  *           AAPL): computes every suite at defaults and prints fresh-window events.
  */
 
 import { readFileSync, existsSync } from "node:fs";
 import { randomUUID } from "node:crypto";
+import { foldHeldPositions } from "./heldPositionFold";
+import { loadHeldPublicEvents, heldPublicSourceAsof, planHeldMaterialEvents, type HeldOutboxRow } from "./heldMaterialEvents";
 import { join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import type { SuiteEvent } from "../terminal/lib/indicator-canvas/types";
@@ -73,6 +79,7 @@ function log(msg: string): void {
 
 interface Args {
   dryRun: boolean;
+  heldMaterialEvents: boolean;
   demo: boolean;
   envFile: string;
   dataDir: string;
@@ -80,10 +87,11 @@ interface Args {
 }
 
 function parseArgs(argv: string[]): Args {
-  const a: Args = { dryRun: false, demo: false, envFile: DEFAULT_ENV, dataDir: DEFAULT_DATA, symbol: "AAPL" };
+  const a: Args = { dryRun: false, heldMaterialEvents: false, demo: false, envFile: DEFAULT_ENV, dataDir: DEFAULT_DATA, symbol: "AAPL" };
   for (let i = 0; i < argv.length; i++) {
     const t = argv[i];
-    if (t === "--dry-run") a.dryRun = true;
+    if (t === "--held-material-events") a.heldMaterialEvents = true;
+    else if (t === "--dry-run") a.dryRun = true;
     else if (t === "--demo") a.demo = true;
     else if (t === "--env-file") a.envFile = argv[++i] ?? a.envFile;
     else if (t === "--data-dir") a.dataDir = argv[++i] ?? a.dataDir;
@@ -165,6 +173,58 @@ class Supa {
     return Array.isArray(rows) ? rows : [];
   }
 
+  /** Canonical book is read-only and projected to the minimum join fields. Explicit
+   * pagination prevents PostgREST's row cap from becoming silent calm coverage. */
+  async openPositions(): Promise<unknown[]> {
+    const all: unknown[] = [];
+    for (let offset = 0; offset < 10_000; offset += 500) {
+      const r = await this.fetchImpl(`${this.base}/portfolio_positions?status=eq.open&select=user_id,ticker,status,created_at&order=id.asc&limit=500&offset=${offset}`, { headers: this.headers });
+      if (!r.ok) throw new Error("held_positions_read_failed");
+      const rows: unknown = await r.json();
+      if (!Array.isArray(rows) || rows.length > 500) throw new Error("held_positions_invalid");
+      all.push(...rows);
+      if (rows.length < 500) return all;
+    }
+    throw new Error("held_positions_over_limit");
+  }
+
+  /** Corrections append; an existing private receipt is linked, never edited.
+   * The query and returned identity are both constrained to this owner/event. */
+  async linkHeldCorrection(row: HeldOutboxRow): Promise<void> {
+    if (!row.payload.source_revision.startsWith("corrected:")) return;
+    const query = new URLSearchParams({
+      user_id: `eq.${row.user_id}`, "payload->>source": `eq.${row.payload.source}`,
+      "payload->>event_id": `eq.${row.payload.event_id}`, "payload->>event_time": `lte.${row.payload.event_time}`, fire_event_id: `neq.${row.fire_event_id}`,
+      select: "user_id,fire_event_id,payload", order: "created_at.desc", limit: "1",
+    });
+    const r = await this.fetchImpl(`${this.base}/alert_outbox?${query}`, { headers: this.headers });
+    if (!r.ok) throw new Error("held_correction_read_failed");
+    const prior: unknown = await r.json();
+    if (!Array.isArray(prior) || prior.length > 1) throw new Error("held_correction_unconfirmed");
+    const previous = prior[0];
+    if (prior.length && (!previous || previous.user_id !== row.user_id || previous.payload?.source !== row.payload.source ||
+      previous.payload?.event_id !== row.payload.event_id || previous.fire_event_id === row.fire_event_id ||
+      !Number.isFinite(Date.parse(previous.payload?.event_time ?? "")) || Date.parse(previous.payload.event_time) > Date.parse(row.payload.event_time) ||
+      !/^held:[a-f0-9]{64}$/.test(previous.fire_event_id))) throw new Error("held_correction_unconfirmed");
+    row.payload.corrects = previous ? { lane: "suite_alerts", id: previous.fire_event_id } : null;
+  }
+
+  async enqueueHeld(row: HeldOutboxRow): Promise<"inserted" | "duplicate"> {
+    const r = await this.fetchImpl(`${this.base}/alert_outbox?on_conflict=fire_event_id`, {
+      method: "POST", headers: { ...this.headers, "Content-Type": "application/json", Prefer: "return=representation,resolution=ignore-duplicates" },
+      body: JSON.stringify(row),
+    });
+    // A raw 409 is never sufficient evidence of this identity's existence.
+    // ON CONFLICT is scoped to the actual fire key; its empty representation is
+    // the one accepted duplicate disposition. All other failures remain errors.
+    if (!r.ok) throw new Error("held_outbox_write_failed");
+    const result: unknown = await r.json();
+    if (!Array.isArray(result)) throw new Error("held_outbox_unconfirmed");
+    if (result.length === 0) return "duplicate";
+    if (result.length !== 1 || result[0]?.fire_event_id !== row.fire_event_id || result[0]?.user_id !== row.user_id) throw new Error("held_outbox_unconfirmed");
+    return "inserted";
+  }
+
   /** Disarm + stamp trigger evidence. The active=eq.true guard makes double-fires a
    *  no-op even if two runs overlap — mirrors alerts_engine.py Supa.fire exactly.
    *  Returns false when the PATCH throws or is non-2xx: the row stays armed and the
@@ -243,12 +303,13 @@ class Supa {
   async concludeRun(
     lane: string, runId: string, concludedAt: string, outcome: string,
     evaluatedN: number | null, firedN: number | null, unevaluableN: number | null,
-    errorClass: string | null,
+    errorClass: string | null, sourceAsof?: string | null,
   ): Promise<boolean> {
     const url = `${this.base}/alert_runs?lane=eq.${encodeURIComponent(lane)}&run_id=eq.${encodeURIComponent(runId)}`;
     const { status, parsed, text } = await this.jsonStatus(url, "PATCH", {
       concluded_at: concludedAt, outcome, evaluated_n: evaluatedN, fired_n: firedN,
       unevaluable_n: unevaluableN, error_class: errorClass,
+      ...(sourceAsof === undefined ? {} : { source_asof: sourceAsof }),
     });
     if (this.tableMissing(status, parsed)) {
       log("READ_UNAVAILABLE alert_runs (conclude) — table not applied yet");
@@ -311,6 +372,8 @@ function isoSeconds(): string {
 
 export type SuiteAlertsHooks = {
   fetchImpl?: typeof fetch;
+  loadHeldEvents?: typeof loadHeldPublicEvents;
+  now?: () => number;
   loadSymbolData?: typeof loadSymbolData;
   suiteEventsFor?: (...args: Parameters<typeof suiteEventsFor>) => SuiteEvent[] | Promise<SuiteEvent[]>;
 };
@@ -362,6 +425,7 @@ export async function runSuiteAlertsLane(opts: {
     runReceipted = await supa.startRun(LANE, runId, startedAt, LANE_CADENCE_S);
   }
 
+  let heldSourceAsof: string | null | undefined;
   const conclude = async (
     outcome: string,
     evaluatedN: number | null,
@@ -371,7 +435,7 @@ export async function runSuiteAlertsLane(opts: {
   ) => {
     const concludedAt = isoSeconds();
     if (runReceipted) {
-      await supa.concludeRun(LANE, runId, concludedAt, outcome, evaluatedN, firedN, unevaluableN, errorClass);
+      await supa.concludeRun(LANE, runId, concludedAt, outcome, evaluatedN, firedN, unevaluableN, errorClass, heldSourceAsof);
     } else if (args.dryRun) {
       log(`[dry-run] conclude_run lane=${LANE} run_id=${runId} outcome=${outcome} evaluated_n=${evaluatedN} fired_n=${firedN} unevaluable_n=${unevaluableN} error_class=${errorClass} (no write)`);
     }
@@ -386,14 +450,37 @@ export async function runSuiteAlertsLane(opts: {
       log(`FETCH ERROR listing alerts: ${e instanceof Error ? e.message : e}`);
       return empty(1, { outcome: "failure" });
     }
-    if (alerts.length === 0) {
-      log("no armed suite_event alerts — nothing to do");
-      const skipped = 0;
-      const evalErrors = 0;
-      const deferred = 0;
-      const outcome = (skipped === 0 && evalErrors === 0 && deferred === 0) ? "success" : "partial";
-      await conclude(outcome, 0, 0, 0, null);
-      return empty(0, { outcome, evaluatedN: 0 });
+    // Optional held-company path shares this lane and its two-phase receipt. Public
+    // catalog reads never receive private membership. Do not activate through cron
+    // or configuration as part of source delivery.
+    let heldEvaluated = 0;
+    let heldUnevaluable = 0;
+    let heldFired = 0;
+    let heldError: string | null = null;
+    if (args.heldMaterialEvents) {
+      heldSourceAsof = null;
+      try {
+        if (!args.dryRun && !runReceipted) throw new Error("held_receipt_unavailable");
+        const events = await (opts.hooks?.loadHeldEvents ?? loadHeldPublicEvents)();
+        const book = foldHeldPositions(await supa.openPositions());
+        const plan = planHeldMaterialEvents(book.positions, events, (opts.hooks?.now ?? Date.now)());
+        heldEvaluated = plan.evaluated;
+        heldUnevaluable = plan.unevaluable + book.excludedRows;
+        heldSourceAsof = heldPublicSourceAsof(events);
+        for (const row of plan.rows) {
+          if (args.dryRun) { heldFired++; continue; }
+          try {
+            await supa.linkHeldCorrection(row);
+            if (await supa.enqueueHeld(row) === "inserted") heldFired++;
+          }
+          catch { heldUnevaluable++; heldEvaluated = Math.max(0, heldEvaluated - 1); heldError = "held_outbox_write_failed"; }
+        }
+        if (heldUnevaluable && !heldError) heldError = "held_source_no_coverage";
+      } catch {
+        // No raw error/URL/owner/ticker/position is logged on this private path.
+        heldUnevaluable++;
+        heldError = "held_read_unavailable";
+      }
     }
 
     // Group by symbol → one bars load + one computeSuite per (symbol, suite).
@@ -404,7 +491,7 @@ export async function runSuiteAlertsLane(opts: {
       bySymbol.get(sym)!.push(a);
     }
 
-    let fired = 0;
+    let fired = heldFired;
     let skipped = 0;
     let evalErrors = 0;
     let deferred = 0;
@@ -505,11 +592,15 @@ export async function runSuiteAlertsLane(opts: {
         }
       }
     }
-    const unevaluableN = skipped + evalErrors + deferred;
-    const evaluatedN = alerts.length - unevaluableN;
-    const outcome = (skipped === 0 && evalErrors === 0 && deferred === 0) ? "success" : "partial";
-    await conclude(outcome, evaluatedN, fired, unevaluableN, evalErrors === 0 ? null : "eval_error");
-    log(`done: ${alerts.length} armed, ${fired} fired, ${unevaluableN} unevaluable`);
+    const unevaluableN = skipped + evalErrors + deferred + heldUnevaluable;
+    const evaluatedN = alerts.length - skipped - evalErrors - deferred + heldEvaluated;
+    const outcome = unevaluableN === 0 ? "success" : "partial";
+    // alert_runs is a shared lane-health surface. Never expose held membership
+    // counts or a membership-selected timestamp through its global receipt.
+    await conclude(outcome, args.heldMaterialEvents ? null : evaluatedN, args.heldMaterialEvents ? null : fired,
+      args.heldMaterialEvents ? null : unevaluableN, heldError ?? (evalErrors === 0 ? null : "eval_error"));
+    if (args.heldMaterialEvents) log(`done: suite and held evaluation ${outcome}; private counts omitted`);
+    else log(`done: ${alerts.length} armed, ${fired} fired, ${unevaluableN} unevaluable`);
     return { code: 0, outcome, fired, unevaluableN, evaluatedN, deferred, skipped, evalErrors };
   } catch (e) {
     await conclude("failure", null, null, null, e instanceof Error ? e.constructor.name : "Error");

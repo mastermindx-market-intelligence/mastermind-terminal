@@ -15,6 +15,8 @@ const command = {
   seq: 1,
   op: "chart.set_tf",
   args: { tf: "D" },
+  target: { schema: "chart.command_target.v1", origin_id: "origin-rebind", context_revision: 1,
+    pane_id: 0, symbol: "AAPL", tf: "3D" },
 };
 
 function Harness({

@@ -91,21 +91,23 @@ export function realizedVolCone(bars: Bar[]): RvConeRow[] {
     }
 
     const samples: number[] = [];
+    let current: number | null = null;
     const total = bars.length - w; // number of possible window end-positions
     const stride = Math.max(1, Math.floor(total / 500));
     for (let end = bars.length; end - (w + 1) >= 0; end -= stride) {
       // window = bars[end-(w+1) .. end-1]; +1 for the overnight seed bar
       const slice = bars.slice(end - (w + 1), end);
       const rv = realizedVolYZ(slice);
-      if (isFinite(rv) && rv > 0) samples.push(rv);
+      const eligible = isFinite(rv) && rv > 0;
+      // The first computed window is Current, even when historical sampling excludes it.
+      if (end === bars.length) current = eligible ? rv : null;
+      if (eligible) samples.push(rv);
     }
 
     if (samples.length === 0) {
       return { window: w, current: null, min: null, p25: null, median: null, p75: null, max: null };
     }
 
-    // current = the newest trailing-window value (first sample computed above).
-    const current = samples[0];
     const sorted = samples.slice().sort((a, b) => a - b);
     return {
       window: w,

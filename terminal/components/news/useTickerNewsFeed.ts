@@ -5,20 +5,31 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   parseTickerNewsChange,
   parseTickerNewsSnapshot,
+  parseEditorialView,
+  requireSameEditorialView,
+  type TickerNewsViewMode,
+  type TickerNewsEditorialView,
   type TickerNewsSnapshot,
 } from "@/lib/newsContract";
 
 export type TickerNewsLoadState = "loading" | "restricted" | "unavailable" | "ready";
 
 function newestSequence(snapshot: TickerNewsSnapshot): number {
-  return snapshot.rows.reduce((max, row) => Math.max(max, row.sequence), 0);
+  return snapshot.change_sequence ?? snapshot.rows.reduce((max, row) => Math.max(max, row.sequence), 0);
 }
 
-export function useTickerNewsFeed(symbol: string) {
+export function useTickerNewsFeed(symbol: string, view: TickerNewsViewMode = "news") {
+  const key = JSON.stringify([symbol, view]);
+  const [reload, setReload] = useState(0);
+  // Re-entering the same ticker/view is a new activation. Adjust during render
+  // so an earlier activation cannot briefly become ready before effects run.
+  const [activation, setActivation] = useState(() => ({ key, reload, id: 0 }));
+  const activationMatches = activation.key === key && activation.reload === reload;
+  if (!activationMatches) setActivation({ key, reload, id: activation.id + 1 });
   const generation = useRef(0);
   const [snapshot, setSnapshot] = useState<TickerNewsSnapshot | null>(null);
-  const [loadState, setLoadState] = useState<{ symbol: string; state: TickerNewsLoadState }>(
-    () => ({ symbol, state: "loading" }),
+  const [loadState, setLoadState] = useState<{ key: string; activation: number; state: TickerNewsLoadState }>(
+    () => ({ key, activation: activation.id, state: "loading" }),
   );
   const [liveInterrupted, setLiveInterrupted] = useState(false);
 
@@ -29,13 +40,15 @@ export function useTickerNewsFeed(symbol: string) {
     isLatest: () => boolean,
     clearInterruptedOnSuccess: boolean,
     isStreamClosed: () => boolean,
+    acceptedView: TickerNewsEditorialView | null,
+    onReset: () => void,
   ): Promise<TickerNewsSnapshot | null> => {
     const stale = () =>
       controller.signal.aborted ||
       generation.current !== expectedGeneration ||
       !isLatest();
     try {
-      const res = await fetch(`/api/news/${encodeURIComponent(symbol)}?limit=20`, {
+      const res = await fetch(`/api/news/${encodeURIComponent(symbol)}?limit=20&view=${view}`, {
         method: "GET",
         headers: { Accept: "application/json" },
         signal: controller.signal,
@@ -57,36 +70,38 @@ export function useTickerNewsFeed(symbol: string) {
           /rights|access|unauth/i.test(detail);
         if (restricted) {
           setSnapshot(null);
-          setLoadState({ symbol, state: "restricted" });
+          setLoadState({ key, activation: activation.id, state: "restricted" });
           return null;
         }
         // Master contract: a failed load ends unavailable whether initial or background; only the
         // initial load also clears the snapshot (the panel hides rows whenever state is not ready).
         if (!background) setSnapshot(null);
-        setLoadState({ symbol, state: "unavailable" });
+        setLoadState({ key, activation: activation.id, state: "unavailable" });
         return null;
       }
       const parsed = parseTickerNewsSnapshot(await res.json());
       if (stale()) return null;
-      if (parsed.ticker !== symbol.toUpperCase()) {
-        if (!background) {
-          setSnapshot(null);
-          setLoadState({ symbol, state: "unavailable" });
-        }
+      if (parsed.ticker !== symbol.toUpperCase() || parsed.editorial_view?.mode !== view) {
+        setSnapshot(null);
+        setLoadState({ key, activation: activation.id, state: "unavailable" });
+        return null;
+      }
+      if (acceptedView && parsed.editorial_view.revision !== acceptedView.revision) {
+        onReset();
         return null;
       }
       setSnapshot(parsed);
-      setLoadState({ symbol, state: "ready" });
+      setLoadState({ key, activation: activation.id, state: "ready" });
       if ((!background || clearInterruptedOnSuccess) && !isStreamClosed()) {
         setLiveInterrupted(false);
       }
       return parsed;
     } catch {
       if (stale()) return null;
-      setLoadState({ symbol, state: "unavailable" });
+      setLoadState({ key, activation: activation.id, state: "unavailable" });
       return null;
     }
-  }, [symbol]);
+  }, [symbol, view, key, activation.id]);
 
   useEffect(() => {
     const currentGeneration = generation.current + 1;
@@ -98,6 +113,19 @@ export function useTickerNewsFeed(symbol: string) {
     let requestSerial = 0;
     let reconnectPending = false;
     let streamClosed = false;
+    let acceptedView: TickerNewsEditorialView | null = null;
+
+    const restart = () => {
+      if (!alive || streamClosed || generation.current !== currentGeneration) return;
+      streamClosed = true;
+      requestSerial += 1;
+      events?.close();
+      controller.abort();
+      setSnapshot(null);
+      setLoadState({ key, activation: activation.id, state: "loading" });
+      setLiveInterrupted(false);
+      setReload((value) => value + 1);
+    };
 
     const issue = (background: boolean, clearInterruptedOnSuccess = false) => {
       const requestId = ++requestSerial;
@@ -108,13 +136,19 @@ export function useTickerNewsFeed(symbol: string) {
         () => alive && requestId === requestSerial,
         clearInterruptedOnSuccess,
         () => streamClosed,
+        acceptedView,
+        restart,
       );
     };
 
     const refreshFromChange = async (event: Event) => {
       const message = event as MessageEvent;
       try {
-        parseTickerNewsChange(JSON.parse(message.data));
+        const change = parseTickerNewsChange(JSON.parse(message.data));
+        if (acceptedView) {
+          try { requireSameEditorialView(acceptedView, change.editorial_view); }
+          catch { restart(); return; }
+        }
       } catch {
         return;
       }
@@ -127,19 +161,30 @@ export function useTickerNewsFeed(symbol: string) {
     void (async () => {
       const initial = await issue(false);
       if (!initial || !alive || generation.current !== currentGeneration) return;
-      if (typeof EventSource === "undefined") return;
+      acceptedView = initial.editorial_view ?? null;
+      if (typeof EventSource === "undefined" || !acceptedView) return;
       events = new EventSource(
-        `/api/news/stream?symbol=${encodeURIComponent(symbol)}&after_sequence=${newestSequence(initial)}`,
+        `/api/news/stream?symbol=${encodeURIComponent(symbol)}&after_sequence=${newestSequence(initial)}&view=${view}&view_revision=${acceptedView.revision}`,
       );
       events.addEventListener("upsert", refreshFromChange);
       events.addEventListener("remove", refreshFromChange);
+      events.addEventListener("reset", (event) => {
+        if (!alive || streamClosed || generation.current !== currentGeneration) return;
+        try {
+          const payload = JSON.parse((event as MessageEvent).data);
+          if (payload.schema !== "ticker_news.reset.v1" || payload.ticker !== symbol.toUpperCase()) return;
+          const nextView = parseEditorialView(payload.editorial_view);
+          if (!nextView || nextView.mode !== view) return;
+          restart();
+        } catch { /* malformed events cannot replace the current context */ }
+      });
       events.addEventListener("restricted", () => {
         if (!alive || generation.current !== currentGeneration) return;
         // A rights revocation invalidates every refresh already in flight.
         requestSerial += 1;
         streamClosed = true;
         setSnapshot(null);
-        setLoadState({ symbol, state: "restricted" });
+        setLoadState({ key, activation: activation.id, state: "restricted" });
         events?.close();
       });
       events.addEventListener("unavailable", () => {
@@ -166,12 +211,20 @@ export function useTickerNewsFeed(symbol: string) {
       controller.abort();
       events?.close();
     };
-  }, [loadSnapshot, symbol]);
+  }, [loadSnapshot, symbol, view, key, reload, activation.id]);
 
+  const currentActivation = activationMatches && loadState.key === key && loadState.activation === activation.id;
   const activeSnapshot =
-    snapshot?.ticker === symbol.toUpperCase() ? snapshot : null;
+    currentActivation && snapshot?.ticker === symbol.toUpperCase() && snapshot.editorial_view?.mode === view ? snapshot : null;
   const effectiveLoadState: TickerNewsLoadState =
-    loadState.symbol === symbol ? loadState.state : "loading";
+    currentActivation ? loadState.state : "loading";
 
-  return { snapshot: activeSnapshot, loadState: effectiveLoadState, liveInterrupted };
+  const refresh = useCallback(() => {
+    generation.current += 1;
+    setSnapshot(null);
+    setLoadState({ key, activation: activation.id, state: "loading" });
+    setReload((value) => value + 1);
+  }, [key, activation.id]);
+
+  return { snapshot: activeSnapshot, loadState: effectiveLoadState, liveInterrupted: currentActivation && liveInterrupted, refresh };
 }

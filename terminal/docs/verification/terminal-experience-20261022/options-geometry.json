@@ -1,0 +1,41 @@
+{
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "fixture": "TERMINAL_E2E_FIXTURE",
+  "measurement": {
+    "closed": {
+      "grid": 490.234375,
+      "nav": 86,
+      "rows": [
+        46,
+        39
+      ],
+      "documentHeight": 900,
+      "viewportHeight": 900
+    },
+    "opened": {
+      "grid": 490.234375,
+      "nav": 86,
+      "rows": [
+        46,
+        39
+      ],
+      "documentHeight": 900,
+      "viewportHeight": 900
+    },
+    "originalNav": {
+      "grid": 476.234375,
+      "nav": 100,
+      "rows": [
+        49,
+        50
+      ],
+      "documentHeight": 900,
+      "viewportHeight": 900
+    }
+  },
+  "comparison_method": "After measuring candidate closed and opened states, remove only the new Options navigation CSS-module class in the temporary local browser to measure the original navigation geometry.",
+  "scope": "Local fixture diagnostic; not production acceptance."
+}

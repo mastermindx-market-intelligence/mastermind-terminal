@@ -14,6 +14,10 @@ import { useCallback } from "react";
 import { useLang, useT } from "./i18n";
 
 export const CONTRACT_SHORTLIST_LEX: Record<string, [string, string]> = {
+  e15O_report_dated: ["Report dated {d}", "报告日期 {d}"],
+  e15O_report_date_unavailable: ["Report date unavailable", "报告日期不可用"],
+  e15O_reported_oi: ["Reported open interest", "报告未平仓量"],
+  e15O_reported_doi_foot: ["Reported open interest reflects positions at the prior trading close. Change is this dated report minus the earlier report; it does not describe current intraday flow.", "报告未平仓量反映前一交易日收盘持仓。变动为本期带日期报告减前一期报告，不代表当前盘中资金流。"],
   e15Title: ["Contract shortlist", "合约候选"],
   e15Count: ["{n} of {max} pinned", "已固定 {n}/{max}"],
   e15HintEmpty: [
