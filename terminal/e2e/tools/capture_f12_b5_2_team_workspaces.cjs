@@ -188,7 +188,7 @@ viewports:
   - { name: mobile, width: 390, height: 844 }
 harness: /dev/workspaces?lang=<en|zh>&state=<team-grouped|share-confirm|member-read-only>
 capture_flag: TERMINAL_E2E_FIXTURE
-capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set.
+capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set.
 command: |
   cd terminal
   node e2e/tools/capture_f12_b5_2_team_workspaces.cjs

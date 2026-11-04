@@ -1,0 +1,13 @@
+The CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.
+
+ RUN  v2.1.9 /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/futures-gex-projection-20261011/terminal
+
+ ✓ lib/__tests__/futuresPage.test.ts (9 tests) 6ms
+ ✓ lib/__tests__/futuresSourceRead.test.ts (11 tests) 45ms
+ ✓ lib/__tests__/futuresApi.test.ts (17 tests) 132ms
+ ✓ lib/__tests__/futuresSourceJoin.test.ts (34 tests) 243ms
+
+ Test Files  4 passed (4)
+      Tests  71 passed (71)
+   Start at  19:30:13
+   Duration  2.02s (transform 1.52s, setup 0ms, collect 2.72s, tests 425ms, environment 0ms, prepare 1.10s)

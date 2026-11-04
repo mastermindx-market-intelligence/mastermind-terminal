@@ -1,0 +1,241 @@
+{
+  "schema": "options_hub.exposure_projection/v2",
+  "kind": "modeled_exposure",
+  "root": "SPY",
+  "source_snapshot_ref": "owner:immutable-snapshot-1",
+  "input_sha256": "812f12258bd16b90af92d02a2fb16f0b8453940b4b7452f2a07b37028f399458",
+  "security_id": "SEC:SPY",
+  "position_basis": "assumed_long_call_short_put",
+  "scale": "dollars",
+  "rights_decision_ref": null,
+  "greek_provenance": {
+    "gamma": {
+      "source_ref": "owner:immutable-snapshot-1",
+      "model_ref": "owner:provider-model-1",
+      "unit": "delta_per_underlying_price_unit",
+      "method": "provider_observed",
+      "tenor_policy": "economic_expiry_no_floor"
+    },
+    "vanna": {
+      "source_ref": "owner:immutable-snapshot-1",
+      "model_ref": "owner:provider-model-1",
+      "unit": "delta_per_1.00_vol",
+      "method": "provider_observed",
+      "tenor_policy": "economic_expiry_no_floor"
+    },
+    "charm": {
+      "source_ref": "owner:immutable-snapshot-1",
+      "model_ref": "owner:provider-model-1",
+      "unit": "delta_per_elapsed_calendar_year",
+      "method": "provider_observed",
+      "tenor_policy": "economic_expiry_no_floor"
+    }
+  },
+  "clocks": {
+    "source_session": "2026-10-15",
+    "oi_report_date": "2026-10-15",
+    "oi_position_session": null,
+    "oi_available_at": "2026-10-15T12:00:00Z",
+    "option_observed_at": "2026-10-15T19:00:00Z",
+    "underlying_observed_at": "2026-10-15T19:00:00Z",
+    "greeks_available_at": "2026-10-15T19:01:00Z",
+    "available_at": "2026-10-15T20:00:00Z",
+    "published_at": null,
+    "correction_ref": null
+  },
+  "population": {
+    "id": "eb0d6166420fd685aebbd567ff28b7ca64dcfaf9d2b582f29788befe5c459e0d",
+    "scope": "observed_population",
+    "full_universe_expected": null,
+    "full_universe_complete": false,
+    "expected_contracts": null,
+    "received_contracts": 1,
+    "received_rows": 1,
+    "oi_received_contracts": 1,
+    "observed_contracts": 1,
+    "unexpected_contracts": 0,
+    "invalid_rows": {
+      "greeks": 0,
+      "oi": 0,
+      "expected": 0,
+      "terms": 0
+    }
+  },
+  "metrics": {
+    "gamma": {
+      "unit": "usd_delta_per_1pct_spot",
+      "expected": null,
+      "received": 1,
+      "qualified": 1,
+      "missing": 0,
+      "status": "partial",
+      "net": null,
+      "gross": null,
+      "known_net": 10000.0,
+      "known_gross": 10000.0,
+      "qualified_population_id": "a50455ec91f756032e5c28c6db3765f0129bf821bfb49b625f8e3d75b322f2b3",
+      "call": 10000.0,
+      "put": null,
+      "exclusions": {}
+    },
+    "vanna": {
+      "unit": "usd_delta_per_1vol_point",
+      "expected": null,
+      "received": 1,
+      "qualified": 1,
+      "missing": 0,
+      "status": "partial",
+      "net": null,
+      "gross": null,
+      "known_net": -2000.0,
+      "known_gross": 2000.0,
+      "qualified_population_id": "a50455ec91f756032e5c28c6db3765f0129bf821bfb49b625f8e3d75b322f2b3",
+      "call": -2000.0,
+      "put": null,
+      "exclusions": {}
+    },
+    "charm": {
+      "unit": "usd_delta_per_calendar_day",
+      "expected": null,
+      "received": 1,
+      "qualified": 1,
+      "missing": 0,
+      "status": "partial",
+      "net": null,
+      "gross": null,
+      "known_net": 1000.0,
+      "known_gross": 1000.0,
+      "qualified_population_id": "a50455ec91f756032e5c28c6db3765f0129bf821bfb49b625f8e3d75b322f2b3",
+      "call": 1000.0,
+      "put": null,
+      "exclusions": {}
+    }
+  },
+  "cell_count": 1,
+  "cells_status": "complete",
+  "cell_encoding": "tuple-v1",
+  "cell_fields": [
+    "expiry_index",
+    "strike",
+    "population_index",
+    "metrics",
+    "joint"
+  ],
+  "metric_order": [
+    "gamma",
+    "vanna",
+    "charm"
+  ],
+  "metric_fields": [
+    "expected",
+    "received",
+    "qualified",
+    "missing",
+    "status_index",
+    "net",
+    "gross",
+    "known_net",
+    "known_gross",
+    "qualified_population_index",
+    "call",
+    "put",
+    "exclusions"
+  ],
+  "joint_fields": [
+    "expected",
+    "received",
+    "qualified",
+    "missing",
+    "population_index",
+    "model_index",
+    "complete"
+  ],
+  "metric_statuses": [
+    "unavailable",
+    "partial",
+    "complete_observed",
+    "complete_expected"
+  ],
+  "metric_units": {
+    "gamma": "usd_delta_per_1pct_spot",
+    "vanna": "usd_delta_per_1vol_point",
+    "charm": "usd_delta_per_calendar_day"
+  },
+  "population_ids": [
+    "a50455ec91f756032e5c28c6db3765f0129bf821bfb49b625f8e3d75b322f2b3",
+    "826e0af65717d6f74e90359974e3f08b9f99c163a5886ec0a870c1adbae94fc7",
+    "9392661ffd41bfb0d7907672454a46b977aea364ee7eb5496b5ac2c09c154354"
+  ],
+  "model_refs": [
+    "owner:provider-model-1"
+  ],
+  "expiry_terms": [
+    [
+      "2026-10-23",
+      "2026-10-23T20:00:00Z"
+    ]
+  ],
+  "cells": [
+    [
+      0,
+      100.0,
+      1,
+      [
+        [
+          null,
+          1,
+          1,
+          0,
+          1,
+          null,
+          null,
+          10000.0,
+          10000.0,
+          0,
+          10000.0,
+          null,
+          {}
+        ],
+        [
+          null,
+          1,
+          1,
+          0,
+          1,
+          null,
+          null,
+          -2000.0,
+          2000.0,
+          0,
+          -2000.0,
+          null,
+          {}
+        ],
+        [
+          null,
+          1,
+          1,
+          0,
+          1,
+          null,
+          null,
+          1000.0,
+          1000.0,
+          0,
+          1000.0,
+          null,
+          {}
+        ]
+      ],
+      [
+        null,
+        1,
+        1,
+        0,
+        2,
+        0,
+        false
+      ]
+    ]
+  ]
+}

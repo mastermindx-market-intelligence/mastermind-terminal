@@ -16,7 +16,7 @@ import type { SectionProps } from "./types";
 // user_metadata), so there is no save button and nothing to wire beyond the
 // store calls.
 
-export default function SectionTerminal({ t, identity, onClose }: SectionProps) {
+export default function SectionTerminal({ t, lang, identity, onClose }: SectionProps) {
   const { prefs, terminal, toggle, setStartTf, setUpDown, sync, owner, retrySync } = useAccountPrefs(identity);
   const guest = !isAccountOwner(owner);
   // E2: these controls apply locally the moment they are clicked, but "Saved" is a claim about

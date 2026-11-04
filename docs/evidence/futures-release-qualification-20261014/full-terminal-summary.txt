@@ -1,0 +1,14 @@
+✓ lib/__tests__/indicatorCanvasProfileBatch.test.ts (2 tests) 22ms
+ ✓ lib/__tests__/indicatorCanvasColumnsRender.test.ts (1 test) 21ms
+ ✓ lib/__tests__/indicatorCanvasSquareBatchRender.test.ts (2 tests) 37ms
+ ✓ lib/__tests__/assetLogos.test.tsx (3 tests) 85ms
+ ✓ lib/__tests__/rsPivotChartReplay.test.tsx (1 test) 96ms
+ ✓ lib/__tests__/indicatorCanvasCloudBatch.test.ts (2 tests) 23ms
+ ✓ lib/__tests__/rsPivotRequest.test.tsx (1 test) 192ms
+ ✓ lib/__tests__/useChartBusRebinding.test.tsx (1 test) 55ms
+ ✓ lib/__tests__/heatmapTreemapPriceBadge.test.tsx (2 tests) 82ms
+
+ Test Files  679 passed (679)
+      Tests  11322 passed | 4 todo (11326)
+   Start at  18:14:05
+   Duration  319.55s (transform 88.80s, setup 0ms, collect 247.70s, tests 407.03s, environment 109.10s, prepare 81.98s)

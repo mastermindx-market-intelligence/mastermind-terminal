@@ -1,0 +1,153 @@
+{
+  "schema": "options_workbench_r0_reproduction.v1",
+  "base_sha": "75c22083249e7a1529be3d6baf819b9ad5ea509f",
+  "skillpack_sha": "8b231e8267f09cfb002ed3e87bec14906dce1720",
+  "production_source_changed": false,
+  "production_proof": false,
+  "synthetic_browser_inputs": true,
+  "typecheck": {
+    "command": "cd terminal && node_modules/.bin/tsc --noEmit",
+    "exit_code": 0
+  },
+  "vitest": {
+    "files": 6,
+    "total": 100,
+    "failed": 14,
+    "passed": 86,
+    "exit_code": 1
+  },
+  "browser": {
+    "cases": 6,
+    "failed": 6,
+    "retries": 0,
+    "viewports": [
+      "1440x900",
+      "820x1180",
+      "390x844"
+    ],
+    "languages": [
+      "en",
+      "zh"
+    ],
+    "exit_code": 1
+  },
+  "tests": [
+    {
+      "path": "terminal/lib/__tests__/heatSeriesGeometry.test.ts",
+      "sha256": "dba876c4f9adc19144eed0df119c69e4dd5677672ae39afe38cdaecb3b5998af"
+    },
+    {
+      "path": "terminal/lib/__tests__/surfaceReplayMounted.test.tsx",
+      "sha256": "9f3c5d709ad301181e9a6872469d71af4576f6d5e76a0fa7c3d83e4a53242b1f"
+    },
+    {
+      "path": "terminal/lib/__tests__/flowClientCacheRefresh.test.ts",
+      "sha256": "8fb77b9a21ac3d397e246de853345ff8dbe61ff542cdaec1b926f120315d0393"
+    },
+    {
+      "path": "terminal/lib/__tests__/replayIndexIdentity.test.ts",
+      "sha256": "fdd44a376ec5f8e14408fcea87b002207d001410f45db47497d66d45cc757683"
+    },
+    {
+      "path": "terminal/e2e/options-surface-replay.spec.ts",
+      "sha256": "ebc47dfda38bfbb3c91ffba576b1636a061e102d5d1ca09d1adafbc6fd78fb24"
+    }
+  ],
+  "screenshots": [
+    {
+      "path": "docs/evidence/options-workbench-r0-20260917/desktop-en-after-index-growth.png",
+      "sha256": "0960be4129fa02ec7504db97bdbfbc6766cabad302516cdf6c5387fc6be80a3e",
+      "synthetic": true
+    },
+    {
+      "path": "docs/evidence/options-workbench-r0-20260917/desktop-en-after-quad.png",
+      "sha256": "d00800e238f89fea2b40d480e1046928e1674d72b475fe7ea61557d06e438fb3",
+      "synthetic": true
+    },
+    {
+      "path": "docs/evidence/options-workbench-r0-20260917/desktop-en-paused-single.png",
+      "sha256": "e833d3a10e683e21e0c1f8d3ed100e0714bdf3a50bc1d1912515ba8f93de5e47",
+      "synthetic": true
+    },
+    {
+      "path": "docs/evidence/options-workbench-r0-20260917/mobile-en-after-index-growth.png",
+      "sha256": "74bc5beab00e667b3e1e1924d5fc158bf18d9f2232ffa917f426fae800831992",
+      "synthetic": true
+    },
+    {
+      "path": "docs/evidence/options-workbench-r0-20260917/mobile-en-after-quad.png",
+      "sha256": "4c0893c446605f2422db9e41dfa07ff4c58238034a4e49678e95a8a721252e0f",
+      "synthetic": true
+    },
+    {
+      "path": "docs/evidence/options-workbench-r0-20260917/mobile-en-paused-single.png",
+      "sha256": "0c1a33b00a9b0826338a553d3f28b79fd321ff4b03162fa203b13ef6b74691c2",
+      "synthetic": true
+    },
+    {
+      "path": "docs/evidence/options-workbench-r0-20260917/tablet-en-after-index-growth.png",
+      "sha256": "6466606c07ec32c7467162d990842d9cda5e8b28d5303d939239989d26d5c257",
+      "synthetic": true
+    },
+    {
+      "path": "docs/evidence/options-workbench-r0-20260917/tablet-en-after-quad.png",
+      "sha256": "d3e6c376d2cad64df7de5f5b378002ef1eb4f8b4f303f2401f30410781ffa301",
+      "synthetic": true
+    },
+    {
+      "path": "docs/evidence/options-workbench-r0-20260917/tablet-en-paused-single.png",
+      "sha256": "01c41a434a83243e7e562771e6a695c8eaf3ee4e800bfc0e8c91fccb1e552381",
+      "synthetic": true
+    },
+    {
+      "path": "docs/evidence/options-workbench-r0-20260917/desktop-zh-after-index-growth.png",
+      "sha256": "1a80c9c1e4d517c59c6c8c5a2d98ab732d0653239ae2fdb626b0fa239e5a85de",
+      "synthetic": true
+    },
+    {
+      "path": "docs/evidence/options-workbench-r0-20260917/desktop-zh-after-quad.png",
+      "sha256": "9dc25087a676f77795b98ff73cfd5614af99cf517e6b60d5c25749462aacd544",
+      "synthetic": true
+    },
+    {
+      "path": "docs/evidence/options-workbench-r0-20260917/desktop-zh-paused-single.png",
+      "sha256": "1335322044ea01de29a54a2bac52299b6d4850c8b3613f8ffd3cecc7f1fa5dc4",
+      "synthetic": true
+    },
+    {
+      "path": "docs/evidence/options-workbench-r0-20260917/mobile-zh-after-index-growth.png",
+      "sha256": "0a320345c9fd80d67d270deed5b53343e0e70972b89d8f6a6ce743437f8a41d2",
+      "synthetic": true
+    },
+    {
+      "path": "docs/evidence/options-workbench-r0-20260917/mobile-zh-after-quad.png",
+      "sha256": "116d47ce28fbe40fc35d7fff43c55ab5a4c75e0e4f5c4a8486051a6c5c17d1f2",
+      "synthetic": true
+    },
+    {
+      "path": "docs/evidence/options-workbench-r0-20260917/mobile-zh-paused-single.png",
+      "sha256": "0eac651bc7d85ea1f60fb048be0ce69a5a55289a56a2a269556f51079836a1ce",
+      "synthetic": true
+    },
+    {
+      "path": "docs/evidence/options-workbench-r0-20260917/tablet-zh-after-index-growth.png",
+      "sha256": "7128ff349a57d9a9a9dbb2a160c644a4d41b7f8f04b7aa7d7dd8d07001a0ecdd",
+      "synthetic": true
+    },
+    {
+      "path": "docs/evidence/options-workbench-r0-20260917/tablet-zh-after-quad.png",
+      "sha256": "575d2631273a3709438cc8cbf017ab23a495e0574a863d180ce073469b05e0e6",
+      "synthetic": true
+    },
+    {
+      "path": "docs/evidence/options-workbench-r0-20260917/tablet-zh-paused-single.png",
+      "sha256": "4e5057bf7276ee58c28e24ddf95873a16e70b3df5c1b17aa95aa0a718df88020",
+      "synthetic": true
+    }
+  ],
+  "held_operations": [
+    "geometry production edit",
+    "shared replay/cache production edit"
+  ],
+  "held_reason": "Platform refused both source-edit tool calls. Same-carrier readback and tracked diff confirm no production source effects."
+}
