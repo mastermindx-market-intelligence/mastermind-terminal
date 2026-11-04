@@ -22,7 +22,7 @@ const marketDataOrigin = (() => {
   } catch {
     throw new Error("VERCEL_MARKET_DATA_ORIGIN_INVALID");
   }
-  const approved = new Set(["terminal-origin.mastermind-x.com", "data.mastermind-x.com"]);
+  const approved = new Set(["data.mastermind-x.com"]);
   if (url.protocol !== "https:" || !approved.has(url.hostname) || url.port ||
       url.username || url.password || url.pathname !== "/" || url.search || url.hash ||
       raw !== url.origin) {
@@ -30,6 +30,41 @@ const marketDataOrigin = (() => {
   }
   return url.origin;
 })();
+
+// The existing Terminal API remains on the VPS during the frontend migration.
+// Redirect exactly the closed, source-listed API route families, not a broad
+// /api/* catch-all. Shared Shell's build-scoped status MUST remain on Vercel.
+// The beta and production backends are distinct releases with distinct APIs,
+// so route each frontend to its matching original service without loops.
+const apiBackendOrigin = (() => {
+  if (!isVercel) return null;
+  const expected = process.env.MMX_SHARED_SHELL === "1"
+    ? "https://beta-origin.mastermind-x.com"
+    : "https://terminal-origin.mastermind-x.com";
+  const raw = process.env.MMX_TERMINAL_API_ORIGIN;
+  if (!raw) throw new Error("VERCEL_TERMINAL_API_ORIGIN_REQUIRED");
+  if (raw !== expected) {
+    throw new Error("VERCEL_TERMINAL_API_ORIGIN_UNAPPROVED: mode-specific VPS service required");
+  }
+  return raw;
+})();
+const VPS_API_FAMILIES = [
+  "account", "accuracy", "admin", "alerts", "billing", "brain", "briefs",
+  "collect", "company-institutional-context", "company-intelligence",
+  "company-source-search", "company-theme-context", "copilot", "drawings",
+  "event-impact", "event-workspace", "ext-quote", "flow", "futures",
+  "grants", "intraday", "investigation-scenarios", "investigations",
+  "large-trades", "layouts", "market-breadth", "me", "news", "nw",
+  "options", "portfolio", "portfolio-brief", "portfolio-changes",
+  "prophet", "quote", "research-handoffs", "scripts", "sector-intelligence",
+  "smart-screens", "snapshot", "study-templates", "teams", "theses",
+  "thesis", "thesis-fire-status", "thesis-saved-views", "track",
+  "v1", "watchlist", "webhooks",
+] as const;
+const VPS_SHARED_SHELL_APIS = [
+  "today",
+  "research/:path*",
+] as const;
 
 // ── Deployment id (version-skew protection / stale-chunk self-heal) ───────────
 // Each production deploy gets a DISTINCT id: prefer the git sha wired in by
@@ -305,7 +340,17 @@ const nextConfig: NextConfig = {
   async rewrites() {
     if (!marketDataOrigin) return [];
     return {
-      beforeFiles: [{ source: "/data/:path*", destination: `${marketDataOrigin}/data/:path*` }],
+      beforeFiles: [
+        { source: "/data/:path*", destination: `${marketDataOrigin}/data/:path*` },
+        ...VPS_API_FAMILIES.map(family => ({
+          source: `/api/${family}/:path*`,
+          destination: `${apiBackendOrigin}/api/${family}/:path*`,
+        })),
+        ...VPS_SHARED_SHELL_APIS.map(route => ({
+          source: `/api/shared-shell/${route}`,
+          destination: `${apiBackendOrigin}/api/shared-shell/${route}`,
+        })),
+      ],
       afterFiles: [],
       fallback: [],
     };
@@ -343,6 +388,16 @@ const nextConfig: NextConfig = {
           },
         ],
       },
+      // The browser continues using same-origin /api paths, but API handlers
+      // still execute on their incumbent, authenticated VPS service. Never
+      // permit intermediary shared caches to replay personal account payloads.
+      ...(isVercel ? [{
+        source: "/api/:path*",
+        headers: [
+          { key: "Cache-Control", value: "private, no-store, max-age=0" },
+          { key: "Vary", value: "Cookie, Authorization" },
+        ],
+      }] : []),
       // These publisher-controlled indexes change independently of frontend
       // releases. On Vercel keep their edge TTL aligned with the old Caddy
       // manifest policy, rather than caching missing/fresh symbol coverage for
