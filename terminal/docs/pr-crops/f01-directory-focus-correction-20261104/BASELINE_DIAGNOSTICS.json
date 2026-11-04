@@ -1,0 +1,205 @@
+{
+  "initial_startup": [
+    {
+      "message": "Error: Timed out waiting 120000ms from config.webServer.",
+      "stack": "Error: Timed out waiting 120000ms from config.webServer."
+    }
+  ],
+  "startup_recovery": "Cold first startup was still compiling /terminal when the unchanged 120s harness limit expired. One independently owned server then became ready in997ms and returned /terminal200 in13.68s; later harness-owned runs passed startup normally. No timeout was increased.",
+  "first_browser_attempt": [
+    {
+      "title": "shortcut from BODY returns to a meaningful visible shell control",
+      "project": "desktop",
+      "status": "unexpected",
+      "results": [
+        {
+          "status": "failed",
+          "retry": 0,
+          "duration": 8324,
+          "error": {
+            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.shared-shell-directory[open]')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.shared-shell-directory[open]')\u001b[22m\n",
+            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.shared-shell-directory[open]')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.shared-shell-directory[open]')\u001b[22m\n\n    at /Volumes/Mastermind/agent-workspaces/terminal/web/f01-directory-focus-correction-20261104-c4/terminal/e2e/shared-shell-directory-hardening.spec.ts:144:33",
+            "location": {
+              "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/f01-directory-focus-correction-20261104-c4/terminal/e2e/shared-shell-directory-hardening.spec.ts",
+              "column": 33,
+              "line": 144
+            },
+            "snippet": "  142 |   const before = await page.evaluate(() => ({ tabIndex: document.body.getAttribute(\"tabindex\"), x: scrollX, y: scrollY }));\n  143 |   await page.keyboard.press(\"ControlOrMeta+k\");\n> 144 |   await expect(directory(page)).toBeVisible();\n      |                                 ^\n  145 |   await expect(directory(page).getByRole(\"searchbox\")).toBeFocused();\n  146 |   await page.keyboard.press(\"Escape\");\n  147 |   await expect(directory(page)).toHaveCount(0);"
+          }
+        }
+      ],
+      "observations": [
+        {
+          "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "url": "http://127.0.0.1:3139/discover",
+          "observed": {
+            "pageErrors": [],
+            "consoleErrors": [
+              "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+            ],
+            "failedRequests": [
+              "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+            ],
+            "httpErrors": [
+              "404 /_next/static/chunks/components_1i7frpt._.js"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "Show all reveals its focused category inside the scrolled strip",
+      "project": "desktop",
+      "status": "unexpected",
+      "results": [
+        {
+          "status": "failed",
+          "retry": 0,
+          "duration": 2751,
+          "error": {
+            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: >= \u001b[32m10\u001b[39m\nReceived:    \u001b[31m-168\u001b[39m",
+            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: >= \u001b[32m10\u001b[39m\nReceived:    \u001b[31m-168\u001b[39m\n    at /Volumes/Mastermind/agent-workspaces/terminal/web/f01-directory-focus-correction-20261104-c4/terminal/e2e/shared-shell-directory-hardening.spec.ts:182:25",
+            "location": {
+              "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/f01-directory-focus-correction-20261104-c4/terminal/e2e/shared-shell-directory-hardening.spec.ts",
+              "column": 25,
+              "line": 182
+            },
+            "snippet": "  180 |   await expect(all).toBeFocused(); await expect(all).toHaveAttribute(\"aria-pressed\", \"true\");\n  181 |   const revealed = await geometry();\n> 182 |   expect(revealed.left).toBeGreaterThanOrEqual(revealed.clipLeft - 1);\n      |                         ^\n  183 |   expect(revealed.right).toBeLessThanOrEqual(revealed.clipRight + 1);\n  184 |   expect(await page.evaluate(() => ({ x: scrollX, y: scrollY,\n  185 |     main: [...document.querySelectorAll(\"main, .main2\")].map(node => ({ x: node.scrollLeft, y: node.scrollTop })) }))).toEqual(scrollBefore);"
+          }
+        }
+      ],
+      "observations": [
+        {
+          "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+          "viewport": {
+            "width": 320,
+            "height": 844
+          },
+          "url": "http://127.0.0.1:3139/discover",
+          "observed": {
+            "pageErrors": [],
+            "consoleErrors": [
+              "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+            ],
+            "failedRequests": [
+              "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+            ],
+            "httpErrors": [
+              "404 /_next/static/chunks/components_1i7frpt._.js"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "body_regression_with_mounted_owner": [
+    {
+      "title": "shortcut from BODY returns to a meaningful visible shell control",
+      "project": "desktop",
+      "status": "unexpected",
+      "results": [
+        {
+          "status": "failed",
+          "retry": 0,
+          "duration": 7327,
+          "error": {
+            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeFocused\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('.topbar .shared-shell-directory-trigger')\nExpected: focused\nReceived: inactive\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toBeFocused\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.topbar .shared-shell-directory-trigger')\u001b[22m\n\u001b[2m    14 × locator resolved to <button type=\"button\" aria-haspopup=\"dialog\" aria-label=\"All tools\" class=\"shared-shell-directory-trigger\">…</button>\u001b[22m\n\u001b[2m       - unexpected value \"inactive\"\u001b[22m\n",
+            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeFocused\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('.topbar .shared-shell-directory-trigger')\nExpected: focused\nReceived: inactive\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toBeFocused\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.topbar .shared-shell-directory-trigger')\u001b[22m\n\u001b[2m    14 × locator resolved to <button type=\"button\" aria-haspopup=\"dialog\" aria-label=\"All tools\" class=\"shared-shell-directory-trigger\">…</button>\u001b[22m\n\u001b[2m       - unexpected value \"inactive\"\u001b[22m\n\n    at /Volumes/Mastermind/agent-workspaces/terminal/web/f01-directory-focus-correction-20261104-c4/terminal/e2e/shared-shell-directory-hardening.spec.ts:155:30",
+            "location": {
+              "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/f01-directory-focus-correction-20261104-c4/terminal/e2e/shared-shell-directory-hardening.spec.ts",
+              "column": 30,
+              "line": 155
+            },
+            "snippet": "  153 |     ? page.getByRole(\"button\", { name: \"Open navigation\", exact: true })\n  154 |     : page.locator(\".topbar .shared-shell-directory-trigger\");\n> 155 |   await expect(returnTarget).toBeFocused(); await expect(returnTarget).toBeVisible();\n      |                              ^\n  156 |   expect(await page.evaluate(() => ({ tabIndex: document.body.getAttribute(\"tabindex\"), x: scrollX, y: scrollY }))).toEqual(before);\n  157 |   await page.screenshot({ animations: \"disabled\", path: info.outputPath(\"shortcut-meaningful-return.png\") });\n  158 | });"
+          }
+        }
+      ],
+      "observations": [
+        {
+          "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "url": "http://127.0.0.1:3139/discover",
+          "observed": {
+            "pageErrors": [],
+            "consoleErrors": [
+              "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+            ],
+            "failedRequests": [
+              "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+            ],
+            "httpErrors": [
+              "404 /_next/static/chunks/components_1i7frpt._.js"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "outline_regression_before_css": [
+    {
+      "title": "Show all reveals its focused category inside the scrolled strip",
+      "project": "desktop",
+      "status": "unexpected",
+      "results": [
+        {
+          "status": "failed",
+          "retry": 0,
+          "duration": 2164,
+          "error": {
+            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: >= \u001b[32m205.96875\u001b[39m\nReceived:    \u001b[31m201.96875\u001b[39m",
+            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: >= \u001b[32m205.96875\u001b[39m\nReceived:    \u001b[31m201.96875\u001b[39m\n    at /Volumes/Mastermind/agent-workspaces/terminal/web/f01-directory-focus-correction-20261104-c4/terminal/e2e/shared-shell-directory-hardening.spec.ts:193:47",
+            "location": {
+              "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/f01-directory-focus-correction-20261104-c4/terminal/e2e/shared-shell-directory-hardening.spec.ts",
+              "column": 47,
+              "line": 193
+            },
+            "snippet": "  191 |   expect(revealed.left - revealed.focusOutset).toBeGreaterThanOrEqual(revealed.clipLeft - 1);\n  192 |   expect(revealed.right + revealed.focusOutset).toBeLessThanOrEqual(revealed.clipRight + 1);\n> 193 |   expect(revealed.top - revealed.focusOutset).toBeGreaterThanOrEqual(revealed.clipTop - 1);\n      |                                               ^\n  194 |   expect(revealed.bottom + revealed.focusOutset).toBeLessThanOrEqual(revealed.clipBottom + 1);\n  195 |   expect(await page.evaluate(() => ({ x: scrollX, y: scrollY,\n  196 |     main: [...document.querySelectorAll(\"main, .main2\")].map(node => ({ x: node.scrollLeft, y: node.scrollTop })) }))).toEqual(scrollBefore);"
+          }
+        }
+      ],
+      "observations": [
+        {
+          "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+          "viewport": {
+            "width": 320,
+            "height": 844
+          },
+          "url": "http://127.0.0.1:3139/discover",
+          "observed": {
+            "pageErrors": [],
+            "consoleErrors": [],
+            "failedRequests": [],
+            "httpErrors": []
+          }
+        }
+      ]
+    }
+  ],
+  "network_comparison": [
+    {
+      "run": "browser-red-warm.json",
+      "http_errors": [
+        "404 /_next/static/chunks/components_1i7frpt._.js"
+      ]
+    },
+    {
+      "run": "browser-body-red.json",
+      "http_errors": [
+        "404 /_next/static/chunks/components_1i7frpt._.js"
+      ]
+    },
+    {
+      "run": "browser-final-r2.json",
+      "http_errors": [
+        "404 /_next/static/chunks/components_1i7frpt._.js"
+      ]
+    }
+  ]
+}

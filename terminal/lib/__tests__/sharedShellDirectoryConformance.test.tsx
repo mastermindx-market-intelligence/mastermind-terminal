@@ -177,6 +177,39 @@ describe("incumbent directory conformance", () => {
     expect(document.body.style.overflow).toBe("clip");
   });
 
+  it("uses the visible opener when the directory was opened with BODY active", async () => {
+    await act(async () => { root.render(<Harness />); });
+    expect(document.activeElement).toBe(document.body);
+    const bodyTabIndex = document.body.getAttribute("tabindex");
+    // Programmatic click intentionally does not focus the opener. The browser
+    // regression separately exercises the real global keyboard shortcut.
+    await act(async () => { button("Tools opener").click(); });
+    await escape();
+    expect(document.activeElement).toBe(button("Tools opener"));
+    expect(document.body.getAttribute("tabindex")).toBe(bodyTabIndex);
+  });
+
+  it("does not manufacture a tab stop on an invoker that lost focusability", async () => {
+    await act(async () => { root.render(<Harness />); });
+    const invoker = document.createElement("div");
+    invoker.tabIndex = -1; container.append(invoker); invoker.focus();
+    await act(async () => { button("Tools opener").click(); });
+    invoker.removeAttribute("tabindex");
+    await escape();
+    expect(document.activeElement).toBe(button("Tools opener"));
+    expect(invoker.hasAttribute("tabindex")).toBe(false);
+  });
+
+  it("retains a legitimate programmatically focused invoker", async () => {
+    await act(async () => { root.render(<Harness />); });
+    const invoker = document.createElement("div");
+    invoker.tabIndex = -1; container.append(invoker); invoker.focus();
+    await act(async () => { button("Tools opener").click(); });
+    await escape();
+    expect(document.activeElement).toBe(invoker);
+    expect(invoker.getAttribute("tabindex")).toBe("-1");
+  });
+
   it("uses the current main heading if all old controls are hidden or disabled", async () => {
     await mount(); button("Tools opener").disabled = true; button("Navigation opener").hidden = true; await escape();
     expect(document.activeElement).toBe(container.querySelector("main h1"));

@@ -1,0 +1,37 @@
+{
+  "node": "v26.5.0",
+  "next": "16.2.9",
+  "playwright": "1.61.1",
+  "chromiumPath": "/Users/chriswong/Library/Caches/ms-playwright/chromium-1228/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+  "chromium": "Google Chrome for Testing 149.0.7827.55",
+  "operation": "f01-directory-focus-correction-20261104-c4",
+  "workspace": "/Volumes/Mastermind/agent-workspaces/terminal/web/f01-directory-focus-correction-20261104-c4",
+  "procedure_pin": "1548ad095387838ff1a22133879d37b40fb180d8",
+  "port": 3139,
+  "viewports": [
+    [
+      1440,
+      900
+    ],
+    [
+      820,
+      1180
+    ],
+    [
+      390,
+      844
+    ],
+    [
+      320,
+      844
+    ],
+    [
+      320,
+      420
+    ]
+  ],
+  "input": "Actual Next AppShell, Directory and Link; existing development identity seam and controlled AAPL manifest.",
+  "test_node_options": "--no-experimental-webstorage",
+  "publication_owner": "mastermidx4 / incumbent F01; original GitHub publisher",
+  "production_credentials_used": false
+}

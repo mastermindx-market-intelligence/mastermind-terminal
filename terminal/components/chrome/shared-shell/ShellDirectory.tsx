@@ -19,6 +19,7 @@ function section(entry: Entry): string {
 }
 const normalize = (value: string) => value.normalize("NFKC").toLocaleLowerCase().trim();
 const canReceiveFocus = (element: HTMLElement | null): element is HTMLElement => !!element
+  && element !== document.body && element !== document.documentElement
   && element.isConnected && element.getClientRects().length > 0
   && !element.closest('[hidden], [inert], [aria-hidden="true"], [aria-disabled="true"]')
   && !element.matches(':disabled, [aria-disabled="true"]')
@@ -122,7 +123,8 @@ export default function ShellDirectory({ open, onClose, onSearchCompanies }: {
     selected.current = false;
     focusOwned.current = false;
     composing.current = false;
-    lastFocus.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const invoker = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    lastFocus.current = canReceiveFocus(invoker) ? invoker : null;
     const shell = element.closest(".shared-shell") ?? document;
     if (!element.open) element.showModal();
     input.current?.focus();
@@ -139,14 +141,21 @@ export default function ShellDirectory({ open, onClose, onSearchCompanies }: {
       if (element.open) element.close();
       document.body.style.overflow = previous;
       if (!selected.current && owned) {
-        const target = [lastFocus.current,
+        const invokers = [lastFocus.current,
           ...shell.querySelectorAll<HTMLElement>('.shared-shell-directory-trigger, .mobilebar button[aria-haspopup="dialog"][aria-controls]'),
-          ...shell.querySelectorAll<HTMLElement>('main h1, [role="main"] h1, .main2 h1'),
-          ...shell.querySelectorAll<HTMLElement>('main, [role="main"], .main2'),
-        ].find(canReceiveFocus);
-        if (target) {
-          if (!target.matches("a[href], button, input, select, textarea, [tabindex]")) target.tabIndex = -1;
+        ];
+        const restore = (target: HTMLElement | null, contentFallback = false) => {
+          if (!canReceiveFocus(target)) return false;
+          // Only named content fallbacks may acquire a programmatic tab stop.
+          // A saved control that lost focusability must yield to the next target.
+          if (contentFallback && !target.hasAttribute("tabindex")) target.tabIndex = -1;
           target.focus({ preventScroll: true });
+          return document.activeElement === target;
+        };
+        if (!invokers.some(target => restore(target))) {
+          const content = [...shell.querySelectorAll<HTMLElement>('main h1, [role="main"] h1, .main2 h1'),
+            ...shell.querySelectorAll<HTMLElement>('main, [role="main"], .main2')];
+          content.some(target => restore(target, true));
         }
       } else if (canReceiveFocus(outside) && document.activeElement !== outside) {
         // A native dialog close must not undo a deliberate newer focus owner.
@@ -235,7 +244,14 @@ export default function ShellDirectory({ open, onClose, onSearchCompanies }: {
         <div ref={results} className="shared-directory-results">
           {showAll && <div className="shared-directory-recovery">
             <button type="button" onClick={event => {
-              if (document.activeElement === event.currentTarget) allCategory.current?.focus({ preventScroll: true });
+            if (document.activeElement === event.currentTarget) {
+              const target = allCategory.current;
+              target?.focus({ preventScroll: true });
+              // All is first in both LTR locales. Reveal it within this strip
+              // without scrolling the document or a containing task surface.
+              const strip = target?.closest<HTMLElement>(".shared-directory-filters");
+              if (strip) strip.scrollLeft = 0;
+            }
               setCategory("all"); setLimit(48);
             }}>{t(tokens.length ? (allCount === 1 ? "shellShowOneMatch" : "shellShowAllMatches")
               : allCount === 1 ? "shellShowOneDestination" : "shellShowAllDestinations").replace("{count}", formatCount(allCount))}</button>

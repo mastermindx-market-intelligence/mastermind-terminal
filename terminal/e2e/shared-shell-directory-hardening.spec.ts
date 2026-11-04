@@ -136,6 +136,69 @@ test("drawer-to-directory and resize close return to a visible persistent contro
   await page.screenshot({ animations: "disabled", path: info.outputPath("visible-focus-return.png") });
 });
 
+test("shortcut from BODY returns to a meaningful visible shell control", async ({ page }, info) => {
+  // Establish the mounted shell through its actual UI before testing its global
+  // listener; an SSR heading alone does not prove that listener is installed.
+  await open(page); await page.keyboard.press("Escape");
+  await expect(directory(page)).toHaveCount(0);
+  await page.evaluate(() => { if (document.activeElement instanceof HTMLElement) document.activeElement.blur(); });
+  expect(await page.evaluate(() => document.activeElement === document.body)).toBe(true);
+  const before = await page.evaluate(() => ({ tabIndex: document.body.getAttribute("tabindex"), x: scrollX, y: scrollY }));
+  await page.keyboard.press("ControlOrMeta+k");
+  await expect(directory(page)).toBeVisible();
+  await expect(directory(page).getByRole("searchbox")).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(directory(page)).toHaveCount(0);
+  const returnTarget = page.viewportSize()!.width <= 860
+    ? page.getByRole("button", { name: "Open navigation", exact: true })
+    : page.locator(".topbar .shared-shell-directory-trigger");
+  await expect(returnTarget).toBeFocused(); await expect(returnTarget).toBeVisible();
+  expect(await page.evaluate(() => ({ tabIndex: document.body.getAttribute("tabindex"), x: scrollX, y: scrollY }))).toEqual(before);
+  await page.screenshot({ animations: "disabled", path: info.outputPath("shortcut-meaningful-return.png") });
+});
+
+test("Show all reveals its focused category inside the scrolled strip", async ({ page }, info) => {
+  await page.setViewportSize({ width: info.project.name === "mobile" ? 390 : 320, height: 844 });
+  await open(page);
+  const dialog = directory(page);
+  const search = dialog.getByRole("searchbox");
+  await search.fill("options");
+  const before = await dialog.locator(".shared-directory-link").evaluateAll(nodes => nodes.map(n => n.getAttribute("href")));
+  await dialog.getByRole("button", { name: "About", exact: true }).click();
+  const strip = dialog.locator(".shared-directory-filters");
+  await strip.evaluate(element => { element.scrollLeft = element.scrollWidth; });
+  const all = dialog.getByRole("button", { name: "All", exact: true });
+  const geometry = () => all.evaluate(element => {
+    const strip = element.closest(".shared-directory-filters")!;
+    const outer = strip.getBoundingClientRect(); const target = element.getBoundingClientRect();
+    const style = getComputedStyle(element);
+    return { scrollLeft: strip.scrollLeft, left: target.left, right: target.right,
+      top: target.top, bottom: target.bottom,
+      focusOutset: Math.max(0, parseFloat(style.outlineWidth) + parseFloat(style.outlineOffset)),
+      clipLeft: outer.left + strip.clientLeft, clipRight: outer.left + strip.clientLeft + strip.clientWidth,
+      clipTop: outer.top + strip.clientTop, clipBottom: outer.top + strip.clientTop + strip.clientHeight };
+  });
+  const clipped = await geometry();
+  expect(clipped.scrollLeft).toBeGreaterThan(0);
+  expect(clipped.left < clipped.clipLeft - 1 || clipped.right > clipped.clipRight + 1).toBe(true);
+  const scrollBefore = await page.evaluate(() => ({ x: scrollX, y: scrollY,
+    main: [...document.querySelectorAll("main, .main2")].map(node => ({ x: node.scrollLeft, y: node.scrollTop })) }));
+  await dialog.getByRole("button", { name: `Show all ${before.length} matches`, exact: true }).focus();
+  await page.keyboard.press("Enter");
+  await expect(all).toBeFocused(); await expect(all).toHaveAttribute("aria-pressed", "true");
+  const revealed = await geometry();
+  expect(revealed.focusOutset).toBeGreaterThan(0);
+  expect(revealed.left - revealed.focusOutset).toBeGreaterThanOrEqual(revealed.clipLeft - 1);
+  expect(revealed.right + revealed.focusOutset).toBeLessThanOrEqual(revealed.clipRight + 1);
+  expect(revealed.top - revealed.focusOutset).toBeGreaterThanOrEqual(revealed.clipTop - 1);
+  expect(revealed.bottom + revealed.focusOutset).toBeLessThanOrEqual(revealed.clipBottom + 1);
+  expect(await page.evaluate(() => ({ x: scrollX, y: scrollY,
+    main: [...document.querySelectorAll("main, .main2")].map(node => ({ x: node.scrollLeft, y: node.scrollTop })) }))).toEqual(scrollBefore);
+  await expect(search).toHaveValue("options");
+  expect(await dialog.locator(".shared-directory-link").evaluateAll(nodes => nodes.map(n => n.getAttribute("href")))).toEqual(before);
+  await page.screenshot({ animations: "disabled", path: info.outputPath("revealed-category-focus.png") });
+});
+
 test("directory transfers once to the real company picker and respects composing Escape", async ({ page }) => {
   await open(page); const input = directory(page).getByRole("searchbox");
   await input.dispatchEvent("compositionstart", { data: "期" });

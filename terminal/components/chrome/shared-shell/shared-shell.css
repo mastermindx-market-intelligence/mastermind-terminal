@@ -140,7 +140,7 @@
 .shared-directory-search input::placeholder { color:var(--muted); }
 .shared-shell-directory .shared-directory-search input:focus-visible { outline:none;box-shadow:none; }
 .shared-directory-search kbd { color:var(--muted);font:10px var(--font-ui); }
-.shared-directory-filters { display:flex;gap:5px;overflow:auto;flex-shrink:0;padding:0 28px 16px;border-bottom:1px solid var(--line); }
+.shared-directory-filters { display:flex;gap:5px;overflow:auto;flex-shrink:0;padding:5px 28px 16px;border-bottom:1px solid var(--line); }
 .shared-directory-filters button { min-height:32px;padding:5px 11px;border:1px solid transparent;border-radius:5px;white-space:nowrap;background:transparent;color:var(--text-2);font:500 11px var(--font-ui);cursor:pointer; }
 .shared-directory-filters button[aria-pressed="true"] { border-color:var(--line-3);background:var(--panel-3);color:var(--text); }
 .shared-directory-filters button:hover { color:var(--text);background:var(--panel-2); }
@@ -206,7 +206,7 @@
   .shared-directory-header { padding:21px 18px 17px;gap:10px; }
   .shared-directory-header h2 { font-size:23px; }
   .shared-directory-search { margin:0 18px 13px; }
-  .shared-directory-filters { padding:0 18px 13px; }
+  .shared-directory-filters { padding:5px 18px 13px; }
   .shared-directory-filters button { min-height:44px; }
   .shared-directory-results { padding:12px 10px 18px; }
   .shared-directory-grid { grid-template-columns:repeat(2,minmax(0,1fr));gap:2px; }
