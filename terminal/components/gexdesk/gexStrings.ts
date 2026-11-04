@@ -172,6 +172,7 @@ const GEX_LEX = {
   // ── Market state card ──────────────────────────────────────────────────────
   stateAsOf:          ["Regime as of", "状态更新于"],
   stateTitle:         ["Market State", "市场状态"],
+  stateDetails:       ["Details and provenance", "详情与来源"],
   stateComputing:     ["State computing — nightly", "状态计算中 — 每日更新"],
   // "Computing" is a published absence (404). A read that did not land is its own state.
   stateErrorTitle:    ["Could not load the market state", "无法加载市场状态"],

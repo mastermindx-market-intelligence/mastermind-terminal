@@ -73,6 +73,8 @@ for (const complete of [false, true]) {
     await expect(zero).toHaveAttribute("aria-pressed", "true", { timeout: 20_000 });
     const summary = page.locator('[data-tut="gex-summary"]').locator(":scope > *").first();
     await expect(summary.locator(":scope > *").last()).toHaveText(complete ? "+5.0M" : "—", { timeout: 20_000 });
+    await expect(summary).toBeVisible();
+    await expect(page.getByTestId("gex-snapshot-levels")).toHaveCount(0);
     const partial = page.getByTestId("gex-lens-partial");
     if (complete) await expect(partial).toHaveCount(0, { timeout: 20_000 });
     else {

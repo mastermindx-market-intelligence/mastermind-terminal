@@ -20,11 +20,15 @@ test("Exposure opens on usable strikes and reaches Market State and history", as
   const phone = info.project.name === "mobile";
   const lang = info.project.name === "tablet" ? "zh" : "en";
   const t = makeGexT(lang);
-  await page.addInitScript((language) => localStorage.setItem("mm.lang", language), lang);
+  await page.addInitScript(({ language, theme }) => {
+    localStorage.setItem("mm.lang", language);
+    localStorage.setItem("theme", theme);
+    localStorage.setItem("theme_auto", "0");
+  }, { language: lang, theme: "dark" });
   await page.goto("/options?tab=gex&view=strike");
 
   const ladder = page.locator('[data-tut="gex-ladder"]');
-  await expect(ladder.locator("[data-spot-row]")).toBeVisible();
+  await expect(ladder.locator("[data-spot-row]")).toBeVisible({ timeout: 30_000 });
   await expect.poll(() => wholeRows(ladder)).toBeGreaterThanOrEqual(phone ? 4 : 8);
   const pane = page.locator(".obs-gexdesk-left");
   const paneBox = await pane.boundingBox();
@@ -34,6 +38,24 @@ test("Exposure opens on usable strikes and reaches Market State and history", as
   if (info.project.name === "desktop") {
     await expect(state.getByText(t("stateTitle"), { exact: true })).toBeInViewport({ ratio: 1 });
   }
+  await page.screenshot({ path: info.outputPath("exposure-entry.png"), fullPage: false });
+  const levels = page.getByTestId("gex-snapshot-levels");
+  await expect(levels).not.toHaveAttribute("open", "");
+  await expect(levels.locator('[data-tut="gex-summary"]')).not.toBeVisible();
+  expect(await levels.evaluate((el) => {
+    const body = document.querySelector(".obs-gexdesk-body")!;
+    const history = document.querySelector("#gex-history")!;
+    return Boolean(body.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING) &&
+      Boolean(el.compareDocumentPosition(history) & Node.DOCUMENT_POSITION_FOLLOWING);
+  })).toBe(true);
+  const strikeHeight = await ladder.locator(".obs-scroll").evaluate((el) => el.clientHeight);
+  await levels.locator("summary").focus();
+  await page.keyboard.press("Enter");
+  await expect(levels.locator('[data-tut="gex-summary"]')).toBeVisible();
+  expect(await ladder.locator(".obs-scroll").evaluate((el) => el.clientHeight)).toBe(strikeHeight);
+  await page.keyboard.press("Enter");
+  await expect(levels).not.toHaveAttribute("open", "");
+
   const sectionNav = page.getByRole("navigation", { name: t("deskSections") });
   await sectionNav.getByRole("button", { name: t("stateTitle") }).focus();
   await page.keyboard.press("Enter");
@@ -43,6 +65,27 @@ test("Exposure opens on usable strikes and reaches Market State and history", as
     (el) => el.scrollHeight - el.clientHeight,
   ));
   expect(Math.max(...stateHeights)).toBeLessThanOrEqual(1);
+
+  const stateDetails = state.getByTestId("gex-state-details");
+  await expect(stateDetails).not.toHaveAttribute("open", "");
+  await expect(state.locator(".obs-gex-state .obs-note")).toBeVisible();
+  await expect(state.locator(".obs-gex-state .obs-note")).toContainText(t("passportIndex"));
+  await expect(state.getByText(t("stateWhatIf"), { exact: true })).not.toBeVisible();
+  await stateDetails.locator("summary").focus();
+  await page.keyboard.press("Enter");
+  await expect(state.getByText(t("stateWhatIf"), { exact: true })).toBeVisible();
+  await expect(stateDetails).toContainText(t("statePinProbTip"));
+  await page.screenshot({ path: info.outputPath("market-state-details.png"), fullPage: false });
+  const passport = state.locator(".obs-gex-state .obs-note");
+  // Center the entire passport in the desk scroll owner; a nearest-edge scroll
+  // can leave its rounded border a fractional pixel under the fixed footer.
+  await passport.evaluate((element) => element.scrollIntoView({ block: "center" }));
+  await expect(passport).toBeInViewport({ ratio: 1 });
+  await page.screenshot({ path: info.outputPath("market-state-passport.png"), fullPage: false });
+  await stateDetails.locator("summary").focus();
+  await page.keyboard.press("Enter");
+  await expect(stateDetails).not.toHaveAttribute("open", "");
+  await expect(state.locator(".obs-gex-state .obs-note")).toBeVisible();
 
   const range = ladder.getByRole("group", { name: t("rangePresetAria") });
   await range.getByRole("button", { name: "±5%" }).click();
@@ -55,8 +98,14 @@ test("Exposure opens on usable strikes and reaches Market State and history", as
   await expect(range.getByRole("button", { name: "±5%" })).toHaveAttribute("aria-pressed", "true");
 
   await sectionNav.getByRole("button", { name: t("deskHistory") }).click();
-  await expect(page.locator("#gex-history")).toBeFocused();
+  const history = page.locator("#gex-history");
+  await expect(history).toBeFocused();
   const picker = page.getByRole("combobox", { name: t("sessionPickerAria") });
+  await page.mouse.move(0, 0);
+  await page.screenshot({ path: info.outputPath("history-controls.png"), fullPage: false });
+  const historyBox = await history.locator(".obs-gex-history").boundingBox();
+  expect(historyBox!.x + historyBox!.width).toBeLessThanOrEqual(page.viewportSize()!.width + 1);
+  await expect(picker).toBeInViewport({ ratio: 1 });
   await expect(picker.locator('option[value=""]')).toHaveText(t("sessionLive"));
   await picker.selectOption("2026-07-02");
   await expect(pane).toBeFocused();

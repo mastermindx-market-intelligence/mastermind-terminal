@@ -30,6 +30,7 @@
 
 import React, { useMemo } from "react";
 import { makeGexT } from "./gexStrings";
+import workspace from "./ExposureWorkspace.module.css";
 import type { Lang } from "@/lib/i18n";
 import type { GexPayload } from "./GexDeskView";
 import { gexSessionOf } from "@/lib/gexSessions";
@@ -602,16 +603,6 @@ export function MarketStateCard({
         </div>
       )}
 
-      {/* ── What-if flip breaks ──────────────────────────────────────────────── */}
-      <div style={SECTION_PAD}>
-        <WhatIfFlipBreaks
-          low={putWall}
-          flip={flipLevel}
-          high={callWall}
-          t={t}
-        />
-      </div>
-
       <div className="obs-card-hr" />
 
       {/* ── γ POLARITY block ─────────────────────────────────────────────────── */}
@@ -635,7 +626,6 @@ export function MarketStateCard({
               ? t("statePolarityLong")
               : t("statePolarityShort")}
           </span>
-          <span style={METRIC_BLOCK_CAPTION}>{t("statePolarityCaption")}</span>
           {gammaPolarity != null && (
             <span
               className="num"
@@ -671,9 +661,6 @@ export function MarketStateCard({
           >
             {hedgePressure.level === "HIGH" ? t("stateHedgeHigh") : t("stateHedgeLow")}
           </span>
-          <span style={METRIC_BLOCK_CAPTION}>
-            {t("stateHedgeCaption")}
-          </span>
           {hedgePressure.absVal != null && (
             <span
               className="num"
@@ -699,9 +686,6 @@ export function MarketStateCard({
               >
                 {fmtLevel(pin.strike)}
               </span>
-              <span style={METRIC_BLOCK_CAPTION}>
-                {t("statePinCaption")}
-              </span>
               {/* Not a calibrated probability — see statePinProbTip. The glance-tier
                   number stays; the hover carries the honesty disclosure. */}
               <Tip label={t("statePinProbTip")} side="left" size="card">
@@ -720,7 +704,17 @@ export function MarketStateCard({
         </div>
       </div>
 
-      {/* Passport (always at bottom) */}
+      <details className={workspace.stateDetails} data-testid="gex-state-details">
+        <summary>{t("stateDetails")}</summary>
+        <div className={workspace.stateDetailBody}>
+          <p><strong>{t("statePolarity")}.</strong> {t("statePolarityCaption")}</p>
+          <p><strong>{t("stateHedgePressure")}.</strong> {t("stateHedgeCaption")}</p>
+          <p><strong>{t("statePinTarget")}.</strong> {t("statePinCaption")} {t("statePinProbTip")}</p>
+          <WhatIfFlipBreaks low={putWall} flip={flipLevel} high={callWall} t={t} />
+        </div>
+      </details>
+
+      {/* The honesty passport remains visible even when model details are closed. */}
       <PassportBlock
         passportText={passportText}
         singleNameNote={singleNameNote}
@@ -857,14 +851,20 @@ const SECTION_PAD: React.CSSProperties = {
 };
 
 const METRIC_BLOCK: React.CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "minmax(90px, 1fr) minmax(0, 1.4fr)",
+  alignItems: "center",
+  gap: "var(--sp-2)",
   padding: "var(--sp-2) var(--sp-4)",
 };
 
 const METRIC_BLOCK_BODY: React.CSSProperties = {
   display: "flex",
-  flexDirection: "column",
-  gap: "var(--sp-1)",
-  marginTop: "var(--sp-1)",
+  alignItems: "center",
+  justifyContent: "flex-end",
+  flexWrap: "wrap",
+  gap: "var(--sp-1) var(--sp-2)",
+  textAlign: "right",
 };
 
 const METRIC_BLOCK_HERO: React.CSSProperties = {
@@ -872,12 +872,6 @@ const METRIC_BLOCK_HERO: React.CSSProperties = {
   fontWeight: 800,
   letterSpacing: "0.04em",
   lineHeight: 1.2,
-};
-
-const METRIC_BLOCK_CAPTION: React.CSSProperties = {
-  fontSize: "var(--fs-micro)",
-  color: "var(--muted)",
-  lineHeight: 1.4,
 };
 
 // Structural range bar

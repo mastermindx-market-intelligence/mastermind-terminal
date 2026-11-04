@@ -64,7 +64,7 @@
 .jumps button {
   display: inline-flex;
   align-items: center;
-  min-height: 32px;
+  min-height: 44px;
   color: var(--brand-2);
   font-size: var(--fs-label);
   background: transparent;
@@ -76,6 +76,8 @@
 }
 .context {
   display: grid;
+  /* Let measured history charts shrink when their adjacent readout arrives. */
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--sp-3);
   flex: none;
   min-width: 0;
@@ -115,8 +117,13 @@
 }
 
 .levels {
-  flex: none;
-  border-bottom: 1px solid var(--line);
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--r-tile, 10px);
+  background: var(--panel);
+}
+.levels > summary {
+  min-height: 52px;
 }
 .levels summary, .axisMenu summary {
   min-height: 44px;
@@ -141,4 +148,34 @@
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: var(--r-md);
+}
+/* Details keep model explanations reachable without competing with the state. */
+.stateDetails {
+  margin: 0 var(--sp-4) var(--sp-2);
+  border-top: 1px solid var(--line);
+}
+.stateDetails > summary {
+  min-height: 44px;
+  padding: 12px 0;
+  color: var(--brand-2);
+  font-size: var(--fs-label);
+  cursor: pointer;
+}
+.stateDetailBody {
+  display: grid;
+  gap: var(--sp-3);
+  padding-bottom: var(--sp-3);
+  font-size: var(--fs-label);
+  line-height: 1.5;
+  color: var(--text-2);
+}
+.stateDetailBody p {
+  margin: 0;
+}
+.levels > summary:focus-visible,
+.axisMenu > summary:focus-visible,
+.stateDetails > summary:focus-visible,
+.jumps button:focus-visible {
+  outline: 2px solid var(--brand-2);
+  outline-offset: 2px;
 }
