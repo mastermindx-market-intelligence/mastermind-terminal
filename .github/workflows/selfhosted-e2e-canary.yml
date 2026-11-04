@@ -19,14 +19,18 @@
 #     (needs `admin:org`), is a Chairman admin step and a precondition for anything
 #     beyond this canary (Mastermind #917).
 #   * `permissions: contents: read` — the job token can read the checkout and nothing else.
-#   * Dispatch inputs are bound as job `env` DATA and validated by
-#     .github/scripts/selfhosted_canary_inputs.sh (fixed shard table mirroring the hosted
-#     matrix, integer workers) before any use. No `${{ inputs.* }}` is ever spliced into a
+#   * A hosted prerequisite validates exact protected master/workflow identity before
+#     checkout, then runs .github/scripts/selfhosted_canary_inputs.sh before publishing
+#     admission. Only that admitted immutable SHA and fixed inputs reach the self-hosted
+#     job. This workflow fence does not restrict other workflows using the same labels.
+#   * Dispatch inputs enter hosted admission as `env` DATA. The fixed shard table mirrors
+#     the hosted matrix and workers are bounded integers. No `${{ inputs.* }}` is ever spliced into a
 #     `run:` block — expression text inside shell source is injectable, and quoting around
 #     the expression does not escape a quote inside the value (review finding on #1277).
 #     tests/test_selfhosted_canary_workflow.py pins this contract with negative tests.
 #   * The runner is registered ephemeral (one job, then deregistered) under an
-#     unprivileged user with no sudo, so a job leaves no state for the next one.
+#     unprivileged user with no sudo. Registration alone does not clean its filesystem;
+#     the original runtime owner must separately qualify isolation and cleanup.
 #   * Same steps as the hosted shard's `npm run test:e2e:responsive` step, minus `--with-deps`
 #     (system libs are preinstalled once by the host operator; the unprivileged runner
 #     user cannot apt). The hosted `serial` job additionally runs two opt-in qualification
@@ -53,16 +57,83 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  admit:
+    name: Admit protected source and bounded inputs
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      admitted: ${{ steps.release.outputs.admitted }}
+      sha: ${{ steps.release.outputs.sha }}
+      shard: ${{ steps.release.outputs.shard }}
+      projects: ${{ steps.release.outputs.projects }}
+      workers: ${{ steps.release.outputs.workers }}
+    env:
+      CANARY_SHARD: ${{ inputs.shard }}
+      CANARY_WORKERS: ${{ inputs.workers }}
+    steps:
+      - name: Validate exact protected dispatch source before checkout
+        id: source
+        shell: bash
+        env:
+          CANARY_REPOSITORY: ${{ github.repository }}
+          CANARY_EVENT: ${{ github.event_name }}
+          CANARY_REF_TYPE: ${{ github.ref_type }}
+          CANARY_REF: ${{ github.ref }}
+          CANARY_REF_PROTECTED: ${{ github.ref_protected }}
+          CANARY_WORKFLOW_REF: ${{ github.workflow_ref }}
+          CANARY_EVENT_SHA: ${{ github.sha }}
+          CANARY_WORKFLOW_SHA: ${{ github.workflow_sha }}
+        run: |
+          set -euo pipefail
+          require_equal() {
+            if [ "$1" != "$2" ]; then
+              printf '::error::Untrusted canary %s\n' "$3" >&2
+              exit 2
+            fi
+          }
+          require_equal "$CANARY_REPOSITORY" 'mastermindx-market-intelligence/mastermind-terminal' repository
+          require_equal "$CANARY_EVENT" 'workflow_dispatch' event
+          require_equal "$CANARY_REF_TYPE" 'branch' ref_type
+          require_equal "$CANARY_REF" 'refs/heads/master' ref
+          require_equal "$CANARY_REF_PROTECTED" 'true' protected_ref
+          require_equal "$CANARY_WORKFLOW_REF" 'mastermindx-market-intelligence/mastermind-terminal/.github/workflows/selfhosted-e2e-canary.yml@refs/heads/master' workflow
+          if [[ ! "$CANARY_EVENT_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            printf '::error::Invalid canary commit SHA\n' >&2
+            exit 2
+          fi
+          require_equal "$CANARY_WORKFLOW_SHA" "$CANARY_EVENT_SHA" workflow_sha
+          printf 'sha=%s\n' "$CANARY_EVENT_SHA" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.source.outputs.sha }}
+          persist-credentials: false
+      - name: Validate dispatch inputs before self-hosted allocation
+        run: bash .github/scripts/selfhosted_canary_inputs.sh
+      - name: Publish admitted immutable source and fixed inputs
+        id: release
+        shell: bash
+        env:
+          CANARY_SHA: ${{ steps.source.outputs.sha }}
+        run: |
+          printf 'admitted=true\nsha=%s\nshard=%s\nprojects=%s\nworkers=%s\n' \
+            "$CANARY_SHA" "$CANARY_SHARD_OK" "$CANARY_PROJECTS" "$CANARY_WORKERS_OK" >> "$GITHUB_OUTPUT"
+
   canary:
-    name: Canary ${{ inputs.shard }} on ubuntu0 (workers=${{ inputs.workers }})
+    name: Canary ${{ needs.admit.outputs.shard }} on ubuntu0 (workers=${{ needs.admit.outputs.workers }})
+    needs: admit
+    if: >-
+      needs.admit.result == 'success' &&
+      needs.admit.outputs.admitted == 'true' &&
+      needs.admit.outputs.sha == github.sha
     runs-on: [self-hosted, linux, x64, ubuntu0-canary]
     # Same hang cap as the hosted shard; the point is to come in far under it.
     timeout-minutes: 60
     env:
       CI: "1"
-      # Dispatch inputs enter the job ONLY here, as environment data. See header.
-      CANARY_SHARD: ${{ inputs.shard }}
-      CANARY_WORKERS: ${{ inputs.workers }}
+      # Only hosted-admitted values enter this job; raw inputs never reach the host.
+      CANARY_SHARD_OK: ${{ needs.admit.outputs.shard }}
+      CANARY_PROJECTS: ${{ needs.admit.outputs.projects }}
+      CANARY_WORKERS_OK: ${{ needs.admit.outputs.workers }}
     defaults:
       run:
         working-directory: terminal
@@ -74,9 +145,9 @@ jobs:
           echo "cpus=$(nproc) mem=$(free -g | awk '/Mem:/{print $2}')G load=$(cut -d' ' -f1-3 /proc/loadavg)"
           echo "node_system=$(node -v 2>/dev/null || echo none) kernel=$(uname -r)"
       - uses: actions/checkout@v4
-      - name: Validate dispatch inputs (fixed shard table, integer workers)
-        working-directory: .
-        run: bash .github/scripts/selfhosted_canary_inputs.sh
+        with:
+          ref: ${{ needs.admit.outputs.sha }}
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: 20
