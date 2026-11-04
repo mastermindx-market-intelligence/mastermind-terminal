@@ -474,6 +474,9 @@ Reverse-order hazard: if 0043 (#804) is already applied, do not apply 0047 or it
 
 ### 0048 — Exact delivered-brief team view access (source only)
 
+Protected PR #1279 merged 2026-11-04T14:28:18Z as
+`691629e59a8bc663f96e7d89a845b19baa7c7d77`; the SQL remains UNAPPLIED.
+
 Adds access metadata to the existing `brief_deliveries` object. The existing producer, subscription ownership and team membership remain authoritative. The authenticated database requires the exact owned delivery, current team owner/admin, current content digest and the server-derived prospective effect digest before writing one stable grant. An exact repeated operation returns its original grant/time; a changed recipient, body or operation conflicts. Recipient reads use one fixed redacted RPC and current dynamic membership, with no private subscription or target identifiers and no additional whole-row team SELECT policy. A recorded receipt is distinct from current access and from native Mastermind OS product acceptance.
 
 The file is one atomic `DO` statement, compatible with the existing statement-at-a-time source applier. It is UNAPPLIED. Apply only through the established qualified source/application owner after focused security/exactly-once review; no SQL application or sharing effect is authorized merely by this documentation or source publication. The file's readback queries verify function ACLs, pinned search paths and preservation of private table write denial. Existing subscriptions and source-target access remain private; teams grant no paid entitlement. No automatic destructive down operation is supplied.
