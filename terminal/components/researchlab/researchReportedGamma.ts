@@ -98,7 +98,7 @@ function resolvePin(
   previous: ReportedGammaSnapshot,
   selected: ResearchRow | null,
 ): ReportedGammaPin {
-  if (selected === null) {
+  if (selected === null || selected === undefined) {
     return { pin: "unpinned", reason: "no_selection" };
   }
   // A row rooted elsewhere, or not a call/put row at all, is foreign context.
@@ -161,7 +161,8 @@ export function buildResearchReportedGamma(
     return { state: "withheld", reason: "context_session_mismatch" };
   }
 
-  const comparison = compareReportedGamma(current, previous, context.originMs);
+  // Undefined must not invoke the incumbent default wall clock. Preserve its refusal order.
+  const comparison = compareReportedGamma(current, previous, context.originMs === undefined ? Number.NaN : context.originMs);
   if (comparison.state === "unavailable") {
     return { state: "unavailable", reason: comparison.reason };
   }

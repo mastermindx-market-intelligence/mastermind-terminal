@@ -98,6 +98,22 @@ function deepFreeze<T>(value: T): T {
 }
 
 describe("buildResearchReportedGamma", () => {
+  it.each([undefined, null, Number.NaN, Number.POSITIVE_INFINITY])("refuses a missing or non-finite explicit origin (%s)", originMs => {
+    expect(buildResearchReportedGamma(snapshot(), previousSnapshot(), context({ originMs })))
+      .toEqual({ state: "unavailable", reason: "time" });
+  });
+
+  it("preserves incumbent definition refusal before an absent origin", () => {
+    expect(buildResearchReportedGamma(snapshot(), previousSnapshot({ definitionKey: "different" }), context({ originMs: undefined })))
+      .toEqual({ state: "unavailable", reason: "definition" });
+  });
+
+  it("treats an omitted optional selection as unpinned without throwing", () => {
+    const result = buildResearchReportedGamma(snapshot(), previousSnapshot(), context({ selected: undefined }));
+    expect(result.state).toBe("data");
+    if (result.state === "data") expect(result.pin).toEqual({ pin: "unpinned", reason: "no_selection" });
+  });
+
   it("returns the matched-cohort comparison plus an exact pinned member", () => {
     const previous = previousSnapshot();
     const current = snapshot();
