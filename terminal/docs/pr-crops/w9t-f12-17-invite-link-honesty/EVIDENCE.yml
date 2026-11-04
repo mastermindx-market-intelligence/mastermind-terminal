@@ -1,16 +1,15 @@
-# 2026-10-13 #996 (U02 data-origin readout) source hash reconciliation: preserves captured PNG bytes/provenance; the only i18n change is the added origin*/originChip*/originCode_* keys, read solely by DataOriginChip inside the /terminal ChartFrameBar; /dev/settings?s=team and /invite do not mount TerminalShell, ChartPane or ChartFrameBar.
 # W9T_F12_17 / MO-PAID-081 — copyable invitation link + the dated no-email-delivery line
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Seat ruling 2026-09-13: honest link-only. No mail provider is provisioned by this lane.
 # layoutFiles carry sha256 hashes of the files they name; proof of which code generated each crop.
 # Rebuild any crop and recompute its layoutFiles, or the evidence lock will fail and the PR will not land.
-# capturedAtHead: 304b74d9c4dfd5f77ec98b5d9f734c96ad7a0742
-capturedAtHead: 304b74d9c4dfd5f77ec98b5d9f734c96ad7a0742
-capturedAt: 2026-10-12T22:14:23.641Z
+# capturedAtHead: e2846880681d4b9aff4a060e1321f50f240cafc7
+capturedAtHead: e2846880681d4b9aff4a060e1321f50f240cafc7
+capturedAt: 2026-10-24T05:34:52.728Z
 layoutFiles:
   terminal/components/settings/SectionTeam.tsx: "add785974e9872100f912b96f21e28d48819f39eef221b9efe887752ba51e3e6"
   terminal/components/settings/SectionTeam.module.css: "069056ff7ac4274a57ae9a835a0fdda178e9625a591b4374e855b9d41a3fd5bc"
-  terminal/lib/i18n.tsx: "9bcded1313e75ca37fa7ab67f256ad3b568daa61aaf0d10fa1907a4751a371c1"
+  terminal/lib/i18n.tsx: "13f33e3178b105a64f1f5df35974cd99041ef06f05bdece95939dd07a8b9fe7c"
   terminal/lib/teams.ts: "e518afe4bc58b5f82638539f03b3063dc7ef35905c2807601eca9c71ac55e5b3"
   terminal/app/api/teams/invitations/route.ts: "d1daea2a77249e0b5246d5c1d6a3f0b40acecc1b5e1d1f3bfff51a4c2dba1618"
   terminal/app/invite/page.tsx: "1e9e766f3551978a9e0e7f4f4fdace0db07fbd4661e45426576d180d8db94716"
@@ -61,3 +60,13 @@ measurements:
   mobile-zh-team-invite-link.png: { inviteGroupTitle: "邀请成员", pendingGroupTitle: "尚未接受的邀请", deliveryLine: "我们不会发送邀请邮件：此服务器尚未设置邮件发送功能。最近核查于 2026年9月13日。", formPresent: false, linkPresent: true, linkValue: "https://app.mastermind-x.com/invite?token=9f2c41ba7d194e6a9c035b71ee0a4d229f2c41ba7d194e6a9c035b71ee0a4d22", linkReadOnly: true, linkLabel: "friend@example.com 的邀请链接", copyButtonText: "复制链接", sendLine: "请自行把这个链接发送给对方。链接 14 天内有效，且只能使用一次。", tokenInVisibleText: false, horizontalOverflow: 0 }
   mobile-zh-invite-signin.png: { pageTitle: "团队邀请", phase: "signed-out", signInText: "登录", signInHref: "/terminal?signin=1", returnLine: "登录之后，请再次打开这个邀请链接来加入团队。", linkLifeLine: "邀请链接 14 天内有效，且只能使用一次。", signInSentence: "请登录后接受此邀请。", tokenInVisibleText: false, horizontalOverflow: 0 }
   mobile-zh-invite-joined.png: { pageTitle: "团队邀请", phase: "joined", noteText: "你已加入该团队。", linkLifeLine: "邀请链接 14 天内有效，且只能使用一次。", tokenInVisibleText: false, horizontalOverflow: 0 }
+
+documentLanguageRecapture20261024:
+  sourceHead: e2846880681d4b9aff4a060e1321f50f240cafc7
+  qualification: Actual native producer executed in original managed language workspace; existing fixture data, no live-account or production claim
+  historicalManifest: history/before-document-language-20261024.yml
+  historicalSource: 919114d1c27f0f588d9d5a4d52574f19b0137d6d
+  receiptIndex: ../document-language/recapture-index.json
+
+# Raw capture identity and every upstream source/crop lock remain unchanged; omit only unused pending-copy dependency.
+lexProjection: {"schema":"terminal.lex_capture_projection.v1","omittedProperty":"obDonePrefsSyncing","capturedRawSha256":"13f33e3178b105a64f1f5df35974cd99041ef06f05bdece95939dd07a8b9fe7c","projectedSha256":"d6dcc2df7615a1c5782f4d755178fbb76bcf9ee42b93dffe7c7c95317a652de5","sourceGitBlob":"664d68043f472919f7b581f545a334bf66d9782f","sourceRecoveryCommit":"e2846880681d4b9aff4a060e1321f50f240cafc7","captureCommitLocallyAvailable":true}

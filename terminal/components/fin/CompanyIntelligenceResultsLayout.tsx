@@ -1,6 +1,7 @@
 "use client";
 
 import { pick } from "../../lib/finFormat";
+import styles from "./CompanyIntelligenceResultsLayout.module.css";
 
 export interface CompanyIntelligenceResultsItem {
   id: string;
@@ -23,6 +24,7 @@ interface CompanyIntelligenceResultsLayoutProps {
   periodLabel: string;
   eventDate: string;
   metrics: CompanyIntelligenceResultsItem[];
+  metricContext?: CompanyIntelligenceResultsItem[];
   guidance: CompanyIntelligenceResultsItem[];
   callReadthrough: CompanyIntelligenceResultsItem[];
   comparisons: CompanyIntelligenceResultsComparison[];
@@ -72,6 +74,7 @@ export default function CompanyIntelligenceResultsLayout({
   periodLabel,
   eventDate,
   metrics,
+  metricContext = [],
   guidance,
   callReadthrough,
   comparisons,
@@ -119,6 +122,13 @@ export default function CompanyIntelligenceResultsLayout({
           </div>
         ) : (
           <p className="ci-paper-results-empty">{pick(zh, "No structured metrics are available for this event.", "当前事件没有可展示的结构化指标。")}</p>
+        )}
+        {metricContext.length > 0 && (
+          <div className={`ci-paper-results-list ${styles.metricContext}`} data-ci-metric-context="">
+            {metricContext.map((item) => (
+              <ResultRow key={item.id} item={item} selected={selectedId === item.id} onSelect={onSelect} />
+            ))}
+          </div>
         )}
       </section>
 

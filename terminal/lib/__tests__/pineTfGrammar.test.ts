@@ -52,6 +52,7 @@ describe("shared timeframe grammar (tfParts / tfSeconds / tfPartsToSeconds)", ()
     expect(tfSeconds("1h")).toBe(3600);
     expect(tfSeconds("1H")).toBe(3600);
     expect(tfSeconds("4h")).toBe(14400);
+    expect(tfSeconds("12h")).toBe(43200);
     expect(tfSeconds("D")).toBe(86400);
     expect(tfSeconds("1D")).toBe(86400);
     expect(tfSeconds("W")).toBe(604800);
@@ -61,7 +62,7 @@ describe("shared timeframe grammar (tfParts / tfSeconds / tfPartsToSeconds)", ()
   });
 
   it("tfParts is the one parser: tfSeconds equals tfPartsToSeconds(tfParts(tf)) for every canonical chart TF", () => {
-    const tfs = ["1s", "5s", "15s", "30s", "1m", "5m", "15m", "30m", "1h", "2h", "4h", "D", "2D", "3D", "W", "2W", "1M", "3M"];
+    const tfs = ["1s", "5s", "15s", "30s", "1m", "5m", "15m", "30m", "1h", "2h", "4h", "12h", "D", "2D", "3D", "W", "2W", "1M", "3M"];
     for (const tf of tfs) {
       const p = tfParts(tf);
       expect(p, tf).not.toBeNull();

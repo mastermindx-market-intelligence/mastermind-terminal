@@ -172,6 +172,64 @@ test("MarketOntology context carries through Analysis and Thesis workspaces with
   expectCapturedThesisPayloads(thesisPayloads);
 });
 
+test("J1 saves A, inspects B, and reopens A with its exact source return", async ({ page, baseURL }, testInfo) => {
+  await prepare(page, testInfo, baseURL);
+  const writes: string[] = [];
+  page.on("request", (request) => {
+    if (new URL(request.url()).pathname === "/api/theses" && request.method() === "POST") {
+      writes.push(request.postData() ?? "");
+    }
+  });
+  const otherId = await createFixtureThesis(page, "a1000000-0000-4000-8000-00000000ab01", "MSFT", "J1 inspect B");
+  await openAnalysis(page, `symbol=NVDA&page=intelligence&${CONTEXT_QUERY}`);
+  await page.getByRole("link", { name: /Your theses on NVDA/ }).click();
+  await expect(page.getByTestId("thesis-workspace")).toBeVisible();
+  await fillNewThesis(page, "J1 saved A");
+  await page.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(page.getByText("Version 1 · Current")).toBeVisible({ timeout: 30_000 });
+  const savedUrl = page.url();
+  const savedId = new URL(savedUrl).searchParams.get("thesis");
+  expect(savedId).toBeTruthy();
+  expect(savedId).not.toBe(otherId);
+  const saveCount = writes.length;
+  expect(saveCount).toBe(1);
+  expect(writes[0]).not.toContain("mo_");
+
+  // Follow a different saved record, then use the real history entry written by
+  // Save. Do not construct a replacement A URL or persist its transient context.
+  await page.goto(`/analysis?view=theses&thesis=${otherId}`);
+  await expect(page.getByLabel("Title", { exact: true })).toHaveValue("J1 inspect B");
+  await expect(page.getByTestId("mo-context-strip")).toHaveCount(0);
+  await page.goBack();
+  await expect(page.getByLabel("Title", { exact: true })).toHaveValue("J1 saved A");
+  expect(new URL(page.url()).searchParams.get("thesis")).toBe(savedId);
+  expect(new URL(page.url()).searchParams.get("symbol")).toBe("NVDA");
+  expectContextParams(new URL(page.url()));
+  const returnLink = page.getByTestId("mo-context-strip").getByRole("link", { name: "Back to WTI Live Path" });
+  await expect(returnLink).toHaveAttribute("href", RETURN_HREF);
+  await page.reload();
+  await expect(page.getByLabel("Title", { exact: true })).toHaveValue("J1 saved A");
+  await expect(returnLink).toHaveAttribute("href", RETURN_HREF);
+  expect(writes).toHaveLength(saveCount);
+  const statement = page.getByLabel("Thesis statement", { exact: true });
+  const assistant = page.getByTestId("thesis-assistant-notes");
+  expect(await statement.evaluate((node) => {
+    const notes = document.querySelector('[data-testid="thesis-assistant-notes"]');
+    return !!notes && !!(node.compareDocumentPosition(notes) & Node.DOCUMENT_POSITION_FOLLOWING);
+  })).toBe(true);
+  await statement.scrollIntoViewIfNeeded();
+  const statementBox = await statement.boundingBox();
+  const assistantBox = await assistant.boundingBox();
+  expect(statementBox!.y).toBeLessThan(assistantBox!.y);
+  await page.screenshot({ path: testInfo.outputPath("reopened-a.png"), fullPage: true });
+  // Validate the actual clicked destination without reading the live Macro page.
+  await page.route("https://www.mastermind-x.com/ontology.html?rev=3", (route) => route.fulfill({
+    contentType: "text/html", body: "<!doctype html><title>Source return boundary</title>",
+  }));
+  await returnLink.click();
+  await expect(page).toHaveURL(RETURN_HREF);
+});
+
 test("same-route Analysis navigation reparses URL context", async ({ page, baseURL }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "The MarketOntology context contract is scoped to the desktop project.");
   await prepare(page, testInfo, baseURL);

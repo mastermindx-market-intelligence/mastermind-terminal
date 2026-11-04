@@ -6,11 +6,13 @@ import MobileSheet from "@/components/ui/MobileSheet";
 import { useLang } from "@/lib/i18n";
 import { PHONE_QUERY } from "@/lib/useMediaQuery";
 import { type OptionsChartLevel } from "@/lib/optionsCompanion";
+import { visualText } from "@/lib/visualIntelligenceCopy";
 import { optionsT } from "./optionsStrings";
 import styles from "./OptionsCompanion.module.css";
 
 // The initial chart/Overview bundle does not fetch or mount options data.
 const OptionsCompanion = dynamic(() => import("./OptionsCompanion"), { ssr: false });
+const ExposureChartReference = dynamic(() => import("../exposure-map/ExposureChartReference"), { ssr: false });
 const QUERY = "(max-width: 860px)"; // Terminal's canonical single-column breakpoint.
 const subscribeViewport = (callback: () => void) => {
   const query = window.matchMedia(QUERY); query.addEventListener("change", callback);
@@ -21,6 +23,7 @@ const serverSnapshot = () => false;
 export interface OptionsRailHandle { open: () => void }
 interface Props {
   children: ReactNode; symbol: string; enabled: boolean; access: "loading" | "allowed" | "locked";
+  contextOpen?: boolean; contextAvailable?: boolean; onContextChange?: (open: boolean, launcher?: HTMLElement | null) => void; contextHostRef?: (node: HTMLDivElement | null) => void;
   pinned: OptionsChartLevel | null; onPin: (level: OptionsChartLevel | null) => void; replayActive: boolean;
 }
 
@@ -29,10 +32,16 @@ interface Props {
  *  hidden) so a newer build that arrives while the chart is visible queues and re-presents
  *  onto the held map. The parked chip returns to the same held state.
  *  Reference: PP2-UI-b / accepted Paper contract #723 falsifiers 4, 5, 9, 10. */
-const OptionsRail = forwardRef<OptionsRailHandle, Props>(function OptionsRail({ children, symbol, enabled, access, pinned, onPin, replayActive }, ref) {
+const OptionsRail = forwardRef<OptionsRailHandle, Props>(function OptionsRail({ children, symbol, enabled, access, pinned, onPin, replayActive, contextOpen = false, contextAvailable = true, onContextChange, contextHostRef }, ref) {
   const { lang } = useLang(); const t = optionsT(lang);
   const small = useSyncExternalStore(subscribeViewport, smallSnapshot, serverSnapshot);
   const [open, setOpen] = useState(false);
+  const [hasExposureLink, setHasExposureLink] = useState(false);
+  useEffect(() => {
+    const read = () => setHasExposureLink(window.location.hash.startsWith("#exposure="));
+    read(); window.addEventListener("hashchange", read); window.addEventListener("popstate", read);
+    return () => { window.removeEventListener("hashchange", read); window.removeEventListener("popstate", read); };
+  }, []);
   // Parked while `open` was true and the user pressed "Show on chart" — the panel stays
   // mounted (and so do its selection, pin, queued build and scroll offsets) but the sheet
   // is hidden so the user can reach the chart underneath. Returns false if `small` ever
@@ -53,8 +62,8 @@ const OptionsRail = forwardRef<OptionsRailHandle, Props>(function OptionsRail({ 
     }
   }, [onPin]);
   useImperativeHandle(ref, () => ({ open: () => {
-    if (enabled) { returnFocus.current = document.querySelector<HTMLElement>(small && window.matchMedia(PHONE_QUERY).matches ? "[data-testid=roller-more]" : "[data-testid=toolbar-more]"); setOpen(true); }
-  } }), [enabled, small]);
+    if (enabled) { onContextChange?.(false); returnFocus.current = document.querySelector<HTMLElement>(small && window.matchMedia(PHONE_QUERY).matches ? "[data-testid=roller-more]" : "[data-testid=toolbar-more]"); setOpen(true); }
+  } }), [enabled, small, onContextChange]);
   // Data consumers cannot survive a hidden/disabled shell, even if a prior open bit survives.
   // While parked, signal changes END the park AND clear the pin through the existing paths.
   useEffect(() => { if (!enabled || access !== "allowed" || replayActive) onPin(null); }, [enabled, access, replayActive, onPin]);
@@ -88,24 +97,28 @@ const OptionsRail = forwardRef<OptionsRailHandle, Props>(function OptionsRail({ 
       }
     } : undefined}
     replayActive={replayActive} />;
-  const sheetOpen = showing && small && !parked;
-  const sheetKeepMounted = showing && small && parked;
+  const sheetOpen = showing && small && !parked && !contextOpen;
+  const sheetKeepMounted = showing && small && (parked || contextOpen);
   return <>
-    <aside className="rail" data-options-rail={showing && !small ? "open" : "closed"}>
-      {enabled && <div className={styles.railSwitch} hidden={showing && !small} role="group" aria-label={t("perspectives")}>
-        <button type="button" aria-pressed={!showing} onClick={close}>{t("overview")}</button>
-        <button type="button" ref={launcher} data-testid="options-rail-toggle" aria-pressed={showing} aria-label={t("open")} onClick={() => { if (showing) close(); else { returnFocus.current = launcher.current; setOpen(true); } }}>
+    {enabled && hasExposureLink && <ExposureChartReference symbol={symbol} active={access === "allowed" && !replayActive} pinned={pinned} onPin={onPin} />}
+    <aside className="rail" data-options-rail={showing && !small && !contextOpen ? "open" : "closed"}>
+      {enabled && <div className={styles.railSwitch} role="group" aria-label={t("perspectives")}>
+        <button type="button" aria-pressed={!showing && !contextOpen} onClick={() => { onContextChange?.(false); close(); }}>{t("overview")}</button>
+        {onContextChange && <button type="button" data-context-launcher disabled={!contextAvailable} aria-pressed={contextOpen}
+          onClick={(event) => onContextChange(!contextOpen, event.currentTarget)}>{visualText("tab", lang)}</button>}
+        <button type="button" ref={launcher} data-testid="options-rail-toggle" aria-pressed={showing && !contextOpen} aria-label={t("open")} onClick={() => { onContextChange?.(false); if (showing && !contextOpen) close(); else { returnFocus.current = launcher.current; setOpen(true); } }}>
           <svg viewBox="0 0 18 18" aria-hidden="true"><path d="M2 2h14v14H2zM2 7h14M2 12h14M7 2v14M12 2v14" /></svg>{t("options")}
         </button>
       </div>}
-      <div className={styles.overview} hidden={showing && !small}>{children}</div>
-      {showing && !small && panel}
+      <div className={styles.overview} hidden={(showing || contextOpen) && !small}>{children}</div>
+      {showing && !small && <div className={styles.contextPreservedOptions} hidden={contextOpen}>{panel}</div>}
+      <div ref={contextHostRef} className={styles.contextHost} data-context-dock="rail" hidden={!contextOpen || small} />
     </aside>
     {enabled && <MobileSheet open={sheetOpen} keepMounted={sheetKeepMounted} onClose={close} title={<span className={styles.sheetTitle}><span>{t("options")} · {symbol}</span><button type="button" className={styles.close} onClick={close} aria-label={t("close")}>×</button></span>} ariaLabel={t("open")}
       detents={[60, 94]} maxHeight="94svh" initialFocus="sheet" escapeKey="bubble" className={styles.sheet}>
       {small && panel}
     </MobileSheet>}
-    {enabled && parked && typeof document !== "undefined" && createPortal(
+    {enabled && parked && !contextOpen && typeof document !== "undefined" && createPortal(
       <button type="button" className={styles.chartReturn} data-testid="options-chart-return"
         onClick={() => { setParked(false); }}>{t("chartReturn")}</button>,
       document.body,

@@ -1,0 +1,49 @@
+"use client";
+import Link from "next/link";
+import { useLayoutEffect, useState } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
+import { normalizeAnalysisSymbol } from "@/lib/analysisSymbol";
+import { useActiveSymbol } from "@/lib/activeSymbol";
+import { useSharedShellT } from "@/lib/sharedShellCopy";
+import ShellSearch from "./ShellSearch";
+import { sharedShellTerminalHref } from "@/lib/sharedShellNavigation";
+import SharedShellPresentationControls from "./SharedShellPresentationControls";
+
+export default function SharedShellToolbar({ symbolOpen, onSymbolOpenChange, onOpenDirectory }: {
+  symbolOpen: boolean; onSymbolOpenChange: (open: boolean) => void; onOpenDirectory: () => void;
+}) {
+  const t = useSharedShellT();
+  const path = usePathname();
+  const params = useSearchParams();
+  const symbol = useActiveSymbol();
+  const [returnHref, setReturnHref] = useState(() => window.location.href);
+  useLayoutEffect(() => {
+    const update = () => setReturnHref(window.location.href);
+    update();
+    window.addEventListener("hashchange", update);
+    window.addEventListener("popstate", update);
+    window.addEventListener("mmx:shell-location", update);
+    return () => {
+      window.removeEventListener("hashchange", update);
+      window.removeEventListener("popstate", update);
+      window.removeEventListener("mmx:shell-location", update);
+    };
+  }, [path, params]);
+  const companySymbol = path === "/analysis" ? normalizeAnalysisSymbol(params.get("symbol") ?? undefined) : null;
+  const invalidCompany = path === "/analysis" && params.has("symbol") && !companySymbol;
+  // A URL-selected Company owns this entry even before its cursor-publishing effect runs.
+  const terminalHref = sharedShellTerminalHref(returnHref, companySymbol ?? symbol);
+  return <div className="shared-shell-toolbar">
+    <ShellSearch open={symbolOpen} onOpenChange={onSymbolOpenChange} />
+    <button type="button" className="shared-shell-directory-trigger" onClick={onOpenDirectory}
+      aria-haspopup="dialog" aria-label={t("shellAllTools")}>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></svg>
+      <span>{t("shellAllTools")}</span><kbd>⌘ K</kbd>
+    </button>
+    <SharedShellPresentationControls />
+    {!invalidCompany && <Link className="shared-shell-terminal-link" href={terminalHref} prefetch={false}>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 17 5-6 4 3 6-9M14 5h5v5" /></svg>
+      <span>{t("shellOpenCurrentChart")}</span><span aria-hidden="true">↗</span>
+    </Link>}
+  </div>;
+}

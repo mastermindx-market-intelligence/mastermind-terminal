@@ -1,3 +1,4 @@
+import { materializeRegionalFund } from "./regionalFinancialProjection";
 // fund.ts — TS contracts + client getters for the fundamentals / options / transcript files
 // (BUILD-SPEC §1 + §3.1). SINGLE AUTHOR: lane FE1a.
 //
@@ -10,6 +11,7 @@
 //   - getBars re-exports dataCache's OHLC getter so rail widgets share the chart's fetch.
 
 import { getJSON, getOhlc } from "./dataCache";
+import type { ReportedOwnershipBlock } from "./reportedOwnership";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // §1.1  <SYM>.fund.json — mastermind.fund/v1
@@ -102,6 +104,10 @@ export interface StatementPeriodSet {
   period_kind?: StatementPeriodKind[];
   /** Q=1..4, H=1..2; null for FY/YTD. Used for comparable-period YoY without label parsing. */
   period_number?: (number | null)[];
+  /** Explicit economic duration; required for mixed YTD/discrete coverage extensions. */
+  period_duration_months?: (number | null)[];
+  /** Provider + accounting convention. Different/unknown groups cannot support growth comparisons. */
+  comparison_basis?: (string | null)[];
   /** Label of the vendor row before normalization (for example H1/FY behind displayed H1/H2). */
   source_period_label?: string[];
   /** Cadence represented by this transport set. `.quarterly` remains the v1 key for compatibility. */
@@ -115,7 +121,7 @@ export interface StatementPeriodSet {
   source_market?: "us" | "cn" | "hk" | "ca" | "intl" | "crypto";
   source_family?: StatementSourceFamily;
   /** Evidence used when Terminal supplies a conservative family for a legacy artifact. */
-  source_family_basis?: "profile_sector_absent_industrial_structure";
+  source_family_basis?: "profile_sector_absent_industrial_structure" | "profile_financial_historical_unqualified";
   /** Historical vendor family, aligned per period; a minority of issuers change schema family. */
   source_family_by_period?: StatementSourceFamily[];
   income: IncomeBlock;
@@ -132,27 +138,42 @@ export interface StatementPeriodSet {
    * "massive"-only period carries statement TOTALS but not the derived rows below.
    */
   src_by_period?: string[];
+  /** Observation receipt for each retained statement family; generation time is never a source clock. */
+  period_provenance?: Partial<Record<"income" | "balance" | "cashflow", ({
+    origin?: string; provider?: string; acquired_at?: string | null; scope?: string;
+    raw_input_sha256?: string | null;
+  } | null)[]>>;
   /**
-   * Contract fields the vendor payload cannot fill, by block — e.g.
-   * `{income: ["ebitda"], balance: ["cash","debt","net_debt"], cashflow: ["capex","fcf"]}`.
-   * These are null on vendor-only periods BY DESIGN; they are never zero-filled or
+   * Contract fields the vendor cannot fill comparably, by block — under the Massive
+   * `stocks/financials/v1` source `{income: ["ebitda"], balance: ["debt","net_debt"],
+   * cashflow: []}`, whose definitions differ from the yfinance columns they would extend.
+   * A gapped field is null on vendor-only periods BY DESIGN — never zero-filled or
    * estimated. See lib/finStatements.vendorGapNotice.
    */
   vendor_gaps?: Record<string, string[]>;
   /**
-   * Filing provenance, index-aligned to `periods`: the ISO date of the vendor filing whose
-   * figures this column took, or null where no vendor row supplied a value (a yfinance-only
-   * column, or a file that predates the backfill). Written by
-   * `backfill_fund_statements_massive.merge_period_set` — when two filings report the same
-   * fiscal label, the LATER one wins and its date lands here.
+   * Filing provenance, index-aligned to `periods`; null = no claim. Two writers, in nightly
+   * order:
+   *  1. `annotate_sec_lineage` (E11-03, `src.statement_lineage === "sec_companyfacts"`): the
+   *     date the column's anchor figures (revenue, net income, total assets) were FIRST filed
+   *     with the SEC, or null where the file and SEC disagree.
+   *  2. `backfill_fund_statements_massive.merge_period_set`: keeps every column the annotator
+   *     judged exactly as it left it, and dates only the older columns it adds (and, on a file
+   *     without SEC lineage, the columns it fills) with the LATER vendor filing that supplied
+   *     the figures. The v1 source serves only the latest filing per period, so a vendor date
+   *     is a conservative point-in-time anchor (never earlier than first publication), not
+   *     the original as-filed date. `src_by_period` tells the two apart.
    */
   filed_by_period?: (string | null)[];
   /**
-   * True where more than one distinct vendor filing was seen for that fiscal label — i.e. the
-   * period has been restated. The column shows the LATEST filing's figures; this flag is what
-   * lets a surface say so. Not full point-in-time: the superseded figures are not retained.
+   * True where the period is known to have been restated (the column shows the LATEST
+   * filing's figures; the superseded ones are not retained). False comes only from the SEC
+   * annotator: with a filed date it means no earlier filing reported a different figure;
+   * with a null date it is the annotator's "no claim". null = not established: the v1 vendor
+   * source serves one filing per period, so it cannot show a restatement either way, and the
+   * backfill never writes a false it cannot back. Only `=== true` is a restatement claim.
    */
-  restated_by_period?: boolean[];
+  restated_by_period?: (boolean | null)[];
 }
 
 export interface FundStatements {
@@ -287,6 +308,16 @@ export interface FundOwnership {
   free_float_pct: number | null;
   closely_held_pct: number | null;
   top_inst: InstHolder[]; // ≤10
+  /**
+   * `mastermind.reported-ownership/v1` — provider-reported institutional holders, normalized by
+   * `ingest/reported_ownership.py` and read through `lib/reportedOwnership.ts`.
+   *
+   * This is a separate, independently validated snapshot and it is deliberately NOT a 13F
+   * substitute: `top_inst` above keeps only a name and an undated percentage, so it can never be
+   * rendered as verified ownership. Absent means "no qualified block for this listing" — the panel
+   * renders that absence explicitly and never falls back to `top_inst`.
+   */
+  reported?: ReportedOwnershipBlock | null;
 }
 
 export interface FundGuidance {
@@ -313,6 +344,9 @@ export interface Fund {
   quote_currency: string; // trading currency (price/mktcap/dividends)
   stmt_currency: string | null; // financial-reporting currency (statements/estimates); null = unknown
   src: {
+    cache_fetched_at?: string | null;
+    profile_acquired_at?: string | null;
+    estimates_acquired_at?: string | null;
     statements: string;
     estimates: string | null;
     dividends: string;
@@ -546,7 +580,8 @@ export async function getFund(sym: string): Promise<Fund | null> {
     negMark(key);
     return null;
   }
-  return applyLegacyStatementFamilyFallback(data);
+  const selected = await materializeRegionalFund(data, sym);
+  return selected ? applyLegacyStatementFamilyFallback(selected) : null;
 }
 
 /** getOpts — <SYM>.opts.json, negative-cached (most symbols are not optionable). */
