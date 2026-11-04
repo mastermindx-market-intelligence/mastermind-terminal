@@ -116,7 +116,7 @@ function pickLabel(zh: boolean, label: BilingualLabel): string {
 function lookup(map: Record<string, BilingualLabel>, raw: string, zh: boolean): string {
   const key = raw.trim().toLowerCase();
   if (!key) return pickLabel(zh, NOT_CLASSIFIED);
-  return pickLabel(zh, map[key] ?? NOT_CLASSIFIED);
+  return pickLabel(zh, Object.prototype.hasOwnProperty.call(map, key) ? map[key] : NOT_CLASSIFIED);
 }
 
 /**
@@ -133,7 +133,7 @@ function humaniseOpenVocabulary(raw: string): string | null {
 function lookupOrHumanise(map: Record<string, BilingualLabel>, raw: string, zh: boolean): string {
   const key = raw.trim().toLowerCase();
   if (!key) return pickLabel(zh, NOT_CLASSIFIED);
-  const mapped = map[key];
+  const mapped = Object.prototype.hasOwnProperty.call(map, key) ? map[key] : undefined;
   if (mapped) return pickLabel(zh, mapped);
   return humaniseOpenVocabulary(raw) ?? pickLabel(zh, NOT_CLASSIFIED);
 }

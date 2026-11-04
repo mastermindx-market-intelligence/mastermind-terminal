@@ -1,0 +1,12 @@
+{
+ "asof": "2026-07-14",
+ "profile": {
+  "industry": "Semiconductors",
+  "sector": "Technology"
+ },
+ "quote_currency": "TWD",
+ "src": {
+  "statements": "yfinance"
+ },
+ "ticker": "2330.TW"
+}

@@ -1,0 +1,164 @@
+{
+  "source_parent": "57a456589ef58fff7f174c0c5e5ed2617c7bad63",
+  "pr": 1100,
+  "results": [
+    {
+      "name": "terminal-unit-final",
+      "command": [
+        "npx",
+        "vitest",
+        "run",
+        "lib/__tests__/forexWatchesInventory.test.tsx",
+        "lib/__tests__/forexWatchesRoute.test.ts",
+        "lib/__tests__/alertsView.test.ts",
+        "lib/__tests__/alertBulk.test.ts",
+        "lib/__tests__/alertsInventoryCountPending.test.tsx",
+        "lib/__tests__/alertsRearmReconcile.test.tsx",
+        "lib/__tests__/alertsMutationRaces.test.tsx",
+        "lib/__tests__/alertsLifecycleRoute.test.ts",
+        "lib/__tests__/alertsRouteAuthority.test.ts",
+        "lib/__tests__/alertsRoute.test.ts",
+        "lib/__tests__/alertsIdentity.test.ts",
+        "lib/__tests__/flowRootCallSites.test.ts",
+        "lib/__tests__/alertDryRunRoute.test.ts"
+      ],
+      "returncode": 0,
+      "passed": 291,
+      "files": 12,
+      "seconds": 4.43,
+      "log": "terminal-unit-final.log",
+      "note": "Vitest matched flowRootCallSites.test.tsx by substring; the mistyped identity filter matched no file. The actual identity suite was then run explicitly below.",
+      "log_sha256": "bae22247c061d84b2b0fa6ab15bd5822e698e614ed6308424d584693c4f43fe9"
+    },
+    {
+      "name": "terminal-identity-final",
+      "command": [
+        "npx",
+        "vitest",
+        "run",
+        "lib/__tests__/alertsIdentityState.test.ts"
+      ],
+      "returncode": 0,
+      "passed": 4,
+      "files": 1,
+      "seconds": 1.53,
+      "log": "terminal-identity-final.log",
+      "log_sha256": "5e28b5087f261ab2a5502da2a39e53ac9574fb403f0ac611f17da37ac68f3e1e"
+    },
+    {
+      "name": "typecheck-final",
+      "command": [
+        "npx",
+        "tsc",
+        "--noEmit"
+      ],
+      "returncode": 0,
+      "seconds": 9.09,
+      "log": "typecheck-final.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "unique_focused_unit_tests_passed": 295,
+  "browser": {
+    "command": [
+      "npx",
+      "playwright",
+      "test",
+      "e2e/forex-account-conditions.spec.ts",
+      "--workers=1",
+      "--retries=0",
+      "--reporter=list"
+    ],
+    "env": {
+      "CI": "1",
+      "TERMINAL_E2E_PORT": "32184"
+    },
+    "passed": 18,
+    "seconds": 47.3,
+    "log": "terminal-browser-final.log",
+    "log_sha256": "4b89c3e3aa8b8a0ff8e1a6e42d131446573d44e98d07c2c2344e76c0f59f9283",
+    "languages": [
+      "en",
+      "zh"
+    ],
+    "viewports": [
+      [
+        1440,
+        900
+      ],
+      [
+        820,
+        1180
+      ],
+      [
+        390,
+        844
+      ]
+    ],
+    "fixture": "Existing Next development fixture seam with controlled account responses; not deployed auth/storage"
+  },
+  "source_sha256": {
+    "terminal/app/api/alerts/route.ts": "53bfcfbfd99a3ee818e9289f54744948f6453e1ca20f38401627c3486a10f97f",
+    "terminal/lib/forexWatches.ts": "8555c95ee5112b67b92c6fc20204f8fefbf01725bad84f6737e77b66bd96fd75",
+    "terminal/components/AlertsView.tsx": "876a2421292257d778c1001498a0c2213dd76e9d6d83e4dda6d2a53332b074d3",
+    "terminal/lib/alertsView.ts": "ed0b6be7338a71f6c5fef504f49f38a549b223a53f83408c232e5653da98b496",
+    "terminal/lib/alertBulk.ts": "34a6b791f500b217184d7b23ccb9b71cbbc83dd6bc55824d73937008d0f5633c",
+    "terminal/lib/alertBulkLex.ts": "35f1b91b9b331cbce4231ed7d106b8ad0b1524e46fbd0c2b22a872dc336c03dd",
+    "terminal/components/alerts/AlertBulkManager.tsx": "9edcd647830d6abe991bb397f3f2f00d43753562004b2b068e7f08e60e82464c",
+    "terminal/components/alerts/AlertsCockpit.tsx": "16bcae31ac1b6c2c181afd35d96a8d5d6db18aa37d51dca47a65c6d9178aa71b",
+    "terminal/e2e/forex-account-conditions.spec.ts": "ffbeb72d840eaa8fb73978dbd4227a3d70ef67106192d10efb69063a034b8865",
+    "terminal/lib/__tests__/forexWatchesInventory.test.tsx": "8cecac07aadc1d49a2935c666f2ce61d4fb1262a59057e2b8b022fac387198f2",
+    "terminal/lib/__tests__/forexWatchesRoute.test.ts": "1398ca8918b7275fcb046d5c345f2115a0c1dce234dc48ce8a37585e697c2c0f",
+    "terminal/lib/__tests__/alertsView.test.ts": "e6e77bc7428ac4366e36c268ac54ba87432363cdf25932ad3fbf3029d82b5d49",
+    "terminal/lib/__tests__/alertBulk.test.ts": "53be4146409f05e0e467fd5a48b1ea56d2a41de93c3358914a3963238c2e757c",
+    "terminal/lib/__tests__/alertsInventoryCountPending.test.tsx": "0fef005731574f677acba92200fc38e08ca4694e4f5b2d5f8ec136adbbb280bf",
+    "terminal/lib/__tests__/alertsRearmReconcile.test.tsx": "68f28b7872b691cf2da5a15431a6acdc7125fd88b80ae74d57c8da27134c70fe",
+    "terminal/lib/__tests__/alertsMutationRaces.test.tsx": "d3c4bd24a530d6278069d91d08f9fafeb088eea6f34e6b5449014725706993a0",
+    "terminal/lib/__tests__/alertsLifecycleRoute.test.ts": "429c930397d82baa3fa44259c3e72d0f13e58bb18b708b2e22c92c5822afa262",
+    "terminal/lib/__tests__/alertsRouteAuthority.test.ts": "f38b94967ee0f9cc54363b9bb2f0b9e7c23c22790c5788e784c53a6da56c31b7",
+    "terminal/lib/__tests__/alertsRoute.test.ts": "e01e2ba7af7dffeaab57783fd6809c818e42aa5b8431912ab461f47c861ca402",
+    "terminal/lib/__tests__/alertDryRunRoute.test.ts": "c669d43a5005f6707b6cc946f7228b072d81d07eb29909d960dc8b275d40c835",
+    "terminal/lib/__tests__/alertsIdentityState.test.ts": "831e6576acf6c30254021bac3880d57924ef0d76411cf6cc4ccfca1009cc4172",
+    "terminal/lib/__tests__/flowRootCallSites.test.tsx": "219344d8d09a4d15f9faef04534459b86d506b59bcb58d2711d7a8fa0bf60474"
+  },
+  "screenshots": [
+    {
+      "file": "saved-inactive-en-desktop.png",
+      "sha256": "93eff6596986b53d6908c997b67448a17eaa68691aaae5974878d9a1528fc19d"
+    },
+    {
+      "file": "saved-inactive-en-mobile.png",
+      "sha256": "e48bc60ed38cf9540fa45c4897c32602ce358d820552abd85bf30a16ccac626d"
+    },
+    {
+      "file": "saved-inactive-en-tablet.png",
+      "sha256": "8565c94341a899903ddb4700d556c5c3a91b36f89ae2daa23945f973230f814a"
+    },
+    {
+      "file": "saved-inactive-zh-desktop.png",
+      "sha256": "1be14f2bc49f03068fd609364eba9d5a5687cfc168fad6b6065d199f02359db8"
+    },
+    {
+      "file": "saved-inactive-zh-mobile.png",
+      "sha256": "8c3facebe93682c6ddbc63cf26df9134ce14cddee0faa98dedf1cdf6082a0c93"
+    },
+    {
+      "file": "saved-inactive-zh-tablet.png",
+      "sha256": "09d95417eb8b72474472fd394269f658607728ea74ac1421e053c3cfd781831b"
+    }
+  ],
+  "visual_inspection": {
+    "inspected": [
+      "saved-inactive-en-desktop.png",
+      "saved-inactive-zh-mobile.png"
+    ],
+    "result": "Saved-condition title and zero tracked count match inactive status; responsive layout and literal rule/expiry/revision readable."
+  },
+  "limitations": [
+    "Production migration not applied.",
+    "No deployed authenticated account journey proven.",
+    "No qualified finalized 4H feed, activation, evaluation or delivery inferred.",
+    "Fresh independent exact-head review pending."
+  ],
+  "historical_harness_correction": "The first new mounted-test run reused an unmounted React root across cases. Setup now creates a fresh root per case; product assertions unchanged."
+}

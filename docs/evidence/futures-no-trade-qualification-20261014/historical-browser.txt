@@ -1,0 +1,10 @@
+Running 6 tests using 1 worker
+
+  ✓  1 [desktop] › e2e/futures-sample.local.spec.ts:17:5 › actual historical executions and event-integrated depth render without generated gamma (875ms)
+  ✓  2 [desktop] › e2e/futures-sample.local.spec.ts:46:5 › historical-source labels translations and CVD controls remain explicit (830ms)
+  ✓  3 [tablet] › e2e/futures-sample.local.spec.ts:17:5 › actual historical executions and event-integrated depth render without generated gamma (756ms)
+  ✓  4 [tablet] › e2e/futures-sample.local.spec.ts:46:5 › historical-source labels translations and CVD controls remain explicit (753ms)
+  ✓  5 [mobile] › e2e/futures-sample.local.spec.ts:17:5 › actual historical executions and event-integrated depth render without generated gamma (627ms)
+  ✓  6 [mobile] › e2e/futures-sample.local.spec.ts:46:5 › historical-source labels translations and CVD controls remain explicit (700ms)
+
+  6 passed (11.4s)

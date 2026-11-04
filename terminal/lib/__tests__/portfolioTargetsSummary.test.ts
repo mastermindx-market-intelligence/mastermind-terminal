@@ -3,8 +3,8 @@ import { computePortfolioTargets, isPortfolioTargetsSummary } from "../portfolio
 
 const target = (ticker: string, targetWeightPct = 20) => ({ ticker, targetWeightPct, bandPct: 5, updatedAt: null });
 const valid = computePortfolioTargets(
-  [{ ticker: "AAPL", shares: 1, entryPrice: 10, status: "open" },
-   { ticker: "MSFT", shares: 1, entryPrice: 10, status: "open" },
+  [{ ticker: "AAPL", shares: 1, entryPrice: 10, entryCurrency: "USD", status: "open" },
+   { ticker: "MSFT", shares: 1, entryPrice: 10, entryCurrency: "USD", status: "open" },
    { ticker: "NO-SIZE", shares: null, entryPrice: null, status: "open" },
    { ticker: "UNTARGETED", shares: null, entryPrice: null, status: "open" }],
   [target("AAPL", 50), target("MSFT", 20), target("NO-SIZE", 10), target("OLD", 5)],
@@ -20,11 +20,36 @@ describe("portfolio targets successful-read summary contract", () => {
     expect(isPortfolioTargetsSummary(computePortfolioTargets([], [target("OLD")]))).toBe(true);
   });
 
+  it.each([undefined, null])("accepts omitted or null cost-gap metadata (%s)", costGap => {
+    const legacy = { ...valid };
+    delete legacy.costGap;
+    expect(isPortfolioTargetsSummary(legacy)).toBe(true);
+    expect(isPortfolioTargetsSummary({ ...legacy, costGap })).toBe(true);
+  });
+
+  it.each([
+    ["currency_unknown", null, 10, 100],
+    ["currency_mismatch", "HKD", 10, 100],
+    ["amount_overflow", "USD", 2, Number.MAX_VALUE],
+  ] as const)("accepts the real producer's %s refusal with null weights", (gap, currency, shares, entryPrice) => {
+    const summary = computePortfolioTargets([
+      { ticker: "AAA", shares: 10, entryPrice: 100, entryCurrency: "USD", status: "open" },
+      { ticker: "BBB", shares, entryPrice, entryCurrency: currency, status: "open" },
+    ], [target("AAA", 70)]);
+    expect(summary.costGap).toBe(gap);
+    expect(isPortfolioTargetsSummary(summary)).toBe(true);
+    expect(summary.drifts[0].currentWeightPct).toBeNull();
+    expect(summary.untargeted[0].currentWeightPct).toBeNull();
+  });
+
   it.each([
     ["null", null], ["array", []], ["boolean", true], ["string", "summary"],
     ["missing members", {}],
     ["unknown schema", { ...valid, schema: "portfolio_targets.v2" }],
     ["wrong weight basis", { ...valid, weightBasis: "market" }],
+    ["unknown cost gap", { ...valid, costGap: "future_cause" }],
+    ["object cost gap", { ...valid, costGap: {} }],
+    ["numeric cost gap", { ...valid, costGap: 1 }],
     ["missing total", { ...valid, targetsSumPct: undefined }],
     ["string total", { ...valid, targetsSumPct: "85" }],
     ["non-finite total", { ...valid, targetsSumPct: Infinity }],

@@ -1,0 +1,571 @@
+{
+  "sourceHead": "6c9cde3550d2ab6281c2ea309c56f714f58b2ae1",
+  "kind": "ISOLATED_ACTUAL_TODAY_COMPONENT_FIXTURE",
+  "results": [
+    {
+      "width": 1440,
+      "theme": "dark",
+      "lang": "en",
+      "state": "ready",
+      "layout": {
+        "scroll": 1440,
+        "width": 1440,
+        "mains": 1,
+        "bodyHeight": 1825
+      },
+      "initialLayout": {
+        "hero": {
+          "y": 158.078125,
+          "h": 224.625
+        },
+        "continuation": {
+          "y": 435.703125,
+          "h": 410.71875
+        },
+        "coverage": {
+          "y": 1096.328125,
+          "h": 350.6875
+        },
+        "attention": {
+          "y": 414.703125,
+          "h": 180
+        },
+        "continuationBeforeCoverage": true
+      },
+      "proof": {
+        "oldContextPreserved": true,
+        "resume": "/research?doc_id=report-one&source_pdf_sha256=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa&extracted_text_sha256=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb&extractor_version=research_vault.ingest.extract_pdf_text.v1&segmenter_version=page-byte-v1&segment_start=7",
+        "fresh": "/research?doc_id=report-one&source_pdf_sha256=dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd&extracted_text_sha256=eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee&extractor_version=research_vault.ingest.extract_pdf_text.v1&segmenter_version=page-byte-v1&segment_start=0",
+        "eventHref": "/analysis?symbol=AAPL&page=intelligence&ci_lens=sources&ci_event=evt_cik0000320193_2026q3_results&ci_generation=f709a0a6ec514282d5769e7d&ci_company=cik%3A0000320193&ci_fingerprint=cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/watchlist",
+          "query": "",
+          "mode": "ready"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "query": "",
+          "mode": "ready"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "query": "",
+          "mode": "ready"
+        },
+        {
+          "path": "/api/shared-shell/research/read/report-one",
+          "query": "?segment_start=0&max_segments=2",
+          "mode": "ready"
+        },
+        {
+          "path": "/api/investigations/baseline",
+          "query": "?symbol=AAPL",
+          "mode": "ready"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "lang": "zh",
+      "state": "ready",
+      "layout": {
+        "scroll": 1440,
+        "width": 1440,
+        "mains": 1,
+        "bodyHeight": 1562
+      },
+      "initialLayout": {
+        "hero": {
+          "y": 158.078125,
+          "h": 224.625
+        },
+        "continuation": {
+          "y": 435.703125,
+          "h": 389.28125
+        },
+        "coverage": {
+          "y": 1096.328125,
+          "h": 350.6875
+        },
+        "attention": {
+          "y": 414.703125,
+          "h": 180
+        },
+        "continuationBeforeCoverage": true
+      },
+      "proof": {},
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/watchlist",
+          "query": "",
+          "mode": "ready"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "query": "",
+          "mode": "ready"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "query": "",
+          "mode": "ready"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "lang": "en",
+      "state": "ready",
+      "layout": {
+        "scroll": 1440,
+        "width": 1440,
+        "mains": 1,
+        "bodyHeight": 1562
+      },
+      "initialLayout": {
+        "hero": {
+          "y": 158.078125,
+          "h": 224.625
+        },
+        "continuation": {
+          "y": 435.703125,
+          "h": 410.71875
+        },
+        "coverage": {
+          "y": 1096.328125,
+          "h": 350.6875
+        },
+        "attention": {
+          "y": 414.703125,
+          "h": 180
+        },
+        "continuationBeforeCoverage": true
+      },
+      "proof": {},
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/watchlist",
+          "query": "",
+          "mode": "ready"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "query": "",
+          "mode": "ready"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "query": "",
+          "mode": "ready"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "lang": "zh",
+      "state": "ready",
+      "layout": {
+        "scroll": 1440,
+        "width": 1440,
+        "mains": 1,
+        "bodyHeight": 1562
+      },
+      "initialLayout": {
+        "hero": {
+          "y": 158.078125,
+          "h": 224.625
+        },
+        "continuation": {
+          "y": 435.703125,
+          "h": 389.28125
+        },
+        "coverage": {
+          "y": 1096.328125,
+          "h": 350.6875
+        },
+        "attention": {
+          "y": 414.703125,
+          "h": 180
+        },
+        "continuationBeforeCoverage": true
+      },
+      "proof": {},
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/watchlist",
+          "query": "",
+          "mode": "ready"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "query": "",
+          "mode": "ready"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "query": "",
+          "mode": "ready"
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "lang": "en",
+      "state": "ready",
+      "layout": {
+        "scroll": 390,
+        "width": 390,
+        "mains": 1,
+        "bodyHeight": 2234
+      },
+      "initialLayout": {
+        "hero": {
+          "y": 199.28125,
+          "h": 313.875
+        },
+        "continuation": {
+          "y": 766.203125,
+          "h": 466.25
+        },
+        "coverage": {
+          "y": 1778.515625,
+          "h": 350.6875
+        },
+        "attention": {
+          "y": 545.15625,
+          "h": 182.046875
+        },
+        "continuationBeforeCoverage": true
+      },
+      "proof": {},
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/watchlist",
+          "query": "",
+          "mode": "ready"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "query": "",
+          "mode": "ready"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "query": "",
+          "mode": "ready"
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "lang": "zh",
+      "state": "ready",
+      "layout": {
+        "scroll": 390,
+        "width": 390,
+        "mains": 1,
+        "bodyHeight": 2128
+      },
+      "initialLayout": {
+        "hero": {
+          "y": 199.28125,
+          "h": 271.78125
+        },
+        "continuation": {
+          "y": 724.109375,
+          "h": 423.375
+        },
+        "coverage": {
+          "y": 1672.109375,
+          "h": 350.6875
+        },
+        "attention": {
+          "y": 503.0625,
+          "h": 182.046875
+        },
+        "continuationBeforeCoverage": true
+      },
+      "proof": {},
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/watchlist",
+          "query": "",
+          "mode": "ready"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "query": "",
+          "mode": "ready"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "query": "",
+          "mode": "ready"
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "en",
+      "state": "ready",
+      "layout": {
+        "scroll": 390,
+        "width": 390,
+        "mains": 1,
+        "bodyHeight": 2234
+      },
+      "initialLayout": {
+        "hero": {
+          "y": 199.28125,
+          "h": 313.875
+        },
+        "continuation": {
+          "y": 766.203125,
+          "h": 466.25
+        },
+        "coverage": {
+          "y": 1778.515625,
+          "h": 350.6875
+        },
+        "attention": {
+          "y": 545.15625,
+          "h": 182.046875
+        },
+        "continuationBeforeCoverage": true
+      },
+      "proof": {},
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/watchlist",
+          "query": "",
+          "mode": "ready"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "query": "",
+          "mode": "ready"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "query": "",
+          "mode": "ready"
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "zh",
+      "state": "ready",
+      "layout": {
+        "scroll": 390,
+        "width": 390,
+        "mains": 1,
+        "bodyHeight": 2508
+      },
+      "initialLayout": {
+        "hero": {
+          "y": 199.28125,
+          "h": 271.78125
+        },
+        "continuation": {
+          "y": 724.109375,
+          "h": 423.375
+        },
+        "coverage": {
+          "y": 1672.109375,
+          "h": 350.6875
+        },
+        "attention": {
+          "y": 503.0625,
+          "h": 182.046875
+        },
+        "continuationBeforeCoverage": true
+      },
+      "proof": {
+        "oldContextPreserved": true,
+        "resume": "/research?doc_id=report-one&source_pdf_sha256=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa&extracted_text_sha256=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb&extractor_version=research_vault.ingest.extract_pdf_text.v1&segmenter_version=page-byte-v1&segment_start=7",
+        "fresh": "/research?doc_id=report-one&source_pdf_sha256=dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd&extracted_text_sha256=eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee&extractor_version=research_vault.ingest.extract_pdf_text.v1&segmenter_version=page-byte-v1&segment_start=0",
+        "eventHref": "/analysis?symbol=AAPL&page=intelligence&ci_lens=sources&ci_event=evt_cik0000320193_2026q3_results&ci_generation=f709a0a6ec514282d5769e7d&ci_company=cik%3A0000320193&ci_fingerprint=cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/watchlist",
+          "query": "",
+          "mode": "ready"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "query": "",
+          "mode": "ready"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "query": "",
+          "mode": "ready"
+        },
+        {
+          "path": "/api/shared-shell/research/read/report-one",
+          "query": "?segment_start=0&max_segments=2",
+          "mode": "ready"
+        },
+        {
+          "path": "/api/investigations/baseline",
+          "query": "?symbol=AAPL",
+          "mode": "ready"
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "theme": "light",
+      "lang": "zh",
+      "state": "ready",
+      "layout": {
+        "scroll": 320,
+        "width": 320,
+        "mains": 1,
+        "bodyHeight": 2246
+      },
+      "initialLayout": {
+        "hero": {
+          "y": 213.28125,
+          "h": 288.828125
+        },
+        "continuation": {
+          "y": 755.15625,
+          "h": 444.8125
+        },
+        "coverage": {
+          "y": 1789.96875,
+          "h": 350.6875
+        },
+        "attention": {
+          "y": 534.109375,
+          "h": 182.046875
+        },
+        "continuationBeforeCoverage": true
+      },
+      "proof": {},
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/watchlist",
+          "query": "",
+          "mode": "ready"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "query": "",
+          "mode": "ready"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "query": "",
+          "mode": "ready"
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "zh",
+      "state": "macro503",
+      "layout": {
+        "scroll": 390,
+        "width": 390,
+        "mains": 1,
+        "bodyHeight": 1780
+      },
+      "initialLayout": {
+        "hero": null,
+        "continuation": {
+          "y": 662.140625,
+          "h": 423.375
+        },
+        "coverage": {
+          "y": 1610.140625,
+          "h": 147.4375
+        },
+        "attention": {
+          "y": 441.09375,
+          "h": 182.046875
+        },
+        "continuationBeforeCoverage": true
+      },
+      "proof": {},
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/watchlist",
+          "query": "",
+          "mode": "macro503"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "query": "",
+          "mode": "macro503"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "query": "",
+          "mode": "macro503"
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "zh",
+      "state": "watch401",
+      "layout": {
+        "scroll": 390,
+        "width": 390,
+        "mains": 1,
+        "bodyHeight": 844
+      },
+      "initialLayout": {
+        "hero": null,
+        "continuation": null,
+        "coverage": null,
+        "attention": null,
+        "continuationBeforeCoverage": false
+      },
+      "proof": {},
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/watchlist",
+          "query": "",
+          "mode": "watch401"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "query": "",
+          "mode": "watch401"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "query": "",
+          "mode": "watch401"
+        }
+      ]
+    }
+  ]
+}

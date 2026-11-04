@@ -55,6 +55,38 @@ done
 ts() { date -u "+%Y-%m-%d %H:%M:%S UTC"; }
 
 # ---------------------------------------------------------------------------
+# Failure accounting (2026-10-21)
+#
+# This script drives the scheduled fundamentals lane, so its exit code is what
+# ops/nightly_cnhk.sh turns into a last_success stamp. It used to end on a bare
+# `echo`, i.e. always 0: when pull_macro_intel died on a missing jsonschema the
+# log showed "exited 0" and the lane stamped a full success over stale data.
+#
+# Two defects are fixed here:
+#   1. `cmd || echo "[$(ts)] ... exited $?"` reports 0 for every failure, because
+#      the $(ts) command substitution runs first and resets $?. rc is now read into
+#      a variable BEFORE anything else can touch it.
+#   2. Failures were swallowed entirely. Every REQUESTED stage now contributes to
+#      an aggregate that becomes the exit code.
+#
+# Explicitly optional (unchanged, last-good-tolerated): git pull of the Macro
+# clone, the Massive statement backfill, the factordata pull-down, insider-power
+# export, and a missing defeatbeta venv. Those are documented non-fatal by design
+# and must not fail the lane.
+# ---------------------------------------------------------------------------
+FAILED_STAGES=()
+US_FUND_READY=1
+US_INTEL_READY=1
+note_failure() { FAILED_STAGES+=("$1:$2"); }
+note_last_good() { echo "[$(ts)] WARN: $1 (rc=$2) — explicitly optional, last-good output retained"; }
+# Run a command, preserving its rc across any later command substitution.
+run_stage() {
+  local __rc=0
+  "$@" || __rc=$?
+  return "$__rc"
+}
+
+# ---------------------------------------------------------------------------
 # Flags
 # ---------------------------------------------------------------------------
 US_ONLY=0; CN_HK_ONLY=0; SKIP_COLLECT=0; SKIP_TX=0; SKIP_OPTS=0
@@ -103,10 +135,7 @@ set -a
 [ -f "$CA/.env" ]    && . "$CA/.env"
 set +a
 
-if [ -z "${TUSHARE_TOKEN:-}" ]; then
-  echo "[$(ts)] ERROR: TUSHARE_TOKEN missing in $MACRO/.env"
-  exit 1
-fi
+
 
 # ---------------------------------------------------------------------------
 # 2. JUDGE FIX (1): git pull --ff-only the Macro Dashboard clone
@@ -142,20 +171,12 @@ if [ "$SKIP_COLLECT" = "0" ]; then
 
   if [ "$CN_HK_ONLY" = "0" ]; then
     echo "[$(ts)] === collect US fund (yfinance statements/estimates/analyst/holders/dividends) ==="
-    run "$PY" "$INGEST/collect_us_fund.py" $LIMIT_ARG \
-      || echo "[$(ts)] WARN: collect_us_fund exited $?"
+    # shellcheck disable=SC2086
+    run_stage run "$PY" "$INGEST/collect_us_fund.py" $LIMIT_ARG \
+      || { note_failure "collect_us_fund" "$?"; US_FUND_READY=0; }
   fi
 
-  if [ "$US_ONLY" = "0" ]; then
-    echo "[$(ts)] === collect CN+HK fund (Tushare vip-pulls + akshare + yfinance HK) ==="
-    run "$PY" "$INGEST/collect_cn_hk_fund.py" $LIMIT_ARG \
-      || echo "[$(ts)] WARN: collect_cn_hk_fund exited $?"
-    # NOTE: collect_cn_hk_fund.py now includes the CN backfill collectors (EastMoney consensus,
-    # per-ticker research reports, Tushare stock_company, stk_holdernumber, disclosure_date).
-    # They run automatically on a full CN pass (no --only flag).  Pass --skip-consensus /
-    # --skip-reports / --skip-company / --skip-holders / --skip-disclosure to the collector
-    # to suppress individual steps during a partial run.
-  fi
+
 
 fi
 
@@ -166,12 +187,15 @@ fi
 # ---------------------------------------------------------------------------
 if [ "$SKIP_TX" = "0" ]; then
   if [ -z "$DBETA_VENV" ]; then
+    # Explicitly optional: an absent defeatbeta venv means the transcripts leg was never
+    # requested in a runnable form. Existing behaviour — warn and continue.
     echo "[$(ts)] WARN: defeatbeta venv not found at ~/.mm-dbeta-venv or /tmp/dbeta-venv — skipping transcripts"
     echo "[$(ts)] Tip: create it with: python -m venv ~/.mm-dbeta-venv && ~/.mm-dbeta-venv/bin/pip install defeatbeta-api duckdb"
   else
     echo "[$(ts)] === collect transcripts (defeatbeta, gzip at rest) ==="
-    run "$DBETA_VENV" "$INGEST/collect_transcripts.py" $LIMIT_ARG \
-      || echo "[$(ts)] WARN: collect_transcripts exited $?"
+    # shellcheck disable=SC2086
+    run_stage run "$DBETA_VENV" "$INGEST/collect_transcripts.py" $LIMIT_ARG \
+      || note_failure "collect_transcripts" "$?"
   fi
 fi
 
@@ -180,35 +204,36 @@ fi
 #    US when not --cn-hk-only; CN + HK when not --us-only. The emitters take --only/--limit only
 #    (no --market flag), so we gate by the flags instead of a market string.
 # ---------------------------------------------------------------------------
-if [ "$CN_HK_ONLY" = "0" ]; then
+if [ "$CN_HK_ONLY" = "0" ] && [ "$US_FUND_READY" = "1" ]; then
   echo "[$(ts)] === gen_fund_us ==="
+  # An emitter failure leaves the previous <SYM>.fund.json in place; the run continues so the
+  # CN/HK leg and publication still happen, and the aggregate below reports the lane incomplete.
   # shellcheck disable=SC2086
-  run "$PY" "$INGEST/gen_fund_us.py" $LIMIT_ARG \
-    || { echo "[$(ts)] ERROR: gen_fund_us failed"; exit 1; }
+  run_stage run "$PY" "$INGEST/gen_fund_us.py" --exclude-canada $LIMIT_ARG \
+    || { note_failure "gen_fund_us" "$?"; US_FUND_READY=0; }
 
   # Deep statement history from Massive/polygon.io (SEC XBRL, back to the 2009 mandate).
   # MUST run AFTER gen_fund_us: it merges INTO the files that emitter just wrote, and the
   # merge never overwrites, so a re-emit is what lets a mapping change take effect.
-  # Non-fatal by design — a vendor outage or a missing key must not fail the whole
+  # EXPLICITLY OPTIONAL — a vendor outage or a missing key must not fail the whole
   # fundamentals refresh and leave the US files unpublished; yfinance depth still ships.
   if [ -n "${POLYGON_API_KEY:-}${MASSIVE_API_KEY:-}" ]; then
     echo "[$(ts)] === backfill statements (massive) ==="
     # shellcheck disable=SC2086
-    run "$PY" "$INGEST/backfill_fund_statements_massive.py" $LIMIT_ARG \
-      || echo "[$(ts)] WARN: massive statements backfill failed — US files keep yfinance depth"
+    run_stage run "$PY" "$INGEST/backfill_fund_statements_massive.py" $LIMIT_ARG \
+      && echo "[$(ts)] massive statements backfill OK" \
+      || note_last_good "massive statements backfill failed — US files keep yfinance depth" "$?"
   else
     echo "[$(ts)] WARN: POLYGON_API_KEY/MASSIVE_API_KEY unset — skipping statements backfill"
   fi
 fi
 if [ "$US_ONLY" = "0" ]; then
-  echo "[$(ts)] === gen_fund_cn ==="
+  REGIONAL_ARGS=(--repo "$CA")
+  [ "$SKIP_COLLECT" = "1" ] && REGIONAL_ARGS+=(--skip-collect)
+  [ "$DRY_RUN" = "1" ] && REGIONAL_ARGS+=(--dry-run)
   # shellcheck disable=SC2086
-  run "$PY" "$INGEST/gen_fund_cn.py" $LIMIT_ARG \
-    || { echo "[$(ts)] ERROR: gen_fund_cn failed"; exit 1; }
-  echo "[$(ts)] === gen_fund_hk ==="
-  # shellcheck disable=SC2086
-  run "$PY" "$INGEST/gen_fund_hk.py" $LIMIT_ARG \
-    || { echo "[$(ts)] ERROR: gen_fund_hk failed"; exit 1; }
+  "$PY" "$INGEST/regional_refresh.py" --phase fund "${REGIONAL_ARGS[@]}" $LIMIT_ARG \
+    || note_failure "regional_fund" "$?"
 fi
 
 # ---------------------------------------------------------------------------
@@ -226,8 +251,8 @@ fi
 if [ "$SKIP_OPTS" = "0" ]; then
   echo "[$(ts)] === collect options (yfinance chains + CBOE fallback, --top $OPT_TOP) ==="
   # shellcheck disable=SC2086
-  run "$PY" "$INGEST/collect_options.py" --top "$OPT_TOP" $LIMIT_ARG \
-    || echo "[$(ts)] WARN: collect_options exited $?"
+  run_stage run "$PY" "$INGEST/collect_options.py" --top "$OPT_TOP" $LIMIT_ARG \
+    || note_failure "collect_options" "$?"
 fi
 
 # ---------------------------------------------------------------------------
@@ -237,8 +262,8 @@ fi
 if [ "$CN_HK_ONLY" = "0" ]; then
   echo "[$(ts)] === collect US deep (targets+recs → us_deep.parquet) ==="
   # shellcheck disable=SC2086
-  run "$PY" "$INGEST/collect_us_deep.py" $LIMIT_ARG \
-    || echo "[$(ts)] WARN: collect_us_deep exited $?"
+  run_stage run "$PY" "$INGEST/collect_us_deep.py" $LIMIT_ARG \
+    || note_failure "collect_us_deep" "$?"
 fi
 
 # ---------------------------------------------------------------------------
@@ -259,13 +284,15 @@ fi
 FD_CACHE="$HOME/.mm-factordata"
 echo "[$(ts)] === factordata pull-down (VPS /opt/macro → $FD_CACHE) ==="
 run mkdir -p "$FD_CACHE/tech_events"
-run rsync -az --timeout=60 --delete -e "ssh -i $KEY" \
+run_stage run rsync -az --timeout=60 --delete -e "ssh -i $KEY" \
     "$VPS:/opt/macro/site/factordata/tech_events/" "$FD_CACHE/tech_events/" \
-  || echo "[$(ts)] WARN: tech_events pull-down failed — using last-good cache"
+  && echo "[$(ts)] tech_events pull-down OK" \
+  || note_last_good "tech_events pull-down failed — using last-good cache" "$?"
 # tech_lab.json last: it is the cache-valid marker pull_macro_intel checks for.
-run rsync -az --timeout=60 -e "ssh -i $KEY" \
+run_stage run rsync -az --timeout=60 -e "ssh -i $KEY" \
     "$VPS:/opt/macro/site/factordata/tech_lab.json" "$FD_CACHE/tech_lab.json" \
-  || echo "[$(ts)] WARN: tech_lab pull-down failed — using last-good cache"
+  && echo "[$(ts)] tech_lab pull-down OK" \
+  || note_last_good "tech_lab pull-down failed — using last-good cache" "$?"
 # Respect an operator override; else point the intel build at the cache.
 export FACTORDATA_BASE="${FACTORDATA_BASE:-$FD_CACHE}"
 
@@ -273,8 +300,11 @@ export FACTORDATA_BASE="${FACTORDATA_BASE:-$FD_CACHE}"
 # 10. US deep intel (pull_macro_intel --all)
 # ---------------------------------------------------------------------------
 echo "[$(ts)] === rebuild US intel (pull_macro_intel --all) ==="
-run "$PY" "$INGEST/pull_macro_intel.py" --all $LIMIT_ARG \
-  || echo "[$(ts)] WARN: pull_macro_intel exited $?"
+# Required publication stage. This is where the 2026-10-22 false-green was born: an import
+# failure (missing jsonschema via ingest.security_state_bridge) was logged as "exited 0".
+# shellcheck disable=SC2086
+run_stage run "$PY" "$INGEST/pull_macro_intel.py" --all $LIMIT_ARG \
+  || { note_failure "pull_macro_intel" "$?"; US_INTEL_READY=0; }
 
 # ---------------------------------------------------------------------------
 # 10b. Insider Power — per-ticker <SYM>.insider.json for the Terminal "Insider"
@@ -286,10 +316,12 @@ run "$PY" "$INGEST/pull_macro_intel.py" --all $LIMIT_ARG \
 # ---------------------------------------------------------------------------
 if [ "$CN_HK_ONLY" = "0" ]; then
   echo "[$(ts)] === export insider power (<SYM>.insider.json) ==="
-  run "$PY" "$MACRO/scripts/export_insider_power.py" \
+  # EXPLICITLY OPTIONAL (unchanged): a missing/unbuilt panel just skips this artifact.
+  run_stage run "$PY" "$MACRO/scripts/export_insider_power.py" \
       --panel "$MACRO/data/sec_insider/insider_panel.parquet" \
       --out "$DATA" \
-    || echo "[$(ts)] WARN: export_insider_power exited $?"
+    && echo "[$(ts)] insider power exported" \
+    || note_last_good "export_insider_power failed — insider artifacts skipped" "$?"
 fi
 
 # ---------------------------------------------------------------------------
@@ -312,8 +344,9 @@ cd "$DATA" || { echo "[$(ts)] ERROR: data dir not found: $DATA"; exit 1; }
 echo "[$(ts)] === building rsync name lists ==="
 
 # fund.json
-FUND_LIST="/tmp/refresh_fund_list_fund.txt"
-ls ./*.fund.json 2>/dev/null | sed 's|^\./||' > "$FUND_LIST" || true
+FUND_LIST="/tmp/refresh_fund_list_fund.$$.txt"
+ls ./*.fund.json 2>/dev/null | sed 's|^\./||' | grep -Ev '\.(SS|SZ|BJ|HK|TO|V)\.fund\.json$' > "$FUND_LIST" || true
+if [ "$CN_HK_ONLY" = "1" ] || [ "$US_FUND_READY" = "0" ]; then : > "$FUND_LIST"; fi
 N_FUND=$(wc -l < "$FUND_LIST" | tr -d ' ')
 
 # opts.json
@@ -328,7 +361,8 @@ N_OPTS=$(wc -l < "$OPTS_LIST" | tr -d ' ')
 # US intel.json (*.intel.json that are NOT CN/HK suffixes)
 INTEL_LIST="/tmp/refresh_fund_list_intel.txt"
 ls ./*.intel.json 2>/dev/null | sed 's|^\./||' \
-  | grep -v '\.SS\.intel\.json\|\.SZ\.intel\.json\|\.HK\.intel\.json' > "$INTEL_LIST" || true
+  | grep -v '\.SS\.intel\.json\|\.SZ\.intel\.json\|\.BJ\.intel\.json\|\.HK\.intel\.json' > "$INTEL_LIST" || true
+[ "$US_INTEL_READY" = "0" ] && : > "$INTEL_LIST"
 N_INTEL=$(wc -l < "$INTEL_LIST" | tr -d ' ')
 
 # insider.json (per-ticker Insider Power; US names only)
@@ -347,10 +381,13 @@ if [ "$N_FUND" -gt 0 ] || [ "$N_OPTS" -gt 0 ] || [ "$N_INTEL" -gt 0 ] || [ "$N_I
   cat "$FUND_LIST" "$OPTS_LIST" "$INTEL_LIST" "$INSIDER_LIST" > "$MERGED_LIST"
 
   echo "[$(ts)] === rsync fund/opts/intel/insider → VPS ($N_FUND + $N_OPTS + $N_INTEL + $N_INSIDER files) ==="
-  run rsync -az --files-from="$MERGED_LIST" \
+  # Publication is REQUIRED. A failed rsync must never end the lane green: the served files
+  # would be stale while the stamp claimed a full success.
+  run_stage run rsync -az --files-from="$MERGED_LIST" \
     -e "ssh -i $KEY" \
     ./ "$VPS:$VPS_DATA/" \
-    && echo "[$(ts)] rsync fund/opts/intel/insider done"
+    && echo "[$(ts)] rsync fund/opts/intel/insider done" \
+    || note_failure "rsync_fund_intel" "$?"
 else
   echo "[$(ts)] no fund/opts/intel/insider files to rsync — skipping"
 fi
@@ -376,11 +413,14 @@ if [ "$SKIP_TX" = "0" ] && [ -d "$DATA/tx" ]; then
 
   if [ "$N_TX" -gt 0 ]; then
     echo "[$(ts)] === rsync transcripts → VPS tx/ ($N_TX files) ==="
-    if run rsync -az --files-from="$TX_LIST" \
+    if run_stage run rsync -az --files-from="$TX_LIST" \
         -e "ssh -i $KEY" \
         ./ "$VPS:$VPS_DATA/"; then
       echo "[$(ts)] rsync tx done"
       run touch "$TX_MARKER"   # mark the successful upload boundary for the next incremental run
+    else
+      # The marker is deliberately NOT advanced: the next incremental run must retry these.
+      note_failure "rsync_tx" "$?"
     fi
   else
     echo "[$(ts)] no new transcript files to rsync — skipping"
@@ -391,9 +431,19 @@ fi
 
 # ---------------------------------------------------------------------------
 # Done
+#
+# Exit 0 only when every REQUESTED stage succeeded. Regional groups publish only after their own successful staged emission — but the lane is reported
+# incomplete so ops/nightly_cnhk.sh leaves last_success untouched. A half-refresh must never
+# be mistaken for a fresh one, and no stage re-stamps its output as newly collected.
 # ---------------------------------------------------------------------------
-echo "[$(ts)] === refresh_fund.sh complete ==="
 echo "[$(ts)]   fund files : $N_FUND"
 echo "[$(ts)]   opts files : $N_OPTS"
 echo "[$(ts)]   intel files: $N_INTEL"
 echo "[$(ts)]   insider files: $N_INSIDER"
+
+if [ "${#FAILED_STAGES[@]}" -gt 0 ]; then
+  echo "[$(ts)] === refresh_fund.sh INCOMPLETE — failed stage(s): ${FAILED_STAGES[*]} ==="
+  exit 1
+fi
+echo "[$(ts)] === refresh_fund.sh complete ==="
+exit 0
