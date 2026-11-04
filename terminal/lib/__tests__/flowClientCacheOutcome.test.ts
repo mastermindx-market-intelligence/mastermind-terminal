@@ -12,6 +12,7 @@ beforeEach(() => flowInvalidate());
 afterEach(() => {
   flowInvalidate();
   vi.unstubAllGlobals();
+  vi.useRealTimers();
 });
 
 describe("flowGetResult classification", () => {
@@ -20,9 +21,50 @@ describe("flowGetResult classification", () => {
     expect(await flowGetResult("vol:ZZZ")).toEqual({ status: "absent", httpStatus: status });
   });
 
-  it.each([500, 502, 503, 403, 429])("classifies a %i as a server failure, not an absence", async (status) => {
+  it.each([500, 502, 503, 403, 429, 524])("classifies a %i as a server failure, not an absence", async (status) => {
     vi.stubGlobal("fetch", vi.fn(async () => reply("{}", status)));
     expect(await flowGetResult("vol:SPY")).toEqual({ status: "unavailable", reason: "server", httpStatus: status });
+  });
+
+  it("bounds a never-settling /api/flow connection, evicts the failure and admits a later retry", async () => {
+    vi.useFakeTimers();
+    const aborted: string[] = [];
+    const transport = vi.fn((_url: string, init?: RequestInit) => {
+      if (transport.mock.calls.length > 1) {
+        return Promise.resolve(reply(JSON.stringify({ root: "SPY" })));
+      }
+      return new Promise<Response>((_resolve, reject) => {
+        init?.signal?.addEventListener("abort", () => {
+          aborted.push("yes");
+          reject(new DOMException("network request aborted", "AbortError"));
+        }, { once: true });
+      });
+    });
+    vi.stubGlobal("fetch", transport);
+
+    const blocked = flowGetResult("gex:SPY");
+    await vi.advanceTimersByTimeAsync(26_000);
+    expect(aborted).toEqual(["yes"]);
+    expect(await blocked).toEqual({ status: "unavailable", reason: "network" });
+
+    // The shared cache never pins a stalled failure: retry uses the same owner.
+    expect(await flowGetResult("gex:SPY")).toEqual({ status: "data", data: { root: "SPY" } });
+    expect(transport).toHaveBeenCalledTimes(2);
+  });
+
+  it("releases its timeout when a request completes", async () => {
+    vi.useFakeTimers();
+    let requestSignal: AbortSignal | undefined;
+    const transport = vi.fn(async (_url: string, init?: RequestInit) => {
+      requestSignal = init?.signal ?? undefined;
+      return reply(JSON.stringify({ root: "QQQ" }));
+    });
+    vi.stubGlobal("fetch", transport);
+
+    expect(await flowGetResult("gex:QQQ")).toEqual({ status: "data", data: { root: "QQQ" } });
+    expect(requestSignal).toBeDefined();
+    await vi.advanceTimersByTimeAsync(26_000);
+    expect(requestSignal?.aborted).toBe(false);
   });
 
   it("classifies a rejected fetch as a network failure", async () => {

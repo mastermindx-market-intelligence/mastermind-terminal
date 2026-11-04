@@ -426,9 +426,11 @@ export function MarketStateCard({
         </div>
         {readStatus === "unavailable" ? (
           <div style={PLACEHOLDER_ERROR} data-testid="gex-state-error" role="alert">
-            <span style={ERROR_TITLE}>{t("stateErrorTitle")}</span>
-            <span style={PLACEHOLDER_TEXT}>{t("stateErrorWhy")}</span>
-            {retryButton}
+            <div style={ERROR_ROW}>
+              <span style={ERROR_TITLE}>{t("stateErrorTitle")}</span>
+              {retryButton}
+            </div>
+            <span style={ERROR_WHY}>{t("stateErrorWhy")}</span>
           </div>
         ) : (
           <div style={PLACEHOLDER}>
@@ -1012,9 +1014,21 @@ const PLACEHOLDER_TEXT: React.CSSProperties = {
   lineHeight: 1.5,
 };
 
+// Compact and top-aligned: the card is a short scroll box on desktop, so Retry rides on
+// the title's row, right under the header, instead of below a centred, padded block that
+// pushed it past the card's fold.
 const PLACEHOLDER_ERROR: React.CSSProperties = {
-  ...PLACEHOLDER,
+  display: "flex",
   flexDirection: "column",
+  gap: "var(--sp-1)",
+  padding: "var(--sp-2) var(--sp-3)",
+};
+
+const ERROR_ROW: React.CSSProperties = {
+  display: "flex",
+  flexWrap: "wrap",
+  alignItems: "center",
+  justifyContent: "space-between",
   gap: "var(--sp-2)",
 };
 
@@ -1022,7 +1036,11 @@ const ERROR_TITLE: React.CSSProperties = {
   fontSize: "var(--fs-label)",
   fontWeight: 600,
   color: "var(--text)",
-  textAlign: "center",
+};
+
+const ERROR_WHY: React.CSSProperties = {
+  ...PLACEHOLDER_TEXT,
+  textAlign: "start",
 };
 
 const STALE_ROW: React.CSSProperties = {

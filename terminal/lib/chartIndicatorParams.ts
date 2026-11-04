@@ -3,6 +3,7 @@
  */
 import { getSuiteMeta, SUITE_ORDER } from "./suites/meta";
 import type { SuiteField } from "./indicator-canvas/types";
+import { hasGuide } from "./guides/registry";
 
 export type IndicatorParam = number | boolean | string;
 export type NativeParamsResult =
@@ -156,6 +157,66 @@ export function describeNativeSuiteCapabilities(
       status: omitted.length ? "partial" : "complete" };
     if (encoder.encode(JSON.stringify(candidate)).byteLength <= NATIVE_CAPABILITIES_MAX_BYTES)
       packet = candidate;
+  }
+  return packet;
+}
+
+
+export type NativeStudyContext = {
+  schema: "chart.native_study_context.v1";
+  scope: "configured_native_modules";
+  status: "complete" | "partial";
+  settings_source: "session.indicators";
+  qualifications: {
+    configuration_is_not_observation: true;
+    output_health: "unknown";
+    entitlement: "renderer_enforced_not_attested";
+    guide_is_not_validated_edge: true;
+  };
+  modules: Array<{ id: string; suite: string; module: string; enabled: boolean; guide_available: boolean }>;
+  omitted_modules: string[];
+};
+export const NATIVE_STUDY_CONTEXT_MAX_BYTES = 4096;
+
+/** Compact identity projection, independent of the larger parameter-schema budget.
+ * Uses the existing suite and guide registries; never computes or copies an indicator.
+ * An enabled setting describes configuration, not output, entitlement or warmup health.
+ */
+export function describeNativeStudyContext(
+  indicators: readonly string[],
+  settings: Record<string, Record<string, unknown>> = {},
+): NativeStudyContext | null {
+  const active = new Set(indicators);
+  const modules: NativeStudyContext["modules"] = [];
+  for (const key of SUITE_ORDER) {
+    if (!active.has(key)) continue;
+    const suite = getSuiteMeta(key)!;
+    for (const module of suite.modules) {
+      modules.push({
+        id: `${key}/${module.key}`, suite: key, module: module.key,
+        enabled: (settings[key]?.[`${module.key}.on`] ?? module.defaultOn) !== false,
+        guide_available: hasGuide(key, module.key),
+      });
+    }
+  }
+  if (!modules.length) return null;
+  modules.sort((a, b) => Number(b.enabled) - Number(a.enabled));
+  let packet: NativeStudyContext = {
+    schema: "chart.native_study_context.v1", scope: "configured_native_modules",
+    status: "partial", settings_source: "session.indicators",
+    qualifications: {
+      configuration_is_not_observation: true, output_health: "unknown",
+      entitlement: "renderer_enforced_not_attested", guide_is_not_validated_edge: true,
+    },
+    modules: [], omitted_modules: modules.map(module => module.id),
+  };
+  const encoder = new TextEncoder();
+  for (const module of modules) {
+    const omitted = packet.omitted_modules.filter(id => id !== module.id);
+    const next: NativeStudyContext = { ...packet, modules: [...packet.modules, module],
+      omitted_modules: omitted, status: omitted.length ? "partial" : "complete" };
+    if (encoder.encode(JSON.stringify(next)).byteLength <= NATIVE_STUDY_CONTEXT_MAX_BYTES)
+      packet = next;
   }
   return packet;
 }

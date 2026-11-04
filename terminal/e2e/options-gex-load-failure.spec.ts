@@ -1,4 +1,4 @@
-import { expect, test, type Page, type Route } from "@playwright/test";
+import { expect, test, type Locator, type Page, type Route } from "@playwright/test";
 import { makeGexT } from "@/components/gexdesk/gexStrings";
 import { expectTapTarget } from "./tapTarget";
 
@@ -47,6 +47,19 @@ async function commitRoot(page: Page, root: string) {
   const input = page.locator('input[list="gex-roots"]');
   await input.fill(root, { timeout: 20_000 });
   await input.press("Enter", { timeout: 20_000 });
+}
+
+/** The control is reachable where it renders: inside its card's visible box, card unscrolled. */
+async function expectInsideCardFold(control: Locator, card: string) {
+  const box = await control.evaluate((el, sel) => {
+    const host = el.closest(sel)!;
+    const c = host.getBoundingClientRect();
+    const r = el.getBoundingClientRect();
+    return { scrollTop: host.scrollTop, top: r.top, bottom: r.bottom, cardTop: c.top, cardBottom: c.top + host.clientHeight };
+  }, card);
+  expect(box.scrollTop).toBe(0);
+  expect(box.top).toBeGreaterThanOrEqual(box.cardTop);
+  expect(box.bottom, "the control sits above the card's fold").toBeLessThanOrEqual(box.cardBottom + 0.5);
 }
 
 async function expectNoPageOverflow(page: Page) {
@@ -123,6 +136,7 @@ test("a failed market-state or matrix read stays in its card and never takes the
   await expect(page.getByText(t("heatSeekerNull"))).toHaveCount(0); // "no pick" is not known
   const stateRetry = stateError.getByRole("button", { name: t("errorRetry"), exact: true });
   const pickRetry = pickError.getByRole("button", { name: t("errorRetry"), exact: true });
+  await expectInsideCardFold(stateRetry, ".obs-gex-state");
   if (testInfo.project.name !== "desktop") {
     await expectTapTarget(stateRetry, { height: 44 });
     await expectTapTarget(pickRetry, { height: 44 });
@@ -138,5 +152,52 @@ test("a failed market-state or matrix read stays in its card and never takes the
   replies["matrix:SPY"] = "fixture";
   await pickRetry.click({ timeout: 20_000 });
   await expect(pickError).toHaveCount(0, { timeout: 20_000 });
+  await expect(page.locator('[data-tut="gex-ladder"][data-e2e-kept="1"]')).toHaveCount(1);
+});
+
+test("an unpublished matrix says no pick is published, never that load is shared", async ({ page }, testInfo) => {
+  const lang = testInfo.project.name === "tablet" ? "zh" : "en";
+  const t = makeGexT(lang);
+  await setLang(page, lang);
+  await installFlowReplies(page, { "matrix:SPY": "404" });
+
+  await page.goto("/options?tab=gex");
+  await expect(page.locator('.obs-gexdesk-ladder-region [data-tut="gex-ladder"]')).toBeVisible({ timeout: 45_000 });
+  const absent = page.getByTestId("gex-heatseeker-absent");
+  await expect(absent).toBeVisible({ timeout: 20_000 });
+  await expect(absent).toContainText(t("heatSeekerAbsent"));
+  await expect(page.getByText(t("heatSeekerNull"))).toHaveCount(0); // the claim a 404 cannot support
+  await expect(page.getByTestId("gex-heatseeker-error")).toHaveCount(0);
+  await expect(absent.getByRole("button")).toHaveCount(0); // nothing to retry: it is not published
+  await expectNoPageOverflow(page);
+});
+
+test("a failed live refresh keeps the ladder, labels it, and Retry clears the label", async ({ page }, testInfo) => {
+  const lang = testInfo.project.name === "tablet" ? "zh" : "en";
+  const t = makeGexT(lang);
+  await setLang(page, lang);
+  // The producer's own wire format: the last frame it holds, then its named event for a
+  // refresh that did not land. A long `retry:` keeps the browser from reconnecting mid-test.
+  const frame = await (await page.request.get("/api/flow?f=gex%3ASPY")).text();
+  await page.route((url) => url.pathname === "/api/flow/stream", (route: Route) => route.fulfill({
+    status: 200,
+    headers: { "content-type": "text/event-stream", "cache-control": "no-store" },
+    body: `retry: 600000\ndata: ${frame}\n\nevent: status\ndata: {"status":"unavailable"}\n\n`,
+  }));
+
+  await page.goto("/options?tab=gex");
+  const ladder = page.locator('.obs-gexdesk-ladder-region [data-tut="gex-ladder"]');
+  await expect(ladder).toBeVisible({ timeout: 45_000 });
+  const label = page.getByTestId("gex-live-refresh-failed");
+  await expect(label).toBeVisible({ timeout: 20_000 });
+  await expect(label).toContainText(t("liveRefreshFailed"));
+  await expect(page.getByTestId("gex-load-error")).toHaveCount(0); // the last read is still shown
+  const retry = label.getByRole("button", { name: t("errorRetry"), exact: true });
+  if (testInfo.project.name !== "desktop") await expectTapTarget(retry, { height: 44 });
+  await expectNoPageOverflow(page);
+
+  await ladder.evaluate((el) => { (el as HTMLElement).dataset.e2eKept = "1"; });
+  await retry.click({ timeout: 20_000 });
+  await expect(label).toHaveCount(0, { timeout: 20_000 });
   await expect(page.locator('[data-tut="gex-ladder"][data-e2e-kept="1"]')).toHaveCount(1);
 });

@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import Link from "next/link";
 import { useShellIdentity } from "@/components/chrome/AppShell";
 import { useLang } from "@/lib/i18n";
 import { prepareStudyBarsFrom5m, runRSPivotStudy, type StudyReport, type StudySummary, STUDY_ARMS } from "@/lib/rsPivotStudy";
 import { liveDisplayEpoch } from "@/lib/liveCandle";
 import { usRegularSessionWindow } from "@/lib/usEquitySessionClock";
 import RSPivotChart from "./RSPivotChart";
+import RSPivotRotationMonitor from "./RSPivotRotationMonitor";
 import type { Bar6 } from "@/lib/intradayShared";
 
 type SourceResponse = {
@@ -99,13 +101,21 @@ async function loadBars(sym: string, signal: AbortSignal): Promise<SourceRespons
   return data;
 }
 
+const subscribeHydration = () => () => {};
+const clientHydrated = () => true;
+const serverHydrated = () => false;
+
 export default function RSPivotStudy() {
+  // The lazy workspace can stream its HTML before its event handlers arrive.
+  // Keep the action disabled through SSR and the matching first hydration render.
+  const hydrated = useSyncExternalStore(subscribeHydration, clientHydrated, serverHydrated);
   const { lang } = useLang();
   const identity = useShellIdentity();
   const t = L[lang];
   const zh = lang === "zh";
   const pick = (en: string, cn: string) => zh ? cn : en;
   const request = useRef<AbortController | null>(null);
+  const symbolInput = useRef<HTMLInputElement | null>(null);
   const generation = useRef(0);
   useEffect(() => () => { generation.current++; request.current?.abort(); request.current = null; }, []);
   const [symbol, setSymbol] = useState("NVDA");
@@ -126,7 +136,7 @@ export default function RSPivotStudy() {
   };
   const run = async () => {
     // Synchronous ownership also covers two clicks before the disabled render.
-    if (identity.kind !== "account" || request.current) return;
+    if (!hydrated || identity.kind !== "account" || request.current) return;
     const sym = symbol.trim().toUpperCase(), bm = benchmark.trim().toUpperCase();
     invalidate(); setError(""); setSelectedTrade("");
     if (!/^[A-Z][A-Z0-9.-]{0,14}$/.test(sym) || !/^[A-Z][A-Z0-9.-]{0,14}$/.test(bm) || sym === bm) {
@@ -192,10 +202,10 @@ export default function RSPivotStudy() {
           <h1 style={{ fontSize: "clamp(20px, 2vw, 28px)", margin: "7px 0" }}>{t.title}</h1>
           <p style={{ fontSize: 13, color: "var(--muted)", maxWidth: 880 }}>{t.subtitle}</p>
         </header>
-        {identity.kind !== "account" && <div role="note" style={{...container,borderColor:"var(--warn)"}}>{pick("Sign in to load historical research inputs through your existing Terminal access.", "请登录，通过您现有的Terminal访问权限加载历史研究输入。") } <a href="/login" style={{color:"var(--brand-2)"}}>{pick("Sign in", "登录")}</a></div>}
+        {identity.kind !== "account" && <div role="note" style={{...container,borderColor:"var(--warn)"}}>{pick("Sign in to load historical research inputs through your existing Terminal access.", "请登录，通过您现有的Terminal访问权限加载历史研究输入。") } <Link href="/login" style={{color:"var(--brand-2)"}}>{pick("Sign in", "登录")}</Link></div>}
         <section style={container}>
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "end" }}>
-            <label style={label}>{t.symbol}<input aria-label={t.symbol} style={field} value={symbol} maxLength={15} disabled={busy} onChange={e => { setSymbol(e.target.value.toUpperCase()); invalidate(); }} /></label>
+            <label style={label}>{t.symbol}<input ref={symbolInput} aria-label={t.symbol} style={field} value={symbol} maxLength={15} disabled={busy} onChange={e => { setSymbol(e.target.value.toUpperCase()); invalidate(); }} /></label>
             <label style={label}>{t.bench}<select aria-label={t.bench} style={field} value={benchmark} disabled={busy} onChange={e => { setBenchmark(e.target.value); invalidate(); }}>
               <option value="SPY">{pick("SPY · S&P 500", "SPY · 标普500")}</option><option value="QQQ">{pick("QQQ · Nasdaq 100", "QQQ · 纳斯达克100")}</option><option value="IWM">{pick("IWM · Russell 2000", "IWM · 罗素2000")}</option>
             </select></label>
@@ -203,11 +213,16 @@ export default function RSPivotStudy() {
               <option value="13">13 × 30m</option><option value="26">26 × 30m</option><option value="39">39 × 30m</option>
             </select></label>
             <label style={label}>{t.costs}<input aria-label={t.costs} style={field} type="number" min="0" max="150" step="1" value={cost} disabled={busy} onChange={e => { setCost(Math.max(0, Math.min(150, Number(e.target.value)))); invalidate(); }} /></label>
-            <button type="button" disabled={busy || identity.kind !== "account"} onClick={run} style={{ ...field, width: "auto", minWidth: 155, color: "var(--text)", cursor: busy ? "wait" : "pointer", fontWeight: 700, borderColor: "var(--brand-2)" }}>{busy ? t.running : t.run}</button>
+            <button type="button" disabled={!hydrated || busy || identity.kind !== "account"} onClick={run} style={{ ...field, width: "auto", minWidth: 155, color: "var(--text)", cursor: busy ? "wait" : "pointer", fontWeight: 700, borderColor: "var(--brand-2)" }}>{busy ? t.running : t.run}</button>
           </div>
           <p style={{ fontSize: 12, color: "var(--muted)", marginTop: 12 }}>{t.condition}</p>
           <p style={{ fontSize: 12, color: "var(--muted)", marginTop: 4 }}>{t.pivot}</p>
         </section>
+        <RSPivotRotationMonitor hydrated={hydrated} selectDisabled={busy} onSelectSymbol={ticker => {
+          setSymbol(ticker); setBenchmark("SPY"); invalidate();
+          symbolInput.current?.focus();
+          symbolInput.current?.scrollIntoView?.({ block: "nearest" });
+        }} />
         <div role="note" style={{ padding: "12px 14px", borderLeft: "3px solid var(--warn)", background: "var(--panel)", fontSize: 12 }}>{t.warning}</div>
         {error && <div data-testid="rs-pivot-error" role="alert" style={{ ...container, borderColor: "var(--down)" }}>{error}</div>}
         {!report && !error && !busy && <section style={{ ...container, color: "var(--muted)", fontSize: 13 }}>{t.no}</section>}

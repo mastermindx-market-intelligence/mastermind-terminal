@@ -1,0 +1,12 @@
+{
+ "asof": "2026-07-14",
+ "profile": {
+  "industry": "Software - Application",
+  "sector": "Technology"
+ },
+ "quote_currency": "CAD",
+ "src": {
+  "statements": "yfinance"
+ },
+ "ticker": "SHOP.TO"
+}

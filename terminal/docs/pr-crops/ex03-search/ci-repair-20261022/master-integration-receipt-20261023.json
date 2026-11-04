@@ -1,0 +1,85 @@
+{
+  "schema": "mastermind.terminal.ex03_master_integration_receipt.v1",
+  "original_operation": "terminal-experience-masterplan-20261022",
+  "pr_number": 1134,
+  "working_head": "c21952bc2fa9e5ebf744b2fe4bba9c308b629d63",
+  "merge_target": "61c504a472120935458874db04757f6064b91e6f",
+  "status": "MERGE_PRECOMMIT_SOURCE_BOUND",
+  "source_identity": "working integration, not committed final merge; SHA-256 links actual files and screenshots",
+  "bpl_actual_captures": {
+    "SearchModal-1440.png": "aa2aa0e3abee7aaa45a8e8c54e32f55375f4a8dc7f2c860f410f11f04d027c54",
+    "SearchModal-1440-zh.png": "c62b189582ef33e9ca2fecdda19c88b8412b943b44b1040766bd7de25b55eb51",
+    "SearchModal-390.png": "48e74a116b32337b8d93d4eb6b605fa33fa96eaebdcaa6e012953f0a72c65157",
+    "SearchModal-390-zh.png": "6bac0cf4350ecb244070ceed1b96e0776434058c4a2d7877482ea6d0b971d119",
+    "ChartChrome-1440.png": "424a03aa1d672400101346bac93beceb11f4397a784a50a26188a73d71e4263d",
+    "ChartChrome-1440-zh.png": "dbb0e498448ab270c98b9ee17154ae93279e86924bbef526e5338a462c4c250d",
+    "ChartChrome-390.png": "f19d5c5b5c02b1639293de7776935886e3ec83388789fc725a39ec5cb816daa0",
+    "ChartChrome-390-zh.png": "898df24d245540d080e8aceb3ab5c39f6196c3d1e7096c5c5797ef9244aba0ce"
+  },
+  "bpl_inherited_unqualified": [
+    "DiscoverLeaders-1440-zh.png",
+    "DiscoverLeaders-1440.png",
+    "DiscoverLeaders-390-zh.png",
+    "DiscoverLeaders-390.png",
+    "OptionsHubView-1440-zh.png",
+    "OptionsHubView-1440.png",
+    "OptionsHubView-390-zh.png",
+    "OptionsHubView-390.png",
+    "StockAnalysis-1440-zh.png",
+    "StockAnalysis-1440.png",
+    "StockAnalysis-390-zh.png",
+    "StockAnalysis-390.png"
+  ],
+  "visual_actual_captures": {
+    "desktop-context.png": "45f00b8275a69ddc133fcc040c1a3721e00ad3de5af8224ebc3dd1375323f5b8",
+    "desktop-context-zh.png": "a2e2ee7fba9d5bae416dc50daab641e480de10d7dc44cdcefec74c4f8dbd2d98",
+    "tablet-context.png": "876d593ae5cbee00ff1326e661de1739f2a094bf621636d74473093218388234",
+    "tablet-context-zh.png": "60a4aea2a2b13d527c6ffc0eec5d034d819477b4aafa83334231dc716ae73519",
+    "mobile-context.png": "4bb912458a311faed7e779e24dffda3907ce5af4eec95dbc1a9f21ae3978bbe7",
+    "mobile-context-zh.png": "026a5eec18bd550659368edb3ad69d20dacd542bdd898b16b971d0284a67d087"
+  },
+  "visual_browser_report_sha256": "13e4e498ea97e7f11e45dc472320b4ae63cfadb9909745e44de9dd943c66919f",
+  "visual_browser_stats": {
+    "startTime": "2026-10-23T04:37:09.776Z",
+    "duration": 249333.652,
+    "expected": 30,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "bpl_updated_sources": {
+    "layoutFiles": [
+      "terminal/components/SearchModal.tsx",
+      "terminal/components/TerminalShell.tsx"
+    ],
+    "captureHarnessFiles": [
+      "terminal/e2e/overnight-refresh.spec.ts",
+      "terminal/e2e/terminal-chrome-responsive.spec.ts"
+    ],
+    "cropFiles": [
+      "SearchModal-1440-zh.png",
+      "SearchModal-1440.png"
+    ],
+    "browserReportHashes": []
+  },
+  "visual_updated_sources": {
+    "layoutFiles": [
+      "terminal/components/TerminalShell.tsx",
+      "terminal/components/SearchModal.tsx"
+    ],
+    "captureHarnessFiles": [
+      "terminal/e2e/overnight-refresh.spec.ts",
+      "terminal/e2e/terminal-chrome-responsive.spec.ts"
+    ],
+    "cropFiles": [
+      "desktop-context.png",
+      "desktop-context-zh.png"
+    ],
+    "browserReportHashes": [
+      "visualReport",
+      "mobileCrosshairReport"
+    ]
+  },
+  "production_proof": false,
+  "merge_green": false
+}
