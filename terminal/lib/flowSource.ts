@@ -467,7 +467,7 @@ async function readUpstream(url: string, identity?: SourceIdentity): Promise<Ups
             const session = matrixDocSession(value);
             if (bytes.length > 0 && bytes.length <= MATRIX_ACQUIRED_BYTES_MAX && session !== null
               && value.schema === MATRIX_SOURCE_SCHEMA && value.root === identity.root
-              && value.stale !== true) value._matrix_source_identity = {
+              && (value.stale === undefined || value.stale === false)) value._matrix_source_identity = {
                 schema: MATRIX_ACQUIRED_SCHEMA, kind: "matrix", root: value.root, session,
                 sha256: createHash("sha256").update(bytes).digest("hex"), byte_length: bytes.length,
               };

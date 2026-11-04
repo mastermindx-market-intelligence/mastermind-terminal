@@ -211,3 +211,31 @@ it("leaves the existing gex/moves hub acquisition untouched", async () => {
   expect(movesMarker.byte_length).toBe(movesBytes.length);
   expect(movesOutcome.data._matrix_source_identity).toBeUndefined();
 });
+
+
+it.each(["true", "false", 1, 0, null, "", {}])("withholds direct producer identity for malformed stale=%j", async (stale) => {
+  vi.stubGlobal("fetch", vi.fn(r2(encode({ ...DOC, stale }))));
+  const outcome = await tryFetchUpstreamResult("matrix:SPY");
+  expect(outcome.status).toBe("data");
+  if (outcome.status !== "data") throw new Error("missing display payload");
+  expect(outcome.data.cells).toEqual(DOC.cells);
+  expect(outcome.data._matrix_source_identity).toBeUndefined();
+});
+
+it.each(["true", "false", 1, 0, null, "", {}])("refuses carried identity for malformed stale=%j", (stale) => {
+  expect(acquiredMatrixBytes(acquired({ stale }), "SPY", SESSION)).toBeNull();
+});
+
+it("does not acquire year-zero producer identity while preserving its display payload", async () => {
+  const value = { ...DOC, _build_meta: { asof_date: "0000-01-01" } };
+  vi.stubGlobal("fetch", vi.fn(r2(encode(value))));
+  const outcome = await tryFetchUpstreamResult("matrix:SPY");
+  expect(outcome.status).toBe("data");
+  if (outcome.status !== "data") throw new Error("missing display payload");
+  expect(outcome.data._matrix_source_identity).toBeUndefined();
+});
+
+it("rejects a carried year-zero marker and retains explicit false stale as a positive control", () => {
+  expect(acquiredMatrixBytes(acquired({ _build_meta: { asof_date: "0000-01-01" } }, { session: "0000-01-01" }), "SPY", "0000-01-01")).toBeNull();
+  expect(acquiredMatrixBytes(acquired({ stale: false }), "SPY", SESSION)).not.toBeNull();
+});

@@ -36,7 +36,7 @@ const object = (v: unknown): v is Record<string, unknown> =>
  * math — no wall clock, no freshness window.
  */
 export function isGregorianDate(value: unknown): value is string {
-  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value) || Number(value.slice(0, 4)) < 1) return false;
   const t = Date.parse(value + "T00:00:00Z");
   return Number.isFinite(t) && new Date(t).toISOString().slice(0, 10) === value;
 }
@@ -57,7 +57,7 @@ export function matrixDocSession(value: unknown): string | null {
  * Expected ORIGINAL producer byte identity carried by a directly acquired `matrix:{ROOT}`
  * payload. Validates the exact closed six-field marker against the payload it rides on:
  * schema, root and source session must match the question, the session must be the
- * payload's own Gregorian `_build_meta.asof_date`, the doc must not be marked stale, and
+ * payload's own Gregorian `_build_meta.asof_date`, the stale field must be absent or boolean false, and
  * the byte identity must be a lowerhex sha256 plus a safe integer length within 16 MiB.
  * Returns null when any of that fails — including when the payload simply carries no
  * marker, which is an ordinary display read.
@@ -66,7 +66,7 @@ export function matrixDocSession(value: unknown): string | null {
  * and never a substitute for the server reopening and authorizing the actual bytes.
  */
 export function acquiredMatrixBytes(raw: unknown, root: string, session: string): { sha256: string; bytes: number } | null {
-  if (!object(raw) || raw.stale === true) return null;
+  if (!object(raw) || (raw.stale !== undefined && raw.stale !== false)) return null;
   if (raw.schema !== MATRIX_SOURCE_SCHEMA || raw.root !== root) return null;
   if (matrixDocSession(raw) !== session) return null;
   const value = raw._matrix_source_identity;
