@@ -4,7 +4,7 @@ import { useIsPhone } from "@/lib/useMediaQuery";
 import workspace from "./ExposureWorkspace.module.css";
 import ExposureMap from "@/components/exposure-map/ExposureMap";
 import { parseExposureChartRequest } from "@/lib/exposureChartLink";
-import { EXPOSURE_ORIGIN_PARAM, exposureOriginForCompany, parseExposureOrigin, withExposureOrigin, type ExposureOrigin } from "@/lib/exposureOrigin";
+import { EXPOSURE_ORIGIN_PARAM, exposureOriginForStep, parseExposureOrigin, withExposureOrigin, type ExposureOrigin } from "@/lib/exposureOrigin";
 /**
  * GexDeskView — GEX desk surface (Wave 2, MomoEdge parity).
  *
@@ -267,7 +267,10 @@ export function GexDeskView({ onMapFirstChange, onOpenPlan }: { onMapFirstChange
   if (sectorOrigin && sectorOrigin.company !== ticker) setSectorOrigin(null);
   const stepSectorOrigin = (next: { company: string; index: number }) => {
     if (!sectorOrigin || !isValidRoot(next.company)) return;
-    const origin = exposureOriginForCompany(sectorOrigin, next.company, next.index);
+    // Moving the chart ticker without its return envelope would strand the
+    // user outside the original sector cohort. Keep the step atomic.
+    const origin = exposureOriginForStep(sectorOrigin, next);
+    if (!origin) return;
     const url = new URL(window.location.href);
     url.searchParams.set("symbol", next.company);
     url.searchParams.set("view", "chart");

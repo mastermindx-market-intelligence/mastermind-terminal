@@ -150,7 +150,7 @@ describe("GEX, Levels and Heatmap load-failure evidence lock is the sha256 of th
     const folder = "operations/exposure-1243-archive-refresh-20261104";
     const sourcePath = "terminal/components/gexdesk/GexDeskView.tsx";
     expect(receipt).toContain(`  source: "${sourcePath}"`);
-    expect(receipt).toContain(`  currentSourceSha256: "${sha256Of(join(REPO, sourcePath))}"`);
+    expect(receipt).toContain(`  currentSourceSha256: "9e6d33630f56c9f5b99617d4f3cf7972e93f93c23f5fc077740a1985b938fc32"`);
     expect(receipt).toContain(`  outputDir: "${folder}"`);
     expect(receipt).toContain("  actualCases: 54");
     expect(receipt).toContain("  failedCases: 0");
@@ -170,6 +170,42 @@ describe("GEX, Levels and Heatmap load-failure evidence lock is the sha256 of th
       }
     }
     expect(count).toBe(54);
+  });
+
+  it("validates the sector-origin operation recapture and links the previous GEX source", () => {
+    const yml = evidenceText();
+    const boundary = "\nexposureSectorOriginRecapture:\n";
+    const at = yml.indexOf(boundary);
+    expect(at).toBeGreaterThan(0);
+    const receipt = yml.slice(at + 1);
+    const folder = "operations/exposure-1243-sector-origin-20261104";
+    expect(receipt).toContain(`  outputDir: "${folder}"`);
+    expect(receipt).toContain(`  previousGexSourceSha256: "9e6d33630f56c9f5b99617d4f3cf7972e93f93c23f5fc077740a1985b938fc32"`);
+    for (const rel of [
+      "terminal/components/gexdesk/GexDeskView.tsx",
+      "terminal/lib/exposureOrigin.ts",
+      "terminal/lib/sectorDepthReturn.ts",
+    ]) {
+      expect(receipt).toContain(`    ${rel}: "${sha256Of(join(REPO, rel))}"`);
+    }
+    expect(receipt).toContain("  actualCases: 54");
+    expect(receipt).toContain("  failedCases: 0");
+    expect(receipt).toContain('  packetRootCrops: "restored or unchanged from previous committed bytes"');
+    const states = ["gex-ladder-unavailable", "gex-ladder-retried", "gex-ladder-absent", "gex-rail-unavailable", "gex-pick-absent", "gex-rail-retried", "gex-state-refresh-failed", "gex-live-refresh-failed", "gex-live-retried"];
+    let checked = 0;
+    for (const state of states) {
+      for (const width of [1440, 820, 390]) {
+        for (const language of ["", "-zh"]) {
+          const file = `${state}-${width}${language}.png`;
+          const path = join(CROP_DIR, folder, file);
+          expect(existsSync(path), file).toBe(true);
+          expect(statSync(path).size, file).toBeGreaterThan(1000);
+          expect(receipt).toContain(`    ${file}: "${sha256Of(path)}"`);
+          checked++;
+        }
+      }
+    }
+    expect(checked).toBe(54);
   });
 
 });
