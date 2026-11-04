@@ -65,6 +65,20 @@ def test_inputs_are_bound_as_env_and_validated_before_use() -> None:
     assert '"${projects[@]}"' in runs[use] and '--workers="$CANARY_WORKERS_OK"' in runs[use]
 
 
+RAW_INPUT = re.compile(r"\$\{?CANARY_(SHARD|WORKERS)\b(?!_OK)")
+
+
+def test_no_run_step_touches_raw_inputs_or_eval() -> None:
+    """Only the validator script may read CANARY_SHARD / CANARY_WORKERS; every run step
+    uses the *_OK / CANARY_PROJECTS values it writes. `eval` is banned outright."""
+    offenders = [
+        f"{step.get('name') or step['run'][:40]!r}"
+        for step in canary()["jobs"]["canary"]["steps"]
+        if "run" in step and (RAW_INPUT.search(step["run"]) or re.search(r"\beval\b", step["run"]))
+    ]
+    assert offenders == [], offenders
+
+
 def test_shard_table_mirrors_hosted_e2e_matrix() -> None:
     hosted = {
         entry["shard"]: " ".join(str(entry["projects"]).split())
@@ -79,7 +93,7 @@ def test_valid_inputs_emit_fixed_selector(shard: str, tmp_path: Path) -> None:
     rc, written = run_validator(shard, "4", tmp_path)
     assert rc == 0
     table = dict(TABLE_LINE.findall(VALIDATOR.read_text(encoding="utf-8")))
-    assert written == f"CANARY_PROJECTS={table[shard]}\nCANARY_WORKERS_OK=4\n"
+    assert written == f"CANARY_SHARD_OK={shard}\nCANARY_PROJECTS={table[shard]}\nCANARY_WORKERS_OK=4\n"
 
 
 @pytest.mark.parametrize(
@@ -100,7 +114,7 @@ def test_shard_metacharacters_and_unknown_labels_are_rejected(shard: str, tmp_pa
     assert rc != 0 and written == ""
 
 
-@pytest.mark.parametrize("workers", ["1; id", "1 $(id)", '"1"', "-1", "0", "17", "1.5", "", "99999999999999999999"])
+@pytest.mark.parametrize("workers", ["1; id", "1 $(id)", '"1"', "-1", "0", "17", "1.5", "", "99999999999999999999", "08", "010", " 1", "0x10"])
 def test_workers_must_be_bounded_integer(workers: str, tmp_path: Path) -> None:
     rc, written = run_validator("desktop-1", workers, tmp_path)
     assert rc != 0 and written == ""

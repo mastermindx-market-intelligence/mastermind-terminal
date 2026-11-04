@@ -7,8 +7,17 @@
 # writes no artifact the merge path consumes, and needs no secret.
 #
 # Safety posture (public repository):
-#   * `workflow_dispatch` ONLY — never pull_request / push, so a fork can never schedule
-#     code onto the self-hosted host. Only collaborators can dispatch, from this repo's refs.
+#   * `workflow_dispatch` ONLY — never pull_request / push. This file's trigger does NOT by
+#     itself fence the host: a pull_request workflow is taken from the PR's merge ref, so
+#     any branch could name `runs-on: ubuntu0-canary`. The host fence is therefore
+#     procedural and recorded here: (a) the repository's fork-PR approval policy is
+#     `all_external_contributors` (every outside-collaborator workflow run needs a
+#     maintainer's approval); (b) the runner is registered just-in-time for ONE job,
+#     only while the seat is dispatching this workflow, and is deregistered when idle —
+#     no listener exists for a stray workflow to land on; (c) the production-grade
+#     control, an org runner group restricted to `selfhosted-e2e-canary.yml@refs/heads/master`
+#     (needs `admin:org`), is a Chairman admin step and a precondition for anything
+#     beyond this canary (Mastermind #917).
 #   * `permissions: contents: read` — the job token can read the checkout and nothing else.
 #   * Dispatch inputs are bound as job `env` DATA and validated by
 #     .github/scripts/selfhosted_canary_inputs.sh (fixed shard table mirroring the hosted
@@ -18,8 +27,10 @@
 #     tests/test_selfhosted_canary_workflow.py pins this contract with negative tests.
 #   * The runner is registered ephemeral (one job, then deregistered) under an
 #     unprivileged user with no sudo, so a job leaves no state for the next one.
-#   * Same steps as the hosted shard, minus `--with-deps` (system libs are preinstalled
-#     once by the host operator; the unprivileged runner user cannot apt).
+#   * Same steps as the hosted shard's `npm run test:e2e:responsive` step, minus `--with-deps`
+#     (system libs are preinstalled once by the host operator; the unprivileged runner
+#     user cannot apt). The hosted `serial` job additionally runs two opt-in qualification
+#     steps that this canary does not; compare `shard_seconds` with the hosted STEP time.
 name: Self-hosted e2e canary (ubuntu0)
 
 on:
@@ -90,13 +101,15 @@ jobs:
         timeout-minutes: 12
         run: npx playwright install chromium
       - name: Run shard (timed)
-        # CANARY_PROJECTS comes from the fixed table in the validation script, so word
-        # splitting it into an argument array is safe; CANARY_WORKERS_OK is a validated integer.
+        # Only the *_OK / CANARY_PROJECTS values written by the validator are used here; the
+        # raw CANARY_SHARD / CANARY_WORKERS inputs are never referenced by any run step
+        # (tests/test_selfhosted_canary_workflow.py forbids it). CANARY_PROJECTS comes from
+        # the fixed table, so word-splitting it into an argument array is safe.
         run: |
           read -r -a projects <<< "$CANARY_PROJECTS"
           t0=$(date +%s)
           npm run test:e2e:responsive -- "${projects[@]}" --workers="$CANARY_WORKERS_OK"
-          echo "shard_seconds=$(( $(date +%s) - t0 )) shard=$CANARY_SHARD workers=$CANARY_WORKERS_OK"
+          echo "shard_seconds=$(( $(date +%s) - t0 )) shard=$CANARY_SHARD_OK workers=$CANARY_WORKERS_OK"
       - name: Upload responsive QA screenshots
         if: always()
         uses: actions/upload-artifact@v4

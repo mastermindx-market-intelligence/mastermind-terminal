@@ -7,7 +7,7 @@
 # mapped to its Playwright selector through a FIXED table that mirrors the ci.yml
 # `terminal-e2e` matrix (tests/test_selfhosted_canary_workflow.py fails if they drift),
 # so the canary always runs the hosted shard's exact equivalent. Workers must be an
-# integer in 1..16. On success the validated values are appended to $GITHUB_ENV (or
+# integer in 1..16 with no leading zero. On success the validated values are appended to $GITHUB_ENV (or
 # stdout when unset); on any rejection nothing is written and the exit code is 2.
 set -euo pipefail
 
@@ -34,7 +34,7 @@ case "$shard" in
 esac
 
 case "$workers" in
-  ''|*[!0-9]*)
+  ''|0*|*[!0-9]*)
     printf '::error::CANARY_WORKERS must be an integer 1..16; rejected %q\n' "$workers" >&2
     exit 2
     ;;
@@ -45,4 +45,4 @@ if [ "${#workers}" -gt 2 ] || [ "$workers" -lt 1 ] || [ "$workers" -gt 16 ]; the
 fi
 
 out="${GITHUB_ENV:-/dev/stdout}"
-printf 'CANARY_PROJECTS=%s\nCANARY_WORKERS_OK=%s\n' "$projects" "$workers" >> "$out"
+printf 'CANARY_SHARD_OK=%s\nCANARY_PROJECTS=%s\nCANARY_WORKERS_OK=%s\n' "$shard" "$projects" "$workers" >> "$out"
