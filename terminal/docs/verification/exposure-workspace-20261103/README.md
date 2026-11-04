@@ -1,3 +1,9 @@
+# Exposure workspace — design and implementation evidence
+
+## Current qualification
+
+See the [November 4 combined implementation qualification](integration-20261104/README.md). The records below are earlier increments and retain their original scope and results.
+
 # Exposure workspace — archived source correction compatibility
 
 ## Why this increment exists

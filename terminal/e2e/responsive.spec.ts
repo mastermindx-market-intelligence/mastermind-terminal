@@ -1443,6 +1443,12 @@ test("Exposure desk replays an archived session's full ladder at every supported
   await expect(page.getByRole("group", { name: "Strike range" })).toBeVisible();
   await expect(page.getByTestId("gex-archived-chip")).toHaveCount(0);
 
+  // Child rows can be technically visible while a flex container collapses to zero height.
+  // Guard the actual ladder-region band at desktop, tablet and phone widths.
+  const ladderRegionH = await page.locator(".obs-gexdesk-ladder-region")
+    .evaluate((el) => el.getBoundingClientRect().height);
+  expect(ladderRegionH).toBeGreaterThanOrEqual(150);
+
   // exposure-workspace.spec.ts measures fully visible rows before interacting with this picker.
 
   // Pick an archived session → that session's FULL ladder, labelled as archived.

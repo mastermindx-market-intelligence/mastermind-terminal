@@ -801,3 +801,10 @@ exposureHierarchyRecapture:
       - "gex-live-refresh-failed-820.png"
       - "gex-pick-absent-1440-zh.png"
     notes: "Actual rendered desktop, tablet and phone EN/ZH captures examined. Signed bars and zero axis, dated state, retained stale-read retry, published-absence pick and legibility are preserved."
+
+optionsCombinedCd2Preview20261104:
+  status: "QUALIFIED_PREVIEW_EVIDENCE_NOT_RELEASED"
+  receipt: "operations/options-combined-cd2-20261104/capture-receipt.json"
+  receiptSha256: "6e40cbfa32db76aecd15eda6c8b2b117f1863356239feb5c2e651aa9d5ea6fea"
+  capturedCases: 114
+  qualification: "Separate composed preview; original branch layout locks and root crops remain unchanged."

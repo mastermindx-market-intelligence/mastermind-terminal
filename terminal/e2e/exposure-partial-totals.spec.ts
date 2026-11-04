@@ -17,6 +17,8 @@ async function openStrikeView(page: Page, zh: boolean) {
   // The shared live map opens first; its real view chooser discloses the legacy
   // strike branch. Keep the population/partial-total assertions on that branch.
   const chooser = page.locator(".obs-gexdesk-view-chooser");
+  // The map-first chooser mounts only after the GEX source resolves on cold entry.
+  await expect(chooser).toBeVisible({ timeout: 30_000 });
   await expect(chooser).not.toHaveAttribute("open", "");
   await chooser.locator("summary").click();
   const strike = page.getByRole("button", { name: zh ? "按行权价" : "By Strike", exact: true });

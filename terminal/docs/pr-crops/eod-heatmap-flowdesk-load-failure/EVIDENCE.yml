@@ -769,3 +769,10 @@ exposureHierarchyRecapture:
       - "eod-structure-retried-820.png"
       - "eod-darkpool-unavailable-390-zh.png"
     notes: "Actual rendered absence, measured partial recovery, dated EOD structure and ZH read-error/retry examined. No fabricated zero or source freshness claim. Original failed screenshots are retained separately with hashes."
+
+optionsCombinedCd2Preview20261104:
+  status: "QUALIFIED_PREVIEW_EVIDENCE_NOT_RELEASED"
+  receipt: "operations/options-combined-cd2-20261104/capture-receipt.json"
+  receiptSha256: "bff35e1f15f3ef3d007a6387b7a150aa12af30bde030a9197daf937843365319"
+  capturedCases: 126
+  qualification: "Separate composed preview; original branch layout locks and root crops remain unchanged."
