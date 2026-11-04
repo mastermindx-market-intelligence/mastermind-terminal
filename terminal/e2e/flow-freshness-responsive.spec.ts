@@ -20,6 +20,8 @@ test("Flow Desk separates Connected transport from measured source freshness", a
   await expect(timing).toHaveAttribute("data-flow-timing-contract", "live_flow.meta/v2");
   await expect(timing).toHaveAttribute("data-flow-timing-authority", "display_only");
   await expect(timing).toHaveAttribute("data-flow-session", "last_session");
+  await expect(timing).toHaveAttribute("data-flow-source-state", "historical");
+  await expect(timing.getByTestId("flow-historical-feed")).toHaveText(zh ? "历史行情" : "Historical feed");
   await expect(timing.locator('[data-flow-transport="connected"]')).toContainText(zh ? "已连接" : "Connected");
   await expect(timing).toContainText(zh ? "市场休市" : "Market closed");
   await expect(timing).toContainText(zh ? "上一交易时段" : "Last session");
@@ -30,12 +32,16 @@ test("Flow Desk separates Connected transport from measured source freshness", a
   // Its receipt must resolve from fixture `source_asof`. The phone contract hides
   // the entire right rail, so there we pin the mounted contract rather than force
   // a new mobile surface into this scoped truth patch.
-  const chainSource = page.locator('.obs-fd-chain [data-flow-artifact-freshness="source"]');
+  const chainSource = page.locator('.obs-fd-chain [data-flow-artifact-freshness="historical"]');
   if (testInfo.project.name === "mobile") await expect(chainSource).toHaveCount(1);
   else await expect(chainSource).toBeVisible({ timeout: 15_000 });
   await expect(chainSource).toHaveAttribute("data-flow-timing-authority", "display_only");
   await expect(chainSource).toHaveAttribute("title", "2026-07-07T16:00:00-04:00");
+  await expect(chainSource).toContainText(zh ? "历史数据" : "Historical");
   await expect(chainSource).toContainText(zh ? "源数据" : "Source");
+  // 2026-07-07 source vs the fixed Nov-01 clock is historical, even when a
+  // fresh build/reporting timestamp happens to accompany that old source.
+  await expect(chainSource).not.toContainText(zh ? "上一交易时段" : "Last session");
 
   const containment = await page.evaluate(() => {
     const receipt = document.querySelector<HTMLElement>(".obs-fd-freshness");

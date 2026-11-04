@@ -25,6 +25,8 @@ const LEX = {
   sourceResponses: ["Source responses", "源响应"],
   observedCycle: ["Observed cycle", "实测周期"],
   source: ["Source", "源数据"],
+  historical: ["Historical", "历史数据"],
+  historicalFeed: ["Historical feed", "历史行情"],
   sourceAgeUnavailable: ["Source age unavailable", "源数据时效不可用"],
   ago: ["ago", "前"],
 } as const;
@@ -75,6 +77,9 @@ export function FlowFreshnessReceipt({
   const sourceAgeMax = freshness ? formatFlowAge(freshness.sourceResponseAgeMaxMs) : null;
   const cycle = freshness ? formatObservedCycle(freshness.timing.observedCycleSec) : null;
   const measured = Boolean(freshness && snapshotAge && sourceAgeMin && sourceAgeMax);
+  // Only source-response clocks can prove the age of observed prints. A fresh
+  // page/render clock cannot make months-old market data current.
+  const historicalFeed = Boolean(freshness && freshness.sourceResponseAgeMinMs >= 72 * 60 * 60 * 1000);
   const sourceRange = sourceAgeMin === sourceAgeMax ? sourceAgeMin : `${sourceAgeMin}–${sourceAgeMax}`;
 
   return (
@@ -84,11 +89,13 @@ export function FlowFreshnessReceipt({
       data-flow-timing-contract={parsed?.schema ?? "unavailable"}
       data-flow-timing-authority="display_only"
       data-flow-session={sessionState}
+      data-flow-source-state={historicalFeed ? "historical" : measured ? "measured" : "unavailable"}
       title={parsed
         ? `snapshot ${parsed.snapshotAt}; source responses ${parsed.sourceResponseAtFirst} — ${parsed.sourceResponseAtLast}`
         : word("timingUnavailable", lang)}
     >
       {marketClock && <span className="flow-freshness-item">{word(marketClock.open ? "marketOpen" : "marketClosed", lang)}</span>}
+      {historicalFeed && <strong className="flow-freshness-item flow-freshness-historical" data-testid="flow-historical-feed">{word("historicalFeed", lang)}</strong>}
       {sessionState === "last_session" && sessionDate && (
         <span className="flow-freshness-item">{word("lastSession", lang)} · {sessionDate}</span>
       )}
@@ -136,6 +143,10 @@ export function ArtifactSourceReceipt({
   const sourceAsof = artifactSourceAsof(artifact);
   const ageMs = nowMs === null ? null : artifactSourceAgeMs(artifact, nowMs);
   const age = ageMs === null ? null : formatFlowAge(ageMs);
+  // This threshold changes presentation, never ranking or feed validity. A
+  // three-day-old source is historical even if the publisher rebuilt it today.
+  // Missing/future-dated source clocks remain unavailable, never fresh.
+  const historical = ageMs !== null && ageMs >= 72 * 60 * 60 * 1000;
   const sessionState = nowMs === null
     ? "last_session"
     : usOptionsSessionState(sessionDate, new Date(nowMs));
@@ -143,12 +154,12 @@ export function ArtifactSourceReceipt({
   return (
     <span
       className="flow-artifact-source"
-      data-flow-artifact-freshness={age ? "source" : "unavailable"}
+      data-flow-artifact-freshness={age ? (historical ? "historical" : "source") : "unavailable"}
       data-flow-timing-authority="display_only"
       title={sourceAsof ?? word("sourceAgeUnavailable", lang)}
     >
       {age
-        ? `${sessionState === "last_session" ? `${word("lastSession", lang)} · ` : ""}${word("source", lang)} ${ageCopy(age, lang)}`
+        ? `${historical ? `${word("historical", lang)} · ` : sessionState === "last_session" ? `${word("lastSession", lang)} · ` : ""}${word("source", lang)} ${ageCopy(age, lang)}`
         : word("sourceAgeUnavailable", lang)}
     </span>
   );
