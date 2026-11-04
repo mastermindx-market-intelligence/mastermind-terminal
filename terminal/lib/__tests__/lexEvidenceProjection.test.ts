@@ -1,3 +1,4 @@
+import { assertD06CapturedLexProjection } from "./helpers/d06CaptureDependency";
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -69,7 +70,7 @@ describe("recorded LEX capture dependency projection", () => {
     expect(readFileSync(join(__dirname, "../../components/SearchModal.tsx"), "utf8")).toContain('"searchTitle"');
     const changed = source.replace('searchTitle: ["Symbol search",', 'searchTitle: ["Mutation must fail",');
     expect(changed).not.toBe(source);
-    expect(() => assertCapturedLexProjection(source, expected, packet)).not.toThrow();
-    expect(() => assertCapturedLexProjection(changed, expected, packet)).toThrow(/changed outside/);
+    expect(() => assertD06CapturedLexProjection(source, expected, packet)).not.toThrow();
+    expect(() => assertD06CapturedLexProjection(changed, expected, packet)).toThrow(/changed outside/);
   });
 });

@@ -8,11 +8,29 @@ async function boot(page:Page,extra=""){
  await page.route("**/data/NVDA.json",route=>route.fulfill({json:{bars}}));
  await page.goto("/embed/chart?symbol=NVDA&fs=1"+extra);
  await expect(page.locator(".embed-chart-host canvas").first()).toBeVisible();
- await expect(page.locator(".embed-date time")).toHaveAttribute("datetime","2024-03-04");
+ await expect(page.locator(".embed-status").first()).toContainText("2024-03-04");
+ if(await page.locator(".embed-head-quote").isVisible()){
+  await page.mouse.move(0,0);
+  await expect(page.locator(".embed-date time")).toHaveAttribute("datetime","2024-03-04");
+ }
 }
 async function fullscreen(page:Page,active:boolean){
  await expect.poll(()=>page.evaluate(()=>document.fullscreenElement===document.querySelector(".embed-root"))).toBe(active);
  await expect(page.locator(".embed-root")).toHaveAttribute("data-fullscreen",active?"1":"0");
+ const geometry=await page.locator(".embed-fs").evaluate(button=>{
+  const r=button.getBoundingClientRect(),controls=button.closest(".embed-range-controls")!.getBoundingClientRect();
+  return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height,
+   controlsLeft:controls.left,controlsRight:controls.right,viewportWidth:innerWidth,viewportHeight:innerHeight,
+   insideRangeScroller:button.closest(".embed-ranges")!==null};
+ });
+ expect(geometry.insideRangeScroller,"fullscreen action has reserved space outside the range scroller").toBe(false);
+ expect(geometry.width).toBeGreaterThanOrEqual(44);
+ expect(geometry.height).toBeGreaterThanOrEqual(44);
+ expect(geometry.left).toBeGreaterThanOrEqual(geometry.controlsLeft-1);
+ expect(geometry.right).toBeLessThanOrEqual(Math.min(geometry.controlsRight,geometry.viewportWidth)+1);
+ expect(geometry.top).toBeGreaterThanOrEqual(0);
+ expect(geometry.bottom).toBeLessThanOrEqual(geometry.viewportHeight+1);
+ await test.info().attach("fullscreen-control-"+active,{body:Buffer.from(JSON.stringify(geometry)),contentType:"application/json"});
 }
 for(const lang of ["en","zh"] as const){
  test("browser fullscreen retains chart, range, overlays and source date in "+lang,async({page},info)=>{
@@ -30,6 +48,7 @@ for(const lang of ["en","zh"] as const){
   await enter.focus();await page.keyboard.press("Enter");await fullscreen(page,true);
   await expect(page.getByRole("button",{name:lang==="en"?"Exit full screen":"退出全屏",exact:true})).toBeVisible();
   expect(await page.locator(".embed-root").evaluate(e=>getComputedStyle(e).backgroundColor)).not.toBe("rgba(0, 0, 0, 0)");
+  await page.mouse.move(0,0); // Latest-bar header; crosshair dates have their own deliberate-hover proof.
   await expect(page.locator(".embed-date time")).toHaveAttribute("datetime","2024-03-04");
   await page.screenshot({path:info.outputPath("embed-fullscreen-"+lang+".png")});
   await page.locator(".embed-fs").click();await fullscreen(page,false);

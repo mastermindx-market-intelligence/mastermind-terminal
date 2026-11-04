@@ -1,0 +1,23 @@
+[warmup] /terminal?symbol=NVDA → 200 in 252ms
+[warmup] /options → 200 in 348ms
+[warmup] /portfolio → 200 in 157ms
+[warmup] /alerts → 200 in 185ms
+[warmup] /analysis → 200 in 349ms
+[warmup] /discover → 200 in 160ms
+[warmup] /admin → 200 in 120ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 114ms
+[warmup] /login → 200 in 184ms
+[warmup] /reset-password → 200 in 181ms
+[warmup] /api/me → 200 in 126ms
+[warmup] /api/watchlist → 200 in 78ms
+[warmup] /api/layouts → 200 in 138ms
+[warmup] /api/watchlist/annotations → 409 in 71ms
+[warmup] 14 routes compiled in 2s
+
+Running 3 tests using 1 worker
+
+  ✓  1 [desktop] › e2e/embed-data-state.spec.ts:185:5 › preserves compact native variants in short and narrow frames (3.7s)
+  ✓  2 [tablet] › e2e/embed-data-state.spec.ts:185:5 › preserves compact native variants in short and narrow frames (4.1s)
+  ✓  3 [mobile] › e2e/embed-data-state.spec.ts:185:5 › preserves compact native variants in short and narrow frames (3.4s)
+
+  3 passed (29.7s)

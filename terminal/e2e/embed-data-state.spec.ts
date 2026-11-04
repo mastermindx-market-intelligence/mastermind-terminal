@@ -200,8 +200,15 @@ test("preserves compact native variants in short and narrow frames", async ({ pa
   ] as const) {
     await page.goto(`/embed/chart?symbol=NVDA&lang=${lang}&theme=${theme}${variant}`);
     await expect(page.locator(".embed-chart-host canvas").first()).toBeVisible();
+    await expect(page.locator(".embed-status").first()).toContainText(latestDate);
     if (variant.includes("hdr=0")) await expect(page.locator(".embed-head-quote")).toBeHidden();
-    else await expect(page.locator(".embed-date time")).toHaveAttribute("datetime", latestDate);
+    else {
+      // Compact native mode puts the header BELOW the plot; (0, 0) is a real bar there.
+      const dateBox = await page.locator(".embed-date").boundingBox();
+      expect(dateBox).not.toBeNull();
+      await page.mouse.move(dateBox!.x + dateBox!.width / 2, dateBox!.y + dateBox!.height / 2);
+      await expect(page.locator(".embed-date time")).toHaveAttribute("datetime", latestDate);
+    }
     if (variant.includes("clean=1")) {
       await expect(page.locator(".embed-attr")).toBeHidden();
       await expect(page.locator(".embed-legend")).toHaveCount(0);

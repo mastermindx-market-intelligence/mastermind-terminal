@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 
 /**
@@ -8,7 +8,17 @@ import { usePathname, useSearchParams } from "next/navigation";
  * viewport metadata. Ordinary web pages retain the route's zoomable viewport.
  * No pre-hydration mutation: that can leave an orphan meta and a second React meta.
  */
+const subscribeHydration = () => () => {};
+const clientHydrated = () => true;
+const serverNotHydrated = () => false;
+
+/** URL hooks run only after the matching null server/hydration render. */
 export default function NativeViewportPolicy() {
+  const hydrated = useSyncExternalStore(subscribeHydration, clientHydrated, serverNotHydrated);
+  return hydrated ? <ApplyNativeViewportPolicy /> : null;
+}
+
+function ApplyNativeViewportPolicy() {
   const pathname = usePathname();
   const query = useSearchParams().toString();
   useEffect(() => {

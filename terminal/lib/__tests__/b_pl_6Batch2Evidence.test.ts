@@ -1,5 +1,5 @@
-import { assertCapturedLexProjection } from "./helpers/lexEvidenceProjection";
-// Preserve the raw capture pin; only unused onboarding copy has an AST dependency projection.
+import { assertD06CapturedLexProjection as assertCapturedLexProjection } from "./helpers/d06CaptureDependency";
+// Historical raw pins/crops remain; exact D06 deltas precede the unchanged onboarding-copy projection.
 // Git-free evidence lock for the B-PL-6 batch 2 capture packet.
 // The lock is the sha256 of the layout sources the crops depend on, recorded in
 // EVIDENCE.yml layoutFiles. capturedAtHead stays informational.

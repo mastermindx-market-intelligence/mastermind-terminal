@@ -1,3 +1,4 @@
+import { assertD06CapturedFile } from "./helpers/d06CaptureDependency";
 // Git-free evidence lock for the EOD belt / Flow Desk chain heat / Heatmap flow layer
 // load-failure capture packet. The lock is the sha256 of the layout sources the crops depend
 // on, recorded in EVIDENCE.yml layoutFiles. capturedAtHead stays informational.
@@ -85,12 +86,13 @@ describe("EOD / heatmap / flow desk load-failure evidence lock is the sha256 of 
     }
   });
 
-  it("each layoutFiles sha256 matches the file on disk", () => {
+  it("retains historical layout hashes through the exact recorded D06 dependency delta", () => {
     const recorded = layoutFileMap(evidenceText());
     for (const [rel, expected] of Object.entries(recorded)) {
       const abs = join(REPO, rel);
       expect(existsSync(abs), `${rel} is recorded in layoutFiles but absent from the tree`).toBe(true);
-      expect(sha256Of(abs), `${rel} changed without a recapture`).toBe(expected);
+      if (rel === "terminal/app/globals.css") assertD06CapturedFile(rel, readFileSync(abs, "utf8"), expected);
+        else expect(sha256Of(abs), `${rel} changed without a recapture`).toBe(expected);
     }
   });
 

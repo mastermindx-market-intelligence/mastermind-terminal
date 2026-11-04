@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import { Suspense } from "react";
 import NativeViewportPolicy from "@/components/NativeViewportPolicy";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
@@ -55,7 +54,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en" data-theme="dark" className={`${inter.variable} ${jetbrainsMono.variable}`} suppressHydrationWarning>
       <head><script dangerouslySetInnerHTML={{ __html: LOCALE_INIT }} /></head>
-      <body><LangProvider>{children}</LangProvider><Suspense fallback={null}><NativeViewportPolicy /></Suspense><EmbeddedTerminalBridge /><Tracker /></body>
+      <body><LangProvider>{children}</LangProvider><NativeViewportPolicy /><EmbeddedTerminalBridge /><Tracker /></body>
     </html>
   );
 }

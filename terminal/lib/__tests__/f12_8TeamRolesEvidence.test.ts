@@ -1,5 +1,5 @@
-import { assertCapturedLexProjection } from "./helpers/lexEvidenceProjection";
-// Preserve the raw capture pin; only unused onboarding copy has an AST dependency projection.
+import { assertD06CapturedLexProjection as assertCapturedLexProjection } from "./helpers/d06CaptureDependency";
+// Historical raw pins/crops remain; exact D06 deltas precede the unchanged onboarding-copy projection.
 // Review MAJOR (PR #539 round 3 / B-F12-5): the evidence lock used to name a commit
 // and ask whether it was an ancestor of HEAD. The required CI shard checks
 // out a single commit, so that named SHA is absent and the check is RED

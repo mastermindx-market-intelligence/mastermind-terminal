@@ -1,0 +1,76 @@
+[warmup] /terminal?symbol=NVDA → 200 in 96ms
+[warmup] /options → 200 in 167ms
+[warmup] /portfolio → 200 in 85ms
+[warmup] /alerts → 200 in 93ms
+[warmup] /analysis → 200 in 186ms
+[warmup] /discover → 200 in 140ms
+[warmup] /admin → 200 in 75ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 56ms
+[warmup] /login → 200 in 97ms
+[warmup] /reset-password → 200 in 79ms
+[warmup] /api/me → 200 in 69ms
+[warmup] /api/watchlist → 200 in 41ms
+[warmup] /api/layouts → 200 in 39ms
+[warmup] /api/watchlist/annotations → 409 in 29ms
+[warmup] 14 routes compiled in 1s
+
+Running 54 tests using 1 worker
+
+  ✓   1 [desktop] › e2e/embed-data-state.spec.ts:86:9 › daily data en › dates the displayed bar and keeps attribution clear of the time axis (1.2s)
+  ✓   2 [desktop] › e2e/embed-data-state.spec.ts:140:9 › daily data en › keeps confirmed absence distinct and stops loading indicators (968ms)
+  ✓   3 [desktop] › e2e/embed-data-state.spec.ts:155:9 › daily data en › reports unavailable data without claiming the symbol has no history (2.9s)
+  ✓   4 [desktop] › e2e/embed-data-state.spec.ts:86:9 › daily data zh › dates the displayed bar and keeps attribution clear of the time axis (990ms)
+  ✓   5 [desktop] › e2e/embed-data-state.spec.ts:140:9 › daily data zh › keeps confirmed absence distinct and stops loading indicators (914ms)
+  ✓   6 [desktop] › e2e/embed-data-state.spec.ts:155:9 › daily data zh › reports unavailable data without claiming the symbol has no history (2.9s)
+  ✓   7 [desktop] › e2e/embed-data-state.spec.ts:185:5 › preserves compact native variants in short and narrow frames (2.3s)
+  ✓   8 [desktop] › e2e/embed-fullscreen.spec.ts:36:6 › browser fullscreen retains chart, range, overlays and source date in en (1.1s)
+  ✓   9 [desktop] › e2e/embed-fullscreen.spec.ts:36:6 › browser fullscreen retains chart, range, overlays and source date in zh (1.1s)
+  ✓  10 [desktop] › e2e/embed-fullscreen.spec.ts:63:6 › native handler success has priority over browser fullscreen (714ms)
+  ✓  11 [desktop] › e2e/embed-fullscreen.spec.ts:63:6 › native handler failure has priority over browser fullscreen (654ms)
+  ✓  12 [desktop] › e2e/embed-fullscreen.spec.ts:80:6 › unsupported browser requests retain a usable chart (881ms)
+  ✓  13 [desktop] › e2e/embed-fullscreen.spec.ts:80:6 › rejected browser requests retain a usable chart (870ms)
+  ✓  14 [desktop] › e2e/embed-fullscreen.spec.ts:93:5 › a rejected exit keeps the observed fullscreen state and explains recovery (855ms)
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓  15 [desktop] › e2e/embed-fullscreen.spec.ts:108:5 › ordinary web viewports permit zoom while both existing native signals retain their policy (1.7s)
+  ✓  16 [desktop] › e2e/embed-fullscreen.spec.ts:125:5 › the ordinary browser permits page-scale zoom without a restrictive viewport (769ms)
+  ✓  17 [desktop] › e2e/embed-fullscreen.spec.ts:137:5 › native viewport policy releases on existing client navigation (2.2s)
+  ✓  18 [desktop] › e2e/embed-fullscreen.spec.ts:147:5 › browser fullscreen restores source context for the compact clean widget (1.2s)
+  ✓  19 [tablet] › e2e/embed-data-state.spec.ts:86:9 › daily data en › dates the displayed bar and keeps attribution clear of the time axis (1.3s)
+  ✓  20 [tablet] › e2e/embed-data-state.spec.ts:140:9 › daily data en › keeps confirmed absence distinct and stops loading indicators (981ms)
+  ✓  21 [tablet] › e2e/embed-data-state.spec.ts:155:9 › daily data en › reports unavailable data without claiming the symbol has no history (3.1s)
+  ✓  22 [tablet] › e2e/embed-data-state.spec.ts:86:9 › daily data zh › dates the displayed bar and keeps attribution clear of the time axis (1.1s)
+  ✓  23 [tablet] › e2e/embed-data-state.spec.ts:140:9 › daily data zh › keeps confirmed absence distinct and stops loading indicators (1.1s)
+  ✓  24 [tablet] › e2e/embed-data-state.spec.ts:155:9 › daily data zh › reports unavailable data without claiming the symbol has no history (3.0s)
+  ✓  25 [tablet] › e2e/embed-data-state.spec.ts:185:5 › preserves compact native variants in short and narrow frames (2.2s)
+  ✓  26 [tablet] › e2e/embed-fullscreen.spec.ts:36:6 › browser fullscreen retains chart, range, overlays and source date in en (1.1s)
+  ✓  27 [tablet] › e2e/embed-fullscreen.spec.ts:36:6 › browser fullscreen retains chart, range, overlays and source date in zh (1.2s)
+  -  28 [tablet] › e2e/embed-fullscreen.spec.ts:63:6 › native handler success has priority over browser fullscreen
+  -  29 [tablet] › e2e/embed-fullscreen.spec.ts:63:6 › native handler failure has priority over browser fullscreen
+  -  30 [tablet] › e2e/embed-fullscreen.spec.ts:80:6 › unsupported browser requests retain a usable chart
+  -  31 [tablet] › e2e/embed-fullscreen.spec.ts:80:6 › rejected browser requests retain a usable chart
+  -  32 [tablet] › e2e/embed-fullscreen.spec.ts:93:5 › a rejected exit keeps the observed fullscreen state and explains recovery
+  -  33 [tablet] › e2e/embed-fullscreen.spec.ts:108:5 › ordinary web viewports permit zoom while both existing native signals retain their policy
+  -  34 [tablet] › e2e/embed-fullscreen.spec.ts:125:5 › the ordinary browser permits page-scale zoom without a restrictive viewport
+  -  35 [tablet] › e2e/embed-fullscreen.spec.ts:137:5 › native viewport policy releases on existing client navigation
+  ✓  36 [tablet] › e2e/embed-fullscreen.spec.ts:147:5 › browser fullscreen restores source context for the compact clean widget (871ms)
+  ✓  37 [mobile] › e2e/embed-data-state.spec.ts:86:9 › daily data en › dates the displayed bar and keeps attribution clear of the time axis (2.0s)
+  ✓  38 [mobile] › e2e/embed-data-state.spec.ts:140:9 › daily data en › keeps confirmed absence distinct and stops loading indicators (1.1s)
+  ✓  39 [mobile] › e2e/embed-data-state.spec.ts:155:9 › daily data en › reports unavailable data without claiming the symbol has no history (3.1s)
+  ✓  40 [mobile] › e2e/embed-data-state.spec.ts:86:9 › daily data zh › dates the displayed bar and keeps attribution clear of the time axis (1.1s)
+  ✓  41 [mobile] › e2e/embed-data-state.spec.ts:140:9 › daily data zh › keeps confirmed absence distinct and stops loading indicators (1.2s)
+  ✓  42 [mobile] › e2e/embed-data-state.spec.ts:155:9 › daily data zh › reports unavailable data without claiming the symbol has no history (3.6s)
+  ✓  43 [mobile] › e2e/embed-data-state.spec.ts:185:5 › preserves compact native variants in short and narrow frames (2.3s)
+  ✓  44 [mobile] › e2e/embed-fullscreen.spec.ts:36:6 › browser fullscreen retains chart, range, overlays and source date in en (1.2s)
+  ✓  45 [mobile] › e2e/embed-fullscreen.spec.ts:36:6 › browser fullscreen retains chart, range, overlays and source date in zh (1.2s)
+  -  46 [mobile] › e2e/embed-fullscreen.spec.ts:63:6 › native handler success has priority over browser fullscreen
+  -  47 [mobile] › e2e/embed-fullscreen.spec.ts:63:6 › native handler failure has priority over browser fullscreen
+  -  48 [mobile] › e2e/embed-fullscreen.spec.ts:80:6 › unsupported browser requests retain a usable chart
+  -  49 [mobile] › e2e/embed-fullscreen.spec.ts:80:6 › rejected browser requests retain a usable chart
+  -  50 [mobile] › e2e/embed-fullscreen.spec.ts:93:5 › a rejected exit keeps the observed fullscreen state and explains recovery
+  -  51 [mobile] › e2e/embed-fullscreen.spec.ts:108:5 › ordinary web viewports permit zoom while both existing native signals retain their policy
+  -  52 [mobile] › e2e/embed-fullscreen.spec.ts:125:5 › the ordinary browser permits page-scale zoom without a restrictive viewport
+  -  53 [mobile] › e2e/embed-fullscreen.spec.ts:137:5 › native viewport policy releases on existing client navigation
+  ✓  54 [mobile] › e2e/embed-fullscreen.spec.ts:147:5 › browser fullscreen restores source context for the compact clean widget (960ms)
+
+  16 skipped
+  38 passed (1.2m)

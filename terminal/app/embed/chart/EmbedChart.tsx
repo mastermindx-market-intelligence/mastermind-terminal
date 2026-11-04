@@ -531,6 +531,7 @@ function Header({
 
       <div className="embed-head-right">
       {legend}
+      <div className="embed-range-controls">
       <nav className="embed-ranges" aria-label={t("rangePrefix")}>
         {RANGE_KEYS.map((rk) => (
           <button
@@ -543,6 +544,7 @@ function Header({
             {rk}
           </button>
         ))}
+      </nav>
         {showFullscreen && (
           /* The same control preserves the native handoff and owns browser fullscreen. */
           <button
@@ -566,7 +568,7 @@ function Header({
             </svg>
           </button>
         )}
-      </nav>
+      </div>
       </div>
     </header>
   );
@@ -763,7 +765,8 @@ function StyleTag({ pal, fullscreenBackground = pal.pageBg }: { pal: EmbedPalett
   .embed-ohlc-vol{color:var(--e-muted);font-size:10.5px;}
 
   /* Range chips. */
-  .embed-ranges{display:flex;align-items:center;gap:3px;flex:none;overflow-x:auto;scrollbar-width:none;max-width:100%;}
+  .embed-range-controls{display:flex;align-items:center;gap:4px;min-width:0;max-width:100%;flex:1 1 auto;}
+  .embed-ranges{display:flex;align-items:center;gap:3px;flex:1 1 auto;min-width:0;overflow-x:auto;scrollbar-width:none;max-width:100%;}
   .embed-ranges::-webkit-scrollbar{display:none;}
   .embed-chip{flex:none;padding:3px 8px;border-radius:5px;font-size:11px;font-weight:600;letter-spacing:.02em;
     color:var(--e-muted);background:transparent;border:1px solid transparent;cursor:pointer;
@@ -832,7 +835,7 @@ function StyleTag({ pal, fullscreenBackground = pal.pageBg }: { pal: EmbedPalett
      the tab/reading order is unchanged for assistive tech, which reads it as the widget's
      footer controls). .embed-body keeps flex:1 1 auto, so the absolute-inset chart host still
      sizes to whatever height is left over. Full-bleed row: the chips' own 12px padding is the
-     only inset, and the ⤢ square keeps its margin-left:auto right-end anchor. */
+     only inset; the ⤢ square has its own space outside the scrolling range strip. */
   .embed-root[data-clean="1"] .embed-body{order:1;}
   .embed-root[data-clean="1"] .embed-header{order:2;padding:2px 0 8px;min-height:0;}
   /* clean+hdr=1: the header is now the widget's FOOTER, so the quote line needs the inset back
@@ -845,7 +848,8 @@ function StyleTag({ pal, fullscreenBackground = pal.pageBg }: { pal: EmbedPalett
   /* flex-basis:100% ⇒ the chips always own a full row (the header is flex-wrap:wrap), so
      clean+hdr=1 puts them under the quote instead of fighting it for the same line. */
   .embed-root[data-clean="1"] .embed-head-right{flex:1 1 100%;justify-content:flex-start;gap:0;}
-  .embed-root[data-clean="1"] .embed-ranges{width:100%;gap:4px;align-items:center;}
+  .embed-root[data-clean="1"] .embed-range-controls{width:100%;}
+  .embed-root[data-clean="1"] .embed-ranges{gap:4px;align-items:center;}
   /* TV capsules: Semibold 13.5px, selected #2E2E2E on #DBDBDB, unselected transparent on #8C8C8C. */
   .embed-root[data-clean="1"] .embed-chip{
     padding:6px 12px;border-radius:999px;border:0;background:transparent;
@@ -859,7 +863,7 @@ function StyleTag({ pal, fullscreenBackground = pal.pageBg }: { pal: EmbedPalett
     transition:color 120ms cubic-bezier(.4,0,.2,1),background 120ms cubic-bezier(.4,0,.2,1);}
   .embed-fs:hover{color:var(--e-text);background:var(--e-chip);}
   .embed-fs:disabled{opacity:.6;cursor:wait;}
-  .embed-fs:focus-visible{outline:2px solid var(--e-brand);outline-offset:1px;}
+  .embed-fs:focus-visible{outline:2px solid var(--e-brand);outline-offset:-3px;}
 
   .embed-root[data-hdr="0"]:fullscreen .embed-head-quote{display:flex;}
   .embed-root[data-clean="1"]:fullscreen .embed-header{order:0;padding:8px 12px;}
@@ -871,7 +875,8 @@ function StyleTag({ pal, fullscreenBackground = pal.pageBg }: { pal: EmbedPalett
     .embed-header{padding:7px 10px 6px;gap:6px;}
     .embed-ticker{font-size:14px;}
     .embed-last{font-size:14px;}
-    .embed-ranges{width:100%;order:3;}
+    .embed-head-right{width:100%;}
+    .embed-range-controls{width:100%;order:3;}
     .embed-ohlc{font-size:10.5px;gap:7px;}
   }
   @media (pointer:coarse){
