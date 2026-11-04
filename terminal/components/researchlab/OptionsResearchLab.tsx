@@ -8,6 +8,9 @@ import styles from "./ResearchLab.module.css";
 import { adaptResearchVolatility } from "./researchVolatility";
 import { ResearchVolatilitySlice } from "./ResearchVolatilitySlice";
 import { ResearchQuestionAction } from "./ResearchQuestionAction";
+import { GexMarketMemory } from "@/components/options-companion/GexMarketMemory";
+import { optionsT } from "@/components/options-companion/optionsStrings";
+import { ResearchReportedGammaPanel } from "./ResearchReportedGammaPanel";
 
 const ResearchScene = dynamic(() => import("./ResearchScene"), { ssr: false });
 const LEX = {
@@ -38,6 +41,7 @@ const LEX = {
   unavailable: ["This lens needs additional admitted evidence", "此视图需要额外的有效证据"],
   volatilityGap: ["Per-contract IV, fit provenance and a compatible model are not in this snapshot. No fitted surface is inferred.", "此快照未提供逐合约隐含波动率、拟合来源及兼容模型，不推断拟合曲面。"],
   replayGap: ["This matrix is a single session. Dated chain frames and availability times are not supplied by the shared replay owner.", "此矩阵为单一交易日数据，共享回放尚未提供带日期的期权链帧和可得时间。"],
+  replayMemoryGap: ["No current all-expiry GEX source is supplied for this session. The reported-Gamma comparison stays unavailable and nothing is substituted.", "当前交易日未提供全部到期 GEX 数据源；已报告 Gamma 比较保持不可用，且不会以其他数值替代。"],
   flowGap: ["Package identity and dated quotes are not in this snapshot. Nearby equal-size legs do not prove a package.", "此快照不含组合身份和带时间的报价，相邻同规模合约并不能确认组合。"],
   scenarioGap: ["Verified deliverables, entry prices and admitted valuation output are required from Plan. No parallel pricer is created.", "需要计划工具提供经过验证的交割规格、入场价格及估值结果。"],
   openPlan: ["Choose exact contracts for Plan", "前往精确合约候选列表"],
@@ -67,7 +71,7 @@ class SceneBoundary extends React.Component<{ children: React.ReactNode; fallbac
 /** No I/O, clock, cache, valuation or persistence ownership lives in this consumer. */
 export function OptionsResearchLab({
   root, matrix, volatility = null, matrixReadStatus = "data", onRetryMatrix,
-  volReadStatus = "data", onRetryVol, lang, onClose, onOpenPlan, questionOwnerKey = null,
+  volReadStatus = "data", onRetryVol, currentGexSnapshot = null, lang, onClose, onOpenPlan, questionOwnerKey = null,
 }: {
   root: string;
   /** Existing admitted shell owner; absent means no assistant staging. */
@@ -80,6 +84,14 @@ export function OptionsResearchLab({
   /** Same incumbent flow-cache IV read outcome, no independent subscription. */
   volReadStatus?: "loading" | "data" | "absent" | "unavailable";
   onRetryVol?: () => void;
+  /**
+   * The host's already-selected all-expiry GEX payload for this root, or
+   * null/undefined when none is supplied. A missing source never triggers a
+   * live fallback: the memory owner is simply not mounted and the Replay lens
+   * states the gap. Selection, reading and invalidation stay with the
+   * incumbent owners; this Lab only forwards the supplied bytes.
+   */
+  currentGexSnapshot?: unknown;
   lang: Lang;
   onClose: () => void;
   /** Navigation only. The exact-contract owner retains draft creation and Save. */
@@ -120,6 +132,21 @@ export function OptionsResearchLab({
     setSelection(s => ({ ...s, selected: null }));
     if (focusOrigin.current?.isConnected) focusOrigin.current.focus(); else backRef.current?.focus();
   };
+  // Replay lens only: the incumbent Market Memory owner stays the only reader
+  // of its own effect, cache keys, fingerprints and refusal states, and hands
+  // its READY validated bound pair with an explicit origin clock to the
+  // reported-Gamma panel. It is mounted only when the matrix session is known
+  // AND the host actually supplies the current source; null/undefined mount
+  // nothing and never fall back to a live read. The full-chain replay gap
+  // statement stays separate from this comparison.
+  const replaySession = data.session;
+  const memoryOwner = replaySession !== null && currentGexSnapshot != null
+    ? <GexMarketMemory root={root} matrixSession={replaySession} strike={selected?.strike ?? null}
+        t={optionsT(lang)} currentSnapshot={currentGexSnapshot} lang={lang}
+        renderReady={({ current, previous, originMs }) => <ResearchReportedGammaPanel
+          root={root} matrixSession={replaySession} current={current} previous={previous}
+          originMs={originMs} selected={selected ?? null} lang={lang} />} />
+    : null;
   const unavailable = <p className={styles.notice} role="status">{t("rendererFailed")}</p>;
   return <section className={styles.lab} aria-label={t("title")}>
     <header className={styles.header}>
@@ -161,7 +188,11 @@ export function OptionsResearchLab({
           sourceStatus={volReadStatus} onRetrySource={onRetryVol}
           selected={sameVolSession ? safeSelection.selected : null} canPin={key => sameVolSession && data.rows.some(r => r.key === key)}
           onSelect={(key, origin) => { focusOrigin.current = origin; pin(key); }} />
-          : lens === "scenario" && onOpenPlan ? <div className={styles.capability}>
+          : lens === "replay" ? <>{memoryOwner}<div className={styles.capability}>
+            <span>{t(lens)}</span><h3>{t("unavailable")}</h3><p>{t("replayGap")}</p>
+            {memoryOwner === null && <p>{t("replayMemoryGap")}</p>}
+            <p>{t("clockLaw")}</p>
+          </div></> : lens === "scenario" && onOpenPlan ? <div className={styles.capability}>
             <span>{t("scenario")}</span><h3>{t("openPlan")}</h3><p>{t("planHandoff")}</p>
             <button type="button" className={styles.back} onClick={() => onOpenPlan()}>{t("openPlan")}</button>
           </div> : <div className={styles.capability}><span>{t(lens)}</span><h3>{t("unavailable")}</h3><p>{t(`${lens}Gap`)}</p><p>{t("clockLaw")}</p></div>}
