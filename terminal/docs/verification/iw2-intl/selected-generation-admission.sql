@@ -23,6 +23,33 @@ begin
 exception when others then return false;
 end $$;
 
+-- Settings intent in the SAME v3 revision, never preview values/source grants.
+create or replace function public.valid_investigation_intl_policy_v1(s jsonb)
+returns boolean language plpgsql immutable set search_path=pg_catalog,public as $$
+declare p jsonb; k text;
+begin
+ if not public.investigation_keys_v2(s,array['economy_a','economy_b','lens','definition','method_version','period','instrument_a_ref','instrument_b_ref','revision_policy'])
+  or s->>'economy_a' !~ '^[A-Z]{2}$' or s->>'economy_b' !~ '^[A-Z]{2}$' or s->>'economy_a'=s->>'economy_b'
+  or s->>'lens' is distinct from 'nominal_policy_point_gap' or s->>'definition' is distinct from 'absolute_gap_change_bp'
+  or s->>'method_version' is distinct from 'intl-ecb-boe-nominal-policy-point-v1'
+  or s->>'revision_policy' not in ('latest_vintage','original_known') then return false; end if;
+ foreach k in array array['economy_a','economy_b','lens','definition','method_version','revision_policy'] loop
+  if jsonb_typeof(s->k) is distinct from 'string' then return false; end if;
+ end loop;
+ foreach k in array array['instrument_a_ref','instrument_b_ref'] loop
+  if s->k<>'null'::jsonb and not public.investigation_text_v2(s->k,256,true) then return false; end if;
+ end loop;
+ p:=s->'period';
+ if p->>'mode'='owner_horizon' then
+  return coalesce(public.investigation_keys_v2(p,array['mode','key']) and jsonb_typeof(p->'key')='string' and p->>'key' ~ '^[1-9][0-9]{0,2}[dwmy]$',false);
+ end if;
+ if not public.investigation_keys_v2(p,array['mode','start','end']) or p->>'mode' is distinct from 'fixed_dates'
+  or jsonb_typeof(p->'start') is distinct from 'string' or jsonb_typeof(p->'end') is distinct from 'string'
+  or p->>'start' !~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' or p->>'end' !~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' then return false; end if;
+ return to_char((p->>'start')::date,'YYYY-MM-DD')=p->>'start' and to_char((p->>'end')::date,'YYYY-MM-DD')=p->>'end' and p->>'start'<p->>'end';
+exception when others then return false;
+end $$;
+
 create or replace function public.valid_investigation_intl_scope_v1(m jsonb)
 returns boolean language plpgsql immutable set search_path=pg_catalog,public as $$
 declare refs jsonb; subjects jsonb; first_ref jsonb; r jsonb; s jsonb; seen jsonb:='[]'; b jsonb;
@@ -30,7 +57,8 @@ begin
  select coalesce(jsonb_agg(value),'[]'::jsonb) into refs from jsonb_array_elements(m->'evidence_refs') where value->>'owner'='intl.workspace_generation';
  select coalesce(jsonb_agg(value),'[]'::jsonb) into subjects from jsonb_array_elements(m#>'{intent,subjects}') where value->>'owner'='intl.workspace_context';
  b:=m->'review_baseline_ref';
- if jsonb_array_length(refs)=0 then return jsonb_array_length(subjects)=0 and coalesce(b->>'owner','')<>'intl.workspace_generation'; end if;
+ if m ? 'intl_policy_comparison' and (m->>'schema' is distinct from 'investigation_manifest.v3' or not public.valid_investigation_intl_policy_v1(m->'intl_policy_comparison')) then return false; end if;
+ if jsonb_array_length(refs)=0 then return not (m ? 'intl_policy_comparison') and jsonb_array_length(subjects)=0 and coalesce(b->>'owner','')<>'intl.workspace_generation'; end if;
  if m->>'schema' is distinct from 'investigation_manifest.v3' or jsonb_array_length(subjects)<>1 then return false; end if;
  first_ref:=refs->0;s:=subjects->0;
  if not public.valid_investigation_intl_ref_v1(first_ref) or s->>'kind' is distinct from 'economy'
@@ -51,7 +79,7 @@ create or replace function public.valid_investigation_manifest_v2(m jsonb)
 returns boolean language plpgsql immutable set search_path=pg_catalog,public as $$
 declare r jsonb; s jsonb; refs jsonb; k text; n integer; seen jsonb:='[]'; identity jsonb; endpoint jsonb;
 begin
- if not public.investigation_keys_v2(m,array['schema','intent','layout_refs','thesis_refs','evidence_refs','argument_relations','continuation'],array['review_baseline_ref','review','option_plan','scenario_capture'])
+ if not public.investigation_keys_v2(m,array['schema','intent','layout_refs','thesis_refs','evidence_refs','argument_relations','continuation'],array['review_baseline_ref','review','option_plan','scenario_capture','intl_policy_comparison'])
  or m->>'schema' not in ('investigation_manifest.v2','investigation_manifest.v3') or octet_length(public.investigation_json_v2(m))>131072
  or not public.investigation_keys_v2(m->'intent',array['title','question','subjects'],array['horizon','research_as_of'])
  or not public.investigation_text_v2(m#>'{intent,title}',160,true)
@@ -156,5 +184,5 @@ exception when others then return false;
 end $$;
 
 -- Existing predicate OID/ACL stays intact; helpers are not new public RPCs.
-revoke all on function public.valid_investigation_intl_ref_v1(jsonb),public.valid_investigation_intl_scope_v1(jsonb) from public,anon,authenticated;
+revoke all on function public.valid_investigation_intl_ref_v1(jsonb),public.valid_investigation_intl_scope_v1(jsonb),public.valid_investigation_intl_policy_v1(jsonb) from public,anon,authenticated;
 commit;

@@ -1,3 +1,5 @@
+import {validateIntlPolicySettings} from "./investigationIntlPolicy";
+import type {PolicySettings} from "./intlPolicyPreviewSession";
 import { validateOptionsPlanDraft, type OptionsPlanDraft } from "./optionsPlanDraft";
 import {validIntlManifestReferences} from "./investigationIntlReference";
 
@@ -69,6 +71,8 @@ export type InvestigationManifest = {
   review_baseline_ref?: InvestigationEvidenceRef;
   /** v3-only retained research observations; not qualified evidence or executable prices. */
   option_plan?: OptionsPlanDraft;
+  /** v3 International settings intent only; preview numbers are never retained. */
+  intl_policy_comparison?: PolicySettings;
   /** v2-only value-free reference, retaining the existing0042 source contract. */
   scenario_capture?: ScenarioCapture;
   /** Review observations use the existing owner vocabulary across supported versions. */
@@ -301,7 +305,7 @@ class Validator {
     const v3 = (raw as Obj)?.schema === INVESTIGATION_MANIFEST_SCHEMA_V3;
     const v2 = (raw as Obj)?.schema === INVESTIGATION_MANIFEST_SCHEMA_V2 || v3;
     const strictV2 = v2 && !this.legacyStored;
-    const manifest = this.object(raw, "$", ["schema", "intent", "layout_refs", "thesis_refs", "evidence_refs", "continuation", ...(strictV2 ? ["argument_relations"] : [])], ["review_baseline_ref", "review", "scenario_capture", ...(v3 ? ["option_plan"] : [])]);
+    const manifest = this.object(raw, "$", ["schema", "intent", "layout_refs", "thesis_refs", "evidence_refs", "continuation", ...(strictV2 ? ["argument_relations"] : [])], ["review_baseline_ref", "review", "scenario_capture", ...(v3 ? ["option_plan","intl_policy_comparison"] : [])]);
     if (!manifest) return;
     const questionLimit = v2 ? 4000 : 2000;
     if (!v2 && manifest.schema !== INVESTIGATION_MANIFEST_SCHEMA) this.add("$.schema", "unsupported_schema");
@@ -338,6 +342,10 @@ class Validator {
     if (v3 && Object.hasOwn(manifest, "option_plan")) {
       const checked = validateOptionsPlanDraft(manifest.option_plan);
       if (!checked.ok) this.add("$.option_plan", checked.reason);
+    }
+    if (v3 && Object.hasOwn(manifest, "intl_policy_comparison")) {
+      if (!validateIntlPolicySettings(manifest.intl_policy_comparison).ok
+        || !Array.isArray(manifest.evidence_refs) || !manifest.evidence_refs.some(ref => ref && typeof ref === "object" && (ref as Record<string,unknown>).owner === "intl.workspace_generation")) this.add("$.intl_policy_comparison", "invalid_international_settings");
     }
     if (Object.hasOwn(manifest, "review")) {
       const review = this.object(manifest.review, "$.review", ["assessment"], ["fire_event_id", "note"]);

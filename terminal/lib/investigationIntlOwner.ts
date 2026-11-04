@@ -81,7 +81,8 @@ export async function qualifyIntlManifestSave(manifest:InvestigationManifest,pri
  if(!validIntlManifestReferences(manifest))return false;
  const refs=manifest.evidence_refs.filter(ref=>ref.owner===INTL_EVIDENCE_OWNER);
  if(!refs.length)return true;
- const first=refs[0];return (await qualifiedSelection(principal,{object_id:first.object_id,generation:first.version_ref!,fingerprint:first.fingerprint!},refs.map(ref=>ref.selection!.field),reads,signal)).ok;
+ const first=refs[0],qualified=await qualifiedSelection(principal,{object_id:first.object_id,generation:first.version_ref!,fingerprint:first.fingerprint!},refs.map(ref=>ref.selection!.field),reads,signal);
+ return qualified.ok&&(!manifest.intl_policy_comparison||manifest.intl_policy_comparison.economy_a===qualified.prior.context.researchMarket);
 }
 
 /** Server composition AFTER getUser and exact same-owner readInvestigation.

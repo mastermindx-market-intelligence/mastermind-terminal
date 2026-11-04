@@ -330,3 +330,68 @@ export function reviewPolicyDraft(state: PolicyPreviewSessionState): PolicyPrevi
   });
   return makeState(state.binding, state.validation, state.sequence, state.pending, state.preview, review);
 }
+
+/** Source-owned Macro reply -> the incumbent private preview session. This is
+ * not a new request, source grant, saved revision or numerical engine. Public
+ * evidence identities may first arrive with the reply; adopt them atomically
+ * ONLY while its original private pending ticket still owns this exact draft.
+ * The host must retain its real synchronous principal/epoch/lifetime fence. */
+export function receivePublishedPolicyPreview(
+  state: PolicyPreviewSessionState,
+  ticket: PreviewTicket,
+  pin: { generation: string; fingerprint: string },
+  raw: unknown,
+): PolicyPreviewSessionState {
+  const pending = state.pending, settings = validSettings(state);
+  if (!pending || !settings || !same(ticket, pending) || !same(pending.binding, state.binding)
+    || !same(pending.settings, settings)) return state;
+  const trusted: PreviewIdentity = { binding: clone(pending.binding), settings: clone(pending.settings) };
+  const invalid = () => installUnavailable(state, trusted, ['invalid_preview_response'], []);
+  const keys = (value: unknown, names: string[]): value is Rec => isRec(value)
+    && Object.keys(value).length === names.length && names.every(k => Object.hasOwn(value, k));
+  const text = (value: unknown): value is string => typeof value === 'string'
+    && value.length > 0 && value.length <= 4096 && !/[\u0000-\u001f\u007f]/.test(value);
+  if (!pending.binding.principal_partition || !pending.binding.auth_epoch
+    || pending.binding.source_generation !== pin.generation || !/^[0-9a-f]{64}$/.test(pin.fingerprint)
+    || !keys(raw, ['schema', 'state', 'source_generation', 'artifact_sha256', 'mapping_identity', 'qualification_identity', 'result'])
+    || raw.schema !== 'intl.policy_preview.v1' || raw.source_generation !== pin.generation || raw.artifact_sha256 !== pin.fingerprint
+    || !['qualified', 'unavailable', 'invalid'].includes(String(raw.state)) || !isRec(raw.result) || raw.result.state !== raw.state
+    || !(raw.mapping_identity === null || text(raw.mapping_identity))
+    || !(raw.qualification_identity === null || text(raw.qualification_identity))) return invalid();
+  // No missing mapping/qualification is promoted into a qualified preview.
+  // Final source-owned negative result variants can be projected when their
+  // exact helper contract is supplied. Never display raw provider error text.
+  if (raw.state !== 'qualified') return installUnavailable(state, trusted, [raw.state === 'invalid' ? 'invalid_preview_response' : 'preview_unavailable'], []);
+  if (!text(raw.mapping_identity) || !text(raw.qualification_identity)) return invalid();
+  const result = raw.result;
+  if (!keys(result, ['state', 'identity', 'signed_start_bp', 'signed_end_bp', 'signed_change_bp', 'absolute_change_bp', 'direction', 'crosses_zero', 'evidence_refs'])
+    || !keys(result.identity, ['economy_a', 'economy_b', 'lens', 'definition', 'method_version', 'period', 'vintage_policy', 'identity'])) return invalid();
+  const intent = result.identity;
+  if (intent.economy_a !== settings.economy_a || intent.economy_b !== settings.economy_b
+    || intent.lens !== settings.lens || intent.definition !== settings.definition || intent.method_version !== settings.method_version
+    || !same(intent.period, settings.period) || intent.vintage_policy !== settings.revision_policy
+    || !keys(intent.identity, ['principal_partition', 'saved_id', 'saved_revision', 'source_generation'])
+    || intent.identity.principal_partition !== null || intent.identity.saved_id !== null || intent.identity.saved_revision !== null
+    || intent.identity.source_generation !== pin.generation) return invalid();
+  if (!['signed_start_bp', 'signed_end_bp', 'signed_change_bp', 'absolute_change_bp'].every(k => typeof result[k] === 'number' && Number.isFinite(result[k]))
+    || !['narrowed', 'widened', 'unchanged_at_endpoints'].includes(String(result.direction)) || typeof result.crosses_zero !== 'boolean'
+    || !Array.isArray(result.evidence_refs) || result.evidence_refs.length !== 4) return invalid();
+  const slots = new Set<string>();
+  for (const ref of result.evidence_refs) {
+    if (!keys(ref, ['slot', 'source_reference', 'qualification_ref', 'observation_at']) || !SLOTS.includes(ref.slot as PreviewMissingRef)
+      || slots.has(String(ref.slot)) || !text(ref.source_reference) || !text(ref.qualification_ref) || !text(ref.observation_at)) return invalid();
+    slots.add(String(ref.slot));
+    if (settings.period.mode === 'fixed_dates'
+      && ref.observation_at !== (String(ref.slot).endsWith('_start') ? settings.period.start : settings.period.end)) return invalid();
+  }
+  const binding = adoptBinding({ ...pending.binding, instrument_mapping_identity: raw.mapping_identity, qualification_identity: raw.qualification_identity });
+  const rebound = deepFreeze({ ...pending, binding });
+  const current = makeState(binding, state.validation, state.sequence, rebound, null, state.review);
+  // Copy the sole Python engine's numbers without recalculation or rounding.
+  return receivePolicyPreview(current, rebound, {
+    state: 'qualified', identity: { binding, settings: clone(settings) },
+    signed_start_bp: result.signed_start_bp as number, signed_end_bp: result.signed_end_bp as number,
+    signed_change_bp: result.signed_change_bp as number, absolute_change_bp: result.absolute_change_bp as number,
+    direction: result.direction as QualifiedPreview['direction'], crosses_zero: result.crosses_zero as boolean,
+  });
+}

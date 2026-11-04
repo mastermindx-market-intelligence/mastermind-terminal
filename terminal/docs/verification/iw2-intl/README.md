@@ -39,7 +39,11 @@ Public files contain no account, question, private Saved context or auth epoch.
 The native read sends no credentials to R2. Mutable current must byte-match its
 immutable descriptor sidecar; every artifact name is constructed from the exact
 native UUID/digest. The native decoder is mounted through the existing baseline/review/strict POST
-handlers; actual producer bytes must still be joined before complete source acceptance. Private responses are fenced by principal, epoch,
+handlers. Exact corrected original producer28192B/SHA4e1101d8 and descriptor
+d0840bf0 are joined, including70contexts with40empty domains. Original f2b27721B
+is retained/rejected for missing negative policy_identity. Seven actual-byte
+checks and one mounted author/Save/exact-reopen check pass with synthetic native
+auth/RPC; no authenticated runtime or SQL claim is made. Private responses are fenced by principal, epoch,
 acknowledged id/revision, view lifetime and authored question before display.
 
 New POST source preflight must return the existing503/unavailable outcome on a
@@ -63,7 +67,23 @@ the explicit GB.policy_rate/percent domain, and preserves date-only/missing cloc
 without timestamps. Synthetic bytes test the actual transport/codec/getUser/RPC
 route join; they are not actual publication, database or authenticated proof.
 
-Next source join: accepted Macro generation/current-policy bytes -> exact native
-fixture equivalence and scoped non-author auth/admission review. IM10 then
+Original independent source review iw2-intl-selected-source-review-20261104-r1
+returned PASS_SCOPED at744ee321; reviewer tests NOT_RUN. Corrected actual-byte
+composition is775dc7fa. No formal GitHub approval or release is implied.
+
+Next source join: IM10 original proxy/controlled-host artifacts -> existing
+private pending-preview/session and settings-only native CAS composition. IM10 then
 reuses the existing controlled PolicyComparison/session and Python comparator;
 there is no second Macro UI or JavaScript policy arithmetic.
+
+
+IM10 source preparation uses optional `intl_policy_comparison` in this same v3
+manifest: exactly the nine native settings keys, with the existing method version.
+No preview value, result, source clock, user or receipt enters it. Settings-only
+revision preserves the whole prior question/focus/references/baseline/relations;
+conditional Undo is an inverse intent only when the exact acknowledged id/revision
+and whole after-manifest still match. The existing explicit Save/CAS owner remains
+sole writer. Valid settings do not require a qualified numerical preview. Native
+preflight checks focus against actual selected-generation market. This additional
+settings-source scope is not covered by the frozen744ee B5 source review and is
+not mounted/accepted as the complete IM10 consumer yet. SQL remains source-only.

@@ -28,7 +28,7 @@ describe("versioned International reference admission",()=>{
   const extract=(s:string)=>s.slice(s.indexOf("create or replace function public.valid_investigation_manifest_v2(m jsonb)"),s.indexOf("end $$;",s.indexOf("create or replace function public.valid_investigation_manifest_v2(m jsonb)"))+7);
   const old=extract(source),body=old.split("as $$")[1].slice(0,-3);
   expect(prepared).toContain(createHash("md5").update(body).digest("hex"));
-  const restored=extract(prepared).replace(" or (r->>'owner'='intl.workspace_context' and r->>'kind'='economy')","").replace(" or (r->>'owner'='intl.workspace_generation' and r->>'object_type'='selected_generation')","").replace("return public.valid_investigation_intl_scope_v1(m);","return true;");
+  const restored=extract(prepared).replace(",\'intl_policy_comparison\'", "").replace(" or (r->>'owner'='intl.workspace_context' and r->>'kind'='economy')","").replace(" or (r->>'owner'='intl.workspace_generation' and r->>'object_type'='selected_generation')","").replace("return public.valid_investigation_intl_scope_v1(m);","return true;");
   expect(restored).toBe(old);expect(prepared).not.toMatch(/\bgrant\s+/i);expect(prepared).not.toMatch(/\b(create|alter)\s+table\b/i);
  });
 });
