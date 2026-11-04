@@ -29,3 +29,22 @@ repair is attributed to the original assertion failure.
 
 Product release, real-account Save/reopen, recipient sharing, and complete Paper
 parity remain separate obligations. This is bounded local joined-path evidence.
+
+CI repair, 2026-11-04: original run 41773394695, unit job 126388066655,
+tested merge f89dbe3bd7cb069754869e76911e723503826f53, reported exactly two
+stale ThesisWorkspace layout hashes (claim authoring and research views).
+The existing capture producers were executed: 12 claim-authoring and 20
+research-view EN/ZH crops, with fresh source locks. No hashes were updated in
+place without capture. Representative mobile crops were visually inspected.
+
+The fresh research capture exposed a second, local validator defect: it required
+historical LEX projection metadata even when the recorded full-file SHA-256
+matched the current source exactly. The helper now accepts that stronger exact
+match; differing bytes still require the unchanged, narrowly scoped historical
+projection. A new case failed before the repair and passes afterward, including
+negative checks for changed bytes without projection provenance.
+
+The affected validation group passed 21 tests. The wider helper-consumer check
+passed 86/88; its two failures are unchanged shell-layout/AppNav raw-capture locks
+normally composed by CI, not the LEX helper or this thesis change. They remain
+reported, not waived or rewritten. Hosted successor qualification is required.
