@@ -5,6 +5,10 @@ import {afterEach,beforeEach,describe,expect,it,vi} from "vitest";
 import InvestigationWorkspace,{type InvestigationOptionPlanEntry,type InvestigationOptionPlanRevisionReader} from "@/components/workspaces/InvestigationWorkspace";
 import type {AuthLifecycleSnapshot} from "../supabase/authLifecycle";
 import type {InvestigationCommand} from "../investigations";
+import intlPacket from "./fixtures/intl_macro_risk_actual_20261104/IntlResolvedPacket.json";
+import type {IntlResolvedPacket} from "@/lib/intlInvestigationCaller";
+import {INVESTIGATION_INTL_RECEIVER_COPY} from "@/components/research/InvestigationIntlEvidence";
+import type {InvestigationIntlRead,InvestigationIntlSelection} from "@/components/research/InvestigationIntlEvidence";
 import fixture from "./fixtures/options_plan_draft_v1.json";
 import {OptionsPlanResearchBridge} from "@/components/options/OptionsPlanResearchBridge";
 import {validateOptionsPlanDraft,type OptionsPlanDraft} from "@/lib/optionsPlanDraft";
@@ -35,9 +39,9 @@ async function fill(label:string,value:string){
  await act(async()=>{const proto=el instanceof HTMLInputElement?HTMLInputElement.prototype:HTMLTextAreaElement.prototype;
   Object.getOwnPropertyDescriptor(proto,"value")!.set!.call(el,value);el.dispatchEvent(new Event("input",{bubbles:true}));});
 }
-async function mount(id?:string,revision?:number,key="first",historyMode:"route"|"embedded"="route"){
+async function mount(id?:string,revision?:number,key="first",historyMode:"route"|"embedded"="route",readIntlEvidence?:(selection:InvestigationIntlSelection)=>ReturnType<InvestigationIntlRead>){
  await act(async()=>{root.render(<InvestigationWorkspace key={key} ownerKey={owner} initialSymbol="AAPL" initialInvestigationId={id} initialRevision={revision}
-  historyMode={historyMode} onOptionPlanAdmissionReady={onEntry} onOptionPlanRevisionReady={onReader}/>);});
+  historyMode={historyMode} readIntlEvidence={readIntlEvidence} onOptionPlanAdmissionReady={onEntry} onOptionPlanRevisionReady={onReader}/>);});
 }
 beforeEach(()=>{
  (globalThis as {IS_REACT_ACT_ENVIRONMENT?:boolean}).IS_REACT_ACT_ENVIRONMENT=true;
@@ -221,4 +225,60 @@ describe("Options host composed with the real native Save and acknowledged reade
   expect(posts).toEqual([]);expect(sessionStorage.getItem(`mm.investigation.pending.v2:${owner}`)).toBeNull();
  });
 
+});
+
+// These source-only receiver tests reuse the native authenticated fixture owner;
+// they issue no Save and establish no actual International source admission.
+describe("native International selected-detail receiver fence",()=>{
+ function selectedRecord(){
+  saved={id:"50000000-0000-4000-8000-000000000001",operation_id:"50000000-0000-4000-8000-000000000002",expected_revision:0,action:"create",
+   manifest:{schema:"investigation_manifest.v3",argument_relations:[],option_plan:planFixture(),
+    intent:{title:"Existing exact revision",question:"Original saved question",subjects:[{owner:"terminal.analysis_symbol",kind:"security",object_id:"AAPL"}]},layout_refs:[],thesis_refs:[],evidence_refs:[],continuation:{}}};
+  return saved.id;
+ }
+ it("does not read without selected detail, then reads the exact acknowledged revision without Save",async()=>{
+  const id=selectedRecord();const read=vi.fn((selection:InvestigationIntlSelection)=>({selection,input:{disposition:"not_admitted" as const}}));
+  await mount(undefined,undefined,"intl","route",read);expect(read).not.toHaveBeenCalled();
+  await mount(id,1,"intl-record","route",read);expect(read).toHaveBeenCalled();expect(read.mock.calls.every(([selection])=>selection.id===id&&selection.revision===1)).toBe(true);
+  expect(posts).toEqual([]);expect(requests.every(r=>r.method==="GET")).toBe(true);
+ });
+ it("withholds the reader after native auth epoch changes even without a subscriber notification",async()=>{
+  const id=selectedRecord();const read=vi.fn((selection:InvestigationIntlSelection)=>({selection,input:{disposition:"not_admitted" as const}}));
+  await mount(id,1,"intl","route",read);expect(read).toHaveBeenCalled();read.mockClear();
+  auth.snapshot={...ready(),auth_epoch:"epoch-2"};
+  await mount(id,1,"intl","route",read);expect(read).not.toHaveBeenCalled();expect(posts).toEqual([]);
+ });
+ it("checks the same native fence after a synchronous source read revokes the principal",async()=>{
+  const id=selectedRecord();const read=vi.fn((selection:InvestigationIntlSelection)=>{
+   auth.snapshot={availability:"unavailable",principal_partition:null,auth_epoch:"withdrawn"};
+   return {selection,input:{disposition:"denied" as const}};
+  });
+  await mount(id,1,"intl","route",read);expect(read).toHaveBeenCalled();
+  // The supplied denied packet must not be rendered after owner withdrawal.
+  expect(host.textContent).not.toContain(INVESTIGATION_INTL_RECEIVER_COPY.en.disposition.denied);
+  expect(host.textContent).toContain(INVESTIGATION_INTL_RECEIVER_COPY.en.unavailable);
+  expect(posts).toEqual([]);expect(requests.every(r=>r.method==="GET")).toBe(true);
+ });
+ it("mounts the unchanged actual Macro packet only for the synthetic native acknowledged selection",async()=>{
+  const id=selectedRecord(),packet=structuredClone(intlPacket) as IntlResolvedPacket,before=structuredClone(packet);
+  const read=vi.fn((selection:InvestigationIntlSelection)=>({selection,input:{disposition:"resolved" as const,...packet}}));
+  await mount(id,1,"intl-actual","route",read);
+  expect(read).toHaveBeenCalled();expect(packet).toEqual(before);
+  expect(host.textContent).toContain(packet.owner.question);
+  expect(host.textContent).toContain("Annual current account · extra-EA21");
+  expect(host.textContent).toContain("1.7 percent_gdp");
+  expect(host.textContent).toContain("No baseline comparison is available right now.");
+  expect(host.textContent).not.toContain(INVESTIGATION_INTL_RECEIVER_COPY.en.unavailable);
+  expect(posts).toEqual([]);expect(requests.every(r=>r.method==="GET")).toBe(true);
+  // The unit auth and saved selection are synthetic bindings, not source admission.
+  auth.snapshot={...ready(),auth_epoch:"epoch-2"};read.mockClear();
+  await mount(id,1,"intl-actual","route",read);expect(read).not.toHaveBeenCalled();
+  expect(host.textContent).not.toContain(packet.owner.question);
+  expect(host.textContent).toContain(INVESTIGATION_INTL_RECEIVER_COPY.en.unavailable);
+ });
+ it("does not call an optional source when the native owner is unavailable",async()=>{
+  const id=selectedRecord();auth.snapshot={availability:"unavailable",principal_partition:null,auth_epoch:"none"};
+  const read=vi.fn((selection:InvestigationIntlSelection)=>({selection,input:{disposition:"not_admitted" as const}}));
+  await mount(id,1,"intl","route",read);expect(read).not.toHaveBeenCalled();expect(posts).toEqual([]);
+ });
 });
