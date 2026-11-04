@@ -50,9 +50,10 @@ curl -sS -o /dev/null -D - https://www.mastermind-x.com/marketdata/sp500_heatmap
 | `HTTP/2 503` + `x-regwall: deny` | the gate failed closed because a check service was unavailable. |
 
 Run it for each feed path in the table above. All of them take the same owner
-check, so a 401 on some paths and a 502 on others in the same minute is a
-difference in timing at the origin, not a per-path defect — but it does not by
-itself identify the cause.
+check, so a mixed answer — a 401 on some paths and a 502 on others in the same
+minute — is **not** by itself evidence that the paths behave independently. The
+observations alone cannot distinguish transient timing at the origin from
+path-specific behaviour, and they identify no cause either way.
 
 ### 2.0 Live incident, 2026-11-04 09:41–09:44 UTC: the `www` edge zone fails TLS
 
@@ -175,7 +176,7 @@ indistinguishable. The response now names the class:
 |---|---|
 | `000` / `SSL_ERROR_SYSCALL` on `www` and the apex, while `beta`/`app`/`admin` are healthy | the `www` CDN zone is failing TLS. **All ten feeds fail together** because every one of them is fetched from that host. This is the 2026-11-04 09:41–09:44 UTC observation. |
 | `401` + `x-regwall: deny` on every gated path | the transport and the regwall answered. This qualifies reachability only: it is not an authenticated-feed health check and it does not establish the cause of an earlier failure. |
-| `502` on some paths and `401` on others in the same minute | the per-path difference is timing at the origin, not the path. It does not identify the cause. |
+| `502` on some paths and `401` on others in the same minute | a mixed answer. The observations alone cannot distinguish transient timing at the origin from path-specific behaviour, so they establish neither path independence nor a cause. |
 | Terminal `429` + `rate_limited` | this Terminal's per-IP limiter. Note the Sector Central page requests **10 feeds per load**; repeated loads exhaust a 60/min budget. |
 | Terminal `502` + `upstream_bad_gateway` | the owner origin lost *its* upstream. Which upstream fault it was is not in the response, so the class stays neutral; correlate Macro's Caddy log for `/marketdata/sp500_heatmap.json` rather than assuming a reset. |
 | Terminal `504` + `upstream_timeout` | the 6 s budget elapsed before the answer completed (fetch or body consumption). Check §2.1 latency from the same network before blaming the origin. |

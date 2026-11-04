@@ -30,22 +30,37 @@ const request = (source = "sector") => new Request(
  * pending read only settles when the given signal aborts it. That is the
  * boundary the body-phase classification has to get right: the interruption
  * happens *after* the response resolved, not before it.
+ *
+ * The stream is demand-only (`highWaterMark: 0`), so every pull is caused by
+ * the consumer's own read and the stream never prefills on its own. The first
+ * pull delivers the partial JSON and signals nothing; the caller then consumes
+ * that chunk. The second pull is the read the caller makes after it has taken
+ * it, so the latch is signalled there and that read is left pending until the
+ * recorded deadline or the caller's abort ends it. A latch that fired on a
+ * prefilling pull would only prove that the body existed, not that its
+ * consumption had begun — the interruption could still land before a single
+ * byte was read.
  */
 function stallingBody(signal: AbortSignal | null | undefined, onRead: () => void) {
   let controller: ReadableStreamDefaultController<Uint8Array> | null = null;
-  let sent = false;
+  let pulls = 0;
   const cut = () => controller?.error(new DOMException("The operation was aborted.", "AbortError"));
   if (signal?.aborted) cut();
   else signal?.addEventListener("abort", cut, { once: true });
   return new ReadableStream<Uint8Array>({
     start(c) { controller = c; },
     pull(c) {
-      onRead();
-      if (sent) return;
-      sent = true;
-      c.enqueue(new TextEncoder().encode('{"as_of":"2026-09-25"'));
+      pulls += 1;
+      if (pulls === 1) {
+        c.enqueue(new TextEncoder().encode('{"as_of":"2026-09-25"'));
+        return;
+      }
+      // The consumer has asked for more than the first chunk delivered, so the
+      // body read is demonstrably under way. This read stays pending until the
+      // recorded deadline or the caller's abort ends it.
+      if (pulls === 2) onRead();
     },
-  });
+  }, { highWaterMark: 0 });
 }
 
 let upstream: ReturnType<typeof vi.fn>;
@@ -146,6 +161,8 @@ describe("sector feed owner-failure classification", () => {
   // The body-phase boundary the root review named: the headers are already in
   // and the body read has begun when the budget elapses. The inner catch used
   // to answer payload_invalid here and the transport classifier never ran.
+  // The latch fires on the demand-driven second pull, so the interruption can
+  // only land once the caller has consumed the first chunk of the body.
   it("classifies a body read interrupted by the elapsed owner fetch budget as a timeout", async () => {
     vi.useFakeTimers();
     try {
@@ -169,6 +186,9 @@ describe("sector feed owner-failure classification", () => {
     } finally { vi.useRealTimers(); }
   });
 
+  // The same boundary, interrupted by the caller instead of the budget: the
+  // body read is under way, and only the recorded caller abort decides the
+  // class — not the shape or the name of the exception that ends the read.
   it("classifies a body read interrupted by the caller hanging up as a request abort", async () => {
     const aborted = new AbortController();
     let markReadStarted!: () => void;
