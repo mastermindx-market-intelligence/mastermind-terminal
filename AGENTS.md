@@ -4,6 +4,13 @@ This repository and Macro Dashboard are operated by multiple Claude accounts and
 Codex sessions. Repository files are the durable, shared source of instructions;
 promises or “memory” recorded only inside one chat do not carry to another session.
 
+## Session-owned PR/source review (Chairman 2026-11-03)
+
+The assigned session handles its own adversarial diff review, evidence and repair; a **different ChatGPT Web/Claude/Codex session** is not required. Use the accepted Mastermind [session-local review policy](https://github.com/mastermindx-market-intelligence/Mastermind/blob/master/docs/SESSION_LOCAL_REVIEW_POLICY.md) and Terminal's actual risk/merge checks. For FAST and ordinary STANDARD source once the accepted zero-external-review policy applies, author self-check + focused tests + required CI require no external reviewer dispatch.
+
+For elevated/critical risk, a truly separate **native reviewer subagent in this same working session** is an eligible technical-review avenue when its launch, context separation, read-only access, exact source head, returned findings and parent adjudication are verified. ChatGPT Web Pro native spawn must be actually exposed; Codex and Claude may use their available native reviewer subagents; paid Fabric is optional under its real root/parent/admission. An author's own second pass is `SELF_REVIEWED`, not independent reviewer proof. Distinct technical child review is **not** a GitHub non-author `APPROVED` review. Preserve branch protection, CI, holds, source/effect custody, true security requirements and the existing protected merge-on-green controller; no account switching, fabricated approval, self-merge, or denial bypass. Repository text does not edit live ChatGPT Project/memory settings.
+
+
 ## Required context at the start of every task
 
 1. Read `terminal/AGENTS.md` and `terminal/CLAUDE.md` in full before changing the
