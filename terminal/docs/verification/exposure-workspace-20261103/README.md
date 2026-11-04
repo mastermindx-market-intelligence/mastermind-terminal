@@ -35,6 +35,14 @@ The existing source fixes are now exercised **together**, not merely as two sepa
 
 The final full regression run passed **24/24** across desktop/tablet/phone with both English and Chinese for this composed flow and the original Sector → Exposure journeys. The isolated TypeScript source check passed. This slice changes only the end-to-end regression and its verification documentation; production code, source-hash locks and screenshot crops were not modified. Results use synthetic controlled market books and are **not** a live-feed, production-deployment or current-protected-base merge proof.
 
+## Protected-root evidence coexistence — non-merge preparation
+
+The existing `exposureWorkspaceRecapture` and `exposureFilterRecapture` sections in both legacy GEX and EOD manifests record the **same** packet-root PNG bytes: 54 GEX and 42 settled-close/Dark Pool images (96 distinct images). All 96 digests match their original PR source, but **none** match the current protected master packet-root images. Copying the old manifest over protected master would silently replace accepted later evidence, while retaining the old hashes against protected packet-root files would be false-green.
+
+This scoped non-merge step therefore copied all **96 historical PNGs byte-for-byte** into [GEX portable history](../../pr-crops/gex-levels-heatmap-load-failure/operations/exposure-1243-root-history-20261104/) and [EOD portable history](../../pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-1243-root-history-20261104/). The previously recorded root sections and every packet-root PNG remain unchanged. New `exposureLegacyPacketRootPreservation` receipts map both original sections to the portable folders and record all image SHA-256 hashes. Both existing evidence test suites now assert that every retained file matches **both** historical receipt blocks. This prepares a truthful current-base resolution without executing any branch merge or overwriting protected `scopedRecaptures`, `currentCacheQualification`, `composedSectorReturnQualification`, `archiveSelectionQualification1254` or `sectorArchiveComposition1254`.
+
+**Not yet integrated:** The active `layoutFiles` source lock must be requalified after the final protected-base source composition; the retained historical images are *history*, not proof of the integrated UI. The two manifests and GexDesk source still require a lawful integrated-source carrier and fresh exact-head hosted checks.
+
 ## Remaining gates
 
 Original PR: #1243, same protected source custody and managed publisher. Protected Terminal main has advanced and still conflicts in shared evidence manifests; the newer protected contracts must be retained when composing the final candidate. Fresh exact-head hosted CI, a genuinely independent GitHub review and signed-in production verification are separate release requirements. No merge, queue, Ready/un-draft, SQL or deployment effect is part of this validation.

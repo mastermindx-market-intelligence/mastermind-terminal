@@ -208,4 +208,39 @@ describe("GEX, Levels and Heatmap load-failure evidence lock is the sha256 of th
     expect(checked).toBe(54);
   });
 
+
+  it("retains the two original root-crop receipts in portable immutable copies", () => {
+    const yml = evidenceText();
+    const folder = "operations/exposure-1243-root-history-20261104";
+    const workspace = yml.split("\nexposureWorkspaceRecapture:\n")[1]?.split("\nexposureFilterRecapture:\n")[0];
+    const filters = yml.split("\nexposureFilterRecapture:\n")[1]?.split("\nexposureArchivedRefreshRecapture:\n")[0];
+    const receipt = yml.split("\nexposureLegacyPacketRootPreservation:\n")[1];
+    expect(workspace).toBeTruthy();
+    expect(filters).toBeTruthy();
+    expect(receipt).toBeTruthy();
+    expect(receipt).toContain('  originalCaptureLocation: "packet-root"');
+    expect(receipt).toContain(`  retainedCopyDir: "${folder}"`);
+    expect(receipt).toContain("  copiedFiles: 54");
+    expect(receipt).toContain("  sourceSections: [exposureWorkspaceRecapture, exposureFilterRecapture]");
+    const states = ["gex-ladder-unavailable", "gex-ladder-retried", "gex-ladder-absent", "gex-rail-unavailable", "gex-pick-absent", "gex-rail-retried", "gex-state-refresh-failed", "gex-live-refresh-failed", "gex-live-retried"];
+    let count = 0;
+    for (const state of states) {
+      for (const width of [1440, 820, 390]) {
+        for (const lang of ["", "-zh"]) {
+          const name = `${state}-${width}${lang}.png`;
+          const path = join(CROP_DIR, folder, name);
+          expect(existsSync(path), name).toBe(true);
+          expect(statSync(path).size, name).toBeGreaterThan(1000);
+          const sha = sha256Of(path);
+          // Both historical receipts originally described exactly these bytes.
+          expect(workspace).toContain(`    ${name}: "${sha}"`);
+          expect(filters).toContain(`    ${name}: "${sha}"`);
+          expect(receipt).toContain(`    ${name}: "${sha}"`);
+          count++;
+        }
+      }
+    }
+    expect(count).toBe(54);
+  });
+
 });
