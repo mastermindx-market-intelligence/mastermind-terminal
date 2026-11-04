@@ -13,6 +13,12 @@ async function prepare(page: Page, testInfo: TestInfo, baseURL: string | undefin
   await page.context().route("**/api/brain/me", route => route.fulfill({
     json: { tier: "guest", quotas: { fast: { remaining: 0, limit: 0, period: "day" }, pro: { remaining: 0, limit: 0, period: "day" } } },
   }));
+  // The external widget bundle is not part of this persistence proof either.
+  // Reuse the analysis-ai-context fixture seam, including reloads and the stale
+  // second tab. Do not filter its transport errors out of browserErrors below.
+  await page.context().route("https://www.mastermind-x.com/mm_brain.js", route => route.fulfill({
+    contentType: "application/javascript", body: "",
+  }));
   await page.addInitScript((useZh) => {
     localStorage.setItem("mm.lang", useZh ? "zh" : "en");
     document.documentElement?.setAttribute("data-lang", useZh ? "zh" : "en");
