@@ -1,0 +1,167 @@
+{
+  "d06-scripts-browser": {
+    "startTime": "2026-11-04T09:12:12.788Z",
+    "duration": 51488.958,
+    "expected": 33,
+    "skipped": 30,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "d06-scripts-final-browser": {
+    "startTime": "2026-11-04T09:22:26.244Z",
+    "duration": 46796.606999999996,
+    "expected": 25,
+    "skipped": 2,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "d06-scripts-capture": {
+    "startTime": "2026-11-04T09:24:15.378Z",
+    "duration": 19004.298,
+    "expected": 6,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "unit": {
+    "passed": 35,
+    "files": 2,
+    "exit": 0
+  },
+  "typescript": {
+    "exit": 0
+  },
+  "fixture_boundary": "Existing development-only script library is read-only. Save receipts and subsequent GET responses are explicitly intercepted for browser integration; no database write or production deployment is asserted.",
+  "light_boundary": "MMX_SHARED_SHELL=1 only in the owned final verification process, reusing the existing presentation owner. Product default flag and release hold unchanged.",
+  "artboard_ids": [
+    "1WI8-0",
+    "1WI9-0"
+  ],
+  "source_base": "f9960127b0ac51fc9cd6422cfd4d28946e0d3f67",
+  "files": [
+    {
+      "path": "docs/pr-crops/d06-scripts-20261104/desktop-scripts-added-to-chart.png",
+      "sha256": "b20e34c37a7f17b8d7f02fe0559d95e1c710e1bccd287ec8d806ab7d73bf1183"
+    },
+    {
+      "path": "docs/pr-crops/d06-scripts-20261104/desktop-scripts-conflict-en.png",
+      "sha256": "a78cd627aa5a1350327e64e698e12c914a3fe7d10384cd1ecc98a3e3dfeed3bd"
+    },
+    {
+      "path": "docs/pr-crops/d06-scripts-20261104/desktop-scripts-conflict-zh.png",
+      "sha256": "1fb004e31804c6b907bffb3b5f2ca3812d355365919f891f0c27beb39d826ee5"
+    },
+    {
+      "path": "docs/pr-crops/d06-scripts-20261104/desktop-scripts-en-1024.png",
+      "sha256": "5720b62a5b5ca5b1ad5c548c34c26d6bf0a1bb691458ce8a5c2d12d6be5f8c85"
+    },
+    {
+      "path": "docs/pr-crops/d06-scripts-20261104/desktop-scripts-en-1440.png",
+      "sha256": "6470cc30c4c95860f88e3f6b056658b1c43595452dc46f409af2d2ee30f28780"
+    },
+    {
+      "path": "docs/pr-crops/d06-scripts-20261104/desktop-scripts-en-320.png",
+      "sha256": "f6e1e0d3761db30d7cb7b135cd07252a11fec320f38131bfa4d1be056b555dd3"
+    },
+    {
+      "path": "docs/pr-crops/d06-scripts-20261104/desktop-scripts-light-en.png",
+      "sha256": "9e0b3336f1610d28acfc242f001aa0cb30d4c398e4031d5806903dba5a3d6a5c"
+    },
+    {
+      "path": "docs/pr-crops/d06-scripts-20261104/desktop-scripts-light-zh.png",
+      "sha256": "0133daf8f5c602e97565a033e3c0be1f8fe5e0bec82caff19c19a9b2d318a05f"
+    },
+    {
+      "path": "docs/pr-crops/d06-scripts-20261104/desktop-scripts-readback-en.png",
+      "sha256": "b907c7c95a6a05c8530f821b25be911d04c571a474522f96b15dfb8e56fc6708"
+    },
+    {
+      "path": "docs/pr-crops/d06-scripts-20261104/desktop-scripts-readback-zh.png",
+      "sha256": "c74a24420254c9f9deb92f8e8deb3d308af10e94af40e110c0ed5825036ebd92"
+    },
+    {
+      "path": "docs/pr-crops/d06-scripts-20261104/desktop-scripts-zh-1024.png",
+      "sha256": "c18abe2fa7ae813b3126da0f4ce23f8f4d61e6a004a84db21610a3163adacbb9"
+    },
+    {
+      "path": "docs/pr-crops/d06-scripts-20261104/desktop-scripts-zh-1440.png",
+      "sha256": "fc3fff3fd09aff6b928d089a49770ce8dbb7c78d30d102764b9b023aec1e1b1f"
+    },
+    {
+      "path": "docs/pr-crops/d06-scripts-20261104/desktop-scripts-zh-320.png",
+      "sha256": "d54279225b43c8ab043f488e713f4b2737ae6b6d64701a02761491e9de53a24b"
+    },
+    {
+      "path": "docs/pr-crops/d06-scripts-20261104/mobile-scripts-conflict-en.png",
+      "sha256": "a682fa8b4747b944b155163d104d116fd5af8d28ad9b0eb89bbbe78ea9a98101"
+    },
+    {
+      "path": "docs/pr-crops/d06-scripts-20261104/mobile-scripts-conflict-zh.png",
+      "sha256": "87df8c9025d0f9d1bee28dc95daf3c83982dfc76ad6e5e0fb50fec9513461ca0"
+    },
+    {
+      "path": "docs/pr-crops/d06-scripts-20261104/mobile-scripts-en-390.png",
+      "sha256": "2c5aa6ae1a14cbdcc3634731a4cbc6359ba3db70894263af1c44f01bbd735425"
+    },
+    {
+      "path": "docs/pr-crops/d06-scripts-20261104/mobile-scripts-light-en.png",
+      "sha256": "d4914d089200a0c29f9c8c20ccf12e26e35f4f7def6d8e84d3e841d034df254d"
+    },
+    {
+      "path": "docs/pr-crops/d06-scripts-20261104/mobile-scripts-light-inputs-en.png",
+      "sha256": "5accab66dbf2aee1a8d01a31a0e82c392bc8d7387d0c1f16ffdc1565524df77d"
+    },
+    {
+      "path": "docs/pr-crops/d06-scripts-20261104/mobile-scripts-light-inputs-zh.png",
+      "sha256": "6bb03dadb0667b1eb04a8cf36b6c6e97f1ef1cfeb9d71801a1c7ffdfae51301a"
+    },
+    {
+      "path": "docs/pr-crops/d06-scripts-20261104/mobile-scripts-light-zh.png",
+      "sha256": "602a22d1eea25911641c4829cb1ae6b938afde2f1d0eb69e4849f6eb20e2d6a3"
+    },
+    {
+      "path": "docs/pr-crops/d06-scripts-20261104/mobile-scripts-readback-en.png",
+      "sha256": "1cde1e975785f007f572d1ed23ec424a465a8d81b2866ee362fe3999c13bceb0"
+    },
+    {
+      "path": "docs/pr-crops/d06-scripts-20261104/mobile-scripts-readback-zh.png",
+      "sha256": "cda0352d46faacc209daeddc2a35aa94669ef3300b43faeabef8e7b04afc297d"
+    },
+    {
+      "path": "docs/pr-crops/d06-scripts-20261104/mobile-scripts-zh-390.png",
+      "sha256": "f80d9c39dd5fd96a1a623d3608fc1ea67e61e94de5ee59b5c0a8fb183ebd0879"
+    },
+    {
+      "path": "docs/pr-crops/d06-scripts-20261104/tablet-scripts-conflict-en.png",
+      "sha256": "4738a512d91f684aa42eb7be6a16b0c9c41fdbf7ee6104a9dd5855068856e0e7"
+    },
+    {
+      "path": "docs/pr-crops/d06-scripts-20261104/tablet-scripts-conflict-zh.png",
+      "sha256": "a19aaed297597e21c93039705c0f2752076e9a55b57c582c787a0016f1fee8e9"
+    },
+    {
+      "path": "docs/pr-crops/d06-scripts-20261104/tablet-scripts-en-820.png",
+      "sha256": "9de25aa247ef7e80916740c21d5a0c5eef820360c6fecb556d1180e1d2023032"
+    },
+    {
+      "path": "docs/pr-crops/d06-scripts-20261104/tablet-scripts-light-en.png",
+      "sha256": "70e7828387823db7a72ad0f331be6054bf60c5d4f133b4b0dc86776041ccc674"
+    },
+    {
+      "path": "docs/pr-crops/d06-scripts-20261104/tablet-scripts-light-zh.png",
+      "sha256": "590784a2482c2bd6e6712633d7cf60a7b9772b21b8d814b7f8a2c36515ac5193"
+    },
+    {
+      "path": "docs/pr-crops/d06-scripts-20261104/tablet-scripts-readback-en.png",
+      "sha256": "027a67b56765cda92b3141e61f2abde605311c6eb93f8e0bbbcc53b4a5683114"
+    },
+    {
+      "path": "docs/pr-crops/d06-scripts-20261104/tablet-scripts-readback-zh.png",
+      "sha256": "c4f09f506b7e4f9aaf64903ab41bd01ac15d2813532c851383b27f2d24dc1721"
+    },
+    {
+      "path": "docs/pr-crops/d06-scripts-20261104/tablet-scripts-zh-820.png",
+      "sha256": "257286373a5861029d59a5c703c23cf752854353794f0c36b4e038a2d3369afb"
+    }
+  ]
+}

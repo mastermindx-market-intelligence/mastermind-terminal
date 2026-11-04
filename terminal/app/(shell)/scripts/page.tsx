@@ -69,5 +69,5 @@ export default async function ScriptsPage() {
   // A failed read used to collapse to `[]` here too, so the page rendered the flagship alone and
   // looked exactly like an account that had never saved anything. The mount forwards
   // `ComponentProps<typeof PineEditor>`, so the new flag rides through the lazy boundary #431 added.
-  return <PineEditorMount scripts={scripts} isPro={isPro} email={user.email || ""} libraryUnavailable={!!error} />;
+  return <PineEditorMount key={user.id} scripts={scripts} isPro={isPro} email={user.email || ""} libraryUnavailable={!!error} />;
 }
