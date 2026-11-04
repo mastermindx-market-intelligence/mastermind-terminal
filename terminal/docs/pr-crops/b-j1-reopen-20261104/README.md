@@ -48,3 +48,23 @@ The affected validation group passed 21 tests. The wider helper-consumer check
 passed 86/88; its two failures are unchanged shell-layout/AppNav raw-capture locks
 normally composed by CI, not the LEX helper or this thesis change. They remain
 reported, not waived or rewritten. Hosted successor qualification is required.
+
+Controller-refreshed CI 41797620149 at c84feeba failed the same existing
+thesis-lifecycle browser test on desktop, tablet and mobile. The retained
+desktop trace identifies both console errors as an external script request to
+`https://www.mastermind-x.com/mm_brain.js` closing its connection. All thesis
+save, conflict, immutable history and layout assertions reached their expected
+state; the final zero-console-errors assertion correctly rejected the outage.
+
+The persistence fixture already isolated Brain usage; it now also serves the
+unrelated widget bundle at browser-context scope, including reload and the
+second stale tab. A deterministic connection-closed fallback reproduces the
+original failure when this fixture is absent. The assertion remains strict;
+no product code, timeout, retries or CI requirements changed. This fixture is
+not evidence that the live Brain widget or its origin is healthy.
+
+Forced-outage discriminator: desktop failed before the fixture with the exact
+two connection-closed console errors; after the repair the lifecycle passes
+at all three viewports. The selected context/lifecycle group passed 13 cases
+with 20 existing viewport skips. Generated diagnostic screenshots were not
+promoted into the product capture evidence. Current-head hosted CI remains due.
