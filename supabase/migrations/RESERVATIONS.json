@@ -511,7 +511,7 @@
       "pr_state": "open",
       "applied_in_production": false,
       "applied_date": null,
-      "note": "Root01a15741 approved source-only single-team view-only delivered brief sharing; child01a1a4df owns exact source. No DDL/application/share/grant effect. Existing team/RLS and immutable logical delivery producer remain owners."
+      "note": "Application date not recorded because this source-only migration remains unapplied. No live DDL, sharing or grant effect has occurred. Existing team/RLS and immutable logical delivery producer remain owners."
     }
   }
 }
