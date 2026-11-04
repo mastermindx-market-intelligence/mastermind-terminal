@@ -5,6 +5,32 @@ import path from "path";
 
 const isProd = process.env.NODE_ENV === "production";
 
+// Vercel builds must never serve Git's historical public/data fixture snapshots as
+// live market data. A separate, reviewed Caddy origin continues to own publication.
+// This fail-closed guard runs at both build/config evaluation and deploy.
+const isVercel = process.env.VERCEL === "1";
+const marketDataOrigin = (() => {
+  if (!isVercel) return null;
+  if (process.env.MMX_SHARED_SHELL !== "0" && process.env.MMX_SHARED_SHELL !== "1") {
+    throw new Error("VERCEL_FRONTEND_MODE_REQUIRED: set MMX_SHARED_SHELL explicitly to 0 or 1");
+  }
+  const raw = process.env.MMX_MARKET_DATA_ORIGIN;
+  if (!raw) throw new Error("VERCEL_MARKET_DATA_ORIGIN_REQUIRED: cannot serve tracked data snapshots");
+  let url: URL;
+  try {
+    url = new URL(raw);
+  } catch {
+    throw new Error("VERCEL_MARKET_DATA_ORIGIN_INVALID");
+  }
+  const approved = new Set(["terminal-origin.mastermind-x.com", "data.mastermind-x.com"]);
+  if (url.protocol !== "https:" || !approved.has(url.hostname) || url.port ||
+      url.username || url.password || url.pathname !== "/" || url.search || url.hash ||
+      raw !== url.origin) {
+    throw new Error("VERCEL_MARKET_DATA_ORIGIN_UNAPPROVED: must be an exact approved HTTPS origin");
+  }
+  return url.origin;
+})();
+
 // ── Deployment id (version-skew protection / stale-chunk self-heal) ───────────
 // Each production deploy gets a DISTINCT id: prefer the git sha wired in by
 // ops/terminal-build.sh (GIT_SHA / NEXT_DEPLOYMENT_ID), then read the deploy marker that the
@@ -27,7 +53,7 @@ function readDeploymentMarker(): string | undefined {
 }
 
 const DEPLOYMENT_ID =
-  process.env.GIT_SHA || process.env.NEXT_DEPLOYMENT_ID || readDeploymentMarker();
+  process.env.GIT_SHA || process.env.NEXT_DEPLOYMENT_ID || (isVercel ? process.env.VERCEL_GIT_COMMIT_SHA : undefined) || readDeploymentMarker();
 
 // Bind this worker build to its actual Pine sources and the shared session implementation.
 function pineSourceDigest(): string {
@@ -269,6 +295,16 @@ const nextConfig: NextConfig = {
       { source: "/flow", destination: "/options", permanent: true },
     ];
   },
+  // beforeFiles is essential: afterFiles would allow checked-in public/data
+  // fixtures to shadow the independent real-time publisher on Vercel.
+  async rewrites() {
+    if (!marketDataOrigin) return [];
+    return {
+      beforeFiles: [{ source: "/data/:path*", destination: `${marketDataOrigin}/data/:path*` }],
+      afterFiles: [],
+      fallback: [],
+    };
+  },
   async headers() {
     return [
       // Security headers on every route EXCEPT the /embed subtree (CSP, sniffing, referrer,
@@ -302,6 +338,17 @@ const nextConfig: NextConfig = {
           },
         ],
       },
+      // These publisher-controlled indexes change independently of frontend
+      // releases. On Vercel keep their edge TTL aligned with the old Caddy
+      // manifest policy, rather than caching missing/fresh symbol coverage for
+      // an entire deployment. The upstream owns the underlying real bytes.
+      ...(isVercel ? ["/data/manifest.json", "/data/coverage.json"].map(source => ({
+        source,
+        headers: [{
+          key: "Cache-Control",
+          value: "public, s-maxage=60, max-age=0, must-revalidate",
+        }],
+      })) : []),
       // Statically-prerendered HTML would otherwise ship Next's s-maxage=31536000, which the
       // EdgeOne CDN pins for a year (a deploy then can't refresh these shells without a manual
       // console purge — no purge creds exist on the VPS/Mac). Cap edge caching at 5 minutes.

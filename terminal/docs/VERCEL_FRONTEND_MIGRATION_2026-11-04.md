@@ -51,3 +51,18 @@ Move **beta.mastermind-x.com** (Shared Shell, beta-only feature flag) and **app.
 - Original VPS Caddy serves `app.mastermind-x.com` via :3000, beta via :3001, and live `/data/*` directly from host-owned files. The existing build overlays mutable `terminal/public/data` and scheduled workers, which cannot be treated as Vercel immutable source.
 - Root `terminal/package.json` is Next.js 16.2.9; `prebuild` executes `python3 ../scripts/build_data_coverage.py`; Vercel monorepo build includes the external source dependency.
 - **Next:** implement and test the isolated Vercel data-origin/source-snapshot guard, then port monorepo project settings and release checks. **Held:** live Vercel deployments and domain mutations until commercial plan and backend origin qualification.
+
+## 2026-11-04 isolated frontend source milestone
+
+A source-pinned managed Terminal worktree was acquired through the existing `mmx-workspace` authority on M2:
+`/Volumes/Mastermind 2/agent-workspaces/terminal/web/vercel-frontend-migration-20261104-web`, branch `sol/web-vercel-frontend-migration-20261104-web`, source `494f75ad48aba86e0916cef21ffdacadef8fea28`. No primary checkout was modified.
+
+The implementation is strictly additive to the legacy VPS deployment:
+- `terminal/next.config.ts` enforces explicit mode `MMX_SHARED_SHELL=0/1` and approved `MMX_MARKET_DATA_ORIGIN` during `VERCEL=1` builds; it refuses missing, recursive, HTTP, credentialed and path-bearing origins.
+- Vercel `beforeFiles` rewrites all `/data/:path*` requests to the dedicated immutable-configured HTTPS upstream so tracked Git market-data snapshots cannot win filesystem precedence. Existing VPS routing is unchanged.
+- Publisher-created `/data/manifest.json` and `/data/coverage.json` get a 60-second Vercel edge TTL instead of being bound to a frontend deploy. No Vercel data freshness is claimed until a valid origin is installed and measured.
+- The Vercel deployment ID is taken from `VERCEL_GIT_COMMIT_SHA` when the existing explicit VPS marker does not apply, while retaining the native path.
+- `terminal/scripts/prepare-data-coverage.mjs` preserves the original Python coverage generator for VPS builds, but skips generation on Vercel, preventing a misleading fresh index from checked-in historical fixtures.
+- `terminal/scripts/vercel-frontend-contract.test.mjs` has 14/14 deterministic passed tests under installed Node 26: default VPS compatibility, required mode and origin, eight unapproved origins, exact rewrite precedence, manifest TTL, build ID and no fixture-generation on Vercel.
+
+**Non-proof:** these tests do not demonstrate current DNS, commercial eligibility, live upstream security, Vercel deployment, authenticated browser paths, full application build, or served production acceptance. An isolated Next.js build is part of the next qualifying stage; its result must be recorded separately. The existing Vercel project holds unrelated sensitive environment key *names* and should not be used for a public release without an owner-qualified least-privilege configuration review (secret values were not retrieved).
