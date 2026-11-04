@@ -508,10 +508,11 @@
       "file": "0048_brief_delivery_team_sharing.sql",
       "packet": "MMOS-AT20-BRIEF-TEAM-ACCESS",
       "pr": 1279,
-      "pr_state": "open",
+      "pr_state": "merged",
       "applied_in_production": false,
       "applied_date": null,
-      "note": "Application date not recorded because this source-only migration remains unapplied. No live DDL, sharing or grant effect has occurred. Existing team/RLS and immutable logical delivery producer remain owners."
+      "note": "Protected PR #1279 merged 2026-11-04T14:28:18Z as 691629e59a8bc663f96e7d89a845b19baa7c7d77 after normal controller refresh to head4da34c50. Application date not recorded because this source-only migration remains unapplied. No live DDL, sharing or grant effect is established by source merge. Existing team/RLS and immutable logical delivery producer remain owners.",
+      "merged_sha": "691629e59a8bc663f96e7d89a845b19baa7c7d77"
     },
     "0049": {
       "state": "taken",
