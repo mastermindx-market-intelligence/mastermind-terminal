@@ -20,7 +20,8 @@ from urllib.parse import parse_qs, urlparse
 from unittest.mock import patch
 
 from ingest.build_macro_symbols import (
-    FULL_HISTORY_START_TS, MIN_DEEP_DAILY_BARS, MIN_OHLC_BARS,
+    FULL_HISTORY_START_TS, INDEX_ARCHIVE_START_TS, INDEX_WITHOUT_DAILY_HISTORY,
+    FULL_HISTORY_SYMBOLS, MIN_DEEP_DAILY_BARS, MIN_OHLC_BARS,
     existing_bar_count, fetch_ohlc, merge_deep_history, ohlc_history_query, publish_decision,
 )
 from ingest.macro_catalog import CATALOG, fred_symbols, ohlc_symbols, yahoo_symbols
@@ -91,12 +92,17 @@ def test_shanghai_composite_requests_bounded_daily_yahoo_history():
     assert ohlc_history_query("000001.SS", now_ts=1762300000) == (
         "period1=631152000&period2=1762386400&interval=1d"
     )
-    for sym in ("000300.SS", "399001.SZ", "^GSPC", "EURUSD=X"):
+    assert INDEX_ARCHIVE_START_TS == -2208988800  # 1900-01-01 UTC
+    assert ohlc_history_query("^GSPC", now_ts=1762300000) == (
+        "period1=-2208988800&period2=1762386400&interval=1d"
+    )
+    for sym in ("000300.SS", "000905.SS", "399006.SZ", "EURUSD=X", "GC=F"):
         assert ohlc_history_query(sym) == "range=5y&interval=1d"
 
     # Check actual request URLs; range=max auto-downsamples to monthly despite interval=1d.
     with patch("ingest.build_macro_symbols._get", return_value={"chart": {"result": []}}) as get:
         assert fetch_ohlc("000001.SS") == []
+        assert fetch_ohlc("^GSPC") == []
         assert fetch_ohlc("000300.SS") == []
     index_url = get.call_args_list[0].args[0]
     index_query = parse_qs(urlparse(index_url).query)
@@ -105,7 +111,8 @@ def test_shanghai_composite_requests_bounded_daily_yahoo_history():
     assert int(index_query["period2"][0]) > FULL_HISTORY_START_TS
     assert index_query["interval"] == ["1d"]
     assert "range" not in index_query
-    assert "000300.SS?range=5y&interval=1d" in get.call_args_list[1].args[0]
+    assert "^GSPC?period1=-2208988800" in get.call_args_list[1].args[0]
+    assert "000300.SS?range=5y&interval=1d" in get.call_args_list[2].args[0]
 
 
 def _yahoo_bars(granularity: str, count: int) -> dict:
@@ -314,3 +321,58 @@ def test_shanghai_real_ingest_removes_invalid_history_without_losing_valid_dates
 def test_other_indices_keep_existing_small_daily_response_behavior():
     with patch("ingest.build_macro_symbols._get", return_value=_yahoo_bars("1d", 35)):
         assert len(fetch_ohlc("000300.SS")) == 35
+
+
+def test_all_catalogued_index_histories_are_deep_unless_provider_cannot_supply_daily():
+    catalog_indices = {row.sym for row in CATALOG if row.sec == "Indices"}
+    assert len(catalog_indices) == 22
+    assert INDEX_WITHOUT_DAILY_HISTORY == {"000300.SS", "000905.SS", "399006.SZ"}
+    assert FULL_HISTORY_SYMBOLS == catalog_indices - INDEX_WITHOUT_DAILY_HISTORY
+    assert len(FULL_HISTORY_SYMBOLS) == 19  # Shanghai + eighteen additional indices
+    assert FULL_HISTORY_SYMBOLS <= set(ohlc_symbols())
+    assert "^GSPC" in yahoo_symbols() and "399001.SZ" not in yahoo_symbols()
+    assert "000001.SS" in FULL_HISTORY_SYMBOLS
+    assert "399001.SZ" in FULL_HISTORY_SYMBOLS
+    # A new index catalog row auto-enrolls without touching the FX, bonds or futures legs.
+    assert not FULL_HISTORY_SYMBOLS.intersection({r.sym for r in CATALOG if r.sec != "Indices"})
+
+
+@pytest.mark.parametrize("symbol", [
+    "^GSPC", "^NDX", "^DJI", "^RUT", "^VIX",
+    "399001.SZ", "^HSI", "^HSCE", "^GSPTSE", "^N225", "^KS11", "^TWII",
+    "^FTSE", "^GDAXI", "^FCHI", "^STOXX50E", "^BSESN", "^AXJO",
+])
+def test_other_supported_indices_request_earliest_available_daily_history(symbol):
+    args = parse_qs(ohlc_history_query(symbol, now_ts=1762300000))
+    assert args == {
+        "period1": [str(INDEX_ARCHIVE_START_TS)],
+        "period2": ["1762386400"],
+        "interval": ["1d"],
+    }
+
+
+@pytest.mark.parametrize("symbol", ["^GSPC", "^N225", "^HSI", "399001.SZ"])
+def test_other_index_deep_history_rejects_downsampled_monthlies(symbol, capsys):
+    with patch("ingest.build_macro_symbols._get", return_value=_yahoo_bars("1mo", 353)):
+        assert fetch_ohlc(symbol) == []
+    assert "granularity=1mo" in capsys.readouterr().err
+
+
+def test_other_index_merge_retains_older_archive_and_replaces_overlap(tmp_path):
+    path = tmp_path / "^GSPC.json"
+    previous = _bars("1927-12-30", 40) + _bars("2026-07-01", 40, 200)
+    path.write_text(json.dumps({"bars": previous}))
+    latest = _bars("2026-07-01", 40, 250)
+    merged = merge_deep_history("^GSPC", path, latest)
+    assert merged == previous[:40] + latest
+    assert publish_decision(len(merged), len(previous)) == "write"
+
+
+def test_unsupported_china_indices_remain_guarded_and_never_emit_one_bar(tmp_path):
+    for sym in INDEX_WITHOUT_DAILY_HISTORY:
+        output = tmp_path / f"{sym}.json"
+        assert ohlc_history_query(sym) == "range=5y&interval=1d"
+        assert publish_decision(1, 0) == "keep"
+        output.write_text(json.dumps({"bars": _bars("2021-11-01", 35)}))
+        assert merge_deep_history(sym, output, _bars("2026-11-04", 1)) == _bars("2026-11-04", 1)
+        assert publish_decision(1, existing_bar_count(output)) == "keep"
