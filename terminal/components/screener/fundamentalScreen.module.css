@@ -1,0 +1,359 @@
+/* E02 — the Screener's fundamental screen: controls row, field basis + coverage, result tally,
+   table cells and the company evidence drawer. A CSS module so globals.css (locked by screen
+   evidence) does not move; tokens only, dark shell. */
+
+/* ── controls row (rides .scr2-row) ── */
+.label {
+  font: 600 10px/1 var(--font-ui);
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.bound {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: 600 11.5px/1 var(--font-ui);
+  color: var(--muted);
+}
+
+.num {
+  width: 76px;
+  height: 30px;
+  padding: 0 8px;
+  border-radius: var(--r-md);
+  background: var(--inset);
+  border: 1px solid var(--line);
+  color: var(--text);
+  font: 600 12px/1 var(--font-num);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  outline: none;
+}
+.num:focus { border-color: var(--brand); }
+.num::placeholder { color: var(--text-dim); }
+.num[aria-invalid="true"] { border-color: var(--warn); }
+
+.unit {
+  color: var(--text-2);
+  font: 600 12px/1 var(--font-num);
+}
+
+.check {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: 600 12px/1 var(--font-ui);
+  color: var(--text-2);
+  cursor: pointer;
+}
+.check input { accent-color: var(--brand); margin: 0; }
+
+.commit:disabled { opacity: .45; cursor: not-allowed; }
+
+.err {
+  color: var(--warn);
+  font: 600 11.5px/1.3 var(--font-ui);
+}
+
+.state {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px var(--sp-2);
+  font: 500 11.5px/1.4 var(--font-ui);
+  color: var(--muted);
+}
+.stateWarn { color: var(--warn); }
+
+/* ── field basis + coverage ── */
+.detail,
+.coverage {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px var(--sp-3);
+  font: 500 11.5px/1.45 var(--font-ui);
+  color: var(--muted);
+  min-width: 0;
+}
+
+.keys {
+  font: 500 11px/1.45 var(--font-num);
+  color: var(--text-2);
+  overflow-wrap: anywhere;
+}
+
+.covHead {
+  color: var(--text-2);
+  font-weight: 600;
+}
+
+.covItem b,
+.tally b {
+  color: var(--text);
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.covReasons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px var(--sp-3);
+  flex-basis: 100%;
+  padding-left: var(--sp-2);
+  border-left: 2px solid var(--line-2);
+}
+
+.period { color: var(--text-2); }
+
+/* ── status row tally ── */
+.tally {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px var(--sp-2);
+}
+.tallySep { color: var(--text-dim); }
+
+/* ── table cells ── */
+.fundTh { white-space: nowrap; }
+
+.cellBtn {
+  background: none;
+  border: none;
+  margin: -2px -4px;
+  padding: 2px 4px;
+  border-radius: 4px;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-decoration: underline dotted var(--line-3);
+  text-underline-offset: 3px;
+}
+.cellBtn:hover { background: var(--panel-2); }
+.cellBtn:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
+.stale { color: var(--text-dim); }
+.unknown { color: var(--muted); text-decoration: none; }
+
+/* The ≤640px universe/signal views hide columns 5+ (globals.css). Fundamental columns exist only
+   while the user screens on them, so they stay visible; the doubled class out-specifies the
+   positional rule regardless of stylesheet order. The table scrolls inside .scr2-table. */
+@media (max-width: 640px) {
+  :global(.scr2) table:global(.scr2) tbody td.fundTd.fundTd:nth-child(n),
+  :global(.scr2) table:global(.scr2) thead th.fundTh.fundTh:nth-child(n) {
+    display: table-cell;
+  }
+  .num { min-height: 36px; width: 68px; }
+  .state { margin-left: 0; flex-basis: 100%; }
+}
+
+/* ── company evidence drawer (bottom sheet on phones) ── */
+.scrim {
+  position: fixed;
+  inset: 0;
+  background: var(--pop-scrim);
+  z-index: 230;
+}
+
+.drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(460px, 100vw);
+  display: flex;
+  flex-direction: column;
+  background: var(--pop-bg-modal);
+  -webkit-backdrop-filter: var(--pop-blur);
+  backdrop-filter: var(--pop-blur);
+  border-left: 1px solid var(--pop-edge);
+  box-shadow: var(--pop-shadow);
+  z-index: 231;
+  color: var(--text);
+}
+
+@media (max-width: 640px) {
+  .drawer {
+    top: auto;
+    left: 0;
+    width: auto;
+    max-height: 84dvh;
+    border-left: none;
+    border-top: 1px solid var(--pop-edge);
+    border-radius: var(--pop-r) var(--pop-r) 0 0;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  padding: 14px 16px 12px;
+  border-bottom: 1px solid var(--line);
+  flex: none;
+}
+
+.kicker {
+  font: 600 10px/1 var(--font-ui);
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.title {
+  margin: 6px 0 0;
+  font: 650 15px/1.25 var(--font-ui);
+  color: var(--text);
+}
+.title small {
+  display: block;
+  margin-top: 3px;
+  font: 500 12px/1.3 var(--font-ui);
+  color: var(--text-2);
+}
+
+.close {
+  flex: none;
+  min-width: 34px;
+  min-height: 34px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  color: var(--text-2);
+  font: 600 12px/1 var(--font-ui);
+  cursor: pointer;
+  padding: 0 10px;
+}
+.close:hover { color: var(--text); border-color: var(--line-3); }
+.close:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
+
+.body {
+  overflow: auto;
+  padding: 12px 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 0;
+}
+
+.secHead {
+  margin: 0 0 8px;
+  font: 600 10px/1 var(--font-ui);
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.dl {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 6px 14px;
+  margin: 0;
+  font: 500 12px/1.4 var(--font-ui);
+}
+.dl dt { color: var(--muted); }
+.dl dd {
+  margin: 0;
+  color: var(--text);
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.note {
+  margin: 8px 0 0;
+  font: 500 11.5px/1.45 var(--font-ui);
+  color: var(--muted);
+}
+
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.field {
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: 10px 12px;
+  background: var(--panel);
+}
+.fieldOn { border-color: var(--brand-2); }
+
+.fieldTop {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  font: 600 12.5px/1.3 var(--font-ui);
+  color: var(--text);
+}
+
+.pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 12px;
+  margin-top: 8px;
+  font: 500 11.5px/1.4 var(--font-ui);
+  color: var(--muted);
+}
+.pair b {
+  display: block;
+  margin-top: 2px;
+  font: 600 13px/1.3 var(--font-num);
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+.pair .why {
+  display: block;
+  margin-top: 2px;
+  font: 500 11.5px/1.35 var(--font-ui);
+  color: var(--text-2);
+}
+
+.same { color: var(--text-2); font: 600 11px/1 var(--font-ui); }
+.differs { color: var(--warn); font: 600 11px/1.3 var(--font-ui); }
+
+.basis {
+  margin: 8px 0 0;
+  font: 500 11.5px/1.45 var(--font-ui);
+  color: var(--muted);
+}
+
+.inputs {
+  margin: 6px 0 0;
+  font: 500 11.5px/1.45 var(--font-num);
+  color: var(--text-2);
+  overflow-wrap: anywhere;
+}
+
+.foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: 12px 16px;
+  border-top: 1px solid var(--line);
+  flex: none;
+}
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: var(--r-md);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  color: var(--brand-2);
+  font: 600 12px/1 var(--font-ui);
+  text-decoration: none;
+}
+.link:hover { border-color: var(--line-3); }
+.link:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }

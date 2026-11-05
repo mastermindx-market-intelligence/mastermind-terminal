@@ -49,6 +49,7 @@ import {
   type StructureReceipt,
   type VolRegimePayload,
 } from "@/lib/eodContext";
+import { getEodStr } from "@/components/eodcontext/eodStrings";
 
 const dataFile = (n: string) => path.join(process.cwd(), "public", "data", n);
 const loadJson = async <T>(n: string): Promise<T> =>
@@ -755,5 +756,50 @@ describe("receipt number formatting", () => {
     expect(ordinal(13)).toBe("13th");
     expect(ordinal(21)).toBe("21st");
     expect(ordinal(44)).toBe("44th");
+  });
+});
+
+// ─── W3S: the expMove cell carries the producer's band statement ─────────────
+describe("expMove band statement (W3S)", () => {
+  const moves = {
+    asof: "2026-07-23",
+    expected_move: { pct: 1.9618, lo: 723.6982, hi: 752.6618, band_mult: 1.96, horizon_days: 1 },
+  };
+
+  it("expMove cell carries the band multiple, horizon and clock labelled method not stated", () => {
+    const em = buildStructureCells({ gexState: null, gex: null, root: "SPY", moves })
+      .find((c) => c.key === "expMove")!;
+    expect(em.value).toBe("±2.0%");
+    expect(em.detail).toBe("723.7 – 752.7");
+    // The producer's OWN numbers ride beside the band, keyed as data — the belt
+    // renderer localizes the line, and the wording names the method honestly.
+    expect(em.method).toEqual({ bandMult: 1.96, horizonDays: 1 });
+    expect(em.vintage).toBe("2026-07-23");
+    expect(getEodStr("en", "cellExpMoveMethodBand")).toContain("band ×{m}");
+    expect(getEodStr("zh", "cellExpMoveMethodBand")).toBe("区间 ×{m}");
+    expect(getEodStr("en", "cellExpMoveMethodHorizon")).toContain("{n}d horizon");
+    expect(getEodStr("zh", "cellExpMoveMethodHorizon")).toBe("{n}日");
+    expect(getEodStr("en", "cellExpMoveMethodUnstated")).toBe("method not stated by source");
+    expect(getEodStr("zh", "cellExpMoveMethodUnstated")).toBe("来源未说明方法");
+  });
+
+  it("expMove cell shows no band line and no number when the moves payload is absent", () => {
+    const absent = buildStructureCells({ gexState: null, gex: null, root: "SPY" })
+      .find((c) => c.key === "expMove")!;
+    expect(absent.value).toBeNull();
+    expect(absent.detail).toBeNull();
+    expect(absent.method ?? null).toBeNull();
+    // A payload that never published a band is the same absence — not a zero.
+    const bare = buildStructureCells({ gexState: null, gex: null, root: "SPY", moves: { asof: "2026-07-23" } })
+      .find((c) => c.key === "expMove")!;
+    expect(bare.value).toBeNull();
+    expect(bare.method ?? null).toBeNull();
+    // Each part of the statement is present only when its own field is finite.
+    const partial = buildStructureCells({
+      gexState: null, gex: null, root: "SPY",
+      moves: { asof: "2026-07-23", expected_move: { pct: 1.9, lo: 100, hi: 104, band_mult: 1.5 } },
+    }).find((c) => c.key === "expMove")!;
+    expect(partial.value).toBe("±1.9%");
+    expect(partial.method).toEqual({ bandMult: 1.5, horizonDays: null });
   });
 });

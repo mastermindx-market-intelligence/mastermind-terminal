@@ -1,0 +1,17 @@
+{
+  "schema": "futures.source_release_compatibility/v1",
+  "semanticHead": "3a8bb176281f629669ee0cda6e0348cddcb6bbc2",
+  "integratedBase": "140894302f9e50637e1891799463d548c0c46c63",
+  "observedProtectedBase": "5fa856bfad4819f5befc7af66488965abdc01c75",
+  "mergeTree": "3a2280469abe829800823aa5703f255209c62c69",
+  "ownedPathOverlap": [],
+  "sharedModuleFinding": "marketStructure changes aggregate/scenario, not topology used by optionsLevels; flowFreshness is outside futures path",
+  "latestBaseHostedProof": "required_before_merge",
+  "requiredChecks": [
+    "Quote Hub tests",
+    "Terminal typecheck + tests",
+    "Ingest + signal-layer tests"
+  ],
+  "nativeAutoMerge": "not_armed_at_this_document_creation",
+  "liveActivation": false
+}
