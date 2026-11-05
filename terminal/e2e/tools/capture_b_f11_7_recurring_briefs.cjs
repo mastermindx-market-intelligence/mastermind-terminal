@@ -180,13 +180,13 @@ async function bounded(promise, milliseconds, message) {
   } finally { clearTimeout(timer); }
 }
 
-async function reportServer(child, phase) {
+async function reportServer(child, phase, code) {
   if (typeof process.send !== "function") return; // Standalone capture owns its cleanup.
   const captureId = process.env.TERMINAL_BRIEFS_CAPTURE_ID;
   if (!captureId || !Number.isInteger(child?.pid) || child.pid < 1) throw new Error("BRIEFS_SERVER_REPORT_IDENTITY");
-  await new Promise((resolve, reject) => process.send({ briefsServer: {
-    captureId, phase, pid: child.pid, pgid: child.pid,
-  } }, error => error ? reject(error) : resolve()));
+  await bounded(new Promise((resolve, reject) => process.send({ briefsServer: {
+    captureId, phase, pid: child.pid, pgid: child.pid, ...(code ? { code } : {}),
+  } }, error => error ? reject(error) : resolve())), 2_000, "BRIEFS_SERVER_REPORT_UNSETTLED");
 }
 
 function stopServer(child, { kill = process.kill.bind(process), now = Date.now,
@@ -221,6 +221,19 @@ function stopServer(child, { kill = process.kill.bind(process), now = Date.now,
   })();
   return child.shutdown;
 }
+
+async function settleBriefsServer(child, { stop = stopServer, report = reportServer } = {}) {
+  try { await stop(child); }
+  catch (error) {
+    if (["EPERM", "EACCES"].includes(error.code)) {
+      try { await report(child, "refused", error.code); }
+      catch (reportError) { throw new AggregateError([error, reportError], "BRIEFS_SERVER_REFUSAL_REPORT_FAILED"); }
+    }
+    throw error;
+  }
+  await report(child, "stopped");
+}
+
 
 async function waitForServer(child, timeoutMs) {
   await bounded(child.ready, timeoutMs, "dev server never printed Ready");
@@ -351,7 +364,7 @@ async function main() {
     const errors = [];
     try { if (browser) await bounded(browser.close(), 10_000, "BRIEFS_BROWSER_CLOSE_UNSETTLED"); }
     catch (error) { errors.push(error); }
-    try { await stopServer(child); await reportServer(child, "stopped"); }
+    try { await settleBriefsServer(child); }
     catch (error) { errors.push(error); }
     if (errors.length) throw new AggregateError(errors, "BRIEFS_CLEANUP_UNSETTLED");
   })();
@@ -461,4 +474,4 @@ async function main() {
 if (require.main === module) main().catch((err) => {
   console.error(err); process.exitCode = 1;
 });
-module.exports = { LAYOUT_FILES, SHOTS, VIEWPORTS, bounded, stopServer, assertNoNextIndicator };
+module.exports = { LAYOUT_FILES, SHOTS, VIEWPORTS, bounded, stopServer, settleBriefsServer, assertNoNextIndicator };

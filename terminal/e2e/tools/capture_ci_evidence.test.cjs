@@ -474,3 +474,27 @@ test('server permission refusal leaves reconciliation unresolved and sends no te
   assert.equal(result.closed, true); assert.equal(result.serverSettled, false); assert.equal(result.error.code, 'EPERM');
   assert.deepEqual(signals, [[-424243, 0]]);
 });
+
+for (const code of ["EPERM", "EACCES"]) {
+  test("Briefs producer " + code + " propagates to its parent without another server probe or signal", async () => {
+    const child = supervisorChild(), calls = [];
+    const captureId = "synthetic-refused-attempt", server = { pid: 424243, pgid: 424243, captureId };
+    const pending = superviseBriefs("node", [], { env: { TERMINAL_BRIEFS_CAPTURE_ID: captureId } }, {
+      spawn: () => child, deadlineMs: 1000,
+      kill: (...args) => { calls.push(args); throw new Error("A denied server group must not be probed again"); },
+    });
+    child.emit("message", { briefsServer: { ...server, phase: "started" } });
+    const denied = Object.assign(new Error("original server permission refusal"), { code });
+    await assert.rejects(() => briefs.settleBriefsServer(server, {
+      stop: async () => { throw denied; },
+      report: async (actual, phase, actualCode) => {
+        assert.equal(actual, server); assert.equal(phase, "refused"); assert.equal(actualCode, code);
+        child.emit("message", { briefsServer: { ...server, phase, code: actualCode } });
+      },
+    }), error => error === denied);
+    child.emit("close", 1, null);
+    const result = await pending;
+    assert.equal(result.serverRefused, code); assert.equal(result.serverSettled, false);
+    assert.equal(result.error.code, code); assert.equal(result.closed, true); assert.deepEqual(calls, []);
+  });
+}

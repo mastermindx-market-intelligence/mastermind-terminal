@@ -88,9 +88,10 @@ function superviseBriefs(command, args, options, { spawn = spawnAsync, deadlineM
   wait = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds)) } = {}) {
   return new Promise(resolve => {
     let child, error = null, timedOut = false, settled = false;
-    let serverPid = null, serverReportedStopped = false;
+    let serverPid = null, serverReportedStopped = false, serverRefused = null;
     const timers = [];
     const settleServer = async () => {
+      if (serverRefused) return false;
       if (serverReportedStopped) return true;
       if (!serverPid) return !child?.pid; // A spawned producer without a report remains unresolved.
       if (error?.code === "EPERM" || error?.code === "EACCES") return false;
@@ -123,9 +124,9 @@ function superviseBriefs(command, args, options, { spawn = spawnAsync, deadlineM
       if (!closed && child?.connected) {
         try { child.disconnect(); } catch (cause) { error ||= cause; }
       }
-      onState({ serverPid, serverReportedStopped, serverSettled });
+      onState({ serverPid, serverReportedStopped, serverRefused, serverSettled });
       resolve({ status, signal, error, timedOut, closed, pid: child?.pid || null,
-        serverPid, serverReportedStopped, serverSettled });
+        serverPid, serverReportedStopped, serverRefused, serverSettled });
     };
     const terminate = signal => {
       if (!child?.pid) return;
@@ -146,13 +147,19 @@ function superviseBriefs(command, args, options, { spawn = spawnAsync, deadlineM
         && typeof report.captureId === "string" && report.captureId.length > 0
         && Number.isInteger(report.pid) && report.pid > 1 && report.pgid === report.pid
         && report.pid !== child.pid && report.pid !== process.pid;
-      if (!identity || (report.phase === "started" ? serverPid !== null
+      if (identity && report.phase === "refused" && report.pid === serverPid && !serverReportedStopped && !serverRefused
+          && ["EPERM", "EACCES"].includes(report.code)) {
+        serverRefused = report.code;
+        error ||= Object.assign(new Error(`CI_BRIEFS_SERVER_REFUSED: ${report.code}`), { code: report.code });
+        onState({ serverPid, serverReportedStopped, serverRefused }); return;
+      }
+      if (!identity || serverRefused || (report.phase === "started" ? serverPid !== null
         : report.phase !== "stopped" || report.pid !== serverPid || serverReportedStopped)) {
         error ||= new Error("CI_BRIEFS_SERVER_REPORT"); return;
       }
       if (report.phase === "started") serverPid = report.pid;
       else serverReportedStopped = true;
-      onState({ serverPid, serverReportedStopped });
+      onState({ serverPid, serverReportedStopped, serverRefused });
     });
     timers.push(setTimeout(() => {
       timedOut = true; onState({ timedOut: true }); terminate("SIGTERM");
