@@ -12,7 +12,7 @@ type NativeReceipt = {
   native_manifest_sha256: string; log_sha256: string;
 };
 const BASE = "11531481b0a540ee96bcd86df418fd1e42715363";
-const CURRENT_REVISION = "options-navigation-r3";
+const CURRENT_REVISION = "options-navigation-r4";
 const PREVIOUS_PACKET_INVENTORY = {
   gex: "c9f0aa2c43cb06d0590fb065d7b0a97f019e247c13757cc9a672f665eed12670",
   eod: "4515093ab9ba4915341a7e163dd4623c4b2698368f4d1988e3d3a8c89135cb42",
@@ -178,8 +178,8 @@ function verifyBoundary(repo: string): void {
         "BOUNDARY_CURRENT_SOURCE:" + path);
   }
 }
-const JOINT_CONTRACT = "687ef81b713ab8ff7525ee468c37f1455c32454250bdf10a287ac4f390a73773";
-const JOINT_DRIVER = "b44be2f95d3aff859a56c27abf80995c2ea9cdf513f6296827b5ac4ee7b81c06";
+const JOINT_CONTRACT = "a7cd2ce244a0ae278fc24bf25a51566c0053c89f9ce3fb17ae12b350f1541db7";
+const JOINT_DRIVER = "9126a93f34d6f4fb0bdab4c285dc687b6fb53ca166736a8db34bb55fe56f0881";
 const OFFLINE_FONT = "0863e9151dab6e278d9eacf5d1560163b6fbe3bf2cac59e369199d7e4ba962fd";
 function verifyJointNative(repo: string, dir: string, native: NativeReceipt): void {
   const capture = native as NativeReceipt & {
@@ -197,10 +197,10 @@ function verifyJointNative(repo: string, dir: string, native: NativeReceipt): vo
   check(contract.schema === "options_exposure_native_contract.v1" && contract.protectedBase === BASE &&
     contract.optionsParent === "98ffa891116ccc9e6be58a64148dbe45591e6ce8" &&
     contract.acceptedExposureHead === "0182a45abccb9c0e77b2c8e4626431e89635b35f" &&
-    contract.sources.length === 312 && new Set(contract.sources).size === 312 &&
+    contract.sources.length === 319 && new Set(contract.sources).size === 319 &&
     contract.offline_font_sha256 === OFFLINE_FONT, "JOINT_CONTRACT_IDENTITY");
   check(capture.schema === "options_exposure_native.v1" && capture.profile === "combined" &&
-    capture.capture_revision === CURRENT_REVISION && capture.source_count === 312 &&
+    capture.capture_revision === CURRENT_REVISION && capture.source_count === 319 &&
     capture.source_equal_combined === true && capture.source_contract_sha256 === JOINT_CONTRACT &&
     capture.offline_font_sha256 === OFFLINE_FONT, "JOINT_CAPTURE_IDENTITY");
   requireSourceKeys(capture.source_sha256, contract.sources);
