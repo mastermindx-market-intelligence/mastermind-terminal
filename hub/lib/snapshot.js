@@ -39,7 +39,63 @@
 
 const https = require("node:https");
 const log = require("./log");
-const { etDate, classifySession } = require("./usSession");
+const { etDate, classifySession, etParts } = require("./usSession");
+// Read the existing immutable Macro-owned NYSE projection; never infer a
+// trading day from weekdays or maintain a second holiday table here.
+const sessionProjection = require("../../terminal/lib/usEquitySessionProjection.json");
+const EXT_MAX_AGE_MS = 120 * 1000;
+
+function sessionWindow(date) {
+  if (typeof date !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(date) ||
+      sessionProjection.schema !== "mastermind.us_equity_session_projection.v1" ||
+      date < sessionProjection.coverage.start || date > sessionProjection.coverage.end) return null;
+  const w = sessionProjection.sessions[date];
+  return Array.isArray(w) && w.length === 2 && w.every(Number.isSafeInteger) &&
+    w[0] >= 0 && w[0] < w[1] && w[1] <= 1440 ? w : null;
+}
+
+function calendarSession(ms) {
+  if (!isValidClockMs(ms)) return null;
+  const { date, minuteOfDay: minute } = etParts(ms);
+  const w = sessionWindow(date);
+  if (!w) return null;
+  if (minute >= 240 && minute < w[0]) return "pre";
+  if (minute >= w[0] && minute < w[1]) return "rth";
+  if (minute >= w[1] && minute < (w[1] < 960 ? 1020 : 1200)) return "post";
+  return null;
+}
+
+function completedSessionDate(nowMs) {
+  if (!isValidClockMs(nowMs)) return null;
+  const { date, minuteOfDay: minute } = etParts(nowMs);
+  if (date < sessionProjection.coverage.start || date > sessionProjection.coverage.end) return null;
+  const w = sessionWindow(date);
+  if (w && minute >= w[1]) return date;
+  const cursor = new Date(`${date}T00:00:00Z`);
+  for (let n = 0; n < 14; n++) {
+    cursor.setUTCDate(cursor.getUTCDate() - 1);
+    const prior = cursor.toISOString().slice(0, 10);
+    if (prior < sessionProjection.coverage.start) return null;
+    if (sessionWindow(prior)) return prior;
+  }
+  return null;
+}
+
+function snapshotPrints(row) {
+  const trade = row && row.lastTrade;
+  const minute = row && row.min;
+  return [
+    { price: trade && trade.p, ms: trade && typeof trade.t === "number" ? trade.t / 1e6 : null, from: "lastTrade" },
+    { price: minute && minute.c, ms: minute && minute.t, from: "min" },
+  ].filter(p => typeof p.price === "number" && Number.isFinite(p.price) && p.price > 0 &&
+    typeof p.ms === "number" && isValidClockMs(p.ms));
+}
+
+function eligiblePrint(prints, nowMs, session, maxAgeMs) {
+  return (prints || []).filter(p => p.ms <= nowMs && nowMs - p.ms <= maxAgeMs &&
+    etDate(p.ms) === etDate(nowMs) && calendarSession(p.ms) === session)
+    .sort((a, b) => b.ms - a.ms)[0] || null;
+}
 
 // ── REAL-TIME TIER (2026-08-08, Massive "Stocks Advanced") ───────────────────────────────────
 // The plan now entitles real-time US STOCKS over REST. This file gains a faster poll and a
@@ -176,8 +232,14 @@ class SnapshotFeed {
     if (hit.snap.date !== etDate(now)) return null;
     // Age is MEASURED at read time, not baked at fetch time — a cached snapshot served 8s later
     // is 8s older, and the label has to say so.
-    const clock = marketClock(hit.snap, now);
-    return { ...hit.snap, lagMs: clock ? clock.lagMs : null };
+    let snap = hit.snap;
+    if (hit.prints && calendarSession(now) === "rth") {
+      const print = eligiblePrint(hit.prints, now, "rth", NAME_REALTIME_MAX_LAG_MS);
+      if (print) snap = { ...snap, printMs: print.ms, printPrice: print.price,
+        printFrom: print.from, printDate: etDate(print.ms) };
+    }
+    const clock = marketClock(snap, now);
+    return { ...snap, lagMs: clock ? clock.lagMs : null };
   }
 
   /**
@@ -201,6 +263,35 @@ class SnapshotFeed {
     if (Math.abs(hit.snap.close - expectedClose) > tolerance) return null;
     const clock = marketClock(hit.snap, now);
     return { ...hit.snap, lagMs: clock ? clock.lagMs : null };
+  }
+
+  // Additive extended view: cache retention never supplies a market clock.
+  // The independent daily-bar owner supplies both reference value AND date.
+  getExt(sym, nowMs, reference) {
+    if (this.disabled || !isValidClockMs(nowMs)) return null;
+    const session = calendarSession(nowMs);
+    if (session !== "pre" && session !== "post") return null;
+    const hit = this._cache.get(sym);
+    if (!hit || nowMs < hit.ts || nowMs - hit.ts > MAX_AGE_MS || !reference ||
+        reference.completedRegularSource !== "daily_file" ||
+        reference.completedRegularSessionDate !== completedSessionDate(nowMs) ||
+        !Number.isFinite(reference.completedRegularClose) || reference.completedRegularClose <= 0) return null;
+    const print = eligiblePrint(hit.prints, nowMs, session, EXT_MAX_AGE_MS);
+    if (!print) return null;
+    const change = (print.price - reference.completedRegularClose) / reference.completedRegularClose * 100;
+    if (!Number.isFinite(change)) return null;
+    const realtime = this.realtime && nowMs - print.ms <= REALTIME_MAX_LAG_MS;
+    return {
+      extPrice: print.price,
+      extChg: change,
+      extTs: Math.floor(print.ms / 1000), extAsOfMs: print.ms,
+      extSession: session, extMarketSession: session,
+      extSource: realtime ? "polygon-snapshot-rt" : "polygon-snapshot",
+      extBasis: realtime ? "REALTIME" : "DELAYED_15M",
+      extRegularClose: reference.completedRegularClose,
+      extRegularSessionDate: reference.completedRegularSessionDate,
+      extRegularSource: reference.completedRegularSource,
+    };
   }
 
   /**
@@ -290,7 +381,7 @@ class SnapshotFeed {
           if (!sym) continue;
           seen.add(sym);
           const snap = parseSnapshot(row);
-          this._cache.set(sym, { snap, ts: now });
+          this._cache.set(sym, { snap, prints: snapshotPrints(row), ts: now });
           const clock = marketClock(snap, now);
           if (clock && (floor == null || clock.lagMs < floor)) {
             floor = clock.lagMs;
@@ -407,6 +498,7 @@ function httpGetJson(url) {
 }
 
 module.exports = {
+  calendarSession, completedSessionDate, snapshotPrints, eligiblePrint,
   SnapshotFeed, parseSnapshot, marketClock, isValidClockMs,
   TTL_MS, REALTIME_TTL_MS, MAX_AGE_MS,
   REALTIME_MAX_LAG_MS, DELAYED_MAX_LAG_MS, FLOOR_WINDOW_MS,

@@ -123,7 +123,10 @@ export { DRAWING_OUTBOX_KEY };
 
 type Entry = DrawingJournal[string];
 type Copies = Record<string, Entry>;
-type JournalBaseline = Record<string, { active: string; hashes: Record<string, string> }>;
+// `unsaved` holds the copies without a stored copy of their own that sat
+// beside the copy an explicit choice selected, until a durable write stores
+// them: a later choice resolves only the copy it selected.
+type JournalBaseline = Record<string, { active: string; hashes: Record<string, string>; unsaved?: Entry[] }>;
 const baselines = new WeakMap<DrawingJournal, JournalBaseline>();
 export type DrawingJournalLocks = Pick<LockManager, "request">;
 
@@ -293,6 +296,10 @@ function parseEntry(value: unknown): Entry | null {
 function storedEntry(entry: Entry): Entry {
   const { recoveryId: _id, alternatives: _alternatives, ...payload } = entry;
   return payload;
+}
+/** An unsaved edit or a memory-only fork has no stored copy of its own. */
+function unstoredCopy(entry: Entry): boolean {
+  return !entry.recoveryId || entry.recoveryId.startsWith("memory:");
 }
 function fingerprint(entry: Entry): string {
   // parseEntry rebuilds the envelope fields in a fixed order. Compare semantic
@@ -658,6 +665,18 @@ export async function writeDrawingJournal(
           if (alias) return alias.id;
           return id;
         };
+        // Unsaved copies beside the selected copy, still in memory or dropped
+        // from it by a choice that resolved only the selected copy (keep mine,
+        // discard, or a save another tab acknowledged). Store each under a
+        // fresh ID so it survives reload until it is itself selected and saved
+        // or discarded. Stored and legacy copies keep their own IDs and receipts.
+        const alternatives = (entry?.alternatives ?? []).filter(unstoredCopy);
+        const unsaved = [...alternatives, ...(base?.unsaved ?? []).filter((copy) => unstoredCopy(copy) && !alternatives.some((alternative) => fingerprint(alternative) === fingerprint(copy)))];
+        const storeUnsaved = () => unsaved.forEach((copy) => {
+          const id = crypto.randomUUID();
+          copies[id] = storedEntry(copy);
+          updates.push([copy, id]);
+        });
         // A settled or discarded entry acknowledges the copy this journal last
         // wrote. So does a fresh entry with no stored copy yet: it is an edit
         // made after that settlement but before this write, and keeping the
@@ -678,6 +697,9 @@ export async function writeDrawingJournal(
           if (alias?.retired && fingerprint(entry) === base?.hashes[entry.recoveryId!]) {
             // Another tab acknowledged this exact observed copy. A stale hydration
             // is not a new edit and must not manufacture a replacement copy.
+            // Unsaved copies beside it stay stored for the caller to re-read.
+            storeUnsaved();
+            if (unsaved.length) namespace[symbol] = record;
             retiredSymbols.push(symbol);
             continue;
           }
@@ -696,18 +718,10 @@ export async function writeDrawingJournal(
           for (const alternative of entry.alternatives ?? []) {
             const importedCopy = imported[alternative.recoveryId ?? ""];
             if (importedCopy && base?.hashes[alternative.recoveryId!] === importedCopy.token) updates.push([alternative, importedCopy.id]);
-            // An unsaved edit or a memory-only fork left beside the selected
-            // copy has no stored copy of its own. Store it under a fresh ID so
-            // it survives reload until it is selected and saved or discarded.
-            // Stored and legacy copies keep their own IDs and receipts.
-            else if (!alternative.recoveryId || alternative.recoveryId.startsWith("memory:")) {
-              const alternativeId = crypto.randomUUID();
-              copies[alternativeId] = storedEntry(alternative);
-              updates.push([alternative, alternativeId]);
-            }
           }
+          storeUnsaved();
           next[symbol] = { active: id!, hashes: Object.fromEntries(Object.entries(copies).map(([copyId, copy]) => [copyId, fingerprint(copy)])) };
-        }
+        } else storeUnsaved();
         // Keep an import receipt after the last copy is acknowledged: clearing
         // it would resurrect the unchanged v1 tombstone on the next reload.
         if (Object.keys(copies).length || Object.keys(record.legacySeen).length || Object.keys(record.legacyLinks).length) namespace[symbol] = record;
@@ -785,7 +799,9 @@ export function reconcileDrawingJournal(storage: StoragePort, journalKey: Drawin
   for (const symbol of new Set([...Object.keys(journal), ...Object.keys(fresh)])) {
     const stored = fresh[symbol];
     const current = journal[symbol];
-    if (!current) { if (stored) { journal[symbol] = stored; baseline[symbol] = freshBaseline[symbol]; } continue; }
+    // Unsaved copies a choice dropped stay pending until a write stores them.
+    const unsaved = baseline[symbol]?.unsaved;
+    if (!current) { if (stored) { journal[symbol] = stored; baseline[symbol] = { ...freshBaseline[symbol], unsaved }; } continue; }
     const memoryCopies = [current, ...(current.alternatives ?? [])].filter((copy) => {
       const token = copy.recoveryId ? baseline[symbol]?.hashes[copy.recoveryId] : undefined;
       const record = namespace[symbol] ?? { format: 2 as const, copies: {}, legacySeen: {}, legacyLinks: {} };
@@ -817,7 +833,7 @@ export function reconcileDrawingJournal(storage: StoragePort, journalKey: Drawin
     journal[symbol] = active;
     if (combined.length > 1) active.alternatives = combined.slice(1).map(({ alternatives: _nested, ...copy }) => copy);
     else delete active.alternatives;
-    baseline[symbol] = { active: active.recoveryId!, hashes };
+    baseline[symbol] = { active: active.recoveryId!, hashes, unsaved };
   }
   baselines.set(journal, baseline);
   return journal;
@@ -835,7 +851,12 @@ export function selectDrawingRecoveryCopy(journal: DrawingJournal, symbol: strin
   // Selection changes which observed copy an explicit discard acknowledges.
   // Keep the original preimage hashes so concurrent edits remain protected.
   // An unsaved copy has no preimage, so discarding it acknowledges nothing.
+  // Unsaved siblings stay pending for a later write even if the next choice
+  // (keep mine, discard) drops them from memory: it resolves only this copy.
   const baseline = baselines.get(journal)?.[symbol];
-  if (baseline) baseline.active = id;
+  if (baseline) {
+    baseline.active = id;
+    baseline.unsaved = entry.alternatives.filter(unstoredCopy);
+  }
   return entry;
 }

@@ -16,6 +16,7 @@ export const SHARED_SHELL_MARKETS = [
   { k: "shellMarketIntl", label: "International", code: "INTL", href: "/intl.html" },
 ];
 export function sharedShellActiveKey(path: string): string {
+  if (path === "/today") return "shellToday";
   if (path.startsWith("/analysis") || /^\/(?:stock|china_lookup|hk_lookup|canada_stock|intl_stock)\.html$/.test(path))
     return "analysis";
   if (path.startsWith("/discover")) return "discover";
@@ -23,7 +24,8 @@ export function sharedShellActiveKey(path: string): string {
   if (path.startsWith("/portfolio")) return "portfolio";
   if (path.includes("watchlist") || path.startsWith("/alerts")) return "shellMonitor";
   if (/^\/(?:research|learn|blog|stocks\/earnings)/.test(path)) return "shellResearch";
-  return "shellToday";
+  // Other estate tools and regional overviews do not inherit a native primary job.
+  return "";
 }
 
 /** Keep the incumbent Terminal return handoff on every beta chart/AI entry. */
