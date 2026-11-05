@@ -1,7 +1,7 @@
 "use client";
 import { boatsChartHistoryBars, type BoatsChartHistory } from "@/lib/extQuoteCopy";
 import type { OptionsChartLevel } from "@/lib/optionsCompanion";
-import { syncOptionsPricePin, removeOptionsPricePin, type OptionsPricePin } from "@/lib/optionsChartPin";
+import { syncOptionsPricePin, removeOptionsPricePin, optionsPinVisibility, optionsPinRevealRange, type OptionsPinViewport, type OptionsPricePin } from "@/lib/optionsChartPin";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 // ── Boot-trace helper — mirrors the one in TerminalShell (?boottrace=1) ──────
@@ -593,10 +593,10 @@ import { eodSnapshotKnown, replayAxisOf, replayChipAnchor, replayDayChangePct, r
 import { detectGapZones, gapZonesAsOf, type GapZone } from "@/lib/gapZones";
 import { deriveDataOrigin, originComposite, originNotCovered, originUnavailable, type DataOrigin } from "@/lib/dataOrigin";
 
-export default function ChartPanel({ symbol, contextDock, optionsLevel = null, chartType = "candles", indicators, timeframe = "D", replayCutoff = null, onMeta, tool = null, toolActivation = 0, drawingSticky = false, drawingCreationDisabled = false, drawStyle, drawings = [], onDrawingsChange, detectCmd = null, magnet = "off", compare = [], compareCfg = EMPTY_OBJ, isActive = true, syncId = null, liveQuote = null,
+export default function ChartPanel({ symbol, contextDock, optionsLevel = null, onOptionsViewport, chartType = "candles", indicators, timeframe = "D", replayCutoff = null, onMeta, tool = null, toolActivation = 0, drawingSticky = false, drawingCreationDisabled = false, drawStyle, drawings = [], onDrawingsChange, detectCmd = null, magnet = "off", compare = [], compareCfg = EMPTY_OBJ, isActive = true, syncId = null, liveQuote = null,
   indParams = EMPTY_OBJ, hidden = EMPTY_SET, onToggleHidden, onRemoveInd, onOpenSettings, onOpenSource, pineScripts = EMPTY_PINE, chartSettings, onVisualSettings, onChartApi, onVisualReady, onCompareStudy, extHours = false, overnightHours = false, episodeId = null,
   instrumentName, instrumentMarket, instrumentColor, onAddAlert, onTableView, onObjectTree, onOpenSettingsModal, lockedVLine = null, onSetLockedVLine, onIndRowsAt, onRenderedPriceSource, onNativeObservations, dayMode = false, onPaneCount, companyName = "", userTier = "free", dataReady = true, initialTimeframe = null, onDataOrigin, onOvernightHistory }:
-  { symbol: string; contextDock?: ChartContextDock; optionsLevel?: OptionsChartLevel | null; companyName?: string; chartType?: string; indicators: Set<string>; timeframe?: string; replayCutoff?: ReplayCutoff | null; onMeta?: (m: { symbol: string; timeframe: string; axis: ReplayAxis }) => void;
+  { symbol: string; contextDock?: ChartContextDock; optionsLevel?: OptionsChartLevel | null; onOptionsViewport?: (view: OptionsPinViewport) => void; companyName?: string; chartType?: string; indicators: Set<string>; timeframe?: string; replayCutoff?: ReplayCutoff | null; onMeta?: (m: { symbol: string; timeframe: string; axis: ReplayAxis }) => void;
     /** False until the shell has COMMITTED its persisted prefs. See `effectiveTimeframe`. */
     dataReady?: boolean;
     /** The shell's already-resolved startup timeframe, handed over before it can be rendered. */
@@ -1159,6 +1159,9 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
   const extendedPriceLineRef = useRef<PriceLineHandle | null>(null);
   const optionsLevelRef = useRef(optionsLevel); optionsLevelRef.current = isActive ? optionsLevel : null;
   const optionsPricePinRef = useRef<OptionsPricePin<PriceLineHandle> | null>(null);
+  const onOptionsViewportRef = useRef(onOptionsViewport); onOptionsViewportRef.current = onOptionsViewport;
+  const optionsViewportRef = useRef<OptionsPinViewport | null>(null);
+  const optionsViewportPublisherRef = useRef<(() => void) | null>(null);
   const clearOptionsPriceLine = () => { optionsPricePinRef.current = removeOptionsPricePin(optionsPricePinRef.current); };
   const applyOptionsPriceLine = () => {
     if (!optionsLevelRef.current && !optionsPricePinRef.current) return;
@@ -4088,6 +4091,9 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
             colors: resolveSuiteColors(),
           })),
           optionsPin: g(() => optionsPricePinRef.current?.line.options() ?? null),
+          optionsPinViewport: g(() => { const view = optionsViewportRef.current; return view
+            ? { state: view.state, coordinate: view.coordinate, paneHeight: view.paneHeight,
+              root: view.level.root, price: view.level.price, session: view.level.session } : null; }),
           timeframe: timeframeRef.current,
           visibleRange: g(() => c.timeScale().getVisibleLogicalRange()),
           priceVisibleRange: g(() => priceSeriesHandleRef.current?.priceScale().getVisibleRange()),
@@ -4535,6 +4541,82 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
         return typeof mode === "number" ? mode as EnginePriceScaleMode : (chartSettingsRef.current.mode ?? EnginePriceScaleMode.Normal);
       } catch { return chartSettingsRef.current.mode ?? EnginePriceScaleMode.Normal; }
     };
+    // Source qualification and pin intent do not prove a painted line. Read the
+    // actual native series/pane on the same projection path as price labels.
+    const publishOptionsViewport = () => {
+      if (dead) return;
+      const level = optionsLevelRef.current;
+      const series = priceSeriesHandleRef.current;
+      const previous = optionsViewportRef.current;
+      if (!onOptionsViewportRef.current) return;
+      if (!level || !series) {
+        optionsViewportRef.current = null;
+        if (previous) onOptionsViewportRef.current({ ...previous, state: "unavailable", coordinate: null, reveal: () => {} });
+        return;
+      }
+      const nativePin = optionsPricePinRef.current;
+      const geometry = pricePaneGeometry();
+      const rect = wrap.getBoundingClientRect();
+      let coordinate: number | null = null;
+      let state: OptionsPinViewport["state"] = "unavailable";
+      const live = activeRef.current && dataReadyRef.current && replayIdxRef.current == null && !priceProjHidden()
+        && fullBarsTfRef.current === timeframeRef.current
+        && chartDataSymRef.current === symbolRef.current && level.root === symbolRef.current
+        && nativePin?.host === series && rect.width > 0 && rect.height > 0;
+      if (live && nativePin) {
+        try {
+          const line = nativePin.line.options() as { price?: number; lineVisible?: boolean };
+          if (line.price === level.price && line.lineVisible !== false) {
+            coordinate = series.priceToCoordinate(level.price);
+            const top = rect.top + geometry.top;
+            const from = Math.max(0, -top), to = Math.min(geometry.height, window.innerHeight - top);
+            const viewport = rect.right <= 0 || rect.left >= window.innerWidth || to <= from
+              ? { from: 0, to: 0 } : { from, to };
+            state = optionsPinVisibility(coordinate, geometry.height, viewport);
+          }
+        } catch { /* no usable renderer receipt yet */ }
+      }
+      const view: OptionsPinViewport = {
+        level, generation: series, state, coordinate, paneHeight: geometry.height,
+        reveal: () => {
+          // The button belongs to this exact qualified object and native host.
+          // A stale source, pane, host or replay transition cannot change a view.
+          if (dead || !activeRef.current || !dataReadyRef.current || optionsLevelRef.current !== level
+            || fullBarsTfRef.current !== timeframeRef.current
+            || priceSeriesHandleRef.current !== series || optionsPricePinRef.current?.host !== series
+            || replayIdxRef.current != null || symbolRef.current !== level.root
+            || chartDataSymRef.current !== level.root || priceProjHidden()) return;
+          wrap.scrollIntoView({ block: "nearest" });
+          try {
+            const scale = series.priceScale();
+            const range = scale.getVisibleRange();
+            const y = series.priceToCoordinate(level.price);
+            const mode = scaleMode(series);
+            const formula = range ? axisLogFormulaForRange(range) : null;
+            const domain = range && mode === EnginePriceScaleMode.Logarithmic ? axisRangeToLog(range, formula!) : range;
+            const options = scale.options();
+            const margins = options.scaleMargins as AxisMargins | undefined;
+            const height = pricePaneGeometry().height;
+            // The helper accepts top-origin display coordinates. Mirror an
+            // inverted native axis without changing the user's scale mode.
+            const coordinate = y != null && options.invertScale === true ? height - 1 - y : y;
+            const next = optionsPinRevealRange(domain, coordinate, height, margins ?? AXIS_MARGINS_DEFAULT);
+            if (next && next !== domain) {
+              // Preserve each incumbent adapter's setter domain. No OHLC, clock,
+              // timeframe, scale mode, saved setting or source value is changed.
+              const native = mode === EnginePriceScaleMode.Logarithmic && engine.impl === "mm"
+                ? axisRangeFromLog(next, formula!) : next;
+              scale.setVisibleRange(native);
+            }
+          } catch { /* status stays truthful until the native view is usable */ }
+          scheduleRenderRef.current?.();
+          publishOptionsViewport();
+        },
+      };
+      optionsViewportRef.current = view;
+      if (previous?.level !== level || previous.generation !== series || previous.state !== state) onOptionsViewportRef.current?.(view);
+    };
+    optionsViewportPublisherRef.current = publishOptionsViewport;
     const visibleScaleBasePrice = (s: SeriesHandle) => {
       const range = chart.timeScale().getVisibleLogicalRange();
       if (range == null) return barsRef.current[0]?.c ?? null;
@@ -6321,8 +6403,9 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       if (target) showBarTip(target, true);
     });
     bar.addEventListener("focusout", hideBarTip);
-    window.addEventListener("resize", hideBarTip);
-    document.addEventListener("scroll", hideBarTip, true);
+    const onViewportShift = () => { hideBarTip(); publishOptionsViewport(); };
+    window.addEventListener("resize", onViewportShift);
+    document.addEventListener("scroll", onViewportShift, true);
     const COLORS = ["#4d82ff", "#26c281", "#f0566b", "#e8b339", "#d6dae3"];
     const RECENT_COLOR_KEY = "mm.drawing.recentColors.v1";
     const normalizeHexColor = (value: unknown) => typeof value === "string" && /^#[0-9a-f]{6}$/i.test(value)
@@ -7474,6 +7557,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       return node;
     };
     const renderDraw = () => {
+      publishOptionsViewport();
       const svgEl = svgRef.current; if (!svgEl) return;
       while (svgEl.firstChild) svgEl.removeChild(svgEl.firstChild);
       drawingPaneClipIds = new Map();
@@ -8960,6 +9044,10 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
 
     // ── mount teardown (base line-416 logic + the new refs) ──
     return () => {
+      const lastOptionsView = optionsViewportRef.current;
+      if (lastOptionsView) onOptionsViewportRef.current?.({ ...lastOptionsView, state: "unavailable", coordinate: null, reveal: () => {} });
+      if (optionsViewportPublisherRef.current === publishOptionsViewport) optionsViewportPublisherRef.current = null;
+      optionsViewportRef.current = null;
       dead = true; if (rafId != null) cancelAnimationFrame(rafId); if (measRaf != null) cancelAnimationFrame(measRaf);
       for (const entry of drawingReadinessUnsubs.values()) entry.unsub();
       drawingReadinessUnsubs.clear();
@@ -9010,8 +9098,8 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       if (barRef.current) { try { barRef.current.remove(); } catch {} barRef.current = null; }
       if (creationPaletteRef.current) { try { creationPaletteRef.current.remove(); } catch {} creationPaletteRef.current = null; }
       hideBarTip();
-      window.removeEventListener("resize", hideBarTip);
-      document.removeEventListener("scroll", hideBarTip, true);
+      window.removeEventListener("resize", onViewportShift);
+      document.removeEventListener("scroll", onViewportShift, true);
       try { barTip.remove(); } catch {}
       if (indSvgRef.current) { try { indSvgRef.current.remove(); } catch {} indSvgRef.current = null; }
       suiteTablesRef.current = [];
@@ -10467,6 +10555,8 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
   // Ephemeral options selection updates a native price line, never the renderer/data lifecycle.
   useEffect(() => {
     applyOptionsPriceLine();
+    optionsViewportPublisherRef.current?.();
+    scheduleRenderRef.current?.();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [optionsLevel, symbol, isActive, replayCutoff]);
 

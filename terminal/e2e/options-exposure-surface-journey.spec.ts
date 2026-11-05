@@ -497,6 +497,64 @@ async function runSurfaceJourney(page: Page, lang: "en" | "zh", theme: "dark" | 
     expect(request!.fingerprint).toMatch(/^[a-f0-9]{64}$/);
     const reference = page.getByTestId("exposure-chart-reference");
     await expect(reference).toHaveAttribute("data-state", "ready", { timeout: 30_000 });
+    await expect(reference).toHaveAttribute("data-chart-state", "offscreen");
+    const readNativeOwner = () => page.evaluate(() => {
+      const owner = window as unknown as { __mmChartAxisOpts?: () => {
+        optionsPin: { price: number; color: string }; priceVisibleRange: { from: number; to: number };
+        optionsPinViewport: { state: string; coordinate: number | null; paneHeight: number };
+        timeframe: string; contextProof: { priceRows: unknown[] };
+      } };
+      return owner.__mmChartAxisOpts?.() ?? null;
+    });
+    const beforeReveal = await readNativeOwner();
+    expect(beforeReveal?.optionsPin.price).toBe(SELECTED_STRIKE);
+    expect(beforeReveal?.priceVisibleRange.to).toBeLessThan(SELECTED_STRIKE);
+    expect(beforeReveal?.optionsPinViewport.state).toBe("offscreen");
+    const boundedHash = new URL(page.url()).hash;
+    await reference.getByRole("button", { name: mt("revealReference"), exact: true }).click();
+    await expect(reference).toHaveAttribute("data-chart-state", "visible");
+    const revealed = await readNativeOwner();
+    expect(revealed?.optionsPinViewport.state).toBe("visible");
+    expect(revealed?.optionsPinViewport.coordinate).toBeGreaterThanOrEqual(0);
+    expect(revealed?.optionsPinViewport.coordinate).toBeLessThanOrEqual(revealed!.optionsPinViewport.paneHeight);
+    expect(revealed?.timeframe).toBe(beforeReveal?.timeframe);
+    expect(revealed?.contextProof.priceRows).toEqual(beforeReveal?.contextProof.priceRows);
+    expect(new URL(page.url()).hash).toBe(boundedHash);
+    // Witness real native paint, not just a price-line object or a ready card.
+    // The existing dev hooks expose the real coordinate; read the actual canvas
+    // pixels along that line after the explicit user action, without drawing.
+    const paintedPixels = () => page.evaluate(() => {
+      const owner = window as unknown as {
+        __mmChartAxisOpts?: () => { optionsPin: { color: string }; optionsPinViewport: { coordinate: number } };
+        __mmPriceLabels?: () => { pricePaneTop: number };
+      };
+      const axis = owner.__mmChartAxisOpts?.(), labels = owner.__mmPriceLabels?.();
+      const wrap = document.querySelector<HTMLElement>(".chart-wrap");
+      const hex = axis?.optionsPin.color.match(/^#([a-f0-9]{6})$/i)?.[1];
+      if (!axis || !labels || !wrap || !hex) return 0;
+      const rgb = [0, 2, 4].map(i => parseInt(hex.slice(i, i + 2), 16));
+      const frame = wrap.getBoundingClientRect();
+      const screenY = frame.top + labels.pricePaneTop + axis.optionsPinViewport.coordinate;
+      let hits = 0;
+      for (const canvas of wrap.querySelectorAll("canvas")) {
+        const rect = canvas.getBoundingClientRect();
+        if (!rect.width || !rect.height || screenY < rect.top || screenY >= rect.bottom) continue;
+        const ctx = canvas.getContext("2d"); if (!ctx) continue;
+        const sx = canvas.width / rect.width, sy = canvas.height / rect.height;
+        const x0 = Math.max(0, Math.floor((Math.max(rect.left, frame.left + frame.width * 0.3) - rect.left) * sx));
+        const x1 = Math.min(canvas.width, Math.ceil((Math.min(rect.right, frame.left + frame.width * 0.7) - rect.left) * sx));
+        const y0 = Math.max(0, Math.floor((screenY - rect.top - 2) * sy));
+        const y1 = Math.min(canvas.height, Math.ceil((screenY - rect.top + 2) * sy));
+        if (x1 <= x0 || y1 <= y0) continue;
+        const pixels = ctx.getImageData(x0, y0, x1 - x0, y1 - y0).data;
+        for (let i = 0; i < pixels.length; i += 4) {
+          if (pixels[i + 3]! > 128 && rgb.every((v, c) => Math.abs(pixels[i + c]! - v) <= 8)) hits++;
+        }
+      }
+      return hits;
+    });
+    await expect.poll(paintedPixels, { message: "dated 103 reference actually paints in the visible native chart" }).toBeGreaterThan(3);
+    await retainSyntheticJson("synthetic-main-chart-reveal.json", { before: beforeReveal, after: revealed, matching_native_line_pixels: await paintedPixels() });
     await expect(reference).toContainText(`SPY ${SELECTED_STRIKE}`);
     // This records the existing real canvas owner, not a painted-line claim.
     // A ready card can still own an offscreen line; preserve that distinction.
