@@ -6,6 +6,9 @@ html[data-research-appearance="lab"][data-theme="light"] {
   --bg:#f7f8fa; --panel:#ffffff; --panel-2:#eef1f6; --panel-3:#e7edf7; --inset:#f7f8fa;
   --line:#d9dde4; --line-2:#e7eaf0; --line-3:#c9ccd1; --grid:rgba(28,36,48,.10);
   --text:#1c2430; --text-2:#5d6b7e; --muted:#5d6b7e; --text-dim:#69778b;
+  --chart-axis-text:#5d6b7e; --chart-grid:rgba(28,36,48,.10);
+  --chart-crosshair-label-bg:#536174; --chart-crosshair-line:rgba(83,97,116,.55);
+  --pane-sep:#c9ccd1; --pane-sep-h:#69778b;
   --brand:#285fff; --brand-2:#285fff; --brand-hov:#1d4ed8; --link:#285fff;
   --warn:#7d5922; --signal:#7d5922; --danger:#bd2847; --state-accepted:#1e6d47;
   --up:#1e6d47; --down:#bd2847; --buy:#1e6d47; --sell:#bd2847; --regime-up:#1e6d47;

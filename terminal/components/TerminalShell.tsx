@@ -1,5 +1,6 @@
 "use client";
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { mergeFormingQuote } from "@/lib/formingCandles";
+import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { PHONE_QUERY, useIsMobile, useIsPhone } from "@/lib/useMediaQuery";
 import MobileSheet from "@/components/ui/MobileSheet";
 import OptionsRail, { type OptionsRailHandle } from "@/components/options-companion/OptionsRail";
@@ -7,6 +8,8 @@ import { optionsT } from "@/components/options-companion/optionsStrings";
 import type { OptionsChartLevel } from "@/lib/optionsCompanion";
 import replayStyles from "./ReplayTransport.module.css";
 import contextStyles from "./ChartContextPlacement.module.css";
+import rollerSlotStyles from "./mobile/RollerStripSlot.module.css";
+import searchStyles from "./SearchModal.module.css";
 import type { ChartContextDock } from "./ChartContextDock";
 import { visualText } from "@/lib/visualIntelligenceCopy";
 import { track } from "@/lib/analytics";
@@ -23,12 +26,12 @@ import DashboardBackButton from "@/components/DashboardBackButton";
 import { AppNav } from "@/components/AppNav";
 import { initShellBridge, postToShell } from "@/lib/platform/shellBridge";
 import MobileNav from "@/components/MobileNav";
-import PositionModal from "@/components/PositionModal";
+import ChartPositionEntry, { type ChartPositionIntent } from "@/components/ChartPositionEntry";
 import { type DetectCmd } from "@/components/ChartPanel";
 import ChartPane from "@/components/ChartPane";
 import ChartConductor from "@/components/ChartConductor";
 import { intradayCapable } from "@/components/ChartPanel";
-import { classify, SECOND_TFS, isSecondTf } from "@/lib/intradaySources";
+import { classify, SECOND_TFS, isSecondTf, isIntradayTf } from "@/lib/intradaySources";
 import { isMacroSymbol } from "@/lib/macroSymbols";
 import { freshnessLabel } from "@/lib/feedFreshness";
 import { boatsLatestTradeLabel } from "@/lib/extQuoteCopy";
@@ -43,7 +46,7 @@ import { flowGet } from "@/lib/flowClientCache";
 import { parseGlanceState } from "@/lib/mscGlance";
 import { DEFAULT_START_TF, TF_CANONICAL_ORDER, mobileTimeframeOptions, readStartTf, resolveStartTf } from "@/lib/startTf";
 import { useMarketPrefs } from "@/lib/useMarketPrefs";
-import { accountIdentity, identityOwnerKey } from "@/lib/accountIdentity";
+import { accountIdentity, identityOwnerKey, identityUserId, isAccountOwner } from "@/lib/accountIdentity";
 import { portfolioRailOwner, usePortfolioRailRead } from "@/lib/usePortfolioRailRead";
 // Import the page ids from the import-free leaf, NOT from MegaPane: MegaPane is mounted
 // through next/dynamic below, and a value import out of it here would statically pull its
@@ -125,7 +128,9 @@ const WatchlistEventPlanner = dynamic(() => import("@/components/events/Watchlis
 const WatchlistAnnotationSync = dynamic(() => import("@/components/watchlist/WatchlistAnnotationSync"), { ssr: false });
 // Phone-only chart chrome (R2): the bottom roller strip and the two sheets it raises. Never
 // server-rendered — the phone breakpoint is a client media query, and shell mode brings its own.
-const RollerStrip = dynamic(() => import("@/components/mobile/RollerStrip"), { ssr: false });
+// Until the query resolves and the chunk lands, the slot holds the strip's height (shown at
+// ≤640px only), so the rail and the Intelligence launcher under the chart never drop after paint.
+const RollerStrip = dynamic(() => import("@/components/mobile/RollerStrip"), { ssr: false, loading: () => <div className={rollerSlotStyles.slot} aria-hidden="true" /> });
 const DrawingsSheet = dynamic(() => import("@/components/mobile/DrawingsSheet"), { ssr: false });
 const AnalysisHubSheet = dynamic(() => import("@/components/mobile/AnalysisHubSheet"), { ssr: false });
 // Review capture (E19): loaded on first open only — the chart snapshot compositor stays in ChartPanel.
@@ -160,7 +165,9 @@ import {
   normalizeDrawings,
   uid,
 } from "@/lib/drawings";
-import { readDrawingOutbox, writeDrawingOutbox, type DrawingOutbox } from "@/lib/drawingOutbox";
+import { reconcileDrawingJournal, writeDrawingJournal, refreshDrawingJournalSymbol, selectDrawingRecoveryCopy } from "@/lib/drawingOutbox";
+import { DRAWING_OWNER_HEADER, parseDrawingSnapshot, parseDrawingSaveReceipt, prepareDrawingAttempt, settleDrawingAttempt, beginDrawingLoad, abandonDrawingLoad, abandonAllDrawingLoads, isCurrentDrawingLoad, shouldRescheduleDrawingFlush, shouldApplyDrawingCloudCopy, decideDrawingLoadReconciliation, unionCloudWithPreloadAdditions, remainingPreloadPending, keepMinePutDrawings, settlePreloadMergeRevisionConflict, type DrawingJournal, type DrawingSnapshot, type DrawingRevision } from "@/lib/drawingPersistence";
+import { applyDrawingSaveConflict, drawingSaveIssueChoices, drawingSaveIssueFromEntry, drawingSaveIssueFromLoadPark, drawingSaveIssueOffersReplace, drawingSaveRecoveryMessage } from "@/lib/drawingSaveConflict";
 import { FREEHAND_DRAWING_KINDS, getDrawingTool, isDrawingToolId } from "@/lib/drawingTools";
 import { SHELL_DRAW_TOOLS } from "@/lib/drawingTaxonomy";
 import { type ShellPanelId } from "@/lib/platform/contract";
@@ -260,10 +267,12 @@ const chgStr = (c: number | null | undefined) => (c == null || !isFinite(c) ? "�
 // would defeat this bail-out entirely for any snapshot-served symbol during a quiet session.
 // `asOfMs` (the print instant) IS compared, so a genuinely new print still re-renders, and the
 // badge derives its displayed age from asOfMs at render time rather than from the retained lagMs.
-const QUOTE_EQ_IGNORE = new Set(["lagMs"]);
+const QUOTE_EQ_IGNORE = new Set(["lagMs", "formingCandles"]);
 function quoteEq(a: any, b: any): boolean {
   if (a === b) return true;
   if (!a || !b) return false;
+  const af = a.formingCandles, bf = b.formingCandles;
+  if (af?.generation !== bf?.generation || af?.revision !== bf?.revision || af?.timeframes !== bf?.timeframes) return false;
   const ka = Object.keys(a), kb = Object.keys(b);
   if (ka.length !== kb.length) return false;
   for (const k of ka) if (!QUOTE_EQ_IGNORE.has(k) && a[k] !== b[k]) return false;
@@ -1073,8 +1082,33 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // folded into `lists`, written to `mm.wls`, or touched by the watchlist sync chain. Holding a
   // name and watching a name are different facts; the rail shows both without mixing them.
   const [railTab, setRailTab] = useState<"watchlists" | "portfolio" | "news">("watchlists");
-  /** Symbol queued for the "Add to → Portfolio" modal; `null` = closed. */
-  const [pfAddSymbol, setPfAddSymbol] = useState<string | null>(null);
+  /** The chart's "Add to → Portfolio" opening; `null` = closed.
+   *
+   *  An OPENING is more than a symbol: the immutable owner that opened it is captured HERE, at
+   *  the moment the user asked for it, and travels with the form until it is dismissed. The
+   *  create that form eventually sends names that captured owner — never the account that happens
+   *  to be signed in when the user presses Save. `components/ChartPositionEntry.tsx` owns the
+   *  dispatch, the canonical readback and the retirement rules; this state owns only WHICH
+   *  opening is on screen, so opening and dismissal stay explicit decisions of this shell.
+   */
+  const mobileQuoteId = useId();
+  const [pfAddIntent, setPfAddIntent] = useState<ChartPositionIntent | null>(null);
+  /** Distinguishes one opening from the next, so a REPLACED opening is a new form (a fresh draft
+   *  and a fresh create-intent UUID) rather than the previous one resumed. */
+  const pfAddNonceRef = useRef(0);
+  /** Open the chart's position form for `symbol`, capturing the owner that opens it. */
+  const openChartPositionEntry = useCallback((symbol: string) => {
+    setPfAddIntent({
+      nonce: ++pfAddNonceRef.current,
+      symbol,
+      ownerId: identityUserId(identity),
+    });
+  }, [identity]);
+  /** Close the form. Scoped to the opening it belongs to, so a stale callback can never close a
+   *  newer opening. */
+  const dismissChartPositionEntry = useCallback((intent: ChartPositionIntent) => {
+    setPfAddIntent(current => (current === intent ? null : current));
+  }, []);
   // Live mirror of `lists` for the async migration: reading it from a ref keeps the effect keyed
   // on `loggedIn` alone, so a symbol edit mid-migration cannot restart the whole run.
   const listsRef = useRef(lists);
@@ -1512,9 +1546,19 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   const panePresentationRef = useRef<ChartPresentationCache>({});
   const paneSessionKeyRef = useRef<Record<number, string>>({});
   const [nativeObservationByPane, setNativeObservationByPane] = useState<Record<number, NativePaneObservationState>>({});
-  // B3: sub-pane count for mobile chart-body height formula (--subpanes CSS var)
-  const [subPanes, setSubPanes] = useState(0);
+  // B3: sub-pane count for mobile chart-body height formula (--subpanes CSS var). The chart reports
+  // the real count once its studies are built, which on a slow boot lands seconds after first paint;
+  // until then the count the active studies imply holds the height, so the chart body doesn't grow
+  // (and push the Intelligence launcher under it down) when the report arrives.
+  const [subPanes, setSubPanes] = useState<number | null>(null);
   const onPaneCount = useCallback((n: number) => setSubPanes(n), []);
+  const impliedSubPanes = useMemo(() => {
+    const studies = [...inds].filter((k) =>
+      (isIndKey(k) && IND_DEFS[k].kind === "pane") || (isAdditionalStudyId(k) && studyInstanceMeta(k, inds)?.kind === "pane"),
+    ).length;
+    const suites = new Set(enabledSuiteModules(inds, indParams).filter((entry) => entry.surface === "pane").map((entry) => entry.suiteKey));
+    return studies + suites.size;
+  }, [inds, indParams]);
   // D2: locked vertical line (bar time string | null); persists with the workspace save
   const [lockedVLine, setLockedVLine] = useState<string | null>(null);
   // D1: "remove all indicators" undo toast
@@ -1774,17 +1818,103 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   const flushDrawingsRef = useRef<(sym: string) => void>(() => {});
   const drawLoadRetryTimers = useRef<Record<string, any>>({});
   const drawLoadRetryAttempts = useRef<Record<string, number>>({});
+  // Symbols whose settled GET deferred to the queued save instead of applying.
+  const drawLoadDeferred = useRef<Set<string>>(new Set());
   // Invalidates every async load/save callback when drawing ownership changes
   // (guest -> account, sign-out, or account swap). A stale request must never
   // populate or enqueue work into the next owner's cache.
   const drawOwnerEpoch = useRef(0);
-  const drawOwner = useRef(email ? `account:${email}` : "guest");
-  const [drawingOwnerKey, setDrawingOwnerKey] = useState(email ? `account:${email}` : "guest");
+  const drawLoadGeneration = useRef<Record<string, number>>({});
+  // Owner-scoped stores key on the auth UUID, never the email (account-identity law):
+  // `account:<uuid>` keys the journal, the receipts and the server's ownership check.
+  const currentDrawingOwnerKey = identityOwnerKey(identity);
+  const drawingAccount = isAccountOwner(currentDrawingOwnerKey);
+  // Released clients wrote the v1 outbox under `account:<email>`; that namespace is
+  // imported (review-only) into the UUID owner and never written or sent anywhere.
+  const drawingLegacyOwner = drawingAccount && email ? `account:${email}` : undefined;
+  const drawOwner = useRef(currentDrawingOwnerKey);
+  const drawLegacyOwners = useRef<Record<string, string | undefined>>({});
+  const drawJournalKey = useCallback((owner: string) => ({ owner, legacyOwner: drawLegacyOwners.current[owner] }), []);
+  const [drawingOwnerKey, setDrawingOwnerKey] = useState(currentDrawingOwnerKey);
   const drawHistory = useRef<Record<string, { undo: Drawing[][]; redo: Drawing[][] }>>({});
   const prevPaneSyms = useRef<Set<string>>(new Set());
   const [drawingLoadRetryVersion, setDrawingLoadRetryVersion] = useState(0);
   const [drawingLoadFailures, setDrawingLoadFailures] = useState<Set<string>>(new Set());
-  const drawRecovery = useRef<Record<string, DrawingOutbox>>({});
+  const drawRecovery = useRef<Record<string, DrawingJournal>>({});
+  const drawRevisions = useRef<Record<string, DrawingRevision>>({});
+  const drawPreloadMergeReread = useRef<Set<string>>(new Set());
+  const drawOwnerHydrated = useRef(false);
+  const [drawingSaveIssues, setDrawingSaveIssues] = useState<Record<string, string>>({});
+  // Symbols with a save in flight. Only the recovery banner reads this set, so
+  // a save re-renders the shell only while a committed banner shows its symbol;
+  // an uncommitted issue reads the current set when it first renders.
+  const drawingSavesActive = useRef<Set<string>>(new Set());
+  const drawingSaveIssuesShown = useRef<Record<string, string>>({});
+  const [, setDrawingSavesActiveVersion] = useState(0);
+  useLayoutEffect(() => { drawingSaveIssuesShown.current = drawingSaveIssues; }, [drawingSaveIssues]);
+  const markDrawingSaveActive = useCallback((sym: string, active: boolean) => {
+    if (active) drawingSavesActive.current.add(sym);
+    else drawingSavesActive.current.delete(sym);
+    if (drawingSaveIssuesShown.current[sym] !== undefined) setDrawingSavesActiveVersion((version) => version + 1);
+  }, []);
+  const [drawingCloudCopies, setDrawingCloudCopies] = useState<Record<string, DrawingSnapshot>>({});
+  const loadDrawingCloudCopy = useCallback(async (sym: string) => {
+    const epoch = drawOwnerEpoch.current;
+    const generation = drawLoadGeneration.current[sym] ?? 0;
+    try {
+      // The owner key travels in a header, never the URL (logs, history, edge cache keys).
+      const response = await fetch(`/api/drawings?symbol=${encodeURIComponent(sym)}`, { cache: "no-store", headers: { [DRAWING_OWNER_HEADER]: drawOwner.current } });
+      const snapshot = response.ok ? parseDrawingSnapshot(await response.json()) : null;
+      if (snapshot && shouldApplyDrawingCloudCopy({
+        generations: drawLoadGeneration.current,
+        symbol: sym,
+        startedGeneration: generation,
+        ownerEpoch: epoch,
+        currentOwnerEpoch: drawOwnerEpoch.current,
+        symbolStillOpen: prevPaneSyms.current.has(sym),
+      })) setDrawingCloudCopies((copies) => ({ ...copies, [sym]: snapshot }));
+    } catch { /* Keep the local recovery copy until a valid cloud read succeeds. */ }
+  }, []);
+  const [drawingStorageUnavailable, setDrawingStorageUnavailable] = useState(false);
+  const persistDrawingRecovery = useCallback(async (owner: string, journal: DrawingJournal) => {
+    const before = Object.entries(journal).map(([sym, entry]) => ({ sym, drawings: entry.drawings }));
+    const durable = await writeDrawingJournal(localStorage, drawJournalKey(owner), journal);
+    if (drawOwner.current === owner) {
+      setDrawingStorageUnavailable(!durable);
+      if (durable) for (const { sym, drawings } of before) {
+        if (journal[sym] || drawPending.current[sym] !== drawings) continue;
+        // Another tab acknowledged this unchanged legacy import while our
+        // handle was stale. Re-read remaining copies before accepting cloud.
+        delete drawPending.current[sym];
+        const remaining = refreshDrawingJournalSymbol(localStorage, drawJournalKey(owner), journal, sym);
+        if (remaining) {
+          remaining.blocked ??= "conflict";
+          drawPending.current[sym] = remaining.drawings;
+          setDrawStore((store) => ({ ...store, [sym]: normalizeDrawings(remaining.drawings) }));
+          setDrawingSaveIssues((issues) => ({ ...issues, [sym]: "multiple" }));
+          void loadDrawingCloudCopy(sym);
+        } else {
+          drawLoaded.current.delete(sym);
+          setDrawStore((store) => { const next = { ...store }; delete next[sym]; return next; });
+          setDrawingSaveIssues((issues) => { const next = { ...issues }; delete next[sym]; return next; });
+          setDrawingLoadRetryVersion((version) => version + 1);
+        }
+      }
+    }
+    return durable;
+  }, [drawJournalKey, loadDrawingCloudCopy]);
+  const restoreOtherDrawingCopies = useCallback((sym: string, owner: string, journal: DrawingJournal) => {
+    if (drawOwner.current !== owner || drawPending.current[sym] !== undefined) return;
+    const remaining = refreshDrawingJournalSymbol(localStorage, drawJournalKey(owner), journal, sym);
+    if (!remaining) return;
+    // A remaining copy can belong to a still-open tab. Review it explicitly;
+    // recovering it is never authority to replay or overwrite the cloud.
+    remaining.blocked ??= "conflict";
+    drawPending.current[sym] = remaining.drawings;
+    setDrawStore((store) => ({ ...store, [sym]: normalizeDrawings(remaining.drawings) }));
+    setDrawingSaveIssues((issues) => ({ ...issues, [sym]: "multiple" }));
+    void loadDrawingCloudCopy(sym);
+  }, [drawJournalKey, loadDrawingCloudCopy]);
   const [drawingLimitWarning, setDrawingLimitWarning] = useState(false);
   const drawingLimitTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const showDrawingLimitWarning = useCallback(() => {
@@ -1794,66 +1924,199 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   }, []);
   const flushDrawings = useCallback((sym: string) => {
     clearTimeout(drawTimers.current[sym]);
+    delete drawTimers.current[sym];
     if (drawSaving.current[sym]) return;
     const drawings = drawPending.current[sym];
     if (!drawings) return;
-    delete drawPending.current[sym];
-    if (!loggedIn) { writeGuestDraw(sym, drawings); return; }
+    if (!drawingAccount) { delete drawPending.current[sym]; writeGuestDraw(sym, drawings); return; }
     const ownerEpoch = drawOwnerEpoch.current;
     const ownerKey = drawOwner.current;
-    let failed = false;
-    const save = fetch("/api/drawings", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ symbol: sym, drawings }),
-      })
-      .then((response) => {
-        if (!response.ok) throw new Error(`drawing save failed (${response.status})`);
-        if (drawOwnerEpoch.current !== ownerEpoch) return;
-        const recovery = drawRecovery.current[ownerKey];
-        if (recovery?.[sym] === drawings) {
-          delete recovery[sym];
-          writeDrawingOutbox(localStorage, ownerKey, recovery);
+    const recovery = drawRecovery.current[ownerKey] ?? (drawRecovery.current[ownerKey] = {});
+    const entry = recovery[sym] ?? (recovery[sym] = { drawings, ...(Object.hasOwn(drawRevisions.current, sym) ? { revision: drawRevisions.current[sym] } : { preload: true as const }) });
+    if (!Object.hasOwn(entry, "revision") && !Object.hasOwn(drawRevisions.current, sym)) {
+      entry.preload = true;
+      void persistDrawingRecovery(ownerKey, recovery);
+      return;
+    }
+    const attempt = prepareDrawingAttempt(entry, () => crypto.randomUUID());
+    if (!attempt) {
+      // !attempt is the only flush call site that sets the issue from the
+      // pre-write entry. writeDrawingJournal already re-derived recovery[sym]
+      // in place under its lock (dropUnownedLegacyCopies in
+      // lib/drawingOutbox.ts assigns the new entry), so after = recovery[sym]
+      // is the post-write truth and is used here without another re-read.
+      const hadAlts = entry.alternatives?.length ?? 0;
+      const issue = entry.alternatives?.length ? "multiple" : (drawingSaveIssueFromEntry(entry) ?? entry.blocked ?? "legacy");
+      setDrawingSaveIssues((issues) => ({ ...issues, [sym]: issue }));
+      if (drawingSaveIssueOffersReplace(issue)) void loadDrawingCloudCopy(sym);
+      void (async () => {
+        const durable = await persistDrawingRecovery(ownerKey, recovery);
+        if (!durable || drawOwnerEpoch.current !== ownerEpoch || hadAlts === 0) return;
+        const after = recovery[sym];
+        if (after && after !== entry && drawPending.current[sym] === drawings) {
+          drawPending.current[sym] = after.drawings;
+          setDrawStore((store) => ({ ...store, [sym]: normalizeDrawings(after.drawings) }));
         }
-      })
-      .catch(() => {
+        if (after && !after.alternatives?.length && !after.blocked) {
+          // The surviving copy is single and unblocked — only the "multiple"
+          // issue is bound to that condition. Other issues (retry, too_many,
+          // preload, storage, conflict, and the rest) are set by paths whose
+          // condition still holds, so clearing them here would hide a real
+          // failure from the user.
+          setDrawingSaveIssues((issues) => issues[sym] === "multiple"
+            ? (() => { const next = { ...issues }; delete next[sym]; return next; })()
+            : issues);
+          setDrawingCloudCopies((copies) => { const next = { ...copies }; delete next[sym]; return next; });
+          if (!drawSaving.current[sym] && !drawTimers.current[sym]) {
+            // The drawSaving early-return at the top of flushDrawings plus
+            // this guard together rule out the duplicate-PUT race that
+            // happens when an in-flight save settles into a re-flush arm.
+            drawTimers.current[sym] = setTimeout(() => flushDrawingsRef.current(sym), 0);
+          }
+        } else if (after) {
+          const nextIssue = after.alternatives?.length ? "multiple" : (drawingSaveIssueFromEntry(after) ?? after.blocked ?? "legacy");
+          setDrawingSaveIssues((issues) => ({ ...issues, [sym]: nextIssue }));
+        }
+      })();
+      return;
+    }
+    let queued = false;
+    let saveSettledOk = false;
+    markDrawingSaveActive(sym, true);
+    const save = (async () => {
+      try {
+        if (!await persistDrawingRecovery(ownerKey, recovery)) {
+          if (drawOwnerEpoch.current === ownerEpoch) setDrawingSaveIssues((issues) => ({ ...issues, [sym]: "storage" }));
+          return;
+        }
+        if (drawOwnerEpoch.current !== ownerEpoch || recovery[sym] !== entry) return;
+        // The durable write keeps a copy it cannot prove was never discarded
+        // for an explicit choice; the attempt prepared before it is not sent.
+        if (entry.blocked) {
+          const issue = drawingSaveIssueFromEntry(entry) ?? entry.blocked;
+          setDrawingSaveIssues((issues) => ({ ...issues, [sym]: issue }));
+          if (drawingSaveIssueOffersReplace(issue)) void loadDrawingCloudCopy(sym);
+          return;
+        }
+        const response = await fetch("/api/drawings", {
+          method: "PUT", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ownerKey, symbol: sym, drawings: attempt.drawings, expectedRevision: attempt.expectedRevision, operationId: attempt.operationId }),
+        });
         if (drawOwnerEpoch.current !== ownerEpoch) return;
-        failed = true;
-        // Preserve a failed snapshot, but never replace a newer edit queued
-        // while this request was in flight.
-        if (drawPending.current[sym] === undefined) drawPending.current[sym] = drawings;
-      })
-      .finally(() => {
+        if (!response.ok) {
+          if (response.status === 409) {
+            let payload: unknown = null;
+            try { payload = await response.json(); } catch { payload = null; }
+            const code = payload && typeof payload === "object" && !Array.isArray(payload)
+              ? (payload as Record<string, unknown>).code
+              : undefined;
+            if (entry.preload && code === "revision_conflict" && !drawPreloadMergeReread.current.has(attempt.operationId)) {
+              drawPreloadMergeReread.current.add(attempt.operationId);
+              let cloudSnap: DrawingSnapshot | null = null;
+              try {
+                const reread = await fetch(`/api/drawings?symbol=${encodeURIComponent(sym)}`, {
+                  cache: "no-store",
+                  headers: { [DRAWING_OWNER_HEADER]: drawOwner.current },
+                });
+                cloudSnap = reread.ok ? parseDrawingSnapshot(await reread.json()) : null;
+              } catch { cloudSnap = null; }
+              if (drawOwnerEpoch.current !== ownerEpoch) return;
+              // Another tab acknowledged this copy during the re-read and the
+              // journal now holds a different copy that awaits review.
+              if (recovery[sym] !== entry) return;
+              if (cloudSnap && settlePreloadMergeRevisionConflict({
+                wasPreloadMerge: true,
+                conflictCode: code,
+                pending: attempt.drawings,
+                latest: entry.drawings,
+                cloud: cloudSnap.drawings,
+              }) === "saved") {
+                drawRevisions.current[sym] = cloudSnap.revision;
+                delete recovery[sym];
+                delete drawPending.current[sym];
+                setDrawStore((store) => ({ ...store, [sym]: normalizeDrawings(cloudSnap.drawings) }));
+                setDrawingSaveIssues((issues) => { const next = { ...issues }; delete next[sym]; return next; });
+                saveSettledOk = true;
+                return;
+              }
+            }
+            const issue = applyDrawingSaveConflict(entry, payload);
+            // Another tab acknowledged this copy while the save was in flight; the
+            // journal write that noticed it already labelled what remains.
+            if (drawOwnerEpoch.current === ownerEpoch && recovery[sym] === entry) setDrawingSaveIssues((issues) => ({ ...issues, [sym]: issue }));
+          } else if ([400, 413, 422].includes(response.status)) entry.blocked = "invalid";
+          throw new Error("Drawing save was not acknowledged");
+        }
+        const receipt = parseDrawingSaveReceipt(await response.json(), attempt);
+        if (drawOwnerEpoch.current !== ownerEpoch) return;
+        // Another tab acknowledged this copy while the save was in flight and the
+        // journal now holds a different copy that awaits review.
+        if (recovery[sym] !== entry) return;
+        if (!receipt) throw new Error("Drawing save receipt is unavailable");
+        const outcome = settleDrawingAttempt(entry, receipt);
+        if (outcome === "blocked") {
+          setDrawingSaveIssues((issues) => ({ ...issues, [sym]: entry.blocked ?? "conflict" }));
+          void loadDrawingCloudCopy(sym);
+        } else {
+          drawRevisions.current[sym] = receipt.revision;
+          // Most receipts arrive with no issue showing; keep the same state then.
+          setDrawingSaveIssues((issues) => {
+            if (issues[sym] === undefined) return issues;
+            const next = { ...issues }; delete next[sym]; return next;
+          });
+          if (outcome === "saved") { delete recovery[sym]; delete drawPending.current[sym]; saveSettledOk = true; }
+          else { queued = true; saveSettledOk = true; }
+        }
+      } catch {
+        // A copy another tab acknowledged keeps the label its journal write gave.
+        if (drawOwnerEpoch.current !== ownerEpoch || recovery[sym] !== entry) return;
+        // Preserve both the exact unknown-outcome attempt and the newest edit.
+        const issue = drawingSaveIssueFromEntry(entry) ?? "retry";
+        setDrawingSaveIssues((issues) => ({ ...issues, [sym]: issue }));
+        if (entry.blocked && drawingSaveIssueOffersReplace(issue)) void loadDrawingCloudCopy(sym);
+      } finally {
+        if (drawOwnerEpoch.current !== ownerEpoch) return;
+        const durable = await persistDrawingRecovery(ownerKey, recovery);
         if (drawOwnerEpoch.current !== ownerEpoch) return;
         delete drawSaving.current[sym];
-        const pending = drawPending.current[sym];
-        // Coalesce to the newest snapshot and serialize PUTs per symbol. Do not
-        // spin forever on a lone failed request; a future edit/navigation flush
-        // retries the retained snapshot.
-        if (pending && (!failed || pending !== drawings)) {
+        const loadDeferred = drawLoadDeferred.current.delete(sym);
+        markDrawingSaveActive(sym, false);
+        if (durable && !recovery[sym]) restoreOtherDrawingCopies(sym, ownerKey, recovery);
+        if (queued) drawTimers.current[sym] = setTimeout(() => flushDrawings(sym), 0);
+        else if (shouldRescheduleDrawingFlush({
+          hasPending: drawPending.current[sym] !== undefined,
+          timerArmed: Boolean(drawTimers.current[sym]),
+          saveSettledOk,
+        })) {
           drawTimers.current[sym] = setTimeout(() => flushDrawings(sym), 0);
-        } else if (!pending && !prevPaneSyms.current.has(sym)) {
-          // A symbol that left the workspace stays cached while its serialized
-          // save is in flight. Evict only after the final snapshot is durable;
-          // revisiting before then keeps the authoritative in-memory version.
+        } else if (!drawPending.current[sym] && !prevPaneSyms.current.has(sym)) {
           drawLoaded.current.delete(sym);
+          delete drawRevisions.current[sym];
           delete drawHistory.current[sym];
-          setDrawStore((store) => {
-            if (store[sym] === undefined) return store;
-            const next = { ...store }; delete next[sym]; return next;
-          });
+          setDrawStore((store) => { const next = { ...store }; delete next[sym]; return next; });
         }
-      });
+        if (prevPaneSyms.current.has(sym) && drawLoadRetryTimers.current[sym] === undefined) {
+          // The load effect skips a symbol while its save is in flight, and a load that
+          // deferred to this save needs its receipt. When the save ended with neither,
+          // because another tab acknowledged or replaced the copy, load the symbol again.
+          const unsettled = loadDeferred && !Object.hasOwn(drawRevisions.current, sym) && recovery[sym] !== entry;
+          if (unsettled || (!drawLoaded.current.has(sym) && drawPending.current[sym] === undefined)) {
+            drawLoaded.current.delete(sym);
+            setDrawingLoadRetryVersion((version) => version + 1);
+          }
+        }
+      }
+    })();
     drawSaving.current[sym] = save;
-  }, [loggedIn]);
+  }, [drawingAccount, loadDrawingCloudCopy, markDrawingSaveActive, persistDrawingRecovery, restoreOtherDrawingCopies]);
   useEffect(() => { flushDrawingsRef.current = flushDrawings; }, [flushDrawings]);
   const setSymbolDrawings = useCallback((sym: string, d: Drawing[], recordHistory = true) => {
-    if (drawOwner.current !== (email ? `account:${email}` : "guest")) return;
+    if (drawOwner.current !== currentDrawingOwnerKey) return;
     // `undefined` is deliberate: signed-in symbols remain fail-closed until an
     // authoritative GET succeeds (a valid empty collection is stored as `[]`).
     // This prevents a transient load failure plus one new mark from replacing
     // an unseen server collection.
-    if (loggedIn && drawStoreRef.current[sym] === undefined) return;
+    if (drawingAccount && drawStoreRef.current[sym] === undefined) return;
     if (d.length > MAX_DRAWINGS_PER_SYMBOL) {
       showDrawingLimitWarning();
       return;
@@ -1868,15 +2131,24 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     }
     setDrawStore((s) => ({ ...s, [sym]: normalized }));
     drawPending.current[sym] = normalized;
-    if (loggedIn) {
+    if (drawingAccount) {
       const ownerKey = drawOwner.current;
       const recovery = drawRecovery.current[ownerKey] ?? (drawRecovery.current[ownerKey] = {});
-      recovery[sym] = normalized;
+      const entry = recovery[sym];
+      if (entry) {
+        entry.drawings = normalized;
+        if (!Object.hasOwn(entry, "revision") && !Object.hasOwn(drawRevisions.current, sym)) entry.preload = true;
+      } else {
+        recovery[sym] = Object.hasOwn(drawRevisions.current, sym)
+          ? { drawings: normalized, revision: drawRevisions.current[sym] }
+          : { drawings: normalized, preload: true };
+      }
+      void persistDrawingRecovery(ownerKey, recovery);
     }
     clearTimeout(drawTimers.current[sym]);
     drawTimers.current[sym] = setTimeout(() => flushDrawings(sym), 600);
     setDrawingHistoryVersion((v) => v + 1);
-  }, [email, flushDrawings, loggedIn, showDrawingLimitWarning]);
+  }, [currentDrawingOwnerKey, drawingAccount, flushDrawings, showDrawingLimitWarning, persistDrawingRecovery]);
   const travelDrawingHistory = useCallback((sym: string, dir: "undo" | "redo") => {
     const history = drawHistory.current[sym]; if (!history) return;
     const from = dir === "undo" ? history.undo : history.redo, to = dir === "undo" ? history.redo : history.undo;
@@ -2514,58 +2786,48 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     if (!drawingPrefsHydrated) return;
     try { localStorage.setItem("mm.drawing.preferences", JSON.stringify({ magnet, sticky: drawingSticky, visible: drawingsVisible, styles: drawStyleOverrides, ...(lastDrawingColor ? { lastColor: lastDrawingColor } : {}) })); } catch {}
   }, [drawStyleOverrides, drawingPrefsHydrated, drawingSticky, drawingsVisible, lastDrawingColor, magnet]);
-  // Drawing ownership is a hard cache boundary. Guest drawings remain in the
-  // guest collection; an account always reloads its authoritative server copy.
-  // This also handles sign-out and direct account-to-account session changes.
+  // Ownership invalidates async callbacks; recovery keeps the original attempt and revision.
   useEffect(() => {
-    const nextOwner = email ? `account:${email}` : "guest";
+    const nextOwner = currentDrawingOwnerKey;
     const previousOwner = drawOwner.current;
-    if (previousOwner === nextOwner) return;
-
-    const pending = { ...drawPending.current };
+    if (previousOwner === nextOwner && drawOwnerHydrated.current) return;
+    drawOwnerHydrated.current = true;
     for (const timer of Object.values(drawTimers.current)) clearTimeout(timer);
     for (const timer of Object.values(drawLoadRetryTimers.current)) clearTimeout(timer);
-
     if (previousOwner === "guest") {
-      // Guest persistence is synchronous, so finish every pending snapshot
-      // before clearing its cache.
-      for (const [sym, drawings] of Object.entries(pending)) writeGuestDraw(sym, drawings);
-    } else {
-      // Authentication has already changed by the time this effect runs, so an
-      // unsent old-account fetch would carry the wrong cookie. Preserve the
-      // captured full snapshots under the previous owner and replay only when
-      // that exact identity is active again.
-      const recovery = drawRecovery.current[previousOwner] ?? (drawRecovery.current[previousOwner] = {});
-      Object.assign(recovery, pending);
-      writeDrawingOutbox(localStorage, previousOwner, recovery);
+      for (const [sym, drawings] of Object.entries(drawPending.current)) writeGuestDraw(sym, drawings);
+    } else if (drawRecovery.current[previousOwner]) {
+      void persistDrawingRecovery(previousOwner, drawRecovery.current[previousOwner]);
     }
-
-    // From here onward, callbacks carrying the previous epoch are inert.
     drawOwnerEpoch.current += 1;
     drawOwner.current = nextOwner;
+    drawLegacyOwners.current[nextOwner] = drawingLegacyOwner;
     setDrawingOwnerKey(nextOwner);
-    const recovered = nextOwner === "guest"
-      ? {}
-      : {
-          ...readDrawingOutbox(localStorage, nextOwner),
-          ...(drawRecovery.current[nextOwner] ?? {}),
-        };
+    const recovered: DrawingJournal = nextOwner === "guest" ? {} :
+      reconcileDrawingJournal(localStorage, drawJournalKey(nextOwner), drawRecovery.current[nextOwner]);
     if (nextOwner !== "guest") drawRecovery.current[nextOwner] = recovered;
-    drawPending.current = recovered;
+    const pending = Object.fromEntries(Object.entries(recovered).map(([sym, entry]) => [sym, entry.drawings]));
+    drawPending.current = pending;
     drawSaving.current = {};
     drawTimers.current = {};
+    drawRevisions.current = {};
+    drawPreloadMergeReread.current = new Set();
     drawLoadRetryTimers.current = {};
     drawLoadRetryAttempts.current = {};
+    drawLoadDeferred.current.clear();
     drawLoaded.current.clear();
+    abandonAllDrawingLoads(drawLoadGeneration.current);
     drawHistory.current = {};
     prevPaneSyms.current.clear();
-    setDrawStore(recovered);
+    setDrawStore(pending);
     setDrawingLoadFailures(new Set());
+    setDrawingSaveIssues(Object.fromEntries(Object.entries(recovered).filter(([, entry]) => entry.blocked).map(([sym, entry]) => [sym, drawingSaveIssueFromEntry(entry)!])));
+    setDrawingCloudCopies({});
+    drawingSavesActive.current.clear();
+    setDrawingStorageUnavailable(false);
     setDrawingHistoryVersion((version) => version + 1);
-    for (const sym of Object.keys(recovered)) {
-      drawTimers.current[sym] = setTimeout(() => flushDrawings(sym), 0);
-    }
-  }, [email, flushDrawings]);
+    for (const sym of Object.keys(recovered)) drawTimers.current[sym] = setTimeout(() => flushDrawings(sym), 0);
+  }, [currentDrawingOwnerKey, drawingLegacyOwner, drawJournalKey, flushDrawings, persistDrawingRecovery]);
   // load drawings once per symbol that appears in a pane; don't clobber an in-flight local edit
   useEffect(() => {
     const now = new Set(panes);
@@ -2575,15 +2837,96 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       if (drawSaving.current[sym]) continue;
       if (drawLoaded.current.has(sym)) continue;
       drawLoaded.current.add(sym);
-      if (loggedIn) {
+      drawLoadDeferred.current.delete(sym);
+      if (drawingAccount) {
+        if (drawPending.current[sym] === undefined) {
+          setDrawStore((s) => (s[sym] !== undefined ? s : { ...s, [sym]: [] }));
+        }
         const ownerEpoch = drawOwnerEpoch.current;
-        fetch(`/api/drawings?symbol=${encodeURIComponent(sym)}`).then((r) => {
+        const generation = beginDrawingLoad(drawLoadGeneration.current, sym);
+        fetch(`/api/drawings?symbol=${encodeURIComponent(sym)}`, { headers: { [DRAWING_OWNER_HEADER]: drawOwner.current } }).then((r) => {
           if (!r.ok) throw new Error(`drawing load failed (${r.status})`);
           return r.json();
         }).then((d) => {
+          if (!isCurrentDrawingLoad(drawLoadGeneration.current, sym, generation)) return;
           if (drawOwnerEpoch.current !== ownerEpoch) return;
           if (!prevPaneSyms.current.has(sym)) return;
-          if (drawPending.current[sym] === undefined) setDrawStore((s) => (s[sym] !== undefined ? s : { ...s, [sym]: normalizeDrawings(d.drawings) }));
+          const snapshot = parseDrawingSnapshot(d);
+          if (!snapshot) throw new Error("Drawing snapshot is unavailable");
+          const pending = drawPending.current[sym];
+          const ownerKey = drawOwner.current;
+          const recovery = drawRecovery.current[ownerKey] ?? (drawRecovery.current[ownerKey] = {});
+          const entry = recovery[sym];
+          let decision = decideDrawingLoadReconciliation({
+            cloudIds: snapshot.drawings.map((drawing) => drawing.id),
+            cloudRevision: snapshot.revision,
+            hasPending: pending !== undefined,
+            pendingIds: (pending ?? []).map((drawing) => drawing.id),
+            pendingRevisionPresent: Boolean(entry && Object.hasOwn(entry, "revision")),
+            pendingRevision: entry?.revision,
+            pendingBlocked: entry?.blocked,
+            pendingHasAlternatives: Boolean(entry?.alternatives?.length),
+            pendingPreload: entry?.preload === true,
+            pendingAttemptQueued: Boolean(entry?.attempt)
+              && (drawSaving.current[sym] !== undefined || drawTimers.current[sym] !== undefined),
+            cloudDrawings: snapshot.drawings,
+            pendingDrawings: pending,
+          });
+          let merged: Drawing[] | null = null;
+          if (decision.action === "merge") {
+            const remaining = entry?.preload === true
+              ? remainingPreloadPending(snapshot.drawings, pending ?? [])
+              : (pending ?? []);
+            const union = unionCloudWithPreloadAdditions(snapshot.drawings, remaining);
+            if (union.ok) merged = union.drawings;
+            else decision = { action: "park", reason: union.reason };
+          }
+          if (decision.action === "stamp") {
+            drawRevisions.current[sym] = snapshot.revision;
+            setDrawStore((s) => ({ ...s, [sym]: normalizeDrawings(snapshot.drawings) }));
+            if (pending !== undefined) {
+              delete drawPending.current[sym];
+              delete recovery[sym];
+              clearTimeout(drawTimers.current[sym]);
+              delete drawTimers.current[sym];
+              void persistDrawingRecovery(ownerKey, recovery);
+            }
+          } else if (decision.action === "keep") {
+            drawRevisions.current[sym] = snapshot.revision;
+          } else if (decision.action === "merge" && merged) {
+            const mergedDrawings = merged;
+            drawRevisions.current[sym] = snapshot.revision;
+            drawPending.current[sym] = mergedDrawings;
+            if (entry) {
+              entry.drawings = mergedDrawings;
+              entry.revision = snapshot.revision;
+              delete entry.blocked;
+            } else {
+              recovery[sym] = { drawings: mergedDrawings, revision: snapshot.revision, preload: true };
+            }
+            setDrawStore((s) => ({ ...s, [sym]: normalizeDrawings(mergedDrawings) }));
+            void persistDrawingRecovery(ownerKey, recovery);
+            clearTimeout(drawTimers.current[sym]);
+            drawTimers.current[sym] = setTimeout(() => flushDrawings(sym), 0);
+          } else if (decision.action === "defer") {
+            // The save settles this symbol: it stamps the receipt revision, and its
+            // superseded and 409 branches fetch the cloud copy for the choice. If it
+            // ends without a receipt, its settlement loads the symbol again.
+            drawLoadDeferred.current.add(sym);
+          } else {
+            const parkEntry = entry ?? (pending ? (recovery[sym] = { drawings: pending }) : undefined);
+            if (parkEntry && !(decision.action === "park" && decision.reason === "too_many")) {
+              parkEntry.blocked ??= "conflict";
+            }
+            setDrawingCloudCopies((copies) => ({ ...copies, [sym]: snapshot }));
+            setDrawingSaveIssues((issues) => ({
+              ...issues,
+              [sym]: decision.action === "park"
+                ? drawingSaveIssueFromLoadPark(decision.reason, parkEntry?.blocked)
+                : (parkEntry?.blocked ?? "conflict"),
+            }));
+            void persistDrawingRecovery(ownerKey, recovery);
+          }
           clearTimeout(drawLoadRetryTimers.current[sym]);
           delete drawLoadRetryTimers.current[sym];
           delete drawLoadRetryAttempts.current[sym];
@@ -2592,8 +2935,17 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             const next = new Set(failed); next.delete(sym); return next;
           });
         }).catch(() => {
+          if (!isCurrentDrawingLoad(drawLoadGeneration.current, sym, generation)) return;
           if (drawOwnerEpoch.current !== ownerEpoch || !prevPaneSyms.current.has(sym)) return;
           drawLoaded.current.delete(sym);
+          if (drawPending.current[sym] === undefined) {
+            setDrawStore((s) => {
+              if (s[sym] === undefined) return s;
+              const next = { ...s };
+              delete next[sym];
+              return next;
+            });
+          }
           setDrawingLoadFailures((failed) => failed.has(sym) ? failed : new Set(failed).add(sym));
           const attempt = (drawLoadRetryAttempts.current[sym] ?? 0) + 1;
           drawLoadRetryAttempts.current[sym] = attempt;
@@ -2613,12 +2965,17 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     // later re-visit re-fetches fresh server state (restores the old per-mount refetch behavior)
     for (const sym of prevPaneSyms.current) {
       if (now.has(sym)) continue;
+      abandonDrawingLoad(drawLoadGeneration.current, sym);
       flushDrawings(sym);
       clearTimeout(drawLoadRetryTimers.current[sym]);
       delete drawLoadRetryTimers.current[sym];
-      if (drawSaving.current[sym] || drawPending.current[sym] !== undefined) continue;
+      if (drawSaving.current[sym] || drawPending.current[sym] !== undefined) {
+        if (!Object.hasOwn(drawRevisions.current, sym)) drawLoaded.current.delete(sym);
+        continue;
+      }
       drawLoaded.current.delete(sym);
       delete drawLoadRetryAttempts.current[sym];
+      delete drawRevisions.current[sym];
       delete drawHistory.current[sym];
       setDrawingLoadFailures((failed) => {
         if (!failed.has(sym)) return failed;
@@ -2627,11 +2984,65 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       setDrawStore((s) => { if (s[sym] === undefined) return s; const n = { ...s }; delete n[sym]; return n; });
     }
     prevPaneSyms.current = now;
-  }, [panes, flushDrawings, loggedIn, drawingLoadRetryVersion, email]);
-  useEffect(() => () => {
-    for (const timer of Object.values(drawLoadRetryTimers.current)) clearTimeout(timer);
-    for (const sym of Object.keys(drawPending.current)) flushDrawingsRef.current(sym);
-    if (drawingLimitTimer.current !== null) clearTimeout(drawingLimitTimer.current);
+  }, [panes, flushDrawings, drawingAccount, drawingLoadRetryVersion, currentDrawingOwnerKey, persistDrawingRecovery]);
+  useEffect(() => {
+    const persistPendingDrawings = () => {
+      for (const timer of Object.values(drawLoadRetryTimers.current)) clearTimeout(timer);
+      for (const sym of Object.keys(drawPending.current)) flushDrawingsRef.current(sym);
+      if (drawingLimitTimer.current !== null) clearTimeout(drawingLimitTimer.current);
+    };
+    window.addEventListener("pagehide", persistPendingDrawings);
+    return () => {
+      window.removeEventListener("pagehide", persistPendingDrawings);
+      persistPendingDrawings();
+    };
+  }, []);
+
+  const resolveDrawingRecovery = useCallback(async (sym: string, choice: "cloud" | "local") => {
+    if (drawSaving.current[sym] || drawOwner.current !== currentDrawingOwnerKey) return;
+    const cloud = drawingCloudCopies[sym];
+    const recovery = drawRecovery.current[drawOwner.current];
+    const entry = recovery?.[sym];
+    if (!cloud || !entry) return;
+    drawRevisions.current[sym] = cloud.revision;
+    delete drawHistory.current[sym];
+    if (choice === "cloud") {
+      delete recovery[sym]; delete drawPending.current[sym];
+      setDrawStore((store) => ({ ...store, [sym]: normalizeDrawings(cloud.drawings) }));
+    } else {
+      // This click is a new replacement intent against the displayed cloud copy.
+      // Neither a background GET nor a superseded replay can take this action.
+      // A preload row is additions, never a full snapshot: union so cloud-only ids survive.
+      const put = keepMinePutDrawings(cloud.drawings, entry.drawings, entry.preload === true);
+      if (!put.ok) {
+        setDrawingSaveIssues((issues) => ({ ...issues, [sym]: drawingSaveIssueFromLoadPark("too_many") }));
+        return;
+      }
+      delete entry.attempt; delete entry.blocked; delete entry.alternatives; entry.revision = cloud.revision;
+      entry.drawings = put.drawings;
+      if (entry.preload) delete entry.preload;
+      drawPending.current[sym] = entry.drawings;
+    }
+    const owner = drawOwner.current;
+    const durable = await persistDrawingRecovery(owner, recovery);
+    if (drawOwner.current !== owner) return;
+    setDrawingSaveIssues((issues) => { const next = { ...issues }; delete next[sym]; return next; });
+    setDrawingCloudCopies((copies) => { const next = { ...copies }; delete next[sym]; return next; });
+    setDrawingHistoryVersion((version) => version + 1);
+    if (durable && choice === "cloud") restoreOtherDrawingCopies(sym, owner, recovery);
+    if (choice === "local") {
+      if (durable) drawTimers.current[sym] = setTimeout(() => flushDrawings(sym), 0);
+      else setDrawingSaveIssues((issues) => ({ ...issues, [sym]: "storage" }));
+    }
+  }, [drawingCloudCopies, currentDrawingOwnerKey, flushDrawings, persistDrawingRecovery, restoreOtherDrawingCopies]);
+  const chooseDrawingRecoveryCopy = useCallback((sym: string, id: string) => {
+    const journal = drawRecovery.current[drawOwner.current];
+    if (!journal || drawSaving.current[sym]) return;
+    const entry = selectDrawingRecoveryCopy(journal, sym, id);
+    if (!entry) return;
+    drawPending.current[sym] = entry.drawings;
+    setDrawStore((store) => ({ ...store, [sym]: normalizeDrawings(entry.drawings) }));
+    setDrawingSaveIssues((issues) => ({ ...issues, [sym]: "multiple" }));
   }, []);
 
   // per-symbol data for the rail.  Priority split:
@@ -2781,7 +3192,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
           const n: Record<string, any> = { ...prev };
           for (const k of Object.keys(d.quotes)) {
             const q = d.quotes[k];
-            if (q) { if (!quoteEq(prev[k], q)) { n[k] = q; changed = true; } }
+            if (q) { const merged = mergeFormingQuote(prev[k], q); if (!quoteEq(prev[k], merged)) { n[k] = merged; changed = true; } }
             else if (drop.has(k) && k in n) { delete n[k]; changed = true; }
           }
           return changed ? n : prev;
@@ -2828,6 +3239,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     }
     return Array.from(new Set(syms)).slice(0, 8).join(",");
   }, [panes, paneTfs, quotes]);
+  const chartQuoteTfsKey = Array.from(new Set(paneTfs.filter(tf => isIntradayTf(tf)))).sort().slice(0, 4).join(",");
+  const chartQuoteTfsKeyRef = useRef(chartQuoteTfsKey);
+  chartQuoteTfsKeyRef.current = chartQuoteTfsKey;
   const chartQuoteSymsKeyRef = useRef(chartQuoteSymsKey);
   chartQuoteSymsKeyRef.current = chartQuoteSymsKey;
   const chartQuoteAliveRef = useRef(true);
@@ -2848,16 +3262,21 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       return;
     }
     chartQuoteInFlightRef.current = true;
-    fetch(`/api/quote?view=regular&cadence=chart&syms=${encodeURIComponent(key)}`, { cache: "no-store" })
+    const tfs = chartQuoteTfsKeyRef.current;
+    fetch(`/api/quote?view=regular&cadence=chart&timeframes=${encodeURIComponent(tfs)}&syms=${encodeURIComponent(key)}`, { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
-        if (!chartQuoteAliveRef.current || !d?.quotes) return;
+        if (!chartQuoteAliveRef.current || !d?.quotes || key !== chartQuoteSymsKeyRef.current ||
+            tfs !== chartQuoteTfsKeyRef.current) return;
         updateQuotes((prev) => {
           let changed = false;
           const next = { ...prev };
           for (const [sym, quote] of Object.entries<any>(d.quotes)) {
             // A transient fast-lane miss must not erase the slower lane's last-known quote.
-            if (quote && !quoteEq(prev[sym], quote)) { next[sym] = quote; changed = true; }
+            if (quote) {
+              const merged = mergeFormingQuote(prev[sym], quote);
+              if (!quoteEq(prev[sym], merged)) { next[sym] = merged; changed = true; }
+            }
           }
           return changed ? next : prev;
         });
@@ -2894,7 +3313,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     if (!chartQuoteSymsKey) return;
     const id = setTimeout(pollChartQuotes, 120);
     return () => clearTimeout(id);
-  }, [chartQuoteSymsKey, pollChartQuotes]);
+  }, [chartQuoteSymsKey, chartQuoteTfsKey, pollChartQuotes]);
 
   // item-26/27: extended/overnight poll — US equities only. Always includes the active symbol
   // (pane-card secondary block, item-25) plus all watchlist US singles when the Ext column is on.
@@ -5355,9 +5774,11 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     window.addEventListener("mouseup", up);
     document.body.classList.add("rail-resizing");
   };
-  const currentDrawingOwnerKey = email ? `account:${email}` : "guest";
   const drawingOwnerMatches = drawingOwnerKey === currentDrawingOwnerKey;
-  const drawingsReadyFor = (sym: string) => drawingOwnerMatches && (!loggedIn || drawStore[sym] !== undefined);
+  // Click callbacks can be held by memoized descendants across render transitions.
+  // The write fence below uses drawStoreRef.current; match that exact current
+  // owner/symbol readiness here instead of a possibly stale render snapshot.
+  const drawingsReadyFor = (sym: string) => drawingOwnerMatches && (!drawingAccount || drawStoreRef.current[sym] !== undefined);
   // ONE activation path for every surface that arms a tool — the desktop dock, the phone Drawings
   // sheet, and the native bridge's setDrawTool. Returns whether the tool actually armed.
   const activateDrawingTool = (id: DrawKind | null) => {
@@ -5551,10 +5972,11 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       }}/>}
       {!shellMode && (
       <header className="topbar">
-        {fromMacro ? <DashboardBackButton onClick={onBack} /> : <BrandLockup />}
+        {fromMacro ? <DashboardBackButton onClick={onBack} returnHref={macroHref} /> : <BrandLockup />}
         <div className="tdiv" />
-        <div className="pair" onClick={() => { setSeed(""); setSearchMode("go"); setSearchOpen(true); }}><span className="dual"><i>{active[0]}</i><i>$</i></span><b>{active}</b>
-          <svg className="car" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" /></svg></div>
+        <button type="button" className="pair" aria-label={`${t("searchTitle")} — ${active}`} aria-haspopup="dialog" aria-expanded={searchOpen && searchMode === "go"}
+          onClick={() => { setSeed(""); setSearchMode("go"); setSearchOpen(true); }}><span className="dual"><i>{active[0]}</i><i>$</i></span><b>{active}</b>
+          <svg className="car" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" /></svg></button>
         <button className="cmp-btn" title={t("compareTitle")} onClick={(e) => { e.stopPropagation(); setSearchMode("compare"); setSeed(""); setSearchOpen(true); }}>
           <svg viewBox="0 0 24 24"><path d="M4 18l5-9 4 5 3-4 4 8" /></svg>
           <span>{t("compare")}</span>
@@ -5606,6 +6028,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       <MobileNav
         email={email}
         fromMacro={fromMacro}
+        returnHref={macroHref}
         onBack={onBack}
         onOpenCopilot={() => openBrainReincluding(setBrainIncluded, () => (window as any).MMBrain?.open())}
         onOpenCommandPalette={() => setPaletteOpen(true)}
@@ -5617,9 +6040,13 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         })()}
       />
       {/* ── mobile symbol bar (tap → search) ── */}
-      <div className={`m-symbar${activeExtData ? " has-ext" : ""}`} onClick={() => { setSeed(""); setSearchOpen(true); }}>
+      <div className={`m-symbar${activeExtData ? " has-ext" : ""}`}>
+        <button type="button" className={searchStyles.mobileTrigger} data-symbol-search
+          aria-describedby={mobileQuoteId}
+          aria-label={`${t("searchTitle")} — ${active}`} aria-haspopup="dialog" aria-expanded={searchOpen && searchMode === "go"}
+          onClick={() => { setSeed(""); setSearchMode("go"); setSearchOpen(true); }}>
         <span className="m-sym"><span className="ic" style={{ background: m?.col || "#76b900" }}>{active[0]}</span><b>{active}</b><svg className="car" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" /></svg></span>
-        <span className="m-quote-stack">
+        <span className="m-quote-stack" id={mobileQuoteId}>
           <span className="m-px" data-quote-lane="regular"><b className="num">{fmt(lastPx, m && lastPx != null && lastPx < 10 ? 4 : 2)}</b>{isSuspended
             ? <span className="cg quote-suspended">{t("suspended")}</span>
             : <span className={`cg num ${(chgNow ?? 0) >= 0 ? "up" : "down"}`}>{chgStr(chgNow)}</span>}</span>
@@ -5633,6 +6060,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             </span>
           )}
         </span>
+        </button>
         <WatchlistEventsButton variant="symbar" onOpen={() => setEventPlannerOpen(true)} />
       </div>
 
@@ -5949,7 +6377,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             }}
           />
         ) : (
-          <div className="chart-body" style={{ "--subpanes": subPanes } as React.CSSProperties}>
+          <div className="chart-body" style={{ "--subpanes": subPanes ?? impliedSubPanes } as React.CSSProperties}>
             <DrawingSidebar
               tool={drawingsReadyFor(active) ? activeDrawingTool : null}
               creationDisabledReason={drawingCreationDisabledReason}
@@ -5966,7 +6394,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
               canUndo={drawingHistoryState.canUndo}
               canRedo={drawingHistoryState.canRedo}
               drawStyle={drawStyle}
-              onTool={(id) => { activateDrawingTool(id); }}
+              onTool={activateDrawingTool}
               onMagnet={setMagnet}
               onSticky={setDrawingSticky}
               onPinned={setDrawingPinnedTool}
@@ -6155,6 +6583,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         {/* The strip is the foot of the chart column, directly under the canvas and in place of
             the range row (hidden on phone) — TV's anatomy. As the workspace's last flex child it
             rides the expanded-chart mode too, where the flex:1 chart body yields it its height. */}
+        {!shellMode && !isPhone && <div className={rollerSlotStyles.slot} aria-hidden="true" />}
         {!shellMode && isPhone && (
           <RollerStrip
             symbols={stripSymbols}
@@ -6193,7 +6622,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
           open={drawSheetOpen}
           onClose={() => setDrawSheetOpen(false)}
           activeTool={activeDrawingTool}
-          onPick={(id) => { activateDrawingTool(id); }}
+          onPick={activateDrawingTool}
         />
         <AnalysisHubSheet
           open={hubOpen}
@@ -6734,30 +7163,22 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       {/* W5 "Add to → Portfolio". Opens the SAME modal `/portfolio` uses, so a position entered
           from the chart and one entered from the book are one object with one set of rules. Only a
           signed-in user sees the destination at all (`onAddToPortfolio` below is undefined for a
-          guest), so the guest picker keeps its pre-W5 shape. */}
-      {pfAddSymbol && (
-        <PositionModal
-          mode="add"
-          position={null}
-          initialTicker={pfAddSymbol}
-          onCancel={() => setPfAddSymbol(null)}
-          onSubmit={async (draft) => {
-            try {
-              const response = await fetch("/api/portfolio", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ action: "create", ...draft }),
-              });
-              if (!response.ok) return false;
-            } catch { return false; }
-            setPfAddSymbol(null);
-            // The rail only holds a book while the Portfolio tab is open; refresh it there so the
-            // new row appears without a reload, and leave it alone otherwise.
-            if (railTab === "portfolio") void pfRail.load();
-            return true;
-          }}
-        />
-      )}
+          guest), so the guest picker keeps its pre-W5 shape.
+
+          The controller owns the OWNER BINDING: it carries the owner that opened the form into
+          the POST as `expectedOwnerId`, confirms the write against the canonical read, and
+          retires the form on an observed account transition. The shell keeps only the explicit
+          opening and dismissal. */}
+      <ChartPositionEntry
+        intent={pfAddIntent}
+        observedOwner={identityOwnerKey(identity)}
+        onDismiss={dismissChartPositionEntry}
+        onCommitted={() => {
+          // The rail only holds a book while the Portfolio tab is open; refresh it there so the
+          // new row appears without a reload, and leave it alone otherwise.
+          if (railTab === "portfolio") void pfRail.load();
+        }}
+      />
       {searchOpen && (
         <SearchModal open seed={seed} manifest={(man?.symbols as any) || {}} inWatchlist={inWl} mode={searchMode} compare={compare} compareCfg={compareCfg} active={active}
           quotes={quotes}
@@ -6768,7 +7189,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
           onSwitchList={switchList}
           onCreateList={createListNamed}
           onAddToList={addToList}
-          onAddToPortfolio={loggedIn ? (sym: string) => { setSearchOpen(false); setSearchMode("go"); setPfAddSymbol(sym); } : undefined}
+          onAddToPortfolio={loggedIn ? (sym: string) => { setSearchOpen(false); setSearchMode("go"); openChartPositionEntry(sym); } : undefined}
           marketPrefs={marketPrefs} prefsReady={prefsReady} onShowAllMarkets={showAllMarkets}
           onClose={() => { setSearchOpen(false); setSearchMode("go"); }} onPick={onSearchPick} onAdd={addSymbol} onRemove={removeSymbol}
           onToggleCompare={(s: string, mode?: CmpMode) => toggleCompare(s, mode)} />
@@ -6904,6 +7325,56 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         <div className="undo-toast" role="alert" style={{ position: "fixed", bottom: 136, left: "50%", transform: "translateX(-50%)", background: "var(--panel-3)", border: "1px solid var(--danger)", borderRadius: "var(--r-md)", padding: "8px 16px", fontSize: 12.5, color: "var(--text)", boxShadow: "0 8px 24px -8px rgba(0,0,0,.7)", zIndex: 52, display: "flex", alignItems: "center", gap: 10, maxWidth: "min(92vw, 560px)" }}>
           {t("drawingLoadFailed")}
         </div>
+      )}
+
+      {drawingOwnerMatches && drawingSaveIssues[active] && (
+        <div className="undo-toast" role="alert" data-testid="drawing-save-recovery" style={{ position: "fixed", bottom: 176, left: "50%", transform: "translateX(-50%)", background: "var(--panel-3)", border: "1px solid var(--warn)", borderRadius: "var(--r-md)", padding: "12px 16px", fontSize: 12.5, color: "var(--text)", boxShadow: "0 8px 24px -8px rgba(0,0,0,.7)", zIndex: 53, width: "min(92vw, 560px)", display: "flex", flexWrap: "wrap", gap: 10 }}>
+          <span style={{ width: "100%" }}>{drawingSaveRecoveryMessage(drawingSaveIssues[active], lang, t)}</span>
+          {(() => {
+            const issue = drawingSaveIssues[active];
+            const choices = drawingSaveIssueChoices(issue, !!drawingCloudCopies[active]);
+            if (choices.length === 0) return null;
+            if (choices.includes("retry_save")) {
+              return (
+                <button type="button" style={{ minHeight: 44 }} disabled={drawingSavesActive.current.has(active)} onClick={() => flushDrawings(active)}>{t("drawingRetrySave")}</button>
+              );
+            }
+            // keep_local implies the full replace/keep cloud UI (counts + alternatives + both buttons)
+            if (choices.includes("keep_local")) {
+              return (
+                <>
+                  <span style={{ width: "100%" }}>{t("drawingLocalCopy")} ({drawPending.current[active]?.length ?? 0}) · {t("drawingCloudCopy")} ({drawingCloudCopies[active].drawings.length})</span>
+                  {[...(drawRecovery.current[drawOwner.current]?.[active]?.alternatives ?? [])].map((copy, index) => (
+                    <button key={copy.recoveryId} type="button" style={{ minHeight: 44 }} disabled={drawingSavesActive.current.has(active)} onClick={() => chooseDrawingRecoveryCopy(active, copy.recoveryId!)}>{t("drawingOtherLocalCopy")} {index + 1} ({copy.drawings.length})</button>
+                  ))}
+                  {choices.includes("use_cloud") && (
+                    <button type="button" style={{ minHeight: 44 }} disabled={drawingSavesActive.current.has(active)} onClick={() => resolveDrawingRecovery(active, "cloud")}>{t("drawingUseCloud")}</button>
+                  )}
+                  {choices.includes("keep_local") && (
+                    <button type="button" style={{ minHeight: 44 }} disabled={drawingSavesActive.current.has(active)} onClick={() => resolveDrawingRecovery(active, "local")}>{t("drawingKeepLocal")}</button>
+                  )}
+                </>
+              );
+            }
+            // too_many falls here: only "Use cloud copy" once the cloud copy is loaded,
+            // or "Review cloud copy" if the user still needs to fetch it.
+            if (choices.includes("use_cloud")) {
+              return (
+                <button type="button" style={{ minHeight: 44 }} disabled={drawingSavesActive.current.has(active)} onClick={() => resolveDrawingRecovery(active, "cloud")}>{t("drawingUseCloud")}</button>
+              );
+            }
+            if (choices.includes("review_cloud")) {
+              return (
+                <button type="button" style={{ minHeight: 44 }} onClick={() => void loadDrawingCloudCopy(active)}>{t("drawingReviewCloud")}</button>
+              );
+            }
+            return null;
+          })()}
+        </div>
+      )}
+
+      {drawingOwnerMatches && drawingStorageUnavailable && !drawingSaveIssues[active] && (
+        <div className="undo-toast" role="alert" data-testid="drawing-storage-unavailable">{t("drawingStorageUnavailable")}</div>
       )}
 
       {drawingLimitWarning && (

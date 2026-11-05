@@ -45,6 +45,9 @@ import TechLabPanel from "./TechLabPanel";
 import TranscriptDrawer from "./TranscriptDrawer";
 import TranscriptsPage from "./TranscriptsPage";
 import CompanyIntelligencePage from "./CompanyIntelligencePage";
+import SharedShellCompanyIntelligence from "./SharedShellCompanyIntelligence";
+import RegionalIntelligenceWorkspace from "./RegionalIntelligenceWorkspace";
+import { useOptionalSharedShellPresentation } from "@/components/chrome/shared-shell/SharedShellPresentation";
 import FinComparePage from "./FinComparePage";
 import ResearchWorkspaceNav from "./ResearchWorkspaceNav";
 import { isTranscriptId } from "../../lib/transcripts";
@@ -142,6 +145,7 @@ export default function MegaPane({
   intel = null,
   closeRequest = 0,
 }: MegaPaneProps) {
+  const sharedPresentation = useOptionalSharedShellPresentation();
   const workspace = mode === "workspace";
   const isMobile = useIsMobile();
   // The chart-hosted workspace pane is visually a full-screen overlay at <=860px, so it needs
@@ -335,12 +339,28 @@ export default function MegaPane({
         <div className="fin-body" key={page} id="fin-active-panel" role="tabpanel" aria-labelledby={`fin-tab-${page}`}>
           {page === "overview" && <OverviewPage sym={sym} fund={fund} name={displayName} onNavigate={navigate} />}
           {page === "intelligence" && (
-            <CompanyIntelligencePage
+            // The regional snapshot and the incumbent event view share this one mount, so the
+            // chart-hosted pane and /analysis render the same component. The event child below is
+            // UNCHANGED and is mounted only when the URL actually selects it: a US symbol passes
+            // through the wrapper untouched, and a regional symbol lands on the snapshot until a
+            // retained event pin or an explicit ci_view=event asks for the event path.
+            <RegionalIntelligenceWorkspace
               sym={sym}
+              fund={fund}
+              fundLoading={fundLoading}
               name={displayName}
-              onOpenTx={openTranscript}
-              onEvidenceOpenChange={setIntelligenceEvidenceOpen}
-            />
+              onNavigate={navigate}
+            >
+              {sharedPresentation ? <SharedShellCompanyIntelligence
+                sym={sym} name={displayName} onOpenTx={openTranscript}
+                onEvidenceOpenChange={setIntelligenceEvidenceOpen}
+              /> : <CompanyIntelligencePage
+                sym={sym}
+                name={displayName}
+                onOpenTx={openTranscript}
+                onEvidenceOpenChange={setIntelligenceEvidenceOpen}
+              />}
+            </RegionalIntelligenceWorkspace>
           )}
           {page === "statements" && (
             <StatementsPage sym={sym} fund={fund} name={displayName} onOpenTx={openTranscript} />
@@ -355,7 +375,7 @@ export default function MegaPane({
           {page === "forecast" && <ForecastPage sym={sym} fund={fund} bars={bars} zh={zh} loading={fundLoading} />}
           {page === "technicals" && <TechnicalsPage sym={sym} bars={bars} zh={zh} />}
           {page === "seasonals" && <SeasonalsPage sym={sym} bars={bars} zh={zh} />}
-          {page === "ownership" && <OwnershipPage sym={sym} />}
+          {page === "ownership" && <OwnershipPage sym={sym} fund={fund} fundLoading={fundLoading} />}
           {page === "insider" && <InsiderPage sym={sym} bars={bars} zh={zh} />}
           {page === "lab" && <TechLabPanel sym={sym} intel={intel} zh={zh} />}
           {page === "compare" && (

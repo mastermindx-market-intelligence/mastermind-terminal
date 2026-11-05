@@ -2,6 +2,7 @@ import { expect, test, type Locator, type Page, type TestInfo } from "@playwrigh
 import { mkdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { e2eWatchlistOwner, isolateWatchlistStore } from "./watchlistStore";
+import { NEWS_VIEW } from "../lib/__tests__/fixtures/newsEditorial";
 import { expectTapTarget } from "./tapTarget";
 
 // E13 — News catch-up. A returning user sees which company stories are new, which were revised
@@ -51,10 +52,12 @@ const story = (
 
 const snapshotFor = (ticker: string, rows: NewsRow[]) => ({
   schema: "ticker_news.snapshot.v1",
+  editorial_policy: "ticker_news.curated.v1",
+  editorial_view: NEWS_VIEW,
   ticker,
   security_id: `SEC:US-XNAS-${ticker}`,
   state: "live",
-  rows,
+  rows: rows.map((row) => ({ ...row, editorial_view: NEWS_VIEW })),
   next_cursor: rows[rows.length - 1]?.sequence ?? null,
   has_more: false,
   source_health: { state: "live", last_successful_catchup: rows[0]?.received_at ?? null },

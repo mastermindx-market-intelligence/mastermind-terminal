@@ -12,6 +12,7 @@ import styles from "./OptionsCompanion.module.css";
 
 // The initial chart/Overview bundle does not fetch or mount options data.
 const OptionsCompanion = dynamic(() => import("./OptionsCompanion"), { ssr: false });
+const ExposureChartReference = dynamic(() => import("../exposure-map/ExposureChartReference"), { ssr: false });
 const QUERY = "(max-width: 860px)"; // Terminal's canonical single-column breakpoint.
 const subscribeViewport = (callback: () => void) => {
   const query = window.matchMedia(QUERY); query.addEventListener("change", callback);
@@ -35,6 +36,12 @@ const OptionsRail = forwardRef<OptionsRailHandle, Props>(function OptionsRail({ 
   const { lang } = useLang(); const t = optionsT(lang);
   const small = useSyncExternalStore(subscribeViewport, smallSnapshot, serverSnapshot);
   const [open, setOpen] = useState(false);
+  const [hasExposureLink, setHasExposureLink] = useState(false);
+  useEffect(() => {
+    const read = () => setHasExposureLink(window.location.hash.startsWith("#exposure="));
+    read(); window.addEventListener("hashchange", read); window.addEventListener("popstate", read);
+    return () => { window.removeEventListener("hashchange", read); window.removeEventListener("popstate", read); };
+  }, []);
   // Parked while `open` was true and the user pressed "Show on chart" — the panel stays
   // mounted (and so do its selection, pin, queued build and scroll offsets) but the sheet
   // is hidden so the user can reach the chart underneath. Returns false if `small` ever
@@ -93,6 +100,7 @@ const OptionsRail = forwardRef<OptionsRailHandle, Props>(function OptionsRail({ 
   const sheetOpen = showing && small && !parked && !contextOpen;
   const sheetKeepMounted = showing && small && (parked || contextOpen);
   return <>
+    {enabled && hasExposureLink && <ExposureChartReference symbol={symbol} active={access === "allowed" && !replayActive} pinned={pinned} onPin={onPin} />}
     <aside className="rail" data-options-rail={showing && !small && !contextOpen ? "open" : "closed"}>
       {enabled && <div className={styles.railSwitch} role="group" aria-label={t("perspectives")}>
         <button type="button" aria-pressed={!showing && !contextOpen} onClick={() => { onContextChange?.(false); close(); }}>{t("overview")}</button>

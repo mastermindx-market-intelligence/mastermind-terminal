@@ -13,6 +13,8 @@
 #   /opt/terminal/terminal-build.sh --target-sha <full-lowercase-40-hex>
 # USAGE (isolated beta target profile):
 #   /opt/terminal/terminal-build.sh --target beta --target-sha <full-lowercase-40-hex>
+# USAGE (beta-only one-shot failed dirty upgrade recovery; immutable IDs required):
+#   /opt/terminal/terminal-build.sh --target beta --recover-attempt <32-hex> --pending-record-id <64-hex> --target-sha <40-hex>
 # USAGE (beta-only FIRST-INSTALL bootstrap entrance; invalid for production):
 #   /opt/terminal/terminal-build.sh --target beta --bootstrap --target-sha <full-lowercase-40-hex>
 #
@@ -43,7 +45,7 @@
 #   global cron wrapper,     YES                         NO — never, on any path
 #   quote-hub service,
 #   owner self-install
-#   MMX_SHARED_SHELL         never inherited (unset)     exactly 1 (owner-declared)
+#   MMX_SHARED_SHELL         source/unit-qualified build exactly 1 (owner-declared)
 #
 # The beta profile still deploys only an exact full commit contained by the freshly
 # fetched protected ref, still requires a CLEAN (or sole-canonical-head-mismatch)
@@ -252,6 +254,141 @@ apply_profile_environment(){
       return 64
       ;;
   esac
+}
+
+# Production remains opt-in until the qualified source-owned unit drop-in is
+# installed by the attended host configuration lane. Its BUILD flag is inert in
+# an older runtime: Next pins the actual feature flag into each new build.
+# Caller environment is never activation authority. Derive the expected bytes from the admitted commit.
+production_shared_shell_state(){
+  [ "$TARGET" = production ] || { printf '0\n'; return 0; }
+  sanitize_git_environment
+  python3 -I - "$SRC" "$FULL_SHA" <<'PY_PRODUCTION_SHELL'
+import os
+from pathlib import Path
+import shlex
+import stat
+import subprocess
+import sys
+
+repository, revision = sys.argv[1:]
+installed = Path('/etc/systemd/system/terminal.service.d/shared-shell.conf')
+try:
+    def unit_property(name):
+        return subprocess.check_output(
+            ['systemctl', 'show', '-p', name, '--value', 'terminal.service'],
+            text=True, stderr=subprocess.DEVNULL).strip()
+
+    feature_keys = {'MMX_SHARED_SHELL', 'MMX_SHARED_SHELL_BUILD'}
+    def feature_assignments(text):
+        import re
+        return re.findall(r'(?m)^\s*(?:export\s+)?(MMX_SHARED_SHELL(?:_BUILD)?)(?:\s*=|:\s+)', text)
+
+    def inspect_env_file(path, optional=False):
+        # Read only for feature-key classification; no secret value is returned.
+        if not path.exists() and not path.is_symlink() and optional:
+            return
+        fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW)
+        try:
+            info = os.fstat(fd)
+            if (not stat.S_ISREG(info.st_mode) or info.st_uid != os.geteuid()
+                    or info.st_mode & 0o022 or info.st_size > 1024 * 1024):
+                raise ValueError('unsupported environment file')
+            text = os.read(fd, 1024 * 1024 + 1).decode('utf-8')
+        finally:
+            os.close(fd)
+        if feature_assignments(text):
+            raise ValueError('feature key in environment file')
+
+    environment = unit_property('Environment')
+    flags = [item.split('=', 1)[1] for item in shlex.split(environment)
+             if item.startswith('MMX_SHARED_SHELL_BUILD=')]
+    runtime_flags = [item for item in shlex.split(environment)
+                     if item.startswith('MMX_SHARED_SHELL=')]
+    if runtime_flags:
+        raise ValueError('production runtime flag must stay absent')
+    exists = installed.exists() or installed.is_symlink()
+    if not exists and not flags:
+        print('0')
+        sys.exit(0)
+    if flags != ['1'] or not exists:
+        raise ValueError('unit and promotion drop-in disagree')
+    passed = shlex.split(unit_property('PassEnvironment'))
+    unset = shlex.split(unit_property('UnsetEnvironment'))
+    if any(item.split('=', 1)[0] in feature_keys for item in passed + unset):
+        raise ValueError('feature key in indirect unit environment')
+    manager = subprocess.check_output(['systemctl', 'show-environment'],
+                                      text=True, stderr=subprocess.DEVNULL)
+    if feature_assignments(manager):
+        raise ValueError('feature key in manager environment')
+    import re
+    files = unit_property('EnvironmentFiles')
+    entry = re.compile(r'(/[-A-Za-z0-9_./]+) \(ignore_errors=(yes|no)\)')
+    if entry.sub('', files).strip():
+        raise ValueError('unsupported environment file topology')
+    for path, optional in entry.findall(files):
+        inspect_env_file(Path(path), optional == 'yes')
+    app = Path(repository).parent / 'terminal'
+    for name in ['.env.local', '.env.production.local', '.env.production', '.env']:
+        inspect_env_file(app / name, optional=True)
+    start = unit_property('ExecStart')
+    if (re.findall(r'path=([^ ;]+) ;', start) != ['/usr/bin/npm']
+            or start.count('argv[]=') != 1
+            or 'argv[]=/usr/bin/npm run start ;' not in start):
+        raise ValueError('unsupported production start wrapper')
+    import json
+    package = subprocess.check_output(
+        ['git', '-C', repository, 'cat-file', 'blob', revision + ':terminal/package.json'],
+        stderr=subprocess.DEVNULL)
+    if json.loads(package).get('scripts', {}).get('start') != 'next start':
+        raise ValueError('unsupported application start wrapper')
+    directory = installed.parent.lstat()
+    if (not stat.S_ISDIR(directory.st_mode) or directory.st_uid != os.geteuid()
+            or directory.st_mode & 0o022):
+        raise ValueError('promotion directory custody')
+    fd = os.open(installed, os.O_RDONLY | os.O_NOFOLLOW)
+    try:
+        info = os.fstat(fd)
+        if (not stat.S_ISREG(info.st_mode) or info.st_uid != os.geteuid()
+                or info.st_mode & 0o022 or info.st_size > 4096):
+            raise ValueError('promotion file custody')
+        actual = os.read(fd, 4097)
+        after = installed.lstat()
+        if (info.st_dev, info.st_ino) != (after.st_dev, after.st_ino):
+            raise ValueError('promotion file identity changed')
+    finally:
+        os.close(fd)
+    expected = subprocess.check_output(
+        ['git', '-C', repository, 'cat-file', 'blob', revision + ':ops/terminal-shared-shell.conf'],
+        stderr=subprocess.DEVNULL)
+    if expected != b'[Service]\nEnvironment=MMX_SHARED_SHELL_BUILD=1\n' or actual != expected:
+        raise ValueError('promotion file is not the admitted source')
+    print('1')
+except Exception:
+    print('FATAL: production Shared Shell activation is not source/unit/custody qualified', file=sys.stderr)
+    sys.exit(65)
+PY_PRODUCTION_SHELL
+}
+
+apply_production_shared_shell_profile(){
+  [ "$TARGET" = production ] || return 0
+  PRODUCTION_SHARED_SHELL_ENABLED=$(production_shared_shell_state) || return $?
+  case "$PRODUCTION_SHARED_SHELL_ENABLED" in
+    0) unset MMX_SHARED_SHELL ;;
+    1) export MMX_SHARED_SHELL=1 ;;
+    *) return 65 ;;
+  esac
+  log "production Shared Shell profile derived from admitted source and unit: enabled=$PRODUCTION_SHARED_SHELL_ENABLED"
+}
+
+production_shared_shell_profile_unchanged(){
+  [ "$TARGET" = production ] || return 0
+  local observed
+  observed=$(production_shared_shell_state) || return $?
+  [ "$observed" = "$PRODUCTION_SHARED_SHELL_ENABLED" ] || {
+    log "FATAL: production Shared Shell activation changed during the build"
+    return 65
+  }
 }
 
 # Beta runtime settings are verified against the source-managed unit, never
@@ -1624,19 +1761,32 @@ deploy_generation_abort(){
   log "DEPLOY FAILED: $reason"
   log "rolling back the deploy generation (build + identity)"
   deploy_generation_rollback "$app" "$swapped" || rc=$?
-  # Restart whenever the live .next moved, INCLUDING when the identity is
-  # unresolved. `next start` resolves .next/* at request time, so a server left
-  # bound to a renamed tree serves the restored build's chunks against the failed
-  # build's in-memory manifests. "Identity unresolved" is a reporting state; it is
-  # never a reason to leave the process pointed at a directory that moved.
+  # A process must never remain pointed at a tree that moved: reactivate a
+  # qualified prior generation, or stop the selected unit when prior identity
+  # or closed configuration cannot be proved. Restoration itself always runs.
   if [ "$DEPLOY_ROLLBACK_MOVED_BUILD" = 1 ]; then
-    if [ "$SERVICE_NAME" = terminal ]; then
-      # Incumbent anchor: the production unit is named literally here, and only
-      # when the resolved profile IS production. A beta rollback below can only
-      # ever name its own unit; beta never restarts terminal on any path.
-      systemctl restart terminal || { log "restart after rollback FAILED"; rc=1; }
+    # Build/marker restoration above always runs. Reactivation is separate:
+    # prove a known old target or a closed prior Investigation candidate.
+    local restored_sha restored_build
+    restored_sha=$(read_live_deployment_marker "$app/.deployment-id" 2>/dev/null) || restored_sha=
+    restored_build=$(cat "$app/.next/BUILD_ID" 2>/dev/null) || restored_build=
+    if investigation_restoration_activation_allowed "$restored_sha"; then
+      if [ "$SERVICE_NAME" = terminal ]; then
+        systemctl restart terminal || { log "restart after rollback FAILED"; rc=1; }
+      else
+        systemctl restart "$SERVICE_NAME" || { log "restart after rollback FAILED"; rc=1; }
+      fi
+      if ! require_investigation_closed_after_start "$restored_sha" "$restored_build"; then
+        systemctl stop "$SERVICE_NAME" || true
+        log "rollback activation unresolved: closed prior candidate process binding failed"
+        rc=1
+      fi
     else
-      systemctl restart "$SERVICE_NAME" || { log "restart after rollback FAILED"; rc=1; }
+      # Never leave an unqualified candidate serving against a restored tree.
+      # This is containment, not drain, SQL rollback or proof of no effects.
+      systemctl stop "$SERVICE_NAME" || true
+      log "rollback activation withheld: prior target identity or closure unqualified"
+      rc=1
     fi
   fi
   if [ "$rc" = 0 ]; then
@@ -2295,10 +2445,88 @@ def action_attempt_begin(args):
     return 0
 
 
+
+def recovery_candidate(args):
+    (target_root, state_dir, app_root, repo, sha, policy_digest, production_app,
+     identifier, expected_id) = args
+    full_sha(sha, "recovery target SHA")
+    hex64(expected_id, "expected failed attempt record")
+    hex64(policy_digest, "recovery policy digest")
+    old_path, attempt = read_attempt(target_root, state_dir, identifier)
+    if record_id(attempt) != expected_id:
+        fail("pending attempt is not the exact failed record selected for recovery")
+    if (attempt.get("phase") != "failed" or attempt.get("mode") != "upgrade"
+            or attempt.get("live_inputs_dirty") is not True
+            or attempt.get("recovery_from_record_id") is not None):
+        fail("only an original failed dirty upgrade may consume one recovery entrance")
+    for key, value in (("app_root", norm(app_root)), ("canonical_repo", norm(repo)),
+                       ("target_sha", sha), ("policy_digest", policy_digest)):
+        if attempt.get(key) != value:
+            fail(f"recovery cannot change the captured {key}")
+    current, _ = pointer_destination(target_root, RUNTIME_POINTER)
+    if norm(current) != attempt.get("prior_runtime_record"):
+        fail("prior accepted pointer changed before recovery")
+    prior = validated_runtime(target_root, state_dir, app_root, repo, production_app, current)
+    if (record_id(prior) != attempt.get("prior_runtime_record_id")
+            or prior.get("accepted_sha") != attempt.get("prior_sha")
+            or prior.get("build_id") != attempt.get("prior_build_id")):
+        fail("prior accepted runtime identity changed before recovery")
+    if attempt_runtime_committed(target_root, state_dir, attempt):
+        fail("an already committed attempt is never recovered again")
+    if read_bytes(os.path.join(app_root, ".deployment-id"), "failed target marker").decode("ascii").strip() != sha:
+        fail("recovery marker is not the captured failed target")
+    if os.path.lexists(os.path.join(app_root, ".next")):
+        fail("recovery requires the failed generation stopped and quarantined")
+    if read_bytes(os.path.join(app_root, ".deployment-id.bak"), "retained prior marker").decode("ascii").strip() != attempt["prior_sha"]:
+        fail("retained marker does not name the captured prior generation")
+    retained = {}
+    for name, expected_sha, expected_build in (
+            (".next.bak", attempt["prior_sha"], attempt["prior_build_id"]),
+            (".next.broken", sha, attempt.get("build_id"))):
+        root = os.path.join(app_root, name)
+        require_dir(root, "retained generation")
+        build = read_bytes(os.path.join(root, "BUILD_ID"), "retained build ID").decode("ascii").strip()
+        raw = read_bytes(os.path.join(root, "required-server-files.json"), "retained server manifest")
+        try:
+            manifest = json.loads(raw)
+        except (ValueError, UnicodeError):
+            fail("retained server manifest is invalid")
+        if (build != expected_build or not isinstance(manifest, dict)
+                or not isinstance(manifest.get("config"), dict)
+                or manifest["config"].get("deploymentId") != expected_sha):
+            fail("retained build evidence does not match the captured generation")
+        retained[name] = {"build_id": build, "deployment_id": expected_sha,
+                          "server_manifest_sha256": hashlib.sha256(raw).hexdigest()}
+    return old_path, attempt, retained
+
+
+def action_attempt_recovery_check(args):
+    _, attempt, _ = recovery_candidate(args)
+    print("RECOVERABLE\t" + attempt["attempt_id"])
+    return 0
+
+
+def action_attempt_recover(args):
+    old_path, attempt, retained = recovery_candidate(args)
+    original_id = record_id(attempt)
+    attempt.pop("record_id", None)
+    attempt.update({"phase": "recovering", "recovery_from_record": old_path,
+                    "recovery_from_record_id": original_id,
+                    "recovery_retained_builds": retained,
+                    "recovery_build_id": None})
+    path = publish(args[1], f"attempt-{attempt['attempt_id']}-recovering-{record_id(attempt)[:16]}.json", attempt)
+    replace_pointer(args[0], ATTEMPT_POINTER, path, old_path)
+    print("RECOVERY\t{}\t{}\t{}\t{}".format(
+        attempt["prior_runtime_record"], attempt["prior_runtime_record_id"],
+        attempt["prior_sha"], attempt["prior_build_id"]))
+    return 0
+
+
 def action_attempt_phase(args):
     target_root, state_dir, identifier, phase, build_id = args
     old_path, attempt = read_attempt(target_root, state_dir, identifier)
     allowed = {
+        "recovering": {"activation", "inputs-dirty", "failed"},
         "staging": {"staging", "activation", "inputs-dirty", "failed"},
         "activation": {"activation", "inputs-dirty", "failed"},
         "inputs-dirty": {"inputs-dirty", "activation", "validated", "failed"},
@@ -2315,9 +2543,10 @@ def action_attempt_phase(args):
     if build_id:
         if TOKEN_RE.fullmatch(build_id) is None:
             fail("the staged beta build ID is malformed")
-        if attempt.get("build_id") and attempt["build_id"] != build_id:
+        key = "recovery_build_id" if attempt.get("recovery_from_record_id") else "build_id"
+        if attempt.get(key) and attempt[key] != build_id:
             fail("the beta attempt cannot change its staged build identity")
-        attempt["build_id"] = build_id
+        attempt[key] = build_id
     path = publish(state_dir, f"attempt-{identifier}-{phase}-{record_id(attempt)[:16]}.json", attempt)
     replace_pointer(target_root, ATTEMPT_POINTER, path, old_path)
     print(path)
@@ -2390,7 +2619,7 @@ def action_runtime(args):
     hex64(policy_digest, "selected policy digest")
     _, attempt = read_attempt(target_root, state_dir, attempt_id)
     if (attempt.get("phase") != "committing" or attempt.get("target_sha") != sha
-            or attempt.get("build_id") != build_id or attempt.get("policy_digest") != policy_digest
+            or (attempt.get("recovery_build_id") if attempt.get("recovery_from_record_id") else attempt.get("build_id")) != build_id or attempt.get("policy_digest") != policy_digest
             or attempt.get("app_root") != norm(app_root) or attempt.get("canonical_repo") != norm(repo)):
         fail("runtime publication is not the validated pending beta transaction")
     destination, provenance = provision_anchor(target_root, state_dir, app_root, repo, production_app)
@@ -2428,6 +2657,9 @@ def action_runtime(args):
         "previous_runtime_record_id": attempt.get("prior_runtime_record_id"),
         "runtime_accepted": True, "rollback_baseline": True,
     }
+    if attempt.get("recovery_from_record_id"):
+        payload.update({key: attempt[key] for key in (
+            "recovery_from_record", "recovery_from_record_id", "recovery_retained_builds")})
     path = publish(state_dir, runtime_filename(sha, record_id(payload)[:16]), payload)
     replace_pointer(target_root, RUNTIME_POINTER, path, expected_previous)
     print(path)
@@ -2471,6 +2703,8 @@ ACTIONS = {
     "ordinary-gate": action_ordinary_gate,
     "runtime": action_runtime,
     "demote": action_demote,
+    "attempt-recovery-check": action_attempt_recovery_check,
+    "attempt-recover": action_attempt_recover,
     "attempt-begin": action_attempt_begin,
     "attempt-phase": action_attempt_phase,
     "attempt-state": action_attempt_state,
@@ -3603,6 +3837,388 @@ beta_txn_begin(){
   log "beta transaction pending: attempt=$BETA_TXN_ID prior=${BETA_PRIOR_SHA:-<first-install>} target=$FULL_SHA; automatic startup disabled"
 }
 
+
+beta_runtime_prune_owned(){
+  # beta-only protected runtime-source deletion helper (bounded fabric artifact).
+  # Frozen interface: beta_runtime_prune_owned "$prior_sha" "$target_sha"
+  # Shell globals consumed: TARGET (must be exactly "beta"), SRC (canonical git
+  # repo), RUNTIME_SYNC_ROOT and BETA_TARGET_ROOT (identical physical
+  # destination root). Read-only against git: no fetch, no ref/index mutation.
+  # Deletes only prior-tracked regular files that are absent from the target
+  # commit inside the exact six runtime roots (config, contracts, hub, ingest,
+  # signal_layer, scripts), and only after a full preflight of every candidate.
+  # Any refusal happens before the first unlink. Emits compact deleted
+  # path/count evidence; never prints file content.
+  local _brp_prior="${1-}" _brp_target="${2-}" _brp_rc=0
+  if [ "$#" -ne 2 ]; then
+    printf '%s: refuse: expected exactly 2 arguments (prior_sha target_sha), got %s\n' \
+      'beta_runtime_prune_owned' "$#" >&2
+    return 2
+  fi
+  MMX_PRUNE_TARGET_NAME="${TARGET-}" \
+  MMX_PRUNE_SRC="${SRC-}" \
+  MMX_PRUNE_ROOT="${RUNTIME_SYNC_ROOT-}" \
+  MMX_PRUNE_ROOT_ALIAS="${BETA_TARGET_ROOT-}" \
+  python3 -I - "$_brp_prior" "$_brp_target" <<'MMX_PRUNE_PY_V1'
+import errno
+import hashlib
+import os
+import re
+import stat
+import subprocess
+import sys
+
+PROG = "beta_runtime_prune_owned"
+SHA_RE = re.compile(r"\A[0-9a-f]{40}\Z")
+RUNTIME_ROOTS = ("config", "contracts", "hub", "ingest", "signal_layer", "scripts")
+GIT_MODE_REGULAR = ("100644", "100755")
+GIT_MODE_KNOWN = ("100644", "100755", "120000", "160000")
+RC_REFUSAL = 2
+RC_PREFLIGHT = 3
+RC_DELETION = 4
+
+
+def refuse(msg):
+    sys.stderr.write(PROG + ": refuse: " + msg + "\n")
+    sys.exit(RC_REFUSAL)
+
+
+def errname(exc):
+    code = getattr(exc, "errno", None)
+    return errno.errorcode.get(code, str(exc))
+
+
+def normalize_physical_dir(raw, label):
+    if not raw:
+        refuse(label + " is empty or unset")
+    if not os.path.isabs(raw):
+        refuse(label + " must be an absolute path (got %r)" % (raw,))
+    if os.path.normpath(raw) != raw:
+        refuse(label + " is not a normalized single-spelling path (alias form refused)")
+    real = os.path.realpath(raw)
+    if real != raw:
+        refuse(label + " is not a physical directory (symlink component refused)")
+    if not os.path.isdir(real):
+        refuse(label + " is not an existing directory")
+    return real
+
+
+def safe_git_path(path):
+    if not path or path.startswith("/"):
+        return False
+    for bad in ("\n", "\r"):
+        if bad in path:
+            return False
+    for comp in path.split("/"):
+        if comp in ("", ".", ".."):
+            return False
+    return True
+
+
+def in_runtime_roots(path):
+    for root in RUNTIME_ROOTS:
+        if path.startswith(root + "/"):
+            return True
+    return False
+
+
+def git_bytes(src, args):
+    proc = subprocess.run(["git", "-C", src] + args,
+                          stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if proc.returncode != 0:
+        first = proc.stderr.decode("utf-8", "replace").strip().splitlines()
+        refuse("read-only git %s failed: %s"
+               % (args[0], first[0] if first else "unknown error"))
+    return proc.stdout
+
+
+def require_commit(src, sha, label):
+    kind = git_bytes(src, ["cat-file", "-t", sha]).decode("ascii", "replace").strip()
+    if kind != "commit":
+        refuse(label + " is not a commit object (git reports %r)" % (kind,))
+
+
+def tracked_entries(src, sha, label):
+    entries = {}
+    for rec in git_bytes(src, ["ls-tree", "-r", "-z", sha]).split(b"\x00"):
+        if not rec:
+            continue
+        meta, sep, raw_path = rec.partition(b"\t")
+        if not sep:
+            refuse("malformed ls-tree record in " + label + " tree")
+        fields = meta.split(b" ")
+        if len(fields) != 3:
+            refuse("malformed ls-tree metadata in " + label + " tree")
+        mode = fields[0].decode("ascii", "replace")
+        kind = fields[1].decode("ascii", "replace")
+        oid = fields[2].decode("ascii", "replace")
+        path = os.fsdecode(raw_path)
+        if not safe_git_path(path):
+            refuse("unsafe git path in " + label + " tree: " + repr(path))
+        if not in_runtime_roots(path):
+            continue
+        if mode not in GIT_MODE_KNOWN:
+            refuse("unsafe git mode " + mode + " for tracked path " + repr(path))
+        if kind != "blob":
+            refuse("unexpected tracked object type " + kind + " for path " + repr(path))
+        entries[path] = (mode, oid)
+    return entries
+
+
+def open_under_root(root_fd, rel):
+    # Walk every path component with O_NOFOLLOW starting from the already
+    # verified physical root fd, so no symlink or traversal can escape.
+    parts = rel.split("/")
+    opened = []
+    cur = root_fd
+    try:
+        for comp in parts[:-1]:
+            cur = os.open(comp, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW | os.O_CLOEXEC,
+                          dir_fd=cur)
+            opened.append(cur)
+            require_directory_custody(cur)
+        entry = os.stat(parts[-1], dir_fd=cur, follow_symlinks=False)
+        if not stat.S_ISREG(entry.st_mode):
+            raise OSError(errno.EINVAL, "candidate is not a regular source file")
+        leaf = os.open(parts[-1], os.O_RDONLY | os.O_NOFOLLOW | os.O_CLOEXEC | os.O_NONBLOCK, dir_fd=cur)
+    except OSError:
+        for fd in opened:
+            os.close(fd)
+        raise
+    return leaf, opened
+
+
+def require_directory_custody(fd):
+    meta = os.fstat(fd)
+    if (not stat.S_ISDIR(meta.st_mode) or meta.st_uid != os.geteuid()
+            or stat.S_IMODE(meta.st_mode) & 0o022):
+        raise OSError(errno.EPERM, "runtime directory custody is not exclusive")
+
+
+def close_all(fds):
+    for fd in fds:
+        os.close(fd)
+
+
+def blob_sha1(fd):
+    digest = hashlib.sha1()
+    size = os.fstat(fd).st_size
+    digest.update(("blob %d\0" % (size,)).encode("ascii"))
+    os.lseek(fd, 0, os.SEEK_SET)
+    while True:
+        chunk = os.read(fd, 1 << 20)
+        if not chunk:
+            break
+        digest.update(chunk)
+    return digest.hexdigest()
+
+
+def preflight_candidate(root, root_fd, rel, entry):
+    mode, oid = entry
+    disk = os.path.join(root, rel)
+    try:
+        leaf_fd, opened = open_under_root(root_fd, rel)
+    except FileNotFoundError:
+        return ("missing", "")
+    except OSError as exc:
+        return ("blocked",
+                "path is not directly addressable under the physical root ("
+                + errname(exc) + ")")
+    try:
+        st = os.fstat(leaf_fd)
+        if not stat.S_ISREG(st.st_mode):
+            return ("blocked",
+                    "on-disk entry is not a regular file (mode 0%o)"
+                    % (st.st_mode & 0o7777,))
+        if st.st_nlink != 1:
+            return ("blocked",
+                    "shared inode (st_nlink=%d); aliased deletion refused"
+                    % (st.st_nlink,))
+        if st.st_uid != os.geteuid() or st.st_mode & 0o022:
+            return ("blocked",
+                    "world-writable or group-writable/foreign custody (mode 0%o); refused"
+                    % (st.st_mode & 0o7777,))
+        if (mode == "100755") != bool(st.st_mode & 0o100):
+            return ("blocked",
+                    "executable bit incompatible with prior git mode %s (disk 0%o)"
+                    % (mode, st.st_mode & 0o7777))
+        if blob_sha1(leaf_fd) != oid:
+            return ("blocked", "on-disk bytes differ from prior git blob " + oid)
+        if signature(os.fstat(leaf_fd)) != signature(st):
+            return ("blocked", "candidate changed during its content check")
+        if os.path.realpath(disk) != disk:
+            return ("blocked", "path resolves outside the physical root")
+    finally:
+        os.close(leaf_fd)
+        close_all(opened)
+    return ("plan", signature(st))
+
+
+def signature(st):
+    return (st.st_dev, st.st_ino, st.st_mode, st.st_uid, st.st_gid,
+            st.st_nlink, st.st_size, st.st_mtime_ns, st.st_ctime_ns)
+
+
+def delete_planned(root_fd, plan):
+    deleted = []
+    for rel, expected_identity, expected_oid in plan:
+        parts = rel.split("/")
+        opened = []
+        cur = root_fd
+        try:
+            for comp in parts[:-1]:
+                cur = os.open(comp,
+                              os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW | os.O_CLOEXEC,
+                              dir_fd=cur)
+                opened.append(cur)
+                require_directory_custody(cur)
+            leaf_name = parts[-1]
+            st = os.stat(leaf_name, dir_fd=cur, follow_symlinks=False)
+            if not stat.S_ISREG(st.st_mode) or signature(st) != expected_identity:
+                raise OSError(errno.EINVAL, "candidate identity changed before unlink", rel)
+            fd = os.open(leaf_name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=cur)
+            try:
+                if (signature(os.fstat(fd)) != expected_identity
+                        or blob_sha1(fd) != expected_oid
+                        or signature(os.fstat(fd)) != expected_identity):
+                    raise OSError(errno.EINVAL, "candidate bytes changed before unlink", rel)
+            finally:
+                os.close(fd)
+            if signature(os.stat(leaf_name, dir_fd=cur, follow_symlinks=False)) != expected_identity:
+                raise OSError(errno.EINVAL, "candidate path changed before unlink", rel)
+            os.unlink(leaf_name, dir_fd=cur)
+        except OSError as exc:
+            close_all(opened)
+            sys.stderr.write("%s: deletion-failed after %d deletion(s) at %s: %s\n"
+                             % (PROG, len(deleted), rel, errname(exc)))
+            sys.exit(RC_DELETION)
+        close_all(opened)
+        deleted.append(rel)
+    return deleted
+
+
+def main(argv):
+    if len(argv) != 3:
+        refuse("expected exactly 2 arguments: prior_sha target_sha")
+    prior, target = argv[1], argv[2]
+
+    profile = os.environ.get("MMX_PRUNE_TARGET_NAME", "")
+    if profile != "beta":
+        refuse("TARGET profile must be exactly 'beta' for this helper (got %r)"
+               % (profile,))
+
+    if not SHA_RE.match(target):
+        refuse("target_sha must be a full 40-character lowercase hex commit id")
+    if prior != "" and not SHA_RE.match(prior):
+        refuse("prior_sha must be empty (first bootstrap) or a full 40-character "
+               "lowercase hex commit id")
+
+    root_raw = os.environ.get("MMX_PRUNE_ROOT", "")
+    alias_raw = os.environ.get("MMX_PRUNE_ROOT_ALIAS", "")
+    src_raw = os.environ.get("MMX_PRUNE_SRC", "")
+    if not root_raw or not alias_raw:
+        refuse("RUNTIME_SYNC_ROOT and BETA_TARGET_ROOT must both be set")
+    if root_raw != alias_raw:
+        refuse("destination root mismatch/alias: RUNTIME_SYNC_ROOT and "
+               "BETA_TARGET_ROOT are not the identical path")
+    root = normalize_physical_dir(root_raw, "RUNTIME_SYNC_ROOT/BETA_TARGET_ROOT")
+    src = normalize_physical_dir(src_raw, "SRC canonical git repo")
+
+    require_commit(src, target, "target_sha")
+    if prior == "":
+        sys.stdout.write("%s: first_bootstrap prior_revision_empty candidates=0 "
+                         "deleted_count=0 target=%s\n" % (PROG, target))
+        return 0
+    require_commit(src, prior, "prior_sha")
+
+    prior_entries = tracked_entries(src, prior, "prior")
+    target_entries = tracked_entries(src, target, "target")
+    # Candidates: regular files tracked in prior, absent from target, inside the
+    # exact six roots. Tracked overlap is untouched by design.
+    candidates = sorted(
+        path for path, (mode, _oid) in prior_entries.items()
+        if mode in GIT_MODE_REGULAR and path not in target_entries
+    )
+
+    root_fd = os.open(root, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+    try:
+        require_directory_custody(root_fd)
+        plan = []
+        blocked = []
+        missing = 0
+        for rel in candidates:
+            status, why = preflight_candidate(root, root_fd, rel, prior_entries[rel])
+            if status == "plan":
+                plan.append((rel, why, prior_entries[rel][1]))
+            elif status == "missing":
+                missing += 1
+            else:
+                blocked.append((rel, why))
+        if blocked:
+            for rel, why in blocked:
+                sys.stderr.write("%s: blocked candidate %s: %s\n" % (PROG, rel, why))
+            sys.stderr.write("%s: preflight blocked=%d planned=%d missing=%d "
+                             "candidates=%d; no deletion performed\n"
+                             % (PROG, len(blocked), len(plan), missing, len(candidates)))
+            sys.exit(RC_PREFLIGHT)
+        deleted = delete_planned(root_fd, plan)
+    finally:
+        os.close(root_fd)
+
+    sys.stdout.write("%s: deleted_count=%d candidates=%d missing_noop=%d "
+                     "prior=%s target=%s\n"
+                     % (PROG, len(deleted), len(candidates), missing, prior, target))
+    for rel in deleted:
+        sys.stdout.write("deleted " + rel + "\n")
+    return 0
+
+
+sys.exit(main(sys.argv))
+MMX_PRUNE_PY_V1
+  _brp_rc=$?
+  return "$_brp_rc"
+}
+
+# End beta runtime source prune.
+
+beta_recovery_check(){
+  local field value head dirty
+  [ "$TARGET" = beta ] || return 64
+  beta_unit_declares_shared_shell inactive disabled || return $?
+  for field in MainPID ControlPID; do
+    value=$(systemctl show -p "$field" --value "$SERVICE_NAME") || return $?
+    [ "$value" = 0 ] || { log "FATAL: recovery requires $field=0"; return 75; }
+  done
+  head=$(git -C "$SRC" rev-parse HEAD) || return $?
+  dirty=$(git -C "$SRC" status --porcelain=v1 --untracked-files=all) || return $?
+  [ "$head" = "$TARGET_SHA" ] && [ -z "$dirty" ] || {
+    log "FATAL: recovery requires the exact clean failed target checkout"; return 75;
+  }
+  beta_statectl attempt-recovery-check "$BETA_TARGET_ROOT" "$SOURCE_PROVISIONED_STATE_DIR" \
+    "$APP" "$SRC" "$TARGET_SHA" "$PREFLIGHT_POLICY_DIGEST" "$PRODUCTION_APP_DEFAULT" \
+    "$RECOVERY_ATTEMPT" "$RECOVERY_RECORD_ID" >/dev/null
+}
+
+beta_txn_recover(){
+  local outcome tag
+  beta_recovery_check || return $?
+  outcome=$(beta_statectl attempt-recover "$BETA_TARGET_ROOT" "$SOURCE_PROVISIONED_STATE_DIR" \
+    "$APP" "$SRC" "$TARGET_SHA" "$PREFLIGHT_POLICY_DIGEST" "$PRODUCTION_APP_DEFAULT" \
+    "$RECOVERY_ATTEMPT" "$RECOVERY_RECORD_ID") || return $?
+  IFS=$'\t' read -r tag BETA_PRIOR_RECORD BETA_PRIOR_RECORD_ID BETA_PRIOR_SHA BETA_PRIOR_BUILD <<<"$outcome"
+  [ "$tag" = RECOVERY ] || return 75
+  RUNTIME_RECORD_PATH=$BETA_PRIOR_RECORD
+  BETA_TXN_ID=$RECOVERY_ATTEMPT
+  BETA_TXN_ACTIVE=1
+  BETA_TXN_INPUTS_DIRTY=1
+  BETA_TXN_ABORT_HANDLED=0
+  BETA_TXN_COMMITTED=0
+  SWAPPED=0
+  NEW_BUILD_ID=
+  CANONICAL_RECOVERY_ARMED=0
+  log "beta same-attempt recovery claimed once: attempt=$BETA_TXN_ID failed_record=$RECOVERY_RECORD_ID target=$TARGET_SHA; exact target will be rebuilt"
+}
+
 beta_txn_phase(){
   [ "$TARGET" = beta ] || return 0
   [ "$BETA_TXN_ACTIVE" = 1 ] || { log "FATAL: beta has no admitted pending transaction"; return 75; }
@@ -3631,8 +4247,15 @@ beta_txn_quarantine(){
   # Only the candidate installed by this attempt belongs in .next.broken.
   # A staging failure must never rename the still-accepted baseline's build.
   if [ "${SWAPPED:-0}" = 1 ] && [ -d "$APP/.next" ] && [ ! -L "$APP/.next" ]; then
-    rm -rf "$APP/.next.broken" || return $?
-    mv "$APP/.next" "$APP/.next.broken" || return $?
+    if [ "${RECOVERY_REQUESTED:-0}" = 1 ]; then
+      # Keep both original retained generations. A failed recovery is not retried.
+      local recovery_failed="$APP/.next.recovery-failed-$BETA_TXN_ID"
+      [ ! -e "$recovery_failed" ] && [ ! -L "$recovery_failed" ] || return 75
+      mv "$APP/.next" "$recovery_failed" || return $?
+    else
+      rm -rf "$APP/.next.broken" || return $?
+      mv "$APP/.next" "$APP/.next.broken" || return $?
+    fi
   fi
 }
 
@@ -3714,12 +4337,28 @@ beta_txn_abort(){
     git -C "$SRC" clean -qfd || rc=1
   fi
   if [ "$rc" = 0 ]; then
-    systemctl restart "$SERVICE_NAME" || rc=1
+    # Restoration activation gate: an old prior target keeps the incumbent
+    # rollback restart verbatim; a primitive-bearing prior may only be
+    # reactivated on a qualified closed installation. The source/build
+    # restoration above is never blocked by this gate — a refusal only stops
+    # the service instead of reactivating it, and lands in the unresolved
+    # branch below with evidence retained.
+    if investigation_restoration_activation_allowed "$BETA_PRIOR_SHA"; then
+      systemctl restart "$SERVICE_NAME" || rc=1
+    else
+      beta_txn_stop || rc=1
+      log "BETA UNRESOLVED: prior-generation Investigation installation admission is not qualified; stopped without reactivation"
+      rc=1
+    fi
   fi
   if [ "$rc" = 0 ]; then
     sleep 6 || rc=1
   fi
   if [ "$rc" = 0 ]; then
+    if ! require_investigation_closed_after_start "$BETA_PRIOR_SHA" "$BETA_PRIOR_BUILD"; then
+      beta_txn_stop || true
+      rc=1
+    fi
     deploy_identity_verified "$APP" "$BETA_PRIOR_SHA" "$BETA_PRIOR_BUILD" || rc=1
     shared_shell_status_verified "$BETA_STATUS_URL" "$BETA_PRIOR_SHA" "$SRC" || rc=1
     run_release_preflight "$PREFLIGHT_SCRIPT" "$PREFLIGHT_POLICY" "$SRC" "$PREFLIGHT_RECEIPT_DIR" || rc=1
@@ -3749,6 +4388,14 @@ beta_txn_abort(){
 beta_txn_commit(){
   # All fatal beta source/dependency publication is complete before this call.
   [ "$TARGET" = beta ] || return 0
+  # Post-start admission before the existing transaction acceptance. This is the
+  # one acceptance gate for every beta entrance (ordinary, bootstrap, recovery
+  # and the final reflection restart, which is immediately followed by this
+  # commit); old targets decided absent keep the incumbent acceptance verbatim.
+  if ! require_investigation_closed_after_start "$FULL_SHA" "$NEW_BUILD_ID"; then
+    log "FATAL: beta acceptance refused: candidate Investigation installation admission failed"
+    return 75
+  fi
   shared_shell_status_verified "$BETA_STATUS_URL" "$FULL_SHA" "$SRC" || return $?
   deploy_identity_verified "$APP" "$FULL_SHA" "$NEW_BUILD_ID" || return $?
   run_release_preflight "$PREFLIGHT_SCRIPT" "$PREFLIGHT_POLICY" "$SRC" "$PREFLIGHT_RECEIPT_DIR" || return $?
@@ -3763,11 +4410,757 @@ beta_txn_commit(){
   # automatically startable generation is the durably accepted one.
   systemctl enable "$SERVICE_NAME" || return $?
   beta_unit_declares_shared_shell active enabled || return $?
-  deploy_generation_commit "$APP" || return $?
+  if [ "${RECOVERY_REQUESTED:-0}" != 1 ]; then deploy_generation_commit "$APP" || return $?; fi
   beta_statectl attempt-finish "$BETA_TARGET_ROOT" "$SOURCE_PROVISIONED_STATE_DIR" \
     "$BETA_TXN_ID" committed >/dev/null || return $?
   BETA_TXN_ACTIVE=0
   log "beta transaction committed: accepted=$FULL_SHA attempt=$BETA_TXN_ID"
+}
+
+# ── Investigation candidate installation admission (IW2 cutover-0030 step 1) ──
+# The cutover contract requires the candidate to be EXPLICITLY configured closed
+# in its real service environment before it handles requests. Caller environment,
+# the current source identity or a staged dotenv copy never prove service
+# admission, so this owner verifies the SELECTED profile's unit (and only that
+# unit) directly, read-only, before and after every candidate start/restart.
+#
+# Target trigger: the admission primitive is detected ONLY from the exact
+# admitted Git tree at terminal/lib/investigationApiAdmission.ts via trusted
+# `git ls-tree -r -z` object reads of $SRC at the named revision, plus a
+# `git cat-file -t` commit proof before any gated classification. The mutable
+# checkout is never consulted (no working-tree substring scan). A missing
+# primitive in a PROVEN valid target keeps the incumbent deployment/rollback
+# behavior verbatim; an unresolvable tree read, a non-commit identity carrying
+# the path, or a primitive entry that is not a regular blob is a refusal —
+# never an old-target bypass.
+#
+# Classification (fail closed, bounded reason codes only — raw Environment,
+# dotenv/proc environ values, secret-bearing digests, arbitrary paths and
+# exception text are never printed, hashed or serialized):
+#   old-target          no primitive in the admitted tree; incumbent behavior
+#   explicitly-closed   exactly one literal `closed` declaration across the
+#                       unit Environment/approved EnvironmentFile, no duplicate
+#                       or indirect channel, supported launch wrapper and env
+#                       topology, silent Next dotenv sources — plus, for
+#                       poststart, an active unit whose MainPID and every
+#                       npm/Next serving child stay bound to the unit cgroup
+#                       with the closed literal in their initial environment.
+#                       The initial environment is corroboration only; no
+#                       per-request memory env is proven by any of this.
+# Trusted incumbent runtime assumption: host Node/npm binaries, global/user npm
+# configuration and dependency installation remain trusted release inputs. This
+# bounded prerequisite rejects project-local npm configuration and selected
+# launch overrides; it is not unconditional closed-before-first-request proof,
+# code integrity, a request-time env attestation or fleet/drain authorization.
+# Decisions: prestart may observe an inactive unit only with a qualified
+# configuration (bootstrap); poststart requires active; restoration gates only
+# the reactivation of a primitive-bearing prior generation and never blocks the
+# incumbent source/build restoration itself.
+investigation_install_state(){
+  local expected_sha=${1:-} phase=${2:-} decision
+  case "$phase" in
+    prestart|poststart|restoration) ;;
+    *) log "FATAL: Investigation admission needs a known phase (prestart/poststart/restoration)"; return 64 ;;
+  esac
+  if [ -z "$expected_sha" ]; then
+    log "FATAL: Investigation admission requires the exact admitted target identity"
+    return 65
+  fi
+  if ! [[ "$expected_sha" =~ ^[0-9a-f]{40}$ ]]; then
+    log "FATAL: Investigation admission requires one full lower-case commit SHA"
+    return 65
+  fi
+  sanitize_git_environment
+  if ! decision=$(python3 -I - "$SRC" "$expected_sha" "$phase" "$APP" "$SERVICE_NAME" \
+      "$ENV_SOURCE_DIR" "$TARGET" 2>&1 <<'PY_INVESTIGATION_INSTALL'
+import json
+import os
+import re
+import shlex
+import stat
+import subprocess
+import sys
+
+# Read-only admission verifier for the Investigation candidate installation.
+# Runs as `python3 -I - repo revision phase app_root unit env_source_dir profile`
+# with the program on stdin. Prints exactly one decision token on stdout
+# (old-target | explicitly-closed); refusals exit 65 with one bounded
+# `reason=<code>` line. There is deliberately no flag, file or environment
+# variable that can widen, bypass or retarget any check below.
+
+ADMISSION_KEY = "INVESTIGATION_API_ADMISSION"
+PRIMITIVE_PATH = "terminal/lib/investigationApiAdmission.ts"
+CLOSED_VALUE = "closed"
+# These supported launch shapes do not permit alternate shells, Node preload
+# channels or npm configuration locations. Classification never emits values.
+LAUNCH_OVERRIDE_KEYS = frozenset({
+    "NODE_OPTIONS", "NODE_PATH", "BASH_ENV", "ENV", "LD_PRELOAD", "LD_LIBRARY_PATH",
+    "NPM_CONFIG_SCRIPT_SHELL", "NPM_CONFIG_NODE_OPTIONS", "NPM_CONFIG_USERCONFIG",
+    "NPM_CONFIG_GLOBALCONFIG", "NPM_CONFIG_PREFIX"})
+DOTENV_NAMES = (".env.local", ".env.production.local", ".env.production", ".env")
+REGULAR_TREE_MODES = frozenset({"100644", "100755"})
+MAX_TREE_LIST_BYTES = 16 * 1024 * 1024
+MAX_ENV_FILE_BYTES = 1024 * 1024
+MAX_PROC_ENVIRONMENT_BYTES = 256 * 1024
+MAX_PROCS = 32
+MAX_ANCESTRY_DEPTH = 8
+MAX_LAUNCH_TOKENS = 24
+MAX_SCAN_LINES = 4096
+PHASES = ("prestart", "poststart", "restoration")
+PROFILES = ("production", "beta")
+
+# The key must be followed by a separator/whitespace/end so a longer key that
+# merely shares this prefix is never classified as this key.
+KEY_LINE = re.compile(r"^(?:export\s+)?INVESTIGATION_API_ADMISSION(?![A-Za-z0-9_])")
+KEY_ASSIGNMENT = re.compile(
+    r"(?m)^\s*(?:export\s+)?INVESTIGATION_API_ADMISSION(?![A-Za-z0-9_])\s*(?:=|:)")
+ENVFILE_ENTRY = re.compile(r"(/[-A-Za-z0-9_./]+) \(ignore_errors=(yes|no)\)")
+
+
+class Refused(Exception):
+    def __init__(self, code):
+        super().__init__(code)
+        self.code = code
+
+
+# ── collectors: the only host-touching code; tests replace these by name ────
+def run_git(repository, arguments, failure_code):
+    try:
+        completed = subprocess.run(
+            ["git", "-C", repository, *arguments],
+            stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, timeout=60)
+    except (OSError, subprocess.SubprocessError):
+        raise Refused(failure_code)
+    if completed.returncode != 0:
+        raise Refused(failure_code)
+    return completed.stdout
+
+
+def unit_property(unit, prop):
+    try:
+        completed = subprocess.run(
+            ["systemctl", "show", "-p", prop, "--value", unit],
+            stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, timeout=30)
+    except (OSError, subprocess.SubprocessError):
+        raise Refused("unit-inspection-unavailable")
+    if completed.returncode != 0:
+        raise Refused("unit-inspection-unavailable")
+    return completed.stdout.decode("utf-8", "replace").strip("\n")
+
+
+def manager_environment():
+    try:
+        completed = subprocess.run(
+            ["systemctl", "show-environment"],
+            stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, timeout=30)
+    except (OSError, subprocess.SubprocessError):
+        raise Refused("manager-environment-unavailable")
+    if completed.returncode != 0:
+        raise Refused("manager-environment-unavailable")
+    return completed.stdout.decode("utf-8", "replace")
+
+
+def read_bounded_regular_file(path, limit, prefix):
+    flags = (os.O_RDONLY | getattr(os, "O_CLOEXEC", 0)
+             | getattr(os, "O_NOFOLLOW", 0) | os.O_NONBLOCK)
+    try:
+        fd = os.open(path, flags)
+    except OSError:
+        raise Refused(prefix + "-unreadable")
+    try:
+        before = os.fstat(fd)
+        if (not stat.S_ISREG(before.st_mode) or before.st_uid != os.geteuid()
+                or before.st_mode & 0o022 or before.st_size > limit):
+            if not stat.S_ISREG(before.st_mode):
+                raise Refused(prefix + "-not-regular")
+            if before.st_uid != os.geteuid():
+                raise Refused(prefix + "-foreign-owner")
+            if before.st_mode & 0o022:
+                raise Refused(prefix + "-group-or-other-writable")
+            raise Refused(prefix + "-oversized")
+        payload = os.read(fd, limit + 1)
+        after = os.fstat(fd)
+    finally:
+        os.close(fd)
+    identity = lambda item: (
+        item.st_dev, item.st_ino, item.st_mode, item.st_uid,
+        item.st_gid, item.st_size, item.st_mtime_ns, item.st_ctime_ns)
+    if identity(before) != identity(after):
+        raise Refused(prefix + "-changed-during-verification")
+    if len(payload) > limit:
+        raise Refused(prefix + "-oversized")
+    try:
+        return payload.decode("utf-8")
+    except UnicodeDecodeError:
+        raise Refused(prefix + "-malformed")
+
+
+def proc_bytes(pid, name, limit):
+    try:
+        fd = os.open("/proc/%d/%s" % (pid, name),
+                     os.O_RDONLY | getattr(os, "O_CLOEXEC", 0))
+    except OSError:
+        raise Refused("serving-process-unreadable")
+    try:
+        payload = os.read(fd, limit + 1)
+    except OSError:
+        raise Refused("serving-process-unreadable")
+    finally:
+        os.close(fd)
+    if len(payload) > limit:
+        raise Refused("serving-process-environment-oversized")
+    return payload
+
+
+def proc_starttime(pid):
+    fields = proc_bytes(pid, "stat", 4096).decode("utf-8", "replace")
+    tail = fields.rpartition(")")[2].split()
+    if len(tail) < 20:
+        raise Refused("serving-process-unreadable")
+    # tail[0] is state (field 3); starttime is field 22 → tail index 19.
+    return tail[19]
+
+
+def proc_ppid(pid):
+    fields = proc_bytes(pid, "stat", 4096).decode("utf-8", "replace")
+    tail = fields.rpartition(")")[2].split()
+    if len(tail) < 20:
+        raise Refused("serving-process-unreadable")
+    return int(tail[1])
+
+
+def proc_cmdline(pid):
+    payload = proc_bytes(pid, "cmdline", 8192)
+    return [item.decode("utf-8", "replace")
+            for item in payload.split(b"\0") if item]
+
+
+def proc_comm(pid):
+    payload = proc_bytes(pid, "comm", 256)
+    return payload.decode("utf-8", "replace").strip("\n")
+
+
+def proc_cgroup_path(pid):
+    payload = proc_bytes(pid, "cgroup", 4096).decode("utf-8", "replace")
+    paths = []
+    for line in payload.splitlines():
+        parts = line.split(":", 2)
+        if len(parts) == 3 and parts[2]:
+            paths.append(parts[2])
+    if not paths:
+        raise Refused("serving-process-unreadable")
+    return paths[0]
+
+
+def proc_children(pid):
+    try:
+        tasks = os.listdir("/proc/%d/task" % pid)
+    except OSError:
+        raise Refused("serving-process-unreadable")
+    if len(tasks) > 128:
+        raise Refused("serving-process-inventory-oversized")
+    children = []
+    for task in sorted(tasks):
+        try:
+            with open("/proc/%d/task/%s/children" % (pid, task),
+                      "rb") as handle:
+                payload = handle.read(4097)
+        except OSError:
+            raise Refused("serving-process-unreadable")
+        if len(payload) > 4096:
+            raise Refused("serving-process-inventory-oversized")
+        children.extend(int(item) for item in payload.split())
+    return children
+
+
+def proc_cwd_identity(pid):
+    try:
+        return os.stat("/proc/%d/cwd" % pid)
+    except OSError:
+        raise Refused("serving-process-foreign-working-directory")
+
+
+def app_root_identity(app_root):
+    try:
+        return os.stat(app_root)
+    except OSError:
+        raise Refused("app-root-unavailable")
+
+
+# ── pure classification ──────────────────────────────────────────────────────
+def refuse_launch_overrides(tokens):
+    for token in tokens:
+        key, separator, value = token.partition("=")
+        if separator and value and key.upper() in LAUNCH_OVERRIDE_KEYS:
+            raise Refused("unsupported-launch-environment-override")
+
+
+def refuse_selected_launch_overrides(tokens):
+    for token in tokens:
+        key = token.partition("=")[0].upper()
+        if (key in LAUNCH_OVERRIDE_KEYS or key in ("PATH", "HOME")
+                or key.startswith("NPM_CONFIG_")):
+            raise Refused("unsupported-launch-environment-override")
+    refuse_launch_overrides(tokens)
+
+
+def normalize_env_export_line(line):
+    # Match the already-supported Next dotenv export-whitespace lexical shape.
+    # Both admission and known override classification use this normalization.
+    # JavaScript \s additionally includes UTF-8 BOM (U+FEFF). Match that
+    # leading/export boundary so supported dotenv assignments cannot hide.
+    return re.sub(r"^[\s\ufeff]*(?:export[\s\ufeff]+)?", "", line).rstrip()
+
+
+def refuse_file_launch_overrides(text, selected=False):
+    for line in text.splitlines():
+        stripped = normalize_env_export_line(line)
+        if not stripped or stripped.startswith(("#", ";")):
+            continue
+        assignment = re.match(r"^([A-Za-z_][A-Za-z0-9_]*)\s*(?:=|:\s+)(.*)$", stripped)
+        if assignment:
+            token = assignment.group(1) + "=" + assignment.group(2)
+            if selected:
+                refuse_selected_launch_overrides([token])
+            else:
+                refuse_launch_overrides([token])
+
+
+def admission_values_in_unit_environment(text):
+    values = []
+    tokens = shlex.split(text)
+    refuse_selected_launch_overrides(tokens)
+    for token in tokens:
+        key, separator, value = token.partition("=")
+        if key != ADMISSION_KEY:
+            continue
+        if not separator:
+            raise Refused("malformed-admission-assignment")
+        values.append(value)
+    return values
+
+
+def admission_values_in_text(text):
+    """Scan one env-file/dotenv buffer for this key only. Values are returned
+    for classification and are never echoed anywhere."""
+    values = []
+    malformed = False
+    lines = text.splitlines()
+    if len(lines) > MAX_SCAN_LINES:
+        raise Refused("environment-scan-oversized")
+    for line in lines:
+        stripped = normalize_env_export_line(line)
+        if not stripped or stripped[0] in "#;":
+            continue
+        if not KEY_LINE.match(stripped):
+            continue
+        match = re.match(
+            r"^(?:export\s+)?INVESTIGATION_API_ADMISSION(?![A-Za-z0-9_])"
+            r"\s*(:|=)\s*(.*)$", stripped)
+        if match is None:
+            malformed = True
+            continue
+        value = match.group(2).strip()
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in "'\"":
+            value = value[1:-1]
+        values.append(value)
+    if malformed:
+        raise Refused("malformed-admission-assignment")
+    return values
+
+
+def admission_values_in_systemd_file(text):
+    # EnvironmentFile is not Next dotenv. Support a deliberately narrow,
+    # complete single-line assignment grammar; multiline/continuation context
+    # cannot turn an apparent later key into a declaration. Never emit content.
+    if "\x00" in text or "\ufeff" in text:
+        raise Refused("unsupported-env-file-syntax")
+    lines = text.split("\n")  # systemd lines, not Python's broader splitlines
+    if len(lines) > MAX_SCAN_LINES:
+        raise Refused("environment-scan-oversized")
+    assignment = re.compile(
+        r"""([A-Za-z_][A-Za-z0-9_]*)[ \t]*=[ \t]*(?:([^"'\\\r\n]*)|'([^'\\\r\n]*)'|"([^"\\\r\n]*)")[ \t]*""")
+    values = []
+    for line in lines:
+        stripped = line.strip(" \t\r")
+        if not stripped or stripped.startswith(("#", ";")):
+            continue
+        match = assignment.fullmatch(stripped)
+        if match is None:
+            raise Refused("unsupported-env-file-syntax")
+        key = match.group(1)
+        if match.group(2) is not None:
+            value = match.group(2).strip(" \t\r")
+        else:
+            # Whitespace inside quotes is literal systemd value content.
+            value = match.group(3) if match.group(3) is not None else match.group(4)
+        refuse_selected_launch_overrides([key + "=" + value])
+        if key == ADMISSION_KEY:
+            values.append(value)
+    return values
+
+
+def admission_values_in_proc_environ(payload):
+    values = []
+    for item in payload.split(b"\0"):
+        if not item:
+            continue
+        key, separator, value = item.partition(b"=")
+        if separator and key == ADMISSION_KEY.encode():
+            values.append(value.decode("utf-8", "replace"))
+    return values
+
+
+def classify_environment_topology(profile, unit, app_root, env_source_dir):
+    if (unit_property(unit, "LoadState") != "loaded"
+            or unit_property(unit, "NeedDaemonReload") != "no"
+            or unit_property(unit, "ActiveState") not in ("active", "inactive")):
+        raise Refused("unit-configuration-unqualified")
+    expected_root = "/opt/terminal/terminal" if profile == "production" else "/opt/terminal/beta/terminal"
+    if unit_property(unit, "WorkingDirectory") != expected_root:
+        raise Refused("unsupported-working-directory")
+    for prop in ("ExecStartPre", "ExecStartPost", "ExecCondition", "ExecStopPost",
+                 "RootDirectory", "RootImage", "PAMName"):
+        if unit_property(unit, prop):
+            raise Refused("unsupported-service-launch-hook")
+    files = unit_property(unit, "EnvironmentFiles")
+    entries = ENVFILE_ENTRY.findall(files)
+    if ENVFILE_ENTRY.sub("", files).strip():
+        raise Refused("unsupported-env-file-topology")
+    declared = []
+    if profile == "production":
+        if entries:
+            raise Refused("unsupported-env-file-topology")
+    else:
+        approved = env_source_dir.rstrip("/") + "/environment"
+        if len(entries) != 1 or entries[0] != (approved, "no"):
+            raise Refused("unsupported-env-file-topology")
+        declared.append(read_bounded_regular_file(
+            entries[0][0], MAX_ENV_FILE_BYTES, "env-file"))
+    for token in shlex.split(unit_property(unit, "PassEnvironment")):
+        refuse_selected_launch_overrides([token])
+        if token.split("=", 1)[0] == ADMISSION_KEY:
+            raise Refused("admission-key-in-indirect-unit-environment")
+    for token in shlex.split(unit_property(unit, "UnsetEnvironment")):
+        refuse_selected_launch_overrides([token])
+        if token.split("=", 1)[0] == ADMISSION_KEY:
+            raise Refused("admission-key-in-indirect-unit-environment")
+    manager = manager_environment()
+    refuse_file_launch_overrides(manager)
+    if KEY_ASSIGNMENT.search(manager):
+        raise Refused("admission-key-in-manager-environment")
+    values = admission_values_in_unit_environment(
+        unit_property(unit, "Environment"))
+    for text in declared:
+        values.extend(admission_values_in_systemd_file(text))
+    if not values:
+        raise Refused("missing-explicit-closed")
+    if len(values) > 1:
+        raise Refused("conflicting-admission-declaration")
+    if values[0] != CLOSED_VALUE:
+        raise Refused("unit-admission-not-closed")
+    for name in DOTENV_NAMES:
+        path = os.path.join(app_root, name)
+        if not os.path.exists(path) and not os.path.islink(path):
+            continue
+        text = read_bounded_regular_file(path, MAX_ENV_FILE_BYTES, "dotenv")
+        refuse_file_launch_overrides(text, selected=True)
+        if admission_values_in_text(text):
+            raise Refused("dotenv-admission-conflict")
+
+
+def installed_package_json(app_root):
+    return read_bounded_regular_file(os.path.join(app_root, "package.json"),
+                                     MAX_ENV_FILE_BYTES, "installed-package")
+
+
+def classify_start_scripts(package):
+    try:
+        scripts = json.loads(package).get("scripts", {})
+    except (ValueError, TypeError, AttributeError):
+        raise Refused("unsupported-start-command")
+    if (not isinstance(scripts, dict) or scripts.get("start") != "next start"
+            or scripts.get("prestart") or scripts.get("poststart")):
+        raise Refused("unsupported-start-command")
+
+
+def classify_launch_wrapper(profile, unit, repository, revision, app_root_for_launch):
+    start = unit_property(unit, "ExecStart")
+    if (not start.strip().startswith("{") or not start.strip().endswith("}")
+            or start.count("{") != 1 or start.count("}") != 1):
+        raise Refused("unsupported-launch-wrapper")
+    if profile == "production":
+        if (re.findall(r"path=([^ ;]+) ;", start) != ["/usr/bin/npm"]
+                or start.count("argv[]=") != 1
+                or "argv[]=/usr/bin/npm run start ;" not in start):
+            raise Refused("unsupported-launch-wrapper")
+        package = run_git(repository, ["cat-file", "blob",
+                                        revision + ":terminal/package.json"],
+                          "unsupported-launch-wrapper")
+        classify_start_scripts(package)
+        # With an unchanged lockfile, the first production restart still reads
+        # the installed package before step8 source reflection. Bind that actual
+        # npm command too; the candidate Git package alone is insufficient.
+        classify_start_scripts(installed_package_json(app_root_for_launch))
+        return
+    # systemctl renders ONE argv[]= vector in an ExecStart record, not one
+    # repeated field per argument. Accept the source-owned beta unit shape.
+    if (not start.strip().startswith("{") or not start.strip().endswith("}")
+            or start.count("path=") != 1 or start.count("argv[]=") != 1):
+        raise Refused("unsupported-launch-wrapper")
+    path_match = re.search(r"\bpath=([^ ;]+)\s*;", start)
+    argv_match = re.search(r"argv\[\]=(.*?)\s*;", start)
+    if not path_match or not argv_match or path_match.group(1) != "/usr/bin/env":
+        raise Refused("unsupported-launch-wrapper")
+    argv = shlex.split(argv_match.group(1))
+    expected = ["/usr/bin/env", "node", "node_modules/next/dist/bin/next", "start",
+                "--port", "3001", "--hostname", "127.0.0.1"]
+    if argv != expected:
+        raise Refused("unsupported-launch-wrapper")
+
+
+def serving_role(argv, comm):
+    if comm.startswith("next-server"):
+        return "server"
+    for index in range(len(argv) - 1):
+        if argv[index].endswith("/next") or argv[index] == "next":
+            if argv[index + 1] == "start":
+                return "server"
+    base = os.path.basename(argv[0]) if argv else ""
+    if (base in ("npm", "npm-cli.js", "npm run start", "sh")
+            or (base == "node" and len(argv) >= 2
+                and os.path.basename(argv[1]) in ("npm", "npm-cli.js"))):
+        return "launcher"
+    return "unknown"
+
+
+def refuse_project_npm_config(text):
+    # No project-local npm overrides are part of the supported launch model.
+    # Refuse active content (including interpolation/indirection) instead of
+    # trying to resolve npm configuration or echoing a potentially secret line.
+    if any(line.strip() and not line.lstrip().startswith(("#", ";"))
+           for line in text.splitlines()):
+        raise Refused("unsupported-project-npm-configuration")
+
+
+def classify_project_npm_config(repository, revision, listing, app_root):
+    for record in listing.split(b"\0"):
+        meta, marker, path = record.partition(b"\t")
+        if marker and path == b"terminal/.npmrc":
+            fields = meta.decode("ascii", "replace").split()
+            if (len(fields) != 3 or fields[1] != "blob"
+                    or fields[0] not in REGULAR_TREE_MODES):
+                raise Refused("unsupported-project-npm-configuration")
+            content = run_git(repository, ["cat-file", "blob", revision + ":terminal/.npmrc"],
+                              "project-npm-configuration-unreadable")
+            if len(content) > MAX_ENV_FILE_BYTES:
+                raise Refused("project-npm-configuration-oversized")
+            refuse_project_npm_config(content.decode("utf-8"))
+    path = os.path.join(app_root, ".npmrc")
+    if os.path.exists(path) or os.path.islink(path):
+        refuse_project_npm_config(read_bounded_regular_file(
+            path, MAX_ENV_FILE_BYTES, "project-npm-configuration"))
+
+
+def classify_serving_processes(unit, app_root):
+    if unit_property(unit, "ActiveState") != "active":
+        raise Refused("service-not-active")
+    main_text = unit_property(unit, "MainPID")
+    if not main_text.isdigit() or int(main_text) <= 0:
+        raise Refused("mainpid-absent")
+    main_pid = int(main_text)
+    app = app_root_identity(app_root)
+    app_identity = (app.st_dev, app.st_ino)
+    expected_starttimes = {main_pid: proc_starttime(main_pid)}
+    main_cgroup = proc_cgroup_path(main_pid)
+    if unit_property(unit, "ControlGroup") != main_cgroup:
+        raise Refused("mainpid-outside-target-unit")
+    # systemd v1 unit cgroups and v2 scopes both end in the unit name, with or
+    # without the .service suffix (terminal vs terminal.service).
+    main_leaf = main_cgroup.rstrip("/").rpartition("/")[2]
+    if main_leaf not in (unit, unit + ".service"):
+        raise Refused("mainpid-outside-target-unit")
+    def descendants(capture=False):
+        collected = [main_pid]
+        frontier = [main_pid]
+        while frontier:
+            current = frontier.pop(0)
+            for child in proc_children(current):
+                if child in collected:
+                    continue
+                if len(collected) >= MAX_PROCS:
+                    raise Refused("serving-process-inventory-oversized")
+                if capture:
+                    expected_starttimes[child] = proc_starttime(child)
+                collected.append(child)
+                frontier.append(child)
+        return collected
+    collected = descendants(capture=True)
+    roles = {}
+    for pid in collected:
+        role = serving_role(proc_cmdline(pid), proc_comm(pid))
+        if role == "unknown":
+            raise Refused("unexpected-serving-process")
+        roles[pid] = role
+    servers = [pid for pid, role in roles.items() if role == "server"]
+    if not servers:
+        raise Refused("no-next-serving-process")
+    for pid in collected:
+        if proc_starttime(pid) != expected_starttimes[pid]:
+            raise Refused("process-identity-changed-during-verification")
+        if proc_cgroup_path(pid) != main_cgroup:
+            raise Refused("serving-process-outside-target-cgroup")
+    for pid in collected:
+        walker, hops = pid, 0
+        while walker != main_pid and walker > 1 and hops < MAX_ANCESTRY_DEPTH:
+            walker = proc_ppid(walker)
+            hops += 1
+        if walker != main_pid:
+            raise Refused("serving-process-ancestry-unknown")
+        cwd = proc_cwd_identity(pid)
+        if (cwd.st_dev, cwd.st_ino) != app_identity:
+            raise Refused("serving-process-foreign-working-directory")
+        initial_env = proc_bytes(pid, "environ", MAX_PROC_ENVIRONMENT_BYTES)
+        refuse_launch_overrides(item.decode("utf-8", "replace")
+                                for item in initial_env.split(b"\0") if item)
+        values = admission_values_in_proc_environ(initial_env)
+        if len(values) > 1:
+            raise Refused("serving-process-admission-conflict")
+        if not values or values[0] != CLOSED_VALUE:
+            raise Refused("serving-process-admission-not-closed")
+    if (unit_property(unit, "ActiveState") != "active"
+            or unit_property(unit, "MainPID") != main_text
+            or unit_property(unit, "ControlGroup") != main_cgroup
+            or descendants() != collected):
+        raise Refused("process-identity-changed-during-verification")
+    for pid in collected:
+        if proc_starttime(pid) != expected_starttimes[pid]:
+            raise Refused("process-identity-changed-during-verification")
+        if proc_cgroup_path(pid) != main_cgroup:
+            raise Refused("process-identity-changed-during-verification")
+
+
+def main(argv):
+    if len(argv) != 7:
+        raise Refused("verifier-invocation-invalid")
+    repository, revision, phase, app_root, unit = argv[:5]
+    env_source_dir, profile = argv[5], argv[6]
+    if phase not in PHASES or profile not in PROFILES:
+        raise Refused("verifier-invocation-invalid")
+    if re.fullmatch(r"[0-9a-f]{40}", revision) is None:
+        raise Refused("target-identity-missing")
+    # The exact admitted tree is read at the named revision only; a failed or
+    # oversized inventory is a refusal, and an inventory without the primitive
+    # decides old-target (identity provenance itself was already established by
+    # the incumbent exact-target admission before this verifier runs).
+    kind = run_git(repository, ["cat-file", "-t", revision],
+                   "target-identity-unresolvable").decode("ascii", "replace").strip()
+    if kind != "commit":
+        raise Refused("target-identity-unresolvable")
+    listing = run_git(repository, ["ls-tree", "-r", "-z", revision],
+                      "target-tree-unreadable")
+    if len(listing) > MAX_TREE_LIST_BYTES:
+        raise Refused("target-tree-oversized")
+    primitive = None
+    for record in listing.split(b"\0"):
+        if not record:
+            continue
+        meta, marker, path = record.partition(b"\t")
+        if marker and path == PRIMITIVE_PATH.encode():
+            primitive = meta.decode("ascii", "replace").split()
+            break
+    if primitive is None:
+        print("old-target")
+        return 0
+    if (len(primitive) != 3 or primitive[1] != "blob"
+            or primitive[0] not in REGULAR_TREE_MODES):
+        raise Refused("primitive-not-a-regular-blob")
+    classify_environment_topology(profile, unit, app_root, env_source_dir)
+    classify_launch_wrapper(profile, unit, repository, revision, app_root)
+    classify_project_npm_config(repository, revision, listing, app_root)
+    if phase == "poststart":
+        classify_serving_processes(unit, app_root)
+        classify_environment_topology(profile, unit, app_root, env_source_dir)
+        classify_launch_wrapper(profile, unit, repository, revision, app_root)
+        classify_project_npm_config(repository, revision, listing, app_root)
+    print("explicitly-closed")
+    return 0
+
+
+if __name__ == "__main__":
+    try:
+        main(sys.argv[1:])
+    except Refused as refusal:
+        sys.stderr.write("reason=%s\n" % refusal.code)
+        raise SystemExit(65)
+    except Exception:
+        sys.stderr.write("reason=verifier-unavailable\n")
+        raise SystemExit(65)
+PY_INVESTIGATION_INSTALL
+); then
+    # stderr on purpose: every caller captures this function's stdout, so the
+    # bounded refusal reason must reach the operator log directly.
+    log "FATAL: candidate Investigation installation admission refused: ${decision:-verifier-unavailable}" >&2
+    return 65
+  fi
+  printf '%s\n' "$decision"
+}
+
+# Prestart admission: run after target admission and again immediately before
+# every candidate start/restart. Refusals must route through the incumbent
+# abort path of the caller so source/build restoration is never blocked.
+require_investigation_closed_before_start(){
+  local expected_sha=${1:-${FULL_SHA:-}} decision
+  decision=$(investigation_install_state "$expected_sha" prestart) || return $?
+  if [ "$decision" != old-target ] && [ "$decision" != explicitly-closed ]; then
+    log "FATAL: unrecognized Investigation admission decision"
+    return 65
+  fi
+  [ "$decision" = old-target ] || log \
+    "candidate Investigation admission prestart: explicitly-closed (selected unit only; setting values are never logged)"
+  return 0
+}
+
+# Poststart admission: binds the deployed identity through the existing
+# three-identity gate, then requires the active selected unit and every
+# npm/Next serving child to carry the explicit closed installation. This
+# corroborates the initial process environment only; per-request memory env is
+# not proven by any admission decision.
+require_investigation_closed_after_start(){
+  local expected_sha=${1:-${FULL_SHA:-}} expected_build=${2:-${NEW_BUILD_ID:-}} decision
+  decision=$(investigation_install_state "$expected_sha" poststart) || return $?
+  if [ "$decision" = old-target ]; then
+    return 0
+  fi
+  if [ "$decision" != explicitly-closed ]; then
+    log "FATAL: unrecognized Investigation admission decision"
+    return 65
+  fi
+  if ! deploy_identity_verified "$APP" "$expected_sha" "$expected_build"; then
+    log "FATAL: candidate Investigation poststart could not bind the deployed identity"
+    return 65
+  fi
+  log \
+    "candidate Investigation admission poststart: explicitly-closed (active unit and serving children bound; process memory env is not proven)"
+  return 0
+}
+
+# Restoration/rollback activation: an old target keeps the incumbent rollback
+# restart verbatim; a primitive-bearing prior generation may only be
+# reactivated on a qualified closed installation. Never called for the
+# candidate's own start/restart, and never around the source/build restoration
+# steps themselves.
+investigation_restoration_activation_allowed(){
+  local expected_sha=${1:-} decision
+  if ! decision=$(investigation_install_state "$expected_sha" restoration); then
+    log "restoration activation withheld: Investigation admission refused (bounded reason on the refusal line)"
+    return 1
+  fi
+  if [ "$decision" = old-target ] || [ "$decision" = explicitly-closed ]; then
+    return 0
+  fi
+  log "restoration activation withheld: unrecognized Investigation admission decision"
+  return 1
 }
 
 # Before live identity begins moving, the current-generation W2A receipt owns the
@@ -3846,14 +5239,17 @@ if [ "${BASH_SOURCE[0]}" != "$0" ]; then
 fi
 
 # ── argument form -> profile -> SHA. Nothing here touches the filesystem. ──────
-# Exactly three shapes are accepted: the production default that predates any beta
-# work, the beta profile, and the beta-only bootstrap entrance. The profile flag,
+# Four explicit forms are accepted: the production default, ordinary beta,
+# beta bootstrap, and exact one-shot beta recovery. The profile flag,
 # when present, comes first and --bootstrap is valid only with --target beta. There
 # is no environment variable, config file or positional shortcut that selects a
 # profile or an entrance: the release intent is the command line, in full, every
 # time.
 TARGET_REQUESTED=production
 BOOTSTRAP_REQUESTED=0
+RECOVERY_REQUESTED=0
+RECOVERY_ATTEMPT=
+RECOVERY_RECORD_ID=
 TARGET_SHA=
 if [ "$#" -eq 2 ] && [ "$1" = "--target-sha" ]; then
   TARGET_SHA=$2
@@ -3864,9 +5260,19 @@ elif [ "$#" -eq 5 ] && [ "$1" = "--target" ] && [ "$3" = "--bootstrap" ] && [ "$
   TARGET_REQUESTED=$2
   TARGET_SHA=$5
   BOOTSTRAP_REQUESTED=1
+elif [ "$#" -eq 8 ] && [ "$1" = "--target" ] && [ "$2" = beta ] \
+    && [ "$3" = "--recover-attempt" ] && [ "$5" = "--pending-record-id" ] && [ "$7" = "--target-sha" ]; then
+  TARGET_REQUESTED=beta
+  RECOVERY_REQUESTED=1
+  RECOVERY_ATTEMPT=$4
+  RECOVERY_RECORD_ID=$6
+  TARGET_SHA=$8
+  if [[ ! "$RECOVERY_ATTEMPT" =~ ^[0-9a-f]{32}$ ]] || [[ ! "$RECOVERY_RECORD_ID" =~ ^[0-9a-f]{64}$ ]]; then
+    log "FATAL: recovery requires exact attempt and pending record identities"; exit 64
+  fi
 else
   log "USAGE: $0 [--target production|beta] [--bootstrap] --target-sha <full-lowercase-40-hex-commit>"
-  log "       --bootstrap is a beta-only entrance and is invalid for production"
+  log "       --bootstrap is beta-only; failed dirty upgrades use --target beta --recover-attempt <32-hex> --pending-record-id <64-hex> --target-sha <40-hex>"
   exit 64
 fi
 if [ "$BOOTSTRAP_REQUESTED" = 1 ] && [ "$TARGET_REQUESTED" != beta ]; then
@@ -3926,7 +5332,7 @@ prepare_preflight_receipt_dir "$PREFLIGHT_RECEIPT_DIR"
 # the ordinary entrance is written first and calls the gate INLINE, exactly as the
 # incumbent always did. The bootstrap entrance is second and unchanged in
 # behaviour; its own gate runs against the provisioned generation.
-if [ "$BOOTSTRAP_REQUESTED" != 1 ]; then
+if [ "$BOOTSTRAP_REQUESTED" != 1 ] && [ "$RECOVERY_REQUESTED" != 1 ]; then
   # The incumbent order, exactly restored: current-generation preflight (plus the
   # receipted sole-canonical-head-mismatch recovery and its second preflight)
   # BEFORE fetch, admission, reset, clean, build and every source write.
@@ -3952,11 +5358,15 @@ if [ "$BOOTSTRAP_REQUESTED" != 1 ]; then
     # build; activating here would cost the beta generation.
     beta_unit_declares_shared_shell active || exit $?
   fi
+  # Investigation candidate installation admission: after exact target admission,
+  # before any candidate source/build/marker mutation or start. Old targets are
+  # decided absent here and keep the incumbent behavior verbatim.
+  require_investigation_closed_before_start "$TARGET_SHA" || exit $?
   CANONICAL_RECOVERY_SHA=$PREFLIGHT_ACCEPTED_SHA
   CANONICAL_RECOVERY_ARMED=1
   git -C "$SRC" reset -q --hard "$TARGET_SHA"
   git -C "$SRC" clean -qfd
-else
+elif [ "$BOOTSTRAP_REQUESTED" = 1 ]; then
   # Bootstrap order is load-bearing: unit prerequisite -> admission of an empty or
   # exactly-verified target -> fetch the protected ref -> prove the requested
   # commit is contained by it -> bind the beta checkout -> provision SOURCE from the
@@ -3970,6 +5380,7 @@ else
   ACCEPTED_REF="refs/remotes/origin/$BRANCH"
   fetch_accepted_ref "$SRC" origin "$BRANCH" "$ACCEPTED_REF"
   admit_target_sha "$SRC" "$TARGET_SHA" "$ACCEPTED_REF_SHA"
+  require_investigation_closed_before_start "$TARGET_SHA" || exit $?
   sanitize_git_environment
   git -C "$SRC" reset -q --hard "$TARGET_SHA" || exit $?
   git -C "$SRC" clean -qfd || exit $?
@@ -3988,6 +5399,15 @@ else
     recover_canonical_head_mismatch "$SRC" "$DEPLOYMENT_MARKER" || exit $?
     run_release_preflight "$PREFLIGHT_SCRIPT" "$PREFLIGHT_POLICY" "$SRC" "$PREFLIGHT_RECEIPT_DIR"
   fi
+else
+  # Dirty failed-attempt recovery is an explicit, one-shot entrance. It does not
+  # reinterpret the original UNKNOWN_STOP as CLEAN or open a replacement attempt.
+  beta_recovery_check || exit $?
+  ACCEPTED_REF="refs/remotes/origin/$BRANCH"
+  fetch_accepted_ref "$SRC" origin "$BRANCH" "$ACCEPTED_REF"
+  admit_target_sha "$SRC" "$TARGET_SHA" "$ACCEPTED_REF_SHA"
+  require_investigation_closed_before_start "$TARGET_SHA" || exit $?
+  beta_txn_recover || exit $?
 fi
 FULL_SHA=$(git -C "$SRC" rev-parse HEAD)
 [ "$FULL_SHA" = "$TARGET_SHA" ] || {
@@ -3995,7 +5415,8 @@ FULL_SHA=$(git -C "$SRC" rev-parse HEAD)
   exit 65
 }
 SHA=${FULL_SHA:0:12}
-if [ "$TARGET" = beta ]; then
+apply_production_shared_shell_profile || exit $?
+if [ "$TARGET" = beta ] && [ "$RECOVERY_REQUESTED" != 1 ]; then
   beta_txn_begin || exit $?
 fi
 log "node $(node -v)"
@@ -4103,8 +5524,9 @@ log "next build (staging) ..."
 # deployment-id inputs to the ONE deployed commit so every HTML/RSC response and
 # every static chunk uses the same ?dpl= value. The Date.now fallback is only for
 # ad-hoc local builds. NODE_OPTIONS carries the heap ceiling (see build_node_options).
-# MMX_SHARED_SHELL is present only because apply_profile_environment declared it for
-# beta and removed it for production; the build command itself is identical for both.
+# MMX_SHARED_SHELL is owner-derived: beta declares it; production requires the
+# exact admitted activation drop-in and inert unit BUILD flag. Next pins the
+# value into this build, so restoring an older off build cannot enable it.
 BUILD_NODE_OPTIONS=$(build_node_options "${NODE_OPTIONS:-}")
 ( cd "$STAGE" && NODE_OPTIONS="$BUILD_NODE_OPTIONS" GIT_SHA="$FULL_SHA" NEXT_DEPLOYMENT_ID="$FULL_SHA" npm run build )
 
@@ -4126,6 +5548,17 @@ if [ "$TARGET" = beta ]; then
   fi
 fi
 
+# Running Next may resolve .next at request time. Repeat after the long build,
+# before the first live marker/build movement, as well as before each restart.
+# No generation has opened here: production EXIT cleanup restores its admitted
+# canonical source; beta uses its existing transaction abort/restoration path.
+if ! require_investigation_closed_before_start "$FULL_SHA"; then
+  if [ "$TARGET" = beta ]; then
+    beta_txn_abort "candidate Investigation admission refused before live generation swap" || exit 1
+  fi
+  exit 65
+fi
+
 # 5) Pin the same deployment id for `next start`, which evaluates next.config.ts
 #    again. Install it only after the staged build verifies, immediately before the
 #    atomic build swap — and open a deploy generation as it goes, so the prior
@@ -4138,7 +5571,11 @@ fi
 #    silently promote provisioned source to a rollback baseline, so no generation is
 #    opened at all on that entrance.
 if [ "$TARGET" = beta ]; then beta_txn_phase activation "$NEW_BUILD_ID" || exit $?; fi
-if [ "$BOOTSTRAP_REQUESTED" = 1 ]; then
+if [ "$RECOVERY_REQUESTED" = 1 ]; then
+  # The original prior marker/build remain rollback evidence. Never snapshot
+  # the failed target as a new accepted baseline merely because its ID is present.
+  [ "$(read_live_deployment_marker "$DEPLOYMENT_MARKER")" = "$FULL_SHA" ] || exit 75
+elif [ "$BOOTSTRAP_REQUESTED" = 1 ]; then
   log "beta bootstrap: no deploy generation is opened; a provisioned source marker is never a rollback baseline"
 else
   deploy_generation_begin "$APP" "$STAGE/.deployment-id"
@@ -4150,7 +5587,9 @@ CANONICAL_RECOVERY_ARMED=0
 #    marker already advanced by step 5 and the live .next already moved aside, and
 #    rollback would never run — see deploy_generation_abort.
 SWAPPED=0
-if ! rm -rf "$APP/.next.bak"; then
+if [ "$RECOVERY_REQUESTED" = 1 ]; then
+  [ ! -e "$APP/.next" ] && [ ! -L "$APP/.next" ] || exit 75
+elif ! rm -rf "$APP/.next.bak"; then
   if [ "$TARGET" = beta ]; then beta_txn_abort "could not clear .next.bak" || exit 1; fi
   deploy_generation_abort "$APP" "$FULL_SHA" "$SWAPPED" "could not clear .next.bak" || exit 1
 fi
@@ -4194,12 +5633,22 @@ if [ "$TARGET" = beta ]; then
     beta_txn_abort "could not publish the beta runtime tree for the service user" || exit 1
   fi
   if ! beta_prepare_next_cache "$APP"; then beta_txn_abort "could not prepare beta cache" || exit 1; fi
+  # Immediate pre-start repeat: the effective service configuration is
+  # re-proven at the exact moment this candidate is about to be activated.
+  if ! require_investigation_closed_before_start "$FULL_SHA"; then
+    beta_txn_abort "candidate Investigation installation admission refused before beta activation" || exit 1
+  fi
   if [ "$BOOTSTRAP_REQUESTED" = 1 ]; then
     if ! systemctl start "$SERVICE_NAME"; then beta_txn_abort "systemctl start failed" || exit 1; fi
   else
     if ! systemctl restart "$SERVICE_NAME"; then beta_txn_abort "systemctl restart failed" || exit 1; fi
   fi
   sleep 6
+  # Post-start admission before the pending acceptance tuple: the active unit
+  # and every serving child must still carry the explicit closed installation.
+  if ! require_investigation_closed_after_start "$FULL_SHA" "$NEW_BUILD_ID"; then
+    beta_txn_abort "pending beta candidate failed the Investigation installation admission" || exit 1
+  fi
   if ! shared_shell_status_verified "$BETA_STATUS_URL" "$FULL_SHA" "$SRC" \
       || ! deploy_identity_verified "$APP" "$FULL_SHA" "$NEW_BUILD_ID" \
       || ! beta_unit_declares_shared_shell active disabled; then
@@ -4207,6 +5656,16 @@ if [ "$TARGET" = beta ]; then
   fi
   log "beta candidate active but pending: $FULL_SHA; accepted pointer has not advanced"
 else
+if ! production_shared_shell_profile_unchanged; then
+  deploy_generation_abort "$APP" "$FULL_SHA" "$SWAPPED" "production Shared Shell activation changed" || exit 1
+fi
+# Immediate pre-start repeat for the ordinary production restart: the effective
+# service configuration is re-proven at the exact moment this candidate is
+# about to be activated. A refusal aborts through the incumbent generation
+# rollback, same operation identity.
+if ! require_investigation_closed_before_start "$FULL_SHA"; then
+  deploy_generation_abort "$APP" "$FULL_SHA" "$SWAPPED" "candidate Investigation installation admission refused before production restart" || exit 1
+fi
 if ! systemctl restart terminal; then
   deploy_generation_abort "$APP" "$FULL_SHA" "$SWAPPED" "systemctl restart failed" || exit 1
 fi
@@ -4223,6 +5682,19 @@ if [ "$DEPLOY_OK" = 1 ] && ! deploy_identity_verified "$APP" "$FULL_SHA" "$NEW_B
   DEPLOY_OK=0
 fi
 
+# Production acceptance has the same closed-candidate prerequisite as beta,
+# independently of the Shared Shell ON/OFF classifier.
+if [ "$DEPLOY_OK" = 1 ] && ! require_investigation_closed_after_start "$FULL_SHA" "$NEW_BUILD_ID"; then
+  log "production candidate Investigation process binding failed"
+  DEPLOY_OK=0
+fi
+
+if [ "$DEPLOY_OK" = 1 ] && [ "$PRODUCTION_SHARED_SHELL_ENABLED" = 1 ]; then
+  if ! shared_shell_status_verified "http://127.0.0.1:3000/api/shared-shell/status" "$FULL_SHA" "$SRC"; then
+    log "production Shared Shell tuple verification failed"
+    DEPLOY_OK=0
+  fi
+fi
 if [ "$DEPLOY_OK" = 1 ]; then
   deploy_generation_commit "$APP"
   log "identity verified: $(deploy_identity_line "$APP" "$FULL_SHA")"
@@ -4296,6 +5768,9 @@ else
   fi
   beta_txn_inputs_dirty || exit $?
   log "runtime sync <- target=beta origin/$BRANCH: $RUNTIME_PATHS -> $RUNTIME_SYNC_ROOT"
+  # The profile's legacy destination has a trailing slash; bind the helper to
+  # its one physical spelling without changing the production profile/overlay.
+  RUNTIME_SYNC_ROOT="${RUNTIME_SYNC_ROOT%/}" beta_runtime_prune_owned "$BETA_PRIOR_SHA" "$FULL_SHA"
   git -C "$SRC" -c tar.umask=0077 archive HEAD -- $RUNTIME_PATHS | tar -x -C "$RUNTIME_SYNC_ROOT"
   log "beta profile: no hub dependency detection, no hub npm ci, no quote-hub effect"
   log "beta profile: no nightly cron wrapper, no owner self-install, no global cron bundles"
@@ -4320,6 +5795,10 @@ if [ "$TARGET" = beta ]; then
   fi
   if ! beta_prepare_next_cache "$APP"; then
     beta_txn_abort "could not finalize beta cache custody" || exit 1
+  fi
+  # Immediate pre-start repeat before the final beta reflection restart.
+  if ! require_investigation_closed_before_start "$FULL_SHA"; then
+    beta_txn_abort "candidate Investigation installation admission refused before final beta restart" || exit 1
   fi
   if ! systemctl restart "$SERVICE_NAME"; then
     beta_txn_abort "final beta restart after source reflection failed" || exit 1
@@ -4353,6 +5832,22 @@ if ( cd "$APP" && npx esbuild ../ingest/suite_alerts.ts --bundle --platform=node
 else
   log "WARN: suite_alerts bundle FAILED — cron keeps the previous bundle"
 fi
+
+# Frozen-node source reader bundle only. Packaging does not opt in the Python
+# evaluator, install lifecycle SQL, enroll alerts or authorize delivery.
+# BEGIN frozen-node source bundle
+log "bundling ingest/frozen_node_source_cli.ts -> ingest/dist/frozen_node_source.mjs"
+if ( cd "$APP" && npx esbuild ../ingest/frozen_node_source_cli.ts --bundle --platform=node --format=esm \
+      --conditions=react-server --outfile=../ingest/dist/frozen_node_source.mjs.new \
+      "--alias:@=." --log-level=warning ) && \
+    mv -f "$APP/../ingest/dist/frozen_node_source.mjs.new" \
+      "$APP/../ingest/dist/frozen_node_source.mjs"; then
+  log "installed ingest/dist/frozen_node_source.mjs (reader remains opt-in)"
+else
+  rm -f "$APP/../ingest/dist/frozen_node_source.mjs.new"
+  log "WARN: frozen_node_source bundle FAILED — previous bundle retained"
+fi
+# END frozen-node source bundle
 
 # personal-accuracy nightly worker: terminal-data invokes the generated artifact after the
 # US-equity OHLC refresh. Stage atomically so a failed bundle leaves the prior artifact in

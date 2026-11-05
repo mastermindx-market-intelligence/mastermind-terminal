@@ -112,7 +112,7 @@ describe('valid exports', () => {
     input.receipts = [];
     input.bars = [];
     input.bar_receipt_ids = [];
-    expect(parse(input)).toEqual({ bars: [], receiptIds: [], observedAt: [] });
+    expect(parse(input)).toEqual({ bars: [], receiptIds: [], observedAt: [], requestPaths: [], barReceiptIds: [] });
   });
 
   it('crosses the fall-back transition when display times stay ascending', () => {

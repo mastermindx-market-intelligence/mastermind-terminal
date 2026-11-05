@@ -81,6 +81,8 @@ ExecStart=/usr/bin/env node node_modules/next/dist/bin/next start --port 3001 --
 
 Restart=no
 KillSignal=SIGTERM
+# Next.js completes its SIGTERM cleanup before returning 128 + SIGTERM.
+SuccessExitStatus=143
 TimeoutStopSec=30
 
 # Non-root dedicated service user, no privileges, no capabilities.

@@ -21,12 +21,18 @@ export type EngineTime = number | string | EngineBusinessDay;
 // either a valued row or whitespace; setData accepts a mix, matching LWC.
 export type EngineWhitespace = { time: EngineTime };
 
+// Per-bar colour overrides, as LWC's CandlestickData/BarData carry them: `color` is the
+// candle body or the bar stroke, `borderColor` the candle border, `wickColor` the wick.
+// A row value wins over the series option for that one bar only.
 export type EngineBar = {
   time: EngineTime;
   open: number;
   high: number;
   low: number;
   close: number;
+  color?: string;
+  borderColor?: string;
+  wickColor?: string;
 };
 
 // Single-value point for line/area/histogram/baseline. `color` is honored per-point

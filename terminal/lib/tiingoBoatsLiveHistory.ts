@@ -221,7 +221,7 @@ const SNAPSHOT_TOP_LEVEL_KEYS: ReadonlySet<string> = new Set(["schema", "session
  */
 export async function readBoatsLiveSnapshot(
   vendorSymbol: string,
-  baseNewestObservedMs: number | null,
+  baseObservation: number | null | ((sessionDate: string, window: [number, number]) => number | null),
   nowMs: number,
 ): Promise<BoatsLiveSnapshot> {
   const none: Omit<BoatsLiveSnapshot, "status"> = {
@@ -296,6 +296,8 @@ export async function readBoatsLiveSnapshot(
       && endDates.length === 1 && endDates[0] === sessionDate;
     if (!latestSession && !datedSession) return done("malformed");
     // Even an empty older snapshot must not revoke a newer archive window.
+    const baseNewestObservedMs = typeof baseObservation === "function"
+      ? baseObservation(sessionDate, window) : baseObservation;
     if (baseNewestObservedMs != null && capturedMs < baseNewestObservedMs) return done("stale");
     if (history.bars.length === 0) {
       return done("empty", { session_date: sessionDate, observed_at_utc: capturedAt, content_sha256: contentSha256,

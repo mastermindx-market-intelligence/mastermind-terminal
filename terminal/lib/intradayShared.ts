@@ -101,6 +101,30 @@ function segmentBucket(epoch: number, minutes: number, segments: SessionSegment[
   return dayStart + (seg.start + idx * minutes) * 60;
 }
 
+/**
+ * `segmentBucket` plus the wall-clock end of the segment the resulting candle belongs to, so a
+ * caller can bound that candle WITHOUT restating the folding rule. Deriving the segment end here
+ * is deliberate: the segment a bucket lands in is exactly the last segment whose open has passed,
+ * which is the same loop `segmentBucket` runs — re-deriving it in a consumer is how auction and
+ * lunch prints end up in a different candle than the chart plotted.
+ *
+ * A print before the first open or inside the lunch break still folds into the owning segment's
+ * LAST candle, and `segmentEnd` is that segment's close, so the clamped end never invents a stub.
+ */
+export function sessionSegmentBucket(
+  epoch: number,
+  minutes: number,
+  segments: SessionSegment[],
+): { start: number; segmentEnd: number } | null {
+  if (!Number.isFinite(epoch) || !Number.isFinite(minutes) || minutes <= 0 || !segments.length) return null;
+  const dayStart = Math.floor(epoch / 86400) * 86400;
+  const start = segmentBucket(epoch, minutes, segments);
+  const minute = (start - dayStart) / 60;
+  let seg = segments[0];
+  for (const s of segments) if (minute >= s.start) seg = s;
+  return { start, segmentEnd: dayStart + seg.end * 60 };
+}
+
 export function resampleSessionSegments(bars: Bar6[], minutes: number, segments: SessionSegment[]): Bar6[] {
   if (minutes <= 0 || bars.length === 0) return bars;
   const out: Bar6[] = [];

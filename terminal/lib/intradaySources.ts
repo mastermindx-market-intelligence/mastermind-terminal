@@ -125,7 +125,7 @@ export function polygonUsSessionBaseMinutes(minutes: number): number {
   return 1;
 }
 
-async function fetchPolygon(sym: string, market: Market, tf: string, ext: boolean, overnight = false): Promise<Bar6[]> {
+async function fetchPolygon(sym: string, market: Market, tf: string, ext: boolean, overnight = false, signal?: AbortSignal): Promise<Bar6[]> {
   const key = process.env.POLYGON_API_KEY || process.env.MASSIVE_API_KEY;
   if (!key) throw new Error("POLYGON_API_KEY not set");
   const minutes = tfMinutes(tf);
@@ -145,7 +145,7 @@ async function fetchPolygon(sym: string, market: Market, tf: string, ext: boolea
   const rangeMult = market === "us" ? sourceMinutes : requestedMult;
   const rangeUnit = market === "us" ? "minute" : requestedUnit;
   const url = `https://api.polygon.io/v2/aggs/ticker/${encodeURIComponent(ticker)}/range/${rangeMult}/${rangeUnit}/${iso(from)}/${iso(to)}?adjusted=true&sort=asc&limit=50000&apiKey=${key}`;
-  const r = await fetch(url, { cache: "no-store" });
+  const r = await fetch(url, { cache: "no-store", ...(signal ? { signal } : {}) });
   if (!r.ok) {
     if (r.status === 429) throw new Error("polygon rate-limited");
     throw new Error("polygon " + r.status);
@@ -469,7 +469,7 @@ async function fetchTencentHK(sym: string, tf: string): Promise<Bar6[]> {
 }
 
 export async function fetchIntraday(
-  sym: string, tf: string, ext: boolean, date?: string, overnight = false,
+  sym: string, tf: string, ext: boolean, date?: string, overnight = false, signal?: AbortSignal,
 ): Promise<Bar6[]> {
   if (!isIntradayTf(tf)) return [];
   // Second band: its own single-session leg, its own cap. Returned BEFORE the 1200-bar tail
@@ -497,7 +497,7 @@ export async function fetchIntraday(
     const market = classify(sym);
     if (market === "ca") return []; // .TO has no Polygon intraday leg on this plan — avoid garbage
     bars = (market === "us" || market === "crypto")
-      ? await fetchPolygon(sym, market, tf, ext, overnight)
+      ? await fetchPolygon(sym, market, tf, ext, overnight, signal)
       : market === "hk"
         ? await fetchTencentHK(sym, tf)
         : await fetchTencent(sym, market, tf);
@@ -520,6 +520,7 @@ export async function fetchIntraday(
 // misses falls back here to one batched Yahoo spark call, and a total miss → null → manifest
 // EOD fallback (see fetchQuote).
 export type Quote = {
+  formingCandles?: import("./formingCandles").FormingSnapshot;
   sym: string; last: number; prevClose: number | null; chg: number | null;
   open: number | null; high: number | null; low: number | null;
   vol: number | null; amount: number | null; ts: number | null;
@@ -690,7 +691,7 @@ async function fetchTencentQuotes(syms: string[]): Promise<Record<string, Quote>
 }
 
 export type QuoteView = "full" | "regular";
-export type FetchQuotesOptions = { view?: QuoteView };
+export type FetchQuotesOptions = { view?: QuoteView; forming?: boolean };
 
 // Batch US/crypto quotes from the localhost Quote Hub — /quotes?syms=CSV is already contract-shaped
 // ({SYM:{...}}). Hub down / non-200 / timeout → {} (→ those symbols fall back to manifest EOD).
@@ -699,13 +700,14 @@ export type FetchQuotesOptions = { view?: QuoteView };
 async function fetchHubQuotes(
   syms: string[],
   view: QuoteView = "full",
+  forming = false,
 ): Promise<Record<string, Quote>> {
   if (!syms.length) return {};
   try {
     const port = process.env.HUB_PORT ?? "3100";
     const viewQuery = view === "regular" ? "&view=regular" : "";
     const r = await fetch(
-      "http://127.0.0.1:" + port + "/quotes?syms=" + encodeURIComponent(syms.join(",")) + viewQuery,
+      "http://127.0.0.1:" + port + "/quotes?syms=" + encodeURIComponent(syms.join(",")) + viewQuery + (forming ? "&forming=1" : ""),
       { cache: "no-store", signal: AbortSignal.timeout(1500) }
     );
     if (!r.ok) return {};
@@ -757,7 +759,7 @@ export async function fetchQuotes(
   }
   const out: Record<string, Quote> = {};
   await Promise.all([
-    ...chunk(hub, 100).map((c) => fetchHubQuotes(c, view).then((mp) => { Object.assign(out, mp); }).catch(() => {})),
+    ...chunk(hub, 100).map((c) => fetchHubQuotes(c, view, options.forming === true).then((mp) => { Object.assign(out, mp); }).catch(() => {})),
     // 30/chunk (not 60): one slow/aborted Tencent response blanks its whole chunk, so smaller
     // chunks halve the blast radius of a single bad request (chunks run in parallel anyway).
     ...chunk(tencent, 30).map((c) => fetchTencentQuotes(c).then((mp) => { Object.assign(out, mp); }).catch(() => {})),

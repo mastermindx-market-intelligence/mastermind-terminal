@@ -162,7 +162,7 @@ describe("L01-A02: Old-symbol HTTP/script response arrives late -> No visible or
   const epochIdx = source.indexOf("const epoch = ++epochRef.current;");
   if (epochIdx < 0) throw new Error("L01-A02: data-load effect not found in components/ChartPanel.tsx");
   const openerIdx = source.lastIndexOf("useEffect(() => {", epochIdx);
-  const closerPattern = /\n  \}, \[symbol, effectiveTimeframe, chartType, extHours, overnightHours\]\);/;
+  const closerPattern = /\n  \}, \[symbol, effectiveTimeframe, chartType, extHours, overnightHours, intradayLoadVersion\]\);/;
   const closerMatch = source.slice(openerIdx).match(closerPattern);
   if (!closerMatch) throw new Error("L01-A02: data-load effect closer not found");
   const effectBody = source.slice(openerIdx, openerIdx + closerMatch.index! + 1);

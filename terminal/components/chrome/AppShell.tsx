@@ -1,5 +1,5 @@
 "use client";
-import { createContext, useCallback, useContext, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type MouseEvent } from "react";
 import { isInvestorShellPreviewPath, MACRO_OVERVIEW_HREF } from "@/lib/investorShellPreview";
 import "./investor-shell-preview.css";
 import { usePathname } from "next/navigation";
@@ -14,9 +14,10 @@ import AnalysisBrainHost from "@/components/chrome/AnalysisBrainHost";
 import { SettingsProvider } from "@/components/settings/SettingsProvider";
 import { OnboardingProvider } from "@/components/onboarding/OnboardingProvider";
 import { useShellBrainSymbol } from "@/lib/shellBrainSymbol";
-import { useT } from "@/lib/i18n";
+import { useSharedShellT } from "@/lib/sharedShellCopy";
 import { backToMacro, useFromMacro } from "@/lib/originNav";
 import { accountIdentity, GUEST_IDENTITY, identityEmail, type AccountIdentity } from "@/lib/accountIdentity";
+import { SharedShellPresentation } from "./shared-shell/SharedShellPresentation";
 
 /**
  * AppShell — the ONE shared chrome for every non-chart workspace (Wave-2 IA).
@@ -61,6 +62,9 @@ export function useShellEmail(): string {
 // pathname prefix → [i18n key, english fallback]. Order matters: first match wins.
 // Chart (/terminal) has its own shell and is intentionally absent.
 const TITLE_MAP: Array<[string, string, string]> = [
+  ["/today", "shellToday", "Today"],
+  ["/research", "shellResearch", "Research"],
+  ["/monitor", "shellMonitor", "Monitor"],
   ["/analysis", "analysis", "Analysis"],
   ["/discover", "discover", "Discover"],
   ["/dislocations", "pageDislocations", "Dislocations"],
@@ -96,16 +100,33 @@ export default function AppShell({
   sharedShellLegacyOrigin?: string;
   children: React.ReactNode;
 }) {
-  const t = useT();
+  const t = useSharedShellT();
   const path = usePathname();
   const preview = !sharedShell && investorShellPreview && isInvestorShellPreviewPath(path);
   const [compactNavigation, setCompactNavigation] = useState(false);
   const [directoryOpen, setDirectoryOpen] = useState(false);
   const [symbolOpen, setSymbolOpen] = useState(false);
   const [legacyTitle, setLegacyTitle] = useState("");
-  const openDirectory = useCallback(() => setDirectoryOpen(true), []);
+  const openDirectory = useCallback(() => { setSymbolOpen(false); setDirectoryOpen(true); }, []);
   const closeDirectory = useCallback(() => setDirectoryOpen(false), []);
-  const openSymbols = useCallback(() => setSymbolOpen(true), []);
+  const openSymbols = useCallback(() => { setDirectoryOpen(false); setSymbolOpen(true); }, []);
+  const skipToContent = useCallback((event: MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault();
+    const shell = event.currentTarget.closest(".shared-shell");
+    if (!shell) return;
+    const visible = (element: HTMLElement) => element.getClientRects().length > 0
+      && !element.closest('[aria-hidden="true"], [hidden], dialog');
+    const target = Array.from(shell.querySelectorAll<HTMLElement>('main:not([role]), [role="main"]')).find(visible)
+      ?? Array.from(shell.querySelectorAll<HTMLElement>(".main2")).find(visible);
+    if (!target) return;
+    if (!target.hasAttribute("tabindex")) target.tabIndex = -1;
+    target.focus();
+  }, []);
+  useEffect(() => {
+    if (!sharedShell) return;
+    window.addEventListener("mmx:shell-company-search", openSymbols);
+    return () => window.removeEventListener("mmx:shell-company-search", openSymbols);
+  }, [sharedShell, openSymbols]);
   const hit = TITLE_MAP.find(([p]) => path.startsWith(p));
   const title = hit ? t(hit[1], hit[2]) : t("flow", "Options");
   const analysisRoute = path.startsWith("/analysis");
@@ -124,12 +145,36 @@ export default function AppShell({
   // keeps it out of every consumer's dependency arrays.
   const identity = useMemo(() => accountIdentity(userId, email), [userId, email]);
 
+  const brandContent = (<>
+
+          {(preview || sharedShell) && (
+            <button
+              type="button"
+              className="investor-nav-toggle"
+              data-investor-compact-toggle=""
+              aria-label={t("scr2DenCompact")}
+              aria-pressed={compactNavigation}
+              aria-controls={sharedShell ? "shared-primary-navigation" : "investor-primary-navigation"}
+              onClick={() => setCompactNavigation(value => !value)}
+            >
+              <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+                <rect x="2" y="3" width="16" height="14" rx="3" />
+                <path d="M7 3v14" />
+              </svg>
+            </button>
+          )}
+          {!sharedShell && fromMacro ? <DashboardBackButton onClick={onBack} returnHref={macroHref} /> : <BrandLockup />}
+          {sharedShell && <span className="shared-shell-beta">Beta</span>}
+
+  </>);
+
   return (
     <AppShellIdentityCtx.Provider value={identity}>
       <OnboardingProvider email={email}>
       {/* Inside OnboardingProvider so the settings panel (and the avatar button)
           can call useOnboarding() directly — Billing's "choose a plan" and the
           guest path both hand off to the signup sheet. */}
+      <SharedShellPresentation enabled={sharedShell} identity={identity}>
       <SettingsProvider identity={identity}>
       {/* `analysis-route` scopes the analysis-only pane offset in globals.css to this one
           route. Do not raise .mobilebar z-index here: on /analysis the workspace pane is
@@ -155,6 +200,9 @@ export default function AppShell({
         data-investor-shell={preview ? "preview" : undefined}
         data-investor-compact={preview ? String(compactNavigation) : undefined}
       >
+        {sharedShell && <a className="shared-shell-skip btn" href="#shared-shell-content" onClick={skipToContent}>
+          {t("shellSkipContent")}
+        </a>}
         <MobileNav email={email} fromMacro={!sharedShell && fromMacro} onBack={onBack}
           sharedShell={sharedShell} onOpenDirectory={openDirectory} onOpenSearch={openSymbols} />
         {preview && !sharedShell && !fromMacro && (
@@ -176,29 +224,12 @@ export default function AppShell({
           </a>
         )}
         <header className="topbar">
-          {(preview || sharedShell) && (
-            <button
-              type="button"
-              className="investor-nav-toggle"
-              data-investor-compact-toggle=""
-              aria-label={t("scr2DenCompact")}
-              aria-pressed={compactNavigation}
-              aria-controls={sharedShell ? "shared-primary-navigation" : "investor-primary-navigation"}
-              onClick={() => setCompactNavigation(value => !value)}
-            >
-              <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
-                <rect x="2" y="3" width="16" height="14" rx="3" />
-                <path d="M7 3v14" />
-              </svg>
-            </button>
-          )}
-          {!sharedShell && fromMacro ? <DashboardBackButton onClick={onBack} /> : <BrandLockup />}
-          {sharedShell && <span className="shared-shell-beta">Beta</span>}
+          {sharedShell ? <div className="topbar-brand-group">{brandContent}</div> : brandContent}
           {!sharedShell && !analysisRoute && (<>
             <div className="tdiv" />
             <span className="page-title">{title}</span>
           </>)}
-          <div className="spacer" />
+          {!sharedShell && <div className="spacer" />}
           {sharedShell && <SharedShellToolbar symbolOpen={symbolOpen} onSymbolOpenChange={setSymbolOpen}
             onOpenDirectory={openDirectory} />}
           {/* Desktop settings/sign-out — the old per-view topbars each carried an avatar
@@ -239,6 +270,7 @@ export default function AppShell({
         {children}
       </div>
       </SettingsProvider>
+      </SharedShellPresentation>
       </OnboardingProvider>
     </AppShellIdentityCtx.Provider>
   );

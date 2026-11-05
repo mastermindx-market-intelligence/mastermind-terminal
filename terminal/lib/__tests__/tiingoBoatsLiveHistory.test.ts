@@ -513,3 +513,46 @@ describe("provisioning hygiene", () => {
     expect((await stat(path.join(root, "requests", "AMD.json")).then(s => s.mode & 0o777))).toBe(0o600);
   });
 });
+
+describe("session-scoped archive observation ordering", () => {
+  it("does not let a newer backfill of an unrelated session suppress the current night", async () => {
+    const archive = baseHistory("2026-10-16T08:01:00Z");
+    archive.bars = archive.bars.slice(0, 1);
+    archive.bar_receipt_ids = [[ID]];
+    archive.receipts[0].request_path = "/boats/AMD/prices?startDate=2026-10-15&endDate=2026-10-15&resampleFreq=1min";
+    await saveBase(archive);
+    await saveSnapshot(snapshot(SESSION, CAPTURED, vendorHistory("AMD", currentNightRows(), CAPTURED)));
+    const result = await readTiingoBoatsHistory("AMD", "1m", "", { live: true });
+    expect(result.evidence.live_history?.status).toBe("applied");
+    expect(result.bars).toHaveLength(4);
+    expect(result.bars[0][5]).toBe(100);
+    expect(result.bars.slice(1).map(bar => bar[5])).toEqual([7, 8, 9]);
+  });
+  it("uses the receipts of overlapping bars rather than a different session's newest receipt", async () => {
+    const archive = baseHistory("2026-10-16T07:00:00Z");
+    const other = "c".repeat(64);
+    archive.receipts.push({ ...archive.receipts[0], receipt_id: other,
+      observed_at_utc: "2026-10-16T08:01:00Z",
+      request_path: "/boats/AMD/prices?startDate=2026-10-15&endDate=2026-10-15&resampleFreq=1min" });
+    archive.bar_receipt_ids[0] = [other];
+    await saveBase(archive);
+    await saveSnapshot(snapshot(SESSION, CAPTURED, vendorHistory("AMD", currentNightRows(), CAPTURED)));
+    const result = await readTiingoBoatsHistory("AMD", "1m", "", { live: true });
+    expect(result.evidence.live_history?.status).toBe("applied");
+    expect(result.bars.slice(1).map(bar => bar[5])).toEqual([7, 8, 9]);
+  });
+  it("retains a newer explicit same-session empty archive observation", async () => {
+    await saveBase(emptyHistory("2026-10-16T08:01:00Z"));
+    await saveSnapshot(snapshot(SESSION, CAPTURED, vendorHistory("AMD", currentNightRows(), CAPTURED)));
+    const result = await readTiingoBoatsHistory("AMD", "1m", "", { live: true });
+    expect(result.evidence.live_history?.status).toBe("stale");
+    expect(result.bars).toEqual([]);
+  });
+  it("does not let an older same-session empty live snapshot erase newer archive bars", async () => {
+    await saveBase(baseHistory("2026-10-16T08:01:00Z"));
+    await saveSnapshot(snapshot(SESSION, CAPTURED, emptyHistory(CAPTURED)));
+    const result = await readTiingoBoatsHistory("AMD", "1m", "", { live: true });
+    expect(result.evidence.live_history?.status).toBe("stale");
+    expect(result.bars.some(bar => bar[5] === 200)).toBe(true);
+  });
+});

@@ -50,6 +50,7 @@ const GEX_LEX = {
   // ── Exposure axis toggle: By Strike / By Expiration ────────────────────────
   viewAria:       ["Exposure axis", "敞口维度"],
   viewByStrike:   ["By Strike", "按行权价"],
+  priceChart:     ["Price chart", "价格图表"],
   viewByExpiry:   ["By Expiration", "按到期日"],
   expiryLensNA:   [
     "Vanna & Charm aren't provided per-expiration yet — gamma & delta only.",

@@ -344,7 +344,7 @@ export function presentEventWorkspace(workspace: EventWorkspace, options: { zh?:
     if (!evidence) continue;
     watch.push({
       id: claim.claim_id,
-      label: claim.kind === "quote" ? (zh ? "关注" : "Watch") : claim.metric ?? (zh ? "关注" : "Watch"),
+      label: zh ? "关注事项" : "Watchpoint",
       value: claim.text,
       detail: claim.speaker,
       evidence,

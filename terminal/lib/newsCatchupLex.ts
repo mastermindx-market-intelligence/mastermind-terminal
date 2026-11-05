@@ -19,6 +19,15 @@ export const NEWS_CATCHUP_LEX = {
   ncMarkOne: ["Mark reviewed", "标为已读"],
   // Wave B3 (U5): per-story accessible name — visible text stays ncMarkOne.
   ncMarkOneFor: ["Mark reviewed: {title}", "标为已读：{title}"],
+  // Journey 6 (E5): the saved-basis annotation — original values only, never the current ones.
+  ncUpdatedSince: ["Updated since you saved", "保存后已有更新"],
+  ncSavedBasis: [
+    "Saved basis: revision {seq} · {count} reports · received {time} · report {report}",
+    "保存依据：修订 {seq} · {count} 条报道 · 收到于 {time} · 报道 {report}",
+  ],
+  ncSavedRights: ["rights receipt {receipt}", "权利凭证 {receipt}"],
+  ncOpenCurrent: ["Open current", "查看当前"],
+  ncOpenCurrentAria: ["Open the current version of this story", "打开此新闻的当前版本"],
   ncMarkShown: ["Mark shown as reviewed", "将显示的标为已读"],
   ncSummary: ["{new} new · {updated} updated", "{new} 条新 · {updated} 条更新"],
   ncCaughtUp: ["All shown stories reviewed", "显示的新闻已全部读完"],
@@ -26,6 +35,7 @@ export const NEWS_CATCHUP_LEX = {
   ncFilterLabel: ["Filter by review state", "按阅读状态筛选"],
   ncSourceLabel: ["Filter by source", "按来源筛选"],
   ncAllSources: ["All sources", "全部来源"],
+  ncCuratedSources: ["All curated sources", "全部精选来源"],
   ncNoMatch: ["No stories match this filter.", "没有符合此筛选的新闻。"],
   ncSessionOnly: [
     "Review marks can't be saved on this device. They last for this session only.",
