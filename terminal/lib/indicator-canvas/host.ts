@@ -205,16 +205,27 @@ type MemoBarsSnapshot = {
 };
 const MEMO = new Map<string, { result: SuiteComputeResult; bars: MemoBarsSnapshot }>();
 
-// Runtime suite definitions are immutable module registries. Cache the two structural values that
-// used to be rebuilt for every cached frame: the owned-key set used to filter params and the module
-// sequence embedded in the memo key. Weak ownership keeps test-created definitions collectible.
-type SuiteMemoMeta = { ownedModuleKeys: ReadonlySet<string>; moduleKeySig: string };
+// Runtime definitions normally keep a stable module sequence, but SuiteDef also accepts mutable
+// definitions. Reuse the owned-key set and joined signature only while every current key matches
+// the copied sequence. This avoids per-hit allocations without hiding additions, reorders or key
+// edits on the same definition object. Weak ownership keeps temporary definitions collectible.
+type SuiteMemoMeta = {
+  moduleKeys: readonly string[];
+  ownedModuleKeys: ReadonlySet<string>;
+  moduleKeySig: string;
+};
 const SUITE_MEMO_META = new WeakMap<SuiteDef, SuiteMemoMeta>();
 function suiteMemoMeta(def: SuiteDef): SuiteMemoMeta {
   const cached = SUITE_MEMO_META.get(def);
-  if (cached) return cached;
+  if (cached && cached.moduleKeys.length === def.modules.length) {
+    let unchanged = true;
+    for (let i = 0; i < def.modules.length; i++) {
+      if (cached.moduleKeys[i] !== def.modules[i].key) { unchanged = false; break; }
+    }
+    if (unchanged) return cached;
+  }
   const keys = def.modules.map((module) => module.key);
-  const meta = { ownedModuleKeys: new Set(keys), moduleKeySig: keys.join(",") };
+  const meta = { moduleKeys: keys, ownedModuleKeys: new Set(keys), moduleKeySig: keys.join(",") };
   SUITE_MEMO_META.set(def, meta);
   return meta;
 }

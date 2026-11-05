@@ -929,4 +929,28 @@ describe("check_plain_language.mjs", () => {
     expect(legacyHits.length).toBe(N);
     rmSync(root, { recursive: true, force: true });
   });
+
+  it.each([
+    ["machine attribute inside a mapped child", '<div>{rows.map((row: any) => <span data-status={row.status} />)}</div>', 0],
+    ["visible child beside the machine attribute", '<div>{rows.map((row: any) => <span data-status={row.status}>{row.status}</span>)}</div>', 1],
+    ["visible attribute inside a mapped child", '<div>{rows.map((row: any) => <span aria-label={row.status} />)}</div>', 1],
+    ["visible child inside JSX passed through a custom prop", '<div>{rows.map((row: any) => <Widget content={<span>{row.status}</span>} />)}</div>', 1],
+    ["visible conditional fallback after a machine attribute", '<div>{show ? <span data-status={row.status} /> : row.status}</div>', 1],
+  ])("R3 uses the nearest JSX expression for %s", (_name, jsx, expectedHits) => {
+    const root = makeFixtureRoot();
+    try {
+      const relPath = "terminal/components/ExpressionOwnership.tsx";
+      const content = ["export function ExpressionOwnership({ rows }: any) {", "  return " + jsx + ";", "}", ""].join("\n");
+      writeFileSync(join(root, relPath), content);
+      const diffFile = join(root, "diff.patch");
+      writeFileSync(diffFile, unifiedDiffFor(relPath, content, [2]));
+      const result = run(["--mode", "enforce-added", "--root", root, "--diff-file", diffFile, "--json"]);
+      const parsed = parseJson(result);
+      const hits = parsed.findings.filter((finding: any) => finding.rule === "raw_slug_interpolation" && finding.token === "status" && finding.blocking);
+      expect(hits).toHaveLength(expectedHits as number);
+      expect(result.status).toBe(expectedHits ? 1 : 0);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
 });

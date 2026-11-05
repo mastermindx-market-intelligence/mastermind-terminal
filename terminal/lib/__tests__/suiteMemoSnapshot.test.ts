@@ -70,4 +70,40 @@ describe("suite memo primitive snapshot", () => {
     expect(computeSuite(def, undefined, input, "free", colors)).not.toBe(zeroCorrected);
     expect(computes()).toBe(3);
   });
+
+  it("invalidates mutable definition additions, removals and same-length reorders", () => {
+    const { def, input, computes } = fixture();
+    let previous = computeSuite(def, undefined, input, "free", colors);
+    def.modules.push({ ...def.modules[0], key: "second" });
+    let next = computeSuite(def, undefined, input, "free", colors);
+    expect(next).not.toBe(previous);
+    expect(computes()).toBe(3);
+
+    previous = next;
+    def.modules.reverse();
+    next = computeSuite(def, undefined, input, "free", colors);
+    expect(next).not.toBe(previous);
+    expect(computes()).toBe(5);
+
+    previous = next;
+    def.modules.pop();
+    next = computeSuite(def, undefined, input, "free", colors);
+    expect(next).not.toBe(previous);
+    expect(computes()).toBe(6);
+  });
+
+  it("refreshes owned parameter keys after an in-place rename and result-cache clear", () => {
+    const { def, input } = fixture();
+    const observed: unknown[] = [];
+    def.modules[0].compute = (ctx) => { observed.push(ctx.s.value); return { prims: [] }; };
+    const params = { "probe.value": 1, "renamed.value": 2 };
+    computeSuite(def, params, input, "free", colors);
+
+    def.modules[0].key = "renamed";
+    clearSuiteMemo();
+    const renamed = computeSuite(def, params, input, "free", colors);
+    params["renamed.value"] = 3;
+    expect(computeSuite(def, params, input, "free", colors)).not.toBe(renamed);
+    expect(observed).toEqual([1, 2, 3]);
+  });
 });
