@@ -1,0 +1,119 @@
+{
+  "schema": "options_source_composition_analysis.v3",
+  "recorded_at": "2026-11-05T10:17:25.192634+00:00",
+  "options_head": "0ead3e18f4029500d7f31e3d199c64849bada79c",
+  "exposure_head": "bd4d1cec5ad2b8025558672482ee7b7d39429fc0",
+  "options_merge_base": "ac3762717ad150fd4f18614afd78072115a7c80a",
+  "exposure_merge_base": "350a61f9bae0ae61b2ab188ec99cc73552496ad2",
+  "effect": "Result objects only; no branch, HEAD, index, working-tree changes or synthetic commits.",
+  "index_and_status_unchanged": true,
+  "rows": [
+    {
+      "base": "acd173eae60e1559c87603aee8fa70e35e661b65",
+      "base_options": {
+        "exit": 0,
+        "tree": "c3d5930c61dbe7dd401a85e3b0d2ba1dfb74f610",
+        "command": [
+          "git",
+          "merge-tree",
+          "--write-tree",
+          "--merge-base=ac3762717ad150fd4f18614afd78072115a7c80a",
+          "acd173eae60e1559c87603aee8fa70e35e661b65",
+          "0ead3e18f4029500d7f31e3d199c64849bada79c"
+        ],
+        "stdout": "c3d5930c61dbe7dd401a85e3b0d2ba1dfb74f610\n",
+        "stderr": ""
+      },
+      "base_exposure": {
+        "exit": 0,
+        "tree": "992f8b873e1c05cacdf15a65db88474ccb4b523b",
+        "command": [
+          "git",
+          "merge-tree",
+          "--write-tree",
+          "--merge-base=350a61f9bae0ae61b2ab188ec99cc73552496ad2",
+          "acd173eae60e1559c87603aee8fa70e35e661b65",
+          "bd4d1cec5ad2b8025558672482ee7b7d39429fc0"
+        ],
+        "stdout": "992f8b873e1c05cacdf15a65db88474ccb4b523b\n",
+        "stderr": ""
+      },
+      "options_then_exposure": {
+        "exit": 0,
+        "tree": "76427bdc7a98c00f0936eca9641ac444a040b8ab",
+        "command": [
+          "git",
+          "merge-tree",
+          "--write-tree",
+          "--merge-base=350a61f9bae0ae61b2ab188ec99cc73552496ad2",
+          "c3d5930c61dbe7dd401a85e3b0d2ba1dfb74f610",
+          "bd4d1cec5ad2b8025558672482ee7b7d39429fc0"
+        ],
+        "stdout": "76427bdc7a98c00f0936eca9641ac444a040b8ab\n",
+        "stderr": ""
+      },
+      "exposure_then_options": {
+        "exit": 0,
+        "tree": "76427bdc7a98c00f0936eca9641ac444a040b8ab",
+        "command": [
+          "git",
+          "merge-tree",
+          "--write-tree",
+          "--merge-base=ac3762717ad150fd4f18614afd78072115a7c80a",
+          "992f8b873e1c05cacdf15a65db88474ccb4b523b",
+          "0ead3e18f4029500d7f31e3d199c64849bada79c"
+        ],
+        "stdout": "76427bdc7a98c00f0936eca9641ac444a040b8ab\n",
+        "stderr": ""
+      },
+      "all_clean": true,
+      "both_orders_same_tree": true
+    }
+  ],
+  "latest_checked_composed_tree": "76427bdc7a98c00f0936eca9641ac444a040b8ab",
+  "preview_tracked_application_scope": {
+    "files": 3320,
+    "mismatches": [
+      {
+        "path": "terminal/e2e/company-intelligence.spec.ts",
+        "expected_git_blob": "3d09aacccb30a32e4ca99b89864ce3cc7a0abcb0",
+        "preview_git_blob": "122749e095ef69098b71c687ca4456b042e7138d"
+      },
+      {
+        "path": "terminal/e2e/market-risk-market-scope.spec.ts",
+        "expected_git_blob": "96c9c2631220e2b725f54728e4d877d0af4f5e7f",
+        "preview_git_blob": null
+      },
+      {
+        "path": "terminal/lib/__tests__/earningsExpectationBoundary.test.tsx",
+        "expected_git_blob": "f44a36a4a0e404a47bf3ed35d2ec8eb85c4bc4b8",
+        "preview_git_blob": "b8ba8b8f585a4bbfbba882df7068eeec85671b60"
+      },
+      {
+        "path": "terminal/lib/__tests__/eventWorkspace.test.ts",
+        "expected_git_blob": "4a72d2db2613dd0aac3ea0fa061908bda6f67c85",
+        "preview_git_blob": "fb727f704c54fc1ed710b09fb2a5f226daad05b1"
+      },
+      {
+        "path": "terminal/lib/__tests__/marketRiskMarketScope.test.tsx",
+        "expected_git_blob": "4112b3b72eec89458b2ac8359eacf05efab55bcf",
+        "preview_git_blob": null
+      },
+      {
+        "path": "terminal/lib/earningsExpectationBoundary.ts",
+        "expected_git_blob": "7305d05bcee2d8456d09799718fdb674e2898df1",
+        "preview_git_blob": "2a0d2d716953535b42a1f17d80e1446a87cba938"
+      },
+      {
+        "path": "terminal/lib/marketRisk.ts",
+        "expected_git_blob": "b71b0b7a6f8a1965bb93387601db1d5a843efbdd",
+        "preview_git_blob": "17af6d4186398fb7acdba075119bee443c0e63e5"
+      }
+    ],
+    "exact": false
+  },
+  "key_final_source_sha256": {
+    "terminal/components/exposure-map/ExposureMap.tsx": "50bdfadd453747170d597b8f1a2a11853fe864ef08c6b2ffb561299f8a3dd60c",
+    "terminal/e2e/options-exposure-workspace.spec.ts": "c3cdb23766b8fa6cc69a04209f2eeef945728108cf14946a779b431ac1402de5"
+  }
+}

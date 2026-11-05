@@ -38,9 +38,19 @@ The broad pre-repair unit runs are retained honestly: original 18,042 passing an
 
 The 39-case profiles cover actual Surface timeline selection and keyboard stepping, WebGL loss and Research Lab fallback, retained archive/source withdrawal and recovery, contract comparison without a new endpoint, ticker query changes, Back/Forward, pending-script navigation, and the connected Exposure → comparison → scanner → return flow. Source maps were stable during each run. The integrated profile was materialized from the clean combined source tree on protected base `5d7b76376a8b3f5a8001f02d7f0ded29f5743798`.
 
-Those 78 journeys were captured before the final mobile framing patch. The material chart change has its own [12-case successor proof](../../exposure-workspace-20261103/chart-framing-20261105/README.md). Its failing baseline measured a real header/label overlap. The corrected phone cases measured at least 25.54 CSS pixels of clearance for every actually painted ranked glyph, initially and after Reset view, while keeping the price readout and leading node visible. Desktop/tablet clearance remained at least 5.49 pixels. The existing spacing rule may suppress secondary labels on a short phone chart; exact values and inspection remain available.
+Those 78 journeys were captured before the final mobile framing patch. The material chart change has its own [12-case successor proof](../../exposure-workspace-20261103/chart-framing-20261105/README.md). Its failing baseline measured a real header/label overlap. The corrected phone cases measured at least 25.53 CSS pixels of clearance for every actually painted ranked glyph, initially and after Reset view, while keeping the price readout and leading node visible. Desktop/tablet clearance remained at least 5.49 pixels. The existing spacing rule may suppress secondary labels on a short phone chart; exact values and inspection remain available.
 
 Actual edited Paper boards and browser screenshots were inspected for hierarchy, readable density, clipping and overflow. EN/ZH and desktop/tablet/phone layouts were exercised. Light screenshots are controlled DOM specimens, not a claim that the whole application offers a light-mode setting. Keyboard and focus claims are limited to the interactions actually asserted; this is not a screen-reader or complete accessibility audit.
+
+## Current protected-base compatibility
+
+Protected master advanced to `acd173eae60e1559c87603aee8fa70e35e661b65` after the production compilation above. Its two changes reject foreign-market risk envelopes in the existing US reader/producer and preserve signed earnings guidance. Both branches still combine cleanly in either order.
+
+The preview now matches all **3,320** terminal application/test/configuration files of that combined tree, plus the exact Python producer and its two changed tests. The final delta verification passed **276/276** TypeScript unit tests, **59/59** Python tests and the full TypeScript check with stable source. None of the changed paths enters either 319-source native capture map or either 138-source visual capture map. The accepted Options/Exposure browser evidence remains applicable to its unchanged journey code.
+
+The first delta wrapper omitted the already established Node/JSDOM environment option, causing eleven setup failures in an unchanged suite. Restoring the existing harness environment made the same source and all 276 cases pass; tests and assertions were unchanged. Both attempts are preserved. The 93.8-second production compiler result remains correctly scoped to the earlier repaired integration, while the later protected delta has this separate qualification.
+
+See [current-base qualification](current-base-acd/qualification.json), [passed gates](current-base-acd/passed-gates/qualification.json), and [exact materialization](current-base-acd/terminal-materialization.json).
 
 ## Evidence map
 
@@ -51,10 +61,10 @@ Actual edited Paper boards and browser screenshots were inspected for hierarchy,
 - [Calendar synchronization receipt](pane-sync/browser-receipt.json)
 - [Analysis protected-source port](repairs/analysis-evidence-port.json)
 - [Typed publisher recovery](publication/c9a-recovery.json)
-- [Earlier clean composition matrix](composition/before-final-repairs.json); final candidate composition is recorded separately after committing the repaired source
-- [Accepted Paper design](../../exposure-workspace-20261103/paper-20261104/)
+- [Final runtime composition matrix](composition/final-runtime-candidates.json): both committed sources combine cleanly in either order on all five checked bases; all 3318 tracked application/test/configuration files match the verified preview. Later proof-only commits do not change that runtime.
+- [Accepted Paper design](https://github.com/mastermindx-market-intelligence/mastermind-terminal/tree/6d6cdc727b9e8d0d70af23d8b0caa239c6304b5b/terminal/docs/verification/exposure-workspace-20261103/paper-20261104)
 
-Full original/integrated Playwright trace sets remain in the same managed workspaces at the exact paths in their browser receipts. This packet publishes their SHA indexes, reports, logs, source maps and screenshots; it does not claim those 137 MB of trace ZIPs are copied into Git. The chart packet separately includes its actual trace artifacts. Historical TypeScript snapshots and full unit logs/reports are stored losslessly as gzip so they cannot become application type inputs or collide with literal security-inventory scans.
+Full original/integrated Playwright trace sets remain in the same managed workspaces at the exact paths in their browser receipts. This packet publishes their SHA indexes, reports, logs, source maps and screenshots; it does not claim those 78 trace ZIPs are copied into Git. The chart packet separately includes its actual trace artifacts. Historical TypeScript snapshots and full unit logs/reports are stored losslessly as gzip so they cannot become application type inputs or collide with literal security-inventory scans.
 
 ## Publication and release boundary
 

@@ -1,7 +1,7 @@
 {
   "README.md": {
-    "sha256": "92e65664d355a7c5cffef838711230ba4204c68cf0bf8e898802b673b2b00426",
-    "bytes": 7652
+    "sha256": "610573d0d73457200c002233913e0fb033056fe06a6a6c90b7772d653a69e24c",
+    "bytes": 9447
   },
   "broad-baseline/integrated/plain-language-self-check.log.gz": {
     "sha256": "bfa6c1ada33d66904e5090d8b2d64c012f11b8184d54f07d3875c42167ae184c",
@@ -71,6 +71,10 @@
     "sha256": "d2c65c423e22b9f022e37a6521c2b8c8a0b5bffe41c227525c0f668b6c6358c1",
     "bytes": 15613
   },
+  "composition/final-runtime-candidates.json": {
+    "sha256": "bf86b95466a7d8167b17c59a31677477117c13754c8bd0f5bd1d4fbd770628c0",
+    "bytes": 11149
+  },
   "composition/preview-a162-plan.json": {
     "sha256": "3dd399105eab963bcb88690a693e67aebee65bd9a7c4b5e5dd47dfbce8505e54",
     "bytes": 6002
@@ -82,6 +86,110 @@
   "copy-receipt.json": {
     "sha256": "8e43a80459a495c437401a1ea90448df2f84c8c54c3da5d16bb11ff88a9cae63",
     "bytes": 68389
+  },
+  "current-base-acd/composition-before-materialization.json": {
+    "sha256": "b3cf62e4c2d4b773b192a61d701ca41bbecbc743cfdcb894d9809c792692aee6",
+    "bytes": 4533
+  },
+  "current-base-acd/drivers/compose-current-base.py": {
+    "sha256": "cc0b2add44a71aab5cb5dc8cfadb9b3e5b639de99d228b9f78ea255f1fa3564a",
+    "bytes": 4173
+  },
+  "current-base-acd/drivers/failed-environment-attempt.py": {
+    "sha256": "c9dd6226eabc32742cbd444f9b9fd4e78a99c8b0c9231b6a9f2ca83d88f36018",
+    "bytes": 3818
+  },
+  "current-base-acd/drivers/materialize-terminal.py": {
+    "sha256": "e35b306c49e72b30c1b2c1d1fefaf455e765bc7789b74b205d2ac730bd05ed21",
+    "bytes": 3002
+  },
+  "current-base-acd/drivers/verify-current-base.py": {
+    "sha256": "6c30c024fe70c4c1d72b8a4589c4e6c4a21be3674e63f0b7dd539863e38f2a35",
+    "bytes": 4011
+  },
+  "current-base-acd/environment-reconciliation.json": {
+    "sha256": "7d287724b7d1fbc4f3934b1a5aa57fe8b8da04b259997b687e5964d5bcd7e6ab",
+    "bytes": 927
+  },
+  "current-base-acd/passed-gates/checks.json": {
+    "sha256": "4120aa3dc05ebab6abaa3af2314c87cd0c4ed38f25c8aa4b3bfb72728ccb7214",
+    "bytes": 2742
+  },
+  "current-base-acd/passed-gates/python.log.gz": {
+    "sha256": "b4f92d6313be86167c596e27fbaa158801d74eac78d1eb39b8f4424802be0886",
+    "bytes": 52
+  },
+  "current-base-acd/passed-gates/qualification.json": {
+    "sha256": "97077e1ab90466ecd348b46c3f709f0e2b9acb29df249e52774ca0ea5a0312a4",
+    "bytes": 3437
+  },
+  "current-base-acd/passed-gates/source-after.json": {
+    "sha256": "f8e4a2253e14d2813b0394db163b11534ebfce4a1dc31e93b4db14bd3ac97542",
+    "bytes": 376518
+  },
+  "current-base-acd/passed-gates/source-before.json": {
+    "sha256": "f8e4a2253e14d2813b0394db163b11534ebfce4a1dc31e93b4db14bd3ac97542",
+    "bytes": 376518
+  },
+  "current-base-acd/passed-gates/typecheck.log.gz": {
+    "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+    "bytes": 20
+  },
+  "current-base-acd/passed-gates/unit-report.json.gz": {
+    "sha256": "7725b25c32b01f0295ca353798ce33ef2c6a1c3503ff3ec6de0f573843ed4d8c",
+    "bytes": 12406
+  },
+  "current-base-acd/passed-gates/unit.log.gz": {
+    "sha256": "f70815665e4ff4a1211c496c1145567cff9fdcb46903e92cd15474ff6ca3daf2",
+    "bytes": 1269
+  },
+  "current-base-acd/prior-environment-attempt/checks.json": {
+    "sha256": "da672f61d8f56774cf094379589a529ae4e7a4372f7d5406da7fb23719258c89",
+    "bytes": 1766
+  },
+  "current-base-acd/prior-environment-attempt/qualification.json": {
+    "sha256": "f61647c4e1263aa34dd243dd0611edac3ae83acf6c9f05ffaed182ce6e5cca60",
+    "bytes": 2292
+  },
+  "current-base-acd/prior-environment-attempt/source-after.json": {
+    "sha256": "f8e4a2253e14d2813b0394db163b11534ebfce4a1dc31e93b4db14bd3ac97542",
+    "bytes": 376518
+  },
+  "current-base-acd/prior-environment-attempt/source-before.json": {
+    "sha256": "f8e4a2253e14d2813b0394db163b11534ebfce4a1dc31e93b4db14bd3ac97542",
+    "bytes": 376518
+  },
+  "current-base-acd/prior-environment-attempt/unit-report.json.gz": {
+    "sha256": "dcad76caca49ddda5f1e79d86ba3995c327ed2d1639a07c843643fa826862b99",
+    "bytes": 13633
+  },
+  "current-base-acd/prior-environment-attempt/unit.log.gz": {
+    "sha256": "d5a5af8f9536a70a8e6f66e5cfacd1d01fc94c6ed8bd114985590a8885250137",
+    "bytes": 2176
+  },
+  "current-base-acd/protected-base-observation.json": {
+    "sha256": "ed790d08bfca0384da614e3910aca24de0d39b25e385280a70fc82760d03b0d8",
+    "bytes": 139
+  },
+  "current-base-acd/protected-runtime-delta.diff": {
+    "sha256": "bec2a442c2a32713d1a29a38284e22517708b6f539c51a3c281a45fdbd212409",
+    "bytes": 5194
+  },
+  "current-base-acd/python-materialization.json": {
+    "sha256": "53254a684c0919a1b6792005808fdd73828d85e3dc7f87cf8670273a7a8452aa",
+    "bytes": 1152
+  },
+  "current-base-acd/qualification.json": {
+    "sha256": "8925cf8b1361ea7f6a297f7ae0454d5d9831924b46c8c97878b6991f8615124f",
+    "bytes": 2120
+  },
+  "current-base-acd/terminal-materialization.json": {
+    "sha256": "36fcfecc8ec6a27fce3344d0ea2996566c2a6f02d4587f1d4ec2c158a979ccc3",
+    "bytes": 3030
+  },
+  "current-base-acd/verified-source-manifest.json": {
+    "sha256": "c788a8f2d62f5fb4ac297cd9a2a514097f1b43bd41e3a88208c494bbceb84084",
+    "bytes": 663517
   },
   "diff-lint/exposure-lint-stderr.log.gz": {
     "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
@@ -118,6 +226,10 @@
   "drivers/broad-baseline.py": {
     "sha256": "5a8e36756f4201ab617664a0223dcca73c5ce54ae06f1efff8abe2e0842330c4",
     "bytes": 4322
+  },
+  "drivers/final-runtime-composition.py": {
+    "sha256": "1791fc58804c6595980d59c947c1ea6a1e6da25769f4ecc32857af097ad03cd8",
+    "bytes": 4747
   },
   "drivers/integrated-journeys.py": {
     "sha256": "d65098c6b00aec5a4a099a08e0550bd41a93da439f2c06869a09a96c5253ed8a",
@@ -528,8 +640,8 @@
     "bytes": 2668
   },
   "qualification.json": {
-    "sha256": "c0aa0d2a9cc84cd78230bd5858a4a1866000f959b736e86a594c16ad573c2a2f",
-    "bytes": 2342
+    "sha256": "e86f0b3f36593049a739c85d35e53d54bc99bb8a538a0948a36d67115af1a52d",
+    "bytes": 5066
   },
   "repaired-gates/checks.json": {
     "sha256": "129e546af9d0f2f2f2d7f4d041453fbebea4ff2592a4d790a99d0232e8aad67e",

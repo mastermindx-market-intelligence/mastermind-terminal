@@ -10,7 +10,7 @@ The revised connected journey passed **12/12** cases: original and integrated so
 
 The observer records real canvas glyph paints while forwarding the original paint calls unchanged. It requires primary strike 756, checks at least four CSS pixels of separation for every actually painted ranked glyph, verifies all four OHLC values and the change remain visible, then clicks Reset view and requires a new primary paint with the same clearance. The connected comparison, scanner, momentum and return assertions remain intact.
 
-| Viewport | Minimum measured clearance, before and after Reset view |
+| Viewport | Minimum measured clearance, rounded to two decimals |
 | --- | --- |
 | Desktop | 5.49 CSS pixels |
 | Tablet | 5.49 CSS pixels |
