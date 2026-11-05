@@ -371,6 +371,16 @@ export default function GuidePanel({
 
   const selectModule = (next: SuiteModuleCatalogEntry, preserveFocus = false) => {
     if (!preserveFocus) dialogRef.current?.focus({ preventScroll: true });
+    // Selecting the entry that is already displayed is idempotent. The load effect only
+    // depends on currentModule/currentSuite/lang, so clearing the document and setting
+    // "loading" here would strand the panel on the skeleton: no load starts and nothing
+    // restores the article. currentModuleId is the effective identity of the displayed
+    // entry — it already resolves the catalog fallback — so this compares what is on
+    // screen rather than the raw requested id.
+    if (next.id === currentModuleId) {
+      setExpandedSuite(next.suiteKey);
+      return;
+    }
     setStatus("loading");
     setDocument(null);
     setActiveSection("anatomy");
