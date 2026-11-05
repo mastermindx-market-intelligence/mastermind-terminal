@@ -1,0 +1,4 @@
+{"source": "e45bde2cac07ac3b29285ff70c40d68900fad62c", "owner_blob": "c25514c068202b1dfff8d2bac92a019eb110440e", "archive_sha256": "d18c51511ef0238c32940ac766478017b0bc1a60bdd023e284cb5654385468f7", "archive_bytes": 409600, "entry_count": 30}
+{"archive_sha256": "d18c51511ef0238c32940ac766478017b0bc1a60bdd023e284cb5654385468f7", "artifact_path": "/var/tmp/prophet-terminal-ops-e45bde2cac07ac3b29285ff70c40d68900fad62c", "file_count": 26, "owner_sha256": "4d1b7c05d975a30be21de9556cc9eef964d07f30ba468f88abd0b40a61a84247", "preflight_sha256": "a8d1db606afed780cf43b5471ef27d127621eb5de843d36d8d310ba62a8a0b23", "policy_sha256": "76e5914d0239b34edc680f5d1a050ef0ff8fa0e6982497ad88d749aa0a1212f2", "policy_digest": "0d0ec2dafc2a7ffbd7ceeba5f6d5cb0c2790d97670097df3e7bd08c3244bb76a", "all_root_owned": true, "all_immutable_modes": true}
+
+STAGING_EXIT 0

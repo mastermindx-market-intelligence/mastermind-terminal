@@ -1,0 +1,113 @@
+{
+  "schema": "catalyst_intraday_clock_skew_repair.v1",
+  "recorded_at_utc": "2026-10-23T01:12:11.166549+00:00",
+  "operation_id": "catalyst-terminal-intraday-20261022",
+  "root_id": "catalyst-intelligence-recovery-20261022",
+  "base_commit": "2fda3a77bcced840b004794fb5a4d8c416a29f33",
+  "producer_commit": "bc193e674b07d91acbfa319f5b7943d9996f81cc",
+  "review": {
+    "run_id": "catalyst-intraday-2fda-source-review-20261022",
+    "response_sha256": "02fbebae62a0a655bde607c63e47213e148f4805f74f02e637a69aa0717d286f",
+    "verdict": "REQUEST_CHANGES",
+    "finding": "Valid millisecond source intervals can exceed the reordered consumer skew bound by one binary64 step."
+  },
+  "repair": "Match producer millisecond arithmetic and conversion order; preserve strict comparison and the60-second cap; no epsilon.",
+  "source_files": {
+    "terminal/lib/sectorIntradayComparison.ts": {
+      "sha256": "78b4e4f5b52947d34bd9aa9d0cf2e51ecdd65e23be4db8442c4da61b08c97a31",
+      "bytes": 20401,
+      "base_sha256": "a253b1f01ec6d839b72b880163fa3e133c08855957f139bc1213030d2b154622"
+    },
+    "terminal/lib/__tests__/sectorIntradayComparison.test.ts": {
+      "sha256": "8158056b3043a89a588721ef38846068ae4a3cf2ea5ed4842439305fe8197fc7",
+      "bytes": 22450,
+      "base_sha256": "c2e9e7d8b8c345a8370bb76878027d7013ffc0914218c1b8faa70fdcf8cd8274"
+    }
+  },
+  "red": {
+    "new_tests": 10,
+    "failed": 4,
+    "passed": 6,
+    "unselected_existing_tests": 87,
+    "stdout_sha256": "69113a0b12d20aea477fea20a070b441970dde10f64f932ddcf5919ed0622b75"
+  },
+  "validation": [
+    {
+      "name": "regression",
+      "command": [
+        "./node_modules/.bin/vitest",
+        "run",
+        "sector",
+        "rotationRelativeTrend",
+        "--reporter=json"
+      ],
+      "rc": 0,
+      "elapsed_seconds": 2.955,
+      "stdout_sha256": "73fd3d85090e2d8fd0e933abc86a89f741b53dda26a7db1e3628d68778594e7d",
+      "stderr_sha256": "0e305a141deb00c0ef953fc4b3021e2ffc0a94f6b5f7360f6bdfdec5491e34ec",
+      "numTotalTests": 431,
+      "numPassedTests": 431,
+      "numFailedTests": 0,
+      "numPendingTests": 0,
+      "numTotalTestSuites": 63
+    },
+    {
+      "name": "typecheck",
+      "command": [
+        "./node_modules/.bin/tsc",
+        "--noEmit",
+        "--incremental",
+        "false"
+      ],
+      "rc": 0,
+      "elapsed_seconds": 41.405,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "lint",
+      "command": [
+        "./node_modules/.bin/eslint",
+        "lib/sectorIntradayComparison.ts",
+        "lib/__tests__/sectorIntradayComparison.test.ts"
+      ],
+      "rc": 0,
+      "elapsed_seconds": 2.192,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "whitespace",
+      "command": [
+        "/usr/bin/git",
+        "diff",
+        "--check"
+      ],
+      "rc": 0,
+      "elapsed_seconds": 0.085,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "new_witnesses": [
+    "producer literal millisecond intervals below,at,and above the600000ms cap",
+    "all baskets retain observed outcome for300789ms interval",
+    "zero matched coverage preserves owner clocks,status and exclusions for60001ms interval",
+    "next representable values above each uncapped/capped bound remain refused"
+  ],
+  "base_hosted_ci": {
+    "run_id": 39870732623,
+    "head": "2fda3a77bcced840b004794fb5a4d8c416a29f33",
+    "jobs_passed": 17,
+    "applies_to_repaired_candidate": false
+  },
+  "proof_scope": "Local source validation only. No new browser or entitled production proof.",
+  "remaining_gates": [
+    "independent review of changed immutable candidate",
+    "exact-candidate hosted CI",
+    "current-base integration",
+    "release and actual entitled user acceptance"
+  ],
+  "entitled_production_acceptance": false,
+  "program_complete": false
+}

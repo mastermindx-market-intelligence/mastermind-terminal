@@ -174,16 +174,37 @@ describe("canvas engine skeleton", () => {
 
   it("moveToPane clamps an out-of-range index and appends a pane", () => {
     const { engine } = mount();
+    engine.addSeries("candles");
     const s = engine.addSeries("line");
     expect(engine.inventory().panes).toBe(1);
     s.moveToPane(99);
     expect(s.paneIndex()).toBe(1);
     expect(engine.inventory().panes).toBe(2);
-    expect(engine.inventory().seriesByPane).toEqual([0, 1]);
+    expect(engine.inventory().seriesByPane).toEqual([1, 1]);
     const root = engine.chartElement()!;
     expect(root.querySelectorAll("canvas[data-mm-pane-canvas]")).toHaveLength(2);
+    // Moving back empties pane 1, which LWC's `_cleanupIfPaneIsEmpty` then removes.
     s.moveToPane(0);
     expect(s.paneIndex()).toBe(0);
+    expect(engine.inventory().seriesByPane).toEqual([2]);
+    expect(root.querySelectorAll("canvas[data-mm-pane-canvas]")).toHaveLength(1);
+    engine.destroy();
+  });
+
+  it("moving a pane's only series out removes that pane and reindexes the rest, as on LWC", () => {
+    const { engine } = mount();
+    const lone = engine.addSeries("line");
+    const other = engine.addSeries("histogram", {}, 1);
+    lone.moveToPane(1);
+    expect(engine.inventory()).toMatchObject({ panes: 1, seriesByPane: [2] });
+    expect(lone.paneIndex()).toBe(0);
+    expect(other.paneIndex()).toBe(0);
+    // A lone series moved to a fresh pane leaves a single pane behind as well.
+    lone.moveToPane(5);
+    expect(engine.inventory()).toMatchObject({ panes: 2, seriesByPane: [1, 1] });
+    other.moveToPane(1);
+    expect(engine.inventory()).toMatchObject({ panes: 1, seriesByPane: [2] });
+    expect(engine.chartElement()!.querySelectorAll("canvas[data-mm-pane-canvas]")).toHaveLength(1);
     engine.destroy();
   });
 

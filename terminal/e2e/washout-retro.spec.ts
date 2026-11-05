@@ -23,8 +23,8 @@ import { markerTooltipCopy, retroLegendCopy, washoutOverrideCopy } from "../lib/
 // question "would today's rule have entered here?" is an entry question, and the operator ruled
 // the chart face stays clean. That makes the disclosure entirely a CARD responsibility, so the
 // two claims this suite is really defending are:
-//   (a) the card legend (`.sd-sig-legend`) renders whenever a re-marked fire is in the visible
-//       list and NOT otherwise — asserted against `retroLegendCopy` itself so it cannot drift,
+//   (a) the card legend (`.sd-sig-legend`) renders whenever a re-marked fire is in the full source
+//       history, across filters and pages — asserted against `retroLegendCopy` itself so it cannot drift,
 //       with a second fixture as the control. It is the only place a reader is told that a star
 //       on the tape is a counterfactual, so it is pinned harder than anything else here.
 //   (b) #2 never reaches the verdict: the rail card is anchored by #3 alone, and a chart
@@ -266,11 +266,11 @@ const AMBER_RGB = "rgb(232, 179, 57)";
 /** The refused-entry slate (#7c8aa0) — no CSS token, an inline hex in ChartPanel. */
 const SLATE_RGB = "rgb(124, 138, 160)";
 
-/** Mirror of signalVerdict's `fmtDate`, so the expected card sub-line is DERIVED from the
+/** Explicit source-known date with a year, so the expected history sub-line is derived from the
  *  fixture's own dates rather than hardcoded (the fixture moves with the calendar). */
 const fmtSub = (iso: string, zh: boolean) =>
   new Date(Date.parse(iso)).toLocaleDateString(zh ? "zh-CN" : "en-US",
-    { month: "short", day: "numeric", timeZone: "UTC" });
+    { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" });
 
 type MarkerRead = {
   opacity: string | null;
@@ -446,7 +446,7 @@ async function assertThreeStates(page: Page, zh: boolean, tag: string, testInfo:
   // ── the rail: anchored by the LIVE entry, in the ordinary entry language ────────────────
   const signalButton = page.locator(".sig-btn");
   await signalButton.scrollIntoViewIfNeeded();
-  await expect(signalButton.locator(".sig-btn-go .sig-btn-vd")).toHaveText(zh ? "买入" : "Buy");
+  await expect(signalButton.locator(".sig-btn-go .sig-btn-vd")).toHaveText(zh ? "已确认买入" : "Confirmed Buy");
   const railTitle = (await signalButton.getAttribute("title")) ?? "";
   if (zh) {
     expect(railTitle).toContain("次根K线");
@@ -471,7 +471,7 @@ async function assertThreeStates(page: Page, zh: boolean, tag: string, testInfo:
   await expect(dialog).toBeVisible();
   await dialog.getByRole("tab", { name: zh ? "神谕" : "Oracle", exact: true }).click();
   const go = dialog.getByTestId("workspace-oracle");
-  await expect(go.locator(".od-verdict")).toHaveText(zh ? "买入" : "Buy");
+  await expect(go.locator(".od-verdict")).toHaveText(zh ? "已确认买入" : "Confirmed Buy");
   // dated from the LIVE entry — the retro fire is 12 bars older and never anchors
   await expect(go.locator(".od-vsub")).toHaveText(fmtSub(TAKE_TS, zh));
   expect(fmtSub(TAKE_TS, zh)).not.toBe(fmtSub(RETRO_TS, zh));   // the check has teeth
@@ -552,6 +552,13 @@ async function assertThreeStates(page: Page, zh: boolean, tag: string, testInfo:
   // it resolves the label the rows actually carry — a legend that quotes a different token
   // than the row suffix explains nothing
   await expect(legend).toContainText(zh ? "（事后重标）" : "(retro)");
+
+  // The chart disclosure remains visible when a list filter hides the retro rows.
+  await activity.getByRole("button", { name: zh ? "离场" : "Exits", exact: true }).click();
+  await expect(rows).toHaveCount(0);
+  await expect(legend).toBeVisible();
+  await activity.getByRole("button", { name: zh ? "全部" : "All", exact: true }).click();
+  await expect(rows).toHaveCount(3);
 
   // row 2 — the plain refusal, untouched: BLOCKED badge, "not an entry", hollow
   const blockedRow = rows.nth(2);
@@ -724,6 +731,6 @@ test("the retro legend renders only when a re-marked fire is actually in the lis
   // and the verdict is unchanged — removing the counterfactual moved nothing about the read
   await dialog.getByRole("tab", { name: zh ? "神谕" : "Oracle", exact: true }).click();
   const go = dialog.getByTestId("workspace-oracle");
-  await expect(go.locator(".od-verdict")).toHaveText(zh ? "买入" : "Buy");
+  await expect(go.locator(".od-verdict")).toHaveText(zh ? "已确认买入" : "Confirmed Buy");
   await expect(go.locator(".od-vsub")).toHaveText(fmtSub(TAKE_TS, zh));
 });
