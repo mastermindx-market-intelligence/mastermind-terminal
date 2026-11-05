@@ -2083,12 +2083,18 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     } else {
       url.searchParams.delete("symbol");
     }
-    writeRoute(url, "replace");
+    // Claim the confirmed detail before publishing its route or yielding to the
+    // list read. History catch-up must not reopen our own idle transition and
+    // erase the receipt. A later navigation/owner retirement keeps its generation.
+    const detailToken = ++detailRequest.current;
     setSelectedId(id);
+    setDetailState("loading");
     setMobilePane("detail");
     setMessage(`${copy.saved} ${version}${payload.replayed ? ` · ${copy.replayed}` : ""}`);
+    writeRoute(url, "replace");
     await loadList();
-    await loadDetail(id);
+    if (detailToken !== detailRequest.current) return;
+    await loadDetail(id, detailToken);
   }, [copy.ambiguous, copy.invalid, copy.replayed, copy.saved, copy.transition, loadDetail, loadList, removeTerminalPending, writeRoute]);
 
   const send = useCallback(async (pendingMutation: Pending) => {

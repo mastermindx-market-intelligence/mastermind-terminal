@@ -124,6 +124,7 @@ function installFetch(config: {
   theses?: ThesisSummary[];
   detailFor?: (id: string) => DetailAnswer | undefined;
   listFor?: () => DetailAnswer;
+  mutationFor?: (body: string) => DetailAnswer;
 } = {}) {
   const requests: string[] = [];
   const fetchMock = vi.fn(async (input: string | URL | Request, init?: RequestInit) => {
@@ -134,6 +135,9 @@ function installFetch(config: {
     if (url.pathname === "/api/thesis-fire-status") return jsonResponse({ states: {} });
     if (/^\/api\/thesis\/[^/]+\/proposals/.test(url.pathname)) return jsonResponse({ proposals: [] });
     if (url.pathname !== "/api/theses") return jsonResponse({ error: "not_found" }, 404);
+    if (init?.method === "POST" && config.mutationFor) {
+      return config.mutationFor(typeof init.body === "string" ? init.body : "");
+    }
     const id = url.searchParams.get("id");
     if (id) {
       const answer = config.detailFor?.(id);
@@ -203,6 +207,27 @@ function moKeys(): string[] {
   return [...new URL(window.location.href).searchParams.keys()].filter((key) => key.toLowerCase().startsWith("mo_"));
 }
 
+function seedPendingCreate(requestId: string, savedSubjectKey?: string) {
+  const row = summary(NVDA_ID, listingSubject("NVDA"), "Recovered NVDA thesis");
+  const serializedBody = JSON.stringify({
+    action: "create", clientRequestId: requestId,
+    subject: row.subject, content: detailFor(row).current.content,
+  });
+  const key = `mm.thesis.pending.v2:${encodeURIComponent(OWNER)}:${requestId}`;
+  window.localStorage.setItem(key, JSON.stringify({
+    schema: "mastermind.thesis-pending/v2", ownerKey: OWNER,
+    action: "create", clientRequestId: requestId, serializedBody,
+    ...(savedSubjectKey === undefined ? {} : { savedSubjectKey }),
+  }));
+  return { key, serializedBody, row };
+}
+
+function deferredResponse() {
+  let resolve!: (response: Response) => void;
+  const promise = new Promise<Response>((done) => { resolve = done; });
+  return { promise, resolve };
+}
+
 beforeEach(() => {
   // See ThesisWorkspaceLensRail.test.tsx: Node's own global localStorage getters must
   // give way to jsdom's real Storage before the component touches pending carriers.
@@ -238,6 +263,86 @@ afterEach(() => {
 });
 
 describe("ThesisWorkspace reopen with MarketOntology context", () => {
+  it.each([undefined, "NVDA"])("keeps the accepted recovery receipt while its owned list/detail transition is pending (legacy subject=%s)", async (savedSubjectKey) => {
+    const stored = seedPendingCreate("c3100000-0000-4000-8000-000000000001", savedSubjectKey);
+    const listGate = deferredResponse();
+    let accepted = false;
+    let announceList!: () => void;
+    const listStarted = new Promise<void>((resolve) => { announceList = resolve; });
+    const writes: string[] = [];
+    const { requests } = installFetch({
+      mutationFor: (body) => {
+        writes.push(body); accepted = true;
+        return jsonResponse({ thesisId: NVDA_ID, version: 1, lifecycleState: "active", replayed: false }, 201);
+      },
+      listFor: () => {
+        if (!accepted) return jsonResponse({ theses: [], truncated: false });
+        announceList(); return listGate.promise;
+      },
+      detailFor: (id) => id === NVDA_ID ? jsonResponse({ thesis: detailFor(stored.row) }) : undefined,
+    });
+    const el = await mountAt("/analysis?view=theses&symbol=NVDA", { initialSymbol: "NVDA" });
+    const retry = Array.from(el.querySelectorAll("button")).find(button => button.textContent === "Retry same request");
+    expect(retry).toBeTruthy();
+    const listResponse = jsonResponse({ theses: [stored.row], truncated: false });
+    try {
+      await act(async () => { retry!.click(); await listStarted; });
+      await flush(2);
+      expect(el.textContent).toContain("Saved as version 1");
+      expect(requests.filter(request => request.startsWith(`/api/theses?id=${NVDA_ID} `))).toHaveLength(0);
+      expect(writes).toEqual([stored.serializedBody]);
+      expect(window.localStorage.getItem(stored.key)).toBeNull();
+
+      listGate.resolve(listResponse);
+      await flush();
+      expect(el.textContent).toContain("Saved as version 1");
+      expect(el.querySelector<HTMLInputElement>('input[aria-label="Title"]')?.value).toBe(stored.row.title);
+      expect(requests.filter(request => request.startsWith(`/api/theses?id=${NVDA_ID} `))).toHaveLength(1);
+      expect(writes).toEqual([stored.serializedBody]);
+    } finally {
+      listGate.resolve(listResponse);
+    }
+  });
+
+  it("does not start a saved-detail read after a later history navigation retires its generation", async () => {
+    const stored = seedPendingCreate("c3200000-0000-4000-8000-000000000001");
+    const msft = summary(MSFT_ID, listingSubject("MSFT"), "Later MSFT selection");
+    const listGate = deferredResponse();
+    let accepted = false;
+    let announceList!: () => void;
+    const listStarted = new Promise<void>((resolve) => { announceList = resolve; });
+    const writes: string[] = [];
+    const { requests } = installFetch({
+      mutationFor: (body) => {
+        writes.push(body); accepted = true;
+        return jsonResponse({ thesisId: NVDA_ID, version: 1, lifecycleState: "active", replayed: false }, 201);
+      },
+      listFor: () => {
+        if (!accepted) return jsonResponse({ theses: [], truncated: false });
+        announceList(); return listGate.promise;
+      },
+      detailFor: (id) => jsonResponse({ thesis: detailFor(id === MSFT_ID ? msft : stored.row) }),
+    });
+    const el = await mountAt("/analysis?view=theses&symbol=NVDA", { initialSymbol: "NVDA" });
+    const retry = Array.from(el.querySelectorAll("button")).find(button => button.textContent === "Retry same request");
+    expect(retry).toBeTruthy();
+    const listResponse = jsonResponse({ theses: [stored.row, msft], truncated: false });
+    try {
+      await act(async () => { retry!.click(); await listStarted; });
+      await popTo(`/analysis?view=theses&thesis=${MSFT_ID}`, 2);
+      expect(el.querySelector<HTMLInputElement>('input[aria-label="Title"]')?.value).toBe(msft.title);
+      listGate.resolve(listResponse);
+      await flush();
+      expect(new URL(window.location.href).searchParams.get("thesis")).toBe(MSFT_ID);
+      expect(el.querySelector<HTMLInputElement>('input[aria-label="Title"]')?.value).toBe(msft.title);
+      expect(requests.filter(request => request.startsWith(`/api/theses?id=${NVDA_ID} `))).toHaveLength(0);
+      expect(writes).toEqual([stored.serializedBody]);
+      expect(window.localStorage.getItem(stored.key)).toBeNull();
+    } finally {
+      listGate.resolve(listResponse);
+    }
+  });
+
   it("reopens the current thesis when Next commits its URL after the history listener settled", async () => {
     const nvda = summary(NVDA_ID, listingSubject("NVDA"), "NVDA thesis");
     let holdRead = false;

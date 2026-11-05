@@ -227,3 +227,59 @@ Canonical sweep coordination remains
 The source-law pin for this work is
 `0efd0744ac705ddc24880acde1cb4ac6e8c55d05`. This is a source integration
 milestone; the original product acceptance remains open.
+
+## Saved-detail history reconciliation follow-up — 2026-11-05
+
+Exact published head `d2b80088b4d29f9647a0c835c10e2a87c48d04af` passed its
+unit/typecheck job in natural CI42090185933. Desktop-5 job127466715514 then
+reported245 passed,23 skipped and two failures, each repeated on all three
+attempts: `thesis-workspace.spec.ts` five-key v2 recovery and historical six-key
+recovery reached Retry same request but lost the expected Saved-as-version
+message. One exact log and exact-head component/spec sources established this
+bounded source diagnosis; no browser trace or final DOM state is inferred.
+The later mobile-3/job127466715687 and tablet-3/job127466715456 logs show the
+same two failures on all three attempts, with340 passed/108 skipped and
+349 passed/98 skipped respectively. Both used integrated checkout
+`c84bb2c` from d2b80088 into50713. No distinct failure or broader repair is
+inferred from those logs, and neither job was rerun here.
+
+The accepted four-field201 receipt was valid. Its consumer cleared pending,
+published the saved route and message, then awaited the list read while detail
+state was still idle. The current history catch-up therefore treated the saved
+route as an unstarted detail, called the ordinary reopen path, cleared the
+receipt message and started another detail read. The recovery fixtures and
+their exact-byte POST/storage-clear assertions are retained unchanged.
+
+The existing consumer now claims its detail-request generation and sets the
+saved selection to loading before publishing its route or yielding. After the
+list read returns, it starts the canonical detail read only if that same
+generation still owns the transition, passing the claimed token into the
+existing loader. Later navigation or owner retirement therefore prevents an
+obsolete save continuation from starting another detail read. This adds no
+retry, storage, identity, cache or history owner. The actual same-id/idle history
+catch-up and terminal401 latch remain unchanged.
+
+**Local validation:** twelve probes execute the actual `consumeResponse`,
+`loadDetail` and `reconcileHistoryLocation` callbacks, with the actual exact-key
+and pending-subject helper bodies, through Node24 TypeScript stripping and
+controlled committed-state, route, parser, storage-settlement and network ports.
+The previous source passes seven and fails five discriminating transition
+cases; the repaired source passes all twelve. The final component SHA256 is
+`cf5ce887428f61689dfc9e1a7867ab44013dbd87d27c66579cf1ace4be9effd3`.
+These probes are not native React, Vitest, browser, POST or production execution.
+
+Three mounted regressions are added to the existing ontology/history suite:
+both original recovery-envelope forms keep the receipt while a controlled list
+read is pending, and a later real history transition retains ownership when
+that list finally settles. They retain exact request bytes and original storage
+clearing. These mounted cases are authored but unrun locally; normal current-head
+CI remains responsible for them and the unchanged browser recovery journeys.
+
+Only the component, its existing mounted suite and this note change. The strict
+receipt grammar, pending carrier, source-qualified drawing behavior, native
+evidence readers, complete capture matrices and historical artifacts remain.
+The incumbent capture owner will regenerate any genuinely required packets from
+the new source in its disposable CI checkout; no screenshot/hash restamp or
+manual rerun occurred. SQL0050 remains unapplied, Macro#9601 coordinated release
+and ordinary-provider live acceptance remain separate, and this follow-up adds
+no merge admission, deployment or product-completion claim.
