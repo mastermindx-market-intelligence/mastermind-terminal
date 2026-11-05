@@ -4,11 +4,12 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import StepAccount from "@/components/onboarding/StepAccount";
 
-const auth = vi.hoisted(() => ({ signin: vi.fn(), signup: vi.fn(), refresh: vi.fn() }));
+const auth = vi.hoisted(() => ({ signin: vi.fn(), signup: vi.fn(), refresh: vi.fn(), navigate: vi.fn() }));
 vi.mock("@/lib/supabase/client", () => ({ createClient: () => ({
   auth: { signInWithPassword: auth.signin, signUp: auth.signup },
 }) }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: auth.refresh }) }));
+vi.mock("@/lib/onboardingSigninNavigation", () => ({ navigateToSignedInWorkspace: auth.navigate }));
 vi.mock("@/lib/i18n", () => ({ useT: () => (key: string) => key }));
 vi.mock("@/components/onboarding/oauth", () => ({ startGoogleOAuth: vi.fn() }));
 
@@ -47,7 +48,8 @@ describe("password sign-in completion", () => {
     auth.signin.mockResolvedValue({ error: null });
     mount(); await submit();
     expect(signedIn).toHaveBeenCalledTimes(1);
-    expect(auth.refresh).toHaveBeenCalledTimes(1);
+    expect(auth.navigate).toHaveBeenCalledTimes(1);
+    expect(auth.refresh).not.toHaveBeenCalled();
     expect(advance).not.toHaveBeenCalled();
     expect(set).toHaveBeenCalledWith({ password: "" });
     expect(host.querySelector<HTMLButtonElement>('button[type="submit"]')!.disabled).toBe(false);
@@ -57,6 +59,7 @@ describe("password sign-in completion", () => {
     auth.signin.mockResolvedValue({ error: { message: "Invalid login credentials" } });
     mount(); await submit();
     expect(signedIn).not.toHaveBeenCalled();
+    expect(auth.navigate).not.toHaveBeenCalled();
     expect(auth.refresh).not.toHaveBeenCalled();
     expect(host.textContent).toContain("Invalid login credentials");
     expect(host.querySelector<HTMLButtonElement>('button[type="submit"]')!.disabled).toBe(false);
@@ -74,6 +77,7 @@ describe("password sign-in completion", () => {
     expect(switchMode).not.toHaveBeenCalled();
     await act(async () => resolve({ error: null }));
     expect(signedIn).toHaveBeenCalledTimes(1);
+    expect(auth.navigate).toHaveBeenCalledTimes(1);
     expect(modeButton.disabled).toBe(false);
   });
 

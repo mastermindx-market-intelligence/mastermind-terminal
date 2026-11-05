@@ -386,3 +386,67 @@ export function lineDecimate(points: readonly DecimatePoint[], tolerancePx: numb
   }
   return out;
 }
+
+/**
+ * PERF-C: lineDecimate as a stream. A fitted LOD window feeds every visible
+ * row (40k on the bench corpus) per line series per frame; building the full
+ * polyline first allocated one point per row only to keep ~4 per pixel. Push
+ * the projected points in order and `finish()` returns exactly what
+ * `lineDecimate(allPushedPoints, tolerancePx)` returns (same runs, extremes,
+ * tie-breaks and non-finite handling, as fresh point objects), allocating only
+ * the emitted points. Single use: `finish()` ends the stream.
+ */
+export class LineDecimator {
+  private readonly out: DecimatePoint[] = [];
+  private readonly passthrough: boolean;
+  private n = 0; // points pushed so far; ordinals below index the pushed sequence
+  private bucket = Number.NaN;
+  private startK = 0; private startX = 0; private startY = 0;
+  private endK = 0; private endX = 0; private endY = 0;
+  private minK = -1; private minX = 0; private minY = 0;
+  private maxK = -1; private maxX = 0; private maxY = 0;
+
+  constructor(private readonly tolerancePx: number) {
+    this.passthrough = !Number.isFinite(tolerancePx) || tolerancePx <= 0;
+  }
+
+  push(x: number, y: number): void {
+    const k = this.n;
+    this.n += 1;
+    if (this.passthrough) {
+      this.out.push({ x, y });
+      return;
+    }
+    const bucket = Math.floor(x / this.tolerancePx);
+    if (k > 0 && bucket !== this.bucket) this.flush();
+    if (k === 0 || bucket !== this.bucket) {
+      this.bucket = bucket;
+      this.startK = k; this.startX = x; this.startY = y;
+      this.minK = -1; this.maxK = -1;
+    }
+    this.endK = k; this.endX = x; this.endY = y;
+    if (Number.isFinite(y)) {
+      if (this.minK < 0 || y < this.minY) { this.minK = k; this.minX = x; this.minY = y; }
+      if (this.maxK < 0 || y > this.maxY) { this.maxK = k; this.maxX = x; this.maxY = y; }
+    }
+  }
+
+  finish(): DecimatePoint[] {
+    if (!this.passthrough && this.n > 0) this.flush();
+    return this.out;
+  }
+
+  private flush(): void {
+    const out = this.out;
+    out.push({ x: this.startX, y: this.startY });
+    const extreme = (k: number, x: number, y: number) => {
+      if (k !== this.startK && k !== this.endK) out.push({ x, y });
+    };
+    if (this.minK >= 0) {
+      if (this.minK === this.maxK) extreme(this.minK, this.minX, this.minY);
+      else if (this.minK < this.maxK) { extreme(this.minK, this.minX, this.minY); extreme(this.maxK, this.maxX, this.maxY); }
+      else { extreme(this.maxK, this.maxX, this.maxY); extreme(this.minK, this.minX, this.minY); }
+    }
+    if (this.endK !== this.startK) out.push({ x: this.endX, y: this.endY });
+  }
+}

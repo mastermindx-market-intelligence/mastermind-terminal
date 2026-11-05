@@ -30,69 +30,14 @@
  * the measured cause directly. Raising timeouts was rejected outright — it hides the signal,
  * and since the set rotates, the next cold run simply picks different victims.
  *
- * Keep ROUTES in step with the suite. A route that is missing here is not broken, it is merely
+ * Keep ROUTES in fixtureWarmup.cjs in step with the suite. A route that is missing here is not broken, it is merely
  * back to paying its own compile; the list is derived from every `page.goto()` in e2e/.
  */
 import type { FullConfig } from "@playwright/test";
-
-/** Every route the suite navigates to, plus the API routes its first assertions depend on. */
-const ROUTES = [
-  "/terminal?symbol=NVDA",
-  "/options",
-  "/portfolio",
-  "/alerts",
-  "/analysis",
-  "/discover",
-  "/admin",
-  "/embed/chart?symbol=NVDA",
-  "/login",
-  "/reset-password",
-  // API routes compile on first request too, and these are awaited inside specs rather than
-  // during navigation — so their compile lands squarely inside an `expect.poll` budget.
-  "/api/me",
-  "/api/watchlist",
-  "/api/layouts",
-  "/api/watchlist/annotations",
-];
-
-/** One request, with its own ceiling: a warm-up must never outlast the thing it protects. */
-async function warm(url: string, timeoutMs: number): Promise<string> {
-  const started = Date.now();
-  const control = new AbortController();
-  const timer = setTimeout(() => control.abort(), timeoutMs);
-  try {
-    const res = await fetch(url, { signal: control.signal });
-    // The STATUS is irrelevant — 401/404/307 all mean the route compiled, which is the point.
-    return `${res.status} in ${Date.now() - started}ms`;
-  } catch (err) {
-    return `skipped after ${Date.now() - started}ms (${(err as Error).name})`;
-  } finally {
-    clearTimeout(timer);
-  }
-}
+import { warmFixtureRoutes } from "./fixtureWarmup.cjs";
 
 export default async function globalSetup(config: FullConfig): Promise<void> {
   const base = config.projects[0]?.use?.baseURL
     ?? `http://127.0.0.1:${process.env.TERMINAL_E2E_PORT || 3108}`;
-
-  // Playwright's ordering of webServer vs globalSetup has moved between releases, so do not
-  // assume the server is already up — wait for it rather than warming into a closed port.
-  const deadline = Date.now() + 120_000;
-  while (Date.now() < deadline) {
-    try {
-      await fetch(`${base}/login`, { signal: AbortSignal.timeout(5_000) });
-      break;
-    } catch {
-      await new Promise((r) => setTimeout(r, 1_000));
-    }
-  }
-
-  // SERIAL, not parallel: twelve simultaneous cold compiles contend for the same dev server and
-  // measure worse than doing them one at a time.
-  const started = Date.now();
-  for (const route of ROUTES) {
-    const result = await warm(`${base}${route}`, 90_000);
-    console.log(`[warmup] ${route} → ${result}`);
-  }
-  console.log(`[warmup] ${ROUTES.length} routes compiled in ${Math.round((Date.now() - started) / 1000)}s`);
+  await warmFixtureRoutes(base);
 }

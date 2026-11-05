@@ -1,0 +1,748 @@
+{
+  "schema": "portfolio_workspace_verification.v1",
+  "recorded_at_utc": "2026-10-18T05:31:03.148257+00:00",
+  "proof_class": "source_isolated_fixtures_actual_paper_edits_and_production_catalog_read",
+  "production_deployed": false,
+  "production_ddl_applied": false,
+  "paper_file_modified": true,
+  "base_sha": "d6515f47232538161af8d3d4c27064165eda40fe",
+  "dependency_heads": {
+    "866": "60fd6d997df52d2d8331de85ab63014446e16ef9",
+    "888": "7257b308893288568aaa3c9d6c44933fa97622e3"
+  },
+  "source_sha256": {
+    "terminal/components/PortfolioView.tsx": "39d6cf30d325015bda31139cca22e45f0f1971d5ee872e69cfb8539a2df79330",
+    "terminal/components/PortfolioWorkspace.tsx": "ccb6e79177c965b5ce881906296a8d7bc15d3b494e5f82becf8e57fa67433ddd",
+    "terminal/components/PortfolioWorkspace.module.css": "7fb8a436ebc77866640a5475a5c9f2011909793172d15250c80658d2c522a27c",
+    "terminal/components/PositionModal.tsx": "9b732309796e017edf78b825c499eecf134d78504f0984fcdf4e79ffa0cc739f",
+    "terminal/components/TerminalShell.tsx": "417933aa5f1902750ef27388f2d5e7b39c00c07341e6a7e9679e2e85a420026f",
+    "terminal/lib/portfolio.ts": "2da45b2cb43ef48c6b9b00e94981be241c7baf4b0eeb448c6127027cd57b26f1",
+    "terminal/lib/portfolioWorkspace.ts": "fa064370c0c76189dce46b98e0e0c587250ae330058f293ed177790f3a645a0e",
+    "terminal/lib/portfolioMutation.ts": "fdbdb44f5dd37009c1aed4e29dae6b5d0ce2385e95e9c1350be94506130aa7e7",
+    "terminal/lib/portfolioSnapshot.server.ts": "4453cecf23062a4b74926111ec6d5095bd0d606cf69c01c7803f1aac4c3efc04",
+    "terminal/lib/portfolioAnalysisRead.ts": "10b23d93261ebb1d66571a6b8a5c77b87f467fb8032143c0a4fa597d8a3a1157",
+    "terminal/lib/portfolioBrief.ts": "4b5e9cc9f01c3b169e225fc6d279286a415a6522b3e70673a6d06014ad9971ed",
+    "terminal/lib/watchlists.ts": "e72bcfd9bc472530bc8323a5fd8187b659b784dae2dba959be7cd8bde5cb9e09",
+    "terminal/lib/watchlistsFixtureDb.ts": "1aa19964da1d9fa05f1254e5491bb9084af3515cbf72863db871b43e9b4bda4e",
+    "terminal/app/api/portfolio/route.ts": "ea20b22d07b1dfe2678954347d7029ccad6669235104f522507bcbd6a62d2fd8",
+    "terminal/app/api/portfolio/targets/route.ts": "7e4658845c5b9104185efaaa025a31c3b41525effa8d47628e6943cfb3e8a305",
+    "terminal/app/api/portfolio/risk-history/route.ts": "ce74e3c003ed6da29efb61565aaa0b1c75d0bb74bcc94398794452e5524c7e84",
+    "terminal/scripts/check_plain_language.mjs": "f0e2646dc87b23e6c7699bf5208d5521d230d1ad4044505ad6560a1c33c29190",
+    "tests/sql/audit09/run_native_fixture.py": "3516077539f1f888778f7929838a50986889074de67ab53e8372265ea91bacd5",
+    "scripts/supabase_apply.py": "938349bba26a848508a579835245d77a70c01baa7e9b641d9163d4f3c8ec0b55",
+    "supabase/migrations/0036_portfolio_entry_currency.sql": "9c09540e7b4e451e55a39d8229b3a73eb93c997578f3dadfdc3f24b47a7f7f4c",
+    "terminal/lib/portfolioTargets.ts": "cc7d53b01104eeaee5e65632f640e53cdcd720c481b1f204b1876ca13ca9a53b",
+    "terminal/lib/__tests__/positionModalFailure.test.tsx": "65f1a157277ac8a92137051defd5521cfa9d8162be4d9ad34ed88bf025b53469",
+    "terminal/components/settings/__tests__/SectionPortfolioTargets.summary.test.tsx": "85f9596aeee780d428b74f7f1ff2afda8df4a6359f33050805fef7665db9d9fb",
+    "terminal/components/settings/__tests__/SectionPortfolioTargets.test.tsx": "f136a217159bce8f732f4c58edc5d0d2bd98d9280fbce1466b595d8cb4000143"
+  },
+  "checks": [
+    {
+      "name": "full_terminal_unit",
+      "command": "cd terminal && npx vitest run",
+      "result": "passed",
+      "files_passed": 743,
+      "tests_passed": 12396,
+      "todo": 4
+    },
+    {
+      "name": "responsive_portfolio",
+      "command": "cd terminal && TERMINAL_E2E_PORT=3327 TERMINAL_CROPS=1 npx playwright test e2e/portfolio-workspace.spec.ts e2e/portfolio-positions.spec.ts e2e/portfolio-targets.spec.ts e2e/portfolio-money-units.spec.ts e2e/portfolio-unreadable.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --max-failures=5",
+      "result": "passed",
+      "tests_passed": 87
+    },
+    {
+      "name": "chart_entry_receipt",
+      "command": "cd terminal && TERMINAL_E2E_PORT=3327 npx playwright test e2e/search-add-to-list.spec.ts --project=desktop --workers=1 --grep 'ONE list'",
+      "result": "passed",
+      "tests_passed": 1
+    },
+    {
+      "name": "typecheck",
+      "command": "cd terminal && npx tsc --noEmit",
+      "result": "passed"
+    },
+    {
+      "name": "portfolio_scoped_lint",
+      "command": "npx eslint on the 14 modified/new Portfolio application modules listed in PORTFOLIO_IMPLEMENTATION_AND_RESEARCH.md",
+      "result": "passed",
+      "errors": 0,
+      "warnings": 0
+    },
+    {
+      "name": "terminal_shell_lint_baseline",
+      "result": "existing_debt",
+      "baseline_errors": 54,
+      "candidate_errors": 54,
+      "baseline_warnings": 14,
+      "candidate_warnings": 14,
+      "note": "Both files linted separately. Message text contains shifted source locations; these counts are not a whole-repository lint-clean claim."
+    },
+    {
+      "name": "native_postgres_currency",
+      "command": "python3 tests/sql/audit09/run_native_fixture.py --out-dir /tmp/terminal-portfolio-verification-20261018/native-postgres --pg-bin /opt/homebrew/opt/postgresql@17/bin",
+      "result": "passed",
+      "cases_passed": 21,
+      "receipt": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/blob/8db36932ed4e098a2f16a5b9b9c943d295715cfc/terminal/docs/verification/portfolio-workspace/native-postgres-receipt.json",
+      "scope": "Original #866 SQL; historical check before the forward atomic-envelope proposal."
+    },
+    {
+      "name": "migration_namespace_before_proposal",
+      "command": "python3 scripts/check_supabase_migration_namespace.py",
+      "result": "held",
+      "findings": [
+        "DUPLICATE_PREFIX 0032",
+        "RESERVED_NAME_MISMATCH 0032"
+      ]
+    },
+    {
+      "name": "forward_scoped_units",
+      "command": "cd terminal && npx vitest run lib/__tests__/plainLanguageGuard.test.ts lib/__tests__/plainLanguageGuardCi.test.ts lib/__tests__/portfolioWorkspaceContract.test.ts lib/__tests__/portfolioWorkspaceController.test.tsx lib/__tests__/portfolioMutation.test.ts lib/__tests__/portfolioCreateRetry.test.ts",
+      "result": "passed",
+      "files_passed": 6,
+      "tests_passed": 92
+    },
+    {
+      "name": "forward_typecheck_and_copy_lint",
+      "command": "cd terminal && npx tsc --noEmit && npx eslint components/PortfolioWorkspace.tsx components/PositionModal.tsx lib/portfolioWorkspace.ts",
+      "result": "passed"
+    },
+    {
+      "name": "forward_plain_language",
+      "command": "node terminal/scripts/check_plain_language.mjs --self-check; node terminal/scripts/check_plain_language.mjs --mode enforce-added --diff-file /tmp/terminal-portfolio-verification-20261018/forward0036.diff --json",
+      "result": "passed",
+      "rules_self_checked": 6,
+      "blocking": 0,
+      "waived": 0,
+      "legacy_reported": 3
+    },
+    {
+      "name": "forward_migration_namespace_and_runner",
+      "command": "GITHUB_EVENT_NAME=pull_request PR_NUMBER=1044 python3 scripts/check_supabase_migration_namespace.py --json; GITHUB_EVENT_NAME=pull_request PR_NUMBER=1044 python3 -m pytest tests/test_supabase_migration_namespace.py tests/test_migration_ledger.py tests/test_supabase_apply.py -q",
+      "result": "passed",
+      "tests_passed": 189,
+      "namespace_findings": 0,
+      "scope": "Mechanical PR-scoped qualification; does not resolve the decision amendment or release disposition."
+    },
+    {
+      "name": "native_postgres_forward_through_actual_runner",
+      "command": "python3 tests/sql/audit09/run_native_fixture.py --out-dir /tmp/terminal-portfolio-verification-20261018/native-postgres-forward0036 --pg-bin /opt/homebrew/opt/postgresql@17/bin",
+      "result": "passed",
+      "cases_passed": 27,
+      "receipt": "native-postgres-receipt.json",
+      "production_effects": false
+    },
+    {
+      "name": "portfolio_settings_ci_repair",
+      "result": "passed",
+      "source_head": "d4693a35be612d28e193e795323c3966dfebe701",
+      "command": "npm exec -- vitest run components/settings/__tests__/SectionPortfolioTargets.summary.test.tsx components/settings/__tests__/SectionPortfolioTargets.test.tsx",
+      "cwd": "terminal",
+      "log": {
+        "host_path": "/tmp/terminal-portfolio-verification-20261018/portfolio-settings-ci-repair.log",
+        "sha256": "3a7b0b78c04c8ad510335202b136ab46b8e4c758dad8718ba7a6f4ca8fb5f906"
+      },
+      "tests_passed": 61,
+      "files_passed": 2
+    },
+    {
+      "name": "portfolio_current_master_integration_unit",
+      "result": "passed",
+      "source_head": "b8d3a2a5f0b13a7abac7d612118db8aeee04b20b",
+      "command": "npm exec -- vitest run lib/__tests__/positionModalFailure.test.tsx lib/__tests__/commandPaletteCatalog.test.ts lib/__tests__/portfolioCreateRetry.test.ts components/settings/__tests__/SectionPortfolioTargets.summary.test.tsx components/settings/__tests__/SectionPortfolioTargets.test.tsx",
+      "cwd": "terminal",
+      "log": {
+        "host_path": "/tmp/terminal-portfolio-verification-20261018/portfolio-master-integration-unit.log",
+        "sha256": "c4b878af56986ed9724591721595153f44b3d4fa81edd2d6f4fcb1ff937e0752"
+      },
+      "tests_passed": 116,
+      "files_passed": 5
+    },
+    {
+      "name": "portfolio_current_master_integration_browser",
+      "result": "passed",
+      "source_head": "b8d3a2a5f0b13a7abac7d612118db8aeee04b20b",
+      "command": "TERMINAL_E2E_PORT=3493 npm exec -- playwright test e2e/search-add-to-list.spec.ts e2e/portfolio-workspace.spec.ts --project=desktop --grep \"a signed-in user with ONE list|exact record edit survives canonical readback\" --workers=1",
+      "cwd": "terminal",
+      "log": {
+        "host_path": "/tmp/terminal-portfolio-verification-20261018/portfolio-master-integration-browser.log",
+        "sha256": "2c8a8ac4e46c6fc27db2922508be2f68c5b0b8df140b0848fb8b8d5570eb002d"
+      },
+      "tests_passed": 2
+    },
+    {
+      "name": "portfolio_current_master_integration_typecheck",
+      "result": "passed",
+      "source_head": "b8d3a2a5f0b13a7abac7d612118db8aeee04b20b",
+      "command": "npm exec -- tsc --noEmit",
+      "cwd": "terminal",
+      "log": {
+        "host_path": "/tmp/terminal-portfolio-verification-20261018/portfolio-master-integration-typecheck.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "portfolio_current_master_integration_scoped_lint",
+      "result": "passed",
+      "source_head": "b8d3a2a5f0b13a7abac7d612118db8aeee04b20b",
+      "command": "npm exec -- eslint components/PositionModal.tsx lib/__tests__/positionModalFailure.test.tsx components/settings/__tests__/SectionPortfolioTargets.summary.test.tsx components/settings/__tests__/SectionPortfolioTargets.test.tsx",
+      "cwd": "terminal",
+      "log": {
+        "host_path": "/tmp/terminal-portfolio-verification-20261018/portfolio-master-integration-lint.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "final_candidate_copy_guard",
+      "result": "passed",
+      "source_head": "b8d3a2a5f0b13a7abac7d612118db8aeee04b20b",
+      "command": "node terminal/scripts/check_plain_language.mjs --mode enforce-added --diff-file portfolio-final-candidate-3e0.diff --json",
+      "log": {
+        "host_path": "/tmp/terminal-portfolio-verification-20261018/portfolio-final-candidate-copy-guard.log",
+        "sha256": "80d7ede2d4204e1aaa5bd044b2d614372924ac13d8ee9559b08d46977081bc17"
+      },
+      "scanned_files": 336,
+      "counts": {
+        "blocking": 0,
+        "legacyReported": 4,
+        "waived": 0
+      }
+    },
+    {
+      "name": "final_candidate_namespace_guard",
+      "result": "passed",
+      "source_head": "b8d3a2a5f0b13a7abac7d612118db8aeee04b20b",
+      "command": "GITHUB_EVENT_NAME=pull_request PR_NUMBER=1044 python3 scripts/check_supabase_migration_namespace.py --json",
+      "log": {
+        "host_path": "/tmp/terminal-portfolio-verification-20261018/portfolio-final-candidate-namespace.log",
+        "sha256": "067d19f0c859f669b30ae545dd74e9584e03b0ab00385476c21ccfe43ee2d238"
+      }
+    }
+  ],
+  "screenshots": {
+    "count": 78,
+    "viewports": {
+      "desktop": [
+        1440,
+        900
+      ],
+      "tablet": [
+        820,
+        1180
+      ],
+      "mobile": [
+        390,
+        844
+      ]
+    },
+    "languages": [
+      "en",
+      "zh"
+    ],
+    "portfolio_themes": [
+      "dark",
+      "light"
+    ],
+    "light_scope": "Portfolio compatibility only; Terminal publishes a dark-only global shell",
+    "prices": "controlled fictional test observations"
+  },
+  "not_proven": [
+    "Authenticated production persistence and owner-isolation behavior",
+    "Production market-data freshness",
+    "Production performance/load metrics",
+    "Full assistive-technology accessibility matrix",
+    "Production migration application",
+    "Current candidate full hosted CI"
+  ],
+  "paper": {
+    "file": "01M2WGNCX9475G79JRKJTCM08P",
+    "page": "p-1O-0",
+    "reference_artboard": "628J-0",
+    "reference_capture": "../../../design_refs/portfolio_personal_desk_paper_20261018.jpg",
+    "catalog_actual": "1b9afff4c9bcf6f11f5ca2db301bf25ccdc442025344e2ec402459cedcd6a2db",
+    "catalog_connection_expected": "1b9afff4c9bcf6f11f5ca2db301bf25ccdc442025344e2ec402459cedcd6a2db",
+    "write_accepted": true,
+    "historical_source_qualification": {
+      "pull_request": "https://github.com/mastermindx-market-intelligence/Mastermind/pull/1611",
+      "accepted_head": "17ac4d82006888f787cf728a54fa0466a78a5171",
+      "code_head": "7347c319db18c86b4f6f6dc5a0714e0aebca56c3",
+      "protected_base": "89cf2399c47da20c0c23826266e52984f88c27e7",
+      "installer_sha256": "36de5c47234da8e98b995a0ecc2fd7e60716290927404bfdbc677c260ed47aed",
+      "independent_combined_source_review": "ACCEPT",
+      "tests_passed": 162,
+      "actual_head_hosted_checks": "passed_including_required_test",
+      "queue_entry_observed": "AWAITING_CHECKS",
+      "queue_enqueued_at_utc": "2026-10-18T11:12:36Z",
+      "live_preflight_result": "NOT_APPLIED",
+      "live_installation_changed": false,
+      "independent_operator": "existing RDC m2studio host identity qualified; quiescence and live postconditions still required"
+    },
+    "source_qualification": {
+      "protected_merge": "b92743765aa356a9e918054056ae92f704141723",
+      "installer_sha256": "461126dad0905962cdc7df51674edbde29896ab3e5d61e10018bdd6d08f4f07a",
+      "independent_source_review": "ACCEPT",
+      "live_installation_changed": true,
+      "live_selection": "APPLIED",
+      "actual_gateway_generation": "04560d87-7698-4b7d-8e08-b42f9476026a",
+      "runtime_receipt": "paper-runtime-qualification.json"
+    },
+    "refinement_receipt": "paper-refinement-receipt.json",
+    "final_captures": [
+      {
+        "node_id": "628J-0",
+        "filename": "paper-overview-final.jpg",
+        "mime_type": "image/jpeg",
+        "sha256": "511b8691ff2c33d5b875520017e8cdb727198fc69fc2735030d54ebe35ed3bf7",
+        "bytes": 153170
+      },
+      {
+        "node_id": "62FU-0",
+        "filename": "paper-holdings-final.jpg",
+        "mime_type": "image/jpeg",
+        "sha256": "de84297e8ad9c0c1e183b8502655e99fcc191c8aa156a1a18d951768f364c0df",
+        "bytes": 145503
+      },
+      {
+        "node_id": "62N4-0",
+        "filename": "paper-risk-final.jpg",
+        "mime_type": "image/jpeg",
+        "sha256": "5de116cac4fe6fe5bffaf9ab56f1e6da2022cf7d97abc68b83b5b79c34f9449c",
+        "bytes": 131079
+      },
+      {
+        "node_id": "62S6-0",
+        "filename": "paper-targets-final.jpg",
+        "mime_type": "image/jpeg",
+        "sha256": "ea5f66cda96fed2f774500d1336264e91ac54bdc35cf232f0914d85fb590baac",
+        "bytes": 131650
+      },
+      {
+        "node_id": "632X-0",
+        "filename": "paper-mobile-final.jpg",
+        "mime_type": "image/jpeg",
+        "sha256": "4937de06becb3f4133803f6f1ac993a191002e658ea35cb3cd738193ea21b3e2",
+        "bytes": 79698
+      }
+    ],
+    "original_artboards_modified": [
+      "628J-0",
+      "62FU-0",
+      "62N4-0",
+      "62S6-0",
+      "632X-0"
+    ],
+    "all_edits_response_observed": true
+  },
+  "implementation_tested_head": "8db36932ed4e098a2f16a5b9b9c943d295715cfc",
+  "pull_request": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1044",
+  "migration_proposal": {
+    "path": "supabase/migrations/0036_portfolio_entry_currency.sql",
+    "source_original_path": "supabase/migrations/0032_portfolio_entry_currency.sql",
+    "source_original_head": "60fd6d997df52d2d8331de85ab63014446e16ef9",
+    "source_original_sha256": "fe4def299cf733dd1718bda8ef30f006a6d19c5015f7673cbab05a4b298f99f5",
+    "candidate_sha256": "9c09540e7b4e451e55a39d8229b3a73eb93c997578f3dadfdc3f24b47a7f7f4c",
+    "applied_0032_sha256": "9e360ed109d0c3d8ff3345e90515a2f8da443a03c22f9015514a1b18a2f23dd3",
+    "applied_0032_reservation_unchanged": true,
+    "precedence_disposition": "Canonical at Macro97261c2a319e62faec05690c04e6fae180540235 after normal merge of #9593 at 2026-10-19T00:14:35Z; actual current Terminal source/CI, namespace, catalog and owner gates still apply.",
+    "production_application": "unapplied",
+    "inner_sql_unchanged_from_original": true,
+    "change": "One outer DO statement replaces top-level BEGIN/COMMIT; existing business DDL remains byte-identical.",
+    "native_runner_qualified": true,
+    "production_transport_exercised": true,
+    "allocation_census": {
+      "observed_at_utc": "2026-10-18T06:58:50.162898+00:00",
+      "open_prs": 168,
+      "fully_paginated_file_lists": 10,
+      "incumbent_0035": {
+        "pr": 778,
+        "head": "88f2919a5c2222bcf05f452f2549b9af180dcae6",
+        "file": "0035_saved_view_guard.sql"
+      },
+      "prior_observed_778_head": "122694a1249cc15f563f139aa6ee5e36c7862f12",
+      "own_proposal_forward_renumbered": true
+    },
+    "allocation_delta_census": {
+      "observed_at_utc": "2026-10-18T07:10:54.309748+00:00",
+      "since": "2026-10-18T06:58:50Z",
+      "open_prs": 167,
+      "updated_prs_checked": 1,
+      "claims": []
+    },
+    "decision_proposal": {
+      "pull_request": "https://github.com/mastermindx-market-intelligence/macro/pull/9593",
+      "accepted_head": "a250b2254e28ec0513ff8eef0175a9f41f44cb20",
+      "canonical": true,
+      "accepted_owned_content_head": "92ce47d25d38fb09bd32da6add26f851660a2d45",
+      "controller_head": "2104a8af14d64fd0b15b900da67d206005878925",
+      "observed_at_utc": "2026-10-19T00:06:46Z",
+      "status": "merged",
+      "merge_sha": "97261c2a319e62faec05690c04e6fae180540235",
+      "merged_at_utc": "2026-10-19T00:14:35Z",
+      "landed_owned_files_independent_readback": "All three files identical to accepted92ce and controller2104 at actual merge97261c2a; verified2026-10-19T00:18:52Z",
+      "binding_ci_run": 39178685881,
+      "binding_ci_conclusion": "success",
+      "binding_ci_completed_at_utc": "2026-10-19T00:14:07Z"
+    },
+    "allocation_review_delta": {
+      "observed_at_utc": "2026-10-18T11:04:42Z",
+      "since": "2026-10-18T07:10:54Z",
+      "updated_prs_including_own": 7,
+      "other_pr_file_lists_complete": 6,
+      "filenames_inspected": 266,
+      "competing_0036_claims": [],
+      "protected_master": "367f488e5c67d0871d4a34c2aa7371f327d44c3d",
+      "incumbent_778_head": "88f2919a5c2222bcf05f452f2549b9af180dcae6",
+      "heads": {
+        "1025": "55a84b0d376fa42b9ba9808d99aba4c033db464b",
+        "859": "eeec0a78d9d11a8cc15a7eb1911acdd2edca6853",
+        "757": "9f3d254697f8daeaae5d67a0b0df841fc8fe5535",
+        "1047": "54adec6253a53f486efabb4c71bf4dfbe3a1b1fa",
+        "1039": "ec906876d8579afbe3f17beafbee381626aeed8d",
+        "1029": "6827f73933f62723f60ed01f00ad53b790b03e86"
+      }
+    },
+    "production_transport_scope": "Six catalog-only SELECT requests through the existing CurlRunner and documented primary credential pair; no application request.",
+    "production_catalog_preflight": {
+      "receipt": "production-catalog-preflight.json",
+      "sha256": "4f80b4d6ed0a5ef4fc14bbe1b524d50f27f79d57c0a1a746454094e9d8d951c6",
+      "observed_at_utc": "2026-10-18T11:35:53.572351+00:00",
+      "reads_completed": 6,
+      "mutation_sent": false,
+      "table_exists": true,
+      "row_security_enabled": true,
+      "forced_row_security": false,
+      "existing_owner_policies": 8,
+      "entry_currency_objects_present": false,
+      "scope": "Catalog and credential/transport proof; does not establish authenticated-user isolation, writes, application or deployment."
+    },
+    "applier_dry_run": {
+      "result": "passed",
+      "application_statements": 1,
+      "catalog_readbacks": 5,
+      "guards": "passed",
+      "network_calls": 0,
+      "log": {
+        "host_path": "/tmp/terminal-portfolio-verification-20261018/0036-production-dry-run.log",
+        "sha256": "5e58b22896deb86f26cffc30e9e8521c0cd986647966dbb65702106de6e3661e"
+      }
+    },
+    "allocation_evening_delta": {
+      "observed_at_utc": "2026-10-18T23:50:23Z",
+      "other_pr_file_lists_complete": 10,
+      "filenames_inspected": 808,
+      "competing_0036_claims": [],
+      "protected_master": "3e0be25bfc1393d75684a9ebb97dacf2fbf2c5d9",
+      "incumbent_778_head": "88f2919a5c2222bcf05f452f2549b9af180dcae6",
+      "review_source": "independent portfolio_ci_review agent; complete filename lists for every other PR updated since the previous census"
+    }
+  },
+  "initial_source_sha256": {
+    "terminal/components/PortfolioView.tsx": "fe108801532a99c5f80ea4fa2a2f51c2da6f7d9b18e50d1d8624dc4b319b61f8",
+    "terminal/components/PortfolioWorkspace.tsx": "cdadb93f9f872c584464c28cc4bf8fdd4423565620fbb1945075ea5139deabb7",
+    "terminal/components/PortfolioWorkspace.module.css": "4e383a7285648c9c7b43ae834adf0317424eabfdeb4fc3d542a13ab3d0a1e2bf",
+    "terminal/components/PositionModal.tsx": "afb36b6d4827ac470a0c6d3a2ed58b4cd0d9f832b64f456c5f01fef6988803f5",
+    "terminal/components/TerminalShell.tsx": "5ed3a1b77d4e107c6e2313152c6903eb6436df4e9f4a0e8e63c84accb838801b",
+    "terminal/lib/portfolio.ts": "cd3356ce5e27ff23a37b1008197090c8b2c276c7c5239a4649f5705cc0ef5ab5",
+    "terminal/lib/portfolioWorkspace.ts": "4abd4e66c10408da925946b046dd1b6beaca0574c8b32c8fd6e8a6532bd689db",
+    "terminal/lib/portfolioMutation.ts": "b95d1ec7e334093a5e3b4011c7fe92b1a215c5d8c9edd8ee239f39a335e57005",
+    "terminal/lib/portfolioSnapshot.server.ts": "4453cecf23062a4b74926111ec6d5095bd0d606cf69c01c7803f1aac4c3efc04",
+    "terminal/lib/portfolioAnalysisRead.ts": "10b23d93261ebb1d66571a6b8a5c77b87f467fb8032143c0a4fa597d8a3a1157",
+    "terminal/lib/portfolioBrief.ts": "4b5e9cc9f01c3b169e225fc6d279286a415a6522b3e70673a6d06014ad9971ed",
+    "terminal/lib/watchlists.ts": "e72bcfd9bc472530bc8323a5fd8187b659b784dae2dba959be7cd8bde5cb9e09",
+    "terminal/lib/watchlistsFixtureDb.ts": "2a9477e28a07296b935a2cf765e40613d48acba016de495ca44b60db433e6776",
+    "terminal/app/api/portfolio/route.ts": "ea20b22d07b1dfe2678954347d7029ccad6669235104f522507bcbd6a62d2fd8",
+    "terminal/app/api/portfolio/targets/route.ts": "7e4658845c5b9104185efaaa025a31c3b41525effa8d47628e6943cfb3e8a305",
+    "terminal/app/api/portfolio/risk-history/route.ts": "ce74e3c003ed6da29efb61565aaa0b1c75d0bb74bcc94398794452e5524c7e84"
+  },
+  "followup_recorded_at_utc": "2026-10-18T07:10:22.139438+00:00",
+  "followup_changes": [
+    "Pagination accessible labels and currency example route through shared English/Chinese Portfolio copy.",
+    "Plain-language R3 uses the innermost JSX expression context and enumerates each terminal raw-property suffix independently, with five positive/negative regression controls.",
+    "The proposed migration moves from the conflicting pending0032 to0036, preserving incumbent #778's newer0035 claim, and uses the existing runner's one-statement atomic envelope.",
+    "The application service's migration-number comment and evidence links were corrected."
+  ],
+  "hosted_initial_run": {
+    "run_id": 39103936475,
+    "candidate_head": "8db36932ed4e098a2f16a5b9b9c943d295715cfc",
+    "unit_and_typecheck": "passed_12396_tests",
+    "job_failure_causes": [
+      "four plain-language ratchet findings",
+      "migration namespace collision"
+    ]
+  },
+  "hosted_followup_run": {
+    "run_id": 39105514097,
+    "candidate_head": "36dc3131acee2dff7ed0aa1d4f5f9a8d6869fd9b",
+    "observed_at_utc": "2026-10-18T07:07:35.104723+00:00",
+    "passed": [
+      "unit_and_typecheck",
+      "ingest_and_signal_layer",
+      "quote_hub",
+      "investigation_postgres",
+      "e2e_serial",
+      "codeql"
+    ],
+    "pending": [
+      "e2e_desktop_1",
+      "e2e_desktop_2",
+      "e2e_tablet_1",
+      "e2e_tablet_2",
+      "e2e_mobile_1",
+      "e2e_mobile_2"
+    ],
+    "scope": "Hosted results apply to 36dc, before the R3 fallback regression repair and forward0036 rename."
+  },
+  "current_base_sha": "3e0be25bfc1393d75684a9ebb97dacf2fbf2c5d9",
+  "review_followup_recorded_at_utc": "2026-10-18T11:17:14.499844+00:00",
+  "review_followup": {
+    "source_commit_qualified": "bfecb7029c16185f5fdf9b9b55616f2bff85853e",
+    "source_review": "prior published application findings repaired; exact final published-head re-review pending",
+    "changes": [
+      "Exact status/reason allowlist returns structured position feedback in both Portfolio and chart entry; known refusals remain inside the editor.",
+      "Six field reasons focus the invalid field after saving clears and set aria-invalid/describedby; editing clears only that field error.",
+      "All retries retain the original create-intent UUID and draft; malformed, arbitrary or wrong-status replies remain unconfirmed.",
+      "Explicit nonfinite target/band drafts neither post nor show Saved; current complete draft must match canonical confirmation.",
+      "Targets explain actual currency unknown, currency mismatch and overflow once per book; existing unweighable holdings do not imply an empty book.",
+      "Target confirmation failure no longer claims the target was unchanged."
+    ],
+    "checks": [
+      {
+        "name": "review_focused_unit",
+        "result": "passed",
+        "files_passed": 7,
+        "tests_passed": 191,
+        "files": [
+          "portfolioTargetsSummary.test.ts",
+          "portfolioMutation.test.ts",
+          "positionMutationFailure.test.ts",
+          "portfolioTargets.test.ts",
+          "positionModalFailure.test.tsx",
+          "portfolioWorkspaceController.test.tsx",
+          "portfolioTargetsView.test.tsx"
+        ],
+        "log": {
+          "host_path": "/tmp/terminal-portfolio-verification-20261018/portfolio-review-focused-unit.log",
+          "sha256": "c30ec5b357698c56eec10b41f09f112052a910e8056736c9455a6e1fb3d3417d"
+        }
+      },
+      {
+        "name": "review_browser",
+        "result": "passed",
+        "scheduled": 18,
+        "tests_passed": 16,
+        "skipped": 2,
+        "skip_reason": "The chart picker ONE list pointer flow is intentionally desktop-only; tablet and mobile projects skip that case.",
+        "command": "cd terminal && TERMINAL_E2E_PORT=3484 TERMINAL_CROPS=1 CI=1 ./node_modules/.bin/playwright test e2e/portfolio-workspace.spec.ts e2e/portfolio-positions.spec.ts e2e/search-add-to-list.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --max-failures=3 --grep 'known position refusals|lost response retries|success-shaped zero-row|absent authoritative postcondition|ONE list'",
+        "log": {
+          "host_path": "/tmp/terminal-portfolio-verification-20261018/portfolio-review-browser.log",
+          "sha256": "3908570387ce29135a736282670820ccb20acc13da0ca65c46346fa6a59fe7d5"
+        }
+      },
+      {
+        "name": "review_typecheck",
+        "result": "passed",
+        "command": "cd terminal && ./node_modules/.bin/tsc --noEmit --incremental false",
+        "log": {
+          "host_path": "/tmp/terminal-portfolio-verification-20261018/portfolio-review-typecheck.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "scope": "Includes all repair code and tests; final subsequent edit only removes the unused useT import/local variable."
+      },
+      {
+        "name": "review_changed_module_lint",
+        "result": "passed",
+        "errors": 0,
+        "warnings": 0,
+        "modules": [
+          "components/PortfolioView.tsx",
+          "components/PositionModal.tsx",
+          "lib/portfolioWorkspace.ts",
+          "lib/portfolioMutation.ts",
+          "lib/portfolioTargets.ts"
+        ],
+        "log": {
+          "host_path": "/tmp/terminal-portfolio-verification-20261018/portfolio-review-lint.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      {
+        "name": "review_plain_language",
+        "result": "passed",
+        "files_scanned": 320,
+        "blocking": 0,
+        "waived": 0,
+        "legacy_reported": 3,
+        "log": {
+          "host_path": "/tmp/terminal-portfolio-verification-20261018/portfolio-review-copy.log",
+          "sha256": "d25a6fb7e9a71f1b0fc206a8e3acb508c26289244f833aca5b2a6297cf4e99d3"
+        }
+      }
+    ],
+    "screenshots_added": [
+      "terminal/docs/verification/portfolio-workspace/desktop-en-editor-validation.png",
+      "terminal/docs/verification/portfolio-workspace/desktop-zh-editor-validation.png",
+      "terminal/docs/verification/portfolio-workspace/mobile-en-editor-validation.png",
+      "terminal/docs/verification/portfolio-workspace/mobile-zh-editor-validation.png",
+      "terminal/docs/verification/portfolio-workspace/tablet-en-editor-validation.png",
+      "terminal/docs/verification/portfolio-workspace/tablet-zh-editor-validation.png"
+    ]
+  },
+  "hosted_prior_published_head": {
+    "candidate_head": "5cff531c3a5311596b0469acfdf915d08c4d1cfd",
+    "result": "all_checks_passed",
+    "scope": "Before the current application review repairs; final published head requires its own checks."
+  },
+  "current_source_head": "b8d3a2a5f0b13a7abac7d612118db8aeee04b20b",
+  "acceptance_followup": {
+    "recorded_at_utc": "2026-10-18T11:42:33.343898+00:00",
+    "source_commit_qualified": "58c9860f3f8207af58362c3c7fa5b228cff56ac5",
+    "prior_published_head": "1fdd919344420e2721deb35ea7b914940059078a",
+    "changes": [
+      "Untargeted rows have no canonical saved target, so they no longer consume or display ticker-only Saved acknowledgements.",
+      "Two actual controller transitions cover another client clearing a target and a newer invalid first-target draft following independent confirmation.",
+      "The new Portfolio workspace follows the current neutral-container and navigation-selection doctrine at Macro f3fefce7e893755dcec18cbfe06f421c2c4d2db8: no decorative colored edge or tinted container border; meaningful data marks and complete focus outlines remain.",
+      "The header removes redundant privacy and marketing copy while retaining the page title, records, freshness and actions."
+    ],
+    "checks": [
+      {
+        "name": "final_target_controller_and_view",
+        "result": "passed",
+        "files_passed": 2,
+        "tests_passed": 54,
+        "includes_new_regressions": 2,
+        "command": "cd terminal && ./node_modules/.bin/vitest run lib/__tests__/portfolioWorkspaceController.test.tsx lib/__tests__/portfolioTargetsView.test.tsx",
+        "log": {
+          "host_path": "/tmp/terminal-portfolio-verification-20261018/portfolio-final-target-unit.log",
+          "sha256": "427c0a32ca7554b038a44e7076a2bde77120956aa2c6bc6eb7d0bd1ba242c467"
+        }
+      },
+      {
+        "name": "neutral_surfaces_responsive",
+        "result": "passed",
+        "tests_passed": 27,
+        "command": "cd terminal && TERMINAL_E2E_PORT=3491 TERMINAL_CROPS=1 CI=1 ./node_modules/.bin/playwright test e2e/portfolio-workspace.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --max-failures=3 --grep 'workspace layout and record inspector|tabs, filters|known position refusals|unreadable book|exact record edit'",
+        "log": {
+          "host_path": "/tmp/terminal-portfolio-verification-20261018/portfolio-final-neutral-browser.log",
+          "sha256": "372660442db151f8e5298e1e6170983f165092f4859f3bd18169a578f392754b"
+        },
+        "scope": "After target acknowledgement and neutral-surface repairs; before subsequent header-only compaction."
+      },
+      {
+        "name": "compact_header_responsive",
+        "result": "passed",
+        "tests_passed": 12,
+        "command": "cd terminal && TERMINAL_E2E_PORT=3492 TERMINAL_CROPS=1 CI=1 ./node_modules/.bin/playwright test e2e/portfolio-workspace.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --max-failures=2 --grep 'workspace layout and record inspector'",
+        "log": {
+          "host_path": "/tmp/terminal-portfolio-verification-20261018/portfolio-final-compact-header-browser.log",
+          "sha256": "ac26335ed1abae953b9fc27328a2f2ad26b1c5d892ca9766b2b090971eaadfb0"
+        },
+        "scope": "Final header and surfaces, all four sections plus inspector, EN/ZH and dark/light at all three sizes."
+      },
+      {
+        "name": "final_typecheck",
+        "result": "passed",
+        "command": "cd terminal && ./node_modules/.bin/tsc --noEmit --incremental false",
+        "log": {
+          "host_path": "/tmp/terminal-portfolio-verification-20261018/portfolio-final-typecheck.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "scope": "After target/neutral-surface repair; subsequent edit removes only redundant header nodes and adjusts heading margins."
+      },
+      {
+        "name": "final_changed_components_lint",
+        "result": "passed",
+        "errors": 0,
+        "warnings": 0,
+        "logs": [
+          {
+            "host_path": "/tmp/terminal-portfolio-verification-20261018/portfolio-final-view-lint.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "host_path": "/tmp/terminal-portfolio-verification-20261018/portfolio-final-header-lint.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        ]
+      }
+    ],
+    "changed_capture_count": 70,
+    "capture_scope": "Core 60 captures refreshed after final header compaction. Other refreshed states cover neutral surfaces before header-only compaction; retained historical captures keep their prior source scope.",
+    "independent_final_source_review": "pending",
+    "final_published_head_hosted_checks": "pending"
+  },
+  "release_candidate_recorded_at_utc": "2026-10-19T00:16:57.505545+00:00",
+  "prior_acceptance_source_sha256": {
+    "terminal/components/PortfolioView.tsx": "39d6cf30d325015bda31139cca22e45f0f1971d5ee872e69cfb8539a2df79330",
+    "terminal/components/PortfolioWorkspace.tsx": "ccb6e79177c965b5ce881906296a8d7bc15d3b494e5f82becf8e57fa67433ddd",
+    "terminal/components/PortfolioWorkspace.module.css": "7fb8a436ebc77866640a5475a5c9f2011909793172d15250c80658d2c522a27c",
+    "terminal/components/PositionModal.tsx": "dd17b5d42a05bfca3e63d40b6b3f5113b1d15c5a759114b1520bcdf7e1716326",
+    "terminal/components/TerminalShell.tsx": "26901c79a7d0401206a2221ee2f08f074e40ca66112fd07079910bfc9df84d1e",
+    "terminal/lib/portfolio.ts": "2da45b2cb43ef48c6b9b00e94981be241c7baf4b0eeb448c6127027cd57b26f1",
+    "terminal/lib/portfolioWorkspace.ts": "fa064370c0c76189dce46b98e0e0c587250ae330058f293ed177790f3a645a0e",
+    "terminal/lib/portfolioMutation.ts": "fdbdb44f5dd37009c1aed4e29dae6b5d0ce2385e95e9c1350be94506130aa7e7",
+    "terminal/lib/portfolioSnapshot.server.ts": "4453cecf23062a4b74926111ec6d5095bd0d606cf69c01c7803f1aac4c3efc04",
+    "terminal/lib/portfolioAnalysisRead.ts": "10b23d93261ebb1d66571a6b8a5c77b87f467fb8032143c0a4fa597d8a3a1157",
+    "terminal/lib/portfolioBrief.ts": "4b5e9cc9f01c3b169e225fc6d279286a415a6522b3e70673a6d06014ad9971ed",
+    "terminal/lib/watchlists.ts": "e72bcfd9bc472530bc8323a5fd8187b659b784dae2dba959be7cd8bde5cb9e09",
+    "terminal/lib/watchlistsFixtureDb.ts": "2a9477e28a07296b935a2cf765e40613d48acba016de495ca44b60db433e6776",
+    "terminal/app/api/portfolio/route.ts": "ea20b22d07b1dfe2678954347d7029ccad6669235104f522507bcbd6a62d2fd8",
+    "terminal/app/api/portfolio/targets/route.ts": "7e4658845c5b9104185efaaa025a31c3b41525effa8d47628e6943cfb3e8a305",
+    "terminal/app/api/portfolio/risk-history/route.ts": "ce74e3c003ed6da29efb61565aaa0b1c75d0bb74bcc94398794452e5524c7e84",
+    "terminal/scripts/check_plain_language.mjs": "f0e2646dc87b23e6c7699bf5208d5521d230d1ad4044505ad6560a1c33c29190",
+    "tests/sql/audit09/run_native_fixture.py": "3516077539f1f888778f7929838a50986889074de67ab53e8372265ea91bacd5",
+    "scripts/supabase_apply.py": "938349bba26a848508a579835245d77a70c01baa7e9b641d9163d4f3c8ec0b55",
+    "supabase/migrations/0036_portfolio_entry_currency.sql": "9c09540e7b4e451e55a39d8229b3a73eb93c997578f3dadfdc3f24b47a7f7f4c",
+    "terminal/lib/portfolioTargets.ts": "cc7d53b01104eeaee5e65632f640e53cdcd720c481b1f204b1876ca13ca9a53b"
+  },
+  "hosted_ea57_run": {
+    "run_id": 39124393087,
+    "candidate_head": "ea57ad23691df6f848cce65fe814b6cd97f9cfa6",
+    "completed_at_utc": "2026-10-18T12:42:46Z",
+    "typecheck": "passed",
+    "unit_tests_passed": 12487,
+    "unit_tests_failed": 3,
+    "todo": 4,
+    "passing_test_files": 744,
+    "test_files_total": 746,
+    "failure_scope": "Three stale Settings fixture/copy assertions in two files; repaired by d4693a35be612d28e193e795323c3966dfebe701",
+    "required_quote_hub": "passed",
+    "required_ingest_signal_layer": "passed",
+    "parallel_browser_shards": "all six passed",
+    "serial_browser": "passed",
+    "postgres_invariants": "passed",
+    "codeql": "passed",
+    "aggregate": "failed_due_to_the_three_unit_assertions",
+    "plain_language_step": "skipped_after_unit_failure"
+  },
+  "current_integration_acceptance": {
+    "verdict": "ACCEPT",
+    "reviewer": "independent portfolio_source_acceptance agent",
+    "scope": "Accepted ea57 Portfolio application, compatible master3e0 integration, exact modal attribute repair, and executed focused regressions",
+    "application_source": "b8d3a2a5f0b13a7abac7d612118db8aeee04b20b",
+    "integrated_master": "3e0be25bfc1393d75684a9ebb97dacf2fbf2c5d9",
+    "integration_commit": "1e4355a751d739bc786975c5aa8046d9a3fda602",
+    "settings_ci_repair_commit": "d4693a35be612d28e193e795323c3966dfebe701",
+    "position_modal_git_blob": "6c07f488fa8b63b5c0aea121bfd936cfd58b5253",
+    "position_modal_test_git_blob": "ec13efb529560d6967a2cfbe8cf7a404de2ad98d",
+    "remaining_p1_p2_in_reviewed_scope": 0,
+    "source_changes": [
+      "Correct Settings fixtures/assertions for explicit currency and unconfirmed failures.",
+      "Preserve explicit aria-modal ownership so the chart palette cannot open from a native position dialog button."
+    ],
+    "base_intersections": [
+      "supabase/migrations/README.md",
+      "supabase/migrations/RESERVATIONS.json",
+      "terminal/components/TerminalShell.tsx",
+      "terminal/lib/watchlistsFixtureDb.ts"
+    ],
+    "retained_upstream": [
+      "Current 0033 reservation note clarification.",
+      "Terminal command palette and watchlist write-failure fixture."
+    ],
+    "retained_portfolio": [
+      "Canonical structured chart Add confirmation/readback.",
+      "Cross-owner duplicate-position-ID refusal."
+    ],
+    "hosted_ci": "pending for the resulting published candidate"
+  }
+}
