@@ -1,3 +1,5 @@
+import { assertCapturedLexProjection } from "./helpers/lexEvidenceProjection";
+// Preserve the raw capture pin; only unused onboarding copy has an AST dependency projection.
 // Git-free evidence lock for the B-PL-6 batch 2 capture packet.
 // The lock is the sha256 of the layout sources the crops depend on, recorded in
 // EVIDENCE.yml layoutFiles. capturedAtHead stays informational.
@@ -73,7 +75,11 @@ describe("B-PL-6 batch 2 evidence lock is the sha256 of the layout sources", () 
     for (const [rel, expected] of Object.entries(recorded)) {
       const abs = join(REPO, rel);
       expect(existsSync(abs), `${rel} is recorded in layoutFiles but absent from the tree`).toBe(true);
-      expect(sha256Of(abs), `${rel} changed without a recapture`).toBe(expected);
+      if (rel === "terminal/lib/i18n.tsx") {
+        assertCapturedLexProjection(readFileSync(abs, "utf8"), expected, readFileSync(EVIDENCE, "utf8"));
+      } else {
+        expect(sha256Of(abs), `${rel} changed without a recapture`).toBe(expected);
+      }
     }
   });
 
@@ -83,6 +89,38 @@ describe("B-PL-6 batch 2 evidence lock is the sha256 of the layout sources", () 
       expect(existsSync(abs), file).toBe(true);
       expect(statSync(abs).size, file).toBeGreaterThan(0);
     }
+  });
+
+  it("locks exactly the sixteen actual captured image bytes", () => {
+    const yml = evidenceText();
+    const markers = yml.match(/^captureFiles:$/gm) ?? [];
+    expect(markers).toHaveLength(1);
+    const lines = yml.split("\n");
+    const rows = lines.slice(lines.indexOf("captureFiles:") + 1);
+    const recorded: Record<string, string> = {};
+    for (const line of rows) {
+      if (!line.startsWith("  ")) break;
+      const match = line.match(/^  ([A-Za-z0-9-]+\.png): "([0-9a-f]{64})"$/);
+      expect(match, line).not.toBeNull();
+      if (!match) throw new Error("malformed captureFiles row");
+      expect(Object.hasOwn(recorded, match[1]), match[1]).toBe(false);
+      recorded[match[1]] = match[2];
+    }
+    expect(Object.keys(recorded).sort()).toEqual([...CROPS].sort());
+    for (const [file, digest] of Object.entries(recorded)) {
+      const bytes = readFileSync(join(CROP_DIR, file));
+      expect(bytes.subarray(0, 8).toString("hex"), file).toBe("89504e470d0a1a0a");
+      expect(createHash("sha256").update(bytes).digest("hex"), file).toBe(digest);
+    }
+  });
+
+  it("retains the exact historical manifest referenced by the full recapture", () => {
+    const rows = evidenceText().split("\n").filter(line => line.startsWith("previousManifest:"));
+    expect(rows).toHaveLength(1);
+    const match = rows[0].match(/^previousManifest: (history\/before-deterministic-([0-9a-f]{64})\.yml)$/);
+    expect(match).not.toBeNull();
+    if (!match) throw new Error("invalid historical manifest reference");
+    expect(sha256Of(join(CROP_DIR, match[1]))).toBe(match[2]);
   });
 
   it("EVIDENCE.yml declares the capture flag, the dark-only and dev-indicator laws and the two viewports", () => {

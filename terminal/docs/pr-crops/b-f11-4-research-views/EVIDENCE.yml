@@ -1,19 +1,16 @@
-# 2026-10-09 #643 repair round 1 (T04 replay date) source hash reconciliation: preserves captured PNG bytes/provenance; the added i18n key olReplay renders only in the chart legend's Options Levels row under Bar Replay and is not rendered by these capture surfaces.
-# 2026-10-09 #643 (T04 replay date) source hash reconciliation: preserves captured PNG bytes/provenance; the changed i18n keys are Replay-only (TerminalShell replay controls and exit notice) and are not rendered by these capture surfaces.
-# 2026-10-05 #802/#808 source hash reconciliation: preserves captured PNG bytes/provenance; added Dislocations-only labels are not rendered by these capture surfaces.
 # B-F11-4 research management views — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 2846101a95c9f9c4e1b3f21d0005c356cc41ba8f
-# capturedAt: 2026-10-05T11:02:49.228Z
+# capturedAtHead: 8d46ad4db1831abb4a480bc48310f0ffb7a1f2bf
+# capturedAt: 2026-11-04T05:15:23.172Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/workspaces/ThesisWorkspace.tsx: "2a1d1d3a8d9f1226b8b61bdf1f87ac209092c05156ac599fd415bf511381fbf3"
-  terminal/components/workspaces/ThesisWorkspace.module.css: "3afaa5c0a5794f3fc2cdfb5c9b65257f703e7a3105e08009e602363d40690891"
+  terminal/components/workspaces/ThesisWorkspace.tsx: "75e21483cc320c002b4e0b81213404985e486e33b7908d70288190cfb723ca6f"
+  terminal/components/workspaces/ThesisWorkspace.module.css: "c7fcd07d13cf3d7453bb51cd47ffb13c80af05e327bf9662368e97988023320c"
   terminal/lib/rmsViews.ts: "fd5f025806c5a4b1b27e7d99a026e82f555767f0d96b6a2766a5b363961897cb"
   terminal/lib/savedViews.ts: "16e2914a032cba50cce999d1802c53e51098ce76dd82931925ef41b8e0f7af54"
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
-  terminal/lib/i18n.tsx: "63689cd6a07d538ff8cdbe03a4ffd5a4037b9ec1ec162ff2f39c6f90a6b29e80"
+  terminal/lib/i18n.tsx: "92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -34,7 +31,7 @@ window_closed_data: |
   FIXTURE_MONITOR_FIRED_TOKEN (terminal/lib/watchlistsFixtureDb.ts). The shipped
   GET /api/thesis-fire-status route and mapOutboxToConditionStates() run for real
   against it; nothing in this capture stubs a network response.
-capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
+capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
 command: |
   cd terminal
   node e2e/tools/capture_f11_4_research_views.cjs

@@ -33,9 +33,8 @@
 
 const { spawn, execFileSync } = require("node:child_process");
 const { createHash } = require("node:crypto");
-const { mkdirSync, readdirSync, readFileSync, unlinkSync, writeFileSync } = require("node:fs");
+const { existsSync, mkdirSync, readFileSync, writeFileSync } = require("node:fs");
 const { join } = require("node:path");
-const { chromium } = require("@playwright/test");
 
 const ROOT = join(__dirname, "..", "..");
 const REPO = join(ROOT, "..");
@@ -75,8 +74,6 @@ const GUIDE_SCREENSHOT_STYLE =
 // A partially re-rastered tile keeps the old pixels outside the invalidated rect,
 // so the same page can screenshot two ways. Whole-tile raster gives one.
 const BROWSER_ARGS = ["--disable-partial-raster"];
-
-mkdirSync(OUT, { recursive: true });
 
 function currentGitHead() {
   return execFileSync("git", ["rev-parse", "HEAD"], { cwd: ROOT, encoding: "utf8" }).trim();
@@ -136,9 +133,9 @@ async function waitForServer(timeoutMs) {
   let last = "not tried";
   while (Date.now() < deadline) {
     try {
-      const res = await fetch(`${BASE}/terminal?symbol=SPY`, { redirect: "manual" });
+      const res = await fetch(`${BASE}/terminal?symbol=SPY`, { redirect: "manual", headers: { Cookie: "mm_e2e_rs30=1" } });
       last = String(res.status);
-      if (res.status >= 200 && res.status < 500) return;
+      if (res.status === 200) return;
     } catch (err) {
       last = err.cause?.code || err.message;
     }
@@ -154,6 +151,7 @@ async function newPage(browser, width, lang) {
     locale: lang === "zh" ? "zh-CN" : "en-US",
     colorScheme: "dark",
   });
+  await context.addCookies([{ name: "mm_e2e_rs30", value: "1", url: BASE }]);
   await context.addInitScript((l) => {
     localStorage.setItem("mm.lang", l);
     localStorage.setItem("theme", "dark");
@@ -177,20 +175,14 @@ async function ensureLang(page, lang) {
 }
 
 async function gotoReady(page, path, lang) {
-  await page.goto(`${BASE}${path}`, { waitUntil: "domcontentloaded", timeout: 90_000 });
+  const response = await page.goto(`${BASE}${path}`, { waitUntil: "domcontentloaded", timeout: 90_000 });
+  assertCaptureNavigation(response?.status(), page.url(), new URL(path, BASE).href);
   await ensureLang(page, lang);
   await page.waitForTimeout(400);
 }
 
-async function stripDevOverlay(page) {
-  await page.evaluate(() => {
-    document.querySelectorAll("nextjs-portal").forEach((el) => el.remove());
-  });
-}
-
 async function assertNoNextIndicator(page, file) {
   await page.waitForTimeout(400);
-  await stripDevOverlay(page);
   const n = await page.locator("[data-nextjs-dev-tools-button]").count();
   if (n > 0) {
     throw new Error(`${file}: Next.js N overlay still mounted (${n}); TERMINAL_E2E_FIXTURE gate failed`);
@@ -204,6 +196,8 @@ async function cropBox(page, box, outPath, pad, style) {
   const y = Math.max(0, Math.floor(box.y - pad));
   const width = Math.max(8, Math.min(vp.width - x, Math.ceil(box.width + pad * 2)));
   const height = Math.max(8, Math.min(vp.height - y, Math.ceil(box.height + pad * 2)));
+  // Observe the actual DOM before the crop; removing a portal would hide a failed fixture gate.
+  await assertNoNextIndicator(page, outPath);
   // Finite CSS animations render at their end state, infinite ones at their start.
   // A style sheet applies to this screenshot only.
   await page.screenshot({
@@ -250,6 +244,8 @@ async function captureGuidePanel(page, width, lang, outPath) {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await gotoReady(page, "/terminal?symbol=NVDA", lang);
   await page.locator(".workspace").waitFor({ state: "visible", timeout: 60_000 });
+  // Preserve master's real chart-consumer readiness before invoking indicator controls.
+  await page.locator(".chart-wrap canvas").first().waitFor({ state: "visible", timeout: 60_000 });
   await openIndicatorLibrary(page, width);
   const library = page.locator(".imodal-library");
   // The library is next/dynamic, so a cold dev server compiles it on first open.
@@ -329,8 +325,9 @@ async function captureChartConductor(page, width, lang, outPath) {
     const el = document.querySelector(".cmx-plate.show");
     return !!el && getComputedStyle(el).opacity === "1";
   }, null, { timeout: 15_000 });
-  const toggle = page.locator(".cmx-plate-ctl .cmx-btn:not(.cmx-skip)").first();
+  const toggle = page.locator(".cmx-plate-ctl button[aria-expanded]");
   await toggle.waitFor({ state: "attached", timeout: 15_000 });
+  if (await toggle.count() !== 1) throw new Error("conductor toggle must be unique");
   const expected = lang === "zh" ? "显示实时步骤" : "Show live steps";
   const hide = lang === "zh" ? "隐藏实时步骤" : "Hide live steps";
   const title = (await toggle.getAttribute("title")) || (await toggle.getAttribute("aria-label")) || "";
@@ -371,6 +368,29 @@ const SURFACES = [
   { name: "ChartConductor", run: captureChartConductor },
 ];
 
+const EXPECTED_FILES = Object.keys(VIEWPORTS).flatMap(width =>
+  ["en", "zh"].flatMap(lang => SURFACES.map(surface => cropName(surface.name, width, lang)))).sort();
+
+function assertCaptureNavigation(status, actualUrl, expectedUrl) {
+  const actual = new URL(actualUrl), expected = new URL(expectedUrl);
+  if (status !== 200 || actual.origin !== expected.origin
+      || actual.pathname !== expected.pathname || actual.search !== expected.search)
+    throw new Error("BATCH2_NAVIGATION: status=" + status + " actual=" + actual.href + " expected=" + expected.href);
+}
+
+function assertCompletePacket(files) {
+  if (files.length !== EXPECTED_FILES.length || new Set(files).size !== files.length
+      || JSON.stringify([...files].sort()) !== JSON.stringify(EXPECTED_FILES))
+    throw new Error("BATCH2_INCOMPLETE_PACKET: expected all " + EXPECTED_FILES.length + " actual captures");
+}
+
+function imageDigest(file) {
+  const bytes = readFileSync(join(OUT, file));
+  if (bytes.length <= 8 || !bytes.subarray(0, 8).equals(Buffer.from("89504e470d0a1a0a", "hex")))
+    throw new Error("BATCH2_IMAGE_BYTES: " + file);
+  return createHash("sha256").update(bytes).digest("hex");
+}
+
 function shouldCapture(surfaceName, width, lang) {
   if (!ONLY.length) return true;
   const stem = cropName(surfaceName, width, lang).replace(/\.png$/, "");
@@ -378,11 +398,13 @@ function shouldCapture(surfaceName, width, lang) {
 }
 
 async function main() {
+  const { chromium } = require("@playwright/test");
+  mkdirSync(OUT, { recursive: true });
   const capturedAtHead = currentGitHead();
-  // A FAIL- screenshot belongs to the run that wrote it.
-  for (const f of readdirSync(OUT)) {
-    if (f.startsWith("FAIL-")) unlinkSync(join(OUT, f));
-  }
+  const layoutBefore = layoutFilesBlock();
+  const manifestPath = join(OUT, "EVIDENCE.yml");
+  const priorManifest = existsSync(manifestPath) ? readFileSync(manifestPath) : null;
+  // Keep prior failure diagnostics; this attempt writes uniquely named failure crops.
   const child = startServer();
   const files = [];
   let failed = 0;
@@ -399,14 +421,14 @@ async function main() {
             const { context, page } = await newPage(browser, width, lang);
             try {
               await surface.run(page, width, lang, join(OUT, file));
-              await assertNoNextIndicator(page, file);
               files.push(file);
               console.log("ok");
             } catch (err) {
               failed += 1;
               console.log(`FAIL ${err && err.message ? err.message : err}`);
               try {
-                await page.screenshot({ path: join(OUT, `FAIL-${file}`), fullPage: false });
+                const failureFile = "FAIL-" + process.pid + "-" + Date.now() + "-" + file;
+                await page.screenshot({ path: join(OUT, failureFile), fullPage: false });
               } catch { /* ignore */ }
             } finally {
               await context.close();
@@ -428,6 +450,28 @@ async function main() {
     return;
   }
 
+  if (ONLY.length) {
+    console.log("filtered capture completed; EVIDENCE.yml left unchanged (no full-packet qualification)");
+    return;
+  }
+  assertCompletePacket(files);
+  if (currentGitHead() !== capturedAtHead || JSON.stringify(layoutBefore) !== JSON.stringify(layoutFilesBlock()))
+    throw new Error("BATCH2_SOURCE_CHANGED_DURING_CAPTURE");
+  const imageHashes = Object.fromEntries([...files].sort().map(file => [file, imageDigest(file)]));
+  if ((priorManifest === null) !== !existsSync(manifestPath)
+      || (priorManifest && !readFileSync(manifestPath).equals(priorManifest)))
+    throw new Error("BATCH2_MANIFEST_CHANGED_DURING_CAPTURE");
+  let historicalManifest = null;
+  if (priorManifest) {
+    const digest = createHash("sha256").update(priorManifest).digest("hex");
+    historicalManifest = "history/before-deterministic-" + digest + ".yml";
+    const historicalPath = join(OUT, historicalManifest);
+    mkdirSync(join(OUT, "history"), { recursive: true });
+    if (existsSync(historicalPath)) {
+      if (!readFileSync(historicalPath).equals(priorManifest)) throw new Error("BATCH2_HISTORY_BYTES");
+    } else writeFileSync(historicalPath, priorManifest, { flag: "wx" });
+  }
+
   const evidence = [
     "# B-PL-6 batch 2 — capture evidence",
     "# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06",
@@ -436,7 +480,7 @@ async function main() {
     `# capturedAt: ${new Date().toISOString()}`,
     "# capturedAtHead is informational. The lock is layoutFiles.",
     "layoutFiles:",
-    ...layoutFilesBlock(),
+    ...layoutBefore,
     "theme: dark",
     "languages: [en, zh]",
     "viewports:",
@@ -459,18 +503,19 @@ async function main() {
     "  cd terminal",
     "  node e2e/tools/capture_pl6_batch2.cjs",
     "files:",
-    ...[...new Set([
-      ...readdirSync(OUT).filter((f) => f.endsWith(".png") && !f.startsWith("FAIL-")).sort(),
-      ...files,
-    ])].map((f) => `  - ${f}`),
+    ...[...files].sort().map(file => "  - " + file),
+    "captureFiles:",
+    ...Object.entries(imageHashes).map(([file, digest]) => "  " + file + ': "' + digest + '"'),
+    ...(historicalManifest ? ["previousManifest: " + historicalManifest] : []),
     "",
   ].join("\n");
-  writeFileSync(join(OUT, "EVIDENCE.yml"), evidence);
+  writeFileSync(manifestPath, evidence);
   console.log(`capturedAtHead ${capturedAtHead}`);
   console.log(`wrote ${files.length} crops + EVIDENCE.yml to ${OUT}`);
 }
 
-main().catch((err) => {
+if (require.main === module) main().catch((err) => {
   console.error(err);
-  process.exit(1);
+  process.exitCode = 1;
 });
+module.exports = { assertCaptureNavigation, assertCompletePacket, cropBox, EXPECTED_FILES, LAYOUT_FILES };

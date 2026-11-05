@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { portfolioBookKey } from "@/lib/portfolioSnapshot.server";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { createFixtureDb, fixtureFaults, fixtureUserId, FIXTURE_FAULT_COOKIE, FIXTURE_STORE_COOKIE } from "@/lib/watchlistsFixtureDb";
@@ -6,10 +7,12 @@ import { readPositions, type PortfolioDb } from "@/lib/portfolio";
 import {
   computePortfolioRiskHistory,
   parseOhlcBars,
+  RF_FRESHNESS_DAYS,
   type CloseSeries,
   type OhlcBookValue,
   type RiskFreeSeries,
 } from "@/lib/portfolioRiskHistory";
+import { fetchTreasuryHistory, validateTreasuryHistoryWindow } from "@/lib/portfolioTreasuryHistory.server";
 import { tickerKey } from "@/lib/portfolioRisk";
 import { getCachedOhlc, type OhlcFetch } from "@/lib/ohlcSeriesCache";
 
@@ -20,23 +23,30 @@ import { getCachedOhlc, type OhlcFetch } from "@/lib/ohlcSeriesCache";
 // holdings GET is untouched: this route is a separate GET the Portfolio surface loads
 // after paint. TWO-ORGANISMS LAW: nothing here writes a signal, rank, alert, or public
 // artifact. User holdings are never POSTed or sent as a ticker-list query — only
-// per-ticker OHLC GETs (plus SPY and the risk-free series).
+// per-ticker OHLC GETs (plus SPY). Treasury receives only a dated window
+// and the same verified access token over strict local sidecar transport.
 
 const isE2eFixture = () => process.env.TERMINAL_E2E_FIXTURE === "1";
 
-async function resolveDb(): Promise<{ db: PortfolioDb; userId: string } | null> {
+async function resolveDb(): Promise<{ db: PortfolioDb; userId: string; accessToken: string | null } | null> {
   if (isE2eFixture()) {
     const jar = await cookies();
     const key = jar.get(FIXTURE_STORE_COOKIE)?.value || "default";
     return {
       db: createFixtureDb(key, fixtureFaults(jar.get(FIXTURE_FAULT_COOKIE)?.value)),
       userId: fixtureUserId(key),
+      accessToken: null, // Fixture identities never supply a bearer to a real sidecar.
     };
   }
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return null;
-  return { db: supabase as unknown as PortfolioDb, userId: user.id };
+  // Capture once, then verify that exact bearer and its owner. A later cookie read
+  // must never select a different token for Treasury than the positions owner.
+  const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+  const accessToken = session?.access_token;
+  if (sessionError || !accessToken || !session?.user?.id) return null;
+  const { data: { user }, error: userError } = await supabase.auth.getUser(accessToken);
+  if (userError || !user || user.id !== session.user.id) return null;
+  return { db: supabase as unknown as PortfolioDb, userId: user.id, accessToken };
 }
 
 const unauthenticated = () => NextResponse.json({ error: "unauthenticated" }, { status: 401 });
@@ -48,17 +58,19 @@ const fail = (error: string, status: number) => NextResponse.json({ error }, { s
 function stockdataBase(): string {
   return process.env.STOCKDATA_BASE || "https://www.mastermind-x.com";
 }
-function stockdataHost(): string | null {
+// Independent fixed credential destination; a configured host cannot approve itself.
+const APPROVED_MACRO_ORIGIN = "https://www.mastermind-x.com";
+function mayForwardPriceCookie(url: string): boolean {
   try {
-    return new URL(stockdataBase()).host;
+    const target = new URL(url);
+    return target.origin === APPROVED_MACRO_ORIGIN && !target.username && !target.password;
   } catch {
-    return null;
+    return false;
   }
 }
 const ARTIFACT_FANOUT_CAP = 60;
 const ARTIFACT_CONCURRENCY = 8;
 const ARTIFACT_TIMEOUT_MS = 2500;
-const RF_CANDIDATES = ["DGS3MO", "us3m"] as const;
 const BENCHMARK = "SPY";
 
 /** E2E fixture worlds must not fan out to production macro. Crops set STOCKDATA_BASE to the
@@ -101,8 +113,7 @@ async function fetchOhlcUncached(
 ): Promise<OhlcFetch> {
   try {
     const url = ohlcUrl(ticker);
-    const host = stockdataHost();
-    const forwardCookie = cookieHeader && host && new URL(url).host === host
+    const forwardCookie = cookieHeader && mayForwardPriceCookie(url)
       ? cookieHeader
       : null;
     const res = await fetch(url, {
@@ -174,26 +185,23 @@ async function fetchMany(
   return out;
 }
 
-type RiskFreeFetch =
-  | { kind: "read"; series: RiskFreeSeries }
-  | { kind: "missing" }
-  | { kind: "locked" }
-  | { kind: "unreadable" };
-
-async function fetchRiskFree(cookieHeader: string | null): Promise<RiskFreeFetch> {
-  let locked = false;
-  let unreadable = false;
-  for (const name of RF_CANDIDATES) {
-    const got = await fetchOhlc(name, cookieHeader, true);
-    if (got.kind === "read") return { kind: "read", series: { source: name, points: got.series } };
-    if (got.kind === "locked") locked = true;
-    else if (got.kind === "unreadable") unreadable = true;
-  }
-  // A 401/locked response is the same shape SPY returns; it does not prove the
-  // series is unpublished. Only a clean miss on every candidate is unpublished.
-  if (locked) return { kind: "locked" };
-  if (unreadable) return { kind: "unreadable" };
-  return { kind: "missing" };
+/** Use the qualified price compiler's actual window and its backward RF law. */
+function treasuryWindow(history: ReturnType<typeof computePortfolioRiskHistory>) {
+  const { firstSession, lastSession } = history.window;
+  if (!firstSession || !lastSession) return null;
+  // The price parser retains date-shaped strings. Validate their real calendar
+  // dates before arithmetic so malformed upstream boundaries cannot throw.
+  if (!validateTreasuryHistoryWindow({
+    start: firstSession, end: lastSession, expected_through: lastSession,
+  })) return null;
+  const back = (date: string): string =>
+    new Date(Date.parse(`${date}T00:00:00Z`) - RF_FRESHNESS_DAYS * 86400000).toISOString().slice(0, 10);
+  const start = back(firstSession);
+  return validateTreasuryHistoryWindow({
+    start,
+    end: lastSession,
+    expected_through: [start, back(lastSession)].sort()[1],
+  });
 }
 
 export async function GET() {
@@ -210,6 +218,7 @@ export async function GET() {
     ticker: p.ticker,
     shares: p.shares,
     entryPrice: p.entryPrice,
+    entryCurrency: p.entryCurrency,
     status: p.status,
   }));
 
@@ -225,25 +234,16 @@ export async function GET() {
   let ohlcByTicker: Record<string, OhlcBookValue> = {};
   let spy: CloseSeries | null = null;
   let rf: RiskFreeSeries | null = null;
-  let riskFreeStatus: "published" | "unpublished" | "unreadable" = "unpublished";
+  let riskFreeStatus: "published" | "unreadable" = "unreadable";
   const skipLiveMacro = isE2eFixture() && !isLoopbackStockdata();
   if (!skipLiveMacro) {
     try {
-      const [book, bench, riskFree] = await Promise.all([
+      const [book, bench] = await Promise.all([
         fetchMany([...wanted], cookieHeader),
         fetchOhlc(BENCHMARK, cookieHeader),
-        fetchRiskFree(cookieHeader),
       ]);
       ohlcByTicker = book;
       spy = bench.kind === "read" ? bench.series : null;
-      if (riskFree.kind === "read") {
-        rf = riskFree.series;
-        riskFreeStatus = "published";
-      } else if (riskFree.kind === "missing") {
-        riskFreeStatus = "unpublished";
-      } else {
-        riskFreeStatus = "unreadable";
-      }
     } catch {
       ohlcByTicker = {};
       spy = null;
@@ -252,9 +252,23 @@ export async function GET() {
     }
   }
 
-  const history = computePortfolioRiskHistory(positions, ohlcByTicker, spy, rf, {
+  const options = { credentialed: !!cookieHeader, riskFreeStatus };
+  const priceHistory = computePortfolioRiskHistory(positions, ohlcByTicker, spy, null, options);
+  const window = treasuryWindow(priceHistory);
+  // Fixtures never export synthetic credentials or real cookies to the sidecar.
+  // Missing retained input is unreadable, never proof of unpublished Treasury data.
+  if (!isE2eFixture() && session.accessToken && window) {
+    const treasury = await fetchTreasuryHistory(window, session.accessToken);
+    if (treasury.status === "read" || treasury.status === "stale") {
+      // Keep the actual dated observations. The compiler aligns backward <=7 days;
+      // read_at is never a source/release date, and stale points are never refreshed.
+      rf = { source: "DGS3MO", points: [...treasury.points] };
+      riskFreeStatus = "published";
+    }
+  }
+  const history = rf ? computePortfolioRiskHistory(positions, ohlcByTicker, spy, rf, {
     credentialed: !!cookieHeader,
     riskFreeStatus,
-  });
-  return NextResponse.json({ history });
+  }) : priceHistory;
+  return NextResponse.json({ history, bookKey: portfolioBookKey(read.positions) }, { headers: { "Cache-Control": "private, no-store" } });
 }

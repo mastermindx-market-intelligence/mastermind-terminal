@@ -61,6 +61,73 @@ test("mobile sheet is labelled, contains focus, and restores its trigger", async
   await expect(trigger).toBeFocused();
 });
 
+// EX-06/issue #1154: a phone Command Palette intentionally parks focus on an inner
+// tabIndex=-1 body to avoid triggering the mobile keyboard. Neither Tab direction
+// may escape its aria-modal sheet, even for a single focusin before frame reclamation.
+for (const lang of ["en", "zh"] as const) {
+  test(`phone Command Palette traps keyboard from parked focus in ${lang}`, async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name === "desktop", "MobileSheet owns the phone/tablet palette boundary.");
+    await page.addInitScript((locale: string) => {
+      window.localStorage.setItem("mm.lang", locale);
+    }, lang);
+    await openTerminal(page);
+
+    const opener = page.locator("[data-command-palette-trigger=mobile]");
+    await expect(opener).toBeVisible();
+    await opener.focus();
+    await opener.click();
+
+    const dialog = page.getByRole("dialog").filter({ has: page.locator("[data-command-palette]") });
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toHaveAttribute("aria-modal", "true");
+    const body = dialog.locator("[data-command-palette]");
+    if (testInfo.project.name === "mobile") {
+      await expect(body).toBeFocused();
+    } else {
+      await expect(body.locator("input[role=combobox]")).toBeFocused();
+    }
+
+    // Capturing every focusin detects transient leaks that a 1-RAF focus-reclaim
+    // would hide from an ordinary eventual toBeFocused()/expect.poll assertion.
+    await page.evaluate(() => {
+      const state = window as Window & { __ex06EscapedFocus?: string[] };
+      state.__ex06EscapedFocus = [];
+      document.addEventListener("focusin", (event) => {
+        const activeDialog = document.querySelector('[role="dialog"]:has([data-command-palette])');
+        if (activeDialog && !activeDialog.contains(event.target as Node)) {
+          state.__ex06EscapedFocus?.push((event.target as HTMLElement).tagName);
+        }
+      }, true);
+    });
+
+    const focusInside = () => dialog.evaluate((element) => element.contains(document.activeElement));
+    if (testInfo.project.name === "mobile") {
+      // Both directions when the active node is inside but NOT in the native
+      // Tab order; this is the precise defect in the original sheet trap.
+      await page.keyboard.press("Shift+Tab");
+      expect(await focusInside()).toBe(true);
+      await body.focus();
+      await page.keyboard.press("Tab");
+      expect(await focusInside()).toBe(true);
+    } else {
+      await page.keyboard.press("Shift+Tab");
+      expect(await focusInside()).toBe(true);
+    }
+
+    for (let i = 0; i < 8; i++) {
+      await page.keyboard.press(i % 2 ? "Shift+Tab" : "Tab");
+      expect(await focusInside()).toBe(true);
+    }
+    expect(await page.evaluate(() =>
+      (window as Window & { __ex06EscapedFocus?: string[] }).__ex06EscapedFocus
+    )).toEqual([]);
+
+    await page.keyboard.press("Escape");
+    await expect(dialog).toBeHidden();
+    await expect(opener).toBeFocused();
+  });
+}
+
 test("reduced-motion swipe cancellation resets cleanly and dismissal is immediate", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name === "desktop", "MobileSheet is rendered only at responsive widths.");
   await page.emulateMedia({ reducedMotion: "reduce" });

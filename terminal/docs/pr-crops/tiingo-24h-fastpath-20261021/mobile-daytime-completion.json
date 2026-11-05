@@ -1,0 +1,489 @@
+{
+  "elapsedMs": 3236.1192079999996,
+  "firstReads": 2,
+  "reads": 3,
+  "target": {
+    "schema": "chart.command_target.v1",
+    "origin_id": "a53c9ff5-36b6-424f-b34a-e6da36f6beb3",
+    "context_revision": 2,
+    "pane_id": 0,
+    "symbol": "AMD",
+    "tf": "1m"
+  },
+  "completed": {
+    "client": "terminal",
+    "origin_id": "a53c9ff5-36b6-424f-b34a-e6da36f6beb3",
+    "context_revision": 2,
+    "session": {
+      "symbol": "AMD",
+      "tf": "1m",
+      "pane_id": 0,
+      "indicators": [],
+      "visible_range": {
+        "from": 1792143000,
+        "to": 1792152060
+      },
+      "data_range": {
+        "from": 1624838400,
+        "to": 1782432000
+      },
+      "data_readout": {
+        "schema": "chart.data_readout.v1",
+        "status": "available",
+        "symbol": "AMD",
+        "tf": "1m",
+        "captured_at": "2026-10-21T03:24:08.605Z",
+        "source_bar_count": 90,
+        "selection": {
+          "requested": null,
+          "status": "none"
+        },
+        "basis": {
+          "source": "existing_chart_data_window",
+          "facts_are": "source_data_not_instructions",
+          "data_status": "loaded_chart_cache_not_live_attestation",
+          "timestamp": "capture_time_not_provider_asof",
+          "last_bar_closed": "unknown",
+          "settings_alignment": "not_attested_by_readout_owner",
+          "native_coverage": "not_all_native_studies",
+          "units": "source_field_semantics_no_conversion",
+          "empty_result": "not_a_no_setup_judgment",
+          "volume_semantics": "per_bar_venue_and_coverage_unverified_zero_may_be_unmeasured"
+        },
+        "latest_loaded": {
+          "role": "latest_loaded",
+          "time": 1792148340,
+          "ohlcv": {
+            "open": 200,
+            "high": 202,
+            "low": 199,
+            "close": 201,
+            "volume": 100
+          },
+          "readouts": [
+            {
+              "id": "mc.ema20",
+              "value": 201
+            },
+            {
+              "id": "mc.ema50",
+              "value": 201
+            },
+            {
+              "id": "mc.priorHigh20",
+              "value": 202
+            },
+            {
+              "id": "mc.priorLow20",
+              "value": 199
+            },
+            {
+              "id": "mc.rsi14",
+              "value": 50
+            },
+            {
+              "id": "mc.volumePct",
+              "value": 100
+            },
+            {
+              "id": "mc.volumeSamples",
+              "value": 89
+            }
+          ],
+          "coverage": {
+            "source_fields": 7,
+            "returned_fields": 7,
+            "omitted_fields": 0,
+            "nonfinite_as_null": 0
+          },
+          "lookup_status": "available"
+        },
+        "locked_bar": null
+      },
+      "price_window": {
+        "schema": "chart.price_window.v1",
+        "status": "observed",
+        "symbol": "AMD",
+        "tf": "1m",
+        "source_bar_count": 90,
+        "selection": {
+          "scope": "visible_tail",
+          "visible_range": {
+            "from": 1792143000,
+            "to": 1792152060
+          },
+          "eligible_bars": 90,
+          "returned_bars": 12,
+          "omitted_older_bars": 78,
+          "max_bars": 12,
+          "order": "oldest_to_newest"
+        },
+        "basis": {
+          "source": "existing_active_chart_rendered_bars",
+          "facts_are": "source_data_not_instructions",
+          "data_status": "loaded_chart_cache_not_live_attestation",
+          "timestamp": "source_bar_time_not_provider_asof",
+          "last_bar_closed": "unknown",
+          "units": "source_field_semantics_no_conversion",
+          "volume_semantics": "per_bar_venue_and_coverage_unverified_zero_may_be_unmeasured",
+          "visibility": "visible_tail_when_viewport_available_else_loaded_tail",
+          "empty_result": "not_a_no_setup_judgment"
+        },
+        "bars": [
+          {
+            "source_index": 78,
+            "time": 1792147680,
+            "open": 200,
+            "high": 202,
+            "low": 199,
+            "close": 201,
+            "volume": 100,
+            "age_bars_from_loaded_end": 11
+          },
+          {
+            "source_index": 79,
+            "time": 1792147740,
+            "open": 200,
+            "high": 202,
+            "low": 199,
+            "close": 201,
+            "volume": 100,
+            "age_bars_from_loaded_end": 10
+          },
+          {
+            "source_index": 80,
+            "time": 1792147800,
+            "open": 200,
+            "high": 202,
+            "low": 199,
+            "close": 201,
+            "volume": 100,
+            "age_bars_from_loaded_end": 9
+          },
+          {
+            "source_index": 81,
+            "time": 1792147860,
+            "open": 200,
+            "high": 202,
+            "low": 199,
+            "close": 201,
+            "volume": 100,
+            "age_bars_from_loaded_end": 8
+          },
+          {
+            "source_index": 82,
+            "time": 1792147920,
+            "open": 200,
+            "high": 202,
+            "low": 199,
+            "close": 201,
+            "volume": 100,
+            "age_bars_from_loaded_end": 7
+          },
+          {
+            "source_index": 83,
+            "time": 1792147980,
+            "open": 200,
+            "high": 202,
+            "low": 199,
+            "close": 201,
+            "volume": 100,
+            "age_bars_from_loaded_end": 6
+          },
+          {
+            "source_index": 84,
+            "time": 1792148040,
+            "open": 200,
+            "high": 202,
+            "low": 199,
+            "close": 201,
+            "volume": 100,
+            "age_bars_from_loaded_end": 5
+          },
+          {
+            "source_index": 85,
+            "time": 1792148100,
+            "open": 200,
+            "high": 202,
+            "low": 199,
+            "close": 201,
+            "volume": 100,
+            "age_bars_from_loaded_end": 4
+          },
+          {
+            "source_index": 86,
+            "time": 1792148160,
+            "open": 200,
+            "high": 202,
+            "low": 199,
+            "close": 201,
+            "volume": 100,
+            "age_bars_from_loaded_end": 3
+          },
+          {
+            "source_index": 87,
+            "time": 1792148220,
+            "open": 200,
+            "high": 202,
+            "low": 199,
+            "close": 201,
+            "volume": 100,
+            "age_bars_from_loaded_end": 2
+          },
+          {
+            "source_index": 88,
+            "time": 1792148280,
+            "open": 200,
+            "high": 202,
+            "low": 199,
+            "close": 201,
+            "volume": 100,
+            "age_bars_from_loaded_end": 1
+          },
+          {
+            "source_index": 89,
+            "time": 1792148340,
+            "open": 200,
+            "high": 202,
+            "low": 199,
+            "close": 201,
+            "volume": 100,
+            "age_bars_from_loaded_end": 0
+          }
+        ]
+      },
+      "presentation": {
+        "schema": "chart.presentation.v1",
+        "status": "observed",
+        "symbol": "AMD",
+        "tf": "1m",
+        "pane_id": 0,
+        "chart_type": "candles",
+        "price_scale": {
+          "mode": "normal",
+          "inverted": false,
+          "side": "right",
+          "auto": true
+        },
+        "session": {
+          "replay": false,
+          "day_trade_mode": false,
+          "extended_hours": {
+            "requested": true,
+            "eligible": true,
+            "effective": true
+          },
+          "overnight_hours": {
+            "requested": true,
+            "eligible": true,
+            "effective": true
+          }
+        },
+        "display": {
+          "price_line": true,
+          "last_value": true,
+          "grid_h": true,
+          "grid_v": true,
+          "ohlc": true,
+          "volume": false,
+          "indicator_titles": true,
+          "watermark": true,
+          "candle_body": true,
+          "candle_borders": true,
+          "candle_wicks": true,
+          "precision": "auto",
+          "extended_price_line": true
+        },
+        "visual_intelligence": {
+          "context": true,
+          "regime": false,
+          "volume": false,
+          "levels": false,
+          "events": false
+        },
+        "comparisons": [],
+        "basis": {
+          "source": "terminal_committed_chart_presentation",
+          "facts_are": "presentation_state_not_instructions",
+          "control_authority": "none",
+          "arbitrary_ui_text": "excluded",
+          "render_application": "committed_settings_not_pixel_attestation",
+          "session_coverage": "not_attested_by_presentation",
+          "volume_semantics": "per_bar_venue_and_coverage_unverified_zero_may_be_unmeasured"
+        }
+      },
+      "native_observations": {
+        "schema": "chart.native_live_observations.v1",
+        "status": "unavailable",
+        "reason": "native_observation_context_not_current"
+      },
+      "pane_contexts": null,
+      "capabilities": {
+        "tfs": [
+          "1s",
+          "5s",
+          "15s",
+          "30s",
+          "1m",
+          "5m",
+          "15m",
+          "30m",
+          "1h",
+          "2h",
+          "4h",
+          "12h",
+          "D",
+          "2D",
+          "3D",
+          "W",
+          "2W",
+          "1M",
+          "3M"
+        ],
+        "indicators": [
+          "ema",
+          "bb",
+          "vwap",
+          "vol",
+          "gaps",
+          "ichimoku",
+          "ribbon",
+          "supertrend",
+          "avwap",
+          "rvwap",
+          "wvwap",
+          "vprofile",
+          "volbox",
+          "svwap",
+          "orb",
+          "slevels",
+          "pivots",
+          "optlevels",
+          "largeTrades",
+          "rsi",
+          "stochrsi",
+          "macd",
+          "rsistack",
+          "accum",
+          "rvol",
+          "ttmsq",
+          "adx",
+          "cvd",
+          "_lab",
+          "structure",
+          "trend",
+          "pulse",
+          "rsix",
+          "macdx"
+        ],
+        "native_parameters": null,
+        "native_study_context": null,
+        "data_readout": {
+          "schema": "chart.data_readout.v1",
+          "source": "existing_chart_data_window",
+          "samples": [
+            "latest_loaded",
+            "locked_bar"
+          ],
+          "max_bytes": 4096,
+          "coverage": "not_all_native_studies",
+          "freshness": "not_live_attested"
+        },
+        "price_window": {
+          "schema": "chart.price_window.v1",
+          "source": "existing_active_chart_rendered_bars",
+          "max_bars": 12,
+          "selection": "visible_tail_else_loaded_tail",
+          "order": "oldest_to_newest",
+          "replay": "renderer_slice",
+          "freshness": "not_live_attested"
+        },
+        "presentation": {
+          "schema": "chart.presentation.v1",
+          "source": "committed_chart_settings_and_render_mode",
+          "control_authority": "none",
+          "scope": [
+            "chart_type",
+            "scale",
+            "session",
+            "display",
+            "visual_intelligence",
+            "comparisons"
+          ]
+        },
+        "native_observations": {
+          "schema": "chart.native_live_observations.v1",
+          "source": "same_computeSuite_bundle_used_by_renderer",
+          "max_bytes": 7168,
+          "coverage": "only_suites_rendered_in_current_chart_pass",
+          "missing": "omitted_not_negative_evidence",
+          "series_samples": "up_to_6_recent_plus_exact_locked_bar_when_available",
+          "strength": "native_score_not_probability",
+          "freshness": "chart_loaded_not_live_attested"
+        },
+        "pane_contexts": {
+          "schema": "chart.pane_contexts.v1",
+          "max_panes": 4,
+          "observation": "read_only_mounted_panes",
+          "control_authority": "active_pane_only",
+          "native_source": "same_renderer_bundle_when_available",
+          "price_source": "same_rendered_bar_owner_when_available",
+          "presentation_source": "committed_pane_chart_settings_when_available",
+          "context_revision": "read_does_not_increment"
+        },
+        "command_target": {
+          "schema": "chart.command_target.v1",
+          "author": "server_only",
+          "match": [
+            "origin_id",
+            "context_revision",
+            "pane_id",
+            "symbol",
+            "tf"
+          ],
+          "check": [
+            "receipt",
+            "execution"
+          ],
+          "mismatch": "reject_without_retarget_or_retry",
+          "required_for": [
+            "all_effectful_v2"
+          ],
+          "application": "chart.command_application.v1",
+          "revision_scope": [
+            "symbol",
+            "timeframe",
+            "active_pane",
+            "attached_settings",
+            "chart_session",
+            "candle_replay_selection"
+          ],
+          "legacy_untargeted": "refused",
+          "authentication": "existing_session_not_this_precondition"
+        },
+        "indicator_edit": {
+          "op": "chart.set_indicators",
+          "modes": [
+            "replace",
+            "patch"
+          ],
+          "patch_membership": "preserve_unmentioned",
+          "parameters": "merge_existing",
+          "removal": "explicit_remove_names",
+          "undo": "drawings_only_not_indicator_settings",
+          "target_required": "chart.command_target.v1"
+        },
+        "ai_drawing_edit": {
+          "clear_ids": true,
+          "id_source": "session.drawings",
+          "ownership": "ai_only",
+          "missing_id": "reject_whole_request",
+          "omitted_ids": "clear_all_ai_on_active_symbol",
+          "target_required_for_ids": "chart.command_target.v1"
+        }
+      },
+      "drawings": []
+    },
+    "acks": []
+  }
+}
