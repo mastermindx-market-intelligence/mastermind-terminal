@@ -14,7 +14,7 @@
  *     its OWN capture handler that calls stopImmediatePropagation, AND this
  *     handler early-returns while a drawer is open — so Esc closes the drawer
  *     before the pane (belt-and-braces).
- *   - body scroll lock while open
+ *   - page scroll lock while presented as an overlay (lib/scrollLock, shared with the drawer)
  *   - chart-overlay shallow deep-link: ?pane=<page>; standalone /analysis uses
  *     the canonical ?page=<page> key owned by AnalysisWorkspace
  *
@@ -24,7 +24,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLang } from "../../lib/i18n";
 import { pick } from "../../lib/finFormat";
+import { megaPaneText } from "./megaPaneLex";
 import type { Fund, Bar } from "../../lib/fund";
+import { useIsMobile } from "@/lib/useMediaQuery";
+import { acquireScrollLock } from "../../lib/scrollLock";
 
 import OverviewPage from "./OverviewPage";
 import StatementsPage from "./StatementsPage";
@@ -42,9 +45,14 @@ import TechLabPanel from "./TechLabPanel";
 import TranscriptDrawer from "./TranscriptDrawer";
 import TranscriptsPage from "./TranscriptsPage";
 import CompanyIntelligencePage from "./CompanyIntelligencePage";
+import SharedShellCompanyIntelligence from "./SharedShellCompanyIntelligence";
+import RegionalIntelligenceWorkspace from "./RegionalIntelligenceWorkspace";
+import { useOptionalSharedShellPresentation } from "@/components/chrome/shared-shell/SharedShellPresentation";
+import FinComparePage from "./FinComparePage";
 import ResearchWorkspaceNav from "./ResearchWorkspaceNav";
 import { isTranscriptId } from "../../lib/transcripts";
 import type { TranscriptOpenTarget } from "../../lib/transcriptSearch";
+import { writeTranscriptCompareParams } from "../../lib/transcriptCompare";
 
 // The page ids live in the import-free leaf `./finPages` — an eager module that needs
 // FIN_PAGES as a runtime value (TerminalShell does) must import it from THERE, never from
@@ -69,6 +77,7 @@ const PAGE_LABELS: Record<FinPage, [string, string]> = {
   ownership: ["Ownership", "持仓"],
   insider: ["Insider", "内部交易"],
   lab: ["Lab", "实验室"],
+  compare: ["Compare", "对比"],
 };
 
 export interface MegaPaneProps {
@@ -89,13 +98,35 @@ export interface MegaPaneProps {
   /** Company display name for the header + transcript title. */
   name?: string | null;
   /**
+   * Where the pane is mounted. "route" (default) — the standalone /analysis workspace, which
+   * owns its own context bar and Back-to-chart. "chart" — mounted inside the chart route, where
+   * fin.css presents the workspace pane as a fixed full-screen overlay at <=860px (the in-flow
+   * `.fin-pane--workspace` override exists only at >=861px), so at those widths the pane must
+   * carry the overlay's own header, Escape and scroll lock.
+   */
+  host?: "chart" | "route";
+  /**
    * "overlay" (default) — legacy full-screen fixed overlay (used on mobile).
    * "workspace" — embedded in the chart-pane slot; no scrim, no scroll-lock,
    *   CSS handles positioning via .fin-pane--workspace.
    */
   mode?: "overlay" | "workspace";
+  /**
+   * Workspace mode only: the pane is hosted by the chart (TerminalShell's workspace slot), not
+   * by the standalone /analysis route. At ≤860px fin.css turns that slot back into the fixed
+   * full-viewport layer, which paints over `.mobilebar` — so the pane must carry its own
+   * Back-to-chart exit there. Above 860px the header is hidden; the left rail's Chart button
+   * (`mm:close-pane`) stays the exit beside the in-flow pane.
+   */
+  chartHosted?: boolean;
   /** Full intel/v1 payload (for the Lab tab). Optional — Lab shows empty state when absent. */
   intel?: unknown | null;
+  /**
+   * Bumped by the shell when the command palette chooses "Back to chart": each NEW value runs
+   * this pane's own close (the same URL cleanup + `onClose` the Back button runs). The value
+   * present when the pane mounts is never treated as a request.
+   */
+  closeRequest?: number;
 }
 
 export default function MegaPane({
@@ -108,10 +139,22 @@ export default function MegaPane({
   onPage,
   onClose,
   name,
+  host = "route",
   mode = "overlay",
+  chartHosted = false,
   intel = null,
+  closeRequest = 0,
 }: MegaPaneProps) {
+  const sharedPresentation = useOptionalSharedShellPresentation();
   const workspace = mode === "workspace";
+  const isMobile = useIsMobile();
+  // The chart-hosted workspace pane is visually a full-screen overlay at <=860px, so it needs
+  // the overlay's close affordances there (Escape, scroll lock, dialog semantics). The /analysis
+  // workspace never does.
+  const presentsAsOverlay = !workspace || (host === "chart" && isMobile);
+  // Its header is rendered for every chart-hosted workspace pane and CSS-gated (shown only at
+  // <=860px), so the touch exit is present from the first paint, before the media query resolves.
+  const touchExitOnly = workspace && chartHosted;
   const { lang } = useLang();
   const zh = lang === "zh";
   const [txTarget, setTxTarget] = useState<TranscriptOpenTarget | null>(null);
@@ -133,9 +176,16 @@ export default function MegaPane({
     const url = new URL(window.location.href);
     url.searchParams.delete("pane");
     url.searchParams.delete("tx");
+    writeTranscriptCompareParams(url.searchParams, null);
     window.history.replaceState(window.history.state, "", url.toString());
     onClose();
   }, [onClose]);
+  const handledCloseRequest = useRef(closeRequest);
+  useEffect(() => {
+    if (closeRequest === handledCloseRequest.current) return;
+    handledCloseRequest.current = closeRequest;
+    closePane();
+  }, [closePane, closeRequest]);
 
   // A transcript ID belongs to exactly one ticker. Never carry an open drawer
   // across symbol changes, even if both symbols happen to share a fiscal ID.
@@ -159,9 +209,10 @@ export default function MegaPane({
   // so Esc closes the drawer BEFORE the pane.
   useEffect(() => {
     // The standalone analysis workspace is embedded in its route. Escape must
-    // never send a reader away from that workspace; only the true overlay
-    // variant owns the route-changing close affordance.
-    if (workspace) return;
+    // never send a reader away from that workspace; only a pane that presents
+    // as an overlay (the overlay variant, or the chart-hosted pane at <=860px)
+    // owns the close affordance.
+    if (!presentsAsOverlay) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         if (txOpenRef.current || intelligenceEvidenceOpenRef.current) return; // nested inspector/drawer owns Esc
@@ -171,17 +222,16 @@ export default function MegaPane({
     };
     window.addEventListener("keydown", onKey, { capture: true });
     return () => window.removeEventListener("keydown", onKey, true);
-  }, [closePane, workspace]);
+  }, [closePane, presentsAsOverlay]);
 
-  // ── body scroll lock while open (overlay mode only — workspace scrolls inside its slot) ──
+  // ── page scroll lock while presented as an overlay (an in-flow workspace scrolls inside its slot) ──
+  // This lock turns on and off when the chart-hosted pane crosses 860px, possibly while the
+  // transcript drawer holds its own; the shared ref-counted lock restores the page only when the
+  // last holder releases, in any order.
   useEffect(() => {
-    if (workspace) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, [workspace]);
+    if (!presentsAsOverlay) return;
+    return acquireScrollLock();
+  }, [presentsAsOverlay]);
 
   // ── legacy ?pane= deep-link sync (chart overlay only) ──
   useEffect(() => {
@@ -225,6 +275,7 @@ export default function MegaPane({
     } else {
       setTxTarget(null);
       url.searchParams.delete("tx");
+      writeTranscriptCompareParams(url.searchParams, null);
       window.history.replaceState(window.history.state, "", url.toString());
     }
     initialTxHydration.current = true;
@@ -257,19 +308,21 @@ export default function MegaPane({
       {!workspace && <div className="fin-scrim" onClick={closePane} aria-hidden />}
       <div
         className={`fin-pane${workspace ? " fin-pane--workspace" : ""}`}
-        role={workspace ? "region" : "dialog"}
-        aria-modal={workspace ? undefined : true}
+        role={presentsAsOverlay ? "dialog" : "region"}
+        aria-modal={presentsAsOverlay ? true : undefined}
         aria-label={`${displayName} · ${pageTitle}`}
       >
         {/* The standalone /analysis workspace already owns company identity and Back-to-chart
-            in its context bar. Keep this legacy header only for the chart-hosted overlay. */}
-        {!workspace && (
-          <div className="fin-head">
-            <button className="fin-head-back" onClick={closePane}>
+            in its context bar. Keep this header for the chart-hosted panes only: always for the
+            overlay, and ≤860px (CSS-gated) for the workspace slot, where it presents as an overlay
+            and the header is the only touch exit. */}
+        {(!workspace || touchExitOnly) && (
+          <div className={`fin-head${touchExitOnly ? " fin-head--touch-exit" : ""}`}>
+            <button type="button" className="fin-head-back" onClick={closePane}>
               <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden style={{ fill: "none", stroke: "currentColor", strokeWidth: 2 }}>
                 <path d="M15 18l-6-6 6-6" />
               </svg>
-              {pick(zh, "Back to chart", "返回图表")}
+              {megaPaneText("mpBackToChart", zh)}
             </button>
             <span className="fin-head-logo" aria-hidden>
               {initial}
@@ -286,12 +339,28 @@ export default function MegaPane({
         <div className="fin-body" key={page} id="fin-active-panel" role="tabpanel" aria-labelledby={`fin-tab-${page}`}>
           {page === "overview" && <OverviewPage sym={sym} fund={fund} name={displayName} onNavigate={navigate} />}
           {page === "intelligence" && (
-            <CompanyIntelligencePage
+            // The regional snapshot and the incumbent event view share this one mount, so the
+            // chart-hosted pane and /analysis render the same component. The event child below is
+            // UNCHANGED and is mounted only when the URL actually selects it: a US symbol passes
+            // through the wrapper untouched, and a regional symbol lands on the snapshot until a
+            // retained event pin or an explicit ci_view=event asks for the event path.
+            <RegionalIntelligenceWorkspace
               sym={sym}
+              fund={fund}
+              fundLoading={fundLoading}
               name={displayName}
-              onOpenTx={openTranscript}
-              onEvidenceOpenChange={setIntelligenceEvidenceOpen}
-            />
+              onNavigate={navigate}
+            >
+              {sharedPresentation ? <SharedShellCompanyIntelligence
+                sym={sym} name={displayName} onOpenTx={openTranscript}
+                onEvidenceOpenChange={setIntelligenceEvidenceOpen}
+              /> : <CompanyIntelligencePage
+                sym={sym}
+                name={displayName}
+                onOpenTx={openTranscript}
+                onEvidenceOpenChange={setIntelligenceEvidenceOpen}
+              />}
+            </RegionalIntelligenceWorkspace>
           )}
           {page === "statements" && (
             <StatementsPage sym={sym} fund={fund} name={displayName} onOpenTx={openTranscript} />
@@ -306,9 +375,12 @@ export default function MegaPane({
           {page === "forecast" && <ForecastPage sym={sym} fund={fund} bars={bars} zh={zh} loading={fundLoading} />}
           {page === "technicals" && <TechnicalsPage sym={sym} bars={bars} zh={zh} />}
           {page === "seasonals" && <SeasonalsPage sym={sym} bars={bars} zh={zh} />}
-          {page === "ownership" && <OwnershipPage sym={sym} />}
+          {page === "ownership" && <OwnershipPage sym={sym} fund={fund} fundLoading={fundLoading} />}
           {page === "insider" && <InsiderPage sym={sym} bars={bars} zh={zh} />}
           {page === "lab" && <TechLabPanel sym={sym} intel={intel} zh={zh} />}
+          {page === "compare" && (
+            <FinComparePage key={sym} sym={sym} fund={fund} fundLoading={fundLoading} onOpenTx={openTranscript} />
+          )}
         </div>
       </div>
 

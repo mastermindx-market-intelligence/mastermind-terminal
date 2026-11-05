@@ -1,0 +1,12 @@
+{
+  "frozen_head": "33535adb1ef8d087449cab9e67cde8d068ec9257",
+  "frozen_tree": "0b8620a5a78e04346861f5f9db03ea01abf1893a",
+  "snapshot": "/tmp/portfolio-pr1044-native-review-20261021",
+  "test_path": "/tmp/portfolio-pr1044-native-review-20261021/terminal/lib/__tests__/portfolioNativeOwnerProbe.test.tsx",
+  "test_sha256": "632d9a4c7b9661ba270f951438bfeee922f287ea799f96c8626d272b61fbbb5d",
+  "dependency_copy": "cp -a --reflink=auto; independent files, no shared node_modules link",
+  "test_exit_code": 1,
+  "log_sha256": "4be7553e3e5e07bb02218e74ca39a2fa7c75e6541de5947e28b276518bd9d55c",
+  "source_after_head": "33535adb1ef8d087449cab9e67cde8d068ec9257",
+  "source_after_status": ""
+}

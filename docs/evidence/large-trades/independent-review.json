@@ -1,0 +1,151 @@
+{
+  "schema": "mastermind.large_trades.independent_review.v1",
+  "recordedAtUtc": "2026-10-11T09:53:49Z",
+  "status": "PASS_WITH_BOUNDED_SCOPE",
+  "reviewerContext": "Independent collaborative subagent review within the active Mastermind large-trades implementation mission.",
+  "independence": "The reviewer did not edit the engine, decoder, or their tests. The reviewer owns the verification CLI and sanitized review artifacts.",
+  "timing": {
+    "exactPerProbeWallClockTimesRecorded": false,
+    "earlierCoreReviewTimeUtc": null,
+    "decoderProbeTimeUtc": null,
+    "sourceIdentityReadbackClockObservationUtc": "2026-10-11T09:53:49Z",
+    "note": "The recorded time is the observed clock when preparing this durable review return, not an invented execution timestamp for earlier probes."
+  },
+  "sourceIdentities": [
+    {
+      "file": "terminal/lib/largeTrades/engine.ts",
+      "bytes": 26612,
+      "sha256": "1936357255e27951d051f2c8fe93349292c7b12a63c66fed8c9246cbfb898483"
+    },
+    {
+      "file": "terminal/lib/largeTrades/types.ts",
+      "bytes": 5032,
+      "sha256": "caaf4fbde97518400930a1dd2b90a349534108d2f67680161392e8264e9cebec"
+    },
+    {
+      "file": "terminal/lib/__tests__/largeTrades.engine.test.ts",
+      "bytes": 24369,
+      "sha256": "f1bcab02799a55d9bd952575fc994e51c41dbca7e2601ed2e991b06c1d813048"
+    },
+    {
+      "file": "ingest/iex_deep_trades.py",
+      "bytes": 41379,
+      "sha256": "9655af3dde9ea225635f6d97be60c6d51a57795c7b7a68bfa91e4d3e18d5a068"
+    },
+    {
+      "file": "tests/test_iex_deep_trades.py",
+      "bytes": 28073,
+      "sha256": "0cedf4651fd4efd5d67f4f9ef5f3ee285bab72f58ff4e7fe3668c50d91d79643"
+    }
+  ],
+  "coreReview": {
+    "status": "PASS",
+    "acceptedEngineSha256": "1936357255e27951d051f2c8fe93349292c7b12a63c66fed8c9246cbfb898483",
+    "independentFocusedAdversarialProbeGroups": 8,
+    "resultBasis": "Earlier direct independent review return in this same mission; accepted source identity was re-read when creating this record.",
+    "method": "Read actual engine/types and focused regression code; execute the actual TypeScript engine in memory for bounded adversarial cases.",
+    "scope": [
+      "Availability and event-time causality under late records and corrections",
+      "Frozen cluster thresholds and prior closed-session calibration",
+      "Cluster formation boundaries that remain immutable when active executions are corrected",
+      "Exact integer quantity accumulation and overflow refusal before later busts",
+      "Provenance-qualified response evidence and pathwise excursion constraints",
+      "Deterministic replay and bounded input behavior"
+    ],
+    "reviewedFinalRepairs": [
+      "Reject unsafe integer accumulation before a rounded intermediate cluster quantity can exist, even if a later break would reduce the total.",
+      "Use immutable formation start/end and last observed availability for joins and closure horizons, independently of corrected active bounds."
+    ],
+    "remainingHighOrMediumFindingsWithinScope": []
+  },
+  "decoderReview": {
+    "status": "PASS",
+    "acceptedDecoderSha256": "9655af3dde9ea225635f6d97be60c6d51a57795c7b7a68bfa91e4d3e18d5a068",
+    "reviewedPreRepairDecoderSha256": "d06d521146389c51d89cc254305adac007f3e458274ef7b2ced50feaf2c85ae1",
+    "method": "Read the bounded source diff and surrounding implementation, inspect the focused tests, and execute independent synthetic in-memory probes against the actual decoder. The two cross-layer counterexamples were also run against the actual frozen TypeScript engine using in-memory esbuild.",
+    "sourceUnchangedAcrossFinalIndependentProbes": true,
+    "resolvedMediumFindings": [
+      {
+        "finding": "Break timestamp earlier than its known target execution",
+        "severity": "MEDIUM",
+        "status": "RESOLVED",
+        "syntheticReproduction": "Native T at relative time 100, quantity 100, followed by B at relative time 50 for the same scoped identity, price, and quantity.",
+        "observedBeforeRepair": {
+          "decoderAccepted": true,
+          "actualEngineEnvelopeValidation": true,
+          "decoderNetShares": 0,
+          "actualEngineNetShares": 100,
+          "actualEngineUnmatchedCancels": 1
+        },
+        "resolution": "Reject the break when its timestamp precedes the known target, before break identity registration or share-conservation mutation.",
+        "observedAfterRepair": "Both L and T target variants reject. Exact equal timestamps remain valid."
+      },
+      {
+        "finding": "First-observed original execution after an unmatched native break",
+        "severity": "MEDIUM",
+        "status": "RESOLVED",
+        "syntheticReproduction": "Unmatched native B at relative time 100 followed by a later native sequence containing first-observed T at relative time 50 for the same scoped identity, price, and quantity.",
+        "observedBeforeRepair": {
+          "decoderAccepted": true,
+          "actualEngineEnvelopeValidation": true,
+          "decoderNetShares": 100,
+          "actualEngineNetShares": 0,
+          "actualEngineUnmatchedCancels": 0
+        },
+        "resolution": "Reject a first-seen execution after a retained unmatched B in the identical native identity scope, before book, signature, or quantity mutation. Native B refers to a previously sent L/T; the adapter does not create a second pending-correction resolver.",
+        "observedAfterRepair": "Both L and T variants reject, including a filtered prior break. An exact duplicate of an already-known original after its break remains an idempotent no-op."
+      }
+    ],
+    "independentProbeGroups": 13,
+    "probeGroups": [
+      "Early break targeting T rejected",
+      "First-seen T after unmatched break rejected without lifecycle mutation",
+      "Early break targeting L rejected",
+      "First-seen L after unmatched break rejected without lifecycle mutation",
+      "Equal execution/break timestamps accepted; known-original replay after break remains idempotent",
+      "Filtered unmatched break still fences a later first-seen original",
+      "Same native trade identity with a contradictory execution timestamp rejected",
+      "Same native trade identity with a contradictory resting order ID rejected before order mutation",
+      "Duplicate L outside the output time filter does not decrement the book twice",
+      "Repeated B with a contradictory timestamp rejected without double subtraction",
+      "Channel and transport session preserve distinct normalized identities and 31-character sessions",
+      "Replica messages deduplicate within the same stream while separate-channel sequence domains remain separate",
+      "All seven supported administrative message kinds enforce exact lengths and source clock validation"
+    ],
+    "administrativeRejectionChecks": 21,
+    "administrativeRejectionBreakdown": "For each of S, D, H, I, O, P, E: one-byte-short, one-byte-long, and negative timestamp inputs reject.",
+    "additionalReadOnlyInspection": [
+      "Native semantic signature contains type, quantity, price, sale flags, timestamp, and resting order ID where applicable.",
+      "Duplicate and contradiction checks precede output time filtering and displayed-order lifecycle mutation.",
+      "Trade and break signatures share a bounded hard ceiling with no identity eviction.",
+      "Repeated breaks compare the full retained signature.",
+      "Final focused tests additionally assert unchanged order maps, rows, identity counters, and share totals on rejected corrections."
+    ],
+    "primarySpecificationReferences": [
+      {
+        "url": "https://www.iex.io/documents/iex-deep-plus-specification",
+        "version": "1.06",
+        "relevantPages": "13-20 and 24-26",
+        "use": "Administrative layouts; L/T execution semantics; B refers to a previously sent L or T."
+      },
+      {
+        "url": "https://www.iex.io/documents/iex-tp-v1",
+        "version": "1.26",
+        "use": "Protocol, channel, session, message-sequence, and replica identity scope."
+      }
+    ],
+    "remainingHighOrMediumFindingsWithinScope": []
+  },
+  "acceptanceBoundary": {
+    "boundedSourceReview": true,
+    "formalVerification": false,
+    "exhaustiveAllInputsProof": false,
+    "fullArchiveAudit": false,
+    "dataAcquisitionOrLicensingApproval": false,
+    "productionAcceptance": false,
+    "outOfSampleEfficacy": "NOT_ESTIMABLE",
+    "realDataVerificationReceipt": "docs/evidence/large-trades/real-data-verification.json",
+    "note": "The real packet-limited IEX cohort has no observed breaks. These correction findings and repairs were proven with deterministic synthetic counterexamples; the separate real-data receipt binds the reviewed decoder and engine to exact supplied historical artifacts."
+  },
+  "integrityStatement": "This is an evidence-backed review return, not a cryptographic signature, external attestation, or production sign-off. It contains no raw native payloads, real execution rows, private paths, or credentials."
+}
