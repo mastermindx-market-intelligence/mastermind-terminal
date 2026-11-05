@@ -5,6 +5,90 @@ import path from "path";
 
 const isProd = process.env.NODE_ENV === "production";
 
+// Vercel builds must never serve Git's historical public/data fixture snapshots as
+// live market data. A separate, reviewed Caddy origin continues to own publication.
+// This fail-closed guard runs at both build/config evaluation and deploy.
+const isVercel = process.env.VERCEL === "1";
+const marketDataOrigin = (() => {
+  if (!isVercel) return null;
+  if (process.env.MMX_SHARED_SHELL !== "0" && process.env.MMX_SHARED_SHELL !== "1") {
+    throw new Error("VERCEL_FRONTEND_MODE_REQUIRED: set MMX_SHARED_SHELL explicitly to 0 or 1");
+  }
+  const raw = process.env.MMX_MARKET_DATA_ORIGIN;
+  if (!raw) throw new Error("VERCEL_MARKET_DATA_ORIGIN_REQUIRED: cannot serve tracked data snapshots");
+  let url: URL;
+  try {
+    url = new URL(raw);
+  } catch {
+    throw new Error("VERCEL_MARKET_DATA_ORIGIN_INVALID");
+  }
+  const approved = new Set(["data.mastermind-x.com"]);
+  if (url.protocol !== "https:" || !approved.has(url.hostname) || url.port ||
+      url.username || url.password || url.pathname !== "/" || url.search || url.hash ||
+      raw !== url.origin) {
+    throw new Error("VERCEL_MARKET_DATA_ORIGIN_UNAPPROVED: must be an exact approved HTTPS origin");
+  }
+  return url.origin;
+})();
+
+// The existing Terminal API remains on the VPS during the frontend migration.
+// Redirect exactly the closed, source-listed API route families, not a broad
+// /api/* catch-all. Shared Shell's build-scoped status MUST remain on Vercel.
+// The beta and production backends are distinct releases with distinct APIs,
+// so route each frontend to its matching original service without loops.
+const apiBackendOrigin = (() => {
+  if (!isVercel) return null;
+  const expected = process.env.MMX_SHARED_SHELL === "1"
+    ? "https://beta-origin.mastermind-x.com"
+    : "https://terminal-origin.mastermind-x.com";
+  const raw = process.env.MMX_TERMINAL_API_ORIGIN;
+  if (!raw) throw new Error("VERCEL_TERMINAL_API_ORIGIN_REQUIRED");
+  if (raw !== expected) {
+    throw new Error("VERCEL_TERMINAL_API_ORIGIN_UNAPPROVED: mode-specific VPS service required");
+  }
+  return raw;
+})();
+const VPS_API_FAMILIES = [
+  "account", "accuracy", "admin", "alerts", "billing", "brain", "briefs",
+  "collect", "company-institutional-context", "company-intelligence",
+  "company-source-search", "company-theme-context", "copilot", "drawings",
+  "event-impact", "event-workspace", "ext-quote", "flow", "futures",
+  "grants", "intraday", "investigation-scenarios", "investigations",
+  "large-trades", "layouts", "market-breadth", "me", "news", "nw",
+  "options", "portfolio", "portfolio-brief", "portfolio-changes",
+  "prophet", "quote", "research-handoffs", "scripts", "sector-intelligence",
+  "smart-screens", "snapshot", "study-templates", "teams", "theses",
+  "thesis", "thesis-fire-status", "thesis-saved-views", "track",
+  "v1", "watchlist", "webhooks",
+] as const;
+const VPS_SHARED_SHELL_APIS = [
+  "today",
+  "research/:path*",
+] as const;
+
+// Both the browser client and the server auth/callback/session refresh paths
+// require these publishable Supabase settings. Vercel must not quietly build a
+// login-looking shell that cannot exchange sessions after its domain moves.
+// This validates presence and HTTPS shape only; secret values are never logged.
+if (isVercel) {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !anon?.trim()) {
+    throw new Error("VERCEL_SUPABASE_PUBLIC_ENV_REQUIRED: auth public inputs missing");
+  }
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    throw new Error("VERCEL_SUPABASE_URL_INVALID");
+  }
+  if (parsed.protocol !== "https:" || !parsed.hostname || parsed.username ||
+      parsed.password || parsed.port || parsed.search || parsed.hash ||
+      (parsed.pathname !== "/" && parsed.pathname !== "")) {
+    throw new Error("VERCEL_SUPABASE_URL_UNAPPROVED: exact HTTPS origin required");
+  }
+}
+
 // ── Deployment id (version-skew protection / stale-chunk self-heal) ───────────
 // Each production deploy gets a DISTINCT id: prefer the git sha wired in by
 // ops/terminal-build.sh (GIT_SHA / NEXT_DEPLOYMENT_ID), then read the deploy marker that the
@@ -26,8 +110,13 @@ function readDeploymentMarker(): string | undefined {
   }
 }
 
-const DEPLOYMENT_ID =
-  process.env.GIT_SHA || process.env.NEXT_DEPLOYMENT_ID || readDeploymentMarker();
+const vercelCommit = process.env.VERCEL_GIT_COMMIT_SHA;
+if (isVercel && (!vercelCommit || !/^[0-9a-f]{40}$/.test(vercelCommit))) {
+  throw new Error("VERCEL_GIT_COMMIT_SHA_REQUIRED: source-bound release identity unavailable");
+}
+const DEPLOYMENT_ID = isVercel
+  ? vercelCommit
+  : process.env.GIT_SHA || process.env.NEXT_DEPLOYMENT_ID || readDeploymentMarker();
 
 // Bind this worker build to its actual Pine sources and the shared session implementation.
 function pineSourceDigest(): string {
@@ -269,6 +358,26 @@ const nextConfig: NextConfig = {
       { source: "/flow", destination: "/options", permanent: true },
     ];
   },
+  // beforeFiles is essential: afterFiles would allow checked-in public/data
+  // fixtures to shadow the independent real-time publisher on Vercel.
+  async rewrites() {
+    if (!marketDataOrigin) return [];
+    return {
+      beforeFiles: [
+        { source: "/data/:path*", destination: `${marketDataOrigin}/data/:path*` },
+        ...VPS_API_FAMILIES.map(family => ({
+          source: `/api/${family}/:path*`,
+          destination: `${apiBackendOrigin}/api/${family}/:path*`,
+        })),
+        ...VPS_SHARED_SHELL_APIS.map(route => ({
+          source: `/api/shared-shell/${route}`,
+          destination: `${apiBackendOrigin}/api/shared-shell/${route}`,
+        })),
+      ],
+      afterFiles: [],
+      fallback: [],
+    };
+  },
   async headers() {
     return [
       // Security headers on every route EXCEPT the /embed subtree (CSP, sniffing, referrer,
@@ -302,6 +411,27 @@ const nextConfig: NextConfig = {
           },
         ],
       },
+      // The browser continues using same-origin /api paths, but API handlers
+      // still execute on their incumbent, authenticated VPS service. Never
+      // permit intermediary shared caches to replay personal account payloads.
+      ...(isVercel ? [{
+        source: "/api/:path*",
+        headers: [
+          { key: "Cache-Control", value: "private, no-store, max-age=0" },
+          { key: "Vary", value: "Cookie, Authorization" },
+        ],
+      }] : []),
+      // These publisher-controlled indexes change independently of frontend
+      // releases. On Vercel keep their edge TTL aligned with the old Caddy
+      // manifest policy, rather than caching missing/fresh symbol coverage for
+      // an entire deployment. The upstream owns the underlying real bytes.
+      ...(isVercel ? ["/data/manifest.json", "/data/coverage.json"].map(source => ({
+        source,
+        headers: [{
+          key: "Cache-Control",
+          value: "public, s-maxage=60, max-age=0, must-revalidate",
+        }],
+      })) : []),
       // Statically-prerendered HTML would otherwise ship Next's s-maxage=31536000, which the
       // EdgeOne CDN pins for a year (a deploy then can't refresh these shells without a manual
       // console purge — no purge creds exist on the VPS/Mac). Cap edge caching at 5 minutes.

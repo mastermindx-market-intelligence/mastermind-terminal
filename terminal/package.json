@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "dev:fixture": "FLOW_FIXTURE=1 next dev",
-    "prebuild": "python3 ../scripts/build_data_coverage.py",
+    "prebuild": "node scripts/prepare-data-coverage.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
