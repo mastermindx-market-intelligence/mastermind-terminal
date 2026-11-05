@@ -100,3 +100,32 @@ describe("labels", () => {
     expect(expLabel("odd")).toBe("odd");
   });
 });
+
+
+describe("isZeroDte — missing or malformed dates are not same-session evidence", () => {
+  it.each([
+    ["not-a-date", ASOF],
+    ["2026-07-10", "garbage"],
+    ["2026-02-30", "2026-03-02"],
+    ["2026-03-02", "2026-02-30"],
+    ["", ASOF],
+  ])("rejects expiry %s with source day %s", (expiry, asOf) => {
+    expect(isZeroDte(expiry as string, asOf)).toBe(false);
+  });
+
+  it("does not infer a missing snapshot day from the wall clock", () => {
+    const today = new Date().toISOString().slice(0, 10);
+    expect(isZeroDte(today, null)).toBe(false);
+    expect(isZeroDte(today, undefined)).toBe(false);
+  });
+
+  it("keeps source date-part semantics rather than converting timestamp offsets", () => {
+    expect(isZeroDte("2026-07-10 00:00:00", "2026-07-10T23:30:00-07:00")).toBe(true);
+    expect(isZeroDte("2026-07-11", "2026-07-10T23:30:00-07:00")).toBe(false);
+  });
+
+  it("does not change the existing numeric display fallback", () => {
+    expect(dteRaw("not-a-date", ASOF)).toBe(0);
+    expect(dteFrom("2026-07-10", "garbage")).toBe(0);
+  });
+});

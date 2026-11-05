@@ -78,7 +78,11 @@ export function dteLabelFor(exp: string, asOf: string | null | undefined): strin
  * is why the 0DTE chip used to light up on stale payloads.
  */
 export function isZeroDte(exp: string, asOf: string | null | undefined): boolean {
-  return dteRaw(exp, asOf) === 0;
+  // A display fallback of zero is not evidence of a same-session expiry.
+  // Preserve the existing date-part convention, but require two real dates.
+  const expiry = isoSession(typeof exp === "string" ? expDatePart(exp) : null);
+  const session = isoSession(typeof asOf === "string" ? expDatePart(asOf) : null);
+  return expiry !== null && session !== null && expiry === session;
 }
 
 /** MM-DD display label — language-neutral, shared by the ladder + term-structure drawer. */
