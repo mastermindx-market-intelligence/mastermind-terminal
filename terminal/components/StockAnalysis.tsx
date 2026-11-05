@@ -664,6 +664,7 @@ export default function StockAnalysis({
         {tvWidgets}
         {tvWidgets2}
         {profileWidget}
+        {beforeIv}
       </div>
     );
   }

@@ -9,7 +9,7 @@
  * object, and NOT persisted anywhere.
  *
  * Closed vocabulary (frozen):
- *   mo_from      closed enum: exactly "ontology" (anything else → context invalid)
+ *   mo_from      closed enum: exactly "ontology" or "transmission" (anything else → context invalid)
  *   mo_chain    REQUIRED. id: ^[A-Za-z0-9][A-Za-z0-9_.:-]{0,79}$
  *   mo_focus     optional path node id, same id grammar
  *   mo_path_rev  optional: ^[0-9]{1,9}$
@@ -25,7 +25,7 @@
  * - Encoded separators/controls/non-ASCII fail closed.
  * - A DUPLICATE of ANY known `mo_*` key invalidates the whole context.
  * - Unknown `mo_*` keys are ignored, never forwarded, never serialized.
- * - A valid context requires `mo_from=ontology` AND a valid `mo_chain`.
+ * - A valid context requires `mo_from` from the closed origin enum AND a valid `mo_chain`.
  * - Every other field is optional when absent; a present-but-invalid value
  *   invalidates the whole context.
  */
@@ -51,9 +51,15 @@ export const MO_CONTEXT_KEYS = [
 type MoKey = (typeof MO_CONTEXT_KEYS)[number];
 type Validator = (rawValue: string) => string | null;
 
+function validateFrom(rawValue: string): MarketOntologyContext["from"] | null {
+  return ORIGINS.has(rawValue as MarketOntologyOrigin)
+    ? (rawValue as MarketOntologyContext["from"])
+    : null;
+}
+
 /** The validated MarketOntology context shape. */
 export type MarketOntologyContext = {
-  from: "ontology";
+  from: "ontology" | "transmission";
   chain: string;
   focus?: string;
   pathRev?: string;
@@ -98,8 +104,11 @@ function validateDate(raw: string): boolean {
   return isValidDate(year, month, day);
 }
 
+type MarketOntologyOrigin = MarketOntologyContext["from"];
+const ORIGINS: ReadonlySet<MarketOntologyOrigin> = new Set(["ontology", "transmission"]);
+
 const FIELD_VALIDATORS = {
-  mo_from: (rawValue: string) => (rawValue === "ontology" ? rawValue : null),
+  mo_from: validateFrom,
   mo_chain: (rawValue: string) => (ID_GRAMMAR.test(rawValue) ? rawValue : null),
   mo_focus: (rawValue: string) => (ID_GRAMMAR.test(rawValue) ? rawValue : null),
   mo_path_rev: (rawValue: string) =>
@@ -125,10 +134,10 @@ function hasValidQueryValue(key: MoKey, value: string | undefined): value is str
  * Parse MarketOntology context from URLSearchParams.
  *
  * Returns a validated MarketOntologyContext or null if the context is invalid
- * (missing required fields, grammar violations, duplicates, or non-ontology from).
+ * (missing required fields, grammar violations, duplicates, or an unknown origin).
  *
  * Rules that cause null:
- * - mo_from is not exactly "ontology"
+ * - mo_from is not exactly "ontology" or "transmission"
  * - mo_chain is missing or fails grammar
  * - Any known mo_* key appears more than once (case: multiple values for same key)
  * - Any known mo_* value fails its grammar (including malformed dates like 2026-02-30)
@@ -145,8 +154,8 @@ export function parseMarketOntologyContext(
     }
   }
 
-  // mo_from must be exactly "ontology".
-  const fromValidated = validateField("mo_from", params.get("mo_from") ?? "");
+  // mo_from must come from the closed origin enum.
+  const fromValidated = validateFrom(params.get("mo_from") ?? "");
   if (fromValidated === null) {
     return null;
   }
@@ -159,7 +168,7 @@ export function parseMarketOntologyContext(
 
   // Build the validated context
   const ctx: MarketOntologyContext = {
-    from: "ontology",
+    from: fromValidated,
     chain: chainValidated,
   };
 
@@ -208,15 +217,7 @@ export function serializeMarketOntologyContext(
   ctx: MarketOntologyContext,
   into?: URLSearchParams
 ): URLSearchParams {
-  const result = into ? new URLSearchParams(into.toString()) : new URLSearchParams();
-
-  // Strip ALL mo_* keys (known or unknown) before writing validated fields.
-  // This implements "unknown mo_* keys are never serialized" — any pre-existing mo_*
-  // in the URL is cleared; the validated ctx fields are written fresh.
-  const keysToDelete = [...result.keys()].filter((k) => /^mo_/i.test(k));
-  for (const key of keysToDelete) {
-    result.delete(key);
-  }
+  const result = clearMarketOntologyContext(into ?? new URLSearchParams());
 
   const fields: Array<readonly [MoKey, keyof MarketOntologyContext]> = [
     ["mo_from", "from"],
@@ -264,14 +265,28 @@ export function clearMarketOntologyContext(params: URLSearchParams): URLSearchPa
 }
 
 /**
- * Construct the return href for navigating back to MarketOntology.
+ * Strip every mo_* query parameter, including unknown keys, without changing
+ * any other parameter or its position.
+ */
+export function stripMarketOntologyParams(params: URLSearchParams): URLSearchParams {
+  return clearMarketOntologyContext(params);
+}
+
+/**
+ * Construct the return href for navigating back to the validated origin.
  *
- * Format: `${MARKET_ONTOLOGY_ORIGIN}/ontology.html` + (pathRev ? `?rev=${pathRev}` : "") + (focus ? `#ox-leg-${encodeURIComponent(focus)}` : "")
+ * Format: ontology contexts return to `${MARKET_ONTOLOGY_ORIGIN}/ontology.html`
+ * + (pathRev ? `?rev=${pathRev}` : "") + (focus ? `#ox-leg-${encodeURIComponent(focus)}` : "").
+ * Transmission contexts return to `${MARKET_ONTOLOGY_ORIGIN}/transmission.html#tx-chain-${encodeURIComponent(chain)}`.
  *
  * The grammar permits dots and colons; encodeURIComponent is what makes the fragment
  * one opaque token. Illegal hand-built values are omitted.
  */
 export function marketOntologyReturnHref(ctx: MarketOntologyContext): string {
+  if (ctx.from === "transmission") {
+    return `${MARKET_ONTOLOGY_ORIGIN}/transmission.html#tx-chain-${encodeURIComponent(ctx.chain)}`;
+  }
+
   let href = `${MARKET_ONTOLOGY_ORIGIN}/ontology.html`;
 
   if (ctx.pathRev && hasValidQueryValue("mo_path_rev", ctx.pathRev)) {

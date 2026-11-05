@@ -1,0 +1,17 @@
+The CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.
+
+ RUN  v2.1.9 <original-managed-workspace>/terminal
+
+ ✓ lib/__tests__/intelligenceWorkspaceLayout.test.ts (20 tests) 8ms
+ ✓ lib/__tests__/intelligenceWorkspaceView.test.ts (35 tests) 27ms
+ ✓ lib/__tests__/intelligenceActivity.test.ts (28 tests) 11ms
+ ✓ lib/__tests__/signalVerdict.test.ts (119 tests) 63ms
+ ✓ lib/__tests__/oracleEntryTruth.test.ts (22 tests) 29ms
+ ✓ lib/__tests__/useWorkspaceSource.test.tsx (10 tests) 51ms
+ ✓ lib/__tests__/stockEvidenceOverview.test.tsx (4 tests) 45ms
+
+ Test Files  7 passed (7)
+      Tests  238 passed (238)
+   Start at  22:50:37
+   Duration  1.67s (transform 921ms, setup 0ms, collect 1.41s, tests 235ms, environment 1.62s, prepare 568ms)
+

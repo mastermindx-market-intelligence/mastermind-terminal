@@ -1,0 +1,49 @@
+The CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.
+
+ RUN  v2.1.9 <original-managed-workspace>/terminal
+
+ ❯ lib/__tests__/intelligenceActivity.test.ts (28 tests | 6 failed | 21 skipped) 12ms
+   × R6 source-faithful activity exploration > finds the displayed two-decimal price 187 as 187.00 without changing source precision 6ms
+     → expected [] to have a length of 2 but got +0
+   × R6 source-faithful activity exploration > finds the displayed two-decimal price 97.2 as 97.20 without changing source precision 0ms
+     → expected [] to have a length of 2 but got +0
+   × R6 source-faithful activity exploration > finds the displayed two-decimal price 922.1571 as 922.16 without changing source precision 0ms
+     → expected [] to have a length of 2 but got +0
+   × R6 source-faithful activity exploration > finds the displayed two-decimal price 1029.9178 as 1029.92 without changing source precision 0ms
+     → expected [] to have a length of 2 but got +0
+   × R6 source-faithful activity exploration > finds the displayed two-decimal price 225.4777 as 225.48 without changing source precision 0ms
+     → expected [] to have a length of 2 but got +0
+   × R6 source-faithful activity exploration > finds the displayed two-decimal price 0 as 0.00 without changing source precision 1ms
+     → expected [] to have a length of 2 but got +0
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 6 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/__tests__/intelligenceActivity.test.ts > R6 source-faithful activity exploration > finds the displayed two-decimal price 187 as 187.00 without changing source precision
+ FAIL  lib/__tests__/intelligenceActivity.test.ts > R6 source-faithful activity exploration > finds the displayed two-decimal price 97.2 as 97.20 without changing source precision
+ FAIL  lib/__tests__/intelligenceActivity.test.ts > R6 source-faithful activity exploration > finds the displayed two-decimal price 922.1571 as 922.16 without changing source precision
+ FAIL  lib/__tests__/intelligenceActivity.test.ts > R6 source-faithful activity exploration > finds the displayed two-decimal price 1029.9178 as 1029.92 without changing source precision
+ FAIL  lib/__tests__/intelligenceActivity.test.ts > R6 source-faithful activity exploration > finds the displayed two-decimal price 225.4777 as 225.48 without changing source precision
+ FAIL  lib/__tests__/intelligenceActivity.test.ts > R6 source-faithful activity exploration > finds the displayed two-decimal price 0 as 0.00 without changing source precision
+AssertionError: expected [] to have a length of 2 but got +0
+
+- Expected
++ Received
+
+- 2
++ 0
+
+ ❯ lib/__tests__/intelligenceActivity.test.ts:98:27
+     96|     const records = workspaceActivity([signal, { type: "BUY", ts }], […
+     97|     const result = exploreWorkspaceActivity(records, { query })
+     98|     expect(result.events).toHaveLength(2)
+       |                           ^
+     99|     expect(result.counts).toMatchObject({ all: 2, entries: 1, receipts…
+    100|     expect(result.events.find(event => event.kind === "signal")?.signa…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/6]⎯
+
+ Test Files  1 failed (1)
+      Tests  6 failed | 1 passed | 21 skipped (28)
+   Start at  22:50:04
+   Duration  792ms (transform 89ms, setup 0ms, collect 109ms, tests 12ms, environment 0ms, prepare 85ms)
+
