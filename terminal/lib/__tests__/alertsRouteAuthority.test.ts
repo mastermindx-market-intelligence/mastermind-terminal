@@ -44,6 +44,17 @@ vi.mock("@/lib/supabase/server", () => ({
         return q;
       });
       q.order = vi.fn(async () => H.selectResult);
+      q.or = vi.fn((expression: string) => {
+        expect(expression).toBe("condition->>type.is.null,condition->>type.neq.forex_price_close");
+        return q;
+      });
+      q.single = vi.fn(async () => {
+        // This fixture injects DELETE outcomes; an unsuccessful/empty deletion reads absent,
+        // while a positive or failed mutation starts with an owned legacy row.
+        const present = H.deleteResult.error || (Array.isArray(H.deleteResult.data) && H.deleteResult.data.length > 0);
+        return present ? { data: { id: "a1", user_id: "user-1", condition: { type: "price" } }, error: null }
+          : { data: null, error: { code: "PGRST116" } };
+      });
       return q;
     }),
   })),

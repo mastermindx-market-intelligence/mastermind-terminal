@@ -1,0 +1,194 @@
+{
+  "schema": "mastermind.large_trades_integrated_review.v1",
+  "status": "PASS_WITHIN_SCOPED_INTEGRATED_SOURCE_AND_LOCAL_BROWSER_EVIDENCE",
+  "reviewedSourceManifestSha256": "7d44244e791ddc1ae626e7602a7c993cd4883cc28a8d6be9bd8da45149a5d49b",
+  "matchingSourceCommit": "95a7cac298a99671eb392ff0050fb7b9223ead4e",
+  "originalIndependentReviewReceiptSha256": "a3a0fcb9301324b8cce1f4c3b0b2b2efe274654247a33592a266cf9af2251ebf",
+  "method": "Independent read-only source, actual result/receipt parsing, and selected high-risk PNG inspection, including all three final real-IEX exports. No competing runner or source edits.",
+  "findings": [
+    {
+      "id": "LT-PANE-001",
+      "title": "Large Trades markers remain visible on a maximized nonprice pane",
+      "priorSeverity": "MEDIUM",
+      "status": "RESOLVED_WITHIN_SCOPED_INTEGRATED_SOURCE_AND_BROWSER_EVIDENCE",
+      "finalAcceptance": {
+        "result": "PASS at the bound source; historical before-fix evidence is preserved",
+        "sourceManifestSha256": "7d44244e791ddc1ae626e7602a7c993cd4883cc28a8d6be9bd8da45149a5d49b",
+        "fullRunReceiptSha256": "5c3600384d2141255512ef3d722f18f30af06871d50e83e3336af19fa1285790",
+        "finalReportSha256": "a6f9e3eb8981e845c68079d65b718a4e9bb697aabd901b85a73c3cfae4ac2b47",
+        "projectResults": {
+          "desktop": {
+            "passed": 20
+          },
+          "tablet": {
+            "passed": 13,
+            "skipped": 7
+          },
+          "mobile": {
+            "passed": 13,
+            "skipped": 7
+          }
+        }
+      }
+    },
+    {
+      "id": "LT-AXIS-002",
+      "title": "Left price scale shifts root-positioned markers left by its width",
+      "priorSeverity": "MEDIUM",
+      "status": "RESOLVED_WITHIN_SCOPED_INTEGRATED_SOURCE_AND_BROWSER_EVIDENCE",
+      "finalAcceptance": {
+        "result": "PASS at the bound source; historical before-fix evidence is preserved",
+        "sourceManifestSha256": "7d44244e791ddc1ae626e7602a7c993cd4883cc28a8d6be9bd8da45149a5d49b",
+        "fullRunReceiptSha256": "5c3600384d2141255512ef3d722f18f30af06871d50e83e3336af19fa1285790",
+        "finalReportSha256": "a6f9e3eb8981e845c68079d65b718a4e9bb697aabd901b85a73c3cfae4ac2b47",
+        "projectResults": {
+          "desktop": {
+            "passed": 20
+          },
+          "tablet": {
+            "passed": 13,
+            "skipped": 7
+          },
+          "mobile": {
+            "passed": 13,
+            "skipped": 7
+          }
+        }
+      }
+    },
+    {
+      "id": "LT-CONTROL-003",
+      "title": "Responsive fullscreen button intercepts the pane Restore control",
+      "priorSeverity": "MEDIUM",
+      "status": "RESOLVED_WITHIN_SCOPED_INTEGRATED_SOURCE_AND_BROWSER_EVIDENCE",
+      "finalAcceptance": {
+        "result": "PASS at the bound source; historical before-fix evidence is preserved",
+        "sourceManifestSha256": "7d44244e791ddc1ae626e7602a7c993cd4883cc28a8d6be9bd8da45149a5d49b",
+        "fullRunReceiptSha256": "5c3600384d2141255512ef3d722f18f30af06871d50e83e3336af19fa1285790",
+        "finalReportSha256": "a6f9e3eb8981e845c68079d65b718a4e9bb697aabd901b85a73c3cfae4ac2b47",
+        "projectResults": {
+          "desktop": {
+            "passed": 20
+          },
+          "tablet": {
+            "passed": 13,
+            "skipped": 7
+          },
+          "mobile": {
+            "passed": 13,
+            "skipped": 7
+          }
+        }
+      }
+    },
+    {
+      "id": "LT-DOCK-004",
+      "title": "Whole-chart Large Trades dock blocks ordinary RSI Maximize after restore",
+      "priorSeverity": "MEDIUM",
+      "status": "RESOLVED_WITHIN_SCOPED_INTEGRATED_SOURCE_AND_BROWSER_EVIDENCE",
+      "finalAcceptance": {
+        "result": "PASS at the bound source; historical before-fix evidence is preserved",
+        "sourceManifestSha256": "7d44244e791ddc1ae626e7602a7c993cd4883cc28a8d6be9bd8da45149a5d49b",
+        "fullRunReceiptSha256": "5c3600384d2141255512ef3d722f18f30af06871d50e83e3336af19fa1285790",
+        "finalReportSha256": "a6f9e3eb8981e845c68079d65b718a4e9bb697aabd901b85a73c3cfae4ac2b47",
+        "projectResults": {
+          "desktop": {
+            "passed": 20
+          },
+          "tablet": {
+            "passed": 13,
+            "skipped": 7
+          },
+          "mobile": {
+            "passed": 13,
+            "skipped": 7
+          }
+        }
+      }
+    },
+    {
+      "id": "LT-BOUNDS-005",
+      "title": "Admitted minimum control rectangle cannot contain a full 44px visible target after CSS insets and borders",
+      "priorSeverity": "MEDIUM",
+      "status": "RESOLVED_WITHIN_SCOPED_INTEGRATED_SOURCE_AND_BROWSER_EVIDENCE",
+      "finalAcceptance": {
+        "result": "PASS at the bound source; historical before-fix evidence is preserved",
+        "sourceManifestSha256": "7d44244e791ddc1ae626e7602a7c993cd4883cc28a8d6be9bd8da45149a5d49b",
+        "fullRunReceiptSha256": "5c3600384d2141255512ef3d722f18f30af06871d50e83e3336af19fa1285790",
+        "finalReportSha256": "a6f9e3eb8981e845c68079d65b718a4e9bb697aabd901b85a73c3cfae4ac2b47",
+        "projectResults": {
+          "desktop": {
+            "passed": 20
+          },
+          "tablet": {
+            "passed": 13,
+            "skipped": 7
+          },
+          "mobile": {
+            "passed": 13,
+            "skipped": 7
+          }
+        }
+      }
+    },
+    {
+      "id": "LT-OVERFLOW-006",
+      "title": "Unbroken compact quantity can introduce a horizontal scrollbar and reduce the minimum Close target footprint",
+      "priorSeverity": "MEDIUM",
+      "status": "RESOLVED_WITHIN_SCOPED_INTEGRATED_SOURCE_AND_BROWSER_EVIDENCE",
+      "finalAcceptance": {
+        "result": "PASS at the bound source; historical before-fix evidence is preserved",
+        "sourceManifestSha256": "7d44244e791ddc1ae626e7602a7c993cd4883cc28a8d6be9bd8da45149a5d49b",
+        "fullRunReceiptSha256": "5c3600384d2141255512ef3d722f18f30af06871d50e83e3336af19fa1285790",
+        "finalReportSha256": "a6f9e3eb8981e845c68079d65b718a4e9bb697aabd901b85a73c3cfae4ac2b47",
+        "projectResults": {
+          "desktop": {
+            "passed": 20
+          },
+          "tablet": {
+            "passed": 13,
+            "skipped": 7
+          },
+          "mobile": {
+            "passed": 13,
+            "skipped": 7
+          }
+        }
+      }
+    },
+    {
+      "id": "LT-LAYOUT-007",
+      "title": "Pending native pane layout leaves exported trade geometry and pane labels in the previous pane",
+      "priorSeverity": "MEDIUM",
+      "status": "RESOLVED_WITHIN_SCOPED_INTEGRATED_SOURCE_AND_BROWSER_EVIDENCE",
+      "finalAcceptance": {
+        "result": "PASS at the bound source; historical before-fix evidence is preserved",
+        "sourceManifestSha256": "7d44244e791ddc1ae626e7602a7c993cd4883cc28a8d6be9bd8da45149a5d49b",
+        "fullRunReceiptSha256": "5c3600384d2141255512ef3d722f18f30af06871d50e83e3336af19fa1285790",
+        "finalReportSha256": "a6f9e3eb8981e845c68079d65b718a4e9bb697aabd901b85a73c3cfae4ac2b47",
+        "projectResults": {
+          "desktop": {
+            "passed": 20
+          },
+          "tablet": {
+            "passed": 13,
+            "skipped": 7
+          },
+          "mobile": {
+            "passed": 13,
+            "skipped": 7
+          }
+        }
+      }
+    }
+  ],
+  "scopeLimits": [
+    "Local browser proof does not establish production publication, authentication, deployment, or a live feed.",
+    "Outer application chrome and other source cases use deterministic fixtures. Native IEX export coordinates derive from the reviewed partial transaction cohort.",
+    "Seven desktop-specific journeys intentionally skip tablet and mobile; the real IEX export runs on all three.",
+    "Phone gestures use trusted browser-native emulated touch events with no supplied timestamps; this is not physical-device or human-cadence evidence.",
+    "The exact browser boundary was 198×89 CSS px at a 261×900 viewport; the 198×88 admission threshold also has unit coverage. Classic scrollbar allowance is a reviewed source budget.",
+    "The 1,000,000,000 quantity is synthetic. No distinct-order, trapped-trader, live-CME or predictive-efficacy claim is made.",
+    "Older original-candidate evidence remains historical and is not restamped."
+  ]
+}

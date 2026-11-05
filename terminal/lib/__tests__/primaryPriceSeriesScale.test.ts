@@ -33,14 +33,14 @@ function findVariable(name: string, root: ts.Node): ts.VariableDeclaration {
   return match;
 }
 
-function chartAddSeriesCalls(root: ts.Node): ts.CallExpression[] {
+function engineAddSeriesCalls(root: ts.Node): ts.CallExpression[] {
   const calls: ts.CallExpression[] = [];
   const visit = (node: ts.Node) => {
     if (
       ts.isCallExpression(node)
       && ts.isPropertyAccessExpression(node.expression)
       && ts.isIdentifier(node.expression.expression)
-      && node.expression.expression.text === "chart"
+      && node.expression.expression.text === "engine"
       && node.expression.name.text === "addSeries"
     ) {
       calls.push(node);
@@ -73,7 +73,7 @@ describe("ChartPanel primary price-series construction", () => {
       'chartSettingsRef.current.scaleLeft ? "left" : "right"',
     );
 
-    const calls = chartAddSeriesCalls(body);
+    const calls = engineAddSeriesCalls(body);
     expect(calls, "line, markers, step, area, baseline, bars, and candle-family constructors").toHaveLength(7);
     for (const call of calls) {
       const options = call.arguments[1];
@@ -97,10 +97,9 @@ describe("ChartPanel primary price-series construction", () => {
       compilerOptions: { target: ts.ScriptTarget.ES2019, module: ts.ModuleKind.CommonJS },
     }).outputText;
 
-    // eslint-disable-next-line @typescript-eslint/no-implied-eval
     const build = new Function(
       "exports",
-      "LineSeries", "AreaSeries", "BaselineSeries", "BarSeries", "CandlestickSeries", "LineType", "withAlpha",
+      "EngineLineType", "withAlpha",
       "priceFmt", "chartSettingsRef", "chartTypeRef",
       `${transpiled}
 return addPriceSeries;`,
@@ -113,17 +112,17 @@ return addPriceSeries;`,
         const chartTypeRef = { current: family };
         const chartSettingsRef = { current: { scaleLeft } };
         const calls: unknown[][] = [];
-        const chart = { addSeries: (...args: unknown[]) => { calls.push(args); return { __series: true }; } };
+        const engine = { addSeries: (...args: unknown[]) => { calls.push(args); return { __series: true }; } };
         const fn = build(
           {},
-          "LineSeries", "AreaSeries", "BaselineSeries", "BarSeries", "CandlestickSeries", { WithSteps: "withSteps" },
+          { WithSteps: "withSteps" },
           (c: string) => c,
           () => ({ priceFormat: "auto" }),
           chartSettingsRef,
           chartTypeRef,
-        ) as (chart: unknown, t: Record<string, string>) => unknown;
-        fn(chart, tokens);
-        expect(calls, `${family} scaleLeft=${scaleLeft} must call chart.addSeries exactly once`).toHaveLength(1);
+        ) as (engine: unknown, t: Record<string, string>) => unknown;
+        fn(engine, tokens);
+        expect(calls, `${family} scaleLeft=${scaleLeft} must call engine.addSeries exactly once`).toHaveLength(1);
         const options = calls[0][1] as { priceScaleId?: string };
         expect(options.priceScaleId, `${family} scaleLeft=${scaleLeft}`).toBe(scaleLeft ? "left" : "right");
       }

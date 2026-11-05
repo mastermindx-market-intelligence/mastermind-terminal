@@ -20,8 +20,8 @@ import "server-only";
  *
  * Scores a single FlowEvent on magnitude, structure, and positioning signals.
  * Direction (side) is the LOWEST-weight component because our tick-rule
- * recovery is 0.41 (coin-flip-plus) without NBBO — magnitude and OI/freshness
- * are the reliable reads (RELIABLE family).
+ * recovery is 0.41 (coin-flip-plus) without NBBO — magnitude and the vol-vs-OI
+ * comparison are the reliable reads (RELIABLE family).
  *
  * Positive weights sum to 0.95; a direction-reliability penalty (weight 0.05) can subtract up to 5 points,
  * making the achievable range 0–94 (ELITE ≥90 is reachable; 95–100 is not).
@@ -30,7 +30,7 @@ import "server-only";
  *   premiumMagnitude    0.30  — log ramp $50k → $5M; largest reliable signal
  *   unusualness         0.20  — z-score vs 252d session baseline (when present)
  *   dteRelevance        0.15  — peak 1–45d; 0DTE penalised for noise, >90d tapers
- *   freshPositioning    0.12  — vol > OI flag (new open interest, not roll)
+ *   freshPositioning    0.12  — vol > OI flag (observed comparison; opening/closing unknown)
  *   moneynessProximity  0.10  — ATM/near-OTM premium carries more gamma signal
  *   repeatCluster       0.08  — repeated or multi-print cluster lifts conviction
  *   directionReliability -0.05 — PENALTY when side is "mixed" or signing is floor-only
@@ -52,13 +52,13 @@ export interface ScorerInput {
   premium: number;
   /** z-score vs 252-session baseline; null when baseline <30 sessions warm. */
   premium_z: number | null;
-  /** DTE bucket string from feed contract. */
-  dte_bucket: DteBucket;
-  /** Exact days to expiry (may be 0 for 0DTE). */
-  dte: number;
-  /** Moneyness bucket. */
-  mny_bucket: MnyBucket;
-  /** Vol > OI flag: true = fresh open interest / new positioning. null = unknown. */
+  /** DTE bucket string from feed contract. "unknown" when the expiry could not be read. */
+  dte_bucket: DteBucket | "unknown";
+  /** Exact days to expiry (may be 0 for 0DTE). Null when the expiry could not be read. */
+  dte: number | null;
+  /** Moneyness bucket; "unknown" when the source cannot determine it. */
+  mny_bucket: MnyBucket | "unknown";
+  /** Vol > OI flag: true = volume exceeded open interest (comparison only). null = unknown. */
   vol_gt_oi: boolean | null;
   /** Whether this print is part of a cluster / previously repeated root. */
   repeated: boolean;
@@ -132,10 +132,16 @@ function unusualnessFactor(z: number | null): number {
  * DTE relevance factor.
  * Peak window: 1–45d (factor = 1.0).
  * 0DTE: 0.20 (high noise, very short theta exposure).
+ * Missing, undefined, or any non-finite day count: 0.20, whatever the bucket
+ * says. An "unknown" bucket is also 0.20 — a finite day count on that bucket
+ * is not read. Both match the Python scorer, which turns a missing expiry
+ * into 0 and then returns 0.20, so an unreadable expiry cannot outscore a
+ * real contract.
  * 46–90d: tapers linearly from 1.0 → 0.50.
  * >90d (bucket "90p"): 0.30 (far OTM / LEAPS roll, lower urgency).
  */
-function dteFactor(dte: number, bucket: DteBucket): number {
+function dteFactor(dte: number | null, bucket: DteBucket | "unknown"): number {
+  if (bucket === "unknown" || typeof dte !== "number" || !Number.isFinite(dte)) return 0.20;
   if (bucket === "0d" || dte === 0) return 0.20;
   if (dte >= 1 && dte <= 45) return 1.0;
   if (dte <= 90) {
@@ -151,18 +157,20 @@ function dteFactor(dte: number, bucket: DteBucket): number {
  * ATM carries the strongest gamma / directional signal.
  * ITM less informative (hedging, conversion arb).
  */
-function moneynessFactor(bucket: MnyBucket): number {
+function moneynessFactor(bucket: MnyBucket | "unknown"): number {
   switch (bucket) {
     case "atm":      return 1.00;
     case "near_otm": return 0.85;
     case "itm":      return 0.50;
     case "far_otm":  return 0.30;
+    // Match engine/flow_enrich.py's missing-data default without inventing a bucket.
+    default:         return 0.60;
   }
 }
 
 /**
- * Fresh positioning factor: 1.0 when vol > OI (new open interest),
- * 0.40 when not (could be a close/roll), 0.60 when unknown.
+ * Vol-vs-OI comparison factor: 1.0 when vol > OI,
+ * 0.40 when not, 0.60 when unknown. Opening vs closing is not classified.
  */
 function freshFactor(volGtOi: boolean | null): number {
   if (volGtOi === true) return 1.0;
@@ -176,7 +184,7 @@ function freshFactor(volGtOi: boolean | null): number {
  * n_prints > 1 adds a log bonus capped at 1.0.
  */
 function clusterFactor(repeated: boolean, n_prints: number): number {
-  let base = repeated ? 0.60 : 0.20;
+  const base = repeated ? 0.60 : 0.20;
   // Each additional print beyond 1 adds ~10pp (log-dampened)
   const printBonus = Math.min(0.40, Math.log1p(n_prints - 1) * 0.18);
   return Math.min(1.0, base + printBonus);
@@ -277,7 +285,7 @@ export function computeFlowScore(ev: ScorerInput): FlowScoreResult {
     },
     {
       key: "freshPositioning",
-      label: "Fresh positioning (vol>OI)",
+      label: "Volume vs OI (vol>OI)",
       value: Math.round(cFresh * 10) / 10,
       weight: W_FRESH,
     },

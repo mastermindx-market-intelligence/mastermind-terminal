@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useT } from "@/lib/i18n";
 import { startGoogleOAuth } from "./oauth";
+import { sharedShellSignupRedirect } from "@/lib/supabase/redirects";
+import { navigateToSignedInWorkspace } from "@/lib/onboardingSigninNavigation";
 import type { OnboardMode, OnboardResumeStash, OnboardPrefs, PlanKey, Period } from "./types";
 
 // Inline Google "G" mark (official 4-color).
@@ -31,6 +33,7 @@ export interface StepAccountProps {
   onModeSwitch: (m: OnboardMode) => void;
   onConfirmPending: () => void; // signup with confirmation ON → advance but flag pending
   onAdvance: () => void;        // session issued → advance to step 2
+  onSignedIn: () => void;       // password sign-in acknowledged → close the sheet
 }
 
 function pwHintKey(pw: string): "obPwHintShort" | "obPwHintOk" | null {
@@ -59,17 +62,29 @@ export default function StepAccount(p: StepAccountProps) {
         setBusy(false);
         return;
       }
-      // Success → re-run the server component; the provider closes the sheet when
-      // the fresh email prop lands. Keep busy until unmount (mirror AuthSheet).
-      router.refresh();
+      // A signed-in visitor may open ?signin=1 with the same email already in
+      // the shell. That refresh has no empty→populated transition to close us.
+      // Finish from the acknowledged request; reset the hidden, mounted form
+      // so reopening it cannot preserve a busy button or the password.
+      p.set({ password: "" });
+      setBusy(false);
+      p.onSignedIn();
+      // Server-gated workspaces can retain their anonymous RSC payload after a
+      // client-side refresh. A real same-path navigation sends the new auth
+      // cookies on a fresh request and enters the workspace without manual reload.
+      navigateToSignedInWorkspace();
       return;
     }
 
     // signup — stash first/last in user_metadata (trap-for-trap mirror of AuthSheet)
+    const emailRedirectTo = sharedShellSignupRedirect(window.location.origin, window.location.pathname);
     const { data, error } = await supabase.auth.signUp({
       email: p.email,
       password: p.password,
-      options: { data: { first_name: p.firstName, last_name: p.lastName } },
+      options: {
+        data: { first_name: p.firstName, last_name: p.lastName },
+        ...(emailRedirectTo ? { emailRedirectTo } : {}),
+      },
     });
     if (error) { setErr(error.message); setBusy(false); return; }
     if (data.session == null) {
@@ -186,7 +201,7 @@ export default function StepAccount(p: StepAccountProps) {
       )}
 
       <button type="button" className="ob-link brand" style={{ marginTop: 16 }}
-        onClick={() => p.onModeSwitch(signin ? "signup" : "signin")}>
+        disabled={busy} onClick={() => p.onModeSwitch(signin ? "signup" : "signin")}>
         {signin ? t("obToSignup") : t("obToSignin")}
       </button>
 
