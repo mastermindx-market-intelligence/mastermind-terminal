@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { isUuid } from "./readingContracts";
 
@@ -41,9 +41,14 @@ export function useReadingScope(ownerKey: string) {
     return () => { clearTimeout(timeout); controller.abort(); unsubscribe(); };
   }, [ownerKey, attempt]);
   const current = identity.owner === ownerKey && identity.attempt === attempt;
-  return { scope, ready: current && identity.phase === "ready", ended: current && identity.phase === "ended", unavailable: current && identity.phase === "unavailable", retryIdentity: () => setAttempt(value => value + 1), invalidateIdentity: () => { scope.current?.abort(); setIdentity({owner:ownerKey,attempt,phase:"ended"}); } };
+  const retryIdentity = useCallback(() => setAttempt(value => value + 1), []);
+  const invalidateIdentity = useCallback(() => {
+    scope.current?.abort();
+    setIdentity({owner:ownerKey,attempt,phase:"ended"});
+  }, [ownerKey, attempt]);
+  return { scope, ready: current && identity.phase === "ready", ended: current && identity.phase === "ended", unavailable: current && identity.phase === "unavailable", retryIdentity, invalidateIdentity };
 }
-export async function readingJson(scope: { current: AbortController | null }, url: string) {
+export async function readingJson(scope: { current: AbortController | null }, url: string, init?: RequestInit) {
   const controller = scope.current;
   if (!controller || controller.signal.aborted) throw Error("inactive");
   const request = new AbortController();
@@ -56,8 +61,13 @@ export async function readingJson(scope: { current: AbortController | null }, ur
   });
   try {
     return await Promise.race([boundary, (async () => {
-      const response = await fetch(url, { cache: "no-store", signal: request.signal });
-      const value: unknown = await response.json();
+      const response = await fetch(url, { ...init, cache: "no-store", signal: request.signal });
+      // Authentication status closes the private lifetime even when an edge
+      // returns an empty, HTML, or indefinitely streaming error body.
+      const value: unknown = response.status === 401 ? null : await response.json().catch((error: unknown) => {
+        if (response.ok) throw error;
+        return null;
+      });
       if (scope.current !== controller || controller.signal.aborted) throw Error("inactive");
       return { response, value };
     })()]);

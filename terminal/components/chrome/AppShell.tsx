@@ -145,6 +145,29 @@ export default function AppShell({
   // keeps it out of every consumer's dependency arrays.
   const identity = useMemo(() => accountIdentity(userId, email), [userId, email]);
 
+  const brandContent = (<>
+
+          {(preview || sharedShell) && (
+            <button
+              type="button"
+              className="investor-nav-toggle"
+              data-investor-compact-toggle=""
+              aria-label={t("scr2DenCompact")}
+              aria-pressed={compactNavigation}
+              aria-controls={sharedShell ? "shared-primary-navigation" : "investor-primary-navigation"}
+              onClick={() => setCompactNavigation(value => !value)}
+            >
+              <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+                <rect x="2" y="3" width="16" height="14" rx="3" />
+                <path d="M7 3v14" />
+              </svg>
+            </button>
+          )}
+          {!sharedShell && fromMacro ? <DashboardBackButton onClick={onBack} returnHref={macroHref} /> : <BrandLockup />}
+          {sharedShell && <span className="shared-shell-beta">Beta</span>}
+
+  </>);
+
   return (
     <AppShellIdentityCtx.Provider value={identity}>
       <OnboardingProvider email={email}>
@@ -201,29 +224,12 @@ export default function AppShell({
           </a>
         )}
         <header className="topbar">
-          {(preview || sharedShell) && (
-            <button
-              type="button"
-              className="investor-nav-toggle"
-              data-investor-compact-toggle=""
-              aria-label={t("scr2DenCompact")}
-              aria-pressed={compactNavigation}
-              aria-controls={sharedShell ? "shared-primary-navigation" : "investor-primary-navigation"}
-              onClick={() => setCompactNavigation(value => !value)}
-            >
-              <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
-                <rect x="2" y="3" width="16" height="14" rx="3" />
-                <path d="M7 3v14" />
-              </svg>
-            </button>
-          )}
-          {!sharedShell && fromMacro ? <DashboardBackButton onClick={onBack} returnHref={macroHref} /> : <BrandLockup />}
-          {sharedShell && <span className="shared-shell-beta">Beta</span>}
+          {sharedShell ? <div className="topbar-brand-group">{brandContent}</div> : brandContent}
           {!sharedShell && !analysisRoute && (<>
             <div className="tdiv" />
             <span className="page-title">{title}</span>
           </>)}
-          <div className="spacer" />
+          {!sharedShell && <div className="spacer" />}
           {sharedShell && <SharedShellToolbar symbolOpen={symbolOpen} onSymbolOpenChange={setSymbolOpen}
             onOpenDirectory={openDirectory} />}
           {/* Desktop settings/sign-out — the old per-view topbars each carried an avatar

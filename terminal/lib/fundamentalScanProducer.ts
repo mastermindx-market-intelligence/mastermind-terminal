@@ -125,7 +125,7 @@ const asPeriodSet = (v: unknown): StatementPeriodSet | null =>
  */
 export function projectFundamental(sym: string, raw: unknown): FundamentalProjection {
   const malformed: FundamentalProjection = { observation: { status: "unavailable", reason: "fund_malformed" }, inputs: null };
-  if (!isObj(raw)) return malformed;
+  if (!isObj(raw) || "regional_financials" in raw) return malformed;
   if (typeof raw.schema !== "string" || !raw.schema.startsWith("mastermind.fund/")) return malformed;
   if (raw.ticker !== sym) return malformed;
   if (!isIsoDate(raw.asof)) return malformed;

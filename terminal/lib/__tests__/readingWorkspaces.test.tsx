@@ -1,18 +1,27 @@
 // @vitest-environment jsdom
 import React, { act } from "react";
+import Link from "next/link";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import ResearchWorkspace from "@/components/workspaces/ResearchWorkspace";
 import TodayWorkspace from "@/components/workspaces/TodayWorkspace";
+import { businessClockQualification, todayPayload } from "@/lib/shared-shell/readingPayloads";
 import { readingHref } from "@/lib/shared-shell/readingProgress";
 import type { ReadingSelection } from "@/lib/shared-shell/readingContracts";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 const A="11111111-1111-4111-8111-111111111111", B="22222222-2222-4222-8222-222222222222";
-const auth=vi.hoisted(()=>({user:"11111111-1111-4111-8111-111111111111",failure:false,holdUser:false,resolvers:[] as Array<(value:{data:{user:{id:string}};error:null})=>void>,open:vi.fn(),listener:null as null|((event:string,session:{user:{id:string}}|null)=>void)}));
+const auth=vi.hoisted(()=>({lang:"en" as "en"|"zh",user:"11111111-1111-4111-8111-111111111111",failure:false,holdUser:false,resolvers:[] as Array<(value:{data:{user:{id:string}};error:null})=>void>,open:vi.fn(),listener:null as null|((event:string,session:{user:{id:string}}|null)=>void)}));
 vi.mock("@/components/onboarding/OnboardingProvider",()=>({useOnboarding:()=>({open:auth.open})}));
-vi.mock("@/lib/i18n",()=>({useLang:()=>({lang:"en"})}));
+vi.mock("@/lib/i18n",()=>({useLang:()=>({lang:auth.lang})}));
 vi.mock("@/lib/supabase/client",()=>({createClient:()=>({auth:{getUser:async()=>auth.holdUser?new Promise<{data:{user:{id:string}};error:null}>(resolve=>auth.resolvers.push(resolve)):({data:{user:{id:auth.user}},error:auth.failure?Error("auth service unavailable"):null}),onAuthStateChange:(listener:typeof auth.listener)=>{auth.listener=listener;return{data:{subscription:{unsubscribe:vi.fn()}}};}}})}));
+vi.mock("next/navigation",()=>({useSearchParams:()=>new URLSearchParams(window.location.search)}));
+// These tests isolate the briefing and reader; Today attention has a real joined integration suite.
+vi.mock("@/components/workspaces/TodayResearchAttention",()=>({default:({render}:{render?:(parts:{continuation:React.ReactNode;briefing:React.ReactNode})=>React.ReactNode})=>render?.({continuation:<Link href="/research">Research</Link>,briefing:null})??null}));
+vi.mock("@/components/workspaces/TodayWatchAttention",()=>({default:()=>null}));
+vi.mock("@/components/workspaces/TodaySinceLastVisit",()=>({default:({render}:{render?:(parts:{priority:React.ReactNode;teaser:React.ReactNode;phase:string})=>React.ReactNode})=>render?.({priority:null,teaser:null,phase:"ready"})??null}));
+vi.mock("@/components/workspaces/TodayBreadthReading",()=>({default:({render}:{render?:(cell:React.ReactNode)=>React.ReactNode})=>render?.(null)??null}));
+vi.mock("@/lib/useMediaQuery",()=>({useMediaQuery:()=>false}));
 vi.mock("next/link",()=>({default:({children,...props}:React.AnchorHTMLAttributes<HTMLAnchorElement>)=><a {...props}>{children}</a>}));
 const selection:ReadingSelection={docId:"report-one",sourcePdfSha256:"a".repeat(64),extractedTextSha256:"b".repeat(64),extractorVersion:"research_vault.ingest.extract_pdf_text.v1",segmenterVersion:"page-byte-v1"};
 function body(text="PRIVATE SELECTED SOURCE",start=0,total=3,docId=selection.docId){return{
@@ -27,7 +36,7 @@ async function flush(){for(let n=0;n<4;n++)await act(async()=>{await Promise.res
 async function answer(index:number,value:unknown,status=200){await act(async()=>{held[index].resolve(json(value,status));});await flush();}
 async function click(text:string){const button=Array.from(container.querySelectorAll("button")).find(node=>node.textContent?.includes(text));expect(button, text).toBeTruthy();await act(async()=>button!.click());await flush();}
 async function mount(component:React.ReactNode){await act(async()=>root.render(component));await flush();}
-beforeEach(()=>{auth.user=A;auth.failure=false;auth.holdUser=false;auth.resolvers=[];auth.open.mockClear();auth.listener=null;held=[];window.history.replaceState({},"","/research");window.localStorage.clear();container=document.createElement("div");document.body.appendChild(container);root=createRoot(container);vi.stubGlobal("requestAnimationFrame",(cb:FrameRequestCallback)=>{cb(0);return 1;});vi.stubGlobal("fetch",vi.fn((input:RequestInfo|URL,init?:RequestInit)=>new Promise<Response>(resolve=>held.push({url:String(input),init,resolve}))));});
+beforeEach(()=>{auth.lang="en";auth.user=A;auth.failure=false;auth.holdUser=false;auth.resolvers=[];auth.open.mockClear();auth.listener=null;held=[];window.history.replaceState({},"","/research");window.localStorage.clear();container=document.createElement("div");document.body.appendChild(container);root=createRoot(container);vi.stubGlobal("requestAnimationFrame",(cb:FrameRequestCallback)=>{cb(0);return 1;});vi.stubGlobal("fetch",vi.fn((input:RequestInfo|URL,init?:RequestInit)=>new Promise<Response>(resolve=>held.push({url:String(input),init,resolve}))));});
 afterEach(async()=>{await act(async()=>root.unmount());container.remove();vi.unstubAllGlobals();});
 async function library(){await answer(0,{items:[{id:"report-one",title:"First source report",institution:"Source desk",published_at:"2026-10-19"},{id:"report-two",title:"Second source report"}],preview:false});}
 
@@ -138,5 +147,106 @@ describe("Today source coverage",()=>{
  });
  it("clears a visible Today response immediately when the account ends",async()=>{
   await mount(<TodayWorkspace ownerKey={A}/>);await answer(0,today);expect(container.textContent).toContain("Liquidity is mixed");await act(async()=>auth.listener!("SIGNED_OUT",null));expect(container.textContent).not.toContain("Liquidity is mixed");expect(container.textContent).toContain("Private readings have been cleared");
+ });
+});
+
+describe("Research App Router URL continuity",()=>{
+ it("clears the selected revision when same-route navigation returns to the library",async()=>{
+  await mount(<ResearchWorkspace ownerKey={A}/>);await library();await click("Open current revision");await answer(1,body());
+  expect(held).toHaveLength(2);expect(container.textContent).toContain("PRIVATE SELECTED SOURCE");
+  window.history.pushState({},"","/research");await mount(<ResearchWorkspace ownerKey={A}/>);
+  expect(container.textContent).not.toContain("PRIVATE SELECTED SOURCE");
+  expect(container.textContent).toContain("Choose a report");expect(held).toHaveLength(2);
+ });
+ it("ignores a pending old revision after a different exact URL is selected",async()=>{
+  window.history.replaceState({},"",readingHref(selection));await mount(<ResearchWorkspace ownerKey={A}/>);
+  const second={...selection,docId:"report-two"};
+  window.history.pushState({},"",readingHref(second));await mount(<ResearchWorkspace ownerKey={A}/>);
+  expect(held).toHaveLength(3);expect(held[2].url).toContain("/report-two?");expect(held[2].url).toContain(selection.sourcePdfSha256);
+  await answer(2,body("URL-SELECTED SECOND",0,1,"report-two"));await answer(1,body("LATE FIRST"));
+  expect(container.textContent).toContain("URL-SELECTED SECOND");expect(container.textContent).not.toContain("LATE FIRST");
+ });
+ it("deduplicates accepted history writes and the App Router/popstate observation of one window",async()=>{
+  await mount(<ResearchWorkspace ownerKey={A}/>);await library();await click("Open current revision");await answer(1,body());
+  await mount(<ResearchWorkspace ownerKey={A}/>);expect(held).toHaveLength(2);
+  await click("Next text window");await answer(2,body("SECOND WINDOW",1));expect(held).toHaveLength(3);
+  window.history.replaceState({},"",readingHref(selection,0));
+  await act(async()=>window.dispatchEvent(new PopStateEvent("popstate")));await mount(<ResearchWorkspace ownerKey={A}/>);
+  expect(held).toHaveLength(4);expect(held[3].url).toContain("segment_start=0");
+  await answer(3,body("RESTORED FIRST"));expect(container.textContent).toContain("RESTORED FIRST");
+ });
+ it("refuses duplicate source parameters introduced by same-route navigation",async()=>{
+  await mount(<ResearchWorkspace ownerKey={A}/>);await library();
+  window.history.pushState({},"",readingHref(selection)+"&doc_id=report-two");await mount(<ResearchWorkspace ownerKey={A}/>);
+  expect(held).toHaveLength(1);expect(container.textContent).toContain("incomplete or invalid");
+ });
+});
+
+describe("Today published nullable source readings",()=>{
+ const curve={...today.strip[0],id:"rates",section:"rates",label:{en:"Rates",zh:"利率"},value:null,null:true,cause:"see_curve"};
+ const withCurve={...today,strip:[...today.strip,curve],sections:[...today.sections,{id:"rates",label:curve.label,href:"/macro_monetary.html#rates"}]};
+ it("renders verified readings alongside intentionally null curve summaries and preserves their clocks",async()=>{
+  await mount(<TodayWorkspace ownerKey={A}/>);await answer(0,withCurve);
+  expect(container.textContent).toContain("Liquidity is mixed");expect(container.textContent).not.toContain("reading is unavailable");
+  const curveLink=container.querySelector('[aria-label="Source readings"] a[href="/macro_monetary.html#rates"]');
+  expect(curveLink?.textContent).toContain("View the curve");expect(curveLink?.textContent).toContain("18 October 2026");
+ });
+ it("shows one honest recovery message and useful onward routes when the source fails",async()=>{
+  await mount(<TodayWorkspace ownerKey={A}/>);await answer(0,{},503);
+  expect(container.textContent?.match(/does not mean markets are quiet/g)).toHaveLength(1);
+  expect(container.querySelector('a[href="/discover"]')).toBeTruthy();
+  expect(container.querySelector('a[href="/research"]')).toBeTruthy();
+ });
+ it.each([
+  {...curve,null:false}, {...curve,value:{en:"Invented",zh:"虚构"}},
+  {...curve,note:{en:3,zh:"坏数据"}},
+ ])("rejects a malformed nullable reading without inventing a summary",async chip=>{
+  await mount(<TodayWorkspace ownerKey={A}/>);await answer(0,{...withCurve,strip:[chip]});
+  expect(container.textContent).toContain("reading is unavailable");
+ });
+});
+
+const qualification={presence_only:true,reference_period:"2026-09",label:{en:"Source present; freshness unverified",zh:"来源已提供；时效性未核实"},note:{en:"Period labels do not establish observation dates, calculation cut-offs or source freshness.",zh:"期间标记不能证明观察日期、计算截止时间或来源时效性。"},tone:"neutral"};
+function businessPayload(overrides:Record<string,unknown>={}){return {...today,workspaces:[{...today.workspaces[0],workspace_id:"business_activity",title:{en:"Business activity",zh:"商业活动"},state:"CURRENT",effective_date:"2026-09",calculation_as_of:"2026-09",href:"/macro_business_activity.html",...overrides},today.workspaces[0]]};}
+function businessRows(){return Array.from(container.querySelectorAll("li")).filter(row=>row.querySelector("h3")?.textContent===(auth.lang==="zh"?"商业活动":"Business activity"));}
+describe("Today Business period and source presence",()=>{
+ it("preserves optional Business qualification through the real response parser without changing other-family rows",()=>{
+  const payload=businessPayload({clock_qualification:qualification,effective_date:null,calculation_as_of:null});
+  const before=JSON.stringify(payload);const parsed=todayPayload(JSON.parse(before));
+  expect(parsed?.workspaces[0].clock_qualification).toEqual(qualification);
+  expect(parsed?.workspaces[0].effective_date).toBeNull();expect(parsed?.workspaces[0].calculation_as_of).toBeNull();
+  expect(JSON.stringify(parsed?.workspaces[1])).toBe(JSON.stringify(today.workspaces[0]));
+  expect(parsed?.source.manifest_sha256).toBe(today.source.manifest_sha256);expect(JSON.stringify(payload)).toBe(before);
+ });
+
+ it.each(["en","zh"] as const)("renders qualified source presence, literal period and absent clock in %s",async lang=>{
+  auth.lang=lang;await mount(<TodayWorkspace ownerKey={A}/>);await answer(0,businessPayload({clock_qualification:qualification,effective_date:null,calculation_as_of:null}));const row=businessRows()[0];
+  expect(row.textContent).toContain(qualification.label[lang]);expect(row.textContent).toContain(qualification.note[lang]);expect(row.textContent).toContain(lang==="en"?"Reference period: 2026-09":"参考期间: 2026-09");
+  expect(row.textContent).toContain(lang==="en"?"Calculated as of: Source date unavailable":"计算截至: 来源日期不可用");expect(row.textContent).not.toContain(lang==="en"?"Current source":"当前来源");
+ });
+ it.each(["2026-09","2026-09-30","2099-12"])("legacy %s is a period, never a calculation alias or verified freshness",async period=>{
+  await mount(<TodayWorkspace ownerKey={A}/>);await answer(0,businessPayload({effective_date:period,calculation_as_of:period}));const text=businessRows()[0].textContent;
+  expect(text).toContain("Source present; freshness unverified");expect(text).toContain(`Reference period: ${period}`);expect(text).toContain("Calculated as of: Source date unavailable");expect(text).not.toContain("Effective date");
+ });
+ it.each(["2026-10-02","2026-10-02T13:20:00Z"])("preserves distinct explicit calendar clock %s",async clock=>{
+  await mount(<TodayWorkspace ownerKey={A}/>);await answer(0,businessPayload({clock_qualification:qualification,effective_date:null,calculation_as_of:clock}));expect(businessRows()[0].textContent).toContain(`Calculated as of: ${clock}`);expect(businessRows()[0].textContent).toContain("Reference period: 2026-09");
+ });
+ it.each(["2026-10","2026-02-30","2026-13-01","2026-10-02T31:99:99Z","not a clock"])("does not turn invalid/period-only %s into a calendar",async clock=>{
+  await mount(<TodayWorkspace ownerKey={A}/>);await answer(0,businessPayload({calculation_as_of:clock}));expect(businessRows()[0].textContent).toContain("Calculated as of: Source date unavailable");
+ });
+ it("preserves authoritative null period without substituting legacy effective date",async()=>{
+  await mount(<TodayWorkspace ownerKey={A}/>);await answer(0,businessPayload({clock_qualification:{...qualification,reference_period:null}}));expect(businessRows()[0].textContent).toContain("Reference period: Reference period unavailable");
+ });
+ it.each([null,[],{...qualification,presence_only:false},{...qualification,tone:"positive"},{...qualification,reference_period:12},{...qualification,label:{en:"Current"}},{...qualification,note:{en:"",zh:""}}])("optional malformed metadata %j does not discard usable source states",async metadata=>{
+  const payload=businessPayload({clock_qualification:metadata});expect(todayPayload(payload)).not.toBeNull();expect(businessClockQualification(metadata)).toBeNull();await mount(<TodayWorkspace ownerKey={A}/>);await answer(0,payload);expect(businessRows()[0].textContent).toContain("Source present; freshness unverified");
+ });
+ it.each(["SOURCE_FAILED","RIGHTS_BLOCKED","STALE_SOURCE","NOT_COVERED",null])("qualification never masks %s",async state=>{
+  await mount(<TodayWorkspace ownerKey={A}/>);await answer(0,businessPayload({state,clock_qualification:qualification}));expect(businessRows()).toHaveLength(2);for(const row of businessRows()){expect(row.textContent).not.toContain(qualification.label.en);expect(row.textContent).not.toContain(qualification.note.en);}expect(container.querySelector('a[href="/macro_business_activity.html"]')).toBeTruthy();
+ });
+ it("verification failure wins even with CURRENT and an otherwise valid qualifier",async()=>{
+  await mount(<TodayWorkspace ownerKey={A}/>);await answer(0,businessPayload({failure:{reason:"bad_hash"},clock_qualification:qualification}));expect(businessRows()[0].textContent).toContain("Source verification failed");expect(businessRows()[0].textContent).not.toContain(qualification.label.en);expect(container.querySelector('a[href="/macro_business_activity.html"]')).toBeTruthy();
+ });
+ it("retains non-Business source state, dates and navigation",async()=>{
+  await mount(<TodayWorkspace ownerKey={A}/>);const payload=businessPayload();payload.workspaces=payload.workspaces.map(row=>row.workspace_id==="liquidity"?{...row,clock_qualification:qualification}:row);await answer(0,payload);const rows=Array.from(container.querySelectorAll("li")).filter(row=>row.querySelector("h3")?.textContent==="Liquidity source");expect(rows.at(-1)?.textContent).toContain("Source is behind");expect(rows.at(-1)?.textContent).toContain("Effective date: 2026-10-18");expect(rows.at(-1)?.textContent).toContain("Calculated as of: 2026-10-19");expect(container.querySelector('a[href="/macro_liquidity.html"]')).toBeTruthy();expect(container.querySelector('a[href="/macro.html"]')).toBeTruthy();
  });
 });

@@ -2,12 +2,12 @@
   box-sizing: border-box;
   height: 100%;
   overflow: auto;
-  padding: 28px 32px 64px;
+  padding: 32px 32px 64px;
   max-width: 1320px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 28px;
   min-width: 0;
   color: var(--text);
 }
@@ -18,8 +18,7 @@
   justify-content: space-between;
   gap: 16px;
   flex-wrap: wrap;
-  padding-bottom: 12px;
-  border-bottom: 1px solid var(--line);
+  padding-bottom: 0;
 }
 
 .headerText {
@@ -31,9 +30,10 @@
 
 .title {
   margin: 0;
-  font-size: 1.5rem;
+  font-size: 32px;
   line-height: 1.2;
-  letter-spacing: -0.01em;
+  font-weight: 600;
+  letter-spacing: -0.045em;
   color: var(--text);
 }
 
@@ -54,8 +54,8 @@
 
 .grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 16px;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 24px;
   align-items: start;
 }
 
@@ -64,10 +64,10 @@
   flex-direction: column;
   gap: 12px;
   min-width: 0;
-  padding: 16px;
+  padding: 24px;
   background: var(--panel);
   border: 1px solid var(--line);
-  border-radius: 10px;
+  border-radius: 12px;
 }
 
 .panelHead {

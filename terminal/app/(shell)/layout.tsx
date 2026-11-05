@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
-import { createClient } from "@/lib/supabase/server";
+import { readShellClaims } from "@/lib/shared-shell/memberIdentity";
+import MemberVerificationUnavailable from "@/components/gates/MemberVerificationUnavailable";
 import AppShell from "@/components/chrome/AppShell";
 import { isInvestorShellPreviewEnabled } from "@/lib/investorShellPreview";
 import { isSharedShellEnabled } from "@/lib/sharedShellContracts";
@@ -9,13 +10,13 @@ import { isSharedShellEnabled } from "@/lib/sharedShellContracts";
  * Automate / Portfolio / Admin). The route group `(shell)` does NOT affect the
  * URL — `app/(shell)/portfolio/page.tsx` still serves `/portfolio`.
  *
- * Auth is resolved ONCE here (the same supabase getUser() pattern the old
- * per-page routes used) and the resolved AccountIdentity is handed to the shared
+ * Chrome claims are verified here through the bounded member identity reader,
+ * and the resolved AccountIdentity is handed to the shared
  * AppShell, which forwards it to MobileNav / SettingsButton and exposes it to
  * client children via useShellIdentity() / useShellEmail(). Pages that need the
  * user for data (portfolio watchlists, scripts seeding, admin gate) still resolve
- * it themselves — this read is for the chrome only and is cheap/deduped by
- * supabase's per-request client.
+ * it themselves — this read is for the chrome only and retains the existing
+ * local getClaims verification path.
  *
  * BOTH claims are taken, not just the email: `sub` is the immutable auth uuid and
  * is the OWNERSHIP key every owner-scoped client store (preferences, watchlists,
@@ -46,9 +47,10 @@ export default async function ShellLayout({ children }: { children: React.ReactN
         sharedShell={sharedShell} sharedShellLegacyOrigin={fixtureOrigin}>{children}</AppShell>;
     }
   }
-  const supabase = await createClient();
-  const { data } = await supabase.auth.getClaims();
-  const email = typeof data?.claims?.email === "string" ? data.claims.email : "";
-  const userId = typeof data?.claims?.sub === "string" ? data.claims.sub : "";
+  const member = await readShellClaims();
+  // Unknown identity must not mount guest-owned chrome or private children.
+  if (member.state === "unavailable") return <MemberVerificationUnavailable />;
+  const email = member.state === "ready" ? member.email : "";
+  const userId = member.state === "ready" ? member.subjectId : "";
   return <AppShell email={email} userId={userId} sharedShell={sharedShell} sharedShellLegacyOrigin={fixtureOrigin} investorShellPreview={isInvestorShellPreviewEnabled(process.env.MMX_INVESTOR_SHELL_PREVIEW)}>{children}</AppShell>;
 }

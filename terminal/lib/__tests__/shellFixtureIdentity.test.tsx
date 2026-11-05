@@ -30,9 +30,9 @@ it("ignores all fixture variables and cookies in production and verifies real ac
   vi.stubEnv("TERMINAL_E2E_EMAIL", "fixture@example.test");
   auth.signedFixture = true;
   auth.guest = true;
-  auth.claims.mockResolvedValue({ data: { claims: { email: "real@example.test", sub: "real-id" } } });
+  auth.claims.mockResolvedValue({ data: { claims: { email: "real@example.test", sub: "22222222-2222-4222-8222-222222222222" } } });
   const result = await ShellLayout({ children: <div /> });
-  expect(result.props).toMatchObject({ email: "real@example.test", userId: "real-id" });
+  expect(result.props).toMatchObject({ email: "real@example.test", userId: "22222222-2222-4222-8222-222222222222" });
   expect(auth.claims).toHaveBeenCalledOnce();
 });
 
@@ -42,9 +42,9 @@ it("does not grant dev fixture identity from environment variables without exact
   vi.stubEnv("TERMINAL_E2E_EMAIL", "fixture@example.test");
   auth.guest = true;
   auth.signedFixture = false;
-  auth.claims.mockResolvedValue({ data: { claims: { email: "verified@example.test", sub: "verified-id" } } });
+  auth.claims.mockResolvedValue({ data: { claims: { email: "verified@example.test", sub: "33333333-3333-4333-8333-333333333333" } } });
   const result = await ShellLayout({ children: <div /> });
-  expect(result.props).toMatchObject({ email: "verified@example.test", userId: "verified-id" });
+  expect(result.props).toMatchObject({ email: "verified@example.test", userId: "33333333-3333-4333-8333-333333333333" });
   expect(auth.claims).toHaveBeenCalledOnce();
 });
 

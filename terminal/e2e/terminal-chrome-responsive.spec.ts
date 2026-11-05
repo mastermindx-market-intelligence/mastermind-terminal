@@ -107,6 +107,25 @@ for (const entry of cases) {
     });
     expect(rangeFit).toEqual({ inside: true, labelOneLine: true, endpointsSeparated: true });
 
+    const status = page.locator(".chart-wrap .statusline").first();
+    await expect(status.locator(".status-ohlc b")).toHaveCount(4);
+    const statusFit = await status.evaluate(line => {
+      const lineBox = line.getBoundingClientRect();
+      const chartBox = line.closest(".chart-wrap")!.getBoundingClientRect();
+      return Array.from(line.querySelectorAll<HTMLElement>(".status-ohlc b,.status-change,.status-vol b,.status-day b"))
+        .filter(element => element.getBoundingClientRect().width > 0)
+        .map(element => {
+          const box = element.getBoundingClientRect();
+          return {
+            text: element.textContent,
+            readable: box.left >= lineBox.left && box.right <= lineBox.right + 1
+              && box.right <= chartBox.right - 60
+              && element.scrollWidth <= element.clientWidth + 1,
+          };
+        });
+    });
+    expect(statusFit.filter(value => !value.readable)).toEqual([]);
+
     const documentWidth = await page.evaluate(() => ({ viewport: innerWidth, document: document.documentElement.scrollWidth }));
     expect(documentWidth.document).toBeLessThanOrEqual(documentWidth.viewport + 1);
     await page.screenshot({

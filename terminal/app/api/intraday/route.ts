@@ -35,6 +35,8 @@ type IntradayResponse = {
     assembled_at: string;
     refresh_checked_at: string | null;
     refresh_pending: boolean;
+    // Assembly success, never a freshness guarantee or proof of market coverage.
+    assembly_complete: boolean;
     refresh_error: string | null;
     meaning: "daytime_assembly_not_market_data_freshness";
   };
@@ -228,7 +230,8 @@ export async function GET(req: Request) {
         cache_state: daytime.cacheState,
         assembled_at: new Date(baseline.assembledAtMs).toISOString(),
         refresh_checked_at: daytime.checkedAtMs == null ? null : new Date(daytime.checkedAtMs).toISOString(),
-        refresh_pending: daytime.refreshPending, refresh_error: daytime.error,
+        refresh_pending: daytime.refreshPending, assembly_complete: daytime.assemblyComplete,
+        refresh_error: daytime.error,
         meaning: "daytime_assembly_not_market_data_freshness",
       },
     };

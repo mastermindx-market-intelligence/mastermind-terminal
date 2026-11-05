@@ -86,6 +86,7 @@ export const PORTFOLIO_LEX = {
   overview: ["Overview", "概览"], holdings: ["Holdings", "持仓"], risk: ["Risk & exposure", "风险与敞口"], targets: ["Targets", "目标"],
   subtitle: ["A clearer view of what you own.", "清晰掌握每一笔持仓。"],
   securities: ["securities", "只证券"], records: ["records", "条记录"],
+  oneSecurity: ["security", "只证券"], oneRecord: ["record", "条记录"],
   refresh: ["Refresh holdings", "刷新持仓"], refreshing: ["Checking holdings…", "正在核对持仓…"],
   checked: ["Holdings checked", "持仓已核对"], pricedValue: ["Priced value", "已定价持仓市值"],
   dayMove: ["Day change", "当日变动"], sinceEntry: ["Since entry", "入场以来"],

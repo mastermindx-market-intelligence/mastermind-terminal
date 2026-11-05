@@ -121,6 +121,7 @@ function applyDemand(syms, nowMs, deps = {}, options = {}) {
     // burns a shared LRU slot — 500 for Polygon, 30 for ext, both global across all users.
     if (isDailyOnlySymbol(sym)) continue;
     if (isMacroSymbol(sym)) {
+      if (options.extSource === "primary_snapshot") continue;
       // macro → MacroFeed only. Polygon has no futures/index/FX entitlement here and the
       // AnchorCache has no daily file for them.
       if (macroFeed) macroFeed.demand(sym);
@@ -138,7 +139,7 @@ function applyDemand(syms, nowMs, deps = {}, options = {}) {
     // Extended pricing is an independent provider plane (Yahoo/Webull/Alpaca). A Polygon socket
     // reconnect must not silently stop refreshing it. HUB_DISABLE_US remains the deliberate whole-
     // US kill-switch; otherwise collect the symbol even when Polygon is absent or unhealthy.
-    if (!disableUS && includeExtended && extFeed) extDemand.push(sym);
+    if (!disableUS && includeExtended && options.extSource !== "primary_snapshot" && extFeed) extDemand.push(sym);
 
     if (disableUS || !polygon || !polygon.isHealthy()) continue;
     polygon.ensureSubscribed(sym);
@@ -193,7 +194,7 @@ function buildQuotesResponse(syms, nowMs, deps = {}, options = {}) {
     // view=regular passes `null` in place of extFeed: the Store never attempts an ext
     // read/merge for this request (closure boundary 1 on the response side — boundary 1
     // on the demand side is applyDemand's `includeExtended && extFeed` guard above).
-    const selectedExtFeed = includeExtended && extFeed
+    const selectedExtFeed = includeExtended && options.extSource !== "primary_snapshot" && extFeed
       ? options.extSource ? {getExt: (sym, stamp, close) => extFeed.getExt(sym, stamp, close, options.extSource)} : extFeed
       : null;
     const served = store.getQuotes(storeSyms, nowMs, selectedExtFeed, snapshotFeed);
@@ -209,7 +210,7 @@ function buildQuotesResponse(syms, nowMs, deps = {}, options = {}) {
 
   // Macro quotes come straight from the feed — they carry prevClose/chg/basis
   // themselves and are never written into the Store.
-  if (macroFeed && macroSyms.length) {
+  if (options.extSource !== "primary_snapshot" && macroFeed && macroSyms.length) {
     const served = macroFeed.getAll(macroSyms, nowMs);
     for (const sym of Object.keys(served)) out[sym] = served[sym];
   }
@@ -222,12 +223,23 @@ function buildQuotesResponse(syms, nowMs, deps = {}, options = {}) {
     // reference the Store persists internally (store.quotes.set(sym, fresh)).
     for (const sym of Object.keys(out)) {
       const row = out[sym];
-      if (includeExtended && row.extSource === options.extSource) continue;
+      if (includeExtended && options.extSource !== "primary_snapshot" && row.extSource === options.extSource) continue;
       const clean = {};
       for (const key of Object.keys(row)) {
         if (!key.startsWith("ext")) clean[key] = row[key];
       }
       out[sym] = clean;
+      if (includeExtended && options.extSource === "primary_snapshot" && classify(sym) === "us" &&
+          !isMacroSymbol(sym) && snapshotFeed && typeof snapshotFeed.getExt === "function") {
+        // Never trust cached ext fields, including a stale row with a plausible
+        // source name. Requalify through the accepted print/reference owner at
+        // this request's clock. Both calls are synchronous cache reads only.
+        const reference = store && store.anchorCache && store.anchorCache.get(sym, nowMs);
+        const ext = snapshotFeed.getExt(sym, nowMs, reference);
+        if (ext && (ext.extSource === "polygon-snapshot" || ext.extSource === "polygon-snapshot-rt")) {
+          for (const key of Object.keys(ext)) if (key.startsWith("ext")) clean[key] = ext[key];
+        }
+      }
     }
   }
 
@@ -264,7 +276,7 @@ function handleQuotesRequest(searchParams, nowMs, deps = {}, maxSyms = MAX_SYMS_
   // Internal source eligibility uses this singleton; it is not a new upstream.
   const sources = searchParams.getAll("extSource");
   if (sources.length > 1 || (sources.length === 1 &&
-      (sources[0] !== "tiingo_boats" || view !== "full"))) {
+      (!["tiingo_boats", "primary_snapshot"].includes(sources[0]) || view !== "full"))) {
     return {status: 400, body: {error: "invalid extended source"}};
   }
   const forming = searchParams.getAll("forming");
@@ -276,6 +288,10 @@ function handleQuotesRequest(searchParams, nowMs, deps = {}, maxSyms = MAX_SYMS_
   const raw = searchParams.get("syms") || "";
   let syms = raw.split(",").map((s) => s.trim()).filter(Boolean);
   if (syms.length === 0) return { status: 200, body: {} };
+  if (options.extSource === "primary_snapshot" && syms.some(sym =>
+      isMacroSymbol(sym) || isDailyOnlySymbol(sym) || classify(sym) !== "us")) {
+    return { status: 400, body: { error: "invalid primary snapshot symbols" } };
+  }
   if (options.includeForming && syms.length > 8) return { status: 400, body: { error: "too many chart symbols" } };
   if (syms.length > maxSyms) syms = syms.slice(0, maxSyms);
 

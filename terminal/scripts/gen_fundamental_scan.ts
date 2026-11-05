@@ -42,6 +42,7 @@ import {
   type FundamentalObservation,
 } from "@/lib/fundamentalScan";
 import { projectFundamental } from "@/lib/fundamentalScanProducer";
+import { materializeRegionalFundSync } from "@/lib/regionalFinancialProjection";
 
 export const SCAN_DIRNAME = "scan";
 export const SCAN_FILENAME = "fundamental.json";
@@ -96,7 +97,8 @@ export function classifySymbol(dataDir: string, sym: string, manifestRow: Record
   } catch {
     return { status: "unavailable", reason: "fund_unreadable" };
   }
-  return projectFundamental(sym, raw).observation;
+  const selected = materializeRegionalFundSync(raw, sym, (text) => createHash("sha256").update(text).digest("hex"));
+  return projectFundamental(sym, selected).observation;
 }
 
 const isoSeconds = (epochSeconds: number): string => new Date(epochSeconds * 1000).toISOString().replace(/\.\d{3}Z$/, "Z");

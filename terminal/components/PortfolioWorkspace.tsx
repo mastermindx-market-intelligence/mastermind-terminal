@@ -89,6 +89,9 @@ export default function PortfolioWorkspace(p: Props) {
   })), [open, p.quotes, p.manifest]);
   const detailRows = issues.filter(row => needsEntryDetails(row.issues));
   const priceRows = issues.filter(row => needsPriceCoverage(row.issues));
+  const hasMarketValue = finite(p.totals.marketValue) && Boolean(p.totals.marketValueCurrency);
+  const hasDayChange = finite(p.totals.dayChange) && Boolean(p.totals.dayChangeCurrency);
+  const hasSinceEntry = finite(p.totals.sinceEntry) && Boolean(p.totals.sinceEntryCurrency);
   const filtered = useMemo(() => selectPortfolioRecords(p.positions, p.quotes, p.manifest, { query, filter, status }),
     [p.positions, p.quotes, p.manifest, query, filter, status]);
   const currentPage = Math.min(page, Math.max(0, Math.ceil(filtered.length / PAGE_SIZE) - 1));
@@ -148,17 +151,19 @@ export default function PortfolioWorkspace(p: Props) {
     <div className={`pg ${s.scroll}`}>
       <div className={s.canvas}>
         <header className={s.header}>
-          <h1>{t("portfolio")}</h1>
+          <div className={s.headerIdentity}>
+            <h1>{t("portfolio")}</h1>
+            {!p.unreadable && <div className={s.bookMeta}>
+              <span><strong>{securities}</strong> {c(securities === 1 ? "oneSecurity" : "securities")}<i aria-hidden="true">·</i><strong>{open.length}</strong> {c(open.length === 1 ? "oneRecord" : "records")}</span>
+              {p.lastChecked && <span>{c("checked")} <time dateTime={p.lastChecked}>{new Date(p.lastChecked).toLocaleTimeString(lang === "zh" ? "zh-CN" : "en-GB", { hour: "2-digit", minute: "2-digit" })}</time></span>}
+            </div>}
+          </div>
           <div className={s.headerActions}>
             <button type="button" className={s.iconButton} disabled={p.retrying} onClick={p.onRetry}
               aria-label={p.retrying ? c("refreshing") : c("refresh")} title={c("refresh")}><Icon name="refresh" /></button>
             <button type="button" className={`pf-btn primary ${s.addButton}`} disabled={p.unreadable} onClick={p.onAdd} aria-label={t("addPosition")}><Icon name="plus" />{t("addPosition")}</button>
           </div>
         </header>
-        {!p.unreadable && <div className={s.bookMeta}>
-          <span><strong>{securities}</strong> {c("securities")}<i aria-hidden="true">·</i><strong>{open.length}</strong> {c("records")}</span>
-          {p.lastChecked && <span>{c("checked")} <time dateTime={p.lastChecked}>{new Date(p.lastChecked).toLocaleTimeString(lang === "zh" ? "zh-CN" : "en-GB", { hour: "2-digit", minute: "2-digit" })}</time></span>}
-        </div>}
         {p.failure && <div className={s.failure} role="alert">{p.failure}</div>}
         {p.stale && !p.unreadable && <div className={s.stale} role="status"><strong>{c("staleTitle")}</strong><span>{c("staleHint")}</span></div>}
 
@@ -177,15 +182,33 @@ export default function PortfolioWorkspace(p: Props) {
           <section className={s.tabPanel} role="tabpanel" id="portfolio-panel-overview" aria-labelledby="portfolio-tab-overview" hidden={section !== "overview"} tabIndex={0}>
             {open.length ? <>
               <div className={s.metrics}>
-                <article className={s.primaryMetric} data-testid="portfolio-market-value"><span className={s.metricLabel}>{c("pricedValue")}</span>
-                  <strong className={s.metricValue}>{amount(p.totals.marketValue, p.totals.marketValueCurrency)}</strong>
-                  <p><b>{p.totals.valued}/{open.length}</b> {c("pricedRecords")}</p></article>
-                <article data-testid="portfolio-day-change"><span className={s.metricLabel}>{c("dayMove")}</span>
-                  <strong className={`${s.metricValue} ${p.totals.dayChange === null ? "" : p.totals.dayChange >= 0 ? s.positive : s.negative}`}>{amount(p.totals.dayChange, p.totals.dayChangeCurrency, true)}</strong>
-                  <p>{c("valueScope")}</p></article>
-                <article data-testid="portfolio-since-entry"><span className={s.metricLabel}>{c("sinceEntry")}</span>
-                  <strong className={`${s.metricValue} ${p.totals.sinceEntry === null ? "" : p.totals.sinceEntry >= 0 ? s.positive : s.negative}`}>{amount(p.totals.sinceEntry, p.totals.sinceEntryCurrency, true)}</strong>
-                  <p>{p.totals.sinceEntryPct !== null && <b>{percent(p.totals.sinceEntryPct)} · </b>}{p.totals.based} {c("basedRecords")}</p></article>
+                <article className={s.primaryMetric} data-testid="portfolio-market-value" data-available={hasMarketValue}>
+                  <span className={s.metricLabel}>{c("pricedValue")}</span>
+                  <div className={s.metricReading}>
+                    <strong className={s.metricValue}>{amount(p.totals.marketValue, p.totals.marketValueCurrency)}</strong>
+                    {!hasMarketValue && p.totals.monetaryGaps.length > 0 && <span className={s.metricUnavailable}>{c("valueUnavailable")}</span>}
+                  </div>
+                  <div className={s.metricFooter}>
+                    <p><b>{p.totals.valued}/{open.length}</b> {c("pricedRecords")}</p>
+                    {!hasMarketValue && <button type="button" className={s.textButton} onClick={() => showHoldings("prices")}>{c("reviewCoverage")}<Icon name="arrow" /></button>}
+                  </div>
+                </article>
+                <article data-testid="portfolio-day-change" data-available={hasDayChange}>
+                  <span className={s.metricLabel}>{c("dayMove")}</span>
+                  <strong className={`${s.metricValue} ${!hasDayChange || p.totals.dayChange === null ? "" : p.totals.dayChange >= 0 ? s.positive : s.negative}`}>{amount(p.totals.dayChange, p.totals.dayChangeCurrency, true)}</strong>
+                  <div className={s.metricFooter}>
+                    <p>{c("valueScope")}</p>
+                    {!hasDayChange && <button type="button" className={s.textButton} onClick={() => showHoldings("prices")}>{c("reviewCoverage")}<Icon name="arrow" /></button>}
+                  </div>
+                </article>
+                <article data-testid="portfolio-since-entry" data-available={hasSinceEntry}>
+                  <span className={s.metricLabel}>{c("sinceEntry")}</span>
+                  <strong className={`${s.metricValue} ${!hasSinceEntry || p.totals.sinceEntry === null ? "" : p.totals.sinceEntry >= 0 ? s.positive : s.negative}`}>{amount(p.totals.sinceEntry, p.totals.sinceEntryCurrency, true)}</strong>
+                  <div className={s.metricFooter}>
+                    <p>{p.totals.sinceEntryPct !== null && <b>{percent(p.totals.sinceEntryPct)} · </b>}{p.totals.based} {c("basedRecords")}</p>
+                    {!hasSinceEntry && <button type="button" className={s.textButton} onClick={() => showHoldings(detailRows.length ? "details" : "prices")}>{detailRows.length ? c("detailsTask") : c("reviewCoverage")}<Icon name="arrow" /></button>}
+                  </div>
+                </article>
               </div>
               <details className={s.coverage} data-testid="portfolio-currency-coverage"><summary>{c("coverage")}<span>{p.totals.monetaryGaps.length ? c("valueUnavailable") : c("pnlScope")}</span></summary>
                 <p data-testid="portfolio-coverage">{p.totals.valued}/{open.length} {c("pricedRecords")}. {c("valueScope")} {c("pnlScope")} {c("noReturns")} {c("commonUnits")}</p>
@@ -196,7 +219,7 @@ export default function PortfolioWorkspace(p: Props) {
               </details>
               <div className={s.overviewGrid}>
                 <div className={s.mainColumn}>
-                  <section className={s.card}><header className={s.cardHeader}><div><h2>{c("yourHoldings")}</h2><span>{open.length} {c("records")}</span></div>
+                  <section className={s.card}><header className={s.cardHeader}><div><h2>{c("yourHoldings")}</h2><span>{open.length} {c(open.length === 1 ? "oneRecord" : "records")}</span></div>
                     <button type="button" className={s.textButton} onClick={() => showHoldings()}>{c("viewAll")}<Icon name="arrow" /></button></header>
                     {rowTable(open.slice(0, 5), true)}
                   </section>
@@ -242,7 +265,7 @@ export default function PortfolioWorkspace(p: Props) {
             <section className={s.card} data-testid={status === "open" ? "portfolio-open" : "portfolio-closed"}>
               {filtered.length ? rowTable(visibleRows) : <div className={s.noMatches}><h2>{c("noMatches")}</h2><p>{c("noMatchesHint")}</p>
                 <button type="button" className={s.textButton} onClick={() => { setQuery(""); setFilter("all"); setPage(0); }}>{c("clearFilters")}</button></div>}
-              <footer className={s.tableFooter}><span role="status">{c("showing")} {filtered.length ? currentPage * PAGE_SIZE + 1 : 0}–{Math.min((currentPage + 1) * PAGE_SIZE, filtered.length)} {c("of")} {filtered.length} {c("records")}</span>
+              <footer className={s.tableFooter}><span role="status">{c("showing")} {filtered.length ? currentPage * PAGE_SIZE + 1 : 0}–{Math.min((currentPage + 1) * PAGE_SIZE, filtered.length)} {c("of")} {filtered.length} {c(filtered.length === 1 ? "oneRecord" : "records")}</span>
                 {filtered.length > PAGE_SIZE && <div className={s.pagination}><button type="button" disabled={currentPage === 0} onClick={() => setPage(currentPage - 1)} aria-label={c("previousPage")}>←</button>
                   <span>{currentPage + 1} / {Math.ceil(filtered.length / PAGE_SIZE)}</span><button type="button" disabled={(currentPage + 1) * PAGE_SIZE >= filtered.length} onClick={() => setPage(currentPage + 1)} aria-label={c("nextPage")}>→</button></div>}
               </footer>

@@ -28,7 +28,7 @@ export function sourceLabel(source: string): string {
   if (!key) return "Source";
   const publisher = (key === "benzinga" ? "benzinga.com" : key.replace(/^(?:massive|finlight):/, ""))
     .replace(/^www\./, "").replace(/\.$/, "");
-  return PUBLISHER_LABELS[publisher] ?? (/^(?:massive|finlight):/.test(key) ? publisher
+  return (Object.hasOwn(PUBLISHER_LABELS, publisher) ? PUBLISHER_LABELS[publisher] : undefined) ?? (/^(?:massive|finlight):/.test(key) ? publisher
     : source.trim().charAt(0).toUpperCase() + source.trim().slice(1));
 }
 

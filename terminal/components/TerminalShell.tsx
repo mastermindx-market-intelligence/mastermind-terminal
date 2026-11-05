@@ -1,6 +1,6 @@
 "use client";
 import { mergeFormingQuote } from "@/lib/formingCandles";
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { PHONE_QUERY, useIsMobile, useIsPhone } from "@/lib/useMediaQuery";
 import MobileSheet from "@/components/ui/MobileSheet";
 import OptionsRail, { type OptionsRailHandle } from "@/components/options-companion/OptionsRail";
@@ -8,6 +8,8 @@ import { optionsT } from "@/components/options-companion/optionsStrings";
 import type { OptionsChartLevel } from "@/lib/optionsCompanion";
 import replayStyles from "./ReplayTransport.module.css";
 import contextStyles from "./ChartContextPlacement.module.css";
+import rollerSlotStyles from "./mobile/RollerStripSlot.module.css";
+import searchStyles from "./SearchModal.module.css";
 import type { ChartContextDock } from "./ChartContextDock";
 import { visualText } from "@/lib/visualIntelligenceCopy";
 import { track } from "@/lib/analytics";
@@ -24,7 +26,7 @@ import DashboardBackButton from "@/components/DashboardBackButton";
 import { AppNav } from "@/components/AppNav";
 import { initShellBridge, postToShell } from "@/lib/platform/shellBridge";
 import MobileNav from "@/components/MobileNav";
-import PositionModal from "@/components/PositionModal";
+import ChartPositionEntry, { type ChartPositionIntent } from "@/components/ChartPositionEntry";
 import { type DetectCmd } from "@/components/ChartPanel";
 import ChartPane from "@/components/ChartPane";
 import ChartConductor from "@/components/ChartConductor";
@@ -44,10 +46,8 @@ import { flowGet } from "@/lib/flowClientCache";
 import { parseGlanceState } from "@/lib/mscGlance";
 import { DEFAULT_START_TF, TF_CANONICAL_ORDER, mobileTimeframeOptions, readStartTf, resolveStartTf } from "@/lib/startTf";
 import { useMarketPrefs } from "@/lib/useMarketPrefs";
-import { accountIdentity, identityOwnerKey, isAccountOwner } from "@/lib/accountIdentity";
+import { accountIdentity, identityOwnerKey, identityUserId, isAccountOwner } from "@/lib/accountIdentity";
 import { portfolioRailOwner, usePortfolioRailRead } from "@/lib/usePortfolioRailRead";
-import { decodePositionRead } from "@/lib/portfolioWorkspace";
-import { mutationPostcondition, positionMutationFailure, type MutationReceipt } from "@/lib/portfolioMutation";
 // Import the page ids from the import-free leaf, NOT from MegaPane: MegaPane is mounted
 // through next/dynamic below, and a value import out of it here would statically pull its
 // entire graph (14 fundamentals pages + statement/intelligence/transcript libs, ~709 KB of
@@ -128,7 +128,9 @@ const WatchlistEventPlanner = dynamic(() => import("@/components/events/Watchlis
 const WatchlistAnnotationSync = dynamic(() => import("@/components/watchlist/WatchlistAnnotationSync"), { ssr: false });
 // Phone-only chart chrome (R2): the bottom roller strip and the two sheets it raises. Never
 // server-rendered — the phone breakpoint is a client media query, and shell mode brings its own.
-const RollerStrip = dynamic(() => import("@/components/mobile/RollerStrip"), { ssr: false });
+// Until the query resolves and the chunk lands, the slot holds the strip's height (shown at
+// ≤640px only), so the rail and the Intelligence launcher under the chart never drop after paint.
+const RollerStrip = dynamic(() => import("@/components/mobile/RollerStrip"), { ssr: false, loading: () => <div className={rollerSlotStyles.slot} aria-hidden="true" /> });
 const DrawingsSheet = dynamic(() => import("@/components/mobile/DrawingsSheet"), { ssr: false });
 const AnalysisHubSheet = dynamic(() => import("@/components/mobile/AnalysisHubSheet"), { ssr: false });
 // Review capture (E19): loaded on first open only — the chart snapshot compositor stays in ChartPanel.
@@ -1080,8 +1082,33 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // folded into `lists`, written to `mm.wls`, or touched by the watchlist sync chain. Holding a
   // name and watching a name are different facts; the rail shows both without mixing them.
   const [railTab, setRailTab] = useState<"watchlists" | "portfolio" | "news">("watchlists");
-  /** Symbol queued for the "Add to → Portfolio" modal; `null` = closed. */
-  const [pfAddSymbol, setPfAddSymbol] = useState<string | null>(null);
+  /** The chart's "Add to → Portfolio" opening; `null` = closed.
+   *
+   *  An OPENING is more than a symbol: the immutable owner that opened it is captured HERE, at
+   *  the moment the user asked for it, and travels with the form until it is dismissed. The
+   *  create that form eventually sends names that captured owner — never the account that happens
+   *  to be signed in when the user presses Save. `components/ChartPositionEntry.tsx` owns the
+   *  dispatch, the canonical readback and the retirement rules; this state owns only WHICH
+   *  opening is on screen, so opening and dismissal stay explicit decisions of this shell.
+   */
+  const mobileQuoteId = useId();
+  const [pfAddIntent, setPfAddIntent] = useState<ChartPositionIntent | null>(null);
+  /** Distinguishes one opening from the next, so a REPLACED opening is a new form (a fresh draft
+   *  and a fresh create-intent UUID) rather than the previous one resumed. */
+  const pfAddNonceRef = useRef(0);
+  /** Open the chart's position form for `symbol`, capturing the owner that opens it. */
+  const openChartPositionEntry = useCallback((symbol: string) => {
+    setPfAddIntent({
+      nonce: ++pfAddNonceRef.current,
+      symbol,
+      ownerId: identityUserId(identity),
+    });
+  }, [identity]);
+  /** Close the form. Scoped to the opening it belongs to, so a stale callback can never close a
+   *  newer opening. */
+  const dismissChartPositionEntry = useCallback((intent: ChartPositionIntent) => {
+    setPfAddIntent(current => (current === intent ? null : current));
+  }, []);
   // Live mirror of `lists` for the async migration: reading it from a ref keeps the effect keyed
   // on `loggedIn` alone, so a symbol edit mid-migration cannot restart the whole run.
   const listsRef = useRef(lists);
@@ -1519,9 +1546,19 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   const panePresentationRef = useRef<ChartPresentationCache>({});
   const paneSessionKeyRef = useRef<Record<number, string>>({});
   const [nativeObservationByPane, setNativeObservationByPane] = useState<Record<number, NativePaneObservationState>>({});
-  // B3: sub-pane count for mobile chart-body height formula (--subpanes CSS var)
-  const [subPanes, setSubPanes] = useState(0);
+  // B3: sub-pane count for mobile chart-body height formula (--subpanes CSS var). The chart reports
+  // the real count once its studies are built, which on a slow boot lands seconds after first paint;
+  // until then the count the active studies imply holds the height, so the chart body doesn't grow
+  // (and push the Intelligence launcher under it down) when the report arrives.
+  const [subPanes, setSubPanes] = useState<number | null>(null);
   const onPaneCount = useCallback((n: number) => setSubPanes(n), []);
+  const impliedSubPanes = useMemo(() => {
+    const studies = [...inds].filter((k) =>
+      (isIndKey(k) && IND_DEFS[k].kind === "pane") || (isAdditionalStudyId(k) && studyInstanceMeta(k, inds)?.kind === "pane"),
+    ).length;
+    const suites = new Set(enabledSuiteModules(inds, indParams).filter((entry) => entry.surface === "pane").map((entry) => entry.suiteKey));
+    return studies + suites.size;
+  }, [inds, indParams]);
   // D2: locked vertical line (bar time string | null); persists with the workspace save
   const [lockedVLine, setLockedVLine] = useState<string | null>(null);
   // D1: "remove all indicators" undo toast
@@ -5937,8 +5974,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       <header className="topbar">
         {fromMacro ? <DashboardBackButton onClick={onBack} returnHref={macroHref} /> : <BrandLockup />}
         <div className="tdiv" />
-        <div className="pair" onClick={() => { setSeed(""); setSearchMode("go"); setSearchOpen(true); }}><span className="dual"><i>{active[0]}</i><i>$</i></span><b>{active}</b>
-          <svg className="car" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" /></svg></div>
+        <button type="button" className="pair" aria-label={`${t("searchTitle")} — ${active}`} aria-haspopup="dialog" aria-expanded={searchOpen && searchMode === "go"}
+          onClick={() => { setSeed(""); setSearchMode("go"); setSearchOpen(true); }}><span className="dual"><i>{active[0]}</i><i>$</i></span><b>{active}</b>
+          <svg className="car" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" /></svg></button>
         <button className="cmp-btn" title={t("compareTitle")} onClick={(e) => { e.stopPropagation(); setSearchMode("compare"); setSeed(""); setSearchOpen(true); }}>
           <svg viewBox="0 0 24 24"><path d="M4 18l5-9 4 5 3-4 4 8" /></svg>
           <span>{t("compare")}</span>
@@ -6002,9 +6040,13 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         })()}
       />
       {/* ── mobile symbol bar (tap → search) ── */}
-      <div className={`m-symbar${activeExtData ? " has-ext" : ""}`} onClick={() => { setSeed(""); setSearchOpen(true); }}>
+      <div className={`m-symbar${activeExtData ? " has-ext" : ""}`}>
+        <button type="button" className={searchStyles.mobileTrigger} data-symbol-search
+          aria-describedby={mobileQuoteId}
+          aria-label={`${t("searchTitle")} — ${active}`} aria-haspopup="dialog" aria-expanded={searchOpen && searchMode === "go"}
+          onClick={() => { setSeed(""); setSearchMode("go"); setSearchOpen(true); }}>
         <span className="m-sym"><span className="ic" style={{ background: m?.col || "#76b900" }}>{active[0]}</span><b>{active}</b><svg className="car" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" /></svg></span>
-        <span className="m-quote-stack">
+        <span className="m-quote-stack" id={mobileQuoteId}>
           <span className="m-px" data-quote-lane="regular"><b className="num">{fmt(lastPx, m && lastPx != null && lastPx < 10 ? 4 : 2)}</b>{isSuspended
             ? <span className="cg quote-suspended">{t("suspended")}</span>
             : <span className={`cg num ${(chgNow ?? 0) >= 0 ? "up" : "down"}`}>{chgStr(chgNow)}</span>}</span>
@@ -6018,6 +6060,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             </span>
           )}
         </span>
+        </button>
         <WatchlistEventsButton variant="symbar" onOpen={() => setEventPlannerOpen(true)} />
       </div>
 
@@ -6334,7 +6377,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             }}
           />
         ) : (
-          <div className="chart-body" style={{ "--subpanes": subPanes } as React.CSSProperties}>
+          <div className="chart-body" style={{ "--subpanes": subPanes ?? impliedSubPanes } as React.CSSProperties}>
             <DrawingSidebar
               tool={drawingsReadyFor(active) ? activeDrawingTool : null}
               creationDisabledReason={drawingCreationDisabledReason}
@@ -6540,6 +6583,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         {/* The strip is the foot of the chart column, directly under the canvas and in place of
             the range row (hidden on phone) — TV's anatomy. As the workspace's last flex child it
             rides the expanded-chart mode too, where the flex:1 chart body yields it its height. */}
+        {!shellMode && !isPhone && <div className={rollerSlotStyles.slot} aria-hidden="true" />}
         {!shellMode && isPhone && (
           <RollerStrip
             symbols={stripSymbols}
@@ -6578,7 +6622,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
           open={drawSheetOpen}
           onClose={() => setDrawSheetOpen(false)}
           activeTool={activeDrawingTool}
-          onPick={(id) => { activateDrawingTool(id); }}
+          onPick={activateDrawingTool}
         />
         <AnalysisHubSheet
           open={hubOpen}
@@ -7119,35 +7163,22 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       {/* W5 "Add to → Portfolio". Opens the SAME modal `/portfolio` uses, so a position entered
           from the chart and one entered from the book are one object with one set of rules. Only a
           signed-in user sees the destination at all (`onAddToPortfolio` below is undefined for a
-          guest), so the guest picker keeps its pre-W5 shape. */}
-      {pfAddSymbol && (
-        <PositionModal
-          mode="add"
-          position={null}
-          initialTicker={pfAddSymbol}
-          onCancel={() => setPfAddSymbol(null)}
-          onSubmit={async (draft) => {
-            try {
-              const response = await fetch("/api/portfolio", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ action: "create", ...draft }),
-              });
-              const receipt = await response.json().catch(() => null) as MutationReceipt | null;
-              if (!response.ok) return positionMutationFailure(response.status, receipt);
-              if (!receipt) return { ok: false, reason: null };
-              const reread = await fetch("/api/portfolio?view=positions", { cache: "no-store" });
-              const canonical = reread.ok ? decodePositionRead(await reread.json().catch(() => null)) : null;
-              if (!canonical || !mutationPostcondition({ action: "create", ...draft }, receipt, canonical.positions)) return { ok: false, reason: null };
-            } catch { return { ok: false, reason: null }; }
-            setPfAddSymbol(null);
-            // The rail only holds a book while the Portfolio tab is open; refresh it there so the
-            // new row appears without a reload, and leave it alone otherwise.
-            if (railTab === "portfolio") void pfRail.load();
-            return { ok: true };
-          }}
-        />
-      )}
+          guest), so the guest picker keeps its pre-W5 shape.
+
+          The controller owns the OWNER BINDING: it carries the owner that opened the form into
+          the POST as `expectedOwnerId`, confirms the write against the canonical read, and
+          retires the form on an observed account transition. The shell keeps only the explicit
+          opening and dismissal. */}
+      <ChartPositionEntry
+        intent={pfAddIntent}
+        observedOwner={identityOwnerKey(identity)}
+        onDismiss={dismissChartPositionEntry}
+        onCommitted={() => {
+          // The rail only holds a book while the Portfolio tab is open; refresh it there so the
+          // new row appears without a reload, and leave it alone otherwise.
+          if (railTab === "portfolio") void pfRail.load();
+        }}
+      />
       {searchOpen && (
         <SearchModal open seed={seed} manifest={(man?.symbols as any) || {}} inWatchlist={inWl} mode={searchMode} compare={compare} compareCfg={compareCfg} active={active}
           quotes={quotes}
@@ -7158,7 +7189,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
           onSwitchList={switchList}
           onCreateList={createListNamed}
           onAddToList={addToList}
-          onAddToPortfolio={loggedIn ? (sym: string) => { setSearchOpen(false); setSearchMode("go"); setPfAddSymbol(sym); } : undefined}
+          onAddToPortfolio={loggedIn ? (sym: string) => { setSearchOpen(false); setSearchMode("go"); openChartPositionEntry(sym); } : undefined}
           marketPrefs={marketPrefs} prefsReady={prefsReady} onShowAllMarkets={showAllMarkets}
           onClose={() => { setSearchOpen(false); setSearchMode("go"); }} onPick={onSearchPick} onAdd={addSymbol} onRemove={removeSymbol}
           onToggleCompare={(s: string, mode?: CmpMode) => toggleCompare(s, mode)} />
