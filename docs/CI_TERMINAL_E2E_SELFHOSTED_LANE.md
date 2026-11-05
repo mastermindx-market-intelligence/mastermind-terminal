@@ -74,8 +74,9 @@ marked otherwise:
 
 Twelve shards run in parallel on the hosted lane. One self-hosted runner executes
 one job at a time, so a single runner would serialize twelve shards (~12 × 8 min).
-The lane therefore expects **N persistent runner services**, one per slot, named
-`ubuntu0-e2e-N` (N in 1..9). The bind script derives per-slot ports from the
+The lane therefore expects **N runner slots**, one runner per slot, named
+`ubuntu0-e2e-N` (N in 1..9), each re-registered ephemerally after every job (see
+*Registering a slot*). The bind script derives per-slot ports from the
 runner name so concurrent shards on one host never share a dev-server port:
 
 | slot | dev server | investor opt-in | shared opt-in |
@@ -95,28 +96,32 @@ against 54 min hosted, and each additional slot removes a round.
 
 ### Registering a slot (host operator; unprivileged `ghrunner` user, no sudo)
 
-Each slot is its own runner directory and service. The runner user must have **no
-sudo**: a self-hosted runner executes every approved run of this repository, so a
-sudo-capable runner would let one run tamper with the host for later runs. Install
-the Playwright Chromium system libraries once as an administrator
+Each slot is its own runner directory. The runner user must have **no sudo**: a
+self-hosted runner executes every approved run of this repository, so a
+sudo-capable runner would hand root to any such run. Install the Playwright
+Chromium system libraries once as an administrator
 (`npx playwright install-deps chromium` from any checkout of this repository) so
 the job's bounded `--with-deps` step can fail over to its browser-only path without
 needing apt.
 
-Register each slot **ephemeral**: an `--ephemeral` runner serves exactly one job
-and then deregisters, so no listener exists for a stray workflow to land on between
-jobs, which is the property the canary relied on. A persistent service must then
-re-register after every job; the wrapper needs a registration-capable credential
-(a fine-grained token with repository `administration:write`, or a GitHub App
-installation token), held on the host by the administrator and never printed:
+Register each slot **at the organization level, into the restricted runner group,
+and ephemeral**. Runner groups exist only for organization-level runners: a runner
+registered with a repository URL is a repository-level runner outside any group,
+so `--url` must be the organization URL. `--ephemeral` makes the runner serve
+exactly one job and then deregister, which removes the idle listener between jobs
+(the property the canary relied on); a wrapper then re-registers it. Minting an
+organization registration token needs the organization **"Self-hosted runners:
+write"** permission (a fine-grained token with that organization permission, or a
+GitHub App installation token with it); the administrator holds that credential on
+the host and it is never printed:
 
 ```
 mkdir -p ~/actions-runner/ubuntu0-e2e-N && cd ~/actions-runner/ubuntu0-e2e-N
 tar xzf ~/actions-runner/actions-runner-linux-x64.tar.gz
 # loop, run by a systemd user unit for ghrunner:
 while :; do
-  token="$(mint-registration-token)"   # from the held credential; never echoed
-  ./config.sh --unattended --ephemeral --url <repo-url> --token "$token" \
+  token="$(mint-org-registration-token)"   # POST /orgs/<org>/actions/runners/registration-token; never echoed
+  ./config.sh --unattended --ephemeral --url https://github.com/<org> --token "$token" \
     --name ubuntu0-e2e-N --labels self-hosted,linux,x64,ubuntu0-e2e \
     --runnergroup <restricted-group> --work _work --replace
   ./run.sh
@@ -124,10 +129,20 @@ done
 ```
 
 The runner must carry **all four labels**; `runs-on` requires every label in the
-array. If ephemeral re-registration is not provisioned, persistent listeners are a
-deliberate trust decision by the administrator: every approved run of this
-repository, including a maintainer-approved fork run that edits the workflow file,
-executes on the host between rollbacks. Record that decision with the variable.
+array.
+
+**What ephemeral does not do.** It does not give each job a clean machine. Every
+slot runs as the same `ghrunner` user with one home directory, which owns the
+runner binaries, the re-registration wrapper, `~/.npm` and the per-slot browser
+stores, so one approved run can rewrite any of those and compromise every later
+job on every slot. The canary recorded the same caveat ("registration alone does
+not clean its filesystem; the original runtime owner must separately qualify
+isolation and cleanup"), and GitHub warns that re-using hardware for JIT runners
+can expose information between jobs. Before turning the lane on, the host owner
+must qualify that isolation: at minimum one OS user per slot with runner binaries
+owned by a separate account, or a fresh container/VM per job. Until that is
+qualified, running this lane is a recorded administrator trust decision that every
+approved run of this repository may tamper with the host.
 
 ### Turning the lane on
 
@@ -144,25 +159,35 @@ executes on the host between rollbacks. Record that decision with the variable.
 1. Delete the `TERMINAL_E2E_LANE` repository variable (or set it to anything but
    `ubuntu0`). The next run of this unmodified job is hosted. This restores
    **routing only**.
-2. Stop the slot listeners (`svc.sh stop` / stop the systemd user unit, then
-   `config.sh remove` with a removal token) so no runner is listening for the four
-   labels. Until this step a workflow that names the labels can still reach the host.
+2. Stop the slot listeners (stop the re-registration unit, or `svc.sh stop` for a
+   service-installed runner, then `config.sh remove` with a removal token) so no
+   runner is listening for the four labels. Until this step a workflow that names
+   the labels can still reach the host.
 
 No workflow change or PR is needed for either step.
 
 ## Administrator precondition (named once)
 
-The merged canary (`selfhosted-e2e-canary.yml`, #1277) recorded the precondition
-for anything beyond the canary: self-hosted runners for this **public** repository
-live in an **organization runner group restricted to this repository**, serve as an
-**unprivileged user with no sudo**, and are **ephemeral**. A runner group restricted
-to the repository does not by itself keep fork code off the host (fork PR runs are
-runs of this repository); the fork hold is the `all_external_contributors` approval
-policy plus maintainer review of any workflow edit in an approved run, and the
-blast radius is bounded by no-sudo ephemeral runners.
+The merged canary (`selfhosted-e2e-canary.yml`, #1277) recorded, as the
+precondition for anything beyond the canary, an organization runner group
+restricted to **one workflow on one ref**
+(`selfhosted-e2e-canary.yml@refs/heads/master`), serving as an unprivileged
+no-sudo user. **A pull-request lane cannot meet that restriction**: a
+`pull_request` run executes the workflow at `refs/pull/N/merge`, which a
+workflow-and-ref restriction never matches. This lane therefore runs under a
+**weaker fence** than the canary, and that must be recorded as an administrator
+trust decision rather than presented as the canary's precondition:
 
-Creating the organization runner group, minting registration tokens and
-provisioning the re-registration credential need `admin:org` / repository admin,
-which the CI seat does not hold (the API returned 403 on 2026-11-05). That is the
-single human step for this lane. Everything else in this document is already in
-source and inert until the variable is set.
+- an organization runner group restricted to this repository (bounds which
+  repositories' runs may use the slots, not which code within them);
+- the `all_external_contributors` approval policy plus maintainer review of any
+  workflow edit in an approved run (the only hold on fork code);
+- no-sudo ephemeral runners, with host isolation qualified as described under
+  *Registering a slot* (ephemeral alone does not bound the blast radius).
+
+Creating the organization runner group, provisioning the organization
+"Self-hosted runners: write" credential for ephemeral re-registration and
+qualifying host isolation need `admin:org` / host ownership, which the CI seat
+does not hold (the API returned 403 on 2026-11-05). That is the single human step
+for this lane. Everything else in this document is already in source and inert
+until the variable is set.
