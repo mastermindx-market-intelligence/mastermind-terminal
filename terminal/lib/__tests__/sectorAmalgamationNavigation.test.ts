@@ -37,3 +37,68 @@ describe("One Sector Central journey — URL compatibility and context", () => {
     expect(parseSectorState(new URLSearchParams("sectorSources=true&sectorView=unexpected")).view).toBe("intelligence");
   });
 });
+
+
+describe("Finviz route continuity", () => {
+  it("omits default Finviz fields and clears stale values without expanding ordinary sector links", () => {
+    const stale = new URL("https://example.test/discover?sectorSource=finviz&finvizMode=bubbles&finvizTheme=old&finvizSubtheme=old&bubbleX=members&bubbleY=1Y&bubbleSize=equal");
+    const url = new URL(writeSectorState(stale, DEFAULT_SECTOR_STATE), stale);
+    expect(parseSectorState(url.searchParams)).toEqual(DEFAULT_SECTOR_STATE);
+    for (const key of ["sectorSource", "finvizMode", "finvizTheme", "finvizSubtheme", "bubbleX", "bubbleY", "bubbleSize"]) {
+      expect(url.searchParams.has(key), key).toBe(false);
+    }
+  });
+  it("round trips source, hierarchy, company, representation and qualified axes", () => {
+    const state = { ...DEFAULT_SECTOR_STATE, sourceFamily: "finviz" as const, finvizMode: "bubbles" as const,
+      finvizTheme: "finviz:theme:Artificial Intelligence", finvizSubtheme: "finviz:subtheme:aicompute",
+      company: "NVDA", discoveryQuery: "compute", matrixTimeframe: "1M" as const,
+      bubbleX: "members" as const, bubbleY: "1Y" as const, bubbleSize: "equal" as const };
+    const url = new URL(writeSectorState(new URL("https://example.test/discover"), state), "https://example.test");
+    expect(parseSectorState(url.searchParams)).toEqual(state);
+    for (const finvizMode of ["heatmap", "clusters", "matrix", "table"] as const) {
+      const next = { ...state, finvizMode };
+      const href = new URL(writeSectorState(url, next), url);
+      expect(parseSectorState(href.searchParams)).toEqual(next);
+    }
+  });
+  it("rejects unqualified metric names without manufacturing a metric", () => {
+    const state = parseSectorState(new URLSearchParams("sectorSource=house&bubbleX=alpha&bubbleY=marketcap&bubbleSize=marketcap"));
+    expect(state.sourceFamily).toBe("sectors"); expect(state.bubbleX).toBe("1W"); expect(state.bubbleY).toBe("1M"); expect(state.bubbleSize).toBe("members");
+  });
+});
+
+describe("Options R1 W2A — explicit rotation method in the sector URL", () => {
+  it("defaults to the incumbent method and admits only the named relative trend method", () => {
+    expect(DEFAULT_SECTOR_STATE.rotationMethod).toBe("incumbent");
+    expect(parseSectorState(new URLSearchParams("tab=sectors")).rotationMethod).toBe("incumbent");
+    expect(parseSectorState(new URLSearchParams("sectorRotationMethod=relative_trend_ema")).rotationMethod).toBe("relative_trend_ema");
+    expect(parseSectorState(new URLSearchParams("sectorRotationMethod=jdk")).rotationMethod).toBe("incumbent");
+    expect(parseSectorState(new URLSearchParams("sectorRotationMethod=RELATIVE_TREND_EMA")).rotationMethod).toBe("incumbent");
+  });
+  it("round-trips the method with the rest of the rotation state and never writes it as a bare flag", () => {
+    const state = { ...DEFAULT_SECTOR_STATE, workspace: "rotation" as const, rotationMethod: "relative_trend_ema" as const, rotationMode: "list" as const };
+    const url = new URL(writeSectorState(new URL("https://example.test/discover"), state), "https://example.test");
+    expect(url.searchParams.get("sectorRotationMethod")).toBe("relative_trend_ema");
+    expect(parseSectorState(url.searchParams)).toEqual(state);
+    const back = new URL(writeSectorState(url, { ...state, rotationMethod: "incumbent" }), "https://example.test");
+    // The default method travels as the absence of the parameter so shared links keep their width budget.
+    expect(back.searchParams.get("sectorRotationMethod")).toBeNull();
+    expect(parseSectorState(back.searchParams).rotationMethod).toBe("incumbent");
+  });
+  it("names both W2 feeds in the Sources drawer lexicon in both languages", () => {
+    expect(SECTOR_INTELLIGENCE_LEX.siFeedRelativeTrend).toEqual(["Sector relative trend", "板块相对趋势"]);
+    expect(SECTOR_INTELLIGENCE_LEX.siFeedHoldings).toEqual(["Sector fund holdings coverage", "板块基金持仓覆盖"]);
+  });
+  it("names the intraday feed in both languages and gives every one of its labels a real zh pair", () => {
+    expect(SECTOR_INTELLIGENCE_LEX.siFeedIntraday).toEqual(["Intraday relative moves", "盘中相对走势"]);
+    for (const [key, pair] of Object.entries(SECTOR_INTELLIGENCE_LEX)) {
+      if (!key.startsWith("siIntraday")) continue;
+      expect(pair, key).toHaveLength(2);
+      // Neither side may be the key itself or empty: a missing translation would leak raw English.
+      expect(pair[0].length, key).toBeGreaterThan(0);
+      expect(pair[1].length, key).toBeGreaterThan(0);
+      expect(pair[0], key).not.toBe(key);
+      expect(pair[1], key).not.toBe(pair[0]);
+    }
+  });
+});

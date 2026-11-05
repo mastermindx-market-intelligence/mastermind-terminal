@@ -59,6 +59,8 @@ import { canonicalChartSymbol } from "./terminalBoot";
 type Entry = {
   data: any;
   ts: number;
+  // Acquisition cutoff for these exact bytes. ts remains the TTL/eviction clock.
+  observedAtMs?: number;
   inflight: Promise<CacheOutcome> | null;
   refresh?: { source: StaleServe["source"]; revalidation?: Promise<Revalidation> };
 };
@@ -245,7 +247,11 @@ function touch(url: string, entry: Entry): void {
  * fetchOutcome — one request, classified. The ONLY place a transport/HTTP/parse failure is
  * turned into a fact, so "does not exist" can never be inferred from "could not ask".
  */
-async function fetchOutcome(url: string): Promise<CacheOutcome> {
+type FetchedOutcome = Exclude<CacheOutcome, { status: "data" }>
+  | (Extract<CacheOutcome, { status: "data" }> & { observedAtMs: number });
+
+async function fetchOutcome(url: string): Promise<FetchedOutcome> {
+  const requestedAt = Date.now();
   let r: Response;
   try {
     r = await fetch(url);
@@ -267,7 +273,8 @@ async function fetchOutcome(url: string): Promise<CacheOutcome> {
   // A literal `null`/`undefined` body is not usable data and was never committed to the
   // store either; it is a broken artifact, not a deliberate absence.
   if (data === null || data === undefined) return { status: "unavailable", reason: "malformed", httpStatus: r.status };
-  return { status: "data", data };
+  const clocks = ["last-modified", "date"].map(header => Date.parse(r.headers?.get?.(header) ?? ""));
+  return { status: "data", data, observedAtMs: Math.min(requestedAt, ...clocks.filter(Number.isFinite)) };
 }
 
 // ── Core fetch: issues the request, writes/evicts on settle ──
@@ -299,13 +306,13 @@ function doFetch(url: string, entry: Entry, onRevalidate?: (data: any) => void):
         store.delete(url);
         settle("failed");
       } else {
-        const committed: Entry = { data: outcome.data, ts: Date.now(), inflight: null };
+        const committed: Entry = { data: outcome.data, ts: Date.now(), observedAtMs: outcome.observedAtMs, inflight: null };
         touch(url, committed);
         // Write-through to IndexedDB (fire-and-forget; never awaited on the
         // hot path; all errors swallowed inside idbPut). Guarded so the call
         // is a true no-op when IDB is unavailable (SSR / private browsing).
         if (idbAvailable()) {
-          void idbPut(url, committed.data, committed.ts);
+          void idbPut(url, committed.data, committed.ts, outcome.observedAtMs);
         }
         // Hand the corrected payload to the caller that already received the stale one.
         // Isolated: a throwing consumer must not break the cache commit above.
@@ -318,7 +325,7 @@ function doFetch(url: string, entry: Entry, onRevalidate?: (data: any) => void):
       // Invalidated or replaced while in flight: the cache discarded this answer.
       settle("superseded");
     }
-    return outcome;
+    return outcome.status === "data" ? { status: "data", data: outcome.data } : outcome;
   });
 
   entry.inflight = inflight;
@@ -420,7 +427,7 @@ export async function getJSONResult(url: string, opts?: GetOpts): Promise<CacheO
       // Schedule background revalidation (microtask so the stale data is
       // returned to the caller before the fetch starts).
       const staleData = entry.data;
-      const bgEntry: Entry = { data: staleData, ts: entry.ts, inflight: null, refresh: { source: "memory" } };
+      const bgEntry: Entry = { ...entry, inflight: null, refresh: { source: "memory" } };
       const { revalidation } = doFetch(url, bgEntry, opts?.onRevalidate); // not awaited
       return { status: "data", data: staleData, stale: { ageMs: age, source: "memory", revalidation } };
     }
@@ -449,16 +456,16 @@ export async function getJSONResult(url: string, opts?: GetOpts): Promise<CacheO
       // Seed memory with the PERSISTED ts (never `now`), then apply normal rules.
       const decision = _seedDecision(rec.ts, Date.now(), ttl, swr);
       if (decision === "fresh") {
-        const seeded: Entry = { data: rec.data, ts: rec.ts, inflight: null };
+        const seeded: Entry = { data: rec.data, ts: rec.ts, observedAtMs: rec.observedAtMs, inflight: null };
         touch(url, seeded);
         return { status: "data", data: rec.data };
       }
       if (decision === "stale-swr") {
-        const seeded: Entry = { data: rec.data, ts: rec.ts, inflight: null };
+        const seeded: Entry = { data: rec.data, ts: rec.ts, observedAtMs: rec.observedAtMs, inflight: null };
         touch(url, seeded);
         // Serve stale from disk immediately; revalidate in the background. This is THE
         // path every reload takes for the manifest, so the callback matters most here.
-        const bgEntry: Entry = { data: rec.data, ts: rec.ts, inflight: null, refresh: { source: "disk" } };
+        const bgEntry: Entry = { data: rec.data, ts: rec.ts, observedAtMs: rec.observedAtMs, inflight: null, refresh: { source: "disk" } };
         const { revalidation } = doFetch(url, bgEntry, opts?.onRevalidate); // not awaited
         return { status: "data", data: rec.data, stale: { ageMs: Date.now() - rec.ts, source: "disk", revalidation } };
       }
@@ -509,7 +516,7 @@ export function prefetch(url: string, opts?: GetOpts): void {
     if (now - entry.ts < ttl) return;
     // Stale memory entry: revalidate (existing behaviour — no IDB detour needed
     // since memory already holds data at least as fresh as disk).
-    const fresh: Entry = { data: entry.data, ts: entry.ts, inflight: null, refresh: { source: "memory" } };
+    const fresh: Entry = { ...entry, inflight: null, refresh: { source: "memory" } };
     doFetch(url, fresh);
     return;
   }
@@ -528,11 +535,11 @@ export function prefetch(url: string, opts?: GetOpts): void {
         if (rec) {
           // prefetch has no swr flag; treat as swr=true (revalidate if stale).
           const decision = _seedDecision(rec.ts, Date.now(), ttl, true);
-          const seeded: Entry = { data: rec.data, ts: rec.ts, inflight: null };
+          const seeded: Entry = { data: rec.data, ts: rec.ts, observedAtMs: rec.observedAtMs, inflight: null };
           touch(url, seeded);
           if (decision === "fresh") return; // fresh on disk → skip the network
           // stale → revalidate in the background
-          const bgEntry: Entry = { data: rec.data, ts: rec.ts, inflight: null, refresh: { source: "disk" } };
+          const bgEntry: Entry = { data: rec.data, ts: rec.ts, observedAtMs: rec.observedAtMs, inflight: null, refresh: { source: "disk" } };
           doFetch(url, bgEntry);
           return;
         }
@@ -750,4 +757,51 @@ export function getSliceAndOhlc(sym: string): ChartDataReads {
  */
 export async function getCompositeOhlc(legs: string[]): Promise<(any | null)[]> {
   return Promise.all(legs.map((leg) => getOhlc(leg).catch(() => null)));
+}
+
+// ── Data OS U02: view-aware OHLC identity ─────────────────────────────────────
+// v1 publishes exactly one view per URL (CURRENT_TRADJ_VIEW); the view key exists so
+// a future second view can never alias today's cache entry.
+
+export type OhlcView = { basis: string; revision: string; mode: string };
+export const CURRENT_TRADJ_VIEW: OhlcView = Object.freeze({ basis: "tradj", revision: "latest", mode: "CURRENT" });
+
+/** Identity of one OHLC read: canonical symbol + basis + revision + mode, or null for an unusable symbol. */
+export function ohlcViewKey(sym: string, view: OhlcView): string | null {
+  const symbol = canonicalChartSymbol(sym);
+  return symbol ? `${symbol}|${view.basis}|${view.revision}|${view.mode}` : null;
+}
+
+/** v1 serves exactly the CURRENT tradj view; anything else is refused before any fetch. */
+export function isSupportedOhlcView(view: OhlcView): boolean {
+  return view.basis === CURRENT_TRADJ_VIEW.basis
+    && view.revision === CURRENT_TRADJ_VIEW.revision
+    && view.mode === CURRENT_TRADJ_VIEW.mode;
+}
+
+export type OhlcViewOutcome = CacheOutcome | { status: "refused"; reason: "VIEW_UNSUPPORTED"; view: OhlcView };
+
+/**
+ * getOhlcView — the same /data/<SYM>.json read the chart performs, addressed by view.
+ * The supported view goes through the SAME getJSONResult/dataFileUrl path as
+ * getSliceAndOhlc(sym).ohlc (same URL, same cache entry, same in-flight collapse);
+ * an unsupported view refuses without a fetch and without writing any cache entry.
+ */
+export function getOhlcView(sym: string, view: OhlcView = CURRENT_TRADJ_VIEW): Promise<OhlcViewOutcome> {
+  if (!isSupportedOhlcView(view)) {
+    return Promise.resolve({ status: "refused", reason: "VIEW_UNSUPPORTED", view });
+  }
+  const url = dataFileUrl(sym, ".json");
+  return url ? getJSONResult(url) : Promise.resolve({ status: "absent" });
+}
+
+/** Cutoff of this exact OHLC payload in the existing cache. A replacement or legacy
+ * disk entry without an acquisition clock cannot supply evidence for its last bar. */
+export function ohlcObservationCutoff(sym: string, payload: unknown): number | null {
+  const url = dataFileUrl(sym, ".json");
+  const entry = url && store.get(url);
+  if (!entry || entry.data !== payload) return null;
+  const observedAt = entry.observedAtMs;
+  return typeof observedAt === "number" && Number.isFinite(observedAt) && observedAt > 0
+    && observedAt <= Math.min(entry.ts, Date.now()) ? observedAt : null;
 }

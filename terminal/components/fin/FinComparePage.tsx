@@ -16,6 +16,7 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent } from "react";
 import type { Fund } from "../../lib/fund";
+import { materializeRegionalFund } from "../../lib/regionalFinancialProjection";
 import { getJSONResult, invalidate } from "../../lib/dataCache";
 import { normalizeAnalysisSymbol } from "../../lib/analysisSymbol";
 import { fmtNum, fmtPct, statementCurrencyCode } from "../../lib/finFormat";
@@ -241,15 +242,20 @@ export default function FinComparePage({ sym, fund, fundLoading = false, onOpenT
     const gen = ++nextGen.current;
     setPeers((ps) => requestPeer(ps, peer, gen));
     getJSONResult(fundUrl(peer), {
-      onRevalidate: (data) => {
+      onRevalidate: async (data) => {
         if (!alive.current) return;
         fresh.current.add(gen);
-        setPeers((ps) => resolvePeer(ps, peer, gen, peerLoadFromOutcome({ status: "data", data })));
+        const selected = await materializeRegionalFund(data, peer);
+        if (!alive.current) return;
+        setPeers((ps) => resolvePeer(ps, peer, gen, peerLoadFromOutcome({ status: "data", data: selected })));
       },
     })
-      .then((outcome) => {
+      .then(async (outcome) => {
         if (!alive.current || fresh.current.has(gen)) return;
-        setPeers((ps) => resolvePeer(ps, peer, gen, peerLoadFromOutcome(outcome)));
+        const selected = outcome.status === "data"
+          ? { ...outcome, data: await materializeRegionalFund(outcome.data, peer) } : outcome;
+        if (!alive.current || fresh.current.has(gen)) return;
+        setPeers((ps) => resolvePeer(ps, peer, gen, peerLoadFromOutcome(selected)));
         if (outcome.status === "data" && outcome.stale) {
           outcome.stale.revalidation.then((r) => {
             if (alive.current && r === "failed") setPeers((ps) => markPeerRefreshFailed(ps, peer, gen));

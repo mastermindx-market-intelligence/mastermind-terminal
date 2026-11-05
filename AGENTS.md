@@ -6,26 +6,30 @@ promises or “memory” recorded only inside one chat do not carry to another s
 
 ## Assigned Meta-CEO and economical Fabric delegation (2026-10-12)
 
-Only a **currently assigned** Codex or Claude principal/Meta-CEO owns
-architectural choices, decomposition, review and integration. A normal Terminal
-worker does not self-promote because it is running in Codex or on a frontier
-model. Reuse protected Mastermind
+Only a **currently assigned** principal or AI CEO owns architectural choices,
+decomposition, review and integration — in Codex, in Claude, in an attended
+ChatGPT Web session or in an admitted Fabric session. Assignment is the fence;
+a client list is not. A normal Terminal worker does not self-promote because it
+is running in Codex or Claude or on a frontier model. Reuse protected Mastermind
 `docs/sol_skills/WEB_CEO_DELEGATION.md` and its routing/authority companions;
 Terminal has no second Fabric scheduler or grant system.
 
 For independently verifiable, bounded C0/C1/C2 implementation, research,
-testing, debugging or review, the assigned Meta-CEO makes the paid Fabric
+testing, debugging or review, the assigned principal makes the paid Fabric
 delegation decision **before spending substantial frontier principal turns**.
-An enrolled Codex session uses the existing
-`mastermind-fabric-delegate` skill and installed `fabric_task.py` adapter
-with its verified current `CODEX_THREAD_ID` root and stable child ID; the
-existing Executive/Capacity path remains the owner of admission and placement.
-Claude uses its already admitted Executive/Fabric path. A native child is not
-an external Fabric worker and is reserved for genuine coordinator/judgment
-needs. Never duplicate an existing run, change carrier after `EFFECT_UNKNOWN`,
-or bypass a provider/tool/permission refusal.
+An enrolled Codex session uses the existing `mastermind-fabric-delegate` skill
+and installed `fabric_task.py` adapter with its verified current
+`CODEX_THREAD_ID` root, stable child ID and original parent; an assigned Claude
+session uses its own installed delegation skill and already admitted
+Executive/Fabric path, never guessing a parent. Those paths apply only inside
+that actual harness and existing admission — the Executive/Capacity path
+remains the owner of admission and placement, and an installed skill or adapter
+is not itself admission. A native child is not an external Fabric worker and
+is reserved for genuine coordinator/judgment needs. Never duplicate an existing
+run, change carrier after `EFFECT_UNKNOWN`, or bypass a provider/tool/permission
+refusal.
 
-The Meta-CEO retains real architectural decisions and reconciles compact
+The principal retains real architectural decisions and reconciles compact
 worker returns (exact source hash, test evidence, result, gaps, effects, next
 parent decision), leaving full logs outside principal context. Maintain durable
 decisions in the canonical Macro Agent OS, not a Terminal-local memory mirror.
@@ -35,15 +39,34 @@ and the parent's review capacity. These source instructions do not install a
 plugin, prove a live Codex adopter, alter native model defaults or authorize
 merges/deployments.
 
+## Session-owned PR/source review (Chairman 2026-11-03)
+
+The assigned attended CEO Web session owns the actual source diff, self-review, focused tests, required CI and authorized release. **FAST, STANDARD, and CRITICAL do not impose a blanket independent technical reviewer, Fabric/Dot/native-child handoff or additional formal non-author approval on attended Web work.** A risk tier still determines proportionate security, regression and real-path proof; incomplete source is HOLD, not a shortcut. A different ChatGPT Web, Codex or Claude top-level session is never the default review prerequisite. Existing native GitHub/CODEOWNERS approvals, recorded release/security holds, exact-head CI, source custody and non-author merge authority remain binding; never self-approve, self-merge or bypass a required control. This attended-session waiver does not disable the separate signed automatic GitHub/Executive machine review path.
+
+The Mastermind #2018/#2026/#2030 sources and Terminal #1251 T0 classifier have separate protected-release and installation receipts. A proposed PR, author-supplied "routine" label, or uninstalled risk consumer proves neither an automatic machine exemption nor a native GitHub approval. Verify the actual protected source and installed consumer when those facts affect a decision; do not wait for those optional machines before doing permitted attended-Web source work. Codex and Claude sessions also complete their own assigned source/test/release work in-session rather than requiring another top-level chat.
+
+Only when an actually binding native/security requirement or an explicit eligible manual request demands distinct technical scrutiny should the session commission a qualified read-only reviewer, using a true in-session Codex/Claude child, exposed Web Pro child or admitted Fabric when authorized and useful. Verify separate context, exact source head, findings and parent adjudication. Author self-check remains `SELF_REVIEWED`; a technical child is **not** formal GitHub non-author `APPROVED`. No denied or EFFECT_UNKNOWN reviewer operation may be rerouted. Preserve the existing protected merge-on-green and no-author-merge controls. Repository text does not itself edit live ChatGPT Project or client settings.
+
+## Finish the existing release, not the draft
+
+The assigned session owns the original PR through qualified source/tests, failing-CI repair, Ready when reviewable, genuinely required technical/formal review, authorized protected merge-on-green, exact merge readback, git-gated deployment and owed live browser proof. An open Draft, PR, pending CI, review request, label or handoff is **not done**. Do not open another PR to bypass failing checks, an inactive reviewer account or a held original; preserve the source carrier and get the next real release step done this turn. Continue safe unblocked work while any real external wait proceeds through the existing verified observer. Branch protection, review findings, recorded HOLD, source custody, denied/unknown effects, no self-approval and no self-merge remain binding.
+
 ## Required context at the start of every task
 
 1. Read `terminal/AGENTS.md` and `terminal/CLAUDE.md` in full before changing the
    Next.js application.
 2. Recover current source, the exact assigned task and any existing Macro Agent OS
-   workstream before using account-local notes. Claude project memory is optional
-   historical context for an eligible Claude session, not a mandatory startup
-   dependency for Codex, ChatGPT Web or Fabric workers. Old memory instructions
-   never override current repository, protected Mastermind or release rules.
+   workstream before using account-local notes. Treat local Claude project memory
+   as optional context, not a startup or delivery gate: it is optional historical
+   context for an eligible Claude session, not a mandatory startup dependency for
+   Codex, ChatGPT Web or Fabric workers. The historical index at
+   `~/.claude/projects/-Users-chriswong-Documents-Cluade-charting-app/memory/MEMORY.md`
+   and its `git-flow-commit-pr-merge-habit`, `prod-repo-is-stale`, and
+   `deploy-topology` notes may be read when relevant and accessible. If absent,
+   recover from current source and canonical Agent OS instead. Local memory
+   never establishes a live owner, permission, or effect clearance, and old
+   memory instructions never override current repository, protected Mastermind
+   or release rules.
 3. Treat `/Users/chriswong/Documents/Cluade/Macro Dashboard` as the connected
    dashboard/backend repository. Authentication, subscriptions, data contracts,
    APIs, Caddy routes, and deployment changes may require checking both repos.
@@ -73,18 +96,29 @@ merges/deployments.
   Terminal delivery remains governed entirely by this file — CI, merge-on-green,
   the git-gated deploy, and live verification are unchanged.
 
+## Current receiver and executable handoffs
+
+A handoff that says "only the original writer/parent must act" is a custody
+clue, not a living session or approval gate. The currently assigned receiver
+inspects the original PR/workspace, live writer/lease and unresolved effects,
+then executes the next permitted recovery action or safe independent work.
+Keep STARTed exact-session bindings and EFFECT_UNKNOWN on the existing carrier;
+handoff text never transfers those effects, releases a lease, or proves ACK. A successor handoff names the current or next valid receiver,
+exact source/effect checks, real CI/review/release gates and a reachable next
+action; never an archived chat as the only actor.
+
 ## Workspace and git
 
 - The canonical project home is `/Users/chriswong/Documents/Cluade`.
 - Never create project work in `~/.codex/worktrees`, `/private/tmp`, or another
   Codex-only location. Never use a `codex/` branch for these repositories.
-- The primary checkout is shared and commonly dirty; never change its files or git
-  state. Reuse the existing authorized operation workspace after checking its exact
-  source identity, writer and effects. For fresh work use the currently installed
-  Mastermind workspace launcher or approved native external-volume allocator,
-  according to the active host/client policy. Do not use a raw `git worktree add`,
-  `~/.codex/worktrees` or a legacy in-repo `.claude/worktrees` path as a
-  replacement for admission. Preserve original branch, lease and release rules.
+- The primary checkout is shared and commonly dirty. Never change its files or git
+  state. Attended ChatGPT Web/Studio sessions acquire or reuse one exact source-pinned
+  operation workspace through the installed `mmx-workspace` owner, as authorized for
+  this repository. Native/harness sessions use their actual assigned source launcher
+  and workspace; only those with an approved direct-worktree contract may create one
+  under its designated root. Do not create an alternate worktree or force/re-home an
+  existing operation to bypass a refusal, exclusive writer, or uncertain effect.
 - Never reuse a squash/merge-completed branch and never use the repo-global stash.
 
 ## `ingest/` runs as scripts, not modules
@@ -143,12 +177,29 @@ The operator granted standing authorization on 2026-07-30 for this entire
 commit → push → PR → CI → merge → production deploy → live verification chain.
 Do not wait for a separate request to commit, push, merge, or deploy.
 
-Do not stop at a local commit or open PR. The only holds are an explicit operator
-request to hold, a genuine failing check, or a real deployment blocker. Direct
-working-tree rsync/scp is not a deployment; production builds only merged master.
-If a later step is blocked, first commit and push the completed work to a
-recoverable remote branch, then report the exact blocker. Never leave completed
-work only as uncommitted changes in a session.
+Do not stop at a local commit or open PR. Release holds include an explicit
+operator hold, required CI or independent review that is pending or failing,
+and a genuine deployment blocker. Never arm a protected merge while its required
+review or current-head checks remain unqualified.
+
+Direct working-tree rsync/scp is not a deployment; production builds only
+merged master. A held release step blocks that effect, not the whole session.
+Before finalizing an incomplete assignment, name and execute the next
+independent authorized source, test, integration, or real-path verification action.
+An issue, reviewer request, CI observation, or preserved branch is not completion.
+
+Preserve completed work in the original managed workspace; commit and push to its
+recoverable branch only through a lawful original publisher. If commit/push is
+unavailable, distinguish a proven pre-effect technical failure from an explicit
+safety/permission denial or EFFECT_UNKNOWN. A technical failure may be requalified
+only on material same-carrier recovery evidence and the applicable typed preflight.
+An explicit safety/permission denial ends retries of that effect; an uncertain
+effect must be reconciled on its original carrier before retry. Keep exact local
+source/custody recoverable and continue genuinely independent permitted work.
+Do not force, create a replacement branch, switch accounts/tools, or use GitHub
+direct writes to evade a refusal. Report the exact blocker and recovery action
+only when no safe useful work remains. Never leave completed work only as
+uncommitted changes when lawful publication is available.
 
 ## Merge-on-green controller
 
@@ -163,6 +214,16 @@ work only as uncommitted changes in a session.
   refuses forks/drafts/conflicts, SHA-pins the squash merge, and deletes the remote
   branch. It is the orphaned-PR fallback and defense-in-depth behind native
   auto-merge, not a second definition of green.
+- A branch update or commit written with `GITHUB_TOKEN` leaves the new head's
+  `pull_request` CI run held (`action_required`, no jobs). The pull request's
+  required checks are read from that run only, so green checks from a dispatched
+  run on the same commit leave it BLOCKED (#874). The controller therefore
+  re-runs its own held run once (`POST /actions/runs/{id}/rerun`; verified to
+  execute under `GITHUB_TOKEN` on 2026-10-13), both right after a refresh and
+  whenever an armed PR is pending or blocked on one. Dispatching CI is only the
+  fallback when no `pull_request` run appears. A run held for anyone else, or
+  held again after that re-run, is reported for a maintainer to re-run; never
+  bypass protection for it.
 - `merge-blocked` means the latest required CI is red or the branch has a real
   conflict. Fix the head; do not use an admin bypass. The controller removes the
   label automatically after the new head is green.

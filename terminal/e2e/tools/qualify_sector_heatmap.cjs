@@ -88,6 +88,15 @@ let browser;
    await expect(map).toBeVisible();
   }
   const targetTile = heatmap.locator(`[data-company-heatmap-tile="${target.t}"]`);
+  const labelStyle = await targetTile.locator("[data-heatmap-label]").evaluate(element => {
+    const plate = getComputedStyle(element), ticker = getComputedStyle(element.querySelector("strong"));
+    const cap = element.querySelector("small");
+    return { shadow: ticker.textShadow, plateShadow: plate.textShadow, background: plate.backgroundColor,
+      fontPx: parseFloat(ticker.fontSize), capOpacity: cap ? getComputedStyle(cap).opacity : null };
+  });
+  check(label + ": tile text is sharp and contrast-backed", labelStyle.shadow === "none"
+    && labelStyle.plateShadow === "none" && !["transparent", "rgba(0, 0, 0, 0)"].includes(labelStyle.background)
+    && labelStyle.fontPx >= 8 && (width <= 760 || labelStyle.capOpacity === "1"), labelStyle);
   await targetTile.click(); await expect(page).toHaveURL(new RegExp(`sectorCompany=${encodeURIComponent(target.t)}`));
   check(label + ": exact company selection stays URL-bound", new URL(page.url()).searchParams.get("sectorCompany") === target.t);
   await expect(inspector).toContainText(target.t); await expect(inspector.locator(`a[href="/analysis?symbol=${encodeURIComponent(target.t)}&page=overview"]`)).toHaveCount(1);

@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { concentration, groupRows, readableOwnerEnvelope, sectorRows, themeEntryReady, themeRows, themeStaleLegs } from "../sectorIntelligence";
+import { concentration, groupRows, readableOwnerEnvelope, sectorRows, themeEntryReady, themeRows, themeStaleLegs, SECTOR_FEEDS } from "../sectorIntelligence";
+import relativeTrendFixture from "./fixtures/sector-rotation-relative-trend.v1.json";
+import holdingsCoverageFixture from "./fixtures/sector-holdings-coverage.v1.json";
+import { basket, basketPulse, mixedPulse, observedComparison } from "./sectorIntradayFixture";
 
 // Synthetic edge cases in the exact shapes observed in Macro owner files at
 // 79dbe3f2431b9e21cabf23071f02eab5add57eb4. Actual-byte qualification is separate.
@@ -83,5 +86,39 @@ describe("heatmap capitalization cohort binding", () => {
   });
   it("does not claim top-five concentration from fewer than five names", () => {
     expect(concentration({ ...heatmap, n_tiles: 4, tiles: tiles.slice(0, 4) }, "Technology")).toBeNull();
+  });
+});
+
+describe("Options R1 W2 owner envelopes", () => {
+  it("lists the two W2 feeds then the intraday feed, in fetch order", () => {
+    expect(SECTOR_FEEDS).toEqual(["sector", "confluence", "themes", "heatmap", "risk", "history", "events", "relative_trend", "holdings", "intraday"]);
+  });
+  it("admits the frozen relative trend feed only through its strict parser", () => {
+    expect(readableOwnerEnvelope("relative_trend", relativeTrendFixture)).toBe(true);
+    expect(readableOwnerEnvelope("relative_trend", { ...relativeTrendFixture, meta: { ...relativeTrendFixture.meta, schema: "sector_rotation.relative_trend.v2" } })).toBe(false);
+    expect(readableOwnerEnvelope("relative_trend", { debug: relativeTrendFixture })).toBe(false);
+  });
+  it("admits the frozen holdings coverage feed only through its strict parser", () => {
+    expect(readableOwnerEnvelope("holdings", holdingsCoverageFixture)).toBe(true);
+    expect(readableOwnerEnvelope("holdings", { ...holdingsCoverageFixture, funds: holdingsCoverageFixture.funds.map(fund => ({ ...fund, extra: 1 })) })).toBe(false);
+    expect(readableOwnerEnvelope("holdings", { sectors: [sector] })).toBe(false);
+  });
+});
+
+describe("catalyst intraday owner envelope", () => {
+  it("admits the basket-pulse contract itself, whether or not a comparison is present yet", () => {
+    expect(readableOwnerEnvelope("intraday", mixedPulse())).toBe(true);
+    expect(readableOwnerEnvelope("intraday", basketPulse([basket("ai_infra", undefined)]))).toBe(true);
+    expect(readableOwnerEnvelope("intraday", basketPulse([]))).toBe(true);
+  });
+  it("refuses a look-alike envelope, a non-US market and a duplicated basket identity", () => {
+    expect(readableOwnerEnvelope("intraday", { ...basketPulse([]), schema: "basket_pulse.v2" })).toBe(false);
+    expect(readableOwnerEnvelope("intraday", { ...basketPulse([]), market: "hk" })).toBe(false);
+    expect(readableOwnerEnvelope("intraday", basketPulse([basket("ai_infra", observedComparison()), basket("ai_infra", observedComparison())]))).toBe(false);
+    expect(readableOwnerEnvelope("intraday", { sectors: [sector] })).toBe(false);
+  });
+  it("does not let an intraday comparison object smuggle itself into another feed's envelope", () => {
+    expect(readableOwnerEnvelope("sector", basketPulse([basket("ai_infra", observedComparison())]))).toBe(false);
+    expect(readableOwnerEnvelope("intraday", themeFeed)).toBe(false);
   });
 });
