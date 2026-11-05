@@ -26,6 +26,7 @@ import { useLang } from "../../lib/i18n";
 import { pick } from "../../lib/finFormat";
 import { megaPaneText } from "./megaPaneLex";
 import type { Fund, Bar } from "../../lib/fund";
+import { GUEST_IDENTITY, type AccountIdentity } from "../../lib/accountIdentity";
 import { useIsMobile } from "@/lib/useMediaQuery";
 import { acquireScrollLock } from "../../lib/scrollLock";
 
@@ -45,6 +46,7 @@ import TechLabPanel from "./TechLabPanel";
 import TranscriptDrawer from "./TranscriptDrawer";
 import TranscriptsPage from "./TranscriptsPage";
 import CompanyIntelligencePage from "./CompanyIntelligencePage";
+import CompanyIntelligencePrivate from "./CompanyIntelligencePrivate";
 import SharedShellCompanyIntelligence from "./SharedShellCompanyIntelligence";
 import RegionalIntelligenceWorkspace from "./RegionalIntelligenceWorkspace";
 import { useOptionalSharedShellPresentation } from "@/components/chrome/shared-shell/SharedShellPresentation";
@@ -80,8 +82,14 @@ const PAGE_LABELS: Record<FinPage, [string, string]> = {
   compare: ["Compare", "对比"],
 };
 
+const signInForPrivateIntelligence = () => window.location.assign("/login");
+
 export interface MegaPaneProps {
   sym: string;
+  /** Canonical account identity from the host's existing authentication boundary. */
+  identity?: AccountIdentity;
+  /** The host has settled its company cursor; omitted hosts remain disabled. */
+  privateEnabled?: boolean;
   fund: Fund | null;
   /** True while the shell's deferred getFund is in flight — gates the Analyst skeleton. */
   fundLoading?: boolean;
@@ -131,6 +139,8 @@ export interface MegaPaneProps {
 
 export default function MegaPane({
   sym,
+  identity = GUEST_IDENTITY,
+  privateEnabled = false,
   fund,
   fundLoading = false,
   quote,
@@ -242,8 +252,8 @@ export default function MegaPane({
     // legacy ?pane= deep link (analysisRoute.ts) and hydrates `page` from it,
     // but once mounted the workspace removes the mirror instead of maintaining
     // two independently-mutated URL authorities. The chart overlay keeps its
-    // historical ?pane= contract unchanged.
-    if (workspace) {
+    // historical ?pane= contract unchanged, including its embedded workspace.
+    if (workspace && host === "route") {
       if (url.searchParams.has("pane")) {
         url.searchParams.delete("pane");
         window.history.replaceState(window.history.state, "", url.toString());
@@ -262,7 +272,7 @@ export default function MegaPane({
       url.searchParams.set("pane", page);
       window.history.replaceState(window.history.state, "", url.toString());
     }
-  }, [page, workspace]);
+  }, [page, workspace, host]);
   // Hydrate an optional transcript deep-link after the client URL is available.
   // Changing away from the archive closes the document and clears its URL key.
   useEffect(() => {
@@ -340,10 +350,10 @@ export default function MegaPane({
           {page === "overview" && <OverviewPage sym={sym} fund={fund} name={displayName} onNavigate={navigate} />}
           {page === "intelligence" && (
             // The regional snapshot and the incumbent event view share this one mount, so the
-            // chart-hosted pane and /analysis render the same component. The event child below is
-            // UNCHANGED and is mounted only when the URL actually selects it: a US symbol passes
-            // through the wrapper untouched, and a regional symbol lands on the snapshot until a
-            // retained event pin or an explicit ci_view=event asks for the event path.
+            // chart-hosted pane and /analysis render the same composition. The public event
+            // owner and private sibling mount only when the URL selects the event view. A US
+            // symbol passes through unchanged; a regional symbol starts with its snapshot
+            // until a retained event pin or explicit ci_view=event selects the event path.
             <RegionalIntelligenceWorkspace
               sym={sym}
               fund={fund}
@@ -351,15 +361,23 @@ export default function MegaPane({
               name={displayName}
               onNavigate={navigate}
             >
-              {sharedPresentation ? <SharedShellCompanyIntelligence
-                sym={sym} name={displayName} onOpenTx={openTranscript}
-                onEvidenceOpenChange={setIntelligenceEvidenceOpen}
-              /> : <CompanyIntelligencePage
-                sym={sym}
-                name={displayName}
-                onOpenTx={openTranscript}
-                onEvidenceOpenChange={setIntelligenceEvidenceOpen}
-              />}
+              <>
+                <CompanyIntelligencePrivate
+                  identity={identity}
+                  symbol={sym}
+                  enabled={privateEnabled}
+                  onSignIn={signInForPrivateIntelligence}
+                />
+                {sharedPresentation ? <SharedShellCompanyIntelligence
+                  sym={sym} name={displayName} onOpenTx={openTranscript}
+                  onEvidenceOpenChange={setIntelligenceEvidenceOpen}
+                /> : <CompanyIntelligencePage
+                  sym={sym}
+                  name={displayName}
+                  onOpenTx={openTranscript}
+                  onEvidenceOpenChange={setIntelligenceEvidenceOpen}
+                />}
+              </>
             </RegionalIntelligenceWorkspace>
           )}
           {page === "statements" && (

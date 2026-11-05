@@ -65,6 +65,7 @@
   "terminal/components/chrome/investor-shell-preview.css",
   "terminal/components/chrome/shared-shell/ShellSearch.tsx",
   "terminal/components/chrome/shared-shell/shared-shell.css",
+  "terminal/components/fin/MegaPane.tsx",
   "terminal/components/mobile/AnalysisHubSheet.module.css",
   "terminal/components/mobile/AnalysisHubSheet.tsx",
   "terminal/components/options-companion/OptionsCompanion.module.css",

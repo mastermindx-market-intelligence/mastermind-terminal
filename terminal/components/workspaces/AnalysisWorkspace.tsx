@@ -9,6 +9,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from "reac
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import MegaPane, { FIN_PAGES as FIN_PAGE_LIST, type FinPage } from "@/components/fin/MegaPane";
+import { useShellIdentity } from "@/components/chrome/AppShell";
 import { getFund, getBars, type Fund, type Bar } from "@/lib/fund";
 import { getJSON } from "@/lib/dataCache";
 import { useLang, useT } from "@/lib/i18n";
@@ -86,6 +87,7 @@ export interface AnalysisWorkspaceProps {
 }
 
 export default function AnalysisWorkspace({ initialSymbol, initialPage }: AnalysisWorkspaceProps) {
+  const identity = useShellIdentity();
   const { lang } = useLang();
   const t = useT();
   const router = useRouter();
@@ -358,6 +360,8 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
       ) : (
         <MegaPane
           sym={sym}
+          identity={identity}
+          privateEnabled={symbolSettled}
           fund={fund}
           fundLoading={fundLoading}
           quote={{ last }}
