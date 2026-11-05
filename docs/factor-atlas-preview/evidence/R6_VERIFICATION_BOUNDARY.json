@@ -1,0 +1,70 @@
+{
+  "schema": "factor_atlas.r6_verification_boundary.v1",
+  "source_precommit_head": "e446151ac5da32599f1f5da8fb63da7d44681dce",
+  "source_sha256": {
+    "terminal/lib/factorAtlasHistory.ts": "7ad1b9bf51890dca18ba0de65cc631e7aa1ee5cc766b47d9cbc3c66ff8e9397d",
+    "terminal/lib/__tests__/factorAtlasDiagnostics.test.ts": "158c06bdf7a502e0f8f7a8df4cde8fe6e3fc7f94262697f7964c6034e44ddbe6",
+    "terminal/lib/__tests__/factorAtlasPreview.test.tsx": "12d726246b44dcf677d8d5f4fbd85e13bc5f077a1c7719046dab54dffa350f2c",
+    "terminal/components/factor-atlas/FactorHistoryPreview.tsx": "cd24cd7d155d091e81e26d58ad1d933af793eda0a0cc92d14d2d65bdc4738c88",
+    "terminal/components/factor-atlas/FactorHistoryPreview.module.css": "264a384412336a1dc6497817f53dc4dbfc29f2d1c08d5138dd5e215b0657c09c",
+    "docs/factor-atlas-preview/prove.mjs": "3d349818fb9fb40b80e72b1cc7afb61f29de3c89991a9acaeb0d502d0ad3c0cf",
+    "docs/factor-atlas-preview/prove-shell.mjs": "bcd4ba5807c59a59d0dbdab2b135eccf5ba005cf32f11c89dc5dd55e11a3d20a"
+  },
+  "positive": {
+    "focused_tests_passed": 141,
+    "test_files_passed": 5,
+    "eslint_errors": 0,
+    "typecheck": "PASS",
+    "plain_language_added_gate": "PASS",
+    "standalone_browser_passed": 24,
+    "standalone_browser_expected": 24,
+    "standalone_assertion_groups": 529,
+    "standalone_receipt_sha256": "1d64cb6199eaf75ec1457e4d331f07c165f5ca7f0de103e9c19b318516c51c58",
+    "local_production_build_exit_code": 0,
+    "production_build_log_sha256": "944b644f3050b8ba5a86249e3c1950cdc68bbf230a958f7d843d86abddccf60c",
+    "production_route_refusals": [
+      {
+        "case": "anonymous",
+        "http_status": 404,
+        "fixture_visible": false
+      },
+      {
+        "case": "spoofed_admin",
+        "http_status": 404,
+        "fixture_visible": false
+      },
+      {
+        "case": "valid_factor_link",
+        "http_status": 404,
+        "fixture_visible": false
+      },
+      {
+        "case": "invalid_factor_link",
+        "http_status": 404,
+        "fixture_visible": false
+      }
+    ],
+    "production_negative_raw_sha256": "207feddf0b5cbf0b1b58edfe8684a68acfdfc533d8750b60612beb1e73db4a08",
+    "production_testing_scope": "LOOPBACK_PLACEHOLDER_AUTH_NOT_LIVE_CUSTOMER"
+  },
+  "not_verified": {
+    "exact_source_next_dev_full_browser": "NOT_VERIFIED",
+    "turbopack_contexts_passed": 12,
+    "turbopack_contexts_attempted": 13,
+    "turbopack_failed_context": "webkit-1440-dark-en",
+    "turbopack_failure_category": "WEBKIT_HMR_CHUNK_LOAD_ERROR",
+    "turbopack_raw_receipt_sha256": "233bfed3b41dbee350387f840fd78b9e7fbe2d6b29dab205af71c90af6edac7c",
+    "webpack_contexts_passed": 0,
+    "webpack_failure_category": "FIRST_PAGE_NAVIGATION_TIMED_OUT",
+    "webpack_log_sha256": "01d06d92661a1552a48db5787f046c223a183f2508ecc67cb7665931ca043dd0",
+    "previous_r5_next_browser_claim_not_current_r6_proof": true
+  },
+  "release": {
+    "customer_source_admitted": false,
+    "true_authenticated_customer": false,
+    "independent_review_accepted": false,
+    "merge": false,
+    "deployment": false,
+    "trading_or_sizing_authority": false
+  }
+}
