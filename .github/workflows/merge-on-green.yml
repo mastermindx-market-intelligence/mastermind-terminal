@@ -30,6 +30,9 @@ concurrency:
 
 jobs:
   sweep:
+    # Refuse nondefault dispatch/tag and foreign-base PR-target events before
+    # checkout or any secret-bearing step. Immutable SHA alone is not source trust.
+    if: ${{ github.repository == 'mastermindx-market-intelligence/mastermind-terminal' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
     name: sweep
     runs-on: ubuntu-latest
     timeout-minutes: 10

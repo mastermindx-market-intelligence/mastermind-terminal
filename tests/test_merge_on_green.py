@@ -1310,3 +1310,58 @@ def test_privileged_controller_rejects_candidate_event_and_sparse_expansion():
     document["jobs"]["sweep"]["steps"][0]["with"]["sparse-checkout"] = "."
     with pytest.raises(AssertionError):
         assert_privileged_controller_source(document)
+
+
+
+def evaluate_controller_job_gate(document, *, repository, ref, default_branch):
+    # Evaluate the actual YAML expression over test-owned event context. This
+    # small harness supports only the operators/functions used by this gate.
+    expression = document["jobs"]["sweep"].get("if")
+    assert isinstance(expression, str), "privileged job has no source gate"
+    expression = expression.strip()
+    assert expression.startswith("${{") and expression.endswith("}}")
+    expression = expression[3:-2].strip()
+    for name, value in {
+        "github.event.repository.default_branch": default_branch,
+        "github.repository": repository,
+        "github.ref": ref,
+    }.items():
+        expression = expression.replace(name, repr(value))
+    expression = expression.replace("&&", " and ").replace("||", " or ")
+    return eval(expression, {"__builtins__": {}, "format": lambda pattern, value: pattern.format(value)})
+
+
+@pytest.mark.parametrize("event,ref", [
+    ("schedule", "refs/heads/master"),
+    ("workflow_run", "refs/heads/master"),
+    ("pull_request_target", "refs/heads/master"),
+    ("workflow_dispatch", "refs/heads/master"),
+])
+def test_controller_job_gate_accepts_default_branch_events(event, ref):
+    document = controller_source_document()
+    events = document.get("on", document.get(True))
+    assert event in events
+    assert evaluate_controller_job_gate(document, repository="mastermindx-market-intelligence/mastermind-terminal", ref=ref, default_branch="master") is True
+    assert document["jobs"]["sweep"]["steps"][0]["with"]["ref"] == "${{ github.sha }}"
+
+
+@pytest.mark.parametrize("event,repository,ref,default_branch", [
+    ("workflow_dispatch", "mastermindx-market-intelligence/mastermind-terminal", "refs/heads/feature", "master"),
+    ("workflow_dispatch", "mastermindx-market-intelligence/mastermind-terminal", "refs/tags/master", "master"),
+    ("pull_request_target", "mastermindx-market-intelligence/mastermind-terminal", "refs/heads/release", "master"),
+    ("workflow_run", "mastermindx-market-intelligence/mastermind-terminal", "refs/heads/feature", "master"),
+    ("schedule", "foreign/mastermind-terminal", "refs/heads/master", "master"),
+    ("workflow_dispatch", "mastermindx-market-intelligence/mastermind-terminal", "refs/heads/master", "main"),
+])
+def test_controller_job_gate_rejects_untrusted_event_source(event, repository, ref, default_branch):
+    document = controller_source_document()
+    assert event in document.get("on", document.get(True))
+    assert evaluate_controller_job_gate(document, repository=repository, ref=ref, default_branch=default_branch) is False
+
+
+def test_controller_source_gate_cannot_be_moved_after_checkout():
+    document = controller_source_document()
+    expression = document["jobs"]["sweep"].pop("if", None)
+    document["jobs"]["sweep"]["steps"][1]["if"] = expression
+    with pytest.raises(AssertionError, match="no source gate"):
+        evaluate_controller_job_gate(document, repository="mastermindx-market-intelligence/mastermind-terminal", ref="refs/heads/master", default_branch="master")
