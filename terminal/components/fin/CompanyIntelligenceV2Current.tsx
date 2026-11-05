@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { LEX, useLang } from "../../lib/i18n";
 import { fmtDate, pick } from "../../lib/finFormat";
 import type { CompanyIntelligenceContext, CompanyIntelligenceEvent } from "../../lib/companyIntelligence";
@@ -32,6 +32,7 @@ import { openMastermindBrainForSymbol } from "../../lib/mastermindBrain";
 import type { TranscriptOpenTarget } from "../../lib/transcriptSearch";
 import { EVENT_WORKSPACE_ATTRIBUTION, topicTagLabel } from "../../lib/companyIntelligenceLabels";
 import { topicStatusLabel } from "../../lib/plainLabels";
+import { sharedShellTerminalHref } from "@/lib/sharedShellNavigation";
 
 type Lens = "brief" | "results" | "transcript" | "history" | "topics" | "sources";
 
@@ -40,7 +41,9 @@ const LENSES: readonly Lens[] = ["brief", "results", "transcript", "history", "t
 export interface CompanyIntelligenceV2CurrentProps {
   ticker: string;
   name?: string | null;
-  result: Extract<EventWorkspaceResult, { ok: true }>;
+  result: Pick<Extract<EventWorkspaceResult, { ok: true }>, "workspace" | "state">;
+  retained?: boolean;
+  headerActions?: ReactNode;
   v1: CompanyIntelligenceContext | null;
   onOpenTx: (target: string | TranscriptOpenTarget) => void;
   onEvidenceOpenChange?: (open: boolean) => void;
@@ -309,11 +312,14 @@ export default function CompanyIntelligenceV2Current({
   name,
   result,
   v1,
+  retained = false,
+  headerActions,
   onOpenTx,
   onEvidenceOpenChange,
 }: CompanyIntelligenceV2CurrentProps) {
   const { lang } = useLang();
   const zh = lang === "zh";
+  const listing = result.workspace.issuer.listings.find(candidate => candidate.ticker === ticker);
   const presented = useMemo(
     () => presentEventWorkspace(result.workspace, { zh }),
     [result.workspace, zh],
@@ -321,24 +327,57 @@ export default function CompanyIntelligenceV2Current({
   const [lens, setLens] = useState<Lens>("brief");
   const [evidence, setEvidence] = useState<CompanyEvidenceSelection | null>(null);
   const [evidenceOpen, setEvidenceOpen] = useState(false);
+  const [selectionUnavailable, setSelectionUnavailable] = useState(false);
   const evidenceOverlay = true;
   const evidenceTriggerRef = useRef<HTMLElement | null>(null);
   const receiptsButtonRef = useRef<HTMLButtonElement>(null);
+
+  const writeInvestigationSelection = useCallback((field: string, value: string | null) => {
+    if (!retained) return;
+    const url = new URL(window.location.href);
+    if (value) url.searchParams.set(field, value); else url.searchParams.delete(field);
+    window.history.replaceState(window.history.state, "", url.toString());
+    window.dispatchEvent(new Event("mmx:shell-location"));
+  }, [retained]);
 
   const selectLens = useCallback((next: Lens) => {
     // Keep the outer research shell stable. The active lens swaps in place and
     // must not scroll .fin-body (or any ancestor) as a side effect.
     setLens(next);
-  }, []);
+    writeInvestigationSelection("ci_lens", next);
+  }, [writeInvestigationSelection]);
 
   useEffect(() => {
+    if (retained) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- preserve the ordinary owner reset when a verified generation changes.
     setLens("brief");
     setEvidence(null);
-  }, [ticker, result.workspace.generation_id]);
+  }, [ticker, result.workspace.generation_id, retained]);
 
   useEffect(() => {
-    setEvidence(null);
-  }, [zh]);
+    if (!retained) return;
+    const restore = () => {
+      const params = new URLSearchParams(window.location.search);
+      const selectedLens = params.get("ci_lens");
+      setLens(retained && LENSES.includes(selectedLens as Lens) ? selectedLens as Lens : "brief");
+      const id = retained ? params.get("ci_evidence") : null;
+      const candidates = [...presented.reported, ...presented.guidance, ...presented.watch, ...presented.facts, ...presented.deltas, ...presented.completeness];
+      const selected = id ? candidates.find(item => item.id === id) : null;
+      // A URL carries an identifier, never source prose or a source URL. Resolve
+      // evidence only against this freshly authorized immutable workspace.
+      setEvidence(selected ? selectionFromItem(selected) : null);
+      setEvidenceOpen(!!selected);
+      setSelectionUnavailable(!!id && !selected);
+    };
+    restore();
+    window.addEventListener("popstate", restore);
+    return () => window.removeEventListener("popstate", restore);
+  }, [ticker, result.workspace.generation_id, presented, retained]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- translated evidence must belong to the current locale.
+    if (!retained) setEvidence(null);
+  }, [zh, retained]);
 
   useEffect(() => {
     onEvidenceOpenChange?.(evidenceOpen && evidenceOverlay);
@@ -349,14 +388,17 @@ export default function CompanyIntelligenceV2Current({
     if (evidence) return;
     const first = presented.reported[0];
     if (!first) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- initialize the inspector from the newly verified workspace.
     setEvidence(selectionFromItem(first));
   }, [evidence, presented]);
 
   const chooseEvidence = useCallback((selection: CompanyEvidenceSelection) => {
     evidenceTriggerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     setEvidence(selection);
+    setSelectionUnavailable(false);
     setEvidenceOpen(true);
-  }, []);
+    writeInvestigationSelection("ci_evidence", selection.id);
+  }, [writeInvestigationSelection]);
 
   const chooseItem = useCallback((item: EventWorkspacePresentedItem) => {
     chooseEvidence(selectionFromItem(item));
@@ -364,15 +406,18 @@ export default function CompanyIntelligenceV2Current({
 
   const closeEvidence = useCallback(() => {
     setEvidenceOpen(false);
+    writeInvestigationSelection("ci_evidence", null);
     const trigger = evidenceTriggerRef.current ?? receiptsButtonRef.current;
     evidenceTriggerRef.current = null;
     window.requestAnimationFrame(() => trigger?.focus());
-  }, []);
+  }, [writeInvestigationSelection]);
 
   const askBrain = useCallback(() => {
     if (openMastermindBrainForSymbol(ticker)) return;
-    window.location.assign(`/terminal?symbol=${encodeURIComponent(ticker)}&ai=1`);
-  }, [ticker]);
+    window.location.assign(retained
+      ? sharedShellTerminalHref(window.location.href, ticker, true)
+      : `/terminal?symbol=${encodeURIComponent(ticker)}&ai=1`);
+  }, [ticker, retained]);
 
   const displayName = presented.display_name || name || ticker;
   const glance = eventWorkspaceGlanceTitle(presented, zh);
@@ -408,7 +453,7 @@ export default function CompanyIntelligenceV2Current({
     : presented.lifecycle_state === "corrected"
       ? pick(zh, "Corrected", "已更正")
       : pick(zh, "Verified event", "已验证事件");
-  const freshness = result.state === "stale" ? "stale" : "live";
+  const freshness = result.state === "stale" ? "stale" : retained ? "retained" : "live";
   const eventAlias = tickerPeriodAliasFromWorkspace(result.workspace, ticker);
   const briefMetrics = usableBriefItems(presented.facts, presented.reported, presented.guidance).slice(0, 4);
   const briefChanges = usableBriefItems(presented.deltas).slice(0, 3);
@@ -436,6 +481,10 @@ export default function CompanyIntelligenceV2Current({
     presented.facts.filter((item) => item.id !== "fact_questions_count"),
     presented.reported,
   ).slice(0, 4).map(toResultsItem);
+  // The four headline metrics must not hide their native denominator convention.
+  const resultsMetricContext = presented.facts
+    .filter((item) => item.id === "fact_cancellation_rate_denominator" && item.evidence.receipt_state !== "typed_absence")
+    .map((item) => ({ ...toResultsItem(item), label: pick(zh, "Cancellation rate denominator", "取消率分母") }));
   const resultsGuidance = usableBriefItems(presented.guidance).slice(0, 4).map(toResultsItem);
   const resultsCallReadthrough = qaReadthroughItems(result.workspace.qa_exchanges);
   const resultsComparisons: CompanyIntelligenceResultsComparison[] = [];
@@ -637,10 +686,16 @@ export default function CompanyIntelligenceV2Current({
                 <span className="ci-ticker num">{ticker}</span>
                 <span className="fin-tag" style={{ "--c": freshness === "stale" ? "var(--warn)" : "var(--rcpt-exact)" } as React.CSSProperties}>{lifecycleLabel}</span>
               </div>
+              <p className="ci-listing-context" data-ci-listing-context="">
+                <span>{ticker}</span>{" · "}
+                <span>{listing?.mic || pick(zh, "Venue unavailable", "交易场所不可用")}</span>{" · "}
+                <span>{listing?.trading_currency || pick(zh, "Trading currency unavailable", "交易币种不可用")}</span>
+              </p>
               <p data-ci-glance-title="">{pick(zh, "Company Intelligence", "公司情报")} · {glance}</p>
             </div>
           </div>
           <div className="ci-hero-actions">
+            {headerActions}
             <label className="ci-event-select">
               <span>{pick(zh, "Event", "事件")}</span>
               <select
@@ -673,6 +728,7 @@ export default function CompanyIntelligenceV2Current({
             {" "}
             <time className="num" dateTime={presented.event_date}>{fmtDate(presented.event_date)}</time>
           </span>
+          {retained && <span>{pick(zh, "Retained event", "已保留事件版本")}</span>}
           <span>{pick(zh, "Authority", "权限")} <b>{pick(zh, "Context only", "仅供背景参考")}</b></span>
           <span>{pick(zh, EVENT_WORKSPACE_ATTRIBUTION.en, EVENT_WORKSPACE_ATTRIBUTION.zh)}</span>
         </div>
@@ -683,6 +739,7 @@ export default function CompanyIntelligenceV2Current({
         )}
       </header>
 
+      {selectionUnavailable && <p className="ci-inline-empty" role="status">{pick(zh, "The selected evidence is unavailable in this event version. Choose a reported metric or claim to inspect its actual source.", "所选证据不在此事件版本中。请选择报告指标或主张，查看实际来源。")}</p>}
       <nav className="ci-lenses" role="tablist" aria-label={pick(zh, "Company intelligence lenses", "公司情报视图")}>
         {LENSES.map((item) => (
           <button
@@ -749,8 +806,8 @@ export default function CompanyIntelligenceV2Current({
                   </section>
                   <section className="ci-coverage">
                     <div>
-                      <strong>{pick(zh, "Current sources", "当期来源")}</strong>
-                      <p>{pick(zh, "Receipt-backed workspace objects. No v1 overlay is promoted into current-event authority.", "凭证支持的工作区对象。不会将 v1 覆盖层提升为当期事件权限。")}</p>
+                      <strong>{pick(zh, retained ? "Selected event sources" : "Current sources", retained ? "所选事件来源" : "当期来源")}</strong>
+                      <p>{pick(zh, "Receipt-backed workspace objects. No v1 overlay is promoted into this event’s authority.", "凭证支持的工作区对象。不会将 v1 覆盖层提升为此事件的权限。")}</p>
                     </div>
                     <CompanySourceManifest event={stubEvent} v2Sources={presented.sources} onOpenTranscript={(id) => onOpenTx({ id, expected_document_sha256: txSha })} compact />
                   </section>
@@ -766,6 +823,7 @@ export default function CompanyIntelligenceV2Current({
                 periodLabel={presented.period_label}
                 eventDate={presented.event_date}
                 metrics={resultsMetrics}
+                metricContext={resultsMetricContext}
                 guidance={resultsGuidance}
                 callReadthrough={resultsCallReadthrough}
                 comparisons={resultsComparisons}
@@ -848,11 +906,11 @@ export default function CompanyIntelligenceV2Current({
               <div className="ci-lens-heading">
                 <div>
                   <span className="fin-eyebrow">{pick(zh, "HISTORICAL V1 CONTEXT", "历史 v1 背景")}</span>
-                  <h3>{pick(zh, "Does not control the current event", "不控制当期事件")}</h3>
+                  <h3>{pick(zh, "Does not control the selected event", "不控制所选事件")}</h3>
                 </div>
                 <span>{historicalEvents.length} {pick(zh, "rows", "行")}</span>
               </div>
-              <p className="ci-v1-note">{pick(zh, "These older structured-history rows stay available for context. They cannot select the current event, derive current deltas, or stand in as v2 evidence.", "这些较早的结构化历史行仅作背景。它们不能选择当期事件、派生当期变动，或充当 v2 证据。")}</p>
+              <p className="ci-v1-note">{pick(zh, "These structured-history rows remain context. They cannot replace the selected event, derive its deltas, or stand in as v2 evidence.", "这些结构化历史行仅作背景。它们不能替换所选事件、派生其变动，或充当 v2 证据。")}</p>
               {historicalEvents.length ? (
                 <div className="ci-history-wrap">
                   <table className="fin-table ci-history-table ci-history-readonly">
@@ -885,7 +943,7 @@ export default function CompanyIntelligenceV2Current({
               <div className="ci-lens-heading">
                 <div>
                   <span className="fin-eyebrow">{pick(zh, "HISTORICAL V1 TOPICS", "历史 v1 主题")}</span>
-                  <h3>{pick(zh, "Not current-event evidence", "不是当期证据")}</h3>
+                  <h3>{pick(zh, "Not evidence for this event", "不是此事件的证据")}</h3>
                 </div>
                 <span>{v1?.topics.timeline.length ?? 0} {pick(zh, "tracked", "个追踪主题")}</span>
               </div>

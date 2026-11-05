@@ -59,10 +59,20 @@ def run_entry(
         "rm", "cp", "mv", "install", "rsync", "systemctl", "curl",
     ):
         stub = commands / command
-        stub.write_text(
-            '#!/bin/sh\nprintf "unexpected-effect:%s\\n" "$0" >> "$GUARD_TRACE"\nexit 99\n',
-            encoding="utf-8",
-        )
+        body = '#!/bin/sh\nprintf "unexpected-effect:%s\\n" "$0" >> "$GUARD_TRACE"\nexit 99\n'
+        if name == "terminal-build.sh" and command == "mkdir":
+            # The shared build lock is now the first mutable owner boundary.
+            # Recognize only that exact invocation and stop there without making
+            # a directory. Moving the volume guard behind it changes event order
+            # and fails this contract; every other command stays denied.
+            body = (
+                '#!/bin/sh\n'
+                'if [ "$#" -eq 2 ] && [ "$1" = -- ] '
+                f'&& [ "$2" = "{terminal}/.terminal-build-resource.lock" ]; then\n'
+                '  printf "build-bootstrap\\n" >> "$GUARD_TRACE"\n  exit 99\nfi\n'
+                'printf "unexpected-effect:%s\\n" "$0" >> "$GUARD_TRACE"\nexit 99\n'
+            )
+        stub.write_text(body, encoding="utf-8")
         stub.chmod(0o755)
     default_args = ["--target-sha", VALID_SHA] if name == "terminal-build.sh" else []
     invocation = [str(script), *(default_args if args is None else args)]
@@ -91,7 +101,7 @@ def test_installed_guard_failure_stops_entry_before_effects(
 
 @pytest.mark.parametrize("name", ["terminal-data", "terminal-build.sh"])
 @pytest.mark.parametrize("state", ["accept", "absent"])
-def test_accepted_or_absent_guard_retains_existing_bootstrap(
+def test_accepted_or_absent_guard_reaches_entry_bootstrap(
     tmp_path: Path, name: str, state: str
 ) -> None:
     result, events = run_entry(tmp_path, name, state)
@@ -100,8 +110,11 @@ def test_accepted_or_absent_guard_retains_existing_bootstrap(
         assert result.returncode == 91, result.stdout + result.stderr
         expected.append("data-bootstrap")
     else:
-        assert result.returncode == 1, result.stdout + result.stderr
-        assert "canonical checkout missing" in result.stdout
+        # The fixture deliberately refuses the first shared-lock mkdir. The
+        # owner must reach it only after the accepted/absent volume guard.
+        assert result.returncode == 73, result.stdout + result.stderr
+        assert "shared build lock path" in result.stdout
+        expected.append("build-bootstrap")
     assert events == expected
 
 

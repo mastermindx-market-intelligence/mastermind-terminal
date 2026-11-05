@@ -1,5 +1,6 @@
-import { describe, expect, it } from "vitest";
-import { polygonLookbackDays, polygonUsSessionBaseMinutes } from "../intradaySources";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { fetchIntraday, polygonLookbackDays, polygonUsSessionBaseMinutes } from "../intradaySources";
+afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
 
 describe("polygonLookbackDays", () => {
   it("keeps every US hourly timeframe inside Polygon's aggregate limit", () => {
@@ -30,4 +31,27 @@ describe("polygonUsSessionBaseMinutes", () => {
     expect(polygonUsSessionBaseMinutes(60)).toBe(30);
     expect(polygonUsSessionBaseMinutes(240)).toBe(30);
   });
+});
+
+it("propagates the daytime deadline signal through the actual Polygon response body", async () => {
+  vi.stubEnv("POLYGON_API_KEY", "unit-test-key");
+  const controller = new AbortController();
+  const reason = new Error("bounded fetch ended");
+  let received: AbortSignal | undefined;
+  let bodyStarted = false;
+  vi.stubGlobal("fetch", vi.fn(async (_url: string, options: RequestInit) => {
+    received = options.signal as AbortSignal;
+    return { ok: true, json: () => {
+      bodyStarted = true;
+      return new Promise((_resolve, reject) => received?.addEventListener("abort",
+        () => reject(received?.reason), { once: true }));
+    } };
+  }));
+  const response = fetchIntraday("AMD", "5m", true, undefined, true, controller.signal);
+  const rejection = expect(response).rejects.toBe(reason);
+  await vi.waitFor(() => expect(bodyStarted).toBe(true));
+  expect(received).toBe(controller.signal);
+  controller.abort(reason);
+  await rejection;
+  expect(fetch).toHaveBeenCalledTimes(1);
 });

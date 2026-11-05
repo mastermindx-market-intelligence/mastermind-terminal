@@ -437,6 +437,101 @@ export function emFrame(
 
 // ─── R0.4 — gamma topology (Tier A) ──────────────────────────────────────────────────
 
+/** A selected, already-normalized strike row. These are $mn, never raw Greeks. */
+export interface ExposureNodeInput {
+  strike: number;
+  netMn: number | null | undefined;
+  callMn?: number | null;
+  putMn?: number | null;
+  /** Qualified producer gross, summed before any side/expiry cancellation. */
+  grossMn?: number | null;
+}
+
+export interface ExposureNode {
+  strike: number;
+  netMn: number | null;
+  grossMn: number | null;
+  grossShare: number | null;
+}
+
+export interface ExposureNodeSummary {
+  nodes: ExposureNode[];
+  netTotalMn: number | null;
+  grossTotalMn: number | null;
+  netKnown: number;
+  grossKnown: number;
+  offered: number;
+  fullCount: number | null;
+  population: "full" | "window" | "unknown";
+  netLeader: ExposureNode | null;
+  grossLeader: ExposureNode | null;
+  netTies: number[];
+  grossTies: number[];
+  invalid: boolean;
+  /** Only measured contributions are summed; totals and leaders are provisional. */
+  coveredOnly?: true;
+}
+
+/**
+ * Gross and signed-net concentration over ONE analytical population. This is a
+ * display derivation, not contract-coverage or inventory certification. A missing
+ * side withholds gross ranking; a missing net withholds net ranking. A viewport
+ * is deliberately not an input. Full count describes strikes, never contracts.
+ */
+export function exposureNodes(
+  rows: readonly ExposureNodeInput[] | null | undefined,
+  spot: number | null,
+  fullCount?: number | null,
+  basis: "complete" | "covered" = "complete",
+): ExposureNodeSummary {
+  const offered = rows?.length ?? 0;
+  const full = isNum(fullCount) && Number.isInteger(fullCount) && fullCount > 0 && fullCount >= offered ? fullCount : null;
+  const result: ExposureNodeSummary = {
+    nodes: [], netTotalMn: null, grossTotalMn: null, netKnown: 0, grossKnown: 0,
+    offered, fullCount: full, population: full == null ? "unknown" : full === offered ? "full" : "window",
+    netLeader: null, grossLeader: null, netTies: [], grossTies: [], invalid: false,
+    ...(basis === "covered" ? { coveredOnly: true as const } : {}),
+  };
+  const seen = new Set<number>();
+  for (const row of rows ?? []) {
+    if (!row || !isNum(row.strike) || row.strike <= 0 || seen.has(row.strike)) {
+      return { ...result, invalid: true };
+    }
+    seen.add(row.strike);
+  }
+  if (!offered) return result;
+  result.nodes = (rows ?? []).map((row) => {
+    const gross = "grossMn" in row ? row.grossMn : isNum(row.callMn) && isNum(row.putMn) ? Math.abs(row.callMn) + Math.abs(row.putMn) : null;
+    return { strike: row.strike, netMn: isNum(row.netMn) ? row.netMn === 0 ? 0 : row.netMn : null,
+      grossMn: isNum(gross) && gross >= 0 ? gross : null, grossShare: null };
+  }).sort((a, b) => a.strike - b.strike);
+  result.netKnown = result.nodes.filter((n) => n.netMn != null).length;
+  result.grossKnown = result.nodes.filter((n) => n.grossMn != null).length;
+  const sum = (key: "netMn" | "grossMn", known: number) => {
+    if (!known || (basis === "complete" && known !== offered)) return null;
+    const value = result.nodes.filter(node => node[key] != null).reduce((total, node) => total + node[key]!, 0);
+    return isNum(value) ? value === 0 ? 0 : value : null;
+  };
+  result.netTotalMn = sum("netMn", result.netKnown);
+  result.grossTotalMn = sum("grossMn", result.grossKnown);
+  const leader = (key: "netMn" | "grossMn", complete: boolean): [ExposureNode | null, number[]] => {
+    if (!complete) return [null, []];
+    const measured = result.nodes.filter(n => n[key] != null);
+    const maximum = Math.max(...measured.map((n) => Math.abs(n[key]!)));
+    if (maximum === 0) return [null, []];
+    const tied = measured.filter((n) => Math.abs(n[key]!) === maximum);
+    const ties = tied.map((n) => n.strike);
+    tied.sort((a, b) => (isNum(spot) && spot > 0 ? Math.abs(a.strike - spot) - Math.abs(b.strike - spot) : 0) || a.strike - b.strike);
+    return [tied[0], ties];
+  };
+  [result.netLeader, result.netTies] = leader("netMn", result.netTotalMn != null);
+  [result.grossLeader, result.grossTies] = leader("grossMn", result.grossTotalMn != null);
+  if (result.grossTotalMn != null && result.grossTotalMn > 0) {
+    for (const node of result.nodes) if (node.grossMn != null) node.grossShare = node.grossMn / result.grossTotalMn;
+  }
+  return result;
+}
+
 export interface TopologyResult {
   /** argmax over strikes of |gamma_call| + |gamma_put| — the stickiest magnet candidate. */
   absGammaStrike: number | null;

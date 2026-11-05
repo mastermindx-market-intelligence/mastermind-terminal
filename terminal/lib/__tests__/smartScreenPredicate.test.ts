@@ -40,7 +40,7 @@ describe("normalizeDefinition — rejects instead of ignoring", () => {
   const leaf = { f: "chg", op: "gte", v: 3 };
   const cases: [string, unknown, string][] = [
     ["not an object", "chg > 3", "not_object"],
-    ["a newer grammar", { ...def({ all: [leaf] }), grammar: 2 }, "grammar_newer"],
+    ["a newer grammar", { ...def({ all: [leaf] }), grammar: 3 }, "grammar_newer"],
     ["a missing grammar", { scope: { markets: "all", asset: null, unpriced: false }, where: { all: [leaf] } }, "grammar_invalid"],
     ["an unknown top-level key", { ...def({ all: [leaf] }), score: "x" }, "unknown_key"],
     ["an unknown field", def({ all: [{ f: "pe", op: "gte", v: 3 }] }), "unknown_field"],
