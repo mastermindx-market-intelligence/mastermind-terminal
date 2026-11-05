@@ -116,3 +116,32 @@ test("chrome, foreign and other-symbol reads never substitute for the actual NVD
   assert.equal(counts.componentFundUnavailable, 0);
   await assert.rejects(counts.waitForBusinessRequest(1), { message: "F11_BUSINESS_REQUEST_BOUNDARY_NOT_EXERCISED" });
 });
+
+// The original hosted failure had one non-200 but omitted its resource role/status.
+test("failed allowed responses retain bounded public resource family/type/status only", async () => {
+  const context = contextDouble(); const counts = await installCaptureBoundary(context);
+  const routes = [
+    requestDouble("http://127.0.0.1:3565/_next/static/chunks/app.js?private=never-retain", "script", 404),
+    requestDouble("http://127.0.0.1:3565/favicon.ico?private=never-retain", "image", 307),
+  ];
+  for (const route of routes) await context.registered.request(route);
+  assert.deepEqual(counts.failedAllowedResponses, [
+    { family: "next-script", resourceType: "script", status: 404 },
+    { family: "static-image", resourceType: "image", status: 307 },
+  ]);
+  assert.equal(JSON.stringify(counts).includes("never-retain"), false);
+  assert.equal(JSON.stringify(counts).includes("http"), false);
+  for (const route of routes) assert.deepEqual(route.calls.map(c => c[0]), ["fetch", "abort"]);
+  assert.equal(counts.componentFundUnavailable, 0);
+});
+test("failed allowed response diagnostic cap never weakens200/redirect rejection or eventguard", async () => {
+  const context = contextDouble(); const counts = await installCaptureBoundary(context);
+  for (let i=0;i<12;i++) await context.registered.request(requestDouble("http://127.0.0.1:3565/_next/static/app.js", "script", 503));
+  assert.equal(counts.failedAllowedResponses.length, 8);
+  assert.equal(counts.redirectOrBadStatus, 12);
+  const good=requestDouble("http://127.0.0.1:3565/_next/static/app.js", "script", 200);
+  await context.registered.request(good);
+  assert.deepEqual(good.calls.map(c => c[0]), ["fetch", "fulfill"]);
+  assert.equal(counts.failedAllowedResponses.length, 8);
+  await assert.rejects(counts.waitForBusinessRequest(1), {message:"F11_BUSINESS_REQUEST_BOUNDARY_NOT_EXERCISED"});
+});

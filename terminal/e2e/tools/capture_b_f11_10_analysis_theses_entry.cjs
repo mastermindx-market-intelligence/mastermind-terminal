@@ -153,7 +153,7 @@ async function assertNoNextIndicator(page, file) {
 
 async function installCaptureBoundary(context, base = BASE) {
   const { classifyRequest, typedUnavailablePayload } = require("./f11_provider_closed_policy.cjs");
-  const counts = { forwarded: 0, unavailable: 0, businessUnavailable: 0, componentFundUnavailable: 0, aborted: 0, webSocketsBlocked: 0, redirectOrBadStatus: 0 };
+  const counts = { forwarded: 0, unavailable: 0, businessUnavailable: 0, componentFundUnavailable: 0, aborted: 0, webSocketsBlocked: 0, redirectOrBadStatus: 0, failedAllowedResponses: [] };
   let signalBusinessRequest;
   const observedBusinessRequest = new Promise(resolve => { signalBusinessRequest = resolve; });
   Object.defineProperty(counts, "waitForBusinessRequest", { value: async (timeoutMs = 10_000) => {
@@ -188,8 +188,16 @@ async function installCaptureBoundary(context, base = BASE) {
       // Only policy-qualified loopback documents/assets reach this call. Do not
       // allow a redirect from an otherwise allowed URL to escape the boundary.
       const response = await route.fetch({ maxRedirects: 0 });
-      if (response.status() !== 200) {
+      const status = response.status();
+      if (status !== 200) {
         counts.redirectOrBadStatus++;
+        // Diagnose a failed public asset without retaining URLs, queries,
+        // headers or bodies. The positive200/event guards remain unchanged.
+        if (counts.failedAllowedResponses.length < 8) {
+          const resourceType = request.resourceType();
+          const families = { document: "analysis-document", script: "next-script", stylesheet: "next-style", font: "next-font", image: "static-image", manifest: "static-manifest" };
+          counts.failedAllowedResponses.push({ family: families[resourceType] || "unknown", resourceType: Object.hasOwn(families, resourceType) ? resourceType : "unknown", status });
+        }
         return route.abort("blockedbyclient");
       }
       counts.forwarded++;
