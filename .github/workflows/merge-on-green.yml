@@ -49,11 +49,7 @@ jobs:
         env:
           GH_REPO: ${{ github.repository }}
           MERGE_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Prospective enrollment: native enqueue refuses absent/unqualified
-          # user credentials; ordinary reads and the legacy path keep MERGE_TOKEN.
-          NATIVE_ENQUEUE_TOKEN: ${{ secrets.ADMIN_GH_TOKEN }}
-          NATIVE_ENQUEUE_ISSUER_LOGIN: ${{ vars.NATIVE_ENQUEUE_ISSUER_LOGIN }}
-          NATIVE_ENQUEUE_ISSUER_ID: ${{ vars.NATIVE_ENQUEUE_ISSUER_ID }}
-          GITHUB_REPOSITORY_ID: ${{ github.repository_id }}
+          # This sweep reports queue readiness, never native-user admission.
+          # Keep user enqueue credentials out of its environment.
           TRIGGER_PR_NUMBER: ${{ github.event.pull_request.number }}
         run: python3 scripts/merge_on_green.py
