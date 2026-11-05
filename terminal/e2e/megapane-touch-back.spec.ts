@@ -59,6 +59,8 @@ for (const { lang, label } of [
 
     const pane = await openResearchPane(page, true);
     const viewport = page.viewportSize()!;
+    await expect(pane.locator(".fin-family-mobile-trigger")).toBeVisible();
+    await expect(pane.locator("#fin-active-panel")).toHaveAccessibleName(/\S/);
 
     // The trap this spec guards: the pane covers the whole viewport, mobilebar included.
     const paneBox = await pane.boundingBox();
@@ -101,6 +103,8 @@ for (const { lang, label } of [
 test("desktop keeps the in-flow research pane without the touch exit", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "desktop-only contract");
   const pane = await openResearchPane(page, false);
+  await expect(pane.locator(".fin-family-tabs [data-fin-family]")).toHaveCount(7);
+  await expect(pane.locator("#fin-active-panel")).toHaveAccessibleName(/\S/);
 
   await expect.poll(() => pane.evaluate((el) => getComputedStyle(el).position)).toBe("relative");
   // Rendered (the chart hosts this pane) but switched off by the ≥861px rule, not merely absent.
@@ -124,8 +128,13 @@ test("/analysis keeps its own chrome without the chart's touch exit", async ({ p
   await expect(page.locator(".sym-pick strong")).toHaveText("NVDA", { timeout: 45_000 });
   await expect(page.locator(".fin-pane")).toBeVisible({ timeout: 20_000 });
   await expect(page.locator(".fin-pane .fin-head")).toHaveCount(0);
-  // Exactly one exit on the page, and it is the context bar's own.
-  const backs = page.getByRole("button", { name: "Back to chart", exact: true });
-  await expect(backs).toHaveCount(1);
-  await expect(page.locator(".analysis-context-bar").getByRole("button", { name: "Back to chart", exact: true })).toBeVisible();
+  // Standalone Analysis uses the visible mobile navigation; chart-hosted exits above remain.
+  await expect(page.locator(".analysis-context-back")).toHaveCount(0);
+  await page.locator(".mobilebar").getByRole("button", { name: "Menu", exact: true }).tap();
+  const drawer = page.locator(".m-drawer.open");
+  await expect(drawer).toBeVisible();
+  const chart = drawer.locator(".m-nav").getByRole("link", { name: "Chart", exact: true });
+  await expect(chart).toBeVisible();
+  await chart.tap();
+  await expect(page).toHaveURL(/\/terminal\?symbol=NVDA/);
 });

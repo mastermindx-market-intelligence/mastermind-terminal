@@ -14,13 +14,14 @@
  */
 "use strict";
 
-const { spawn, execFileSync } = require("node:child_process");
+const { execFileSync } = require("node:child_process");
 const { createHash } = require("node:crypto");
 const { mkdirSync, readdirSync, readFileSync, writeFileSync } = require("node:fs");
 const { join } = require("node:path");
 const { chromium, expect } = require("@playwright/test");
 const { warmFixtureRoutes } = require("../fixtureWarmup.cjs");
 const evidence = require("./visualEvidence.cjs");
+const { captureOptions, startLegacyServer, settleLegacyServer } = require("./capture_ci_evidence.cjs");
 const IMMUTABLE_ID = process.env.TERMINAL_PL6_EVIDENCE_OPERATION_ID;
 let immutablePng = null;
 
@@ -34,6 +35,10 @@ const LAYOUT_FILES = [
   "terminal/components/SearchModal.tsx",
   "terminal/components/StockAnalysis.tsx",
   "terminal/components/workspaces/AnalysisWorkspace.tsx",
+  "terminal/components/fin/ResearchWorkspaceNav.tsx",
+  "terminal/components/fin/MegaPane.tsx",
+  "terminal/app/analysis-nav-vnext.css",
+  "terminal/app/fin.css",
   "terminal/components/ChartPanel.tsx",
   "terminal/components/DayRange.tsx",
   "terminal/lib/plainLabels.ts",
@@ -72,43 +77,7 @@ function cropName(surface, width, lang) {
   return `${surface}-${width}${lang === "zh" ? "-zh" : ""}.png`;
 }
 
-function startServer() {
-  const env = {
-    ...process.env,
-    ANALYSIS_LOCAL_PREVIEW: "1",
-    ADMIN_DEV: "1",
-    TERMINAL_E2E_FIXTURE: "1",
-    TERMINAL_E2E_EMAIL: "responsive@example.com",
-    TERMINAL_E2E_ENTITLEMENT: "unlimited",
-    RATE_LIMIT_MAX: "100000",
-    HUB_REALTIME_QUOTES: "1",
-    FLOW_FIXTURE: "1",
-    NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: "fixture-anon-key",
-  };
-  const child = spawn("npm", ["run", "dev", "--", "--hostname", "127.0.0.1", "--port", String(PORT)], {
-    cwd: ROOT,
-    env,
-    stdio: ["ignore", "pipe", "pipe"],
-    detached: true,
-  });
-  child.stdout.on("data", (buf) => {
-    const line = String(buf);
-    if (/Ready in/.test(line)) child.captureReady = true;
-    if (/Ready|compiled|error|Error/i.test(line)) process.stdout.write(`[dev] ${line}`);
-  });
-  child.stderr.on("data", (buf) => process.stderr.write(`[dev:err] ${buf}`));
-  return child;
-}
-
-function stopServer(child) {
-  if (!child || !child.pid) return;
-  try {
-    process.kill(-child.pid, "SIGTERM");
-  } catch {
-    try { child.kill("SIGTERM"); } catch { /* already gone */ }
-  }
-}
+function startServer() { return startLegacyServer(ROOT, PORT); }
 
 function ownedServer(child) {
   if (!child || child.exitCode !== null || child.signalCode !== null) throw new Error("CAPTURE_SERVER_EXITED");
@@ -331,9 +300,9 @@ async function captureAnalysis(page, width, lang, outPath) {
   await shell.waitFor({ state: "visible", timeout: 45_000 });
   // The server renders English and LangProvider applies mm.lang only after hydration, so a
   // visible shell can still carry the SSR language for seconds under load. Wait for the
-  // hydrated back-link label (backToChart) like the other surfaces wait for their own strings.
-  const backLabel = lang === "zh" ? "返回图表" : "Back to chart";
-  await shell.getByText(backLabel, { exact: true }).first().waitFor({ state: "visible", timeout: 45_000 });
+  // retained company Theses control; the standalone duplicate Back button is retired.
+  const thesesLabel = lang === "zh" ? "你的研究论点：SPY" : "Your theses on SPY";
+  await shell.getByRole("link", { name: thesesLabel, exact: true }).waitFor({ state: "visible", timeout: 45_000 });
   const bar = page.locator(".analysis-context-bar").first();
   const target = (await bar.count()) && (await bar.isVisible().catch(() => false)) ? bar : shell;
   await cropLocator(page, target, outPath, 12);
@@ -378,6 +347,8 @@ function shouldCapture(surfaceName, width, lang) {
 }
 
 async function main() {
+  const captureOptionsAxis = process.env.TERMINAL_CI_OPTIONS_AXIS_CAPTURE === "1";
+  if (captureOptionsAxis && (!IMMUTABLE_ID || ONLY.length)) throw new Error("CI_OPTIONS_REQUIRES_FULL_PL6");
   const capturedAtHead = currentGitHead();
   const operation = IMMUTABLE_ID === undefined ? null : evidence.beginOperation({ repoRoot: REPO, packet: "pl6", operationId: IMMUTABLE_ID });
   const executionRows = [];
@@ -429,8 +400,9 @@ async function main() {
     } finally {
       await browser.close();
     }
+    if (captureOptionsAxis && failed === 0) await captureOptions({ server: child, ownedServer, baseURL: BASE, terminal: ROOT });
   } finally {
-    stopServer(child);
+    await settleLegacyServer(child);
   }
 
   if (operation && failed) evidence.writePayload(operation, "failed-execution.json", Buffer.from(evidence.canonical({ schema: "terminal.pl6-execution.v1", cases: executionRows, failed })));

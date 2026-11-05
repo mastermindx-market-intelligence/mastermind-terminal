@@ -9,6 +9,8 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from "reac
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import MegaPane, { FIN_PAGES as FIN_PAGE_LIST, type FinPage } from "@/components/fin/MegaPane";
+import ResearchWorkspaceNav from "@/components/fin/ResearchWorkspaceNav";
+import "../../app/analysis-nav-vnext.css";
 import { getFund, getBars, type Fund, type Bar } from "@/lib/fund";
 import { getJSON } from "@/lib/dataCache";
 import { useLang, useT } from "@/lib/i18n";
@@ -293,13 +295,7 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
     // nav underneath itself — see the scoped block in app/fin.css.
     <div className="main2 ws-shell analysis-shell" role="main" id="shared-shell-content" tabIndex={-1}>
       {marketOntologyContext && <MarketOntologyContextStrip context={marketOntologyContext} />}
-      <div className="analysis-context-bar">
-        {!invalidSymbol && <button type="button" className="analysis-context-back" onClick={onClose}>
-          <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden>
-            <path d="M15 18l-6-6 6-6" />
-          </svg>
-          {t("backToChart")}
-        </button>}
+      <div className={`analysis-context-bar${sharedPresentation ? " analysis-context-bar--shared" : ""}`}>
         {/* The identity block IS the switcher. Two controls that both name the current company —
             a read-only chip beside a "switch to" field — is one more than the bar needs, and the
             chart already established that tapping the ticker is how you change it. */}
@@ -307,7 +303,7 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
           scope={sharedPresentation ? "companies" : "symbols"}
           symbol={contextSymbol}
           mark={invalidSymbol ? "!" : undefined}
-          eyebrow={pick(zh, "RESEARCH WORKSPACE", "研究工作区")}
+          eyebrow=""
           label={pick(zh, "Change symbol", "切换标的")}
           open={pickerOpen}
           onOpenChange={setPickerOpen}
@@ -316,14 +312,22 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
           trackSource="analysis-search"
           className={invalidSymbol ? "sym-pick--invalid" : undefined}
         />
+        <ResearchWorkspaceNav page={page} zh={zh} onPage={onPage} variant="families" />
+        <div className="analysis-context-actions">
         <div className="analysis-context-freshness" aria-label={t("wsCompanyResearch")}>
           <i />
           <span>{t("wsCompanyResearch")}</span>
         </div>
-        {!invalidSymbol && sharedPresentation && <button type="button" className="analysis-context-chart" onClick={onClose}>
-          {pick(zh, "Open current chart", "打开当前图表")} <span aria-hidden="true">↗</span>
+        {!invalidSymbol && sharedPresentation && <button type="button" className="analysis-context-chart" onClick={onClose} aria-label={pick(zh, "Open current chart", "打开当前图表")}>
+          <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><path d="M6 18L18 6M6 6h12v12" /></svg>
+          <span>{pick(zh, "Open current chart", "打开当前图表")}</span>
         </button>}
-        {!invalidSymbol && <Link className="analysis-context-theses" href={`/analysis?view=investigations&symbol=${encodeURIComponent(sym)}`}>{pick(zh, "Saved research", "已保存研究")}</Link>}
+        {!invalidSymbol && (
+          <Link className="analysis-context-theses analysis-context-saved" href={`/analysis?view=investigations&symbol=${encodeURIComponent(sym)}`} aria-label={pick(zh, "Saved research", "已保存研究")}>
+            <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><path d="M4 5h16v14H4zM8 9h8M8 13h6" /></svg>
+            <span>{pick(zh, "Saved research", "已保存研究")}</span>
+          </Link>
+        )}
         {!invalidSymbol && (
           <Link
             href={thesesHref}
@@ -333,9 +337,18 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
             <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true">
               <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2z" />
             </svg>
-            {t("wsOpenTheses")}
+            <span>{t("wsOpenTheses")}</span>
           </Link>
         )}
+        </div>
+        <details className="analysis-context-more">
+          <summary aria-label={pick(zh, "More research actions", "更多研究操作")}>···</summary>
+          <div className="analysis-context-more-menu">
+            {!invalidSymbol && sharedPresentation && <button type="button" onClick={onClose}>{pick(zh, "Open current chart", "打开当前图表")}</button>}
+            {!invalidSymbol && <Link href={`/analysis?view=investigations&symbol=${encodeURIComponent(sym)}`}>{pick(zh, "Saved research", "已保存研究")}</Link>}
+            {!invalidSymbol && <Link href={thesesHref}>{t("wsOpenTheses")}</Link>}
+          </div>
+        </details>
       </div>
 
       {!invalidSymbol && companySearchQuery !== null && (

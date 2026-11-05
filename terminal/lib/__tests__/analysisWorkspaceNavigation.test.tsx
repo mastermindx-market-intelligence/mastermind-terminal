@@ -50,6 +50,17 @@ describe("reused Company route identity",()=>{
   location("symbol=NVDA&page=intelligence");state.fund.mockResolvedValue({ticker:"NVDA"});await render();
   expect(host.querySelector("[data-company]")?.getAttribute("data-company")).toBe("NVDA");
  });
+ it("keeps the shared chart action attached to the current company and return context",async()=>{
+  state.fund.mockResolvedValue({ticker:"NVDA"});
+  location("symbol=NVDA&page=earnings&ci_event=event-1");await render();
+  const action=host.querySelector(".analysis-context-chart") as HTMLButtonElement;
+  expect(action?.getAttribute("aria-label")).toBe("Open current chart");
+  expect(host.querySelector(".analysis-context-back")).toBeNull();
+  await act(async()=>action.click());
+  const chart=new URL(state.push.mock.calls.at(-1)![0],window.location.href);
+  expect(chart.searchParams.get("symbol")).toBe("NVDA");
+  expect(chart.searchParams.get("ret")).toBe(window.location.href);
+ });
  it("carries the supported investigation URL when opening the current chart",async()=>{
   state.fund.mockResolvedValue({ticker:"NVDA"});
   location("symbol=NVDA&page=intelligence&ci_event=event-1&ci_lens=results");await render();

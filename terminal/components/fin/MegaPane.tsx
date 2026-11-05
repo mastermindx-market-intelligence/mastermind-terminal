@@ -49,7 +49,7 @@ import SharedShellCompanyIntelligence from "./SharedShellCompanyIntelligence";
 import RegionalIntelligenceWorkspace from "./RegionalIntelligenceWorkspace";
 import { useOptionalSharedShellPresentation } from "@/components/chrome/shared-shell/SharedShellPresentation";
 import FinComparePage from "./FinComparePage";
-import ResearchWorkspaceNav from "./ResearchWorkspaceNav";
+import ResearchWorkspaceNav, { researchPageLabel } from "./ResearchWorkspaceNav";
 import { isTranscriptId } from "../../lib/transcripts";
 import type { TranscriptOpenTarget } from "../../lib/transcriptSearch";
 import { writeTranscriptCompareParams } from "../../lib/transcriptCompare";
@@ -333,10 +333,10 @@ export default function MegaPane({
           </div>
         )}
 
-        <ResearchWorkspaceNav page={page} zh={zh} onPage={onPage} />
+        <ResearchWorkspaceNav page={page} zh={zh} onPage={onPage} variant={workspace && host === "route" && !chartHosted ? "local" : "combined"} />
 
         {/* ── body ── */}
-        <div className="fin-body" key={page} id="fin-active-panel" role="tabpanel" aria-labelledby={`fin-tab-${page}`}>
+        <div className="fin-body" key={page} id="fin-active-panel" role="tabpanel" aria-label={researchPageLabel(page, zh)}>
           {page === "overview" && <OverviewPage sym={sym} fund={fund} name={displayName} onNavigate={navigate} />}
           {page === "intelligence" && (
             // The regional snapshot and the incumbent event view share this one mount, so the
