@@ -6,7 +6,7 @@
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/app/globals.css: "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517"
-  terminal/components/gexdesk/GexDeskView.tsx: "391513c29185cbcce2d9a121ae60d6413ccd5bba2fd89ebc5046bf48a5ebff2b"
+  terminal/components/gexdesk/GexDeskView.tsx: "45e534f221754d1bf3a3214d9a1cbaa4e297623482cb0c9832f8e904ed944bb9"
   terminal/components/gexdesk/HeatSeekerCard.tsx: "308295e2b0143fe933948c97a14584e1e0d1eff9249a58104dd3587a2642c93a"
   terminal/components/gexdesk/MarketStateCard.tsx: "069c4a2f1a5f53e8f611e3231b78751948cc0264c8af6efd167f7b3e4902bbe2"
   terminal/components/gexdesk/StrikeLadder.tsx: "55dccbef4e3bfebc09477f6d9a0133cf0bc5d70531d32d532e760ff214ed4596"
@@ -362,3 +362,10 @@ sectorArchiveComposition1254:
   report: "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/1254-sector-c82b70d2/result.json"
   reportSha256: "ac3a8f6c0c26d7d01faa8fea3248fd123b437d164046576b6bd02662f78fe16f"
   scope: "Actual scoped recapture on combined Sector and archive source. Both earlier histories and other boards remain unchanged."
+
+labGammaMountedRecapture20261104:
+  sourceHead: "3bd342b59cb3df2cb920725870e41ff582581a48"
+  actualCases: 54
+  qualification: "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/lab-gamma-recapture-20261104.json"
+  qualificationSha256: "58ffdbfc7821e7a59baff21c0afb99b582c9aa0f505bc18539f85fcebcb37955"
+  scope: "Actual scoped GEX/EOD capture; unrelated sources, historical packets and assertions preserved; not production."
