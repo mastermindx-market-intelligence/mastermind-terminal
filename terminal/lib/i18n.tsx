@@ -942,6 +942,11 @@ export const LEX: Record<string, [string, string]> = {
   originOpenRecon: ["Reconstructed — not a traded open", "重建值 — 非实际成交开盘价"],
   originOpenTraded: ["As delivered by the source", "按来源原样提供"],
   originNotPrinted: ["Vendor-adjusted — not a printed price", "数据商复权 — 非实际成交价"],
+  // B1 — the chart trading-currency chip and the origin popover's separate source clock.
+  cfbCurrencyUnknown: ["CCY?", "币种?"],
+  cfbCurrencyAria: ["Trading currency: {code}", "交易币种：{code}"],
+  cfbCurrencyUnavailableAria: ["Trading currency unavailable", "交易币种不可用"],
+  originSourceSession: ["Source last daily session", "来源最近日线交易日"],
   originStatePending: ["Loading data origin…", "正在读取数据来源…"],
   originStateKnown: ["Labelled view: basis and source are known", "已标注视图：基准与来源已知"],
   originStatePartial: ["Labelled view, with caveats below", "已标注视图（注意事项见下）"],

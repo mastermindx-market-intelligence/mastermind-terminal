@@ -223,6 +223,7 @@ export default function ChartFrameBar({
   openGotoRequest = 0,
   symbol,
   dataOrigin,
+  tradingCurrency,
 }: {
   timeframe: string;
   chartApi: ChartEngine | null;
@@ -236,6 +237,10 @@ export default function ChartFrameBar({
   /** Data OS U02: the mounted chart's symbol + its derived origin readout (drives the origin chip). */
   symbol?: string;
   dataOrigin?: DataOrigin | null;
+  /** B1: this listing's trading currency from the fund document (exact ticker + explicit
+   *  3-letter quote_currency), or null while unknown — the chip then says so explicitly
+   *  instead of guessing from the ticker suffix or the statement currency. */
+  tradingCurrency?: string | null;
 }) {
   const t = useT();
   const { lang } = useLang();
@@ -483,6 +488,16 @@ export default function ChartFrameBar({
         {/* Data OS U02 — the origin chip replaces the static ADJ span: label and explanation are
             derived from the OHLC file's view contract, never a hardcoded claim. */}
         <DataOriginChip symbol={symbol} origin={dataOrigin ?? null} />
+        {/* B1 — the trading-currency chip sits beside origin: the fund document's quote_currency
+            for THIS exact listing, or an explicit "CCY?" while unknown. A neutral cfb-chip span
+            reuses the frame bar's existing styling — no new CSS, colors or design system. */}
+        <span
+          className="cfb-chip"
+          data-testid="cfb-currency"
+          aria-label={tradingCurrency
+            ? t("cfbCurrencyAria").replace("{code}", tradingCurrency)
+            : t("cfbCurrencyUnavailableAria")}
+        >{tradingCurrency ?? t("cfbCurrencyUnknown")}</span>
         {/* Gear: quick settings */}
         <div className="cfb-gear-host" ref={gearRef}>
           <button
