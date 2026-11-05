@@ -65,13 +65,15 @@ jobs:
   terminal-unit:
     name: Terminal unit + typecheck (shard)
     runs-on: ubuntu-latest
-    # Existing stages had20min. Add bounded15min browser setup +55min captures
+    # Existing stages had20min. Add bounded15min browser setup +95min captures
     # +5min retention margin. In run42049303027/job127320757815, apt took9m42s
     # and browser downloads finished just past the former10min preparation cap.
-    # This95min allowance preserves downstream budgets; it is not a timing guarantee.
+    # Preserve the55min PL6/VI allowance and add20min each for the existing full
+    # EOD126/GEX114 producers, including their bounded child/server settlement.
+    # This135min allowance preserves downstream budgets; it is not a timing guarantee.
     # Original30-case M2 report took1,018,995ms (~17min) before the24layout cases.
     # See8f1dc846: terminal/docs/pr-crops/terminal-visual-intelligence/asc1233-vi-ci-20261103--report.json.
-    timeout-minutes: 95
+    timeout-minutes: 135
     defaults:
       run:
         working-directory: terminal
@@ -108,7 +110,7 @@ jobs:
         timeout-minutes: 15
         run: npx playwright install --with-deps chromium
       - name: Capture and validate evidence on this checkout
-        timeout-minutes: 55
+        timeout-minutes: 95
         run: node e2e/tools/capture_ci_evidence.cjs
       - run: npm test
         timeout-minutes: 20
@@ -251,6 +253,8 @@ jobs:
             terminal/test-results/
             terminal/docs/pr-crops/b-pl-6-batch-1/ci-${{ github.run_id }}-${{ github.run_attempt }}-*
             terminal/docs/pr-crops/terminal-visual-intelligence/ci-${{ github.run_id }}-${{ github.run_attempt }}-*
+            terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/
+            terminal/docs/pr-crops/gex-levels-heatmap-load-failure/
           if-no-files-found: warn
 
   terminal-e2e:
