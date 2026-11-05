@@ -1,0 +1,33 @@
+"use client";
+// Temporary local verification harness; retained as evidence, not published.
+import { useEffect, useRef, useState } from "react";
+import { notFound } from "next/navigation";
+import SettingsPanel from "@/components/settings/SettingsPanel";
+import { accountIdentity } from "@/lib/accountIdentity";
+import { emptyAccuracyReadout } from "@/lib/personalAccuracy";
+import { applyLang } from "@/lib/i18n";
+import "@/app/settings.css";
+type Pending = { owner: string; url: string; resolve: (r:Response)=>void; done: boolean };
+const ids={A:"8f2c41ba-7d19-4e6a-9c03-5b71ee0a4d22",B:"9f2c41ba-7d19-4e6a-9c03-5b71ee0a4d23",guest:""};
+export default function Harness(){
+ if(process.env.NODE_ENV==="production")notFound();
+ const [ready,setReady]=useState(false),[owner,setOwner]=useState<keyof typeof ids>("A"),[seq,setSeq]=useState(1),[generation,setGeneration]=useState(0),[count,setCount]=useState(0);
+ const [visible,setVisible]=useState(true);
+ const current=useRef("A"), pending=useRef<Pending[]>([]);current.current=owner;
+ useEffect(()=>{const original=window.fetch;
+  window.fetch=((input:RequestInfo|URL,init?:RequestInit)=>{const url=String(input);if(init?.method&&init.method!=="GET")throw new Error("fixture forbids writes");
+   if(url==="/api/accuracy"||url==="/api/teams")return new Promise<Response>(resolve=>{pending.current.push({owner:current.current,url,resolve,done:false});setCount(pending.current.length);});
+   if(url.includes("/accuracy/rollup"))return Promise.resolve(new Response(JSON.stringify({kind:"no_rows",memberCount:url.includes("team-A")?19:7}),{status:200}));
+   if(url.startsWith("/api/"))return Promise.resolve(new Response(JSON.stringify({tier:"free",status:"none"}),{status:200}));
+   return original(input,init);
+  }) as typeof fetch;setReady(true);return()=>{window.fetch=original;};
+ },[]);
+ function settle(who:string,status=200,noTeam=false){for(const r of pending.current.filter(r=>!r.done&&r.owner===who)){r.done=true;const body=r.url==="/api/accuracy"?emptyAccuracyReadout():{teams:noTeam?[]:[{id:`team-${who}`,role:"member"}],truncated:false};r.resolve(new Response(JSON.stringify(status===200?body:{}),{status,headers:{"content-type":"application/json"}}));}}
+ return <><aside aria-label="Fixture controls" style={{position:"fixed",bottom:0,left:0,right:0,zIndex:999999,padding:8,background:"#111",color:"white",display:"flex",gap:8,flexWrap:"wrap"}}>
+ <span>Fixture only; no account writes. Owner {owner}; requests {count}</span>
+ <button onClick={()=>setOwner("A")}>Select A</button><button onClick={()=>setOwner("B")}>Select B</button><button onClick={()=>setOwner("guest")}>Guest</button>
+ <button onClick={()=>settle("A")}>Resolve A</button><button onClick={()=>settle("B")}>Resolve B</button><button onClick={()=>settle("A",503)}>Fail A</button>
+ <button onClick={()=>settle(owner,200,true)}>Resolve current without team</button>
+ <button onClick={()=>{pending.current=[];setCount(0);setOwner("A");setVisible(true);setGeneration(n=>n+1);}}>Reset scenario</button><button onClick={()=>setVisible(false)}>Close panel</button><button onClick={()=>{setVisible(true);setSeq(n=>n+1);}}>Reopen</button><button onClick={()=>applyLang("en")}>EN</button><button onClick={()=>applyLang("zh")}>ZH</button>
+ </aside>{ready&&<SettingsPanel key={generation} visible={visible} openSeq={seq} section="accuracy" onSection={()=>{}} onClose={()=>setVisible(false)} identity={accountIdentity(ids[owner],"fixture@example.test")} user={null} onPatchMeta={()=>{}} onRefreshUser={async()=>{}} devPlan={{tier:"free",status:"none"}} />}</>;
+}

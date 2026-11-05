@@ -1,0 +1,1347 @@
+{
+  "schema": "options-lab.legend-composition.v1",
+  "base_commit": "6369e5fa394aa391de5476d4e255285989882f23",
+  "source_path": "terminal/components/researchlab/OptionsResearchLab.tsx",
+  "source_sha256": "1c340187437fca4f08465622a1f20b445d29def896254a51321d022ec8912ace",
+  "change": "Two existing legend paragraphs moved before ResearchScene; no palette, copy, data, dimensions, renderer, inspector-scroll or Save admission change.",
+  "browser": "Playwright Chromium headless; 4 CSS viewports resized from desktop after setting theme through existing Settings UI; local fixture; no native zoom or production claim",
+  "scope": "Local fixture headless Chromium CSS layout and control reachability; not native150percent zoom, physical mobile, account sync, GPU performance, or production.",
+  "unique_cases": 16,
+  "cases": [
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 1100
+      },
+      "theme": "dark",
+      "lang": "en",
+      "raw_source": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/design-fold-legend-repair-parent-v2",
+      "initial_legend": {
+        "x": 85,
+        "y": 564.484375,
+        "width": 994,
+        "height": 20,
+        "bottom": 584.484375
+      },
+      "initial_legend_hit": true,
+      "initial_canvas": {
+        "x": 85,
+        "y": 663.328125,
+        "width": 994,
+        "height": 400,
+        "bottom": 1063.328125
+      },
+      "after_scroll": {
+        "legend": {
+          "rect": {
+            "x": 85,
+            "y": 564.484375,
+            "width": 994,
+            "height": 20,
+            "bottom": 584.484375
+          },
+          "hit": true
+        },
+        "compare": {
+          "rect": {
+            "x": 1117,
+            "y": 597.4375,
+            "width": 278,
+            "height": 36.84375,
+            "bottom": 634.28125
+          },
+          "hit": true
+        },
+        "save": {
+          "rect": {
+            "x": 1117,
+            "y": 810.09375,
+            "width": 135.453125,
+            "height": 36.84375,
+            "bottom": 846.9375
+          },
+          "hit": true
+        },
+        "saveGap": {
+          "rect": {
+            "x": 1117,
+            "y": 854.9375,
+            "width": 278,
+            "height": 40,
+            "bottom": 894.9375
+          },
+          "hit": true
+        }
+      },
+      "compare_add_and_dismiss": "PASS",
+      "save_disabled_and_explanation_reachable": true,
+      "document_overflow": 0,
+      "page_errors": []
+    },
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 1100
+      },
+      "theme": "light",
+      "lang": "en",
+      "raw_source": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/design-fold-legend-repair-parent-v2",
+      "initial_legend": {
+        "x": 85,
+        "y": 564.484375,
+        "width": 994,
+        "height": 20,
+        "bottom": 584.484375
+      },
+      "initial_legend_hit": true,
+      "initial_canvas": {
+        "x": 85,
+        "y": 663.328125,
+        "width": 994,
+        "height": 400,
+        "bottom": 1063.328125
+      },
+      "after_scroll": {
+        "legend": {
+          "rect": {
+            "x": 85,
+            "y": 564.484375,
+            "width": 994,
+            "height": 20,
+            "bottom": 584.484375
+          },
+          "hit": true
+        },
+        "compare": {
+          "rect": {
+            "x": 1117,
+            "y": 597.4375,
+            "width": 278,
+            "height": 36.84375,
+            "bottom": 634.28125
+          },
+          "hit": true
+        },
+        "save": {
+          "rect": {
+            "x": 1117,
+            "y": 810.09375,
+            "width": 135.453125,
+            "height": 36.84375,
+            "bottom": 846.9375
+          },
+          "hit": true
+        },
+        "saveGap": {
+          "rect": {
+            "x": 1117,
+            "y": 854.9375,
+            "width": 278,
+            "height": 40,
+            "bottom": 894.9375
+          },
+          "hit": true
+        }
+      },
+      "compare_add_and_dismiss": "PASS",
+      "save_disabled_and_explanation_reachable": true,
+      "document_overflow": 0,
+      "page_errors": []
+    },
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 1100
+      },
+      "theme": "dark",
+      "lang": "zh",
+      "raw_source": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/design-fold-legend-repair-parent-v2",
+      "initial_legend": {
+        "x": 85,
+        "y": 564.484375,
+        "width": 994,
+        "height": 20,
+        "bottom": 584.484375
+      },
+      "initial_legend_hit": true,
+      "initial_canvas": {
+        "x": 85,
+        "y": 663.328125,
+        "width": 994,
+        "height": 400,
+        "bottom": 1063.328125
+      },
+      "after_scroll": {
+        "legend": {
+          "rect": {
+            "x": 85,
+            "y": 564.484375,
+            "width": 994,
+            "height": 20,
+            "bottom": 584.484375
+          },
+          "hit": true
+        },
+        "compare": {
+          "rect": {
+            "x": 1117,
+            "y": 597.640625,
+            "width": 278,
+            "height": 36.84375,
+            "bottom": 634.484375
+          },
+          "hit": true
+        },
+        "save": {
+          "rect": {
+            "x": 1117,
+            "y": 810.296875,
+            "width": 77.609375,
+            "height": 36.84375,
+            "bottom": 847.140625
+          },
+          "hit": true
+        },
+        "saveGap": {
+          "rect": {
+            "x": 1117,
+            "y": 855.140625,
+            "width": 278,
+            "height": 20,
+            "bottom": 875.140625
+          },
+          "hit": true
+        }
+      },
+      "compare_add_and_dismiss": "PASS",
+      "save_disabled_and_explanation_reachable": true,
+      "document_overflow": 0,
+      "page_errors": []
+    },
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 1100
+      },
+      "theme": "light",
+      "lang": "zh",
+      "raw_source": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/design-fold-legend-repair-parent-v2",
+      "initial_legend": {
+        "x": 85,
+        "y": 564.484375,
+        "width": 994,
+        "height": 20,
+        "bottom": 584.484375
+      },
+      "initial_legend_hit": true,
+      "initial_canvas": {
+        "x": 85,
+        "y": 663.328125,
+        "width": 994,
+        "height": 400,
+        "bottom": 1063.328125
+      },
+      "after_scroll": {
+        "legend": {
+          "rect": {
+            "x": 85,
+            "y": 564.484375,
+            "width": 994,
+            "height": 20,
+            "bottom": 584.484375
+          },
+          "hit": true
+        },
+        "compare": {
+          "rect": {
+            "x": 1117,
+            "y": 597.640625,
+            "width": 278,
+            "height": 36.84375,
+            "bottom": 634.484375
+          },
+          "hit": true
+        },
+        "save": {
+          "rect": {
+            "x": 1117,
+            "y": 810.296875,
+            "width": 77.609375,
+            "height": 36.84375,
+            "bottom": 847.140625
+          },
+          "hit": true
+        },
+        "saveGap": {
+          "rect": {
+            "x": 1117,
+            "y": 855.140625,
+            "width": 278,
+            "height": 20,
+            "bottom": 875.140625
+          },
+          "hit": true
+        }
+      },
+      "compare_add_and_dismiss": "PASS",
+      "save_disabled_and_explanation_reachable": true,
+      "document_overflow": 0,
+      "page_errors": []
+    },
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "dark",
+      "lang": "en",
+      "raw_source": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/design-fold-legend-repair-parent-v2",
+      "initial_legend": {
+        "x": 85,
+        "y": 564.484375,
+        "width": 994,
+        "height": 20,
+        "bottom": 584.484375
+      },
+      "initial_legend_hit": true,
+      "initial_canvas": {
+        "x": 85,
+        "y": 663.328125,
+        "width": 994,
+        "height": 400,
+        "bottom": 1063.328125
+      },
+      "after_scroll": {
+        "legend": {
+          "rect": {
+            "x": 85,
+            "y": 564.484375,
+            "width": 994,
+            "height": 20,
+            "bottom": 584.484375
+          },
+          "hit": true
+        },
+        "compare": {
+          "rect": {
+            "x": 1117,
+            "y": 497.4375,
+            "width": 278,
+            "height": 36.84375,
+            "bottom": 534.28125
+          },
+          "hit": true
+        },
+        "save": {
+          "rect": {
+            "x": 1117,
+            "y": 710.09375,
+            "width": 135.453125,
+            "height": 36.84375,
+            "bottom": 746.9375
+          },
+          "hit": true
+        },
+        "saveGap": {
+          "rect": {
+            "x": 1117,
+            "y": 754.9375,
+            "width": 278,
+            "height": 40,
+            "bottom": 794.9375
+          },
+          "hit": true
+        }
+      },
+      "compare_add_and_dismiss": "PASS",
+      "save_disabled_and_explanation_reachable": true,
+      "document_overflow": 0,
+      "page_errors": []
+    },
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "light",
+      "lang": "en",
+      "raw_source": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/design-fold-legend-repair-parent-v3",
+      "initial_legend": {
+        "x": 85,
+        "y": 564.484375,
+        "width": 994,
+        "height": 20,
+        "bottom": 584.484375
+      },
+      "initial_legend_hit": true,
+      "initial_canvas": {
+        "x": 85,
+        "y": 663.328125,
+        "width": 994,
+        "height": 400,
+        "bottom": 1063.328125
+      },
+      "after_scroll": {
+        "legend": {
+          "rect": {
+            "x": 85,
+            "y": 564.484375,
+            "width": 994,
+            "height": 20,
+            "bottom": 584.484375
+          },
+          "hit": true
+        },
+        "compare": {
+          "rect": {
+            "x": 1117,
+            "y": 497.4375,
+            "width": 278,
+            "height": 36.84375,
+            "bottom": 534.28125
+          },
+          "hit": true
+        },
+        "save": {
+          "rect": {
+            "x": 1117,
+            "y": 710.09375,
+            "width": 135.453125,
+            "height": 36.84375,
+            "bottom": 746.9375
+          },
+          "hit": true
+        },
+        "saveGap": {
+          "rect": {
+            "x": 1117,
+            "y": 754.9375,
+            "width": 278,
+            "height": 40,
+            "bottom": 794.9375
+          },
+          "hit": true
+        }
+      },
+      "compare_add_and_dismiss": "PASS",
+      "save_disabled_and_explanation_reachable": true,
+      "document_overflow": 0,
+      "page_errors": []
+    },
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "dark",
+      "lang": "zh",
+      "raw_source": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/design-fold-legend-repair-parent-v2",
+      "initial_legend": {
+        "x": 85,
+        "y": 564.484375,
+        "width": 994,
+        "height": 20,
+        "bottom": 584.484375
+      },
+      "initial_legend_hit": true,
+      "initial_canvas": {
+        "x": 85,
+        "y": 663.328125,
+        "width": 994,
+        "height": 400,
+        "bottom": 1063.328125
+      },
+      "after_scroll": {
+        "legend": {
+          "rect": {
+            "x": 85,
+            "y": 564.484375,
+            "width": 994,
+            "height": 20,
+            "bottom": 584.484375
+          },
+          "hit": true
+        },
+        "compare": {
+          "rect": {
+            "x": 1117,
+            "y": 497.640625,
+            "width": 278,
+            "height": 36.84375,
+            "bottom": 534.484375
+          },
+          "hit": true
+        },
+        "save": {
+          "rect": {
+            "x": 1117,
+            "y": 710.296875,
+            "width": 77.609375,
+            "height": 36.84375,
+            "bottom": 747.140625
+          },
+          "hit": true
+        },
+        "saveGap": {
+          "rect": {
+            "x": 1117,
+            "y": 755.140625,
+            "width": 278,
+            "height": 20,
+            "bottom": 775.140625
+          },
+          "hit": true
+        }
+      },
+      "compare_add_and_dismiss": "PASS",
+      "save_disabled_and_explanation_reachable": true,
+      "document_overflow": 0,
+      "page_errors": []
+    },
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "light",
+      "lang": "zh",
+      "raw_source": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/design-fold-legend-repair-parent-v3",
+      "initial_legend": {
+        "x": 85,
+        "y": 564.484375,
+        "width": 994,
+        "height": 20,
+        "bottom": 584.484375
+      },
+      "initial_legend_hit": true,
+      "initial_canvas": {
+        "x": 85,
+        "y": 663.328125,
+        "width": 994,
+        "height": 400,
+        "bottom": 1063.328125
+      },
+      "after_scroll": {
+        "legend": {
+          "rect": {
+            "x": 85,
+            "y": 564.484375,
+            "width": 994,
+            "height": 20,
+            "bottom": 584.484375
+          },
+          "hit": true
+        },
+        "compare": {
+          "rect": {
+            "x": 1117,
+            "y": 497.640625,
+            "width": 278,
+            "height": 36.84375,
+            "bottom": 534.484375
+          },
+          "hit": true
+        },
+        "save": {
+          "rect": {
+            "x": 1117,
+            "y": 710.296875,
+            "width": 77.609375,
+            "height": 36.84375,
+            "bottom": 747.140625
+          },
+          "hit": true
+        },
+        "saveGap": {
+          "rect": {
+            "x": 1117,
+            "y": 755.140625,
+            "width": 278,
+            "height": 20,
+            "bottom": 775.140625
+          },
+          "hit": true
+        }
+      },
+      "compare_add_and_dismiss": "PASS",
+      "save_disabled_and_explanation_reachable": true,
+      "document_overflow": 0,
+      "page_errors": []
+    },
+    {
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "theme": "dark",
+      "lang": "en",
+      "raw_source": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/design-fold-legend-repair-parent-v2",
+      "initial_legend": {
+        "x": 17,
+        "y": 554.484375,
+        "width": 786,
+        "height": 20,
+        "bottom": 574.484375
+      },
+      "initial_legend_hit": true,
+      "initial_canvas": {
+        "x": 17,
+        "y": 680.171875,
+        "width": 786,
+        "height": 340,
+        "bottom": 1020.171875
+      },
+      "after_scroll": {
+        "legend": {
+          "rect": {
+            "x": 17,
+            "y": 554.484375,
+            "width": 786,
+            "height": 20,
+            "bottom": 574.484375
+          },
+          "hit": true
+        },
+        "compare": {
+          "rect": {
+            "x": 37,
+            "y": 571.421875,
+            "width": 746,
+            "height": 36.84375,
+            "bottom": 608.265625
+          },
+          "hit": true
+        },
+        "save": {
+          "rect": {
+            "x": 37,
+            "y": 686.078125,
+            "width": 135.453125,
+            "height": 36.84375,
+            "bottom": 722.921875
+          },
+          "hit": true
+        },
+        "saveGap": {
+          "rect": {
+            "x": 37,
+            "y": 730.921875,
+            "width": 746,
+            "height": 20,
+            "bottom": 750.921875
+          },
+          "hit": true
+        }
+      },
+      "compare_add_and_dismiss": "PASS",
+      "save_disabled_and_explanation_reachable": true,
+      "document_overflow": 0,
+      "page_errors": []
+    },
+    {
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "theme": "light",
+      "lang": "en",
+      "raw_source": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/design-fold-legend-repair-parent-v2",
+      "initial_legend": {
+        "x": 17,
+        "y": 554.484375,
+        "width": 786,
+        "height": 20,
+        "bottom": 574.484375
+      },
+      "initial_legend_hit": true,
+      "initial_canvas": {
+        "x": 17,
+        "y": 680.171875,
+        "width": 786,
+        "height": 340,
+        "bottom": 1020.171875
+      },
+      "after_scroll": {
+        "legend": {
+          "rect": {
+            "x": 17,
+            "y": 554.484375,
+            "width": 786,
+            "height": 20,
+            "bottom": 574.484375
+          },
+          "hit": true
+        },
+        "compare": {
+          "rect": {
+            "x": 37,
+            "y": 571.421875,
+            "width": 746,
+            "height": 36.84375,
+            "bottom": 608.265625
+          },
+          "hit": true
+        },
+        "save": {
+          "rect": {
+            "x": 37,
+            "y": 686.078125,
+            "width": 135.453125,
+            "height": 36.84375,
+            "bottom": 722.921875
+          },
+          "hit": true
+        },
+        "saveGap": {
+          "rect": {
+            "x": 37,
+            "y": 730.921875,
+            "width": 746,
+            "height": 20,
+            "bottom": 750.921875
+          },
+          "hit": true
+        }
+      },
+      "compare_add_and_dismiss": "PASS",
+      "save_disabled_and_explanation_reachable": true,
+      "document_overflow": 0,
+      "page_errors": []
+    },
+    {
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "theme": "dark",
+      "lang": "zh",
+      "raw_source": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/design-fold-legend-repair-parent-v2",
+      "initial_legend": {
+        "x": 17,
+        "y": 554.484375,
+        "width": 786,
+        "height": 20,
+        "bottom": 574.484375
+      },
+      "initial_legend_hit": true,
+      "initial_canvas": {
+        "x": 17,
+        "y": 653.328125,
+        "width": 786,
+        "height": 340,
+        "bottom": 993.328125
+      },
+      "after_scroll": {
+        "legend": {
+          "rect": {
+            "x": 17,
+            "y": 554.484375,
+            "width": 786,
+            "height": 20,
+            "bottom": 574.484375
+          },
+          "hit": true
+        },
+        "compare": {
+          "rect": {
+            "x": 37,
+            "y": 571.578125,
+            "width": 746,
+            "height": 36.84375,
+            "bottom": 608.421875
+          },
+          "hit": true
+        },
+        "save": {
+          "rect": {
+            "x": 37,
+            "y": 686.234375,
+            "width": 77.609375,
+            "height": 36.84375,
+            "bottom": 723.078125
+          },
+          "hit": true
+        },
+        "saveGap": {
+          "rect": {
+            "x": 37,
+            "y": 731.078125,
+            "width": 746,
+            "height": 20,
+            "bottom": 751.078125
+          },
+          "hit": true
+        }
+      },
+      "compare_add_and_dismiss": "PASS",
+      "save_disabled_and_explanation_reachable": true,
+      "document_overflow": 0,
+      "page_errors": []
+    },
+    {
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "theme": "light",
+      "lang": "zh",
+      "raw_source": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/design-fold-legend-repair-parent-v2",
+      "initial_legend": {
+        "x": 17,
+        "y": 554.484375,
+        "width": 786,
+        "height": 20,
+        "bottom": 574.484375
+      },
+      "initial_legend_hit": true,
+      "initial_canvas": {
+        "x": 17,
+        "y": 653.328125,
+        "width": 786,
+        "height": 340,
+        "bottom": 993.328125
+      },
+      "after_scroll": {
+        "legend": {
+          "rect": {
+            "x": 17,
+            "y": 554.484375,
+            "width": 786,
+            "height": 20,
+            "bottom": 574.484375
+          },
+          "hit": true
+        },
+        "compare": {
+          "rect": {
+            "x": 37,
+            "y": 571.578125,
+            "width": 746,
+            "height": 36.84375,
+            "bottom": 608.421875
+          },
+          "hit": true
+        },
+        "save": {
+          "rect": {
+            "x": 37,
+            "y": 686.234375,
+            "width": 77.609375,
+            "height": 36.84375,
+            "bottom": 723.078125
+          },
+          "hit": true
+        },
+        "saveGap": {
+          "rect": {
+            "x": 37,
+            "y": 731.078125,
+            "width": 746,
+            "height": 20,
+            "bottom": 751.078125
+          },
+          "hit": true
+        }
+      },
+      "compare_add_and_dismiss": "PASS",
+      "save_disabled_and_explanation_reachable": true,
+      "document_overflow": 0,
+      "page_errors": []
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "dark",
+      "lang": "en",
+      "raw_source": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/design-fold-legend-repair-parent-v3",
+      "initial_legend": {
+        "x": 13,
+        "y": 35.15625,
+        "width": 364,
+        "height": 60,
+        "bottom": 95.15625
+      },
+      "initial_legend_hit": true,
+      "initial_canvas": {
+        "x": 13,
+        "y": 286.53125,
+        "width": 364,
+        "height": 270,
+        "bottom": 556.53125
+      },
+      "after_scroll": {
+        "legend": {
+          "rect": {
+            "x": 13,
+            "y": 35.15625,
+            "width": 364,
+            "height": 60,
+            "bottom": 95.15625
+          },
+          "hit": true
+        },
+        "compare": {
+          "rect": {
+            "x": 33,
+            "y": 399.53125,
+            "width": 324,
+            "height": 44,
+            "bottom": 443.53125
+          },
+          "hit": true
+        },
+        "save": {
+          "rect": {
+            "x": 33,
+            "y": 528.65625,
+            "width": 135.453125,
+            "height": 44,
+            "bottom": 572.65625
+          },
+          "hit": true
+        },
+        "saveGap": {
+          "rect": {
+            "x": 33,
+            "y": 580.65625,
+            "width": 324,
+            "height": 40,
+            "bottom": 620.65625
+          },
+          "hit": true
+        }
+      },
+      "compare_add_and_dismiss": "PASS",
+      "save_disabled_and_explanation_reachable": true,
+      "document_overflow": 0,
+      "page_errors": []
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "lang": "en",
+      "raw_source": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/design-fold-legend-repair-parent-v3",
+      "initial_legend": {
+        "x": 13,
+        "y": 35.15625,
+        "width": 364,
+        "height": 60,
+        "bottom": 95.15625
+      },
+      "initial_legend_hit": true,
+      "initial_canvas": {
+        "x": 13,
+        "y": 286.53125,
+        "width": 364,
+        "height": 270,
+        "bottom": 556.53125
+      },
+      "after_scroll": {
+        "legend": {
+          "rect": {
+            "x": 13,
+            "y": 35.15625,
+            "width": 364,
+            "height": 60,
+            "bottom": 95.15625
+          },
+          "hit": true
+        },
+        "compare": {
+          "rect": {
+            "x": 33,
+            "y": 399.53125,
+            "width": 324,
+            "height": 44,
+            "bottom": 443.53125
+          },
+          "hit": true
+        },
+        "save": {
+          "rect": {
+            "x": 33,
+            "y": 528.65625,
+            "width": 135.453125,
+            "height": 44,
+            "bottom": 572.65625
+          },
+          "hit": true
+        },
+        "saveGap": {
+          "rect": {
+            "x": 33,
+            "y": 580.65625,
+            "width": 324,
+            "height": 40,
+            "bottom": 620.65625
+          },
+          "hit": true
+        }
+      },
+      "compare_add_and_dismiss": "PASS",
+      "save_disabled_and_explanation_reachable": true,
+      "document_overflow": 0,
+      "page_errors": []
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "dark",
+      "lang": "zh",
+      "raw_source": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/design-fold-legend-repair-parent-v3",
+      "initial_legend": {
+        "x": 13,
+        "y": 94.171875,
+        "width": 364,
+        "height": 40,
+        "bottom": 134.171875
+      },
+      "initial_legend_hit": true,
+      "initial_canvas": {
+        "x": 13,
+        "y": 286.703125,
+        "width": 364,
+        "height": 270,
+        "bottom": 556.703125
+      },
+      "after_scroll": {
+        "legend": {
+          "rect": {
+            "x": 13,
+            "y": 94.171875,
+            "width": 364,
+            "height": 40,
+            "bottom": 134.171875
+          },
+          "hit": true
+        },
+        "compare": {
+          "rect": {
+            "x": 33,
+            "y": 399.90625,
+            "width": 324,
+            "height": 44,
+            "bottom": 443.90625
+          },
+          "hit": true
+        },
+        "save": {
+          "rect": {
+            "x": 33,
+            "y": 529.03125,
+            "width": 77.609375,
+            "height": 44,
+            "bottom": 573.03125
+          },
+          "hit": true
+        },
+        "saveGap": {
+          "rect": {
+            "x": 33,
+            "y": 581.03125,
+            "width": 324,
+            "height": 20,
+            "bottom": 601.03125
+          },
+          "hit": true
+        }
+      },
+      "compare_add_and_dismiss": "PASS",
+      "save_disabled_and_explanation_reachable": true,
+      "document_overflow": 0,
+      "page_errors": []
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "lang": "zh",
+      "raw_source": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/design-fold-legend-repair-parent-v3",
+      "initial_legend": {
+        "x": 13,
+        "y": 94.171875,
+        "width": 364,
+        "height": 40,
+        "bottom": 134.171875
+      },
+      "initial_legend_hit": true,
+      "initial_canvas": {
+        "x": 13,
+        "y": 286.703125,
+        "width": 364,
+        "height": 270,
+        "bottom": 556.703125
+      },
+      "after_scroll": {
+        "legend": {
+          "rect": {
+            "x": 13,
+            "y": 94.171875,
+            "width": 364,
+            "height": 40,
+            "bottom": 134.171875
+          },
+          "hit": true
+        },
+        "compare": {
+          "rect": {
+            "x": 33,
+            "y": 399.90625,
+            "width": 324,
+            "height": 44,
+            "bottom": 443.90625
+          },
+          "hit": true
+        },
+        "save": {
+          "rect": {
+            "x": 33,
+            "y": 529.03125,
+            "width": 77.609375,
+            "height": 44,
+            "bottom": 573.03125
+          },
+          "hit": true
+        },
+        "saveGap": {
+          "rect": {
+            "x": 33,
+            "y": 581.03125,
+            "width": 324,
+            "height": 20,
+            "bottom": 601.03125
+          },
+          "hit": true
+        }
+      },
+      "compare_add_and_dismiss": "PASS",
+      "save_disabled_and_explanation_reachable": true,
+      "document_overflow": 0,
+      "page_errors": []
+    }
+  ],
+  "raw_proofs": [
+    {
+      "path": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/design-fold-legend-repair-parent-v2/qualification.json",
+      "sha256": "62a84e5f5e81b9edf0aeee872f1127c6fd1af3ef127a10814c175e5e770012c6"
+    },
+    {
+      "path": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/design-fold-legend-repair-parent-v3/qualification.json",
+      "sha256": "1a28480fcbcb9a422437f94e134d56565eb02fafe9c991f73b27e3c1ede1ab32"
+    }
+  ],
+  "images": [
+    {
+      "path": "legend-1440x900-dark-en-initial.png",
+      "sha256": "9e606edbe5f678b1aa1e799dd5e2760b20025d83207c62257ed750f661300c0d",
+      "bytes": 169453,
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "dark",
+      "lang": "en",
+      "stage": "initial"
+    },
+    {
+      "path": "legend-390x844-dark-en-legend.png",
+      "sha256": "3a6f67ad1a9b34e5c06b5023e319592b12ff03910f9d850b3f6f5c84f59beeaa",
+      "bytes": 53653,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "dark",
+      "lang": "en",
+      "stage": "legend"
+    },
+    {
+      "path": "legend-390x844-dark-en-inspector-actions.png",
+      "sha256": "04dd9c2fbae5be09e42ecad822fecd4d691f2faab3083cab8c975c757408c7c8",
+      "bytes": 48594,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "dark",
+      "lang": "en",
+      "stage": "inspector-actions"
+    },
+    {
+      "path": "legend-1440x900-dark-zh-initial.png",
+      "sha256": "6548eadc6f85160663d69d2081f4979e8a4f398e6643d4bbe2db5a4b6557d744",
+      "bytes": 184253,
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "dark",
+      "lang": "zh",
+      "stage": "initial"
+    },
+    {
+      "path": "legend-390x844-dark-zh-legend.png",
+      "sha256": "799dc5f2d483c14ea0c957a7b40d72c893eb16729e783279416ce5b1378b79cd",
+      "bytes": 66040,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "dark",
+      "lang": "zh",
+      "stage": "legend"
+    },
+    {
+      "path": "legend-390x844-dark-zh-inspector-actions.png",
+      "sha256": "c9144dd73a05d676ec106ac3a295a8e94175f69ca9bdd7de16e2e84a2a7e937e",
+      "bytes": 54154,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "dark",
+      "lang": "zh",
+      "stage": "inspector-actions"
+    },
+    {
+      "path": "legend-1440x900-light-en-initial.png",
+      "sha256": "d09cc0b143fd807e63ebe4616a6c52c99e87deb41d81c9a344c8a4618f4e4b2d",
+      "bytes": 123142,
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "light",
+      "lang": "en",
+      "stage": "initial"
+    },
+    {
+      "path": "legend-390x844-light-en-legend.png",
+      "sha256": "391ddbeda24f12c3368c8a11106d70b4abace8aabfac4c325453b3c1683f6d0e",
+      "bytes": 52365,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "lang": "en",
+      "stage": "legend"
+    },
+    {
+      "path": "legend-390x844-light-en-inspector-actions.png",
+      "sha256": "a36e0297154ba6cb9f0154d9472b116726b6ccea1eb91f4d25b51f11e979c58d",
+      "bytes": 48977,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "lang": "en",
+      "stage": "inspector-actions"
+    },
+    {
+      "path": "legend-1440x900-light-zh-initial.png",
+      "sha256": "d076dea263326d2bdc0b2d8be0a66ba5009a854457d2d128b2bb966dee4fe4d5",
+      "bytes": 138409,
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "light",
+      "lang": "zh",
+      "stage": "initial"
+    },
+    {
+      "path": "legend-390x844-light-zh-legend.png",
+      "sha256": "f10acef147ccf064006cc460e7c7ed4184ff850a4986729105e956596be9e521",
+      "bytes": 64550,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "lang": "zh",
+      "stage": "legend"
+    },
+    {
+      "path": "legend-390x844-light-zh-inspector-actions.png",
+      "sha256": "7d8192eb2acbd101949b7e5218cd1bee87ad7e1aaa95561088dd83a38ea9292c",
+      "bytes": 54184,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "lang": "zh",
+      "stage": "inspector-actions"
+    }
+  ],
+  "harness_corrections": [
+    "Initial pre-repair attempt mistakenly supplied the keyed multi-root fixture rather than its SPY member; this was harness error, not a source failure.",
+    "Previous partial attempt used desktop Settings selector after shrinking viewport and captured one closing-dialog transition; v2 configures theme first and waits for dialog hidden before resize/capture.",
+    "v3 waits for actual overlay opacity zero and initial renderer hydration before resizing; completes four narrow cases and replaces two light900px captures affected by a closing-overlay transition."
+  ],
+  "prior_issue_disposition": "Inspector and legend were below original viewport crop, not permanently clipped. Four before-repair browser cases reproduced reachability and functional Compare/Dismiss. Legend-before-chart composition concern accepted.",
+  "parent_design_report_sha256": "27d32442b9293929d915c2175f161d28337427995e66a786005cf83f33061f40",
+  "parent_adjudication_sha256": "f22beb4eab8ce6e4c83c99d55acd2381b1a12fd284c38b892879fd801c65cb5b",
+  "validation": {
+    "view_tests": "7 PASS",
+    "typecheck": "PASS",
+    "changed_file_eslint": "PASS",
+    "build": "PASS"
+  },
+  "independent_delta_review": "PENDING",
+  "mission_complete": false,
+  "observed_at": "2026-10-09T06:01:05.635802+00:00",
+  "fixture": {
+    "path": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/matrix_fixture-before-presentation.json",
+    "sha256": "aec8db52ee2b47d38a67f6f1165466a4c432894b4b81783135eb2ac80e70bbc2",
+    "member": "SPY",
+    "claim": "synthetic/local consumer qualification with retained fixture; not natural live market"
+  },
+  "unchanged_source": {
+    "terminal/components/researchlab/ResearchLab.module.css": "5fd39a1a16b0d245581903b660662db45ebee55c6e6651225f70ba1199cb23fe",
+    "terminal/components/researchlab/ResearchScene.tsx": "be50b10b6e085fc41858f0b74c0b3a25532520bda4671c06952013618533b1a4",
+    "terminal/components/researchlab/researchLabAdapter.ts": "e6c6ba14cf21fbff98ab31f7bca8e9bde3eda2dec5c696921c1198d0af587988",
+    "terminal/app/settings.css": "d17ceff6469db97d3d4bcfb800503ee3c22e89b0770a1c0a88c9d39eb5a72837",
+    "terminal/components/settings/SectionPreferences.tsx": "ced45a10fd8d7b03b95797c0872e3f910628fe9dc7a605beb176594b11a4f934"
+  },
+  "logs": {
+    "design-legend-typecheck.log": {
+      "path": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/design-legend-typecheck.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "design-legend-eslint.log": {
+      "path": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/design-legend-eslint.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "design-legend-view-tests.log": {
+      "path": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/design-legend-view-tests.log",
+      "sha256": "b7502631d47a4d93cfbe440cc57a79b74e799517533bfed188d384b0cf90171d",
+      "bytes": 533
+    },
+    "design-legend-production-build.log": {
+      "path": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/design-legend-production-build.log",
+      "sha256": "f5f8a7d723f528a5db5bd93dd0707e79368ac5e0b6b13684246ed45614190cfa",
+      "bytes": 4580,
+      "exit_code": 0
+    }
+  },
+  "cleanup": "All diagnostic/qualification browser contexts closed; owned fixture server exited0 after Ctrl-C; production build exited0. Existing Chrome/account settings untouched.",
+  "harnesses": {
+    "qualify-design-fold-6369.cjs": "b1baabb15e21ccb800bf2242215a1b5acccc13d32b8f5e6ae7408fc21bf7f094",
+    "qualify-design-fold-legend-repair-v2.cjs": "27c41c7132c05492931144f8a6578a56d0a85d33cbaa1f616119de689dfa1c3e",
+    "qualify-design-fold-legend-repair-v3.cjs": "26ff992ed1832fda91127f7f15fa69faf91ae6566e4d825b6af355fc69a0e734"
+  }
+}

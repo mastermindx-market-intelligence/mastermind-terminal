@@ -17,11 +17,18 @@ file newer than N days is skipped. Threaded (≤4, yfinance-etiquette) with ~1s 
 
 Run with the macro venv:
     "<Macro Dashboard>/.venv/bin/python" ingest/collect_us_fund.py \
-        [--only AAPL,ZS,NVDA] [--limit N] [--stale-days 3] [--workers 4] [--force] [--foreign]
+        [--only AAPL,ZS,NVDA] [--limit N] [--stale-days 3] [--workers 4] [--force] \
+        [--foreign | --canada] [--deadline-seconds N]
 
 --foreign swaps the universe to the manifest's .TO/intl names (Yahoo-native suffixes, ~1.2k) —
 same fetch set and the same gen_fund_us.py emitter apply unchanged (it already separates
 quote_currency from stmt_currency, so CAD/JPY/INR/... names come out honest).
+
+--canada is the NARROWER, scheduled scope: only the Canadian .TO equity listings (216 in the
+2026-10-21 manifest), no other foreign market. The default nightly passes no scope at all, so
+before this flag the .TO names were never collected and every Canadian fund.json froze on its
+last good fetch. --foreign still works and still means "every non-US market"; --canada exists so
+the nightly can refresh Canada gently (workers=1) without pulling ~1.2k intl names every night.
 """
 from __future__ import annotations
 
@@ -46,6 +53,14 @@ TX_INDEX = OUT / "_tx_index.json"
 # US-home exchange labels in the manifest's `mkt` field (everything else is a foreign/crypto market)
 US_MKTS = {"NYSE", "NASDAQ", "AMEX", "US", "Cboe", "NYSEARCA", "BATS", "OTC"}
 NON_US_SUFFIX = (".SS", ".SZ", ".HK", ".TO")
+
+# Canadian scope (--canada).  Every one of the manifest's 216 .TO listings carries mkt="TSX".
+CANADA_SUFFIX = ".TO"
+CANADA_MKTS = {"TSX", "TSXV", "TSE", "CSE", "NEO", "VENTURE"}
+# Yahoo indexes are "^"-prefixed.  ^GSPTSE (S&P/TSX Composite) is filed in the manifest under
+# mkt="TSX" — the ONLY TSX symbol that is not a .TO listing — so an mkt-only scope would happily
+# collect an index that has no company fundamentals and emit a junk fund.json for it.
+INDEX_PREFIX = "^"
 
 
 # ───────────────────────────── universe ─────────────────────────────
@@ -75,6 +90,35 @@ def foreign_universe() -> list[str]:
     return sorted(sym for sym, row in syms.items()
                   if not sym.endswith((".SS", ".SZ", ".HK", "-USD"))
                   and (row or {}).get("mkt") not in US_MKTS)
+
+
+def _is_index(sym: str) -> bool:
+    """Yahoo index/future tickers start with '^'. They have no statements and no fundamentals."""
+    return sym.startswith(INDEX_PREFIX)
+
+
+def canada_universe() -> list[str]:
+    """--canada universe: the manifest's Canadian .TO equity listings.
+
+    Selection is by the Yahoo-native .TO listing suffix (the identity the cache filename and the
+    emitted fund.json are keyed on), confirmed by a Canadian exchange label when the manifest row
+    carries one, with ^-prefixed indexes excluded. A row with no `mkt` at all is kept: the .TO
+    suffix already identifies it as a TSX listing, and dropping it would freeze a real name.
+
+    This deliberately does NOT touch foreign_universe(): --foreign still means every non-US
+    market, so a scheduled Canada pass never drags in ~1.2k intl names.
+    """
+    m = load_manifest()
+    syms = m.get("symbols") or {}
+    out = set()
+    for sym, row in syms.items():
+        if _is_index(sym) or not sym.endswith(CANADA_SUFFIX):
+            continue
+        mkt = (row or {}).get("mkt")
+        if mkt is not None and mkt not in CANADA_MKTS:
+            continue
+        out.add(sym)
+    return sorted(out)
 
 
 def us_universe() -> list[str]:
@@ -278,8 +322,46 @@ def atomic_write(dest: Path, text: str) -> None:
 def is_fresh(path: Path, stale_days: int) -> bool:
     if stale_days <= 0 or not path.exists():
         return False
-    age = time.time() - path.stat().st_mtime
-    return age < stale_days * 86400
+    cache = read_cache(path)
+    try:
+        stamp = dt.datetime.fromisoformat(str(cache.get("fetched_at", "")).replace("Z", "+00:00"))
+        if stamp.tzinfo is None or cache.get("_errors"):
+            return False
+        age = (dt.datetime.now(dt.timezone.utc) - stamp).total_seconds()
+        return 0 <= age < stale_days * 86400
+    except (AttributeError, TypeError, ValueError):
+        return False
+
+
+# A cache holding at least this many populated data fields is worth protecting; below it a
+# downgrade is not a data-loss event and blocking the write would just freeze the symbol.
+RICH_CACHE_FLOOR = 5
+
+
+def cache_richness(payload: object) -> int:
+    """How many populated data fields a cache payload carries.
+
+    A partial fetch (rate limit, an endpoint erroring) still returns `info` or one frame, and the
+    driver used to write it straight over a good cache — silently replacing years of statements
+    with an info shell while still bumping the file mtime, so the next run skipped it as fresh.
+    Comparing populated-field counts catches that without needing a per-symbol schema.
+    """
+    if not isinstance(payload, dict):
+        return -1
+    n = 1 if payload.get("info") else 0
+    for key in list(DF_FIELDS) + list(SERIES_FIELDS) + list(DICT_FIELDS):
+        if payload.get(key):
+            n += 1
+    return n
+
+
+def read_cache(path: Path) -> dict | None:
+    """Existing cache payload, or None when absent/unreadable (a corrupt file must not block a
+    good new fetch — it is replaced either way)."""
+    try:
+        return json.loads(path.read_text())
+    except Exception:  # noqa: BLE001
+        return None
 
 
 def main(argv: list[str]) -> None:
@@ -289,6 +371,7 @@ def main(argv: list[str]) -> None:
     stale_days = 3
     workers = 4
     force = "--force" in argv
+    deadline = None
     jitter_lo = 0.4
     jitter_hi = 1.4
     if "--only" in argv:
@@ -304,6 +387,11 @@ def main(argv: list[str]) -> None:
         top_n = int(argv[argv.index("--top-n") + 1])
     if "--stale-days" in argv:
         stale_days = int(argv[argv.index("--stale-days") + 1])
+    if "--deadline-seconds" in argv:
+        # Soft scheduling deadline; run_bounded.py supplies the scheduled hard process bound.
+        # Stopping early is safe: the pass is incremental and resumable, and an unreached symbol
+        # keeps its old cache mtime, so the next night retries it instead of skipping it fresh.
+        deadline = time.time() + float(argv[argv.index("--deadline-seconds") + 1])
     if "--workers" in argv:
         workers = max(1, min(4, int(argv[argv.index("--workers") + 1])))
     if "--delay" in argv:
@@ -318,6 +406,10 @@ def main(argv: list[str]) -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     if only:
         want = only
+    elif "--canada" in argv:
+        want = canada_universe()
+        print(f"us_fund: --canada: {len(want)} Canadian .TO manifest symbols "
+              f"(^indexes excluded)", flush=True)
     elif "--foreign" in argv:
         want = foreign_universe()
         print(f"us_fund: --foreign: {len(want)} .TO/intl manifest symbols (Yahoo-native)", flush=True)
@@ -335,17 +427,31 @@ def main(argv: list[str]) -> None:
 
     ok = empty = 0
     done = 0
+    kept = 0
+    stopped = False
     interrupted = False
 
     def worker(sym: str, _jlo=jitter_lo, _jhi=jitter_hi):
-        # jitter BEFORE the (thread-shared) network burst to spread the yfinance load
+        # This is a soft scheduling deadline. The scheduled caller also uses
+        # run_bounded.py to terminate stuck network threads at the hard budget.
+        if deadline is not None and time.time() >= deadline:
+            return sym, None
         time.sleep(random.uniform(_jlo, _jhi))
+        if deadline is not None and time.time() >= deadline:
+            return sym, None
         return sym, fetch_one(sym)
 
     try:
         with ThreadPoolExecutor(max_workers=workers) as ex:
             futs = {ex.submit(worker, s): s for s in todo}
             for fut in as_completed(futs):
+                if deadline is not None and time.time() > deadline:
+                    stopped = True
+                    for pending in futs:
+                        pending.cancel()
+                    print(f"  deadline reached at {done}/{len(todo)} — "
+                          f"{len(todo) - done} deferred to the next run", flush=True)
+                    break
                 sym = futs[fut]
                 done += 1
                 try:
@@ -354,28 +460,43 @@ def main(argv: list[str]) -> None:
                     payload = None
                     print(f"  ERR {sym}: {type(exc).__name__} {exc}", flush=True)
                 if payload:
-                    atomic_write(OUT / f"{sym}.json", json.dumps(payload, ensure_ascii=False))
-                    ok += 1
-                    if payload.get("_errors"):
-                        print(f"  {sym}: ok (partial — {','.join(payload['_errors'][:4])})", flush=True)
+                    dest = OUT / f"{sym}.json"
+                    prior = read_cache(dest) if dest.exists() else None
+                    prior_rich = cache_richness(prior)
+                    new_rich = cache_richness(payload)
+                    lost_fields = [key for key in list(DF_FIELDS) + list(SERIES_FIELDS) + list(DICT_FIELDS)
+                                   if (prior or {}).get(key) and not payload.get(key)]
+                    if lost_fields or (prior_rich >= RICH_CACHE_FLOOR and new_rich < prior_rich):
+                        # A thinner fetch must never replace real data — and keeping the old file
+                        # also keeps its mtime, so the next run retries instead of skipping it fresh.
+                        kept += 1
+                        print(f"  {sym}: fetch degraded ({new_rich} fields vs {prior_rich} cached; lost={lost_fields}) "
+                              f"— keeping existing cache", flush=True)
+                    else:
+                        atomic_write(dest, json.dumps(payload, ensure_ascii=False))
+                        ok += 1
+                        if payload.get("_errors"):
+                            print(f"  {sym}: ok (partial — {','.join(payload['_errors'][:4])})", flush=True)
                 else:
                     empty += 1
                     print(f"  {sym}: empty (no data)", flush=True)
                 if done % 25 == 0 or done == len(todo):
-                    print(f"  progress {done}/{len(todo)} — {ok} ok, {empty} empty", flush=True)
+                    print(f"  progress {done}/{len(todo)} — {ok} ok, {empty} empty, {kept} kept", flush=True)
     except KeyboardInterrupt:
         interrupted = True
         print("\ninterrupted — cached symbols are safe, rerun to resume", flush=True)
 
-    print(f"done: {ok} written, {empty} empty, {len(want) - len(todo)} skipped fresh"
-          f"{' (INTERRUPTED)' if interrupted else ''}", flush=True)
+    print(f"done: {ok} written, {empty} empty, {kept} kept-over-degraded, "
+          f"{len(want) - len(todo)} skipped fresh"
+          f"{' (INTERRUPTED)' if interrupted else ''}{' (DEADLINE)' if stopped else ''}", flush=True)
 
     # Universe names that STILL have no cache file are invisible to cache-scanning repair tooling
     # (an empty fetch writes nothing) — report them so a rate-limit storm never hides a gap again.
     if not only and not interrupted:
         gaps = [s for s in want if not (OUT / f"{s}.json").exists()]
         if gaps:
-            print(f"  WARNING: {len(gaps)} universe names have no cache file after this run: "
+            print(f"  WARNING: {len(gaps)} universe names have no cache file after this run"
+                  f"{' (deadline-deferred, not failed)' if stopped else ''}: "
                   f"{' '.join(gaps[:40])}{' …' if len(gaps) > 40 else ''}", flush=True)
 
 

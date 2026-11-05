@@ -1,0 +1,1285 @@
+{
+  "kind": "ISOLATED_POPULATED_COMPANY_COMPONENT_VISUAL",
+  "fixtureSha256": "c7006d50c0969094c222878ba5555fb71c39a08284702b82274081df74721f37",
+  "results": [
+    {
+      "width": 1440,
+      "theme": "light",
+      "lang": "en",
+      "lens": "brief",
+      "errors": [],
+      "layout": {
+        "viewport": 1440,
+        "scroll": 1440,
+        "metadata": [
+          {
+            "text": "As known at Jul 30, 2026",
+            "rect": {
+              "x": 149,
+              "y": 196.46875,
+              "width": 136.125,
+              "height": 13,
+              "top": 196.46875,
+              "right": 285.125,
+              "bottom": 209.46875,
+              "left": 149
+            },
+            "scrollWidth": 136,
+            "clientWidth": 136,
+            "display": "flex"
+          },
+          {
+            "text": "Retained event",
+            "rect": {
+              "x": 301.125,
+              "y": 196.46875,
+              "width": 71.359375,
+              "height": 13,
+              "top": 196.46875,
+              "right": 372.484375,
+              "bottom": 209.46875,
+              "left": 301.125
+            },
+            "scrollWidth": 71,
+            "clientWidth": 71,
+            "display": "flex"
+          },
+          {
+            "text": "Authority Context only",
+            "rect": {
+              "x": 388.484375,
+              "y": 196.46875,
+              "width": 111.671875,
+              "height": 13,
+              "top": 196.46875,
+              "right": 500.15625,
+              "bottom": 209.46875,
+              "left": 388.484375
+            },
+            "scrollWidth": 112,
+            "clientWidth": 112,
+            "display": "flex"
+          },
+          {
+            "text": "From the company event workspace",
+            "rect": {
+              "x": 516.15625,
+              "y": 196.46875,
+              "width": 174.296875,
+              "height": 13,
+              "top": 196.46875,
+              "right": 690.453125,
+              "bottom": 209.46875,
+              "left": 516.15625
+            },
+            "scrollWidth": 174,
+            "clientWidth": 174,
+            "display": "flex"
+          }
+        ],
+        "tabs": [
+          {
+            "text": "Brief",
+            "color": "rgb(32, 38, 50)",
+            "background": "rgb(238, 241, 246) none repeat scroll 0% 0% / auto padding-box border-box",
+            "selected": "on"
+          },
+          {
+            "text": "Results",
+            "color": "rgb(84, 97, 116)",
+            "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+            "selected": ""
+          },
+          {
+            "text": "Call + Q&A",
+            "color": "rgb(84, 97, 116)",
+            "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+            "selected": ""
+          },
+          {
+            "text": "History",
+            "color": "rgb(84, 97, 116)",
+            "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+            "selected": ""
+          },
+          {
+            "text": "Topics",
+            "color": "rgb(84, 97, 116)",
+            "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+            "selected": ""
+          },
+          {
+            "text": "Sources2",
+            "color": "rgb(84, 97, 116)",
+            "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+            "selected": ""
+          }
+        ],
+        "heroAccent": "inline",
+        "orbit": "none",
+        "headingAccents": [
+          "block"
+        ],
+        "rects": {
+          ".ci-paper-answer": null,
+          ".ci-paper-watch": {
+            "x": 925.328125,
+            "y": 293.46875,
+            "w": 386.671875,
+            "h": 248.09375,
+            "display": "grid"
+          },
+          ".ci-paper-company-visual": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0,
+            "display": "none"
+          }
+        },
+        "listing": "AAPL · XNAS · USD",
+        "height": 1432,
+        "closedEvidenceRect": {
+          "y": 64,
+          "x": 1458,
+          "bottom": 882,
+          "aria": "true",
+          "inert": true
+        },
+        "text": "AApple Inc.AAPLVerified eventAAPL · XNAS · USDCompany Intelligence · AAPL · Q3 FY2026 · 30 JulEventQ3 FY2026 · 2026-07-30View receiptsAsk MastermindAs known at Jul 30, 2026Retained eventAuthority Context onlyFrom the company event workspaceBriefResultsCall + Q&AHistoryTopicsSources230-SECOND BRIEF ·"
+      }
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "lang": "en",
+      "lens": "results",
+      "errors": [],
+      "layout": {
+        "viewport": 1440,
+        "scroll": 1440,
+        "metadata": [
+          {
+            "text": "As known at Jul 30, 2026",
+            "rect": {
+              "x": 149,
+              "y": 196.46875,
+              "width": 136.125,
+              "height": 13,
+              "top": 196.46875,
+              "right": 285.125,
+              "bottom": 209.46875,
+              "left": 149
+            },
+            "scrollWidth": 136,
+            "clientWidth": 136,
+            "display": "flex"
+          },
+          {
+            "text": "Retained event",
+            "rect": {
+              "x": 301.125,
+              "y": 196.46875,
+              "width": 71.359375,
+              "height": 13,
+              "top": 196.46875,
+              "right": 372.484375,
+              "bottom": 209.46875,
+              "left": 301.125
+            },
+            "scrollWidth": 71,
+            "clientWidth": 71,
+            "display": "flex"
+          },
+          {
+            "text": "Authority Context only",
+            "rect": {
+              "x": 388.484375,
+              "y": 196.46875,
+              "width": 111.671875,
+              "height": 13,
+              "top": 196.46875,
+              "right": 500.15625,
+              "bottom": 209.46875,
+              "left": 388.484375
+            },
+            "scrollWidth": 112,
+            "clientWidth": 112,
+            "display": "flex"
+          },
+          {
+            "text": "From the company event workspace",
+            "rect": {
+              "x": 516.15625,
+              "y": 196.46875,
+              "width": 174.296875,
+              "height": 13,
+              "top": 196.46875,
+              "right": 690.453125,
+              "bottom": 209.46875,
+              "left": 516.15625
+            },
+            "scrollWidth": 174,
+            "clientWidth": 174,
+            "display": "flex"
+          }
+        ],
+        "tabs": [
+          {
+            "text": "Brief",
+            "color": "rgb(84, 97, 116)",
+            "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+            "selected": ""
+          },
+          {
+            "text": "Results",
+            "color": "rgb(32, 38, 50)",
+            "background": "rgb(238, 241, 246) none repeat scroll 0% 0% / auto padding-box border-box",
+            "selected": "on"
+          },
+          {
+            "text": "Call + Q&A",
+            "color": "rgb(84, 97, 116)",
+            "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+            "selected": ""
+          },
+          {
+            "text": "History",
+            "color": "rgb(84, 97, 116)",
+            "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+            "selected": ""
+          },
+          {
+            "text": "Topics",
+            "color": "rgb(84, 97, 116)",
+            "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+            "selected": ""
+          },
+          {
+            "text": "Sources2",
+            "color": "rgb(84, 97, 116)",
+            "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+            "selected": ""
+          }
+        ],
+        "heroAccent": "inline",
+        "orbit": null,
+        "headingAccents": [
+          "block",
+          "block"
+        ],
+        "rects": {
+          ".ci-paper-answer": null,
+          ".ci-paper-watch": null,
+          ".ci-paper-company-visual": null
+        },
+        "listing": "AAPL · XNAS · USD",
+        "height": 1466,
+        "closedEvidenceRect": {
+          "y": 64,
+          "x": 1458,
+          "bottom": 882,
+          "aria": "true",
+          "inert": true
+        },
+        "text": "AApple Inc.AAPLVerified eventAAPL · XNAS · USDCompany Intelligence · AAPL · Q3 FY2026 · 30 JulEventQ3 FY2026 · 2026-07-30View receiptsAsk MastermindAs known at Jul 30, 2026Retained eventAuthority Context onlyFrom the company event workspaceBriefResultsCall + Q&AHistoryTopicsSources2RESULTS & OUTLOOK"
+      }
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "lang": "zh",
+      "lens": "brief",
+      "errors": [],
+      "layout": {
+        "viewport": 1440,
+        "scroll": 1440,
+        "metadata": [
+          {
+            "text": "截至 Jul 30, 2026",
+            "rect": {
+              "x": 149,
+              "y": 196.46875,
+              "width": 97.265625,
+              "height": 13,
+              "top": 196.46875,
+              "right": 246.265625,
+              "bottom": 209.46875,
+              "left": 149
+            },
+            "scrollWidth": 97,
+            "clientWidth": 97,
+            "display": "flex"
+          },
+          {
+            "text": "已保留事件版本",
+            "rect": {
+              "x": 262.265625,
+              "y": 196.46875,
+              "width": 70,
+              "height": 13,
+              "top": 196.46875,
+              "right": 332.265625,
+              "bottom": 209.46875,
+              "left": 262.265625
+            },
+            "scrollWidth": 70,
+            "clientWidth": 70,
+            "display": "flex"
+          },
+          {
+            "text": "权限 仅供背景参考",
+            "rect": {
+              "x": 348.265625,
+              "y": 196.46875,
+              "width": 85,
+              "height": 13,
+              "top": 196.46875,
+              "right": 433.265625,
+              "bottom": 209.46875,
+              "left": 348.265625
+            },
+            "scrollWidth": 85,
+            "clientWidth": 85,
+            "display": "flex"
+          },
+          {
+            "text": "来自公司事件工作区",
+            "rect": {
+              "x": 449.265625,
+              "y": 196.46875,
+              "width": 90,
+              "height": 13,
+              "top": 196.46875,
+              "right": 539.265625,
+              "bottom": 209.46875,
+              "left": 449.265625
+            },
+            "scrollWidth": 90,
+            "clientWidth": 90,
+            "display": "flex"
+          }
+        ],
+        "tabs": [
+          {
+            "text": "简报",
+            "color": "rgb(32, 38, 50)",
+            "background": "rgb(238, 241, 246) none repeat scroll 0% 0% / auto padding-box border-box",
+            "selected": "on"
+          },
+          {
+            "text": "业绩",
+            "color": "rgb(84, 97, 116)",
+            "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+            "selected": ""
+          },
+          {
+            "text": "电话会 + 问答",
+            "color": "rgb(84, 97, 116)",
+            "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+            "selected": ""
+          },
+          {
+            "text": "历史",
+            "color": "rgb(84, 97, 116)",
+            "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+            "selected": ""
+          },
+          {
+            "text": "主题",
+            "color": "rgb(84, 97, 116)",
+            "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+            "selected": ""
+          },
+          {
+            "text": "来源2",
+            "color": "rgb(84, 97, 116)",
+            "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+            "selected": ""
+          }
+        ],
+        "heroAccent": "inline",
+        "orbit": "none",
+        "headingAccents": [
+          "block"
+        ],
+        "rects": {
+          ".ci-paper-answer": null,
+          ".ci-paper-watch": {
+            "x": 925.328125,
+            "y": 293.46875,
+            "w": 386.671875,
+            "h": 248.09375,
+            "display": "grid"
+          },
+          ".ci-paper-company-visual": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0,
+            "display": "none"
+          }
+        },
+        "listing": "AAPL · XNAS · USD",
+        "height": 1432,
+        "closedEvidenceRect": {
+          "y": 64,
+          "x": 1458,
+          "bottom": 882,
+          "aria": "true",
+          "inert": true
+        },
+        "text": "AApple Inc.AAPL已验证事件AAPL · XNAS · USD公司情报 · AAPL · Q3 财年2026 · 30 7月事件Q3 FY2026 · 2026-07-30查看凭证询问 Mastermind截至 Jul 30, 2026已保留事件版本权限 仅供背景参考来自公司事件工作区简报业绩电话会 + 问答历史主题来源230 秒简报 · 来源支持Q3 FY2026 · 2026-07-30仅供背景参考$109.4 billion in revenue, up 16%$109.4B · +16%营收$109.4B · +16%Q4 revenue growth9–11%关注事项re"
+      }
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "lang": "zh",
+      "lens": "results",
+      "errors": [],
+      "layout": {
+        "viewport": 1440,
+        "scroll": 1440,
+        "metadata": [
+          {
+            "text": "截至 Jul 30, 2026",
+            "rect": {
+              "x": 149,
+              "y": 196.46875,
+              "width": 97.265625,
+              "height": 13,
+              "top": 196.46875,
+              "right": 246.265625,
+              "bottom": 209.46875,
+              "left": 149
+            },
+            "scrollWidth": 97,
+            "clientWidth": 97,
+            "display": "flex"
+          },
+          {
+            "text": "已保留事件版本",
+            "rect": {
+              "x": 262.265625,
+              "y": 196.46875,
+              "width": 70,
+              "height": 13,
+              "top": 196.46875,
+              "right": 332.265625,
+              "bottom": 209.46875,
+              "left": 262.265625
+            },
+            "scrollWidth": 70,
+            "clientWidth": 70,
+            "display": "flex"
+          },
+          {
+            "text": "权限 仅供背景参考",
+            "rect": {
+              "x": 348.265625,
+              "y": 196.46875,
+              "width": 85,
+              "height": 13,
+              "top": 196.46875,
+              "right": 433.265625,
+              "bottom": 209.46875,
+              "left": 348.265625
+            },
+            "scrollWidth": 85,
+            "clientWidth": 85,
+            "display": "flex"
+          },
+          {
+            "text": "来自公司事件工作区",
+            "rect": {
+              "x": 449.265625,
+              "y": 196.46875,
+              "width": 90,
+              "height": 13,
+              "top": 196.46875,
+              "right": 539.265625,
+              "bottom": 209.46875,
+              "left": 449.265625
+            },
+            "scrollWidth": 90,
+            "clientWidth": 90,
+            "display": "flex"
+          }
+        ],
+        "tabs": [
+          {
+            "text": "简报",
+            "color": "rgb(84, 97, 116)",
+            "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+            "selected": ""
+          },
+          {
+            "text": "业绩",
+            "color": "rgb(32, 38, 50)",
+            "background": "rgb(238, 241, 246) none repeat scroll 0% 0% / auto padding-box border-box",
+            "selected": "on"
+          },
+          {
+            "text": "电话会 + 问答",
+            "color": "rgb(84, 97, 116)",
+            "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+            "selected": ""
+          },
+          {
+            "text": "历史",
+            "color": "rgb(84, 97, 116)",
+            "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+            "selected": ""
+          },
+          {
+            "text": "主题",
+            "color": "rgb(84, 97, 116)",
+            "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+            "selected": ""
+          },
+          {
+            "text": "来源2",
+            "color": "rgb(84, 97, 116)",
+            "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+            "selected": ""
+          }
+        ],
+        "heroAccent": "inline",
+        "orbit": null,
+        "headingAccents": [
+          "block",
+          "block"
+        ],
+        "rects": {
+          ".ci-paper-answer": null,
+          ".ci-paper-watch": null,
+          ".ci-paper-company-visual": null
+        },
+        "listing": "AAPL · XNAS · USD",
+        "height": 1444,
+        "closedEvidenceRect": {
+          "y": 64,
+          "x": 1458,
+          "bottom": 882,
+          "aria": "true",
+          "inert": true
+        },
+        "text": "AApple Inc.AAPL已验证事件AAPL · XNAS · USD公司情报 · AAPL · Q3 财年2026 · 30 7月事件Q3 FY2026 · 2026-07-30查看凭证询问 Mastermind截至 Jul 30, 2026已保留事件版本权限 仅供背景参考来自公司事件工作区简报业绩电话会 + 问答历史主题来源2业绩与展望已报告表现、指引与下一步决策点Q3 FY20262026-07-30概览当前事件 · Q3 FY2026revenue$109.4Bgaap指引与展望仅显示生产者签发的结构化指引；不会从评论中推断区间。可用Q4 revenue growth9–11%gr"
+      }
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "en",
+      "lens": "brief",
+      "errors": [],
+      "layout": {
+        "viewport": 390,
+        "scroll": 390,
+        "metadata": [
+          {
+            "text": "As known at Jul 30, 2026",
+            "rect": {
+              "x": 29,
+              "y": 320.0625,
+              "width": 136.125,
+              "height": 13,
+              "top": 320.0625,
+              "right": 165.125,
+              "bottom": 333.0625,
+              "left": 29
+            },
+            "scrollWidth": 136,
+            "clientWidth": 136,
+            "display": "flex"
+          },
+          {
+            "text": "Retained event",
+            "rect": {
+              "x": 0,
+              "y": 0,
+              "width": 0,
+              "height": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0,
+              "left": 0
+            },
+            "scrollWidth": 0,
+            "clientWidth": 0,
+            "display": "none"
+          },
+          {
+            "text": "Authority Context only",
+            "rect": {
+              "x": 177.125,
+              "y": 320.0625,
+              "width": 111.671875,
+              "height": 13,
+              "top": 320.0625,
+              "right": 288.796875,
+              "bottom": 333.0625,
+              "left": 177.125
+            },
+            "scrollWidth": 112,
+            "clientWidth": 112,
+            "display": "flex"
+          },
+          {
+            "text": "From the company event workspace",
+            "rect": {
+              "x": 29,
+              "y": 341.0625,
+              "width": 174.296875,
+              "height": 13,
+              "top": 341.0625,
+              "right": 203.296875,
+              "bottom": 354.0625,
+              "left": 29
+            },
+            "scrollWidth": 174,
+            "clientWidth": 174,
+            "display": "flex"
+          }
+        ],
+        "tabs": [
+          {
+            "text": "Brief",
+            "color": "rgb(32, 38, 50)",
+            "background": "rgb(238, 241, 246) none repeat scroll 0% 0% / auto padding-box border-box",
+            "selected": "on"
+          },
+          {
+            "text": "Results",
+            "color": "rgb(84, 97, 116)",
+            "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+            "selected": ""
+          },
+          {
+            "text": "Call + Q&A",
+            "color": "rgb(84, 97, 116)",
+            "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+            "selected": ""
+          },
+          {
+            "text": "History",
+            "color": "rgb(84, 97, 116)",
+            "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+            "selected": ""
+          },
+          {
+            "text": "Topics",
+            "color": "rgb(84, 97, 116)",
+            "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+            "selected": ""
+          },
+          {
+            "text": "Sources2",
+            "color": "rgb(84, 97, 116)",
+            "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+            "selected": ""
+          }
+        ],
+        "heroAccent": "inline",
+        "orbit": "none",
+        "headingAccents": [
+          "block"
+        ],
+        "rects": {
+          ".ci-paper-answer": null,
+          ".ci-paper-watch": {
+            "x": 12,
+            "y": 1283.625,
+            "w": 366,
+            "h": 329.46875,
+            "display": "grid"
+          },
+          ".ci-paper-company-visual": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0,
+            "display": "none"
+          }
+        },
+        "listing": "AAPL · XNAS · USD",
+        "height": 2326,
+        "closedEvidenceRect": {
+          "y": 844,
+          "x": 0,
+          "bottom": 1688,
+          "aria": "true",
+          "inert": true
+        },
+        "text": "AApple Inc.AAPLVerified eventAAPL · XNAS · USDCompany Intelligence · AAPL · Q3 FY2026 · 30 JulEventQ3 FY2026 · 2026-07-30View receiptsAsk MastermindAs known at Jul 30, 2026Retained eventAuthority Context onlyFrom the company event workspaceBriefResultsCall + Q&AHistoryTopicsSources230-SECOND BRIEF ·"
+      }
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "en",
+      "lens": "results",
+      "errors": [],
+      "layout": {
+        "viewport": 390,
+        "scroll": 390,
+        "metadata": [
+          {
+            "text": "As known at Jul 30, 2026",
+            "rect": {
+              "x": 29,
+              "y": 320.0625,
+              "width": 136.125,
+              "height": 13,
+              "top": 320.0625,
+              "right": 165.125,
+              "bottom": 333.0625,
+              "left": 29
+            },
+            "scrollWidth": 136,
+            "clientWidth": 136,
+            "display": "flex"
+          },
+          {
+            "text": "Retained event",
+            "rect": {
+              "x": 0,
+              "y": 0,
+              "width": 0,
+              "height": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0,
+              "left": 0
+            },
+            "scrollWidth": 0,
+            "clientWidth": 0,
+            "display": "none"
+          },
+          {
+            "text": "Authority Context only",
+            "rect": {
+              "x": 177.125,
+              "y": 320.0625,
+              "width": 111.671875,
+              "height": 13,
+              "top": 320.0625,
+              "right": 288.796875,
+              "bottom": 333.0625,
+              "left": 177.125
+            },
+            "scrollWidth": 112,
+            "clientWidth": 112,
+            "display": "flex"
+          },
+          {
+            "text": "From the company event workspace",
+            "rect": {
+              "x": 29,
+              "y": 341.0625,
+              "width": 174.296875,
+              "height": 13,
+              "top": 341.0625,
+              "right": 203.296875,
+              "bottom": 354.0625,
+              "left": 29
+            },
+            "scrollWidth": 174,
+            "clientWidth": 174,
+            "display": "flex"
+          }
+        ],
+        "tabs": [
+          {
+            "text": "Brief",
+            "color": "rgb(84, 97, 116)",
+            "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+            "selected": ""
+          },
+          {
+            "text": "Results",
+            "color": "rgb(32, 38, 50)",
+            "background": "rgb(238, 241, 246) none repeat scroll 0% 0% / auto padding-box border-box",
+            "selected": "on"
+          },
+          {
+            "text": "Call + Q&A",
+            "color": "rgb(84, 97, 116)",
+            "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+            "selected": ""
+          },
+          {
+            "text": "History",
+            "color": "rgb(84, 97, 116)",
+            "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+            "selected": ""
+          },
+          {
+            "text": "Topics",
+            "color": "rgb(84, 97, 116)",
+            "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+            "selected": ""
+          },
+          {
+            "text": "Sources2",
+            "color": "rgb(84, 97, 116)",
+            "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+            "selected": ""
+          }
+        ],
+        "heroAccent": "inline",
+        "orbit": null,
+        "headingAccents": [
+          "block",
+          "block"
+        ],
+        "rects": {
+          ".ci-paper-answer": null,
+          ".ci-paper-watch": null,
+          ".ci-paper-company-visual": null
+        },
+        "listing": "AAPL · XNAS · USD",
+        "height": 1971,
+        "closedEvidenceRect": {
+          "y": 844,
+          "x": 0,
+          "bottom": 1688,
+          "aria": "true",
+          "inert": true
+        },
+        "text": "AApple Inc.AAPLVerified eventAAPL · XNAS · USDCompany Intelligence · AAPL · Q3 FY2026 · 30 JulEventQ3 FY2026 · 2026-07-30View receiptsAsk MastermindAs known at Jul 30, 2026Retained eventAuthority Context onlyFrom the company event workspaceBriefResultsCall + Q&AHistoryTopicsSources2RESULTS & OUTLOOK"
+      }
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "zh",
+      "lens": "brief",
+      "errors": [],
+      "layout": {
+        "viewport": 390,
+        "scroll": 390,
+        "metadata": [
+          {
+            "text": "截至 Jul 30, 2026",
+            "rect": {
+              "x": 29,
+              "y": 320.0625,
+              "width": 97.265625,
+              "height": 13,
+              "top": 320.0625,
+              "right": 126.265625,
+              "bottom": 333.0625,
+              "left": 29
+            },
+            "scrollWidth": 97,
+            "clientWidth": 97,
+            "display": "flex"
+          },
+          {
+            "text": "已保留事件版本",
+            "rect": {
+              "x": 0,
+              "y": 0,
+              "width": 0,
+              "height": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0,
+              "left": 0
+            },
+            "scrollWidth": 0,
+            "clientWidth": 0,
+            "display": "none"
+          },
+          {
+            "text": "权限 仅供背景参考",
+            "rect": {
+              "x": 138.265625,
+              "y": 320.0625,
+              "width": 85,
+              "height": 13,
+              "top": 320.0625,
+              "right": 223.265625,
+              "bottom": 333.0625,
+              "left": 138.265625
+            },
+            "scrollWidth": 85,
+            "clientWidth": 85,
+            "display": "flex"
+          },
+          {
+            "text": "来自公司事件工作区",
+            "rect": {
+              "x": 235.265625,
+              "y": 320.0625,
+              "width": 90,
+              "height": 13,
+              "top": 320.0625,
+              "right": 325.265625,
+              "bottom": 333.0625,
+              "left": 235.265625
+            },
+            "scrollWidth": 90,
+            "clientWidth": 90,
+            "display": "flex"
+          }
+        ],
+        "tabs": [
+          {
+            "text": "简报",
+            "color": "rgb(32, 38, 50)",
+            "background": "rgb(238, 241, 246) none repeat scroll 0% 0% / auto padding-box border-box",
+            "selected": "on"
+          },
+          {
+            "text": "业绩",
+            "color": "rgb(84, 97, 116)",
+            "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+            "selected": ""
+          },
+          {
+            "text": "电话会 + 问答",
+            "color": "rgb(84, 97, 116)",
+            "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+            "selected": ""
+          },
+          {
+            "text": "历史",
+            "color": "rgb(84, 97, 116)",
+            "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+            "selected": ""
+          },
+          {
+            "text": "主题",
+            "color": "rgb(84, 97, 116)",
+            "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+            "selected": ""
+          },
+          {
+            "text": "来源2",
+            "color": "rgb(84, 97, 116)",
+            "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+            "selected": ""
+          }
+        ],
+        "heroAccent": "inline",
+        "orbit": "none",
+        "headingAccents": [
+          "block"
+        ],
+        "rects": {
+          ".ci-paper-answer": null,
+          ".ci-paper-watch": {
+            "x": 12,
+            "y": 1236.625,
+            "w": 366,
+            "h": 329.46875,
+            "display": "grid"
+          },
+          ".ci-paper-company-visual": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0,
+            "display": "none"
+          }
+        },
+        "listing": "AAPL · XNAS · USD",
+        "height": 2264,
+        "closedEvidenceRect": {
+          "y": 844,
+          "x": 0,
+          "bottom": 1688,
+          "aria": "true",
+          "inert": true
+        },
+        "text": "AApple Inc.AAPL已验证事件AAPL · XNAS · USD公司情报 · AAPL · Q3 财年2026 · 30 7月事件Q3 FY2026 · 2026-07-30查看凭证询问 Mastermind截至 Jul 30, 2026已保留事件版本权限 仅供背景参考来自公司事件工作区简报业绩电话会 + 问答历史主题来源230 秒简报 · 来源支持Q3 FY2026 · 2026-07-30仅供背景参考$109.4 billion in revenue, up 16%$109.4B · +16%营收$109.4B · +16%Q4 revenue growth9–11%关注事项re"
+      }
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "zh",
+      "lens": "results",
+      "errors": [],
+      "layout": {
+        "viewport": 390,
+        "scroll": 390,
+        "metadata": [
+          {
+            "text": "截至 Jul 30, 2026",
+            "rect": {
+              "x": 29,
+              "y": 320.0625,
+              "width": 97.265625,
+              "height": 13,
+              "top": 320.0625,
+              "right": 126.265625,
+              "bottom": 333.0625,
+              "left": 29
+            },
+            "scrollWidth": 97,
+            "clientWidth": 97,
+            "display": "flex"
+          },
+          {
+            "text": "已保留事件版本",
+            "rect": {
+              "x": 0,
+              "y": 0,
+              "width": 0,
+              "height": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0,
+              "left": 0
+            },
+            "scrollWidth": 0,
+            "clientWidth": 0,
+            "display": "none"
+          },
+          {
+            "text": "权限 仅供背景参考",
+            "rect": {
+              "x": 138.265625,
+              "y": 320.0625,
+              "width": 85,
+              "height": 13,
+              "top": 320.0625,
+              "right": 223.265625,
+              "bottom": 333.0625,
+              "left": 138.265625
+            },
+            "scrollWidth": 85,
+            "clientWidth": 85,
+            "display": "flex"
+          },
+          {
+            "text": "来自公司事件工作区",
+            "rect": {
+              "x": 235.265625,
+              "y": 320.0625,
+              "width": 90,
+              "height": 13,
+              "top": 320.0625,
+              "right": 325.265625,
+              "bottom": 333.0625,
+              "left": 235.265625
+            },
+            "scrollWidth": 90,
+            "clientWidth": 90,
+            "display": "flex"
+          }
+        ],
+        "tabs": [
+          {
+            "text": "简报",
+            "color": "rgb(84, 97, 116)",
+            "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+            "selected": ""
+          },
+          {
+            "text": "业绩",
+            "color": "rgb(32, 38, 50)",
+            "background": "rgb(238, 241, 246) none repeat scroll 0% 0% / auto padding-box border-box",
+            "selected": "on"
+          },
+          {
+            "text": "电话会 + 问答",
+            "color": "rgb(84, 97, 116)",
+            "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+            "selected": ""
+          },
+          {
+            "text": "历史",
+            "color": "rgb(84, 97, 116)",
+            "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+            "selected": ""
+          },
+          {
+            "text": "主题",
+            "color": "rgb(84, 97, 116)",
+            "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+            "selected": ""
+          },
+          {
+            "text": "来源2",
+            "color": "rgb(84, 97, 116)",
+            "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+            "selected": ""
+          }
+        ],
+        "heroAccent": "inline",
+        "orbit": null,
+        "headingAccents": [
+          "block",
+          "block"
+        ],
+        "rects": {
+          ".ci-paper-answer": null,
+          ".ci-paper-watch": null,
+          ".ci-paper-company-visual": null
+        },
+        "listing": "AAPL · XNAS · USD",
+        "height": 1879,
+        "closedEvidenceRect": {
+          "y": 844,
+          "x": 0,
+          "bottom": 1688,
+          "aria": "true",
+          "inert": true
+        },
+        "text": "AApple Inc.AAPL已验证事件AAPL · XNAS · USD公司情报 · AAPL · Q3 财年2026 · 30 7月事件Q3 FY2026 · 2026-07-30查看凭证询问 Mastermind截至 Jul 30, 2026已保留事件版本权限 仅供背景参考来自公司事件工作区简报业绩电话会 + 问答历史主题来源2业绩与展望已报告表现、指引与下一步决策点Q3 FY20262026-07-30概览当前事件 · Q3 FY2026revenue$109.4Bgaap指引与展望仅显示生产者签发的结构化指引；不会从评论中推断区间。可用Q4 revenue growth9–11%gr"
+      }
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "lang": "en",
+      "lens": "brief",
+      "errors": [],
+      "layout": {
+        "viewport": 390,
+        "scroll": 390,
+        "metadata": [
+          {
+            "text": "As known at Jul 30, 2026",
+            "rect": {
+              "x": 29,
+              "y": 320.0625,
+              "width": 136.125,
+              "height": 13,
+              "top": 320.0625,
+              "right": 165.125,
+              "bottom": 333.0625,
+              "left": 29
+            },
+            "scrollWidth": 136,
+            "clientWidth": 136,
+            "display": "flex"
+          },
+          {
+            "text": "Retained event",
+            "rect": {
+              "x": 0,
+              "y": 0,
+              "width": 0,
+              "height": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0,
+              "left": 0
+            },
+            "scrollWidth": 0,
+            "clientWidth": 0,
+            "display": "none"
+          },
+          {
+            "text": "Authority Context only",
+            "rect": {
+              "x": 177.125,
+              "y": 320.0625,
+              "width": 111.671875,
+              "height": 13,
+              "top": 320.0625,
+              "right": 288.796875,
+              "bottom": 333.0625,
+              "left": 177.125
+            },
+            "scrollWidth": 112,
+            "clientWidth": 112,
+            "display": "flex"
+          },
+          {
+            "text": "From the company event workspace",
+            "rect": {
+              "x": 29,
+              "y": 341.0625,
+              "width": 174.296875,
+              "height": 13,
+              "top": 341.0625,
+              "right": 203.296875,
+              "bottom": 354.0625,
+              "left": 29
+            },
+            "scrollWidth": 174,
+            "clientWidth": 174,
+            "display": "flex"
+          }
+        ],
+        "tabs": [
+          {
+            "text": "Brief",
+            "color": "rgb(238, 243, 255)",
+            "background": "rgba(0, 0, 0, 0) linear-gradient(color(srgb 0.167451 0.252157 0.426667), color(srgb 0.131059 0.184863 0.298824)) repeat scroll 0% 0% / auto padding-box border-box",
+            "selected": "on"
+          },
+          {
+            "text": "Results",
+            "color": "rgb(139, 147, 161)",
+            "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+            "selected": ""
+          },
+          {
+            "text": "Call + Q&A",
+            "color": "rgb(139, 147, 161)",
+            "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+            "selected": ""
+          },
+          {
+            "text": "History",
+            "color": "rgb(139, 147, 161)",
+            "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+            "selected": ""
+          },
+          {
+            "text": "Topics",
+            "color": "rgb(139, 147, 161)",
+            "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+            "selected": ""
+          },
+          {
+            "text": "Sources2",
+            "color": "rgb(139, 147, 161)",
+            "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+            "selected": ""
+          }
+        ],
+        "heroAccent": "inline",
+        "orbit": "none",
+        "headingAccents": [
+          "block"
+        ],
+        "rects": {
+          ".ci-paper-answer": null,
+          ".ci-paper-watch": {
+            "x": 12,
+            "y": 1283.625,
+            "w": 366,
+            "h": 329.46875,
+            "display": "grid"
+          },
+          ".ci-paper-company-visual": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0,
+            "display": "none"
+          }
+        },
+        "listing": "AAPL · XNAS · USD",
+        "height": 2326,
+        "closedEvidenceRect": {
+          "y": 844,
+          "x": 0,
+          "bottom": 1688,
+          "aria": "true",
+          "inert": true
+        },
+        "text": "AApple Inc.AAPLVerified eventAAPL · XNAS · USDCompany Intelligence · AAPL · Q3 FY2026 · 30 JulEventQ3 FY2026 · 2026-07-30View receiptsAsk MastermindAs known at Jul 30, 2026Retained eventAuthority Context onlyFrom the company event workspaceBriefResultsCall + Q&AHistoryTopicsSources230-SECOND BRIEF ·"
+      }
+    }
+  ]
+}

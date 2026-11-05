@@ -41,6 +41,7 @@ import {
   type MiniRow,
 } from "./FinCharts";
 import { ArcGauge, type ArcState } from "../ui/ArcGauge";
+import { arcStateLabel } from "../../lib/plainLabels";
 import type { FundEarnings, AnalystDist } from "../../lib/fund";
 import { incomeViewTopLineLabel, incomeView, isIndustrialIncomeView } from "../../lib/finStatementMath";
 
@@ -561,14 +562,16 @@ function AnalystRating({ analyst, est, zh }: { analyst: NonNullable<Fund["analys
       </div>
       {(() => {
         const arc = readingToArc(reading);
+        const arcState = arc.state;
         return (
           <div className="fin-arc-wrap">
             <ArcGauge
               value={arc.value}
-              state={arc.state}
+              state={arcState}
               size={168}
               label={pick(zh, "Analyst rating", "分析师评级")}
               sublabel={ratingVerdict(analyst.rating_label, reading, zh)}
+              stateTitle={arcStateLabel(arcState, zh ? "zh" : "en") as string}
             />
           </div>
         );
