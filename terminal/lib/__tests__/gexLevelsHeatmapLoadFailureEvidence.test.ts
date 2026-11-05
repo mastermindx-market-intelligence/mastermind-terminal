@@ -5,28 +5,13 @@ import { describe, expect, it } from "vitest";
 import { createHash } from "node:crypto";
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
+import { qualifiedOptionsExposurePacket } from "./helpers/optionsExposureEvidence";
 
 const REPO = join(__dirname, "../../..");
 const CROP_DIR = join(__dirname, "../../docs/pr-crops/gex-levels-heatmap-load-failure");
 const OPERATION = join(CROP_DIR, "operations", "exposure-source-compatibility-20261105");
-const CURRENT_CROP_DIR = join(OPERATION, "qualified-root");
-const EVIDENCE = join(CURRENT_CROP_DIR, "EVIDENCE.yml");
 const HISTORICAL_EVIDENCE = join(OPERATION, "EVIDENCE.before.yml");
 // The sources e2e/tools/capture_gex_levels_heatmap_load_failure.cjs stamps (its LAYOUT_FILES).
-const LAYOUT_FILES = [
-  "terminal/app/globals.css",
-  "terminal/components/gexdesk/ExposureWorkspace.module.css",
-  "terminal/components/gexdesk/GexDeskView.tsx",
-  "terminal/components/gexdesk/HeatSeekerCard.tsx",
-  "terminal/components/gexdesk/MarketStateCard.tsx",
-  "terminal/components/gexdesk/StrikeLadder.tsx",
-  "terminal/components/gexdesk/gexStrings.ts",
-  "terminal/components/heatmap/HeatmapView.tsx",
-  "terminal/components/levels/LevelsView.tsx",
-  "terminal/components/levels/levelsLabels.ts",
-  "terminal/lib/dataCache.ts",
-  "terminal/lib/heatmapStrings.ts",
-];
 // The script's STATES; every state is cropped at each width, in English and Chinese.
 const STATES = [
   "gex-ladder-unavailable",
@@ -54,6 +39,11 @@ const WIDTHS = [1440, 820, 390];
 const CROPS = STATES.flatMap((state) =>
   WIDTHS.flatMap((width) => [`${state}-${width}.png`, `${state}-${width}-zh.png`]),
 );
+
+const selected = qualifiedOptionsExposurePacket(REPO, "gex", CROPS);
+const CURRENT_CROP_DIR = selected.cropDir;
+const EVIDENCE = selected.evidence;
+const LAYOUT_FILES = selected.layout;
 
 function evidenceText(): string {
   return readFileSync(EVIDENCE, "utf8");
@@ -157,6 +147,7 @@ describe("GEX, Levels and Heatmap load-failure evidence lock is the sha256 of th
       expect(yml).toMatch(new RegExp(`name:\\s*${name},\\s*width:\\s*${width},\\s*height:\\s*${height}`));
     }
   });
+  if (selected.hasExposureHistory) {
   it("validates the archived-refresh operation capture without replacing historical packet crops", () => {
     const evidence = historicalEvidenceText();
     const separator = "\nexposureArchivedRefreshRecapture:\n";
@@ -333,6 +324,9 @@ describe("GEX, Levels and Heatmap load-failure evidence lock is the sha256 of th
     }
   });
 
+  }
+
+  if (selected.profile === "exposure") {
   it("reconciles retained native capture with fresh boundary proof and preserves historical image sets", () => {
     const folder = "operations/exposure-source-compatibility-20261105";
     const rootEvidence = readFileSync(join(CROP_DIR, "EVIDENCE.yml"), "utf8");
@@ -433,5 +427,6 @@ describe("GEX, Levels and Heatmap load-failure evidence lock is the sha256 of th
       expect(sha256Of(join(CROP_DIR, name)), name).toBe(protectedImages[name]);
     }
   });
+  }
 
 });

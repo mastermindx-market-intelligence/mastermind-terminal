@@ -7,6 +7,8 @@ exposureSourceCompatibility20261105:
   priorImages: "operations/exposure-source-compatibility-20261105/prior-root"
   activeManifestSha256: "83b7a54f7def760363e747e876d77bc8a9f53a5d0e79766ea3754858d5d9aafe"
   captureReceiptSha256: "7b74bfcc4c4e11c8505f0e661cdd65a782802a8e07e69d0fa9c6ea6bab252939"
+  qualifiedPacket: "operations/exposure-source-compatibility-20261105/native-packet.json"
+  qualifiedPacketSha256: "cce523fed5c548dd1b047a76068b45ea791eedd9c45485d87e9f6d128c0c71ba"
 
 # EOD belt, Flow Desk chain heat and Heatmap flow layer failure-state truth — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06

@@ -7,6 +7,8 @@ exposureSourceCompatibility20261105:
   priorImages: "operations/exposure-source-compatibility-20261105/prior-root"
   activeManifestSha256: "415d5782676d2359b2adc7901d690a1d80e6b908537d7674bf2c44b0e8355113"
   captureReceiptSha256: "935ba4848b8fe09b1f7d45e39bbe228a2ba304d8fdaeefc47d013c286e7e7503"
+  qualifiedPacket: "operations/exposure-source-compatibility-20261105/native-packet.json"
+  qualifiedPacketSha256: "834ad890d4f0ab276e917d87fa8212c87493efa29665fb8b71bda817a689189e"
 
 # GEX desk, Levels and Heatmap failure-state truth — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06

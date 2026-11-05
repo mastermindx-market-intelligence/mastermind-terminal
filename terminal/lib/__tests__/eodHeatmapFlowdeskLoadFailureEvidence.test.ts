@@ -5,29 +5,13 @@ import { describe, expect, it } from "vitest";
 import { createHash } from "node:crypto";
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
+import { qualifiedOptionsExposurePacket } from "./helpers/optionsExposureEvidence";
 
 const REPO = join(__dirname, "../../..");
 const CROP_DIR = join(__dirname, "../../docs/pr-crops/eod-heatmap-flowdesk-load-failure");
 const OPERATION = join(CROP_DIR, "operations", "exposure-source-compatibility-20261105");
-const CURRENT_CROP_DIR = join(OPERATION, "qualified-root");
-const EVIDENCE = join(CURRENT_CROP_DIR, "EVIDENCE.yml");
 const HISTORICAL_EVIDENCE = join(OPERATION, "EVIDENCE.before.yml");
 // The sources e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs stamps (its LAYOUT_FILES).
-const LAYOUT_FILES = [
-  "terminal/app/globals.css",
-  "terminal/components/eodcontext/DarkPoolMini.tsx",
-  "terminal/components/eodcontext/EodContextBelt.tsx",
-  "terminal/components/eodcontext/StructureStrip.tsx",
-  "terminal/components/eodcontext/eodStrings.ts",
-  "terminal/components/flowdesk/FlowDeskView.tsx",
-  "terminal/components/gexdesk/ExposureWorkspace.module.css",
-  "terminal/components/gexdesk/GexDeskView.tsx",
-  "terminal/components/heatmap/HeatmapView.tsx",
-  "terminal/lib/dataCache.ts",
-  "terminal/lib/eodContext.ts",
-  "terminal/lib/flowdeskStrings.ts",
-  "terminal/lib/heatmapStrings.ts",
-];
 const STATES = [
   "eod-darkpool-unavailable",
   "eod-darkpool-retried",
@@ -57,6 +41,11 @@ const CROPS = STATES.flatMap((state) =>
 // The defect, recorded against base b7a3357b before the fix (Playwright failure screenshots).
 const BEFORE = ["belt-503", "chainheat-503", "chainheat-refused", "chainheat-404", "heatmap-flow-503", "heatmap-flow-403", "heatmap-quotes-failed", "heatmap-no-match"]
   .flatMap((state) => ["desktop", "tablet", "mobile"].map((project) => `before/${state}-${project}.png`));
+
+const selected = qualifiedOptionsExposurePacket(REPO, "eod", CROPS);
+const CURRENT_CROP_DIR = selected.cropDir;
+const EVIDENCE = selected.evidence;
+const LAYOUT_FILES = selected.layout;
 
 function evidenceText(): string {
   return readFileSync(EVIDENCE, "utf8");
@@ -145,6 +134,7 @@ describe("EOD / heatmap / flow desk load-failure evidence lock is the sha256 of 
       expect(yml).toMatch(new RegExp(`name:\\s*${name},\\s*width:\\s*${width},\\s*height:\\s*${height}`));
     }
   });
+  if (selected.hasExposureHistory) {
   it("validates the archived-refresh operation capture without replacing historical packet crops", () => {
     const evidence = historicalEvidenceText();
     const separator = "\nexposureArchivedRefreshRecapture:\n";
@@ -321,6 +311,9 @@ describe("EOD / heatmap / flow desk load-failure evidence lock is the sha256 of 
     }
   });
 
+  }
+
+  if (selected.profile === "exposure") {
   it("reconciles retained native capture with fresh boundary proof and preserves historical image sets", () => {
     const folder = "operations/exposure-source-compatibility-20261105";
     const rootEvidence = readFileSync(join(CROP_DIR, "EVIDENCE.yml"), "utf8");
@@ -421,5 +414,44 @@ describe("EOD / heatmap / flow desk load-failure evidence lock is the sha256 of 
       expect(sha256Of(join(CROP_DIR, name)), name).toBe(protectedImages[name]);
     }
   });
+  }
+
+  if (selected.hasOptionsHistory) {
+  it("validates the operation-scoped Chain Heat recapture without replacing earlier packet crops", () => {
+    const yml = readFileSync(join(CROP_DIR, "operations/options-source-compatibility-20261105/EVIDENCE.before.yml"), "utf8");
+    const record = receiptSection(yml, "commandChainHeatFollowup");
+    const folder = "operations/options-1248-chain-history-20261104";
+    expect(record).toContain(`  outputDir: "${folder}"`);
+    expect(record).toContain("  actualCases: 24");
+    expect(record).toContain("  failedCases: 0");
+    expect(record).toContain('  packetRootCrops: "restored to their previous committed bytes"');
+    for (const source of [
+      "terminal/components/flowdesk/ChainHeat.module.css",
+      "terminal/components/flowdesk/CommandWorkspace.module.css",
+      "terminal/components/flowdesk/FlowDeskView.tsx",
+      "terminal/components/flowdesk/FlowFreshnessReceipt.tsx",
+      "terminal/app/observatory.css",
+      "terminal/e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs",
+    ]) {
+      expect(selected.optionsHistorySources[source], source).toMatch(/^[0-9a-f]{64}$/);
+      expect(record).toContain(`    ${source}: "${selected.optionsHistorySources[source]}"`);
+    }
+    const cases = ["chainheat-unavailable", "chainheat-retried", "chainheat-absent", "chainheat-refresh-failed"];
+    let tested = 0;
+    for (const state of cases) {
+      for (const viewport of [1440, 820, 390]) {
+        for (const lang of ["", "-zh"]) {
+          const file = `${state}-${viewport}${lang}.png`;
+          const path = join(CROP_DIR, folder, file);
+          expect(existsSync(path), file).toBe(true);
+          expect(statSync(path).size, file).toBeGreaterThan(1000);
+          expect(record).toContain(`    ${file}: "${sha256Of(path)}"`);
+          tested += 1;
+        }
+      }
+    }
+    expect(tested).toBe(24);
+  });
+  }
 
 });
