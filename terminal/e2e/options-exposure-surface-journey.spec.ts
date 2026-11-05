@@ -304,6 +304,70 @@ async function retainSyntheticJson(name: string, value: unknown) {
   await test.info().attach(name, { contentType: "application/json", path });
 }
 
+type MaPaint = { label: string; text: string; fontPx: number; serial: number; left: number; right: number; top: number; bottom: number };
+async function readMaPaint(page: Page): Promise<MaPaint[]> {
+  return page.evaluate(() => (window as unknown as { __readExposureMaPaint?: () => MaPaint[] }).__readExposureMaPaint?.() ?? []);
+}
+async function expectReadableMaPaint(page: Page, stage: string, afterSerial = 0) {
+  await expect.poll(async () => (await readMaPaint(page)).filter(row => row.serial > afterSerial).length).toBe(4);
+  const rows = await readMaPaint(page);
+  await retainSyntheticJson(`synthetic-ma-paint-${stage}.json`, rows);
+  const wrap = await page.getByTestId("exposure-map").locator(".chart-wrap").first().boundingBox();
+  expect(wrap).not.toBeNull();
+  for (const row of rows) {
+    expect(row.fontPx, `${row.label} readable font`).toBeGreaterThanOrEqual(11);
+    expect(row.left).toBeGreaterThanOrEqual(wrap!.x);
+    expect(row.right).toBeLessThanOrEqual(wrap!.x + wrap!.width);
+    expect(row.top).toBeGreaterThanOrEqual(wrap!.y + 44);
+    expect(row.bottom).toBeLessThanOrEqual(wrap!.y + wrap!.height);
+  }
+  const sorted = rows.slice().sort((a, b) => a.top - b.top);
+  for (let i = 1; i < sorted.length; i++) expect(sorted[i]!.top - sorted[i - 1]!.bottom).toBeGreaterThanOrEqual(2);
+  const strip = await page.getByTestId("exposure-map").evaluate((map, labels) => labels.map(label => {
+    const name = [...map.querySelectorAll("b")].find(b => b.textContent === label)!;
+    const item = name.parentElement!, date = item.querySelector("time")!;
+    const rect = item.getBoundingClientRect(), owner = item.parentElement!.getBoundingClientRect();
+    return { label, text: item.textContent, date: date.textContent, font: parseFloat(getComputedStyle(item).fontSize),
+      dateFont: parseFloat(getComputedStyle(date).fontSize), clipped: item.scrollWidth > item.clientWidth,
+      left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom, ownerLeft: owner.left, ownerRight: owner.right };
+  }), rows.map(row => row.label));
+  for (const item of strip) {
+    expect(item.font).toBeGreaterThanOrEqual(11); expect(item.dateFont).toBeGreaterThanOrEqual(10);
+    expect(item.text).toMatch(/\d+\.\d+/); expect(item.date).toBe("10-19"); expect(item.clipped).toBe(false);
+    expect(item.left).toBeGreaterThanOrEqual(item.ownerLeft); expect(item.right).toBeLessThanOrEqual(item.ownerRight);
+  }
+  for (let i = 0; i < strip.length; i++) for (let j = i + 1; j < strip.length; j++) {
+    const a = strip[i]!, b = strip[j]!;
+    expect(Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left))
+      * Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top))).toBe(0);
+  }
+  await retainSyntheticJson(`synthetic-ma-strip-${stage}.json`, strip);
+  return Math.max(...rows.map(row => row.serial));
+}
+async function expectReferenceBadgeClear(page: Page, stage: string) {
+  const badge = page.getByTestId("options-selected-reference-badge");
+  await expect(badge).toBeVisible();
+  await expect(badge).toContainText(SESSION);
+  await expect(badge).toContainText("103.00");
+  const b = (await badge.boundingBox())!;
+  const wrap = (await page.locator(".chart-wrap").first().boundingBox())!;
+  expect(b.x).toBeGreaterThanOrEqual(wrap.x);
+  expect(b.x + b.width).toBeLessThanOrEqual(wrap.x + wrap.width + 0.1);
+  expect(b.y).toBeGreaterThanOrEqual(wrap.y);
+  expect(b.y + b.height).toBeLessThanOrEqual(wrap.y + wrap.height + 0.1);
+  const readout = await page.locator(".chart-wrap").first().locator(".statusline").boundingBox();
+  if (readout) expect(b.y, "complete dated badge clears the measured OHLC readout").toBeGreaterThanOrEqual(readout.y + readout.height);
+  const control = page.locator(".chart-fs-float");
+  const c = await control.isVisible() ? await control.boundingBox() : null;
+  if (c) {
+    expect(c.width).toBeGreaterThanOrEqual(40); expect(c.height).toBeGreaterThanOrEqual(40);
+    const intersection = Math.max(0, Math.min(b.x + b.width, c.x + c.width) - Math.max(b.x, c.x))
+      * Math.max(0, Math.min(b.y + b.height, c.y + c.height) - Math.max(b.y, c.y));
+    expect(intersection, "complete dated badge clears the actual fullscreen control").toBe(0);
+  }
+  await retainSyntheticJson(`synthetic-reference-badge-${stage}.json`, { text: await badge.textContent(), badge: b, control: c, readout });
+}
+
 async function runSurfaceJourney(page: Page, lang: "en" | "zh", theme: "dark" | "light",
   screenshot: (stage: string) => Promise<void>, touch: boolean, keyboard: boolean) {
   const mt = exposureMapT(lang);
@@ -348,6 +412,16 @@ async function runSurfaceJourney(page: Page, lang: "en" | "zh", theme: "dark" | 
     // beautify the chart by causing the daily owner to withhold its inputs.
     for (const label of ["SMA 5 · D", "EMA 21 · D", "SMA 55 · D", "SMA 34 · 5m"]) {
       await expect(map.getByText(label, { exact: true })).toBeVisible();
+    }
+    const serial = await expectReadableMaPaint(page, "contract");
+    if (page.viewportSize()?.width === 390) {
+      const contract = page.viewportSize()!;
+      await page.setViewportSize({ width: 320, height: contract.height });
+      const narrowSerial = await expectReadableMaPaint(page, "narrow320", serial);
+      await map.locator(".chart-wrap").first().evaluate(el => el.scrollIntoView({ block: "center" }));
+      await screenshot("overview-narrow320");
+      await page.setViewportSize(contract);
+      await expectReadableMaPaint(page, "restored390", narrowSerial);
     }
     await map.locator(".chart-wrap canvas").first().scrollIntoViewIfNeeded();
     await screenshot("overview");
@@ -567,6 +641,30 @@ async function runSurfaceJourney(page: Page, lang: "en" | "zh", theme: "dark" | 
     await expect(reference).toContainText(SELECTED_EXPIRY);
     await expect(reference.getByRole("button", { name: mt("unpin"), exact: true })).toHaveAttribute("aria-pressed", "true");
     await expect(page.locator("canvas").first()).toBeVisible({ timeout: 30_000 });
+    await expectReferenceBadgeClear(page, "contract");
+    if (touch) {
+      const fullscreen = page.locator(".chart-fs-float");
+      const exerciseFullscreen = async (stage: string) => {
+        await fullscreen.tap();
+        await expect(page.locator(".app.fs")).toBeVisible();
+        await expectReferenceBadgeClear(page, `${stage}-fullscreen`);
+        await screenshot(`${stage}-fullscreen`);
+        await fullscreen.tap();
+        await expect(page.locator(".app.fs")).toHaveCount(0);
+        await expectReferenceBadgeClear(page, `${stage}-exit`);
+      };
+      await exerciseFullscreen("chart-reference");
+      if (page.viewportSize()?.width === 390) {
+        const contract = page.viewportSize()!;
+        await page.setViewportSize({ width: 320, height: contract.height });
+        await expectReferenceBadgeClear(page, "narrow320");
+        await screenshot("chart-reference-narrow320");
+        await exerciseFullscreen("chart-reference-narrow320");
+        await page.setViewportSize(contract);
+        await expectReferenceBadgeClear(page, "restored390");
+      }
+    }
+    expect(new URL(page.url()).hash).toBe(boundedHash);
     await screenshot("chart-reference");
   });
 
@@ -602,6 +700,37 @@ for (const lang of ["en", "zh"] as const) {
       await page.context().addCookies([
         { name: "mm_e2e_rs30", value: "1", url: baseURL! },
       ]);
+      // Read-only witness: trace the actual MA text paint without changing any
+      // arguments, return values, pixels, layout or market data.
+      await page.addInitScript(() => {
+        const labels = ["SMA 5 · D", "EMA 21 · D", "SMA 55 · D", "SMA 34 · 5m"];
+        const records = new Map<string, { canvas: HTMLCanvasElement; text: string; fontPx: number; serial: number;
+          corners: { x: number; y: number }[] }>();
+        let serial = 0;
+        const original = CanvasRenderingContext2D.prototype.fillText;
+        CanvasRenderingContext2D.prototype.fillText = function (...args: Parameters<typeof original>) {
+          original.apply(this, args);
+          const [text, x, y] = args;
+          const label = labels.find(label => text.startsWith(label));
+          if (!label) return;
+          const m = this.measureText(text), matrix = this.getTransform();
+          const corners = [[x - m.actualBoundingBoxLeft, y - m.actualBoundingBoxAscent],
+            [x + m.actualBoundingBoxRight, y - m.actualBoundingBoxAscent],
+            [x - m.actualBoundingBoxLeft, y + m.actualBoundingBoxDescent],
+            [x + m.actualBoundingBoxRight, y + m.actualBoundingBoxDescent]].map(([x, y]) =>
+              ({ x: matrix.a * x! + matrix.c * y! + matrix.e, y: matrix.b * x! + matrix.d * y! + matrix.f }));
+          records.set(label, { canvas: this.canvas, text, fontPx: Number(this.font.match(/([\d.]+)px/)?.[1]), serial: ++serial, corners });
+        };
+        (window as unknown as { __readExposureMaPaint: () => unknown[] }).__readExposureMaPaint = () =>
+          [...records].filter(([, row]) => row.canvas.isConnected).map(([label, row]) => {
+            const b = row.canvas.getBoundingClientRect(), sx = b.width / row.canvas.width, sy = b.height / row.canvas.height;
+            return { label, text: row.text, fontPx: row.fontPx, serial: row.serial,
+              left: b.left + Math.min(...row.corners.map(p => p.x)) * sx,
+              right: b.left + Math.max(...row.corners.map(p => p.x)) * sx,
+              top: b.top + Math.min(...row.corners.map(p => p.y)) * sy,
+              bottom: b.top + Math.max(...row.corners.map(p => p.y)) * sy };
+          });
+      });
       await page.clock.install({ time: new Date(FIXED_NOW) });
       await page.addInitScript((locale) => {
         localStorage.setItem("mm.lang", locale);

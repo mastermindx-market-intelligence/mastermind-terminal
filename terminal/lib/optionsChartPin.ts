@@ -1,4 +1,5 @@
 import type { PriceLineSpec } from "./chart-engine";
+import { layoutPriceAxisBadges, type PriceAxisBadgeLayout } from "./priceTagPlacement";
 import { axisValueAtCoordinate, zoomAxisRange, type AxisMargins, type AxisRange } from "./chart-engine/axisZoom";
 import { validOptionsChartLevel, type OptionsChartLevel } from "./optionsCompanion";
 
@@ -25,9 +26,25 @@ export function syncOptionsPricePin<L extends PinLine = PinLine>(current: Option
   removeOptionsPricePin(current);
   try {
     const line = host.createPriceLine({ price: level.price, color, lineWidth: 1, lineStyle: 2 /* dashed */,
-      axisLabelVisible: true, title: level.label.slice(0, 64) });
+      // ChartPanel renders the complete label in its measured-obstacle DOM
+      // lane. Retain the true native line, without an overlapping canvas badge.
+      lineVisible: true, axisLabelVisible: false, title: "" });
     return { host, line, key };
   } catch { return null; }
+}
+
+/** Keep complete reference labels below the measured readout, including packed
+ * neighbours and overflow lanes. Translate only label-layout coordinates; callers
+ * retain the true native quote and line anchors. With no reference, layout is unchanged. */
+export function layoutOptionsReferenceBadges(input: PriceAxisBadgeLayout, readoutFloor: number) {
+  const floor = input.badges.some(badge => badge.id === "selected-reference") && Number.isFinite(readoutFloor)
+    ? Math.max(0, readoutFloor) : 0;
+  const placed = layoutPriceAxisBadges({ ...input,
+    paneHeight: Math.max(0, input.paneHeight - floor), activeTop: input.activeTop - floor,
+    badges: input.badges.map(badge => ({ ...badge, anchorY: badge.anchorY - floor, naturalTop: badge.naturalTop - floor })),
+  });
+  return placed.map((placement, index) => ({ ...placement, ...input.badges[index], top: placement.top + floor,
+    docked: placement.lane > 0 || Math.abs(placement.top + floor - input.badges[index].naturalTop) > .5 }));
 }
 
 export type OptionsPinVisibility = "visible" | "offscreen" | "unavailable";

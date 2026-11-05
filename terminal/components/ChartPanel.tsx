@@ -1,7 +1,7 @@
 "use client";
 import { boatsChartHistoryBars, type BoatsChartHistory } from "@/lib/extQuoteCopy";
 import type { OptionsChartLevel } from "@/lib/optionsCompanion";
-import { syncOptionsPricePin, removeOptionsPricePin, optionsPinVisibility, optionsPinRevealRange, type OptionsPinViewport, type OptionsPricePin } from "@/lib/optionsChartPin";
+import { syncOptionsPricePin, removeOptionsPricePin, layoutOptionsReferenceBadges, optionsPinVisibility, optionsPinRevealRange, type OptionsPinViewport, type OptionsPricePin } from "@/lib/optionsChartPin";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 // ── Boot-trace helper — mirrors the one in TerminalShell (?boottrace=1) ──────
@@ -75,7 +75,6 @@ import {
   PRICE_TAG_MIN_VALUE_WIDTH,
   priceTagRowTop,
   priceScaleDisplayValue,
-  layoutPriceAxisBadges,
   priceAxisOffsetForObstacles,
   readablePriceTagTextColor,
   type PriceAxisObstacle,
@@ -1162,13 +1161,18 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
   const onOptionsViewportRef = useRef(onOptionsViewport); onOptionsViewportRef.current = onOptionsViewport;
   const optionsViewportRef = useRef<OptionsPinViewport | null>(null);
   const optionsViewportPublisherRef = useRef<(() => void) | null>(null);
-  const clearOptionsPriceLine = () => { optionsPricePinRef.current = removeOptionsPricePin(optionsPricePinRef.current); };
+  const hideSelectedOptionsBadge = () => {
+    const badge = optionTagHostRef.current?.querySelector<HTMLElement>('[data-level-key="selected-reference"]');
+    if (badge) badge.style.display = "none";
+  };
+  const clearOptionsPriceLine = () => { optionsPricePinRef.current = removeOptionsPricePin(optionsPricePinRef.current); hideSelectedOptionsBadge(); };
   const applyOptionsPriceLine = () => {
     if (!optionsLevelRef.current && !optionsPricePinRef.current) return;
     const color = getComputedStyle(document.documentElement).getPropertyValue("--warn").trim() || "#e8a33d";
     optionsPricePinRef.current = syncOptionsPricePin(optionsPricePinRef.current, priceSeriesHandleRef.current,
       optionsLevelRef.current, symbolRef.current,
       chartDataSymRef.current === symbolRef.current && replayIdxRef.current == null, color);
+    if (!optionsPricePinRef.current) hideSelectedOptionsBadge();
   };
   const pushIndPriceLine = (key: string, pl: PriceLineHandle) => {
     const m = indPriceLinesRef.current;
@@ -4435,12 +4439,17 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
     optionTagHost.className = "mm-optlevel-layer";
     optionTagHost.style.cssText = "position:absolute;inset:0;z-index:5;pointer-events:none;overflow:visible";
     wrap.appendChild(optionTagHost); optionTagHostRef.current = optionTagHost;
-    const optionTagMap = new Map<OptLevelKey, HTMLDivElement>();
-    const ensureOptionTag = (key: OptLevelKey): HTMLDivElement => {
+    type AxisOptionKey = OptLevelKey | "selected-reference";
+    const optionTagMap = new Map<AxisOptionKey, HTMLDivElement>();
+    const ensureOptionTag = (key: AxisOptionKey): HTMLDivElement => {
       const existing = optionTagMap.get(key); if (existing) return existing;
       const node = document.createElement("div");
       node.className = "mm-optlevel-tag";
       node.dataset.levelKey = key;
+      if (key === "selected-reference") {
+        node.dataset.testid = "options-selected-reference-badge";
+        node.setAttribute("role", "note");
+      }
       node.style.cssText = `position:absolute;right:1px;display:none;box-sizing:border-box;min-width:${PRICE_TAG_MIN_VALUE_WIDTH}px;height:${PRICE_TAG_ROW_HEIGHT}px;padding:0 6px;border-radius:2px;color:#fff;align-items:center;justify-content:flex-end;gap:5px;pointer-events:none;white-space:nowrap;font:600 11px/${PRICE_TAG_ROW_HEIGHT}px var(--font-num);font-variant-numeric:tabular-nums;box-shadow:0 0 0 1px rgba(0,0,0,.14)`;
       optionTagHost.appendChild(node); optionTagMap.set(key, node); return node;
     };
@@ -4774,9 +4783,9 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
         preferredSide?: "above" | "below";
         priority?: number;
         kind: "close" | "option";
-        key?: OptLevelKey;
+        key?: AxisOptionKey;
         price?: number;
-        style?: OptLevelRenderStyle;
+        style?: Pick<OptLevelRenderStyle, "color" | "title">;
       };
       const badgeMeta: RenderBadgeMeta[] = [];
       if (extVisible && shown) {
@@ -4823,14 +4832,40 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
         }
       }
 
-      const placements = layoutPriceAxisBadges({
+      // The selected reference joins the same badge/obstacle resolver as
+      // Options Levels. Its true native price line and anchor never move.
+      let referenceReadoutFloor = 0;
+      const selectedReference = optionsLevelRef.current;
+      const nativeReference = optionsPricePinRef.current;
+      if (selectedReference && nativeReference && nativeReference.host === s && activeRef.current && dataReadyRef.current
+        && replayIdxRef.current == null && selectedReference.root === symbolRef.current
+        && chartDataSymRef.current === symbolRef.current && fullBarsTfRef.current === timeframeRef.current) {
+        const anchorY = s.priceToCoordinate(selectedReference.price);
+        if (anchorY != null && Number.isFinite(anchorY) && anchorY >= 0 && anchorY <= paneH) {
+          const native = nativeReference.line.options() as { price?: number; color?: string; lineVisible?: boolean };
+          if (native.price === selectedReference.price && native.lineVisible !== false) {
+            // A narrow statusline can wrap to three rows. Dock only this complete
+            // dated label below its measured readout; the native line stays at anchorY.
+            const readout = statusRef.current?.closest<HTMLElement>(".statusline")?.getBoundingClientRect();
+            const wrapTop = wrap.getBoundingClientRect().top;
+            referenceReadoutFloor = readout && readout.height > 0 ? Math.max(0, readout.bottom - wrapTop - paneGeometry.top + 2) : 0;
+            badgeMeta.push({
+              id: "selected-reference", kind: "option", key: "selected-reference", priority: 90,
+              anchorY, naturalTop: priceTagRowTop(anchorY), price: selectedReference.price,
+              style: { title: selectedReference.label, color: native.color || tokensRef.current.warn },
+            });
+          }
+        }
+      }
+
+      const placements = layoutOptionsReferenceBadges({
         paneHeight: paneH,
         activeTop,
         activeHeight,
         badges: badgeMeta.map(({ id, anchorY, naturalTop, preferredSide, priority }) => ({
           id, anchorY, naturalTop, preferredSide, priority,
         })),
-      });
+      }, referenceReadoutFloor);
       const placementById = new Map(placements.map((placement) => [placement.id, placement]));
 
       if (extVisible && shown) {
@@ -4878,6 +4913,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
         const text = `${meta.style.title} ${scalePriceText(s, meta.price)}`;
         const width = Math.max(PRICE_TAG_MIN_VALUE_WIDTH, measuredLabelWidth(node, text, 12));
         node.textContent = text;
+        node.setAttribute("aria-label", text);
         node.style.background = meta.style.color;
         node.style.color = readablePriceTagTextColor(meta.style.color);
         node.style.width = `${width}px`;
@@ -4931,7 +4967,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
         node.style.top = paneGeometry.top + placement.top + "px";
         node.dataset.anchorY = String(meta.anchorY);
         node.dataset.naturalTop = String(paneGeometry.top + meta.naturalTop);
-        node.dataset.docked = placement.docked ? "true" : "false";
+        node.dataset.docked = placement.docked || Math.abs(placement.top - meta.naturalTop) > .5 ? "true" : "false";
         node.dataset.lane = String(placement.lane);
         node.dataset.price = String(meta.price);
         node.style.display = "flex";
