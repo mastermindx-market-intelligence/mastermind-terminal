@@ -1,0 +1,63 @@
+{
+  "sibling": "rsi__ltcompat01",
+  "beforeRemoval": [
+    "largeTrades",
+    "rsi",
+    "rsi__ltcompat01",
+    "trend"
+  ],
+  "expectedAfterRemoval": [
+    "largeTrades",
+    "rsi__ltcompat01",
+    "trend"
+  ],
+  "primaryRemoved": true,
+  "priceMovedBelowSibling": true,
+  "hiddenProof": {
+    "frame": null,
+    "text": [
+      "MASTERMIND",
+      "TERMINAL",
+      "AAPL",
+      "  5s",
+      "2026-10-11 08:25:33 UTC-7",
+      "Apple Inc",
+      "RSI 2 (7)"
+    ]
+  },
+  "restored": {
+    "filename": "AAPL_5s_20261011.png",
+    "plot": {
+      "x": 0,
+      "y": 164,
+      "width": 904,
+      "height": 556
+    },
+    "pricePane": {
+      "y": 164,
+      "height": 556
+    },
+    "markers": [
+      {
+        "quantity": 1301,
+        "reports": 3,
+        "y": 441.21875
+      },
+      {
+        "quantity": 1500,
+        "reports": 2,
+        "y": 433.578125
+      },
+      {
+        "quantity": 1800,
+        "reports": 1,
+        "y": 320.6875
+      },
+      {
+        "quantity": 1600,
+        "reports": 1,
+        "y": 447.046875
+      }
+    ]
+  }
+}

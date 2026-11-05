@@ -7,6 +7,12 @@
 //
 // Absence is a FACT, never an empty result: a missing relation is `"unavailable"`, any other
 // read error is `"failed"`, and neither is collapsed into `{ok:true, shared:[]}`.
+//
+// Every WATCHLIST grant read filters `.eq("resource_kind", RESOURCE_KIND_WATCHLIST)` explicitly.
+// `resource_grants` now also carries the `investigation` kind (pinned research handoffs), and a
+// bare `granted_by`/`grantee_user_id` read would silently mix the two: an investigation grant in
+// the received set would crash the watchlist name lookup or, worse, feed a foreign resource_id
+// into decideTenantScope. Write and revoke behavior is unchanged.
 
 import type { DbResult, DbRow, WatchlistDb, WatchlistQuery } from "@/lib/watchlists";
 import { decideTenantScope, type Grant } from "@/lib/tenantScope";
@@ -243,13 +249,13 @@ async function symbolsByListId(
 
 export async function listGrants(db: GrantsDb, callerId: string): Promise<GrantsListRead> {
   const madeResult = await live(
-    db.from(GRANTS_TABLE).select("id,resource_kind,resource_id,grantee_user_id,granted_by,created_at,revoked_at").eq("granted_by", callerId) as GrantsQuery,
+    db.from(GRANTS_TABLE).select("id,resource_kind,resource_id,grantee_user_id,granted_by,created_at,revoked_at").eq("granted_by", callerId).eq("resource_kind", RESOURCE_KIND_WATCHLIST) as GrantsQuery,
   );
   const madeFail = classifyReadError(madeResult);
   if (madeFail) return madeFail;
 
   const receivedResult = await live(
-    db.from(GRANTS_TABLE).select("id,resource_kind,resource_id,grantee_user_id,granted_by,created_at,revoked_at").eq("grantee_user_id", callerId) as GrantsQuery,
+    db.from(GRANTS_TABLE).select("id,resource_kind,resource_id,grantee_user_id,granted_by,created_at,revoked_at").eq("grantee_user_id", callerId).eq("resource_kind", RESOURCE_KIND_WATCHLIST) as GrantsQuery,
   );
   const receivedFail = classifyReadError(receivedResult);
   if (receivedFail) return receivedFail;
@@ -317,7 +323,7 @@ export async function listGrants(db: GrantsDb, callerId: string): Promise<Grants
 
 export async function listSharedWatchlistsForCaller(db: GrantsDb, callerId: string): Promise<SharedWatchlistsRead> {
   const receivedResult = await live(
-    db.from(GRANTS_TABLE).select("id,resource_kind,resource_id,grantee_user_id,granted_by,created_at,revoked_at").eq("grantee_user_id", callerId) as GrantsQuery,
+    db.from(GRANTS_TABLE).select("id,resource_kind,resource_id,grantee_user_id,granted_by,created_at,revoked_at").eq("grantee_user_id", callerId).eq("resource_kind", RESOURCE_KIND_WATCHLIST) as GrantsQuery,
   );
   const receivedFail = classifyReadError(receivedResult);
   if (receivedFail) return receivedFail;
@@ -438,7 +444,8 @@ export async function createGrant(
           .select("id,resource_kind,resource_id,grantee_user_id,granted_by,created_at,revoked_at")
           .eq("resource_id", resourceId)
           .eq("grantee_user_id", granteeUserId)
-          .eq("granted_by", callerId) as GrantsQuery,
+          .eq("granted_by", callerId)
+          .eq("resource_kind", RESOURCE_KIND_WATCHLIST) as GrantsQuery,
       ).maybeSingle();
       const existingRow = asRow(existing);
       const grant = existingRow ? toSharedGrant(existingRow, resourceName) : null;

@@ -1,0 +1,175 @@
+{
+  "scope": "G3 security-group Seasonality consumer only",
+  "qualified_base": "99a7d973d12ba699bc161ffdfadca89292f38a47",
+  "reviewed_source_commit": "2ae96728a06506e63999118ab92b0085aaaeea41",
+  "code_and_test_patch_id": "4f2e015f04c9e8f79138f4a71c09d8d71ceee8ae",
+  "integration": "Independent vertical on Terminal master; Investigation kernel remains on held PR #804. Reviewed code and test patch is unchanged.",
+  "unit_tests": {
+    "passed": 206,
+    "focused": 78,
+    "compatibility": 128
+  },
+  "typecheck": "Passed after removing stale generated dev-route types from the prior kernel branch and regenerating types; no application or compiler setting changes.",
+  "responsive": {
+    "passed": 6,
+    "languages": [
+      "en",
+      "zh"
+    ],
+    "viewports": [
+      [
+        1440,
+        900
+      ],
+      [
+        820,
+        1180
+      ],
+      [
+        390,
+        844
+      ]
+    ],
+    "additional_reflow": [
+      320,
+      844
+    ],
+    "text_resize_percent": 200,
+    "assertions": [
+      "actual Seasonality data-owner provenance retains pinned symbol",
+      "Brain host active context follows chart",
+      "local mode retains value and follow resumes current",
+      "no layout Investigation or pin writes",
+      "keyboard pin and no context-card overflow"
+    ]
+  },
+  "screenshots": [
+    {
+      "file": "desktop-en.png",
+      "sha256": "8af0202cfcb0ada4bb477a8d88a13808795208752c5e89150f705740ec33c513",
+      "viewport": "desktop",
+      "locale": "en",
+      "mobile_capture": null
+    },
+    {
+      "file": "desktop-zh.png",
+      "sha256": "f85524b4131cfee7b195b554143142f10c354fc5978ed902f9c7ca1523619aa6",
+      "viewport": "desktop",
+      "locale": "zh",
+      "mobile_capture": null
+    },
+    {
+      "file": "tablet-en.png",
+      "sha256": "88f268c56c4181a1b87bb1ab36b6595a5d200b570c174eb08f2d4945d2f1d36a",
+      "viewport": "tablet",
+      "locale": "en",
+      "mobile_capture": null
+    },
+    {
+      "file": "tablet-zh.png",
+      "sha256": "ed95baa688cb907a23e3b9cce2fcf8542c3bb8aa1a09624dc26bd642eba1395c",
+      "viewport": "tablet",
+      "locale": "zh",
+      "mobile_capture": null
+    },
+    {
+      "file": "mobile-en.png",
+      "sha256": "63dbdaf763ff2714494f02ca8d649ecd2427721cdab1744b37b8e74cd0f0db8e",
+      "viewport": "mobile",
+      "locale": "en",
+      "mobile_capture": "320 CSS pixels, all computed text sizes doubled, keyboard pin selected"
+    },
+    {
+      "file": "mobile-zh.png",
+      "sha256": "2082fbc0b02df1a0030f8b9fd83efc2c3cb8e077ba5bc86c77e75cd185c71961",
+      "viewport": "mobile",
+      "locale": "zh",
+      "mobile_capture": "320 CSS pixels, all computed text sizes doubled, keyboard pin selected"
+    }
+  ],
+  "browser_attempts": {
+    "first_matrix": {
+      "passed": 5,
+      "failed": 1
+    },
+    "desktop_en_recheck": {
+      "passed": 1,
+      "failed": 0
+    },
+    "diagnosis": "First desktop EN assertion reached Follow MSFT while /data/MSFT.json and unrelated requests were still pending during cold /api/brain compilation. Unchanged test passed on warmed server; retained trace confirms MSFT data HTTP 200 in 35.95 ms.",
+    "assertions_changed": false
+  },
+  "independent_review": {
+    "run": "rs_20261005T091219Z_97137",
+    "verdict": "PASS_SCOPED",
+    "code_and_test_patch_unchanged": true,
+    "parent_integration": "206 tests, TypeScript, six EN/ZH viewport journeys including targeted unchanged desktop retry"
+  },
+  "runtime_proof": "not yet deployed",
+  "open_g3_scope": [
+    "second materially different domain group",
+    "versioned persisted composition and migration",
+    "negotiated multidomain Brain compiler contract"
+  ],
+  "product_defect_fixed": "Existing StockAnalysis omitted its injected slot without research coverage; render the stable keyed slot in both branches. Coverage-loss/remount regression passes.",
+  "local_receipts": [
+    {
+      "file": "g3-independent-base-unit.log",
+      "sha256": "6a4aff526d90bef89273d5b1a3ef9021693046072e4f15e60b5fb3c821336e56"
+    },
+    {
+      "file": "g3-independent-base-chart-bus.log",
+      "sha256": "8852bd8189b6b4b4ed62d00ceec090c89046576d5906d01b335c65902912e4c0"
+    },
+    {
+      "file": "g3-independent-base-compatibility.log",
+      "sha256": "1e33175eee80331a3db09caaa2bc5a830ba56e265f89ee0fc63514d0a9c0f6d8"
+    },
+    {
+      "file": "g3-independent-base-typecheck-green.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "g3-independent-base-browser.log",
+      "sha256": "317bb69e508d3431f2f14f9933e3c114671ad634b6409d8b671e675fe7aca22d"
+    },
+    {
+      "file": "g3-independent-base-browser-desktop-recheck.log",
+      "sha256": "5f0e06295a00f9cea57e7fc26e89d3a597bc1a414cddd714e0ad3b1f699fe0f2"
+    }
+  ],
+  "ci_repair": {
+    "source_commit": "2846101a95c9f9c4e1b3f21d0005c356cc41ba8f",
+    "failed_ci_run": 37294621638,
+    "repair": "Scope symbol input selector separately from the Seasonality month select; recapture all eight invalidated visual evidence packets using their existing browser tools. Preserve all existing asserted source files, including Company Intelligence CSS.",
+    "capture_tools": 8,
+    "fresh_captures": 106,
+    "evidence_lock_tests_passed": 47,
+    "browser_journeys_passed": 9,
+    "viewports": [
+      "1440x900",
+      "820x1180",
+      "390x844"
+    ],
+    "typecheck": "passed",
+    "production_acceptance": false,
+    "logs": [
+      {
+        "file": "g3-recapture-evidence-lock-tests.log",
+        "sha256": "6670aa51e08e9d4d0f75d558af358014f37ae6626b5fb021ea9e3c9317cd782c"
+      },
+      {
+        "file": "g3-recapture-css-lock-test.log",
+        "sha256": "b24793b554dacac7ad913168ed5f959fe631ddbc7702c37a6c4e07c7298c73a9"
+      },
+      {
+        "file": "g3-ci-repair-browser.log",
+        "sha256": "dd8eeae60d0d172aecaa8a463906f0fe4cb1ca5efc715cd41517646242b83dcb"
+      },
+      {
+        "file": "g3-ci-repair-typecheck.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ]
+  }
+}

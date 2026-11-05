@@ -41,6 +41,7 @@ const { Polygon } = require("./lib/polygon");
 const { ExtFeed } = require("./lib/extfeed");
 const { MacroFeed } = require("./lib/macrofeed");
 const { SnapshotFeed } = require("./lib/snapshot");
+const { handleFuturesRequest } = require("./lib/futuresPublication");
 const {
   classify,
   isMacroSymbol,
@@ -244,6 +245,11 @@ const server = http.createServer((req, res) => {
   try {
     if (url.pathname === "/health") return handleHealth(res);
     if (url.pathname === "/quotes") return handleQuotes(res, url);
+    // Inert unless the existing capture publisher has an explicitly configured directory.
+    // This read path never activates a vendor connection or reads the local research samples.
+    if (url.pathname === "/futures") return void handleFuturesRequest(res, url, {
+      root: process.env.HUB_FUTURES_PUBLICATION_DIR || "",
+    }).catch(() => sendJSON(res, 503, { error: "source_unavailable" }));
     return sendJSON(res, 404, { error: "not found" });
   } catch (e) {
     log.error("request handler error", url.pathname, e && e.message);

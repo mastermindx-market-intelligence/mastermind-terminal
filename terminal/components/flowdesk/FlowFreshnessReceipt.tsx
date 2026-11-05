@@ -82,7 +82,10 @@ export function FlowFreshnessReceipt({
       data-flow-timing-contract={parsed?.schema ?? "unavailable"}
       data-flow-timing-authority="display_only"
       data-flow-session={sessionState}
-     >
+      title={parsed
+        ? `${word("updated", lang)} ${parsed.snapshotAt}; ${word("sourceData", lang)} ${parsed.sourceResponseAtFirst} — ${parsed.sourceResponseAtLast}`
+        : word("timingUnavailable", lang)}
+    >
       {connected && (
         <span className="flow-freshness-item flow-freshness-connected" data-flow-transport="connected">
           <span className="flow-freshness-dot" aria-hidden="true" />

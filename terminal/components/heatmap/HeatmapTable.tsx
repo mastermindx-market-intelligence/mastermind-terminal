@@ -168,7 +168,7 @@ export function HeatmapTable({ tiles, layer, selectedTicker, onSelect, lang }: H
         )}
         {layer === "price" && (
           <span style={{ marginLeft: 10, fontStyle: "italic" }}>
-            {zh ? "成交额~市值 = 价格 × 成交量（代理指标）" : "DolVol~Cap = price × vol (proxy, no mcap in manifest yet)"}
+            {t("dolVolCapFormula")}
           </span>
         )}
       </div>

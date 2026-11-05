@@ -1,6 +1,8 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { getEodStr } from "@/components/eodcontext/eodStrings";
+import { getProphetStr } from "@/components/prophet/prophetStrings";
 
 const COMPONENTS = join(__dirname, "../../components");
 
@@ -35,14 +37,17 @@ describe("trader-facing copy stays human-readable", () => {
     expect(src).not.toContain('thesisCaption:    ["Machine-generated from engine fields — display only"');
     expect(src).not.toContain('"No intraday price in this payload');
     expect(src).not.toContain('"No management score in this payload.');
+    expect(getProphetStr("en", "noPlansWhy")).toBe("The latest published run contains no active plans.");
+    expect(getProphetStr("zh", "noPlansWhy")).toBe("最新发布的运行结果中没有活跃计划。");
   });
 
   it("EOD helper copy says data and options ladder instead of implementation artifacts", () => {
     const src = readComponent("eodcontext/eodStrings.ts");
     expect(src).toContain('"from the options ladder"');
-    expect(src).toContain('"Dark-pool data for the latest settled close isn\'t available yet.');
-    expect(src).toContain('"Volatility-regime data for the latest settled close isn\'t available yet.');
+    expect(src).toContain('"Settled dark-pool data hasn\'t been published yet.');
+    expect(src).toContain('"Settled volatility-regime data hasn\'t been published yet.');
     expect(src).not.toContain('"The settled dark-pool artifact hasn\'t published yet.');
-    expect(src).not.toContain('"Published by the structure snapshot; display-only."');
+    expect(getEodStr("en", "tipMaxPain")).toBe("The strike where the most open contracts would expire worthless. Based on settled options data; for context.");
+    expect(getEodStr("zh", "tipMaxPain")).toBe("使最多未平仓合约到期归零的行权价。基于已结算的期权数据；仅供参考。");
   });
 });
