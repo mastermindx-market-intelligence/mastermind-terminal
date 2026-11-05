@@ -1,0 +1,18 @@
+{
+  "label": "post-capture-evidence",
+  "sourceHead": "da02d533f17e209abd63f8c23bcc8b68952d49ae",
+  "command": [
+    "npm",
+    "exec",
+    "--",
+    "vitest",
+    "run",
+    "lib/__tests__/b_pl_6Batch1Evidence.test.ts",
+    "lib/__tests__/visualIntelligenceEvidence.test.ts",
+    "lib/__tests__/optionsLevelAxisEvidence.test.ts"
+  ],
+  "startedAt": "2026-10-21T03:27:06.267467+00:00",
+  "finishedAt": "2026-10-21T03:27:06.886916+00:00",
+  "exitCode": 0,
+  "logSha256": "1a7e71b338b8c5221dafed49a9d4a5d3247fd2eab8c16eed1efe8bfccbc7938d"
+}

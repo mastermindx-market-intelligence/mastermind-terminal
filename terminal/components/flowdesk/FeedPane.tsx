@@ -16,10 +16,13 @@ import {
 } from "react";
 import { FlowCard } from "./FlowCard";
 import { FiltersPanel, DEFAULT_FILTERS } from "./FiltersPanel";
-import type { FlowFilters } from "./FiltersPanel";
+import type { BadgeFlag, DetectionFlag, FlowFilters } from "./FiltersPanel";
+import { FlowCoverageLine } from "./PrintInspector";
 import { trackSearch } from "@/lib/searchTrack";
 import { pick } from "@/lib/finFormat";
 import { FD } from "@/lib/flowdeskStrings";
+import type { FlowStreamStatus } from "@/lib/flowStream";
+import { compareTape, feedEvents, flowCoverage } from "@/lib/flowPrintInspector";
 import { usOptionsSessionState } from "@/lib/flowFreshness";
 import { FlowFreshnessReceipt } from "./FlowFreshnessReceipt";
 import { useT } from "@/lib/i18n";
@@ -157,7 +160,7 @@ export function normalizeEnrichPayload(raw: any): EnrichPayload {
   };
 
   // Normalize events — real API: list; fixture may be dict
-  let eventsDict: Record<string, EnrichEvent> = {};
+  const eventsDict: Record<string, EnrichEvent> = {};
   const rawEvents = raw.events;
   if (Array.isArray(rawEvents)) {
     // Real production shape: list of event objects with inline enrichment
@@ -260,6 +263,64 @@ function savePrefs(p: PersistedPrefs) {
   }
 }
 
+// ── Filter persistence (W3A) — the whole filter set under flowdesk.filters.v1,
+//    beside flowdesk.views (which stays untouched). Sets serialise as arrays; a
+//    stored value that fails to parse falls back to the defaults.
+
+const FILTERS_KEY = "flowdesk.filters.v1";
+const SCORE_VALUES = [0, 50, 60, 70, 80, 90];
+const DTE_VALUES = ["0d", "1_7d", "8_30d", "31_90d", "90p"];
+const MNY_VALUES = ["itm", "atm", "near_otm", "far_otm"];
+const BADGE_VALUES = ["whale", "cluster", "sweep", "unusual", "block"];
+const DETECT_VALUES = ["MULTI_LEG", "LADDER", "REPEAT_HITTER", "SIZE_VS_OI", "WHALE", "FRESH", "Z_OUTLIER"];
+
+function loadStoredFilters(): FlowFilters | null {
+  try {
+    const raw = localStorage.getItem(FILTERS_KEY);
+    if (!raw) return null;
+    const v: unknown = JSON.parse(raw);
+    if (!v || typeof v !== "object" || Array.isArray(v)) return null;
+    const o = v as Record<string, unknown>;
+    const strArr = (x: unknown): string[] =>
+      Array.isArray(x) ? x.filter((m): m is string => typeof m === "string") : [];
+    return {
+      right: o.right === "C" || o.right === "P" ? o.right : "all",
+      lean: o.lean === "~buy" || o.lean === "~sell" || o.lean === "mixed" ? o.lean : "all",
+      minScore: SCORE_VALUES.includes(o.minScore as number)
+        ? (o.minScore as FlowFilters["minScore"])
+        : 0,
+      minPremium: typeof o.minPremium === "number" && Number.isFinite(o.minPremium) && o.minPremium >= 0
+        ? o.minPremium
+        : 0,
+      dteBuckets: strArr(o.dteBuckets).filter((m) => DTE_VALUES.includes(m)) as DteBucket[],
+      mnyBuckets: strArr(o.mnyBuckets).filter((m) => MNY_VALUES.includes(m)) as MnyBucket[],
+      badges: new Set(strArr(o.badges).filter((m) => BADGE_VALUES.includes(m)) as BadgeFlag[]),
+      detections: new Set(strArr(o.detections).filter((m) => DETECT_VALUES.includes(m)) as DetectionFlag[]),
+      exp: typeof o.exp === "string" ? o.exp : null,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function saveFilters(f: FlowFilters) {
+  try {
+    localStorage.setItem(FILTERS_KEY, JSON.stringify({
+      right: f.right,
+      lean: f.lean,
+      minScore: f.minScore,
+      minPremium: f.minPremium,
+      dteBuckets: f.dteBuckets,
+      mnyBuckets: f.mnyBuckets,
+      badges: [...f.badges],
+      detections: [...f.detections],
+      exp: f.exp,
+    }));
+  } catch {
+    // persistence is best-effort
+  }
+}
+
 // ── Preset → filter overrides ─────────────────────────────────────────────────
 
 function presetFilters(preset: ViewPreset): Partial<FlowFilters> {
@@ -287,6 +348,16 @@ interface FeedPaneProps {
   feed: FeedPayload | null;
   /** SSE transport state only; never interpreted as producer freshness. */
   connected?: boolean;
+  /** What the last read of the feed key established. Absent = the pre-status
+   *  behavior (a null feed renders the loading skeletons), so callers that do
+   *  not know the read outcome behave exactly as before. */
+  status?: FlowStreamStatus;
+  /** Data held from an earlier read because the latest did not land. Absent =
+   *  derived from `status` (a held feed with an unavailable or absent read). */
+  stale?: boolean;
+  /** Re-read the feed key now. Wired to the Retry affordances of the
+   *  unavailable states; absent = no-op. */
+  onRetry?: () => void;
   /** Strict measured timing is accepted only from live_flow.meta/v2. */
   flowMeta?: unknown;
   enrich: EnrichPayload | null;
@@ -302,6 +373,9 @@ interface FeedPaneProps {
 export function FeedPane({
   feed,
   connected,
+  status,
+  stale,
+  onRetry,
   flowMeta,
   enrich,
   lang,
@@ -312,6 +386,12 @@ export function FeedPane({
 }: FeedPaneProps) {
   const zh = lang === "zh";
   const t = useT();
+  // The hook's `stale` (a held feed whose latest read did not land); callers without it
+  // derive the same fact from the read status.
+  const heldStale = stale ?? (feed !== null && (status === "unavailable" || status === "absent"));
+  // Toolbar state when no feed is held: the same three branches the list draws.
+  const heldCountState: "unavailable" | "absent" | "loading" =
+    status === "unavailable" ? "unavailable" : status === "absent" ? "absent" : "loading";
 
   // Persist preset + sort across page loads
   const [prefs, setPrefs] = useState<PersistedPrefs>(() => loadPrefs());
@@ -323,6 +403,27 @@ export function FeedPane({
     setPrefs(merged);
     savePrefs(merged);
   }
+
+  // ── Filter persistence (W3A): load at mount, save on change ────────────────
+  // The filter STATE lives in the parent (FlowDeskView); the stored set is pushed
+  // up once at mount, and the first save is skipped so a stored set is never
+  // clobbered by the defaults.
+  const skipNextFilterSave = useRef(false);
+  useEffect(() => {
+    const stored = loadStoredFilters();
+    if (stored) {
+      skipNextFilterSave.current = true;
+      onFiltersChange(stored);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => {
+    if (skipNextFilterSave.current) {
+      skipNextFilterSave.current = false;
+      return;
+    }
+    saveFilters(filters);
+  }, [filters]);
 
   // Ticker search
   const [search, setSearch] = useState("");
@@ -390,6 +491,7 @@ export function FeedPane({
   // Any re-slice can drop the open card out of the rendered set, which would strand
   // the expansion state on an event nobody can see — so collapse alongside it.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- deliberate reset on filter/sort change, not derived state
     setVisibleCount(PAGE_SIZE);
     setExpandedId(null);
   }, [search, preset, sort, filters]);
@@ -408,10 +510,28 @@ export function FeedPane({
     };
   }, [filters, preset]);
 
+  // Coverage is computed over EVERY loaded event before the user's filters —
+  // unknown premium stays in every denominator (W3A A1).
+  // The tape is read through the same guard as the session gauge (feedEvents): a
+  // malformed `events` is an empty tape for the coverage line, the expiry options and
+  // the list alike. For an array it is the identity.
+  const loadedEvents = useMemo(() => feedEvents(feed), [feed]);
+  const coverage = useMemo(() => flowCoverage(loadedEvents), [loadedEvents]);
+
+  // Distinct expiries present in the feed, ascending — the expiry filter's options.
+  const expiryOptions = useMemo(
+    () => [...new Set(
+      loadedEvents
+        .map((ev) => ev.exp)
+        .filter((e): e is string => typeof e === "string"),
+    )].sort(),
+    [loadedEvents],
+  );
+
   // Filter + sort pipeline (pure derivation from props — no internal state)
   const filtered = useMemo(() => {
     if (!feed) return [];
-    let events = feed.events;
+    let events = loadedEvents;
 
     const enrichEvents = enrich?.events ?? {};
 
@@ -424,6 +544,11 @@ export function FeedPane({
     // Right (C/P)
     if (effectiveFilters.right !== "all") {
       events = events.filter((ev) => ev.right === effectiveFilters.right);
+    }
+
+    // Expiry (W3A) — exact ISO match; null = all expirations
+    if (effectiveFilters.exp) {
+      events = events.filter((ev) => ev.exp === effectiveFilters.exp);
     }
 
     // Lean
@@ -500,20 +625,13 @@ export function FeedPane({
       });
     }
 
-    // Sort
-    if (sort === "SCORE") {
-      events = [...events].sort(
-        (a, b) => (b.flowScore?.score ?? 0) - (a.flowScore?.score ?? 0)
-      );
-    } else {
-      // NEW: newest-first (feed is already newest-first from the poller, but re-sort for safety)
-      events = [...events].sort(
-        (a, b) => new Date(b.ts).getTime() - new Date(a.ts).getTime()
-      );
-    }
+    // Sort (W3A S5) — one shared comparator: the feed's own order is never trusted
+    // as stable; equal keys fall back to ascending id so rows never reorder across
+    // updates, and an invalid ts sinks below every valid one.
+    events = [...events].sort((a, b) => compareTape(a, b, sort));
 
     return events;
-  }, [feed, enrich, search, effectiveFilters, preset, sort]);
+  }, [feed, loadedEvents, enrich, search, effectiveFilters, preset, sort]);
 
   // (Placed after `filtered` — the deps array evaluates at render time, so
   // referencing it above the declaration is a TDZ ReferenceError.)
@@ -547,12 +665,25 @@ export function FeedPane({
     <div className="obs-fd-feed-wrap">
       {/* ── Toolbar ── */}
       <div className="obs-fd-toolbar">
-        {/* N SIGNALS count */}
+        {/* N SIGNALS count. Unknown is not zero: with no feed there is no tape to
+            count, so the held state takes the count's place (the list says why). */}
         <div className="obs-fd-count">
-          <span style={{ color: "var(--signal)", fontWeight: 700 }}>
-            {filtered.length}
-          </span>{" "}
-          {zh ? "信号" : "SIGNALS"}
+          {feed === null ? (
+            <span data-testid="flowfeed-count-held" data-held-state={heldCountState}>
+              {heldCountState === "unavailable"
+                ? pick(zh, FD.countHeldUnavailable.en, FD.countHeldUnavailable.zh)
+                : heldCountState === "absent"
+                  ? pick(zh, FD.countHeldAbsent.en, FD.countHeldAbsent.zh)
+                  : pick(zh, FD.feedLoading.en, FD.feedLoading.zh)}
+            </span>
+          ) : (
+            <>
+              <span style={{ color: "var(--signal)", fontWeight: 700 }}>
+                {filtered.length}
+              </span>{" "}
+              {zh ? "信号" : "SIGNALS"}
+            </>
+          )}
           {feed?.stale && (
             <span
               className="obs-tag"
@@ -634,13 +765,52 @@ export function FeedPane({
           filters={filters}
           onFiltersChange={onFiltersChange}
           lang={lang}
+          expiryOptions={expiryOptions}
         />
       )}
 
+      {/* ── Coverage line (W3A) — every loaded event, before the user's filters;
+          unknown premium stays in the denominator, C/P totals are unsigned ── */}
+      {/* No feed, no coverage claim: "no eligible premium" describes a tape, and the
+          desk has none (the list carries the held state and its reason). */}
+      {feed !== null && <FlowCoverageLine coverage={coverage} lang={lang} />}
+
       {/* ── Feed list ── */}
       <div className="obs-fd-list obs-scroll" data-tut="flow-feed">
-        {/* Loading state */}
-        {feed === null && <LoadingState zh={zh} />}
+        {/* A read that did not land is not "still loading": unavailable is a load
+            error with Retry, a 404 is published absence, only an in-flight read
+            keeps the skeletons. Same doctrine as the chain-heat rail. */}
+        {feed === null && status === "unavailable" && (
+          <div style={FEED_LOAD_ERROR} data-testid="flowfeed-load-error" role="alert">
+            <span style={FEED_LOAD_ERROR_TITLE}>{pick(zh, FD.errFeed.en, FD.errFeed.zh)}</span>
+            <span>{pick(zh, FD.feedErrorWhy.en, FD.feedErrorWhy.zh)}</span>
+            <button type="button" className="btn btn-ghost load-retry" style={FEED_RETRY_INLINE} onClick={onRetry}>
+              {pick(zh, FD.errRetry.en, FD.errRetry.zh)}
+            </button>
+          </div>
+        )}
+        {feed === null && status === "absent" && (
+          <div data-testid="flowfeed-absent">{pick(zh, FD.feedAbsent.en, FD.feedAbsent.zh)}</div>
+        )}
+        {/* Loading state (also covers the status-less callers — behavior unchanged) */}
+        {feed === null && status !== "unavailable" && status !== "absent" && <LoadingState zh={zh} />}
+
+        {/* A failed refresh keeps every loaded card and says they are the last read */}
+        {feed !== null && heldStale && status === "unavailable" && (
+          <div className="obs-fd-feed-state" style={FEED_REFRESH_FAILED} data-testid="flowfeed-refresh-failed" role="status">
+            <span>{pick(zh, FD.feedRefreshFailed.en, FD.feedRefreshFailed.zh)}</span>
+            <button type="button" className="btn btn-ghost load-retry" style={FEED_RETRY_INLINE} onClick={onRetry}>
+              {pick(zh, FD.errRetry.en, FD.errRetry.zh)}
+            </button>
+          </div>
+        )}
+        {/* A held feed whose latest read found nothing published: the cards are the last
+            read, and there is nothing to retry until a feed is published again. */}
+        {feed !== null && heldStale && status === "absent" && (
+          <div className="obs-fd-feed-state" style={FEED_REFRESH_FAILED} data-testid="flowfeed-refresh-absent" role="status">
+            <span>{pick(zh, FD.feedRefreshAbsent.en, FD.feedRefreshAbsent.zh)}</span>
+          </div>
+        )}
 
         {/* Empty state */}
         {feed !== null && filtered.length === 0 && (
@@ -691,6 +861,24 @@ export function FeedPane({
 }
 
 // ── Empty / loading states ────────────────────────────────────────────────────
+
+// Load-error block for a feed read that did not land (CHAIN_LOAD_ERROR shape on
+// the chain-heat rail): neutral card surface, muted text, one Retry.
+const FEED_LOAD_ERROR: React.CSSProperties = {
+  display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
+  padding: 16, fontSize: 11, textAlign: "center", color: "var(--muted)",
+};
+const FEED_LOAD_ERROR_TITLE: React.CSSProperties = { color: "var(--text)", fontWeight: 600 };
+// Held-feed note (a failed refresh, or a latest read with nothing published): the
+// loaded cards stay on screen and the note says they are the last read. It is its own
+// full-width row above the cards (.obs-fd-feed-state spans grid-column 1 / -1), on the
+// neutral surface with an even border on every side — no stripe, no fill.
+const FEED_REFRESH_FAILED: React.CSSProperties = {
+  display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8,
+  padding: "6px 16px", fontSize: 10, lineHeight: 1.4, color: "var(--warn)",
+  border: "1px solid var(--line-2)", borderRadius: "var(--r-tile)",
+};
+const FEED_RETRY_INLINE: React.CSSProperties = { padding: "2px 10px", fontSize: 11, flexShrink: 0 };
 
 // Empty-state session tone is resolved by the pure flowFreshness helper using
 // both the ET window and payload session_date, so pre-open/closed/holiday data
@@ -754,7 +942,8 @@ function isFiltersDirty(f: FlowFilters): boolean {
     f.dteBuckets.length > 0 ||
     f.mnyBuckets.length > 0 ||
     f.badges.size > 0 ||
-    f.detections.size > 0
+    f.detections.size > 0 ||
+    f.exp !== null
   );
 }
 

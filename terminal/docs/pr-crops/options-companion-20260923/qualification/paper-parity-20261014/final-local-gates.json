@@ -1,0 +1,50 @@
+{
+  "success": true,
+  "numTotalTestSuites": 2965,
+  "numPassedTestSuites": 2965,
+  "numFailedTestSuites": 0,
+  "numTotalTests": 11409,
+  "numPassedTests": 11405,
+  "numFailedTests": 0,
+  "numPendingTests": 0,
+  "numTodoTests": 4,
+  "startTime": 1791953745686,
+  "at": "2026-10-14T04:58:20.069782+00:00",
+  "source": "1abc95d53d3f305ccaa3c85a1c119d46be611280",
+  "actualTestFiles": 683,
+  "evidencePacks": [
+    {
+      "file": "b_pl_6Batch1Evidence.test.ts",
+      "status": "passed",
+      "tests": 4
+    },
+    {
+      "file": "conductorFitBadgeZhEvidence.test.ts",
+      "status": "passed",
+      "tests": 7
+    },
+    {
+      "file": "eodHeatmapFlowdeskLoadFailureEvidence.test.ts",
+      "status": "passed",
+      "tests": 5
+    },
+    {
+      "file": "gexLevelsHeatmapLoadFailureEvidence.test.ts",
+      "status": "passed",
+      "tests": 6
+    },
+    {
+      "file": "visualIntelligenceEvidence.test.ts",
+      "status": "passed",
+      "tests": 3
+    },
+    {
+      "file": "optionsLevelAxisEvidence.test.ts",
+      "status": "passed",
+      "tests": 3
+    }
+  ],
+  "reportSha256": "9b74b0f527bd48b2bb7ab73c12e63b2a9a0e66d22649e3300918ddb68e8c497f",
+  "trackedEvidenceDiffSha256": "93b49cd35af3031ed9b3aefc90fa307234036be5f44254db3f1fe8e7267d9fb9",
+  "newBrowserReportSha256": "1170dc678d5e239ac0edeae1fc20de6f89b60375e66de498a49644cf4405598f"
+}

@@ -1,0 +1,13 @@
+{
+  "terminal/components/PortfolioView.tsx": "4b880664272863572ef898f45f0f740464cbb6e6",
+  "terminal/components/PortfolioWorkspace.tsx": "3ee4f5e3165b7aa9222169102526a38597cb714b",
+  "terminal/components/PositionModal.tsx": "6c07f488fa8b63b5c0aea121bfd936cfd58b5253",
+  "terminal/components/PortfolioBriefPanel.tsx": "7ca6f9d346c92d6a5b21384abe54382cbcfa45d1",
+  "terminal/components/EventImpactPanel.tsx": "dde9f2271200c4ec44824427de65192d4365df5f",
+  "terminal/components/mounts/PortfolioViewMount.tsx": "68c6fe45c430db8717a8991a009b9079f96ae7e7",
+  "terminal/app/(shell)/portfolio/page.tsx": "c3bf1da4622bc9ca57fba0466ffdf50a4edda845",
+  "terminal/lib/accountIdentity.ts": "40828e5118b848365e0db2479739315d4068a3e0",
+  "terminal/lib/portfolioMutation.ts": "e62b7dfc8964faa47d40c7ad53e7abd8e76a76a2",
+  "terminal/lib/portfolioAnalysisRead.ts": "f1d24b02378115b1662eb9a911d2b1750dd78ad4",
+  "terminal/lib/__tests__/portfolioWorkspaceController.test.tsx": "aa1b780496f1a70a6d8d74c36974cb51f6ac438d"
+}

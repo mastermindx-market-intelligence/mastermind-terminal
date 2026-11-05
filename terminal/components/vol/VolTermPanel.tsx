@@ -4,9 +4,10 @@
  *
  * Finite-filtered per R7. Markers only on the near curve (dte ≤ 60) — the long
  * tail stays a clean line. The structure chip compares the FRONT expiration to
- * the row nearest 90 DTE: front below → Contango, front above → Inverted — a
- * geometric description in neutral tones (vol is non-directional), suppressed
- * whenever either point is missing (or they are the same row).
+ * the row nearest 90 DTE, and only when that row lies within 45 days of 90 DTE:
+ * front below → Contango, front above → Inverted — a geometric description in
+ * neutral tones (vol is non-directional), suppressed whenever either point is
+ * missing, out of range, or they are the same row.
  */
 
 import React, { useMemo, useRef } from "react";
@@ -17,7 +18,8 @@ import type { Lang } from "@/lib/i18n";
 import { makeVolT } from "./volStrings";
 import type { VolTermRow } from "./volTypes";
 import {
-  ProvenanceLine, PanelEmpty, PLOT_PAD, AXIS_TXT, REF_TXT, NEUTRAL_CHIP,
+  admitVolTermRows, finiteSegments, fmtPct, volIsoDay, ProvenanceLine, PanelEmpty, PLOT_PAD, AXIS_TXT, REF_TXT, NEUTRAL_CHIP,
+  type AdmittedVolTermPoint,
 } from "./volShared";
 
 // Local override, not MIN_CHART_H.axis (190) — see the matching comment in
@@ -27,44 +29,81 @@ import {
 const H = 244;
 const MARKER_MAX_DTE = 60;
 
-interface Pt { dte: number; exp: string; v: number }
-
 export function VolTermPanel({
   term,
   lang,
+  selectedExp,
+  onSelectExp,
 }: {
   term: VolTermRow[] | undefined;
   lang: Lang;
+  selectedExp?: string | null;
+  onSelectExp?: (exp: string) => void;
 }) {
   const t = makeVolT(lang);
   const boxRef = useRef<HTMLDivElement | null>(null);
   const w = useChartWidth(boxRef);
 
-  const pts = useMemo<Pt[]>(() => {
-    const out: Pt[] = [];
-    for (const r of term ?? []) {
-      const dte = Number(r?.dte);
-      const v = Number(r?.atm_iv);
-      if (!Number.isFinite(dte) || dte < 0 || !Number.isFinite(v)) continue;
-      out.push({ dte, exp: typeof r.exp === "string" ? r.exp : "", v });
+  const admission = useMemo(() => admitVolTermRows(term), [term]);
+  const pts = admission.rows;
+  // Keep the shared identity even when this surface has no admitted term row.
+  const selectedExpiry = volIsoDay(selectedExp) ? selectedExp : null;
+  const selectedUnavailable = selectedExpiry != null && !pts.some((p) => p.exp === selectedExpiry);
+  const finite = useMemo(() => pts.filter((p) => Number.isFinite(p.v)), [pts]);
+  // Curve positions = admitted rows + invalid-expiry gap placeholders (NaN, never selectable)
+  // at DTEs no admitted row already occupies; the rejected row is still disclosed below.
+  const curve = useMemo<AdmittedVolTermPoint[]>(() => [
+    ...pts,
+    ...admission.invalidExpiryGapDtes.map((dte) => ({ dte, exp: "", v: Number.NaN, conflict: false })),
+  ].sort((a, b) => a.dte - b.dte), [admission.invalidExpiryGapDtes, pts]);
+  const continuityWithheld = admission.ambiguousCoordinateExpiries.size > 0 || admission.unplaceableRows > 0;
+  const segments = useMemo(
+    () => continuityWithheld
+      ? finite.map((point) => [point])
+      : finiteSegments(curve, (point) => point.v),
+    [continuityWithheld, finite, curve],
+  );
+  const drawable = finite.length >= 1;
+  // Disclosure counts only (geometry above is unchanged). An invalid-expiry row is claimed as a
+  // break only when its gap placeholder sits strictly inside the drawn line span; a row at an
+  // observed DTE, beyond the drawn span, or under withheld continuity is disclosed as excluded.
+  const invalidExpiryCounts = useMemo(() => {
+    const gapDtes = new Set(admission.invalidExpiryGapDtes);
+    const lo = finite.length ? finite[0].dte : Number.NaN;
+    const hi = finite.length ? finite[finite.length - 1].dte : Number.NaN;
+    let breaks = 0;
+    for (const dte of admission.invalidExpiryDtes) {
+      if (!continuityWithheld && gapDtes.has(dte) && dte > lo && dte < hi) breaks += 1;
     }
-    out.sort((a, b) => a.dte - b.dte);
-    return out;
-  }, [term]);
+    return { breaks, excluded: admission.invalidExpiryDtes.length - breaks };
+  }, [admission.invalidExpiryDtes, admission.invalidExpiryGapDtes, continuityWithheld, finite]);
+  const countNote = (n: number, one: Parameters<typeof t>[0], many: Parameters<typeof t>[0]) =>
+    n <= 0 ? null : n === 1 ? t(one) : t(many).replace("{n}", String(n));
+  const conflictNotes = [
+    admission.ambiguousCoordinateExpiries.size > 0
+      ? t("termConflictAmbiguous").replace("{n}", String(admission.ambiguousCoordinateExpiries.size))
+      : admission.conflictExpiries.size > 0
+        ? t("termConflictCount").replace("{n}", String(admission.conflictExpiries.size))
+        : null,
+    admission.unplaceableRows > 0 ? t("termUnplaceable").replace("{n}", String(admission.unplaceableRows)) : null,
+    countNote(invalidExpiryCounts.breaks, "termInvalidExpiryBreakOne", "termInvalidExpiryBreak"),
+    countNote(invalidExpiryCounts.excluded, "termInvalidExpiryExcludedOne", "termInvalidExpiryExcluded"),
+  ].filter((note): note is string => note != null);
+  const conflictSummary = conflictNotes.length ? conflictNotes.join(" · ") : null;
 
-  const drawable = pts.length >= 2;
-
-  // Structure chip: front vs nearest-to-90d. Suppressed unless both exist and differ.
-  const structure = useMemo<{ key: "termContango" | "termInverted"; front: Pt; far: Pt } | null>(() => {
-    if (pts.length < 2) return null;
-    const front = pts[0];
-    let far = pts[0];
-    for (const p of pts) {
+  // Structure chip: front vs nearest-to-90d, bounded to 90 ± 45 days like the slope
+  // chips. Suppressed unless both exist, differ, and the far tenor is in range.
+  const structure = useMemo<{ key: "termContango" | "termInverted"; front: AdmittedVolTermPoint; far: AdmittedVolTermPoint } | null>(() => {
+    if (admission.conflictExpiries.size > 0 || admission.unplaceableRows > 0 || curve.length < 2) return null;
+    const front = curve[0];
+    let far = curve[0];
+    for (const p of curve) {
       if (Math.abs(p.dte - 90) < Math.abs(far.dte - 90)) far = p;
     }
-    if (far === front || far.v === front.v) return null;
+    if (far === front || Math.abs(far.dte - 90) > 45) return null;
+    if (!Number.isFinite(front.v) || !Number.isFinite(far.v) || far.v === front.v) return null;
     return { key: front.v < far.v ? "termContango" : "termInverted", front, far };
-  }, [pts]);
+  }, [admission.conflictExpiries, admission.unplaceableRows, curve]);
 
   const [x0, x1] = useMemo(() => {
     if (!drawable) return [0, 1] as [number, number];
@@ -74,9 +113,9 @@ export function VolTermPanel({
   const [y0, y1] = useMemo(() => {
     if (!drawable) return [0, 1] as [number, number];
     let lo = Infinity, hi = -Infinity;
-    for (const p of pts) { if (p.v < lo) lo = p.v; if (p.v > hi) hi = p.v; }
+    for (const p of finite) { if (p.v < lo) lo = p.v; if (p.v > hi) hi = p.v; }
     return padDomain(lo, hi, { clampMin: 0 });
-  }, [pts, drawable]);
+  }, [finite, drawable]);
 
   const plotW = Math.max(10, w - PLOT_PAD.l - PLOT_PAD.r);
   const plotH = H - PLOT_PAD.t - PLOT_PAD.b;
@@ -91,22 +130,23 @@ export function VolTermPanel({
     [xTickVals, w, x0, x1],
   );
 
-  const markers = pts.filter((p) => p.dte <= MARKER_MAX_DTE);
+  const singletonPoints = new Set(segments.filter((seg) => seg.length === 1).flat());
+  const markers = finite.filter((p) => p.dte <= MARKER_MAX_DTE || singletonPoints.has(p));
 
   // Slope chips (R2.3): the two segments a desk actually quotes — front→~30d and
   // ~30d→~90d, in vol points. Suppressed when the curve lacks the anchor tenors.
   const slopes = useMemo(() => {
-    if (pts.length < 2) return [] as { key: "termSlopeFront" | "termSlopeBack"; v: number }[];
+    if (admission.conflictExpiries.size > 0 || admission.unplaceableRows > 0 || curve.length < 2) return [] as { key: "termSlopeFront" | "termSlopeBack"; v: number; from: number; to: number }[];
     const nearest = (target: number) =>
-      pts.reduce((a, b) => (Math.abs(b.dte - target) < Math.abs(a.dte - target) ? b : a));
-    const front = pts[0];
+      curve.reduce((a, b) => (Math.abs(b.dte - target) < Math.abs(a.dte - target) ? b : a));
+    const front = curve[0];
     const d30 = nearest(30);
     const d90 = nearest(90);
-    const out: { key: "termSlopeFront" | "termSlopeBack"; v: number }[] = [];
-    if (d30 !== front && Math.abs(d30.dte - 30) <= 15) out.push({ key: "termSlopeFront", v: d30.v - front.v });
-    if (d90 !== d30 && Math.abs(d90.dte - 90) <= 45) out.push({ key: "termSlopeBack", v: d90.v - d30.v });
+    const out: { key: "termSlopeFront" | "termSlopeBack"; v: number; from: number; to: number }[] = [];
+    if (d30 !== front && Math.abs(d30.dte - 30) <= 15 && Number.isFinite(front.v) && Number.isFinite(d30.v)) out.push({ key: "termSlopeFront", v: d30.v - front.v, from: front.dte, to: d30.dte });
+    if (d90 !== d30 && Math.abs(d90.dte - 90) <= 45 && Number.isFinite(d30.v) && Number.isFinite(d90.v)) out.push({ key: "termSlopeBack", v: d90.v - d30.v, from: d30.dte, to: d90.dte });
     return out;
-  }, [pts]);
+  }, [admission.conflictExpiries, admission.unplaceableRows, curve]);
 
   const fmtSlope = (v: number) => `${v > 0 ? "+" : v < 0 ? "−" : ""}${Math.abs(v).toFixed(1)}`;
 
@@ -119,22 +159,52 @@ export function VolTermPanel({
             style={NEUTRAL_CHIP}
             aria-label={t("termChipAria")
               .replace("{front}", structure.front.v.toFixed(1))
-              .replace("{far}", structure.far.v.toFixed(1))}
+              .replace("{far}", structure.far.v.toFixed(1))
+              .replace("{frontDte}", String(structure.front.dte)).replace("{farDte}", String(structure.far.dte))}
           >
             {t(structure.key)}
           </span>
         )}
         {slopes.map((s) => (
           <span key={s.key} style={{ ...NEUTRAL_CHIP, fontVariantNumeric: "tabular-nums" }}>
-            {t(s.key).replace("{v}", fmtSlope(s.v))}
+            {t("termSlopeActual").replace("{v}", fmtSlope(s.v)).replace("{from}", String(s.from)).replace("{to}", String(s.to))}
           </span>
         ))}
       </div>
+      {conflictSummary && (
+        <div data-testid="term-conflict-status" role="status" style={CONFLICT_NOTE}>
+          {conflictSummary}
+        </div>
+      )}
+      {onSelectExp && (pts.length > 0 || selectedUnavailable) && (
+        <div role="group" aria-label={t("termExpAria")} style={EXPIRY_ROW}>
+          <span style={EXPIRY_LABEL}>{t("termExpControl")}</span>
+          <select
+            data-testid="term-expiry-select"
+            aria-label={t("termExpAria")}
+            value={selectedExpiry ?? pts[0]?.exp ?? ""}
+            onChange={(event) => onSelectExp(event.target.value)}
+            style={EXPIRY_SELECT}
+          >
+            {selectedUnavailable && (
+              <option value={selectedExpiry!}>
+                {selectedExpiry} · {t("termExpUnavailable")}
+              </option>
+            )}
+            {pts.map((p) => (
+              <option key={p.exp} value={p.exp}>
+                {p.exp} · {p.dte}D · {Number.isFinite(p.v) ? fmtPct(p.v) : t("termExpUnavailable")}
+              </option>
+            ))}
+          </select>
+          <span style={EXPIRY_COUNT}>{t("termExpCount").replace("{n}", String(pts.length))}</span>
+        </div>
+      )}
       <div ref={boxRef} style={{ width: "100%", minWidth: 0 }}>
         {!drawable ? (
           <PanelEmpty title={t("termEmptyTitle")} why={t("termEmptyWhy")} minHeight={H} />
         ) : (
-          <svg viewBox={`0 0 ${w} ${H}`} width={w} height={H} role="img" aria-label={t("termTitle")}>
+          <svg viewBox={`0 0 ${w} ${H}`} width={w} height={H} role="img" aria-label={conflictSummary ? `${t("termTitle")}. ${conflictSummary}` : t("termTitle")}>
             {yTicks.map((v) => (
               <g key={`y${v}`}>
                 <line x1={PLOT_PAD.l} x2={w - PLOT_PAD.r} y1={yOf(v)} y2={yOf(v)} stroke="var(--grid)" />
@@ -153,17 +223,28 @@ export function VolTermPanel({
             <text x={w - PLOT_PAD.r} y={PLOT_PAD.t + 10} textAnchor="end" style={REF_TXT}>
               {t("termXAxis")}
             </text>
-            <path
-              d={pts.map((p, i) => `${i === 0 ? "M" : "L"}${xOf(p.dte).toFixed(1)},${yOf(p.v).toFixed(1)}`).join("")}
+            {segments.map((seg, index) => <path key={index}
+              d={seg.map((p, i) => `${i === 0 ? "M" : "L"}${xOf(p.dte).toFixed(1)},${yOf(p.v).toFixed(1)}`).join("")}
               fill="none"
               stroke="var(--brand-2)"
               strokeWidth={1.6}
               strokeLinejoin="round"
               strokeLinecap="round"
-            />
-            {markers.map((p) => (
-              <circle key={`${p.dte}:${p.exp}`} cx={xOf(p.dte)} cy={yOf(p.v)} r={3} fill="var(--brand-2)" />
-            ))}
+            />)}
+            {markers.map((p) => {
+              const selected = p.exp === selectedExp;
+              return (
+                <circle
+                  key={`${p.dte}:${p.exp}`}
+                  cx={xOf(p.dte)}
+                  cy={yOf(p.v)}
+                  r={selected ? 5 : 3}
+                  fill={selected ? "var(--panel)" : "var(--brand-2)"}
+                  stroke="var(--brand-2)"
+                  strokeWidth={selected ? 2 : 0}
+                />
+              );
+            })}
           </svg>
         )}
       </div>
@@ -171,3 +252,45 @@ export function VolTermPanel({
     </section>
   );
 }
+
+const CONFLICT_NOTE: React.CSSProperties = {
+  margin: "0 0 8px",
+  fontSize: 10.5,
+  lineHeight: 1.45,
+  color: "var(--warn)",
+};
+
+const EXPIRY_ROW: React.CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "minmax(0, 1fr) auto",
+  alignItems: "center",
+  gap: 8,
+  margin: "0 0 8px",
+};
+
+const EXPIRY_LABEL: React.CSSProperties = {
+  fontSize: 10.5,
+  fontWeight: 700,
+  color: "var(--text-2)",
+};
+
+const EXPIRY_SELECT: React.CSSProperties = {
+  minWidth: 0,
+  width: "100%",
+  gridColumn: "1 / -1",
+  height: 36,
+  padding: "0 30px 0 10px",
+  background: "var(--panel-2)",
+  color: "var(--text)",
+  border: "1px solid var(--line-3)",
+  borderRadius: "var(--r-md)",
+  fontSize: 11.5,
+  fontWeight: 600,
+  fontVariantNumeric: "tabular-nums",
+};
+
+const EXPIRY_COUNT: React.CSSProperties = {
+  fontSize: 10,
+  color: "var(--muted)",
+  whiteSpace: "nowrap",
+};

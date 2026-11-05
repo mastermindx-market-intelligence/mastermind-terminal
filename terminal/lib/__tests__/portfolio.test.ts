@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   bookTotals,
   costBasis,
@@ -12,6 +12,7 @@ import {
   normalizeNumeric,
   normalizeStatus,
   normalizeTicker,
+  PortfolioReadError,
   quoteSymbols,
   resolveLast,
   rowToPosition,
@@ -19,12 +20,15 @@ import {
   sinceEntryValue,
   updatePosition,
   MAX_NOTES_LEN,
+  type PortfolioDb,
+  type PortfolioQuery,
   type Position,
 } from "@/lib/portfolio";
 import { addSymbols, listWatchlists } from "@/lib/watchlists";
 import {
   createFixtureDb,
   FAULT_POSITIONS_MUTATION_NOOP,
+  FAULT_POSITIONS_READ,
   fixtureUserId,
   resetFixtureStores,
 } from "@/lib/watchlistsFixtureDb";
@@ -193,6 +197,140 @@ describe("CRUD", () => {
     const drop = await createPosition(db(), owner, { ticker: "NVDA" });
     expect(await deletePosition(db(), owner, drop.position!.id)).toMatchObject({ ok: true });
     expect((await book()).map((p) => p.id)).toEqual([keep.position!.id]);
+  });
+});
+
+describe("owned-position lookup failure classification", () => {
+  function trackWrites(
+    source: PortfolioDb,
+    prepareRead?: (query: PortfolioQuery) => void,
+  ) {
+    const writes = vi.fn();
+    const observed: PortfolioDb = {
+      from(table) {
+        const query = source.from(table);
+        const update = query.update.bind(query);
+        const remove = query.delete.bind(query);
+        query.update = values => {
+          writes("update", values);
+          return update(values);
+        };
+        query.delete = () => {
+          writes("delete");
+          return remove();
+        };
+        prepareRead?.(query);
+        return query;
+      },
+    };
+    return { db: observed, writes };
+  }
+
+  it.each(["returned", "rejected", "thrown"] as const)(
+    "returns safe 500s without attempting writes after a %s lookup error",
+    async kind => {
+      const created = await createPosition(db(), owner, {
+        ticker: "NVDA", shares: 10, entryPrice: 100, entryCurrency: "USD",
+        entryDate: "2026-01-05", notes: "keep this record",
+      });
+      const id = created.position!.id;
+      const original = await book();
+      const privateDetail = "PRIVATE_POSITION_LOOKUP_SENTINEL";
+      const source = createFixtureDb(
+        "portfolio-unit",
+        kind === "returned" ? [FAULT_POSITIONS_READ] : [],
+      );
+      const observed = trackWrites(source, query => {
+        if (kind === "thrown") {
+          query.maybeSingle = () => { throw new Error(privateDetail); };
+        } else if (kind === "rejected") {
+          query.maybeSingle = () => Promise.reject(new Error(privateDetail));
+        } else {
+          const maybeSingle = query.maybeSingle.bind(query);
+          query.maybeSingle = async () => {
+            const result = await maybeSingle();
+            return result.error
+              ? { ...result, error: { ...result.error, message: privateDetail } }
+              : result;
+          };
+        }
+      });
+
+      const failure = await getOwnedPosition(observed.db, owner, id)
+        .catch((cause: unknown) => cause);
+      expect(failure).toBeInstanceOf(PortfolioReadError);
+      expect(failure).toMatchObject({ message: "position read failed" });
+
+      for (const patch of [{ shares: 25 }, { status: "closed" }] as const) {
+        const result = await updatePosition(observed.db, owner, id, patch);
+        expect(result).toEqual({
+          ok: false, error: "position update failed", status: 500,
+        });
+        expect(JSON.stringify(result)).not.toContain(privateDetail);
+        expect(observed.writes).not.toHaveBeenCalled();
+        expect(await book()).toEqual(original);
+      }
+
+      const deleted = await deletePosition(observed.db, owner, id);
+      expect(deleted).toEqual({
+        ok: false, error: "position delete failed", status: 500,
+      });
+      expect(JSON.stringify(deleted)).not.toContain(privateDetail);
+      expect(observed.writes).not.toHaveBeenCalled();
+      expect(await book()).toEqual(original);
+
+      // The row itself stays serviceable: a clean store still reads and writes it, so the
+      // fault above is the lookup, not the record.
+      expect((await updatePosition(db(), owner, id, { status: "closed" })).ok)
+        .toBe(true);
+      const closed = await book();
+      expect(closed[0].status).toBe("closed");
+      const reopened = await updatePosition(observed.db, owner, id, { status: "open" });
+      expect(reopened).toEqual({
+        ok: false, error: "position update failed", status: 500,
+      });
+      expect(observed.writes).not.toHaveBeenCalled();
+      expect(await book()).toEqual(closed);
+    },
+  );
+
+  it("keeps successful missing and foreign lookups as 404 without attempting writes", async () => {
+    await createPosition(db(), owner, { ticker: "NVDA", shares: 10 });
+    const foreign = await createPosition(db(), other, { ticker: "TSLA", shares: 99 });
+    const mineBefore = await book();
+    const theirsBefore = await listPositions(db(), other);
+    const observed = trackWrites(db());
+
+    for (const id of ["missing-position", foreign.position!.id]) {
+      expect(await getOwnedPosition(observed.db, owner, id)).toBeNull();
+      expect(await updatePosition(observed.db, owner, id, { shares: 1 })).toEqual({
+        ok: false, error: "position not found", status: 404,
+      });
+      expect(await deletePosition(observed.db, owner, id)).toEqual({
+        ok: false, error: "position not found", status: 404,
+      });
+    }
+    expect(observed.writes).not.toHaveBeenCalled();
+    expect(await book()).toEqual(mineBefore);
+    expect(await listPositions(db(), other)).toEqual(theirsBefore);
+  });
+
+  it("does not turn unrelated construction or decoding faults into read refusals", async () => {
+    const unexpected = new Error("unexpected programming fault");
+    const constructionFailure: PortfolioDb = { from: () => { throw unexpected; } };
+    const decodingFailure = trackWrites(db(), query => {
+      query.maybeSingle = async () => ({
+        data: { id: "owned-position", get ticker() { throw unexpected; } },
+        error: null,
+      });
+    });
+    for (const source of [constructionFailure, decodingFailure.db]) {
+      await expect(updatePosition(source, owner, "owned-position", { shares: 25 }))
+        .rejects.toBe(unexpected);
+      await expect(deletePosition(source, owner, "owned-position"))
+        .rejects.toBe(unexpected);
+    }
+    expect(decodingFailure.writes).not.toHaveBeenCalled();
   });
 });
 

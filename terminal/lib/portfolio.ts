@@ -9,7 +9,7 @@
 // verified against live PostgREST introspection): id, user_id, ticker, shares, entry_price,
 // entry_date, notes, status, created_at, updated_at. `shares`/`entry_price` are numeric-or-null,
 // `entry_date` is a date-or-null, `status` is text the WRITER constrains to 'open' | 'closed'
-// (no live CHECK is asserted, so this module coerces rather than trusting). Migration0032 adds
+// (no live CHECK is asserted, so this module coerces rather than trusting). Migration0036 adds
 // nullable entry_currency plus its entry_currency_basis receipt, preserving legacy unknown units. No
 // `portfolio_id` — a `portfolios` schema is explicitly out of scope (packet section 3).
 //
@@ -208,7 +208,7 @@ export type PositionsRead =
   | { ok: true; positions: Position[] }
   | { ok: false; error: string };
 
-/** Thrown by `listPositions` when the store did not answer. Never caught-and-emptied. */
+/** Thrown by position reads when the store did not answer. Never caught-and-emptied. */
 export class PortfolioReadError extends Error {
   constructor(message: string) {
     super(message);
@@ -262,7 +262,8 @@ export async function listPositions(db: PortfolioDb, userId: string): Promise<Po
 }
 
 /** Resolve one owned position. `null` when it does not exist or is not this user's — the check
- *  every mutation runs first, so a cross-user id is a 404 and never a write. */
+ *  every mutation runs first, so a cross-user id is a 404 and never a write.
+ *  An unreadable lookup throws PortfolioReadError instead of claiming absence. */
 export async function getOwnedPosition(
   db: PortfolioDb,
   userId: string,
@@ -270,15 +271,27 @@ export async function getOwnedPosition(
 ): Promise<Position | null> {
   const id = typeof positionId === "string" ? positionId.trim() : "";
   if (!id) return null;
-  const row = one(await db.from(POSITIONS_TABLE)
+  // Query construction stays outside the transport catch: a fault building the call is a
+  // programming error, not evidence the store failed to answer.
+  const query = db.from(POSITIONS_TABLE)
     .select(POSITION_FIELDS)
-    .eq("user_id", userId).eq("id", id).maybeSingle());
+    .eq("user_id", userId).eq("id", id);
+  let result: DbResult;
+  try {
+    result = await query.maybeSingle();
+  } catch {
+    throw new PortfolioReadError("position read failed");
+  }
+  if (result.error) throw new PortfolioReadError("position read failed");
+  const row = one(result);
   return row ? rowToPosition(row) : null;
 }
 
 // ───────────────────────────── writes ─────────────────────────────
 
 export type PositionInput = {
+  /** Optional per-create intent UUID. Retry protection lasts while this row remains present. */
+  clientPositionId?: unknown;
   ticker?: unknown;
   shares?: unknown;
   entryPrice?: unknown;
@@ -322,8 +335,15 @@ export async function createPosition(
   const notes = normalizeNotes(input.notes);
   if (notes.kind === "invalid") return { ok: false, error: "invalid notes", status: 400 };
 
+  const suppliedId = input.clientPositionId;
+  if (suppliedId !== undefined && (typeof suppliedId !== "string"
+    || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(suppliedId))) {
+    return { ok: false, error: "invalid position intent", status: 400 };
+  }
+  const clientPositionId = typeof suppliedId === "string" ? suppliedId.toLowerCase() : null;
   const now = new Date().toISOString();
-  const inserted = await db.from(POSITIONS_TABLE).insert({
+  const values = {
+    ...(clientPositionId ? { id: clientPositionId } : {}),
     user_id: userId,
     ticker,
     shares: shares.kind === "value" ? shares.value : null,
@@ -334,7 +354,27 @@ export async function createPosition(
     notes: notes.kind === "value" ? notes.value : null,
     status: normalizeStatus(input.status),
     updated_at: now,
-  }).select(POSITION_FIELDS).maybeSingle();
+  };
+  const inserted = await db.from(POSITIONS_TABLE).insert(values).select(POSITION_FIELDS).maybeSingle();
+
+  // A retry never upserts or replaces an existing record. Only the expected unique-key
+  // refusal admits an owner-scoped readback; an outage cannot turn into a new insertion.
+  if (clientPositionId && inserted.error?.code === "23505") {
+    const reread = await db.from(POSITIONS_TABLE).select(POSITION_FIELDS)
+      .eq("user_id", userId).eq("id", clientPositionId).maybeSingle();
+    if (reread.error) return { ok: false, error: "position confirmation failed", status: 500 };
+    const existingRow = one(reread);
+    const existing = existingRow ? rowToPosition(existingRow) : null;
+    if (existing?.id === clientPositionId && existing.ticker === values.ticker
+      && existing.shares === values.shares && existing.entryPrice === values.entry_price
+      && (existing.entryCurrency ?? null) === values.entry_currency
+      && existing.entryDate === values.entry_date && existing.notes === values.notes
+      && existing.status === values.status) {
+      return { ok: true, position: existing };
+    }
+    // The same response covers a changed owned row and an ID that this user cannot read.
+    return { ok: false, error: "position intent conflict", status: 409 };
+  }
 
   const row = one(inserted);
   const position = row ? rowToPosition(row) : null;
@@ -358,7 +398,15 @@ export async function updatePosition(
   positionId: string,
   patch: PositionInput,
 ): Promise<WriteResult> {
-  const owned = await getOwnedPosition(db, userId, positionId);
+  let owned: Position | null;
+  try {
+    owned = await getOwnedPosition(db, userId, positionId);
+  } catch (cause) {
+    // An unreadable owner lookup is not evidence of absence. Refuse with the same fixed
+    // server-error shape as the write itself, before any statement is issued.
+    if (!(cause instanceof PortfolioReadError)) throw cause;
+    return { ok: false, error: "position update failed", status: 500 };
+  }
   if (!owned) return { ok: false, error: "position not found", status: 404 };
 
   const values: DbRow = {};
@@ -424,7 +472,14 @@ export async function deletePosition(
   userId: string,
   positionId: string,
 ): Promise<WriteResult> {
-  const owned = await getOwnedPosition(db, userId, positionId);
+  let owned: Position | null;
+  try {
+    owned = await getOwnedPosition(db, userId, positionId);
+  } catch (cause) {
+    // Same law as UPDATE: an unreadable owner lookup must never read as "no longer available".
+    if (!(cause instanceof PortfolioReadError)) throw cause;
+    return { ok: false, error: "position delete failed", status: 500 };
+  }
   if (!owned) return { ok: false, error: "position not found", status: 404 };
   // DELETE follows the same receipt law as UPDATE: the database must return the exact id it
   // deleted. A success-shaped zero-row result is not success and is never retried silently.

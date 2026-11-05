@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { resolveDetentRelease } from "@/lib/sheetDetent";
 
@@ -26,6 +26,16 @@ export interface MobileSheetProps {
    * opening the drawer is navigation rather than a request to type.
    */
   initialFocus?: "first" | "sheet";
+  /** Opt-in: a child inspector may consume Escape to clear its selection before the sheet closes. */
+  escapeKey?: "close" | "bubble";
+  /**
+   * Opt-in: when `open` flips to false, the sheet hides but stays mounted (inert, `aria-hidden`,
+   * `data-parked`, inline `visibility: hidden` / `pointer-events: none`, no scrim, no body lock,
+   * no document keydown listener, no detent reset). The next `open=true` re-arms everything;
+   * only `!open && !keepMounted` truly unmounts and refocuses the opener. Default `false` keeps
+   * the existing byte-for-byte behaviour for every other caller.
+   */
+  keepMounted?: boolean;
 }
 
 const FOCUSABLE_SELECTOR = [
@@ -95,6 +105,8 @@ export default function MobileSheet({
   className,
   detents,
   initialFocus = "first",
+  escapeKey = "close",
+  keepMounted = false,
 }: MobileSheetProps) {
   // Track mount so createPortal only fires client-side.
   const [mounted, setMounted] = useState(false);
@@ -114,6 +126,11 @@ export default function MobileSheet({
   const closeTimerRef = useRef<number | null>(null);
   const onCloseRef = useRef(onClose);
   const previousFocusRef = useRef<HTMLElement | null>(null);
+  // Latest `keepMounted` so the focus-effect cleanup can tell parking from a real close.
+  const keepMountedRef = useRef(keepMounted);
+  useLayoutEffect(() => { keepMountedRef.current = keepMounted; }, [keepMounted]);
+  // Last inner element to gain focus while mounted; re-presentation uses it as the focus target.
+  const lastInnerFocusRef = useRef<HTMLElement | null>(null);
   const titleId = useId();
   const hasTitle = Boolean(title);
   const reduceMotion = useSyncExternalStore(
@@ -135,10 +152,13 @@ export default function MobileSheet({
     lastY: number; lastT: number; velocity: number; captured: boolean;
   }>({ startY: 0, startH: 0, pointerId: null, liveHeight: null, lastY: 0, lastT: 0, velocity: 0, captured: false });
   // Each presentation starts at the first detent (React's adjust-state-on-prop-change pattern).
+  // Parking (`!open && keepMounted`) keeps the detent; only a real close (`!open && !keepMounted`)
+  // resets it, so a re-presentation resumes where the user left it.
   const [wasOpen, setWasOpen] = useState(open);
-  if (wasOpen !== open) {
-    setWasOpen(open);
-    if (!open) { setAtFullDetent(false); setLiveDetentHeight(null); }
+  const [wasKeepMounted, setWasKeepMounted] = useState(keepMounted);
+  if (wasOpen !== open || wasKeepMounted !== keepMounted) {
+    setWasOpen(open); setWasKeepMounted(keepMounted);
+    if (!open && !keepMounted) { setAtFullDetent(false); setLiveDetentHeight(null); }
   }
 
   useEffect(() => {
@@ -174,19 +194,42 @@ export default function MobileSheet({
     const sheet = sheetRef.current;
     if (!sheet) return;
 
-    previousFocusRef.current = document.activeElement instanceof HTMLElement
-      ? document.activeElement
-      : null;
+    // Re-presenting must NOT overwrite the opener we snap back to on the FINAL close.
+    if (!previousFocusRef.current) {
+      previousFocusRef.current = document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
+    }
 
     const focusFrame = window.requestAnimationFrame(() => {
-      const target = sheet.querySelector<HTMLElement>("[data-autofocus], [autofocus]")
+      // Prefer the last inner element the user focused (re-presentation after parking).
+      const remembered = lastInnerFocusRef.current;
+      // React reconciles the children when re-rendering inside the same root, so the
+      // remembered element is usually still connected. Accept it whenever it is still
+      // part of this sheet and focusable; the value of `getClientRects()` is unreliable
+      // in jsdom and is purely a "is on screen" check that the browser will pass anyway.
+      const usableRemembered = remembered && remembered.isConnected
+        && sheet.contains(remembered)
+        && remembered.tabIndex >= 0
+        ? remembered : null;
+      const target = usableRemembered
+        ?? sheet.querySelector<HTMLElement>("[data-autofocus], [autofocus]")
         ?? (initialFocus === "sheet" ? sheet : focusableElements(sheet)[0])
         ?? sheet;
       target.focus({ preventScroll: true });
     });
 
+    const onInnerFocus = (event: FocusEvent) => {
+      const target = event.target;
+      if (target instanceof HTMLElement && sheet.contains(target)) {
+        lastInnerFocusRef.current = target;
+      }
+    };
+    sheet.addEventListener("focusin", onInnerFocus);
+
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
+        if (escapeKey === "bubble") return;
         event.preventDefault();
         onCloseRef.current();
         return;
@@ -204,8 +247,13 @@ export default function MobileSheet({
       const last = focusable[focusable.length - 1];
       const active = document.activeElement;
       const focusEscaped = !(active instanceof Node) || !sheet.contains(active);
+      // A dialog can deliberately park focus on an internal tabIndex=-1 element
+      // (e.g. the phone Command Palette body to avoid opening the keyboard).
+      // Such a node is inside the sheet but outside its native Tab order:
+      // Shift+Tab would otherwise jump to the background before focus reclaim.
+      const activeInTabOrder = active instanceof HTMLElement && focusable.includes(active);
 
-      if (active === sheet || focusEscaped) {
+      if (active === sheet || focusEscaped || !activeInTabOrder) {
         event.preventDefault();
         (event.shiftKey ? last : first).focus({ preventScroll: true });
       } else if (event.shiftKey && active === first) {
@@ -217,15 +265,42 @@ export default function MobileSheet({
       }
     };
 
+    const onBubbledEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !event.defaultPrevented) {
+        event.preventDefault(); onCloseRef.current();
+      }
+    };
     document.addEventListener("keydown", onKeyDown, true);
+    if (escapeKey === "bubble") document.addEventListener("keydown", onBubbledEscape);
     return () => {
       window.cancelAnimationFrame(focusFrame);
+      sheet.removeEventListener("focusin", onInnerFocus);
       document.removeEventListener("keydown", onKeyDown, true);
-      const previousFocus = previousFocusRef.current;
-      previousFocusRef.current = null;
-      if (previousFocus?.isConnected) previousFocus.focus({ preventScroll: true });
+      document.removeEventListener("keydown", onBubbledEscape);
+      // Parking keeps `previousFocusRef` so the FINAL close still snaps back to the opener;
+      // a real close clears it and refocuses.
+      if (!keepMountedRef.current) {
+        const previousFocus = previousFocusRef.current;
+        previousFocusRef.current = null;
+        if (previousFocus?.isConnected) previousFocus.focus({ preventScroll: true });
+      }
     };
-  }, [mounted, open, initialFocus]);
+  }, [mounted, open, initialFocus, escapeKey]);
+
+  // A final close taken straight from parking (`open` stays false while `keepMounted`
+  // flips true→false) does not re-run the focus effect above — none of its deps changed —
+  // so its cleanup never fires and the opener restore plus the ref resets are lost into
+  // the next presentation. This effect owns that transition: on every real close it
+  // clears both refs and restores focus. When the sheet closes directly from the open
+  // state, the cleanup above has already consumed `previousFocusRef`, which makes this
+  // a no-op for that path.
+  useEffect(() => {
+    if (open || keepMounted) return;
+    const previousFocus = previousFocusRef.current;
+    previousFocusRef.current = null;
+    lastInnerFocusRef.current = null;
+    if (previousFocus?.isConnected) previousFocus.focus({ preventScroll: true });
+  }, [open, keepMounted]);
 
   function clearCloseTimer() {
     if (closeTimerRef.current === null) return;
@@ -432,6 +507,10 @@ export default function MobileSheet({
 
   if (!mounted) return null;
 
+  const parked = !open && keepMounted;
+  // A real close (`!open && !keepMounted`) unmounts entirely; parking keeps the root mounted.
+  if (!open && !keepMounted) return null;
+
   // In detent mode the height is inline (this component owns both the resting detent and the live
   // drag); globals.css only carries the snap animation and the gesture routing.
   const detentStyle = detents
@@ -447,6 +526,7 @@ export default function MobileSheet({
     className,
     detents ? "is-detent" : null,
     liveDetentHeight != null ? "is-dragging" : null,
+    parked ? "is-parked" : null,
   ].filter(Boolean).join(" ");
 
   const node = (
@@ -463,40 +543,43 @@ export default function MobileSheet({
           aria-hidden="true"
         />
       )}
-      {open && (
-        <div
-          ref={sheetRef}
-          className={rootClass}
-          style={{
-            ...(maxHeight ? { maxHeight } : {}),
-            ...(detentStyle ?? {}),
-            ...(reduceMotion ? { animation: "none" } : {}),
-          }}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby={hasTitle ? titleId : undefined}
-          aria-label={hasTitle ? undefined : (ariaLabel ?? "Sheet")}
-          tabIndex={-1}
-          data-detent={detents ? (atFullDetent ? "full" : "initial") : undefined}
-          onPointerDown={detents ? onDetentDown : onPointerDown}
-          onPointerMove={detents ? onDetentMove : onPointerMove}
-          onPointerUp={detents ? onDetentUp : onPointerUp}
-          onPointerCancel={detents ? onDetentCancel : onPointerCancel}
-          onLostPointerCapture={detents ? undefined : onLostPointerCapture}
-          onClick={(e) => e.stopPropagation()}
-        >
-          {/* Grab handle — drag target (detected via data-handle in the sheet's own handlers) */}
-          <div className="msheet-handle-wrap" data-handle="1">
-            <div className="msheet-handle" />
-          </div>
-          {/* A detented sheet drags from the header too, so the grabber is not the only grip once
-              the body is scrolled; the dismiss-only sheets keep the handle as their sole one. */}
-          {hasTitle && (
-            <div id={titleId} className="msheet-title" data-handle={detents ? "1" : undefined}>{title}</div>
-          )}
-          <div className="msheet-body">{children}</div>
+      <div
+        ref={sheetRef}
+        className={rootClass}
+        style={{
+          ...(maxHeight ? { maxHeight } : {}),
+          ...(detentStyle ?? {}),
+          ...(reduceMotion ? { animation: "none" } : {}),
+          ...(parked ? { visibility: "hidden", pointerEvents: "none" } : {}),
+        }}
+        role="dialog"
+        // Spec K2: parked carries NO aria-modal; only present dialogs are modal.
+        aria-modal={open ? "true" : undefined}
+        aria-labelledby={hasTitle ? titleId : undefined}
+        aria-label={hasTitle ? undefined : (ariaLabel ?? "Sheet")}
+        // Spec K2: parked carries inert and aria-hidden=true. React 19 renders `inert={true}` as the
+        // literal `inert` attribute; passing an empty string is now treated as `false`.
+        {...(parked ? { inert: true, "aria-hidden": "true", "data-parked": "true" } : {})}
+        tabIndex={-1}
+        data-detent={detents ? (atFullDetent ? "full" : "initial") : undefined}
+        onPointerDown={detents ? onDetentDown : onPointerDown}
+        onPointerMove={detents ? onDetentMove : onPointerMove}
+        onPointerUp={detents ? onDetentUp : onPointerUp}
+        onPointerCancel={detents ? onDetentCancel : onPointerCancel}
+        onLostPointerCapture={detents ? undefined : onLostPointerCapture}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Grab handle — drag target (detected via data-handle in the sheet's own handlers) */}
+        <div className="msheet-handle-wrap" data-handle="1">
+          <div className="msheet-handle" />
         </div>
-      )}
+        {/* A detented sheet drags from the header too, so the grabber is not the only grip once
+            the body is scrolled; the dismiss-only sheets keep the handle as their sole one. */}
+        {hasTitle && (
+          <div id={titleId} className="msheet-title" data-handle={detents ? "1" : undefined}>{title}</div>
+        )}
+        <div className="msheet-body">{children}</div>
+      </div>
     </>
   );
 

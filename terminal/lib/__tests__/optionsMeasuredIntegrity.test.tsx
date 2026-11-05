@@ -7,12 +7,18 @@ import { resolve } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { normalizeOptionsAlphaMeasuredFeed as parse } from "@/components/prophet/optionsAlphaMeasuredEvidence";
 import { OptionsAlphaView } from "@/components/prophet/OptionsAlphaView";
+import { flowGet } from "@/lib/flowClientCache";
 import candidateFeedJson from "@/lib/__tests__/fixtures/candidate_feed.json";
 import candidateReceiptJson from "@/lib/__tests__/fixtures/candidate_feed.receipt.json";
-const transport = vi.hoisted(() => ({ shadow: null as unknown, feed: null as unknown, failed: false, lang: "en" as "en" | "zh" }));
+const transport = vi.hoisted(() => ({ shadow: null as unknown, feed: null as unknown, failed: false, shadowReject: false, lang: "en" as "en" | "zh" }));
 vi.mock("@/lib/flowClientCache", () => ({
   flowGet: vi.fn(async () => transport.shadow),
   flowGetFresh: vi.fn(async () => { if (transport.failed) throw new Error("synthetic transport failure"); return transport.feed; }),
+  flowGetResult: vi.fn(async () => {
+    if (transport.shadowReject) throw new Error("synthetic shadow rejection");
+    if (transport.shadow == null) return { status: "unavailable", reason: "malformed" };
+    return { status: "data", data: transport.shadow };
+  }),
 }));
 vi.mock("@/lib/i18n", () => ({ useLang: () => ({ lang: transport.lang }) }));
 function micro(overrides: Record<string, unknown> = {}) { return {
@@ -113,7 +119,7 @@ let node: HTMLDivElement, root: Root;
 beforeEach(() => {
   vi.useFakeTimers(); Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
   transport.shadow = JSON.parse(readFileSync(resolve(process.cwd(), "public/data/options_prophet_fixture.json"), "utf8"));
-  transport.feed = feed([event()]); transport.failed = false; transport.lang = "en";
+  transport.feed = feed([event()]); transport.failed = false; transport.shadowReject = false; transport.lang = "en";
   node = document.createElement("div"); document.body.append(node); root = createRoot(node);
 });
 afterEach(async () => { await act(async () => root.unmount()); node.remove(); vi.useRealTimers(); vi.clearAllMocks(); });
@@ -138,6 +144,15 @@ describe("last-known measured evidence after refresh failure", () => {
     expect(node.querySelectorAll('[data-testid="options-alpha-measured-event"]')).toHaveLength(0);
     expect(node.querySelector('[data-testid="options-alpha-measured-evidence"]')?.textContent).toContain("Measured-flow source is unavailable");
     expect(node.querySelector('[data-testid="options-alpha-fires-section"]')).not.toBeNull();
+  });
+  it("R7 a rejected shadow read shows unavailable and does not fall through to flowGet", async () => {
+    transport.shadowReject = true;
+    await act(async () => root.render(<OptionsAlphaView />));
+    const block = node.querySelector('[data-testid="options-alpha-shadow-unavailable"]');
+    expect(block).not.toBeNull();
+    expect(block?.querySelector("button")).not.toBeNull();
+    const prophetGets = vi.mocked(flowGet).mock.calls.filter((call) => call[0] === "options_prophet_idx");
+    expect(prophetGets).toHaveLength(0);
   });
 });
 
