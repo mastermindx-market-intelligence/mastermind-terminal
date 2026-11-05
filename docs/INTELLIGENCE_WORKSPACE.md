@@ -2,7 +2,45 @@
 
 Owner carrier: [Terminal #612](https://github.com/mastermindx-market-intelligence/mastermind-terminal/issues/612).
 
-Design source: [Terminal · Intelligence Workspace · 2026-10](https://app.paper.design/file/01M3NSZGE8JWN2EZCSF0DT05RM/p-I-1).
+The R4 four-view AMZN predecessor is artboard `1MX1-0`. [Terminal · Stock Intelligence R4](https://app.paper.design/file/01M3NSZGE8JWN2EZCSF0DT05RM/p-I-1?node=1MX1-0). Preserve it as the source-accurate baseline.
+
+The R5 design study uses the same Terminal Paper file and page `p-I-1`:
+desktop contextual command deck `1NT3-0` (1600 × 980) and mobile
+decision overview `1NXH-0` (390 × 844). These are editable Paper
+boards, not deployed routes. The desktop price curve is **schematic**,
+explicitly labeled in the specimen; it must never be substituted for
+real market series in the application.
+
+### R5 first-glance and progressive disclosure
+
+The R5 responsive code remains in the **existing** single Intelligence
+workspace and source owners. It is not a second chart, route, data
+pipeline or signal spine. The hierarchy is:
+
+1. **Current Oracle entry** — one source-qualified status. Unverified
+   data remains unverified regardless of historical buys or a bullish
+   regime. The subline distinguishes historical evidence from a new call.
+2. **Evidence** — compact, clickable Oracle and research observations,
+   each with its own dates and statuses. Prophet is a separate
+   early-evidence source, not an entry instruction.
+3. **Historical validation** — trades and source-supplied risk, clearly
+   labeled as a past sample. Drawdown and scores never become a
+   probability of future returns.
+4. **Deep detail** — Oracle history/equity comparison, Research
+   methods/cautions and the complete Activity timeline remain available.
+   Summary is a triage view, not a replacement for those functions.
+
+Desktop still docks against the existing chart and rail without resizing
+the chart. Mobile continues to use the same bottom-sheet state
+and accessible four-view navigation. The R5 Paper command deck visually
+explores a wider contextual option; it is an *exploration*, not a claim
+that the current product has adopted new chart placement or new data.
+
+Production-quality acceptance requires actual localized English/Chinese
+and narrow/wide browser screenshots, preserved source identity/freshness,
+correct error/permission states, full repository checks and protected
+non-author review. Paper screenshots and local fixture-browser captures
+are separate from deployed production acceptance.
 
 ## Product behavior
 
@@ -20,10 +58,10 @@ Close, Escape, focus return, keyboard tab navigation and reduced motion are supp
 
 | View | Purpose |
 | --- | --- |
-| Summary | Oracle stance and known date, supplied performance metrics, market risk, research drivers and cautions, recent activity |
-| Oracle | Existing entry/position interpretation, complete supplied performance curve, source dates and methodology |
-| Research | Research conviction, supporting and opposing evidence, technical and sector context, source-owned company state |
-| Activity | Complete signal history with filters and pagination, chart navigation, candidate receipts |
+| Summary | Current Oracle entry availability, dated evidence rows, market risk and access to activity |
+| Oracle | Historical signals, regime, source-qualified risk measures and gap-aware strategy equity |
+| Research | Current setup, saved research notes, cautions, technical and sector context, and company evidence |
+| Activity | Chronological signals and candidate receipts, category counts, chart jumps and pagination |
 
 The desktop chart-jump action keeps the workspace open. On mobile it closes the
 sheet so the selected chart point can be seen. Changing watchlist symbols updates
@@ -56,6 +94,14 @@ mismatches cannot become an empty history or a contradictory stance. A failed
 refresh is labeled while the last accepted source remains visible; a completed
 refresh containing malformed data is rejected. Each module exposes its own
 source status and recovery action.
+
+The research producer withholds directional readings for missing, future or expired
+source sessions. Newly published leans carry the configured age limit so cached
+observations expire locally too. A named timing posture remains usable when the
+producer supplies it independently of a direction. The backtest displays drawdown
+and Sharpe only when supplied, and splits the equity line at missing observations.
+Legacy activity bars retain their chart date with an explicit label when the
+first-observable date is absent.
 
 ## Security-state bridge
 
