@@ -10,8 +10,8 @@
  * never guesses. The scoring worker now needs esbuild at runtime; it is a
  * devDependency; install with dev deps or promote it in a later packet.
  *
- * From terminal/:
- *   node scripts/score_personal_accuracy.mjs
+ * Deploy entry:
+ *   node scripts/dist/score_personal_accuracy.mjs
  *
  * Reads NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY from the environment.
  * No key, ref, or token value is printed, logged, or committed.
@@ -101,12 +101,29 @@ export async function loadResolverRegistry() {
   return mod.RESOLVER_REGISTRY;
 }
 
-function createServiceClient() {
+/**
+ * The worker reads and writes rows over PostgREST only — it never opens a Realtime channel. But
+ * supabase-js still builds a RealtimeClient inside `createClient`, and that constructor resolves
+ * `options.transport ?? WebSocketFactory.getWebSocketConstructor()`, which THROWS on Node < 22 when
+ * there is no global WebSocket. The VPS runs Node 20: the first natural nightly after env hydration
+ * shipped (2026-10-04 22:21:55Z) hydrated its keys and then exited 1 on exactly that throw, before
+ * scoring anything. Handing Realtime an explicit transport skips the probe; this one refuses to
+ * connect, so any future Realtime use by the worker fails loudly instead of needing a socket the
+ * worker host does not have.
+ */
+export class NoRealtimeTransport {
+  constructor() {
+    throw new Error("score_personal_accuracy: Realtime is not available to the nightly worker");
+  }
+}
+
+export function createServiceClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key || !/^https:\/\//.test(url)) return null;
   return createClient(url, key, {
     auth: { persistSession: false, autoRefreshToken: false },
+    realtime: { transport: NoRealtimeTransport },
   });
 }
 
@@ -215,36 +232,4 @@ export async function scoreDueClaims(client, options = {}) {
   }
 
   return { settled, undetermined, skipped };
-}
-
-async function main() {
-  const client = createServiceClient();
-  if (!client) {
-    console.error("score_personal_accuracy: service client unavailable");
-    process.exit(2);
-  }
-  const mod = await loadStoreModule();
-  const counts = await scoreDueClaims(client, {
-    registry: mod.RESOLVER_REGISTRY,
-    thresholdNumber: typeof mod.thresholdNumber === "function" ? mod.thresholdNumber : thresholdNumber,
-    compareObserved: typeof mod.compareObserved === "function" ? mod.compareObserved : compareObserved,
-  });
-  console.log(`score_personal_accuracy: settled ${counts.settled}, undetermined ${counts.undetermined}, skipped ${counts.skipped}`);
-}
-
-function isDirectRun() {
-  const entry = process.argv[1];
-  if (!entry) return false;
-  try {
-    return import.meta.url === pathToFileURL(resolve(entry)).href;
-  } catch {
-    return false;
-  }
-}
-
-if (isDirectRun()) {
-  main().catch(() => {
-    console.error("score_personal_accuracy: failed");
-    process.exit(1);
-  });
 }

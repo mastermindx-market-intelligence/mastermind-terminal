@@ -68,18 +68,20 @@ describe("handleQuotesRequest — endpoint-level view=full|regular dispatch", ()
     }
   });
 
-  it("?view=full produces extFeed.demand calls", () => {
+  it("?view=full produces priority-preserving extFeed.demand calls", () => {
     const { extDemandCalls, deps } = extDemandSpyDeps();
     const { status } = handleQuotesRequest(url("?syms=AAPL,NVDA&view=full"), NOW, deps);
     assert.equal(status, 200);
-    assert.deepEqual(extDemandCalls, ["AAPL", "NVDA"]);
+    assert.deepEqual(extDemandCalls, ["NVDA", "AAPL"],
+      "the first requested symbol is touched last so it finishes the LRU pass as MRU");
   });
 
-  it("a missing view still produces extFeed.demand calls (missing view is exactly full)", () => {
+  it("a missing view still produces priority-preserving ext demand (missing view is exactly full)", () => {
     const { extDemandCalls, deps } = extDemandSpyDeps();
     const { status } = handleQuotesRequest(url("?syms=AAPL,NVDA"), NOW, deps);
     assert.equal(status, 200);
-    assert.deepEqual(extDemandCalls, ["AAPL", "NVDA"]);
+    assert.deepEqual(extDemandCalls, ["NVDA", "AAPL"],
+      "default/full keeps the first requested symbol most recently used");
   });
 
   it("an unknown view returns 400 and demands nothing", () => {

@@ -20,6 +20,10 @@ export interface ReplayState {
   playing: boolean;
   /** Play speed multiplier. */
   speed: ReplaySpeed;
+  /** Explicit pause/seek must not follow newly published frames. */
+  followHead?: boolean;
+  /** Selected observation is no longer available. */
+  missingStamp?: string;
 }
 
 export type ReplayAction =
@@ -45,14 +49,14 @@ export function clampFrame(frame: number, len: number): number {
 
 /** The stamp at the current frame, or null when there are no frames. */
 export function stampAt(state: ReplayState): string | null {
-  if (state.stamps.length === 0) return null;
+  if (state.stamps.length === 0 || state.missingStamp != null) return null;
   const f = clampFrame(state.frame, state.stamps.length);
   return state.stamps[f] ?? null;
 }
 
 /** True when the current frame is the newest (head) — drives the LIVE badge. */
 export function isAtHead(state: ReplayState): boolean {
-  return state.stamps.length > 0 && state.frame >= state.stamps.length - 1;
+  return state.missingStamp == null && state.stamps.length > 0 && state.frame >= state.stamps.length - 1;
 }
 
 /** Initial state for a fresh index — starts pinned to the head (LIVE). */
@@ -77,37 +81,42 @@ export function replayReducer(state: ReplayState, action: ReplayAction): ReplayS
   const len = state.stamps.length;
   switch (action.type) {
     case "setStamps": {
-      const wasHead = isAtHead(state);
-      const nextLen = action.stamps.length;
-      let frame: number;
-      if (nextLen === 0) frame = 0;
-      else if (action.keepHead || wasHead) frame = nextLen - 1;
-      else frame = clampFrame(state.frame, nextLen);
-      return { ...state, stamps: action.stamps, frame };
+      const selected = state.missingStamp ?? stampAt(state);
+      const follows = action.keepHead || (state.followHead !== false &&
+        (isAtHead(state) || (len === 0 && selected == null)));
+      let frame = 0;
+      let missingStamp: string | undefined;
+      if (follows) {
+        frame = Math.max(0, action.stamps.length - 1);
+      } else if (selected != null) {
+        const prior = action.stamps.findLastIndex(stamp => stamp <= selected);
+        if (prior < 0) missingStamp = selected;
+        else frame = prior;
+      }
+      return { ...state, stamps: action.stamps, frame, missingStamp,
+        playing: missingStamp != null || action.keepHead ? false : state.playing,
+        followHead: action.keepHead ? true : state.followHead };
     }
     case "toFirst":
-      return { ...state, frame: 0, playing: false };
+      return { ...state, frame: 0, playing: false, followHead: false, missingStamp: undefined };
     case "toLast":
-      return { ...state, frame: Math.max(0, len - 1), playing: false };
+      return { ...state, frame: Math.max(0, len - 1), playing: false, followHead: true, missingStamp: undefined };
     case "stepBack":
-      return { ...state, frame: clampFrame(state.frame - 1, len), playing: false };
+      return { ...state, frame: clampFrame(state.frame - 1, len), playing: false, followHead: false, missingStamp: undefined };
     case "stepFwd":
-      return { ...state, frame: clampFrame(state.frame + 1, len), playing: false };
+      return { ...state, frame: clampFrame(state.frame + 1, len), playing: false, followHead: false, missingStamp: undefined };
     case "togglePlay": {
-      // Pressing play at the head restarts from the beginning (a natural "replay").
-      if (!state.playing && isAtHead(state) && len > 1) {
-        return { ...state, playing: true, frame: 0 };
-      }
-      return { ...state, playing: !state.playing };
+      const restart = !state.playing && isAtHead(state) && len > 1;
+      return { ...state, frame: restart ? 0 : state.frame, playing: !state.playing,
+        followHead: false, missingStamp: undefined };
     }
-    case "play": {
-      if (isAtHead(state) && len > 1) return { ...state, playing: true, frame: 0 };
-      return { ...state, playing: true };
-    }
+    case "play":
+      return { ...state, frame: isAtHead(state) && len > 1 ? 0 : state.frame,
+        playing: true, followHead: false, missingStamp: undefined };
     case "pause":
-      return { ...state, playing: false };
+      return { ...state, playing: false, followHead: false };
     case "setFrame":
-      return { ...state, frame: clampFrame(action.frame, len), playing: false };
+      return { ...state, frame: clampFrame(action.frame, len), playing: false, followHead: false, missingStamp: undefined };
     case "setSpeed":
       return { ...state, speed: action.speed };
     case "tick": {

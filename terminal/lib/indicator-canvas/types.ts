@@ -200,7 +200,12 @@ export interface TableSpec {
 export interface SuiteEvent {
   type: string;              // e.g. "bos", "choch", "ob_created", "ob_touch", "fvg_retest"
   dir: "bull" | "bear" | "neutral";
-  i: number; p?: number;
+  i: number; p?: number;      // geometric/source anchor; delayed signals may reference an older bar
+  /** Earliest input-bar index at which all confirming evidence exists. Absent = i.
+   * This is a source-bar key, not a wall-clock arrival or exchange-close timestamp.
+   * Rendering may retain i; alerts and ordered consumers must use confirmedAt.
+   * Input owners remain responsible for excluding/provisionally labeling open bars. */
+  confirmedAt?: number;
   strength?: number;         // 0..100 when the module scores it
   label?: string;            // human-readable one-liner
 }

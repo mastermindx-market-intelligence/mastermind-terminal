@@ -1,0 +1,320 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal
+
+ ✓ lib/__tests__/optionsLevelAxisEvidence.test.ts > Options-level coverage and axis-label browser evidence > binds the exact implementation files used by the five browser captures
+ ✓ lib/__tests__/optionsLevelAxisEvidence.test.ts > Options-level coverage and axis-label browser evidence > locks five substantive, clean captures with exact lines and collision-free badges
+ ✓ lib/__tests__/optionsLevelAxisEvidence.test.ts > Options-level coverage and axis-label browser evidence > records a complete 662-root census and keeps unsupported roots honestly absent
+ ✓ lib/__tests__/b_pl_6Batch1Evidence.test.ts > B-PL-6 batch 1 evidence lock is the sha256 of the layout sources > EVIDENCE.yml records a sha256 for AnalysisWorkspace.tsx
+ ✓ lib/__tests__/b_pl_6Batch1Evidence.test.ts > B-PL-6 batch 1 evidence lock is the sha256 of the layout sources > each layoutFiles sha256 matches the file on disk
+ ✓ lib/__tests__/b_pl_6Batch1Evidence.test.ts > B-PL-6 batch 1 evidence lock is the sha256 of the layout sources > all dark crops exist and are non-empty
+ ✓ lib/__tests__/b_pl_6Batch1Evidence.test.ts > B-PL-6 batch 1 evidence lock is the sha256 of the layout sources > EVIDENCE.yml declares the capture flag, the dark-only law and the two viewports
+ ✓ lib/__tests__/visualIntelligenceEvidence.test.ts > decoded screenshot evidence controls > accepts complete nonblank pixels even when compression produces a small file
+ ✓ lib/__tests__/visualIntelligenceEvidence.test.ts > decoded screenshot evidence controls > rejects a padded PNG-header impostor with otherwise matching dimensions
+ ✓ lib/__tests__/visualIntelligenceEvidence.test.ts > decoded screenshot evidence controls > rejects truncated pixel data and a missing PNG terminator
+ ✓ lib/__tests__/visualIntelligenceEvidence.test.ts > decoded screenshot evidence controls > rejects a corrupt chunk checksum
+ ✓ lib/__tests__/visualIntelligenceEvidence.test.ts > decoded screenshot evidence controls > rejects decoded pixels at the wrong viewport dimensions
+ ✓ lib/__tests__/visualIntelligenceEvidence.test.ts > decoded screenshot evidence controls > rejects a valid uniform blank image
+ ✓ lib/__tests__/visualIntelligenceEvidence.test.ts > decoded screenshot evidence controls > rejects an entirely transparent image even when its hidden RGB values vary
+ ✓ lib/__tests__/visualIntelligenceEvidence.test.ts > Terminal Visual Intelligence browser evidence > locks the source files that determine the captured chart-context surface
+ ✓ lib/__tests__/visualIntelligenceEvidence.test.ts > Terminal Visual Intelligence browser evidence > locks six real EN/ZH responsive browser crops
+ ✓ lib/__tests__/visualIntelligenceEvidence.test.ts > Terminal Visual Intelligence browser evidence > binds the actual complete bilingual responsive report and its named mobile crosshair case
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders 'not stated' text for a direction the source never carried
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders 'not stated' text for a direction the source never carried
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders the carried verbatim text when the source states it
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders the carried verbatim text when the source states it
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders a plain typed sentence, not a blank panel, when the calendar is unreadable
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders a plain typed sentence, not a blank panel, when the calendar is unreadable
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders upstream-locked, never a fine/unaffected claim, on a 429 rate limit
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders upstream-locked, never a fine/unaffected claim, on a fetch/network failure
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders a stale disclosure when the route served a cached-past-outage copy
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders a typed sentence, not a blank panel, on a 401 from the route
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders a typed sentence, not a blank panel, on a 401 from the route
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders the upstream-locked disclosure, never the no-events claim nor a fine/unaffected claim, when the source is locked out
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders the holdings-unreadable state when holdingsUnreadable is true, never a fetch
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > ZH-lang render of the three unreadable/locked states > holdings_unreadable renders its ZH sentence
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > ZH-lang render of the three unreadable/locked states > calendar_unreadable renders its ZH sentence
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > ZH-lang render of the three unreadable/locked states > calendar_unreadable renders its ZH sentence
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > ZH-lang render of the three unreadable/locked states > upstream_locked renders its ZH sentence, never the ZH 'unaffected' claim
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > ZH-lang render of the three unreadable/locked states > upstream_locked renders its ZH sentence, never the ZH 'unaffected' claim
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders a neutral checking state before the fetch resolves, never the no-holdings claim
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders a neutral checking state before the fetch resolves, never the no-holdings claim
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > pluralizes the no-events count by open positions, not distinct tickers
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > uses singular phrasing for exactly one open position, never 'your 1 open positions'
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > pluralizes the held-shares chip text ('1 share', never '1 shares')
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > pluralizes the held-shares chip text ('1 share', never '1 shares')
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > labels the 5-day highlight as a display convention, not a source claim
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders the earnings invalidation line in EN under the carry slots
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders the earnings invalidation line in EN under the carry slots
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders the earnings invalidation line in ZH
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders the earnings invalidation line in ZH
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders the typed-null invalidation in the same slot in EN
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders the typed-null invalidation in the same slot in EN
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders the typed-null invalidation in the same slot in ZH
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders the typed-null invalidation in the same slot in ZH
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > typed-null slot with unjoinable sources does not claim the ticker is named on those calendars
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > typed-null slot with unjoinable sources does not claim the ticker is named on those calendars
+The current testing environment is not configured to support act(...)
+
+ ✓ lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders 'not stated' text for a direction the source never carried
+ ✓ lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders the carried verbatim text when the source states it
+ ✓ lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders a plain typed sentence, not a blank panel, when the calendar is unreadable
+ ✓ lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders upstream-locked, never a fine/unaffected claim, on a 429 rate limit
+ ✓ lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders upstream-locked, never a fine/unaffected claim, on a fetch/network failure
+ ✓ lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders a stale disclosure when the route served a cached-past-outage copy
+ ✓ lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders a typed sentence, not a blank panel, on a 401 from the route
+ ✓ lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders the upstream-locked disclosure, never the no-events claim nor a fine/unaffected claim, when the source is locked out
+ ✓ lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders the holdings-unreadable state when holdingsUnreadable is true, never a fetch
+ ✓ lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > ZH-lang render of the three unreadable/locked states > holdings_unreadable renders its ZH sentence
+ ✓ lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > ZH-lang render of the three unreadable/locked states > calendar_unreadable renders its ZH sentence
+ ✓ lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > ZH-lang render of the three unreadable/locked states > upstream_locked renders its ZH sentence, never the ZH 'unaffected' claim
+ ✓ lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders a neutral checking state before the fetch resolves, never the no-holdings claim
+ ✓ lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > pluralizes the no-events count by open positions, not distinct tickers
+ ✓ lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > uses singular phrasing for exactly one open position, never 'your 1 open positions'
+ ✓ lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > pluralizes the held-shares chip text ('1 share', never '1 shares')
+ ✓ lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > labels the 5-day highlight as a display convention, not a source claim
+ ✓ lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders the earnings invalidation line in EN under the carry slots
+ ✓ lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders the earnings invalidation line in ZH
+ ✓ lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders the typed-null invalidation in the same slot in EN
+ ✓ lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders the typed-null invalidation in the same slot in ZH
+ ✓ lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > typed-null slot with unjoinable sources does not claim the ticker is named on those calendars
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio canonical reads and user intent > publishes holdings without waiting for optional analysis and loads history only on demand
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio canonical reads and user intent > rejects an old generation even when the book key matches, and rejects a wrong current key
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio canonical reads and user intent > binds lazy history to its read generation and content key
+ ✓ lib/__tests__/portfolioBriefPanelRetry.test.tsx > PortfolioBriefPanel in-place recovery > preserves initial loading and valid localized rendering (en)
+ ✓ lib/__tests__/portfolioBriefPanelRetry.test.tsx > PortfolioBriefPanel in-place recovery > recovers from unreadable or null HTTP 200 body "null" (en)
+ ✓ lib/__tests__/portfolioBriefPanelRetry.test.tsx > PortfolioBriefPanel in-place recovery > recovers from unreadable or null HTTP 200 body "" (en)
+ ✓ lib/__tests__/portfolioBriefPanelRetry.test.tsx > PortfolioBriefPanel in-place recovery > recovers from unreadable or null HTTP 200 body "<html>Gateway unavailable</html>" (en)
+ ✓ lib/__tests__/portfolioBriefPanelRetry.test.tsx > PortfolioBriefPanel in-place recovery > recovers from 503 without remounting (en)
+ ✓ lib/__tests__/portfolioBriefPanelRetry.test.tsx > PortfolioBriefPanel in-place recovery > recovers from network without remounting (en)
+ ✓ lib/__tests__/portfolioBriefPanelRetry.test.tsx > PortfolioBriefPanel in-place recovery > preserves non-JSON HTTP 401 handling (en)
+ ✓ lib/__tests__/portfolioBriefPanelRetry.test.tsx > PortfolioBriefPanel in-place recovery > preserves non-JSON HTTP 403 handling (en)
+ ✓ lib/__tests__/portfolioBriefPanelRetry.test.tsx > PortfolioBriefPanel in-place recovery > preserves non-JSON HTTP 503 handling (en)
+ ✓ lib/__tests__/portfolioBriefPanelRetry.test.tsx > PortfolioBriefPanel in-place recovery > keeps repeated failures recoverable (en)
+ ✓ lib/__tests__/portfolioBriefPanelRetry.test.tsx > PortfolioBriefPanel in-place recovery > preserves 401 initially (en)
+ ✓ lib/__tests__/portfolioBriefPanelRetry.test.tsx > PortfolioBriefPanel in-place recovery > preserves 401 after retry (en)
+ ✓ lib/__tests__/portfolioBriefPanelRetry.test.tsx > PortfolioBriefPanel in-place recovery > preserves 403 initially (en)
+ ✓ lib/__tests__/portfolioBriefPanelRetry.test.tsx > PortfolioBriefPanel in-place recovery > preserves 403 after retry (en)
+ ✓ lib/__tests__/portfolioBriefPanelRetry.test.tsx > PortfolioBriefPanel in-place recovery > preserves initial loading and valid localized rendering (zh)
+ ✓ lib/__tests__/portfolioBriefPanelRetry.test.tsx > PortfolioBriefPanel in-place recovery > recovers from unreadable or null HTTP 200 body "null" (zh)
+ ✓ lib/__tests__/portfolioBriefPanelRetry.test.tsx > PortfolioBriefPanel in-place recovery > recovers from unreadable or null HTTP 200 body "" (zh)
+ ✓ lib/__tests__/portfolioBriefPanelRetry.test.tsx > PortfolioBriefPanel in-place recovery > recovers from unreadable or null HTTP 200 body "<html>Gateway unavailable</html>" (zh)
+ ✓ lib/__tests__/portfolioBriefPanelRetry.test.tsx > PortfolioBriefPanel in-place recovery > recovers from 503 without remounting (zh)
+ ✓ lib/__tests__/portfolioBriefPanelRetry.test.tsx > PortfolioBriefPanel in-place recovery > recovers from network without remounting (zh)
+ ✓ lib/__tests__/portfolioBriefPanelRetry.test.tsx > PortfolioBriefPanel in-place recovery > preserves non-JSON HTTP 401 handling (zh)
+ ✓ lib/__tests__/portfolioBriefPanelRetry.test.tsx > PortfolioBriefPanel in-place recovery > preserves non-JSON HTTP 403 handling (zh)
+ ✓ lib/__tests__/portfolioBriefPanelRetry.test.tsx > PortfolioBriefPanel in-place recovery > preserves non-JSON HTTP 503 handling (zh)
+ ✓ lib/__tests__/portfolioBriefPanelRetry.test.tsx > PortfolioBriefPanel in-place recovery > keeps repeated failures recoverable (zh)
+ ✓ lib/__tests__/portfolioBriefPanelRetry.test.tsx > PortfolioBriefPanel in-place recovery > preserves 401 initially (zh)
+ ✓ lib/__tests__/portfolioBriefPanelRetry.test.tsx > PortfolioBriefPanel in-place recovery > preserves 401 after retry (zh)
+ ✓ lib/__tests__/portfolioBriefPanelRetry.test.tsx > PortfolioBriefPanel in-place recovery > preserves 403 initially (zh)
+ ✓ lib/__tests__/portfolioBriefPanelRetry.test.tsx > PortfolioBriefPanel in-place recovery > preserves 403 after retry (zh)
+ ✓ lib/__tests__/portfolioBriefPanelRetry.test.tsx > PortfolioBriefPanel in-place recovery > coalesces repeated clicks in the same event turn and while the response body is pending
+ ✓ lib/__tests__/portfolioBriefPanelRetry.test.tsx > PortfolioBriefPanel in-place recovery > keeps a non-JSON failure response retryable
+ ✓ lib/__tests__/portfolioBriefPanelRetry.test.tsx > PortfolioBriefPanel in-place recovery > fences late success after unmount and a fresh panel mount
+ ✓ lib/__tests__/portfolioBriefPanelRetry.test.tsx > PortfolioBriefPanel in-place recovery > fences late failure after unmount and a fresh panel mount
+ ✓ lib/__tests__/portfolioBriefPanelRetry.test.tsx > PortfolioBriefPanel in-place recovery > fences late body after unmount and a fresh panel mount
+ ✓ lib/__tests__/portfolioBriefPanelRetry.test.tsx > PortfolioBriefPanel in-place recovery > retains replacement abort ownership after predecessor success settles
+ ✓ lib/__tests__/portfolioBriefPanelRetry.test.tsx > PortfolioBriefPanel in-place recovery > retains replacement abort ownership after predecessor reject settles
+ ✓ lib/__tests__/portfolioBriefPanelRetry.test.tsx > PortfolioBriefPanel in-place recovery > allows the StrictMode replacement load and ignores its late predecessor
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio canonical reads and user intent > preserves the last good book after a failed read without presenting old analysis as current
+ ✓ lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx > Portfolio owner-scoped brief > retires the previous account's settled content before the next account's response
+ ✓ lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx > Portfolio owner-scoped brief > ignores the previous account's late fetch completion
+ ✓ lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx > Portfolio owner-scoped brief > ignores the previous account's late body completion
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio canonical reads and user intent > preserves target text and focus through book invalidation and canonical readback
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio canonical reads and user intent > returns a superseded mutation's own readback without overwriting the newer display
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio canonical reads and user intent > does not confirm HTTP success when its canonical readback contradicts the write receipt
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio canonical reads and user intent > carries a safe 400 refusal into the active editor result
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio canonical reads and user intent > carries a safe 409 refusal into the active editor result
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio canonical reads and user intent > carries a safe 500 refusal into the active editor result
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio canonical reads and user intent > keeps a server-error update refusal uncertain instead of claiming the position is gone
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio canonical reads and user intent > keeps a server-error delete refusal uncertain instead of claiming the position is gone
+ ✓ lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx > Portfolio owner-scoped brief > does not revive a retired request after A to B to A
+ ✓ lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx > Portfolio owner-scoped brief > preserves a live request through a same-owner seed and email refresh
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio canonical reads and user intent > never labels a newer invalid band as saved when an earlier valid target finishes
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio canonical reads and user intent > does not carry Saved into a blank untargeted row after a canonical refresh removes the target
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio canonical reads and user intent > does not label a newer invalid first-target draft as saved after an independent confirmation
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio canonical reads and user intent > keeps target confirmation failure uncertain after a successful POST
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio canonical reads and user intent > preserves a debouncing return-to-original target through older confirmation
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio canonical reads and user intent > preserves a debouncing return-to-original band through older confirmation
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio canonical reads and user intent > still synchronizes untouched target and band fields from canonical refresh
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio canonical reads and user intent > keeps a newer draft and its schedule intact when a superseded save is refused late, and a post-unmount resolution is a safe no-op
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio canonical reads and user intent > keeps a newer target edit pending while an earlier save completes
+ ✓ lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx > Portfolio owner-scoped events > retires the previous account's settled content before the next account's response
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio canonical reads and user intent > confirms a target canceled by a display refresh without restoring the old computed weights
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio canonical reads and user intent > preserves a failed first target draft and allows the corrected retry
+ ✓ lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx > Portfolio owner-scoped events > ignores the previous account's late fetch completion
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio owner-generation fence > never dispatches an intent queued behind a held write when the account changes (A→B)
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio owner-generation fence > a target write held at its canonical readback cannot confirm, fall back, or paint under B
+ ✓ lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx > Portfolio owner-scoped events > ignores the previous account's late body completion
+ ✓ lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx > Portfolio owner-scoped events > does not revive a retired request after A to B to A
+ ✓ lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx > Portfolio owner-scoped events > preserves a live request through a same-owner seed and email refresh
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio owner-generation fence > A→B→A never revives the queued intent captured under the first A
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio owner-generation fence > a POST whose body settles after the transition returns uncertain and never reads back
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio owner-generation fence > a readback body held across the transition cannot confirm through the fallback read
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio owner-generation fence > an unmounted instance never dispatches its queued intent; a sent one stays sent exactly once
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio owner-generation fence > a StrictMode replacement cannot revive a retired token: the retired instance's reads and dispatches stay frozen
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio owner-generation fence > an armed row draft retires with its account: zero dispatches, and B's own draft still writes
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio owner-generation fence > same-owner email changes keep legitimate writes flowing, and a refused write does not wedge the fence
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio owner-scoped display surface > a committed owner change over an unchanged seed reference resets the prior account's surface and starts its own canonical read
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio owner-scoped display surface > A→B→A over the same reference never presents the first A's surface as the returned A's
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio owner-scoped display surface > a held prior-owner canonical read lands retired under a same-reference owner change
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio owner-scoped display surface > a sent write held at its readback cannot confirm through the fallback under a same-reference owner change
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio owner-scoped display surface > same-owner email-only rerenders neither reset the surface nor re-read the book
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio owner-precondition refusals > carries the fixed stale-owner 409 as its own non-retry-inviting position refusal
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio owner-precondition refusals > a stale-owner refused target save explains the account change instead of inviting a retry
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio owner-precondition refusals > a userId-less mount fails closed: no write is dispatched and the retired stage is discriminated
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio quote continuity across owners > retires an in-flight previous-owner poll with identical tickers; a late A good changes nothing
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio quote continuity across owners > A→B→A: the old quote poll and the old queued write are both dead in returned A
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio quote continuity across owners > a quote body settling after the transition neither refills nor advances the new miss count
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio quote continuity across owners > same-owner seed and email changes keep miss-count continuity; the fallback reprices the new book
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio quote continuity across owners > an equal-valued good observation resets the grace without replacing state or stealing focus
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio quote continuity across owners > only explicit nulls advance the grace: omission, HTTP failure, hidden tab; StrictMode cannot double-count
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio quote continuity across owners > the manifest fallback carries its own currency; an unknown-unit fallback leaves the named gap
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio quote continuity across owners > with no fallback at all the retired quote leaves the record unpriced and named
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio quote continuity across owners > miss counters do not follow a ticker across demand changes
+
+ Test Files  7 passed (7)
+      Tests  134 passed (134)
+   Start at  22:43:53
+   Duration  988ms (transform 417ms, setup 0ms, collect 777ms, tests 1.05s, environment 582ms, prepare 235ms)
+

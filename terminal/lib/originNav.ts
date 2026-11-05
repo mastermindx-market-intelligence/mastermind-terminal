@@ -9,6 +9,7 @@ const MACRO_ORIGIN = "https://mastermind-x.com";
 const KEY = "mm.fromMacro";   // sessionStorage: "1" once detected (survives in-app SPA navigation)
 const HREF = "mm.macroHref";  // sessionStorage: best-known dashboard URL to return to
 const EMBED_KEY = "mm.embeddedDashboard"; // "1" while this tab is hosted by the dashboard iframe
+const EMBED_ORIGIN_KEY = "mm.embeddedDashboardOrigin"; // exact validated parent origin for postMessage
 
 function isMacroHost(host: string) {
   return MACRO_HOSTS.has(host) || host.endsWith(".github.io");
@@ -25,6 +26,58 @@ export function isAllowedMacroOrigin(origin: string): boolean {
   return false;
 }
 
+/** First valid candidate wins. Keep the exact apex/www origin instead of canonicalizing it. */
+export function pickAllowedMacroOrigin(
+  ...candidates: Array<string | null | undefined>
+): string {
+  for (const candidate of candidates) {
+    if (!candidate) continue;
+    try {
+      const origin = new URL(candidate).origin;
+      if (isAllowedMacroOrigin(origin)) return origin;
+    } catch {}
+  }
+  return "";
+}
+
+/**
+ * Persist the origin from a message that already passed the allowlist. This matters after
+ * an in-frame navigation: document.referrer then points at app.mastermind-x.com, while the
+ * parent can legitimately be either the apex or www dashboard. Reusing a stale return URL
+ * as targetOrigin produced Chrome's "target origin does not match recipient" warning and
+ * dropped lifecycle messages.
+ */
+export function rememberEmbeddedMacroOrigin(origin: string): boolean {
+  if (!isAllowedMacroOrigin(origin) || typeof window === "undefined") return false;
+  try {
+    sessionStorage.setItem(EMBED_ORIGIN_KEY, new URL(origin).origin);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** Parse Next's deployment id from a preload Link header containing ?dpl=<id>. */
+export function deploymentIdFromLinkHeader(link: string | null | undefined): string {
+  if (!link) return "";
+  const match = link.match(/[?&]dpl=([^>;,&\s]+)/);
+  if (!match) return "";
+  try {
+    return decodeURIComponent(match[1]);
+  } catch {
+    return match[1];
+  }
+}
+
+export function embeddedDeploymentChanged(
+  documentDeploymentId: string | null | undefined,
+  linkHeader: string | null | undefined,
+): boolean {
+  const current = (documentDeploymentId || "").trim();
+  const latest = deploymentIdFromLinkHeader(linkHeader);
+  return !!current && !!latest && current !== latest;
+}
+
 /**
  * Detect and remember the first-party embedded lifecycle. The referrer check is
  * intentionally mandatory: `?embed=dashboard` by itself must not turn an arbitrary
@@ -33,14 +86,34 @@ export function isAllowedMacroOrigin(origin: string): boolean {
 export function ensureEmbeddedTerminalSession(): boolean {
   if (typeof window === "undefined" || window.parent === window) return false;
   try {
-    if (sessionStorage.getItem(EMBED_KEY) === "1") return true;
+    if (sessionStorage.getItem(EMBED_KEY) === "1") {
+      // A fresh iframe may inherit this same-origin session after the dashboard
+      // canonicalizes apex↔www. Refresh the exact parent from the new document
+      // referrer when it is trustworthy instead of replying to yesterday's host.
+      try {
+        const referrerOrigin = document.referrer ? new URL(document.referrer).origin : "";
+        if (
+          referrerOrigin &&
+          referrerOrigin !== window.location.origin &&
+          isAllowedMacroOrigin(referrerOrigin)
+        ) {
+          rememberEmbeddedMacroOrigin(referrerOrigin);
+        }
+      } catch {}
+      return true;
+    }
     const params = new URLSearchParams(window.location.search);
     const requested = params.get("embed") === "dashboard" || params.get("embed") === "1";
     let trustedParent = false;
+    let parentOrigin = "";
     try {
-      trustedParent = !!document.referrer && isAllowedMacroOrigin(new URL(document.referrer).origin);
+      parentOrigin = document.referrer ? new URL(document.referrer).origin : "";
+      trustedParent = !!parentOrigin && isAllowedMacroOrigin(parentOrigin);
     } catch {}
-    if (requested && trustedParent) sessionStorage.setItem(EMBED_KEY, "1");
+    if (requested && trustedParent) {
+      sessionStorage.setItem(EMBED_KEY, "1");
+      rememberEmbeddedMacroOrigin(parentOrigin);
+    }
     return trustedParent && sessionStorage.getItem(EMBED_KEY) === "1";
   } catch {
     return false;
@@ -49,16 +122,14 @@ export function ensureEmbeddedTerminalSession(): boolean {
 
 export function postToMacroDashboard(type: string, payload: Record<string, unknown> = {}): boolean {
   if (!ensureEmbeddedTerminalSession()) return false;
-  const candidates = [document.referrer, sessionStorage.getItem(HREF) || ""];
-  for (const candidate of candidates) {
-    try {
-      const origin = new URL(candidate).origin;
-      if (!isAllowedMacroOrigin(origin)) continue;
-      window.parent.postMessage({ source: "mastermind-terminal", type, ...payload }, origin);
-      return true;
-    } catch {}
-  }
-  return false;
+  const origin = pickAllowedMacroOrigin(
+    sessionStorage.getItem(EMBED_ORIGIN_KEY),
+    document.referrer,
+    sessionStorage.getItem(HREF),
+  );
+  if (!origin) return false;
+  window.parent.postMessage({ source: "mastermind-terminal", type, ...payload }, origin);
+  return true;
 }
 
 /**
@@ -67,13 +138,32 @@ export function postToMacroDashboard(type: string, payload: Record<string, unkno
  * `window.location.assign`, so we only ever accept http(s) URLs whose host is a known macro host — never
  * an arbitrary attacker-controlled origin smuggled in via `?ret=`.
  */
-function safeMacroHref(raw: string | null | undefined): string {
+export function safeMacroHref(raw: string | null | undefined): string {
   if (!raw) return "";
   try {
     const u = new URL(raw, MACRO_ORIGIN);   // tolerate absolute OR dashboard-relative ("/standout#AAPL")
+    if (u.username || u.password) return "";
+    // Local product proof uses only this running development origin. This cannot
+    // widen production returns, remote origins, ports, or embedded-parent trust.
+    if (process.env.NODE_ENV !== "production" && typeof window !== "undefined"
+      && (u.protocol === "http:" || u.protocol === "https:")
+      && (u.hostname === "localhost" || u.hostname === "127.0.0.1")
+      && u.origin === window.location.origin && !u.pathname.startsWith("/terminal")) return u.href;
+    // Beta is an explicit dashboard return destination, not an expansion of the
+    // incumbent embedded-Terminal parent-origin permission.
+    if (u.origin === "https://beta.mastermind-x.com" && !u.pathname.startsWith("/terminal")) return u.href;
     if ((u.protocol === "https:" || u.protocol === "http:") && isMacroHost(u.hostname)) return u.href;
   } catch {}
   return "";
+}
+
+/** Recognizable return destinations are named only after the existing redirect gate accepts them. */
+export function macroReturnWorkspace(raw: string | null | undefined): "analysis" | "discover" | "portfolio" | "monitor" | "research" | "today" | null {
+  const safe = safeMacroHref(raw);
+  if (!safe) return null;
+  const path = new URL(safe).pathname.replace(/\/$/, "");
+  const names = ["analysis", "discover", "portfolio", "monitor", "research", "today"] as const;
+  return names.find(name => path === `/${name}`) ?? null;
 }
 
 /**

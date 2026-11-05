@@ -172,11 +172,23 @@ function byTid(list: Prim[], tid: string): Prim {
 }
 
 /** Prims far enough inside the viewport to be dragged from, wheeled over and swept across without
- *  the gesture leaving the pane or the price axis clipping the prim. */
+ *  the gesture leaving the pane or the price axis clipping the prim.
+ *
+ *  The absolute insets are sized for the DESKTOP gestures that need the headroom — a 180px drag, a
+ *  60px crosshair lead-in, the price-axis band — and every test that performs one is desktop-only.
+ *  Applied unchanged to a 390px viewport they leave a SEVENTY-PIXEL window (150 … 390-170 = 220),
+ *  and whether two flip prims happen to land inside it is luck: on master, 8 mobile repeats of
+ *  this file produced 9 failures, every one of them `should paint at least two premium prims`,
+ *  none of them a product fault and none of them fixable by retrying. Capping each inset at a
+ *  fraction of the viewport keeps the desktop band byte-identical (min(150, 1440×0.12) = 150,
+ *  min(170, 1440×0.14) = 170, and the same for both vertical insets at 900px tall) while a narrow
+ *  viewport keeps a band proportional to the chart it actually has. */
 async function usable(page: Page, list: Prim[]): Promise<Prim[]> {
   const vp = page.viewportSize()!;
+  const left = Math.min(150, vp.width * 0.12), right = Math.min(170, vp.width * 0.14);
+  const top = Math.min(120, vp.height * 0.14), bottom = Math.min(190, vp.height * 0.22);
   return list.filter((p) =>
-    p.cx > 150 && p.cx < vp.width - 170 && p.cy > 120 && p.cy < vp.height - 190);
+    p.cx > left && p.cx < vp.width - right && p.cy > top && p.cy < vp.height - bottom);
 }
 
 /** One usable prim per tooltip id, left to right — distinct chart positions, never a marker and its
@@ -219,6 +231,24 @@ async function emptySpot(page: Page, list: Prim[]): Promise<{ x: number; y: numb
 }
 
 const tip = (page: Page) => page.locator(".ic-tip");
+
+/** Hold the renderer's main thread for `ms` at the very END of the next pointerdown's propagation
+ *  path — after every product handler on the wrapper has recorded its own start time.
+ *
+ *  This is the shape of the defect, not a contrivance: the browser queues input behind whatever
+ *  the thread is already doing, so on a phone mid-repaint (or a saturated CI runner) a fingertip
+ *  that was down for a few milliseconds has its pointerup DISPATCHED hundreds of milliseconds
+ *  later. Measured on this chart before #619: with the thread held 400ms the tap dead-ended on
+ *  both touch viewports and both overlay layers, while the two events were stamped <1ms apart.
+ *  `once` so exactly one gesture is affected and the page is never left wedged. */
+async function stallNextGesture(page: Page, ms: number) {
+  await page.evaluate((hold) => {
+    window.addEventListener("pointerdown", () => {
+      const end = performance.now() + hold;
+      while (performance.now() < end) { /* hold the main thread */ }
+    }, { once: true });
+  }, ms);
+}
 
 /** Hover a prim and wait for its tooltip — polled on the tooltip's own `data-ic-tip-for`, so the
  *  wait is for the state being asserted rather than for a timeout. */
@@ -430,6 +460,28 @@ test("tapping a premium prim opens its tooltip, and tapping away dismisses it", 
 
   // A tapped tooltip has no hover to dismiss it, so the next press must — otherwise it is litter
   // pinned over the chart. Tapped on chart that is provably clear of every prim.
+  const away = await emptySpot(page, all);
+  await page.touchscreen.tap(away.x, away.y);
+  await expect(tip(page)).toBeHidden();
+});
+
+test("a tap still opens the tooltip when the thread stalls between down and up", async ({ page }, testInfo) => {
+  test.skip(!["tablet", "mobile"].includes(testInfo.project.name), "touch viewports only");
+  await openTerminal(page);
+  const all = await settledPrims(page);
+  const list = await targets(page);
+  const target = list[Math.floor(list.length / 2)];
+
+  // Same defect, same repair, one layer down — the two delegated tooltip layers read one gesture
+  // through the same predicate (lib/markerTooltip.isTapSample) precisely so they cannot disagree
+  // about it. A tap whose pointerup is DISPATCHED 400ms late is still a tap; only a finger that
+  // really rested that long is a long press.
+  await stallNextGesture(page, 400);
+  await page.touchscreen.tap(target.cx, target.cy);
+
+  await expect(tip(page)).toBeVisible({ timeout: 10_000 });
+  await expect(tip(page)).toHaveAttribute("data-ic-tip-for", target.tid);
+
   const away = await emptySpot(page, all);
   await page.touchscreen.tap(away.x, away.y);
   await expect(tip(page)).toBeHidden();

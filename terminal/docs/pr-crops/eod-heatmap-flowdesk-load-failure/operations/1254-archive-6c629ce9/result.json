@@ -1,0 +1,235 @@
+{
+  "sourceHead": "6c629ce900e3954cc2374c05a063b75a7cf08c36",
+  "capturedAt": "2026-11-03T09:35:25.607705+00:00",
+  "fixture": "terminal/e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs",
+  "scope": "Actual EOD-belt-only failure-state recapture on GEX route, 42 cases, dark EN/ZH at 1440x900,820x1180,390x844. Flow Desk/Heatmap and earlier captures retain their prior qualification. Local synthetic source evidence only.",
+  "layoutFiles": {
+    "terminal/app/globals.css": "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517",
+    "terminal/components/eodcontext/DarkPoolMini.tsx": "1a32c139addae19531a4c9463e6f9b278e0c6b6626c59d0092bc2a0a45527420",
+    "terminal/components/eodcontext/EodContextBelt.tsx": "983b21e1a030ab66aada5d773a9d0ae9abccf0e796452e9cd6e3df62d6761013",
+    "terminal/components/eodcontext/StructureStrip.tsx": "0baf8c1d09fe4427569c92360081d842018d81d978a8b98d76fb283f950f31d4",
+    "terminal/components/eodcontext/eodStrings.ts": "4395f953dcc0f4beca53422786393ee792f297211a0eef655c64762f2b34f99f",
+    "terminal/components/flowdesk/FlowDeskView.tsx": "801cf41437b4749d3ad449e60ab35be8ffcc7f0e193ce5773b9c1ec7e49c01c0",
+    "terminal/components/gexdesk/GexDeskView.tsx": "b2f57adffb20546e057bbfca40c530b649a531cb82b40750976017d199b0ff59",
+    "terminal/components/heatmap/HeatmapView.tsx": "3b3ab5049715a33f167e344d3013b8f880356e8b96077b38c9a517c57b7a54cb",
+    "terminal/lib/dataCache.ts": "ce28db3a3bcb3425320ac7e6845df02be5d21daebfa084756830c631623c7a3a",
+    "terminal/lib/eodContext.ts": "1d0ce3ccde7a2fa05948cc0ac2ee93d16ec06724a7edcbd8c95c61e39d98b9e7",
+    "terminal/lib/flowdeskStrings.ts": "580399a47bae6ab6aa16368d25ed54c94047799e4a600352385b5a9b7cc25c10",
+    "terminal/lib/heatmapStrings.ts": "26bb75eccce7429e5a37154f07f7f68faf9652da1f6f3560074cb558f0dda9c2"
+  },
+  "previousGexDeskSha256": "e7e12f9b3f1217c0b78692a5c65d5181552015ca0c1a91510e01d259432a7a14",
+  "newImages": 0,
+  "reusedIdenticalImages": 42,
+  "images": [
+    {
+      "case": "eod-darkpool-absent-1440-zh.png",
+      "file": "eod-darkpool-absent-1440-zh.png",
+      "sha256": "1028cb7205ffbb383c6618a19df5165ecf400084e855fe9fbdc1cc4e02f8ca2f"
+    },
+    {
+      "case": "eod-darkpool-absent-1440.png",
+      "file": "eod-darkpool-absent-1440.png",
+      "sha256": "f7346dd906d8fa815ca4d16cf4f837dd9a9a9c28ff7fa8ad2fd6d9eb9b620321"
+    },
+    {
+      "case": "eod-darkpool-absent-390-zh.png",
+      "file": "eod-darkpool-absent-390-zh.png",
+      "sha256": "dd8e56fb0a1ca421a2d5833e79db06ad06f78c877b8721a7c6197a22e005c0a2"
+    },
+    {
+      "case": "eod-darkpool-absent-390.png",
+      "file": "eod-darkpool-absent-820.png",
+      "sha256": "ac3db05db1e1221394047438ae3d599235c7977e5225519c94cf52e99252e762"
+    },
+    {
+      "case": "eod-darkpool-absent-820-zh.png",
+      "file": "eod-darkpool-absent-820-zh.png",
+      "sha256": "946ca024340110929e863b1d4aa23a8d0ccf8c91ef074be255b60175d3b9f918"
+    },
+    {
+      "case": "eod-darkpool-absent-820.png",
+      "file": "eod-darkpool-absent-820.png",
+      "sha256": "ac3db05db1e1221394047438ae3d599235c7977e5225519c94cf52e99252e762"
+    },
+    {
+      "case": "eod-darkpool-retried-1440-zh.png",
+      "file": "eod-darkpool-retried-820-zh.png",
+      "sha256": "14e0377ebf8ba34e7c0e22a51bfeaa764ab6f63802c652c14fd2d0cc9fd28243"
+    },
+    {
+      "case": "eod-darkpool-retried-1440.png",
+      "file": "eod-darkpool-retried-1440.png",
+      "sha256": "098207d0ea1df6a52b9777d30cebee5eeb3e29072f2b9f3c3c47ad86d0b75363"
+    },
+    {
+      "case": "eod-darkpool-retried-390-zh.png",
+      "file": "eod-darkpool-retried-390-zh.png",
+      "sha256": "5499aca3a35487cba60c4f5a66951810f1f2a65481926c2ec6253894308dacce"
+    },
+    {
+      "case": "eod-darkpool-retried-390.png",
+      "file": "eod-darkpool-retried-820.png",
+      "sha256": "9ba8eefe3b384c58f58c1ba0642fe2cea2746d76f42a54dd6a25c6cad6b85bf2"
+    },
+    {
+      "case": "eod-darkpool-retried-820-zh.png",
+      "file": "eod-darkpool-retried-820-zh.png",
+      "sha256": "14e0377ebf8ba34e7c0e22a51bfeaa764ab6f63802c652c14fd2d0cc9fd28243"
+    },
+    {
+      "case": "eod-darkpool-retried-820.png",
+      "file": "eod-darkpool-retried-820.png",
+      "sha256": "9ba8eefe3b384c58f58c1ba0642fe2cea2746d76f42a54dd6a25c6cad6b85bf2"
+    },
+    {
+      "case": "eod-darkpool-unavailable-1440-zh.png",
+      "file": "eod-darkpool-unavailable-1440-zh.png",
+      "sha256": "c67b81d3a16875b0c41e26e3a102f32991fcce786ebc8b3d556d4520fff02438"
+    },
+    {
+      "case": "eod-darkpool-unavailable-1440.png",
+      "file": "eod-darkpool-unavailable-1440.png",
+      "sha256": "4867f99790bb933734d81c93e22adf5b34e708f5787dedcb7342e7924480f68e"
+    },
+    {
+      "case": "eod-darkpool-unavailable-390-zh.png",
+      "file": "eod-darkpool-unavailable-390-zh.png",
+      "sha256": "6d56469cff7158bc7c7baad1bed9498685f1f611e6d2672c6a476483bd21197d"
+    },
+    {
+      "case": "eod-darkpool-unavailable-390.png",
+      "file": "eod-darkpool-unavailable-820.png",
+      "sha256": "c17c73b6ba64ba11136f39ba9089fd64aa0f495c2bffd16b1b4c456dd46f6615"
+    },
+    {
+      "case": "eod-darkpool-unavailable-820-zh.png",
+      "file": "eod-darkpool-unavailable-820-zh.png",
+      "sha256": "d4caf1b52d3b877578a946bc413552b8e19842c4f05712d73617440cbdf34c76"
+    },
+    {
+      "case": "eod-darkpool-unavailable-820.png",
+      "file": "eod-darkpool-unavailable-820.png",
+      "sha256": "c17c73b6ba64ba11136f39ba9089fd64aa0f495c2bffd16b1b4c456dd46f6615"
+    },
+    {
+      "case": "eod-structure-absent-1440-zh.png",
+      "file": "eod-structure-absent-1440-zh.png",
+      "sha256": "02c97ff364d763e54d20a0389d91a3029c6fe683c8f4de950ba41bd4dcc7803f"
+    },
+    {
+      "case": "eod-structure-absent-1440.png",
+      "file": "eod-structure-absent-1440.png",
+      "sha256": "9b639395ade6e99d88911ab1b5ccf176843959bb5ed20008eb7047bd2c1ed762"
+    },
+    {
+      "case": "eod-structure-absent-390-zh.png",
+      "file": "eod-structure-absent-390-zh.png",
+      "sha256": "dfe442b647ee2f9795ef1082ac580425349133b5c6af5e94124f0a6626546fef"
+    },
+    {
+      "case": "eod-structure-absent-390.png",
+      "file": "eod-structure-absent-390.png",
+      "sha256": "f37a423329596df05383e9d3ec0b811330219a0bfbf5d2ea4f8bd7294c99aced"
+    },
+    {
+      "case": "eod-structure-absent-820-zh.png",
+      "file": "eod-structure-absent-820-zh.png",
+      "sha256": "164308b137507e5ee601713026bec9d14c5be263b014eb69cd6f1bbbbf9cca1d"
+    },
+    {
+      "case": "eod-structure-absent-820.png",
+      "file": "eod-structure-absent-820.png",
+      "sha256": "aac2ac8e8d77e5fe024df84e117f368e918a68cc21a4a8093a82eb8cf5b93565"
+    },
+    {
+      "case": "eod-structure-partial-1440-zh.png",
+      "file": "eod-structure-partial-1440-zh.png",
+      "sha256": "5d64e8cdfb069c5765743e3f0a4e8a1907615ecf2ac89e2e42fae024cb3f1737"
+    },
+    {
+      "case": "eod-structure-partial-1440.png",
+      "file": "eod-structure-partial-1440.png",
+      "sha256": "4b9352e44ba182da0c6cd7e0adf936fa830dba8971c652a13e9d7fd17a5c9d00"
+    },
+    {
+      "case": "eod-structure-partial-390-zh.png",
+      "file": "eod-structure-partial-390-zh.png",
+      "sha256": "039fe33b61e6876ab0a0df8bac92dd9b9ec61913e6fb23b8237a5e9b1a423617"
+    },
+    {
+      "case": "eod-structure-partial-390.png",
+      "file": "eod-structure-partial-390.png",
+      "sha256": "ce1b5787fa6ba4797ef83f66b33ff93f2dabc947615d6ab0bf575e115b34f9b7"
+    },
+    {
+      "case": "eod-structure-partial-820-zh.png",
+      "file": "eod-structure-partial-820-zh.png",
+      "sha256": "08f15e1671cfc26092e9e2dba603962633cfaa4cb13c4707f4385b9bf13c940c"
+    },
+    {
+      "case": "eod-structure-partial-820.png",
+      "file": "eod-structure-partial-820.png",
+      "sha256": "140d3cb775bcbffbc85e658435001ed2762aca7b45802532d2655343f26f12f8"
+    },
+    {
+      "case": "eod-structure-retried-1440-zh.png",
+      "file": "eod-structure-retried-1440-zh.png",
+      "sha256": "af923aba5f97a44df0571965d46fa7272cce55fe200d75945c68f799bdb17bbc"
+    },
+    {
+      "case": "eod-structure-retried-1440.png",
+      "file": "eod-structure-retried-1440.png",
+      "sha256": "ab27e50874c8883fb8a1f6d257d890f98af2c442790f7686228796ff3affa6c4"
+    },
+    {
+      "case": "eod-structure-retried-390-zh.png",
+      "file": "eod-structure-retried-390-zh.png",
+      "sha256": "c1b5ce00f44ed7fa8643eb968f7eb5d1cbdef627340fabf08e2db6937429704e"
+    },
+    {
+      "case": "eod-structure-retried-390.png",
+      "file": "eod-structure-retried-390.png",
+      "sha256": "04194b10320b81250b201684e41fdf259b27e8a8ea357a415ed879e86fc18c84"
+    },
+    {
+      "case": "eod-structure-retried-820-zh.png",
+      "file": "eod-structure-retried-820-zh.png",
+      "sha256": "5d6dab7d7eb0846ebe08cc74f34cee22e0a4728a3fc0499625be047ed1d6b433"
+    },
+    {
+      "case": "eod-structure-retried-820.png",
+      "file": "eod-structure-retried-820.png",
+      "sha256": "0276af2e2f2418f33e8c83adab85ce346afaccc752ffe3908867180a99d8bbfb"
+    },
+    {
+      "case": "eod-structure-unavailable-1440-zh.png",
+      "file": "eod-structure-unavailable-1440-zh.png",
+      "sha256": "e5d970436b80aa139a7d494d8bd337827ac048652b864c297b656f6055207040"
+    },
+    {
+      "case": "eod-structure-unavailable-1440.png",
+      "file": "eod-structure-unavailable-1440.png",
+      "sha256": "c6c48415d73b827e944069c59c71f8ed6df6613951dc849155899c7d8b31ed2a"
+    },
+    {
+      "case": "eod-structure-unavailable-390-zh.png",
+      "file": "eod-structure-unavailable-390-zh.png",
+      "sha256": "1329d96fc03eeb16b36791ecad611ca1f5f0184de394413680a087ab2b7c160e"
+    },
+    {
+      "case": "eod-structure-unavailable-390.png",
+      "file": "eod-structure-unavailable-390.png",
+      "sha256": "3cef463f3d4a646ab8a3cd532d38708cf92186b522b36eeefdec962e1beb87e4"
+    },
+    {
+      "case": "eod-structure-unavailable-820-zh.png",
+      "file": "eod-structure-unavailable-820-zh.png",
+      "sha256": "71e223a097c45db65b40aa97a30c80f97c8d0362ea5ba9ac9a8eceb0db825419"
+    },
+    {
+      "case": "eod-structure-unavailable-820.png",
+      "file": "eod-structure-unavailable-820.png",
+      "sha256": "53939bc3550c0beeed70b634ae97bda4b15ff56680aa4265d4fb6f5c808f3167"
+    }
+  ]
+}

@@ -72,12 +72,19 @@ export function AdvancedSeasonality({ years, active, win, zh = false }: Props) {
   // never blocks paint. Lifted to the deck root so the SAME verdict reaches both the
   // headline card and the holding matrix — the 66-window search it corrects for lives
   // in the matrix, so the matrix must state it too.
-  const guardKey = years.map((y) => y.year).join(",") + "|" + activeList.map((y) => y.year).join(",");
-  const [guard, setGuard] = useState<ReturnType<typeof overfitGuard> | null>(null);
+  // Year labels alone do not identify the data: another symbol or a corrected
+  // price history can have the same years. Bind the deferred result to the
+  // exact inputs, and hide the prior verdict until this sample is evaluated.
+  const [guardResult, setGuardResult] = useState<{
+    years: YearData[];
+    isActive: typeof isActive;
+    value: ReturnType<typeof overfitGuard>;
+  } | null>(null);
+  const guard = guardResult?.years === years && guardResult.isActive === isActive ? guardResult.value : null;
   useEffect(() => {
-    const id = setTimeout(() => setGuard(overfitGuard(years, isActive, 200)), 0);
+    const id = setTimeout(() => setGuardResult({ years, isActive, value: overfitGuard(years, isActive, 200) }), 0);
     return () => clearTimeout(id);
-  }, [guardKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [years, isActive]);
 
   if (nActive === 0) {
     return (

@@ -1,8 +1,9 @@
 /**
  * optionsLevels.ts — pure derivation for the chart's Options Levels overlay (R3.1).
  *
- * Turns the nightly `options_hub.gex/v1` + `options_hub.moves/v1` payloads into the
- * price-line set ChartPanel draws on the price pane: call wall, put wall, gamma flip,
+ * Turns `options_hub.gex/v1`, `options_structure.gex_state/v1`, and
+ * `options_hub.moves/v1` payloads into the price-line set ChartPanel draws on the price
+ * pane: call wall, put wall, gamma flip,
  * absolute-gamma strike and the published expected-move band. Pure functions only —
  * ChartPanel owns the fetch (lib/flowClientCache) and the createPriceLine lifecycle.
  *
@@ -32,14 +33,34 @@ export type OptLevelKey =
 export interface OptLevel {
   key: OptLevelKey;
   price: number;
+  /**
+   * em_lo/em_hi only (W3S): the published band's own statement, carried verbatim from
+   * `options_hub.moves/v1` so the legend can name the method honestly. `method` is the
+   * fixed marker that the source states no method — the producer's `band_mult` is shown
+   * as the producer's number, never as a stated statistical level of any kind.
+   */
+  band?: EmBandMeta;
+}
+
+export interface EmBandMeta {
+  bandMult: number | null;
+  horizonDays: number | null;
+  asof: string | null;
+  method: "not_stated";
 }
 
 export interface OptLevelsResult {
   /** "ok" = at least one drawable level; "empty" = no options coverage for this root. */
   status: "ok" | "empty";
   levels: OptLevel[];
-  /** Session date (YYYY-MM-DD) — the gex build's, else the moves build's (EM-only case). */
+  /** Oldest contributing session date, or null when any contributing lane is undated. */
   asofDate: string | null;
+  /**
+   * Newest contributing session date (null when any contributing lane is undated): the day the
+   * overlay as drawn first existed. Bar Replay hides the overlay on charts rewound before it.
+   * Optional so hand-built empty results (SurfacePane) need not carry it.
+   */
+  newestDate?: string | null;
   /**
    * True when a dealer-SIGNED level (wall or flip) is drawn — the legend's Tier-B
    * "signed estimate" disclosure rides this. An EM-only or abs-gamma-only set is Tier A
@@ -62,6 +83,17 @@ interface GexSubset {
   put_wall?: unknown;
   by_strike?: unknown;
   profile?: { grid?: unknown; gamma_bn?: unknown; crossings?: unknown } | null;
+}
+
+/** Structural subset of the current `options_structure.gex_state/v1` fallback lane. */
+interface GexStateSubset {
+  root?: unknown;
+  asof?: unknown;
+  spot?: unknown;
+  net_gex_bn?: unknown;
+  gamma_flip?: unknown;
+  call_wall?: unknown;
+  put_wall?: unknown;
 }
 
 const isNum = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
@@ -115,48 +147,72 @@ export function sessionsOldEt(asofDate: string, todayEt?: string): number {
  */
 export const FLIP_MAX_DIST_PCT = 0.30;
 
+const flipInBand = (value: number, spot: number | null): boolean =>
+  spot == null || Math.abs(value / spot - 1) <= FLIP_MAX_DIST_PCT;
+
 /** Flip = profile crossing nearest spot when the re-priced curve exists, else the scalar
  *  — both sanity-gated to the grid's own reachable band around spot. */
 function flipOf(gp: GexSubset, spot: number | null): number | null {
-  const inBand = (v: number): boolean =>
-    spot == null || Math.abs(v / spot - 1) <= FLIP_MAX_DIST_PCT;
   const crossings = gp.profile?.crossings;
   if (Array.isArray(crossings) && spot != null) {
-    const valid = crossings.filter((c): c is number => posNum(c) != null && inBand(c));
+    const valid = crossings.filter((c): c is number => posNum(c) != null && flipInBand(c, spot));
     if (valid.length) {
       return valid.reduce((a, b) => (Math.abs(b - spot) < Math.abs(a - spot) ? b : a));
     }
   }
   const scalar = posNum(gp.gamma_flip);
-  return scalar != null && inBand(scalar) ? scalar : null;
+  return scalar != null && flipInBand(scalar, spot) ? scalar : null;
 }
 
+const dateOf = (value: unknown): string | null => {
+  const text = typeof value === "string" ? value.slice(0, 10) : "";
+  return /^\d{4}-\d{2}-\d{2}$/.test(text) ? text : null;
+};
+
 /**
- * Derive the drawable level set for `root` from raw gex + moves payloads (either may be
- * an envelope, bare, or null). Never throws on malformed input — a level that fails
+ * Derive the drawable level set for `root` from raw gex + moves + state payloads (each may
+ * be an envelope, bare, or null). Never throws on malformed input — a level that fails
  * validation is dropped, and zero drawable levels reads as "empty" (no coverage).
  */
 export function deriveOptLevels(
   gexRaw: unknown,
   movesRaw: unknown,
   root: string,
+  stateRaw: unknown = null,
 ): OptLevelsResult {
   const empty: OptLevelsResult = {
     status: "empty",
     levels: [],
     asofDate: null,
+    newestDate: null,
     signed: false,
     spot: null,
     netGexBn: null,
   };
   const gp = pickRootPayload<GexSubset>(gexRaw, root);
-  if (!gp) return empty;
+  const state = pickRootPayload<GexStateSubset>(stateRaw, root);
 
-  const spot = posNum(gp.spot_ref);
-  const callWall = posNum(gp.call_wall);
-  const putWall = posNum(gp.put_wall);
-  const flip = flipOf(gp, spot);
-  const rows = Array.isArray(gp.by_strike) ? (gp.by_strike as MscStrikeRow[]) : null;
+  const gexSpot = posNum(gp?.spot_ref);
+  const stateSpot = posNum(state?.spot);
+  const spot = gexSpot ?? stateSpot;
+
+  // The strike-resolved ladder stays authoritative. gex_state is a current, root-scoped
+  // fallback for fields the ladder could not publish (for example INTC's no-OI shell).
+  const gexCallWall = posNum(gp?.call_wall);
+  const stateCallWall = posNum(state?.call_wall);
+  const callWall = gexCallWall ?? stateCallWall;
+  const gexPutWall = posNum(gp?.put_wall);
+  const statePutWall = posNum(state?.put_wall);
+  const putWall = gexPutWall ?? statePutWall;
+  const gexFlip = gp ? flipOf(gp, gexSpot) : null;
+  const stateFlipScalar = posNum(state?.gamma_flip);
+  const stateFlipSpot = stateSpot ?? gexSpot;
+  const stateFlip = stateFlipScalar != null && flipInBand(stateFlipScalar, stateFlipSpot)
+    ? stateFlipScalar
+    : null;
+  const flip = gexFlip ?? stateFlip;
+
+  const rows = Array.isArray(gp?.by_strike) ? (gp.by_strike as MscStrikeRow[]) : null;
   const absGamma = posNum(topology(rows).absGammaStrike);
 
   const levels: OptLevel[] = [];
@@ -171,30 +227,56 @@ export function deriveOptLevels(
 
   // EM band: the published lo/hi at the payload's band_mult — Tier A, and calibrated
   // upstream (moves.calibration). Optional: a missing moves payload drops the band only.
-  const mp = pickRootPayload<MscMoves & { root?: unknown }>(movesRaw, root);
+  // The band's own statement (multiple, horizon, clock) rides on the levels (W3S) so the
+  // legend can show the producer's numbers beside the band.
+  const mp = pickRootPayload<MscMoves & { root?: unknown; asof?: unknown }>(movesRaw, root);
   const emLo = posNum(mp?.expected_move?.lo);
   const emHi = posNum(mp?.expected_move?.hi);
-  if (emLo != null && emHi != null && emLo < emHi) {
-    levels.push({ key: "em_lo", price: emLo });
-    levels.push({ key: "em_hi", price: emHi });
+  const hasExpectedMove = emLo != null && emHi != null && emLo < emHi;
+  if (hasExpectedMove) {
+    const band: EmBandMeta = {
+      bandMult: isNum(mp?.expected_move?.band_mult) ? mp!.expected_move!.band_mult! : null,
+      horizonDays: isNum(mp?.expected_move?.horizon_days) ? mp!.expected_move!.horizon_days! : null,
+      asof: typeof mp?.asof === "string" && mp.asof ? mp.asof : null,
+      method: "not_stated",
+    };
+    levels.push({ key: "em_lo", price: emLo, band });
+    levels.push({ key: "em_hi", price: emHi, band });
   }
 
   if (!levels.length) return empty;
-  // Session date: the gex build's, falling back to the moves build's for the partial-publish
-  // case (moves lane landed, gex lane didn't — the EM band still deserves its provenance).
-  const dateOf = (v: unknown): string | null => {
-    const s = typeof v === "string" ? v.slice(0, 10) : "";
-    return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : null;
-  };
-  const mpAsof = (mp as { asof?: unknown } | null)?.asof;
+
+  // One legend date cannot represent a mixed-vintage overlay. Choose the oldest ACTUALLY
+  // contributing lane so a fresh gex_state fallback can never make an older EM band look fresh.
+  // Unused fallback payloads do not affect provenance.
+  const usedGex = gexCallWall != null || gexPutWall != null || gexFlip != null || absGamma != null;
+  const usedState = (gexCallWall == null && stateCallWall != null)
+    || (gexPutWall == null && statePutWall != null)
+    || (gexFlip == null && stateFlip != null);
+  const contributors = [
+    { used: usedGex, date: dateOf(gp?.asof) },
+    { used: usedState, date: dateOf(state?.asof) },
+    { used: hasExpectedMove, date: dateOf(mp?.asof) },
+  ];
+  const hasUndatedContributor = contributors.some((contributor) => contributor.used && contributor.date == null);
+  const dates = contributors
+    .filter((contributor): contributor is { used: true; date: string } => contributor.used && contributor.date != null)
+    .map((contributor) => contributor.date)
+    .sort();
+
   return {
     status: "ok",
     levels,
-    asofDate: dateOf(gp.asof) ?? dateOf(mpAsof),
+    asofDate: hasUndatedContributor ? null : dates[0] ?? null,
+    newestDate: hasUndatedContributor ? null : dates[dates.length - 1] ?? null,
     signed: levels.some(
-      (l) => l.key === "call_wall" || l.key === "put_wall" || l.key === "gamma_flip",
+      (level) => level.key === "call_wall" || level.key === "put_wall" || level.key === "gamma_flip",
     ),
     spot,
-    netGexBn: isNum(gp.net_gex_bn) ? gp.net_gex_bn : null,
+    netGexBn: isNum(gp?.net_gex_bn)
+      ? gp.net_gex_bn
+      : isNum(state?.net_gex_bn)
+        ? state.net_gex_bn
+        : null,
   };
 }
