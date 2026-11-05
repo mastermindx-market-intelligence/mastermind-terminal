@@ -95,7 +95,7 @@ def test_shard_table_mirrors_hosted_e2e_matrix() -> None:
     assert table == hosted
 
 
-@pytest.mark.parametrize("shard", ["desktop-1", "tablet-3", "serial"])
+@pytest.mark.parametrize("shard", ["desktop-1", "tablet-3", "serial", "serial-standalone"])
 def test_valid_inputs_emit_fixed_selector(shard: str, tmp_path: Path) -> None:
     rc, written = run_validator(shard, "4", tmp_path)
     assert rc == 0
