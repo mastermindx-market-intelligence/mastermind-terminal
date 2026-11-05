@@ -210,6 +210,7 @@ describe('private intelligence in existing shared hosts', () => {
   });
 
   it('uses Analysis identity and settled cursor without a private default-company request', async () => {
+    window.history.replaceState(null, '', '/analysis?page=intelligence');
     await act(async () => { root.render(<AnalysisWorkspace initialPage="intelligence" />); });
     expect(probe.reads.length).toBeGreaterThan(0);
     expect(probe.reads.every(x => x.symbol === 'SMR' && x.identity === probe.identity)).toBe(true);
@@ -217,6 +218,7 @@ describe('private intelligence in existing shared hosts', () => {
   });
 
   it('does not mount private intelligence for a malformed Analysis symbol', async () => {
+    window.history.replaceState(null, '', '/analysis?page=intelligence&symbol=GOOG%2FGOOGL');
     await act(async () => { root.render(<AnalysisWorkspace initialSymbol="GOOG/GOOGL" initialPage="intelligence" />); });
     expect(probe.reads).toEqual([]);
     expect(container.querySelector('[data-private]')).toBeNull();
