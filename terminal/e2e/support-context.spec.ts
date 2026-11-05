@@ -1,11 +1,9 @@
-import { expect, test, type Page } from "@playwright/test";
-import { mkdirSync } from "node:fs";
-import { join } from "node:path";
+import { expect, test, type Page, type TestInfo } from "@playwright/test";
+import { useLang } from "./layoutStore";
 
 test.setTimeout(60_000);
 test.use({ actionTimeout: 10_000 });
 
-const proof = "docs/pr-crops/support-context-20260918";
 const names = {
   en: { title: "Support context", support: "Support", resistance: "Resistance", fresh: "Latest bar may be open", new: "New alert", event: "Event", suite: "Suites", seq: "Sequence", dir: "direction", create: "Create alert", hold: "Support / resistance hold" },
   zh: { title: "支撑解读", support: "支撑", resistance: "阻力", fresh: "最新一根可能未收盘", new: "新建提醒", event: "事件", suite: "套件", seq: "连锁条件", dir: "方向", create: "创建提醒", hold: "支撑 / 阻力守住" },
@@ -33,8 +31,8 @@ const ohlc = {
 };
 
 async function seed(page: Page, lang: "en" | "zh") {
-  await page.addInitScript((l) => {
-    localStorage.setItem("mm.lang", l);
+  await useLang(page, lang);
+  await page.addInitScript(() => {
     localStorage.setItem("mm.devTier", "pro");
     localStorage.setItem("mm.startTf", JSON.stringify("D"));
     localStorage.setItem("mm.inds", JSON.stringify(["structure"]));
@@ -43,7 +41,7 @@ async function seed(page: Page, lang: "en" | "zh") {
       "liq.on": false, "sfp.on": false, "mfp.on": false, "pat.on": false,
       "sr.on": true, "sr.contextPanel": true, "sr.bufferZone": true, "sr.eventMarks": true,
     } }));
-  }, lang);
+  });
   await page.route(/\/data\/manifest\.json(?:\?.*)?$/, (r) =>
     r.fulfill({ json: { symbols: { NVDA: { name: "NVIDIA", last: 106 } } } }));
   await page.route(/\/data\/NVDA\.json(?:\?.*)?$/, (r) => r.fulfill({ json: ohlc }));
@@ -51,9 +49,9 @@ async function seed(page: Page, lang: "en" | "zh") {
     r.fulfill({ json: { indicator: { state: {}, signals: [], early_dots: [], warnings: [] } } }));
 }
 
-async function capture(page: Page, name: string) {
-  mkdirSync(proof, { recursive: true });
-  await page.screenshot({ path: join(proof, name), animations: "disabled" });
+async function capture(page: Page, info: TestInfo, name: string) {
+  // Current-run artifacts must not overwrite the committed September evidence packet.
+  await page.screenshot({ path: info.outputPath(name), animations: "disabled" });
 }
 
 for (const lang of ["en", "zh"] as const) {
@@ -80,10 +78,12 @@ for (const lang of ["en", "zh"] as const) {
     expect(geometry.fits, JSON.stringify(geometry)).toBe(true);
     expect(geometry.cells.every((c) => c.fits), JSON.stringify(geometry)).toBe(true);
     expect(geometry.documentFits).toBe(true);
-    await capture(page, info.project.name + "-chart-" + lang + ".png");
+    await capture(page, info, info.project.name + "-chart-" + lang + ".png");
   });
 
-  test("create native support event and ordered structure confirmation alerts (" + lang + ")", async ({ page }, info) => {
+  test("create native support event and ordered structure confirmation alerts (" + lang + ")", async ({ page, baseURL }, info) => {
+    // Existing non-chart dev fixture admission; preserve the production auth resolver.
+    await page.context().addCookies([{ name: "mm_e2e_rs30", value: "1", url: baseURL! }]);
     await seed(page, lang);
     const n = names[lang];
     const stored: Array<Record<string, unknown>> = [];
@@ -135,6 +135,6 @@ for (const lang of ["en", "zh"] as const) {
     await expect(page.locator(".arow")).toHaveCount(2);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await form.scrollIntoViewIfNeeded();
-    await capture(page, info.project.name + "-alerts-" + lang + ".png");
+    await capture(page, info, info.project.name + "-alerts-" + lang + ".png");
   });
 }

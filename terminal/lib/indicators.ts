@@ -1,3 +1,4 @@
+import { LARGE_TRADES_LABELS } from "./largeTrades/labels";
 // Central registry for the chart's built-in indicators — the single source of truth shared by the
 // legend (ChartOverlays), the settings dialog (IndicatorSettings), the chart engine (ChartPanel) and
 // the workspace state (TerminalShell). Each indicator declares:
@@ -9,19 +10,23 @@
 // Pine custom scripts are NOT in this registry — they carry their own source/params and are handled
 // directly in TerminalShell/ChartPanel.
 
+import { DEFAULT_LARGE_TRADES_SETTINGS } from "./largeTrades/types";
+import { settingsFromParams } from "./largeTrades/engine";
+
 export type IndKey = "ema" | "bb" | "vwap" | "vol" | "rsi" | "stochrsi" | "macd" | "gaps"
   | "ichimoku" | "ribbon" | "supertrend" | "avwap" | "rvwap" | "wvwap" | "vprofile" | "volbox"
   | "rsistack" | "accum" | "_lab"
   // Day Trade suite
   | "svwap" | "orb" | "slevels" | "pivots" | "rvol" | "ttmsq" | "adx" | "cvd"
   // Market Structure Core (R3.1) — dealer-positioning levels from the nightly options build
-  | "optlevels";
+  | "optlevels" | "largeTrades";
 export type IndKind = "overlay" | "pane";
 export type FieldType = "number" | "color" | "bool";
 
 export interface IndField {
   key: string;
   label: string;
+  labelZh?: string;
   type: FieldType;
   group: "inputs" | "style";
   min?: number;
@@ -32,6 +37,7 @@ export interface IndField {
 export interface IndDef {
   key: IndKey;
   label: string;   // full legend name
+  labelZh?: string;
   tag: string;     // short label (used in compact contexts)
   kind: IndKind;   // overlay = draws on the price pane; pane = gets its own sub-pane
   defaults: Record<string, any>;
@@ -46,7 +52,7 @@ export const IND_ORDER: IndKey[] = [
   // Day Trade suite overlays (price pane)
   "svwap", "orb", "slevels", "pivots",
   // Options positioning levels (price pane, data-fed — nightly options build)
-  "optlevels",
+  "optlevels", "largeTrades",
   "rsi", "stochrsi", "macd", "rsistack", "accum",
   // Day Trade suite sub-panes
   "rvol", "ttmsq", "adx", "cvd",
@@ -80,6 +86,27 @@ const COL = {
 };
 
 export const IND_DEFS: Record<IndKey, IndDef> = {
+  largeTrades: {
+    key: "largeTrades", label: "Large trades", labelZh: LARGE_TRADES_LABELS.ltTitle[1], tag: "Large trades", kind: "overlay",
+    defaults: { ...DEFAULT_LARGE_TRADES_SETTINGS },
+    fields: [
+      { key: "minQuantity", label: "Minimum executed quantity", labelZh: LARGE_TRADES_LABELS.ltSettingMinQuantity[1], type: "number", group: "inputs", min: 1, max: 1000000000, step: 1 },
+      { key: "aggregate", label: "Group nearby executions", labelZh: LARGE_TRADES_LABELS.ltSettingAggregate[1], type: "bool", group: "inputs" },
+      { key: "maxGapMs", label: "Maximum gap (milliseconds)", labelZh: LARGE_TRADES_LABELS.ltSettingGap[1], type: "number", group: "inputs", min: 0, max: 10000, step: 10 },
+      { key: "maxSpanTicks", label: "Maximum price span (ticks)", labelZh: LARGE_TRADES_LABELS.ltSettingSpan[1], type: "number", group: "inputs", min: 0, max: 1000, step: 1 },
+      { key: "maxDurationMs", label: "Maximum cluster duration (milliseconds)", labelZh: LARGE_TRADES_LABELS.ltSettingDuration[1], type: "number", group: "inputs", min: 1, max: 60000, step: 100 },
+      { key: "adaptive", label: "Use prior-sample percentile", labelZh: LARGE_TRADES_LABELS.ltSettingAdaptive[1], type: "bool", group: "inputs" },
+      { key: "percentile", label: "Prior-sample percentile", labelZh: LARGE_TRADES_LABELS.ltSettingPercentile[1], type: "number", group: "inputs", min: 50, max: 100, step: 1 },
+      { key: "baselineCount", label: "Prior clusters retained", labelZh: LARGE_TRADES_LABELS.ltSettingBaselineCount[1], type: "number", group: "inputs", min: 10, max: 5000, step: 1 },
+      { key: "minBaseline", label: "Minimum calibration samples", labelZh: LARGE_TRADES_LABELS.ltSettingMinBaseline[1], type: "number", group: "inputs", min: 2, max: 5000, step: 1 },
+      { key: "responseWindowMs", label: "Response window (milliseconds)", labelZh: LARGE_TRADES_LABELS.ltSettingResponseWindow[1], type: "number", group: "inputs", min: 1000, max: 300000, step: 1000 },
+      { key: "maxResponseTicks", label: "Maximum limited response (ticks)", labelZh: LARGE_TRADES_LABELS.ltSettingMaxResponse[1], type: "number", group: "inputs", min: 0, max: 1000, step: 1 },
+      { key: "reversalTicks", label: "Minimum reversal (ticks)", labelZh: LARGE_TRADES_LABELS.ltSettingReversal[1], type: "number", group: "inputs", min: 1, max: 1000, step: 1 },
+      { key: "showLabels", label: "Show exact quantity labels", labelZh: LARGE_TRADES_LABELS.ltSettingLabels[1], type: "bool", group: "style" },
+      { key: "maxMarkers", label: "Maximum displayed clusters", labelZh: LARGE_TRADES_LABELS.ltSettingMaxMarkers[1], type: "number", group: "style", min: 1, max: 1000, step: 1 },
+    ],
+    source: "// Transaction-backed study. Canonical implementation: lib/largeTrades/engine.ts. Candle volume is never a transaction input.",
+  },
   ema: {
     key: "ema", label: "Moving Averages", tag: "MA", kind: "overlay",
     defaults: {
@@ -908,7 +935,11 @@ export function indDefaults(key: string): Record<string, any> {
 }
 // merge persisted params over the registry defaults so older saved params backfill new fields
 export function withDefaults(key: string, params?: Record<string, any> | null): Record<string, any> {
-  return applyUpDownConvention(key, { ...indDefaults(key), ...(params || {}) });
+  const merged = { ...indDefaults(key), ...(params || {}) };
+  // Hydration, settings, and engine must describe the same effective criteria.
+  // Preserve registry metadata such as _vis while using the engine's sole bounds owner.
+  if (key === "largeTrades") Object.assign(merged, settingsFromParams(merged));
+  return applyUpDownConvention(key, merged);
 }
 export function allDefaults(): Record<string, Record<string, any>> {
   const o: Record<string, Record<string, any>> = {};
