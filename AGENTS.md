@@ -16,10 +16,15 @@ Only when an actually binding native/security requirement or an explicit eligibl
 
 The assigned session owns the original PR through qualified source/tests, failing-CI repair, Ready when reviewable, genuinely required technical/formal review, authorized protected merge-on-green, exact merge readback, git-gated deployment and owed live browser proof. An open Draft, PR, pending CI, review request, label or handoff is **not done**. Do not open another PR to bypass failing checks, an inactive reviewer account or a held original; preserve the source carrier and get the next real release step done this turn. Continue safe unblocked work while any real external wait proceeds through the existing verified observer. Branch protection, review findings, recorded HOLD, source custody, denied/unknown effects, no self-approval and no self-merge remain binding.
 
-## Required context at the start of every task
+## Required context for the current scope
 
 1. Read `terminal/AGENTS.md` and `terminal/CLAUDE.md` in full before changing the
-   Next.js application.
+   Next.js application. Reuse instructions already read in full in this session
+   at the same applicable source revision across commands and subsequent tasks.
+   Refresh affected instructions when scope or their governing source changes;
+   read any unseen or newly applicable instructions before the work they govern.
+   This reuse preserves the nested guides' specialized contracts and required
+   framework documentation.
 2. Treat local Claude project memory as optional context, not a startup or
    delivery gate. The historical index at
    `~/.claude/projects/-Users-chriswong-Documents-Cluade-charting-app/memory/MEMORY.md`
