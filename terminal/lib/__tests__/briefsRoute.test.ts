@@ -314,6 +314,47 @@ describe("/api/briefs routes", () => {
     });
   });
 
+  it("GET subscriptions resolves owner-scoped thesis and watchlist names", async () => {
+    H.user = { id: "u-1" };
+    H.subscriptions = [
+      {
+        subscription_id: SUB,
+        user_id: "u-1",
+        target_kind: "thesis",
+        target_id: THESIS,
+        cadence: "daily_after_us_close",
+        delivery: "in_product_inbox",
+        state: "active",
+        created_at: "2026-09-11T00:00:00.000Z",
+      },
+      {
+        subscription_id: "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
+        user_id: "u-1",
+        target_kind: "watchlist",
+        target_id: WATCHLIST,
+        cadence: "weekly_saturday",
+        delivery: "in_product_inbox",
+        state: "paused",
+        created_at: "2026-09-10T00:00:00.000Z",
+      },
+    ];
+    H.theses = [{ id: THESIS, user_id: "u-1", current_version: 2 }];
+    H.thesisVersions = [{
+      thesis_id: THESIS,
+      version: 2,
+      user_id: "u-1",
+      content: { title: "NVDA cycle" },
+    }];
+    H.watchlists = [{ id: WATCHLIST, user_id: "u-1", name: "Semis" }];
+
+    const r = await GET_SUB(req("http://localhost/api/briefs/subscriptions"));
+    expect(r.status).toBe(200);
+    const body = await r.json();
+    expect(body.subscriptions).toHaveLength(2);
+    expect(body.subscriptions.find((row: { targetKind: string }) => row.targetKind === "thesis").targetName).toBe("NVDA cycle");
+    expect(body.subscriptions.find((row: { targetKind: string }) => row.targetKind === "watchlist").targetName).toBe("Semis");
+  });
+
   it("pause then resume flips the row state", async () => {
     H.user = { id: "u-1" };
     H.subscriptions = [{

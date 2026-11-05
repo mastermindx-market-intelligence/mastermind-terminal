@@ -67,9 +67,10 @@ jobs:
     runs-on: ubuntu-latest
     # Existing stages had20min. Add bounded10min browser setup +55min captures
     # +5min retention margin. Original30-case M2 report took1,018,995ms (~17min)
-    # before the24layout cases; this90min cap is not a hosted timing claim.
+    # before the24layout cases. Add20min for the conditional Briefs capture,
+    # including bounded cleanup; this110min cap is not a hosted timing claim.
     # See8f1dc846: terminal/docs/pr-crops/terminal-visual-intelligence/asc1233-vi-ci-20261103--report.json.
-    timeout-minutes: 90
+    timeout-minutes: 110
     defaults:
       run:
         working-directory: terminal
@@ -106,7 +107,7 @@ jobs:
         timeout-minutes: 10
         run: npx playwright install --with-deps chromium
       - name: Capture and validate evidence on this checkout
-        timeout-minutes: 55
+        timeout-minutes: 75
         run: node e2e/tools/capture_ci_evidence.cjs
       - run: npm test
         timeout-minutes: 20
@@ -249,6 +250,7 @@ jobs:
             terminal/test-results/
             terminal/docs/pr-crops/b-pl-6-batch-1/ci-${{ github.run_id }}-${{ github.run_attempt }}-*
             terminal/docs/pr-crops/terminal-visual-intelligence/ci-${{ github.run_id }}-${{ github.run_attempt }}-*
+            terminal/docs/pr-crops/b-f11-7-recurring-briefs/
           if-no-files-found: warn
 
   terminal-e2e:
