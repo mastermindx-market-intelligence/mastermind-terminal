@@ -51,6 +51,39 @@ async function noOverflow(page: Page) {
   expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
 }
 
+/**
+ * The Discover representation control is a client control. The workspace takes its
+ * state from the URL in a client effect and reads its owner feeds from a later one,
+ * so a click that lands before those effects have applied is applied to state that
+ * is then overwritten, and the representation never changes. That is why an earlier
+ * version of this test retried the click until one happened to take.
+ *
+ * Two existing application states show the control is ready, and neither is a
+ * readiness marker this spec invents:
+ *
+ *  - the workspace reads its owner feeds from a client effect, so the heatmap
+ *    feed's own 502 can only be requested once the client is live. That wait is
+ *    registered before navigation, so the refused response cannot be missed;
+ *  - the owner feed the shared fixture serves renders the selected sector's name
+ *    ("Technology") in the Discover summary. That name is in the DOM only after
+ *    the client has received the feed and re-rendered — the first client paint
+ *    carries the bare sector code ("XLK") instead — so a page whose client has
+ *    not yet read its feeds cannot satisfy it.
+ *
+ * After those, exactly one normal click on the Heatmap control.
+ */
+async function waitForDiscoverReady(page: Page, theme: "light" | "dark") {
+  const heatmapFeedRefused = page.waitForResponse(response => {
+    const url = new URL(response.url());
+    return url.pathname === "/api/sector-intelligence"
+      && url.searchParams.get("source") === "heatmap"
+      && response.status() === 502;
+  });
+  await page.goto(`/discover?tab=sectors&sectorWorkspace=discover&sectorDiscoveryMode=summary&sector=xlk&sectorTheme=${theme}`);
+  await heatmapFeedRefused;
+  await expect(page.getByTestId("sector-industry-summary").locator("h2")).toHaveText("Technology");
+}
+
 for (const failureCase of CASES) {
   for (const language of LANGUAGES) {
     for (const theme of THEMES) {
@@ -71,17 +104,13 @@ for (const failureCase of CASES) {
               failure: failureCase.failure, asOf: null, observedAt: null, stale: false, contentHash: null },
           } });
         });
-        await page.goto(`/discover?tab=sectors&sectorWorkspace=discover&sectorDiscoveryMode=summary&sector=xlk&sectorTheme=${theme}`);
-        // Reach the heatmap through the existing Discover representation control.
-        // The dev server compiles /discover on its first use in a cold tree, so
-        // the first paint can precede hydration and swallow that click; the
-        // control is idempotent, so the switch is retried until it takes.
+        await waitForDiscoverReady(page, theme);
+        // Reach the heatmap through the existing Discover representation control,
+        // with exactly one click on the ready control.
         const representation = page.getByRole("group", { name: language === "en" ? "Discover representation" : "发现视图", exact: true });
+        await representation.getByRole("button", { name: language === "en" ? "Heatmap" : "热图", exact: true }).click();
         const heatmap = page.getByTestId("sector-company-heatmap");
-        await expect(async () => {
-          await representation.getByRole("button", { name: language === "en" ? "Heatmap" : "热图", exact: true }).click();
-          await expect(heatmap).toBeVisible({ timeout: 2000 });
-        }).toPass({ timeout: 30000 });
+        await expect(heatmap).toBeVisible({ timeout: 15_000 });
         await expect(page.getByTestId("sector-intelligence")).toHaveAttribute("data-sector-theme", theme);
         // The class renders its own message, and only its own message.
         await expect(heatmap.getByRole("status")).toContainText(failureCase.expected[language]);
