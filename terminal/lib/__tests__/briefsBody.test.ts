@@ -27,6 +27,17 @@ describe("brief body schema guard", () => {
     expect(validateBriefBody(valid)).toEqual(valid);
   });
 
+  it("retains an explicit null watchlist version under the new decoder contract", () => {
+    const watchlist = { ...valid, target: { ...valid.target, kind: "watchlist" as const, version_or_asof: null } };
+    expect(validateBriefBody(watchlist)).toEqual(watchlist);
+    expect(requiresExplicitBriefLanguage(watchlist)).toBe(true);
+    expect(briefLanguageNotice(watchlist, "zh")).toBeNull();
+    for (const version of [undefined, "", " "]) {
+      expect(validateBriefBody({ ...watchlist, target: { ...watchlist.target, version_or_asof: version } })).toBeNull();
+    }
+    expect(validateBriefBody({ ...valid, target: { ...valid.target, version_or_asof: null } })).toBeNull();
+  });
+
   it("rejects numeric judgement keys", () => {
     expect(validateBriefBody({ ...valid, score: 0.81 })).toBeNull();
     expect(validateBriefBody({ ...valid, target: { ...valid.target, confidence: 12 } })).toBeNull();

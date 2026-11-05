@@ -1,3 +1,4 @@
+import { usEquitySessionAtDisplayEpoch } from "./usEquityCalendar";
 // intradayMath.ts — intraday session math for the Day Trade Suite (display-tier descriptive).
 // All functions are pure, stateless over Bar arrays (chronological oldest→newest).
 // Bar.time is NUMERIC (display-epoch seconds): market-local wall-clock reinterpreted as UTC.
@@ -192,6 +193,7 @@ export function sessionVwap(
   market: "us" | "cn" | "hk" | "crypto" | "ca",
   includePm = false,
   mults: number[] = [1, 2, 3],
+  us24h = false,
 ): SessionVwapResult {
   const n = bars.length;
   const vwap: (number | null)[] = Array(n).fill(null);
@@ -206,7 +208,8 @@ export function sessionVwap(
 
   for (let i = 0; i < n; i++) {
     const bar = bars[i];
-    const day = dayKey(bar.time);
+    const phase = us24h && market === "us" ? usEquitySessionAtDisplayEpoch(bar.time) : null;
+    const day = phase?.tradeDate ? Date.parse(`${phase.tradeDate}T00:00:00Z`) / 86400000 : dayKey(bar.time);
     const mod = minOfDay(bar.time);
 
     // Session reset
@@ -214,6 +217,9 @@ export function sessionVwap(
       cumTV = 0; cumV = 0; cumTV2 = 0;
       curDay = day;
     }
+
+    // Overnight observed prices have no admitted volume. Trade-date reset is at 20:00.
+    if (phase && (phase.session === "overnight" || phase.session === "closed" || (!includePm && phase.session !== "rth"))) continue;
 
     // Skip premarket bars when !includePm (for non-crypto markets with an open minute)
     if (!includePm && market !== "crypto" && mod < openMin) {

@@ -140,7 +140,7 @@ export async function GET(req: Request) {
     return NextResponse.json(errorBody("unavailable"), { status: 503 });
   }
   // Decide compatibility on valid owned bodies before normalization. A null
-  // Chinese sentence must never erase otherwise usable content as an empty body.
+  // Chinese sentence or watchlist version must never erase usable content as an empty body.
   if (contract === null && (data || []).some((row) => {
     if (!asSub(row.brief_subscriptions)) return false;
     const body = validateBriefBody(row.body);

@@ -17,6 +17,9 @@
 import { compile, runCompiled, type ParseResult, type Bar, type RunOpts } from "./index";
 import { hashSource, type ColumnarBars, columnsToBars } from "./host-shared";
 
+import { DEFAULT_BUDGET_MS } from "./runtime";
+import { supportsReferenceProbe, retainReference, type ReferenceExportRequest } from "./retained-export";
+
 // AST cache keyed by source hash — a data-only re-run (replay tick, param edit, live splice) reuses
 // the compiled AST and never re-parses. Bounded so a session that edits many scripts can't grow it
 // without limit; the host also evicts explicitly on script delete.
@@ -29,7 +32,7 @@ function cacheAst(id: string, ast: ParseResult) {
 
 type InMsg =
   | { kind: "compile"; reqId: number; source: string }
-  | { kind: "run"; reqId: number; astId?: string; source?: string; bars: ColumnarBars; inputs?: Record<string, any>; opts?: { timeframe?: string; symbol?: string; budgetMs?: number; sessionAnchor?: RunOpts["sessionAnchor"] } }
+  | { kind: "run"; reqId: number; astId?: string; source?: string; referenceExport?: ReferenceExportRequest; hostBudgetMs?: number; bars: ColumnarBars; inputs?: Record<string, any>; opts?: { timeframe?: string; symbol?: string; budgetMs?: number; sessionAnchor?: RunOpts["sessionAnchor"] } }
   | { kind: "evict"; astId: string }
   | { kind: "clear" };
 
@@ -40,7 +43,7 @@ const ctx = self as unknown as {
   postMessage: (msg: any) => void;
 };
 
-ctx.onmessage = (e: MessageEvent<InMsg>) => {
+ctx.onmessage = async (e: MessageEvent<InMsg>) => {
   const msg = e.data;
   try {
     if (msg.kind === "clear") { AST_CACHE.clear(); return; }
@@ -60,7 +63,15 @@ ctx.onmessage = (e: MessageEvent<InMsg>) => {
       // Resolve the AST: prefer the cache (astId), else compile the inline source once (and cache it).
       let ast: ParseResult | null = null;
       let compileErrors: any[] = [];
-      if (msg.astId && AST_CACHE.has(msg.astId)) ast = AST_CACHE.get(msg.astId)!;
+      if (msg.referenceExport) {
+        // The retained probe digest must identify the source that produced this AST.
+        // A cache label can collide or name a different inline program.
+        if (typeof msg.source === "string") {
+          const r = compile(msg.source);
+          ast = r.ok ? r.ast : null;
+          compileErrors = r.errors;
+        }
+      } else if (msg.astId && AST_CACHE.has(msg.astId)) ast = AST_CACHE.get(msg.astId)!;
       else if (msg.source != null) {
         const id = msg.astId || hashSource(msg.source);
         const r = compile(msg.source);
@@ -72,8 +83,18 @@ ctx.onmessage = (e: MessageEvent<InMsg>) => {
         return;
       }
       const bars: Bar[] = columnsToBars(msg.bars);
-      const out = runCompiled(ast, bars, { ...(msg.opts || {}), params: msg.inputs || {} });
-      ctx.postMessage({ kind: "ran", reqId: msg.reqId, ok: out.ok, errors: out.errors, result: out.result });
+      const options: RunOpts = { ...msg.opts, params: msg.inputs || {} };
+      if (msg.referenceExport) { options.budgetMs ??= DEFAULT_BUDGET_MS; options.captureInputValues = true; }
+      const startedMs = msg.referenceExport ? Date.now() : 0;
+      const out = runCompiled(ast, bars, options);
+      const completedMs = msg.referenceExport ? Date.now() : 0;
+      const referenceExport = msg.referenceExport && out.ok && out.result
+        ? !supportsReferenceProbe(ast) ? { status: "unavailable", reason: "unsupported_reference_probe" }
+          : await retainReference(msg.referenceExport, msg.source!, bars, options, msg.hostBudgetMs!,
+            startedMs, completedMs, out.result)
+        : undefined;
+      ctx.postMessage({ kind: "ran", reqId: msg.reqId, ok: out.ok, errors: out.errors, result: out.result,
+        ...(referenceExport ? { referenceExport } : {}) });
       return;
     }
   } catch (err) {

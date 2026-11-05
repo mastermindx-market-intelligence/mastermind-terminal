@@ -3,6 +3,7 @@ import type { ThesisDetail, ThesisSummary, ThesisVersion } from "@/lib/theses";
 import type { ServerWatchlist } from "@/lib/watchlists";
 import type { UserClaim } from "@/lib/personalAccuracy";
 import type { Position } from "@/lib/portfolio";
+import { API_V1_READ_SCHEMA_VERSION, inferenceMetadata, type ApiV1InferenceMetadata } from "@/lib/apiV1Metadata";
 
 /** Public API v1 contract freeze (B-F12-10 / MO-PAID-055). Version pin is the seat date. */
 export const API_V1_VERSION = "2026-09-13";
@@ -77,6 +78,8 @@ export type ApiV1Page = { next_cursor: string | null; limit: number };
 export type ApiV1Envelope<T> = {
   schema: string;
   version: typeof API_V1_VERSION;
+  schema_version: typeof API_V1_READ_SCHEMA_VERSION;
+  inference_metadata: ApiV1InferenceMetadata;
   asof: string;
   data: T;
   page: ApiV1Page;
@@ -132,6 +135,7 @@ export const API_V1_RESOURCES = [
   { path: "/api/v1/alerts/{id}/fires", schema: "mm.api.v1.alert_fires", version: API_V1_VERSION },
   { path: "/api/v1/claims", schema: "mm.api.v1.claims", version: API_V1_VERSION },
   { path: "/api/v1/positions", schema: "mm.api.v1.positions", version: API_V1_VERSION },
+  { path: "/api/v1/event-impact", schema: "mm.api.v1.event_impact", version: API_V1_VERSION },
   { path: "/api/v1/openapi.json", schema: "mm.api.v1.openapi", version: API_V1_VERSION },
 ] as const;
 
@@ -241,6 +245,8 @@ export function envelope<T>(
   return {
     schema,
     version: API_V1_VERSION,
+    schema_version: API_V1_READ_SCHEMA_VERSION,
+    inference_metadata: inferenceMetadata(schema, data),
     asof,
     data,
     page,

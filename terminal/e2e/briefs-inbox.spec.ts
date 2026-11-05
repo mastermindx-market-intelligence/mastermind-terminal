@@ -155,7 +155,7 @@ async function languageCrop(page: Page, lang: "en" | "zh", state: string) {
 for (const lang of ["en", "zh"] as const) {
   test(`actual inbox preserves partial Chinese and full-body coverage in ${lang}`, async ({ page }) => {
     const row = {
-      deliveryId: "language-ready", subscriptionId: "s1", slotAsof: "2026-10-17",
+      deliveryId: "40000000-0000-4000-8000-000000000033", subscriptionId: "s1", slotAsof: "2026-10-17",
       state: "ready", createdAt: "2026-10-17T07:00:00.000Z",
       body: {
         ...readyBody,
@@ -187,6 +187,8 @@ for (const lang of ["en", "zh"] as const) {
     await expect(inbox.locator("[data-brief-name]")).toHaveText("NVDA cycle");
     await expect(inbox.locator("[data-brief-date]")).toHaveText("2026-10-17");
     await expect(inbox.locator("[data-brief-miss], [data-brief-pinned]")).toHaveCount(0);
+    await expect(inbox.getByRole("link", { name: briefCopy("reviewSharing", lang), exact: true }))
+      .toHaveAttribute("href", "/briefs/40000000-0000-4000-8000-000000000033/sharing");
     await inbox.scrollIntoViewIfNeeded();
     expect(await inbox.evaluate((el) => el.scrollWidth <= el.clientWidth + 1)).toBe(true);
     await languageCrop(page, lang, "partial");

@@ -92,7 +92,7 @@ describe("BriefsInbox rendering", () => {
 
   function readyRow(body: unknown) {
     return {
-      deliveryId: "language-ready", subscriptionId: "s1", slotAsof: "2026-10-17",
+      deliveryId: "40000000-0000-4000-8000-000000000033", subscriptionId: "s1", slotAsof: "2026-10-17",
       state: "ready", body, createdAt: "2026-10-17T07:00:00.000Z",
       subscription: { targetKind: "thesis", targetId: THESIS, cadence: "weekly_saturday", state: "active" },
     };
@@ -115,6 +115,7 @@ describe("BriefsInbox rendering", () => {
     expect(text()).toContain("1 monitor");
     expect(container?.querySelector("[data-brief-miss]")).toBeNull();
     expect(container?.querySelector("[data-brief-pinned]")).toBeNull();
+    expect(container?.querySelector("a")?.getAttribute("href")).toBe("/briefs/40000000-0000-4000-8000-000000000033/sharing");
     unmount();
     await mountInbox("zh");
     expect(text()).toContain(validBody.market_read[0].sentence_zh);
@@ -198,12 +199,42 @@ describe("BriefsInbox rendering", () => {
     expect(container?.querySelector("button")?.textContent).toBe(briefCopy("retry", "en"));
   });
 
+  it("keeps malformed envelopes unavailable and invalid ready content visible without a sharing link", async () => {
+    for (const body of [null, {}, { deliveries: null }, { deliveries: [{}] }]) {
+      deliveryResponse = { status: 200, body };
+      await mountInbox("en");
+      expect(text()).toContain(briefCopy("unavailable", "en"));
+      expect(container?.querySelector('[data-briefs-state="empty"]')).toBeNull();
+      unmount();
+    }
+    deliveryResponse = null;
+    deliveries = [{ ...readyRow({}), subscription: { targetName: "Preserved identity", cadence: "weekly_saturday", state: "active" } }];
+    await mountInbox("zh");
+    expect(text()).toContain("Preserved identity");
+    expect(text()).toContain(briefCopy("contentUnavailable", "zh"));
+    expect(container?.querySelector("[data-brief-miss]")).toBeNull();
+    expect(container?.querySelector("a")).toBeNull();
+  });
+
   it("renders the empty state in EN and ZH", async () => {
     await mountInbox("en");
     expect(text()).toContain(briefCopy("empty", "en"));
     unmount();
     await mountInbox("zh");
     expect(text()).toContain(briefCopy("empty", "zh"));
+  });
+
+  it("links only a real ready delivery to the source-authorized sharing review", async () => {
+    const id = "40000000-0000-4000-8000-000000000001";
+    deliveries = [{ deliveryId: id, state: "ready", body: validBody,
+      slotAsof: "2026-11-02", subscription: { cadence: "daily_after_us_close", state: "active" } },
+      { deliveryId: "40000000-0000-4000-8000-000000000002", state: "degraded", body: {},
+      slotAsof: "2026-11-02", subscription: { cadence: "daily_after_us_close", state: "active" } }];
+    await mountInbox("en");
+    const links = container!.querySelectorAll("a");
+    expect(links).toHaveLength(1);
+    expect(links[0].getAttribute("href")).toBe(`/briefs/${id}/sharing`);
+    expect(links[0].textContent).toBe("Review team sharing");
   });
 
   it("renders a ready row and a degraded row, pinning the last good brief", async () => {

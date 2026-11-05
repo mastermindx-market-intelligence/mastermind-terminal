@@ -21,7 +21,7 @@ export type BriefTarget = {
   kind: BriefTargetKind;
   id: string;
   name: string;
-  version_or_asof: string;
+  version_or_asof: string | null;
 };
 
 export type BriefMarketRead = {
@@ -83,6 +83,7 @@ export type BriefPatchState = (typeof PATCH_STATES)[number];
 
 export const BRIEFS_COPY = {
   title: ["Briefs", "简报"],
+  reviewSharing: ["Review team sharing", "查看团队分享"],
   emailNull: [
     "Briefs appear here in the Terminal. Email delivery isn't available yet.",
     "简报会出现在终端里。邮件送达尚未开通。",
@@ -112,7 +113,9 @@ export const BRIEFS_COPY = {
   monitorOne: ["{n} monitor", "{n} 项监控"],
   monitors: ["{n} monitors", "{n} 项监控"],
   unavailable: ["Briefs could not load right now. Try again in a moment.", "暂时无法加载简报，请稍后再试。"],
+  contentUnavailable: ["This brief's content is unavailable right now.", "这份简报的内容暂时不可用。"],
   retry: ["Try again", "重试"],
+  retrying: ["Trying again…", "正在重试…"],
   refresh: ["Refresh Terminal", "刷新终端"],
   upgradeRequired: [
     "Refresh Terminal to read these briefs.",
@@ -246,8 +249,14 @@ export function validateBriefBody(raw: unknown): BriefBody | null {
   const target = raw.target;
   if (!isPlainObject(target)) return null;
   if (!isBriefTargetKind(target.kind)) return null;
-  if (!isNonEmptyString(target.id) || !isNonEmptyString(target.name) || !isNonEmptyString(target.version_or_asof)) {
-    return null;
+  if (!isNonEmptyString(target.id) || !isNonEmptyString(target.name)) return null;
+  let versionOrAsof: string | null;
+  if (target.kind === "thesis") {
+    if (!isNonEmptyString(target.version_or_asof)) return null;
+    versionOrAsof = target.version_or_asof;
+  } else {
+    if (target.version_or_asof !== null && !isNonEmptyString(target.version_or_asof)) return null;
+    versionOrAsof = target.version_or_asof === null ? null : target.version_or_asof;
   }
   if (!Array.isArray(raw.market_read)) return null;
   const market_read: BriefMarketRead[] = [];
@@ -295,7 +304,7 @@ export function validateBriefBody(raw: unknown): BriefBody | null {
       kind: target.kind,
       id: target.id,
       name: target.name,
-      version_or_asof: target.version_or_asof,
+      version_or_asof: versionOrAsof,
     },
     market_read,
     monitors,
@@ -315,9 +324,10 @@ export function degradedLine(cadence: BriefCadence, lang: BriefLang): string {
   return briefCopy(cadence === "weekly_saturday" ? "degradedWeekly" : "degradedDaily", lang);
 }
 
-/** Only this shape is incompatible with a legacy paired-string decoder. */
+/** The capability also covers the incumbent watchlist decoder's explicit null
+ * version. Both forms are unreadable by the older required-string decoder. */
 export function requiresExplicitBriefLanguage(body: BriefBody): boolean {
-  return body.market_read.some((row) => row.sentence_zh === null);
+  return body.target.version_or_asof === null || body.market_read.some((row) => row.sentence_zh === null);
 }
 
 function hasChineseSentence(row: BriefMarketRead): boolean {

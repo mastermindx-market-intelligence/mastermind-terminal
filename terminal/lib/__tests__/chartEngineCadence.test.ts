@@ -581,7 +581,7 @@ describe("buildCadenceReceipt / validateCadenceReceipt (Q03)", () => {
     // unknown protocol -> rejected
     {
       const bad = JSON.parse(JSON.stringify(r));
-      bad.protocol = "q03b-v3";
+      bad.protocol = "q03b-v5";
       const v = validateCadenceReceipt(bad);
       expect(v.ok).toBe(false);
       if (!v.ok) expect(v.errors.some((e) => /protocol/.test(e))).toBe(true);
@@ -1538,3 +1538,923 @@ describe("buildCadenceReceipt / validateCadenceReceipt — Q03c v2 receipt keys 
   });
 });
 
+
+// ============================================================================
+// q03b-v3 protocol: forward-anchored zoom latency. Pins for the Browser
+// ForwardWheelEvent parser, the mark/forward pairing, the forward-anchored
+// latency rows, the v3 receipt keys and the v3 INVALID rules.
+// ============================================================================
+
+import {
+  wheelForwardsMs,
+  pairWheelForwards,
+  cadenceForwardBlock,
+  forwardLatenciesMs,
+  forwardLatencyStats,
+  forwardAnsweredByPriorFrame,
+  CADENCE_V3_FORWARD_EVENT,
+  CADENCE_V3_STAMP_TO_FORWARD_MAX_MS,
+  type CadenceZoomV3Stats,
+  type CadenceForward,
+} from "../chart-engine/bench/cadence";
+
+function v3Parsed(presentedMs: number[]): ParsedPresentation {
+  return {
+    frames: presentedMs.map((ms) => ({ ms, state: "presented" as const })),
+    presentedMs,
+    presented: new Set(presentedMs).size,
+    partial: 0,
+    dropped: 0,
+    rendererPid: 2,
+  };
+}
+
+describe("wheelForwardsMs (q03b-v3)", () => {
+  // Real-shape mini fixture: the metadata and ForwardWheelEvent shapes are
+  // copied from a headed m2studio zoom trace (Browser pid 24775, Renderer
+  // pid 24869); each non-zero wheel forward is followed by its zero-delta twin.
+  const browser = { args: { name: "Browser" }, cat: "__metadata", name: "process_name", ph: "M", pid: 24775, tid: 0, ts: 0 };
+  const renderer = { args: { name: "Renderer" }, cat: "__metadata", name: "process_name", ph: "M", pid: 24869, tid: 0, ts: 0 };
+  const gpu = { args: { name: "GPU Process" }, cat: "__metadata", name: "process_name", ph: "M", pid: 24800, tid: 0, ts: 0 };
+  const fwd = (pid: number, ts: number, dx: number, dy: number, ph = "X", name = CADENCE_V3_FORWARD_EVENT) =>
+    ({ args: { dx, dy }, cat: "input", dur: 85, name, ph, pid, tdur: 74, tid: 88382549, ts, tts: 1553266 });
+  const events = [
+    browser, renderer, gpu,
+    fwd(24775, 458169188841, 0, 120),
+    fwd(24775, 458169188900, 0, 0), // zero-delta twin: dropped
+    fwd(24869, 458169189000, 0, 120), // renderer pid: dropped
+    fwd(24800, 458169189100, 0, 120), // GPU pid: dropped
+    fwd(24775, 458169189200, 0, 120, "X", "RenderWidgetHostImpl::ForwardMouseEvent"), // wrong name: dropped
+    fwd(24775, 458169189300, 0, 120, "E"), // end phase: dropped
+    fwd(24775, 458169170000, -3, 0, "B"), // B phase with a dx-only delta: kept
+    fwd(24775, 458169150000, 0, -120), // negative delta: kept
+    { cat: "input", name: CADENCE_V3_FORWARD_EVENT, ph: "X", pid: 24775, ts: 458169160000 }, // no args: dropped
+    { args: { data: { startTime: 5538.5 } }, cat: "blink.user_timing", name: "cadence:zoom:input", ph: "I", pid: 24869, s: "t", tid: 1, ts: 458169178466 },
+  ];
+
+  it("46. keeps only Browser-pid X/B forwards with a non-zero delta, as ts/1000 ms, sorted", () => {
+    expect(wheelForwardsMs(events)).toEqual([458169150000 / 1000, 458169170000 / 1000, 458169188841 / 1000]);
+  });
+
+  it("47. with no Browser process_name metadata the result is [] (fail closed)", () => {
+    expect(wheelForwardsMs(events.filter((e) => e !== browser))).toEqual([]);
+    expect(wheelForwardsMs([renderer, gpu, fwd(24775, 1000, 0, 120)])).toEqual([]);
+  });
+});
+
+describe("pairWheelForwards / cadenceForwardBlock (q03b-v3)", () => {
+  it("48. marks are de-duplicated and windowed to [start, end]; forwards to [start, end + tail]; extra forwards are counted", () => {
+    // start 5, end 100 -> forward window [5, 200].
+    const p = pairWheelForwards([5, 5, 25, 45, 200], [3, 9, 30, 52, 140, 250], 5, 100);
+    expect(p.marksMs).toEqual([5, 25, 45]);
+    expect(p.forwardsMs).toEqual([9, 30, 52, 140]);
+    expect(p.stampToForwardMs).toEqual([4, 5, 7]);
+    expect(p.paired).toBe(3);
+    const block = cadenceForwardBlock(p);
+    expect(block).toEqual({
+      forwards: 4,
+      paired: 3,
+      stamp_to_forward_min_ms: 4,
+      stamp_to_forward_p50_ms: 5,
+      stamp_to_forward_max_ms: 7,
+    } satisfies CadenceForward);
+  });
+
+  it("49. the stamp-to-forward cap is inclusive at 30 ms and refuses 30+", () => {
+    expect(CADENCE_V3_STAMP_TO_FORWARD_MAX_MS).toBe(30);
+    const p = pairWheelForwards([0, 50], [30, 80.5], 0, 60);
+    expect(p.stampToForwardMs).toEqual([30, 30.5]);
+    expect(p.paired).toBe(1);
+  });
+
+  it("50. a forward after the next mark still pairs by index, and a negative delay is not paired", () => {
+    // The 367f488e5c67 mm diag trace shape: wheel 0 is received 6.30 ms
+    // before wheel 1 and forwarded 10.38 ms after its own stamp, so forward 0
+    // lands after mark 1. Rounded here to whole ms.
+    const compressed = pairWheelForwards([0, 6, 24], [10, 11, 29], 0, 30);
+    expect(compressed.stampToForwardMs).toEqual([10, 5, 5]);
+    expect(compressed.paired).toBe(3);
+    expect(pairWheelForwards([0, 20], [21, 25], 0, 30).paired).toBe(2);
+    expect(pairWheelForwards([0, 20], [20, 22], 0, 30).paired).toBe(2);
+    const neg = pairWheelForwards([10, 40], [5, 45], 0, 50);
+    expect(neg.stampToForwardMs).toEqual([-5, 5]);
+    expect(neg.paired).toBe(1);
+  });
+
+  it("51. a dropped forward shifts the index pairing inside the cap, so only the forward count exposes it", () => {
+    // Wheel 1's forward is missing: forward 43 lands on mark 20 (d = 23,
+    // inside the cap). The pair count cannot see the shift; the forward
+    // count (2, not 3) is what the validator's count rule refuses.
+    const p = pairWheelForwards([0, 20, 40], [3, 43], 0, 50);
+    expect(p.stampToForwardMs).toEqual([3, 23]);
+    expect(p.paired).toBe(2);
+    expect(cadenceForwardBlock(p).forwards).toBe(2);
+    expect(p.marksMs).toHaveLength(3);
+  });
+
+  it("52. an empty pairing gives UNMEASURED min/p50/max", () => {
+    expect(cadenceForwardBlock(pairWheelForwards([], [], 0, 10))).toEqual({
+      forwards: 0,
+      paired: 0,
+      stamp_to_forward_min_ms: UNMEASURED,
+      stamp_to_forward_p50_ms: UNMEASURED,
+      stamp_to_forward_max_ms: UNMEASURED,
+    });
+  });
+});
+
+describe("forwardLatenciesMs / forwardLatencyStats / forwardAnsweredByPriorFrame (q03b-v3)", () => {
+  // marks [5, 12, 33], forwards [7, 20, 36], start 5, end 35 (tail 135).
+  // The presentation at 6 lands between mark 5 and its forward 7, so it can
+  // only answer a mark-anchored row.
+  // Forward-anchored: 7 -> 10 = 3, 20 -> 20 = 0 (equality counts), 36 -> 40 = 4.
+  // Mark-anchored (v2) over the same presentations: 1, 8, 7.
+  const parsed = v3Parsed([6, 10, 20, 30, 40, 300]);
+  const pairing = pairWheelForwards([5, 12, 33], [7, 20, 36], 5, 35);
+
+  it("53. latency is measured from the paired forward; equality counts; percentiles are nearest-rank", () => {
+    const rows = forwardLatenciesMs(parsed, pairing, 35);
+    expect(rows).toEqual([
+      { markMs: 5, forwardMs: 7, latencyMs: 3, answerMs: 10 },
+      { markMs: 12, forwardMs: 20, latencyMs: 0, answerMs: 20 },
+      { markMs: 33, forwardMs: 36, latencyMs: 4, answerMs: 40 },
+    ]);
+    expect(forwardLatencyStats(rows)).toEqual({
+      input_marks: 3,
+      input_unpresented: 0,
+      input_to_present_p50_ms: 3,
+      input_to_present_p95_ms: 4,
+      input_to_present_p99_ms: 4,
+    });
+    // Discriminates from the v2 mark anchor over the same data.
+    const v2 = inputLatencyStats(parsed, [5, 12, 33], 5, 35);
+    expect(v2.input_to_present_p50_ms).toBe(7);
+    expect(v2.input_to_present_p95_ms).toBe(8);
+  });
+
+  it("54. a mark without a forward is unpresented even when a presentation follows it", () => {
+    const p = pairWheelForwards([0, 20, 40], [3, 23], 0, 45);
+    const rows = forwardLatenciesMs(v3Parsed([10, 30, 50]), p, 45);
+    expect(rows[2]).toEqual({ markMs: 40, forwardMs: null, latencyMs: null, answerMs: null });
+    const stats = forwardLatencyStats(rows);
+    expect(stats.input_marks).toBe(3);
+    expect(stats.input_unpresented).toBe(1);
+    expect(stats.input_to_present_p95_ms).toBe(7);
+  });
+
+  it("55. a presentation after end + tail does not answer; empty input throws", () => {
+    const rows = forwardLatenciesMs(v3Parsed([200]), pairWheelForwards([5], [8], 0, 10), 10);
+    expect(rows[0]?.latencyMs).toBeNull();
+    const stats = forwardLatencyStats(rows);
+    expect(stats.input_unpresented).toBe(1);
+    expect(stats.input_to_present_p95_ms).toBe(UNMEASURED);
+    expect(() => forwardLatenciesMs(parsed, pairWheelForwards([], [], 0, 10), 10)).toThrow(/no input marks/);
+    expect(() => forwardLatencyStats([])).toThrow(/no input marks/);
+  });
+
+  it("56. answered_by_prior_frame is forward-anchored and strict: a frame begun between mark and forward counts", () => {
+    const rows = forwardLatenciesMs(parsed, pairing, 35);
+    const spans = [
+      { beginMs: 6, presentMs: 10 },
+      { beginMs: 15, presentMs: 20 },
+      { beginMs: 34, presentMs: 40 },
+    ];
+    expect(forwardAnsweredByPriorFrame(spans, rows)).toBe(3);
+    // The v2 mark-anchored count over the same spans is 0.
+    expect(answeredByPriorFrame(spans, [5, 12, 33], 5, 35)).toBe(0);
+    // begin === forward is not "prior" (strict <).
+    const equal = [
+      { beginMs: 7, presentMs: 10 },
+      { beginMs: 20, presentMs: 20 },
+      { beginMs: 36, presentMs: 40 },
+    ];
+    expect(forwardAnsweredByPriorFrame(equal, rows)).toBe(0);
+    // Unanswered rows never count.
+    expect(forwardAnsweredByPriorFrame(spans, [{ markMs: 5, forwardMs: 7, latencyMs: null, answerMs: null }])).toBe(0);
+  });
+});
+
+describe("buildCadenceReceipt / validateCadenceReceipt — q03b-v3 receipt keys + INVALID rules", () => {
+  function v3Pan(): CadenceGestureStats {
+    return {
+      inputs: 200, input_hz: 20, presented: 200, partial: 0, dropped: 0,
+      p50_ms: 8, p95_ms: 18, p99_ms: 28,
+      input_marks: 200, input_unpresented: 0,
+      input_to_present_p50_ms: 8, input_to_present_p95_ms: 18, input_to_present_p99_ms: 28,
+    };
+  }
+  function greenStatsV3Zoom(forward: Partial<CadenceForward> = {}, overrides: Partial<CadenceZoomV3Stats> = {}): CadenceZoomV3Stats {
+    return {
+      ...v3Pan(),
+      inputs: 60, input_hz: 50, presented: 60, input_marks: 60,
+      dispatch: { gap_min_ms: 17, gap_jitter_ms: 6, seed: 1371552512, scheduled: 60, dispatched: 60, dispatch_dev_max_ms: 0.5 },
+      awake_start: { heartbeat_ms: 200.5, heartbeat_mode: "through", leadin_presentations: 0 },
+      answered_by_prior_frame: 0,
+      forward: {
+        forwards: 60, paired: 60,
+        stamp_to_forward_min_ms: 3, stamp_to_forward_p50_ms: 5.3, stamp_to_forward_max_ms: 10.4,
+        ...forward,
+      },
+      ...overrides,
+    };
+  }
+  function greenV3Receipt(zoom: CadenceZoomV3Stats | CadenceZoomV2Stats = greenStatsV3Zoom(), protocol: CadenceProtocol = "q03b-v3") {
+    return buildCadenceReceipt({
+      commit: "a".repeat(40),
+      impl: "mm",
+      host: { os: "test-os", cpu: "test-cpu", dpr: 2 },
+      display: { vsync_ms: 10, hz: 100 },
+      generated_at: "2026-01-01T00:00:00.000Z",
+      pan: v3Pan(),
+      zoom,
+      protocol,
+    });
+  }
+  function withoutForward(z: CadenceZoomV3Stats): CadenceZoomV2Stats {
+    const copy: Partial<CadenceZoomV3Stats> = { ...z };
+    delete copy.forward;
+    return copy as CadenceZoomV2Stats;
+  }
+  function errorsOf(r: unknown): string[] {
+    const v = validateCadenceReceipt(r);
+    return v.ok ? [] : v.errors;
+  }
+
+  it("57. v3 valid fixture: validates; protocol q03b-v3; zoom has 17 keys and forward exactly its 5 keys", () => {
+    const r = greenV3Receipt();
+    expect(r.protocol).toBe("q03b-v3");
+    expect(Object.keys(r).length).toBe(10);
+    expect(validateCadenceReceipt(r)).toEqual({ ok: true });
+    expect(Object.keys(r.gesture.zoom).length).toBe(17);
+    expect(Object.keys((r.gesture.zoom as CadenceZoomV3Stats).forward)).toEqual([
+      "forwards", "paired", "stamp_to_forward_min_ms", "stamp_to_forward_p50_ms", "stamp_to_forward_max_ms",
+    ]);
+  });
+
+  it("58. a v2 receipt carrying forward is refused; a v3 receipt without forward is refused", () => {
+    expect(errorsOf(greenV3Receipt(greenStatsV3Zoom(), "q03b-v2"))).toContain('unexpected gesture.zoom key "forward"');
+    const v2Zoom = withoutForward(greenStatsV3Zoom());
+    const missing = errorsOf(greenV3Receipt(v2Zoom));
+    expect(missing).toContain('missing gesture.zoom key "forward"');
+    expect(missing).toContain("gesture.zoom.forward must be an object");
+    // The same v2-shape zoom under q03b-v2 is valid.
+    expect(validateCadenceReceipt(greenV3Receipt(v2Zoom, "q03b-v2"))).toEqual({ ok: true });
+  });
+
+  it("59. an unknown protocol names all four accepted values", () => {
+    const r: Record<string, unknown> = { ...greenV3Receipt(), protocol: "q03b-v5" };
+    expect(errorsOf(r)).toContain('protocol must be "q03b-v1", "q03b-v2", "q03b-v3" or "q03b-v4" (got "q03b-v5")');
+  });
+
+  it("60. each v3 forward rule fires alone with the INVALID (q03b-v3) prefix; 0 and 30 are the inclusive bounds", () => {
+    const cases: Array<{ forward: Partial<CadenceForward>; want: string }> = [
+      { forward: { forwards: 59 }, want: "INVALID (q03b-v3): gesture.zoom.forward.forwards (59) must equal dispatch.scheduled (60)" },
+      { forward: { forwards: 61 }, want: "INVALID (q03b-v3): gesture.zoom.forward.forwards (61) must equal dispatch.scheduled (60)" },
+      { forward: { paired: 59 }, want: "INVALID (q03b-v3): gesture.zoom.forward.paired (59) must equal dispatch.scheduled (60)" },
+      { forward: { stamp_to_forward_min_ms: -0.1 }, want: "INVALID (q03b-v3): gesture.zoom.forward.stamp_to_forward_min_ms (-0.1) must be >= 0" },
+      { forward: { stamp_to_forward_max_ms: 30.1 }, want: "INVALID (q03b-v3): gesture.zoom.forward.stamp_to_forward_max_ms (30.1) must be <= 30" },
+    ];
+    for (const c of cases) {
+      expect(errorsOf(greenV3Receipt(greenStatsV3Zoom(c.forward)))).toEqual([c.want]);
+    }
+    expect(validateCadenceReceipt(greenV3Receipt(greenStatsV3Zoom({ stamp_to_forward_min_ms: 0, stamp_to_forward_max_ms: 30 })))).toEqual({ ok: true });
+    // The empty-pairing block (UNMEASURED delays, zero counts) is INVALID, never valid.
+    const empty = errorsOf(greenV3Receipt(greenStatsV3Zoom(cadenceForwardBlock(pairWheelForwards([], [], 0, 10)))));
+    expect(empty.length).toBeGreaterThan(0);
+    expect(empty.every((e) => e.startsWith("INVALID (q03b-v3): gesture.zoom.forward."))).toBe(true);
+    expect(empty.some((e) => /stamp_to_forward_max_ms/.test(e))).toBe(true);
+  });
+
+  it("61. the four v2 INVALID rules carry the q03b-v3 prefix inside a v3 receipt", () => {
+    const marks = errorsOf(greenV3Receipt(greenStatsV3Zoom({}, { input_marks: 59 })));
+    expect(marks).toContain("INVALID (q03b-v3): gesture.zoom.input_marks (59) must equal dispatch.scheduled (60)");
+    const unpresented = errorsOf(greenV3Receipt(greenStatsV3Zoom({}, { input_unpresented: 1 })));
+    expect(unpresented).toContain("INVALID (q03b-v3): gesture.zoom.input_unpresented (1) must be 0");
+    const dev = errorsOf(greenV3Receipt(greenStatsV3Zoom({}, {
+      dispatch: { gap_min_ms: 17, gap_jitter_ms: 6, seed: 1371552512, scheduled: 60, dispatched: 60, dispatch_dev_max_ms: 2.5 },
+    })));
+    expect(dev).toContain("INVALID (q03b-v3): gesture.zoom.dispatch.dispatch_dev_max_ms (2.5) must be <= 2");
+    const leadin = errorsOf(greenV3Receipt(greenStatsV3Zoom({}, {
+      awake_start: { heartbeat_ms: 200.5, heartbeat_mode: "through", leadin_presentations: 1 },
+    })));
+    expect(leadin).toContain('INVALID (q03b-v3): gesture.zoom.awake_start.heartbeat_mode is "through" but leadin_presentations (1) is > 0');
+    for (const errs of [marks, unpresented, dev, leadin]) {
+      expect(errs.some((e) => e.startsWith("INVALID (q03b-v2):"))).toBe(false);
+    }
+  });
+
+  it("62. forward shape errors: non-integer count, non-finite delay, unexpected and missing keys", () => {
+    const nonInt = errorsOf(greenV3Receipt(greenStatsV3Zoom({ forwards: 59.5 })));
+    expect(nonInt).toContain("gesture.zoom.forward.forwards must be a non-negative integer (got 59.5)");
+    expect(nonInt.some((e) => e.startsWith("INVALID"))).toBe(false);
+    const nan = errorsOf(greenV3Receipt(greenStatsV3Zoom({ stamp_to_forward_p50_ms: Number.NaN })));
+    expect(nan).toContain("gesture.zoom.forward.stamp_to_forward_p50_ms must be a finite number (got null)");
+    const extra = greenStatsV3Zoom();
+    (extra.forward as Record<string, unknown>).latency_ms = 1;
+    expect(errorsOf(greenV3Receipt(extra))).toContain('unexpected gesture.zoom.forward key "latency_ms"');
+    const missing = greenStatsV3Zoom();
+    delete (missing.forward as Partial<CadenceForward>).paired;
+    expect(errorsOf(greenV3Receipt(missing))).toContain('missing gesture.zoom.forward key "paired"');
+  });
+
+  it("63. cadenceInvalidLine prints the v3 forward and pair counts in order and no delay or latency value", () => {
+    const zoom = greenStatsV3Zoom(
+      { forwards: 59, paired: 58, stamp_to_forward_min_ms: 3.21, stamp_to_forward_p50_ms: 5.43, stamp_to_forward_max_ms: 10.87 },
+      { input_to_present_p50_ms: 1.234, input_to_present_p95_ms: 12.345, input_to_present_p99_ms: 67.891 },
+    );
+    const receipt = greenV3Receipt(zoom);
+    const errors = errorsOf(receipt).filter((e) => e.startsWith("INVALID (q03b-v3):"));
+    expect(errors.length).toBe(2);
+    const diag: CadenceEndMarkDiag = { zoom_marks_after_end: 0, zoom_end_minus_last_mark_ms: 3.5 };
+    const line = cadenceInvalidLine("mm", 1, 2, receipt, diag, errors);
+    expect(line).toContain(" input_unpresented=0 forwards=59 paired=58 mapped=null main_tasks=null zoom_marks_after_end=0 ");
+    let prev = -1;
+    for (const key of CADENCE_INVALID_FIELDS) {
+      const idx = line.indexOf(`${key}=`);
+      expect(idx, `field "${key}" missing or out of order in: ${line}`).toBeGreaterThan(prev);
+      prev = idx;
+    }
+    for (const leak of ["3.21", "5.43", "10.87", "1.234", "12.345", "67.891", "stamp_to_forward", "lat", "p95", "p99"]) {
+      expect(line).not.toContain(leak);
+    }
+    // A v2 receipt has no forward block and prints null.
+    const v2 = greenV3Receipt(withoutForward(greenStatsV3Zoom({}, { input_marks: 59 })), "q03b-v2");
+    expect(cadenceInvalidLine("mm", 1, 1, v2, diag, [])).toContain(" forwards=null paired=null ");
+  });
+});
+
+
+// ============================================================================
+// q03b-v4 protocol: own-frame zoom answer. Pins for the EventLatency parser,
+// the mutual-nearest forward mapping, the renderer main-thread task parser
+// and busy bias, the own-frame rows (anchor = forward less the busy part of
+// the hold, answer = the wheel's own frame's GPU swap end, fallback for a
+// terminated slice), the v4 receipt keys and the v4 INVALID rules.
+// ============================================================================
+
+import {
+  allWheelForwardsMs,
+  parseWheelEventLatencies,
+  mapForwardsToEventLatencies,
+  rendererMainTopLevelTasks,
+  mainThreadBusyMs,
+  ownFrameLatenciesMs,
+  cadenceOwnFrameBlock,
+  ownFrameAnsweredByPriorFrame,
+  CADENCE_V4_EVENT_LATENCY,
+  CADENCE_V4_EVENT_LATENCY_CATEGORY,
+  CADENCE_V4_EL_EVENT_TYPE,
+  CADENCE_V4_EL_MAP_STAGE,
+  CADENCE_V4_EL_COMMIT_STAGE,
+  CADENCE_V4_EL_SWAP_END_STAGE,
+  CADENCE_V4_EL_MAP_MAX_MS,
+  CADENCE_V4_ZOOM_EXTRA_CATEGORIES,
+  CADENCE_V4_MAIN_THREAD,
+  type WheelEventLatency,
+  type OwnFrameLatencyRow,
+  type CadenceZoomV4Stats,
+  type CadenceOwnFrame,
+} from "../chart-engine/bench/cadence";
+
+const V4_BROWSER = 24775;
+const V4_RENDERER = 24869;
+
+type V4Id = string | { global: string } | { plain: string };
+
+/** One EventLatency-category event in the real nestable-async shape
+ *  (`id2.local`, renderer pid, `ts` in us); times are given in ms. */
+function v4ElEvent(
+  id: V4Id,
+  name: string,
+  ph: string,
+  ms: number,
+  o: { pid?: number; cat?: string; type?: string } = {},
+): Record<string, unknown> {
+  const ids = typeof id === "string" ? { id2: { local: id } } : "global" in id ? { id2: { global: id.global } } : { id: id.plain };
+  return {
+    cat: o.cat ?? CADENCE_V4_EVENT_LATENCY_CATEGORY,
+    name,
+    ph,
+    pid: o.pid ?? V4_RENDERER,
+    tid: 9,
+    ts: Math.round(ms * 1000),
+    ...ids,
+    ...(name === CADENCE_V4_EVENT_LATENCY && ph === "b" ? { args: { event_latency: { event_type: o.type ?? "MOUSE_WHEEL" } } } : {}),
+  };
+}
+
+/** One EventLatency slice with the optional map / Commit / swap-end stages
+ *  (each a b/e pair) and an optional end (omitted -> left open). */
+function v4ElSlice(
+  id: V4Id,
+  t: { begin: number; map?: number; commit?: number; swapEnd?: number; end?: number },
+  o: { pid?: number; cat?: string; type?: string } = {},
+): Record<string, unknown>[] {
+  const out = [v4ElEvent(id, CADENCE_V4_EVENT_LATENCY, "b", t.begin, o)];
+  const stage = (name: string, b: number, e: number) => out.push(v4ElEvent(id, name, "b", b, o), v4ElEvent(id, name, "e", e, o));
+  if (t.map != null) stage(CADENCE_V4_EL_MAP_STAGE, t.map, t.map + 0.5);
+  if (t.commit != null) stage(CADENCE_V4_EL_COMMIT_STAGE, t.commit, t.commit + 1);
+  if (t.swapEnd != null) stage(CADENCE_V4_EL_SWAP_END_STAGE, t.swapEnd, t.swapEnd + 2);
+  if (t.end != null) out.push(v4ElEvent(id, CADENCE_V4_EVENT_LATENCY, "e", t.end, o));
+  return out;
+}
+
+function v4ThreadName(pid: number, tid: number, name: string): Record<string, unknown> {
+  return { args: { name }, cat: "__metadata", name: "thread_name", ph: "M", pid, tid, ts: 0 };
+}
+
+function v4Task(
+  pid: number,
+  tid: number,
+  startMs: number,
+  durMs: number,
+  cat = "disabled-by-default-devtools.timeline,toplevel",
+): Record<string, unknown> {
+  return { args: {}, cat, name: "ThreadControllerImpl::RunTask", ph: "X", pid, tid, ts: Math.round(startMs * 1000), dur: Math.round(durMs * 1000) };
+}
+
+function v4Forward(ms: number, dy: number, pid = V4_BROWSER, ph = "X"): Record<string, unknown> {
+  return { args: { dx: 0, dy }, cat: "input", dur: 85, name: CADENCE_V3_FORWARD_EVENT, ph, pid, tid: 1, ts: Math.round(ms * 1000) };
+}
+
+const V4_PROCESS_NAMES = [
+  { args: { name: "Browser" }, cat: "__metadata", name: "process_name", ph: "M", pid: V4_BROWSER, tid: 0, ts: 0 },
+  { args: { name: "Renderer" }, cat: "__metadata", name: "process_name", ph: "M", pid: V4_RENDERER, tid: 0, ts: 0 },
+];
+
+/** Rows rounded to 1e-6 ms so float noise from `ts / 1000` differences
+ *  does not leak into exact row expectations. */
+function v4Round(rows: readonly OwnFrameLatencyRow[]): OwnFrameLatencyRow[] {
+  const q = (v: number | null) => (v == null ? null : Math.round(v * 1e6) / 1e6);
+  return rows.map((r) => ({
+    markMs: q(r.markMs) as number,
+    forwardMs: q(r.forwardMs),
+    mapDistMs: q(r.mapDistMs),
+    biasMs: q(r.biasMs),
+    anchorMs: q(r.anchorMs),
+    commitMs: q(r.commitMs),
+    swapEndMs: q(r.swapEndMs),
+    fallback: r.fallback,
+    latencyMs: q(r.latencyMs),
+  }));
+}
+
+function v4El(mapMs: number, extra: Partial<WheelEventLatency> = {}): WheelEventLatency {
+  return { beginMs: mapMs - 1, endMs: mapMs + 10, mapMs, commitMs: mapMs + 3, swapEndMs: mapMs + 8, ...extra };
+}
+
+describe("q03b-v4 constants and allWheelForwardsMs", () => {
+  it("64. the v4 trace names, stage names, map bound and extra categories are pinned", () => {
+    expect(CADENCE_V4_EVENT_LATENCY).toBe("EventLatency");
+    expect(CADENCE_V4_EVENT_LATENCY_CATEGORY).toBe("cc,benchmark,input,input.scrolling");
+    expect(CADENCE_V4_EL_EVENT_TYPE).toBe("MOUSE_WHEEL");
+    expect(CADENCE_V4_EL_MAP_STAGE).toBe("BrowserMainToRendererCompositor");
+    expect(CADENCE_V4_EL_COMMIT_STAGE).toBe("Commit");
+    expect(CADENCE_V4_EL_SWAP_END_STAGE).toBe("SwapEndToPresentationCompositorFrame");
+    expect(CADENCE_V4_EL_MAP_MAX_MS).toBe(0.1);
+    expect(CADENCE_V4_MAIN_THREAD).toBe("CrRendererMain");
+    expect([...CADENCE_V4_ZOOM_EXTRA_CATEGORIES]).toEqual(["input", "toplevel"]);
+  });
+
+  it("65. allWheelForwardsMs keeps every Browser-pid X/B forward of any delta; wheelForwardsMs keeps the non-zero ones", () => {
+    const events = [
+      ...V4_PROCESS_NAMES,
+      v4Forward(30, 120),
+      v4Forward(30.3, 0), // zero-delta twin: kept by allWheelForwardsMs only
+      v4Forward(10, -120, V4_BROWSER, "B"),
+      v4Forward(10.3, 0, V4_BROWSER, "B"),
+      v4Forward(20, 120, V4_RENDERER), // renderer pid: dropped
+      v4Forward(25, 120, V4_BROWSER, "E"), // end phase: dropped
+      { cat: "input", name: CADENCE_V3_FORWARD_EVENT, ph: "X", pid: V4_BROWSER, ts: 40000 }, // no args: any-delta forward
+      { ...v4Forward(50, 120), name: "RenderWidgetHostImpl::ForwardMouseEvent" }, // wrong name: dropped
+    ];
+    expect(allWheelForwardsMs(events)).toEqual([10, 10.3, 30, 30.3, 40]);
+    expect(wheelForwardsMs(events)).toEqual([10, 30]);
+    expect(allWheelForwardsMs(events.slice(1))).toEqual([]); // no Browser metadata: fail closed
+  });
+});
+
+describe("parseWheelEventLatencies (q03b-v4)", () => {
+  const events = [
+    ...V4_PROCESS_NAMES,
+    // A: kept; a second Commit begin inside the slice does not move the first.
+    ...v4ElSlice("0x1", { begin: 4, map: 5.01, commit: 8, swapEnd: 14, end: 20 }),
+    v4ElEvent("0x1", CADENCE_V4_EL_COMMIT_STAGE, "b", 9),
+    // B: a mouse move, not a wheel: dropped.
+    ...v4ElSlice("0x2", { begin: 4.5, map: 5.5, commit: 8, swapEnd: 14, end: 15 }, { type: "MOUSE_MOVED" }),
+    // C: another pid: dropped.
+    ...v4ElSlice("0x3", { begin: 4, map: 6, commit: 8, swapEnd: 14, end: 20 }, { pid: V4_BROWSER }),
+    // D: a category that is not the exact EventLatency category: dropped.
+    ...v4ElSlice("0x4", { begin: 4, map: 7, commit: 8, swapEnd: 14, end: 20 }, { cat: "input" }),
+    // E: never reached its mapping stage: dropped.
+    ...v4ElSlice("0x5", { begin: 6, commit: 9, swapEnd: 15, end: 21 }),
+    // F: still open when the trace ends: dropped.
+    ...v4ElSlice("0x6", { begin: 30, map: 31, commit: 33 }),
+    // G: id 0x1 reused after A closed; terminated before Commit.
+    ...v4ElSlice("0x1", { begin: 22, map: 22.02, end: 26 }),
+    // H: id in id2.global.
+    ...v4ElSlice({ global: "g7" }, { begin: 2, map: 3, commit: 7, swapEnd: 12, end: 13 }),
+    // I: id in the plain `id` field.
+    ...v4ElSlice({ plain: "0x9" }, { begin: 40, map: 41, commit: 45, swapEnd: 50, end: 52 }),
+    // J: the map stage begins at the EventLatency's own ts and is listed
+    // first; the swap-end stage is an instant ("n").
+    v4ElEvent("0xa", CADENCE_V4_EL_MAP_STAGE, "b", 60),
+    v4ElEvent("0xa", CADENCE_V4_EVENT_LATENCY, "b", 60),
+    v4ElEvent("0xa", CADENCE_V4_EL_COMMIT_STAGE, "b", 63),
+    v4ElEvent("0xa", CADENCE_V4_EL_SWAP_END_STAGE, "n", 66),
+    v4ElEvent("0xa", CADENCE_V4_EVENT_LATENCY, "e", 70),
+    // An event with no id at all: dropped.
+    { cat: CADENCE_V4_EVENT_LATENCY_CATEGORY, name: CADENCE_V4_EVENT_LATENCY, ph: "b", pid: V4_RENDERER, ts: 80000, args: { event_latency: { event_type: "MOUSE_WHEEL" } } },
+  ];
+
+  it("66. keeps closed renderer-pid MOUSE_WHEEL slices that reached the map stage, sorted by map begin", () => {
+    expect(parseWheelEventLatencies(events, V4_RENDERER)).toEqual([
+      { beginMs: 2, endMs: 13, mapMs: 3, commitMs: 7, swapEndMs: 12 },
+      { beginMs: 4, endMs: 20, mapMs: 5.01, commitMs: 8, swapEndMs: 14 },
+      { beginMs: 22, endMs: 26, mapMs: 22.02, commitMs: null, swapEndMs: null },
+      { beginMs: 40, endMs: 52, mapMs: 41, commitMs: 45, swapEndMs: 50 },
+      { beginMs: 60, endMs: 70, mapMs: 60, commitMs: 63, swapEndMs: 66 },
+    ] satisfies WheelEventLatency[]);
+  });
+
+  it("85. an id that begins again while open drops both slices until both end; the id is usable afterwards", () => {
+    const reused = [
+      ...V4_PROCESS_NAMES,
+      // 0xb opens at 90 and begins again at 92 before either ends: both dropped,
+      // including the second slice's stages.
+      v4ElEvent("0xb", CADENCE_V4_EVENT_LATENCY, "b", 90),
+      v4ElEvent("0xb", CADENCE_V4_EL_MAP_STAGE, "b", 91),
+      v4ElEvent("0xb", CADENCE_V4_EL_MAP_STAGE, "e", 91.5),
+      ...v4ElSlice("0xb", { begin: 92, map: 93, commit: 95, swapEnd: 97, end: 99 }),
+      v4ElEvent("0xb", CADENCE_V4_EVENT_LATENCY, "e", 100),
+      // A clean reuse after both ends: kept.
+      ...v4ElSlice("0xb", { begin: 110, map: 111, commit: 113, swapEnd: 115, end: 117 }),
+      // A neighbour id is unaffected.
+      ...v4ElSlice("0xc", { begin: 90.5, map: 91.25, commit: 94, swapEnd: 96, end: 98 }),
+    ];
+    expect(parseWheelEventLatencies(reused, V4_RENDERER)).toEqual([
+      { beginMs: 90.5, endMs: 98, mapMs: 91.25, commitMs: 94, swapEndMs: 96 },
+      { beginMs: 110, endMs: 117, mapMs: 111, commitMs: 113, swapEndMs: 115 },
+    ] satisfies WheelEventLatency[]);
+  });
+
+  it("67. a renderer pid with no EventLatency gives []", () => {
+    expect(parseWheelEventLatencies(events, 1)).toEqual([]);
+    expect(parseWheelEventLatencies([], V4_RENDERER)).toEqual([]);
+  });
+});
+
+describe("mapForwardsToEventLatencies (q03b-v4)", () => {
+  it("68. each forward maps to its nearest EventLatency with the distance", () => {
+    const els = [v4El(10.02), v4El(30.05), v4El(50)];
+    const maps = mapForwardsToEventLatencies([10, 30], [10, 10.5, 30, 30.5], els);
+    expect(maps.map((m) => (m == null ? null : m.el))).toEqual([els[0], els[1]]);
+    expect(maps[0]?.distMs).toBeCloseTo(0.02, 9);
+    expect(maps[1]?.distMs).toBeCloseTo(0.05, 9);
+  });
+
+  it("69. a distance above the 0.1 ms bound, a tie between two EventLatencies, and no EventLatency are unmapped", () => {
+    expect(mapForwardsToEventLatencies([10], [10], [v4El(10.125)])).toEqual([null]);
+    expect(mapForwardsToEventLatencies([10], [10], [v4El(10.0625)])[0]?.distMs).toBe(0.0625);
+    expect(mapForwardsToEventLatencies([10], [10], [v4El(9.9375), v4El(10.0625)])).toEqual([null]);
+    expect(mapForwardsToEventLatencies([10, 30], [10, 30], [])).toEqual([null, null]);
+  });
+
+  it("70. a zero-delta forward as near or nearer to the EventLatency's map begin unmaps the wheel forward", () => {
+    // Nearer competitor (0.03125 vs 0.09375), equidistant competitor (0.0625
+    // each side), and a farther competitor (0.1875 vs 0.0625: mapped).
+    expect(mapForwardsToEventLatencies([10], [10, 10.0625], [v4El(10.09375)])).toEqual([null]);
+    expect(mapForwardsToEventLatencies([10], [10, 10.125], [v4El(10.0625)])).toEqual([null]);
+    expect(mapForwardsToEventLatencies([10], [10, 10.25], [v4El(10.0625)])[0]?.distMs).toBe(0.0625);
+  });
+
+  it("71. two forwards claiming one EventLatency are both unmapped", () => {
+    // Synthetic input: allForwardsMs omits the wheel forwards here, so only the
+    // duplicate-claim rule can refuse the shared EventLatency. A real run passes
+    // every forward, and the mutual-nearest rule then unmaps the farther
+    // claimant first (same INVALID outcome).
+    const el = v4El(10.0625);
+    expect(mapForwardsToEventLatencies([10, 10.125], [], [el])).toEqual([null, null]);
+    expect(mapForwardsToEventLatencies([10], [], [el])).toEqual([{ el, distMs: 0.0625 }]);
+  });
+});
+
+describe("rendererMainTopLevelTasks / mainThreadBusyMs (q03b-v4)", () => {
+  const events = [
+    ...V4_PROCESS_NAMES,
+    v4ThreadName(V4_RENDERER, 7, "CrRendererMain"),
+    v4ThreadName(V4_RENDERER, 8, "Compositor"),
+    v4ThreadName(V4_BROWSER, 7, "CrBrowserMain"),
+    v4Task(V4_RENDERER, 7, 10, 5), // [10, 15]
+    v4Task(V4_RENDERER, 7, 11, 2), // nested: dropped
+    v4Task(V4_RENDERER, 7, 14, 4), // starts inside [10, 15], ends later: kept as [15, 18]
+    v4Task(V4_RENDERER, 7, 16, 2), // [16, 18] ends at the kept end 18: nested, dropped
+    v4Task(V4_RENDERER, 7, 20, 3, "toplevel"), // [20, 23]
+    v4Task(V4_RENDERER, 7, 20, 1, "toplevel"), // same start, shorter: dropped
+    v4Task(V4_RENDERER, 7, 30, 2, "toplevel.flow"), // not the "toplevel" token: dropped
+    v4Task(V4_RENDERER, 7, 40, -1), // negative duration: dropped
+    v4Task(V4_RENDERER, 8, 50, 5), // compositor thread: dropped
+    v4Task(V4_BROWSER, 7, 60, 5), // same tid on the Browser pid: dropped
+    { cat: "toplevel", name: "RunTask", ph: "B", pid: V4_RENDERER, tid: 7, ts: 70000 }, // not a complete slice: dropped
+    v4Task(V4_RENDERER, 7, 80, 0), // zero duration: kept
+  ];
+
+  it("72. keeps the outermost toplevel X slices of the renderer main thread", () => {
+    const tasks = rendererMainTopLevelTasks(events, V4_RENDERER);
+    expect(tasks).toEqual([
+      { startMs: 10, endMs: 15 },
+      { startMs: 15, endMs: 18 },
+      { startMs: 20, endMs: 23 },
+      { startMs: 80, endMs: 80 },
+    ]);
+    // No CrRendererMain on the pid: fail closed.
+    expect(rendererMainTopLevelTasks(events.filter((e) => (e.args as { name?: string } | undefined)?.name !== "CrRendererMain"), V4_RENDERER)).toEqual([]);
+    expect(rendererMainTopLevelTasks(events, V4_BROWSER)).toEqual([]);
+  });
+
+  it("73. busy is the remainder of the task spanning the instant: start inclusive, end exclusive", () => {
+    const tasks = rendererMainTopLevelTasks(events, V4_RENDERER);
+    expect(mainThreadBusyMs(tasks, 12)).toBe(3);
+    expect(mainThreadBusyMs(tasks, 10)).toBe(5);
+    expect(mainThreadBusyMs(tasks, 15)).toBe(3);
+    expect(mainThreadBusyMs(tasks, 17)).toBe(1);
+    expect(mainThreadBusyMs(tasks, 18)).toBe(0);
+    expect(mainThreadBusyMs(tasks, 19)).toBe(0);
+    expect(mainThreadBusyMs(tasks, 22.5)).toBe(0.5);
+    expect(mainThreadBusyMs(tasks, 5)).toBe(0);
+    expect(mainThreadBusyMs(tasks, 80)).toBe(0);
+    expect(mainThreadBusyMs([], 12)).toBe(0);
+  });
+});
+
+describe("ownFrameLatenciesMs / cadenceOwnFrameBlock / ownFrameAnsweredByPriorFrame (q03b-v4)", () => {
+  // Three wheels: marks 100 / 120 / 140, end mark 145 (tail 245). Forwards
+  // 105 / 122 / 141, each followed by its zero-delta twin 0.3 ms later.
+  //  wheel 0: the main thread is busy until 103 at the mark (busy 3 <= hold
+  //    5): anchor 102; own frame swaps at 114 -> 12.
+  //  wheel 1: busy until 130 at the mark, longer than the 2 ms hold: the bias
+  //    is capped at the hold, anchor 120 (= the mark). Its own slice
+  //    terminated at 126 without a frame; the first presented wheel frame
+  //    committing at-or-after 126 is Q (commit 127, swap 133) -> 13. S
+  //    commits at 126.5 but never swapped and is skipped.
+  //  wheel 2: idle at the mark: anchor 141; own frame swaps at 150 -> 9.
+  // Q and S map more than 2 ms from any forward: nobody's own frame.
+  // P is a frame committed before wheel 0's anchor that swaps at 106, after
+  // wheel 0's forward and before its own frame: the trap a first-presented-
+  // frame answer falls into.
+  const events = [
+    ...V4_PROCESS_NAMES,
+    v4ThreadName(V4_RENDERER, 7, "CrRendererMain"),
+    v4Task(V4_RENDERER, 7, 98, 5),
+    v4Task(V4_RENDERER, 7, 119, 11),
+    v4Forward(105, 120), v4Forward(105.3, 0),
+    v4Forward(122, 120), v4Forward(122.3, 0),
+    v4Forward(141, 120), v4Forward(141.3, 0),
+    ...v4ElSlice("0xp", { begin: 89, map: 90, commit: 99, swapEnd: 106, end: 108 }),
+    ...v4ElSlice("0x0", { begin: 104, map: 105.008, commit: 108, swapEnd: 114, end: 117 }),
+    ...v4ElSlice("0x1", { begin: 121, map: 122.012, end: 126 }),
+    ...v4ElSlice("0xs", { begin: 125, map: 125.5, commit: 126.5, end: 131 }),
+    ...v4ElSlice("0xq", { begin: 124, map: 124.5, commit: 127, swapEnd: 133, end: 135 }),
+    ...v4ElSlice("0x2", { begin: 140, map: 141.004, commit: 145, swapEnd: 150, end: 152 }),
+  ];
+  const marks = [100, 120, 140];
+  const endMark = 145;
+
+  function rowsOf(evts: readonly unknown[], m: readonly number[] = marks, end = endMark): OwnFrameLatencyRow[] {
+    const pairing = pairWheelForwards(m, wheelForwardsMs(evts), m[0] ?? 0, end);
+    return ownFrameLatenciesMs(
+      pairing,
+      allWheelForwardsMs(evts),
+      parseWheelEventLatencies(evts, V4_RENDERER),
+      rendererMainTopLevelTasks(evts, V4_RENDERER),
+      end,
+    );
+  }
+
+  it("74. anchor = forward - min(busy at mark, hold); answer = the wheel's own frame swap, or the fallback frame", () => {
+    const rows = rowsOf(events);
+    expect(v4Round(rows)).toEqual([
+      { markMs: 100, forwardMs: 105, mapDistMs: 0.008, biasMs: 3, anchorMs: 102, commitMs: 108, swapEndMs: 114, fallback: false, latencyMs: 12 },
+      { markMs: 120, forwardMs: 122, mapDistMs: 0.012, biasMs: 2, anchorMs: 120, commitMs: 127, swapEndMs: 133, fallback: true, latencyMs: 13 },
+      { markMs: 140, forwardMs: 141, mapDistMs: 0.004, biasMs: 0, anchorMs: 141, commitMs: 145, swapEndMs: 150, fallback: false, latencyMs: 9 },
+    ] satisfies OwnFrameLatencyRow[]);
+    expect(forwardLatencyStats(rows)).toEqual({
+      input_marks: 3,
+      input_unpresented: 0,
+      input_to_present_p50_ms: 12,
+      input_to_present_p95_ms: 13,
+      input_to_present_p99_ms: 13,
+    });
+    expect(ownFrameAnsweredByPriorFrame(rows)).toBe(0);
+    const block = cadenceOwnFrameBlock(rows, 2);
+    expect({ ...block, map_max_ms: Math.round(block.map_max_ms * 1e6) / 1e6 }).toEqual({
+      mapped: 3, fallback: 1, map_max_ms: 0.012, bias_p50_ms: 2, bias_max_ms: 3, main_tasks: 2,
+    } satisfies CadenceOwnFrame);
+  });
+
+  it("75. the own-frame answer discriminates from the v3 first-presentation answer over the same frames", () => {
+    // v3 answers wheel 0 with P's swap at 106 (1 ms from the forward); v4
+    // answers it with its own frame (12 ms from the anchor).
+    const v3 = forwardLatenciesMs(v3Parsed([106, 114, 133, 150]), pairWheelForwards(marks, wheelForwardsMs(events), 100, endMark), endMark);
+    expect(v3[0]?.latencyMs).toBe(1);
+    expect(rowsOf(events)[0]?.latencyMs).toBe(12);
+  });
+
+  it("76. a frame swapped after end + tail is unpresented; a fallback with no later presented frame is unpresented", () => {
+    const late = [
+      ...events.filter((e) => (e as { id2?: { local?: string } }).id2?.local !== "0x2"),
+      ...v4ElSlice("0x2", { begin: 140, map: 141.004, commit: 145, swapEnd: 245.5, end: 250 }),
+    ];
+    const lateRows = rowsOf(late);
+    expect(v4Round([lateRows[2] as OwnFrameLatencyRow])[0]).toEqual({
+      markMs: 140, forwardMs: 141, mapDistMs: 0.004, biasMs: 0, anchorMs: 141, commitMs: 145, swapEndMs: 245.5, fallback: false, latencyMs: null,
+    });
+    expect(forwardLatencyStats(lateRows).input_unpresented).toBe(1);
+    // Drop Q and wheel 2's frame: wheel 1's fallback finds no presented frame
+    // committing at-or-after 126.
+    const noLater = events.filter((e) => {
+      const id = (e as { id2?: { local?: string } }).id2?.local;
+      return id !== "0xq" && id !== "0x2";
+    });
+    const r1 = rowsOf(noLater)[1] as OwnFrameLatencyRow;
+    expect(r1.fallback).toBe(true);
+    expect(r1.swapEndMs).toBeNull();
+    expect(r1.latencyMs).toBeNull();
+  });
+
+  it("86. a fallback over frames sharing one Commit begin takes the later swap end", () => {
+    const pairing = pairWheelForwards([0], [3], 0, 45);
+    const own = v4El(3.01, { endMs: 5, commitMs: null, swapEndMs: null });
+    // Listed earlier-swap first, both by map begin and by array order.
+    const tieA = v4El(4, { commitMs: 6, swapEndMs: 9 });
+    const tieB = v4El(4.5, { commitMs: 6, swapEndMs: 12 });
+    for (const els of [[own, tieA, tieB], [own, tieB, tieA]]) {
+      const r = ownFrameLatenciesMs(pairing, [3], els, [], 45)[0] as OwnFrameLatencyRow;
+      expect(r.fallback).toBe(true);
+      expect(r.swapEndMs).toBe(12);
+      expect(r.latencyMs).toBe(9);
+    }
+  });
+
+  it("77. a mark without a forward, an unmapped forward and a forward before its mark", () => {
+    const pairing = pairWheelForwards([0, 20, 40], [3, 23], 0, 45);
+    const rows = ownFrameLatenciesMs(pairing, [3, 23], [v4El(3.01)], [{ startMs: -1, endMs: 1 }], 45);
+    expect(v4Round(rows)).toEqual([
+      { markMs: 0, forwardMs: 3, mapDistMs: 0.01, biasMs: 1, anchorMs: 2, commitMs: 6.01, swapEndMs: 11.01, fallback: false, latencyMs: 9.01 },
+      { markMs: 20, forwardMs: 23, mapDistMs: null, biasMs: 0, anchorMs: 23, commitMs: null, swapEndMs: null, fallback: false, latencyMs: null },
+      { markMs: 40, forwardMs: null, mapDistMs: null, biasMs: null, anchorMs: null, commitMs: null, swapEndMs: null, fallback: false, latencyMs: null },
+    ]);
+    // A forward before its mark never gets a negative bias: anchor = forward.
+    const early = ownFrameLatenciesMs(pairWheelForwards([10], [9], 0, 20), [9], [v4El(9)], [{ startMs: 5, endMs: 15 }], 20);
+    expect(early[0]?.biasMs).toBe(0);
+    expect(early[0]?.anchorMs).toBe(9);
+    expect(() => ownFrameLatenciesMs(pairWheelForwards([], [], 0, 10), [], [], [], 10)).toThrow(/no input marks/);
+  });
+
+  it("78. the own_frame block of unmapped rows carries UNMEASURED distances; answered_by_prior_frame is strict", () => {
+    const pairing = pairWheelForwards([0], [], 0, 10);
+    const block = cadenceOwnFrameBlock(ownFrameLatenciesMs(pairing, [], [], [], 10), 0);
+    expect(block).toEqual({ mapped: 0, fallback: 0, map_max_ms: UNMEASURED, bias_p50_ms: UNMEASURED, bias_max_ms: UNMEASURED, main_tasks: 0 });
+    const row = (commitMs: number, latencyMs: number | null): OwnFrameLatencyRow => ({
+      markMs: 0, forwardMs: 5, mapDistMs: 0, biasMs: 1, anchorMs: 4, commitMs, swapEndMs: 9, fallback: false, latencyMs,
+    });
+    expect(ownFrameAnsweredByPriorFrame([row(3.9, 5), row(4, 5), row(3, null)])).toBe(1);
+  });
+});
+
+describe("buildCadenceReceipt / validateCadenceReceipt — q03b-v4 receipt keys + INVALID rules", () => {
+  function v4Pan(): CadenceGestureStats {
+    return {
+      inputs: 200, input_hz: 20, presented: 200, partial: 0, dropped: 0,
+      p50_ms: 8, p95_ms: 18, p99_ms: 28,
+      input_marks: 200, input_unpresented: 0,
+      input_to_present_p50_ms: 8, input_to_present_p95_ms: 18, input_to_present_p99_ms: 28,
+    };
+  }
+  function greenStatsV4Zoom(own: Partial<CadenceOwnFrame> = {}, overrides: Partial<CadenceZoomV4Stats> = {}): CadenceZoomV4Stats {
+    return {
+      ...v4Pan(),
+      inputs: 60, input_hz: 50, presented: 60, input_marks: 60,
+      dispatch: { gap_min_ms: 17, gap_jitter_ms: 6, seed: 1371552512, scheduled: 60, dispatched: 60, dispatch_dev_max_ms: 0.5 },
+      awake_start: { heartbeat_ms: 200.5, heartbeat_mode: "through", leadin_presentations: 0 },
+      answered_by_prior_frame: 0,
+      forward: { forwards: 60, paired: 60, stamp_to_forward_min_ms: 3, stamp_to_forward_p50_ms: 5.3, stamp_to_forward_max_ms: 10.4 },
+      own_frame: { mapped: 60, fallback: 1, map_max_ms: 0.015, bias_p50_ms: 0, bias_max_ms: 5.2, main_tasks: 412, ...own },
+      ...overrides,
+    };
+  }
+  function greenV4Receipt(zoom: CadenceZoomV4Stats | CadenceZoomV3Stats = greenStatsV4Zoom(), protocol: CadenceProtocol = "q03b-v4") {
+    return buildCadenceReceipt({
+      commit: "a".repeat(40),
+      impl: "mm",
+      host: { os: "test-os", cpu: "test-cpu", dpr: 2 },
+      display: { vsync_ms: 10, hz: 100 },
+      generated_at: "2026-01-01T00:00:00.000Z",
+      pan: v4Pan(),
+      zoom,
+      protocol,
+    });
+  }
+  function withoutOwnFrame(z: CadenceZoomV4Stats): CadenceZoomV3Stats {
+    const copy: Partial<CadenceZoomV4Stats> = { ...z };
+    delete copy.own_frame;
+    return copy as CadenceZoomV3Stats;
+  }
+  function errorsOf(r: unknown): string[] {
+    const v = validateCadenceReceipt(r);
+    return v.ok ? [] : v.errors;
+  }
+
+  it("79. v4 valid fixture: validates; protocol q03b-v4; zoom has 18 keys and own_frame exactly its 6 keys", () => {
+    const r = greenV4Receipt();
+    expect(r.protocol).toBe("q03b-v4");
+    expect(Object.keys(r).length).toBe(10);
+    expect(validateCadenceReceipt(r)).toEqual({ ok: true });
+    expect(Object.keys(r.gesture.zoom).length).toBe(18);
+    expect(Object.keys((r.gesture.zoom as CadenceZoomV4Stats).own_frame)).toEqual([
+      "mapped", "fallback", "map_max_ms", "bias_p50_ms", "bias_max_ms", "main_tasks",
+    ]);
+  });
+
+  it("80. a v3 receipt carrying own_frame is refused; a v4 receipt without own_frame is refused", () => {
+    expect(errorsOf(greenV4Receipt(greenStatsV4Zoom(), "q03b-v3"))).toContain('unexpected gesture.zoom key "own_frame"');
+    const v3Zoom = withoutOwnFrame(greenStatsV4Zoom());
+    const missing = errorsOf(greenV4Receipt(v3Zoom));
+    expect(missing).toContain('missing gesture.zoom key "own_frame"');
+    expect(missing).toContain("gesture.zoom.own_frame must be an object");
+    expect(validateCadenceReceipt(greenV4Receipt(v3Zoom, "q03b-v3"))).toEqual({ ok: true });
+  });
+
+  it("81. each v4 own-frame rule fires alone with the INVALID (q03b-v4) prefix; 0.1 ms and 1 task are the inclusive bounds", () => {
+    const cases: Array<{ own: Partial<CadenceOwnFrame>; want: string }> = [
+      { own: { mapped: 59 }, want: "INVALID (q03b-v4): gesture.zoom.own_frame.mapped (59) must equal dispatch.scheduled (60)" },
+      { own: { mapped: 61 }, want: "INVALID (q03b-v4): gesture.zoom.own_frame.mapped (61) must equal dispatch.scheduled (60)" },
+      { own: { map_max_ms: 0.11 }, want: "INVALID (q03b-v4): gesture.zoom.own_frame.map_max_ms (0.11) must be <= 0.1" },
+      { own: { main_tasks: 0 }, want: "INVALID (q03b-v4): gesture.zoom.own_frame.main_tasks (0) must be >= 1" },
+    ];
+    for (const c of cases) {
+      expect(errorsOf(greenV4Receipt(greenStatsV4Zoom(c.own)))).toEqual([c.want]);
+    }
+    expect(validateCadenceReceipt(greenV4Receipt(greenStatsV4Zoom({ map_max_ms: 0.1, main_tasks: 1 })))).toEqual({ ok: true });
+    // The block of an all-unmapped run is INVALID, never valid.
+    const empty = errorsOf(greenV4Receipt(greenStatsV4Zoom(cadenceOwnFrameBlock(ownFrameLatenciesMs(pairWheelForwards([0], [], 0, 10), [], [], [], 10), 0))));
+    expect(empty).toEqual([
+      "INVALID (q03b-v4): gesture.zoom.own_frame.mapped (0) must equal dispatch.scheduled (60)",
+      `INVALID (q03b-v4): gesture.zoom.own_frame.map_max_ms (${UNMEASURED}) must be <= 0.1`,
+      "INVALID (q03b-v4): gesture.zoom.own_frame.main_tasks (0) must be >= 1",
+    ]);
+  });
+
+  it("82. the v2 and v3 INVALID rules carry the q03b-v4 prefix inside a v4 receipt", () => {
+    expect(errorsOf(greenV4Receipt(greenStatsV4Zoom({}, { input_unpresented: 1 })))).toEqual([
+      "INVALID (q03b-v4): gesture.zoom.input_unpresented (1) must be 0",
+    ]);
+    const fwd = errorsOf(greenV4Receipt(greenStatsV4Zoom({}, {
+      forward: { forwards: 59, paired: 60, stamp_to_forward_min_ms: 3, stamp_to_forward_p50_ms: 5.3, stamp_to_forward_max_ms: 10.4 },
+    })));
+    expect(fwd).toEqual(["INVALID (q03b-v4): gesture.zoom.forward.forwards (59) must equal dispatch.scheduled (60)"]);
+  });
+
+  it("83. own_frame shape errors: non-integer count, negative or non-finite ms, fallback above mapped, unexpected and missing keys", () => {
+    const nonInt = errorsOf(greenV4Receipt(greenStatsV4Zoom({ mapped: 59.5 })));
+    expect(nonInt).toContain("gesture.zoom.own_frame.mapped must be a non-negative integer (got 59.5)");
+    expect(nonInt.some((e) => e.startsWith("INVALID"))).toBe(false);
+    expect(errorsOf(greenV4Receipt(greenStatsV4Zoom({ bias_max_ms: -1 })))).toEqual([
+      "gesture.zoom.own_frame.bias_max_ms must be a finite number >= 0 (got -1)",
+    ]);
+    expect(errorsOf(greenV4Receipt(greenStatsV4Zoom({ bias_p50_ms: Number.NaN })))).toContain(
+      "gesture.zoom.own_frame.bias_p50_ms must be a finite number >= 0 (got null)",
+    );
+    expect(errorsOf(greenV4Receipt(greenStatsV4Zoom({ fallback: 61, mapped: 60 })))).toEqual([
+      "gesture.zoom.own_frame.fallback (61) must be <= mapped (60)",
+    ]);
+    const extra = greenStatsV4Zoom();
+    (extra.own_frame as Record<string, unknown>).latency_ms = 1;
+    expect(errorsOf(greenV4Receipt(extra))).toContain('unexpected gesture.zoom.own_frame key "latency_ms"');
+    const missing = greenStatsV4Zoom();
+    delete (missing.own_frame as Partial<CadenceOwnFrame>).main_tasks;
+    expect(errorsOf(greenV4Receipt(missing))).toContain('missing gesture.zoom.own_frame key "main_tasks"');
+  });
+
+  it("84. cadenceInvalidLine prints the v4 mapped and main-task counts in order and no distance, bias or latency value", () => {
+    const zoom = greenStatsV4Zoom(
+      { mapped: 59, map_max_ms: 0.0137, bias_p50_ms: 1.2468, bias_max_ms: 7.5319, main_tasks: 412 },
+      { input_to_present_p50_ms: 1.234, input_to_present_p95_ms: 12.345, input_to_present_p99_ms: 67.891 },
+    );
+    const receipt = greenV4Receipt(zoom);
+    const errors = errorsOf(receipt).filter((e) => e.startsWith("INVALID (q03b-v4):"));
+    expect(errors).toEqual(["INVALID (q03b-v4): gesture.zoom.own_frame.mapped (59) must equal dispatch.scheduled (60)"]);
+    const diag: CadenceEndMarkDiag = { zoom_marks_after_end: 0, zoom_end_minus_last_mark_ms: 3.5 };
+    const line = cadenceInvalidLine("mm", 1, 2, receipt, diag, errors);
+    expect(line).toContain(" forwards=60 paired=60 mapped=59 main_tasks=412 zoom_marks_after_end=0 ");
+    let prev = -1;
+    for (const key of CADENCE_INVALID_FIELDS) {
+      const idx = line.indexOf(`${key}=`);
+      expect(idx, `field "${key}" missing or out of order in: ${line}`).toBeGreaterThan(prev);
+      prev = idx;
+    }
+    for (const leak of ["0.0137", "1.2468", "7.5319", "1.234", "12.345", "67.891", "bias", "map_max", "fallback", "lat", "p95", "p99"]) {
+      expect(line).not.toContain(leak);
+    }
+  });
+});

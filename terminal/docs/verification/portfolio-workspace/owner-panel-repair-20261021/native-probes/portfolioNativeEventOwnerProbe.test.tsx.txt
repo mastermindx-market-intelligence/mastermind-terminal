@@ -1,0 +1,80 @@
+// @vitest-environment jsdom
+import { act } from "react";
+import { createRoot, type Root } from "react-dom/client";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import PortfolioView from "@/components/PortfolioView";
+import type { Position } from "@/lib/portfolio";
+import { portfolioBookKey } from "@/lib/portfolioSnapshot.server";
+vi.mock("@/components/PositionModal", () => ({ default: () => null }));
+vi.mock("@/components/PortfolioBriefPanel", () => ({ default: () => null }));
+vi.mock("@/lib/i18n", () => ({ useT: () => (key: string) => key, useLang: () => ({ lang: "en" }) }));
+vi.mock("@/lib/dataCache", () => ({ getJSON: async () => ({ symbols: {} }) }));
+vi.mock("@/lib/eventImpact", () => ({
+  presentDaysUntil: (value: number) => String(value),
+  presentEventSentence: (event: { marker: string }) => event.marker,
+  presentPosition: (position: { id: string }) => position.id,
+  presentCarried: () => "source did not state this", presentInvalidation: () => "", presentUnjoinable: () => "",
+}));
+(globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
+const a: Position = { id: "record-a", ticker: "NVDA", shares: 10, entryPrice: 100, entryCurrency: "USD", entryDate: null, notes: "A position", status: "open", createdAt: null };
+const books = { A: [a], B: [{ ...a, id: "record-b", notes: "B position" }] };
+const ids = { A: "11111111-1111-4111-8111-111111111111", B: "22222222-2222-4222-8222-222222222222" };
+type Owner = "A" | "B";
+type BriefRequest = { owner: Owner; signal?: AbortSignal | null; resolve: (body: unknown) => void };
+let owner: Owner;
+let briefRequests: BriefRequest[];
+let node: HTMLDivElement;
+let root: Root;
+const response = (body: unknown) => ({ ok: true, status: 200, json: async () => body }) as Response;
+const payload = (who: Owner) => ({ state: "ok", asof: "2026-10-21T00:00:00Z", stale: false, unjoinable: [], heldPositions: 1,
+  events: [{ eventId: `event-${who}`, ticker: "NVDA", date: "2026-10-22", daysUntil: 1,
+    positions: books[who], marker: `OWNER_${who}_PRIVATE_EVENT`,
+    direction: { state: "not_stated" }, mechanism: { state: "not_stated" }, timeframe: { state: "not_stated" },
+    invalidation: { null_reason: "not stated" } }],
+});
+async function flush() { await act(async () => { for (let i = 0; i < 15; i++) await Promise.resolve(); }); }
+async function show(who: Owner, keyed: boolean) {
+  owner = who;
+  await act(async () => { root.render(<PortfolioView key={keyed ? ids[who] : "stable-page"} positions={books[who]} email="synthetic@example.test" userId={ids[who]} />); });
+  await flush();
+}
+async function settle(request: BriefRequest, who: Owner) {
+  await act(async () => { request.resolve(payload(who)); });
+  await flush();
+}
+beforeEach(() => {
+  owner = "A"; briefRequests = []; vi.useFakeTimers();
+  vi.stubGlobal("fetch", vi.fn((url: string, init?: RequestInit) => {
+    const captured = owner;
+    if (url === "/api/event-impact") return new Promise<Response>(resolve => { briefRequests.push({ owner: captured, signal: init?.signal, resolve: body => resolve(response(body)) }); });
+    if (url === "/api/portfolio?view=positions") return Promise.resolve(response({ positions: books[captured], bookKey: portfolioBookKey(books[captured]) }));
+    if (url.startsWith("/api/quote")) return Promise.resolve(response({ quotes: {} }));
+    return Promise.resolve(response({}));
+  }));
+  node = document.createElement("div"); document.body.appendChild(node); root = createRoot(node);
+});
+afterEach(() => { act(() => root.unmount()); node.remove(); vi.useRealTimers(); vi.unstubAllGlobals(); vi.restoreAllMocks(); });
+describe.each([{ name: "unkeyed candidate", keyed: false }, { name: "owner-keyed negative control", keyed: true }])("native event review $name", ({ keyed }) => {
+  it("removes A's settled private brief when B's distinct nonempty book arrives", async () => {
+    await show("A", keyed);
+    expect(briefRequests).toHaveLength(1);
+    await settle(briefRequests[0], "A");
+    expect(node.textContent).toContain("OWNER_A_PRIVATE_EVENT");
+    await show("B", keyed);
+    const bRequest = briefRequests.find(request => request.owner === "B");
+    if (bRequest) await settle(bRequest, "B");
+    expect(node.textContent).not.toContain("OWNER_A_PRIVATE_EVENT");
+    expect(briefRequests.filter(request => request.owner === "B")).toHaveLength(1);
+    expect(node.textContent).toContain("OWNER_B_PRIVATE_EVENT");
+  });
+  it("retires A's pending brief before its response settles under B", async () => {
+    await show("A", keyed);
+    const aRequest = briefRequests[0];
+    await show("B", keyed);
+    const bRequest = briefRequests.find(request => request.owner === "B");
+    if (bRequest) await settle(bRequest, "B");
+    await settle(aRequest, "A");
+    expect(node.textContent).not.toContain("OWNER_A_PRIVATE_EVENT");
+    expect(briefRequests.filter(request => request.owner === "B")).toHaveLength(1);
+  });
+});

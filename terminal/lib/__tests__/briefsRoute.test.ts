@@ -487,6 +487,38 @@ describe("/api/briefs routes", () => {
     }
   });
 
+  it.each([false, true])("preserves watchlist null versions with partial Chinese=%s and guards legacy decoders", async (partial) => {
+    H.user = { id: "u-1" };
+    const row = languageDelivery(partial);
+    const watchlist = { ...row,
+      body: { ...row.body, target: { ...row.body.target, kind: "watchlist", version_or_asof: null } },
+      brief_subscriptions: { ...row.brief_subscriptions, target_kind: "watchlist" },
+    };
+    H.deliveries = [watchlist];
+    const current = await GET_DEL(req(`http://localhost/api/briefs/deliveries?contract=${BRIEFS_EXPLICIT_LANGUAGE_CONTRACT}`));
+    expect(current.status).toBe(200);
+    expect((await current.json()).deliveries[0].body).toEqual(watchlist.body);
+    const legacy = await GET_DEL(req("http://localhost/api/briefs/deliveries"));
+    expect(legacy.status).toBe(409);
+    expect(await legacy.json()).toMatchObject({ error: "UPGRADE_REQUIRED", requiredContract: BRIEFS_EXPLICIT_LANGUAGE_CONTRACT, reloadRequired: true });
+  });
+
+  it("does not turn invalid target versions or forbidden watchlist bodies into upgrade requirements", async () => {
+    H.user = { id: "u-1" };
+    const row = languageDelivery(false);
+    const targets = [
+      { ...row.body.target, version_or_asof: null },
+      { ...row.body.target, kind: "watchlist", version_or_asof: undefined },
+      { ...row.body.target, kind: "watchlist", version_or_asof: null, model: "forbidden" },
+    ];
+    for (const target of targets) {
+      H.deliveries = [{ ...row, body: { ...row.body, target } }];
+      const response = await GET_DEL(req("http://localhost/api/briefs/deliveries"));
+      expect(response.status).toBe(200);
+      expect((await response.json()).deliveries[0].body).toEqual({});
+    }
+  });
+
   it("does not report malformed or forbidden bodies as an upgrade requirement", async () => {
     H.user = { id: "u-1" };
     const row = languageDelivery();

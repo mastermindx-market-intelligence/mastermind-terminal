@@ -1,0 +1,513 @@
+{
+  "schema": "catalyst.intraday_parent_repair_evidence.v1",
+  "recorded_at_utc": "2026-10-22T19:38:48.234993+00:00",
+  "operation_id": "catalyst-terminal-intraday-20261022",
+  "parent_operation_id": "catalyst-intelligence-recovery-20261022",
+  "source_parent": "f441cafbb7feb515fd823efb01f4a5eb8f569619",
+  "producer_pin": "bc193e674b07d91acbfa319f5b7943d9996f81cc",
+  "source_files": [
+    {
+      "path": "terminal/lib/sectorIntradayComparison.ts",
+      "bytes": 20174,
+      "sha256": "a253b1f01ec6d839b72b880163fa3e133c08855957f139bc1213030d2b154622"
+    },
+    {
+      "path": "terminal/components/sector-intelligence/SectorIntradayComparison.tsx",
+      "bytes": 7971,
+      "sha256": "bf154def4de11de3331ede509b1ef6f07e3b95363c927ad14f7aab286cd6ea50"
+    },
+    {
+      "path": "terminal/components/sector-intelligence/SectorIntelligenceWorkspace.tsx",
+      "bytes": 35663,
+      "sha256": "37793f6500422de0bbfa542f66b32ccd05f4b175198c822765bcd90513fde9f4"
+    },
+    {
+      "path": "terminal/lib/sectorIntelligence.ts",
+      "bytes": 27298,
+      "sha256": "84262c361081be51134ecbd450031b6837546c4c04a5158232dc9e25313ffa11"
+    },
+    {
+      "path": "terminal/lib/sectorIntelligenceLex.ts",
+      "bytes": 19949,
+      "sha256": "98a0b13a28914295bfee910f1c5fab309fb503ed35e1edf4913325e1a71a04ca"
+    },
+    {
+      "path": "terminal/components/sector-intelligence/SectorIntradayComparison.module.css",
+      "bytes": 3229,
+      "sha256": "ee608020249a4bf37497147b3a7787dfa097a1f2358610de236f604435be8083"
+    },
+    {
+      "path": "terminal/lib/__tests__/sectorIntradayComparison.test.ts",
+      "bytes": 19005,
+      "sha256": "c2e9e7d8b8c345a8370bb76878027d7013ffc0914218c1b8faa70fdcf8cd8274"
+    },
+    {
+      "path": "terminal/lib/__tests__/sectorIntradayComparison.test.tsx",
+      "bytes": 15211,
+      "sha256": "227dea4f9721f66c5a2c8298f7e9cca34203f1391208ee4a8c0af34140ef8790"
+    },
+    {
+      "path": "terminal/lib/__tests__/sectorIntradayFixture.ts",
+      "bytes": 4834,
+      "sha256": "e3cec7b58aaaf41e3265668d0691bb96793c902c793ac53718f43070e1d3a07e"
+    },
+    {
+      "path": "terminal/e2e/fixtures/sector-intraday-pulse.ts",
+      "bytes": 4065,
+      "sha256": "466950cc99722e3faf38ffe8d66e9ad769952a9f13bd3955ab693f7bc93165a6"
+    },
+    {
+      "path": "terminal/e2e/sector-intraday-comparison.spec.ts",
+      "bytes": 15344,
+      "sha256": "fc0e00ba6817f536b464dce776c5b080a1e29cdb7f175449ecf0cd2ca5c6f5a8"
+    }
+  ],
+  "focused": {
+    "decoder_passed": 61,
+    "mounted_passed": 26,
+    "total_passed": 87,
+    "included_in_sector_regression": true
+  },
+  "validation": [
+    {
+      "group": "sector_regression",
+      "command": [
+        "npm",
+        "test",
+        "--",
+        "sector",
+        "rotationRelativeTrend",
+        "--reporter=dot"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 4.186
+    },
+    {
+      "group": "typecheck",
+      "command": [
+        "npx",
+        "tsc",
+        "--noEmit"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 11.331
+    },
+    {
+      "group": "lint",
+      "command": [
+        "npx",
+        "eslint",
+        "lib/sectorIntradayComparison.ts",
+        "components/sector-intelligence/SectorIntradayComparison.tsx",
+        "components/sector-intelligence/SectorIntelligenceWorkspace.tsx",
+        "lib/sectorIntelligence.ts",
+        "lib/sectorIntelligenceLex.ts",
+        "lib/__tests__/sectorIntradayComparison.test.ts",
+        "lib/__tests__/sectorIntradayComparison.test.tsx",
+        "lib/__tests__/sectorIntradayFixture.ts",
+        "e2e/fixtures/sector-intraday-pulse.ts",
+        "e2e/sector-intraday-comparison.spec.ts"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 8.712
+    },
+    {
+      "group": "plain_language",
+      "command": [
+        "node",
+        "scripts/check_plain_language.mjs"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 3.216
+    }
+  ],
+  "final_browser_spec_lint": {
+    "command": [
+      "npx",
+      "eslint",
+      "e2e/sector-intraday-comparison.spec.ts"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 5.979
+  },
+  "build": {
+    "command": [
+      "npm",
+      "run",
+      "build"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 91.645,
+    "stdout_sha256": "890333f9b828e0a555c360ba4c363255befb791fb089f6f8affe131ab88d20e0",
+    "stderr_sha256": "5ec4a5f7300cc43efd6662d12d7db4602d1ba42d175d51354d72c42a35871ac7"
+  },
+  "browser_initial": {
+    "group": "intraday_responsive",
+    "command": [
+      "npx",
+      "playwright",
+      "test",
+      "e2e/sector-intraday-comparison.spec.ts",
+      "--project=desktop",
+      "--project=tablet",
+      "--project=mobile",
+      "--workers=1",
+      "--retries=0",
+      "--output",
+      "/Volumes/Mastermind/agent-workspaces/terminal/web/catalyst-terminal-intraday-20261022/terminal/test-results/catalyst-parent-intraday-repair-20261022/intraday-browser"
+    ],
+    "exit_code": 1,
+    "elapsed_seconds": 88.099
+  },
+  "browser_followup": [
+    {
+      "group": "intraday_targeted_readiness",
+      "command": [
+        "npx",
+        "playwright",
+        "test",
+        "e2e/sector-intraday-comparison.spec.ts",
+        "--grep",
+        "owner correction|clock that no longer advances|observation the owner has not refreshed",
+        "--project=desktop",
+        "--project=tablet",
+        "--project=mobile",
+        "--workers=1",
+        "--retries=0",
+        "--output",
+        "/Volumes/Mastermind/agent-workspaces/terminal/web/catalyst-terminal-intraday-20261022/terminal/test-results/catalyst-parent-intraday-repair-20261022/intraday-targeted-browser"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 28.149
+    },
+    {
+      "group": "sector_neighbor",
+      "command": [
+        "npx",
+        "playwright",
+        "test",
+        "e2e/sector-company-workflow.spec.ts",
+        "e2e/sector-group-discovery.spec.ts",
+        "e2e/rotation-relative-trend.spec.ts",
+        "--project=desktop",
+        "--workers=1",
+        "--retries=0",
+        "--output",
+        "/Volumes/Mastermind/agent-workspaces/terminal/web/catalyst-terminal-intraday-20261022/terminal/test-results/catalyst-parent-intraday-repair-20261022/neighbor-browser"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 36.106
+    }
+  ],
+  "browser_interpretation": {
+    "initial": {
+      "passed": 38,
+      "failed": 1,
+      "total": 39,
+      "failed_case": "mobile owner correction",
+      "cause_observed": "Next dev chunk404 before component mount; no Sector feed request"
+    },
+    "repair": "Positive mounted-panel readiness for correction, nonadvancing and stale cases; explicit invalid/stale evidence assertions; no production source change or timeout increase",
+    "targeted": {
+      "passed": 9,
+      "failed": 0,
+      "retries": 0
+    },
+    "neighbors": {
+      "passed": 17,
+      "failed": 0,
+      "retries": 0
+    },
+    "claim": "All39 distinct Intraday cases covered across retained runs, not one clean39/39 run",
+    "ports": [
+      3271
+    ],
+    "viewports": [
+      [
+        1440,
+        900
+      ],
+      [
+        820,
+        1180
+      ],
+      [
+        390,
+        844
+      ]
+    ],
+    "idle_case": "46-minute clock advance withdraws figures; exactly one Intraday request; source clock and validated delivery evidence retained"
+  },
+  "custody": {
+    "historical_partial_decoder_sha256": "638ed72bdae0acd65f31a4d403dafffdd357346c6ebd7961ac4b988f909bd605",
+    "historical_writer_identity": "unknown",
+    "parent_adoption_at_utc": "2026-10-22T19:10:47Z",
+    "decision": "Preserved completed local edit and exact preimage under original operation after owner/HEAD and conflicting-writer checks; subsequent writes preimage guarded",
+    "worker68040_patch": "not_received_not_adopted",
+    "reader90001": "provider429_no_artifact_no_retry",
+    "remote_test_claims_adopted": false
+  },
+  "previous_ci": {
+    "run_id": 39831077385,
+    "head": "f441cafbb7feb515fd823efb01f4a5eb8f569619",
+    "conclusion": "failure",
+    "tablet3_job_id": 120007046683,
+    "cause_observed": "Portfolio route callback readBook at e2e/portfolio-workspace.spec.ts23/39 outlived test;317passed79skipped1did_not_run; outside-test error",
+    "is_final_source_verdict": false
+  },
+  "remaining_gates": [
+    "independent_final_source_review",
+    "hosted_exact_candidate_CI",
+    "accepted_source_deployment",
+    "genuine_entitled_user_acceptance"
+  ],
+  "entitled_production_acceptance": false,
+  "program_complete": false,
+  "retained_runtime_evidence": [
+    {
+      "path": "terminal/test-results/catalyst-parent-intraday-repair-20261022/after-source-repair.stderr",
+      "bytes": 15477,
+      "sha256": "5c89eab8e0063bb2cbe5a5dd886a376c8262564e52ce928c1d6dd681bb53a2f7"
+    },
+    {
+      "path": "terminal/test-results/catalyst-parent-intraday-repair-20261022/after-source-repair.stdout",
+      "bytes": 18513,
+      "sha256": "bc35bb57de92dfb2b8d41e34ad16f7eaa544d81a41c7729625a11472930d0484"
+    },
+    {
+      "path": "terminal/test-results/catalyst-parent-intraday-repair-20261022/browser-results.json",
+      "bytes": 7925,
+      "sha256": "e8c4b61d23fa6ed139ea62af8b18d8dc3111147e96201ef0bcb689a414bd7dfd"
+    },
+    {
+      "path": "terminal/test-results/catalyst-parent-intraday-repair-20261022/browser-targeted-and-neighbor-results.json",
+      "bytes": 3103,
+      "sha256": "bba28c78afb9437a19fd85609c281757ee7f5575ca90956dba839dabe18204d3"
+    },
+    {
+      "path": "terminal/test-results/catalyst-parent-intraday-repair-20261022/build-result.json",
+      "bytes": 9767,
+      "sha256": "78fd47b4369cd51e83474701b5a459ebd08c3a841955a6c6a75667cfc37eb910"
+    },
+    {
+      "path": "terminal/test-results/catalyst-parent-intraday-repair-20261022/build.stderr",
+      "bytes": 3734,
+      "sha256": "5ec4a5f7300cc43efd6662d12d7db4602d1ba42d175d51354d72c42a35871ac7"
+    },
+    {
+      "path": "terminal/test-results/catalyst-parent-intraday-repair-20261022/build.stdout",
+      "bytes": 4871,
+      "sha256": "890333f9b828e0a555c360ba4c363255befb791fb089f6f8affe131ab88d20e0"
+    },
+    {
+      "path": "terminal/test-results/catalyst-parent-intraday-repair-20261022/custody-adoption.json",
+      "bytes": 1125,
+      "sha256": "108002b9c9a2a07fe17a45ac07e54710a6d195cd0e2359aeeb58b72d7093d76b"
+    },
+    {
+      "path": "terminal/test-results/catalyst-parent-intraday-repair-20261022/f441-decoder.ts",
+      "bytes": 18309,
+      "sha256": "7a7b27524bfa5a431815e939d5b097096d21511040c0ca9080af66f1e96a4cbd"
+    },
+    {
+      "path": "terminal/test-results/catalyst-parent-intraday-repair-20261022/final-browser-lint-result.json",
+      "bytes": 171,
+      "sha256": "a5097d4d5907f3569c10e976e05ea4838c500829f6132b75025c04524f696ad7"
+    },
+    {
+      "path": "terminal/test-results/catalyst-parent-intraday-repair-20261022/focused-repair-tests.stderr",
+      "bytes": 335,
+      "sha256": "f77b44f574fec4380e3202151131c350fa3b648449d2197ddae1f8d266add0b7"
+    },
+    {
+      "path": "terminal/test-results/catalyst-parent-intraday-repair-20261022/focused-repair-tests.stdout",
+      "bytes": 17825,
+      "sha256": "ccfef9c931873d4f73c63e7847f2ba0d7771b858936610d6bcb8172236a60875"
+    },
+    {
+      "path": "terminal/test-results/catalyst-parent-intraday-repair-20261022/intraday-browser/.last-run.json",
+      "bytes": 96,
+      "sha256": "941688fb7ea42ee0ef8166ebe07989bbdbb7e87735951939b9a1bdfa93c2adeb"
+    },
+    {
+      "path": "terminal/test-results/catalyst-parent-intraday-repair-20261022/intraday-browser/sector-intraday-comparison-9e118-ecoming-a-fresh-observation-mobile/error-context.md",
+      "bytes": 17102,
+      "sha256": "6865fcce33189fbaa0b79e8534b02ef84c672430b8598cc78e2eb326da3861cd"
+    },
+    {
+      "path": "terminal/test-results/catalyst-parent-intraday-repair-20261022/intraday-browser/sector-intraday-comparison-9e118-ecoming-a-fresh-observation-mobile/test-failed-1.png",
+      "bytes": 87085,
+      "sha256": "93cff1e61d85632bcef1c66c2f065e2caba547c21ddefa8e90f58d47f714ffb8"
+    },
+    {
+      "path": "terminal/test-results/catalyst-parent-intraday-repair-20261022/intraday-browser/sector-intraday-comparison-9e118-ecoming-a-fresh-observation-mobile/trace.zip",
+      "bytes": 442152,
+      "sha256": "989eb5f1c87d76418e181d51eb406535fa49fc270385994653fb909a4821e66b"
+    },
+    {
+      "path": "terminal/test-results/catalyst-parent-intraday-repair-20261022/intraday-targeted-browser/.last-run.json",
+      "bytes": 45,
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903"
+    },
+    {
+      "path": "terminal/test-results/catalyst-parent-intraday-repair-20261022/intraday_responsive-result.json",
+      "bytes": 7881,
+      "sha256": "ce44fcfa7531c2fa28f87a3ae6305ac1124ab5f6edd3d9e5568ad763e0113e9a"
+    },
+    {
+      "path": "terminal/test-results/catalyst-parent-intraday-repair-20261022/intraday_responsive.stderr",
+      "bytes": 105,
+      "sha256": "081b22a4ed9a83adc386a4959481505236f601238c308455baf311d49a00754b"
+    },
+    {
+      "path": "terminal/test-results/catalyst-parent-intraday-repair-20261022/intraday_responsive.stdout",
+      "bytes": 5991,
+      "sha256": "bf73ce1db3a6d36aca0916046903ede98586ed3acbc29f076ff18aa651dc78dc"
+    },
+    {
+      "path": "terminal/test-results/catalyst-parent-intraday-repair-20261022/intraday_targeted_readiness-result.json",
+      "bytes": 1472,
+      "sha256": "538d91026da45a6ce15893aee0bcc53724153aa5200eadb381d3214802c13414"
+    },
+    {
+      "path": "terminal/test-results/catalyst-parent-intraday-repair-20261022/intraday_targeted_readiness.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "terminal/test-results/catalyst-parent-intraday-repair-20261022/intraday_targeted_readiness.stdout",
+      "bytes": 710,
+      "sha256": "559163fac60ef82526bbfda1f9b2774667122c908de641ce2bd16ba3a40e303a"
+    },
+    {
+      "path": "terminal/test-results/catalyst-parent-intraday-repair-20261022/lint-result.json",
+      "bytes": 644,
+      "sha256": "52aa7b8a87464bc6b82135a253fce6b3eeae344caef18c25508b8ad240dd7a25"
+    },
+    {
+      "path": "terminal/test-results/catalyst-parent-intraday-repair-20261022/lint.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "terminal/test-results/catalyst-parent-intraday-repair-20261022/lint.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "terminal/test-results/catalyst-parent-intraday-repair-20261022/neighbor-browser/.last-run.json",
+      "bytes": 45,
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903"
+    },
+    {
+      "path": "terminal/test-results/catalyst-parent-intraday-repair-20261022/neighbor-browser/rotation-relative-trend-re-24e0b--trail-and-receipt-en-light-desktop/rotation-trend-desktop-en-light.png",
+      "bytes": 138575,
+      "sha256": "c807d7abc59a35ccccd73a4a0ab87ee1404018ae201bd2ef5fe27b6ae3252169"
+    },
+    {
+      "path": "terminal/test-results/catalyst-parent-intraday-repair-20261022/neighbor-browser/rotation-relative-trend-re-b07e0-s-trail-and-receipt-zh-dark-desktop/rotation-trend-desktop-zh-dark.png",
+      "bytes": 139562,
+      "sha256": "de3029514e74d60eb3cae4261baeb74c1adc100b18e3844756f4780ea4be2182"
+    },
+    {
+      "path": "terminal/test-results/catalyst-parent-intraday-repair-20261022/neighbor-browser/rotation-relative-trend-th-1d5f6-its-holdings-cover-en-light-desktop/holdings-coverage-desktop-en-light.png",
+      "bytes": 143544,
+      "sha256": "b4fc03e794d427bd31f4f892ffa18dc0e8d37c9017cab66de84b0b1fd60fd8bb"
+    },
+    {
+      "path": "terminal/test-results/catalyst-parent-intraday-repair-20261022/neighbor-browser/rotation-relative-trend-th-703d7--its-holdings-cover-zh-dark-desktop/holdings-coverage-desktop-zh-dark.png",
+      "bytes": 141718,
+      "sha256": "634c78893f69e913d5749be03e8edc50e9e78e5329175db982783cf4a27a57eb"
+    },
+    {
+      "path": "terminal/test-results/catalyst-parent-intraday-repair-20261022/plain_language-result.json",
+      "bytes": 1517,
+      "sha256": "f6c635e0665efdc5fcb72f05cb0f97de93eb270f25ffd03b6ee4969cfa9f0909"
+    },
+    {
+      "path": "terminal/test-results/catalyst-parent-intraday-repair-20261022/plain_language.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "terminal/test-results/catalyst-parent-intraday-repair-20261022/plain_language.stdout",
+      "bytes": 1269,
+      "sha256": "b9d7803f3ef33f379713c2a72f31f39f119801b412d6899c631d2e85a421317b"
+    },
+    {
+      "path": "terminal/test-results/catalyst-parent-intraday-repair-20261022/sector_neighbor-result.json",
+      "bytes": 1541,
+      "sha256": "aa7b57c06101796e75db7d9b3c7e444ed23773ff5acf22546c472dc35e93df7a"
+    },
+    {
+      "path": "terminal/test-results/catalyst-parent-intraday-repair-20261022/sector_neighbor.stderr",
+      "bytes": 105,
+      "sha256": "081b22a4ed9a83adc386a4959481505236f601238c308455baf311d49a00754b"
+    },
+    {
+      "path": "terminal/test-results/catalyst-parent-intraday-repair-20261022/sector_neighbor.stdout",
+      "bytes": 733,
+      "sha256": "41da59ba7abedc9d74dc75bd3969eb91cc381df168f798dfe4bc629a0ce8ab24"
+    },
+    {
+      "path": "terminal/test-results/catalyst-parent-intraday-repair-20261022/sector_regression-result.json",
+      "bytes": 3820,
+      "sha256": "a9ce538b54f297e3e7f72cfa4e42f476935a9b4022a211f297c7ee6ddf395a54"
+    },
+    {
+      "path": "terminal/test-results/catalyst-parent-intraday-repair-20261022/sector_regression.stderr",
+      "bytes": 1973,
+      "sha256": "8f7133c7c6b13ae6cb4d8d28b4839c0f3122b2eee4a6458f6b4adc054b05c14b"
+    },
+    {
+      "path": "terminal/test-results/catalyst-parent-intraday-repair-20261022/sector_regression.stdout",
+      "bytes": 1496,
+      "sha256": "c7dbaece2e863dbab2487a785a1ef1bdc811e88518323656fa82d3873f916573"
+    },
+    {
+      "path": "terminal/test-results/catalyst-parent-intraday-repair-20261022/source-repair-applied.json",
+      "bytes": 980,
+      "sha256": "157f2c3fea8d7f02d5813d728f6dd8b1fe0d0b6084d478de36e5b89d65819050"
+    },
+    {
+      "path": "terminal/test-results/catalyst-parent-intraday-repair-20261022/typecheck-result.json",
+      "bytes": 172,
+      "sha256": "15360438832c5f30b8cd38e13393c12871893832e977373cbbf203f2978c9671"
+    },
+    {
+      "path": "terminal/test-results/catalyst-parent-intraday-repair-20261022/typecheck.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "terminal/test-results/catalyst-parent-intraday-repair-20261022/typecheck.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "terminal/test-results/catalyst-parent-intraday-repair-20261022/unattributed-decoder.patch",
+      "bytes": 4236,
+      "sha256": "05d1e2c6d360f3066066463ea7a85cbd3850581b31b7f7e1ac5932e564bfb2e1"
+    },
+    {
+      "path": "terminal/test-results/catalyst-parent-intraday-repair-20261022/unattributed-decoder.ts",
+      "bytes": 19028,
+      "sha256": "638ed72bdae0acd65f31a4d403dafffdd357346c6ebd7961ac4b988f909bd605"
+    },
+    {
+      "path": "terminal/test-results/catalyst-parent-intraday-repair-20261022/validation-results.json",
+      "bytes": 6281,
+      "sha256": "81ce89a40c9b703847d3aff34b835a2ab87efc9e92f43874c279c8be2a08a651"
+    },
+    {
+      "path": "terminal/test-results/catalyst-parent-intraday-repair-20261022/witness-before-repair.stderr",
+      "bytes": 17819,
+      "sha256": "0b0b9e0ec4f9919b41a395a4099b6164123028f1748f1e283f90433108074b61"
+    },
+    {
+      "path": "terminal/test-results/catalyst-parent-intraday-repair-20261022/witness-before-repair.stdout",
+      "bytes": 18679,
+      "sha256": "1b80854e14e2f93dd0945108042c4ecc33619e2fee6ab945b4d02e945db7d3d1"
+    }
+  ]
+}

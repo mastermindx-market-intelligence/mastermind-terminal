@@ -307,3 +307,136 @@ describe("ticker news snapshot BFF — news-flow passthrough (Wave B3)", () => {
     expect(body.flow).toBeNull();
   });
 });
+
+describe("editorial view transport", () => {
+  const revision = "b".repeat(64);
+  const metadata = {
+    schema: "ticker_news.editorial_view.v1", rules: "ticker_news.editorial_rules.v1",
+    mode: "company", revision, name_coverage: "names_and_symbols",
+  };
+
+  it("forwards snapshot view and continuation revision without unrelated inputs", async () => {
+    signedIn();
+    installJson(200, {
+      schema: "ticker_news.snapshot.v1", editorial_view: metadata, change_sequence: 31,
+      ticker: "NVDA", security_id: "SEC:NVDA", state: "quiet", rows: [],
+      next_cursor: null, has_more: false, source_health: { state: "live" },
+    });
+    const res = await snapshotGET(
+      new Request("https://app.test/api/news/NVDA?limit=20&view=company&view_revision=" + revision + "&source=fool"),
+      { params: Promise.resolve({ symbol: "NVDA" }) },
+    );
+    expect(res.status).toBe(200);
+    const sent = new URL(calls[0].url);
+    expect(sent.searchParams.get("view")).toBe("company");
+    expect(sent.searchParams.get("view_revision")).toBe(revision);
+    expect(sent.searchParams.has("source")).toBe(false);
+    expect((await res.json()).editorial_view).toEqual(metadata);
+  });
+
+  it("binds grouped detail to ticker, view and revision", async () => {
+    signedIn();
+    installJson(200, {
+      schema: "ticker_news.story.v1", editorial_view: metadata, story_id: "ev2_group",
+      source_count: 0, item_count: 0, members: [],
+    });
+    const res = await storyGET(
+      new Request("https://app.test/api/news/stories/ev2_group?ticker=nvda&view=company&view_revision=" + revision),
+      { params: Promise.resolve({ storyId: "ev2_group" }) },
+    );
+    expect(res.status).toBe(200);
+    const sent = new URL(calls[0].url);
+    expect(sent.searchParams.get("ticker")).toBe("NVDA");
+    expect(sent.searchParams.get("view")).toBe("company");
+    expect(sent.searchParams.get("view_revision")).toBe(revision);
+  });
+
+  it("forwards stream context and the explicit reset event unchanged", async () => {
+    signedIn();
+    const frame = 'event: reset\ndata: {"schema":"ticker_news.reset.v1"}\n\n';
+    const fetcher = vi.fn().mockResolvedValue(new Response(frame, {
+      headers: { "content-type": "text/event-stream" },
+    }));
+    globalThis.fetch = fetcher;
+    const res = await streamGET(new Request(
+      "https://app.test/api/news/stream?symbol=NVDA&after_sequence=29&view=company&view_revision=" + revision,
+    ));
+    const sent = new URL(String(fetcher.mock.calls[0][0]));
+    expect(sent.searchParams.get("view")).toBe("company");
+    expect(sent.searchParams.get("view_revision")).toBe(revision);
+    expect(await res.text()).toBe(frame);
+  });
+
+  it("rejects a filtered detail request without ticker context before upstream access", async () => {
+    signedIn();
+    const res = await storyGET(
+      new Request("https://app.test/api/news/stories/ev2_group?view=company"),
+      { params: Promise.resolve({ storyId: "ev2_group" }) },
+    );
+    expect(res.status).toBe(400);
+    expect(calls).toHaveLength(0);
+  });
+});
+
+describe("editorial acknowledgement at the proxy boundary", () => {
+  const revision = "b".repeat(64);
+  const correct = {
+    schema: "ticker_news.editorial_view.v1", rules: "ticker_news.editorial_rules.v1",
+    mode: "company", revision, name_coverage: "names_and_symbols",
+  };
+  it.each([
+    ["snapshot", undefined],
+    ["snapshot", { ...correct, mode: "all" }],
+    ["snapshot", { ...correct, revision: "c".repeat(64) }],
+    ["story", undefined],
+    ["story", { ...correct, mode: "all" }],
+    ["story", { ...correct, revision: "c".repeat(64) }],
+  ])("rejects missing or wrong %s acknowledgement without returning its payload", async (kind, acknowledgement) => {
+    signedIn();
+    const isSnapshot = kind === "snapshot";
+    installJson(200, isSnapshot ? {
+      schema: "ticker_news.snapshot.v1", editorial_view: acknowledgement,
+      ticker: "NVDA", security_id: "SEC:NVDA", state: "quiet", rows: [],
+      next_cursor: null, has_more: false, source_health: { state: "live" },
+    } : {
+      schema: "ticker_news.story.v1", editorial_view: acknowledgement, story_id: "ev2_group",
+      source_count: 0, item_count: 0, members: [],
+    });
+    const query = "?ticker=NVDA&view=company&view_revision=" + revision;
+    const response = isSnapshot
+      ? await snapshotGET(new Request("https://app.test/api/news/NVDA" + query),
+        { params: Promise.resolve({ symbol: "NVDA" }) })
+      : await storyGET(new Request("https://app.test/api/news/stories/ev2_group" + query),
+        { params: Promise.resolve({ storyId: "ev2_group" }) });
+    expect(response.status).toBe(502);
+    expect(response.headers.get("cache-control")).toBe("private, no-store");
+    expect(await response.json()).toEqual({ error: "invalid_upstream_payload" });
+  });
+
+  it("rejects a valid snapshot for another ticker", async () => {
+    signedIn();
+    installJson(200, {
+      schema: "ticker_news.snapshot.v1", editorial_view: correct,
+      ticker: "MSFT", security_id: "SEC:MSFT", state: "quiet", rows: [],
+      next_cursor: null, has_more: false, source_health: { state: "live" },
+    });
+    const response = await snapshotGET(
+      new Request("https://app.test/api/news/NVDA?view=company"),
+      { params: Promise.resolve({ symbol: "NVDA" }) },
+    );
+    expect(response.status).toBe(502);
+  });
+
+  it("rejects a valid detail for another story", async () => {
+    signedIn();
+    installJson(200, {
+      schema: "ticker_news.story.v1", editorial_view: correct, story_id: "ev2_other",
+      source_count: 0, item_count: 0, members: [],
+    });
+    const response = await storyGET(
+      new Request("https://app.test/api/news/stories/ev2_group?ticker=NVDA&view=company"),
+      { params: Promise.resolve({ storyId: "ev2_group" }) },
+    );
+    expect(response.status).toBe(502);
+  });
+});
