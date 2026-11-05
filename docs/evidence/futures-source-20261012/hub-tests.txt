@@ -1,0 +1,10 @@
+  ✔ constructs no webull leg and serves nothing (0.145ms)
+✔ EXT_FEED_DISABLE=1 also disables the webull leg (0.298417ms)
+ℹ tests 498
+ℹ suites 81
+ℹ pass 498
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 750.383917

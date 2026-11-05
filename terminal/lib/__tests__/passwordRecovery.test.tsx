@@ -42,6 +42,7 @@ const baseProps = {
   onModeSwitch: vi.fn(),
   onConfirmPending: vi.fn(),
   onAdvance: vi.fn(),
+  onSignedIn: vi.fn(),
 };
 
 describe("password recovery from the canonical sign-in sheet", () => {
