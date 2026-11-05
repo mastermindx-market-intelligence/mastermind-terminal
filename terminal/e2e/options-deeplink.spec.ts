@@ -132,3 +132,58 @@ test("Options follows query navigation and Back/Forward while retaining visited 
   await expect(page.locator('[data-options-ia-state="statistics-observed"]')).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath(`${testInfo.project.name}-options-query-navigation.png`) });
 });
+
+
+for (const target of ["Exposure", "Research Lab"] as const) {
+test("Options can leave " + target + " while new scripts and styles are still loading", async ({ page }, testInfo) => {
+  test.setTimeout(60_000);
+  let holdNewAssets = false;
+  let releaseAssets!: () => void;
+  const released = new Promise<void>(resolve => { releaseAssets = resolve; });
+  const held: { type: string; url: string }[] = [];
+  await page.route("**/*", async route => {
+    const request = route.request();
+    if (holdNewAssets && (request.resourceType() === "script" || request.resourceType() === "stylesheet")) {
+      held.push({ type: request.resourceType(), url: request.url() });
+      await released;
+    }
+    await route.continue().catch(() => {});
+  });
+  try {
+    await page.goto("/options?tab=structure&root=QQQ&keep=original#details");
+    const structureRoot = page.locator('input[list="structure-roots"]');
+    await expect(structureRoot).toBeVisible({ timeout: 15_000 });
+    await structureRoot.fill("IWM");
+    await structureRoot.press("Enter");
+    if (target === "Research Lab") {
+      await page.locator(".options-ia-category-row select").selectOption("gex");
+      await expect(page.getByRole("button", { name: "3D Research Lab", exact: true })).toBeVisible({ timeout: 30_000 });
+    }
+    holdNewAssets = true;
+
+    if (target === "Research Lab") {
+      await page.getByRole("button", { name: "3D Research Lab", exact: true }).click();
+    } else await page.evaluate(() => {
+      const url = new URL(window.location.href);
+      url.searchParams.set("tab", "prism");
+      window.history.replaceState(null, "", url);
+    });
+    await expect(page.locator("#wtab-cat-exposure")).toHaveAttribute("aria-selected", "true");
+    if (target === "Exposure") await expect(page.locator("#options-active-view .fin-empty[role=status]")).toBeVisible();
+    await expect.poll(() => held.filter(asset => asset.type === "script").length).toBeGreaterThan(0);
+
+    await page.locator(".options-ia-category-row select").selectOption("structure");
+    await expect(structureRoot).toBeVisible();
+    await expect(structureRoot).toHaveValue("IWM");
+    await expect(page.locator("#wtab-cat-structure")).toHaveAttribute("aria-selected", "true");
+    if (target === "Exposure") await expect(page).toHaveURL(/tab=structure&root=QQQ&keep=original#details$/);
+    else await expect(page).toHaveURL(/tab=structure&root=QQQ&keep=original&view=strike&research=1#details$/);
+    expect(held.filter(asset => asset.type === "stylesheet"), "lazy Options scripts must not introduce a root-blocking stylesheet").toHaveLength(0);
+    await page.screenshot({ path: testInfo.outputPath(testInfo.project.name + "-options-pending-assets-return.png") });
+  } finally {
+    holdNewAssets = false;
+    releaseAssets();
+    await testInfo.attach("pending-assets", { body: JSON.stringify(held, null, 2), contentType: "application/json" });
+  }
+});
+}

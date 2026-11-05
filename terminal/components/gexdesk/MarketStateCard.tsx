@@ -30,8 +30,10 @@
 
 import React, { useMemo } from "react";
 import { makeGexT } from "./gexStrings";
+import workspace from "./ExposureWorkspace.module.css";
 import type { Lang } from "@/lib/i18n";
 import type { GexPayload } from "./GexDeskView";
+import { gexSessionOf } from "@/lib/gexSessions";
 import { RingGauge } from "@/components/ui/RingGauge";
 import { Tip } from "@/components/ui/Tip";
 // R3.2: the regime colour table lives in lib/mscGlance.ts so the desk and every
@@ -457,7 +459,8 @@ export function MarketStateCard({
   const thesisText = t(thesisKey) || t("thesisUNKNOWN");
   const regimeLabel = plainRegime(t, state, lang);
 
-  const stabilityPct = Math.round(statePayload.stability_pct ?? 0);
+  const stabilityPct = Number.isFinite(statePayload.stability_pct) ? Math.round(statePayload.stability_pct) : null;
+  const stateDay = gexSessionOf(statePayload.asof);
 
   // Distance from spot to the gamma-flip level, % of spot — how close we are to a
   // long-γ ↔ short-γ regime change (the most actionable dealer-positioning read).
@@ -487,9 +490,13 @@ export function MarketStateCard({
 
   return (
     <div className="obs-card obs-scroll obs-gex-state" style={CARD_OUTER} data-tut="gex-state-card">
-      {/* ── Header: title only ──────────────────────────────────────────────── */}
       <div className="obs-card-hd" style={CARD_HEADER}>
         <span className="obs-lbl">{t("stateTitle")}</span>
+        {stateDay && (
+          <time dateTime={statePayload.asof} style={{ marginLeft: "auto", color: "var(--muted)", fontSize: "var(--fs-label)" }}>
+            {t("stateAsOf")} {stateDay}
+          </time>
+        )}
       </div>
 
       {/* A refresh that did not land keeps the last state on screen and says so. */}
@@ -560,7 +567,7 @@ export function MarketStateCard({
             <div style={STAB_STAT}>
               <span className="obs-lbl">{t("stateStability")}</span>
               <span className="num" style={STAB_VAL}>
-                {stabilityPct}%
+                {stabilityPct == null ? "—" : `${stabilityPct}%`}
               </span>
             </div>
             {distToFlipPct != null && (
@@ -596,16 +603,6 @@ export function MarketStateCard({
         </div>
       )}
 
-      {/* ── What-if flip breaks ──────────────────────────────────────────────── */}
-      <div style={SECTION_PAD}>
-        <WhatIfFlipBreaks
-          low={putWall}
-          flip={flipLevel}
-          high={callWall}
-          t={t}
-        />
-      </div>
-
       <div className="obs-card-hr" />
 
       {/* ── γ POLARITY block ─────────────────────────────────────────────────── */}
@@ -629,7 +626,6 @@ export function MarketStateCard({
               ? t("statePolarityLong")
               : t("statePolarityShort")}
           </span>
-          <span style={METRIC_BLOCK_CAPTION}>{t("statePolarityCaption")}</span>
           {gammaPolarity != null && (
             <span
               className="num"
@@ -665,9 +661,6 @@ export function MarketStateCard({
           >
             {hedgePressure.level === "HIGH" ? t("stateHedgeHigh") : t("stateHedgeLow")}
           </span>
-          <span style={METRIC_BLOCK_CAPTION}>
-            {t("stateHedgeCaption")}
-          </span>
           {hedgePressure.absVal != null && (
             <span
               className="num"
@@ -693,9 +686,6 @@ export function MarketStateCard({
               >
                 {fmtLevel(pin.strike)}
               </span>
-              <span style={METRIC_BLOCK_CAPTION}>
-                {t("statePinCaption")}
-              </span>
               {/* Not a calibrated probability — see statePinProbTip. The glance-tier
                   number stays; the hover carries the honesty disclosure. */}
               <Tip label={t("statePinProbTip")} side="left" size="card">
@@ -714,7 +704,17 @@ export function MarketStateCard({
         </div>
       </div>
 
-      {/* Passport (always at bottom) */}
+      <details className={workspace.stateDetails} data-testid="gex-state-details">
+        <summary>{t("stateDetails")}</summary>
+        <div className={workspace.stateDetailBody}>
+          <p><strong>{t("statePolarity")}.</strong> {t("statePolarityCaption")}</p>
+          <p><strong>{t("stateHedgePressure")}.</strong> {t("stateHedgeCaption")}</p>
+          <p><strong>{t("statePinTarget")}.</strong> {t("statePinCaption")} {t("statePinProbTip")}</p>
+          <WhatIfFlipBreaks low={putWall} flip={flipLevel} high={callWall} t={t} />
+        </div>
+      </details>
+
+      {/* The honesty passport remains visible even when model details are closed. */}
       <PassportBlock
         passportText={passportText}
         singleNameNote={singleNameNote}
@@ -763,15 +763,7 @@ function PassportBlock({
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
-/**
- * CONTAINMENT (v7b, re-homed in §5.3): the rail's width, left edge and — critically —
- * its bounded scroll region now live ONE level up, on GexDeskView's RIGHT_RAIL, because
- * the rail holds two cards (HeatSeeker + this one) instead of one. The invariant is
- * unchanged and still load-bearing: the rail is sized only by the desk's two-pane row,
- * so a drawer opening in the LEFT column can never change this card's scroll geometry —
- * that was what left it "pushed up" with its header parked off-screen after a collapse.
- * `minHeight:0` here lets the card shrink inside that rail rather than forcing it taller.
- */
+/* Keep all regime sections in normal flow within the containing workspace. */
 const CARD_OUTER: React.CSSProperties = {
   borderRadius: 0,
   display: "flex",
@@ -859,14 +851,20 @@ const SECTION_PAD: React.CSSProperties = {
 };
 
 const METRIC_BLOCK: React.CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "minmax(90px, 1fr) minmax(0, 1.4fr)",
+  alignItems: "center",
+  gap: "var(--sp-2)",
   padding: "var(--sp-2) var(--sp-4)",
 };
 
 const METRIC_BLOCK_BODY: React.CSSProperties = {
   display: "flex",
-  flexDirection: "column",
-  gap: "var(--sp-1)",
-  marginTop: "var(--sp-1)",
+  alignItems: "center",
+  justifyContent: "flex-end",
+  flexWrap: "wrap",
+  gap: "var(--sp-1) var(--sp-2)",
+  textAlign: "right",
 };
 
 const METRIC_BLOCK_HERO: React.CSSProperties = {
@@ -874,12 +872,6 @@ const METRIC_BLOCK_HERO: React.CSSProperties = {
   fontWeight: 800,
   letterSpacing: "0.04em",
   lineHeight: 1.2,
-};
-
-const METRIC_BLOCK_CAPTION: React.CSSProperties = {
-  fontSize: "var(--fs-micro)",
-  color: "var(--muted)",
-  lineHeight: 1.4,
 };
 
 // Structural range bar

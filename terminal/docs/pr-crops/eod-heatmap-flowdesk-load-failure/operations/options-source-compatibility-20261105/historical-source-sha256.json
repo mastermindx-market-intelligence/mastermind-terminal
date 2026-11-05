@@ -1,0 +1,19 @@
+{
+  "terminal/app/globals.css": "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517",
+  "terminal/app/observatory.css": "3af5e1731b87d91576dfeaf4d7d91952951010438e5523ba42f8fee38c4fa51a",
+  "terminal/components/eodcontext/DarkPoolMini.tsx": "1a32c139addae19531a4c9463e6f9b278e0c6b6626c59d0092bc2a0a45527420",
+  "terminal/components/eodcontext/EodContextBelt.tsx": "983b21e1a030ab66aada5d773a9d0ae9abccf0e796452e9cd6e3df62d6761013",
+  "terminal/components/eodcontext/StructureStrip.tsx": "0baf8c1d09fe4427569c92360081d842018d81d978a8b98d76fb283f950f31d4",
+  "terminal/components/eodcontext/eodStrings.ts": "4395f953dcc0f4beca53422786393ee792f297211a0eef655c64762f2b34f99f",
+  "terminal/components/flowdesk/ChainHeat.module.css": "7a0393fecc5a10b09b95679fcbecc529afbf601e8fd8f5e3addc39641c9b6bc0",
+  "terminal/components/flowdesk/CommandWorkspace.module.css": "e064e4a85df0613f4eb913d1cbe867a919cbf02bb0aa0498d98ff5a865b9d390",
+  "terminal/components/flowdesk/FlowDeskView.tsx": "d4217612605cfa8fad398ed198b503a6e32b709982473ff6e03a5765650c1d4f",
+  "terminal/components/flowdesk/FlowFreshnessReceipt.tsx": "5c8f3f13889a2d0bbbdc17d2a7b09a4404b634b6847ea42415f89f161b7ba900",
+  "terminal/components/gexdesk/GexDeskView.tsx": "e7e12f9b3f1217c0b78692a5c65d5181552015ca0c1a91510e01d259432a7a14",
+  "terminal/components/heatmap/HeatmapView.tsx": "3b3ab5049715a33f167e344d3013b8f880356e8b96077b38c9a517c57b7a54cb",
+  "terminal/e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs": "0704e5770ff650c473c067a57b84dde7064fd6aa70d5eb0c5def56a443290578",
+  "terminal/lib/dataCache.ts": "f8a7f978049e64482b385d43c13d49d05ddec2525e36457b365a2d083060e1be",
+  "terminal/lib/eodContext.ts": "1d0ce3ccde7a2fa05948cc0ac2ee93d16ec06724a7edcbd8c95c61e39d98b9e7",
+  "terminal/lib/flowdeskStrings.ts": "580399a47bae6ab6aa16368d25ed54c94047799e4a600352385b5a9b7cc25c10",
+  "terminal/lib/heatmapStrings.ts": "26bb75eccce7429e5a37154f07f7f68faf9652da1f6f3560074cb558f0dda9c2"
+}

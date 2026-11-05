@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useFuturesText } from "@/lib/futuresUiCopy";
 import { useSearchParams } from "next/navigation";
@@ -68,6 +68,10 @@ const RESEARCH_ALLOWED: TabKey[] = [...OPTIONS_HUB_WORKSPACE_VIEWS];
 const DEFAULT_VIEW: OptionsHubWorkspaceViewKey = "tape";
 const FUNDAMENTALS_HREF = "/analysis";
 
+function readTabFromUrl() {
+  return new URLSearchParams(window.location.search).get("tab");
+}
+
 function writeTabToUrl(pageKey: string) {
   const url = new URL(window.location.href);
   if (url.searchParams.get("tab") === pageKey) return;
@@ -80,9 +84,26 @@ export default function OptionsWorkspace() {
   const t = useT();
   const futuresText = useFuturesText();
   const searchParams = useSearchParams();
-  const rawTab = searchParams.get("tab");
-  // Native history changes and Back/Forward update useSearchParams through
-  // Next's router. Derive the view on every render so the URL stays authoritative.
+  const routerQuery = searchParams.toString();
+  const tabListeners = useRef(new Set<() => void>());
+  const subscribeToTab = useCallback((listener: () => void) => {
+    const listeners = tabListeners.current;
+    listeners.add(listener);
+    window.addEventListener("popstate", listener);
+    return () => {
+      listeners.delete(listener);
+      window.removeEventListener("popstate", listener);
+    };
+  }, []);
+  const notifyTabChange = useCallback(() => {
+    for (const listener of tabListeners.current) listener();
+  }, []);
+  // Next propagates native history through a transition, which a cold desk can
+  // suspend. Observe the browser URL immediately for owned writes and history.
+  const rawTab = useSyncExternalStore(subscribeToTab, readTabFromUrl, () => searchParams.get("tab"));
+  // External router navigation may commit its URL after rendering searchParams.
+  // Re-read that committed URL while preserving it as the single source of truth.
+  useEffect(notifyTabChange, [notifyTabChange, routerQuery]);
   const activeView = rawTab && Object.hasOwn(ROUTE_VIEW, rawTab) ? ROUTE_VIEW[rawTab] : DEFAULT_VIEW;
 
   // Redirected legacy destinations are handled before this component in normal
@@ -98,7 +119,8 @@ export default function OptionsWorkspace() {
   const selectView = useCallback((view: OptionsWorkspaceViewKey) => {
     const pageKey = view === "statistics" ? "statistics" : OPTIONS_IA_VIEW_BY_KEY[view].pageKey;
     writeTabToUrl(pageKey);
-  }, []);
+    notifyTabChange();
+  }, [notifyTabChange]);
 
   const activeCategory = optionsCategoryForView(activeView);
   const onCategorySelect = useCallback((categoryTab: string) => {

@@ -1,3 +1,4 @@
+import { qualifiedOptionsVisualPacket } from "./helpers/optionsVisualEvidence";
 import { createRequire } from "node:module";
 import { assertCapturedLexProjection } from "./helpers/lexEvidenceProjection";
 // Preserve the raw capture pin; only unused onboarding copy has an AST dependency projection.
@@ -12,8 +13,10 @@ import { join } from "node:path";
 const REPO = join(__dirname, "../../..");
 const immutableEvidence = createRequire(import.meta.url)("../../e2e/tools/visualEvidence.cjs");
 const composition = immutableEvidence.selectedComposition(REPO);
-const CROP_DIR = join(__dirname, "../../docs/pr-crops/b-pl-6-batch-1");
-const EVIDENCE = join(CROP_DIR, "EVIDENCE.yml");
+const ROOT_CROP_DIR = join(__dirname, "../../docs/pr-crops/b-pl-6-batch-1");
+const qualified = composition === null ? qualifiedOptionsVisualPacket(REPO, "pl6") : null;
+const CROP_DIR = qualified?.cropDir ?? ROOT_CROP_DIR;
+const EVIDENCE = qualified?.evidence ?? join(ROOT_CROP_DIR, "EVIDENCE.yml");
 const CROPS = [
   "AnalysisWorkspace-1440.png",
   "AnalysisWorkspace-1440-zh.png",

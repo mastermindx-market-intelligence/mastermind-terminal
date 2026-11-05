@@ -66,6 +66,43 @@ import {
   useChartWidth, niceTicks, fmtTick, thinLabels, padDomain, MIN_CHART_H,
 } from "@/components/charts/svgChart";
 
+// Next's webpack runtime registers lazy styles at the app root and waits for
+// them before committing updates. Own destination and nested-view styles here so
+// leaving a loading desk stays responsive; heavy view code remains lazy.
+import "@/components/gexdesk/ExposureWorkspace.module.css";
+import "@/components/chrome/investor-shell-preview.css";
+import "@/components/chrome/shared-shell/shared-shell.css";
+import "@/components/MobileNav.module.css";
+import "@/components/exposure-map/FrozenNodeEntry.module.css";
+import "@/components/researchlab/ResearchAppearance.css";
+import "@/components/exposure-map/ExposureOriginStrip.module.css";
+import "@/components/exposure-map/ExposureMap.module.css";
+import "@/components/exposure-map/ExposureScanTable.module.css";
+import "@/components/exposure-map/ExposureReplay.module.css";
+import "@/components/exposure-map/ExposureSessionReview.module.css";
+import "@/components/exposure-map/ExposureScenario.module.css";
+import "@/components/research/SavedScenario.module.css";
+import "@/components/exposure-map/ExposureSurface.module.css";
+import "@/components/exposure-map/ExposureChangeInspector.module.css";
+import "@/components/options-companion/OptionsCompanion.module.css";
+import "@/components/shared/StrikeExpiryMatrixRail.module.css";
+import "@/components/flowdesk/EvidenceDisclosure.module.css";
+import "@/components/flowdesk/CommandWorkspace.module.css";
+import "@/components/flowdesk/CommandResearch.module.css";
+import "@/components/flowdesk/ChainHeat.module.css";
+import "@/components/msc/msc.module.css";
+import "@/components/prophet/OptionsAlphaInvestigation.module.css";
+import "@/components/prophet/SelectionCohortCard.module.css";
+import "@/components/prophet/SelectionCohortCard.global.css";
+import "@/components/options/ResearchGrid.module.css";
+import "@/components/structure/OiChangePanel.module.css";
+import "@/components/surface/SurfaceWorkspace.module.css";
+import "@/components/researchlab/ResearchLab.module.css";
+import "@/components/LargeTradesOverlay.module.css";
+import "@/components/DayStatsStrip.module.css";
+import "@/components/ChartOvernight.module.css";
+import "@/components/VisualIntelligencePanel.module.css";
+
 // ── Code-split heavy tab sub-views (ssr:false — client-only, chart/canvas heavy) ──
 // Each tab is lazy-loaded on first visit; subsequent switches are instant (keep-alive).
 function TabSkeleton() {

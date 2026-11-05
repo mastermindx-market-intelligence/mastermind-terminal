@@ -1,0 +1,41 @@
+{
+  "protected": "11531481b0a540ee96bcd86df418fd1e42715363",
+  "files": [
+    {
+      "path": "terminal/components/gexdesk/GexDeskView.tsx",
+      "before_sha256": "e7e12f9b3f1217c0b78692a5c65d5181552015ca0c1a91510e01d259432a7a14",
+      "protected_sha256": "45e534f221754d1bf3a3214d9a1cbaa4e297623482cb0c9832f8e904ed944bb9"
+    },
+    {
+      "path": "terminal/components/researchlab/OptionsResearchLab.tsx",
+      "before_sha256": "7f1a0b3f630410273fbf3f58db716a61f80a78de8859541fc9cb44889717c078",
+      "protected_sha256": "365223a8182effc04fa956a8004062aa86c1426de8fc24eccebf6952e1571820"
+    },
+    {
+      "path": "terminal/components/options-companion/GexMarketMemory.tsx",
+      "before_sha256": "912b4570620d9bc9675e851ae58e8cad8bd6bf700e4ad2bb1d33ac835287aa71",
+      "protected_sha256": "6d166c952ad9ea732c1917b9984eb4d5bd14b12298c247f4524197d6998310cb"
+    },
+    {
+      "path": "terminal/components/researchlab/ResearchReportedGammaPanel.tsx",
+      "before_sha256": null,
+      "protected_sha256": "8a4fd4e87d3342845b244a5bc2f7ce4e980851617805770ddfb1f328f5e01e15"
+    },
+    {
+      "path": "terminal/components/researchlab/researchReportedGamma.ts",
+      "before_sha256": null,
+      "protected_sha256": "21d9d9f10d810a07bd9ae6acb28696d818dbe47e1b30c346c0bb0f7cdc1319f2"
+    },
+    {
+      "path": "terminal/lib/exposureOrigin.ts",
+      "before_sha256": "6d8387b46b524ba5943462d194aa17fb063ed975488f5ebab57eff4d1fdf6d34",
+      "protected_sha256": "9104d1eb713f7a39f8e84d22d0afb3f6a323ecd5da9545cc40437b466d1c2aaf"
+    },
+    {
+      "path": "terminal/components/exposure-map/ExposureOriginStrip.tsx",
+      "before_sha256": "bddaab1adc953af9d5827c391beaaaf369104b5f2536cca9118b0ad44363e05b",
+      "protected_sha256": "c1edfbc3d7417f2c5f8524ee59b1fb558641ddfabcd5a088ac26a99ed1b4ee79"
+    }
+  ],
+  "scope": "Exact protected Gex/Lab source closure; Exposure source-availability repair remains a separate composition."
+}

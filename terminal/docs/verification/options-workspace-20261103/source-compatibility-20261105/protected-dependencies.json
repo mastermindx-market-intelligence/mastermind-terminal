@@ -1,0 +1,193 @@
+{
+  "protected": "11531481b0a540ee96bcd86df418fd1e42715363",
+  "authorship_base": "ac3762717ad150fd4f18614afd78072115a7c80a",
+  "preserved_options_hub": "44b4889738d258d69af37b0a00ad9e152290a3aa950bd076b1e829972666d7a3",
+  "files": [
+    {
+      "path": "terminal/app/(shell)/layout.tsx",
+      "before_sha256": "76270446f1ff2b2f60393eacb81d3ccb1c5f6e7c7b20b96d85b535c7d1da5b9a",
+      "protected_sha256": "4daf0325a82cadfb2223fbaa8bf0a26662463cccbfd9bdbced4ed9b511a85b2b",
+      "options_equal_common_base": true
+    },
+    {
+      "path": "terminal/components/AppNav.tsx",
+      "before_sha256": "84d322919afd8e53058e2a4a283db97257fb3607ab5bd90db53f1bf24beb7aa4",
+      "protected_sha256": "a09aab88274155a1282a8df34dbbc04d2ad35a19a50bf13df3b8f035a53f971d",
+      "options_equal_common_base": true
+    },
+    {
+      "path": "terminal/components/MobileNav.tsx",
+      "before_sha256": "807e623386587d369ee8a088f07815d5296539ea8ca787a39ed0b64d27935f52",
+      "protected_sha256": "4ab705115eb01659bfe37757dcff085e1ffa76e0790c4006eb3a252fbffda64a",
+      "options_equal_common_base": true
+    },
+    {
+      "path": "terminal/components/SearchModal.tsx",
+      "before_sha256": "5b3a466a06215231f1b458c382aaae268b4f2f9f206d6f985f312f603fa4a5aa",
+      "protected_sha256": "d1522bfdaa7c5cd223e5024aa3698104ea404d9c46a5854b17e86da3ea570818",
+      "options_equal_common_base": true
+    },
+    {
+      "path": "terminal/components/SearchModal.module.css",
+      "before_sha256": "bc82bdeb1a4eb78fe9babe884c2ae8e7fc2773710e6399b5bf22733f70f102fb",
+      "protected_sha256": "c07ad2028e36b1c70be969a9ab55d8d289dfcfeeceb18be5c5de3d1b18bbbaa9",
+      "options_equal_common_base": true
+    },
+    {
+      "path": "terminal/components/SymbolPicker.tsx",
+      "before_sha256": "3eab9574afb61b3993482d3d6b5afe636025d909ef832e87a13901a1646368d2",
+      "protected_sha256": "0aa9f20b5f5a76b917dbb0e54bd3d5f467d8bb23bc8e642befe1fd10525f252f",
+      "options_equal_common_base": true
+    },
+    {
+      "path": "terminal/components/chrome/shared-shell/ShellSearch.tsx",
+      "before_sha256": "410426f3f54d60ca70eaa54d0755ce9a195b246eda6e59e5d8e225d2073cd03a",
+      "protected_sha256": "6ec2cdc819392b1c9a13bc7bbd066d49955061d166f33d498be37c57a9af0c69",
+      "options_equal_common_base": true
+    },
+    {
+      "path": "terminal/components/chrome/shared-shell/shared-shell.css",
+      "before_sha256": "aa6555ac18306f31fb317d8941bd1dd530ab7c61c18e67d2a73a439329950339",
+      "protected_sha256": "ace6eda93612f229031e426b6246315dd5cdeb49add7ce1d24c45165e7eb2660",
+      "options_equal_common_base": true
+    },
+    {
+      "path": "terminal/components/workspaces/AnalysisWorkspace.tsx",
+      "before_sha256": "411b8a7e498b8af3f9337fdcf3835dd62e6a5854826f414171d8303efd8aa5bb",
+      "protected_sha256": "28a1d3b6d318a7e04297d2ba958a93da602761d01d5b587d66c14a9e78e6c39b",
+      "options_equal_common_base": true
+    },
+    {
+      "path": "terminal/components/CompanyListingIdentity.tsx",
+      "before_sha256": null,
+      "protected_sha256": "6d4347aafef93cfdaa1de89dada550f0f61953488e7166b146fdfc349bea77b7",
+      "options_equal_common_base": true
+    },
+    {
+      "path": "terminal/components/CompanyListingIdentity.module.css",
+      "before_sha256": null,
+      "protected_sha256": "29788c51e58e5e972be0335d490685cb8512a3fbd8bdbe35aa4663e2fe2f70a3",
+      "options_equal_common_base": true
+    },
+    {
+      "path": "terminal/lib/companySearchContext.ts",
+      "before_sha256": null,
+      "protected_sha256": "ee780295ea796509bbfdf92688ddd522144cd38f0fb82925a8ca31acfdaf4b12",
+      "options_equal_common_base": true
+    },
+    {
+      "path": "terminal/next.config.ts",
+      "before_sha256": "2fa9402645a4312f9846e9f73b6df076e6747723041a5f2da4c6ada3c4cf375e",
+      "protected_sha256": "7713c63146e5821e4d2c5df8e0495e7b1af76344c2299879150065fbeb1098b1",
+      "options_equal_common_base": true
+    },
+    {
+      "path": "terminal/lib/shared-shell/memberIdentity.ts",
+      "before_sha256": "38ea3e6e35ef8db049ef2ec5ec17941c561eb40c085de0e8c26e82271e660e4b",
+      "protected_sha256": "7ddb56d2f3afd5b9d95daea82ad5046199121c6072e24ff3bd05ac3edaffe2f6",
+      "options_equal_common_base": true
+    },
+    {
+      "path": "terminal/app/(shell)/analysis/page.tsx",
+      "before_sha256": "f55abaa6f7468bd868e1b455b61ed5cbc6b06116ac7ddafe6cc48d357c7e1eec",
+      "protected_sha256": "d614e49e3f4bfc981d09c06cc8df5b10cff66901a6a7b4a2afd9ddf736e2629b",
+      "options_equal_common_base": true
+    },
+    {
+      "path": "terminal/app/data/[...path]/route.ts",
+      "before_sha256": null,
+      "protected_sha256": "c652492ddd293b854a87272bddfc300f92d476fb1bec6fca319c99607056cf3e",
+      "options_equal_common_base": true
+    },
+    {
+      "path": "terminal/lib/dataCache.ts",
+      "before_sha256": "f8a7f978049e64482b385d43c13d49d05ddec2525e36457b365a2d083060e1be",
+      "protected_sha256": "ce28db3a3bcb3425320ac7e6845df02be5d21daebfa084756830c631623c7a3a",
+      "options_equal_common_base": true
+    },
+    {
+      "path": "terminal/lib/idbJsonStore.ts",
+      "before_sha256": "6b6db2c229c81d4535edd037768400a23921d5296fad4810663c3aad12acc4b0",
+      "protected_sha256": "542eb3bc99044161c24f4fe41ea3caff43f260f29f11a50186e0fc21a18584c8",
+      "options_equal_common_base": true
+    },
+    {
+      "path": "terminal/lib/__tests__/dataCachePersist.test.ts",
+      "before_sha256": "58d650c463e194919926be0178d1cd0725ca3df5f27bba44bba470c7943113b5",
+      "protected_sha256": "c189a8f374158e3930543a4220ada4ddee87432b37208e61e695c0f9635741fe",
+      "options_equal_common_base": true
+    },
+    {
+      "path": "terminal/e2e/options-shortlist-plan.spec.ts",
+      "before_sha256": "173966e7205b529fb1e4545ccb17fcd14cb5bb9d82cd27386db584ee84975711",
+      "protected_sha256": "2537b637a3d62ba83be1d6aeedb103b84c5866b13154e7e7cfcca006b4fe0472",
+      "options_equal_common_base": true
+    },
+    {
+      "path": "terminal/lib/__tests__/guestBundleBoundary.test.ts",
+      "before_sha256": "d6e602586fd9848e814a2d701c080988d5fbcd28d5d16d63484f8ab5e69b756a",
+      "protected_sha256": "bdbd8cb1b7730b85b340ab9f1e903f81f4fbe565eb7e5992975c3c599fbf6869",
+      "options_equal_common_base": true
+    },
+    {
+      "path": "terminal/lib/__tests__/investorShellPreview.test.tsx",
+      "before_sha256": "5e5870ae6dddd3a2f08de1140c6b2bf4a0dd593d101ec33946e53793b594c445",
+      "protected_sha256": "88719fbd99b0e323a0443c8d60040f66e8b915ef8388a78ce6472c3d15016455",
+      "options_equal_common_base": true
+    },
+    {
+      "path": "terminal/lib/__tests__/prophetFixtureReadiness.test.tsx",
+      "before_sha256": null,
+      "protected_sha256": "50cb2c9da3e7e1b2e954698cf51cc0787715c539db1da85fda9df638c77edbe6",
+      "options_equal_common_base": true
+    },
+    {
+      "path": "terminal/lib/__tests__/rsPivotShellIdentity.test.tsx",
+      "before_sha256": "68b9a467a0bae682c0d0543067aac4185447bb2a4337b9b0fe014fb1d2494843",
+      "protected_sha256": "482ee142ff0771d6fe252424264e80f97bc4f395589c010b88b1d18dc3bd4f90",
+      "options_equal_common_base": true
+    },
+    {
+      "path": "terminal/lib/__tests__/sharedShellClaimsIdentity.test.ts",
+      "before_sha256": null,
+      "protected_sha256": "16763427c56f4486704890dc52efb3c8da40a1a8f7927c3ae4b99fd20f4253a2",
+      "options_equal_common_base": true
+    },
+    {
+      "path": "terminal/lib/__tests__/sharedShellClaimsPages.test.tsx",
+      "before_sha256": null,
+      "protected_sha256": "97c2a0d3ed6fabae96abd9fbeb548e59c1a05f63318bdc1fba3074b81061d74d",
+      "options_equal_common_base": true
+    },
+    {
+      "path": "terminal/lib/__tests__/shellFixtureIdentity.test.tsx",
+      "before_sha256": "4fdcae9ae2b45f5a64d12b113374f7ddc5d4d54ea00c5af0655eb75a1620190e",
+      "protected_sha256": "c064b1841509dcc42252c5c43166dfdc7ede69684e828d298946f72ca7dfe81d",
+      "options_equal_common_base": true
+    },
+    {
+      "path": "terminal/lib/__tests__/companyListingIdentity.test.tsx",
+      "before_sha256": null,
+      "protected_sha256": "cbd0ec7c1c4c8f1305138af06614860e883ab0a99e4aa8db450ab756bed1f664",
+      "options_equal_common_base": true
+    },
+    {
+      "path": "terminal/lib/__tests__/companySearchContext.test.ts",
+      "before_sha256": null,
+      "protected_sha256": "f44f4641fcdcaf3adcad30f50ac99f35df5fb9358da13ab38b6be1e82f7e1a4a",
+      "options_equal_common_base": true
+    },
+    {
+      "path": "terminal/lib/__tests__/companySearchIdentity.test.tsx",
+      "before_sha256": "d155ce433098d4a6f5ce6c7509b32fd4cad29c8f2657af33de6e191dbf41d03c",
+      "protected_sha256": "be1bad53821a0b363e0cc12a219d9892f8c19ff54fff0b7219844ec98f052d1b",
+      "options_equal_common_base": true
+    },
+    {
+      "path": "terminal/lib/__tests__/companySearchReturn.test.tsx",
+      "before_sha256": null,
+      "protected_sha256": "410404186283d62caf1119f837b399dc7111d9293b0de7702174b08496425302",
+      "options_equal_common_base": true
+    }
+  ]
+}

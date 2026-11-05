@@ -49,7 +49,7 @@ const { chromium } = require("@playwright/test");
 
 const ROOT = join(__dirname, "..", "..");
 const REPO = join(ROOT, "..");
-const OUT = join(ROOT, "docs", "pr-crops", "eod-heatmap-flowdesk-load-failure");
+const OUT = process.env.TERMINAL_CROP_OUTPUT_DIR || join(ROOT, "docs", "pr-crops", "eod-heatmap-flowdesk-load-failure");
 const LAYOUT_FILES = [
   "terminal/app/globals.css",
   "terminal/components/eodcontext/DarkPoolMini.tsx",
@@ -59,6 +59,7 @@ const LAYOUT_FILES = [
   "terminal/components/flowdesk/ChainHeat.module.css",
   "terminal/components/flowdesk/CommandWorkspace.module.css",
   "terminal/components/flowdesk/FlowDeskView.tsx",
+  "terminal/components/gexdesk/ExposureWorkspace.module.css",
   "terminal/components/gexdesk/GexDeskView.tsx",
   "terminal/components/heatmap/HeatmapView.tsx",
   "terminal/lib/dataCache.ts",
@@ -223,7 +224,7 @@ function startServer() {
     NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
     NEXT_PUBLIC_SUPABASE_ANON_KEY: "fixture-anon-key",
   };
-  const child = spawn("npm", ["run", "dev", "--", "--hostname", "127.0.0.1", "--port", String(PORT)], {
+  const child = spawn("npm", ["run", "dev", "--", "--hostname", "127.0.0.1", "--port", String(PORT), ...(process.env.TERMINAL_CROP_WEBPACK === "1" ? ["--webpack"] : [])], {
     cwd: ROOT,
     env,
     stdio: ["ignore", "pipe", "pipe"],

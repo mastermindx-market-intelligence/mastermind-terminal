@@ -1,0 +1,10 @@
+{
+  "schema": "options_exposure_packet.v1",
+  "kind": "gex",
+  "profile": "combined",
+  "operation": "combined-source-compatibility-20261105",
+  "receipt": "capture-receipt.json",
+  "receiptSha256": "45c6bf7bd7be9612a546e82593257c8afc2aae323aa68050da753a3146bf5bcc",
+  "manifest": "qualified-root/EVIDENCE.yml",
+  "manifestSha256": "75f7c562f52075392ed2f5854731f9324e00170d18e71bd96b1a95e5841e24f4"
+}

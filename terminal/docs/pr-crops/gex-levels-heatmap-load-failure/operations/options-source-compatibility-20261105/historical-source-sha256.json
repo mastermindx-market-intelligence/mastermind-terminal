@@ -1,0 +1,15 @@
+{
+  "terminal/app/globals.css": "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517",
+  "terminal/components/gexdesk/GexDeskView.tsx": "e7e12f9b3f1217c0b78692a5c65d5181552015ca0c1a91510e01d259432a7a14",
+  "terminal/components/gexdesk/HeatSeekerCard.tsx": "308295e2b0143fe933948c97a14584e1e0d1eff9249a58104dd3587a2642c93a",
+  "terminal/components/gexdesk/MarketStateCard.tsx": "069c4a2f1a5f53e8f611e3231b78751948cc0264c8af6efd167f7b3e4902bbe2",
+  "terminal/components/gexdesk/StrikeLadder.tsx": "55dccbef4e3bfebc09477f6d9a0133cf0bc5d70531d32d532e760ff214ed4596",
+  "terminal/components/gexdesk/gexStrings.ts": "15fb1e6b89725ae7bf5762b3b0cd9749e85331f6733c34efc710979430132d7b",
+  "terminal/components/heatmap/HeatmapView.tsx": "3b3ab5049715a33f167e344d3013b8f880356e8b96077b38c9a517c57b7a54cb",
+  "terminal/components/levels/LevelsView.tsx": "d200204df1cae5ee1401c152df8ce4992d5e88fa852d2505d6c64b1074128e17",
+  "terminal/components/levels/levelsLabels.ts": "361124ec9293623fefe69128212f5a25bfddf2c3d716252126d56ec5f356d0d9",
+  "terminal/components/levels/levelsNavigation.ts": "c92295f5e11007a5cef612b0803120e69d20a2dcc0987834bbd2b6cafcc87807",
+  "terminal/e2e/tools/capture_gex_levels_heatmap_load_failure.cjs": "ef748a86ab46c447623299e4ab7f457847f58fcd1f251a91b0011e25f71c5adc",
+  "terminal/lib/dataCache.ts": "f8a7f978049e64482b385d43c13d49d05ddec2525e36457b365a2d083060e1be",
+  "terminal/lib/heatmapStrings.ts": "26bb75eccce7429e5a37154f07f7f68faf9652da1f6f3560074cb558f0dda9c2"
+}

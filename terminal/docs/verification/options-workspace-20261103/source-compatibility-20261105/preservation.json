@@ -1,0 +1,113 @@
+{
+  "head": "98ffa891116ccc9e6be58a64148dbe45591e6ce8",
+  "protected": "11531481b0a540ee96bcd86df418fd1e42715363",
+  "packets": [
+    {
+      "packet": "gex-levels-heatmap-load-failure",
+      "prior_files": 115,
+      "protected_files": 116,
+      "differing_common_files": [
+        "EVIDENCE.yml",
+        "gex-live-refresh-failed-1440-zh.png",
+        "gex-live-refresh-failed-1440.png",
+        "gex-live-refresh-failed-390-zh.png",
+        "gex-live-refresh-failed-390.png",
+        "gex-live-refresh-failed-820-zh.png",
+        "gex-live-refresh-failed-820.png",
+        "gex-live-retried-1440-zh.png",
+        "gex-live-retried-1440.png",
+        "gex-live-retried-390-zh.png",
+        "gex-live-retried-390.png",
+        "gex-live-retried-820-zh.png",
+        "gex-live-retried-820.png",
+        "levels-absent-1440-zh.png",
+        "levels-absent-1440.png",
+        "levels-absent-390-zh.png",
+        "levels-absent-390.png",
+        "levels-absent-820-zh.png",
+        "levels-absent-820.png",
+        "levels-refresh-failed-1440-zh.png",
+        "levels-refresh-failed-1440.png",
+        "levels-refresh-failed-390-zh.png",
+        "levels-refresh-failed-390.png",
+        "levels-refresh-failed-820-zh.png",
+        "levels-refresh-failed-820.png",
+        "levels-retried-1440-zh.png",
+        "levels-retried-1440.png",
+        "levels-retried-390-zh.png",
+        "levels-retried-390.png",
+        "levels-retried-820-zh.png",
+        "levels-retried-820.png",
+        "levels-unavailable-1440-zh.png",
+        "levels-unavailable-1440.png",
+        "levels-unavailable-390-zh.png",
+        "levels-unavailable-390.png",
+        "levels-unavailable-820-zh.png",
+        "levels-unavailable-820.png"
+      ],
+      "prior_manifest_sha256": "a936e0154392a42753384bd7a02bf5487aa0c4f0cfee8afc974a7bd738bb371f",
+      "protected_manifest_sha256": "f802daa53147e8a771e01a6dd896c7991ab56a8ad3b520c9f7716726a7bbce34"
+    },
+    {
+      "packet": "eod-heatmap-flowdesk-load-failure",
+      "prior_files": 127,
+      "protected_files": 127,
+      "differing_common_files": [
+        "EVIDENCE.yml",
+        "chainheat-absent-1440-zh.png",
+        "chainheat-absent-1440.png",
+        "chainheat-absent-390-zh.png",
+        "chainheat-absent-390.png",
+        "chainheat-absent-820-zh.png",
+        "chainheat-absent-820.png",
+        "chainheat-refresh-failed-1440-zh.png",
+        "chainheat-refresh-failed-1440.png",
+        "chainheat-refresh-failed-390-zh.png",
+        "chainheat-refresh-failed-390.png",
+        "chainheat-refresh-failed-820-zh.png",
+        "chainheat-refresh-failed-820.png",
+        "chainheat-retried-1440-zh.png",
+        "chainheat-retried-1440.png",
+        "chainheat-retried-390-zh.png",
+        "chainheat-retried-390.png",
+        "chainheat-retried-820-zh.png",
+        "chainheat-retried-820.png",
+        "chainheat-unavailable-1440-zh.png",
+        "chainheat-unavailable-1440.png",
+        "chainheat-unavailable-390-zh.png",
+        "chainheat-unavailable-390.png",
+        "chainheat-unavailable-820-zh.png",
+        "chainheat-unavailable-820.png"
+      ],
+      "prior_manifest_sha256": "566645e410aba3dd89643003ce41fda25d8ad10140a87e0d38ad5a6387bf43c6",
+      "protected_manifest_sha256": "42c027968aeafbe179333d691e5727ef76523f9775becad3b2002dc0139b05da"
+    },
+    {
+      "packet": "terminal-visual-intelligence",
+      "prior_files": 39,
+      "protected_files": 183,
+      "differing_common_files": [
+        "EVIDENCE.yml",
+        "browser-report.json",
+        "desktop-context-zh.png",
+        "desktop-context.png"
+      ],
+      "prior_manifest_sha256": "77b35808e0b7ce61a20d6a48c52b1b9bf84e22fa867b8f81c3533597afe50d9c",
+      "protected_manifest_sha256": "b744ff3c66a2836a354bd3c9898559ada018afe98197941e334d70b42087ee02"
+    },
+    {
+      "packet": "b-pl-6-batch-1",
+      "prior_files": 45,
+      "protected_files": 232,
+      "differing_common_files": [
+        "EVIDENCE.yml",
+        "OptionsHubView-1440-zh.png",
+        "OptionsHubView-1440.png",
+        "OptionsHubView-390-zh.png",
+        "OptionsHubView-390.png"
+      ],
+      "prior_manifest_sha256": "f19401dbb7a9942fb8c899819f48e65338a75579bccad0ecc72f710c844d5cd3",
+      "protected_manifest_sha256": "fb469ffeba649cf0a0bdfb21f8c2d27b7c0213ec90502b4be0bd49e12b4b2505"
+    }
+  ]
+}

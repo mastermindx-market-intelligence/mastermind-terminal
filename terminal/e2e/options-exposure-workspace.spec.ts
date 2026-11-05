@@ -399,6 +399,32 @@ for (const lang of ["en", "zh"] as const) {
     await expect(map.getByText(lang === "en" ? /Dual layers: solid Gamma/ : /双层视图：/)).toBeVisible();
     if (info.project.name === "mobile") expect((await map.locator(".chart-wrap canvas").first().boundingBox())!.y).toBeLessThan(700);
     if (info.project.name !== "mobile") await expect(map.getByTestId("exposure-implied-distance")).toContainText("0.49 σ");
+    // Both retained static cells and the protected interactive cells need the
+    // same compact column layout after their shared stylesheet is reconciled.
+    const momentum = map.getByTestId("exposure-divergence");
+    const grid = momentum.locator(":scope > div").nth(1);
+    const cells = grid.locator(":scope > div, :scope > button");
+    await expect(cells).toHaveCount(5);
+    const layout = await cells.evaluateAll(elements => elements.map(element => {
+      const style = getComputedStyle(element);
+      return { tag: element.tagName, display: style.display, direction: style.flexDirection,
+        top: style.paddingTop, left: style.paddingLeft };
+    }));
+    const phone = (page.viewportSize()?.width ?? 1440) <= 540;
+    for (const cell of layout) {
+      expect(cell.display).toBe("flex");
+      expect(cell.direction).toBe("column");
+      expect(cell.top).toBe(phone ? "8px" : "9px");
+      expect(cell.left).toBe(phone ? "4px" : "6px");
+    }
+    const tags = [...new Set(layout.map(cell => cell.tag))];
+    expect(tags.length).toBe(1);
+    expect(["DIV", "BUTTON"]).toContain(tags[0]);
+    if (tags[0] === "BUTTON") {
+      await expect(grid.locator(":scope > button[data-timeframe]")).toHaveCount(5);
+      await expect(grid.locator(':scope > button[aria-pressed="true"]')).toHaveCount(1);
+    }
+    await info.attach("momentum-layout", { body: JSON.stringify(layout, null, 2), contentType: "application/json" });
     for (const theme of ["dark", "light"]) {
       await page.evaluate(value => document.documentElement.setAttribute("data-theme", value), theme);
       await page.screenshot({ path: `test-results/exposure-workspace-${info.project.name}-${lang}-${theme}.png` });

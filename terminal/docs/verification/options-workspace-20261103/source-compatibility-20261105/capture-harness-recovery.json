@@ -1,0 +1,24 @@
+{
+  "failed_attempt": "native-original-gex.json",
+  "cause": "Options original harness did not implement the supplied output/webpack controls. Its default Turbopack could not resolve the offline font asset URLs; no frames were produced and original port3675 was verified closed.",
+  "source_changes": [
+    {
+      "path": "terminal/e2e/tools/capture_gex_levels_heatmap_load_failure.cjs",
+      "before": "ef748a86ab46c447623299e4ab7f457847f58fcd1f251a91b0011e25f71c5adc",
+      "after": "2e3ead6650594d2d25a2250dbc1e1646e8e2e7824b1f80e1e25bb59ddff44bbc",
+      "change": "Reuse existing optional output-directory and webpack controls. Default behavior and scene assertions unchanged."
+    },
+    {
+      "path": "terminal/e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs",
+      "before": "0704e5770ff650c473c067a57b84dde7064fd6aa70d5eb0c5def56a443290578",
+      "after": "d0b5b9376dee918ae21d0f9765b8a09e50233982c627b915b8f452decd67680c",
+      "change": "Reuse existing optional output-directory and webpack controls. Default behavior and scene assertions unchanged."
+    },
+    {
+      "path": "terminal/e2e/tools/capture_pl6_batch1.cjs",
+      "before": "86be61600fb2fb285cde402d6a7c54639aa5da0b3c552f203cded6683589b694",
+      "after": "bcf4a32331bab6461ca26bb67abe99ae0a2e2a8bcfadb59b2e22e3dcda290b04",
+      "change": "Reuse existing optional output-directory and webpack controls. Default behavior and scene assertions unchanged."
+    }
+  ]
+}
