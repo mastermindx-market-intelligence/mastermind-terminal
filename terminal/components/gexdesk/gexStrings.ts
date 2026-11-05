@@ -17,6 +17,9 @@
 import type { Lang } from "@/lib/i18n";
 
 const GEX_LEX = {
+  sourceSessionLabel: ["source session", "源交易日"],
+  sumReportedGex: ["Reported GEX", "源报告 GEX"],
+  lensReportedBasis: ["Source-reported modeled values · session {date}. Source completeness is unknown.", "源报告的模型值 · 交易日 {date}。源数据完整性未知。"],
   // ── Tab / surface header ───────────────────────────────────────────────────
   quickRoots: ["Roots", "标的"],
   exposureMap: ["Exposure map", "敞口图"],

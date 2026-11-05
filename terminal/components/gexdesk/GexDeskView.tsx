@@ -42,6 +42,7 @@ import React, {
 import dynamic from "next/dynamic";
 import { flowGetResult, flowInvalidate, type FlowOutcome } from "@/lib/flowClientCache";
 import { isValidRoot } from "@/lib/flowRoot";
+import { isoSession } from "@/lib/dte";
 import { useFlowStream } from "@/lib/flowStream";
 import { useLang } from "@/lib/i18n";
 import { GEX_QUICK_ROOTS, GEX_AUTOCOMPLETE_ROOTS } from "@/lib/optionsRoots";
@@ -784,7 +785,18 @@ export function GexDeskView({ onMapFirstChange, onOpenPlan }: { onMapFirstChange
   let asofStr = "";
   let asofStale = false;
   let asofAgeStr = "";
-  if (asof) {
+  if (asof && isoSession(asof)) {
+    // A date-only source session is not UTC midnight converted to Eastern time.
+    asofStr = new Date(asof + "T00:00:00Z").toLocaleDateString(lang === "zh" ? "zh-CN" : "en-US", {
+      weekday: "short", month: "short", day: "numeric", timeZone: "UTC",
+    }) + " · " + t("sourceSessionLabel");
+    const today = new Date().toLocaleDateString("en-CA", { timeZone: "America/New_York" });
+    const ageDays = Math.round((Date.parse(today) - Date.parse(asof)) / 86_400_000);
+    if (ageDays > 0) {
+      asofStale = true;
+      asofAgeStr = ageDays <= 1 ? t("lastSession") : t("daysOld").replace("{n}", String(ageDays));
+    }
+  } else if (asof) {
     try {
       const d = new Date(asof);
       asofStr = d.toLocaleString("en-US", {
@@ -858,11 +870,19 @@ export function GexDeskView({ onMapFirstChange, onOpenPlan }: { onMapFirstChange
         callOI={isArchived ? null : (visibleStatePayload as unknown as Record<string, number | null | undefined>)?.call_oi ?? null}
         putOI={isArchived ? null : (visibleStatePayload as unknown as Record<string, number | null | undefined>)?.put_oi ?? null}
         lens={effectiveLens}
+        lensReportedOnly
         lensNetMn={lensValues.totalMn}
         lensCoveredStrikes={lensCoveredStrikeCount}
         lensTotalStrikes={ladderStrikes.length}
         lang={lang}
       />
+      )}
+      {!(isArchived && archivedMissing) && effectiveLens.kind !== "all"
+        && lensValues.sourceSession && !lensValues.reason && (
+        <div role="status" data-testid="gex-lens-source"
+          style={{ padding: "8px 12px", color: "var(--muted)", fontSize: 12 }}>
+          {t("lensReportedBasis").replace("{date}", lensValues.sourceSession)}
+        </div>
       )}
       {!(isArchived && archivedMissing) && lensPartial && (
         <div style={LENS_PARTIAL} data-testid="gex-lens-partial" role="note">
