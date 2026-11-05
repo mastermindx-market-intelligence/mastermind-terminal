@@ -180,16 +180,17 @@ export function eventInWindow(expiry: string, events: readonly CurveEvent[], tod
 
 /** Weekdays strictly after `today` through `expiry` (holidays NOT subtracted). */
 export function tradingDaysBetween(today: string, expiry: string): number | null {
-  if (!ISO_DAY.test(today) || !ISO_DAY.test(expiry)) return null;
+  if (isoDay(today) == null || isoDay(expiry) == null) return null;
   const start = Date.parse(`${today}T00:00:00Z`);
   const end = Date.parse(`${expiry}T00:00:00Z`);
-  if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) return null;
-  let n = 0;
-  const cur = new Date(start);
-  for (let guard = 0; guard < 800; guard++) {
-    cur.setUTCDate(cur.getUTCDate() + 1);
-    if (cur.getTime() > end) break;
-    const dow = cur.getUTCDay();
+  if (end <= start) return null;
+  const days = (end - start) / 86_400_000;
+  // Every complete seven-day interval contributes five weekdays. Only the
+  // remainder needs inspection, so long valid horizons cannot be truncated.
+  let n = Math.floor(days / 7) * 5;
+  const startDow = new Date(start).getUTCDay();
+  for (let offset = 1; offset <= days % 7; offset++) {
+    const dow = (startDow + offset) % 7;
     if (dow !== 0 && dow !== 6) n++;
   }
   return n;
