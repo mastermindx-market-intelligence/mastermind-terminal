@@ -72,12 +72,12 @@ export function editedOn(iso: string, lang: "en" | "zh" = "en"): string {
 // `null` = superseded/disposed: nothing was checked, so the caller keeps what it showed rather than
 // reporting a clean compile. An engine failure (the worker never booted, or crashed) comes back as
 // `unavailable` — not as the script's errors, and not as a clean pass.
-async function diagnose(host: PineHost, src: string, params: Record<string, any>): Promise<Diag | null> {
+async function diagnose(host: PineHost, src: string, params: Record<string, any>, current: () => boolean): Promise<Diag | null> {
   const c = await host.compile(src);
-  if (c.cancelled) return null;
+  if (!current() || c.cancelled) return null;
   if (!c.ok) return pineEngineFailure(c.errors[0]) ? { errors: [], warnings: [], unavailable: true } : { errors: c.errors, warnings: [] };
   const r = await host.run({ slot: DIAG_SLOT, source: src, astId: c.astId ?? undefined, bars: SYNTH_BARS, inputs: params, opts: { timeframe: "1D", symbol: "SYNTH" }, budgetMs: 1000 });
-  if (r.cancelled) return null;
+  if (!current() || r.cancelled) return null;
   if (!r.ok && pineEngineFailure(r.errors[0])) return { errors: [], warnings: [], unavailable: true };
   return { errors: r.ok ? [] : r.errors, warnings: r.result?.warnings ?? [] };
 }
@@ -134,6 +134,9 @@ export default function PineEditor({ scripts, isPro, email, libraryUnavailable =
   const [selectedId, setSelectedId] = useState<string | null>(initialId);
   const active = library.find((s) => s.id === selectedId) ?? library[0];
   const [src, setSrc] = useState(active?.source || "");
+  // SSR can display the source before React owns input events. Enable editing only
+  // after the initial buffer-reset effect has settled, so early edits cannot be lost.
+  const [bufferReady, setBufferReady] = useState(false);
   const [params, setParams] = useState<Record<string, any>>(active?.params || {});
   const srcRef = useRef(src);
   const paramsRef = useRef(params);
@@ -167,7 +170,15 @@ export default function PineEditor({ scripts, isPro, email, libraryUnavailable =
   // the selected script ID, never on the library's contents or array index — so a save, which
   // rewrites the active row in `library`, or a server-list reorder of the same identities, does
   // not reset the buffer the user is still typing in.
-  useEffect(() => { setSrc(active?.source || ""); setParams(active?.params || {}); setStatus("idle"); setPicker(false); }, [selectedId]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    retireDiag();
+    // The existing buffer owner also supplies an ID-consistent diagnostic input.
+    // A queued check cannot pair the new selection with the preceding buffer.
+    const nextSource = active?.source || "", nextParams = active?.params || {};
+    srcRef.current = nextSource; paramsRef.current = nextParams;
+    diagSelectedIdRef.current = selectedId;
+    setSrc(nextSource); setParams(nextParams); setStatus("idle"); setPicker(false); setBufferReady(true);
+  }, [selectedId]); // eslint-disable-line react-hooks/exhaustive-deps
   // close the script picker on any outside click
   useEffect(() => { if (!picker) return; const close = () => setPicker(false); window.addEventListener("click", close); return () => window.removeEventListener("click", close); }, [picker]);
 
@@ -186,26 +197,47 @@ export default function PineEditor({ scripts, isPro, email, libraryUnavailable =
   const [checking, setChecking] = useState(false);
   const [engineDown, setEngineDown] = useState(false);
   const diagSeqRef = useRef(0);   // the latest launched check; a result for an older one is dropped
-  function launchDiag(host: PineHost): Promise<void> {
+  const diagGraceRef = useRef<number | null>(null);
+  const diagSelectedIdRef = useRef(selectedId);
+  function retireDiag() {
+    diagSeqRef.current++;
+    if (diagGraceRef.current !== null) window.clearTimeout(diagGraceRef.current);
+    diagGraceRef.current = null;
+    setChecking(false);
+    setStatus(current => current === "compiling" ? "idle" : current);
+  }
+  async function launchDiag(host: PineHost): Promise<number | null> {
+    if (diagSelectedIdRef.current !== selectedId) return null;
+    if (diagGraceRef.current !== null) window.clearTimeout(diagGraceRef.current);
+    setChecking(false);
+    setStatus(current => current === "compiling" ? "idle" : current);
     const seq = ++diagSeqRef.current;
-    const grace = window.setTimeout(() => { if (diagSeqRef.current === seq) setChecking(true); }, DIAG_PENDING_GRACE_MS);
-    return diagnose(host, src, params).then((d) => {
-      window.clearTimeout(grace);
-      if (diagSeqRef.current !== seq) return;   // a newer check owns the console
+    const current = () => diagSeqRef.current === seq && diagSelectedIdRef.current === selectedId;
+    const grace = window.setTimeout(() => { if (current()) setChecking(true); }, DIAG_PENDING_GRACE_MS);
+    diagGraceRef.current = grace;
+    try {
+      const d = await diagnose(host, srcRef.current, paramsRef.current, current);
+      if (!current()) return null;
       setChecking(false);
-      if (!d) return;   // superseded/disposed with nothing newer: keep what the console showed
-      setDiag(d.errors); setWarns(d.warnings); setEngineDown(!!d.unavailable);
-    });
+      if (d) { setDiag(d.errors); setWarns(d.warnings); setEngineDown(!!d.unavailable); }
+      return seq;
+    } catch {
+      if (!current()) return null;
+      setChecking(false); setEngineDown(true);
+      return seq;
+    } finally {
+      window.clearTimeout(grace);
+      if (diagGraceRef.current === grace) diagGraceRef.current = null;
+    }
   }
   useEffect(() => {
-    const seq = diagSeqRef;   // the live counter itself, not a snapshot: cleanup must bump the current value
     const id = window.setTimeout(() => {
       const host = hostRef.current; if (!host) return;
-      launchDiag(host);
+      void launchDiag(host);
     }, 300);
-    // an edit invalidates the in-flight check for the previous buffer (it must not land late)
-    return () => { seq.current++; window.clearTimeout(id); };
-  }, [src, params]); // eslint-disable-line react-hooks/exhaustive-deps
+    // Retire both its pending presentation and callbacks, including same-buffer ID switches.
+    return () => { retireDiag(); window.clearTimeout(id); };
+  }, [selectedId, src, params]); // eslint-disable-line react-hooks/exhaustive-deps
   const hasErrors = diag.length > 0;
   // First parse error, mapped to its 1-based line so the gutter/code layers can decorate it.
   const errAt = diag.find((e) => e.phase === "parse" && e.line > 0) ?? (diag[0]?.line ? diag[0] : null);
@@ -213,9 +245,15 @@ export default function PineEditor({ scripts, isPro, email, libraryUnavailable =
 
   // Run/compile button: kick an immediate (non-debounced) recompile with brief "Compiling…" feedback.
   function compile() {
-    const host = hostRef.current; if (!host) return;
+    const host = hostRef.current; if (!host || diagSelectedIdRef.current !== selectedId) return;
+    const pending = launchDiag(host);
     setStatus("compiling");
-    launchDiag(host).then(() => { window.setTimeout(() => setStatus("idle"), 300); });
+    void pending.then((seq) => {
+      if (seq === null || diagSeqRef.current !== seq) return;
+      window.setTimeout(() => {
+        if (diagSeqRef.current === seq) setStatus(current => current === "compiling" ? "idle" : current);
+      }, 300);
+    });
   }
 
   // Save the current buffer. Returns the saved id (existing id on success, null on failure). Locked
@@ -501,7 +539,7 @@ export default function PineEditor({ scripts, isPro, email, libraryUnavailable =
                 </div>
               )}
               <div className="code">{lines.map((ln, i) => <div key={i} dangerouslySetInnerHTML={{ __html: hl(ln) || "&nbsp;" }} />)}</div>
-              <textarea ref={taRef} value={src} spellCheck={false} aria-label={`${active.name} source`} readOnly={isLocked}
+              <textarea ref={taRef} value={src} spellCheck={false} aria-label={`${active.name} source`} readOnly={isLocked} disabled={!bufferReady}
                 onChange={(e) => { if (!isLocked) setSrc(e.target.value); }} onKeyDown={onKeyDown} />
             </div>
           </div>

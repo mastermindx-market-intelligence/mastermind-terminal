@@ -1,0 +1,50 @@
+TERMINAL FOCUSED VITEST
+The CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.
+
+ RUN  v2.1.9 /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/futures-gex-projection-20261011/terminal
+
+ ✓ lib/__tests__/futuresLabProduction.test.ts (1 test) 3ms
+ ✓ lib/__tests__/futuresGexProjection.test.ts (56 tests) 23ms
+
+ Test Files  2 passed (2)
+      Tests  57 passed (57)
+   Start at  21:27:27
+   Duration  2.00s (transform 458ms, setup 0ms, collect 420ms, tests 26ms, environment 2ms, prepare 850ms)
+
+
+QUOTE HUB FULL SUITE SUMMARY
+  ✔ skips a relay entry with no finite extPrice rather than caching a hole (0.117125ms)
+✔ ExtFeed R2 relay — a fresh relay file actually serves (1.599791ms)
+▶ WEBULL_DISABLE=1
+  ✔ drops the Webull leg without touching Alpaca or Yahoo (0.105959ms)
+✔ WEBULL_DISABLE=1 (0.248541ms)
+▶ EXT_FEED_DISABLE=1 also disables the webull leg
+  ✔ constructs no webull leg and serves nothing (0.058417ms)
+✔ EXT_FEED_DISABLE=1 also disables the webull leg (0.121167ms)
+ℹ tests 452
+ℹ suites 76
+ℹ pass 452
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 850.316
+
+BROWSER FINAL PASS
+
+Running 9 tests using 1 worker
+
+  ✓  1 [desktop] › e2e/futures-lab.spec.ts:24:5 › synthetic depth and footprint share gamma, method and replay without overflow (2.7s)
+  ✓  2 [desktop] › e2e/futures-lab.spec.ts:59:5 › source unavailability and depth gaps cannot masquerade as healthy current data (1.7s)
+  ✓  3 [desktop] › e2e/futures-lab.spec.ts:79:5 › Chinese labels and touch-sized controls preserve the same development surface (1.7s)
+  ✓  4 [tablet] › e2e/futures-lab.spec.ts:24:5 › synthetic depth and footprint share gamma, method and replay without overflow (2.4s)
+  ✓  5 [tablet] › e2e/futures-lab.spec.ts:59:5 › source unavailability and depth gaps cannot masquerade as healthy current data (2.0s)
+  ✓  6 [tablet] › e2e/futures-lab.spec.ts:79:5 › Chinese labels and touch-sized controls preserve the same development surface (1.4s)
+  ✓  7 [mobile] › e2e/futures-lab.spec.ts:24:5 › synthetic depth and footprint share gamma, method and replay without overflow (2.4s)
+  ✓  8 [mobile] › e2e/futures-lab.spec.ts:59:5 › source unavailability and depth gaps cannot masquerade as healthy current data (2.3s)
+  ✓  9 [mobile] › e2e/futures-lab.spec.ts:79:5 › Chinese labels and touch-sized controls preserve the same development surface (1.5s)
+
+  9 passed (28.7s)
+
+FULL TYPECHECK: exit 0, no diagnostics
+SCOPED ESLINT: exit 0, no diagnostics

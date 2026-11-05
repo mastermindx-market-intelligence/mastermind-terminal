@@ -109,8 +109,13 @@ export function tfPartsToSeconds(p: TfParts): number | null {
 }
 
 export function tfSeconds(tf: string): number {
-  if (!tf) return 86400;
+  // Unparseable / empty / unknown-unit → NA (no 1D guess). Callers that need the old "fall back to
+  // daily" behavior must do it themselves. request.security already uses parseTfSecStrict for that
+  // refusal boundary; `timeframe.in_seconds` and the isdaily/isweekly/ismonthly/isintraday flags
+  // now derive from the SAME parsed tfParts (see runtime.ts evalMember), so an unknown chart TF
+  // reads as NA in all of them — matching how request.security already refuses it.
+  if (!tf) return NA;
   const p = tfParts(tf);
-  if (!p) return 86400;
-  return tfPartsToSeconds(p) ?? 86400;
+  if (!p) return NA;
+  return tfPartsToSeconds(p) ?? NA;
 }

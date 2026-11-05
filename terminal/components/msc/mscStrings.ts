@@ -207,8 +207,26 @@ const MSC_LEX = {
     "Delta drift from time passing alone, with spot and implied volatility unchanged — the charm bid or offer.",
     "仅因时间流逝产生的德尔塔漂移（标的与隐含波动率不变）——即 charm 带来的买盘或卖盘。",
   ],
-  scenNoVanna: ["No vanna lens in this payload — the IV axis is gamma-only.", "该数据无 vanna 维度——隐波轴仅含伽马。"],
+  scenNoVanna: [
+    "No vanna data in this payload, so only the no-IV-change row is shown.",
+    "该数据没有 vanna，因此只显示隐波不变的一行。",
+  ],
   scenNoCharm: ["No charm lens in this payload.", "该数据无 charm 维度。"],
+  scenCoverage: [
+    "Built from {known} of {offered} strikes with gamma data.",
+    "由 {offered} 个行权价中具备伽马数据的 {known} 个构建。",
+  ],
+  scenCoverageWindow: [
+    "Built from {known} of {offered} strikes with gamma data; the ladder is a window over {full} strikes.",
+    "由 {offered} 个行权价中具备伽马数据的 {known} 个构建；该梯图是 {full} 个行权价上的一个窗口。",
+  ],
+  scenNotInterval: [
+    "The ±3% / ±5 vol grid is a range of hypothetical moves, not a probability interval; the Wilson 95% interval belongs to the level report card.",
+    "±3%／±5 个波动点的网格是一组假设变动的范围，不是概率区间；Wilson 95% 区间属于水平评分卡。",
+  ],
+  // SignCard prints nothing when the payload omits a convention. This card must still
+  // say the convention is unstated, and must not invent one.
+  scenConventionUnstated: ["not stated", "未说明"],
   scenDisclose: [
     "Local estimate. A first-order expansion around the published snapshot: the greeks are measured at the current spot and are themselves functions of spot, so accuracy falls away from the centre. Bounded to ±3% and ±5 vol points for that reason.",
     "局部估计。围绕已发布快照的一阶展开：希腊值在当前标的价处测得，而其本身又是标的价的函数，因此偏离中心后精度下降。故限定在 ±3% 与 ±5 个波动点以内。",

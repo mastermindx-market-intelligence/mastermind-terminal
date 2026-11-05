@@ -23,7 +23,7 @@ function props(lang: "en" | "zh" = "en", owner = "A"): SectionProps {
 
 function book(target = 10): PortfolioTargetsSummary {
   return computePortfolioTargets(
-    [{ ticker: "AAPL", shares: 1, entryPrice: 10, status: "open" }],
+    [{ ticker: "AAPL", shares: 1, entryPrice: 10, entryCurrency: "USD", status: "open" }],
     [{ ticker: "AAPL", targetWeightPct: target, bandPct: 5, updatedAt: null }],
   );
 }
@@ -170,7 +170,17 @@ describe("Settings targets successful-response integrity", () => {
     expect(marker(state)).not.toBeNull();
     expect(marker("unreadable")).toBeNull();
     if (summary.orphaned.length) expect(container?.textContent).toContain("OLD");
-    if (summary.drifts[0]?.status === "unweighable") expect(container?.textContent).toContain("can't be measured");
+    if (_name === "populated") {
+      expect(summary.drifts[0]?.currentWeightPct).toBe(100);
+      expect(container?.querySelector('[data-ticker="AAPL"][data-status="outside_band"]')).not.toBeNull();
+    }
+    if (_name === "unweighable and orphaned") {
+      expect(summary.costGap).toBeNull();
+      expect(container?.querySelector('[data-ticker="AAPL"][data-status="unweighable"]')?.textContent)
+        .toContain("Current weight unavailable.");
+      expect(container?.querySelector('[data-testid="targets-empty"]')?.textContent)
+        .toBe("Current weights require positive, comparable entry costs.");
+    }
     expect(server.requests.map((r) => r.method)).toEqual(["GET"]);
   });
 

@@ -33,6 +33,7 @@ const PORT = Number(process.env.TERMINAL_CROP_PORT || 3540);
 const BASE = `http://127.0.0.1:${PORT}`;
 const VIEWPORTS = {
   desktop: { width: 1440, height: 900 },
+  tablet: { width: 820, height: 1180 },
   mobile: { width: 390, height: 844 },
 };
 
@@ -141,17 +142,19 @@ async function mockApis(page, state) {
   await page.route("**/api/account/api-keys**", async (route) => {
     const method = route.request().method();
     if (method === "POST" && !route.request().url().match(/api-keys\/[^/?]+$/)) {
+      const body = route.request().postDataJSON();
+      if (JSON.stringify(body.scopes) !== JSON.stringify(["read", "watchlists:write"])) throw new Error("explicit write scope missing from mint request");
       await route.fulfill({
         status: 201,
         contentType: "application/json",
         body: JSON.stringify({
-          key: ACTIVE,
+          key: { ...ACTIVE, scopes: ["read", "watchlists:write"] },
           secret: "mmx_" + "c".repeat(40),
         }),
       });
       return;
     }
-    const keys = state === "revoked" ? [REVOKED] : state === "minted" ? [] : [];
+    const keys = state === "revoked" ? [REVOKED] : state === "minted" ? [{...ACTIVE,scopes:["read","watchlists:write"]}] : [];
     await route.fulfill({
       status: 200,
       contentType: "application/json",
@@ -189,6 +192,9 @@ async function driveState(page, lang, state) {
   if (state === "minted") {
     await page.locator("#api-key-label").fill(lang === "zh" ? "研究用电脑" : "Research laptop");
     const mint = lang === "zh" ? "创建个人密钥" : "Mint a personal key";
+    const scope = page.getByRole("checkbox", { name: lang === "zh" ? "允许添加自选股" : "Allow adding watchlist symbols" });
+    if (await scope.isChecked()) throw new Error("write scope enabled by default");
+    await scope.check();
     await page.getByRole("button", { name: mint }).click();
     const once = lang === "zh"
       ? "此密钥仅显示一次，请立即保存，之后将无法再次查看。"
@@ -222,7 +228,7 @@ async function main() {
     const browser = await chromium.launch({ headless: true });
     try {
       const shots = [];
-      for (const viewport of ["desktop", "mobile"]) {
+      for (const viewport of ["desktop", "tablet", "mobile"]) {
         for (const lang of ["en", "zh"]) {
           for (const state of ["empty", "minted", "revoked"]) {
             shots.push({ viewport, lang, state, file: `${viewport}-${lang}-${state}.png` });
@@ -277,8 +283,10 @@ async function main() {
     "languages: [en, zh]",
     "viewports:",
     "  - { name: desktop, width: 1440, height: 900 }",
+    "  - { name: tablet, width: 820, height: 1180 }",
     "  - { name: mobile, width: 390, height: 844 }",
     "harness:",
+    ...["en", "zh"].flatMap(lang => ["empty", "minted", "revoked"].map(state => `  tablet-${lang}-${state}.png: { url: "/dev/settings?s=developer&lang=${lang}", state: ${state} }`)),
     "  desktop-en-empty.png: { url: \"/dev/settings?s=developer&lang=en\", state: empty }",
     "  desktop-zh-empty.png: { url: \"/dev/settings?s=developer&lang=zh\", state: empty }",
     "  desktop-en-minted.png: { url: \"/dev/settings?s=developer&lang=en\", state: minted }",

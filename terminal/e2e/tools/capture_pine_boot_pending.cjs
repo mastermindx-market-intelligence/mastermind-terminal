@@ -31,11 +31,13 @@
  */
 "use strict";
 
-const { spawn, execFileSync } = require("node:child_process");
+const { execFileSync } = require("node:child_process");
 const { createHash } = require("node:crypto");
 const { mkdirSync, readFileSync, writeFileSync } = require("node:fs");
 const { join } = require("node:path");
-const { chromium, expect } = require("@playwright/test");
+const { startLegacyServer, waitLegacyServer, reportLegacyServer, settleLegacyServer,
+  captureRefusal, emitLegacyReceipt } = require("./capture_ci_evidence.cjs");
+let expect;
 
 const ROOT = join(__dirname, "..", "..");
 const REPO = join(ROOT, "..");
@@ -74,7 +76,7 @@ function lexFromSource() {
   }
   return lex;
 }
-const LEX = lexFromSource();
+let LEX;
 
 // What each surface must say, in order, for one language.
 function expectedText(surface, lang) {
@@ -89,7 +91,6 @@ function expectedText(surface, lang) {
   }
 }
 
-mkdirSync(OUT, { recursive: true });
 
 function currentGitHead() {
   return execFileSync("git", ["rev-parse", "HEAD"], { cwd: ROOT, encoding: "utf8" }).trim();
@@ -101,59 +102,6 @@ function sha256File(rel) {
 
 function cropName(surface, width, lang) {
   return `${surface}-${width}${lang === "zh" ? "-zh" : ""}.png`;
-}
-
-function startServer() {
-  const env = {
-    ...process.env,
-    ANALYSIS_LOCAL_PREVIEW: "1",
-    ADMIN_DEV: "1",
-    TERMINAL_E2E_FIXTURE: "1",
-    TERMINAL_E2E_EMAIL: "responsive@example.com",
-    TERMINAL_E2E_ENTITLEMENT: "unlimited",
-    RATE_LIMIT_MAX: "100000",
-    HUB_REALTIME_QUOTES: "1",
-    FLOW_FIXTURE: "1",
-    NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: "fixture-anon-key",
-  };
-  const child = spawn("npm", ["run", "dev", "--", "--hostname", "127.0.0.1", "--port", String(PORT)], {
-    cwd: ROOT,
-    env,
-    stdio: ["ignore", "pipe", "pipe"],
-    detached: true,
-  });
-  child.stdout.on("data", (buf) => {
-    const line = String(buf);
-    if (/Ready|error|Error/i.test(line)) process.stdout.write(`[dev] ${line}`);
-  });
-  child.stderr.on("data", (buf) => process.stderr.write(`[dev:err] ${buf}`));
-  return child;
-}
-
-function stopServer(child) {
-  if (!child || !child.pid) return;
-  try {
-    process.kill(-child.pid, "SIGTERM");
-  } catch {
-    try { child.kill("SIGTERM"); } catch { /* already gone */ }
-  }
-}
-
-async function waitForServer(timeoutMs) {
-  const deadline = Date.now() + timeoutMs;
-  let last = "not tried";
-  while (Date.now() < deadline) {
-    try {
-      const res = await fetch(`${BASE}/terminal?symbol=NVDA`, { redirect: "manual" });
-      last = String(res.status);
-      if (res.status >= 200 && res.status < 500) return;
-    } catch (err) {
-      last = err.cause?.code || err.message;
-    }
-    await new Promise((r) => setTimeout(r, 750));
-  }
-  throw new Error(`dev server on ${PORT} never answered (${last})`);
 }
 
 // The spec's hang, verbatim in behaviour (e2e/pine-engine-boot-pending.spec.ts installHang).
@@ -195,8 +143,12 @@ async function newPage(browser, vp, lang, key) {
     localStorage.setItem("mm.startTf", JSON.stringify("D"));
     localStorage.setItem("theme", "dark");
     localStorage.setItem("theme_auto", "0");
-    document.documentElement.setAttribute("data-theme", "dark");
-    document.documentElement.setAttribute("data-lang", l);
+    const applyLocale = () => {
+      document.documentElement.setAttribute("data-theme", "dark");
+      document.documentElement.setAttribute("data-lang", l);
+    };
+    if (document.documentElement) applyLocale();
+    else document.addEventListener("DOMContentLoaded", applyLocale, { once: true });
   }, lang);
   await context.addInitScript(hangInit, { bootMs: BOOT_MS, hostBootMs: HOST_BOOT_TIMEOUT_MS });
   const page = await context.newPage();
@@ -204,14 +156,7 @@ async function newPage(browser, vp, lang, key) {
   return { context, page };
 }
 
-async function stripDevOverlay(page) {
-  await page.evaluate(() => {
-    document.querySelectorAll("nextjs-portal").forEach((el) => el.remove());
-  });
-}
-
 async function assertNoNextIndicator(page, file) {
-  await stripDevOverlay(page);
   const n = await page.locator("[data-nextjs-dev-tools-button]").count();
   if (n > 0) throw new Error(`${file}: Next.js N overlay still mounted (${n}); TERMINAL_E2E_FIXTURE gate failed`);
 }
@@ -222,7 +167,7 @@ async function crop(page, clip, outPath) {
   const y = Math.max(0, Math.floor(clip.y));
   const width = Math.max(8, Math.min(vp.width - x, Math.ceil(clip.width)));
   const height = Math.max(8, Math.min(vp.height - y, Math.ceil(clip.height)));
-  await stripDevOverlay(page);
+  await assertNoNextIndicator(page, outPath);
   await page.screenshot({ path: outPath, clip: { x, y, width, height } });
 }
 
@@ -350,13 +295,19 @@ async function captureEditor(page, vp, lang, id, texts) {
 }
 
 async function main() {
+  if (process.env.TERMINAL_LEGACY_CAPTURE_ID && (process.env.CAPTURE_ONLY || "").trim()) throw new Error("CI_EVIDENCE_CAPTURE_FILTER");
+  const { chromium, expect: playwrightExpect } = require("@playwright/test");
+  expect = playwrightExpect;
+  LEX = lexFromSource();
+  mkdirSync(OUT, { recursive: true });
   const capturedAtHead = currentGitHead();
   const nonce = Math.random().toString(36).slice(2, 8);
-  const child = startServer();
+  const child = startLegacyServer(ROOT, PORT);
   const texts = {};
   let failed = 0;
   try {
-    await waitForServer(240_000);
+    await reportLegacyServer(child, "started");
+    await waitLegacyServer(child, `${BASE}/terminal?symbol=NVDA`, 240_000);
     const browser = await chromium.launch({ headless: true });
     try {
       for (const vp of VIEWPORTS) {
@@ -371,6 +322,7 @@ async function main() {
               await assertNoNextIndicator(page, label);
               console.log("ok");
             } catch (err) {
+              if (captureRefusal(err)) throw err;
               failed += 1;
               console.log(`FAIL ${err && err.message ? err.message : err}`);
               try { await page.screenshot({ path: join(OUT, `FAIL-${what}-${vp.width}-${lang}.png`) }); } catch { /* ignore */ }
@@ -384,7 +336,7 @@ async function main() {
       await browser.close();
     }
   } finally {
-    stopServer(child);
+    await settleLegacyServer(child);
   }
 
   for (const vp of VIEWPORTS) for (const lang of ["en", "zh"]) for (const s of SURFACES) {
@@ -431,11 +383,15 @@ async function main() {
     "",
   ].join("\n");
   writeFileSync(join(OUT, "EVIDENCE.yml"), evidence);
+  emitLegacyReceipt({ packet: "pine", outputDir: OUT, files, capturedAtHead });
   console.log(`capturedAtHead ${capturedAtHead}`);
   console.log(`wrote ${files.length} crops + EVIDENCE.yml to ${OUT}`);
 }
 
-main().catch((err) => {
+if (require.main === module) main().catch((err) => {
   console.error(err);
-  process.exit(1);
+  process.exitCode = 1;
 });
+
+module.exports = { assertNoNextIndicator, LAYOUT_FILES, VIEWPORTS,
+  FILES: VIEWPORTS.flatMap(vp => ["en", "zh"].flatMap(lang => SURFACES.map(surface => cropName(surface, vp.width, lang)))) };

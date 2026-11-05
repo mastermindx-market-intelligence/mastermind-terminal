@@ -72,7 +72,7 @@ export class PineRuntimeError extends Error {}
 
 // ── global per-run budget — ONE deadline + run-level counters shared by the chart pass and
 // every request.security HTF re-run, so nesting/recursion can't multiply past the caps ──
-const DEFAULT_BUDGET_MS = 3000;          // wall-clock cap for a whole run() call
+export const DEFAULT_BUDGET_MS = 3000;          // wall-clock cap for a whole run() call
 const MAX_TOTAL_LOOP_ITERS = 4_000_000;  // for-loop iterations, totalled across loops, nesting AND bars
 const STMT_DEADLINE_INTERVAL = 10_000;   // poll Date.now() every N executed statements
 
@@ -86,7 +86,7 @@ export interface PineShape { time: string; position: "aboveBar" | "belowBar" | "
 export interface PineHline { price: number; color: string; title: string; style: string; overlay: boolean; }
 export interface PineInput { title: string; type: string; value: any; }
 export interface PineMeta { title: string; shorttitle?: string; overlay: boolean; }
-export interface RunResult { meta: PineMeta; plots: PinePlot[]; shapes: PineShape[]; hlines: PineHline[]; inputs: PineInput[]; warnings: string[]; barCount: number; }
+export interface RunResult { meta: PineMeta; plots: PinePlot[]; shapes: PineShape[]; hlines: PineHline[]; inputs: PineInput[]; effectiveInputs?: { variable: string; value: unknown }[]; warnings: string[]; barCount: number; }
 
 // A refused request.security result is na for plots/comparisons but is NOT ordinary na:
 // nz() must not replace it with a definite value (README: refused → na, never an approximate).
@@ -242,7 +242,7 @@ function tfUnitFamily(tf: string): string | null {
 // in the chart rows it gives row 0's global index, the same arithmetic as resolveBarAnchor, which
 // ChartPanel.resampleTf uses to build the chart's own nD bars. Without a usable anchor the grid is
 // phased at the first loaded session and every nD request says why.
-function resolveSessionPhase(bars: Bar[], raw: unknown): { barAnchor: number; fallback: string | null } {
+export function resolveSessionPhase(bars: Bar[], raw: unknown): { barAnchor: number; fallback: string | null } {
   if (raw == null) return { barAnchor: 0, fallback: "no session anchor supplied" };
   const anchor = parseSessionAnchor(raw);
   if (!anchor) return { barAnchor: 0, fallback: "the session anchor is malformed" };
@@ -267,7 +267,7 @@ interface ExecOut { result: RunResult; secRecord: Map<string, any[]>; }
 // run() executes an already-parsed program. Pass a `ParseResult` (from parse()/compile()) to skip
 // re-parsing — the ONLY caller that still hands a raw string is the back-compat runPine() in index.ts,
 // which parses once and forwards the AST here, so a single run never lexes+parses twice.
-export function run(source: string | ParseResult, bars: Bar[], opts: { timeframe?: string; symbol?: string; params?: Record<string, any>; budgetMs?: number; sessionAnchor?: unknown } = {}): RunResult {
+export function run(source: string | ParseResult, bars: Bar[], opts: { timeframe?: string; symbol?: string; params?: Record<string, any>; budgetMs?: number; captureInputValues?: boolean; sessionAnchor?: unknown } = {}): RunResult {
   // capture the deadline the moment the run starts — checked between statements and inside loops
   const budgetMs = opts.budgetMs ?? DEFAULT_BUDGET_MS;
   const deadline = Date.now() + budgetMs;
@@ -341,6 +341,7 @@ export function run(source: string | ParseResult, bars: Bar[], opts: { timeframe
     const hlineAcc = new Map<number, PineHline>();
     const shapes: PineShape[] = [];
     const inputs: PineInput[] = [];
+    const effectiveInputs = opts.captureInputValues ? [] as { variable: string; value: unknown }[] : undefined;
     let collectInputs = true;   // inputs are constant across bars — record them only on bar 0
     const warnings: string[] = [];
     const warned = new Set<string>();
@@ -402,15 +403,29 @@ export function run(source: string | ParseResult, bars: Bar[], opts: { timeframe
           return off === 0 ? val : NA;
         }
         case "unary": {
-          if (n.op === "not") return !truthy(evalNode(n.e, ctx));
+          if (n.op === "not") {
+            // F1: `not REFUSED` is REFUSED, so `not na(r) ? 1 : 0` is a gap (not 1). Plain na
+            // keeps the BASE behavior: `not na` is true.
+            const e = evalNode(n.e, ctx);
+            if (isRefused(e)) return REFUSED;
+            return !truthy(e);
+          }
           const e = evalNode(n.e, ctx);
           if (isRefused(e)) return e;
           const v = num(e); return n.op === "-" ? -v : v;
         }
         case "binary": return evalBinary(n, ctx);
-        // evaluate BOTH arms so any stateful builtin (ta.*) inside an arm advances every bar like Pine,
-        // then return the selected one
-        case "ternary": { const c = truthy(evalNode(n.c, ctx)); const a = evalNode(n.a, ctx); const b = evalNode(n.b, ctx); return c ? a : b; }
+        // F1: a REFUSED ternary condition is REFUSED, so `r ? 1 : 0` paints a gap (not 0) when
+        // `r` is a refused request.security. Plain na conditions keep the BASE behavior (the
+        // false arm fires). Both arms are still evaluated so any stateful builtin (ta.*) inside
+        // an arm advances every bar like Pine.
+        case "ternary": {
+          const c = evalNode(n.c, ctx);
+          if (isRefused(c)) return REFUSED;
+          const cond = truthy(c);
+          const a = evalNode(n.a, ctx); const b = evalNode(n.b, ctx);
+          return cond ? a : b;
+        }
         case "tuple": return n.items.map((it) => evalNode(it, ctx));
         case "call": return evalCall(n, ctx);
         case "if": return evalIf(n, ctx);
@@ -420,13 +435,45 @@ export function run(source: string | ParseResult, bars: Bar[], opts: { timeframe
 
     function evalBinary(n: Extract<Node, { t: "binary" }>, ctx: Ctx): any {
       const op = n.op;
-      // Pine `and`/`or` evaluate BOTH operands (no short-circuit) so stateful builtins in the rhs
-      // still advance every bar; truthy() handles na as false.
-      if (op === "and") { const l = truthy(evalNode(n.l, ctx)); const r = truthy(evalNode(n.r, ctx)); return l && r; }
-      if (op === "or") { const l = truthy(evalNode(n.l, ctx)); const r = truthy(evalNode(n.r, ctx)); return l || r; }
+      // Pine `and`/`or` evaluate BOTH operands (no short-circuit on the side-effect path) so
+      // stateful builtins in the rhs still advance every bar. The VALUE follows Pine short-circuit
+      // semantics, with a REFUSED operand special-cased (per F1): `false and REFUSED` -> false,
+      // `REFUSED and false` -> false, `true or REFUSED` -> true, `REFUSED or true` -> true; every
+      // other REFUSED combination -> REFUSED. Plain na operands keep the BASE behavior (truthy
+      // collapses na to false, so `na and x` is false and `na or x` is `truthy(x)`).
+      if (op === "and") {
+        const l = evalNode(n.l, ctx);
+        const r = evalNode(n.r, ctx);
+        const lRef = isRefused(l), rRef = isRefused(r);
+        if (lRef || rRef) {
+          if (lRef && rRef) return REFUSED;
+          if (lRef) return truthy(r) ? REFUSED : false;   // REFUSED and true = REFUSED; REFUSED and false = false
+          // l is not REFUSED, r is REFUSED
+          return truthy(l) ? REFUSED : false;              // true and REFUSED = REFUSED; false and REFUSED = false
+        }
+        return truthy(l) && truthy(r);
+      }
+      if (op === "or") {
+        const l = evalNode(n.l, ctx);
+        const r = evalNode(n.r, ctx);
+        const lRef = isRefused(l), rRef = isRefused(r);
+        if (lRef || rRef) {
+          if (lRef && rRef) return REFUSED;
+          if (lRef) return truthy(r) ? true : REFUSED;    // REFUSED or true = true; REFUSED or false = REFUSED
+          // l is not REFUSED, r is REFUSED
+          return truthy(l) ? true : REFUSED;               // true or REFUSED = true; false or REFUSED = REFUSED
+        }
+        return truthy(l) || truthy(r);
+      }
       const a = evalNode(n.l, ctx), b = evalNode(n.r, ctx);
       if (op === "+") { if (typeof a === "string" || typeof b === "string") return (isNa(a) ? "na" : String(a)) + (isNa(b) ? "na" : String(b)); }
-      if (isRefused(a) || isRefused(b)) return REFUSED;
+      // F1: a comparison with a REFUSED operand is NA (exactly like plain na, so `r > 0 ? 1 : 0`
+      // paints 0 — Pine na semantics, locked by the golden). Arithmetic, `+`, and the other
+      // operators keep REFUSED sticky so a refused request doesn't leak as a number.
+      if (isRefused(a) || isRefused(b)) {
+        if (op === "==" || op === "!=" || op === "<" || op === "<=" || op === ">" || op === ">=") return NA;
+        return REFUSED;
+      }
       switch (op) {   // Pine: a comparison with an na operand is na (not false); truthy(na)=false keeps boolean logic intact
         case "==": return isNa(a) || isNa(b) ? NA : a === b;
         case "!=": return isNa(a) || isNa(b) ? NA : a !== b;
@@ -444,7 +491,20 @@ export function run(source: string | ParseResult, bars: Bar[], opts: { timeframe
     function evalMember(n: Extract<Node, { t: "member" }>, ctx: Ctx): any {
       if (n.obj.t === "id") {
         const ns = n.obj.name, prop = n.prop;
-        if (ns === "timeframe") { const tf = chartTf; if (prop === "period") return tf; if (prop === "multiplier") return parseInt(tf) || 1; if (prop === "isdaily") return /D$/.test(tf); if (prop === "isweekly") return /W$/.test(tf); if (prop === "ismonthly") return /M$/.test(tf); if (prop === "isintraday") return tfSeconds(tf) < 86400; return NA; }
+        if (ns === "timeframe") {
+          // All flags derive from the SAME parsed tfParts as `in_seconds`, so "w" is weekly,
+          // "d" is daily, and an unparseable chart TF reads as NA in every flag (no 1D guess).
+          const tf = chartTf;
+          if (prop === "period") return tf;
+          if (prop === "multiplier") return parseInt(tf) || 1;
+          const p = tfParts(tf);
+          if (!p) return NA;
+          if (prop === "isdaily") return p.unit === "D";
+          if (prop === "isweekly") return p.unit === "W";
+          if (prop === "ismonthly") return p.unit === "M";
+          if (prop === "isintraday") return p.unit === "" || p.unit === "MIN" || p.unit === "m" || p.unit === "S" || p.unit === "H";
+          return NA;
+        }
         if (ns === "barstate") { if (prop === "islast" || prop === "islastconfirmedhistory") return ctx.i === N - 1; if (prop === "isfirst") return ctx.i === 0; if (prop === "ishistory") return ctx.i < N - 1; if (prop === "isrealtime") return false; if (prop === "isnew" || prop === "isconfirmed") return true; return false; }
         // Unknown members return na (not ""). An empty-string stub here would be accepted by
         // request.security as current-context and silently substitute chart bars.
@@ -469,7 +529,12 @@ export function run(source: string | ParseResult, bars: Bar[], opts: { timeframe
       const callee = n.callee;
       if (callee.t === "member" && callee.obj.t === "id") return callNs(callee.obj.name, callee.prop, n, ctx);
       if (callee.t === "id") { if (funcs.has(callee.name)) return callUser(callee.name, n, ctx); return callGlobal(callee.name, n, ctx); }
-      if (callee.t === "na") { const { pos } = evalArgs(n.args, ctx); return isNa(pos[0]); }   // `na(x)` — `na` lexes to its own node
+      if (callee.t === "na") {
+        // F1: `na(REFUSED)` is REFUSED (the keyword `na` lexes to its own node, not an `id` call).
+        const { pos } = evalArgs(n.args, ctx);
+        if (isRefused(pos[0])) return REFUSED;
+        return isNa(pos[0]);
+      }   // `na(x)` — `na` lexes to its own node
       warn("unsupported call form"); return NA;
     }
 
@@ -753,7 +818,13 @@ export function run(source: string | ParseResult, bars: Bar[], opts: { timeframe
         }
         return isNa(pos[0]) ? (pos[1] !== undefined ? pos[1] : 0) : pos[0];
       }
-      if (name === "na") { const { pos } = evalArgs(n.args, ctx); return isNa(pos[0]); }
+      if (name === "na") {
+        // F1: `na(REFUSED)` is REFUSED, so `na(r) ? 0 : r` is a gap (not 0). Plain na stays true
+        // and a number stays false — the BASE behavior, unchanged.
+        const { pos } = evalArgs(n.args, ctx);
+        if (isRefused(pos[0])) return REFUSED;
+        return isNa(pos[0]);
+      }
       if (name === "fixnan") {
         const { pos } = evalArgs(n.args, ctx);
         if (isRefused(pos[0])) return pos[0];
@@ -901,7 +972,10 @@ export function run(source: string | ParseResult, bars: Bar[], opts: { timeframe
         if (ctx.frame) { localVarInit.add(key); localVarKeys.add(ctx.frame.path + "|" + s.target); } else varInited.add(key);
       }
       let val = evalNode(s.value, ctx);
-      if (s.op === "=" && typeof s.target === "string" && isInputCall(s.value) && params[s.target] !== undefined) val = coerce(params[s.target], val);
+      if (s.op === "=" && typeof s.target === "string" && isInputCall(s.value)) {
+        if (params[s.target] !== undefined) val = coerce(params[s.target], val);
+        if (effectiveInputs && collectInputs) effectiveInputs.push({ variable: s.target, value: val });
+      }
       if (Array.isArray(s.target)) { const arr = Array.isArray(val) ? val : [val]; s.target.forEach((nm, k) => assignName(ctx, nm, arr[k], s.isVar, s.op === "=")); }
       else assignName(ctx, s.target, val, s.isVar, s.op === "=");
       return val;
@@ -944,6 +1018,6 @@ export function run(source: string | ParseResult, bars: Bar[], opts: { timeframe
     }
 
     const plots = [...plotAcc.values()].map(({ lastColor, ...p }) => p);
-    return { result: { meta, plots, shapes, hlines: [...hlineAcc.values()], inputs, warnings, barCount: N }, secRecord };
+    return { result: { meta, plots, shapes, hlines: [...hlineAcc.values()], inputs, ...(effectiveInputs && { effectiveInputs }), warnings, barCount: N }, secRecord };
   }
 }

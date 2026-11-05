@@ -74,7 +74,7 @@ export function zoneCity(zone: string, lang: Lang): string {
 
 export type FocusStatus = "exact" | "missing" | "expired" | "replaced" | "unavailable";
 
-/** Toast copy for a Show-on-chart outcome; null when a newer request superseded this one. */
+/** Toast copy for a Show-on-chart outcome; null when a newer request or symbol superseded it. */
 export function dataInspectorFocusMessage(status: FocusStatus, timeLabel: string, lang: Lang): string | null {
   const key = status === "exact" ? "diFocusExact"
     : status === "missing" ? "diFocusMissing"
