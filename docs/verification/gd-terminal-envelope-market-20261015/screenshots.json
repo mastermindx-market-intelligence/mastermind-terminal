@@ -1,0 +1,68 @@
+{
+  "kind": "local_synthetic_browser",
+  "count": 12,
+  "applied_theme_asserted": true,
+  "theme_source": "existing html[data-theme] fixture input, not persisted settings proof",
+  "screenshots": [
+    {
+      "file": "market-scope-desktop-zh-dark.png",
+      "sha256": "9a4baf7c49ef7ea8e4cf27741ea56273c5edff6a690e59a8b10ddf1bfce26091",
+      "bytes": 19809
+    },
+    {
+      "file": "market-scope-mobile-zh-dark.png",
+      "sha256": "d361666ae96dc841ef287ff1f58ab88acece77acbea347f6b9040f83653c38bd",
+      "bytes": 19994
+    },
+    {
+      "file": "market-scope-tablet-zh-dark.png",
+      "sha256": "2133a4e6d9b6722e295e2afd873ac3ce9e27c9af801b25e340613fa04743635e",
+      "bytes": 21429
+    },
+    {
+      "file": "market-scope-desktop-en-dark.png",
+      "sha256": "1dd03debd4c691e27f3ccde4838c45dddbaef131ae6a0fcf56d69da6d02e4796",
+      "bytes": 21146
+    },
+    {
+      "file": "market-scope-mobile-en-dark.png",
+      "sha256": "0ef0b3e4e00b55c691a866adeceba352d7e95805cfba4bad6efa71cc827532dc",
+      "bytes": 21422
+    },
+    {
+      "file": "market-scope-tablet-en-dark.png",
+      "sha256": "e7c736afdfbd6f1657b087e9b389a0c7d55cac2ffe28094d0d627c5f04d8f37c",
+      "bytes": 21940
+    },
+    {
+      "file": "market-scope-desktop-zh-light.png",
+      "sha256": "9a4baf7c49ef7ea8e4cf27741ea56273c5edff6a690e59a8b10ddf1bfce26091",
+      "bytes": 19809
+    },
+    {
+      "file": "market-scope-mobile-zh-light.png",
+      "sha256": "d361666ae96dc841ef287ff1f58ab88acece77acbea347f6b9040f83653c38bd",
+      "bytes": 19994
+    },
+    {
+      "file": "market-scope-tablet-zh-light.png",
+      "sha256": "2133a4e6d9b6722e295e2afd873ac3ce9e27c9af801b25e340613fa04743635e",
+      "bytes": 21429
+    },
+    {
+      "file": "market-scope-desktop-en-light.png",
+      "sha256": "1dd03debd4c691e27f3ccde4838c45dddbaef131ae6a0fcf56d69da6d02e4796",
+      "bytes": 21146
+    },
+    {
+      "file": "market-scope-mobile-en-light.png",
+      "sha256": "0ef0b3e4e00b55c691a866adeceba352d7e95805cfba4bad6efa71cc827532dc",
+      "bytes": 21422
+    },
+    {
+      "file": "market-scope-tablet-en-light.png",
+      "sha256": "e7c736afdfbd6f1657b087e9b389a0c7d55cac2ffe28094d0d627c5f04d8f37c",
+      "bytes": 21940
+    }
+  ]
+}
