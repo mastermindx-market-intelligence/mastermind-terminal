@@ -1,7 +1,8 @@
 "use client";
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import { handoffMastermindBrainSymbol, type MastermindBrainHost,
-  type ChartStopRequest, type ChartStopResult } from "@/lib/mastermindBrain";
+  type ChartStopRequest, type ChartStopResult,
+  type ChartStatePreparationRequest, type ChartStatePreparationResult } from "@/lib/mastermindBrain";
 import type { AiContextClientV1 } from "@/lib/aiContext";
 import { ensureBrainPrincipalBinding } from "@/lib/brainPrincipal";
 
@@ -20,6 +21,7 @@ type Props = {
   onCommand: (j: any) => void;
   onAnnotate?: (j: any) => void;
   onChartStop?: (request: ChartStopRequest) => ChartStopResult | undefined;
+  prepareChartState?: (request: ChartStatePreparationRequest, signal?: AbortSignal) => Promise<ChartStatePreparationResult>;
   onAuthRequired?: () => void;
   // DeepVue W1-C: reads the Terminal's current ai_context_client.v1 block at send time.
   // Optional — the deployed production mm_brain.js may not read this key yet (Macro's
@@ -35,15 +37,22 @@ export default function BrainWidget({
   onCommand,
   onAnnotate,
   onChartStop,
+  prepareChartState,
   onAuthRequired,
   getAiContext,
 }: Props) {
   // Keep refs current so the CFG getters/callbacks read live values and never see a stale
   // closure from mount time (the config object is captured by the widget exactly once).
+  const attachedRef = useRef(false);
+  useLayoutEffect(() => {
+    attachedRef.current = true;
+    return () => { attachedRef.current = false; };
+  }, []);
   const symRef = useRef(active);
   const onCommandRef = useRef(onCommand);
   const onAnnotateRef = useRef(onAnnotate);
   const onChartStopRef = useRef(onChartStop);
+  const prepareChartStateRef = useRef(prepareChartState);
   const onAuthRequiredRef = useRef(onAuthRequired);
   const getAiContextRef = useRef(getAiContext);
 
@@ -74,27 +83,30 @@ export default function BrainWidget({
     if (typeof window === "undefined") return;
     const w = window as unknown as MastermindBrainHost;
     if (!w.MM_BRAIN_CFG) return; // first mount: the install effect (below) seeds the key
-    const fn = (j: any) => onCommandRef.current?.(j);
+    let attached = true;
+    const fn = (j: any) => attached && attachedRef.current ? onCommandRef.current?.(j) : undefined;
     w.MM_BRAIN_CFG.onCommand = fn;
-    return () => { if (w.MM_BRAIN_CFG?.onCommand === fn) w.MM_BRAIN_CFG.onCommand = undefined; };
+    return () => { attached = false; if (w.MM_BRAIN_CFG?.onCommand === fn) w.MM_BRAIN_CFG.onCommand = undefined; };
   }, [onCommand]);
   useEffect(() => {
     onAnnotateRef.current = onAnnotate;
     if (typeof window === "undefined") return;
     const w = window as unknown as MastermindBrainHost;
     if (!w.MM_BRAIN_CFG) return;
-    const fn = onAnnotate ? (j: any) => onAnnotateRef.current?.(j) : undefined;
+    let attached = true;
+    const fn = onAnnotate ? (j: any) => attached && attachedRef.current ? onAnnotateRef.current?.(j) : undefined : undefined;
     w.MM_BRAIN_CFG.onAnnotate = fn;
-    return () => { if (w.MM_BRAIN_CFG && w.MM_BRAIN_CFG.onAnnotate === fn) w.MM_BRAIN_CFG.onAnnotate = undefined; };
+    return () => { attached = false; if (w.MM_BRAIN_CFG && w.MM_BRAIN_CFG.onAnnotate === fn) w.MM_BRAIN_CFG.onAnnotate = undefined; };
   }, [onAnnotate]);
   useEffect(() => {
     onAuthRequiredRef.current = onAuthRequired;
     if (typeof window === "undefined") return;
     const w = window as unknown as MastermindBrainHost;
     if (!w.MM_BRAIN_CFG) return;
-    const fn = () => onAuthRequiredRef.current?.();
+    let attached = true;
+    const fn = () => attached && attachedRef.current ? onAuthRequiredRef.current?.() : undefined;
     w.MM_BRAIN_CFG.onAuthRequired = fn;
-    return () => { if (w.MM_BRAIN_CFG?.onAuthRequired === fn) w.MM_BRAIN_CFG.onAuthRequired = undefined; };
+    return () => { attached = false; if (w.MM_BRAIN_CFG?.onAuthRequired === fn) w.MM_BRAIN_CFG.onAuthRequired = undefined; };
   }, [onAuthRequired]);
   // DeepVue W1-C write-through: mm_brain.js is a document-level singleton that intentionally
   // survives a client-side route change (e.g. /terminal -> /analysis), the same way `symbol`
@@ -115,9 +127,10 @@ export default function BrainWidget({
     if (typeof window === "undefined") return;
     const w = window as unknown as MastermindBrainHost;
     if (!w.MM_BRAIN_CFG) return; // first mount: the install effect (below) seeds the key
-    const fn = () => getAiContextRef.current?.();
+    let attached = true;
+    const fn = () => attached && attachedRef.current ? getAiContextRef.current?.() : undefined;
     w.MM_BRAIN_CFG.getAiContext = fn;
-    return () => { if (w.MM_BRAIN_CFG?.getAiContext === fn) w.MM_BRAIN_CFG.getAiContext = undefined; };
+    return () => { attached = false; if (w.MM_BRAIN_CFG?.getAiContext === fn) w.MM_BRAIN_CFG.getAiContext = undefined; };
   }, [getAiContext]);
 
   // Load the widget exactly once per document. StrictMode double-invokes effects in dev,
@@ -167,14 +180,14 @@ export default function BrainWidget({
         anchor: "top", // no built-in launcher; host calls window.MMBrain.open()/.toggle()
         api: "", // same-origin — /api/brain/* with credentials:'include'
         symbol: () => w.__MM_BRAIN_ACTIVE_SYMBOL__ || symRef.current,
-        onCommand: (j: any) => onCommandRef.current?.(j),
-        onAnnotate: onAnnotateRef.current ? (j: any) => onAnnotateRef.current?.(j) : undefined,
-        onAuthRequired: () => onAuthRequiredRef.current?.(),
+        onCommand: (j: any) => attachedRef.current ? onCommandRef.current?.(j) : undefined,
+        onAnnotate: onAnnotateRef.current ? (j: any) => attachedRef.current ? onAnnotateRef.current?.(j) : undefined : undefined,
+        onAuthRequired: () => attachedRef.current ? onAuthRequiredRef.current?.() : undefined,
         // DeepVue W1-C: built fresh on every call — never captured once at mount — so the
         // widget always reads the current context_revision/active/ambient at send time.
         // Safely ignorable: production mm_brain.js that doesn't know this key simply never
         // calls it.
-        getAiContext: () => getAiContextRef.current?.(),
+        getAiContext: () => attachedRef.current ? getAiContextRef.current?.() : undefined,
       };
     }
 
@@ -221,6 +234,24 @@ export default function BrainWidget({
       if (w.MM_BRAIN_CFG?.onChartStop === fn) w.MM_BRAIN_CFG.onChartStop = undefined;
     };
   }, [onChartStop]);
+
+  // Like Stop, preparation belongs to the mounted host, not the singleton's
+  // lifetime. A retired callback cannot refresh a later owner's chart.
+  useEffect(() => {
+    prepareChartStateRef.current = prepareChartState;
+    if (typeof window === "undefined") return;
+    const w = window as unknown as MastermindBrainHost;
+    if (!w.MM_BRAIN_CFG) return;
+    let attached = true;
+    const fn = prepareChartState ? (request: ChartStatePreparationRequest, signal?: AbortSignal) => attached
+      ? prepareChartStateRef.current!(request, signal)
+      : Promise.resolve<ChartStatePreparationResult>({ ok: false, reason: "host_unmounted" }) : undefined;
+    w.MM_BRAIN_CFG.prepareChartState = fn;
+    return () => {
+      attached = false;
+      if (w.MM_BRAIN_CFG && w.MM_BRAIN_CFG.prepareChartState === fn) w.MM_BRAIN_CFG.prepareChartState = undefined;
+    };
+  }, [prepareChartState]);
 
   return null;
 }

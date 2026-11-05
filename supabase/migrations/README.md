@@ -480,3 +480,85 @@ Protected PR #1279 merged 2026-11-04T14:28:18Z as
 Adds access metadata to the existing `brief_deliveries` object. The existing producer, subscription ownership and team membership remain authoritative. The authenticated database requires the exact owned delivery, current team owner/admin, current content digest and the server-derived prospective effect digest before writing one stable grant. An exact repeated operation returns its original grant/time; a changed recipient, body or operation conflicts. Recipient reads use one fixed redacted RPC and current dynamic membership, with no private subscription or target identifiers and no additional whole-row team SELECT policy. A recorded receipt is distinct from current access and from native Mastermind OS product acceptance.
 
 The file is one atomic `DO` statement, compatible with the existing statement-at-a-time source applier. It is UNAPPLIED. Apply only through the established qualified source/application owner after focused security/exactly-once review; no SQL application or sharing effect is authorized merely by this documentation or source publication. The file's readback queries verify function ACLs, pinned search paths and preservation of private table write denial. Existing subscriptions and source-target access remain private; teams grant no paid entitlement. No automatic destructive down operation is supplied.
+
+
+### 0049 — Explicit delivered-brief sharing review requests (source only)
+
+PR #1290, packet `MMOS-AT04-EXPLICIT-BRIEF-SHARING-REQUEST`, claims
+`0049_brief_sharing_requests.sql`. The 2026-11-04 census inspected protected
+`master` 3832ec6699062aafe58d5d2f69e7bccfb0b19275, its SQL files and reservation
+ledger, and all 197 open PRs, fully paginating every capped file list. The highest
+existing claim was 0048 in original #1279; 0049 was the next free number.
+
+An explicit authenticated delivery-owner action saves one immutable review request
+on the existing delivery row, bound to the actual content digest and intended team.
+Ready status and the team catalogue do not issue requests. The current owner and
+team owner/admin must remain qualified at review and resolution. Sharing calls the
+existing 0048 atomic grant owner; Keep private records a disposition without a grant.
+The native feed verifies its own current Terminal principal/session and returns only
+qualified request data, with truthful coverage and dynamic membership. Web review
+retains the incumbent cookie authentication. No Auth0 mapping or generic decision
+queue is introduced.
+
+This file requires 0048 first, applied by the same migration owner. It remains
+**UNAPPLIED**: application date is not recorded because no application has occurred.
+The single outer DO statement preserves atomicity with the existing statement-at-a-time
+applier. The readback comments qualify schema/ACL state; they do not establish live
+sharing behavior. Rollback disables callers and preserves request/grant history for a
+reviewed forward repair. No destructive down operation or production application is
+authorized by this source claim.
+
+
+### 0050 — AI drawing collection compatibility (source only; unapplied)
+
+Original PR #1048, operation `chart-ai-drawing-workspace-20261018-c4-001`,
+reserved this prefix in commit `1d026f58fb0de4cd6ff1a0bf7a38edc7ddf46a34`
+before authoring `0050_chart_ai_drawing_workspace.sql`. The current master SQL
+namespace, all 43 previously present SQL files, and the canonical 0049 claim
+from #1290 remain unchanged. Unmerged 0049 SQL is not imported.
+
+This forward migration replaces only the existing 0031 validator and snapshot
+reader. It admits strictly validated mixed human/AI collections and advertises
+the literal `chart.ai_drawing.v1` installed capability on accepted reads. The
+existing security-invoker replace RPC, owner/session boundary, expected-revision
+CAS, immutable operation replay, table ACL and RLS remain the same owners.
+The 48 native drawing kinds and existing human geometry contract are retained.
+
+The file is **UNAPPLIED**. Application date is not recorded because no database
+application has occurred. Source SHA256: `e7c86a67be1328e5f44f043a2e3ce046ae0a09c74ff37eb4926f02059e75a8ce`.
+
+Qualification here consists of source-level TypeScript test-body and callback
+checks, namespace validation and static preservation checks. The disposable
+local PostgreSQL fixture is authored but was not executed in this environment;
+PostgreSQL binaries, React/Vitest and a live browser path were unavailable.
+Native hosted CI and any required production catalog/behavior receipts remain
+separate evidence.
+
+Before installation, the existing migration operator must verify the accepted
+0031 RPCs, invoker flags, current table ACL/RLS and the exact reviewed SQL, then
+execute the complete transaction atomically. Do not feed its BEGIN/COMMIT
+statements individually to a statement-at-a-time runner. The read capability
+must be observed through the authenticated collection read before AI writes
+become available. A failed or missing capability leaves human-only work usable
+and retained mixed recovery visible but read-only; it never strips AI or invents
+a successful operation receipt.
+
+The migration's down block intentionally refuses automatic downgrade; its
+exception restores nothing. Manual restoration of only the exact 0031
+validator/read definitions requires proof that no mixed operation was ever
+accepted, all relevant writers are quiesced, and no mixed attempt is in flight
+or has an unknown outcome. No AI rows currently present is insufficient:
+operation history retains hashes rather than payload types, and the old
+validator runs before receipt reconciliation. Restore the two definitions
+together in one genuine transaction and verify their installed preimage and
+result while retaining ownership, ACLs, rows, metadata and receipts. Otherwise
+stop new affected work through the existing owner and use a forward-compatible
+repair, preserving mixed-compatible reads and exact operation attempts.
+
+The readback block exposes complete RPC definitions, capability declaration,
+ownership, invoker/search-path/execution-grant facts, RLS and table-fence facts.
+Compare pre/post definitions against qualified source. Names already existed
+under 0031, so existence alone cannot certify installation. Catalog evidence
+also cannot replace an authenticated accepted-read or behavior receipt.
+Source qualification does not apply SQL, widen grants, deploy either product,
+satisfy Macro #9601's actual release holds or prove ordinary-provider acceptance.

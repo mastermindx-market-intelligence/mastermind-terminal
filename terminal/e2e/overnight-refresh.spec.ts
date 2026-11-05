@@ -56,7 +56,7 @@ async function commandEma(page: Page, target: ChartCommandTarget, seq: number) {
     const cfg = (window as unknown as { MM_BRAIN_CFG?: { onCommand?: (command: unknown) => void } }).MM_BRAIN_CFG;
     if (!cfg?.onCommand) throw new Error("The real command callback is absent");
     cfg.onCommand({ on: true, v: 2, batch_id: "overnight-session-integration", seq, target,
-      op: "chart.set_indicators", args: { indicators: [{ name: "ema", params: { len: 37 } }] } });
+      op: "chart.set_indicators", args: { indicators: [{ name: "ema", params: { ma1Len: 37 } }] } });
   }, { target, seq });
 }
 

@@ -54,7 +54,7 @@ describe("native suite parameters on the existing Chart Bus", () => {
   });
   it("rejects the whole set when a later native entry is invalid", () => {
     const c = command({ "sr.minTouches": 3 });
-    c.args = { indicators: [{ name: "ema", params: { len: 21 } }, { name: "structure", params: { "sr.minTouches": "three" } }] };
+    c.args = { indicators: [{ name: "ema", params: { ma1Len: 21 } }, { name: "structure", params: { "sr.minTouches": "three" } }] };
     const result = translate(c, caps);
     expect(result.ok).toBe(false);
     expect("setIndicators" in result).toBe(false);
@@ -69,10 +69,10 @@ describe("native suite parameters on the existing Chart Bus", () => {
     expect(result.ok).toBe(true);
     if (result.ok) expect(result.setIndicators?.[0].params).toEqual(params);
   });
-  it("preserves the existing classic numeric configuration", () => {
-    const result = translate(command({ len: 21 }, "ema"), caps);
+  it("uses the actual moving-average period setting", () => {
+    const result = translate(command({ ma1Len: 21 }, "ema"), caps);
     expect(result.ok).toBe(true);
-    if (result.ok) expect(result.setIndicators).toEqual([{ name: "ema", params: { len: 21 } }]);
+    if (result.ok) expect(result.setIndicators).toEqual([{ name: "ema", params: { ma1Len: 21 } }]);
   });
   it("does not admit a suite omitted from the host capability list", () => {
     const result = translate(command({ "sr.on": true }), { tfs: ["D"], indicators: ["ema"] });

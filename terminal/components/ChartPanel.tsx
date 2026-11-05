@@ -2,7 +2,7 @@
 import { boatsChartHistoryBars, type BoatsChartHistory } from "@/lib/extQuoteCopy";
 import type { OptionsChartLevel } from "@/lib/optionsCompanion";
 import { syncOptionsPricePin, removeOptionsPricePin, type OptionsPricePin } from "@/lib/optionsChartPin";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 
 // ── Boot-trace helper — mirrors the one in TerminalShell (?boottrace=1) ──────
 const _cpStart = typeof performance !== "undefined" ? performance.now() : 0;
@@ -67,7 +67,7 @@ import {
   translateDrawingAnchors,
 } from "@/lib/drawing-engine/interaction";
 import { createDrawingBridge, type DrawingAnchor, type DrawingBridge } from "@/lib/chart-engine/drawingBridge";
-import { calculatePositionMetrics, fibonacciSettings, positionSettings, type FibonacciLabelMode } from "@/lib/drawing-engine/settings";
+import { calculatePositionMetrics, fibonacciSettings, fibonacciPriceLevels, positionSettings, type FibonacciLabelMode } from "@/lib/drawing-engine/settings";
 import { registerPane, broadcastCrosshair, broadcastRange, peerValueAt } from "@/lib/paneSync";
 import {
   PRICE_TAG_ROW_HEIGHT,
@@ -593,15 +593,15 @@ import { eodSnapshotKnown, replayAxisOf, replayChipAnchor, replayDayChangePct, r
 import { detectGapZones, gapZonesAsOf, type GapZone } from "@/lib/gapZones";
 import { deriveDataOrigin, originComposite, originNotCovered, originUnavailable, type DataOrigin } from "@/lib/dataOrigin";
 
-export default function ChartPanel({ symbol, contextDock, optionsLevel = null, chartType = "candles", indicators, timeframe = "D", replayCutoff = null, onMeta, tool = null, toolActivation = 0, drawingSticky = false, drawingCreationDisabled = false, drawStyle, drawings = [], onDrawingsChange, detectCmd = null, magnet = "off", compare = [], compareCfg = EMPTY_OBJ, isActive = true, syncId = null, liveQuote = null,
+export default function ChartPanel({ symbol, contextDock, optionsLevel = null, chartType = "candles", indicators, timeframe = "D", replayCutoff = null, onMeta, tool = null, toolActivation = 0, drawingSticky = false, drawingCreationDisabled = false, drawStyle, drawings = [], onDrawingsChange, onAiDrawingRemove, aiDrawingsReadOnly = false, detectCmd = null, magnet = "off", compare = [], compareCfg = EMPTY_OBJ, isActive = true, syncId = null, liveQuote = null,
   indParams = EMPTY_OBJ, hidden = EMPTY_SET, onToggleHidden, onRemoveInd, onOpenSettings, onOpenSource, pineScripts = EMPTY_PINE, chartSettings, onVisualSettings, onChartApi, onVisualReady, onCompareStudy, extHours = false, overnightHours = false, episodeId = null,
-  instrumentName, instrumentMarket, instrumentColor, onAddAlert, onTableView, onObjectTree, onOpenSettingsModal, lockedVLine = null, onSetLockedVLine, onIndRowsAt, onRenderedPriceSource, onNativeObservations, dayMode = false, onPaneCount, companyName = "", userTier = "free", dataReady = true, initialTimeframe = null, onDataOrigin, onOvernightHistory }:
+  instrumentName, instrumentMarket, instrumentColor, onAddAlert, onTableView, onObjectTree, onOpenSettingsModal, lockedVLine = null, onSetLockedVLine, onIndRowsAt, onRenderedPriceSource, onNativeObservations, dayMode = false, onPaneCount, companyName = "", userTier = "free", dataReady = true, initialTimeframe = null, onDataOrigin, onOvernightHistory, aiLayerSlot }:
   { symbol: string; contextDock?: ChartContextDock; optionsLevel?: OptionsChartLevel | null; companyName?: string; chartType?: string; indicators: Set<string>; timeframe?: string; replayCutoff?: ReplayCutoff | null; onMeta?: (m: { symbol: string; timeframe: string; axis: ReplayAxis }) => void;
     /** False until the shell has COMMITTED its persisted prefs. See `effectiveTimeframe`. */
     dataReady?: boolean;
     /** The shell's already-resolved startup timeframe, handed over before it can be rendered. */
     initialTimeframe?: string | null;
-    tool?: DrawKind | null; toolActivation?: number; drawingSticky?: boolean; drawingCreationDisabled?: boolean; drawStyle?: { color: string; width: number; dash: "solid" | "dashed" | "dotted" }; drawings?: Drawing[]; onDrawingsChange?: (d: Drawing[]) => void; detectCmd?: DetectCmd; magnet?: "off" | "weak" | "strong" | boolean; compare?: string[]; compareCfg?: Record<string, CmpCfg>; isActive?: boolean; syncId?: number | null; liveQuote?: LiveQuote;
+    tool?: DrawKind | null; toolActivation?: number; drawingSticky?: boolean; drawingCreationDisabled?: boolean; drawStyle?: { color: string; width: number; dash: "solid" | "dashed" | "dotted" }; drawings?: Drawing[]; onDrawingsChange?: (d: Drawing[]) => void; onAiDrawingRemove?: (id: string) => boolean; aiDrawingsReadOnly?: boolean; detectCmd?: DetectCmd; magnet?: "off" | "weak" | "strong" | boolean; compare?: string[]; compareCfg?: Record<string, CmpCfg>; isActive?: boolean; syncId?: number | null; liveQuote?: LiveQuote;
     indParams?: Record<string, any>; hidden?: Set<string>; onToggleHidden?: (key: string) => void; onRemoveInd?: (key: string) => void; onOpenSettings?: (key: string) => void; onOpenSource?: (key: string) => void; pineScripts?: PineScript[];
     chartSettings?: Partial<ChartSettings>;
     onVisualSettings?: (patch: Partial<VisualIntelligenceSettings>) => void;
@@ -632,6 +632,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
     userTier?: SuiteTier;
     /** Data OS U02: emits the derived data-origin readout for the data this generation accepted. */
     onDataOrigin?: (o: DataOrigin) => void;
+    aiLayerSlot?: ReactNode;
     onOvernightHistory?: (history: BoatsChartHistory) => void;
   }) {
   const visualReadyCallbackRef = useRef(onVisualReady); visualReadyCallbackRef.current = onVisualReady;
@@ -1092,6 +1093,8 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
   const svgRef = useRef<SVGSVGElement | null>(null);
   const drawRef = useRef<Drawing[]>(drawings);
   const drawingTransactionRef = useRef(false);
+  const aiDrawingsReadOnlyRef = useRef(aiDrawingsReadOnly);
+  const retireReadOnlyAiEditRef = useRef<(current: Drawing[]) => void>(() => {});
   const toolRef = useRef<DrawKind | null>(tool);
   const toolActivationRef = useRef(toolActivation);
   const drawingStickyRef = useRef(drawingSticky);
@@ -1099,6 +1102,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
   const clearDrawingSelectionRef = useRef<() => void>(() => {});
   const styleRef = useRef(drawStyle);
   const onChangeRef = useRef(onDrawingsChange);
+  const onAiDrawingRemoveRef = useRef<typeof onAiDrawingRemove>(undefined);
   const magnetRef = useRef(magnet);
   const activeRef = useRef(isActive); activeRef.current = isActive;
   // CMX W3: ids of AI-session objects whose stroke-enter animation has already played. renderDraw()
@@ -1294,6 +1298,22 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
   // change and no second load is issued. Standalone callers (embed, dev theater, ChartConductor)
   // pass neither prop and are unaffected.
   const effectiveTimeframe = dataReady ? timeframe : (initialTimeframe ?? timeframe);
+  // A recovery projection stays selectable, but it cannot become a transient
+  // editable document. Retire an in-flight AI edit before the committed paint.
+  useLayoutEffect(() => {
+    aiDrawingsReadOnlyRef.current = aiDrawingsReadOnly;
+    if (aiDrawingsReadOnly) retireReadOnlyAiEditRef.current(drawings);
+    renderRef.current?.();
+  }, [aiDrawingsReadOnly, drawings]);
+  // Native selection listeners are mount-stable. Read the latest committed owner
+  // callback rather than closing over its original symbol/pane association.
+  useLayoutEffect(() => {
+    onAiDrawingRemoveRef.current = onAiDrawingRemove;
+    return () => { onAiDrawingRemoveRef.current = undefined; };
+  }, [onAiDrawingRemove]);
+  useLayoutEffect(() => {
+    clearDrawingSelectionRef.current();
+  }, [symbol, effectiveTimeframe, isActive]);
   // The cutoff as a stable effect key: a new object for the same instant must not re-slice.
   const replayKey = replayCutoff ? `${replayCutoff.clock}:${replayCutoff.at}` : null;
   useLayoutEffect(() => {
@@ -5030,6 +5050,9 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
     };
     const xOf = (tm: string) => {
       const bars = barsRef.current;
+      // Recovery can mount drawings before OHLC arrives. There is no time-axis
+      // mapping yet; numeric-string anchors must not reach LWC's date parser.
+      if (!bars.length) return null;
       const refPrice = bars[Math.max(0, barIndex(tm))]?.c ?? bars.at(-1)?.c ?? 0;
       const px = drawingBridge.anchorToPixel(ptToAnchor(PRICE_PANE_KEY, { t: tm, p: refPrice }));
       if (px) return px.x;
@@ -5105,6 +5128,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       let changed = false;
       const pendingPanes = new Set<number>();
       const next = drawRef.current.map((drawing) => {
+        if (isReadOnlyDrawing(drawing)) return drawing;
         const paneKey = drawingPaneKey(drawing);
         if (!paneKey || drawing.meta?.paneCoordSpace === PANE_VALUE_SPACE) return drawing;
         const pane = paneLayoutFor(paneKey);
@@ -5626,6 +5650,9 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       renderDraw();
     };
     let sel: string | null = null;
+    const isReadOnlyDrawing = (drawing: Drawing | undefined) => aiDrawingsReadOnlyRef.current
+      && !!drawing && (drawing.source === "ai" || drawing.meta?.by === "ai");
+    let activeAiDrawingEdit: { source: Drawing; cloneId?: string } | null = null;
 
     function shape(
       d: Drawing,
@@ -5646,15 +5673,16 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
         "data-renderer-family": family,
         "data-locked": d.locked ? "true" : "false",
         "data-replay-locked": replayLocked ? "true" : "false",
+        "data-ai-read-only": isReadOnlyDrawing(d) ? "true" : "false",
         opacity: op,
         "pointer-events": preview || d.hidden || replayLocked ? "none" : "all",
-        style: d.hidden ? "display:none" : (d.locked || replayLocked ? "cursor:default" : "cursor:pointer"),
+        style: d.hidden ? "display:none" : (d.locked || replayLocked || isReadOnlyDrawing(d) ? "cursor:default" : "cursor:pointer"),
       });
-      if (!preview && (d.meta as any)?.by === "ai" &&
+      if (!preview && (d.source === "ai" || (d.meta as any)?.by === "ai") &&
           typeof document !== "undefined" && document.documentElement.getAttribute("data-cmx-anim") === "on" &&
           !cmxPlayedRef.current.has(d.id)) {
         const cls = d.kind === "rect" ? "cmx-enter-zone"
-          : d.kind === "fib" ? "cmx-enter-fib"
+          : d.kind === "fib" || d.kind === "fibtrend" ? "cmx-enter-fib"
           : family === "annotation" || family === "media" ? "cmx-enter-pop"
           : "cmx-enter-line";
         g.classList.add(cls); cmxPlayedRef.current.add(d.id);
@@ -5682,7 +5710,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
         g.appendChild(mk("path", { d: value, fill: "none", stroke: "transparent", "stroke-width": 14, "stroke-linecap": "round", "stroke-linejoin": "round", "data-segment": "1" }));
       };
       const grip = (pts: XY[]) => {
-        if (!on || d.locked) return;
+        if (!on || d.locked || isReadOnlyDrawing(d)) return;
         // A sampled freehand stroke carries up to 64 anchors. A handle on every
         // one buried the stroke under a chain of circles and destroyed the shape
         // the user drew, so selection shows the stroke's extent plus the two
@@ -5739,6 +5767,12 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       const anchorXY = paneAnchor && ax != null && ay != null
         ? [{ x: ax, y: ay, p: A?.p }, ...projectedAnchors.slice(1)]
         : projectedAnchors;
+      // Model-authored semantic handles are explicit. Never renumber pattern labels
+      // over a reduced point array or disguise a missing handle with fallback geometry.
+      if (d.source === "ai" && projectedAnchors.length !== d.points.length) {
+        g.setAttribute("data-renderer-state", "unprojected");
+        return g;
+      }
       const measurementLabel = () => {
         if (!A || !B) return "";
         const bars = Math.abs(barIndex(B.t) - barIndex(A.t)), delta = B.p - A.p, pct = A.p ? delta / A.p * 100 : 0;
@@ -5983,23 +6017,26 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
         return done(anchorXY);
       }
 
-      if (family === "fib") {
+      if (family === "fib" || family === "fib-extension") {
         const settings = fibonacciSettings(d.meta);
-        const startPrice = settings.reverse ? B.p : A.p;
-        const endPrice = settings.reverse ? A.p : B.p;
-        const x1 = Math.min(ax, bx), spanW = Math.max(48, Math.abs(bx - ax));
-        const levels = settings.levels
-          .filter((level) => level.visible)
-          .map((level) => ({ ratio: level.value, color: level.color, price: startPrice + (endPrice - startPrice) * level.value }));
+        const extension = family === "fib-extension";
+        const C = d.points[2], cx = C ? projectX(C.t) : null, cy = C ? projectY(C.p) : null;
+        if (extension && (cx == null || cy == null)) return done();
+        const x1 = extension ? cx! : Math.min(ax, bx);
+        const spanW = extension ? Math.max(48, W - x1) : Math.max(48, Math.abs(bx - ax));
+        const levels = fibonacciPriceLevels(extension ? "fibtrend" : "fib", d.points, settings);
+        g.setAttribute("data-fibonacci-basis", "raw-price-arithmetic");
         for (let i = 0; i < levels.length - 1; i++) { const y1 = projectY(levels[i].price), y2 = projectY(levels[i + 1].price); if (y1 != null && y2 != null) add("rect", { x: x1, y: Math.min(y1, y2), width: spanW, height: Math.abs(y2 - y1), fill: levels[i + 1].color, "fill-opacity": d.fillOpacity ?? .065, "pointer-events": "none" }); }
         levels.forEach((level) => {
           const y = projectY(level.price); if (y == null) return;
           const ratio = String(Number(level.ratio.toFixed(3))), price = level.price.toFixed(prec);
           const label = settings.labels === "ratio" ? ratio : settings.labels === "price" ? price : `${ratio} (${price})`;
-          line(x1, y, x1 + spanW, y, { stroke: level.color, "stroke-width": lw(level.ratio === 0 || level.ratio === 1 ? 1.5 : 1.15, .3), "pointer-events": "none", hit: false });
+          line(x1, y, x1 + spanW, y, { stroke: level.color, "stroke-width": lw(level.ratio === 0 || level.ratio === 1 ? 1.5 : 1.15, .3), "pointer-events": "none", hit: false,
+            "data-fibonacci-ratio": level.ratio, "data-fibonacci-price": level.price });
           text(x1 - 5, y + 3, label, { fill: level.color, "font-size": 9.5, "font-weight": 700, "text-anchor": "end", "font-family": "var(--font-num)", "pointer-events": "none" });
         });
         line(ax, ay, bx, by, { "stroke-dasharray": d.dash === "solid" || d.dash == null ? "7 5" : dash, opacity: .85 });
+        if (extension && cx != null && cy != null) line(bx, by, cx, cy, { "stroke-dasharray": "7 5", opacity: .65 });
         return done(anchorXY, true);
       }
 
@@ -6474,7 +6511,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
         const fill = document.createElement("input"); fill.type = "range"; fill.min = "0"; fill.max = "45"; fill.step = "1"; fill.value = String(Math.round((d.fillOpacity ?? .08) * 100)); fill.setAttribute("data-fill-opacity", "1");
         fillLabel.appendChild(fill); panel.appendChild(fillLabel);
       }
-      if (d.kind === "fib") {
+      if (d.kind === "fib" || d.kind === "fibtrend") {
         const fib = fibonacciSettings(d.meta);
         const heading = document.createElement("div"); heading.className = "draw-settings-heading"; heading.textContent = tPlain("drawingFibLevels"); panel.appendChild(heading);
         const controls = document.createElement("div"); controls.className = "draw-settings-grid";
@@ -6523,6 +6560,12 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
         const reset = document.createElement("button"); reset.type = "button"; reset.className = "draw-settings-reset"; reset.setAttribute("data-reset-tool-settings", "position"); reset.textContent = tPlain("drawingResetDefaults"); panel.appendChild(reset);
       }
       bar.appendChild(panel);
+      bar.dataset.aiReadOnly = String(isReadOnlyDrawing(d));
+      if (isReadOnlyDrawing(d)) {
+        for (const control of bar.querySelectorAll<HTMLButtonElement | HTMLInputElement | HTMLSelectElement>("button,input,select")) {
+          if (!control.hasAttribute("data-settings") && !control.hasAttribute("data-bar-grip")) control.disabled = true;
+        }
+      }
     };
     let barManual: { x: number; y: number } | null = null, barManualFor: string | null = null;
     bar.addEventListener("pointerdown", (e) => {
@@ -6556,6 +6599,22 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
         window.addEventListener("pointermove", move); window.addEventListener("pointerup", up); window.addEventListener("pointercancel", up); return;
       }
     });
+    const removeSelectedDrawing = () => {
+      if (!activeRef.current || replayIdxRef.current != null || !sel) return;
+      const selected = drawRef.current.find((drawing) => drawing.id === sel);
+      if (!selected) { sel = null; renderDraw(); return; }
+      // Only the incumbent AI owner can remove AI objects; never fall back
+      // into human drawing persistence on a failed/stale AI selection.
+      if (selected.source === "ai" || selected.meta?.by === "ai") {
+        if (isReadOnlyDrawing(selected)) return;
+        if (onAiDrawingRemoveRef.current?.(selected.id) !== true) return;
+        sel = null;
+        return;
+      }
+      const id = selected.id;
+      sel = null;
+      onChangeRef.current?.(drawRef.current.filter((drawing) => drawing.id !== id));
+    };
     // Click, rather than pointerdown, keeps every inspector action operable with
     // Enter/Space while retaining delegated mouse and touch behavior.
     bar.addEventListener("click", (e) => {
@@ -6564,6 +6623,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       const target = e.target as HTMLElement;
       const tg = target.closest("button") as HTMLElement | null; if (!tg || !sel) return;
       if (tg.getAttribute("data-settings")) { bar.classList.toggle("settings-open"); return; }
+      if (isReadOnlyDrawing(drawRef.current.find((drawing) => drawing.id === sel))) return;
       const resetSettings = tg.getAttribute("data-reset-tool-settings");
       if (resetSettings) {
         drawRef.current = drawRef.current.map((drawing) => {
@@ -6578,7 +6638,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
         });
         barSig = ""; onChangeRef.current?.([...drawRef.current]); return;
       }
-      if (tg.getAttribute("data-del")) { const s = sel; sel = null; onChangeRef.current?.(drawRef.current.filter((d) => d.id !== s)); return; }
+      if (tg.getAttribute("data-del")) { removeSelectedDrawing(); return; }
       if (tg.getAttribute("data-lock")) {
         drawRef.current = drawRef.current.map((d) => d.id === sel ? { ...d, locked: !d.locked } : d);
         barSig = ""; onChangeRef.current?.([...drawRef.current]); return;
@@ -6664,26 +6724,30 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       }
       return null;
     };
-    const barSignature = (d: Drawing) => `${d.id}|${d.kind}|${d.color}|${d.fillColor}|${d.width}|${d.dash}|${d.fontSize}|${JSON.stringify(d.meta ?? {})}`;
+    const barSignature = (d: Drawing) => `${d.id}|${d.kind}|${d.color}|${d.fillColor}|${d.width}|${d.dash}|${d.fontSize}|${JSON.stringify(d.meta ?? {})}|${isReadOnlyDrawing(d)}`;
     let barSig = "";
     bar.addEventListener("input", (e) => {
       if (replayIdxRef.current != null) return;
       e.stopPropagation(); if (!sel) return;
+      if (isReadOnlyDrawing(drawRef.current.find((drawing) => drawing.id === sel))) return;
       const input = e.target as HTMLInputElement | HTMLSelectElement;
       const patch = inspectorPatch(input);
       if (patch) {
+        const selected = drawRef.current.find((drawing) => drawing.id === sel);
+        activeAiDrawingEdit = selected && (selected.source === "ai" || selected.meta?.by === "ai") ? { source: selected } : null;
         drawingTransactionRef.current = true;
         drawRef.current = drawRef.current.map((d) => d.id === sel ? { ...d, ...patch } : d);
         // Color is part of the inspector signature. Keep the live input mounted
         // through its later `change` event instead of rebuilding it mid-gesture.
-        const selected = drawRef.current.find((d) => d.id === sel);
-        if (selected) barSig = barSignature(selected);
+        const preview = drawRef.current.find((drawing) => drawing.id === sel);
+        if (preview) barSig = barSignature(preview);
         scheduleDraw();
       }
     });
     bar.addEventListener("change", (e) => {
       if (replayIdxRef.current != null) return;
       e.stopPropagation(); if (!sel) return;
+      if (isReadOnlyDrawing(drawRef.current.find((drawing) => drawing.id === sel))) return;
       const input = e.target as HTMLInputElement | HTMLSelectElement;
       const patch = inspectorPatch(input);
       if (patch) {
@@ -6700,12 +6764,13 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
           }
         }
         drawingTransactionRef.current = false;
+        activeAiDrawingEdit = null;
         barSig = "";
         onChangeRef.current?.([...drawRef.current]);
         renderDraw();
       }
     });
-    bar.addEventListener("pointercancel", () => { drawingTransactionRef.current = false; });
+    bar.addEventListener("pointercancel", () => { drawingTransactionRef.current = false; activeAiDrawingEdit = null; });
     const positionBar = () => {
       if (replayIdxRef.current != null) {
         bar.style.display = "none"; barSig = "";
@@ -6736,6 +6801,8 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
     };
     // inline, editable text box — type directly on the chart
     let textEditEl: HTMLInputElement | null = null;
+    let textEditingDrawing: Drawing | undefined;
+    let cancelTextEdit: (() => void) | null = null;
     const openTextEditor = (
       at: { t: string; p: number },
       existing?: Drawing,
@@ -6745,6 +6812,9 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       activation = toolActivationRef.current,
       paneKey?: string | null,
     ) => {
+      if (isReadOnlyDrawing(existing)) return;
+      cancelTextEdit?.();
+      textEditingDrawing = existing;
       if (textEditEl) { try { textEditEl.remove(); } catch {} textEditEl = null; } textEditRef.current = null;
       const textPaneKey = existing ? drawingPaneKey(existing) : paneKey;
       const paneAnchor = paneAnchorOf(existing?.meta ?? newMeta);
@@ -6761,8 +6831,10 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       let done = false;
       const commit = (save: boolean) => {
         if (done) return; done = true; const val = inp.value.trim();
-        try { inp.remove(); } catch {} textEditEl = null; if (textEditRef.current === inp) textEditRef.current = null;
-        if (!save) return;
+        if (textEditEl === inp) { textEditEl = null; textEditingDrawing = undefined; cancelTextEdit = null; }
+        if (textEditRef.current === inp) textEditRef.current = null;
+        try { inp.remove(); } catch {}
+        if (!save || isReadOnlyDrawing(existing)) return;
         if (existing) onChangeRef.current?.(val ? drawRef.current.map((d) => d.id === existing.id ? { ...d, text: val } : d) : drawRef.current.filter((d) => d.id !== existing.id));
         else if (val) {
           const withPane = drawingMetaForPane(newMeta, textPaneKey);
@@ -6770,6 +6842,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
           sel = drawingStickyRef.current ? null : next.id; drawRef.current = [...drawRef.current, next]; onChangeRef.current?.([...drawRef.current]); announceCommit(newKind, activation);
         }
       };
+      cancelTextEdit = () => commit(false);
       inp.addEventListener("keydown", (e) => { e.stopPropagation(); if (e.key === "Enter") { e.preventDefault(); commit(true); } else if (e.key === "Escape") { e.preventDefault(); commit(false); } });
       inp.addEventListener("blur", () => commit(true));
     };
@@ -7563,6 +7636,25 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       sel = null;
       renderDraw();
     };
+    retireReadOnlyAiEditRef.current = (current) => {
+      const selectedReadOnly = isReadOnlyDrawing(drawRef.current.find((drawing) => drawing.id === sel));
+      const editReadOnly = drawingTransactionRef.current && isReadOnlyDrawing(activeAiDrawingEdit?.source);
+      const textReadOnly = isReadOnlyDrawing(textEditingDrawing);
+      if (!selectedReadOnly && !editReadOnly && !textReadOnly) return;
+      const cloneId = editReadOnly ? activeAiDrawingEdit?.cloneId : undefined;
+      if (editReadOnly) {
+        dragCleanup?.(); dragCleanup = null;
+        drawingTransactionRef.current = false;
+        activeAiDrawingEdit = null;
+      }
+      // Mark its closure done before removal, so a late blur cannot revive it
+      // even after a subsequent accepted snapshot makes AI editable again.
+      if (textReadOnly) cancelTextEdit?.();
+      const isAi = (drawing: Drawing) => drawing.source === "ai" || drawing.meta?.by === "ai";
+      drawRef.current = [...drawRef.current.filter((drawing) => !isAi(drawing) && drawing.id !== cloneId), ...current.filter(isAi)];
+      barSig = "";
+      renderDraw();
+    };
     // CMX W3: when THIS is the active pane, publish a coordinate resolver so ChartConductor's ghost
     // cursor can map an op's first anchor (epoch-seconds + price) into pane pixels via the exact
     // DrawLayer transform (xOf/yOf). Registration is refreshed on the active-pane effect below; here we
@@ -7760,6 +7852,9 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
     };
     const paneScale = (key: string, paneIndex: number) => paneSeries(key, paneIndex)?.priceScale() ?? null;
     const onAxisWheel = (e: WheelEvent) => {
+      // Capture runs before React's layer controls can stop bubbling. Their scroll
+      // and pointer gestures belong to the control, even over a left-hand axis.
+      if ((e.target as Element)?.closest?.(".chart-overlays,button,input,textarea,select,[contenteditable='true'],.draw-bar,.draw-settings,.text-edit")) return;
       const w = wrapElRef.current; if (!w) return; const wr = w.getBoundingClientRect();
       if (!inAxisBand(e.clientX, wr)) return;
       const y = e.clientY - wr.top;
@@ -8401,6 +8496,8 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
     svg.addEventListener("pointerdown", (ev) => {
       if (replayIdxRef.current != null || toolRef.current || !activeRef.current || !ev.isPrimary || ev.button !== 0) return; const hitId = idAt(ev); if (!hitId) { if (sel) { sel = null; renderDraw(); } return; }
       const source = drawRef.current.find((x) => x.id === hitId); if (!source) return;
+      if (isReadOnlyDrawing(source)) { ev.stopPropagation(); sel = hitId; renderDraw(); return; }
+      activeAiDrawingEdit = source.source === "ai" || source.meta?.by === "ai" ? { source } : null;
       const handleAttr = (ev.target as Element)?.closest?.("[data-handle]")?.getAttribute("data-handle");
       let id = hitId;
       let d0 = source;
@@ -8411,10 +8508,12 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
         d0 = cloneDrawing(source, uid());
         d0.z = Math.max(drawRef.current.length, ...drawRef.current.map((drawing) => drawing.z ?? 0)) + 1;
         id = d0.id;
+        if (activeAiDrawingEdit) activeAiDrawingEdit.cloneId = id;
         drawRef.current = [...drawRef.current, d0];
       }
       const pointerId = ev.pointerId;
       ev.stopPropagation();
+      let editCancelled = false;
       if (getDrawingTool(d0.kind)?.capabilities.includes("textInput") && !d0.locked) {
         const now = performance.now();
         const isDoublePress = lastTextPress?.id === id
@@ -8441,7 +8540,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
           drawingTransactionRef.current = true;
           setInspectorMoving(true);
           const moveHandle = (e: PointerEvent) => {
-            if (e.pointerId !== pointerId) return;
+            if (e.pointerId !== pointerId || editCancelled || isReadOnlyDrawing(source)) return;
             const m0 = rectXY(e);
             const angleOrigin = d0.points.length === 2
               ? d0.points[handleIndex === 0 ? 1 : 0]
@@ -8460,16 +8559,18 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
             scheduleDraw();
           };
           const cleanupHandle = () => {
+            editCancelled = true;
+            activeAiDrawingEdit = null;
             window.removeEventListener("pointermove", moveHandle); window.removeEventListener("pointerup", endHandle); window.removeEventListener("pointercancel", cancelHandle);
             setInspectorMoving(false);
           };
           const endHandle = (e: PointerEvent) => {
-            if (e.pointerId !== pointerId) return;
+            if (e.pointerId !== pointerId || editCancelled || isReadOnlyDrawing(source)) return;
             cleanupHandle();
             dragCleanup = null; drawingTransactionRef.current = false; onChangeRef.current?.([...drawRef.current]);
           };
           const cancelHandle = (e: PointerEvent) => {
-            if (e.pointerId !== pointerId) return;
+            if (e.pointerId !== pointerId || editCancelled || isReadOnlyDrawing(source)) return;
             cleanupHandle(); dragCleanup = null; drawingTransactionRef.current = false;
             drawRef.current = drawRef.current.map((x) => x.id === id ? d0 : x);
             renderDraw();
@@ -8485,7 +8586,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       const origIndices = orig.map((point) => barIndex(point.t));
       const minOrigIndex = Math.min(...origIndices), maxOrigIndex = Math.max(...origIndices);
       const move = (e: PointerEvent) => {
-        if (e.pointerId !== pointerId) return;
+        if (e.pointerId !== pointerId || editCancelled || isReadOnlyDrawing(source)) return;
         const m0 = rectXY(e), cur = snap(m0.x, m0.y, e), bars = barsRef.current;
         if (origPaneAnchor) {
           const nextAnchor = {
@@ -8515,10 +8616,10 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
         drawRef.current = drawRef.current.map((x) => x.id !== id ? x : { ...x, points: orig.map((pt, index) => { const ni = origIndices[index] + di; return { t: slots[ni] ?? bars[ni]?.time ?? pt.t, p: +(pt.p + dp).toFixed(editPrec) }; }) });
         scheduleDraw();   // rAF-coalesced: one renderDraw() per frame instead of per raw pointermove
       };
-      const cleanupMove = () => { window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up); window.removeEventListener("pointercancel", cancelMove); setInspectorMoving(false); };
-      const up = (e: PointerEvent) => { if (e.pointerId !== pointerId) return; cleanupMove(); dragCleanup = null; drawingTransactionRef.current = false; onChangeRef.current?.([...drawRef.current]); };
+      const cleanupMove = () => { editCancelled = true; activeAiDrawingEdit = null; window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up); window.removeEventListener("pointercancel", cancelMove); setInspectorMoving(false); };
+      const up = (e: PointerEvent) => { if (e.pointerId !== pointerId || editCancelled || isReadOnlyDrawing(source)) return; cleanupMove(); dragCleanup = null; drawingTransactionRef.current = false; onChangeRef.current?.([...drawRef.current]); };
       const cancelMove = (e: PointerEvent) => {
-        if (e.pointerId !== pointerId) return;
+        if (e.pointerId !== pointerId || editCancelled || isReadOnlyDrawing(source)) return;
         cleanupMove(); dragCleanup = null; drawingTransactionRef.current = false;
         drawRef.current = commandClone
           ? drawRef.current.filter((x) => x.id !== id)
@@ -8547,9 +8648,9 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
         return;
       }
       const id = idAt(event); if (!id) return;
+      const drawing = drawRef.current.find((candidate) => candidate.id === id); if (!drawing || isReadOnlyDrawing(drawing)) return;
       const now = performance.now(); if (now - lastPaletteWheel < 90) return;
       lastPaletteWheel = now; event.preventDefault(); event.stopPropagation();
-      const drawing = drawRef.current.find((candidate) => candidate.id === id); if (!drawing) return;
       const current = COLORS.findIndex((color) => color === drawing.color);
       const direction = event.deltaY >= 0 ? 1 : -1;
       const next = COLORS[(current < 0 ? 0 : current + direction + COLORS.length) % COLORS.length];
@@ -8638,6 +8739,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
         return;
       }
       const id = idAt(ev); const d = drawRef.current.find((x) => x.id === id);
+      if (isReadOnlyDrawing(d)) return;
       if (d && replayIdxRef.current == null && !d.locked && getDrawingTool(d.kind)?.capabilities.includes("textInput")) { ev.stopPropagation(); ev.preventDefault(); openTextEditor(d.points[0], d); }
       else if (d && replayIdxRef.current == null && !d.locked) {
         ev.stopPropagation(); ev.preventDefault(); sel = d.id; renderDraw(); bar.classList.add("settings-open");
@@ -8789,6 +8891,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
     // opening the drawing rail. Capture on the chart wrapper because the drawing SVG
     // intentionally has pointer-events:none while no tool is armed.
     const onShiftMeasure = (ev: PointerEvent) => {
+      if ((ev.target as Element)?.closest?.(".chart-overlays,button,input,textarea,select,[contenteditable='true'],.draw-bar,.draw-settings,.text-edit")) return;
       if (drawingCreationDisabledRef.current || replayIdxRef.current != null || !ev.shiftKey || toolRef.current || !activeRef.current || ev.button !== 0) return;
       const startXY = rectXY(ev), a = snap(startXY.x, startXY.y, ev), measurePane = snapPaneKey;
       const activation = toolActivationRef.current;
@@ -8815,6 +8918,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
         else renderDraw();
       };
       const cancel = () => { cleanupMeasure(); renderDraw(); };
+      activeAiDrawingEdit = null;
       drawingTransactionRef.current = true;
       dragCleanup = cleanupMeasure;
       window.addEventListener("pointermove", move); window.addEventListener("pointerup", end); window.addEventListener("pointercancel", cancel);
@@ -8830,6 +8934,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
     // (`mm:set-tool` → setTool) to take effect — see the lane summary.
     let lastEscTs = 0;
     let drawingClipboard: Drawing | null = null;
+    let drawingClipboardSource: Drawing | undefined;
     onKey = (e: KeyboardEvent) => {
       if (!activeRef.current || (e.target as Element | null)?.closest?.("[data-context-reader]")) return;
       const tag = (e.target as HTMLElement)?.tagName?.toLowerCase(); if (tag === "input" || tag === "textarea") return;
@@ -8850,7 +8955,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
         if (now - lastEscTs < 500) { lastEscTs = 0; if (toolRef.current) { try { window.dispatchEvent(new CustomEvent("mm:set-tool", { detail: null })); } catch {} } normalizeChartView(); }
         else { lastEscTs = now; if (sel) { sel = null; renderDraw(); } }
       }
-      else if ((e.key === "Delete" || e.key === "Backspace") && sel && replayIdxRef.current == null) { e.preventDefault(); const s = sel; sel = null; onChangeRef.current?.(drawRef.current.filter((d) => d.id !== s)); }
+      else if ((e.key === "Delete" || e.key === "Backspace") && sel && replayIdxRef.current == null) { e.preventDefault(); removeSelectedDrawing(); }
       else if ((e.metaKey || e.ctrlKey) && !e.altKey && e.code === "KeyZ" && replayIdxRef.current == null) {
         e.preventDefault();
         try { window.dispatchEvent(new CustomEvent("mm:drawing-history", { detail: e.shiftKey ? "redo" : "undo" })); } catch {}
@@ -8863,11 +8968,13 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
         const selected = drawRef.current.find((drawing) => drawing.id === sel);
         if (!selected) return;
         e.preventDefault();
+        drawingClipboardSource = selected;
         drawingClipboard = cloneDrawing(selected, "_drawing_clipboard");
       }
       else if ((e.metaKey || e.ctrlKey) && !e.altKey && e.code === "KeyV" && drawingClipboard && replayIdxRef.current == null) {
         e.preventDefault();
         const source = drawingClipboard;
+        if (isReadOnlyDrawing(drawingClipboardSource ?? source)) return;
         const times = semanticTimes();
         const reference = source.points[0];
         const referenceY = reference ? yOf(reference.p) : null;
@@ -8889,7 +8996,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       }
       else if (sel && replayIdxRef.current == null && ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key)) {
         const selected = drawRef.current.find((drawing) => drawing.id === sel);
-        if (!selected || selected.locked) return;
+        if (!selected || selected.locked || isReadOnlyDrawing(selected)) return;
         e.preventDefault();
         const amount = e.shiftKey ? 10 : 1;
         const paneAnchor = paneAnchorOf(selected.meta);
@@ -9021,6 +9128,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       cancelPendingDrawingRef.current = () => {};
       cancelMediaToolRef.current = () => {};
       clearDrawingSelectionRef.current = () => {};
+      retireReadOnlyAiEditRef.current = () => {};
       if (tagTimerRef.current != null) { clearInterval(tagTimerRef.current); tagTimerRef.current = null; }
       if (priceTagRef.current) { try { priceTagRef.current.remove(); } catch {} priceTagRef.current = null; }
       if (extendedTagRef.current) { try { extendedTagRef.current.remove(); } catch {} extendedTagRef.current = null; }
@@ -10668,6 +10776,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
         onCandleSettings={onOpenSettings ? () => onOpenSettings("suite:trend/cp") : undefined}
       />
       <ChartOverlays
+        aiLayerSlot={isActive ? aiLayerSlot : undefined}
         panes={paneLayout} hoveredKey={hoveredKey} legendOpen={legendOpen} onToggleLegend={() => setLegendOpen((o) => !o)}
         showTitles={chartSettings?.showIndicatorTitles !== false}
         backgroundOpacity={chartSettings?.indicatorBackgroundOpacity ?? 70}

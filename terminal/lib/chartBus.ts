@@ -10,19 +10,23 @@
 //                   never a throw. (The contract names zod; we enforce the identical rules with typed
 //                   guards to avoid a new dependency and match this repo's validation idiom.)
 //   • translate() — turn a validated draw.* op into one or more lib/drawings Drawing objects, tagged
-//                   `ai_*` + auto:true so they render through the existing SVG DrawLayer and never
-//                   round-trip into the user's persisted drawing store.
+//                   `ai_*` + auto:true so they render through the existing native DrawLayer and
+//                   remain a distinct AI partition of the canonical drawing collection.
 //   • ATR(14) + fit metrics (touches / max_dev_atr) computed against the exact bar series the chart
 //                   currently renders — for the state mirror the gateway reads back.
 //   • CommandQueue — sequential per-batch application with a configurable pace delay (default 0 =
 //                   instant) + applyInstantly() escape + a tiny step emitter W3 subscribes to later.
 //
-// NOTHING here persists to a server. The AI layer is in-memory per-symbol, owned by TerminalShell.
+// This pure module never performs I/O. TerminalShell persists the canonical source partitions.
 
 import type { Drawing, Pt } from "@/lib/drawings";
 import { uid } from "@/lib/drawings";
 import { isSuiteKey } from "./suites/meta";
-import { readNativeSuiteParams, type IndicatorParam } from "./chartIndicatorParams";
+import { enabledSuiteModules } from "./suites/catalog";
+import { readBuiltinIndicatorParams, readNativeSuiteParams, type IndicatorParam } from "./chartIndicatorParams";
+import { aiNativeDrawingContract, isAiNativeDrawingKind } from "./chartDrawingTools";
+import { readStudyStack } from "./studyInstances";
+import { fibonacciSettings } from "./drawing-engine/settings";
 
 // ── caps (contract law) ───────────────────────────────────────────────────────────────────────
 export const BATCH_OP_CAP = 24; // ops per batch
@@ -33,7 +37,7 @@ export const CAPTION_MAX = 140; // caption chars
 export const CHART_OPS = ["chart.set_symbol", "chart.set_tf", "chart.set_indicators", "chart.set_range"] as const;
 export const DRAW_OPS = [
   "draw.trendline", "draw.ray", "draw.hline", "draw.zone", "draw.channel",
-  "draw.fib", "draw.path", "draw.label", "draw.marker", "draw.risk_box",
+  "draw.fib", "draw.path", "draw.label", "draw.marker", "draw.risk_box", "draw.tool",
 ] as const;
 export const SCENE_OPS = ["scene.begin", "scene.end"] as const;
 export const AI_OPS = ["ai.clear", "ai.undo"] as const;
@@ -74,6 +78,8 @@ export type ChartCommandV2 = {
 // A drawing produced by the AI layer. Extends Drawing with provenance the state mirror + caps read.
 export type AiObject = Drawing & {
   by: "ai";
+  /** Exact originating drawing id; compound children never infer ownership from an id prefix. */
+  command_id?: string;
   op: ChartOp; // the draw.* op that produced it
   batch_id: string;
   seq: number;
@@ -92,11 +98,43 @@ export type Applied =
       // exactly one of these is populated depending on op family:
       draw?: AiObject[]; // draw.* → objects to add
       setSymbol?: string; setTf?: string; setIndicators?: IndicatorSpec[];
+      indicatorVisibility?: IndicatorVisibilityPatch;
       setRange?: { from: number; to: number };
       clear?: true; clearIds?: string[]; undo?: number; scene?: "begin" | "end"; sceneTitle?: string; }
   | { ok: false; op: string; id: string | null; error: string };
 
 export type IndicatorSpec = { name: string; params?: Record<string, IndicatorParam> };
+export type IndicatorVisibilityPatch = { show: string[]; hide: string[] };
+
+/** Visibility identities come from the same module catalog as the legend and renderer. */
+export function indicatorVisibilityKeys(specs: readonly IndicatorSpec[]): Map<string, string[]> {
+  const keys = new Map(specs.map(spec => [spec.name, [] as string[]]));
+  const params = Object.fromEntries(specs.map(spec => [spec.name, spec.params]));
+  for (const module of enabledSuiteModules(new Set(keys.keys()), params))
+    keys.set(module.id, [module.suiteKey]);
+  return keys;
+}
+
+export function describeIndicatorVisibility(specs: readonly IndicatorSpec[], hidden: readonly string[]) {
+  const keys = indicatorVisibilityKeys(specs), flags = new Set(hidden);
+  return { schema: "chart.indicator_visibility.v1" as const, keys: [...keys.keys()],
+    parents: Object.fromEntries([...keys].filter(([, parents]) => parents.length)),
+    hidden: hidden.filter(key => keys.has(key)),
+    effective_hidden: [...keys].filter(([key, parents]) => flags.has(key) || parents.some(parent => flags.has(parent))).map(([key]) => key) };
+}
+
+/** Edit only owned study/module keys; comparison and script flags share this collection. */
+export function updateIndicatorVisibility(
+  hidden: readonly string[], current: readonly IndicatorSpec[], next: readonly IndicatorSpec[],
+  visibility?: IndicatorVisibilityPatch,
+): string[] {
+  const attached = indicatorVisibilityKeys(next), existing = indicatorVisibilityKeys(current);
+  const result = new Set(hidden.filter(name =>
+    (!existing.has(name) || attached.has(name)) && (!attached.has(name) || existing.has(name))));
+  for (const name of visibility?.show ?? []) result.delete(name);
+  for (const name of visibility?.hide ?? []) if (attached.has(name)) result.add(name);
+  return [...result];
+}
 
 // ── small typed guards ────────────────────────────────────────────────────────────────────────
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
@@ -114,15 +152,34 @@ function readPt(v: unknown): WirePt | null {
   return { t: v.t, p: v.p };
 }
 
-// Sanitise a caption: plain text, ≤140 chars, control chars stripped. Stored only; rendered ONLY as
+/** JSONB cannot store an unpaired UTF-16 surrogate. Keep the persisted text exact. */
+export function isWellFormedChartText(value: string): boolean {
+  for (let i = 0; i < value.length; i++) {
+    const code = value.charCodeAt(i);
+    if (code >= 0xd800 && code <= 0xdbff) {
+      const low = value.charCodeAt(++i);
+      if (!(low >= 0xdc00 && low <= 0xdfff)) return false;
+    } else if (code >= 0xdc00 && code <= 0xdfff) return false;
+  }
+  return true;
+}
+
+/** Bound fresh text in UTF-16 units without splitting its final code point. */
+export function truncateChartText(value: string, limit: number): string {
+  const text = value.slice(0, limit);
+  const last = text.charCodeAt(text.length - 1);
+  return last >= 0xd800 && last <= 0xdbff ? text.slice(0, -1) : text;
+}
+
+// Sanitise a caption: plain text, ≤140 UTF-16 units, control chars stripped. Stored only; rendered ONLY as
 // textContent by the (future) W3 theater — never as innerHTML. We normalise here so storage is clean.
 export function cleanCaption(v: unknown): string | undefined {
-  if (!isStr(v)) return undefined;
+  if (!isStr(v) || !isWellFormedChartText(v)) return undefined;
   // strip ASCII control chars (codepoints < 0x20 and 0x7F) via a char-code filter — avoids a
   // control-char regex literal in source. Plain text, stored for the future W3 theater textContent.
   let s = "";
   for (const ch of v) { const c = ch.codePointAt(0)!; s += (c < 0x20 || c === 0x7f) ? " " : ch; }
-  s = s.trim().slice(0, CAPTION_MAX);
+  s = truncateChartText(s.trim(), CAPTION_MAX);
   return s.length ? s : undefined;
 }
 
@@ -298,14 +355,16 @@ function pt(t: number, p: number): Pt {
 // Build one AiObject with shared provenance fields.
 function mkObj(cmd: ChartCommandV2, kind: Drawing["kind"], parts: Partial<Drawing>, idSuffix = ""): AiObject {
   const color = parts.color ?? AI_ACCENT;
+  const commandId = cmd.id || "ai_" + uid();
   return {
-    id: (cmd.id || "ai_" + uid()) + idSuffix,
+    id: commandId + idSuffix,
     kind,
     points: parts.points ?? [],
     color,
-    auto: true, // routes AI objects away from the user-persisted store in ChartPane.handleChange
+    auto: true, // keeps AI edits separate from manual editing and history
     ...parts,
     by: "ai",
+    command_id: commandId,
     op: cmd.op,
     batch_id: cmd.batch_id,
     seq: cmd.seq,
@@ -358,26 +417,40 @@ export function translate(
           specs.push({ name: raw.name, params: native.params });
           continue;
         }
-        // Preserve legacy replace semantics. Patch edits refuse bad values instead of
-        // claiming a requested change succeeded after silently dropping that value.
-        if (mode === "patch" && raw.params !== undefined && !isObj(raw.params))
-          return reject("bad_indicator_params");
-        const params: Record<string, number> = {};
-        if (isObj(raw.params)) for (const [k, v] of Object.entries(raw.params)) {
-          if (mode === "patch" && (!isFiniteNum(v) || ["__proto__", "constructor", "prototype"].includes(k)))
-            return reject("bad_indicator_params");
-          if (isFiniteNum(v)) params[k] = v;
-        }
-        specs.push({ name: raw.name, params: Object.keys(params).length ? params : undefined });
+        const builtin = readBuiltinIndicatorParams(raw.name, raw.params);
+        if (!builtin.ok) return reject(builtin.error);
+        specs.push({ name: raw.name, params: builtin.params });
       }
-      if (mode === "replace") return { ok: true, op: cmd.op, id: null, setIndicators: specs };
+      const show = Object.hasOwn(a, "show") ? a.show : [], hide = Object.hasOwn(a, "hide") ? a.hide : [];
+      if (![show, hide].every(names => Array.isArray(names) && names.length <= 64
+          && names.every(name => isStr(name)) && new Set(names).size === names.length))
+        return reject("bad_indicator_visibility");
+      const visibility = { show: show as string[], hide: hide as string[] };
+      if (visibility.show.some(name => visibility.hide.includes(name))) return reject("conflicting_indicator_visibility");
+      const finish = (next: IndicatorSpec[]): Applied => {
+        const nextStack = readStudyStack({ inds: next.map(spec => spec.name), indParams: {}, hidden: [] });
+        const nextRendered = new Set(nextStack.instances.map(instance => instance.id));
+        const nextMembership = new Set(next.map(spec => spec.name));
+        const currentStack = readStudyStack({ inds: (currentIndicators ?? []).map(spec => spec.name), indParams: {}, hidden: [] });
+        if (nextStack.unsupported.some(instance => edited.has(instance.id))
+            || currentStack.instances.some(instance => nextMembership.has(instance.id) && !nextRendered.has(instance.id)))
+          return reject("indicator_instance_limit");
+        const attached = indicatorVisibilityKeys(next);
+        if ([...visibility.show, ...visibility.hide].some(name => !attached.has(name)))
+          return reject("visibility_requires_attached_indicator");
+        if (visibility.show.some(name => attached.get(name)!.some(parent => visibility.hide.includes(parent))))
+          return reject("conflicting_indicator_visibility");
+        return { ok: true, op: cmd.op, id: null, setIndicators: next,
+          ...(a.show !== undefined || a.hide !== undefined ? { indicatorVisibility: visibility } : {}) };
+      };
+      if (mode === "replace") return finish(specs);
       const remove = a.remove ?? [];
       if (!Array.isArray(remove) || remove.length > 64 || remove.some(name => !isStr(name)))
         return reject("bad_indicator_removal");
       const known = new Set([...caps.indicators, ...currentIndicators!.map(spec => spec.name)]);
       if (remove.some(name => !known.has(name as string))) return reject("unknown_indicator");
       if (remove.some(name => edited.has(name as string))) return reject("conflicting_indicator_edit");
-      if (!specs.length && !remove.length) return reject("empty_indicator_patch");
+      if (!specs.length && !remove.length && !visibility.show.length && !visibility.hide.length) return reject("empty_indicator_patch");
       const removed = new Set(remove as string[]);
       // Existing order and user scripts survive. Only named settings are overlaid.
       const next = new Map<string, IndicatorSpec>(currentIndicators!.filter(spec => !removed.has(spec.name))
@@ -387,7 +460,7 @@ export function translate(
         const params = { ...(old?.params ?? {}), ...(spec.params ?? {}) };
         next.set(spec.name, { name: spec.name, params: Object.keys(params).length ? params : undefined });
       }
-      return { ok: true, op: cmd.op, id: null, setIndicators: [...next.values()] };
+      return finish([...next.values()]);
     }
     case "chart.set_range": {
       if (!isSaneTime(a.from) || !isSaneTime(a.to) || (a.from as number) >= (a.to as number)) return reject("bad_range");
@@ -395,6 +468,60 @@ export function translate(
     }
 
     // ── draw.* ──────────────────────────────────────────────────────────────────────────────
+    case "draw.tool": {
+      if (Object.keys(a).some(key => !["kind", "points", "style", "text", "fibonacci"].includes(key)))
+        return reject("unknown_drawing_argument");
+      if (!isAiNativeDrawingKind(a.kind)) return reject("unsupported_drawing_tool");
+      const contract = aiNativeDrawingContract(a.kind);
+      if (!Array.isArray(a.points) || a.points.length < contract.min_points || a.points.length > contract.max_points)
+        return reject("bad_drawing_point_count");
+      const points: Pt[] = [];
+      for (const raw of a.points) {
+        const point = readPt(raw); if (!point) return reject("bad_drawing_anchor");
+        points.push(pt(point.t, point.p));
+      }
+      if (a.style !== undefined && !isObj(a.style)) return reject("bad_drawing_style");
+      const style = (a.style ?? {}) as Record<string, unknown>;
+      if (Object.keys(style).some(key => !contract.style_fields.includes(key))) return reject("unsupported_drawing_style");
+      const color = (value: unknown) => isStr(value) && /^(var\(--[a-z0-9-]+\)|#[0-9a-fA-F]{6})$/.test(value);
+      if ((style.color !== undefined && !color(style.color)) || (style.fill_color !== undefined && !color(style.fill_color))
+          || (style.width !== undefined && (!isFiniteNum(style.width) || style.width <= 0 || style.width > 12))
+          || (style.dash !== undefined && (!isStr(style.dash) || !STYLE_KINDS.has(style.dash)))
+          || [style.opacity, style.fill_opacity].some(value => value !== undefined && (!isFiniteNum(value) || value < 0 || value > 1))
+          || (style.font_size !== undefined && (!isFiniteNum(style.font_size) || style.font_size < 8 || style.font_size > 48)))
+        return reject("bad_drawing_style");
+      if (a.text !== undefined && !isStr(a.text)) return reject("bad_drawing_text");
+      const text = cleanCaption(a.text);
+      if (contract.text === "required" && !text) return reject("drawing_text_required");
+      if (a.text !== undefined && contract.text === "unsupported") return reject("unsupported_drawing_text");
+      const meta: Record<string, unknown> = text ? { label: text } : {};
+      if (a.fibonacci !== undefined) {
+        if (!["fib", "fibtrend"].includes(a.kind) || !isObj(a.fibonacci)) return reject("unsupported_fibonacci_settings");
+        const fib = a.fibonacci;
+        if (Object.keys(fib).some(key => !["levels", "reverse", "labels"].includes(key))
+            || (fib.reverse !== undefined && typeof fib.reverse !== "boolean")
+            || (fib.labels !== undefined && !["ratio", "price", "both"].includes(String(fib.labels))))
+          return reject("bad_fibonacci_settings");
+        if (fib.levels !== undefined) {
+          if (!Array.isArray(fib.levels) || !fib.levels.length || fib.levels.length > 24
+              || fib.levels.some(level => !isFiniteNum(level) || level < -100 || level > 100 || Number(level.toFixed(6)) !== level)
+              || new Set(fib.levels).size !== fib.levels.length) return reject("bad_fibonacci_levels");
+          const levels = fib.levels as number[];
+          meta.fibLevelStyles = fibonacciSettings(undefined).levels.map((level, index) => ({
+            ...level, value: levels[index] ?? level.value, visible: index < levels.length,
+          }));
+        }
+        if (fib.reverse !== undefined) meta.fibReverse = fib.reverse;
+        if (fib.labels !== undefined) meta.fibLabels = fib.labels;
+      }
+      return okDraw([mkObj(cmd, a.kind, {
+        points, source: "ai", color: (style.color as string | undefined) ?? AI_ACCENT,
+        width: style.width as number | undefined, dash: style.dash as Drawing["dash"],
+        opacity: style.opacity as number | undefined,
+        fillColor: style.fill_color as string | undefined, fillOpacity: style.fill_opacity as number | undefined,
+        fontSize: style.font_size as number | undefined, text, meta,
+      })]);
+    }
     case "draw.trendline":
     case "draw.ray": {
       const p1 = readPt(a.p1), p2 = readPt(a.p2);
@@ -404,7 +531,7 @@ export function translate(
       return okDraw([mkObj(cmd, kind, {
         points: [pt(p1.t, p1.p), pt(p2.t, p2.p)],
         width: style.width, dash: dashOf(style), color: style.color ?? AI_ACCENT,
-        meta: isStr(a.text) ? { label: a.text.slice(0, CAPTION_MAX) } : undefined,
+        meta: isStr(a.text) ? { label: truncateChartText(a.text, CAPTION_MAX) } : undefined,
       })]);
     }
     case "draw.hline": {
@@ -415,7 +542,7 @@ export function translate(
       return okDraw([mkObj(cmd, "hline", {
         points: [pt(at, a.p as number)],
         width: style.width, dash: dashOf(style), color: style.color ?? AI_ACCENT,
-        meta: { label: isStr(a.text) ? a.text.slice(0, CAPTION_MAX) : (a.p as number).toString(), by: "ai" },
+        meta: { label: isStr(a.text) ? truncateChartText(a.text, CAPTION_MAX) : (a.p as number).toString(), by: "ai" },
       })]);
     }
     case "draw.zone": {
@@ -428,7 +555,7 @@ export function translate(
       return okDraw([mkObj(cmd, "rect", {
         points: [pt(t1, Math.max(lo as number, hi as number)), pt(t2, Math.min(lo as number, hi as number))],
         color: style.color ?? AI_ACCENT,
-        meta: { label: isStr(a.text) ? a.text.slice(0, CAPTION_MAX) : undefined, by: "ai" },
+        meta: { label: isStr(a.text) ? truncateChartText(a.text, CAPTION_MAX) : undefined, by: "ai" },
       })]);
     }
     case "draw.channel": {
@@ -469,7 +596,7 @@ export function translate(
       if (!isStr(a.text) || !a.text.trim()) return reject("bad_text");
       const style = readStyle(a.style);
       return okDraw([mkObj(cmd, "text", {
-        points: [pt(p1.t, p1.p)], text: a.text.slice(0, CAPTION_MAX),
+        points: [pt(p1.t, p1.p)], text: truncateChartText(a.text, CAPTION_MAX),
         color: style.color ?? AI_ACCENT, fontSize: 13,
       })]);
     }
@@ -477,7 +604,7 @@ export function translate(
       // a marker at a bar (arrow pointing at t/p). → arrow (short) or text glyph.
       const p1 = readPt(a.p1) ?? (isSaneTime(a.t) && isPrice(a.p) ? { t: a.t as number, p: a.p as number } : null);
       if (!p1) return reject("bad_anchor");
-      const glyph = isStr(a.text) ? a.text.slice(0, 24) : "▲";
+      const glyph = isStr(a.text) ? truncateChartText(a.text, 24) : "▲";
       const style = readStyle(a.style);
       return okDraw([mkObj(cmd, "text", {
         points: [pt(p1.t, p1.p)], text: glyph, color: style.color ?? AI_ACCENT, fontSize: 15,
@@ -506,7 +633,7 @@ export function translate(
 
     // ── scene.* ─────────────────────────────────────────────────────────────────────────────
     case "scene.begin":
-      return { ok: true, op: cmd.op, id: null, scene: "begin", sceneTitle: isStr(a.title) ? a.title.slice(0, CAPTION_MAX) : undefined };
+      return { ok: true, op: cmd.op, id: null, scene: "begin", sceneTitle: isStr(a.title) ? truncateChartText(a.title, CAPTION_MAX) : undefined };
     case "scene.end":
       return { ok: true, op: cmd.op, id: null, scene: "end" };
 
@@ -533,7 +660,7 @@ export function translate(
 export type StoreEffect =
   | { kind: "setSymbol"; symbol: string }
   | { kind: "setTf"; tf: string }
-  | { kind: "setIndicators"; indicators: IndicatorSpec[] }
+  | { kind: "setIndicators"; indicators: IndicatorSpec[]; visibility?: IndicatorVisibilityPatch }
   | { kind: "setRange"; from: number; to: number }
   | { kind: "scene"; phase: "begin" | "end"; title?: string }
   | null;
@@ -553,7 +680,8 @@ export function applyToStore(
   // chart.* — no store change; the caller applies the effect.
   if (res.setSymbol != null) return same({ kind: "setSymbol", symbol: res.setSymbol }, ackOk(null));
   if (res.setTf != null) return same({ kind: "setTf", tf: res.setTf }, ackOk(null));
-  if (res.setIndicators != null) return same({ kind: "setIndicators", indicators: res.setIndicators }, ackOk(null));
+  if (res.setIndicators != null) return same({ kind: "setIndicators", indicators: res.setIndicators,
+    ...(res.indicatorVisibility ? { visibility: res.indicatorVisibility } : {}) }, ackOk(null));
   if (res.setRange != null) return same({ kind: "setRange", from: res.setRange.from, to: res.setRange.to }, ackOk(null));
   if (res.scene != null) return same({ kind: "scene", phase: res.scene, title: res.sceneTitle }, ackOk(null));
 
@@ -583,11 +711,16 @@ export function applyToStore(
   // draw.* — add objects, enforcing per-batch + total caps (reject with an ack error, never silent-drop).
   if (res.draw) {
     const objs = res.draw;
-    const batchCount = cur.filter((o) => o.batch_id === cmd.batch_id).length;
-    if (batchCount + 1 > BATCH_OP_CAP) return { store, ack: ackErr("batch_cap_exceeded"), effect: null };
-    // replace-by-id: a re-used ai_* id updates in place. Count only genuinely NEW ids toward the cap.
+    // Replace the complete logical drawing, including children absent from a shorter update.
+    // Legacy objects without command_id remain individually addressable by their exact id.
+    const kept = cur.filter((o) => (o.command_id ?? o.id) !== cmd.id);
     const incoming = new Set(objs.map((o) => o.id));
-    const kept = cur.filter((o) => !incoming.has(o.id));
+    if (kept.some(o => incoming.has(o.id)))
+      return { store, ack: ackErr("ai_object_id_conflict"), effect: null };
+    // A path/channel is one command even when the renderer needs several objects.
+    const commands = new Set(kept.filter(o => o.batch_id === cmd.batch_id).map(o => o.seq));
+    commands.add(cmd.seq);
+    if (commands.size > BATCH_OP_CAP) return { store, ack: ackErr("batch_cap_exceeded"), effect: null };
     if (kept.length + objs.length > AI_OBJECT_CAP) return { store, ack: ackErr("object_cap_exceeded"), effect: null };
     return { store: { ...store, [activeSym]: [...kept, ...objs] }, ack: ackOk(), effect: null };
   }

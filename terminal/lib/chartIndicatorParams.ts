@@ -1,6 +1,8 @@
-/** Metadata-only native parameter validation for the existing Chart Bus.
+/** Metadata-only indicator parameter validation for the existing Chart Bus.
  * No runtime imports, second catalogue, indicator maths, or entitlement decisions.
  */
+import { IND_DEFS, type IndField, type IndKey } from "./indicators";
+import { isSupportedStudyId, readStudyStack, studyTypeOf } from "./studyInstances";
 import { getSuiteMeta, SUITE_ORDER } from "./suites/meta";
 import type { SuiteField } from "./indicator-canvas/types";
 import { hasGuide } from "./guides/registry";
@@ -217,6 +219,94 @@ export function describeNativeStudyContext(
       omitted_modules: omitted, status: omitted.length ? "partial" : "complete" };
     if (encoder.encode(JSON.stringify(next)).byteLength <= NATIVE_STUDY_CONTEXT_MAX_BYTES)
       packet = next;
+  }
+  return packet;
+}
+
+/** Requested built-in edits share the settings dialog's IND_DEFS, not the tolerant
+ * persisted-state reader. A typo must fail instead of surviving as an ignored key.
+ */
+function validBuiltinColor(value: unknown): value is string {
+  if (typeof value !== "string" || value.length > 80) return false;
+  if (/^#(?:[0-9a-f]{3}|[0-9a-f]{4}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(value)) return true;
+  const match = /^(rgb|rgba)\(\s*(\d+(?:\.\d+)?)\s*,\s*(\d+(?:\.\d+)?)\s*,\s*(\d+(?:\.\d+)?)(?:\s*,\s*(\d+(?:\.\d+)?|\.\d+))?\s*\)$/i.exec(value);
+  return !!match && [match[2], match[3], match[4]].every(channel => Number(channel) <= 255)
+    && (match[1].toLowerCase() === "rgba" ? match[5] !== undefined && Number(match[5]) <= 1 : match[5] === undefined);
+}
+function validBuiltinField(field: IndField, value: unknown): value is IndicatorParam {
+  if (field.type === "color") return validBuiltinColor(value);
+  return validField(field, value);
+}
+export function readBuiltinIndicatorParams(name: string, value: unknown): NativeParamsResult {
+  const type = studyTypeOf(name);
+  if (!type || !isSupportedStudyId(name)) return { ok: false, error: "unknown_indicator" };
+  if (value === undefined) return { ok: true };
+  if (value === null || typeof value !== "object" || Array.isArray(value)
+      || ![null, Object.prototype].includes(Object.getPrototypeOf(value)))
+    return { ok: false, error: "bad_indicator_params" };
+  const out: Record<string, IndicatorParam> = {};
+  for (const key of Object.keys(value)) {
+    const field = IND_DEFS[type].fields.find(candidate => candidate.key === key);
+    if (!field) return { ok: false, error: "unknown_indicator_setting" };
+    const descriptor = Object.getOwnPropertyDescriptor(value, key);
+    if (!descriptor || !("value" in descriptor)) return { ok: false, error: "bad_indicator_params" };
+    if (!validBuiltinField(field, descriptor.value)) return { ok: false, error: "invalid_indicator_setting" };
+    out[key] = descriptor.value;
+  }
+  return { ok: true, params: Object.keys(out).length ? out : undefined };
+}
+
+type BuiltinParameterSchema = NativeParameterSchema & { format?: "hex_or_rgb_color" };
+export type BuiltinIndicatorCapabilities = {
+  schema: "chart.builtin_parameters.v1";
+  authority: "configuration_description_only";
+  scope: "active_builtin_studies";
+  status: "complete" | "partial";
+  semantics: {
+    parameters: "merge_existing";
+    numeric_step: "ui_increment_not_constraint";
+    instance_edits: "existing_attached_ids_only";
+    missing_schema: "enable_then_read_chart_state";
+  };
+  instances: Array<{ name: string; type: IndKey }>;
+  types: Array<{ name: IndKey; label: string; additional_parameters: false;
+    parameters: Record<string, BuiltinParameterSchema>; unsupported_parameters: string[] }>;
+  omitted_types: IndKey[];
+};
+export const BUILTIN_CAPABILITIES_MAX_BYTES = 4096;
+
+/** One metadata description per type; multiple RSIs retain distinct existing ids.
+ * This does not create a study, compute values, or attest output/entitlement.
+ */
+export function describeBuiltinIndicatorCapabilities(indicators: readonly string[]): BuiltinIndicatorCapabilities | null {
+  const instances = readStudyStack({ inds: indicators, indParams: {}, hidden: [] }).instances;
+  if (!instances.length) return null;
+  const types = [...new Set(instances.map(instance => instance.type))];
+  let packet: BuiltinIndicatorCapabilities = {
+    schema: "chart.builtin_parameters.v1", authority: "configuration_description_only",
+    scope: "active_builtin_studies", status: "partial",
+    semantics: { parameters: "merge_existing", numeric_step: "ui_increment_not_constraint",
+      instance_edits: "existing_attached_ids_only", missing_schema: "enable_then_read_chart_state" },
+    instances: instances.map(({ id, type }) => ({ name: id, type })),
+    types: [], omitted_types: types,
+  };
+  const encoder = new TextEncoder();
+  for (const type of types) {
+    const definition = IND_DEFS[type];
+    const parameters: Record<string, BuiltinParameterSchema> = {};
+    const unsupported: string[] = [];
+    for (const field of definition.fields) {
+      const value: unknown = definition.defaults[field.key];
+      if (!validBuiltinField(field, value)) { unsupported.push(field.key); continue; }
+      if (field.type === "color") parameters[field.key] = { type: "string", default: value, format: "hex_or_rgb_color" };
+      else parameters[field.key] = describeField(field, value)!;
+    }
+    const omitted = packet.omitted_types.filter(name => name !== type);
+    const next: BuiltinIndicatorCapabilities = { ...packet,
+      types: [...packet.types, { name: type, label: definition.label,
+        additional_parameters: false, parameters, unsupported_parameters: unsupported }],
+      omitted_types: omitted, status: omitted.length ? "partial" : "complete" };
+    if (encoder.encode(JSON.stringify(next)).byteLength <= BUILTIN_CAPABILITIES_MAX_BYTES) packet = next;
   }
   return packet;
 }

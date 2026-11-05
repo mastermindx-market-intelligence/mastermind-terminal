@@ -1,5 +1,6 @@
 import { normalizeDrawings, MAX_DRAWINGS_PER_SYMBOL, type Drawing } from "@/lib/drawings";
 import { drawingToolAcceptsPersistedPointCount } from "@/lib/drawingTools";
+import { AI_DRAWING_SCHEMA, aiDrawingCollectionError, drawingSourceConflict, readStoredAiDrawing } from "@/lib/drawingAiPersistence";
 
 /**
  * Request header that carries the page's owner key (`account:<auth uuid>`) on a drawings read.
@@ -8,7 +9,11 @@ import { drawingToolAcceptsPersistedPointCount } from "@/lib/drawingTools";
 export const DRAWING_OWNER_HEADER = "x-drawing-owner";
 
 export type DrawingRevision = string | null;
-export type DrawingSnapshot = { drawings: Drawing[]; revision: DrawingRevision; schemaVersion: 1 };
+export type DrawingSnapshot = {
+  drawings: Drawing[]; revision: DrawingRevision; schemaVersion: 1;
+  /** Literal supplied by the installed SQL read owner, never stored drawing metadata. */
+  aiDrawingSchema?: typeof AI_DRAWING_SCHEMA;
+};
 export type DrawingAttempt = { operationId: string; expectedRevision: DrawingRevision; drawings: Drawing[] };
 export type DrawingJournalEntry = {
   drawings: Drawing[];
@@ -34,13 +39,16 @@ export const validDrawingRevision = (value: unknown): value is DrawingRevision =
   || (typeof value === "string" && (UUID.test(value) || /^legacy:[0-9a-f]{64}$/.test(value)));
 
 /** Validate before normalizing: normalization must not drop an invalid anchor or invent an ID. */
-export function parsePersistedDrawings(value: unknown, canonical = true): Drawing[] | null {
+export function parsePersistedDrawings(value: unknown, canonical = true, allowAi = canonical): Drawing[] | null {
   if (!Array.isArray(value) || value.length > MAX_DRAWINGS_PER_SYMBOL) return null;
   const ids = new Set<string>();
   for (const candidate of value) {
     if (!candidate || typeof candidate !== "object" || Array.isArray(candidate)
       || typeof candidate.id !== "string" || !candidate.id.trim() || ids.has(candidate.id.trim())
-      || (canonical && (candidate.source !== "user" || candidate.schemaVersion !== 1))
+      || drawingSourceConflict(candidate)
+      || (canonical && (candidate.schemaVersion !== 1
+        || (candidate.source !== "user" && (!allowAi || candidate.source !== "ai"))))
+      || (candidate.source === "ai" && (!canonical || !allowAi || !readStoredAiDrawing(candidate)))
       || !Array.isArray(candidate.points)
       || !drawingToolAcceptsPersistedPointCount(candidate.kind, candidate.points.length)) return null;
     ids.add(candidate.id.trim());
@@ -51,7 +59,9 @@ export function parsePersistedDrawings(value: unknown, canonical = true): Drawin
     }
   }
   const normalized = normalizeDrawings(value);
-  if (normalized.length !== value.length || normalized.some((drawing) => drawing.source !== "user")) return null;
+  if (normalized.length !== value.length || normalized.some((drawing) =>
+      drawing.source !== "user" && (!canonical || !allowAi || drawing.source !== "ai"))
+    || aiDrawingCollectionError(value as Drawing[])) return null;
   // Retain the exact attempted JSON. Changing it on reload changes the operation's payload hash.
   return value as Drawing[];
 }
@@ -62,7 +72,11 @@ export function parseDrawingSnapshot(value: unknown): DrawingSnapshot | null {
   const drawings = parsePersistedDrawings(raw.drawings);
   if (!drawings || raw.schemaVersion !== 1 || !validDrawingRevision(raw.revision)
     || (raw.revision === null && drawings.length !== 0)) return null;
-  return { drawings, revision: raw.revision, schemaVersion: 1 };
+  const aiDrawingSchema = raw.aiDrawingSchema === AI_DRAWING_SCHEMA ? AI_DRAWING_SCHEMA : undefined;
+  // Never conceal an unsupported mixed collection by filtering it to humans or [].
+  if (drawings.some(drawing => drawing.source === "ai") && !aiDrawingSchema) return null;
+  return { drawings, revision: raw.revision, schemaVersion: 1,
+    ...(aiDrawingSchema ? { aiDrawingSchema } : {}) };
 }
 
 export function parseDrawingSaveReceipt(value: unknown, attempt: DrawingAttempt): DrawingSaveReceipt | null {

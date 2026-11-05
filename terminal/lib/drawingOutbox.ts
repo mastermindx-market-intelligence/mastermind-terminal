@@ -266,14 +266,14 @@ function defaultDrawingJournalFence(): DrawingJournalFence | null {
 // save can follow hydration within a task, racing that symbol's cloud load.
 if (typeof window !== "undefined") void defaultDrawingJournalFence()?.read();
 
-function parseEntry(value: unknown): Entry | null {
+function parseEntry(value: unknown, allowAi = true): Entry | null {
   if (Array.isArray(value)) {
     const drawings = parsePersistedDrawings(value, false);
     return drawings ? { drawings: normalizeDrawings(drawings), blocked: "legacy" } : null;
   }
   if (!value || typeof value !== "object") return null;
   const raw = value as Record<string, unknown>;
-  const drawings = parsePersistedDrawings(raw.drawings);
+  const drawings = parsePersistedDrawings(raw.drawings, true, allowAi);
   if (!drawings) return null;
   const entry: Entry = { drawings };
   if (Object.hasOwn(raw, "revision") && validDrawingRevision(raw.revision)) entry.revision = raw.revision;
@@ -285,7 +285,10 @@ function parseEntry(value: unknown): Entry | null {
   if (raw.preload === true) entry.preload = true;
   if (raw.attempt && typeof raw.attempt === "object") {
     const attempt = raw.attempt as Record<string, unknown>;
-    const attemptedDrawings = parsePersistedDrawings(attempt.drawings);
+    const attemptedDrawings = parsePersistedDrawings(attempt.drawings, true, allowAi);
+    // An old envelope cannot discard an unadmitted attempt and import only its
+    // human working copy. Leave that original envelope untouched for recovery.
+    if (!allowAi && !attemptedDrawings) return null;
     if (attemptedDrawings && validDrawingOperationId(attempt.operationId) && validDrawingRevision(attempt.expectedRevision)) {
       entry.attempt = { operationId: attempt.operationId, expectedRevision: attempt.expectedRevision, drawings: attemptedDrawings };
     } else entry.blocked = "invalid";
@@ -320,17 +323,17 @@ function fingerprint(entry: Entry): string {
 function drawingsPayloadFingerprint(entry: Entry): string {
   return JSON.stringify(entry.drawings);
 }
-function readCopies(value: unknown): Copies {
+function readCopies(value: unknown, allowAi = true): Copies {
   if (value && typeof value === "object" && !Array.isArray(value)
       && (value as Record<string, unknown>).format === 2) {
     const copies = (value as Record<string, unknown>).copies;
     if (!copies || typeof copies !== "object" || Array.isArray(copies)) return {};
     return Object.fromEntries(Object.entries(copies).flatMap(([id, raw]) => {
-      const entry = parseEntry(raw);
+      const entry = parseEntry(raw, allowAi);
       return entry && (id === "legacy" || validDrawingOperationId(id)) ? [[id, entry]] : [];
     }));
   }
-  const entry = parseEntry(value);
+  const entry = parseEntry(value, allowAi);
   return entry ? { legacy: entry } : {};
 }
 
@@ -539,7 +542,7 @@ function journalState(storage: StoragePort, owner: string, legacyOwner: string, 
   const legacy = accountOwner(legacyOwner) ? ownerNamespace(strictEnvelope(storage, DRAWING_OUTBOX_KEY), legacyOwner) : {};
   const legacyCopies: Record<string, Copies> = {};
   for (const [symbol, raw] of Object.entries(legacy)) {
-    const copies = readCopies(raw);
+    const copies = readCopies(raw, false);
     // Before fingerprinting, so the import receipt matches on every later read.
     if (alias) for (const entry of Object.values(copies)) entry.blocked ??= "legacy";
     const container = raw as { format?: number; copies?: Record<string, unknown> } | undefined;
@@ -729,6 +732,17 @@ export async function writeDrawingJournal(
       }
       if (Object.keys(namespace).length) envelope[owner] = namespace;
       else delete envelope[owner];
+      // Validate the complete resulting copies before any receipt, claim or
+      // journal write. A malformed working copy/attempt must not overwrite a
+      // readable durable copy and then disappear at the next strict read.
+      for (const record of Object.values(namespace)) for (const copy of Object.values(record.copies)) {
+        if (!parsePersistedDrawings(copy.drawings)
+          || (copy.attempt && (!parsePersistedDrawings(copy.attempt.drawings)
+            || !validDrawingOperationId(copy.attempt.operationId)
+            || !validDrawingRevision(copy.attempt.expectedRevision)))) {
+          throw new Error("Invalid recovery copy; preserve stored bytes");
+        }
+      }
       // Receipts first: a failure between the two writes leaves a receipt for a
       // copy that is still stored, which retires nothing.
       if (acknowledged.length) writeRetiredCopies(storage, owner, [...receipts.filter((id) => !acknowledged.includes(id)), ...acknowledged]);
