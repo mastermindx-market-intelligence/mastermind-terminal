@@ -1,0 +1,12 @@
+{
+ "asof": "2026-10-01",
+ "profile": {
+  "industry": "Consumer Electronics",
+  "sector": "Technology"
+ },
+ "quote_currency": "USD",
+ "src": {
+  "statements": "yfinance"
+ },
+ "ticker": "AAPL"
+}

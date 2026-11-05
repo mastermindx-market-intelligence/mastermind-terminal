@@ -43,6 +43,18 @@ describe("auth callback password-recovery proof", () => {
     expect(response.headers.get("set-cookie") || "").not.toContain(`${PASSWORD_RECOVERY_COOKIE}=1`);
   });
 
+  it("keeps the admitted company research destination and nested dashboard fragment after exchange", async () => {
+    exchangeCodeForSession.mockResolvedValue({ data: { session: {} }, error: null });
+    const next = "/analysis?symbol=A&page=intelligence&from=macro&mo_from=transmission&mo_chain=oil_inflation_duration_derate&mo_channel=long_duration_valuation&mo_asof=2026-10-16&mo_security=SEC%3AUS-XNYS-A&ret=https%3A%2F%2Fwww.mastermind-x.com%2Fcommodities.html%23cw%3D%257B%2522asset%2522%253A%2522WTI%2522%257D&onboard=resume";
+    const response = await GET(new NextRequest(
+      "https://app.mastermind-x.com/auth/callback?code=oauth-code&next=" + encodeURIComponent(next),
+    ));
+
+    expect(response.status).toBe(303);
+    expect(response.headers.get("location")).toBe(next);
+    expect(response.headers.get("set-cookie") || "").not.toContain(`${PASSWORD_RECOVERY_COOKIE}=1`);
+  });
+
   it("fails closed on exchange error and does not mint recovery proof", async () => {
     exchangeCodeForSession.mockResolvedValue({ data: { session: null }, error: { message: "bad code" } });
     const response = await GET(new NextRequest(

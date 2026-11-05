@@ -26,6 +26,7 @@ import {
   columnAggregate,
   createBarIndex,
   lineDecimate,
+  LineDecimator,
   timeToKey,
   type ColumnAccessor,
   type LookupMode,
@@ -477,6 +478,44 @@ describe("lod — lineDecimate", () => {
     expect(lineDecimate(points, Number.NaN)).toEqual(points);
     const single = lineDecimate([{ x: 5, y: 5 }], 1);
     expect(single).toEqual([{ x: 5, y: 5 }]);
+  });
+});
+
+// PERF-C: the streaming decimator the LOD line paint uses must return exactly
+// what lineDecimate returns for the same pushed sequence.
+describe("lod — LineDecimator (PERF-C streaming lineDecimate)", () => {
+  const stream = (points: readonly { x: number; y: number }[], tol: number) => {
+    const d = new LineDecimator(tol);
+    for (const p of points) d.push(p.x, p.y);
+    return d.finish();
+  };
+
+  it("equals lineDecimate on seeded random polylines with ties, gaps, non-finite y and x", () => {
+    const rand = mulberry32(0x9e3c);
+    const ys = [Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY];
+    for (let trial = 0; trial < 400; trial++) {
+      const n = Math.floor(rand() * 400);
+      const density = 0.05 + rand() * 40; // points per pixel: sparse to fitted-LOD dense
+      const tol = [1, 1, 1, 0.75, 3, 10][Math.floor(rand() * 6)];
+      let x = (rand() - 0.5) * 200;
+      const points: { x: number; y: number }[] = [];
+      for (let k = 0; k < n; k++) {
+        x += rand() < 0.02 ? rand() * 30 : 1 / density;
+        const r = rand();
+        const y = r < 0.04 ? ys[Math.floor(rand() * ys.length)] : r < 0.2 ? Math.round(rand() * 3) : rand() * 100;
+        points.push({ x: rand() < 0.01 ? Number.NaN : x, y });
+      }
+      expect(stream(points, tol)).toEqual(lineDecimate(points, tol));
+    }
+  });
+
+  it("equals lineDecimate on the edge shapes: empty, single, one bucket, non-positive tolerance", () => {
+    const pts = [{ x: 0.1, y: 5 }, { x: 0.2, y: 5 }, { x: 0.3, y: 1 }, { x: 0.4, y: 9 }, { x: 0.5, y: 1 }, { x: 0.9, y: 9 }];
+    for (const input of [[], [{ x: 5, y: 5 }], pts, pts.slice().reverse()]) {
+      for (const tol of [1, 0, -1, Number.NaN, Number.POSITIVE_INFINITY]) {
+        expect(stream(input, tol)).toEqual(lineDecimate(input, tol));
+      }
+    }
   });
 });
 

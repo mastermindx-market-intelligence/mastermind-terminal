@@ -49,7 +49,7 @@ const { chromium } = require("@playwright/test");
 
 const ROOT = join(__dirname, "..", "..");
 const REPO = join(ROOT, "..");
-const OUT = join(ROOT, "docs", "pr-crops", "eod-heatmap-flowdesk-load-failure");
+const OUT = process.env.TERMINAL_CROP_OUTPUT_DIR || join(ROOT, "docs", "pr-crops", "eod-heatmap-flowdesk-load-failure");
 const LAYOUT_FILES = [
   "terminal/app/globals.css",
   "terminal/components/eodcontext/DarkPoolMini.tsx",
@@ -194,6 +194,9 @@ const COPY = {
 mkdirSync(OUT, { recursive: true });
 
 function currentGitHead() {
+  // CAPTURE_HEAD names the commit an uncommitted tree builds on, for hosts where git is not
+  // run during a capture. capturedAtHead is informational either way; the lock is layoutFiles.
+  if (process.env.CAPTURE_HEAD) return process.env.CAPTURE_HEAD;
   return execFileSync("git", ["rev-parse", "HEAD"], { cwd: ROOT, encoding: "utf8" }).trim();
 }
 
@@ -276,6 +279,10 @@ async function newPage(browser, width, lang, board, replies, withClock) {
     document.documentElement.setAttribute("data-theme", "dark");
     document.documentElement.setAttribute("data-lang", l);
   }, lang);
+  // Mirror the shell's existing dev-only, opt-in fixture identity. The
+  // capture runner starts next dev with TERMINAL_E2E_FIXTURE=1; production
+  // ignores this cookie and still resolves the verified account claims.
+  await context.addCookies([{ name: "mm_e2e_rs30", value: "1", url: BASE }]);
   const page = await context.newPage();
   page.setDefaultTimeout(45_000);
   // Installed before the first script runs, so every poll interval is on the page clock.

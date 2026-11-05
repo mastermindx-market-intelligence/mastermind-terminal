@@ -9,6 +9,7 @@ import {
   createManualScheduler,
   EngineRefusalError,
 } from "@/lib/chart-engine/canvas";
+import { contrastColors } from "@/lib/chart-engine/canvas/priceAxis";
 import type { EnginePrimitive, EngineProjection, PrimitiveAttachContext } from "@/lib/chart-engine/primitive";
 import type { EngineSeriesKind, EngineSeriesRow } from "@/lib/chart-engine/api";
 
@@ -280,11 +281,19 @@ describe("canvas engine real-frame paint", () => {
     const used = paneCtx(engine).__calls
       .filter((c) => c.method === "set:strokeStyle" || c.method === "set:fillStyle")
       .map((c) => c.args[0]);
-    const defaults = Object.values(CANVAS_NEUTRAL_DEFAULTS);
+    // The last-value label paints a default colour as its normalised rgb() background with a
+    // black/white text colour picked by luminance (LWC generateContrastColors) — still a default.
+    const defaults: string[] = Object.values(CANVAS_NEUTRAL_DEFAULTS);
+    const allowed = [
+      ...defaults,
+      ...defaults.map((d) => contrastColors(d)?.background).filter((b): b is string => !!b),
+      "black",
+      "white",
+    ];
     for (const color of used) {
       if (typeof color !== "string") continue;
       if (color === "" || color === "#fff" || color === "#000") continue;
-      expect(defaults).toContain(color);
+      expect(allowed).toContain(color);
     }
     engine.destroy();
 
@@ -313,7 +322,8 @@ describe("canvas engine real-frame paint", () => {
   });
 
   it("crosshair param.time is undefined past the last bar; logical and point stay set", () => {
-    const { engine, scheduler } = mount();
+    // No price strip: the clientX positions below assume the plot spans the full 200 px.
+    const { engine, scheduler } = mount({ rightPriceScale: { visible: false } });
     const s = engine.addSeries("candles", { upColor: "U", downColor: "D" });
     s.setData(OHLC);
     engine.timeScale().setVisibleLogicalRange({ from: 0, to: 10 });

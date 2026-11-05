@@ -1,0 +1,19 @@
+{
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "synthetic": true,
+  "admittedGammaRowsPerFrame": 203,
+  "admittedFrames": 24,
+  "sourceTableRows": 203,
+  "svgGammaCirclesBeforeRepair": 4872,
+  "svgGammaCircles": 72,
+  "radii": [
+    3.2,
+    4.525483399593904,
+    6.4
+  ],
+  "scaleLabel": "5B",
+  "note": "DOM counts and relative-size witness; not an exchange-latency or live-capacity claim"
+}

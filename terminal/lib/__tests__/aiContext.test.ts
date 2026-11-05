@@ -236,3 +236,20 @@ describe("createAiContextProvider — ambient page/panel (F11-6)", () => {
     expect(a.pinned).toEqual([]);
   });
 });
+
+describe("createAiContextProvider — trading session ownership", () => {
+  it("advances the revision for ETH to 24H to ETH without bumping on reads", () => {
+    const base = { symbol: "NVDA", timeframe: "12h", paneId: 0, settingsKey: "ema20" };
+    const provider = createAiContextProvider({ ...base, sessionKey: "eth" });
+    const before = provider.getAiContext();
+    provider.noteContextChange({ ...base, sessionKey: "24h" });
+    const overnight = provider.getAiContext();
+    expect(overnight.origin_id).toBe(before.origin_id);
+    expect(overnight.context_revision).toBe(before.context_revision + 1);
+    provider.noteContextChange({ ...base, sessionKey: "24h" });
+    expect(provider.getAiContext().context_revision).toBe(overnight.context_revision);
+    provider.noteContextChange({ ...base, sessionKey: "eth" });
+    expect(provider.getAiContext().context_revision).toBe(before.context_revision + 2);
+    expect(provider.getAiContext().ambient).toEqual(before.ambient);
+  });
+});
