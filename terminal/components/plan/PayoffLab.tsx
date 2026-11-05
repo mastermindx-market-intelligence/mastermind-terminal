@@ -55,6 +55,7 @@ const COPY = {
     underlying: "Underlying at expiry",
     scenarioPnl: "Scenario P/L",
     chartAria: "Expiration payoff by underlying price",
+    chartUnavailable: "These payoff values exceed the chart’s display range. The summary and scenario remain available.",
     underlyingAxis: "Underlying at expiry",
     pnlAxis: "Expiration P/L",
     breakEvenLegend: "Break-even",
@@ -108,6 +109,7 @@ const COPY = {
     underlying: "到期标的价格",
     scenarioPnl: "情景损益",
     chartAria: "标的价格对应的到期损益",
+    chartUnavailable: "这些收益数值超出图表的显示范围。摘要和情景损益仍可查看。",
     underlyingAxis: "到期标的价格",
     pnlAxis: "到期损益",
     breakEvenLegend: "盈亏平衡",
@@ -122,6 +124,7 @@ const COPY = {
   },
 } as const;
 
+const EXAMPLE_EXPIRATION = "2026-10-16";
 const EXAMPLE: PayoffLegInput[] = [
   { id: "leg-1", side: "long", right: "C", strike: 100, premium: 4.2, quantity: 1 },
   { id: "leg-2", side: "short", right: "C", strike: 110, premium: 1.6, quantity: 1 },
@@ -134,7 +137,7 @@ function parseNumber(raw: string): number {
 function money(v: number): string {
   if (!Number.isFinite(v)) return "—";
   const abs = Math.abs(v);
-  const digits = abs >= 1000 ? 0 : abs >= 100 ? 0 : 2;
+  const digits = abs >= 100 && Number.isInteger(abs) ? 0 : 2;
   return `$${abs.toLocaleString("en-US", { minimumFractionDigits: digits, maximumFractionDigits: digits })}`;
 }
 
@@ -180,7 +183,7 @@ export function PayoffLab() {
   const { lang } = useLang();
   const c = lang === "zh" ? COPY.zh : COPY.en;
   const [legs, setLegs] = useState<PayoffLegInput[]>(() => EXAMPLE.map((leg) => ({ ...leg })));
-  const [expiration, setExpiration] = useState("2026-10-16");
+  const [expiration, setExpiration] = useState(EXAMPLE_EXPIRATION);
   const [scenarioPrice, setScenarioPrice] = useState(105);
   const idRef = useRef(3);
   const analysis = useMemo(() => analyzeExpirationPayoff(legs), [legs]);
@@ -212,6 +215,8 @@ export function PayoffLab() {
     idRef.current = 3;
     setLegs(EXAMPLE.map((leg) => ({ ...leg })));
     setScenarioPrice(105);
+    // Recover an invalid example without replacing a valid user-selected date.
+    if (!expirationValid) setExpiration(EXAMPLE_EXPIRATION);
   };
 
   const cashLabel = analysis.entryCashflow > 0 ? c.credit : analysis.entryCashflow < 0 ? c.debit : c.flat;
@@ -362,26 +367,52 @@ function PayoffChart({
   const width = useChartWidth(boxRef);
   const height = 310;
   const pad = { l: 66, r: 18, t: 18, b: 42 };
-  if (!ready || analysis.chart.length < 2) return <div ref={boxRef} className={s.chartEmpty}>{c.invalid}</div>;
+  // Measure the unpadded SVG container, keeping the same observed element in
+  // valid, invalid and unsupported-range states.
+  const frame = (content: React.ReactNode) => (
+    <div className={s.chartWrap}>
+      <div ref={boxRef} data-testid="payoff-chart-measure">{content}</div>
+    </div>
+  );
+  const unavailable = () => frame(
+    <div className={s.chartEmpty} role="status" data-testid="payoff-chart-unavailable">{c.chartUnavailable}</div>,
+  );
+  if (!ready || analysis.chart.length < 2) return frame(<div className={s.chartEmpty}>{c.invalid}</div>);
   const xValues = analysis.chart.map((p) => p.price);
   const yValues = analysis.chart.map((p) => p.pnl);
   if (Number.isFinite(scenarioPnl)) yValues.push(scenarioPnl);
+  if (![...xValues, ...yValues].every(Number.isFinite)) return unavailable();
   const [x0, x1] = [Math.min(...xValues), Math.max(...xValues)];
   const [y0, y1] = padDomain(Math.min(0, ...yValues), Math.max(0, ...yValues), { padFrac: 0.12 });
+  const xSpan = x1 - x0;
+  const ySpan = y1 - y0;
   const plotW = Math.max(10, width - pad.l - pad.r);
   const plotH = height - pad.t - pad.b;
-  const x = (v: number) => pad.l + ((v - x0) / Math.max(1e-9, x1 - x0)) * plotW;
-  const y = (v: number) => pad.t + (1 - (v - y0) / Math.max(1e-9, y1 - y0)) * plotH;
+  // Finite engine results can still overflow when padded bounds are subtracted.
+  // Refuse only the drawing; the accepted financial analysis remains available.
+  if (![width, x0, x1, y0, y1, xSpan, ySpan, plotW, plotH].every(Number.isFinite)
+    || xSpan <= 0 || ySpan <= 0 || plotW <= 0 || plotH <= 0) return unavailable();
+  const x = (v: number) => pad.l + ((v - x0) / Math.max(1e-9, xSpan)) * plotW;
+  const y = (v: number) => pad.t + (1 - (v - y0) / Math.max(1e-9, ySpan)) * plotH;
   const xTickSet = niceTicks(x0, x1, width < 520 ? 4 : 7);
   const yTickSet = niceTicks(y0, y1, 5);
   const xTicks = xTickSet.values;
   const yTicks = yTickSet.values;
-  const line = analysis.chart.map((p, index) => `${index === 0 ? "M" : "L"}${x(p.price).toFixed(1)},${y(p.pnl).toFixed(1)}`).join(" ");
   const scenarioInRange = Number.isFinite(scenarioPrice) && scenarioPrice >= x0 && scenarioPrice <= x1 && Number.isFinite(scenarioPnl);
+  const projected = [
+    y(0),
+    ...analysis.chart.flatMap((point) => [x(point.price), y(point.pnl)]),
+    ...xTicks.map(x),
+    ...yTicks.map(y),
+    ...analysis.breakEvens.filter((root) => root >= x0 && root <= x1).map(x),
+    ...(scenarioInRange ? [x(scenarioPrice), y(scenarioPnl)] : []),
+  ];
+  if (![xTickSet.step, yTickSet.step, ...xTicks, ...yTicks, ...projected].every(Number.isFinite)
+    || xTickSet.step <= 0 || yTickSet.step <= 0 || !xTicks.length || !yTicks.length) return unavailable();
+  const line = analysis.chart.map((p, index) => `${index === 0 ? "M" : "L"}${x(p.price).toFixed(1)},${y(p.pnl).toFixed(1)}`).join(" ");
 
-  return (
-    <div ref={boxRef} className={s.chartWrap}>
-      <svg className={s.chart} viewBox={`0 0 ${Math.max(width, 320)} ${height}`} role="img" aria-label={c.chartAria}>
+  return frame(
+      <svg className={s.chart} viewBox={`0 0 ${width} ${height}`} role="img" aria-label={c.chartAria}>
         {yTicks.map((tick) => <g key={`y-${tick}`}><line x1={pad.l} x2={width - pad.r} y1={y(tick)} y2={y(tick)} stroke="var(--grid)" strokeWidth="1" /><text x={pad.l - 8} y={y(tick) + 4} textAnchor="end" fill="var(--muted)" fontSize="10">{signedMoney(tick)}</text></g>)}
         {xTicks.map((tick) => <g key={`x-${tick}`}><line x1={x(tick)} x2={x(tick)} y1={pad.t} y2={height - pad.b} stroke="var(--grid)" strokeWidth="1" opacity=".55" /><text x={x(tick)} y={height - 17} textAnchor="middle" fill="var(--muted)" fontSize="10">${fmtTick(tick, xTickSet.step)}</text></g>)}
         <line x1={pad.l} x2={width - pad.r} y1={y(0)} y2={y(0)} stroke="var(--text-dim)" strokeWidth="1.25" />
@@ -391,6 +422,5 @@ function PayoffChart({
         <text x={(pad.l + width - pad.r) / 2} y={height - 3} textAnchor="middle" fill="var(--muted)" fontSize="10">{c.underlyingAxis}</text>
         <text transform={`translate(12 ${(pad.t + height - pad.b) / 2}) rotate(-90)`} textAnchor="middle" fill="var(--muted)" fontSize="10">{c.pnlAxis}</text>
       </svg>
-    </div>
   );
 }

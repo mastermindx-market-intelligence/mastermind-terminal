@@ -8,6 +8,8 @@ type Projection = {
   sessions: Record<string, Window>;
 };
 const ERROR = "US_SESSION_CLOCK_UNAVAILABLE";
+const DAY_MS = 86_400_000;
+const DAY_SECONDS = 86_400;
 const record = (v: unknown): v is Record<string, unknown> =>
   typeof v === "object" && v !== null && !Array.isArray(v);
 const validDate = (value: unknown): value is string => {
@@ -51,4 +53,42 @@ export function usRegularSessionWindow(displayEpochSeconds: number): Window | nu
   const day = instant.toISOString().slice(0, 10);
   if (day < projection.coverage.start || day > projection.coverage.end) throw new Error(ERROR);
   return projection.sessions[day] ?? null;
+}
+
+/** Session days as UTC day numbers, ascending; built once from the validated projection. */
+const SESSION_DAYS: readonly number[] = projection
+  ? Object.keys(projection.sessions).sort().map(day => new Date(`${day}T00:00:00Z`).valueOf() / DAY_MS)
+  : [];
+
+/** First index in SESSION_DAYS whose day is at or after the given UTC day number. */
+function firstSessionIndex(day: number): number {
+  let low = 0;
+  let high = SESSION_DAYS.length;
+  while (low < high) {
+    const mid = (low + high) >>> 1;
+    if ((SESSION_DAYS[mid] ?? Number.NEGATIVE_INFINITY) < day) low = mid + 1; else high = mid;
+  }
+  return low;
+}
+
+/** How many projected sessions completed strictly after the reading's date and at or before
+ *  the current ET wall-clock moment. Today's session counts only once the current minute has
+ *  reached its projected close (16:00, or 13:00 on a shortened day). Invalid or uncovered
+ *  dates throw US_SESSION_CLOCK_UNAVAILABLE; a covered reading dated today or later simply
+ *  has no completed session yet and returns 0. Input is ET wall-clock as a display epoch,
+ *  NOT a true UTC instant. */
+export function usCompletedSessionsAfterDate(readingDate: string, nowDisplayEpochSeconds: number): number {
+  if (!projection || !validDate(readingDate) || !Number.isFinite(nowDisplayEpochSeconds)) throw new Error(ERROR);
+  const now = new Date(nowDisplayEpochSeconds * 1000);
+  if (!Number.isFinite(now.valueOf())) throw new Error(ERROR);
+  const currentDay = now.toISOString().slice(0, 10);
+  const { start, end } = projection.coverage;
+  if (readingDate < start || readingDate > end || currentDay < start || currentDay > end) throw new Error(ERROR);
+  if (readingDate >= currentDay) return 0;
+  const dayNumber = (value: string) => new Date(`${value}T00:00:00Z`).valueOf() / DAY_MS;
+  // Sessions strictly between the two dates, plus today once its projected close has passed.
+  const between = firstSessionIndex(dayNumber(currentDay)) - firstSessionIndex(dayNumber(readingDate) + 1);
+  const today = projection.sessions[currentDay];
+  const minute = Math.floor((nowDisplayEpochSeconds - dayNumber(currentDay) * DAY_SECONDS) / 60);
+  return today && minute >= today[1] ? between + 1 : between;
 }

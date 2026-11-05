@@ -1,4 +1,14 @@
+import type { CSSProperties } from "react";
+import { oracleEntryAvailability, oraclePresentation, type Verdict } from "../lib/signalVerdict";
+import { pick } from "../lib/finFormat"
+import styles from "./SignalButton.module.css";
+import { prophetObservationSummary, type ProphetObservationRead } from "../lib/prophetObservations";
+
 interface Half {
+  raw?: Verdict["raw"];
+  historicalSignal?: Verdict["historicalSignal"];
+  refusedSignalKnownTs?: Verdict["refusedSignalKnownTs"];
+  entryAvailability?: Verdict["entryAvailability"];
   label: string;
   color: string;
   sub?: string | null;
@@ -29,45 +39,49 @@ interface Props {
   deskLabel: string;
   viewLabel: string;
   onView: () => void;
+  expanded?: boolean;
+  zh?: boolean;
+  prophet?: ProphetObservationRead;
 }
 
-export default function SignalButton({ oracle, desk, oracleLabel, deskLabel, viewLabel, onView }: Props) {
-  const title =
-    oracleLabel + (oracle.note ? ` — ${oracle.note}` : "") +
-    " · " +
-    deskLabel + (desk.note ? ` — ${desk.note}` : "");
-  const oracleCls =
-    "sig-btn-half sig-btn-go" +
-    (oracle.stance ? " sig-btn-stance" : oracle.soft ? " sig-btn-soft" : oracle.dim ? " sig-btn-stale" : "") +
-    (oracle.blocked ? " sig-btn-blocked" : "");
-  return (
-    <button className="sig-btn" onClick={onView} title={title}>
-      <span className={oracleCls} style={{ ["--vc" as any]: oracle.color }}>
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M12 2l2.2 5.8L20 10l-5.8 2.2L12 18l-2.2-5.8L4 10l5.8-2.2z" fill="var(--vc)" />
-        </svg>
-        <span className="sig-btn-lbl">{oracleLabel}</span>
-        {/* sub always renders (nbsp placeholder) for visual balance. NOTE: the seam span
-            below must stay BETWEEN the two halves — it is the zero-height anchor the View
-            pill centers on, so reordering children silently breaks its placement. */}
-        <span className="sig-btn-vwrap">
-          <span className="sig-btn-vd">{oracle.label}</span>
-          <span className="sig-btn-sub">{oracle.sub || " "}</span>
-        </span>
-      </span>
-      <span className="sig-btn-seam">
-        <span className="sig-btn-view">{viewLabel}</span>
-      </span>
-      <span className={"sig-btn-half sig-btn-rd" + (desk.dim ? " sig-btn-stale" : "")} style={{ ["--vc" as any]: desk.color }}>
-        <svg viewBox="0 0 24 24" fill="none" stroke="var(--vc)" strokeWidth={2} aria-hidden="true">
-          <path d="M4 19V5M4 19h16M8 15l3-4 3 2 4-6" />
-        </svg>
-        <span className="sig-btn-lbl">{deskLabel}</span>
-        <span className="sig-btn-vwrap">
-          <span className="sig-btn-vd">{desk.label}</span>
-          <span className="sig-btn-sub">{desk.sub || " "}</span>
-        </span>
-      </span>
-    </button>
-  );
+export default function SignalButton({ oracle, desk, oracleLabel, deskLabel, onView, expanded = false, zh = false, prophet }: Props) {
+  const title = oracleLabel + (oracle.note ? ` — ${oracle.note}` : "") + " · " + deskLabel + (desk.note ? ` — ${desk.note}` : "");
+  const oracleRead = oraclePresentation(oracle, zh);
+  const entry = oracle.entryAvailability ?? oracleEntryAvailability(zh);
+  const early = prophet ? prophetObservationSummary(prophet, zh) : null;
+  const stanceHistory = oracle.stance && oracle.historicalSignal
+    ? `${pick(zh, "Historical signal", "历史信号")}: ${oracle.historicalSignal.label} · ${oracle.historicalSignal.date}`
+    : null;
+  return <button className={`sig-btn ${styles.launcher}`} onClick={onView} title={title}
+    data-testid="intelligence-launcher" data-prophet={early ? true : undefined} aria-expanded={expanded} aria-controls="intelligence-workspace"
+    aria-label={pick(zh, "Open Intelligence workspace", "打开情报工作区")}>
+    <span className={styles.heading}>
+      <span className={styles.identity}><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.35" aria-hidden="true"><path d="M3 13V7l7-4 7 4v6l-7 4-7-4Z" /><path d="m3 7 7 4 7-4M10 11v6" /></svg>{pick(zh, "Intelligence", "情报")}</span>
+      <svg className={styles.chevron} viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="m12 5-5 5 5 5" /></svg>
+    </span>
+    <span className={styles.sources}>
+      {([{ source: oracle, name: pick(zh, "Oracle", "神谕"), cls: "sig-btn-go" }, { source: desk, name: pick(zh, "Research", "研究"), cls: "sig-btn-rd" }]).map(({ source, name, cls }) =>
+        <span key={cls} className={`${styles.source} ${cls}${source.blocked ? " sig-btn-blocked" : ""}`} style={{ "--vc": source.color } as CSSProperties}>
+          <span className={styles.label}>{name}</span>
+          <span className={`${styles.reading} sig-btn-vd`} data-dim={source.dim || source.stance || undefined}>{(source === oracle ? oracleRead.label : source.label)}</span>
+          <span className={`${styles.date} sig-btn-sub${source === oracle && stanceHistory ? ` ${styles.stanceHistoryDetail}` : ""}`}>{(source === oracle ? (stanceHistory ?? oracleRead.sub) : source.sub) || (pick(zh, "View details", "查看详情"))}</span>
+        </span>)}
+    </span>
+    {early && <span className={styles.prophet} data-testid="prophet-observation-launcher">
+      <span className={styles.prophetLabel}>Prophet</span>
+      <span className={styles.prophetReading} data-current={early.current || undefined}>{early.label}</span>
+      {early.detail && <span className={styles.prophetDate}>
+        <span className={styles.fullDetail}>{early.detail}</span>
+        <span className={styles.sourceDate}>{prophet?.data?.clocks.source_session}</span>
+      </span>}
+    </span>}
+    {stanceHistory && <span className={styles.stanceHistory} data-testid="oracle-stance-history">{stanceHistory}</span>}
+    {/* Keep the three producer reads together before this full-width mobile row. */}
+    <span className={styles.entry} data-testid="oracle-entry-availability" data-status={entry.status}>
+      <span className={styles.entryCompact} data-testid="oracle-entry-compact">{pick(zh, "Oracle entry unverified · No current data", "神谕入场尚未核实 · 缺少当前数据")}</span>
+      <span className={styles.entryLabel}>{pick(zh, "Entry status now", "当前入场状态")}</span>
+      <span className={styles.entryValue}>{entry.label}</span>
+      <span className={styles.entryReason}>{entry.reason}</span>
+    </span>
+  </button>;
 }

@@ -252,6 +252,9 @@ async function withStore(browser, width, lang, storeKey, run, extraCookies = [])
 async function captureEmpty(page, width, lang, outPath) {
   await openList(page, width, lang);
   await page.waitForSelector('[data-testid="rms-saved-views-empty"]', { timeout: 15_000 });
+  // Saved-view readiness can precede the thesis list and requested-language render.
+  const expected = lang === "zh" ? "暂无论点。从一个你可能判断错的观点开始。" : "No theses yet. Start with a view you could be wrong about.";
+  await page.waitForFunction((text) => document.querySelector('[data-testid="thesis-empty"]')?.textContent?.includes(text), expected);
   await shootPane(page, outPath);
 }
 

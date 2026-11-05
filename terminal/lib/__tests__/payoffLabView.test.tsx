@@ -139,3 +139,155 @@ describe("Payoff Lab — manual expiration plan", () => {
     expect(host.textContent).toContain("它不是预测、预期收益、概率、交易建议或可执行报价");
   });
 });
+
+// Adopted acceptance fixtures from original comment 6159214546 and the complete
+// alternative in 6370519551. These exercise the actual component and math with
+// the language/ResizeObserver harness above. This is jsdom, not a browser.
+function kpi(label: string): string | null {
+  const node = [...host.querySelectorAll('span')].find(n => n.textContent === label);
+  return node?.parentElement?.querySelectorAll('span')[1]?.textContent ?? null;
+}
+async function clickReset() {
+  const button = [...host.querySelectorAll<HTMLButtonElement>('button')].find(n => n.textContent === 'Reset example')!;
+  await act(async () => button.click());
+}
+describe('C2 original cents/reset acceptance residue', () => {
+  it('preserves cents in max-loss KPI for the original two-long-call example', async () => {
+    await render();
+    await type(field('Premium 1'), '4.00004');
+    await type(field('Premium 2'), '4.00004');
+    const side = host.querySelector<HTMLSelectElement>('select[aria-label="Side 2"]')!;
+    await act(async () => { side.value = 'long'; side.dispatchEvent(new Event('change', { bubbles: true })); });
+    expect(field('Premium 1').value).toBe('4.00004');
+    expect(field('Premium 2').value).toBe('4.00004');
+    expect(side.value).toBe('long');
+    expect(host.querySelector('[role="alert"]')).toBeNull();
+    expect(host.querySelector('svg')).not.toBeNull();
+    expect(kpi('Max loss')).toBe('$800.01');
+  });
+  it('Reset example restores a valid calculation after clearing shared expiration', async () => {
+    await render();
+    await type(field('payoff-expiration'), '');
+    expect(field('payoff-expiration').getAttribute('aria-invalid')).toBe('true');
+    expect(host.querySelector('[role="alert"]')).not.toBeNull();
+    expect(host.querySelector('svg')).toBeNull();
+    await clickReset();
+    expect(field('payoff-expiration').value).toBe('2026-10-16');
+    expect(host.querySelector('[role="alert"]')).toBeNull();
+    expect(host.querySelector('svg')).not.toBeNull();
+    expect(kpi('Max loss')).toBe('$260');
+  });
+  it('control: resetting legs and scenario works while shared expiration remains valid', async () => {
+    await render();
+    await type(field('Premium 1'), '');
+    await type(field('payoff-scenario-price'), '110');
+    expect(host.querySelector('[role="alert"]')).not.toBeNull();
+    await clickReset();
+    expect(field('Premium 1').value).toBe('4.2');
+    expect(field('payoff-scenario-price').value).toBe('105');
+    expect(field('payoff-expiration').value).toBe('2026-10-16');
+    expect(host.querySelector('[role="alert"]')).toBeNull();
+    expect(kpi('Max loss')).toBe('$260');
+  });
+  it('control: directly restoring a cleared expiration recovers calculation', async () => {
+    await render();
+    await type(field('payoff-expiration'), '');
+    expect(field('payoff-expiration').value).toBe('');
+    expect(field('payoff-expiration').getAttribute('aria-invalid')).toBe('true');
+    expect(host.querySelector('[role="alert"]')).not.toBeNull();
+    expect(kpi('Max loss')).toBe('—');
+    await type(field('payoff-expiration'), '2026-10-16');
+    expect(field('payoff-expiration').getAttribute('aria-invalid')).toBe('false');
+    expect(host.querySelector('[role="alert"]')).toBeNull();
+    expect(host.querySelector('svg')).not.toBeNull();
+    expect(kpi('Max loss')).toBe('$260');
+  });
+});
+
+describe('C2 candidate formatting and reset policy controls', () => {
+  it.each([
+    ['0', '$0.00'],
+    ['0.5', '$50.00'],
+    ['0.9999', '$99.99'],
+    ['1', '$100'],
+    ['1.0001', '$100.01'],
+    ['10', '$1,000'],
+    ['10.0001', '$1,000.01'],
+  ])('formats max loss from premium %s as %s', async (premium, expected) => {
+    await render();
+    await type(field('Premium 1'), premium);
+    await type(field('Premium 2'), '0');
+    await type(field('payoff-scenario-price'), '0');
+    expect(host.querySelector('[role="alert"]')).toBeNull();
+    expect(kpi('Max loss')).toBe(expected);
+    const prefix = premium === '0' ? '' : '−';
+    expect(host.querySelector('[data-testid="payoff-scenario-result"]')?.textContent).toContain(`${prefix}${expected}`);
+  });
+  it('preserves a valid user-selected date when resetting the example', async () => {
+    await render();
+    await type(field('payoff-expiration'), '2028-02-29');
+    await type(field('Premium 1'), '');
+    await clickReset();
+    expect(field('payoff-expiration').value).toBe('2028-02-29');
+    expect(host.querySelector('[role="alert"]')).toBeNull();
+    expect(kpi('Max loss')).toBe('$260');
+  });
+  it('does not silently repair a cleared date until Reset example is requested', async () => {
+    await render();
+    await type(field('payoff-expiration'), '');
+    await type(field('Premium 1'), '4.3');
+    expect(field('payoff-expiration').value).toBe('');
+    expect(host.querySelector('[role="alert"]')).not.toBeNull();
+    expect(host.querySelector('svg')).toBeNull();
+    await clickReset();
+    expect(field('payoff-expiration').value).toBe('2026-10-16');
+    expect(host.querySelector('[role="alert"]')).toBeNull();
+  });
+});
+
+describe("Payoff Lab — chart display boundary", () => {
+  it.each(["en", "zh"] as const)("keeps valid analysis available when %s chart projection overflows, then recovers", async (lang) => {
+    H.lang = lang;
+    await render();
+    const measured = host.querySelector('[data-testid="payoff-chart-measure"]');
+    const remove = host.querySelector<HTMLButtonElement>(`button[aria-label="${lang === "zh" ? "移除该腿" : "Remove leg"} 2"]`)!;
+    await act(async () => remove.click());
+    await type(field(`${lang === "zh" ? "行权价" : "Strike"} 1`), "1e305");
+    await type(field(`${lang === "zh" ? "权利金" : "Premium"} 1`), "1e306");
+
+    expect(host.querySelector('[role="alert"]')).toBeNull();
+    expect(host.querySelector('svg')).toBeNull();
+    const message = host.querySelector('[data-testid="payoff-chart-unavailable"]');
+    expect(message?.getAttribute("role")).toBe("status");
+    expect(message?.textContent).toBe(lang === "zh"
+      ? "这些收益数值超出图表的显示范围。摘要和情景损益仍可查看。"
+      : "These payoff values exceed the chart’s display range. The summary and scenario remain available.");
+    expect(kpi(lang === "zh" ? "最大亏损" : "Max loss")).not.toBe("—");
+    expect(kpi(lang === "zh" ? "最大亏损" : "Max loss")).not.toBeNull();
+    expect(host.querySelector('[data-testid="payoff-scenario-result"]')?.textContent).toMatch(/−\$/);
+    expect(host.querySelector('[data-testid="payoff-chart-measure"]')).toBe(measured);
+
+    await type(field(`${lang === "zh" ? "行权价" : "Strike"} 1`), "100");
+    await type(field(`${lang === "zh" ? "权利金" : "Premium"} 1`), "4.2");
+    expect(host.querySelector('[data-testid="payoff-chart-unavailable"]')).toBeNull();
+    expect(host.querySelector('svg')).not.toBeNull();
+    expect(host.querySelector('[data-testid="payoff-chart-measure"]')).toBe(measured);
+  });
+
+  it("uses the measured unpadded width and retains its observer target through invalid input", async () => {
+    const width = vi.spyOn(HTMLElement.prototype, "clientWidth", "get").mockReturnValue(280);
+    try {
+      await render();
+      const measured = host.querySelector('[data-testid="payoff-chart-measure"]');
+      expect(host.querySelector('svg')?.getAttribute("viewBox")).toBe("0 0 280 310");
+      await type(field("payoff-expiration"), "");
+      expect(host.querySelector('svg')).toBeNull();
+      expect(host.querySelector('[data-testid="payoff-chart-measure"]')).toBe(measured);
+      await clickReset();
+      expect(host.querySelector('svg')?.getAttribute("viewBox")).toBe("0 0 280 310");
+      expect(host.querySelector('[data-testid="payoff-chart-measure"]')).toBe(measured);
+    } finally {
+      width.mockRestore();
+    }
+  });
+});

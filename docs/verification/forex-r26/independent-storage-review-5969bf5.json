@@ -1,0 +1,41 @@
+{
+  "schema": "forex_r26.independent_storage_review.v1",
+  "route": "native_chatgpt_independent_read_only",
+  "reviewer": "/root/forex_ci_db1e_triage",
+  "repository": "mastermindx-market-intelligence/mastermind-terminal",
+  "pr": 1100,
+  "head": "5969bf5408c16626487831496d0083ce2fe31deb",
+  "parent": "57a456589ef58fff7f174c0c5e5ed2617c7bad63",
+  "verdict": "PASS",
+  "scope": "Prior F1 retained-snapshot repair and collateral SQL effects; no API/UI or release verdict",
+  "historical_verdict": {
+    "head": "57a456589ef58fff7f174c0c5e5ed2617c7bad63",
+    "verdict": "REQUEST_CHANGES",
+    "finding": "F1: retained REPEATABLE READ snapshot admitted row51 despite shared owner lock"
+  },
+  "resolution": {
+    "status": "CLOSED",
+    "behavior": "Reject alert INSERT under REPEATABLE READ/SERIALIZABLE before owner lock/count; SQLSTATE25001",
+    "counterexample": "Retained snapshot49, external committed50, INSERT rejected, final50",
+    "collateral_findings": []
+  },
+  "verification": {
+    "snapshot_path": "/tmp/forex-sql5969bf-review-Mhrk3G",
+    "original_log_path": "/tmp/forex-sql5969bf-review-tests.log",
+    "passed": 69,
+    "seconds": 8.87,
+    "exit_code": 0,
+    "sha256": {
+      "supabase/migrations/0038_forex_inactive_conditions.sql": "f7f2e50b11fd863f107abc8406c04d35ffa67f52bca6c885281340d6aff4adee",
+      "tests/test_forex_watch_postgres.py": "04e7bfcedfa44c940f4c99cf519b8d7bb4e227661864742628c28020c3ff5e5f",
+      "independent-storage-review-5969bf5.log": "91daeb5bc02091cadb92396af24e23bf0d77d98205e5b59e9c28f0f7a43bb0fb"
+    }
+  },
+  "not_proven": [
+    "API/UI",
+    "production migration/catalog",
+    "deployed authenticated journey",
+    "hosted CI",
+    "release"
+  ]
+}

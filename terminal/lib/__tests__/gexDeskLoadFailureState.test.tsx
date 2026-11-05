@@ -25,7 +25,7 @@ vi.mock("@/components/ui/Tip", () => ({ Tip: ({ children }: { children: React.Re
 vi.mock("@/components/eodcontext/EodContextBelt", () => ({ EodContextBelt: () => null }));
 
 import { GexDeskView } from "@/components/gexdesk/GexDeskView";
-import { flowInvalidate } from "@/lib/flowClientCache";
+import { flowGetResult, flowInvalidate } from "@/lib/flowClientCache";
 
 const LOAD_ERROR = "Could not load GEX data";
 const LOADING = "Loading GEX data…";
@@ -134,6 +134,8 @@ let root: Root;
 const originalScrollIntoView = Element.prototype.scrollIntoView;
 
 beforeEach(() => {
+  // View selection persists in the URL; every case starts from a fresh desk route.
+  window.history.replaceState({}, "", "/options?tab=gex");
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
   vi.stubGlobal("ResizeObserver", class { observe() {} unobserve() {} disconnect() {} });
   vi.stubGlobal("fetch", fetchMock);
@@ -187,6 +189,17 @@ async function clickButton(label: string) {
   expect(button, `a "${label}" button`).toBeDefined();
   await act(async () => { button!.click(); });
   await settle();
+}
+async function openDealerGrid() {
+  const disclosure = host.querySelector<HTMLDetailsElement>('[data-testid="gex-legacy-hedge-matrix"]');
+  expect(disclosure, "live matrix keeps the dealer grid in its named disclosure").not.toBeNull();
+  expect(disclosure!.open).toBe(false);
+  // The shared exposure map leads; the separate dealer grid mounts only on disclosure.
+  expect(disclosure!.querySelector('[data-testid="gex-matrix-error"]')).toBeNull();
+  const summary = disclosure!.querySelector("summary")!;
+  await act(async () => { summary.click(); });
+  await settle();
+  expect(disclosure!.open).toBe(true);
 }
 async function refocus() {
   vi.spyOn(document, "visibilityState", "get").mockReturnValue("visible");
@@ -356,6 +369,51 @@ describe("GEX desk: an archived session that could not be read is not an archive
     });
   });
 
+  it("awaits the corrected dated book on the first stale cached selection", async () => {
+    const key = `gex_at:SPY:${DATE}`;
+    const now = vi.spyOn(Date, "now").mockReturnValue(1_800_000_000_000);
+    replies[key] = json(200, { ...gex.SPY, asof: `${DATE}T20:15:00Z`, spot_ref: 111.11 });
+    await flowGetResult(key);
+    now.mockReturnValue(1_800_000_031_000);
+    replies[key] = { gated: json(200, { ...gex.SPY, asof: `${DATE}T20:15:00Z`, spot_ref: 987.65 }) };
+    await mount();
+    await pickSession(DATE);
+    expect(requested(key)).toBe(2);
+    expect(text()).not.toContain("111.11");
+    await act(async () => { openGate(); });
+    await settle();
+    expect(text()).toContain("987.65");
+    expect(text()).not.toContain("111.11");
+  });
+
+  it.each([
+    ["failure", UNAVAILABLE, "gex-archived-error"],
+    ["absence", ABSENT, "gex-archived-missing"],
+  ])("does not substitute a cached archive for a new %s", async (_label, answer, marker) => {
+    const key = `gex_at:SPY:${DATE}`;
+    const now = vi.spyOn(Date, "now").mockReturnValue(1_800_000_000_000);
+    replies[key] = json(200, { ...gex.SPY, asof: `${DATE}T20:15:00Z`, spot_ref: 111.11 });
+    await flowGetResult(key);
+    now.mockReturnValue(1_800_000_031_000);
+    replies[key] = answer;
+    await mount();
+    await pickSession(DATE);
+    expect(within(`[data-testid="${marker}"]`)).not.toBeNull();
+    expect(text()).not.toContain("111.11");
+  });
+
+  it("discards a corrected archive that arrives after return to live", async () => {
+    const key = `gex_at:SPY:${DATE}`;
+    replies[key] = { gated: json(200, { ...gex.SPY, asof: `${DATE}T20:15:00Z`, spot_ref: 987.65 }) };
+    await mount();
+    await pickSession(DATE);
+    await pickSession("");
+    await act(async () => { openGate(); });
+    await settle();
+    expect(text()).not.toContain("987.65");
+    expect(text()).toContain("751.71");
+  });
+
   it.each([
     ["a 5xx", UNAVAILABLE],
     ["a rejected fetch", "reject" as const],
@@ -511,6 +569,7 @@ describe("GEX desk: an unread matrix is not an unpublished one", () => {
     replies["matrix:SPY"] = UNAVAILABLE;
     await mount();
     await clickButton("Matrix");
+    await openDealerGrid();
     const error = within('[data-testid="gex-matrix-error"]');
     expect(error).not.toBeNull();
     expect(text(error)).toContain(MTX_ERROR);
@@ -522,6 +581,7 @@ describe("GEX desk: an unread matrix is not an unpublished one", () => {
     replies["matrix:SPY"] = ABSENT;
     await mount();
     await clickButton("Matrix");
+    await openDealerGrid();
     expect(text()).toContain(MTX_NONE);
     expect(within('[data-testid="gex-matrix-error"]')).toBeNull();
   });
@@ -532,6 +592,7 @@ describe("GEX desk: an unread matrix is not an unpublished one", () => {
     replies["matrix:QQQ"] = UNAVAILABLE;
     await mount();
     await clickButton("Matrix");
+    await openDealerGrid();
     await clickButton("CONFLUENCE");
     expect(requested("matrix:QQQ")).toBe(1);
     const error = within('[data-testid="gex-confluence-error"]');
