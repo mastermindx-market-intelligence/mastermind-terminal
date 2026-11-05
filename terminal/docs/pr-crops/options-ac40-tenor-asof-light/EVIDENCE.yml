@@ -1,0 +1,168 @@
+capturedAtHead: 60769a1e5d310cdaa95b39d4c7874f014bd9730a
+capturedAtHeadSource: CAPTURE_HEAD (the commit the captured working tree is built on)
+command: "MMX_SHARED_SHELL=1 OPTIONS_AC40_THEME=light OPTIONS_AC40_CROPS=1 npx playwright test e2e/options-ac40-tenor-asof-crops.spec.ts --project=desktop --workers=1"
+theme: light — Shared Shell beta only (MMX_SHARED_SHELL=1, localStorage mmx.shell.theme=light).
+sources: synthetic (e2e/fixtures/options-r1-w3b-vol.json less its 7D row, and less asof for asof-missing; e2e/fixtures/options-r1-w3-moves.json; mocked /data/AAPL.fund.json); not provider evidence.
+sourceFiles:
+  - path: terminal/e2e/fixtures/options-r1-w3b-vol.json
+    sha256: 53ac40edf1aa282e4d0519726eae6968fec476e7627bac6e2d6e360d94910c6b
+  - path: terminal/e2e/fixtures/options-r1-w3-moves.json
+    sha256: 490befcff35facd8f73b867503e9a1320f71c024a49854a0b2dc17e6319d001e
+layoutFiles:
+  - path: terminal/app/globals.css
+    sha256: b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517
+  - path: terminal/components/vol/VolComparePanel.tsx
+    sha256: 328fae04ab780530e2f7af18ce23dbb033e30885b197b42d8413ad39cba4e772
+  - path: terminal/components/vol/VolView.tsx
+    sha256: 167729cef3c6a64d419355e49c15f9d4ede068fd2a9dbe74f31d6c202d6ff9e3
+  - path: terminal/components/vol/volShared.tsx
+    sha256: e77a4159b46c9670201a03ab22e0408ec5eeb03725dc9e7dad54b49a07cfdd50
+  - path: terminal/components/vol/volStrings.ts
+    sha256: 23f9b84cd166fd28155eee15122ff0774744e445208a6345bdaabe270c9a33ff
+  - path: terminal/lib/volTenorComparison.ts
+    sha256: ba5e924630df32cf91c5e8c64880e91a2e5e4a241f19a0451f514283c180c3ac
+crops:
+  - file: old-read-on-today-1440.png
+    viewport: 1440x2667
+    lang: en
+    state: old-read-on-today
+    clock: 2026-10-28T15:00:00Z
+    htmlTheme: light
+    sharedShell: 1
+    sha256: 48bc6cbe9f3b8488224858f428b4e6049115503cc101076fdc0606bd173e6cca
+  - file: old-read-on-today-820.png
+    viewport: 820x2991
+    lang: en
+    state: old-read-on-today
+    clock: 2026-10-28T15:00:00Z
+    htmlTheme: light
+    sharedShell: 1
+    sha256: 3437ca9d968d754fc43f5c6171fff81d40fe6a78297416a499053e1bbbc678f0
+  - file: old-read-on-today-390.png
+    viewport: 390x3525
+    lang: en
+    state: old-read-on-today
+    clock: 2026-10-28T15:00:00Z
+    htmlTheme: light
+    sharedShell: 1
+    sha256: 106c2a34a343c15929819aaf6f0f36f57a8a93ebec3c6428d2026b69224a9038
+  - file: old-read-on-today-1440-zh.png
+    viewport: 1440x2590
+    lang: zh
+    state: old-read-on-today
+    clock: 2026-10-28T15:00:00Z
+    htmlTheme: light
+    sharedShell: 1
+    sha256: a0748c6c3edc64a620939135b8725db7c39e93f64e2532c28aca34aec9b3fd6f
+  - file: old-read-on-today-820-zh.png
+    viewport: 820x2962
+    lang: zh
+    state: old-read-on-today
+    clock: 2026-10-28T15:00:00Z
+    htmlTheme: light
+    sharedShell: 1
+    sha256: 7d28955f1ab76dacb8af27e2431f2439d9f46ec9af5b87e2c93074ac5a6e39ee
+  - file: old-read-on-today-390-zh.png
+    viewport: 390x3438
+    lang: zh
+    state: old-read-on-today
+    clock: 2026-10-28T15:00:00Z
+    htmlTheme: light
+    sharedShell: 1
+    sha256: e6f1c0db831d7aa49e7cee0238e33b99cf296404f057f39853962d96d40fa319
+  - file: today-read-1440.png
+    viewport: 1440x2936
+    lang: en
+    state: today-read
+    clock: 2026-10-21T15:00:00Z
+    htmlTheme: light
+    sharedShell: 1
+    sha256: 3ef254cd71ba9a82d48a779da311bc57eca373b83be0f58af60c7c02ab41e71b
+  - file: today-read-820.png
+    viewport: 820x3178
+    lang: en
+    state: today-read
+    clock: 2026-10-21T15:00:00Z
+    htmlTheme: light
+    sharedShell: 1
+    sha256: 682de0b70c172bf83745ded7e50f0fcdebd9971b1a4806e2b2b531682294e748
+  - file: today-read-390.png
+    viewport: 390x3811
+    lang: en
+    state: today-read
+    clock: 2026-10-21T15:00:00Z
+    htmlTheme: light
+    sharedShell: 1
+    sha256: c871396ce04077419a9903bd745e777d0670e9ecd438acfca53a31c78a809580
+  - file: today-read-1440-zh.png
+    viewport: 1440x2857
+    lang: zh
+    state: today-read
+    clock: 2026-10-21T15:00:00Z
+    htmlTheme: light
+    sharedShell: 1
+    sha256: 82065d9c6a45839c3e88993ca76c6953912dec6ec8a933bd6ee498f6d5db5c74
+  - file: today-read-820-zh.png
+    viewport: 820x3112
+    lang: zh
+    state: today-read
+    clock: 2026-10-21T15:00:00Z
+    htmlTheme: light
+    sharedShell: 1
+    sha256: 94a95bbb5d52da8309fe82962ae533db1db1caa84826e942eee6f6417b0f7e38
+  - file: today-read-390-zh.png
+    viewport: 390x3687
+    lang: zh
+    state: today-read
+    clock: 2026-10-21T15:00:00Z
+    htmlTheme: light
+    sharedShell: 1
+    sha256: be14195e2eb92e503460786e042d05913b3907a5eb830e260635ad0e8df70999
+  - file: asof-missing-1440.png
+    viewport: 1440x2963
+    lang: en
+    state: asof-missing
+    clock: 2026-10-22T15:00:00Z
+    htmlTheme: light
+    sharedShell: 1
+    sha256: 337939c314f8b27e7f48e4e2a41cbbe094b242b190b24d6fd9f17dfccb2140b9
+  - file: asof-missing-820.png
+    viewport: 820x3237
+    lang: en
+    state: asof-missing
+    clock: 2026-10-22T15:00:00Z
+    htmlTheme: light
+    sharedShell: 1
+    sha256: 6c3d6811f11504e25282a30435cdd535364fb0db99da98ba7cb90d0bc296f9f3
+  - file: asof-missing-390.png
+    viewport: 390x3838
+    lang: en
+    state: asof-missing
+    clock: 2026-10-22T15:00:00Z
+    htmlTheme: light
+    sharedShell: 1
+    sha256: 275389b73a1f4ff0c1d3b11edfde8421371e708ddce09a916bf37f977b39e359
+  - file: asof-missing-1440-zh.png
+    viewport: 1440x2887
+    lang: zh
+    state: asof-missing
+    clock: 2026-10-22T15:00:00Z
+    htmlTheme: light
+    sharedShell: 1
+    sha256: 7b8daf312d7d9862477f368e1b458f81f82ddd01f69d4fbe79f99938e0d812dc
+  - file: asof-missing-820-zh.png
+    viewport: 820x3142
+    lang: zh
+    state: asof-missing
+    clock: 2026-10-22T15:00:00Z
+    htmlTheme: light
+    sharedShell: 1
+    sha256: 43d7c8e771074b503b380ff728d5bc59bd783baeb58f0a0955bd9d9dfa3f8b69
+  - file: asof-missing-390-zh.png
+    viewport: 390x3687
+    lang: zh
+    state: asof-missing
+    clock: 2026-10-22T15:00:00Z
+    htmlTheme: light
+    sharedShell: 1
+    sha256: 1e72942e5f0daf19d5948634c9fc4fcd35baf841920f25be66a882347cae35a2

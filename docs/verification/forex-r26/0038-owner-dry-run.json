@@ -1,0 +1,10 @@
+{
+  "reviewed_source": "5969bf5408c16626487831496d0083ce2fe31deb",
+  "migration_sha256": "f7f2e50b11fd863f107abc8406c04d35ffa67f52bca6c885281340d6aff4adee",
+  "mode": "dry-run",
+  "network": false,
+  "returncode": 0,
+  "project_guard_checked": false,
+  "log": "0038-owner-dry-run.log",
+  "production_application": "NOT_PERFORMED"
+}

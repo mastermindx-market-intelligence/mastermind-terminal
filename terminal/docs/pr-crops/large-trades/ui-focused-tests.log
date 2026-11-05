@@ -1,0 +1,14 @@
+The CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.
+
+ RUN  v2.1.9 [repository]/terminal
+
+ ✓ lib/__tests__/indicatorUpDownColors.test.ts (10 tests) 5ms
+ ✓ lib/__tests__/largeTradesSettings.test.ts (4 tests) 5ms
+ ✓ lib/__tests__/largeTradesClient.test.ts (32 tests) 8ms
+ ✓ lib/__tests__/largeTradesProjection.test.ts (43 tests) 23ms
+ ✓ lib/__tests__/largeTradesRoute.test.ts (32 tests) 253ms
+
+ Test Files  5 passed (5)
+      Tests  121 passed (121)
+   Start at  02:59:23
+   Duration  1.25s (transform 418ms, setup 0ms, collect 662ms, tests 293ms, environment 1ms, prepare 317ms)

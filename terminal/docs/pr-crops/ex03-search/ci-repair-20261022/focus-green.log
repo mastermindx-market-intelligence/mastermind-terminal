@@ -1,0 +1,19 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/terminal
+
+ ✓ lib/__tests__/dialogFocusNestedOwnership.test.tsx > dialog focus ownership with a later portalled task > allows a newly opened modal to receive and keep focus without closing Search
+ ✓ lib/__tests__/dialogFocusNestedOwnership.test.tsx > dialog focus ownership with a later portalled task > allows a previously hidden dialog to become the newer active task
+ ✓ lib/__tests__/dialogFocusNestedOwnership.test.tsx > dialog focus ownership with a later portalled task > does not yield to a dialog that was already open behind Search
+ ✓ lib/__tests__/dialogFocusNestedOwnership.test.tsx > dialog focus ownership with a later portalled task > continues blocking ordinary background focus after the newer dialog closes
+ ✓ lib/__tests__/dialogFocusNestedOwnership.test.tsx > dialog focus ownership with a later portalled task > does not restore the chart opener over a still-active newer dialog on unmount
+ ✓ lib/__tests__/dialogFocusNestedOwnership.test.tsx > dialog focus ownership with a later portalled task > still returns focus to the opener when no newer modal owns it
+ ✓ lib/__tests__/companySearchIdentity.test.tsx > distinguishes supported listings by exact symbol and source venue without a trade signal badge
+ ✓ lib/__tests__/companySearchIdentity.test.tsx > keeps hook order when the same picker is closed and reopened
+ ✓ lib/__tests__/companySearchIdentity.test.tsx > names and contains the company dialog and restores its opener after Escape from a tab
+
+ Test Files  2 passed (2)
+      Tests  9 passed (9)
+   Start at  12:40:19
+   Duration  1.57s (transform 281ms, setup 0ms, collect 423ms, tests 169ms, environment 1.34s, prepare 147ms)
+
