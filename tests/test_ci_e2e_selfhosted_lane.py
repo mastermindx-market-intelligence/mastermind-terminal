@@ -41,16 +41,20 @@ def e2e_job() -> dict[str, Any]:
     return ci()["jobs"]["terminal-e2e"]
 
 
-def test_runs_on_is_gated_by_variable_and_same_repo_guard_with_literal_fallback() -> None:
-    runs_on = e2e_job()["runs-on"]
-    assert isinstance(runs_on, str)
-    assert runs_on.startswith("${{") and runs_on.endswith("}}")
-    assert LANE_CONDITION in runs_on, "lane switch must require the variable AND the same-repo guard"
-    assert f"fromJSON('{HOST_LABELS}')" in runs_on, "host selection must carry all four labels"
-    assert runs_on.rstrip("} ").endswith("|| 'ubuntu-latest'"), "fallback must be the literal hosted runner"
-    # The condition must be the whole left operand of &&: a dangling `vars.` outside the
-    # parenthesised guard would let a fork PR reach the host.
-    assert runs_on.count("vars.TERMINAL_E2E_LANE") == 1
+EXPECTED_RUNS_ON = f"${{{{ {LANE_CONDITION} && fromJSON('{HOST_LABELS}') || 'ubuntu-latest' }}}}"
+
+
+def test_runs_on_is_exactly_the_gated_expression_with_literal_fallback() -> None:
+    # Exact equality: a widened condition (e.g. `|| head.repo.fork`) or a split between
+    # runs-on and the lane env would otherwise slip past substring checks.
+    assert e2e_job()["runs-on"] == EXPECTED_RUNS_ON
+
+
+def test_check_names_are_unchanged_on_both_lanes() -> None:
+    jobs = ci()["jobs"]
+    assert jobs["terminal-e2e"]["name"] == "Terminal e2e ${{ matrix.shard }} (shard)"
+    assert "terminal" in jobs, "the frozen aggregator job must keep its name"
+    assert "terminal-e2e" in jobs["terminal"]["needs"]
 
 
 def test_lane_env_mirrors_the_runs_on_condition() -> None:
@@ -67,6 +71,12 @@ def test_no_expression_inside_any_run_block_except_matrix_projects() -> None:
             continue
         for expr in re.findall(r"\$\{\{(.*?)\}\}", run):
             assert expr.strip() == "matrix.projects", f"expression spliced into run block: {expr!r}"
+
+
+def test_playwright_cache_is_bound_per_lane() -> None:
+    cache = next(s for s in e2e_job()["steps"] if s.get("id") == "pwcache")
+    assert cache["with"]["path"] == "${{ steps.lane.outputs.browsers_path }}"
+    assert cache["with"]["key"] == "pw-${{ runner.os }}-${{ steps.pw.outputs.version }}${{ steps.lane.outputs.cache_suffix }}"
 
 
 def test_lane_bind_step_precedes_node_setup_and_feeds_the_test_steps() -> None:
@@ -90,11 +100,27 @@ def test_lane_bind_step_precedes_node_setup_and_feeds_the_test_steps() -> None:
 def run_lane(env_overrides: dict[str, str], tmp_path: Path) -> tuple[int, dict[str, str], str]:
     out = tmp_path / "github_output"
     out.write_text("", encoding="utf-8")
+    github_env = tmp_path / "github_env"
+    github_env.write_text("", encoding="utf-8")
     env = {k: v for k, v in os.environ.items() if not k.startswith("TERMINAL_E2E_") and k != "RUNNER_NAME"}
-    env.update({"GITHUB_OUTPUT": str(out), **env_overrides})
+    env.update({"GITHUB_OUTPUT": str(out), "GITHUB_ENV": str(github_env), "HOME": "/home/ghrunner", **env_overrides})
     proc = subprocess.run(["bash", str(LANE_SCRIPT)], env=env, capture_output=True, text=True, timeout=30)
     parsed = dict(line.split("=", 1) for line in out.read_text(encoding="utf-8").splitlines() if "=" in line)
+    exported = github_env.read_text(encoding="utf-8")
+    if exported:
+        parsed["__github_env__"] = exported
     return proc.returncode, parsed, proc.stderr
+
+
+HOSTED = {
+    "lane": "hosted",
+    "workers": "1",
+    "port": "3108",
+    "port_investor": "31991",
+    "port_shared": "31992",
+    "browsers_path": "~/.cache/ms-playwright",
+    "cache_suffix": "",
+}
 
 
 def test_script_is_executable_and_strict() -> None:
@@ -105,7 +131,7 @@ def test_script_is_executable_and_strict() -> None:
 def test_hosted_lane_is_todays_behaviour(tmp_path: Path) -> None:
     rc, out, _ = run_lane({}, tmp_path)
     assert rc == 0
-    assert out == {"lane": "hosted", "workers": "1", "port": "3108", "port_investor": "31991", "port_shared": "31992"}
+    assert out == HOSTED, "hosted lane must reproduce today's literal values and export nothing to GITHUB_ENV"
     # The hosted lane ignores the workers variable: today's hosted job runs one worker.
     rc, out2, _ = run_lane({"TERMINAL_E2E_LANE": "hosted", "TERMINAL_E2E_LANE_WORKERS": "8"}, tmp_path)
     assert rc == 0 and out2 == out
@@ -115,12 +141,16 @@ def test_hosted_lane_is_todays_behaviour(tmp_path: Path) -> None:
 def test_ubuntu0_slot_binds_distinct_ports_and_default_workers(tmp_path: Path, slot: int) -> None:
     rc, out, _ = run_lane({"TERMINAL_E2E_LANE": "ubuntu0", "RUNNER_NAME": f"ubuntu0-e2e-{slot}"}, tmp_path)
     assert rc == 0
+    store = f"/home/ghrunner/.cache/ms-playwright-ubuntu0-e2e-{slot}"
     assert out == {
         "lane": "ubuntu0",
         "workers": "4",
         "port": str(3200 + slot),
         "port_investor": str(32000 + 10 * slot + 1),
         "port_shared": str(32000 + 10 * slot + 2),
+        "browsers_path": store,
+        "cache_suffix": f"-ubuntu0-e2e-{slot}",
+        "__github_env__": f"PLAYWRIGHT_BROWSERS_PATH={store}\n",
     }
 
 
@@ -128,8 +158,8 @@ def test_ubuntu0_slot_ports_never_collide_across_slots(tmp_path: Path) -> None:
     seen: set[str] = set()
     for slot in range(1, 10):
         _, out, _ = run_lane({"TERMINAL_E2E_LANE": "ubuntu0", "RUNNER_NAME": f"ubuntu0-e2e-{slot}"}, tmp_path)
-        ports = {out["port"], out["port_investor"], out["port_shared"]}
-        assert len(ports) == 3 and not (ports & seen)
+        ports = {out["port"], out["port_investor"], out["port_shared"], out["browsers_path"], out["cache_suffix"]}
+        assert len(ports) == 5 and not (ports & seen)
         seen |= ports
 
 
@@ -162,5 +192,16 @@ def test_unknown_lane_is_rejected(tmp_path: Path) -> None:
 
 def test_runbook_names_the_variable_labels_slots_and_rollback() -> None:
     text = RUNBOOK.read_text(encoding="utf-8")
-    for needle in ("TERMINAL_E2E_LANE", "TERMINAL_E2E_WORKERS", "ubuntu0-e2e-N", "ubuntu0-e2e", "42029519496", "rollback"):
+    for needle in (
+        "TERMINAL_E2E_LANE",
+        "TERMINAL_E2E_WORKERS",
+        "ubuntu0-e2e-N",
+        "ubuntu0-e2e",
+        "42029519496",
+        "rollback",
+        "--ephemeral",
+        "routing only",
+        "svc.sh stop",
+        "PLAYWRIGHT_BROWSERS_PATH",
+    ):
         assert needle in text, needle

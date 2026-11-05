@@ -63,5 +63,17 @@ case "$lane" in
 esac
 
 out="${GITHUB_OUTPUT:-/dev/stdout}"
-printf 'lane=%s\nworkers=%s\nport=%s\nport_investor=%s\nport_shared=%s\n' \
-  "$lane" "$workers" "$port" "$port_investor" "$port_shared" >> "$out"
+# Playwright browser store. The hosted lane keeps today's literal cache path and key
+# (byte-identical). Each ubuntu0 slot gets its own store and cache key so concurrent
+# shards on one host never restore a tar into a directory another slot's Chromium is
+# running from, and so the host never shares a cache entry with the hosted lane.
+if [ "$lane" = ubuntu0 ]; then
+  browsers_path="$HOME/.cache/ms-playwright-$runner_name"
+  cache_suffix="-$runner_name"
+  printf 'PLAYWRIGHT_BROWSERS_PATH=%s\n' "$browsers_path" >> "${GITHUB_ENV:-/dev/null}"
+else
+  browsers_path='~/.cache/ms-playwright'
+  cache_suffix=''
+fi
+printf 'lane=%s\nworkers=%s\nport=%s\nport_investor=%s\nport_shared=%s\nbrowsers_path=%s\ncache_suffix=%s\n' \
+  "$lane" "$workers" "$port" "$port_investor" "$port_shared" "$browsers_path" "$cache_suffix" >> "$out"

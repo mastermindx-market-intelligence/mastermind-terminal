@@ -255,14 +255,23 @@ jobs:
     name: Terminal e2e ${{ matrix.shard }} (shard)
     # Lane switch (Mastermind #917, phase 9; canary runs 42011181810 / 42029519496 on
     # 2026-11-05: desktop-1 16m06s at one worker and 8m08s at four on ubuntu0 against
-    # 54m41s hosted). The lane is chosen by the repository variable TERMINAL_E2E_LANE:
-    # unset or anything but `ubuntu0` keeps every shard on the hosted runner exactly as
-    # before, so unsetting the variable is the whole rollback and needs no PR. `ubuntu0`
-    # sends SAME-REPOSITORY runs to the persistent ubuntu0 runner slots (labels below,
-    # names ubuntu0-e2e-N; docs/CI_TERMINAL_E2E_SELFHOSTED_LANE.md). A pull_request from
-    # a fork never reaches the host whatever the variable says: this is a public
-    # repository, and fork runs are additionally held by the all_external_contributors
-    # approval policy. Lane-dependent values (workers, ports) are bound by
+    # 54m41s hosted). The repository variable TERMINAL_E2E_LANE chooses the lane: unset
+    # or any value other than `ubuntu0` (GitHub compares case-insensitively) keeps every
+    # shard on the hosted runner exactly as before; `ubuntu0` ROUTES same-repository
+    # pull_request, merge_group and workflow_dispatch runs to the ubuntu0 runner slots
+    # (labels below, names ubuntu0-e2e-N; docs/CI_TERMINAL_E2E_SELFHOSTED_LANE.md).
+    #
+    # What the expression does and does not protect. The head.repo guard is ROUTING
+    # ONLY: it keeps this unmodified job off the host for a fork pull_request. It is
+    # not a host fence, because a pull_request runs the workflow file from the PR's
+    # merge ref, so any PR (fork or same-repo) may edit this `runs-on` or add a
+    # workflow naming the four labels, and merge_group runs fork-authored code once a
+    # maintainer queues it. The host fence is procedural and lives outside this file:
+    # fork runs are held by the all_external_contributors approval policy, and the
+    # runbook requires ephemeral, no-sudo runner slots inside an organization runner
+    # group restricted to this repository. Unsetting the variable restores hosted
+    # routing only; stopping the slot listeners is the full rollback. Lane-dependent
+    # values (workers, ports, browser store) are bound by
     # .github/scripts/terminal_e2e_lane.sh from env, never spliced into a run block.
     # tests/test_ci_e2e_selfhosted_lane.py pins this contract with mutation tests.
     runs-on: ${{ (vars.TERMINAL_E2E_LANE == 'ubuntu0' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON('["self-hosted","linux","x64","ubuntu0-e2e"]') || 'ubuntu-latest' }}
@@ -376,8 +385,8 @@ jobs:
         id: pwcache
         uses: actions/cache@v4
         with:
-          path: ~/.cache/ms-playwright
-          key: pw-${{ runner.os }}-${{ steps.pw.outputs.version }}
+          path: ${{ steps.lane.outputs.browsers_path }}
+          key: pw-${{ runner.os }}-${{ steps.pw.outputs.version }}${{ steps.lane.outputs.cache_suffix }}
       # `--with-deps` shells out to apt, and the runner's Ubuntu mirror stalls often enough to
       # matter (see #438). Bound it, then fall back to a browser-only install.
       - name: Install Playwright browsers (apt bounded, browser-only fallback)
