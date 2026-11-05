@@ -1,13 +1,13 @@
 # B-F11-4 research management views — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 05ac289f21619a83aad650cf7290a78d36f0ae3d
-# capturedAt: 2026-11-05T06:40:39.152Z
+# capturedAtHead: 2d28752bfb8b2644ab8d129c4bbabda7edb0f1dd
+# capturedAt: 2026-11-05T07:46:40.932Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/components/workspaces/ThesisWorkspace.tsx: "29c8ac71969584b7635b14b45f1b5cb76e0ea2063b3f10fa2625cb35089ab140"
   terminal/components/workspaces/ThesisWorkspace.module.css: "c7fcd07d13cf3d7453bb51cd47ffb13c80af05e327bf9662368e97988023320c"
-  terminal/lib/rmsViews.ts: "fd5f025806c5a4b1b27e7d99a026e82f555767f0d96b6a2766a5b363961897cb"
+  terminal/lib/rmsViews.ts: "bab307d0762d76d31a4d9b7de07f4c9c15c2e4c9915b60e8d971171b3e19def0"
   terminal/lib/savedViews.ts: "16e2914a032cba50cce999d1802c53e51098ce76dd82931925ef41b8e0f7af54"
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
   terminal/lib/i18n.tsx: "92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435"
