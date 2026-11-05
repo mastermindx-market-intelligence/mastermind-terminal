@@ -435,7 +435,8 @@ describe("curateInsiders / curateIntel", () => {
       analysis: { confluence: "3D confluence constructive above the 50d." },
       tech: { events: { signals: { huge: "blob".repeat(500) } } }, // must NOT leak through
     };
-    const out = curateIntel(intel);
+    const out = curateIntel(intel, Date.parse("2026-07-10T20:00:00Z"));
+    expect(out.ai_lean).toEqual({ dir: "BULL", band: "high", entry: "await_confluence", score: 72, reading: "Bullish" });
     expect((out.ai_judgment as Obj).verdict).toBe("Constructive");
     expect((out.conviction as Obj).drivers).toHaveLength(4);
     expect((out.key_levels as Obj).support).toEqual([100, 95]);
@@ -444,6 +445,50 @@ describe("curateInsiders / curateIntel", () => {
     expect(JSON.stringify(out)).not.toContain("blobblob");
     expect(JSON.stringify(out).length).toBeLessThanOrEqual(2000);
     expect(curateIntel(null).no_data).toBe(true);
+  });
+
+  it("withholds an expired, unobserved or abstained lean while preserving dated research cards", () => {
+    const now = Date.parse("2026-07-10T18:00:00Z");
+    for (const tape of [
+      { asof: "2026-07-05", ai_lean: { dir: "BULL", entry: "buy_now", max_age_days: 5 } },
+      { asof: "2026-07-11", ai_lean: { dir: "BULL" } },
+      { asof: "2026-07-10", ai_lean: { dir: "BULL", abstain: true } },
+      { asof: "2026-07-10", stale: true, ai_lean: { dir: "BULL" } },
+      { asof: "2026-07-10", ai_lean: { dir: "NEUTRAL", band: null } },
+    ]) {
+      const out = curateIntel({ tape, cards: { ai_judgment: { verdict: "Prior read" } } }, now);
+      expect(out.ai_lean).toEqual({ dir: null, band: null, entry: null, score: null, abstain: true });
+      expect(out.asof).toBe(tape.asof);
+      expect((out.ai_judgment as Obj).verdict).toBe("Prior read");
+    }
+  });
+
+  it.each([
+    [undefined, false],
+    [null, false],
+    ["2026-07-10garbage", false],
+    ["2026-07-10T21:00:00Z", false],
+    ["2026-07-10T18:00:00Z", true],
+    ["2026-07-10T12:00:00Z", true],
+    ["2026-07-10", true],
+    ["2026-07-09", false],
+  ])("qualifies the research-card session %s before calling it current", (asof, current) => {
+    const out = curateIntel({
+      asof,
+      tape: { asof: "2026-07-10", ai_lean: { dir: "BULL", band: "high" } },
+      cards: { ai_judgment: { verdict: "Saved assessment" } },
+    }, Date.parse("2026-07-10T18:00:00Z"));
+    expect(out.cards_current).toBe(current);
+    expect((out.ai_judgment as Obj).verdict).toBe("Saved assessment");
+  });
+
+  it("retains sourced timing postures and zero without promoting them to directional calls", () => {
+    const now = Date.parse("2026-07-10T18:00:00Z");
+    const lean = (ai_lean: Obj) => curateIntel({ tape: { asof: "2026-07-10", ai_lean } }, now).ai_lean;
+    expect(lean({ entry: "wait_pullback" })).toMatchObject({ dir: null, reading: "Wait for pullback" });
+    expect(lean({ dir: "BEAR", band: "low", entry: "bounce_wait", score: 0 })).toMatchObject({ dir: null, score: 0, reading: "No setup" });
+    expect(lean({ dir: "NEUTRAL", score: 0 })).toMatchObject({ dir: "NEUTRAL", score: 0, reading: "Neutral" });
+    expect(curateIntel({ tape: {} }, now).ai_lean).toBeNull();
   });
 });
 

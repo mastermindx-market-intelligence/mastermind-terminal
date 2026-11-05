@@ -7,6 +7,10 @@ import type { GexPayload } from "@/components/gexdesk/GexDeskView";
 import type { MatrixHeatCell, StrikeExpiryDoc } from "@/components/shared/StrikeExpiryMatrix";
 import { isGexDates } from "@/lib/gexSessions";
 import { isoSession } from "@/lib/dte";
+import { createExposureMapReader, type ExposureMapRead } from "@/lib/exposureMap";
+import { exposureValueFingerprint } from "@/lib/exposureChartLink";
+import type { ExposureLens, ProjectionReportedGamma } from "@/lib/exposureMapProjection";
+import { compareReportedGamma, type ReportedGammaChange } from "@/lib/exposureReportedChange";
 
 export type OptionsPerspective = "gamma" | "vanna" | "oi" | "flow";
 export interface OptionsChartLevel {
@@ -15,7 +19,7 @@ export interface OptionsChartLevel {
   session: string;
   label: string;
 }
-export type CompanionIssue = "unavailable" | "identity" | "session" | "malformed";
+export type CompanionIssue = "unavailable" | "identity" | "session" | "malformed" | "scope";
 export type Receipt<T> = { ok: true; value: T } | { ok: false; reason: CompanionIssue };
 export interface CompanionMatrix {
   doc: MatrixDoc & StrikeExpiryDoc;
@@ -36,6 +40,9 @@ export interface CompanionGexSnapshot {
   spot: number | null;
   netGexBn: number | null;
   rows: { strike: number; gammaMn: number | null }[];
+  measurement?: Pick<ExposureMapRead, "qualification" | "coverage" | "sourceRef"> & {
+    coveredOnly: boolean; reportedGamma?: ProjectionReportedGamma;
+  };
 }
 
 export interface CompanionGexMemory {
@@ -45,6 +52,8 @@ export interface CompanionGexMemory {
   strike: number | null;
   currentStrikeMn: number | null;
   previousStrikeMn: number | null;
+  changeBasis: "aggregate_reference" | "unestablished";
+  reportedChange?: ReportedGammaChange;
 }
 
 export const finite = (v: unknown): number | null =>
@@ -122,7 +131,7 @@ export function matrixForExpiry(receipt: CompanionMatrix, scope: "all" | "0dte")
 }
 
 /** Validate the canonical all-expiry GEX ladder without borrowing UI component state. */
-export function readCompanionGexSnapshot(raw: unknown, root: string, nowMs = Date.now()): Receipt<CompanionGexSnapshot> {
+export function readCompanionGexSnapshot(raw: unknown, root: string, nowMs = Date.now(), lens: ExposureLens = { kind: "all" }): Receipt<CompanionGexSnapshot> {
   if (raw == null || (object(raw) && Object.keys(raw).length === 0)) return { ok: false, reason: "unavailable" };
   const candidate = object(raw) && object(raw[root]) ? raw[root] : raw;
   if (!object(candidate) || candidate.root !== root || candidate.schema !== "options_hub.gex/v1") {
@@ -130,6 +139,29 @@ export function readCompanionGexSnapshot(raw: unknown, root: string, nowMs = Dat
   }
   const session = validSession(typeof candidate.asof === "string" ? candidate.asof.slice(0, 10) : null, nowMs);
   if (!session) return { ok: false, reason: "session" };
+  if (candidate.exposure_projection != null) {
+    const reader = createExposureMapReader(candidate, root, null, new Date(nowMs).toISOString().slice(0, 10), nowMs);
+    const read = reader(lens, "gamma");
+    if (read.state !== "data") {
+      // A validated book can have no usable measurements in this exact lens.
+      // Inspect all only to classify the failure, never to substitute its value.
+      const full = lens.kind !== "all" ? reader({ kind: "all" }, "gamma") : null;
+      return { ok: false, reason: full?.state === "data"
+        && ["qualified", "dated"].includes(full.qualification) ? "scope" : "unavailable" };
+    }
+    if (read.qualification === "qualified" || read.qualification === "dated") {
+      const reportedGamma = reader.reportedGamma(lens);
+      return { ok: true, value: {
+        root, session, spot: read.spot,
+        netGexBn: read.summary.netTotalMn == null ? null : read.summary.netTotalMn / 1_000,
+        rows: read.summary.nodes.map(row => ({ strike: row.strike, gammaMn: row.netMn }))
+          .sort((a, b) => b.strike - a.strike),
+        measurement: { qualification: read.qualification, coverage: read.coverage,
+          sourceRef: read.sourceRef, coveredOnly: !!read.summary.coveredOnly,
+          ...(reportedGamma ? { reportedGamma } : {}) },
+      } };
+    }
+  }
   if (!Array.isArray(candidate.by_strike) || candidate.by_strike.length === 0 || candidate.by_strike.length > 10_000) {
     return { ok: false, reason: "malformed" };
   }
@@ -144,6 +176,8 @@ export function readCompanionGexSnapshot(raw: unknown, root: string, nowMs = Dat
     rows.push({ strike, gammaMn: finite(item.gamma_net) });
   }
   if (!rows.some((row) => row.gammaMn !== null)) return { ok: false, reason: "unavailable" };
+  // A valid aggregate archive exists, but cannot supply an expiry-specific value.
+  if (lens.kind !== "all") return { ok: false, reason: "scope" };
   const spot = finite(candidate.spot_ref);
   return { ok: true, value: {
     root,
@@ -152,6 +186,24 @@ export function readCompanionGexSnapshot(raw: unknown, root: string, nowMs = Dat
     netGexBn: finite(candidate.net_gex_bn),
     rows: rows.sort((a, b) => b.strike - a.strike),
   } };
+}
+
+/** Bind every admitted contribution and its source identity. Failure affects
+ * comparison only; the already-validated snapshot remains inspectable. */
+export async function bindCompanionGexComparison(snapshot: CompanionGexSnapshot): Promise<CompanionGexSnapshot> {
+  const basis = snapshot.measurement?.reportedGamma;
+  if (!basis) return snapshot;
+  try {
+    // Canonical exact coordinates plus value preserve every member while
+    // keeping a 100k-member comparison inside the shared value-count bound.
+    const members = basis.members.map(m => [JSON.stringify([m.expiry, m.strike, m.right]), m.valueUsd]);
+    const sourceKey = await exposureValueFingerprint({ ...basis, members, sourceKey: null });
+    return { ...snapshot, measurement: { ...snapshot.measurement!, reportedGamma: { ...basis, sourceKey } } };
+  } catch {
+    const measurement = { ...snapshot.measurement! };
+    delete measurement.reportedGamma;
+    return { ...snapshot, measurement };
+  }
 }
 
 /** Pick the closest listed snapshot strictly before the matrix session. */
@@ -164,11 +216,13 @@ export function previousAvailableGexSession(raw: unknown, root: string, currentS
   return { ok: true, value: { session: raw.dates.find((date) => date < current) ?? null } };
 }
 
-/** Compare two qualified all-expiry snapshots; no cause/positioning attribution is implied. */
+/** Preserve each snapshot's measurement basis. A pair of projections does not
+ * establish comparable contract membership, model history or correction vintage. */
 export function buildCompanionGexMemory(
   current: CompanionGexSnapshot,
   previous: CompanionGexSnapshot,
   strike: number | null,
+  originMs = Date.now(),
 ): CompanionGexMemory | null {
   if (current.root !== previous.root || previous.session >= current.session) return null;
   const exactStrike = strike != null && Number.isFinite(strike) && strike > 0 ? strike : null;
@@ -181,6 +235,9 @@ export function buildCompanionGexMemory(
     strike: exactStrike,
     currentStrikeMn: currentStrike?.gammaMn ?? null,
     previousStrikeMn: previousStrike?.gammaMn ?? null,
+    changeBasis: current.measurement || previous.measurement ? "unestablished" : "aggregate_reference",
+    ...(current.measurement || previous.measurement ? { reportedChange: compareReportedGamma(
+      current.measurement?.reportedGamma, previous.measurement?.reportedGamma, originMs) } : {}),
   };
 }
 

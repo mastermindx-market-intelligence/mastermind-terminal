@@ -1,17 +1,17 @@
 # Conductor fit chip in zh — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 1abc95d53d3f305ccaa3c85a1c119d46be611280
-# capturedAt: 2026-10-14T04:54:15.538Z
+# capturedAtHead: e2846880681d4b9aff4a060e1321f50f240cafc7
+# capturedAt: 2026-10-24T05:33:34.443Z
 # capturedAtHead is informational. The lock is layoutFiles.
 # before/ holds the same crops at the commit before the fix (before/BEFORE.yml); this tool never rewrites it.
 layoutFiles:
-  terminal/app/dev/theater/page.tsx: "a3132045b1309457785a9420d553836b6d8214a57e98cd1c35692f89a37420dd"
-  terminal/app/globals.css: "e2346b09969625a05d69a3dcd91501617374d795c748bd1edfa57708d92c3bd2"
-  terminal/components/ChartConductor.tsx: "1ab2a57aafcdaf6f4cd5853de93179b1f387a3d8b68d9863ce4953921c372583"
-  terminal/lib/chartBus.ts: "0feac4f3a7e30e19e54f66aa3c9aa8bdb8f7f11acd1ce9f3b9a07d4f86a6e063"
-  terminal/lib/conductorState.ts: "4ec3827338cf2ed9f9eb8145553265ab46157ad2ef2e726439433dc474a585f1"
-  terminal/lib/i18n.tsx: "9bcded1313e75ca37fa7ab67f256ad3b568daa61aaf0d10fa1907a4751a371c1"
+  terminal/app/dev/theater/page.tsx: "e311e7babdc633c6b85222e8e7c2c128653fc476bcf0fbc5caa951beb5ce6953"
+  terminal/app/globals.css: "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517"
+  terminal/components/ChartConductor.tsx: "471a8972a8b8d4775abddc6a455dd50af0943fec18ad5a0a0c1a77243330d8b0"
+  terminal/lib/chartBus.ts: "96c1ac39db798d09f9ffc91223b33ee5e91ef26e793530f9d91ecdab26501b3d"
+  terminal/lib/conductorState.ts: "3333fae411ad63ff4bd19eace00ca93fd36709206b6806b7ef939e5425d0e33c"
+  terminal/lib/i18n.tsx: "13f33e3178b105a64f1f5df35974cd99041ef06f05bdece95939dd07a8b9fe7c"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -41,3 +41,13 @@ files:
   - rail-390.png
   - rail-820-zh.png
   - rail-820.png
+
+documentLanguageRecapture20261024:
+  sourceHead: e2846880681d4b9aff4a060e1321f50f240cafc7
+  qualification: Actual native producer executed in original managed language workspace; existing fixture data, no live-account or production claim
+  historicalManifest: history/before-document-language-20261024.yml
+  historicalSource: 919114d1c27f0f588d9d5a4d52574f19b0137d6d
+  receiptIndex: ../document-language/recapture-index.json
+
+# Raw capture identity and every upstream source/crop lock remain unchanged; omit only unused pending-copy dependency.
+lexProjection: {"schema":"terminal.lex_capture_projection.v1","omittedProperty":"obDonePrefsSyncing","capturedRawSha256":"13f33e3178b105a64f1f5df35974cd99041ef06f05bdece95939dd07a8b9fe7c","projectedSha256":"d6dcc2df7615a1c5782f4d755178fbb76bcf9ee42b93dffe7c7c95317a652de5","sourceGitBlob":"664d68043f472919f7b581f545a334bf66d9782f","sourceRecoveryCommit":"e2846880681d4b9aff4a060e1321f50f240cafc7","captureCommitLocallyAvailable":true}

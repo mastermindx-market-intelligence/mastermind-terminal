@@ -250,6 +250,9 @@ def qualify_risk_envelope(raw, asof, *, today: date, now: datetime | None = None
         return None, {"qualified": False, "reasons": ["missing_envelope"]}
     if envelope.get("schema") != "mastermind.risk_envelope/v1":
         reasons.append("invalid_schema")
+    # This bridge owns US market context; matching dates cannot bind another market.
+    if envelope.get("market") != "US":
+        reasons.append("market_mismatch")
     session = envelope.get("source_session")
     if _is_stale(session, today, MAX_STALE_DAYS) or (_date(session) and _date(session).isoformat() != session):
         reasons.append("invalid_future_or_expired_session")

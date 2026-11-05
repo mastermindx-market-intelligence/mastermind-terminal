@@ -41,10 +41,13 @@ function supportedHubControls(hub: Locator) {
     hub.getByTestId("hub-tile-compare"),
     hub.getByTestId("hub-tile-alerts"),
     hub.getByTestId("hub-tile-chartType"),
+    hub.getByTestId("hub-tile-chartSettings"),
     hub.getByTestId("hub-tile-workspaces"),
     hub.getByTestId("hub-tile-replay"),
+    hub.getByTestId("hub-tile-capture"),
     hub.getByTestId("hub-tile-dataTable"),
     hub.getByTestId("hub-tile-options"),
+    hub.getByTestId("hub-tile-context"),
     hub.getByTestId("hub-tile-symbolDetails"),
   ];
 }
@@ -162,7 +165,8 @@ test("MM-006: only supported tools are actionable and phone workspaces respect t
   await openTerminal(page);
   const { hub } = await openHub(page);
 
-  await expect(hub.locator(".mhub-grid .mhub-tile")).toHaveCount(9);
+  await expect(hub.locator(".mhub-grid .mhub-tile")).toHaveCount(12);
+  await expect(hub.getByTestId("hub-tile-chartSettings")).toBeEnabled();
   await expect(hub.getByTestId("hub-tile-replay")).toBeEnabled();
   await expect(hub.getByTestId("hub-tile-dataTable")).toBeEnabled();
   await expect(hub.getByTestId("hub-tile-options")).toBeEnabled();
@@ -306,8 +310,11 @@ test("MM-005/MM-006: hub controls stay nonoverlapping and reachable across phone
     expect(geometry.documentWidth).toBeLessThanOrEqual(geometry.viewportWidth);
     expect(geometry.overlaps).toBe(false);
     for (const rect of geometry.rects) {
-      expect(rect.hitWidth).toBeGreaterThanOrEqual(44);
-      expect(rect.hitHeight).toBeGreaterThanOrEqual(44);
+      // Whole CSS pixels, as e2e/tapTarget.ts measures every other floor: the 34px close button
+      // plus its 5px ::before inset is exactly 44, and fractional layout can report 43.99997.
+      // A genuinely undersized hit area (43px) still rounds to 43 and fails.
+      expect(Math.round(rect.hitWidth), `hit width (raw ${rect.hitWidth})`).toBeGreaterThanOrEqual(44);
+      expect(Math.round(rect.hitHeight), `hit height (raw ${rect.hitHeight})`).toBeGreaterThanOrEqual(44);
       expect(rect.left).toBeGreaterThanOrEqual(0);
       expect(rect.right).toBeLessThanOrEqual(viewport.width + 0.5);
     }

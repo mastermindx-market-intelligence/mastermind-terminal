@@ -4,10 +4,30 @@
  * and the specimen reuse the exact same bytes the rows render.
  */
 import type { NewsCatchupLang } from "@/lib/newsCatchupLex";
+import type { TickerNewsContentKind } from "@/lib/newsTypes";
+
+// Display names only. Editorial admission and publisher rights belong to the API.
+const PUBLISHER_LABELS: Readonly<Record<string, string>> = {
+  "benzinga.com": "Benzinga", "reuters.com": "Reuters", "apnews.com": "Associated Press",
+  "bloomberg.com": "Bloomberg", "ft.com": "Financial Times", "wsj.com": "Wall Street Journal",
+  "cnbc.com": "CNBC", "marketwatch.com": "MarketWatch", "barrons.com": "Barron's",
+  "globenewswire.com": "GlobeNewswire", "businesswire.com": "Business Wire",
+  "prnewswire.com": "PR Newswire", "accesswire.com": "Accesswire",
+  "accessnewswire.com": "Access Newswire", "thefly.com": "The Fly",
+};
 
 export function sourceLabel(source: string): string {
-  if (!source) return "Source";
-  return source.charAt(0).toUpperCase() + source.slice(1);
+  const key = source.trim().toLowerCase();
+  if (!key) return "Source";
+  const publisher = (key === "benzinga" ? "benzinga.com" : key.replace(/^massive:/, ""))
+    .replace(/^www\./, "").replace(/\.$/, "");
+  return PUBLISHER_LABELS[publisher] ?? (key.startsWith("massive:") ? publisher
+    : source.trim().charAt(0).toUpperCase() + source.trim().slice(1));
+}
+
+export function reportSourceLabel(source: string, kind: TickerNewsContentKind | undefined, lang: NewsCatchupLang): string {
+  const label = sourceLabel(source);
+  return kind === "press_release" ? `${label} · ${lang === "zh" ? "公司公告" : "Press release"}` : label;
 }
 
 /**

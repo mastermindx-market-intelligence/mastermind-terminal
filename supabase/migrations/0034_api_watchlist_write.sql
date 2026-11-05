@@ -1,4 +1,4 @@
--- Ledger row: 0034_api_watchlist_write / PR #1018 (open, packet B-F12-WATCHLIST-WRITE); not applied
+-- Ledger row: 0034_api_watchlist_write / PR #1018 (merged 00c5f725, packet B-F12-WATCHLIST-WRITE); applied 2026-10-15
 -- Personal watchlist additions only; original key scopes remain unchanged.
 -- Rollback: revoke execute on function public.api_v1_add_watchlist_symbol(uuid,uuid,uuid,text,text,text) from service_role;
 
