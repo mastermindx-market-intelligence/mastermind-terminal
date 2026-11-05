@@ -585,6 +585,23 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   const [carrierBlocked, setCarrierBlocked] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [inspectedVersion, setInspectedVersion] = useState<number | null>(null);
+  const inspectionHeading = useRef<HTMLHeadingElement | null>(null);
+  const inspectionReturn = useRef<{ ownerKey: string; thesisId: string; version: number } | null>(null);
+  useLayoutEffect(() => {
+    const returning = inspectionReturn.current;
+    if (!returning) return;
+    if (returning.ownerKey !== ownerKey || returning.thesisId !== selectedId) {
+      inspectionReturn.current = null;
+      return;
+    }
+    if (detailState !== "ready" || detailReadOwner !== ownerKey || !inspectionHeading.current) return;
+    inspectionReturn.current = null;
+    if (returning.version === inspectedVersion) {
+      // Canonical content has now mounted. Native scroll restoration can run
+      // before this asynchronous detail exists and leave the review off-screen.
+      inspectionHeading.current.scrollIntoView({ block: "center", behavior: "instant" });
+    }
+  }, [detailReadOwner, detailState, inspectedVersion, ownerKey, selectedId]);
   const [routeInvalid, setRouteInvalid] = useState(invalidLink);
   const [mobilePane, setMobilePane] = useState<MobilePane>(initialThesisId || initialSymbolKey ? "detail" : "list");
   const [claimFormOpen, setClaimFormOpen] = useState(false);
@@ -1633,9 +1650,11 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       setBaseline({ subject: payload.thesis.subject.key, draft: loadedDraft });
       setEffectiveBaselineUtc(payload.thesis.current.content.effectiveAt);
       setEffectiveEdited(false);
-      setInspectedVersion(payload.thesis.id === id
+      const restoredInspection = payload.thesis.id === id
         ? readThesisInspection(window.history.state, ownerKey, id, payload.thesis.history ?? [])
-        : null);
+        : null;
+      inspectionReturn.current = restoredInspection === null ? null : { ownerKey, thesisId: id, version: restoredInspection };
+      setInspectedVersion(restoredInspection);
       setDetailState("ready");
       settleMarketOntologyContext(id, contextCandidate, normalizeAnalysisSymbol(payload.thesis.subject?.key ?? ""));
       void loadProposals(id, token);
@@ -2769,7 +2788,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
                             <button type="button" aria-label={`${copy.inspectVersion} ${entry.version}`} aria-expanded={open} onClick={() => inspectVersion(open ? null : entry.version)}>{copy.inspectVersion}</button>
                           </div>
                           {open && <div className={styles.versionInspector} data-testid="thesis-version-inspector" data-posture={currentEntry ? "current" : "historical"}>
-                            <header><div><small>{copy.version} {entry.version}</small><h3>{currentEntry ? copy.currentSnapshot : copy.historicalSnapshot}</h3></div><span data-state={entry.lifecycleState}>{statusLabel(entry.lifecycleState, copy)}</span></header>
+                            <header><div><small>{copy.version} {entry.version}</small><h3 ref={inspectionHeading}>{currentEntry ? copy.currentSnapshot : copy.historicalSnapshot}</h3></div><span data-state={entry.lifecycleState}>{statusLabel(entry.lifecycleState, copy)}</span></header>
                             <dl className={styles.versionMeta}>
                               <div><dt>{copy.previousVersion}</dt><dd>{entry.previousVersion === null ? copy.origin : `${copy.version} ${entry.previousVersion}`}</dd></div>
                               <div><dt>{copy.recordedBy}</dt><dd>{copy.you}</dd></div>

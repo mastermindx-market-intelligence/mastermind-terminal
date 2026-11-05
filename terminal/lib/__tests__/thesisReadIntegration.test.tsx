@@ -103,6 +103,7 @@ function installFetch(theses: ThesisSummary[], details: Map<string, ThesisDetail
   return { fetchMock, idsCalls };
 }
 
+const scrollInspection = vi.fn();
 let root: Root | null = null;
 let container: HTMLDivElement | null = null;
 
@@ -124,6 +125,8 @@ async function mount(props: { ownerKey: string; initialSymbol?: string; initialT
 }
 
 beforeEach(() => {
+  scrollInspection.mockClear();
+  Object.defineProperty(HTMLElement.prototype, "scrollIntoView", { configurable: true, value: scrollInspection });
   // Node 26 registers its OWN experimental global `localStorage`/`sessionStorage`
   // getters (which throw/warn without --localstorage-file). Vitest's jsdom
   // environment only overwrites a global key that already exists on Node's
@@ -235,10 +238,13 @@ it("restores the historical AI read reference only after a fresh canonical detai
   const restored = await mount({ ownerKey: "synthetic-owner", initialThesisId: T });
   expect(restored.querySelector('[data-testid="thesis-version-inspector"]')).toBeNull();
   expect(readTurn()?.ambient.thesis_read).toBeUndefined();
+  expect(scrollInspection).not.toHaveBeenCalled();
   await act(async () => releaseRead());
   await flush();
   expect(restored.querySelector('[data-testid="thesis-version-inspector"]')?.getAttribute("data-posture")).toBe("historical");
   expect(readTurn()?.ambient.thesis_read).toEqual({ thesis_id: T, version_id: V1 });
+  expect(scrollInspection).toHaveBeenCalledTimes(1);
+  expect(scrollInspection).toHaveBeenCalledWith({ block: "center", behavior: "instant" });
 });
 
 it("does not restore another owner's historical selection even when the new detail read succeeds", async () => {

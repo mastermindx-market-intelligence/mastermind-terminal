@@ -68,6 +68,46 @@ async function createThesis(page: Page, title: string, requestId: string, symbol
   return (await response.json()).thesisId as string;
 }
 
+test("returning to a historical review keeps the selected change in view", async ({ page, baseURL }, testInfo) => {
+  await prepare(page, testInfo, baseURL);
+  const a = await createThesis(page, "Keep this reviewed change in view", "fb000000-0000-4000-8000-000000000001");
+  const b = await createThesis(page, "A different company", "fb000000-0000-4000-8000-000000000002", "AAPL");
+  const original = await (await page.request.get(`/api/theses?id=${a}`)).json();
+  const revision = await page.request.post("/api/theses", { data: {
+    action: "revise", id: a, expectedVersion: 1,
+    clientRequestId: "fb000000-0000-4000-8000-000000000003",
+    subject: original.thesis.subject,
+    content: { ...original.thesis.current.content, statement: "The new current statement." },
+  } });
+  expect(revision.status()).toBe(200);
+  await page.goto(`/analysis?view=theses&thesis=${a}`);
+  await page.getByRole("button", { name: "Inspect version 1", exact: true }).click();
+  const inspector = page.getByTestId("thesis-version-inspector");
+  const selectedChange = inspector.getByRole("heading", { name: "Historical snapshot", exact: true });
+  await selectedChange.scrollIntoViewIfNeeded();
+  await expect(selectedChange).toBeInViewport();
+  await page.goto(`/analysis?view=theses&thesis=${b}`);
+  await expect(page.getByLabel("Title", { exact: true })).toHaveValue("A different company");
+  await page.goBack();
+  await expect(inspector).toHaveAttribute("data-posture", "historical");
+  await expect(selectedChange).toBeInViewport();
+  await page.reload();
+  await expect(inspector).toHaveAttribute("data-posture", "historical");
+  await expect(selectedChange).toBeInViewport();
+  if (testInfo.project.name === "mobile") {
+    await page.getByRole("button", { name: "Back to list" }).click();
+  }
+  await page.getByRole("button", { name: /A different company/ }).click();
+  await expect(page.getByLabel("Title", { exact: true })).toHaveValue("A different company");
+  await page.goBack();
+  if (testInfo.project.name === "mobile") {
+    await expect(page.getByTestId("thesis-list-pane")).toBeVisible();
+    await page.goBack();
+  }
+  await expect(inspector).toHaveAttribute("data-posture", "historical");
+  await expect(selectedChange).toBeInViewport();
+});
+
 test("historical thesis review survives another thesis, Back and reload", async ({ page, baseURL }, testInfo) => {
   await prepare(page, testInfo, baseURL);
   const a = await createThesis(page, "Return to this historical review", "fa000000-0000-4000-8000-000000000001");
