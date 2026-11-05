@@ -435,3 +435,37 @@ test("diagnostic delivery observations separate browser decode failures from ups
   assert.equal(JSON.stringify(counts.scriptDelivery).includes("secret"),false);assert.equal(JSON.stringify(counts.scriptDelivery).includes("private.invalid"),false);
   context.registered.requestfailed({...request,url:()=>"https://foreign.invalid/_next/static/private.js"});assert.equal(counts.scriptDelivery.length,2);
 });
+
+function isolatedReceipt(shot) {
+  return {files:[shot.file],entryObservations:[{file:shot.file}],serverSettlement:{closeObserved:true,processGroupAbsent:true},generatedTypes:{nextEnvRestored:true},captureProfile:{server:{freshServerPerImage:true},browser:{freshBrowserPerImage:true}}};
+}
+test("exact six cases use serial fully-settled independent runtime invocations",async()=>{
+  const {captureIsolatedCases}=require("./capture_b_f11_10_analysis_theses_entry.cjs");
+  const calls=[],shots=SIX_FILES.map(file=>({file}));let active=0;
+  const result=await captureIsolatedCases(shots,async shot=>{assert.equal(active,0);active++;calls.push(shot.file);await Promise.resolve();active--;return isolatedReceipt(shot);});
+  assert.deepEqual(calls,SIX_FILES);assert.equal(result.length,6);
+  const source=fs.readFileSync(path.join(__dirname,"capture_b_f11_10_analysis_theses_entry.cjs"),"utf8");
+  assert.match(source,/captureIsolatedCases\(shots, shot => captureInOwnedRuntime\(\[shot\], out, capturedAtHead, chromium\)\)/);
+});
+test("a pending first-case settlement prevents even starting the second runtime",async()=>{
+  const {captureIsolatedCases}=require("./capture_b_f11_10_analysis_theses_entry.cjs");let release;const done=new Promise(resolve=>{release=resolve;});const calls=[];
+  const operation=captureIsolatedCases(SIX_FILES.slice(0,2).map(file=>({file})),async shot=>{calls.push(shot.file);if(calls.length===1)await done;return isolatedReceipt(shot);});
+  await Promise.resolve();assert.deepEqual(calls,[SIX_FILES[0]]);release();await operation;assert.deepEqual(calls,SIX_FILES.slice(0,2));
+});
+test("failed or unclosed case stops sequence and cannot yield partial success",async()=>{
+  const {captureIsolatedCases}=require("./capture_b_f11_10_analysis_theses_entry.cjs");
+  for(const mode of ["throw","unclosed","group","types","browser","wrong-file","profile"]){
+    const calls=[];const operation=captureIsolatedCases(SIX_FILES.map(file=>({file})),async shot=>{
+      calls.push(shot.file);const r=isolatedReceipt(shot);if(calls.length===2){
+        if(mode==="throw")throw new Error("CASE_FAILED");
+        if(mode==="unclosed")r.serverSettlement.closeObserved=false;
+        if(mode==="group")r.serverSettlement.processGroupAbsent=false;
+        if(mode==="types")r.generatedTypes.nextEnvRestored=false;
+        if(mode==="browser")r.captureProfile.browser.freshBrowserPerImage=false;
+        if(mode==="wrong-file")r.files=["wrong.png"];
+        if(mode==="profile")r.captureProfile.additional="drift";
+      }return r;
+    });
+    await assert.rejects(operation);assert.deepEqual(calls,SIX_FILES.slice(0,2));
+  }
+});

@@ -429,27 +429,9 @@ function writeDiagnosticArtifact(out, payload) {
   }, null, 2) + "\n", { flag: "wx", mode: 0o600 });
 }
 
-async function runCapture(mode) {
-  if (!["canonical-six", "diagnostic-mobile-zh"].includes(mode)) throw new Error("F11_CAPTURE_MODE");
-  const diagnosticOnly = mode === "diagnostic-mobile-zh";
-  let namespace;
-  let out = OUT;
-  if (diagnosticOnly) {
-    namespace = prepareNamespace(ROOT);
-    out = mkdtempSync(join(ROOT, ".next", "f11", "mobile-zh-diagnostic-"));
-    console.log("F11_DIAGNOSTIC_DIRECTORY " + out);
-  }
-  mkdirSync(out, { recursive: true });
-  // Invocation start: a previous run's success/failure manifests are stale the
-  // moment this invocation begins. Clear only the known outcome filenames so a
-  // failed or partial run can never leave an eligible old FIXTURE.json behind;
-  // historical PNGs and EVIDENCE.yml are untouched.
-  const clearedOutcome = invalidateStaleOutcomeArtifacts(out);
-  if (clearedOutcome.length) process.stdout.write(`cleared stale outcome: ${clearedOutcome.join(", ")}\n`);
-  const { chromium } = require("@playwright/test");
+async function captureInOwnedRuntime(shots, out, capturedAtHead, chromium) {
   assertNoCaptureDotenv();
-  const capturedAtHead = currentGitHead();
-  namespace ||= prepareNamespace(ROOT);
+  const namespace = prepareNamespace(ROOT);
   const child = startServer();
   const owner = trackOwnedServer(child);
   const files = [];
@@ -462,13 +444,14 @@ async function runCapture(mode) {
     const browser = await chromium.launch({ headless: true });
     try {
       captureProfile = {
-      server: { command: "next dev --webpack", mode: "development", reactDebugChannel: false, providerClosedChild: true, distDir: ".next/f11", tsconfigPath: "tsconfig.f11.json" },
+      server: { command: "next dev --webpack", mode: "development", reactDebugChannel: false, providerClosedChild: true, freshServerPerImage: true, distDir: ".next/f11", tsconfigPath: "tsconfig.f11.json" },
+      publicScriptObservation: { bodyAwaitBeforeFulfill: true, byteShaMimeEncoding: true, browserDeliveryEvents: true },
       node: process.version, next: require("next/package.json").version,
       playwright: require("@playwright/test/package.json").version,
       browser: { version: browser.version(), revision: browserManifest.browsers.find(entry => entry.name === "chromium-headless-shell")?.revision,
-        launch: { headless: true }, serviceWorkers: "block", freshContextPerImage: true },
+        launch: { headless: true }, serviceWorkers: "block", freshContextPerImage: true, freshBrowserPerImage: true },
       };
-      for (const shot of (diagnosticOnly ? SHOTS.filter(shot => shot.file === "mobile-zh.png") : SHOTS)) {
+      for (const shot of shots) {
         process.stdout.write(`capture ${shot.file} … `);
         const context = await browser.newContext({
           viewport: VIEWPORTS[shot.viewport],
@@ -477,7 +460,7 @@ async function runCapture(mode) {
           colorScheme: "dark",
           serviceWorkers: "block",
         });
-        const boundaryCounts = await installCaptureBoundary(context, BASE, { scriptMetadata: diagnosticOnly });
+        const boundaryCounts = await installCaptureBoundary(context, BASE, { scriptMetadata: true });
         await context.addCookies([{ name: "mm_e2e_rs30", value: "1", url: BASE }]);
         const page = await context.newPage();
         page.setDefaultTimeout(45_000);
@@ -498,7 +481,7 @@ async function runCapture(mode) {
           if (boundaryCounts.componentFundUnavailable < 1) throw new Error("F11_BUSINESS_REQUEST_BOUNDARY_NOT_EXERCISED");
           if (boundaryCounts.redirectOrBadStatus !== 0) throw new Error("F11_ALLOWED_ROUTE_DID_NOT_RETURN_200");
           files.push(shot.file);
-          entryObservations.push({ ...(diagnosticOnly ? { bootstrapState: await observeBootstrap(page) } : {}), file: shot.file, viewport: VIEWPORTS[shot.viewport], ...entry, requestBoundary: { ...boundaryCounts }, pageErrorNames, image: { bytes: image.length, sha256: createHash("sha256").update(image).digest("hex") } });
+          entryObservations.push({ bootstrapState: await observeBootstrap(page), file: shot.file, viewport: VIEWPORTS[shot.viewport], ...entry, requestBoundary: { ...boundaryCounts }, pageErrorNames, image: { bytes: image.length, sha256: createHash("sha256").update(image).digest("hex") } });
           console.log("ok");
         } catch (err) {
           console.log(`FAIL ${err && err.message ? err.message : err}`);
@@ -522,6 +505,56 @@ async function runCapture(mode) {
     namespace.restoreGeneratedTypeFile();
   }
 
+  return { files, entryObservations, captureProfile, serverSettlement: owner.settlement(), generatedTypes: namespace.summary() };
+}
+
+async function captureIsolatedCases(shots, capture) {
+  const results = [];
+  for (const shot of shots) {
+    // Each callback must completely close its own runtime before the next starts.
+    // No retry, shared live browser/server, or partial-prefix success is permitted.
+    const result = await capture(shot);
+    if (result.files?.length !== 1 || result.files[0] !== shot.file
+        || result.entryObservations?.length !== 1 || result.entryObservations[0].file !== shot.file
+        || result.serverSettlement?.closeObserved !== true || result.serverSettlement?.processGroupAbsent !== true
+        || result.generatedTypes?.nextEnvRestored !== true
+        || result.captureProfile?.server?.freshServerPerImage !== true
+        || result.captureProfile?.browser?.freshBrowserPerImage !== true) throw new Error("F11_CASE_NOT_ISOLATED_OR_SETTLED");
+    if (results.length && JSON.stringify(result.captureProfile) !== JSON.stringify(results[0].captureProfile)) throw new Error("F11_CASE_PROFILE_DRIFT");
+    results.push(result);
+  }
+  return results;
+}
+
+async function runCapture(mode) {
+  if (!["canonical-six", "diagnostic-mobile-zh"].includes(mode)) throw new Error("F11_CAPTURE_MODE");
+  const diagnosticOnly = mode === "diagnostic-mobile-zh";
+  let out = OUT;
+  if (diagnosticOnly) {
+    prepareNamespace(ROOT);
+    out = mkdtempSync(join(ROOT, ".next", "f11", "mobile-zh-diagnostic-"));
+    console.log("F11_DIAGNOSTIC_DIRECTORY " + out);
+  }
+  mkdirSync(out, { recursive: true });
+  // Invocation start: a previous run's success/failure manifests are stale the
+  // moment this invocation begins. Clear only the known outcome filenames so a
+  // failed or partial run can never leave an eligible old FIXTURE.json behind;
+  // historical PNGs and EVIDENCE.yml are untouched.
+  const clearedOutcome = invalidateStaleOutcomeArtifacts(out);
+  if (clearedOutcome.length) process.stdout.write(`cleared stale outcome: ${clearedOutcome.join(", ")}\n`);
+  const { chromium } = require("@playwright/test");
+  assertNoCaptureDotenv();
+  const capturedAtHead = currentGitHead();
+  const shots = diagnosticOnly ? SHOTS.filter(shot => shot.file === "mobile-zh.png") : SHOTS;
+  const caseResults = await captureIsolatedCases(shots, shot => captureInOwnedRuntime([shot], out, capturedAtHead, chromium));
+  const files = caseResults.flatMap(result => result.files);
+  const entryObservations = caseResults.flatMap(result => result.entryObservations);
+  const captureProfile = caseResults[0].captureProfile;
+  const caseLifecycle = caseResults.map((result, index) => ({ file: shots[index].file,
+    serverSettlement: result.serverSettlement, generatedTypes: result.generatedTypes }));
+  const serverSettlement = { cases: caseLifecycle.map(item => ({ file: item.file, ...item.serverSettlement })), allClosed: true, allGroupsAbsent: true };
+  const generatedTypes = { cases: caseLifecycle.map(item => ({ file: item.file, ...item.generatedTypes })), allRestored: true };
+
   const fixtureSources = Object.fromEntries([
       "terminal/e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs",
       "terminal/e2e/tools/f11_provider_closed_policy.cjs",
@@ -539,7 +572,7 @@ async function runCapture(mode) {
       ...LAYOUT_FILES,
     ].map((rel) => [rel, sha256File(rel)]));
   if (diagnosticOnly) {
-    writeDiagnosticArtifact(out, { capturedAtHead, fixtureSources, captureProfile, serverSettlement: owner.settlement(), generatedTypes: namespace.summary(), entryObservations });
+    writeDiagnosticArtifact(out, { capturedAtHead, fixtureSources, captureProfile, serverSettlement, generatedTypes, caseLifecycle, entryObservations });
     return { diagnosticOnly: true, out };
   }
 
@@ -547,8 +580,9 @@ async function runCapture(mode) {
     schema: "terminal.f11-source-component-fixture.v1",
     capturedAtHead,
     captureProfile,
-    serverSettlement: owner.settlement(),
-    generatedTypes: namespace.summary(),
+    serverSettlement,
+    generatedTypes,
+    caseLifecycle,
     fixtureSources,
     scope: "Real source component, synthetic fixture identity and unavailable market inputs; no authenticated, provider, installed or account proof",
     entryObservations,
@@ -587,7 +621,7 @@ async function runCapture(mode) {
 function main() { return runCapture("canonical-six"); }
 function diagnoseMobileZh() { return runCapture("diagnostic-mobile-zh"); }
 
-module.exports = { observeBootstrap, diagnoseMobileZh, writeDiagnosticArtifact, assertAllSixObserved, assertNoCaptureDotenv, captureServerEnv, installCaptureBoundary, invalidateStaleOutcomeArtifacts, staticScriptPath, consoleErrorKind, writeFailureArtifact, writeSuccessArtifact, FIXTURE_TEMP };
+module.exports = { captureIsolatedCases, observeBootstrap, diagnoseMobileZh, writeDiagnosticArtifact, assertAllSixObserved, assertNoCaptureDotenv, captureServerEnv, installCaptureBoundary, invalidateStaleOutcomeArtifacts, staticScriptPath, consoleErrorKind, writeFailureArtifact, writeSuccessArtifact, FIXTURE_TEMP };
 
 if (require.main === module) main().catch((err) => {
   console.error(err);
