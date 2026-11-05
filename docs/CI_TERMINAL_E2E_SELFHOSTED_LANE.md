@@ -75,7 +75,7 @@ marked otherwise:
 Twelve shards run in parallel on the hosted lane. One self-hosted runner executes
 one job at a time, so a single runner would serialize twelve shards (~12 × 8 min).
 The lane therefore expects **N runner slots**, one runner per slot, named
-`ubuntu0-e2e-N` (N in 1..9), each re-registered ephemerally after every job (see
+`ubuntu0-e2e-N` (N in 1..9), each registered per job with a JIT config (see
 *Registering a slot*). The bind script derives per-slot ports from the
 runner name so concurrent shards on one host never share a dev-server port:
 
@@ -94,72 +94,65 @@ Four slots × 4 workers fits the 32-core host with headroom; start with four slo
 over four slots is three rounds of ~8 min, about 25 min wall for the whole matrix
 against 54 min hosted, and each additional slot removes a round.
 
-### Registering a slot (host operator; unprivileged `ghrunner` user, no sudo)
+### Registering a slot (host operator)
 
-Each slot is its own runner directory. The runner user must have **no sudo**: a
-self-hosted runner executes every approved run of this repository, so a
-sudo-capable runner would hand root to any such run. Install the Playwright
-Chromium system libraries once as an administrator
-(`npx playwright install-deps chromium` from any checkout of this repository) so
-the job's bounded `--with-deps` step can fail over to its browser-only path without
-needing apt.
+**One OS user per slot, no sudo.** Every slot `ubuntu0-e2e-N` runs as its own
+unprivileged user `ghrunner-N` with its own home. Slots must not share a uid: a
+job on slot M running as the same uid as slot N could read slot N's
+`/proc/<pid>/cmdline` and `environ`, its `.credentials` / `.credentials_rsaparams`
+/ `.runner` files (the runner's private key and identity) and so impersonate
+slot N's runner or reuse its registration token. Mount `/proc` with `hidepid=2`
+so command lines are hidden across uids as well. Install the Playwright Chromium
+system libraries once as an administrator (`npx playwright install-deps chromium`
+from any checkout of this repository) so the job's bounded `--with-deps` step can
+fail over to its browser-only path without apt.
 
-Register each slot **at the organization level, into the restricted runner group,
-and ephemeral**. Runner groups exist only for organization-level runners: a runner
-registered with a repository URL is a repository-level runner outside any group,
-so `--url` must be the organization URL. `--ephemeral` makes the runner serve
-exactly one job and then deregister, which removes the idle listener between jobs
-(the property the canary relied on); a wrapper then re-registers it. Minting an
-organization registration token needs the organization **"Self-hosted runners:
-write"** permission (a fine-grained token with that organization permission, or a
-GitHub App installation token with it). **That credential must never be readable
-by the job user.** Every job runs as `ghrunner`, so a credential in `ghrunner`'s
-home, environment or a user unit would be readable by any approved run and would
-let it register rogue runners or remove legitimate ones across the organization.
-The minting loop therefore runs as a separate privileged account (`root` or a
-dedicated `ghmint` user that owns the runner binaries) in a **system** unit; it
-mints one short-lived registration token per cycle, passes it to `config.sh`
-running as `ghrunner` on the command line of that one process, and persists it
-nowhere. `config.sh` exits before any job starts, so no job ever sees the token or
-the credential behind it:
+**Registration is per job with a JIT config, minted by a separate account.**
+Runner groups exist only for organization-level runners, so registration is at
+the organization level into the restricted group. Instead of a reusable
+registration token (valid for about an hour and reusable by whoever reads it), each
+cycle mints a **just-in-time runner configuration**
+(`POST /orgs/<org>/actions/runners/generate-jitconfig`, as the canary did), which
+is bound to one runner name, serves exactly one job and then deregisters. Minting
+needs the organization **"Self-hosted runners: write"** permission (a fine-grained
+token or a GitHub App installation token with it). **That credential must never be
+readable by any slot user**: the minting loop runs as a dedicated `ghmint` account
+in a **system** unit, and `ghmint` alone can read the credential. The loop hands
+the slot user only its one-shot JIT config and persists nothing.
+
+**A fresh runner directory and home per job.** Each cycle `ghmint` deletes and
+re-extracts the slot's runner directory from the pristine tarball and clears the
+slot home, so a job cannot leave a tampered `run.sh`, wrapper, npm cache or
+browser store for the next job on that slot (the job's `actions/cache` restores
+the per-slot Playwright store itself). The canary's caveat stands: registration
+alone does not clean the filesystem; this loop is what does.
 
 ```
-# as root: binaries owned by the minting account, read-only to ghrunner; only the
-# runner's own state (.runner, .credentials, _work) is writable by ghrunner.
-mkdir -p /opt/actions-runner/ubuntu0-e2e-N && cd /opt/actions-runner/ubuntu0-e2e-N
-tar xzf /opt/actions-runner/actions-runner-linux-x64.tar.gz
-chown -R ghmint:ghrunner . && chmod -R g-w,o-rwx . && install -d -o ghrunner -g ghrunner -m 0750 _work
-# loop, run by a SYSTEM unit as ghmint (the org credential is readable only by ghmint):
+# system unit for slot N, running as ghmint; the org credential is readable only by ghmint.
+# sudoers: ghmint may run exactly /opt/actions-runner/slots/ubuntu0-e2e-N/run.sh as ghrunner-N.
+slot=/opt/actions-runner/slots/ubuntu0-e2e-N
 while :; do
-  token="$(mint-org-registration-token)"   # POST /orgs/<org>/actions/runners/registration-token; never echoed
-  sudo -u ghrunner ./config.sh --unattended --ephemeral --url https://github.com/<org> --token "$token" \
-    --name ubuntu0-e2e-N --labels self-hosted,linux,x64,ubuntu0-e2e \
-    --runnergroup <restricted-group> --work _work --replace
-  sudo -u ghrunner ./run.sh
+  rm -rf "$slot" /home/ghrunner-N/.npm /home/ghrunner-N/.cache
+  mkdir -p "$slot" && tar xzf /opt/actions-runner/actions-runner-linux-x64.tar.gz -C "$slot"
+  chown -R ghrunner-N:ghrunner-N "$slot"
+  jit="$(mint-jitconfig ubuntu0-e2e-N self-hosted,linux,x64,ubuntu0-e2e <restricted-group-id>)"  # never echoed
+  sudo -u ghrunner-N "$slot/run.sh" --jitconfig "$jit"
 done
 ```
 
-(`ghmint` needs a sudoers rule limited to those two commands as `ghrunner`;
-`ghrunner` itself still has no sudo.)
+The JIT config must carry **all four labels**; `runs-on` requires every label in
+the array. Never list runner processes with their arguments (`ps -f`, `pgrep -a`)
+in a shared transcript: the JIT config blob on the command line is credential
+material for that one job.
 
-The runner must carry **all four labels**; `runs-on` requires every label in the
-array.
-
-**What ephemeral does not do.** It does not give each job a clean machine. Every
-slot runs as the same `ghrunner` user with one home directory, which owns
-`~/.npm` and the per-slot browser stores and, unless the layout above is followed,
-the runner binaries and the re-registration wrapper, so one approved run can
-rewrite any of those and compromise every later job on every slot. The org
-registration credential is part of the same boundary: it must live only with the
-minting account, never where `ghrunner` can read it. The canary recorded the same caveat ("registration alone does
-not clean its filesystem; the original runtime owner must separately qualify
-isolation and cleanup"), and GitHub warns that re-using hardware for JIT runners
-can expose information between jobs. Before turning the lane on, the host owner
-must qualify that isolation: at minimum one OS user per slot with runner binaries
-and the minting credential owned by a separate account, or a fresh container/VM
-per job. Until that is
-qualified, running this lane is a recorded administrator trust decision that every
-approved run of this repository may tamper with the host.
+**What this does and does not bound.** With per-slot users, `hidepid=2`, JIT
+configs and a fresh directory and home per job, one approved run cannot read
+another slot's credentials or persist anything into later jobs through the runner
+tree or the slot home. It can still read anything world-readable on the host, use
+the host's network position, and exhaust the host; those are the residual trust
+decision. Running this lane is a recorded administrator decision that every
+approved run of this repository (including a maintainer-approved fork run that
+edits the workflow file) executes on ubuntu0 inside that boundary.
 
 ### Turning the lane on
 
@@ -176,10 +169,10 @@ approved run of this repository may tamper with the host.
 1. Delete the `TERMINAL_E2E_LANE` repository variable (or set it to anything but
    `ubuntu0`). The next run of this unmodified job is hosted. This restores
    **routing only**.
-2. Stop the slot listeners (stop the re-registration unit, or `svc.sh stop` for a
-   service-installed runner, then `config.sh remove` with a removal token) so no
-   runner is listening for the four labels. Until this step a workflow that names
-   the labels can still reach the host.
+2. Stop the slot units (the per-slot system units; `svc.sh stop` for any
+   service-installed runner) so no runner is listening for the four labels. A JIT
+   runner that is mid-job finishes that job and deregisters itself. Until this step
+   a workflow that names the labels can still reach the host.
 
 No workflow change or PR is needed for either step.
 
@@ -202,13 +195,15 @@ trust decision rather than presented as the canary's precondition:
   them;
 - the `all_external_contributors` approval policy plus maintainer review of any
   workflow edit in an approved run (the only hold on fork code);
-- no-sudo ephemeral runners whose org registration credential lives only with a
-  separate minting account, with host isolation qualified as described under
-  *Registering a slot* (ephemeral alone does not bound the blast radius).
+- no-sudo per-slot users with JIT-registered runners, the org credential held
+  only by a separate minting account, `hidepid=2`, and a fresh runner directory
+  and home per job, as described under *Registering a slot* (ephemeral
+  registration alone does not bound the blast radius).
 
 Creating the organization runner group, provisioning the organization
-"Self-hosted runners: write" credential for ephemeral re-registration and
-qualifying host isolation need `admin:org` / host ownership, which the CI seat
+"Self-hosted runners: write" credential for JIT minting, creating the per-slot
+users and `hidepid=2` mount, and qualifying host isolation need `admin:org` / host
+ownership, which the CI seat
 does not hold (the API returned 403 on 2026-11-05). That is the single human step
 for this lane. Everything else in this document is already in source and inert
 until the variable is set.
