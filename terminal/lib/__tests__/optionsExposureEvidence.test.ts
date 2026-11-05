@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { layoutSources, projectR4CaptureHarness, requireR4ChartIdentity, requireSourceKeys, selectWholeFingerprint } from "./helpers/optionsExposureEvidence";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
+import { createHash } from "node:crypto";
+import { gunzipSync } from "node:zlib";
 
 const a = "a".repeat(64), b = "b".repeat(64), c = "c".repeat(64), d = "d".repeat(64);
 const first = { profile: "first", sources: { "Gex.tsx": a, "Levels.tsx": b, "capture.cjs": c } };
@@ -121,4 +123,77 @@ describe("the separately qualified r4 Chart branch", () => {
       rmSync(repo, {recursive:true,force:true});
     }
   });
+});
+
+describe("Chart proof across independently composed branches", () => {
+  const oldOriginal = "52dcb7e81d556e2239454dae822458236430737f55877bb5bd3b21465aa2e349";
+  const oldPreview = "099b71567187d5509182d9cbee9be3d44b584bf1202748df8a6f92a48e0a5c11";
+  const chart = {
+    original: "de3e781dedac67c2c0aadeb1142ed2f6d3d3e2075063329e55d9cf88444121e7",
+    preview: "50bdfadd453747170d597b8f1a2a11853fe864ef08c6b2ffb561299f8a3dd60c",
+  } as const;
+  const relativeProof = "terminal/docs/verification/exposure-workspace-20261103/chart-framing-20261105";
+  const proof = join(process.cwd(), "..", relativeProof);
+  const qualification = JSON.parse(readFileSync(join(proof, "qualification.json"), "utf8")) as {
+    files: Record<string, string>;
+    maps: Record<keyof typeof chart, { observer: string }>;
+  };
+  function observer(profile: keyof typeof chart): string {
+    const path = join(process.cwd(), "docs/verification/options-workspace-20261103/final-delivery-20261105",
+      "chart-observer-integration-20261105/observers", profile + ".spec.ts.gz");
+    const raw = gunzipSync(readFileSync(path));
+    expect(createHash("sha256").update(raw).digest("hex")).toBe(qualification.maps[profile].observer);
+    return raw.toString("utf8");
+  }
+  function withProof(source: string, run: (repo: string) => void): void {
+    const repo = mkdtempSync(join(tmpdir(), "exposure-composed-observer-"));
+    try {
+      for (const path of ["qualification.json", ...Object.keys(qualification.files)]) {
+        const destination = join(repo, relativeProof, path);
+        mkdirSync(dirname(destination), { recursive: true });
+        copyFileSync(join(proof, path), destination);
+      }
+      const spec = join(repo, "terminal/e2e/options-exposure-workspace.spec.ts");
+      mkdirSync(dirname(spec), { recursive: true });
+      writeFileSync(spec, source);
+      run(repo);
+    } finally {
+      rmSync(repo, { recursive: true, force: true });
+    }
+  }
+  it("keeps the two captured observers identical except for the unrelated return readiness budget", () => {
+    const original = observer("original"), preview = observer("preview");
+    const following = "    // An unrelated matrix arrives only after the qualified book restored its";
+    const before = '    await expect(map.getByTestId("exposure-return-check")).toHaveAttribute("data-state", "ready");' + "\n" + following;
+    const after = [
+      "    // Returning crosses the route chunk and source-read boundary just like the",
+      "    // main chart above; keep the same bounded readiness budget for both legs.",
+      '    await expect(map.getByTestId("exposure-return-check")).toHaveAttribute("data-state", "ready", { timeout: 30_000 });',
+      following,
+    ].join("\n");
+    expect(original.split(before)).toHaveLength(2);
+    expect(preview).toBe(original.replace(before, after));
+  });
+  it.each([
+    ["original", "original"], ["preview", "preview"],
+    ["preview", "original"], ["original", "preview"],
+  ] as const)("validates the captured %s chart with the already verified %s observer", (map, spec) => {
+    withProof(observer(spec), repo => {
+      expect(() => requireR4ChartIdentity(repo, oldOriginal, oldPreview, chart[map])).not.toThrow();
+    });
+  });
+  it.each(["original", "preview"] as const)("still rejects an uncaptured observer for the %s chart", map => {
+    withProof(observer("original") + "\n", repo => {
+      expect(() => requireR4ChartIdentity(repo, oldOriginal, oldPreview, chart[map]))
+        .toThrow("CHART_FRAMING_CURRENT_OBSERVER");
+    });
+  });
+  it("validates every bound proof file before accepting either captured observer", () => {
+    withProof(observer("original"), repo => {
+      writeFileSync(join(repo, relativeProof, "preview/browser.log"), "changed proof\n");
+      expect(() => requireR4ChartIdentity(repo, oldOriginal, oldPreview, chart.preview))
+        .toThrow("CHART_FRAMING_FILE:preview/browser.log");
+    });
+  });
+
 });

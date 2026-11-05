@@ -97,5 +97,43 @@
     "source_stable": true,
     "scope": "Two accepted protected changes: exact-US risk envelope qualification and signed earnings guidance. No Options/Exposure/Lab navigation, stylesheet, capture driver, evidence reader or harness configuration changed. No additional Options browser recapture required.",
     "production_compile_scope": "The retained 93.8-second production build covers the repaired5d integration. The later acd delta is verified by exact composition,276unit tests,Pythonproducer tests andfullTSC; no new production build is claimed."
+  },
+  "final_observer_binding": {
+    "schema": "options_chart_observer_composition_qualification.v1",
+    "completed_at": "2026-11-05T10:59:07.464630+00:00",
+    "issue": "The current Map50 chart composed independently with Options observer947, but the reader incorrectly required the integrated observerc3. Both actual captured observers differ only by the readiness budget on one unrelated return assertion.",
+    "fix": "After fully verifying both pinned historical capture profiles, admit either of their already-qualified current observer hashes. Per-capture raw source binding, geometry, exact case sets, single attempts and all digests remain enforced; no new observer hash admitted.",
+    "helper_sha256": "e66704686098ea1b6463061065a7ab25339d68c63685453ae600bd6226bb9325",
+    "regression_test_sha256": "8cdfbdfa60da0cdbc8978ba4f5bbb2809a8e46e5d6ff87ab264ef01dffe250a9",
+    "runtime_changed": false,
+    "historical_qualification_sha256": "4175c376a016a00cd03dbf2c90c9604739c62b9004362db4a9cb277b752fc891",
+    "standalone_options_red": {
+      "failed_test_cases": 2,
+      "native_suite_collection_failures": 2,
+      "reason": "CHART_FRAMING_CURRENT_OBSERVER"
+    },
+    "standalone_options_green": {
+      "passed": 39,
+      "failed": 0,
+      "pending": 0,
+      "source_count": 3319,
+      "only_changed_source": "terminal/lib/__tests__/helpers/optionsExposureEvidence.ts",
+      "preview_restored": true
+    },
+    "final_affected_unit_results": {
+      "original": 120,
+      "exposure": 112,
+      "preview": 284
+    },
+    "final_combined_typecheck": true,
+    "changed_source_lint_zero_warnings": true,
+    "fresh_browser_capture_required": false,
+    "reason_no_recapture": "Only evidence reader and unit tests changed. Both chart runtimes, browser observer code and actual captured proof remain unchanged.",
+    "standalone_exposure_green": {
+      "passed": 50,
+      "failed": 0,
+      "source_count": 3304,
+      "preview_restored": true
+    }
   }
 }

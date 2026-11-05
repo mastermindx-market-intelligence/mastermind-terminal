@@ -1,7 +1,7 @@
 {
   "README.md": {
-    "sha256": "610573d0d73457200c002233913e0fb033056fe06a6a6c90b7772d653a69e24c",
-    "bytes": 9447
+    "sha256": "56b5145f8445b1ab9bc0b9af58f34575065558c90468c92b68305e4a8fe8e219",
+    "bytes": 10695
   },
   "broad-baseline/integrated/plain-language-self-check.log.gz": {
     "sha256": "bfa6c1ada33d66904e5090d8b2d64c012f11b8184d54f07d3875c42167ae184c",
@@ -66,6 +66,178 @@
   "broad-baseline/original/unit.log.gz": {
     "sha256": "de6e4684a1c5965073d287b8d8b8f02f3d8c3a30f01220a3539fb3572cf1afa6",
     "bytes": 31941
+  },
+  "chart-observer-integration-20261105/README.md": {
+    "sha256": "0f86e3e22cf46d44dd10d37660c1b0789d1ecb025b838aa91da37f6673269200",
+    "bytes": 2581
+  },
+  "chart-observer-integration-20261105/drivers/verify-exposure-only-observer-r4.py": {
+    "sha256": "59cdf5031189ea49b0ef82721e540ecbb8a4cf97fa4e797ce28815072a6ee649",
+    "bytes": 5772
+  },
+  "chart-observer-integration-20261105/drivers/verify-final-observer-binding-gates-r4.py": {
+    "sha256": "288e232cfaf336808e319740ed71087c4300c1cff69935e9b1f9eaa6f4d856b2",
+    "bytes": 4000
+  },
+  "chart-observer-integration-20261105/drivers/verify-options-only-observer-r4.py": {
+    "sha256": "31d84b5cab4a8120cfc6b73329552094e6e998b0d4f73d90c42531ca0a7f1f21",
+    "bytes": 5770
+  },
+  "chart-observer-integration-20261105/exposure-only/projected-source-map.json": {
+    "sha256": "da825724e530db74f71c94417a4301ce5312aba9445ef3068de1cc082e803e43",
+    "bytes": 395362
+  },
+  "chart-observer-integration-20261105/exposure-only/projection.json": {
+    "sha256": "592ece87afca6c903fa0cc7730a4b166f6fe92c37deb26b7db3664905a73b133",
+    "bytes": 30784
+  },
+  "chart-observer-integration-20261105/exposure-only/unit-report.json.gz": {
+    "sha256": "a9ba822678554a0239c94b9a9900408d8532711f62630eb18c7c62c86cb82801",
+    "bytes": 2828
+  },
+  "chart-observer-integration-20261105/exposure-only/unit.log.gz": {
+    "sha256": "3b807ada079da06508227dd2e94cce74c739c7472bf8eeb244a2b03209fc23c2",
+    "bytes": 660
+  },
+  "chart-observer-integration-20261105/final-gates/checks.json": {
+    "sha256": "36de8e87b587e51809435c429ea000bc1e5b982d25aaf11b9bee440b33869d26",
+    "bytes": 5643
+  },
+  "chart-observer-integration-20261105/final-gates/exposure-source-after.json": {
+    "sha256": "0d46c45d7b29ba86899f08f2222f8d2815564c15a318cfe05e1a1faf9a6d05b9",
+    "bytes": 363462
+  },
+  "chart-observer-integration-20261105/final-gates/exposure-source-before.json": {
+    "sha256": "0d46c45d7b29ba86899f08f2222f8d2815564c15a318cfe05e1a1faf9a6d05b9",
+    "bytes": 363462
+  },
+  "chart-observer-integration-20261105/final-gates/exposure-unit-report.json.gz": {
+    "sha256": "020b8ffaa9b3efeddd2b295e814c40ccc6b53dc959c9d0a246c5fbf34040f9b1",
+    "bytes": 6049
+  },
+  "chart-observer-integration-20261105/final-gates/exposure-unit.log.gz": {
+    "sha256": "cd2cee62ae6f39f792d49d4ad87806ba521e4d91c50b165079d3581c6a768535",
+    "bytes": 1454
+  },
+  "chart-observer-integration-20261105/final-gates/original-lint.log.gz": {
+    "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+    "bytes": 20
+  },
+  "chart-observer-integration-20261105/final-gates/original-source-after.json": {
+    "sha256": "9fba0ce65050826a74ec66ba5b420f41c5d0b9a329341ad7095659ffed932334",
+    "bytes": 366585
+  },
+  "chart-observer-integration-20261105/final-gates/original-source-before.json": {
+    "sha256": "9fba0ce65050826a74ec66ba5b420f41c5d0b9a329341ad7095659ffed932334",
+    "bytes": 366585
+  },
+  "chart-observer-integration-20261105/final-gates/original-unit-report.json.gz": {
+    "sha256": "83111d908e10b1dd77c6fad7d6dd23ad872478e8b57b7c7903c952fe32713f63",
+    "bytes": 6629
+  },
+  "chart-observer-integration-20261105/final-gates/original-unit.log.gz": {
+    "sha256": "047cf9c4669ca7ff4937e2409f90fed5e03ef60e2b8a33a566f3f227d06ac9ee",
+    "bytes": 1480
+  },
+  "chart-observer-integration-20261105/final-gates/preview-source-after.json": {
+    "sha256": "e2b1291ed305c909c8fb5e60d07d5f8d49b9f1f6f56dfa2e29d6d6c62ec1be43",
+    "bytes": 376198
+  },
+  "chart-observer-integration-20261105/final-gates/preview-source-before.json": {
+    "sha256": "e2b1291ed305c909c8fb5e60d07d5f8d49b9f1f6f56dfa2e29d6d6c62ec1be43",
+    "bytes": 376198
+  },
+  "chart-observer-integration-20261105/final-gates/preview-typecheck.log.gz": {
+    "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+    "bytes": 20
+  },
+  "chart-observer-integration-20261105/final-gates/preview-unit-report.json.gz": {
+    "sha256": "502a2befa033dcebdf9fdb63f115c85ecf7679c3b12b6b2d1a22e40e03403d6e",
+    "bytes": 12760
+  },
+  "chart-observer-integration-20261105/final-gates/preview-unit.log.gz": {
+    "sha256": "c07bf0a79b20e4863be97282a7d01dc759c913b69c599c6a2107a849e77d1c75",
+    "bytes": 1623
+  },
+  "chart-observer-integration-20261105/final-gates/qualification.json": {
+    "sha256": "f5e8c08d13bdc5d4b810bcf6e2b0498425716a7abae0a3fbacd0a02e5a26c4ed",
+    "bytes": 6211
+  },
+  "chart-observer-integration-20261105/green/projected-source-map.json": {
+    "sha256": "147d96ef71b669bf8d9303d055261936bd07ecb8d8c453331f880804240dbe51",
+    "bytes": 397244
+  },
+  "chart-observer-integration-20261105/green/projection.json": {
+    "sha256": "252137d3f53df83b9cfafdbb314904065aeca5de0433d372b5ff1a0c2fdc29e8",
+    "bytes": 4544
+  },
+  "chart-observer-integration-20261105/green/unit-report.json.gz": {
+    "sha256": "e23691102f7c685322b531eebb14a3583b219810e5c137c26fccc4af03708580",
+    "bytes": 2500
+  },
+  "chart-observer-integration-20261105/green/unit.log.gz": {
+    "sha256": "8fe953400edebb4213fea7acaca7b7595f51cc8d61d6cfe615045569bc53dec3",
+    "bytes": 630
+  },
+  "chart-observer-integration-20261105/observers/original.spec.ts.gz": {
+    "sha256": "27276e64053e7d983a23b49847538b2d8365c9bec6837854afa8da2dce913ea1",
+    "bytes": 9363
+  },
+  "chart-observer-integration-20261105/observers/preview.spec.ts.gz": {
+    "sha256": "33f0c72b92d8d01fc83708877a82c0702c57f45da373f08d1986901bff5d4f9f",
+    "bytes": 9439
+  },
+  "chart-observer-integration-20261105/qualification.json": {
+    "sha256": "1545dac5924591a8aece1e53ddab47feb6d6252fc776751adeb7792e39a0a8a2",
+    "bytes": 1870
+  },
+  "chart-observer-integration-20261105/red/projected-source-map.json": {
+    "sha256": "e6db8fb148c9f7e585d584369a7b0d1b89a7bcde0cdc131f95283f882cb1f5ae",
+    "bytes": 397244
+  },
+  "chart-observer-integration-20261105/red/projection.json": {
+    "sha256": "70b3eb8efb068ac25705386cd998349296e3c4ae8f8f88b5e0c4b5694d57f290",
+    "bytes": 9712
+  },
+  "chart-observer-integration-20261105/red/unit-report.json.gz": {
+    "sha256": "086454b31ac974645c5fe00b95d8c4391d95446798d38625de228fa2647d66d8",
+    "bytes": 2197
+  },
+  "chart-observer-integration-20261105/red/unit.log.gz": {
+    "sha256": "76e756cfe2f4d23541813b7029263edda5e6ebd078f2cb35d8184afbf8ae8f48",
+    "bytes": 1425
+  },
+  "chart-observer-integration-20261105/repair-history/binding-fix.json": {
+    "sha256": "e35db4d193b53c0f76c490b75af6374382ebda290499fe8783eb56bd8e733540",
+    "bytes": 1313
+  },
+  "chart-observer-integration-20261105/repair-history/helper-after.ts.gz": {
+    "sha256": "5b29191c118d340a4772f60ed2e253a404931838091076a70c88d996beb193f9",
+    "bytes": 10339
+  },
+  "chart-observer-integration-20261105/repair-history/helper-before.ts.gz": {
+    "sha256": "c6cc276f8ea6be6fa4e3afc26f7ae31afb8f362833560cdf32feaaf9fd8ef4d9",
+    "bytes": 10198
+  },
+  "chart-observer-integration-20261105/repair-history/plan.json": {
+    "sha256": "477a9aaad643ceaaf6f74e4ca209373362dc9abe9aa2e2fd024d5e3d43436ded",
+    "bytes": 307
+  },
+  "chart-observer-integration-20261105/repair-history/red-qualification.json": {
+    "sha256": "8372a8b4ba0b8a6a27041df0f9f1a4607f1565d3246671075effcdd4c91cc4a7",
+    "bytes": 6269
+  },
+  "chart-observer-integration-20261105/repair-history/red-report.json.gz": {
+    "sha256": "6a9b7c84fa06333b2dbebcf20190e894e37aca2f441e57b5dbb2cd5b966eb741",
+    "bytes": 2154
+  },
+  "chart-observer-integration-20261105/repair-history/red.log.gz": {
+    "sha256": "23371889eeaf298531cf6b73c2102548e19cb3668f48838364e9899f2edb48af",
+    "bytes": 1168
+  },
+  "chart-observer-integration-20261105/repair-history/regression-anchor-reconciliation.json": {
+    "sha256": "f205c05f9c18b49bcdb150a714ea100220b14050d16c0eb9d3b2a345660feff2",
+    "bytes": 1378
   },
   "composition/before-final-repairs.json": {
     "sha256": "d2c65c423e22b9f022e37a6521c2b8c8a0b5bffe41c227525c0f668b6c6358c1",
@@ -640,8 +812,8 @@
     "bytes": 2668
   },
   "qualification.json": {
-    "sha256": "e86f0b3f36593049a739c85d35e53d54bc99bb8a538a0948a36d67115af1a52d",
-    "bytes": 5066
+    "sha256": "bb6136c8128de028072b9db05bb44c366e736b7f82f352de91edce7e259c61b1",
+    "bytes": 7039
   },
   "repaired-gates/checks.json": {
     "sha256": "129e546af9d0f2f2f2d7f4d041453fbebea4ff2592a4d790a99d0232e8aad67e",
