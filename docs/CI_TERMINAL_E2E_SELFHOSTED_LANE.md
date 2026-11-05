@@ -96,8 +96,14 @@ against 54 min hosted, and each additional slot removes a round.
 
 ### Registering a slot (host operator)
 
-**One OS user per slot, no sudo.** Every slot `ubuntu0-e2e-N` runs as its own
-unprivileged user `ghrunner-N` with its own home. Slots must not share a uid: a
+**One OS user per slot, no sudo, no login.** Every slot `ubuntu0-e2e-N` runs as
+its own unprivileged user `ghrunner-N` with its own home, created with
+`useradd -m -s /usr/sbin/nologin ghrunner-N` (locked password, no shell) and
+listed in `DenyUsers ghrunner-*` in `sshd_config`. A slot user that could log in
+(a job can drop its own key into `~/.ssh/authorized_keys` and `ssh` to
+`127.0.0.1`) would get a logind session scope under `user-<uid>.slice`, outside
+the job cgroup described below, and a process started there would survive the
+cgroup kill. Slots must not share a uid: a
 job on slot M running as the same uid as slot N could read slot N's
 `/proc/<pid>/cmdline` and `environ`, its `.credentials` / `.credentials_rsaparams`
 / `.runner` files (the runner's private key and identity) and so impersonate
@@ -142,17 +148,20 @@ Second, each cycle kills the previous job's **cgroup**, not its process list:
 past a plain kill, and `loginctl terminate-user` does nothing here because job
 processes live in the unit's cgroup, not a logind session. Each job runs in its
 own child cgroup of the unit (`Delegate=yes`); the process placed in that cgroup is
-the one that `exec`s `run.sh`, so the whole job tree is inside it. The reset writes
-`1` to that cgroup's `cgroup.kill` (kernel 5.14+; on older kernels freeze the
-cgroup, then kill it), waits until `cgroup.events` reports `populated 0` (the
+the one that `exec`s `run.sh`, so with login denied every process of that uid
+descends from `run.sh` inside it. The reset writes `1` to that cgroup's
+`cgroup.kill` (kernel 5.14 or later; the write fails the slot on an older kernel
+rather than spinning), waits until `cgroup.events` reports `populated 0` (the
 `cgroup.procs` file always has size 0, so a size test would not wait at all), and
 removes the cgroup, failing the slot if either step fails. It then rebuilds the
 whole home from `/etc/skel`, deletes the user's files under the temp and sticky
 directories, re-extracts the runner directory from the pristine tarball with mode
 0700 on both the slot and the home (the job's `actions/cache` restores the
-per-slot Playwright store itself), and as the **last statement before the mint**
-**fails closed**: if `pgrep -u ghrunner-N` still finds anything, the slot stays
-down rather than minting a new config beside a survivor. The unit also runs with
+per-slot Playwright store itself), and as the **last statements before the mint**
+**fails closed**: if logind still lists a session for `ghrunner-N` (login is
+denied, so one can only mean a misconfigured host) or `pgrep -u ghrunner-N` still
+finds anything, the slot stays down rather than minting a new config beside a
+survivor. The unit also runs with
 `PrivateTmp=yes` and the default `KillMode=control-group`, so a unit stop kills
 whatever the loop did not. The canary's caveat stands: registration alone does not
 clean the filesystem; this loop is what does.
@@ -160,9 +169,12 @@ clean the filesystem; this loop is what does.
 **Host prerequisites the loop assumes** (verify once per host before enabling a
 slot; none of these has been observed on ubuntu0 yet): unified cgroup v2 only
 (`/proc/self/cgroup` is a single `0::` line; the loop asserts this and exits
-otherwise), kernel 5.14 or later for `cgroup.kill`, `/etc/cron.deny` and
-`/etc/at.deny` naming every slot user, linger off for every slot user
-(`loginctl show-user ghrunner-N` reports `Linger=no`), `/etc/pam.d/sudo` not
+otherwise), kernel 5.14 or later for `cgroup.kill`, every slot user with shell
+`/usr/sbin/nologin` and named in `DenyUsers` in `sshd_config` (no other login
+service enabled for it), `/etc/cron.deny` and `/etc/at.deny` naming every slot
+user and no `/etc/cron.allow` or `/etc/at.allow` naming one (an allow file makes
+cron and `at` ignore the deny file; the loop asserts both), linger off for every
+slot user (`loginctl show-user ghrunner-N` reports `Linger=no`), `/etc/pam.d/sudo` not
 pulling in `pam_systemd` (Ubuntu's `common-session-noninteractive` does not; a
 stack that does would move `run.sh` into a `user-N.slice` session scope outside
 the job cgroup), and no auditd `execve` rule that records argv, which would log the
@@ -184,15 +196,18 @@ u=ghrunner-N; slot=/opt/actions-runner/slots/ubuntu0-e2e-N
 [ "$(wc -l < /proc/self/cgroup)" = 1 ] && grep -q '^0::' /proc/self/cgroup || exit 1
 unit_cg="/sys/fs/cgroup$(cut -d: -f3 /proc/self/cgroup)"; job_cg="$unit_cg/job"
 grep -qx "$u" /etc/cron.deny && grep -qx "$u" /etc/at.deny || exit 1   # timers denied at the source
+! grep -qx "$u" /etc/cron.allow /etc/at.allow 2>/dev/null || exit 1     # an allow file overrides deny
+[ "$(getent passwd "$u" | cut -d: -f7)" = /usr/sbin/nologin ] || exit 1  # no login path for the slot user
 while :; do
   # 1. no timer may fire as $u after the reset: purge cron/at BEFORE killing anything
   crontab -r -u "$u" 2>/dev/null; for j in $(atq | awk -v u="$u" '$NF==u{print $1}'); do atrm "$j"; done
   # 2. dead slot: kill the previous job's cgroup (not a process-list snapshot)
   if [ -d "$job_cg" ]; then
-    echo 1 > "$job_cg/cgroup.kill"
+    echo 1 > "$job_cg/cgroup.kill" || exit 1   # kernel < 5.14: fail, do not spin
     until grep -q '^populated 0' "$job_cg/cgroup.events"; do sleep 0.2; done   # cgroup.procs is always size 0
     rmdir "$job_cg" || exit 1
   fi
+  loginctl terminate-user "$u" 2>/dev/null   # nothing should be there; a session means a misconfigured host
   pkill -KILL -u "$u"; sleep 1
   # 3. fresh home, temp and runner tree, readable by this slot only
   find /tmp /var/tmp /dev/shm /run/lock /var/crash /dev/mqueue -user "$u" -delete 2>/dev/null
@@ -200,7 +215,8 @@ while :; do
   mkdir -p "/home/$u" && cp -a /etc/skel/. "/home/$u/" && chown -R "$u:$u" "/home/$u" && chmod 0700 "/home/$u"
   mkdir -p "$slot" && tar xzf /opt/actions-runner/actions-runner-linux-x64.tar.gz -C "$slot"
   chown -R "$u:$u" "$slot" && chmod 0700 "$slot"
-  # 4. fail closed, as the last statement before the mint
+  # 4. fail closed, as the last statements before the mint
+  if loginctl list-sessions --no-legend | awk '{print $3}' | grep -qx "$u"; then echo "slot $u has a logind session; not minting" >&2; exit 1; fi
   if pgrep -u "$u" >/dev/null; then echo "slot $u still has a live process; not minting" >&2; exit 1; fi
   # 5. one-shot JIT config, minted as ghmint, handed only to this run.sh in a fresh job cgroup.
   #    The shell that writes itself into cgroup.procs is the one that execs run.sh (in a
@@ -220,10 +236,10 @@ the array. Never list runner processes with their arguments (`ps -f`, `pgrep -a`
 in a shared transcript: the JIT config blob on the command line is credential
 material for that one job.
 
-**What this does and does not bound.** With per-slot users, `hidepid=2`, JIT
-configs, 0700 slot and home directories, cron and `at` denied, a cgroup kill that
-fails closed, and a fresh home, runner tree and temp files before every job, one
-approved run cannot
+**What this does and does not bound.** With per-slot users that cannot log in,
+`hidepid=2`, JIT configs, 0700 slot and home directories, cron and `at` denied, a
+cgroup kill that fails closed, and a fresh home, runner tree and temp files before
+every job, one approved run cannot
 read another slot's credentials and cannot persist a process, cron entry, dotfile
 or file into a later job on its own slot (a leftover file in some other sticky
 directory is unreachable once no process survives to use it). It can still read anything world-readable on the host, use
