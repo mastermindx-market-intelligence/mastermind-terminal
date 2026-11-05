@@ -797,6 +797,7 @@ html[data-research-appearance="lab"][data-theme="light"] .options-view-tabs .obs
 .obs-options-alpha-status.building { color: var(--warn); background: color-mix(in srgb, var(--warn) 9%, transparent); }
 .obs-options-alpha-candidate-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 560px), 1fr)); gap: 8px; }
 .obs-options-alpha-candidate { min-width: 0; padding: 10px 11px; border-radius: 11px; }
+html[data-mmx-shared-shell="1"][data-theme="light"] .obs-options-alpha-candidate.is-candidate { background: var(--panel); border-color: var(--line); }
 .obs-options-alpha-candidate.is-fire { border-color: color-mix(in srgb, var(--up) 24%, var(--line)); }
 .obs-options-alpha-candidate.is-watch { border-color: color-mix(in srgb, var(--warn) 16%, var(--line)); }
 .obs-options-alpha-candidate-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0; }
