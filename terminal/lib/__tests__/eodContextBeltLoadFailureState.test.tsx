@@ -43,6 +43,7 @@ const UNPARSEABLE: Answer = { status: 200, body: "<html>upstream error page</htm
 const ROOT = "NVDA";
 const DARKPOOL = json(200, {
   schema: "darkpool_eod.v1",
+  tier: "eod",
   asof: "2026-10-08",
   universe: [{ ticker: "NVDA", asof: "2026-10-08", oe_share: 0.46, oe_z: 1.8, trend_pp: -2.4, ratio_z: -0.9, n_days: 60 }],
 });

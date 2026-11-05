@@ -4,7 +4,9 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
-const { run, operationIds, recordCheckout } = require("./capture_ci_evidence.cjs");
+const { createHash } = require("node:crypto");
+const { EventEmitter } = require("node:events");
+const { run, operationIds, recordCheckout, legacyPackets, superviseLegacy, stopLegacyServer, settleLegacyServer, captureOptions } = require("./capture_ci_evidence.cjs");
 
 function fixture(t, change = {}) {
   const repoRoot = fs.mkdtempSync(path.join(os.tmpdir(), "ci-evidence-synthetic-"));
@@ -52,14 +54,88 @@ function fixture(t, change = {}) {
     if (change.throwChild) throw new Error("original spawn exception");
     return { status: (packet === "vi" ? change.viStatus : undefined) ?? change.status ?? 0, signal: change.signal ?? null, error: change.error };
   };
-  const invoke = () => run({ repoRoot, env, evidence, checkout, spawn });
+  const packets = legacyPackets();
+  const write = (relative, text) => {
+    const file = path.join(repoRoot, relative); fs.mkdirSync(path.dirname(file), { recursive: true }); fs.writeFileSync(file, text);
+  };
+  const hash = bytes => createHash("sha256").update(bytes).digest("hex");
+  const sourceHash = file => hash(fs.readFileSync(path.join(repoRoot, file)));
+  const packetManifest = (definition, stale = false) => [
+    "# capturedAtHead: " + "a".repeat(40), "layoutFiles:",
+    ...definition.sources.map((file, n) => `  ${file}: "${stale && n === 0 ? "0".repeat(64) : sourceHash(file)}"`),
+    "files:", ...definition.files.map(file => "  - " + file), "",
+  ].join("\n");
+  const optionsDirectory = "terminal/docs/pr-crops/options-level-axis-labels";
+  const optionsSources = ["components/ChartPanel.tsx", "lib/optionsLevels.ts", "lib/priceTagPlacement.ts"];
+  const optionsFiles = ["desktop.png", "tablet.png", "mobile.png", "desktop-left-percentage.png", "desktop-compact.png"];
+  for (const file of new Set([
+    ...packets.flatMap(packet => [...packet.sources, ...packet.controls]),
+    ...optionsSources.map(file => "terminal/" + file), "terminal/e2e/tools/capture_pl6_batch1.cjs", optionsDirectory + "/capture.mjs",
+  ])) write(file, "synthetic source: " + file);
+  for (const definition of packets) {
+    write(definition.directory + "/EVIDENCE.yml", packetManifest(definition, Boolean(change.legacyStale)));
+    for (const file of definition.files) write(definition.directory + "/" + file, "old synthetic image " + file);
+    if (definition.packet === "eod") write(definition.directory + "/before/BEFORE.yml", "unaltered historical chips");
+  }
+  const writeOptions = stale => {
+    const captures = optionsFiles.map(file => {
+      write(optionsDirectory + "/" + file, (stale ? "old" : "new") + " synthetic options image " + file);
+      return { screenshot: file, sha256: sourceHash(optionsDirectory + "/" + file) };
+    });
+    const manifest = { sourceHead: "a".repeat(40), sourceFiles: Object.fromEntries(optionsSources.map((file, n) => [file, stale && n === 0 ? "0".repeat(64) : sourceHash("terminal/" + file)])), captures };
+    write(optionsDirectory + "/manifest.json", JSON.stringify(manifest));
+    return captures;
+  };
+  writeOptions(Boolean(change.optionsStale));
+  write(optionsDirectory + "/coverage-audit-summary.json", "unchanged historical audit");
+  evidence.imageInfo = bytes => ({ sha256: hash(bytes), width: 10, height: 10 });
+  const legacyCalls = [];
+  const spawnLegacy = (_command, args, options) => {
+    const definition = packets.find(packet => packet.script === args[0]);
+    legacyCalls.push(definition.packet);
+    for (const key of ["CAPTURE_ONLY", "UPDATE_HEATMAP_EVIDENCE", "CAPTURE_HEAD", "TERMINAL_CROP_OUTPUT_DIR"])
+      assert.equal(options.env[key], "", key + " cannot redirect the natural-CI full capture");
+    const child = new EventEmitter(); child.pid = 424242;
+    queueMicrotask(() => {
+      child.emit("message", { legacyCaptureServer: { captureId: options.env.TERMINAL_LEGACY_CAPTURE_ID, phase: "started", pid: 424243, pgid: 424243 } });
+      write(definition.directory + "/EVIDENCE.yml", packetManifest(definition));
+      for (const file of definition.files) write(definition.directory + "/" + file, "fresh synthetic image " + file);
+      if (change.mutateLegacySource) write(definition.sources[0], "changed during capture");
+      if (change.mutateHistory && definition.packet === "eod") write(definition.directory + "/before/BEFORE.yml", "rewritten history");
+      const receipt = { packet: definition.packet, captureId: options.env.TERMINAL_LEGACY_CAPTURE_ID,
+        capturedAtHead: "a".repeat(40), manifestSha256: sourceHash(definition.directory + "/EVIDENCE.yml"),
+        files: definition.files.map(file => ({ file, sha256: sourceHash(definition.directory + "/" + file) })) };
+      if (change.partialLegacy) receipt.files.pop();
+      if (change.wrongAttempt) receipt.captureId = "another-attempt";
+      if (change.imageMismatch) receipt.files[0].sha256 = "0".repeat(64);
+      if (!change.missingLegacyReceipt) fs.writeSync(options.stdio[1], JSON.stringify({ legacyEvidence: receipt }) + "\n");
+      child.emit("message", { legacyCaptureServer: { captureId: options.env.TERMINAL_LEGACY_CAPTURE_ID, phase: "stopped", pid: 424243, pgid: 424243 } });
+      child.emit("close", change.legacyStatus || 0, null);
+    });
+    return child;
+  };
+  const originalSpawn = spawn;
+  const combinedSpawn = (command, args, options) => {
+    const result = originalSpawn(command, args, options);
+    if (options.env.TERMINAL_CI_OPTIONS_AXIS_CAPTURE === "1") {
+      const captures = writeOptions(false);
+      if (change.mutateOptionsAudit) write(optionsDirectory + "/coverage-audit-summary.json", "changed audit");
+      const receipt = { captureId: options.env.TERMINAL_CI_OPTIONS_CAPTURE_ID, capturedAtHead: "a".repeat(40),
+        manifestSha256: sourceHash(optionsDirectory + "/manifest.json"),
+        files: captures.map(capture => ({ file: capture.screenshot, sha256: capture.sha256 })) };
+      if (change.partialOptions) receipt.files.pop();
+      if (!change.missingOptionsReceipt) fs.writeSync(options.stdio[1], JSON.stringify({ optionsEvidence: receipt }) + "\n");
+    }
+    return result;
+  };
+  const invoke = () => run({ repoRoot, env, evidence, checkout, spawn: combinedSpawn, spawnLegacy });
   const diagnostic = () => JSON.parse(fs.readFileSync(path.join(diagnostics, `${ids.prefix}.json`)));
   const selected = () => fs.existsSync(env.GITHUB_ENV) ? fs.readFileSync(env.GITHUB_ENV, "utf8") : "";
-  return { repoRoot, env, ids, calls, inputs, checkout, invoke, diagnostic, selected, diagnostics };
+  return { repoRoot, env, ids, calls, legacyCalls, packets, inputs, checkout, invoke, diagnostic, selected, diagnostics };
 }
 
-test("runs complete original captures, retains24PL6, selects20+30 and exact returned hashes", t => {
-  const f = fixture(t), r = f.invoke();
+test("runs complete original captures, retains24PL6, selects20+30 and exact returned hashes", async t => {
+  const f = fixture(t), r = await f.invoke();
   assert.equal(r.state, "SELECTED"); assert.equal(r.composition.selectedCases, 50);
   assert.equal(r.actualCheckout.commit, "a".repeat(40)); assert.notEqual(r.actualCheckout.commit, r.githubEvent.sha);
   assert.deepEqual(f.calls.map(c => c.args), [
@@ -90,42 +166,42 @@ for (const [name, change, error] of [
   ["bad report/image closure", { writeError: "CASE_REPORT_BINDING" }, /CASE_REPORT_BINDING/],
   ["incomplete composition", { selectedCount: 49 }, /COMPOSITION/],
   ["lost extra layout cases", { pl6Count: 20 }, /COMPOSITION/],
-]) test(`${name} preserves failure and does not export selector`, t => {
+]) test(`${name} preserves failure and does not export selector`, async t => {
   const f = fixture(t, change);
-  assert.throws(f.invoke, error); assert.equal(f.selected(), ""); assert.equal(f.diagnostic().state, "FAILED");
+  await assert.rejects(f.invoke, error); assert.equal(f.selected(), ""); assert.equal(f.diagnostic().state, "FAILED");
   assert.match(fs.readFileSync(path.join(f.diagnostics, `${f.ids.pl6}.stderr.log`), "utf8"), /original child diagnostic/);
 });
 
-test("capture filtering and prior composition are refused before child execution", t => {
+test("capture filtering and prior composition are refused before child execution", async t => {
   for (const [key, value, error] of [["CAPTURE_ONLY", "ChartChrome", /CAPTURE_FILTER/],
     ["TERMINAL_EVIDENCE_COMPOSITION", "historical.composition.json", /PRESELECTED/]]) {
-    const f = fixture(t); f.env[key] = value; assert.throws(f.invoke, error);
+    const f = fixture(t); f.env[key] = value; await assert.rejects(f.invoke, error);
     assert.equal(f.calls.length, 0); assert.equal(f.selected(), "");
   }
 });
 
-test("stable per-run/attempt IDs refuse invalid values and duplicate invocation cannot overwrite", t => {
+test("stable per-run/attempt IDs refuse invalid values and duplicate invocation cannot overwrite", async t => {
   const f = fixture(t); assert.deepEqual(operationIds(f.env), operationIds({ ...f.env }));
   assert.notEqual(operationIds({ ...f.env, GITHUB_RUN_ATTEMPT: "3" }).pl6, f.ids.pl6);
   assert.throws(() => operationIds({ ...f.env, GITHUB_RUN_ID: "1\nx=2" }), /CI_EVIDENCE_ID/);
-  f.invoke(); const before = f.diagnostic(); assert.throws(f.invoke, /EEXIST/); assert.deepEqual(f.diagnostic(), before);
+  await f.invoke(); const before = f.diagnostic(); await assert.rejects(f.invoke, /EEXIST/); assert.deepEqual(f.diagnostic(), before);
 });
 
-test("checkout-only metadata survives a later capture failure without selecting records", t => {
+test("checkout-only metadata survives a later capture failure without selecting records", async t => {
   const f = fixture(t, { status: 1 });
   const early = recordCheckout({ repoRoot: f.repoRoot, env: f.env, checkout: f.checkout });
-  assert.throws(f.invoke, /CHILD_FAILED/);
+  await assert.rejects(f.invoke, /CHILD_FAILED/);
   const retained = JSON.parse(fs.readFileSync(path.join(f.diagnostics, `${f.ids.prefix}.checkout.json`)));
   assert.deepEqual(retained, early); assert.equal(f.selected(), "");
   assert.throws(() => recordCheckout({ repoRoot: f.repoRoot, env: f.env, checkout: f.checkout }), /EEXIST/);
 });
 
-for (const failure of [false, true]) test(`VI outputDir cleanup preserves ${failure ? "failed" : "successful"} diagnostics and open logs`, t => {
+for (const failure of [false, true]) test(`VI outputDir cleanup preserves ${failure ? "failed" : "successful"} diagnostics and open logs`, async t => {
   const f = fixture(t, { clearOutput: true, viStatus: failure ? 1 : 0 });
   fs.mkdirSync(path.join(f.repoRoot, "terminal", "test-results"), { recursive: true });
   fs.writeFileSync(path.join(f.repoRoot, "terminal", "test-results", "old.txt"), "old output");
   recordCheckout({ repoRoot: f.repoRoot, env: f.env, checkout: f.checkout });
-  if (failure) assert.throws(f.invoke, /CHILD_FAILED: vi/); else f.invoke();
+  if (failure) await assert.rejects(f.invoke, /CHILD_FAILED: vi/); else await f.invoke();
   assert.equal(fs.existsSync(path.join(f.repoRoot, "terminal", "test-results", "old.txt")), false);
   assert.equal(f.diagnostic().state, failure ? "FAILED" : "SELECTED");
   assert.ok(fs.existsSync(path.join(f.diagnostics, `${f.ids.prefix}.checkout.json`)));
@@ -134,4 +210,532 @@ for (const failure of [false, true]) test(`VI outputDir cleanup preserves ${fail
     assert.match(fs.readFileSync(path.join(f.diagnostics, `${f.ids[packet]}.stderr.log`), "utf8"), /original child diagnostic/);
   }
   assert.equal(Boolean(f.selected()), !failure);
+});
+
+test("the stale EOD packet runs all126 cases, retain complete prior bytes and leave validation with native readers", async t => {
+  const f = fixture(t, { legacyStale: true }), result = await f.invoke();
+  assert.deepEqual(f.legacyCalls, ["eod"]);
+  assert.equal(f.calls.length, 2);
+  assert.equal(result.composition.selectedCases, 50);
+  let cases = 0;
+  for (const definition of f.packets) {
+    const packet = result.legacyPackets[definition.packet];
+    assert.equal(packet.state, "CAPTURED_AWAITING_UNIT_VALIDATION");
+    assert.equal(packet.images.length, definition.files.length); cases += packet.images.length;
+    const image = definition.files[0];
+    assert.equal(fs.readFileSync(path.join(packet.prior.path, image), "utf8"), "old synthetic image " + image);
+    assert.equal(fs.readFileSync(path.join(packet.returned.path, image), "utf8"), "fresh synthetic image " + image);
+    assert.equal(packet.receipt.captureId, f.ids.prefix + "-" + definition.packet);
+  }
+  assert.equal(cases, 126);
+  const conductor = result.legacyPackets.eod;
+  assert.deepEqual(conductor.prior.files["before/BEFORE.yml"], conductor.returned.files["before/BEFORE.yml"]);
+});
+
+test("current packets preserve their old capture identity and do not launch replacement captures", async t => {
+  const f = fixture(t), result = await f.invoke();
+  assert.deepEqual(f.legacyCalls, []);
+  assert.ok(Object.values(result.legacyPackets).every(packet => packet.state === "EXISTING_PACKET_AWAITING_UNIT_VALIDATION"));
+  assert.equal(result.optionsAxis.required, false);
+  assert.equal(f.calls[0].options.env.TERMINAL_CI_OPTIONS_AXIS_CAPTURE, "0");
+});
+
+for (const [name, change, expected] of [
+  ["nonzero producer", { legacyStatus: 1 }, /CHILD_FAILED_OR_UNSETTLED/],
+  ["missing current receipt", { missingLegacyReceipt: true }, /RECEIPT_COUNT/],
+  ["partial fresh inventory", { partialLegacy: true }, /RECEIPT_BINDING/],
+  ["different attempt", { wrongAttempt: true }, /RECEIPT_BINDING/],
+  ["changed image bytes", { imageMismatch: true }, /IMAGE_BINDING/],
+  ["source changed during capture", { mutateLegacySource: true }, /SOURCE_CHANGED/],
+  ["historical EOD packet changed", { mutateHistory: true }, /HISTORY_CHANGED/],
+]) test(name + " keeps diagnostics and refuses selector export", async t => {
+  const f = fixture(t, { legacyStale: true, ...change });
+  await assert.rejects(f.invoke, expected);
+  assert.equal(f.selected(), ""); assert.equal(f.diagnostic().state, "FAILED");
+  const packet = f.diagnostic().legacyPackets[f.legacyCalls.at(-1)];
+  assert.ok(fs.existsSync(packet.prior.path));
+  assert.ok(fs.existsSync(packet.returned.path));
+  assert.notEqual(packet.state, "CAPTURED_AWAITING_UNIT_VALIDATION");
+  if (!change.mutateHistory) assert.deepEqual(f.legacyCalls, ["eod"]);
+});
+
+test("Options uses the full PL6 owner, records five fresh images, and preserves its historical audit", async t => {
+  const f = fixture(t, { optionsStale: true }), result = await f.invoke();
+  assert.equal(f.calls[0].options.env.TERMINAL_CI_OPTIONS_AXIS_CAPTURE, "1");
+  assert.equal(f.calls[1].options.env.TERMINAL_CI_OPTIONS_AXIS_CAPTURE, "0");
+  assert.equal(result.optionsAxis.images.length, 5);
+  assert.equal(result.optionsAxis.state, "CAPTURED_AWAITING_UNIT_VALIDATION");
+  assert.deepEqual(result.optionsAxis.prior.files["coverage-audit-summary.json"], result.optionsAxis.returned.files["coverage-audit-summary.json"]);
+  assert.equal(Object.keys(result.optionsAxis.sources).length, 3);
+});
+
+test("an unsuccessful PL6 or Options child retains the unqualified returned packet and original failure", async t => {
+  const f = fixture(t, { optionsStale: true, status: 1 });
+  await assert.rejects(f.invoke, /CI_EVIDENCE_CHILD_FAILED: pl6/);
+  const state = f.diagnostic().optionsAxis;
+  assert.ok(fs.existsSync(path.join(state.returned.path, "manifest.json")));
+  assert.equal(state.state, "CAPTURE_REQUIRED");
+  assert.equal(f.calls.length, 1); assert.equal(f.selected(), "");
+});
+
+for (const [name, change, expected] of [
+  ["missing Options completion", { missingOptionsReceipt: true }, /RECEIPT_COUNT/],
+  ["partial Options completion", { partialOptions: true }, /RECEIPT_BINDING/],
+  ["rewritten Options historical audit", { mutateOptionsAudit: true }, /AUDIT_CHANGED/],
+]) test(name + " stops before VI and selection", async t => {
+  const f = fixture(t, { optionsStale: true, ...change });
+  await assert.rejects(f.invoke, expected);
+  assert.equal(f.selected(), ""); assert.equal(f.calls.length, 1); assert.equal(f.legacyCalls.length, 0);
+});
+
+for (const definition of legacyPackets()) for (const count of [0, 1]) {
+  test(definition.packet + " inspects the actual dev indicator DOM, count=" + count, async () => {
+    const producer = require("./" + path.basename(definition.script));
+    let inspected = 0;
+    const page = {
+      waitForTimeout: async () => {},
+      evaluate: () => { throw new Error("DOM removal is forbidden"); },
+      locator: selector => {
+        assert.equal(selector, "[data-nextjs-dev-tools-button]");
+        return { count: async () => { inspected++; return count; } };
+      },
+    };
+    if (count) await assert.rejects(() => producer.assertNoNextIndicator(page, "synthetic.png"), /still mounted/);
+    else await producer.assertNoNextIndicator(page, "synthetic.png");
+    assert.equal(inspected, 1);
+  });
+}
+
+test("Options keeps the owning server live before and after asynchronous child completion", async () => {
+  const server = {}, observations = [], child = new EventEmitter(); child.pid = 424242;
+  const pending = captureOptions({ server, ownedServer: actual => {
+    assert.equal(actual, server); observations.push("owner"); return true;
+  }, baseURL: "http://127.0.0.1:3536", terminal: "/synthetic/terminal", env: {},
+  spawn: (_command, args, options) => {
+    assert.deepEqual(args, ["docs/pr-crops/options-level-axis-labels/capture.mjs"]);
+    assert.equal(options.env.BASE_URL, "http://127.0.0.1:3536");
+    assert.equal(options.detached, true);
+    observations.push("spawn"); queueMicrotask(() => child.emit("close", 0, null)); return child;
+  } });
+  await pending;
+  assert.deepEqual(observations, ["owner", "spawn", "owner"]);
+});
+
+test("Options refuses a missing owner without starting another process", async () => {
+  await assert.rejects(() => captureOptions({ server: {}, ownedServer: () => false,
+    spawn: () => { throw new Error("must not start"); } }), /SERVER_NOT_READY/);
+});
+
+test("producer cleanup waits for the owned group after its npm leader has closed", async () => {
+  let clock = 0, alive = true;
+  const signals = [], child = { pid: 424242, closed: Promise.resolve(0) };
+  const options = {
+    now: () => clock,
+    wait: async ms => { clock += ms; },
+    kill: (pid, signal) => {
+      assert.equal(pid, -424242);
+      if (!alive) throw Object.assign(new Error("gone"), { code: "ESRCH" });
+      if (signal) signals.push(signal);
+      if (signal === "SIGKILL") alive = false;
+    },
+  };
+  const first = stopLegacyServer(child, options);
+  assert.equal(stopLegacyServer(child, options), first);
+  await first;
+  assert.deepEqual(signals, ["SIGTERM", "SIGKILL"]);
+  assert.equal(alive, false);
+  assert.equal(clock, 8_000);
+});
+
+test("producer cleanup refuses an owned group that survives both bounded signals", async () => {
+  let clock = 0;
+  await assert.rejects(() => stopLegacyServer({ pid: 424242, closed: Promise.resolve(0) }, {
+    now: () => clock, wait: async ms => { clock += ms; }, kill: () => {},
+  }), /GROUP_UNSETTLED/);
+  assert.equal(clock, 13_000);
+});
+
+test("producer cleanup does not treat permission failure or absent close proof as success", async () => {
+  const signals = [];
+  await assert.rejects(() => stopLegacyServer({ pid: 424242, closed: Promise.resolve(0) }, {
+    kill: (_pid, signal) => { signals.push(signal); throw Object.assign(new Error("denied"), { code: "EPERM" }); },
+  }), /denied/);
+  assert.deepEqual(signals, [0]);
+  await assert.rejects(() => stopLegacyServer({ pid: 424242 }), /IDENTITY_OR_CLOSE_MISSING/);
+});
+
+function supervisorChild() {
+  const child = new EventEmitter(); child.pid = 424242; child.unrefCount = 0;
+  child.unref = () => { child.unrefCount++; };
+  return child;
+}
+
+test("Legacy capture supervisor observes close, not merely a process exit", async () => {
+  const child = supervisorChild(); let closed = false;
+  const pending = superviseLegacy("node", [], {}, { spawn: () => child, deadlineMs: 1000 });
+  pending.then(() => { closed = true; });
+  child.emit("exit", 0, null); await Promise.resolve(); assert.equal(closed, false);
+  child.emit("close", 0, null);
+  const result = await pending;
+  assert.equal(result.closed, true); assert.equal(result.status, 0); assert.equal(result.timedOut, false);
+});
+
+test("a late exit-zero after the capture deadline remains a timeout failure", async () => {
+  const child = supervisorChild(), signals = [];
+  const result = await superviseLegacy("node", [], {}, {
+    spawn: () => child, deadlineMs: 5, graceMs: 5, killMs: 5,
+    kill: (pid, signal) => { assert.equal(pid, -424242); signals.push(signal); queueMicrotask(() => child.emit("close", 0, null)); },
+  });
+  assert.equal(result.status, 0); assert.equal(result.closed, true); assert.equal(result.timedOut, true);
+  assert.deepEqual(signals, ["SIGTERM"]);
+});
+
+test("a child that never closes is bounded and remains unsettled after hard termination", async () => {
+  const child = supervisorChild(), signals = [];
+  const result = await superviseLegacy("node", [], {}, {
+    spawn: () => child, deadlineMs: 5, graceMs: 5, killMs: 5, kill: (_pid, signal) => signals.push(signal),
+  });
+  assert.equal(result.closed, false); assert.equal(result.timedOut, true); assert.equal(child.unrefCount, 1);
+  assert.deepEqual(signals, ["SIGTERM", "SIGKILL"]);
+  child.emit("close", 0, null); assert.equal(result.closed, false);
+});
+
+test("supervisor permission refusal stops termination attempts", async () => {
+  const child = supervisorChild(), signals = [];
+  const result = await superviseLegacy("node", [], {}, {
+    spawn: () => child, deadlineMs: 5, graceMs: 5, killMs: 5,
+    kill: (_pid, signal) => { signals.push(signal); throw Object.assign(new Error("denied"), { code: "EPERM" }); },
+  });
+  assert.equal(result.closed, false); assert.equal(result.error.code, "EPERM");
+  assert.deepEqual(signals, ["SIGTERM"]);
+});
+
+test("supervisor retains spawn error and waits for its close event", async () => {
+  const child = supervisorChild();
+  const pending = superviseLegacy("node", [], {}, { spawn: () => child, deadlineMs: 1000 });
+  child.emit("error", new Error("fixture ENOENT")); child.emit("close", -2, null);
+  const result = await pending;
+  assert.equal(result.closed, true); assert.match(result.error.message, /ENOENT/);
+});
+
+function serverReport(child, phase, captureId = 'synthetic-attempt') {
+  child.emit('message', { legacyCaptureServer: { captureId, phase, pid: 424243, pgid: 424243 } });
+}
+
+test('normal producer completion binds its stopped server to this attempt without another termination', async () => {
+  const child = supervisorChild();
+  const pending = superviseLegacy('node', [], { env: { TERMINAL_LEGACY_CAPTURE_ID: 'synthetic-attempt' } }, {
+    spawn: () => child, deadlineMs: 1000, kill: () => { throw new Error('No second cleanup after a proven stop'); },
+  });
+  serverReport(child, 'started'); serverReport(child, 'stopped'); child.emit('close', 0, null);
+  const result = await pending;
+  assert.equal(result.closed, true); assert.equal(result.serverPid, 424243);
+  assert.equal(result.serverReportedStopped, true); assert.equal(result.serverSettled, true);
+});
+
+for (const survives of [false, true]) test(`hard producer termination reconciles its distinct server group, survives=${survives}`, async () => {
+  const child = supervisorChild(), signals = []; let alive = true, tick = 0;
+  const pending = superviseLegacy('node', [], { env: { TERMINAL_LEGACY_CAPTURE_ID: 'synthetic-attempt' } }, {
+    spawn: () => child, deadlineMs: 5, graceMs: 5, killMs: 5,
+    serverGraceMs: 5, serverKillMs: 5, now: () => tick, wait: async ms => { tick += ms; },
+    kill: (pid, signal) => {
+      if (pid === -424242) {
+        signals.push([pid, signal]);
+        if (signal === 'SIGKILL') queueMicrotask(() => child.emit('close', null, 'SIGKILL'));
+        return;
+      }
+      assert.equal(pid, -424243);
+      if (!alive) throw Object.assign(new Error('gone'), { code: 'ESRCH' });
+      if (signal !== 0) signals.push([pid, signal]);
+      if (signal === 'SIGKILL' && !survives) alive = false;
+    },
+  });
+  serverReport(child, 'started');
+  const result = await pending;
+  assert.equal(result.closed, true); assert.equal(result.timedOut, true);
+  assert.equal(result.serverReportedStopped, false); assert.equal(result.serverSettled, !survives);
+  assert.deepEqual(signals, [[-424242, 'SIGTERM'], [-424242, 'SIGKILL'], [-424243, 'SIGTERM'], [-424243, 'SIGKILL']]);
+});
+
+test('a producer close without an original server identity remains unsettled', async () => {
+  const child = supervisorChild();
+  const pending = superviseLegacy('node', [], {}, { spawn: () => child, deadlineMs: 1000,
+    kill: () => { throw new Error('No guessed server group'); } });
+  child.emit('close', 0, null);
+  const result = await pending;
+  assert.equal(result.closed, true); assert.equal(result.serverPid, null); assert.equal(result.serverSettled, false);
+});
+
+test('a server identity from another capture attempt is refused without signalling it', async () => {
+  const child = supervisorChild();
+  const pending = superviseLegacy('node', [], { env: { TERMINAL_LEGACY_CAPTURE_ID: 'synthetic-attempt' } }, {
+    spawn: () => child, deadlineMs: 1000, kill: () => { throw new Error('No unrelated server group'); },
+  });
+  serverReport(child, 'started', 'another-attempt'); child.emit('close', 0, null);
+  const result = await pending;
+  assert.match(result.error.message, /SERVER_REPORT/); assert.equal(result.serverPid, null); assert.equal(result.serverSettled, false);
+});
+
+test('server permission refusal leaves reconciliation unresolved and sends no termination signal', async () => {
+  const child = supervisorChild(), signals = [];
+  const pending = superviseLegacy('node', [], { env: { TERMINAL_LEGACY_CAPTURE_ID: 'synthetic-attempt' } }, {
+    spawn: () => child, deadlineMs: 1000,
+    kill: (pid, signal) => { signals.push([pid, signal]); throw Object.assign(new Error('denied'), { code: 'EPERM' }); },
+  });
+  serverReport(child, 'started'); child.emit('close', 1, null);
+  const result = await pending;
+  assert.equal(result.closed, true); assert.equal(result.serverSettled, false); assert.equal(result.error.code, 'EPERM');
+  assert.deepEqual(signals, [[-424243, 0]]);
+});
+
+for (const code of ["EPERM", "EACCES"]) {
+  test("Legacy capture producer " + code + " propagates to its parent without another server probe or signal", async () => {
+    const child = supervisorChild(), calls = [];
+    const captureId = "synthetic-refused-attempt", server = { pid: 424243, pgid: 424243, captureId };
+    const pending = superviseLegacy("node", [], { env: { TERMINAL_LEGACY_CAPTURE_ID: captureId } }, {
+      spawn: () => child, deadlineMs: 1000,
+      kill: (...args) => { calls.push(args); throw new Error("A denied server group must not be probed again"); },
+    });
+    child.emit("message", { legacyCaptureServer: { ...server, phase: "started" } });
+    const denied = Object.assign(new Error("original server permission refusal"), { code });
+    await assert.rejects(() => settleLegacyServer(server, {
+      stop: async () => { throw denied; },
+      report: async (actual, phase, actualCode) => {
+        assert.equal(actual, server); assert.equal(phase, "refused"); assert.equal(actualCode, code);
+        child.emit("message", { legacyCaptureServer: { ...server, phase, code: actualCode } });
+      },
+    }), error => error === denied);
+    child.emit("close", 1, null);
+    const result = await pending;
+    assert.equal(result.serverRefused, code); assert.equal(result.serverSettled, false);
+    assert.equal(result.error.code, code); assert.equal(result.closed, true); assert.deepEqual(calls, []);
+  });
+}
+
+test("the complete EOD packet retains21 states at three widths in both languages", () => {
+  const producer = require("./capture_eod_heatmap_flowdesk_load_failure.cjs");
+  assert.equal(Object.keys(producer.STATES).length, 21);
+  assert.equal(producer.FILES.length, 126);
+  assert.equal(new Set(producer.FILES).size, 126);
+});
+
+test("EOD retry uses a current fixture row while structure faults keep their SPY route", () => {
+  const producer = require("./capture_eod_heatmap_flowdesk_load_failure.cjs");
+  const fixture = require("../../public/data/darkpool_fixture.json");
+  const row = fixture.universe.find(row => row.ticker === "NVDA");
+  assert.ok(row);
+  assert.equal(row.asof, fixture.asof);
+  assert.equal(row.session_status, "current");
+  assert.ok(!fixture.universe.some(row => row.ticker === "SPY"));
+  for (const state of Object.keys(producer.STATES)) {
+    const url = new URL(producer.captureUrl(state), "http://capture.invalid");
+    if (state.startsWith("eod-darkpool-")) assert.equal(url.searchParams.get("symbol"), "NVDA");
+    else if (state.startsWith("eod-structure-")) assert.equal(url.href, "http://capture.invalid/options?tab=gex");
+  }
+});
+
+// Controlled IndexedDB event ports execute the actual serialized capture callback.
+// They prove observer ownership and transaction settlement, not real browser storage.
+function persistencePort(options = {}) {
+  const probe = require("./capture_eod_heatmap_flowdesk_load_failure.cjs").persistedFlowAccess;
+  const state = { opens: 0, reads: 0, puts: 0, closes: 0, aborts: 0, upgradesAborted: 0, schemaCreated: false,
+    record: options.record === false ? undefined : { url: "/data/flow_idx.json", data: { unchanged: [1, 2] }, ts: 12345 } };
+  const timers = new Map(); let nextTimer = 0;
+  const db = {
+    objectStoreNames: { contains: () => !options.emptyStore },
+    close() { state.closes++; },
+    transaction(_store, mode) {
+      if (options.transactionThrows) throw Object.assign(new Error("transaction failed"), { name: "InvalidStateError" });
+      const tx = { aborted: false, pending: null,
+        abort() {
+          state.aborts++;
+          if (options.abortThrows) throw Object.assign(new Error("already settled"), { name: "InvalidStateError" });
+          tx.aborted = true; tx.pending = null;
+          queueMicrotask(() => tx.onabort?.());
+        },
+        objectStore() {
+          return {
+            get() {
+              state.reads++;
+              const get = { result: state.record && structuredClone(state.record) };
+              state.get = get;
+              const deliver = () => {
+                if (options.readError) { get.error = { name: "UnknownError" }; get.onerror?.(); return; }
+                if (options.readAbort) { tx.abort(); return; }
+                get.onsuccess?.();
+                if (!options.holdComplete) queueMicrotask(() => {
+                  if (tx.aborted) return;
+                  if (options.abortBeforeCommit) { tx.abort(); return; }
+                  if (tx.pending) state.record = structuredClone(tx.pending);
+                  tx.oncomplete?.();
+                });
+              };
+              state.deliverRead = deliver;
+              if (!options.holdRead) queueMicrotask(deliver);
+              return get;
+            },
+            put(record) {
+              assert.equal(mode, "readwrite");
+              state.puts++; tx.pending = structuredClone(record);
+              const put = {};
+              if (options.writeError) queueMicrotask(() => { put.error = { name: "QuotaExceededError" }; put.onerror?.(); });
+              return put;
+            },
+          };
+        },
+      };
+      state.tx = tx;
+      return tx;
+    },
+  };
+  const indexedDB = {
+    databases() {
+      if (options.enumerationError) return Promise.reject(Object.assign(new Error("blocked"), { name: "SecurityError" }));
+      if (options.holdEnumeration) return new Promise(resolve => { state.resolveEnumeration = resolve; });
+      return Promise.resolve(options.absent ? [] : [{ name: "mm-data-cache", version: 1 }]);
+    },
+    open() {
+      state.opens++;
+      const open = { result: db };
+      state.open = open;
+      if (options.upgrade) {
+        let aborted = false;
+        open.transaction = { abort() { aborted = true; state.upgradesAborted++; } };
+        state.deliverUpgrade = () => {
+          open.onupgradeneeded?.();
+          state.schemaCreated = !aborted;
+        };
+        if (!options.holdOpen) queueMicrotask(state.deliverUpgrade);
+      } else if (options.blocked) queueMicrotask(() => open.onblocked?.());
+      else if (options.openError) queueMicrotask(() => { open.error = { name: "UnknownError" }; open.onerror?.(); });
+      else if (!options.holdOpen) queueMicrotask(() => open.onsuccess?.());
+      return open;
+    },
+  };
+  if (options.unsupported) delete indexedDB.databases;
+  const actual = require("node:vm").runInNewContext(`(${probe.toString()})`, {
+    indexedDB, Date: { now: () => 1_000_000 },
+    setTimeout(fn) { const id = ++nextTimer; timers.set(id, fn); return id; },
+    clearTimeout(id) { timers.delete(id); },
+  });
+  return { state, db, flush: () => new Promise(resolve => setImmediate(resolve)),
+    expire() { for (const [id, fn] of [...timers]) { timers.delete(id); fn(); } },
+    run(input = {}) { return actual({ url: "/data/flow_idx.json", ...input }).then(result => JSON.parse(JSON.stringify(result))); },
+  };
+}
+
+test("EOD persistence observation leaves an absent database absent", async () => {
+  const port = persistencePort({ absent: true });
+  assert.equal((await port.run()).status, "missing-database");
+  assert.equal(port.state.opens, 0); assert.equal(port.state.schemaCreated, false); assert.equal(port.state.puts, 0);
+});
+
+for (const [options, status] of [[{ unsupported: true }, "inspection-unavailable"], [{ enumerationError: true }, "inspection-failed"]]) {
+  test("EOD persistence " + status + " is distinct from an absent record", async () => {
+    const port = persistencePort(options);
+    assert.equal((await port.run()).status, status); assert.equal(port.state.opens, 0);
+  });
+}
+
+test("EOD persistence observation does not heal an empty existing database", async () => {
+  const port = persistencePort({ emptyStore: true });
+  assert.equal((await port.run()).status, "missing-store");
+  assert.equal(port.state.closes, 1); assert.equal(port.state.reads, 0); assert.equal(port.state.schemaCreated, false);
+});
+
+test("EOD persistence observation reads an existing record without changing it", async () => {
+  const port = persistencePort(), before = structuredClone(port.state.record);
+  assert.deepEqual(await port.run(), { status: "ready", ts: 12345, stage: "read" });
+  assert.deepEqual(port.state.record, before); assert.equal(port.state.puts, 0); assert.equal(port.state.closes, 1);
+});
+
+test("EOD persistence existence race aborts a new database upgrade", async () => {
+  const port = persistencePort({ upgrade: true });
+  assert.equal((await port.run()).status, "database-replaced");
+  assert.equal(port.state.upgradesAborted, 1); assert.equal(port.state.schemaCreated, false); assert.equal(port.state.reads, 0);
+});
+
+test("EOD persistence late upgrade after timeout is aborted and its handle closes", async () => {
+  const port = persistencePort({ upgrade: true, holdOpen: true }), pending = port.run();
+  await port.flush(); port.expire();
+  assert.equal((await pending).status, "probe-timeout");
+  port.state.deliverUpgrade();
+  assert.equal(port.state.upgradesAborted, 1); assert.equal(port.state.schemaCreated, false);
+  assert.equal(port.state.closes, 1); assert.equal(port.state.reads, 0);
+});
+
+for (const [options, status] of [
+  [{ blocked: true }, "open-blocked"], [{ openError: true }, "open-failed"],
+  [{ readError: true }, "read-failed"], [{ transactionThrows: true }, "transaction-failed"],
+  [{ readAbort: true }, "transaction-aborted"],
+]) {
+  test("EOD persistence reports " + status + " and never writes", async () => {
+    const port = persistencePort(options);
+    assert.equal((await port.run()).status, status); assert.equal(port.state.puts, 0);
+    if (!options.blocked && !options.openError) assert.equal(port.state.closes, 1);
+  });
+}
+
+test("EOD persistence no-event open is bounded and a late success only closes", async () => {
+  const port = persistencePort({ holdOpen: true }), pending = port.run();
+  await port.flush(); port.expire();
+  assert.equal((await pending).status, "probe-timeout");
+  port.state.open.onsuccess();
+  assert.equal(port.state.closes, 1); assert.equal(port.state.reads, 0); assert.equal(port.state.puts, 0);
+});
+
+test("EOD persistence late enumeration cannot start an open after timeout", async () => {
+  const port = persistencePort({ holdEnumeration: true }), pending = port.run();
+  await port.flush(); port.expire();
+  assert.equal((await pending).status, "probe-timeout");
+  port.state.resolveEnumeration([{ name: "mm-data-cache" }]); await port.flush();
+  assert.equal(port.state.opens, 0);
+});
+
+test("EOD aging changes only the timestamp and succeeds only on commit", async () => {
+  const port = persistencePort(), before = structuredClone(port.state.record);
+  assert.deepEqual(await port.run({ ageMs: 6000 }), { status: "ready", ts: 994000, aged: true, stage: "age" });
+  assert.deepEqual(port.state.record, { ...before, ts: 994000 }); assert.equal(port.state.puts, 1); assert.equal(port.state.closes, 1);
+});
+
+test("EOD aging never manufactures a missing record", async () => {
+  const port = persistencePort({ record: false });
+  assert.equal((await port.run({ ageMs: 6000 })).status, "missing-record");
+  assert.equal(port.state.record, undefined); assert.equal(port.state.puts, 0);
+});
+
+for (const [options, status] of [[{ abortBeforeCommit: true }, "transaction-aborted"], [{ writeError: true }, "write-failed"]]) {
+  test("EOD aging " + status + " does not certify or commit a timestamp", async () => {
+    const port = persistencePort(options), before = structuredClone(port.state.record);
+    assert.equal((await port.run({ ageMs: 6000 })).status, status); assert.deepEqual(port.state.record, before);
+  });
+}
+
+test("EOD aging timeout aborts and a late read cannot issue a write", async () => {
+  const port = persistencePort({ holdRead: true }), before = structuredClone(port.state.record), pending = port.run({ ageMs: 6000 });
+  await port.flush(); port.expire();
+  assert.equal((await pending).status, "probe-timeout");
+  port.state.deliverRead(); await port.flush();
+  assert.equal(port.state.puts, 0); assert.deepEqual(port.state.record, before); assert.equal(port.state.aborts, 1);
+});
+
+test("EOD aging timeout aborts a queued write before any success receipt", async () => {
+  const port = persistencePort({ holdComplete: true }), before = structuredClone(port.state.record), pending = port.run({ ageMs: 6000 });
+  await port.flush(); assert.equal(port.state.puts, 1); port.expire();
+  assert.equal((await pending).status, "probe-timeout");
+  assert.deepEqual(port.state.record, before); assert.equal(port.state.tx.pending, null); assert.equal(port.state.aborts, 1);
+});
+
+test("EOD aging cannot claim failed-write absence when abort settlement is unproven", async () => {
+  const port = persistencePort({ holdComplete: true, abortThrows: true }), pending = port.run({ ageMs: 6000 });
+  await port.flush(); port.expire();
+  const result = await pending;
+  assert.equal(result.status, "write-settlement-unproven"); assert.equal(result.cause, "probe-timeout");
+});
+
+test("EOD persistence version change releases its connection and aborts pending work", async () => {
+  const port = persistencePort({ holdRead: true }), pending = port.run();
+  await port.flush(); port.db.onversionchange();
+  assert.equal((await pending).status, "version-changed");
+  assert.equal(port.state.aborts, 1); assert.equal(port.state.closes, 1); assert.equal(port.state.puts, 0);
 });
