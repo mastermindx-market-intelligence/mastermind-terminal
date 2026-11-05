@@ -20,6 +20,7 @@ const { spawn, execFileSync } = require("node:child_process");
 const { createHash } = require("node:crypto");
 const { closeSync, fsyncSync, lstatSync, mkdirSync, openSync, readFileSync, renameSync, unlinkSync, writeFileSync } = require("node:fs");
 const { join } = require("node:path");
+const { trackOwnedServer, prepareNamespace } = require("./f11_owned_server.cjs");
 
 const ROOT = join(__dirname, "..", "..");
 const REPO = join(ROOT, "..");
@@ -221,22 +222,19 @@ function startServer() {
   return child;
 }
 
-function stopServer(child) {
-  if (!child || !child.pid) return;
-  try {
-    process.kill(-child.pid, "SIGTERM");
-  } catch {
-    try { child.kill("SIGTERM"); } catch { /* already gone */ }
-  }
+async function stopServer(owner) {
+  await owner.stop();
 }
 
-async function waitForServer(timeoutMs) {
+async function waitForServer(timeoutMs, owner) {
   const deadline = Date.now() + timeoutMs;
   let last = "not tried";
   while (Date.now() < deadline) {
+    owner.assertRunning();
     try {
       const res = await fetch(`${BASE}/analysis?symbol=${SYM}`, { redirect: "manual", headers: { Cookie: "mm_e2e_rs30=1" } });
       last = String(res.status);
+      owner.assertRunning();
       if (res.status >= 200 && res.status < 500) return;
     } catch (err) {
       last = err.cause?.code || err.message;
@@ -371,18 +369,20 @@ async function main() {
   const { chromium } = require("@playwright/test");
   assertNoCaptureDotenv();
   const capturedAtHead = currentGitHead();
+  const namespace = prepareNamespace(ROOT);
   const child = startServer();
+  const owner = trackOwnedServer(child);
   const files = [];
   const entryObservations = [];
   let captureProfile;
 
   try {
-    await waitForServer(180_000);
+    await waitForServer(180_000, owner);
     const browserManifest = JSON.parse(readFileSync(join(require.resolve("playwright-core/package.json"), "..", "browsers.json"), "utf8"));
     const browser = await chromium.launch({ headless: true });
     try {
       captureProfile = {
-      server: { command: "next dev --webpack", mode: "development", reactDebugChannel: false, providerClosedChild: true },
+      server: { command: "next dev --webpack", mode: "development", reactDebugChannel: false, providerClosedChild: true, distDir: ".next/f11", tsconfigPath: "tsconfig.f11.json" },
       node: process.version, next: require("next/package.json").version,
       playwright: require("@playwright/test/package.json").version,
       browser: { version: browser.version(), revision: browserManifest.browsers.find(entry => entry.name === "chromium-headless-shell")?.revision,
@@ -443,16 +443,22 @@ async function main() {
       await browser.close();
     }
   } finally {
-    stopServer(child);
+    await stopServer(owner);
+    namespace.restoreGeneratedTypeFile();
   }
 
   const fixturePayload = {
     schema: "terminal.f11-source-component-fixture.v1",
     capturedAtHead,
     captureProfile,
+    serverSettlement: owner.settlement(),
+    generatedTypes: namespace.summary(),
     fixtureSources: Object.fromEntries([
       "terminal/e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs",
       "terminal/e2e/tools/f11_provider_closed_policy.cjs",
+      "terminal/e2e/tools/f11_owned_server.cjs",
+      "terminal/tsconfig.f11.json",
+      "terminal/tsconfig.json",
       "terminal/next.config.ts",
       "terminal/package-lock.json",
       "terminal/app/(shell)/analysis/page.tsx",

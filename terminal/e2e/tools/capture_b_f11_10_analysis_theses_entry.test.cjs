@@ -171,7 +171,7 @@ test("failure artifact is distinct from success and excludes raw error message",
 test("F11 source-component server explicitly selects supported webpack, without changing app or boundary flags", () => {
   const source=fs.readFileSync(path.join(__dirname,"capture_b_f11_10_analysis_theses_entry.cjs"),"utf8");
   assert.match(source,/spawn\("npm", \["run", "dev", "--", "--webpack", "--hostname", "127\.0\.0\.1", "--port", String\(PORT\)\]/);
-  assert.match(source,/waitForServer\(180_000\)/);
+  assert.match(source,/waitForServer\(180_000, owner\)/);
   assert.match(source,/waitForBusinessRequest\(\)/);
   assert.match(source,/maxRedirects: 0/);
 });
@@ -301,11 +301,16 @@ test("actual Next config disables only F11 development debug transport; producti
   const env={NODE_ENV:"development",TERMINAL_E2E_FIXTURE:"1",TERMINAL_F11_PROVIDER_CLOSED:"1"};
   const f11=evaluateActualNextConfig(env);
   assert.equal(f11.experimental.reactDebugChannel,false);
+  assert.equal(f11.distDir,".next/f11");
+  assert.equal(f11.typescript.tsconfigPath,"tsconfig.f11.json");
   for (const other of [{NODE_ENV:"production",TERMINAL_E2E_FIXTURE:"1",TERMINAL_F11_PROVIDER_CLOSED:"1"},{NODE_ENV:"development"},{NODE_ENV:"development",TERMINAL_E2E_FIXTURE:"1"},{NODE_ENV:"development",TERMINAL_F11_PROVIDER_CLOSED:"1"},{NODE_ENV:"test",TERMINAL_E2E_FIXTURE:"1",TERMINAL_F11_PROVIDER_CLOSED:"1"}]) {
-    assert.equal(evaluateActualNextConfig(other).experimental.reactDebugChannel,true);
+    const normal=evaluateActualNextConfig(other);
+    assert.equal(normal.experimental.reactDebugChannel,true);
+    assert.equal(normal.distDir,undefined);
+    assert.equal(normal.typescript,undefined);
   }
   const ordinary=evaluateActualNextConfig({...env,TERMINAL_F11_PROVIDER_CLOSED:"0"});
-  assert.equal(JSON.stringify({...f11,experimental:undefined}),JSON.stringify({...ordinary,experimental:undefined}));
+  assert.equal(JSON.stringify({...f11,experimental:undefined,distDir:undefined,typescript:undefined}),JSON.stringify({...ordinary,experimental:undefined,distDir:undefined,typescript:undefined}));
   assert.equal(captureServerEnv({TERMINAL_F11_PROVIDER_CLOSED:"0"}).TERMINAL_F11_PROVIDER_CLOSED,"1");
 });
 
