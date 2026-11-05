@@ -50,7 +50,10 @@ jobs:
   # workflow_dispatch runs never see this job and always run the full suite.
   pr_scope:
     name: PR test scope
-    if: ${{ github.event_name == 'pull_request' }}
+    # Only a pull request against the protected default branch is classified;
+    # a PR targeting any other branch runs the full suite (the classifier is
+    # taken from HEAD^1, which is only trusted when that is the default branch).
+    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref == github.event.repository.default_branch }}
     runs-on: ubuntu-latest
     timeout-minutes: 3
     outputs:
@@ -67,6 +70,8 @@ jobs:
         id: scope
         env:
           PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_BASE_REF: ${{ github.event.pull_request.base.ref }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
           set -euo pipefail
           trusted="$RUNNER_TEMP/ci-trusted-base"
@@ -74,7 +79,9 @@ jobs:
           if git cat-file -e "HEAD^1:scripts/ci_pr_scope.py" 2>/dev/null; then
             git archive HEAD^1 scripts/ci_pr_scope.py | tar -x -C "$trusted"
             python3 "$trusted/scripts/ci_pr_scope.py" \
-              --repo "$GITHUB_WORKSPACE" --base-sha "$PR_BASE_SHA" --output "$GITHUB_OUTPUT"
+              --repo "$GITHUB_WORKSPACE" --base-sha "$PR_BASE_SHA" \
+              --base-ref "$PR_BASE_REF" --default-branch "$DEFAULT_BRANCH" \
+              --output "$GITHUB_OUTPUT"
           else
             printf 'mode=full\nreason=CLASSIFIER_NOT_IN_PROTECTED_BASE\n' >> "$GITHUB_OUTPUT"
             echo 'CI_SCOPE mode=full reason=CLASSIFIER_NOT_IN_PROTECTED_BASE'
@@ -94,25 +101,25 @@ jobs:
       run:
         working-directory: hub
     steps:
-      - if: ${{ needs.pr_scope.outputs.mode != 'docs' }}
+      - if: ${{ !(needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
         uses: actions/checkout@v4
-      - if: ${{ needs.pr_scope.outputs.mode != 'docs' }}
+      - if: ${{ !(needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
           cache-dependency-path: hub/package-lock.json
-      - if: ${{ needs.pr_scope.outputs.mode != 'docs' }}
+      - if: ${{ !(needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
         run: npm ci
-      - if: ${{ needs.pr_scope.outputs.mode != 'docs' }}
+      - if: ${{ !(needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
         run: npm test
-      - if: ${{ needs.pr_scope.outputs.mode != 'docs' }}
+      - if: ${{ !(needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
           cache: pip
           cache-dependency-path: hub/requirements-futures.txt
-      - if: ${{ needs.pr_scope.outputs.mode != 'docs' }}
+      - if: ${{ !(needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
         name: Futures offline SDK and source conformance
         run: |
           python -m pip install -r requirements-futures.txt
@@ -503,10 +510,8 @@ jobs:
               echo "$job skipped: docs-only pull request (pr_scope mode=docs)"
               continue
             fi
-            if true; then
-              echo "::error title=terminal-ci::$job concluded '$res' (expected 'success')"
-              fail=1
-            fi
+            echo "::error title=terminal-ci::$job concluded '$res' (expected 'success')"
+            fail=1
           done
           [ "$fail" -eq 0 ] || exit 1
           echo "All terminal shards green."
@@ -522,21 +527,21 @@ jobs:
     # itself failed or was skipped: mode is then empty and every step runs.
     if: ${{ !cancelled() }}
     steps:
-      - if: ${{ needs.pr_scope.outputs.mode != 'docs' }}
+      - if: ${{ !(needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
         uses: actions/checkout@v4
       # The Scenario PostgreSQL qualification drives the actual TypeScript HTTP
       # consumer in this same job. Python and PostgreSQL alone cannot run it.
-      - if: ${{ needs.pr_scope.outputs.mode != 'docs' }}
+      - if: ${{ !(needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
           cache-dependency-path: terminal/package-lock.json
-      - if: ${{ needs.pr_scope.outputs.mode != 'docs' }}
+      - if: ${{ !(needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
         name: Install Terminal consumer test dependencies
         run: npm ci
         working-directory: terminal
-      - if: ${{ needs.pr_scope.outputs.mode != 'docs' }}
+      - if: ${{ !(needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -554,14 +559,14 @@ jobs:
       #                    can't misread a comment or a `run:` shell block as a real job key.
       # requirements.txt additionally carries fastapi/uvicorn, which nothing under tests/
       # imports — installing them would only slow the job down.
-      - if: ${{ needs.pr_scope.outputs.mode != 'docs' }}
+      - if: ${{ !(needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
         run: pip install numpy pandas pyarrow jsonschema pyyaml requests yfinance==1.4.1 pytest
       # Keep the broad ingest suite fail-closed when PostgreSQL binaries are missing.
       # The dedicated upstream Investigation job remains an additional gate.
-      - if: ${{ needs.pr_scope.outputs.mode != 'docs' }}
+      - if: ${{ !(needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
         name: Put PostgreSQL binaries on PATH
         run: echo "$(pg_config --bindir)" >> "$GITHUB_PATH"
-      - if: ${{ needs.pr_scope.outputs.mode != 'docs' }}
+      - if: ${{ !(needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
         name: Require PostgreSQL rather than silently skip
         run: |
           command -v initdb
@@ -582,7 +587,7 @@ jobs:
       # merge-on-green orders after refreshing a stale branch (round 4, MAJOR 2):
       # on that trigger github.event.pull_request.number is empty, and that
       # dispatched run is then the only CI run for the sha that merges.
-      - if: ${{ needs.pr_scope.outputs.mode != 'docs' }}
+      - if: ${{ !(needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
         run: python -m pytest tests/ -q
         env:
           PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr_number }}
