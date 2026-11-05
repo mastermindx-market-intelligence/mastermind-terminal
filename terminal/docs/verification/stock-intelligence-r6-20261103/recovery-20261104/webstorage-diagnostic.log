@@ -1,0 +1,12 @@
+The CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.
+
+ RUN  v2.1.9 <original-managed-workspace>/terminal
+
+ ✓ lib/__tests__/onboardingOAuthContext.test.ts (3 tests) 14ms
+ ✓ lib/__tests__/documentLanguageSync.test.tsx (5 tests) 25ms
+
+ Test Files  2 passed (2)
+      Tests  8 passed (8)
+   Start at  23:02:43
+   Duration  1.41s (transform 120ms, setup 0ms, collect 170ms, tests 39ms, environment 807ms, prepare 108ms)
+
