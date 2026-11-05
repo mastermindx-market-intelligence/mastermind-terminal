@@ -98,7 +98,8 @@ def normalize_index_daily(
         if not isinstance(raw, dict) or raw.get("ts_code") not in expected_codes:
             return []
         date = _trade_date(raw.get("trade_date"))
-        if date is None or date > (as_of + dt.timedelta(days=1)).isoformat():
+        # Keep admission within the same inclusive cutoff sent as end_date.
+        if date is None or date > as_of.isoformat():
             continue
         prices = [_finite(raw.get(field)) for field in ("open", "high", "low", "close")]
         lots = _finite(raw.get("vol"))

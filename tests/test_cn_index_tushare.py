@@ -142,13 +142,34 @@ def test_reject_invalid_dates(date):
     assert len(got) == MIN_VALID_DAILY_BARS
 
 
-def test_reject_future_and_stale_series():
+@pytest.mark.parametrize("future_date", ["20261105", "20261201"])
+def test_reject_future_and_stale_series(future_date):
     future = rows()
-    future[0]["trade_date"] = "20261201"
+    future[0]["trade_date"] = future_date
     assert len(normalize_index_daily("000300.SS", future, as_of=AS_OF)) == MIN_VALID_DAILY_BARS
     assert normalize_index_daily(
         "000300.SS", [item(date="20260901")], as_of=AS_OF, min_bars=1,
     ) == []
+
+
+@pytest.mark.parametrize("valid_count", [MIN_VALID_DAILY_BARS - 1, MIN_VALID_DAILY_BARS])
+def test_provider_rows_after_requested_end_date_cannot_publish_or_meet_depth(valid_count):
+    candidate = rows(n=valid_count) + [
+        item(date=(AS_OF + dt.timedelta(days=1)).strftime("%Y%m%d")),
+    ]
+
+    def query(endpoint, **kwargs):
+        assert endpoint == "index_daily"
+        assert kwargs["end_date"] == AS_OF.strftime("%Y%m%d")
+        return FakeFrame(candidate)
+
+    got = fetch_cn_index_history("000300.SS", query=query, as_of=AS_OF)
+    if valid_count < MIN_VALID_DAILY_BARS:
+        assert got == []  # The rejected future candle cannot satisfy the floor.
+    else:
+        assert len(got) == valid_count
+        assert got[-1][0] == AS_OF.isoformat()
+        assert all(row[0] <= AS_OF.isoformat() for row in got)
 
 
 def test_reject_downgraded_history_depth_and_missing_provider():
