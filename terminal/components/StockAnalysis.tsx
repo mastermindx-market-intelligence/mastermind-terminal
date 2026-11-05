@@ -424,9 +424,9 @@ function IvMini({ opts, bars, pick }: { opts: StockVolatility | null; bars: Bar[
       <Section title={pick("Implied volatility", "隐含波动率")} sub={pick("Options Hub · end of day", "期权中心 · 收盘数据")}>
         <div className="sa-iv-mini">
           <div className="sa-iv-lbl">{pick("ATM term structure", "ATM期限结构")}</div>
-          <LineSeries labels={termLabels} series={[{ name: "IV", values: termVals, color: "var(--brand-2)" }]} markers noLegend fmtY={(v) => v.toFixed(0) + "%"} vw={300} vh={110} />
+          <LineSeries labels={termLabels} series={[{ name: "IV", values: termVals, color: "var(--brand-2)" }]} breakBefore={opts.termBreakBefore} markers noLegend fmtY={(v) => v.toFixed(0) + "%"} vw={300} vh={110} />
         </div>
-        {smile && smile.strikes.length > 1 && (
+        {smile && smile.strikes.length > 0 && (
           <div className="sa-iv-mini">
             <div className="sa-iv-lbl">{pick(`Call IV · ${smile.expiry}`, `看涨期权隐含波动率 · ${smile.expiry}`)}</div>
             <LineSeries labels={smile.strikes.map((s) => fnum(s, s < 10 ? 1 : 0))} series={[{ name: "IV", values: smile.callIv, color: "var(--brand-2)" }]} noLegend fmtY={(v) => v.toFixed(0) + "%"} vw={300} vh={110} />

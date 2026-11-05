@@ -19,6 +19,7 @@ import { useIsMobile, useIsPhone } from "@/lib/useMediaQuery";
 import MobileSheet from "@/components/ui/MobileSheet";
 import { useDialogFocus } from "@/components/studyTemplates/useDialogFocus";
 import styles from "./SearchModal.module.css";
+import CompanyListingIdentity from "./CompanyListingIdentity";
 import {
   formatWatchlistChange,
   formatWatchlistPrice,
@@ -89,6 +90,7 @@ export default function SearchModal({
   email, lists = [], activeList = "", onSwitchList, onCreateList, onAddToList, onAddToPortfolio,
   marketPrefs = DEFAULT_PREFS, prefsReady = false, onShowAllMarkets,
   onClose, onPick, onAdd, onRemove, onToggleCompare, compareCfg, trackSource,
+  onCompanyPick, initialSelection,
   universeState = "ready", onRetryUniverse,
 }: {
   open: boolean; seed: string; manifest: Record<string, Row>;
@@ -131,12 +133,15 @@ export default function SearchModal({
   /** Re-request the universe after a failed read. Required for the "unavailable" state to recover. */
   onRetryUniverse?: () => void;
   companyScope?: boolean;
+  onCompanyPick?: (symbol: string, query: string) => void;
+  initialSelection?: string;
 }) {
   const t = useT();
   const { lang } = useLang();
   const onboarding = useOnboarding();
   const [q, setQ] = useState("");
   const [sel, setSel] = useState(0);
+  const [companyPreview, setCompanyPreview] = useState<string | null>(null);
   const [choosing, setChoosing] = useState<string | null>(null);
   const [recentlyViewed, setRecentlyViewed] = useState<string[]>([]);
   const [cat, setCat] = useState("All");   // selected asset-class tab
@@ -186,6 +191,7 @@ export default function SearchModal({
     if (open) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- synchronize a newly opened dialog with its external seed.
       setQ(seed || "");
+      setCompanyPreview(initialSelection ?? null);
       setSel(0);
       setChoosing(null);
       setCat("All");
@@ -199,7 +205,7 @@ export default function SearchModal({
       // The mounted dialog/sheet owns initial focus. A delayed second focus could steal it
       // back from a new task (Portfolio/sign-in) or from the control the user already reached.
     }
-  }, [open, seed, mode, companyScope]);
+  }, [open, seed, mode, companyScope, initialSelection]);
 
   useEffect(() => {
     if (choosing) compareChoiceRef.current?.focus({ preventScroll: true });
@@ -368,12 +374,16 @@ export default function SearchModal({
 
   // Default highlight: if active symbol not in watchlist → pre-select it; else 0.
   const defaultSel = useMemo(() => {
+    if (initialSelection) {
+      const idx = displayRows.findIndex(([s]) => s === initialSelection);
+      if (idx >= 0) return idx;
+    }
     if (showRecentRows && !inWatchlist.has(active)) {
       const idx = recentResults.findIndex(([s]) => s === active);
       return idx >= 0 ? idx : 0;
     }
     return 0;
-  }, [showRecentRows, active, inWatchlist, recentResults]);
+  }, [initialSelection, displayRows, showRecentRows, active, inWatchlist, recentResults]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- the external active symbol initializes keyboard selection when opened.
@@ -454,6 +464,11 @@ export default function SearchModal({
 
   function choose(sym: string, shiftKey = false) {
     if (companyScope && !isCompanySearchRow(sym, manifest[sym])) return;
+    if (companyScope && isPick) {
+      setSel(displayRows.findIndex(([s]) => s === sym));
+      setCompanyPreview(sym);
+      return;
+    }
     // Compare mode isn't committed here — a row click only opens the price/% chooser (or removes
     // an existing overlay). The actual commit is the segment button, which tracks itself. So only
     // log go/add commits here; compare logging lives on the cmp-seg-half handlers.
@@ -480,6 +495,14 @@ export default function SearchModal({
     }
   }
 
+  function openCompany() {
+    if (!companyPreview || !isCompanySearchRow(companyPreview, manifest[companyPreview])) return;
+    track(companyPreview);
+    if (onCompanyPick) onCompanyPick(companyPreview, q.trim());
+    else onPick(companyPreview);
+    onClose();
+  }
+
   // Total selectable row count (composite row + display rows).
   const totalRows = (showCompositeRow ? 1 : 0) + displayRows.length;
 
@@ -491,8 +514,12 @@ export default function SearchModal({
   }
 
   function key(e: React.KeyboardEvent) {
-    if (e.key === "ArrowDown") { e.preventDefault(); setSel((s) => Math.min(s + 1, totalRows - 1)); }
-    else if (e.key === "ArrowUp") { e.preventDefault(); setSel((s) => Math.max(s - 1, 0)); }
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      const next = e.key === "ArrowDown" ? Math.min(sel + 1, totalRows - 1) : Math.max(sel - 1, 0);
+      setSel(next);
+      setCompanyPreview(companyScope && isPick ? displayRows[next]?.[0] ?? null : null);
+    }
     else if (e.key === "Enter") {
       e.preventDefault();
       const shift = e.shiftKey;
@@ -501,7 +528,8 @@ export default function SearchModal({
       } else {
         const idx = showCompositeRow ? sel - 1 : sel;
         const row = displayRows[idx];
-        if (row) choose(row[0], shift);
+        if (row && companyScope && isPick && companyPreview === row[0]) openCompany();
+        else if (row) choose(row[0], shift);
         else if (isAdd && !inWatchlist.has(active)) {
           track(active);
           onAdd?.(active);
@@ -716,8 +744,9 @@ export default function SearchModal({
             ref={inputRef}
             data-autofocus={focusSearchInput ? true : undefined}
             value={q}
+            maxLength={companyScope ? 160 : undefined}
             placeholder={cmp ? t("comparePlaceholder") : t(placeholderKey)}
-            onChange={(e) => { closePicker(); setChoosing(null); setQ(e.target.value); setSel(0); }}
+            onChange={(e) => { closePicker(); setCompanyPreview(null); setChoosing(null); setQ(e.target.value); setSel(0); }}
             onFocus={() => { closePicker(); setView("search"); }}
             onKeyDown={key}
             role="combobox"
@@ -844,7 +873,7 @@ export default function SearchModal({
           /* SEARCH / compare / add body — the combobox's popup (D6). The informational chrome
              interleaved with the options (composite warning, section headers, empty states, the
              market-filter disclosure) is marked presentational so it does not read as a result. */
-          <div className="sres" id={listboxId} role="listbox" aria-label={t(titleKey)}>
+          <div className={`sres${companyScope && isPick ? ` ${styles.companyResults}` : ""}`} id={listboxId} role="listbox" aria-label={t(titleKey)}>
             {/* Composite first row (F2) */}
             {showCompositeRow && compositeExprStr && (
               <div
@@ -1024,6 +1053,11 @@ export default function SearchModal({
           </div>
         )}
 
+        {companyScope && isPick && companyPreview && displayRows.some(([s]) => s === companyPreview) && (
+          <CompanyListingIdentity key={companyPreview} symbol={companyPreview}
+            name={manifest[companyPreview] ? displayName(manifest[companyPreview], lang) : undefined}
+            venue={manifest[companyPreview]?.mkt} query={q.trim()} preview onOpen={openCompany} />
+        )}
         {cmp && <div className="scmp-foot">{t("compareHint")}</div>}
 
         {/* F3 footer hint for "add" mode (per S5) */}
@@ -1033,6 +1067,7 @@ export default function SearchModal({
       </>
   );
 
+  const title = companyScope ? pick(lang === "zh", "Search companies", "搜索公司") : t(cmp ? "compareTitle" : titleKey);
   // R2c — on the phone the ticker picker is a DRAWER, the idiom the Drawings sheet established:
   // it presents over a live chart at 62%, drags to full and back, and a short flick down
   // dismisses it. Compare and Add Symbol keep the centred modal — they are sub-tasks of a
@@ -1042,7 +1077,7 @@ export default function SearchModal({
       <MobileSheet
         open
         onClose={onClose}
-        title={t(titleKey)}
+        title={title}
         detents={SEARCH_DETENTS}
         className="msheet-search"
         initialFocus="sheet"
@@ -1052,7 +1087,6 @@ export default function SearchModal({
     );
   }
 
-  const title = companyScope ? pick(lang === "zh", "Search companies", "搜索公司") : t(cmp ? "compareTitle" : titleKey);
   const closeLabel = companyScope ? pick(lang === "zh", "Close company search", "关闭公司搜索")
     : cmp ? pick(lang === "zh", "Close comparison", "关闭对比")
     : isAdd ? pick(lang === "zh", "Close add symbol", "关闭添加标的")

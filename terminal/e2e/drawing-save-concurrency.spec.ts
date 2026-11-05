@@ -127,10 +127,18 @@ test("a failed drawings read is shown and keeps drawing disabled",async({page})=
 test("two devices conflict and cloud survives until an explicit recovery choice",async({page,browser,baseURL})=>{
  const secondContext=await browser.newContext({baseURL,viewport:page.viewportSize()!,hasTouch:(page.viewportSize()?.width ?? 1440)<=820});const second=await secondContext.newPage();
  let cloud:any={drawings:[],revision:null,schemaVersion:1};let commits=0;let calls=0;
+ let rejectedStaleWrite=false;
+ let conflictHandled!:()=>void;const conflictResponse=new Promise<void>(resolve=>{conflictHandled=resolve;});
+ let recoveryReadHandled!:()=>void;const recoveryRead=new Promise<void>(resolve=>{recoveryReadHandled=resolve;});
  const serve=async(route:any)=>{
-  if(route.request().method()==="GET"){await route.fulfill(json(cloud));return;}
+  if(route.request().method()==="GET"){
+   const isRecoveryRead=rejectedStaleWrite&&route.request().frame().page()===second;
+   await route.fulfill(json(cloud));
+   if(isRecoveryRead)recoveryReadHandled();
+   return;
+  }
   calls++;const body=route.request().postDataJSON();
-  if(body.expectedRevision!==cloud.revision){await route.fulfill({status:409,contentType:"application/json",body:JSON.stringify({ok:false,code:"revision_conflict"})});return;}
+  if(body.expectedRevision!==cloud.revision){rejectedStaleWrite=true;await route.fulfill({status:409,contentType:"application/json",body:JSON.stringify({ok:false,code:"revision_conflict"})});conflictHandled();return;}
   commits++;cloud={drawings:body.drawings,revision:commits===1?committed:nextRevision,schemaVersion:1};
   await route.fulfill(json({ok:true,operationId:body.operationId,revision:cloud.revision,idempotentReplay:false,superseded:false}));
  };
@@ -138,6 +146,10 @@ test("two devices conflict and cloud survives until an explicit recovery choice"
   await page.route("**/api/drawings**",serve);await second.route("**/api/drawings**",serve);
   await seed(page,{drawings:[line("tab-a")],revision:null});await open(page);await expect.poll(()=>commits).toBe(1);
   await seed(second,{drawings:[line("tab-b")],revision:null});await open(second);
+  // A visible canvas does not mean the queued save has received its 409 or the
+  // recovery read. Fence those fixture events before starting the UI assertions;
+  // otherwise their 5s budget also includes unrelated hydration/journal work.
+  await conflictResponse;await recoveryRead;
   await expect(second.getByTestId("drawing-save-recovery")).toContainText("cloud copy changed");
   await expect(second.getByTestId("drawing-save-recovery")).toContainText("Cloud drawings (1)");
   expect(cloud.drawings[0].id).toBe("tab-a");expect(commits).toBe(1);expect(calls).toBe(2);

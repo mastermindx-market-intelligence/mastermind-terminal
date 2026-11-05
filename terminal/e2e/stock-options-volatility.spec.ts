@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
-test("stock analysis reads the exact ticker from the Options Hub and displays its source date", async ({ page }) => {
+test("stock analysis reads the exact ticker from the Options Hub and displays its source date", async ({ page, baseURL }) => {
+  await page.context().addCookies([{ name: "mm_e2e_rs30", value: "1", url: baseURL! }]);
   const legacyReads: string[] = [];
   let sourceSession = "2026-10-30";
   page.on("request", request => {
@@ -12,7 +13,9 @@ test("stock analysis reads the exact ticker from the Options Hub and displays it
       term: [{ exp: "2026-11-27", dte: 28, atm_iv: 32.05 }],
       smile: [],
     } }));
-  await page.goto("/terminal?symbol=NVDA");
+  const response = await page.goto("/terminal?symbol=NVDA");
+  expect(response?.status()).toBe(200);
+  await expect(page).toHaveURL(/\/terminal\?symbol=NVDA$/);
   await expect(page.locator(".detail-scroll .sa-iv-asof").first()).toContainText("2026-10-30", { timeout: 45_000 });
   await expect(page.locator(".detail-scroll .sa-iv-asof").first()).toContainText(/Cached after a feed error|显示缓存/);
   sourceSession = "2026-11-02";

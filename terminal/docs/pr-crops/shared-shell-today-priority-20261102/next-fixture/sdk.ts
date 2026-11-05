@@ -1,0 +1,1 @@
+export const createClient=()=>({auth:{getUser:async()=>({data:{user:{id:"11111111-1111-4111-8111-111111111111",email:"fixture@example.invalid",app_metadata:{},user_metadata:{}}},error:null}),getSession:async()=>({data:{session:null},error:null}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})}});
