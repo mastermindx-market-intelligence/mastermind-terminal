@@ -2665,6 +2665,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
 
           <section className={styles.editorPane} data-testid="thesis-detail-pane">
             <button type="button" className={styles.mobileBack} disabled={carrierLocked} onClick={backToList}>{copy.backToList}</button>
+            {message && <p className={styles.message} role="status">{message}</p>}
             {detailState === "loading" ? <div className={styles.centerState} role="status"><p>{copy.loading}</p></div>
               : detailState === "not_found" ? <div className={styles.centerState} role="status" data-testid="thesis-not-found"><span className={styles.stateMark}>?</span><h1>{copy.notFound}</h1><p>{copy.notFoundBody}</p></div>
                 : detailState === "unavailable" ? <div className={styles.centerState} role="status"><span className={styles.stateMark}>!</span><h1>{copy.unavailable}</h1><p>{copy.unavailableBody}</p>{selectedId && <button onClick={() => beginDetailLoad(selectedId)}>{copy.retry}</button>}</div>
@@ -2681,7 +2682,6 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
                       </p>
                     )}
                     {conflict && <div className={styles.conflict} role="alert" data-testid="thesis-conflict"><div><strong>{copy.conflict}</strong><p>{copy.conflictBody} {copy.current}: {copy.version} {conflict.currentVersion} · {statusLabel(conflict.lifecycleState, copy)}</p></div><div><button onClick={reloadAfterConflict}>{copy.reload}</button><button onClick={() => void copyDraft()}>{copy.copyDraft}</button></div></div>}
-                    {message && <p className={styles.message} role="status">{message}</p>}
                     {isDirty && !pending && <div className={styles.dirtyDraft} role="status" data-testid="thesis-dirty-draft"><div><strong>{copy.unsaved}</strong><p>{copy.unsavedBody}</p></div><button type="button" onClick={() => void copyDraft()}>{copy.copyDraft}</button></div>}
                     {pendingQueue.length > 0 && <section className={styles.dirtyDraft} data-testid="thesis-pending-recovery">
                       <div><strong>{copy.pendingRecoveries}: {pendingQueue.length}</strong></div>

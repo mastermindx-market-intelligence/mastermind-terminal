@@ -283,3 +283,40 @@ the new source in its disposable CI checkout; no screenshot/hash restamp or
 manual rerun occurred. SQL0050 remains unapplied, Macro#9601 coordinated release
 and ordinary-provider live acceptance remain separate, and this follow-up adds
 no merge admission, deployment or product-completion claim.
+
+## Recovery confirmation visibility follow-up — 2026-11-05
+
+Natural CI[42098881998](https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/42098881998)
+at source head `69e09a15c022c746b7bba814345857f1b6308278` exposed a
+separate rendering defect in unit job[127496922202](https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/42098881998/job/127496922202).
+The full job reported19,015 passing tests and two failures. In the existing
+ontology/history suite, both recovery-envelope regressions expected the accepted
+Saved-as-version confirmation while the controlled list read remained pending;
+the detail pane rendered only Loading. The later-navigation generation case
+passed. This is evidence of hidden confirmation rendering, not evidence that
+the prior generation-retirement guard failed.
+
+The existing message paragraph is moved once from the editor-only alternative
+to immediately after the back control and before the detail-state conditional.
+It stays inside the same authenticated workspace/detail pane, below the existing
+session-expired branch. Its state, copy, status role, class and clearing rules
+are unchanged. No request, receipt, pending carrier, generation, route, save,
+history or authentication behavior changes. Removing the one message line from
+both old and new source yields byte-identical component text; the new component
+Git blob is `85b33a8f3309d31a95107bc77d90d6b799234b58`.
+
+The existing two failing mounted tests and the later-history test are retained
+byte-for-byte. The local execution workspace became unavailable during this
+sweep. This follow-up was therefore checked by exact Git blob verification,
+bounded source/diff inspection and the relocation-only equality check through
+the working GitHub connection. Native React/Vitest, TypeScript, browser and
+production execution were not performed locally. The Chairman's express
+completion-proof waiver permits this source repair without those unavailable
+local checks; it does not waive protected CI or any release/security hold.
+The new source head's natural CI must establish the resulting test outcome.
+
+The incumbent capture owner still recaptures genuinely changed source with the
+existing full packet readers; no evidence is restamped and no manual rerun is
+requested. SQL0050 remains unapplied. Macro#9601 coordinated release and
+ordinary-provider live acceptance remain separate. This source follow-up adds
+no merge admission, deployment or product-completion claim.
