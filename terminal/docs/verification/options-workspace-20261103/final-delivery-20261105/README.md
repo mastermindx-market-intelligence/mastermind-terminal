@@ -24,8 +24,8 @@ The visual evidence readers now consume the source map they have already validat
 | Integrated browser journeys | 39/39 passed, zero retries, skips or flaky cases |
 | Final chart framing | 6/6 original + 6/6 integrated, EN/ZH × desktop/tablet/phone |
 | Calendar pane synchronization | Actual wheel zoom and programmatic reset passed against the integrated calendar behavior |
-| Final affected unit suites | Options 112/112; integration 122/122; Exposure 104/104 |
-| Full TypeScript check | All three profiles passed `tsc --noEmit --incremental false`, including existing generated development guards |
+| Final affected unit suites | Options 120/120; Exposure 112/112; current integration 284/284 |
+| Full TypeScript check | All three runtime profiles passed with generated development guards retained; the final evidence-only repair also passed the full combined check |
 | Changed-source lint | Exit 0 in all three profiles; one unchanged unused-parameter warning |
 | Diff whitespace | Both managed branches passed |
 | Final production compiler | Default `npm run build` (Turbopack) passed in 93.8 seconds on an isolated exact copy of 3,128 final integration source inputs |
@@ -51,6 +51,14 @@ The preview now matches all **3,320** terminal application/test/configuration fi
 The first delta wrapper omitted the already established Node/JSDOM environment option, causing eleven setup failures in an unchanged suite. Restoring the existing harness environment made the same source and all 276 cases pass; tests and assertions were unchanged. Both attempts are preserved. The 93.8-second production compiler result remains correctly scoped to the earlier repaired integration, while the later protected delta has this separate qualification.
 
 See [current-base qualification](current-base-acd/qualification.json), [passed gates](current-base-acd/passed-gates/qualification.json), and [exact materialization](current-base-acd/terminal-materialization.json).
+
+## Independent Options branch qualification
+
+A final standalone composition check found an overly narrow proof-reader binding: protected master plus Options alone combines the captured integrated chart with the already captured Options observer. The reader required the companion's observer hash even though the two files differ only by the readiness budget of an unrelated return assertion.
+
+The correction retains every historical capture/source binding and admits only the two observer hashes already present in the fully validated proofs. On the actual Options-only source projection, the old reader failed both native suites; the corrected reader passed **39/39** tests. Exposure combined with protected master alone also passed **50/50** native evidence and observer tests. Unknown observers and modified proof remain rejected.
+
+After this evidence-only change, affected suites passed **120/120** Options, **112/112** Exposure and **284/284** current integration tests; the combined full TypeScript check and changed-source lint passed. Application runtime, browser assertions and captured images are unchanged. See [the final binding qualification](chart-observer-integration-20261105/README.md).
 
 ## Evidence map
 
