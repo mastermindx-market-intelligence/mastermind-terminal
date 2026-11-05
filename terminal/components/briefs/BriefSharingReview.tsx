@@ -30,6 +30,7 @@ import {
   type SharingReview,
 } from "@/lib/briefDeliverySharing";
 import s from "./brief-sharing.module.css";
+import BriefSharingRequestIssuer from "./BriefSharingRequestIssuer";
 
 type Lang = "en" | "zh";
 
@@ -204,6 +205,7 @@ function BriefSharingReviewLifecycle({
   const [address] = useState(() => {
     const url = new URL(window.location.href);
     const saved = url.searchParams.getAll("expected_effect_sha256");
+    if (url.searchParams.has("request") || url.searchParams.has("attempt")) return { invalid: true, hash: null };
     const canonical = `/briefs/${deliveryId}/sharing`;
     // Only the canonical route may carry a retained operation. No duplicate or
     // malformed address can become a fresh send after identity departure.
@@ -228,12 +230,14 @@ function BriefSharingReviewLifecycle({
   const [receiptPending, setReceiptPending] = useState(false);
   const [receiptRead, setReceiptRead] = useState(false);
   const [sendState, setSendState] = useState<SendState>("idle");
+  const [requestIssuing, setRequestIssuing] = useState(false);
   const [sendRefusal, setSendRefusal] = useState<ErrorCode | null>(null);
   const [effectUsed, setEffectUsed] = useState<string | null>(null);
   const [bodyOpen, setBodyOpen] = useState(false);
   const [sessionEnded, setSessionEnded] = useState(false);
 
   const sentRef = useRef(false);
+  const requestIssueRef = useRef(false);
   const aliveRef = useRef(true);
   const readsRef = useRef<Set<AbortController>>(new Set());
 
@@ -363,7 +367,7 @@ function BriefSharingReviewLifecycle({
   );
 
   const readReview = useCallback(async () => {
-    if (!principalValid || lockedHash !== null || sentRef.current) return;
+    if (!principalValid || lockedHash !== null || sentRef.current || requestIssueRef.current) return;
     if (!isUuid(teamId)) return;
     setReviewPending(true);
     setReviewError(null);
@@ -418,7 +422,7 @@ function BriefSharingReviewLifecycle({
   }, [lockedHash, effectUsed, readReceipt]);
 
   const share = useCallback(() => {
-    if (!principalValid || lockedHash !== null || sentRef.current) return;
+    if (!principalValid || lockedHash !== null || sentRef.current || requestIssueRef.current) return;
     if (!review || review.grant) return;
     if (!review.eligibility || review.eligibility.can_share !== true) return;
     if (!isUuid(teamId) || review.audience.team_id !== teamId) return;
@@ -484,7 +488,7 @@ function BriefSharingReviewLifecycle({
 
   const signedIn = principalValid && !sessionEnded;
   const grant = review?.grant ?? null;
-  const teamLocked = lockedHash !== null || sendState !== "idle";
+  const teamLocked = lockedHash !== null || sendState !== "idle" || requestIssuing;
   const expectedOnPage = lockedHash ?? effectUsed;
 
   // A fresh send is offered only for the team the source review names, while the
@@ -500,7 +504,7 @@ function BriefSharingReviewLifecycle({
   const showSend = (sendCandidate && !teamLocked) || sendState === "sending";
 
   // "Keep private" is a real option only while nothing is shared and nothing is pending.
-  const showKeepPrivate = !!review && review.grant === null && lockedHash === null && sendState === "idle";
+  const showKeepPrivate = !!review && review.grant === null && lockedHash === null && sendState === "idle" && !requestIssuing;
 
   // A share is claimed ONLY from a receipt that MATCHES this page's own address,
   // carries that exact grant, and reports current access.
@@ -738,6 +742,7 @@ function BriefSharingReviewLifecycle({
               value={teamId}
               disabled={teamLocked || teams === null}
               onChange={(event) => {
+                if (requestIssueRef.current) return;
                 for (const ctrl of readsRef.current) ctrl.abort();
                 readsRef.current.clear();
                 setReview(null); setReviewPending(false); setReviewError(null); setBodyOpen(false);
@@ -813,6 +818,7 @@ function BriefSharingReviewLifecycle({
           </a>
         </div>
 
+        {(showSend || requestIssuing) && review !== null && sendState === "idle" && <BriefSharingRequestIssuer key={`${deliveryId}|${teamId}|${review.delivery.content_sha256}`} review={review} onBegin={() => { requestIssueRef.current = true; setRequestIssuing(true); }} />}
         <p className={s.note}>{t("noteOtherWork")}</p>
       </section>
     </div>

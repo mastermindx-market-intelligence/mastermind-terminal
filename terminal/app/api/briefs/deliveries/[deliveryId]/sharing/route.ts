@@ -1,7 +1,7 @@
 import { isUuid } from "@/lib/briefs";
 import { parseSharingCommand, readBriefDeliverySharing, reconcileBriefDeliverySharing,
   shareBriefDelivery, sharingDigest } from "@/lib/briefDeliverySharing";
-import { authenticatedSharing, sharingCommandText, sharingFailure } from "@/lib/briefDeliverySharingServer";
+import { authenticatedSharing, sharingCommandText, sharingFailure, sharingOriginAllowed } from "@/lib/briefDeliverySharingServer";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -23,7 +23,7 @@ export async function POST(request: Request, context: Context): Promise<Response
   const { deliveryId } = await context.params;
   if (!isUuid(deliveryId) || new URL(request.url).search)
     return sharingFailure("invalid_input", 400);
-  if (request.headers.get("origin") !== new URL(request.url).origin ||
+  if (!sharingOriginAllowed(request) ||
       request.headers.get("content-type")?.split(";")[0].trim().toLowerCase() !== "application/json")
     return sharingFailure("denied", 403);
   const text = await sharingCommandText(request);
