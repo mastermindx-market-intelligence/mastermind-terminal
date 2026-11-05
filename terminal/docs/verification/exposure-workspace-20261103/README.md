@@ -1,5 +1,10 @@
 # Exposure workspace — design and implementation evidence
 
+## Current completion record — 5 November 2026
+
+The [final implementation and verification record](../options-workspace-20261103/final-delivery-20261105/README.md) supersedes the historical gate statements below. It includes the completed Paper design, 294 state captures, original and integrated 39-case browser runs, the final 12-case chart correction, all three clean typechecks, repaired evidence readers, and the passing production compiler. Publication and hosted CI belong to the exact final PR heads.
+
+
 ## Current qualification
 
 See the [final November 4 Lab integration and source-state qualification](integration-20261104/lab-source-gate-20261104/README.md) and its [preceding combined implementation record](integration-20261104/README.md). The records below are earlier increments and retain their original scope and results.
@@ -49,6 +54,6 @@ This scoped non-merge step therefore copied all **96 historical PNGs byte-for-by
 
 **Not yet integrated:** The active `layoutFiles` source lock must be requalified after the final protected-base source composition; the retained historical images are *history*, not proof of the integrated UI. The two manifests and GexDesk source still require a lawful integrated-source carrier and fresh exact-head hosted checks.
 
-## Remaining gates
+## Remaining release boundary
 
-Original PR: #1243, same protected source custody and managed publisher. Protected Terminal main has advanced and still conflicts in shared evidence manifests; the newer protected contracts must be retained when composing the final candidate. Fresh exact-head hosted CI, a genuinely independent GitHub review and signed-in production verification are separate release requirements. No merge, queue, Ready/un-draft, SQL or deployment effect is part of this validation.
+The final local implementation and proof are recorded above. The same PR and managed publisher remain in use. Final exact-head hosted CI and any actual branch-protection requirements remain binding; the Web-session waiver removes the former blanket independent-review ceremony. No merge, queue enrollment, Ready/un-draft transition, SQL mutation or deployment is authorized by this verification. Local browser fixtures do not replace signed-in production verification or user acceptance.

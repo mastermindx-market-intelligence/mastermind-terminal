@@ -27,6 +27,53 @@ test("Main chart rejects a book corrected during navigation", async ({ page }) =
   await expect(reference.getByRole("link", { name: "Return to Exposure", exact: true })).toBeVisible();
 });
 
+// Observe the actual ranked labels without adding a production chart API.
+async function observeExposureHeaderClearance(page: Page) {
+  await page.addInitScript(() => {
+    const labels = new Map<HTMLCanvasElement, Map<number, { backingTop: number; paint: number }>>();
+    const ranked = new Set([756,757,755,747,746,748]);
+    let paint = 0;
+    const original = CanvasRenderingContext2D.prototype.fillText;
+    CanvasRenderingContext2D.prototype.fillText = function (...args: Parameters<CanvasRenderingContext2D["fillText"]>) {
+      original.apply(this, args);
+      const [text, x, y] = args, canvas = this.canvas;
+      const match = text.match(/^(\d+)\s+[+-]?[\d.]+M$/);
+      if (!(canvas instanceof HTMLCanvasElement) || !match || !ranked.has(Number(match[1])) ||
+        !canvas.closest('[data-testid="exposure-map"]')) return;
+      const strike = Number(match[1]);
+      // With no selected node, the renderer paints the strongest node first.
+      // Its next paint starts a fresh sample and drops labels culled for spacing.
+      if (strike === 756) labels.set(canvas,new Map());
+      const sample = labels.get(canvas);
+      if (!sample) return;
+      const transform = this.getTransform(), ascent = this.measureText(text).actualBoundingBoxAscent;
+      const backingTop = transform.b*x+transform.d*(y-ascent)+transform.f;
+      if (Number.isFinite(backingTop)) sample.set(strike,{backingTop,paint:++paint});
+    };
+    (window as unknown as { __exposureHeaderClearance: () => unknown }).__exposureHeaderClearance = () => {
+      const result: { strike: number; gap: number; paint: number; labelTop: number; headerBottom: number }[] = [];
+      for (const [canvas, sample] of labels) {
+        if (!canvas.isConnected) { labels.delete(canvas); continue; }
+        const header = canvas.closest(".chart-wrap")?.querySelector(".statusline");
+        if (!header || !canvas.height) continue;
+        const rect = canvas.getBoundingClientRect();
+        if (rect.width <= 0 || rect.height <= 0) continue;
+        const headerBottom = header.getBoundingClientRect().bottom;
+        for (const [strike,label] of sample) {
+          const labelTop = rect.top+label.backingTop*rect.height/canvas.height;
+          result.push({strike,gap:labelTop-headerBottom,paint:label.paint,labelTop,headerBottom});
+        }
+      }
+      return result;
+    };
+  });
+}
+async function exposureHeaderClearance(page: Page) {
+  return page.evaluate(() => (window as unknown as {
+    __exposureHeaderClearance: () => { strike: number; gap: number; paint: number; labelTop: number; headerBottom: number }[];
+  }).__exposureHeaderClearance());
+}
+
 async function workspaceSource(page: Page, lang: "en" | "zh" = "en", overrides: Record<string, number> = {}) {
   const prices = { ...spots, ...overrides };
   await page.addInitScript(locale => {
@@ -392,6 +439,7 @@ for (const lang of ["en", "zh"] as const) {
   test(`Connected exposure workspace ${lang}: chart, comparison scopes, scanner and return`, async ({ page }, info) => {
     const errors: string[] = [];
     page.on("pageerror", e => errors.push(e.message));
+    await observeExposureHeaderClearance(page);
     await workspaceSource(page, lang);
     await page.goto("/options?tab=prism&symbol=SPY&view=chart");
     const map = page.getByTestId("exposure-map");
@@ -400,6 +448,33 @@ for (const lang of ["en", "zh"] as const) {
     await map.getByRole("button", { name: lang === "en" ? "Gamma + Vanna layers" : "Gamma + Vanna 双层", exact: true }).click();
     await expect(map.getByText(lang === "en" ? /Dual layers: solid Gamma/ : /双层视图：/)).toBeVisible();
     if (info.project.name === "mobile") expect((await map.locator(".chart-wrap canvas").first().boundingBox())!.y).toBeLessThan(700);
+    // Every painted ranked label must clear the header; dense secondary labels
+    // retain the renderer's existing collision rule, while the leader stays visible.
+    try {
+      await expect.poll(async () => {
+        const rows = await exposureHeaderClearance(page);
+        return rows.some(row => row.strike === 756) ? Math.min(...rows.map(row => row.gap)) : Number.NEGATIVE_INFINITY;
+      }).toBeGreaterThanOrEqual(4);
+    } finally {
+      await info.attach("exposure-header-clearance-initial", {body:JSON.stringify(
+        await exposureHeaderClearance(page),null,2),contentType:"application/json"});
+    }
+    const initialClearance = await exposureHeaderClearance(page);
+    const primaryPaint = initialClearance.find(row => row.strike === 756)!.paint;
+    const priceHeader = map.locator(".chart-wrap .statusline");
+    await expect(priceHeader.locator(".status-ohlc b")).toHaveCount(4);
+    for (const value of await priceHeader.locator(".status-ohlc b").all()) await expect(value).toBeVisible();
+    await expect(priceHeader.locator(".status-change")).toBeVisible();
+    await map.getByTitle(lang === "en" ? "Reset view" : "重置视图", {exact:true}).click();
+    await expect.poll(async () => (await exposureHeaderClearance(page)).find(row => row.strike === 756)?.paint ?? 0)
+      .toBeGreaterThan(primaryPaint);
+    await expect.poll(async () => {
+      const rows = await exposureHeaderClearance(page);
+      return rows.some(row => row.strike === 756) ? Math.min(...rows.map(row => row.gap)) : Number.NEGATIVE_INFINITY;
+    }).toBeGreaterThanOrEqual(4);
+    await info.attach("exposure-header-clearance", {body:JSON.stringify({
+      initial:initialClearance,afterFit:await exposureHeaderClearance(page),
+    },null,2),contentType:"application/json"});
     if (info.project.name !== "mobile") await expect(map.getByTestId("exposure-implied-distance")).toContainText("0.49 σ");
     for (const theme of ["dark", "light"]) {
       await page.evaluate(value => document.documentElement.setAttribute("data-theme", value), theme);

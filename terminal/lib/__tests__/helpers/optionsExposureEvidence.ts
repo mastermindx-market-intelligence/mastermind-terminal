@@ -193,6 +193,141 @@ function verifyBoundary(repo: string): void {
 const JOINT_CONTRACT = "a7cd2ce244a0ae278fc24bf25a51566c0053c89f9ce3fb17ae12b350f1541db7";
 const JOINT_DRIVER = "caa135fb04633289178636e9ba24b5484a988ee6797f572bd4aee0c93d9285ed";
 const OFFLINE_FONT = "0863e9151dab6e278d9eacf5d1560163b6fbe3bf2cac59e369199d7e4ba962fd";
+type ChartFramingMode = "original" | "preview";
+type ChartGlyph = { strike: number; gap: number; paint: number; labelTop: number; headerBottom: number };
+type ChartFramingResult = {
+  status: string; retry: number;
+  attachments?: { name: string; contentType: string; body?: string; path?: string }[];
+};
+type ChartFramingSuite = {
+  specs?: { title: string; tests: { projectName: string; results: ChartFramingResult[] }[] }[];
+  suites?: ChartFramingSuite[];
+};
+const CHART_FRAMING_PATH = "terminal/components/exposure-map/ExposureMap.tsx";
+const CHART_FRAMING_SPEC = "terminal/e2e/options-exposure-workspace.spec.ts";
+const CHART_FRAMING_MAPS = {
+  original: { before: "52dcb7e81d556e2239454dae822458236430737f55877bb5bd3b21465aa2e349", after: "de3e781dedac67c2c0aadeb1142ed2f6d3d3e2075063329e55d9cf88444121e7" },
+  preview: { before: "099b71567187d5509182d9cbee9be3d44b584bf1202748df8a6f92a48e0a5c11", after: "50bdfadd453747170d597b8f1a2a11853fe864ef08c6b2ffb561299f8a3dd60c" },
+};
+const CHART_FRAMING_QUALIFICATION = "4175c376a016a00cd03dbf2c90c9604739c62b9004362db4a9cb277b752fc891";
+
+/** This separately qualifies the Chart branch deliberately excluded from native Strike captures. */
+export function requireR4ChartIdentity(repo: string, original: string, peer: string, current: string): void {
+  check(original === CHART_FRAMING_MAPS.original.before && peer === CHART_FRAMING_MAPS.preview.before,
+    "JOINT_CHART_RECORDED_IDENTITY");
+  if (current === original || current === peer) return;
+  const selected: ChartFramingMode | null = current === CHART_FRAMING_MAPS.original.after ? "original" :
+    current === CHART_FRAMING_MAPS.preview.after ? "preview" : null;
+  check(selected !== null, "JOINT_CHART_SUCCESSOR_IDENTITY");
+  const dir = join(repo, "terminal/docs/verification/exposure-workspace-20261103/chart-framing-20261105");
+  check(sha(join(dir, "qualification.json")) === CHART_FRAMING_QUALIFICATION, "CHART_FRAMING_QUALIFICATION_DIGEST");
+  const qualification = json<{
+    schema: string; operation: string; nativeContractSha256: string; captureRevision: string;
+    chartPath: string; driverSha256: string; files: SourceMap;
+    maps: Record<ChartFramingMode, { before: string; after: string; observer: string }>;
+  }>(join(dir, "qualification.json"));
+  check(qualification.schema === "exposure_chart_framing_qualification.v1" &&
+    qualification.operation === "chart-framing-20261105" && qualification.nativeContractSha256 === JOINT_CONTRACT &&
+    qualification.captureRevision === CURRENT_REVISION && qualification.chartPath === CHART_FRAMING_PATH,
+    "CHART_FRAMING_QUALIFICATION_IDENTITY");
+  const proofFiles = ["browser-receipt.json", "source-before.json", "source-after.json", "browser-report.json",
+    "browser.log", "painted-label-witnesses.json"];
+  requireSourceKeys(qualification.files, ["capture-driver.py",
+    ...["baseline", "original", "preview"].flatMap(mode => proofFiles.map(file => mode + "/" + file))]);
+  for (const [file, digest] of Object.entries(qualification.files))
+    check(sha(join(dir, file)) === digest, "CHART_FRAMING_FILE:" + file);
+  check(qualification.driverSha256 === qualification.files["capture-driver.py"], "CHART_FRAMING_DRIVER");
+  const expectedCases = ["desktop", "tablet", "mobile"].flatMap(project => ["en", "zh"].map(lang =>
+    project + "|Connected exposure workspace " + lang + ": chart, comparison scopes, scanner and return"));
+  const sourceMaps: Record<string, SourceMap> = {};
+  function glyphs(value: unknown, positive: boolean): asserts value is ChartGlyph[] {
+    check(Array.isArray(value) && value.length > 0 && value.length <= 6, "CHART_FRAMING_GLYPH_SET");
+    const rows = value as ChartGlyph[];
+    check(rows.filter(row => row.strike === 756).length === 1 &&
+      new Set(rows.map(row => row.strike)).size === rows.length, "CHART_FRAMING_PRIMARY_LABEL");
+    for (const row of rows) check([756,757,755,747,746,748].includes(row.strike) &&
+      [row.gap,row.paint,row.labelTop,row.headerBottom].every(Number.isFinite) &&
+      Number.isInteger(row.paint) && row.paint > 0 &&
+      Math.abs(row.gap-(row.labelTop-row.headerBottom)) < .000001 && (!positive || row.gap >= 4),
+      "CHART_FRAMING_GLYPH_GEOMETRY");
+  }
+  for (const mode of ["baseline", "original", "preview"] as const) {
+    const baseline = mode === "baseline", profile: ChartFramingMode = baseline ? "original" : mode;
+    const prefix = mode + "/", map = qualification.maps[profile], expectedMap = CHART_FRAMING_MAPS[profile];
+    check(map.before === expectedMap.before && map.after === expectedMap.after, "CHART_FRAMING_TRANSITION");
+    const receipt = json<{
+      schema: string; mode: string; stage: string; witness_version: string; capture_revision: string;
+      expected_failure: boolean; exit: number; expected: number; passed: number; failed: number;
+      skipped: number; flaky: number; retries: number; source_stable: boolean; source_count: number;
+      source_before_sha256: string; source_map_sha256: string; browser_report_sha256: string;
+      log_sha256: string; map_source_sha256: string; owned_server_stopped: boolean; command: string[];
+    }>(join(dir, prefix, "browser-receipt.json"));
+    check(receipt.schema === "exposure_chart_framing_browser.v1" && receipt.mode === profile &&
+      receipt.stage === (baseline ? "baseline" : "fixed") && receipt.expected_failure === baseline &&
+      receipt.witness_version === "all-painted-ranked-labels.v2" && receipt.capture_revision === CURRENT_REVISION &&
+      receipt.exit === (baseline ? 1 : 0) && receipt.expected === (baseline ? 1 : 6) &&
+      receipt.passed === (baseline ? 0 : 6) && receipt.failed === (baseline ? 1 : 0) &&
+      receipt.skipped === 0 && receipt.flaky === 0 && receipt.retries === 0 &&
+      receipt.source_stable && receipt.owned_server_stopped &&
+      receipt.command.includes("e2e/options-exposure-workspace.spec.ts"), "CHART_FRAMING_BROWSER_RESULT");
+    check(receipt.source_before_sha256 === qualification.files[prefix+"source-before.json"] &&
+      receipt.source_map_sha256 === qualification.files[prefix+"source-after.json"] &&
+      receipt.source_before_sha256 === receipt.source_map_sha256 &&
+      receipt.browser_report_sha256 === qualification.files[prefix+"browser-report.json"] &&
+      receipt.log_sha256 === qualification.files[prefix+"browser.log"], "CHART_FRAMING_RECEIPT_BINDING");
+    const sources = json<SourceMap>(join(dir, prefix, "source-after.json"));
+    requireSourceKeys(sources, Object.keys(sources));
+    check(Object.keys(sources).length === receipt.source_count &&
+      sources[CHART_FRAMING_PATH] === (baseline ? map.before : map.after) &&
+      receipt.map_source_sha256 === sources[CHART_FRAMING_PATH] &&
+      sources[CHART_FRAMING_SPEC] === map.observer, "CHART_FRAMING_SOURCE_BINDING");
+    sourceMaps[mode] = sources;
+    const report = json<ChartFramingSuite & {
+      stats: { expected: number; unexpected: number; skipped: number; flaky: number }; errors?: unknown[];
+    }>(join(dir, prefix, "browser-report.json"));
+    check(report.stats.expected === receipt.passed && report.stats.unexpected === receipt.failed &&
+      report.stats.skipped === 0 && report.stats.flaky === 0 && !report.errors?.length, "CHART_FRAMING_REPORT");
+    const cases: string[] = [], witnesses: { project: string; title: string; name: string; value: unknown }[] = [];
+    function visit(suite: ChartFramingSuite): void {
+      for (const spec of suite.specs ?? []) for (const test of spec.tests) {
+        cases.push(test.projectName+"|"+spec.title);
+        check(test.results.length === 1, "CHART_FRAMING_SINGLE_ATTEMPT");
+        const result = test.results[0];
+        check(result.status === (baseline ? "failed" : "passed") && result.retry === 0, "CHART_FRAMING_CASE_RESULT");
+        const names = baseline ? ["exposure-header-clearance-initial"] :
+          ["exposure-header-clearance-initial", "exposure-header-clearance"];
+        const values: Record<string, unknown> = {};
+        for (const name of names) {
+          const attachments = result.attachments?.filter(item => item.name === name) ?? [];
+          check(attachments.length === 1 && attachments[0].contentType === "application/json" &&
+            typeof attachments[0].body === "string" && attachments[0].path === undefined, "CHART_FRAMING_ATTACHMENT");
+          const value: unknown = JSON.parse(Buffer.from(attachments[0].body, "base64").toString("utf8"));
+          values[name] = value; witnesses.push({project:test.projectName,title:spec.title,name,value});
+        }
+        const initial = values["exposure-header-clearance-initial"]; glyphs(initial, !baseline);
+        if (baseline) check(initial.some(row => row.gap < 0), "CHART_FRAMING_RED_WITNESS");
+        else {
+          const final = values["exposure-header-clearance"] as { initial: unknown; afterFit: unknown };
+          glyphs(final.initial, true); glyphs(final.afterFit, true);
+          check(JSON.stringify(final.initial) === JSON.stringify(initial) &&
+            final.afterFit.find(row => row.strike === 756)!.paint > initial.find(row => row.strike === 756)!.paint,
+            "CHART_FRAMING_FIT_REPAINT");
+        }
+      }
+      for (const child of suite.suites ?? []) visit(child);
+    }
+    visit(report);
+    check(sameKeys(cases, baseline ? [expectedCases[4]] : expectedCases), "CHART_FRAMING_EXACT_CASES");
+    check(JSON.stringify(witnesses) === JSON.stringify(json(join(dir,prefix,"painted-label-witnesses.json"))),
+      "CHART_FRAMING_WITNESS_BINDING");
+  }
+  requireSourceKeys(sourceMaps.baseline, Object.keys(sourceMaps.original));
+  check(sameKeys(Object.keys(sourceMaps.original).filter(path => sourceMaps.original[path] !== sourceMaps.baseline[path]),
+    [CHART_FRAMING_PATH]), "CHART_FRAMING_ONLY_RUNTIME_CHANGE");
+  check(sha(join(repo,CHART_FRAMING_SPEC)) === qualification.maps[selected].observer,
+    "CHART_FRAMING_CURRENT_OBSERVER");
+}
+
 function verifyJointNative(repo: string, dir: string, native: NativeReceipt): void {
   const capture = native as NativeReceipt & {
     schema: string; profile: string; capture_revision: string; source_count: number;
@@ -241,8 +376,9 @@ function verifyJointNative(repo: string, dir: string, native: NativeReceipt): vo
       !path.includes("/__tests__/") && !/\.(?:test|spec)\./.test(path) && /\.(?:ts|tsx|css|js|cjs|mjs|json)$/.test(path);
     if (included) check(original[path] === digest && peer[path] === digest, "JOINT_WHOLE_SCOPED_SOURCE:" + path);
   }
-  check(original[excluded.path] === excluded.original_sha256 && peer[excluded.path] === excluded.peer_sha256 &&
-    [excluded.original_sha256, excluded.peer_sha256].includes(sha(join(repo, excluded.path))), "JOINT_CHART_IDENTITY");
+  check(original[excluded.path] === excluded.original_sha256 && peer[excluded.path] === excluded.peer_sha256,
+    "JOINT_CHART_IDENTITY");
+  requireR4ChartIdentity(repo, excluded.original_sha256, excluded.peer_sha256, sha(join(repo, excluded.path)));
 }
 
 function readCandidate(repo: string, root: string, kind: EvidenceKind, profile: EvidenceProfile, crops: string[]) {
