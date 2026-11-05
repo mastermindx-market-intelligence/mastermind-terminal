@@ -174,7 +174,9 @@ otherwise), kernel 5.14 or later for `cgroup.kill`, every slot user with shell
 service enabled for it), `/etc/cron.deny` and `/etc/at.deny` naming every slot
 user and no `/etc/cron.allow` or `/etc/at.allow` naming one (an allow file makes
 cron and `at` ignore the deny file; the loop asserts both), linger off for every
-slot user (`loginctl show-user ghrunner-N` reports `Linger=no`), `/etc/pam.d/sudo` not
+slot user (`loginctl show-user ghrunner-N` reports `Linger=no`), the `USER` column of
+`loginctl list-sessions --no-legend` being the third (systemd 249 to 256 layout; the
+loop's session check reads it), `/etc/pam.d/sudo` not
 pulling in `pam_systemd` (Ubuntu's `common-session-noninteractive` does not; a
 stack that does would move `run.sh` into a `user-N.slice` session scope outside
 the job cgroup), and no auditd `execve` rule that records argv, which would log the
@@ -198,6 +200,7 @@ unit_cg="/sys/fs/cgroup$(cut -d: -f3 /proc/self/cgroup)"; job_cg="$unit_cg/job"
 grep -qx "$u" /etc/cron.deny && grep -qx "$u" /etc/at.deny || exit 1   # timers denied at the source
 ! grep -qx "$u" /etc/cron.allow /etc/at.allow 2>/dev/null || exit 1     # an allow file overrides deny
 [ "$(getent passwd "$u" | cut -d: -f7)" = /usr/sbin/nologin ] || exit 1  # no login path for the slot user
+sshd -T -C user="$u",host=localhost,addr=127.0.0.1 | grep -qi '^denyusers .*ghrunner-' || exit 1  # sshd denies it too
 while :; do
   # 1. no timer may fire as $u after the reset: purge cron/at BEFORE killing anything
   crontab -r -u "$u" 2>/dev/null; for j in $(atq | awk -v u="$u" '$NF==u{print $1}'); do atrm "$j"; done
