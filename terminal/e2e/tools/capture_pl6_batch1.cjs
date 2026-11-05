@@ -31,6 +31,14 @@ const OUT = join(ROOT, "docs", "pr-crops", "b-pl-6-batch-1");
 const FAILURE_OUT = process.env.TERMINAL_CAPTURE_FAILURE_DIR || OUT;
 const LAYOUT_FILES = [
   "terminal/components/OptionsHubView.tsx",
+  "terminal/components/charts/svgChart.ts",
+  "terminal/components/chrome/WorkspaceTabs.tsx",
+  "terminal/components/options/OptionsWorkflowGuide.tsx",
+  "terminal/components/plan/PayoffLab.module.css",
+  "terminal/components/plan/PayoffLab.tsx",
+  "terminal/components/workspaces/OptionsWorkspace.tsx",
+  "terminal/lib/optionsIa.ts",
+  "terminal/lib/optionsPayoff.ts",
   "terminal/components/SearchModal.tsx",
   "terminal/components/StockAnalysis.tsx",
   "terminal/components/workspaces/AnalysisWorkspace.tsx",
