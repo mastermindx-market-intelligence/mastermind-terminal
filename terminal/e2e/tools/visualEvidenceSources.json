@@ -57,6 +57,7 @@
   "terminal/components/SearchModal.module.css",
   "terminal/components/SearchModal.tsx",
   "terminal/components/StockAnalysis.tsx",
+  "terminal/components/StockAnalysisImpl.tsx",
   "terminal/components/SymbolPicker.tsx",
   "terminal/components/TerminalShell.tsx",
   "terminal/components/VisualIntelligencePanel.module.css",

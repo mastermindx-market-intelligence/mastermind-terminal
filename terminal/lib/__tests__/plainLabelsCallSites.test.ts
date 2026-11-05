@@ -26,8 +26,8 @@ describe("plain-language call sites — leaky fallbacks gone", () => {
     expect(src).toMatch(/(?:regimeLabel|plainRegime)\(/);
   });
 
-  it("StockAnalysis.tsx: no raw trust/regime/macro chips; helpers present", () => {
-    const src = readOwned("StockAnalysis.tsx");
+  it("StockAnalysisImpl.tsx: no raw trust/regime/macro chips; helpers present", () => {
+    const src = readOwned("StockAnalysisImpl.tsx");
     expect(src).not.toContain("|| glance.regime");
     expect(src).not.toContain("cap(dec?.trust_tier)");
     expect(src).not.toContain("{macro.duration_en}");
@@ -66,15 +66,15 @@ describe("plain-language call sites — leaky fallbacks gone", () => {
     expect(src).toContain("verdictLabel(");
   });
 
-  it("StockAnalysis.tsx: AnalystGauge ratingVerdict uses lang, never hardcoded English", () => {
-    const src = readOwned("StockAnalysis.tsx");
+  it("StockAnalysisImpl.tsx: AnalystGauge ratingVerdict uses lang, never hardcoded English", () => {
+    const src = readOwned("StockAnalysisImpl.tsx");
     const line = lineContaining(src, "ratingVerdict(", "ratingVerdict call");
     expect(line).not.toMatch(/ratingVerdict\([^)]*,\s*false\s*\)/);
     expect(line).toMatch(/lang\s*===\s*["']zh["']/);
   });
 
-  it("StockAnalysis.tsx: entry chip tries urgency then falls through to status", () => {
-    const src = readOwned("StockAnalysis.tsx");
+  it("StockAnalysisImpl.tsx: entry chip tries urgency then falls through to status", () => {
+    const src = readOwned("StockAnalysisImpl.tsx");
     const line = lineContaining(src, "entryStatusLabel(", "entry chip");
     expect(line).not.toContain("entry.urgency || entry.status");
     expect(line).toMatch(/entryStatusLabel\(\s*entry\.urgency/);
