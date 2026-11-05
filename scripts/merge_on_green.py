@@ -21,6 +21,11 @@ comment; pending, missing, or wrong-App evidence simply waits. One sweep may mer
 a green pull request and then update the next stale one, but it never merges two
 pull requests against the same base snapshot.
 
+An explicitly dispatched run may carry a ``target_pr`` pull request number. It is
+validated before any API client is built, and it only ever narrows the candidate
+list to that one pull request -- every guard below still applies to it, and no
+other pull request is considered, merged or refreshed as a fallback.
+
 A branch update written with GITHUB_TOKEN makes GitHub create the head's
 ``pull_request`` CI run already completed as ``action_required``: held, with no
 jobs. That held suite is the one the pull request's required-check rollup reads, so
@@ -65,6 +70,10 @@ HELD_RUN_ACTOR = "github-actions[bot]"
 # back to an explicit dispatch.
 REFRESH_RUN_POLLS = 12
 REFRESH_RUN_POLL_SECONDS = 5
+# Bound the accepted controller input to a positive 32-bit integer. Wider,
+# signed or otherwise malformed values are configuration errors, refused before
+# any API client exists.
+MAX_PULL_REQUEST_NUMBER = 2**31 - 1
 
 
 class ApiError(RuntimeError):
@@ -491,8 +500,46 @@ def start_refreshed_ci(
     return "no pull_request CI run appeared for the new head; dispatched CI; awaiting fresh CI"
 
 
-def sweep(api: MergeApi, trigger_number: int | None = None, *, wait=time.sleep) -> list[str]:
+def parse_target_pr(raw: str | None) -> int | None:
+    """Validate the optional ``target_pr`` workflow_dispatch input.
+
+    ``None`` (absent or empty) keeps the normal all-candidates sweep. Anything
+    else must already be a canonical ASCII decimal pull request number:
+    whitespace, signs, zero, Unicode digits and values beyond the controller's bounded
+    range are configuration errors, never a silent fallback to the unrelated
+    armed queue.
+    """
+    value = raw or ""
+    if value == "":
+        return None
+    if not value.isascii() or not all(character in "0123456789" for character in value):
+        raise ValueError(
+            f"target_pr must be a plain ASCII decimal pull request number, got {raw!r}"
+        )
+    number = int(value)
+    if number == 0:
+        raise ValueError("target_pr must be a positive pull request number, not 0")
+    if number > MAX_PULL_REQUEST_NUMBER:
+        raise ValueError(
+            f"target_pr {number} exceeds the maximum pull request number "
+            f"{MAX_PULL_REQUEST_NUMBER}"
+        )
+    return number
+
+
+def sweep(
+    api: MergeApi,
+    trigger_number: int | None = None,
+    *,
+    target_number: int | None = None,
+    wait=time.sleep,
+) -> list[str]:
     pulls = [pull for pull in api.list_pulls() if is_armed_candidate(pull, api.repo)]
+    if target_number is not None:
+        # An explicit target_pr dispatch reconciles exactly that pull request:
+        # never fall back to the unrelated armed queue, and never act on any
+        # other pull request even if the target turns out not to be a candidate.
+        pulls = [pull for pull in pulls if int(pull["number"]) == target_number]
     if trigger_number is not None:
         pulls.sort(key=lambda pull: (int(pull["number"]) != trigger_number, pull.get("created_at", "")))
     else:
@@ -637,15 +684,47 @@ def main() -> int:
     if not repo or not token:
         print("::error::GH_REPO and MERGE_TOKEN or GITHUB_TOKEN are required", file=sys.stderr)
         return 2
+    event_name = os.environ.get("GITHUB_EVENT_NAME", "").strip()
     trigger_raw = os.environ.get("TRIGGER_PR_NUMBER", "").strip()
     trigger = int(trigger_raw) if trigger_raw.isdigit() else None
+    # The optional target is validated -- and any trigger conflict rejected --
+    # before the API client is constructed: a mistyped or misplaced target_pr
+    # must fail the run without touching GitHub at all.
     try:
-        actions = sweep(GitHubApi(repo, token), trigger)
+        target = parse_target_pr(os.environ.get("TARGET_PR"))
+    except ValueError as error:
+        print(f"::error::{error}", file=sys.stderr)
+        return 2
+    if target is not None and event_name != "workflow_dispatch":
+        print(
+            "::error::target_pr is only honored on workflow_dispatch; this run is "
+            f"{event_name or 'an unknown event'}",
+            file=sys.stderr,
+        )
+        return 2
+    if target is not None and trigger is not None:
+        print(
+            f"::error::target_pr {target} conflicts with the pull request #{trigger} "
+            "this event is itself about",
+            file=sys.stderr,
+        )
+        return 2
+    try:
+        if target is None:
+            actions = sweep(GitHubApi(repo, token), trigger)
+        else:
+            actions = sweep(GitHubApi(repo, token), trigger, target_number=target)
     except (ApiError, KeyError, TypeError, ValueError) as error:
         print(f"::error::{error}", file=sys.stderr)
         return 1
     if not actions:
-        print(f"::notice::No open pull request is armed with {ARM_LABEL}")
+        if target is not None:
+            print(
+                f"::notice::Target pull request #{target} is not an armed {ARM_LABEL} "
+                "candidate; no other pull request was considered"
+            )
+        else:
+            print(f"::notice::No open pull request is armed with {ARM_LABEL}")
     else:
         for action in actions:
             print(f"::notice::{action}")
