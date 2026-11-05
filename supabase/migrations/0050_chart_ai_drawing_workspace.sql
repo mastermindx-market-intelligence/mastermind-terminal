@@ -2,7 +2,7 @@
 -- Extends only the incumbent invoker validator and snapshot read owner from0031.
 -- Existing collection/CAS/operation replay, table grants, owner filters and RLS are retained.
 -- Source ships UNAPPLIED. Installation/production proof is separate from source qualification.
--- Rollback is conditional on operation history, not merely the current rows. See the down block.
+-- Rollback: conditional on operation history, not merely the current rows. See the down block.
 BEGIN;
 DO $prerequisites$
 BEGIN
