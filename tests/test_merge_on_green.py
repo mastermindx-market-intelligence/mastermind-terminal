@@ -766,11 +766,13 @@ def test_merge_queue_probe_is_bound_to_the_exact_repository_and_base():
     }
 
 
-def test_enqueue_mutation_pins_the_exact_pull_request_and_head():
+def test_enqueue_mutation_pins_the_exact_pull_request_and_head(monkeypatch):
     api = RecordingGraphQLApi(
         [{"enqueuePullRequest": {"mergeQueueEntry": {"id": "MQE-7"}}}]
     )
 
+    # This existing test isolates mutation shape; issuer tests exercise the real preflight.
+    monkeypatch.setattr(api, "native_enqueue_api", lambda: api)
     assert api.enqueue("PR-node-7", "head-7") == "MQE-7"
     assert api.calls[0][1] == {
         "pullRequestId": "PR-node-7",
@@ -1122,3 +1124,189 @@ def test_re_run_posts_to_the_exact_run():
     api.rerun_workflow_run(38370600573)
 
     assert api.calls == [("POST", "/actions/runs/38370600573/rerun", None)]
+
+
+# Native enqueue must use an authenticated event-generating user credential.
+# All network boundaries below are replaced; token strings are test-owned sentinels.
+@pytest.fixture
+def native_issuer_transport(monkeypatch):
+    monkeypatch.setenv("NATIVE_ENQUEUE_TOKEN", "test-native-user-credential")
+    monkeypatch.setenv("NATIVE_ENQUEUE_ISSUER_LOGIN", "release-user")
+    monkeypatch.setenv("NATIVE_ENQUEUE_ISSUER_ID", "42")
+    monkeypatch.setenv("GITHUB_REPOSITORY_ID", "71")
+    monkeypatch.setenv("GITHUB_TOKEN", "test-job-credential")
+    identity = {
+        "viewer": {"__typename": "User", "login": "release-user", "databaseId": 42},
+        "repository": {"nameWithOwner": "mastermindx-market-intelligence/mastermind-terminal",
+                       "databaseId": 71, "viewerPermission": "WRITE"},
+    }
+    calls = []
+    def transport(api, query, variables):
+        calls.append((api.token, query, deepcopy(variables)))
+        if "mutation" in query:
+            return {"enqueuePullRequest": {"mergeQueueEntry": {"id": "MQE-test"}}}
+        return deepcopy(identity)
+    monkeypatch.setattr(mog.GitHubApi, "graphql_request", transport)
+    def no_http(*args, **kwargs):
+        raise AssertionError("no provider transport allowed")
+    monkeypatch.setattr(mog.urllib.request, "urlopen", no_http)
+    api = mog.GitHubApi("mastermindx-market-intelligence/mastermind-terminal", "test-job-credential")
+    return api, identity, calls
+
+
+def test_native_enqueue_uses_only_qualified_user_credential(native_issuer_transport):
+    api, _, calls = native_issuer_transport
+    assert api.enqueue("PR-exact", "head-exact") == "MQE-test"
+    assert len(calls) == 2
+    assert all(row[0] == "test-native-user-credential" for row in calls)
+    assert "viewer" in calls[0][1] and "repository" in calls[0][1]
+    assert calls[0][2] == {"owner": "mastermindx-market-intelligence", "name": "mastermind-terminal"}
+    assert calls[1][2] == {"pullRequestId": "PR-exact", "expectedHeadOid": "head-exact"}
+    assert api.token == "test-job-credential"  # Other incumbent operations are unchanged.
+
+
+@pytest.mark.parametrize("field,value", [
+    ("NATIVE_ENQUEUE_TOKEN", ""),
+    ("NATIVE_ENQUEUE_TOKEN", "test-job-credential"),
+    ("NATIVE_ENQUEUE_ISSUER_LOGIN", ""),
+    ("NATIVE_ENQUEUE_ISSUER_ID", ""),
+    ("NATIVE_ENQUEUE_ISSUER_ID", "not-an-id"),
+    ("GITHUB_REPOSITORY_ID", ""),
+])
+def test_native_enqueue_missing_or_job_token_never_mutates(native_issuer_transport, monkeypatch, field, value):
+    api, _, calls = native_issuer_transport
+    monkeypatch.setenv(field, value)
+    with pytest.raises(ApiError):
+        api.enqueue("PR-exact", "head-exact")
+    assert calls == []
+
+
+@pytest.mark.parametrize("section,field,value", [
+    ("viewer", "__typename", "Bot"),
+    ("viewer", "login", "github-actions[bot]"),
+    ("viewer", "login", "different-user"),
+    ("viewer", "databaseId", 43),
+    ("viewer", "databaseId", True),
+    ("repository", "nameWithOwner", "other/repository"),
+    ("repository", "databaseId", 72),
+    ("repository", "viewerPermission", "READ"),
+    ("repository", "viewerPermission", None),
+])
+def test_native_enqueue_wrong_identity_or_repository_never_mutates(native_issuer_transport, section, field, value):
+    api, identity, calls = native_issuer_transport
+    identity[section][field] = value
+    with pytest.raises(ApiError):
+        api.enqueue("PR-exact", "head-exact")
+    assert len(calls) == 1 and "mutation" not in calls[0][1]
+
+
+def test_native_enqueue_wrong_configured_repository_never_reads(native_issuer_transport):
+    api, _, calls = native_issuer_transport
+    api.repo = "foreign/repository"
+    with pytest.raises(ApiError):
+        api.enqueue("PR-exact", "head-exact")
+    assert calls == []
+
+
+@pytest.mark.parametrize("response", [None, {}, {"viewer": None, "repository": None}])
+def test_native_enqueue_incomplete_identity_never_mutates(native_issuer_transport, monkeypatch, response):
+    api, _, calls = native_issuer_transport
+    def incomplete(client, query, variables):
+        calls.append((client.token, query, variables))
+        return response
+    monkeypatch.setattr(mog.GitHubApi, "graphql_request", incomplete)
+    with pytest.raises(ApiError):
+        api.enqueue("PR-exact", "head-exact")
+    assert len(calls) == 1 and "mutation" not in calls[0][1]
+
+
+def test_native_enqueue_identity_failure_is_not_retried(native_issuer_transport, monkeypatch):
+    api, _, calls = native_issuer_transport
+    def denied(client, query, variables):
+        calls.append((client.token, query, variables))
+        raise ApiError(403, "test refusal")
+    monkeypatch.setattr(mog.GitHubApi, "graphql_request", denied)
+    with pytest.raises(ApiError):
+        api.enqueue("PR-exact", "head-exact")
+    assert len(calls) == 1
+
+
+def test_native_enqueue_requalifies_each_original_attempt(native_issuer_transport):
+    api, identity, calls = native_issuer_transport
+    assert api.enqueue("PR-first", "head-first") == "MQE-test"
+    identity["viewer"]["databaseId"] = 99
+    with pytest.raises(ApiError):
+        api.enqueue("PR-second", "head-second")
+    assert len(calls) == 3
+    assert sum("mutation" in row[1] for row in calls) == 1
+
+
+
+def test_native_enqueue_lost_response_has_one_mutation_and_no_fallback(native_issuer_transport, monkeypatch):
+    api, identity, calls = native_issuer_transport
+    def lost(client, query, variables):
+        calls.append((client.token, query, deepcopy(variables)))
+        if "mutation" in query:
+            raise TimeoutError("test-owned lost response")
+        return deepcopy(identity)
+    monkeypatch.setattr(mog.GitHubApi, "graphql_request", lost)
+    with pytest.raises(TimeoutError):
+        api.enqueue("PR-exact", "head-exact")
+    assert len(calls) == 2
+    assert sum("mutation" in row[1] for row in calls) == 1
+    assert all(row[0] == "test-native-user-credential" for row in calls)
+
+
+def test_native_enqueue_workflow_has_distinct_no_fallback_enrollment():
+    document = yaml.safe_load((Path(__file__).resolve().parents[1] / ".github/workflows/merge-on-green.yml").read_text())
+    steps = document["jobs"]["sweep"]["steps"]
+    step = next(s for s in steps if s.get("name") == "reconcile armed pull requests")
+    assert step["env"]["MERGE_TOKEN"] == "${{ secrets.GITHUB_TOKEN }}"
+    assert step["env"]["NATIVE_ENQUEUE_TOKEN"] == "${{ secrets.ADMIN_GH_TOKEN }}"
+    assert step["env"]["NATIVE_ENQUEUE_ISSUER_LOGIN"] == "${{ vars.NATIVE_ENQUEUE_ISSUER_LOGIN }}"
+    assert step["env"]["NATIVE_ENQUEUE_ISSUER_ID"] == "${{ vars.NATIVE_ENQUEUE_ISSUER_ID }}"
+    assert step["env"]["GITHUB_REPOSITORY_ID"] == "${{ github.repository_id }}"
+    assert document["concurrency"]["cancel-in-progress"] is False
+    assert document["jobs"]["sweep"]["timeout-minutes"] == 10
+
+
+
+def assert_privileged_controller_source(document):
+    events = document.get("on", document.get(True))
+    assert set(events) == {"workflow_run", "pull_request_target", "schedule", "workflow_dispatch"}
+    assert events["workflow_run"] == {"workflows": ["CI"], "types": ["completed"]}
+    assert events["pull_request_target"] == {"types": ["labeled", "reopened", "ready_for_review"]}
+    assert events["schedule"] == [{"cron": "*/10 * * * *"}]
+    checkout = document["jobs"]["sweep"]["steps"][0]
+    assert checkout["uses"] == "actions/checkout@v4"
+    assert checkout["with"]["ref"] == "${{ github.sha }}"
+    assert checkout["with"]["sparse-checkout"] == "scripts/merge_on_green.py"
+    assert checkout["with"]["sparse-checkout-cone-mode"] is False
+
+
+def controller_source_document():
+    return yaml.safe_load((Path(__file__).resolve().parents[1] / ".github/workflows/merge-on-green.yml").read_text())
+
+
+def test_privileged_controller_pins_immutable_event_source():
+    assert_privileged_controller_source(controller_source_document())
+
+
+@pytest.mark.parametrize("ref", ["master", "${{ github.event.pull_request.head.sha }}", "${{ github.event.workflow_run.head_sha }}", ""])
+def test_privileged_controller_rejects_mutable_or_untrusted_source(ref):
+    document = controller_source_document()
+    document["jobs"]["sweep"]["steps"][0]["with"]["ref"] = ref
+    with pytest.raises(AssertionError):
+        assert_privileged_controller_source(document)
+
+
+def test_privileged_controller_rejects_candidate_event_and_sparse_expansion():
+    document = controller_source_document()
+    events = document.get("on", document.get(True))
+    events["pull_request"] = events.pop("pull_request_target")
+    with pytest.raises(AssertionError):
+        assert_privileged_controller_source(document)
+    document = controller_source_document()
+    document["jobs"]["sweep"]["steps"][0]["with"]["sparse-checkout"] = "."
+    with pytest.raises(AssertionError):
+        assert_privileged_controller_source(document)

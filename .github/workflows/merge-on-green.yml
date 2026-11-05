@@ -38,12 +38,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: master
+          # Bind executable code to this trusted event, never a moving branch.
+          ref: ${{ github.sha }}
           sparse-checkout: scripts/merge_on_green.py
           sparse-checkout-cone-mode: false
       - name: reconcile armed pull requests
         env:
           GH_REPO: ${{ github.repository }}
           MERGE_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Prospective enrollment: native enqueue refuses absent/unqualified
+          # user credentials; ordinary reads and the legacy path keep MERGE_TOKEN.
+          NATIVE_ENQUEUE_TOKEN: ${{ secrets.ADMIN_GH_TOKEN }}
+          NATIVE_ENQUEUE_ISSUER_LOGIN: ${{ vars.NATIVE_ENQUEUE_ISSUER_LOGIN }}
+          NATIVE_ENQUEUE_ISSUER_ID: ${{ vars.NATIVE_ENQUEUE_ISSUER_ID }}
+          GITHUB_REPOSITORY_ID: ${{ github.repository_id }}
           TRIGGER_PR_NUMBER: ${{ github.event.pull_request.number }}
         run: python3 scripts/merge_on_green.py

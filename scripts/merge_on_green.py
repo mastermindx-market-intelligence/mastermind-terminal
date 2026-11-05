@@ -181,8 +181,60 @@ class GitHubApi:
         entry_id = entry.get("id")
         return str(entry_id) if entry_id else None
 
+    def native_enqueue_api(self) -> GitHubApi:
+        """Qualify the distinct user credential at the native mutation boundary.
+
+        The repository job token remains the incumbent read/legacy credential.
+        It cannot be a fallback here: its enqueue event need not start group CI.
+        Configuration is a prospective enrollment, never proof of the identity.
+        """
+        token = os.environ.get("NATIVE_ENQUEUE_TOKEN", "").strip()
+        login = os.environ.get("NATIVE_ENQUEUE_ISSUER_LOGIN", "").strip()
+        issuer_id = os.environ.get("NATIVE_ENQUEUE_ISSUER_ID", "").strip()
+        repository_id = os.environ.get("GITHUB_REPOSITORY_ID", "").strip()
+        if (
+            self.repo != "mastermindx-market-intelligence/mastermind-terminal"
+            or not token
+            or token in {self.token, os.environ.get("GITHUB_TOKEN", "").strip()}
+            or not login
+            or login.casefold() == "github-actions[bot]"
+            or not issuer_id.isascii() or not issuer_id.isdecimal() or int(issuer_id) <= 0
+            or not repository_id.isascii() or not repository_id.isdecimal() or int(repository_id) <= 0
+        ):
+            raise ApiError(412, "native enqueue issuer enrollment unavailable")
+        client = GitHubApi(self.repo, token)
+        identity = client.graphql_request(
+            """
+            query($owner: String!, $name: String!) {
+              viewer { __typename login databaseId }
+              repository(owner: $owner, name: $name) {
+                nameWithOwner databaseId viewerPermission
+              }
+            }
+            """,
+            {"owner": "mastermindx-market-intelligence", "name": "mastermind-terminal"},
+        )
+        viewer = identity.get("viewer") if isinstance(identity, dict) else None
+        repository = identity.get("repository") if isinstance(identity, dict) else None
+        if (
+            not isinstance(viewer, dict) or not isinstance(repository, dict)
+            or viewer.get("__typename") != "User"
+            or viewer.get("login") != login
+            or type(viewer.get("databaseId")) is not int
+            or viewer["databaseId"] != int(issuer_id)
+            or repository.get("nameWithOwner") != self.repo
+            or type(repository.get("databaseId")) is not int
+            or repository["databaseId"] != int(repository_id)
+            or repository.get("viewerPermission") not in {"WRITE", "MAINTAIN", "ADMIN"}
+        ):
+            raise ApiError(412, "native enqueue issuer identity or repository grant unqualified")
+        return client
+
     def enqueue(self, pull_request_id: str, head_sha: str) -> str:
-        data = self.graphql_request(
+        # Fresh qualification immediately precedes this single mutation. Never
+        # cache identity across candidates or retry an ambiguous mutation here.
+        client = self.native_enqueue_api()
+        data = client.graphql_request(
             """
             mutation($pullRequestId: ID!, $expectedHeadOid: GitObjectID!) {
               enqueuePullRequest(
