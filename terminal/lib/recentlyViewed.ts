@@ -40,10 +40,17 @@ export function prependRecentlyViewed(list: readonly unknown[], symbol: string):
   return normalized;
 }
 
-function readRaw(): string[] {
+// null means the stored list is unreadable; [] means it was read and is empty
+// or malformed. A chart change must not overwrite history it could not read.
+function readRaw(): string[] | null {
+  let value: string | null;
   try {
-    if (typeof localStorage === "undefined") return [];
-    const value = localStorage.getItem(RECENTLY_VIEWED_KEY);
+    if (typeof localStorage === "undefined") return null;
+    value = localStorage.getItem(RECENTLY_VIEWED_KEY);
+  } catch {
+    return null;
+  }
+  try {
     const parsed: unknown = value ? JSON.parse(value) : [];
     return Array.isArray(parsed) ? prependRecentlyViewed(parsed, "") : [];
   } catch {
@@ -60,14 +67,16 @@ function writeRaw(list: string[]): void {
 
 /** Record a chart view, most-recent first. Repeated symbols move back to the front. */
 export function pushRecentlyViewed(symbol: string): void {
-  const next = prependRecentlyViewed(readRaw(), symbol);
+  const previous = readRaw();
+  if (previous === null) return;
+  const next = prependRecentlyViewed(previous, symbol);
   if (!next.length) return;
   writeRaw(next);
 }
 
 /** Read up to 100 unique viewed symbols, most-recent first. */
 export function getRecentlyViewed(): string[] {
-  return readRaw();
+  return readRaw() ?? [];
 }
 
 /** Clear the recently viewed list without touching the retired search-history key. */

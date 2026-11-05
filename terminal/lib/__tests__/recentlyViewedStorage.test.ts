@@ -71,6 +71,48 @@ describe("optional recently-viewed storage", () => {
     });
   }
 
+  it("preserves retained history when reads fail but writes succeed, then recovers", () => {
+    const values = usableStorage();
+    values.set(RECENTLY_VIEWED_KEY, '["AAPL","MSFT"]');
+    values.set("mm.searchHistory", '["OLD"]');
+    let denyRead = true;
+    let writes = 0;
+    Object.defineProperty(globalThis, "localStorage", {
+      configurable: true,
+      value: {
+        getItem(key: string) {
+          if (denyRead) throw new DOMException("Blocked read", "SecurityError");
+          return values.get(key) ?? null;
+        },
+        setItem(key: string, value: string) { writes += 1; values.set(key, value); },
+      },
+    });
+    expect(getRecentlyViewed()).toEqual([]);
+    expect(() => pushRecentlyViewed("NVDA")).not.toThrow();
+    expect(writes).toBe(0);
+    expect(values.get(RECENTLY_VIEWED_KEY)).toBe('["AAPL","MSFT"]');
+    denyRead = false;
+    pushRecentlyViewed("BABA");
+    expect(getRecentlyViewed()).toEqual(["BABA", "AAPL", "MSFT"]);
+    expect(values.get("mm.searchHistory")).toBe('["OLD"]');
+  });
+
+  it("still honors an explicit clear while prior history cannot be read", () => {
+    const values = usableStorage();
+    values.set(RECENTLY_VIEWED_KEY, '["AAPL","MSFT"]');
+    values.set("mm.searchHistory", '["OLD"]');
+    Object.defineProperty(globalThis, "localStorage", {
+      configurable: true,
+      value: {
+        getItem() { throw new DOMException("Blocked read", "SecurityError"); },
+        setItem(key: string, value: string) { values.set(key, value); },
+      },
+    });
+    clearRecentlyViewed();
+    expect(values.get(RECENTLY_VIEWED_KEY)).toBe("[]");
+    expect(values.get("mm.searchHistory")).toBe('["OLD"]');
+  });
+
   it("preserves the last successful list on quota failure, then recovers", () => {
     const values = usableStorage();
     values.set(RECENTLY_VIEWED_KEY, '["AAPL"]');
