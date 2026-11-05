@@ -181,3 +181,106 @@ test("R2 Chinese source evidence and mobile layout remain distinct from trading 
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   await preview.screenshot({ path: "docs/rotation-regime/r2/" + info.project.name + "-zh.png" });
 });
+
+// ── R2 light-theme product proof ──────────────────────────────────────────────
+// Fixture/local product proof of the R2 opening-range preview under the app's
+// light theme root: the incumbent synthetic 5m fixture and fixed clock above,
+// never current market data, a real account or a production path. One fresh
+// context per language, expanded across the three source-owned responsive
+// projects; each context shows the normal qualified preview and the existing
+// missing-SPY benchmark state.
+const LIGHT_PROOF_DIR = "docs/rotation-regime/r2/light/";
+const LIGHT_TEXT = {
+  en: { title: "Opening-range pivot preview", low: "Opening-range low", high: "Opening-range high",
+        unavailable: "Comparable completed 5m sector/SPY interval unavailable" },
+  zh: { title: "开盘区间枢轴预览", low: "开盘区间低点", high: "开盘区间高点",
+        unavailable: "板块与SPY的可比已完成5分钟区间不可用" },
+};
+for (const lang of ["en", "zh"] as const) {
+  test(`R2 light-theme product proof (${lang})`, async ({ page }, info) => {
+    const errors: string[] = [];
+    page.on("pageerror", error => errors.push(error.message));
+    let mode: Mode = "normal";
+    // The existing appearance/language storage, set before any navigation.
+    await page.addInitScript(l => {
+      localStorage.setItem("theme", "light");
+      localStorage.setItem("theme_auto", "0");
+      localStorage.setItem("mm.lang", l);
+    }, lang);
+    await fixture(page, () => mode);
+    await page.goto("/discover?tab=rs-pivot");
+    // Storage alone leaves layout.tsx's server dark attribute unchanged, so the
+    // app's existing CSS theme root is set explicitly — the same applied-theme
+    // switch the accepted terminal light/dark evidence uses.
+    await page.evaluate(() => document.documentElement.setAttribute("data-theme", "light"));
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+    await expect(page.locator("html")).toHaveAttribute("data-lang", lang);
+    const preview = page.getByTestId("rotation-pivot-preview");
+    const open = page.getByRole("button", { name: lang === "zh" ? "打开轮动监测" : "Open rotation monitor", exact: true });
+    await open.click();
+    await expect(preview).toBeVisible();
+    await expect(preview.getByRole("heading", { name: LIGHT_TEXT[lang].title, exact: true })).toBeVisible();
+    await expect(preview).toContainText(LIGHT_TEXT[lang].low);
+    await expect(preview).toContainText(LIGHT_TEXT[lang].high);
+    // The other language's strings must not leak into this view.
+    await expect(preview).not.toContainText(LIGHT_TEXT[lang === "en" ? "zh" : "en"].title);
+    await expect(page.getByTestId("rotation-pivot-chart")).toBeVisible();
+    await expect(page.getByTestId("rotation-pivot-bottom")).toHaveAttribute("data-state", /^(watching|approaching|forming|confirmed|failed|expired)$/);
+    await expect(page.getByTestId("rotation-pivot-top")).toHaveAttribute("data-state", /^(watching|approaching|forming|confirmed|failed|expired)$/);
+    const chart = await page.getByTestId("rotation-pivot-chart").locator("svg").evaluate(node => ({
+      userWidth: (node as SVGSVGElement).viewBox.baseVal.width,
+      cssWidth: node.getBoundingClientRect().width,
+      documentWidth: document.documentElement.scrollWidth,
+      viewportWidth: window.innerWidth,
+      levelKnownX: Number(node.querySelector('[data-testid="rotation-pivot-known-at-line"]')?.getAttribute("x1")),
+      supportStartsX: Number(node.querySelector('[data-testid="rotation-pivot-level-bottom"]')?.getAttribute("x1")),
+      resistanceStartsX: Number(node.querySelector('[data-testid="rotation-pivot-level-top"]')?.getAttribute("x1")),
+      firstBarX: Number(/M([0-9.]+)/.exec(node.querySelector("path")?.getAttribute("d") ?? "")?.[1]),
+    }));
+    expect(Math.abs(chart.userWidth - chart.cssWidth)).toBeLessThan(2);
+    expect(chart.documentWidth).toBeLessThanOrEqual(chart.viewportWidth);
+    expect(chart.levelKnownX).toBeGreaterThan(chart.firstBarX);
+    expect(chart.supportStartsX).toBeCloseTo(chart.levelKnownX, 5);
+    expect(chart.resistanceStartsX).toBeCloseTo(chart.levelKnownX, 5);
+    // The sector control stays usable and the real reader updates on selection.
+    const sector = page.getByTestId("rotation-pivot-sector");
+    const context = page.getByTestId("rotation-pivot-context");
+    await expect(sector).toBeEnabled();
+    await expect(sector).toHaveValue("XLK");
+    const xlkContext = await context.innerText();
+    await sector.selectOption("XLP");
+    await expect(sector).toHaveValue("XLP");
+    await expect.poll(() => context.innerText()).not.toBe(xlkContext);
+    await expect(preview).toContainText(LIGHT_TEXT[lang].low);
+    await sector.selectOption("XLK");
+    await expect(sector).toHaveValue("XLK");
+    await expect.poll(() => context.innerText()).toBe(xlkContext);
+    expect(await preview.evaluate(el => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(1);
+    // The applied theme is read back, not inferred from the requested file name.
+    const themeEvidence = await preview.evaluate(el => ({
+      actualTheme: document.documentElement.getAttribute("data-theme"),
+      actualLang: document.documentElement.getAttribute("data-lang"),
+      foreground: getComputedStyle(el).color,
+      background: getComputedStyle(el).backgroundColor,
+    }));
+    await info.attach("actual-theme", { body: JSON.stringify(themeEvidence), contentType: "application/json" });
+    expect(themeEvidence.actualTheme).toBe("light");
+    expect(themeEvidence.actualLang).toBe(lang);
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+    await preview.screenshot({ path: LIGHT_PROOF_DIR + info.project.name + "-" + lang + "-preview.png" });
+    // The normal close path returns to the closed monitor.
+    await page.getByRole("button", { name: lang === "zh" ? "关闭监测" : "Close monitor", exact: true }).click();
+    await expect(preview).toHaveCount(0);
+    // The existing missing-SPY benchmark state withholds the inadmissible output.
+    mode = "benchmark";
+    await open.click();
+    await expect(preview).toBeVisible();
+    await expect(page.getByTestId("rotation-pivot-unavailable")).toContainText(LIGHT_TEXT[lang].unavailable);
+    await expect(page.getByTestId("rotation-pivot-chart")).toHaveCount(0);
+    await expect(page.getByTestId("rotation-pivot-bottom")).toHaveCount(0);
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+    await expect(page.locator("html")).toHaveAttribute("data-lang", lang);
+    await preview.screenshot({ path: LIGHT_PROOF_DIR + info.project.name + "-" + lang + "-missing-spy.png" });
+    expect(errors).toEqual([]);
+  });
+}
