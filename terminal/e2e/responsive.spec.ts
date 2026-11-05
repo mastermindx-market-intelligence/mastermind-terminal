@@ -1273,7 +1273,7 @@ test("Golden Oracle shows the session a 3D signal became knowable", async ({ pag
   await expect(signalButton.locator(".sig-btn-go .sig-btn-vd")).toHaveText(zh ? "已确认买入" : "Confirmed Buy");
   await expect(signalButton.locator(".sig-btn-go .sig-btn-sub")).toHaveText(expectedDate);
   await expect(signalButton.getByTestId("oracle-entry-availability")).toHaveAttribute("data-status", "UNAVAILABLE_DATA");
-  await expect(signalButton.getByTestId("oracle-entry-availability")).toContainText(zh ? "入场机会尚未核实" : "Entry availability not verified");
+  await expect(signalButton.getByTestId("oracle-entry-availability")).toContainText(zh ? "入场机会尚未核实" : "Entry unverified");
   await expect(signalButton).toHaveAttribute("aria-expanded", "false");
   await expect(signalButton).toHaveAccessibleName(zh ? "打开情报工作区" : "Open Intelligence workspace");
   await signalButton.screenshot({ path: testInfo.outputPath(`${testInfo.project.name}-intelligence-launcher.png`) });
@@ -1283,6 +1283,9 @@ test("Golden Oracle shows the session a 3D signal became knowable", async ({ pag
   await expect(dialog).toBeVisible();
   await expect(dialog).toHaveAccessibleName(zh ? "情报" : "Intelligence");
   await expect(signalButton).toHaveAttribute("aria-expanded", "true");
+  const historicalRow = dialog.getByRole("button", { name: zh ? /历史信号/ : /Historical signal/ });
+  await expect(historicalRow).toContainText(expectedDate);
+  await historicalRow.click();
   await expect(dialog.locator(".sd-go .od-vsub")).toHaveText(expectedDate);
   await expect(dialog.getByTestId("workspace-oracle-entry-availability")).toHaveAttribute("data-status", "UNAVAILABLE_DATA");
 
@@ -1295,8 +1298,8 @@ test("Golden Oracle shows the session a 3D signal became knowable", async ({ pag
   await expect(latest).toHaveAttribute(
     "title",
     zh
-      ? /确认于 2026年7月28日 · 3日K线始于 2026年7月24日/
-      : /Confirmed Jul 28, 2026 · 3D bar opened Jul 24, 2026/,
+      ? /首次可见于 2026年7月28日 · 3日K线始于 2026年7月24日/
+      : /First observed Jul 28, 2026 · 3D bar opened Jul 24, 2026/,
   );
   await dialog.locator(".sd-go").screenshot({
     path: testInfo.outputPath(`${testInfo.project.name}-oracle-known-date.png`),
@@ -1401,6 +1404,8 @@ test("HK-O1: a structure stop and a refused entry are labelled for what they are
   const dialog = page.getByTestId("intelligence-workspace");
   await expect(dialog).toBeVisible();
 
+  await expect(dialog.getByTestId("workspace-summary")).toContainText(zh ? "入场被拦截" : "entry blocked");
+  await dialog.getByRole("tab", { name: zh ? "神谕" : "Oracle", exact: true }).click();
   // ── the refused entry gets its own disclosure, never the entry scorecard ──
   await expect(dialog.locator(".sd-go .sig-conflict").filter({ hasText: zh ? "非入场信号" : "not an entry" }))
     .toBeVisible();

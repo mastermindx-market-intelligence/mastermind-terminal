@@ -23,8 +23,8 @@ import { markerTooltipCopy, retroLegendCopy, washoutOverrideCopy } from "../lib/
 // question "would today's rule have entered here?" is an entry question, and the operator ruled
 // the chart face stays clean. That makes the disclosure entirely a CARD responsibility, so the
 // two claims this suite is really defending are:
-//   (a) the card legend (`.sd-sig-legend`) renders whenever a re-marked fire is in the visible
-//       list and NOT otherwise — asserted against `retroLegendCopy` itself so it cannot drift,
+//   (a) the card legend (`.sd-sig-legend`) renders whenever a re-marked fire is in the full source
+//       history, across filters and pages — asserted against `retroLegendCopy` itself so it cannot drift,
 //       with a second fixture as the control. It is the only place a reader is told that a star
 //       on the tape is a counterfactual, so it is pinned harder than anything else here.
 //   (b) #2 never reaches the verdict: the rail card is anchored by #3 alone, and a chart
@@ -552,6 +552,13 @@ async function assertThreeStates(page: Page, zh: boolean, tag: string, testInfo:
   // it resolves the label the rows actually carry — a legend that quotes a different token
   // than the row suffix explains nothing
   await expect(legend).toContainText(zh ? "（事后重标）" : "(retro)");
+
+  // The chart disclosure remains visible when a list filter hides the retro rows.
+  await activity.getByRole("button", { name: zh ? "离场" : "Exits", exact: true }).click();
+  await expect(rows).toHaveCount(0);
+  await expect(legend).toBeVisible();
+  await activity.getByRole("button", { name: zh ? "全部" : "All", exact: true }).click();
+  await expect(rows).toHaveCount(3);
 
   // row 2 — the plain refusal, untouched: BLOCKED badge, "not an entry", hollow
   const blockedRow = rows.nth(2);

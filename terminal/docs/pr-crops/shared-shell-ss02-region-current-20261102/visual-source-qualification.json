@@ -1,0 +1,76 @@
+{
+  "schema": "shared-shell.scoped-source-witness.v1",
+  "candidate_source_head": "ad827ba1032843bd063fedb76a93215d797002ba",
+  "control_source_head": "e0ae63e43965ec1d1c93405ee903fd92b63e3470",
+  "qualified_source_paths": {
+    "terminal/components/MobileNav.tsx": "b968af6eee6d724898bbd6cf4d76fb7066622f7ab76a8d4e0a03cdfbde8dcd7f"
+  },
+  "source_snapshot_difference": [
+    "terminal/components/MobileNav.tsx"
+  ],
+  "operations": [
+    {
+      "id": "ss1236-pl6-20261102-c1",
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ss1236-pl6-20261102-c1--operation.json",
+      "sha256": "b2411c06ee80524e030c74f346dd4f2996a4957caeeb69c6a4cefb1de2dbab37",
+      "case_count": 8,
+      "profile": {
+        "buildMode": "next-dev",
+        "fixture": "terminal-e2e.v1",
+        "investorShellPreview": "0",
+        "sharedShell": "0",
+        "theme": "dark"
+      }
+    },
+    {
+      "id": "ss1236-vi-context-20261102-c1",
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ss1236-vi-context-20261102-c1--operation.json",
+      "sha256": "696c4aeefc928bc350a75b13e04e3566125a60e2f38cdb0deea39d3bd61ca682",
+      "case_count": 3,
+      "profile": {
+        "buildMode": "next-dev",
+        "fixture": "terminal-e2e.v1",
+        "investorShellPreview": "0",
+        "sharedShell": "0",
+        "theme": "dark"
+      }
+    },
+    {
+      "id": "ss1228-pl6-control-20261102-b2",
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ss1228-pl6-control-20261102-b2--operation.json",
+      "sha256": "7451c8b4bdddce3177741993480bf7da0b941c75923d6804d04e4689f1bd5db4",
+      "case_count": 8,
+      "profile": {
+        "buildMode": "next-dev",
+        "fixture": "terminal-e2e.v1",
+        "investorShellPreview": "0",
+        "sharedShell": "0",
+        "theme": "dark"
+      }
+    },
+    {
+      "id": "ss1228-vi-control-20261102-b2",
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ss1228-vi-control-20261102-b2--operation.json",
+      "sha256": "a5b7cf3dd1e00e3e3482e077797496c023b2bc90cea15e8081f069d2d3cf8d06",
+      "case_count": 3,
+      "profile": {
+        "buildMode": "next-dev",
+        "fixture": "terminal-e2e.v1",
+        "investorShellPreview": "0",
+        "sharedShell": "0",
+        "theme": "dark"
+      }
+    }
+  ],
+  "control_reuse": "The already-recorded B2 control has exactly the e0ae63e4 baseline source/profile used by this successor. Its actual bytes and original IDs are retained; no #1228 candidate operation is relabeled as this candidate. New #1236 candidate operations are separate.",
+  "actual_new_cases": "8 PL6 SearchModal/ChartChrome EN/ZH desktop/mobile and 3 VI Chinese-context cases across the contract viewports. No full 20/30-case matrix recapture is claimed.",
+  "comparisons": {
+    "pl6": "All eight candidate/base PNG pairs are byte-identical.",
+    "vi_tablet": "Byte-identical to the baseline control.",
+    "vi_desktop": "10810 pixels differ, all within y854-891 changing clock/ticker footer; content above that band is byte-identical. The same footer variability was separately measured at unchanged source during the #1228 source qualification; no #1236 same-source repeat is claimed.",
+    "vi_mobile": "45 rounded-edge pixels differ from the baseline by no more than 2/255 per channel, no visible geometry/content/control-state change. The actual different bytes remain retained."
+  },
+  "profile_boundary": "sharedShell=0 preserves ordinary MobileNav rendering; the new selected-market class is only in the sharedShell branch. Its enabled behavior and primary-family identity are independently proven by the four source-bound SS02 journeys and 20 focused unit cases.",
+  "historical_artifacts": "Existing PNGs, cropFiles hashes, full browser report and report hashes are unchanged and retain their original source identity. Only the actual current MobileNav source row is requalified.",
+  "production_proof": false
+}

@@ -21,6 +21,13 @@
   overscroll-behavior: contain;
 }
 
+/* A short company list keeps its selected listing and next action together.
+   Long results still shrink and scroll inside the incumbent dialog or sheet. */
+.panel .companyResults,
+:global(.msheet-search) .companyResults {
+  flex: 0 1 auto;
+}
+
 .panel :global(.sh input) {
   min-width: 0;
 }

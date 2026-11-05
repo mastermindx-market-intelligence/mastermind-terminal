@@ -160,7 +160,7 @@ function hasUpperDivergent(text: string): boolean {
  * optional exponent.
  */
 const PY_FLOAT_LITERAL =
-  /^[+-]?(?:\p{Nd}(?:_?\p{Nd})*)(?:\.(?:\p{Nd}(?:_?\p{Nd})*)?)?(?:[eE][+-]?\p{Nd}(?:_?\p{Nd})*)?$/u;
+  /^[+-]?(?:(?:\p{Nd}(?:_?\p{Nd})*)(?:\.(?:\p{Nd}(?:_?\p{Nd})*)?)?|\.(?:\p{Nd}(?:_?\p{Nd})*))(?:[eE][+-]?\p{Nd}(?:_?\p{Nd})*)?$/u;
 /** Python's `float()` also accepts these words, case-insensitively, with a sign. */
 const PY_INF_NAN = /^[+-]?(?:inf|infinity|nan)$/i;
 /**
