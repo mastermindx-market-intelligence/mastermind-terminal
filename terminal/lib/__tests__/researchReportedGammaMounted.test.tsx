@@ -60,9 +60,10 @@ beforeEach(() => {
 });
 afterEach(async () => { await act(async () => root.unmount()); host.remove(); vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 
-async function mount(options: { source?: unknown; lang?: "en" | "zh" } = {}) {
+async function mount(options: { source?: unknown; available?: boolean; lang?: "en" | "zh" } = {}) {
   await act(async () => root.render(<OptionsResearchLab root="SPY" matrix={matrix} lang={options.lang ?? "en"}
-    onClose={() => {}} currentGexSnapshot={"source" in options ? options.source : reportedGammaBook(SESSION)} />));
+    onClose={() => {}} currentGexSnapshot={"source" in options ? options.source : reportedGammaBook(SESSION)}
+    currentGexSourceAvailable={"available" in options ? options.available : true} />));
 }
 async function click(text: string) {
   const button = [...host.querySelectorAll("button")].find(b => b.textContent === text);
@@ -193,6 +194,16 @@ it("renders incumbent comparator refusals instead of dollar output", async () =>
   expect(panel()!.textContent).toContain(optionsT("en")("memoryMissingComparison"));
 });
 
+it.each([false, undefined])("does not read a comparison from unqualified retained bytes (%s)", async (available) => {
+  wire(archive(2));
+  await mount({ source: reportedGammaBook(SESSION), available });
+  await click("Replay & change");
+  expect(memoryStatus()).toBeUndefined();
+  expect(panel()).toBeNull();
+  expect(host.textContent).toContain("No current all-expiry GEX source is supplied");
+  expect(load).not.toHaveBeenCalled();
+});
+
 it("mounts nothing without a supplied current source and never reads the live cache", async () => {
   await mount({ source: null });
   await click("Replay & change");
@@ -224,14 +235,14 @@ it("keeps the incumbent refusal fences: session mismatch, foreign root and inval
 
   // A changed matrix session invalidates the comparison through the incumbent fence.
   await act(async () => root.render(<OptionsResearchLab root="SPY"
-    matrix={{ ...matrix, _build_meta: { asof_date: PRIOR } }} currentGexSnapshot={reportedGammaBook(SESSION)}
+    matrix={{ ...matrix, _build_meta: { asof_date: PRIOR } }} currentGexSnapshot={reportedGammaBook(SESSION)} currentGexSourceAvailable
     lang="en" onClose={() => {}} />));
   for (let n = 0; n < 60 && memoryStatus() !== "mismatch"; n++) await act(async () => new Promise(r => setTimeout(r, 5)));
   expect(memoryStatus()).toBe("mismatch");
   expect(panel()).toBeNull();
   // A changed root withdraws the whole owner together with the matrix.
   await act(async () => root.render(<OptionsResearchLab root="QQQ" matrix={matrix}
-    currentGexSnapshot={reportedGammaBook(SESSION)} lang="en" onClose={() => {}} />));
+    currentGexSnapshot={reportedGammaBook(SESSION)} currentGexSourceAvailable lang="en" onClose={() => {}} />));
   expect(memoryStatus()).toBeUndefined();
   expect(panel()).toBeNull();
   expect(host.textContent).toContain("Matrix unavailable");

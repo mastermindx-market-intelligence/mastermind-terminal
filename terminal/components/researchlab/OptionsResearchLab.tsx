@@ -70,7 +70,7 @@ class SceneBoundary extends React.Component<{ children: React.ReactNode; fallbac
 /** No I/O, clock, cache, valuation or persistence ownership lives in this consumer. */
 export function OptionsResearchLab({
   root, matrix, volatility = null, matrixReadStatus = "data", onRetryMatrix,
-  volReadStatus = "data", onRetryVol, currentGexSnapshot = null, lang, onClose, onOpenPlan,
+  volReadStatus = "data", onRetryVol, currentGexSnapshot = null, currentGexSourceAvailable = false, lang, onClose, onOpenPlan,
 }: {
   root: string;
   matrix: unknown;
@@ -89,6 +89,8 @@ export function OptionsResearchLab({
    * incumbent owners; this Lab only forwards the supplied bytes.
    */
   currentGexSnapshot?: unknown;
+  /** Explicit source qualification; retained bytes alone never authorize a current comparison. */
+  currentGexSourceAvailable?: boolean;
   lang: Lang;
   onClose: () => void;
   /** Navigation only. The exact-contract owner retains draft creation and Save. */
@@ -137,7 +139,7 @@ export function OptionsResearchLab({
   // nothing and never fall back to a live read. The full-chain replay gap
   // statement stays separate from this comparison.
   const replaySession = data.session;
-  const memoryOwner = replaySession !== null && currentGexSnapshot != null
+  const memoryOwner = currentGexSourceAvailable && replaySession !== null && currentGexSnapshot != null
     ? <GexMarketMemory root={root} matrixSession={replaySession} strike={selected?.strike ?? null}
         t={optionsT(lang)} currentSnapshot={currentGexSnapshot} lang={lang}
         renderReady={({ current, previous, originMs }) => <ResearchReportedGammaPanel

@@ -265,10 +265,10 @@ export function GexDeskView({ onMapFirstChange, onOpenPlan }: { onMapFirstChange
     return origin?.company === ticker ? origin : null;
   });
   if (sectorOrigin && sectorOrigin.company !== ticker) setSectorOrigin(null);
+  // Moving the chart ticker without its return envelope would strand the
+  // user outside the original sector cohort. Keep the step atomic.
   const stepSectorOrigin = (next: { company: string; index: number }) => {
     if (!sectorOrigin || !isValidRoot(next.company)) return;
-    // Moving the chart ticker without its return envelope would strand the
-    // user outside the original sector cohort. Keep the step atomic.
     const origin = exposureOriginForStep(sectorOrigin, next);
     if (!origin) return;
     const url = new URL(window.location.href);
@@ -581,9 +581,20 @@ export function GexDeskView({ onMapFirstChange, onOpenPlan }: { onMapFirstChange
       setArchivedMissing(false);
       setArchivedError(false);
       setArchivedPayload(null);
-      void readArchivedSession(ticker, date, req);
+      void (async () => {
+        // Explicit selection must consume the read, not leave a corrected book in background cache.
+        const outcome = await readFlow(`gex_at:${ticker}:${date}`, { refresh: true });
+        if (sessionReqRef.current !== req) return;
+        const data = outcome.status === "data" ? (outcome.data as GexPayload) : null;
+        const ok = !!data && data.root === ticker && gexSessionOf(data.asof) === date && Array.isArray(data.by_strike) && data.by_strike.length > 0;
+        setArchivedPayload(ok ? data : null);
+        // A session the store never published is a gap; a read that did not land is not.
+        setArchivedError(outcome.status === "unavailable");
+        setArchivedMissing(!ok && outcome.status !== "unavailable");
+        setArchivedLoading(false);
+      })();
     },
-    [ticker, readArchivedSession]
+    [ticker]
   );
 
   useEffect(() => {
@@ -1001,22 +1012,15 @@ export function GexDeskView({ onMapFirstChange, onOpenPlan }: { onMapFirstChange
   if (researchOpen) return (
     <OptionsResearchLab key={ticker} root={ticker}
       matrix={isArchived ? null : visibleMatrix}
-      // Reuse the qualified current Exposure book; null prevents a separate live fallback.
-      currentGexSnapshot={
-        !isArchived &&
-        rootOk &&
-        liveStatus === "data" &&
-        stream.status !== "absent" &&
-        stream.status !== "unavailable"
-          ? activePayload
-          : null
-      }
+      // Reuse the selected Exposure book; null prevents a separate live fallback.
+      currentGexSnapshot={!isArchived && rootOk ? activePayload : null}
       matrixReadStatus={isArchived || !rootOk ? "data" : matrixStatus}
       onRetryMatrix={isArchived || !rootOk ? undefined : retryMatrix}
       volatility={researchEod.vol}
       volReadStatus={researchOpen && !isArchived && rootOk ? researchEod.volStatus : "data"}
       onRetryVol={researchOpen && !isArchived && rootOk ? researchEod.retryVol : undefined}
       lang={lang}
+      currentGexSourceAvailable={liveStatus === "data" && stream.status !== "absent" && stream.status !== "unavailable"}
       onOpenPlan={onOpenPlan}
       onClose={() => { returnFromResearch.current = true; openResearch(false); }} />
   );

@@ -8,7 +8,10 @@ import { join } from "node:path";
 
 const REPO = join(__dirname, "../../..");
 const CROP_DIR = join(__dirname, "../../docs/pr-crops/eod-heatmap-flowdesk-load-failure");
-const EVIDENCE = join(CROP_DIR, "EVIDENCE.yml");
+const OPERATION = join(CROP_DIR, "operations", "exposure-source-compatibility-20261105");
+const CURRENT_CROP_DIR = join(OPERATION, "qualified-root");
+const EVIDENCE = join(CURRENT_CROP_DIR, "EVIDENCE.yml");
+const HISTORICAL_EVIDENCE = join(OPERATION, "EVIDENCE.before.yml");
 // The sources e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs stamps (its LAYOUT_FILES).
 const LAYOUT_FILES = [
   "terminal/app/globals.css",
@@ -57,6 +60,10 @@ const BEFORE = ["belt-503", "chainheat-503", "chainheat-refused", "chainheat-404
 
 function evidenceText(): string {
   return readFileSync(EVIDENCE, "utf8");
+}
+
+function historicalEvidenceText(): string {
+  return readFileSync(HISTORICAL_EVIDENCE, "utf8");
 }
 
 function layoutFileMap(yml: string): Record<string, string> {
@@ -108,7 +115,7 @@ describe("EOD / heatmap / flow desk load-failure evidence lock is the sha256 of 
     const yml = evidenceText();
     expect(CROPS).toHaveLength(126);
     for (const file of CROPS) {
-      const abs = join(CROP_DIR, file);
+      const abs = join(CURRENT_CROP_DIR, file);
       expect(existsSync(abs), file).toBe(true);
       expect(statSync(abs).size, file).toBeGreaterThan(0);
       expect(yml, `${file} is not listed in EVIDENCE.yml`).toContain(`  - ${file}\n`);
@@ -139,7 +146,7 @@ describe("EOD / heatmap / flow desk load-failure evidence lock is the sha256 of 
     }
   });
   it("validates the archived-refresh operation capture without replacing historical packet crops", () => {
-    const evidence = evidenceText();
+    const evidence = historicalEvidenceText();
     const separator = "\nexposureArchivedRefreshRecapture:\n";
     const index = evidence.indexOf(separator);
     expect(index).toBeGreaterThan(0);
@@ -170,7 +177,7 @@ describe("EOD / heatmap / flow desk load-failure evidence lock is the sha256 of 
   });
 
   it("validates the sector-origin operation recapture and links the previous GEX source", () => {
-    const yml = evidenceText();
+    const yml = historicalEvidenceText();
     const boundary = "\nexposureSectorOriginRecapture:\n";
     const at = yml.indexOf(boundary);
     expect(at).toBeGreaterThan(0);
@@ -209,7 +216,7 @@ describe("EOD / heatmap / flow desk load-failure evidence lock is the sha256 of 
 
 
   it("retains the two original root-crop receipts in portable immutable copies", () => {
-    const yml = evidenceText();
+    const yml = historicalEvidenceText();
     const folder = "operations/exposure-1243-root-history-20261104";
     const workspace = yml.split("\nexposureWorkspaceRecapture:\n")[1]?.split("\nexposureFilterRecapture:\n")[0];
     const filters = yml.split("\nexposureFilterRecapture:\n")[1]?.split("\nexposureArchivedRefreshRecapture:\n")[0];
@@ -243,7 +250,7 @@ describe("EOD / heatmap / flow desk load-failure evidence lock is the sha256 of 
   });
 
   it("preserves the Paper hierarchy receipt and immutable operation crops", () => {
-    const receipt = receiptSection(evidenceText(), "exposureHierarchyRecapture");
+    const receipt = receiptSection(historicalEvidenceText(), "exposureHierarchyRecapture");
     const folder = "operations/exposure-1243-paper-hierarchy-fit-20261104";
     expect(receipt).toContain(`  outputDir: "${folder}"`);
     expect(receipt).toContain("  actualCases: 42");
@@ -270,8 +277,8 @@ describe("EOD / heatmap / flow desk load-failure evidence lock is the sha256 of 
   });
 
 
-  it("verifies the qualified Lab source gate against current sources and native operation crops", () => {
-    const record = receiptSection(evidenceText(), "labSourceGateRecapture20261104");
+  it("preserves the qualified Lab source gate against frozen historical sources and crops", () => {
+    const record = receiptSection(historicalEvidenceText(), "labSourceGateRecapture20261104");
     const folder = "operations/exposure-1243-lab-source-gate-20261104";
     expect(record).toContain(`  outputDir: "${folder}/gate-fixed"`);
     expect(record).toContain("  actualCases: 42");
@@ -283,19 +290,24 @@ describe("EOD / heatmap / flow desk load-failure evidence lock is the sha256 of 
     expect(native.exit).toBe(0);
     expect(native.source_stable).toBe(true);
     expect(native.failed_frames).toEqual([]);
-    for (const rel of [...LAYOUT_FILES,
+    const sourceMap = join(REPO, "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/lab-source-gate-20261104/original/source-final.json");
+    expect(sha256Of(sourceMap)).toBe("11d189c3259e81d5b95e9e7a68f14268921086a6e749a1be48b9e3fb39911b93");
+    const historical = JSON.parse(readFileSync(sourceMap, "utf8")) as Record<string, string>;
+    const historicalLayout = Object.keys(layoutFileMap(historicalEvidenceText()));
+    for (const rel of [...historicalLayout,
       "terminal/components/researchlab/OptionsResearchLab.tsx",
       "terminal/components/options-companion/GexMarketMemory.tsx",
       "terminal/components/researchlab/ResearchReportedGammaPanel.tsx",
       "terminal/components/researchlab/researchReportedGamma.ts",
     ]) {
-      const actual = sha256Of(join(REPO, rel));
+      const actual = historical[rel];
+      expect(actual, rel).toMatch(/^[0-9a-f]{64}$/);
       expect(record).toContain(`    ${rel}: "${actual}"`);
       expect(native.source_sha256[rel]).toBe(actual);
     }
     const harness = "terminal/e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs";
-    expect(record).toContain(`  currentCaptureHarnessSha256: "${sha256Of(join(REPO, harness))}"`);
-    expect(native.source_sha256[harness]).toBe(sha256Of(join(REPO, harness)));
+    expect(record).toContain(`  currentCaptureHarnessSha256: "${historical[harness]}"`);
+    expect(native.source_sha256[harness]).toBe(historical[harness]);
     const expected = CROPS.filter(name => name.startsWith("eod-"));
     expect(expected).toHaveLength(42);
     expect(Object.keys(native.image_sha256).sort()).toEqual([...expected].sort());
@@ -306,6 +318,57 @@ describe("EOD / heatmap / flow desk load-failure evidence lock is the sha256 of 
       expect(statSync(file).size, name).toBeGreaterThan(1000);
       expect(sha256Of(file), name).toBe(native.image_sha256[name]);
       expect(record).toContain(`    ${name}: "${sha256Of(file)}"`);
+    }
+  });
+
+  it("binds the current full native capture and preserves both historical root image sets", () => {
+    const folder = "operations/exposure-source-compatibility-20261105";
+    const rootEvidence = readFileSync(join(CROP_DIR, "EVIDENCE.yml"), "utf8");
+    const record = receiptSection(rootEvidence, "exposureSourceCompatibility20261105");
+    expect(record).toContain('  activeManifest: "' + folder + '/qualified-root/EVIDENCE.yml"');
+    expect(record).toContain('  priorManifest: "' + folder + '/EVIDENCE.before.yml"');
+    expect(sha256Of(HISTORICAL_EVIDENCE)).toBe("aa03e7e65e155f9addb167232fbc50e3b71e8380eb07fedde1f82e47ae10c91c");
+    const protectedEvidence = join(OPERATION, "EVIDENCE.protected.yml");
+    expect(sha256Of(protectedEvidence)).toBe("42c027968aeafbe179333d691e5727ef76523f9775becad3b2002dc0139b05da");
+    expect(rootEvidence.endsWith(readFileSync(protectedEvidence, "utf8"))).toBe(true);
+
+    const receiptPath = join(OPERATION, "capture-receipt.json");
+    expect(record).toContain('  captureReceiptSha256: "' + sha256Of(receiptPath) + '"');
+    const native = JSON.parse(readFileSync(receiptPath, "utf8"));
+    expect(native.operation).toBe("exposure-source-compatibility-20261105");
+    expect(native.protectedBase).toBe("11531481b0a540ee96bcd86df418fd1e42715363");
+    expect(native.kind).toBe("eod");
+    expect(native.exit).toBe(0);
+    expect(native.expected).toBe(126);
+    expect(native.successful_files).toBe(126);
+    expect(native.source_stable).toBe(true);
+    expect(native.failed_frames).toEqual([]);
+    expect(native.native_manifest_sha256).toBe(sha256Of(EVIDENCE));
+    expect(record).toContain('  activeManifestSha256: "' + sha256Of(EVIDENCE) + '"');
+    expect(native.log_sha256).toBe(sha256Of(join(OPERATION, "capture.log")));
+    const requiredSources = [...LAYOUT_FILES,
+      "terminal/lib/idbJsonStore.ts",
+      "terminal/components/researchlab/OptionsResearchLab.tsx",
+      "terminal/components/options-companion/GexMarketMemory.tsx",
+      "terminal/components/researchlab/ResearchReportedGammaPanel.tsx",
+      "terminal/components/researchlab/researchReportedGamma.ts",
+      "terminal/e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs",
+    ];
+    expect(Object.keys(native.source_sha256).sort()).toEqual([...requiredSources].sort());
+    for (const rel of requiredSources) expect(native.source_sha256[rel], rel).toBe(sha256Of(join(REPO, rel)));
+    expect(Object.keys(native.image_sha256).sort()).toEqual([...CROPS].sort());
+    expect(readdirSync(CURRENT_CROP_DIR).filter(name => name.endsWith(".png")).sort()).toEqual([...CROPS].sort());
+
+    expect(sha256Of(join(OPERATION, "prior-root-sha256.json"))).toBe("eae49945986e6328b174529f8497ccfedcd36b505a798107a7a10c084db476d2");
+    expect(sha256Of(join(OPERATION, "protected-root-sha256.json"))).toBe("cc89fe0b66198e8b7863dbe22e87d668db89ee1d7e1e39c9d1c6bcab1f4244b0");
+    const prior = JSON.parse(readFileSync(join(OPERATION, "prior-root-sha256.json"), "utf8")) as Record<string, string>;
+    const protectedImages = JSON.parse(readFileSync(join(OPERATION, "protected-root-sha256.json"), "utf8")) as Record<string, string>;
+    expect(Object.keys(prior).sort()).toEqual([...CROPS].sort());
+    expect(Object.keys(protectedImages).sort()).toEqual([...CROPS].sort());
+    for (const name of CROPS) {
+      expect(sha256Of(join(CURRENT_CROP_DIR, name)), name).toBe(native.image_sha256[name]);
+      expect(sha256Of(join(OPERATION, "prior-root", name)), name).toBe(prior[name]);
+      expect(sha256Of(join(CROP_DIR, name)), name).toBe(protectedImages[name]);
     }
   });
 
