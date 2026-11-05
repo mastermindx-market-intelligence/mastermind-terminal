@@ -849,7 +849,7 @@ test("a tap keeps the marker it started on when geometry moves before pointerup"
   // not re-decide what the fingertip originally landed on from the marker's new coordinates.
   await page.locator("[data-sig-layer]").first().evaluate((svg, at) => {
     const layer = svg as SVGSVGElement;
-    const marker = [...layer.querySelectorAll<SVGGElement>(":scope > g")].find((group) =>
+    const marker = [...layer.querySelectorAll<SVGGElement>('[data-price-pane-local="signals"] > g')].find((group) =>
       group.querySelector(":scope > title")?.textContent?.startsWith(`${at.t} ·`),
     );
     if (!marker) throw new Error(`fixture lost marker ${at.t}`);
