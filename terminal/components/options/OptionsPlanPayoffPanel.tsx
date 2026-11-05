@@ -2,6 +2,8 @@
 
 import React, { useEffect, useId, useRef, useState } from "react";
 import { OptionsPlanDraftEditor } from "./OptionsPlanDraftEditor";
+import { OptionsPlanComparePanel } from "./OptionsPlanComparePanel";
+import type { QualifiedPlanScenario } from "@/lib/optionsPlanScenarioCompare";
 import { preparePlanExpiryRequest, readPlanPayoff, planPayoffView, type PlanPayoff, type PlanReferenceCoverage } from "@/lib/optionsPlanPayoff";
 import type { OptionsPlanDraft } from "@/lib/optionsPlanDraft";
 import { useChartWidth, niceTicks, padDomain, thinLabels, fmtTick } from "@/components/charts/svgChart";
@@ -75,6 +77,9 @@ export function OptionsPlanPayoffPanel(props: Props) {
 function PlanPayoffBody({ draft, lang, onDraftChange, onDraftInputChange, onClose }: Props) {
   const t = (en: string, zh: string) => lang === "zh" ? zh : en;
   const [result, setResult] = useState<PlanPayoff | null>(null);
+  // Explicit local comparison only; the existing Investigation owner alone may Save.
+  const [lastQualified, setLastQualified] = useState<QualifiedPlanScenario | null>(null);
+  const [baseline, setBaseline] = useState<QualifiedPlanScenario | null>(null);
   const [coverage, setCoverage] = useState<PlanReferenceCoverage | null>(null);
   const [status, setStatus] = useState("idle"), [reason, setReason] = useState("");
   const answer = useRef<HTMLHeadingElement>(null);
@@ -83,7 +88,7 @@ function PlanPayoffBody({ draft, lang, onDraftChange, onDraftInputChange, onClos
   useEffect(() => { if (result) answer.current?.focus(); }, [result]);
   const calculate = async (candidate: OptionsPlanDraft) => {
     controller.current?.abort(); const own = ++sequence.current;
-    setResult(null); setCoverage(null); setReason(""); onDraftChange(candidate);
+    setResult(null); setLastQualified(null); setCoverage(null); setReason(""); onDraftChange(candidate);
     const request = preparePlanExpiryRequest(candidate);
     if (!request.ok) { setStatus("incomplete"); setReason(request.reason); return; }
     setStatus("loading"); controller.current = new AbortController();
@@ -106,7 +111,7 @@ function PlanPayoffBody({ draft, lang, onDraftChange, onDraftInputChange, onClos
       const parsed = readPlanPayoff(await response.json(), request.value);
       if (own !== sequence.current) return;
       if (!parsed) { setStatus("unavailable"); return; }
-      setResult(parsed); setCoverage({ root: parsed.source_boundary.reference_root, contract_count: parsed.source_boundary.reference_contract_count,
+      setResult(parsed); setLastQualified({ draft: candidate, payoff: parsed }); setCoverage({ root: parsed.source_boundary.reference_root, contract_count: parsed.source_boundary.reference_contract_count,
         expirations: parsed.source_boundary.reference_expirations, as_of: parsed.source_boundary.reference_as_of, captured_at: parsed.source_boundary.reference_observed_at }); setStatus("ready");
     } catch { if (own === sequence.current) setStatus("unavailable"); }
   };
@@ -116,7 +121,7 @@ function PlanPayoffBody({ draft, lang, onDraftChange, onDraftInputChange, onClos
       : t("Enter a side, whole contract quantity and your USD entry assumption for every leg.", "请为每条腿填写方向、合约整数数量及美元入场价假设。");
   return <section className={styles.panel} data-testid="options-plan-payoff-panel" aria-label={t("Exact-contract Plan", "精确合约计划")}>
     <OptionsPlanDraftEditor layout="planning" draft={draft} lang={lang} onApply={candidate => { void calculate(candidate); }} onClose={onClose}
-      onEdit={candidate => { onDraftInputChange?.(candidate); sequence.current++; controller.current?.abort(); setResult(null); setCoverage(null); setStatus("idle"); }}
+      onEdit={candidate => { onDraftInputChange?.(candidate); sequence.current++; controller.current?.abort(); setResult(null); setLastQualified(null); setCoverage(null); setStatus("idle"); }}
       applyLabel={t("Calculate expiry payoff", "计算到期损益")}
       contextDescription={t("Use your entry assumptions for a conditional expiry outcome. Current executable quotes are unavailable.", "用个人入场假设研究条件到期结果；当前可成交报价不可用。")} />
     <div className={styles.answer} aria-live="polite" aria-busy={status === "loading"}>
@@ -147,5 +152,7 @@ function PlanPayoffBody({ draft, lang, onDraftChange, onDraftInputChange, onClos
         </details>
       </>}
     </div>
+    <OptionsPlanComparePanel lang={lang} candidate={lastQualified} baseline={baseline}
+      onPin={() => { if (lastQualified) setBaseline(lastQualified); }} onClear={() => setBaseline(null)} />
   </section>;
 }
