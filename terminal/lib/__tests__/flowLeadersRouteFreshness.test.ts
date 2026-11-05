@@ -9,12 +9,17 @@ vi.mock("@/lib/rateLimit", () => ({
   rateLimit: () => ({ ok: true }),
   tooMany: () => new Response("rate limited", { status: 429 }),
 }));
-vi.mock("@/lib/entitlement", () => ({ hasLiveOptions: async () => true }));
+vi.mock("@/lib/entitlement", () => ({ getLiveOptionsAccess: async () => "allowed" }));
 vi.mock("@/lib/flowSource", () => ({
   isValidF: () => true,
   fixtureFor: async () => ({}),
   attachFlowScores: () => {},
   tryFetchUpstream: upstream,
+  // The uncached first read takes the outcome-typed path; it counts against the same mock.
+  tryFetchUpstreamResult: async (f: string) => {
+    const data = await upstream(f);
+    return data ? { status: "data", data } : { status: "unavailable" };
+  },
 }));
 vi.mock("@/lib/optionsAlphaCandidatePair", () => ({
   fetchOptionsAlphaCandidatePair: async () => ({}),

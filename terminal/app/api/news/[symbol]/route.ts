@@ -1,5 +1,5 @@
 import { rateLimit, tooMany } from "@/lib/rateLimit";
-import { normalizeTickerNewsSymbol, parseTickerNewsSnapshot, TickerNewsContractError } from "@/lib/newsContract";
+import { normalizeTickerNewsSymbol, parseTickerNewsSnapshot, requireRequestedEditorialView, tickerNewsViewQuery, TickerNewsContractError } from "@/lib/newsContract";
 import { proxyTickerNewsJson, TICKER_NEWS_PRIVATE_HEADERS } from "@/lib/server/tickerNews";
 
 export const runtime = "nodejs";
@@ -30,14 +30,19 @@ export async function GET(
     const url = new URL(req.url);
     const limit = boundedInt(url.searchParams.get("limit"), "limit", 1, 200);
     const cursor = boundedInt(url.searchParams.get("cursor"), "cursor", 1, Number.MAX_SAFE_INTEGER);
-    const query = new URLSearchParams();
+    const query = tickerNewsViewQuery(url.searchParams);
     if (limit !== null) query.set("limit", String(limit));
     if (cursor !== null) query.set("cursor", String(cursor));
     const suffix = query.size ? `?${query.toString()}` : "";
     return proxyTickerNewsJson(
       req,
       `/api/ticker-news/${encodeURIComponent(symbol)}${suffix}`,
-      parseTickerNewsSnapshot,
+      (value) => {
+        const snapshot = parseTickerNewsSnapshot(value);
+        if (snapshot.ticker !== symbol) throw new TickerNewsContractError("snapshot_ticker_mismatch");
+        requireRequestedEditorialView(query, snapshot.editorial_view);
+        return snapshot;
+      },
     );
   } catch (error) {
     if (error instanceof TickerNewsContractError) return badRequest("invalid_request");

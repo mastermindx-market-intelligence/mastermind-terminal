@@ -10,9 +10,19 @@ import {
   type CompanyIntelligenceResult,
 } from "../../lib/companyIntelligence";
 import CompanyInstitutionalContextCard from "./CompanyInstitutionalContextCard";
+import ReportedOwnershipPanel from "./ReportedOwnershipPanel";
+import { isReportedOwnershipSymbol } from "../../lib/reportedOwnership";
+import type { Fund } from "../../lib/fund";
 
 interface OwnershipPageProps {
   sym: string;
+  /**
+   * Optional so every existing callsite keeps compiling: `MegaPane` does not yet pass a fund, and
+   * until it does the reported panel simply renders an explicit absence. It never falls back to
+   * the legacy undated `ownership.top_inst`.
+   */
+  fund?: Fund | null;
+  fundLoading?: boolean;
 }
 
 function periodLabel(result: Extract<CompanyIntelligenceResult, { ok: true }>): string {
@@ -34,7 +44,14 @@ function errorCopy(result: Extract<CompanyIntelligenceResult, { ok: false }>, zh
   return pick(zh, "Verified company context is temporarily unavailable.", "已验证公司背景暂时不可用。");
 }
 
-export default function OwnershipPage({ sym }: OwnershipPageProps) {
+/**
+ * The verified-13F surface, exactly as it was before provider-reported holdings were added.
+ *
+ * This body is deliberately untouched: same fetch, same gating, same copy, same `data-ownership`
+ * attributes. It was extracted into a private component purely so `OwnershipPage` can decide
+ * whether to sit above it — the rendered output for a US listing is byte-for-byte what it was.
+ */
+function VerifiedInstitutionalOwnership({ sym }: { sym: string }) {
   const { lang } = useLang();
   const zh = lang === "zh";
   const ticker = sym.trim().toUpperCase();
@@ -171,5 +188,24 @@ export default function OwnershipPage({ sym }: OwnershipPageProps) {
         selectedEventLabel={periodLabel(result)}
       />
     </section>
+  );
+}
+
+/**
+ * Regional listings get the provider-reported holdings panel above the existing verified-13F
+ * surface; US listings keep exactly the original view with no extra markup.
+ *
+ * The two snapshots are independent. An invalid CI result does not hide a qualified reported
+ * block, and a qualified reported block does not authorize or stand in for an invalid CI result —
+ * the reported panel never reads the CI payload and never changes the gating below it.
+ */
+export default function OwnershipPage({ sym, fund, fundLoading }: OwnershipPageProps) {
+  const ticker = sym.trim().toUpperCase();
+  if (!isReportedOwnershipSymbol(ticker)) return <VerifiedInstitutionalOwnership sym={sym} />;
+  return (
+    <>
+      <ReportedOwnershipPanel ticker={ticker} fund={fund} loading={fundLoading} />
+      <VerifiedInstitutionalOwnership sym={sym} />
+    </>
   );
 }

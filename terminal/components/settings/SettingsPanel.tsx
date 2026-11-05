@@ -220,8 +220,18 @@ export default function SettingsPanel(props: SettingsPanelProps) {
   const usageErr = !props.devUsage && usageLive.unavailable;
   const usageStale = !props.devUsage && usageLive.stale;
 
-  const [accuracyLive, setAccuracyLive] = useState<AccuracyReadout | null>(null);
-  const [accuracyErr, setAccuracyErr] = useState(false);
+  // Personal accuracy results are owner-tagged: the panel is mounted once and
+  // hidden between uses, so an owner swap would otherwise serve the previous
+  // account's settled readout (or its error) to the next account for the whole
+  // first render after the switch. A settled result records the ownerUUID it
+  // was fetched for and is read back only while the CURRENT owner matches, so
+  // a loading or anonymous owner never inherits one and no delayed effect
+  // clearing is needed to stay correct.
+  const [accuracyRead, setAccuracyRead] = useState<{
+    owner: string;
+    readout: AccuracyReadout | null;
+    err: boolean;
+  } | null>(null);
   useEffect(() => {
     if (props.devAccuracy !== undefined) return;
     if (!visible || section !== "accuracy") return;
@@ -231,50 +241,64 @@ export default function SettingsPanel(props: SettingsPanelProps) {
       try {
         const res = await fetch("/api/accuracy");
         if (!res.ok) {
-          if (!cancelled) { setAccuracyLive(null); setAccuracyErr(true); }
+          if (!cancelled) setAccuracyRead({ owner, readout: null, err: true });
           return;
         }
         const body = await res.json() as AccuracyReadout;
-        if (!cancelled) { setAccuracyLive(body); setAccuracyErr(false); }
+        if (!cancelled) setAccuracyRead({ owner, readout: body, err: false });
       } catch {
-        if (!cancelled) { setAccuracyLive(null); setAccuracyErr(true); }
+        if (!cancelled) setAccuracyRead({ owner, readout: null, err: true });
       }
     })();
     return () => { cancelled = true; };
   }, [visible, section, owner, openSeq, props.devAccuracy]);
+  // A same-owner result stays served across reopens/resections until replaced
+  // (stale-while-revalidate); one tagged for another owner reads as
+  // never-fetched instead of being blanked a tick later.
+  const accuracyOwned = accuracyRead && accuracyRead.owner === owner ? accuracyRead : null;
   const accuracy = props.devAccuracy !== undefined
     ? props.devAccuracy
-    : (isAccountOwner(owner) ? accuracyLive : null);
-  const accuracyLoadErr = props.devAccuracy === undefined && isAccountOwner(owner) && accuracyErr;
+    : (isAccountOwner(owner) && accuracyOwned ? accuracyOwned.readout : null);
+  const accuracyLoadErr = props.devAccuracy === undefined && isAccountOwner(owner)
+    && accuracyOwned !== null && accuracyOwned.err;
 
   // ── W9T_F13_9 BLOCKER fix: resolve the caller's team id in the live path ──
   // GET /api/teams returns { teams, truncated }, the same shape SectionTeam and
   // parseTeamsResponse already handle. A bare-array parse leaves activeTeamIdLive
   // null, so the rollup never renders. undefined = membership still loading
   // (do not flash the no-team sentence); null = resolved no team; string = id.
-  const [activeTeamIdLive, setActiveTeamIdLive] = useState<string | null | undefined>(undefined);
+  // Membership is owner-tagged the same way: undefined = no result readable for
+  // the CURRENT owner (first render after an owner swap, membership still
+  // loading, or an anonymous owner) so the previous account's team id can never
+  // reach the rollup; null = resolved no team; string = the owner's team id.
+  const [teamOwned, setTeamOwned] = useState<{
+    owner: string;
+    teamId: string | null;
+  } | null>(null);
   useEffect(() => {
     if (props.devTeam) return;           // dev harness: use the fixture id
-    if (!visible || !isAccountOwner(owner)) { setActiveTeamIdLive(undefined); return; }
+    if (!visible || !isAccountOwner(owner)) { setTeamOwned(null); return; }
     let cancelled = false;
     void (async () => {
       try {
         const res = await fetch("/api/teams");
         if (cancelled) return;
-        if (!res.ok) { setActiveTeamIdLive(null); return; }
+        if (!res.ok) { setTeamOwned({ owner, teamId: null }); return; }
         const parsed = parseTeamsResponse(await res.json());
         if (cancelled) return;
         if (parsed.status !== "ok" || parsed.teams.length === 0) {
-          setActiveTeamIdLive(null);
+          setTeamOwned({ owner, teamId: null });
           return;
         }
-        setActiveTeamIdLive(parsed.teams[0].teamId);
+        setTeamOwned({ owner, teamId: parsed.teams[0].teamId });
       } catch {
-        if (!cancelled) setActiveTeamIdLive(null);
+        if (!cancelled) setTeamOwned({ owner, teamId: null });
       }
     })();
     return () => { cancelled = true; };
   }, [visible, openSeq, owner, props.devTeam]);
+  const activeTeamIdLive: string | null | undefined =
+    teamOwned && teamOwned.owner === owner ? teamOwned.teamId : undefined;
 
   // ── freshness on RE-OPEN and on focus ─────────────────────────────────────
   // The panel is mounted once and hidden between uses, so "open it again" is not a

@@ -1,0 +1,37 @@
+{
+  "sourceHead": "38565c73bcdb31fcf2920fc91b90ed775d495c93",
+  "sourceHash": "476b79a8d87ed6b7e165013ce7610cb0811d63800dab5c91ef1a729a128c82bb",
+  "scope": "actual four OptionsHub desktop/mobile ENZH crops and two desktop chart-context cases; no whole30-case rerun claim",
+  "optionsCommand": "CAPTURE_ONLY=OptionsHubView TERMINAL_CROP_PORT=3187 node e2e/tools/capture_pl6_batch1.cjs",
+  "optionsCrops": {
+    "OptionsHubView-1440.png": "cba0c8b9437057d47a0c17f49c73eaedd159d41b687386c4daed1bd682fee35a",
+    "OptionsHubView-1440-zh.png": "3cf44b98105635da0e1b4b7926840776cd33b918fe7cef26517b16dfb8310d98",
+    "OptionsHubView-390.png": "7d84f22f6820f3bbc4202a42020d7618d8b780c5317ff0ec6ef6e1abdb1cc21c",
+    "OptionsHubView-390-zh.png": "a3f2d6d48c1d7c4c36d07b01e850453c3f0cb1bec0525981ffafde5065b0dfdd"
+  },
+  "contextReport": "options-plan-composed-capture-report.json",
+  "contextReportSha256": "aa2d2bd77547148fce7e1792b0033079293b80c55545e2e0fac81d17ca76ae09",
+  "contextStats": {
+    "startTime": "2026-10-24T12:42:58.372Z",
+    "duration": 21743.777000000002,
+    "expected": 2,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "contextCrops": {
+    "desktop-context.png": "5af6b583872fe76c770874ef839a68e4794f6982f5210e252886c89a38f6effa",
+    "desktop-context-zh.png": "be085764baf8fcf8ed481fc9fa970b9ca1ca907a82c4e37e7576f7842707ec15"
+  },
+  "review": "Root inspected all six actual captures; EN latestbar and ZH selectedpriorbar are intentional test states. Unchanged other crops/report kept at original identities.",
+  "combinedBehaviorReport": "options-plan-composed-browser-report.json",
+  "combinedBehaviorReportSha256": "8d50dbcf9b3bb75bec9e0a8d90e9b9f3f0ffdc6ff6fcc916ec3d6934396654ac",
+  "combinedBehaviorStats": {
+    "startTime": "2026-10-24T12:40:56.911Z",
+    "duration": 81448.058,
+    "expected": 54,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

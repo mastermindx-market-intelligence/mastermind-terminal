@@ -1,0 +1,20 @@
+
+Running 15 tests using 1 worker
+
+  ✓   1 [desktop] › e2e/futures-workspace.spec.ts:45:5 › existing Options navigation opens the production futures route and shares gamma across views (4.8s)
+  ✓   2 [desktop] › e2e/futures-workspace.spec.ts:67:5 › denied refresh and wrong-root data clear previously visible chart values (1.1s)
+  ✓   3 [desktop] › e2e/futures-workspace.spec.ts:80:5 › missing source, replay cutoff and shared-language labels remain honest (1.3s)
+  ✓   4 [desktop] › e2e/futures-workspace.spec.ts:98:5 › the real API has no fixture bypass despite the development page preview (207ms)
+  ✓   5 [desktop] › e2e/futures-workspace.spec.ts:105:5 › an old instrument response cannot overwrite a newer selection (973ms)
+  ✓   6 [tablet] › e2e/futures-workspace.spec.ts:45:5 › existing Options navigation opens the production futures route and shares gamma across views (1.7s)
+  ✓   7 [tablet] › e2e/futures-workspace.spec.ts:67:5 › denied refresh and wrong-root data clear previously visible chart values (1.1s)
+  ✓   8 [tablet] › e2e/futures-workspace.spec.ts:80:5 › missing source, replay cutoff and shared-language labels remain honest (1.4s)
+  ✓   9 [tablet] › e2e/futures-workspace.spec.ts:98:5 › the real API has no fixture bypass despite the development page preview (122ms)
+  ✓  10 [tablet] › e2e/futures-workspace.spec.ts:105:5 › an old instrument response cannot overwrite a newer selection (924ms)
+  ✓  11 [mobile] › e2e/futures-workspace.spec.ts:45:5 › existing Options navigation opens the production futures route and shares gamma across views (1.7s)
+  ✓  12 [mobile] › e2e/futures-workspace.spec.ts:67:5 › denied refresh and wrong-root data clear previously visible chart values (1.2s)
+  ✓  13 [mobile] › e2e/futures-workspace.spec.ts:80:5 › missing source, replay cutoff and shared-language labels remain honest (1.5s)
+  ✓  14 [mobile] › e2e/futures-workspace.spec.ts:98:5 › the real API has no fixture bypass despite the development page preview (102ms)
+  ✓  15 [mobile] › e2e/futures-workspace.spec.ts:105:5 › an old instrument response cannot overwrite a newer selection (939ms)
+
+  15 passed (28.9s)

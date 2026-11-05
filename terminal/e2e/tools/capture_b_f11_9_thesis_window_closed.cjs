@@ -43,7 +43,7 @@ const VIEWPORTS = {
   390: { width: 390, height: 844 },
 };
 const COPY = {
-  en: "The window you were watching has closed",
+  en: "A window we watch for NVDA has closed",
   zh: "你关注的观察窗口已结束",
 };
 
@@ -398,7 +398,7 @@ async function main() {
     "  - { name: mobile, width: 390, height: 844 }",
     "surfaces: [recent-activity, thesis-detail]",
     "capture_flag: TERMINAL_E2E_FIXTURE",
-    "capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.",
+    "capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.",
     "command: |",
     "  cd terminal",
     "  node e2e/tools/capture_b_f11_9_thesis_window_closed.cjs",

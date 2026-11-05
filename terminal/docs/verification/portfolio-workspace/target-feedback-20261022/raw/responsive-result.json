@@ -1,0 +1,21 @@
+{
+  "completed_at": "2026-10-22T02:45:27.460219+00:00",
+  "exit_code": 1,
+  "duration_s": 2.15,
+  "command": [
+    "npm",
+    "run",
+    "test:e2e:responsive",
+    "--",
+    "e2e/portfolio-targets.spec.ts",
+    "--grep",
+    "target feedback is actionable",
+    "--workers=1",
+    "--retries=0",
+    "--project=desktop",
+    "--project=tablet",
+    "--project=mobile",
+    "--reporter=line,json"
+  ],
+  "port": 39122
+}

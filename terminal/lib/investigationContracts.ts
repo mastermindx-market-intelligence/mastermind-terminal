@@ -7,6 +7,13 @@
  * clocks/authors/qualification and future P4/P5 payloads are rejected, not discarded.
  * No normalization of authored text, canonical digest, I/O, or implicit writes occurs.
  */
+
+// The typed scenario reference (v2 manifests only) is validated through the pure leaf module:
+// this boundary imports its parser; it never re-implements, re-derives or coerces it. A
+// reference is unresolved input metadata -- never a retention, entitlement or
+// source-availability claim.
+import { parseScenarioCapture, type ScenarioCapture } from "./investigationScenario";
+
 export const INVESTIGATION_MANIFEST_SCHEMA = "investigation_manifest.v1" as const;
 export const INVESTIGATION_MANIFEST_MAX_BYTES = 64 * 1024;
 export const INVESTIGATION_MANIFEST_SCHEMA_V2 = "investigation_manifest.v2" as const;
@@ -58,6 +65,16 @@ export type InvestigationManifest = {
   evidence_refs: InvestigationEvidenceRef[];
   continuation: { next_question?: string; next_observation?: string };
   review_baseline_ref?: InvestigationEvidenceRef;
+  review?: {
+    assessment: "confirmed" | "contradicted" | "inconclusive";
+    fire_event_id?: string;
+    note?: string;
+  };
+  /** Frozen typed saved-scenario reference; v2 manifests only, and only a value the pure leaf
+   *  parser accepts. A reference carries inputs plus source pointers/digests only -- it stores
+   *  no basis or result values and is never a retention, entitlement or source-availability
+   *  claim. */
+  scenario_capture?: ScenarioCapture;
 };
 /** Supplied by existing admitted adapters. This module owns no adapter registry. */
 export type InvestigationAdmission = {
@@ -242,7 +259,9 @@ class Validator {
     return JSON.stringify([ref.owner, ref.object_type, ref.object_id, ref.mode, ref.version_ref, field]);
   }
   manifest(raw: unknown): void {
-    const manifest = this.object(raw, "$", ["schema", "intent", "layout_refs", "thesis_refs", "evidence_refs", "continuation"], ["review_baseline_ref"]);
+    // `scenario_capture` MUST ride this closed optional-key array: without it every capture
+    // bearing manifest is refused as an unknown top-level field before the typed check below.
+    const manifest = this.object(raw, "$", ["schema", "intent", "layout_refs", "thesis_refs", "evidence_refs", "continuation"], ["review_baseline_ref", "review", "scenario_capture"]);
     if (!manifest) return;
     const v2 = manifest.schema === INVESTIGATION_MANIFEST_SCHEMA_V2;
     const questionLimit = v2 ? 4000 : 2000;
@@ -267,6 +286,28 @@ class Validator {
       }
     }
     if (Object.hasOwn(manifest, "review_baseline_ref")) this.evidence(manifest.review_baseline_ref, "$.review_baseline_ref", true);
+    if (Object.hasOwn(manifest, "review")) {
+      const review = this.object(manifest.review, "$.review", ["assessment"], ["fire_event_id", "note"]);
+      if (review) {
+        if (typeof review.assessment !== "string" || !["confirmed", "contradicted", "inconclusive"].includes(review.assessment)) {
+          this.add("$.review.assessment", "invalid_assessment");
+        }
+        if (Object.hasOwn(review, "fire_event_id") && (typeof review.fire_event_id !== "string" || !DIGEST.test(review.fire_event_id))) {
+          this.add("$.review.fire_event_id", "invalid_fire_event_id");
+        }
+        if (Object.hasOwn(review, "note")) this.text(review.note, "$.review.note", 2000);
+      }
+    }
+    if (Object.hasOwn(manifest, "scenario_capture")) {
+      // Only a v2 manifest may carry the typed scenario reference, and only when the pure leaf
+      // module accepts it: unknown, malformed, forged and superseded full-value payloads are
+      // refused, never coerced. Shape acceptance is not retention, entitlement, source
+      // availability or save success; actual source resolution stays with the native owner.
+      if (!v2) this.add("$.scenario_capture", "unsupported_schema");
+      else if (!parseScenarioCapture(manifest.scenario_capture)) {
+        this.add("$.scenario_capture", "invalid_scenario_capture");
+      }
+    }
   }
 }
 

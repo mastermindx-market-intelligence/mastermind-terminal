@@ -13,6 +13,14 @@ import assert from 'node:assert/strict';
 export const gitBlob = value => createHash('sha1').update(`blob ${Buffer.byteLength(value)}\0`).update(value).digest('hex');
 export const groups = names => names.map(name => ({ key: name, symbols: [name] }));
 export const symbols = request => new URL(request.url, 'https://fixture.invalid').searchParams.get('syms').split(',');
+export const DAY_EPOCH = Date.UTC(2026, 10, 5, 17);
+export const boatsQuote = (nowMs, extPrice = 100, overrides = {}) => {
+  const stamp = nowMs / 1000;
+  return { extSource: 'tiingo_boats', extBasis: 'LIVE', extVenue: 'BOATS',
+    extPriceKind: 'LAST_TRADE', extSession: 'overnight', extPrice, extChg: null,
+    extTs: stamp, extReceivedTs: stamp, extPublishedTs: stamp, extExpiresTs: stamp + 30,
+    extCaptureId: '11111111-1111-4111-8111-111111111111', extGeneration: 1, ...overrides };
+};
 export async function flush() { for (let i = 0; i < 20; i++) await Promise.resolve(); }
 function deferred() {
   let resolve, reject;
@@ -22,7 +30,7 @@ function deferred() {
 const cuts = {
   wide: ['  const quoteCursorRef = useRef(0);', '  // Visible-chart fast lane.'],
   extended: ['  const extSymsKeyRef = useRef(extSymsKey);', '  // Read the saved-workspace library.'],
-  chart: ['  const chartQuoteSymsKeyRef = useRef(chartQuoteSymsKey);', '  // item-26/27: extended/overnight poll'],
+  chart: ['  const chartQuoteTfsKeyRef = useRef(chartQuoteTfsKey);', '  // item-26/27: extended/overnight poll'],
 };
 export function sliceLane(source, lane) {
   const [start, end] = cuts[lane];
@@ -31,19 +39,26 @@ export function sliceLane(source, lane) {
   assert(b > a, `${lane} extraction end must exist`);
   return source.slice(a, b);
 }
+export function slicePublication(source) {
+  const start = '  const publishedQuotesRef = useRef(quotes);';
+  assert.equal(source.split(start).length, 2, 'publication extraction start must be unique');
+  const a = source.indexOf(start), b = source.indexOf('  // item-26/27: symbol-keyed', a);
+  assert(b > a, 'publication extraction end must exist');
+  return source.slice(a, b);
+}
 
 // Read the repository's source, never a copied implementation or a frozen fixture.
 // Polling callbacks are source-extracted; this does not import or mount TerminalShell.
 export const readPollingSource = () => readFileSync(resolve(dirname(fileURLToPath(import.meta.url)), '../../../components/TerminalShell.tsx'), 'utf8');
-export function loadHarness(planQuoteBatch) {
+export function loadHarness(planQuoteBatch, { mergeFormingQuote, isPublicBoatsQuote, isExtQuoteCurrent, extQuotePollMs }) {
   const source = readPollingSource();
   const eqStart = source.indexOf('const QUOTE_EQ_IGNORE =');
   const eqEnd = source.indexOf('// Overlay a live quote', eqStart);
   assert(eqStart >= 0 && eqEnd > eqStart);
   const quoteEq = vm.runInNewContext(compileTypeScript(`(()=>{${source.slice(eqStart, eqEnd)};return quoteEq;})()`));
 
-  function make(lane, { priority = groups(['NVDA']), rotating = [], key = 'NVDA', initialState = {}, deferredUpdates = false, fetchThrows = 0 } = {}) {
-    let now = 0, nextId = 0, hookIndex = 0, state = initialState, writes = 0, rendered = 0, mounted = true;
+  function make(lane, { priority = groups(['NVDA']), rotating = [], key = 'NVDA', initialState = {}, deferredUpdates = false, fetchThrows = 0, epochMs = DAY_EPOCH } = {}) {
+    let now = 0, nextId = 0, hookIndex = 0, state = initialState, writes = 0, rendered = 0, clockWrites = 0, mounted = true;
     let current = { priority, rotating, key };
     const hooks = [], tasks = new Map(), listeners = new Map(), requests = [], pendingUpdates = [];
     const same = (a, b) => a?.length === b?.length && a.every((v, i) => Object.is(v, b[i]));
@@ -76,19 +91,29 @@ export function loadHarness(planQuoteBatch) {
     };
     const applyUpdate = update => {
       const next = typeof update === 'function' ? update(state) : update;
-      writes++; if (next !== state) rendered++; state = next;
+      const changed = next !== state;
+      writes++; if (changed) rendered++; state = next;
+      // Reconcile the actual hasBoatsDisplay/expiry effect after a committed state change.
+      if (changed && mounted) render();
     };
     const setState = update => deferredUpdates ? pendingUpdates.push(update) : applyUpdate(update);
-    const env = { useRef, useMemo, useCallback, useEffect, document, fetch, quoteEq, planQuoteBatch,
+    const env = { useRef, useMemo, useCallback, useEffect, document, fetch, quoteEq, planQuoteBatch, mergeFormingQuote,
+      // Use the real production predicates with this harness's explicit clock argument.
+      isPublicBoatsQuote: q => isPublicBoatsQuote(q, epochMs + now),
+      isExtQuoteCurrent: (q, at = epochMs + now) => isExtQuoteCurrent(q, at),
+      extQuotePollMs: () => extQuotePollMs(epochMs + now), Date: { now: () => epochMs + now },
+      setExtClockMs: () => { clockWrites++; },
       setQuotes: setState, setExtQuotes: setState, setTimeout: (fn, delay) => schedule(fn, delay),
       clearTimeout: id => tasks.delete(id), setInterval: (fn, delay) => schedule(fn, delay, true), clearInterval: id => tasks.delete(id), encodeURIComponent };
-    const result = lane === 'wide' ? '{poll:pollQuotes,cursor:quoteCursorRef,misses:quoteMissRef}' : lane === 'extended' ? '{poll:pollExtQuotes}' : '{poll:pollChartQuotes}';
-    const code = compileTypeScript(`(()=>{${sliceLane(source, lane)};return ${result};})()`);
+    const result = lane === 'wide' ? '{poll:pollQuotes,cursor:quoteCursorRef,misses:quoteMissRef}' : lane === 'extended' ? '{poll:pollExtQuotes,accepted:extAcceptedSequence}' : '{poll:pollChartQuotes}';
+    const publication = lane === 'extended' ? '' : slicePublication(source);
+    const code = compileTypeScript(`(()=>{${publication}${sliceLane(source, lane)};return ${result};})()`);
     const context = vm.createContext(env);
     let handle;
     function render(update = {}) {
       current = { ...current, ...update }; hookIndex = 0;
-      Object.assign(env, { quotePriority: current.priority, quoteRotating: current.rotating, extSymsKey: current.key, chartQuoteSymsKey: current.key });
+      Object.assign(env, { quotes: state, extQuotes: state, quotePriority: current.priority,
+        quoteRotating: current.rotating, extSymsKey: current.key, chartQuoteSymsKey: current.key, chartQuoteTfsKey: '1m' });
       handle = vm.runInContext(code, context); runEffects(); return handle;
     }
     render();
@@ -105,7 +130,10 @@ export function loadHarness(planQuoteBatch) {
       now = target; await flush();
     }
     async function headers(index, ok = true) { const r = requests[index]; r.head.resolve({ ok, json: () => r.body.promise }); if (!ok) r.settled = true; await flush(); }
-    async function settle(index, data = { quotes: { NVDA: { last: 100, basis: 'REALTIME', live: true } } }) {
+    const quote = (price = 100, overrides = {}) => lane === 'extended'
+      ? boatsQuote(epochMs + now, price, overrides)
+      : { last: price, basis: 'REALTIME', live: true, ...overrides };
+    async function settle(index, data = { quotes: { NVDA: quote() } }) {
       await headers(index); requests[index].settled = true; requests[index].body.resolve(data); await flush();
     }
     async function fail(index, phase = 'headers') {
@@ -117,6 +145,7 @@ export function loadHarness(planQuoteBatch) {
     function visibility(hidden) { document.hidden = hidden; for (const fn of listeners.get('visibilitychange') ?? []) fn(); }
     return { requests, render, get handle() { return handle; }, document, advance, headers, settle, fail, cleanup, replay, visibility,
       state: () => state, writes: () => writes, rendered: () => rendered, now: () => now,
+      nowMs: () => epochMs + now, clockWrites: () => clockWrites, quote,
       runUpdates: () => { for (const update of pendingUpdates.splice(0)) applyUpdate(update); },
       tasks: () => [...tasks.values()], listeners: () => [...listeners.values()].reduce((n, s) => n + s.size, 0),
       mounted: () => mounted, unresolved: () => requests.filter(r => !r.settled).length };

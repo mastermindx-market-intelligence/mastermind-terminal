@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
-import { loadHarness, groups, symbols } from './harness.mjs';
+import { loadHarness, groups, symbols, boatsQuote, DAY_EPOCH } from './harness.mjs';
 
 // Register each retained case directly with Vitest. No custom runner, process exit,
 // subprocess, swallowed assertion failure, or console-result parser is involved.
-export function registerPollingCases(test, planQuoteBatch) {
-  const { make } = loadHarness(planQuoteBatch);
+export function registerPollingCases(test, planQuoteBatch, dependencies) {
+  const { make } = loadHarness(planQuoteBatch, dependencies);
 for (const lane of ['wide', 'extended']) {
   const first = lane === 'wide' ? 250 : 500, interval = lane === 'wide' ? 6000 : 30000;
   const prefix = name => `${lane}: ${name}`;
@@ -84,18 +84,27 @@ for (const lane of ['wide', 'extended']) {
     assert.equal(h.requests.length, 1); await h.settle(0, { quotes: { NVDA: { last: 1 }, MSFT: null } });
     assert.equal(h.writes(), 0); await h.advance(h.now()); assert.equal(h.requests.length, 2);
     assert.deepEqual(symbols(h.requests[1]), ['MSFT']); if (lane === 'wide') assert.deepEqual(Object.keys(h.handle.misses.current), []);
-    h.handle.poll(); assert.equal(h.requests.length, 2); await h.settle(1, { quotes: { MSFT: { last: 2 } } });
-    assert.equal(h.state().MSFT.last, 2); assert.equal(h.state().NVDA, undefined); h.cleanup();
+    h.handle.poll(); assert.equal(h.requests.length, 2); await h.settle(1, { quotes: { MSFT: h.quote(2) } });
+    assert.equal(h.state().MSFT[lane === 'wide' ? 'last' : 'extPrice'], 2); assert.equal(h.state().NVDA, undefined); h.cleanup();
   });
-  test(prefix('queued React updater from old effect generation is fenced'), async () => {
+  test(prefix(lane === 'wide' ? 'valid publication before cleanup remains accepted' : 'queued React updater from old effect generation is fenced'), async () => {
     const h = make(lane, { deferredUpdates: true }); await h.advance(first); await h.settle(0); h.replay(); h.runUpdates();
-    assert.deepEqual(Object.keys(h.state()), []); h.cleanup();
+    // Wide updateQuotes already published a concrete snapshot before cleanup.
+    // Extended polling still defers a functional updater and must fence its epoch.
+    if (lane === 'wide') assert.equal(h.state().NVDA.last, 100);
+    else assert.deepEqual(Object.keys(h.state()), []);
+    h.cleanup();
   });
   test(prefix('unchanged quote reuses state and authority fields remain verbatim'), async () => {
-    const q = { last: 10, basis: 'DELAYED', live: false, asOfMs: 42, lagMs: 12345, source: 'fixture', regularSession: 'rth' };
+    const q = lane === 'wide'
+      ? { last: 10, basis: 'DELAYED', live: false, asOfMs: 42, lagMs: 12345, source: 'fixture', regularSession: 'rth' }
+      : boatsQuote(DAY_EPOCH, 10);
     const initial = { NVDA: q }; const h = make(lane, { initialState: initial }); await h.advance(first); await h.settle(0, { quotes: { NVDA: { ...q } } });
     assert.equal(h.state(), initial); assert.equal(h.rendered(), 0);
-    h.handle.poll(); const fresh = { ...q, last: 11, basis: 'REALTIME', live: true }; await h.settle(1, { quotes: { NVDA: fresh } });
+    if (lane === 'wide') assert.equal(h.writes(), 0, 'publication owner rejects no-ops before React work');
+    h.handle.poll(); const fresh = lane === 'wide'
+      ? { ...q, last: 11, basis: 'REALTIME', live: true } : { ...q, extPrice: 11, extGeneration: 2 };
+    await h.settle(1, { quotes: { NVDA: fresh } });
     assert.equal(h.state().NVDA, fresh); h.cleanup();
   });
 }
@@ -133,12 +142,71 @@ test('wide: successful result resets miss count and composite-leg prune follows 
   h.render({ priority: groups(['C']) }); assert.equal(h.handle.misses.current.B, undefined); h.cleanup();
 });
 test('extended: null retains existing packet semantics', async () => {
-  const h = make('extended', { initialState: { NVDA: { last: 7 } } }); await h.advance(500); await h.settle(0, { quotes: { NVDA: null } });
+  const h = make('extended', { initialState: { NVDA: boatsQuote(DAY_EPOCH, 7) } }); await h.advance(500); await h.settle(0, { quotes: { NVDA: null } });
   assert.equal(h.state().NVDA, null); h.cleanup();
 });
 test('chart reference lane remains single-flight', async () => {
   const h = make('chart'); await h.advance(120000); assert.equal(h.requests.length, 1); h.render({ key: 'MSFT' });
   await h.settle(0); await h.advance(h.now()); assert.equal(h.requests.length, 2); assert.deepEqual(symbols(h.requests[1]), ['MSFT']); h.cleanup();
+});
+
+test('extended: overnight cadence remains five seconds with the same single-flight guard', async () => {
+  const h = make('extended', { epochMs: Date.UTC(2026, 10, 6, 2) });
+  await h.advance(500); await h.settle(0);
+  await h.advance(4999); assert.equal(h.requests.length, 1);
+  await h.advance(5000); assert.equal(h.requests.length, 2); await h.settle(1);
+  await h.advance(10000); assert.deepEqual(h.requests.map(r => r.at), [500, 5000, 10000]); h.cleanup();
+});
+test('extended: the one-second expiry owner keeps running while the next flight stalls', async () => {
+  const h = make('extended'); await h.advance(500); await h.settle(0);
+  assert.equal(h.state().NVDA.extPrice, 100);
+  h.handle.poll(); await h.advance(31500);
+  assert.equal(h.requests.length, 2); assert.equal(h.unresolved(), 1);
+  assert.equal(h.state().NVDA, null); assert(h.clockWrites() >= 30); h.cleanup();
+});
+test('extended: BOATS freshness is checked when a deferred updater actually applies', async () => {
+  const h = make('extended', { deferredUpdates: true });
+  await h.advance(500); await h.settle(0);
+  await h.advance(31000); h.runUpdates();
+  assert.equal(h.state().NVDA, null, 'an expired packet cannot become live after React deferral'); h.cleanup();
+});
+test('extended: authoritative null fences an older queued value and later failure cannot undo it', async () => {
+  const h = make('extended', { deferredUpdates: true });
+  await h.advance(500); await h.settle(0);
+  h.handle.poll(); await h.settle(1, { quotes: { NVDA: null } });
+  assert.equal(h.handle.accepted.current, 2);
+  h.runUpdates(); assert.equal(h.state().NVDA, null);
+  h.handle.poll(); await h.headers(2, false); h.runUpdates();
+  assert.equal(h.handle.accepted.current, 2); assert.equal(h.state().NVDA, null); h.cleanup();
+});
+test('extended: accepted null survives a later different-demand response before React applies either', async () => {
+  const h = make('extended', { initialState: { NVDA: boatsQuote(DAY_EPOCH, 7) }, deferredUpdates: true });
+  await h.advance(500); await h.settle(0, { quotes: { NVDA: null } });
+  h.render({ key: 'MSFT' }); h.handle.poll();
+  await h.settle(1, { quotes: { MSFT: h.quote(23) } });
+  h.runUpdates();
+  assert.equal(h.state().NVDA, null, 'the accepted null is not superseded by a disjoint response');
+  assert.equal(h.state().MSFT.extPrice, 23); h.cleanup();
+});
+test('extended: non-BOATS input is an authoritative null, never a revived provider packet', async () => {
+  const h = make('extended', { initialState: { NVDA: boatsQuote(DAY_EPOCH, 7) } });
+  await h.advance(500);
+  await h.settle(0, { quotes: { NVDA: h.quote(8, { extSource: 'other_provider' }) } });
+  assert.equal(h.state().NVDA, null); assert.equal(h.handle.accepted.current, 1); h.cleanup();
+});
+test('wide: older forming generation/revision cannot erase the current chart snapshot', async () => {
+  const forming = { source: 'polygon-live-second', generation: 'current', generationStartedMs: 1000,
+    revision: 4, timeframes: '1m', series: {} };
+  const old = { last: 100, asOfMs: 2000, basis: 'REALTIME', source: forming.source, formingCandles: forming };
+  const h = make('wide', { initialState: { NVDA: old } }); await h.advance(250);
+  await h.settle(0, { quotes: { NVDA: { ...old, last: 99, asOfMs: 1999,
+    formingCandles: { ...forming, revision: 3 } } } });
+  assert.equal(h.state().NVDA, old); assert.equal(h.writes(), 0);
+  h.handle.poll(); await h.settle(1, { quotes: { NVDA: { last: 101, asOfMs: 2010, basis: 'REALTIME', source: forming.source } } });
+  assert.equal(h.state().NVDA.last, 101); assert.equal(h.state().NVDA.formingCandles, forming);
+  const newer = { ...forming, generation: 'next', generationStartedMs: 2000, revision: 1 };
+  h.handle.poll(); await h.settle(2, { quotes: { NVDA: { ...old, asOfMs: 2020, formingCandles: newer } } });
+  assert.equal(h.state().NVDA.formingCandles, newer); h.cleanup();
 });
 
 }
