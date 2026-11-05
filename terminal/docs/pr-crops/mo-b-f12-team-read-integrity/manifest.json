@@ -1,0 +1,66 @@
+{
+  "source_head": "304b74d9c4dfd5f77ec98b5d9f734c96ad7a0742",
+  "base": "da02025d0b5cc0cfc1f169cd204a2a79d175bccd",
+  "generated_at": "2026-10-12T22:17:04.514811+00:00",
+  "theme": "existing Terminal dark shell; no presentation source changed",
+  "viewports": {
+    "desktop": [
+      1440,
+      900
+    ],
+    "tablet": [
+      820,
+      1180
+    ],
+    "mobile": [
+      390,
+      844
+    ]
+  },
+  "languages": [
+    "en",
+    "zh"
+  ],
+  "states": [
+    "success",
+    "failure"
+  ],
+  "browser_result": "12/12 passed on committed source; actual browser with local fixture identity and controlled responses",
+  "mounted_result": "27 failed / 4 passed against original source; six late mutation/retry failures reproduced on first candidate; three invitation-owner and independent-setting pending failures reproduced on second candidate; 117/117 final mounted passed",
+  "source_and_capture_sha256": {
+    "terminal/components/settings/SectionTeam.tsx": "add785974e9872100f912b96f21e28d48819f39eef221b9efe887752ba51e3e6",
+    "terminal/e2e/team-read-integrity.spec.ts": "4c9f815fbbfa8b9f112e603862b32b6bb3ba3096a5ecb1fbbf1af69913d8f5f0",
+    "terminal/lib/__tests__/sectionTeamOwnerBoundary.test.tsx": "d71737fd6ba3e03e8806313412e967ad051f6a5378d7b8943d902b42f3922bd9",
+    "terminal/lib/__tests__/sectionTeamReadIntegrity.test.tsx": "2cf99963cc5a6378a6a39d94a388590896e6e82fc0c9c8abf35b7bec7c8abcb6",
+    "terminal/docs/pr-crops/mo-b-f12-team-read-integrity/desktop-en-failure.png": "38ab0440e2ded1850111976fa3ce9f57df46839fa2e89a2a493a5a0ce38a1536",
+    "terminal/docs/pr-crops/mo-b-f12-team-read-integrity/desktop-en-success.png": "ba0d90c30950ee473fd87f3b0770eeb946842e5923a11865ea02b98689cd27c0",
+    "terminal/docs/pr-crops/mo-b-f12-team-read-integrity/desktop-zh-failure.png": "d0807bbf33408116d4fe7e4f8cb8e2b8d608fef509ff52892e8d2be8d7402e2b",
+    "terminal/docs/pr-crops/mo-b-f12-team-read-integrity/desktop-zh-success.png": "56dee602773e209b3cb4e7147308e9857ff7e301a721b31a551798ff6c6543d2",
+    "terminal/docs/pr-crops/mo-b-f12-team-read-integrity/mobile-en-failure.png": "f608a34da365cc60f9c6f756891382d0afab8fda24502b59e97b8b07271f6522",
+    "terminal/docs/pr-crops/mo-b-f12-team-read-integrity/mobile-en-success.png": "9d6ae2e8101180b4addecf1facb4e6d0cf436cdc04b79afd4e31bb3db09dd24f",
+    "terminal/docs/pr-crops/mo-b-f12-team-read-integrity/mobile-zh-failure.png": "84b7f54fa5e4640c5911bed939eb6cc51eedbe68aec59ea3d09fab006be2527a",
+    "terminal/docs/pr-crops/mo-b-f12-team-read-integrity/mobile-zh-success.png": "4813416eba059cb2592e2518a30f4fc15f5feaabb90e799c5920520f1dadc28a",
+    "terminal/docs/pr-crops/mo-b-f12-team-read-integrity/tablet-en-failure.png": "63cef41ee57e1bf5550b0ad0d77c6af9a7415b43d6e0598484791e54926307ca",
+    "terminal/docs/pr-crops/mo-b-f12-team-read-integrity/tablet-en-success.png": "aec40b8027f9d2f1d12df210f3a4c6a9df93d19d43096a0c08f7d5c86f02b7f0",
+    "terminal/docs/pr-crops/mo-b-f12-team-read-integrity/tablet-zh-failure.png": "4c36a58478711da403b949d3a3f816a62e4049f30dfc988437dcf1480d97d4fb",
+    "terminal/docs/pr-crops/mo-b-f12-team-read-integrity/tablet-zh-success.png": "f7e12e03a38c3436d2e43ceb8016f24fa4b43a660378307efe3e81dd29add8cf"
+  },
+  "visual_inspection": "Parent inspected all 12 actual images: invitation URL and copy control readable/reachable, correct EN/ZH error and populated states, expected vertical scrolling in narrow/short viewports, no horizontal overflow. Success settings and member controls beyond the crop are checked by browser assertions and inherited captures.",
+  "scope": "Controlled invitation POST is intercepted locally; no real invitation, team, role or settings mutation. Owner-change fetch/JSON/error races are mounted tests. Authenticated production verification is a separate release-owner gate.",
+  "recapture_changed_images": [
+    "terminal/docs/pr-crops/mo-b-f12-team-read-integrity/desktop-en-failure.png",
+    "terminal/docs/pr-crops/mo-b-f12-team-read-integrity/desktop-en-success.png",
+    "terminal/docs/pr-crops/mo-b-f12-team-read-integrity/desktop-zh-failure.png",
+    "terminal/docs/pr-crops/mo-b-f12-team-read-integrity/desktop-zh-success.png",
+    "terminal/docs/pr-crops/mo-b-f12-team-read-integrity/mobile-en-failure.png",
+    "terminal/docs/pr-crops/mo-b-f12-team-read-integrity/mobile-en-success.png",
+    "terminal/docs/pr-crops/mo-b-f12-team-read-integrity/mobile-zh-failure.png",
+    "terminal/docs/pr-crops/mo-b-f12-team-read-integrity/mobile-zh-success.png",
+    "terminal/docs/pr-crops/mo-b-f12-team-read-integrity/tablet-en-failure.png",
+    "terminal/docs/pr-crops/mo-b-f12-team-read-integrity/tablet-en-success.png",
+    "terminal/docs/pr-crops/mo-b-f12-team-read-integrity/tablet-zh-failure.png",
+    "terminal/docs/pr-crops/mo-b-f12-team-read-integrity/tablet-zh-success.png"
+  ],
+  "late_mutation_proof": "Four stale role/ownership completion failures and two delayed-retry failures reproduced, then repaired. Retire completion and delayed request after roster generation changes; clear busy state and dialogs before a new read.",
+  "review_corrections": "One-time links bind to team id and clear after successful no-team/different-team reads; independent setting controls retain their own pending state; guest-to-account transition is covered."
+}

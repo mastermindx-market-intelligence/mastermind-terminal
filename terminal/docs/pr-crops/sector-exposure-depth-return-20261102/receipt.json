@@ -1,0 +1,211 @@
+{
+  "schema": "terminal.sector_exposure_depth_return.local_qualification.v1",
+  "task": "P12.T17",
+  "dependsOn": {
+    "PR": 1229,
+    "head": "749c529c90bee70b1f21ac764fdec0d677141614"
+  },
+  "source_sha256": {
+    "terminal/components/sector-intelligence/SectorIntelligenceWorkspace.tsx": "ad0b6a23f81ba205bbb9ae15e2c6b815519e06266ace796f36d1083b8c546c40",
+    "terminal/lib/sectorDepthReturn.ts": "fd8ee3f188cb2be12e5bb9f5c62071c664fe2898df8f7fa93c429b6c0e14459b",
+    "terminal/lib/exposureOrigin.ts": "9104d1eb713f7a39f8e84d22d0afb3f6a323ecd5da9545cc40437b466d1c2aaf",
+    "terminal/components/gexdesk/GexDeskView.tsx": "3f83dabea69d9461005e53aac3d812e73fcb0ac2f7ea515c60f91a3de38f7c02",
+    "terminal/components/exposure-map/ExposureOriginStrip.tsx": "c1edfbc3d7417f2c5f8524ee59b1fb558641ddfabcd5a088ac26a99ed1b4ee79"
+  },
+  "review": "root independent changed-risk PASS on these5source hashes and18UI/62focused cases",
+  "browser": [
+    {
+      "report": "browser-results-final.json",
+      "stats": {
+        "startTime": "2026-11-02T22:43:13.463Z",
+        "duration": 89973.307,
+        "expected": 15,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      }
+    },
+    {
+      "report": "browser-results-preferences.json",
+      "stats": {
+        "startTime": "2026-11-02T22:48:44.691Z",
+        "duration": 23406.335,
+        "expected": 3,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      }
+    }
+  ],
+  "tests": {
+    "focused": 62,
+    "wholeTypes": "PASS",
+    "lintOtherChanged": "PASS",
+    "GexDeskInherited": {
+      "baselineErrors": 1,
+      "candidateErrors": 1,
+      "baselineWarnings": 1,
+      "candidateWarnings": 1,
+      "sameRulesAndExactSourceContexts": true,
+      "onlyLineOffsetsChanged": true
+    }
+  },
+  "sourceScope": {
+    "expiryOrDateFilterIntentCarried": false,
+    "asOfMeaning": "sector/confluence receipt date only",
+    "P07OwnerSource": "1f4b4352b1db2bb2e2d5242cdc33006b4e933296",
+    "mapOrSchemaChanged": false,
+    "queryAndPreferenceProof": "three targeted viewport cases:comparison/returnNote, coherent cohort, browser Back/Forward, explicit Sector Back, canonical light preference retained"
+  },
+  "environment": {
+    "origin": "http://127.0.0.1:33972",
+    "network": "OS sandbox loopback only",
+    "data": "synthetic navigation owner fixtures; options market feeds unavailable",
+    "server": "Next16.2.9 development webpack; normal route warmup; no production claim"
+  },
+  "wireBoundary": {
+    "current": "A",
+    "next": "ABCDEFGHIJ",
+    "currentEncodedLength": 1008,
+    "nextEncodedLength": 1026,
+    "limit": 1024,
+    "result": "next step disabled and state remains coherent; desk callback guarded atomically"
+  },
+  "worker": {
+    "run": "ss-sector-exposure-return-20261102-001",
+    "bytes": 9766,
+    "sha256": "d7bfe2fc6d8d4cc7c988e5552e455c308f8b739f00cfbd7189731f65d5ec6797",
+    "originalVerdict": "REPAIR_REQUIRED:actual source found wire cliff despite worker older serializer tests",
+    "integratedVerdict": "accepted after parent integration repairs and independent review",
+    "diagnosticRefusal": "observe-run original_run_observation_unconfirmed; transport not attempted; no retry/reroute"
+  },
+  "screenshots": [
+    {
+      "path": "desktop-boundary-over-budget-step-disabled.png",
+      "sha256": "5a8a0b648231b640c3e814e15a6ab7bec1a35d2fcd26d62336c0ef76321e30fd"
+    },
+    {
+      "path": "desktop-en-dark-exposure-return-context.png",
+      "sha256": "d39437974ff7d342786b2c9dc4fafeb2377ec9362d31a4447450ec278c886f9c"
+    },
+    {
+      "path": "desktop-en-dark-restored-sector-selection.png",
+      "sha256": "4b45b94c6630eb7bbbe9eac23f69fe2c2abdf9888197301d2febe0b521fe887a"
+    },
+    {
+      "path": "desktop-en-light-exposure-return-context.png",
+      "sha256": "d39437974ff7d342786b2c9dc4fafeb2377ec9362d31a4447450ec278c886f9c"
+    },
+    {
+      "path": "desktop-en-light-restored-sector-selection.png",
+      "sha256": "31962bf44a0fe3418fb9d17d3286788133213cb88020a5047c094a580555ee97"
+    },
+    {
+      "path": "desktop-zh-dark-exposure-return-context.png",
+      "sha256": "f2a71cdf0efcd4ba8cc6013119f990d58346bc49ec94408db8ed8da37a8ec525"
+    },
+    {
+      "path": "desktop-zh-dark-restored-sector-selection.png",
+      "sha256": "6f340bcd3e5ad83a4d8c025aa439bad606e12c03b164b83f14c187301292b209"
+    },
+    {
+      "path": "desktop-zh-light-exposure-return-context.png",
+      "sha256": "1a7b3ca130c01242e7fac5e08c611e61cb5011d5db1403de408e0a20c4c954ae"
+    },
+    {
+      "path": "desktop-zh-light-restored-sector-selection.png",
+      "sha256": "2182ce5c42b2194ff90d5fe01789e9aca91e05b167cd36887afa0feb1b0a1a37"
+    },
+    {
+      "path": "tablet-boundary-over-budget-step-disabled.png",
+      "sha256": "ec7bec748246093c37ff31943c20081ea8acd44f31486ee5ac64b99f31601091"
+    },
+    {
+      "path": "tablet-en-dark-exposure-return-context.png",
+      "sha256": "f2291e62330183f1eefebe25b84d1fbcc3664be10730d39e86bbab16e6278429"
+    },
+    {
+      "path": "tablet-en-dark-restored-sector-selection.png",
+      "sha256": "e0c0caa4672b33277bad0dfb4143e507985cb55e1c818d64ba34f541b5ab445e"
+    },
+    {
+      "path": "tablet-en-light-exposure-return-context.png",
+      "sha256": "f2291e62330183f1eefebe25b84d1fbcc3664be10730d39e86bbab16e6278429"
+    },
+    {
+      "path": "tablet-en-light-restored-sector-selection.png",
+      "sha256": "b8c47f49e63d6e471841cc131b11392a9d83542b2a2ae779dd3d8b52ed407c58"
+    },
+    {
+      "path": "tablet-zh-dark-exposure-return-context.png",
+      "sha256": "9b9020f0e290ce88ec0b8636a3c63029a137ebf3ae381c716b05cac8d54368f8"
+    },
+    {
+      "path": "tablet-zh-dark-restored-sector-selection.png",
+      "sha256": "c57e003934d04bcb1fa4e3ab3475844900b4c7f7e5eef24922ea6af3a47ce062"
+    },
+    {
+      "path": "tablet-zh-light-exposure-return-context.png",
+      "sha256": "9b9020f0e290ce88ec0b8636a3c63029a137ebf3ae381c716b05cac8d54368f8"
+    },
+    {
+      "path": "tablet-zh-light-restored-sector-selection.png",
+      "sha256": "afa2db7d5d76ce2568995d8aaee0cad9ac3a18b1d923829fd900e2044a4cb37f"
+    },
+    {
+      "path": "mobile-boundary-over-budget-step-disabled.png",
+      "sha256": "b30584dd6eaee71f58d69646ae1f7f6376a6f97b2d29b98d22ef82fae26e1098"
+    },
+    {
+      "path": "mobile-en-dark-exposure-return-context.png",
+      "sha256": "e92405fd8a03be37fae5a5ceedd5c493d87932732837bd224682c57418f15dbc"
+    },
+    {
+      "path": "mobile-en-dark-restored-sector-selection.png",
+      "sha256": "ef7bdd3dbe9ba39a34d4f48444e8d61ff6dd2650940230829f1e37f1c8a59be5"
+    },
+    {
+      "path": "mobile-en-light-exposure-return-context.png",
+      "sha256": "e92405fd8a03be37fae5a5ceedd5c493d87932732837bd224682c57418f15dbc"
+    },
+    {
+      "path": "mobile-en-light-restored-sector-selection.png",
+      "sha256": "65530715c2103cd253692a16f43b22ad252785793dc47d9899b18f113ba5f516"
+    },
+    {
+      "path": "mobile-zh-dark-exposure-return-context.png",
+      "sha256": "fafa3f7a6492240bceec1e22ef7aa420be7d39a7dd8247afb5fdb7a47be43e17"
+    },
+    {
+      "path": "mobile-zh-dark-restored-sector-selection.png",
+      "sha256": "e95063da26e3b76993d0ed47cc58344a68db46ec88949ce53defe8238eccde77"
+    },
+    {
+      "path": "mobile-zh-light-exposure-return-context.png",
+      "sha256": "fafa3f7a6492240bceec1e22ef7aa420be7d39a7dd8247afb5fdb7a47be43e17"
+    },
+    {
+      "path": "mobile-zh-light-restored-sector-selection.png",
+      "sha256": "67732f1dd063de0f2caaffacf462fd552bbf0f3d107b3efefebb086ee6c6f45c"
+    },
+    {
+      "path": "desktop-preferences-light-origin-and-preserved-preferences.png",
+      "sha256": "d39437974ff7d342786b2c9dc4fafeb2377ec9362d31a4447450ec278c886f9c"
+    },
+    {
+      "path": "tablet-preferences-light-origin-and-preserved-preferences.png",
+      "sha256": "f2291e62330183f1eefebe25b84d1fbcc3664be10730d39e86bbab16e6278429"
+    },
+    {
+      "path": "mobile-preferences-light-origin-and-preserved-preferences.png",
+      "sha256": "2d085c71cd01fd1dac7b3ea4f58faa4618780e040a9d450a1d0acbdcdc10cae7"
+    }
+  ],
+  "limitations": [
+    "No authenticated production, current market source, empirical model, date-filter or expiry product acceptance.",
+    "Oversized opener falls back to declared outer workspace/sector/theme within existing budgets; unrepresentable action/step is refused, never silently stripped.",
+    "Unrelated original sector-entry arbitrary parameters were never in ExposureOrigin and are not newly promised.",
+    "Original cold development route-start failure preserved in retained browser-results.json/browser.log; not selected as accepted final proof.",
+    "No source/build/deploy/SQL/provider/publication/unknown holds cleared."
+  ]
+}

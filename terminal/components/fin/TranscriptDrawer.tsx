@@ -6,6 +6,7 @@ import { useLang } from "../../lib/i18n";
 import { fmtDate, pick } from "../../lib/finFormat";
 import { getTx, transcriptBodyUrl, type Transcript } from "../../lib/fund";
 import { canonicalTranscriptBodySha256, classifyTranscriptQaChapter, type TranscriptOpenTarget } from "../../lib/transcriptSearch";
+import { acquireScrollLock } from "../../lib/scrollLock";
 
 export interface TranscriptDrawerProps {
   sym: string;
@@ -96,23 +97,19 @@ export default function TranscriptDrawer({ sym, id, name, focus, onClose }: Tran
     const scrollLeft = scrollContainer?.scrollLeft ?? 0;
     const windowX = window.scrollX;
     const windowY = window.scrollY;
-    const bodyOverflow = document.body.style.overflow;
-    const rootOverflow = document.documentElement.style.overflow;
     const background = [...document.body.children]
       .filter((child): child is HTMLElement => child !== modalRoot && child instanceof HTMLElement);
     const prior = background.map((child) => ({ child, hadInert: child.hasAttribute("inert") }));
 
     prior.forEach(({ child }) => child.setAttribute("inert", ""));
-    document.body.style.overflow = "hidden";
-    document.documentElement.style.overflow = "hidden";
+    const releaseScrollLock = acquireScrollLock();
     closeRef.current?.focus();
 
     return () => {
       prior.forEach(({ child, hadInert }) => {
         if (!hadInert) child.removeAttribute("inert");
       });
-      document.body.style.overflow = bodyOverflow;
-      document.documentElement.style.overflow = rootOverflow;
+      releaseScrollLock();
       if (scrollContainer) {
         scrollContainer.scrollTop = scrollTop;
         scrollContainer.scrollLeft = scrollLeft;

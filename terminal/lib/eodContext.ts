@@ -449,6 +449,13 @@ export interface StructureCell {
   value: string | null;
   /** Secondary line (range, percentile context). null when not applicable. */
   detail: string | null;
+  /**
+   * expMove only (W3S): the published band's own statement, carried as data so the belt
+   * renderer can localize it. Each part is shown only when its field is finite, and the
+   * wording says the source states no method — the producer's `band_mult` is never
+   * dressed up as a stated statistical level of any kind.
+   */
+  method?: { bandMult: number | null; horizonDays: number | null } | null;
   /** The SOURCE STORE's own as-of. Never the wall clock, never another store's. */
   vintage: string | null;
   source: StructureSource;
@@ -622,6 +629,8 @@ export function buildStructureCells(inp: StructureInputs): StructureCell[] {
   ];
 
   // Expected move — options_hub/moves publishes the band whole (pct + lo/hi + multiplier).
+  // W3S: the producer's band statement rides beside it — parts render only when finite,
+  // and no band means no line and no number (never 0).
   const em = inp.moves?.expected_move ?? null;
   const emPct = num(em?.pct);
   const lo = fmtLevel(em?.lo);
@@ -630,6 +639,9 @@ export function buildStructureCells(inp: StructureInputs): StructureCell[] {
     key: "expMove",
     value: emPct === null ? null : `±${emPct.toFixed(1)}%`,
     detail: lo && hi ? `${lo} – ${hi}` : null,
+    method: emPct === null
+      ? null
+      : { bandMult: num(em?.band_mult), horizonDays: num(em?.horizon_days) },
     vintage: eodDate(inp.moves?.asof),
     source: "moves",
   });

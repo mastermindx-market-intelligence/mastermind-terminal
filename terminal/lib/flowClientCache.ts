@@ -50,25 +50,40 @@ function buildUrl(f: string): string {
   return `/api/flow?f=${encodeURIComponent(f)}`;
 }
 
+/** Bound a stalled browser→edge read before the CDN's 524 deadline.
+ * The server already bounds auth and its two upstream sources (~15s total).
+ * This one abort controller is owned by the SAME in-flight cache request:
+ * concurrent viewers still dedupe, and a timeout never becomes "not published".
+ */
+const FLOW_READ_DEADLINE_MS = 25_000;
+
 async function readOutcome(requestUrl: string): Promise<FlowOutcome> {
-  let r: Response;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), FLOW_READ_DEADLINE_MS);
   try {
-    r = await fetch(requestUrl, { cache: "no-store" });
-  } catch {
-    return { status: "unavailable", reason: "network" };
+    let r: Response;
+    try {
+      r = await fetch(requestUrl, { cache: "no-store", signal: controller.signal });
+    } catch {
+      return { status: "unavailable", reason: "network" };
+    }
+    if (!r.ok) {
+      if (r.status === 404 || r.status === 410) return { status: "absent", httpStatus: r.status };
+      return { status: "unavailable", reason: "server", httpStatus: r.status };
+    }
+    let data: unknown;
+    try {
+      data = await r.json();
+    } catch {
+      return controller.signal.aborted
+        ? { status: "unavailable", reason: "network" }
+        : { status: "unavailable", reason: "malformed", httpStatus: r.status };
+    }
+    if (data == null) return { status: "unavailable", reason: "malformed", httpStatus: r.status };
+    return { status: "data", data };
+  } finally {
+    clearTimeout(timer);
   }
-  if (!r.ok) {
-    if (r.status === 404 || r.status === 410) return { status: "absent", httpStatus: r.status };
-    return { status: "unavailable", reason: "server", httpStatus: r.status };
-  }
-  let data: unknown;
-  try {
-    data = await r.json();
-  } catch {
-    return { status: "unavailable", reason: "malformed", httpStatus: r.status };
-  }
-  if (data == null) return { status: "unavailable", reason: "malformed", httpStatus: r.status };
-  return { status: "data", data };
 }
 
 function doFetch(url: string, entry: CacheEntry, requestUrl = url): Promise<FlowOutcome> {
@@ -155,8 +170,10 @@ export async function flowGetResult(f: string, options: { refresh?: boolean } = 
  */
 export async function flowGetFresh(
   f: string,
-  options: { forceUpstream?: boolean } = {},
+  options: boolean | { forceUpstream?: boolean } = {},
 ): Promise<unknown> {
+  const skipTtl = options === true;
+  const forceUpstream = typeof options === "object" && options.forceUpstream === true;
   const url = buildUrl(f);
   const now = Date.now();
   const entry = store.get(url);
@@ -165,7 +182,7 @@ export async function flowGetFresh(
   // it asks the SAME entitlement-gated API to recheck the publisher even when
   // the server's 30s TTL has not expired. Preserve this cache's single key,
   // dedup ownership and post-fetch value for the next ordinary read.
-  if (f === "leaders" && options.forceUpstream) {
+  if (f === "leaders" && forceUpstream) {
     if (entry?.inflight) await entry.inflight;
     const current = store.get(url);
     return doFetch(
@@ -177,7 +194,7 @@ export async function flowGetFresh(
 
   if (entry) {
     if (entry.inflight !== null) return entry.inflight.then(dataOrNull);
-    if (now - entry.ts < TTL_MS) return Promise.resolve(entry.data);
+    if (!skipTtl && now - entry.ts < TTL_MS) return Promise.resolve(entry.data);
     return doFetch(url, { data: entry.data, ts: entry.ts, inflight: null }).then(dataOrNull);
   }
 
