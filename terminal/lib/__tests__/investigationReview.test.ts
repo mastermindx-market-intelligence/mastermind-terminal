@@ -8,7 +8,7 @@ import type { OwnerAlertRow } from "../investigationWatch";
 const link = { investigation_id: "00000000-0000-4000-8000-000000000001", revision: 3 };
 const FIRE = "b".repeat(64), CORRECTED_FIRE = "c".repeat(64);
 const manifest = (): InvestigationManifest => ({
-  schema: "investigation_manifest.v2",
+  schema: "investigation_manifest.v2", argument_relations:[],
   intent: { title: "NVDA · 230 wall", question: "Did NVDA reach the 230 wall before the rotation faded?", subjects: [{ kind: "security", owner: "terminal.analysis_symbol", object_id: "NVDA" }] },
   layout_refs: [], thesis_refs: [], evidence_refs: [], continuation: {},
 });

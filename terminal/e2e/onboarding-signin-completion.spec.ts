@@ -21,7 +21,11 @@ for (const lang of ["en", "zh"] as const) {
       // Match the existing password-recovery fixture seam. Chromium may reject
       // a cross-port local request before route interception, so supply the
       // Auth response at fetch while keeping the real SDK and form path intact.
-      await page.addInitScript(({ user, token }) => {
+      // The dev fixture serves Supabase behind the app origin, so the auth
+      // endpoints are a qualified path on the configured fixture origin.
+      const authOrigin = new URL(info.project.use.baseURL!).origin;
+      const authPathPrefix = "/api/__e2e__/supabase/auth/v1";
+      await page.addInitScript(({ user, token, authOrigin, authPathPrefix }) => {
         const state = window as unknown as { __mmSigninSubmissions: number; __mmResolveSignin?: () => void };
         // Hard same-path navigation re-executes init scripts. Persist the fixture
         // counter in this one tab so an actual reload cannot erase its evidence.
@@ -30,9 +34,10 @@ for (const lang of ["en", "zh"] as const) {
         window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
           const raw = typeof input === "string" ? input : input instanceof Request ? input.url : input.toString();
           const url = new URL(raw, window.location.href);
-          if (!url.pathname.startsWith("/auth/v1/")) return originalFetch(input, init);
-          if (url.origin !== "http://127.0.0.1:54321") throw new Error("Unexpected auth fixture origin");
-          if (url.pathname === "/auth/v1/token" && url.searchParams.get("grant_type") === "password") {
+          if (!url.pathname.includes("/auth/v1")) return originalFetch(input, init);
+          if (url.origin !== authOrigin) throw new Error("Unexpected auth fixture origin: " + url.origin);
+          if (!url.pathname.startsWith(authPathPrefix + "/")) throw new Error("Unexpected auth fixture path: " + url.pathname);
+          if (url.pathname === authPathPrefix + "/token" && url.searchParams.get("grant_type") === "password") {
             state.__mmSigninSubmissions += 1;
             sessionStorage.setItem("mm:e2e:signin-submissions", String(state.__mmSigninSubmissions));
             await new Promise<void>((resolve) => { state.__mmResolveSignin = resolve; });
@@ -40,11 +45,11 @@ for (const lang of ["en", "zh"] as const) {
               expires_in: 3600, refresh_token: "local-fixture-only", user }),
             { status: 200, headers: { "content-type": "application/json" } });
           }
-          if (url.pathname === "/auth/v1/user") return new Response(JSON.stringify(user),
+          if (url.pathname === authPathPrefix + "/user") return new Response(JSON.stringify(user),
             { status: 200, headers: { "content-type": "application/json" } });
           throw new Error("Unexpected auth fixture operation");
         };
-      }, { user, token });
+      }, { user, token, authOrigin, authPathPrefix });
 
       // The fragment variant would previously do only an in-document jump,
       // leaving the guest RSC response mounted after password login.

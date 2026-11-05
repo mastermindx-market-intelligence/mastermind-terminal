@@ -1,0 +1,20 @@
+{
+  "verdict": "ACCEPTED_SCOPED_NONAUTHOR_SOURCE_INTEGRATION",
+  "run": "iw2-source-port-risk-review-20261104-r1",
+  "reviewer": "Grok4.7 / ubuntu0",
+  "snapshot": "f6874b38e29926664380816874623604a9c5bf34",
+  "base": "3832ec6699062aafe58d5d2f69e7bccfb0b19275",
+  "result_sha256": "34156be9dcf83d947d0af0231354bd8a5f21b4c12e7a545b5169a13949f0c3b0",
+  "tests_by_reviewer": "NOT_RUN",
+  "findings": [],
+  "parent_affected_cases_pass": 1812,
+  "parent_browser_cases_pass": 6,
+  "limitations": [
+    "not GitHub approval",
+    "not runtime/authenticated acceptance",
+    "SQL implementation outside supplied packet",
+    "subsequent corpus-attribution repair is tests/fixtures only; runtime code unchanged"
+  ],
+  "original_holds_retained": true,
+  "usage_total_tokens": 117362
+}

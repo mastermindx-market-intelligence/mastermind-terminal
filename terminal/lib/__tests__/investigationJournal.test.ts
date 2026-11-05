@@ -38,3 +38,39 @@ it("a malformed or foreign-owner alias cannot be bypassed using the other namesp
  const s=storage();s.setItem(key(user),text(owner));expect(readInvestigationJournal(s,user).status).toBe("invalid");expect(()=>retainInvestigationJournal(s,user,command)).toThrow();
  s.setItem(key(owner),text(owner));expect(readInvestigationJournal(s,user).status).toBe("conflict");expect(()=>clearRejectedInvestigationJournal(s,user)).toThrow();expect(s.data.size).toBe(2);
 });
+
+it("preserves the original full-request owner recheck across either same-subject journal namespace",()=>{
+ for(const alias of [user,owner]){
+  const s=storage(),original=text(alias,command,{phase:"rejected",reason:"invalid_payload"});s.setItem(key(alias),original);
+  const found=readInvestigationJournal(s,user);
+  expect(found).toMatchObject({status:"retained",state:{phase:"uncertain",principal:user,command,ownerRecheck:true}});
+  expect(s.getItem(key(alias))).toBe(original);
+  expect(()=>clearRejectedInvestigationJournal(s,user)).toThrow();
+ }
+});
+
+it("allows only a matching current-lifetime owner fence to replace or clear its conservative persisted copy",()=>{
+ const fenced={phase:"rejected" as const,principal:user,command,reason:"not_applied"};
+ const s=storage();s.setItem(key(owner),text(owner,command,{phase:"rejected",reason:"not_applied"}));
+ expect(readInvestigationJournal(s,user)).toMatchObject({status:"retained",state:{phase:"uncertain"}});
+ expect(()=>clearRejectedInvestigationJournal(s,user)).toThrow();
+ expect(()=>retainInvestigationJournal(s,user,command)).toThrow();
+ for(const previous of [{...fenced,principal:owner},{...fenced,command:{...command,operation_id:command.id}},{...fenced,reason:"unavailable"}]){
+  expect(()=>clearRejectedInvestigationJournal(s,user,previous)).toThrow();
+ }
+ const other=storage();other.setItem(key(owner),s.getItem(key(owner))!);
+ const next={...command,operation_id:command.id};
+ retainInvestigationJournal(s,user,next,fenced);
+ expect(readInvestigationJournal(s,user)).toMatchObject({status:"retained",state:{phase:"uncertain",command:next}});
+ clearRejectedInvestigationJournal(other,user,fenced);expect(other.data.size).toBe(0);
+});
+
+it("keeps any exact duplicate alias's full-request recheck requirement regardless of alias order",()=>{
+ for(const recheckOwner of [user,owner]){
+  const s=storage();const plainOwner=recheckOwner===user?owner:user;
+  const a=text(plainOwner),b=text(recheckOwner,command,{phase:"rejected",reason:"invalid_payload"});
+  s.setItem(key(plainOwner),a);s.setItem(key(recheckOwner),b);
+  expect(readInvestigationJournal(s,user)).toMatchObject({status:"retained",state:{phase:"uncertain",principal:user,command,ownerRecheck:true}});
+  expect(s.getItem(key(plainOwner))).toBe(a);expect(s.getItem(key(recheckOwner))).toBe(b);
+ }
+});

@@ -20,6 +20,26 @@ vi.mock("@/lib/researchHandoffs", () => handoff);
 const supabase = vi.hoisted(() => ({ createClient: vi.fn() }));
 vi.mock("@/lib/supabase/client", () => supabase);
 vi.mock("@/lib/supabase/server",()=>({createClient:async()=>({auth:{getClaims:async()=>({data:{claims:{sub:"10000000-0000-4000-8000-000000000001"}}})}})}));
+// Controlled ready auth-lifetime fixture through the EXISTING subscribeInvestigationAuthOwner
+// interface for the mounted Workspace — never a live auth source. getSnapshot stays current ready
+// with an opaque stable epoch and the same-owner principal; a test can set another principal.
+const authOwner = vi.hoisted(() => ({ principal: null as string | null, epoch: "scenario-resolution-lifetime" }));
+vi.mock("@/lib/supabase/investigationAuthOwner", () => ({
+  subscribeInvestigationAuthOwner: (onLifecycle: (snapshot: unknown) => void, onObservedPrincipal: (principal: string | null) => void) => {
+    const snapshot = { availability: "ready", principal_partition: authOwner.principal, auth_epoch: authOwner.epoch };
+    onLifecycle(snapshot); onObservedPrincipal(authOwner.principal);
+    return { getSnapshot: () => snapshot, unsubscribe() {} };
+  },
+}));
+// Request-context cookies exist only for the actual page unit rendering; the verified-claims
+// owner assertion below stays the raw claims.sub the server client returns.
+const pageJar = vi.hoisted(() => ({
+  // The same synthetic-JWT idiom the auth binding suite uses; the raw verified-claims owner
+  // assertion below stays bound to the server client's claims.sub, never to this cookie.
+  token: `synthetic.${btoa(JSON.stringify({ sub: "10000000-0000-4000-8000-000000000001" })).replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_")}.signature`,
+}));
+vi.mock("next/headers", () => ({ cookies: async () => ({ get: (name: string) => ({ name, value: pageJar.token }), getAll: () => [{ name: "sb-page-auth-token", value: pageJar.token }] }) }));
+vi.mock("@/lib/useMarketPrefs", () => ({ useAccountPrefs: () => ({ owner: "fixture", ready: true, metaPrefs: {}, appearanceRevision: 0 }) }));
 const i18n = vi.hoisted(() => ({ useLang: vi.fn() }));
 vi.mock("@/lib/i18n", () => i18n);
 
@@ -103,6 +123,7 @@ beforeEach(() => {
   fetcher.mockReset(); vi.stubGlobal("fetch", fetcher);
   Object.values(handoff).forEach(v => { if (vi.isMockFunction(v)) v.mockReset(); });
   handoff.isHandoffOwnerChangeError = () => false;
+  authOwner.principal = user;
   i18n.useLang.mockReset().mockReturnValue({ lang: "en" });
   supabase.createClient.mockReset().mockReturnValue({ auth: { onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }) } });
   fetcher.mockImplementation(async (url: unknown, init?: { body?: string }) => {
@@ -170,6 +191,16 @@ it("owner A→inspect B→reopen A refetches A's exact context and never substit
   expect(el.textContent).not.toContain(totalB);
 });
 
+it("a resolved answer bound to a different revision is discarded like any other mismatched answer", async () => {
+  await mount(<SavedScenarioRead {...readProps} />);
+  postQueue.push(bound({ ...okA, rev: 3 }));
+  await click(button("Resolve saved scenario"));
+  expect(posts).toEqual([postA]); // the request stayed the exact three-key binding for revision 2
+  expect(resolveState()).toBe("mismatch");
+  expect(el.textContent).toContain("did not match this exact saved reference");
+  expect(el.textContent).not.toContain(totalA);
+});
+
 it("recipient resolve is grant-bound and refuses an answer bound to a different grant", async () => {
   handoff.listHandoffs.mockResolvedValue({ result: { status: "listed", own: [], sent: [], received: [rowFor(grantA)], sentNextCursor: null, receivedNextCursor: null } });
   handoff.readHandoff.mockResolvedValue({ result: { status: "found", handoff: handoffPayload(grantA) } });
@@ -186,6 +217,23 @@ it("recipient resolve is grant-bound and refuses an answer bound to a different 
   expect(el.textContent).toContain("did not match this exact saved reference");
   expect(el.textContent).not.toContain(totalA);
   // Explicit retry with the correctly bound answer paints.
+  postQueue.push(bound(okAg));
+  await click(button("Resolve saved scenario"));
+  expect(posts).toEqual([postAg, postAg]);
+  expect(el.textContent).toContain(totalA);
+});
+
+it("an owner-bound grantless answer never paints into a recipient's share", async () => {
+  handoff.listHandoffs.mockResolvedValue({ result: { status: "listed", own: [], sent: [], received: [rowFor(grantA)], sentNextCursor: null, receivedNextCursor: null } });
+  handoff.readHandoff.mockResolvedValue({ result: { status: "found", handoff: handoffPayload(grantA) } });
+  await mount(<PinnedResearchSharing {...sharingProps} />);
+  await click(button("Open pinned research sharing"));
+  await click(button("Read shared content"));
+  postQueue.push(bound(okA)); // the owner's grant_id null binding is not this share's answer
+  await click(button("Resolve saved scenario"));
+  expect(posts).toEqual([postAg]);
+  expect(resolveState()).toBe("mismatch");
+  expect(el.textContent).not.toContain(totalA);
   postQueue.push(bound(okAg));
   await click(button("Resolve saved scenario"));
   expect(posts).toEqual([postAg, postAg]);
@@ -339,6 +387,17 @@ it("never paints a success body from a failed HTTP response", async () => {
   await click(button("Resolve saved scenario"));
   expect(resolveState()).toBe("unavailable");
   expect(el.querySelector('[data-testid="scenario-resolution"]')?.textContent).not.toContain(totalA);
+});
+
+it("a ready auth lifecycle never implies a resolve: open, switch and remount stay click-only",async()=>{
+ await mount(<InvestigationWorkspace ownerKey={user}/>);
+ await click(rowButton("Pinned A"));
+ await click(rowButton("Pinned B"));
+ await mount(<span/>);await mount(<InvestigationWorkspace ownerKey={user}/>);
+ await click(rowButton("Pinned A"));
+ expect(posts).toHaveLength(0);
+ expect(resolveState()).toBe("unverified");
+ expect(buttons("Resolve saved scenario")).toHaveLength(1);
 });
 
 it("actual authenticated analysis page and mount pass raw claims.sub to the real owner-resolve Workspace",async()=>{

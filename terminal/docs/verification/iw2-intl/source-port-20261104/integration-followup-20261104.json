@@ -1,0 +1,109 @@
+{
+  "scope": "FINAL_LOCAL_SOURCE_INTEGRATION_FOLLOWUP",
+  "base": "3832ec6699062aafe58d5d2f69e7bccfb0b19275",
+  "published_preimage": "ebc3ab4bdd4d669746f6e26c0513805212422bf6",
+  "local_ci_repair_commit": "0502a1d3",
+  "installer_hook_join_commit": "e7c0ebc3",
+  "copy_repair": {
+    "run": "iw2-intl-copy-routing-20261104-r1",
+    "original_foreground": "44955 terminal0",
+    "usage": "MISSING",
+    "raw_artifact_verdict": "NOT_ACCEPTED_AS_RETURNED",
+    "raw_sha256": "14dab84d883c106ccb174b96c52fed0b57c5b6b8962a5fa0e71f73c7d9ec7733",
+    "raw_problem": "one context line omitted existing initialIntlEntry prop; raw git apply --check failed without source effects",
+    "parent_correction": "restore original current function context in patch only; no prop/interface change",
+    "parent_patch_sha256": "aeb484a3b4a8bf194aa5c615333412f1de77702744225ef480b2582517347ea2",
+    "parent_source_verdict": "PASS_SCOPED",
+    "receiver_runtime_and_interfaces": "byte identical",
+    "receiver_EN_ZH_values": "all exact original",
+    "workspace": "six pair values exact; reverse pairs and one helper restores complete original file byte exactly",
+    "guard": "16 original findings ->0 blocking;self-check all6 rules detected",
+    "affected_cases": 61,
+    "files": 5,
+    "typescript_exit": 0,
+    "real_browser_delta": "final source captures pending;prior actualproducer/wholePlan proof reused",
+    "SQL_auth_owner_effects": "NONE",
+    "observation_unavailable": "one original diagnostic rc76;notretried;actualforegroundreturnsettlednaturally"
+  },
+  "ci_framework": {
+    "schema": "iw2.browser_discovery_repair.v1",
+    "updated": "2026-11-04T16:51:19.059521+00:00",
+    "patch_sha256": "bd3337b7cab99782617e20a54be82725fb4a2c09cfd7102a9b03825c1bf1c355",
+    "decision": "PASS_SCOPED_SOURCE",
+    "browser_selection": "all262 actual definition files .spec.ts;4095 discovered DTM cases;four Node test files excluded from browser framework",
+    "checks_reused": {
+      "node_controls": 77,
+      "shard_guards": 22
+    },
+    "scheduling_repair": "existing two-file1min Node step unchanged;dedicated visualEvidence.test.cjs step3min",
+    "budget_basis_seconds": {
+      "heavy_case": 76.223,
+      "prior_combined": 98.948
+    },
+    "hosted_attribution": "local cross-test collection defect proven; individual hosted failures not attributed without logs",
+    "hosted_ci": "FAILED_RETIRED41862229652;no newCI during current provider hold",
+    "root_nonauthor_review": {
+      "verdict": "PASS_SCOPED",
+      "source": "actual Website root return in IW2 current conversation",
+      "reported_pointer": "H/iw2-browser-discovery-root-review.json",
+      "absolute_path": "NOT_INDEPENDENTLY_RESOLVED"
+    }
+  },
+  "source_only_python": {
+    "scope": "LOCAL_PYTHON_SOURCE_ONLY_TRIAGE",
+    "collection": {
+      "status": "PASS",
+      "cases": 3616,
+      "duration_s": 4.26,
+      "execution": false
+    },
+    "source_policy_workflow": {
+      "pass": 74,
+      "duration_s": 12.67
+    },
+    "namespace_ledger": {
+      "pass": 143,
+      "warnings": 1,
+      "warning": "intentional synthetic duplicate-prefix proof",
+      "duration_s": 1.07
+    },
+    "runtime": "local Python3.14;not hostedCPython3.12",
+    "sql_or_migration_execution": false,
+    "hosted_ingest_failure_cause": "NOT_ESTABLISHED",
+    "remaining_boundary": "No new held hostedpayload/log/artifact access attempted; no speculative source/SQL change."
+  },
+  "final_capture_operations": [
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/iw2-source-port-pl6-20261104-r5--operation.json",
+      "sha256": "c4111ce3d9a9505a6774c3a70959147ecdc153f0bbb11956aef911d45bd98099",
+      "actual_cases": 24
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/iw2-source-port-vi-20261104-r5--operation.json",
+      "sha256": "6ab2118813fd26600be5211bcbb43acc29cf2b2802d717d91790ca5546781669",
+      "actual_cases": 30
+    }
+  ],
+  "selected_composition": "terminal/docs/pr-crops/b-pl-6-batch-1/iw2-source-port-current-20261104-r5.composition.json",
+  "actual_cases": 54,
+  "selected_required_cases": 50,
+  "evidence_checks_pass": 2,
+  "pixels": {
+    "identical_reused": 38,
+    "changed_parent_viewed": 16,
+    "contact_sheets": 4
+  },
+  "latest_producer_qualified_input": {
+    "generation": "im-workspace-generation:1b07905f-b6f7-48f7-8a45-6581cd21d417",
+    "artifact_sha256": "487aba37a7d8a8204d3d258fee50e86536d46a18adab59c671114c7bb4aadcc4",
+    "descriptor_sha256": "5fb6f857c0e0d7eecaa823315fea2f4595ab6839b8511929fb765415cf20aeb8",
+    "actual_html_sha256": "b1bbafdb6baeaf0eb64a00ebeb777fae7949d1e822598103a859bd59398fb3c4",
+    "actual_hrefs": 50,
+    "unchanged_native_intake_and_baseline_loop_pass": true,
+    "principal_and_fetch_doubles": true,
+    "mounted_policy_api": "Website qualification separate;not repeated"
+  },
+  "hosted_CI": "REQUIRED_ON_NEW_HEAD;no hosted pass claimed",
+  "SQL_install_activation_authenticated_acceptance": "NOT_QUALIFIED_BY_THIS_SOURCE_WORK",
+  "release_holds": "UNCHANGED"
+}

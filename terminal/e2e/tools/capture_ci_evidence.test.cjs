@@ -135,3 +135,6 @@ for (const failure of [false, true]) test(`VI outputDir cleanup preserves ${fail
   }
   assert.equal(Boolean(f.selected()), !failure);
 });
+
+// Source snapshot compatibility and artifact-path negative controls run in the required tool check.
+require("./visualEvidenceSourcePaths.test.cjs");

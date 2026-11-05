@@ -15,6 +15,9 @@ const w2aWorkspacesSpec = /w2a-workspaces\.spec\.ts/;
 
 export default defineConfig({
   testDir: "./e2e",
+  // Browser cases use .spec.ts; Node tool tests run in their dedicated CI step.
+  // Collecting .test.cjs here makes Playwright reject their shared Node test imports.
+  testMatch: "**/*.spec.ts",
   // Compile every route the suite uses BEFORE any spec's clock starts. The suite runs against a
   // DEV server, so a route's first request pays a Turbopack compile inside whichever spec
   // happens to touch it first — the measured cause of CI's rotating e2e failures. See the
@@ -114,6 +117,7 @@ export default defineConfig({
       // Production runs `next start` and can never satisfy it.
       ADMIN_DEV: "1",
       TERMINAL_E2E_FIXTURE: "1",
+      TERMINAL_E2E_VERIFIED_AUTH: "1",
       TERMINAL_E2E_EMAIL: "responsive@example.com",
       TERMINAL_E2E_ENTITLEMENT: "unlimited",
       // All browser projects share one loopback IP. The fully-parallel matrix can
@@ -130,7 +134,8 @@ export default defineConfig({
       // exact literal "open" per request. This dev-server-only env block opts the fixture
       // origin in; production never receives the value, so the unset default stays closed.
       INVESTIGATION_API_ADMISSION: "open",
-      NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
+      // Same-origin public-only JWKS for the development-only verified-auth fixture.
+      NEXT_PUBLIC_SUPABASE_URL: `http://127.0.0.1:${port}/api/__e2e__/supabase`,
       NEXT_PUBLIC_SUPABASE_ANON_KEY: "fixture-anon-key",
     },
   },

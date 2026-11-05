@@ -49,6 +49,7 @@ const manifest = (scenario_capture: unknown) => ({
   thesis_refs: [] as const,
   evidence_refs: [] as const,
   continuation: {},
+  argument_relations: [],
   scenario_capture,
 });
 const scenarioCommand = { id: inv, operation_id: op, expected_revision: 0, action: "create" as const, manifest: manifest(REF) };
@@ -56,6 +57,13 @@ const removeCommand = { id: inv, operation_id: op, expected_revision: 1, action:
 const legacyManifest = { ...manifest(undefined) };
 delete (legacyManifest as Record<string, unknown>).scenario_capture;
 const legacyCommand = { id: inv, operation_id: op, expected_revision: 0, action: "create" as const, manifest: legacyManifest };
+
+const committed = (revision: number, lifecycle: string, savedManifest: unknown) => ({
+  status: "committed", id: inv, investigation_id: inv, revision, sequence: revision, lifecycle, manifest: savedManifest,
+  revision_id: "50000000-0000-4000-8000-000000000005", operation_id: op, author_ref: user,
+  parent_revision_id: revision === 1 ? null : "60000000-0000-4000-8000-000000000006",
+  committed_at: "2026-10-16T20:00:00Z", recorded_at: "2026-10-16T20:00:00Z", manifest_digest: "a".repeat(64),
+});
 
 const post = (body: unknown, headers: Record<string, string> = {}) =>
   POST(new Request("https://terminal.test/api/investigations", { method: "POST", headers, body: JSON.stringify(body) }));
@@ -115,7 +123,7 @@ describe("scenario owner binding and source preflight on the Investigation route
   });
 
   it("remove/restore preserve the reference metadata without acquiring the source: no preflight refusal", async () => {
-    rpc.mockResolvedValue({ data: { status: "committed", id: inv, revision: 2, lifecycle: "removed", manifest: legacyManifest, committed_at: "2026-10-16T20:00:00Z" }, error: null });
+    rpc.mockResolvedValue({ data: committed(2, "removed", removeCommand.manifest), error: null });
     const response = await post(removeCommand, { "Content-Type": "application/json", "x-mm-scenario-owner": user });
     expect(response.status).toBe(200);
     expect(rpc.mock.calls[0][0]).toBe("apply_investigation_revision_v2");
@@ -125,8 +133,8 @@ describe("scenario owner binding and source preflight on the Investigation route
     expect(sent.scenario_capture).toEqual(REF);
   });
 
-  it("keeps legacy non-scenario saves header-free and unchanged", async () => {
-    rpc.mockResolvedValue({ data: { status: "committed", id: inv, revision: 1, lifecycle: "active", manifest: legacyManifest, committed_at: "2026-10-16T20:00:00Z" }, error: null });
+  it("keeps fresh non-scenario kernel saves header-free", async () => {
+    rpc.mockResolvedValue({ data: committed(1, "active", legacyManifest), error: null });
     const response = await post(legacyCommand);
     expect(response.status).toBe(200);
     expect(rpc.mock.calls[0][0]).toBe("apply_investigation_revision_v2");
