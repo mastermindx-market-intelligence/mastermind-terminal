@@ -112,35 +112,52 @@ exactly one job and then deregister, which removes the idle listener between job
 (the property the canary relied on); a wrapper then re-registers it. Minting an
 organization registration token needs the organization **"Self-hosted runners:
 write"** permission (a fine-grained token with that organization permission, or a
-GitHub App installation token with it); the administrator holds that credential on
-the host and it is never printed:
+GitHub App installation token with it). **That credential must never be readable
+by the job user.** Every job runs as `ghrunner`, so a credential in `ghrunner`'s
+home, environment or a user unit would be readable by any approved run and would
+let it register rogue runners or remove legitimate ones across the organization.
+The minting loop therefore runs as a separate privileged account (`root` or a
+dedicated `ghmint` user that owns the runner binaries) in a **system** unit; it
+mints one short-lived registration token per cycle, passes it to `config.sh`
+running as `ghrunner` on the command line of that one process, and persists it
+nowhere. `config.sh` exits before any job starts, so no job ever sees the token or
+the credential behind it:
 
 ```
-mkdir -p ~/actions-runner/ubuntu0-e2e-N && cd ~/actions-runner/ubuntu0-e2e-N
-tar xzf ~/actions-runner/actions-runner-linux-x64.tar.gz
-# loop, run by a systemd user unit for ghrunner:
+# as root: binaries owned by the minting account, read-only to ghrunner; only the
+# runner's own state (.runner, .credentials, _work) is writable by ghrunner.
+mkdir -p /opt/actions-runner/ubuntu0-e2e-N && cd /opt/actions-runner/ubuntu0-e2e-N
+tar xzf /opt/actions-runner/actions-runner-linux-x64.tar.gz
+chown -R ghmint:ghrunner . && chmod -R g-w,o-rwx . && install -d -o ghrunner -g ghrunner -m 0750 _work
+# loop, run by a SYSTEM unit as ghmint (the org credential is readable only by ghmint):
 while :; do
   token="$(mint-org-registration-token)"   # POST /orgs/<org>/actions/runners/registration-token; never echoed
-  ./config.sh --unattended --ephemeral --url https://github.com/<org> --token "$token" \
+  sudo -u ghrunner ./config.sh --unattended --ephemeral --url https://github.com/<org> --token "$token" \
     --name ubuntu0-e2e-N --labels self-hosted,linux,x64,ubuntu0-e2e \
     --runnergroup <restricted-group> --work _work --replace
-  ./run.sh
+  sudo -u ghrunner ./run.sh
 done
 ```
+
+(`ghmint` needs a sudoers rule limited to those two commands as `ghrunner`;
+`ghrunner` itself still has no sudo.)
 
 The runner must carry **all four labels**; `runs-on` requires every label in the
 array.
 
 **What ephemeral does not do.** It does not give each job a clean machine. Every
-slot runs as the same `ghrunner` user with one home directory, which owns the
-runner binaries, the re-registration wrapper, `~/.npm` and the per-slot browser
-stores, so one approved run can rewrite any of those and compromise every later
-job on every slot. The canary recorded the same caveat ("registration alone does
+slot runs as the same `ghrunner` user with one home directory, which owns
+`~/.npm` and the per-slot browser stores and, unless the layout above is followed,
+the runner binaries and the re-registration wrapper, so one approved run can
+rewrite any of those and compromise every later job on every slot. The org
+registration credential is part of the same boundary: it must live only with the
+minting account, never where `ghrunner` can read it. The canary recorded the same caveat ("registration alone does
 not clean its filesystem; the original runtime owner must separately qualify
 isolation and cleanup"), and GitHub warns that re-using hardware for JIT runners
 can expose information between jobs. Before turning the lane on, the host owner
 must qualify that isolation: at minimum one OS user per slot with runner binaries
-owned by a separate account, or a fresh container/VM per job. Until that is
+and the minting credential owned by a separate account, or a fresh container/VM
+per job. Until that is
 qualified, running this lane is a recorded administrator trust decision that every
 approved run of this repository may tamper with the host.
 
@@ -171,18 +188,22 @@ No workflow change or PR is needed for either step.
 The merged canary (`selfhosted-e2e-canary.yml`, #1277) recorded, as the
 precondition for anything beyond the canary, an organization runner group
 restricted to **one workflow on one ref**
-(`selfhosted-e2e-canary.yml@refs/heads/master`), serving as an unprivileged
-no-sudo user. **A pull-request lane cannot meet that restriction**: a
+(`selfhosted-e2e-canary.yml@refs/heads/master`); the canary runner itself also ran
+as an unprivileged no-sudo user. **A pull-request lane cannot meet that
+restriction**: a
 `pull_request` run executes the workflow at `refs/pull/N/merge`, which a
 workflow-and-ref restriction never matches. This lane therefore runs under a
 **weaker fence** than the canary, and that must be recorded as an administrator
 trust decision rather than presented as the canary's precondition:
 
-- an organization runner group restricted to this repository (bounds which
-  repositories' runs may use the slots, not which code within them);
+- an organization runner group restricted to this repository, with "Allow public
+  repositories" switched on (off by default; this repository is public). The
+  group bounds which repositories' runs may use the slots, not which code within
+  them;
 - the `all_external_contributors` approval policy plus maintainer review of any
   workflow edit in an approved run (the only hold on fork code);
-- no-sudo ephemeral runners, with host isolation qualified as described under
+- no-sudo ephemeral runners whose org registration credential lives only with a
+  separate minting account, with host isolation qualified as described under
   *Registering a slot* (ephemeral alone does not bound the blast radius).
 
 Creating the organization runner group, provisioning the organization
