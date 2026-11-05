@@ -35,7 +35,7 @@
 .row { position: relative; display: flex; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid var(--line-2); }
 .row:first-child { border-top: none; }
 .dot { position: absolute; left: -14px; width: 7px; height: 7px; border-radius: 50%; background: var(--muted); }
-.time { font-family: var(--font-num); font-variant-numeric: tabular-nums; color: var(--muted); width: 52px; flex-shrink: 0; }
+.time { font-family: var(--font-num); font-variant-numeric: tabular-nums; color: var(--muted); width: 92px; flex-shrink: 0; overflow-wrap: anywhere; }
 .subject { font-weight: 650; max-width: 120px; }
 .verdict { flex: 1; color: var(--text-2, var(--text)); }
 .actions { display: flex; gap: 8px; }
@@ -92,6 +92,7 @@
      own full-width line — label and value wrap together, never split mid-value. */
   .facts { display: grid; grid-template-columns: 1fr; width: 100%; gap: 6px; }
   .row { flex-wrap: wrap; }
+  .time { width: 100%; }
   .subject { max-width: none; }
 }
 

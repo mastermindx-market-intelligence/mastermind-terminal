@@ -207,8 +207,26 @@ const MSC_LEX = {
     "Delta drift from time passing alone, with spot and implied volatility unchanged — the charm bid or offer.",
     "仅因时间流逝产生的德尔塔漂移（标的与隐含波动率不变）——即 charm 带来的买盘或卖盘。",
   ],
-  scenNoVanna: ["No vanna lens in this payload — the IV axis is gamma-only.", "该数据无 vanna 维度——隐波轴仅含伽马。"],
+  scenNoVanna: [
+    "No vanna data in this payload, so only the no-IV-change row is shown.",
+    "该数据没有 vanna，因此只显示隐波不变的一行。",
+  ],
   scenNoCharm: ["No charm lens in this payload.", "该数据无 charm 维度。"],
+  scenCoverage: [
+    "Built from {known} of {offered} strikes with gamma data.",
+    "由 {offered} 个行权价中具备伽马数据的 {known} 个构建。",
+  ],
+  scenCoverageWindow: [
+    "Built from {known} of {offered} strikes with gamma data; the ladder is a window over {full} strikes.",
+    "由 {offered} 个行权价中具备伽马数据的 {known} 个构建；该梯图是 {full} 个行权价上的一个窗口。",
+  ],
+  scenNotInterval: [
+    "The ±3% / ±5 vol grid is a range of hypothetical moves, not a probability interval; the Wilson 95% interval belongs to the level report card.",
+    "±3%／±5 个波动点的网格是一组假设变动的范围，不是概率区间；Wilson 95% 区间属于水平评分卡。",
+  ],
+  // SignCard prints nothing when the payload omits a convention. This card must still
+  // say the convention is unstated, and must not invent one.
+  scenConventionUnstated: ["not stated", "未说明"],
   scenDisclose: [
     "Local estimate. A first-order expansion around the published snapshot: the greeks are measured at the current spot and are themselves functions of spot, so accuracy falls away from the centre. Bounded to ±3% and ±5 vol points for that reason.",
     "局部估计。围绕已发布快照的一阶展开：希腊值在当前标的价处测得，而其本身又是标的价的函数，因此偏离中心后精度下降。故限定在 ±3% 与 ±5 个波动点以内。",
@@ -241,10 +259,10 @@ const MSC_LEX = {
     "该品种未发布预期波动区间——仅按百分比显示距离。",
   ],
   // ── Volland-parity wave 1: hedging-requirement framing ─────────────────────
-  hgTitle: ["Hedging requirement by strike", "按行权价的对冲需求"],
+  hgTitle: ["Snapshot hedge sensitivity by strike", "按行权价的快照对冲敏感度"],
   hgLead: [
-    "Every greek on one axis: the underlying a continuously hedged dealer must transact. Not the exposure — the trade the exposure forces.",
-    "所有希腊值统一到一个坐标：持续对冲的做市商需要交易的标的量。不是敞口本身，而是敞口所迫使的交易。",
+    "Snapshot sensitivities under the stated inventory assumptions, grouped by contract strike. These values do not measure trades as spot moves.",
+    "在既定持仓假设下，按合约行权价分组的快照敏感度。这些数值不代表现价变化过程中的交易量。",
   ],
   hgGreekAria: ["Greek lens", "希腊值维度"],
   hgViewAria: ["Chart form", "图表形式"],
@@ -253,24 +271,34 @@ const MSC_LEX = {
   hgVanna: ["Vanna", "Vanna"],
   hgCharm: ["Charm", "Charm"],
   hgViewBars: ["By strike", "按行权价"],
-  hgViewProfile: ["Cumulative", "累计"],
-  hgPerUnit: ["per {u}", "每 {u}"],
+  hgViewProfile: ["Strike subtotal", "行权价小计"],
+  hgPerUnit: ["{u}", "{u}"],
   unitSpot: ["+1% spot", "标的 +1%"],
   unitVol: ["+1 vol point", "+1 波动点"],
   unitDay: ["+1 day", "+1 天"],
   unitPosition: ["position", "持仓"],
+  hgUnitSpot: ["USD mn per +1% spot", "百万美元 / 标的 +1%"],
+  hgUnitVol: ["USD mn per +1 vol point", "百万美元 / +1 波动点"],
+  hgUnitDay: ["USD mn per +1 day", "百万美元 / +1 天"],
+  hgUnitPosition: ["USD mn position hedge", "百万美元 持仓对冲"],
   hgSpot: ["spot", "现价"],
+  hgStrikeAxis: ["Contract strike", "合约行权价"],
   hgLegend: ["Positive = dealers buy · negative = dealers sell", "正值＝做市商买入 · 负值＝做市商卖出"],
+  // Dedicated by-strike legend: the frozen "modeled sensitivity" wording must not leak into
+  // the term-structure card, which still shares the older hgLegend key above.
+  hgLegendByStrike: ["Positive = modeled buy sensitivity · negative = modeled sell sensitivity", "正值＝模型买入敏感度 · 负值＝模型卖出敏感度"],
   hgAnchored: [
-    "Anchored at spot: this greek measures a rate, so the curve reads zero at spot and accumulates outward — what dealers would transact travelling from here to there.",
-    "以现价为锚：该希腊值衡量的是变化率，因此曲线在现价处为零并向两侧累计——即价格从此处移动到彼处时做市商需要交易的量。",
+    "Snapshot contributions are summed outward on each side of reference spot. The horizontal axis is contract strike; this is not a spot-path hedge total.",
+    "以参考现价为界向两侧累计快照贡献。横轴是合约行权价，并非价格路径上的对冲交易总量。",
   ],
   hgUnanchored: [
-    "Running total across the ladder: this greek measures a position level rather than a rate, so it is not anchored at spot.",
-    "沿梯图的累计合计：该希腊值衡量的是持仓水平而非变化率，因此不以现价为锚。",
+    "Running subtotal of the supplied snapshot contributions by contract strike. Delta is a position hedge amount; the other lenses are per stated shock.",
+    "按合约行权价累计所提供的快照贡献。Delta 为持仓对冲量，其他维度按所示冲击单位计量。",
   ],
   hgNoLens: ["This greek is not published for the current ladder.", "当前梯图未发布该希腊值。"],
   hgScale: ["Largest bar ± {v}", "最大值 ± {v}"],
+  hgCoverage: ["{known}/{total} supplied rows known", "已知 {known}/{total} 条输入"],
+  hgPartial: ["Partial snapshot · missing values excluded", "部分快照 · 缺失数值未计入"],
 
   tsTitle: ["Term structure of hedging", "对冲的期限结构"],
   tsLead: [

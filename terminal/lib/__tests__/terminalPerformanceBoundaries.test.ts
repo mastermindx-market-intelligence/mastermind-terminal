@@ -8,10 +8,14 @@ const read = (rel: string) => readFileSync(path.join(ROOT, rel), "utf8");
 const SECONDARY_SURFACES = [
   ["components/StockAnalysis.tsx", "StockAnalysisImpl"],
   ["components/SeasonalityCard.tsx", "SeasonalityCardImpl"],
-  ["components/BrainWidget.tsx", "BrainWidgetImpl"],
 ] as const;
 
 describe("Terminal startup boundaries", () => {
+  it("keeps Brain's singleton binding eager for the Analysis host's sibling-effect ordering", () => {
+    const brain = read("components/BrainWidget.tsx");
+    expect(brain).toContain("ensureBrainPrincipalBinding(");
+    expect(brain).not.toContain("next/dynamic");
+  });
   for (const [wrapper, impl] of SECONDARY_SURFACES) {
     it(`${wrapper} stays behind a client-only dynamic boundary`, () => {
       const source = read(wrapper);

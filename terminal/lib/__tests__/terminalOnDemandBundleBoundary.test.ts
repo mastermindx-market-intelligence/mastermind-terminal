@@ -23,14 +23,19 @@ describe("Terminal closed controls stay off the startup graph", () => {
     const text = source("components/TerminalShell.tsx");
     const staticImports = staticSpecifiers(text);
     for (const specifier of [
-      "@/components/PositionModal",
       "@/components/LayoutMenu",
-      "@/components/ChartTableView",
+      "@/components/dataInspector/DataInspector",
     ]) {
       expect(staticImports).not.toContain(specifier);
       expect(text).toContain(`dynamic(() => import("${specifier}")`);
     }
     expect(text).toContain("{layoutOpen && <LayoutMenu");
+    expect(text).toContain("{phoneWorkspacesOpen && <LayoutMenu");
+    // Account transitions must still reach the mounted position controller while its form loads.
+    expect(staticImports).toContain("@/components/ChartPositionEntry");
+    const entry = source("components/ChartPositionEntry.tsx");
+    expect(staticSpecifiers(entry)).not.toContain("@/components/PositionModal");
+    expect(entry).toContain('dynamic(() => import("@/components/PositionModal")');
   });
 
   it("ChartPane loads chart settings only when the modal is opened", () => {
@@ -58,6 +63,8 @@ describe("Terminal closed controls stay off the startup graph", () => {
     expect(shell).toContain("const ensureLayoutsLoaded = useCallback(() => {");
     expect(shell).toContain("onMouseEnter={ensureLayoutsLoaded}");
     expect(shell).toContain("ensureLayoutsLoaded(); const willOpen = !layoutOpen");
+    expect(shell).toContain('ensureLayoutsLoaded(); setToolbarMoreView("layouts")');
+    expect(shell).toContain('action === "workspaces") { ensureLayoutsLoaded(); setPhoneWorkspacesOpen(true); }');
   });
 
   it("the Terminal insight rail does not pull the full Forecast page into startup", () => {

@@ -1,0 +1,131 @@
+{
+  "kind": "immutable-owner-payload-browser-qualification",
+  "sourceRevision": "79dbe3f2431b9e21cabf23071f02eab5add57eb4",
+  "upstreamBodiesAltered": false,
+  "transport": "local gateway interception",
+  "authenticatedProduction": false,
+  "independentHumanReview": false,
+  "checks": [
+    {
+      "name": "chromium: capitalization from actual full cohort",
+      "passed": true
+    },
+    {
+      "name": "chromium: sector as-of retained",
+      "passed": true
+    },
+    {
+      "name": "chromium: 76 groups, bounded first 30",
+      "passed": true
+    },
+    {
+      "name": "chromium: exact company return",
+      "passed": true
+    },
+    {
+      "name": "chromium: exact group-relative return",
+      "passed": true
+    },
+    {
+      "name": "chromium: existing Analysis route",
+      "passed": true
+    },
+    {
+      "name": "chromium: all 18 exact native theme names",
+      "passed": true
+    },
+    {
+      "name": "chromium: stale-input disclosure",
+      "passed": true
+    },
+    {
+      "name": "chromium: independent theme source date",
+      "passed": true
+    },
+    {
+      "name": "chromium: native full company table",
+      "passed": true
+    },
+    {
+      "name": "chromium: Back preserves view",
+      "passed": true
+    },
+    {
+      "name": "chromium: no horizontal overflow",
+      "passed": true,
+      "details": {
+        "inner": 0,
+        "document": 0
+      }
+    },
+    {
+      "name": "webkit: capitalization from actual full cohort",
+      "passed": true
+    },
+    {
+      "name": "webkit: sector as-of retained",
+      "passed": true
+    },
+    {
+      "name": "webkit: 76 groups, bounded first 30",
+      "passed": true
+    },
+    {
+      "name": "webkit: exact company return",
+      "passed": true
+    },
+    {
+      "name": "webkit: exact group-relative return",
+      "passed": true
+    },
+    {
+      "name": "webkit: existing Analysis route",
+      "passed": true
+    },
+    {
+      "name": "webkit: all 18 exact native theme names",
+      "passed": true
+    },
+    {
+      "name": "webkit: stale-input disclosure",
+      "passed": true
+    },
+    {
+      "name": "webkit: independent theme source date",
+      "passed": true
+    },
+    {
+      "name": "webkit: native full company table",
+      "passed": true
+    },
+    {
+      "name": "webkit: Back preserves view",
+      "passed": true
+    },
+    {
+      "name": "webkit: no horizontal overflow",
+      "passed": true,
+      "details": {
+        "inner": 0,
+        "document": 0
+      }
+    },
+    {
+      "name": "zero browser page exceptions",
+      "passed": true,
+      "details": []
+    }
+  ],
+  "screenshots": [
+    {
+      "name": "native-chromium-themes.png",
+      "sha256": "a310cc49621bbb80c91071b9c72158d19aad795cbab080e30c697a035e638a10"
+    },
+    {
+      "name": "native-webkit-themes.png",
+      "sha256": "468fcb60840c43bffc5be72850a91cfe194ed582d3ec027aff8bba93e043a7e8"
+    }
+  ],
+  "errors": [],
+  "passed": true
+}
