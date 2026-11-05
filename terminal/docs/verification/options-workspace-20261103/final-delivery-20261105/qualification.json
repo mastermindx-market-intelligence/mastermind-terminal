@@ -1,0 +1,48 @@
+{
+  "schema": "options_exposure_final_delivery_evidence.v1",
+  "created_at": "2026-11-05T10:05:25.913128+00:00",
+  "source_law_pin": "70187bb1660e8a7c3038271bb9f8924b5e525cb0",
+  "source_heads_before_final_commit": {
+    "options": "8e3362508aa2c451b7c02531097d0b9ee34653d9",
+    "exposure": "c9a57fc8dc6cb624309c3930c49319bbc980db2b"
+  },
+  "protected_base": "5d7b76376a8b3f5a8001f02d7f0ded29f5743798",
+  "prior_combined_tree": "a162a7809ffe6eb75c461c551a5146e61d2e7b03",
+  "journeys": {
+    "original": 39,
+    "integrated": 39,
+    "chart_framing_successor": 12,
+    "calendar_pane_sync": 1
+  },
+  "native_and_visual_captures": 294,
+  "repaired_gates": {
+    "original_unit": 112,
+    "integrated_unit": 122,
+    "exposure_unit": 104,
+    "typecheck": "All three full tsc --noEmit --incremental false passed; generated dev guards retained."
+  },
+  "broad_baseline": {
+    "original_passed": 18042,
+    "original_failed": 1,
+    "integrated_passed": 18817,
+    "integrated_failed": 2,
+    "state": "Historical pre-repair full runs; all three failing evidence cases repaired and passed in affected suites. Do not describe these as full green runs."
+  },
+  "chart_proof_relative": "../../exposure-workspace-20261103/chart-framing-20261105",
+  "journey_traces": "Full original39/integrated39 Playwright artifacts are retained at exact absolute paths in each browser-receipt.json; this Git package includes their original SHA indexes, reports, source maps and52screenshots, not137MB of trace ZIPs.",
+  "claim_limits": [
+    "Fixture browsers establish local behavior, not signed-in production market data or deployment.",
+    "Light-theme screenshots are controlled DOM specimens; no application-wide light-mode setting is claimed.",
+    "Historical captures retain exact original source identities; later chart source qualified by its own red/green packet.",
+    "Actual final commit and hosted CI status are established by publication readback, not this pre-commit packet."
+  ],
+  "production_compiler": {
+    "exit": 0,
+    "duration_seconds": 93.8,
+    "source_count": 3128,
+    "source_sha256": "0977c028b60121a51fe62d70ab6feee7e95f17e8b88715c13c082088b94a9fd4",
+    "receipt_sha256": "9e5e9f8e7b3c1531a86c846f3b52266af39c33e4c600fb7a3cd68f31c9c4c891",
+    "all13_original_font_bytes_emitted": true,
+    "production_deployed": false
+  }
+}

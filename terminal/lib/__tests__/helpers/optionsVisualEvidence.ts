@@ -187,5 +187,5 @@ export function qualifiedOptionsVisualPacket(repo: string, kind: Kind) {
     // The fixed r3 driver expects all 24 captures. The prior count correction
     // remains immutable in the preceding packet and is covered by its inventory.
   }
-  return { cropDir, evidence };
+  return { cropDir, evidence, qualifiedSources };
 }

@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { layoutSources, projectR4CaptureHarness, requireSourceKeys, selectWholeFingerprint } from "./helpers/optionsExposureEvidence";
+import { layoutSources, projectR4CaptureHarness, requireR4ChartIdentity, requireSourceKeys, selectWholeFingerprint } from "./helpers/optionsExposureEvidence";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 const a = "a".repeat(64), b = "b".repeat(64), c = "c".repeat(64), d = "d".repeat(64);
 const first = { profile: "first", sources: { "Gex.tsx": a, "Levels.tsx": b, "capture.cjs": c } };
@@ -86,5 +89,36 @@ describe("the recorded r4 fixture-server configuration transition", () => {
     const current = { ...recorded, [path]: successor, "Gex.tsx": b };
     const sources = projectR4CaptureHarness(recorded, current);
     expect(() => selectWholeFingerprint([{ sources }], current)).toThrow("NO_QUALIFIED_CAPTURE");
+  });
+});
+
+describe("the separately qualified r4 Chart branch", () => {
+  const original = "52dcb7e81d556e2239454dae822458236430737f55877bb5bd3b21465aa2e349";
+  const peer = "099b71567187d5509182d9cbee9be3d44b584bf1202748df8a6f92a48e0a5c11";
+  const successor = "de3e781dedac67c2c0aadeb1142ed2f6d3d3e2075063329e55d9cf88444121e7";
+  it("keeps both historical excluded identities without requiring future proof", () => {
+    expect(() => requireR4ChartIdentity("/missing-chart-proof", original, peer, original)).not.toThrow();
+    expect(() => requireR4ChartIdentity("/missing-chart-proof", original, peer, peer)).not.toThrow();
+  });
+  it("rejects a changed historical identity before considering a successor", () => {
+    expect(() => requireR4ChartIdentity("/missing-chart-proof", a, peer, successor))
+      .toThrow("JOINT_CHART_RECORDED_IDENTITY");
+  });
+  it("rejects an unqualified current Chart instead of treating its exclusion as permission to drift", () => {
+    expect(() => requireR4ChartIdentity("/missing-chart-proof", original, peer, d))
+      .toThrow("JOINT_CHART_SUCCESSOR_IDENTITY");
+  });
+  it("requires pinned actual browser proof even for the recognized framing successor", () => {
+    const repo = mkdtempSync(join(tmpdir(), "exposure-chart-proof-"));
+    try {
+      expect(() => requireR4ChartIdentity(repo, original, peer, successor)).toThrow(/ENOENT/);
+      const dir = join(repo, "terminal/docs/verification/exposure-workspace-20261103/chart-framing-20261105");
+      mkdirSync(dir, {recursive:true});
+      writeFileSync(join(dir, "qualification.json"), "{}\n");
+      expect(() => requireR4ChartIdentity(repo, original, peer, successor))
+        .toThrow("CHART_FRAMING_QUALIFICATION_DIGEST");
+    } finally {
+      rmSync(repo, {recursive:true,force:true});
+    }
   });
 });

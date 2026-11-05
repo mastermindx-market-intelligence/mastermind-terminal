@@ -1,5 +1,10 @@
 # Terminal Options workspace
 
+## Current completion record — 5 November 2026
+
+The [final implementation and verification record](final-delivery-20261105/README.md) supersedes the historical gate statements below. It includes the completed Paper design, 294 state captures, original and integrated 39-case browser runs, the final 12-case chart correction, all three clean typechecks, repaired evidence readers, and the passing production compiler. Publication and hosted CI belong to the exact final PR heads.
+
+
 The reported journey starts in Options, compares flow at different points within a trading session, and moves into a desk to inspect a contract or price level. The initial Exposure repair is tracked in [#1243](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1243). This change follows the existing category, tab, replay and data owners.
 
 ## Historic data cannot masquerade as live flow
