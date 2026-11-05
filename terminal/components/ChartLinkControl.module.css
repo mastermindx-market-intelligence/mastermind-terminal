@@ -1,0 +1,140 @@
+/* Chart link groups (E09). The chip sits in the pane header (.pane-hd, 28px) right after the
+   timeframe badge — the LEFT side, because at <=860px and in fullscreen the shell's floating
+   fullscreen button (.chart-fs-float) occupies the pane's top-right corner. The menu is positioned
+   against the pane itself (.pane is the nearest positioned ancestor) and opens from the left, so it
+   is clipped by the pane like every other in-chart surface, never escapes into a neighbouring pane,
+   and never slides under that floating button. */
+.root { display: contents; }
+
+.chip {
+  --link-c: var(--text-2);
+  position: relative;
+  z-index: 8;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-width: 30px;
+  height: 20px;
+  padding: 0 6px;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: var(--panel-2);
+  color: var(--link-c);
+  font: 700 10px/1 var(--font-ui);
+  letter-spacing: .04em;
+  cursor: pointer;
+}
+.chip svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.chip:hover { border-color: var(--line-3, var(--line)); color: var(--text); }
+.chip:focus-visible { outline: 2px solid var(--brand-2); outline-offset: 2px; }
+.chip[aria-expanded="true"] { background: var(--panel-3); }
+
+.chip[data-group="A"], .menu [data-swatch="A"] { --link-c: var(--brand-2); }
+.chip[data-group="B"], .menu [data-swatch="B"] { --link-c: #22b8cf; }
+.chip[data-group="C"], .menu [data-swatch="C"] { --link-c: var(--code-fn); }
+.chip[data-group]:not([data-group="off"]) { border-color: color-mix(in srgb, var(--link-c) 55%, transparent); }
+.chip[data-refused="1"] { border-style: dashed; }
+.warn { width: 6px; height: 6px; border-radius: 50%; background: var(--warn); }
+
+.menu {
+  position: absolute;
+  top: 29px;
+  left: 8px;
+  z-index: 40;
+  width: min(300px, calc(100% - 16px));
+  max-height: calc(100% - 37px);
+  overflow-y: auto;
+  padding: 10px 12px 12px;
+  background: var(--pop-bg, var(--panel-3));
+  -webkit-backdrop-filter: var(--pop-blur);
+  backdrop-filter: var(--pop-blur);
+  border: 1px solid var(--pop-edge, var(--line));
+  border-radius: var(--r-md);
+  box-shadow: var(--pop-shadow), var(--pop-sheen);
+  color: var(--text);
+  font: 500 12px/1.45 var(--font-ui);
+  cursor: default;
+  text-align: left;
+}
+.head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+.head strong { font-weight: 650; font-size: 12.5px; overflow-wrap: anywhere; }
+.close { flex: none; min-width: 28px; min-height: 28px; display: inline-grid; place-items: center; border: 1px solid transparent; border-radius: var(--r); background: transparent; color: var(--text-2); cursor: pointer; }
+.close svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+.close:hover { color: var(--text); border-color: var(--line); }
+
+.set { margin: 0 0 10px; padding: 0; border: 0; min-width: 0; }
+.set legend { padding: 0; margin-bottom: 6px; color: var(--text-2); font-size: 11px; font-weight: 600; letter-spacing: .02em; }
+.groups { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.groups button {
+  --link-c: var(--text-2);
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 6px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: transparent;
+  color: var(--text);
+  font: 650 12px/1 var(--font-ui);
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.groups button[aria-pressed="true"] { background: var(--panel-2); border-color: var(--link-c); }
+.groups button[data-swatch="off"][aria-pressed="true"] { border-color: var(--brand-2); }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--link-c); flex: none; }
+
+.share { display: flex; flex-direction: column; gap: 4px; }
+.share label { display: flex; align-items: center; gap: 8px; min-height: 30px; cursor: pointer; }
+.share input { width: 15px; height: 15px; margin: 0; accent-color: var(--brand-2); flex: none; }
+
+.groups button:focus-visible, .share input:focus-visible, .close:focus-visible { outline: 2px solid var(--brand-2); outline-offset: 2px; }
+
+.status { margin: 0 0 8px; padding: 7px 9px; border-radius: var(--r); background: var(--panel-2); color: var(--text); overflow-wrap: anywhere; }
+.status[data-tone="refused"] { color: var(--warn); }
+.status[data-tone="quiet"] { color: var(--text-2); }
+.foot { margin: 0; color: var(--text-2); font-size: 11px; line-height: 1.5; overflow-wrap: anywhere; }
+
+/* Touch: every control reaches 44px. The pane header is a fixed 28px row (globals.css), so the chip
+   keeps its visible 20px pill at the top and extends its HIT box 16px down over the chart's top edge
+   at the far right of the header — the price-axis corner, which carries no tap target of its own. */
+@media (pointer: coarse) {
+  .chip {
+    align-self: flex-start;
+    min-width: 44px;
+    height: 44px;
+    margin-bottom: -16px;
+    padding: 4px 8px 0;
+    align-items: flex-start;
+    border-color: transparent !important;
+    background: transparent;
+  }
+  .chip > .pill { height: 20px; }
+  .groups button, .share label, .close { min-height: 44px; }
+  .close { min-width: 44px; }
+}
+.pill { display: contents; }
+@media (pointer: coarse) {
+  .chip > .pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    min-width: 30px;
+    padding: 0 6px;
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    background: var(--panel-2);
+  }
+  .chip[data-group]:not([data-group="off"]) > .pill { border-color: color-mix(in srgb, var(--link-c) 55%, transparent); }
+  .chip[data-refused="1"] > .pill { border-style: dashed; }
+  .chip[aria-expanded="true"] { background: transparent; }
+  .chip[aria-expanded="true"] > .pill { background: var(--panel-3); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .menu { animation: clIn .12s ease; }
+}
+@keyframes clIn { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: none; } }

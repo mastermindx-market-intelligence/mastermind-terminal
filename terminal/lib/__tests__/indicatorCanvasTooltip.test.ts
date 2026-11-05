@@ -273,6 +273,97 @@ describe("indicator-canvas prim tooltips — the layer stays non-hit-testable", 
     expect(shown(wrap)).toBe(true);
   });
 
+  it("coalesces tooltip positioning to one layout read per frame while keeping content immediate", () => {
+    const { wrap, svg } = mount();
+    renderPrims(svg, bundle(), mapper());
+    stubHost(wrap, svg);
+    const [first] = stubTips(wrap, { "t-buy": { x: 100, y: 100, w: 14, h: 14 } });
+
+    // First appearance stays synchronous so a newly opened tooltip never flashes at the wrapper
+    // origin for one frame. The hot path begins once the node is already visible and merely follows
+    // a high-Hz cursor.
+    send(first, "pointermove", { clientX: 107, clientY: 107 });
+    expect(shown(wrap)).toBe(true);
+
+    const frames: FrameRequestCallback[] = [];
+    vi.stubGlobal("requestAnimationFrame", vi.fn((cb: FrameRequestCallback) => {
+      frames.push(cb);
+      return frames.length;
+    }));
+
+    const hostRect = wrap.getBoundingClientRect.bind(wrap);
+    let hostReads = 0;
+    wrap.getBoundingClientRect = () => {
+      hostReads++;
+      return hostRect();
+    };
+
+    try {
+      const points = Array.from({ length: 12 }, (_, i) => ({
+        x: 104 + (i % 8),
+        y: 104 + ((i * 3) % 8),
+      }));
+      for (const p of points) send(first, "pointermove", { clientX: p.x, clientY: p.y });
+
+      expect(shown(wrap), "tooltip content/visibility should not wait for the next paint").toBe(true);
+      expect(tipOf(wrap)!.textContent).toContain("BUY signal");
+      expect(frames, "a burst should schedule one tooltip-position paint").toHaveLength(1);
+      expect(hostReads, "positioning should not force wrapper layout before the frame").toBe(0);
+
+      frames[0](16);
+      expect(hostReads, "the whole burst should cost one wrapper geometry read").toBe(1);
+
+      const last = points[points.length - 1];
+      expect(tipOf(wrap)!.style.left).toBe(`${last.x + 12}px`);
+      expect(tipOf(wrap)!.style.top).toBe(`${last.y + 14}px`);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("cancels queued cursor-follow positioning when hover leaves before paint", () => {
+    const { wrap, svg } = mount();
+    renderPrims(svg, bundle(), mapper());
+    stubHost(wrap, svg);
+    const [first] = stubTips(wrap, { "t-buy": { x: 100, y: 100, w: 14, h: 14 } });
+
+    send(first, "pointermove", { clientX: 107, clientY: 107 });
+    expect(shown(wrap)).toBe(true);
+
+    const frames: FrameRequestCallback[] = [];
+    const cancelled: number[] = [];
+    vi.stubGlobal("requestAnimationFrame", vi.fn((cb: FrameRequestCallback) => {
+      frames.push(cb);
+      return frames.length;
+    }));
+    vi.stubGlobal("cancelAnimationFrame", vi.fn((id: number) => cancelled.push(id)));
+
+    const hostRect = wrap.getBoundingClientRect.bind(wrap);
+    let hostReads = 0;
+    wrap.getBoundingClientRect = () => {
+      hostReads++;
+      return hostRect();
+    };
+
+    try {
+      send(first, "pointermove", { clientX: 108, clientY: 108 });
+      expect(frames).toHaveLength(1);
+      send(first, "pointermove", { clientX: 500, clientY: 380 });
+
+      expect(shown(wrap)).toBe(false);
+      expect(cancelled).toEqual([1]);
+      expect(hostReads).toBe(0);
+
+      // A browser may still deliver a callback already dequeued for execution. The callback itself
+      // must be harmless after hide() cleared the pending sample.
+      frames[0](16);
+      expect(hostReads).toBe(0);
+      expect(shown(wrap)).toBe(false);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
   // ── 3. THE CACHE IS PER FRAME ──────────────────────────────────────────────────────────────
   it("drops the measured boxes on every render, so a second suite's prims are hoverable too", () => {
     // Deliberately NOT written as "clear the layer, repaint, hover the old spot": that scenario is

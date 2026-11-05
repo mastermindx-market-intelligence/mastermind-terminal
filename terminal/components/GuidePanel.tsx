@@ -13,6 +13,7 @@ import GuideVisual from "@/components/guides/GuideVisual";
 import { parseGuideDocument, type GuideSectionKind, type ParsedGuideDocument } from "@/lib/guides/document";
 import { loadGuide } from "@/lib/guides/registry";
 import { useLang, useT } from "@/lib/i18n";
+import { pick } from "@/lib/finFormat";
 import { planTierLabel } from "@/lib/plainLabels";
 import { SUITE_ALERT_EVENTS } from "@/lib/suiteAlerts";
 import { ACS_UPGRADE_URL } from "@/components/settings/types";
@@ -139,7 +140,7 @@ function GuideSettings({ entry, zh }: { entry: SuiteModuleCatalogEntry; zh: bool
   return (
     <div className="gp-settings-schema">
       <p className="gp-schema-note">
-        {zh ? "这里列出图表“设置”中实际可调的选项。" : "These are the controls you can change in chart Settings."}
+        {pick(zh, "These are the controls you can change in chart Settings.", "这里列出图表“设置”中实际可调的选项。")}
       </p>
       <div className="gp-settings-grid" aria-label={t("gpSchemaAria")}>
         {entry.module.fields.map((field) => {
@@ -658,7 +659,7 @@ export default function GuidePanel({
             <div className="gp-toc-note">
               <span aria-hidden="true">M</span>
               <p>
-                {zh ? "这里的设置与图表中的实际控件一致。" : "Settings here match the controls on your chart."}
+                {pick(zh, "Settings here match the controls on your chart.", "这里的设置与图表中的实际控件一致。")}
               </p>
             </div>
           </aside>

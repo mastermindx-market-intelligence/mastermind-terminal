@@ -1,14 +1,16 @@
 import { NextResponse } from "next/server";
 import { rateLimit, tooMany } from "@/lib/rateLimit";
-import { hasLiveOptions } from "@/lib/entitlement";
+import { getLiveOptionsAccess } from "@/lib/entitlement";
 // Shared server-side data path (fixture / backend→R2 / server-side flowScore).
 // The proprietary flow_score_v1 model stays server-only inside flowSource — see SECURITY.md.
 import {
   isValidF,
   fixtureFor,
   attachFlowScores,
-  tryFetchUpstream,
+  tryFetchUpstreamResult,
 } from "@/lib/flowSource";
+import { fetchOptionsAlphaCandidatePair } from "@/lib/optionsAlphaCandidatePair";
+import { isGexFamilyFeed, isUnadmittedGexFamilyArtifact } from "@/lib/ndxFamilyAdmission";
 
 // Bare-minimum in-memory cache so concurrent renders share one fetch.
 type CacheEntry = { data: Record<string, unknown>; ts: number };
@@ -17,7 +19,38 @@ const TTL_MS = 30_000;
 
 // Inflight dedup: a single background revalidation promise per cache key.
 // Without this, N concurrent stale requests each fire a separate upstream fetch.
-const INFLIGHT: Record<string, Promise<Record<string, unknown> | null>> = {};
+// Preserve the classified refusal on this one existing in-flight owner. Null
+// from tryFetchUpstream() previously hid "unadmitted family" behind an outage,
+// allowing SWR to replay a stale NDX body indefinitely.
+type Revalidation = Awaited<ReturnType<typeof tryFetchUpstreamResult>>;
+const INFLIGHT: Record<string, Promise<Revalidation> | undefined> = {};
+
+function revalidateFlow(f: string): Promise<Revalidation> {
+  if (INFLIGHT[f]) return INFLIGHT[f];
+  const request: Promise<Revalidation> = tryFetchUpstreamResult(f).then(
+    (outcome): Revalidation => {
+      if (outcome.status === "data" && !isUnadmittedGexFamilyArtifact(f, outcome.data)) {
+        attachFlowScores(f, outcome.data);
+        CACHE[f] = { data: outcome.data, ts: Date.now() };
+        return outcome;
+      }
+      // An inadmissible family is neither a transient outage nor an ordinary
+      // absent object: evict the prior single-root book and refuse stale replay.
+      if ((outcome.status === "unavailable" && outcome.refusal === "unadmitted_gex_family") ||
+          (outcome.status === "data" && isUnadmittedGexFamilyArtifact(f, outcome.data))) {
+        delete CACHE[f];
+        return { status: "unavailable", refusal: "unadmitted_gex_family" };
+      }
+      // Ordinary transport outages preserve the original SWR fallback semantics.
+      return outcome;
+    },
+    (): Revalidation => ({ status: "unavailable" }),
+  ).finally(() => {
+    if (INFLIGHT[f] === request) delete INFLIGHT[f];
+  });
+  INFLIGHT[f] = request;
+  return request;
+}
 
 export async function GET(req: Request): Promise<Response> {
   const rl = rateLimit(req, { name: "flow" });
@@ -26,11 +59,15 @@ export async function GET(req: Request): Promise<Response> {
   // entitlement authority: the `terminal_live_options` feature from /api/me
   // (config/plans.yml — essential + pro, incl. trial), NOT profiles.is_pro (a UI
   // hint that can drift; see AGENTS.md). Dev fixture mode is exempt.
-  if (process.env.FLOW_FIXTURE !== "1" && !(await hasLiveOptions())) {
-    return NextResponse.json(
-      { error: "pro_required" },
-      { status: 403, headers: { "Cache-Control": "no-store" } }
-    );
+  if (process.env.FLOW_FIXTURE !== "1") {
+    const access = await getLiveOptionsAccess();
+    if (access !== "allowed") {
+      return NextResponse.json(
+        { error: access === "unavailable" ? "entitlement_unavailable" : "pro_required" },
+        { status: access === "unavailable" ? 503 : 403,
+          headers: { "Cache-Control": "no-store", ...(access === "unavailable" ? { "Retry-After": "5" } : {}) } },
+      );
+    }
   }
   const url = new URL(req.url);
   const f = url.searchParams.get("f") ?? "feed";
@@ -46,8 +83,21 @@ export async function GET(req: Request): Promise<Response> {
 
   // Dev fixture mode: return static fixture data without touching any upstream.
   if (process.env.FLOW_FIXTURE === "1") {
+    // Candidate evidence is only meaningful as its verified R2 payload/receipt pair.
+    // There is deliberately no synthetic one-object fallback.
+    if (f === "options_alpha_candidate_feed") {
+      return NextResponse.json(
+        { error: "feed unavailable" },
+        { status: 503, headers: { "Cache-Control": "private, no-store" } }
+      );
+    }
     try {
       const data = await fixtureFor(f);
+      if (isUnadmittedGexFamilyArtifact(f, data)) {
+        return NextResponse.json({ error: "feed unavailable" }, {
+          status: 503, headers: { "Cache-Control": "no-store" },
+        });
+      }
       attachFlowScores(f, data);
       return NextResponse.json(data, {
         headers: { "Cache-Control": "no-store", "X-Flow-Source": "fixture" },
@@ -60,16 +110,75 @@ export async function GET(req: Request): Promise<Response> {
     }
   }
 
+  // The candidate feed is a coupled, raw-byte-attested R2 pair. It is always fetched and
+  // verified for this request: never enter the generic SWR cache or its stale background path.
+  if (f === "options_alpha_candidate_feed") {
+    try {
+      return NextResponse.json(await fetchOptionsAlphaCandidatePair(), {
+        headers: { "Cache-Control": "no-store", "X-Flow-Source": "options-alpha-r2-pair" },
+      });
+    } catch {
+      // Do not reveal which contract check failed to an unauthenticated edge/cache layer.
+      return NextResponse.json({ error: "feed unavailable" }, {
+        status: 503, headers: { "Cache-Control": "private, no-store" },
+      });
+    }
+  }
+
+  // Only a user-explicit Leaders check can bypass the server's 30-second
+  // display cache. Keep entitlement/rate limits and the existing in-flight
+  // owner intact; other flow families preserve their established TTL.
+  if (f === "leaders" && url.searchParams.get("refresh") === "1") {
+    const previous = CACHE[f];
+    const refreshed = await revalidateFlow(f);
+    if (refreshed.status === "data") {
+      return NextResponse.json(refreshed.data, { headers: { "Cache-Control": "no-store" } });
+    }
+    if (previous) {
+      return NextResponse.json({ ...previous.data, stale: true }, {
+        headers: { "Cache-Control": "no-store" },
+      });
+    }
+    return NextResponse.json({ error: "feed unavailable" }, {
+      status: 503, headers: { "Cache-Control": "no-store" },
+    });
+  }
+
   const now = Date.now();
   const cached = CACHE[f];
+  // Defense in depth across hot reloads or a pre-existing cached source entry:
+  // the source-family candidate is never a stale-but-displayable NDX book.
+  if (cached && isUnadmittedGexFamilyArtifact(f, cached.data)) {
+    delete CACHE[f];
+    return NextResponse.json({ error: "feed unavailable" }, {
+      status: 503, headers: { "Cache-Control": "no-store" },
+    });
+  }
 
   if (!cached) {
-    const data = await tryFetchUpstream(f);
-    if (!data) {
+    const outcome = await tryFetchUpstreamResult(f);
+    if (outcome.status === "absent") {
+      // A proven absence (the store of record answered 404), not an outage: clients
+      // render "not published" for a 404 and a load error for a 503. Never cached here,
+      // and no-store matters doubly — EdgeOne caches /api/* 404s without the auth cookie.
+      return NextResponse.json(
+        { error: "not published" },
+        { status: 404, headers: { "Cache-Control": "no-store" } }
+      );
+    }
+    if (outcome.status === "unavailable") {
       return NextResponse.json(
         { error: "feed unavailable" },
         { status: 503, headers: { "Cache-Control": "no-store" } }
       );
+    }
+    const data = outcome.data;
+    // The HTTP boundary refuses unqualified families even if a later upstream
+    // adapter erroneously returns them as a data outcome.
+    if (isUnadmittedGexFamilyArtifact(f, data)) {
+      return NextResponse.json({ error: "feed unavailable" }, {
+        status: 503, headers: { "Cache-Control": "no-store" },
+      });
     }
     // Score once here (before caching) so cache hits reuse the scored payload.
     attachFlowScores(f, data);
@@ -83,22 +192,23 @@ export async function GET(req: Request): Promise<Response> {
   }
 
   const stale = { ...cached.data, stale: true };
-  // Inflight dedup: only start one background revalidation per cache key.
-  if (!INFLIGHT[f]) {
-    INFLIGHT[f] = tryFetchUpstream(f).then(
-      (data) => {
-        delete INFLIGHT[f];
-        if (data) {
-          attachFlowScores(f, data);
-          CACHE[f] = { data, ts: Date.now() };
-        }
-        return data;
-      },
-      () => {
-        delete INFLIGHT[f];
-        return null;
-      }
-    );
+  const refresh = revalidateFlow(f);
+  // GEX reads cannot return a previously measured live book after the upstream
+  // explicitly rejects it as an unadmitted settlement-root family. Await the
+  // SAME coalesced refresh before answering; ordinary outages still serve stale.
+  // Leaders retains its historical wait-for-refresh behavior.
+  if (f === "leaders" || isGexFamilyFeed(f)) {
+    const refreshed = await refresh;
+    if (isGexFamilyFeed(f) && refreshed.status === "unavailable" &&
+        refreshed.refusal === "unadmitted_gex_family") {
+      delete CACHE[f];
+      return NextResponse.json({ error: "feed unavailable" }, {
+        status: 503, headers: { "Cache-Control": "no-store" },
+      });
+    }
+    return NextResponse.json(refreshed.status === "data" ? refreshed.data : stale, {
+      headers: { "Cache-Control": "no-store" },
+    });
   }
   return NextResponse.json(stale, { headers: { "Cache-Control": "no-store" } });
 }

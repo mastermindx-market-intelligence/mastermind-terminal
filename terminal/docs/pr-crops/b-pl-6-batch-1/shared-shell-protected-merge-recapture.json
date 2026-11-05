@@ -1,0 +1,30 @@
+{
+  "schema": "shared-shell.protected-merge-recapture.v1",
+  "source": {
+    "sourceHead": "434572f3602db4ac525fff6dadee5302a8a9f54b",
+    "mergedProtectedMaster": "73a5305ff70875b5af0258f985e36cc1ace3b8ac",
+    "acceptedSharedShellHead": "54650291afb57c0ca3fdfe28a173fc19fab97141",
+    "capturedAt": "2026-10-22T10:34:27.156660+00:00",
+    "command": "CAPTURE_ONLY=ChartChrome TERMINAL_CROP_PORT=3214 TERMINAL_CAPTURE_FAILURE_DIR=/tmp/ss-1124-merge-capture-failures node e2e/tools/capture_pl6_batch1.cjs",
+    "result": "4 actual scoped captures passed; no retry/skip/failure",
+    "refreshedFiles": [
+      "ChartChrome-1440.png",
+      "ChartChrome-1440-zh.png",
+      "ChartChrome-390.png",
+      "ChartChrome-390-zh.png"
+    ],
+    "logSha256": "571101c53e7de95bb8a9fab45ffa5b2e0d76c6cd3c479ca78eaedc626f94e1b5",
+    "receipt": "shared-shell-protected-merge-recapture.json",
+    "scope": "Local incumbent-profile deterministic fixtures only. Only ChartPanel changed among accepted layout locks. Unchanged Search/Analysis and historical full functional reports retain their prior source identities; no authenticated/public acceptance claim."
+  },
+  "sourceLocks": {
+    "terminal/components/ChartPanel.tsx": "8a79d940f0e39c1f3b75477c3fa117226025399f272a37fa7ef60dba19bcd39b"
+  },
+  "crops": {
+    "ChartChrome-1440.png": "accaa50d0bfd7812023cebf930f5354b8a41655c9b524bcd443183a8e12e8e78",
+    "ChartChrome-1440-zh.png": "eb2207f84e05e7fb101bf49575f9726a305a3a8c9202e2704cb027c1e20b48f0",
+    "ChartChrome-390.png": "47d9bfce5e7296df1115ea50145fc05f96523d1ab2a292224b2ffbc331ae8bc2",
+    "ChartChrome-390-zh.png": "f61dc0d77e59f292d3fc9aca0be5aa9f7dedf3e5931f6461aa723df5f067de68"
+  },
+  "unchangedHistoricalReports": "Existing browser-report.json and separate options-r1-stack-merge-browser-report.json retain exact predecessor bytes; final six-case report is separate."
+}

@@ -1,0 +1,12 @@
+{
+ "asof": "2026-07-14",
+ "profile": {
+  "industry": "Banks - Diversified",
+  "sector": "Financial Services"
+ },
+ "quote_currency": "CAD",
+ "src": {
+  "statements": "yfinance"
+ },
+ "ticker": "RY.TO"
+}

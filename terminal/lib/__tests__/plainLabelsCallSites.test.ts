@@ -119,7 +119,11 @@ describe("plain-language call sites — batch 2", () => {
     expect(src).not.toContain('title="Skip animations"');
     expect(src).not.toContain('title="Mastermind AI"');
     expect(src).not.toContain(" touches · ");
-    expect(src).not.toContain('className="fit"');
+    // Current master replaced the old raw numeric chip with a localized, applied-only receipt.
+    // Preserve that newer behavior while rejecting the old unlocalized interpolation.
+    expect(src).toContain("fitBadgeText(r.fit, t)");
+    expect(src).toContain("r.ok && r.fit");
+    expect(src).toContain("outcomeLabel(stepOutcome(r), lang)");
     expect(src).toContain('title={railOpen ? t("cmxHideSteps") : t("cmxToggleSteps")}');
     const toggle = lineContaining(src, "cmxHideSteps", "hide-steps");
     expect(toggle).toMatch(/\bt\(/);

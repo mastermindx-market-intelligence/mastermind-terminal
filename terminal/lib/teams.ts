@@ -647,6 +647,96 @@ export type InviteCode =
   | "not_admin" | "team_not_found" | "duplicate_invite"
   | "no_email_delivery" | "unavailable" | "read_failed" | "failed";
 
+// ── MO-PAID-081, seat ruling W9T_F12_17 (2026-09-13): honest link-only ─────────────────────
+// The Terminal has no mailer and this packet provisions no mail provider, so an invitation is
+// never emailed. What a team owner gets instead is a link they copy and send themselves, plus a
+// sentence that says plainly that we do not send the mail — and that sentence carries the date
+// the absence was checked, so a stale promise cannot read as current. When a provider is ever
+// provisioned, move this date and retire the sentence in the same change; never leave the old
+// date standing over a claim that stopped being true.
+export const INVITE_EMAIL_DELIVERY_CHECKED_AT = "2026-09-13";
+
+/** Where an invitation link lands: the public accept page (`app/invite/page.tsx`). */
+export const INVITE_ACCEPT_PATH = "/invite";
+
+const MONTHS_EN = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+
+/**
+ * "2026-09-13" -> "13 September 2026" (EN) / "2026年9月13日" (ZH).
+ *
+ * Hand-formatted on purpose. This one sentence is produced twice — by the API route under Node's
+ * ICU and by the browser under its own — and `toLocaleDateString` is free to disagree between
+ * them, which would be a hydration mismatch and two different dates on one screen. Unreadable
+ * input falls back to the raw date string, never "Invalid Date".
+ */
+export function inviteCheckedOn(iso: string, lang: "en" | "zh"): string {
+  const value = String(iso || "").trim();
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);
+  if (!m) return value;
+  const month = Number(m[2]);
+  const day = Number(m[3]);
+  if (month < 1 || month > 12 || day < 1 || day > 31) return value;
+  return lang === "zh" ? `${m[1]}年${month}月${day}日` : `${day} ${MONTHS_EN[month - 1]} ${m[1]}`;
+}
+
+const NO_EMAIL_HEAD: [string, string] = [
+  "We do not send invitation emails: this server has no email delivery set up.",
+  "我们不会发送邀请邮件：此服务器尚未设置邮件发送功能。",
+];
+const NO_EMAIL_CHECKED: [string, string] = ["Last checked on {date}.", "最近核查于 {date}。"];
+const NO_EMAIL_INSTRUCT: [string, string] = [
+  "Copy the invitation link and send it to them yourself — it works for 14 days and can be used once.",
+  "请复制邀请链接自行发送给对方——该链接 14 天内有效，且只能使用一次。",
+];
+
+/** The dated honesty line by itself — what the Team section prints above the invitation form. */
+export function noEmailDeliveryLine(
+  lang: "en" | "zh",
+  checkedAt: string = INVITE_EMAIL_DELIVERY_CHECKED_AT,
+): string {
+  const i = lang === "zh" ? 1 : 0;
+  const checked = NO_EMAIL_CHECKED[i].replace("{date}", inviteCheckedOn(checkedAt, lang));
+  // Two English sentences take a space between them; two Chinese ones do not. A Latin space after
+  // a CJK full stop reads as a typo, which is exactly what the crop harness caught here.
+  return i === 1 ? `${NO_EMAIL_HEAD[1]}${checked}` : `${NO_EMAIL_HEAD[0]} ${checked}`;
+}
+
+/** The same line plus what to do instead — the route's `no_email_delivery` answer. */
+export function noEmailDeliveryPair(
+  checkedAt: string = INVITE_EMAIL_DELIVERY_CHECKED_AT,
+): [string, string] {
+  return [
+    `${noEmailDeliveryLine("en", checkedAt)} ${NO_EMAIL_INSTRUCT[0]}`,
+    `${noEmailDeliveryLine("zh", checkedAt)}${NO_EMAIL_INSTRUCT[1]}`,
+  ];
+}
+
+/**
+ * The delivery block every `/api/teams/invitations` answer carries. `sent: false` is not a
+ * failure state to recover from — it is the truth about this server, so it is stated on the
+ * read path too, where nobody asked for a link and an invitation is still sitting unsent.
+ */
+export function inviteDeliveryBlock(checkedAt: string = INVITE_EMAIL_DELIVERY_CHECKED_AT) {
+  const [message, messageZh] = noEmailDeliveryPair(checkedAt);
+  return { sent: false, checkedAt, message, messageZh };
+}
+
+/** Absolute invitation link for a public origin. The raw token appears in the link only. */
+export function buildInviteUrl(origin: string, token: string): string {
+  const base = String(origin || "").replace(/\/+$/, "");
+  return `${base}${INVITE_ACCEPT_PATH}?token=${encodeURIComponent(token)}`;
+}
+
+/** The shape `newInviteToken()` mints: 64 hex characters. Anything else never reaches the database. */
+const INVITE_TOKEN_RE = /^[0-9a-f]{64}$/;
+
+export function isInviteToken(value: unknown): value is string {
+  return typeof value === "string" && INVITE_TOKEN_RE.test(value);
+}
+
 // [en, zh] tuples -- same shape as lib/i18n.tsx:18 `LEX: Record<string, [string, string]>`.
 // UI-facing labels live in LEX (packet B-F12-8). Route messages stay here.
 // Plain-word law: complete sentences, no role slugs, no table/function names, no status codes,
@@ -662,8 +752,13 @@ export const INVITE_MESSAGES: Record<InviteCode, [string, string]> = {
   invalid_role: ["Choose a valid role for this person.", "请为此人选择一个有效角色。"],
   not_admin: ["Only a team owner or an administrator can invite people.", "只有团队所有者或管理员才能邀请他人。"],
   team_not_found: ["We could not find that team.", "找不到该团队。"],
-  duplicate_invite: ["There is already a pending invitation for this email address.", "该邮箱地址已有一份待处理的邀请。"],
-  no_email_delivery: ["We cannot send invitation emails yet. Copy the invitation link below and send it to them yourself — it works for 14 days.", "我们暂时无法发送邀请邮件。请复制下方邀请链接自行发送给对方——该链接 14 天内有效。"],
+  duplicate_invite: [
+    "There is already a pending invitation for this email address. Its link cannot be shown or regenerated; wait for it to expire or invite a different address.",
+    "该邮箱地址已有一份待处理的邀请。其链接无法再次显示或重新生成；请等待其过期，或邀请另一个地址。",
+  ],
+  // Dated on purpose (MO-PAID-081): the reader learns both that no mail is sent and when that
+  // was last checked, so the line cannot outlive the fact it states.
+  no_email_delivery: noEmailDeliveryPair(),
   unavailable: ["Team accounts are not set up on this server yet, so we cannot answer. Nothing was changed.", "此服务器尚未启用团队账户，因此我们无法作答。未更改任何内容。"],
   // Audit heal of t#514 (H2): absence is a FACT and is never collapsed into a failure. A read that
   // broke for any other reason says so, instead of telling the reader the server has no team
@@ -772,6 +867,58 @@ export const SETTING_MESSAGES: Record<"saved" | "not_admin" | "invalid_key" | "i
   invalid_value: ["That setting value is not valid.", "该设置值无效。"],
   unavailable: ["Team accounts are not set up on this server yet, so we cannot answer. Nothing was changed.", "此服务器尚未启用团队账户，因此我们无法作答。未更改任何内容。"],
 };
+
+// --- Packet MO-B F12-13: closed workspace-settings contract (R1). Keys are co-located with
+// SETTING_MESSAGES so the catalogues that back the same surface sit in one place. ---
+export type WorkspaceSettingKey = "default_chart_theme" | "share_layouts_by_default";
+
+export const WORKSPACE_SETTING_KEYS = {
+  default_chart_theme: {
+    kind: "enum" as const,
+    values: ["green_up", "red_up"] as const,
+    default: "green_up",
+  },
+  share_layouts_by_default: {
+    kind: "boolean" as const,
+    default: false,
+  },
+} as const;
+
+export type NormalizeWorkspaceSettingResult =
+  | { ok: true; key: WorkspaceSettingKey; value: string | boolean }
+  | { ok: false; code: "invalid_key" | "invalid_value" };
+
+/**
+ * Closed-validate a (key, value) pair against WORKSPACE_SETTING_KEYS. Any key outside the constant
+ * is `invalid_key`; any value outside its closed shape is `invalid_value`. Never persists, never
+ * coerces — the route is the only caller and it stops on `{ ok: false }`.
+ */
+export function normalizeWorkspaceSetting(key: unknown, value: unknown): NormalizeWorkspaceSettingResult {
+  if (key !== "default_chart_theme" && key !== "share_layouts_by_default") {
+    return { ok: false, code: "invalid_key" };
+  }
+  if (key === "default_chart_theme") {
+    if (value !== "green_up" && value !== "red_up") {
+      return { ok: false, code: "invalid_value" };
+    }
+    return { ok: true, key, value };
+  }
+  // share_layouts_by_default: must be a JSON boolean. A string "true"/"false" is rejected — the
+  // spec is explicit that a non-boolean shape is `invalid_value` (R7 test "string 'true' for the
+  // boolean -> 400 invalid_value").
+  if (typeof value !== "boolean") {
+    return { ok: false, code: "invalid_value" };
+  }
+  return { ok: true, key, value };
+}
+
+/** The closed defaults in key order (R1). */
+export function workspaceSettingDefaults(): { key: WorkspaceSettingKey; value: string | boolean }[] {
+  return [
+    { key: "default_chart_theme", value: WORKSPACE_SETTING_KEYS.default_chart_theme.default },
+    { key: "share_layouts_by_default", value: WORKSPACE_SETTING_KEYS.share_layouts_by_default.default },
+  ];
+}
 
 const INVITE_STATUS: Record<InviteCode, number> = {
   not_signed_in: 401, invalid_token: 404, already_used: 409, expired: 410,
@@ -1001,3 +1148,47 @@ export async function writeSetting(
   if (!setting) return { ok: false, reason: "failed", error: "write returned no row", status: 500 };
   return { ok: true, value: setting };
 }
+
+// --- Packet MO-B F12-13: closed workspace-settings contract (R1) ---
+// The Terminal chart only ever expresses the green-up/red-down vs red-up/green-down choice
+// (terminal/components/ChartFrameBar.tsx ChartSettings.candleUpColor / candleDownColor), and a
+// boolean "share new layouts by default" choice. No other workspace setting has an honest
+// consumer. Both values live under the workspace scope (terminal/lib/teams.ts WORKSPACE_SETTINGS_TABLE)
+// so personal settings on the same key never collide with them.
+
+// UI-facing copy for the team-settings block (R3). All [EN, ZH] tuples so the section can index
+// by lang like SETTING_MESSAGES / rosterFailPair. None of these strings carry a slug, snake_case,
+// status code, table/function name, or the words falsifier/refuted/证伪.
+export const WORKSPACE_SETTING_COPY = {
+  heading: ["Team settings", "团队设置"],
+  caption: {
+    // Plain-word chart-colour labels (R1). The tokens "green_up" / "red_up" never render.
+    default_chart_theme: ["Chart colours", "图表颜色"],
+    share_layouts_by_default: [
+      "Share new chart layouts with the team automatically",
+      "新建的图表布局自动与团队共享",
+    ],
+  },
+  explainer: {
+    share_layouts_by_default: [
+      "Owners and administrators can still change sharing for each layout in Layouts.",
+      "所有者和管理员仍可在“布局”中单独更改每个布局的共享设置。",
+    ],
+  },
+  options: {
+    chart_theme: [
+      ["Green means up, red means down", "绿涨红跌"],
+      ["Red means up, green means down", "红涨绿跌"],
+    ],
+  },
+  // The member-only read-only value sentences for the boolean share setting. Plain words, never
+  // a token — same catalogue law as `caption`. Spec MAJOR: previously inlined in SectionTeam.tsx.
+  shareValue: {
+    on: ["Sharing new layouts is on.", "已开启自动共享新建布局。"],
+    off: ["Sharing new layouts is off.", "已关闭自动共享新建布局。"],
+  },
+  memberReadOnly: [
+    "Only owners and administrators can change these.",
+    "只有团队所有者和管理员才能更改这些设置。",
+  ],
+} as const;

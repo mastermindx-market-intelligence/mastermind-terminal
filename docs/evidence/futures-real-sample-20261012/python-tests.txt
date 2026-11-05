@@ -1,0 +1,29 @@
+test_acquisition_ends_at_complete_event_and_reuses_verified_prefix (test_futures_csv.CsvBoundaryTest.test_acquisition_ends_at_complete_event_and_reuses_verified_prefix) ... ok
+test_corrupt_saved_prefix_is_not_refetched_or_called_verified (test_futures_csv.CsvBoundaryTest.test_corrupt_saved_prefix_is_not_refetched_or_called_verified) ... ok
+test_fixed_decimal_schema_is_required (test_futures_csv.CsvBoundaryTest.test_fixed_decimal_schema_is_required) ... ok
+test_nanosecond_and_price_are_lossless (test_futures_csv.CsvBoundaryTest.test_nanosecond_and_price_are_lossless) ... ok
+test_no_arbitrary_url_or_unbounded_request (test_futures_csv.CsvBoundaryTest.test_no_arbitrary_url_or_unbounded_request) ... ok
+test_normalizes_order_ids_without_collision (test_futures_csv.CsvBoundaryTest.test_normalizes_order_ids_without_collision) ... ok
+test_partial_source_cannot_publish_a_complete_receipt (test_futures_csv.CsvBoundaryTest.test_partial_source_cannot_publish_a_complete_receipt) ... ok
+test_reference_book_fields_keep_fixed_point_size_and_count (test_futures_csv.CsvBoundaryTest.test_reference_book_fields_keep_fixed_point_size_and_count) ... ok
+test_timestamp_no_float_or_silent_timezone_coercion (test_futures_csv.CsvBoundaryTest.test_timestamp_no_float_or_silent_timezone_coercion) ... ok
+test_atomic_no_replace_if_a_writer_creates_the_output_during_decode (test_futures_dbn.DbnBoundaryTest.test_atomic_no_replace_if_a_writer_creates_the_output_during_decode) ... ok
+test_compressed_and_concatenated_frames_decode_equivalently (test_futures_dbn.DbnBoundaryTest.test_compressed_and_concatenated_frames_decode_equivalently) ... ok
+test_digest_mismatch_does_not_create_output (test_futures_dbn.DbnBoundaryTest.test_digest_mismatch_does_not_create_output) ... ok
+test_empty_or_non_dbn_source_fails_without_output (test_futures_dbn.DbnBoundaryTest.test_empty_or_non_dbn_source_fails_without_output) ... ok
+test_existing_output_is_never_overwritten (test_futures_dbn.DbnBoundaryTest.test_existing_output_is_never_overwritten) ... ok
+test_non_cme_definition_is_refused_not_mislabeled_futures (test_futures_dbn.DbnBoundaryTest.test_non_cme_definition_is_refused_not_mislabeled_futures) ... ok
+test_official_compressed_status_keeps_venue_state_not_clock_inference (test_futures_dbn.DbnBoundaryTest.test_official_compressed_status_keeps_venue_state_not_clock_inference) ... ok
+test_partial_compressed_frame_is_not_published (test_futures_dbn.DbnBoundaryTest.test_partial_compressed_frame_is_not_published) ... ok
+test_partial_raw_record_is_not_published (test_futures_dbn.DbnBoundaryTest.test_partial_raw_record_is_not_published) ... ok
+test_record_limit_fails_instead_of_silently_truncating (test_futures_dbn.DbnBoundaryTest.test_record_limit_fails_instead_of_silently_truncating) ... ok
+test_source_changed_mid_decode_cannot_earn_a_receipt (test_futures_dbn.DbnBoundaryTest.test_source_changed_mid_decode_cannot_earn_a_receipt) ... ok
+test_synthetic_native_dbn_reaches_the_actual_node_book_and_trade_reducers (test_futures_dbn.DbnBoundaryTest.test_synthetic_native_dbn_reaches_the_actual_node_book_and_trade_reducers) ... ok
+test_synthetic_native_sdk_uint64_and_ns_survive_json (test_futures_dbn.DbnBoundaryTest.test_synthetic_native_sdk_uint64_and_ns_survive_json) ... ok
+test_upstream_cancellations_do_not_fabricate_a_starting_depth_book (test_futures_dbn.DbnBoundaryTest.test_upstream_cancellations_do_not_fabricate_a_starting_depth_book) ... ok
+test_upstream_v1_and_v3_keep_the_same_exact_mbo_records (test_futures_dbn.DbnBoundaryTest.test_upstream_v1_and_v3_keep_the_same_exact_mbo_records) ... ok
+
+----------------------------------------------------------------------
+Ran 24 tests in 0.214s
+
+OK
