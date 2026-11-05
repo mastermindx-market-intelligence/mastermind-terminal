@@ -393,19 +393,11 @@ jobs:
         with:
           path: ~/.cache/ms-playwright
           key: pw-${{ runner.os }}-${{ steps.pw.outputs.version }}
-      # `--with-deps` shells out to apt, and the runner's Ubuntu mirror stalls often enough to
-      # matter (see #438). Bound it, then fall back to a browser-only install.
-      - name: Install Playwright browsers (apt bounded, browser-only fallback)
-        if: steps.pwcache.outputs.cache-hit != 'true'
+      # The browser cache contains binaries, not the runner's system/font packages.
+      # Qualify the same Playwright-managed dependencies on both cache paths.
+      - name: Install Playwright browser and system dependencies (bounded)
         timeout-minutes: 12
-        run: |
-          timeout 480 npx playwright install --with-deps chromium \
-            || { echo "::warning::apt/--with-deps stalled or failed — installing the browser only"; \
-                 npx playwright install chromium; }
-      # A cache hit still needs the system libs check to be cheap and non-fatal.
-      - name: Ensure browser present on cache hit
-        if: steps.pwcache.outputs.cache-hit == 'true'
-        run: npx playwright install chromium
+        run: timeout 480 npx playwright install --with-deps chromium
       - name: Run responsive E2E shard with native attempt timing
         env:
           MMX_CI_ATTEMPT_REPORT_PATH: ci-attempt-reports/${{ matrix.shard }}/main.json
