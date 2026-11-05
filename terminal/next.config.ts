@@ -200,6 +200,15 @@ const nextConfig: NextConfig = {
   // sets on its dev server's env for every e2e project (the sole place any capture
   // script runs from), so local `npm run dev` keeps the indicator by default.
   devIndicators: process.env.TERMINAL_E2E_FIXTURE ? false : undefined,
+  // React dev Flight dependencies normally arrive over the debug WebSocket.
+  // F11 intentionally closes every socket before connect; disable only that
+  // optional dev transport in its provider-closed child so hydration can settle.
+  // Production, normal development, and other e2e/capture recipes retain Next's default.
+  experimental: {
+    reactDebugChannel: !(process.env.NODE_ENV === "development"
+      && process.env.TERMINAL_E2E_FIXTURE === "1"
+      && process.env.TERMINAL_F11_PROVIDER_CLOSED === "1"),
+  },
   // tsc --noEmit is clean as of 2026-07-11, so builds enforce types again — the
   // 2026-07-07 `typescript.ignoreBuildErrors` escape hatch (FinPage union nits)
   // is removed; CI (.github/workflows/ci.yml) also gates PRs on tsc + vitest.

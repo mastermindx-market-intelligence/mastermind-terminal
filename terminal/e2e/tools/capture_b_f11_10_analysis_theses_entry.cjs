@@ -69,6 +69,7 @@ function captureServerEnv(parent = process.env) {
     ANALYSIS_LOCAL_PREVIEW: "1",
     ADMIN_DEV: "1",
     TERMINAL_E2E_FIXTURE: "1",
+    TERMINAL_F11_PROVIDER_CLOSED: "1",
     TERMINAL_E2E_EMAIL: "responsive@example.com",
     TERMINAL_E2E_ENTITLEMENT: "unlimited",
     TERMINAL_REQUIRE_AUTH: "0",
@@ -286,10 +287,20 @@ async function main() {
   const child = startServer();
   const files = [];
   const entryObservations = [];
+  let captureProfile;
+
   try {
     await waitForServer(180_000);
+    const browserManifest = JSON.parse(readFileSync(join(require.resolve("playwright-core/package.json"), "..", "browsers.json"), "utf8"));
     const browser = await chromium.launch({ headless: true });
     try {
+      captureProfile = {
+      server: { command: "next dev --webpack", mode: "development", reactDebugChannel: false, providerClosedChild: true },
+      node: process.version, next: require("next/package.json").version,
+      playwright: require("@playwright/test/package.json").version,
+      browser: { version: browser.version(), revision: browserManifest.browsers.find(entry => entry.name === "chromium-headless-shell")?.revision,
+        launch: { headless: true }, serviceWorkers: "block", freshContextPerImage: true },
+      };
       for (const shot of SHOTS) {
         process.stdout.write(`capture ${shot.file} … `);
         const context = await browser.newContext({
@@ -330,7 +341,7 @@ async function main() {
             flightArray: Array.isArray(window.__next_f),
             flightConsumerInstalled: Array.isArray(window.__next_f) && window.__next_f.push !== Array.prototype.push,
           })).catch(() => ({ unavailable: true }));
-          const diagnostic = { file: shot.file, requestBoundary: { ...boundaryCounts }, pageErrorNames, consoleErrorKinds, bootstrapState };
+          const diagnostic = { captureProfile, file: shot.file, requestBoundary: { ...boundaryCounts }, pageErrorNames, consoleErrorKinds, bootstrapState };
           writeFailureArtifact(OUT, capturedAtHead, diagnostic, err);
           console.error("F11_CAPTURE_DIAGNOSTICS " + JSON.stringify(diagnostic));
           try {
@@ -351,9 +362,12 @@ async function main() {
   writeFileSync(join(OUT, "FIXTURE.json"), JSON.stringify({
     schema: "terminal.f11-source-component-fixture.v1",
     capturedAtHead,
+    captureProfile,
     fixtureSources: Object.fromEntries([
       "terminal/e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs",
       "terminal/e2e/tools/f11_provider_closed_policy.cjs",
+      "terminal/next.config.ts",
+      "terminal/package-lock.json",
       "terminal/app/(shell)/analysis/page.tsx",
       "terminal/app/(shell)/layout.tsx",
       "terminal/lib/supabase/middleware.ts",

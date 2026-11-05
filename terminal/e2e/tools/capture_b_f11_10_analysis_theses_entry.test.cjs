@@ -174,3 +174,23 @@ test("F11 source-component server explicitly selects supported webpack, without 
   assert.match(source,/waitForBusinessRequest\(\)/);
   assert.match(source,/maxRedirects: 0/);
 });
+
+function evaluateActualNextConfig(env) {
+  const ts=require("typescript"), vm=require("node:vm");
+  const source=fs.readFileSync(path.join(__dirname,"../../next.config.ts"),"utf8");
+  const compiled=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,esModuleInterop:true,target:ts.ScriptTarget.ES2020}}).outputText;
+  const exports={};
+  vm.runInNewContext(compiled,{exports,process:{env},__dirname:"/fixture",require: name => name === "node:fs" ? { readFileSync(){throw Object.assign(new Error("fixture"),{code:"ENOENT"});},readdirSync(){return [];} } : require(name)});
+  return exports.default;
+}
+test("actual Next config disables only F11 development debug transport; production and other capture defaults unchanged", () => {
+  const env={NODE_ENV:"development",TERMINAL_E2E_FIXTURE:"1",TERMINAL_F11_PROVIDER_CLOSED:"1"};
+  const f11=evaluateActualNextConfig(env);
+  assert.equal(f11.experimental.reactDebugChannel,false);
+  for (const other of [{NODE_ENV:"production",TERMINAL_E2E_FIXTURE:"1",TERMINAL_F11_PROVIDER_CLOSED:"1"},{NODE_ENV:"development"},{NODE_ENV:"development",TERMINAL_E2E_FIXTURE:"1"},{NODE_ENV:"development",TERMINAL_F11_PROVIDER_CLOSED:"1"},{NODE_ENV:"test",TERMINAL_E2E_FIXTURE:"1",TERMINAL_F11_PROVIDER_CLOSED:"1"}]) {
+    assert.equal(evaluateActualNextConfig(other).experimental.reactDebugChannel,true);
+  }
+  const ordinary=evaluateActualNextConfig({...env,TERMINAL_F11_PROVIDER_CLOSED:"0"});
+  assert.equal(JSON.stringify({...f11,experimental:undefined}),JSON.stringify({...ordinary,experimental:undefined}));
+  assert.equal(captureServerEnv({TERMINAL_F11_PROVIDER_CLOSED:"0"}).TERMINAL_F11_PROVIDER_CLOSED,"1");
+});
