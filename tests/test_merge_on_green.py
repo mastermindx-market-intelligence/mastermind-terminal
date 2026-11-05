@@ -729,6 +729,72 @@ def test_after_one_merge_the_next_stale_green_is_refreshed_not_merged():
     ]
 
 
+def test_older_behind_head_does_not_hide_a_later_ready_head():
+    api = FakeApi([pull(1, mergeable_state="behind"), pull(2)])
+    waits = []
+
+    result = sweep(api, wait=waits.append)
+
+    assert api.actions == [
+        ("merge", 2, "head-2"),
+        ("delete", "claude/pr-2"),
+        ("update", 1, "head-1"),
+        ("rerun", 9101),
+    ]
+    assert result == ["#2: merged and deleted claude/pr-2", "#1: " + REFRESHED.format(n=1)]
+    assert waits == []
+
+
+def test_ready_heads_keep_their_order_before_one_deferred_refresh():
+    class MovingBaseApi(FakeApi):
+        def merge(self, number, head_sha):
+            result = super().merge(number, head_sha)
+            for other in self.pulls.values():
+                if other["number"] != number:
+                    other["mergeable_state"] = "behind"
+            return result
+
+    api = MovingBaseApi([
+        pull(1, mergeable_state="behind"), pull(2), pull(3),
+        pull(4, mergeable_state="behind"),
+    ])
+
+    sweep(api, wait=lambda _: None)
+
+    assert [action[1] for action in api.actions if action[0] == "merge"] == [2]
+    assert [action[1] for action in api.actions if action[0] == "update"] == [1]
+
+
+@pytest.mark.parametrize("change", ["hold", "draft", "new_head", "conflict", "pending"])
+def test_deferred_refresh_rechecks_current_release_gates(change):
+    class ChangedDeferredApi(FakeApi):
+        reads = 0
+
+        def pull(self, number):
+            item = super().pull(number)
+            if number == 1:
+                self.reads += 1
+                if self.reads == 2:
+                    if change == "hold":
+                        item["labels"].append({"name": "hold"})
+                    elif change == "draft":
+                        item["draft"] = True
+                    elif change == "new_head":
+                        item["head"]["sha"] = "unqualified-new-head"
+                    elif change == "conflict":
+                        item["mergeable"] = False
+                    else:
+                        item["mergeable"] = None
+            return item
+
+    api = ChangedDeferredApi([pull(1, mergeable_state="behind"), pull(2)])
+
+    sweep(api, wait=lambda _: None)
+
+    assert ("merge", 2, "head-2") in api.actions
+    assert not any(action[0] in {"update", "rerun", "dispatch_ci"} for action in api.actions)
+
+
 # --- review round 4, MAJOR 2 -------------------------------------------------
 #
 # When no pull_request run appears for a GITHUB_TOKEN-refreshed head, the run this
