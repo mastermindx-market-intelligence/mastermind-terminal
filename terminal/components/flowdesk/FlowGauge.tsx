@@ -12,7 +12,8 @@
 import { useMemo } from "react";
 import { pick } from "../../lib/finFormat";
 import type { Lang } from "../../lib/i18n";
-import { FD } from "../../lib/flowdeskStrings";
+import { FD, gaugeMissingPrints } from "../../lib/flowdeskStrings";
+import { feedEvents, printAttributable } from "../../lib/flowPrintInspector";
 
 // ─── Types ────────────────────────────────────────────────────────────────
 
@@ -29,6 +30,9 @@ interface FeedPayload {
 export interface FlowGaugeProps {
   feed: FeedPayload;
   lang: Lang;
+  /** The feed is held from an earlier read because the latest read did not land:
+   *  the totals are the last read's, and the gauge says so. */
+  held?: boolean;
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────
@@ -80,29 +84,61 @@ function toneColor(tone: Tone): string {
 
 // ─── Component ────────────────────────────────────────────────────────────
 
-export function FlowGauge({ feed, lang }: FlowGaugeProps) {
+/**
+ * Unknown is not zero. A print counts toward the gauge only when it carries a
+ * finite, non-negative premium AND a call/put side. With no prints, or with any
+ * print the gauge cannot attribute, the totals are not established: every
+ * component is drawn as unavailable with the reason, never as $0 or 50/50.
+ * Prints that are all attributable but sum to zero premium give a real $0 total,
+ * but no call/put split and no tone.
+ */
+type GaugeState = "ok" | "no-split" | "unavailable";
+
+// Attribution is the shared printAttributable (lib/flowPrintInspector.ts) — the same
+// predicate the desk's coverage line counts `missing` with, so the two always agree.
+
+export function FlowGauge({ feed, lang, held = false }: FlowGaugeProps) {
   const zh = lang === "zh";
 
-  const { total, callPrem, putPrem, callShare, pc, tone } = useMemo(() => {
+  const summary = useMemo(() => {
+    // The same guarded tape the desk's coverage line counts (feedEvents).
+    const events: readonly unknown[] = feedEvents<unknown>(feed);
     let callPrem = 0;
     let putPrem = 0;
-    for (const ev of feed.events) {
+    let missing = 0;
+    for (const ev of events) {
+      if (!printAttributable(ev)) { missing += 1; continue; }
       if (ev.right === "C") callPrem += ev.premium;
       else putPrem += ev.premium;
     }
     const total = callPrem + putPrem;
-    const callShare = total > 0 ? callPrem / total : 0.5;
-    const pc = callPrem > 0 ? putPrem / callPrem : null;
-    const tone = deriveTone(callShare);
-    return { total, callPrem, putPrem, callShare, pc, tone };
-  }, [feed.events]);
+    const state: GaugeState = events.length === 0 || missing > 0
+      ? "unavailable"
+      : total > 0 ? "ok" : "no-split";
+    const callShare = state === "ok" ? callPrem / total : null;
+    const pc = state === "ok" && callPrem > 0 ? putPrem / callPrem : null;
+    const tone = callShare != null ? deriveTone(callShare) : null;
+    return { n: events.length, missing, total, callPrem, putPrem, callShare, pc, tone, state };
+  }, [feed]);
 
-  const callPct = Math.round(callShare * 100);
-  const putPct = 100 - callPct;
-  const sessionPct = feed.session_pct != null ? Math.round(feed.session_pct * 100) : null;
+  const { state, total, callPrem, putPrem, callShare, pc, tone } = summary;
+  const na = pick(zh, FD.gaugeNa.en, FD.gaugeNa.zh);
+  const reason = state === "ok"
+    ? null
+    : state === "no-split"
+      ? pick(zh, FD.gaugeNoSplit.en, FD.gaugeNoSplit.zh)
+      : summary.n === 0
+        ? pick(zh, FD.gaugeNoPrints.en, FD.gaugeNoPrints.zh)
+        : (() => { const m = gaugeMissingPrints(summary.missing, summary.n); return pick(zh, m.en, m.zh); })();
+
+  const callPct = callShare != null ? Math.round(callShare * 100) : null;
+  const putPct = callPct != null ? 100 - callPct : null;
+  const sp = feed.session_pct;
+  const sessionPct = typeof sp === "number" && Number.isFinite(sp) ? Math.round(sp * 100) : null;
+  const totalsKnown = state !== "unavailable";
 
   return (
-    <div style={styles.gauge} data-tut="flow-gauge">
+    <div style={styles.gauge} data-tut="flow-gauge" data-gauge-state={state}>
       {/* ── Header ── */}
       <div style={styles.header}>
         <span style={styles.label}>{pick(zh, FD.sessionGauge.en, FD.sessionGauge.zh)}</span>
@@ -113,41 +149,65 @@ export function FlowGauge({ feed, lang }: FlowGaugeProps) {
         )}
       </div>
 
-      {/* ── Total premium (big number) ── */}
-      <div className="num" style={styles.totalPrem}>{fmtPrem(total)}</div>
-
-      {/* ── Split bar ── */}
-      <div style={styles.splitRow}>
-        <span className="num" style={{ ...styles.splitPct, color: "var(--brand-2)" }}>
-          {callPct}% {pick(zh, "C", "认购")}
-        </span>
-        <div style={styles.barTrack}>
-          <div style={{ ...styles.callBar, width: `${callPct}%` }} />
-          <div style={{ ...styles.putBar, width: `${putPct}%` }} />
+      {/* A held feed: the latest read did not land, so these are the last read's totals. */}
+      {held && (
+        <div style={styles.held} data-testid="flow-gauge-held" role="note">
+          {pick(zh, FD.gaugeHeld.en, FD.gaugeHeld.zh)}
         </div>
-        <span className="num" style={{ ...styles.splitPct, color: TONE_PUT, textAlign: "right" }}>
-          {putPct}% {pick(zh, "P", "认沽")}
-        </span>
-      </div>
+      )}
+
+      {/* ── Total premium (big number) ── */}
+      {totalsKnown ? (
+        <div className="num" style={styles.totalPrem}>{fmtPrem(total)}</div>
+      ) : (
+        <div style={styles.totalNa}>{pick(zh, FD.gaugeTotalsNa.en, FD.gaugeTotalsNa.zh)}</div>
+      )}
+
+      {/* ── Split bar: drawn only when the feed establishes a split ── */}
+      {callPct != null && putPct != null ? (
+        <div style={styles.splitRow}>
+          <span className="num" style={{ ...styles.splitPct, color: "var(--brand-2)" }}>
+            {callPct}% {pick(zh, "C", "认购")}
+          </span>
+          <div style={styles.barTrack}>
+            <div data-testid="flow-gauge-call-bar" style={{ ...styles.callBar, width: `${callPct}%` }} />
+            <div data-testid="flow-gauge-put-bar" style={{ ...styles.putBar, width: `${putPct}%` }} />
+          </div>
+          <span className="num" style={{ ...styles.splitPct, color: TONE_PUT, textAlign: "right" }}>
+            {putPct}% {pick(zh, "P", "认沽")}
+          </span>
+        </div>
+      ) : (
+        <div style={styles.reason} data-testid="flow-gauge-reason" role="note">{reason}</div>
+      )}
 
       {/* ── Stats row ── */}
       <div style={styles.statsRow}>
         <div style={styles.statCell}>
           <div style={styles.statK}>{pick(zh, "Call Prem", "认购金额")}</div>
-          <div style={styles.statV}>{fmtPrem(callPrem)}</div>
+          <div style={totalsKnown ? styles.statV : styles.statNa} data-testid="flow-gauge-stat-value">
+            {totalsKnown ? fmtPrem(callPrem) : na}
+          </div>
         </div>
         <div style={styles.statCell}>
           <div style={styles.statK}>{pick(zh, "Put Prem", "认沽金额")}</div>
-          <div style={styles.statV}>{fmtPrem(putPrem)}</div>
+          <div style={totalsKnown ? styles.statV : styles.statNa} data-testid="flow-gauge-stat-value">
+            {totalsKnown ? fmtPrem(putPrem) : na}
+          </div>
         </div>
         <div style={styles.statCell}>
           <div style={styles.statK}>{pick(zh, "P/C Ratio", "认沽认购比")}</div>
-          <div style={styles.statV}>{pc != null ? pc.toFixed(2) : "—"}</div>
+          <div style={totalsKnown ? styles.statV : styles.statNa} data-testid="flow-gauge-stat-value">
+            {totalsKnown ? (pc != null ? pc.toFixed(2) : "—") : na}
+          </div>
         </div>
         <div style={styles.statCell}>
           <div style={styles.statK}>{pick(zh, "Tone", "倾向")}</div>
-          <div style={{ ...styles.statV, color: toneColor(tone) }}>
-            {toneLabel(tone, zh)}
+          <div
+            style={tone != null ? { ...styles.statV, color: toneColor(tone) } : (totalsKnown ? styles.statV : styles.statNa)}
+            data-testid="flow-gauge-stat-value"
+          >
+            {tone != null ? toneLabel(tone, zh) : (totalsKnown ? "—" : na)}
           </div>
         </div>
       </div>
@@ -187,6 +247,13 @@ const styles: Record<string, React.CSSProperties> = {
     fontFamily: "var(--font-num)",
     fontVariantNumeric: "tabular-nums",
   },
+  // Last-read qualifier: muted copy in the gauge's own type ramp — no stripe, no fill.
+  held: {
+    fontSize: "var(--fs-micro)",
+    color: "var(--muted)",
+    lineHeight: 1.4,
+    marginBottom: "var(--sp-1)",
+  },
   // The desk's single largest numeral — hero step of the v6 ramp.
   totalPrem: {
     fontSize: "var(--fs-num-lg)",
@@ -197,6 +264,20 @@ const styles: Record<string, React.CSSProperties> = {
     letterSpacing: "-0.02em",
     lineHeight: 1.1,
     marginBottom: "var(--sp-2)",
+  },
+  // Unavailable totals: same slot as the hero numeral, in muted copy (no numeral).
+  totalNa: {
+    fontSize: "var(--fs-ui)",
+    fontWeight: 650,
+    color: "var(--muted)",
+    lineHeight: 1.3,
+    marginBottom: "var(--sp-2)",
+  },
+  reason: {
+    fontSize: "var(--fs-micro)",
+    color: "var(--text-2)",
+    lineHeight: 1.4,
+    marginBottom: "var(--sp-3)",
   },
   splitRow: {
     display: "flex",
@@ -246,6 +327,12 @@ const styles: Record<string, React.CSSProperties> = {
     whiteSpace: "nowrap",
     overflow: "hidden",
     textOverflow: "ellipsis",
+  },
+  statNa: {
+    fontSize: "var(--fs-ui)",
+    fontWeight: 650,
+    color: "var(--muted)",
+    whiteSpace: "nowrap",
   },
   statV: {
     fontSize: "var(--fs-ui)",

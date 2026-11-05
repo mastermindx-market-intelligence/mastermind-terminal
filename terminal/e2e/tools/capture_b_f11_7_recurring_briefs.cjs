@@ -56,7 +56,8 @@ const LIST_DELIVERIES = [
     subscription: { targetKind: "thesis", targetId: THESIS, cadence: "daily_after_us_close", state: "active", targetName: "NVDA cycle" },
   },
   {
-    deliveryId: "d-ready",
+    // Canonical inert delivery identity exercises the actual sharing entry.
+    deliveryId: "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
     subscriptionId: "s1",
     slotAsof: "2026-09-10",
     state: "ready",

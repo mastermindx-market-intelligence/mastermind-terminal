@@ -72,7 +72,7 @@ export class PineRuntimeError extends Error {}
 
 // ── global per-run budget — ONE deadline + run-level counters shared by the chart pass and
 // every request.security HTF re-run, so nesting/recursion can't multiply past the caps ──
-const DEFAULT_BUDGET_MS = 3000;          // wall-clock cap for a whole run() call
+export const DEFAULT_BUDGET_MS = 3000;          // wall-clock cap for a whole run() call
 const MAX_TOTAL_LOOP_ITERS = 4_000_000;  // for-loop iterations, totalled across loops, nesting AND bars
 const STMT_DEADLINE_INTERVAL = 10_000;   // poll Date.now() every N executed statements
 
@@ -86,7 +86,7 @@ export interface PineShape { time: string; position: "aboveBar" | "belowBar" | "
 export interface PineHline { price: number; color: string; title: string; style: string; overlay: boolean; }
 export interface PineInput { title: string; type: string; value: any; }
 export interface PineMeta { title: string; shorttitle?: string; overlay: boolean; }
-export interface RunResult { meta: PineMeta; plots: PinePlot[]; shapes: PineShape[]; hlines: PineHline[]; inputs: PineInput[]; warnings: string[]; barCount: number; }
+export interface RunResult { meta: PineMeta; plots: PinePlot[]; shapes: PineShape[]; hlines: PineHline[]; inputs: PineInput[]; effectiveInputs?: { variable: string; value: unknown }[]; warnings: string[]; barCount: number; }
 
 // A refused request.security result is na for plots/comparisons but is NOT ordinary na:
 // nz() must not replace it with a definite value (README: refused → na, never an approximate).
@@ -242,7 +242,7 @@ function tfUnitFamily(tf: string): string | null {
 // in the chart rows it gives row 0's global index, the same arithmetic as resolveBarAnchor, which
 // ChartPanel.resampleTf uses to build the chart's own nD bars. Without a usable anchor the grid is
 // phased at the first loaded session and every nD request says why.
-function resolveSessionPhase(bars: Bar[], raw: unknown): { barAnchor: number; fallback: string | null } {
+export function resolveSessionPhase(bars: Bar[], raw: unknown): { barAnchor: number; fallback: string | null } {
   if (raw == null) return { barAnchor: 0, fallback: "no session anchor supplied" };
   const anchor = parseSessionAnchor(raw);
   if (!anchor) return { barAnchor: 0, fallback: "the session anchor is malformed" };
@@ -267,7 +267,7 @@ interface ExecOut { result: RunResult; secRecord: Map<string, any[]>; }
 // run() executes an already-parsed program. Pass a `ParseResult` (from parse()/compile()) to skip
 // re-parsing — the ONLY caller that still hands a raw string is the back-compat runPine() in index.ts,
 // which parses once and forwards the AST here, so a single run never lexes+parses twice.
-export function run(source: string | ParseResult, bars: Bar[], opts: { timeframe?: string; symbol?: string; params?: Record<string, any>; budgetMs?: number; sessionAnchor?: unknown } = {}): RunResult {
+export function run(source: string | ParseResult, bars: Bar[], opts: { timeframe?: string; symbol?: string; params?: Record<string, any>; budgetMs?: number; captureInputValues?: boolean; sessionAnchor?: unknown } = {}): RunResult {
   // capture the deadline the moment the run starts — checked between statements and inside loops
   const budgetMs = opts.budgetMs ?? DEFAULT_BUDGET_MS;
   const deadline = Date.now() + budgetMs;
@@ -341,6 +341,7 @@ export function run(source: string | ParseResult, bars: Bar[], opts: { timeframe
     const hlineAcc = new Map<number, PineHline>();
     const shapes: PineShape[] = [];
     const inputs: PineInput[] = [];
+    const effectiveInputs = opts.captureInputValues ? [] as { variable: string; value: unknown }[] : undefined;
     let collectInputs = true;   // inputs are constant across bars — record them only on bar 0
     const warnings: string[] = [];
     const warned = new Set<string>();
@@ -971,7 +972,10 @@ export function run(source: string | ParseResult, bars: Bar[], opts: { timeframe
         if (ctx.frame) { localVarInit.add(key); localVarKeys.add(ctx.frame.path + "|" + s.target); } else varInited.add(key);
       }
       let val = evalNode(s.value, ctx);
-      if (s.op === "=" && typeof s.target === "string" && isInputCall(s.value) && params[s.target] !== undefined) val = coerce(params[s.target], val);
+      if (s.op === "=" && typeof s.target === "string" && isInputCall(s.value)) {
+        if (params[s.target] !== undefined) val = coerce(params[s.target], val);
+        if (effectiveInputs && collectInputs) effectiveInputs.push({ variable: s.target, value: val });
+      }
       if (Array.isArray(s.target)) { const arr = Array.isArray(val) ? val : [val]; s.target.forEach((nm, k) => assignName(ctx, nm, arr[k], s.isVar, s.op === "=")); }
       else assignName(ctx, s.target, val, s.isVar, s.op === "=");
       return val;
@@ -1014,6 +1018,6 @@ export function run(source: string | ParseResult, bars: Bar[], opts: { timeframe
     }
 
     const plots = [...plotAcc.values()].map(({ lastColor, ...p }) => p);
-    return { result: { meta, plots, shapes, hlines: [...hlineAcc.values()], inputs, warnings, barCount: N }, secRecord };
+    return { result: { meta, plots, shapes, hlines: [...hlineAcc.values()], inputs, ...(effectiveInputs && { effectiveInputs }), warnings, barCount: N }, secRecord };
   }
 }

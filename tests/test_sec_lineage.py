@@ -261,6 +261,102 @@ def test_a_parallel_tag_that_carried_the_matched_figure_makes_no_claim():
     assert revenue_column(concepts, 100.0e9) == {"kind": "unattributed", "filed": None, "restated": False}
 
 
+# Dedicated acceptance cases for #1067 audit gaps 3 and 4.
+# These are synthetic figures and accessions, not additional GE companyfacts rows.
+
+
+def test_shared_filing_with_nonmatched_live_tag_is_not_predecessor_evidence():
+    # SalesRevenueNet agrees with live Revenues, but neither ever reports the
+    # displayed 8. The only matched tag is RFC, which never shared a filing
+    # with SalesRevenueNet. Agreement with Revenues cannot bridge that gap.
+    fy = ["2020-01-01", "2020-12-31"]
+    concepts = {
+        "Revenues": [
+            [*fy, 10.0e9, "2021-02-01", "10-K", "gap3-old"],
+            [*fy, 10.0e9, "2024-02-01", "10-K", "gap3-latest"],
+        ],
+        RFC: [
+            [*fy, 8.0e9, "2024-02-01", "10-K", "gap3-latest"],
+        ],
+        "SalesRevenueNet": [
+            [*fy, 10.0e9, "2021-02-01", "10-K", "gap3-old"],
+        ],
+    }
+    assert sl.anchor_outcome(
+        concepts, dt.date(2020, 12, 31), "annual", False, 8.0e9,
+    ) == {"status": "ambiguous"}
+    assert revenue_column(concepts, 8.0e9, end="2020-12-31") == {
+        "kind": "unattributed", "filed": None, "restated": False,
+    }
+
+
+@pytest.mark.parametrize("agreeing_tag", ["Revenues", RFC])
+def test_dropped_tag_shared_filings_are_checked_against_every_matched_tag(agreeing_tag):
+    # Both live tags currently report the same displayed 8. In the shared
+    # filing, SalesRevenueNet agrees with one matched tag (9) but disagrees
+    # with the other (8), so it is parallel and its older 12 must not count.
+    # Swap the agreeing role to catch choosing either fixed matched tag.
+    fy = ["2020-01-01", "2020-12-31"]
+    concepts = {
+        tag: [
+            [*fy, 8.0e9, "2022-02-01", "10-K", "gap4-first-eight"],
+            [
+                *fy, 9.0e9 if tag == agreeing_tag else 8.0e9,
+                "2023-02-01", "10-K", "gap4-shared",
+            ],
+            [*fy, 8.0e9, "2024-02-01", "10-K", "gap4-latest"],
+        ]
+        for tag in ("Revenues", RFC)
+    }
+    concepts["SalesRevenueNet"] = [
+        [*fy, 12.0e9, "2021-02-01", "10-K", "gap4-old"],
+        [*fy, 9.0e9, "2023-02-01", "10-K", "gap4-shared"],
+    ]
+    # Preserve accepted 8 -> 9 -> 8 semantics: 9 arrived after the first 8.
+    # The dropped tag never carried 8, so the parallel-carried guard is not
+    # the reason this fixture passes.
+    assert sl.anchor_outcome(
+        concepts, dt.date(2020, 12, 31), "annual", False, 8.0e9,
+    ) == {
+        "status": "matched", "filed": "2022-02-01",
+        "restated": False, "last_filed": "2024-02-01",
+    }
+    assert revenue_column(concepts, 8.0e9, end="2020-12-31") == {
+        "kind": "attributed", "filed": "2022-02-01", "restated": False,
+    }
+
+
+def test_two_matched_tags_can_share_a_predecessor_and_keep_the_first_filing_date():
+    # Positive control: both matched tags agree with SalesRevenueNet's 9 in
+    # the shared filing. Its earlier 12 is legitimate predecessor history.
+    # Revenues first carried 8 in 2022; RFC first carried it only in 2024.
+    fy = ["2020-01-01", "2020-12-31"]
+    concepts = {
+        "Revenues": [
+            [*fy, 8.0e9, "2022-02-01", "10-K", "gap4-positive-first-eight"],
+            [*fy, 9.0e9, "2023-02-01", "10-K", "gap4-positive-shared"],
+            [*fy, 8.0e9, "2024-02-01", "10-K", "gap4-positive-latest"],
+        ],
+        RFC: [
+            [*fy, 9.0e9, "2023-02-01", "10-K", "gap4-positive-shared"],
+            [*fy, 8.0e9, "2024-02-01", "10-K", "gap4-positive-latest"],
+        ],
+        "SalesRevenueNet": [
+            [*fy, 12.0e9, "2021-02-01", "10-K", "gap4-positive-old"],
+            [*fy, 9.0e9, "2023-02-01", "10-K", "gap4-positive-shared"],
+        ],
+    }
+    assert sl.anchor_outcome(
+        concepts, dt.date(2020, 12, 31), "annual", False, 8.0e9,
+    ) == {
+        "status": "matched", "filed": "2022-02-01",
+        "restated": True, "last_filed": "2024-02-01",
+    }
+    assert revenue_column(concepts, 8.0e9, end="2020-12-31") == {
+        "kind": "attributed", "filed": "2022-02-01", "restated": True,
+    }
+
+
 def test_a_small_restatement_is_not_rounding_and_a_number_between_two_figures_makes_no_claim():
     rows = [["2023-01-01", "2023-12-31", 500.0e6, "2024-02-02", "10-K", "a"],
             ["2023-01-01", "2023-12-31", 498.0e6, "2025-02-03", "10-K", "b"]]
