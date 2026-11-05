@@ -287,8 +287,9 @@ async function expectNone(locator, why) {
 async function waitUntil(check, why, timeoutMs = 30_000) {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
-    if (await check()) return;
-    await new Promise((r) => setTimeout(r, 250));
+    if (await check(deadline - Date.now())) return;
+    const remaining = deadline - Date.now();
+    if (remaining > 0) await new Promise((r) => setTimeout(r, Math.min(250, remaining)));
   }
   throw new Error(why);
 }
@@ -304,36 +305,105 @@ async function staticFlowReply() {
   return { json: flowIdxPayload };
 }
 
-/** The persisted flow index record's timestamp in dataCache's IndexedDB, or null when there is none. */
-function persistedTs(page) {
-  return page.evaluate((url) => new Promise((resolve) => {
-    const open = indexedDB.open("mm-data-cache");
-    open.onerror = () => resolve(null);
-    open.onsuccess = () => {
-      const db = open.result;
-      if (!db.objectStoreNames.contains("json")) { db.close(); resolve(null); return; }
-      const get = db.transaction("json", "readonly").objectStore("json").get(url);
-      get.onsuccess = () => { db.close(); resolve(get.result ? get.result.ts : null); };
-      get.onerror = () => { db.close(); resolve(null); };
+/**
+ * Serialized into the existing capture page. Observation must never create or heal storage.
+ * Optional aging changes only the timestamp of an already production-written record and
+ * succeeds only at transaction completion. No payload leaves this probe.
+ */
+function persistedFlowAccess({ url, ageMs = null, timeoutMs = 1000 }) {
+  return new Promise((resolve) => {
+    let settled = false, db = null, tx = null, writeQueued = false;
+    let stage = "enumerate", timer;
+    const errorName = error => String(error?.name || "Error").slice(0, 64);
+    const finish = (result, abort = false) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      if (abort && tx) {
+        try { tx.abort(); }
+        catch (error) {
+          if (writeQueued) result = { status: "write-settlement-unproven", cause: result.status, error: errorName(error) };
+        }
+      }
+      if (db) { try { db.close(); } catch {} }
+      resolve({ ...result, stage });
     };
-  }), STATIC_FLOW);
+    timer = setTimeout(() => finish({ status: "probe-timeout" }, true), timeoutMs);
+    if (typeof indexedDB === "undefined" || typeof indexedDB.databases !== "function") {
+      finish({ status: "inspection-unavailable" });
+      return;
+    }
+    Promise.resolve().then(() => settled ? [] : indexedDB.databases()).then(databases => {
+      if (settled) return;
+      if (!databases.some(entry => entry.name === "mm-data-cache")) {
+        finish({ status: "missing-database" });
+        return;
+      }
+      stage = "open";
+      const open = indexedDB.open("mm-data-cache");
+      // Existence can race deletion. Abort a new database's upgrade instead of creating
+      // an empty schema that would interfere with the production owner's next open.
+      open.onupgradeneeded = () => {
+        const opened = open.result;
+        try { open.transaction.abort(); }
+        catch (error) {
+          if (settled) { try { opened.close(); } catch {} return; }
+          db = opened;
+          finish({ status: "schema-settlement-unproven", error: errorName(error) });
+          return;
+        }
+        if (settled) { try { opened.close(); } catch {} return; }
+        db = opened;
+        finish({ status: "database-replaced" });
+      };
+      open.onblocked = () => finish({ status: "open-blocked" });
+      open.onerror = () => finish({ status: "open-failed", error: errorName(open.error) });
+      open.onsuccess = () => {
+        if (settled) { try { open.result.close(); } catch {} return; }
+        db = open.result;
+        try {
+          db.onversionchange = () => finish({ status: "version-changed" }, true);
+          if (!db.objectStoreNames.contains("json")) { finish({ status: "missing-store" }); return; }
+          stage = ageMs === null ? "read" : "age";
+          tx = db.transaction("json", ageMs === null ? "readonly" : "readwrite");
+          let answer = { status: "read-incomplete" };
+          tx.oncomplete = () => finish(answer);
+          tx.onabort = () => finish({ status: "transaction-aborted", error: errorName(tx.error) });
+          tx.onerror = () => finish({ status: "transaction-failed", error: errorName(tx.error) }, true);
+          const store = tx.objectStore("json");
+          const get = store.get(url);
+          get.onerror = () => finish({ status: "read-failed", error: errorName(get.error) }, true);
+          get.onsuccess = () => {
+            if (settled) return;
+            const record = get.result;
+            if (!record) { answer = { status: "missing-record" }; return; }
+            if (typeof record.ts !== "number" || !Number.isFinite(record.ts)) {
+              answer = { status: "invalid-record" };
+              return;
+            }
+            if (ageMs === null) { answer = { status: "ready", ts: record.ts }; return; }
+            try {
+              const ts = Date.now() - ageMs;
+              const put = store.put({ ...record, ts });
+              writeQueued = true;
+              put.onerror = () => finish({ status: "write-failed", error: errorName(put.error) }, true);
+              answer = { status: "ready", ts, aged: true };
+            } catch (error) { finish({ status: "write-failed", error: errorName(error) }, true); }
+          };
+        } catch (error) { finish({ status: "transaction-failed", error: errorName(error) }, true); }
+      };
+    }).catch(error => finish({ status: "inspection-failed", error: errorName(error) }, true));
+  });
 }
 
-/** Re-stamp the persisted flow index record as an earlier session's read, `ageMs` old. */
+/** Only inspect a production-written record; distinguish absence from failed observation. */
+function persistedTs(page, timeoutMs = 1000) {
+  return page.evaluate(persistedFlowAccess, { url: STATIC_FLOW, timeoutMs: Math.min(1000, timeoutMs) });
+}
+
+/** The existing fixture mutation: age an existing record, never seed or repair one. */
 function agePersisted(page, ageMs) {
-  return page.evaluate(({ url, ageMs }) => new Promise((resolve) => {
-    const open = indexedDB.open("mm-data-cache");
-    open.onerror = () => resolve(false);
-    open.onsuccess = () => {
-      const db = open.result;
-      const tx = db.transaction("json", "readwrite");
-      const store = tx.objectStore("json");
-      const get = store.get(url);
-      get.onsuccess = () => { if (get.result) store.put({ ...get.result, ts: Date.now() - ageMs }); };
-      tx.oncomplete = () => { db.close(); resolve(Boolean(get.result)); };
-      tx.onerror = () => { db.close(); resolve(false); };
-    };
-  }), { url: STATIC_FLOW, ageMs });
+  return page.evaluate(persistedFlowAccess, { url: STATIC_FLOW, ageMs });
 }
 
 /** Pass two polls: the first serves the cached read and revalidates (the failure evicts it); the second is refused. */
@@ -478,8 +548,23 @@ async function captureHeatmap(page, lang, state, replies, outPath) {
   let bar;
   if (persisted) {
     await note.waitFor({ state: "visible" });
-    await waitUntil(async () => (await persistedTs(page)) != null, `${state}: the flow index was never written through to IndexedDB`);
-    if (!(await agePersisted(page, SIX_HOURS))) throw new Error(`${state}: could not age the persisted flow index`);
+    let observation;
+    const waiting = `${state}: the flow index was never written through to IndexedDB`;
+    try {
+      await waitUntil(async remaining => {
+        observation = await persistedTs(page, remaining);
+        if (observation.status === "ready") return true;
+        if (!["missing-database", "missing-store", "missing-record"].includes(observation.status)) {
+          throw new Error(`${state}: persisted flow observation failed ${JSON.stringify(observation)}`);
+        }
+        return false;
+      }, waiting);
+    } catch (error) {
+      if (error?.message === waiting) throw new Error(`${waiting}; last observation ${JSON.stringify(observation)}`);
+      throw error;
+    }
+    const aged = await agePersisted(page, SIX_HOURS);
+    if (aged.status !== "ready" || aged.aged !== true) throw new Error(`${state}: could not commit the persisted timestamp ${JSON.stringify(aged)}`);
     replies.flow_idx = persisted;
     replies[STATIC_FLOW] = persisted;
     await page.reload({ waitUntil: "domcontentloaded", timeout: 90_000 });
@@ -492,7 +577,8 @@ async function captureHeatmap(page, lang, state, replies, outPath) {
     await expectNone(page.getByTestId("heatmap-flow-load-error"), `${state}: a failed refresh withdrew the persisted flow tiles`);
     await expectNone(page.getByText(copy.noFlowData), `${state}: a failed refresh shown as missing flow data`);
     await expectNone(page.getByTestId("heatmap-refresh-failed"), `${state}: the manifest was labelled for the flow layer's failure`);
-    if ((await persistedTs(page)) == null) throw new Error(`${state}: the failed refresh dropped the disk copy`);
+    const retained = await persistedTs(page);
+    if (retained.status !== "ready") throw new Error(`${state}: retained disk copy unproven ${JSON.stringify(retained)}`);
     if (healKeys) {
       await heal(page, replies, healKeys, [bar.getByRole("button", { name: copy.retry, exact: true })]);
       await bar.waitFor({ state: "detached" });
@@ -736,7 +822,7 @@ async function main() {
   console.log(`wrote ${files.length} crops + EVIDENCE.yml (head ${capturedAtHead})`);
 }
 
-module.exports = { updateHeatmapEvidence, assertNoNextIndicator, captureUrl, STATES, LAYOUT_FILES,
+module.exports = { updateHeatmapEvidence, assertNoNextIndicator, captureUrl, persistedFlowAccess, STATES, LAYOUT_FILES,
   FILES: Object.keys(STATES).flatMap(state => [1440, 820, 390].flatMap(width => ["en", "zh"].map(lang => cropName(state,width,lang)))) };
 
 if (require.main === module) {

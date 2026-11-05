@@ -533,3 +533,209 @@ test("EOD retry uses a current fixture row while structure faults keep their SPY
     else if (state.startsWith("eod-structure-")) assert.equal(url.href, "http://capture.invalid/options?tab=gex");
   }
 });
+
+// Controlled IndexedDB event ports execute the actual serialized capture callback.
+// They prove observer ownership and transaction settlement, not real browser storage.
+function persistencePort(options = {}) {
+  const probe = require("./capture_eod_heatmap_flowdesk_load_failure.cjs").persistedFlowAccess;
+  const state = { opens: 0, reads: 0, puts: 0, closes: 0, aborts: 0, upgradesAborted: 0, schemaCreated: false,
+    record: options.record === false ? undefined : { url: "/data/flow_idx.json", data: { unchanged: [1, 2] }, ts: 12345 } };
+  const timers = new Map(); let nextTimer = 0;
+  const db = {
+    objectStoreNames: { contains: () => !options.emptyStore },
+    close() { state.closes++; },
+    transaction(_store, mode) {
+      if (options.transactionThrows) throw Object.assign(new Error("transaction failed"), { name: "InvalidStateError" });
+      const tx = { aborted: false, pending: null,
+        abort() {
+          state.aborts++;
+          if (options.abortThrows) throw Object.assign(new Error("already settled"), { name: "InvalidStateError" });
+          tx.aborted = true; tx.pending = null;
+          queueMicrotask(() => tx.onabort?.());
+        },
+        objectStore() {
+          return {
+            get() {
+              state.reads++;
+              const get = { result: state.record && structuredClone(state.record) };
+              state.get = get;
+              const deliver = () => {
+                if (options.readError) { get.error = { name: "UnknownError" }; get.onerror?.(); return; }
+                if (options.readAbort) { tx.abort(); return; }
+                get.onsuccess?.();
+                if (!options.holdComplete) queueMicrotask(() => {
+                  if (tx.aborted) return;
+                  if (options.abortBeforeCommit) { tx.abort(); return; }
+                  if (tx.pending) state.record = structuredClone(tx.pending);
+                  tx.oncomplete?.();
+                });
+              };
+              state.deliverRead = deliver;
+              if (!options.holdRead) queueMicrotask(deliver);
+              return get;
+            },
+            put(record) {
+              assert.equal(mode, "readwrite");
+              state.puts++; tx.pending = structuredClone(record);
+              const put = {};
+              if (options.writeError) queueMicrotask(() => { put.error = { name: "QuotaExceededError" }; put.onerror?.(); });
+              return put;
+            },
+          };
+        },
+      };
+      state.tx = tx;
+      return tx;
+    },
+  };
+  const indexedDB = {
+    databases() {
+      if (options.enumerationError) return Promise.reject(Object.assign(new Error("blocked"), { name: "SecurityError" }));
+      if (options.holdEnumeration) return new Promise(resolve => { state.resolveEnumeration = resolve; });
+      return Promise.resolve(options.absent ? [] : [{ name: "mm-data-cache", version: 1 }]);
+    },
+    open() {
+      state.opens++;
+      const open = { result: db };
+      state.open = open;
+      if (options.upgrade) {
+        let aborted = false;
+        open.transaction = { abort() { aborted = true; state.upgradesAborted++; } };
+        state.deliverUpgrade = () => {
+          open.onupgradeneeded?.();
+          state.schemaCreated = !aborted;
+        };
+        if (!options.holdOpen) queueMicrotask(state.deliverUpgrade);
+      } else if (options.blocked) queueMicrotask(() => open.onblocked?.());
+      else if (options.openError) queueMicrotask(() => { open.error = { name: "UnknownError" }; open.onerror?.(); });
+      else if (!options.holdOpen) queueMicrotask(() => open.onsuccess?.());
+      return open;
+    },
+  };
+  if (options.unsupported) delete indexedDB.databases;
+  const actual = require("node:vm").runInNewContext(`(${probe.toString()})`, {
+    indexedDB, Date: { now: () => 1_000_000 },
+    setTimeout(fn) { const id = ++nextTimer; timers.set(id, fn); return id; },
+    clearTimeout(id) { timers.delete(id); },
+  });
+  return { state, db, flush: () => new Promise(resolve => setImmediate(resolve)),
+    expire() { for (const [id, fn] of [...timers]) { timers.delete(id); fn(); } },
+    run(input = {}) { return actual({ url: "/data/flow_idx.json", ...input }).then(result => JSON.parse(JSON.stringify(result))); },
+  };
+}
+
+test("EOD persistence observation leaves an absent database absent", async () => {
+  const port = persistencePort({ absent: true });
+  assert.equal((await port.run()).status, "missing-database");
+  assert.equal(port.state.opens, 0); assert.equal(port.state.schemaCreated, false); assert.equal(port.state.puts, 0);
+});
+
+for (const [options, status] of [[{ unsupported: true }, "inspection-unavailable"], [{ enumerationError: true }, "inspection-failed"]]) {
+  test("EOD persistence " + status + " is distinct from an absent record", async () => {
+    const port = persistencePort(options);
+    assert.equal((await port.run()).status, status); assert.equal(port.state.opens, 0);
+  });
+}
+
+test("EOD persistence observation does not heal an empty existing database", async () => {
+  const port = persistencePort({ emptyStore: true });
+  assert.equal((await port.run()).status, "missing-store");
+  assert.equal(port.state.closes, 1); assert.equal(port.state.reads, 0); assert.equal(port.state.schemaCreated, false);
+});
+
+test("EOD persistence observation reads an existing record without changing it", async () => {
+  const port = persistencePort(), before = structuredClone(port.state.record);
+  assert.deepEqual(await port.run(), { status: "ready", ts: 12345, stage: "read" });
+  assert.deepEqual(port.state.record, before); assert.equal(port.state.puts, 0); assert.equal(port.state.closes, 1);
+});
+
+test("EOD persistence existence race aborts a new database upgrade", async () => {
+  const port = persistencePort({ upgrade: true });
+  assert.equal((await port.run()).status, "database-replaced");
+  assert.equal(port.state.upgradesAborted, 1); assert.equal(port.state.schemaCreated, false); assert.equal(port.state.reads, 0);
+});
+
+test("EOD persistence late upgrade after timeout is aborted and its handle closes", async () => {
+  const port = persistencePort({ upgrade: true, holdOpen: true }), pending = port.run();
+  await port.flush(); port.expire();
+  assert.equal((await pending).status, "probe-timeout");
+  port.state.deliverUpgrade();
+  assert.equal(port.state.upgradesAborted, 1); assert.equal(port.state.schemaCreated, false);
+  assert.equal(port.state.closes, 1); assert.equal(port.state.reads, 0);
+});
+
+for (const [options, status] of [
+  [{ blocked: true }, "open-blocked"], [{ openError: true }, "open-failed"],
+  [{ readError: true }, "read-failed"], [{ transactionThrows: true }, "transaction-failed"],
+  [{ readAbort: true }, "transaction-aborted"],
+]) {
+  test("EOD persistence reports " + status + " and never writes", async () => {
+    const port = persistencePort(options);
+    assert.equal((await port.run()).status, status); assert.equal(port.state.puts, 0);
+    if (!options.blocked && !options.openError) assert.equal(port.state.closes, 1);
+  });
+}
+
+test("EOD persistence no-event open is bounded and a late success only closes", async () => {
+  const port = persistencePort({ holdOpen: true }), pending = port.run();
+  await port.flush(); port.expire();
+  assert.equal((await pending).status, "probe-timeout");
+  port.state.open.onsuccess();
+  assert.equal(port.state.closes, 1); assert.equal(port.state.reads, 0); assert.equal(port.state.puts, 0);
+});
+
+test("EOD persistence late enumeration cannot start an open after timeout", async () => {
+  const port = persistencePort({ holdEnumeration: true }), pending = port.run();
+  await port.flush(); port.expire();
+  assert.equal((await pending).status, "probe-timeout");
+  port.state.resolveEnumeration([{ name: "mm-data-cache" }]); await port.flush();
+  assert.equal(port.state.opens, 0);
+});
+
+test("EOD aging changes only the timestamp and succeeds only on commit", async () => {
+  const port = persistencePort(), before = structuredClone(port.state.record);
+  assert.deepEqual(await port.run({ ageMs: 6000 }), { status: "ready", ts: 994000, aged: true, stage: "age" });
+  assert.deepEqual(port.state.record, { ...before, ts: 994000 }); assert.equal(port.state.puts, 1); assert.equal(port.state.closes, 1);
+});
+
+test("EOD aging never manufactures a missing record", async () => {
+  const port = persistencePort({ record: false });
+  assert.equal((await port.run({ ageMs: 6000 })).status, "missing-record");
+  assert.equal(port.state.record, undefined); assert.equal(port.state.puts, 0);
+});
+
+for (const [options, status] of [[{ abortBeforeCommit: true }, "transaction-aborted"], [{ writeError: true }, "write-failed"]]) {
+  test("EOD aging " + status + " does not certify or commit a timestamp", async () => {
+    const port = persistencePort(options), before = structuredClone(port.state.record);
+    assert.equal((await port.run({ ageMs: 6000 })).status, status); assert.deepEqual(port.state.record, before);
+  });
+}
+
+test("EOD aging timeout aborts and a late read cannot issue a write", async () => {
+  const port = persistencePort({ holdRead: true }), before = structuredClone(port.state.record), pending = port.run({ ageMs: 6000 });
+  await port.flush(); port.expire();
+  assert.equal((await pending).status, "probe-timeout");
+  port.state.deliverRead(); await port.flush();
+  assert.equal(port.state.puts, 0); assert.deepEqual(port.state.record, before); assert.equal(port.state.aborts, 1);
+});
+
+test("EOD aging timeout aborts a queued write before any success receipt", async () => {
+  const port = persistencePort({ holdComplete: true }), before = structuredClone(port.state.record), pending = port.run({ ageMs: 6000 });
+  await port.flush(); assert.equal(port.state.puts, 1); port.expire();
+  assert.equal((await pending).status, "probe-timeout");
+  assert.deepEqual(port.state.record, before); assert.equal(port.state.tx.pending, null); assert.equal(port.state.aborts, 1);
+});
+
+test("EOD aging cannot claim failed-write absence when abort settlement is unproven", async () => {
+  const port = persistencePort({ holdComplete: true, abortThrows: true }), pending = port.run({ ageMs: 6000 });
+  await port.flush(); port.expire();
+  const result = await pending;
+  assert.equal(result.status, "write-settlement-unproven"); assert.equal(result.cause, "probe-timeout");
+});
+
+test("EOD persistence version change releases its connection and aborts pending work", async () => {
+  const port = persistencePort({ holdRead: true }), pending = port.run();
+  await port.flush(); port.db.onversionchange();
+  assert.equal((await pending).status, "version-changed");
+  assert.equal(port.state.aborts, 1); assert.equal(port.state.closes, 1); assert.equal(port.state.puts, 0);
+});

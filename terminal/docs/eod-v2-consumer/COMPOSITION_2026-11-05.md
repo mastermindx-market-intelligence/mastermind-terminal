@@ -77,7 +77,7 @@ records and before/ record retain their original bytes in this source commit.
 Natural CI must generate and validate changed-source evidence in its disposable
 checkout. No old image/hash is restamped to claim a fresh capture.
 
-## Verification and limits
+## Initial composition verification and limits
 
 - **38/38 actual existing reader/fixture test bodies passed** through a local
   Node 24 VM assertion adapter, executing the composed TypeScript after type
@@ -100,3 +100,59 @@ checkout. No old image/hash is restamped to claim a fresh capture.
   Historical October checks remain historical; this new head needs its own
   natural CI. Chairman's completion waiver does not turn these limits into
   successful checks or lift the explicit release hold.
+
+## Follow-up: exact CI failure and persistence observer repair
+
+Natural CI `42089299389`, unit job `127462792799`, failed at 19:17:11 UTC
+after typecheck, during the full EOD capture and before native unit execution.
+Actual checkout `16c2d2675c2097736aa6428a746a8cd663ea0965` used source tree
+`6f0d09e580745d8669fb6298839a6ee42b128d8f`. PL6 and VI exited zero. The EOD
+child exited one, without a timeout or signal, with both child and owned server
+settled. It produced 125 successful crops and failed
+`heatmap-flow-persisted-refresh-failed-390-zh.png` because its initial production
+write was not observed in IndexedDB. It did not write EVIDENCE.yml. The failure
+preceded aging, refresh-fault injection and reload.
+
+One job-log and one existing artifact read supplied those facts. Artifact
+`13446470229` has ZIP SHA256
+`6ceeb75b2ef07f513797385649780bd0aa7b2a1302fd77be834b934877823549`,
+matching its uploaded receipt. The 125 partial successes are diagnostics and
+cannot qualify a 126-case packet. The precise storage cause remains unobserved.
+
+Source inspection established separate defects in the capture observer:
+its raw open could create an empty database; an unresolved open/read or aborted
+transaction could outlive its nominal wait; read errors were collapsed into
+record absence. The production cache intentionally supports memory/network
+delivery when its 250ms persistence budget disables storage, so the visible
+flow note alone does not prove a durable write. Production cache and storage
+owner files remain unchanged.
+
+The correction stays in the existing EOD producer:
+
+- Read observation checks existence, aborts an unexpected creation/upgrade
+  race, and never creates, heals, deletes or seeds storage.
+- Each probe is bounded within the existing 30-second prerequisite wait.
+  Absence can wait for the real production write; blocked/error/abort/timeout
+  results are distinct failures. Connections close on settlement or version
+  change, and late callbacks cannot start a read/write after settlement.
+- The existing aging fixture operation still changes only the timestamp of
+  an already production-written record. Success requires transaction commit.
+  Failure/timeout aborts pending work; a late read cannot enqueue a write.
+  An unproved abort settlement is explicitly unproved and cannot qualify.
+- The resulting diagnostic reports only status, stage, error name and timestamp;
+  it does not return or log the stored payload.
+
+**78/78 native Node capture/process tests passed** on the final helper/test
+sources. The 22 added cases execute the actual serialized callback against
+controlled IndexedDB event and timer ports, covering non-creation, missing
+store/record, ready reads, blocked/error/abort states, late completion cleanup,
+committed aging, failed aging and unproved write settlement. This is not real
+browser IndexedDB or a fresh capture. The existing full-matrix, history,
+ownership and source/image receipt tests still pass.
+
+All 126 cases, native readers, historical images/manifest, scoped updater,
+fixture bytes, source policy and production consumers remain unchanged by this
+follow-up. Overall capture/workflow budgets are unchanged. No manual CI rerun,
+partial-packet promotion, synthetic record or timeout expansion occurred.
+The new head still requires genuine full natural CI capture and native
+validation; the original Draft/transport/production release holds remain.
