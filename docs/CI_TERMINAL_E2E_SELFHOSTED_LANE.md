@@ -120,23 +120,41 @@ readable by any slot user**: the minting loop runs as a dedicated `ghmint` accou
 in a **system** unit, and `ghmint` alone can read the credential. The loop hands
 the slot user only its one-shot JIT config and persists nothing.
 
-**A fresh runner directory and home per job.** Each cycle `ghmint` deletes and
-re-extracts the slot's runner directory from the pristine tarball and clears the
-slot home, so a job cannot leave a tampered `run.sh`, wrapper, npm cache or
-browser store for the next job on that slot (the job's `actions/cache` restores
-the per-slot Playwright store itself). The canary's caveat stands: registration
-alone does not clean the filesystem; this loop is what does.
+**A dead slot and a fresh filesystem before every job.** A job can try to outlive
+itself on its own slot: a `setsid` daemon that escapes the runner's orphan
+cleanup, a crontab or `at` entry, `~/.gitconfig` (`core.hooksPath`,
+`core.fsmonitor` run code on the next job's checkout), `~/.npmrc`, shell rc files,
+`~/.config`, `~/.local`, or files in `/tmp`, `/var/tmp`, `/dev/shm`. Anything that
+survives runs as `ghrunner-N`, the same uid as the next job's runner, and could
+read that job's `.credentials` or JIT config (`hidepid=2` hides nothing from a
+uid's own processes). So before minting, each cycle kills every process of the
+slot user, removes its crontab and `at` jobs, rebuilds the whole home from
+`/etc/skel`, deletes its files under the temp directories, and re-extracts the
+runner directory from the pristine tarball with mode 0700 on both the slot and
+the home (the job's `actions/cache` restores the per-slot Playwright store
+itself). The unit also runs with `PrivateTmp=yes`. The canary's caveat stands:
+registration alone does not clean the filesystem; this loop is what does.
 
 ```
-# system unit for slot N, running as ghmint; the org credential is readable only by ghmint.
-# sudoers: ghmint may run exactly /opt/actions-runner/slots/ubuntu0-e2e-N/run.sh as ghrunner-N.
-slot=/opt/actions-runner/slots/ubuntu0-e2e-N
+# system unit for slot N (PrivateTmp=yes), running as root for the reset and as ghmint
+# for minting; the org credential is readable only by ghmint. sudoers: ghmint may run
+# exactly /opt/actions-runner/slots/ubuntu0-e2e-N/run.sh as ghrunner-N, with
+# `Defaults!/opt/actions-runner/slots/ubuntu0-e2e-N/run.sh !log_allowed` so the
+# JIT blob on that command line is not written to the auth log.
+u=ghrunner-N; slot=/opt/actions-runner/slots/ubuntu0-e2e-N
 while :; do
-  rm -rf "$slot" /home/ghrunner-N/.npm /home/ghrunner-N/.cache
+  # 1. dead slot: no process, cron, at job or file of the previous job survives
+  loginctl terminate-user "$u" 2>/dev/null; pkill -KILL -u "$u"; sleep 1
+  crontab -r -u "$u" 2>/dev/null; for j in $(atq | awk -v u="$u" '$NF==u{print $1}'); do atrm "$j"; done
+  find /tmp /var/tmp /dev/shm -user "$u" -delete 2>/dev/null
+  rm -rf "/home/$u" "$slot"
+  mkdir -p "/home/$u" && cp -a /etc/skel/. "/home/$u/" && chown -R "$u:$u" "/home/$u" && chmod 0700 "/home/$u"
+  # 2. pristine runner tree, readable by this slot only
   mkdir -p "$slot" && tar xzf /opt/actions-runner/actions-runner-linux-x64.tar.gz -C "$slot"
-  chown -R ghrunner-N:ghrunner-N "$slot"
-  jit="$(mint-jitconfig ubuntu0-e2e-N self-hosted,linux,x64,ubuntu0-e2e <restricted-group-id>)"  # never echoed
-  sudo -u ghrunner-N "$slot/run.sh" --jitconfig "$jit"
+  chown -R "$u:$u" "$slot" && chmod 0700 "$slot"
+  # 3. one-shot JIT config, minted as ghmint, handed only to this run.sh
+  jit="$(sudo -u ghmint mint-jitconfig ubuntu0-e2e-N self-hosted,linux,x64,ubuntu0-e2e <restricted-group-id>)"  # never echoed
+  sudo -u "$u" "$slot/run.sh" --jitconfig "$jit"
 done
 ```
 
@@ -146,9 +164,10 @@ in a shared transcript: the JIT config blob on the command line is credential
 material for that one job.
 
 **What this does and does not bound.** With per-slot users, `hidepid=2`, JIT
-configs and a fresh directory and home per job, one approved run cannot read
-another slot's credentials or persist anything into later jobs through the runner
-tree or the slot home. It can still read anything world-readable on the host, use
+configs, 0700 slot and home directories, and a dead slot plus fresh home, runner
+tree and temp files before every job, one approved run cannot read another slot's
+credentials and cannot persist a process, cron entry, dotfile or file into a later
+job on its own slot. It can still read anything world-readable on the host, use
 the host's network position, and exhaust the host; those are the residual trust
 decision. Running this lane is a recorded administrator decision that every
 approved run of this repository (including a maintainer-approved fork run that
