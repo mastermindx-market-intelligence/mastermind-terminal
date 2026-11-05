@@ -61,7 +61,7 @@
 
 const { URL } = require("node:url");
 
-const POLICY_VERSION = "f11-provider-closed-policy/2";
+const POLICY_VERSION = "f11-provider-closed-policy/3";
 
 /** The complete, closed set of decisions this policy can return. */
 const DECISION_VALUES = Object.freeze(["continue", "fulfill", "abort"]);
@@ -158,6 +158,11 @@ function isAppDocument(url) {
 }
 
 function isStaticAssetPath(pathname) {
+  // URL preserves percent-encoded separators. Do not hand ambiguous names to
+  // a server-side decoder; encoded bracket names in actual Next chunks remain valid.
+  if (/%(?:25)*(?:2f|5c|0[0-9a-f]|1[0-9a-f]|7f)/i.test(pathname)) return false;
+  if (/(?:^|\/)(?:\.|%(?:25)*2e){1,2}(?:\/|$)/i.test(pathname)) return false;
+  try { decodeURIComponent(pathname); } catch { return false; }
   return STATIC_PATH_PATTERNS.some((pattern) => pattern.test(pathname));
 }
 

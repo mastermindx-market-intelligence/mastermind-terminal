@@ -593,3 +593,17 @@ test("no Next image optimizer path can forward an upstream/provider request", ()
     assert.equal(d.decision, "abort");
   }
 });
+
+test("encoded path separators cannot be forwarded as static files, while encoded Next bracket names remain allowed", () => {
+  for (const path of ["/_next/static/%2f..%2f..%2fapi/quote", "/_next/static/%5c..%5c..%5capi/quote"]) {
+    assert.equal(classifyRequest(req(`${BASE}${path}`, "GET", "script"), BASE).decision, "abort", path);
+  }
+  assert.equal(classifyRequest(req(`${BASE}/_next/static/chunks/%5Bproject%5D_app.js`, "GET", "script"), BASE).decision, "continue");
+});
+
+test("static path decoding ambiguities refuse without a blanket percent ban", () => {
+  for (const path of ["/_next/static/chunks/a%00.js", "/_next/static/chunks/a%0a.js", "/_next/static/chunks/a%7f.js", "/_next/static/%252fapi/quote", "/_next/static/%255capi/quote", "/_next/static/%252e%252e/api/quote", "/_next/static/chunks/%GG.js"]) {
+    assert.equal(classifyRequest(req(`${BASE}${path}`, "GET", "script"), BASE).decision, "abort", path);
+  }
+  assert.equal(classifyRequest(req(`${BASE}/_next/static/chunks/%5Bapp%5D/%5Bpage%5D.js`, "GET", "script"), BASE).decision, "continue");
+});
