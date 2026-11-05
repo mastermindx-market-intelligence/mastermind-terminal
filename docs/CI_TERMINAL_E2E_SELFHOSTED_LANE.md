@@ -127,36 +127,59 @@ cleanup, a crontab or `at` entry, `~/.gitconfig` (`core.hooksPath`,
 `~/.config`, `~/.local`, or files in `/tmp`, `/var/tmp`, `/dev/shm`. Anything that
 survives runs as `ghrunner-N`, the same uid as the next job's runner, and could
 read that job's `.credentials` or JIT config (`hidepid=2` hides nothing from a
-uid's own processes). So before minting, each cycle kills every process of the
-slot user, removes its crontab and `at` jobs, rebuilds the whole home from
-`/etc/skel`, deletes its files under the temp directories, and re-extracts the
-runner directory from the pristine tarball with mode 0700 on both the slot and
-the home (the job's `actions/cache` restores the per-slot Playwright store
-itself). The unit also runs with `PrivateTmp=yes`. The canary's caveat stands:
-registration alone does not clean the filesystem; this loop is what does.
+uid's own processes). So before minting, each cycle kills the previous job's
+**cgroup**, not its process list: `pkill` reads the list once, so a job that keeps
+forking can leave a child alive past a plain kill, and `loginctl terminate-user`
+does nothing here because job processes live in the unit's cgroup, not a logind
+session. Each job runs in its own child cgroup of the unit (`Delegate=yes`), the
+reset writes `1` to that cgroup's `cgroup.kill` (kernel 5.14+; on older kernels
+freeze the cgroup, then kill it) and waits until `cgroup.procs` is empty, and then
+**fails closed**: if `pgrep -u ghrunner-N` still finds anything, the slot stays
+down rather than minting a new config beside a survivor. After that the cycle
+removes the slot user's crontab and `at` jobs, rebuilds the whole home from
+`/etc/skel`, deletes its files under the temp and sticky directories, and
+re-extracts the runner directory from the pristine tarball with mode 0700 on both
+the slot and the home (the job's `actions/cache` restores the per-slot Playwright
+store itself). The unit also runs with `PrivateTmp=yes`. The canary's caveat
+stands: registration alone does not clean the filesystem; this loop is what does.
 
 ```
-# system unit for slot N (PrivateTmp=yes), running as root for the reset and as ghmint
-# for minting; the org credential is readable only by ghmint. sudoers: ghmint may run
-# exactly /opt/actions-runner/slots/ubuntu0-e2e-N/run.sh as ghrunner-N, with
-# `Defaults!/opt/actions-runner/slots/ubuntu0-e2e-N/run.sh !log_allowed` so the
-# JIT blob on that command line is not written to the auth log.
+# system unit for slot N (PrivateTmp=yes, Delegate=yes), running as root for the reset;
+# minting runs as ghmint, the only account that can read the org credential. The only
+# sudoers line this needs is
+#   Defaults!/opt/actions-runner/slots/ubuntu0-e2e-N/run.sh !log_allowed
+# so the JIT blob on that command line is not written to the auth log (root needs no
+# rule to run run.sh as ghrunner-N; nothing grants ghmint or ghrunner-N any sudo).
+# Do not replace the sudo with `systemd-run`: a transient unit's ExecStart, JIT blob
+# included, is readable by every user through `systemctl show`.
 u=ghrunner-N; slot=/opt/actions-runner/slots/ubuntu0-e2e-N
+unit_cg="/sys/fs/cgroup$(cut -d: -f3 /proc/self/cgroup)"; job_cg="$unit_cg/job"
 while :; do
-  # 1. dead slot: no process, cron, at job or file of the previous job survives
-  loginctl terminate-user "$u" 2>/dev/null; pkill -KILL -u "$u"; sleep 1
+  # 1. dead slot: kill the previous job's cgroup (not a process-list snapshot), then fail closed
+  if [ -d "$job_cg" ]; then
+    echo 1 > "$job_cg/cgroup.kill"
+    while [ -s "$job_cg/cgroup.procs" ]; do sleep 0.2; done
+    rmdir "$job_cg"
+  fi
+  pkill -KILL -u "$u"; sleep 1
+  if pgrep -u "$u" >/dev/null; then echo "slot $u still has a live process; not minting" >&2; exit 1; fi
   crontab -r -u "$u" 2>/dev/null; for j in $(atq | awk -v u="$u" '$NF==u{print $1}'); do atrm "$j"; done
-  find /tmp /var/tmp /dev/shm -user "$u" -delete 2>/dev/null
+  find /tmp /var/tmp /dev/shm /run/lock /var/crash /dev/mqueue -user "$u" -delete 2>/dev/null
   rm -rf "/home/$u" "$slot"
   mkdir -p "/home/$u" && cp -a /etc/skel/. "/home/$u/" && chown -R "$u:$u" "/home/$u" && chmod 0700 "/home/$u"
   # 2. pristine runner tree, readable by this slot only
   mkdir -p "$slot" && tar xzf /opt/actions-runner/actions-runner-linux-x64.tar.gz -C "$slot"
   chown -R "$u:$u" "$slot" && chmod 0700 "$slot"
-  # 3. one-shot JIT config, minted as ghmint, handed only to this run.sh
+  # 3. one-shot JIT config, minted as ghmint, handed only to this run.sh in a fresh job cgroup
   jit="$(sudo -u ghmint mint-jitconfig ubuntu0-e2e-N self-hosted,linux,x64,ubuntu0-e2e <restricted-group-id>)"  # never echoed
-  sudo -u "$u" "$slot/run.sh" --jitconfig "$jit"
+  mkdir "$job_cg"
+  ( echo $$ > "$job_cg/cgroup.procs" && exec sudo -u "$u" "$slot/run.sh" --jitconfig "$jit" )
 done
 ```
+
+The unit's `Restart=on-failure` must **not** be used to paper over the fail-closed
+`exit 1`: a slot that refuses to mint has a survivor on it and needs an operator to
+look, not an automatic retry beside it.
 
 The JIT config must carry **all four labels**; `runs-on` requires every label in
 the array. Never list runner processes with their arguments (`ps -f`, `pgrep -a`)
@@ -164,10 +187,11 @@ in a shared transcript: the JIT config blob on the command line is credential
 material for that one job.
 
 **What this does and does not bound.** With per-slot users, `hidepid=2`, JIT
-configs, 0700 slot and home directories, and a dead slot plus fresh home, runner
-tree and temp files before every job, one approved run cannot read another slot's
-credentials and cannot persist a process, cron entry, dotfile or file into a later
-job on its own slot. It can still read anything world-readable on the host, use
+configs, 0700 slot and home directories, a cgroup kill that fails closed, and a
+fresh home, runner tree and temp files before every job, one approved run cannot
+read another slot's credentials and cannot persist a process, cron entry, dotfile
+or file into a later job on its own slot (a leftover file in some other sticky
+directory is unreachable once no process survives to use it). It can still read anything world-readable on the host, use
 the host's network position, and exhaust the host; those are the residual trust
 decision. Running this lane is a recorded administrator decision that every
 approved run of this repository (including a maintainer-approved fork run that
