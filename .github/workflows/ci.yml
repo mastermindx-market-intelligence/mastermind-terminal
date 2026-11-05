@@ -65,11 +65,13 @@ jobs:
   terminal-unit:
     name: Terminal unit + typecheck (shard)
     runs-on: ubuntu-latest
-    # Existing stages had20min. Add bounded10min browser setup +55min captures
-    # +5min retention margin. Original30-case M2 report took1,018,995ms (~17min)
-    # before the24layout cases; this90min cap is not a hosted timing claim.
+    # Existing stages had20min. Add bounded15min browser setup +55min captures
+    # +5min retention margin. In run42049303027/job127320757815, apt took9m42s
+    # and browser downloads finished just past the former10min preparation cap.
+    # This95min allowance preserves downstream budgets; it is not a timing guarantee.
+    # Original30-case M2 report took1,018,995ms (~17min) before the24layout cases.
     # See8f1dc846: terminal/docs/pr-crops/terminal-visual-intelligence/asc1233-vi-ci-20261103--report.json.
-    timeout-minutes: 90
+    timeout-minutes: 95
     defaults:
       run:
         working-directory: terminal
@@ -103,7 +105,7 @@ jobs:
         timeout-minutes: 1
         run: node --test e2e/tools/capture_ci_evidence.test.cjs e2e/tools/capture_visual_evidence.test.cjs
       - name: Prepare Chromium for original mock captures
-        timeout-minutes: 10
+        timeout-minutes: 15
         run: npx playwright install --with-deps chromium
       - name: Capture and validate evidence on this checkout
         timeout-minutes: 55
