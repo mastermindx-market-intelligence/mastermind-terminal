@@ -271,8 +271,10 @@ describe("per-NAME freshness — the verdict grades the feed, but the badge is p
     assert.equal(out.SGML.basis, "DELAYED_15M", "a stale print cannot ride a fresh floor");
     assert.equal(out.SGML.live, false);
     assert.notEqual(out.SGML.source, "polygon-snapshot-rt");
-    // The measurement still rides along — the row is honest about its age either way.
-    assert.ok(out.SGML.lagMs > 5 * 3600_000, `lagMs=${out.SGML.lagMs}`);
+    // The day-price fallback has no proven print clock, even at the same numeric price.
+    assert.equal(out.SGML.last, 9.5);
+    assert.equal(out.SGML.asOfMs, undefined);
+    assert.equal(out.SGML.lagMs, undefined);
   });
 
   it("still adopts the SAME name once its own print is fresh — the bound is not a blanket refusal", async () => {
@@ -319,4 +321,451 @@ describe("the freshness floor spans the whole flush, not the last chunk", () => 
     assert.equal(v.floorLagMs, 3_000, "the floor is the youngest print in the whole flush");
     assert.equal(v.tier, "realtime");
   });
+});
+
+
+describe("snapshot market-clock eligibility through the quote response", () => {
+  const { parseSnapshot } = require("../lib/snapshot");
+  const { buildQuotesResponse } = require("../lib/quotes");
+  const anchor = { prevClose: 100, close: null, anchor_source: "daily_file" };
+
+  function clockRow(sym = "TEST", {
+    printMs = RTH - 4_000, origin = "lastTrade", updatedMs = RTH,
+    price = 102, close = 101,
+  } = {}) {
+    const value = {
+      ticker: sym, day: { o: 100, h: 104, l: 99, c: close, v: 1000 },
+      prevDay: { c: 100 }, updated: updatedMs * 1e6,
+    };
+    if (origin === "lastTrade") value.lastTrade = { p: price, t: printMs * 1e6 };
+    if (origin === "min") value.min = { c: price, t: printMs };
+    return value;
+  }
+
+  function clockStore(syms = ["TEST"]) {
+    const store = new Store("/dev/null/manifest.json", { get: () => anchor });
+    for (const sym of syms) store.quotes.set(sym, {
+      sym, last: 100, market: "us", live: false, source: "manifest", basis: "EOD",
+      regularSession: "closed", ts: Math.floor(RTH / 1000),
+    });
+    return store;
+  }
+
+  async function clockFeed(rows, { now = RTH, realtime = true, disabled = false } = {}) {
+    const feed = new SnapshotFeed({
+      apiKey: "synthetic-key", realtime, disabled,
+      fetchJson: async () => ({ tickers: rows }),
+    });
+    for (const value of rows) feed.demand(value.ticker, now);
+    await feed._flush(now);
+    return feed;
+  }
+
+  function response(store, feed, now = RTH, syms = ["TEST"], extra = {}) {
+    return buildQuotesResponse(syms, now, { store, snapshotFeed: feed, ...extra },
+      { includeExtended: false });
+  }
+
+  function assertUnmeasured(quote) {
+    assert.equal(quote.live, false);
+    assert.equal(quote.basis, "DELAYED_15M");
+    assert.equal(quote.asOfMs, undefined, "refresh time is not a print instant");
+    assert.equal(quote.lagMs, undefined, "unknown print age is not zero lag");
+  }
+
+  it("keeps an updated-only price without manufacturing feed or per-name freshness", async () => {
+    const feed = await clockFeed([clockRow("TEST", { origin: "updated" })]);
+    assert.equal(feed.verdict(RTH).tier, "unknown");
+    assert.equal(feed._floorLagMs, null);
+    assert.equal(feed.get("TEST", RTH).lagMs, null);
+    const quote = response(clockStore(), feed).TEST;
+    assert.equal(quote.last, 101);
+    assert.equal(quote.prevClose, 100);
+    assert.equal(quote.chg, 1);
+    assert.equal(quote.regularSessionDate, "2026-08-07");
+    assertUnmeasured(quote);
+  });
+
+  it("does not let a liquid sibling lend a refresh-only name a measured print instant", async () => {
+    const feed = await clockFeed([clockRow("GOOD"), clockRow("TEST", { origin: "updated" })]);
+    assert.equal(feed.verdict(RTH).tier, "realtime");
+    const quotes = response(clockStore(["TEST", "GOOD"]), feed, RTH, ["TEST", "GOOD"]);
+    assertUnmeasured(quotes.TEST);
+    assert.equal(quotes.GOOD.live, true);
+    assert.equal(quotes.GOOD.asOfMs, RTH - 4_000);
+  });
+
+  for (const [name, printMs] of [
+    ["future", RTH + 1], ["NaN", NaN], ["infinity", Infinity],
+    ["out of Date range", 1e100], ["zero", 0], ["negative", -1],
+  ]) {
+    it("refuses a " + name + " print clock while preserving a valid sibling and fallback price", async () => {
+      const feed = await clockFeed([clockRow("TEST", { printMs }), clockRow("GOOD")]);
+      assert.equal(feed._errors, 0, "a malformed clock must not abort its response chunk");
+      assert.equal(feed.verdict(RTH).floorLagMs, 4_000);
+      assert.equal(feed.get("TEST", RTH).lagMs, null);
+      const quotes = response(clockStore(["TEST", "GOOD"]), feed, RTH, ["TEST", "GOOD"]);
+      assert.equal(quotes.TEST.last, 101);
+      assertUnmeasured(quotes.TEST);
+      assert.equal(quotes.GOOD.last, 102);
+      assert.equal(quotes.GOOD.basis, "REALTIME");
+    });
+  }
+
+  for (const updatedMs of [NaN, Infinity, 1e100]) {
+    it("isolates an invalid snapshot date " + String(updatedMs) + " from valid siblings", async () => {
+      const invalid = clockRow("BAD", { updatedMs });
+      assert.doesNotThrow(() => parseSnapshot(invalid));
+      assert.equal(parseSnapshot(invalid), null);
+      const feed = await clockFeed([invalid, clockRow("GOOD")]);
+      assert.equal(feed._errors, 0);
+      assert.equal(feed.get("BAD", RTH), null);
+      assert.equal(feed.verdict(RTH).floorLagMs, 4_000);
+      assert.equal(response(clockStore(["GOOD"]), feed, RTH, ["GOOD"]).GOOD.last, 102);
+    });
+  }
+
+  for (const origin of ["lastTrade", "min"]) {
+    it("measures a genuine " + origin + " clock at fetch, read and response time", async () => {
+      const feed = await clockFeed([clockRow("TEST", { origin })]);
+      assert.equal(feed.verdict(RTH).floorLagMs, 4_000);
+      assert.equal(feed.get("TEST", RTH + 2_000).lagMs, 6_000);
+      const quote = response(clockStore(), feed, RTH + 2_000).TEST;
+      assert.equal(quote.last, 102);
+      assert.equal(quote.ts, Math.floor((RTH - 4_000) / 1000));
+      assert.equal(quote.asOfMs, RTH - 4_000);
+      assert.equal(quote.lagMs, 6_000);
+      assert.equal(quote.basis, "REALTIME");
+    });
+  }
+
+  it("falls back from an unrepresentable trade timestamp to a genuine minute clock", async () => {
+    const value = clockRow("TEST", { printMs: 1e100 });
+    value.min = { c: 103, t: RTH - 5_000 };
+    const feed = await clockFeed([value]);
+    assert.equal(feed._errors, 0);
+    assert.equal(feed.get("TEST", RTH).printFrom, "min");
+    const quote = response(clockStore(), feed).TEST;
+    assert.equal(quote.last, 103);
+    assert.equal(quote.asOfMs, RTH - 5_000);
+  });
+
+  for (const [age, tier] of [
+    [2 * 60_000, "realtime"], [2 * 60_000 + 1, "delayed"],
+    [20 * 60_000, "delayed"], [20 * 60_000 + 1, "unknown"],
+  ]) {
+    it("preserves the feed boundary at age " + age, async () => {
+      const feed = await clockFeed([clockRow("TEST", { printMs: RTH - age })]);
+      assert.equal(feed.verdict(RTH).tier, tier);
+    });
+  }
+
+  for (const age of [15 * 60_000, 15 * 60_000 + 1]) {
+    it("preserves the per-name boundary at age " + age + " under a fresh sibling floor", async () => {
+      const feed = await clockFeed([clockRow("GOOD"), clockRow("TEST", { printMs: RTH - age })]);
+      const quote = response(clockStore(), feed).TEST;
+      assert.equal(quote.live, age === 15 * 60_000);
+      if (age === 15 * 60_000) {
+        assert.equal(quote.last, 102);
+        assert.equal(quote.asOfMs, RTH - age);
+        assert.equal(quote.lagMs, age);
+      } else {
+        assert.equal(quote.last, 101);
+        assertUnmeasured(quote);
+      }
+    });
+  }
+
+  it("checks the actual ET print date instead of trusting a forged date label", async () => {
+    const feed = await clockFeed([clockRow("TEST", { printMs: RTH - 24 * 3600_000 })]);
+    const cached = feed._cache.get("TEST");
+    cached.snap.printDate = "2026-08-07";
+    feed._floorLagMs = 1;
+    feed._floorAt = RTH;
+    assert.equal(feed.get("TEST", RTH).lagMs, null);
+    assertUnmeasured(response(clockStore(), feed).TEST);
+  });
+
+  it("uses ET, not the UTC date, across the midnight boundary", async () => {
+    const now = Date.UTC(2026, 7, 7, 4, 30); // 00:30 ET
+    const previousET = Date.UTC(2026, 7, 7, 3, 59); // same UTC date, prior ET date
+    const feed = await clockFeed([clockRow("TEST", { printMs: previousET, updatedMs: now })], { now });
+    assert.equal(feed.get("TEST", now).lagMs, null);
+    assert.equal(feed.verdict(now).tier, "closed");
+    assertUnmeasured(response(clockStore(), feed, now).TEST);
+  });
+
+  for (const now of [NaN, Infinity, 1e100]) {
+    it("refuses an invalid decision clock " + String(now) + " without date conversion failure", async () => {
+      const feed = await clockFeed([clockRow()]);
+      assert.equal(feed.get("TEST", now), null);
+      assert.equal(feed.getCompleted("TEST", now, 101), null);
+      assert.equal(feed.verdict(now).tier, "unknown");
+      assert.deepEqual(response(clockStore(), feed, now), {});
+    });
+  }
+
+  it("refuses an invalid flush clock before any transport or cache observation", async () => {
+    const feed = new SnapshotFeed({
+      apiKey: "synthetic-key", realtime: true,
+      fetchJson: async () => assert.fail("invalid decision clock reached transport"),
+    });
+    feed._pending.add("TEST");
+    for (const now of [NaN, Infinity, 1e100]) await feed._flush(now);
+    assert.equal(feed._cache.size, 0);
+    assert.equal(feed._lastOkAt, null);
+    assert.equal(feed.verdict(RTH).tier, "unknown");
+  });
+
+  it("does not grade a measurement observed after the decision clock", async () => {
+    const feed = await clockFeed([clockRow()]);
+    assert.equal(feed.verdict(RTH).tier, "realtime");
+    assert.equal(feed.verdict(RTH - 1).tier, "unknown");
+  });
+
+  it("revalidates clock origin and lag in Store even when an injected feed overclaims", () => {
+    const snap = parseSnapshot(clockRow("TEST", { origin: "updated" }));
+    const feed = { get: () => ({ ...snap, lagMs: 0 }), verdict: () => ({ tier: "realtime" }) };
+    assertUnmeasured(response(clockStore(), feed).TEST);
+  });
+
+  it("keeps the realtime mode and disabled feed policies intact", async () => {
+    const off = await clockFeed([clockRow()], { realtime: false });
+    const quote = response(clockStore(), off).TEST;
+    assert.equal(off.verdict(RTH).tier, "off");
+    assert.equal(quote.live, false);
+    assert.equal(quote.last, 101);
+    assertUnmeasured(quote);
+    let fetches = 0;
+    const disabled = new SnapshotFeed({
+      apiKey: "synthetic-key", realtime: true, disabled: true,
+      fetchJson: async () => { fetches++; assert.fail("disabled feed called transport"); },
+    });
+    disabled.demand("TEST", RTH);
+    await disabled._flush(RTH);
+    assert.equal(disabled.verdict(RTH).tier, "off");
+    assert.equal(disabled.get("TEST", RTH), null);
+    assert.equal(fetches, 0);
+  });
+
+  it("preserves the closed-session fallback and regular-view extended-feed boundary", async () => {
+    const now = Date.UTC(2026, 7, 8, 1, 0); // Friday 21:00 ET, same ET session date
+    const feed = await clockFeed([clockRow("TEST", { origin: "updated", updatedMs: now })], { now });
+    assert.equal(feed.verdict(now).tier, "closed");
+    const quote = response(clockStore(), feed, now, ["TEST"], {
+      extFeed: { getExt: () => assert.fail("regular view reached extended feed") },
+    }).TEST;
+    assert.equal(quote.last, 101);
+    assert.equal(quote.close, 101);
+    assert.equal(quote.marketSession, "overnight");
+    assertUnmeasured(quote);
+  });
+
+  it("preserves the explicit zero-day premarket exclusion", () => {
+    const value = clockRow();
+    value.day.c = 0;
+    assert.equal(parseSnapshot(value), null);
+  });
+
+  it("recovers from refresh-only fallback even when the genuine print precedes its refresh timestamp", async () => {
+    const store = clockStore();
+    const first = await clockFeed([clockRow("TEST", { origin: "updated" })]);
+    assertUnmeasured(response(store, first).TEST);
+    store.setQuote("TEST", { vol: 2000 }, RTH);
+    const next = await clockFeed([clockRow("TEST", { printMs: RTH - 3_000 })]);
+    const quote = response(store, next).TEST;
+    assert.equal(quote.last, 102);
+    assert.equal(quote.basis, "REALTIME");
+    assert.equal(quote.asOfMs, RTH - 3_000);
+  });
+
+  it("recovers from a day-price fallback when a newer realtime print becomes available", async () => {
+    const store = clockStore();
+    const first = await clockFeed([clockRow("TEST", { printMs: RTH - 30_000 })], { realtime: false });
+    response(store, first);
+    const next = await clockFeed([clockRow("TEST", { printMs: RTH - 3_000 })]);
+    const quote = response(store, next).TEST;
+    assert.equal(quote.basis, "REALTIME");
+    assert.equal(quote.asOfMs, RTH - 3_000);
+  });
+
+  it("does not turn a timestamp-only heartbeat into market-event precedence", async () => {
+    const store = clockStore();
+    response(store, await clockFeed([clockRow("TEST", { origin: "updated" })]));
+    store.setQuote("TEST", { ts: Math.floor(RTH / 1000) + 1 }, RTH + 1_000);
+    const quote = response(store, await clockFeed([clockRow()]), RTH + 1_000).TEST;
+    assert.equal(quote.last, 102);
+    assert.equal(quote.basis, "REALTIME");
+  });
+
+  for (const samePrice of [false, true]) {
+    it("preserves a genuine newer stream partial with " + (samePrice ? "unchanged" : "changed") + " price and inherited source", async () => {
+      const store = clockStore();
+      response(store, await clockFeed([clockRow()]));
+      const last = samePrice ? 102 : 103;
+      store.setQuote("TEST", { last, ts: Math.floor((RTH - 1_000) / 1000) }, RTH);
+      const quote = response(store, await clockFeed([clockRow("TEST", { printMs: RTH - 2_000, price: 104 })])).TEST;
+      assert.equal(quote.last, last, "older REST print must not replace the actual stream observation");
+      assert.equal(quote.ts, Math.floor((RTH - 1_000) / 1000));
+      assert.equal(quote.asOfMs, undefined, "AM partial does not inherit a snapshot's measured instant");
+      assert.equal(quote.lagMs, undefined);
+    });
+  }
+
+  it("keeps the existing seconds-level stream tie rule after a snapshot-to-stream transition", async () => {
+    const store = clockStore();
+    response(store, await clockFeed([clockRow()]));
+    store.setQuote("TEST", { last: 103, ts: Math.floor((RTH - 2_000) / 1000) }, RTH);
+    const quote = response(store, await clockFeed([clockRow("TEST", { printMs: RTH - 1_500, price: 104 })])).TEST;
+    assert.equal(quote.last, 103);
+  });
+
+  it("retains the measured fields supplied by a genuine second-aggregate partial", async () => {
+    const store = clockStore();
+    response(store, await clockFeed([clockRow()]));
+    const asOfMs = RTH - 500;
+    store.setQuote("TEST", {
+      last: 103, ts: Math.floor(asOfMs / 1000), asOfMs, lagMs: 500,
+      regularSession: "rth", regularSessionDate: "2026-08-07",
+      source: "polygon-live-second", basis: "REALTIME", live: true,
+    }, RTH);
+    const quote = response(store, await clockFeed([clockRow()])).TEST;
+    assert.equal(quote.last, 103);
+    assert.equal(quote.asOfMs, asOfMs);
+    assert.equal(quote.lagMs, 500);
+    assert.equal(quote.source, "polygon-live-second");
+  });
+
+  it("keeps internal clock provenance out of serialized quotes and preserves Store recovery after a regular-view copy", async () => {
+    const store = clockStore();
+    const body = response(store, await clockFeed([clockRow("TEST", { origin: "updated" })]));
+    const allowed = new Set([
+      "sym", "last", "market", "live", "source", "basis", "regularSession", "ts",
+      "prevClose", "chg", "anchor_source", "marketSession", "regularSessionDate",
+      "open", "high", "low", "vol", "asOfMs", "lagMs",
+    ]);
+    for (const key of Object.keys(JSON.parse(JSON.stringify(body)).TEST)) {
+      assert.ok(allowed.has(key), "unexpected public field: " + key);
+    }
+    body.TEST.ts = 1e100;
+    body.TEST.last = 999;
+    store.setQuote("TEST", { amount: 1000 }, RTH);
+    const recovered = response(store, await clockFeed([clockRow()])).TEST;
+    assert.equal(recovered.last, 102);
+    assert.equal(recovered.asOfMs, RTH - 4_000);
+  });
+
+
+  for (const origin of ["lastTrade", "min"]) {
+    it("recovers an off-feed day-price fallback from the same " + origin + " observation", async () => {
+      const store = clockStore();
+      const value = clockRow("TEST", { origin });
+      const first = response(store, await clockFeed([value], { realtime: false })).TEST;
+      assert.equal(first.last, 101);
+      assertUnmeasured(first);
+      const recovered = response(store, await clockFeed([value])).TEST;
+      assert.equal(recovered.last, 102);
+      assert.equal(recovered.asOfMs, RTH - 4_000);
+      assert.equal(recovered.lagMs, 4_000);
+      assert.equal(recovered.basis, "REALTIME");
+    });
+
+    it("recovers a delayed-feed day-price fallback when a sibling qualifies the same " + origin + " observation", async () => {
+      const store = clockStore();
+      const value = clockRow("TEST", { origin, printMs: RTH - 3 * 60_000 });
+      const delayed = await clockFeed([value]);
+      assert.equal(delayed.verdict(RTH).tier, "delayed");
+      const first = response(store, delayed).TEST;
+      assert.equal(first.last, 101);
+      assertUnmeasured(first);
+      const realtime = await clockFeed([value, clockRow("GOOD")]);
+      assert.equal(realtime.verdict(RTH).tier, "realtime");
+      const recovered = response(store, realtime).TEST;
+      assert.equal(recovered.last, 102);
+      assert.equal(recovered.asOfMs, RTH - 3 * 60_000);
+      assert.equal(recovered.lagMs, 3 * 60_000);
+      assert.equal(recovered.basis, "REALTIME");
+    });
+
+    it("keeps a stale-name day-price fallback unmeasured until a fresh " + origin + " price is adopted", async () => {
+      const store = clockStore();
+      const stale = clockRow("TEST", { origin, printMs: RTH - 15 * 60_000 - 1 });
+      const feed = await clockFeed([stale, clockRow("GOOD")]);
+      assert.equal(feed.verdict(RTH).tier, "realtime");
+      const first = response(store, feed).TEST;
+      assert.equal(first.last, 101);
+      assertUnmeasured(first);
+      const recovered = response(store, await clockFeed([
+        clockRow("TEST", { origin, printMs: RTH - 3_000, price: 103 }),
+      ])).TEST;
+      assert.equal(recovered.last, 103);
+      assert.equal(recovered.asOfMs, RTH - 3_000);
+      assert.equal(recovered.lagMs, 3_000);
+      assert.equal(recovered.basis, "REALTIME");
+    });
+
+    it("preserves actual adopted " + origin + " price precedence and a strictly newer subsecond observation", async () => {
+      const store = clockStore();
+      const firstMs = RTH - 3_800;
+      const first = response(store, await clockFeed([
+        clockRow("TEST", { origin, printMs: firstMs, price: 102 }),
+      ])).TEST;
+      assert.equal(first.last, 102);
+      assert.equal(first.asOfMs, firstMs);
+      for (const printMs of [RTH - 3_900, firstMs]) {
+        const kept = response(store, await clockFeed([
+          clockRow("TEST", { origin, printMs, price: 104 }),
+        ])).TEST;
+        assert.equal(kept.last, 102);
+        assert.equal(kept.asOfMs, firstMs);
+      }
+      const nextMs = RTH - 3_200;
+      const next = response(store, await clockFeed([
+        clockRow("TEST", { origin, printMs: nextMs, price: 103 }),
+      ])).TEST;
+      assert.equal(Math.floor(firstMs / 1000), Math.floor(nextMs / 1000));
+      assert.equal(next.last, 103);
+      assert.equal(next.asOfMs, nextMs);
+      assert.equal(next.lagMs, 3_200);
+    });
+  }
+
+  it("does not infer day-price clock provenance from equality with an unused print price", async () => {
+    const value = clockRow("TEST", { price: 101, close: 101 });
+    const quote = response(clockStore(), await clockFeed([value], { realtime: false })).TEST;
+    assert.equal(quote.last, 101);
+    assertUnmeasured(quote);
+  });
+
+  it("does not stamp a closed-session day-price fallback with its unused trade clock", async () => {
+    const now = Date.UTC(2026, 7, 8, 1, 0);
+    const value = clockRow("TEST", { printMs: now - 4_000, updatedMs: now });
+    const feed = await clockFeed([value], { now });
+    assert.equal(feed.verdict(now).tier, "closed");
+    const quote = response(clockStore(), feed, now).TEST;
+    assert.equal(quote.last, 101);
+    assert.equal(quote.close, 101);
+    assert.equal(quote.marketSession, "overnight");
+    assertUnmeasured(quote);
+  });
+
+  for (const partial of [
+    { last: 105 },
+    { last: 105, ts: String(Math.floor(RTH / 1000)) },
+    { last: 105, ts: Infinity },
+    { last: 105, ts: Math.floor(RTH / 1000) + 1 },
+    { last: 105, ts: Math.floor(RTH / 1000), regularSession: "closed" },
+  ]) {
+    it("removes measured snapshot fields from a value replacement without a genuine market clock " + JSON.stringify(partial), async () => {
+      const store = clockStore();
+      response(store, await clockFeed([clockRow()]));
+      const replaced = store.setQuote("TEST", partial, RTH);
+      assert.equal(replaced.last, 105);
+      assert.equal(replaced.asOfMs, undefined);
+      assert.equal(replaced.lagMs, undefined);
+      const recovered = response(store, await clockFeed([clockRow("TEST", { printMs: RTH - 3_000 })])).TEST;
+      assert.equal(recovered.last, 102);
+      assert.equal(recovered.basis, "REALTIME");
+    });
+  }
 });

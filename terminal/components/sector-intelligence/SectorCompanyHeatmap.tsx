@@ -349,7 +349,10 @@ export default function SectorCompanyHeatmap(props: SectorCompanyHeatmapProps) {
                     aria-label={`${company.tile.ticker} · ${company.tile.name} · ${formatValue(company.value, 2, "%", true)} · ${capLabel(company.tile.size)}`}
                     style={{ left: `${(company.x - industry.x) / industry.w * 100}%`, top: `${(company.y - industry.y) / industry.h * 100}%`, width: `${company.w / industry.w * 100}%`, height: `${company.h / industry.h * 100}%`, ...colorStyle(company.value, layout.domain) }}
                     onClick={event => { event.currentTarget.focus({ preventScroll: true }); props.onCompany(company.tile.ticker); }}>
-                    {!tiny && <><strong>{company.tile.ticker}</strong>{!compact && <><span>{formatValue(company.value, 2, "%", true)}</span><small>{capLabel(company.tile.size)}</small></>}</>}
+                    {!tiny && <span className={styles.tileLabel} data-heatmap-label>
+                      <strong>{company.tile.ticker}</strong>
+                      {!compact && <><span>{formatValue(company.value, 2, "%", true)}</span><small>{capLabel(company.tile.size)}</small></>}
+                    </span>}
                   </button>;
                 })}
               </section>)}

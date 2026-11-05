@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { createHash } from "node:crypto";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { createFixtureDb, fixtureUserId, FIXTURE_STORE_COOKIE } from "@/lib/watchlistsFixtureDb";
@@ -8,16 +9,19 @@ import {
   buildAccountExport,
   exportFilename,
   readChartLayoutsForExport,
+  readChartDrawingsForExport,
+  readAlertsForExport,
   readSavedScriptsForExport,
   readWatchlistsForExport,
   serializeCsv,
   serializeJson,
   type ExportFormat,
 } from "@/lib/accountExport";
+import { sealAccountExport } from "@/lib/accountExportIntegrity";
 
 // Owner-scoped account-data export (B-F12-4 / MO-PAID-086).
 //
-// Terminal-owned tables (watchlists, portfolio_positions, saved_scripts, chart_layouts) — reusing
+// Terminal-owned tables (watchlists, portfolio_positions, saved_scripts, chart_layouts, drawings, alerts) — reusing
 // the same anon-key, cookie-session, RLS-scoped server client `portfolio/route.ts` and
 // `watchlist/route.ts` already use. No service-role key, no second auth plane (F12 do_not_redo).
 // Scripts/layouts are a per-collection point-in-time page on that client; they are not a
@@ -76,17 +80,19 @@ export async function GET(req: Request): Promise<Response> {
     );
   }
 
-  const [watchlists, positionsRead, savedScripts, chartLayouts] = await Promise.all([
+  const [watchlists, positionsRead, savedScripts, chartLayouts, chartDrawings, alerts] = await Promise.all([
     readWatchlistsForExport(session.db, session.userId),
     readPositions(session.db, session.userId),
     readSavedScriptsForExport(session.db, session.userId),
     readChartLayoutsForExport(session.db, session.userId),
+    readChartDrawingsForExport(session.db, session.userId),
+    readAlertsForExport(session.db, session.userId),
   ]);
   const positions = positionsRead.ok
     ? ({ ok: true, positions: positionsRead.positions } as const)
     : ({ ok: false, error: positionsRead.error } as const);
 
-  if (!watchlists.ok && !positions.ok && !savedScripts.ok && !chartLayouts.ok) {
+  if (!watchlists.ok && !positions.ok && !savedScripts.ok && !chartLayouts.ok && !chartDrawings.ok && !alerts.ok) {
     return NextResponse.json({ error: "export unavailable" }, { status: 503 });
   }
 
@@ -100,10 +106,23 @@ export async function GET(req: Request): Promise<Response> {
     positions,
     saved_scripts: savedScripts,
     chart_layouts: chartLayouts,
+    chart_drawings: chartDrawings,
+    alerts,
   });
 
-  const body = format === "csv" ? serializeCsv(doc) : serializeJson(doc);
-  const secretCheck = assertNoSecrets(body);
+  const sha256 = (text: string) => createHash("sha256").update(text, "utf8").digest("hex");
+  let body: string;
+  let sealed;
+  try {
+    sealed = sealAccountExport(doc, { started_at: new Date(now).toISOString(), finished_at: new Date().toISOString() }, sha256);
+    body = format === "csv" ? serializeCsv(sealed, sha256) : serializeJson(sealed);
+  } catch {
+    return NextResponse.json({ error: "export_withheld" }, { status: 500 });
+  }
+  // Scan the logical JSON before either transport: CSV quoting must not hide
+  // credential-shaped keys in nested raw drawings/alert definitions.
+  const logicalSecretCheck = assertNoSecrets(serializeJson(sealed));
+  const secretCheck = logicalSecretCheck.ok ? assertNoSecrets(body) : logicalSecretCheck;
   if (!secretCheck.ok) {
     console.error("account export withheld: secret-shaped content detected", secretCheck.hit);
     return NextResponse.json({ error: "export_withheld" }, { status: 500 });
@@ -113,7 +132,7 @@ export async function GET(req: Request): Promise<Response> {
     status: 200,
     headers: {
       "Content-Type": format === "csv" ? "text/csv; charset=utf-8" : "application/json; charset=utf-8",
-      "Content-Disposition": `attachment; filename="${exportFilename(doc, format)}"`,
+      "Content-Disposition": `attachment; filename="${exportFilename(sealed, format)}"`,
       "Cache-Control": "no-store",
       "X-Content-Type-Options": "nosniff",
     },

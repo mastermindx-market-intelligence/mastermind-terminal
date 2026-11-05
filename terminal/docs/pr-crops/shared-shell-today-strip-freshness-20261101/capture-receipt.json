@@ -1,0 +1,92 @@
+{
+  "kind": "ISOLATED_ACTUAL_TODAY_COMPONENT_FIXTURE",
+  "sourceBase": "master e0f9d406 + the slice 2 working tree hashed below",
+  "qualification": "Local fixture capture of the real TodayWorkspace and TodayBreadthReading components. The Supabase SDK, onboarding and next/link are mocked and the harness answers every /api/* request. Not authenticated, not live data, not a beta or production claim.",
+  "clocks": {
+    "live": "2026-11-02T15:30:00Z (Monday 10:30 New York, live breadth matrix)",
+    "other": "2026-11-01T12:00:00Z (Sunday 07:00 New York, stale/aged/unavailable modes)"
+  },
+  "commands": {
+    "node": "v26.5.0",
+    "browser": "Playwright chromium (headless)",
+    "run": "CAPTURE_SOURCE_HEAD=<sha> node docs/pr-crops/shared-shell-today-strip-freshness-20261101/today/capture.mjs"
+  },
+  "cells": 28,
+  "minContrast": 5.55,
+  "sha256": {
+    "sources": {
+      "components/workspaces/TodayWorkspace.tsx": "e165bca808071ca4808741135efd584660763869b678cdfd015d00953212e03b",
+      "components/workspaces/TodayWorkspace.module.css": "abce865f290216450019ef47bb9e6714b70c94d0bd35adb8ee124965851b6d74",
+      "components/workspaces/TodayBreadthReading.tsx": "58706fabd0019981fbe51fd04b888a849587ed6460004ebd03176c5f0d7cb139",
+      "lib/shared-shell/readingFreshness.ts": "0d5e9cf5b034ef618e81175dde09ce1946ccf0a26ec96fbf5e65583eabb919dc",
+      "lib/shared-shell/marketBreadth.ts": "0680c5fc8fb7e685b01c7e9c3805e73cd5c2047af89e3f8de5d1b2ceab198294",
+      "app/api/market-breadth/route.ts": "3f44955a0d6082aeffccd3d02028a809b2594f19f9238417beb92c71474b975e",
+      "app/globals.css": "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517",
+      "components/chrome/shared-shell/shared-shell.css": "aa6555ac18306f31fb317d8941bd1dd530ab7c61c18e67d2a73a439329950339"
+    },
+    "harness": {
+      "docs/pr-crops/shared-shell-today-strip-freshness-20261101/today/capture.mjs": "cd53915b129920ebbf1a2157a6508894718e271ed7852511eae57d9d1ef0fe2e"
+    },
+    "report": {
+      "docs/pr-crops/shared-shell-today-strip-freshness-20261101/today/report.json": "608e82f0120e735ad3df5ef6d50a31ecc9c5979b7a2113f2e91dbed3572e445a"
+    },
+    "captures": {
+      "1440-dark-en-aged-strip.png": "1c464b23813a0ecb4aaaaa839a1ab47478aad7de15651f3394a1553c12471e5f",
+      "1440-dark-en-aged.png": "a0cb1599972d02dafa30a101e8a372a0425ce993eb7eddb790cb90128a3bb537",
+      "1440-dark-en-mixed-strip.png": "8c929c294a2f45568b8f160fd35b04a40033bb7a4095085b1185830807601d98",
+      "1440-dark-en-mixed.png": "d11356ddb7b274a4bf2f5a0b05c9c89a0de986a46fa27fcbd358608ef66088b5",
+      "1440-dark-en-stale-strip.png": "30d5807b970f0d5745a693ea3b7e77be3c080666eb3a3b6b5f5e10bde0733cb7",
+      "1440-dark-en-stale.png": "c395508d8a1b4c4305edad484e400f438b3e214076c97315432481fc1b9e19d7",
+      "1440-dark-en-unavailable-strip.png": "96a57901594f90f4037a818e58aa2d93e4ba550a43c064c3ec109bb5e2f94983",
+      "1440-dark-en-unavailable.png": "cb36e42508d13811388f1dc9b50f2150ffc8d7c2016012021f02cd19899b9c97",
+      "1440-dark-zh-mixed-strip.png": "e63ebb8d339b1202c06bec2895bb3af77492fc76bfb07201f647fcc145a9f83a",
+      "1440-dark-zh-mixed.png": "e0b1ab1fdae92a2c569eeb5c18b09043a56af0c243a142591df7219e1a54c156",
+      "1440-light-en-aged-strip.png": "17c95a8a0a01d4853d8335f5eba3694fa3e4c3eb7bbcb8aabe9d54483c5e2d79",
+      "1440-light-en-aged.png": "9a0657d9aa06c55114b8df6cc0dd5c44687f17657710d1f4bb647d77ea551dfc",
+      "1440-light-en-mixed-strip.png": "59075093aa124e7d1ed01abe96b2616f11ae1e0c2b636e0b0483ee3f18fc763a",
+      "1440-light-en-mixed.png": "620fd9b4e151ef1274a46b61d233e2464e13936bbd4906c54e3afdba4d6322a5",
+      "1440-light-en-stale-strip.png": "c4f765dac82d64bda53c1021bb6ed1c34dbad7af980f37e7120c0006960ac7f8",
+      "1440-light-en-stale.png": "1f7a5dbf1f5cc85d9f7a6cd9a92a7c5491f37ef0c287db448ca6051dc7cfaf87",
+      "1440-light-en-unavailable-strip.png": "e5e61d19121ba3e54b2f165b05dae2ecdf81eb331e03f7742cd165baa5e84a36",
+      "1440-light-en-unavailable.png": "7d9fc0b1c2a8364ebf8d9502085f2480e8b9f59354512aad25e89dadc4ea64b7",
+      "1440-light-zh-mixed-strip.png": "ff0bc2a15ff0407ccc92821207e3c4311d4d183d9111d3cc9290d48bca3d3b57",
+      "1440-light-zh-mixed.png": "bb0eb45cf23ebf9427923155d17c3c6823f427acacf7e3b9ca7674321e8304dd",
+      "320-dark-en-mixed-strip.png": "4d88ad81caae4933842a8eda9415e0ac88252fd431900d2c8a0a50d254ca8369",
+      "320-dark-en-mixed.png": "50c4340ad550dc8f81d4dfed75c3dce247932804baf50de793a3c4d43094e172",
+      "320-dark-zh-mixed-strip.png": "f14de7a0e2743e083753a3b01f9d5a6f7f8c64be813f6ad7bcfe5df7483cc1cc",
+      "320-dark-zh-mixed.png": "6c1845d48e632843c405e35c90d61495ec6ef7a023388334ee2254566cdfbe5b",
+      "320-light-en-mixed-strip.png": "3861da512bb98c869c89a65bef5fced3a40de7089d19ae804c834995405cb472",
+      "320-light-en-mixed.png": "0b0686e7cd7e9b0f1503c91193df1dca34958f8945ee0ce33a4cdb0ab2efc505",
+      "320-light-zh-mixed-strip.png": "61e1eb2871666f3affe937244bd45cf088f48632dd9c54a55bd5026944743fb3",
+      "320-light-zh-mixed.png": "8b6f6b9f0c8f5cf12ca781a302649fd6540dc11a96e93428dc644676cb4d7a29",
+      "390-dark-en-mixed-strip.png": "0a66d91228b77a08ace0dd16ca1edffa07efcf295e17f3e20a56dd1ec2811325",
+      "390-dark-en-mixed.png": "b3fc202cb425193faed8359a65bfa9aa45c9d4127b6c53d028ce2b38501ec49f",
+      "390-dark-zh-aged-strip.png": "2d6b1711c744319fdb5c01dd924c1c33e9050f6d12682936abe35c4513986e4b",
+      "390-dark-zh-aged.png": "0331736d733d62529a8592cff6feb1241d3b44234b901558e18af155e611cdc8",
+      "390-dark-zh-mixed-strip.png": "1b7df8132a608f05404ecfe0580446f92cae68199e60e4234b8223f45b9a0f46",
+      "390-dark-zh-mixed.png": "abb0db66ddbe619b494149f9dd0c85bbcb0ae860528360bb4d384c62f8b9dee1",
+      "390-dark-zh-stale-strip.png": "2d8997291b03601686d93b52f620d5180d0716fbf02e802dd3e54ccd6c45bb7d",
+      "390-dark-zh-stale.png": "5dfb490175734dbdb1690efeb404269d6e5b0bb3db33ef215136cfcae7d62fe9",
+      "390-dark-zh-unavailable-strip.png": "2a3f3cc18b1bc5b7a0b2c53d909e9e7132b329511f5ffca34c7fef43cbcea707",
+      "390-dark-zh-unavailable.png": "d04db689a0dd425aa2e49d6084999e3daf179b00e3a86b838c6224c30d295a8b",
+      "390-light-en-mixed-strip.png": "8226556e9b274bec4fe8a7fdfc55f032f99ee8e3070d0c69d79d5d02cfb858a8",
+      "390-light-en-mixed.png": "fc69946bb8e60fefa9b6c9ddf39e27663e3a6865ec31b1ef211a4af0100a20a6",
+      "390-light-zh-aged-strip.png": "8fc45940ef3f36838b589084f571d635b820562aa54679a9e05e6645f334c191",
+      "390-light-zh-aged.png": "6a99b4857d6410b2a74d2f3cdf9c1dfa4c127fdc4f511cf9548b3f45b4d6e48d",
+      "390-light-zh-mixed-strip.png": "b78c33a53f9597ae9be169cda20f5afdf2d3ea0f8bb2ad6bbb8e932728aa1f2a",
+      "390-light-zh-mixed.png": "5cf161bd94a2d1f3e66e8dcffffe42a0ac6178b428a4df394099f4013a2401ad",
+      "390-light-zh-stale-strip.png": "9091e57b071e63b11de974a12840f183505cf7ee263aed8d4ea17a58029217ca",
+      "390-light-zh-stale.png": "7837eb129843f9a518c34a561b1c0fedb9641893f650e66394046c6373617c2b",
+      "390-light-zh-unavailable-strip.png": "250200e604b461de5fb211b97e3a9d4609707b059888fce28d7a9ac9ca01792c",
+      "390-light-zh-unavailable.png": "7b7e1e83103a34cc79ec043b58ec2cd5cf3716324f88c0bb3b1140c3408dbb6b",
+      "820-dark-en-mixed-strip.png": "d7880038cd411cefeebc83fe8b3948e54ec33d6b88c83f75421dad9d4100964d",
+      "820-dark-en-mixed.png": "e9804674798dd0b844acfbc3fef0096166ef5e6f97c03bf15d9a41f801797643",
+      "820-dark-zh-mixed-strip.png": "fb43534195c83bfd472094d98e2c8bf10760f10dca06a0bd556c5e05358d1774",
+      "820-dark-zh-mixed.png": "44089f6d48846cb865da424744ac21cdc1452e152cc3a3fa91209a11cb3706df",
+      "820-light-en-mixed-strip.png": "a14b5c611ee4345cc43767fc1423ae8e0338ff9465b47e97dd57403242cd871a",
+      "820-light-en-mixed.png": "afa0ede4682f7678243f1470c819aa729b40d76354a2aaa2cf6e20fde894a771",
+      "820-light-zh-mixed-strip.png": "eeba2a84af6d9f2c55e9577786b6d4bae303b794568cc7aa986a373b95b099d6",
+      "820-light-zh-mixed.png": "6723556bf627ad2b05fa1f6a957a19e5f976bf0cc3082f334425a4c321a1df6b"
+    }
+  }
+}

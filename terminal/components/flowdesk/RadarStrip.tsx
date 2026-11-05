@@ -4,6 +4,7 @@
  */
 "use client";
 import { useMemo } from "react";
+import { activityBarWidth, dailyActivityNote, signedActivityLabel } from "../../lib/flowActivity";
 import type React from "react";
 import { pick } from "../../lib/finFormat";
 import type { Lang } from "../../lib/i18n";
@@ -53,18 +54,12 @@ function zAccent(z: number | null): string {
 
 /** Bar width capped at z=5 for visual scale. */
 function zBarWidth(z: number | null): number {
-  if (z == null) return 0;
-  return Math.min(100, Math.round((z / 5) * 100));
+  return activityBarWidth(z);
 }
 
-/** Turn the statistical score into a glanceable activity band. */
+/** Turn the statistical score into a signed, glanceable activity label. */
 function activityBand(z: number | null, zh: boolean): string {
-  if (z == null) return zh ? "积累中" : "Warming";
-  const az = Math.abs(z);
-  if (az >= 3) return zh ? "极异常" : "Extreme";
-  if (az >= 2) return zh ? "很异常" : "Very high";
-  if (az >= 1) return zh ? "偏高" : "Elevated";
-  return zh ? "正常" : "Typical";
+  return signedActivityLabel(z, zh ? "zh" : "en");
 }
 
 /** Payloads still carry an engine name; the UI explains it as a familiar time span. */
@@ -123,7 +118,7 @@ export function RadarStrip({ feed, lang }: RadarStripProps) {
       {/* Column headers */}
       <div className="obs-fd-radar-col-head obs-lbl">
         <span>{pick(zh, "Ticker", "标的")}</span>
-        <Tip label={pick(zh, "How unusual today's premium is compared with roughly one trading year", "今日权利金相对约一年交易历史的异常程度")} side="top" size="card">
+        <Tip label={dailyActivityNote(zh ? "zh" : "en")} side="top" size="card">
           <span style={{ textAlign: "right", cursor: "help" }}>{pick(zh, "Activity", "活跃度")}</span>
         </Tip>
         <Tip label={pick(zh, "Gross options premium traded today (calls + puts)", "今日期权总权利金（认购+认沽）")} side="top" size="card">
@@ -174,9 +169,9 @@ function RadarRow({ row, zh }: { row: UnusualName; zh: boolean }) {
       {/* Human-readable unusualness band; exact z remains in the accessible label. */}
       <div className="obs-fd-radar-z" style={{ color: accent }}>
         <Tip
-          label={row.prem_z != null
-            ? pick(zh, `${row.prem_z.toFixed(1)} standard deviations from its one-year norm`, `相对一年常态偏离 ${row.prem_z.toFixed(1)} 个标准差`)
-            : pick(zh, "A full baseline is still building", "完整基线仍在积累")}
+          label={row.prem_z != null && Number.isFinite(row.prem_z)
+            ? pick(zh, `${row.prem_z.toFixed(1)} standard deviations from its full-day 252-session average; negative means below avg`, `相对全天252个交易日均值偏离 ${row.prem_z.toFixed(1)} 个标准差；负值为低于均值`)
+            : pick(zh, "Activity unavailable: no session premium z yet", "暂无当日权利金活跃度数据")}
           side="top"
           size="card"
         >
