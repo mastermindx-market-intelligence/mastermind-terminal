@@ -64,6 +64,8 @@ function captureServerEnv(parent = process.env) {
   return {
     ...inherited,
     NODE_ENV: "development",
+    CI: "1",
+    NEXT_TELEMETRY_DISABLED: "1",
     ANALYSIS_LOCAL_PREVIEW: "1",
     ADMIN_DEV: "1",
     TERMINAL_E2E_FIXTURE: "1",

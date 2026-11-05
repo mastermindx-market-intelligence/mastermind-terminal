@@ -17,6 +17,8 @@ test("fixture child never inherits provider credentials, auth controls, NODE_OPT
   assert.equal(env.MMX_INVESTOR_SHELL_PREVIEW, "0");
   assert.equal(env.TERMINAL_REQUIRE_AUTH, "0");
   assert.equal(env.NODE_ENV, "development");
+  assert.equal(env.CI, "1");
+  assert.equal(env.NEXT_TELEMETRY_DISABLED, "1");
 });
 
 test("each Next development dotenv entrance refuses before any values are read", () => {
