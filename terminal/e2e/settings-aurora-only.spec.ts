@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Locator } from "@playwright/test";
 
 // Acceptance for a deliberately narrow change: the existing settings shell,
 // controls, hierarchy, copy, and thirteen destinations must remain untouched.
@@ -7,6 +7,14 @@ const originalNavigation = [
   "Alert delivery", "Terminal", "Sync", "Webhooks", "Developer access",
   "Sharing", "Portfolio targets",
 ];
+
+// Visibility precedes the end of acsCardIn: its initial scale(.985) measures
+// a 1140px card as 1123px. Wait for this card's finite transform, not the
+// intentionally continuous decorative animations in its descendants.
+async function settledCardBounds(card: Locator) {
+  await expect(card).toHaveCSS("transform", "none");
+  return card.boundingBox();
+}
 
 test("the original account settings structure remains unchanged", async ({ page }, info) => {
   await page.goto("/dev/settings?s=terminal&lang=en");
@@ -21,11 +29,12 @@ test("the original account settings structure remains unchanged", async ({ page 
   await expect(card.locator(".acs-aurora animate[attributeName='d']")).toHaveCount(4);
   await expect(card.locator(".acs-aurora-static")).toHaveCount(1);
   await expect(card.locator(".acs-check")).toHaveCount(6);
-  await expect(card.locator(".acs-tfg button")).toHaveCount(18);
+  await expect(card.locator(".acs-tfg button")).toHaveCount(19);
+  await expect(card.locator(".acs-tfg").getByRole("button", { name: "12h", exact: true })).toHaveCount(1);
   await expect(card.locator(".acs-seg-b")).toHaveCount(2);
   const mobile = info.project.name === "mobile";
   if (!mobile && info.project.name === "desktop") {
-    const bounds = await card.boundingBox();
+    const bounds = await settledCardBounds(card);
     expect(Math.round(bounds?.width ?? 0)).toBe(1140);
     expect(Math.round(bounds?.height ?? 0)).toBe(772);
   }
@@ -127,4 +136,41 @@ test("the original close button stays clickable beneath decorative light", async
   const paused = await card.locator(".acs-card-surface").evaluate(el =>
     ["::before", "::after"].map(pseudo => getComputedStyle(el, pseudo).animationPlayState));
   expect(paused).toEqual(["paused", "paused"]);
+});
+
+
+test.describe("settings entrance geometry regression", () => {
+  // A fixed geometry fixture exercises the same real CSS in each browser project.
+  // Existing responsive acceptance above retains its original project viewports.
+  test.use({ viewport: { width: 1440, height: 900 } });
+
+  test("measures the final card rather than the visible scaled entrance frame", async ({ page }) => {
+    await page.goto("/dev/settings?s=terminal&lang=en");
+    const card = page.locator(".acs-overlay.open .acs-card");
+    await expect(card).toBeVisible();
+    const initial = await card.evaluate(el => {
+      const element = el as HTMLElement;
+      // Restart the production keyframes, holding their initial frame so the
+      // historical race is reproducible instead of depending on runner speed.
+      element.style.animation = "none";
+      void getComputedStyle(element).animationName;
+      element.style.animation = "acsCardIn 1s steps(1, end)";
+      const entry = element.getAnimations().find(animation =>
+        animation instanceof CSSAnimation && animation.animationName === "acsCardIn");
+      if (!entry) throw new Error("Production acsCardIn entrance animation is missing");
+      entry.pause();
+      entry.currentTime = 0;
+      return Math.round(element.getBoundingClientRect().width);
+    });
+    expect(initial).toBe(1123);
+    await card.evaluate(el => {
+      const entry = el.getAnimations().find(animation =>
+        animation instanceof CSSAnimation && animation.animationName === "acsCardIn");
+      if (!entry) throw new Error("Production acsCardIn entrance animation is missing");
+      entry.play();
+    });
+    const bounds = await settledCardBounds(card);
+    expect(Math.round(bounds?.width ?? 0)).toBe(1140);
+    expect(Math.round(bounds?.height ?? 0)).toBe(772);
+  });
 });
