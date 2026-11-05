@@ -431,7 +431,7 @@ jobs:
         run: >-
           npm run test:e2e:responsive -- e2e/investor-shell-preview.spec.ts
           --project=desktop --project=tablet --project=mobile
-          --workers=1 --retries=0
+          --workers=1 --retries=0 --trace=retain-on-failure
           --output=test-results/investor-shell-preview
       - name: Qualify Shared Shell beta presentation
         if: matrix.shard == 'serial'
@@ -443,7 +443,7 @@ jobs:
         run: >-
           npm run test:e2e:responsive -- e2e/shared-shell-refinement.spec.ts
           --project=desktop --project=tablet --project=mobile
-          --workers=1 --retries=0
+          --workers=1 --retries=0 --trace=retain-on-failure
           --output=test-results/shared-shell-refinement
       - name: Upload responsive QA screenshots
         if: always()
