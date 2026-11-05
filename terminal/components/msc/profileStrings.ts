@@ -1,0 +1,41 @@
+import type { Lang } from "@/lib/i18n";
+
+const COPY = {
+  view: ["Exposure profile display", "敞口曲线显示"],
+  chart: ["Chart", "图表"],
+  exact: ["Exact profile values", "精确曲线数值"],
+  counts: ["{n} finite spot–Gamma pairs · source order", "{n} 对有限现价–Gamma 数值 · 保留来源顺序"],
+  caption: ["Re-priced Gamma at sampled hypothetical spot prices", "采样假设现价处的重定价 Gamma"],
+  spotSample: ["Hypothetical spot price", "假设现价"],
+  gammaSample: ["Net Gamma ($bn per +1% spot)", "净 Gamma（标的 +1%，十亿美元）"],
+  source: ["Source & method", "来源与方法"],
+  root: ["Source root", "来源标的"],
+  asof: ["Supplied as-of", "提供的截至时间"],
+  method: ["Supplied profile method", "提供的曲线方法"],
+  span: ["Supplied spot-grid span", "提供的现价网格幅度"],
+  unavailable: ["Not supplied", "未提供"],
+  references: ["Exact reference prices", "精确参考价"],
+  spotReference: ["Reference spot", "参考现价"],
+  callWall: ["Call wall", "认购墙"],
+  putWall: ["Put wall", "认沽墙"],
+  flip: ["Profile flip reference", "曲线翻转参考价"],
+  crossings: ["Supplied finite zero crossings", "提供的有限零点"],
+  noCrossings: ["No finite crossing supplied.", "未提供有限零点。"],
+  precision: ["Values preserve supplied numbers without display rounding; original decimal text is not supplied.", "数值保留提供的数字，不作显示舍入；未提供原始小数文本。"],
+  sampleScope: ["Only finite paired spot/Gamma samples are shown, in source order. Invalid or unpaired entries are omitted; repeated spot coordinates remain separate. These are hypothetical prices, not option contracts.", "仅显示有限的现价与 Gamma 配对样本，并保留来源顺序。无效或未配对项不显示，重复现价坐标仍分别保留。这些是假设价格，不是期权合约。"],
+  gate: ["The curve needs at least {n} finite sample pairs. A shorter supplied set remains available in Exact profile values.", "曲线至少需要 {n} 对有限样本；较短的已提供样本仍可在精确曲线数值中查看。"],
+  crossingMethod: ["The flip reference uses the supplied crossing nearest the reference spot. Equal distances keep the first crossing in source order; an unavailable spot uses the first supplied crossing.", "翻转参考价采用距参考现价最近的已提供零点。距离相同时保留来源顺序中的首个零点；现价不可用时采用首个已提供零点。"],
+  clockMeaning: ["As-of belongs to the supplied GEX snapshot. It does not establish when the data became available.", "截至时间属于提供的 GEX 快照，不代表数据何时可用。"],
+  assumption: ["This signed estimate retains the source's dealer-sign assumption. Re-priced Gamma is modeled exposure, not observed dealer inventory.", "带符号估计保留来源的做市商符号假设。重定价 Gamma 是模型敞口，不是实际做市商库存。"],
+  emptyAbsent: ["No exposure profile supplied.", "未提供敞口曲线。"],
+  emptyArrays: ["The profile's paired samples are unavailable.", "曲线配对样本不可用。"],
+  emptyFinite: ["No finite spot–Gamma sample pairs supplied.", "未提供有限的现价–Gamma 配对样本。"],
+  emptyShort: ["{n} finite profile sample pairs supplied.", "已提供 {n} 对有限曲线样本。"],
+  shortWhy: ["The chart requires at least {n} finite pairs. Inspect the supplied samples in Exact profile values.", "图表至少需要 {n} 对有限样本。可在精确曲线数值中查看已提供样本。"],
+  spanUnstated: ["Re-priced profile · spot-grid span not supplied", "重定价曲线 · 未提供现价网格幅度"],
+  narrow: ["Use Exact profile values to inspect this narrow panel.", "使用精确曲线数值查看此窄面板。"],
+  chartDescription: ["Net Gamma re-priced at supplied hypothetical spot prices, in billions of USD per +1% spot. Exact profile values provides the same finite samples without display rounding.", "在提供的假设现价处重定价的净 Gamma，以标的每上涨 1% 对应的十亿美元计。精确曲线数值提供相同的有限样本，不作显示舍入。"],
+} as const;
+
+export type ProfileKey = keyof typeof COPY;
+export const makeProfileT = (lang: Lang) => (key: ProfileKey): string => COPY[key][lang === "zh" ? 1 : 0];

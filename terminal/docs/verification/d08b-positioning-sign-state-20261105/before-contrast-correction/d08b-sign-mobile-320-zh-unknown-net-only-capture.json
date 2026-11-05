@@ -1,0 +1,24 @@
+{
+  "schema": "d08b.viewport_capture.v1",
+  "viewport": {
+    "width": 320,
+    "height": 844
+  },
+  "fullPage": false,
+  "innerWidth": 320,
+  "innerHeight": 844,
+  "devicePixelRatio": 1,
+  "cssZoom": "1",
+  "target": {
+    "tag": "SECTION",
+    "text": "符号稳健性i带符号估计伽马倾斜—翻转于看涨权重未确定结论未知这些输入无法确定符号敏感性估计；稳健性与翻转权重均未确定。 · 约定: dealer-sign per engine/gex_model",
+    "left": 12,
+    "top": 347.640625,
+    "width": 296,
+    "height": 148.890625
+  },
+  "fixtureVariant": "unknown-net-only",
+  "language": "zh",
+  "project": "mobile",
+  "presentation": "ordinary dark"
+}

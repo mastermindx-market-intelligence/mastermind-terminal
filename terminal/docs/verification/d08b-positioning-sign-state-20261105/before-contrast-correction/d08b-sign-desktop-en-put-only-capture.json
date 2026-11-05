@@ -1,0 +1,26 @@
+{
+  "schema": "d08b.viewport_capture.v1",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "fullPage": false,
+  "innerWidth": 1440,
+  "innerHeight": 900,
+  "devicePixelRatio": 1,
+  "cssZoom": "1",
+  "target": {
+    "tag": "SECTION",
+    "text": "Sign robustnessiSigned estimateGamma tilt−100.0%Flips at call weightNo plausible weight flips itVerdictRobust−1 dealers short calls0 calls unsigned+1 dealers long callsAbsolute Gam",
+    "left": 982.65625,
+    "top": 624.84375,
+    "width": 445.34375,
+    "height": 215.296875
+  },
+  "fixtureVariant": "put-only",
+  "language": "en",
+  "project": "desktop",
+  "criticalWeight": null,
+  "modelVerdict": "robust",
+  "constantNegativeCurve": true
+}

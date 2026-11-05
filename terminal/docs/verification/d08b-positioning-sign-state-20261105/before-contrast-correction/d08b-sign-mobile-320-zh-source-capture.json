@@ -1,0 +1,24 @@
+{
+  "schema": "d08b.viewport_capture.v1",
+  "viewport": {
+    "width": 320,
+    "height": 844
+  },
+  "fullPage": false,
+  "innerWidth": 320,
+  "innerHeight": 844,
+  "devicePixelRatio": 1,
+  "cssZoom": "1",
+  "target": {
+    "tag": "DIV",
+    "text": "每日收盘 · 截至 2026-07-10· 已过 83 个交易日",
+    "left": 0,
+    "top": 214.015625,
+    "width": 320,
+    "height": 76.890625
+  },
+  "language": "zh",
+  "sourceAsOf": "2026-07-10T20:15:00Z",
+  "sourceRoot": "SPY",
+  "sourceClockUnchanged": true
+}

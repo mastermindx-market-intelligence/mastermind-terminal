@@ -1,0 +1,79 @@
+{
+  "status": "LOCAL_PASS_PRODUCTION_NOT_PROVEN",
+  "operation": "d08b-surface-exact-values-20261104-c3",
+  "tests": {
+    "unit": {
+      "process": 1856,
+      "pass": 48,
+      "component": 34,
+      "calculation": 14,
+      "exit": 0
+    },
+    "eslint": {
+      "process": 1856,
+      "scope": "four changed TypeScript source/test files",
+      "exit": 0
+    },
+    "browser": {
+      "process": 5458,
+      "pass": 7,
+      "skip": 2,
+      "skipReason": "duplicate explicit 320/CSS zoom sequence in tablet/mobile",
+      "exit": 0,
+      "viewports": [
+        [
+          1440,
+          900
+        ],
+        [
+          820,
+          1180
+        ],
+        [
+          390,
+          844
+        ],
+        [
+          320,
+          844
+        ]
+      ],
+      "locales": [
+        "en",
+        "zh"
+      ],
+      "themes": [
+        "dark",
+        "light"
+      ],
+      "zoom": "CSS zoom:2, not native browser zoom",
+      "source": "controlled qualified projection fixture via existing local auth/reader seams",
+      "path": "/options?tab=prism&symbol=SPY&view=chart → Surface",
+      "captures": 34
+    },
+    "build": {
+      "process": 7879,
+      "command": "npm run build",
+      "exit": 0,
+      "includesTypeScript": true,
+      "staticPages": 68,
+      "log": "build.log",
+      "deployment": false
+    }
+  },
+  "review": {
+    "contract": "PASS on exact source/test blobs",
+    "geometry": "PASS:4608 combinations/152064 points; transform unchanged in final candidate",
+    "visual": "PASS:corrected320,CSS zoom and desktop captures; prior two findings resolved",
+    "formalRig": "NOT_ADMITTED"
+  },
+  "release": {
+    "draftOnly": true,
+    "merge": false,
+    "ready": false,
+    "undraft": false,
+    "enqueue": false,
+    "heldRelabel": false,
+    "deploy": false
+  }
+}

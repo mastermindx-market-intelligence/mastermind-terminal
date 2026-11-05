@@ -1,0 +1,94 @@
+{
+  "schema": "d08b.positioning_profile_verification.v1",
+  "observed_at_utc": "2026-11-05T04:16:53.775650+00:00",
+  "base_head": "5903c07acf867366659cec689e6547b08c00ee87",
+  "status": "BUILT_NOT_PROVEN_IN_PRODUCTION",
+  "unit": {
+    "passed": 13,
+    "failed": 0,
+    "process_pid": 90489
+  },
+  "browser": {
+    "passed": 9,
+    "skipped": 9,
+    "failed": 0,
+    "exit_code": 0,
+    "process_pid": 3676,
+    "seconds": 40.1,
+    "skips": "3 baseline opt-ins; 4 non-desktop duplicate cases; 2 non-mobile title regressions"
+  },
+  "lint": {
+    "initial": "PASS",
+    "final": "PASS_INFERRED_FROM_EMPTY_LOG_AND_SEQUENTIAL_BUILD_START"
+  },
+  "build": {
+    "status": "COMPLETED_OUTPUT_RECOVERED",
+    "compiled": true,
+    "typescript_completed": true,
+    "static_pages": 68,
+    "route_footer_present": true,
+    "active_build_processes_at_readback": 0,
+    "direct_exit_code": null,
+    "original_pid": null,
+    "note": "Original combined process/image tool output truncated. Read back original log; no restart."
+  },
+  "diff_check_exit": 0,
+  "source_blobs": {
+    "components/msc/ProfileCard.tsx": "8a7bb3571390a92d1ee115ffb9364893e5505fd2",
+    "components/msc/ProfileCard.module.css": "1465099d4ac0009a5875064269e8d79af569dbff",
+    "components/msc/profileStrings.ts": "f8610fae276a760867fc90af10e964c631d1f975",
+    "lib/__tests__/profileExactValues.test.tsx": "205649983e818d5410516dabd7753a4b0dfdbc84",
+    "e2e/options-positioning-profile-exact.spec.ts": "2d2a1fc60a69114812fb5fc4e8c7407988124913"
+  },
+  "unchanged_source_blobs_at_phase_boundary": {
+    "components/msc/MarketStructureBody.tsx": "b4aa15e92f8b5797cf8218c516571dd48a0645ef",
+    "components/msc/mscStrings.ts": "c2cc28991b1134701fc9ed1b0468cce677803e68",
+    "lib/marketStructure.ts": "b6718d3f162117af38d114ba691cd4b6b1894bd8",
+    "components/msc/MscCard.tsx": "6a19df998bef1d7a4b4f13378eaace5ccee3baed",
+    "components/msc/msc.module.css": "0d9dc173c10a41857fd956365a7cb471a7fb8540",
+    "components/charts/svgChart.ts": "35c845d79f84d952511165f14a03efe884581945",
+    "components/gexdesk/GexDeskView.tsx": "85a9da63c1970a6e983c86e39105a4f070538aa2"
+  },
+  "invariants": {
+    "calculation_bytes": 1980,
+    "calculation_sha256": "9ee4f947a4e9e73af89db53f9bf297f0b18c7128f0594524cc370efec7d84047",
+    "calculation_byte_identical": true,
+    "original_svg_drawing_body_byte_identical": true,
+    "svg_additions": [
+      "local class",
+      "aria-describedby",
+      "native desc"
+    ],
+    "finite_pair_loop_byte_identical": true
+  },
+  "captures": {
+    "png": 48,
+    "capture_metadata": 48,
+    "contrast_records": 24
+  },
+  "contrast": {
+    "text": {
+      "samples": 1216,
+      "minimum_ratio": 5.554996509050376
+    },
+    "marks": {
+      "samples": 72,
+      "minimum_ratio": 5.028420134408705
+    }
+  },
+  "root_visual_review": [
+    "desktop-en-light-tokens-chart",
+    "desktop-en-light-tokens-source",
+    "mobile-zh-dark-exact",
+    "320-zh-controls",
+    "320-zh-precision",
+    "230-light-precision"
+  ],
+  "limitations": [
+    "Controlled local light tokens, not released global light mode",
+    "CSS 200% magnification, not native browser zoom",
+    "Fixture/auth route, not provider/live-source or production proof",
+    "No assistive-technology or performance certification",
+    "Parent integration and release holds remain"
+  ]
+}

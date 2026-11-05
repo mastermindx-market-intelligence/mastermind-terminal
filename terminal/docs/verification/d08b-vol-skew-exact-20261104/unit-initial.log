@@ -1,0 +1,30 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/web/d08b-surface-exact-values-20261104-c3/terminal
+
+ ❯ lib/__tests__/volSkewExactValues.test.tsx (10 tests | 1 failed) 537ms
+   × Smile exact IV investigation > retains the parent's missing expiry and resumes the same table only after an explicit available selection 51ms
+     → Invalid Chai property: toHaveBeenCalledExactlyOnceWith
+ ✓ lib/__tests__/volatilityMissingness.test.tsx (33 tests) 694ms
+ ✓ lib/__tests__/volatilityConflictContinuity.test.tsx (8 tests) 457ms
+ ✓ lib/__tests__/volatilityExpiryInvestigation.test.tsx (6 tests) 854ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/__tests__/volSkewExactValues.test.tsx > Smile exact IV investigation > retains the parent's missing expiry and resumes the same table only after an explicit available selection
+Error: Invalid Chai property: toHaveBeenCalledExactlyOnceWith
+ ❯ lib/__tests__/volSkewExactValues.test.tsx:86:50
+     84|     expect(host.querySelector("table")).toBeNull(); expect(host.queryS…
+     85|     expect(host.textContent).toContain("2026-11-13 has no supplied per…
+     86|     await click("2026-11-20"); expect(onSelectExp).toHaveBeenCalledExa…
+       |                                                  ^
+     87|     expect(host.querySelector("table")).toBeNull();
+     88|     await render(<VolSkewPanel smile={smile(both)} lang="en" selectedE…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+ Test Files  1 failed | 3 passed (4)
+      Tests  1 failed | 56 passed (57)
+   Start at  19:47:39
+   Duration  4.87s (transform 1.88s, setup 0ms, collect 5.11s, tests 2.54s, environment 4.22s, prepare 765ms)
+

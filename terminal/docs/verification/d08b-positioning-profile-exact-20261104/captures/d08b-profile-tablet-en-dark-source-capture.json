@@ -1,0 +1,20 @@
+{
+  "schema": "d08b.viewport_capture.v1",
+  "viewport": {
+    "width": 820,
+    "height": 1180
+  },
+  "fullPage": false,
+  "innerWidth": 820,
+  "innerHeight": 1180,
+  "devicePixelRatio": 1,
+  "cssZoom": "1",
+  "target": {
+    "tag": "DD",
+    "text": "756.3734567890123",
+    "left": 416,
+    "top": 580.484375,
+    "width": 379,
+    "height": 19.5
+  }
+}

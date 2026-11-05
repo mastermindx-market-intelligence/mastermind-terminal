@@ -1,0 +1,30 @@
+{
+  "schema": "d08b.native_source_review.v1",
+  "status": "PASS",
+  "reviewer": "/root/term_contract_check",
+  "review_kind": "Optional bounded native read-only source and final-delta check",
+  "original_source_blob": "37fbf6e81969ca26e21e0bbc69519bd432148d6d",
+  "inspected_blobs": {
+    "components/vol/VolTermPanel.tsx": "fc3c4a62163cc3b50323c4c840ea9ed1ff9a998d",
+    "components/vol/VolTermPanel.module.css": "ac6fb7150f776d8d70d1b5f5cb91cc5004c5ceba",
+    "components/vol/volTermStrings.ts": "9a55ffc3ebb72576a0207109a243de543c1b3588",
+    "lib/__tests__/volTermExactValues.test.tsx": "d337d0299c8b8262afb10bee6fe9730076f7ecf8",
+    "e2e/options-vol-term-exact.spec.ts": "be7f9df7ee65ec27f5c84b8f6c755c8f21844b29"
+  },
+  "verified": [
+    "Existing controlled expiry identity and parent callback",
+    "Same admitted exact DTE and percent-number values in guide, marker, readout and table",
+    "Selected connected long-tail marker without new sparse-marker policy",
+    "Missing, zero, known-DTE conflict and ambiguous-DTE semantics",
+    "Unchanged structure, slope, domain, continuity and source ownership",
+    "Persistent unit-test toggle and narrow focus target",
+    "Count-label contrast token correction is presentation only",
+    "Browser uses hit-tested actual viewport captures"
+  ],
+  "limits": [
+    "Did not rerun unit, browser or build checks",
+    "Did not inspect rendered captures or independently reproduce contrast",
+    "Not formal GitHub non-author approval or full accessibility certification"
+  ],
+  "disposition": "ACCEPTED / STOP; no watcher"
+}

@@ -1,0 +1,266 @@
+{
+  "schema": "d08b.sign_contrast_samples.v1",
+  "text": [
+    {
+      "tag": "SPAN",
+      "testId": null,
+      "text": "符号稳健性",
+      "color": "rgb(214, 218, 227)",
+      "backgroundRgba": [
+        21,
+        23,
+        29,
+        255
+      ],
+      "fontSize": "12px",
+      "fontWeight": "650",
+      "opacity": "1",
+      "ratio": 12.794044188667254
+    },
+    {
+      "tag": "SPAN",
+      "testId": null,
+      "text": "带符号估计",
+      "color": "rgb(155, 163, 180)",
+      "backgroundRgba": [
+        21,
+        23,
+        29,
+        255
+      ],
+      "fontSize": "10px",
+      "fontWeight": "400",
+      "opacity": "1",
+      "ratio": 7.073661363306059
+    },
+    {
+      "tag": "SPAN",
+      "testId": null,
+      "text": "伽马倾斜",
+      "color": "rgb(155, 163, 180)",
+      "backgroundRgba": [
+        21,
+        23,
+        29,
+        255
+      ],
+      "fontSize": "10px",
+      "fontWeight": "400",
+      "opacity": "1",
+      "ratio": 7.073661363306059
+    },
+    {
+      "tag": "SPAN",
+      "testId": null,
+      "text": "60.0%",
+      "color": "rgb(214, 218, 227)",
+      "backgroundRgba": [
+        21,
+        23,
+        29,
+        255
+      ],
+      "fontSize": "14px",
+      "fontWeight": "600",
+      "opacity": "1",
+      "ratio": 12.794044188667254
+    },
+    {
+      "tag": "SPAN",
+      "testId": null,
+      "text": "翻转于看涨权重",
+      "color": "rgb(155, 163, 180)",
+      "backgroundRgba": [
+        21,
+        23,
+        29,
+        255
+      ],
+      "fontSize": "10px",
+      "fontWeight": "400",
+      "opacity": "1",
+      "ratio": 7.073661363306059
+    },
+    {
+      "tag": "SPAN",
+      "testId": null,
+      "text": "0.25",
+      "color": "rgb(214, 218, 227)",
+      "backgroundRgba": [
+        21,
+        23,
+        29,
+        255
+      ],
+      "fontSize": "14px",
+      "fontWeight": "600",
+      "opacity": "1",
+      "ratio": 12.794044188667254
+    },
+    {
+      "tag": "SPAN",
+      "testId": null,
+      "text": "结论",
+      "color": "rgb(155, 163, 180)",
+      "backgroundRgba": [
+        21,
+        23,
+        29,
+        255
+      ],
+      "fontSize": "10px",
+      "fontWeight": "400",
+      "opacity": "1",
+      "ratio": 7.073661363306059
+    },
+    {
+      "tag": "SPAN",
+      "testId": null,
+      "text": "稳健",
+      "color": "rgb(214, 218, 227)",
+      "backgroundRgba": [
+        21,
+        23,
+        29,
+        255
+      ],
+      "fontSize": "14px",
+      "fontWeight": "600",
+      "opacity": "1",
+      "ratio": 12.794044188667254
+    },
+    {
+      "tag": "SPAN",
+      "testId": null,
+      "text": "−1 做市商看涨空头",
+      "color": "rgb(155, 163, 180)",
+      "backgroundRgba": [
+        21,
+        23,
+        29,
+        255
+      ],
+      "fontSize": "10px",
+      "fontWeight": "400",
+      "opacity": "1",
+      "ratio": 7.073661363306059
+    },
+    {
+      "tag": "SPAN",
+      "testId": null,
+      "text": "0 看涨方无符号",
+      "color": "rgb(155, 163, 180)",
+      "backgroundRgba": [
+        21,
+        23,
+        29,
+        255
+      ],
+      "fontSize": "10px",
+      "fontWeight": "400",
+      "opacity": "1",
+      "ratio": 7.073661363306059
+    },
+    {
+      "tag": "SPAN",
+      "testId": null,
+      "text": "+1 做市商看涨多头",
+      "color": "rgb(155, 163, 180)",
+      "backgroundRgba": [
+        21,
+        23,
+        29,
+        255
+      ],
+      "fontSize": "10px",
+      "fontWeight": "400",
+      "opacity": "1",
+      "ratio": 7.073661363306059
+    },
+    {
+      "tag": "P",
+      "testId": null,
+      "text": "· 约定: dealer-sign per engine/gex_model",
+      "color": "rgb(155, 163, 180)",
+      "backgroundRgba": [
+        21,
+        23,
+        29,
+        255
+      ],
+      "fontSize": "10px",
+      "fontWeight": "400",
+      "opacity": "1",
+      "ratio": 7.073661363306059
+    },
+    {
+      "tag": "SPAN",
+      "testId": "sign-sensitivity-note",
+      "text": "Gamma 倾斜的绝对值不低于 12.0%。曲线与翻转权重显示其他看涨方权重是否会改变估计符号。",
+      "color": "rgb(155, 163, 180)",
+      "backgroundRgba": [
+        21,
+        23,
+        29,
+        255
+      ],
+      "fontSize": "10px",
+      "fontWeight": "400",
+      "opacity": "1",
+      "ratio": 7.073661363306059
+    }
+  ],
+  "marks": [
+    {
+      "shape": "line",
+      "color": "rgb(155, 163, 180)",
+      "backgroundRgba": [
+        21,
+        23,
+        29,
+        255
+      ],
+      "opacity": "1",
+      "ratio": 7.073661363306059
+    },
+    {
+      "shape": "polyline",
+      "color": "rgb(77, 130, 255)",
+      "backgroundRgba": [
+        21,
+        23,
+        29,
+        255
+      ],
+      "opacity": "1",
+      "ratio": 5.078211631537408
+    },
+    {
+      "shape": "circle",
+      "color": "rgb(155, 163, 180)",
+      "backgroundRgba": [
+        21,
+        23,
+        29,
+        255
+      ],
+      "opacity": "1",
+      "ratio": 7.073661363306059
+    },
+    {
+      "shape": "circle",
+      "color": "rgb(41, 98, 255)",
+      "backgroundRgba": [
+        21,
+        23,
+        29,
+        255
+      ],
+      "opacity": "1",
+      "ratio": 3.6558670736197985
+    }
+  ],
+  "textBelow4_5": [],
+  "marksBelow3": [],
+  "limitation": "Direct painted text and SVG mark styles against nearest opaque background. Gradients, alpha compositing and ancestor opacity are not certified. Zero-axis line is included and reported separately by shape."
+}

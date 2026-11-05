@@ -1,0 +1,20 @@
+{
+  "schema": "d08b.viewport_capture.v1",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "fullPage": false,
+  "innerWidth": 1440,
+  "innerHeight": 900,
+  "devicePixelRatio": 1,
+  "cssZoom": "1",
+  "target": {
+    "tag": "DETAILS",
+    "text": "来源与方法数值使用来源提供的百分数尺度，显示不作舍入。缺失或冲突的 IV 保持不可用。每个日期标识一条已提供的观测记录。此处未提供该数据的可用时间戳。此处仅列出有效的已提供日期。重复日期保留一条冲突记录。图表至少需要 10 个有效 IV 观测值；不足时仍可查看精确数值。",
+    "left": 93,
+    "top": 565.21875,
+    "width": 632,
+    "height": 144.75
+  }
+}

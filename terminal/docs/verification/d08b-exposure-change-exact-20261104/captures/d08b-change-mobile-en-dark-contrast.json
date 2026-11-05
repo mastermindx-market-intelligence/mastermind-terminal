@@ -1,0 +1,585 @@
+{
+  "text": [
+    {
+      "text": "What changed in reported Gamma?",
+      "ratio": 12.794044188667254
+    },
+    {
+      "text": "Matched reported Gamma · same contracts on both sessions",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "2026-10-16 → 2026-10-19",
+      "ratio": 7.073661363306059
+    },
+    {
+      "text": "Compact",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "Exact USD",
+      "ratio": 12.010292353016952
+    },
+    {
+      "text": "USD amounts without display rounding. The supplied number is preserved",
+      "ratio": 7.073661363306059
+    },
+    {
+      "text": "Total for the matched contracts",
+      "ratio": 7.073661363306059
+    },
+    {
+      "text": "Previous net",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "$0.00048828125",
+      "ratio": 11.839106046703137
+    },
+    {
+      "text": "Current net",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "$0.000244140625",
+      "ratio": 11.839106046703137
+    },
+    {
+      "text": "Net change",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "−$0.000244140625",
+      "ratio": 11.664989508393877
+    },
+    {
+      "text": "Net magnitude change",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "−$0.000244140625",
+      "ratio": 11.664989508393877
+    },
+    {
+      "text": "Gross change",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "−$0.029052734375",
+      "ratio": 11.664989508393877
+    },
+    {
+      "text": "119 contracts matched",
+      "ratio": 7.073661363306059
+    },
+    {
+      "text": "Reported membership and qualification",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "Matched",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "119",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "Only in previous",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "0",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "Only in current",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "0",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "Lost qualification",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "0",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "Gained qualification",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "0",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "Reported previously",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "120",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "Reported currently",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "120",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "Unavailable in either session",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "1",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "Counted separately; never added into the change.",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "Counts describe supplied rows. Categories can overlap and are not summ",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "Shown strikes retain the supplied ranking. A selected strike can appea",
+      "ratio": 7.073661363306059
+    },
+    {
+      "text": "Strike 159",
+      "ratio": 12.794044188667254
+    },
+    {
+      "text": "159",
+      "ratio": 12.010292353016952
+    },
+    {
+      "text": "1 contracts matched",
+      "ratio": 7.073661363306059
+    },
+    {
+      "text": "Previous net",
+      "ratio": 7.073661363306059
+    },
+    {
+      "text": "$0.00048828125",
+      "ratio": 11.057970831370257
+    },
+    {
+      "text": "Current net",
+      "ratio": 7.073661363306059
+    },
+    {
+      "text": "$0.000244140625",
+      "ratio": 11.057970831370257
+    },
+    {
+      "text": "Net change",
+      "ratio": 7.073661363306059
+    },
+    {
+      "text": "−$0.000244140625",
+      "ratio": 10.8953423698726
+    },
+    {
+      "text": "Net magnitude change",
+      "ratio": 7.073661363306059
+    },
+    {
+      "text": "−$0.000244140625",
+      "ratio": 10.8953423698726
+    },
+    {
+      "text": "Gross change",
+      "ratio": 7.073661363306059
+    },
+    {
+      "text": "−$0.000244140625",
+      "ratio": 10.8953423698726
+    },
+    {
+      "text": "Strike 100",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "100",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "2 contracts matched",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "Previous net",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "$0",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "Current net",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "$0",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "Net change",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "$0",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "Net magnitude change",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "$0",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "Gross change",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "−$0.00048828125",
+      "ratio": 11.664989508393877
+    },
+    {
+      "text": "Strike 101",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "101",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "2 contracts matched",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "Previous net",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "$0",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "Current net",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "$0",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "Net change",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "$0",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "Net magnitude change",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "$0",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "Gross change",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "−$0.00048828125",
+      "ratio": 11.664989508393877
+    },
+    {
+      "text": "Strike 102",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "102",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "2 contracts matched",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "Previous net",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "$0",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "Current net",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "$0",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "Net change",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "$0",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "Net magnitude change",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "$0",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "Gross change",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "−$0.00048828125",
+      "ratio": 11.664989508393877
+    },
+    {
+      "text": "Strike 103",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "103",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "2 contracts matched",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "Previous net",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "$0",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "Current net",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "$0",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "Net change",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "$0",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "Net magnitude change",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "$0",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "Gross change",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "−$0.00048828125",
+      "ratio": 11.664989508393877
+    },
+    {
+      "text": "Strike 104",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "104",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "2 contracts matched",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "Previous net",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "$0",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "Current net",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "$0",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "Net change",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "$0",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "Net magnitude change",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "$0",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "Gross change",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "−$0.00048828125",
+      "ratio": 11.664989508393877
+    },
+    {
+      "text": "Strike 105",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "105",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "2 contracts matched",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "Previous net",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "$0",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "Current net",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "$0",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "Net change",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "$0",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "Net magnitude change",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "$0",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "Gross change",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "−$0.00048828125",
+      "ratio": 11.664989508393877
+    },
+    {
+      "text": "Strike 106",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "106",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "2 contracts matched",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "Previous net",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "$0",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "Current net",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "$0",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "Net change",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "$0",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "Net magnitude change",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "$0",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "Gross change",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "−$0.00048828125",
+      "ratio": 11.664989508393877
+    },
+    {
+      "text": "52 strikes outside the ranked set",
+      "ratio": 7.073661363306059
+    },
+    {
+      "text": "Two sessions only: no rate, no percent, no attribution.",
+      "ratio": 7.073661363306059
+    },
+    {
+      "text": "Reported Gamma is a dated measurement, not observed dealer inventory.",
+      "ratio": 7.073661363306059
+    }
+  ],
+  "marks": []
+}

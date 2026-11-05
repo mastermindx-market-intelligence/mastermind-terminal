@@ -22,14 +22,17 @@
  * iv-sparse chains) — the foot says why rather than the card vanishing silently.
  */
 
-import React, { useMemo, useRef } from "react";
+import { useId, useMemo, useRef, useState } from "react";
 import { fmtTick, niceTicks, padDomain, thinLabels, useChartWidth } from "@/components/charts/svgChart";
 import { makeMscT } from "./mscStrings";
+import { makeProfileT } from "./profileStrings";
+import styles from "./ProfileCard.module.css";
 import { MscCard, CardFoot, CardSpacer } from "./MscCard";
 import type { GexPayload } from "@/components/gexdesk/GexDeskView";
 import type { Lang } from "@/lib/i18n";
 
 const H = 224;
+const MIN_PROFILE_POINTS = 11;
 const PAD = { l: 8, r: 56, t: 14, b: 22 };
 
 const isNum = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
@@ -48,14 +51,21 @@ export function ProfileCard({
   // it happens the card SAYS so instead of letting the reader spot the
   // contradiction across two cards.
   const t = makeMscT(lang);
+  const tx = makeProfileT(lang);
+  const descriptionId = useId();
+  const scopeId = useId();
+  const contentId = useId();
+  const [view, setView] = useState<"chart" | "table">("chart");
+  const exactButtonRef = useRef<HTMLButtonElement | null>(null);
   const boxRef = useRef<HTMLDivElement | null>(null);
   const W = useChartWidth(boxRef, 640);
 
   const p = gex?.profile;
   const spot = gex?.spot_ref ?? null;
 
-  const data = useMemo(() => {
-    if (!p || !Array.isArray(p.grid) || !Array.isArray(p.gamma_bn)) return null;
+  // Keep the original finite-pair admission and source order, including repeated coordinates.
+  const rows = useMemo(() => {
+    if (!p || !Array.isArray(p.grid) || !Array.isArray(p.gamma_bn)) return [];
     const pts: { x: number; y: number }[] = [];
     const n = Math.min(p.grid.length, p.gamma_bn.length);
     for (let i = 0; i < n; i++) {
@@ -63,8 +73,10 @@ export function ProfileCard({
       const y = p.gamma_bn[i];
       if (isNum(x) && isNum(y)) pts.push({ x, y });
     }
-    return pts.length >= 11 ? pts : null;
+    return pts;
   }, [p]);
+  // Sparse samples remain inspectable; the chart keeps its original eleven-pair gate.
+  const data = rows.length >= MIN_PROFILE_POINTS ? rows : null;
 
   const innerW = Math.max(60, W - PAD.l - PAD.r);
   const innerH = H - PAD.t - PAD.b;
@@ -113,21 +125,79 @@ export function ProfileCard({
     return nearest.y > 0 !== net > 0;
   }, [data, spot, gex]);
 
+
+  const hasProfile = p != null;
+  const pairedArrays = !!p && Array.isArray(p.grid) && Array.isArray(p.gamma_bn);
+  const span = isNum(p?.span_pct) ? p.span_pct : null;
+  const sourceText = (value: unknown) => typeof value === "string" && value.trim() ? value : tx("unavailable");
+  const exactReference = (value: unknown) => isNum(value) ? String(value) : tx("unavailable");
+  const signed = (value: number) => `${value > 0 ? "+" : ""}${String(value)}`;
+  const samples = rows.map(point => ({ point, spotText: String(point.x), gammaText: signed(point.y) }));
+  const emptyTitle = !hasProfile ? tx("emptyAbsent") : !pairedArrays ? tx("emptyArrays")
+    : rows.length === 0 ? tx("emptyFinite") : tx("emptyShort").replace("{n}", String(rows.length));
+
   return (
     <MscCard
       title={t("pfTitle")}
       info={t("pfLead")}
       tier={t("tierB")}
       tierWhy={t("tierBWhy")}
-      headRight={<span style={UNIT}>{t("pfUnit")}</span>}
+      headRight={<span className={styles.unit}>{t("pfUnit")}</span>}
       span={8}
     >
-      {!data || !geom ? (
-        <CardFoot>{t("pfNone")}</CardFoot>
-      ) : (
-        <>
-          <div ref={boxRef} style={{ width: "100%" }}>
-            <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} role="img" aria-label={t("pfTitle")}>
+      <div className={styles.panel} data-testid="positioning-profile-panel" data-view={view}>
+        {rows.length > 0 && (
+          <div className={styles.controls} role="group" aria-label={tx("view")} data-testid="profile-view-controls">
+            <button type="button" className={styles.button} aria-pressed={view === "chart"} aria-controls={contentId}
+              onClick={() => setView("chart")}>{tx("chart")}</button>
+            <button ref={exactButtonRef} type="button" className={styles.button} aria-pressed={view === "table"} aria-controls={contentId}
+              onClick={() => setView("table")}>{tx("exact")}</button>
+          </div>
+        )}
+        {/* Always mounted: useChartWidth must observe recovery from absent/sparse data as well. */}
+        <div ref={boxRef} id={contentId} className={styles.content} data-testid="profile-measure">
+          {view === "table" && rows.length > 0 ? (
+            <>
+              <p id={scopeId} className={styles.note} data-testid="profile-values-status">
+                {tx("counts").replace("{n}", String(rows.length))}
+              </p>
+              <div className={styles.wideValues}>
+                <table className={styles.table} aria-describedby={scopeId} data-testid="profile-exact-table">
+                  <caption>{tx("caption")}</caption>
+                  <thead><tr><th scope="col">{tx("spotSample")}</th><th scope="col">{tx("gammaSample")}</th></tr></thead>
+                  <tbody>{samples.map(({ point, spotText, gammaText }, index) => (
+                    <tr key={index} data-row={index}>
+                      <th scope="row" data-field="spot">{spotText}</th>
+                      <td data-field="gamma" data-sign={point.y === 0 ? undefined : point.y > 0 ? "positive" : "negative"}>{gammaText}</td>
+                    </tr>
+                  ))}</tbody>
+                </table>
+              </div>
+              <ol className={styles.exactCards} aria-label={tx("caption")} aria-describedby={scopeId} data-testid="profile-exact-cards">
+                {samples.map(({ point, spotText, gammaText }, index) => (
+                  <li key={index} data-row={index}>
+                    <dl>
+                      <div><dt>{tx("spotSample")}</dt><dd data-field="spot">{spotText}</dd></div>
+                      <div><dt>{tx("gammaSample")}</dt><dd data-field="gamma" data-sign={point.y === 0 ? undefined : point.y > 0 ? "positive" : "negative"}>{gammaText}</dd></div>
+                    </dl>
+                  </li>
+                ))}
+              </ol>
+            </>
+          ) : !data || !geom ? (
+            <div className={styles.empty} role="status" data-testid="profile-empty">
+              <p>{emptyTitle}</p>
+              {rows.length > 0 && <p>{tx("shortWhy").replace("{n}", String(MIN_PROFILE_POINTS))}</p>}
+            </div>
+          ) : (
+            <>
+              <div className={styles.narrow}>
+                <p className={styles.note}>{tx("narrow")}</p>
+                <button type="button" className={styles.button} data-testid="profile-narrow-action"
+                  onClick={() => { setView("table"); exactButtonRef.current?.focus(); }}>{tx("exact")}</button>
+              </div>
+            <svg className={styles.plot} width={W} height={H} viewBox={`0 0 ${W} ${H}`} role="img" aria-label={t("pfTitle")} aria-describedby={descriptionId}>
+              <desc id={descriptionId}>{tx("chartDescription")}</desc>
               {/* Regime half-planes — words bound to the SIGN of the curve. */}
               <text x={PAD.l + 4} y={geom.sy(0) - 6} fontSize={8.5} fill="var(--text-dim)" opacity={0.85}>
                 {t("pfDampen")}
@@ -229,28 +299,50 @@ export function ProfileCard({
                   </g>
                 ))}
             </svg>
-          </div>
-
-          <CardSpacer />
-          {signSplit && (
-            <CardFoot>
-              <span style={{ color: "var(--warn)" }}>{t("pfSignSplit")}</span>
-            </CardFoot>
+            </>
           )}
-          <CardFoot>
-            {t("pfLegend").replace("{p}", String(p?.span_pct ?? 25))}
-            {crossings.length > 1 ? ` · ${t("pfMulti").replace("{n}", String(crossings.length))}` : ""}
-          </CardFoot>
-        </>
-      )}
+        </div>
+        {hasProfile && (
+          <>
+            <CardSpacer />
+            <div className={styles.footnotes}>
+              {signSplit && <CardFoot><span className={styles.warning}>{t("pfSignSplit")}</span></CardFoot>}
+              {data && <CardFoot>
+                {span == null ? tx("spanUnstated") : t("pfLegend").replace("{p}", String(span))}
+                {crossings.length > 1 ? ` · ${t("pfMulti").replace("{n}", String(crossings.length))}` : ""}
+              </CardFoot>}
+            </div>
+            <details className={styles.source} data-testid="profile-source">
+              <summary>{tx("source")}</summary>
+              <dl className={styles.fields}>
+                <div><dt>{tx("root")}</dt><dd data-testid="profile-source-root">{sourceText(gex?.root)}</dd></div>
+                <div><dt>{tx("asof")}</dt><dd data-testid="profile-source-asof">{sourceText(gex?.asof)}</dd></div>
+                <div><dt>{tx("method")}</dt><dd data-testid="profile-source-method">{sourceText(p?.method)}</dd></div>
+                <div><dt>{tx("span")}</dt><dd data-testid="profile-source-span">{span == null ? tx("unavailable") : `${String(span)}%`}</dd></div>
+              </dl>
+              <h4>{tx("references")}</h4>
+              <dl className={styles.fields}>
+                <div><dt>{tx("spotReference")}</dt><dd data-testid="profile-reference-spot">{exactReference(spot)}</dd></div>
+                <div><dt>{tx("callWall")}</dt><dd data-testid="profile-reference-callWall">{exactReference(gex?.call_wall)}</dd></div>
+                <div><dt>{tx("putWall")}</dt><dd data-testid="profile-reference-putWall">{exactReference(gex?.put_wall)}</dd></div>
+                <div><dt>{tx("flip")}</dt><dd data-testid="profile-reference-flip">{exactReference(flip)}</dd></div>
+              </dl>
+              <h4>{tx("crossings")}</h4>
+              {crossings.length > 0 ? (
+                <ol className={styles.crossings} data-testid="profile-crossings">
+                  {crossings.map((value, index) => <li key={index}>{String(value)}</li>)}
+                </ol>
+              ) : <p className={styles.note} data-testid="profile-crossings-unavailable">{tx("noCrossings")}</p>}
+              <p className={styles.note}>{tx("precision")}</p>
+              <p className={styles.note}>{tx("sampleScope")}</p>
+              <p className={styles.note}>{tx("gate").replace("{n}", String(MIN_PROFILE_POINTS))}</p>
+              <p className={styles.note}>{tx("crossingMethod")}</p>
+              <p className={styles.note}>{tx("clockMeaning")}</p>
+              <p className={styles.note}>{tx("assumption")}</p>
+            </details>
+          </>
+        )}
+      </div>
     </MscCard>
   );
 }
-
-const UNIT: React.CSSProperties = {
-  fontSize: "var(--fs-micro)",
-  letterSpacing: ".03em",
-  color: "var(--text-dim)",
-  textTransform: "uppercase",
-  whiteSpace: "nowrap",
-};

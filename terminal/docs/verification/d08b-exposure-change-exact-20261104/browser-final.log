@@ -1,0 +1,41 @@
+
+> terminal@0.1.0 test:e2e:responsive
+> playwright test --config=docs/verification/d08b-vol-skew-exact-20261104/playwright.config.ts e2e/options-exposure-change-exact.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --max-failures=2
+
+[warmup] /terminal?symbol=NVDA → 200 in 76ms
+[warmup] /options → 200 in 136ms
+[warmup] /portfolio → 200 in 74ms
+[warmup] /alerts → 200 in 79ms
+[warmup] /analysis → 200 in 133ms
+[warmup] /discover → 200 in 86ms
+[warmup] /admin → 200 in 50ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 38ms
+[warmup] /login → 200 in 63ms
+[warmup] /reset-password → 200 in 70ms
+[warmup] /api/me → 200 in 56ms
+[warmup] /api/watchlist → 200 in 29ms
+[warmup] /api/layouts → 200 in 27ms
+[warmup] /api/watchlist/annotations → 409 in 25ms
+[warmup] 14 routes compiled in 1s
+
+Running 15 tests using 1 worker
+
+  -   1 [desktop] › e2e/options-exposure-change-exact.spec.ts:254:5 › baseline: existing change inspector phone presentation
+  ✓   2 [desktop] › e2e/options-exposure-change-exact.spec.ts:361:7 › Change en: exact cohort values, source populations and keyboard presentation (4.1s)
+  ✓   3 [desktop] › e2e/options-exposure-change-exact.spec.ts:361:7 › Change zh: exact cohort values, source populations and keyboard presentation (3.3s)
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓   4 [desktop] › e2e/options-exposure-change-exact.spec.ts:407:5 › Change: preserved selected strike, unmatched focus and access loss on the actual route (3.1s)
+  ✓   5 [desktop] › e2e/options-exposure-change-exact.spec.ts:456:5 › Change: 320px, magnification, narrow pane and focus continuity (2.8s)
+  -   6 [tablet] › e2e/options-exposure-change-exact.spec.ts:254:5 › baseline: existing change inspector phone presentation
+  ✓   7 [tablet] › e2e/options-exposure-change-exact.spec.ts:361:7 › Change en: exact cohort values, source populations and keyboard presentation (3.3s)
+  ✓   8 [tablet] › e2e/options-exposure-change-exact.spec.ts:361:7 › Change zh: exact cohort values, source populations and keyboard presentation (3.3s)
+  -   9 [tablet] › e2e/options-exposure-change-exact.spec.ts:407:5 › Change: preserved selected strike, unmatched focus and access loss on the actual route
+  -  10 [tablet] › e2e/options-exposure-change-exact.spec.ts:456:5 › Change: 320px, magnification, narrow pane and focus continuity
+  -  11 [mobile] › e2e/options-exposure-change-exact.spec.ts:254:5 › baseline: existing change inspector phone presentation
+  ✓  12 [mobile] › e2e/options-exposure-change-exact.spec.ts:361:7 › Change en: exact cohort values, source populations and keyboard presentation (3.2s)
+  ✓  13 [mobile] › e2e/options-exposure-change-exact.spec.ts:361:7 › Change zh: exact cohort values, source populations and keyboard presentation (3.4s)
+  -  14 [mobile] › e2e/options-exposure-change-exact.spec.ts:407:5 › Change: preserved selected strike, unmatched focus and access loss on the actual route
+  -  15 [mobile] › e2e/options-exposure-change-exact.spec.ts:456:5 › Change: 320px, magnification, narrow pane and focus continuity
+
+  7 skipped
+  8 passed (35.9s)

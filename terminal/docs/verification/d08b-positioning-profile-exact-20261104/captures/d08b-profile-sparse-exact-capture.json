@@ -1,0 +1,20 @@
+{
+  "schema": "d08b.viewport_capture.v1",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "fullPage": false,
+  "innerWidth": 1440,
+  "innerHeight": 900,
+  "devicePixelRatio": 1,
+  "cssZoom": "1",
+  "target": {
+    "tag": "TD",
+    "text": "+1.2345678901234567",
+    "left": 452.34375,
+    "top": 800.296875,
+    "width": 507.3125,
+    "height": 40.5
+  }
+}

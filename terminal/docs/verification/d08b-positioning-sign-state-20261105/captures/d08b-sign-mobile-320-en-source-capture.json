@@ -1,0 +1,24 @@
+{
+  "schema": "d08b.viewport_capture.v1",
+  "viewport": {
+    "width": 320,
+    "height": 844
+  },
+  "fullPage": false,
+  "innerWidth": 320,
+  "innerHeight": 844,
+  "devicePixelRatio": 1,
+  "cssZoom": "1",
+  "target": {
+    "tag": "INPUT",
+    "text": "",
+    "left": 11,
+    "top": 245.953125,
+    "width": 120,
+    "height": 29.390625
+  },
+  "language": "en",
+  "sourceAsOf": "2026-07-10T20:15:00Z",
+  "sourceRoot": "SPY",
+  "sourceClockUnchanged": true
+}

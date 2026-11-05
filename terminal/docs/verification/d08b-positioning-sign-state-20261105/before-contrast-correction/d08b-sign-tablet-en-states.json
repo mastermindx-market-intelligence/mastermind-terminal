@@ -1,0 +1,1892 @@
+{
+  "schema": "d08b.sign_states.v1",
+  "language": "en",
+  "project": "tablet",
+  "sourceModelUnit": "USD mn per +1% spot",
+  "observations": [
+    {
+      "fixtureVariant": "unknown-net-only",
+      "sourceAsOf": "2026-07-10T20:15:00Z",
+      "convention": "dealer-sign per engine/gex_model",
+      "reportedGammaMn": 60,
+      "modelVerdict": "unknown",
+      "note": "These inputs do not establish the sign-sensitivity estimate; robustness and a flip weight are not determined.",
+      "geometry": null,
+      "ordinaryDarkContrast": {
+        "schema": "d08b.sign_contrast_samples.v1",
+        "text": [
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "Sign robustness",
+            "color": "rgb(214, 218, 227)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "12px",
+            "fontWeight": "650",
+            "opacity": "1",
+            "ratio": 12.794044188667254
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "Signed estimate",
+            "color": "rgb(74, 84, 104)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 2.3538873839167938
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "Gamma tilt",
+            "color": "rgb(74, 84, 104)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 2.3538873839167938
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "—",
+            "color": "rgb(214, 218, 227)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "14px",
+            "fontWeight": "600",
+            "opacity": "1",
+            "ratio": 12.794044188667254
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "Flips at call weight",
+            "color": "rgb(74, 84, 104)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 2.3538873839167938
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "Not determined",
+            "color": "rgb(214, 218, 227)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "14px",
+            "fontWeight": "600",
+            "opacity": "1",
+            "ratio": 12.794044188667254
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "Verdict",
+            "color": "rgb(74, 84, 104)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 2.3538873839167938
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "Unknown",
+            "color": "rgb(214, 218, 227)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "14px",
+            "fontWeight": "600",
+            "opacity": "1",
+            "ratio": 12.794044188667254
+          },
+          {
+            "tag": "P",
+            "testId": null,
+            "text": "· Convention: dealer-sign per engine/gex_model",
+            "color": "rgb(113, 122, 142)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 4.160222159284028
+          },
+          {
+            "tag": "SPAN",
+            "testId": "sign-sensitivity-note",
+            "text": "These inputs do not establish the sign-sensitivity estimate; robustness and a flip weight are not determined.",
+            "color": "rgb(113, 122, 142)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 4.160222159284028
+          }
+        ],
+        "marks": [],
+        "textBelow4_5": [
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "Signed estimate",
+            "color": "rgb(74, 84, 104)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 2.3538873839167938
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "Gamma tilt",
+            "color": "rgb(74, 84, 104)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 2.3538873839167938
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "Flips at call weight",
+            "color": "rgb(74, 84, 104)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 2.3538873839167938
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "Verdict",
+            "color": "rgb(74, 84, 104)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 2.3538873839167938
+          },
+          {
+            "tag": "P",
+            "testId": null,
+            "text": "· Convention: dealer-sign per engine/gex_model",
+            "color": "rgb(113, 122, 142)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 4.160222159284028
+          },
+          {
+            "tag": "SPAN",
+            "testId": "sign-sensitivity-note",
+            "text": "These inputs do not establish the sign-sensitivity estimate; robustness and a flip weight are not determined.",
+            "color": "rgb(113, 122, 142)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 4.160222159284028
+          }
+        ],
+        "marksBelow3": [],
+        "limitation": "Direct painted text and SVG mark styles against nearest opaque background. Diagnostic only; gradients, alpha compositing and ancestor opacity are not certified. Zero-axis line is reported separately by shape."
+      }
+    },
+    {
+      "fixtureVariant": "unknown-zero-sides",
+      "sourceAsOf": "2026-07-10T20:15:00Z",
+      "convention": "dealer-sign per engine/gex_model",
+      "reportedGammaMn": 0,
+      "modelVerdict": "unknown",
+      "note": "These inputs do not establish the sign-sensitivity estimate; robustness and a flip weight are not determined.",
+      "geometry": null,
+      "ordinaryDarkContrast": {
+        "schema": "d08b.sign_contrast_samples.v1",
+        "text": [
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "Sign robustness",
+            "color": "rgb(214, 218, 227)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "12px",
+            "fontWeight": "650",
+            "opacity": "1",
+            "ratio": 12.794044188667254
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "Signed estimate",
+            "color": "rgb(74, 84, 104)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 2.3538873839167938
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "Gamma tilt",
+            "color": "rgb(74, 84, 104)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 2.3538873839167938
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "—",
+            "color": "rgb(214, 218, 227)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "14px",
+            "fontWeight": "600",
+            "opacity": "1",
+            "ratio": 12.794044188667254
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "Flips at call weight",
+            "color": "rgb(74, 84, 104)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 2.3538873839167938
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "Not determined",
+            "color": "rgb(214, 218, 227)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "14px",
+            "fontWeight": "600",
+            "opacity": "1",
+            "ratio": 12.794044188667254
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "Verdict",
+            "color": "rgb(74, 84, 104)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 2.3538873839167938
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "Unknown",
+            "color": "rgb(214, 218, 227)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "14px",
+            "fontWeight": "600",
+            "opacity": "1",
+            "ratio": 12.794044188667254
+          },
+          {
+            "tag": "P",
+            "testId": null,
+            "text": "· Convention: dealer-sign per engine/gex_model",
+            "color": "rgb(113, 122, 142)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 4.160222159284028
+          },
+          {
+            "tag": "SPAN",
+            "testId": "sign-sensitivity-note",
+            "text": "These inputs do not establish the sign-sensitivity estimate; robustness and a flip weight are not determined.",
+            "color": "rgb(113, 122, 142)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 4.160222159284028
+          }
+        ],
+        "marks": [],
+        "textBelow4_5": [
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "Signed estimate",
+            "color": "rgb(74, 84, 104)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 2.3538873839167938
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "Gamma tilt",
+            "color": "rgb(74, 84, 104)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 2.3538873839167938
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "Flips at call weight",
+            "color": "rgb(74, 84, 104)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 2.3538873839167938
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "Verdict",
+            "color": "rgb(74, 84, 104)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 2.3538873839167938
+          },
+          {
+            "tag": "P",
+            "testId": null,
+            "text": "· Convention: dealer-sign per engine/gex_model",
+            "color": "rgb(113, 122, 142)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 4.160222159284028
+          },
+          {
+            "tag": "SPAN",
+            "testId": "sign-sensitivity-note",
+            "text": "These inputs do not establish the sign-sensitivity estimate; robustness and a flip weight are not determined.",
+            "color": "rgb(113, 122, 142)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 4.160222159284028
+          }
+        ],
+        "marksBelow3": [],
+        "limitation": "Direct painted text and SVG mark styles against nearest opaque background. Diagnostic only; gradients, alpha compositing and ancestor opacity are not certified. Zero-axis line is reported separately by shape."
+      }
+    },
+    {
+      "fixtureVariant": "robust",
+      "sourceAsOf": "2026-07-10T20:15:00Z",
+      "convention": "dealer-sign per engine/gex_model",
+      "reportedGammaMn": 300,
+      "modelVerdict": "robust",
+      "note": "Absolute Gamma tilt is at least 12.0%. Inspect the curve and flip weight to see whether another call-side weight reverses the estimated sign.",
+      "geometry": {
+        "width": 367,
+        "height": 56,
+        "viewBox": "0 0 367 56",
+        "points": [
+          [
+            2,
+            50
+          ],
+          [
+            92.75,
+            39
+          ],
+          [
+            183.5,
+            28
+          ],
+          [
+            274.25,
+            17
+          ],
+          [
+            365,
+            6
+          ]
+        ],
+        "stroke": "var(--brand-2)",
+        "zeroY": 22.5,
+        "markers": [
+          {
+            "x": 228.875,
+            "y": 22.5
+          },
+          {
+            "x": 365,
+            "y": 6
+          }
+        ]
+      },
+      "ordinaryDarkContrast": {
+        "schema": "d08b.sign_contrast_samples.v1",
+        "text": [
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "Sign robustness",
+            "color": "rgb(214, 218, 227)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "12px",
+            "fontWeight": "650",
+            "opacity": "1",
+            "ratio": 12.794044188667254
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "Signed estimate",
+            "color": "rgb(74, 84, 104)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 2.3538873839167938
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "Gamma tilt",
+            "color": "rgb(74, 84, 104)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 2.3538873839167938
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "60.0%",
+            "color": "rgb(214, 218, 227)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "14px",
+            "fontWeight": "600",
+            "opacity": "1",
+            "ratio": 12.794044188667254
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "Flips at call weight",
+            "color": "rgb(74, 84, 104)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 2.3538873839167938
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "0.25",
+            "color": "rgb(214, 218, 227)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "14px",
+            "fontWeight": "600",
+            "opacity": "1",
+            "ratio": 12.794044188667254
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "Verdict",
+            "color": "rgb(74, 84, 104)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 2.3538873839167938
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "Robust",
+            "color": "rgb(214, 218, 227)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "14px",
+            "fontWeight": "600",
+            "opacity": "1",
+            "ratio": 12.794044188667254
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "−1 dealers short calls",
+            "color": "rgb(74, 84, 104)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 2.3538873839167938
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "0 calls unsigned",
+            "color": "rgb(74, 84, 104)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 2.3538873839167938
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "+1 dealers long calls",
+            "color": "rgb(155, 163, 180)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 7.073661363306059
+          },
+          {
+            "tag": "P",
+            "testId": null,
+            "text": "· Convention: dealer-sign per engine/gex_model",
+            "color": "rgb(113, 122, 142)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 4.160222159284028
+          },
+          {
+            "tag": "SPAN",
+            "testId": "sign-sensitivity-note",
+            "text": "Absolute Gamma tilt is at least 12.0%. Inspect the curve and flip weight to see whether another call-side weight reverses the estimated sign.",
+            "color": "rgb(113, 122, 142)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 4.160222159284028
+          }
+        ],
+        "marks": [
+          {
+            "shape": "line",
+            "color": "rgb(26, 29, 36)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "opacity": "1",
+            "ratio": 1.0622403563540268
+          },
+          {
+            "shape": "polyline",
+            "color": "rgb(77, 130, 255)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "opacity": "1",
+            "ratio": 5.078211631537408
+          },
+          {
+            "shape": "circle",
+            "color": "rgb(155, 163, 180)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "opacity": "1",
+            "ratio": 7.073661363306059
+          },
+          {
+            "shape": "circle",
+            "color": "rgb(41, 98, 255)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "opacity": "1",
+            "ratio": 3.6558670736197985
+          }
+        ],
+        "textBelow4_5": [
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "Signed estimate",
+            "color": "rgb(74, 84, 104)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 2.3538873839167938
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "Gamma tilt",
+            "color": "rgb(74, 84, 104)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 2.3538873839167938
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "Flips at call weight",
+            "color": "rgb(74, 84, 104)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 2.3538873839167938
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "Verdict",
+            "color": "rgb(74, 84, 104)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 2.3538873839167938
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "−1 dealers short calls",
+            "color": "rgb(74, 84, 104)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 2.3538873839167938
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "0 calls unsigned",
+            "color": "rgb(74, 84, 104)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 2.3538873839167938
+          },
+          {
+            "tag": "P",
+            "testId": null,
+            "text": "· Convention: dealer-sign per engine/gex_model",
+            "color": "rgb(113, 122, 142)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 4.160222159284028
+          },
+          {
+            "tag": "SPAN",
+            "testId": "sign-sensitivity-note",
+            "text": "Absolute Gamma tilt is at least 12.0%. Inspect the curve and flip weight to see whether another call-side weight reverses the estimated sign.",
+            "color": "rgb(113, 122, 142)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 4.160222159284028
+          }
+        ],
+        "marksBelow3": [
+          {
+            "shape": "line",
+            "color": "rgb(26, 29, 36)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "opacity": "1",
+            "ratio": 1.0622403563540268
+          }
+        ],
+        "limitation": "Direct painted text and SVG mark styles against nearest opaque background. Diagnostic only; gradients, alpha compositing and ancestor opacity are not certified. Zero-axis line is reported separately by shape."
+      }
+    },
+    {
+      "fixtureVariant": "fragile",
+      "sourceAsOf": "2026-07-10T20:15:00Z",
+      "convention": "dealer-sign per engine/gex_model",
+      "reportedGammaMn": 40,
+      "modelVerdict": "fragile",
+      "note": "Call and put gamma are close to balanced — a small change of convention would flip the regime read. Treat the sign as unresolved.",
+      "geometry": {
+        "width": 367,
+        "height": 56,
+        "viewBox": "0 0 367 56",
+        "points": [
+          [
+            2,
+            50
+          ],
+          [
+            92.75,
+            39
+          ],
+          [
+            183.5,
+            28
+          ],
+          [
+            274.25,
+            17
+          ],
+          [
+            365,
+            6
+          ]
+        ],
+        "stroke": "var(--warn)",
+        "zeroY": 8.200000000000003,
+        "markers": [
+          {
+            "x": 346.84999999999997,
+            "y": 8.200000000000003
+          },
+          {
+            "x": 365,
+            "y": 6
+          }
+        ]
+      },
+      "ordinaryDarkContrast": {
+        "schema": "d08b.sign_contrast_samples.v1",
+        "text": [
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "Sign robustness",
+            "color": "rgb(214, 218, 227)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "12px",
+            "fontWeight": "650",
+            "opacity": "1",
+            "ratio": 12.794044188667254
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "Signed estimate",
+            "color": "rgb(74, 84, 104)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 2.3538873839167938
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "Gamma tilt",
+            "color": "rgb(74, 84, 104)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 2.3538873839167938
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "5.3%",
+            "color": "rgb(232, 163, 61)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "14px",
+            "fontWeight": "600",
+            "opacity": "1",
+            "ratio": 8.307062326743495
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "Flips at call weight",
+            "color": "rgb(74, 84, 104)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 2.3538873839167938
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "0.90",
+            "color": "rgb(214, 218, 227)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "14px",
+            "fontWeight": "600",
+            "opacity": "1",
+            "ratio": 12.794044188667254
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "Verdict",
+            "color": "rgb(74, 84, 104)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 2.3538873839167938
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "Fragile",
+            "color": "rgb(232, 163, 61)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "14px",
+            "fontWeight": "600",
+            "opacity": "1",
+            "ratio": 8.307062326743495
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "−1 dealers short calls",
+            "color": "rgb(74, 84, 104)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 2.3538873839167938
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "0 calls unsigned",
+            "color": "rgb(74, 84, 104)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 2.3538873839167938
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "+1 dealers long calls",
+            "color": "rgb(155, 163, 180)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 7.073661363306059
+          },
+          {
+            "tag": "P",
+            "testId": null,
+            "text": "· Convention: dealer-sign per engine/gex_model",
+            "color": "rgb(113, 122, 142)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 4.160222159284028
+          },
+          {
+            "tag": "SPAN",
+            "testId": "sign-sensitivity-note",
+            "text": "Call and put gamma are close to balanced — a small change of convention would flip the regime read. Treat the sign as unresolved.",
+            "color": "rgb(232, 163, 61)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 8.307062326743495
+          }
+        ],
+        "marks": [
+          {
+            "shape": "line",
+            "color": "rgb(26, 29, 36)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "opacity": "1",
+            "ratio": 1.0622403563540268
+          },
+          {
+            "shape": "polyline",
+            "color": "rgb(232, 163, 61)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "opacity": "1",
+            "ratio": 8.307062326743495
+          },
+          {
+            "shape": "circle",
+            "color": "rgb(232, 163, 61)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "opacity": "1",
+            "ratio": 8.307062326743495
+          },
+          {
+            "shape": "circle",
+            "color": "rgb(41, 98, 255)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "opacity": "1",
+            "ratio": 3.6558670736197985
+          }
+        ],
+        "textBelow4_5": [
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "Signed estimate",
+            "color": "rgb(74, 84, 104)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 2.3538873839167938
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "Gamma tilt",
+            "color": "rgb(74, 84, 104)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 2.3538873839167938
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "Flips at call weight",
+            "color": "rgb(74, 84, 104)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 2.3538873839167938
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "Verdict",
+            "color": "rgb(74, 84, 104)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 2.3538873839167938
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "−1 dealers short calls",
+            "color": "rgb(74, 84, 104)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 2.3538873839167938
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "0 calls unsigned",
+            "color": "rgb(74, 84, 104)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 2.3538873839167938
+          },
+          {
+            "tag": "P",
+            "testId": null,
+            "text": "· Convention: dealer-sign per engine/gex_model",
+            "color": "rgb(113, 122, 142)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 4.160222159284028
+          }
+        ],
+        "marksBelow3": [
+          {
+            "shape": "line",
+            "color": "rgb(26, 29, 36)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "opacity": "1",
+            "ratio": 1.0622403563540268
+          }
+        ],
+        "limitation": "Direct painted text and SVG mark styles against nearest opaque background. Diagnostic only; gradients, alpha compositing and ancestor opacity are not certified. Zero-axis line is reported separately by shape."
+      }
+    },
+    {
+      "fixtureVariant": "put-only",
+      "sourceAsOf": "2026-07-10T20:15:00Z",
+      "convention": "dealer-sign per engine/gex_model",
+      "reportedGammaMn": -300,
+      "modelVerdict": "robust",
+      "note": "Absolute Gamma tilt is at least 12.0%. Inspect the curve and flip weight to see whether another call-side weight reverses the estimated sign.",
+      "geometry": {
+        "width": 367,
+        "height": 56,
+        "viewBox": "0 0 367 56",
+        "points": [
+          [
+            2,
+            50
+          ],
+          [
+            92.75,
+            50
+          ],
+          [
+            183.5,
+            50
+          ],
+          [
+            274.25,
+            50
+          ],
+          [
+            365,
+            50
+          ]
+        ],
+        "stroke": "var(--brand-2)",
+        "zeroY": 6,
+        "markers": [
+          {
+            "x": 365,
+            "y": 50
+          }
+        ]
+      },
+      "ordinaryDarkContrast": {
+        "schema": "d08b.sign_contrast_samples.v1",
+        "text": [
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "Sign robustness",
+            "color": "rgb(214, 218, 227)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "12px",
+            "fontWeight": "650",
+            "opacity": "1",
+            "ratio": 12.794044188667254
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "Signed estimate",
+            "color": "rgb(74, 84, 104)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 2.3538873839167938
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "Gamma tilt",
+            "color": "rgb(74, 84, 104)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 2.3538873839167938
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "−100.0%",
+            "color": "rgb(214, 218, 227)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "14px",
+            "fontWeight": "600",
+            "opacity": "1",
+            "ratio": 12.794044188667254
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "Flips at call weight",
+            "color": "rgb(74, 84, 104)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 2.3538873839167938
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "No plausible weight flips it",
+            "color": "rgb(214, 218, 227)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "14px",
+            "fontWeight": "600",
+            "opacity": "1",
+            "ratio": 12.794044188667254
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "Verdict",
+            "color": "rgb(74, 84, 104)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 2.3538873839167938
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "Robust",
+            "color": "rgb(214, 218, 227)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "14px",
+            "fontWeight": "600",
+            "opacity": "1",
+            "ratio": 12.794044188667254
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "−1 dealers short calls",
+            "color": "rgb(74, 84, 104)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 2.3538873839167938
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "0 calls unsigned",
+            "color": "rgb(74, 84, 104)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 2.3538873839167938
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "+1 dealers long calls",
+            "color": "rgb(155, 163, 180)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 7.073661363306059
+          },
+          {
+            "tag": "P",
+            "testId": null,
+            "text": "· Convention: dealer-sign per engine/gex_model",
+            "color": "rgb(113, 122, 142)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 4.160222159284028
+          },
+          {
+            "tag": "SPAN",
+            "testId": "sign-sensitivity-note",
+            "text": "Absolute Gamma tilt is at least 12.0%. Inspect the curve and flip weight to see whether another call-side weight reverses the estimated sign.",
+            "color": "rgb(113, 122, 142)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 4.160222159284028
+          }
+        ],
+        "marks": [
+          {
+            "shape": "line",
+            "color": "rgb(26, 29, 36)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "opacity": "1",
+            "ratio": 1.0622403563540268
+          },
+          {
+            "shape": "polyline",
+            "color": "rgb(77, 130, 255)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "opacity": "1",
+            "ratio": 5.078211631537408
+          },
+          {
+            "shape": "circle",
+            "color": "rgb(41, 98, 255)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "opacity": "1",
+            "ratio": 3.6558670736197985
+          }
+        ],
+        "textBelow4_5": [
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "Signed estimate",
+            "color": "rgb(74, 84, 104)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 2.3538873839167938
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "Gamma tilt",
+            "color": "rgb(74, 84, 104)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 2.3538873839167938
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "Flips at call weight",
+            "color": "rgb(74, 84, 104)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 2.3538873839167938
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "Verdict",
+            "color": "rgb(74, 84, 104)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 2.3538873839167938
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "−1 dealers short calls",
+            "color": "rgb(74, 84, 104)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 2.3538873839167938
+          },
+          {
+            "tag": "SPAN",
+            "testId": null,
+            "text": "0 calls unsigned",
+            "color": "rgb(74, 84, 104)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 2.3538873839167938
+          },
+          {
+            "tag": "P",
+            "testId": null,
+            "text": "· Convention: dealer-sign per engine/gex_model",
+            "color": "rgb(113, 122, 142)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 4.160222159284028
+          },
+          {
+            "tag": "SPAN",
+            "testId": "sign-sensitivity-note",
+            "text": "Absolute Gamma tilt is at least 12.0%. Inspect the curve and flip weight to see whether another call-side weight reverses the estimated sign.",
+            "color": "rgb(113, 122, 142)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "fontSize": "10px",
+            "fontWeight": "400",
+            "opacity": "1",
+            "ratio": 4.160222159284028
+          }
+        ],
+        "marksBelow3": [
+          {
+            "shape": "line",
+            "color": "rgb(26, 29, 36)",
+            "backgroundRgba": [
+              21,
+              23,
+              29,
+              255
+            ],
+            "opacity": "1",
+            "ratio": 1.0622403563540268
+          }
+        ],
+        "limitation": "Direct painted text and SVG mark styles against nearest opaque background. Diagnostic only; gradients, alpha compositing and ancestor opacity are not certified. Zero-axis line is reported separately by shape."
+      }
+    }
+  ],
+  "contrastScope": "Diagnostic sampled rendered styles; no complete accessibility certification."
+}

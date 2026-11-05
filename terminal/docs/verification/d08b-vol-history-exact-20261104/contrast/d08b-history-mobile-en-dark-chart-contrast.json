@@ -1,0 +1,86 @@
+{
+  "text": [
+    {
+      "text": "ATM IV history",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "14 sessions · since 2026-10-01 through 2026-10-16",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "Partial IV history · 1 conflicting date unavailable",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "Chart",
+      "ratio": 12.010292353016952
+    },
+    {
+      "text": "Exact history values",
+      "ratio": 7.073661363306059
+    },
+    {
+      "text": "0%",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "10%",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "20%",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "52w hi",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "52w lo",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "10-01",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "10-06",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "10-10",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "10-16",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "options_hub · nightly EOD",
+      "ratio": 7.5733449016766565
+    }
+  ],
+  "marks": [
+    {
+      "shape": "line",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "shape": "line",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "shape": "path",
+      "ratio": 5.436936572740327
+    },
+    {
+      "shape": "path",
+      "ratio": 5.436936572740327
+    },
+    {
+      "shape": "path",
+      "ratio": 5.436936572740327
+    }
+  ]
+}

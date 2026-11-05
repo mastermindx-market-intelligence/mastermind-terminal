@@ -2,20 +2,23 @@
 /**
  * VolTermPanel — Panel C: ATM IV term structure (atm_iv vs DTE, linear x).
  *
- * Finite-filtered per R7. Markers only on the near curve (dte ≤ 60) — the long
- * tail stays a clean line. The structure chip compares the FRONT expiration to
+ * Finite-filtered per R7. Markers on the near curve (dte ≤ 60), isolated points
+ * and the selected expiry — the rest of the long tail stays a clean line.
+ * The structure chip compares the FRONT expiration to
  * the row nearest 90 DTE, and only when that row lies within 45 days of 90 DTE:
  * front below → Contango, front above → Inverted — a geometric description in
  * neutral tones (vol is non-directional), suppressed whenever either point is
  * missing, out of range, or they are the same row.
  */
 
-import React, { useMemo, useRef } from "react";
+import React, { useId, useMemo, useRef, useState } from "react";
 import {
   useChartWidth, niceTicks, fmtTick, thinLabels, padDomain,
 } from "@/components/charts/svgChart";
 import type { Lang } from "@/lib/i18n";
 import { makeVolT } from "./volStrings";
+import { makeVolTermT } from "./volTermStrings";
+import styles from "./VolTermPanel.module.css";
 import type { VolTermRow } from "./volTypes";
 import {
   admitVolTermRows, finiteSegments, fmtPct, volIsoDay, ProvenanceLine, PanelEmpty, PLOT_PAD, AXIS_TXT, REF_TXT, NEUTRAL_CHIP,
@@ -41,6 +44,11 @@ export function VolTermPanel({
   onSelectExp?: (exp: string) => void;
 }) {
   const t = makeVolT(lang);
+  const tx = makeVolTermT(lang);
+  const descriptionId = useId();
+  const exactId = useId();
+  const [exactOpen, setExactOpen] = useState(false);
+  const exactButtonRef = useRef<HTMLButtonElement | null>(null);
   const boxRef = useRef<HTMLDivElement | null>(null);
   const w = useChartWidth(boxRef);
 
@@ -49,6 +57,8 @@ export function VolTermPanel({
   // Keep the shared identity even when this surface has no admitted term row.
   const selectedExpiry = volIsoDay(selectedExp) ? selectedExp : null;
   const selectedUnavailable = selectedExpiry != null && !pts.some((p) => p.exp === selectedExpiry);
+  const selectedPoint = selectedExpiry ? pts.find(point => point.exp === selectedExpiry) ?? null : null;
+  const selectedConflict = selectedExpiry != null && admission.conflictExpiries.has(selectedExpiry);
   const finite = useMemo(() => pts.filter((p) => Number.isFinite(p.v)), [pts]);
   // Curve positions = admitted rows + invalid-expiry gap placeholders (NaN, never selectable)
   // at DTEs no admitted row already occupies; the rejected row is still disclosed below.
@@ -131,7 +141,8 @@ export function VolTermPanel({
   );
 
   const singletonPoints = new Set(segments.filter((seg) => seg.length === 1).flat());
-  const markers = finite.filter((p) => p.dte <= MARKER_MAX_DTE || singletonPoints.has(p));
+  // Selection is always locatable, even in the deliberately sparse long tail.
+  const markers = finite.filter((p) => p.dte <= MARKER_MAX_DTE || singletonPoints.has(p) || p.exp === selectedExpiry);
 
   // Slope chips (R2.3): the two segments a desk actually quotes — front→~30d and
   // ~30d→~90d, in vol points. Suppressed when the curve lacks the anchor tenors.
@@ -151,7 +162,7 @@ export function VolTermPanel({
   const fmtSlope = (v: number) => `${v > 0 ? "+" : v < 0 ? "−" : ""}${Math.abs(v).toFixed(1)}`;
 
   return (
-    <section className="fin-card" style={{ minWidth: 0 }}>
+    <section className={`fin-card ${styles.panel}`} data-testid="vol-term-panel">
       <div className="fin-card-h" style={{ flexWrap: "wrap" }}>
         <span>{t("termTitle")}</span>
         {structure && (
@@ -200,11 +211,28 @@ export function VolTermPanel({
           <span style={EXPIRY_COUNT}>{t("termExpCount").replace("{n}", String(pts.length))}</span>
         </div>
       )}
-      <div ref={boxRef} style={{ width: "100%", minWidth: 0 }}>
+      {selectedExpiry && (
+        <div data-testid="term-exact-selected" role="status" aria-label={tx("selected")}>
+          <div className={styles.selected}>
+            <dl><dt>{tx("expiry")}</dt><dd>{selectedExpiry}</dd></dl>
+            <dl><dt>{tx("days")}</dt><dd>{selectedPoint ? String(selectedPoint.dte) : tx("unavailable")}</dd></dl>
+            <dl><dt>{tx("iv")}</dt><dd>{selectedConflict ? tx("conflict") : selectedPoint && Number.isFinite(selectedPoint.v) ? `${String(selectedPoint.v)}%` : tx("unavailable")}</dd></dl>
+          </div>
+          {!selectedPoint && <p className={styles.note}>{tx("coordinate")}</p>}
+        </div>
+      )}
+      <div ref={boxRef} className={styles.content}>
         {!drawable ? (
           <PanelEmpty title={t("termEmptyTitle")} why={t("termEmptyWhy")} minHeight={H} />
         ) : (
-          <svg viewBox={`0 0 ${w} ${H}`} width={w} height={H} role="img" aria-label={conflictSummary ? `${t("termTitle")}. ${conflictSummary}` : t("termTitle")}>
+          <>
+          <div className={styles.narrow}>
+            <p className={styles.note}>{tx("narrow")}</p>
+            <button type="button" className={styles.button} onClick={() => { setExactOpen(true); exactButtonRef.current?.focus(); }}>{tx("exact")}</button>
+          </div>
+          <svg className={styles.plot} viewBox={`0 0 ${w} ${H}`} width={w} height={H} role="img"
+            aria-label={conflictSummary ? `${t("termTitle")}. ${conflictSummary}` : t("termTitle")} aria-describedby={descriptionId}>
+            <desc id={descriptionId}>{tx("chartDescription")}</desc>
             {yTicks.map((v) => (
               <g key={`y${v}`}>
                 <line x1={PLOT_PAD.l} x2={w - PLOT_PAD.r} y1={yOf(v)} y2={yOf(v)} stroke="var(--grid)" />
@@ -231,11 +259,15 @@ export function VolTermPanel({
               strokeLinejoin="round"
               strokeLinecap="round"
             />)}
+            {selectedPoint && <line data-testid="term-selected-guide" data-expiry={selectedPoint.exp}
+              x1={xOf(selectedPoint.dte)} x2={xOf(selectedPoint.dte)} y1={PLOT_PAD.t} y2={H - PLOT_PAD.b}
+              stroke="var(--text-2)" strokeDasharray="3 4" />}
             {markers.map((p) => {
               const selected = p.exp === selectedExp;
               return (
                 <circle
                   key={`${p.dte}:${p.exp}`}
+                  data-selected-expiry={selected ? p.exp : undefined}
                   cx={xOf(p.dte)}
                   cy={yOf(p.v)}
                   r={selected ? 5 : 3}
@@ -246,9 +278,37 @@ export function VolTermPanel({
               );
             })}
           </svg>
+          </>
         )}
       </div>
-      <ProvenanceLine lang={lang} />
+      {pts.length > 0 && (
+        <div className={styles.exact}>
+          <button ref={exactButtonRef} type="button" className={styles.button} aria-expanded={exactOpen} aria-controls={exactId}
+            onClick={() => setExactOpen(open => !open)}>{tx("exact")}</button>
+          {exactOpen && <div id={exactId}>
+            <table className={styles.table} data-testid="term-exact-table">
+              <caption>{tx("caption")}</caption>
+              <thead><tr><th scope="col">{tx("expiry")}</th><th scope="col">{tx("days")}</th><th scope="col">{tx("ivColumn")}</th></tr></thead>
+              <tbody>{pts.map(point => {
+                const state = point.conflict ? "conflict" : Number.isFinite(point.v) ? "supplied" : "unavailable";
+                return <tr key={point.exp}>
+                  <th scope="row">{onSelectExp
+                    ? <button type="button" className={styles.button} aria-pressed={point.exp === selectedExpiry} onClick={() => onSelectExp(point.exp)}>{point.exp}</button>
+                    : point.exp}</th>
+                  <td>{String(point.dte)}</td>
+                  <td data-state={state}>{state === "supplied" ? String(point.v) : tx(state === "conflict" ? "conflict" : "unavailable")}</td>
+                </tr>;
+              })}</tbody>
+            </table>
+            <details className={styles.source}>
+              <summary>{tx("source")}</summary>
+              <p className={styles.note}>{tx("precision")}</p>
+              <p className={styles.note}>{tx("tableScope")}</p>
+            </details>
+          </div>}
+        </div>
+      )}
+      <div className={styles.provenance}><ProvenanceLine lang={lang} /></div>
     </section>
   );
 }
@@ -278,7 +338,7 @@ const EXPIRY_SELECT: React.CSSProperties = {
   minWidth: 0,
   width: "100%",
   gridColumn: "1 / -1",
-  height: 36,
+  height: 44,
   padding: "0 30px 0 10px",
   background: "var(--panel-2)",
   color: "var(--text)",
@@ -290,7 +350,7 @@ const EXPIRY_SELECT: React.CSSProperties = {
 };
 
 const EXPIRY_COUNT: React.CSSProperties = {
-  fontSize: 10,
-  color: "var(--muted)",
+  fontSize: 11,
+  color: "var(--text-2)",
   whiteSpace: "nowrap",
 };

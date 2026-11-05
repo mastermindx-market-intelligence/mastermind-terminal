@@ -1,0 +1,40 @@
+
+> terminal@0.1.0 test:e2e:responsive
+> playwright test --config=docs/verification/d08b-vol-skew-exact-20261104/playwright.config.ts e2e/options-vol-term-exact.spec.ts e2e/options-vol-exact-expiry.spec.ts e2e/options-vol-term-mobile-overflow.spec.ts --project=desktop --project=tablet --project=mobile --workers=1
+
+[warmup] /terminal?symbol=NVDA → 200 in 108ms
+[warmup] /options → 200 in 271ms
+[warmup] /portfolio → 200 in 104ms
+[warmup] /alerts → 200 in 101ms
+[warmup] /analysis → 200 in 161ms
+[warmup] /discover → 200 in 202ms
+[warmup] /admin → 200 in 87ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 90ms
+[warmup] /login → 200 in 103ms
+[warmup] /reset-password → 200 in 89ms
+[warmup] /api/me → 200 in 84ms
+[warmup] /api/watchlist → 200 in 53ms
+[warmup] /api/layouts → 200 in 43ms
+[warmup] /api/watchlist/annotations → 409 in 46ms
+[warmup] 14 routes compiled in 2s
+
+Running 15 tests using 1 worker
+
+  ✓   1 [desktop] › e2e/options-vol-exact-expiry.spec.ts:6:5 › Volatility keeps one exact expiry across term, context and smile (1.8s)
+  ✓   2 [desktop] › e2e/options-vol-term-exact.spec.ts:89:7 › Term en: exact long expiry to smile, unavailable recovery and token presentation (2.0s)
+  ✓   3 [desktop] › e2e/options-vol-term-exact.spec.ts:89:7 › Term zh: exact long expiry to smile, unavailable recovery and token presentation (2.1s)
+  ✓   4 [desktop] › e2e/options-vol-term-exact.spec.ts:140:5 › Term 320px and narrow composition retain exact long-expiry keyboard selection (1.9s)
+  -   5 [desktop] › e2e/options-vol-term-mobile-overflow.spec.ts:3:5 › Volatility term-structure card stays inside the phone viewport
+  ✓   6 [tablet] › e2e/options-vol-exact-expiry.spec.ts:6:5 › Volatility keeps one exact expiry across term, context and smile (1.4s)
+  ✓   7 [tablet] › e2e/options-vol-term-exact.spec.ts:89:7 › Term en: exact long expiry to smile, unavailable recovery and token presentation (2.5s)
+  ✓   8 [tablet] › e2e/options-vol-term-exact.spec.ts:89:7 › Term zh: exact long expiry to smile, unavailable recovery and token presentation (2.3s)
+  -   9 [tablet] › e2e/options-vol-term-exact.spec.ts:140:5 › Term 320px and narrow composition retain exact long-expiry keyboard selection
+  -  10 [tablet] › e2e/options-vol-term-mobile-overflow.spec.ts:3:5 › Volatility term-structure card stays inside the phone viewport
+  ✓  11 [mobile] › e2e/options-vol-exact-expiry.spec.ts:6:5 › Volatility keeps one exact expiry across term, context and smile (1.3s)
+  ✓  12 [mobile] › e2e/options-vol-term-exact.spec.ts:89:7 › Term en: exact long expiry to smile, unavailable recovery and token presentation (2.6s)
+  ✓  13 [mobile] › e2e/options-vol-term-exact.spec.ts:89:7 › Term zh: exact long expiry to smile, unavailable recovery and token presentation (2.2s)
+  -  14 [mobile] › e2e/options-vol-term-exact.spec.ts:140:5 › Term 320px and narrow composition retain exact long-expiry keyboard selection
+  ✓  15 [mobile] › e2e/options-vol-term-mobile-overflow.spec.ts:3:5 › Volatility term-structure card stays inside the phone viewport (884ms)
+
+  4 skipped
+  11 passed (33.0s)

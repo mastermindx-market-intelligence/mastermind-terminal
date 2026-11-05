@@ -1,0 +1,24 @@
+{
+  "schema": "d08b.viewport_capture.v1",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "fullPage": false,
+  "innerWidth": 390,
+  "innerHeight": 844,
+  "devicePixelRatio": 1,
+  "cssZoom": "1",
+  "target": {
+    "tag": "SECTION",
+    "text": "Sign robustnessiSigned estimateGamma tilt60.0%Flips at call weight0.25VerdictRobust−1 dealers short calls0 calls unsigned+1 dealers long callsAbsolute Gamma tilt is at least 12.0%.",
+    "left": 12,
+    "top": 302.578125,
+    "width": 366,
+    "height": 237.890625
+  },
+  "fixtureVariant": "robust",
+  "language": "en",
+  "project": "mobile",
+  "presentation": "controlled panel light tokens; not production theme activation"
+}

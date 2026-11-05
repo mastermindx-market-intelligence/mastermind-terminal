@@ -1,0 +1,141 @@
+{
+  "text": [
+    {
+      "text": "Call IV",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "Put IV",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "2026-11-20",
+      "ratio": 12.010292353016952
+    },
+    {
+      "text": "2026-12-18",
+      "ratio": 7.073661363306059
+    },
+    {
+      "text": "Chart",
+      "ratio": 7.073661363306059
+    },
+    {
+      "text": "Exact IV",
+      "ratio": 12.010292353016952
+    },
+    {
+      "text": "2026-11-20 · Strikes shown: 5 / 7",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "display window ±20% proxy",
+      "ratio": 7.073661363306059
+    },
+    {
+      "text": "Full supplied range",
+      "ratio": 7.073661363306059
+    },
+    {
+      "text": "Partial IV data · 1 conflicting strike unavailable",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "2026-11-20 · reported IV by strike",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "Strike",
+      "ratio": 12.794044188667254
+    },
+    {
+      "text": "Call IV (%)",
+      "ratio": 12.794044188667254
+    },
+    {
+      "text": "Put IV (%)",
+      "ratio": 12.794044188667254
+    },
+    {
+      "text": "90",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "0",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "22",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "100.00000001",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "17.1234567890123",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "1e-9",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "105",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "20",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "20",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "110",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "Unavailable",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "21",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "115",
+      "ratio": 13.697815650420562
+    },
+    {
+      "text": "Conflicting records",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "Conflicting records",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "Source & method",
+      "ratio": 12.794044188667254
+    },
+    {
+      "text": "IV values are percentages, shown without display rounding. Missing leg",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "Chart and table share the selected expiry and strike range. Counts inc",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "Quote inputs and IV method are not supplied in this read.",
+      "ratio": 7.5733449016766565
+    },
+    {
+      "text": "options_hub · nightly EOD",
+      "ratio": 7.5733449016766565
+    }
+  ],
+  "marks": []
+}

@@ -1,0 +1,341 @@
+{
+  "text": [
+    {
+      "text": "Exposure profile",
+      "ratio": 15.165538505519269
+    },
+    {
+      "text": "$bn per +1% spot",
+      "ratio": 6.289247755414098
+    },
+    {
+      "text": "Signed estimate",
+      "ratio": 6.289247755414098
+    },
+    {
+      "text": "Chart",
+      "ratio": 5.554996509050376
+    },
+    {
+      "text": "Exact profile values",
+      "ratio": 12.906075827629794
+    },
+    {
+      "text": "13 finite spot–Gamma pairs · source order",
+      "ratio": 6.289247755414098
+    },
+    {
+      "text": "Hypothetical spot price",
+      "ratio": 6.289247755414098
+    },
+    {
+      "text": "562.5925925917592",
+      "ratio": 15.165538505519269
+    },
+    {
+      "text": "Net Gamma ($bn per +1% spot)",
+      "ratio": 6.289247755414098
+    },
+    {
+      "text": "-1.2345678901234567",
+      "ratio": 15.165538505519269
+    },
+    {
+      "text": "Hypothetical spot price",
+      "ratio": 6.289247755414098
+    },
+    {
+      "text": "629.9984567890123",
+      "ratio": 15.165538505519269
+    },
+    {
+      "text": "Net Gamma ($bn per +1% spot)",
+      "ratio": 6.289247755414098
+    },
+    {
+      "text": "-0.75",
+      "ratio": 15.165538505519269
+    },
+    {
+      "text": "Hypothetical spot price",
+      "ratio": 6.289247755414098
+    },
+    {
+      "text": "689.9984567890123",
+      "ratio": 15.165538505519269
+    },
+    {
+      "text": "Net Gamma ($bn per +1% spot)",
+      "ratio": 6.289247755414098
+    },
+    {
+      "text": "-0.25",
+      "ratio": 15.165538505519269
+    },
+    {
+      "text": "Hypothetical spot price",
+      "ratio": 6.289247755414098
+    },
+    {
+      "text": "725.9984567890123",
+      "ratio": 15.165538505519269
+    },
+    {
+      "text": "Net Gamma ($bn per +1% spot)",
+      "ratio": 6.289247755414098
+    },
+    {
+      "text": "-9.5367431640625e-7",
+      "ratio": 15.165538505519269
+    },
+    {
+      "text": "Hypothetical spot price",
+      "ratio": 6.289247755414098
+    },
+    {
+      "text": "743.8734567890123",
+      "ratio": 15.165538505519269
+    },
+    {
+      "text": "Net Gamma ($bn per +1% spot)",
+      "ratio": 6.289247755414098
+    },
+    {
+      "text": "0",
+      "ratio": 15.165538505519269
+    },
+    {
+      "text": "Hypothetical spot price",
+      "ratio": 6.289247755414098
+    },
+    {
+      "text": "746.9984567890123",
+      "ratio": 15.165538505519269
+    },
+    {
+      "text": "Net Gamma ($bn per +1% spot)",
+      "ratio": 6.289247755414098
+    },
+    {
+      "text": "+1.4551915228366852e-11",
+      "ratio": 15.165538505519269
+    },
+    {
+      "text": "Hypothetical spot price",
+      "ratio": 6.289247755414098
+    },
+    {
+      "text": "750.1234567890123",
+      "ratio": 15.165538505519269
+    },
+    {
+      "text": "Net Gamma ($bn per +1% spot)",
+      "ratio": 6.289247755414098
+    },
+    {
+      "text": "+0.12345678901234566",
+      "ratio": 15.165538505519269
+    },
+    {
+      "text": "Hypothetical spot price",
+      "ratio": 6.289247755414098
+    },
+    {
+      "text": "753.2484567890123",
+      "ratio": 15.165538505519269
+    },
+    {
+      "text": "Net Gamma ($bn per +1% spot)",
+      "ratio": 6.289247755414098
+    },
+    {
+      "text": "+0.25",
+      "ratio": 15.165538505519269
+    },
+    {
+      "text": "Hypothetical spot price",
+      "ratio": 6.289247755414098
+    },
+    {
+      "text": "756.3734567890123",
+      "ratio": 15.165538505519269
+    },
+    {
+      "text": "Net Gamma ($bn per +1% spot)",
+      "ratio": 6.289247755414098
+    },
+    {
+      "text": "0",
+      "ratio": 15.165538505519269
+    },
+    {
+      "text": "Hypothetical spot price",
+      "ratio": 6.289247755414098
+    },
+    {
+      "text": "762.6234567890123",
+      "ratio": 15.165538505519269
+    },
+    {
+      "text": "Net Gamma ($bn per +1% spot)",
+      "ratio": 6.289247755414098
+    },
+    {
+      "text": "-0.125",
+      "ratio": 15.165538505519269
+    },
+    {
+      "text": "Hypothetical spot price",
+      "ratio": 6.289247755414098
+    },
+    {
+      "text": "774.2484567890123",
+      "ratio": 15.165538505519269
+    },
+    {
+      "text": "Net Gamma ($bn per +1% spot)",
+      "ratio": 6.289247755414098
+    },
+    {
+      "text": "0",
+      "ratio": 15.165538505519269
+    },
+    {
+      "text": "Hypothetical spot price",
+      "ratio": 6.289247755414098
+    },
+    {
+      "text": "830.2484567890123",
+      "ratio": 15.165538505519269
+    },
+    {
+      "text": "Net Gamma ($bn per +1% spot)",
+      "ratio": 6.289247755414098
+    },
+    {
+      "text": "+0.75",
+      "ratio": 15.165538505519269
+    },
+    {
+      "text": "Hypothetical spot price",
+      "ratio": 6.289247755414098
+    },
+    {
+      "text": "937.6543209862654",
+      "ratio": 15.165538505519269
+    },
+    {
+      "text": "Net Gamma ($bn per +1% spot)",
+      "ratio": 6.289247755414098
+    },
+    {
+      "text": "+1.2345678901234567",
+      "ratio": 15.165538505519269
+    },
+    {
+      "text": "±25% spot grid, re-priced from quoted IV — the same evaluation that pr",
+      "ratio": 6.289247755414098
+    },
+    {
+      "text": "Source & method",
+      "ratio": 13.395006323849575
+    },
+    {
+      "text": "Source root",
+      "ratio": 6.289247755414098
+    },
+    {
+      "text": "SPY",
+      "ratio": 15.165538505519269
+    },
+    {
+      "text": "Supplied as-of",
+      "ratio": 6.289247755414098
+    },
+    {
+      "text": "2026-07-10T20:15:00Z",
+      "ratio": 15.165538505519269
+    },
+    {
+      "text": "Supplied profile method",
+      "ratio": 6.289247755414098
+    },
+    {
+      "text": "spot_grid_reprice",
+      "ratio": 15.165538505519269
+    },
+    {
+      "text": "Supplied spot-grid span",
+      "ratio": 6.289247755414098
+    },
+    {
+      "text": "25%",
+      "ratio": 15.165538505519269
+    },
+    {
+      "text": "Exact reference prices",
+      "ratio": 15.165538505519269
+    },
+    {
+      "text": "Reference spot",
+      "ratio": 6.289247755414098
+    },
+    {
+      "text": "750.1234567890123",
+      "ratio": 15.165538505519269
+    },
+    {
+      "text": "Call wall",
+      "ratio": 6.289247755414098
+    },
+    {
+      "text": "790.2484567890123",
+      "ratio": 15.165538505519269
+    },
+    {
+      "text": "Put wall",
+      "ratio": 6.289247755414098
+    },
+    {
+      "text": "709.9984567890123",
+      "ratio": 15.165538505519269
+    },
+    {
+      "text": "Profile flip reference",
+      "ratio": 6.289247755414098
+    },
+    {
+      "text": "756.3734567890123",
+      "ratio": 15.165538505519269
+    },
+    {
+      "text": "Supplied finite zero crossings",
+      "ratio": 15.165538505519269
+    },
+    {
+      "text": "Values preserve supplied numbers without display rounding; original de",
+      "ratio": 6.289247755414098
+    },
+    {
+      "text": "Only finite paired spot/Gamma samples are shown, in source order. Inva",
+      "ratio": 6.289247755414098
+    },
+    {
+      "text": "The curve needs at least 11 finite sample pairs. A shorter supplied se",
+      "ratio": 6.289247755414098
+    },
+    {
+      "text": "The flip reference uses the supplied crossing nearest the reference sp",
+      "ratio": 6.289247755414098
+    },
+    {
+      "text": "As-of belongs to the supplied GEX snapshot. It does not establish when",
+      "ratio": 6.289247755414098
+    },
+    {
+      "text": "This signed estimate retains the source's dealer-sign assumption. Re-p",
+      "ratio": 6.289247755414098
+    }
+  ],
+  "marks": []
+}

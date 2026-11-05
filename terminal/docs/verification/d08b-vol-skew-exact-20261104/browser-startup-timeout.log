@@ -1,0 +1,6 @@
+
+> terminal@0.1.0 test:e2e:responsive
+> playwright test e2e/options-vol-skew-exact.spec.ts e2e/options-vol-exact-expiry.spec.ts --project=desktop --project=tablet --project=mobile --workers=1
+
+Error: Timed out waiting 120000ms from config.webServer.
+

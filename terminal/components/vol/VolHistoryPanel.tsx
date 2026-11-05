@@ -10,31 +10,22 @@
  * y-domain (a far-away extreme must not flatten the 90-day line into a band).
  */
 
-import React, { useMemo, useRef } from "react";
+import { useId, useMemo, useRef, useState } from "react";
 import {
   useChartWidth, niceTicks, fmtTick, thinLabels, padDomain,
 } from "@/components/charts/svgChart";
 import type { Lang } from "@/lib/i18n";
 import { makeVolT } from "./volStrings";
+import { makeVolHistoryT } from "./volHistoryStrings";
+import styles from "./VolHistoryPanel.module.css";
 import type { VolHistoryRow } from "./volTypes";
 import {
   admitVolHistoryRows, finiteSegments, ProvenanceLine, PanelEmpty, PLOT_PAD, AXIS_TXT, REF_TXT,
 } from "./volShared";
 
-// Local override, not MIN_CHART_H.axis (190) — this panel sits beside
-// VolTermPanel (H=244) and VolVrpPanel (H=169, extra fin-kpis row) in the
-// same grid row; 250 is the height that makes the three CARD TOTALS land
-// equal (measured via offsetHeight, not just the SVG). Do not change this
-// without re-measuring all three siblings — see VolVrpPanel.tsx and
-// VolTermPanel.tsx for the matching comment.
+// Preserve the incumbent 250px plot height. The card grows intrinsically around
+// the view controls; the exact-value path does not change chart geometry.
 const H = 250;
-
-const CONFLICT_NOTE: React.CSSProperties = {
-  margin: "0 0 8px",
-  fontSize: 10.5,
-  lineHeight: 1.45,
-  color: "var(--warn)",
-};
 
 export function VolHistoryPanel({
   history,
@@ -48,6 +39,11 @@ export function VolHistoryPanel({
   lang: Lang;
 }) {
   const t = makeVolT(lang);
+  const tx = makeVolHistoryT(lang);
+  const descriptionId = useId();
+  const scopeId = useId();
+  const [view, setView] = useState<"chart" | "table">("chart");
+  const exactButtonRef = useRef<HTMLButtonElement | null>(null);
   const boxRef = useRef<HTMLDivElement | null>(null);
   const w = useChartWidth(boxRef);
 
@@ -100,13 +96,13 @@ export function VolHistoryPanel({
   }
 
   return (
-    <section className="fin-card" style={{ minWidth: 0 }}>
-      <div className="fin-card-h" style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+    <section className={`fin-card ${styles.panel}`} data-testid="vol-history-panel">
+      <div className={`fin-card-h ${styles.header}`}>
         <span>{t("histTitle")}</span>
         {/* Coverage disclosed from the DATA, not asserted by the title — a
             short-history root must not be labelled a 90-day read. */}
         {drawable && (
-          <span style={{ marginLeft: "auto", fontSize: 10, color: "var(--text-dim)", fontVariantNumeric: "tabular-nums" }}>
+          <span className={styles.coverage}>
             {t("histCoverage")
               .replace("{n}", String(finite.length))
               .replace("{d}", finite[0].date.slice(0, 10))
@@ -115,15 +111,57 @@ export function VolHistoryPanel({
         )}
       </div>
       {conflictSummary && (
-        <div data-testid="history-conflict-status" role="status" style={CONFLICT_NOTE}>
+        <div data-testid="history-conflict-status" role="status" className={`${styles.note} ${styles.conflict}`}>
           {conflictSummary}
         </div>
       )}
-      <div ref={boxRef} style={{ width: "100%", minWidth: 0 }}>
-        {!drawable ? (
+      {rows.length > 0 && (
+        <div className={styles.controls} role="group" aria-label={tx("view")} data-testid="history-view-controls">
+          <button type="button" className={styles.button} aria-pressed={view === "chart"}
+            onClick={() => setView("chart")}>{tx("chart")}</button>
+          <button ref={exactButtonRef} type="button" className={styles.button} aria-pressed={view === "table"}
+            onClick={() => setView("table")}>{tx("exact")}</button>
+        </div>
+      )}
+      <div ref={boxRef} className={styles.content}>
+        {view === "table" && rows.length > 0 ? (
+          <>
+            <p id={scopeId} className={styles.note} data-testid="history-values-status">
+              {tx("counts").replace("{values}", String(finite.length)).replace("{dates}", String(rows.length))}
+            </p>
+            <table className={styles.table} data-testid="history-exact-table" aria-describedby={scopeId}>
+              <caption>{tx("caption")}</caption>
+              <thead><tr>
+                <th scope="col">{tx("date")}</th>
+                <th scope="col">{tx("iv")}</th>
+              </tr></thead>
+              <tbody>{rows.map(point => {
+                const state = point.conflict ? "conflict" : Number.isFinite(point.v) ? "supplied" : "unavailable";
+                return <tr key={point.date}>
+                  <th scope="row">{point.date}</th>
+                  <td data-state={state}>{state === "supplied" ? String(point.v) : tx(state === "conflict" ? "conflict" : "unavailable")}</td>
+                </tr>;
+              })}</tbody>
+            </table>
+            <details className={styles.source}>
+              <summary>{tx("source")}</summary>
+              <p className={styles.note}>{tx("precision")}</p>
+              <p className={styles.note}>{tx("dateMeaning")}</p>
+              <p className={styles.note}>{tx("scope")}</p>
+            </details>
+          </>
+        ) : !drawable ? (
           <PanelEmpty title={t("histEmptyTitle")} why={t("histEmptyWhy")} minHeight={H} />
         ) : (
-          <svg viewBox={`0 0 ${w} ${H}`} width={w} height={H} role="img" aria-label={conflictSummary ? `${t("histAria")}. ${conflictSummary}` : t("histAria")}>
+          <>
+          <div className={styles.narrow}>
+            <p className={styles.note}>{tx("narrow")}</p>
+            <button type="button" className={styles.button} data-testid="history-narrow-action"
+              onClick={() => { setView("table"); exactButtonRef.current?.focus(); }}>{tx("exact")}</button>
+          </div>
+          <svg className={styles.plot} viewBox={`0 0 ${w} ${H}`} width={w} height={H} role="img"
+            aria-label={conflictSummary ? `${t("histAria")}. ${conflictSummary}` : t("histAria")} aria-describedby={descriptionId}>
+            <desc id={descriptionId}>{tx("chartDescription")}</desc>
             {/* y grid + labels */}
             {yTicks.map((v) => (
               <g key={`y${v}`}>
@@ -171,9 +209,10 @@ export function VolHistoryPanel({
               );
             })}
           </svg>
+          </>
         )}
       </div>
-      <ProvenanceLine lang={lang} />
+      <div className={styles.provenance}><ProvenanceLine lang={lang} /></div>
     </section>
   );
 }

@@ -1,0 +1,24 @@
+{
+  "schema": "d08b.viewport_capture.v1",
+  "viewport": {
+    "width": 820,
+    "height": 1180
+  },
+  "fullPage": false,
+  "innerWidth": 820,
+  "innerHeight": 1180,
+  "devicePixelRatio": 1,
+  "cssZoom": "1",
+  "target": {
+    "tag": "SECTION",
+    "text": "符号稳健性i带符号估计伽马倾斜60.0%翻转于看涨权重0.25结论稳健−1 做市商看涨空头0 看涨方无符号+1 做市商看涨多头Gamma 倾斜的绝对值不低于 12.0%。曲线与翻转权重显示其他看涨方权重是否会改变估计符号。 · 约定: dealer-sign per engine/gex_model",
+    "left": 415,
+    "top": 978.53125,
+    "width": 393,
+    "height": 200.796875
+  },
+  "fixtureVariant": "robust",
+  "language": "zh",
+  "project": "tablet",
+  "presentation": "ordinary dark"
+}

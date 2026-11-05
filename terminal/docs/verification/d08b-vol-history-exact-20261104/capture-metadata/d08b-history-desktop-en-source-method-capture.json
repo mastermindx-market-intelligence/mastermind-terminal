@@ -1,0 +1,20 @@
+{
+  "schema": "d08b.viewport_capture.v1",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "fullPage": false,
+  "innerWidth": 1440,
+  "innerHeight": 900,
+  "devicePixelRatio": 1,
+  "cssZoom": "1",
+  "target": {
+    "tag": "DETAILS",
+    "text": "Source & methodValues use the supplied percentage scale, without display rounding. Missing or conflicting IV remains unavailable.Each date i",
+    "left": 93,
+    "top": 565.21875,
+    "width": 632,
+    "height": 163.9375
+  }
+}

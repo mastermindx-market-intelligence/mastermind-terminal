@@ -1,0 +1,62 @@
+{
+  "schema": "d08b.sign_baseline.v1",
+  "source": {
+    "root": "SPY",
+    "asof": "2026-07-10T20:15:00Z",
+    "convention": "dealer-sign per engine/gex_model",
+    "reportedGammaMn": 60
+  },
+  "unknown": {
+    "points": [
+      [
+        2,
+        50
+      ],
+      [
+        105.75,
+        50
+      ],
+      [
+        209.5,
+        50
+      ],
+      [
+        313.25,
+        50
+      ],
+      [
+        417,
+        50
+      ]
+    ],
+    "wrongVerdict": "No gamma",
+    "wrongCritical": "No plausible weight flips it"
+  },
+  "robust": {
+    "criticalWeight": 0.25,
+    "points": [
+      [
+        2,
+        50
+      ],
+      [
+        105.75,
+        39
+      ],
+      [
+        209.5,
+        28
+      ],
+      [
+        313.25,
+        17
+      ],
+      [
+        417,
+        6
+      ]
+    ],
+    "wrongGuarantee": "The regime read survives the full range of conventions we consider plausible."
+  },
+  "acceptance": "Demonstrates incumbent defects; this is not a final-product pass."
+}

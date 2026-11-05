@@ -245,16 +245,17 @@ describe("ExposureChangeInspector", () => {
     expect(cellValue("Gross change")).toBe("−$1K");
     expect(panel().textContent).toContain("2 contracts matched");
     expect(panel().textContent).toContain("Counted separately; never added into the change.");
-    expect(Array.from(panel().querySelectorAll("th")).map(th => th.textContent)).toEqual([
+    expect(Array.from(panel().querySelectorAll("thead th")).map(th => th.textContent)).toEqual([
       "Strike",
       "Net change",
       "Net magnitude change",
       "Gross change",
       "Previous net → Current net",
     ]);
-    const buttons = Array.from(panel().querySelectorAll("tbody button"));
-    expect(buttons.map(button => button.textContent)).toEqual(["120", "100"]);
-    expect(buttons.map(button => button.getAttribute("aria-label"))).toEqual(["Select strike 120", "Select strike 100"]);
+    const labels = Array.from(panel().querySelectorAll("tbody [data-strike-label]"));
+    expect(labels.map(label => label.textContent)).toEqual(["120", "100"]);
+    expect(labels.every(label => label.tagName === "SPAN")).toBe(true);
+    expect(panel().querySelector("tbody button")).toBeNull();
 
     renderPanel(DATA_MODEL, "zh");
     expect(panel().querySelector("h3")?.textContent).toBe("报告 Gamma 有何变化？");
@@ -263,10 +264,8 @@ describe("ExposureChangeInspector", () => {
     expect(cellValue("净变化")).toBe("−$1K");
     expect(panel().textContent).toContain("匹配 2 份合约");
     expect(panel().textContent).toContain("分别计数，不计入变化量。");
-    expect(Array.from(panel().querySelectorAll("tbody button")).map(button => button.getAttribute("aria-label"))).toEqual([
-      "选择行权价 120",
-      "选择行权价 100",
-    ]);
+    expect(Array.from(panel().querySelectorAll("tbody [data-strike-label]")).map(label => label.textContent)).toEqual(["120", "100"]);
+    expect(panel().querySelector("tbody button")).toBeNull();
   });
 
   it("renders each non-data state with its status note and the velocity note", () => {
@@ -286,25 +285,31 @@ describe("ExposureChangeInspector", () => {
   it("marks the selected strike pressed and calls onSelectStrike with the strike", () => {
     const onSelectStrike = vi.fn();
     renderPanel(DATA_MODEL, "en", { selectedStrike: 100, onSelectStrike });
-    const pressed = panel().querySelectorAll("button[aria-pressed=true]");
+    expect(Array.from(panel().querySelectorAll("tbody button")).map(button => button.getAttribute("aria-label"))).toEqual(["Select strike 120", "Select strike 100"]);
+    const pressed = panel().querySelectorAll("tbody button[aria-pressed=true]");
     expect(pressed).toHaveLength(1);
     expect(pressed[0].textContent).toBe("100");
-    const unselected = panel().querySelectorAll<HTMLButtonElement>("button[aria-pressed=false]");
+    const unselected = panel().querySelectorAll<HTMLButtonElement>("tbody button[aria-pressed=false]");
     expect(unselected).toHaveLength(1);
     act(() => unselected[0].click());
     expect(onSelectStrike).toHaveBeenCalledTimes(1);
     expect(onSelectStrike).toHaveBeenCalledWith(120);
     renderPanel(DATA_MODEL, "en", { selectedStrike: null, onSelectStrike });
-    expect(panel().querySelectorAll("button[aria-pressed=true]")).toHaveLength(0);
+    expect(panel().querySelectorAll("tbody button[aria-pressed=true]")).toHaveLength(0);
+    renderPanel(DATA_MODEL, "zh", { onSelectStrike });
+    expect(Array.from(panel().querySelectorAll("tbody button")).map(button => button.getAttribute("aria-label"))).toEqual([
+      "选择行权价 120",
+      "选择行权价 100",
+    ]);
   });
 
   it("flags the appended focus row and the more-strikes note", () => {
     renderPanel(buildChangeInspector({ ...SESSIONS, change: TEN_STRIKE_CHANGE, topK: 4, focusStrike: 145 }));
     const flagged = panel().querySelectorAll("tr[data-focus]");
     expect(flagged).toHaveLength(1);
-    expect(flagged[0].querySelector("button")?.textContent).toBe("145");
+    expect(flagged[0].querySelector("[data-strike-label]")?.textContent).toBe("145");
     expect(panel().querySelectorAll("tbody tr")).toHaveLength(5); // top 4 + the appended focus row
-    expect(panel().textContent).toContain("6 more strikes");
+    expect(panel().textContent).toContain("6 strikes outside the ranked set");
     expect(panel().textContent).toContain("Selected strike shown below the largest changes.");
   });
 

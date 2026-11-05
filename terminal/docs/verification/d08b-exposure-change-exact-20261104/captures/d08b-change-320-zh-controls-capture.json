@@ -1,0 +1,20 @@
+{
+  "schema": "d08b.viewport_capture.v1",
+  "viewport": {
+    "width": 320,
+    "height": 844
+  },
+  "fullPage": false,
+  "innerWidth": 320,
+  "innerHeight": 844,
+  "devicePixelRatio": 1,
+  "cssZoom": "1",
+  "target": {
+    "tag": "BUTTON",
+    "text": "精确美元",
+    "left": 33,
+    "top": 399.578125,
+    "width": 254,
+    "height": 44
+  }
+}

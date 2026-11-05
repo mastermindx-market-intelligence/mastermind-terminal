@@ -1,0 +1,99 @@
+/* Scope the existing MscCard through this component's own content marker. */
+:global(section):has(> .panel) { container: positioning-profile / inline-size; }
+/* Keep this card's existing estimate tier and explanation readable in both themes. */
+:global(section):has(> .panel) > header :is(span, i)[tabindex="0"] { color: var(--text-2); opacity: 1; }
+.panel {
+  --profile-attention-ink: color-mix(in srgb, var(--warn) 35%, var(--text) 65%);
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  gap: 10px;
+  min-width: 0;
+  max-width: 100%;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.unit { max-width: 100%; min-width: 0; color: var(--text-2); font-size: 11px; line-height: 1.5; white-space: normal; overflow-wrap: anywhere; }
+.controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-width: 0; }
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 9px 12px;
+  border: 1px solid var(--line-3);
+  border-radius: var(--r-md, 6px);
+  background: var(--panel-2);
+  color: var(--text-2);
+  font: 600 12px/1.5 var(--font-ui);
+  text-align: center;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+.button:hover { border-color: var(--text-2); }
+.button[aria-pressed="true"] { color: var(--text); border-color: var(--brand-2); background: color-mix(in srgb, var(--brand-2) 12%, var(--panel)); box-shadow: inset 0 -2px 0 var(--brand-2); }
+.button:focus-visible, .source summary:focus-visible { outline: 2px solid var(--brand-2); outline-offset: 2px; }
+.content { width: 100%; min-width: 0; max-width: 100%; }
+.plot { display: block; }
+.plot text { fill: var(--text-2); opacity: 1; }
+.plot text[fill="var(--warn)"] { fill: var(--profile-attention-ink); }
+.plot line[stroke="var(--text-dim)"], .plot line[stroke="var(--line-2)"] { stroke: var(--text-2); }
+.plot circle[fill="var(--text-dim)"] { fill: var(--text-2); opacity: 1; }
+.plot line[stroke="var(--warn)"] { stroke: var(--profile-attention-ink); }
+.plot circle[fill="var(--warn)"] { fill: var(--profile-attention-ink); }
+.narrow { display: none; }
+.note { margin: 0; color: var(--text-2); font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+.empty { padding: 12px 0; color: var(--text-2); font-size: 12px; line-height: 1.6; }
+.empty p { margin: 0; }
+.empty p + p { margin-top: 6px; }
+.table { width: 100%; table-layout: fixed; border-collapse: collapse; color: var(--text); font-size: 13px; line-height: 1.5; }
+.table caption { padding: 8px 0 12px; color: var(--text); text-align: start; font-size: 13px; font-weight: 650; line-height: 1.5; }
+.table th, .table td { padding: 10px 8px; border-bottom: 1px solid var(--line-2); color: var(--text); text-align: end; vertical-align: top; white-space: normal; overflow-wrap: anywhere; }
+.table th:first-child { width: 42%; text-align: start; }
+.table thead th { background: var(--panel-2); font-size: 12px; font-weight: 600; }
+.table tbody th { font-weight: 500; }
+.wideValues { min-width: 0; }
+.exactCards { display: none; margin: 0; padding: 0; list-style: none; min-width: 0; }
+.exactCards > li { min-width: 0; padding: 10px 8px; border: 1px solid var(--line-3); border-radius: var(--r-md, 6px); background: var(--panel); }
+.exactCards dl { display: grid; gap: 10px; min-width: 0; margin: 0; }
+.exactCards dl > div { min-width: 0; }
+.exactCards dt { color: var(--text-2); font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
+.exactCards dd { min-width: 0; margin: 4px 0 0; color: var(--text); font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
+.footnotes { min-width: 0; }
+.footnotes > p { color: var(--text-2); font-size: 11px; line-height: 1.6; }
+.warning { color: var(--profile-attention-ink); }
+.source { min-width: 0; }
+.source summary { min-height: 44px; box-sizing: border-box; padding: 11px 12px; border: 1px solid var(--line-3); border-radius: var(--r-md, 6px); background: var(--panel-2); color: var(--text); font-size: 12px; font-weight: 650; line-height: 1.6; cursor: pointer; overflow-wrap: anywhere; }
+.source h4 { margin: 14px 0 8px; color: var(--text); font-size: 12px; font-weight: 650; line-height: 1.5; }
+.source .note { margin-top: 10px; }
+.fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 12px 0 0; }
+.fields > div { min-width: 0; }
+.fields dt { color: var(--text-2); font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
+.fields dd { margin: 3px 0 0; color: var(--text); font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
+.crossings { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 0; padding-inline-start: 24px; color: var(--text); font-size: 13px; line-height: 1.5; }
+.crossings li { min-width: 0; max-width: 100%; overflow-wrap: anywhere; }
+
+@container positioning-profile (max-width: 420px) {
+  :global(section):has(> .panel) > header { flex-wrap: wrap; align-items: flex-start; }
+  :global(section):has(> .panel) > header > span:first-child { flex: 1 1 calc(100% - 28px); white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.5; }
+  :global(section):has(> .panel) > header > span:last-child { flex: 1 1 100%; justify-content: flex-end; flex-wrap: wrap; min-width: 0; max-width: 100%; margin-left: 0; }
+  .fields { grid-template-columns: 1fr; }
+  .wideValues { display: none; }
+  .exactCards { display: grid; gap: 10px; }
+}
+@container positioning-profile (max-width: 239px) {
+  .plot { display: none; }
+  .narrow { display: block; }
+  .narrow .button { margin-top: 10px; }
+  .controls { display: grid; grid-template-columns: 1fr; }
+  .table th, .table td { padding: 10px 4px; }
+}
+@media (forced-colors: active) {
+  .button[aria-pressed="true"] { outline: 2px solid Highlight; outline-offset: -3px; }
+  .warning { color: CanvasText; }
+}

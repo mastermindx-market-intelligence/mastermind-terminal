@@ -1,0 +1,19 @@
+{
+  "phase": "baseline",
+  "head": "fd014cb9acbecd319ad7816a6514197f0f446e83",
+  "port": 63060,
+  "command": [
+    "npm",
+    "run",
+    "test:e2e:responsive",
+    "--",
+    "--config=docs/verification/d08b-vol-skew-exact-20261104/playwright.config.ts",
+    "e2e/options-positioning-sign-state.spec.ts",
+    "--project=desktop",
+    "--workers=1",
+    "--max-failures=1"
+  ],
+  "started": "2026-11-05T04:21:11.284603+00:00",
+  "exit_code": 1,
+  "completed": "2026-11-05T04:21:30.824877+00:00"
+}

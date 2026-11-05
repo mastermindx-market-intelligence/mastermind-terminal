@@ -1,0 +1,20 @@
+{
+  "schema": "d08b.viewport_capture.v1",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "fullPage": false,
+  "innerWidth": 1440,
+  "innerHeight": 900,
+  "devicePixelRatio": 1,
+  "cssZoom": "1",
+  "target": {
+    "tag": "svg",
+    "text": "Reported ATM IV by observation date, in percent. Missing or conflicting IV breaks the line. Dashed 52-week references appear only within the",
+    "left": 93,
+    "top": 543.53125,
+    "width": 632,
+    "height": 250
+  }
+}

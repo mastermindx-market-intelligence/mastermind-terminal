@@ -1,0 +1,39 @@
+{
+  "schema": "d08b.vol_history_verification.v1",
+  "outcome": "BUILT_NOT_PROVEN",
+  "unit_passed": 100,
+  "lint": "PASS",
+  "build": "PASS",
+  "browser": {
+    "final_history_passed": 8,
+    "intentional_skips": 4,
+    "combined_passed": 32,
+    "combined_intentional_skips": 10
+  },
+  "captures": {
+    "current_viewport_pngs": 51,
+    "bound_metadata": 51,
+    "before_phone_pngs": 1
+  },
+  "contrast": {
+    "text_samples": 764,
+    "text_min": 5.554996509050376,
+    "mark_samples": 60,
+    "mark_min": 5.028420134408705
+  },
+  "source_review": "Independent source PASS plus explicitly root-reviewed final CSS/test delta",
+  "limits": [
+    "Controlled source fixture through actual route",
+    "Panel light-token compatibility only",
+    "CSS zoom2, not native/text zoom or full400percent audit",
+    "No production deployment or whole-program acceptance"
+  ],
+  "held_actions": [
+    "merge",
+    "Ready",
+    "un-draft",
+    "enqueue",
+    "held relabel",
+    "deployment"
+  ]
+}

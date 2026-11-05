@@ -1,0 +1,20 @@
+{
+  "schema": "d08b.viewport_capture.v1",
+  "viewport": {
+    "width": 820,
+    "height": 1180
+  },
+  "fullPage": false,
+  "innerWidth": 820,
+  "innerHeight": 1180,
+  "devicePixelRatio": 1,
+  "cssZoom": "1",
+  "target": {
+    "tag": "TR",
+    "text": "2026-10-1618.5",
+    "left": 33,
+    "top": 570.140625,
+    "width": 754,
+    "height": 40.5
+  }
+}

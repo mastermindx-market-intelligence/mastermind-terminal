@@ -1,0 +1,36 @@
+{
+  "schema": "d08b.vol_term_verification.v1",
+  "outcome": "BUILT_NOT_PROVEN",
+  "unit_passed": 79,
+  "lint": "PASS",
+  "build": "PASS",
+  "browser": {
+    "passed": 11,
+    "intentional_viewport_skips": 4
+  },
+  "captures": {
+    "current_viewport_pngs": 42,
+    "superseded_capture_pngs": 29
+  },
+  "contrast": {
+    "text_samples": 624,
+    "text_min": 5.554996509050376,
+    "mark_samples": 84,
+    "mark_min": 5.028420134408705
+  },
+  "source_review": "PASS at exact current blobs",
+  "limits": [
+    "Controlled source fixture through actual route",
+    "Panel light-token compatibility only",
+    "CSS zoom2, not native/text zoom or full400percent audit",
+    "No production deployment or whole-program acceptance"
+  ],
+  "held_actions": [
+    "merge",
+    "Ready",
+    "un-draft",
+    "enqueue",
+    "held relabel",
+    "deployment"
+  ]
+}

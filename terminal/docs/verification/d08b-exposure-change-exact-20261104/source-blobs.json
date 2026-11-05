@@ -1,0 +1,14 @@
+{
+  "components/exposure-map/ExposureChangeInspector.tsx": "0795075372a3dd4a8b017820c4a6af1e3c709c04",
+  "components/exposure-map/ExposureChangeInspector.module.css": "2eaf08e55028621d6e0dbd2f4f21e69f17ed819d",
+  "components/exposure-map/exposureChangeInspectorStrings.ts": "da2e365b792b4dff98abd450dc736211036f5132",
+  "lib/__tests__/ExposureChangeInspector.test.tsx": "8f883cdaead18d98714b303ef8cd2c12a9618a89",
+  "lib/__tests__/exposureChangeInspectorExact.test.tsx": "468c49c56ddcc09292bd91b4bf205194ab0c638c",
+  "e2e/options-exposure-change-exact.spec.ts": "02eb9068db55180f674e15ee5ffe2f8e39816d37",
+  "lib/exposureChangeInspector.ts": "4f1d10ea49b30a90056e8a55b68e1c5b61676267",
+  "lib/exposureReportedChange.ts": "35583d6e9da643d4523208541da3f395c7a4b6f9",
+  "components/options-companion/GexMarketMemory.tsx": "45ebf0bdc5d0897eda91a0553f1cd668aba8ce62",
+  "components/exposure-map/ExposureMap.tsx": "0c135b1beae3d7198f58495e6fac61881bbb9731",
+  "e2e/d08bPanelPresentation.ts": "f5d80679dd4ac5fc44dbd554b6aefeb3f6220a10",
+  "docs/verification/d08b-vol-skew-exact-20261104/playwright.config.ts": "e05a98f5277296e6a3d0f4be41ca17c0f474c61a"
+}

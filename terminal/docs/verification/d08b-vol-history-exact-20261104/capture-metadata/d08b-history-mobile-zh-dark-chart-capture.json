@@ -1,0 +1,20 @@
+{
+  "schema": "d08b.viewport_capture.v1",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "fullPage": false,
+  "innerWidth": 390,
+  "innerHeight": 844,
+  "devicePixelRatio": 1,
+  "cssZoom": "1",
+  "target": {
+    "tag": "svg",
+    "text": "按观测日期展示报告平值 IV，单位为百分数。缺失或冲突的 IV 使曲线中断。52 周参考虚线仅在图表范围内显示。选择精确历史数值以查看每个有效的已提供日期。0%10%20%52周高52周低10-0110-0610-1010-16",
+    "left": 33,
+    "top": 593.609375,
+    "width": 324,
+    "height": 250
+  }
+}

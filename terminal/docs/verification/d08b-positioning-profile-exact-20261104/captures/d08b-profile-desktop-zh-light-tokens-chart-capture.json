@@ -1,0 +1,20 @@
+{
+  "schema": "d08b.viewport_capture.v1",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "fullPage": false,
+  "innerWidth": 1440,
+  "innerHeight": 900,
+  "devicePixelRatio": 1,
+  "cssZoom": "1",
+  "target": {
+    "tag": "svg",
+    "text": "在提供的假设现价处重定价的净 Gamma，以标的每上涨 1% 对应的十亿美元计。精确曲线数值提供相同的有限样本，不作显示舍入。做市商抑制波动做市商放大波动-101600650700750800850900伽马翻转 756.37现价CWPW",
+    "left": 85,
+    "top": 357.609375,
+    "width": 875,
+    "height": 224
+  }
+}

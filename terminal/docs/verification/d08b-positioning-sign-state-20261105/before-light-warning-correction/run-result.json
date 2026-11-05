@@ -1,0 +1,60 @@
+{
+  "schema": "d08b.sign_verification_run.v1",
+  "base_head": "fd014cb9acbecd319ad7816a6514197f0f446e83",
+  "port": 51333,
+  "source_blobs": {
+    "components/msc/MarketStructureBody.tsx": "51351535f3a0d72cc7ffd0333f6b467d955c49fe",
+    "components/msc/mscStrings.ts": "d9874f831d33831d0fced203512c1cfa2e7e4b0f",
+    "components/msc/SignCard.module.css": "3f298e1cabde169ccda74b9db0a32f443da8b88c",
+    "lib/__tests__/positioningSignState.test.tsx": "09728c883b6796ed6f0572bc6364376866aa53e2",
+    "e2e/options-positioning-sign-state.spec.ts": "ecf5341337dfb08b5ead25935c8ce9c8c20ad2a1",
+    "lib/marketStructure.ts": "b6718d3f162117af38d114ba691cd4b6b1894bd8"
+  },
+  "started": "2026-11-05T04:32:23.176551+00:00",
+  "stages": [
+    {
+      "name": "unit-final",
+      "command": [
+        "npx",
+        "vitest",
+        "run",
+        "lib/__tests__/positioningSignState.test.tsx",
+        "lib/__tests__/marketStructure.test.ts",
+        "lib/__tests__/profileExactValues.test.tsx"
+      ],
+      "exit_code": 0,
+      "completed": "2026-11-05T04:32:27.682966+00:00"
+    },
+    {
+      "name": "lint-final",
+      "command": [
+        "npx",
+        "eslint",
+        "components/msc/MarketStructureBody.tsx",
+        "components/msc/mscStrings.ts",
+        "lib/__tests__/positioningSignState.test.tsx",
+        "e2e/options-positioning-sign-state.spec.ts"
+      ],
+      "exit_code": 0,
+      "completed": "2026-11-05T04:32:32.929292+00:00"
+    },
+    {
+      "name": "browser",
+      "command": [
+        "npm",
+        "run",
+        "test:e2e:responsive",
+        "--",
+        "--config=docs/verification/d08b-vol-skew-exact-20261104/playwright.config.ts",
+        "e2e/options-positioning-sign-state.spec.ts",
+        "--project=desktop",
+        "--project=tablet",
+        "--project=mobile",
+        "--workers=1",
+        "--max-failures=2"
+      ],
+      "exit_code": 1,
+      "completed": "2026-11-05T04:32:57.694159+00:00"
+    }
+  ]
+}
