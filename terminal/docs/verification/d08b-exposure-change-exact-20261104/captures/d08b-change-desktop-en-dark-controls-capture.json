@@ -1,0 +1,20 @@
+{
+  "schema": "d08b.viewport_capture.v1",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "fullPage": false,
+  "innerWidth": 1440,
+  "innerHeight": 900,
+  "devicePixelRatio": 1,
+  "cssZoom": "1",
+  "target": {
+    "tag": "BUTTON",
+    "text": "Exact USD",
+    "left": 196.375,
+    "top": 468.15625,
+    "width": 87.796875,
+    "height": 44
+  }
+}

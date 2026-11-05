@@ -1,0 +1,16 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/web/d08b-surface-exact-values-20261104-c3/terminal
+
+ ✓ lib/__tests__/exposureChangeInspectorCopy.test.ts (3 tests) 8ms
+ ✓ lib/__tests__/exposureChangeInspector.test.ts (11 tests) 10ms
+ ✓ lib/__tests__/exposureReportedChange.test.ts (21 tests) 606ms
+   ✓ compareReportedGamma > accepts exactly 100000 members and rejects more 573ms
+ ✓ lib/__tests__/ExposureChangeInspector.test.tsx (5 tests) 142ms
+ ✓ lib/__tests__/exposureChangeInspectorExact.test.tsx (10 tests) 300ms
+
+ Test Files  5 passed (5)
+      Tests  50 passed (50)
+   Start at  19:27:03
+   Duration  2.68s (transform 494ms, setup 0ms, collect 844ms, tests 1.07s, environment 2.58s, prepare 898ms)
+

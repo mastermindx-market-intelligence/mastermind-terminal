@@ -1,0 +1,77 @@
+{
+  "schema": "d08b.change_inspector.verification.v1",
+  "observed_at_utc": "2026-11-05 03:46:10 UTC",
+  "result": "BUILT_AND_LOCALLY_VERIFIED",
+  "production": "BUILT_NOT_PROVEN",
+  "previous_head": "8d47a4557762e5d1d7e07617255b105cbc8a51a5",
+  "operation_id": "d08b-surface-exact-values-20261104-c3",
+  "source_blobs": "source-blobs.json",
+  "unit": {
+    "passed": 50,
+    "failed": 0,
+    "suites": 5,
+    "log": "unit.log"
+  },
+  "lint": {
+    "result": "PASS",
+    "logs": [
+      "lint-final.log",
+      "lint-browser-final.log"
+    ]
+  },
+  "browser_combined": {
+    "passed": 14,
+    "skipped": 7,
+    "failed": 0,
+    "log": "browser-combined.log"
+  },
+  "browser_final": {
+    "passed": 8,
+    "skipped": 7,
+    "failed": 0,
+    "log": "browser-final.log",
+    "correction": "840px container switch keeps precision signs and amounts together;48px selection controls preserved",
+    "skips": "3 baseline-only opt-in cases;4 source/extra-width cases duplicated across non-desktop projects"
+  },
+  "build": {
+    "result": "PASS",
+    "log": "build.log",
+    "limit": "Before final CSS-only840px container correction and EOF cleanup. Corrected CSS compiles in final browser run; no source/calculation/selection logic changed."
+  },
+  "captures": {
+    "pngs": 59,
+    "metadata": 59,
+    "contrast_records": 12,
+    "text_samples": 1664,
+    "minimum_text_contrast": 5.554996509050376,
+    "manifest": "captures-manifest.json",
+    "scope": "Rendered inspector styles; actual shared-shell light tokens scoped to panel, not production theme activation"
+  },
+  "unchanged_owners": [
+    "lib/exposureChangeInspector.ts",
+    "lib/exposureReportedChange.ts",
+    "components/options-companion/GexMarketMemory.tsx",
+    "components/exposure-map/ExposureMap.tsx"
+  ],
+  "diff_check": "PASS",
+  "fixture_scope": "Synthetic current/prior payloads through actual /api/flow consumer, unchanged admission and async source fingerprints. Not live provider, availability or entitlement proof.",
+  "paper": {
+    "file": "01M3NSZGE8JWN2EZCSF0DT05RM",
+    "page": "p-12-0",
+    "boards": [
+      "1PBQ-0",
+      "1REL-0"
+    ],
+    "mutation": false,
+    "write_schema_qualified": false
+  },
+  "held": [
+    "merge",
+    "Ready/un-draft",
+    "enqueue",
+    "held relabel",
+    "uncertain-operation retry",
+    "production deployment"
+  ],
+  "parent_mission_complete": false
+}

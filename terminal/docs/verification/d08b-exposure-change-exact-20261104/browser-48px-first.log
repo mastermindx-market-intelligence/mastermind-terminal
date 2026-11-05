@@ -1,0 +1,129 @@
+
+> terminal@0.1.0 test:e2e:responsive
+> playwright test --config=docs/verification/d08b-vol-skew-exact-20261104/playwright.config.ts e2e/options-exposure-change-exact.spec.ts e2e/options-exposure-workspace.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --grep Change |Change:|Matched reported Gamma --max-failures=2
+
+[warmup] /terminal?symbol=NVDA → 200 in 74ms
+[warmup] /options → 200 in 150ms
+[warmup] /portfolio → 200 in 87ms
+[warmup] /alerts → 200 in 92ms
+[warmup] /analysis → 200 in 133ms
+[warmup] /discover → 200 in 88ms
+[warmup] /admin → 200 in 49ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 39ms
+[warmup] /login → 200 in 68ms
+[warmup] /reset-password → 200 in 66ms
+[warmup] /api/me → 200 in 54ms
+[warmup] /api/watchlist → 200 in 29ms
+[warmup] /api/layouts → 200 in 26ms
+[warmup] /api/watchlist/annotations → 409 in 22ms
+[warmup] 14 routes compiled in 1s
+
+Running 21 tests using 1 worker
+
+  -   1 [desktop] › e2e/options-exposure-change-exact.spec.ts:254:5 › baseline: existing change inspector phone presentation
+  ✓   2 [desktop] › e2e/options-exposure-change-exact.spec.ts:350:7 › Change en: exact cohort values, source populations and keyboard presentation (3.5s)
+  ✓   3 [desktop] › e2e/options-exposure-change-exact.spec.ts:350:7 › Change zh: exact cohort values, source populations and keyboard presentation (3.3s)
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓   4 [desktop] › e2e/options-exposure-change-exact.spec.ts:396:5 › Change: preserved selected strike, unmatched focus and access loss on the actual route (3.1s)
+  ✓   5 [desktop] › e2e/options-exposure-change-exact.spec.ts:445:5 › Change: 320px, magnification, narrow pane and focus continuity (2.9s)
+  ✓   6 [desktop] › e2e/options-exposure-workspace.spec.ts:139:7 › Matched reported Gamma en separates contributions and source coverage (2.2s)
+  ✓   7 [desktop] › e2e/options-exposure-workspace.spec.ts:139:7 › Matched reported Gamma zh separates contributions and source coverage (2.3s)
+  -   8 [tablet] › e2e/options-exposure-change-exact.spec.ts:254:5 › baseline: existing change inspector phone presentation
+  ✘   9 [tablet] › e2e/options-exposure-change-exact.spec.ts:350:7 › Change en: exact cohort values, source populations and keyboard presentation (2.1s)
+  ✘  10 [tablet] › e2e/options-exposure-change-exact.spec.ts:350:7 › Change zh: exact cohort values, source populations and keyboard presentation (2.3s)
+Testing stopped early after 2 maximum allowed failures.
+
+
+  1) [tablet] › e2e/options-exposure-change-exact.spec.ts:350:7 › Change en: exact cohort values, source populations and keyboard presentation 
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  -  1
+    + Received  + 10
+
+    - Array []
+    + Array [
+    +   "159",
+    +   "100",
+    +   "101",
+    +   "102",
+    +   "103",
+    +   "104",
+    +   "105",
+    +   "106",
+    + ]
+
+      344 |     return r.width < minimum || r.height < minimum;
+      345 |   }).map(el => el.textContent));
+    > 346 |   expect(small).toEqual([]);
+          |                 ^
+      347 | }
+      348 |
+      349 | for (const lang of ["en", "zh"] as const) {
+        at controlsFit (/Volumes/Mastermind/agent-workspaces/terminal/web/d08b-surface-exact-values-20261104-c3/terminal/e2e/options-exposure-change-exact.spec.ts:346:17)
+        at /Volumes/Mastermind/agent-workspaces/terminal/web/d08b-surface-exact-values-20261104-c3/terminal/e2e/options-exposure-change-exact.spec.ts:380:25
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/options-exposure-change-ex-3b324-s-and-keyboard-presentation-tablet/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/options-exposure-change-ex-3b324-s-and-keyboard-presentation-tablet/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/options-exposure-change-ex-3b324-s-and-keyboard-presentation-tablet/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/options-exposure-change-ex-3b324-s-and-keyboard-presentation-tablet/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [tablet] › e2e/options-exposure-change-exact.spec.ts:350:7 › Change zh: exact cohort values, source populations and keyboard presentation 
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  -  1
+    + Received  + 10
+
+    - Array []
+    + Array [
+    +   "159",
+    +   "100",
+    +   "101",
+    +   "102",
+    +   "103",
+    +   "104",
+    +   "105",
+    +   "106",
+    + ]
+
+      344 |     return r.width < minimum || r.height < minimum;
+      345 |   }).map(el => el.textContent));
+    > 346 |   expect(small).toEqual([]);
+          |                 ^
+      347 | }
+      348 |
+      349 | for (const lang of ["en", "zh"] as const) {
+        at controlsFit (/Volumes/Mastermind/agent-workspaces/terminal/web/d08b-surface-exact-values-20261104-c3/terminal/e2e/options-exposure-change-exact.spec.ts:346:17)
+        at /Volumes/Mastermind/agent-workspaces/terminal/web/d08b-surface-exact-values-20261104-c3/terminal/e2e/options-exposure-change-exact.spec.ts:380:25
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/options-exposure-change-ex-9c8e9-s-and-keyboard-presentation-tablet/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/options-exposure-change-ex-9c8e9-s-and-keyboard-presentation-tablet/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/options-exposure-change-ex-9c8e9-s-and-keyboard-presentation-tablet/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/options-exposure-change-ex-9c8e9-s-and-keyboard-presentation-tablet/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2 failed
+    [tablet] › e2e/options-exposure-change-exact.spec.ts:350:7 › Change en: exact cohort values, source populations and keyboard presentation 
+    [tablet] › e2e/options-exposure-change-exact.spec.ts:350:7 › Change zh: exact cohort values, source populations and keyboard presentation 
+  2 skipped
+  11 did not run
+  6 passed (30.7s)
+  1 error was not a part of any test, see above for details

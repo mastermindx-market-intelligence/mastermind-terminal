@@ -1,0 +1,20 @@
+{
+  "schema": "d08b.viewport_capture.v1",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "fullPage": false,
+  "innerWidth": 1440,
+  "innerHeight": 900,
+  "devicePixelRatio": 1,
+  "cssZoom": "1",
+  "target": {
+    "tag": "DIV",
+    "text": "任一交易日不可用1",
+    "left": 1064.25,
+    "top": 460.640625,
+    "width": 312.75,
+    "height": 59.390625
+  }
+}

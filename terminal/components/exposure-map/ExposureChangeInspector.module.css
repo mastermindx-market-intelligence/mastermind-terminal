@@ -1,25 +1,117 @@
-.inspector { display:flex; flex-direction:column; gap:12px; font-variant-numeric:tabular-nums; }
-.inspector h3 { margin:0; font-size:14px; font-weight:650; }
-.pill { align-self:flex-start; border:1px solid var(--line); border-radius:20px; padding:6px 10px; color:var(--text-2); background:var(--panel); font-size:10px; }
-.sessions { margin:0; font-size:11px; color:var(--muted); }
-.grid { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); border:1px solid var(--line); border-radius:10px; overflow:hidden; background:var(--panel); }
-.stats { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); border:1px solid var(--line); border-radius:10px; overflow:hidden; background:var(--panel); }
-.cell { padding:12px 14px; border-inline-end:1px solid var(--line); display:flex; flex-direction:column; gap:6px; min-width:0; }
-.cell:last-child { border-inline-end:0; }
-.cell span { font-size:10px; color:var(--text-2); }
-.cell strong { font-size:18px; font-weight:650; }
-/* Signed reported Gamma, not price direction: the exposure family's own positive/negative tokens, never --up/--down. */
-.inspector [data-sign="positive"] { color:var(--ex-positive,var(--exposure-positive,var(--positive,#2ebc95))); }
-.inspector [data-sign="negative"] { color:var(--ex-negative,var(--exposure-negative,var(--negative,#df718e))); }
-.table { width:100%; border-collapse:collapse; font-size:11px; }
-.table th { text-align:end; color:var(--text-2); font-weight:600; padding:8px 10px; border-bottom:1px solid var(--line); }
-.table th:first-child { text-align:start; }
-.table td { padding:4px 10px; text-align:end; border-bottom:1px solid var(--line); }
-.table td:first-child { text-align:start; }
-.table button { min-height:32px; padding:4px 8px; border:1px solid transparent; border-radius:6px; background:none; color:inherit; font:inherit; cursor:pointer; }
-.table button[aria-pressed="true"] { background:var(--hover); border-color:var(--line); }
-.table button:focus-visible { outline:2px solid var(--brand-2); outline-offset:2px; }
-.note { margin:0; font-size:11px; line-height:1.6; color:var(--text-2); }
-.sub { margin:0; font-size:11px; color:var(--muted); }
-.srOnly { position:absolute; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0; }
-@media (max-width:640px) { .grid,.stats { grid-template-columns:repeat(2,minmax(0,1fr)); } .cell { border-bottom:1px solid var(--line); } }
+.inspector {
+  --change-positive-ink: color-mix(in srgb, var(--ex-positive, var(--exposure-positive, #4cc6cc)) 35%, var(--text) 65%);
+  --change-negative-ink: color-mix(in srgb, var(--ex-negative, var(--exposure-negative, #d896f0)) 35%, var(--text) 65%);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  max-width: 100%;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  container: exposure-change / inline-size;
+}
+.inspector h3 { margin: 0; font-size: 14px; font-weight: 650; line-height: 1.5; overflow-wrap: anywhere; }
+.pill { align-self: flex-start; max-width: 100%; box-sizing: border-box; border: 1px solid var(--line); border-radius: 20px; padding: 6px 10px; color: var(--text-2); background: var(--panel); font-size: 11px; line-height: 1.5; overflow-wrap: anywhere; }
+.sessions { margin: 0; font-size: 12px; color: var(--text-2); line-height: 1.5; overflow-wrap: anywhere; }
+.controls { display: flex; flex-wrap: wrap; gap: 8px; min-width: 0; }
+.controls button, .strikeButton {
+  min-height: 44px;
+  min-width: 44px;
+  max-width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--line-3);
+  border-radius: var(--r-md, 6px);
+  padding: 8px 12px;
+  background: var(--panel);
+  color: var(--text-2);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+/* Keep exact-selection targets above the parent map's coarse-pointer 44px floor. */
+.inspector .strikeButton { min-height: 48px; min-width: 48px; }
+.controls button:hover, .strikeButton:hover { border-color: var(--text-2); }
+.controls button[aria-pressed="true"], .strikeButton[aria-pressed="true"] {
+  color: var(--text);
+  border-color: var(--brand-2);
+  background: color-mix(in srgb, var(--brand-2) 12%, var(--panel));
+  box-shadow: inset 0 -2px 0 var(--brand-2);
+}
+.controls button:focus-visible, .strikeButton:focus-visible, .populations summary:focus-visible {
+  outline: 2px solid var(--brand-2);
+  outline-offset: 2px;
+}
+.values { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.label { margin: 0; color: var(--text-2); font-size: 12px; font-weight: 650; line-height: 1.5; }
+.grid, .stats, .totals {
+  display: grid;
+  min-width: 0;
+  gap: 1px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md, 8px);
+  background: var(--line);
+}
+.grid { grid-template-columns: repeat(4, minmax(0, 1fr)); margin-bottom: 10px; }
+.stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.totals { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.cell { padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; min-width: 0; background: var(--panel); }
+.cell span { font-size: 12px; color: var(--text-2); line-height: 1.5; overflow-wrap: anywhere; }
+.cell strong { font-size: 18px; font-weight: 650; line-height: 1.4; overflow-wrap: anywhere; }
+/* Signed reported Gamma, never transaction-side or locale-flipped price colors. */
+.inspector [data-sign="positive"] { color: var(--change-positive-ink); }
+.inspector [data-sign="negative"] { color: var(--change-negative-ink); }
+.populations { min-width: 0; border: 1px solid var(--line-3); border-radius: var(--r-md, 8px); padding: 0 12px 10px; background: var(--panel); }
+.populations summary { min-height: 44px; box-sizing: border-box; padding: 11px 0; color: var(--text); font-size: 12px; font-weight: 650; line-height: 1.5; cursor: pointer; overflow-wrap: anywhere; }
+.populations .note + .note { margin-top: 6px; }
+.wideRows { min-width: 0; }
+.table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 12px; line-height: 1.5; }
+.table th, .table td { padding: 8px; text-align: end; vertical-align: middle; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
+.table thead th { color: var(--text-2); font-weight: 600; background: var(--panel-2); }
+.table th:first-child { text-align: start; }
+.table tbody th { font-weight: 600; }
+.table tr[data-focus] { background: var(--panel-2); }
+.table tr[data-selected] { box-shadow: inset 3px 0 0 var(--brand-2); }
+.tablePair { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 4px 6px; min-width: 0; }
+.tablePair > span { min-width: 0; max-width: 100%; }
+.strikeLabel { display: inline-block; max-width: 100%; padding: 8px 0; color: var(--text); font-size: 12px; font-weight: 650; line-height: 1.5; overflow-wrap: anywhere; }
+.narrowRows { display: none; margin: 0; padding: 0; list-style: none; min-width: 0; }
+.narrowRows > li { min-width: 0; border: 1px solid var(--line-3); border-radius: var(--r-md, 8px); padding: 12px; background: var(--panel); }
+.narrowRows > li[data-focus] { background: var(--panel-2); }
+.narrowRows > li[data-selected] { border-color: var(--brand-2); box-shadow: inset 3px 0 0 var(--brand-2); }
+.rowHeader { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 12px; min-width: 0; }
+.rowHeader h4 { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin: 0; min-width: 0; max-width: 100%; color: var(--text); font-size: 13px; line-height: 1.5; }
+.rowHeader > span { max-width: 100%; color: var(--text-2); font-size: 11px; line-height: 1.5; overflow-wrap: anywhere; }
+.rowPair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 12px 0; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+.rowPair > div, .rowChanges > div { min-width: 0; }
+.rowPair dt, .rowChanges dt { color: var(--text-2); font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
+.rowPair dd, .rowChanges dd { min-width: 0; margin: 4px 0 0; font-size: 13px; font-weight: 600; line-height: 1.5; overflow-wrap: anywhere; }
+.rowChanges { display: grid; gap: 10px; margin: 0; }
+.rowChanges > div { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; align-items: baseline; }
+.rowChanges dd { margin: 0; text-align: end; }
+.note, .sub { margin: 0; font-size: 12px; line-height: 1.6; color: var(--text-2); overflow-wrap: anywhere; }
+.focusNote { margin: 0; padding-inline-start: 10px; border-inline-start: 2px solid var(--brand-2); color: var(--text); font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+.srOnly { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+@container exposure-change (max-width: 840px) {
+  .wideRows { display: none; }
+  .narrowRows { display: grid; gap: 12px; }
+  .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .stats { grid-template-columns: 1fr; }
+}
+@container exposure-change (max-width: 340px) {
+  .totals, .rowPair { grid-template-columns: 1fr; }
+  .rowChanges > div { grid-template-columns: 1fr; gap: 4px; }
+  .rowChanges dd { text-align: start; }
+}
+@container exposure-change (max-width: 260px) {
+  .grid { grid-template-columns: 1fr; }
+  .controls { display: grid; grid-template-columns: 1fr; }
+}
+@media (forced-colors: active) {
+  .inspector [data-sign] { color: CanvasText; }
+  .controls button[aria-pressed="true"], .strikeButton[aria-pressed="true"] { outline: 2px solid Highlight; outline-offset: -3px; }
+  .narrowRows > li[data-selected] { border-color: Highlight; }
+}

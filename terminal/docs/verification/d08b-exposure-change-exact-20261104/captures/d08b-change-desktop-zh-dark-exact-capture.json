@@ -1,0 +1,20 @@
+{
+  "schema": "d08b.viewport_capture.v1",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "fullPage": false,
+  "innerWidth": 1440,
+  "innerHeight": 900,
+  "devicePixelRatio": 1,
+  "cssZoom": "1",
+  "target": {
+    "tag": "SPAN",
+    "text": "$0.000244140625",
+    "left": 1273.609375,
+    "top": 676.53125,
+    "width": 109.390625,
+    "height": 18
+  }
+}

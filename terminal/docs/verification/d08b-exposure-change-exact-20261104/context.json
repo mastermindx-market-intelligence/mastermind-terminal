@@ -1,0 +1,58 @@
+{
+  "schema": "d08b.continuation_source_context.v1",
+  "observed_at_utc": "2026-11-05 03:21:50 UTC",
+  "law": {
+    "repository": "mastermindx-market-intelligence/Mastermind",
+    "branch": "master",
+    "head": "70187bb1660e8a7c3038271bb9f8924b5e525cb0",
+    "schema": "mastermind.sol_skillpack.v1",
+    "version": "1.0.1",
+    "bootstrap_major": 1,
+    "method": "Current same-SHA bundle fetched; unchanged blobs compared to fully loaded prior pin; changed procedures and new session-local review policy read."
+  },
+  "carrier": {
+    "repository": "terminal",
+    "operation_id": "d08b-surface-exact-values-20261104-c3",
+    "head": "8d47a4557762e5d1d7e07617255b105cbc8a51a5",
+    "clean_before": true
+  },
+  "paper": {
+    "file_id": "01M3NSZGE8JWN2EZCSF0DT05RM",
+    "page_id": "p-12-0",
+    "page_name": "D08B · Exposure & Volatility · Candidate R1",
+    "target_boards": [
+      {
+        "id": "1PBQ-0",
+        "name": "B07 · Matched change · 1440 · Dark EN · R1",
+        "childCount": 8,
+        "width": 1440,
+        "height": 1050,
+        "worldX": 5862,
+        "worldY": 2690
+      },
+      {
+        "id": "1REL-0",
+        "name": "B16 · Nonzero cohort differences · 1440 · Dark EN · R1",
+        "childCount": 8,
+        "width": 1440,
+        "height": 1120,
+        "worldX": 9410,
+        "worldY": 0
+      }
+    ],
+    "snapshot": "7d22882d4e7f5880d4093f19b73b4ef54f9a5977b32ec236d850058d82f66f9f",
+    "catalog": "03cb81e960dab705b21b0695f3886d39c4792df629a6419163efef52338182e4",
+    "write_qualified": false,
+    "observed": "B07 and B16 actual screenshots inspected, B07 JSX extracted. Read-only; no canvas mutation."
+  },
+  "held": [
+    "merge",
+    "Ready/un-draft",
+    "enqueue",
+    "held relabel",
+    "uncertain-operation retry",
+    "production deployment"
+  ],
+  "scope": "Existing change-inspector presentation, focused tests and evidence. No coordinator, source, calculation, identity, Plan/Save or replay change.",
+  "preliminary_ci": "Previously published exact Terminal head passes21checks; Macro applicable CI passes. No rerun needed; refresh pending-CI prose in next durable return."
+}

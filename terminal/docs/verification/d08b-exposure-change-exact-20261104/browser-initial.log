@@ -1,0 +1,47 @@
+
+> terminal@0.1.0 test:e2e:responsive
+> playwright test --config=docs/verification/d08b-vol-skew-exact-20261104/playwright.config.ts e2e/options-exposure-change-exact.spec.ts e2e/options-exposure-workspace.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --grep Change |Change:|Matched reported Gamma --max-failures=2
+
+[warmup] /terminal?symbol=NVDA → 200 in 124ms
+[warmup] /options → 200 in 238ms
+[warmup] /portfolio → 200 in 195ms
+[warmup] /alerts → 200 in 179ms
+[warmup] /analysis → 200 in 188ms
+[warmup] /discover → 200 in 157ms
+[warmup] /admin → 200 in 78ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 68ms
+[warmup] /login → 200 in 118ms
+[warmup] /reset-password → 200 in 115ms
+[warmup] /api/me → 200 in 76ms
+[warmup] /api/watchlist → 200 in 41ms
+[warmup] /api/layouts → 200 in 37ms
+[warmup] /api/watchlist/annotations → 409 in 39ms
+[warmup] 14 routes compiled in 2s
+
+Running 21 tests using 1 worker
+
+  -   1 [desktop] › e2e/options-exposure-change-exact.spec.ts:254:5 › baseline: existing change inspector phone presentation
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓   2 [desktop] › e2e/options-exposure-change-exact.spec.ts:348:7 › Change en: exact cohort values, source populations and keyboard presentation (5.6s)
+  ✓   3 [desktop] › e2e/options-exposure-change-exact.spec.ts:348:7 › Change zh: exact cohort values, source populations and keyboard presentation (5.6s)
+  ✓   4 [desktop] › e2e/options-exposure-change-exact.spec.ts:394:5 › Change: preserved selected strike, unmatched focus and access loss on the actual route (4.4s)
+  ✓   5 [desktop] › e2e/options-exposure-change-exact.spec.ts:442:5 › Change: 320px, magnification, narrow pane and focus continuity (4.0s)
+  ✓   6 [desktop] › e2e/options-exposure-workspace.spec.ts:139:7 › Matched reported Gamma en separates contributions and source coverage (4.0s)
+  ✓   7 [desktop] › e2e/options-exposure-workspace.spec.ts:139:7 › Matched reported Gamma zh separates contributions and source coverage (3.2s)
+  -   8 [tablet] › e2e/options-exposure-change-exact.spec.ts:254:5 › baseline: existing change inspector phone presentation
+  ✓   9 [tablet] › e2e/options-exposure-change-exact.spec.ts:348:7 › Change en: exact cohort values, source populations and keyboard presentation (4.4s)
+  ✓  10 [tablet] › e2e/options-exposure-change-exact.spec.ts:348:7 › Change zh: exact cohort values, source populations and keyboard presentation (3.8s)
+  -  11 [tablet] › e2e/options-exposure-change-exact.spec.ts:394:5 › Change: preserved selected strike, unmatched focus and access loss on the actual route
+  -  12 [tablet] › e2e/options-exposure-change-exact.spec.ts:442:5 › Change: 320px, magnification, narrow pane and focus continuity
+  ✓  13 [tablet] › e2e/options-exposure-workspace.spec.ts:139:7 › Matched reported Gamma en separates contributions and source coverage (3.0s)
+  ✓  14 [tablet] › e2e/options-exposure-workspace.spec.ts:139:7 › Matched reported Gamma zh separates contributions and source coverage (3.1s)
+  -  15 [mobile] › e2e/options-exposure-change-exact.spec.ts:254:5 › baseline: existing change inspector phone presentation
+  ✓  16 [mobile] › e2e/options-exposure-change-exact.spec.ts:348:7 › Change en: exact cohort values, source populations and keyboard presentation (3.9s)
+  ✓  17 [mobile] › e2e/options-exposure-change-exact.spec.ts:348:7 › Change zh: exact cohort values, source populations and keyboard presentation (3.6s)
+  -  18 [mobile] › e2e/options-exposure-change-exact.spec.ts:394:5 › Change: preserved selected strike, unmatched focus and access loss on the actual route
+  -  19 [mobile] › e2e/options-exposure-change-exact.spec.ts:442:5 › Change: 320px, magnification, narrow pane and focus continuity
+  ✓  20 [mobile] › e2e/options-exposure-workspace.spec.ts:139:7 › Matched reported Gamma en separates contributions and source coverage (2.9s)
+  ✓  21 [mobile] › e2e/options-exposure-workspace.spec.ts:139:7 › Matched reported Gamma zh separates contributions and source coverage (2.6s)
+
+  7 skipped
+  14 passed (1.2m)

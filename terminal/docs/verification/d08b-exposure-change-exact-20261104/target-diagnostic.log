@@ -1,0 +1,120 @@
+
+> terminal@0.1.0 test:e2e:responsive
+> playwright test --config=docs/verification/d08b-vol-skew-exact-20261104/playwright.config.ts e2e/options-exposure-change-exact.spec.ts --project=tablet --workers=1 --grep Change en: --max-failures=1
+
+[warmup] /terminal?symbol=NVDA → 200 in 64ms
+[warmup] /options → 200 in 131ms
+[warmup] /portfolio → 200 in 76ms
+[warmup] /alerts → 200 in 75ms
+[warmup] /analysis → 200 in 132ms
+[warmup] /discover → 200 in 91ms
+[warmup] /admin → 200 in 45ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 42ms
+[warmup] /login → 200 in 55ms
+[warmup] /reset-password → 200 in 72ms
+[warmup] /api/me → 200 in 54ms
+[warmup] /api/watchlist → 200 in 27ms
+[warmup] /api/layouts → 200 in 23ms
+[warmup] /api/watchlist/annotations → 409 in 26ms
+[warmup] 14 routes compiled in 1s
+
+Running 1 test using 1 worker
+
+  ✘  1 [tablet] › e2e/options-exposure-change-exact.spec.ts:353:7 › Change en: exact cohort values, source populations and keyboard presentation (2.6s)
+Testing stopped early after 1 maximum allowed failures.
+
+
+  1) [tablet] › e2e/options-exposure-change-exact.spec.ts:353:7 › Change en: exact cohort values, source populations and keyboard presentation 
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  -  1
+    + Received  + 58
+
+    - Array []
+    + Array [
+    +   Object {
+    +     "height": 44,
+    +     "minHeight": "44px",
+    +     "minWidth": "48px",
+    +     "text": "159",
+    +     "width": 49.6875,
+    +   },
+    +   Object {
+    +     "height": 44,
+    +     "minHeight": "44px",
+    +     "minWidth": "48px",
+    +     "text": "100",
+    +     "width": 49.6875,
+    +   },
+    +   Object {
+    +     "height": 44,
+    +     "minHeight": "44px",
+    +     "minWidth": "48px",
+    +     "text": "101",
+    +     "width": 49.6875,
+    +   },
+    +   Object {
+    +     "height": 44,
+    +     "minHeight": "44px",
+    +     "minWidth": "48px",
+    +     "text": "102",
+    +     "width": 49.6875,
+    +   },
+    +   Object {
+    +     "height": 44,
+    +     "minHeight": "44px",
+    +     "minWidth": "48px",
+    +     "text": "103",
+    +     "width": 49.6875,
+    +   },
+    +   Object {
+    +     "height": 44,
+    +     "minHeight": "44px",
+    +     "minWidth": "48px",
+    +     "text": "104",
+    +     "width": 49.6875,
+    +   },
+    +   Object {
+    +     "height": 44,
+    +     "minHeight": "44px",
+    +     "minWidth": "48px",
+    +     "text": "105",
+    +     "width": 49.6875,
+    +   },
+    +   Object {
+    +     "height": 44,
+    +     "minHeight": "44px",
+    +     "minWidth": "48px",
+    +     "text": "106",
+    +     "width": 49.6875,
+    +   },
+    + ]
+
+      347 |     return { text: el.textContent, width: r.width, height: r.height, minWidth: style.minWidth, minHeight: style.minHeight };
+      348 |   }));
+    > 349 |   expect(small).toEqual([]);
+          |                 ^
+      350 | }
+      351 |
+      352 | for (const lang of ["en", "zh"] as const) {
+        at controlsFit (/Volumes/Mastermind/agent-workspaces/terminal/web/d08b-surface-exact-values-20261104-c3/terminal/e2e/options-exposure-change-exact.spec.ts:349:17)
+        at /Volumes/Mastermind/agent-workspaces/terminal/web/d08b-surface-exact-values-20261104-c3/terminal/e2e/options-exposure-change-exact.spec.ts:383:25
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/options-exposure-change-ex-3b324-s-and-keyboard-presentation-tablet/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/options-exposure-change-ex-3b324-s-and-keyboard-presentation-tablet/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/options-exposure-change-ex-3b324-s-and-keyboard-presentation-tablet/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/options-exposure-change-ex-3b324-s-and-keyboard-presentation-tablet/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [tablet] › e2e/options-exposure-change-exact.spec.ts:353:7 › Change en: exact cohort values, source populations and keyboard presentation 
+  1 error was not a part of any test, see above for details

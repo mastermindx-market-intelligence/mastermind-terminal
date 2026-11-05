@@ -1,0 +1,226 @@
+{
+  "observed_at": "2026-11-05T03:15:23Z",
+  "repository": "mastermindx-market-intelligence/mastermind-terminal",
+  "source_head": "8d47a4557762e5d1d7e07617255b105cbc8a51a5",
+  "scope": "D08B reported-Gamma change inspector presentation; local draft only",
+  "candidate_paths": [
+    "terminal/components/exposure-map/ExposureChangeInspector.tsx",
+    "terminal/components/exposure-map/ExposureChangeInspector.module.css",
+    "terminal/components/exposure-map/exposureChangeInspectorStrings.ts",
+    "terminal/lib/__tests__/ExposureChangeInspector.test.tsx",
+    "terminal/lib/__tests__/exposureChangeInspectorExact.test.tsx",
+    "terminal/e2e/options-exposure-change-exact.spec.ts"
+  ],
+  "source_blobs": [
+    {
+      "path": "terminal/components/exposure-map/ExposureChangeInspector.tsx",
+      "sha": "e60c5feaec0cb468b31c1208a880038d98b68139"
+    },
+    {
+      "path": "terminal/components/exposure-map/ExposureChangeInspector.module.css",
+      "sha": "29db37566856e294df6c50043bf103dc294cd702"
+    },
+    {
+      "path": "terminal/components/exposure-map/exposureChangeInspectorStrings.ts",
+      "sha": "3619d2d1f2f91a339ad3c3dfdb29165fc91a084f"
+    },
+    {
+      "path": "terminal/lib/exposureChangeInspector.ts",
+      "sha": "4f1d10ea49b30a90056e8a55b68e1c5b61676267"
+    },
+    {
+      "path": "terminal/lib/__tests__/ExposureChangeInspector.test.tsx",
+      "sha": "04971cf2204843ea475d124bacdcd9ebb52790cd"
+    },
+    {
+      "path": "terminal/lib/__tests__/exposureChangeInspector.test.ts",
+      "sha": "3373850b9fca94f2d5bdd341ed150132382c9863"
+    },
+    {
+      "path": "terminal/lib/__tests__/exposureChangeInspectorCopy.test.ts",
+      "sha": "c1ed9912081484af1198268bd5d9c64409fd9a5c"
+    }
+  ],
+  "census": [
+    {
+      "pr": 1243,
+      "url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1243",
+      "head": "e9fa843122ac0eee36d607b8313e0bb264bed840",
+      "state": "open",
+      "draft": false,
+      "changed_files": 2219,
+      "filenames_returned": 2219,
+      "count_matches": true,
+      "candidate_overlap": []
+    },
+    {
+      "pr": 1248,
+      "url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1248",
+      "head": "98ffa891116ccc9e6be58a64148dbe45591e6ce8",
+      "state": "open",
+      "draft": false,
+      "changed_files": 413,
+      "filenames_returned": 413,
+      "count_matches": true,
+      "candidate_overlap": []
+    },
+    {
+      "pr": 804,
+      "url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/804",
+      "head": "27df56d997df0ae94a17b6b8e2d14867431bb394",
+      "state": "open",
+      "draft": true,
+      "changed_files": 1784,
+      "filenames_returned": 1784,
+      "count_matches": true,
+      "candidate_overlap": []
+    },
+    {
+      "pr": 686,
+      "url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/686",
+      "head": "450850ec2933290d6a8e86db35e8c59cfc8843c1",
+      "state": "open",
+      "draft": false,
+      "changed_files": 13,
+      "filenames_returned": 13,
+      "count_matches": true,
+      "candidate_overlap": []
+    },
+    {
+      "pr": 799,
+      "url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/799",
+      "head": "8b39aa25a88a71ad437a673c87d460b0eed0e027",
+      "state": "open",
+      "draft": true,
+      "changed_files": 10,
+      "filenames_returned": 10,
+      "count_matches": true,
+      "candidate_overlap": []
+    },
+    {
+      "pr": 1241,
+      "url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1241",
+      "head": "f53b36bd71557888c68b7aad89e0a3e9b27c0c57",
+      "state": "open",
+      "draft": false,
+      "changed_files": 13,
+      "filenames_returned": 13,
+      "count_matches": true,
+      "candidate_overlap": []
+    },
+    {
+      "pr": 645,
+      "url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/645",
+      "head": "277de851bd4111b37d516cd213cea7904bcbd0d7",
+      "state": "open",
+      "draft": true,
+      "changed_files": 13,
+      "filenames_returned": 13,
+      "count_matches": true,
+      "candidate_overlap": []
+    },
+    {
+      "pr": 768,
+      "url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/768",
+      "head": "bd8c258f89f625a90be687a7df000eeb8e3f67a6",
+      "state": "open",
+      "draft": true,
+      "changed_files": 108,
+      "filenames_returned": 108,
+      "count_matches": true,
+      "candidate_overlap": []
+    },
+    {
+      "pr": 646,
+      "url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/646",
+      "head": "49ebda63bf5694745a13a8ae75970cbc1d4043a0",
+      "state": "open",
+      "draft": true,
+      "changed_files": 2,
+      "filenames_returned": 2,
+      "count_matches": true,
+      "candidate_overlap": []
+    },
+    {
+      "pr": 769,
+      "url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/769",
+      "head": "5ea5811d0f6279cf8e0d9138df0c7fdda91d62e6",
+      "state": "open",
+      "draft": true,
+      "changed_files": 20,
+      "filenames_returned": 20,
+      "count_matches": true,
+      "candidate_overlap": []
+    },
+    {
+      "pr": 1217,
+      "url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1217",
+      "head": "54b43faa8f78b5261dea46484fd4d4d200642871",
+      "state": "open",
+      "draft": true,
+      "changed_files": 4,
+      "filenames_returned": 4,
+      "count_matches": true,
+      "candidate_overlap": []
+    },
+    {
+      "pr": 1295,
+      "url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1295",
+      "head": "d13e984c29523518a2e8bd9db0b258fffe3f8bf1",
+      "state": "open",
+      "draft": false,
+      "changed_files": 98,
+      "filenames_returned": 98,
+      "count_matches": true,
+      "candidate_overlap": []
+    },
+    {
+      "pr": 1287,
+      "url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1287",
+      "head": "698a54350b773e1cec650bd848642561b230c72c",
+      "state": "open",
+      "draft": true,
+      "changed_files": 30,
+      "filenames_returned": 30,
+      "count_matches": true,
+      "candidate_overlap": []
+    },
+    {
+      "pr": 1274,
+      "url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1274",
+      "head": "db4064e806adfca6f1c272087f28738595fa8e8f",
+      "state": "open",
+      "draft": false,
+      "changed_files": 55,
+      "filenames_returned": 55,
+      "count_matches": true,
+      "candidate_overlap": []
+    }
+  ],
+  "absence_verified": true,
+  "held_owners": [
+    "ExposureMap",
+    "GexMarketMemory",
+    "exposureChangeInspector model",
+    "exposureReportedChange comparator",
+    "D08C Plan/Save",
+    "D08D replay"
+  ],
+  "excluded_overlaps": [
+    {
+      "path": "terminal/components/vol/VolVrpPanel.tsx",
+      "pr": 1248,
+      "head": "98ffa891116ccc9e6be58a64148dbe45591e6ce8",
+      "base_blob": "65cb47d2a81e3b4a9a5660be4edce8f6dca26a75",
+      "incumbent_blob": "3c1c58277a3c0bea128a6592ba44948548d717a0"
+    },
+    {
+      "path": "terminal/components/vol/VolComparePanel.tsx",
+      "prs": [
+        804,
+        1295
+      ]
+    }
+  ],
+  "limitation": "Complete changed-file lists and matching PR file counts checked; not a global lease registry or exhaustive all-repository PR census. Root rechecks live custody before managed mutations."
+}

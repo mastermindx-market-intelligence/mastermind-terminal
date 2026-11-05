@@ -1,0 +1,25 @@
+
+> terminal@0.1.0 test:e2e:responsive
+> playwright test --config=docs/verification/d08b-vol-skew-exact-20261104/playwright.config.ts e2e/options-exposure-change-exact.spec.ts --project=desktop --workers=1 --grep baseline:
+
+[warmup] /terminal?symbol=NVDA → 200 in 97ms
+[warmup] /options → 200 in 196ms
+[warmup] /portfolio → 200 in 105ms
+[warmup] /alerts → 200 in 110ms
+[warmup] /analysis → 200 in 176ms
+[warmup] /discover → 200 in 129ms
+[warmup] /admin → 200 in 75ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 83ms
+[warmup] /login → 200 in 74ms
+[warmup] /reset-password → 200 in 92ms
+[warmup] /api/me → 200 in 77ms
+[warmup] /api/watchlist → 200 in 36ms
+[warmup] /api/layouts → 200 in 33ms
+[warmup] /api/watchlist/annotations → 409 in 30ms
+[warmup] 14 routes compiled in 1s
+
+Running 1 test using 1 worker
+
+  ✓  1 [desktop] › e2e/options-exposure-change-exact.spec.ts:45:5 › baseline: existing change inspector phone presentation (2.6s)
+
+  1 passed (12.4s)

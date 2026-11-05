@@ -1,0 +1,242 @@
+{
+  "sourceHead": "8d47a4557762e5d1d7e07617255b105cbc8a51a5",
+  "mode": "local pure admission/comparison/view-model execution",
+  "node": "v24.22.1",
+  "result": "PASS",
+  "sourceBlobs": {
+    "reportedGammaBooks.ts": "3f83ba56b55c8974acb460382234e42f680aa1c7",
+    "exposure-projection-observed-v2.json": "d68d9d809f229dba9f8145847664dbd073a3b00d",
+    "exposureMapProjection.ts": "55352a3828d14c7e5ecb9ee44975634c89a1e99b",
+    "exposureReportedChange.ts": "35583d6e9da643d4523208541da3f395c7a4b6f9",
+    "exposureChangeInspector.ts": "4f1d10ea49b30a90056e8a55b68e1c5b61676267",
+    "browser-fixture.ts": "b22df4be5ac7e05194827ff6ce461e47994e3135"
+  },
+  "limitations": [
+    "No remote test, browser journey, network/auth/fetch/cache, async coordinator fingerprint or production source was executed.",
+    "Original source bodies were loaded locally with Node type stripping; type-only imports were removed and unused scenarioGrid throws if called.",
+    "The local pure-helper comparison uses explicit nonempty test source keys after admission. Actual browser tests must let the existing coordinator generate its own keys.",
+    "Synthetic fixture receipt declarations do not prove provider authenticity or availability."
+  ],
+  "results": [
+    {
+      "variant": "precision",
+      "qualified_projection": "PASS",
+      "reported_member_admission": "PASS",
+      "comparison": "PASS",
+      "view_model": "PASS",
+      "aggregate": {
+        "contracts": 119,
+        "previousNetUsd": 0.00048828125,
+        "currentNetUsd": 0.000244140625,
+        "signedChangeUsd": -0.000244140625,
+        "netMagnitudeChangeUsd": -0.000244140625,
+        "previousGrossUsd": 0.05810546875,
+        "currentGrossUsd": 0.029052734375,
+        "grossChangeUsd": -0.029052734375
+      },
+      "population": {
+        "previousObserved": 120,
+        "currentObserved": 120,
+        "previousQualified": 119,
+        "currentQualified": 119,
+        "matchedQualified": 119,
+        "previousOnlyReported": 0,
+        "currentOnlyReported": 0,
+        "qualificationLost": 0,
+        "qualificationGained": 0,
+        "unavailableEither": 1
+      },
+      "totalStrikes": 60,
+      "rows": [
+        {
+          "strike": 159,
+          "signedChangeUsd": -0.000244140625,
+          "netMagnitudeChangeUsd": -0.000244140625,
+          "grossChangeUsd": -0.000244140625,
+          "direction": "flat",
+          "focus": false
+        },
+        {
+          "strike": 100,
+          "signedChangeUsd": 0,
+          "netMagnitudeChangeUsd": 0,
+          "grossChangeUsd": -0.00048828125,
+          "direction": "flat",
+          "focus": false
+        },
+        {
+          "strike": 101,
+          "signedChangeUsd": 0,
+          "netMagnitudeChangeUsd": 0,
+          "grossChangeUsd": -0.00048828125,
+          "direction": "flat",
+          "focus": false
+        },
+        {
+          "strike": 102,
+          "signedChangeUsd": 0,
+          "netMagnitudeChangeUsd": 0,
+          "grossChangeUsd": -0.00048828125,
+          "direction": "flat",
+          "focus": false
+        },
+        {
+          "strike": 103,
+          "signedChangeUsd": 0,
+          "netMagnitudeChangeUsd": 0,
+          "grossChangeUsd": -0.00048828125,
+          "direction": "flat",
+          "focus": false
+        },
+        {
+          "strike": 104,
+          "signedChangeUsd": 0,
+          "netMagnitudeChangeUsd": 0,
+          "grossChangeUsd": -0.00048828125,
+          "direction": "flat",
+          "focus": false
+        },
+        {
+          "strike": 105,
+          "signedChangeUsd": 0,
+          "netMagnitudeChangeUsd": 0,
+          "grossChangeUsd": -0.00048828125,
+          "direction": "flat",
+          "focus": false
+        },
+        {
+          "strike": 106,
+          "signedChangeUsd": 0,
+          "netMagnitudeChangeUsd": 0,
+          "grossChangeUsd": -0.00048828125,
+          "direction": "flat",
+          "focus": false
+        },
+        {
+          "strike": 107,
+          "signedChangeUsd": 0,
+          "netMagnitudeChangeUsd": 0,
+          "grossChangeUsd": -0.00048828125,
+          "direction": "flat",
+          "focus": true
+        }
+      ],
+      "more": 52,
+      "focus": {
+        "strike": 107,
+        "included": true,
+        "inTopK": false
+      }
+    },
+    {
+      "variant": "population",
+      "qualified_projection": "PASS",
+      "reported_member_admission": "PASS",
+      "comparison": "PASS",
+      "view_model": "PASS",
+      "aggregate": {
+        "contracts": 77,
+        "previousNetUsd": -0.00048828125,
+        "currentNetUsd": -0.000244140625,
+        "signedChangeUsd": 0.000244140625,
+        "netMagnitudeChangeUsd": -0.000244140625,
+        "previousGrossUsd": 0.03759765625,
+        "currentGrossUsd": 0.018798828125,
+        "grossChangeUsd": -0.018798828125
+      },
+      "population": {
+        "previousObserved": 120,
+        "currentObserved": 120,
+        "previousQualified": 118,
+        "currentQualified": 118,
+        "matchedQualified": 77,
+        "previousOnlyReported": 40,
+        "currentOnlyReported": 40,
+        "qualificationLost": 1,
+        "qualificationGained": 1,
+        "unavailableEither": 3
+      },
+      "totalStrikes": 40,
+      "rows": [
+        {
+          "strike": 101,
+          "signedChangeUsd": 0.000244140625,
+          "netMagnitudeChangeUsd": -0.000244140625,
+          "grossChangeUsd": -0.000244140625,
+          "direction": "flat",
+          "focus": false
+        },
+        {
+          "strike": 104,
+          "signedChangeUsd": 0.000244140625,
+          "netMagnitudeChangeUsd": -0.000244140625,
+          "grossChangeUsd": -0.000244140625,
+          "direction": "flat",
+          "focus": false
+        },
+        {
+          "strike": 159,
+          "signedChangeUsd": -0.000244140625,
+          "netMagnitudeChangeUsd": -0.000244140625,
+          "grossChangeUsd": -0.000244140625,
+          "direction": "flat",
+          "focus": false
+        },
+        {
+          "strike": 102,
+          "signedChangeUsd": 0,
+          "netMagnitudeChangeUsd": 0,
+          "grossChangeUsd": -0.00048828125,
+          "direction": "flat",
+          "focus": false
+        },
+        {
+          "strike": 105,
+          "signedChangeUsd": 0,
+          "netMagnitudeChangeUsd": 0,
+          "grossChangeUsd": -0.00048828125,
+          "direction": "flat",
+          "focus": false
+        },
+        {
+          "strike": 107,
+          "signedChangeUsd": 0,
+          "netMagnitudeChangeUsd": 0,
+          "grossChangeUsd": -0.00048828125,
+          "direction": "flat",
+          "focus": false
+        },
+        {
+          "strike": 108,
+          "signedChangeUsd": 0,
+          "netMagnitudeChangeUsd": 0,
+          "grossChangeUsd": -0.00048828125,
+          "direction": "flat",
+          "focus": false
+        },
+        {
+          "strike": 110,
+          "signedChangeUsd": 0,
+          "netMagnitudeChangeUsd": 0,
+          "grossChangeUsd": -0.00048828125,
+          "direction": "flat",
+          "focus": false
+        },
+        {
+          "strike": 111,
+          "signedChangeUsd": 0,
+          "netMagnitudeChangeUsd": 0,
+          "grossChangeUsd": -0.00048828125,
+          "direction": "flat",
+          "focus": true
+        }
+      ],
+      "more": 32,
+      "focus": {
+        "strike": 111,
+        "included": true,
+        "inTopK": false
+      }
+    }
+  ]
+}
