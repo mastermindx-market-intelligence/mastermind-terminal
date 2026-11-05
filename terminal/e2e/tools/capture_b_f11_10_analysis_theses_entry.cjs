@@ -82,6 +82,30 @@ function captureServerEnv(parent = process.env) {
   };
 }
 
+function staticScriptPath(raw, resourceType) {
+  if (resourceType !== "script") return undefined;
+  try {
+    const pathname = new URL(raw).pathname;
+    return /^\/_next\/static\/[a-zA-Z0-9_./%\[\]()-]{1,220}$/.test(pathname) ? pathname : undefined;
+  } catch { return undefined; }
+}
+
+function consoleErrorKind(message) {
+  if (/Content Security Policy|violates.*(?:directive|policy)|Refused to (?:load|execute)/i.test(message)) return "csp";
+  if (/ChunkLoadError|Failed to load chunk|module factory|Module .*not found/i.test(message)) return "chunk-load";
+  if (/hydrat|Minified React error/i.test(message)) return "react-hydration";
+  if (/Failed to load resource|ERR_/i.test(message)) return "network-resource";
+  return "other";
+}
+
+function writeFailureArtifact(out, capturedAtHead, diagnostic, error) {
+  const code = typeof error?.message === "string" && /^F11_[A-Z_]+$/.test(error.message) ? error.message : "F11_CAPTURE_FAILED";
+  writeFileSync(join(out, "FAILURE.json"), JSON.stringify({
+    schema: "terminal.f11-source-component-failure.v1", status: "FAILURE",
+    capturedAtHead, failedAt: new Date().toISOString(), errorCode: code, ...diagnostic,
+  }, null, 2) + "\n");
+}
+
 function currentGitHead() {
   return execFileSync("git", ["rev-parse", "HEAD"], { cwd: ROOT, encoding: "utf8" }).trim();
 }
@@ -97,7 +121,11 @@ function layoutFilesBlock() {
 function startServer() {
   assertNoCaptureDotenv();
   const env = captureServerEnv();
-  const child = spawn("npm", ["run", "dev", "--", "--hostname", "127.0.0.1", "--port", String(PORT)], {
+  // Pinned Next16.2.9 Turbopack dev emits a next/dynamic preload name absent
+  // from its actual client output (observed F11 static404). Use the supported
+  // Webpack dev compiler for these source-component crops; keep the separate
+  // canonical PL6/VI Turbopack qualification and all network200 guards intact.
+  const child = spawn("npm", ["run", "dev", "--", "--webpack", "--hostname", "127.0.0.1", "--port", String(PORT)], {
     cwd: ROOT,
     env,
     stdio: ["ignore", "pipe", "pipe"],
@@ -196,7 +224,8 @@ async function installCaptureBoundary(context, base = BASE) {
         if (counts.failedAllowedResponses.length < 8) {
           const resourceType = request.resourceType();
           const families = { document: "analysis-document", script: "next-script", stylesheet: "next-style", font: "next-font", image: "static-image", manifest: "static-manifest" };
-          counts.failedAllowedResponses.push({ family: families[resourceType] || "unknown", resourceType: Object.hasOwn(families, resourceType) ? resourceType : "unknown", status });
+          const scriptPath = staticScriptPath(request.url(), resourceType);
+          counts.failedAllowedResponses.push({ family: families[resourceType] || "unknown", resourceType: Object.hasOwn(families, resourceType) ? resourceType : "unknown", status, ...(scriptPath ? { scriptPath } : {}) });
         }
         return route.abort("blockedbyclient");
       }
@@ -275,6 +304,10 @@ async function main() {
         const page = await context.newPage();
         page.setDefaultTimeout(45_000);
         const pageErrorNames = [];
+        const consoleErrorKinds = [];
+        page.on("console", message => {
+          if (message.type() === "error" && consoleErrorKinds.length < 8) consoleErrorKinds.push(consoleErrorKind(message.text()));
+        });
         page.on("pageerror", error => {
           const known = ["Error", "TypeError", "ReferenceError", "SyntaxError", "RangeError", "URIError", "EvalError"];
           pageErrorNames.push(known.includes(error.name) ? error.name : "Error");
@@ -291,7 +324,15 @@ async function main() {
           console.log("ok");
         } catch (err) {
           console.log(`FAIL ${err && err.message ? err.message : err}`);
-          console.error("F11_CAPTURE_DIAGNOSTICS " + JSON.stringify({ file: shot.file, requestBoundary: { ...boundaryCounts }, pageErrorNames }));
+          const bootstrapState = await page.evaluate(() => ({
+            readyState: document.readyState, scriptCount: document.scripts.length,
+            nextRuntime: typeof window.next === "object",
+            flightArray: Array.isArray(window.__next_f),
+            flightConsumerInstalled: Array.isArray(window.__next_f) && window.__next_f.push !== Array.prototype.push,
+          })).catch(() => ({ unavailable: true }));
+          const diagnostic = { file: shot.file, requestBoundary: { ...boundaryCounts }, pageErrorNames, consoleErrorKinds, bootstrapState };
+          writeFailureArtifact(OUT, capturedAtHead, diagnostic, err);
+          console.error("F11_CAPTURE_DIAGNOSTICS " + JSON.stringify(diagnostic));
           try {
             await page.screenshot({ path: join(OUT, `FAIL-${shot.file}`), fullPage: false });
           } catch { /* ignore */ }
@@ -352,7 +393,7 @@ async function main() {
   console.log(`wrote ${files.length} crops + EVIDENCE.yml at ${capturedAtHead}`);
 }
 
-module.exports = { assertNoCaptureDotenv, captureServerEnv, installCaptureBoundary };
+module.exports = { assertNoCaptureDotenv, captureServerEnv, installCaptureBoundary, staticScriptPath, consoleErrorKind, writeFailureArtifact };
 
 if (require.main === module) main().catch((err) => {
   console.error(err);

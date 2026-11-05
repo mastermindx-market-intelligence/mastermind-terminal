@@ -126,7 +126,7 @@ test("failed allowed responses retain bounded public resource family/type/status
   ];
   for (const route of routes) await context.registered.request(route);
   assert.deepEqual(counts.failedAllowedResponses, [
-    { family: "next-script", resourceType: "script", status: 404 },
+    { family: "next-script", resourceType: "script", status: 404, scriptPath: "/_next/static/chunks/app.js" },
     { family: "static-image", resourceType: "image", status: 307 },
   ]);
   assert.equal(JSON.stringify(counts).includes("never-retain"), false);
@@ -144,4 +144,33 @@ test("failed allowed response diagnostic cap never weakens200/redirect rejection
   assert.deepEqual(good.calls.map(c => c[0]), ["fetch", "fulfill"]);
   assert.equal(counts.failedAllowedResponses.length, 8);
   await assert.rejects(counts.waitForBusinessRequest(1), {message:"F11_BUSINESS_REQUEST_BOUNDARY_NOT_EXERCISED"});
+});
+
+const { staticScriptPath, consoleErrorKind, writeFailureArtifact } = require("./capture_b_f11_10_analysis_theses_entry.cjs");
+test("local script identity diagnostic strips origin query and fragment, accepts only static script names", () => {
+  assert.equal(staticScriptPath("http://127.0.0.1:3565/_next/static/chunks/_14q8v-t._.js?token=never#fragment", "script"), "/_next/static/chunks/_14q8v-t._.js");
+  for (const [url,type] of [["https://host.invalid/user/name", "script"], ["http://127.0.0.1:3565/_next/static/chunks/test.js", "fetch"], ["invalid", "script"]]) assert.equal(staticScriptPath(url,type),undefined);
+});
+test("console diagnostics retain fixed classifications, never console content", () => {
+  assert.equal(consoleErrorKind("Failed to load resource: secret 404"), "network-resource");
+  assert.equal(consoleErrorKind("Refused to execute inline script Content Security Policy secret"), "csp");
+  assert.equal(consoleErrorKind("Failed to load chunk secret"), "chunk-load");
+  assert.equal(consoleErrorKind("arbitrary secret"), "other");
+});
+test("failure artifact is distinct from success and excludes raw error message", () => {
+  const root=fs.mkdtempSync(path.join(os.tmpdir(), "f11-failure-artifact-"));
+  try {
+    writeFailureArtifact(root,"fixture-head",{file:"desktop-en.png",requestBoundary:{componentFundUnavailable:0}},new Error("https://private.invalid/secret"));
+    const text=fs.readFileSync(path.join(root,"FAILURE.json"),"utf8"), result=JSON.parse(text);
+    assert.equal(result.status,"FAILURE"); assert.equal(result.errorCode,"F11_CAPTURE_FAILED");
+    assert.equal(text.includes("private.invalid"),false); assert.equal(fs.existsSync(path.join(root,"FIXTURE.json")),false);
+  } finally { fs.rmSync(root,{recursive:true,force:true}); }
+});
+
+test("F11 source-component server explicitly selects supported webpack, without changing app or boundary flags", () => {
+  const source=fs.readFileSync(path.join(__dirname,"capture_b_f11_10_analysis_theses_entry.cjs"),"utf8");
+  assert.match(source,/spawn\("npm", \["run", "dev", "--", "--webpack", "--hostname", "127\.0\.0\.1", "--port", String\(PORT\)\]/);
+  assert.match(source,/waitForServer\(180_000\)/);
+  assert.match(source,/waitForBusinessRequest\(\)/);
+  assert.match(source,/maxRedirects: 0/);
 });
