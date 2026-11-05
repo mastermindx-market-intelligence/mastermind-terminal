@@ -6,6 +6,7 @@ import { futuresTextFor } from "@/lib/futuresUiCopy";
 import { SHARED_SHELL_COPY, useSharedShellT } from "@/lib/sharedShellCopy";
 import { sharedShellCatalog, sharedShellDirectory } from "@/lib/sharedShellRoutes";
 import { SHARED_SHELL_NAV } from "@/lib/sharedShellNavigation";
+import { INTELLIGENCE_DESTINATIONS } from "@/lib/shared-shell/intelligenceNavigation";
 
 type Entry = { href: string; kind: string; title: { en: string; zh: string }; group: string };
 const SECTIONS = ["all", "workspaces", "markets", "research", "learn", "tools", "about"] as const;
@@ -27,6 +28,8 @@ const canReceiveFocus = (element: HTMLElement | null): element is HTMLElement =>
 // These native tools already use these keys in AppShell's title owner. Keep
 // directory presentation on those keys; the projection still owns admission.
 const nativeTitle = (entry: Entry): { k?: string; label: string; copy?: Entry["title"] } | undefined => {
+  const intelligence = INTELLIGENCE_DESTINATIONS.find(item => item.href === entry.href);
+  if (intelligence) return { label: intelligence.label[0], copy: { en: intelligence.label[0], zh: intelligence.label[1] } };
   if (entry.kind !== "native") return undefined;
   const job = SHARED_SHELL_NAV.find(job => job.href === entry.href);
   if (job) return job;
