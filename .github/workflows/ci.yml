@@ -39,8 +39,11 @@ concurrency:
 jobs:
   # Trusted-base PR scope (Mastermind #917 CI acceleration, 2026-11-05).
   # Classifies the exact pull-request merge commit from Git objects only: a
-  # prose-only change (docs/**, terminal/docs/**, Markdown outside .github/)
-  # is mode=docs, and the unit, e2e, ingest and PostgreSQL jobs below are then
+  # prose-only change (Markdown under docs/ and terminal/docs/ minus the
+  # sub-trees and files that code or tests read, plus raster evidence images
+  # under docs/evidence/ and terminal/docs/pr-crops/; see the allowlist in
+  # scripts/ci_pr_scope.py) is mode=docs, and the unit, e2e, ingest and
+  # PostgreSQL jobs below are then
   # skipped or reduced to a no-op that still reports its required context
   # green. Anything else -- or anything the classifier cannot qualify: a base
   # mismatch, a symlink, an executable bit, a type change, a classifier missing
