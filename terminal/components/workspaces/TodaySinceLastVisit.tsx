@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { useLang } from "@/lib/i18n";
 import { ownerKeyFor } from "@/lib/accountIdentity";
@@ -22,7 +23,12 @@ import today from "./TodayWorkspace.module.css";
 // and is only overwritten after the desk answered 200 (a failed read must not erase
 // history). A 401 — the owner is gone from this browser — clears that owner's slot.
 
-type Props = { ownerKey: string; scope: { current: AbortController | null }; onUnauthenticated: () => void };
+/** Composition handles for the desk's jobs: the paid slot, the unpaid teaser, and the phase
+ *  that chose between them. The consumer nests the rest of Today around these nodes, so this
+ *  holder — and its reads, its stored digest, and its focus state — never remounts. */
+type SinceParts = { priority: ReactNode; teaser: ReactNode; phase: Phase };
+type Props = { ownerKey: string; scope: { current: AbortController | null }; onUnauthenticated: () => void;
+  render?: (parts: SinceParts) => ReactNode };
 type Change = { kind: string; en: string; zh: string; ticker?: string; sector?: string };
 type Cursor = { note_en: string; note_zh: string } | null;
 type Population = { mode: string; en: string; zh: string };
@@ -163,7 +169,7 @@ export default function TodaySinceLastVisit(props: Props) {
   return <TodaySinceLastVisitSession key={props.ownerKey} {...props} />;
 }
 
-function TodaySinceLastVisitSession({ ownerKey, scope, onUnauthenticated }: Props) {
+function TodaySinceLastVisitSession({ ownerKey, scope, onUnauthenticated, render }: Props) {
   const { lang } = useLang();
   const c = COPY[lang];
   const pick = (pair: { en: string; zh: string }) => (lang === "zh" ? pair.zh : pair.en);
@@ -226,22 +232,22 @@ function TodaySinceLastVisitSession({ ownerKey, scope, onUnauthenticated }: Prop
 
   const retry = () => { setPhase("loading"); setReading(null); setShowAll(false); setAttempt(value => value + 1); };
 
-  if (phase === "ended") return null;
+  // Paid first: every state except the teaser holds the opening slot. The unpaid teaser —
+  // and only the teaser — moves after the saved watch attention, reading continuation, and
+  // research briefing through `render`; one session renders both slots, so nothing remounts.
+  if (phase === "ended") return render ? <>{render({ priority: null, teaser: null, phase })}</> : null;
 
   const all = reading?.changes ?? [];
   const lines = showAll ? all : all.slice(0, MAX_LINES);
   const extra = all.length - lines.length;
 
-  return <section className={today.sinceJob} data-today-since-state={phase} aria-label={c.title}>
-    <div className={today.jobHeader}>
-      <h2>{c.title}</h2>
-      <Link href="/portfolio">{c.portfolio}<span aria-hidden="true">→</span></Link>
-    </div>
+  const header = <div className={today.jobHeader}>
+    <h2>{c.title}</h2>
+    <Link href="/portfolio">{c.portfolio}<span aria-hidden="true">→</span></Link>
+  </div>;
+  const priority = phase === "teaser" ? null : <section className={today.sinceJob} data-today-since-state={phase} aria-label={c.title}>
+    {header}
     {phase === "loading" && <p className={styles.notice} role="status">{c.loading}</p>}
-    {phase === "teaser" && <div>
-      <p className={styles.notice}>{c.teaser}</p>
-      <div className={styles.actions}><Link href="/portfolio">{c.teaserLink}<span aria-hidden="true">→</span></Link></div>
-    </div>}
     {phase === "unavailable" && <div>
       <p className={styles.notice} role="status">{c.unavailable}</p>
       <div className={styles.actions}><button type="button" onClick={retry}>{c.retry}</button></div>
@@ -264,4 +270,13 @@ function TodaySinceLastVisitSession({ ownerKey, scope, onUnauthenticated }: Prop
       {reading.cursor && <p className={today.sinceFoot}>{lang === "zh" ? reading.cursor.note_zh : reading.cursor.note_en}</p>}
     </>}
   </section>;
+  const teaser = phase === "teaser" ? <section className={today.sinceJob} data-today-since-state={phase} aria-label={c.title}>
+    {header}
+    <p className={today.sinceTeaser}>{c.teaser}
+      <Link href="/portfolio">{c.teaserLink}<span aria-hidden="true">→</span></Link>
+    </p>
+  </section> : null;
+
+  if (render) return <>{render({ priority, teaser, phase })}</>;
+  return teaser ?? priority;
 }

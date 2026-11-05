@@ -4,6 +4,18 @@ This repository and Macro Dashboard are operated by multiple Claude accounts and
 Codex sessions. Repository files are the durable, shared source of instructions;
 promises or “memory” recorded only inside one chat do not carry to another session.
 
+## Session-owned PR/source review (Chairman 2026-11-03)
+
+The assigned attended CEO Web session owns the actual source diff, self-review, focused tests, required CI and authorized release. **FAST, STANDARD, and CRITICAL do not impose a blanket independent technical reviewer, Fabric/Dot/native-child handoff or additional formal non-author approval on attended Web work.** A risk tier still determines proportionate security, regression and real-path proof; incomplete source is HOLD, not a shortcut. A different ChatGPT Web, Codex or Claude top-level session is never the default review prerequisite. Existing native GitHub/CODEOWNERS approvals, recorded release/security holds, exact-head CI, source custody and non-author merge authority remain binding; never self-approve, self-merge or bypass a required control. This attended-session waiver does not disable the separate signed automatic GitHub/Executive machine review path.
+
+The Mastermind #2018/#2026/#2030 sources and Terminal #1251 T0 classifier have separate protected-release and installation receipts. A proposed PR, author-supplied "routine" label, or uninstalled risk consumer proves neither an automatic machine exemption nor a native GitHub approval. Verify the actual protected source and installed consumer when those facts affect a decision; do not wait for those optional machines before doing permitted attended-Web source work. Codex and Claude sessions also complete their own assigned source/test/release work in-session rather than requiring another top-level chat.
+
+Only when an actually binding native/security requirement or an explicit eligible manual request demands distinct technical scrutiny should the session commission a qualified read-only reviewer, using a true in-session Codex/Claude child, exposed Web Pro child or admitted Fabric when authorized and useful. Verify separate context, exact source head, findings and parent adjudication. Author self-check remains `SELF_REVIEWED`; a technical child is **not** formal GitHub non-author `APPROVED`. No denied or EFFECT_UNKNOWN reviewer operation may be rerouted. Preserve the existing protected merge-on-green and no-author-merge controls. Repository text does not itself edit live ChatGPT Project or client settings.
+
+## Finish the existing release, not the draft
+
+The assigned session owns the original PR through qualified source/tests, failing-CI repair, Ready when reviewable, genuinely required technical/formal review, authorized protected merge-on-green, exact merge readback, git-gated deployment and owed live browser proof. An open Draft, PR, pending CI, review request, label or handoff is **not done**. Do not open another PR to bypass failing checks, an inactive reviewer account or a held original; preserve the source carrier and get the next real release step done this turn. Continue safe unblocked work while any real external wait proceeds through the existing verified observer. Branch protection, review findings, recorded HOLD, source custody, denied/unknown effects, no self-approval and no self-merge remain binding.
+
 ## Required context at the start of every task
 
 1. Read `terminal/AGENTS.md` and `terminal/CLAUDE.md` in full before changing the

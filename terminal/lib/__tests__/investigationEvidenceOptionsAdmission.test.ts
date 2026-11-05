@@ -14,7 +14,7 @@ const manifest = (object_type: string) => ({
 
 describe("investigation admission for Options evidence (W2C)", () => {
   it("manifest with options evidence validates under the admission", () => {
-    for (const type of ["exposure_chart_request", "sector_origin", "rotation_measurement"]) {
+    for (const type of ["exposure_chart_request", "sector_origin", "rotation_measurement", "options_matrix_selection"]) {
       const result = validateInvestigationManifest(manifest(type), INVESTIGATION_ADMISSION);
       expect(result.ok, type).toBe(true);
     }

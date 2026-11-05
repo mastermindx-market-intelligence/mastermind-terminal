@@ -84,6 +84,7 @@ export default function ExposureMap({ root, source, matrix, stale = false, sourc
   const [ready, setReady] = useState<TerminalVisualReadyDetail | null>(null);
   const [selection, setSelection] = useState<{ identity: string; strike: number } | null>(null);
   const [pin, setPin] = useState<{ identity: string; strike: number } | null>(null);
+  const [momentumHost, setMomentumHost] = useState<HTMLDivElement | null>(null);
   const inspector = useRef<HTMLElement>(null);
   const chartHost = useRef<HTMLDivElement>(null);
   const returnFocus = useRef<HTMLElement | null>(null);
@@ -94,6 +95,10 @@ export default function ExposureMap({ root, source, matrix, stale = false, sourc
   const today = new Date(clock).toLocaleDateString("en-CA", { timeZone: "America/New_York" });
   const readScope = useMemo(() => createExposureMapReader(source, root, matrix, today, clock), [source, root, matrix, today, clock]);
   const read = useMemo(() => readScope(lens, metric, shock), [readScope, lens, metric, shock]);
+  // A controlled select without a matching option displays its first item. Keep
+  // the requested expiry visible until the trader explicitly changes the lens.
+  const unlistedExpiry = lens.kind === "one" && typeof lens.exp === "string" && !read.expiries.includes(lens.exp);
+  const bookHasNoExpiry = unlistedExpiry && sourceStatus === "data" && !!read.session && read.state === "unavailable";
   // Include each source actually used by this read, not merely its calendar day.
   // Qualified joint cells and all-expiry legacy reads do not consume the matrix.
   const selectionMatrix = read.qualification === "legacy" && lens.kind !== "all" ? matrix : null;
@@ -268,6 +273,7 @@ export default function ExposureMap({ root, source, matrix, stale = false, sourc
           <dt>{t("gross")}</dt><dd>{focus.grossMn == null ? "—" : `${exposureValue(focus.grossMn)}M`}</dd>
           <dt>{t("share")}</dt><dd>{focus.grossShare == null ? "—" : `${exposureValue(focus.grossShare * 100)}%`}</dd>
         </dl><ExposureDistance root={root} session={read.session} spot={read.spot} target={focus.strike} zh={zh} /><div className={styles.route}><span className={styles.eyebrow}>{t("interveningStrikes")}</span>{structure.intervening.length ? structure.intervening.slice(0, 5).map(n => <button key={n.strike} type="button" onClick={e => select(n.strike, e.currentTarget)}><b>{n.strike}</b><span>{signed(n.netMn)}M</span></button>) : <p className={styles.note}>{t("noSuppliedStrikesBetweenTheReferenceSpotAnd")}</p>}<small>{t("distanceInvestigationNoPathOrArrivalProbability")}</small></div></>}
+        {!archivedSession && <div ref={setMomentumHost} />}
         {selected && <FrozenNodeEntry key={`${identity}|${selected.strike}|${identityUserId(shellIdentity)}`} owner={identityUserId(shellIdentity)} identity={`${identity}|${selected.strike}`} root={root} source={source} lens={lens} price={selected.strike} metric={metric} shock={shock} now={clock} zh={zh} />}
         {selected && <div className={styles.inspectorActions}><button type="button" className={styles.primary} aria-pressed={pinned?.price === selected.strike} onClick={() => setPin(pinned?.price === selected.strike ? null : { identity, strike: selected.strike })}>{pinned?.price === selected.strike ? t("unpin") : t("pin")}</button><button type="button" disabled={linkState?.key === linkKey && linkState.status === "pending"} onClick={() => void openMainChart()}>{t("openOnMainChart")}</button><button type="button" onClick={close}>{t("close")}</button></div>}
         {linkState?.key === linkKey && linkState.status === "failed" && <p role="status" className={styles.note}>{t("referenceLinkFailed")}</p>}
@@ -289,6 +295,7 @@ export default function ExposureMap({ root, source, matrix, stale = false, sourc
     <div className={styles.toolbar}>
       <div role="group" aria-label={t("metric")} className={styles.metricControl}>{METRICS.map(m => { const lock = metricLocks[m]; return <button type="button" key={m} aria-pressed={metric === m} data-locked={lock ? "true" : undefined} title={lock ?? (m === "delta" ? t("deltaAssumedInventory") : m === "combined" ? t("scenarioStress") : undefined)} onClick={() => { setMetric(m); setScope("all"); setMode("net"); setDual(false); }}>{t(m === "delta" ? "deltaShort" : m === "combined" ? "combinedShort" : m)}{m === "delta" && ["qualified", "dated"].includes(read.qualification) && <em title={t("deltaExtensionNote")}>{t("deltaExtension")}</em>}{lock && <i aria-hidden="true">🔒</i>}</button>; })}</div>
       <label>{t("scope")}<select aria-label={t("scope")} value={scope} disabled={metric !== "gamma" && read.qualification !== "qualified"} onChange={(e) => setScope(e.target.value)}>
+        {unlistedExpiry && <option value={scope} disabled>{scope} · {t(bookHasNoExpiry ? "expiryNotListed" : "requestedExpiry")}</option>}
         <option value="all">{t("all")}</option><option value="zero">{t("zero")}</option>
         <option value="next-live" disabled={read.qualification !== "qualified"}>{t("nextLive")}</option><option value="week" disabled={read.qualification !== "qualified"}>{t("week")}</option>
         {read.expiries.map((exp) => <option key={exp} value={exp}>{exp}</option>)}
@@ -301,6 +308,7 @@ export default function ExposureMap({ root, source, matrix, stale = false, sourc
       {(["spotPercent", "ivPoints", "calendarDays"] as const).map((key) => <label key={key}>{t(key)}<input type="number" step={0.25} min={key === "calendarDays" ? 0 : key === "spotPercent" ? -3 : -5} max={key === "spotPercent" ? 3 : 5} value={Number.isNaN(shock[key]) ? "" : shock[key]} onChange={(e) => setShock({ ...shock, [key]: e.target.value === "" ? NaN : Number(e.target.value) })} /></label>)}
     </div>{attribution.length > 0 && <div className={styles.attribution}>{attribution.map(a => <div key={a.greek}><span>{a.greek[0].toUpperCase() + a.greek.slice(1)} × {a.weight}</span><strong data-sign={(a.value ?? 0) < 0 ? "negative" : "positive"}>{signed(a.value)} M</strong></div>)}<div><span>{t("jointQualifiedPopulationTotal")}</span><strong>{signed(s.netTotalMn)} M</strong></div></div>}<p className={styles.note}>{t("localScenario")} {t("positiveIsModeledHedgeBuyingNegativeIsSelling")}</p></section>}
     {read.state !== "data" && <div className={styles.empty} role="status">{sourceStatus === "loading" ? t("loading") : sourceStatus === "absent" ? t("absent") : sourceStatus === "unavailable" ? t("readFailed") : ["wrong_root", "future", "malformed"].includes(read.state) ? t("invalid") : t("noData")}
+      {bookHasNoExpiry && <button type="button" onClick={() => setScope("all")}>{t("showAllExpiries")}</button>}
       {sourceStatus === "unavailable" && onRetry && <button type="button" onClick={onRetry}>{t("retry")}</button>}{metric === "combined" && <p>{t("noCombination")}</p>}</div>}
     {s.coveredOnly && read.coverage && <p className={styles.note} data-testid="exposure-partial-coverage"><strong>{t("measuredContracts")}: {read.coverage.qualified.toLocaleString()} / {(read.coverage.qualified + read.coverage.missing).toLocaleString()} · {t("missing")}: {read.coverage.missing.toLocaleString()}.</strong></p>}
     <div className={styles.leaders}>
@@ -318,7 +326,7 @@ export default function ExposureMap({ root, source, matrix, stale = false, sourc
           <div className={styles.chartBody}><ChartPanel symbol={root} indicators={NONE} timeframe={tf} onChartApi={setApi} onVisualReady={onVisualReady} optionsLevel={pinned} userTier="free" /></div>
           <div className={styles.caption}><span>{t("positiveExposureNegativeExposureSelectedNode")}</span><span>{t("reference")}</span></div>
         </div>
-        {!archivedSession && <ExposureDivergence root={root} onAverages={onAverages} />}
+        {!archivedSession && <ExposureDivergence key={JSON.stringify([root, read.session])} root={root} timeframe={tf} onTimeframe={setTf} inspectorHost={momentumHost} onAverages={onAverages} />}
       </div>
       {phone ? <MobileSheet open={!!selected} onClose={close} title={`${root} · ${t("inspect")}`} ariaLabel={t("inspect")} detents={[60,94]} maxHeight="94svh" initialFocus="sheet" escapeKey="bubble" className={`${styles.map} ${styles.inspectorSheet}`}>{inspectorPanel}</MobileSheet> : inspectorPanel}
     </div>
