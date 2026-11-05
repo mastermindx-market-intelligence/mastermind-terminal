@@ -112,6 +112,8 @@ test("MM transparent pane repaint matches a fresh priced frame", async ({ page }
         timeScale: { lockVisibleTimeRangeOnResize: true },
       });
       try {
+        // Set the live model behavior through the public API before either first paint.
+        engine.timeScale().applyOptions({ lockVisibleTimeRangeOnResize: true });
         const series = engine.addSeries("line", {
           color: "#00ff88", lineWidth: 3, priceLineVisible: false, lastValueVisible: false,
         });
