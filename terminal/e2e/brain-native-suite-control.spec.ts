@@ -93,7 +93,7 @@ for (const lang of ["en", "zh"] as const) {
     const tips = page.locator('svg [data-ic-tip^="sr-"]');
     // Native S/R chips intentionally hide below 2.5px/bar. Phone proof therefore
     // observes the actual price-level lines, not a label the renderer must suppress.
-    const levels = page.locator('svg g[clip-path^="url(#ic-price-clip-"] > line');
+    const levels = page.locator('[data-price-pane-local="price-overlays"] > [data-price-suite-overlay="structure"] > line');
     await expect.poll(() => levels.count(), { timeout: 20_000 }).toBeGreaterThan(0);
     if (testInfo.project.name !== "mobile") await expect(tips.first()).toBeAttached();
     const saved = await page.evaluate(() => JSON.parse(localStorage.getItem("mm.indParams") || "{}"));

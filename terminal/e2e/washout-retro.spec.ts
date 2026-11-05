@@ -646,7 +646,7 @@ test("a slice that lands after the ready edge draws its refusal into the same ge
 
   const wrap = page.locator('.chart-wrap[data-slice-symbol="COST"]').first();
   const refusal = page.locator('[data-sig-layer] circle[fill="none"]');
-  const markerGroups = page.locator("[data-sig-layer] g");
+  const markerGroups = page.locator('[data-sig-layer] [data-price-pane-local="signals"] > g');
   const chip = page.locator(".statusline > .mm").first().locator(":scope > span");
   const readyEvents = () => page.evaluate(() =>
     ((window as Window & { __mmVisualReadyEvents?: VisualReadyDetail[] }).__mmVisualReadyEvents ?? [])
