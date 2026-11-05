@@ -198,6 +198,14 @@ describe("review session seam (E16 integration point)", () => {
     expect(byId(c, "review:previous")).toMatchObject({ unavailable: "No further item in this review", run: { kind: "symbol", symbol: "" } });
     expect(resolvePaletteRun("review:next", paletteContextToken(c), c, "en")).toMatchObject({ ok: true, run: { kind: "symbol", symbol: "TSLA" } });
   });
+
+  it("offers BOTH frozen neighbours when the session has them (the E16 wiring supplies real ones)", () => {
+    const c = ctx({ review: { next: "AAPL", previous: "MSFT" } });
+    expect(byId(c, "review:next")).toMatchObject({ unavailable: null, target: "Chart 1: NVDA → AAPL", run: { kind: "symbol", symbol: "AAPL" } });
+    expect(byId(c, "review:previous")).toMatchObject({ unavailable: null, target: "Chart 1: NVDA → MSFT", run: { kind: "symbol", symbol: "MSFT" } });
+    expect(byId(c, "review:previous", "zh")?.target).toBe("图表 1：NVDA → MSFT");
+    expect(resolvePaletteRun("review:previous", paletteContextToken(c), c, "en")).toMatchObject({ ok: true, run: { kind: "symbol", symbol: "MSFT" } });
+  });
 });
 
 describe("AC-E20-02: a pane or context change invalidates the selection", () => {

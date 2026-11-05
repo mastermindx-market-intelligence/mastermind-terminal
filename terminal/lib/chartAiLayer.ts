@@ -36,6 +36,7 @@ export function editAiObjects(
 }
 
 export type AiLayerController = {
+  availability?: "loading" | "unavailable" | "ready";
   count: number;
   objects: readonly AiObject[];
   hidden: boolean;

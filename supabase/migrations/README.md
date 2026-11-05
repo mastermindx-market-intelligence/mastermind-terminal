@@ -509,24 +509,42 @@ reviewed forward repair. No destructive down operation or production application
 authorized by this source claim.
 
 
-### 0050 — AI drawing collection compatibility (reserved; no SQL yet)
+### 0050 — AI drawing collection compatibility (source only; unapplied)
 
 Original PR #1048, operation `chart-ai-drawing-workspace-20261018-c4-001`,
-reserves 0050 for a forward extension of the existing 0031 drawing collection
-CAS/replay owner. The current protected namespace through 0048 and the unchanged
-0049 claim from PR #1290 remain intact. The 2026-11-05 full open-PR namespace
-census identifies 0049 as the highest prior claim; 0050 is reserved before its
-SQL is authored. This reservation has `file: null` and is **UNAPPLIED**.
+reserved this prefix in commit `1d026f58fb0de4cd6ff1a0bf7a38edc7ddf46a34`
+before authoring `0050_chart_ai_drawing_workspace.sql`. The current master SQL
+namespace, all 43 previously present SQL files, and the canonical 0049 claim
+from #1290 remain unchanged. Unmerged 0049 SQL is not imported.
 
-The source preparation adopts the thirteen missing, already merged SQL files
-from protected master into this older original branch, together with their
-truthful existing ownership/application records. It preserves all thirty SQL
-files already present and all original feature code. It does not import #1290's
-unmerged SQL or apply any file to a database.
+This forward migration replaces only the existing 0031 validator and snapshot
+reader. It admits strictly validated mixed human/AI collections and advertises
+the literal `chart.ai_drawing.v1` installed capability on accepted reads. The
+existing security-invoker replace RPC, owner/session boundary, expected-revision
+CAS, immutable operation replay, table ACL and RLS remain the same owners.
+The 48 native drawing kinds and existing human geometry contract are retained.
 
-The forthcoming implementation must retain the current authenticated drawing
-owner, security-invoker RPC, expected-revision CAS and immutable replay attempt,
-with atomic strict TypeScript/Postgres validation for human and AI drawings.
-Existing drawing collection and journal owners remain authoritative. Source
-reservation does not qualify a production schema, grant, RLS change, runtime
-installation, coordinated Macro/Terminal release or live product acceptance.
+The file is **UNAPPLIED**. Application date is not recorded because no database
+application has occurred. Source SHA256: `d4578b09c0c4b4f971fff44044ee0bc3998124352d302752eb1d92189e1029f2`.
+
+Qualification here consists of source-level TypeScript test-body and callback
+checks, namespace validation and static preservation checks. The disposable
+local PostgreSQL fixture is authored but was not executed in this environment;
+PostgreSQL binaries, React/Vitest and a live browser path were unavailable.
+Native hosted CI and any required production catalog/behavior receipts remain
+separate evidence.
+
+Before installation, the existing migration operator must verify the accepted
+0031 RPCs, invoker flags, current table ACL/RLS and the exact reviewed SQL, then
+execute the complete transaction atomically. Do not feed its BEGIN/COMMIT
+statements individually to a statement-at-a-time runner. The read capability
+must be observed through the authenticated collection read before AI writes
+become available. A failed or missing capability leaves human-only work usable
+and retained mixed recovery visible but read-only; it never strips AI or invents
+a successful operation receipt.
+
+Rollback may restore the exact 0031 validator/read definitions only before any
+mixed collection is written. Once AI data exists, disable new AI writes and use
+a reviewed forward-compatible repair; preserve the journal and collection.
+Source qualification does not apply SQL, widen grants, deploy either product,
+satisfy Macro #9601's actual release holds or prove ordinary-provider acceptance.

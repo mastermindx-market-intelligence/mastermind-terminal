@@ -165,21 +165,27 @@ describe("layoutMarkers", () => {
     });
   }
 
-  it("anchors the first aboveBar marker with its glyph bottom on the bar high", () => {
+  // LWC geometry at barSpacing 10: clamp(10, 12, 30) = 12 -> size(12, 1) = ceiledOdd(12) = 11,
+  // calculateShapeHeight = ceiledEven(11) = 10 (half 5), shapeMargin = max(ceiledOdd(1.2) = 1, 3) = 3.
+  const SHAPE = 10;
+  const HALF = SHAPE / 2;
+  const MARGIN = 3;
+
+  it("anchors the first aboveBar marker one shapeMargin above the bar high (LWC offsets start at shapeMargin)", () => {
     const { markers, dropped } = run([{ time: 100, position: "aboveBar", shape: "arrowUp", color: "c" }]);
     expect(dropped).toBe(0);
-    // barSpacing 10 -> base = clamp(10 * 0.6, 4, 14) = 6; y = highY - size/2
-    expect(markers[0]).toMatchObject({ x: 50, y: 77, size: 6, shape: "arrowUp", color: "c" });
+    // y = highY - half - shapeMargin = 80 - 5 - 3
+    expect(markers[0]).toMatchObject({ x: 50, y: 80 - HALF - MARGIN, size: SHAPE, shape: "arrowUp", color: "c" });
   });
 
-  it("stacks a second and third aboveBar marker upward with the 2px gap", () => {
+  it("stacks a second and third aboveBar marker upward by size + shapeMargin each", () => {
     const { markers } = run([
       { time: 100, position: "aboveBar", shape: "circle", color: "a" },
       { time: 100, position: "aboveBar", shape: "square", color: "b" },
       { time: 100, position: "aboveBar", shape: "circle", color: "c" },
     ]);
-    // first: 80 - 3 = 77; next: 77 - 3 - 2 - 3 = 69; next: 69 - 3 - 2 - 3 = 61
-    expect(markers.map((m) => m.y)).toEqual([77, 69, 61]);
+    // offsets 3 -> 16 -> 29: 80 - 5 - 3 = 72; 80 - 5 - 16 = 59; 80 - 5 - 29 = 46
+    expect(markers.map((m) => m.y)).toEqual([72, 59, 46]);
     // first input marker is the one closest to the bar
     expect(markers[0].color).toBe("a");
     expect(markers[2].color).toBe("c");
@@ -190,8 +196,8 @@ describe("layoutMarkers", () => {
       { time: 100, position: "belowBar", shape: "circle", color: "a" },
       { time: 100, position: "belowBar", shape: "circle", color: "b" },
     ]);
-    // first: 160 + 3 = 163; second: 163 + 3 + 2 + 3 = 171
-    expect(markers.map((m) => m.y)).toEqual([163, 171]);
+    // first: 160 + 5 + 3 = 168; second: 160 + 5 + 16 = 181
+    expect(markers.map((m) => m.y)).toEqual([168, 181]);
   });
 
   it("stacks per bar: markers on different bars never stack", () => {
@@ -199,7 +205,21 @@ describe("layoutMarkers", () => {
       { time: 100, position: "aboveBar", shape: "circle", color: "a" },
       { time: 200, position: "aboveBar", shape: "circle", color: "b" },
     ]);
-    expect(markers.map((m) => m.y)).toEqual([77, 57]); // both highY - size/2
+    expect(markers.map((m) => m.y)).toEqual([72, 52]); // both highY - half - shapeMargin
+  });
+
+  it("anchors aboveBar to the upper screen edge of the bar on an inverted scale (LWC getPrice high/low swap)", () => {
+    // Inverted scale: the bar's low is drawn ABOVE its high.
+    const rows = makeRows([{ time: 100, highY: 160, lowY: 80, closeY: 120 }]);
+    const { projection } = makeProjection();
+    const res = layoutMarkers(
+      [
+        { time: 100, position: "aboveBar", shape: "circle", color: "a" },
+        { time: 100, position: "belowBar", shape: "circle", color: "b" },
+      ],
+      { projection, rowsIndex: rows, barSpacing: 10, dpr: 1 },
+    );
+    expect(res.markers.map((m) => m.y)).toEqual([72, 168]);
   });
 
   it("centres inBar markers on the close and never stacks them", () => {
@@ -222,18 +242,31 @@ describe("layoutMarkers", () => {
       { projection, rowsIndex: makeRows(ROWS), barSpacing: 10, dpr: 1 },
     );
     expect(res.dropped).toBe(1); // atPrice without a finite price is not placeable
-    expect(res.markers.map((m) => m.y)).toEqual([100, 97, 103]);
+    // middle: exact; top: priceY - half; bottom: priceY + half — no stack offset for price markers
+    expect(res.markers.map((m) => m.y)).toEqual([100, 100 - HALF, 100 + HALF]);
   });
 
-  it("clamps the base glyph to [4, 14] css px and scales by the spec size", () => {
+  it("sizes the glyph as LWC calculateShapeHeight(clamp(barSpacing, 12, 30)) × the spec size", () => {
     const tiny = run([{ time: 100, position: "inBar", shape: "circle", color: "a" }], { barSpacing: 3 });
+    const mid = run([{ time: 100, position: "inBar", shape: "circle", color: "a" }], { barSpacing: 20 });
     const big = run([{ time: 100, position: "inBar", shape: "circle", color: "a" }], { barSpacing: 100 });
     const scaled = run([{ time: 100, position: "inBar", shape: "circle", color: "a", size: 2 }], { barSpacing: 10 });
-    const bad = run([{ time: 100, position: "inBar", shape: "circle", color: "a", size: -3 }]);
-    expect(tiny.markers[0].size).toBe(4);
-    expect(big.markers[0].size).toBe(14);
-    expect(scaled.markers[0].size).toBe(12);
-    expect(bad.markers[0].size).toBe(6); // non-positive multiplier -> 1
+    const hidden = run([{ time: 100, position: "inBar", shape: "circle", color: "a", size: -3 }]);
+    expect(tiny.markers[0].size).toBe(10); // clamp 12 -> ceiledOdd 11 -> ceiledEven 10
+    expect(mid.markers[0].size).toBe(18); // 20 -> 19 -> 18
+    expect(big.markers[0].size).toBe(28); // clamp 30 -> 29 -> 28
+    expect(scaled.markers[0].size).toBe(20);
+    // LWC: max(size, 0) — a negative multiplier hides the glyph but keeps the marker
+    expect(hidden.markers[0].size).toBe(0);
+  });
+
+  it("size 0 still advances the per-bar stack (LWC offsets += shapeSize + shapeMargin)", () => {
+    const { markers } = run([
+      { time: 100, position: "aboveBar", shape: "circle", color: "a", size: 0 },
+      { time: 100, position: "aboveBar", shape: "circle", color: "b" },
+    ]);
+    // first: 80 - 0 - 3 = 77 (size 0); offset 3 + 0 + 3 = 6; second: 80 - 5 - 6 = 69
+    expect(markers.map((m) => [m.size, m.y])).toEqual([[0, 77], [SHAPE, 69]]);
   });
 
   it("drops markers whose time is absent from the index and reports the count", () => {
@@ -269,7 +302,7 @@ describe("layoutMarkers", () => {
   });
 
   it("snaps marker centres to the device pixel grid", () => {
-    // barSpacing 9 -> base 5.4; raw y = 100.3 - 2.7 = 97.6 -> 97.5 at dpr 2, 98 at dpr 1
+    // barSpacing 9 -> clamp 12 -> shape 10, margin 3; raw y = 100.3 - 5 - 3 = 92.3 -> 92.5 at dpr 2, 92 at dpr 1
     const rows = makeRows([{ time: 100, highY: 100.3, lowY: 200, closeY: 150 }]);
     const { projection } = makeProjection({ dpr: 2 });
     const r2 = layoutMarkers(
@@ -280,17 +313,55 @@ describe("layoutMarkers", () => {
       [{ time: 100, position: "aboveBar", shape: "circle", color: "a" }],
       { projection: { ...projection, dpr: 1 }, rowsIndex: rows, barSpacing: 9, dpr: 1 },
     );
-    expect(r2.markers[0].y).toBeCloseTo(97.5, 10);
-    expect(r1.markers[0].y).toBeCloseTo(98, 10);
+    expect(r2.markers[0].y).toBeCloseTo(92.5, 10);
+    expect(r1.markers[0].y).toBeCloseTo(92, 10);
   });
 
-  it("anchors text to the right of the glyph, vertically centred", () => {
+  it("centres aboveBar text on the glyph x, 0.6 × fontSize above the glyph top (LWC TextMargin)", () => {
     const { markers } = run([{ time: 100, position: "aboveBar", shape: "arrowUp", color: "c", text: "BUY" }]);
     const m = markers[0];
     expect(m.text).toBe("BUY");
-    expect(m.textX).toBeCloseTo(50 + 3 + 2, 10); // x + size/2 + 2px gap
-    expect(m.textY).toBe(m.y);
-    expect(m.textAlign).toBe("left");
+    expect(m.textX).toBe(50);
+    expect(m.textAlign).toBe("center");
+    // y 72; text = 72 - 5 - 0.6 * 12 = 59.8 -> snapped 60 at dpr 1
+    expect(m.textY).toBe(60);
+    expect(m.font).toBe("12px sans-serif");
+  });
+
+  it("puts belowBar, inBar and atPriceMiddle text under the glyph: y + half + shapeMargin + 0.6 × fontSize", () => {
+    const { projection } = makeProjection({ priceFrom: 0, priceTo: 100, plotHeight: 200 });
+    const { markers } = layoutMarkers(
+      [
+        { time: 100, position: "belowBar", shape: "circle", color: "a", text: "b" },
+        { time: 100, position: "inBar", shape: "circle", color: "a", text: "i" },
+        { time: 100, position: "atPriceMiddle", shape: "circle", color: "a", text: "m", price: 50 },
+        { time: 100, position: "atPriceTop", shape: "circle", color: "a", text: "t", price: 50 },
+      ],
+      { projection, rowsIndex: makeRows(ROWS), barSpacing: 10, dpr: 1 },
+    );
+    // belowBar y 168 -> 168 + 5 + 3 + 7.2 = 183.2 -> 183; inBar 120 -> 135.2 -> 135;
+    // atPriceMiddle 100 -> 115.2 -> 115; atPriceTop y 95 -> 95 - 5 - 7.2 = 82.8 -> 83
+    expect(markers.map((m) => m.textY)).toEqual([183, 135, 115, 83]);
+  });
+
+  it("a text line advances the per-bar stack by 1.2 × fontSize before the glyph span", () => {
+    const { markers } = run([
+      { time: 100, position: "aboveBar", shape: "arrowUp", color: "c", text: "BUY" },
+      { time: 100, position: "aboveBar", shape: "circle", color: "d" },
+    ]);
+    // offset 3 + 14.4 (text) + 13 (shape + margin) = 30.4; second y = 80 - 5 - 30.4 = 44.6 -> 45
+    expect(markers.map((m) => m.y)).toEqual([72, 45]);
+  });
+
+  it("lays text out in the host's layout font and font size", () => {
+    const { projection } = makeProjection();
+    const { markers } = layoutMarkers(
+      [{ time: 100, position: "aboveBar", shape: "circle", color: "c", text: "x" }],
+      { projection, rowsIndex: makeRows(ROWS), barSpacing: 10, dpr: 1, fontSize: 20, font: "20px Fam" },
+    );
+    // 72 - 5 - 0.6 * 20 = 55
+    expect(markers[0].textY).toBe(55);
+    expect(markers[0].font).toBe("20px Fam");
   });
 
   it("omits text fields entirely for empty text", () => {
@@ -600,50 +671,63 @@ describe("paintDecorations", () => {
     expect(text.state.textAlign).toBe("center");
   });
 
-  it("builds each marker shape as path ops", () => {
+  it("builds each marker shape as LWC's draw functions do (shapeSize re-applied to the item size)", () => {
+    // item size 10 -> clamp 12: circle ceiledOdd(9.6) = 9 (r 4), square ceiledOdd(8.4) = 9 (half 4),
+    // arrow ceiledOdd(12) = 11 (half 5) with a stem base ceiledOdd(10 / 2) = 5 (half 2).
     const shapes = ["circle", "square", "arrowUp", "arrowDown"] as const;
     for (const shape of shapes) {
       const { ctx, ops } = makeCtx();
       paintDecorations(ctx, {
-        markers: [{ x: 50, y: 60, shape, size: 6, color: "mc", textAlign: "left" }],
+        markers: [{ x: 50, y: 60, shape, size: 10, color: "mc", textAlign: "center" }],
       }, { dpr: 1 });
       expect(ops.some((o) => o.m === "beginPath"), shape).toBe(true);
       const fills = ops.filter((o) => o.m === "fill");
       expect(fills).toHaveLength(1);
       expect(req(fills[0], "marker fill").state.fillStyle, shape).toBe("mc");
+      const path = ops.filter((o) => o.m === "moveTo" || o.m === "lineTo").map((o) => o.args.join(","));
       if (shape === "circle") {
-        expect(ops.some((o) => o.m === "arc" && o.args[0] === 50 && o.args[1] === 60 && o.args[2] === 3)).toBe(true);
+        expect(ops.some((o) => o.m === "arc" && o.args[0] === 50 && o.args[1] === 60 && o.args[2] === 4)).toBe(true);
       }
       if (shape === "square") {
-        expect(ops.some((o) => o.m === "rect" && o.args.join(",") === "47,57,6,6")).toBe(true);
+        expect(ops.some((o) => o.m === "rect" && o.args.join(",") === "46,56,9,9")).toBe(true);
       }
       if (shape === "arrowUp") {
-        // apex up: first vertex is (50, 57), base at y=63
-        expect(ops.some((o) => o.m === "moveTo" && o.args[0] === 50 && o.args[1] === 57)).toBe(true);
-        expect(ops.some((o) => o.m === "lineTo" && o.args.join(",") === "53,63")).toBe(true);
-        expect(ops.some((o) => o.m === "lineTo" && o.args.join(",") === "47,63")).toBe(true);
+        // head: left wing, apex above, right wing; stem: base width 5 down to y + 5
+        expect(path).toEqual(["45,60", "50,55", "55,60", "52,60", "52,65", "48,65", "48,60"]);
         expect(ops.some((o) => o.m === "closePath")).toBe(true);
       }
       if (shape === "arrowDown") {
-        expect(ops.some((o) => o.m === "moveTo" && o.args[0] === 50 && o.args[1] === 63)).toBe(true);
-        expect(ops.some((o) => o.m === "lineTo" && o.args.join(",") === "47,57")).toBe(true);
-        expect(ops.some((o) => o.m === "lineTo" && o.args.join(",") === "53,57")).toBe(true);
+        expect(path).toEqual(["45,60", "50,65", "55,60", "52,60", "52,55", "48,55", "48,60"]);
       }
     }
   });
 
-  it("paints marker text beside the glyph with a font and middle baseline", () => {
+  it("paints marker text in the layout font, centred, middle baseline, before the glyph", () => {
     const { ctx, ops } = makeCtx();
     paintDecorations(ctx, {
-      markers: [{ x: 50, y: 60, shape: "circle", size: 6, color: "mc", text: "hi", textX: 55, textY: 60, textAlign: "left" }],
+      markers: [{
+        x: 50, y: 60, shape: "circle", size: 10, color: "mc",
+        text: "hi", textX: 50, textY: 48, textAlign: "center", font: "13px Fam",
+      }],
     }, { dpr: 1 });
     const text = req(ops.find((o) => o.m === "fillText" && o.args[0] === "hi"), "marker text");
-    expect(text.args[1]).toBe(55);
-    expect(text.args[2]).toBe(60);
+    expect(text.args[1]).toBe(50);
+    expect(text.args[2]).toBe(48);
     expect(text.state.fillStyle).toBe("mc");
-    expect(text.state.font).not.toBe("<<font>>");
-    expect(text.state.textAlign).toBe("left");
+    expect(text.state.font).toBe("13px Fam");
+    expect(text.state.textAlign).toBe("center");
     expect(text.state.textBaseline).toBe("middle");
+    // LWC drawItem: text, then the shape
+    expect(ops.indexOf(text)).toBeLessThan(ops.findIndex((o) => o.m === "arc"));
+  });
+
+  it("size 0 draws the text but no glyph (LWC drawShape early return)", () => {
+    const { ctx, ops } = makeCtx();
+    paintDecorations(ctx, {
+      markers: [{ x: 50, y: 60, shape: "circle", size: 0, color: "mc", text: "only", textX: 50, textY: 48, textAlign: "center" }],
+    }, { dpr: 1 });
+    expect(ops.filter((o) => o.m === "fillText")).toHaveLength(1);
+    expect(ops.filter((o) => o.m === "arc" || o.m === "rect" || o.m === "fill")).toHaveLength(0);
   });
 
   it("skips watermark lines that carry no colour", () => {

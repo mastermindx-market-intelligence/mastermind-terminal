@@ -397,7 +397,7 @@ describe("ThesisWorkspace reopen with MarketOntology context", () => {
 
   it.each([401, 404, 503, "missing", "throw"] as const)("a failed deep-link read (%s) clears its unconfirmed context", async (failure) => {
     const nvda = summary(NVDA_ID, listingSubject("NVDA"), "NVDA thesis");
-    installFetch({ theses: [nvda], detailFor: () => {
+    const { requests } = installFetch({ theses: [nvda], detailFor: () => {
       if (failure === "throw") return Promise.reject(new Error("read unavailable"));
       return failure === "missing" ? jsonResponse({ thesis: null }) : jsonResponse({ error: "unavailable" }, failure);
     } });
@@ -407,6 +407,12 @@ describe("ThesisWorkspace reopen with MarketOntology context", () => {
     expect(strip(el)).toBeNull();
     expect(moKeys()).toEqual([]);
     expect(new URL(window.location.href).searchParams.get("symbol")).toBeNull();
+    // Same-id idle after 401 is terminal until the existing session owner
+    // changes state; queued history reconciliation must not create a read loop.
+    const reads = requests.filter(request => request.includes("/api/theses?id=")).length;
+    await flush();
+    expect(requests.filter(request => request.includes("/api/theses?id=")).length).toBe(reads);
+    expect(reads).toBe(1);
   });
 
   it("a cross-company selection clears the whole candidate before its URL is reloaded", async () => {
@@ -466,6 +472,23 @@ describe("ThesisWorkspace reopen with MarketOntology context", () => {
     expect(answer, "the current browser route must trigger the detail read").toBeTypeOf("function");
     await act(async () => answer!(jsonResponse({ thesis: detailFor(nvda) })));
     await flush();
+    expect(el.textContent).toContain("Version 1 · Current");
+    expect(strip(el)).not.toBeNull();
+  });
+
+  it("a resumed composer reconciles a Forward URL whose popstate was missed", async () => {
+    const nvda = summary(NVDA_ID, listingSubject("NVDA"), "NVDA thesis");
+    const { requests } = installFetch({ theses: [nvda], detailFor: () => jsonResponse({ thesis: detailFor(nvda) }) });
+    const el = await mountAt(`/analysis?view=theses&symbol=NVDA&${MO_QUERY}`, { initialSymbol: "NVDA" });
+    // A cached/lazy route can resume after Forward already happened. Its server
+    // props and React selection are unchanged, but the actual browser URL is not.
+    window.history.replaceState({ [HISTORY_POSITION_KEY]: 1 }, "",
+      `/analysis?view=theses&symbol=NVDA&thesis=${NVDA_ID}&${MO_QUERY}`);
+    await act(async () => {
+      root!.render(<ThesisWorkspace ownerKey={OWNER} initialSymbol="NVDA" />);
+    });
+    await flush();
+    expect(requests.some((request) => request.includes(`/api/theses?id=${NVDA_ID}`))).toBe(true);
     expect(el.textContent).toContain("Version 1 · Current");
     expect(strip(el)).not.toBeNull();
   });

@@ -1,6 +1,7 @@
 import { mkdirSync, writeFileSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { expect, test, type Page } from "@playwright/test";
+import { normalizeDrawings } from "../lib/drawings";
 import { isPhoneViewport } from "./phoneChrome";
 
 // Visual evidence for the review capture (E19) — the crops committed under
@@ -29,7 +30,10 @@ const DRAWINGS = [
 async function open(page: Page, lang: "en" | "zh") {
   await page.route("**/api/drawings**", (route) => route.fulfill({
     status: 200, contentType: "application/json",
-    body: JSON.stringify(route.request().method() === "GET" ? { drawings: DRAWINGS } : { ok: true }),
+    body: JSON.stringify(route.request().method() === "GET"
+      ? { drawings: normalizeDrawings(DRAWINGS), revision: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", schemaVersion: 1 }
+      : { ok: true, operationId: route.request().postDataJSON().operationId, revision: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", idempotentReplay: false, superseded: false,
+          count: route.request().postDataJSON().drawings.length, schemaVersion: 1 }),
   }));
   await page.addInitScript((language) => {
     localStorage.setItem("mm.lang", language);

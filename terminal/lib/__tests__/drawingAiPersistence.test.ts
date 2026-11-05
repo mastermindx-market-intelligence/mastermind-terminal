@@ -3,9 +3,17 @@ import { normalizeDrawings, type Drawing } from "../drawings";
 import { translate, type AiObject } from "../chartBus";
 import { aiDrawingCollectionError, drawingSourceConflict, readStoredAiDrawing,
   readDrawingRecovery, replaceAiPartition, storeAiDrawing, storedAiLayerHidden, storedAiObjects } from "../drawingAiPersistence";
-import { DRAWING_OUTBOX_KEY, readDrawingOutbox, readLegacyDrawingOutbox, writeDrawingOutbox } from "../drawingOutbox";
+import { DRAWING_JOURNAL_KEY, readDrawingJournal, writeDrawingJournal, type DrawingJournalLocks } from "../drawingOutbox";
+import { prepareDrawingAttempt } from "../drawingPersistence";
 
-const human: Drawing = { id: "human", kind: "hline", source: "user", points: [{ t: "2026-01-01", p: 100 }] };
+const human: Drawing = { id: "human", kind: "hline", schemaVersion: 1, source: "user", points: [{ t: "2026-01-01", p: 100 }] };
+const legacyKey = "mm.drawing.account-outbox.v1";
+const operationId = "11111111-1111-4111-8111-111111111111";
+const revision = "22222222-2222-4222-8222-222222222222";
+let lockTail = Promise.resolve();
+const locks = { request: (_name: string, fn: () => unknown) => {
+  const task = lockTail.then(fn); lockTail = task.then(() => {}, () => {}); return task;
+} } as DrawingJournalLocks;
 function ai(id = "ai_fib"): AiObject {
   const result = translate({ on: true, v: 2, batch_id: "saved-analysis", seq: 3, op: "draw.tool", id,
     caption: "Retracement with custom levels", args: { kind: "fib",
@@ -92,20 +100,20 @@ describe("canonical AI drawing persistence", () => {
     expect(readDrawingRecovery([human, encoded])).toBeNull();
   });
 
-  it("leaves the durable outbox unchanged when any raw object or anchor is invalid", () => {
+  it("leaves the durable v2 journal unchanged when any raw object or anchor is invalid", async () => {
     const storage = new MemoryStorage();
     const good = storeAiDrawing(ai(), false);
-    expect(writeDrawingOutbox(storage, "account:a", { NVDA: [human, good] })).toBe(true);
-    const before = storage.getItem(DRAWING_OUTBOX_KEY);
+    const journal = readDrawingJournal(storage, "account:a");
+    journal.NVDA = { drawings: [human, good], revision };
+    expect(await writeDrawingJournal(storage, "account:a", journal, locks, null)).toBe(true);
+    const before = storage.getItem(DRAWING_JOURNAL_KEY);
     const malformed = { ...good, points: [...good.points, { t: "bad", p: NaN }] };
-    expect(writeDrawingOutbox(storage, "account:a", { NVDA: [human, malformed] })).toBe(false);
-    expect(storage.getItem(DRAWING_OUTBOX_KEY)).toBe(before);
-    expect(writeDrawingOutbox(storage, "account:a", { NVDA: [human, {} as Drawing] })).toBe(false);
-    expect(storage.getItem(DRAWING_OUTBOX_KEY)).toBe(before);
-    storage.setItem(DRAWING_OUTBOX_KEY, JSON.stringify({ "account:a": {
-      NVDA: { schema: "chart.drawing_recovery.v2", drawings: [human, malformed] },
-    } }));
-    expect(readDrawingOutbox(storage, "account:a")).toEqual({});
+    journal.NVDA.drawings = [human, malformed];
+    expect(await writeDrawingJournal(storage, "account:a", journal, locks, null)).toBe(false);
+    expect(storage.getItem(DRAWING_JOURNAL_KEY)).toBe(before);
+    journal.NVDA.drawings = [human, {} as Drawing];
+    expect(await writeDrawingJournal(storage, "account:a", journal, locks, null)).toBe(false);
+    expect(storage.getItem(DRAWING_JOURNAL_KEY)).toBe(before);
   });
 
   it("does not infer source ownership through contradictory markers", () => {
@@ -118,22 +126,28 @@ describe("canonical AI drawing persistence", () => {
     expect(drawingSourceConflict(human)).toBe(false);
   });
 
-  it("keeps legacy manual tombstones distinct from upgraded mixed snapshots in the same outbox", () => {
+  it("keeps the existing v2 mixed journal and exact attempts separate from legacy user-only imports", async () => {
     const storage = new MemoryStorage();
-    storage.setItem(DRAWING_OUTBOX_KEY, JSON.stringify({
-      "account:uuid-a": { OLD: [], NVDA: [human] },
+    storage.setItem(legacyKey, JSON.stringify({
+      "account:legacy": { OLD: [], NVDA: [human] },
       "account:old-email@example.com": { NVDA: [human] },
     }));
-    expect(readDrawingOutbox(storage, "account:uuid-a")).toEqual({});
-    expect(readLegacyDrawingOutbox(storage, "account:uuid-a")).toMatchObject({ OLD: [], NVDA: [human] });
+    const legacyBytes = storage.getItem(legacyKey);
+    expect(readDrawingJournal(storage, "account:legacy")).toMatchObject({
+      OLD: { drawings: [], blocked: "legacy" }, NVDA: { drawings: [human], blocked: "legacy" },
+    });
     const stored = storeAiDrawing({ ...ai(), hidden: true }, true);
-    expect(writeDrawingOutbox(storage, "account:uuid-a", { NVDA: [human, stored] })).toBe(true);
-    expect(storedAiObjects(readDrawingOutbox(storage, "account:uuid-a").NVDA)[0].hidden).toBe(true);
-    expect(readLegacyDrawingOutbox(storage, "account:uuid-a")).toEqual({ OLD: [] });
-    expect(readDrawingOutbox(storage, "account:uuid-b")).toEqual({});
-    expect(readLegacyDrawingOutbox(storage, "account:uuid-b")).toEqual({});
-    expect(writeDrawingOutbox(storage, "account:uuid-a", { NVDA: [] })).toBe(true);
-    expect(readDrawingOutbox(storage, "account:uuid-a").NVDA).toEqual([]);
-    expect(readLegacyDrawingOutbox(storage, "account:old-email@example.com").NVDA[0].id).toBe("human");
+    const journal = readDrawingJournal(storage, "account:uuid-a");
+    journal.NVDA = { drawings: [human, stored], revision };
+    const attempt = prepareDrawingAttempt(journal.NVDA, () => operationId)!;
+    journal.NVDA.drawings = [human];
+    expect(await writeDrawingJournal(storage, "account:uuid-a", journal, locks, null)).toBe(true);
+    const recovered = readDrawingJournal(storage, "account:uuid-a").NVDA;
+    expect(recovered.drawings).toEqual([human]);
+    expect(prepareDrawingAttempt(recovered, () => { throw new Error("must reuse exact operation"); })).toEqual(attempt);
+    expect(storedAiObjects(recovered.attempt!.drawings)[0].hidden).toBe(true);
+    expect(readDrawingJournal(storage, "account:uuid-b")).toEqual({});
+    expect(storage.getItem(legacyKey)).toBe(legacyBytes);
+    expect(readDrawingJournal(storage, "account:old-email@example.com").NVDA.drawings[0].id).toBe("human");
   });
 });

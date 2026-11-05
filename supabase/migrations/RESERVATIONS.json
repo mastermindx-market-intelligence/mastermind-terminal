@@ -525,14 +525,14 @@
       "note": "Application date not recorded because this source-only migration remains unapplied. PR #1290 claims 0049 after the complete 2026-11-04 protected-source and 197-open-PR census, including fully paginated capped file lists; maximum existing claim was 0048 in original PR #1279. Requires that unchanged 0048 source and the same migration owner. No live DDL, grant, authentication or sharing effect is authorized by source publication."
     },
     "0050": {
-      "state": "reserved",
-      "file": null,
+      "state": "taken",
+      "file": "0050_chart_ai_drawing_workspace.sql",
       "packet": "chart-ai-drawing-workspace-20261018-c4-001",
       "pr": 1048,
       "pr_state": "open",
       "applied_in_production": false,
       "applied_date": null,
-      "note": "Original Terminal PR #1048 reserves the next free prefix for a forward extension of the existing 0031 drawing collection CAS/replay owner. The 2026-11-05 protected-master/open-PR census found 0049 owned by #1290. Current master namespace and canonical 0049 metadata are adopted without importing unmerged 0049 SQL. No 0050 SQL has been authored at reservation time; no database application, grant, credential, RLS, runtime or release effect is authorized by this claim. Current owner/session, immutable attempt bytes and strict mixed drawing validation must be preserved."
+      "note": "Original Terminal PR #1048 authored this forward extension after reserving 0050 in commit 1d026f58fb0de4cd6ff1a0bf7a38edc7ddf46a34. The existing 0031 security-invoker validator/read RPCs gain atomic strict mixed human/AI validation and the literal installed capability; the replace/CAS/replay RPC, table grants, RLS and authenticated owner remain unchanged. Application date not recorded because this source-only migration remains unapplied. The canonical 0049 claim from #1290 is unchanged and its unmerged SQL is absent. Source publication authorizes no production DDL, credential, grant, runtime installation or paired Macro/Terminal release effect."
     }
   }
 }

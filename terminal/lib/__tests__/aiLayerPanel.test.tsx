@@ -29,6 +29,21 @@ describe("AI layer disclosure and individual controls", () => {
   afterEach(() => { act(() => root.unmount()); node.remove(); vi.unstubAllGlobals(); });
   const render = () => act(() => root.render(<AiLayerPanel layer={layer} />));
 
+  it.each(["loading", "unavailable"] as const)("keeps inventory visible and disarms mutations while %s", availability => {
+    layer = { ...layer, availability };
+    render(); click(node.querySelector<HTMLButtonElement>("[aria-controls]")!);
+    expect(node.querySelector('[role="status"]')?.textContent).toContain(
+      availability === "loading" ? "Loading saved drawings" : "AI drawing changes are unavailable");
+    expect(node.querySelectorAll("[data-ai-drawing-id]")).toHaveLength(1);
+    for (const label of ["Hide AI drawings", "Hide drawing: Trend boundaries", "Delete drawing: Trend boundaries", "Clear all"]) {
+      expect(button(label).disabled).toBe(true);
+      click(button(label));
+    }
+    expect(layer.editObjects).not.toHaveBeenCalled();
+    expect(layer.toggleHidden).not.toHaveBeenCalled();
+    expect(layer.clear).not.toHaveBeenCalled();
+  });
+
   it("opens a logical drawing list, reveals children, and deletes only the selected element", () => {
     render();
     const trigger = node.querySelector<HTMLButtonElement>("[aria-controls]")!;

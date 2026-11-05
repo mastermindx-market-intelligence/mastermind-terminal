@@ -14,11 +14,13 @@
 // tests can drive them with small fixtures. Do NOT import this module from any
 // 'use client' component — it reads the server filesystem and internal upstreams.
 
+import { materializeRegionalFund } from "./regionalFinancialProjection";
 import { promises as fs } from "fs";
 import path from "path";
 import { computeRatings, type Row as RatingRow } from "@/lib/techRating";
 import { ema, atr, supertrend, bollingerBands, type Bar } from "@/lib/indicatorMath";
-import { verdictIsStale, ORACLE_STALE_DAYS, anchorSignal, signalKnownTs, isBlockedSignal, sliceSignalBasis } from "@/lib/signalVerdict";
+import { deskVerdict, verdictIsStale, ORACLE_STALE_DAYS, anchorSignal, signalKnownTs, isBlockedSignal, sliceSignalBasis } from "@/lib/signalVerdict";
+import { workspaceSourceClock } from "@/lib/intelligenceWorkspaceView";
 import { isStalePlane, type MarketPlane } from "@/lib/nwPlane";
 import { normalizeMarketRisk } from "@/lib/marketRisk";
 import { nextDateCountdown } from "@/lib/finFormat";
@@ -26,6 +28,7 @@ import { nextDateCountdown } from "@/lib/finFormat";
 // app/api/nw/route.ts — the shared endpoint constants live in lib/upstreams (the routes
 // themselves must not be imported from a lib).
 import { FLOW_BACKEND, R2_BASE, NW_BASE } from "@/lib/upstreams";
+import { isUnadmittedGexFamilyArtifact } from "@/lib/ndxFamilyAdmission";
 
 const DATA = path.join(process.cwd(), "public", "data");
 
@@ -903,6 +906,11 @@ function bindGexSource(side: GexSide, raw: unknown, owner: string | undefined): 
       reason,
     },
   });
+  // This curator reads the same R2 GEX key as Flow but bypasses Flow transport.
+  // Never rebind an offline NDX+NDXP family as a measured single-root NDX ladder.
+  if (isUnadmittedGexFamilyArtifact(`gex:${owner ?? id.root ?? "NDX"}`, o)) {
+    return withheld(`${side} family_source is not admitted as a live single-root GEX book`);
+  }
   if (!id.root) return withheld(`${side} payload carries no producer root, so it cannot be bound to ${owner ?? "a symbol"}`);
   if (owner && id.root !== owner) return withheld(`${side} payload is for root ${id.root}, not ${owner}`);
   const measured =
@@ -1135,7 +1143,7 @@ export function curateInsiders(ins: unknown): Record<string, unknown> {
   };
 }
 
-export function curateIntel(intel: unknown): Record<string, unknown> {
+export function curateIntel(intel: unknown, nowMs: number = Date.now()): Record<string, unknown> {
   const it = intel as Record<string, unknown> | null;
   if (!it || typeof it !== "object") return { no_data: true, reason: "no research-desk intel for symbol" };
   const cards = (it.cards ?? {}) as Record<string, unknown>;
@@ -1144,12 +1152,19 @@ export function curateIntel(intel: unknown): Record<string, unknown> {
   const aj = cards.ai_judgment as Record<string, unknown> | undefined;
   const conv = cards.conviction as Record<string, unknown> | undefined;
   const lean = tape.ai_lean as Record<string, unknown> | undefined;
+  const read = deskVerdict(it, false, nowMs);
+  const currentLean = read.raw !== null && !read.dim;
+  const cardsClock = workspaceSourceClock(it.asof, nowMs);
+  const tapeClock = workspaceSourceClock(tape.asof, nowMs);
   const sm = (cards.smart_money ?? analysis.smart_money) as Record<string, unknown> | undefined;
   const pulse = tape.sector_pulse as Record<string, unknown> | undefined;
 
   const holders = Array.isArray(sm?.holders) ? (sm!.holders as Record<string, unknown>[]) : [];
   const out: Record<string, unknown> = {
     asof: tape.asof ?? it.asof ?? null,
+    cards_asof: typeof it.asof === "string" ? it.asof : null,
+    cards_current: currentLean && cardsClock.kind === "dated" && tapeClock.kind === "dated"
+      && cardsClock.date.slice(0, 10) === tapeClock.date.slice(0, 10),
     ai_judgment: aj ? { verdict: aj.verdict ?? null, gloss: trimStr(aj.gloss, 200), size_pct: num(aj.size_pct) } : null,
     conviction: conv
       ? {
@@ -1159,7 +1174,11 @@ export function curateIntel(intel: unknown): Record<string, unknown> {
           cautions: Array.isArray(conv.cautions) ? (conv.cautions as unknown[]).slice(0, 4).map((d) => trimStr(d, 120)) : null,
         }
       : null,
-    ai_lean: lean ? { dir: lean.dir ?? null, band: lean.band ?? null, entry: lean.entry ?? null, score: num(lean.score) } : null,
+    ai_lean: !lean ? null : currentLean ? {
+      dir: read.raw === "NO_SETUP" || read.raw === "POSTURE" ? null : read.raw,
+      band: trimStr(lean.band, 32), entry: trimStr(lean.entry, 48), score: num(lean.score),
+      reading: read.label,
+    } : { dir: null, band: null, entry: null, score: null, abstain: true },
     key_levels: scalarize(cards.levels),
     smart_money_summary: sm
       ? {
@@ -1347,7 +1366,7 @@ export async function execTool(name: string, args: Record<string, unknown> | nul
         return capJson({ symbol: sym, iv, gex: curateGex(gexPair.gex, gexPair.state, sym) });
       }
       case "get_fundamentals": {
-        const fund = await readDataJson(`${sym}.fund.json`);
+        const fund = await materializeRegionalFund(await readDataJson(`${sym}.fund.json`), sym);
         return capJson({ symbol: sym, ...curateFundamentals(fund) });
       }
       case "get_insiders": {

@@ -352,4 +352,3 @@ test("en: a saved review this device cannot read is named before a new start rep
   await expect(page.getByTestId("wl-review-unreadable")).toHaveCount(0);
   expect(await reviewSlot(page, owner)).toMatchObject({ v: 1, listName: LIST, cursor: 0 });
 });
-

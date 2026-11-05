@@ -5,7 +5,7 @@ import { useT } from "@/lib/i18n";
 import { resolveDetentRelease } from "@/lib/sheetDetent";
 import styles from "./AnalysisHubSheet.module.css";
 
-export type HubAction = "indicators" | "compare" | "alerts" | "chartType" | "workspaces" | "replay" | "capture" | "dataTable" | "options" | "symbolDetails" | "context";
+export type HubAction = "indicators" | "compare" | "alerts" | "chartType" | "chartSettings" | "workspaces" | "replay" | "capture" | "dataTable" | "options" | "symbolDetails" | "context";
 
 export type AnalysisHubSheetProps = {
   open: boolean;
@@ -39,6 +39,7 @@ const CAPABILITIES: {
     { id: "compare", labelKey: "compare", path: "M4 18l5-9 4 5 3-4 4 8", action: "compare" },
     { id: "alerts", labelKey: "alerts", path: "M18 15V10a6 6 0 1 0-12 0v5l-2 3h16zM10 21h4", action: "alerts" },
     { id: "chartType", labelKey: "hubChartType", path: "M6 6v12M6 8h4M6 14h4M15 4v16M15 7h4M15 16h4", action: "chartType" },
+    { id: "chartSettings", labelKey: "smTitle", path: "M4 6h16M4 12h16M4 18h16M8 3v6M16 9v6M10 15v6", action: "chartSettings" },
     { id: "workspaces", labelKey: "layouts", path: "M4 5h16v14H4zM4 9h16M9 9v10", action: "workspaces" },
     { id: "replay", labelKey: "replayBtn", path: "M3 3v18M8 6l10 6-10 6V6z", action: "replay" },
     { id: "capture", labelKey: "snapshot", path: "M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2zM12 9a4 4 0 1 0 0 8 4 4 0 1 0 0-8", action: "capture" },

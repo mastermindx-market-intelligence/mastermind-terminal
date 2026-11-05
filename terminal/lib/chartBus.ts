@@ -152,15 +152,34 @@ function readPt(v: unknown): WirePt | null {
   return { t: v.t, p: v.p };
 }
 
-// Sanitise a caption: plain text, ≤140 chars, control chars stripped. Stored only; rendered ONLY as
+/** JSONB cannot store an unpaired UTF-16 surrogate. Keep the persisted text exact. */
+export function isWellFormedChartText(value: string): boolean {
+  for (let i = 0; i < value.length; i++) {
+    const code = value.charCodeAt(i);
+    if (code >= 0xd800 && code <= 0xdbff) {
+      const low = value.charCodeAt(++i);
+      if (!(low >= 0xdc00 && low <= 0xdfff)) return false;
+    } else if (code >= 0xdc00 && code <= 0xdfff) return false;
+  }
+  return true;
+}
+
+/** Bound fresh text in UTF-16 units without splitting its final code point. */
+export function truncateChartText(value: string, limit: number): string {
+  const text = value.slice(0, limit);
+  const last = text.charCodeAt(text.length - 1);
+  return last >= 0xd800 && last <= 0xdbff ? text.slice(0, -1) : text;
+}
+
+// Sanitise a caption: plain text, ≤140 UTF-16 units, control chars stripped. Stored only; rendered ONLY as
 // textContent by the (future) W3 theater — never as innerHTML. We normalise here so storage is clean.
 export function cleanCaption(v: unknown): string | undefined {
-  if (!isStr(v)) return undefined;
+  if (!isStr(v) || !isWellFormedChartText(v)) return undefined;
   // strip ASCII control chars (codepoints < 0x20 and 0x7F) via a char-code filter — avoids a
   // control-char regex literal in source. Plain text, stored for the future W3 theater textContent.
   let s = "";
   for (const ch of v) { const c = ch.codePointAt(0)!; s += (c < 0x20 || c === 0x7f) ? " " : ch; }
-  s = s.trim().slice(0, CAPTION_MAX);
+  s = truncateChartText(s.trim(), CAPTION_MAX);
   return s.length ? s : undefined;
 }
 
@@ -512,7 +531,7 @@ export function translate(
       return okDraw([mkObj(cmd, kind, {
         points: [pt(p1.t, p1.p), pt(p2.t, p2.p)],
         width: style.width, dash: dashOf(style), color: style.color ?? AI_ACCENT,
-        meta: isStr(a.text) ? { label: a.text.slice(0, CAPTION_MAX) } : undefined,
+        meta: isStr(a.text) ? { label: truncateChartText(a.text, CAPTION_MAX) } : undefined,
       })]);
     }
     case "draw.hline": {
@@ -523,7 +542,7 @@ export function translate(
       return okDraw([mkObj(cmd, "hline", {
         points: [pt(at, a.p as number)],
         width: style.width, dash: dashOf(style), color: style.color ?? AI_ACCENT,
-        meta: { label: isStr(a.text) ? a.text.slice(0, CAPTION_MAX) : (a.p as number).toString(), by: "ai" },
+        meta: { label: isStr(a.text) ? truncateChartText(a.text, CAPTION_MAX) : (a.p as number).toString(), by: "ai" },
       })]);
     }
     case "draw.zone": {
@@ -536,7 +555,7 @@ export function translate(
       return okDraw([mkObj(cmd, "rect", {
         points: [pt(t1, Math.max(lo as number, hi as number)), pt(t2, Math.min(lo as number, hi as number))],
         color: style.color ?? AI_ACCENT,
-        meta: { label: isStr(a.text) ? a.text.slice(0, CAPTION_MAX) : undefined, by: "ai" },
+        meta: { label: isStr(a.text) ? truncateChartText(a.text, CAPTION_MAX) : undefined, by: "ai" },
       })]);
     }
     case "draw.channel": {
@@ -577,7 +596,7 @@ export function translate(
       if (!isStr(a.text) || !a.text.trim()) return reject("bad_text");
       const style = readStyle(a.style);
       return okDraw([mkObj(cmd, "text", {
-        points: [pt(p1.t, p1.p)], text: a.text.slice(0, CAPTION_MAX),
+        points: [pt(p1.t, p1.p)], text: truncateChartText(a.text, CAPTION_MAX),
         color: style.color ?? AI_ACCENT, fontSize: 13,
       })]);
     }
@@ -585,7 +604,7 @@ export function translate(
       // a marker at a bar (arrow pointing at t/p). → arrow (short) or text glyph.
       const p1 = readPt(a.p1) ?? (isSaneTime(a.t) && isPrice(a.p) ? { t: a.t as number, p: a.p as number } : null);
       if (!p1) return reject("bad_anchor");
-      const glyph = isStr(a.text) ? a.text.slice(0, 24) : "▲";
+      const glyph = isStr(a.text) ? truncateChartText(a.text, 24) : "▲";
       const style = readStyle(a.style);
       return okDraw([mkObj(cmd, "text", {
         points: [pt(p1.t, p1.p)], text: glyph, color: style.color ?? AI_ACCENT, fontSize: 15,
@@ -614,7 +633,7 @@ export function translate(
 
     // ── scene.* ─────────────────────────────────────────────────────────────────────────────
     case "scene.begin":
-      return { ok: true, op: cmd.op, id: null, scene: "begin", sceneTitle: isStr(a.title) ? a.title.slice(0, CAPTION_MAX) : undefined };
+      return { ok: true, op: cmd.op, id: null, scene: "begin", sceneTitle: isStr(a.title) ? truncateChartText(a.title, CAPTION_MAX) : undefined };
     case "scene.end":
       return { ok: true, op: cmd.op, id: null, scene: "end" };
 

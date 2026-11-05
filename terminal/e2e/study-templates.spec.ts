@@ -552,14 +552,22 @@ test("the command palette lists account and device templates and opens the same 
   const palette = page.locator("[data-command-palette]");
   const touch = testInfo.project.name !== "desktop";
   async function choose(query: string, actionId: string) {
-    if (touch) await page.locator("[data-command-palette-trigger=mobile]").click();
-    else await page.keyboard.press(">");
-    await expect(palette).toBeVisible();
-    const box = palette.locator("input[role=combobox]");
-    if (touch) await box.click();
-    await box.fill(query);
     const action = palette.locator(`[data-action-id="${actionId}"]`);
-    await expect(action, `the palette should list ${actionId}`).toBeVisible();
+    // The palette reads the list as it opens. If the account read lands after that, close and
+    // reopen it: that is the re-read under test, so a list read only at mount still fails here.
+    await expect(async () => {
+      if (await palette.isVisible()) {
+        await page.keyboard.press("Escape");
+        await expect(palette).toBeHidden();
+      }
+      if (touch) await page.locator("[data-command-palette-trigger=mobile]").click();
+      else await page.keyboard.press(">");
+      await expect(palette).toBeVisible();
+      const box = palette.locator("input[role=combobox]");
+      if (touch) await box.click();
+      await box.fill(query);
+      await expect(action, `the palette should list ${actionId}`).toBeVisible({ timeout: 3_000 });
+    }).toPass({ timeout: 30_000 });
     await action.click();
     await expect(palette).toBeHidden();
     await expect(library(page)).toBeVisible();

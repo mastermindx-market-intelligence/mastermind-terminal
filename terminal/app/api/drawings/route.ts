@@ -1,129 +1,150 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
-import {
-  MAX_DRAWING_PAYLOAD_BYTES, MAX_DRAWINGS_PER_SYMBOL, normalizeDrawings, type Drawing,
-} from "@/lib/drawings";
-import { drawingToolAcceptsPersistedPointCount } from "@/lib/drawingTools";
-import { aiDrawingCollectionError, drawingSourceConflict, readStoredAiDrawing } from "@/lib/drawingAiPersistence";
+import { MAX_DRAWING_PAYLOAD_BYTES, MAX_DRAWINGS_PER_SYMBOL } from "@/lib/drawings";
+import { DRAWING_OWNER_HEADER, parseDrawingSnapshot, parsePersistedDrawings, validDrawingOperationId, validDrawingRevision } from "@/lib/drawingPersistence";
+import { GUEST_COOKIE } from "@/lib/layoutsFixtureDb";
+import { fixtureUserId, FIXTURE_STORE_COOKIE } from "@/lib/watchlistsFixtureDb";
 
-type StoredDrawingRow = { id: string; kind: string; data?: Record<string, unknown> | null };
-type StoredIdRow = { id: string };
-const COLLECTION_KIND = "__collection_v1";
+const isE2eFixture = () => process.env.NODE_ENV !== "production" && process.env.TERMINAL_E2E_FIXTURE === "1";
+type DrawingSession = { supabase: Awaited<ReturnType<typeof createClient>> | null; user: { id: string } | null };
 
-async function ctx() {
+/**
+ * Owner-scoped stores key on the auth UUID, never the email (account-identity law).
+ * An email can change or be reassigned; the UUID cannot. Exact match: UUID keys are canonical.
+ */
+function ownsKey(user: { id: string }, ownerKey: unknown): boolean {
+  return typeof ownerKey === "string" && !!user.id && ownerKey === `account:${user.id}`;
+}
+
+/**
+ * The Playwright dev server signs the page in as TERMINAL_E2E_EMAIL without a
+ * Supabase session. Give that same identity a stateless empty account so the
+ * page's readiness gate opens exactly as it does for a real account. This is
+ * never reachable in a production build, even if the variable is set; specs that test
+ * cloud saves, conflicts or load failures mock this route in the browser.
+ */
+async function ctx(): Promise<DrawingSession> {
+  if (isE2eFixture()) {
+    const jar = await cookies();
+    const guest = jar.get(GUEST_COOKIE)?.value === "1";
+    const email = process.env.TERMINAL_E2E_EMAIL;
+    // Same identity /terminal hands TerminalShell as userId for the fixture account.
+    const id = fixtureUserId(jar.get(FIXTURE_STORE_COOKIE)?.value || "default");
+    return { supabase: null, user: !guest && email ? { id } : null };
+  }
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  return { supabase, user };
-}
-const validOwner = (value: unknown): value is string =>
-  typeof value === "string" && value.length > 0 && value.length <= 128 && value.trim() === value;
-function storedCollection(rows: StoredDrawingRow[]): Drawing[] {
-  const collection = [...rows].reverse().find(row => row.kind === COLLECTION_KIND);
-  return collection && Array.isArray(collection.data?.drawings)
-    ? normalizeDrawings(collection.data.drawings)
-    : normalizeDrawings(rows.map(row => ({ id: row.data?.id || row.id, kind: row.kind, ...(row.data || {}) })));
+  return { supabase, user: user?.id ? { id: user.id } : null };
 }
 
 export async function GET(req: Request) {
-  const url = new URL(req.url), expectedOwner = url.searchParams.get("owner_id");
-  if (expectedOwner !== null && !validOwner(expectedOwner))
-    return NextResponse.json({ error: "Invalid drawing owner" }, { status: 400 });
   const { supabase, user } = await ctx();
-  if (!user) return expectedOwner !== null
-    ? NextResponse.json({ error: "Sign in to load drawings" }, { status: 401 })
-    : NextResponse.json({ drawings: [] });
-  if (expectedOwner !== null && expectedOwner !== user.id)
-    return NextResponse.json({ error: "Drawing account changed" }, { status: 409 });
-  const symbol = url.searchParams.get("symbol");
-  if (!symbol) return NextResponse.json({ drawings: [], error: "A symbol is required" }, { status: 400 });
-  const { data, error } = await supabase.from("drawings").select("*")
-    .eq("user_id", user.id).eq("symbol", symbol).order("created_at", { ascending: true });
-  if (error) {
-    console.error("drawings GET failed:", error);
-    return NextResponse.json({ drawings: [], error: "Could not load drawings" }, { status: 500 });
+  if (!user) return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+  const query = new URL(req.url).searchParams;
+  const expectedOwner = req.headers.get(DRAWING_OWNER_HEADER);
+  if (expectedOwner !== null && !ownsKey(user, expectedOwner)) {
+    return NextResponse.json({ error: "Account changed" }, { status: 409 });
   }
-  return NextResponse.json({ drawings: storedCollection((data || []) as StoredDrawingRow[]),
-    schemaVersion: 1, aiSchemaVersion: 1, owner_id: user.id });
+  const symbol = query.get("symbol")?.trim();
+  if (!symbol || symbol.length > 64) return NextResponse.json({ error: "A symbol is required" }, { status: 400 });
+  if (!supabase) return NextResponse.json({ drawings: [], revision: null, schemaVersion: 1 }, { headers: { "Cache-Control": "private, no-store" } });
+  // SECURITY INVOKER RPC uses auth.uid(), explicit owner/symbol filters, and existing RLS.
+  // One aggregate reads one snapshot; GET creates no legacy operation receipt.
+  const { data, error } = await supabase.rpc("read_drawings_collection", { p_symbol: symbol });
+  const snapshot = !error ? parseDrawingSnapshot(data) : null;
+  if (!snapshot) return NextResponse.json({ error: "Could not load drawings" }, { status: 503 });
+  return NextResponse.json(snapshot, { headers: { "Cache-Control": "private, no-store" } });
 }
 
-// The existing account collection remains the sole storage owner. Version1
-// explicitly replaces the mixed snapshot; legacy requests replace humans only.
-// Concurrent tabs retain the incumbent full-snapshot last-writer semantics.
+function drawingPayloadTooLarge() {
+  return NextResponse.json({ ok: false, error: "Drawing payload is too large" }, { status: 413 });
+}
+
+/** Auth already ran. Reject from Content-Length, else count stream bytes and abort at cap+1. */
+async function readCappedDrawingBody(req: Request): Promise<{ text: string } | NextResponse> {
+  const declared = req.headers.get("content-length");
+  if (declared && /^\d+$/.test(declared) && Number(declared) > MAX_DRAWING_PAYLOAD_BYTES) {
+    return drawingPayloadTooLarge();
+  }
+  if (!req.body) return { text: "" };
+  const reader = req.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (!value?.byteLength) continue;
+      total += value.byteLength;
+      if (total > MAX_DRAWING_PAYLOAD_BYTES) {
+        await reader.cancel().catch(() => undefined);
+        return drawingPayloadTooLarge();
+      }
+      chunks.push(value);
+    }
+  } catch {
+    return NextResponse.json({ ok: false, error: "Invalid JSON" }, { status: 400 });
+  } finally {
+    try { reader.releaseLock(); } catch { /* cancelled or already released */ }
+  }
+  const bytes = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return { text: new TextDecoder().decode(bytes) };
+}
+
 export async function PUT(req: Request) {
   const { supabase, user } = await ctx();
   if (!user) return NextResponse.json({ ok: false }, { status: 401 });
+  const capped = await readCappedDrawingBody(req);
+  if (capped instanceof NextResponse) return capped;
   let payload: unknown;
   try {
-    const body = await req.text();
-    if (new TextEncoder().encode(body).byteLength > MAX_DRAWING_PAYLOAD_BYTES)
-      return NextResponse.json({ ok: false, error: "Drawing payload is too large" }, { status: 413 });
-    payload = JSON.parse(body);
+    payload = JSON.parse(capped.text);
   } catch { return NextResponse.json({ ok: false, error: "Invalid JSON" }, { status: 400 }); }
-  if (!payload || typeof payload !== "object" || Array.isArray(payload))
-    return NextResponse.json({ ok: false, error: "Invalid payload" }, { status: 400 });
-  const raw = payload as { symbol?: unknown; drawings?: unknown; owner_id?: unknown; aiSchemaVersion?: unknown };
-  if (Object.hasOwn(raw, "owner_id") && (!validOwner(raw.owner_id) || raw.owner_id !== user.id))
-    return NextResponse.json({ ok: false, error: "Drawing account changed" }, { status: 409 });
-  if (Object.hasOwn(raw, "aiSchemaVersion") && raw.aiSchemaVersion !== 1)
-    return NextResponse.json({ ok: false, error: "Unsupported AI drawing schema" }, { status: 422 });
-  const mixed = raw.aiSchemaVersion === 1;
-  if (mixed && !Object.hasOwn(raw, "owner_id"))
-    return NextResponse.json({ ok: false, error: "A drawing owner is required" }, { status: 409 });
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) return NextResponse.json({ ok: false }, { status: 400 });
+  const raw = payload as Record<string, unknown>;
+  if (!ownsKey(user, raw.ownerKey)) {
+    return NextResponse.json({ ok: false, code: "owner_conflict" }, { status: 409 });
+  }
   const symbol = typeof raw.symbol === "string" ? raw.symbol.trim() : "";
-  if (!symbol || symbol.length > 64 || !Array.isArray(raw.drawings))
-    return NextResponse.json({ ok: false, error: "A symbol and drawings array are required" }, { status: 400 });
-  if (raw.drawings.length > MAX_DRAWINGS_PER_SYMBOL)
-    return NextResponse.json({ ok: false, error: "Drawing collection is too large" }, { status: 413 });
-  if (raw.drawings.some(drawingSourceConflict))
-    return NextResponse.json({ ok: false, error: "Drawing sources are invalid" }, { status: 422 });
-  const normalized = normalizeDrawings(raw.drawings);
-  if (normalized.length !== raw.drawings.length)
-    return NextResponse.json({ ok: false, error: "One or more drawings are invalid" }, { status: 422 });
-  const ids = new Set<string>();
-  for (let index = 0; index < normalized.length; index++) {
-    const drawing = normalized[index], original = raw.drawings[index] as Drawing;
-    if (!drawingToolAcceptsPersistedPointCount(drawing.kind, drawing.points.length) || ids.has(drawing.id)
-      || (mixed && drawing.source === "ai"
-        && (!Array.isArray(original.points) || original.points.length !== drawing.points.length
-          || !readStoredAiDrawing(drawing))))
-      return NextResponse.json({ ok: false, error: "Invalid drawing geometry, provenance or duplicate IDs" }, { status: 422 });
-    ids.add(drawing.id);
+  if (!symbol || symbol.length > 64 || !Array.isArray(raw.drawings)) return NextResponse.json({ ok: false }, { status: 400 });
+  if (!Object.hasOwn(raw, "expectedRevision") || !validDrawingRevision(raw.expectedRevision)
+    || !validDrawingOperationId(raw.operationId)) {
+    return NextResponse.json({ ok: false, error: "Reload before saving drawings" }, { status: 400 });
   }
-
-  // Read the actual incumbent collection before constructing a legacy partition
-  // replacement. Insert-before-delete retains the last good save on failure.
-  const { data: existing, error: readError } = await supabase.from("drawings").select("*")
-    .eq("user_id", user.id).eq("symbol", symbol).order("created_at", { ascending: true });
-  if (readError) {
-    console.error("drawings PUT preflight failed:", readError);
-    return NextResponse.json({ ok: false, error: "Could not save drawings" }, { status: 500 });
+  if (raw.drawings.length > MAX_DRAWINGS_PER_SYMBOL) return NextResponse.json({ ok: false }, { status: 413 });
+  const drawings = parsePersistedDrawings(raw.drawings);
+  if (!drawings) return NextResponse.json({ ok: false, error: "Invalid drawing geometry or provenance" }, { status: 422 });
+  if (!supabase) {
+    return NextResponse.json({ ok: true, operationId: raw.operationId, revision: crypto.randomUUID(),
+      idempotentReplay: false, superseded: false, count: drawings.length, schemaVersion: 1 });
   }
-  const drawings = mixed
-    ? normalized.filter(drawing => drawing.source !== "detector")
-    : [...normalized.filter(drawing => drawing.source === "user"),
-      ...storedCollection((existing || []) as StoredDrawingRow[]).filter(drawing => drawing.source === "ai")];
-  const collectionError = aiDrawingCollectionError(drawings);
-  if (collectionError)
-    return NextResponse.json({ ok: false, error: collectionError }, { status: collectionError.endsWith("limit") ? 413 : 422 });
-  const collectionRow = { user_id: user.id, symbol, kind: COLLECTION_KIND,
-    data: { schemaVersion: 1, aiSchemaVersion: 1, revision: crypto.randomUUID(), drawings } };
-  if (new TextEncoder().encode(JSON.stringify(collectionRow)).byteLength > MAX_DRAWING_PAYLOAD_BYTES)
-    return NextResponse.json({ ok: false, error: "Drawing payload is too large" }, { status: 413 });
-  const { data: inserted, error: insertError } = await supabase.from("drawings").insert(collectionRow).select("id");
-  if (insertError) {
-    console.error("drawings PUT insert failed:", insertError);
-    return NextResponse.json({ ok: false, error: "Could not save drawings" }, { status: 500 });
+  // One transaction performs CAS, delete+insert, and bounded operation replay.
+  // Missing RPC/migration is unavailable; there is no destructive legacy fallback.
+  const { data, error } = await supabase.rpc("replace_drawings_collection", {
+    p_symbol: symbol, p_drawings: drawings, p_expected_revision: raw.expectedRevision, p_operation_id: raw.operationId,
+  });
+  if (error) return NextResponse.json({ ok: false, error: "Could not save drawings" }, { status: 503 });
+  if (data?.ok === false && data.code === "revision_conflict") {
+    return NextResponse.json({
+      ok: false,
+      code: "revision_conflict",
+      ...(data.operationUnknownPossible === true ? { operationUnknownPossible: true } : {}),
+    }, { status: 409 });
   }
-  const insertedIds = ((inserted || []) as StoredIdRow[]).map(row => row.id).filter(Boolean);
-  const oldIds = ((existing || []) as StoredIdRow[]).map(row => row.id).filter(Boolean);
-  if (oldIds.length) {
-    const { error: deleteError } = await supabase.from("drawings").delete().in("id", oldIds).eq("user_id", user.id);
-    if (deleteError) {
-      if (insertedIds.length) await supabase.from("drawings").delete().in("id", insertedIds).eq("user_id", user.id);
-      console.error("drawings PUT delete failed:", deleteError);
-      return NextResponse.json({ ok: false, error: "Could not replace drawings" }, { status: 500 });
-    }
+  if (data?.ok === false && data.code === "operation_payload_mismatch") {
+    return NextResponse.json({ ok: false, code: "operation_payload_mismatch" }, { status: 409 });
   }
-  return NextResponse.json({ ok: true, count: drawings.length, schemaVersion: 1,
-    aiSchemaVersion: 1, owner_id: user.id });
+  if (data?.ok !== true || !validDrawingOperationId(data.revision)
+    || typeof data.idempotentReplay !== "boolean" || typeof data.superseded !== "boolean"
+    || (data.superseded && !data.idempotentReplay)) {
+    return NextResponse.json({ ok: false, error: "Invalid drawing receipt" }, { status: 503 });
+  }
+  return NextResponse.json({ ok: true, operationId: raw.operationId, revision: data.revision,
+    idempotentReplay: data.idempotentReplay, superseded: data.superseded, count: drawings.length, schemaVersion: 1 });
 }

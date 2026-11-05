@@ -1,0 +1,10 @@
+{
+  "aggregate_manifest_sha256": "f031ef20e2c47512a9591148dddd528c0105fafc0e1ab8d0589cbd9c4060513c",
+  "bytes": 5442182,
+  "files": 116,
+  "note": "Full raw PL6 and Visual Intelligence capture sets retained locally, excluded from published PR; committed recovery receipts and selected screenshots remain in terminal/docs/verification/stock-intelligence-r6-20261103/recovery-20261104.",
+  "operation_id": "stock-intelligence-r6-20261103-c3",
+  "original_paths": "terminal/docs/pr-crops",
+  "retained_in_ignored_operation_cache": "terminal/node_modules/.cache/stock-intelligence-r6/recovery-20261104/raw-pr-crops",
+  "schema": "terminal.intelligence-r6.raw-capture-retention.v1"
+}

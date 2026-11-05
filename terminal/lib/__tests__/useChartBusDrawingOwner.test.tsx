@@ -21,7 +21,9 @@ function owner(key: string, initial: Record<string, Drawing[]> = { NVDA: [manual
 type Owner = ReturnType<typeof owner>;
 let bus: ChartBus;
 let setters: ReturnType<typeof vi.fn>;
-function Harness({ current, flushContext }: { current: Owner; flushContext?: () => void }) {
+function Harness({ current, flushContext, symbol = "NVDA", tf = "D", paneId = 0 }: {
+  current: Owner; flushContext?: () => void; symbol?: string; tf?: string; paneId?: number;
+}) {
   const [, render] = useReducer(x => x + 1, 0);
   useLayoutEffect(() => {
     current.notify = () => render();
@@ -30,6 +32,7 @@ function Harness({ current, flushContext }: { current: Owner; flushContext?: () 
   const host: ChartBusHost = {
     drawingOwner: {
       key: current.key, generation: current.generation, collections: current.collections,
+      aiPersistenceReady: symbol => current.collections[symbol] !== undefined && !current.reject,
       replaceAi: (symbol, objects, hidden) => {
         if (current.reject) return { ok: false, error: current.reject };
         const result = replaceAiPartition(current.collections[symbol] ?? [], objects, hidden);
@@ -39,9 +42,9 @@ function Harness({ current, flushContext }: { current: Owner; flushContext?: () 
         return { ok: true, objects: storedAiObjects(result.drawings) };
       },
     },
-    activeSymbol: "NVDA", currentTf: "D", activePaneId: 0, bars: [],
+    activeSymbol: symbol, currentTf: tf, activePaneId: paneId, bars: [],
     capabilities: { tfs: ["D"], indicators: ["rsi"] }, sessionIndicators: [],
-    userDrawings: (current.collections.NVDA ?? []).filter(d => d.source === "user"),
+    userDrawings: (current.collections[symbol] ?? []).filter(d => d.source === "user"),
     getContextIdentity: () => ({ origin_id: current.origin, context_revision: 1 }),
     setSymbol: setters, setTf: setters, setIndicators: setters, setRange: setters, flushContext,
   };
@@ -69,6 +72,27 @@ describe("canonical chart drawing owner lifecycle", () => {
   });
   const mount = async (current: Owner, flushContext?: () => void) =>
     act(async () => root.render(<Harness current={current} flushContext={flushContext} />));
+
+  it.each(["symbol", "timeframe", "pane"] as const)("retires all inventory controls across a returning %s scope", async scope => {
+    const current = owner("account:a", { NVDA: [manual, saved()], MSFT: [manual, saved("ai_msft")] });
+    await mount(current);
+    const retired = bus.legend;
+    await act(async () => root.render(<Harness current={current}
+      symbol={scope === "symbol" ? "MSFT" : "NVDA"}
+      tf={scope === "timeframe" ? "W" : "D"} paneId={scope === "pane" ? 1 : 0} />));
+    await mount(current);
+    let accepted = true;
+    act(() => {
+      retired.toggleHidden(); retired.clear();
+      accepted = retired.editObjects(["ai_saved"], "remove");
+    });
+    expect(accepted).toBe(false);
+    expect(current.writes).toHaveLength(0);
+    expect(bus.legend.objects.map(object => object.id)).toEqual(["ai_saved"]);
+    act(() => bus.legend.clear());
+    expect(current.writes).toHaveLength(1);
+    expect(current.collections.NVDA).toEqual([manual]);
+  });
 
   it("hydrates stored AI without replaying commands, then preserves the human partition through edits", async () => {
     const current = owner("account:a", { NVDA: [manual, saved("ai_saved", true)] });

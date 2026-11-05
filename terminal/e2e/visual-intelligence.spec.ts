@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page, type Locator, type TestInfo } from "@playwright/test";
 import { mkdirSync, readFileSync } from "node:fs";
 import { toggleToolbarReplay } from "./terminalToolbar";
 import { useLang } from "./layoutStore";
@@ -9,6 +9,27 @@ async function openContext(page: Page) {
   const panel = await openChartContext(page);
   await expect(panel.locator("[data-context-rsi]")).toHaveText(/\d/, { timeout: 20000 });
   return panel;
+}
+
+async function captureContextCrop(page: Page, panel: Locator, testInfo: TestInfo, language: "en" | "zh") {
+  await expect(panel).toBeVisible();
+  await expect(page.locator("[data-visual-context]")).toHaveAttribute("data-context-symbol", "NVDA");
+  await expect(page.locator("[data-visual-context]")).toHaveAttribute("data-context-timeframe", "3D");
+  await expect(panel.locator("[data-context-rsi]")).toHaveText(/\d/);
+  await expect(panel.locator("[data-context-rsi]")).toBeInViewport({ ratio: 1 });
+  await expect(panel.locator("[data-context-synthesis]")).toBeVisible();
+  // Trial action verifies that another surface is not covering the captured reader.
+  // It performs no close action and does not change the application state.
+  const close = panel.getByRole("button", {
+    name: language === "zh" ? "关闭图表解读" : "Close chart context", exact: true,
+  });
+  await expect(close).toBeInViewport({ ratio: 1 });
+  await close.click({ trial: true });
+  const suffix = language === "zh" ? "-zh" : "";
+  const path = `docs/pr-crops/terminal-visual-intelligence/${testInfo.project.name}-context${suffix}.png`;
+  mkdirSync("docs/pr-crops/terminal-visual-intelligence", { recursive: true });
+  await page.screenshot({ path });
+  await testInfo.attach(`chart-context-${language}`, { path, contentType: "image/png" });
 }
 
 // Calendar routes and their coverage declaration must describe the same fixture.
@@ -86,8 +107,7 @@ test("default context explains plotted bars, toggles original overlays, and pers
   // The reader owns rail scrolling; on mobile the page scrolls below the unobstructed chart.
   await panel.getByText("Chart layers", { exact: true }).click();
   await panel.evaluate((el) => { el.scrollTop = 0; if (innerWidth <= 860) el.scrollIntoView({ block: "start" }); });
-  mkdirSync("docs/pr-crops/terminal-visual-intelligence", { recursive: true });
-  await page.screenshot({ path: `docs/pr-crops/terminal-visual-intelligence/${testInfo.project.name}-context.png` });
+  await captureContextCrop(page, panel, testInfo, "en");
   await page.reload();
   await openChartContext(page);
   const restored = page.getByRole("region", { name: "Chart context", exact: true });
@@ -292,8 +312,7 @@ test("Chinese context uses text alongside regional colors and remains keyboard d
   await panel.getByRole("button", { name: "上一根K线", exact: true }).click();
   await expect(panel.locator("[data-context-calendar]")).toHaveAttribute("data-context-calendar", "withheld");
   await panel.evaluate((element) => { element.scrollTop = 0; if (innerWidth <= 860) element.scrollIntoView({ block: "start" }); });
-  mkdirSync("docs/pr-crops/terminal-visual-intelligence", { recursive: true });
-  await page.screenshot({ path: `docs/pr-crops/terminal-visual-intelligence/${testInfo.project.name}-context-zh.png` });
+  await captureContextCrop(page, panel, testInfo, "zh");
   await panel.getByRole("button", { name: "关闭图表解读", exact: true }).focus();
   await page.keyboard.press("Escape");
   await expect(panel).toHaveCount(0);

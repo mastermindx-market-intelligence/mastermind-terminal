@@ -353,7 +353,7 @@ test("Company Intelligence keeps its context and evidence workflow responsive", 
   await expect(paperBrief.locator(".ci-paper-metrics > button")).toHaveCount(4);
   const whyItMatters = paperBrief.locator(".ci-paper-insight").filter({ hasText: "Why it matters" });
   await expect(whyItMatters).toBeVisible();
-  await expect(whyItMatters).toContainText("Not asserted");
+  await expect(whyItMatters).toContainText("Business implications are not available for this event.");
 
   await page.locator(".ci-lenses").getByRole("tab", { name: "Results" }).click();
   const paperResults = page.locator("[data-ci-paper-results]");
@@ -799,7 +799,7 @@ test("general highlights are not relabelled as Constructive without explicit pos
   });
   await page.goto("/analysis?symbol=NVDA&page=intelligence");
   const changed = page.locator(".ci-paper-insight").filter({ hasText: "What changed" });
-  await expect(changed).toContainText("No comparable change is asserted");
+  await expect(changed).toContainText("No comparison is available for this event.");
   await expect(changed.getByRole("button")).toHaveCount(0);
   await expect(changed).not.toContainText("Constructive");
 });
@@ -1016,7 +1016,7 @@ test("AAPL intelligence opens the verified FY2026 Q3 event workspace", async ({ 
   await expect(page.locator(".ci-inst-card")).toHaveCount(0);
   const whyItMatters = page.locator(".ci-paper-insight").filter({ hasText: "Why it matters" });
   await expect(whyItMatters).toBeVisible();
-  await expect(whyItMatters).toContainText("Not asserted");
+  await expect(whyItMatters).toContainText("Business implications are not available for this event.");
   await expect(page.locator(".ci-page")).not.toContainText("Current event");
   await page.screenshot({ path: testInfo.outputPath(`${testInfo.project.name}-aapl-brief.png`), fullPage: false });
 
@@ -1117,6 +1117,34 @@ test("AAPL intelligence opens the verified FY2026 Q3 event workspace", async ({ 
   expect(errors).toEqual([]);
   await page.screenshot({ path: testInfo.outputPath(`${testInfo.project.name}-aapl-event-workspace.png`), fullPage: false });
   await page.screenshot({ path: testInfo.outputPath(`${testInfo.project.name}-aapl-transcript.png`), fullPage: false });
+});
+
+test("signed guidance survives the Results lens and opens its existing source receipt", async ({ page }, testInfo) => {
+  // Synthetic numeric contract input only: the original AAPL disclosure receipt
+  // substantiates 9–11%, not this negative range. This checks UI source gating.
+  const guidance = structuredClone(aaplWorkspace.guidance);
+  guidance[0]!.low = -3;
+  guidance[0]!.high = -1;
+  const zh = testInfo.project.name.endsWith("mobile");
+  if (zh) await page.addInitScript(() => window.localStorage.setItem("mm.lang", "zh"));
+  await openAaplWorkspace(page, aaplWorkspacePayload({ guidance }));
+  await page.locator(".ci-lenses").getByRole("tab", { name: zh ? "业绩" : "Results" }).click();
+
+  const repricing = page.locator("[data-ci-repricing-evidence]");
+  await expect(repricing).toHaveAttribute("data-ci-inference", "NOT_ESTABLISHED");
+  const guidanceLane = repricing.locator('[data-ci-repricing-lane="guidance"]');
+  await expect(guidanceLane).toHaveAttribute("data-ci-repricing-status", "SOURCE_BACKED");
+  await expect(guidanceLane).toContainText("-3–-1%");
+  await expect(repricing.locator('button[data-ci-repricing-lane="guidance"]')).toBeVisible();
+  await repricing.locator('button[data-ci-repricing-lane="guidance"]').click();
+  await expect(page.locator(".ci-receipt-card")).toHaveAttribute("data-ci-receipt-state", "byte_replayed");
+  await closeEvidenceOverlay(page);
+  for (const lane of ["consensus", "reaction"]) {
+    await expect(repricing.locator('[data-ci-repricing-lane="' + lane + '"]')).toHaveAttribute(
+      "data-ci-repricing-status", "NOT_ADMITTED",
+    );
+    await expect(repricing.locator('button[data-ci-repricing-lane="' + lane + '"]')).toHaveCount(0);
+  }
 });
 
 test("AAPL workspace correction advances generation without changing event identity", async ({ page }, testInfo) => {

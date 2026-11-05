@@ -41,13 +41,19 @@ const H = vi.hoisted(() => ({
   authHang: false,
   sessionError: null as null | { name: string; status: number },
   userError: null as null | { name: string; status: number },
+  verifiedJwtArgs: [] as Array<string | undefined>,
+  sessionRefreshToken: null as string | null,
 }));
 
 vi.mock("@/lib/supabase/server", () => ({
   createClient: async () => ({
     auth: {
-      getSession: async () => ({ data: { session: H.session }, error: H.sessionError }),
-      getUser: async () => {
+      getSession: async () => {
+        if (H.session && H.sessionRefreshToken) H.session = { access_token: H.sessionRefreshToken };
+        return { data: { session: H.session }, error: H.sessionError };
+      },
+      getUser: async (jwt?: string) => {
+        H.verifiedJwtArgs.push(jwt);
         if (H.authHang) return new Promise(() => {});
         return { data: { user: H.user }, error: H.userError };
       },
@@ -73,6 +79,8 @@ function signOut() {
   H.authHang = false;
   H.sessionError = null;
   H.userError = null;
+  H.verifiedJwtArgs = [];
+  H.sessionRefreshToken = null;
 }
 
 /** Fresh module instance — the TTL map is module-level, so each test gets its own. */
@@ -269,6 +277,25 @@ describe("entitlement — Supabase result-object failures", () => {
     expect(meCalls).toEqual([]);
     H.sessionError = null;
     expect(await getLiveOptionsAccess()).toBe("denied");
+  });
+});
+
+describe("billing authentication — exact token verification", () => {
+  it("verifies the refreshed session JWT that will be forwarded to the billing authority", async () => {
+    const { getLiveOptionsAccess } = await loadEntitlement();
+    signIn("tok-old");
+    H.sessionRefreshToken = "tok-refreshed";
+    expect(await getLiveOptionsAccess()).toBe("allowed");
+    expect(H.verifiedJwtArgs).toEqual(["tok-refreshed"]);
+    expect(meCalls).toEqual(["tok-refreshed"]);
+  });
+
+  it("never asks Supabase to verify a user without a session access token", async () => {
+    const { getLiveOptionsAccess } = await loadEntitlement();
+    signOut();
+    expect(await getLiveOptionsAccess()).toBe("denied");
+    expect(H.verifiedJwtArgs).toEqual([]);
+    expect(meCalls).toEqual([]);
   });
 });
 

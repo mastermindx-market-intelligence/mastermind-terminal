@@ -33,6 +33,7 @@ type ProjectionSettings = {
   candleWicksVisible: boolean;
   precision: string;
   extHours: boolean;
+  overnightHours?: boolean;
   extendedLineVisible: boolean;
   visualContext: boolean;
   visualRegime: boolean;
@@ -57,6 +58,7 @@ export type ChartPresentationInput = {
   chartType: string;
   settings: ProjectionSettings;
   extendedEligible: boolean;
+  overnightEligible?: boolean;
   replay: boolean;
   dayTradeMode: boolean;
   comparisons: readonly ComparisonInput[];
@@ -102,10 +104,17 @@ export function buildChartPresentation(input: ChartPresentationInput): Record<st
     || !bool(s.candleBodyVisible) || !bool(s.candleBordersVisible) || !bool(s.candleWicksVisible)
     || !["auto", "2", "3", "4"].includes(s.precision)
     || !bool(s.extHours) || !bool(s.extendedLineVisible)
+    || (s.overnightHours !== undefined && !bool(s.overnightHours))
+    || (input.overnightEligible !== undefined && !bool(input.overnightEligible))
     || !bool(s.visualContext) || !bool(s.visualRegime) || !bool(s.visualVolume)
     || !bool(s.visualLevels) || !bool(s.visualEvents)
     || !bool(input.extendedEligible) || !bool(input.replay) || !bool(input.dayTradeMode)
   ) return unavailable("presentation_settings_invalid");
+
+  const overnightRequested = s.overnightHours === true;
+  // The renderer includes extended hours whenever its 24H preference is on.
+  const extendedRequested = s.extHours || overnightRequested;
+  const overnightEligible = input.overnightEligible === true;
 
   if (!Array.isArray(input.comparisons) || input.comparisons.length > CHART_PRESENTATION_MAX_COMPARISONS)
     return unavailable("presentation_comparison_invalid");
@@ -154,9 +163,14 @@ export function buildChartPresentation(input: ChartPresentationInput): Record<st
       replay: input.replay,
       day_trade_mode: input.dayTradeMode,
       extended_hours: {
-        requested: s.extHours,
+        requested: extendedRequested,
         eligible: input.extendedEligible,
-        effective: input.extendedEligible && s.extHours,
+        effective: input.extendedEligible && extendedRequested,
+      },
+      overnight_hours: {
+        requested: overnightRequested,
+        eligible: overnightEligible,
+        effective: overnightEligible && overnightRequested,
       },
     },
     display: {
@@ -188,6 +202,8 @@ export function buildChartPresentation(input: ChartPresentationInput): Record<st
       control_authority: "none",
       arbitrary_ui_text: "excluded",
       render_application: "committed_settings_not_pixel_attestation",
+      session_coverage: "not_attested_by_presentation",
+      volume_semantics: "per_bar_venue_and_coverage_unverified_zero_may_be_unmeasured",
     },
   };
   return bytes(packet) <= CHART_PRESENTATION_MAX_BYTES
@@ -257,4 +273,15 @@ export function readChartPresentation(
   const entry = cache[expected.pane_id];
   return entry?.source.isCurrent() && samePresentationIdentity(entry.source.identity, expected)
     ? entry.packet : null;
+}
+
+/** Only an effective committed trading-session transition invalidates AI command targets. */
+export function chartPresentationSessionKey(packet: Record<string, unknown> | null): string | null {
+  if (packet?.schema !== CHART_PRESENTATION_SCHEMA || packet.status !== "observed") return null;
+  const session = packet.session as Record<string, unknown> | undefined;
+  const extended = session?.extended_hours as Record<string, unknown> | undefined;
+  const overnight = session?.overnight_hours as Record<string, unknown> | undefined;
+  if (!bool(extended?.effective) || (overnight !== undefined && !bool(overnight?.effective))) return null;
+  // Older packets omit overnight state. Absence remains unknown, never a fabricated "off".
+  return JSON.stringify({ extended_hours: extended.effective, overnight_hours: overnight?.effective ?? null });
 }

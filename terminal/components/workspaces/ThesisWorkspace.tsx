@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useEffectEvent, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { useSearchParams } from "next/navigation";
 import { useLang, useT } from "@/lib/i18n";
 import { subjectKindLabel } from "@/lib/plainLabels";
@@ -8,6 +8,7 @@ import { parseAnalysisSearchParams } from "@/lib/analysisRoute";
 import { normalizeAnalysisSymbol } from "@/lib/analysisSymbol";
 import { hasMarketOntologyContext, parseMarketOntologyContext, serializeMarketOntologyContext, stripMarketOntologyParams, type MarketOntologyContext } from "@/lib/marketOntologyContext";
 import { isUuid, normalizeThesisContent, normalizeThesisSubject } from "@/lib/theses";
+import { installThesisReadSource } from "@/lib/thesisReadContext";
 import type {
   ThesisAction,
   ThesisContent,
@@ -540,19 +541,30 @@ function historyState(position: number): Record<string, unknown> {
     ...(current && typeof current === "object" && !Array.isArray(current) ? current : {}),
     [HISTORY_POSITION_KEY]: position,
   };
-  // Next adds its own router state on the public history path. Supplying its
-  // internal marker skips that path and leaves its URL behind our selection.
+  // Next adds fresh router state through its public history path. Replaying its
+  // private markers would bypass that path and leave its URL behind selection.
   delete next.__NA;
   delete next._N;
   delete next.__PRIVATE_NEXTJS_INTERNALS_TREE;
   return next;
 }
 
+function subscribeThesisLocation(changed: () => void) {
+  window.addEventListener("popstate", changed);
+  return () => window.removeEventListener("popstate", changed);
+}
+const thesisLocation = () => window.location.href;
+const serverThesisLocation = () => "";
+
 export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesisId, invalidLink = false }: ThesisWorkspaceProps) {
   const routerSearch = useSearchParams()?.toString() ?? "";
   const { lang } = useLang();
   const t = useT();
   const copy = COPY[lang];
+  // React checks this snapshot again when a suspended/cached workspace resumes.
+  // A popstate missed while its effects were detached must still reconcile the
+  // selected record, even if the server props and selection state did not change.
+  const browserLocation = useSyncExternalStore(subscribeThesisLocation, thesisLocation, serverThesisLocation);
   const initialSymbolKey = normalizeAnalysisSymbol(initialSymbol) ?? "";
   const [listState, setListState] = useState<LoadState>(invalidLink ? "ready" : "loading");
   const [detailState, setDetailState] = useState<DetailState>(initialThesisId ? "loading" : "idle");
@@ -560,6 +572,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   const [truncated, setTruncated] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(initialThesisId ?? null);
   const [detail, setDetail] = useState<ThesisDetail | null>(null);
+  const [detailReadOwner, setDetailReadOwner] = useState<string | null>(null);
   const [proposalRead, setProposalRead] = useState<ProposalRead>(PROPOSALS_PENDING);
   const [assistantText, setAssistantText] = useState("");
   const [proposalBusy, setProposalBusy] = useState(false);
@@ -1621,6 +1634,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       }
       const loadedDraft = draftFromDetail(payload.thesis);
       setDetail(payload.thesis);
+      setDetailReadOwner(ownerKey);
       setDraft(loadedDraft);
       setSubjectDraft(payload.thesis.subject.key);
       setBaseline({ subject: payload.thesis.subject.key, draft: loadedDraft });
@@ -1635,7 +1649,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       settleMarketOntologyContext(id, contextCandidate, null);
       setDetailState("unavailable");
     }
-  }, [loadProposals, settleMarketOntologyContext]);
+  }, [loadProposals, ownerKey, settleMarketOntologyContext]);
 
   const openDetail = useCallback((id: string, historyMode: "push" | "none" = "push") => {
     const token = ++detailRequest.current;
@@ -1846,78 +1860,90 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     setMobilePane("list");
   }, [confirmDiscard, marketOntologyContext, pending, resetToNew]);
 
-  useEffect(() => {
-    const handlePop = (event: PopStateEvent) => {
-      if (restoringPop.current) {
-        restoringPop.current = false;
-        return;
-      }
-      const priorPosition = historyPositionRef.current;
-      const nextPosition = historyPosition(event.state);
-      const restore = () => {
-        event.stopImmediatePropagation();
-        restoringPop.current = true;
-        if (nextPosition === null) window.history.forward();
-        else window.history.go(priorPosition - nextPosition);
-      };
-      if (pending) return restore();
-      if (isDirty && !window.confirm(copy.confirmDiscard)) return restore();
-      if (isDirty) {
-        routeDiscardAuthorized.current = true;
-        window.setTimeout(() => { routeDiscardAuthorized.current = false; }, 1000);
-      }
-      if (nextPosition !== null) historyPositionRef.current = nextPosition;
-      if (window.location.pathname !== "/analysis") return;
-      const params = new URLSearchParams(window.location.search);
-      const route = parseAnalysisSearchParams(params);
-      const urlContext = parseMarketOntologyContext(params);
-      if (route.kind === "invalid_thesis") {
-        detailRequest.current += 1;
-        setMarketOntologyContext(null);
-        setRouteInvalid(true);
-        setSelectedId(null);
-        setDetail(null);
-        setDetailState("idle");
-        return;
-      }
-      if (route.kind !== "theses") {
-        setMarketOntologyContext(urlContext);
-        return;
-      }
-      // Detail history entries may carry a pending candidate. Withhold display
-      // until this entry's own canonical read confirms the anchored company.
-      if (route.thesisId) {
-        setMarketOntologyContext(null);
-        return openDetail(route.thesisId, "none");
-      }
-      const symbol = normalizeAnalysisSymbol(route.symbol) ?? "";
-      contextCompany.current = symbol;
-      setMarketOntologyContext(symbol ? urlContext : null);
-      if (symbol) return resetToNew(symbol, "none");
-      resetToList("none");
+  const handleHistoryPop = useEffectEvent((event: PopStateEvent) => {
+    if (restoringPop.current) {
+      restoringPop.current = false;
+      return;
+    }
+    const priorPosition = historyPositionRef.current;
+    const nextPosition = historyPosition(event.state);
+    const restore = () => {
+      event.stopImmediatePropagation();
+      restoringPop.current = true;
+      if (nextPosition === null) window.history.forward();
+      else window.history.go(priorPosition - nextPosition);
     };
+    if (pending) return restore();
+    if (isDirty && !window.confirm(copy.confirmDiscard)) return restore();
+    if (isDirty) {
+      routeDiscardAuthorized.current = true;
+      window.setTimeout(() => { routeDiscardAuthorized.current = false; }, 1000);
+    }
+    if (nextPosition !== null) historyPositionRef.current = nextPosition;
+    if (window.location.pathname !== "/analysis") return;
+    const params = new URLSearchParams(window.location.search);
+    const route = parseAnalysisSearchParams(params);
+    const urlContext = parseMarketOntologyContext(params);
+    if (route.kind === "invalid_thesis") {
+      detailRequest.current += 1;
+      setMarketOntologyContext(null);
+      setRouteInvalid(true);
+      setSelectedId(null);
+      setDetail(null);
+      setDetailState("idle");
+      return;
+    }
+    if (route.kind !== "theses") {
+      setMarketOntologyContext(urlContext);
+      return;
+    }
+    // Detail history entries may carry a pending candidate. Withhold display
+    // until this entry's own canonical read confirms the anchored company.
+    if (route.thesisId) {
+      setMarketOntologyContext(null);
+      return openDetail(route.thesisId, "none");
+    }
+    const symbol = normalizeAnalysisSymbol(route.symbol) ?? "";
+    contextCompany.current = symbol;
+    setMarketOntologyContext(symbol ? urlContext : null);
+    if (symbol) return resetToNew(symbol, "none");
+    resetToList("none");
+  });
+
+  useEffect(() => {
+    // Keep the listener installed throughout a history transition. Re-subscribing
+    // when Back clears the selection can remove it during the following Forward
+    // dispatch, before React has committed the replacement lazy route.
+    const handlePop = (event: PopStateEvent) => handleHistoryPop(event);
     window.addEventListener("popstate", handlePop);
-    // Next may commit Forward through its own history replacement after a Back
-    // reconciliation has settled. Its search subscription retriggers this check;
-    // the browser URL remains the authority and dirty/pending work stays guarded.
+    return () => window.removeEventListener("popstate", handlePop);
+  }, []);
+
+  const reconcileHistoryLocation = useEffectEvent(() => {
+    // A synthetic reconciliation must not consume a real restoration event or
+    // retry a terminal auth failure. Read current committed state and URL here,
+    // after the queued callback runs, without prompting about dirty work.
+    if (pending || isDirty || restoringPop.current || listState === "session_expired"
+        || window.location.pathname !== "/analysis") return;
+    const currentRoute = parseAnalysisSearchParams(new URLSearchParams(window.location.search));
+    if (currentRoute.kind !== "theses") return;
+    const routeId = currentRoute.thesisId ?? null;
+    if (routeId !== selectedId || (routeId !== null && detailState === "idle")) {
+      handleHistoryPop(new PopStateEvent("popstate", { state: window.history.state }));
+    }
+  });
+
+  useEffect(() => {
     let active = true;
-    // The URL and selected record must agree after a lazy mount. Test this in the
-    // queued reconciliation itself: Back/Forward can change the URL between
-    // listener subscription and the previous synchronous mismatch check.
+    // Both subscriptions invalidate this check. Next may privately replace a
+    // URL without a second popstate; only the current browser URL is authority.
     void Promise.resolve().then(() => {
-      if (!active || pending || isDirty || window.location.pathname !== "/analysis") return;
-      const currentRoute = parseAnalysisSearchParams(new URLSearchParams(window.location.search));
-      if (currentRoute.kind !== "theses") return;
-      const routeId = currentRoute.thesisId ?? null;
-      if (routeId !== selectedId || (routeId !== null && detailState === "idle")) {
-        handlePop(new PopStateEvent("popstate", { state: window.history.state }));
-      }
+      if (active) reconcileHistoryLocation();
     });
     return () => {
       active = false;
-      window.removeEventListener("popstate", handlePop);
     };
-  }, [copy.confirmDiscard, detailState, isDirty, openDetail, pending, resetToList, resetToNew, routerSearch, selectedId]);
+  }, [browserLocation, routerSearch, detailState, isDirty, listState, pending, selectedId]);
 
   const changeDraft = useCallback(<K extends keyof Draft>(key: K, value: Draft[K]) => {
     if (key === "statement") statementEditRevision.current += 1;
@@ -2123,6 +2149,24 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       : null;
     return fromHistory ?? detail.current;
   }, [detail, inspectedVersion]);
+
+  // Register only committed, ready, caller-owned detail. Cleanup is mount-token
+  // guarded, so an older workspace cannot clear a newer registration.
+  useLayoutEffect(() => installThesisReadSource(() => {
+    if (detailState !== "ready" || !detail || detailReadOwner !== ownerKey
+        || selectedId !== detail.id) return null;
+    // A pop/navigation can precede React reconciliation. Never reuse its old
+    // selected record during that interval. This reads location; it never writes it.
+    const params = new URLSearchParams(window.location.search);
+    if (window.location.pathname !== "/analysis" || params.get("view") !== "theses"
+        || params.get("thesis") !== detail.id) return null;
+    const version = inspectedVersion
+      ? detail.history.find((entry) => entry.version === inspectedVersion)
+      : detail.current;
+    if (!version || version.thesisId !== detail.id) return null;
+    return { thesis_id: detail.id, version_id: version.id };
+  }), [detail, detailReadOwner, detailState, inspectedVersion, ownerKey, selectedId]);
+
 
   const suggestAmendment = useCallback(async () => {
     if (!selectedId || !detail) {
@@ -2629,6 +2673,21 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
                       </div>)}
                     </section>}
 
+                    <form className={styles.form} onSubmit={(event) => { event.preventDefault(); submit(selectedId ? "revise" : "create"); }}>
+                      <label>{copy.subject}<input aria-label={copy.subject} value={detail?.subject.key ?? subjectDraft} disabled={!!detail || carrierLocked} onChange={(event) => { changeSubjectDraft(event.target.value); setMessage(null); }} placeholder="NVDA" /></label>
+                      <label>{copy.titleLabel}<input aria-label={copy.titleLabel} value={draft.title} disabled={!editable || carrierLocked} maxLength={160} onChange={(event) => changeDraft("title", event.target.value)} /></label>
+                      <label className={styles.full}>{copy.statement}<textarea aria-label={copy.statement} value={draft.statement} disabled={!editable || carrierLocked} maxLength={12000} rows={8} onChange={(event) => changeDraft("statement", event.target.value)} /></label>
+                      {(["catalysts", "falsifiers", "risks"] as const).map((field) => <label key={field}>{copy[field]}<small>{copy.onePerLine}</small><textarea aria-label={copy[field]} value={draft[field]} disabled={!editable || carrierLocked} rows={5} onChange={(event) => changeDraft(field, event.target.value)} /></label>)}
+                      <label>{copy.horizon}<select aria-label={copy.horizon} value={draft.horizon} disabled={!editable || carrierLocked} onChange={(event) => changeDraft("horizon", event.target.value as ThesisHorizon)}>{(["unspecified", "days", "weeks", "months", "quarters", "years"] as ThesisHorizon[]).map((value) => <option key={value} value={value}>{HORIZON_LABELS[lang][value]}</option>)}</select></label>
+                      <label>{copy.effective}<input aria-label={copy.effective} type="datetime-local" step="0.001" value={draft.effectiveAt} disabled={!editable || carrierLocked} onChange={(event) => { setEffectiveEdited(true); changeDraft("effectiveAt", event.target.value); }} /></label>
+                      <label className={styles.full}>{copy.revision}<textarea aria-label={copy.revision} value={draft.revisionNote} disabled={carrierLocked} maxLength={1000} rows={3} onChange={(event) => changeDraft("revisionNote", event.target.value)} /></label>
+                      <div className={`${styles.actions} ${styles.full}`}>
+                        {editable && <button className={styles.primaryButton} type="submit" disabled={saving || ambiguous || carrierLocked}>{saving ? copy.saving : copy.save}</button>}
+                        {detail && lifecycle === "active" && <><button type="button" disabled={saving || ambiguous || carrierLocked} onClick={() => submit("archive")}>{copy.archive}</button><button type="button" className={styles.dangerButton} disabled={saving || ambiguous || carrierLocked} onClick={() => submit("invalidate")}>{copy.invalidate}</button></>}
+                        {detail && lifecycle !== "active" && <button type="button" className={styles.primaryButton} disabled={saving || ambiguous || carrierLocked} onClick={() => submit("reopen")}>{copy.reopen}</button>}
+                      </div>
+                    </form>
+
                     {detail && <div data-testid="thesis-amendment-panel">
                     <section className={styles.assistantNotes} data-testid="thesis-assistant-notes" aria-label={copy.assistantNotes}>
                       <div className={styles.historyHeading}><h2>{copy.assistantNotes}</h2></div>
@@ -2697,21 +2756,6 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
                         })}
                     </section>
                     </div>}
-
-                    <form className={styles.form} onSubmit={(event) => { event.preventDefault(); submit(selectedId ? "revise" : "create"); }}>
-                      <label>{copy.subject}<input aria-label={copy.subject} value={detail?.subject.key ?? subjectDraft} disabled={!!detail || carrierLocked} onChange={(event) => { changeSubjectDraft(event.target.value); setMessage(null); }} placeholder="NVDA" /></label>
-                      <label>{copy.titleLabel}<input aria-label={copy.titleLabel} value={draft.title} disabled={!editable || carrierLocked} maxLength={160} onChange={(event) => changeDraft("title", event.target.value)} /></label>
-                      <label className={styles.full}>{copy.statement}<textarea aria-label={copy.statement} value={draft.statement} disabled={!editable || carrierLocked} maxLength={12000} rows={8} onChange={(event) => changeDraft("statement", event.target.value)} /></label>
-                      {(["catalysts", "falsifiers", "risks"] as const).map((field) => <label key={field}>{copy[field]}<small>{copy.onePerLine}</small><textarea aria-label={copy[field]} value={draft[field]} disabled={!editable || carrierLocked} rows={5} onChange={(event) => changeDraft(field, event.target.value)} /></label>)}
-                      <label>{copy.horizon}<select aria-label={copy.horizon} value={draft.horizon} disabled={!editable || carrierLocked} onChange={(event) => changeDraft("horizon", event.target.value as ThesisHorizon)}>{(["unspecified", "days", "weeks", "months", "quarters", "years"] as ThesisHorizon[]).map((value) => <option key={value} value={value}>{HORIZON_LABELS[lang][value]}</option>)}</select></label>
-                      <label>{copy.effective}<input aria-label={copy.effective} type="datetime-local" step="0.001" value={draft.effectiveAt} disabled={!editable || carrierLocked} onChange={(event) => { setEffectiveEdited(true); changeDraft("effectiveAt", event.target.value); }} /></label>
-                      <label className={styles.full}>{copy.revision}<textarea aria-label={copy.revision} value={draft.revisionNote} disabled={carrierLocked} maxLength={1000} rows={3} onChange={(event) => changeDraft("revisionNote", event.target.value)} /></label>
-                      <div className={`${styles.actions} ${styles.full}`}>
-                        {editable && <button className={styles.primaryButton} type="submit" disabled={saving || ambiguous || carrierLocked}>{saving ? copy.saving : copy.save}</button>}
-                        {detail && lifecycle === "active" && <><button type="button" disabled={saving || ambiguous || carrierLocked} onClick={() => submit("archive")}>{copy.archive}</button><button type="button" className={styles.dangerButton} disabled={saving || ambiguous || carrierLocked} onClick={() => submit("invalidate")}>{copy.invalidate}</button></>}
-                        {detail && lifecycle !== "active" && <button type="button" className={styles.primaryButton} disabled={saving || ambiguous || carrierLocked} onClick={() => submit("reopen")}>{copy.reopen}</button>}
-                      </div>
-                    </form>
 
                     {detail && <section className={styles.history} aria-label={copy.history}>
                       <div className={styles.historyHeading}><h2>{copy.history}</h2><span>{detail.history.length}</span></div>

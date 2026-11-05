@@ -47,3 +47,15 @@ The earlier desktop trace also showed a click aimed at the temporary startup pos
 The original calendar tests retain their loading, unavailable, outgoing-symbol isolation, event-overlay, replay and persistence assertions. Only their fixture coverage declaration was aligned with their intercepted NVDA/AAPL fund routes.
 
 The Visual Intelligence test file retains its eight pre-existing no-explicit-any lint findings. No claim is made that those unrelated existing findings were removed.
+
+## Mastermind AI continuation merge — 2026-10-19
+
+Fresh qualification covers the actual working normal merge of original AI continuation 330913f983a463e126a35a33f8ab1ab910e924ae and protected Chart Context redesign e1c66d0b137bec948e9a714b22ae81e0e72a382f. The current EVIDENCE.json records this capture's source hashes and retains the complete upstream qualification under retainedParentQualification.
+
+The new executions are: 30/30 Visual Intelligence cases; 13 docking cases plus two existing viewport skips; three chart-remount cases; six bilingual Options coexistence cases; 24/24 PL6 captures; 5/5 options-axis captures; 52 focused integration assertions; and 10 existing evidence-reader assertions. All executable selected cases passed without retries. The canonical production build, post-build TypeScript and enforce-added language gate passed. The current 25-file VI and 28-file docking source coverage is preserved. These local fixture results do not qualify production or ordinary-model behavior.
+
+The Options suite emitted its 14 new PNG/offset artifacts at its existing default output location. Their creation times and hashes were checked against the actual six-case run, their exact bytes were placed into this packet's options-state directory, and the original emissions were retained. No recapture is claimed for copying these already-generated files. The actual reports remain separate: ../terminal-visual-intelligence/browser-report.json, merged-dock-remount-report.json and merged-options-coexistence-report.json.
+
+Required hosted CI and coordinated Macro admission remain pending for the final combined publication. The earlier 330913f hosted run failed one desktop browser shard and is not an admitted result. Full continuity and local logs are linked from docs/research/CMX_COPILOT_CONFIGURED_STUDIES_2026-09-26.md.
+
+The prior desktop-2 failure is the thesis rapid Back/Forward selection test, not a passing release gate. Its three hosted traces and the exact case's single no-retry local pass on this merge are documented in the original continuation record. No thesis source or test assertion was changed, and the local diagnostic does not establish a fix or replace fresh hosted CI.

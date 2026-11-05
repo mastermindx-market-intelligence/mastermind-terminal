@@ -48,6 +48,7 @@ export type ChartDrawingOwner = {
   generation: object;
   /** Missing symbol means authoritative loading has not completed. */
   collections: Record<string, Drawing[]>;
+  aiPersistenceReady?: (symbol: string) => boolean;
   replaceAi: (symbol: string, objects: AiObject[], layerHidden: boolean) =>
     { ok: true; objects: AiObject[] } | { ok: false; error: string };
 };
@@ -709,33 +710,38 @@ export function useChartBus(host: ChartBusHost): ChartBus {
     editScope.live = true;
     return () => { editScope.live = false; };
   }, [editScope]);
+  const canEditScope = useCallback(() => {
+    const current = hostRef.current;
+    return isCurrentOwner() && editScope.live && !pendingContextRef.current
+      && current.activeSymbol === editScope.symbol && current.currentTf === editScope.tf
+      && current.activePaneId === editScope.paneId;
+  }, [isCurrentOwner, editScope]);
+  const layerAvailability: AiLayerController["availability"] = host.drawingOwner.collections[activeSym] === undefined ? "loading"
+    : host.drawingOwner.aiPersistenceReady?.(activeSym) ? "ready" : "unavailable";
   const legend = useMemo(() => ({
+    availability: layerAvailability,
     count: (aiStore[activeSym] ?? []).length,
     objects: aiStore[activeSym] ?? [],
     hidden: hiddenSyms.has(activeSym),
     toggleHidden: () => {
-      if (!isCurrentOwner() || hostRef.current.activeSymbol !== activeSym) return;
+      if (!canEditScope()) return;
       const accepted = commitAiObjects(activeSym, aiStoreRef.current[activeSym] ?? [], !hiddenSymsRef.current.has(activeSym));
       if (accepted.ok) scheduleState();
     },
     clear: () => {
-      if (!isCurrentOwner() || hostRef.current.activeSymbol !== activeSym) return;
+      if (!canEditScope()) return;
       const accepted = commitAiObjects(activeSym, [], false);
       if (accepted.ok) scheduleState();
     },
     editObjects: (ids: readonly string[], edit: AiObjectEdit) => {
-      const current = hostRef.current;
-      if (!isCurrentOwner() || !editScope.live || pendingContextRef.current
-          || current.activeSymbol !== editScope.symbol
-          || current.currentTf !== editScope.tf
-          || current.activePaneId !== editScope.paneId) return false;
+      if (!canEditScope()) return false;
       const objects = editAiObjects(aiStoreRef.current[activeSym] ?? [], ids, edit);
       if (!objects) return false;
       const accepted = commitAiObjects(activeSym, objects, hiddenSymsRef.current.has(activeSym));
       if (accepted.ok) scheduleState();
       return accepted.ok;
     },
-  }), [aiStore, hiddenSyms, activeSym, editScope, commitAiObjects, isCurrentOwner, scheduleState]);
+  }), [aiStore, hiddenSyms, activeSym, layerAvailability, canEditScope, commitAiObjects, scheduleState]);
 
   return { get context() { return isCurrentOwner() ? contextRef.current : null; }, dispatchV2, prepareChartState, noteViewport, noteReadoutChange, noteNativeObservationChange, aiDrawingsFor, legend, queue };
 }

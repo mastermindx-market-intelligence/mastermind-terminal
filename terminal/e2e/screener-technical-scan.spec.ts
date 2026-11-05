@@ -205,7 +205,7 @@ for (const lang of ["en", "zh"] as const) {
     await expect(search).toHaveValue("AAPL");
     await search.fill("");
     // Not-evaluated names are hidden as UNKNOWN and counted — never dropped silently.
-    await expect.poll(() => symRows(page).count()).toBeGreaterThan(0);
+    await expect(symRows(page).first()).toBeAttached();
     await expect(page.locator("[data-tech-hidden-unknown]")).toContainText(String(net.total - (2 + SYNTH)));
 
     // ── a saved preset keeps the #884 FilterState shape: no technical keys ──

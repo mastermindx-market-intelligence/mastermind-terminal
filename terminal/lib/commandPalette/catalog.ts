@@ -66,10 +66,10 @@ export interface PaletteContext {
   researchOnAnalysisPage: boolean;
   /**
    * Optional integration seam for a watchlist review session (program item E16): the session's
-   * frozen previous/next company. Null when no review session exists — which is always the case
-   * until that feature ships — and the review rows then say so instead of guessing a company.
-   * When a review owner supplies it, the rows run through the same `symbol` handler (the shell's
-   * `pick`) as the watchlist step; a null neighbour is the end of the review, never a substitute.
+   * frozen previous/next company. Null when no review session is running, and the review rows then
+   * say so instead of guessing a company. When a review is running, the shell runs the rows through
+   * the review owner's own next()/prev(), which advance the itinerary and navigate through `pick`;
+   * a null neighbour is the end of the review, never a substitute.
    */
   review: { next: string | null; previous: string | null } | null;
 }

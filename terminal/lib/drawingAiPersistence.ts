@@ -1,4 +1,4 @@
-import { AI_OBJECT_CAP, CAPTION_MAX, DRAW_OPS, type AiObject } from "./chartBus";
+import { AI_OBJECT_CAP, CAPTION_MAX, DRAW_OPS, isWellFormedChartText, type AiObject } from "./chartBus";
 import { MAX_DRAWINGS_PER_SYMBOL, normalizeDrawing, normalizeDrawings, type Drawing } from "./drawings";
 import { drawingToolAcceptsPersistedPointCount } from "./drawingTools";
 import { isAiNativeDrawingKind } from "./chartDrawingTools";
@@ -14,9 +14,32 @@ const token = (value: unknown, max: number): value is string =>
   typeof value === "string" && value.length > 0 && value.length <= max
   && !/[\u0000-\u001f\u007f]/.test(value);
 
+// Check every serialized string, including drawing.text, meta.label and metadata
+// keys. Reject invalid stored input; recovery/replay must never repair its bytes.
+function jsonTextIsWellFormed(value: unknown): boolean {
+  const parents = new Set<object>();
+  const stack: Array<{ value: unknown; exit?: boolean }> = [{ value }];
+  while (stack.length) {
+    const next = stack.pop()!;
+    if (typeof next.value === "string") {
+      if (!isWellFormedChartText(next.value) || next.value.includes("\u0000")) return false;
+    } else if (next.value !== null && typeof next.value === "object") {
+      if (next.exit) { parents.delete(next.value); continue; }
+      if (parents.has(next.value)) return false;
+      parents.add(next.value);
+      stack.push({ value: next.value, exit: true });
+      for (const [key, child] of Object.entries(next.value)) {
+        if (!isWellFormedChartText(key) || key.includes("\u0000")) return false;
+        stack.push({ value: child });
+      }
+    }
+  }
+  return true;
+}
+
 /** Restore one AI object only when its complete provenance and geometry survive. */
 export function readStoredAiDrawing(drawing: Drawing): AiObject | null {
-  if (drawing.source !== "ai" || !token(drawing.id, 96) || !drawing.id.startsWith("ai_")) return null;
+  if (!jsonTextIsWellFormed(drawing) || drawingSourceConflict(drawing) || drawing.source !== "ai" || !token(drawing.id, 96) || !drawing.id.startsWith("ai_")) return null;
   const meta = drawing.meta?.chart_ai;
   if (!record(meta) || meta.schema !== AI_DRAWING_SCHEMA || Object.keys(meta).some(key => !KEYS.has(key))
     || !token(meta.command_id, 64) || !meta.command_id.startsWith("ai_")
@@ -31,11 +54,26 @@ export function readStoredAiDrawing(drawing: Drawing): AiObject | null {
       || !/^[0-9]+$/.test(String(point.t)) || !Number.isSafeInteger(Number(point.t))
       || Number(point.t) < 631152000 || Number(point.t) > 4102444800
       || !Number.isFinite(point.p) || point.p <= 0)
-    || (meta.op === "draw.tool" && !isAiNativeDrawingKind(drawing.kind))) return null;
+    || !storedAiKindMatchesOperation(drawing.kind, meta.op)) return null;
   return { ...drawing, by: "ai", auto: true, source: "ai",
     command_id: meta.command_id, op: meta.op as AiObject["op"],
     batch_id: meta.batch_id, seq: Number(meta.seq),
     ...(typeof meta.caption === "string" ? { caption: meta.caption } : {}) };
+}
+
+/** Match the actual translator output; child IDs and sibling membership remain independent. */
+export function storedAiKindMatchesOperation(kind: Drawing["kind"], op: string): boolean {
+  switch (op) {
+    case "draw.tool": return isAiNativeDrawingKind(kind);
+    case "draw.trendline": case "draw.channel": case "draw.path": return kind === "trendline";
+    case "draw.ray": return kind === "ray";
+    case "draw.hline": return kind === "hline";
+    case "draw.zone": return kind === "rect";
+    case "draw.fib": return kind === "fib";
+    case "draw.label": case "draw.marker": return kind === "text";
+    case "draw.risk_box": return kind === "rect" || kind === "hline";
+    default: return false;
+  }
 }
 
 /** Encode into metadata already retained by the canonical normalizer/outbox/API. */
@@ -87,6 +125,8 @@ export function drawingSourceConflict(value: unknown): boolean {
   const meta = record(value.meta) ? value.meta : {};
   const claimsAi = value.by === "ai" || meta.by === "ai" || meta.chart_ai !== undefined
     || (typeof value.id === "string" && value.id.trim().startsWith("ai_"));
+  if (value.source === "ai" && ((value.by !== undefined && value.by !== "ai")
+      || (meta.by !== undefined && meta.by !== "ai") || (value.auto !== undefined && value.auto !== true))) return true;
   return (meta.chart_ai !== undefined && value.source !== "ai")
     || (value.source !== undefined && value.source !== "ai" && claimsAi)
     || (value.source === "user" && value.auto === true);

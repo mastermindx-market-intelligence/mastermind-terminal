@@ -19,6 +19,7 @@ export function useTestChartBus(host: TestChartBusHost) {
   }), [collections, host.activeSymbol, host.userDrawings]);
   return useChartBus({ ...host, drawingOwner: host.drawingOwner ?? {
     key: "account:chart-fixture", generation, collections: loaded,
+    aiPersistenceReady: () => true,
     replaceAi: (symbol, objects, hidden) => {
       const current = working.current[symbol] ?? (symbol === host.activeSymbol ? host.userDrawings : []);
       const result = replaceAiPartition(current, objects, hidden);

@@ -2,7 +2,9 @@ import { expect, test, type Page, type TestInfo } from "@playwright/test";
 import { SUITE_META, suiteDefaults } from "../lib/suites/meta";
 import { openChartContext } from "./phoneChrome";
 import type { Ack, ChartCommandTarget, ChartCommandV2 } from "../lib/chartBus";
-import type { Drawing } from "../lib/drawings";
+import { normalizeDrawings, type Drawing } from "../lib/drawings";
+import { AI_DRAWING_SCHEMA } from "../lib/drawingAiPersistence";
+import { parsePersistedDrawings, validDrawingOperationId } from "../lib/drawingPersistence";
 
 const clientErrors = new WeakMap<Page, string[]>();
 test.beforeEach(async ({ page }) => {
@@ -85,13 +87,16 @@ const pairTemplate = { id: "ct_aipair01", v: 2, name: "Two independent RSIs", re
   indicators: ["rsi", "rsi__aipair01"],
   indParams: { rsi: { length: 9 }, rsi__aipair01: { length: 7 } }, hidden: ["rsi__aipair01"] };
 
-type DrawingSave = { drawings: Drawing[]; aiSchemaVersion: number; owner_id: string };
+type DrawingSave = { drawings: Drawing[]; ownerKey: string; operationId: string; expectedRevision: string | null };
 async function open(page: Page, lang: "en" | "zh", log = false,
-  saveMode: "normal" | "failed" | "legacy" = "normal", initialDrawings: Drawing[] = [human as Drawing]) {
+  saveMode: "normal" | "failed" | "legacy" | "unsupported" = "normal", initialDrawings: Drawing[] = [human as Drawing]) {
   const mirrors: Mirror[] = [];
   const saves: DrawingSave[] = [];
   let activeSaveMode = saveMode;
-  let persisted: Drawing[] = initialDrawings;
+  let persisted: Drawing[] = normalizeDrawings(initialDrawings);
+  let revision: string | null = persisted.length ? "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa" : null;
+  let commits = 0;
+  const operations = new Map<string, { payload: DrawingSave; revision: string }>();
   const fixtureBars = log ? bars.map(([t, o, h, l, c, v]) => [t, 2 * o - 90, 2 * h - 90, 2 * l - 90, 2 * c - 90, v]) : bars;
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.route("https://www.mastermind-x.com/mm_brain.js", route => route.fulfill({ contentType: "application/javascript",
@@ -101,15 +106,39 @@ async function open(page: Page, lang: "en" | "zh", log = false,
     await route.fulfill({ json: { ok: true } });
   });
   await page.route("**/api/drawings**", async route => {
-    if (route.request().method() === "GET") await route.fulfill({ json: { drawings: persisted, aiSchemaVersion: 1 } });
+    if (route.request().method() === "GET") {
+      expect(route.request().headers()["x-drawing-owner"]).toBe("account:e2e-user-default");
+      await route.fulfill({ json: { drawings: persisted, revision, schemaVersion: 1,
+        ...(activeSaveMode === "unsupported" ? {} : { aiDrawingSchema: AI_DRAWING_SCHEMA }) } });
+    }
     else {
       const payload = route.request().postDataJSON() as DrawingSave;
       saves.push(payload);
+      expect(payload.ownerKey).toBe("account:e2e-user-default");
+      expect(validDrawingOperationId(payload.operationId)).toBe(true);
+      expect(parsePersistedDrawings(payload.drawings)).not.toBeNull();
       if (activeSaveMode === "failed") { await route.fulfill({ status: 503, json: { ok: false } }); return; }
-      persisted = payload.drawings.filter(drawing => drawing.source !== "detector"
-        && (activeSaveMode !== "legacy" || drawing.source !== "ai"));
+      const prior = operations.get(payload.operationId);
+      if (prior) {
+        expect(payload).toEqual(prior.payload);
+        await route.fulfill({ json: activeSaveMode === "legacy" ? { ok: true } : {
+          ok: true, operationId: payload.operationId, revision: prior.revision,
+          idempotentReplay: true, superseded: prior.revision !== revision,
+        } });
+        return;
+      }
+      if (payload.expectedRevision !== revision) {
+        await route.fulfill({ status: 409, json: { ok: false, code: "revision_conflict" } });
+        return;
+      }
+      persisted = payload.drawings;
+      revision = "bbbbbbbb-bbbb-4bbb-8bbb-" + String(++commits).padStart(12, "0");
+      operations.set(payload.operationId, { payload, revision });
+      // A bare legacy acknowledgement supplies no operation receipt. It cannot
+      // justify clearing the exact attempt even if this fixture applied it.
       await route.fulfill({ json: activeSaveMode === "legacy" ? { ok: true } : {
-        ok: true, count: persisted.length, aiSchemaVersion: 1, owner_id: payload.owner_id,
+        ok: true, count: persisted.length, operationId: payload.operationId, revision,
+        idempotentReplay: false, superseded: false,
       } });
     }
   });
@@ -288,8 +317,8 @@ for (const lang of ["en", "zh"] as const) {
     // exact geometry, group metadata, deleted children and independent hidden flags restore.
     await expect.poll(() => saves.at(-1)?.drawings.find(drawing => drawing.id === "ai_zone")?.hidden).toBe(true);
     const beforeReload = saves.at(-1)!;
-    expect(beforeReload.aiSchemaVersion).toBe(1);
-    expect(beforeReload.owner_id).toBeTruthy();
+    expect(beforeReload.ownerKey).toBe("account:e2e-user-default");
+    expect(validDrawingOperationId(beforeReload.operationId)).toBe(true);
     expect(beforeReload.drawings.some(drawing => drawing.id === firstId)).toBe(false);
     expect(beforeReload.drawings.some(drawing => drawing.id === secondId)).toBe(true);
     const priorOrigin = mirrors.at(-1)!.origin_id;
@@ -634,6 +663,20 @@ for (const direction of ["undo", "redo"] as const) {
 }
 
 
+test("a read without installed AI persistence keeps human drawings and refuses an AI mutation", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "Capability boundary executes once; responsive inventory is covered above.");
+  const { mirrors, saves } = await open(page, "en", false, "unsupported");
+  await send(page, mirrors, "unsupported-read", [{ op: "draw.hline", id: "ai_unavailable", args: { p: 110 } }]);
+  await expect.poll(() => receipts(mirrors, "unsupported-read")).toHaveLength(1);
+  expect(receipts(mirrors, "unsupported-read")).toMatchObject([{ ok: false, error: "ai_persistence_unavailable" }]);
+  const layer = page.locator('[data-ai-layer="true"]');
+  await layer.locator("button[aria-controls]").first().click();
+  await expect(layer.getByRole("status")).toHaveText("AI drawing changes are unavailable for this chart.");
+  await expect(page.locator('.pane.on .drawing-layer [data-id="human_reference"]')).toHaveCount(1);
+  await expect(page.locator('.pane.on .drawing-layer [data-id="ai_unavailable"]')).toHaveCount(0);
+  expect(saves).toHaveLength(0);
+});
+
 for (const saveMode of ["failed", "legacy"] as const) {
   test(`AI drawing recovery survives reload after ${saveMode} save acknowledgement`, async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "desktop", "Storage failure and receipt semantics execute once; responsive reload is covered in both languages above.");
@@ -647,10 +690,15 @@ for (const saveMode of ["failed", "legacy"] as const) {
     await layer.locator('[data-ai-drawing-id="ai_channel"] button').first().click();
     await expect(svg.locator('[data-id="ai_channel"]')).toHaveCount(0);
     await expect.poll(() => saves.length).toBeGreaterThan(0);
-    const persistedRecovery = await page.evaluate(() => JSON.parse(localStorage.getItem("mm.drawing.account-outbox.v1") || "{}"));
-    const owner = "account:" + saves.at(-1)!.owner_id;
-    expect(persistedRecovery[owner]?.NVDA?.schema).toBe("chart.drawing_recovery.v2");
-    expect(persistedRecovery[owner]?.NVDA?.drawings.find((d: Drawing) => d.id === "ai_channel")?.hidden).toBe(true);
+    const owner = saves.at(-1)!.ownerKey;
+    const recoveryCopies = () => page.evaluate(owner => Object.values(
+      JSON.parse(localStorage.getItem("mm.drawing.account-outbox.v2") || "{}")[owner]?.NVDA?.copies ?? {}),
+    owner) as Promise<Array<{ drawings: Drawing[]; attempt?: { operationId: string; drawings: Drawing[] } }>>;
+    await expect.poll(async () => (await recoveryCopies()).some(copy =>
+      copy.drawings.find(d => d.id === "ai_channel")?.hidden === true)).toBe(true);
+    const originalAttempt = (await recoveryCopies()).find(copy => copy.attempt)?.attempt;
+    expect(originalAttempt).toBeTruthy();
+    expect(validDrawingOperationId(originalAttempt!.operationId)).toBe(true);
     await page.reload();
     await expect.poll(() => page.evaluate(() => !!(window as Host).__drawingWorkspaceReady), { timeout: 30_000 }).toBe(true);
     await expect(svg.locator('[data-id="ai_extension"]')).toHaveCount(1);
@@ -658,8 +706,28 @@ for (const saveMode of ["failed", "legacy"] as const) {
     await expect(svg.locator('[data-id="human_reference"]')).toHaveCount(1);
     await layer.locator("button[aria-controls]").first().click();
     await expect(layer.locator("[data-ai-drawing-id]")).toHaveCount(2);
-    const remaining = await page.evaluate(owner => JSON.parse(localStorage.getItem("mm.drawing.account-outbox.v1") || "{}")[owner], owner);
-    expect(remaining.NVDA.drawings).toHaveLength(3);
+    const retained = svg.locator('[data-id="ai_extension"]');
+    await expect(retained).toHaveAttribute("data-ai-read-only", "true");
+    const geometry = () => retained.evaluate(element => Array.from(element.querySelectorAll('[data-geometry="1"]'), node => node.outerHTML));
+    const beforeGeometry = await geometry();
+    await retained.dispatchEvent("pointerdown", { pointerId: 71, isPrimary: true, button: 0, clientX: 220, clientY: 240 });
+    const inspector = page.getByRole("toolbar", { name: "Selected drawing properties" });
+    await expect(inspector).toHaveAttribute("data-ai-read-only", "true");
+    await expect(inspector.locator('[data-lock]')).toBeDisabled();
+    await expect(inspector.locator('[data-del]')).toBeDisabled();
+    await expect(inspector.locator('[data-duplicate]')).toBeDisabled();
+    await retained.dispatchEvent("wheel", { deltaY: 100 });
+    await page.keyboard.press("ArrowUp");
+    await page.keyboard.press("Delete");
+    await page.evaluate(() => {
+      window.dispatchEvent(new PointerEvent("pointermove", { pointerId: 71, clientX: 260, clientY: 280 }));
+      window.dispatchEvent(new PointerEvent("pointerup", { pointerId: 71, clientX: 260, clientY: 280 }));
+    });
+    expect(await geometry()).toEqual(beforeGeometry);
+    const remaining = await recoveryCopies();
+    expect(remaining).toHaveLength(1);
+    expect(remaining[0].drawings).toHaveLength(3);
+    expect(remaining[0].attempt).toEqual(originalAttempt);
 
     // The next reload can acknowledge the recovered snapshot. Dequeueing and
     // clearing recovery must leave the independently owned chart collection intact.
@@ -667,7 +735,7 @@ for (const saveMode of ["failed", "legacy"] as const) {
     await page.reload();
     await expect.poll(() => page.evaluate(() => !!(window as Host).__drawingWorkspaceReady), { timeout: 30_000 }).toBe(true);
     await expect.poll(() => page.evaluate(owner =>
-      JSON.parse(localStorage.getItem("mm.drawing.account-outbox.v1") || "{}")[owner]?.NVDA, owner)).toBeUndefined();
+      JSON.parse(localStorage.getItem("mm.drawing.account-outbox.v2") || "{}")[owner]?.NVDA, owner)).toBeUndefined();
     await expect(svg.locator('[data-id="ai_extension"]')).toHaveCount(1);
     await expect(svg.locator('[data-id="ai_channel"]')).toHaveCount(0);
     await expect(svg.locator('[data-id="human_reference"]')).toHaveCount(1);

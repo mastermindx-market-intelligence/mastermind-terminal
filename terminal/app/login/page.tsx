@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { loginSheetHref } from "@/lib/supabase/redirects";
 import LoginFormLegacy from "./LoginFormLegacy";
 
 // MUST be request-time dynamic: the TERMINAL_REQUIRE_AUTH branch below reads a
@@ -17,7 +18,12 @@ export const dynamic = "force-dynamic";
 // Exception: TERMINAL_REQUIRE_AUTH=1 keeps the legacy full-page form — in that
 // mode the auth guard bounces guests to /login, and redirecting back to
 // /terminal?signin=1 would loop.
-export default function Login() {
-  if (process.env.TERMINAL_REQUIRE_AUTH === "1") return <LoginFormLegacy />;
-  redirect("/terminal?signin=1");
+export default async function Login({ searchParams }: {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+} = {}) {
+  const landing = process.env.MMX_SHARED_SHELL === "1" ? "/today" : "/terminal";
+  if (process.env.TERMINAL_REQUIRE_AUTH === "1") return <LoginFormLegacy defaultNext={landing} />;
+  const query = await searchParams;
+  const next = typeof query?.next === "string" ? query.next : null;
+  redirect(loginSheetHref(next, landing));
 }
