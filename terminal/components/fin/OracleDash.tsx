@@ -9,11 +9,13 @@ import { LineSeries } from "./FinCharts"
 import { useWorkspaceSource, type WorkspaceSource } from "../../lib/useWorkspaceSource"
 import { workspaceCurve, workspaceSourceClock, workspaceSecurityContext } from "../../lib/intelligenceWorkspaceView"
 import { IntelligenceWorkspaceShell, type WorkspaceTab } from "./IntelligenceWorkspaceShell"
-import { workspaceActivity, type ActivityFilter } from "../../lib/intelligenceActivity"
+import { workspaceActivity, exploreWorkspaceActivity, activityEventPresentation, type ActivityFilter, type ActivityOrder } from "../../lib/intelligenceActivity"
+import StockEvidenceOverview from "./StockEvidenceOverview"
+import evidenceStyles from "./StockEvidenceOverview.module.css"
 import styles from "./IntelligenceWorkspace.module.css"
 import ProphetObservationEvidence from "./ProphetObservationEvidence"
 import { prophetObservationSummary, type ProphetObservationRead } from "../../lib/prophetObservations"
-import { oracleVerdict, oraclePresentation, oracleEntryAvailability, deskVerdict, signalKnownTs, isBlockedSignal, isBottomWatch, isRetroOverride, isStopSweepReclaim, isStructureStop, retroLegendCopy, sliceSignalBasis } from "../../lib/signalVerdict"
+import { oracleVerdict, oraclePresentation, oracleEntryAvailability, deskVerdict, signalKnownTs, isBlockedSignal, isBottomWatch, isRetroOverride, isStructureStop, retroLegendCopy, sliceSignalBasis } from "../../lib/signalVerdict"
 import { computeTrendState } from "../../lib/trend"
 import { normalizeMarketRisk, riskEnvelopeCopy, type MarketRiskRead } from "../../lib/marketRisk"
 import { computeRatings, verdictFromScore } from "../../lib/techRating"
@@ -447,13 +449,23 @@ export function MarketRiskChip({ zh }: { zh: boolean }) {
 
 export default function OracleDash({ sym, row, bars, zh = false, open = true, onClose, onJump, onOpenFull, prophet }: OracleDashProps) {
   const [tab, setTab] = useState<WorkspaceTab>("summary")
-  const [filter, setFilter] = useState<ActivityFilter>("all")
-  const [visibleCount, setVisibleCount] = useState(30)
+  const activitySearchRef = useRef<HTMLInputElement>(null)
+  const [activityControls, setActivityControls] = useState<{
+    sym: string; filter: ActivityFilter; query: string; order: ActivityOrder; visible: number
+  }>({ sym, filter: "all", query: "", order: "newest", visible: 30 })
+  // Synchronous subject fence: a symbol change never renders another symbol's query/filter.
+  const controls = activityControls.sym === sym ? activityControls : { sym, filter: "all" as ActivityFilter, query: "", order: "newest" as ActivityOrder, visible: 30 }
+  const { filter, query, order, visible: visibleCount } = controls
+  if (activityControls.sym !== sym) setActivityControls(controls)
+  const updateActivity = (patch: Partial<Pick<typeof controls, "filter" | "query" | "order">>) =>
+    setActivityControls({ ...controls, ...patch, visible: 30 })
+  const setFilter = (filter: ActivityFilter) => updateActivity({ filter })
+  const setVisibleCount = (update: (count: number) => number) =>
+    setActivityControls(previous => ({ ...controls, visible: update(previous.sym === sym ? previous.visible : 30) }))
   const sliceRead = useWorkspaceSource<Slice>(sym, "slice", open)
   const intelRead = useWorkspaceSource<Intel>(sym, "intel", open)
   const slice = sliceRead.data
   const intel = intelRead.data
-  useEffect(() => { setVisibleCount(30) }, [sym, filter])
   // Derived verdicts using shared helpers (trend powers the stance ladder on stale events)
   const trendState = Array.isArray(bars) && (bars as Bar[]).length >= 200 ? computeTrendState(bars as Bar[]) : null
   const ov = oracleVerdict(row?.verdict ?? null, slice, zh, Date.now(), trendState)
@@ -545,7 +557,9 @@ export default function OracleDash({ sym, row, bars, zh = false, open = true, on
   const researchDate = sourceClock.kind === "dated"
     ? `${pick(zh, "Research as of", "研究截至")} ${signalHistoryDate(sourceClock.date, zh)}${sourceClock.ageDays > 2 ? ` · ${pick(zh, `${sourceClock.ageDays} days old`, `${sourceClock.ageDays}天前`)}` : ""}`
     : pick(zh, "Research date not supplied", "未提供研究日期")
-  const activity = useMemo(() => tab === "activity" ? workspaceActivity(slice?.indicator?.signals ?? [], slice?.opportunities?.events ?? [], filter) : [], [slice, filter, tab])
+  const allActivity = useMemo(() => workspaceActivity(slice?.indicator?.signals ?? [], slice?.opportunities?.events ?? [], "all"), [slice])
+  const exploredActivity = useMemo(() => exploreWorkspaceActivity(allActivity, { query, filter, order }), [allActivity, query, filter, order])
+  const activity = exploredActivity.events
   const visibleActivity = activity.slice(0, visibleCount)
   const hasSignalHistory = Array.isArray(slice?.indicator?.signals)
   const hasCandidateHistory = Array.isArray(slice?.opportunities?.events)
@@ -714,12 +728,33 @@ export default function OracleDash({ sym, row, bars, zh = false, open = true, on
         ? pick(zh, "Company-state identity could not be verified. This evidence is unavailable.", "公司状态身份无法核实，此证据不可用。")
         : pick(zh, "Company-state evidence is temporarily unavailable.", "公司状态证据暂时不可用。")}</p>}
   </section>
-  const activityView = <section className="sd-go" data-testid="workspace-activity">
+  const activityView = <section className={`sd-go ${evidenceStyles.explorer}`} data-testid="workspace-activity">
     <h3 className={styles.sectionHeading}>{pick(zh, "Signal activity", "信号动态")}<span aria-live="polite">{sliceRead.status === "ready" && hasFilteredSource && pick(zh, `${activity.length} ${activity.length === 1 ? "event" : "events"}`, `${activity.length}条记录`)}</span></h3>
+    <div className={evidenceStyles.toolbar}>
+      <div className={evidenceStyles.search}>
+        <input ref={activitySearchRef} type="search" aria-label={pick(zh, "Search activity", "搜索动态")} value={query} maxLength={160}
+          placeholder={pick(zh, "Event, date or price…", "事件、日期或价格…")}
+          onChange={event => updateActivity({ query: event.target.value })}
+          onKeyDown={event => { if (event.key === "Escape" && query) { event.preventDefault(); event.stopPropagation(); updateActivity({ query: "" }) } }} />
+        {query && <button type="button" className={evidenceStyles.clearSearch} aria-label={pick(zh, "Clear search", "清除搜索")}
+          onClick={() => { updateActivity({ query: "" }); activitySearchRef.current?.focus() }}>×</button>}
+      </div>
+      <select className={evidenceStyles.sort} value={order} aria-label={pick(zh, "Sort activity", "动态排序")}
+        onChange={event => updateActivity({ order: event.target.value === "oldest" ? "oldest" : "newest" })}>
+        <option value="newest">{pick(zh, "Newest first", "最新优先")}</option>
+        <option value="oldest">{pick(zh, "Oldest first", "最早优先")}</option>
+      </select>
+    </div>
     <div className={styles.filters} role="group" aria-label={pick(zh, "Filter activity", "筛选动态")}>
       {([ ["all", "All", "全部"], ["entries", "Entries", "入场"], ["exits", "Exits", "离场"], ["watches", "Watches", "观察"], ["refused", "Not entered", "未入场"], ["receipts", "Candidates", "候选"] ] as const).map(([id, en, cn]) =>
-        <button key={id} aria-pressed={filter === id} onClick={() => setFilter(id)}>{pick(zh, en, cn)}</button>)}
+        <button key={id} aria-label={pick(zh, en, cn)} aria-describedby={`stock-activity-count-${id}`} aria-pressed={filter === id} onClick={() => setFilter(id)}>{pick(zh, en, cn)}
+          {sliceRead.status === "ready" && (id === "receipts" ? hasCandidateHistory : id === "all" ? hasSignalHistory || hasCandidateHistory : hasSignalHistory) &&
+            <span id={`stock-activity-count-${id}`} className={evidenceStyles.filterCount} data-testid={`activity-count-${id}`}>{exploredActivity.counts[id]}</span>}
+        </button>)}
     </div>
+    {exploredActivity.query && sliceRead.status === "ready" && hasFilteredSource && <p className={evidenceStyles.searchStatus}>
+      {pick(zh, `${exploredActivity.matched} matching observations · literal search`, `${exploredActivity.matched}条匹配记录 · 按字面搜索`)}
+    </p>}
     <SourceState read={sliceRead} label={pick(zh, "Signal history", "信号历史")} zh={zh} />
     {sliceRead.status === "ready" && <>
       {activity.length > 0 && <div className={styles.activityColumns} aria-hidden="true">
@@ -746,25 +781,11 @@ export default function OracleDash({ sym, row, bars, zh = false, open = true, on
             const isEntry = event.category === "entries" && sig.type !== "RECLAIM"
             const isReclaim = sig.type === "RECLAIM"
             const isBottom = isBottomWatch(sig)
-            const isSweepReclaim = isStopSweepReclaim(sig)
             const isStarter = isEntry && (sig.quality === "block" || sig.quality === "pending")
             const isStop = isStructureStop({ type: sig.type, basis: sliceSignalBasis(sig) })
             // badge text stays inside the 58px pill and matches the on-chart glyph, so the
             // list and the chart read as one system; the mechanic rides the qualifier + hover.
-            const badgeText = isRetro ? sig.type
-              : isBlocked ? pick(zh, "BLOCKED", "已拦截")
-                : isStop ? pick(zh, "STOP", "止损")
-                  : isBottom ? pick(zh, "EARLY", "底部观察")
-                    : isSweepReclaim ? pick(zh, "RECLAIM", "流动性收复")
-                      : isReclaim ? (event.category === "entries" ? pick(zh, "RE-ENTRY", "再入场") : pick(zh, "RECLAIM", "收复观察"))
-                        : isStarter ? pick(zh, "STARTER", "试仓") : sig.type
-            const qualifier = isRetro ? pick(zh, "(retro)", "（事后重标）")
-              : isBlocked ? pick(zh, "not an entry", "非入场信号")
-                : isStop ? pick(zh, "swing-low break", "跌破前低")
-                  : isBottom ? pick(zh, "risk-defined · not confirmed", "风险限定 · 尚未确认")
-                    : isSweepReclaim ? pick(zh, "failed breakdown reclaimed", "假突破后收复")
-                      : isStarter ? (sig.quality === "block" ? pick(zh, "confirmation failed", "确认未通过") : pick(zh, "awaiting hold", "等待企稳"))
-                      : isEntry ? qualityLabel(sig.quality, zh) : ""
+            const { label: badgeText, detail: qualifier } = activityEventPresentation(event, zh)
             const chartDate = event.chartDate ? signalHistoryDate(event.chartDate, zh) : null
             const dateTitle = event.clock === "observed" && chartDate && event.date !== event.chartDate
               ? pick(zh, `First observed ${date} · 3D bar opened ${chartDate}`, `首次可见于 ${date} · 3日K线始于 ${chartDate}`)
@@ -860,82 +881,42 @@ export default function OracleDash({ sym, row, bars, zh = false, open = true, on
   const researchSetup = currentSetup ? dv.label : pick(zh, "No current reading", "暂无当前判断")
   const sourceLabel = (status: WorkspaceSource<unknown>["status"]) => status === "loading" ? pick(zh, "Loading…", "加载中…")
     : status === "absent" ? pick(zh, "Not published", "尚未发布") : pick(zh, "Source unavailable", "数据源不可用")
-  const evidenceRow = (source: "oracle" | "research", name: string, value: string, note: string | null, observed: string | null, onClick: () => void) =>
-    <button className={styles.evidenceRow} data-evidence-source={source} onClick={onClick}>
-      <span className={styles.evidenceIcon} aria-hidden="true">{source === "oracle" ? "O" : "R"}</span>
-      <span className={styles.evidenceBody}>
-        <small className={styles.evidenceLabel}>{name}</small>
-        <strong>{value}</strong>
-        {note && <small className={styles.evidenceNote}>{note}</small>}
-      </span>
-      <span className={styles.evidenceAside}>
-        {observed && <small>{observed}</small>}
-        <span aria-hidden="true">›</span>
-      </span>
-    </button>
   const researchObserved = sourceClock.kind === "dated" ? signalHistoryDate(sourceClock.date, zh) : null
-  const activityTotal = (slice?.indicator?.signals?.length ?? 0) + (slice?.opportunities?.events?.length ?? 0)
+  const overviewProphet = <details key={sym} className={evidenceStyles.prophet}>
+    <summary><span><small>{pick(zh, "Prophet · early evidence", "Prophet · 早期证据")}</small>
+      <strong>{early?.label ?? pick(zh, "Source not supplied", "未提供数据源")}</strong>
+      {early?.detail && <small>{early.detail}</small>}</span><span aria-hidden="true">⌄</span>
+    </summary>
+    {prophet ? <ProphetObservationEvidence read={prophet} zh={zh} /> : <p className={evidenceStyles.prophetMissing}>{pick(zh, "No Prophet source was supplied for this symbol.", "该标的未提供 Prophet 数据源。")}</p>}
+  </details>
   return <IntelligenceWorkspaceShell open={open} symbol={sym} zh={zh} tab={tab} onTabChange={setTab} onClose={() => onClose?.()}
     status={null}>
-    {tab === "summary" && <section className={styles.summaryPage} data-testid="workspace-summary">
-      <div className={styles.entryHero} data-testid="workspace-oracle-entry-availability" data-status={entry.status}>
-        <div className={styles.entryHeroTop}>
-          <span className={styles.eyebrow}>{pick(zh, "Current Oracle entry", "当前神谕入场")}</span>
-          <span className={styles.entryBadge}>{pick(zh, "Unverified source", "来源未核实")}</span>
-        </div>
-        <h3>{entry.label}</h3>
-        <p>{entry.reason}</p>
-        <div className={styles.entryHeroRule} />
-        <small>{pick(zh, "Historical signals are not current entry calls.", "历史信号不代表当前入场许可。")}</small>
-      </div>
-      <div className={styles.evidenceHeader}>
-        <h3 className={styles.sectionHeading}>{pick(zh, "Evidence", "依据")}</h3>
-        <span>{pick(zh, "Dated observations", "有日期的观察记录")}</span>
-      </div>
-      <div className={styles.evidenceGroup}>
-        {evidenceRow("oracle",
-          sliceRead.status === "ready" ? oracleRead.heading : pick(zh, "Oracle", "神谕"),
-          sliceRead.status === "ready" ? oracleRead.label : sourceLabel(sliceRead.status),
-          sliceRead.status === "ready" ? oracleRead.sub : null,
-          sliceRead.status === "ready" ? ov.historicalSignal?.date ?? null : null, () => setTab("oracle"))}
-        {sliceRead.status === "ready" && sliceRead.refresh === "failed" && <SourceState read={sliceRead} label={pick(zh, "Oracle signals", "神谕信号")} zh={zh} />}
-        {ov.line2 && <p className={styles.heroNote}>{ov.line2}</p>}
-        {freshWarn && <p className={styles.heroNote}>{freshWarn.kind === "confirm" ? pick(zh, "Structure break confirmed", "结构破位已确认") : pick(zh, "Structure-break warning", "结构破位预警")} · {signalHistoryDate(freshWarn.ts, zh)}</p>}
-        {evidenceRow("research", pick(zh, "Research setup", "研究机会状态"),
-          intelRead.status === "ready" ? researchSetup : sourceLabel(intelRead.status),
-          intelRead.status === "ready" && currentSetup ? dv.sub ?? null : null,
-          intelRead.status === "ready" ? researchObserved : null, () => setTab("research"))}
-        {intelRead.status === "ready" && intelRead.refresh === "failed" && <SourceState read={intelRead} label={pick(zh, "Research", "研究")} zh={zh} />}
-        {prophet && early ? <details key={sym} className={styles.earlyEvidence}>
-          <summary>
-            <span className={styles.evidenceIcon} aria-hidden="true">P</span>
-            <span className={styles.evidenceBody}>
-              <small className={styles.evidenceLabel}>{pick(zh, "Prophet · early evidence", "Prophet · 早期证据")}</small>
-              <strong>{early.label}</strong>
-              {early.detail && <small className={styles.evidenceNote}>{early.detail}</small>}
-            </span>
-            <span className={styles.evidenceAside} aria-hidden="true">⌄</span>
-          </summary>
-          <ProphetObservationEvidence read={prophet} zh={zh} />
-        </details> : <div className={styles.evidenceMissing}>
-          <span className={styles.evidenceIcon} aria-hidden="true">P</span>
-          <span className={styles.evidenceBody}>
-            <small className={styles.evidenceLabel}>{pick(zh, "Prophet · early evidence", "Prophet · 早期证据")}</small>
-            <strong>{pick(zh, "Source not supplied", "未提供数据源")}</strong>
-          </span>
-        </div>}
-      </div>
-      {nTrades != null && Number.isFinite(nTrades) && <button className={styles.historicalSample} onClick={() => setTab("oracle")}>
-        <span className={styles.sampleLabel}>{pick(zh, "Historical backtest", "历史回测")}</span>
-        <span><strong>{nTrades}</strong> {pick(zh, "trades", "笔交易")}</span>
-        {Number.isFinite(metrics?.max_dd) && <span><strong>{fmtPctLocal(metrics?.max_dd, true)}</strong> {pick(zh, "max drawdown", "最大回撤")}</span>}
-        <span aria-hidden="true">›</span>
-      </button>}
-      <MarketRiskChip zh={zh} />
-      <button className={styles.activityLink} onClick={() => setTab("activity")}>
-        <span>{pick(zh, "Signal activity", "信号动态")}</span>
-        <span>{activityTotal > 0 ? pick(zh, `${activityTotal} events  →`, `${activityTotal}条记录  →`) : "→"}</span>
-      </button>
+    {tab === "summary" && <section data-testid="workspace-summary">
+      <StockEvidenceOverview key={sym} zh={zh} entry={entry}
+        cards={[
+          { id: "oracle", heading: sliceRead.status === "ready" ? oracleRead.heading : pick(zh, "Oracle", "神谕"),
+            label: sliceRead.status === "ready" ? oracleRead.label : sourceLabel(sliceRead.status),
+            // The source-owned subtitle includes newer refused-entry disclosures.
+            // Never borrow the latest marker's quality for an older accepted anchor.
+            detail: sliceRead.status === "ready" ? oracleRead.sub : null,
+            observed: sliceRead.status === "ready" ? ov.historicalSignal?.date ?? null : null,
+            provenance: pick(zh, "Signal date", "信号日期"), source: sliceRead, onOpen: () => setTab("oracle") },
+          { id: "research", heading: pick(zh, "Research setup", "研究机会状态"),
+            label: intelRead.status === "ready" ? researchSetup : sourceLabel(intelRead.status),
+            detail: intelRead.status === "ready" && currentResearch && researchTitle && researchTitle !== researchSetup ? researchTitle : null,
+            observed: intelRead.status === "ready" ? researchObserved : null,
+            provenance: currentResearch ? pick(zh, "Research", "研究") : pick(zh, "Saved research", "已保存的研究"),
+            source: intelRead, onOpen: () => setTab("research") },
+        ]}
+        prophet={overviewProphet}
+        warning={ov.line2 || freshWarn ? <>
+          {ov.line2 && <p>{ov.line2}</p>}
+          {freshWarn && <p>{freshWarn.kind === "confirm" ? pick(zh, "Structure break confirmed", "结构破位已确认") : pick(zh, "Structure-break warning", "结构破位预警")} · {signalHistoryDate(freshWarn.ts, zh)}</p>}
+        </> : null}
+        sample={nTrades != null && Number.isFinite(nTrades) ? { trades: nTrades,
+          drawdown: Number.isFinite(metrics?.max_dd) ? fmtPctLocal(metrics?.max_dd, true) : null, onOpen: () => setTab("oracle") } : null}
+        events={allActivity} historyAvailable={sliceRead.status === "ready" && (hasSignalHistory || hasCandidateHistory)}
+        marketRisk={<MarketRiskChip zh={zh} />} formatDate={signalHistoryDate} onJump={handleJump} onActivity={() => setTab("activity")} />
     </section>}
     {tab === "oracle" && <>{oracleView}<MarketRiskChip zh={zh} />
       <button className={styles.textButton} onClick={() => setTab("activity")}>{pick(zh, "View complete signal history", "查看完整信号历史")} →</button></>}
