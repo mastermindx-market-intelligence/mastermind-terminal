@@ -495,6 +495,7 @@ def sweep(api: MergeApi, trigger_number: int | None = None, *, wait=time.sleep) 
     actions: list[str] = []
     queue_enabled = api.merge_queue_enabled("master") if pulls else False
     merged_this_sweep = False
+    behind_candidates: list[tuple[int, str]] = []
     first_pass_size = len(pulls)
     for position, listed in enumerate(pulls):
         if position == first_pass_size:
@@ -569,17 +570,11 @@ def sweep(api: MergeApi, trigger_number: int | None = None, *, wait=time.sleep) 
             # concurrent-candidate limit in this same sweep.
             continue
         if mergeable_state == "behind":
-            branch = str(pull["head"]["ref"])
-            api.update_branch(number, head_sha)
-            # This GITHUB_TOKEN write leaves the new head's pull_request run held.
-            # Re-run that run: it is the one the pull request's rollup reads. The
-            # number is passed to the fallback dispatch so the namespace guard can
-            # still earn PULL_REQUEST mode if that path is taken.
-            started = start_refreshed_ci(api, number, branch, head_sha, wait)
-            actions.append(f"#{number}: updated onto current master; {started}")
-            # An update creates the next safe wake-up. Stop so no other green is
-            # judged against a base snapshot this mutation just invalidated.
-            break
+            # Refresh only after every current green candidate has been evaluated.
+            # update-branch changes this PR's head, not protected master; an old
+            # behind PR must not starve a newer clean, releasable one.
+            behind_candidates.append((number, head_sha))
+            continue
         if mergeable_state != "clean":
             # blocked/unstable/unknown/has_hooks: GitHub has not (yet) confirmed a
             # clean merge against the current base. Wait for the next sweep
@@ -620,6 +615,28 @@ def sweep(api: MergeApi, trigger_number: int | None = None, *, wait=time.sleep) 
         merged_this_sweep = True
         # Continue only to refresh the next stale green branch. It cannot merge
         # against the pre-merge base because api.pull() is re-read above.
+
+    # One refresh per sweep, preserving the ordered candidate priority and
+    # bounded fairness. Re-evaluate the selected PR after any preceding merge:
+    # neither old checks nor old hold/mergeability observations authorize a write.
+    if not queue_enabled:
+        for number, observed_sha in behind_candidates:
+            pull = api.pull(number)
+            if not is_armed_candidate(pull, api.repo):
+                continue
+            if pull.get("mergeable") is not True or pull.get("mergeable_state") != "behind":
+                continue
+            head_sha = str(pull["head"]["sha"])
+            if head_sha != observed_sha:
+                actions.append(f"#{number}: head moved before refresh; deferred")
+                continue
+            if check_verdict(api.check_runs(head_sha)).state != "green":
+                continue
+            branch = str(pull["head"]["ref"])
+            api.update_branch(number, head_sha)
+            started = start_refreshed_ci(api, number, branch, head_sha, wait)
+            actions.append(f"#{number}: updated onto current master; {started}")
+            break
 
     if merged_this_sweep and not any("updated onto" in action for action in actions):
         actions.append("no additional armed green branch required a base refresh")

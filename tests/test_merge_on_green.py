@@ -714,6 +714,64 @@ def test_draft_fork_unarmed_and_hold_pull_requests_are_never_candidates():
     assert api.actions == []
 
 
+def test_old_behind_head_cannot_starve_newer_clean_green_head():
+    api = FakeApi([pull(1, mergeable_state="behind"), pull(2)])
+    result = sweep(api)
+    assert ("merge", 2, "head-2") in api.actions
+    assert ("update", 1, "head-1") in api.actions
+    assert api.actions.index(("merge", 2, "head-2")) < api.actions.index(("update", 1, "head-1"))
+    assert result[0] == "#2: merged and deleted claude/pr-2"
+
+
+def test_old_behind_refresh_budget_is_one_even_with_multiple_candidates():
+    api = FakeApi([pull(1, mergeable_state="behind"), pull(2, mergeable_state="behind"), pull(3)])
+    result = sweep(api)
+    assert ("merge", 3, "head-3") in api.actions
+    assert [a for a in api.actions if a[0] == "update"] == [("update", 1, "head-1")]
+    assert sum("updated onto" in line for line in result) == 1
+
+
+def test_deferred_refresh_does_not_write_when_head_moved_since_observation():
+    class MovingHead(FakeApi):
+        def __init__(self):
+            super().__init__([pull(1, mergeable_state="behind"), pull(2)])
+            self.calls = 0
+
+        def pull(self, number):
+            item = super().pull(number)
+            if number == 1:
+                self.calls += 1
+                if self.calls > 1:
+                    item["head"]["sha"] = "head-1-moved"
+            return item
+
+    api = MovingHead()
+    result = sweep(api)
+    assert ("merge", 2, "head-2") in api.actions
+    assert not any(a[0] == "update" for a in api.actions)
+    assert "#1: head moved before refresh; deferred" in result
+
+
+def test_deferred_refresh_rechecks_hold_before_updating():
+    class NewlyHeld(FakeApi):
+        def __init__(self):
+            super().__init__([pull(1, mergeable_state="behind"), pull(2)])
+            self.calls = 0
+
+        def pull(self, number):
+            item = super().pull(number)
+            if number == 1:
+                self.calls += 1
+                if self.calls > 1:
+                    item["labels"].append({"name": "hold"})
+            return item
+
+    api = NewlyHeld()
+    sweep(api)
+    assert ("merge", 2, "head-2") in api.actions
+    assert not any(a[0] == "update" for a in api.actions)
+
+
 def test_after_one_merge_the_next_stale_green_is_refreshed_not_merged():
     first = pull(1)
     second = pull(2, mergeable_state="behind")
