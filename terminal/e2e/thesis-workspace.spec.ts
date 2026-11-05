@@ -68,6 +68,83 @@ async function createThesis(page: Page, title: string, requestId: string, symbol
   return (await response.json()).thesisId as string;
 }
 
+test("historical thesis review survives another thesis, Back and reload", async ({ page, baseURL }, testInfo) => {
+  await prepare(page, testInfo, baseURL);
+  const a = await createThesis(page, "Return to this historical review", "fa000000-0000-4000-8000-000000000001");
+  const b = await createThesis(page, "Inspect another thesis", "fa000000-0000-4000-8000-000000000002", "AAPL");
+  const original = await (await page.request.get(`/api/theses?id=${a}`)).json();
+  const revise = await page.request.post("/api/theses", { data: {
+    action: "revise", id: a, expectedVersion: 1,
+    clientRequestId: "fa000000-0000-4000-8000-000000000003",
+    subject: original.thesis.subject,
+    content: { ...original.thesis.current.content, statement: "The current thesis is different." },
+  } });
+  expect(revise.status()).toBe(200);
+  await page.goto(`/analysis?view=theses&thesis=${a}`);
+  await page.getByRole("button", { name: "Inspect version 1", exact: true }).click();
+  const inspector = page.getByTestId("thesis-version-inspector");
+  await expect(inspector).toHaveAttribute("data-posture", "historical");
+  await expect(inspector).toContainText(original.thesis.current.content.statement);
+  await inspector.scrollIntoViewIfNeeded();
+  const historyLength = await page.evaluate(() => history.length);
+  await page.goto(`/analysis?view=theses&thesis=${b}`);
+  await expect(page.getByLabel("Title", { exact: true })).toHaveValue("Inspect another thesis");
+  await expect(inspector).toHaveCount(0);
+  await page.goBack();
+  await expect(inspector).toHaveAttribute("data-posture", "historical");
+  await expect(inspector).toContainText(original.thesis.current.content.statement);
+  await page.reload();
+  await expect(inspector).toHaveAttribute("data-posture", "historical");
+  await expect(page.getByLabel("Thesis statement", { exact: true })).toHaveValue("The current thesis is different.");
+  expect(await page.evaluate(() => history.length)).toBe(historyLength + 1);
+
+  // Closing is an explicit choice, and must survive reloading this entry too.
+  await page.getByRole("button", { name: "Inspect version 1", exact: true }).click();
+  await expect(inspector).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByLabel("Title", { exact: true })).toHaveValue("Return to this historical review");
+  await expect(inspector).toHaveCount(0);
+  await page.getByRole("button", { name: "Inspect version 1", exact: true }).click();
+
+  // Exercise the workspace's own pushState navigation, not just document loads.
+  if (testInfo.project.name === "mobile") {
+    await page.getByRole("button", { name: "Back to list" }).click();
+  }
+  await page.getByRole("button", { name: /Inspect another thesis/ }).click();
+  await expect(page.getByLabel("Title", { exact: true })).toHaveValue("Inspect another thesis");
+  await expect(inspector).toHaveCount(0);
+  await page.goBack();
+  if (testInfo.project.name === "mobile") {
+    await expect(page.getByTestId("thesis-list-pane")).toBeVisible();
+    await page.goBack();
+  }
+  await expect(inspector).toHaveAttribute("data-posture", "historical");
+  await expect(inspector).toContainText(original.thesis.current.content.statement);
+
+  await page.screenshot({ path: testInfo.outputPath("historical-return.png"), fullPage: true });
+
+  // A remembered reference cannot recreate a version missing from canonical data.
+  await page.route(`**/api/theses?id=${a}`, async route => {
+    const response = await route.fetch();
+    const payload = await response.json();
+    payload.thesis.history = payload.thesis.history.filter((entry: { version: number }) => entry.version !== 1);
+    await route.fulfill({ response, json: payload });
+  });
+  await page.reload();
+  await expect(page.getByLabel("Thesis statement", { exact: true })).toHaveValue("The current thesis is different.");
+  await expect(inspector).toHaveCount(0);
+  await page.unroute(`**/api/theses?id=${a}`);
+  await page.reload();
+  await expect(inspector).toHaveAttribute("data-posture", "historical");
+  await page.getByLabel("Thesis statement", { exact: true }).fill("A third canonical thesis version.");
+  await page.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(page.getByText("Version 3 · Current", { exact: true })).toBeVisible();
+  await expect(inspector).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByLabel("Thesis statement", { exact: true })).toHaveValue("A third canonical thesis version.");
+  await expect(inspector).toHaveCount(0);
+});
+
 type PendingSeed = {
   schema: "mastermind.thesis-pending/v2";
   ownerKey: string;
