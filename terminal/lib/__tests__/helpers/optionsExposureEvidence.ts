@@ -12,6 +12,11 @@ type NativeReceipt = {
   native_manifest_sha256: string; log_sha256: string;
 };
 const BASE = "11531481b0a540ee96bcd86df418fd1e42715363";
+const CURRENT_REVISION = "options-navigation-r3";
+const PREVIOUS_PACKET_INVENTORY = {
+  gex: "c9f0aa2c43cb06d0590fb065d7b0a97f019e247c13757cc9a672f665eed12670",
+  eod: "4515093ab9ba4915341a7e163dd4623c4b2698368f4d1988e3d3a8c89135cb42",
+};
 const OP = {
   exposure: "exposure-source-compatibility-20261105",
   options: "options-source-compatibility-20261105",
@@ -173,8 +178,8 @@ function verifyBoundary(repo: string): void {
         "BOUNDARY_CURRENT_SOURCE:" + path);
   }
 }
-const JOINT_CONTRACT = "427c9fcec7a8c53da0c65e62190e7785aea9bd28183be474efaf991f6f558dc1";
-const JOINT_DRIVER = "8b4839a3a7ad62406429faeff266bb1ee7753c466cc7e2191c1fcf7f0816ce29";
+const JOINT_CONTRACT = "687ef81b713ab8ff7525ee468c37f1455c32454250bdf10a287ac4f390a73773";
+const JOINT_DRIVER = "b44be2f95d3aff859a56c27abf80995c2ea9cdf513f6296827b5ac4ee7b81c06";
 const OFFLINE_FONT = "0863e9151dab6e278d9eacf5d1560163b6fbe3bf2cac59e369199d7e4ba962fd";
 function verifyJointNative(repo: string, dir: string, native: NativeReceipt): void {
   const capture = native as NativeReceipt & {
@@ -192,10 +197,10 @@ function verifyJointNative(repo: string, dir: string, native: NativeReceipt): vo
   check(contract.schema === "options_exposure_native_contract.v1" && contract.protectedBase === BASE &&
     contract.optionsParent === "98ffa891116ccc9e6be58a64148dbe45591e6ce8" &&
     contract.acceptedExposureHead === "0182a45abccb9c0e77b2c8e4626431e89635b35f" &&
-    contract.sources.length === 303 && new Set(contract.sources).size === 303 &&
+    contract.sources.length === 312 && new Set(contract.sources).size === 312 &&
     contract.offline_font_sha256 === OFFLINE_FONT, "JOINT_CONTRACT_IDENTITY");
   check(capture.schema === "options_exposure_native.v1" && capture.profile === "combined" &&
-    capture.capture_revision === "options-dependency-r2" && capture.source_count === 303 &&
+    capture.capture_revision === CURRENT_REVISION && capture.source_count === 312 &&
     capture.source_equal_combined === true && capture.source_contract_sha256 === JOINT_CONTRACT &&
     capture.offline_font_sha256 === OFFLINE_FONT, "JOINT_CAPTURE_IDENTITY");
   requireSourceKeys(capture.source_sha256, contract.sources);
@@ -229,12 +234,24 @@ function verifyJointNative(repo: string, dir: string, native: NativeReceipt): vo
 }
 
 function readCandidate(repo: string, root: string, kind: EvidenceKind, profile: EvidenceProfile, crops: string[]) {
-  const operation = OP[profile], dir = join(root, "operations", operation);
+  const operation = OP[profile], operationRoot = join(root, "operations", operation);
+  const dir = profile === "combined" ? join(operationRoot, "revisions", CURRENT_REVISION) : operationRoot;
   const descriptor = json<{ schema: string; kind: string; profile: string; operation: string;
-    receipt: string; receiptSha256: string; manifest: string; manifestSha256: string }>(join(dir, "native-packet.json"));
+    receipt: string; receiptSha256: string; manifest: string; manifestSha256: string;
+    captureRevision?: string; previousPacketInventorySha256?: string }>(join(dir, "native-packet.json"));
   check(descriptor.schema === "options_exposure_packet.v1" && descriptor.kind === kind &&
     descriptor.profile === profile && descriptor.operation === operation &&
     descriptor.receipt === "capture-receipt.json" && descriptor.manifest === "qualified-root/EVIDENCE.yml", "PACKET_IDENTITY");
+  if (profile === "combined") {
+    check(descriptor.captureRevision === CURRENT_REVISION &&
+      descriptor.previousPacketInventorySha256 === PREVIOUS_PACKET_INVENTORY[kind], "REVISION_IDENTITY");
+    const priorPath = join(dir, "prior-packet-sha256.json");
+    check(sha(priorPath) === PREVIOUS_PACKET_INVENTORY[kind], "PREVIOUS_PACKET_INVENTORY");
+    const previous = json<SourceMap>(priorPath);
+    requireSourceKeys(previous, Object.keys(previous));
+    for (const [path, digest] of Object.entries(previous))
+      check(sha(join(repo, path)) === digest, "PREVIOUS_PACKET:" + path);
+  }
   const receiptPath = join(dir, descriptor.receipt), evidence = join(dir, descriptor.manifest);
   check(sha(receiptPath) === descriptor.receiptSha256 && sha(evidence) === descriptor.manifestSha256, "PACKET_DIGEST");
   const native = json<NativeReceipt>(receiptPath);
@@ -291,7 +308,7 @@ export function qualifiedOptionsExposurePacket(repo: string, kind: EvidenceKind,
     candidates.push(readCandidate(repo, root, kind, "exposure", crops));
   }
   if (options) {
-    const folder = "operations/" + OP.options, combined = "operations/" + OP.combined;
+    const folder = "operations/" + OP.options, combined = "operations/" + OP.combined + "/revisions/" + CURRENT_REVISION;
     suffix = "\n# Qualified Options and combined source compositions; protected baseline above is retained.\n" +
       yamlBlock("optionsSourceCompatibility20261105", {
         protectedBase: BASE, priorPublishedHead: "98ffa891116ccc9e6be58a64148dbe45591e6ce8",
