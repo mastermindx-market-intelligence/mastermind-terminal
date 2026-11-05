@@ -353,7 +353,7 @@ test("Company Intelligence keeps its context and evidence workflow responsive", 
   await expect(paperBrief.locator(".ci-paper-metrics > button")).toHaveCount(4);
   const whyItMatters = paperBrief.locator(".ci-paper-insight").filter({ hasText: "Why it matters" });
   await expect(whyItMatters).toBeVisible();
-  await expect(whyItMatters).toContainText("Not asserted");
+  await expect(whyItMatters).toContainText("Business implications are not available for this event.");
 
   await page.locator(".ci-lenses").getByRole("tab", { name: "Results" }).click();
   const paperResults = page.locator("[data-ci-paper-results]");
@@ -799,7 +799,7 @@ test("general highlights are not relabelled as Constructive without explicit pos
   });
   await page.goto("/analysis?symbol=NVDA&page=intelligence");
   const changed = page.locator(".ci-paper-insight").filter({ hasText: "What changed" });
-  await expect(changed).toContainText("No comparable change is asserted");
+  await expect(changed).toContainText("No comparison is available for this event.");
   await expect(changed.getByRole("button")).toHaveCount(0);
   await expect(changed).not.toContainText("Constructive");
 });
@@ -1016,7 +1016,7 @@ test("AAPL intelligence opens the verified FY2026 Q3 event workspace", async ({ 
   await expect(page.locator(".ci-inst-card")).toHaveCount(0);
   const whyItMatters = page.locator(".ci-paper-insight").filter({ hasText: "Why it matters" });
   await expect(whyItMatters).toBeVisible();
-  await expect(whyItMatters).toContainText("Not asserted");
+  await expect(whyItMatters).toContainText("Business implications are not available for this event.");
   await expect(page.locator(".ci-page")).not.toContainText("Current event");
   await page.screenshot({ path: testInfo.outputPath(`${testInfo.project.name}-aapl-brief.png`), fullPage: false });
 
@@ -1045,6 +1045,19 @@ test("AAPL intelligence opens the verified FY2026 Q3 event workspace", async ({ 
   await expect(paperResults).toContainText("Not asserted · reaction not joined");
   await expect(paperResults).toContainText("Not asserted · context only");
   await expect(page.locator("#ci-panel-results")).toContainText("No beat/miss");
+  const repricing = page.locator("[data-ci-repricing-evidence]");
+  await expect(repricing).toBeVisible();
+  await expect(repricing).toHaveAttribute("data-ci-inference", "NOT_ESTABLISHED");
+  await expect(repricing.locator('[data-ci-repricing-lane="reported"]')).toContainText("$109.4B");
+  await expect(repricing.locator('[data-ci-repricing-lane="guidance"]')).toContainText("9–11%");
+  await expect(repricing.locator('[data-ci-repricing-lane="consensus"]')).toHaveAttribute("data-ci-repricing-status", "NOT_ADMITTED");
+  await expect(repricing.locator('[data-ci-repricing-lane="reaction"]')).toHaveAttribute("data-ci-repricing-status", "NOT_ADMITTED");
+  await expect(repricing.locator('button[data-ci-repricing-lane="consensus"]')).toHaveCount(0);
+  await expect(repricing.locator('button[data-ci-repricing-lane="reaction"]')).toHaveCount(0);
+  await expect(repricing).toContainText("The evidence does not establish what was priced in");
+  await repricing.locator('button[data-ci-repricing-lane="reported"]').click();
+  await expect(page.locator(".ci-receipt-card")).toHaveAttribute("data-ci-receipt-state", "byte_replayed");
+  await closeEvidenceOverlay(page);
   const typedAbsences = page.locator('[data-ci-results-region="typed-absences"]');
   const coverageStates = page.locator('[data-ci-results-region="coverage-states"]');
   await expect(typedAbsences).toContainText("TYPED ABSENCES");

@@ -6,6 +6,13 @@
 // createEngine so the renderer is a one-word flip, never a rewrite. See
 // docs/CHART_ENGINE_MASTERPLAN.md.
 
+export {
+  EngineCrosshairMode,
+  EngineColorType,
+  EngineLineStyle,
+  EngineLineType,
+  EnginePriceScaleMode,
+} from "./api";
 export type {
   ChartEngine,
   EngineInventory,
@@ -38,7 +45,8 @@ export type {
   WatermarkLine,
   EngineMismatchDirection,
 } from "./api";
-export type { EngineCapabilities, EnginePriceScaleMode, NormalizeEngineOptionsResult } from "./options";
+export type { EngineCapabilities, NormalizeEngineOptionsResult } from "./options";
+export type { EnginePriceScaleMode as EnginePriceScaleModeName } from "./options";
 export { normalizeEngineOptions } from "./options";
 export { LWC_CAPABILITIES } from "./lwc";
 export { CANVAS_CAPABILITIES, CANVAS_ENGINE_IMPL, EngineRefusalError } from "./canvas";
