@@ -1,8 +1,9 @@
 import { Suspense } from "react";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import OptionsWorkspaceMount from "@/components/mounts/OptionsWorkspaceMount";
 import OptionsPaywall from "@/components/OptionsPaywall";
-import { hasLiveOptions } from "@/lib/entitlement";
+import OptionsServiceUnavailable from "@/components/OptionsServiceUnavailable";
+import { getLiveOptionsAccess } from "@/lib/entitlement";
 
 // Options workspace (Wave-3 IA) — the options-intelligence hub, renamed from the
 // former Research page. Serves /options under the (shell) route group (route groups
@@ -16,6 +17,13 @@ import { hasLiveOptions } from "@/lib/entitlement";
 
 export const metadata: Metadata = { title: "Options · Mastermind Terminal" };
 
+// Options research must support magnification. Explicitly clear the root chart
+// viewport's maximum scale while inheriting its width and safe-area settings.
+export const viewport: Viewport = {
+  maximumScale: undefined,
+  userScalable: true,
+};
+
 export default async function OptionsPage() {
   // Live options is a PAID surface (the `terminal_live_options` entitlement — the
   // same gate as /api/flow). Non-entitled callers get the upgrade paywall instead
@@ -23,7 +31,11 @@ export default async function OptionsPage() {
   // read (auth cookies via billingAuth) forces per-request dynamic rendering.
   // FLOW_FIXTURE=1 (dev/CI) is exempt, mirroring /api/flow — fixture sessions
   // preview the workspace without auth; the var is never set in prod.
-  if (process.env.FLOW_FIXTURE !== "1" && !(await hasLiveOptions())) return <OptionsPaywall />;
+  if (process.env.FLOW_FIXTURE !== "1") {
+    const access = await getLiveOptionsAccess();
+    if (access === "denied") return <OptionsPaywall />;
+    if (access === "unavailable") return <OptionsServiceUnavailable />;
+  }
   // Suspense: OptionsWorkspace reads useSearchParams (?tab= deep-link seeding).
   // This route is always dynamically rendered today (force-dynamic (shell)
   // layout + the entitlement read above), so the params resolve server-side and

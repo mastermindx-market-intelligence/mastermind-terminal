@@ -1,0 +1,77 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /tmp/portfolio-pr1044-native-review-de0100-20261021/terminal
+
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio canonical reads and user intent > publishes holdings without waiting for optional analysis and loads history only on demand
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio canonical reads and user intent > rejects an old generation even when the book key matches, and rejects a wrong current key
+ ✓ lib/__tests__/portfolioNativeEventOwnerProbe.test.tsx > native event review 'unkeyed candidate' > removes A's settled private brief when B's distinct nonempty book arrives
+ ✓ lib/__tests__/portfolioNativeOwnerProbeEnvelope.test.tsx > native review 'unkeyed candidate' > removes A's settled private brief when B's distinct nonempty book arrives
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio canonical reads and user intent > binds lazy history to its read generation and content key
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio canonical reads and user intent > preserves the last good book after a failed read without presenting old analysis as current
+ ✓ lib/__tests__/portfolioNativeEventOwnerProbe.test.tsx > native event review 'unkeyed candidate' > retires A's pending brief before its response settles under B
+ ✓ lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx > Portfolio owner-scoped brief > retires the previous account's settled content before the next account's response
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio canonical reads and user intent > preserves target text and focus through book invalidation and canonical readback
+ ✓ lib/__tests__/portfolioNativeOwnerProbeEnvelope.test.tsx > native review 'unkeyed candidate' > retires A's pending brief before its response settles under B
+ ✓ lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx > Portfolio owner-scoped brief > ignores the previous account's late fetch completion
+ ✓ lib/__tests__/portfolioNativeEventOwnerProbe.test.tsx > native event review 'owner-keyed negative control' > removes A's settled private brief when B's distinct nonempty book arrives
+ ✓ lib/__tests__/portfolioNativeOwnerProbeEnvelope.test.tsx > native review 'owner-keyed negative control' > removes A's settled private brief when B's distinct nonempty book arrives
+ ✓ lib/__tests__/portfolioNativeEventOwnerProbe.test.tsx > native event review 'owner-keyed negative control' > retires A's pending brief before its response settles under B
+ ✓ lib/__tests__/portfolioNativeOwnerProbeEnvelope.test.tsx > native review 'owner-keyed negative control' > retires A's pending brief before its response settles under B
+ ✓ lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx > Portfolio owner-scoped brief > ignores the previous account's late body completion
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio canonical reads and user intent > returns a superseded mutation's own readback without overwriting the newer display
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio canonical reads and user intent > does not confirm HTTP success when its canonical readback contradicts the write receipt
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio canonical reads and user intent > carries a safe 400 refusal into the active editor result
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio canonical reads and user intent > carries a safe 409 refusal into the active editor result
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio canonical reads and user intent > carries a safe 500 refusal into the active editor result
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio canonical reads and user intent > keeps a server-error update refusal uncertain instead of claiming the position is gone
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio canonical reads and user intent > keeps a server-error delete refusal uncertain instead of claiming the position is gone
+ ✓ lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx > Portfolio owner-scoped brief > does not revive a retired request after A to B to A
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio canonical reads and user intent > never labels a newer invalid band as saved when an earlier valid target finishes
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio canonical reads and user intent > does not carry Saved into a blank untargeted row after a canonical refresh removes the target
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio canonical reads and user intent > does not label a newer invalid first-target draft as saved after an independent confirmation
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio canonical reads and user intent > keeps target confirmation failure uncertain after a successful POST
+ ✓ lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx > Portfolio owner-scoped brief > preserves a live request through a same-owner seed and email refresh
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio canonical reads and user intent > preserves a debouncing return-to-original target through older confirmation
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio canonical reads and user intent > preserves a debouncing return-to-original band through older confirmation
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio canonical reads and user intent > still synchronizes untouched target and band fields from canonical refresh
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio canonical reads and user intent > keeps a newer draft and its schedule intact when a superseded save is refused late, and a post-unmount resolution is a safe no-op
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio canonical reads and user intent > keeps a newer target edit pending while an earlier save completes
+ ✓ lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx > Portfolio owner-scoped events > retires the previous account's settled content before the next account's response
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio canonical reads and user intent > confirms a target canceled by a display refresh without restoring the old computed weights
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio canonical reads and user intent > preserves a failed first target draft and allows the corrected retry
+ ✓ lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx > Portfolio owner-scoped events > ignores the previous account's late fetch completion
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio owner-generation fence > never dispatches an intent queued behind a held write when the account changes (A→B)
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio owner-generation fence > a target write held at its canonical readback cannot confirm, fall back, or paint under B
+ ✓ lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx > Portfolio owner-scoped events > ignores the previous account's late body completion
+ ✓ lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx > Portfolio owner-scoped events > does not revive a retired request after A to B to A
+ ✓ lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx > Portfolio owner-scoped events > preserves a live request through a same-owner seed and email refresh
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio owner-generation fence > A→B→A never revives the queued intent captured under the first A
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio owner-generation fence > a POST whose body settles after the transition returns uncertain and never reads back
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio owner-generation fence > a readback body held across the transition cannot confirm through the fallback read
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio owner-generation fence > an unmounted instance never dispatches its queued intent; a sent one stays sent exactly once
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio owner-generation fence > a StrictMode replacement cannot revive a retired token: the retired instance's reads and dispatches stay frozen
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio owner-generation fence > an armed row draft retires with its account: zero dispatches, and B's own draft still writes
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio owner-generation fence > same-owner email changes keep legitimate writes flowing, and a refused write does not wedge the fence
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio owner-scoped display surface > a committed owner change over an unchanged seed reference resets the prior account's surface and starts its own canonical read
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio owner-scoped display surface > A→B→A over the same reference never presents the first A's surface as the returned A's
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio owner-scoped display surface > a held prior-owner canonical read lands retired under a same-reference owner change
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio owner-scoped display surface > a sent write held at its readback cannot confirm through the fallback under a same-reference owner change
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio owner-scoped display surface > same-owner email-only rerenders neither reset the surface nor re-read the book
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio owner-precondition refusals > carries the fixed stale-owner 409 as its own non-retry-inviting position refusal
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio owner-precondition refusals > a stale-owner refused target save explains the account change instead of inviting a retry
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio owner-precondition refusals > a userId-less mount fails closed: no write is dispatched and the retired stage is discriminated
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio quote continuity across owners > retires an in-flight previous-owner poll with identical tickers; a late A good changes nothing
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio quote continuity across owners > A→B→A: the old quote poll and the old queued write are both dead in returned A
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio quote continuity across owners > a quote body settling after the transition neither refills nor advances the new miss count
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio quote continuity across owners > same-owner seed and email changes keep miss-count continuity; the fallback reprices the new book
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio quote continuity across owners > an equal-valued good observation resets the grace without replacing state or stealing focus
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio quote continuity across owners > only explicit nulls advance the grace: omission, HTTP failure, hidden tab; StrictMode cannot double-count
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio quote continuity across owners > the manifest fallback carries its own currency; an unknown-unit fallback leaves the named gap
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio quote continuity across owners > with no fallback at all the retired quote leaves the record unpriced and named
+ ✓ lib/__tests__/portfolioWorkspaceController.test.tsx > Portfolio quote continuity across owners > miss counters do not follow a ticker across demand changes
+
+ Test Files  4 passed (4)
+      Tests  67 passed (67)
+   Start at  22:47:04
+   Duration  910ms (transform 422ms, setup 0ms, collect 903ms, tests 866ms, environment 510ms, prepare 148ms)
+

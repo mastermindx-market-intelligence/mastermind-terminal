@@ -1,0 +1,200 @@
+{
+  "scheduling": "Page RAF callbacks held deliberately; real native separator input and actual PNG downloads",
+  "baseline": {
+    "x": 0,
+    "y": 164,
+    "width": 904,
+    "height": 556
+  },
+  "proofs": [
+    {
+      "desired": 220,
+      "actual": {
+        "top": 500,
+        "height": 220
+      },
+      "heldCallbacks": 3,
+      "frame": {
+        "symbol": "AAPL",
+        "timeframe": "5s",
+        "replay": "",
+        "sourceSha256": null,
+        "capturedAtMs": 1791732351244,
+        "cssWidth": 967,
+        "cssHeight": 748,
+        "plot": {
+          "x": 0,
+          "y": 500,
+          "width": 904,
+          "height": 220
+        },
+        "markers": [
+          {
+            "id": "fixture:large-trades-v1:2026-10-05:fixture:buy:1",
+            "quantity": 1301,
+            "reports": 3,
+            "side": "buy",
+            "x": 25.578125,
+            "y": 609.390625,
+            "width": 64,
+            "height": 64,
+            "fill": "color(srgb 0.14902 0.760784 0.505882 / 0.36)",
+            "border": "rgb(38, 194, 129)",
+            "borderWidth": 1,
+            "opacity": 1,
+            "ringColor": "color(srgb 0.0392157 0.0431373 0.054902 / 0.65)",
+            "ringWidth": 1,
+            "label": {
+              "text": "1,301",
+              "rect": {
+                "x": 7.515625,
+                "y": 602.140625,
+                "width": 36.109375,
+                "height": 14.5
+              },
+              "fill": "color(srgb 0.0392157 0.0431373 0.054902 / 0.7)",
+              "color": "rgb(214, 218, 227)",
+              "font": "normal 600 10px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, \"Liberation Mono\", \"Courier New\", monospace",
+              "radius": 3
+            }
+          },
+          {
+            "id": "fixture:large-trades-v1:2026-10-05:fixture:sell:1",
+            "quantity": 1500,
+            "reports": 2,
+            "side": "sell",
+            "x": 153.203125,
+            "y": 606.375,
+            "width": 64,
+            "height": 64,
+            "fill": "color(srgb 0.941177 0.337255 0.419608 / 0.36)",
+            "border": "rgb(240, 86, 107)",
+            "borderWidth": 1,
+            "opacity": 1,
+            "ringColor": "color(srgb 0.0392157 0.0431373 0.054902 / 0.65)",
+            "ringWidth": 1,
+            "label": {
+              "text": "1,500",
+              "rect": {
+                "x": 135.140625,
+                "y": 599.125,
+                "width": 36.109375,
+                "height": 14.5
+              },
+              "fill": "color(srgb 0.0392157 0.0431373 0.054902 / 0.7)",
+              "color": "rgb(214, 218, 227)",
+              "font": "normal 600 10px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, \"Liberation Mono\", \"Courier New\", monospace",
+              "radius": 3
+            }
+          },
+          {
+            "id": "fixture:large-trades-v1:2026-10-05:fixture:unknown:1",
+            "quantity": 1800,
+            "reports": 1,
+            "side": "unknown",
+            "x": 280.828125,
+            "y": 561.859375,
+            "width": 64,
+            "height": 64,
+            "fill": "color(srgb 0.443137 0.478431 0.556863 / 0.28)",
+            "border": "color(srgb 0.443137 0.478431 0.556863 / 0.82)",
+            "borderWidth": 1,
+            "opacity": 1,
+            "ringColor": "color(srgb 0.0392157 0.0431373 0.054902 / 0.65)",
+            "ringWidth": 1,
+            "label": {
+              "text": "1,800",
+              "rect": {
+                "x": 262.765625,
+                "y": 554.609375,
+                "width": 36.109375,
+                "height": 14.5
+              },
+              "fill": "color(srgb 0.0392157 0.0431373 0.054902 / 0.7)",
+              "color": "rgb(214, 218, 227)",
+              "font": "normal 600 10px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, \"Liberation Mono\", \"Courier New\", monospace",
+              "radius": 3
+            }
+          },
+          {
+            "id": "fixture:large-trades-v1:2026-10-05:fixture:sell:continues",
+            "quantity": 1600,
+            "reports": 1,
+            "side": "sell",
+            "x": 408.453125,
+            "y": 611.6875,
+            "width": 64,
+            "height": 64,
+            "fill": "color(srgb 0.941177 0.337255 0.419608 / 0.36)",
+            "border": "rgb(240, 86, 107)",
+            "borderWidth": 1,
+            "opacity": 1,
+            "ringColor": "color(srgb 0.0392157 0.0431373 0.054902 / 0.65)",
+            "ringWidth": 1,
+            "label": {
+              "text": "1,600",
+              "rect": {
+                "x": 390.390625,
+                "y": 604.4375,
+                "width": 36.109375,
+                "height": 14.5
+              },
+              "fill": "color(srgb 0.0392157 0.0431373 0.054902 / 0.7)",
+              "color": "rgb(214, 218, 227)",
+              "font": "normal 600 10px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, \"Liberation Mono\", \"Courier New\", monospace",
+              "radius": 3
+            }
+          }
+        ],
+        "footer": [
+          "Large trades · Test fixture · AAPL · SIMULATED · This venue only · shares · 2026-10-05",
+          "Minimum executed quantity: 100 shares · Distinct orders: Not available",
+          "Synthetic executions for deterministic testing. This is not a market feed.",
+          "Synthetic fixture. No market transactions or investment evidence."
+        ]
+      },
+      "text": [
+        "1,301",
+        "1,500",
+        "1,800",
+        "1,600",
+        "Large trades · Test fixture · AAPL · SIMULATED · This venue only · shares · 2026-10-05",
+        "Minimum executed quantity: 100 shares · Distinct orders: Not available",
+        "Synthetic executions for deterministic testing. This is not a market feed.",
+        "Synthetic fixture. No market transactions or investment evidence.",
+        "MASTERMIND",
+        "TERMINAL",
+        "AAPL",
+        "  5s",
+        "2026-10-11 08:25:51 UTC-7",
+        "Apple Inc",
+        "RSI",
+        "Large trades",
+        "TW · Mastermind Candles"
+      ],
+      "filename": "AAPL_5s_20261011.png"
+    },
+    {
+      "desired": 100,
+      "actual": {
+        "top": 620,
+        "height": 100
+      },
+      "heldCallbacks": 3,
+      "frame": null,
+      "text": [
+        "MASTERMIND",
+        "TERMINAL",
+        "AAPL",
+        "  5s",
+        "2026-10-11 08:25:51 UTC-7",
+        "Apple Inc",
+        "RSI",
+        "Large trades",
+        "TW · Mastermind Candles"
+      ],
+      "filename": "AAPL_5s_20261011.png"
+    }
+  ],
+  "minimumUnclippedPriceHeight": 136
+}

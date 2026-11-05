@@ -1,0 +1,20 @@
+
+Running 15 tests using 1 worker
+
+  ✓   1 [desktop] › e2e/futures-lab.spec.ts:24:5 › synthetic depth and footprint share gamma, method and replay without overflow (3.0s)
+  ✓   2 [desktop] › e2e/futures-lab.spec.ts:66:5 › source unavailability and depth gaps cannot masquerade as healthy current data (1.7s)
+  ✓   3 [desktop] › e2e/futures-lab.spec.ts:86:5 › Chinese labels and touch-sized controls preserve the same development surface (1.7s)
+  ✓   4 [desktop] › e2e/futures-lab.spec.ts:107:5 › NQ switches both source and chart, expiry lenses conserve exposure, aggregation conserves volume (2.1s)
+  ✓   5 [desktop] › e2e/futures-lab.spec.ts:153:5 › changing aggregation never paints a future interval beyond the replay cutoff (1.7s)
+  ✓   6 [tablet] › e2e/futures-lab.spec.ts:24:5 › synthetic depth and footprint share gamma, method and replay without overflow (2.1s)
+  ✓   7 [tablet] › e2e/futures-lab.spec.ts:66:5 › source unavailability and depth gaps cannot masquerade as healthy current data (1.2s)
+  ✓   8 [tablet] › e2e/futures-lab.spec.ts:86:5 › Chinese labels and touch-sized controls preserve the same development surface (1.1s)
+  ✓   9 [tablet] › e2e/futures-lab.spec.ts:107:5 › NQ switches both source and chart, expiry lenses conserve exposure, aggregation conserves volume (1.8s)
+  ✓  10 [tablet] › e2e/futures-lab.spec.ts:153:5 › changing aggregation never paints a future interval beyond the replay cutoff (1.1s)
+  ✓  11 [mobile] › e2e/futures-lab.spec.ts:24:5 › synthetic depth and footprint share gamma, method and replay without overflow (2.6s)
+  ✓  12 [mobile] › e2e/futures-lab.spec.ts:66:5 › source unavailability and depth gaps cannot masquerade as healthy current data (1.1s)
+  ✓  13 [mobile] › e2e/futures-lab.spec.ts:86:5 › Chinese labels and touch-sized controls preserve the same development surface (1.1s)
+  ✓  14 [mobile] › e2e/futures-lab.spec.ts:107:5 › NQ switches both source and chart, expiry lenses conserve exposure, aggregation conserves volume (1.9s)
+  ✓  15 [mobile] › e2e/futures-lab.spec.ts:153:5 › changing aggregation never paints a future interval beyond the replay cutoff (1.2s)
+
+  15 passed (40.6s)

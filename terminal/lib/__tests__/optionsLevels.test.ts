@@ -338,3 +338,28 @@ describe("deriveOptLevels", () => {
     expect(r.signed).toBe(true); // a wall/flip is drawn — Tier-B disclosure applies
   });
 });
+
+// ─── W3S: the EM levels carry the producer's band statement for the legend ───
+describe("EM band statement (W3S)", () => {
+  it("em levels carry the band multiple, horizon and clock with method not stated", () => {
+    const r = deriveOptLevels(gexFull, movesFull, "NVDA");
+    const want = { bandMult: 1.96, horizonDays: 1, asof: "2026-07-31", method: "not_stated" as const };
+    expect(r.levels.find((l) => l.key === "em_lo")!.band).toEqual(want);
+    expect(r.levels.find((l) => l.key === "em_hi")!.band).toEqual(want);
+    // The statement belongs to the published band only — dealer-signed levels stay bare.
+    expect(r.levels.find((l) => l.key === "call_wall")!.band).toBeUndefined();
+    expect(r.levels.find((l) => l.key === "put_wall")!.band).toBeUndefined();
+  });
+
+  it("a missing moves payload drops only the em band", () => {
+    const r = deriveOptLevels(gexFull, null, "NVDA");
+    expect(r.status).toBe("ok");
+    const keys = r.levels.map((l) => l.key);
+    expect(keys).not.toContain("em_lo");
+    expect(keys).not.toContain("em_hi");
+    expect(keys).toContain("call_wall");
+    expect(keys).toContain("put_wall");
+    // No level survives carrying a half-stated band statement.
+    expect(r.levels.some((l) => l.band != null)).toBe(false);
+  });
+});
