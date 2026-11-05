@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import s from "@/components/alerts/alerts.module.css";
 import b from "./briefs.module.css";
 import {
@@ -11,6 +11,9 @@ import {
   monitorsSummary,
   deliveryIsMiss,
   validateBriefBody,
+  isUuid,
+  isBriefCadence,
+  isBriefTargetKind,
   type BriefCadence,
   type BriefLang,
   type BriefSubscription,
@@ -30,13 +33,48 @@ function targetOptionKey(target: Pick<BriefTargetOption, "kind" | "id">): string
   return target.kind + ":" + target.id;
 }
 
+function readObject(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === "object" && !Array.isArray(value);
+}
+
+function readableSubscription(value: unknown): value is BriefSubscription {
+  return readObject(value)
+    && typeof value.subscriptionId === "string" && !!value.subscriptionId
+    && isBriefTargetKind(value.targetKind)
+    && typeof value.targetId === "string" && !!value.targetId
+    && isBriefCadence(value.cadence)
+    && (value.state === "active" || value.state === "paused")
+    && (value.targetName === undefined || typeof value.targetName === "string");
+}
+
+function readableDelivery(value: unknown): value is PinnedDelivery {
+  // Admit the row envelope separately from body validation. A ready row with
+  // unavailable content retains its identity and does not become a missed run.
+  return readObject(value)
+    && typeof value.deliveryId === "string" && !!value.deliveryId
+    && typeof value.slotAsof === "string" && !!value.slotAsof
+    && (value.state === "ready" || value.state === "degraded")
+    && (value.pinned === undefined || typeof value.pinned === "boolean")
+    && readObject(value.subscription)
+    && isBriefCadence(value.subscription.cadence)
+    && (value.subscription.state === "active" || value.subscription.state === "paused")
+    && (value.subscription.targetName === undefined || typeof value.subscription.targetName === "string");
+}
+
 export default function BriefsInbox({ lang }: { lang: BriefLang }) {
   const L: BriefLang = lang === "zh" ? "zh" : "en";
   const [rows, setRows] = useState<PinnedDelivery[] | null>(null);
   const [subs, setSubs] = useState<BriefSubscription[] | null>(null);
   const [unavailable, setUnavailable] = useState(false);
+  const [deliveryLoading, setDeliveryLoading] = useState(false);
   const [subsUnavailable, setSubsUnavailable] = useState(false);
-  const [busy, setBusy] = useState<string | null>(null);
+  const [updates, setUpdates] = useState<Record<string, { phase: "pending" | "checking" | "unknown" | "observed"; unconfirmed: boolean }>>({});
+  const mounted = useRef(false);
+  const busy = useRef(new Set<string>());
+  const versions = useRef<Record<string, number>>({});
+  const subscriptionRead = useRef(0);
+  const deliveryRead = useRef(0);
+  const targetRead = useRef(0);
   const [targets, setTargets] = useState<BriefTargetOption[] | null>(null);
   const [targetsUnavailable, setTargetsUnavailable] = useState(false);
   const [draftTarget, setDraftTarget] = useState("");
@@ -45,103 +83,175 @@ export default function BriefsInbox({ lang }: { lang: BriefLang }) {
   const [createError, setCreateError] = useState(false);
 
   const load = useCallback(async () => {
+    if (!mounted.current) return;
+    const read = ++deliveryRead.current;
+    const owns = () => mounted.current && read === deliveryRead.current;
+    setDeliveryLoading(true);
     try {
       const r = await fetch("/api/briefs/deliveries?limit=40");
-      if (r.status === 401) { setRows([]); setUnavailable(false); return; }
+      if (!owns()) return;
       if (!r.ok) { setRows(null); setUnavailable(true); return; }
-      const body = await r.json() as { deliveries?: PinnedDelivery[] };
-      setRows(body.deliveries || []);
+      const body = await r.json() as { deliveries?: PinnedDelivery[] } | null;
+      if (!owns()) return;
+      if (!Array.isArray(body?.deliveries) || !body.deliveries.every(readableDelivery)) throw new Error("Delivery read unavailable");
+      setRows(body.deliveries);
       setUnavailable(false);
     } catch {
+      if (!owns()) return;
       setRows(null);
       setUnavailable(true);
+    } finally {
+      if (owns()) setDeliveryLoading(false);
     }
   }, []);
 
   const loadSubscriptions = useCallback(async () => {
+    const read = ++subscriptionRead.current;
+    const atStart = { ...versions.current };
+    const currentRead = () => mounted.current && read === subscriptionRead.current;
+    const protectedRow = (id: string) => busy.current.has(id)
+      || (versions.current[id] || 0) !== (atStart[id] || 0);
+    const fail = () => {
+      if (!currentRead() || Object.keys(versions.current).some(protectedRow)) return;
+      setSubs(null); setSubsUnavailable(true);
+    };
     try {
       const r = await fetch("/api/briefs/subscriptions");
-      if (r.status === 401) { setSubs([]); setSubsUnavailable(false); return; }
-      if (!r.ok) { setSubs(null); setSubsUnavailable(true); return; }
-      const body = await r.json() as { subscriptions?: BriefSubscription[] };
-      setSubs(body.subscriptions || []);
+      if (!r.ok) { fail(); return; }
+      const body = await r.json() as { subscriptions?: BriefSubscription[] } | null;
+      if (!currentRead()) return;
+      if (!Array.isArray(body?.subscriptions) || !body.subscriptions.every(readableSubscription)) throw new Error("Subscription read unavailable");
+      const incoming = body.subscriptions;
+      setSubs((current) => {
+        const next = incoming.map((sub) => protectedRow(sub.subscriptionId)
+          ? current?.find((old) => old.subscriptionId === sub.subscriptionId) || sub : sub);
+        for (const old of current || []) {
+          if (protectedRow(old.subscriptionId) && !next.some((sub) => sub.subscriptionId === old.subscriptionId)) next.push(old);
+        }
+        return next;
+      });
       setSubsUnavailable(false);
     } catch {
-      setSubs(null);
-      setSubsUnavailable(true);
+      fail();
     }
   }, []);
 
   const loadTargets = useCallback(async () => {
-    try {
-      const [watchlistsResponse, thesesResponse] = await Promise.all([
-        fetch("/api/watchlist"),
-        fetch("/api/theses"),
-      ]);
-      const options: BriefTargetOption[] = [];
-
-      if (watchlistsResponse.ok) {
-        const body = await watchlistsResponse.json() as {
-          lists?: Array<{ id?: string; name?: string }>;
-        };
-        for (const row of body.lists || []) {
-          if (typeof row.id === "string" && typeof row.name === "string" && row.name.trim()) {
-            options.push({ kind: "watchlist", id: row.id, name: row.name.trim() });
+    if (!mounted.current) return;
+    const read = ++targetRead.current;
+    const owns = () => mounted.current && read === targetRead.current;
+    // Settle each owned endpoint independently: an unreadable sibling cannot erase
+    // usable targets, and a readable empty sibling cannot prove a complete empty set.
+    const readKind = async (kind: BriefTargetKind): Promise<{ readable: boolean; options: BriefTargetOption[] }> => {
+      try {
+        const response = await fetch(kind === "watchlist" ? "/api/watchlist" : "/api/theses");
+        if (!response.ok) return { readable: false, options: [] };
+        const body = await response.json() as Record<string, unknown> | null;
+        const rows = body?.[kind === "watchlist" ? "lists" : "theses"];
+        if (!Array.isArray(rows)) return { readable: false, options: [] };
+        const options: BriefTargetOption[] = [];
+        for (const row of rows) {
+          if (!readObject(row)) return { readable: false, options: [] };
+          if (kind === "thesis") {
+            if (row.lifecycleState === "archived" || row.lifecycleState === "invalidated") continue;
+            if (row.lifecycleState !== "active") return { readable: false, options: [] };
           }
-        }
-      }
-
-      if (thesesResponse.ok) {
-        const body = await thesesResponse.json() as {
-          theses?: Array<{ id?: string; title?: string; lifecycleState?: string }>;
-        };
-        for (const row of body.theses || []) {
-          if (
-            row.lifecycleState === "active"
-            && typeof row.id === "string"
-            && typeof row.title === "string"
-            && row.title.trim()
-          ) {
-            options.push({ kind: "thesis", id: row.id, name: row.title.trim() });
+          const name = kind === "watchlist" ? row.name : row.title;
+          if (typeof row.id !== "string" || !row.id || typeof name !== "string" || !name.trim()) {
+            return { readable: false, options: [] };
           }
+          options.push({ kind, id: row.id, name: name.trim() });
         }
+        return { readable: true, options };
+      } catch {
+        return { readable: false, options: [] };
       }
-
-      const bothSignedOut = watchlistsResponse.status === 401 && thesesResponse.status === 401;
-      const anyReadable = watchlistsResponse.ok || thesesResponse.ok || bothSignedOut;
-      setTargets(options);
-      setTargetsUnavailable(!anyReadable);
-      setDraftTarget((current) => {
-        if (options.some((target) => targetOptionKey(target) === current)) return current;
-        return options[0] ? targetOptionKey(options[0]) : "";
-      });
-    } catch {
-      setTargets(null);
-      setTargetsUnavailable(true);
-      setDraftTarget("");
-    }
+    };
+    const results = await Promise.all([readKind("watchlist"), readKind("thesis")]);
+    if (!owns()) return;
+    const options = results.flatMap((result) => result.options);
+    setTargets(options);
+    setTargetsUnavailable(results.some((result) => !result.readable));
+    setDraftTarget((current) => {
+      if (options.some((target) => targetOptionKey(target) === current)) return current;
+      return options[0] ? targetOptionKey(options[0]) : "";
+    });
   }, []);
 
   useEffect(() => {
+    mounted.current = true;
     void load();
     void loadSubscriptions();
     void loadTargets();
+    return () => {
+      mounted.current = false;
+      deliveryRead.current += 1;
+      subscriptionRead.current += 1;
+      targetRead.current += 1;
+      for (const id of Object.keys(versions.current)) versions.current[id] += 1;
+      busy.current.clear();
+    };
   }, [load, loadSubscriptions, loadTargets]);
 
-  async function changeSubscription(sub: BriefSubscription, action: "pause" | "resume") {
-    setBusy(sub.subscriptionId);
+  async function reconcileSubscription(id: string, version: number, unconfirmed: boolean) {
+    const owns = () => mounted.current && versions.current[id] === version;
     try {
-      const r = await fetch("/api/briefs/subscriptions/" + encodeURIComponent(sub.subscriptionId), {
+      const r = await fetch("/api/briefs/subscriptions", { cache: "no-store" });
+      if (!r.ok) throw new Error("Subscription read unavailable");
+      const body = await r.json() as { subscriptions?: BriefSubscription[] };
+      const latest = Array.isArray(body.subscriptions)
+        ? body.subscriptions.find((sub) => readableSubscription(sub) && sub.subscriptionId === id) : undefined;
+      if (!latest) {
+        throw new Error("Subscription state unavailable");
+      }
+      if (!owns()) return;
+      setSubs((current) => current?.map((sub) => sub.subscriptionId === id ? latest : sub) || current);
+      setUpdates((current) => {
+        const next = { ...current };
+        if (unconfirmed) next[id] = { phase: "observed", unconfirmed: true };
+        else delete next[id];
+        return next;
+      });
+    } catch {
+      if (owns()) setUpdates((current) => ({ ...current, [id]: { phase: "unknown", unconfirmed } }));
+    } finally {
+      if (owns()) {
+        busy.current.delete(id);
+        // Fence collection reads started while this row's update/read was pending.
+        versions.current[id] += 1;
+      }
+    }
+  }
+
+  async function changeSubscription(sub: BriefSubscription, action: "pause" | "resume") {
+    const id = sub.subscriptionId;
+    if (busy.current.has(id) || updates[id]?.phase === "unknown") return;
+    busy.current.add(id);
+    const version = versions.current[id] = (versions.current[id] || 0) + 1;
+    setUpdates((current) => ({ ...current, [id]: { phase: "pending", unconfirmed: false } }));
+    let unconfirmed = true;
+    try {
+      const r = await fetch("/api/briefs/subscriptions/" + encodeURIComponent(id), {
         method: "PATCH",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ state: action }),
       });
-      if (r.ok) {
-        await loadSubscriptions();
-      }
-    } finally {
-      setBusy(null);
+      unconfirmed = !r.ok;
+    } catch {
+      // A lost reply does not establish whether the update committed. Never replay it.
     }
+    if (!mounted.current || versions.current[id] !== version) return;
+    setUpdates((current) => ({ ...current, [id]: { phase: "checking", unconfirmed } }));
+    await reconcileSubscription(id, version, unconfirmed);
+  }
+
+  async function checkSubscription(id: string) {
+    if (busy.current.has(id)) return;
+    busy.current.add(id);
+    const version = versions.current[id] = (versions.current[id] || 0) + 1;
+    const unconfirmed = updates[id]?.unconfirmed || false;
+    setUpdates((current) => ({ ...current, [id]: { phase: "checking", unconfirmed } }));
+    await reconcileSubscription(id, version, unconfirmed);
   }
 
   function targetLabel(sub: BriefSubscription): string {
@@ -194,11 +304,11 @@ export default function BriefsInbox({ lang }: { lang: BriefLang }) {
 
       <section className={b.briefSection} data-testid="briefs-new-schedule">
         <div className={b.sectionHead}><span>{briefCopy("newScheduleTitle", L)}</span></div>
-        {targetsUnavailable && <p className={s.calmBody}>{briefCopy("targetsUnavailable", L)}</p>}
+        {targetsUnavailable && <p className={s.calmBody}>{briefCopy(targets?.length ? "targetsPartial" : "targetsUnavailable", L)}</p>}
         {!targetsUnavailable && targets && targets.length === 0 && (
           <p className={s.calmBody}>{briefCopy("noTargets", L)}</p>
         )}
-        {!targetsUnavailable && targets && targets.length > 0 && (
+        {targets && targets.length > 0 && (
           <div className={b.scheduleComposer}>
             <select
               aria-label={briefCopy("scheduleTarget", L)}
@@ -246,7 +356,9 @@ export default function BriefsInbox({ lang }: { lang: BriefLang }) {
           <div className={b.scheduleList}>
             {subs.map((sub) => {
               const paused = sub.state === "paused";
-              const disabled = busy === sub.subscriptionId;
+              const update = updates[sub.subscriptionId];
+              const uncertain = !!update && update.phase !== "observed";
+              const disabled = update?.phase === "pending" || update?.phase === "checking";
               return (
                 <div className={b.scheduleRow} key={sub.subscriptionId} data-brief-schedule="">
                   <div className={b.scheduleIdentity}>
@@ -254,17 +366,27 @@ export default function BriefsInbox({ lang }: { lang: BriefLang }) {
                     <span>{briefCopy(sub.targetKind === "watchlist" ? "watchlistKind" : "thesisKind", L)}</span>
                   </div>
                   <span className={b.cadence}>{briefCadenceLabel(sub.cadence, L)}</span>
-                  <span className={b.stateChip} data-state={paused ? "paused" : "active"}>
-                    {briefCopy(paused ? "paused" : "on", L)}
+                  <span className={b.stateChip} data-state={uncertain ? "unknown" : paused ? "paused" : "active"}>
+                    {briefCopy(uncertain ? "stateUnknown" : paused ? "paused" : "on", L)}
                   </span>
                   <div className={b.cadenceActions}>
                     <button
                       type="button"
                       disabled={disabled}
-                      onClick={() => void changeSubscription(sub, paused ? "resume" : "pause")}
+                      onClick={() => uncertain ? void checkSubscription(sub.subscriptionId) : void changeSubscription(sub, paused ? "resume" : "pause")}
                     >
-                      {briefCopy(paused ? "resume" : "pause", L)}
+                      {briefCopy(uncertain ? "checkStatus" : paused ? "resume" : "pause", L)}
                     </button>
+                    {update?.phase === "observed" && (
+                      <button type="button" onClick={() => void checkSubscription(sub.subscriptionId)}>
+                        {briefCopy("checkStatus", L)}
+                      </button>
+                    )}
+                    {update && (
+                      <span role="status" data-brief-update={update.phase}>
+                        {briefCopy(update.phase === "observed" ? "updateObserved" : update.unconfirmed ? "updateUnconfirmed" : "scheduleReadPending", L)}
+                      </span>
+                    )}
                   </div>
                 </div>
               );
@@ -273,13 +395,13 @@ export default function BriefsInbox({ lang }: { lang: BriefLang }) {
         )}
       </section>
 
-      <section className={b.briefSection} data-testid="briefs-delivered">
+      <section className={b.briefSection} data-testid="briefs-delivered" aria-busy={deliveryLoading}>
         <div className={b.sectionHead}><span>{briefCopy("deliveredTitle", L)}</span></div>
       {unavailable && (
         <>
           <p className={s.calmBody}>{briefCopy("unavailable", L)}</p>
           <button type="button" className={`btn btn-ghost ${s.emptyAction}`} onClick={() => void load()}>
-            {briefCopy("retry", L)}
+            {briefCopy(deliveryLoading ? "retrying" : "retry", L)}
           </button>
         </>
       )}
@@ -303,14 +425,14 @@ export default function BriefsInbox({ lang }: { lang: BriefLang }) {
               >
                 <span className={b.briefName} data-brief-name="">{name}</span>
                 <span className={b.briefDate} data-brief-date="">{row.slotAsof}</span>
+                {!miss && body && isUuid(row.deliveryId) && <a className={`btn btn-ghost ${b.reviewSharing}`} href={`/briefs/${row.deliveryId}/sharing`}>{briefCopy("reviewSharing", L)}</a>}
                 <span className={b.cadence} data-brief-cadence="">{briefCadenceLabel(row.subscription.cadence, L)}</span>
                 {row.pinned && <span className={b.pinned}>{briefCopy("lastGood", L)}</span>}
                 {miss ? (
                   <span className={b.sentence} data-brief-sentence="">{degradedLine(row.subscription.cadence, L)}</span>
                 ) : (
-                  <span className={b.sentence} data-brief-sentence="">
-                    {sentences.join(" ")}
-                    {body ? ` · ${monitorsSummary(body, L)}` : ""}
+                  <span className={b.sentence} data-brief-sentence="" data-brief-content-unavailable={!body ? "true" : undefined}>
+                    {body ? `${sentences.join(" ")} · ${monitorsSummary(body, L)}` : briefCopy("contentUnavailable", L)}
                   </span>
                 )}
               </div>

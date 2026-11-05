@@ -11,6 +11,7 @@ const LAYOUT_FILES = [
   "terminal/components/briefs/briefs.module.css",
   "terminal/lib/briefs.ts",
   "terminal/components/alerts/AlertsCockpit.tsx",
+  "terminal/components/alerts/alerts.module.css",
 ];
 const CROPS = [
   "list-1440.png",

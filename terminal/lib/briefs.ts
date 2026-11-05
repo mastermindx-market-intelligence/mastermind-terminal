@@ -79,6 +79,7 @@ export type BriefPatchState = (typeof PATCH_STATES)[number];
 
 export const BRIEFS_COPY = {
   title: ["Briefs", "简报"],
+  reviewSharing: ["Review team sharing", "查看团队分享"],
   scheduledTitle: ["Scheduled", "已安排"],
   deliveredTitle: ["Delivered", "已送达"],
   noSchedules: ["No brief schedules yet.", "还没有简报安排。"],
@@ -89,6 +90,7 @@ export const BRIEFS_COPY = {
   alreadyScheduled: ["Already scheduled", "已安排"],
   noTargets: ["No thesis or watchlist is available to schedule yet.", "暂无可安排的论点或观察列表。"],
   targetsUnavailable: ["Targets could not load right now.", "暂时无法加载论点或观察列表。"],
+  targetsPartial: ["Some targets could not load. Available targets are shown.", "部分对象暂时无法加载。下方显示已加载的对象。"],
   thesisKind: ["Thesis", "论点"],
   watchlistKind: ["Watchlist", "观察列表"],
   controlsTitle: ["Schedule brief", "安排简报"],
@@ -107,6 +109,11 @@ export const BRIEFS_COPY = {
   pause: ["Pause", "暂停"],
   resume: ["Resume", "恢复"],
   paused: ["Paused", "已暂停"],
+  stateUnknown: ["Status unconfirmed", "状态未确认"],
+  checkStatus: ["Check status", "检查状态"],
+  updateUnconfirmed: ["The update was not confirmed. Check status; nothing was resent.", "尚未确认更改结果。请检查状态；未重新发送更改。"],
+  updateObserved: ["The update was not confirmed. Showing the latest observed status; nothing was resent.", "尚未确认更改结果。现显示最近读取的状态；未重新发送更改。"],
+  scheduleReadPending: ["The latest schedule status is not available yet. Check status before changing it again.", "暂时无法确认安排的最新状态。再次更改前请检查状态。"],
   on: ["Scheduled", "已安排"],
   empty: [
     "No delivered briefs yet. When a scheduled brief runs, it will appear here.",
@@ -124,7 +131,9 @@ export const BRIEFS_COPY = {
   monitorOne: ["{n} monitor", "{n} 项监控"],
   monitors: ["{n} monitors", "{n} 项监控"],
   unavailable: ["Briefs could not load right now. Try again in a moment.", "暂时无法加载简报，请稍后再试。"],
+  contentUnavailable: ["This brief's content is unavailable right now.", "这份简报的内容暂时不可用。"],
   retry: ["Try again", "重试"],
+  retrying: ["Trying again…", "正在重试…"],
   asof: ["As of {date}", "截至 {date}"],
 } as const;
 
