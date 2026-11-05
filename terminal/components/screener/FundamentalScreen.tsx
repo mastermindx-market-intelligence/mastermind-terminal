@@ -74,6 +74,16 @@ function draftFrom(field: FundamentalFieldId, p: FundamentalPredicate | undefine
   };
 }
 
+/** The committed source a draft is loaded from, by value: the selected field, then the operator,
+ *  bounds and unknown handling of the predicate that field has on the table (none when it has
+ *  none). Identity is deliberately absent — equal predicates in a new array are the same source,
+ *  so a parent rerender cannot discard typing that has not been committed yet. */
+function draftSourceKey(field: FundamentalFieldId, p: FundamentalPredicate | undefined): string {
+  if (!p) return `${field}|none`;
+  if (p.op === "unknown") return `${field}|unknown`;
+  return `${field}|range|${p.gte ?? ""}|${p.lte ?? ""}|${p.includeUnknown === true ? "incl" : ""}`;
+}
+
 /** Scan-state line: loading / absent / unavailable / refresh-failed / generated + partial. */
 function ScanState({ scan, t }: { scan: FundamentalScanState; t: FundT }) {
   const src = scan.source;
@@ -148,26 +158,37 @@ export type FundamentalScreenBarProps = {
   onPredicates: (next: FundamentalPredicate[]) => void;
   /** Coverage of `field` over the rows the other filters left; null until the scan answers. */
   summary: FundamentalFieldSummary | null;
+  /** Bumped by the parent each time it replaces the table's conditions whole — Clear filters, a
+   *  saved screen opened. The draft reloads from its committed source on every bump, even one
+   *  whose source reads the same as before, which is what lets Clear filters blank a draft typed
+   *  on a field that has no committed condition. Defaults to 0 for a parent that never bumps. */
+  sourceEpoch?: number;
 };
 
 /** The third Screener row: field, typed range or explicit unknown, and the field's basis,
  *  source keys and coverage. Unknown never satisfies a range unless "Also include unknown". */
-export function FundamentalScreenBar({ scan, field, onField, predicates, onPredicates, summary }: FundamentalScreenBarProps) {
+export function FundamentalScreenBar({ scan, field, onField, predicates, onPredicates, summary, sourceEpoch = 0 }: FundamentalScreenBarProps) {
   const t = useFundT();
   const existing = predicates.find((p) => p.field === field);
-  const [draftField, setDraftField] = useState(field);
+  const sourceKey = `${sourceEpoch}|${draftSourceKey(field, existing)}`;
+  const [draftSource, setDraftSource] = useState(sourceKey);
   const [mode, setMode] = useState<Mode>(() => draftFrom(field, existing).mode);
   const [min, setMin] = useState(() => draftFrom(field, existing).min);
   const [max, setMax] = useState(() => draftFrom(field, existing).max);
   const [incl, setIncl] = useState(() => draftFrom(field, existing).incl);
   const [error, setError] = useState<DraftError>(null);
 
-  // Selecting a field loads its active predicate (edit in place) or a blank draft — adjusted
-  // during render on the field change, so the controls never paint one field's draft under
-  // another field's name.
-  if (draftField !== field) {
+  // The draft is loaded from its committed source whenever that source changes by value: a field
+  // selection, a saved screen opened with a predicate on the SAME field, the field's chip removed
+  // or every filter cleared — and whenever the parent says the table was replaced whole
+  // (`sourceEpoch`), so Clear filters blanks a draft even on a field that had nothing committed.
+  // Adjusted during render, so the controls never paint one source's draft under another's name —
+  // and never again can Update commit a stale draft over a condition the table just received
+  // (issue #916). A source that is unchanged, however many times the parent rerenders, leaves
+  // in-progress typing alone.
+  if (draftSource !== sourceKey) {
     const d = draftFrom(field, existing);
-    setDraftField(field);
+    setDraftSource(sourceKey);
     setMode(d.mode); setMin(d.min); setMax(d.max); setIncl(d.incl); setError(null);
   }
 

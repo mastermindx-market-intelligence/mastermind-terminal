@@ -1,0 +1,408 @@
+{
+  "width": 390,
+  "theme": "light",
+  "lang": "zh",
+  "href": "/research?doc_id=report-one&source_pdf_sha256=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa&extracted_text_sha256=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb&extractor_version=extractor-1&segmenter_version=segmenter-1&segment_start=6",
+  "selected": {
+    "docId": "report-one",
+    "sourcePdfSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "extractedTextSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "extractorVersion": "extractor-1",
+    "segmenterVersion": "segmenter-1"
+  },
+  "segmentStart": 6,
+  "initialCalls": [
+    {
+      "url": "/api/watchlist",
+      "method": "GET"
+    },
+    {
+      "url": "/api/portfolio-brief",
+      "method": "GET"
+    },
+    {
+      "url": "/api/shared-shell/research/catalog",
+      "method": "GET"
+    },
+    {
+      "url": "/api/shared-shell/today",
+      "method": "GET"
+    },
+    {
+      "url": "/api/market-breadth",
+      "method": "GET"
+    }
+  ],
+  "reads": [
+    {
+      "url": "/api/shared-shell/research/read/report-one?source_pdf_sha256=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa&extracted_text_sha256=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb&segment_start=6&max_segments=2",
+      "method": "GET"
+    }
+  ],
+  "allCalls": [
+    {
+      "url": "/api/watchlist",
+      "method": "GET"
+    },
+    {
+      "url": "/api/portfolio-brief",
+      "method": "GET"
+    },
+    {
+      "url": "/api/shared-shell/research/catalog",
+      "method": "GET"
+    },
+    {
+      "url": "/api/shared-shell/today",
+      "method": "GET"
+    },
+    {
+      "url": "/api/market-breadth",
+      "method": "GET"
+    },
+    {
+      "url": "/api/shared-shell/research/catalog",
+      "method": "GET"
+    },
+    {
+      "url": "/api/shared-shell/research/read/report-one?source_pdf_sha256=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa&extracted_text_sha256=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb&segment_start=6&max_segments=2",
+      "method": "GET"
+    },
+    {
+      "url": "/api/watchlist",
+      "method": "GET"
+    },
+    {
+      "url": "/api/portfolio-brief",
+      "method": "GET"
+    },
+    {
+      "url": "/api/shared-shell/research/catalog",
+      "method": "GET"
+    },
+    {
+      "url": "/api/shared-shell/today",
+      "method": "GET"
+    },
+    {
+      "url": "/api/market-breadth",
+      "method": "GET"
+    }
+  ],
+  "after": {
+    "pointer": {
+      "selection": {
+        "docId": "report-one",
+        "sourcePdfSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "extractedTextSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "extractorVersion": "extractor-1",
+        "segmenterVersion": "segmenter-1"
+      }
+    },
+    "progress": {
+      "segmentStart": 6
+    }
+  },
+  "errors": [],
+  "assetReceipts": [
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "zh",
+      "url": "http://127.0.0.1:3198/_next/static/chunks/webpack-58cc07cad99967f8.js",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "cache-control": "public, max-age=31536000, immutable",
+        "connection": "keep-alive",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript; charset=UTF-8",
+        "date": "Mon, 02 Nov 2026 23:11:40 GMT",
+        "etag": "W/\"1265-1a19e853803\"",
+        "keep-alive": "timeout=5",
+        "last-modified": "Mon, 02 Nov 2026 23:08:13 GMT",
+        "transfer-encoding": "chunked",
+        "vary": "Accept-Encoding"
+      },
+      "deliveredBytes": 4709,
+      "deliveredSha256": "ef778996837cc0d5afc574941690fdc993aeb21fca9525b897a76a07c0206550",
+      "compilerBytes": 4709,
+      "compilerSha256": "ef778996837cc0d5afc574941690fdc993aeb21fca9525b897a76a07c0206550",
+      "at": "2026-11-02T23:11:40.287Z"
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "zh",
+      "url": "http://127.0.0.1:3198/_next/static/chunks/main-app-c04f6f5d08cf903b.js",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "cache-control": "public, max-age=31536000, immutable",
+        "connection": "keep-alive",
+        "content-length": "514",
+        "content-type": "application/javascript; charset=UTF-8",
+        "date": "Mon, 02 Nov 2026 23:11:40 GMT",
+        "etag": "W/\"202-1a19e853802\"",
+        "keep-alive": "timeout=5",
+        "last-modified": "Mon, 02 Nov 2026 23:08:13 GMT",
+        "vary": "Accept-Encoding"
+      },
+      "deliveredBytes": 514,
+      "deliveredSha256": "a823fb8dcf0774705598327aa7793c9392ae88f03c0f9ca00279bd998beb1d26",
+      "compilerBytes": 514,
+      "compilerSha256": "a823fb8dcf0774705598327aa7793c9392ae88f03c0f9ca00279bd998beb1d26",
+      "at": "2026-11-02T23:11:40.289Z"
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "zh",
+      "url": "http://127.0.0.1:3198/_next/static/chunks/266-0c52f7558f73c82b.js",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "cache-control": "public, max-age=31536000, immutable",
+        "connection": "keep-alive",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript; charset=UTF-8",
+        "date": "Mon, 02 Nov 2026 23:11:40 GMT",
+        "etag": "W/\"2201-1a19e853804\"",
+        "keep-alive": "timeout=5",
+        "last-modified": "Mon, 02 Nov 2026 23:08:13 GMT",
+        "transfer-encoding": "chunked",
+        "vary": "Accept-Encoding"
+      },
+      "deliveredBytes": 8705,
+      "deliveredSha256": "a6afd4ddecb79fe2a34b8a2c2824a3e0323341208b34146f5331b650f6588449",
+      "compilerBytes": 8705,
+      "compilerSha256": "a6afd4ddecb79fe2a34b8a2c2824a3e0323341208b34146f5331b650f6588449",
+      "at": "2026-11-02T23:11:40.290Z"
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "zh",
+      "url": "http://127.0.0.1:3198/_next/static/chunks/918-b20239c46ac1cf50.js",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "cache-control": "public, max-age=31536000, immutable",
+        "connection": "keep-alive",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript; charset=UTF-8",
+        "date": "Mon, 02 Nov 2026 23:11:40 GMT",
+        "etag": "W/\"25b5-1a19e853804\"",
+        "keep-alive": "timeout=5",
+        "last-modified": "Mon, 02 Nov 2026 23:08:13 GMT",
+        "transfer-encoding": "chunked",
+        "vary": "Accept-Encoding"
+      },
+      "deliveredBytes": 9653,
+      "deliveredSha256": "6659ad3cc88b026cd2b3879ff42369a4d4a24e485f0110bff5509d8306750de5",
+      "compilerBytes": 9653,
+      "compilerSha256": "6659ad3cc88b026cd2b3879ff42369a4d4a24e485f0110bff5509d8306750de5",
+      "at": "2026-11-02T23:11:40.294Z"
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "zh",
+      "url": "http://127.0.0.1:3198/_next/static/chunks/c7e23fc5-b83795f657d4b9f8.js",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "cache-control": "public, max-age=31536000, immutable",
+        "connection": "keep-alive",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript; charset=UTF-8",
+        "date": "Mon, 02 Nov 2026 23:11:40 GMT",
+        "etag": "W/\"30cb8-1a19e853804\"",
+        "keep-alive": "timeout=5",
+        "last-modified": "Mon, 02 Nov 2026 23:08:13 GMT",
+        "transfer-encoding": "chunked",
+        "vary": "Accept-Encoding"
+      },
+      "deliveredBytes": 199864,
+      "deliveredSha256": "2820a23012e55a57305d5b7ee4c9654c1d0c60e0d076ba55065a7967890a58f7",
+      "compilerBytes": 199864,
+      "compilerSha256": "2820a23012e55a57305d5b7ee4c9654c1d0c60e0d076ba55065a7967890a58f7",
+      "at": "2026-11-02T23:11:40.301Z"
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "zh",
+      "url": "http://127.0.0.1:3198/_next/static/chunks/app/today/page-609b29ac7e28fd07.js",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "cache-control": "public, max-age=31536000, immutable",
+        "connection": "keep-alive",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript; charset=UTF-8",
+        "date": "Mon, 02 Nov 2026 23:11:40 GMT",
+        "etag": "W/\"13998-1a19e853803\"",
+        "keep-alive": "timeout=5",
+        "last-modified": "Mon, 02 Nov 2026 23:08:13 GMT",
+        "transfer-encoding": "chunked",
+        "vary": "Accept-Encoding"
+      },
+      "deliveredBytes": 80280,
+      "deliveredSha256": "afee365f798042118bfe430b6a38caef35408465ba4c4399f3e4f5955dcb8cd8",
+      "compilerBytes": 80280,
+      "compilerSha256": "afee365f798042118bfe430b6a38caef35408465ba4c4399f3e4f5955dcb8cd8",
+      "at": "2026-11-02T23:11:40.345Z"
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "zh",
+      "url": "http://127.0.0.1:3198/_next/static/chunks/234-eb4076b3dcaaefeb.js",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "cache-control": "public, max-age=31536000, immutable",
+        "connection": "keep-alive",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript; charset=UTF-8",
+        "date": "Mon, 02 Nov 2026 23:11:40 GMT",
+        "etag": "W/\"363fa-1a19e853804\"",
+        "keep-alive": "timeout=5",
+        "last-modified": "Mon, 02 Nov 2026 23:08:13 GMT",
+        "transfer-encoding": "chunked",
+        "vary": "Accept-Encoding"
+      },
+      "deliveredBytes": 222202,
+      "deliveredSha256": "34edac91127a83b77ec14db5b8b99df3d191a2e27f470ce2b1ce692b8d336a33",
+      "compilerBytes": 222202,
+      "compilerSha256": "34edac91127a83b77ec14db5b8b99df3d191a2e27f470ce2b1ce692b8d336a33",
+      "at": "2026-11-02T23:11:40.352Z"
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "zh",
+      "url": "http://127.0.0.1:3198/_next/static/chunks/764-73a32ea58ec51641.js",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "cache-control": "public, max-age=31536000, immutable",
+        "connection": "keep-alive",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript; charset=UTF-8",
+        "date": "Mon, 02 Nov 2026 23:11:40 GMT",
+        "etag": "W/\"2999a-1a19e853804\"",
+        "keep-alive": "timeout=5",
+        "last-modified": "Mon, 02 Nov 2026 23:08:13 GMT",
+        "transfer-encoding": "chunked",
+        "vary": "Accept-Encoding"
+      },
+      "deliveredBytes": 170394,
+      "deliveredSha256": "78c76b4a557cd44af966376dacb0af441756ee1cfd7a2eb2a2983d655b998a90",
+      "compilerBytes": 170394,
+      "compilerSha256": "78c76b4a557cd44af966376dacb0af441756ee1cfd7a2eb2a2983d655b998a90",
+      "at": "2026-11-02T23:11:40.360Z"
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "zh",
+      "url": "http://127.0.0.1:3198/_next/static/chunks/app/layout-1cc3e9d8904e8260.js",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "cache-control": "public, max-age=31536000, immutable",
+        "connection": "keep-alive",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript; charset=UTF-8",
+        "date": "Mon, 02 Nov 2026 23:11:40 GMT",
+        "etag": "W/\"10082-1a19e853802\"",
+        "keep-alive": "timeout=5",
+        "last-modified": "Mon, 02 Nov 2026 23:08:13 GMT",
+        "transfer-encoding": "chunked",
+        "vary": "Accept-Encoding"
+      },
+      "deliveredBytes": 65666,
+      "deliveredSha256": "d45ad2c41bd19722d15dba41e68f19b06e4ef4a488f018900db03d3bf333877b",
+      "compilerBytes": 65666,
+      "compilerSha256": "d45ad2c41bd19722d15dba41e68f19b06e4ef4a488f018900db03d3bf333877b",
+      "at": "2026-11-02T23:11:40.360Z"
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "zh",
+      "url": "http://127.0.0.1:3198/_next/static/chunks/659.c910a6ea6e9268a8.js",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "cache-control": "public, max-age=31536000, immutable",
+        "connection": "keep-alive",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript; charset=UTF-8",
+        "date": "Mon, 02 Nov 2026 23:11:40 GMT",
+        "etag": "W/\"24da-1a19e853803\"",
+        "keep-alive": "timeout=5",
+        "last-modified": "Mon, 02 Nov 2026 23:08:13 GMT",
+        "transfer-encoding": "chunked",
+        "vary": "Accept-Encoding"
+      },
+      "deliveredBytes": 9434,
+      "deliveredSha256": "6a737f65fa80ae14541fbc3fd2fd39dc6df297fd22c1ae9aed6c29f68421f88a",
+      "compilerBytes": 9434,
+      "compilerSha256": "6a737f65fa80ae14541fbc3fd2fd39dc6df297fd22c1ae9aed6c29f68421f88a",
+      "at": "2026-11-02T23:11:40.400Z"
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "zh",
+      "url": "http://127.0.0.1:3198/_next/static/chunks/557.079ee53a65633109.js",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "cache-control": "public, max-age=31536000, immutable",
+        "connection": "keep-alive",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript; charset=UTF-8",
+        "date": "Mon, 02 Nov 2026 23:11:40 GMT",
+        "etag": "W/\"a502d-1a19e853803\"",
+        "keep-alive": "timeout=5",
+        "last-modified": "Mon, 02 Nov 2026 23:08:13 GMT",
+        "transfer-encoding": "chunked",
+        "vary": "Accept-Encoding"
+      },
+      "deliveredBytes": 675885,
+      "deliveredSha256": "c3254fbccbd3adc91323b29b7fa8e61e83692f4eedab055dfd115f39531f9e45",
+      "compilerBytes": 675885,
+      "compilerSha256": "c3254fbccbd3adc91323b29b7fa8e61e83692f4eedab055dfd115f39531f9e45",
+      "at": "2026-11-02T23:11:40.433Z"
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "zh",
+      "url": "http://127.0.0.1:3198/_next/static/chunks/app/research/page-30e83a7edaa0f5c2.js",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "cache-control": "public, max-age=31536000, immutable",
+        "connection": "keep-alive",
+        "content-encoding": "gzip",
+        "content-type": "application/javascript; charset=UTF-8",
+        "date": "Mon, 02 Nov 2026 23:11:40 GMT",
+        "etag": "W/\"40fb-1a19e853803\"",
+        "keep-alive": "timeout=5",
+        "last-modified": "Mon, 02 Nov 2026 23:08:13 GMT",
+        "transfer-encoding": "chunked",
+        "vary": "Accept-Encoding"
+      },
+      "deliveredBytes": 16635,
+      "deliveredSha256": "8921b7f0374cdae5cfabf01cbce80805c272cdc6b83979d659cc941d471314a7",
+      "compilerBytes": 16635,
+      "compilerSha256": "8921b7f0374cdae5cfabf01cbce80805c272cdc6b83979d659cc941d471314a7",
+      "at": "2026-11-02T23:11:40.543Z"
+    }
+  ]
+}

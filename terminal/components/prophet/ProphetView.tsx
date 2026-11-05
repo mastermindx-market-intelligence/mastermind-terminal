@@ -314,7 +314,7 @@ export function ProphetView() {
             <span>{t("mastheadSourceThrough")}</span>
             <b>{sourceVintage.label ?? "—"}</b>
             {sourceWarnings.length > 0 && (
-              <span role="status" style={{ color: "var(--muted, #999)", fontSize: 10, lineHeight: 1.3 }}>
+              <span role="status" style={{ color: "var(--muted, #999)", fontSize: 12, lineHeight: 1.3 }}>
                 {sourceWarnings.join(" · ")}
               </span>
             )}

@@ -628,7 +628,7 @@ def shim_text(name: str, real_git: str) -> str | None:
             'elif [ -f "$MMX_UNIT_ENABLED" ]; then cat "$MMX_UNIT_ENABLED"; else echo disabled; fi ;;\n'
             '      ActiveState) if [ -f "$MMX_UNIT_ACTIVE" ]; then cat "$MMX_UNIT_ACTIVE"; '
             'else echo "${MMX_UNIT_ACTIVE_STATE:-inactive}"; fi ;;\n'
-            '      Environment) echo "${MMX_UNIT_ENVIRONMENT:-MMX_SHARED_SHELL=1 ' + SECRET_SENTINEL + '}" ;;\n'
+            '      Environment) if [ "$5" = terminal.service ]; then echo ""; else echo "${MMX_UNIT_ENVIRONMENT:-MMX_SHARED_SHELL=1 ' + SECRET_SENTINEL + '}"; fi ;;\n'
             '      *) echo "" ;;\n'
             '    esac ;;\n'
             '  start) [ "${MMX_SYSTEMCTL_START_RC:-0}" = 0 ] || exit "$MMX_SYSTEMCTL_START_RC"; '

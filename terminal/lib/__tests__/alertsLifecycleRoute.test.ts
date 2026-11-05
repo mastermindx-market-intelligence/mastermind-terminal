@@ -183,3 +183,27 @@ describe("PATCH refusals and failures", () => {
     expect(classifyReply({ status: 503, body: await res.json() }, "mine-armed", "pause")).toEqual({ kind: "unknown" });
   });
 });
+
+
+describe("frozen-node public lifecycle remains unavailable", () => {
+  it.each([true, false])("refuses explicit and default resume without writes (active=%s)", async active => {
+    H.table.push(row("forged-frozen", "user-1", {
+      active, condition: { type: "opt_frozen_node_proximity", root: "SPY", _fnp: { inside: false }, rights: { allowed: true } },
+    }));
+    const before = structuredClone(stored("forged-frozen"));
+    for (const action of ["resume", undefined]) {
+      const res = await patch({ id: "forged-frozen", action });
+      expect(res.status).toBe(409);
+      expect((await res.json()).error).toBe("Frozen options alerts are not available yet.");
+      expect(stored("forged-frozen")).toEqual(before);
+    }
+    expect(H.writes).toEqual([]);
+  });
+
+  it("still permits an owner to pause the unavailable type", async () => {
+    H.table.push(row("forged-frozen", "user-1", { condition: { type: "opt_frozen_node_proximity" } }));
+    expect((await patch({ id: "forged-frozen", action: "pause" })).status).toBe(200);
+    expect(stored("forged-frozen").active).toBe(false);
+    expect(H.writes).toEqual([{ active: false }]);
+  });
+});

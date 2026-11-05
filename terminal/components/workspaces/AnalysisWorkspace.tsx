@@ -23,6 +23,8 @@ import { ANALYSIS_DEFAULT_SYMBOL, normalizeAnalysisSymbol } from "@/lib/analysis
 import { announceShellBrainSymbol } from "@/lib/shellBrainSymbol";
 import { readActiveSymbol, writeActiveSymbol } from "@/lib/activeSymbol";
 import SymbolPicker from "@/components/SymbolPicker";
+import CompanyListingIdentity from "@/components/CompanyListingIdentity";
+import { normalizeCompanySearchQuery, readCompanySearchQuery } from "@/lib/companySearchContext";
 import MarketOntologyContextStrip from "./MarketOntologyContextStrip";
 import { sharedShellTerminalHref } from "@/lib/sharedShellNavigation";
 import { useOptionalSharedShellPresentation } from "@/components/chrome/shared-shell/SharedShellPresentation";
@@ -105,6 +107,7 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
   const [pickerOpen, setPickerOpen] = useState(false);
   const [marketOntologyContext, setMarketOntologyContext] = useState<MarketOntologyContext | null>(null);
   const routeQuery = searchParams.toString();
+  const companySearchQuery = readCompanySearchQuery(new URLSearchParams(routeQuery));
   useLayoutEffect(() => {
     // Router navigation and Back/Forward reuse this mounted workspace. Reconcile
     // URL identity before paint; a useState seed alone would leave the old company.
@@ -242,10 +245,13 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
   // can be found by English or Chinese name, browsed by asset class, or taken straight from
   // Recently viewed. Every commit also moves the cross-route cursor via the effect above, which
   // is what makes this "change the ticker globally", not just on this desk.
-  const openSymbol = useCallback((next: string) => {
+  const openSymbol = useCallback((next: string, query?: string) => {
     const valid = normalizeAnalysisSymbol(next);
     if (!valid) return;   // the picker only ever yields manifest symbols; belt and braces
     const params = new URLSearchParams(window.location.search);
+    params.delete("company_query");
+    const selectedQuery = normalizeCompanySearchQuery(query);
+    if (selectedQuery !== null) params.set("company_query", selectedQuery);
     for (const key of ["ci_event", "ci_generation", "ci_company", "ci_fingerprint", "ci_lens", "ci_evidence"]) params.delete(key);
     const investigationUrl = new URL(window.location.href);
     investigationUrl.search = params.toString();
@@ -306,6 +312,7 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
           open={pickerOpen}
           onOpenChange={setPickerOpen}
           onPick={openSymbol}
+          onCompanyPick={openSymbol}
           trackSource="analysis-search"
           className={invalidSymbol ? "sym-pick--invalid" : undefined}
         />
@@ -331,6 +338,9 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
         )}
       </div>
 
+      {!invalidSymbol && companySearchQuery !== null && (
+        <CompanyListingIdentity key={sym} symbol={sym} query={companySearchQuery} fund={fund} loading={fundLoading} />
+      )}
       {invalidSymbol ? (
         <section className="analysis-invalid-state" role="status" aria-live="polite">
           <span className="analysis-invalid-mark" aria-hidden>!</span>

@@ -13,7 +13,7 @@ export function prophetSourceVintage(
   lang: "en" | "zh",
 ): { label: string | null; warnings: VintageWarning[] } {
   const raw = typeof payload?.source_asof === "string" ? payload.source_asof : "";
-  const date = /^\d{4}-\d{2}-\d{2}(?:$|T|\s)/.test(raw) ? raw.slice(0, 10) : null;
+  const date = /^\d{4}-\d{2}-\d{2}$/.test(raw) ? raw : null;
   const parsed = date ? new Date(date + "T12:00:00Z") : null;
   const validDate = parsed && Number.isFinite(parsed.getTime()) &&
     parsed.toISOString().slice(0, 10) === date;

@@ -38,6 +38,8 @@ for (const lang of ["en", "zh"] as const) {
     await expect(tile).toContainText("20");
     await expect(tile).toContainText(lang === "zh" ? "数据延迟" : "Delayed");
     await expect(tile).toContainText(lang === "zh" ? "数据时点不一致" : "Mixed vintages");
+    const warningFont = await tile.getByRole("status").evaluate((node) => Number.parseFloat(getComputedStyle(node).fontSize));
+    expect(warningFont).toBeGreaterThanOrEqual(12);
     const published = page.locator(".obs-prophet-stat").filter({
       hasText: lang === "zh" ? "模型收盘" : "Model close",
     });
