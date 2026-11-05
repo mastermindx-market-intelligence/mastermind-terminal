@@ -31,7 +31,8 @@ describe("Terminal ticker-news rail integration", () => {
     const source = shell();
     expect(source).toContain('import("@/components/news/TickerNewsPanel")');
     expect(source).toContain("loggedIn && newsRailEnabled && railTab === \"news\"");
-    expect(source).toContain("<TickerNewsPanel symbol={active} lang={lang} />");
+    // The panel keys personal review marks on the immutable auth id, never on the email.
+    expect(source).toContain("<TickerNewsPanel symbol={active} lang={lang} userId={userId} />");
   });
 
   it("hides the watchlist board whenever a different authenticated rail source is active", () => {

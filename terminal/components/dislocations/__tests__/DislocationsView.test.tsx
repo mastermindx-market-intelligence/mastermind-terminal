@@ -4,7 +4,9 @@ import path from "path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import DislocationsView, { chartNavHref, fmtAge } from "@/components/dislocations/DislocationsView";
+import DislocationsView, {
+  chartNavHref, fmtAge, fmtClock, fmtEpisodeWhen,
+} from "@/components/dislocations/DislocationsView";
 import { LangProvider, applyLang } from "@/lib/i18n";
 import { displayFor } from "@/lib/dislocations/source";
 import type { DislocationEpisode, LiveEntryEpisode } from "@/lib/dislocations/types";
@@ -82,6 +84,107 @@ afterEach(() => {
   vi.useRealTimers();
   vi.restoreAllMocks();
   applyLang("en");
+});
+
+describe("EX-08 ET calendar dates, precise age and honest localization", () => {
+  it("gives same-day ET events the clock, and prior-day ET events a visible date across UTC midnight", () => {
+    const now = Date.parse("2026-10-23T04:05:00Z"); // Oct 23 00:05 ET
+    const yesterday = "2026-10-23T03:55:00Z"; // Oct 22 23:55 ET, same UTC day
+    expect(fmtEpisodeWhen(yesterday, now, "en")).toEqual({
+      primary: "Oct 22", secondary: "23:55 ET", dated: true, valid: true,
+    });
+    expect(fmtEpisodeWhen(yesterday, now, "zh")).toEqual({
+      primary: "10月22日", secondary: "23:55 美东", dated: true, valid: true,
+    });
+    expect(fmtAge(yesterday, now, "en")).toBe("10 min ago");
+    expect(fmtEpisodeWhen("2026-10-23T03:45:00Z", Date.parse("2026-10-23T03:55:00Z"), "en")).toMatchObject({
+      primary: "23:45", dated: false,
+    });
+    expect(fmtClock("2026-10-23T04:05:00Z", "en")).toBe("00:05 ET");
+  });
+
+  it("handles DST spring gap and repeated fall hour by elapsed UTC duration without shifting the ET date", () => {
+    const springNow = Date.parse("2026-03-08T07:10:00Z"); // 03:10 EDT
+    const springBefore = "2026-03-08T06:50:00Z"; // 01:50 EST
+    expect(fmtEpisodeWhen(springBefore, springNow, "en")).toMatchObject({
+      primary: "01:50", dated: false,
+    });
+    expect(fmtAge(springBefore, springNow, "en")).toBe("20 min ago");
+    const fallNow = Date.parse("2026-11-01T06:40:00Z"); // 01:40 EST
+    const fallBefore = "2026-11-01T05:30:00Z"; // 01:30 EDT
+    expect(fmtEpisodeWhen(fallBefore, fallNow, "en")).toMatchObject({
+      primary: "01:30", dated: false,
+    });
+    expect(fmtAge(fallBefore, fallNow, "en")).toBe("1h 10min ago");
+  });
+
+  it("displays the year across the ET year rollover and uses day-scale ages instead of hundreds of hours", () => {
+    const now = Date.parse("2027-01-01T05:15:00Z"); // Jan 1 00:15 ET
+    const old = "2027-01-01T04:55:00Z"; // Dec 31 23:55 ET
+    expect(fmtEpisodeWhen(old, now, "en")).toMatchObject({
+      primary: "Dec 31, 2026", secondary: "23:55 ET", dated: true,
+    });
+    expect(fmtEpisodeWhen(old, now, "zh")).toMatchObject({
+      primary: "2026年12月31日", secondary: "23:55 美东", dated: true,
+    });
+    const older = "2026-12-27T03:15:00Z";
+    expect(fmtAge(older, now, "en")).toBe("5d 2h ago");
+    expect(fmtAge(older, now, "zh")).toBe("5 天 2 小时前");
+  });
+
+  it("refuses fabricated ages for missing, invalid, nonfinite and future timestamps", () => {
+    const now = Date.parse("2026-10-23T18:00:00Z");
+    for (const value of [null, undefined, "not-an-iso"]) {
+      expect(fmtAge(value, now, "en")).toBe("—");
+      expect(fmtEpisodeWhen(value, now, "en")).toEqual({
+        primary: "—", secondary: " ET", dated: false, valid: false,
+      });
+    }
+    expect(fmtAge("2026-10-23T18:05:00Z", now, "en")).toBe("Timestamp ahead");
+    expect(fmtAge("2026-10-23T18:05:00Z", now, "zh")).toBe("时间超前");
+    expect(fmtAge("2026-10-23T17:00:00Z", NaN, "en")).toBe("—");
+  });
+
+  it("separates EN/ZH group headers while keeping stale-feed status, known dates and event clocks", async () => {
+    const ep = withDisplay(freshFile.episodes)[0];
+    const prior = {
+      ...ep, display: { ...ep.display, knowable_at: "2026-10-02T23:15:00Z" },
+    };
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(
+      JSON.stringify(apiBody({
+        state: "stale",
+        episodes: [prior],
+        count: 1,
+        source: {
+          asof: "2026-10-02T22:40:00Z",
+          pack_as_of: "2026-10-02",
+          pack_fresh: false,
+          delayed: true,
+          quote_age_s: 1500,
+        },
+      })),
+      { status: 200, headers: { "content-type": "application/json" } },
+    )));
+    mount("en");
+    await flush();
+    expect(container!.querySelector("#dislo-confirmed span")?.textContent).toBe("Confirmed");
+    expect(container!.querySelector("#dislo-forming span")?.textContent).toBe("Forming");
+    expect(container!.querySelector("#dislo-ended span")?.textContent).toBe("Ended");
+    expect(container!.querySelector("time")?.textContent).toContain("Oct 2");
+    expect(container!.querySelector("time")?.textContent).toContain("19:15 ET");
+    expect(container!.querySelector("[data-testid='dislo-stale-warn']")?.textContent).toContain("Oct 2");
+    expect(container!.textContent).toContain("Nightly pack stale");
+    unmount();
+    mount("zh");
+    await flush();
+    expect(container!.querySelector("#dislo-confirmed span")?.textContent).toBe("已确认");
+    expect(container!.querySelector("#dislo-forming span")?.textContent).toBe("形成中");
+    expect(container!.querySelector("#dislo-ended span")?.textContent).toBe("已结束");
+    expect(container!.querySelector("time")?.textContent).toContain("10月2日");
+    expect(container!.querySelector("time")?.textContent).toContain("19:15 美东");
+    expect(container!.querySelector("[data-testid='dislo-stale-warn']")?.textContent).toContain("10月2日");
+    expect(container!.textContent).toContain("夜间数据包过期");
+  });
 });
 
 describe("DislocationsView §9", () => {

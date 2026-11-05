@@ -259,4 +259,29 @@ describe("Screener device-local preset acknowledgements", () => {
     expect(button(lang === "zh" ? "取消" : "Cancel").tagName).toBe("BUTTON");
     key(retry, "Escape"); expect(alert()).toBeNull(); expect(input()).toBeNull(); expect(writes).toHaveLength(1);
   });
+  it.each([
+    { label: "legacy USD", fields: { liq: 5e6 }, expected: "USD" },
+    { label: "explicitly unbound", fields: { liq: 5e6, liqCcy: null }, expected: null },
+  ])("preserves a $label floor when saving another preset", async ({ fields, expected }) => {
+    seed([preset("A", fields)]); await mount(); save("B");
+    const stored = JSON.parse(raw()!).items;
+    expect(stored.map((p: { name: string }) => p.name)).toEqual(["A", "B"]);
+    expect(stored[0].f.liqCcy).toBe(expected);
+    expect(stored[0].f.ccy).toBe("auto");
+    expect(writes).toHaveLength(1);
+  });
+
+  it("retains native taxonomy and currency through an acknowledged preset write", async () => {
+    const fields = { sector: "银行", taxonomy: "cn_profile_sector", classStale: true, liq: 20e6, liqCcy: "CNY", ccy: "CNY" };
+    seed([preset("A", fields)]); await mount(); save("B");
+    expect(JSON.parse(raw()!).items[0].f).toMatchObject(fields);
+    expect(writes).toHaveLength(1);
+  });
+
+  it("does not normalize an invalid core field into permission to overwrite", async () => {
+    seed([preset("A", { sector: 42 })]); const before = raw(); await mount(); save("B");
+    expect(alert()?.textContent).toContain("could not be read");
+    expect(writes).toHaveLength(0); expect(raw()).toBe(before);
+  });
+
 });

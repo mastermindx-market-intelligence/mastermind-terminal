@@ -1,0 +1,80 @@
+FFF                                                                      [100%]
+=================================== FAILURES ===================================
+__________ test_retained_snapshot_cannot_insert_above_the_shared_cap ___________
+
+pg = <function server.<locals>.run at 0x10bd02da0>
+
+    def test_retained_snapshot_cannot_insert_above_the_shared_cap(pg):
+        import selectors
+        pg(claims(A) + f"insert into alerts(user_id,symbol) select {quote(A)}::uuid,'SPY' from generate_series(1,49)",
+           role="authenticated")
+        process = subprocess.Popen(pg.psql_args, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                                   stderr=subprocess.PIPE, text=True, bufsize=1)
+        try:
+            process.stdin.write("begin isolation level repeatable read;set role authenticated;" + claims(A)
+                                + "select count(*) from public.alerts;\n")
+            process.stdin.flush()
+            with selectors.DefaultSelector() as ready:
+                ready.register(process.stdout, selectors.EVENT_READ)
+                assert ready.select(timeout=10), "Retained-snapshot session did not answer"
+            assert process.stdout.readline().strip() == "49"
+            pg(claims(A) + f"insert into alerts(user_id,symbol) values({quote(A)},'SPY')", role="authenticated")
+            out, err = process.communicate(f"insert into alerts(user_id,symbol) values({quote(A)},'QQQ');commit;", timeout=10)
+>           assert process.returncode != 0, (out, err, pg("select count(*) from alerts"))
+E           AssertionError: ('', '', '51')
+E           assert 0 != 0
+E            +  where 0 = <Popen: returncode: 0 args: ['psql', '-h', '/tmp/fxr26-dr12xqad', '-p', '554...>.returncode
+
+tests/test_forex_watch_postgres.py:394: AssertionError
+_ test_insert_rejects_retained_snapshot_modes_before_any_write[repeatable read] _
+
+pg = <function server.<locals>.run at 0x10bd02da0>
+isolation = 'repeatable read'
+
+    @pytest.mark.parametrize("isolation", ["repeatable read", "serializable"])
+    def test_insert_rejects_retained_snapshot_modes_before_any_write(pg, isolation):
+        result = pg(f"begin isolation level {isolation};" + claims(A)
+                    + f"select save_forex_watch({quote(ID)},0,{quote(A)},{j(RULE)});commit;",
+                    role="authenticated", check=False)
+>       denied(result, "forex_watch_invalid_request")
+
+tests/test_forex_watch_postgres.py:408: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+result = CompletedProcess(args=['psql', '-h', '/tmp/fxr26-dr12xqad', '-p', '55488', '-U', 'postgres', '-d', 'postgres', '-X', '..."", ""schema_version"": 1, ""origin_snapshot_id"": ""fixture-only""}",f,"2026-10-21 05:44:09.740824-07")\n', stderr='')
+token = 'forex_watch_invalid_request'
+
+    def denied(result, token):
+>       assert result.returncode != 0
+E       assert 0 != 0
+E        +  where 0 = CompletedProcess(args=['psql', '-h', '/tmp/fxr26-dr12xqad', '-p', '55488', '-U', 'postgres', '-d', 'postgres', '-X', '..."", ""schema_version"": 1, ""origin_snapshot_id"": ""fixture-only""}",f,"2026-10-21 05:44:09.740824-07")\n', stderr='').returncode
+
+tests/test_forex_watch_postgres.py:144: AssertionError
+__ test_insert_rejects_retained_snapshot_modes_before_any_write[serializable] __
+
+pg = <function server.<locals>.run at 0x10bd02da0>, isolation = 'serializable'
+
+    @pytest.mark.parametrize("isolation", ["repeatable read", "serializable"])
+    def test_insert_rejects_retained_snapshot_modes_before_any_write(pg, isolation):
+        result = pg(f"begin isolation level {isolation};" + claims(A)
+                    + f"select save_forex_watch({quote(ID)},0,{quote(A)},{j(RULE)});commit;",
+                    role="authenticated", check=False)
+>       denied(result, "forex_watch_invalid_request")
+
+tests/test_forex_watch_postgres.py:408: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+result = CompletedProcess(args=['psql', '-h', '/tmp/fxr26-dr12xqad', '-p', '55488', '-U', 'postgres', '-d', 'postgres', '-X', '..."", ""schema_version"": 1, ""origin_snapshot_id"": ""fixture-only""}",f,"2026-10-21 05:44:09.843603-07")\n', stderr='')
+token = 'forex_watch_invalid_request'
+
+    def denied(result, token):
+>       assert result.returncode != 0
+E       assert 0 != 0
+E        +  where 0 = CompletedProcess(args=['psql', '-h', '/tmp/fxr26-dr12xqad', '-p', '55488', '-U', 'postgres', '-d', 'postgres', '-X', '..."", ""schema_version"": 1, ""origin_snapshot_id"": ""fixture-only""}",f,"2026-10-21 05:44:09.843603-07")\n', stderr='').returncode
+
+tests/test_forex_watch_postgres.py:144: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_forex_watch_postgres.py::test_retained_snapshot_cannot_insert_above_the_shared_cap
+FAILED tests/test_forex_watch_postgres.py::test_insert_rejects_retained_snapshot_modes_before_any_write[repeatable read]
+FAILED tests/test_forex_watch_postgres.py::test_insert_rejects_retained_snapshot_modes_before_any_write[serializable]
+3 failed, 66 deselected in 2.40s

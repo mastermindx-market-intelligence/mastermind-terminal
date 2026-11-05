@@ -1,0 +1,12 @@
+{
+ "asof": "2026-10-01",
+ "profile": {
+  "industry": "Household & Personal Products",
+  "sector": "Consumer Defensive"
+ },
+ "quote_currency": "USD",
+ "src": {
+  "statements": "yfinance"
+ },
+ "ticker": "PG"
+}

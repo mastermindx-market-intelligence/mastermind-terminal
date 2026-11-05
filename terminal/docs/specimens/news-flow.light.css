@@ -1,0 +1,11 @@
+[data-specimen-theme="light"]{--panel:#ffffff;--panel-2:#ffffff;--text:#161a22;--text-2:#4a5361;--muted:#6b7482;--text-dim:#9aa2ae;--line:#e2e6ec;--line-2:#e2e6ec;--line-3:#dde2e9;--brand-2:#2f5ce6;background:#f3f5f8;color:#161a22}
+[data-specimen-theme="light"] .flow{--flow-muted:#6b7482}
+[data-specimen-theme="light"] .detail{box-shadow:0 8px 24px rgba(15,23,42,.10),0 1px 2px rgba(15,23,42,.06)}
+[data-specimen-theme="light"] .liveDot{background:#2f5ce6;box-shadow:none}
+[data-specimen-theme="light"] .bar{fill:#5f6877;fill-opacity:1}
+[data-specimen-theme="light"] .median{stroke:#6b7482}
+[data-specimen-theme="light"] .zeroDot{fill:#6b7482}
+[data-specimen-theme="light"] .noRecord{stroke:#6b7482}
+[data-specimen-theme="light"] .today{stroke:#161a22}
+[data-specimen-theme="light"] .tallyLabel{stroke:#ffffff}
+[data-specimen-theme="light"] .more:focus-visible{outline-color:#2f5ce6}
