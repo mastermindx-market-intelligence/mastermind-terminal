@@ -1,0 +1,169 @@
+{
+  "schema": "d08b.sign_contrast_samples.v1",
+  "text": [
+    {
+      "tag": "SPAN",
+      "testId": null,
+      "text": "符号稳健性",
+      "color": "rgb(214, 218, 227)",
+      "backgroundRgba": [
+        21,
+        23,
+        29,
+        255
+      ],
+      "fontSize": "12px",
+      "fontWeight": "650",
+      "opacity": "1",
+      "ratio": 12.794044188667254
+    },
+    {
+      "tag": "SPAN",
+      "testId": null,
+      "text": "带符号估计",
+      "color": "rgb(155, 163, 180)",
+      "backgroundRgba": [
+        21,
+        23,
+        29,
+        255
+      ],
+      "fontSize": "10px",
+      "fontWeight": "400",
+      "opacity": "1",
+      "ratio": 7.073661363306059
+    },
+    {
+      "tag": "SPAN",
+      "testId": null,
+      "text": "伽马倾斜",
+      "color": "rgb(155, 163, 180)",
+      "backgroundRgba": [
+        21,
+        23,
+        29,
+        255
+      ],
+      "fontSize": "10px",
+      "fontWeight": "400",
+      "opacity": "1",
+      "ratio": 7.073661363306059
+    },
+    {
+      "tag": "SPAN",
+      "testId": null,
+      "text": "—",
+      "color": "rgb(214, 218, 227)",
+      "backgroundRgba": [
+        21,
+        23,
+        29,
+        255
+      ],
+      "fontSize": "14px",
+      "fontWeight": "600",
+      "opacity": "1",
+      "ratio": 12.794044188667254
+    },
+    {
+      "tag": "SPAN",
+      "testId": null,
+      "text": "翻转于看涨权重",
+      "color": "rgb(155, 163, 180)",
+      "backgroundRgba": [
+        21,
+        23,
+        29,
+        255
+      ],
+      "fontSize": "10px",
+      "fontWeight": "400",
+      "opacity": "1",
+      "ratio": 7.073661363306059
+    },
+    {
+      "tag": "SPAN",
+      "testId": null,
+      "text": "未确定",
+      "color": "rgb(214, 218, 227)",
+      "backgroundRgba": [
+        21,
+        23,
+        29,
+        255
+      ],
+      "fontSize": "14px",
+      "fontWeight": "600",
+      "opacity": "1",
+      "ratio": 12.794044188667254
+    },
+    {
+      "tag": "SPAN",
+      "testId": null,
+      "text": "结论",
+      "color": "rgb(155, 163, 180)",
+      "backgroundRgba": [
+        21,
+        23,
+        29,
+        255
+      ],
+      "fontSize": "10px",
+      "fontWeight": "400",
+      "opacity": "1",
+      "ratio": 7.073661363306059
+    },
+    {
+      "tag": "SPAN",
+      "testId": null,
+      "text": "未知",
+      "color": "rgb(214, 218, 227)",
+      "backgroundRgba": [
+        21,
+        23,
+        29,
+        255
+      ],
+      "fontSize": "14px",
+      "fontWeight": "600",
+      "opacity": "1",
+      "ratio": 12.794044188667254
+    },
+    {
+      "tag": "P",
+      "testId": null,
+      "text": "· 约定: dealer-sign per engine/gex_model",
+      "color": "rgb(155, 163, 180)",
+      "backgroundRgba": [
+        21,
+        23,
+        29,
+        255
+      ],
+      "fontSize": "10px",
+      "fontWeight": "400",
+      "opacity": "1",
+      "ratio": 7.073661363306059
+    },
+    {
+      "tag": "SPAN",
+      "testId": "sign-sensitivity-note",
+      "text": "这些输入无法确定符号敏感性估计；稳健性与翻转权重均未确定。",
+      "color": "rgb(155, 163, 180)",
+      "backgroundRgba": [
+        21,
+        23,
+        29,
+        255
+      ],
+      "fontSize": "10px",
+      "fontWeight": "400",
+      "opacity": "1",
+      "ratio": 7.073661363306059
+    }
+  ],
+  "marks": [],
+  "textBelow4_5": [],
+  "marksBelow3": [],
+  "limitation": "Direct painted text and SVG mark styles against nearest opaque background. Gradients, alpha compositing and ancestor opacity are not certified. Zero-axis line is included and reported separately by shape."
+}

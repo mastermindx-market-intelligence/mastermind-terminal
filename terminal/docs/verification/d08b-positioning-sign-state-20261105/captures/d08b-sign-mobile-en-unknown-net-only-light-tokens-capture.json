@@ -1,0 +1,24 @@
+{
+  "schema": "d08b.viewport_capture.v1",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "fullPage": false,
+  "innerWidth": 390,
+  "innerHeight": 844,
+  "devicePixelRatio": 1,
+  "cssZoom": "1",
+  "target": {
+    "tag": "SECTION",
+    "text": "Sign robustnessiSigned estimateGamma tilt—Flips at call weightNot determinedVerdictUnknownThese inputs do not establish the sign-sensitivity estimate; robustness and a flip weight ",
+    "left": 12,
+    "top": 340.640625,
+    "width": 366,
+    "height": 163.390625
+  },
+  "fixtureVariant": "unknown-net-only",
+  "language": "en",
+  "project": "mobile",
+  "presentation": "controlled panel light tokens; not production theme activation"
+}

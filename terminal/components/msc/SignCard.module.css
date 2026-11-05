@@ -1,0 +1,29 @@
+/* Scope readable labels and source qualification to this card. Shared card and
+   theme owners retain their tokens and behavior everywhere else. */
+:global(section):has(> .values) {
+  --sign-warning: color-mix(in srgb, var(--warn) 55%, var(--text) 45%);
+}
+
+.values,
+.axis {
+  --text-dim: var(--text-2);
+  min-width: 0;
+}
+
+.measure {
+  min-width: 0;
+}
+
+/* The zero line establishes the sign of the sensitivity curve. */
+.measure svg > line {
+  stroke: var(--text-2);
+}
+
+:global(section):has(> .values) > header :is(span, i)[tabindex="0"] {
+  color: var(--text-2);
+  opacity: 1;
+}
+
+:global(section):has(> .values) > p {
+  color: var(--text-2);
+}

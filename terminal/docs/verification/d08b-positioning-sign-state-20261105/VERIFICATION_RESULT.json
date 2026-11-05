@@ -1,0 +1,117 @@
+{
+  "schema": "d08b.positioning_sign_verification.v1",
+  "observed_at_utc": "2026-11-05T04:40:44.660377+00:00",
+  "base_head": "fd014cb9acbecd319ad7816a6514197f0f446e83",
+  "status": "BUILT_NOT_PROVEN_IN_PRODUCTION",
+  "source_law_pin": "70187bb1660e8a7c3038271bb9f8924b5e525cb0",
+  "run_receipt": "run-result.json",
+  "final_source_blobs": {
+    "components/msc/MarketStructureBody.tsx": "f8f018ae1e80d2ce5c87131a652044fa23c87762",
+    "components/msc/mscStrings.ts": "d9874f831d33831d0fced203512c1cfa2e7e4b0f",
+    "components/msc/SignCard.module.css": "988784e44da60532c653ba6af3732edf3d9410df",
+    "lib/__tests__/positioningSignState.test.tsx": "e8f9d804f644c7b233a89877698ca90bd8b84cef",
+    "e2e/options-positioning-sign-state.spec.ts": "c99fe4b69f410979a6bd60d3fffd90fe75e4d8c3",
+    "lib/marketStructure.ts": "b6718d3f162117af38d114ba691cd4b6b1894bd8"
+  },
+  "unchanged_phase_dependencies": {
+    "components/msc/ProfileCard.tsx": "8a7bb3571390a92d1ee115ffb9364893e5505fd2",
+    "components/msc/ProfileCard.module.css": "1465099d4ac0009a5875064269e8d79af569dbff",
+    "components/msc/profileStrings.ts": "f8610fae276a760867fc90af10e964c631d1f975",
+    "components/msc/MscCard.tsx": "6a19df998bef1d7a4b4f13378eaace5ccee3baed",
+    "components/msc/msc.module.css": "0d9dc173c10a41857fd956365a7cb471a7fb8540",
+    "components/charts/svgChart.ts": "35c845d79f84d952511165f14a03efe884581945",
+    "components/exposure-map/ExposureChangeInspector.tsx": "0795075372a3dd4a8b017820c4a6af1e3c709c04",
+    "components/exposure-map/ExposureChangeInspector.module.css": "2eaf08e55028621d6e0dbd2f4f21e69f17ed819d",
+    "lib/marketStructure.ts": "b6718d3f162117af38d114ba691cd4b6b1894bd8"
+  },
+  "unit": {
+    "passed": 91,
+    "new_sign_cases": 14,
+    "existing_model_cases": 64,
+    "profile_cases": 13,
+    "failed": 0,
+    "exit_code": 0
+  },
+  "lint": {
+    "exit_code": 0
+  },
+  "browser": {
+    "passed": 7,
+    "intentional_skips": 5,
+    "failed": 0,
+    "exit_code": 0,
+    "skips": "3 opt-in baseline instances; 2 non-desktop lifecycle duplicates",
+    "languages": [
+      "en",
+      "zh"
+    ],
+    "viewports": [
+      1440,
+      820,
+      390,
+      320
+    ],
+    "controlled_light_token_cases": [
+      "unknown",
+      "robust",
+      "fragile"
+    ],
+    "actual_parent_source_loss_and_reload_recovery": true,
+    "retries": 0
+  },
+  "build": {
+    "exit_code": 0,
+    "covers_retained_inspector_profile_and_sign": true,
+    "production_deployment": false
+  },
+  "captures": {
+    "png": 52,
+    "capture_metadata": 52,
+    "contrast_records": 40,
+    "state_inventories": 6
+  },
+  "contrast": {
+    "text": {
+      "samples": 478,
+      "minimum_ratio": 4.8720061448799585
+    },
+    "marks": {
+      "samples": 102,
+      "minimum_ratio": 3.6558670736197985
+    }
+  },
+  "invariants": {
+    "other_cards_byte_identical_except_two_imports": true,
+    "geometry_bytes": 958,
+    "geometry_sha256": "4e877271f35dd63ac63ad367889612069d95967e6df129a1a6ed993edcf7d0d7",
+    "geometry_byte_identical": true,
+    "raw_svg_byte_identical": false,
+    "svg_equal_after_intentional_warning_token_normalization": true,
+    "zero_reference_ink_improved": true,
+    "calculations_thresholds_inputs_selection_clocks_and_reader_unchanged": true
+  },
+  "root_visual_review": [
+    "mobile-320-en-unknown-net-only",
+    "mobile-320-zh-put-only",
+    "desktop-en-fragile-light-tokens",
+    "mobile-320-en-source"
+  ],
+  "source_header_proof_boundary": "Input is hit-tested; full SPY/date/stale copy visually observed in exact320ENcapture. No generic full-header occlusion assertion.",
+  "independent_native_audit": "Source-only PASS with SVG-color and source-header evidence qualifications consumed; no formalapproval or remoteeffects",
+  "paper": {
+    "file": "01M3NSZGE8JWN2EZCSF0DT05RM",
+    "read_targets": [
+      "1QGP-0",
+      "1E0M-0"
+    ],
+    "mutations": 0
+  },
+  "limitations": [
+    "Fixture/localroute only, not live provider/account or production acceptance",
+    "Controlled card light tokens, not released application theme",
+    "No complete alpha/ancestor-opacity/assistive-technology/performance certification",
+    "Model cannot distinguish missing side magnitudes from supplied zero",
+    "Parent integration and all release holds remain"
+  ],
+  "finalization_scope": "Bounded D08B implementation result; parent mission incomplete"
+}

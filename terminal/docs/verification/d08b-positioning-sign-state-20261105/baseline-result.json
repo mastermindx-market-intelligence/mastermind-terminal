@@ -1,0 +1,19 @@
+{
+  "phase": "baseline-after-zero-height-harness-correction",
+  "head": "fd014cb9acbecd319ad7816a6514197f0f446e83",
+  "port": 63937,
+  "command": [
+    "npm",
+    "run",
+    "test:e2e:responsive",
+    "--",
+    "--config=docs/verification/d08b-vol-skew-exact-20261104/playwright.config.ts",
+    "e2e/options-positioning-sign-state.spec.ts",
+    "--project=desktop",
+    "--workers=1",
+    "--max-failures=1"
+  ],
+  "started": "2026-11-05T04:22:45.852898+00:00",
+  "exit_code": 0,
+  "completed": "2026-11-05T04:22:59.073450+00:00"
+}

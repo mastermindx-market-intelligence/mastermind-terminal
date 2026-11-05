@@ -1,0 +1,23 @@
+{
+  "schema": "d08b.viewport_capture.v1",
+  "viewport": {
+    "width": 360,
+    "height": 844
+  },
+  "fullPage": false,
+  "innerWidth": 360,
+  "innerHeight": 844,
+  "devicePixelRatio": 1,
+  "cssZoom": "1",
+  "target": {
+    "tag": "INPUT",
+    "text": "",
+    "left": 12,
+    "top": 222.015625,
+    "width": 120,
+    "height": 29.390625
+  },
+  "failedRoot": "QQQ",
+  "httpStatus": 403,
+  "priorCardWithdrawn": true
+}

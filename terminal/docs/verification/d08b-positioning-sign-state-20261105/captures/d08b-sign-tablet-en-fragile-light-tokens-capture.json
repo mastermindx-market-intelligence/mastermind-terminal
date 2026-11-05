@@ -1,0 +1,24 @@
+{
+  "schema": "d08b.viewport_capture.v1",
+  "viewport": {
+    "width": 820,
+    "height": 1180
+  },
+  "fullPage": false,
+  "innerWidth": 820,
+  "innerHeight": 1180,
+  "devicePixelRatio": 1,
+  "cssZoom": "1",
+  "target": {
+    "tag": "SECTION",
+    "text": "Sign robustnessiSigned estimateGamma tilt5.3%Flips at call weight0.90VerdictFragile−1 dealers short calls0 calls unsigned+1 dealers long callsCall and put gamma are close to balanc",
+    "left": 415,
+    "top": 964.53125,
+    "width": 393,
+    "height": 215.296875
+  },
+  "fixtureVariant": "fragile",
+  "language": "en",
+  "project": "tablet",
+  "presentation": "controlled panel light tokens; not production theme activation"
+}

@@ -1,0 +1,24 @@
+{
+  "schema": "d08b.viewport_capture.v1",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "fullPage": false,
+  "innerWidth": 390,
+  "innerHeight": 844,
+  "devicePixelRatio": 1,
+  "cssZoom": "1",
+  "target": {
+    "tag": "SECTION",
+    "text": "符号稳健性i带符号估计伽马倾斜5.3%翻转于看涨权重0.90结论脆弱−1 做市商看涨空头0 看涨方无符号+1 做市商看涨多头看涨与看跌伽马接近平衡——约定的微小变化即可翻转该判断。应视符号为未定。 · 约定: dealer-sign per engine/gex_model",
+    "left": 12,
+    "top": 310.578125,
+    "width": 366,
+    "height": 223.390625
+  },
+  "fixtureVariant": "fragile",
+  "language": "zh",
+  "project": "mobile",
+  "presentation": "controlled panel light tokens; not production theme activation"
+}

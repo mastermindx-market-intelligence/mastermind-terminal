@@ -1,0 +1,26 @@
+{
+  "schema": "d08b.viewport_capture.v1",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "fullPage": false,
+  "innerWidth": 1440,
+  "innerHeight": 900,
+  "devicePixelRatio": 1,
+  "cssZoom": "1",
+  "target": {
+    "tag": "SECTION",
+    "text": "Sign robustnessiSigned estimateGamma tilt—Flips at call weightNo plausible weight flips itVerdictNo gamma−1 dealers short calls0 calls unsigned+1 dealers long callsThe regime read ",
+    "left": 982.65625,
+    "top": 639.90625,
+    "width": 445.34375,
+    "height": 200.796875
+  },
+  "phase": "original-source baseline",
+  "fixtureVariant": "unknown-net-only",
+  "reportedGammaMn": 60,
+  "falseUnknown": "No gamma",
+  "falseCritical": "No plausible weight flips it",
+  "falseRobustGuarantee": "The regime read survives the full range of conventions we consider plausible."
+}

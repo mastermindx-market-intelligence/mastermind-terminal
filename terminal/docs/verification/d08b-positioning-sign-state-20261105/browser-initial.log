@@ -1,0 +1,76 @@
+
+> terminal@0.1.0 test:e2e:responsive
+> playwright test --config=docs/verification/d08b-vol-skew-exact-20261104/playwright.config.ts e2e/options-positioning-sign-state.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --max-failures=2
+
+[warmup] /terminal?symbol=NVDA → 200 in 66ms
+[warmup] /options → 200 in 144ms
+[warmup] /portfolio → 200 in 81ms
+[warmup] /alerts → 200 in 75ms
+[warmup] /analysis → 200 in 131ms
+[warmup] /discover → 200 in 103ms
+[warmup] /admin → 200 in 53ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 38ms
+[warmup] /login → 200 in 62ms
+[warmup] /reset-password → 200 in 68ms
+[warmup] /api/me → 200 in 54ms
+[warmup] /api/watchlist → 200 in 30ms
+[warmup] /api/layouts → 200 in 25ms
+[warmup] /api/watchlist/annotations → 409 in 23ms
+[warmup] 14 routes compiled in 1s
+
+Running 12 tests using 1 worker
+
+  -   1 [desktop] › e2e/options-positioning-sign-state.spec.ts:210:5 › baseline: incumbent Sign labels known net Gamma absent and guarantees a crossing regime
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓   2 [desktop] › e2e/options-positioning-sign-state.spec.ts:430:7 › Sign en: unknown basis, tilt verdicts and valid put-only no crossing (5.6s)
+  ✓   3 [desktop] › e2e/options-positioning-sign-state.spec.ts:430:7 › Sign zh: unknown basis, tilt verdicts and valid put-only no crossing (6.9s)
+[WebServer] [searchEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓   4 [desktop] › e2e/options-positioning-sign-state.spec.ts:507:5 › Sign: mounted unknown measurement, real root loss and reload recovery (3.0s)
+  -   5 [tablet] › e2e/options-positioning-sign-state.spec.ts:210:5 › baseline: incumbent Sign labels known net Gamma absent and guarantees a crossing regime
+  ✓   6 [tablet] › e2e/options-positioning-sign-state.spec.ts:430:7 › Sign en: unknown basis, tilt verdicts and valid put-only no crossing (6.6s)
+  ✓   7 [tablet] › e2e/options-positioning-sign-state.spec.ts:430:7 › Sign zh: unknown basis, tilt verdicts and valid put-only no crossing (7.9s)
+  -   8 [tablet] › e2e/options-positioning-sign-state.spec.ts:507:5 › Sign: mounted unknown measurement, real root loss and reload recovery
+  -   9 [mobile] › e2e/options-positioning-sign-state.spec.ts:210:5 › baseline: incumbent Sign labels known net Gamma absent and guarantees a crossing regime
+  ✘  10 [mobile] › e2e/options-positioning-sign-state.spec.ts:430:7 › Sign en: unknown basis, tilt verdicts and valid put-only no crossing (14.6s)
+  ✓  11 [mobile] › e2e/options-positioning-sign-state.spec.ts:430:7 › Sign zh: unknown basis, tilt verdicts and valid put-only no crossing (9.7s)
+  -  12 [mobile] › e2e/options-positioning-sign-state.spec.ts:507:5 › Sign: mounted unknown measurement, real root loss and reload recovery
+
+
+  1) [mobile] › e2e/options-positioning-sign-state.spec.ts:430:7 › Sign en: unknown basis, tilt verdicts and valid put-only no crossing 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+    Call Log:
+    - Timeout 5000ms exceeded while waiting on the predicate
+
+      188 |     return r.left >= 0 && r.right <= innerWidth + 1 && r.top >= 0 && r.bottom <= innerHeight + 1
+      189 |       && !!hit && (el === hit || el.contains(hit));
+    > 190 |   })).toBe(true);
+          |       ^
+      191 |   const viewport = page.viewportSize();
+      192 |   const observed = await target.evaluate(el => {
+      193 |     const r = el.getBoundingClientRect();
+        at capture (/Volumes/Mastermind/agent-workspaces/terminal/web/d08b-surface-exact-values-20261104-c3/terminal/e2e/options-positioning-sign-state.spec.ts:190:7)
+        at /Volumes/Mastermind/agent-workspaces/terminal/web/d08b-surface-exact-values-20261104-c3/terminal/e2e/options-positioning-sign-state.spec.ts:491:11
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/options-positioning-sign-s-f0cea--valid-put-only-no-crossing-mobile/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/options-positioning-sign-s-f0cea--valid-put-only-no-crossing-mobile/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/options-positioning-sign-s-f0cea--valid-put-only-no-crossing-mobile/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/options-positioning-sign-s-f0cea--valid-put-only-no-crossing-mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [mobile] › e2e/options-positioning-sign-state.spec.ts:430:7 › Sign en: unknown basis, tilt verdicts and valid put-only no crossing 
+  5 skipped
+  6 passed (1.1m)

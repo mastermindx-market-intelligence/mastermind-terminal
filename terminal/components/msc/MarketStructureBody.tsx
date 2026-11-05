@@ -27,7 +27,7 @@
 import React, { useMemo, useRef } from "react";
 import { Tip } from "@/components/ui/Tip";
 import { fmtMn, fmtMnMag } from "@/lib/gexLadder";
-import { buildMarketStructure, type MscMoves } from "@/lib/marketStructure";
+import { buildMarketStructure, TILT_FRAGILE_ABS, type MscMoves } from "@/lib/marketStructure";
 import type { MarketStructure } from "@/lib/marketStructure";
 import { makeMscT, type MscKey } from "./mscStrings";
 import { MscCard, SectionRule, CardFoot, CardSpacer } from "./MscCard";
@@ -39,6 +39,7 @@ import { GradesCard, type GradesPayload } from "./GradesCard";
 import { ProfileCard } from "./ProfileCard";
 import { useChartWidth } from "@/components/charts/svgChart";
 import s from "./msc.module.css";
+import signStyles from "./SignCard.module.css";
 import type { AggTrendPayload } from "@/lib/aggTrend";
 import type { QuadPayload } from "@/lib/quadBoard";
 import type { GexMatrix } from "@/lib/gexLadder";
@@ -343,6 +344,7 @@ function KeyLevelsCard({
 function SignCard({ ms, t, convention }: { ms: MarketStructure; t: T; convention: string | null }) {
   const s2 = ms.sign;
   const fragile = s2.verdict === "fragile";
+  const isUnknown = s2.verdict === "unknown";
   const verdictKey: MscKey =
     s2.verdict === "robust" ? "signRobust" : s2.verdict === "fragile" ? "signFragile" : "signUnknown";
 
@@ -377,27 +379,28 @@ function SignCard({ ms, t, convention }: { ms: MarketStructure; t: T; convention
       tierWhy={t("tierBWhy")}
       span={4}
     >
-      <div style={ROW}>
+      <div className={signStyles.values} style={ROW} data-testid="sign-sensitivity-values" data-verdict={s2.verdict}>
         <Stat
           label={t("signTilt")}
           value={s2.tilt == null ? "—" : pct(s2.tilt * 100)}
-          tone={fragile ? "var(--warn)" : undefined}
+          tone={fragile ? "var(--sign-warning, var(--warn))" : undefined}
           tip={t("signTiltWhy")}
         />
         <Stat
           label={t("signCritical")}
-          value={inRange ? num(wStar, 2) : t("signNoFlip")}
+          value={isUnknown ? t("signUndetermined") : inRange ? num(wStar, 2) : t("signNoFlip")}
           tip={t("signCriticalWhy")}
         />
         <Stat
           label={t("signVerdictLbl")}
           value={t(verdictKey)}
-          tone={fragile ? "var(--warn)" : undefined}
+          tone={fragile ? "var(--sign-warning, var(--warn))" : undefined}
         />
       </div>
 
-      {curveGeom && (
-        <div ref={boxRef} style={{ width: "100%", marginBottom: 2 }}>
+      {/* Keep measurement attached while unknown so a later estimate uses the actual width. */}
+      <div ref={boxRef} className={signStyles.measure} data-testid="sign-sensitivity-measure" style={{ width: "100%", marginBottom: !isUnknown && curveGeom ? 2 : 0 }}>
+        {!isUnknown && curveGeom && (
           <svg width={W} height={CH} viewBox={`0 0 ${W} ${CH}`} aria-hidden>
             <line
               x1={CP.l} x2={CP.l + curveGeom.innerW}
@@ -406,12 +409,12 @@ function SignCard({ ms, t, convention }: { ms: MarketStructure; t: T; convention
             />
             <polyline
               fill="none"
-              stroke={fragile ? "var(--warn)" : "var(--brand-2)"}
+              stroke={fragile ? "var(--sign-warning, var(--warn))" : "var(--brand-2)"}
               strokeWidth={1.5}
               points={s2.curve.map((p) => `${curveGeom.sx(p.w)},${curveGeom.sy(p.netMn)}`).join(" ")}
             />
             {inRange && (
-              <circle cx={curveGeom.sx(wStar!)} cy={curveGeom.sy(0)} r={2.5} fill={fragile ? "var(--warn)" : "var(--text-2)"} />
+              <circle cx={curveGeom.sx(wStar!)} cy={curveGeom.sy(0)} r={2.5} fill={fragile ? "var(--sign-warning, var(--warn))" : "var(--text-2)"} />
             )}
             <circle
               cx={curveGeom.sx(1)}
@@ -420,19 +423,22 @@ function SignCard({ ms, t, convention }: { ms: MarketStructure; t: T; convention
               fill="var(--brand)"
             />
           </svg>
+        )}
+      </div>
+
+      {!isUnknown && (
+        <div className={signStyles.axis} style={TRACK_AXIS} data-testid="sign-sensitivity-axis">
+          <span>{t("signWeightMinus1")}</span>
+          <span>{t("signWeight0")}</span>
+          <span style={{ color: "var(--text-2)" }}>{t("signWeightPlus1")}</span>
         </div>
       )}
 
-      <div style={TRACK_AXIS}>
-        <span>{t("signWeightMinus1")}</span>
-        <span>{t("signWeight0")}</span>
-        <span style={{ color: "var(--text-2)" }}>{t("signWeightPlus1")}</span>
-      </div>
-
       <CardSpacer />
       <CardFoot>
-        <span style={fragile ? { color: "var(--warn)" } : undefined}>
-          {fragile ? t("signFragileNote") : t("signRobustNote")}
+        <span data-testid="sign-sensitivity-note" style={fragile ? { color: "var(--sign-warning, var(--warn))" } : undefined}>
+          {(isUnknown ? t("signUnknownNote") : fragile ? t("signFragileNote") : t("signRobustNote"))
+            .replace("{threshold}", pct(TILT_FRAGILE_ABS * 100))}
         </span>
         {convention ? ` · ${t("signConventionLabel")}: ${convention}` : ""}
       </CardFoot>

@@ -1,0 +1,70 @@
+{
+  "schema": "d08b.sign_verification_run.v1",
+  "base_head": "fd014cb9acbecd319ad7816a6514197f0f446e83",
+  "port": 56670,
+  "source_blobs": {
+    "components/msc/MarketStructureBody.tsx": "f8f018ae1e80d2ce5c87131a652044fa23c87762",
+    "components/msc/mscStrings.ts": "d9874f831d33831d0fced203512c1cfa2e7e4b0f",
+    "components/msc/SignCard.module.css": "988784e44da60532c653ba6af3732edf3d9410df",
+    "lib/__tests__/positioningSignState.test.tsx": "e8f9d804f644c7b233a89877698ca90bd8b84cef",
+    "e2e/options-positioning-sign-state.spec.ts": "c99fe4b69f410979a6bd60d3fffd90fe75e4d8c3",
+    "lib/marketStructure.ts": "b6718d3f162117af38d114ba691cd4b6b1894bd8"
+  },
+  "started": "2026-11-05T04:34:55.631361+00:00",
+  "stages": [
+    {
+      "name": "unit-final",
+      "command": [
+        "npx",
+        "vitest",
+        "run",
+        "lib/__tests__/positioningSignState.test.tsx",
+        "lib/__tests__/marketStructure.test.ts",
+        "lib/__tests__/profileExactValues.test.tsx"
+      ],
+      "exit_code": 0,
+      "completed": "2026-11-05T04:34:59.494783+00:00"
+    },
+    {
+      "name": "lint-final",
+      "command": [
+        "npx",
+        "eslint",
+        "components/msc/MarketStructureBody.tsx",
+        "components/msc/mscStrings.ts",
+        "lib/__tests__/positioningSignState.test.tsx",
+        "e2e/options-positioning-sign-state.spec.ts"
+      ],
+      "exit_code": 0,
+      "completed": "2026-11-05T04:35:03.180205+00:00"
+    },
+    {
+      "name": "browser",
+      "command": [
+        "npm",
+        "run",
+        "test:e2e:responsive",
+        "--",
+        "--config=docs/verification/d08b-vol-skew-exact-20261104/playwright.config.ts",
+        "e2e/options-positioning-sign-state.spec.ts",
+        "--project=desktop",
+        "--project=tablet",
+        "--project=mobile",
+        "--workers=1",
+        "--max-failures=2"
+      ],
+      "exit_code": 0,
+      "completed": "2026-11-05T04:36:11.621829+00:00"
+    },
+    {
+      "name": "build",
+      "command": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "exit_code": 0,
+      "completed": "2026-11-05T04:37:24.968463+00:00"
+    }
+  ]
+}

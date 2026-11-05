@@ -1,0 +1,13 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/web/d08b-surface-exact-values-20261104-c3/terminal
+
+ ✓ lib/__tests__/marketStructure.test.ts (64 tests) 11ms
+ ✓ lib/__tests__/profileExactValues.test.tsx (13 tests) 312ms
+ ✓ lib/__tests__/positioningSignState.test.tsx (14 tests) 545ms
+
+ Test Files  3 passed (3)
+      Tests  91 passed (91)
+   Start at  20:24:11
+   Duration  2.33s (transform 463ms, setup 0ms, collect 682ms, tests 867ms, environment 1.45s, prepare 268ms)
+

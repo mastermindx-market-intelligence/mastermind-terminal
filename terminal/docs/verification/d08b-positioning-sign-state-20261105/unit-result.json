@@ -1,0 +1,12 @@
+{
+  "command": [
+    "npx",
+    "vitest",
+    "run",
+    "lib/__tests__/positioningSignState.test.tsx",
+    "lib/__tests__/marketStructure.test.ts",
+    "lib/__tests__/profileExactValues.test.tsx"
+  ],
+  "exit_code": 0,
+  "completed": "2026-11-05T04:24:14.110829+00:00"
+}

@@ -149,7 +149,12 @@ const MSC_LEX = {
   ],
   signRobust: ["Robust", "稳健"],
   signFragile: ["Fragile", "脆弱"],
-  signUnknown: ["No gamma", "无伽马"],
+  signUnknown: ["Unknown", "未知"],
+  signUndetermined: ["Not determined", "未确定"],
+  signUnknownNote: [
+    "These inputs do not establish the sign-sensitivity estimate; robustness and a flip weight are not determined.",
+    "这些输入无法确定符号敏感性估计；稳健性与翻转权重均未确定。",
+  ],
   signTilt: ["Gamma tilt", "伽马倾斜"],
   signTiltWhy: [
     "Gross call gamma minus gross put gamma, over their sum. The margin by which the regime read survives a change of convention.",
@@ -164,8 +169,8 @@ const MSC_LEX = {
   signVerdictLbl: ["Verdict", "结论"],
   signCurve: ["Net gamma by call-side weight", "按看涨方权重的净伽马"],
   signRobustNote: [
-    "The regime read survives the full range of conventions we consider plausible.",
-    "该判断在我们认为合理的全部约定范围内均成立。",
+    "Absolute Gamma tilt is at least {threshold}. Inspect the curve and flip weight to see whether another call-side weight reverses the estimated sign.",
+    "Gamma 倾斜的绝对值不低于 {threshold}。曲线与翻转权重显示其他看涨方权重是否会改变估计符号。",
   ],
   signFragileNote: [
     "Call and put gamma are close to balanced — a small change of convention would flip the regime read. Treat the sign as unresolved.",
