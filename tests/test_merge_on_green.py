@@ -489,7 +489,16 @@ def test_green_current_head_is_sha_pinned_merged_and_deleted():
     assert result[0] == "#7: merged and deleted claude/pr-7"
 
 
-def test_green_heads_enqueue_concurrently_when_native_queue_is_enabled():
+READY_REPORT = (
+    "#{n}: ready for the merge queue; native user admission required "
+    "(gh pr merge {n} --auto --match-head-commit head-{n}); head head-{n} verified green by this sweep"
+)
+
+
+def test_queue_mode_reports_green_heads_ready_and_never_enqueues():
+    # A successful workflow-token enqueue does not establish downstream event
+    # delivery. Green heads remain eligible, but this sweep only reports them;
+    # the native user path pins the exact verified head at admission.
     api = FakeApi(
         [pull(1), pull(2, mergeable_state="behind")],
         queue_enabled=True,
@@ -497,16 +506,10 @@ def test_green_heads_enqueue_concurrently_when_native_queue_is_enabled():
 
     result = sweep(api)
 
-    assert ("enqueue", "PR-node-1", "head-1") in api.actions
-    assert ("enqueue", "PR-node-2", "head-2") in api.actions
-    assert not any(action[0] == "merge" for action in api.actions)
-    assert not any(action[0] == "update" for action in api.actions)
-    assert not any(action[0] == "dispatch_ci" for action in api.actions)
-    assert not any(action[0] == "delete" for action in api.actions)
-    assert result == [
-        "#1: enqueued in merge queue (MQE-PR-node-1)",
-        "#2: enqueued in merge queue (MQE-PR-node-2)",
-    ]
+    assert api.actions == []
+    assert api.queue_entries == {}
+    assert api.dispatched == []
+    assert result == [READY_REPORT.format(n=1), READY_REPORT.format(n=2)]
 
 
 def test_queue_mode_is_idempotent_for_an_already_enqueued_head():
@@ -522,21 +525,84 @@ def test_queue_mode_is_idempotent_for_an_already_enqueued_head():
     assert not any(action[0] in {"enqueue", "merge", "update", "delete"} for action in api.actions)
 
 
-def test_queue_enqueue_4xx_is_a_per_pr_decline_and_does_not_hide_the_next_candidate():
+def test_queue_mode_reports_an_existing_entry_read_only_and_still_sees_the_next_head():
+    # A head already holding a queue entry is reported exactly as before --
+    # read-only, no mutation -- and its outcome must not hide the next armed
+    # head, which (holding no entry) is reported ready rather than enqueued.
     api = FakeApi(
         [pull(1), pull(2)],
         queue_enabled=True,
-        enqueue_errors={1: (422, "expected head changed")},
+        queue_entries={"PR-node-1": "MQE-existing"},
     )
 
     result = sweep(api)
 
-    assert result == [
-        "#1: declined: GitHub API 422: expected head changed",
-        "#2: enqueued in merge queue (MQE-PR-node-2)",
-    ]
-    assert ("enqueue", "PR-node-2", "head-2") in api.actions
+    assert result == ["#1: already queued (MQE-existing)", READY_REPORT.format(n=2)]
+    assert api.actions == []
+    assert api.queue_entries == {"PR-node-1": "MQE-existing"}
 
+
+# --- native queue admission is a user action (2026-11-05) ----------------------
+#
+# The workflow-token enqueue result is not downstream event-delivery proof.
+# This sweep therefore never enqueues. A red, pending,
+# foreign-App or held head is refused exactly as before, and a fully green head
+# with no entry is reported ready for `gh pr merge --auto` instead.
+
+
+def test_queue_mode_red_head_is_quarantined_and_never_enqueued():
+    api = FakeApi([pull()], queue_enabled=True, runs={"head-7": checks(conclusion="failure")})
+
+    result = sweep(api)
+
+    assert result == ["#7: red"]
+    assert ("add_labels", 7, (BLOCK_LABEL,)) in api.actions
+    assert not any(action[0] == "enqueue" for action in api.actions)
+    assert api.queue_entries == {}
+
+
+def test_queue_mode_pending_head_waits_and_never_enqueues():
+    runs = checks()
+    runs.append(
+        {
+            "id": 999,
+            "name": REQUIRED_CHECKS[0],
+            "status": "in_progress",
+            "conclusion": None,
+            "app": {"id": REQUIRED_CHECK_APP_ID},
+        }
+    )
+    api = FakeApi([pull()], queue_enabled=True, runs={"head-7": runs})
+
+    result = sweep(api)
+
+    assert result == [f"#7: pending: {REQUIRED_CHECKS[0]}"]
+    assert api.actions == []
+    assert api.queue_entries == {}
+
+
+def test_queue_mode_foreign_app_green_waits_and_never_enqueues():
+    api = FakeApi([pull()], queue_enabled=True, runs={"head-7": checks(app_id=999999)})
+
+    result = sweep(api)
+
+    assert result == [
+        f"#7: missing trusted App {REQUIRED_CHECK_APP_ID} checks: " + ", ".join(REQUIRED_CHECKS)
+    ]
+    assert api.actions == []
+    assert api.queue_entries == {}
+
+
+def test_queue_mode_held_run_is_released_and_never_enqueues():
+    # A held pull_request run is still released (it is the only way checks can
+    # ever arrive) -- and the sweep still performs no queue admission itself.
+    api = FakeApi([pull()], queue_enabled=True, runs={"head-7": []}, ci_runs={"head-7": [ci_run()]})
+
+    result = sweep(api)
+
+    assert result == ["#7: re-ran held pull_request CI run 9001 for head-7; awaiting PR-linked CI"]
+    assert api.actions == [("rerun", 9001)]
+    assert api.queue_entries == {}
 
 
 def test_wrong_app_green_never_reaches_merge_or_quarantine():
