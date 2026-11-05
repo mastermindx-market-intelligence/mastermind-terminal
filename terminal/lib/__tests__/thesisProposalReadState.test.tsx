@@ -50,6 +50,7 @@ function proposal(thesisId: string, body: string): ProposalRow {
 }
 
 type Outcome = { rows: ProposalRow[] } | { status: number } | { malformed: true } | { network: true };
+type WriteOutcome = { status: number; body?: unknown } | { network: true };
 
 function jsonResponse(body: unknown, status = 200): Response {
   return { ok: status >= 200 && status < 300, status, json: async () => body } as Response;
@@ -61,12 +62,21 @@ const A_ROWS = [proposal("tA", "Alpha body change one"), proposal("tA", "Alpha s
 
 /** Every proposal GET waits until the test releases it with an outcome. */
 let held: Array<{ thesisId: string; settle: (o: Outcome) => void }> = [];
+let heldWrites: Array<{ settle: (o: WriteOutcome) => void }> = [];
+let requests: Array<{ path: string; method: string }> = [];
 
 function installFetch() {
   const details = new Map([[A.id, detailFor(A)], [B.id, detailFor(B)]]);
-  vi.stubGlobal("fetch", vi.fn(async (input: string | URL | Request) => {
+  vi.stubGlobal("fetch", vi.fn(async (input: string | URL | Request, init?: RequestInit) => {
     const raw = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
     const url = new URL(raw, "https://x.test");
+    const method = init?.method ?? (input instanceof Request ? input.method : "GET");
+    requests.push({ path: url.pathname, method });
+    if (method === "PATCH" || method === "POST") {
+      const outcome = await new Promise<WriteOutcome>((resolve) => { heldWrites.push({ settle: resolve }); });
+      if ("network" in outcome) throw new TypeError("Failed to fetch");
+      return jsonResponse(outcome.body ?? {}, outcome.status);
+    }
     if (url.pathname === "/api/thesis-saved-views") return jsonResponse({ views: [] });
     if (url.pathname === "/api/thesis-fire-status") return jsonResponse({ states: {} });
     const m = /^\/api\/thesis\/([^/]+)\/proposals$/.exec(url.pathname);
@@ -116,6 +126,42 @@ async function release(thesisId: string, outcome: Outcome) {
   await flush();
 }
 
+async function releaseWrite(outcome: WriteOutcome) {
+  expect(heldWrites).toHaveLength(1);
+  const [write] = heldWrites.splice(0, 1);
+  await act(async () => { write.settle(outcome); });
+  await flush();
+}
+
+async function chooseProposal(el: HTMLElement, choice: "Accept" | "Reject" = "Accept") {
+  const button = Array.from(rows(el)[0].querySelectorAll<HTMLButtonElement>("button"))
+    .find((b) => b.textContent === choice);
+  expect(button).toBeTruthy();
+  await act(async () => button!.click());
+  await flush();
+  expect(heldWrites).toHaveLength(1);
+}
+
+const statement = (el: HTMLElement) => el.querySelector<HTMLTextAreaElement>('textarea[aria-label="Thesis statement"]')!;
+const proposalGets = () => requests.filter((r) => r.method === "GET" && r.path.includes("/proposals"));
+const publishingWrites = () => requests.filter((r) => r.method !== "GET" && r.path === "/api/theses");
+
+async function editText(input: HTMLTextAreaElement, value: string) {
+  await act(async () => {
+    Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value")!.set!.call(input, value);
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+  await flush();
+  expect(input.value).toBe(value);
+}
+
+async function suggest(el: HTMLElement) {
+  await editText(el.querySelector<HTMLTextAreaElement>('[data-testid="thesis-assistant-notes"] textarea')!, "Alpha assistant suggestion");
+  await act(async () => el.querySelector<HTMLButtonElement>('[data-testid="thesis-suggest-amendment"]')!.click());
+  await flush();
+  expect(heldWrites).toHaveLength(1);
+}
+
 async function select(el: HTMLElement, title: string) {
   const row = Array.from(el.querySelectorAll<HTMLButtonElement>('[data-testid="thesis-list-pane"] button'))
     .find((b) => b.textContent?.includes(title));
@@ -145,6 +191,8 @@ async function openAWithRows(lang: "en" | "zh" = "en") {
 
 beforeEach(() => {
   held = [];
+  heldWrites = [];
+  requests = [];
   const dom = (globalThis as unknown as { jsdom?: { window: Window } }).jsdom;
   if (dom) {
     Object.defineProperty(window, "localStorage", { value: dom.window.localStorage, configurable: true, writable: true });
@@ -162,6 +210,8 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  for (const h of heldWrites) h.settle({ network: true });
+  heldWrites = [];
   for (const h of held) h.settle({ rows: [] });
   held = [];
   vi.unstubAllGlobals();
@@ -170,6 +220,147 @@ afterEach(() => {
   root = null;
   container = null;
   document.documentElement.removeAttribute("data-lang");
+});
+
+describe("Proposal completion stays with the thesis that issued it", () => {
+  it("a delayed A Accept cannot replace B's editor, message or answered proposal read", async () => {
+    const el = await openAWithRows();
+    await chooseProposal(el);
+    await select(el, "Bravo");
+    await release("tB", { rows: [proposal("tB", "Bravo only change")] });
+    await editText(statement(el), "Bravo newer draft");
+    const reads = proposalGets();
+
+    await releaseWrite({ status: 200 });
+
+    expect(statement(el).value).toBe("Bravo newer draft");
+    expect(el.textContent).not.toContain("This suggestion is in the editor.");
+    expect(sectionText(el)).toContain("Bravo only change");
+    expect(proposalGets()).toEqual(reads);
+    expect(publishingWrites()).toEqual([]);
+  });
+
+  it("A→B→A does not revive the original A completion in the new selection generation", async () => {
+    const el = await openAWithRows();
+    await chooseProposal(el);
+    await select(el, "Bravo");
+    await release("tB", { rows: [] });
+    await select(el, "Alpha");
+    await release("tA", { rows: [proposal("tA", "Alpha current read")] });
+    const reads = proposalGets();
+    await releaseWrite({ status: 200 });
+    expect(statement(el).value).toBe("Alpha statement");
+    expect(el.textContent).not.toContain("This suggestion is in the editor.");
+    expect(sectionText(el)).toContain("Alpha current read");
+    expect(proposalGets()).toEqual(reads);
+    expect(publishingWrites()).toEqual([]);
+  });
+
+  it("an Accept on the same thesis preserves statement edits made while its PATCH was pending", async () => {
+    const el = await openAWithRows();
+    await chooseProposal(el);
+    await editText(statement(el), "Alpha newer owner draft");
+    await releaseWrite({ status: 200 });
+    expect(statement(el).value).toBe("Alpha newer owner draft");
+    expect(el.textContent).not.toContain("This suggestion is in the editor.");
+    await release("tA", { rows: [{ ...A_ROWS[0], state: "accepted" }] });
+    expect(rows(el)[0].textContent).toContain("Accepted");
+    expect(publishingWrites()).toEqual([]);
+  });
+
+  it.each([
+    ["400", { status: 400, body: { message: "A-only rejection" } } as WriteOutcome],
+    ["503", { status: 503 } as WriteOutcome],
+    ["network failure", { network: true } as WriteOutcome],
+  ])("a delayed A PATCH %s cannot post an error or reload under B", async (_label, outcome) => {
+    const el = await openAWithRows();
+    await chooseProposal(el);
+    await select(el, "Bravo");
+    await release("tB", { rows: [] });
+    const reads = proposalGets();
+    await releaseWrite(outcome);
+    expect(statement(el).value).toBe("Bravo statement");
+    expect(el.textContent).not.toContain("A-only rejection");
+    expect(el.textContent).not.toContain("Your thesis store did not answer");
+    expect(proposalGets()).toEqual(reads);
+    expect(publishingWrites()).toEqual([]);
+  });
+
+  it.each([
+    ["success", { status: 201 } as WriteOutcome],
+    ["400", { status: 400, body: { message: "A-only suggestion rejection" } } as WriteOutcome],
+    ["network failure", { network: true } as WriteOutcome],
+  ])("a delayed A suggestion %s cannot post a message or reload under B", async (_label, outcome) => {
+    const el = await openAWithRows();
+    await suggest(el);
+    await select(el, "Bravo");
+    await release("tB", { rows: [] });
+    const reads = proposalGets();
+    const notes = el.querySelector<HTMLTextAreaElement>('[data-testid="thesis-assistant-notes"] textarea')!.value;
+    await releaseWrite(outcome);
+    expect(statement(el).value).toBe("Bravo statement");
+    expect(el.querySelector<HTMLTextAreaElement>('[data-testid="thesis-assistant-notes"] textarea')!.value).toBe(notes);
+    expect(el.textContent).not.toContain("Suggestion saved.");
+    expect(el.textContent).not.toContain("A-only suggestion rejection");
+    expect(el.textContent).not.toContain("Your thesis store did not answer");
+    expect(proposalGets()).toEqual(reads);
+    expect(publishingWrites()).toEqual([]);
+  });
+
+  it("a current same-thesis Accept prefills and refreshes without publishing", async () => {
+    const el = await openAWithRows();
+    await chooseProposal(el);
+    await releaseWrite({ status: 200 });
+    expect(statement(el).value).toBe(A_ROWS[0].body);
+    expect(el.textContent).toContain("This suggestion is in the editor.");
+    await release("tA", { rows: [{ ...A_ROWS[0], state: "accepted" }] });
+    expect(rows(el)[0].textContent).toContain("Accepted");
+    expect(publishingWrites()).toEqual([]);
+  });
+
+  it("a current same-thesis Reject refreshes without changing the statement or publishing", async () => {
+    const el = await openAWithRows();
+    await chooseProposal(el, "Reject");
+    await releaseWrite({ status: 200 });
+    await release("tA", { rows: [{ ...A_ROWS[0], state: "rejected" }] });
+    expect(statement(el).value).toBe("Alpha statement");
+    expect(rows(el)[0].textContent).toContain("Declined");
+    expect(publishingWrites()).toEqual([]);
+  });
+
+  it("a current same-thesis suggestion clears its input and refreshes without publishing", async () => {
+    const el = await openAWithRows();
+    await suggest(el);
+    await releaseWrite({ status: 201 });
+    expect(el.querySelector<HTMLTextAreaElement>('[data-testid="thesis-assistant-notes"] textarea')!.value).toBe("");
+    expect(el.textContent).toContain("Suggestion saved. Only you can publish a new version.");
+    await release("tA", { rows: [proposal("tA", "Alpha assistant suggestion")] });
+    expect(sectionText(el)).toContain("Alpha assistant suggestion");
+    expect(publishingWrites()).toEqual([]);
+  });
+
+  it("a current same-thesis rejection still reports its error without refreshing or publishing", async () => {
+    const el = await openAWithRows();
+    await chooseProposal(el);
+    const reads = proposalGets();
+    await releaseWrite({ status: 400, body: { message: "Current rejection" } });
+    expect(el.textContent).toContain("Current rejection");
+    expect(statement(el).value).toBe("Alpha statement");
+    expect(proposalGets()).toEqual(reads);
+    expect(publishingWrites()).toEqual([]);
+  });
+
+  it("a valid completion's pending refresh cannot replace B after a later selection", async () => {
+    const el = await openAWithRows();
+    await chooseProposal(el, "Reject");
+    await releaseWrite({ status: 200 });
+    await select(el, "Bravo");
+    await release("tB", { rows: [proposal("tB", "Bravo answered read")] });
+    await release("tA", { rows: [{ ...A_ROWS[0], state: "rejected" }] });
+    expect(sectionText(el)).toContain("Bravo answered read");
+    expect(statement(el).value).toBe("Bravo statement");
+    expect(publishingWrites()).toEqual([]);
+  });
 });
 
 describe("Suggested changes describe only the selected thesis's proposal read (F11)", () => {

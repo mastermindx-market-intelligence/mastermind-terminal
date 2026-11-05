@@ -1,0 +1,37 @@
+{
+  "task": "B-J1-HISTORY-SELECTION",
+  "capturedAtHead": "bbc07037aae3e98597945e23448781a091d15281",
+  "layoutFiles": {
+    "terminal/components/workspaces/ThesisWorkspace.tsx": "f8aa79a228b85a0c10050b06d24665a95fc149ea56a00e8610472cc7a2a7849c",
+    "terminal/components/workspaces/ThesisWorkspace.module.css": "c7fcd07d13cf3d7453bb51cd47ffb13c80af05e327bf9662368e97988023320c",
+    "terminal/e2e/market-ontology-context.spec.ts": "aa25bbce7bfde624c2facb548c937a08ea83b344c7512fe3a069628305d1bce3"
+  },
+  "theme": "dark",
+  "themeLaw": "DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06",
+  "languages": [
+    "en",
+    "zh"
+  ],
+  "widths": [
+    1440,
+    820,
+    390
+  ],
+  "command": "TERMINAL_E2E_PORT=3179 NODE_PATH=./node_modules node_modules/.bin/playwright test --config <retained f11-thesis-grounding/j1-playwright.config.cjs> market-ontology-context.spec.ts --grep \"natural saved-thesis path\" --project=desktop --workers=1 --retries=0",
+  "producer": "terminal/e2e/market-ontology-context.spec.ts",
+  "files": {
+    "terminal/e2e/proof/mo-context-strip/desktop-reopen-thesis-1440-zh.png": "0029b35669b15c221a8bac2bf3c886c6486189d19188307c0caac0872e1329c1",
+    "terminal/e2e/proof/mo-context-strip/desktop-reopen-thesis-1440.png": "151b477e87579ca0cbfab892533d442ca06a0d724d114562fe470f4b801ccdbc",
+    "terminal/e2e/proof/mo-context-strip/desktop-reopen-thesis-390-zh.png": "215d617bdf15b6efc0cea4657f4227b6547691f7d06de5be4430191090816492",
+    "terminal/e2e/proof/mo-context-strip/desktop-reopen-thesis-390.png": "9fbbc777b4404850f59d43c425d22d2a657b7ea4fafe1d3fdf973b2775189cea",
+    "terminal/e2e/proof/mo-context-strip/desktop-reopen-thesis-820-zh.png": "fdea9fec07b307aed2947cf87fa717c0d89a8b5867d0ca77562540207328e09f",
+    "terminal/e2e/proof/mo-context-strip/desktop-reopen-thesis-820.png": "2d847ac4ec3651b90fcbd383d1a21de037a85320a0217834c983ad4aae655f07"
+  },
+  "adjudication": "Fresh original producer, six EN/ZH1440/820/390 reload/Back/Forward captures; five PNGs differ and await parent visual adjudication. Desktop EN is byte-identical to prior accepted capture.",
+  "scope": "Actual local fixture browser only; no live account/data/production release proof. Existing native config with global warmup omitted to avoid unrelated routes, supported webpack mode, own server3179 and reuseExistingServer=false.",
+  "checks": [
+    "Original single browser case PASS29.1s;6 language/viewport cells; no retry",
+    "198 affected behavioral checks PASS;14 evidence-lock checks PASS;full projecttypecheck PASS"
+  ],
+  "observed_browser_log": "Internal Next.js error: Router action dispatched before initialization. Retained in capture-j1.log despite passing case; no zero-exception claim. Changed read-source layout effect only installs/removes a getter and reads current URL; it performs no router/history dispatch. Full production history behavior remains parent-owned."
+}

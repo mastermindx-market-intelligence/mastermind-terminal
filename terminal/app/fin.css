@@ -1078,6 +1078,9 @@
 .fin-ro-tick-lbl-year{fill:var(--text-2);font:600 8.5px/1 var(--font-num);font-variant-numeric:tabular-nums}
 .fin-ro-now{stroke:var(--brand-2);stroke-width:1.5;vector-effect:non-scaling-stroke}
 .fin-ro-now-lbl{fill:var(--brand-2);font:700 8px/1 var(--font-ui)}
+/* Non-interactive guide lines/labels overlay the data-band SVG. They must not
+   steal hover/touch hit tests from the bars beneath them (mobile regression). */
+.fin-ro-axis-line,.fin-ro-tick,.fin-ro-tick-year,.fin-ro-tick-lbl,.fin-ro-tick-lbl-year,.fin-ro-now,.fin-ro-now-lbl{pointer-events:none}
 
 /* window cards — outcome, range and strength replace the old prose block */
 .fin-ro-windows{margin-bottom:12px}
@@ -1216,7 +1219,21 @@
   /* Override the fixed-overlay base (.fin-pane) so the pane fills the workspace flex slot.
    * `overflow:hidden` on .fin-pane is reset here; inner .fin-body carries its own scroll. */
   .fin-pane--workspace{position:relative;inset:auto;z-index:1;flex:1;min-height:0;overflow:hidden}
+  /* in-flow beside the chart: the left rail's Chart button is the exit, so no pane header here */
+  .fin-head--touch-exit{display:none}
   /* suppress the body-level scrim entirely on desktop (no scrim element rendered in workspace mode) */
+}
+/* ── full-viewport panes ≤860px: their own way back ──
+ * The fallback above makes the chart's pane a fixed full-viewport layer at z-90 that paints over
+ * `.mobilebar`, so the pane's header is the only exit a touch user has. The overlay variant (the
+ * shell dossier's "Open full analysis" — the iPhone/iPad symbol sheet) is the same fixed inset:0
+ * layer at every width. Keep both headers clear of the notch / rounded corners and give the
+ * button a full 44px touch target; above 860px the overlay keeps the compact desktop pill. */
+@media (max-width:860px){
+  .fin-head--touch-exit,
+  .fin-pane:not(.fin-pane--workspace) > .fin-head{padding:max(8px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) 8px max(12px,env(safe-area-inset-left))}
+  .fin-head--touch-exit .fin-head-back,
+  .fin-pane:not(.fin-pane--workspace) > .fin-head .fin-head-back{min-height:44px;min-width:44px;padding:0 14px;font-size:13px;flex:none}
 }
 /* ── /analysis on phone + tablet: a desk, not an overlay ──────────────────────────────────
  * ≤860px the workspace override above stops applying and the pane falls back to the .fin-pane

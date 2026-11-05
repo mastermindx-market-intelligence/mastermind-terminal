@@ -1,0 +1,23 @@
+[warmup] /terminal?symbol=NVDA → 200 in 59ms
+[warmup] /options → 200 in 115ms
+[warmup] /portfolio → 200 in 60ms
+[warmup] /alerts → 200 in 60ms
+[warmup] /analysis → 200 in 115ms
+[warmup] /discover → 200 in 70ms
+[warmup] /admin → 200 in 45ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 50ms
+[warmup] /login → 200 in 53ms
+[warmup] /reset-password → 200 in 67ms
+[warmup] /api/me → 200 in 54ms
+[warmup] /api/watchlist → 200 in 29ms
+[warmup] /api/layouts → 200 in 25ms
+[warmup] 13 routes compiled in 1s
+
+Running 54 tests using 1 worker
+·····°°°°°°°°°°°°···°··[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+···°·°°°·°°°°··°·········[WebServer] [browser] Error: Failed to load Stripe.js
+··[WebServer] [browser] Error: Failed to load Stripe.js
+···°
+::notice title=🎭 Playwright Run Summary::  23 skipped%0A  31 passed (1.6m)
+  23 skipped
+  31 passed (1.6m)

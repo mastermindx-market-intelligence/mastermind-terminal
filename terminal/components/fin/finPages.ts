@@ -19,7 +19,7 @@
  * — `import type` is erased and creates no edge.
  */
 
-/** The fifteen hostable pages share one fundamentals/research tab bar. The former
+/** The sixteen hostable pages share one fundamentals/research tab bar. The former
  *  deep-analysis ("mastermind") page was merged into the OracleDash Research-Desk surface. */
 export type FinPage =
   | "overview"
@@ -36,7 +36,8 @@ export type FinPage =
   | "returns"
   | "ownership"
   | "insider"
-  | "lab";
+  | "lab"
+  | "compare";
 
 /** The pages that share the TV "Financials" tab pill bar. */
-export const FIN_PAGES: readonly FinPage[] = ["overview", "intelligence", "statements", "transcripts", "statistics", "dividends", "earnings", "revenue", "seasonals", "returns", "forecast", "technicals", "ownership", "insider", "lab"];
+export const FIN_PAGES: readonly FinPage[] = ["overview", "intelligence", "statements", "transcripts", "statistics", "dividends", "earnings", "revenue", "seasonals", "returns", "forecast", "technicals", "ownership", "insider", "lab", "compare"];

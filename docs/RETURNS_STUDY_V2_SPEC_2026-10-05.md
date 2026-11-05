@@ -1,5 +1,37 @@
 # Returns Study v2 — product, design and implementation contract
 
+## Current integration amendment — 2026-11-05
+
+This amendment governs the recovered PR #814 implementation. The October transport narrative below is retained as historical design evidence; its Alpaca adapter, loopback endpoint, two wall-date requests, 60-second cache, split-adjustment claim and early-close 20:00 specimen are superseded by the existing owners now on Terminal master. Original feature acceptance remains the shared Terminal/dossier preview, one full Returns research page, observed daily/monthly price returns, selected sessions, bilingual disclosures, CSV and keyboard access.
+
+### Current data and truth contract
+
+- Daily records still come from the already-loaded canonical daily bars. Returns use the previous **observed** close, including explicitly reported calendar gaps. No missing value is estimated. The current input does not certify price adjustment or total return.
+- One selected-date request uses `/api/intraday?sym=SYMBOL&tf=30m&ext=1&session=24h&study=returns&date=YYYY-MM-DD`. The existing 24H owner already includes the prior evening. No second `overnight=only` request or Alpaca Hub/proxy owner is installed.
+- The existing daytime cache/single-flight owner scopes precise 5m storage to the selected wall date **before** resampling/capping. Unrelated history outside the calendar projection cannot prevent a valid selected-date lookup. If no precise local observations exist, one date-scoped request uses the incumbent Massive aggregate source. Normal chart acquisition is unchanged. The existing 45-second TTL, short failure cooldown, capacity bounds and source/access partitions remain; study mode is distinguished inside the same cache and pending-flight maps.
+- Selected-study callers wait at most 10 seconds for the same owned work. The existing 8-second upstream deadline reaches the actual fetch/body through its abort signal. A caller's foreground timeout does not cancel or replace shared work, and it is not claimed to bound all subsequent filesystem work. Pending/failed acquisition is disclosed. Successful acquisition is **not** proof of full market-session coverage or freshness.
+- Authentication remains before private demand and cache access. BOATS live demand requires a verified user; signed-in/private history remains partitioned from anonymous history. No auth, entitlement, collector or publication control is added.
+- Existing `source_evidence` preserves per-source counts and store-read hashes. The consumer binds symbol,30m timeframe, selected trading date, display-epoch basis and returned-bar scope. It does not invent a top-level provider identity for a mixed-source response. The date helper refuses explicit provider ticker/count contradictions, malformed bars and truncated pagination.
+- Existing Tiingo BOATS evidence is `complete:false`, `coverage:captured_vendor_bars_only`, and `price_basis:vendor_reported_unqualified`. Both observed overnight halves contribute OHLC/count, but the full overnight percentage is withheld even when observations exist. Valid daytime and daily data remain independent of overnight absence/failure. Daytime returns describe only the first-to-last observed eligible aggregate bars, not certified every-print extrema.
+- The server's existing exchange calendar/phase owner supplies `regular_session_window {start_minute,end_minute,post_end_minute}`. Normal post-session end is 20:00; the current early-close owner ends it at 17:00. A known closure and unavailable calendar authority are distinct, and neither authorizes guessed hours or provider demand. The new Returns client modules do not import the calendar projection.
+
+### Navigation, CSV and styling
+
+Arrow keys move a separate roving focus through actual calendar slots; vertical arrows stay in the calendar column and skip absent observations. Home/End target the current row. PageUp/PageDown move month and restore focus to a real observed day, or to the empty-month group when there is none. Click/Enter/Space activate the selected day and its one data request. Focus movement alone does not reload the inspector. IME composition and modified shortcuts retain their normal behavior.
+
+CSV exports only the displayed full year/month. The original nine fields are retained, followed by `return_basis` and `quality`. The basis is `daily_price_return_adjustment_unverified`; quality distinguishes missing prior reference, observed return, and observed return with calendar gap. A calendar gap includes intervening weekends/holidays and is not a claim of missing trading sessions. Null values remain blank and actual zero remains 0.
+
+The two Returns surfaces use their own CSS module while retaining existing DOM/test class hooks. Global stylesheet bytes remain unchanged, preserving other evidence owners. Current research families, command-palette labels, shared navigation and ownership consumers remain the baseline.
+
+### Evidence ceiling
+
+Source recovery is tracked in [PR #814](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/814#issuecomment-6657539712). Pure model/parser, provider, store, cache and route probes execute actual source with controlled IO/clock boundaries; they do not certify native React/browser layout, a full project typecheck, provider credentials/entitlement, production data or deployed acceptance. Original historical evidence remains bound to its original source. Natural new-head CI and any genuine production proof keep their own receipts.
+
+---
+
+## Retained October design record
+
+
 Status: DESIGN_AND_IMPLEMENTATION_IN_PROGRESS. This document is a build contract, not production acceptance.
 Date: 2026-10-05. Implementation owner: Terminal PR #814, branch `sol/returns-calendar-20261004`.
 

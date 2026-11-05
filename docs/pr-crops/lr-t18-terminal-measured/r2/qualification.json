@@ -1,0 +1,1263 @@
+{
+  "transport": "local interception",
+  "productionProof": false,
+  "inputs": [
+    {
+      "path": "sector_base.json",
+      "bytes": 145069,
+      "sha256": "2f89eee87e602d6df8f98afb64024ce3da8c14b6778c96114b441bc4f03883f4"
+    },
+    {
+      "path": "history.json",
+      "bytes": 2119318,
+      "sha256": "462201aa4b38836816f1e247f1ec187ba2589fe8a97d1fdb1ee3d753f32ce615"
+    },
+    {
+      "path": "events.json",
+      "bytes": 117246,
+      "sha256": "9eb9993be7db6dec2b07669d300b35bb16f7e7ca98d54ab5695fa9baec07a916"
+    },
+    {
+      "path": "measured_read_v1.json",
+      "bytes": 9430,
+      "sha256": "3c94163010d780c9bf1a3ab5e06bbd711a52470951e866c68a4ff595b7f6b5b1"
+    }
+  ],
+  "variants": {
+    "aligned": "75cfa889768bff00ddb51e8e8e9ae6dbd953a89d918e8769168c686b71bd8cdd",
+    "stale": "2861abc00a4e54342a2b19d2f5a6fb3f4bcd0e3881b4c2492319198d24c6b24f",
+    "outage": "01aedc4467600977036fe276103fede34d89f8996fed5914413c1def70bf2bc7",
+    "invalid": "69c485ee95a2feec4d4203ba1a94115c1fb0e7c61c8d9de072920045aeb01b78",
+    "absent": "5c65b888366a88a68d71aff1dbad2ea3b27aa9b94982b1b9bca6f58320062f29"
+  },
+  "checks": [
+    {
+      "name": "inputs: sector page as_of is the frozen 2026-10-12 snapshot",
+      "passed": true,
+      "details": {
+        "as_of": "2026-10-12",
+        "sectors": 11
+      }
+    },
+    {
+      "name": "inputs: owner history payload publishes no reconstructed rs_history trail",
+      "passed": true,
+      "details": "meta.rs_history absent — the trail is unpublished; the view must render the honest unavailable state, never a fabricated trail"
+    },
+    {
+      "name": "oracle: independent fixture derivation matches the 9/11 partial cohort",
+      "passed": true,
+      "details": "Measured 9 of 11 sectors · not measured: Real Estate (no price data for this sector today), Utilities (not enough price history yet)"
+    },
+    {
+      "name": "A/chromium-1440-en-dark-aligned: coverage line equals the independent oracle exactly",
+      "passed": true,
+      "details": "Measured 9 of 11 sectors · not measured: Real Estate (no price data for this sector today), Utilities (not enough price history yet)"
+    },
+    {
+      "name": "A/chromium-1440-en-dark-aligned: measured line sits directly after the rotation receipt",
+      "passed": true,
+      "details": "DOM order receipt → measured"
+    },
+    {
+      "name": "A/chromium-1440-en-dark-aligned: no raw reason code or NaN/undefined/null leaks",
+      "passed": true,
+      "details": "rotation view text hygiene"
+    },
+    {
+      "name": "A/chromium-1440-en-dark-aligned: no horizontal scroll",
+      "passed": true,
+      "details": {
+        "scroll": 1440,
+        "inner": 1440
+      }
+    },
+    {
+      "name": "A/chromium-1440-en-dark-aligned: tall viewport resize leaves no overflowing container",
+      "passed": true,
+      "details": {
+        "need": 1659,
+        "vpH": 1659
+      }
+    },
+    {
+      "name": "A/chromium-1440-en-dark-aligned: rotation root bottom edge ≤ viewport height",
+      "passed": true,
+      "details": {
+        "top": 282.09375,
+        "bottom": 1548.953125,
+        "vh": 1659
+      }
+    },
+    {
+      "name": "A/chromium-1440-en-light-aligned: coverage line equals the independent oracle exactly",
+      "passed": true,
+      "details": "Measured 9 of 11 sectors · not measured: Real Estate (no price data for this sector today), Utilities (not enough price history yet)"
+    },
+    {
+      "name": "A/chromium-1440-en-light-aligned: measured line sits directly after the rotation receipt",
+      "passed": true,
+      "details": "DOM order receipt → measured"
+    },
+    {
+      "name": "A/chromium-1440-en-light-aligned: no raw reason code or NaN/undefined/null leaks",
+      "passed": true,
+      "details": "rotation view text hygiene"
+    },
+    {
+      "name": "A/chromium-1440-en-light-aligned: no horizontal scroll",
+      "passed": true,
+      "details": {
+        "scroll": 1440,
+        "inner": 1440
+      }
+    },
+    {
+      "name": "A/chromium-1440-en-light-aligned: tall viewport resize leaves no overflowing container",
+      "passed": true,
+      "details": {
+        "need": 1659,
+        "vpH": 1659
+      }
+    },
+    {
+      "name": "A/chromium-1440-en-light-aligned: rotation root bottom edge ≤ viewport height",
+      "passed": true,
+      "details": {
+        "top": 282.09375,
+        "bottom": 1548.953125,
+        "vh": 1659
+      }
+    },
+    {
+      "name": "A/chromium-1440-zh-dark-aligned: coverage line equals the independent oracle exactly",
+      "passed": true,
+      "details": "已测 9 / 11 个板块 · 未测：房地产（今日缺少该板块价格数据）、公用事业（价格历史不足）"
+    },
+    {
+      "name": "A/chromium-1440-zh-dark-aligned: measured line sits directly after the rotation receipt",
+      "passed": true,
+      "details": "DOM order receipt → measured"
+    },
+    {
+      "name": "A/chromium-1440-zh-dark-aligned: no raw reason code or NaN/undefined/null leaks",
+      "passed": true,
+      "details": "rotation view text hygiene"
+    },
+    {
+      "name": "A/chromium-1440-zh-dark-aligned: no horizontal scroll",
+      "passed": true,
+      "details": {
+        "scroll": 1440,
+        "inner": 1440
+      }
+    },
+    {
+      "name": "A/chromium-1440-zh-dark-aligned: tall viewport resize leaves no overflowing container",
+      "passed": true,
+      "details": {
+        "need": 1632,
+        "vpH": 1632
+      }
+    },
+    {
+      "name": "A/chromium-1440-zh-dark-aligned: rotation root bottom edge ≤ viewport height",
+      "passed": true,
+      "details": {
+        "top": 282.09375,
+        "bottom": 1521.40625,
+        "vh": 1632
+      }
+    },
+    {
+      "name": "A/chromium-1440-zh-light-aligned: coverage line equals the independent oracle exactly",
+      "passed": true,
+      "details": "已测 9 / 11 个板块 · 未测：房地产（今日缺少该板块价格数据）、公用事业（价格历史不足）"
+    },
+    {
+      "name": "A/chromium-1440-zh-light-aligned: measured line sits directly after the rotation receipt",
+      "passed": true,
+      "details": "DOM order receipt → measured"
+    },
+    {
+      "name": "A/chromium-1440-zh-light-aligned: no raw reason code or NaN/undefined/null leaks",
+      "passed": true,
+      "details": "rotation view text hygiene"
+    },
+    {
+      "name": "A/chromium-1440-zh-light-aligned: no horizontal scroll",
+      "passed": true,
+      "details": {
+        "scroll": 1440,
+        "inner": 1440
+      }
+    },
+    {
+      "name": "A/chromium-1440-zh-light-aligned: tall viewport resize leaves no overflowing container",
+      "passed": true,
+      "details": {
+        "need": 1632,
+        "vpH": 1632
+      }
+    },
+    {
+      "name": "A/chromium-1440-zh-light-aligned: rotation root bottom edge ≤ viewport height",
+      "passed": true,
+      "details": {
+        "top": 282.09375,
+        "bottom": 1521.40625,
+        "vh": 1632
+      }
+    },
+    {
+      "name": "A/chromium-390-en-dark-aligned: coverage line equals the independent oracle exactly",
+      "passed": true,
+      "details": "Measured 9 of 11 sectors · not measured: Real Estate (no price data for this sector today), Utilities (not enough price history yet)"
+    },
+    {
+      "name": "A/chromium-390-en-dark-aligned: measured line sits directly after the rotation receipt",
+      "passed": true,
+      "details": "DOM order receipt → measured"
+    },
+    {
+      "name": "A/chromium-390-en-dark-aligned: no raw reason code or NaN/undefined/null leaks",
+      "passed": true,
+      "details": "rotation view text hygiene"
+    },
+    {
+      "name": "A/chromium-390-en-dark-aligned: no horizontal scroll",
+      "passed": true,
+      "details": {
+        "scroll": 390,
+        "inner": 390
+      }
+    },
+    {
+      "name": "A/chromium-390-en-dark-aligned: coverage line wraps on the 390 viewport",
+      "passed": true,
+      "details": {
+        "height": 121.734375,
+        "lineHeight": 17.4
+      }
+    },
+    {
+      "name": "A/chromium-390-en-light-aligned: coverage line equals the independent oracle exactly",
+      "passed": true,
+      "details": "Measured 9 of 11 sectors · not measured: Real Estate (no price data for this sector today), Utilities (not enough price history yet)"
+    },
+    {
+      "name": "A/chromium-390-en-light-aligned: measured line sits directly after the rotation receipt",
+      "passed": true,
+      "details": "DOM order receipt → measured"
+    },
+    {
+      "name": "A/chromium-390-en-light-aligned: no raw reason code or NaN/undefined/null leaks",
+      "passed": true,
+      "details": "rotation view text hygiene"
+    },
+    {
+      "name": "A/chromium-390-en-light-aligned: no horizontal scroll",
+      "passed": true,
+      "details": {
+        "scroll": 390,
+        "inner": 390
+      }
+    },
+    {
+      "name": "A/chromium-390-en-light-aligned: coverage line wraps on the 390 viewport",
+      "passed": true,
+      "details": {
+        "height": 121.734375,
+        "lineHeight": 17.4
+      }
+    },
+    {
+      "name": "A/chromium-390-zh-dark-aligned: coverage line equals the independent oracle exactly",
+      "passed": true,
+      "details": "已测 9 / 11 个板块 · 未测：房地产（今日缺少该板块价格数据）、公用事业（价格历史不足）"
+    },
+    {
+      "name": "A/chromium-390-zh-dark-aligned: measured line sits directly after the rotation receipt",
+      "passed": true,
+      "details": "DOM order receipt → measured"
+    },
+    {
+      "name": "A/chromium-390-zh-dark-aligned: no raw reason code or NaN/undefined/null leaks",
+      "passed": true,
+      "details": "rotation view text hygiene"
+    },
+    {
+      "name": "A/chromium-390-zh-dark-aligned: no horizontal scroll",
+      "passed": true,
+      "details": {
+        "scroll": 390,
+        "inner": 390
+      }
+    },
+    {
+      "name": "A/chromium-390-zh-dark-aligned: coverage line wraps on the 390 viewport",
+      "passed": true,
+      "details": {
+        "height": 69.5625,
+        "lineHeight": 17.4
+      }
+    },
+    {
+      "name": "A/chromium-390-zh-light-aligned: coverage line equals the independent oracle exactly",
+      "passed": true,
+      "details": "已测 9 / 11 个板块 · 未测：房地产（今日缺少该板块价格数据）、公用事业（价格历史不足）"
+    },
+    {
+      "name": "A/chromium-390-zh-light-aligned: measured line sits directly after the rotation receipt",
+      "passed": true,
+      "details": "DOM order receipt → measured"
+    },
+    {
+      "name": "A/chromium-390-zh-light-aligned: no raw reason code or NaN/undefined/null leaks",
+      "passed": true,
+      "details": "rotation view text hygiene"
+    },
+    {
+      "name": "A/chromium-390-zh-light-aligned: no horizontal scroll",
+      "passed": true,
+      "details": {
+        "scroll": 390,
+        "inner": 390
+      }
+    },
+    {
+      "name": "A/chromium-390-zh-light-aligned: coverage line wraps on the 390 viewport",
+      "passed": true,
+      "details": {
+        "height": 69.5625,
+        "lineHeight": 17.4
+      }
+    },
+    {
+      "name": "A/1440-en: computed color differs between dark and light",
+      "passed": true,
+      "details": {
+        "dark": {
+          "color": "rgb(155, 163, 180)",
+          "fontSize": "12px",
+          "lineHeight": "normal",
+          "parentBackground": "rgba(0, 0, 0, 0)",
+          "height": 15
+        },
+        "light": {
+          "color": "rgb(101, 115, 135)",
+          "fontSize": "12px",
+          "lineHeight": "normal",
+          "parentBackground": "rgba(0, 0, 0, 0)",
+          "height": 15
+        }
+      }
+    },
+    {
+      "name": "A/1440-zh: computed color differs between dark and light",
+      "passed": true,
+      "details": {
+        "dark": {
+          "color": "rgb(155, 163, 180)",
+          "fontSize": "12px",
+          "lineHeight": "normal",
+          "parentBackground": "rgba(0, 0, 0, 0)",
+          "height": 17
+        },
+        "light": {
+          "color": "rgb(101, 115, 135)",
+          "fontSize": "12px",
+          "lineHeight": "normal",
+          "parentBackground": "rgba(0, 0, 0, 0)",
+          "height": 17
+        }
+      }
+    },
+    {
+      "name": "A/390-en: computed color differs between dark and light",
+      "passed": true,
+      "details": {
+        "dark": {
+          "color": "rgb(155, 163, 180)",
+          "fontSize": "12px",
+          "lineHeight": "17.4px",
+          "parentBackground": "rgba(0, 0, 0, 0)",
+          "height": 121.734375
+        },
+        "light": {
+          "color": "rgb(101, 115, 135)",
+          "fontSize": "12px",
+          "lineHeight": "17.4px",
+          "parentBackground": "rgba(0, 0, 0, 0)",
+          "height": 121.734375
+        }
+      }
+    },
+    {
+      "name": "A/390-zh: computed color differs between dark and light",
+      "passed": true,
+      "details": {
+        "dark": {
+          "color": "rgb(155, 163, 180)",
+          "fontSize": "12px",
+          "lineHeight": "17.4px",
+          "parentBackground": "rgba(0, 0, 0, 0)",
+          "height": 69.5625
+        },
+        "light": {
+          "color": "rgb(101, 115, 135)",
+          "fontSize": "12px",
+          "lineHeight": "17.4px",
+          "parentBackground": "rgba(0, 0, 0, 0)",
+          "height": 69.5625
+        }
+      }
+    },
+    {
+      "name": "B/state-stale-1440-en-dark: coverage line equals the stale oracle exactly",
+      "passed": true,
+      "details": "Measured 9 of 11 sectors · not measured: Real Estate (no price data for this sector today), Utilities (not enough price history yet) · measured 2026-10-09, older than this page"
+    },
+    {
+      "name": "B/state-stale-1440-en-dark: tall viewport resize leaves no overflowing container",
+      "passed": true,
+      "details": {
+        "need": 1659,
+        "vpH": 1659
+      }
+    },
+    {
+      "name": "B/state-stale-1440-en-dark: rotation root bottom edge ≤ viewport height",
+      "passed": true,
+      "details": {
+        "top": 282.09375,
+        "bottom": 1548.953125,
+        "vh": 1659
+      }
+    },
+    {
+      "name": "B/state-stale-1440-en-light: coverage line equals the stale oracle exactly",
+      "passed": true,
+      "details": "Measured 9 of 11 sectors · not measured: Real Estate (no price data for this sector today), Utilities (not enough price history yet) · measured 2026-10-09, older than this page"
+    },
+    {
+      "name": "B/state-stale-1440-en-light: tall viewport resize leaves no overflowing container",
+      "passed": true,
+      "details": {
+        "need": 1659,
+        "vpH": 1659
+      }
+    },
+    {
+      "name": "B/state-stale-1440-en-light: rotation root bottom edge ≤ viewport height",
+      "passed": true,
+      "details": {
+        "top": 282.09375,
+        "bottom": 1548.953125,
+        "vh": 1659
+      }
+    },
+    {
+      "name": "B/state-outage-1440-en-dark: coverage line equals the outage oracle exactly",
+      "passed": true,
+      "details": "Measured read could not be produced today."
+    },
+    {
+      "name": "B/state-outage-1440-en-dark: tall viewport resize leaves no overflowing container",
+      "passed": true,
+      "details": {
+        "need": 1659,
+        "vpH": 1659
+      }
+    },
+    {
+      "name": "B/state-outage-1440-en-dark: rotation root bottom edge ≤ viewport height",
+      "passed": true,
+      "details": {
+        "top": 282.09375,
+        "bottom": 1548.953125,
+        "vh": 1659
+      }
+    },
+    {
+      "name": "B/state-outage-1440-en-light: coverage line equals the outage oracle exactly",
+      "passed": true,
+      "details": "Measured read could not be produced today."
+    },
+    {
+      "name": "B/state-outage-1440-en-light: tall viewport resize leaves no overflowing container",
+      "passed": true,
+      "details": {
+        "need": 1659,
+        "vpH": 1659
+      }
+    },
+    {
+      "name": "B/state-outage-1440-en-light: rotation root bottom edge ≤ viewport height",
+      "passed": true,
+      "details": {
+        "top": 282.09375,
+        "bottom": 1548.953125,
+        "vh": 1659
+      }
+    },
+    {
+      "name": "B/state-invalid-1440-en-dark: coverage line equals the invalid oracle exactly",
+      "passed": true,
+      "details": "Measured read could not be checked, so it is not shown."
+    },
+    {
+      "name": "B/state-invalid-1440-en-dark: tall viewport resize leaves no overflowing container",
+      "passed": true,
+      "details": {
+        "need": 1659,
+        "vpH": 1659
+      }
+    },
+    {
+      "name": "B/state-invalid-1440-en-dark: rotation root bottom edge ≤ viewport height",
+      "passed": true,
+      "details": {
+        "top": 282.09375,
+        "bottom": 1548.953125,
+        "vh": 1659
+      }
+    },
+    {
+      "name": "B/state-invalid-1440-en-light: coverage line equals the invalid oracle exactly",
+      "passed": true,
+      "details": "Measured read could not be checked, so it is not shown."
+    },
+    {
+      "name": "B/state-invalid-1440-en-light: tall viewport resize leaves no overflowing container",
+      "passed": true,
+      "details": {
+        "need": 1659,
+        "vpH": 1659
+      }
+    },
+    {
+      "name": "B/state-invalid-1440-en-light: rotation root bottom edge ≤ viewport height",
+      "passed": true,
+      "details": {
+        "top": 282.09375,
+        "bottom": 1548.953125,
+        "vh": 1659
+      }
+    },
+    {
+      "name": "B/state-absent-1440-en-dark: no coverage element is rendered",
+      "passed": true,
+      "details": "absent state renders nothing"
+    },
+    {
+      "name": "B/state-absent-1440-en-dark: tall viewport resize leaves no overflowing container",
+      "passed": true,
+      "details": {
+        "need": 1659,
+        "vpH": 1659
+      }
+    },
+    {
+      "name": "B/state-absent-1440-en-dark: rotation root bottom edge ≤ viewport height",
+      "passed": true,
+      "details": {
+        "top": 282.09375,
+        "bottom": 1548.953125,
+        "vh": 1659
+      }
+    },
+    {
+      "name": "B/state-absent-1440-en-light: no coverage element is rendered",
+      "passed": true,
+      "details": "absent state renders nothing"
+    },
+    {
+      "name": "B/state-absent-1440-en-light: tall viewport resize leaves no overflowing container",
+      "passed": true,
+      "details": {
+        "need": 1659,
+        "vpH": 1659
+      }
+    },
+    {
+      "name": "B/state-absent-1440-en-light: rotation root bottom edge ≤ viewport height",
+      "passed": true,
+      "details": {
+        "top": 282.09375,
+        "bottom": 1548.953125,
+        "vh": 1659
+      }
+    },
+    {
+      "name": "B/state-stale-1440-zh-dark: coverage line equals the stale oracle exactly",
+      "passed": true,
+      "details": "已测 9 / 11 个板块 · 未测：房地产（今日缺少该板块价格数据）、公用事业（价格历史不足） · 实测于 2026-10-09，早于本页"
+    },
+    {
+      "name": "B/state-stale-1440-zh-dark: tall viewport resize leaves no overflowing container",
+      "passed": true,
+      "details": {
+        "need": 1632,
+        "vpH": 1632
+      }
+    },
+    {
+      "name": "B/state-stale-1440-zh-dark: rotation root bottom edge ≤ viewport height",
+      "passed": true,
+      "details": {
+        "top": 282.09375,
+        "bottom": 1521.40625,
+        "vh": 1632
+      }
+    },
+    {
+      "name": "B/state-outage-1440-zh-dark: coverage line equals the outage oracle exactly",
+      "passed": true,
+      "details": "今日未能生成实测读数。"
+    },
+    {
+      "name": "B/state-outage-1440-zh-dark: tall viewport resize leaves no overflowing container",
+      "passed": true,
+      "details": {
+        "need": 1632,
+        "vpH": 1632
+      }
+    },
+    {
+      "name": "B/state-outage-1440-zh-dark: rotation root bottom edge ≤ viewport height",
+      "passed": true,
+      "details": {
+        "top": 282.09375,
+        "bottom": 1521.40625,
+        "vh": 1632
+      }
+    },
+    {
+      "name": "B/aligned-1440-en-dark: tall viewport resize leaves no overflowing container",
+      "passed": true,
+      "details": {
+        "need": 1659,
+        "vpH": 1659
+      }
+    },
+    {
+      "name": "B/aligned-1440-en-dark: rotation root bottom edge ≤ viewport height",
+      "passed": true,
+      "details": {
+        "top": 282.09375,
+        "bottom": 1548.953125,
+        "vh": 1659
+      }
+    },
+    {
+      "name": "B/aligned-1440-en-light: tall viewport resize leaves no overflowing container",
+      "passed": true,
+      "details": {
+        "need": 1659,
+        "vpH": 1659
+      }
+    },
+    {
+      "name": "B/aligned-1440-en-light: rotation root bottom edge ≤ viewport height",
+      "passed": true,
+      "details": {
+        "top": 282.09375,
+        "bottom": 1548.953125,
+        "vh": 1659
+      }
+    },
+    {
+      "name": "B/distinctness: aligned/stale/outage/invalid/absent full lines differ pairwise (first-80 heads printed; the 80-char head truncates before the stale clause)",
+      "passed": true,
+      "details": [
+        "aligned: Measured 9 of 11 sectors · not measured: Real Estate (no price data for this sec",
+        "stale: Measured 9 of 11 sectors · not measured: Real Estate (no price data for this sec",
+        "outage: Measured read could not be produced today.",
+        "invalid: Measured read could not be checked, so it is not shown.",
+        "absent: <none>"
+      ]
+    },
+    {
+      "name": "C/a42-history-error-1440-en-dark: plotted population unchanged with the history owner failing",
+      "passed": true,
+      "details": {
+        "points": 11
+      }
+    },
+    {
+      "name": "C/a42-history-error-1440-en-dark: coverage line still equals the aligned oracle",
+      "passed": true,
+      "details": "Measured 9 of 11 sectors · not measured: Real Estate (no price data for this sector today), Utilities (not enough price history yet)"
+    },
+    {
+      "name": "C/a42-history-error-1440-en-dark: sector selection still responds while history fails",
+      "passed": true,
+      "details": "http://localhost:3172/discover?tab=sectors&sectorWorkspace=rotation&sector=xlk&sectorTheme=dark&sectorDiscoverySort=source&sectorCompanyTableSort=source&sectorDiscoveryMode=summary&sectorMatrixTimeframe=1D&sectorRotationMode=map&sectorView=intelligence&group=semiconductors&sectorSort=source"
+    },
+    {
+      "name": "C/a42-history-error-1440-en-dark: tall viewport resize leaves no overflowing container",
+      "passed": true,
+      "details": {
+        "need": 2010,
+        "vpH": 2010
+      }
+    },
+    {
+      "name": "C/a42-history-error-1440-en-dark: rotation root bottom edge ≤ viewport height",
+      "passed": true,
+      "details": {
+        "top": 282.09375,
+        "bottom": 1899.90625,
+        "vh": 2010
+      }
+    },
+    {
+      "name": "C/a42-history-error-1440-en-dark: history pane is inside the viewport and visible",
+      "passed": true,
+      "details": {
+        "top": 1191.21875,
+        "bottom": 1294.265625,
+        "left": 88,
+        "right": 1412,
+        "vh": 2010,
+        "visible": true
+      }
+    },
+    {
+      "name": "C/a42-history-error-1440-en-light: plotted population unchanged with the history owner failing",
+      "passed": true,
+      "details": {
+        "points": 11
+      }
+    },
+    {
+      "name": "C/a42-history-error-1440-en-light: coverage line still equals the aligned oracle",
+      "passed": true,
+      "details": "Measured 9 of 11 sectors · not measured: Real Estate (no price data for this sector today), Utilities (not enough price history yet)"
+    },
+    {
+      "name": "C/a42-history-error-1440-en-light: sector selection still responds while history fails",
+      "passed": true,
+      "details": "http://localhost:3172/discover?tab=sectors&sectorWorkspace=rotation&sector=xlk&sectorTheme=light&sectorDiscoverySort=source&sectorCompanyTableSort=source&sectorDiscoveryMode=summary&sectorMatrixTimeframe=1D&sectorRotationMode=map&sectorView=intelligence&group=semiconductors&sectorSort=source"
+    },
+    {
+      "name": "C/a42-history-error-1440-en-light: tall viewport resize leaves no overflowing container",
+      "passed": true,
+      "details": {
+        "need": 2010,
+        "vpH": 2010
+      }
+    },
+    {
+      "name": "C/a42-history-error-1440-en-light: rotation root bottom edge ≤ viewport height",
+      "passed": true,
+      "details": {
+        "top": 282.09375,
+        "bottom": 1899.90625,
+        "vh": 2010
+      }
+    },
+    {
+      "name": "C/a42-history-error-1440-en-light: history pane is inside the viewport and visible",
+      "passed": true,
+      "details": {
+        "top": 1191.21875,
+        "bottom": 1294.265625,
+        "left": 88,
+        "right": 1412,
+        "vh": 2010,
+        "visible": true
+      }
+    },
+    {
+      "name": "C/a42-history-unavailable-1440-en-dark: receipt status unavailable also keeps the full plotted population",
+      "passed": true,
+      "details": "11 points"
+    },
+    {
+      "name": "C/a42-history-unavailable-1440-en-dark: coverage line unaffected by the unavailable receipt status",
+      "passed": true,
+      "details": "Measured 9 of 11 sectors · not measured: Real Estate (no price data for this sector today), Utilities (not enough price history yet)"
+    },
+    {
+      "name": "C/a42-history-unavailable-1440-en-dark: tall viewport resize leaves no overflowing container",
+      "passed": true,
+      "details": {
+        "need": 1659,
+        "vpH": 1659
+      }
+    },
+    {
+      "name": "C/a42-history-unavailable-1440-en-dark: rotation root bottom edge ≤ viewport height",
+      "passed": true,
+      "details": {
+        "top": 282.09375,
+        "bottom": 1548.953125,
+        "vh": 1659
+      }
+    },
+    {
+      "name": "C/a42-history-unavailable-1440-en-dark: history pane is inside the viewport and visible",
+      "passed": true,
+      "details": {
+        "top": 1191.21875,
+        "bottom": 1294.265625,
+        "left": 88,
+        "right": 1412,
+        "vh": 1659,
+        "visible": true
+      }
+    },
+    {
+      "name": "C/a42-history-unavailable-1440-en-light: receipt status unavailable also keeps the full plotted population",
+      "passed": true,
+      "details": "11 points"
+    },
+    {
+      "name": "C/a42-history-unavailable-1440-en-light: coverage line unaffected by the unavailable receipt status",
+      "passed": true,
+      "details": "Measured 9 of 11 sectors · not measured: Real Estate (no price data for this sector today), Utilities (not enough price history yet)"
+    },
+    {
+      "name": "C/a42-history-unavailable-1440-en-light: tall viewport resize leaves no overflowing container",
+      "passed": true,
+      "details": {
+        "need": 1659,
+        "vpH": 1659
+      }
+    },
+    {
+      "name": "C/a42-history-unavailable-1440-en-light: rotation root bottom edge ≤ viewport height",
+      "passed": true,
+      "details": {
+        "top": 282.09375,
+        "bottom": 1548.953125,
+        "vh": 1659
+      }
+    },
+    {
+      "name": "C/a42-history-unavailable-1440-en-light: history pane is inside the viewport and visible",
+      "passed": true,
+      "details": {
+        "top": 1191.21875,
+        "bottom": 1294.265625,
+        "left": 88,
+        "right": 1412,
+        "vh": 1659,
+        "visible": true
+      }
+    },
+    {
+      "name": "D/access-1440-en-dark: no coverage element under access loss",
+      "passed": true,
+      "details": "A45 for this view"
+    },
+    {
+      "name": "D/access-1440-en-dark: none of the fixture's measured rs numbers appear",
+      "passed": true,
+      "details": {
+        "checked": 18,
+        "leaked": []
+      }
+    },
+    {
+      "name": "D/access-1440-en-dark: no measured vocabulary renders",
+      "passed": true,
+      "details": "Rotation\n\nRotation data requires access.\n\nReview sources →"
+    },
+    {
+      "name": "D/access-1440-en-dark: tall viewport resize leaves no overflowing container",
+      "passed": true,
+      "details": {
+        "need": 924,
+        "vpH": 924
+      }
+    },
+    {
+      "name": "D/access-1440-en-dark: rotation root bottom edge ≤ viewport height",
+      "passed": true,
+      "details": {
+        "top": 282.09375,
+        "bottom": 479.53125,
+        "vh": 924
+      }
+    },
+    {
+      "name": "E/navigation-1440-en-dark: clicking XLK selects it in the URL",
+      "passed": true,
+      "details": "http://localhost:3172/discover?tab=sectors&sectorWorkspace=rotation&sector=xlk&sectorTheme=dark&sectorDiscoverySort=source&sectorCompanyTableSort=source&sectorDiscoveryMode=summary&sectorMatrixTimeframe=1D&sectorRotationMode=map&sectorView=intelligence&group=semiconductors&sectorSort=source"
+    },
+    {
+      "name": "E/navigation-1440-en-dark: browser Back restores the XLE selection",
+      "passed": true,
+      "details": "http://localhost:3172/discover?tab=sectors&sectorWorkspace=rotation&sector=xle&sectorTheme=dark"
+    },
+    {
+      "name": "E/navigation-1440-en-dark: Tab walk reaches a rotation point within 30 presses",
+      "passed": true,
+      "details": {
+        "tabWalk": {
+          "presses": 30,
+          "tag": "BUTTON",
+          "point": "xlp",
+          "testid": null,
+          "text": "XLP"
+        },
+        "enter": {
+          "selectionBefore": "xle",
+          "selectionAfter": "xlp"
+        },
+        "space": {
+          "selectionAfterSpace": "xlp"
+        }
+      }
+    },
+    {
+      "name": "E/touch-390-en-dark: touch bounding boxes recorded (finding, not a failure)",
+      "passed": true,
+      "details": {
+        "count": 11,
+        "under44Both": 0,
+        "small": []
+      }
+    },
+    {
+      "name": "F/webkit: matching cached build present",
+      "passed": false,
+      "details": "webkit-2311 not in ~/.cache/ms-playwright — recorded as a GAP, not a failure"
+    },
+    {
+      "name": "zero page exceptions",
+      "passed": true,
+      "details": []
+    },
+    {
+      "name": "pixel/chromium-1440-en-dark-aligned.png: bottom-25% uniform-row fraction < 0.5",
+      "passed": true,
+      "details": {
+        "width": 1440,
+        "height": 1659,
+        "uniformRows": 129,
+        "total": 415,
+        "fraction": 0.3108433734939759
+      }
+    },
+    {
+      "name": "pixel/chromium-1440-en-light-aligned.png: bottom-25% uniform-row fraction < 0.5",
+      "passed": true,
+      "details": {
+        "width": 1440,
+        "height": 1659,
+        "uniformRows": 28,
+        "total": 415,
+        "fraction": 0.06746987951807229
+      }
+    },
+    {
+      "name": "pixel/chromium-1440-zh-dark-aligned.png: bottom-25% uniform-row fraction < 0.5",
+      "passed": true,
+      "details": {
+        "width": 1440,
+        "height": 1632,
+        "uniformRows": 129,
+        "total": 408,
+        "fraction": 0.3161764705882353
+      }
+    },
+    {
+      "name": "pixel/chromium-1440-zh-light-aligned.png: bottom-25% uniform-row fraction < 0.5",
+      "passed": true,
+      "details": {
+        "width": 1440,
+        "height": 1632,
+        "uniformRows": 28,
+        "total": 408,
+        "fraction": 0.06862745098039216
+      }
+    }
+  ],
+  "screenshots": [
+    {
+      "name": "chromium-1440-en-dark-aligned.png",
+      "sha256": "92918c5b7df2ceae2d3960dec67fe2fc46aaa360f0b4826c6a1b31267a6b0fb0"
+    },
+    {
+      "name": "chromium-1440-en-light-aligned.png",
+      "sha256": "f685684a6af314eaaf509870013872da6dcd8b916c9862669e9986bd3046cd5b"
+    },
+    {
+      "name": "chromium-1440-zh-dark-aligned.png",
+      "sha256": "35973a78a0746729d0a8fefcab06d0606f2416ff33cf6664dc08d120383fd771"
+    },
+    {
+      "name": "chromium-1440-zh-light-aligned.png",
+      "sha256": "b20d6ca02705ebabbf951ab8210b4a2b5375b14031fb7d61cdc69da288a9c6e7"
+    },
+    {
+      "name": "chromium-390-en-dark-aligned.png",
+      "sha256": "1527e1e32ca7b202c92efb423cc98d1e3deb4046826d23b7f3a9b63776828602"
+    },
+    {
+      "name": "chromium-390-en-light-aligned.png",
+      "sha256": "cd6e791ed8c249a1b59645bb0f1c2c5c2a9d260c93967a6b29129c13def084cf"
+    },
+    {
+      "name": "chromium-390-zh-dark-aligned.png",
+      "sha256": "33787a6e5e4e0b27fa0a2f1437c69eacd3a59731c262406a17501f1c8a78a34e"
+    },
+    {
+      "name": "chromium-390-zh-light-aligned.png",
+      "sha256": "b6748f14bf0414debf6250c61601a47269f2ce2e701a8a48127b886cb5a9a698"
+    },
+    {
+      "name": "state-stale-1440-en-dark.png",
+      "sha256": "896d15a464f212e49d1be905f213ce99388cee26b5b553d2df6b913c0492e63c"
+    },
+    {
+      "name": "state-stale-1440-en-light.png",
+      "sha256": "35d9ecf47b7f486754a221cf68b5ea3f85c33befddb33f1be5eca925192d306f"
+    },
+    {
+      "name": "state-outage-1440-en-dark.png",
+      "sha256": "67a4eef9958dbb503c40afc0882598932f867455a7c9c7f5afcd72f354a2a4cc"
+    },
+    {
+      "name": "state-outage-1440-en-light.png",
+      "sha256": "74e0932ef6c9a52c1c0494808bba41882f747d06f782c81c26c308142a9f3458"
+    },
+    {
+      "name": "state-invalid-1440-en-dark.png",
+      "sha256": "4a5132a46255f2607a58e0294fe0b165b6db76ef238934866e8dc0d39721b2fd"
+    },
+    {
+      "name": "state-invalid-1440-en-light.png",
+      "sha256": "b3fc001309632089b4db54300400beeed4cfc2a725a5d2127603148e042ec9fb"
+    },
+    {
+      "name": "state-absent-1440-en-dark.png",
+      "sha256": "5d9bc20c66945bc793c4dfa3549c1852559b1d9c22aa480f49439ed09f12601c"
+    },
+    {
+      "name": "state-absent-1440-en-light.png",
+      "sha256": "72179c694aa9185ffed330879a2da1839adf877cb1e61cbad52ec7a83a5239de"
+    },
+    {
+      "name": "state-stale-1440-zh-dark.png",
+      "sha256": "1f72c0855399c6034ccc8a5517011340b15326b575676eaf1606c8d4282c7d75"
+    },
+    {
+      "name": "state-outage-1440-zh-dark.png",
+      "sha256": "53886d5b7c9b285b0f8d0dfa7e4b00087be761b6aa4b5635a0f9c193931a8d59"
+    },
+    {
+      "name": "state-aligned-1440-en-dark.png",
+      "sha256": "1f283b1d0c991aafbdd8ada60bc45afa82bd6753318e383b4f584c44279bd25a"
+    },
+    {
+      "name": "state-aligned-1440-en-light.png",
+      "sha256": "16c41827baefb443e563db445869c8cc89b561f633e277577a3845de4026cf18"
+    },
+    {
+      "name": "a42-history-error-1440-en-dark.png",
+      "sha256": "3045ef46a64fa3be5eba55f1bdde024db57af1946d168c35d33484634dfdc075"
+    },
+    {
+      "name": "a42-history-error-1440-en-light.png",
+      "sha256": "6086a55f57ba199c013b7b074f5e76adf4eec6e38e2a56a337a5275015ce3fac"
+    },
+    {
+      "name": "a42-history-unavailable-1440-en-dark.png",
+      "sha256": "1f283b1d0c991aafbdd8ada60bc45afa82bd6753318e383b4f584c44279bd25a"
+    },
+    {
+      "name": "a42-history-unavailable-1440-en-light.png",
+      "sha256": "16c41827baefb443e563db445869c8cc89b561f633e277577a3845de4026cf18"
+    },
+    {
+      "name": "access-1440-en-dark.png",
+      "sha256": "3009c5200e0c7ce096f7dd48ab6ca58811a60c4044499c7f3acbc1ec94fdd258"
+    }
+  ],
+  "errors": [],
+  "gaps": [
+    {
+      "name": "webkit cells",
+      "details": "no cached webkit build matching playwright-core revision 2311; F cells skipped"
+    }
+  ],
+  "keyboard": {
+    "tabWalk": {
+      "presses": 30,
+      "tag": "BUTTON",
+      "point": "xlp",
+      "testid": null,
+      "text": "XLP"
+    },
+    "enter": {
+      "selectionBefore": "xle",
+      "selectionAfter": "xlp"
+    },
+    "space": {
+      "selectionAfterSpace": "xlp"
+    }
+  },
+  "touch": {
+    "count": 11,
+    "under44Both": 0,
+    "small": []
+  },
+  "verdict": "PASS-WITH-GAPS",
+  "pixelSanity": [
+    {
+      "name": "chromium-1440-en-dark-aligned.png",
+      "width": 1440,
+      "height": 1659,
+      "fraction": 0.3108
+    },
+    {
+      "name": "chromium-1440-en-light-aligned.png",
+      "width": 1440,
+      "height": 1659,
+      "fraction": 0.0675
+    },
+    {
+      "name": "chromium-1440-zh-dark-aligned.png",
+      "width": 1440,
+      "height": 1632,
+      "fraction": 0.3162
+    },
+    {
+      "name": "chromium-1440-zh-light-aligned.png",
+      "width": 1440,
+      "height": 1632,
+      "fraction": 0.0686
+    },
+    {
+      "name": "chromium-390-en-dark-aligned.png",
+      "width": 390,
+      "height": 2302,
+      "fraction": 0.191
+    },
+    {
+      "name": "chromium-390-en-light-aligned.png",
+      "width": 390,
+      "height": 2302,
+      "fraction": 0.191
+    },
+    {
+      "name": "chromium-390-zh-dark-aligned.png",
+      "width": 390,
+      "height": 2120,
+      "fraction": 0.1906
+    },
+    {
+      "name": "chromium-390-zh-light-aligned.png",
+      "width": 390,
+      "height": 2120,
+      "fraction": 0.1906
+    },
+    {
+      "name": "state-stale-1440-en-dark.png",
+      "width": 1324,
+      "height": 1267,
+      "fraction": 0.735
+    },
+    {
+      "name": "state-stale-1440-en-light.png",
+      "width": 1324,
+      "height": 1267,
+      "fraction": 0.735
+    },
+    {
+      "name": "state-outage-1440-en-dark.png",
+      "width": 1324,
+      "height": 1267,
+      "fraction": 0.735
+    },
+    {
+      "name": "state-outage-1440-en-light.png",
+      "width": 1324,
+      "height": 1267,
+      "fraction": 0.735
+    },
+    {
+      "name": "state-invalid-1440-en-dark.png",
+      "width": 1324,
+      "height": 1267,
+      "fraction": 0.735
+    },
+    {
+      "name": "state-invalid-1440-en-light.png",
+      "width": 1324,
+      "height": 1267,
+      "fraction": 0.735
+    },
+    {
+      "name": "state-absent-1440-en-dark.png",
+      "width": 1324,
+      "height": 1267,
+      "fraction": 0.735
+    },
+    {
+      "name": "state-absent-1440-en-light.png",
+      "width": 1324,
+      "height": 1267,
+      "fraction": 0.735
+    },
+    {
+      "name": "state-stale-1440-zh-dark.png",
+      "width": 1324,
+      "height": 1240,
+      "fraction": 0.6355
+    },
+    {
+      "name": "state-outage-1440-zh-dark.png",
+      "width": 1324,
+      "height": 1240,
+      "fraction": 0.6355
+    },
+    {
+      "name": "state-aligned-1440-en-dark.png",
+      "width": 1324,
+      "height": 1267,
+      "fraction": 0.735
+    },
+    {
+      "name": "state-aligned-1440-en-light.png",
+      "width": 1324,
+      "height": 1267,
+      "fraction": 0.735
+    },
+    {
+      "name": "a42-history-error-1440-en-dark.png",
+      "width": 1324,
+      "height": 1618,
+      "fraction": 0.2543
+    },
+    {
+      "name": "a42-history-error-1440-en-light.png",
+      "width": 1324,
+      "height": 1618,
+      "fraction": 0.2543
+    },
+    {
+      "name": "a42-history-unavailable-1440-en-dark.png",
+      "width": 1324,
+      "height": 1267,
+      "fraction": 0.735
+    },
+    {
+      "name": "a42-history-unavailable-1440-en-light.png",
+      "width": 1324,
+      "height": 1267,
+      "fraction": 0.735
+    },
+    {
+      "name": "access-1440-en-dark.png",
+      "width": 1324,
+      "height": 198,
+      "fraction": 0.9
+    }
+  ]
+}

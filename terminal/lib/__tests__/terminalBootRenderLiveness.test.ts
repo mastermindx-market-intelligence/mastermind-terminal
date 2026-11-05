@@ -88,6 +88,19 @@ function detailsFor(emitted: EmittedEvent[], type: string): unknown[] {
 }
 
 describe("Terminal visual-ready bounded render completion", () => {
+  it("delivers instance readiness only after paint, and never for a retired chart", () => {
+    const { frames } = installWindow(); const onReady = vi.fn();
+    let current = true, painted = false;
+    announceTerminalVisualReady("SPY", "data", { timeframe: "D", generation: 1,
+      isCurrent: () => current, isReady: () => true, isRendered: () => painted, onReady });
+    frames.shift()!(0); expect(onReady).not.toHaveBeenCalled();
+    painted = true; drainFrames(frames);
+    expect(onReady).toHaveBeenCalledTimes(1);
+    expect(onReady).toHaveBeenCalledWith({ symbol: "SPY", timeframe: "D", generation: 1, state: "data" });
+    announceTerminalVisualReady("QQQ", "data", { timeframe: "D", generation: 2,
+      isCurrent: () => current, isReady: () => true, onReady });
+    current = false; drainFrames(frames); expect(onReady).toHaveBeenCalledTimes(1);
+  });
   it("continues a current multi-pane generation beyond the former eight-frame ceiling, then emits once", () => {
     const { frames, emitted } = installWindow();
     let renderChecks = 0;

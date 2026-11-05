@@ -39,9 +39,9 @@ const { Coinbase } = require("./lib/coinbase");
 const { OKX } = require("./lib/okx");
 const { Polygon } = require("./lib/polygon");
 const { ExtFeed } = require("./lib/extfeed");
-const { OvernightHistory } = require("./lib/overnightHistory");
 const { MacroFeed } = require("./lib/macrofeed");
 const { SnapshotFeed } = require("./lib/snapshot");
+const { handleFuturesRequest } = require("./lib/futuresPublication");
 const {
   classify,
   isMacroSymbol,
@@ -74,10 +74,6 @@ const HUB_GIT_SHA = process.env.HUB_GIT_SHA || null;
 const extFeed = new ExtFeed({
   alpacaKey: process.env.ALPACA_API_KEY || "",
   alpacaSecret: process.env.ALPACA_API_SECRET || "",
-});
-const overnightHistory = new OvernightHistory({
-  apiKey: process.env.ALPACA_API_KEY || "",
-  apiSecret: process.env.ALPACA_API_SECRET || "",
 });
 
 // Macro feed (futures / indices / FX / dollar index). Keyless — no env required.
@@ -188,36 +184,10 @@ function handleHealth(res) {
     okx: okx ? okx.health() : { disabled: DISABLE_CRYPTO },
     polygon: polygon ? polygon.health() : { disabled: DISABLE_US },
     extFeed: extFeed.health(),
-    overnightHistory: overnightHistory.health(),
     macroFeed: macroFeed.health(),
     snapshotFeed: snapshotFeed.stats(),
     ts: Math.floor(Date.now() / 1000),
   });
-}
-
-async function handleOvernightBars(res, url) {
-  const symbolValues = url.searchParams.getAll("symbol");
-  const dateValues = url.searchParams.getAll("date");
-  const tfValues = url.searchParams.getAll("tf");
-  if (symbolValues.length !== 1 || dateValues.length !== 1 || tfValues.length !== 1) {
-    return sendJSON(res, 400, { error: "bad params" });
-  }
-  const symbol = String(symbolValues[0] || "").trim().toUpperCase();
-  const date = String(dateValues[0] || "").trim();
-  const tf = String(tfValues[0] || "").trim();
-  if (
-    classify(symbol) !== "us" ||
-    isMacroSymbol(symbol) ||
-    isDailyOnlySymbol(symbol) ||
-    !/^[A-Z][A-Z0-9.-]{0,14}$/.test(symbol) ||
-    !/^\d{4}-\d{2}-\d{2}$/.test(date) ||
-    !/^\d+(m|h)$/.test(tf)
-  ) {
-    return sendJSON(res, 400, { error: "bad params" });
-  }
-
-  const result = await overnightHistory.getWallDate(symbol, tf, date);
-  return sendJSON(res, 200, { symbol, date, tf, ...result });
 }
 
 function handleQuotes(res, url) {
@@ -275,13 +245,11 @@ const server = http.createServer((req, res) => {
   try {
     if (url.pathname === "/health") return handleHealth(res);
     if (url.pathname === "/quotes") return handleQuotes(res, url);
-    if (url.pathname === "/overnight-bars") {
-      void handleOvernightBars(res, url).catch((e) => {
-        log.error("overnight history handler error", e && e.message);
-        if (!res.headersSent) sendJSON(res, 500, { error: "internal" });
-      });
-      return;
-    }
+    // Inert unless the existing capture publisher has an explicitly configured directory.
+    // This read path never activates a vendor connection or reads the local research samples.
+    if (url.pathname === "/futures") return void handleFuturesRequest(res, url, {
+      root: process.env.HUB_FUTURES_PUBLICATION_DIR || "",
+    }).catch(() => sendJSON(res, 503, { error: "source_unavailable" }));
     return sendJSON(res, 404, { error: "not found" });
   } catch (e) {
     log.error("request handler error", url.pathname, e && e.message);

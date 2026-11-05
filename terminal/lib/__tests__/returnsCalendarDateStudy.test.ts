@@ -62,4 +62,45 @@ describe("date-scoped U.S. equity session studies", () => {
     await expect(fetchUsEquityDateStudyBars("AAPL", "30m", true, "2026-10-14"))
       .rejects.toThrow("polygon rate-limited");
   });
+
+  it("inherits the current shared-flight cancellation signal", async () => {
+    process.env.POLYGON_API_KEY = "test-key";
+    const controller = new AbortController();
+    const fetchMock = vi.fn(async (_url: unknown, options?: RequestInit) => {
+      expect(options?.signal).toBe(controller.signal);
+      return new Response(JSON.stringify({ status: "OK", ticker: "AAPL", resultsCount: 0 }));
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    expect(await fetchUsEquityDateStudyBars("AAPL", "30m", true, "2026-10-14", controller.signal)).toEqual([]);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    {}, { ticker: "MSFT", results: [] }, { ticker: null, results: [] },
+    { results: [], resultsCount: 3 }, { results: [], resultsCount: "0" },
+    { status: "OK", results: null, resultsCount: 0 }, { status: "ERROR", results: [] },
+    { status: ["OK"], results: [] }, { results: [], next_url: "https://invalid.test/next" },
+    { results: [{ t: Date.UTC(2026, 9, 14, 13, 30), o: true, h: 102, l: 99, c: 101, v: 10 }] },
+    { results: [{ t: Date.UTC(2026, 9, 14, 13, 30), o: 100, h: 90, l: 99, c: 101, v: 10 }] },
+  ])("refuses malformed or contradictory provider evidence %#", async payload => {
+    process.env.POLYGON_API_KEY = "test-key";
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify(payload))));
+    await expect(fetchUsEquityDateStudyBars("AAPL", "30m", true, "2026-10-14")).rejects.toThrow();
+  });
+
+  it("does not spend a provider request on an impossible calendar date", async () => {
+    process.env.POLYGON_API_KEY = "test-key";
+    const fetchMock = vi.fn(); vi.stubGlobal("fetch", fetchMock);
+    expect(await fetchUsEquityDateStudyBars("AAPL", "30m", true, "2026-02-30")).toEqual([]);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("excludes after17:00 on the canonical early-close date", async () => {
+    process.env.POLYGON_API_KEY = "test-key";
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ results: [12, 13, 16, 17].map(hour => ({
+      t: Date.UTC(2026, 10, 27, hour + 5), o: 100, h: 102, l: 99, c: 101, v: 10,
+    })) }))));
+    const bars = await fetchUsEquityDateStudyBars("AAPL", "30m", true, "2026-11-27");
+    expect(bars.map(bar => new Date(bar[0] * 1000).getUTCHours())).toEqual([12, 13, 16]);
+  });
 });

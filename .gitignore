@@ -44,3 +44,6 @@ terminal/scripts/dist/
 apps/ios/build/
 apps/**/xcuserdata/
 apps/**/DerivedData/
+
+# Private normalized exchange evidence; never part of the repository or public fixture.
+.large-trades-evidence/

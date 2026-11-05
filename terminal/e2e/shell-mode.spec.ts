@@ -201,10 +201,20 @@ test.describe("native shell mode", () => {
     const selectedId = await selectedDay.getAttribute("id");
     await selectedDay.focus();
     await selectedDay.press("ArrowLeft");
-    await expect(page.locator('button.returns-day[aria-pressed="true"]')).not.toHaveAttribute("id", selectedId || "");
+    // Arrow keys move the roving focus; activation alone changes the selected study.
+    await expect(page.locator('button.returns-day[aria-pressed="true"]')).toHaveAttribute("id", selectedId || "");
+    const focusedDay = page.locator("button.returns-day:focus");
+    await expect(focusedDay).not.toHaveAttribute("id", selectedId || "");
+    await expect(page.locator('button.returns-day[tabindex="0"]')).toHaveCount(1);
+    const focusedId = await focusedDay.getAttribute("id");
+    await focusedDay.press("Enter");
+    await expect(page.locator('button.returns-day[aria-pressed="true"]')).toHaveAttribute("id", focusedId || "");
     // Watchlist board + resizer stay out at every viewport (the native list owns them).
     await expect(page.locator(".rail .wl-board")).toBeHidden();
     await expect(page.locator(".rail-resizer")).toHaveCount(0);
+    // …and so does the watchlist review (E16): it navigates the web chart, and the dossier has no
+    // chart. The guest's default list is non-empty, so a leaked idle control would be in the DOM.
+    await expect(page.locator('[data-testid^="wl-review"]')).toHaveCount(0);
     // Still no global web chrome.
     await expect(page.locator("header.topbar")).toHaveCount(0);
     await expect(page.locator(".mobilebar")).toHaveCount(0);

@@ -155,7 +155,8 @@ export function returnsCalendarDayKey(time: string | number): string | null {
   if (!finite(time)) return null;
   const ms = Math.abs(time) < 1e12 ? time * 1000 : time;
   if (!Number.isFinite(ms)) return null;
-  return realIsoDay(new Date(ms).toISOString().slice(0, 10));
+  const instant = new Date(ms);
+  return Number.isFinite(instant.valueOf()) ? realIsoDay(instant.toISOString().slice(0, 10)) : null;
 }
 
 export function previousCalendarDate(date: string): string {
@@ -196,6 +197,7 @@ export function buildReturnsCalendarSessions(
   current: Bar6[],
   previous: Bar6[],
   rth: readonly [number, number] | null,
+  postEndMinute: number | null = null,
 ): SessionRange[] {
   const regularStart = rth?.[0] ?? null;
   const regularEnd = rth?.[1] ?? null;
@@ -211,9 +213,9 @@ export function buildReturnsCalendarSessions(
     const m = minuteOfDisplayDay(b[0]);
     return m >= regularStart && m < regularEnd;
   });
-  const post = regularEnd == null ? [] : current.filter((b) => {
+  const post = regularEnd == null || postEndMinute == null ? [] : current.filter((b) => {
     const m = minuteOfDisplayDay(b[0]);
-    return m >= regularEnd && m < 20 * 60;
+    return m >= regularEnd && m < postEndMinute;
   });
   return [
     aggregateSession("overnight", "20:00–04:00", overnight),
@@ -223,6 +225,86 @@ export function buildReturnsCalendarSessions(
       regularStart == null || regularEnd == null ? "—" : `${hhmm(regularStart)}–${hhmm(regularEnd)}`,
       regular,
     ),
-    aggregateSession("post", regularEnd == null ? "—–20:00" : `${hhmm(regularEnd)}–20:00`, post),
+    aggregateSession("post", regularEnd == null || postEndMinute == null ? "—" : `${hhmm(regularEnd)}–${hhmm(postEndMinute)}`, post),
   ];
+}
+
+
+export type ReturnCalendarSlot = { date: string; record: DailyReturnRecord | null } | null;
+
+/** Calendar geometry retains missing observations and weekends in their real slots. */
+export function buildReturnCalendarSlots(
+  records: readonly DailyReturnRecord[], month: string, crypto: boolean,
+): ReturnCalendarSlot[] {
+  if (!/^\d{4}-\d{2}$/.test(month) || !realIsoDay(month + "-01")) return [];
+  const [year, monthNumber] = month.split("-").map(Number);
+  const last = new Date(Date.UTC(year, monthNumber, 0)).getUTCDate();
+  const byDate = new Map(records.map(record => [record.date, record]));
+  const slots: ReturnCalendarSlot[] = [];
+  for (let day = 1; day <= last; day++) {
+    const instant = new Date(Date.UTC(year, monthNumber - 1, day));
+    const weekday = instant.getUTCDay();
+    if (!crypto && (weekday === 0 || weekday === 6)) continue;
+    const date = instant.toISOString().slice(0, 10);
+    if (!slots.length) {
+      const column = crypto ? weekday : weekday - 1;
+      for (let i = 0; i < column; i++) slots.push(null);
+    }
+    slots.push({ date, record: byDate.get(date) ?? null });
+  }
+  return slots;
+}
+
+export function returnCalendarFocusTarget(
+  slots: readonly ReturnCalendarSlot[], from: string, key: string, columns: number,
+): string | null {
+  const index = slots.findIndex(slot => slot?.date === from);
+  if (index < 0 || (columns !== 5 && columns !== 7)) return null;
+  if (key === "Home" || key === "End") {
+    const start = Math.floor(index / columns) * columns;
+    const end = Math.min(start + columns, slots.length);
+    const row = slots.slice(start, end).filter(slot => slot?.record);
+    return (key === "Home" ? row[0] : row[row.length - 1])?.date ?? from;
+  }
+  const delta = key === "ArrowLeft" ? -1 : key === "ArrowRight" ? 1
+    : key === "ArrowUp" ? -columns : key === "ArrowDown" ? columns : 0;
+  if (!delta) return null;
+  for (let at = index + delta; at >= 0 && at < slots.length; at += delta) {
+    if (slots[at]?.record) return slots[at]!.date;
+  }
+  return from;
+}
+
+/** Short months/missing dates choose the closest observed day; an empty month has no fake date. */
+export function returnCalendarMonthFocus(
+  records: readonly DailyReturnRecord[], month: string, preferred: string | null, crypto = false,
+): string | null {
+  const inMonth = records.filter(record => record.date.slice(0, 7) === month
+    && (crypto || ![0, 6].includes(new Date(record.date + "T00:00:00Z").getUTCDay())));
+  if (!inMonth.length) return null;
+  const day = preferred && realIsoDay(preferred) ? Number(preferred.slice(8)) : 31;
+  return [...inMonth].sort((a, b) => Math.abs(Number(a.date.slice(8)) - day)
+    - Math.abs(Number(b.date.slice(8)) - day) || a.date.localeCompare(b.date))[0].date;
+}
+
+export function dailyReturnQuality(record: DailyReturnRecord): string {
+  if (record.previousClose === null || record.returnPct === null) return "missing_prior_reference";
+  return record.gapCalendarDays > 0 ? "observed_return_with_calendar_gap" : "observed_return";
+}
+
+export function serializeReturnsMonth(records: readonly DailyReturnRecord[], month: string): string {
+  const cell = (value: unknown) => {
+    const text = value == null ? "" : String(value);
+    return /[",\r\n]/.test(text) ? '"' + text.replace(/"/g, '""') + '"' : text;
+  };
+  const rows = [
+    ["date", "open", "high", "low", "close", "previous_date", "previous_close",
+      "close_to_close_return_pct", "observed_gap_calendar_days", "return_basis", "quality"],
+    ...records.filter(record => record.date.slice(0, 7) === month).map(record => [
+      record.date, record.bar.o, record.bar.h, record.bar.l, record.bar.c,
+      record.previousDate, record.previousClose, record.returnPct, record.gapCalendarDays,
+      "daily_price_return_adjustment_unverified", dailyReturnQuality(record),
+    ]),
+  ];
+  return rows.map(row => row.map(cell).join(",")).join("\n") + "\n";
 }

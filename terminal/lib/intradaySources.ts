@@ -125,7 +125,7 @@ export function polygonUsSessionBaseMinutes(minutes: number): number {
   return 1;
 }
 
-async function fetchPolygon(sym: string, market: Market, tf: string, ext: boolean): Promise<Bar6[]> {
+async function fetchPolygon(sym: string, market: Market, tf: string, ext: boolean, overnight = false, signal?: AbortSignal): Promise<Bar6[]> {
   const key = process.env.POLYGON_API_KEY || process.env.MASSIVE_API_KEY;
   if (!key) throw new Error("POLYGON_API_KEY not set");
   const minutes = tfMinutes(tf);
@@ -145,7 +145,7 @@ async function fetchPolygon(sym: string, market: Market, tf: string, ext: boolea
   const rangeMult = market === "us" ? sourceMinutes : requestedMult;
   const rangeUnit = market === "us" ? "minute" : requestedUnit;
   const url = `https://api.polygon.io/v2/aggs/ticker/${encodeURIComponent(ticker)}/range/${rangeMult}/${rangeUnit}/${iso(from)}/${iso(to)}?adjusted=true&sort=asc&limit=50000&apiKey=${key}`;
-  const r = await fetch(url, { cache: "no-store" });
+  const r = await fetch(url, { cache: "no-store", ...(signal ? { signal } : {}) });
   if (!r.ok) {
     if (r.status === 429) throw new Error("polygon rate-limited");
     throw new Error("polygon " + r.status);
@@ -161,9 +161,9 @@ async function fetchPolygon(sym: string, market: Market, tf: string, ext: boolea
   if (market === "us") {
     const session = ext ? "extended" : "regular";
     const selected = filterUsEquitySession(out, session);
-    return minutes === sourceMinutes
+    return minutes === sourceMinutes && !overnight
       ? selected
-      : resampleUsEquitySession(selected, minutes, session);
+      : resampleUsEquitySession(selected, minutes, overnight ? "24h" : session);
   }
   return out;
 }
@@ -173,54 +173,79 @@ async function fetchPolygon(sym: string, market: Market, tf: string, ext: boolea
 //
 // The normal chart fetch intentionally has a bounded recent lookback. A selected-day dossier
 // study can point years back, and not every symbol has a local 5m store. This narrow helper asks
-// the SAME canonical Massive aggregate source for exactly one ET calendar date when the normal
-// stored/recent assembly has no precise bars. It is server-called from /api/intraday only; it
+// the SAME canonical Massive aggregate source for exactly one ET calendar date when the
+// selected-day precise store has no bars. It is server-called from /api/intraday only; it
 // does not create a second route or alternate market-data owner.
 export async function fetchUsEquityDateStudyBars(
   sym: string,
   tf: string,
   ext: boolean,
   dateStr: string,
+  signal?: AbortSignal,
 ): Promise<Bar6[]> {
-  if (
-    classify(sym) !== "us" ||
-    isMacroSymbol(sym) ||
-    isDailyOnlySymbol(sym) ||
-    !/^\d{4}-\d{2}-\d{2}$/.test(dateStr) ||
-    !isIntradayTf(tf) ||
-    isSecondTf(tf)
-  ) return [];
-
+  const day = Date.parse(dateStr + "T00:00:00Z") / 1000;
+  if (!/^[A-Z][A-Z0-9.-]{0,14}$/i.test(sym) || classify(sym) !== "us"
+      || isMacroSymbol(sym) || isDailyOnlySymbol(sym) || !/^\d{4}-\d{2}-\d{2}$/.test(dateStr)
+      || !Number.isFinite(day) || new Date(day * 1000).toISOString().slice(0, 10) !== dateStr
+      || !isIntradayTf(tf) || isSecondTf(tf)) return [];
+  const minutes = tfMinutes(tf);
+  if (!Number.isInteger(minutes) || minutes < 1) return [];
   const key = process.env.POLYGON_API_KEY || process.env.MASSIVE_API_KEY;
   if (!key) throw new Error("POLYGON_API_KEY not set");
-  const minutes = tfMinutes(tf);
-  if (!Number.isFinite(minutes) || minutes < 1) return [];
-
   const sourceMinutes = polygonUsSessionBaseMinutes(minutes);
   const url =
     `https://api.polygon.io/v2/aggs/ticker/${encodeURIComponent(sym.toUpperCase())}` +
     `/range/${sourceMinutes}/minute/${dateStr}/${dateStr}` +
-    `?adjusted=true&sort=asc&limit=50000&apiKey=${key}`;
-  const r = await fetch(url, { cache: "no-store", signal: AbortSignal.timeout(8000) });
-  if (!r.ok) {
-    if (r.status === 429) throw new Error("polygon rate-limited");
-    throw new Error("polygon " + r.status);
+    `?adjusted=true&sort=asc&limit=50000&apiKey=${encodeURIComponent(key)}`;
+  // In the route, the existing shared-flight owner cancels this fetch and its body.
+  const response = await fetch(url, { cache: "no-store", signal: signal ?? AbortSignal.timeout(8000) });
+  if (!response.ok) {
+    if (response.status === 429) throw new Error("polygon rate-limited");
+    throw new Error("polygon " + response.status);
   }
-
-  const j: { results?: Array<{ t: number; o: number; h: number; l: number; c: number; v: number }> } =
-    await r.json();
-  const raw: Bar6[] = [];
-  for (const b of j?.results || []) {
-    if (![b.t, b.o, b.h, b.l, b.c, b.v].every(Number.isFinite)) continue;
-    const { epoch } = etDisplay(b.t);
-    raw.push([epoch, b.o, b.h, b.l, b.c, b.v]);
+  const value: unknown = await response.json();
+  if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("polygon malformed study response");
+  const data = value as Record<string, unknown>;
+  if (Object.hasOwn(data, "ticker") && (typeof data.ticker !== "string" || data.ticker.toUpperCase() !== sym.toUpperCase())) {
+    throw new Error("polygon study symbol mismatch");
   }
-
-  const session = ext ? "extended" : "regular";
-  const selected = filterUsEquitySession(raw, session);
-  return minutes === sourceMinutes
-    ? selected
-    : resampleUsEquitySession(selected, minutes, session);
+  if (data.error || (Object.hasOwn(data, "status")
+      && (typeof data.status !== "string" || !["OK", "DELAYED"].includes(data.status)))) {
+    throw new Error("polygon study unavailable");
+  }
+  // One bounded date request; an incomplete page is not a complete selected-day acquisition.
+  if (data.next_url) throw new Error("polygon study response truncated");
+  const rows = Array.isArray(data.results) ? data.results
+    : !Object.hasOwn(data, "results") && data.status === "OK" && data.resultsCount === 0 ? [] : null;
+  if (!rows || rows.length > 50_000) throw new Error("polygon malformed study results");
+  if (Object.hasOwn(data, "resultsCount") && (typeof data.resultsCount !== "number"
+      || !Number.isSafeInteger(data.resultsCount) || data.resultsCount < 0 || data.resultsCount !== rows.length)) {
+    throw new Error("polygon inconsistent study count");
+  }
+  const byEpoch = new Map<number, Bar6>();
+  for (const value of rows) {
+    if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("polygon malformed study bar");
+    const bar = value as Record<string, unknown>;
+    const fields = [bar.t, bar.o, bar.h, bar.l, bar.c, bar.v];
+    if (!fields.every(n => typeof n === "number" && Number.isFinite(n))) throw new Error("polygon malformed study bar");
+    const [time, open, high, low, close, volume] = fields as number[];
+    if (!Number.isSafeInteger(time) || time <= 0 || !Number.isFinite(new Date(time).valueOf())
+        || time % (sourceMinutes * 60_000) !== 0 || Math.min(open, high, low, close) <= 0
+        || volume < 0 || high < Math.max(open, close) || low > Math.min(open, close) || high < low) {
+      throw new Error("polygon malformed study bar");
+    }
+    const { epoch } = etDisplay(time);
+    if (epoch < day || epoch >= day + 86_400) continue;
+    const row: Bar6 = [epoch, open, high, low, close, volume];
+    const previous = byEpoch.get(epoch);
+    if (previous && previous.some((n, index) => n !== row[index])) throw new Error("polygon conflicting study bars");
+    byEpoch.set(epoch, row);
+  }
+  const raw = [...byEpoch.values()].sort((a, b) => a[0] - b[0]);
+  // Keep the existing calendar/phase owner, including the 17:00 early-close post boundary.
+  // The first filter excludes overnight prints from the daytime provider leg.
+  const selected = filterUsEquitySession(filterUsEquitySession(raw, ext ? "extended" : "regular"), "24h");
+  return resampleUsEquitySession(selected, minutes, "24h");
 }
 
 // ── Second-resolution aggregates (US equities only) ──────────────────────────
@@ -410,14 +435,43 @@ function tencentCode(sym: string, market: Market): string | null {
   return null;
 }
 
+// One Tencent code (or kline scale) as inert URL text. tencentCode only returns letters and
+// digits, so for every real code this is the identity and the upstream request is unchanged. It
+// is the second layer, applied where the URL is built: "&", "?", "#" and "/" become inert text,
+// so a looser code rule could never let a code add a query parameter, a fragment or a path step
+// to the request this server makes (CodeQL js/request-forgery). The "," separators stay literal.
+function seg(piece: string): string {
+  return encodeURIComponent(piece);
+}
+
+// Batch quote snapshot: the codes go comma-joined into the PATH (q=…). Exported for tests.
+export function tencentQuoteUrl(codes: string[]): string {
+  return `https://qt.gtimg.cn/q=${codes.map(seg).join(",")}`;
+}
+
+// CN minute klines: code, scale, an empty field and the 640-bar depth, comma-joined into one
+// param. Exported for tests.
+export function tencentKlineUrl(code: string, scale: string): string {
+  return `https://ifzq.gtimg.cn/appstock/app/kline/mkline?param=${seg(code)},${seg(scale)},,640`;
+}
+
+// HK 1-min tick feeds (see fetchTencentHK): up to 5 sessions of rows, and the live current
+// session. Exported for tests.
+export function tencentHkDayUrl(code: string): string {
+  return `https://web.ifzq.gtimg.cn/appstock/app/day/query?code=${seg(code)}&days=5`;
+}
+
+export function tencentHkMinuteUrl(code: string): string {
+  return `https://web.ifzq.gtimg.cn/appstock/app/hkMinute/query?code=${seg(code)}`;
+}
+
 async function fetchTencent(sym: string, market: Market, tf: string): Promise<Bar6[]> {
   const code = tencentCode(sym, market);
   if (!code) return [];
   const minutes = tfMinutes(tf);
   const base = [60, 30, 15, 5, 1].find((b) => b <= minutes && minutes % b === 0) || 1;
   const scale = "m" + base;
-  const url = `https://ifzq.gtimg.cn/appstock/app/kline/mkline?param=${code},${scale},,640`;
-  const r = await fetch(url, { cache: "no-store" });
+  const r = await fetch(tencentKlineUrl(code, scale), { cache: "no-store" });
   if (!r.ok) throw new Error("tencent " + r.status);
   const j: any = await r.json();
   const node = j?.data?.[code] || {};
@@ -468,14 +522,14 @@ function hkSessionBars(date: string, rows: unknown[]): Bar6[] {
 async function fetchTencentHK(sym: string, tf: string): Promise<Bar6[]> {
   const code = tencentCode(sym, "hk");
   if (!code) return [];
-  const get = (path: string) =>
-    fetch(`https://web.ifzq.gtimg.cn/appstock/app/${path}`, {
+  const get = (url: string) =>
+    fetch(url, {
       headers: { "User-Agent": "Mozilla/5.0", Referer: "https://gu.qq.com/" },
       cache: "no-store", signal: AbortSignal.timeout(8000),
     }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
   const [multi, live] = await Promise.all([
-    get(`day/query?code=${code}&days=5`),
-    get(`hkMinute/query?code=${code}`),
+    get(tencentHkDayUrl(code)),
+    get(tencentHkMinuteUrl(code)),
   ]);
   if (!multi && !live) throw new Error("tencent hk unreachable"); // let the route serve its stale copy
   const byDate = new Map<string, unknown[]>();
@@ -495,7 +549,7 @@ async function fetchTencentHK(sym: string, tf: string): Promise<Bar6[]> {
 }
 
 export async function fetchIntraday(
-  sym: string, tf: string, ext: boolean, date?: string,
+  sym: string, tf: string, ext: boolean, date?: string, overnight = false, signal?: AbortSignal,
 ): Promise<Bar6[]> {
   if (!isIntradayTf(tf)) return [];
   // Second band: its own single-session leg, its own cap. Returned BEFORE the 1200-bar tail
@@ -523,7 +577,7 @@ export async function fetchIntraday(
     const market = classify(sym);
     if (market === "ca") return []; // .TO has no Polygon intraday leg on this plan — avoid garbage
     bars = (market === "us" || market === "crypto")
-      ? await fetchPolygon(sym, market, tf, ext)
+      ? await fetchPolygon(sym, market, tf, ext, overnight, signal)
       : market === "hk"
         ? await fetchTencentHK(sym, tf)
         : await fetchTencent(sym, market, tf);
@@ -546,6 +600,7 @@ export async function fetchIntraday(
 // misses falls back here to one batched Yahoo spark call, and a total miss → null → manifest
 // EOD fallback (see fetchQuote).
 export type Quote = {
+  formingCandles?: import("./formingCandles").FormingSnapshot;
   sym: string; last: number; prevClose: number | null; chg: number | null;
   open: number | null; high: number | null; low: number | null;
   vol: number | null; amount: number | null; ts: number | null;
@@ -689,7 +744,7 @@ async function fetchTencentQuotes(syms: string[]): Promise<Record<string, Quote>
   // mid-body stall must retry too); each try needs a fresh signal. A non-200 is thrown as-is and
   // NOT retried — no point hammering an upstream that answered with an error.
   const attempt = async (): Promise<ArrayBuffer> => {
-    const r = await fetch(`https://qt.gtimg.cn/q=${codes.join(",")}`, {
+    const r = await fetch(tencentQuoteUrl(codes), {
       headers: { "User-Agent": "Mozilla/5.0", Referer: "https://gu.qq.com/" },
       cache: "no-store", signal: AbortSignal.timeout(2500),
     });
@@ -716,7 +771,7 @@ async function fetchTencentQuotes(syms: string[]): Promise<Record<string, Quote>
 }
 
 export type QuoteView = "full" | "regular";
-export type FetchQuotesOptions = { view?: QuoteView };
+export type FetchQuotesOptions = { view?: QuoteView; forming?: boolean };
 
 // Batch US/crypto quotes from the localhost Quote Hub — /quotes?syms=CSV is already contract-shaped
 // ({SYM:{...}}). Hub down / non-200 / timeout → {} (→ those symbols fall back to manifest EOD).
@@ -725,13 +780,14 @@ export type FetchQuotesOptions = { view?: QuoteView };
 async function fetchHubQuotes(
   syms: string[],
   view: QuoteView = "full",
+  forming = false,
 ): Promise<Record<string, Quote>> {
   if (!syms.length) return {};
   try {
     const port = process.env.HUB_PORT ?? "3100";
     const viewQuery = view === "regular" ? "&view=regular" : "";
     const r = await fetch(
-      "http://127.0.0.1:" + port + "/quotes?syms=" + encodeURIComponent(syms.join(",")) + viewQuery,
+      "http://127.0.0.1:" + port + "/quotes?syms=" + encodeURIComponent(syms.join(",")) + viewQuery + (forming ? "&forming=1" : ""),
       { cache: "no-store", signal: AbortSignal.timeout(1500) }
     );
     if (!r.ok) return {};
@@ -783,7 +839,7 @@ export async function fetchQuotes(
   }
   const out: Record<string, Quote> = {};
   await Promise.all([
-    ...chunk(hub, 100).map((c) => fetchHubQuotes(c, view).then((mp) => { Object.assign(out, mp); }).catch(() => {})),
+    ...chunk(hub, 100).map((c) => fetchHubQuotes(c, view, options.forming === true).then((mp) => { Object.assign(out, mp); }).catch(() => {})),
     // 30/chunk (not 60): one slow/aborted Tencent response blanks its whole chunk, so smaller
     // chunks halve the blast radius of a single bad request (chunks run in parallel anyway).
     ...chunk(tencent, 30).map((c) => fetchTencentQuotes(c).then((mp) => { Object.assign(out, mp); }).catch(() => {})),

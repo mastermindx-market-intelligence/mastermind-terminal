@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { returnsClassNames } from "./returnsStyles";
 import type { Bar } from "@/lib/fund";
 import { buildDailyReturnRecords, summarizeReturnMonth } from "@/lib/returnsCalendar";
 
@@ -40,31 +41,31 @@ export default function ReturnsPreview({
   if (records.length < 2 || !latest) return null;
 
   return (
-    <section className="returns-preview" aria-label={pick("Returns summary", "收益概览")}>
-      <div className="returns-preview-head">
+    <section className={returnsClassNames("returns-preview")} aria-label={pick("Returns summary", "收益概览")}>
+      <div className={returnsClassNames("returns-preview-head")}>
         <div>
-          <span className="returns-kicker">{pick("Returns", "收益")}</span>
+          <span className={returnsClassNames("returns-kicker")}>{pick("Returns", "收益")}</span>
           <strong>{month}</strong>
         </div>
         <button type="button" onClick={onOpen}>{pick("Open study", "打开研究")}</button>
       </div>
-      <div className="returns-preview-main">
+      <div className={returnsClassNames("returns-preview-main")}>
         <div>
           <span>{pick("Observed month", "本月已观察")}</span>
-          <strong className={(summary.returnPct ?? 0) >= 0 ? "up" : "down"}>{pct(summary.returnPct)}</strong>
+          <strong className={returnsClassNames((summary.returnPct ?? 0) >= 0 ? "up" : "down")}>{pct(summary.returnPct)}</strong>
           <small>{summary.referenceDate && summary.endDate
             ? summary.referenceDate + " → " + summary.endDate
             : pick("Reference close unavailable", "缺少参考收盘价")}</small>
         </div>
-        <div className="returns-preview-counts">
+        <div className={returnsClassNames("returns-preview-counts")}>
           <span><b>{summary.upDays}</b>{pick(" up", " 上涨")}</span>
           <span><b>{summary.downDays}</b>{pick(" down", " 下跌")}</span>
           <span><b>{summary.observedDays}</b>{pick(" days", " 天")}</span>
         </div>
       </div>
-      <div className="returns-preview-strip" aria-label={pick("Last five observed daily moves", "最近五个观察日")}>
+      <div className={returnsClassNames("returns-preview-strip")} aria-label={pick("Last five observed daily moves", "最近五个观察日")}>
         {recent.map((record) => (
-          <div key={record.date} className={(record.returnPct ?? 0) >= 0 ? "up" : "down"}>
+          <div key={record.date} className={returnsClassNames((record.returnPct ?? 0) >= 0 ? "up" : "down")}>
             <span>{record.date.slice(5)}</span>
             <strong>{pct(record.returnPct)}</strong>
             <small>O {px(record.bar.o)} · C {px(record.bar.c)}</small>
