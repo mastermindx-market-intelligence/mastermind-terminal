@@ -3,7 +3,8 @@
 import { useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { groupAiDrawings, type AiLayerController, type AiDrawingGroup } from "@/lib/chartAiLayer";
 import { getDrawingTool } from "@/lib/drawingTools";
-import { useT } from "@/lib/i18n";
+import { useLang, useT } from "@/lib/i18n";
+import { chartAiCopy } from "@/lib/chartAiCopy";
 import styles from "./AiLayerPanel.module.css";
 
 function Icon({ kind }: { kind: "eye" | "hidden" | "remove" | "chevron" | "spark" }) {
@@ -19,6 +20,8 @@ function Icon({ kind }: { kind: "eye" | "hidden" | "remove" | "chevron" | "spark
 /** Chart-local view of useChartBus's existing store; the panel never owns drawings. */
 export default function AiLayerPanel({ layer }: { layer: AiLayerController }) {
   const t = useT();
+  const { lang } = useLang();
+  const ai = chartAiCopy(lang);
   const panelId = useId();
   const [open, setOpen] = useState(false);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
@@ -50,9 +53,9 @@ export default function AiLayerPanel({ layer }: { layer: AiLayerController }) {
   }, [open]);
 
   const label = (group: AiDrawingGroup) => {
-    if (group.op === "draw.risk_box") return t("aiScenario");
+    if (group.op === "draw.risk_box") return ai("aiScenario");
     const tool = getDrawingTool(group.op.slice(5)) ?? getDrawingTool(group.objects[0]?.kind);
-    return tool ? t(tool.labelKey, tool.label) : t("aiDrawing");
+    return tool ? t(tool.labelKey, tool.label) : ai("aiDrawing");
   };
   const title = (group: AiDrawingGroup) => group.caption || label(group);
   const remove = (ids: readonly string[]) => {
@@ -86,20 +89,20 @@ export default function AiLayerPanel({ layer }: { layer: AiLayerController }) {
     </div>
     {open && <section id={panelId} className={styles.panel} aria-label={t("aiLayerTip")}>
       <div className={styles.summary}>
-        <span>{t("aiDrawingCount")
+        <span>{ai("aiDrawingCount")
           .replace("{drawings}", t(groups.length === 1 ? "drawingCountOne" : "drawingCountMany").replace("{n}", String(groups.length)))
-          .replace("{elements}", t(layer.objects.length === 1 ? "aiElementCountOne" : "aiElementCountMany").replace("{n}", String(layer.objects.length)))}</span>
+          .replace("{elements}", ai(layer.objects.length === 1 ? "aiElementCountOne" : "aiElementCountMany").replace("{n}", String(layer.objects.length)))}</span>
         {groups.length > 0 && <button type="button" className={styles.clear} disabled={!canEdit} onClick={() => {
           triggerRef.current?.focus({ preventScroll: true }); layer.clear();
-        }}>{t("aiClearAll")}</button>}
+        }}>{ai("aiClearAll")}</button>}
       </div>
       {layer.hidden && groups.length > 0 && <div className={styles.notice}>
-        <span>{t("aiLayerHidden")}</span>
-        <button type="button" disabled={!canEdit} onClick={layer.toggleHidden}>{t("aiShowAll")}</button>
+        <span>{ai("aiLayerHidden")}</span>
+        <button type="button" disabled={!canEdit} onClick={layer.toggleHidden}>{ai("aiShowAll")}</button>
       </div>}
-      {!canEdit && <p className={styles.empty} role="status">{t(layer.availability === "loading" ? "aiDrawingsLoading" : "aiDrawingsUnavailable")}</p>}
-      {groups.length === 0 ? (canEdit ? <p className={styles.empty}>{t("aiLayerEmpty")}</p> : null) :
-        <ul className={styles.list} aria-label={t("aiDrawingList")}>
+      {!canEdit && <p className={styles.empty} role="status">{ai(layer.availability === "loading" ? "aiDrawingsLoading" : "aiDrawingsUnavailable")}</p>}
+      {groups.length === 0 ? (canEdit ? <p className={styles.empty}>{ai("aiLayerEmpty")}</p> : null) :
+        <ul className={styles.list} aria-label={ai("aiDrawingList")}>
           {groups.map(group => {
             const ids = group.objects.map(object => object.id);
             const allHidden = group.objects.every(object => object.hidden);
@@ -110,7 +113,7 @@ export default function AiLayerPanel({ layer }: { layer: AiLayerController }) {
             return <li key={group.id} className={styles.group} data-ai-drawing-id={group.id}>
               <div className={`${styles.row} ${allHidden || layer.hidden ? styles.isHidden : ""}`}>
                 {ids.length > 1 ? <button type="button" className={styles.iconButton}
-                  aria-label={`${isExpanded ? t("aiCollapseElements") : t("aiExpandElements")}: ${groupTitle}`}
+                  aria-label={`${isExpanded ? ai("aiCollapseElements") : ai("aiExpandElements")}: ${groupTitle}`}
                   aria-expanded={isExpanded} aria-controls={childrenId}
                   onClick={() => setExpanded(current => {
                     const next = new Set(current); if (next.has(group.id)) next.delete(group.id); else next.add(group.id); return next;
@@ -118,28 +121,28 @@ export default function AiLayerPanel({ layer }: { layer: AiLayerController }) {
                   : <span className={styles.swatch} style={{ background: group.objects[0]?.color }} aria-hidden="true" />}
                 <div className={styles.name}>
                   <span className={styles.caption} title={groupTitle}>{groupTitle}</span>
-                  <span className={styles.detail}>{label(group)}{ids.length > 1 ? ` · ${ids.length} ${t("aiElements")}` : ""}{someHidden ? ` · ${t("aiPartlyHidden")}` : ""}</span>
+                  <span className={styles.detail}>{label(group)}{ids.length > 1 ? ` · ${ids.length} ${ai("aiElements")}` : ""}{someHidden ? ` · ${ai("aiPartlyHidden")}` : ""}</span>
                 </div>
                 <button type="button" className={styles.iconButton} disabled={!canEdit || layer.hidden}
-                  aria-label={`${allHidden ? t("aiShowDrawing") : t("aiHideDrawing")}: ${groupTitle}`}
-                  title={layer.hidden ? t("aiLayerHidden") : allHidden ? t("aiShowDrawing") : t("aiHideDrawing")}
+                  aria-label={`${allHidden ? ai("aiShowDrawing") : ai("aiHideDrawing")}: ${groupTitle}`}
+                  title={layer.hidden ? ai("aiLayerHidden") : allHidden ? ai("aiShowDrawing") : ai("aiHideDrawing")}
                   onClick={() => layer.editObjects(ids, allHidden ? "show" : "hide")}><Icon kind={allHidden ? "hidden" : "eye"} /></button>
                 <button type="button" className={`${styles.iconButton} ${styles.remove}`}
-                  aria-label={`${t("aiRemoveDrawing")}: ${groupTitle}`} title={t("aiRemoveDrawing")}
+                  aria-label={`${ai("aiRemoveDrawing")}: ${groupTitle}`} title={ai("aiRemoveDrawing")}
                   disabled={!canEdit} onClick={() => remove(ids)}><Icon kind="remove" /></button>
               </div>
               {isExpanded && ids.length > 1 && <ul id={childrenId} className={styles.children}>
                 {group.objects.map((object, index) => {
                   const tool = getDrawingTool(object.kind);
-                  const elementTitle = `${index + 1}. ${tool ? t(tool.labelKey, tool.label) : t("aiDrawing")}`;
+                  const elementTitle = `${index + 1}. ${tool ? t(tool.labelKey, tool.label) : ai("aiDrawing")}`;
                   return <li key={object.id} className={`${styles.row} ${object.hidden || layer.hidden ? styles.isHidden : ""}`} data-ai-element-id={object.id}>
                     <span className={styles.elementName}>{elementTitle}</span>
                     <button type="button" className={styles.iconButton} disabled={!canEdit || layer.hidden}
-                      aria-label={`${object.hidden ? t("aiShowElement") : t("aiHideElement")}: ${groupTitle}, ${elementTitle}`}
-                      title={layer.hidden ? t("aiLayerHidden") : object.hidden ? t("aiShowElement") : t("aiHideElement")}
+                      aria-label={`${object.hidden ? ai("aiShowElement") : ai("aiHideElement")}: ${groupTitle}, ${elementTitle}`}
+                      title={layer.hidden ? ai("aiLayerHidden") : object.hidden ? ai("aiShowElement") : ai("aiHideElement")}
                       onClick={() => layer.editObjects([object.id], object.hidden ? "show" : "hide")}><Icon kind={object.hidden ? "hidden" : "eye"} /></button>
                     <button type="button" className={`${styles.iconButton} ${styles.remove}`}
-                      aria-label={`${t("aiRemoveElement")}: ${groupTitle}, ${elementTitle}`} title={t("aiRemoveElement")}
+                      aria-label={`${ai("aiRemoveElement")}: ${groupTitle}, ${elementTitle}`} title={ai("aiRemoveElement")}
                       disabled={!canEdit} onClick={() => remove([object.id])}><Icon kind="remove" /></button>
                   </li>;
                 })}

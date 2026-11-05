@@ -123,6 +123,7 @@ type DetailAnswer = Response | Promise<Response>;
 function installFetch(config: {
   theses?: ThesisSummary[];
   detailFor?: (id: string) => DetailAnswer | undefined;
+  listFor?: () => DetailAnswer;
 } = {}) {
   const requests: string[] = [];
   const fetchMock = vi.fn(async (input: string | URL | Request, init?: RequestInit) => {
@@ -139,7 +140,7 @@ function installFetch(config: {
       if (answer) return answer;
       return jsonResponse({ error: "thesis_not_found" }, 404);
     }
-    return jsonResponse({ theses: config.theses ?? [], truncated: false });
+    return config.listFor?.() ?? jsonResponse({ theses: config.theses ?? [], truncated: false });
   });
   vi.stubGlobal("fetch", fetchMock);
   return { fetchMock, requests };
@@ -413,6 +414,54 @@ describe("ThesisWorkspace reopen with MarketOntology context", () => {
     await flush();
     expect(requests.filter(request => request.includes("/api/theses?id=")).length).toBe(reads);
     expect(reads).toBe(1);
+  });
+
+  it.each(["response", "body", "rejection"] as const)("retains detail expiry after a held list %s settles", async phase => {
+    const nvda = summary(NVDA_ID, listingSubject("NVDA"), "Retired list row");
+    let release!: () => void;
+    const gate = new Promise<void>(resolve => { release = resolve; });
+    const payload = { theses: [nvda], truncated: false };
+    const { requests } = installFetch({
+      listFor: () => phase === "body"
+        ? { ok: true, status: 200, json: async () => { await gate; return payload; } } as Response
+        : gate.then(() => {
+          if (phase === "rejection") throw new Error("late list transport failure");
+          return jsonResponse(payload);
+        }),
+      detailFor: () => jsonResponse({ error: "unauthenticated" }, 401),
+    });
+    const el = await mountAt(`/analysis?view=theses&symbol=NVDA&thesis=${NVDA_ID}&${MO_QUERY}`, {
+      initialSymbol: "NVDA", initialThesisId: NVDA_ID,
+    });
+    expect(el.textContent).toContain("Your session expired");
+    await act(async () => release());
+    await flush();
+    expect(el.textContent).toContain("Your session expired");
+    expect(el.textContent).not.toContain("Retired list row");
+    expect(strip(el)).toBeNull();
+    expect(moKeys()).toEqual([]);
+    expect(requests.filter(request => request.includes("/api/theses?id="))).toHaveLength(1);
+  });
+
+  it("lets the new owner load while refusing the prior owner's late list body", async () => {
+    let release!: () => void;
+    const gate = new Promise<void>(resolve => { release = resolve; });
+    const oldRow = summary(NVDA_ID, listingSubject("NVDA"), "Retired owner list row");
+    const newRow = summary(MSFT_ID, listingSubject("MSFT"), "Current owner list row");
+    let newOwner = false;
+    installFetch({ listFor: () => newOwner
+      ? jsonResponse({ theses: [newRow], truncated: false })
+      : { ok: true, status: 200, json: async () => { await gate; return { theses: [oldRow], truncated: false }; } } as Response,
+    });
+    const el = await mountAt("/analysis?view=theses");
+    newOwner = true;
+    await act(async () => root!.render(<ThesisWorkspace ownerKey={`${OWNER}-next`} />));
+    await flush();
+    expect(el.textContent).toContain("Current owner list row");
+    await act(async () => release());
+    await flush();
+    expect(el.textContent).toContain("Current owner list row");
+    expect(el.textContent).not.toContain("Retired owner list row");
   });
 
   it("a cross-company selection clears the whole candidate before its URL is reloaded", async () => {

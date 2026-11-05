@@ -89,8 +89,12 @@ Legacy rows cannot smuggle AI provenance into a human payload.
 must qualify and execute the entire transaction atomically, with real catalog,
 owner isolation, replay and behavior receipts. BEGIN/COMMIT must not be applied
 one statement at a time. The adjacent migration README records the exact source
-digest, prerequisites and rollback limits. After mixed data exists, rollback
-must preserve that data and use a forward-compatible repair.
+digest, prerequisites and rollback limits. Automatic downgrade deliberately
+refuses. Manual restoration of only the two 0031 definitions requires proof
+that no mixed operation was ever accepted, writers are quiesced, and no mixed
+attempt is in flight or has an unknown outcome. Empty current AI rows cannot
+prove that operation-history condition. Otherwise retain compatible reads,
+data and exact receipts and use a forward-compatible repair.
 
 ## Verification actually executed
 
@@ -141,6 +145,69 @@ instruction. Newly published source must receive its natural exact-head
 hosted CI; historical green checks do not qualify it.
 
 ## Remaining delivery frontier
+
+### Natural-CI repair on the same source carrier
+
+The initial composition at `0a01cacc781c4a7f15045a2a115054d92e2d500e`
+produced concrete failures in
+[run 42075207358](https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/42075207358).
+This follow-up repairs their source causes while preserving the original
+assertions and historical evidence:
+
+- Unit job `127413475118` reported 15 failed, 18,995 passed, 50 skipped and
+  four todo cases. A late thesis-list completion could overwrite a detail
+  401 and cause another detail request. The existing owner reset now retires
+  both request generations; non-auth list outcomes preserve session expiry.
+  Held response/body/rejection and retired-account cases are added to the
+  existing mounted test. Twenty-three new AI-specific EN/ZH keys move to
+  `chartAiCopy.ts`, restoring shared i18n to the exact master bytes without
+  changing unrelated evidence projections.
+- Five legacy visual packets need genuine captures after their source changed.
+  The existing CI owner conditionally invokes their existing producers:
+  claims12, research20, proposals8, Conductor6 and Options5. Options runs
+  asynchronously inside PL6's original warmed fixture server. PL6/VI remain
+  two immutable operations with 50 selected cases. Existing native readers
+  and the existing always-uploaded diagnostics directory remain the owners.
+  Complete previous and returned packets are archived, including partial
+  Options output when its child fails. Conductor `before/` and the historical
+  Options coverage audit must remain byte-identical. No PNG or historical
+  manifest is restamped or committed by this repair.
+- The four enrolled legacy producers now share bounded owned-server settlement,
+  attempt-bound completion and refusal propagation in that same CI owner.
+  They remain dependency-light when imported before dependency installation,
+  capture the full required matrix, and inspect the actual dev-indicator DOM
+  without removing overlays. New packet receipts say
+  `CAPTURED_AWAITING_UNIT_VALIDATION`; a zero capture exit is not product
+  acceptance. The existing 55-minute capture / 90-minute unit limits remain.
+- Tablet job `127413475266` exposed two recovery races. Capability rereading
+  after a deferred load now requires successful save settlement, preserving
+  the superseded/blocked review choice. Later cloud reads preserve the exact
+  persisted conflict classification. Ownership and unknown-save rejections
+  take precedence over other park reasons; the recovery handler rechecks both
+  the durable entry and displayed allowed choices before any mutation.
+- The command-palette and overnight-refresh fixtures requested EMA `len`,
+  which the current strict indicator contract does not define. Their intended
+  period37 uses `ma1Len`; target invalidation, application receipts and
+  persistence expectations remain intact. This repairs the EN/ZH tablet
+  command cases and the two desktop4 overnight cases without weakening the
+  production validator.
+
+Follow-up local verification executed 60 native Node orchestration/control
+tests; 16 focused actual-source conflict test bodies; 17 actual recovery
+callback/condition probes; 10 actual thesis async-source cases; and 46 EN/ZH
+copy lookups. The source adapters are not mounted React, Vitest or browser
+execution. The new full browser captures and current-head native suites still
+belong to the next natural CI attempt.
+
+Natural exact-head CI42075207358 on composition0a01cacc reported one ingest
+failure in job127413476648: 0050 lacked the required down/readback blocks
+(3659 passed, 1 failed, 36 skipped, 297 subtests passed). The follow-up adds an
+explicit refusal of automatic downgrade, the conditional exact-0031 recovery
+procedure, and four catalog readback queries. The canonical existing applier
+reports no idempotency findings and parses one refusal/four readback statements.
+All nine executable migration statements are unchanged after stripping comments.
+No database operation or rollback was performed. The migration README digest
+tracks the actual revised source bytes.
 
 1. Reconcile this composition on the original #1048 branch and inspect its
    natural hosted CI. Repair concrete failures on that carrier.

@@ -2,8 +2,7 @@
 -- Extends only the incumbent invoker validator and snapshot read owner from0031.
 -- Existing collection/CAS/operation replay, table grants, owner filters and RLS are retained.
 -- Source ships UNAPPLIED. Installation/production proof is separate from source qualification.
--- Rollback: restore the exact0031 validator/read definitions only before any mixed collection is
--- written. With retained AI data, use a forward compatible migration; never strip or delete AI rows.
+-- Rollback is conditional on operation history, not merely the current rows. See the down block.
 BEGIN;
 DO $prerequisites$
 BEGIN
@@ -306,3 +305,36 @@ REVOKE ALL ON FUNCTION public.read_drawings_collection(text) FROM PUBLIC, anon, 
 GRANT EXECUTE ON FUNCTION public.read_drawings_collection(text) TO authenticated;
 
 COMMIT;
+
+-- down:
+-- -- Automatic downgrade is deliberately refused; this statement restores nothing.
+-- -- Manual pre-activation recovery requires proof that no mixed operation was ever accepted,
+-- -- all relevant writers are quiesced, and no mixed attempt is in flight or EFFECT_UNKNOWN.
+-- -- Empty current AI rows cannot prove that condition: prior_operations keeps hashes, not types.
+-- -- Only then restore validate_drawing_replace_input and read_drawings_collection from
+-- -- 0031 blob3dbb8ae55fab62d7324cd41c715805bd8df69cc6, together in one genuine transaction.
+-- -- Verify the installed preimage and restored definitions. Retain the unchanged replace RPC,
+-- -- function ownership/ACLs, table grants, RLS, rows, collection metadata and operation receipts.
+-- -- If any mixed operation was accepted or remains unknown, retain mixed-compatible reads,
+-- -- stop new affected work through the existing owner, and use a forward-compatible repair.
+-- -- Never strip AI drawings or delete/rewrite attempt history to permit a downgrade.
+-- DO $no_automatic_down$ BEGIN RAISE EXCEPTION '0050 has no automatic data-safe downgrade; follow the operation-history and exact-0031 restoration procedure' USING ERRCODE='55000'; END; $no_automatic_down$;
+
+-- readback:
+-- -- Compare complete definitions and catalog facts before/after against qualified source.
+-- -- Names alone are insufficient because all three RPCs already exist under0031.
+-- -- Only validator/reader definitions change. The replacement definition and ownership/ACLs
+-- -- remain exact; authenticated_execute=true, anonymous_execute=false, prosecdef=false.
+-- SELECT p.oid::regprocedure AS function_signature, p.proowner::regrole AS function_owner,
+--   p.prosecdef, p.proconfig, p.proacl, pg_get_functiondef(p.oid) AS function_definition,
+--   has_function_privilege('authenticated',p.oid,'EXECUTE') AS authenticated_execute,
+--   has_function_privilege('anon',p.oid,'EXECUTE') AS anonymous_execute,
+--   position('chart.ai_drawing.v1' IN pg_get_functiondef(p.oid)) > 0 AS declares_ai_capability
+-- FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
+-- WHERE n.nspname='public' AND p.proname IN ('validate_drawing_replace_input','read_drawings_collection','replace_drawings_collection')
+-- ORDER BY p.oid::regprocedure::text;
+-- -- Reader capability must change from false to true; qualified authenticated behavior is
+-- -- separately required. Catalog text is not an accepted collection-read receipt.
+-- SELECT relrowsecurity, relforcerowsecurity FROM pg_class WHERE oid='public.drawings'::regclass;
+-- SELECT has_table_privilege('authenticated','public.drawings','UPDATE') AS authenticated_fence_privilege;
+-- SELECT policyname, permissive, roles, cmd, qual, with_check FROM pg_policies WHERE schemaname='public' AND tablename='drawings' ORDER BY policyname;

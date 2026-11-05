@@ -648,6 +648,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   const [missingIds, setMissingIds] = useState<Set<string>>(new Set());
   const lensRefs = useRef<Partial<Record<RmsViewId, HTMLButtonElement | null>>>({});
   const detailRequest = useRef(0);
+  const listRequest = useRef(0);
   const statementEditRevision = useRef(0);
   const routeDiscardAuthorized = useRef(false);
   const historyPositionRef = useRef(0);
@@ -729,7 +730,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     // for an invalid link. Both are now derived together, in the same tick.
     setTheses([]);
     setListState(invalidLinkRef.current ? "ready" : "loading");
-    return () => { detailRequest.current += 1; };
+    return () => { detailRequest.current += 1; listRequest.current += 1; };
   }, [ownerKey]);
   // Round-2 review r3 minor 1/2: the rail's ARIA orientation must track the same
   // 600px breakpoint the CSS switches the tablist to a horizontal scroller at — read
@@ -1516,26 +1517,32 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     };
   }, [copy.confirmDiscard, isDirty, pending]);
 
-  const loadList = useCallback(async () => {
+  const loadList = useCallback(async (token = ++listRequest.current) => {
+    if (token !== listRequest.current) return;
     try {
       const response = await fetch("/api/theses", { cache: "no-store" });
+      if (token !== listRequest.current) return;
       if (response.status === 401) return setListState("session_expired");
       if (!response.ok) {
-        setListState("unavailable");
+        setListState(current => current === "session_expired" ? current : "unavailable");
         setMobilePane("list");
         return;
       }
       const payload = await response.json();
+      if (token !== listRequest.current) return;
       if (!Array.isArray(payload.theses)) {
-        setListState("unavailable");
+        setListState(current => current === "session_expired" ? current : "unavailable");
         setMobilePane("list");
         return;
       }
       setTheses(payload.theses);
       setTruncated(payload.truncated === true);
-      setListState("ready");
+      // An unrelated successful list read cannot undo a terminal auth outcome.
+      // Only the existing owner reset clears that state.
+      setListState(current => current === "session_expired" ? current : "ready");
     } catch {
-      setListState("unavailable");
+      if (token !== listRequest.current) return;
+      setListState(current => current === "session_expired" ? current : "unavailable");
       setMobilePane("list");
     }
   }, []);
@@ -1617,6 +1624,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       const response = await fetch(`/api/theses?id=${encodeURIComponent(id)}`, { cache: "no-store" });
       if (token !== detailRequest.current) return;
       if (response.status === 401) {
+        listRequest.current += 1;
         settleMarketOntologyContext(id, contextCandidate, null);
         setListState("session_expired");
         setDetailState("idle");
@@ -1699,7 +1707,10 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     if (invalidLink) return;
     // Start external synchronization in a microtask: the effect itself performs no synchronous
     // React state transition, and both loaders update only after their first network boundary.
-    void Promise.resolve().then(() => loadList());
+    // Claim before scheduling so a retired owner's microtask cannot acquire a
+    // fresh generation after cleanup.
+    const listToken = ++listRequest.current;
+    void Promise.resolve().then(() => loadList(listToken));
     void Promise.resolve().then(() => loadSavedViews());
     // A lazy workspace can mount after a quick Back/Forward has already changed
     // the browser route. Reconcile that route rather than missing the earlier popstate.
@@ -2010,6 +2021,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     }
     if (response.status === 401) {
       if (exactObjectKeys(payload, ["error"]) && payload.error === "unauthenticated") {
+        listRequest.current += 1;
         setListState("session_expired");
       } else {
         setMessage(copy.ambiguous);

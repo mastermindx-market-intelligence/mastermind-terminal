@@ -38,7 +38,7 @@ async function commandEma(page: Page, target: ChartCommandTarget, seq: number) {
     const cfg = (window as unknown as { MM_BRAIN_CFG?: { onCommand?: (command: unknown) => void } }).MM_BRAIN_CFG;
     if (!cfg?.onCommand) throw new Error("The real Brain command callback is absent");
     cfg.onCommand({ on: true, v: 2, batch_id: "palette-review-target-roundtrip", seq, target,
-      op: "chart.set_indicators", args: { indicators: [{ name: "ema", params: { len: 37 } }] } });
+      op: "chart.set_indicators", args: { indicators: [{ name: "ema", params: { ma1Len: 37 } }] } });
   }, { target, seq });
 }
 
@@ -230,7 +230,7 @@ for (const lang of ["en", "zh"] as const) {
       .toMatchObject({ ok: true, application: { schema: "chart.command_application.v1",
         predecessor: freshTarget, successor: { ...freshTarget, context_revision: freshTarget.context_revision + 1 } } });
     await expect.poll(() => indicatorState(page)).toMatchObject({
-      indicators: ["ema"], parameters: { ema: { len: 37 } },
+      indicators: ["ema"], parameters: { ema: { ma1Len: 37 } },
     });
 
     const forward = await openPalette(page, testInfo, lang);

@@ -525,7 +525,7 @@ CAS, immutable operation replay, table ACL and RLS remain the same owners.
 The 48 native drawing kinds and existing human geometry contract are retained.
 
 The file is **UNAPPLIED**. Application date is not recorded because no database
-application has occurred. Source SHA256: `d4578b09c0c4b4f971fff44044ee0bc3998124352d302752eb1d92189e1029f2`.
+application has occurred. Source SHA256: `e7c86a67be1328e5f44f043a2e3ce046ae0a09c74ff37eb4926f02059e75a8ce`.
 
 Qualification here consists of source-level TypeScript test-body and callback
 checks, namespace validation and static preservation checks. The disposable
@@ -543,8 +543,22 @@ become available. A failed or missing capability leaves human-only work usable
 and retained mixed recovery visible but read-only; it never strips AI or invents
 a successful operation receipt.
 
-Rollback may restore the exact 0031 validator/read definitions only before any
-mixed collection is written. Once AI data exists, disable new AI writes and use
-a reviewed forward-compatible repair; preserve the journal and collection.
+The migration's down block intentionally refuses automatic downgrade; its
+exception restores nothing. Manual restoration of only the exact 0031
+validator/read definitions requires proof that no mixed operation was ever
+accepted, all relevant writers are quiesced, and no mixed attempt is in flight
+or has an unknown outcome. No AI rows currently present is insufficient:
+operation history retains hashes rather than payload types, and the old
+validator runs before receipt reconciliation. Restore the two definitions
+together in one genuine transaction and verify their installed preimage and
+result while retaining ownership, ACLs, rows, metadata and receipts. Otherwise
+stop new affected work through the existing owner and use a forward-compatible
+repair, preserving mixed-compatible reads and exact operation attempts.
+
+The readback block exposes complete RPC definitions, capability declaration,
+ownership, invoker/search-path/execution-grant facts, RLS and table-fence facts.
+Compare pre/post definitions against qualified source. Names already existed
+under 0031, so existence alone cannot certify installation. Catalog evidence
+also cannot replace an authenticated accepted-read or behavior receipt.
 Source qualification does not apply SQL, widen grants, deploy either product,
 satisfy Macro #9601's actual release holds or prove ordinary-provider acceptance.

@@ -30,6 +30,7 @@ import ChartPositionEntry, { type ChartPositionIntent } from "@/components/Chart
 import { type DetectCmd } from "@/components/ChartPanel";
 import ChartPane from "@/components/ChartPane";
 import AiLayerPanel from "@/components/AiLayerPanel";
+import { chartAiCopy } from "@/lib/chartAiCopy";
 import ChartConductor from "@/components/ChartConductor";
 import { intradayCapable } from "@/components/ChartPanel";
 import { classify, SECOND_TFS, isSecondTf, isIntradayTf } from "@/lib/intradaySources";
@@ -2150,7 +2151,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
           // deferred to this save needs its receipt. When the save ended with neither,
           // because another tab acknowledged or replaced the copy, load the symbol again.
           const unsettled = loadDeferred && !Object.hasOwn(drawRevisions.current, sym) && recovery[sym] !== entry;
-          if (unsettled || (loadDeferred && !drawAcceptedSnapshot.current[sym])
+          if (unsettled || (saveSettledOk && loadDeferred && !drawAcceptedSnapshot.current[sym])
               || (!drawLoaded.current.has(sym) && drawPending.current[sym] === undefined)) {
             drawLoaded.current.delete(sym);
             setDrawingLoadRetryVersion((version) => version + 1);
@@ -3003,8 +3004,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             setDrawingSaveIssues((issues) => ({
               ...issues,
               [sym]: decision.action === "park"
-                ? drawingSaveIssueFromLoadPark(decision.reason, parkEntry?.blocked)
-                : (parkEntry?.blocked ?? "conflict"),
+                ? drawingSaveIssueFromLoadPark(decision.reason, parkEntry ? drawingSaveIssueFromEntry(parkEntry) : undefined)
+                : (parkEntry ? drawingSaveIssueFromEntry(parkEntry) : undefined) ?? "conflict",
             }));
             void persistDrawingRecovery(ownerKey, recovery);
           }
@@ -3101,6 +3102,12 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     const recovery = drawRecovery.current[drawOwner.current];
     const entry = recovery?.[sym];
     if (!cloud || !entry) return;
+    // Recheck the durable entry as well as the displayed issue: an older click must
+    // not convert an owner rejection or a full cloud copy into a replacement intent.
+    const entryIssue = drawingSaveIssueFromEntry(entry) ?? "conflict";
+    const requestedChoice = choice === "cloud" ? "use_cloud" : "keep_local";
+    if (!drawingSaveIssueChoices(entryIssue, true).includes(requestedChoice)
+        || !drawingSaveIssueChoices(drawingSaveIssues[sym] ?? entryIssue, true).includes(requestedChoice)) return;
     if (cloud.ownerEpoch !== ownerEpoch || cloud.loadGeneration !== loadGeneration) {
       void loadDrawingCloudCopy(sym); return;
     }
@@ -3142,7 +3149,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       if (durable) drawTimers.current[sym] = setTimeout(() => flushDrawings(sym), 0);
       else setDrawingSaveIssues((issues) => ({ ...issues, [sym]: "storage" }));
     }
-  }, [drawingCloudCopies, isCurrentDrawingOwner, loadDrawingCloudCopy, flushDrawings, persistDrawingRecovery, restoreOtherDrawingCopies, publishDrawingStore]);
+  }, [drawingCloudCopies, drawingSaveIssues, isCurrentDrawingOwner, loadDrawingCloudCopy, flushDrawings, persistDrawingRecovery, restoreOtherDrawingCopies, publishDrawingStore]);
   const chooseDrawingRecoveryCopy = useCallback((sym: string, id: string) => {
     const journal = drawRecovery.current[drawOwner.current];
     if (!journal || drawSaving.current[sym]) return;
@@ -7495,7 +7502,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                   )}
                   {choices.includes("keep_local") && (
                     <>
-                    {(drawRecovery.current[drawOwner.current]?.[active]?.drawings.some(drawing => drawing.source === "ai") && drawingCloudCopies[active]?.aiDrawingSchema !== AI_DRAWING_SCHEMA) && <p role="status">{t("aiPersistenceUnavailable")}</p>}
+                    {(drawRecovery.current[drawOwner.current]?.[active]?.drawings.some(drawing => drawing.source === "ai") && drawingCloudCopies[active]?.aiDrawingSchema !== AI_DRAWING_SCHEMA) && <p role="status">{chartAiCopy(lang)("aiPersistenceUnavailable")}</p>}
                     <button type="button" style={{ minHeight: 44 }} disabled={drawingSavesActive.current.has(active) || (drawRecovery.current[drawOwner.current]?.[active]?.drawings.some(drawing => drawing.source === "ai") && drawingCloudCopies[active]?.aiDrawingSchema !== AI_DRAWING_SCHEMA)} onClick={() => resolveDrawingRecovery(active, "local")}>{t("drawingKeepLocal")}</button>
                     </>
                   )}
