@@ -1,0 +1,53 @@
+[warmup] /terminal?symbol=NVDA → 200 in 93ms
+[warmup] /options → 200 in 171ms
+[warmup] /portfolio → 200 in 91ms
+[warmup] /alerts → 200 in 88ms
+[warmup] /analysis → 200 in 151ms
+[warmup] /discover → 200 in 105ms
+[warmup] /admin → 200 in 60ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 57ms
+[warmup] /login → 200 in 92ms
+[warmup] /reset-password → 200 in 92ms
+[warmup] /api/me → 200 in 66ms
+[warmup] /api/watchlist → 200 in 40ms
+[warmup] /api/layouts → 200 in 41ms
+[warmup] /api/watchlist/annotations → 409 in 46ms
+[warmup] 14 routes compiled in 1s
+
+Running 30 tests using 1 worker
+
+[1/30] [desktop] › e2e/visual-intelligence.spec.ts:45:5 › saved startup timeframe hydrates chart context without stale SSR attributes
+[2/30] [desktop] › e2e/visual-intelligence.spec.ts:62:5 › default context explains plotted bars, toggles original overlays, and persists choices
+
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+[3/30] [desktop] › e2e/visual-intelligence.spec.ts:126:5 › classic candles retain descriptive context without pretending to paint them
+[4/30] [desktop] › e2e/visual-intelligence.spec.ts:148:5 › historical crosshair inspection stays on the selected bar without relabeling current calendar knowledge
+[5/30] [desktop] › e2e/visual-intelligence.spec.ts:170:5 › real candle colors stay attached to price after chart-layer settings overwrite base series data
+[6/30] [desktop] › e2e/visual-intelligence.spec.ts:205:5 › context can be restored through the existing chart settings without a new preference owner
+[7/30] [desktop] › e2e/visual-intelligence.spec.ts:222:5 › table and CSV expose the same actual 3D bars and numeric context as the plotted chart
+[8/30] [desktop] › e2e/visual-intelligence.spec.ts:247:5 › replay consumer excludes current-calendar events and future numeric rows across viewport sizes
+[9/30] [desktop] › e2e/visual-intelligence.spec.ts:271:5 › an unavailable calendar and a delayed outgoing symbol never become fabricated event context
+
+[WebServer] [searchEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+[10/30] [desktop] › e2e/visual-intelligence.spec.ts:305:5 › Chinese context uses text alongside regional colors and remains keyboard dismissible
+[11/30] [tablet] › e2e/visual-intelligence.spec.ts:45:5 › saved startup timeframe hydrates chart context without stale SSR attributes
+[12/30] [tablet] › e2e/visual-intelligence.spec.ts:62:5 › default context explains plotted bars, toggles original overlays, and persists choices
+[13/30] [tablet] › e2e/visual-intelligence.spec.ts:126:5 › classic candles retain descriptive context without pretending to paint them
+[14/30] [tablet] › e2e/visual-intelligence.spec.ts:148:5 › historical crosshair inspection stays on the selected bar without relabeling current calendar knowledge
+[15/30] [tablet] › e2e/visual-intelligence.spec.ts:170:5 › real candle colors stay attached to price after chart-layer settings overwrite base series data
+[16/30] [tablet] › e2e/visual-intelligence.spec.ts:205:5 › context can be restored through the existing chart settings without a new preference owner
+[17/30] [tablet] › e2e/visual-intelligence.spec.ts:222:5 › table and CSV expose the same actual 3D bars and numeric context as the plotted chart
+[18/30] [tablet] › e2e/visual-intelligence.spec.ts:247:5 › replay consumer excludes current-calendar events and future numeric rows across viewport sizes
+[19/30] [tablet] › e2e/visual-intelligence.spec.ts:271:5 › an unavailable calendar and a delayed outgoing symbol never become fabricated event context
+[20/30] [tablet] › e2e/visual-intelligence.spec.ts:305:5 › Chinese context uses text alongside regional colors and remains keyboard dismissible
+[21/30] [mobile] › e2e/visual-intelligence.spec.ts:45:5 › saved startup timeframe hydrates chart context without stale SSR attributes
+[22/30] [mobile] › e2e/visual-intelligence.spec.ts:62:5 › default context explains plotted bars, toggles original overlays, and persists choices
+[23/30] [mobile] › e2e/visual-intelligence.spec.ts:126:5 › classic candles retain descriptive context without pretending to paint them
+[24/30] [mobile] › e2e/visual-intelligence.spec.ts:148:5 › historical crosshair inspection stays on the selected bar without relabeling current calendar knowledge
+[25/30] [mobile] › e2e/visual-intelligence.spec.ts:170:5 › real candle colors stay attached to price after chart-layer settings overwrite base series data
+[26/30] [mobile] › e2e/visual-intelligence.spec.ts:205:5 › context can be restored through the existing chart settings without a new preference owner
+[27/30] [mobile] › e2e/visual-intelligence.spec.ts:222:5 › table and CSV expose the same actual 3D bars and numeric context as the plotted chart
+[28/30] [mobile] › e2e/visual-intelligence.spec.ts:247:5 › replay consumer excludes current-calendar events and future numeric rows across viewport sizes
+[29/30] [mobile] › e2e/visual-intelligence.spec.ts:271:5 › an unavailable calendar and a delayed outgoing symbol never become fabricated event context
+[30/30] [mobile] › e2e/visual-intelligence.spec.ts:305:5 › Chinese context uses text alongside regional colors and remains keyboard dismissible
+  30 passed (4.7m)

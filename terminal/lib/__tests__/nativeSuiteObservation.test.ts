@@ -114,6 +114,14 @@ describe("controlled native-output edge cases (not predictive evidence)", () => 
     });
     expect(view.events).toEqual([]);expect(view.coverage.events.invalid).toBe(1);
   });
+  it("keeps a bounded six-sample recent window in newest-first order",async()=>{
+    const {view}=await controlled(full=>{full.bundle.prims=[{kind:"poly",id:"window",
+      pts:Array.from({length:10},(_,i)=>({i:410+i,p:i===9?null:i}))}];});
+    expect(view.series[0].samples).toHaveLength(6);
+    expect(view.series[0].samples.map((s:any)=>s.index)).toEqual([419,418,417,416,415,414]);
+    expect(view.series[0].samples.map((s:any)=>s.value)).toEqual([null,8,7,6,5,4]);
+    expect(view.series[0].samples.map((s:any)=>s.age_bars)).toEqual([0,1,2,3,4,5]);
+  });
   it("keeps a missing latest series value null rather than backfilling",async()=>{
     const {view}=await controlled(full=>{full.bundle.prims=[{kind:"poly",id:"gap",pts:[{i:418,p:3},{i:419,p:null}]}];});
     expect(view.series[0].samples.map((s:any)=>s.value)).toEqual([null,3]);

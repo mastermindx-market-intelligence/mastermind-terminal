@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { normalizeDrawings } from "../lib/drawings";
 
 const IMPL_QUERY = [
   { label: "lwc", query: "" },
@@ -35,21 +36,28 @@ async function mountedImpl(page: Page): Promise<string | null> {
 }
 
 async function bootChart(page: Page, query: string, drawings: unknown[] = []) {
-  const store = { drawings: [...drawings] };
+  const store = {
+    drawings: normalizeDrawings(drawings) as unknown[],
+    revision: drawings.length ? "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa" : null as string | null,
+  };
+  let saves = 0;
   await page.route("**/api/drawings**", async (route) => {
     if (route.request().method() === "GET") {
       await route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify({ drawings: store.drawings }),
+        body: JSON.stringify({ drawings: store.drawings, revision: store.revision, schemaVersion: 1 }),
       });
       return;
     }
-    try {
-      const body = route.request().postDataJSON() as { drawings?: unknown[] };
-      if (Array.isArray(body?.drawings)) store.drawings = body.drawings;
-    } catch {}
-    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true }) });
+    const body = route.request().postDataJSON() as { drawings?: unknown[]; operationId?: string };
+    if (Array.isArray(body?.drawings)) store.drawings = body.drawings;
+    store.revision = `bbbbbbbb-bbbb-4bbb-8bbb-${String(++saves).padStart(12, "0")}`;
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ ok: true, operationId: body?.operationId, revision: store.revision, idempotentReplay: false, superseded: false, count: store.drawings.length, schemaVersion: 1 }),
+    });
   });
   await page.goto(`/terminal?symbol=AAPL${query}`);
   await expect(page.locator(".chart-wrap canvas").first()).toBeVisible({ timeout: 60_000 });
@@ -73,6 +81,8 @@ for (const impl of IMPL_QUERY) {
 
     test("A04: NOSUCH.TEST empty pane does not overwrite stored drawings", async ({ page }) => {
       const store = await bootChart(page, impl.query, [SEED_TRENDLINE]);
+      // The no-overwrite claim only means something once the seeded snapshot has actually loaded.
+      await expect(page.locator(`.pane.on .drawing-layer g[data-drawing-id="${SEED_TRENDLINE.id}"]`)).toHaveCount(1, { timeout: 20_000 });
       await page.evaluate(() => window.dispatchEvent(new CustomEvent("mm:embedded-symbol", { detail: { symbol: "NOSUCH.TEST" } })));
       await expect.poll(async () => page.locator(".chart-empty").isVisible(), { timeout: 30_000 }).toBe(true);
       expect(store.drawings).toHaveLength(1);
@@ -84,63 +94,73 @@ for (const impl of IMPL_QUERY) {
 test.describe("chart-engine drawings [mobile A03]", () => {
   test("A03: seeded drawing projects on 390×844 mobile viewport", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "mobile", "A03 runs in the mobile project.");
-    await bootChart(page, "", [SEED_TRENDLINE]);
-    type Rect = { x: number; y: number; width: number; height: number };
-    let witness = {
-      matches: 0, connected: false, cssVisible: false, painted: false,
-      groupRect: null as Rect | null, lineRect: null as Rect | null,
-      stroke: "none", strokeWidth: 0, strokeOpacity: 0,
+    const layer = page.locator(".pane.on .drawing-layer");
+
+    // Resolve real, currently addressable bars BEFORE seeding a drawing. Historical
+    // hardcoded 2024 anchors can sit 900+ px offscreen as the chart's window advances;
+    // measuring that offscreen SVG group never proved that a mobile user could see it.
+    const store = await bootChart(page, "", []);
+    type Axis = {
+      rowCount: number;
+      lastBarX: number | null;
+      timeBarSpacing: number | null;
+      priceVisibleRange: { from: number; to: number } | null;
+      contextProof: { priceRows?: Array<{ time: string | number; close?: number }> } | null;
     };
-    try {
-      // Resolve and measure the current seed in one DOM task; do not retain a node handle.
-      await expect.poll(async () => {
-        witness = await page.evaluate((id) => {
-          const groups = document.querySelectorAll<SVGGElement>(
-            '.pane.on .drawing-layer g[data-drawing-id="' + id + '"]',
-          );
-          const group = groups.length === 1 ? groups[0] : null;
-          const line = group?.querySelector<SVGLineElement>('line[data-geometry="1"]');
-          const connected = !!group?.isConnected && !!line?.isConnected;
-          let cssVisible = connected;
-          for (let node: Element | null = line ?? null; node; node = node.parentElement) {
-            const css = getComputedStyle(node);
-            if (css.display === "none" || css.visibility !== "visible" || Number(css.opacity) <= 0)
-              cssVisible = false;
-          }
-          const copyRect = (rect: DOMRect | undefined): Rect | null => rect
-            ? { x: rect.x, y: rect.y, width: rect.width, height: rect.height } : null;
-          const groupRect = copyRect(group?.getBoundingClientRect());
-          const lineRect = copyRect(line?.getBoundingClientRect());
-          const css = line ? getComputedStyle(line) : null;
-          const stroke = css?.stroke ?? "none";
-          const strokeWidth = Number.parseFloat(css?.strokeWidth ?? "0");
-          const strokeOpacity = Number.parseFloat(css?.strokeOpacity ?? "0");
-          const painted = connected && cssVisible && stroke !== "none" && stroke !== "transparent"
-            && strokeWidth > 0 && strokeOpacity > 0
-            && (lineRect?.width ?? 0) > 0 && (lineRect?.height ?? 0) > 0;
-          return { matches: groups.length, connected, cssVisible, painted,
-            groupRect, lineRect, stroke, strokeWidth, strokeOpacity };
-        }, SEED_TRENDLINE.id);
-        return witness.connected && witness.cssVisible && witness.painted
-          && (witness.groupRect?.width ?? 0) > 4 && (witness.groupRect?.height ?? 0) > 4;
-      }, { timeout: 45_000 }).toBe(true);
-      expect(witness.matches).toBe(1);
-      expect(witness.connected).toBe(true);
-      expect(witness.cssVisible).toBe(true);
-      expect(witness.painted).toBe(true);
-      const box = witness.groupRect;
-      expect(box).not.toBeNull();
-      expect(box!.width).toBeGreaterThan(4);
-      expect(box!.height).toBeGreaterThan(4);
-    } finally {
-      const { writeFile } = await import("node:fs/promises");
-      const file = testInfo.outputPath("a03-seeded-drawing-geometry.json");
-      await writeFile(file, JSON.stringify({
-        drawingId: SEED_TRENDLINE.id, fixtureOnly: true, productionProof: false,
-        measurement: "DOM client rectangles without stroke inflation; offscreen permitted", witness,
-      }, null, 2));
-      await testInfo.attach("a03-seeded-drawing-geometry", { path: file, contentType: "application/json" });
-    }
+    const readAxis = () => page.evaluate(() => {
+      const w = window as Window & { __mmChartAxisOpts?: () => Axis | null };
+      return w.__mmChartAxisOpts?.() ?? null;
+    });
+    await expect.poll(async () => {
+      const axis = await readAxis();
+      return Boolean(axis && (axis.rowCount ?? 0) >= 40
+        && (axis.contextProof?.priceRows?.filter(r => Number.isFinite(r.close)).length ?? 0) >= 40
+        && axis.lastBarX != null && axis.lastBarX > 60
+        && axis.timeBarSpacing != null && axis.timeBarSpacing > 0
+        && axis.priceVisibleRange != null
+        && axis.priceVisibleRange.to > axis.priceVisibleRange.from);
+    }, { timeout: 45_000 }).toBe(true);
+
+    const axis = (await readAxis())!;
+    const rows = axis.contextProof!.priceRows!.filter(r => typeof r.time === "string" && Number.isFinite(r.close));
+    const spacing = axis.timeBarSpacing!;
+    const lastX = axis.lastBarX!;
+    const olderBack = Math.round(Math.min(100, lastX * 0.45) / spacing);
+    const newerBack = Math.round(Math.min(25, lastX * 0.12) / spacing);
+    expect(olderBack, "historical bar falls within the source window").toBeLessThan(rows.length - 2);
+    expect(olderBack - newerBack, "two distinct visible anchors").toBeGreaterThan(4);
+    const range = axis.priceVisibleRange!;
+    const priceAt = (fraction: number) => range.from + (range.to - range.from) * fraction;
+    const seeded = {
+      ...SEED_TRENDLINE,
+      points: [
+        { t: String(rows[rows.length - 1 - olderBack]!.time), p: priceAt(0.38) },
+        { t: String(rows[rows.length - 1 - newerBack]!.time), p: priceAt(0.62) },
+      ],
+    };
+    testInfo.annotations.push({
+      type: "realVisibleSourceAnchors",
+      description: `${seeded.points[0]!.t} -> ${seeded.points[1]!.t}`,
+    });
+    store.drawings = normalizeDrawings([seeded]) as unknown[];
+    store.revision = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+    await page.reload();
+
+    // Do not accept <g> visibility as a projection: groups can contain geometry
+    // wholly outside the viewport. Verify the actual stroke's rectangle against
+    // its SVG host, and poll through legitimate chart remeasurement/re-renders.
+    const geometry = layer.locator(`g[data-drawing-id="${SEED_TRENDLINE.id}"] line[data-geometry="1"]`).first();
+    await expect(geometry).toBeVisible({ timeout: 45_000 });
+    await expect.poll(async () => geometry.evaluate((el) => {
+      if (!(el instanceof SVGElement)) return false;
+      const host = el.ownerSVGElement;
+      if (!host) return false;
+      const actual = el.getBoundingClientRect();
+      const plot = host.getBoundingClientRect();
+      return actual.width > 4 && actual.height > 4
+        && actual.left >= plot.left + 2 && actual.right <= plot.right - 2
+        && actual.top >= plot.top + 2 && actual.bottom <= plot.bottom - 2;
+    }), { timeout: 30_000 }).toBe(true);
   });
 });
 

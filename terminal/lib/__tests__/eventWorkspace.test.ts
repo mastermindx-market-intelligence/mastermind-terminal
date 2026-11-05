@@ -17,6 +17,7 @@ import {
   transcriptIdFromWorkspace,
 } from "@/lib/eventWorkspace";
 import { presentEventWorkspace, eventWorkspaceGlanceTitle, eventWorkspaceHasBeatMissLanguage } from "@/lib/eventWorkspacePresent";
+import { composeEarningsExpectationEvidence } from "@/lib/earningsExpectationBoundary";
 
 const GOLDEN = JSON.parse(
   readFileSync(path.join(__dirname, "fixtures/aapl-event-workspace.json"), "utf8"),
@@ -347,6 +348,119 @@ describe("presentEventWorkspace", () => {
   });
 });
 
+
+describe("guidance normalization → presentation → expectation boundary", () => {
+  function composeContextOnly(presented: ReturnType<typeof presentEventWorkspace>) {
+    const context = composeEarningsExpectationEvidence(presented);
+    expect(context.eventId).toBe(FLAGSHIP);
+    expect(context.authority).toBe("CONTEXT_ONLY_NO_TRADING");
+    expect(context.repricingInference).toBe("NOT_ESTABLISHED");
+    expect(context.historicalConsensusAdmitted).toBe(false);
+    expect(context.eventPriceReactionJoined).toBe(false);
+    for (const id of ["consensus", "reaction"]) {
+      expect(context.lanes.find((lane) => lane.id === id)).toMatchObject({
+        status: "NOT_ADMITTED", evidence: null,
+      });
+    }
+    return context;
+  }
+
+  it.each([
+    { name: "negative range", low: -3, high: -1, value: "-3–-1%" },
+    { name: "zero-crossing range", low: -2, high: 2, value: "-2–2%" },
+    { name: "zero point", low: 0, high: 0, value: "0%" },
+    { name: "original positive range", low: 9, high: 11, value: "9–11%" },
+  ])("preserves $name through all three source-typed stages", ({ low, high, value }) => {
+    const payload = cloneGolden();
+    const raw = (payload.guidance as Array<Record<string, unknown>>)[0]!;
+    expect(raw.metric).toBe("revenue_yoy_pct");
+    expect(raw.unit).toBe("percent");
+    const originalSpan = raw.source_span;
+
+    // Synthetic numerical mutation only. The original receipt/excerpt supports
+    // AAPL 9–11%; these tests assert transport, not a real signed AAPL claim.
+    raw.low = low;
+    raw.high = high;
+    const workspace = normalizeEventWorkspace(payload, FLAGSHIP, GEN);
+    expect(workspace).not.toBeNull();
+    if (!workspace) throw new Error("guidance must normalize");
+    expect(workspace.guidance).toHaveLength(1);
+    expect(workspace.authority).toBe("context_only");
+    expect(workspace.prophet_flags).toEqual({
+      may_rank: false, may_size: false, may_gate: false, prophet_authority: false,
+    });
+    const normalized = workspace.guidance[0]!;
+    expect(normalized).toMatchObject({
+      metric: "revenue_yoy_pct", unit: "percent", low, high, typed_absence: null,
+    });
+    expect(normalized.source_span).toEqual(originalSpan);
+    expect(normalized.source_span?.receipt_state).toBe("byte_replayed");
+    expect(normalized.source_span?.receipt).not.toBeNull();
+    const span = normalized.source_span!;
+    const receipt = span.receipt!;
+
+    for (const zh of [false, true]) {
+      const presented = presentEventWorkspace(workspace, { zh });
+      expect(presented.guidance).toHaveLength(1);
+      const item = presented.guidance[0]!;
+      expect(item.id).toBe("guidance:revenue_yoy_pct:0");
+      expect(item.value).toBe(value);
+      expect(item.evidence).toMatchObject({
+        receipt_state: "byte_replayed",
+        document_id: span.document_id,
+        source_sha256: receipt.source_sha256,
+        text_sha256: receipt.text_sha256,
+        segment_index: receipt.segment_index,
+        span_start_byte: receipt.span_start_byte,
+        span_end_byte: receipt.span_end_byte,
+        typed_absence: null,
+      });
+      const context = composeContextOnly(presented);
+      const lane = context.lanes.find((row) => row.id === "guidance");
+      expect(lane?.status).toBe("SOURCE_BACKED");
+      expect(lane?.value).toEqual([value, value]);
+      expect(lane?.evidence).toBe(item);
+    }
+  });
+
+  it("does not promote numeric guidance with a normalized typed absence", () => {
+    const payload = cloneGolden();
+    const raw = (payload.guidance as Array<Record<string, unknown>>)[0]!;
+    expect([raw.low, raw.high]).toEqual([9, 11]);
+    raw.source_span = null;
+    raw.typed_absence = {
+      schema: "typed_absence.v1",
+      authority: "context_only",
+      reason: "missing_source",
+      subject: "revenue_yoy_pct",
+      detail: "Synthetic control: numerical values alone are not evidence.",
+      event_id: FLAGSHIP,
+      document_id: null,
+      missing_fields: [],
+    };
+    const workspace = normalizeEventWorkspace(payload, FLAGSHIP, GEN);
+    expect(workspace).not.toBeNull();
+    if (!workspace) throw new Error("typed-absence fixture must normalize");
+    expect(workspace.guidance[0]?.source_span).toBeNull();
+    expect(workspace.guidance[0]?.typed_absence).toEqual(raw.typed_absence);
+    for (const zh of [false, true]) {
+      const presented = presentEventWorkspace(workspace, { zh });
+      const item = presented.guidance[0]!;
+      expect(item.value).toBe("9–11%");
+      expect(item.evidence.receipt_state).toBe("typed_absence");
+      expect(item.evidence.typed_absence).toEqual(raw.typed_absence);
+      expect(item.evidence.source_sha256).toBeNull();
+      const context = composeContextOnly(presented);
+      const lane = context.lanes.find((row) => row.id === "guidance");
+      expect(lane?.status).toBe("SOURCE_NOT_BOUND");
+      expect(lane?.evidence).toBeNull();
+      expect(lane?.value).toEqual([
+        "No verified numerical range", "暂无核验的数值区间",
+      ]);
+    }
+  });
+});
+
 describe("resolveCurrentEventWorkspaceFromR2", () => {
   beforeEach(() => {
     realFetch = globalThis.fetch;
@@ -418,15 +532,53 @@ describe("resolveCurrentEventWorkspaceFromR2", () => {
     const result = await resolveCurrentEventWorkspaceFromR2("AAPL", R2);
     expect(result.ok).toBe(false);
     if (result.ok) return;
-    expect(result.error.code).toBe("not_found");
+    expect(result.error.code).toBe("upstream_unavailable");
+    expect(result.error.retryable).toBe(true);
   });
 
-  it("returns last-good as stale when the marker becomes unavailable", async () => {
+  it.each([403, 429, 500, 503])("reports unavailable rather than absent coverage for a cold marker HTTP %s", async (status) => {
+    installR2(() => new Response("unavailable", { status }));
+    for (const resolve of [
+      () => resolveCurrentEventWorkspaceFromR2("AAPL", R2),
+      () => resolveEventWorkspaceFromR2(FLAGSHIP, R2),
+    ]) {
+      const result = await resolve();
+      expect(result).toMatchObject({ ok: false, available: false, error: { code: "upstream_unavailable", retryable: true } });
+    }
+    expect(calls).toEqual(Array(2).fill(`${R2}/company_intelligence/event_workspaces/manifest.json`));
+  });
+
+  it("reports a rejected marker request as unavailable without following another origin", async () => {
+    installR2(() => { throw new TypeError("request failed"); });
+    const result = await resolveCurrentEventWorkspaceFromR2("AAPL", R2);
+    expect(result).toMatchObject({ ok: false, error: { code: "upstream_unavailable", retryable: true } });
+    expect(calls).toEqual([`${R2}/company_intelligence/event_workspaces/manifest.json`]);
+  });
+
+  it("keeps genuine cold marker absence distinct from an unavailable publication", async () => {
+    installR2(() => new Response("missing", { status: 404 }));
+    for (const resolve of [
+      () => resolveCurrentEventWorkspaceFromR2("AAPL", R2),
+      () => resolveEventWorkspaceFromR2(FLAGSHIP, R2),
+    ]) {
+      expect(await resolve()).toMatchObject({ ok: false, error: { code: "not_found", retryable: false } });
+    }
+  });
+
+  it("keeps a verified manifest with no matching Company alias as absent coverage", async () => {
+    const q3 = workspaceBody();
+    const manifest = manifestFor([{ eventId: FLAGSHIP, body: q3, aliases: ["AAPL/2026Q3"] }]);
+    installR2(() => jsonResponse(manifest));
+    expect(await resolveCurrentEventWorkspaceFromR2("NVDA", R2)).toMatchObject({ ok: false, error: { code: "not_found", retryable: false } });
+    expect(calls).toHaveLength(2);
+  });
+
+  it.each([403, 404, 503])("returns last-good as stale when the marker becomes unavailable with HTTP %s", async (status) => {
     const q3 = workspaceBody();
     const manifest = manifestFor([{ eventId: FLAGSHIP, body: q3, aliases: ["AAPL/2026Q3"] }]);
     let live = true;
     installR2((url) => {
-      if (!live) return new Response("down", { status: 503 });
+      if (!live) return new Response("down", { status });
       if (url.endsWith("/event_workspaces/manifest.json") || url.includes(`/generations/${GEN}/manifest.json`)) {
         return jsonResponse(manifest);
       }

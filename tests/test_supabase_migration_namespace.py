@@ -27,6 +27,7 @@ from scripts.check_supabase_migration_namespace import (
     check_prefix_collisions,
     check_reservation_contiguity,
     collect,
+    collect_for_event,
     disclosures,
     format_report,
     load_reservations,
@@ -750,13 +751,7 @@ def test_pr_state_matches_file_presence_on_the_real_tree():
     request. The mode is taken from the environment, the assertion runs in every
     one of the three modes (never a skip), and the failure message names the mode.
     """
-    strict, pr_number, mode = resolve_run_mode()
-
-    doc = load_reservations(RESERVATIONS_PATH)
-    on_disk = sorted(p.name for p in MIGRATIONS_DIR.glob("*.sql"))
-    findings = check_open_pr_state_for_present_files(
-        on_disk, doc, strict_master=strict, pr_number=pr_number
-    )
+    findings, _notes, mode = collect_for_event()
     assert findings == [], f"ran in {mode} mode\n" + format_report(findings, [])
 
 
@@ -1531,8 +1526,10 @@ def test_ci_wires_the_pull_request_number_into_the_pytest_step():
             "from the pull_request event, or from the workflow_dispatch input merge-on-green "
             "fills in -- or the pull-request mode of the namespace guard can never engage"
         )
-        # Nothing else, and no new authority: the guard needs one number, not a token.
-        assert set(step["env"]) == {"PR_NUMBER"}, step["env"]
+        # Native membership reads need the existing contents-read token only in
+        # merge groups. Candidate permissions remain pinned by the companion guard.
+        assert set(step["env"]) == {"PR_NUMBER", "GH_TOKEN"}, step["env"]
+        assert step["env"]["GH_TOKEN"] == "${{ github.event_name == 'merge_group' && github.token || '' }}"
 
     # `on:` parses to the YAML boolean True under safe_load (the "Norway problem"
     # for `on`), so read it that way rather than by the string key.

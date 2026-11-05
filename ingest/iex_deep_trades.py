@@ -391,7 +391,8 @@ def validate_receipt(receipt: dict, archive: Path | None = None) -> dict:
 
 class Decoder:
     def __init__(self, receipt: dict, symbols: list[str], limits: Limits | None = None,
-                 start_ns: int | None = None, end_ns: int | None = None):
+                 start_ns: int | None = None, end_ns: int | None = None, observer=None):
+        self.observer = observer
         self.receipt = validate_receipt(receipt)
         if not symbols or len(symbols) > 20 or len(set(symbols)) != len(symbols):
             raise ValueError("supply 1-20 unique symbols")
@@ -475,6 +476,8 @@ class Decoder:
                 self.stats["missing_message_sequences"] += header["firstSequence"] - state["next"]
                 self._invalidate(stream, "heartbeat_observed_missing_messages")
                 state["next"], state["offset"] = header["firstSequence"], header["streamOffset"]
+            if self.observer is not None:
+                self.observer.after_packet(self, stream, {**packet_meta, **header})
             return
         self.stats["data_packets"] += 1
         for sequence, offset, body in messages:
@@ -490,6 +493,10 @@ class Decoder:
                 "rawMessageSha256": hashlib.sha256(body).hexdigest(),
             }
             self.consume_message(stream, sequence, body, message_meta)
+            if self.observer is not None:
+                self.observer.after_message(self, stream, sequence, body, message_meta)
+        if self.observer is not None:
+            self.observer.after_packet(self, stream, {**packet_meta, **header})
 
     def normalized_session(self, stream: tuple) -> str:
         # 31 ASCII characters retain the full u16/u32/u32 fields. A native
@@ -712,8 +719,8 @@ class Decoder:
 
 def decode_stream(raw: BinaryIO, receipt: dict, symbols: list[str], limits: Limits | None = None,
                   start_ns: int | None = None, end_ns: int | None = None,
-                  progress=None) -> tuple[dict, dict, list[dict]]:
-    decoder = Decoder(receipt, symbols, limits, start_ns, end_ns)
+                  progress=None, observer=None) -> tuple[dict, dict, list[dict]]:
+    decoder = Decoder(receipt, symbols, limits, start_ns, end_ns, observer)
     reader = BoundedReader(raw, decoder.limits.max_decompressed_bytes)
     stop_reason, exhausted = "end_of_file", False
     try:
@@ -730,6 +737,8 @@ def decode_stream(raw: BinaryIO, receipt: dict, symbols: list[str], limits: Limi
         stop_reason = str(exc)
     generated = time.time_ns()
     envelopes = decoder.envelopes(generated)
+    if observer is not None:
+        observer.attach(envelopes, decoder)
     audit = {
         "schema": "mastermind.iex_large_trades_decode.v1",
         "generatedAtNs": str(generated), "symbols": symbols,
@@ -765,6 +774,12 @@ def decode_stream(raw: BinaryIO, receipt: dict, symbols: list[str], limits: Limi
         "checksumValidation": "container_and_lengths_only_not_network_checksums_or_source_authentication",
         "sourceSpecifications": SPECS,
     }
+    if observer is not None:
+        audit["depthReplay"] = {
+            "samplerSourceSha256": hashlib.sha256(Path(__file__).with_name("iex_depth_replay.py").read_bytes()).hexdigest(),
+            "samplesBySymbol": {symbol: len(value.get("depthReplay", {}).get("samples", [])) for symbol, value in envelopes.items()},
+            "measurement": "discrete_observed_book_not_time_weighted",
+        }
     return envelopes, audit, decoder.private_records
 
 
@@ -791,7 +806,17 @@ def main(argv=None) -> int:
     parser.add_argument("--max-messages", type=int, default=8_000_000)
     parser.add_argument("--max-records", type=int, default=10_000)
     parser.add_argument("--max-native-identities", type=int, default=100_000)
+    parser.add_argument("--depth-snapshots", action="store_true", help="Attach bounded discrete observed depth via the same order lifecycle")
+    parser.add_argument("--depth-interval-ms", type=int, default=5000)
+    parser.add_argument("--depth-max-frames", type=int, default=480)
     args = parser.parse_args(argv)
+    observer = None
+    if args.depth_snapshots:
+        try:
+            from ingest.iex_depth_replay import DepthSampler
+        except ModuleNotFoundError:
+            from iex_depth_replay import DepthSampler
+        observer = DepthSampler(args.depth_interval_ms, args.depth_max_frames)
     receipt_path = args.receipt or Path(str(args.archive) + ".receipt.json")
     receipt_bytes = receipt_path.read_bytes()
     receipt = validate_receipt(json.loads(receipt_bytes), args.archive)
@@ -809,6 +834,7 @@ def main(argv=None) -> int:
             _epoch_ns(args.start) if args.start else None,
             _epoch_ns(args.end) if args.end else None,
             progress=lambda state: print(json.dumps({"progress": state}), flush=True),
+            observer=observer,
         )
     audit["gzipFullIntegrityChecked"] = audit["archiveExhausted"]
     audit.update(

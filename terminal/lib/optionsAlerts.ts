@@ -784,3 +784,630 @@ export function optAlertPreview(cond: Record<string, unknown>, lang: "en" | "zh"
     ? `当覆盖范围内的 0DTE 占比超过 ${share}% 时提醒我`
     : `Alert me when 0DTE share across the covered options tape tops ${share}%`;
 }
+
+// ─── (f) frozen-node sampled proximity (PREPARATORY — no production caller yet) ──
+// cond {type:"opt_frozen_node_proximity", root, target, within_pct?}
+//
+// PREPARATORY CORE ONLY. The production alert route does not admit this type yet; no
+// API allowlist entry, condition-builder branch or preview line is added here, and no
+// real admission reader exists. This evaluator exists so the TS and Python owners can be
+// parity-guarded against one shared vector file before a verified reader lands.
+//
+// What it watches: ONE frozen options node — an exact expiry/strike/right member set
+// bound to a source fingerprint at arming time — and it fires when the CURRENT SESSION
+// spot first comes within `within_pct`% of that frozen price. That is SAMPLED proximity,
+// never an exact intrabar touch and never a probability. The level is never re-derived,
+// re-priced or re-ranked: whatever wall the source would publish TODAY is irrelevant. A
+// node frozen at 620 is judged against 620 even when today's rebuilt wall prints 630.
+// Expiry/right/lens stay EXPLICIT through members + scopeKey — nothing here infers a
+// "full"/"strongest"/"current" ranking, and the target's observed_partial qualification
+// is carried verbatim, never upgraded.
+//
+// Trust law (binding):
+//   * The admission context is a SEPARATE trusted caller argument — the out-of-band
+//     result of a server-side admission reader. It is NEVER read out of the condition
+//     jsonb: an admission/rights/allowed key inside condition JSON grants nothing.
+//   * Prior observation is NOT attested by the row. Alerts carry own-row RLS, so a
+//     browser or a direct DB write can set created_at, armingEpoch, condition._fnp or a
+//     planted admission blob freely — none of it can admit, arm or bootstrap a
+//     transition. The admission reader must INDEPENDENTLY attest both the armingEpoch
+//     and the priorState provenance; that authority is the reader's responsibility, not
+//     a self-asserted boolean in the row.
+//   * context.priorState is REQUIRED: null for an independently attested initial (or
+//     changed-epoch) arming, or the reader-verified previous state. An ABSENT key is
+//     rejected. This evaluator only ever USES the reader-attested priorState. The
+//     persisted condition._fnp stays this evaluator's own persistence OUTPUT: the
+//     prevState argument below is that row output, it is never a provenance claim, and
+//     it is only consulted to detect tampering (see the cross-check below). A future
+//     production reader must verify the stored state's provenance independently before
+//     returning it as priorState.
+//   * The envelope {principal, createdAt, evaluationAt} is the trusted server caller's
+//     own record of who is being evaluated and when. The admission context must repeat
+//     the envelope's principal and createdAt EXACTLY and bind the CURRENT evaluation
+//     instant; rights.allowed must be strictly true, with a nonempty policy_version and
+//     a checked_at equal to the actual evaluation instant; the returned target identity
+//     must equal the requested target identity exactly.
+//   * This is a STRUCTURAL caller contract, NOT cryptographic authentication — the
+//     reader's own provenance is the trusted caller's responsibility.
+//
+// Clocks: availableAt <= armingEpoch <= evaluationAt, armingEpoch >= server createdAt,
+// and the qualified quote must be strictly AFTER armingEpoch and no later than
+// evaluationAt. Timestamps are exact timezone-aware instants at microsecond
+// resolution — naive stamps and impossible calendar dates are rejected, microseconds
+// preserved.
+//
+// State machine on cond._fnp = {targetFingerprint, armingEpoch, lastQuoteAt, inside, withinPct, lastQuoteBasis}:
+// the FIRST qualifying quote for a (target, armingEpoch) binding only ARMS — even when
+// already inside — so pre-enrollment touches are ignored and an alert created near the
+// node does not fire on creation. Only a later outside→inside transition of a NEWER
+// quote fires. A duplicate or out-of-order quote causes no transition and no state
+// advance. A changed target or a changed armingEpoch re-arms (and the reader must attest
+// that re-arming with priorState: null). Unknown/revoked context never updates state.
+//
+// Identity: fingerprint = sha256 over a canonical ordered tuple of EVERY target field,
+// with number payloads rendered as IEEE-754 big-endian hex and instants as UTC epoch
+// microseconds, with clock/member counts and UTF-8 byte-length-prefixed tokens — never JSON.stringify/dumps number text, which the two languages render
+// differently. The fingerprint is a STATE BINDING ONLY, not a new provenance proof; it
+// reuses the existing sourceKey/inputSha256/member binding rather than replacing it.
+//
+// null is honest: any unavailable input (no reader, malformed/denied/unknown admission,
+// no qualified quote) returns fired===null with the row state UNCHANGED — the caller
+// logs and never disarms.
+
+export const FNP_STATE_KEY = "_fnp";
+/** The admission context's action value for this type. */
+export const FNP_ADMITTED_ACTION = "frozen_node_proximity";
+/** The only target qualification this evaluator accepts — carried verbatim, never upgraded. */
+export const FNP_QUALIFICATION = "observed_partial";
+export const FNP_DEFAULT_WITHIN_PCT = 0.25;
+
+export type FrozenNodeMember = { expiry: string; strike: number; right: "C" | "P" };
+
+export type FrozenNodeSourceBinding = {
+  inputSha256: string;
+  populationId: string;
+  sourceRef: string;
+  /** Exact native clock values: dates, optional instants and correction references.
+   * Native projection validation owns their field semantics. Never coerce null/date labels. */
+  clocks: Record<string, string | null>;
+};
+
+export type FrozenNodeTarget = {
+  root: string;
+  securityId: string;
+  sourceSession: string;
+  /** Full selected-root document canonical JSON VALUE fingerprint from
+   * exposureValueFingerprint(raw); never a response-byte SHA, signature, chart or lens digest. */
+  sourceKey: string;
+  definitionKey: string;
+  /** The lens this frozen node was read through — carried, never re-inferred. */
+  scopeKey: string;
+  availableAt: string;
+  sourceBinding: FrozenNodeSourceBinding;
+  /** Exact member set; every strike must equal price. Unique, nonempty. */
+  members: FrozenNodeMember[];
+  price: number;
+  qualification: "observed_partial";
+};
+
+/** Trusted qualified current-session quote (Data.live_quote's receipt on the Python side). */
+export type FrozenNodeQuote = { spot: number; asof: string; basis: string };
+
+/** Reader-attested previous state, or null for an attested fresh (re-)arming. */
+export type FrozenNodePriorState = {
+  targetFingerprint: string;
+  armingEpoch: string;
+  lastQuoteAt: string;
+  inside: boolean;
+  withinPct: number;
+  lastQuoteBasis: string;
+};
+
+/** The trusted server caller's own record of the evaluation — never built from condition JSON. */
+export type FrozenNodeEnvelope = { principal: string; createdAt: string; evaluationAt: string };
+
+export type FrozenNodeAdmissionContext = {
+  principal: string;
+  createdAt: string;
+  armingEpoch: string;
+  evaluationAt: string;
+  action: string;
+  target: FrozenNodeTarget;
+  rights: { allowed: boolean; policy_version: string; checked_at: string };
+  priorState: FrozenNodePriorState | null;
+};
+
+export type FrozenNodeCond = {
+  type: "opt_frozen_node_proximity";
+  root?: string;
+  target?: FrozenNodeTarget;
+  within_pct?: number;
+};
+
+const FNP_US = String.fromCharCode(31);
+const FNP_HEX64 = /^[0-9a-f]{64}$/;
+const FNP_ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+const FNP_INSTANT_RE =
+  /^(\d{4}-\d{2}-\d{2})T([01]\d|2[0-3]):([0-5]\d):([0-5]\d)(?:\.(\d{1,6}))?(Z|[+-](?:[01]\d|2[0-3]):[0-5]\d)$/;
+
+/** Calendar-day guard for the exact-instant parser: Feb 30 and month 13 are impossible
+ *  dates, and Date.parse would silently roll them forward instead of refusing. */
+function fnpIsCalendarDay(date: string): boolean {
+  const m = FNP_ISO_DATE.exec(date);
+  if (!m) return false;
+  const y = Number(date.slice(0, 4));
+  const mo = Number(date.slice(5, 7));
+  const d = Number(date.slice(8, 10));
+  if (date.length !== 10 || y < 1 || mo < 1 || mo > 12 || d < 1) return false;
+  const leap = (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0;
+  const daysIn = [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  return d <= daysIn[mo - 1];
+}
+
+/** Exact timezone-aware instant → UTC epoch microseconds (bigint), or null. Naive stamps
+ *  and impossible dates are rejected; microseconds are preserved. Same exact-clock shape
+ *  as the existing instantMicros parser pattern. */
+export function fnpInstantMicros(x: unknown): bigint | null {
+  if (typeof x !== "string") return null;
+  const m = FNP_INSTANT_RE.exec(x);
+  if (!m || m[0] !== x || !fnpIsCalendarDay(m[1])) return null;
+  const off = m[6];
+  let deltaMs = 0;
+  if (off !== "Z") {
+    const sign = off[0] === "-" ? -BigInt(1) : BigInt(1);
+    deltaMs = Number(sign * (BigInt(off.slice(1, 3)) * BigInt(60) + BigInt(off.slice(4, 6)))) * 60000;
+  }
+  const ms = Date.parse(`${m[1]}T${m[2]}:${m[3]}:${m[4]}Z`);
+  const utcYear = new Date(ms - deltaMs).getUTCFullYear();
+  if (!Number.isFinite(ms) || utcYear < 1 || utcYear > 9999) return null;
+  return BigInt(ms) * BigInt(1000) + BigInt((m[5] ?? "").padEnd(6, "0")) - BigInt(deltaMs) * BigInt(1000);
+}
+
+/** Canonical UTC rendering of an epoch-microsecond instant — the state's clock text, so
+ *  both languages persist byte-identical state values. */
+export function fnpFormatInstantUtc(micros: bigint): string {
+  let secs = micros / BigInt(1000000); // BigInt division truncates toward zero…
+  let frac = micros % BigInt(1000000); // …so fix the remainder up for pre-1970 instants.
+  if (frac < BigInt(0)) {
+    frac += BigInt(1000000);
+    secs -= BigInt(1);
+  }
+  const d = new Date(Number(secs) * 1000);
+  const p = (n: number) => String(n).padStart(2, "0");
+  return (
+    `${String(d.getUTCFullYear()).padStart(4, "0")}-${p(d.getUTCMonth() + 1)}-${p(d.getUTCDate())}` +
+    `T${p(d.getUTCHours())}:${p(d.getUTCMinutes())}:${p(d.getUTCSeconds())}` +
+    `.${frac.toString().padStart(6, "0")}Z`
+  );
+}
+
+/** Preserve native metadata strings; only actual aware instant clocks can be future.
+ * Date labels and correction references are never inflated into timestamps. */
+function fnpSourceClockAfter(key: string, value: string | null, evaluationAt: bigint): boolean {
+  if (value === null || ["source_session", "oi_report_date", "oi_position_session", "correction_ref"].includes(key)) return false;
+  const match = /^(\d{4}-\d{2}-\d{2}T[0-2]\d:[0-5]\d:[0-5]\d)(?:\.(\d{1,9}))?(Z|[+-][0-2]\d:[0-5]\d)$/.exec(value);
+  if (!match || match[0] !== value) return false;
+  const fraction = (match[2] ?? "").padEnd(9, "0");
+  const micros = fnpInstantMicros(`${match[1]}.${fraction.slice(0, 6)}${match[3]}`);
+  return micros !== null && micros * BigInt(1000) + BigInt(fraction.slice(6)) > evaluationAt * BigInt(1000);
+}
+
+/** A finite positive native number — bools and numeric strings never pass. */
+function fnpPositiveNum(x: unknown): x is number {
+  return typeof x === "number" && Number.isFinite(x) && x > 0;
+}
+
+/** IEEE-754 big-endian hex of a finite double — the cross-language number payload token
+ *  (JS DataView ↔ Python struct). Never a JSON/dumps float rendering. */
+export function fnpF64BeHex(x: unknown): string | null {
+  if (typeof x !== "number" || !Number.isFinite(x)) return null;
+  const buf = new ArrayBuffer(8);
+  new DataView(buf).setFloat64(0, x, false);
+  return Array.from(new Uint8Array(buf), (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+const FNP_K = new Uint32Array([
+  0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+  0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+  0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+  0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+  0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+  0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+  0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+  0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2,
+]);
+
+/** Self-contained SHA-256 (UTF-8 input → 64-hex). Dependency-free on purpose: this module
+ *  is loaded in the browser, so node:crypto is not reachable here. Used ONLY for the
+ *  state-binding fingerprint — never as a provenance proof. */
+function fnpSha256Hex(input: string): string {
+  const bytes = new TextEncoder().encode(input);
+  const bitLen = bytes.length * 8;
+  const blocks = ((bytes.length + 8) >> 6) + 1;
+  const buf = new ArrayBuffer(blocks << 6);
+  const out = new Uint8Array(buf);
+  out.set(bytes);
+  out[bytes.length] = 0x80;
+  const dv = new DataView(buf);
+  dv.setUint32(buf.byteLength - 8, Math.floor(bitLen / 0x100000000));
+  dv.setUint32(buf.byteLength - 4, bitLen >>> 0);
+  let h0 = 0x6a09e667, h1 = 0xbb67ae85, h2 = 0x3c6ef372, h3 = 0xa54ff53a;
+  let h4 = 0x510e527f, h5 = 0x9b05688c, h6 = 0x1f83d9ab, h7 = 0x5be0cd19;
+  const rotr = (x: number, n: number) => ((x >>> n) | (x << (32 - n))) >>> 0;
+  const w = new Uint32Array(64);
+  for (let off = 0; off < buf.byteLength; off += 64) {
+    for (let i = 0; i < 16; i++) w[i] = dv.getUint32(off + i * 4);
+    for (let i = 16; i < 64; i++) {
+      const a15 = w[i - 15];
+      const a2 = w[i - 2];
+      const s0 = rotr(a15, 7) ^ rotr(a15, 18) ^ (a15 >>> 3);
+      const s1 = rotr(a2, 17) ^ rotr(a2, 19) ^ (a2 >>> 10);
+      w[i] = (w[i - 16] + s0 + w[i - 7] + s1) >>> 0;
+    }
+    let a = h0, b = h1, c = h2, d = h3, e = h4, f = h5, g = h6, h = h7;
+    for (let i = 0; i < 64; i++) {
+      const S1 = rotr(e, 6) ^ rotr(e, 11) ^ rotr(e, 25);
+      const ch = (e & f) ^ (~e & g);
+      const t1 = (h + S1 + ch + FNP_K[i] + w[i]) >>> 0;
+      const S0 = rotr(a, 2) ^ rotr(a, 13) ^ rotr(a, 22);
+      const maj = (a & b) ^ (a & c) ^ (b & c);
+      const t2 = (S0 + maj) >>> 0;
+      h = g; g = f; f = e;
+      e = (d + t1) >>> 0;
+      d = c; c = b; b = a;
+      a = (t1 + t2) >>> 0;
+    }
+    h0 = (h0 + a) >>> 0; h1 = (h1 + b) >>> 0; h2 = (h2 + c) >>> 0; h3 = (h3 + d) >>> 0;
+    h4 = (h4 + e) >>> 0; h5 = (h5 + f) >>> 0; h6 = (h6 + g) >>> 0; h7 = (h7 + h) >>> 0;
+  }
+  return [h0, h1, h2, h3, h4, h5, h6, h7].map((x) => x.toString(16).padStart(8, "0")).join("");
+}
+
+function fnpText(x: unknown): string | null {
+  if (typeof x !== "string" || !x.length) return null;
+  // TextEncoder replaces lone surrogates; refuse them instead of aliasing U+FFFD.
+  for (const char of x) {
+    const cp = char.codePointAt(0)!;
+    if (cp >= 0xd800 && cp <= 0xdfff) return null;
+  }
+  return x;
+}
+
+function fnpRecord(x: unknown): Record<string, unknown> | null {
+  return x !== null && typeof x === "object" && !Array.isArray(x) ? (x as Record<string, unknown>) : null;
+}
+
+/** An exact ISO calendar date (an options expiry), not an arbitrary token. */
+function fnpIsoDate(x: unknown): string | null {
+  if (typeof x !== "string" || !FNP_ISO_DATE.test(x) || !fnpIsCalendarDay(x)) return null;
+  return x;
+}
+
+/**
+ * Canonical ordered token tuple for a frozen-node target — the ONE cross-language identity
+ * algorithm. Every field is validated in the same pass, so a target that cannot be
+ * fingerprinted is a target that cannot be evaluated. Number payloads become IEEE-754
+ * big-endian hex and instants become UTC epoch-microsecond decimals; strings are used
+ * verbatim. Returns null for any malformed field (absent member, non-observed_partial
+ * qualification, member strike ≠ price, duplicate member, impossible clock, …).
+ */
+function fnpTargetTokens(target: unknown): string[] | null {
+  const t = fnpRecord(target);
+  if (!t || Object.keys(t).sort().join(",") !==
+      "availableAt,definitionKey,members,price,qualification,root,scopeKey,securityId,sourceBinding,sourceKey,sourceSession") return null;
+  const root = fnpText(t.root);
+  if (!root || !isValidRoot(root) || normalizeOptAlertRoot(root) !== root) return null;
+  const securityId = fnpText(t.securityId);
+  const sourceSession = fnpText(t.sourceSession);
+  const sourceKey = fnpText(t.sourceKey);
+  const definitionKey = fnpText(t.definitionKey);
+  const scopeKey = fnpText(t.scopeKey);
+  if (!securityId || !sourceSession || !definitionKey || !scopeKey) return null;
+  if (!sourceKey || sourceKey.length !== 64 || !FNP_HEX64.test(sourceKey)) return null;
+  const availableAt = fnpInstantMicros(t.availableAt);
+  if (availableAt === null) return null;
+  const binding = fnpRecord(t.sourceBinding);
+  if (!binding || Object.keys(binding).sort().join(",") !== "clocks,inputSha256,populationId,sourceRef") return null;
+  const inputSha256 = fnpText(binding.inputSha256);
+  const populationId = fnpText(binding.populationId);
+  const sourceRef = fnpText(binding.sourceRef);
+  if (!inputSha256 || inputSha256.length !== 64 || !FNP_HEX64.test(inputSha256) || !populationId || !sourceRef) return null;
+  const clocks = fnpRecord(binding.clocks);
+  if (!clocks) return null;
+  const clockKeys = Object.keys(clocks).sort();
+  if (clockKeys.length === 0) return null;
+  const clockTokens: string[] = [];
+  for (const key of clockKeys) {
+    if (!fnpText(key)) return null;
+    const value = clocks[key];
+    if (value === null) clockTokens.push(key, "null");
+    else if (typeof value === "string" && (value.length === 0 || fnpText(value) !== null)) {
+      clockTokens.push(key, "string", value);
+    } else return null;
+  }
+  const price = t.price;
+  if (!fnpPositiveNum(price)) return null;
+  const priceToken = fnpF64BeHex(price);
+  if (priceToken === null) return null;
+  const rawMembers = t.members;
+  if (!Array.isArray(rawMembers) || rawMembers.length === 0) return null;
+  const memberTokens: string[] = [];
+  const seen = new Set<string>();
+  for (const raw of rawMembers) {
+    const m = fnpRecord(raw);
+    if (!m || Object.keys(m).sort().join(",") !== "expiry,right,strike") return null;
+    const expiry = fnpIsoDate(m.expiry);
+    const strike = m.strike;
+    if (!expiry || !fnpPositiveNum(strike)) return null;
+    if (m.right !== "C" && m.right !== "P") return null;
+    // The frozen member set is exact: every strike IS the frozen price.
+    if (strike !== price) return null;
+    const strikeToken = fnpF64BeHex(strike);
+    if (strikeToken === null) return null;
+    const key = `${expiry}${FNP_US}${String(m.right)}${FNP_US}${strikeToken}`;
+    if (seen.has(key)) return null;
+    seen.add(key);
+    memberTokens.push(key);
+  }
+  memberTokens.sort();
+  if (t.qualification !== FNP_QUALIFICATION) return null;
+  const tokens = [
+    "opt_frozen_node_target/v1",
+    root,
+    securityId,
+    sourceSession,
+    sourceKey,
+    definitionKey,
+    scopeKey,
+    availableAt.toString(),
+    inputSha256,
+    populationId,
+    sourceRef,
+  ];
+  tokens.push("clocks", String(clockKeys.length), ...clockTokens, "members", String(memberTokens.length));
+  for (const mk of memberTokens) tokens.push("member", mk);
+  tokens.push("price", priceToken, FNP_QUALIFICATION);
+  return tokens;
+}
+
+/**
+ * The deterministic cross-language identity of a frozen-node target — sha256 over the
+ * canonical token tuple above. STATE BINDING ONLY: it keys the persisted hysteresis state
+ * to one exact target, and it is not a provenance proof (the source's own fingerprint
+ * remains target.sourceKey / sourceBinding.inputSha256).
+ */
+export function frozenNodeTargetFingerprint(target: unknown): string | null {
+  const tokens = fnpTargetTokens(target);
+  // Length-prefix each UTF-8 token: embedded delimiters cannot alias field boundaries.
+  return tokens === null ? null : fnpSha256Hex(tokens.map(token =>
+    `${new TextEncoder().encode(token).length}:${token}`).join(""));
+}
+
+/** Field-by-field equality of two persisted states (no JSON round-trip). */
+function fnpSameState(
+  a: FrozenNodePriorState | null,
+  b: FrozenNodePriorState | null,
+): boolean {
+  if (!a || !b) return a === b;
+  return (
+    a.targetFingerprint === b.targetFingerprint &&
+    a.armingEpoch === b.armingEpoch &&
+    a.lastQuoteAt === b.lastQuoteAt &&
+    a.inside === b.inside && a.withinPct === b.withinPct && a.lastQuoteBasis === b.lastQuoteBasis
+  );
+}
+
+/** Normalize/validate a persisted frozen-node state object: the exact predicate and quote state fields,
+ *  a matching target fingerprint, boolean inside, canonical exact clocks. */
+function fnpNormalizeState(x: unknown, fingerprint: string): FrozenNodePriorState | null {
+  const s = fnpRecord(x);
+  if (!s) return null;
+  if (Object.keys(s).sort().join(",") !== "armingEpoch,inside,lastQuoteAt,lastQuoteBasis,targetFingerprint,withinPct") return null;
+  if (s.targetFingerprint !== fingerprint) return null;
+  if (typeof s.inside !== "boolean" || !isNum(s.withinPct) || s.withinPct < 0 || !fnpText(s.lastQuoteBasis)) return null;
+  const epochMicros = fnpInstantMicros(s.armingEpoch);
+  const lastQuoteAt = fnpInstantMicros(s.lastQuoteAt);
+  if (epochMicros === null || lastQuoteAt === null) return null;
+  return {
+    targetFingerprint: fingerprint,
+    armingEpoch: fnpFormatInstantUtc(epochMicros),
+    lastQuoteAt: fnpFormatInstantUtc(lastQuoteAt),
+    inside: s.inside,
+    withinPct: s.withinPct,
+    lastQuoteBasis: s.lastQuoteBasis as string,
+  };
+}
+
+/**
+ * The frozen-node sampled-proximity evaluator.
+ *
+ * Signature is the trusted-caller contract, not the browser payload contract: the server
+ * envelope, the out-of-band admission reader result and the qualified current-session
+ * quote all arrive as ARGUMENTS. Nothing is ever read out of `cond` except the target,
+ * root and threshold — a planted admission/rights/allowed blob inside condition JSON is
+ * inert, and so is the row's own `_fnp` (see `prevState`).
+ *
+ * `prevState` is the row's persisted `_fnp` — this evaluator's own persistence OUTPUT. It
+ * never implies provenance and is never the state the machine runs on; the machine runs
+ * on the READER-ATTESTED `admission.priorState` only. `prevState` is consulted solely for
+ * the tamper cross-check below.
+ */
+export function evalFrozenNodeProximity(
+  cond: FrozenNodeCond,
+  envelope: FrozenNodeEnvelope | null | undefined,
+  admission: FrozenNodeAdmissionContext | null | undefined,
+  quote: FrozenNodeQuote | null | undefined,
+  prevState?: Record<string, unknown> | null,
+): EvalResult {
+  const rowState = prevState ?? null;
+  const fail = (note: string): EvalResult => ({
+    fired: null,
+    value: null,
+    note,
+    nextState: rowState ? { ...rowState } : {},
+  });
+
+  // ── trusted server envelope ────────────────────────────────────────────────
+  const env = fnpRecord(envelope);
+  const principal = env ? fnpText(env.principal) : null;
+  const createdAt = env ? fnpInstantMicros(env.createdAt) : null;
+  const evaluationAt = env ? fnpInstantMicros(env.evaluationAt) : null;
+  if (!env || !principal || createdAt === null || evaluationAt === null) {
+    return fail("frozen-node server envelope unavailable");
+  }
+
+  // ── condition: root identity, target, threshold ───────────────────────────
+  if (!cond || cond.type !== "opt_frozen_node_proximity") {
+    return fail("condition is not a frozen-node proximity condition");
+  }
+  const root = normalizeOptAlertRoot(cond.root);
+  if (!root) return fail("identity unresolved — stored underlying is not a readable options root");
+  const targetFingerprint = frozenNodeTargetFingerprint(cond.target);
+  if (targetFingerprint === null) return fail("frozen-node target unavailable or malformed");
+  if (cond.target?.root !== root) return fail("condition root does not match frozen-node target root");
+  if (cond.within_pct !== undefined && (!isNum(cond.within_pct) || cond.within_pct < 0)) {
+    return fail("frozen-node proximity threshold is not a usable percentage");
+  }
+  const within = isNum(cond.within_pct) ? cond.within_pct : FNP_DEFAULT_WITHIN_PCT;
+
+  // ── admission context (out-of-band reader result; NEVER from condition JSON) ──
+  const adm = fnpRecord(admission);
+  if (!adm) return fail("frozen-node admission unavailable");
+  if (adm.action !== FNP_ADMITTED_ACTION) return fail("frozen-node admission action is not recognized");
+  if (fnpText(adm.principal) !== principal) {
+    return fail("frozen-node admission principal does not match the server envelope");
+  }
+  const admCreatedAt = fnpInstantMicros(adm.createdAt);
+  const admEvalAt = fnpInstantMicros(adm.evaluationAt);
+  const armingEpoch = fnpInstantMicros(adm.armingEpoch);
+  if (admCreatedAt === null || admEvalAt === null || armingEpoch === null) {
+    return fail("frozen-node admission clocks are malformed");
+  }
+  if (admCreatedAt !== createdAt) {
+    return fail("frozen-node admission does not attest the server creation instant");
+  }
+  if (admEvalAt !== evaluationAt) {
+    return fail("frozen-node admission does not bind the current evaluation instant");
+  }
+  if (armingEpoch < admCreatedAt) {
+    return fail("frozen-node arming epoch precedes the server creation instant");
+  }
+  // The returned target identity must equal the requested target identity exactly.
+  const admittedFingerprint = frozenNodeTargetFingerprint(adm.target);
+  if (admittedFingerprint === null || admittedFingerprint !== targetFingerprint) {
+    return fail("frozen-node admission target identity does not match the requested target");
+  }
+  const admTarget = fnpRecord(adm.target) as Record<string, unknown>;
+  const availableAt = fnpInstantMicros(admTarget.availableAt);
+  if (availableAt === null || availableAt > armingEpoch) {
+    return fail("frozen-node target source was not available at the arming epoch");
+  }
+  if (armingEpoch > evaluationAt) {
+    return fail("frozen-node arming epoch is after the evaluation instant");
+  }
+  const sourceClocks = (admTarget.sourceBinding as FrozenNodeSourceBinding).clocks;
+  if (Object.entries(sourceClocks).some(([key, value]) => fnpSourceClockAfter(key, value, evaluationAt))) {
+    return fail("frozen-node source clock is later than evaluation");
+  }
+
+  const rights = fnpRecord(adm.rights);
+  if (!rights) return fail("frozen-node admission rights unavailable");
+  if (rights.allowed !== true) return fail("frozen-node admission rights do not allow this action");
+  if (!fnpText(rights.policy_version)) return fail("frozen-node admission rights carry no policy version");
+  const checkedAt = fnpInstantMicros(rights.checked_at);
+  if (checkedAt === null || checkedAt !== evaluationAt) {
+    return fail("frozen-node rights were not checked at the evaluation instant");
+  }
+
+  // ── reader-attested prior state (REQUIRED key; null = attested fresh arming) ──
+  if (!("priorState" in adm)) {
+    return fail("frozen-node admission does not attest prior-state provenance");
+  }
+  let prior: FrozenNodePriorState | null = null;
+  let verifiedPrior: FrozenNodePriorState | null = null;
+  if (adm.priorState !== null) {
+    const normalized = fnpNormalizeState(adm.priorState, targetFingerprint);
+    if (!normalized || normalized.armingEpoch !== fnpFormatInstantUtc(armingEpoch)) {
+      return fail("attested prior state belongs to a different target or arming epoch");
+    }
+    const priorQuoteAt = fnpInstantMicros(normalized.lastQuoteAt) as bigint;
+    if (priorQuoteAt <= armingEpoch) {
+      return fail("attested prior state quotes from before the arming epoch");
+    }
+    if (priorQuoteAt > evaluationAt) return fail("attested prior quote is later than evaluation");
+    // A changed threshold starts a new sampled-proximity predicate, never an entry event.
+    verifiedPrior = normalized;
+    prior = normalized.withinPct === within ? normalized : null;
+  }
+
+  // ── tamper cross-check on the row's own persistence output ────────────────
+  // A row state describing the SAME (target, armingEpoch) binding must agree with the
+  // attested prior state, or the row was hand-edited under a live attestation. A row
+  // state describing a DIFFERENT binding is stale output from before a re-arm and is
+  // ignored (never an error, never an input).
+  if (rowState && prior) {
+    if (rowState.targetFingerprint === targetFingerprint && rowState.armingEpoch === prior.armingEpoch && rowState.withinPct === prior.withinPct) {
+      const rowNormalized = fnpNormalizeState(rowState, targetFingerprint);
+      if (!rowNormalized || !fnpSameState(rowNormalized, prior)) {
+        return fail("frozen-node row state conflicts with the attested prior state");
+      }
+    }
+  }
+
+  // ── qualified current-session quote (sampled-proximity evidence) ──────────
+  const q = fnpRecord(quote);
+  const spot = q ? q.spot : undefined;
+  const quoteAt = q ? fnpInstantMicros(q.asof) : null;
+  const basis = q ? fnpText(q.basis) : null;
+  if (!q || !fnpPositiveNum(spot) || quoteAt === null || !basis) {
+    return fail("no qualified current-session quote for the frozen node");
+  }
+  if (quoteAt <= armingEpoch) return fail("quote is not after the arming epoch");
+  if (quoteAt > evaluationAt) return fail("quote is later than the evaluation instant");
+  if (verifiedPrior && quoteAt <= (fnpInstantMicros(verifiedPrior.lastQuoteAt) as bigint)) {
+    return { fired: false, value: spot, note: "", nextState: { ...verifiedPrior } };
+  }
+
+
+  // ── state machine ─────────────────────────────────────────────────────────
+  const target = cond.target as FrozenNodeTarget;
+  const price = target.price;
+  const distPct = (Math.abs(spot - price) / price) * 100;
+  const inside = distPct <= within;
+  const nextState: FrozenNodePriorState = {
+    targetFingerprint,
+    armingEpoch: fnpFormatInstantUtc(armingEpoch),
+    lastQuoteAt: fnpFormatInstantUtc(quoteAt),
+    inside,
+    withinPct: within,
+    lastQuoteBasis: basis,
+  };
+
+  // First qualifying quote for this binding: ARM ONLY — even when already inside — so a
+  // pre-enrollment touch can never fire and an alert created near the node stays quiet.
+  if (!prior) return { fired: false, value: spot, note: "", nextState };
+
+  // Duplicate or out-of-order quote: no transition, no state advance.
+  if (quoteAt <= (fnpInstantMicros(prior.lastQuoteAt) as bigint)) {
+    return { fired: false, value: spot, note: "", nextState: { ...prior } };
+  }
+
+  if (inside && prior.inside === false) {
+    const hasC = target.members.some((m) => m.right === "C");
+    const hasP = target.members.some((m) => m.right === "P");
+    const side = hasC && hasP ? "call/put" : hasC ? "call" : "put";
+    const expiries = [...new Set(target.members.map((m) => m.expiry))].sort().join("/");
+    const basisLabel =
+      basis.toUpperCase() === "DELAYED_15M"
+        ? "15-minute-delayed quote"
+        : basis.toUpperCase() === "LIVE" || basis.toUpperCase() === "REALTIME"
+          ? "live quote"
+          : "current quote";
+    const note =
+      `${root} is within ${within}% of its frozen ${side} options node at ${price} (expiry ${expiries}) — ` +
+      `frozen level held at arming, not today's rebuilt wall · sampled proximity on a ${basisLabel} ` +
+      `${asOf(q.asof as string)}, intraday`;
+    return { fired: true, value: spot, note, nextState };
+  }
+  return { fired: false, value: spot, note: "", nextState };
+}

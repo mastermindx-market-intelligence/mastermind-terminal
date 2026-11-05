@@ -153,6 +153,12 @@ does not supply CME/MNQ licensing or claim statistical trading efficacy.
 
 ## Regression after chart-engine integration
 
+The measurements, screenshots and review receipts in this section belong to the
+original 2026-10-17 candidate. The current conflict integration preserves their
+source identities and limitations; they are not new captures or measurements of
+the integrated head. Current source and hosted-check qualification are recorded
+in [the original PR](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1031#issuecomment-6659752045).
+
 PR1026 was accepted at `a0b8c735062cb6ff8ebe13f9e3aef19e845450b8`. Its
 overlay also inherited the owned chart-engine API migration. The default LWC
 adapter preserves the original pane-index, coordinate and screenshot calls.
