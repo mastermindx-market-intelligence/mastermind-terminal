@@ -1,0 +1,26 @@
+{
+  "plot": {
+    "x": 0,
+    "y": 98,
+    "width": 328,
+    "height": 315,
+    "top": 98,
+    "right": 328,
+    "bottom": 413,
+    "left": 0
+  },
+  "dock": {
+    "x": 40,
+    "y": 235.40625,
+    "width": 280,
+    "height": 169.59375,
+    "top": 235.40625,
+    "right": 320,
+    "bottom": 405,
+    "left": 40
+  },
+  "viewport": {
+    "width": 390,
+    "height": 844
+  }
+}

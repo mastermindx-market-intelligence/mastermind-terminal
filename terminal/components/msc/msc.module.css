@@ -135,6 +135,28 @@
   flex-shrink: 0;
 }
 
+@media (max-width: 640px) {
+  .cardHd {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .cardTitle {
+    flex: 1 1 calc(100% - 28px);
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    line-height: 1.3;
+  }
+
+  .cardHdRight {
+    flex: 1 0 100%;
+    justify-content: flex-end;
+    margin-left: 0;
+    align-self: flex-start;
+  }
+}
+
 .tierChip {
   font-size: var(--fs-micro, 9px);
   letter-spacing: 0.04em;

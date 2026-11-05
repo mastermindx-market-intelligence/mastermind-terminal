@@ -1,5 +1,13 @@
 "use client";
 
+// Provenance: PR697 MobileNavModal repair — commit 0023bffa7c6c0370f15ec1e3a16398d82fe2cf33.
+// Integrated into the Shared Shell beta branch as bounded source assembly (run
+// shared-shell-mobile-integration-20261018-c1-r1). This is not a release of PR697 and does
+// not lift its independent release hold. The dialog implementation below — including the
+// capture-phase release that lets Settings, All tools and AI handoffs run AFTER
+// modality/scroll-lock release — is retained exactly as authored. Sole adaptation: the
+// additive breakpointPx prop, defaulting to 860 (PR697's original viewport behavior).
+
 import {
   useCallback,
   useLayoutEffect,
@@ -27,6 +35,7 @@ export default function MobileNavModal({
   closeLabel,
   openerRef,
   onClose,
+  breakpointPx = 860,
   children,
 }: {
   id: string;
@@ -34,6 +43,8 @@ export default function MobileNavModal({
   closeLabel: string;
   openerRef: RefObject<HTMLButtonElement | null>;
   onClose: () => void;
+  /** Viewport ceiling for auto-dismiss; defaults to PR697's authored 860px. */
+  breakpointPx?: number;
   children: ReactNode;
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -96,7 +107,7 @@ export default function MobileNavModal({
     firstNavLink?.focus({ preventScroll: true });
     window.scrollTo(scrollX, scrollY);
 
-    const mobileViewport = window.matchMedia("(max-width: 860px)");
+    const mobileViewport = window.matchMedia(`(max-width: ${breakpointPx}px)`);
     const handleViewportChange = (event: MediaQueryListEvent) => {
       if (!event.matches) dismiss();
     };
@@ -111,7 +122,7 @@ export default function MobileNavModal({
       release(false);
       if (releaseRef.current === release) releaseRef.current = null;
     };
-  }, [dismiss, openerRef]);
+  }, [dismiss, openerRef, breakpointPx]);
 
   useLayoutEffect(() => {
     if (pathname === openedPathnameRef.current) return;

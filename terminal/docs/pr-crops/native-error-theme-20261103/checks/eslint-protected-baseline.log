@@ -1,0 +1,6 @@
+
+/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-native-error-theme-p12t21s2-7bdf1c032aa098fe/terminal/app/error.tsx
+  111:11  error  Do not use an `<a>` element to navigate to `/terminal/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages  @next/next/no-html-link-for-pages
+
+✖ 1 problem (1 error, 0 warnings)
+

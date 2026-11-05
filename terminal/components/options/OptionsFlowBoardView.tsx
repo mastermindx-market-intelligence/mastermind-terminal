@@ -29,6 +29,13 @@ export interface OptionsFlowBoardEvent extends OptionsFlowBoardSource {
   swept?: boolean;
 }
 
+/** W3A: the ticker click carries the filter context of the row it came from. */
+export interface TickerClickCtx {
+  exp: string;
+  strike: number;
+  right: "C" | "P";
+}
+
 interface OptionsFlowBoardViewProps {
   mode: OptionsFlowBoardMode;
   lang: Lang;
@@ -38,7 +45,7 @@ interface OptionsFlowBoardViewProps {
   sessionDate?: string;
   stale: boolean;
   unavailable: boolean;
-  onOpenTicker: (root: string) => void;
+  onOpenTicker: (root: string, ctx?: TickerClickCtx) => void;
 }
 
 function formatPremium(value: number): string {
@@ -263,7 +270,7 @@ export function OptionsFlowBoardView({
                       <td className="options-flow-board-rank">{index + 1}</td>
                       <td>{formatTime(event.ts)}</td>
                       <td>
-                        <button type="button" className="options-flow-board-ticker" onClick={() => onOpenTicker(event.root)}>
+                        <button type="button" className="options-flow-board-ticker" onClick={() => onOpenTicker(event.root, { exp: event.exp, strike: event.strike, right: event.right })}>
                           {event.root}
                         </button>
                       </td>
@@ -291,7 +298,7 @@ export function OptionsFlowBoardView({
                 <article key={event.id} className="options-flow-board-card" data-flow-event-row={event.id}>
                   <div className="options-flow-board-card-main">
                     <span className="options-flow-board-rank">#{index + 1}</span>
-                    <button type="button" className="options-flow-board-ticker" onClick={() => onOpenTicker(event.root)}>
+                    <button type="button" className="options-flow-board-ticker" onClick={() => onOpenTicker(event.root, { exp: event.exp, strike: event.strike, right: event.right })}>
                       {event.root}
                     </button>
                     <span className={event.right === "C" ? "is-call" : "is-put"}>{contractLabel(event)}</span>

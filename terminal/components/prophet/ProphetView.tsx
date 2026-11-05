@@ -29,6 +29,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { flowGet } from "@/lib/flowClientCache";
 import { useLang } from "@/lib/i18n";
 import { makeProphetT, phaseWhy } from "./prophetStrings";
+import {
+  SelectionCohortCard,
+  SelectionCohortMastheadTile,
+  useSelectionCohort,
+} from "./SelectionCohortCard";
 import { SignalCard, phaseTone, planAsof, planConfidence, planOriginationNote, planPhase, planRecommendedAction } from "./SignalCard";
 import type { PlanSummary } from "./SignalCard";
 import { ConfidencePanel } from "./ConfidencePanel";
@@ -180,6 +185,8 @@ function fmtDate(iso: string | null | undefined, lang: "en" | "zh"): string | nu
 export function ProphetView() {
   const { lang } = useLang();
   const t = makeProphetT(lang);
+  const { view: cohortView } = useSelectionCohort();
+  const [cohortPopoverOpen, setCohortPopoverOpen] = useState(false);
 
   const [payload,     setPayload]     = useState<ProphetIndexPayload | null>(null);
   const [loading,     setLoading]     = useState(true);
@@ -264,7 +271,9 @@ export function ProphetView() {
 
   return (
     <div className="obs obs-ambient obs-prophet">
-      <header className="obs-prophet-masthead">
+      <header
+        className={`obs-prophet-masthead${cohortPopoverOpen ? " cohortPopoverOpen" : ""}`}
+      >
         <div className="obs-prophet-orb" aria-hidden>
           <span>✦</span>
         </div>
@@ -297,6 +306,11 @@ export function ProphetView() {
               </b>
             </div>
           )}
+          <SelectionCohortMastheadTile
+            lang={lang}
+            view={cohortView}
+            onOpenChange={setCohortPopoverOpen}
+          />
         </div>
       </header>
 
@@ -394,6 +408,8 @@ export function ProphetView() {
         )}
       </div>
       </div>
+      {/* ── Shared themes for the latest finalized U.S. picks — context only (gate #8) ── */}
+      <SelectionCohortCard lang={lang} view={cohortView} />
     </div>
   );
 }

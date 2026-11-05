@@ -3,6 +3,7 @@ import { expect, test, type Page, type TestInfo } from "@playwright/test";
 const READY_FLAG = "__mmNavUpgradeReady";
 const MOBILE_PROJECTS = new Set(["tablet", "mobile"]);
 const MENU = '.mobilebar button[aria-label="Menu"]';
+const PALETTE = '.mobilebar [data-command-palette-trigger="mobile"]';
 
 test.beforeEach(async ({ page }) => {
   test.setTimeout(90_000);
@@ -211,7 +212,7 @@ test("MM-004 header and drawer account targets cover their complete centered 44p
   await gotoTerminal(page);
   for (const width of [320, 360, 390, 430]) {
     await page.setViewportSize({ width, height: 844 });
-    for (const selector of [MENU, '.mobilebar button[aria-label="Mastermind AI"]', ".mobilebar button.avatar"]) {
+    for (const selector of [MENU, PALETTE, '.mobilebar button[aria-label="Mastermind AI"]', ".mobilebar button.avatar"]) {
       expect(await pointMisses(page, selector), `${selector} at ${width}px`).toEqual([]);
     }
     const geometry = await page.evaluate(() => {
@@ -223,16 +224,17 @@ test("MM-004 header and drawer account targets cover their complete centered 44p
       const pseudo = getComputedStyle(avatar, "::after");
       return {
         menu: rect('.mobilebar button[aria-label="Menu"]'),
+        palette: rect('.mobilebar [data-command-palette-trigger="mobile"]'),
         ai: rect('.mobilebar button[aria-label="Mastermind AI"]'),
         account: rect(".mobilebar span:has(> button.avatar)"),
         avatar: rect(".mobilebar button.avatar"), brand: rect(".mobilebar .m-brand"),
         pseudo: { width: pseudo.width, height: pseudo.height },
       };
     });
-    expect([geometry.menu.w, geometry.menu.h, geometry.ai.w, geometry.ai.h, geometry.account.w, geometry.account.h]).toEqual([44, 44, 44, 44, 44, 44]);
+    expect([geometry.menu.w, geometry.menu.h, geometry.palette.w, geometry.palette.h, geometry.ai.w, geometry.ai.h, geometry.account.w, geometry.account.h]).toEqual([44, 44, 44, 44, 44, 44, 44, 44]);
     expect([geometry.avatar.w, geometry.avatar.h]).toEqual([30, 30]);
     expect(geometry.pseudo).toEqual({ width: "44px", height: "44px" });
-    for (const target of [geometry.menu, geometry.ai, geometry.account]) {
+    for (const target of [geometry.menu, geometry.palette, geometry.ai, geometry.account]) {
       const overlapX = Math.min(target.r, geometry.brand.r) - Math.max(target.l, geometry.brand.l);
       const overlapY = Math.min(target.b, geometry.brand.b) - Math.max(target.t, geometry.brand.t);
       expect(overlapX > 0 && overlapY > 0, `brand overlap at ${width}px`).toBe(false);
@@ -353,8 +355,10 @@ test("guest drawer account hands focus to onboarding without late Menu refocus",
   await page.screenshot({ path: testInfo.outputPath("onboarding-handoff.png") });
 });
 
-test("Analysis navigation carries NVDA and does not steal destination focus", async ({ page }, testInfo) => {
+test("Analysis navigation carries NVDA and does not steal destination focus", async ({ page, baseURL }, testInfo) => {
   mobileOnly(testInfo);
+  // Existing non-chart dev fixture admission; do not change the production auth owner.
+  await page.context().addCookies([{ name: "mm_e2e_rs30", value: "1", url: baseURL! }]);
   await gotoTerminal(page);
   const { dialog } = await openDrawer(page);
   const analysis = dialog.locator('a[href="/analysis?symbol=NVDA"]');
@@ -370,8 +374,9 @@ test("Analysis navigation carries NVDA and does not steal destination focus", as
   await page.screenshot({ path: testInfo.outputPath("analysis-nvda.png") });
 });
 
-test("shared non-chart shell uses the same modal and marks its active route", async ({ page }, testInfo) => {
+test("ordinary non-chart AppShell uses the same modal and marks its active route", async ({ page, baseURL }, testInfo) => {
   phoneOnly(testInfo);
+  await page.context().addCookies([{ name: "mm_e2e_rs30", value: "1", url: baseURL! }]);
   await page.goto("/discover");
   await expect(page.locator(MENU)).toBeVisible();
   const { dialog } = await openDrawer(page);
@@ -399,12 +404,12 @@ test("from-Macro header remains non-overlapping and actionable at 320px", async 
   ).toBe(true);
   await expect(page.locator(".mobilebar.from-macro .m-back-prom")).toBeVisible();
   await expect(page.locator(".mobilebar .m-brand")).toBeHidden();
-  for (const selector of [MENU, '.mobilebar button[aria-label="Mastermind AI"]', ".mobilebar button.avatar"]) {
+  for (const selector of [MENU, PALETTE, '.mobilebar button[aria-label="Mastermind AI"]', ".mobilebar button.avatar"]) {
     expect(await pointMisses(page, selector), selector).toEqual([]);
   }
   const overlaps = await page.evaluate(() => {
     const elements = Array.from(document.querySelectorAll<HTMLElement>(
-      '.mobilebar .m-back-prom, .mobilebar button[aria-label="Menu"], .mobilebar button[aria-label="Mastermind AI"], .mobilebar span:has(> button.avatar)',
+      '.mobilebar .m-back-prom, .mobilebar button[aria-label="Menu"], .mobilebar [data-command-palette-trigger="mobile"], .mobilebar button[aria-label="Mastermind AI"], .mobilebar span:has(> button.avatar)',
     ));
     const rects = elements.map((element) => ({ label: element.getAttribute("aria-label") || "Back", rect: element.getBoundingClientRect() }));
     const collisions: string[] = [];

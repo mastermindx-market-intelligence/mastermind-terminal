@@ -6,20 +6,34 @@ auto-merge as the fastest server-side path. This controller is the fallback for 
 ready pull request that was labelled but never natively armed. It only considers
 same-repository, non-draft pull requests carrying the
 ``merge-on-green`` label; requires the latest trusted instance of all three CI jobs
-to have completed successfully; refreshes a stale branch onto current master before
-merge; and pins the squash merge to the head SHA it evaluated.
+to have completed successfully; and pins every state-changing action to the head SHA
+it evaluated. When GitHub's native merge queue is enabled for master, the controller
+enqueues every eligible green head (including a head that is merely behind master)
+and leaves integration ordering/revalidation to that queue. Without a merge queue it
+retains the historical refresh-then-SHA-pinned-squash fallback.
 
 The controller is deliberately label-gated. ``hold`` and ``do-not-merge`` are hard
 vetoes. A genuine trusted red or conflict is labelled ``merge-blocked`` with one
 comment; pending, missing, or wrong-App evidence simply waits. One sweep may merge
 a green pull request and then update the next stale one, but it never merges two
 pull requests against the same base snapshot.
+
+A branch update written with GITHUB_TOKEN makes GitHub create the head's
+``pull_request`` CI run already completed as ``action_required``: held, with no
+jobs. That held suite is the one the pull request's required-check rollup reads, so
+green checks from any other run on the same commit leave the pull request BLOCKED
+(#874, 2026-10-13). The controller therefore re-runs that exact held run. Measured
+on 2026-10-13 (throwaway probe PR #988): a GITHUB_TOKEN ``POST /actions/runs/{id}/rerun``
+answers 201 and attempt 2 executes every job (runs 38378802229 and 38379271205), and
+its checks appear in the pull request's rollup as required contexts. Every held run
+seen (those two and #874's 38370600573) has ``actor.login == github-actions[bot]``.
 """
 from __future__ import annotations
 
 import json
 import os
 import sys
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -40,6 +54,14 @@ REQUIRED_CHECKS = (
 # from another App.
 REQUIRED_CHECK_APP_ID = 15368
 BLOCK_MARKER = "<!-- mastermind-terminal-merge-sweeper -->"
+# The only actor whose held pull_request run the controller releases: the
+# repository's own workflow token. A run held for anyone else is a human decision.
+HELD_RUN_ACTOR = "github-actions[bot]"
+# After update-branch answers 202 the new head and its pull_request run appear a few
+# seconds later. Look for that run this many times, this far apart, before falling
+# back to an explicit dispatch.
+REFRESH_RUN_POLLS = 12
+REFRESH_RUN_POLL_SECONDS = 5
 
 
 class ApiError(RuntimeError):
@@ -80,8 +102,116 @@ class GitHubApi:
                 message = raw
             raise ApiError(error.code, str(message)) from error
 
+    def graphql_request(self, query: str, variables: dict[str, Any]) -> dict[str, Any]:
+        body = json.dumps({"query": query, "variables": variables}).encode()
+        req = urllib.request.Request(
+            "https://api.github.com/graphql",
+            data=body,
+            method="POST",
+            headers={
+                "Accept": "application/vnd.github+json",
+                "Authorization": f"Bearer {self.token}",
+                "Content-Type": "application/json",
+                "User-Agent": "mastermind-terminal-merge-sweeper",
+            },
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=30) as response:
+                raw = response.read()
+        except urllib.error.HTTPError as error:
+            raw = error.read().decode(errors="replace")
+            try:
+                message = json.loads(raw).get("message", raw)
+            except json.JSONDecodeError:
+                message = raw
+            raise ApiError(error.code, str(message)) from error
+
+        try:
+            payload = json.loads(raw) if raw else {}
+        except json.JSONDecodeError as error:
+            raise ApiError(502, "GraphQL response was not valid JSON") from error
+        if not isinstance(payload, dict):
+            raise ApiError(502, "GraphQL response was not an object")
+        errors = payload.get("errors")
+        if errors:
+            messages = []
+            for item in errors if isinstance(errors, list) else [errors]:
+                if isinstance(item, dict):
+                    messages.append(str(item.get("message") or "unknown GraphQL error"))
+                else:
+                    messages.append(str(item))
+            raise ApiError(422, "GraphQL: " + "; ".join(messages))
+        data = payload.get("data")
+        if not isinstance(data, dict):
+            raise ApiError(502, "GraphQL response did not contain a data object")
+        return data
+
+    def merge_queue_enabled(self, base_ref: str) -> bool:
+        owner, name = self.repo.split("/", 1)
+        data = self.graphql_request(
+            """
+            query($owner: String!, $name: String!, $branch: String!) {
+              repository(owner: $owner, name: $name) {
+                mergeQueue(branch: $branch) { id }
+              }
+            }
+            """,
+            {"owner": owner, "name": name, "branch": base_ref},
+        )
+        repository = data.get("repository")
+        return isinstance(repository, dict) and isinstance(repository.get("mergeQueue"), dict)
+
+    def queue_entry(self, pull_request_id: str) -> str | None:
+        data = self.graphql_request(
+            """
+            query($id: ID!) {
+              node(id: $id) {
+                ... on PullRequest {
+                  mergeQueueEntry { id }
+                }
+              }
+            }
+            """,
+            {"id": pull_request_id},
+        )
+        node = data.get("node")
+        entry = node.get("mergeQueueEntry") if isinstance(node, dict) else None
+        if not isinstance(entry, dict):
+            return None
+        entry_id = entry.get("id")
+        return str(entry_id) if entry_id else None
+
+    def enqueue(self, pull_request_id: str, head_sha: str) -> str:
+        data = self.graphql_request(
+            """
+            mutation($pullRequestId: ID!, $expectedHeadOid: GitObjectID!) {
+              enqueuePullRequest(
+                input: {
+                  pullRequestId: $pullRequestId
+                  expectedHeadOid: $expectedHeadOid
+                }
+              ) {
+                mergeQueueEntry { id }
+              }
+            }
+            """,
+            {"pullRequestId": pull_request_id, "expectedHeadOid": head_sha},
+        )
+        payload = data.get("enqueuePullRequest")
+        entry = payload.get("mergeQueueEntry") if isinstance(payload, dict) else None
+        if not isinstance(entry, dict) or not entry.get("id"):
+            raise ApiError(422, "enqueuePullRequest returned no merge queue entry")
+        return str(entry["id"])
+
     def list_pulls(self) -> list[dict[str, Any]]:
-        return self.request("GET", "/pulls?state=open&per_page=100&sort=created&direction=asc")
+        pulls: list[dict[str, Any]] = []
+        page = 1
+        while True:
+            batch = self.request("GET", f"/pulls?state=open&per_page=100&sort=created&direction=asc&page={page}")
+            pulls.extend(batch)
+            if len(batch) < 100:
+                return pulls
+            page += 1
 
     def pull(self, number: int) -> dict[str, Any]:
         return self.request("GET", f"/pulls/{number}")
@@ -91,19 +221,32 @@ class GitHubApi:
         data = self.request("GET", f"/commits/{quoted}/check-runs?per_page=100")
         return data.get("check_runs", [])
 
+    def pull_request_ci_runs(self, sha: str) -> list[dict[str, Any]]:
+        quoted = urllib.parse.quote(sha, safe="")
+        data = self.request(
+            "GET",
+            f"/actions/workflows/ci.yml/runs?event=pull_request&head_sha={quoted}&per_page=20",
+        )
+        return data.get("workflow_runs", [])
+
+    def rerun_workflow_run(self, run_id: int) -> None:
+        self.request("POST", f"/actions/runs/{int(run_id)}/rerun")
+
     def update_branch(self, number: int, head_sha: str) -> None:
         self.request("PUT", f"/pulls/{number}/update-branch", {"expected_head_sha": head_sha})
 
     def dispatch_ci(self, branch: str, pr_number: int | None = None) -> None:
-        # GITHUB_TOKEN-authored branch updates do not recursively fire pull_request
-        # workflows. workflow_dispatch is the documented exception, so the sweeper
-        # explicitly orders the fresh proof it just made necessary.
+        # Fallback only. The refresh path first re-runs the held pull_request run,
+        # which is the run the pull request's rollup reads. A dispatched run's
+        # checks land on the same commit but do NOT satisfy that rollup (#874), so
+        # this is ordered only when no pull_request run appeared for the new head.
         #
-        # That dispatched run is therefore the ONLY CI run for the sha that then
-        # merges, and on a workflow_dispatch `github.event.pull_request.number` is
-        # empty -- so the migration-namespace guard fell to its LENIENT rule set on
-        # exactly the gating run (round 4, MAJOR 2). ci.yml now takes a `pr_number`
-        # input and the number is passed here.
+        # On that path the dispatched run may be the only CI run that has executed
+        # for the sha, and on a workflow_dispatch `github.event.pull_request.number`
+        # is empty -- so the migration-namespace guard fell to its LENIENT rule set
+        # in it (round 4, MAJOR 2). ci.yml now takes a `pr_number` input and the
+        # number is passed here. The merge itself still waits for the pull_request
+        # run's required checks.
         payload: dict[str, Any] = {"ref": branch}
         if pr_number is not None:
             payload["inputs"] = {"pr_number": str(pr_number)}
@@ -162,8 +305,13 @@ class MergeApi(Protocol):
     def list_pulls(self) -> list[dict[str, Any]]: ...
     def pull(self, number: int) -> dict[str, Any]: ...
     def check_runs(self, sha: str) -> list[dict[str, Any]]: ...
+    def pull_request_ci_runs(self, sha: str) -> list[dict[str, Any]]: ...
+    def rerun_workflow_run(self, run_id: int) -> None: ...
     def update_branch(self, number: int, head_sha: str) -> None: ...
     def dispatch_ci(self, branch: str, pr_number: int | None = None) -> None: ...
+    def merge_queue_enabled(self, base_ref: str) -> bool: ...
+    def queue_entry(self, pull_request_id: str) -> str | None: ...
+    def enqueue(self, pull_request_id: str, head_sha: str) -> str: ...
     def merge(self, number: int, head_sha: str) -> dict[str, Any]: ...
     def add_labels(self, number: int, labels: list[str]) -> None: ...
     def remove_label(self, number: int, label: str) -> None: ...
@@ -250,7 +398,94 @@ def mark_blocked(api: MergeApi, pull: dict[str, Any], reason: str) -> None:
     )
 
 
-def sweep(api: MergeApi, trigger_number: int | None = None) -> list[str]:
+def newest_pull_request_run(
+    runs: Iterable[dict[str, Any]], head_sha: str, repo: str
+) -> dict[str, Any] | None:
+    """The newest same-repository ``pull_request`` CI run for exactly this head."""
+    matching = [
+        run
+        for run in runs
+        if run.get("event") == "pull_request"
+        and str(run.get("head_sha", "")) == head_sha
+        and (run.get("head_repository") or {}).get("full_name") == repo
+    ]
+    if not matching:
+        return None
+    return max(matching, key=lambda run: int(run.get("id", 0)))
+
+
+def is_held(run: dict[str, Any]) -> bool:
+    # GitHub records a run it will not start until someone approves it as already
+    # completed with conclusion action_required, and creates no jobs for it.
+    return run.get("status") == "completed" and run.get("conclusion") == "action_required"
+
+
+def held_pull_request_run(api: MergeApi, head_sha: str) -> dict[str, Any] | None:
+    run = newest_pull_request_run(api.pull_request_ci_runs(head_sha), head_sha, api.repo)
+    return run if run is not None and is_held(run) else None
+
+
+def release_held_run(api: MergeApi, run: dict[str, Any]) -> str:
+    """Re-run one held pull_request CI run and say what happened.
+
+    This only starts the repository's own CI for a head that is already on the
+    pull request. The merge still waits for those required checks to pass.
+    """
+    run_id = int(run["id"])
+    actor = str((run.get("actor") or {}).get("login") or "unknown")
+    if actor != HELD_RUN_ACTOR:
+        return f"pull_request CI run {run_id} is waiting for a maintainer to approve {actor}'s run"
+    attempt = int(run.get("run_attempt") or 1)
+    if attempt > 1:
+        # A re-run the controller already ordered came back held again. Doing it
+        # again every sweep would loop, so leave it to a person.
+        return (
+            f"pull_request CI run {run_id} is still held after {attempt} attempts; "
+            "a maintainer must re-run it"
+        )
+    try:
+        api.rerun_workflow_run(run_id)
+    except ApiError as error:
+        if not (400 <= error.status < 500):
+            raise
+        return f"declined: re-run of held pull_request CI run {run_id}: {error}"
+    return f"re-ran held pull_request CI run {run_id} for {run.get('head_sha')}; awaiting PR-linked CI"
+
+
+def start_refreshed_ci(
+    api: MergeApi, number: int, branch: str, old_head: str, wait
+) -> str:
+    """Start the pull-request CI for the head update-branch has just written.
+
+    update-branch answers 202 before the merge commit exists, so look for the new
+    head and its pull_request run a bounded number of times. A held run is re-run;
+    a run that is already queued or running needs nothing.
+    """
+    advanced = False
+    for attempt in range(REFRESH_RUN_POLLS):
+        if attempt:
+            wait(REFRESH_RUN_POLL_SECONDS)
+        new_head = str(api.pull(number)["head"]["sha"])
+        if new_head == old_head:
+            continue
+        advanced = True
+        run = newest_pull_request_run(api.pull_request_ci_runs(new_head), new_head, api.repo)
+        if run is None:
+            continue
+        if is_held(run):
+            return release_held_run(api, run)
+        return f"pull_request CI run {run['id']} is {run.get('status')}; awaiting PR-linked CI"
+    if not advanced:
+        # Dispatching now would only prove the old head. A later sweep sees either
+        # the new head (and releases its held run) or a still-behind branch.
+        return "update-branch has not written a new head yet; a later sweep re-checks it"
+    # No pull_request run appeared in time. Order the checks explicitly so the head
+    # is not left without any. If a held run appears later, a later sweep re-runs it.
+    api.dispatch_ci(branch, number)
+    return "no pull_request CI run appeared for the new head; dispatched CI; awaiting fresh CI"
+
+
+def sweep(api: MergeApi, trigger_number: int | None = None, *, wait=time.sleep) -> list[str]:
     pulls = [pull for pull in api.list_pulls() if is_armed_candidate(pull, api.repo)]
     if trigger_number is not None:
         pulls.sort(key=lambda pull: (int(pull["number"]) != trigger_number, pull.get("created_at", "")))
@@ -258,8 +493,15 @@ def sweep(api: MergeApi, trigger_number: int | None = None) -> list[str]:
         pulls.sort(key=lambda pull: pull.get("created_at", ""))
 
     actions: list[str] = []
+    queue_enabled = api.merge_queue_enabled("master") if pulls else False
     merged_this_sweep = False
-    for listed in pulls:
+    first_pass_size = len(pulls)
+    for position, listed in enumerate(pulls):
+        if position == first_pass_size:
+            # Revisit only the fixed first-pass pending set, once, after one
+            # shared short wait. Every proof below is read again; no prior
+            # mutation or refused API request is queued for retry.
+            wait(2)
         number = int(listed["number"])
         pull = api.pull(number)  # refresh head/base after any earlier merge in this sweep
         if not is_armed_candidate(pull, api.repo):
@@ -270,13 +512,20 @@ def sweep(api: MergeApi, trigger_number: int | None = None) -> list[str]:
             actions.append(f"#{number}: conflict")
             continue
         if pull.get("mergeable") is None:
-            actions.append(f"#{number}: mergeability pending")
+            if position < first_pass_size:
+                pulls.append(listed)
+            else:
+                actions.append(f"#{number}: mergeability pending")
             continue
+
 
         head_sha = str(pull["head"]["sha"])
         verdict = check_verdict(api.check_runs(head_sha))
         if verdict.state == "pending":
-            actions.append(f"#{number}: {verdict.detail}")
+            # Nothing may ever start for a head whose pull_request run is held, so
+            # release it instead of waiting on checks that cannot arrive.
+            held = held_pull_request_run(api, head_sha)
+            actions.append(f"#{number}: {release_held_run(api, held) if held else verdict.detail}")
             continue
         if verdict.state == "red":
             mark_blocked(api, pull, f"the latest required CI is red ({verdict.detail})")
@@ -293,13 +542,41 @@ def sweep(api: MergeApi, trigger_number: int | None = None) -> list[str]:
         # the CURRENT base branch, so the refresh-vs-merge decision reads that
         # field instead of comparing against the stale sha.
         mergeable_state = str(pull.get("mergeable_state") or "unknown")
+        if queue_enabled:
+            if mergeable_state not in {"clean", "behind"}:
+                held = held_pull_request_run(api, head_sha)
+                waiting = f"waiting (mergeable_state={mergeable_state})"
+                actions.append(f"#{number}: {release_held_run(api, held) if held else waiting}")
+                continue
+            pull_request_id = str(pull.get("node_id") or "")
+            if not pull_request_id:
+                actions.append(f"#{number}: waiting (missing pull request node_id)")
+                continue
+            existing_entry = api.queue_entry(pull_request_id)
+            if existing_entry is not None:
+                actions.append(f"#{number}: already queued ({existing_entry})")
+                continue
+            try:
+                entry_id = api.enqueue(pull_request_id, head_sha)
+            except ApiError as error:
+                if not (400 <= error.status < 500):
+                    raise
+                actions.append(f"#{number}: declined: {error}")
+                continue
+            actions.append(f"#{number}: enqueued in merge queue ({entry_id})")
+            # Enqueueing does not advance master. Keep evaluating other green
+            # candidates so GitHub can build up to the queue's configured
+            # concurrent-candidate limit in this same sweep.
+            continue
         if mergeable_state == "behind":
             branch = str(pull["head"]["ref"])
             api.update_branch(number, head_sha)
-            # The number is known here; hand it to the dispatched run so the
-            # namespace guard can earn PULL_REQUEST mode on the refreshed head.
-            api.dispatch_ci(branch, number)
-            actions.append(f"#{number}: updated onto current master; awaiting fresh CI")
+            # This GITHUB_TOKEN write leaves the new head's pull_request run held.
+            # Re-run that run: it is the one the pull request's rollup reads. The
+            # number is passed to the fallback dispatch so the namespace guard can
+            # still earn PULL_REQUEST mode if that path is taken.
+            started = start_refreshed_ci(api, number, branch, head_sha, wait)
+            actions.append(f"#{number}: updated onto current master; {started}")
             # An update creates the next safe wake-up. Stop so no other green is
             # judged against a base snapshot this mutation just invalidated.
             break
@@ -307,8 +584,12 @@ def sweep(api: MergeApi, trigger_number: int | None = None) -> list[str]:
             # blocked/unstable/unknown/has_hooks: GitHub has not (yet) confirmed a
             # clean merge against the current base. Wait for the next sweep
             # rather than attempting a merge GitHub has not settled on, or that a
-            # strict-protection 405 would only refuse anyway.
-            actions.append(f"#{number}: waiting (mergeable_state={mergeable_state})")
+            # strict-protection 405 would only refuse anyway. The exception is a
+            # held pull_request run: green checks from another run on this commit
+            # never satisfy the rollup, so waiting alone would never end (#874).
+            held = held_pull_request_run(api, head_sha)
+            waiting = f"waiting (mergeable_state={mergeable_state})"
+            actions.append(f"#{number}: {release_held_run(api, held) if held else waiting}")
             continue
 
         try:
@@ -368,7 +649,9 @@ def main() -> int:
     # unhandled-exception path above that aborted the whole sweep on the first
     # such PR); exiting non-zero here still surfaces it to the workflow run
     # without having skipped any other armed pull request.
-    if any(": declined:" in action for action in actions):
+    # "declined:" also covers a refused re-run reported inside a refresh line
+    # ("#7: updated onto current master; declined: ...").
+    if any("declined:" in action for action in actions):
         print(
             "::error::one or more armed pull requests were declined by GitHub this sweep; see notices above",
             file=sys.stderr,
