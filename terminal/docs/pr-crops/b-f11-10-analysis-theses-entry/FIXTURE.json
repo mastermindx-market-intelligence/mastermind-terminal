@@ -1,0 +1,232 @@
+{
+  "schema": "terminal.f11-source-component-fixture.v1",
+  "capturedAtHead": "ce9cafafbdfd2169ca0f5b1b31012cc697985898",
+  "captureProfile": {
+    "server": {
+      "command": "next dev --webpack",
+      "mode": "development",
+      "reactDebugChannel": false,
+      "providerClosedChild": true
+    },
+    "node": "v20.20.2",
+    "next": "16.2.9",
+    "playwright": "1.61.1",
+    "browser": {
+      "version": "149.0.7827.55",
+      "revision": "1228",
+      "launch": {
+        "headless": true
+      },
+      "serviceWorkers": "block",
+      "freshContextPerImage": true
+    }
+  },
+  "fixtureSources": {
+    "terminal/e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs": "1e985556c204a41e8d7d041abd872beb461806b41fd8e2e5e9ead71a4bc51e8e",
+    "terminal/e2e/tools/f11_provider_closed_policy.cjs": "e2534e0a6575e0f1ba76d1e03645fb2fd1184f9029bad4b2fc2767aa3ebfa38c",
+    "terminal/next.config.ts": "063e7c5cf4d7601d8c4799e5909e05ac334460704b6d854773b06465b00c07c7",
+    "terminal/package-lock.json": "ecb0e5d1f6119efbbbf84ad2058dab315ad1c1326537aff6de7597e4ad5358a9",
+    "terminal/app/(shell)/analysis/page.tsx": "d614e49e3f4bfc981d09c06cc8df5b10cff66901a6a7b4a2afd9ddf736e2629b",
+    "terminal/app/(shell)/layout.tsx": "4daf0325a82cadfb2223fbaa8bf0a26662463cccbfd9bdbced4ed9b511a85b2b",
+    "terminal/lib/supabase/middleware.ts": "0035a14c51a2c76f02744d8d5ff93192fd017edc84980a25d1f279bb91fe5e26",
+    ".github/workflows/ci.yml": "753fccd683facd3c5e97b3816832efd1ff90967564929fefa43b4943eac520fc",
+    "terminal/components/workspaces/AnalysisWorkspace.tsx": "80bc4d4018313e22edcd2144d7d2616b447c9d2c10cf775900ef3bd2f199860c",
+    "terminal/app/company-intelligence.css": "8b43f2046891837f6572fa2a59b7594547def9602b0454e1f14edba322da2a34",
+    "terminal/lib/i18n.tsx": "92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435"
+  },
+  "scope": "Real source component, synthetic fixture identity and unavailable market inputs; no authenticated, provider, installed or account proof",
+  "entryObservations": [
+    {
+      "file": "desktop-en.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "symbol": "NVDA",
+      "lang": "en",
+      "state": "context-bar-with-theses-control",
+      "href": "/analysis?view=theses&symbol=NVDA",
+      "entryBounds": {
+        "x": 1323.03125,
+        "y": 67.5,
+        "width": 102.96875,
+        "height": 32
+      },
+      "requestBoundary": {
+        "forwarded": 19,
+        "unavailable": 5,
+        "businessUnavailable": 5,
+        "componentFundUnavailable": 1,
+        "aborted": 1,
+        "webSocketsBlocked": 1,
+        "redirectOrBadStatus": 0,
+        "failedAllowedResponses": []
+      },
+      "pageErrorNames": [],
+      "image": {
+        "bytes": 72706,
+        "sha256": "8714101725dfbb1e1715fd8edfe950020f3402199840e9f51091ea4b06d62b36"
+      }
+    },
+    {
+      "file": "desktop-zh.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "symbol": "NVDA",
+      "lang": "zh",
+      "state": "context-bar-with-theses-control",
+      "href": "/analysis?view=theses&symbol=NVDA",
+      "entryBounds": {
+        "x": 1322,
+        "y": 67.5,
+        "width": 104,
+        "height": 32
+      },
+      "requestBoundary": {
+        "forwarded": 19,
+        "unavailable": 6,
+        "businessUnavailable": 6,
+        "componentFundUnavailable": 1,
+        "aborted": 1,
+        "webSocketsBlocked": 2,
+        "redirectOrBadStatus": 0,
+        "failedAllowedResponses": []
+      },
+      "pageErrorNames": [],
+      "image": {
+        "bytes": 72736,
+        "sha256": "1533914daed23bfebd9d41d59c546de4251522d2071bffb74b2609b9435b1545"
+      }
+    },
+    {
+      "file": "tablet-en.png",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "symbol": "NVDA",
+      "lang": "en",
+      "state": "context-bar-with-theses-control",
+      "href": "/analysis?view=theses&symbol=NVDA",
+      "entryBounds": {
+        "x": 703.03125,
+        "y": 60,
+        "width": 102.96875,
+        "height": 44
+      },
+      "requestBoundary": {
+        "forwarded": 19,
+        "unavailable": 5,
+        "businessUnavailable": 5,
+        "componentFundUnavailable": 1,
+        "aborted": 1,
+        "webSocketsBlocked": 1,
+        "redirectOrBadStatus": 0,
+        "failedAllowedResponses": []
+      },
+      "pageErrorNames": [],
+      "image": {
+        "bytes": 35491,
+        "sha256": "06529df528cd4e5980ea4d18828fcfd0eab0e6f4ddc86dfec524a9f56bdc44de"
+      }
+    },
+    {
+      "file": "tablet-zh.png",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "symbol": "NVDA",
+      "lang": "zh",
+      "state": "context-bar-with-theses-control",
+      "href": "/analysis?view=theses&symbol=NVDA",
+      "entryBounds": {
+        "x": 702,
+        "y": 60,
+        "width": 104,
+        "height": 44
+      },
+      "requestBoundary": {
+        "forwarded": 19,
+        "unavailable": 6,
+        "businessUnavailable": 6,
+        "componentFundUnavailable": 1,
+        "aborted": 1,
+        "webSocketsBlocked": 2,
+        "redirectOrBadStatus": 0,
+        "failedAllowedResponses": []
+      },
+      "pageErrorNames": [],
+      "image": {
+        "bytes": 34351,
+        "sha256": "fed093f7efa1b37fdfef75088771727f7bf50f4e8844a936855e3d670d1ea643"
+      }
+    },
+    {
+      "file": "mobile-en.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "symbol": "NVDA",
+      "lang": "en",
+      "state": "context-bar-with-theses-control",
+      "href": "/analysis?view=theses&symbol=NVDA",
+      "entryBounds": {
+        "x": 198,
+        "y": 110,
+        "width": 182,
+        "height": 44
+      },
+      "requestBoundary": {
+        "forwarded": 19,
+        "unavailable": 5,
+        "businessUnavailable": 5,
+        "componentFundUnavailable": 1,
+        "aborted": 1,
+        "webSocketsBlocked": 1,
+        "redirectOrBadStatus": 0,
+        "failedAllowedResponses": []
+      },
+      "pageErrorNames": [],
+      "image": {
+        "bytes": 25154,
+        "sha256": "24c19e7d2b22630b92b9cb7ca7cfe44a60e3ae5efe5a2a33aaa44b06427cc879"
+      }
+    },
+    {
+      "file": "mobile-zh.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "symbol": "NVDA",
+      "lang": "zh",
+      "state": "context-bar-with-theses-control",
+      "href": "/analysis?view=theses&symbol=NVDA",
+      "entryBounds": {
+        "x": 198,
+        "y": 110,
+        "width": 182,
+        "height": 44
+      },
+      "requestBoundary": {
+        "forwarded": 19,
+        "unavailable": 6,
+        "businessUnavailable": 6,
+        "componentFundUnavailable": 1,
+        "aborted": 1,
+        "webSocketsBlocked": 2,
+        "redirectOrBadStatus": 0,
+        "failedAllowedResponses": []
+      },
+      "pageErrorNames": [],
+      "image": {
+        "bytes": 26577,
+        "sha256": "96fbcb7352d13878d59ddb81014c3264df3d24df933214d190834eb805cc74c3"
+      }
+    }
+  ]
+}

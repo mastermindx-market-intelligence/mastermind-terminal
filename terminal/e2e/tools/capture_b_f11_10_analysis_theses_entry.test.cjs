@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports -- Node CommonJS contract tests execute the canonical CJS capture tool. */
 "use strict";
 const test = require("node:test");
 const assert = require("node:assert/strict");
