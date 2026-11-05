@@ -1,0 +1,19 @@
+{
+  "runtime": "v24.19.0",
+  "modelCases": 47,
+  "fixtureSha256": "b3e7eb3b5ca32e0ebe3d23011d9fa917841f38e9fb436c73c8ca62b53b01d0cb",
+  "fullCapture": {
+    "sha256": "4c6423e712db574b1b7481723f296bdab98366bf3502899903b79ad192725e7b",
+    "events": 74,
+    "classes": [
+      "Bill",
+      "Bond",
+      "FRN",
+      "Note",
+      "TIPS"
+    ],
+    "resultObserved": 43,
+    "tentative": 28
+  },
+  "scope": "Actual pure model execution only; no Vitest, React, Next typecheck, responsive browser, entitlement host or production claim"
+}

@@ -1,0 +1,16 @@
+{
+  "created_at": "2026-10-08T23:34:41.597109+00:00",
+  "preimages": {
+    "terminal_patch/terminal/components/SovereignAuctionContext.tsx": "e2abc532c086efd384ab0647f51ba0a17da0467584a5b610ddd532f70847fdd6",
+    "terminal_patch/terminal/lib/i18n.tsx": "03c8e6f16530acd425903602d6f16e3f040dff1280f38003ad223b2f632c6105",
+    "terminal_patch/terminal/lib/__tests__/sovereignAuctionComponent.test.tsx": "05afa3153f3174467133199c50db2a19b460818e1e3f4bf62f73885bf9400fa4",
+    "ui_verification/terminal/e2e/sovereign-auction-context.spec.ts": "7339021a076dc3d640d22aa0a903d6f4da09a96541f6b970d961dae36a3fefac"
+  },
+  "unchanged_guards": {
+    "terminal_patch/terminal/lib/sovereignAuctionContext.ts": "d949fbcdb50cc720d2e7c373177761c315c1e0fdcf0219f44066cfdd159aab9f",
+    "terminal_patch/terminal/app/api/nw/route.ts": "d25e4086de89828470f6216532e638163de0940aa1479818b30ca12cc91b00f2",
+    "terminal_patch/terminal/lib/__tests__/fixtures/sovereign_auction_context_w1.json": "c3019af2c6439d954886744a4261b8ec84b98f33ebb32ee8aecfa6dcfa98c268",
+    "ui_verification/terminal/e2e/fixtures/sovereign_auction_context_full_capture.json": "e363d46c7082b8c997d3385af3faf5ebab0eb9c07be9a89912c4d215a8cb32b3",
+    "ui_verification/lint_final/MANIFEST.json": "25871dd1ac31a04684e7458c5a3a24dec2d9d3d3c4fc922c37d2da0d1020abd2"
+  }
+}

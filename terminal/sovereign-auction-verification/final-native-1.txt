@@ -1,0 +1,17 @@
+
+> terminal@0.1.0 test
+> vitest run lib/__tests__/sovereignAuctionContext.test.ts lib/__tests__/nwRoute.test.ts lib/__tests__/sovereignAuctionComponent.test.tsx
+
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/web/sovereign-auction-context-20261008-sol-terminal-001/terminal
+
+ ✓ lib/__tests__/sovereignAuctionContext.test.ts (8 tests) 35ms
+ ✓ lib/__tests__/nwRoute.test.ts (17 tests) 140ms
+ ✓ lib/__tests__/sovereignAuctionComponent.test.tsx (11 tests) 96ms
+
+ Test Files  3 passed (3)
+      Tests  36 passed (36)
+   Start at  16:15:51
+   Duration  1.19s (transform 239ms, setup 0ms, collect 229ms, tests 271ms, environment 453ms, prepare 363ms)
+

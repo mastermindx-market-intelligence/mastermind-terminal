@@ -1,0 +1,2 @@
+lib/sovereignAuctionContext.ts(186,12): error TS2322: Type '{ row: AuctionEvent; order: number; }[]' is not assignable to type 'AuctionEvent[]'.
+  Type '{ row: AuctionEvent; order: number; }' is missing the following properties from type 'AuctionEvent': type, impact, assets, settled_payment_observed, and 28 more.

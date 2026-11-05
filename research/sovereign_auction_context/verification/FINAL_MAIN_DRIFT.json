@@ -1,0 +1,74 @@
+{
+  "status": "no_overlap_identified_in_exact_source_diff",
+  "observed_origin_master": "f03aa5d019f1894210a7c6e40b8825ae28015198",
+  "workspace": "/Volumes/Mastermind/agent-workspaces/terminal/web/sovereign-auction-context-20261008-sol-terminal-001",
+  "base": "d660d98b1ebc0bdf0d1b16d66202b1760f6cc94a",
+  "current": "f03aa5d019f1894210a7c6e40b8825ae28015198",
+  "path": "terminal/components/TerminalShell.tsx",
+  "base_source_sha256": "870c21f4f8a45c5388feeac63bff920631ce8baabbe7b5392aad5968da652b64",
+  "current_source_sha256": "9850a067fa49e1d2a593f403110b672b61e365b0ca931d003c35300019164545",
+  "diff_sha256": "a1802fcafbb5ad3591f12f951fcd981565720b7dcc8a3c7d349f7c39983e7b37",
+  "diff_bytes": 3503,
+  "hunks": [
+    {
+      "base_start": 151,
+      "base_end": 151,
+      "current_start": 151,
+      "current_end": 151,
+      "operation": "replace"
+    },
+    {
+      "base_start": 4174,
+      "base_end": 4182,
+      "current_start": 4174,
+      "current_end": 4175,
+      "operation": "replace"
+    }
+  ],
+  "base_blob": "417cd453fcf1d4ea444d12321ea37ad8a4f25888",
+  "current_blob": "ba589f4eb0235fafb655a20f67bc8e1de82800e7",
+  "source_reads": [
+    "git rev-parse origin/master",
+    "git show exact base/current TerminalShell blobs",
+    "git diff --no-ext-diff --unified=6 exact base current -- terminal/components/TerminalShell.tsx",
+    "current userScripts.ts helper excerpt and dependency diff stat"
+  ],
+  "auction_seams": {
+    "import": {
+      "candidate_added_line": 25,
+      "upstream_edit_line": 151,
+      "overlap": false
+    },
+    "action_group": {
+      "base_first_line": 6024,
+      "base_closing_line": 6027,
+      "current_first_line": 6017,
+      "current_closing_line": 6020,
+      "source_text_unchanged": true,
+      "required_placement": "Immediately after the .sa-btn-group closing div, inside the existing detail-scroll, before its closing div."
+    },
+    "net_upstream_line_delta_after_rename_handler": -7,
+    "neural_web_strip_import": {
+      "base": false,
+      "current": false
+    }
+  },
+  "required_preservation": [
+    "Preserve current runRenameScriptClick import from @/lib/userScripts.",
+    "Preserve current handleRenameScript delegation: const s = scriptById[id]; void runRenameScriptClick(loggedIn, s, name, setScripts).",
+    "Preserve current userScripts helper and its companion upstream dependencies through the normal current-main integration; do not reconstruct the Shell from a complete old-base file.",
+    "Keep the auction import and its leaf insertion as bounded additions; leave the existing action buttons, StockAnalysis and risk/Oracle handlers unchanged."
+  ],
+  "semantic_assessment": {
+    "auction_effect": "No new auction data, auth, risk, model, mount or Oracle coupling appears in the exact Shell diff.",
+    "integration_hazard": "Overwriting current TerminalShell with the older full-file candidate would remove the upstream rename helper integration. The current helper passes s.updated_at and publishes a ScriptWriteReceipt|null result; the old inline handler assumed a boolean and did not pass that last-observed version. Preserve the paired new import/call.",
+    "scope_limit": "This is source-diff/seam adjudication, not a full audit of the 119-line userScripts change or its backend owner."
+  },
+  "proof_limits": {
+    "merge_tree": "Not executed; root owns the code commit and merge-tree inspection without merging.",
+    "new_tests": "No tests, build, lint or browser processes started by this audit.",
+    "latest_validation": "Root reports native 42 tests, tsc, leaf/E2E lint and 18 actual-route browser cases passed; not independently rerun here and not a combined-current-main behavior claim.",
+    "other_target_paths": "Root reports unchanged against current main; not independently re-censused in this Shell-only task.",
+    "remote_mutations": false
+  }
+}
