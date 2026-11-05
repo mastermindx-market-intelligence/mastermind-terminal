@@ -1,0 +1,111 @@
+
+> terminal@0.1.0 test:e2e:responsive
+> playwright test --config=docs/verification/d08b-vol-skew-exact-20261104/playwright.config.ts e2e/options-positioning-profile-exact.spec.ts e2e/options-positioning-card-titles.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --max-failures=2
+
+[warmup] /terminal?symbol=NVDA → 200 in 66ms
+[warmup] /options → 200 in 137ms
+[warmup] /portfolio → 200 in 79ms
+[warmup] /alerts → 200 in 76ms
+[warmup] /analysis → 200 in 135ms
+[warmup] /discover → 200 in 87ms
+[warmup] /admin → 200 in 50ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 44ms
+[warmup] /login → 200 in 68ms
+[warmup] /reset-password → 200 in 73ms
+[warmup] /api/me → 200 in 61ms
+[warmup] /api/watchlist → 200 in 26ms
+[warmup] /api/layouts → 200 in 28ms
+[warmup] /api/watchlist/annotations → 409 in 25ms
+[warmup] 14 routes compiled in 1s
+
+Running 18 tests using 1 worker
+
+  -   1 [desktop] › e2e/options-positioning-card-titles.spec.ts:3:5 › Positioning keeps long card titles readable on mobile
+  -   2 [desktop] › e2e/options-positioning-profile-exact.spec.ts:268:5 › baseline: current Positioning profile at320px and sparse source
+  ✘   3 [desktop] › e2e/options-positioning-profile-exact.spec.ts:319:7 › Profile en: exact modeled samples, source references and keyboard presentation (2.7s)
+  ✘   4 [desktop] › e2e/options-positioning-profile-exact.spec.ts:319:7 › Profile zh: exact modeled samples, source references and keyboard presentation (2.5s)
+Testing stopped early after 2 maximum allowed failures.
+
+
+  1) [desktop] › e2e/options-positioning-profile-exact.spec.ts:319:7 › Profile en: exact modeled samples, source references and keyboard presentation 
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 6
+
+    - Array []
+    + Array [
+    +   Object {
+    +     "ratio": 1.400280053936624,
+    +     "text": "$bn per +1% spotSigned estimate",
+    +   },
+    + ]
+
+      337 |       const chartContrast = await measureContrast(card);
+      338 |       writeFileSync(`test-results/d08b-profile-${info.project.name}-${lang}-${theme}-chart-contrast.json`, JSON.stringify(chartContrast, null, 2));
+    > 339 |       expect(chartContrast.text.filter(item => item.ratio < 4.5)).toEqual([]);
+          |                                                                   ^
+      340 |       expect(chartContrast.marks.filter(item => item.ratio < 3)).toEqual([]);
+      341 |       await capture(page, panel.locator("svg[role=img]"), `d08b-profile-${info.project.name}-${lang}-${theme}-chart`);
+      342 |
+        at /Volumes/Mastermind/agent-workspaces/terminal/web/d08b-surface-exact-values-20261104-c3/terminal/e2e/options-positioning-profile-exact.spec.ts:339:67
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/options-positioning-profil-8aaef-s-and-keyboard-presentation-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/options-positioning-profil-8aaef-s-and-keyboard-presentation-desktop/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/options-positioning-profil-8aaef-s-and-keyboard-presentation-desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/options-positioning-profil-8aaef-s-and-keyboard-presentation-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [desktop] › e2e/options-positioning-profile-exact.spec.ts:319:7 › Profile zh: exact modeled samples, source references and keyboard presentation 
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 6
+
+    - Array []
+    + Array [
+    +   Object {
+    +     "ratio": 1.400280053936624,
+    +     "text": "每 +1% 标的（十亿美元）带符号估计",
+    +   },
+    + ]
+
+      337 |       const chartContrast = await measureContrast(card);
+      338 |       writeFileSync(`test-results/d08b-profile-${info.project.name}-${lang}-${theme}-chart-contrast.json`, JSON.stringify(chartContrast, null, 2));
+    > 339 |       expect(chartContrast.text.filter(item => item.ratio < 4.5)).toEqual([]);
+          |                                                                   ^
+      340 |       expect(chartContrast.marks.filter(item => item.ratio < 3)).toEqual([]);
+      341 |       await capture(page, panel.locator("svg[role=img]"), `d08b-profile-${info.project.name}-${lang}-${theme}-chart`);
+      342 |
+        at /Volumes/Mastermind/agent-workspaces/terminal/web/d08b-surface-exact-values-20261104-c3/terminal/e2e/options-positioning-profile-exact.spec.ts:339:67
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/options-positioning-profil-cfdbb-s-and-keyboard-presentation-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/options-positioning-profil-cfdbb-s-and-keyboard-presentation-desktop/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/options-positioning-profil-cfdbb-s-and-keyboard-presentation-desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/options-positioning-profil-cfdbb-s-and-keyboard-presentation-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2 failed
+    [desktop] › e2e/options-positioning-profile-exact.spec.ts:319:7 › Profile en: exact modeled samples, source references and keyboard presentation 
+    [desktop] › e2e/options-positioning-profile-exact.spec.ts:319:7 › Profile zh: exact modeled samples, source references and keyboard presentation 
+  2 skipped
+  14 did not run
+  1 error was not a part of any test, see above for details

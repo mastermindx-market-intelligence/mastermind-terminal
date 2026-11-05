@@ -1,0 +1,126 @@
+{
+  "text": [
+    {
+      "text": "Exposure profile",
+      "ratio": 12.794044188667254
+    },
+    {
+      "text": "$bn per +1% spotSigned estimate",
+      "ratio": 12.794044188667254
+    },
+    {
+      "text": "$bn per +1% spot",
+      "ratio": 7.073661363306059
+    },
+    {
+      "text": "Signed estimate",
+      "ratio": 2.3538873839167938
+    },
+    {
+      "text": "Chart",
+      "ratio": 12.010292353016952
+    },
+    {
+      "text": "Exact profile values",
+      "ratio": 7.073661363306059
+    },
+    {
+      "text": "dealers dampen",
+      "ratio": 7.073661363306059
+    },
+    {
+      "text": "dealers amplify",
+      "ratio": 7.073661363306059
+    },
+    {
+      "text": "-1",
+      "ratio": 7.073661363306059
+    },
+    {
+      "text": "0",
+      "ratio": 7.073661363306059
+    },
+    {
+      "text": "1",
+      "ratio": 7.073661363306059
+    },
+    {
+      "text": "600",
+      "ratio": 7.073661363306059
+    },
+    {
+      "text": "650",
+      "ratio": 7.073661363306059
+    },
+    {
+      "text": "700",
+      "ratio": 7.073661363306059
+    },
+    {
+      "text": "750",
+      "ratio": 7.073661363306059
+    },
+    {
+      "text": "800",
+      "ratio": 7.073661363306059
+    },
+    {
+      "text": "850",
+      "ratio": 7.073661363306059
+    },
+    {
+      "text": "900",
+      "ratio": 7.073661363306059
+    },
+    {
+      "text": "Gamma flip 756.37",
+      "ratio": 10.907323937385671
+    },
+    {
+      "text": "spot",
+      "ratio": 7.073661363306059
+    },
+    {
+      "text": "CW",
+      "ratio": 7.073661363306059
+    },
+    {
+      "text": "PW",
+      "ratio": 7.073661363306059
+    },
+    {
+      "text": "±25% spot grid, re-priced from quoted IV — the same evaluation that pr",
+      "ratio": 7.073661363306059
+    },
+    {
+      "text": "Source & method",
+      "ratio": 12.794044188667254
+    }
+  ],
+  "marks": [
+    {
+      "shape": "polyline",
+      "ratio": 5.078211631537408
+    },
+    {
+      "shape": "circle",
+      "ratio": 7.073661363306059
+    },
+    {
+      "shape": "circle",
+      "ratio": 7.073661363306059
+    },
+    {
+      "shape": "line",
+      "ratio": 10.907323937385671
+    },
+    {
+      "shape": "circle",
+      "ratio": 10.907323937385671
+    },
+    {
+      "shape": "line",
+      "ratio": 7.073661363306059
+    }
+  ]
+}

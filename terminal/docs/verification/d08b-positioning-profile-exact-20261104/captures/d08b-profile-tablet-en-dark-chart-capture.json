@@ -1,0 +1,20 @@
+{
+  "schema": "d08b.viewport_capture.v1",
+  "viewport": {
+    "width": 820,
+    "height": 1180
+  },
+  "fullPage": false,
+  "innerWidth": 820,
+  "innerHeight": 1180,
+  "devicePixelRatio": 1,
+  "cssZoom": "1",
+  "target": {
+    "tag": "svg",
+    "text": "Net Gamma re-priced at supplied hypothetical spot prices, in billions of USD per +1% spot. Exact profile values provides the same finite sam",
+    "left": 25,
+    "top": 371.609375,
+    "width": 770,
+    "height": 224
+  }
+}

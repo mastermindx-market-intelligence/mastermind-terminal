@@ -1,0 +1,245 @@
+{
+  "text": [
+    {
+      "text": "Exposure profile",
+      "ratio": 12.794044188667254
+    },
+    {
+      "text": "$bn per +1% spot",
+      "ratio": 7.073661363306059
+    },
+    {
+      "text": "Signed estimate",
+      "ratio": 7.073661363306059
+    },
+    {
+      "text": "Chart",
+      "ratio": 7.073661363306059
+    },
+    {
+      "text": "Exact profile values",
+      "ratio": 12.010292353016952
+    },
+    {
+      "text": "13 finite spot–Gamma pairs · source order",
+      "ratio": 7.073661363306059
+    },
+    {
+      "text": "Hypothetical spot price",
+      "ratio": 12.794044188667254
+    },
+    {
+      "text": "Net Gamma ($bn per +1% spot)",
+      "ratio": 12.794044188667254
+    },
+    {
+      "text": "562.5925925917592",
+      "ratio": 12.794044188667254
+    },
+    {
+      "text": "-1.2345678901234567",
+      "ratio": 12.794044188667254
+    },
+    {
+      "text": "629.9984567890123",
+      "ratio": 12.794044188667254
+    },
+    {
+      "text": "-0.75",
+      "ratio": 12.794044188667254
+    },
+    {
+      "text": "689.9984567890123",
+      "ratio": 12.794044188667254
+    },
+    {
+      "text": "-0.25",
+      "ratio": 12.794044188667254
+    },
+    {
+      "text": "725.9984567890123",
+      "ratio": 12.794044188667254
+    },
+    {
+      "text": "-9.5367431640625e-7",
+      "ratio": 12.794044188667254
+    },
+    {
+      "text": "743.8734567890123",
+      "ratio": 12.794044188667254
+    },
+    {
+      "text": "0",
+      "ratio": 12.794044188667254
+    },
+    {
+      "text": "746.9984567890123",
+      "ratio": 12.794044188667254
+    },
+    {
+      "text": "+1.4551915228366852e-11",
+      "ratio": 12.794044188667254
+    },
+    {
+      "text": "750.1234567890123",
+      "ratio": 12.794044188667254
+    },
+    {
+      "text": "+0.12345678901234566",
+      "ratio": 12.794044188667254
+    },
+    {
+      "text": "753.2484567890123",
+      "ratio": 12.794044188667254
+    },
+    {
+      "text": "+0.25",
+      "ratio": 12.794044188667254
+    },
+    {
+      "text": "756.3734567890123",
+      "ratio": 12.794044188667254
+    },
+    {
+      "text": "0",
+      "ratio": 12.794044188667254
+    },
+    {
+      "text": "762.6234567890123",
+      "ratio": 12.794044188667254
+    },
+    {
+      "text": "-0.125",
+      "ratio": 12.794044188667254
+    },
+    {
+      "text": "774.2484567890123",
+      "ratio": 12.794044188667254
+    },
+    {
+      "text": "0",
+      "ratio": 12.794044188667254
+    },
+    {
+      "text": "830.2484567890123",
+      "ratio": 12.794044188667254
+    },
+    {
+      "text": "+0.75",
+      "ratio": 12.794044188667254
+    },
+    {
+      "text": "937.6543209862654",
+      "ratio": 12.794044188667254
+    },
+    {
+      "text": "+1.2345678901234567",
+      "ratio": 12.794044188667254
+    },
+    {
+      "text": "±25% spot grid, re-priced from quoted IV — the same evaluation that pr",
+      "ratio": 7.073661363306059
+    },
+    {
+      "text": "Source & method",
+      "ratio": 12.794044188667254
+    },
+    {
+      "text": "Source root",
+      "ratio": 7.073661363306059
+    },
+    {
+      "text": "SPY",
+      "ratio": 12.794044188667254
+    },
+    {
+      "text": "Supplied as-of",
+      "ratio": 7.073661363306059
+    },
+    {
+      "text": "2026-07-10T20:15:00Z",
+      "ratio": 12.794044188667254
+    },
+    {
+      "text": "Supplied profile method",
+      "ratio": 7.073661363306059
+    },
+    {
+      "text": "spot_grid_reprice",
+      "ratio": 12.794044188667254
+    },
+    {
+      "text": "Supplied spot-grid span",
+      "ratio": 7.073661363306059
+    },
+    {
+      "text": "25%",
+      "ratio": 12.794044188667254
+    },
+    {
+      "text": "Exact reference prices",
+      "ratio": 12.794044188667254
+    },
+    {
+      "text": "Reference spot",
+      "ratio": 7.073661363306059
+    },
+    {
+      "text": "750.1234567890123",
+      "ratio": 12.794044188667254
+    },
+    {
+      "text": "Call wall",
+      "ratio": 7.073661363306059
+    },
+    {
+      "text": "790.2484567890123",
+      "ratio": 12.794044188667254
+    },
+    {
+      "text": "Put wall",
+      "ratio": 7.073661363306059
+    },
+    {
+      "text": "709.9984567890123",
+      "ratio": 12.794044188667254
+    },
+    {
+      "text": "Profile flip reference",
+      "ratio": 7.073661363306059
+    },
+    {
+      "text": "756.3734567890123",
+      "ratio": 12.794044188667254
+    },
+    {
+      "text": "Supplied finite zero crossings",
+      "ratio": 12.794044188667254
+    },
+    {
+      "text": "Values preserve supplied numbers without display rounding; original de",
+      "ratio": 7.073661363306059
+    },
+    {
+      "text": "Only finite paired spot/Gamma samples are shown, in source order. Inva",
+      "ratio": 7.073661363306059
+    },
+    {
+      "text": "The curve needs at least 11 finite sample pairs. A shorter supplied se",
+      "ratio": 7.073661363306059
+    },
+    {
+      "text": "The flip reference uses the supplied crossing nearest the reference sp",
+      "ratio": 7.073661363306059
+    },
+    {
+      "text": "As-of belongs to the supplied GEX snapshot. It does not establish when",
+      "ratio": 7.073661363306059
+    },
+    {
+      "text": "This signed estimate retains the source's dealer-sign assumption. Re-p",
+      "ratio": 7.073661363306059
+    }
+  ],
+  "marks": []
+}
