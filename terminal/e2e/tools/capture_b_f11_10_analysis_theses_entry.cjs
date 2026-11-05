@@ -18,9 +18,10 @@
 
 const { spawn, execFileSync } = require("node:child_process");
 const { createHash } = require("node:crypto");
-const { closeSync, fsyncSync, lstatSync, mkdirSync, openSync, readFileSync, renameSync, unlinkSync, writeFileSync } = require("node:fs");
+const { closeSync, fsyncSync, lstatSync, mkdirSync, mkdtempSync, openSync, readFileSync, renameSync, unlinkSync, writeFileSync } = require("node:fs");
 const { join } = require("node:path");
 const { trackOwnedServer, prepareNamespace } = require("./f11_owned_server.cjs");
+const { scriptMetadata } = require("./f11_script_metadata.cjs");
 
 const ROOT = join(__dirname, "..", "..");
 const REPO = join(ROOT, "..");
@@ -259,7 +260,7 @@ async function assertNoNextIndicator(page, file) {
   }
 }
 
-async function installCaptureBoundary(context, base = BASE) {
+async function installCaptureBoundary(context, base = BASE, { scriptMetadata: recordScripts = false } = {}) {
   const { classifyRequest, typedUnavailablePayload } = require("./f11_provider_closed_policy.cjs");
   const counts = { forwarded: 0, unavailable: 0, businessUnavailable: 0, componentFundUnavailable: 0, aborted: 0, webSocketsBlocked: 0, redirectOrBadStatus: 0, failedAllowedResponses: [] };
   let signalBusinessRequest;
@@ -272,6 +273,29 @@ async function installCaptureBoundary(context, base = BASE) {
       })]);
     } finally { clearTimeout(timer); }
   } });
+  const requestIds = new WeakMap();
+  let nextRequestId = 0;
+  const requestId = request => {
+    if (!requestIds.has(request)) requestIds.set(request, ++nextRequestId);
+    return requestIds.get(request);
+  };
+  if (recordScripts) {
+    counts.publicScripts = [];
+    counts.scriptDelivery = [];
+    if (typeof context.on !== "function") throw new Error("F11_DELIVERY_OBSERVER_UNAVAILABLE");
+    const observe = (event, request) => {
+      if (request.resourceType() !== "script") return;
+      const decision = classifyRequest({ url: request.url(), method: request.method(), resourceType: "script" }, base);
+      const pathname = staticScriptPath(request.url(), "script");
+      if (decision.decision !== "continue" || !pathname || counts.scriptDelivery.length >= 64) return;
+      const known = ["ERR_CONTENT_DECODING_FAILED", "ERR_BLOCKED_BY_CLIENT", "ERR_ABORTED", "ERR_FAILED", "ERR_CONNECTION_RESET", "ERR_CONNECTION_CLOSED", "ERR_TIMED_OUT"];
+      const failure = event === "failed" ? request.failure()?.errorText || "" : "";
+      counts.scriptDelivery.push({ requestId: requestId(request), pathname, event,
+        ...(event === "failed" ? { errorCode: known.find(code => failure.includes(code)) || "OTHER" } : {}) });
+    };
+    context.on("requestfinished", request => observe("finished", request));
+    context.on("requestfailed", request => observe("failed", request));
+  }
   if (typeof context.routeWebSocket !== "function") throw new Error("F11_WEBSOCKET_BOUNDARY_UNSUPPORTED");
   // The crop needs no live stream, including dev HMR. Block before a socket connects.
   await context.routeWebSocket("**/*", (socket) => { counts.webSocketsBlocked++; socket.close(); });
@@ -295,7 +319,9 @@ async function installCaptureBoundary(context, base = BASE) {
     if (decision.decision === "continue") {
       // Only policy-qualified loopback documents/assets reach this call. Do not
       // allow a redirect from an otherwise allowed URL to escape the boundary.
+      const requestedAt = performance.now();
       const response = await route.fetch({ maxRedirects: 0 });
+      const fetchedAt = performance.now();
       const status = response.status();
       if (status !== 200) {
         counts.redirectOrBadStatus++;
@@ -310,7 +336,23 @@ async function installCaptureBoundary(context, base = BASE) {
         return route.abort("blockedbyclient");
       }
       counts.forwarded++;
-      return route.fulfill({ response });
+      let metadata;
+      if (recordScripts && request.resourceType() === "script") {
+        if (counts.publicScripts.length >= 32) throw new Error("F11_SCRIPT_METADATA_BOUND");
+        const bodyStart = performance.now();
+        const bytes = await response.body();
+        metadata = scriptMetadata({ pathname: new URL(request.url()).pathname,
+          contentType: response.headers()["content-type"], body: bytes,
+          fetchMs: fetchedAt - requestedAt, bodyMs: performance.now() - bodyStart, fulfillMs: 0 });
+        const encoding = response.headers()["content-encoding"]?.trim().toLowerCase();
+        metadata.encoding = encoding ? ["gzip", "br", "deflate", "identity", "zstd"].includes(encoding) ? encoding : "other" : "missing";
+        metadata.requestId = requestId(request);
+        counts.publicScripts.push(metadata);
+      }
+      const fulfilledAt = performance.now();
+      await route.fulfill({ response });
+      if (metadata) metadata.fulfillMs = performance.now() - fulfilledAt;
+      return;
     }
     counts.aborted++;
     return route.abort("blockedbyclient");
@@ -351,25 +393,63 @@ async function openAnalysis(page, lang, viewport) {
   return { symbol: SYM, lang, state: "context-bar-with-theses-control", href: href.pathname + href.search, entryBounds: bounds };
 }
 
-async function shoot(page, file) {
+async function shoot(page, file, out = OUT) {
   await assertNoNextIndicator(page, file);
   await page.mouse.move(0, 0);
   await page.waitForTimeout(200);
-  return page.screenshot({ path: join(OUT, file) });
+  return page.screenshot({ path: join(out, file) });
 }
 
-async function main() {
-  mkdirSync(OUT, { recursive: true });
+async function observeBootstrap(page) {
+  return page.evaluate(() => {
+    const registry = window.webpackChunk_N_E;
+    return {
+      readyState: document.readyState, scriptCount: document.scripts.length,
+      nextRuntime: typeof window.next === "object", flightArray: Array.isArray(window.__next_f),
+      flightConsumerInstalled: Array.isArray(window.__next_f) && window.__next_f.push !== Array.prototype.push,
+      webpackRegistryPresent: Array.isArray(registry),
+      webpackGroups: Array.isArray(registry) ? registry.length : 0,
+      registeredChunkIds: Array.isArray(registry) ? registry.flatMap(entry => Array.isArray(entry?.[0]) ? entry[0] : [])
+        .filter(id => typeof id === "string" && /^[a-zA-Z0-9_./()[\]-]{1,180}$/.test(id)).slice(0,32) : [],
+      scripts: Array.from(document.scripts).filter(script => script.src).slice(0,32).flatMap(script => {
+        try {
+          const pathname = new URL(script.src).pathname;
+          if (!/^\/_next\/static\/[a-zA-Z0-9_./%[\]()-]{1,240}$/.test(pathname)) return [];
+          return [{ pathname, async: script.async, defer: script.defer, type: script.type === "module" ? "module" : !script.type || script.type === "text/javascript" ? "classic" : "other" }];
+        } catch { return []; }
+      }),
+    };
+  }).catch(() => ({ unavailable: true }));
+}
+
+function writeDiagnosticArtifact(out, payload) {
+  if (payload.entryObservations?.length !== 1 || payload.entryObservations[0].file !== "mobile-zh.png") throw new Error("F11_DIAGNOSTIC_CASE_CONTRACT");
+  writeFileSync(join(out, "DIAGNOSTIC.json"), JSON.stringify({
+    ...payload, schema: "terminal.f11-mobile-zh-diagnostic.v1", status: "DIAGNOSTIC_ONLY_NOT_SIX_CASE_SUCCESS",
+  }, null, 2) + "\n", { flag: "wx", mode: 0o600 });
+}
+
+async function runCapture(mode) {
+  if (!["canonical-six", "diagnostic-mobile-zh"].includes(mode)) throw new Error("F11_CAPTURE_MODE");
+  const diagnosticOnly = mode === "diagnostic-mobile-zh";
+  let namespace;
+  let out = OUT;
+  if (diagnosticOnly) {
+    namespace = prepareNamespace(ROOT);
+    out = mkdtempSync(join(ROOT, ".next", "f11", "mobile-zh-diagnostic-"));
+    console.log("F11_DIAGNOSTIC_DIRECTORY " + out);
+  }
+  mkdirSync(out, { recursive: true });
   // Invocation start: a previous run's success/failure manifests are stale the
   // moment this invocation begins. Clear only the known outcome filenames so a
   // failed or partial run can never leave an eligible old FIXTURE.json behind;
   // historical PNGs and EVIDENCE.yml are untouched.
-  const clearedOutcome = invalidateStaleOutcomeArtifacts(OUT);
+  const clearedOutcome = invalidateStaleOutcomeArtifacts(out);
   if (clearedOutcome.length) process.stdout.write(`cleared stale outcome: ${clearedOutcome.join(", ")}\n`);
   const { chromium } = require("@playwright/test");
   assertNoCaptureDotenv();
   const capturedAtHead = currentGitHead();
-  const namespace = prepareNamespace(ROOT);
+  namespace ||= prepareNamespace(ROOT);
   const child = startServer();
   const owner = trackOwnedServer(child);
   const files = [];
@@ -388,7 +468,7 @@ async function main() {
       browser: { version: browser.version(), revision: browserManifest.browsers.find(entry => entry.name === "chromium-headless-shell")?.revision,
         launch: { headless: true }, serviceWorkers: "block", freshContextPerImage: true },
       };
-      for (const shot of SHOTS) {
+      for (const shot of (diagnosticOnly ? SHOTS.filter(shot => shot.file === "mobile-zh.png") : SHOTS)) {
         process.stdout.write(`capture ${shot.file} … `);
         const context = await browser.newContext({
           viewport: VIEWPORTS[shot.viewport],
@@ -397,7 +477,7 @@ async function main() {
           colorScheme: "dark",
           serviceWorkers: "block",
         });
-        const boundaryCounts = await installCaptureBoundary(context);
+        const boundaryCounts = await installCaptureBoundary(context, BASE, { scriptMetadata: diagnosticOnly });
         await context.addCookies([{ name: "mm_e2e_rs30", value: "1", url: BASE }]);
         const page = await context.newPage();
         page.setDefaultTimeout(45_000);
@@ -414,25 +494,20 @@ async function main() {
           const entry = await openAnalysis(page, shot.lang, VIEWPORTS[shot.viewport]);
           await boundaryCounts.waitForBusinessRequest();
           if (pageErrorNames.length) throw new Error("F11_PAGE_SCRIPT_ERROR");
-          const image = await shoot(page, shot.file);
+          const image = await shoot(page, shot.file, out);
           if (boundaryCounts.componentFundUnavailable < 1) throw new Error("F11_BUSINESS_REQUEST_BOUNDARY_NOT_EXERCISED");
           if (boundaryCounts.redirectOrBadStatus !== 0) throw new Error("F11_ALLOWED_ROUTE_DID_NOT_RETURN_200");
           files.push(shot.file);
-          entryObservations.push({ file: shot.file, viewport: VIEWPORTS[shot.viewport], ...entry, requestBoundary: { ...boundaryCounts }, pageErrorNames, image: { bytes: image.length, sha256: createHash("sha256").update(image).digest("hex") } });
+          entryObservations.push({ ...(diagnosticOnly ? { bootstrapState: await observeBootstrap(page) } : {}), file: shot.file, viewport: VIEWPORTS[shot.viewport], ...entry, requestBoundary: { ...boundaryCounts }, pageErrorNames, image: { bytes: image.length, sha256: createHash("sha256").update(image).digest("hex") } });
           console.log("ok");
         } catch (err) {
           console.log(`FAIL ${err && err.message ? err.message : err}`);
-          const bootstrapState = await page.evaluate(() => ({
-            readyState: document.readyState, scriptCount: document.scripts.length,
-            nextRuntime: typeof window.next === "object",
-            flightArray: Array.isArray(window.__next_f),
-            flightConsumerInstalled: Array.isArray(window.__next_f) && window.__next_f.push !== Array.prototype.push,
-          })).catch(() => ({ unavailable: true }));
+          const bootstrapState = await observeBootstrap(page);
           const diagnostic = { captureProfile, file: shot.file, requestBoundary: { ...boundaryCounts }, pageErrorNames, consoleErrorKinds, bootstrapState };
-          writeFailureArtifact(OUT, capturedAtHead, diagnostic, err);
+          writeFailureArtifact(out, capturedAtHead, diagnostic, err);
           console.error("F11_CAPTURE_DIAGNOSTICS " + JSON.stringify(diagnostic));
           try {
-            await page.screenshot({ path: join(OUT, `FAIL-${shot.file}`), fullPage: false });
+            await page.screenshot({ path: join(out, `FAIL-${shot.file}`), fullPage: false });
           } catch { /* ignore */ }
           throw err;
         } finally {
@@ -447,16 +522,12 @@ async function main() {
     namespace.restoreGeneratedTypeFile();
   }
 
-  const fixturePayload = {
-    schema: "terminal.f11-source-component-fixture.v1",
-    capturedAtHead,
-    captureProfile,
-    serverSettlement: owner.settlement(),
-    generatedTypes: namespace.summary(),
-    fixtureSources: Object.fromEntries([
+  const fixtureSources = Object.fromEntries([
       "terminal/e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs",
       "terminal/e2e/tools/f11_provider_closed_policy.cjs",
       "terminal/e2e/tools/f11_owned_server.cjs",
+      "terminal/e2e/tools/f11_script_metadata.cjs",
+      ...(diagnosticOnly ? ["terminal/e2e/tools/diagnose_f11_mobile_zh.cjs"] : []),
       "terminal/tsconfig.f11.json",
       "terminal/tsconfig.json",
       "terminal/next.config.ts",
@@ -466,7 +537,19 @@ async function main() {
       "terminal/lib/supabase/middleware.ts",
       ".github/workflows/ci.yml",
       ...LAYOUT_FILES,
-    ].map((rel) => [rel, sha256File(rel)])),
+    ].map((rel) => [rel, sha256File(rel)]));
+  if (diagnosticOnly) {
+    writeDiagnosticArtifact(out, { capturedAtHead, fixtureSources, captureProfile, serverSettlement: owner.settlement(), generatedTypes: namespace.summary(), entryObservations });
+    return { diagnosticOnly: true, out };
+  }
+
+  const fixturePayload = {
+    schema: "terminal.f11-source-component-fixture.v1",
+    capturedAtHead,
+    captureProfile,
+    serverSettlement: owner.settlement(),
+    generatedTypes: namespace.summary(),
+    fixtureSources,
     scope: "Real source component, synthetic fixture identity and unavailable market inputs; no authenticated, provider, installed or account proof",
     entryObservations,
   };
@@ -501,7 +584,10 @@ async function main() {
   console.log(`wrote ${files.length} crops + EVIDENCE.yml at ${capturedAtHead}`);
 }
 
-module.exports = { assertAllSixObserved, assertNoCaptureDotenv, captureServerEnv, installCaptureBoundary, invalidateStaleOutcomeArtifacts, staticScriptPath, consoleErrorKind, writeFailureArtifact, writeSuccessArtifact, FIXTURE_TEMP };
+function main() { return runCapture("canonical-six"); }
+function diagnoseMobileZh() { return runCapture("diagnostic-mobile-zh"); }
+
+module.exports = { observeBootstrap, diagnoseMobileZh, writeDiagnosticArtifact, assertAllSixObserved, assertNoCaptureDotenv, captureServerEnv, installCaptureBoundary, invalidateStaleOutcomeArtifacts, staticScriptPath, consoleErrorKind, writeFailureArtifact, writeSuccessArtifact, FIXTURE_TEMP };
 
 if (require.main === module) main().catch((err) => {
   console.error(err);

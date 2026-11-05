@@ -42,7 +42,7 @@ test("each Next development dotenv entrance refuses before any values are read",
 const { installCaptureBoundary } = require("./capture_b_f11_10_analysis_theses_entry.cjs");
 function contextDouble() {
   const registered = {};
-  return { registered, routeWebSocket: async (pattern, callback) => { registered.socket = callback; }, route: async (pattern, callback) => { registered.request = callback; } };
+  return { registered, on: (event, callback) => { registered[event] = callback; }, routeWebSocket: async (pattern, callback) => { registered.socket = callback; }, route: async (pattern, callback) => { registered.request = callback; } };
 }
 function requestDouble(url, type, status = 200) {
   const calls = [];
@@ -378,4 +378,60 @@ test("outcome publisher refuses an already present success instead of overwritin
     assert.equal(fs.readFileSync(old,"utf8"),'{"capturedAtHead":"prior"}');
     assert.equal(fs.existsSync(path.join(root,FIXTURE_TEMP)),false);
   } finally {fs.rmSync(root,{recursive:true,force:true});}
+});
+
+test("single-case diagnostic can never produce eligible six-case success or caller-chosen status",()=>{
+  const {writeDiagnosticArtifact}=require("./capture_b_f11_10_analysis_theses_entry.cjs");
+  const root=fs.mkdtempSync(path.join(os.tmpdir(),"f11-diagnostic-separation-"));
+  try {
+    const obs=[{file:"mobile-zh.png"}];
+    writeDiagnosticArtifact(root,{status:"SUCCESS",schema:"spoof",entryObservations:obs});
+    const record=JSON.parse(fs.readFileSync(path.join(root,"DIAGNOSTIC.json"),"utf8"));
+    assert.equal(record.status,"DIAGNOSTIC_ONLY_NOT_SIX_CASE_SUCCESS");
+    assert.equal(record.schema,"terminal.f11-mobile-zh-diagnostic.v1");
+    assert.equal(fs.existsSync(path.join(root,"FIXTURE.json")),false);
+    assert.throws(()=>writeSuccessArtifact(root,["mobile-zh.png"],{entryObservations:obs}),/PARTIAL_CAPTURE/);
+    assert.equal(fs.existsSync(path.join(root,"FIXTURE.json")),false);
+    assert.throws(()=>writeDiagnosticArtifact(root,{entryObservations:SIX_FILES.map(file=>({file}))}),/DIAGNOSTIC_CASE/);
+  } finally {fs.rmSync(root,{recursive:true,force:true});}
+});
+test("default canonical entrypoint remains exact6; diagnostic entrypoint has one named bounded case",()=>{
+  const source=fs.readFileSync(path.join(__dirname,"capture_b_f11_10_analysis_theses_entry.cjs"),"utf8");
+  assert.match(source,/function main\(\) \{ return runCapture\("canonical-six"\); \}/);
+  assert.match(source,/function diagnoseMobileZh\(\) \{ return runCapture\("diagnostic-mobile-zh"\); \}/);
+  assert.match(source,/diagnosticOnly \? SHOTS\.filter\(shot => shot.file === "mobile-zh.png"\) : SHOTS/);
+  assert.match(source,/if \(diagnosticOnly\) \{\s*writeDiagnosticArtifact[\s\S]*?return \{ diagnosticOnly: true, out \};\s*\}\s*const fixturePayload/);
+  assert.match(source,/mkdtempSync\(join\(ROOT, "\.next", "f11", "mobile-zh-diagnostic-"\)\)/);
+});
+test("only diagnostic interception copies public-script bytes and emits typed metadata",async()=>{
+  for (const diagnostic of [false,true]) {
+    const context=contextDouble();const counts=await installCaptureBoundary(context,"http://127.0.0.1:3565",{scriptMetadata:diagnostic});
+    let bodies=0;const bytes=Buffer.from("window.fixtureScript = true;");
+    const route=requestDouble("http://127.0.0.1:3565/_next/static/chunks/app.js?discarded=query","script");
+    route.fetch=async()=>({status:()=>200,headers:()=>({"content-type":"application/javascript; charset=utf-8","x-private":"not retained"}),body:async()=>{bodies++;return bytes;}});
+    await context.registered.request(route);
+    assert.equal(bodies,diagnostic?1:0);
+    if(diagnostic){
+      const m=counts.publicScripts[0];assert.equal(m.pathname,"/_next/static/chunks/app.js");assert.equal(m.bytes,bytes.length);assert.equal(m.mime,"application/javascript");assert.equal(m.sha256,require("node:crypto").createHash("sha256").update(bytes).digest("hex"));
+      assert.ok(m.fetchMs>=0&&m.bodyMs>=0&&m.fulfillMs>=0);
+      assert.equal(JSON.stringify(m).includes("query"),false);assert.equal(JSON.stringify(m).includes("not retained"),false);assert.equal(Object.hasOwn(m,"body"),false);
+    } else assert.equal(Object.hasOwn(counts,"publicScripts"),false);
+  }
+});
+test("bootstrap diagnosis exposes only bounded script pathname/registration facts",async()=>{
+  const {observeBootstrap}=require("./capture_b_f11_10_analysis_theses_entry.cjs"),vm=require("node:vm");
+  const ctx=vm.createContext({URL});
+  vm.runInContext(`window={};window.__next_f=[];window.webpackChunk_N_E=[[["main-app","app/(shell)/analysis/page"]]];document={readyState:"complete",scripts:[{src:"http://127.0.0.1:3565/_next/static/chunks/main-app.js?secret=omitted",async:true,defer:false,type:""},{src:"https://foreign.invalid/private?secret=omitted",type:"module"}]};`,ctx);
+  const result=await observeBootstrap({evaluate:async fn=>vm.runInContext("("+fn.toString()+")()",ctx)});
+  assert.equal(result.nextRuntime,false);assert.equal(result.flightConsumerInstalled,false);
+  assert.equal(result.registeredChunkIds.length,2);assert.equal(result.scripts.length,1);assert.equal(result.scripts[0].pathname,"/_next/static/chunks/main-app.js");
+  assert.equal(JSON.stringify(result).includes("secret"),false);assert.equal(JSON.stringify(result).includes("foreign.invalid"),false);
+});
+test("diagnostic delivery observations separate browser decode failures from upstream200 without leaking error text",async()=>{
+  const context=contextDouble();const counts=await installCaptureBoundary(context,"http://127.0.0.1:3565",{scriptMetadata:true});
+  const request={url:()=>"http://127.0.0.1:3565/_next/static/chunks/app.js?omitted=secret",method:()=>"GET",resourceType:()=>"script",failure:()=>({errorText:"net::ERR_CONTENT_DECODING_FAILED https://private.invalid/secret"})};
+  context.registered.requestfailed(request);context.registered.requestfinished(request);
+  assert.equal(counts.scriptDelivery.length,2);assert.equal(counts.scriptDelivery[0].errorCode,"ERR_CONTENT_DECODING_FAILED");assert.equal(counts.scriptDelivery[0].requestId,counts.scriptDelivery[1].requestId);
+  assert.equal(JSON.stringify(counts.scriptDelivery).includes("secret"),false);assert.equal(JSON.stringify(counts.scriptDelivery).includes("private.invalid"),false);
+  context.registered.requestfailed({...request,url:()=>"https://foreign.invalid/_next/static/private.js"});assert.equal(counts.scriptDelivery.length,2);
 });
