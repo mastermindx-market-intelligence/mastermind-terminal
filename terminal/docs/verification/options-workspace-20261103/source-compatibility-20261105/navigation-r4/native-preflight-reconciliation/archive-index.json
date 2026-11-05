@@ -1,0 +1,30 @@
+[
+  {
+    "source": "final-source-inputs.before.json",
+    "stored": "final-source-inputs.before.json",
+    "source_sha256": "cb4beddede52b2a384bc79ff2f13908dfd37c216e157072aba6d53737fa9b338",
+    "stored_sha256": "cb4beddede52b2a384bc79ff2f13908dfd37c216e157072aba6d53737fa9b338",
+    "encoding": "identity"
+  },
+  {
+    "source": "optionsExposureEvidence.before.ts",
+    "stored": "optionsExposureEvidence.before.ts.gz",
+    "source_sha256": "1a75aa7f5dc2f1ac2ba8c340085a10e53928010a8e84fde52c9bbb2275ebaf13",
+    "stored_sha256": "8b083f932f978ec110b6a68969c6f7b8c58ed2ba89667aab3bb74397843441d6",
+    "encoding": "gzip"
+  },
+  {
+    "source": "promote-navigation-r4.before.py",
+    "stored": "promote-navigation-r4.before.py",
+    "source_sha256": "570ee9bfe6e6e8333d4c7302606943d7704cf51909a746a554e7a368ab790d5a",
+    "stored_sha256": "570ee9bfe6e6e8333d4c7302606943d7704cf51909a746a554e7a368ab790d5a",
+    "encoding": "identity"
+  },
+  {
+    "source": "qualification.json",
+    "stored": "qualification.json",
+    "source_sha256": "b430e5a262f0d0bf7ada4ce637e717781c72e1f94943512129d5ce95518e1543",
+    "stored_sha256": "b430e5a262f0d0bf7ada4ce637e717781c72e1f94943512129d5ce95518e1543",
+    "encoding": "identity"
+  }
+]

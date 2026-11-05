@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { layoutSources, requireSourceKeys, selectWholeFingerprint } from "./helpers/optionsExposureEvidence";
+import { layoutSources, projectR4CaptureHarness, requireSourceKeys, selectWholeFingerprint } from "./helpers/optionsExposureEvidence";
 
 const a = "a".repeat(64), b = "b".repeat(64), c = "c".repeat(64), d = "d".repeat(64);
 const first = { profile: "first", sources: { "Gex.tsx": a, "Levels.tsx": b, "capture.cjs": c } };
@@ -50,5 +50,41 @@ describe("whole native source qualification", () => {
     expect(layoutSources("eod", "combined")).toHaveLength(15);
     expect(layoutSources("eod", "combined")).toContain("terminal/components/flowdesk/ChainHeat.module.css");
     expect(layoutSources("eod", "combined")).toContain("terminal/components/gexdesk/ExposureWorkspace.module.css");
+  });
+});
+
+
+describe("the recorded r4 fixture-server configuration transition", () => {
+  const path = "terminal/playwright.config.ts";
+  const captured = "bb09d98f2bf2647a1975dac07a0e85ab673473986145a1db0d30f22d38e5c076";
+  const successor = "de74d9150283eb9dd5243b57c4ee597171d50f328be749d6c43ba8287a6f4525";
+  const recorded = Object.freeze({ "Gex.tsx": a, [path]: captured });
+  it("preserves the actual recorded configuration and source map", () => {
+    expect(projectR4CaptureHarness(recorded, recorded)).toEqual(recorded);
+  });
+  it("admits only the protected fixture default without rewriting historical inputs", () => {
+    const current = { ...recorded, [path]: successor };
+    const sources = projectR4CaptureHarness(recorded, current);
+    expect(selectWholeFingerprint([{ sources }], current).sources).toEqual(current);
+    expect(recorded[path]).toBe(captured);
+  });
+  it("rejects a third current configuration", () => {
+    expect(() => projectR4CaptureHarness(recorded, { ...recorded, [path]: c }))
+      .toThrow("CAPTURE_HARNESS_CURRENT_SOURCE");
+  });
+  it("rejects a changed or missing recorded configuration", () => {
+    expect(() => projectR4CaptureHarness({ ...recorded, [path]: successor }, recorded))
+      .toThrow("CAPTURE_HARNESS_RECORDED_SOURCE");
+    expect(() => projectR4CaptureHarness({ "Gex.tsx": a }, recorded))
+      .toThrow("CAPTURE_HARNESS_RECORDED_SOURCE");
+  });
+  it("does not accept a successor at another path or a missing current key", () => {
+    expect(() => projectR4CaptureHarness(recorded, { "Gex.tsx": a, "other.config.ts": successor }))
+      .toThrow("CAPTURE_HARNESS_CURRENT_SOURCE");
+  });
+  it("still rejects changed runtime inputs after the exact harness transition", () => {
+    const current = { ...recorded, [path]: successor, "Gex.tsx": b };
+    const sources = projectR4CaptureHarness(recorded, current);
+    expect(() => selectWholeFingerprint([{ sources }], current)).toThrow("NO_QUALIFIED_CAPTURE");
   });
 });

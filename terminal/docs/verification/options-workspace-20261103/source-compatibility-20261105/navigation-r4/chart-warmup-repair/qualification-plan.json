@@ -1,0 +1,33 @@
+{
+  "schema": "chart_cold_compile_warmup_repair.v1",
+  "before_sha256": "4ff5d71c544d5310e630952539b23540cc179ff2e421034b452ef41adf9c2532",
+  "after_sha256": "280e694efb9fcfca2a2fad5fb98ab1beec317d6780e567750acb7e44ba806aa1",
+  "prior_routes": 14,
+  "current_routes": 24,
+  "added_routes": [
+    "/api/quote?view=regular&syms=NVDA",
+    "/api/drawings?symbol=NVDA",
+    "/api/scripts/list",
+    "/api/study-templates",
+    "/api/ext-quote?syms=NVDA",
+    "/api/flow?f=gexstate%3ANVDA",
+    "/api/brain/me",
+    "/api/brain/chart/state",
+    "/api/collect",
+    "/data/NVDA.opts.json"
+  ],
+  "only_serial_GET_requests": true,
+  "request_ceiling_ms": 90000,
+  "test_assertions_unchanged": true,
+  "visual_test_budget_unchanged_ms": 90000,
+  "r3_failure": "90-second cumulative timeout; all last assertions completed near deadline",
+  "r4_failure": "Next dev HMR router action during reinitialization",
+  "r4_failure_site": "visual-intelligence.spec.ts:123 pageerror assertion",
+  "r4_error_trace_ms": 114569.441,
+  "r4_first_reload_trace_ms": [
+    104518.444,
+    116557.031
+  ],
+  "r4_HMR_reconnect_trace_ms": 114257.566,
+  "failed_reports_retained": true
+}

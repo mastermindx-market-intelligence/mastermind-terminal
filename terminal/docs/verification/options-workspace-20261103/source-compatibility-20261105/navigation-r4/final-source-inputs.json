@@ -1,0 +1,27 @@
+{
+  "visual_source_count": 138,
+  "native_source_count": 319,
+  "visual_contract_sha256": "ae18b1cea284e9258e84bcc289939d293f60d80e82b24b6cb6cb029c35a0b9e9",
+  "native_contract_sha256": "a7cd2ce244a0ae278fc24bf25a51566c0053c89f9ce3fb17ae12b350f1541db7",
+  "native_driver_sha256": "caa135fb04633289178636e9ba24b5484a988ee6797f572bd4aee0c93d9285ed",
+  "visual_driver_sha256": "cd36837df355c144ecd6b60185cbe4c231e03f568a82351b7eb77caffeae5d61",
+  "browser_driver_sha256": "d542a372b5c5f04e04de4469a3c9cb606f327f87f3c19ea0e5af4bb8faed3920",
+  "browser_cases_per_profile": 39,
+  "capture_revision": "options-navigation-r4",
+  "schema": "options_navigation_final_source_inputs.v2",
+  "native_reader_sha256": "f78863fb9d4d65a1ca4c6bf6d0b604e8ff20148d3319614163f8377ed2c4a836",
+  "visual_reader_sha256": "b2248fe06eca6cfb0e6ffd67a6cd12c02f0e0da4c8cd318b4ab71cb3a9e680f5",
+  "source_sha256": {
+    "terminal/components/workspaces/OptionsWorkspace.tsx": "8cdc0773c3895949b2f6174ed4883a87d2c376d55c37d54c4b2b530a37269b8b",
+    "terminal/components/OptionsHubView.tsx": "120381563ee8e6b5f001f01447cc7dbadf8ff3706e4968999aa066ee0a3489b6",
+    "terminal/components/exposure-map/ExposureMap.module.css": "3e48dfb9a5bf152fc355633be1ef87a4c1d2586ff70462ac312b7e2431364901",
+    "terminal/next.config.ts": "61735ce838f638226a74db791feaa283abd5dbef88dd7a852c1caaf6c235e1c1",
+    "terminal/e2e/options-deeplink.spec.ts": "22cd1f9d796540e074d3d5c27a09bee872907598bfef1da20af8d3ae2b5cc4ed",
+    "terminal/e2e/options-exposure-workspace.spec.ts": "a3de647591e8b75cf70f19460191d9f31cface3b56d6712b8569ad7723e5ff56",
+    "terminal/e2e/fixtureWarmup.cjs": "280e694efb9fcfca2a2fad5fb98ab1beec317d6780e567750acb7e44ba806aa1"
+  },
+  "peer_exposure_browser_spec_sha256": "66e3b3f8f1976d7df28e1a10a0572be71559d6a37499e3c235c009ef937ce68e",
+  "native_profiles_equal": true,
+  "visual_driver_filename": "capture-visual-navigation-r4-warm.py",
+  "native_driver_filename": "capture-native-navigation-r4-qualified.py"
+}

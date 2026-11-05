@@ -488,6 +488,13 @@ priorTiingo24hConsumerRecapture:
   result: 30 passed, zero failures, skips, retries or flaky cases; all six EN/ZH desktop/tablet/mobile captures refreshed.
   scope: Actual local deterministic fixture evidence after the Tiingo 24H consumer changes. Live vendor freshness and production installation are separate acceptance steps.
 
+# Current Options visual qualification; protected baseline is retained.
+optionsVisualSourceCompatibility20261105:
+  protectedBase: "11531481b0a540ee96bcd86df418fd1e42715363"
+  priorPublishedHead: "98ffa891116ccc9e6be58a64148dbe45591e6ce8"
+  qualifiedPacket: "operations/options-source-compatibility-20261105/revisions/options-navigation-r4/qualified-packet.json"
+  qualifiedPacketSha256: "ee3ac04beea89b6eb4eee4fb1791f4f17bbe4b57c001145057c8899be8d3a702"
+
 currentLocalGates:
   sourceHead: 2aaa2be13ab1e026aa437cf3e89be8fe04b7415a
   integratedMaster: d9ec4d2b86e9e9e0129d7fcd4c646f25f7670c49
@@ -783,10 +790,3 @@ ascPineBuildEvidence20261103:
   operationSha256: "2059b401bf0ed609be6d090c39f16428616c71844f06d7dcf8807d45023eb584"
   actualCases: 30
   scope: "Current synthetic fixture captures qualify the Pine build configuration source. Earlier capture timestamps and image files remain historical; current screenshots, execution report and source snapshots are in the immutable operation above. No real-market reference or production acceptance."
-
-# Current Options visual qualification; protected baseline above is retained.
-optionsVisualSourceCompatibility20261105:
-  protectedBase: "11531481b0a540ee96bcd86df418fd1e42715363"
-  priorPublishedHead: "98ffa891116ccc9e6be58a64148dbe45591e6ce8"
-  qualifiedPacket: "operations/options-source-compatibility-20261105/qualified-packet.json"
-  qualifiedPacketSha256: "a1bb93635f18fd35ac838ad44adb1726ed5ca15a3b1a02dd7e9e132f25e7b697"

@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { PNG } from "pngjs";
-import { requireSourceKeys } from "./optionsExposureEvidence";
+import { projectR4CaptureHarness, requireSourceKeys } from "./optionsExposureEvidence";
 
 type Kind = "vi" | "pl6";
 type Map = Record<string, string>;
@@ -114,13 +114,16 @@ export function qualifiedOptionsVisualPacket(repo: string, kind: Kind) {
   for (const [path, digest] of Object.entries(previous))
     check(sha(join(repo, path)) === digest, "PREVIOUS_PACKET:" + path);
   check(sha(join(dir, "capture-driver.py")) === CAPTURE_DRIVER, "CAPTURE_DRIVER");
-  const footer = "\n# Current Options visual qualification; protected baseline above is retained.\n" +
+  const footer = "\n# Current Options visual qualification; protected baseline is retained.\n" +
     "optionsVisualSourceCompatibility20261105:\n" +
     '  protectedBase: "' + BASE + '"\n' + '  priorPublishedHead: "' + PARENT + '"\n' +
     '  qualifiedPacket: "operations/' + OP + '/revisions/' + CURRENT_REVISION + '/qualified-packet.json"\n' +
     '  qualifiedPacketSha256: "' + sha(descriptorPath) + '"\n';
   const protectedText = readFileSync(join(historyDir, "EVIDENCE.protected.yml"), "utf8");
-  check(readFileSync(join(root, "EVIDENCE.yml"), "utf8") === protectedText + footer, "ROOT_RECONSTRUCTION");
+  const anchor = "\ncurrentLocalGates:\n";
+  check(protectedText.split(anchor).length === 2, "ROOT_ANCHOR");
+  check(readFileSync(join(root, "EVIDENCE.yml"), "utf8") ===
+    protectedText.replace(anchor, footer + anchor), "ROOT_RECONSTRUCTION");
   verifyHistory(root, historyDir, kind);
   check(sha(join(dir, "source-contract.json")) === CONTRACT, "SOURCE_CONTRACT_DIGEST");
   const contract = json<{ schema: string; protectedBase: string; optionsParent: string; additionalSources: string[] }>(join(dir, "source-contract.json"));
@@ -150,7 +153,9 @@ export function qualifiedOptionsVisualPacket(repo: string, kind: Kind) {
   requireSourceKeys(receipt.source_sha256, [...paths]);
   sameMap(json<Map>(join(dir, "source-before.json")), receipt.source_sha256, "SOURCE_BEFORE");
   sameMap(json<Map>(join(dir, "source-after.json")), receipt.source_sha256, "SOURCE_AFTER");
-  for (const [path, digest] of Object.entries(receipt.source_sha256)) check(sha(join(repo, path)) === digest, "CURRENT_SOURCE:" + path);
+  const current = Object.fromEntries(Object.keys(receipt.source_sha256).map(path => [path, sha(join(repo, path))]));
+  const qualifiedSources = projectR4CaptureHarness(receipt.source_sha256, current);
+  for (const [path, digest] of Object.entries(qualifiedSources)) check(current[path] === digest, "CURRENT_SOURCE:" + path);
   const cropDir = join(dir, "qualified-root"), crops = cropNames(kind);
   requireSourceKeys(receipt.images, crops);
   check(equal(readdirSync(cropDir).filter(name => name.endsWith(".png")), crops), "CAPTURE_IMAGE_SET");

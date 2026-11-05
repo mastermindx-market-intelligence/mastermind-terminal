@@ -16,6 +16,17 @@ layoutFiles:
   terminal/components/levels/LevelsView.tsx: "91a4d6fd86b12225e657c8a9c4b2b185e3940356af3cd11466ca30e04f05b0c9"
   terminal/components/levels/levelsLabels.ts: "361124ec9293623fefe69128212f5a25bfddf2c3d716252126d56ec5f356d0d9"
   terminal/lib/heatmapStrings.ts: "26bb75eccce7429e5a37154f07f7f68faf9652da1f6f3560074cb558f0dda9c2"
+
+# Qualified Options and combined source compositions; protected baseline is retained.
+optionsSourceCompatibility20261105:
+  protectedBase: "11531481b0a540ee96bcd86df418fd1e42715363"
+  priorPublishedHead: "98ffa891116ccc9e6be58a64148dbe45591e6ce8"
+  priorManifest: "operations/options-source-compatibility-20261105/EVIDENCE.before.yml"
+  acceptedExposureDependency: "0182a45abccb9c0e77b2c8e4626431e89635b35f"
+  jointPacket: "operations/combined-source-compatibility-20261105/revisions/options-navigation-r4/native-packet.json"
+  jointPacketSha256: "a47cbbc318c57b92574bb92b1b43a0dfaea10d7080c60805114734e229a352b4"
+  sourceContractSha256: "a7cd2ce244a0ae278fc24bf25a51566c0053c89f9ce3fb17ae12b350f1541db7"
+
 theme: dark
 languages: [en, zh]
 viewports:
@@ -369,13 +380,3 @@ labGammaMountedRecapture20261104:
   qualification: "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/lab-gamma-recapture-20261104.json"
   qualificationSha256: "58ffdbfc7821e7a59baff21c0afb99b582c9aa0f505bc18539f85fcebcb37955"
   scope: "Actual scoped GEX/EOD capture; unrelated sources, historical packets and assertions preserved; not production."
-
-# Qualified Options and combined source compositions; protected baseline above is retained.
-optionsSourceCompatibility20261105:
-  protectedBase: "11531481b0a540ee96bcd86df418fd1e42715363"
-  priorPublishedHead: "98ffa891116ccc9e6be58a64148dbe45591e6ce8"
-  priorManifest: "operations/options-source-compatibility-20261105/EVIDENCE.before.yml"
-  acceptedExposureDependency: "0182a45abccb9c0e77b2c8e4626431e89635b35f"
-  jointPacket: "operations/combined-source-compatibility-20261105/native-packet.json"
-  jointPacketSha256: "0819582a22ef88745e0824280635d704ef9fb00448d037ce2e7c49b46471a8b1"
-  sourceContractSha256: "427c9fcec7a8c53da0c65e62190e7785aea9bd28183be474efaf991f6f558dc1"

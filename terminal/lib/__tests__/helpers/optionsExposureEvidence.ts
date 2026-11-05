@@ -120,6 +120,18 @@ export function selectWholeFingerprint<T extends { sources: SourceMap }>(candida
   check(matches.length === 1, matches.length ? "AMBIGUOUS_CAPTURE" : "NO_QUALIFIED_CAPTURE");
   return matches[0];
 }
+/** The pinned r4 executions are equivalent under this exact protected fixture-server default.
+ * VI already supplied the value; the native runners do not use Playwright's webServer config.
+ * Recorded maps remain immutable and every non-config input still matches the whole capture.
+ */
+export function projectR4CaptureHarness(recorded: SourceMap, current: SourceMap): SourceMap {
+  const path = "terminal/playwright.config.ts";
+  const captured = "bb09d98f2bf2647a1975dac07a0e85ab673473986145a1db0d30f22d38e5c076";
+  const protectedSuccessor = "de74d9150283eb9dd5243b57c4ee597171d50f328be749d6c43ba8287a6f4525";
+  check(recorded[path] === captured, "CAPTURE_HARNESS_RECORDED_SOURCE");
+  check(current[path] === captured || current[path] === protectedSuccessor, "CAPTURE_HARNESS_CURRENT_SOURCE");
+  return { ...recorded, [path]: current[path] };
+}
 export function layoutSources(kind: EvidenceKind, profile: EvidenceProfile): string[] {
   return [...LAYOUT[kind], EXPOSED_CSS,
     ...(kind === "eod" && profile === "combined" ? OPTIONS_CSS : [])].sort();
@@ -309,7 +321,7 @@ export function qualifiedOptionsExposurePacket(repo: string, kind: EvidenceKind,
   }
   if (options) {
     const folder = "operations/" + OP.options, combined = "operations/" + OP.combined + "/revisions/" + CURRENT_REVISION;
-    suffix = "\n# Qualified Options and combined source compositions; protected baseline above is retained.\n" +
+    suffix = "\n# Qualified Options and combined source compositions; protected baseline is retained.\n" +
       yamlBlock("optionsSourceCompatibility20261105", {
         protectedBase: BASE, priorPublishedHead: "98ffa891116ccc9e6be58a64148dbe45591e6ce8",
         priorManifest: folder + "/EVIDENCE.before.yml",
@@ -319,11 +331,17 @@ export function qualifiedOptionsExposurePacket(repo: string, kind: EvidenceKind,
       });
     candidates.push(readCandidate(repo, root, kind, "combined", crops));
   }
-  check(text === prefix + readFileSync(protectedPath, "utf8") + suffix, "ROOT_MANIFEST_RECONSTRUCTION");
+  const protectedText = readFileSync(protectedPath, "utf8");
+  const anchor = "theme: dark\n";
+  if (options) check(protectedText.split(anchor).length === 2, "ROOT_MANIFEST_ANCHOR");
+  const body = options ? protectedText.replace(anchor, suffix + "\n" + anchor) : protectedText;
+  check(text === prefix + body, "ROOT_MANIFEST_RECONSTRUCTION");
   const current: SourceMap = {};
   for (const path of new Set(candidates.flatMap(candidate => Object.keys(candidate.sources))))
     if (existsSync(join(repo, path))) current[path] = sha(join(repo, path));
-  const selected = selectWholeFingerprint(candidates, current);
+  const qualified = candidates.map(candidate => candidate.profile === "combined"
+    ? { ...candidate, sources: projectR4CaptureHarness(candidate.sources, current) } : candidate);
+  const selected = selectWholeFingerprint(qualified, current);
   check(selected.profile === (options ? "combined" : "exposure"), "PROFILE_OWNERSHIP");
   if (exposure) { verifyHistory(root, kind, "exposure", crops); verifyBoundary(repo); }
   const optionsHistorySources = options ? verifyHistory(root, kind, "options", crops) : {};

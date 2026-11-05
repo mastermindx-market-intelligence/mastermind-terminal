@@ -1,0 +1,38 @@
+[
+  {
+    "project": "desktop",
+    "status": "passed",
+    "held_scripts": 1,
+    "held_stylesheets": 0,
+    "assets": [
+      {
+        "type": "script",
+        "url": "http://127.0.0.1:3693/_next/static/chunks/_app-pages-browser_components_gexdesk_GexDeskView_tsx.js"
+      }
+    ]
+  },
+  {
+    "project": "tablet",
+    "status": "passed",
+    "held_scripts": 1,
+    "held_stylesheets": 0,
+    "assets": [
+      {
+        "type": "script",
+        "url": "http://127.0.0.1:3693/_next/static/chunks/_app-pages-browser_components_gexdesk_GexDeskView_tsx.js"
+      }
+    ]
+  },
+  {
+    "project": "mobile",
+    "status": "passed",
+    "held_scripts": 1,
+    "held_stylesheets": 0,
+    "assets": [
+      {
+        "type": "script",
+        "url": "http://127.0.0.1:3693/_next/static/chunks/_app-pages-browser_components_gexdesk_GexDeskView_tsx.js"
+      }
+    ]
+  }
+]

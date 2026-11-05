@@ -1,0 +1,42 @@
+{
+  "schema": "options_navigation_capture_expansion.v1",
+  "previous_visual_count": 117,
+  "visual_count": 130,
+  "previous_native_count": 303,
+  "native_count": 312,
+  "new_visual_inputs": [
+    "terminal/components/exposure-map/ExposureChangeInspector.module.css",
+    "terminal/components/exposure-map/ExposureMap.module.css",
+    "terminal/components/exposure-map/ExposureOriginStrip.module.css",
+    "terminal/components/exposure-map/ExposureReplay.module.css",
+    "terminal/components/exposure-map/ExposureScanTable.module.css",
+    "terminal/components/exposure-map/ExposureScenario.module.css",
+    "terminal/components/exposure-map/ExposureSessionReview.module.css",
+    "terminal/components/exposure-map/ExposureSurface.module.css",
+    "terminal/components/exposure-map/FrozenNodeEntry.module.css",
+    "terminal/components/gexdesk/ExposureWorkspace.module.css",
+    "terminal/components/research/SavedScenario.module.css",
+    "terminal/components/researchlab/ResearchAppearance.css",
+    "terminal/components/shared/StrikeExpiryMatrixRail.module.css"
+  ],
+  "new_native_inputs": [
+    "terminal/components/exposure-map/ExposureMap.module.css",
+    "terminal/components/exposure-map/ExposureOriginStrip.module.css",
+    "terminal/components/exposure-map/ExposureReplay.module.css",
+    "terminal/components/exposure-map/ExposureScanTable.module.css",
+    "terminal/components/exposure-map/ExposureScenario.module.css",
+    "terminal/components/exposure-map/ExposureSessionReview.module.css",
+    "terminal/components/exposure-map/ExposureSurface.module.css",
+    "terminal/components/exposure-map/FrozenNodeEntry.module.css",
+    "terminal/components/research/SavedScenario.module.css"
+  ],
+  "visual_contract_sha256": "dc8f89a5c15cbadf3559fd8a136ce0d8efe584fe326a4ca1085a993461f2a250",
+  "native_contract_sha256": "4322135e9930e569485897b0229ee4c58f8e0efb1b6698eb9cd25c9ce57bd8b7",
+  "native_driver_sha256": "b44be2f95d3aff859a56c27abf80995c2ea9cdf513f6296827b5ac4ee7b81c06",
+  "visual_driver_sha256": "398e1c5e1512188ff2c70133fdaa8a275f2ce4c8f885e59a255e3d73911aa7bd",
+  "browser_driver_sha256": "1f537ef104e7be46733d69c8899371e64c6869500a8d4bca19f20881b4298c6e",
+  "browser_cases_per_profile": 36,
+  "source_profiles_equal_for_visual": true,
+  "source_profiles_equal_for_native": true,
+  "captures_executed": false
+}

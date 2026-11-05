@@ -1,0 +1,16 @@
+[
+  {
+    "source": "promote-navigation-r4.before.py",
+    "stored": "promote-navigation-r4.before.py",
+    "source_sha256": "c2c26eb1f9934242e6e9329e07edda57f11541a8b6296a9e5b1cf84f8ca35f36",
+    "stored_sha256": "c2c26eb1f9934242e6e9329e07edda57f11541a8b6296a9e5b1cf84f8ca35f36",
+    "encoding": "identity"
+  },
+  {
+    "source": "qualification.json",
+    "stored": "qualification.json",
+    "source_sha256": "5dd31e5f7e5e4f30c3c324d9f2ff456c265520d5a2ebb4134e8e981c09789563",
+    "stored_sha256": "5dd31e5f7e5e4f30c3c324d9f2ff456c265520d5a2ebb4134e8e981c09789563",
+    "encoding": "identity"
+  }
+]

@@ -1,0 +1,9 @@
+{
+  "effect_state": "APPLIED",
+  "hub_sha256": "120381563ee8e6b5f001f01447cc7dbadf8ff3706e4968999aa066ee0a3489b6",
+  "profiles_equal": true,
+  "modified_files_whitespace_check": 0,
+  "repository_whitespace_note": "Trailing blank line in sharedShellCopy.ts exactly matches protected115 bytes; preserved to retain the accepted source port.",
+  "protected_copy_sha256": "4cef78b0145bc9968cb4fb324ad7f17b3a8a3f631fa62ba9402c0f5701abb2d3",
+  "patch_not_retried": true
+}

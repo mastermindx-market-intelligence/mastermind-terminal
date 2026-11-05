@@ -1,0 +1,14 @@
+{
+  "schema": "options_visual_packet.v1",
+  "kind": "vi",
+  "operation": "options-source-compatibility-20261105",
+  "captureRevision": "options-navigation-r4",
+  "driverSha256": "cd36837df355c144ecd6b60185cbe4c231e03f568a82351b7eb77caffeae5d61",
+  "receipt": "capture-receipt.json",
+  "receiptSha256": "6284675f54740f0a15262b24471c5f39c939159f33a9d2f1a313c1b4f4cc376b",
+  "manifest": "qualified-root/EVIDENCE.yml",
+  "manifestSha256": "e9060cd44eb8756211122564641763012f802ea10ca8c1257b483dd2a95a3312",
+  "sourceBeforeSha256": "e33ffe823b42d24aa24b5b36c188f1ef838ea44809e414a21c95b709c4e42cde",
+  "sourceAfterSha256": "e33ffe823b42d24aa24b5b36c188f1ef838ea44809e414a21c95b709c4e42cde",
+  "previousPacketInventorySha256": "3e32136df1246cc6d405d0fd234dc0fbd130b0be48078d07ebef3e1a8a0a9ead"
+}

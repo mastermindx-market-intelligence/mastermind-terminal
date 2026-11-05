@@ -1,0 +1,12 @@
+{
+  "schema": "options_css_preflight_reconciliation.v1",
+  "initial_css_edit_effect": "NONE; preflight detected original/protected ExposureMap CSS mismatch before any runtime write",
+  "baseline_gate": "navigation-gate-preview-css-r3",
+  "baseline_result": {
+    "passed": 2,
+    "failed": 4,
+    "source_stable": true
+  },
+  "baseline_runtime_sha256": "8cdc0773c3895949b2f6174ed4883a87d2c376d55c37d54c4b2b530a37269b8b",
+  "resolution": "Protected CSS preserved with exact legacy static-cell layout appended; complete observed17-style closure owned by OptionsWorkspace on both source profiles"
+}
