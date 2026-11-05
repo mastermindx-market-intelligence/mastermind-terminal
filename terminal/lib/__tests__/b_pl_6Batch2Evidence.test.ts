@@ -91,6 +91,38 @@ describe("B-PL-6 batch 2 evidence lock is the sha256 of the layout sources", () 
     }
   });
 
+  it("locks exactly the sixteen actual captured image bytes", () => {
+    const yml = evidenceText();
+    const markers = yml.match(/^captureFiles:$/gm) ?? [];
+    expect(markers).toHaveLength(1);
+    const lines = yml.split("\n");
+    const rows = lines.slice(lines.indexOf("captureFiles:") + 1);
+    const recorded: Record<string, string> = {};
+    for (const line of rows) {
+      if (!line.startsWith("  ")) break;
+      const match = line.match(/^  ([A-Za-z0-9-]+\.png): "([0-9a-f]{64})"$/);
+      expect(match, line).not.toBeNull();
+      if (!match) throw new Error("malformed captureFiles row");
+      expect(Object.hasOwn(recorded, match[1]), match[1]).toBe(false);
+      recorded[match[1]] = match[2];
+    }
+    expect(Object.keys(recorded).sort()).toEqual([...CROPS].sort());
+    for (const [file, digest] of Object.entries(recorded)) {
+      const bytes = readFileSync(join(CROP_DIR, file));
+      expect(bytes.subarray(0, 8).toString("hex"), file).toBe("89504e470d0a1a0a");
+      expect(createHash("sha256").update(bytes).digest("hex"), file).toBe(digest);
+    }
+  });
+
+  it("retains the exact historical manifest referenced by the full recapture", () => {
+    const rows = evidenceText().split("\n").filter(line => line.startsWith("previousManifest:"));
+    expect(rows).toHaveLength(1);
+    const match = rows[0].match(/^previousManifest: (history\/before-deterministic-([0-9a-f]{64})\.yml)$/);
+    expect(match).not.toBeNull();
+    if (!match) throw new Error("invalid historical manifest reference");
+    expect(sha256Of(join(CROP_DIR, match[1]))).toBe(match[2]);
+  });
+
   it("EVIDENCE.yml declares the capture flag, the dark-only and dev-indicator laws and the two viewports", () => {
     const yml = evidenceText();
     expect(yml).toMatch(/capture_flag:\s*TERMINAL_E2E_FIXTURE/);
@@ -101,5 +133,15 @@ describe("B-PL-6 batch 2 evidence lock is the sha256 of the layout sources", () 
     for (const [name, width, height] of [["desktop", 1440, 900], ["mobile", 390, 844]] as const) {
       expect(yml).toMatch(new RegExp(`name:\\s*${name},\\s*width:\\s*${width},\\s*height:\\s*${height}`));
     }
+  });
+
+  it("EVIDENCE.yml states the conductor demo step, the guide capture mode and that animations and partial raster were disabled", () => {
+    const yml = evidenceText();
+    // Step 2 is the first trendline, the row that carries the fit chip.
+    expect(yml).toMatch(/^conductor_step:\s*2$/m);
+    expect(yml).toMatch(/^screenshot_animations:\s*disabled$/m);
+    expect(yml).toMatch(/^screenshot_raster:\s*full$/m);
+    expect(yml).toMatch(/^guide_motion:\s*reduced$/m);
+    expect(yml).toMatch(/^guide_backdrop:\s*hidden$/m);
   });
 });
