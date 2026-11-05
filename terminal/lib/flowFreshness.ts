@@ -8,6 +8,8 @@
  * not observed start-to-start publication cadence.
  */
 
+import { usRegularSessionWindow } from "./usEquitySessionClock";
+
 export const LIVE_FLOW_META_V2 = "live_flow.meta/v2" as const;
 
 export interface LiveFlowMetaTiming {
@@ -153,6 +155,8 @@ export function formatObservedCycle(observedSec: number | null): string | null {
  * is necessary but not sufficient: the payload's ET `session_date` must also be
  * today. That makes weekends, pre-open/after-hours, and exchange holidays with a
  * last-session payload read as `last_session`, never as a stalled current feed.
+ * The window is the Macro session projection's, so a 13:00 early close or a full
+ * closure ends it, and a date outside the projection's coverage fails closed.
  */
 export function usOptionsSessionState(
   sessionDate: unknown,
@@ -181,7 +185,8 @@ export function usOptionsSessionState(
     if (etDate !== sessionDate || weekday === "Sat" || weekday === "Sun") return "last_session";
     if (!Number.isFinite(hour) || !Number.isFinite(minute)) return "last_session";
     const minutes = hour * 60 + minute;
-    return minutes >= 9 * 60 + 30 && minutes < 16 * 60 ? "regular" : "last_session";
+    const window = usRegularSessionWindow(Date.parse(`${etDate}T00:00:00Z`) / 1000 + minutes * 60);
+    return window !== null && minutes >= window[0] && minutes < window[1] ? "regular" : "last_session";
   } catch {
     return "last_session";
   }

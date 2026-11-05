@@ -12,7 +12,7 @@
  * must render a load error with a Retry that really re-reads; only a 404 may render the
  * absence copy, and it offers nothing to retry.
  */
-import React, { act } from "react";
+import React, { act, Profiler } from "react";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { createRoot, type Root } from "react-dom/client";
@@ -25,7 +25,7 @@ vi.mock("@/components/ui/Tip", () => ({ Tip: ({ children }: { children: React.Re
 vi.mock("@/components/eodcontext/EodContextBelt", () => ({ EodContextBelt: () => null }));
 
 import { GexDeskView } from "@/components/gexdesk/GexDeskView";
-import { flowInvalidate } from "@/lib/flowClientCache";
+import { flowGetResult, flowInvalidate } from "@/lib/flowClientCache";
 
 const LOAD_ERROR = "Could not load GEX data";
 const LOADING = "Loading GEX data…";
@@ -37,6 +37,7 @@ const STATE_ERROR = "Could not load the market state";
 const STATE_REFRESH_FAILED = "Could not refresh — showing the last read.";
 const STATE_DATA = "Stability"; // rendered only beside a held market state
 const HEAT_NULL = "No standout pick";
+const HEAT_ABSENT = "No pick is published for this name";
 const HEAT_ERROR = "Could not read the published pick just now";
 const LENS_NO_MATRIX = "per-expiration split not available for this ticker";
 const MTX_NONE = "No strike × expiry matrix published for this root.";
@@ -46,6 +47,7 @@ const CONFLUENCE_ERROR = "Could not read QQQ";
 const ARCHIVED_MISSING = (date: string) => `No archived snapshot for ${date}`;
 const ARCHIVED_MISSING_WHY = "This session was never published";
 const ARCHIVED_ERROR = (date: string) => `Could not load the ${date} session`;
+const LIVE_REFRESH_FAILED = "Could not refresh — showing the last read.";
 
 // One injected transport answer per f-param. Anything unlisted is a published absence.
 // `gated` holds its answer until openGate() — a read that lands after the user moved on.
@@ -100,6 +102,7 @@ class FakeEventSource {
   onopen: ((ev: Event) => void) | null = null;
   onmessage: ((ev: MessageEvent) => void) | null = null;
   onerror: ((ev: Event) => void) | null = null;
+  listeners = new Map<string, Array<(ev: MessageEvent) => void>>();
   closed = false;
   constructor(readonly url: string) {
     this.f = new URL(url, "http://terminal.test").searchParams.get("f") ?? "";
@@ -115,6 +118,14 @@ class FakeEventSource {
   push(frame: unknown) {
     this.onmessage?.(new MessageEvent("message", { data: JSON.stringify(frame) }));
   }
+  addEventListener(type: string, fn: (ev: MessageEvent) => void) {
+    this.listeners.set(type, [...(this.listeners.get(type) ?? []), fn]);
+  }
+  /** The route's named `status` event: what the producer's last read of the key established. */
+  status(status: "absent" | "unavailable") {
+    const ev = new MessageEvent("status", { data: JSON.stringify({ status }) });
+    for (const fn of this.listeners.get("status") ?? []) fn(ev);
+  }
   close() { this.closed = true; }
 }
 
@@ -123,6 +134,8 @@ let root: Root;
 const originalScrollIntoView = Element.prototype.scrollIntoView;
 
 beforeEach(() => {
+  // View selection persists in the URL; every case starts from a fresh desk route.
+  window.history.replaceState({}, "", "/options?tab=gex");
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
   vi.stubGlobal("ResizeObserver", class { observe() {} unobserve() {} disconnect() {} });
   vi.stubGlobal("fetch", fetchMock);
@@ -176,6 +189,17 @@ async function clickButton(label: string) {
   expect(button, `a "${label}" button`).toBeDefined();
   await act(async () => { button!.click(); });
   await settle();
+}
+async function openDealerGrid() {
+  const disclosure = host.querySelector<HTMLDetailsElement>('[data-testid="gex-legacy-hedge-matrix"]');
+  expect(disclosure, "live matrix keeps the dealer grid in its named disclosure").not.toBeNull();
+  expect(disclosure!.open).toBe(false);
+  // The shared exposure map leads; the separate dealer grid mounts only on disclosure.
+  expect(disclosure!.querySelector('[data-testid="gex-matrix-error"]')).toBeNull();
+  const summary = disclosure!.querySelector("summary")!;
+  await act(async () => { summary.click(); });
+  await settle();
+  expect(disclosure!.open).toBe(true);
 }
 async function refocus() {
   vi.spyOn(document, "visibilityState", "get").mockReturnValue("visible");
@@ -345,6 +369,51 @@ describe("GEX desk: an archived session that could not be read is not an archive
     });
   });
 
+  it("awaits the corrected dated book on the first stale cached selection", async () => {
+    const key = `gex_at:SPY:${DATE}`;
+    const now = vi.spyOn(Date, "now").mockReturnValue(1_800_000_000_000);
+    replies[key] = json(200, { ...gex.SPY, asof: `${DATE}T20:15:00Z`, spot_ref: 111.11 });
+    await flowGetResult(key);
+    now.mockReturnValue(1_800_000_031_000);
+    replies[key] = { gated: json(200, { ...gex.SPY, asof: `${DATE}T20:15:00Z`, spot_ref: 987.65 }) };
+    await mount();
+    await pickSession(DATE);
+    expect(requested(key)).toBe(2);
+    expect(text()).not.toContain("111.11");
+    await act(async () => { openGate(); });
+    await settle();
+    expect(text()).toContain("987.65");
+    expect(text()).not.toContain("111.11");
+  });
+
+  it.each([
+    ["failure", UNAVAILABLE, "gex-archived-error"],
+    ["absence", ABSENT, "gex-archived-missing"],
+  ])("does not substitute a cached archive for a new %s", async (_label, answer, marker) => {
+    const key = `gex_at:SPY:${DATE}`;
+    const now = vi.spyOn(Date, "now").mockReturnValue(1_800_000_000_000);
+    replies[key] = json(200, { ...gex.SPY, asof: `${DATE}T20:15:00Z`, spot_ref: 111.11 });
+    await flowGetResult(key);
+    now.mockReturnValue(1_800_000_031_000);
+    replies[key] = answer;
+    await mount();
+    await pickSession(DATE);
+    expect(within(`[data-testid="${marker}"]`)).not.toBeNull();
+    expect(text()).not.toContain("111.11");
+  });
+
+  it("discards a corrected archive that arrives after return to live", async () => {
+    const key = `gex_at:SPY:${DATE}`;
+    replies[key] = { gated: json(200, { ...gex.SPY, asof: `${DATE}T20:15:00Z`, spot_ref: 987.65 }) };
+    await mount();
+    await pickSession(DATE);
+    await pickSession("");
+    await act(async () => { openGate(); });
+    await settle();
+    expect(text()).not.toContain("987.65");
+    expect(text()).toContain("751.71");
+  });
+
   it.each([
     ["a 5xx", UNAVAILABLE],
     ["a rejected fetch", "reject" as const],
@@ -463,13 +532,24 @@ describe("GEX desk: an unread matrix is not an unpublished one", () => {
     expect(text()).not.toContain(LENS_NO_MATRIX);
   });
 
-  it("keeps 'no standout pick' and the not-available lens note for a real 404", async () => {
+  it("a real 404 says the pick is not published — not 'load is shared' — with the lens note", async () => {
     replies["matrix:SPY"] = ABSENT;
     await mount();
-    expect(text()).toContain(HEAT_NULL);
+    const absent = within('[data-testid="gex-heatseeker-absent"]');
+    expect(absent).not.toBeNull();
+    expect(text(absent)).toContain(HEAT_ABSENT);
+    expect(text()).not.toContain(HEAT_NULL);
     expect(text()).toContain(LENS_NO_MATRIX);
     expect(within('[data-testid="gex-heatseeker-error"]')).toBeNull();
     expect(retryIn()).toBeNull();
+  });
+
+  it("keeps 'no standout pick' for a published matrix whose build named no pick", async () => {
+    replies["matrix:SPY"] = json(200, { ...matrix.SPY, heat_seeker: null });
+    await mount();
+    expect(text()).toContain(HEAT_NULL);
+    expect(text()).not.toContain(HEAT_ABSENT);
+    expect(within('[data-testid="gex-heatseeker-absent"]')).toBeNull();
   });
 
   it("re-reads the matrix in place", async () => {
@@ -489,6 +569,7 @@ describe("GEX desk: an unread matrix is not an unpublished one", () => {
     replies["matrix:SPY"] = UNAVAILABLE;
     await mount();
     await clickButton("Matrix");
+    await openDealerGrid();
     const error = within('[data-testid="gex-matrix-error"]');
     expect(error).not.toBeNull();
     expect(text(error)).toContain(MTX_ERROR);
@@ -500,6 +581,7 @@ describe("GEX desk: an unread matrix is not an unpublished one", () => {
     replies["matrix:SPY"] = ABSENT;
     await mount();
     await clickButton("Matrix");
+    await openDealerGrid();
     expect(text()).toContain(MTX_NONE);
     expect(within('[data-testid="gex-matrix-error"]')).toBeNull();
   });
@@ -510,6 +592,7 @@ describe("GEX desk: an unread matrix is not an unpublished one", () => {
     replies["matrix:QQQ"] = UNAVAILABLE;
     await mount();
     await clickButton("Matrix");
+    await openDealerGrid();
     await clickButton("CONFLUENCE");
     expect(requested("matrix:QQQ")).toBe(1);
     const error = within('[data-testid="gex-confluence-error"]');
@@ -522,5 +605,167 @@ describe("GEX desk: an unread matrix is not an unpublished one", () => {
     expect(requested("matrix:QQQ")).toBe(2);
     expect(within('[data-testid="gex-confluence-error"]')).toBeNull();
     expect(text()).toContain("484.30");
+  });
+});
+
+describe("GEX desk: one root's reads never render under another", () => {
+  it("the previous root's streamed snapshot is not committed under the new root, not even once", async () => {
+    vi.stubGlobal("EventSource", FakeEventSource);
+    streams["gex:SPY"] = { frame: gex.SPY };
+    streams["gex:QQQ"] = "silent";
+    replies["gex:SPY"] = GEX_SPY;
+    replies["gex:QQQ"] = "pending";
+    const commits: string[] = [];
+    await act(async () => root.render(
+      <Profiler id="desk" onRender={() => commits.push(host.textContent ?? "")}>
+        <GexDeskView />
+      </Profiler>,
+    ));
+    await settle();
+    expect(text()).toContain("751.71");
+
+    const input = host.querySelector<HTMLInputElement>('input[list="gex-roots"]')!;
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!.call(input, "QQQ");
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    commits.length = 0;
+    await act(async () => { input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true })); });
+    await settle();
+    expect(commits.length).toBeGreaterThan(0);
+    for (const frame of commits) expect(frame).not.toContain("751.71");
+    expect(text()).toContain(LOADING);
+  });
+
+  it("a late session index for the previous root never fills the new root's dropdown", async () => {
+    replies["gex:SPY"] = GEX_SPY;
+    replies["gex:QQQ"] = GEX_QQQ;
+    replies["gex_dates:SPY"] = { gated: json(200, {
+      schema: "options_hub.gex_dates/v1",
+      root: "SPY",
+      dates: ["2026-07-10", "2026-07-09", "2026-07-08"],
+      latest: "2026-07-10",
+    }) };
+    replies["gex_dates:QQQ"] = ABSENT;
+    await mount();
+    expect(requested("gex_dates:SPY")).toBe(1);
+    await commitRoot("QQQ");
+    expect(text()).toContain("484.30");
+    await act(async () => openGate()); // SPY's index lands after the user moved on
+    await settle();
+    expect(host.querySelector('select[aria-label="Archived session"]')).toBeNull();
+    expect(text()).not.toContain("2026-07-09");
+  });
+
+  it("the previous root's session index is not committed under the new root, not even once", async () => {
+    replies["gex:SPY"] = GEX_SPY;
+    replies["gex:QQQ"] = "pending";
+    replies["gex_dates:SPY"] = json(200, {
+      schema: "options_hub.gex_dates/v1",
+      root: "SPY",
+      dates: ["2026-07-10", "2026-07-09", "2026-07-08"],
+      latest: "2026-07-10",
+    });
+    replies["gex_dates:QQQ"] = "pending";
+    const commits: string[] = [];
+    await act(async () => root.render(
+      <Profiler id="desk" onRender={() => commits.push(host.textContent ?? "")}>
+        <GexDeskView />
+      </Profiler>,
+    ));
+    await settle();
+    expect(text(host.querySelector('select[aria-label="Archived session"]'))).toContain("2026-07-09");
+
+    const input = host.querySelector<HTMLInputElement>('input[list="gex-roots"]')!;
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!.call(input, "QQQ");
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    commits.length = 0;
+    await act(async () => { input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true })); });
+    await settle();
+    expect(commits.length).toBeGreaterThan(0);
+    for (const frame of commits) expect(frame).not.toContain("2026-07-09");
+  });
+
+  it("a late session index for the previous root does not erase the new root's dropdown", async () => {
+    replies["gex:SPY"] = GEX_SPY;
+    replies["gex:QQQ"] = GEX_QQQ;
+    replies["gex_dates:SPY"] = { gated: json(200, {
+      schema: "options_hub.gex_dates/v1",
+      root: "SPY",
+      dates: ["2026-07-10", "2026-07-09", "2026-07-08"],
+      latest: "2026-07-10",
+    }) };
+    replies["gex_dates:QQQ"] = json(200, {
+      schema: "options_hub.gex_dates/v1",
+      root: "QQQ",
+      dates: ["2026-07-07", "2026-07-06"],
+      latest: "2026-07-07",
+    });
+    const dropdown = () => host.querySelector('select[aria-label="Archived session"]');
+    // Every commit is checked: a dropdown that vanishes and is re-read back is still a flicker.
+    const commits: string[] = [];
+    await act(async () => root.render(
+      <Profiler id="desk" onRender={() => commits.push(text(dropdown()))}>
+        <GexDeskView />
+      </Profiler>,
+    ));
+    await settle();
+    await commitRoot("QQQ");
+    expect(text(dropdown())).toContain("2026-07-06");
+    commits.length = 0;
+    await act(async () => openGate()); // SPY's index lands after QQQ's
+    await settle();
+    for (const options of commits) expect(options).toContain("2026-07-06");
+    expect(text(dropdown())).not.toContain("2026-07-09");
+  });
+});
+
+describe("GEX desk: a failed refresh of the live snapshot is labelled, not silent", () => {
+  const row = () => within('[data-testid="gex-live-refresh-failed"]');
+  beforeEach(() => {
+    vi.stubGlobal("EventSource", FakeEventSource);
+    streams["gex:SPY"] = { frame: gex.SPY };
+    replies["gex:SPY"] = GEX_SPY;
+  });
+
+  it("keeps the ladder, says it is the last read, and offers a Retry that re-reads", async () => {
+    await mount();
+    expect(text()).toContain("751.71");
+    expect(row()).toBeNull();
+
+    await act(async () => opened("gex:SPY")[0].status("unavailable"));
+    await settle();
+    expect(text(row())).toContain(LIVE_REFRESH_FAILED);
+    expect(text()).toContain("751.71");
+    expect(within('[data-testid="gex-load-error"]')).toBeNull();
+    expect(text()).not.toContain(EMPTY_TITLE);
+
+    const before = requested("gex:SPY");
+    await clickRetry(row());
+    expect(requested("gex:SPY")).toBe(before + 1);
+    expect(row()).toBeNull();
+    expect(text()).toContain("751.71");
+  });
+
+  it("a Retry that fails again keeps the ladder and the label", async () => {
+    await mount();
+    await act(async () => opened("gex:SPY")[0].status("unavailable"));
+    await settle();
+    replies["gex:SPY"] = "reject";
+    await clickRetry(row());
+    expect(text(row())).toContain(LIVE_REFRESH_FAILED);
+    expect(text()).toContain("751.71");
+  });
+
+  it("the next pushed frame clears the label without a Retry", async () => {
+    await mount();
+    await act(async () => opened("gex:SPY")[0].status("unavailable"));
+    await settle();
+    expect(row()).not.toBeNull();
+    await act(async () => opened("gex:SPY")[0].push(gex.SPY));
+    await settle();
+    expect(row()).toBeNull();
   });
 });

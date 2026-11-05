@@ -1,0 +1,33 @@
+{
+  "state": "INTEGRATED",
+  "timestamp": "2026-10-22T05:51:50.224695+00:00",
+  "previous_head": "f5ed1f931b58cfff537efa46c07e70e771ed580b",
+  "guard_head": "909004efe60522f40216bf7817914b60ffdc79f8",
+  "base": "516d0519ca39d4be3ef186d65261598dfc5f6042",
+  "head": "d2ce27ace2a1a3ad1b648ae105973d01d00364be",
+  "tree": "6993731d6197de321835cc379265c8bf54f22643",
+  "clean": true,
+  "accepted_blobs": {
+    "terminal/components/PortfolioView.tsx": "6cbcd5dabec895eb455da277453c832095465afd",
+    "terminal/components/settings/SectionPortfolioTargets.tsx": "eb8e33ed070ff82eb39583017a3626985270e150",
+    "terminal/components/settings/__tests__/SectionPortfolioTargets.test.tsx": "76f9076de8288db247d4ab732f4a113672a474c0",
+    "terminal/lib/__tests__/portfolioTargetsView.test.tsx": "c224fbc659215009896355f9b77201757245f2ce",
+    "terminal/e2e/portfolio-targets.spec.ts": "55d3129b717939477d77f97ed9be0b71484ac954",
+    "terminal/app/api/portfolio/route.ts": "e65e4b0e2a08c2cc4cf146cca7f9620ec0c7ab8f",
+    "terminal/lib/__tests__/portfolioArtifactOrigin.test.ts": "47478ae9a4bd9c61c35130fc7984fc84e106be84"
+  },
+  "steps": [
+    {
+      "input": "909004efe60522f40216bf7817914b60ffdc79f8",
+      "exit_code": 0,
+      "output": "Merge made by the 'ort' strategy.\n terminal/app/api/portfolio/route.ts                |  33 ++--\n .../artifact-origin-guard-20261022/README.md       |  36 ++++\n .../artifact-origin-guard-20261022/green.log.gz    | Bin 0 -> 2752 bytes\n .../artifact-origin-guard-20261022/lint.log.gz     | Bin 0 -> 20 bytes\n .../artifact-origin-guard-20261022/red.log.gz      | Bin 0 -> 1287 bytes\n .../typecheck.log.gz                               | Bin 0 -> 20 bytes\n .../artifact-origin-guard-20261022/validation.json | 109 ++++++++++++\n .../lib/__tests__/portfolioArtifactOrigin.test.ts  | 185 +++++++++++++++++++++\n 8 files changed, 342 insertions(+), 21 deletions(-)\n create mode 100644 terminal/docs/verification/portfolio-workspace/artifact-origin-guard-20261022/README.md\n create mode 100644 terminal/docs/verification/portfolio-workspace/artifact-origin-guard-20261022/green.log.gz\n create mode 100644 terminal/docs/verification/portfolio-workspace/artifact-origin-guard-20261022/lint.log.gz\n create mode 100644 terminal/docs/verification/portfolio-workspace/artifact-origin-guard-20261022/red.log.gz\n create mode 100644 terminal/docs/verification/portfolio-workspace/artifact-origin-guard-20261022/typecheck.log.gz\n create mode 100644 terminal/docs/verification/portfolio-workspace/artifact-origin-guard-20261022/validation.json\n create mode 100644 terminal/lib/__tests__/portfolioArtifactOrigin.test.ts\n",
+      "head": "0baeebf943ceb75fe055a662dfc6efd0c9ca5919"
+    },
+    {
+      "input": "516d0519ca39d4be3ef186d65261598dfc5f6042",
+      "exit_code": 0,
+      "output": "Merge made by the 'ort' strategy.\n terminal/components/exposure-map/ExposureBoard.tsx |  18 +-\n .../exposure-map/ExposureScanTable.module.css      |  72 +++++\n .../components/exposure-map/ExposureScanTable.tsx  | 347 +++++++++++++++++++++\n .../components/exposure-map/exposureMapStrings.ts  |   2 +\n .../components/exposure-map/exposureScanStrings.ts |  80 +++++\n terminal/e2e/options-exposure-map.spec.ts          |  20 ++\n terminal/lib/__tests__/exposureScan.test.ts        | 225 +++++++++++++\n .../lib/__tests__/exposureScanTableView.test.tsx   | 222 +++++++++++++\n terminal/lib/exposureScan.ts                       | 198 ++++++++++++\n 9 files changed, 1183 insertions(+), 1 deletion(-)\n create mode 100644 terminal/components/exposure-map/ExposureScanTable.module.css\n create mode 100644 terminal/components/exposure-map/ExposureScanTable.tsx\n create mode 100644 terminal/components/exposure-map/exposureScanStrings.ts\n create mode 100644 terminal/lib/__tests__/exposureScan.test.ts\n create mode 100644 terminal/lib/__tests__/exposureScanTableView.test.tsx\n create mode 100644 terminal/lib/exposureScan.ts\n",
+      "head": "d2ce27ace2a1a3ad1b648ae105973d01d00364be"
+    }
+  ]
+}

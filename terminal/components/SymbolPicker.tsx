@@ -1,5 +1,6 @@
 "use client";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import dynamic from "next/dynamic";
 import { getJSONResult } from "@/lib/dataCache";
 import { useShellIdentity } from "@/components/chrome/AppShell";
@@ -50,8 +51,16 @@ const NO_WATCHLIST: ReadonlySet<string> = new Set<string>();
 export interface SymbolPickerProps {
   /** The company currently on screen — pre-highlighted in the dialog. */
   symbol: string;
+  /** Optional host wording; search still uses the real active symbol. */
+  displayLabel?: string;
+  /** Company destinations accept only explicitly classified equities. */
+  scope?: "symbols" | "companies";
   /** Commit a new company. The host owns what that means (URL, cursor, refetch). */
   onPick: (symbol: string) => void;
+  /** A company search retains the typed query separately from the listing identity. */
+  onCompanyPick?: (symbol: string, query: string) => void;
+  searchSeed?: string;
+  initialSelection?: string;
   /** Controlled, so a host can also open the picker from elsewhere (e.g. a recovery button). */
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -62,14 +71,16 @@ export interface SymbolPickerProps {
   /** Accessible name for the trigger. It is a button, so it needs one of its own. */
   label: string;
   /** Avatar glyph override — a host's unresolved-symbol state passes "!". */
-  mark?: string;
+  mark?: ReactNode;
   /** Names this desk in the /admin Search Log. */
   trackSource?: string;
+  /** A responsive host may hide its trigger bar while another opener stays visible. */
+  portalDialog?: boolean;
 }
 
 export default function SymbolPicker({
-  symbol, onPick, open, onOpenChange,
-  className = "", eyebrow, label, mark, trackSource,
+  symbol, displayLabel, scope = "symbols", onPick, onCompanyPick, searchSeed = "", initialSelection, open, onOpenChange,
+  className = "", eyebrow, label, mark, trackSource, portalDialog = false,
 }: SymbolPickerProps) {
   const identity = useShellIdentity();
   // The same preference store the chart's picker reads, so a user who switched HK off does not
@@ -126,6 +137,25 @@ export default function SymbolPicker({
   }, [loadUniverse]);
 
   const universeState = symbols ? "ready" : failed ? "unavailable" : "loading";
+  const dialog = open ? <SearchModal
+    open
+    mode="pick"
+    companyScope={scope === "companies"}
+    seed={searchSeed}
+    initialSelection={initialSelection}
+    active={symbol}
+    manifest={symbols ?? {}}
+    universeState={universeState}
+    onRetryUniverse={loadUniverse}
+    inWatchlist={NO_WATCHLIST}
+    marketPrefs={marketPrefs}
+    prefsReady={prefsReady}
+    onShowAllMarkets={showAllMarkets}
+    trackSource={trackSource}
+    onClose={() => onOpenChange(false)}
+    onPick={(next) => { onOpenChange(false); onPick(next); }}
+    onCompanyPick={onCompanyPick ? (next, query) => { onOpenChange(false); onCompanyPick(next, query); } : undefined}
+  /> : null;
 
   return (
     <>
@@ -145,29 +175,12 @@ export default function SymbolPicker({
         <span className="sym-pick-mark" aria-hidden>{mark ?? symbol.charAt(0) ?? "?"}</span>
         <span className="sym-pick-id">
           <small>{eyebrow}</small>
-          <strong>{symbol}</strong>
+          <strong>{displayLabel ?? symbol}</strong>
         </span>
         <svg className="sym-pick-car" viewBox="0 0 24 24" aria-hidden><path d="M6 9l6 6 6-6" /></svg>
       </button>
 
-      {open && (
-        <SearchModal
-          open
-          mode="pick"
-          seed=""
-          active={symbol}
-          manifest={symbols ?? {}}
-          universeState={universeState}
-          onRetryUniverse={loadUniverse}
-          inWatchlist={NO_WATCHLIST}
-          marketPrefs={marketPrefs}
-          prefsReady={prefsReady}
-          onShowAllMarkets={showAllMarkets}
-          trackSource={trackSource}
-          onClose={() => onOpenChange(false)}
-          onPick={(next) => { onOpenChange(false); onPick(next); }}
-        />
-      )}
+      {portalDialog && dialog && typeof document !== "undefined" ? createPortal(dialog, document.body) : dialog}
     </>
   );
 }

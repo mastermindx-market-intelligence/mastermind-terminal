@@ -75,6 +75,11 @@
   white-space: nowrap;
   flex-shrink: 0;
 }
+.reviewSharing {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
 .pinned {
   font: 700 10px/1.2 var(--font-num);
   letter-spacing: .08em;

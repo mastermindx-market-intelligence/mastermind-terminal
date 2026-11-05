@@ -14,6 +14,7 @@ import type { Lang } from "@/lib/i18n";
 import {
   darkPoolRead,
   type DarkPoolEodPayload,
+  type EodReadStatus,
   type DarkPoolShortKey,
   eodDate,
   fmtEodDay,
@@ -21,10 +22,12 @@ import {
 
 interface DarkPoolMiniProps {
   root: string;
-  /** null → the fetch hasn't resolved or the artifact is missing (see `loading`). */
+  /** null → the read hasn't landed, failed, or proved the artifact missing (see `status`). */
   payload: DarkPoolEodPayload | null;
-  /** True while the first fetch is in flight — suppresses the "unavailable" claim. */
-  loading?: boolean;
+  /** How the read stands. Only "absent" may print "hasn't published". */
+  status: EodReadStatus;
+  /** Re-reads the artifact after a failed read. */
+  onRetry: () => void;
   lang: Lang;
 }
 
@@ -38,7 +41,7 @@ const SHORT_LABEL: Record<DarkPoolShortKey, EodKey> = {
 /** Few matched days behind the z-scores → say so rather than quietly trusting them. */
 const FEW_DAYS = 30;
 
-export function DarkPoolMini({ root, payload, loading = false, lang }: DarkPoolMiniProps) {
+export function DarkPoolMini({ root, payload, status, onRetry, lang }: DarkPoolMiniProps) {
   const t = makeEodT(lang);
   const read = darkPoolRead(payload, root);
   const day = fmtEodDay(eodDate(read.asof), lang);
@@ -59,16 +62,33 @@ export function DarkPoolMini({ root, payload, loading = false, lang }: DarkPoolM
     </div>
   );
 
+  // ── The read did not land: not a fact about the panel, so never its absent copy. ──
+  if (status === "unavailable") {
+    return (
+      <section style={OUTER} aria-label={t("dpAria")} {...sourceAttributes}>
+        {header}
+        <div style={LOAD_ERROR} data-testid="eod-darkpool-load-error" role="alert">
+          <p style={ABSENT_LEAD}>{t("dpLoadError")}</p>
+          <p style={ABSENT_WHY}>{t("dpLoadErrorWhy")}</p>
+          <button type="button" className="btn btn-ghost load-retry" style={RETRY_INLINE} onClick={onRetry}>
+            {t("retry")}
+          </button>
+        </div>
+      </section>
+    );
+  }
+
   // Missing, unsupported, historical-only, or unqualified source session.
   if (read.state === "unavailable") {
     return (
       <section style={OUTER} aria-label={t("dpAria")} {...sourceAttributes}>
         {header}
-        {loading ? (
+        {status === "loading" ? (
           <p style={ABSENT_LEAD}>&nbsp;</p>
         ) : (
           <>
             <p style={ABSENT_LEAD}>{t("dpUnavailable")}</p>
+            {status === "absent" && <p style={ABSENT_WHY}>{t("dpUnavailableWhy")}</p>}
           </>
         )}
       </section>
@@ -286,4 +306,23 @@ const ABSENT_LEAD: React.CSSProperties = {
   fontSize: 11,
   fontWeight: 600,
   color: "var(--text-2)",
+};
+
+const ABSENT_WHY: React.CSSProperties = {
+  margin: 0,
+  fontSize: 10,
+  lineHeight: 1.5,
+  color: "var(--muted)",
+};
+
+const LOAD_ERROR: React.CSSProperties = {
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "flex-start",
+  gap: 6,
+};
+
+const RETRY_INLINE: React.CSSProperties = {
+  padding: "2px 10px",
+  fontSize: 11,
 };

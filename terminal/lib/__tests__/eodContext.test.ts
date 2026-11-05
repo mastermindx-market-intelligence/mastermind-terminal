@@ -50,6 +50,7 @@ import {
   type StructureReceipt,
   type VolRegimePayload,
 } from "@/lib/eodContext";
+import { getEodStr } from "@/components/eodcontext/eodStrings";
 
 const dataFile = (n: string) => path.join(process.cwd(), "public", "data", n);
 const loadJson = async <T>(n: string): Promise<T> =>
@@ -393,7 +394,28 @@ describe("off-exchange observations — metric semantics", () => {
 
 describe("off-exchange component — rendered copy and provenance", () => {
   const render = (payload: DarkPoolEodPayload | null, root = "TEST", lang: "en" | "zh" = "en") =>
-    renderToStaticMarkup(createElement(DarkPoolMini, { payload, root, lang }));
+    renderToStaticMarkup(createElement(DarkPoolMini, { payload, root, lang, status: "data", onRetry: () => {} }));
+
+  it("preserves the current read status: failure, pending and proven absence stay distinct", () => {
+    const renderStatus = (status: "data" | "loading" | "absent" | "unavailable", payload: DarkPoolEodPayload | null = null) =>
+      renderToStaticMarkup(createElement(DarkPoolMini, { payload, root: "TEST", lang: "en", status, onRetry: () => {} }));
+    const failed = renderStatus("unavailable", v2Payload(baseRow()));
+    expect(failed).toContain("Could not load the off-exchange panel");
+    expect(failed).toContain("Retry");
+    expect(failed).not.toContain("Unusual, unclear");
+    expect(failed).not.toContain("hasn&#x27;t published");
+    const pending = renderStatus("loading");
+    expect(pending).not.toContain("Off-exchange panel unavailable");
+    expect(pending).not.toContain("hasn&#x27;t published");
+    expect(pending).not.toContain("Retry");
+    const absent = renderStatus("absent");
+    expect(absent).toContain("hasn&#x27;t published");
+    expect(absent).not.toContain("Retry");
+    const malformed = renderStatus("data", { ...v2Payload(baseRow()), schema: "unknown" });
+    expect(malformed).toContain("Off-exchange panel unavailable");
+    expect(malformed).not.toContain("hasn&#x27;t published");
+    expect(malformed).not.toContain("Retry");
+  });
 
   it("renders available and partial measurements without a false quiet conclusion", () => {
     for (const row of [
@@ -874,5 +896,50 @@ describe("receipt number formatting", () => {
     expect(ordinal(13)).toBe("13th");
     expect(ordinal(21)).toBe("21st");
     expect(ordinal(44)).toBe("44th");
+  });
+});
+
+// ─── W3S: the expMove cell carries the producer's band statement ─────────────
+describe("expMove band statement (W3S)", () => {
+  const moves = {
+    asof: "2026-07-23",
+    expected_move: { pct: 1.9618, lo: 723.6982, hi: 752.6618, band_mult: 1.96, horizon_days: 1 },
+  };
+
+  it("expMove cell carries the band multiple, horizon and clock labelled method not stated", () => {
+    const em = buildStructureCells({ gexState: null, gex: null, root: "SPY", moves })
+      .find((c) => c.key === "expMove")!;
+    expect(em.value).toBe("±2.0%");
+    expect(em.detail).toBe("723.7 – 752.7");
+    // The producer's OWN numbers ride beside the band, keyed as data — the belt
+    // renderer localizes the line, and the wording names the method honestly.
+    expect(em.method).toEqual({ bandMult: 1.96, horizonDays: 1 });
+    expect(em.vintage).toBe("2026-07-23");
+    expect(getEodStr("en", "cellExpMoveMethodBand")).toContain("band ×{m}");
+    expect(getEodStr("zh", "cellExpMoveMethodBand")).toBe("区间 ×{m}");
+    expect(getEodStr("en", "cellExpMoveMethodHorizon")).toContain("{n}d horizon");
+    expect(getEodStr("zh", "cellExpMoveMethodHorizon")).toBe("{n}日");
+    expect(getEodStr("en", "cellExpMoveMethodUnstated")).toBe("method not stated by source");
+    expect(getEodStr("zh", "cellExpMoveMethodUnstated")).toBe("来源未说明方法");
+  });
+
+  it("expMove cell shows no band line and no number when the moves payload is absent", () => {
+    const absent = buildStructureCells({ gexState: null, gex: null, root: "SPY" })
+      .find((c) => c.key === "expMove")!;
+    expect(absent.value).toBeNull();
+    expect(absent.detail).toBeNull();
+    expect(absent.method ?? null).toBeNull();
+    // A payload that never published a band is the same absence — not a zero.
+    const bare = buildStructureCells({ gexState: null, gex: null, root: "SPY", moves: { asof: "2026-07-23" } })
+      .find((c) => c.key === "expMove")!;
+    expect(bare.value).toBeNull();
+    expect(bare.method ?? null).toBeNull();
+    // Each part of the statement is present only when its own field is finite.
+    const partial = buildStructureCells({
+      gexState: null, gex: null, root: "SPY",
+      moves: { asof: "2026-07-23", expected_move: { pct: 1.9, lo: 100, hi: 104, band_mult: 1.5 } },
+    }).find((c) => c.key === "expMove")!;
+    expect(partial.value).toBe("±1.9%");
+    expect(partial.method).toEqual({ bandMult: 1.5, horizonDays: null });
   });
 });
