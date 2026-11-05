@@ -66,6 +66,8 @@ type Props = {
   /** Current editor inputs, independent of the last applied calculation. */
   onDraftInputChange?: (draft: OptionsPlanDraft | null) => void;
   onClose: () => void;
+  /** Synchronous incumbent lifetime guard; checked again after each async boundary. */
+  isScopeCurrent?: () => boolean;
 };
 
 /** A new account or retained selection gets a fresh editor/result controller.
@@ -74,7 +76,7 @@ type Props = {
 export function OptionsPlanPayoffPanel(props: Props) {
   return <PlanPayoffBody key={props.scopeKey} {...props} />;
 }
-function PlanPayoffBody({ draft, lang, onDraftChange, onDraftInputChange, onClose }: Props) {
+function PlanPayoffBody({ draft, lang, onDraftChange, onDraftInputChange, onClose, isScopeCurrent = () => true }: Props) {
   const t = (en: string, zh: string) => lang === "zh" ? zh : en;
   const [result, setResult] = useState<PlanPayoff | null>(null);
   // Explicit local comparison only; the existing Investigation owner alone may Save.
@@ -153,6 +155,7 @@ function PlanPayoffBody({ draft, lang, onDraftChange, onDraftInputChange, onClos
       </>}
     </div>
     <OptionsPlanComparePanel lang={lang} candidate={lastQualified} baseline={baseline}
-      onPin={() => { if (lastQualified) setBaseline(lastQualified); }} onClear={() => setBaseline(null)} />
+      isScopeCurrent={isScopeCurrent}
+      onPin={() => { if (isScopeCurrent?.() !== false && lastQualified) setBaseline(lastQualified); }} onClear={() => setBaseline(null)} />
   </section>;
 }

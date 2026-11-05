@@ -70,4 +70,21 @@ describe("Plan comparison preserves evidence and native-owner truth", () => {
     expect(host.querySelector('[data-testid="plan-compare-overlay"]')).toBeNull();
     expect(host.querySelector('[data-testid="plan-comparison-points"]')).toBeNull();
   });
+  it("withholds incumbent-retired account research on every stale rerender", async () => {
+    let valid = true;
+    const a = scenario(), b = scenario(4);
+    const props = {
+      baseline: a, candidate: b, lang: "en" as const,
+      onPin: () => undefined, onClear: () => undefined,
+      isScopeCurrent: () => valid,
+    };
+    await act(async () => root.render(<OptionsPlanComparePanel {...props} />));
+    expect(host.querySelector('[data-testid="plan-compare-overlay"]')).not.toBeNull();
+    valid = false;
+    await act(async () => root.render(<OptionsPlanComparePanel {...props} />));
+    expect(host.querySelector('[data-testid="plan-scenario-compare"]')).toBeNull();
+    await act(async () => root.render(<OptionsPlanComparePanel {...props} />));
+    expect(host.querySelector('[data-testid="plan-scenario-compare"]')).toBeNull();
+  });
+
 });

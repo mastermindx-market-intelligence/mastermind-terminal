@@ -11,6 +11,8 @@ type Props = {
   candidate: QualifiedPlanScenario | null;
   onPin: () => void;
   onClear: () => void;
+  /** Original native account/selection lifetime; false is permanent for this mount. */
+  isScopeCurrent?: () => boolean;
 };
 
 const money = (v: number, lang: "en" | "zh") => new Intl.NumberFormat(lang === "zh" ? "zh-CN" : "en-US", {
@@ -73,9 +75,11 @@ function Overlay({ data, lang }: {
 /** Explicit local-only comparison. No fetch, Save, watch or repricing happens
  * here. Baseline and candidate are trusted only after the original endpoint's
  * request-bound response validator has accepted both exact results. */
-export function OptionsPlanComparePanel({ lang, baseline, candidate, onPin, onClear }: Props) {
+export function OptionsPlanComparePanel({ lang, baseline, candidate, onPin, onClear, isScopeCurrent }: Props) {
   const t = (en: string, zh: string) => lang === "zh" ? zh : en;
   const heading = useRef<HTMLHeadingElement>(null);
+  // Incumbent native lifetime is monotonic: once retired, it cannot be reused without a scopeKey remount.
+  if (isScopeCurrent?.() === false) return null;
   const side = (value: "buy" | "sell" | null) => value === "buy" ? t("Buy", "买入") : value === "sell" ? t("Sell", "卖出") : "—";
   const comparison = baseline && candidate && baseline !== candidate ? comparePlanScenarios(baseline, candidate) : null;
   const refused = comparison && !comparison.ok;
