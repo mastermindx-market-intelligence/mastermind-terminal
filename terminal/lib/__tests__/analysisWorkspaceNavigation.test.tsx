@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
+import { renderToString } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import SharedShellToolbar from "@/components/chrome/shared-shell/SharedShellToolbar";
 import AnalysisWorkspace from "@/components/workspaces/AnalysisWorkspace";
@@ -25,6 +26,28 @@ async function render(){await act(async()=>root.render(<LangProvider><SharedShel
 beforeEach(()=>{state.push.mockReset();state.fund.mockReset();state.bars.mockResolvedValue([]);vi.stubGlobal("fetch",vi.fn(async()=>({ok:true,json:async()=>({quotes:{}})})));host=document.createElement("div");document.body.append(host);root=createRoot(host);location("symbol=NVDA&page=intelligence");});
 afterEach(async()=>{await act(async()=>root.unmount());host.remove();vi.unstubAllGlobals();});
 describe("reused Company route identity",()=>{
+ it("renders the exact J1 thesis destination before hydration or passive effects",()=>{
+  const context="mo_from=ontology&mo_chain=context-chain&mo_path_rev=3&mo_focus=context-node&mo_asof=2026-09-23&mo_kc=2026-08-31";
+  location(`symbol=NVDA&page=intelligence&${context}&mo_untrusted=discard-me`);
+  const html=renderToString(<LangProvider><AnalysisWorkspace initialSymbol="NVDA" initialPage="intelligence"/></LangProvider>);
+  const firstPaint=document.createElement("div");
+  firstPaint.innerHTML=html;
+  const link=Array.from(firstPaint.querySelectorAll<HTMLAnchorElement>("a.analysis-context-theses"))
+   .find(anchor=>new URL(anchor.href).searchParams.get("view")==="theses")!;
+  expect(link).toBeDefined();
+  const destination=new URL(link.href);
+  expect(Object.fromEntries(destination.searchParams)).toEqual({
+   view:"theses",symbol:"NVDA",...Object.fromEntries(new URLSearchParams(context)),
+  });
+ });
+ it("does not carry invalid ontology context in the first-render thesis link",()=>{
+  location("symbol=NVDA&mo_from=unsupported&mo_chain=context-chain&mo_focus=context-node");
+  const firstPaint=document.createElement("div");
+  firstPaint.innerHTML=renderToString(<LangProvider><AnalysisWorkspace initialSymbol="NVDA"/></LangProvider>);
+  const link=Array.from(firstPaint.querySelectorAll<HTMLAnchorElement>("a.analysis-context-theses"))
+   .find(anchor=>new URL(anchor.href).searchParams.get("view")==="theses")!;
+  expect(Object.fromEntries(new URL(link.href).searchParams)).toEqual({view:"theses",symbol:"NVDA"});
+ });
  it("clears malformed selection when navigation removes the symbol",async()=>{
   state.fund.mockImplementation((symbol:string)=>Promise.resolve({ticker:symbol}));
   location("symbol=BAD%2FIDENTITY");await render();
