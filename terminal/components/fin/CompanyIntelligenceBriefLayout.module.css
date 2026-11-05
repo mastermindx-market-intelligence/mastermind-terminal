@@ -1,0 +1,209 @@
+/* Event facts and source access take the place of decorative company artwork. */
+.brief {
+  gap: 16px;
+  min-width: 0;
+}
+.brief :global(.ci-paper-brief-hero) {
+  grid-template-columns: minmax(0, 1.45fr) minmax(290px, .85fr);
+  min-height: 0;
+  border-color: var(--line);
+  background: var(--panel);
+  box-shadow: none;
+}
+.brief :global(.ci-paper-brief-hero[data-has-facts="false"]) { grid-template-columns: 1fr; }
+.brief :global(.ci-paper-brief-copy) {
+  align-content: start;
+  gap: 17px;
+  padding: 26px;
+}
+.brief :global(.ci-paper-brief-meta) {
+  gap: 8px;
+  color: var(--text-2);
+  font-size: 10px;
+  line-height: 1.55;
+}
+.brief :global(.ci-paper-brief-meta) > span { color: var(--text-2); letter-spacing: .045em; }
+.brief :global(.ci-paper-brief-copy) h3 {
+  max-width: 26ch;
+  font-size: clamp(24px, 2.3vw, 32px);
+  line-height: 1.14;
+  font-weight: 620;
+  letter-spacing: -.035em;
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
+}
+.brief :global(.ci-paper-brief-copy) > p {
+  max-width: 66ch;
+  font-size: 13px;
+  line-height: 1.7;
+  font-weight: 450;
+}
+.brief :global(.ci-paper-takeaways) { flex-wrap: wrap; gap: 8px; }
+.brief :global(.ci-paper-takeaways) > button {
+  min-height: 48px;
+  max-width: 100%;
+  padding: 10px 12px;
+  background: var(--bg);
+}
+.brief :global(.ci-paper-takeaways) span { font-size: 9px; line-height: 1.3; }
+.brief :global(.ci-paper-takeaways) strong {
+  font-size: 11px;
+  line-height: 1.45;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.facts {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 13px;
+  min-width: 0;
+  padding: 24px;
+  border-left: 1px solid var(--line);
+  background: color-mix(in srgb, var(--bg) 38%, var(--panel));
+}
+.factsHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--text-2);
+  font: 600 10px/1.4 var(--font-ui);
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+.factsHeading > span:last-child {
+  color: var(--muted);
+  font-family: var(--font-num);
+  letter-spacing: .02em;
+}
+.facts > p { margin: 0; color: var(--muted); font: 450 11px/1.55 var(--font-ui); }
+.brief .facts :global(.ci-paper-metrics) {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.brief .facts :global(.ci-paper-metrics) > button {
+  min-height: 106px;
+  padding: 13px;
+  gap: 9px;
+  border-color: var(--line-2);
+  border-radius: 8px;
+  background: var(--panel);
+  box-shadow: none;
+}
+.brief .facts :global(.ci-paper-metrics) strong {
+  font-size: clamp(19px, 1.8vw, 25px);
+  font-weight: 620;
+  line-height: 1.15;
+  letter-spacing: -.03em;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.brief .facts :global(.ci-paper-metrics) small {
+  font-size: 11px;
+  line-height: 1.4;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.brief .facts .factLabel {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 7px;
+  font-size: 10px;
+  line-height: 1.4;
+  color: var(--text-2);
+}
+.brief .facts .factLabel > span { color: var(--muted); font-size: 12px; }
+.brief :global(.ci-paper-insights) { gap: 12px; }
+.brief :global(.ci-paper-insight) {
+  min-height: 180px;
+  border-color: var(--line);
+  box-shadow: none;
+}
+.brief :global(.ci-paper-insight) > header {
+  grid-template-columns: 20px minmax(0, 1fr);
+  padding: 17px 16px;
+  gap: 10px;
+}
+.brief :global(.ci-paper-insight-mark) {
+  width: 20px;
+  height: 20px;
+  color: var(--text-2);
+  border: 0;
+  border-radius: 0;
+  background: none;
+  font-size: 14px;
+}
+.brief :global(.ci-paper-insight) h4,
+.brief :global(.ci-paper-watch) h4 { font-size: 13px; line-height: 1.4; font-weight: 600; }
+.brief :global(.ci-paper-insight) header p,
+.brief :global(.ci-paper-watch) header p { font-size: 11px; line-height: 1.5; }
+.brief :global(.ci-paper-brief-empty) { padding: 20px 16px; font-size: 12px; line-height: 1.65; }
+/* Empty evidence isn't a large card: keep its honest copy while returning the
+   first-frame space to populated evidence. The original selectors still own
+   full-height, selectable items, and all source/footer actions remain mounted. */
+.brief :global(.ci-paper-insight[data-empty="true"]) {
+  min-height: 0;
+  align-self: start;
+}
+.brief :global(.ci-paper-insight[data-empty="true"]) > header { padding: 12px 16px 8px; }
+.brief :global(.ci-paper-insight[data-empty="true"] .ci-paper-brief-empty) {
+  padding: 6px 16px 14px;
+  color: var(--muted);
+}
+.brief :global(.ci-paper-brief-list) button { min-height: 48px; padding: 12px 14px; }
+.brief :global(.ci-paper-brief-list) strong,
+.brief :global(.ci-paper-watch-list) strong {
+  font-size: 12px;
+  line-height: 1.55;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.brief :global(.ci-paper-brief-list) small {
+  font-size: 10px;
+  line-height: 1.5;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.brief :global(.ci-paper-watch) { border-color: var(--line); box-shadow: none; }
+.brief :global(.ci-paper-watch) > header { padding: 17px 18px; }
+.brief :global(.ci-paper-watch[data-empty="true"]) > header { padding: 12px 18px 8px; }
+.brief :global(.ci-paper-watch[data-empty="true"] .ci-paper-brief-empty) {
+  padding: 6px 18px 14px;
+  color: var(--muted);
+}
+.brief :global(.ci-paper-watch-list) > button {
+  grid-template-columns: 120px minmax(0, 1fr) 12px;
+  min-height: 48px;
+  padding: 12px 18px;
+}
+.brief :global(.ci-paper-watch-list) span { font-size: 11px; line-height: 1.4; }
+.brief button:focus-visible { outline: 2px solid var(--brand-2); outline-offset: -3px; }
+.brief .facts :global(.ci-paper-metrics) > button:hover,
+.brief .facts :global(.ci-paper-metrics) > button:global(.selected) {
+  border-color: color-mix(in srgb, var(--brand-2) 48%, var(--line));
+  background: color-mix(in srgb, var(--brand) 7%, var(--panel));
+}
+@media (max-width: 1100px) {
+  .brief :global(.ci-paper-brief-hero) { grid-template-columns: 1fr; }
+  .facts { border-left: 0; border-top: 1px solid var(--line); padding: 20px 24px; }
+  .brief .facts :global(.ci-paper-metrics) { grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); }
+  .brief :global(.ci-paper-insights) { grid-template-columns: 1fr; }
+  .brief :global(.ci-paper-insight) { min-height: 0; }
+}
+@media (max-width: 640px) {
+  .brief { gap: 12px; }
+  .brief :global(.ci-paper-brief-copy) { padding: 20px 16px; gap: 14px; }
+  .brief :global(.ci-paper-brief-copy) h3 { font-size: 25px; }
+  .brief :global(.ci-paper-brief-meta) > b { display: inline-flex; }
+  .brief :global(.ci-paper-takeaways) { overflow: visible; }
+  .brief :global(.ci-paper-takeaways) > button { min-width: 0; width: 100%; }
+  .facts { padding: 16px; }
+  .brief .facts :global(.ci-paper-metrics) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .brief .facts :global(.ci-paper-metrics) > button { min-height: 100px; padding: 11px; }
+  .brief :global(.ci-paper-watch-list) > button { grid-template-columns: 84px minmax(0, 1fr) 10px; padding: 12px 14px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .brief button { transition: none; }
+}

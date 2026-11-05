@@ -272,8 +272,15 @@ describe("Bollinger Bands parity (TLT-R5) — Macro Python engine contract", () 
   // because that is what the charted indicator publishes. Keeping this contract honest
   // requires naming which std dev it means; it must not ride on a default that belongs
   // to a different indicator. The charted bands are pinned in bollingerRenderParity.test.ts.
-  const params = expBollinger._params as { len: number; mult: number };
-  const result = bollingerBands(BARS, params.len, params.mult, 1);
+  const params = expBollinger._params as { n: number; k: number; ddof: 1 };
+  const result = bollingerBands(BARS, params.n, params.k, params.ddof);
+
+  it("binds the declared fixture window, multiplier and sample convention", () => {
+    expect(Number.isInteger(params.n)).toBe(true);
+    expect(params.n).toBeGreaterThan(1);
+    expect(Number.isFinite(params.k)).toBe(true);
+    expect(params.ddof).toBe(1);
+  });
 
   it("upper band matches fixture within 1e-6 relative", () => {
     const expUpper: (number | null)[] = expBollinger.upper;

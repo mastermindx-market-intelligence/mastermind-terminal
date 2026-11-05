@@ -1,0 +1,147 @@
+# Journey 6 (E5) corrected-save — PROOF lane capture evidence (Fabric NEWS-ORCH4-PROOF)
+# Terminal is dark-only (D-W1): terminal/e2e/admin-log-crops.spec.ts:15 — no `[data-theme="light"]`
+# branch in terminal/app/globals.css (grep count 0 at this head). "light theme" cells are
+# NOT APPLICABLE, not UNPROVEN.
+capturedAtHead: 579cb2f425763a08cc3c83867d642bc60ebe2efa
+capturedAt: 2026-10-31T17:43:00Z
+spec: terminal/e2e/news-corrected-save.spec.ts
+command: |
+  cd terminal
+  TERMINAL_E2E_PORT=3197 TERMINAL_CROPS=1 FLOW_FIXTURE=1 npx playwright test e2e/news-corrected-save.spec.ts --project=desktop --project=mobile --reporter=line
+# TERMINAL_E2E_PORT=3197 reserved per terminal/playwright.config.ts:3-5: this host is shared by
+# sibling lanes and the config asks each checkout to reserve its own port instead of silently
+# reusing another tree's dev server on 3108.
+projects: [desktop, mobile]
+e2e_summary: "4 passed (37.5s)"
+identity:
+  mode: "FLOW_FIXTURE=1 (webServer env, terminal/playwright.config.ts:128) — the fixture identity is the authenticated test user"
+  fixture: "mm_e2e_wl cookie -> fixtureUserId -> owner slot (terminal/e2e/watchlistStore.ts:30-52); real Supabase sign-in is UNPROVEN here by design"
+theme: dark
+languages: [en, zh]
+viewports:
+  - { name: desktop, width: 1440, height: 900 }
+  - { name: mobile, width: 390, height: 844 }
+not_applicable:
+  - "light theme — the Terminal ships dark-only (see header citation); no light branch exists to capture"
+crops:
+  - file: desktop-a-before-save-en-dark.png
+    run: a
+    step: before-save
+    lang: en
+    theme: dark
+    viewport: desktop
+    what_it_shows: "News rail on the first visit, EN: the target story row with its mark-reviewed control, before any mark exists"
+    proves: ["encounter/inspect step of the journey", "no saved-basis annotation renders before the first mark"]
+  - file: desktop-a-before-save-zh-dark.png
+    run: a
+    step: before-save
+    lang: zh
+    theme: dark
+    viewport: desktop
+    what_it_shows: "Same first-visit rail in ZH, before any mark exists"
+    proves: ["encounter/inspect step renders in ZH", "no saved-basis annotation before the first mark"]
+  - file: mobile-a-before-save-en-dark.png
+    run: a
+    step: before-save
+    lang: en
+    theme: dark
+    viewport: mobile
+    what_it_shows: "First-visit rail on the 390px phone viewport, EN, before any mark exists"
+    proves: ["encounter/inspect step at mobile width", "no saved-basis annotation before the first mark"]
+  - file: mobile-a-before-save-zh-dark.png
+    run: a
+    step: before-save
+    lang: zh
+    theme: dark
+    viewport: mobile
+    what_it_shows: "First-visit rail on the 390px phone viewport, ZH, before any mark exists"
+    proves: ["encounter/inspect step at mobile width in ZH", "no saved-basis annotation before the first mark"]
+  - file: desktop-a-annotated-en-dark.png
+    run: a
+    step: after-reopen
+    lang: en
+    theme: dark
+    viewport: desktop
+    what_it_shows: "After the correction arrives and the rail reopens, EN: the row carries the updated-since-saved annotation with the ORIGINAL basis line (revision 5, 3 reports, first rights receipt) and the open-current control"
+    proves: ["the correction is discoverable after reopen", "the original basis stays visible", "current revision is one action away"]
+  - file: desktop-a-annotated-zh-dark.png
+    run: a
+    step: after-reopen
+    lang: zh
+    theme: dark
+    viewport: desktop
+    what_it_shows: "Same corrected-reopen row in ZH: the ZH annotation and ZH basis line with the same original values"
+    proves: ["update discoverability in ZH", "original basis visible in ZH"]
+  - file: mobile-a-annotated-en-dark.png
+    run: a
+    step: after-reopen
+    lang: en
+    theme: dark
+    viewport: mobile
+    what_it_shows: "Corrected-reopen row on the 390px phone viewport, EN, with the annotation and original basis line"
+    proves: ["update discoverable at mobile width", "original basis visible at mobile width"]
+  - file: mobile-a-annotated-zh-dark.png
+    run: a
+    step: after-reopen
+    lang: zh
+    theme: dark
+    viewport: mobile
+    what_it_shows: "Corrected-reopen row on the 390px phone viewport, ZH, with the annotation and original basis line"
+    proves: ["update discoverable at mobile width in ZH", "original basis visible at mobile width in ZH"]
+  - file: desktop-b-out-of-order-en-dark.png
+    run: b
+    step: after-reopen
+    lang: en
+    theme: dark
+    viewport: desktop
+    what_it_shows: "After the feed serves an OLDER copy of the marked story and the rail reopens, EN: the row renders with NO saved-basis annotation (nothing claims an update at the Journey 6 layer)"
+    proves: ["out-of-order older copy is not presented as an update", "no annotation element renders"]
+  - file: desktop-b-out-of-order-zh-dark.png
+    run: b
+    step: after-reopen
+    lang: zh
+    theme: dark
+    viewport: desktop
+    what_it_shows: "Same out-of-order reopen in ZH: no saved-basis annotation renders"
+    proves: ["out-of-order copy is not an update in ZH either", "no annotation element renders"]
+  - file: mobile-b-out-of-order-en-dark.png
+    run: b
+    step: after-reopen
+    lang: en
+    theme: dark
+    viewport: mobile
+    what_it_shows: "Out-of-order reopen on the 390px phone viewport, EN: no saved-basis annotation renders"
+    proves: ["out-of-order copy not an update at mobile width", "no annotation element renders"]
+  - file: mobile-b-out-of-order-zh-dark.png
+    run: b
+    step: after-reopen
+    lang: zh
+    theme: dark
+    viewport: mobile
+    what_it_shows: "Out-of-order reopen on the 390px phone viewport, ZH: no saved-basis annotation renders"
+    proves: ["out-of-order copy not an update at mobile width in ZH", "no annotation element renders"]
+store_reads:
+  # Verbatim [proof] console output from the spec's own page.evaluate reads (both projects; identical).
+  runA_basis_after_first_mark: '{"report_key":"benzinga:105","sequence":5,"item_count":3,"view_revision":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","rights":{"receipt_id":"rr_corr_0001","source":"benzinga","provider":"fixture-provider","effective_at":"2026-10-01T00:00:00Z","expires_at":"2027-10-01T00:00:00Z"},"at":"2026-10-05T19:31:01+00:00"}'
+  runA_basis_deep_equal_after_correction: "true (desktop and mobile) — asserted in-spec too: expect(savedBasis).toEqual(basis)"
+  runA_note_en: "annotation renders the updated-since line, the open-current control label, and a basis line whose values are the ORIGINAL ones (revision 5 · 3 reports · the first receipt's last 6)"
+  runA_note_zh: "the same three parts in ZH, original values only (修订 5 · 3 条报道 · first receipt last-6)"
+  runA_open_current_aria_en: "EN accessible name = the open-current story aria string from terminal/lib/newsCatchupLex.ts:30 [0]"
+  runA_open_current_aria_zh: "ZH accessible name = the same lexicon entry [1]"
+  runA_ladder_request: 'http://127.0.0.1:3197/api/news/stories/ev2_nvda_basis?ticker=NVDA&view=news&view_revision=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa (mobile run shown; desktop identical path) — matches /api/news/stories/<story_id>'
+  runB_basis_after_older_copy: "deep-equal to the first capture on both projects (basis.deepEqual=true); asserted in-spec"
+  runB_saved_basis_annotation_count: "0 (both projects) — no element claims an update at the saved-basis layer"
+  runB_classic_pair_tag: '[data-news-change] count=1, text = the classic revised-line — the pre-existing pair tag, frozen by this spec (header note; terminal/lib/newsReviewState.ts:126-137 compares only [sequence, item_count]), still reads the older copy as changed THERE. Journey 6 guarantee is the saved-basis layer above.'
+stylesheet_reads:
+  focus_visible: "terminal/components/news/NewsCatchup.module.css:17 — .markShown/.chip/.source/.markOne/.openCurrent :focus-visible share outline:2px solid var(--brand-2); outline-offset:2px"
+  border_left_count_this_head: 0
+  border_left_count_master_57ab05517c031d90325ada0a73fc82b604ac2d72: 0
+  border_left_equal: true
+spec_changes_by_proof_lane:
+  - "Added CROPS hooks the spec lacked: a-before-save crops (encounter/inspect step) and the Run B zh loop; per-lang no-annotation + basis deep-equal assertions ADDED in Run B's loop (none weakened)."
+  - "Relocated the build lane's whole-directory rmSync (which ran AFTER the new before-save crops and would have deleted them) into a project-scoped stale-`a-`-crop wipe at the start of Run A's CROPS block."
+  - "Added read-only test.step proof prints (basis JSON, annotation text, aria-label, ladder request URL) — no assertion touched."
+unproven:
+  - "real Supabase sign-in — the run authenticates the fixture identity (mm_e2e_wl under FLOW_FIXTURE=1), not a real account"
+  - "production SSE delivery of the correction — the snapshot feed and story ladder are route-mocked (page.route) and the SSE stream is stubbed quiet; production delivery is not exercised"
+  - "cross-device persistence — one browser profile, one localStorage; no second device or sync path"

@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<!-- News R3 exploration · Direction A — TYPOGRAPHIC LEDGER.
+     Self-contained: inline CSS/JS, system font stacks only, no external requests.
+     Theme: data-theme="dark|light" on <html> (default dark). Lang: lang="en|zh".
+     The render script passes ?theme=light&lang=zh etc. All strings are verbatim from
+     lib/newsLadderLex.ts, components/news/TickerNewsPanel.tsx COPY, lib/newsCatchupLex.ts,
+     lib/newsFlowLex.ts and lib/newsEditorialLex.ts. Story titles stay EN wire copy, as shipped. -->
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>News R3 · A — Typographic ledger</title>
+<script>
+(function(){
+  var q = new URLSearchParams(location.search);
+  var t = q.get("theme"); if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t);
+  var l = q.get("lang"); if (l === "zh" || l === "en") document.documentElement.setAttribute("lang", l);
+})();
+</script>
+<style>
+/* ── Shared R3 token base (shared-shell values; light warn/route darkened for contrast) ── */
+:root{
+  --bg:#0f1115; --panel:#181b21; --panel-2:#1e222a; --panel-3:#282e38;
+  --line:#2b323d; --line-2:#222833; --line-3:#3a4150;
+  --text:#d7dce3; --text-2:#b2bbc9; --muted:#8b93a1; --text-dim:#697587;
+  --brand:#316be8; --brand-2:#7aa7e0; --warn:#e8a33d;
+  /* flow-muted = shipped color-mix(in srgb, var(--muted) 75%, var(--text-2)), resolved */
+  --flow-muted:#959dab;
+  --font-ui:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans CJK SC","Noto Sans SC",sans-serif;
+}
+html[data-theme="light"]{
+  --bg:#f7f8fa; --panel:#ffffff; --panel-2:#eef1f6; --panel-3:#e7ecf3;
+  --line:#e2e5eb; --line-2:#eceef2; --line-3:#cbd1dc;
+  --text:#202632; --text-2:#546174; --muted:#69768a; --text-dim:#8c96a6;
+  --brand:#245bda; --brand-2:#3168df; --warn:#7d5922;
+  --flow-muted:#647185;
+}
+/* Language toggle: both string sets are in the file; CSS picks one. */
+html[lang="en"] .zh{display:none}
+html[lang="zh"] .en{display:none}
+
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  background:var(--bg); color:var(--text);
+  font:400 13px/1.4 var(--font-ui);
+  -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+  padding:22px 24px 30px;
+}
+
+/* ── Board caption (artifact chrome, not product copy) ── */
+.cap{
+  display:flex; align-items:baseline; gap:12px; flex-wrap:wrap;
+  margin:0 auto 16px; max-width:768px;
+  color:var(--flow-muted); font:600 10px/1 var(--font-ui);
+  letter-spacing:.14em; text-transform:uppercase;
+}
+.cap .meta{margin-left:auto; letter-spacing:.08em; font-variant-numeric:tabular-nums}
+
+/* ── Desk: rail 360px (shipped --rail-w) + states column beside it ── */
+.desk{display:flex; gap:24px; align-items:flex-start; flex-wrap:wrap; max-width:768px; margin:0 auto}
+.rail{width:360px; max-width:100%; flex:none}
+.states{width:360px; max-width:100%; flex:none; display:grid; gap:14px}
+
+/* ── The rail board (shipped .board: even border, panel surface, r-lg) ── */
+.board{
+  border:1px solid var(--line); border-radius:8px; background:var(--panel);
+  display:flex; flex-direction:column; overflow:hidden;
+}
+.bar{
+  display:flex; align-items:center; justify-content:space-between; gap:8px;
+  min-height:42px; padding:9px 14px; border-bottom:1px solid var(--line); flex:none;
+}
+.railtitle{
+  font:700 11.5px/1 var(--font-ui); letter-spacing:.09em; text-transform:uppercase; color:var(--text);
+}
+.symbol{font:600 10.5px/1 var(--font-ui); color:var(--flow-muted); letter-spacing:.04em; font-variant-numeric:tabular-nums}
+.bar-end{display:flex; align-items:center; gap:9px; margin-left:auto}
+.viewsel{
+  min-height:28px; padding:4px 6px; border:1px solid var(--line); border-radius:6px;
+  background:var(--panel-2); color:var(--text-2); font:600 10px/1.2 var(--font-ui);
+}
+.viewsel:focus-visible,.ladder:focus-visible,.mark:focus-visible,.moreReports:focus-visible,
+.retry:focus-visible,.markshown:focus-visible,.member:focus-visible,.chip:focus-visible{
+  outline:2px solid var(--brand-2); outline-offset:2px;
+}
+.livedot{
+  width:7px; height:7px; flex:none; border-radius:50%; background:var(--brand-2);
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--brand-2) 18%,transparent);
+}
+.sourcenote{
+  padding:7px 14px; border-bottom:1px solid var(--line);
+  color:var(--flow-muted); font:500 10px/1.45 var(--font-ui);
+}
+
+/* ── Catch-up bar (labels verbatim from newsCatchupLex) ── */
+.catchup{padding:8px 14px; border-bottom:1px solid var(--line-2); display:grid; gap:7px}
+.catchup .line1{display:flex; align-items:center; gap:10px; flex-wrap:wrap}
+.sum{color:var(--text-2); font:600 10.5px/1.3 var(--font-ui); font-variant-numeric:tabular-nums}
+.markshown{
+  margin-left:auto; appearance:none; border:0; background:transparent; padding:0;
+  color:var(--brand-2); font:650 10px/1.3 var(--font-ui); cursor:pointer;
+}
+.chips{display:flex; gap:4px; flex-wrap:wrap}
+.chip{
+  appearance:none; border:1px solid var(--line); border-radius:999px; background:transparent;
+  padding:4px 9px; color:var(--text-2); font:600 9.5px/1 var(--font-ui); cursor:pointer;
+}
+.chip.on{background:var(--panel-2); color:var(--text)}
+
+/* ═══ DIRECTION A — the row is a typeset ledger entry.
+   Hierarchy is carried ONLY by type scale, weight, width and tabular numerals.
+   No boxes inside boxes: the ladder is a sentence, the evidence view a table. ═══ */
+.scroll{display:flex; flex-direction:column}
+.row{padding:15px 16px 14px; border-bottom:1px solid var(--line-2)}
+.row:last-child{border-bottom:0}
+.row:hover{background:color-mix(in srgb,var(--panel-2) 58%,transparent)}
+
+/* meta — one justified ledger line: source left, topic, time at the right edge */
+.meta{display:flex; align-items:baseline; gap:8px; margin-bottom:7px;
+  color:var(--flow-muted); font:600 9.5px/1 var(--font-ui);
+  letter-spacing:.09em; text-transform:uppercase; font-variant-numeric:tabular-nums}
+.meta .topic{color:var(--text-2)}
+.meta .time{margin-left:auto; letter-spacing:.04em}
+.tag{color:var(--text-2)}
+.tag.new{color:var(--brand-2)}
+.tag.updated{color:var(--warn)}
+
+.headline{
+  display:block; color:var(--text); font:680 15px/21px var(--font-ui);
+  letter-spacing:-.008em; text-decoration:none; overflow-wrap:anywhere;
+}
+a.headline:hover{color:var(--brand-2); text-decoration:underline; text-underline-offset:2px}
+.teaser{
+  display:-webkit-box; margin:6px 0 0; overflow:hidden; color:var(--text-2);
+  font:450 12.5px/18.5px var(--font-ui); letter-spacing:.002em;
+  -webkit-line-clamp:2; -webkit-box-orient:vertical;
+}
+.change{margin:7px 0 0; color:var(--flow-muted); font:550 10.5px/1.4 var(--font-ui)}
+
+/* the ladder — a single sentence, the house separator ›, no box */
+.ladder{
+  appearance:none; display:inline; margin-top:9px; padding:0; border:0;
+  background:transparent; text-align:left;
+  color:var(--text-2); font:600 12px/17px var(--font-ui); cursor:pointer;
+}
+.ladder .step{white-space:nowrap}
+.ladder .sep{color:var(--text-dim); font-weight:400; padding:0 5px}
+.ladder:hover{color:var(--text); text-decoration:underline; text-underline-offset:3px; text-decoration-color:var(--text-dim)}
+.ladder .agree{font-weight:700}
+.ladder .agree.differ{color:var(--warn)}
+.ladder .agree.limited{color:var(--text-2)}
+.ladder .agree.uncompared{color:var(--flow-muted)}
+.ladder .agree.match{color:var(--text)}
+.ladder .glyph{font-weight:700; padding-right:4px}
+/* the demo-focus class paints the shipped :focus-visible state statically */
+.ladder:focus-visible,.demo-focus{outline:2px solid var(--brand-2); outline-offset:3px}
+.ladderStatic{display:inline; margin-top:9px; color:var(--flow-muted); font:600 12px/17px var(--font-ui)}
+.ladderStatic .sep{color:var(--text-dim); font-weight:400; padding:0 5px}
+
+/* evidence view — the two-column clock table; hairline above, no box */
+.evidence{margin-top:11px; padding-top:10px; border-top:1px solid var(--line-2); display:grid; gap:9px}
+.clocks{display:grid; grid-template-columns:max-content 1fr; gap:4px 14px; margin:0}
+.clocks .ck{
+  color:var(--flow-muted); font:600 9.5px/14px var(--font-ui);
+  letter-spacing:.09em; text-transform:uppercase;
+}
+.clocks .cv{color:var(--text-2); font:500 12px/14px var(--font-ui); font-variant-numeric:tabular-nums}
+.groupnote{margin:0; color:var(--flow-muted); font:450 11px/15.5px var(--font-ui)}
+.member{
+  display:grid; grid-template-columns:88px minmax(0,1fr); gap:10px; text-decoration:none;
+}
+.member .pub{
+  color:var(--flow-muted); font:650 9.5px/16px var(--font-ui);
+  letter-spacing:.09em; text-transform:uppercase;
+}
+.member .mtitle{color:var(--text-2); font:450 12px/16px var(--font-ui); overflow-wrap:anywhere}
+a.member:hover .mtitle{color:var(--brand-2); text-decoration:underline; text-underline-offset:2px}
+.moreReports{
+  appearance:none; justify-self:start; border:0; background:transparent; padding:0;
+  color:var(--brand-2); font:650 11.5px/1.4 var(--font-ui); cursor:pointer;
+  text-decoration:underline; text-underline-offset:3px;
+}
+
+/* NEXT CHECK — a label and its line, whitespace only */
+.next{margin:10px 0 0; display:grid; gap:3px}
+.next .nlabel{
+  color:var(--flow-muted); font:700 9.5px/12px var(--font-ui);
+  letter-spacing:.12em; text-transform:uppercase;
+}
+.next .ntext{color:var(--text-2); font:600 12.5px/17px var(--font-ui)}
+
+.mark{
+  appearance:none; margin-top:11px; align-self:flex-start;
+  min-height:26px; padding:4px 10px; border:1px solid var(--line); border-radius:6px;
+  background:transparent; color:var(--text-2); font:600 10.5px/1.2 var(--font-ui); cursor:pointer;
+}
+.mark:hover{background:var(--panel-2); color:var(--text)}
+
+/* ── States column (restricted / unavailable / degraded) ── */
+.statecap{color:var(--flow-muted); font:600 9px/1 var(--font-ui); letter-spacing:.12em; text-transform:uppercase}
+.statecard{
+  border:1px solid var(--line); border-radius:8px; background:var(--panel);
+  padding:14px 16px; display:grid; gap:9px;
+}
+.statecard .stext{margin:0; color:var(--flow-muted); font:500 11.5px/1.5 var(--font-ui); text-align:center}
+.statecard.restricted .stext{color:var(--text-2)}
+.retry{
+  justify-self:center; min-width:72px; min-height:44px; padding:8px 16px;
+  border:1px solid var(--line); border-radius:6px; background:var(--panel-2);
+  color:var(--brand-2); font:600 11.5px/1.2 var(--font-ui); cursor:pointer;
+}
+.notestrip{
+  border:1px solid var(--line); border-radius:8px; background:var(--panel);
+  padding:0; overflow:hidden;
+}
+.notestrip .note{
+  margin:0; padding:8px 12px;
+  border-bottom:1px solid var(--line-2);
+  background:color-mix(in srgb,var(--warn) 8%,transparent);
+  color:var(--flow-muted); font:550 10.5px/1.4 var(--font-ui);
+}
+
+/* ── Coarse pointer / narrow rail: touch targets, larger headline ── */
+@media (max-width:860px){
+  body{padding:14px 12px 24px}
+  .desk{max-width:100%}
+  .rail,.states{width:100%}
+  .board{border-radius:0; border-top:0; border-inline:0}
+  .headline{font-size:15px; line-height:20px}
+  .ladder,.ladderStatic{font-size:12.5px; line-height:18px}
+}
+@media (max-width:860px),(pointer:coarse){
+  .ladder,.ladderStatic{min-height:44px}
+  .mark{min-height:44px}
+  .moreReports{min-height:44px}
+}
+/* Motion: none by design — reduced motion is respected trivially. */
+</style>
+</head>
+<body>
+
+<header class="cap">
+  <span>News R3 · Direction A — Typographic ledger</span>
+  <span class="meta" id="meta"></span>
+</header>
+
+<main class="desk">
+
+  <!-- ═══════════════ THE RAIL ═══════════════ -->
+  <section class="board rail" id="rail-panel-news" role="tabpanel" aria-labelledby="rail-tab-news" data-news-state="live" data-news-editorial-policy="ticker_news.curated.v1">
+
+    <div class="bar">
+      <span class="railtitle"><span class="en">News</span><span class="zh">新闻</span></span>
+      <span class="symbol">NWSM</span>
+      <span class="bar-end">
+        <select class="viewsel" id="viewsel" data-aria="view">
+          <option id="viewsel-opt">News &amp; announcements</option>
+        </select>
+        <span class="livedot" role="img" data-aria="live"></span>
+      </span>
+    </div>
+
+    <p class="sourcenote">
+      <span class="en">Curated reports and announcements. Identified roundups, commentary and investment templates are hidden.</span>
+      <span class="zh">精选报道与公告，隐藏已识别的综述、评论和模板化投资文章。</span>
+    </p>
+
+    <div class="catchup">
+      <div class="line1">
+        <span class="sum"><span class="en">2 new · 1 updated</span><span class="zh">2 条新 · 1 条更新</span></span>
+        <button type="button" class="markshown" data-aria="markShown">
+          <span class="en">Mark shown as reviewed</span><span class="zh">将显示的标为已读</span>
+        </button>
+      </div>
+      <div class="chips" role="group" data-aria="filters">
+        <button type="button" class="chip on"><span class="en">All</span><span class="zh">全部</span></button>
+        <button type="button" class="chip"><span class="en">New</span><span class="zh">新</span></button>
+        <button type="button" class="chip"><span class="en">Updated</span><span class="zh">更新</span></button>
+        <button type="button" class="chip"><span class="en">Reviewed</span><span class="zh">已读</span></button>
+      </div>
+    </div>
+
+    <div class="scroll">
+
+      <!-- ── R1 · agreeing story: 3 outlets, 3 reports, reports agree ── -->
+      <article class="row" data-news-review="reviewed">
+        <div class="meta">
+          <span class="tag"><span class="en">Reviewed</span><span class="zh">已读</span></span>
+          <span>Reuters</span>
+          <span class="topic"><span class="en">Guidance</span><span class="zh">业绩指引</span></span>
+          <span class="time"><span class="en">02:32 PM</span><span class="zh">14:32</span></span>
+        </div>
+        <a class="headline" href="https://example.com/nwsm-guidance" target="_blank" rel="noopener noreferrer">Northwind trims full-year margin outlook in quarterly filing</a>
+        <p class="teaser">The chipmaker narrowed its operating-margin range for the year and said memory costs should ease by the second quarter. Full-year revenue guidance is unchanged.</p>
+        <span class="ladderStatic" data-news-ladder="static">
+          <span class="step"><span class="en">Reporting</span><span class="zh">媒体报道</span></span><span class="sep" aria-hidden="true">›</span><span class="step"><span class="en">3 outlets</span><span class="zh">3 家媒体</span></span><span class="sep" aria-hidden="true">›</span><span class="step"><span class="en">3 reports</span><span class="zh">3 条报道</span></span>
+        </span>
+      </article>
+
+      <!-- ── R2 · differing story, EXPANDED: 2 outlets, 3 reports, reports differ ── -->
+      <article class="row" data-news-review="new">
+        <div class="meta">
+          <span class="tag new"><span class="en">New</span><span class="zh">新</span></span>
+          <span>Bloomberg</span>
+          <span class="topic"><span class="en">M&amp;A · unconfirmed report</span><span class="zh">并购 · 未经证实的报道</span></span>
+          <span class="time"><span class="en">02:21 PM</span><span class="zh">14:21</span></span>
+        </div>
+        <a class="headline" href="https://example.com/nwsm-logistics" target="_blank" rel="noopener noreferrer">Northwind in talks over its logistics unit; accounts differ on scope</a>
+        <p class="teaser">Two outlets describe negotiations over the unit. The reported price and whether a disposal or a venture is under discussion remain open between the two accounts.</p>
+        <button type="button" class="ladder demo-focus" data-news-ladder aria-expanded="true" data-aria="close">
+          <span class="step"><span class="en">Reporting</span><span class="zh">媒体报道</span></span><span class="sep" aria-hidden="true">›</span><span class="step"><span class="en">2 outlets</span><span class="zh">2 家媒体</span></span><span class="sep" aria-hidden="true">›</span><span class="step"><span class="en">3 reports</span><span class="zh">3 条报道</span></span><span class="sep" aria-hidden="true">›</span><span class="step agree differ"><span class="glyph" data-agreement="reports_differ" aria-hidden="true">≠</span><span class="en">Reports differ</span><span class="zh">报道有出入</span></span>
+        </button>
+        <div class="evidence" role="group" data-aria="reports3">
+          <p class="clocks">
+            <span class="ck"><span class="en">Published</span><span class="zh">发布</span></span><span class="cv"><span class="en">01:58 PM</span><span class="zh">13:58</span></span>
+            <span class="ck"><span class="en">Updated</span><span class="zh">更新</span></span><span class="cv"><span class="en">02:21 PM</span><span class="zh">14:21</span></span>
+            <span class="ck"><span class="en">Received</span><span class="zh">接收</span></span><span class="cv"><span class="en">02:26 PM</span><span class="zh">14:26</span></span>
+          </p>
+          <p class="groupnote">
+            <span class="en">Grouped because these reports describe the same event. Reports with different figures, periods or outcomes stay separate.</span>
+            <span class="zh">这些报道描述同一事件，因此归为一组；数字、期间或结果不同的报道会分开列出。</span>
+          </p>
+          <a class="member" href="https://example.com/m1" target="_blank" rel="noopener noreferrer" title="bloomberg.com">
+            <span class="pub">Bloomberg</span>
+            <span class="mtitle">Northwind said to weigh logistics venture as talks enter final phase</span>
+          </a>
+          <a class="member" href="https://example.com/m2" target="_blank" rel="noopener noreferrer" title="reuters.com">
+            <span class="pub">Reuters</span>
+            <span class="mtitle">Northwind logistics talks value the unit at $1.4 billion</span>
+          </a>
+          <button type="button" class="moreReports">
+            <span class="en">Show 1 more report</span><span class="zh">再显示 1 条报道</span>
+          </button>
+        </div>
+        <p class="next" data-next-check="next.differ">
+          <span class="nlabel"><span class="en">Next check</span><span class="zh">下一步核对</span></span>
+          <span class="ntext"><span class="en">Compare outlets before relying on one report</span><span class="zh">依赖单一报道前先比对各媒体</span></span>
+        </p>
+        <button type="button" class="mark">
+          <span class="en">Mark reviewed</span><span class="zh">标为已读</span>
+        </button>
+      </article>
+
+      <!-- ── R3 · press release with 2 items, 1 outlet, not compared ── -->
+      <article class="row" data-news-review="updated">
+        <div class="meta">
+          <span class="tag updated"><span class="en">Updated</span><span class="zh">更新</span></span>
+          <span>Business Wire</span>
+          <span class="topic"><span class="en">Preliminary results</span><span class="zh">业绩预告</span></span>
+          <span class="time"><span class="en">01:47 PM</span><span class="zh">13:47</span></span>
+        </div>
+        <a class="headline" href="https://example.com/nwsm-prelim" target="_blank" rel="noopener noreferrer">Northwind announces preliminary third-quarter revenue and a chief executive transition</a>
+        <p class="teaser">Revenue came in above the range set out in July. The founder chief executive moves to a board role in January and the search for a successor has started.</p>
+        <p class="change"><span class="en">1 more report since your review</span><span class="zh">阅读后新增 1 条报道</span></p>
+        <button type="button" class="ladder" data-news-ladder aria-expanded="false" data-aria="open">
+          <span class="step"><span class="en">Company announcement</span><span class="zh">公司公告</span></span><span class="sep" aria-hidden="true">›</span><span class="step"><span class="en">1 outlet</span><span class="zh">1 家媒体</span></span><span class="sep" aria-hidden="true">›</span><span class="step"><span class="en">2 reports</span><span class="zh">2 条报道</span></span><span class="sep" aria-hidden="true">›</span><span class="step agree uncompared"><span class="glyph" data-agreement="not_compared" aria-hidden="true">–</span><span class="en">Not compared</span><span class="zh">未比对</span></span>
+        </button>
+        <p class="next" data-next-check="next.announcement">
+          <span class="nlabel"><span class="en">Next check</span><span class="zh">下一步核对</span></span>
+          <span class="ntext"><span class="en">Read the company announcement first</span><span class="zh">先读公司公告</span></span>
+        </p>
+        <button type="button" class="mark">
+          <span class="en">Mark reviewed</span><span class="zh">标为已读</span>
+        </button>
+      </article>
+
+      <!-- ── R4 · single-report story: static chain, nothing to compare ── -->
+      <article class="row">
+        <div class="meta">
+          <span>CNBC</span>
+          <span class="topic"><span class="en">Product</span><span class="zh">产品</span></span>
+          <span class="time"><span class="en">12:58 PM</span><span class="zh">12:58</span></span>
+        </div>
+        <a class="headline" href="https://example.com/nwsm-platform" target="_blank" rel="noopener noreferrer">Northwind shows a working reference vehicle on its next-generation compute platform</a>
+        <p class="teaser">The company demonstrated the platform with two automotive partners and said development kits arrive in the spring.</p>
+        <span class="ladderStatic" data-news-ladder="static">
+          <span class="step"><span class="en">Reporting</span><span class="zh">媒体报道</span></span><span class="sep" aria-hidden="true">›</span><span class="step"><span class="en">1 outlet</span><span class="zh">1 家媒体</span></span><span class="sep" aria-hidden="true">›</span><span class="step"><span class="en">1 report</span><span class="zh">1 条报道</span></span>
+        </span>
+      </article>
+
+      <!-- ── R5 · reporting story, 2 outlets, not compared (live snapshot → no NEXT CHECK) ── -->
+      <article class="row" data-news-review="new">
+        <div class="meta">
+          <span class="tag new"><span class="en">New</span><span class="zh">新</span></span>
+          <span>Financial Times</span>
+          <span class="topic"><span class="en">Restructuring</span><span class="zh">重组</span></span>
+          <span class="time"><span class="en">12:31 PM</span><span class="zh">12:31</span></span>
+        </div>
+        <a class="headline" href="https://example.com/nwsm-restructure" target="_blank" rel="noopener noreferrer">Northwind restructuring reaches its memory division earlier than planned</a>
+        <p class="teaser">The programme shifts hiring and capital toward packaging capacity. The memory division's schedule had not been disclosed before.</p>
+        <button type="button" class="ladder" data-news-ladder aria-expanded="false" data-aria="open">
+          <span class="step"><span class="en">Reporting</span><span class="zh">媒体报道</span></span><span class="sep" aria-hidden="true">›</span><span class="step"><span class="en">2 outlets</span><span class="zh">2 家媒体</span></span><span class="sep" aria-hidden="true">›</span><span class="step"><span class="en">2 reports</span><span class="zh">2 条报道</span></span><span class="sep" aria-hidden="true">›</span><span class="step agree uncompared"><span class="glyph" data-agreement="not_compared" aria-hidden="true">–</span><span class="en">Not compared</span><span class="zh">未比对</span></span>
+        </button>
+        <button type="button" class="mark">
+          <span class="en">Mark reviewed</span><span class="zh">标为已读</span>
+        </button>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- ═══════════════ STATES, BESIDE THE RAIL ═══════════════ -->
+  <aside class="states">
+    <span class="statecap">state · restricted</span>
+    <div class="statecard restricted">
+      <p class="stext"><span class="en">News access is unavailable for this account or feed.</span><span class="zh">此账户或新闻源暂无新闻访问权限。</span></p>
+    </div>
+
+    <span class="statecap">state · unavailable</span>
+    <div class="statecard">
+      <p class="stext"><span class="en">News is temporarily unavailable.</span><span class="zh">新闻暂时不可用。</span></p>
+      <button type="button" class="retry"><span class="en">Retry</span><span class="zh">重试</span></button>
+    </div>
+
+    <span class="statecap">state · degraded</span>
+    <div class="notestrip">
+      <p class="note" role="status"><span class="en">Live updates are degraded. Showing the latest verified read.</span><span class="zh">实时更新降级，显示最近一次已核实读取。</span></p>
+    </div>
+  </aside>
+
+</main>
+
+<script>
+/* Accessible names per language — every string verbatim from the lexicon/COPY. */
+(function(){
+  var lang = document.documentElement.getAttribute("lang") || "en";
+  var N = {
+    en: {
+      open: "Show the reports behind this story",
+      close: "Hide the reports",
+      live: "Live",
+      view: "News view",
+      viewOpt: "News & announcements",
+      markShown: "Mark shown as reviewed",
+      filters: "Filter by review status",
+      reports3: "3 reports"
+    },
+    zh: {
+      open: "查看这条新闻背后的报道",
+      close: "收起报道",
+      live: "实时",
+      view: "新闻视图",
+      viewOpt: "新闻与公告",
+      markShown: "将显示的标为已读",
+      filters: "按阅读状态筛选",
+      reports3: "3 条报道"
+    }
+  }[lang];
+  document.querySelectorAll("[data-aria]").forEach(function (el) {
+    var k = el.getAttribute("data-aria");
+    if (N[k]) el.setAttribute("aria-label", N[k]);
+  });
+  var opt = document.getElementById("viewsel-opt");
+  if (opt) opt.textContent = N.viewOpt;
+  var m = document.getElementById("meta");
+  if (m) m.textContent = window.innerWidth + "×" + window.innerHeight
+    + " · " + lang.toUpperCase()
+    + " · " + (document.documentElement.getAttribute("data-theme") || "dark").toUpperCase();
+})();
+</script>
+</body>
+</html>

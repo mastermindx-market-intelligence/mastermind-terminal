@@ -1,0 +1,984 @@
+{
+  "kind": "native-responsive-and-negative-state-proof",
+  "production_proof": false,
+  "upstream_auth_proof": false,
+  "fixture_note": "Historical V3 display values in synthetic transport envelopes; residual heatmap rows synthetic. Not owner-schema compatibility or current-data proof.",
+  "prior_report": "browser-verification.json",
+  "prior_failure_diagnosis": "The first probe incorrectly required the inner MAIN to scroll on tablet. Measured ancestors show the mobile/tablet shell intentionally uses document scrolling. This probe tests the actual scroll owner without product layout changes.",
+  "checks": [
+    {
+      "name": "desktop/en/0 no horizontal overflow",
+      "passed": true,
+      "detail": {
+        "innerClient": 1380,
+        "innerScroll": 1380,
+        "docClient": 1440,
+        "docScroll": 1440,
+        "scrollOwner": "main",
+        "scrollHeight": 1400,
+        "clientHeight": 764,
+        "bottom": 636,
+        "restored": 0,
+        "headerTop": 0
+      }
+    },
+    {
+      "name": "desktop/en/0 scrolls and restores top",
+      "passed": true,
+      "detail": {
+        "innerClient": 1380,
+        "innerScroll": 1380,
+        "docClient": 1440,
+        "docScroll": 1440,
+        "scrollOwner": "main",
+        "scrollHeight": 1400,
+        "clientHeight": 764,
+        "bottom": 636,
+        "restored": 0,
+        "headerTop": 0
+      }
+    },
+    {
+      "name": "desktop/en/0 no Chinese chrome leakage",
+      "passed": true
+    },
+    {
+      "name": "desktop/en/1 no horizontal overflow",
+      "passed": true,
+      "detail": {
+        "innerClient": 1380,
+        "innerScroll": 1380,
+        "docClient": 1440,
+        "docScroll": 1440,
+        "scrollOwner": "main",
+        "scrollHeight": 1092,
+        "clientHeight": 764,
+        "bottom": 328,
+        "restored": 0,
+        "headerTop": 0
+      }
+    },
+    {
+      "name": "desktop/en/1 scrolls and restores top",
+      "passed": true,
+      "detail": {
+        "innerClient": 1380,
+        "innerScroll": 1380,
+        "docClient": 1440,
+        "docScroll": 1440,
+        "scrollOwner": "main",
+        "scrollHeight": 1092,
+        "clientHeight": 764,
+        "bottom": 328,
+        "restored": 0,
+        "headerTop": 0
+      }
+    },
+    {
+      "name": "desktop/en/1 no Chinese chrome leakage",
+      "passed": true
+    },
+    {
+      "name": "desktop/en/2 no horizontal overflow",
+      "passed": true,
+      "detail": {
+        "innerClient": 1380,
+        "innerScroll": 1380,
+        "docClient": 1440,
+        "docScroll": 1440,
+        "scrollOwner": "main",
+        "scrollHeight": 1531,
+        "clientHeight": 764,
+        "bottom": 767,
+        "restored": 0,
+        "headerTop": 0
+      }
+    },
+    {
+      "name": "desktop/en/2 scrolls and restores top",
+      "passed": true,
+      "detail": {
+        "innerClient": 1380,
+        "innerScroll": 1380,
+        "docClient": 1440,
+        "docScroll": 1440,
+        "scrollOwner": "main",
+        "scrollHeight": 1531,
+        "clientHeight": 764,
+        "bottom": 767,
+        "restored": 0,
+        "headerTop": 0
+      }
+    },
+    {
+      "name": "desktop/en 14 company rows",
+      "passed": true
+    },
+    {
+      "name": "desktop/en/2 no Chinese chrome leakage",
+      "passed": true
+    },
+    {
+      "name": "desktop/en/3 no horizontal overflow",
+      "passed": true,
+      "detail": {
+        "innerClient": 1380,
+        "innerScroll": 1380,
+        "docClient": 1440,
+        "docScroll": 1440,
+        "scrollOwner": "main",
+        "scrollHeight": 916,
+        "clientHeight": 764,
+        "bottom": 152,
+        "restored": 0,
+        "headerTop": 0
+      }
+    },
+    {
+      "name": "desktop/en/3 scrolls and restores top",
+      "passed": true,
+      "detail": {
+        "innerClient": 1380,
+        "innerScroll": 1380,
+        "docClient": 1440,
+        "docScroll": 1440,
+        "scrollOwner": "main",
+        "scrollHeight": 916,
+        "clientHeight": 764,
+        "bottom": 152,
+        "restored": 0,
+        "headerTop": 0
+      }
+    },
+    {
+      "name": "desktop/en/3 no Chinese chrome leakage",
+      "passed": true
+    },
+    {
+      "name": "desktop/en/4 no horizontal overflow",
+      "passed": true,
+      "detail": {
+        "innerClient": 1380,
+        "innerScroll": 1380,
+        "docClient": 1440,
+        "docScroll": 1440,
+        "scrollOwner": "main",
+        "scrollHeight": 971,
+        "clientHeight": 764,
+        "bottom": 207,
+        "restored": 0,
+        "headerTop": 0
+      }
+    },
+    {
+      "name": "desktop/en/4 scrolls and restores top",
+      "passed": true,
+      "detail": {
+        "innerClient": 1380,
+        "innerScroll": 1380,
+        "docClient": 1440,
+        "docScroll": 1440,
+        "scrollOwner": "main",
+        "scrollHeight": 971,
+        "clientHeight": 764,
+        "bottom": 207,
+        "restored": 0,
+        "headerTop": 0
+      }
+    },
+    {
+      "name": "desktop/en/4 no Chinese chrome leakage",
+      "passed": true
+    },
+    {
+      "name": "tablet/en/0 no horizontal overflow",
+      "passed": true,
+      "detail": {
+        "innerClient": 820,
+        "innerScroll": 820,
+        "docClient": 820,
+        "docScroll": 820,
+        "scrollOwner": "document",
+        "scrollHeight": 2379,
+        "clientHeight": 1180,
+        "bottom": 1199,
+        "restored": 0,
+        "headerTop": 0
+      }
+    },
+    {
+      "name": "tablet/en/0 scrolls and restores top",
+      "passed": true,
+      "detail": {
+        "innerClient": 820,
+        "innerScroll": 820,
+        "docClient": 820,
+        "docScroll": 820,
+        "scrollOwner": "document",
+        "scrollHeight": 2379,
+        "clientHeight": 1180,
+        "bottom": 1199,
+        "restored": 0,
+        "headerTop": 0
+      }
+    },
+    {
+      "name": "tablet/en/0 no Chinese chrome leakage",
+      "passed": true
+    },
+    {
+      "name": "tablet/en/1 no horizontal overflow",
+      "passed": true,
+      "detail": {
+        "innerClient": 820,
+        "innerScroll": 820,
+        "docClient": 820,
+        "docScroll": 820,
+        "scrollOwner": "document",
+        "scrollHeight": 1592,
+        "clientHeight": 1180,
+        "bottom": 412,
+        "restored": 0,
+        "headerTop": 0
+      }
+    },
+    {
+      "name": "tablet/en/1 scrolls and restores top",
+      "passed": true,
+      "detail": {
+        "innerClient": 820,
+        "innerScroll": 820,
+        "docClient": 820,
+        "docScroll": 820,
+        "scrollOwner": "document",
+        "scrollHeight": 1592,
+        "clientHeight": 1180,
+        "bottom": 412,
+        "restored": 0,
+        "headerTop": 0
+      }
+    },
+    {
+      "name": "tablet/en/1 no Chinese chrome leakage",
+      "passed": true
+    },
+    {
+      "name": "tablet/en/2 no horizontal overflow",
+      "passed": true,
+      "detail": {
+        "innerClient": 820,
+        "innerScroll": 820,
+        "docClient": 820,
+        "docScroll": 820,
+        "scrollOwner": "document",
+        "scrollHeight": 1734,
+        "clientHeight": 1180,
+        "bottom": 554,
+        "restored": 0,
+        "headerTop": 0
+      }
+    },
+    {
+      "name": "tablet/en/2 scrolls and restores top",
+      "passed": true,
+      "detail": {
+        "innerClient": 820,
+        "innerScroll": 820,
+        "docClient": 820,
+        "docScroll": 820,
+        "scrollOwner": "document",
+        "scrollHeight": 1734,
+        "clientHeight": 1180,
+        "bottom": 554,
+        "restored": 0,
+        "headerTop": 0
+      }
+    },
+    {
+      "name": "tablet/en 14 company rows",
+      "passed": true
+    },
+    {
+      "name": "tablet/en/2 no Chinese chrome leakage",
+      "passed": true
+    },
+    {
+      "name": "tablet/en/3 no horizontal overflow",
+      "passed": true,
+      "detail": {
+        "innerClient": 820,
+        "innerScroll": 820,
+        "docClient": 820,
+        "docScroll": 820,
+        "scrollOwner": "document",
+        "scrollHeight": 1230,
+        "clientHeight": 1180,
+        "bottom": 50,
+        "restored": 0,
+        "headerTop": 0
+      }
+    },
+    {
+      "name": "tablet/en/3 scrolls and restores top",
+      "passed": true,
+      "detail": {
+        "innerClient": 820,
+        "innerScroll": 820,
+        "docClient": 820,
+        "docScroll": 820,
+        "scrollOwner": "document",
+        "scrollHeight": 1230,
+        "clientHeight": 1180,
+        "bottom": 50,
+        "restored": 0,
+        "headerTop": 0
+      }
+    },
+    {
+      "name": "tablet/en/3 no Chinese chrome leakage",
+      "passed": true
+    },
+    {
+      "name": "tablet/en/4 no horizontal overflow",
+      "passed": true,
+      "detail": {
+        "innerClient": 820,
+        "innerScroll": 820,
+        "docClient": 820,
+        "docScroll": 820,
+        "scrollOwner": "document",
+        "scrollHeight": 1265,
+        "clientHeight": 1180,
+        "bottom": 85,
+        "restored": 0,
+        "headerTop": 0
+      }
+    },
+    {
+      "name": "tablet/en/4 scrolls and restores top",
+      "passed": true,
+      "detail": {
+        "innerClient": 820,
+        "innerScroll": 820,
+        "docClient": 820,
+        "docScroll": 820,
+        "scrollOwner": "document",
+        "scrollHeight": 1265,
+        "clientHeight": 1180,
+        "bottom": 85,
+        "restored": 0,
+        "headerTop": 0
+      }
+    },
+    {
+      "name": "tablet/en/4 no Chinese chrome leakage",
+      "passed": true
+    },
+    {
+      "name": "mobile/en/0 no horizontal overflow",
+      "passed": true,
+      "detail": {
+        "innerClient": 390,
+        "innerScroll": 390,
+        "docClient": 390,
+        "docScroll": 390,
+        "scrollOwner": "document",
+        "scrollHeight": 2671,
+        "clientHeight": 844,
+        "bottom": 1827,
+        "restored": 0,
+        "headerTop": 0
+      }
+    },
+    {
+      "name": "mobile/en/0 scrolls and restores top",
+      "passed": true,
+      "detail": {
+        "innerClient": 390,
+        "innerScroll": 390,
+        "docClient": 390,
+        "docScroll": 390,
+        "scrollOwner": "document",
+        "scrollHeight": 2671,
+        "clientHeight": 844,
+        "bottom": 1827,
+        "restored": 0,
+        "headerTop": 0
+      }
+    },
+    {
+      "name": "mobile/en/0 no Chinese chrome leakage",
+      "passed": true
+    },
+    {
+      "name": "mobile/en/1 no horizontal overflow",
+      "passed": true,
+      "detail": {
+        "innerClient": 390,
+        "innerScroll": 390,
+        "docClient": 390,
+        "docScroll": 390,
+        "scrollOwner": "document",
+        "scrollHeight": 1940,
+        "clientHeight": 844,
+        "bottom": 1096,
+        "restored": 0,
+        "headerTop": 0
+      }
+    },
+    {
+      "name": "mobile/en/1 scrolls and restores top",
+      "passed": true,
+      "detail": {
+        "innerClient": 390,
+        "innerScroll": 390,
+        "docClient": 390,
+        "docScroll": 390,
+        "scrollOwner": "document",
+        "scrollHeight": 1940,
+        "clientHeight": 844,
+        "bottom": 1096,
+        "restored": 0,
+        "headerTop": 0
+      }
+    },
+    {
+      "name": "mobile/en/1 no Chinese chrome leakage",
+      "passed": true
+    },
+    {
+      "name": "mobile/en/2 no horizontal overflow",
+      "passed": true,
+      "detail": {
+        "innerClient": 390,
+        "innerScroll": 390,
+        "docClient": 390,
+        "docScroll": 390,
+        "scrollOwner": "document",
+        "scrollHeight": 4242,
+        "clientHeight": 844,
+        "bottom": 3398,
+        "restored": 0,
+        "headerTop": 0
+      }
+    },
+    {
+      "name": "mobile/en/2 scrolls and restores top",
+      "passed": true,
+      "detail": {
+        "innerClient": 390,
+        "innerScroll": 390,
+        "docClient": 390,
+        "docScroll": 390,
+        "scrollOwner": "document",
+        "scrollHeight": 4242,
+        "clientHeight": 844,
+        "bottom": 3398,
+        "restored": 0,
+        "headerTop": 0
+      }
+    },
+    {
+      "name": "mobile/en 14 company rows",
+      "passed": true
+    },
+    {
+      "name": "mobile/en/2 no Chinese chrome leakage",
+      "passed": true
+    },
+    {
+      "name": "mobile/en/3 no horizontal overflow",
+      "passed": true,
+      "detail": {
+        "innerClient": 390,
+        "innerScroll": 390,
+        "docClient": 390,
+        "docScroll": 390,
+        "scrollOwner": "document",
+        "scrollHeight": 1724,
+        "clientHeight": 844,
+        "bottom": 880,
+        "restored": 0,
+        "headerTop": 0
+      }
+    },
+    {
+      "name": "mobile/en/3 scrolls and restores top",
+      "passed": true,
+      "detail": {
+        "innerClient": 390,
+        "innerScroll": 390,
+        "docClient": 390,
+        "docScroll": 390,
+        "scrollOwner": "document",
+        "scrollHeight": 1724,
+        "clientHeight": 844,
+        "bottom": 880,
+        "restored": 0,
+        "headerTop": 0
+      }
+    },
+    {
+      "name": "mobile/en/3 no Chinese chrome leakage",
+      "passed": true
+    },
+    {
+      "name": "mobile/en/4 no horizontal overflow",
+      "passed": true,
+      "detail": {
+        "innerClient": 390,
+        "innerScroll": 390,
+        "docClient": 390,
+        "docScroll": 390,
+        "scrollOwner": "document",
+        "scrollHeight": 1818,
+        "clientHeight": 844,
+        "bottom": 974,
+        "restored": 0,
+        "headerTop": 0
+      }
+    },
+    {
+      "name": "mobile/en/4 scrolls and restores top",
+      "passed": true,
+      "detail": {
+        "innerClient": 390,
+        "innerScroll": 390,
+        "docClient": 390,
+        "docScroll": 390,
+        "scrollOwner": "document",
+        "scrollHeight": 1818,
+        "clientHeight": 844,
+        "bottom": 974,
+        "restored": 0,
+        "headerTop": 0
+      }
+    },
+    {
+      "name": "mobile/en/4 no Chinese chrome leakage",
+      "passed": true
+    },
+    {
+      "name": "desktop/zh/0 no horizontal overflow",
+      "passed": true,
+      "detail": {
+        "innerClient": 1380,
+        "innerScroll": 1380,
+        "docClient": 1440,
+        "docScroll": 1440,
+        "scrollOwner": "main",
+        "scrollHeight": 1381,
+        "clientHeight": 764,
+        "bottom": 617,
+        "restored": 0,
+        "headerTop": 0
+      }
+    },
+    {
+      "name": "desktop/zh/0 scrolls and restores top",
+      "passed": true,
+      "detail": {
+        "innerClient": 1380,
+        "innerScroll": 1380,
+        "docClient": 1440,
+        "docScroll": 1440,
+        "scrollOwner": "main",
+        "scrollHeight": 1381,
+        "clientHeight": 764,
+        "bottom": 617,
+        "restored": 0,
+        "headerTop": 0
+      }
+    },
+    {
+      "name": "desktop/zh/0 localized tab selected",
+      "passed": true
+    },
+    {
+      "name": "desktop/zh/1 no horizontal overflow",
+      "passed": true,
+      "detail": {
+        "innerClient": 1380,
+        "innerScroll": 1380,
+        "docClient": 1440,
+        "docScroll": 1440,
+        "scrollOwner": "main",
+        "scrollHeight": 1092,
+        "clientHeight": 764,
+        "bottom": 328,
+        "restored": 0,
+        "headerTop": 0
+      }
+    },
+    {
+      "name": "desktop/zh/1 scrolls and restores top",
+      "passed": true,
+      "detail": {
+        "innerClient": 1380,
+        "innerScroll": 1380,
+        "docClient": 1440,
+        "docScroll": 1440,
+        "scrollOwner": "main",
+        "scrollHeight": 1092,
+        "clientHeight": 764,
+        "bottom": 328,
+        "restored": 0,
+        "headerTop": 0
+      }
+    },
+    {
+      "name": "desktop/zh/1 localized tab selected",
+      "passed": true
+    },
+    {
+      "name": "desktop/zh/2 no horizontal overflow",
+      "passed": true,
+      "detail": {
+        "innerClient": 1380,
+        "innerScroll": 1380,
+        "docClient": 1440,
+        "docScroll": 1440,
+        "scrollOwner": "main",
+        "scrollHeight": 1531,
+        "clientHeight": 764,
+        "bottom": 767,
+        "restored": 0,
+        "headerTop": 0
+      }
+    },
+    {
+      "name": "desktop/zh/2 scrolls and restores top",
+      "passed": true,
+      "detail": {
+        "innerClient": 1380,
+        "innerScroll": 1380,
+        "docClient": 1440,
+        "docScroll": 1440,
+        "scrollOwner": "main",
+        "scrollHeight": 1531,
+        "clientHeight": 764,
+        "bottom": 767,
+        "restored": 0,
+        "headerTop": 0
+      }
+    },
+    {
+      "name": "desktop/zh 14 company rows",
+      "passed": true
+    },
+    {
+      "name": "desktop/zh/2 localized tab selected",
+      "passed": true
+    },
+    {
+      "name": "desktop/zh/3 no horizontal overflow",
+      "passed": true,
+      "detail": {
+        "innerClient": 1380,
+        "innerScroll": 1380,
+        "docClient": 1440,
+        "docScroll": 1440,
+        "scrollOwner": "main",
+        "scrollHeight": 916,
+        "clientHeight": 764,
+        "bottom": 152,
+        "restored": 0,
+        "headerTop": 0
+      }
+    },
+    {
+      "name": "desktop/zh/3 scrolls and restores top",
+      "passed": true,
+      "detail": {
+        "innerClient": 1380,
+        "innerScroll": 1380,
+        "docClient": 1440,
+        "docScroll": 1440,
+        "scrollOwner": "main",
+        "scrollHeight": 916,
+        "clientHeight": 764,
+        "bottom": 152,
+        "restored": 0,
+        "headerTop": 0
+      }
+    },
+    {
+      "name": "desktop/zh/3 localized tab selected",
+      "passed": true
+    },
+    {
+      "name": "desktop/zh/4 no horizontal overflow",
+      "passed": true,
+      "detail": {
+        "innerClient": 1380,
+        "innerScroll": 1380,
+        "docClient": 1440,
+        "docScroll": 1440,
+        "scrollOwner": "main",
+        "scrollHeight": 971,
+        "clientHeight": 764,
+        "bottom": 207,
+        "restored": 0,
+        "headerTop": 0
+      }
+    },
+    {
+      "name": "desktop/zh/4 scrolls and restores top",
+      "passed": true,
+      "detail": {
+        "innerClient": 1380,
+        "innerScroll": 1380,
+        "docClient": 1440,
+        "docScroll": 1440,
+        "scrollOwner": "main",
+        "scrollHeight": 971,
+        "clientHeight": 764,
+        "bottom": 207,
+        "restored": 0,
+        "headerTop": 0
+      }
+    },
+    {
+      "name": "desktop/zh/4 localized tab selected",
+      "passed": true
+    },
+    {
+      "name": "mobile/zh/0 no horizontal overflow",
+      "passed": true,
+      "detail": {
+        "innerClient": 390,
+        "innerScroll": 390,
+        "docClient": 390,
+        "docScroll": 390,
+        "scrollOwner": "document",
+        "scrollHeight": 2583,
+        "clientHeight": 844,
+        "bottom": 1739,
+        "restored": 0,
+        "headerTop": 0
+      }
+    },
+    {
+      "name": "mobile/zh/0 scrolls and restores top",
+      "passed": true,
+      "detail": {
+        "innerClient": 390,
+        "innerScroll": 390,
+        "docClient": 390,
+        "docScroll": 390,
+        "scrollOwner": "document",
+        "scrollHeight": 2583,
+        "clientHeight": 844,
+        "bottom": 1739,
+        "restored": 0,
+        "headerTop": 0
+      }
+    },
+    {
+      "name": "mobile/zh/0 localized tab selected",
+      "passed": true
+    },
+    {
+      "name": "mobile/zh/1 no horizontal overflow",
+      "passed": true,
+      "detail": {
+        "innerClient": 390,
+        "innerScroll": 390,
+        "docClient": 390,
+        "docScroll": 390,
+        "scrollOwner": "document",
+        "scrollHeight": 1829,
+        "clientHeight": 844,
+        "bottom": 985,
+        "restored": 0,
+        "headerTop": 0
+      }
+    },
+    {
+      "name": "mobile/zh/1 scrolls and restores top",
+      "passed": true,
+      "detail": {
+        "innerClient": 390,
+        "innerScroll": 390,
+        "docClient": 390,
+        "docScroll": 390,
+        "scrollOwner": "document",
+        "scrollHeight": 1829,
+        "clientHeight": 844,
+        "bottom": 985,
+        "restored": 0,
+        "headerTop": 0
+      }
+    },
+    {
+      "name": "mobile/zh/1 localized tab selected",
+      "passed": true
+    },
+    {
+      "name": "mobile/zh/2 no horizontal overflow",
+      "passed": true,
+      "detail": {
+        "innerClient": 390,
+        "innerScroll": 390,
+        "docClient": 390,
+        "docScroll": 390,
+        "scrollOwner": "document",
+        "scrollHeight": 4187,
+        "clientHeight": 844,
+        "bottom": 3343,
+        "restored": 0,
+        "headerTop": 0
+      }
+    },
+    {
+      "name": "mobile/zh/2 scrolls and restores top",
+      "passed": true,
+      "detail": {
+        "innerClient": 390,
+        "innerScroll": 390,
+        "docClient": 390,
+        "docScroll": 390,
+        "scrollOwner": "document",
+        "scrollHeight": 4187,
+        "clientHeight": 844,
+        "bottom": 3343,
+        "restored": 0,
+        "headerTop": 0
+      }
+    },
+    {
+      "name": "mobile/zh 14 company rows",
+      "passed": true
+    },
+    {
+      "name": "mobile/zh/2 localized tab selected",
+      "passed": true
+    },
+    {
+      "name": "mobile/zh/3 no horizontal overflow",
+      "passed": true,
+      "detail": {
+        "innerClient": 390,
+        "innerScroll": 390,
+        "docClient": 390,
+        "docScroll": 390,
+        "scrollOwner": "document",
+        "scrollHeight": 1671,
+        "clientHeight": 844,
+        "bottom": 827,
+        "restored": 0,
+        "headerTop": 0
+      }
+    },
+    {
+      "name": "mobile/zh/3 scrolls and restores top",
+      "passed": true,
+      "detail": {
+        "innerClient": 390,
+        "innerScroll": 390,
+        "docClient": 390,
+        "docScroll": 390,
+        "scrollOwner": "document",
+        "scrollHeight": 1671,
+        "clientHeight": 844,
+        "bottom": 827,
+        "restored": 0,
+        "headerTop": 0
+      }
+    },
+    {
+      "name": "mobile/zh/3 localized tab selected",
+      "passed": true
+    },
+    {
+      "name": "mobile/zh/4 no horizontal overflow",
+      "passed": true,
+      "detail": {
+        "innerClient": 390,
+        "innerScroll": 390,
+        "docClient": 390,
+        "docScroll": 390,
+        "scrollOwner": "document",
+        "scrollHeight": 1763,
+        "clientHeight": 844,
+        "bottom": 919,
+        "restored": 0,
+        "headerTop": 0
+      }
+    },
+    {
+      "name": "mobile/zh/4 scrolls and restores top",
+      "passed": true,
+      "detail": {
+        "innerClient": 390,
+        "innerScroll": 390,
+        "docClient": 390,
+        "docScroll": 390,
+        "scrollOwner": "document",
+        "scrollHeight": 1763,
+        "clientHeight": 844,
+        "bottom": 919,
+        "restored": 0,
+        "headerTop": 0
+      }
+    },
+    {
+      "name": "mobile/zh/4 localized tab selected",
+      "passed": true
+    },
+    {
+      "name": "401 has a sign-in path",
+      "passed": true
+    },
+    {
+      "name": "401 never displays fixture performance",
+      "passed": true
+    },
+    {
+      "name": "partial heatmap never fabricates concentration",
+      "passed": true
+    },
+    {
+      "name": "invalid source never displays a rank",
+      "passed": true
+    },
+    {
+      "name": "invalid sector does not erase independent company data",
+      "passed": true
+    },
+    {
+      "name": "loading has no sample price/rank substitution",
+      "passed": true
+    },
+    {
+      "name": "zero browser page exceptions",
+      "passed": true,
+      "detail": []
+    }
+  ],
+  "screenshots": [
+    "v2-desktop-en-light-0.png",
+    "v2-desktop-en-light-1.png",
+    "v2-desktop-en-light-2.png",
+    "v2-desktop-en-light-3.png",
+    "v2-desktop-en-light-4.png",
+    "v2-tablet-en-light-0.png",
+    "v2-tablet-en-light-1.png",
+    "v2-tablet-en-light-2.png",
+    "v2-mobile-en-light-0.png",
+    "v2-mobile-en-light-1.png",
+    "v2-mobile-en-light-2.png",
+    "v2-desktop-zh-light-0.png",
+    "v2-desktop-zh-light-1.png",
+    "v2-desktop-zh-light-2.png",
+    "v2-mobile-zh-dark-0.png",
+    "v2-mobile-zh-dark-1.png",
+    "v2-mobile-zh-dark-2.png",
+    "v2-mobile-en-access.png",
+    "v2-mobile-en-partial.png",
+    "v2-mobile-en-invalid-sector-companies-preserved.png",
+    "v2-mobile-en-loading.png"
+  ],
+  "errors": [],
+  "passed": true
+}

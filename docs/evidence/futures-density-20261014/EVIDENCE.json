@@ -1,0 +1,34 @@
+{
+  "schema": "futures.dense_visual_qualification/v1",
+  "headBeforeDelta": "5d3dbbac913e8b17b9037f744658dc01e83014b8",
+  "synthetic": true,
+  "admittedFrames": 24,
+  "sourceRowsPerFrame": 203,
+  "svgGammaCirclesBefore": 4872,
+  "svgGammaCirclesAfter": 72,
+  "sourceInspectorRowsAfter": 203,
+  "exposuresMn": [
+    800,
+    -1600,
+    3200
+  ],
+  "visibleScaleMn": 5000,
+  "desktopTabletMobilePassed": 3,
+  "scaleUnitTestsPassed": 4,
+  "focusedTestsPassedBeforeLabelFormattingOnly": 272,
+  "productionLatencyOrCapacityClaim": false,
+  "source_sha256": {
+    "terminal/lib/futuresGexVisual.ts": "d03a63459ddfef8a06d98f9bc5f812686c3226d2c035c1a0805286e6b835bd76",
+    "terminal/components/futures/FuturesMicrostructureChart.tsx": "bcf4851c92ac1438e37dfa2f7b021855ac71f4f63bd09cad6d17ba9550e300ec",
+    "terminal/components/futures/futuresLab.module.css": "b80368e452198cf372d77f16580626b724df3fab34f2c53eda9d4fb6fbd4a7e2",
+    "terminal/lib/__tests__/futuresGexVisual.test.ts": "6bba6b0a636bfcb11853d2513187a61f69424e4c725dec1ef64033778dd61070",
+    "terminal/e2e/futures-density.spec.ts": "3408d258aa9ffd49ba9de0d4ef451eefe3cbbeb574a675556feb7d783bce3e84",
+    "terminal/playwright.futures-density.config.ts": "2dd7c2b010dcb98bdd80179cdfca055403c375f22202f58f713d73cad1f5bbec"
+  },
+  "screenshots": {
+    "desktop-dense-gamma.png": "08899b13a6f7f9ef8bc45a5bc2d7bd952508febf2e3032eaaf9503c235a1d741",
+    "tablet-dense-gamma.png": "164a287d01ebe936372a3c78692d762dd69465fb7c90742acb137faafa34dca0",
+    "mobile-dense-gamma.png": "8d5f3a1e0120bb021c505aebee5260811c3157b757771a39febddb63d99c826b"
+  },
+  "reviewScopeNote": "R2 reviews immutable 5ea5 source. This explicitly identified subsequent display delta is not represented as covered by its pending review."
+}

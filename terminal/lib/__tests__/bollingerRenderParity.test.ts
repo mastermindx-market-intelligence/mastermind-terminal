@@ -75,10 +75,11 @@ const chartPanelSrc = readFileSync(
  *  also pins the settings the chart actually ships with. */
 const BB_PARAMS = withDefaults("bb", {}) as { length: number; mult: number };
 
-function oracleBands(): { basis: (number | null)[]; upper: (number | null)[]; lower: (number | null)[] } {
+function oracleBands(params?: { length: number; mult: number }): { basis: (number | null)[]; upper: (number | null)[]; lower: (number | null)[] } {
   const out = runPine(IND_DEFS.bb.source, BARS as unknown as PineBar[], {
     timeframe: "D",
     symbol: "PARITY",
+    params,
   });
   expect(out.ok, "published BB Pine source failed to run: " + JSON.stringify(out.errors)).toBe(true);
   const plots = out.result!.plots;
@@ -102,11 +103,12 @@ function maxRel(
   got: (number | null)[],
   exp: (number | null)[],
 ): { rel: number; index: number } {
+  if (got.length !== exp.length) return { rel: Infinity, index: Math.min(got.length, exp.length) };
   let worst = { rel: 0, index: -1 };
   for (let i = 0; i < exp.length; i++) {
     const g = got[i], e = exp[i];
     if (g == null && e == null) continue;
-    if (g == null || e == null) return { rel: Infinity, index: i };
+    if (g == null || e == null || !Number.isFinite(g) || !Number.isFinite(e)) return { rel: Infinity, index: i };
     const rel = Math.abs(g - e) / Math.max(Math.abs(e), 1e-12);
     if (rel > worst.rel) worst = { rel, index: i };
   }
@@ -120,6 +122,15 @@ function maxRel(
 const SAME_FORMULA_TOL = 1e-12;
 
 describe("charted Bollinger Bands — published source oracle", () => {
+  it("rejects non-finite values and different lengths before comparing bands", () => {
+    for (const invalid of [NaN, Infinity, -Infinity]) {
+      expect(maxRel([invalid], [1]).rel).toBe(Infinity);
+      expect(maxRel([1], [invalid]).rel).toBe(Infinity);
+    }
+    expect(maxRel([], [1]).rel).toBe(Infinity);
+    expect(maxRel([1], []).rel).toBe(Infinity);
+  });
+
   it("the published BB source compiles, runs, and plots Basis/Upper/Lower", () => {
     const out = runPine(IND_DEFS.bb.source, BARS as unknown as PineBar[], {
       timeframe: "D",
@@ -157,6 +168,17 @@ describe("charted Bollinger Bands — published source oracle", () => {
 
 describe("charted Bollinger Bands — canonical owner", () => {
   const owner = bollingerBands(BARS, BB_PARAMS.length, BB_PARAMS.mult);
+
+  it.each([{ length: 2, mult: 0.5 }, { length: 50, mult: 3 }])(
+    "matches the published source at length=$length and mult=$mult",
+    ({ length, mult }) => {
+      const oracle = oracleBands({ length, mult });
+      const result = bollingerBands(BARS, length, mult);
+      expect(maxRel(result.upper, oracle.upper).rel).toBeLessThan(SAME_FORMULA_TOL);
+      expect(maxRel(result.mid, oracle.basis).rel).toBeLessThan(SAME_FORMULA_TOL);
+      expect(maxRel(result.lower, oracle.lower).rel).toBeLessThan(SAME_FORMULA_TOL);
+    },
+  );
 
   it("upper band matches the published source", () => {
     const worst = maxRel(owner.upper, ORACLE.upper);

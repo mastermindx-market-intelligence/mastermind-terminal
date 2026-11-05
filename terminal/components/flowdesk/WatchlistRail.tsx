@@ -6,9 +6,10 @@
 import { useMemo } from "react";
 import type React from "react";
 import { pick, fmtNum } from "../../lib/finFormat";
-import type { Lang } from "../../lib/i18n";
+import { useT, type Lang } from "../../lib/i18n";
 import type { FlowScore } from "./FeedPane";
 import { FD } from "../../lib/flowdeskStrings";
+import { feedEvents } from "../../lib/flowPrintInspector";
 import { RingGauge } from "../ui/RingGauge";
 
 // ─── Shared feed/tide shape ────────────────────────────────────────────────
@@ -64,12 +65,21 @@ function fmtPct(v: number): string {
 
 export function WatchlistRail({ feed, tide, lang, watchlist, onToggleTicker, onPickTicker, onOpenTutorial }: WatchlistRailProps) {
   const zh = lang === "zh";
+  const t = useT();
 
-  // Session overview
+  // The tape through the ONE guard the gauge, the coverage line and the feed list read it
+  // through: a malformed `events` reads as no prints, never a throw. For an array it is the
+  // identity, so the memos below keep their per-tape identity.
+  const events = feedEvents(feed);
+  const tapeRead = Array.isArray(feed.events);
+
+  // Session overview. Unknown is not zero: with no tide and a malformed tape the rail made
+  // no reading, so there is no total or call/put split (null), as for the gauge.
   const overview = useMemo(() => {
     if (!tide || !tide.minutes.length) {
+      if (!tapeRead) return null;
       let callPrem = 0; let putPrem = 0;
-      for (const ev of feed.events) {
+      for (const ev of events) {
         if (ev.right === "C") callPrem += ev.premium;
         else putPrem += ev.premium;
       }
@@ -84,21 +94,29 @@ export function WatchlistRail({ feed, tide, lang, watchlist, onToggleTicker, onP
     const putPrem = Math.abs(last.npp);
     const total = callPrem + putPrem;
     return { total, callPrem, putPrem, callShare: total > 0 ? callPrem / total : 0.5 };
-  }, [feed.events, tide]);
+  }, [events, tapeRead, tide]);
 
-  const pc = overview.callPrem > 0
-    ? (overview.putPrem / overview.callPrem).toFixed(2)
-    : "—";
+  const na = pick(zh, FD.gaugeNa.en, FD.gaugeNa.zh);
+  const pc = overview === null
+    ? na
+    : overview.callPrem > 0
+      ? (overview.putPrem / overview.callPrem).toFixed(2)
+      : "—";
 
-  // Best score per ticker
+  // Best score per ticker. Unknown is not zero: a root whose events carry no
+  // finite score maps to null (a missing score is not a 0-scored root), and the
+  // best-of is taken over FINITE scores only.
   const tickerBestScore = useMemo(() => {
-    const map: Record<string, number> = {};
-    for (const ev of feed.events) {
-      const score = ev.flowScore?.score ?? 0;
-      if (!(ev.root in map) || score > map[ev.root]) map[ev.root] = score;
+    const map: Record<string, number | null> = {};
+    for (const ev of events) {
+      const score = ev.flowScore && Number.isFinite(ev.flowScore.score) ? ev.flowScore.score : null;
+      const cur = map[ev.root];
+      map[ev.root] = cur === undefined || (score !== null && (cur === null || score > cur))
+        ? score
+        : cur;
     }
     return map;
-  }, [feed.events]);
+  }, [events]);
 
   const watchlistTickers = watchlist.filter((t) => t in tickerBestScore);
 
@@ -115,9 +133,9 @@ export function WatchlistRail({ feed, tide, lang, watchlist, onToggleTicker, onP
             {onOpenTutorial && (
               <button
                 onClick={onOpenTutorial}
-                aria-label={zh ? "打开教程" : "Open tutorial"}
+                aria-label={t("openTutorial")}
                 style={TUT_ICON_BTN}
-                title={zh ? "教程" : "Tutorial"}
+                title={t("openTutorial")}
               >
                 ?
               </button>
@@ -128,11 +146,11 @@ export function WatchlistRail({ feed, tide, lang, watchlist, onToggleTicker, onP
         <div className="obs-fd-stat-grid">
           <div className="obs-fd-stat-cell">
             <span className="obs-lbl">{pick(zh, "Premium", "权利金")}</span>
-            <span className="obs-fd-stat-val num">{fmtPrem(overview.total)}</span>
+            <span className="obs-fd-stat-val num">{overview ? fmtPrem(overview.total) : na}</span>
           </div>
           <div className="obs-fd-stat-cell">
             <span className="obs-lbl">{pick(zh, "Calls", "认购")}</span>
-            <span className="obs-fd-stat-val num">{fmtPct(overview.callShare)}</span>
+            <span className="obs-fd-stat-val num">{overview ? fmtPct(overview.callShare) : na}</span>
           </div>
           <div className="obs-fd-stat-cell">
             <span className="obs-lbl">P/C</span>
@@ -141,10 +159,13 @@ export function WatchlistRail({ feed, tide, lang, watchlist, onToggleTicker, onP
         </div>
         <div className="obs-fd-bar-wrap">
           <div className="obs-fd-bar-track">
-            <div
-              className="obs-fd-bar-fill"
-              style={{ width: `${Math.round(overview.callShare * 100)}%` }}
-            />
+            {/* No reading draws no split: an even 50% fill is a reading the rail never made. */}
+            {overview && (
+              <div
+                className="obs-fd-bar-fill"
+                style={{ width: `${Math.round(overview.callShare * 100)}%` }}
+              />
+            )}
           </div>
           <div className="obs-fd-bar-labels">
             <span className="obs-lbl" style={{ color: "var(--brand-2)" }}>
@@ -195,7 +216,14 @@ export function WatchlistRail({ feed, tide, lang, watchlist, onToggleTicker, onP
                 {pick(zh, "Active today", "今日活跃")}
               </div>
               {Object.entries(tickerBestScore)
-                .sort((a, b) => b[1] - a[1])
+                // Scored roots first, best score on top; an unknown score is not a
+                // zero, so unscored roots sort last (stable) instead of the bottom.
+                .sort(([, a], [, b]) => {
+                  if (a === null && b === null) return 0;
+                  if (a === null) return 1;
+                  if (b === null) return -1;
+                  return b - a;
+                })
                 .slice(0, 5)
                 .map(([root, score]) => (
                   <WatchRow
@@ -266,16 +294,16 @@ function WatchRow({ root, score, inFeed, zh, onPick, onRemove, isWatch = true }:
           <span className="obs-fd-wl-inactive">{pick(zh, "no events", "无事件")}</span>
         )}
         <span style={{ marginLeft: "auto", flexShrink: 0 }}>
-          {score != null
-            ? <RingGauge value={score} size="sm" tone="auto" />
+          {inFeed
+            ? <RingGauge value={score} size="sm" tone="auto" naLabel={pick(zh, FD.scoreUnavailable.en, FD.scoreUnavailable.zh)} />
             : null}
         </span>
       </button>
       <div className="obs-fd-wl-btns">
         {isWatch ? (
-          <button className="obs-fd-wl-btn" onClick={onRemove} aria-label="Remove">×</button>
+          <button className="obs-fd-wl-btn" onClick={onRemove} aria-label={pick(zh, `Remove ${root} from watchlist`, `将 ${root} 移出观察列表`)}>×</button>
         ) : (
-          <button className="obs-fd-wl-btn add" onClick={onRemove} aria-label="Watch">+</button>
+          <button className="obs-fd-wl-btn add" onClick={onRemove} aria-label={pick(zh, `Add ${root} to watchlist`, `将 ${root} 加入观察列表`)}>+</button>
         )}
       </div>
     </div>
