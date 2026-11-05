@@ -803,6 +803,8 @@ html[data-research-appearance="lab"][data-theme="light"] .options-view-tabs .obs
 .obs-options-alpha-candidate-head strong { color: var(--text); font: 720 15px/1 var(--font-num); }
 .obs-options-alpha-candidate-head .obs-tag { max-width: 70%; text-align: right; white-space: normal; }
 .obs-options-alpha-candidate-meta { display: flex; gap: 5px 10px; flex-wrap: wrap; margin-top: 7px; color: var(--muted); font: 500 9.5px/1.35 var(--font-ui); }
+.obs-options-alpha-chart-link { min-height: 44px; margin-top: 8px; white-space: normal; text-decoration: none; }
+.obs-options-alpha-chart-link:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 .obs-options-alpha-clocks { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 6px; margin-top: 8px; }
 .obs-options-alpha-clocks > div { display: flex; flex-direction: column; gap: 3px; min-width: 0; padding: 6px 7px; border-radius: 7px; background: rgba(255,255,255,.025); }
 .obs-options-alpha-clocks span { color: var(--muted); font: 600 8px/1.2 var(--font-ui); letter-spacing: .05em; text-transform: uppercase; }
