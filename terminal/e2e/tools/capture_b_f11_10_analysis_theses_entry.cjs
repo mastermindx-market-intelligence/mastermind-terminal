@@ -18,9 +18,8 @@
 
 const { spawn, execFileSync } = require("node:child_process");
 const { createHash } = require("node:crypto");
-const { mkdirSync, readFileSync, writeFileSync } = require("node:fs");
+const { mkdirSync, readFileSync, writeFileSync, lstatSync } = require("node:fs");
 const { join } = require("node:path");
-const { chromium } = require("@playwright/test");
 
 const ROOT = join(__dirname, "..", "..");
 const REPO = join(ROOT, "..");
@@ -47,7 +46,39 @@ const SHOTS = [
   { viewport: "mobile", lang: "zh", file: "mobile-zh.png" },
 ];
 
-mkdirSync(OUT, { recursive: true });
+// This provider-closed capture uses the real app, with no local dotenv authority.
+// Do not read or print dotenv values, and do not turn absence into an auth claim.
+function assertNoCaptureDotenv(root = ROOT) {
+  for (const name of [".env", ".env.local", ".env.development", ".env.development.local"]) {
+    try { lstatSync(join(root, name)); }
+    catch (error) { if (error.code === "ENOENT") continue; throw error; }
+    throw new Error("F11_DOTENV_PRESENT");
+  }
+}
+
+function captureServerEnv(parent = process.env) {
+  const inherited = {};
+  for (const name of ["PATH", "HOME", "LANG", "TMPDIR", "TMP", "TEMP"]) {
+    if (typeof parent[name] === "string") inherited[name] = parent[name];
+  }
+  return {
+    ...inherited,
+    NODE_ENV: "development",
+    ANALYSIS_LOCAL_PREVIEW: "1",
+    ADMIN_DEV: "1",
+    TERMINAL_E2E_FIXTURE: "1",
+    TERMINAL_E2E_EMAIL: "responsive@example.com",
+    TERMINAL_E2E_ENTITLEMENT: "unlimited",
+    TERMINAL_REQUIRE_AUTH: "0",
+    MMX_SHARED_SHELL: "0",
+    MMX_INVESTOR_SHELL_PREVIEW: "0",
+    RATE_LIMIT_MAX: "100000",
+    HUB_REALTIME_QUOTES: "1",
+    FLOW_FIXTURE: "1",
+    NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: "fixture-anon-key",
+  };
+}
 
 function currentGitHead() {
   return execFileSync("git", ["rev-parse", "HEAD"], { cwd: ROOT, encoding: "utf8" }).trim();
@@ -62,19 +93,8 @@ function layoutFilesBlock() {
 }
 
 function startServer() {
-  const env = {
-    ...process.env,
-    ANALYSIS_LOCAL_PREVIEW: "1",
-    ADMIN_DEV: "1",
-    TERMINAL_E2E_FIXTURE: "1",
-    TERMINAL_E2E_EMAIL: "responsive@example.com",
-    TERMINAL_E2E_ENTITLEMENT: "unlimited",
-    RATE_LIMIT_MAX: "100000",
-    HUB_REALTIME_QUOTES: "1",
-    FLOW_FIXTURE: "1",
-    NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: "fixture-anon-key",
-  };
+  assertNoCaptureDotenv();
+  const env = captureServerEnv();
   const child = spawn("npm", ["run", "dev", "--", "--hostname", "127.0.0.1", "--port", String(PORT)], {
     cwd: ROOT,
     env,
@@ -103,7 +123,7 @@ async function waitForServer(timeoutMs) {
   let last = "not tried";
   while (Date.now() < deadline) {
     try {
-      const res = await fetch(`${BASE}/analysis?symbol=${SYM}`, { redirect: "manual" });
+      const res = await fetch(`${BASE}/analysis?symbol=${SYM}`, { redirect: "manual", headers: { Cookie: "mm_e2e_rs30=1" } });
       last = String(res.status);
       if (res.status >= 200 && res.status < 500) return;
     } catch (err) {
@@ -129,6 +149,36 @@ async function assertNoNextIndicator(page, file) {
   }
 }
 
+async function installCaptureBoundary(context, base = BASE) {
+  const { classifyRequest, typedUnavailablePayload } = require("./f11_provider_closed_policy.cjs");
+  const counts = { forwarded: 0, unavailable: 0, aborted: 0, webSocketsBlocked: 0, redirectOrBadStatus: 0 };
+  if (typeof context.routeWebSocket !== "function") throw new Error("F11_WEBSOCKET_BOUNDARY_UNSUPPORTED");
+  // The crop needs no live stream, including dev HMR. Block before a socket connects.
+  await context.routeWebSocket("**/*", (socket) => { counts.webSocketsBlocked++; socket.close(); });
+  await context.route("**/*", async (route) => {
+    const request = route.request();
+    const decision = classifyRequest({ url: request.url(), method: request.method(), resourceType: request.resourceType() }, base);
+    if (decision.decision === "fulfill") {
+      counts.unavailable++;
+      return route.fulfill({ status: 503, contentType: "application/json", headers: { "Cache-Control": "no-store" }, body: JSON.stringify(typedUnavailablePayload()) });
+    }
+    if (decision.decision === "continue") {
+      // Only policy-qualified loopback documents/assets reach this call. Do not
+      // allow a redirect from an otherwise allowed URL to escape the boundary.
+      const response = await route.fetch({ maxRedirects: 0 });
+      if (response.status() !== 200) {
+        counts.redirectOrBadStatus++;
+        return route.abort("blockedbyclient");
+      }
+      counts.forwarded++;
+      return route.fulfill({ response });
+    }
+    counts.aborted++;
+    return route.abort("blockedbyclient");
+  });
+  return counts;
+}
+
 async function openAnalysis(page, lang, viewport) {
   await page.setViewportSize(viewport);
   await page.addInitScript((l) => {
@@ -148,9 +198,18 @@ async function openAnalysis(page, lang, viewport) {
     timeout: 90_000,
   });
   // Wait for the context bar and the theses control to be visible.
-  await page.getByLabel(lang === "zh" ? "你的研究论点：NVDA" : "Your theses on NVDA")
-    .waitFor({ state: "visible", timeout: 45_000 });
+  const entry = page.getByLabel(lang === "zh" ? "你的研究论点：NVDA" : "Your theses on NVDA");
+  await entry.waitFor({ state: "visible", timeout: 45_000 });
+  if (await entry.count() !== 1) throw new Error("F11_THESES_ENTRY_NOT_UNIQUE");
+  const href = new URL(await entry.getAttribute("href"), BASE);
+  if (href.origin !== BASE || href.pathname !== "/analysis"
+      || href.searchParams.get("view") !== "theses" || href.searchParams.get("symbol") !== SYM) {
+    throw new Error("F11_THESES_ENTRY_IDENTITY_MISMATCH");
+  }
+  const bounds = await entry.boundingBox();
+  if (!bounds || bounds.width <= 0 || bounds.height <= 0) throw new Error("F11_THESES_ENTRY_EMPTY");
   await stripDevOverlay(page);
+  return { symbol: SYM, lang, state: "context-bar-with-theses-control", href: href.pathname + href.search, entryBounds: bounds };
 }
 
 async function shoot(page, file) {
@@ -161,9 +220,13 @@ async function shoot(page, file) {
 }
 
 async function main() {
+  const { chromium } = require("@playwright/test");
+  assertNoCaptureDotenv();
+  mkdirSync(OUT, { recursive: true });
   const capturedAtHead = currentGitHead();
   const child = startServer();
   const files = [];
+  const entryObservations = [];
   try {
     await waitForServer(180_000);
     const browser = await chromium.launch({ headless: true });
@@ -175,13 +238,19 @@ async function main() {
           hasTouch: shot.viewport !== "desktop", // tablet + mobile: pointer:coarse, so the 44px floor is what the crops show
           locale: shot.lang === "zh" ? "zh-CN" : "en-US",
           colorScheme: "dark",
+          serviceWorkers: "block",
         });
+        const boundaryCounts = await installCaptureBoundary(context);
+        await context.addCookies([{ name: "mm_e2e_rs30", value: "1", url: BASE }]);
         const page = await context.newPage();
         page.setDefaultTimeout(45_000);
         try {
-          await openAnalysis(page, shot.lang, VIEWPORTS[shot.viewport]);
+          const entry = await openAnalysis(page, shot.lang, VIEWPORTS[shot.viewport]);
           await shoot(page, shot.file);
+          if (boundaryCounts.unavailable < 1) throw new Error("F11_BUSINESS_REQUEST_BOUNDARY_NOT_EXERCISED");
+          if (boundaryCounts.redirectOrBadStatus !== 0) throw new Error("F11_ALLOWED_ROUTE_DID_NOT_RETURN_200");
           files.push(shot.file);
+          entryObservations.push({ file: shot.file, viewport: VIEWPORTS[shot.viewport], ...entry, requestBoundary: { ...boundaryCounts } });
           console.log("ok");
         } catch (err) {
           console.log(`FAIL ${err && err.message ? err.message : err}`);
@@ -199,6 +268,22 @@ async function main() {
   } finally {
     stopServer(child);
   }
+
+  writeFileSync(join(OUT, "FIXTURE.json"), JSON.stringify({
+    schema: "terminal.f11-source-component-fixture.v1",
+    capturedAtHead,
+    fixtureSources: Object.fromEntries([
+      "terminal/e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs",
+      "terminal/e2e/tools/f11_provider_closed_policy.cjs",
+      "terminal/app/(shell)/analysis/page.tsx",
+      "terminal/app/(shell)/layout.tsx",
+      "terminal/lib/supabase/middleware.ts",
+      ".github/workflows/ci.yml",
+      ...LAYOUT_FILES,
+    ].map((rel) => [rel, sha256File(rel)])),
+    scope: "Real source component, synthetic fixture identity and unavailable market inputs; no authenticated, provider, installed or account proof",
+    entryObservations,
+  }, null, 2) + "\n");
 
   const evidence = [
     "# B-F11-10a Analysis context-bar theses entry — capture evidence",
@@ -229,7 +314,9 @@ async function main() {
   console.log(`wrote ${files.length} crops + EVIDENCE.yml at ${capturedAtHead}`);
 }
 
-main().catch((err) => {
+module.exports = { assertNoCaptureDotenv, captureServerEnv, installCaptureBoundary };
+
+if (require.main === module) main().catch((err) => {
   console.error(err);
   process.exit(1);
 });
