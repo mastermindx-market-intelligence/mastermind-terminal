@@ -1,0 +1,48 @@
+{
+  "initialFullSuite": {
+    "passed": 18368,
+    "failed": 108,
+    "skipped": 47,
+    "todo": 4,
+    "failedFiles": [
+      "visualIntelligenceEvidence.test.ts",
+      "b_pl_6Batch1Evidence.test.ts",
+      "sharedShellPublicPresentation.test.tsx",
+      "readingWorkspaces.test.tsx",
+      "todayAttentionIntegration.test.tsx",
+      "todayResearchAttention.test.tsx",
+      "frozenNodeEntryView.test.tsx",
+      "onboardingOAuthContext.test.ts",
+      "documentLanguageSync.test.tsx"
+    ],
+    "logSha256": "9b163bf8be21ba2ba652329a2631ba88933f9db1e765b153f38fe5c28600476f"
+  },
+  "runtimeDiagnostic": {
+    "hostNode": "26.5.0",
+    "configuredCiNode": "20",
+    "processOnlyFlag": "--no-experimental-webstorage",
+    "requalifiedFailedTests": 106,
+    "requalifiedFailedFiles": 7,
+    "sourceCodeChangedForRuntimeDiagnostic": false
+  },
+  "remainingLegacyEvidenceGuards": {
+    "count": 2,
+    "mismatchedPaths": [
+      "terminal/components/AppNav.tsx",
+      "terminal/app/(shell)/layout.tsx"
+    ],
+    "pathsByteIdenticalToAcquisitionBase": true,
+    "nativeFreshCompositionRequired": true
+  },
+  "originalCi": {
+    "run": 41777007903,
+    "head": "da1d713634e7f39ea2ffe5fd1e7a27ac6cbb6c22",
+    "checkout": {
+      "commit": "999ca2f7efa0446773dc4a68aced5b5e7985cc53",
+      "tree": "d2a25c9aa8385f5d52de870dbaf374b580061209"
+    },
+    "allJobsSucceeded": 17,
+    "nativeRequiredChecksSucceeded": 3
+  },
+  "freshFullSuite": "PENDING_NATIVE_COMPOSITION"
+}

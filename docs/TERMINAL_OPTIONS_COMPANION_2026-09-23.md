@@ -96,3 +96,58 @@ Recover the existing Macro matrix producer/store-host owner, read its current so
 DO_NOT_REDO: Paper artboard/design contract, feature implementation e512e80d5/0fa0ea1bf/517daca78, mobile321ef80 repair, bilingual-label799ee3f reuse, accepted local qualification and already-consumed exact capture receipts. Preserve neighboring chart/context carriers #701/#702/#705/#707/#713/#718/#714 and marker#688. No merge, deploy or worker is claimed. All qualification processes completed; original owned dev serverPID11350/port3219 is only a preview server, not ongoing task execution.
 
 Local residue:64unrelated tracked test outputs were archived then restored before the current source commit; archive digest34ea5287c25782fbcc5b33158a2a3a7a98966bbc89e7a3ca38cc7fbeba4cd8a7. Six untracked workspace-test screenshots remain outside this feature's commit scope: a cross-device move failed and the subsequent cleanup request was explicitly refused. Preserve them; do not bypass the refusal or claim a wholly clean worktree. No unknown modifying effect exists on the feature branch. Intended resume: same authorized Sol task and exact PR checkpoint, not a new branch/session custody assignment.
+
+## R6/R7 native integration — 2026-09-29
+
+Chris explicitly assigned this continuation on the existing PR #723 and branch
+`claude/terminal-options-heatmap-20260923`. Pickup HEAD was
+`014c434b682f9b0221d624d901140c83467b52a3`; the original checkout was retained.
+Three tracked Market Memory edits and its untracked component were backed up,
+then reconciled by a conflict-free three-way merge with the reviewed postimages.
+The six unrelated workspace screenshots remain untouched and outside the commit.
+This is same-carrier integration, not a replacement PR or a claim that neighboring
+source/chart owners have been transferred.
+
+Parent reviews:
+[5347665044](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/723#pullrequestreview-5347665044)
+and [5347818888](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/723#pullrequestreview-5347818888).
+The supplied patches matched SHA256
+`a03ca3627b19b6b5795ca68e7a42edd45ce3c84cc80e5fc650ace0a1e219082c` (R6)
+and `092266dea25b337f07c47d2c4ae512e2c87107d067c8a0ce017ecf2c8c74ff89` (R7).
+Their comments are review evidence, not release approval.
+
+- Incomplete selected-grid, strike and ex-0DTE totals stay unknown while known
+  subtotals and their counts remain visible. Zero and incomplete totals carry no
+  positive/negative headline color. The concentration denominator is explicitly
+  known absolute cell net, not certified source coverage.
+- Declared axes retain missing positions. Intentional 0DTE filtering narrows its
+  expiry axis; native one-strike/no-0DTE fixtures now narrow their declared axes
+  consistently with the fixture's intended domain.
+- Analytical selection survives the 101-row display cap. Reveal recenters the
+  displayed rows and focuses the exact cell without changing filters/totals.
+  Native tablet/phone testing exposed an additional nested-scroll issue beyond
+  R6: focusing within the matrix did not reveal it through the containing sheet.
+  The explicit reveal now scrolls through its ancestors; the route regression
+  checks actual viewport visibility as well as exact focus and unchanged totals.
+- Apply, Cancel and Escape restore focus to the scope opener in EN/ZH. Only Apply
+  changes accepted scope; Cancel/Escape preserve it.
+- The reconciled Market Memory compares qualified all-expiry current and previous
+  available GEX snapshots through the existing cache/API owners. Session/root or
+  archive mismatches cannot substitute today's data. Missing strikes/scalars stay
+  unknown; the comparison states that it does not attribute positioning. Its
+  formerly absent styles now reuse the existing companion inspector/node-stat
+  styles, including their scoped light treatment.
+
+Native qualification lives in
+`terminal/docs/pr-crops/options-r6-r7-20260929/EVIDENCE.json` with source hashes,
+commands, logs and real `/terminal?symbol=SPY` captures. The route uses the existing
+local fixture entitlement/data seams and real Next/Terminal/chart components.
+It proves consumer behavior and native chart preservation, not real account
+sign-in or published-market-data correctness. Dark/light evidence concerns the
+existing companion treatment; no global Terminal theme release is claimed.
+
+The original data/release frontier above remains separate. PR #723 stays draft,
+auto-merge stays off, and merge/deployment/live published-data acceptance are not
+claimed by this integration. Existing requested-changes review remains for the
+parent reviewer to adjudicate on the published head. Required hosted checks are
+reported on the PR at that head, independently of local qualification.

@@ -26,10 +26,12 @@ const ASOF = "2026-07-10T20:15:00Z";
 // whole dollars, exactly like options_structure.matrix/v1.
 const MATRIX: GexMatrix = {
   asof: "2026-07-10T21:04:11Z",
+  // The producer's source session (options_structure.matrix/v1 `_build_meta.asof_date`).
   _build_meta: { asof_date: "2026-07-10" },
   spot: 751.71,
   expiries: ["2026-07-10", "2026-07-17", "2026-08-21"],
-  // 730 is on the strike axis but carries no 0DTE cell — unresolved, never inferred zero.
+  // 730 is on the strike axis but carries no 0DTE cell — an UNRESOLVED pair (T09: the
+  // producer omits pairs it did not price, so absence is not a measured zero).
   strikes: [730, 750, 760],
   cells: [
     { strike: 750, expiry: "2026-07-10", gex: 120_000_000 },
@@ -101,6 +103,8 @@ describe("matrixLensByStrike — the lens sums, in $mn", () => {
     expect(v.byStrike.get(750)).toBe(120);
     expect(v.byStrike.get(760)).toBe(45);
     expect(v.byStrike.has(730)).toBe(false); // covered strike, no 0DTE cell
+    // T09 correction: 730's 0DTE pair is unresolved, so the selected total is unknown; the
+    // known part is a disclosed subtotal, not the total (was `totalMn === 165`).
     expect(v.totalMn).toBeNull();
     expect(v.knownTotalMn).toBe(165);
     expect(v.unresolvedPairCount).toBe(1);
@@ -110,31 +114,31 @@ describe("matrixLensByStrike — the lens sums, in $mn", () => {
   it("ex-zero: everything EXCEPT the session-day expiry", () => {
     const v = matrixLensByStrike(MATRIX, { kind: "ex-zero" }, ASOF);
     expect(v.byStrike.get(750)).toBe(50); // 80 − 30
+    // T09 correction: 760 and 730 each lack the 07-17 pair, so their rows are unknown and
+    // only their known parts survive, as detail (was 760 → 15, 730 → −60, total 5).
     expect(v.byStrike.has(760)).toBe(false);
     expect(v.byStrike.has(730)).toBe(false);
-    expect(v.byStrikeDetail.get(760)?.knownMn).toBe(15);
-    expect(v.byStrikeDetail.get(730)?.knownMn).toBe(-60);
-    expect(v.totalMn).toBeNull();
+    expect(v.byStrikeDetail.get(760)).toEqual({ knownMn: 15, knownCells: 1, unresolvedCells: 1 });
+    expect(v.byStrikeDetail.get(730)).toEqual({ knownMn: -60, knownCells: 1, unresolvedCells: 1 });
     expect(v.knownTotalMn).toBe(5);
+    expect(v.totalMn).toBeNull();
   });
 
-  it("zero + ex-zero known subtotals partition observed cells without certifying missing cells", () => {
+  it("zero + ex-zero add back up to the whole matrix (no double count, no gap)", () => {
     const z = matrixLensByStrike(MATRIX, { kind: "zero" }, ASOF);
     const x = matrixLensByStrike(MATRIX, { kind: "ex-zero" }, ASOF);
     const allCells = MATRIX.cells!.reduce((s, c) => s + (c.gex ?? 0), 0) / 1e6;
+    // Known subtotals partition the known cells (the totals are withheld: both grids have gaps).
     expect(z.knownTotalMn! + x.knownTotalMn!).toBeCloseTo(allCells, 9);
-    expect(z.totalMn).toBeNull();
-    expect(x.totalMn).toBeNull();
     expect(z.cellCount + x.cellCount).toBe(MATRIX.cells!.length);
   });
 
-  it("one: a single exact expiry, refusing ambiguous padded scope identity", () => {
+  it("one: a single named expiry, tolerating the ' 00:00:00' key shape", () => {
     const v = matrixLensByStrike(MATRIX, { kind: "one", exp: "2026-07-17" }, ASOF);
     expect(v.byStrike.get(750)).toBe(80);
     expect(v.byStrike.size).toBe(1);
     const padded = matrixLensByStrike(MATRIX, { kind: "one", exp: "2026-07-17 00:00:00" }, ASOF);
-    expect(padded.reason).toBe("unsupported_scope");
-    expect(padded.totalMn).toBeNull();
+    expect(padded.byStrike.get(750)).toBe(80);
   });
 
   it("with no as-of there is no 0DTE bucket to select (never guesses 'today')", () => {
@@ -153,9 +157,11 @@ describe("matrixLensByStrike — the lens sums, in $mn", () => {
     };
     const v = matrixLensByStrike(dirty, { kind: "zero" }, ASOF);
     expect(v.cellCount).toBe(1);
-    expect(v.totalMn).toBeNull();
+    // T09 correction: a null/NaN cell is not counted as zero AND does not let the known
+    // remainder pose as the total (was `totalMn === 10`).
     expect(v.knownTotalMn).toBe(10);
     expect(v.unresolvedPairCount).toBe(2);
+    expect(v.totalMn).toBeNull();
   });
 });
 
@@ -244,6 +250,7 @@ describe("matrixLensByStrike — session drift guard (the exact bug this lens sh
       const v = matrixLensByStrike(DRIFTED, lens, GEX_ASOF);
       expect(v.cellCount).toBe(0);
       expect(v.covered.size).toBe(0); // strikes read as the honest dash, never a fabricated 0
+      // T09 correction: a disabled lens has an UNKNOWN total, not a zero one (was `0`).
       expect(v.totalMn).toBeNull();
       expect(v.reason).toBe("different_source_session");
     }
@@ -290,8 +297,18 @@ describe("lensValueForStrike — the honest-dash rule", () => {
   it("a covered strike WITH a cell reads the lens value", () => {
     expect(lensValueForStrike(750, -284.5, { kind: "zero" }, zero)).toBe(120);
   });
-  it("a covered strike WITHOUT a cell remains unresolved", () => {
+  // T09 correction (was "a covered strike WITHOUT a cell is a real zero" → 0): the producer
+  // emits only the pairs it priced, so an absent pair is unresolved, never an inferred zero.
+  it("a covered strike WITHOUT a cell is unresolved — a dash, never an inferred zero", () => {
     expect(lensValueForStrike(730, -284.5, { kind: "zero" }, zero)).toBeNull();
+  });
+  it("a covered strike with a MEASURED zero cell reads 0", () => {
+    const measured = matrixLensByStrike(
+      { ...MATRIX, cells: [...MATRIX.cells!, { strike: 730, expiry: "2026-07-10", gex: 0 }] },
+      { kind: "zero" }, ASOF,
+    );
+    expect(lensValueForStrike(730, -284.5, { kind: "zero" }, measured)).toBe(0);
+    expect(measured.totalMn).toBe(165);
   });
   it("an UNCOVERED strike is null — never 0, never the aggregate", () => {
     // The regression this lane exists to prevent: silently showing the all-expiry number

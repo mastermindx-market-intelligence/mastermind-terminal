@@ -1,0 +1,12 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-native-error-theme-p12t21s2-7bdf1c032aa098fe/terminal
+
+ ✓ lib/__tests__/errorReturnRecovery.test.tsx (11 tests) 84ms
+ ✓ lib/__tests__/errorPresentation.test.tsx (7 tests) 102ms
+
+ Test Files  2 passed (2)
+      Tests  18 passed (18)
+   Start at  10:11:16
+   Duration  1.13s (transform 182ms, setup 0ms, collect 400ms, tests 187ms, environment 842ms, prepare 109ms)
+

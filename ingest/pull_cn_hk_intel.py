@@ -741,8 +741,9 @@ def market_of(name: str) -> str | None:
     return None
 
 
-def main(syms: list[str]) -> None:
-    OUT.mkdir(parents=True, exist_ok=True)
+def main(syms: list[str], *, market="all", out_dir=None) -> None:
+    target = Path(out_dir) if out_dir else OUT
+    target.mkdir(parents=True, exist_ok=True)
     files: list[Path] = []
     if syms:
         for s in syms:
@@ -753,6 +754,7 @@ def main(syms: list[str]) -> None:
     else:
         files = sorted(CN_DIR.glob("*.json")) + sorted(HK_DIR.glob("*.json"))
 
+    files = [path for path in files if market == "all" or (market_of(path.name) or "").lower() == market]
     vmap = load_valuation_map()
     fmap = load_financials_map()
     hmap = load_holders_map()
@@ -779,7 +781,7 @@ def main(syms: list[str]) -> None:
                 ffill += 1
             if a.get("smart_money"):
                 smfill += 1
-            (OUT / f"{sym}.intel.json").write_text(json.dumps(intel, separators=(",", ":"), ensure_ascii=False))
+            (target / f"{sym}.intel.json").write_text(json.dumps(intel, separators=(",", ":"), ensure_ascii=False))
             ok += 1
             by_mkt[mkt] += 1
             covered.add(sym)
@@ -793,7 +795,7 @@ def main(syms: list[str]) -> None:
     # HK coverage widening — a lite panel (computed tech + akshare financials/analyst + southbound) for
     # every HK name that has a Terminal OHLC chart but no Macro Dashboard site JSON (build_hk_library's
     # curated universe leaves ~345 uncovered). Skipped automatically when its inputs aren't present.
-    if not syms:   # only on a full run
+    if not syms and market in ("all", "hk"):   # only on a full HK run
         hk_deep = load_hk_deep_map()
         sbmap = load_southbound_map()
         hk_lite = 0
@@ -806,14 +808,22 @@ def main(syms: list[str]) -> None:
                 if len(bars) < 30:
                     continue
                 intel = build_hk_lite(sym, bars, hk_deep.get(sym), sbmap.get(sym))
-                (OUT / f"{sym}.intel.json").write_text(json.dumps(intel, separators=(",", ":"), ensure_ascii=False))
+                (target / f"{sym}.intel.json").write_text(json.dumps(intel, separators=(",", ":"), ensure_ascii=False))
                 hk_lite += 1
             except Exception as exc:  # noqa: BLE001
                 err += 1
                 if err <= 20:
                     print(f"  ERR lite {sym}: {exc}")
         print(f"  HK lite panels (uncovered names): +{hk_lite}  (hk_deep {len(hk_deep)}, southbound {len(sbmap)})")
+    if err:
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--market", choices=("all", "cn", "hk"), default="all")
+    parser.add_argument("--out")
+    parser.add_argument("symbols", nargs="*")
+    args = parser.parse_args()
+    main(args.symbols, market=args.market, out_dir=args.out)

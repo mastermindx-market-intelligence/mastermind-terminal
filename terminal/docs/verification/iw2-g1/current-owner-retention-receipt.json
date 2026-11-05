@@ -1,0 +1,99 @@
+{
+  "ok": true,
+  "pin": {
+    "event_id": "evt_cik0000320193_2026q3_results",
+    "generation_id": "9054efc5f27850f6c063ba52",
+    "company_id": "cik:0000320193"
+  },
+  "receipt": {
+    "schema": "earnings.retained_baseline.v1",
+    "owner": "earnings.workspace_generation",
+    "company_id": "cik:0000320193",
+    "event_id": "evt_cik0000320193_2026q3_results",
+    "generation_id": "9054efc5f27850f6c063ba52",
+    "workspace_schema": "event_workspace.v1",
+    "manifest_schema": "event_workspace_manifest.v3",
+    "authority": "context_only",
+    "manifest_sha256": "1361ae3e78ef0081324af9842fb13f79c78f3fa1e957a488f73b5b553b886e1d",
+    "manifest_bytes": 2339,
+    "workspace_sha256": "16b53a58c3d86b4d136b4cda7dde90764660e857e5bfd3220f553ddabc775cbf",
+    "workspace_bytes": 111562,
+    "fingerprint": "b0895776478523dea12c8aeaa1652808655d719d305de9e19015be08a4b33ff4",
+    "public_known_at": "2026-07-30T20:30:28Z",
+    "platform_known_at": "2026-10-03T05:23:48Z",
+    "generation_emitted_at": "2026-10-03T05:23:48Z",
+    "rights": {
+      "allowed": true,
+      "policy_version": "earnings.public_primary.context_read.v1",
+      "checked_at": "2026-10-04T05:48:34.551Z"
+    }
+  },
+  "issuer": {
+    "company_id": "cik:0000320193",
+    "display_name": "Apple Inc.",
+    "listings": [
+      {
+        "ticker": "AAPL",
+        "mic": "XNAS",
+        "security_id": "xnas:AAPL",
+        "share_class": "common",
+        "trading_currency": "USD",
+        "is_primary": true,
+        "valid_from": "1970-01-01",
+        "valid_to": null
+      }
+    ]
+  },
+  "completeness": {
+    "release": {
+      "status": "present",
+      "document_id": "disclosure_document_a2f2e1d2b10ac2ae5953e18e603682521cfb874ddddafb500dd1ab2986e1bd17"
+    },
+    "filing": {
+      "status": "bound",
+      "filing_key": {
+        "cik": "0000320193",
+        "accession": "0000320193-26-000018"
+      }
+    },
+    "transcript": {
+      "status": "present",
+      "document_id": "tx:AAPL/2026Q3"
+    },
+    "slides": {
+      "status": "absent",
+      "typed_absence": {
+        "schema": "typed_absence.v1",
+        "authority": "context_only",
+        "reason": "no_source_document",
+        "subject": "slides",
+        "detail": "no presentation body is held for this event",
+        "event_id": "evt_cik0000320193_2026q3_results",
+        "document_id": null,
+        "missing_fields": []
+      }
+    },
+    "consensus": {
+      "status": "unlicensed",
+      "typed_absence": {
+        "schema": "typed_absence.v1",
+        "authority": "context_only",
+        "reason": "missing_source",
+        "subject": "consensus",
+        "detail": "consensus is unlicensed for this estate; no beat/miss is emitted",
+        "event_id": "evt_cik0000320193_2026q3_results",
+        "document_id": null,
+        "missing_fields": []
+      }
+    },
+    "reaction": {
+      "status": "not_joined"
+    }
+  },
+  "verification": {
+    "source_head": "4ab3334a1a5a7b8adc8540ea0221b9b0e4d7c23e",
+    "method": "Live current owner generation through compiled repository adapter; no fixtures or mocked fetch",
+    "authenticated_product_acceptance": false,
+    "scope": "Personal public-primary context display only; no export, sharing or AI grant"
+  }
+}

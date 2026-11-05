@@ -22,10 +22,13 @@
  *   oi/vol — magnitudes → one neutral ramp (--brand-2). A magnitude must never look
  *            directional.
  *
- * NORMALISATION: colour saturates at the 5-95th percentile of the VISIBLE window,
- * through a sqrt intensity curve, so one monster strike cannot wash out the field.
- * `normalization: "column"` runs that scale per expiry column instead of once over
- * the whole grid (the PRISM control, kept).
+ * NORMALISATION: colour saturates at the 5-95th percentile through a sqrt intensity
+ * curve, so one monster strike cannot wash out the field. The default scale is the
+ * DISPLAYED rows (what this grid returns). `scaleOver: "selected-scope"` measures
+ * that same percentile over the full selected window before the row cap, so
+ * recentring the display cannot change colour. `normalization: "column"` runs the
+ * chosen scale per expiry column instead of once over the whole grid (the PRISM
+ * control, kept).
  *
  * EXPIRY SCOPE is anchored to the PAYLOAD'S OWN SESSION (`_build_meta.asof_date`),
  * never the wall clock — an EOD snapshot's "0DTE" is a property of the snapshot's
@@ -37,7 +40,7 @@
  */
 
 import React, { useEffect, useRef, useState } from "react";
-import { formatExposureMn } from "@/lib/optionsCompanion";
+import { formatExposureMn, isoSession } from "@/lib/optionsCompanion";
 import railStyles from "./StrikeExpiryMatrixRail.module.css";
 
 // ─── Payload types ────────────────────────────────────────────────────────────
@@ -163,32 +166,146 @@ export function matrixCellValue(c: MatrixHeatCell, m: MatrixDisplayMetric): numb
   }
 }
 
-export interface MatrixExactScopeStats { total: number | null; missing: boolean; known: number; expected: number }
-
-/** Exact-contract totals for a selected matrix scope, independent of rendering row caps/scroll. */
-export function matrixExactScopeStats(matrix: StrikeExpiryDoc, metric: MatrixDisplayMetric, windowPct: number, maxCols: number): MatrixExactScopeStats {
+/** Domain of displayed positions, NOT a certified options universe or provider coverage. */
+export interface MatrixAxisDomain {
+  strikes: number[];
+  expiries: string[];
+  sessionDate: string;
+  basis: "declared-grid" | "derived-grid" | "invalid";
+}
+export function matrixAxisDomain(matrix: StrikeExpiryDoc): MatrixAxisDomain {
   const cells = Array.isArray(matrix.cells) ? matrix.cells : [];
-  const sessionDate =
-    (typeof matrix._build_meta?.asof_date === "string" && matrix._build_meta.asof_date) ||
-    (typeof matrix.asof === "string" ? matrix.asof.slice(0, 10) : "");
-  const exps = [...new Set(cells.map((cell) => cell.expiry).filter(Boolean))].sort()
-    .filter((expiry) => !sessionDate || expiry.slice(0, 10) >= sessionDate).slice(0, maxCols);
-  const expSet = new Set(exps);
+  const sessionDate = isoSession(matrix._build_meta?.asof_date)
+    ?? isoSession(typeof matrix.asof === "string" ? matrix.asof.slice(0, 10) : null) ?? "";
+  const invalid = (): MatrixAxisDomain => ({ strikes: [], expiries: [], sessionDate, basis: "invalid" });
+  const declaredStrikes = matrix.strikes !== undefined;
+  const declaredExpiries = matrix.expiries !== undefined;
+  if ((declaredStrikes && !Array.isArray(matrix.strikes)) || (declaredExpiries && !Array.isArray(matrix.expiries))) return invalid();
+  const strikes = declaredStrikes ? matrix.strikes! : [...new Set(cells.map(c => c?.strike))];
+  const expiries = declaredExpiries ? matrix.expiries! : [...new Set(cells.map(c => c?.expiry))];
+  if (strikes.length > 100_000 || expiries.length > 100_000
+    || !strikes.every(k => Number.isFinite(k) && k > 0)
+    || !expiries.every(e => isoSession(e) !== null)) return invalid();
+  const strikeSet = new Set(strikes), expirySet = new Set(expiries);
+  if (strikeSet.size !== strikes.length || expirySet.size !== expiries.length) return invalid();
+  const identities = new Set<string>();
+  for (const cell of cells) {
+    if (!cell || !strikeSet.has(cell.strike) || !expirySet.has(cell.expiry)) return invalid();
+    const key = cell.strike + "|" + cell.expiry;
+    if (identities.has(key)) return invalid();
+    identities.add(key);
+  }
+  return { strikes: [...strikes], expiries: [...expiries].sort(), sessionDate,
+    basis: declaredStrikes && declaredExpiries ? "declared-grid" : "derived-grid" };
+}
+export interface MatrixExactScopeStats {
+  /** Complete selected-grid sum only; never a claim of complete source collection. */
+  total: number | null;
+  knownTotal: number | null;
+  missing: boolean;
+  known: number;
+  expected: number;
+  domainBasis: MatrixAxisDomain["basis"];
+}
+/** Exact selected-grid arithmetic independent of rendering row caps/scroll. */
+export function matrixExactScopeStats(matrix: StrikeExpiryDoc, metric: MatrixDisplayMetric, windowPct: number, maxCols: number): MatrixExactScopeStats {
+  const domain = matrixAxisDomain(matrix);
+  const empty: MatrixExactScopeStats = { total: null, knownTotal: null, missing: true, known: 0, expected: 0, domainBasis: domain.basis };
+  if (domain.basis === "invalid" || !Number.isFinite(windowPct) || windowPct < 0 || !Number.isInteger(maxCols) || maxCols <= 0) return empty;
+  const exps = domain.expiries.filter(e => !domain.sessionDate || e >= domain.sessionDate).slice(0, maxCols);
   const spot = num(matrix.spot);
-  const strikes = [...new Set(cells.map((cell) => cell.strike).filter(Number.isFinite))]
-    .filter((strike) => spot == null || spot <= 0 || Math.abs(strike - spot) / spot <= windowPct / 100);
-  const strikeSet = new Set(strikes);
-  const byKey = new Map(cells.filter((cell) => expSet.has(cell.expiry) && strikeSet.has(cell.strike))
-    .map((cell) => [`${cell.strike}|${cell.expiry}`, cell] as const));
-  let total = 0, known = 0;
+  const strikes = domain.strikes.filter(k => spot == null || spot <= 0 || Math.abs(k - spot) / spot <= windowPct / 100);
   const expected = strikes.length * exps.length;
+  if (expected > 1_000_000) return empty;
+  const byKey = new Map((matrix.cells ?? []).map(c => [c.strike + "|" + c.expiry, c] as const));
+  let total = 0, known = 0;
   for (const strike of strikes) for (const expiry of exps) {
-    const cell = byKey.get(`${strike}|${expiry}`);
+    const cell = byKey.get(strike + "|" + expiry);
     const value = cell ? matrixCellValue(cell, metric) : null;
     if (value == null) continue;
     total += value; known++;
   }
-  return { total: known ? total : null, missing: known < expected, known, expected };
+  const knownTotal = known > 0 && Number.isFinite(total) ? total : null;
+  const missing = known < expected || (known > 0 && knownTotal === null);
+  return { total: knownTotal !== null && !missing ? knownTotal : null, knownTotal, missing, known, expected, domainBasis: domain.basis };
+}
+
+export interface MatrixScopeNode { strike: number; expiry: string; value: number; distancePct: number | null }
+export interface MatrixScopeStructure {
+  dominant: MatrixScopeNode | null;
+  opposing: MatrixScopeNode | null;
+  leadingExpiry: { expiry: string; sharePct: number; absNet: number } | null;
+  absNetTotal: number;
+  known: number;
+}
+
+/** First-glance structure over qualified net cells. Magnitude/order only; no price-level semantics. */
+export function matrixScopeStructure(grid: MatrixGridModel, metric: MatrixDisplayMetric): MatrixScopeStructure {
+  const nodes: MatrixScopeNode[] = [];
+  for (const cell of grid.byKey.values()) {
+    const value = matrixCellValue(cell, metric);
+    if (value == null) continue;
+    const distancePct = grid.spotRef != null && grid.spotRef > 0 ? (cell.strike - grid.spotRef) / grid.spotRef * 100 : null;
+    nodes.push({ strike: cell.strike, expiry: cell.expiry, value, distancePct });
+  }
+  nodes.sort((a, b) => Math.abs(b.value) - Math.abs(a.value) || a.expiry.localeCompare(b.expiry) || a.strike - b.strike);
+  const dominant = nodes[0] ?? null;
+  const opposing = dominant && dominant.value !== 0
+    ? nodes.find((node) => node.value !== 0 && Math.sign(node.value) !== Math.sign(dominant.value)) ?? null : null;
+  const absNetTotal = nodes.reduce((sum, node) => sum + Math.abs(node.value), 0);
+  const expiryAbs = new Map<string, number>();
+  for (const node of nodes) expiryAbs.set(node.expiry, (expiryAbs.get(node.expiry) ?? 0) + Math.abs(node.value));
+  const expiryRows = [...expiryAbs.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+  const leadingExpiry = expiryRows.length && absNetTotal > 0
+    ? { expiry: expiryRows[0][0], absNet: expiryRows[0][1], sharePct: expiryRows[0][1] / absNetTotal * 100 } : null;
+  return { dominant, opposing, leadingExpiry, absNetTotal, known: nodes.length };
+}
+
+export interface MatrixSelectedNodeContext {
+  strikeTotal: number | null;
+  knownStrikeTotal: number | null;
+  strikeKnown: number;
+  strikeExpected: number;
+  ex0dteTotal: number | null;
+  knownEx0dteTotal: number | null;
+  ex0dteKnown: number;
+  ex0dteExpected: number;
+  rank: number | null;
+  scopeKnown: number;
+  strikeSharePct: number | null;
+  expiryRows: Array<{ expiry: string; value: number | null }>;
+  maxStrikeAbs: number;
+}
+
+/** Deterministic selected-node context over the exact analytical scope; never a price forecast. */
+export function matrixSelectedNodeContext(
+  grid: MatrixGridModel, metric: MatrixDisplayMetric, selected: MatrixCellSelection,
+): MatrixSelectedNodeContext {
+  const expiryRows = grid.exps.map((expiry) => {
+    const cell = grid.byKey.get(`${selected.strike}|${expiry}`);
+    return { expiry, value: cell ? matrixCellValue(cell, metric) : null };
+  });
+  const knownAtStrike = expiryRows.filter((row): row is { expiry: string; value: number } => row.value != null);
+  const finiteSum = (rows: Array<{ value: number }>): number | null => {
+    if (!rows.length) return null;
+    const value = rows.reduce((sum, row) => sum + row.value, 0);
+    return Number.isFinite(value) ? value : null;
+  };
+  const knownStrikeTotal = finiteSum(knownAtStrike);
+  const strikeTotal = knownAtStrike.length === expiryRows.length ? knownStrikeTotal : null;
+  const ex0dteRows = grid.sessionDate ? expiryRows.filter(row => row.expiry !== grid.sessionDate) : [];
+  const ex0dte = ex0dteRows.filter((row): row is { expiry: string; value: number } => row.value != null);
+  const knownEx0dteTotal = finiteSum(ex0dte);
+  const ex0dteTotal = ex0dte.length === ex0dteRows.length ? knownEx0dteTotal : null;
+  const selectedValue = expiryRows.find((row) => row.expiry === selected.expiry)?.value ?? null;
+  const strikeAbs = knownAtStrike.reduce((sum, row) => sum + Math.abs(row.value), 0);
+  const strikeSharePct = selectedValue != null && strikeAbs > 0 ? Math.abs(selectedValue) / strikeAbs * 100 : null;
+  const scopeValues = [...grid.byKey.values()].map((cell) => matrixCellValue(cell, metric)).filter((value): value is number => value != null);
+  const rank = selectedValue == null ? null : 1 + scopeValues.filter((value) => Math.abs(value) > Math.abs(selectedValue)).length;
+  return { strikeTotal, knownStrikeTotal, strikeKnown: knownAtStrike.length, strikeExpected: expiryRows.length,
+    ex0dteTotal, knownEx0dteTotal, ex0dteKnown: ex0dte.length, ex0dteExpected: ex0dteRows.length,
+    rank, scopeKnown: scopeValues.length, strikeSharePct, expiryRows,
+    maxStrikeAbs: knownAtStrike.reduce((max, row) => Math.max(max, Math.abs(row.value)), 0) };
 }
 
 export function fmtMatrixCell(v: number, m: MatrixDisplayMetric): string {
@@ -235,6 +352,17 @@ export interface BuildMatrixGridOpts {
   withSigma?: boolean;
   /** Companion cells can be pinned on a chart: never invent a rounded strike. */
   exactStrikes?: boolean;
+  /** Presentation-only recentering inside the already-selected analytical domain. */
+  displayCenterStrike?: number | null;
+  /**
+   * Which strikes the colour scale, the per-expiry scales and the sigma scale use.
+   * "displayed" (default) keeps today's output: only the rows this grid returns, so
+   * the Positioning card and the Exposure desk stay the same.
+   * "selected-scope" measures every strike in the selected window and every selected
+   * expiry before the maxRows cap, and ignores displayCenterStrike. Returned strikes,
+   * byKey and sigma still describe only the displayed rows.
+   */
+  scaleOver?: "displayed" | "selected-scope";
 }
 
 export interface MatrixScale {
@@ -285,6 +413,8 @@ export function buildMatrixGrid(opts: BuildMatrixGridOpts): MatrixGridModel | nu
     scope = "default",
     withSigma = false,
     exactStrikes = false,
+    displayCenterStrike = null,
+    scaleOver = "displayed",
   } = opts;
 
   const signed = isSignedMetric(metric);
@@ -292,17 +422,16 @@ export function buildMatrixGrid(opts: BuildMatrixGridOpts): MatrixGridModel | nu
   if (!Array.isArray(cells) || cells.length === 0) return null;
 
   const spotRef = num(matrix?.spot) ?? num(spot);
-  const allStrikes = [...new Set(cells.map((c) => c.strike).filter((k) => Number.isFinite(k)))];
+  const domain = matrixAxisDomain(matrix!);
+  if (domain.basis === "invalid") return null;
+  const allStrikes = domain.strikes;
   if (allStrikes.length === 0) return null;
 
   // Session date: prod's top-level asof is the BUILD timestamp (Fri 23:00Z over a
   // Thursday chain) and prod grids carry ALREADY-EXPIRED expiries — dead columns
   // unless filtered against the session the cells actually describe.
-  const sessionDate =
-    (typeof matrix?._build_meta?.asof_date === "string" && matrix._build_meta.asof_date) ||
-    (typeof matrix?.asof === "string" ? matrix.asof.slice(0, 10) : "");
-  let allExps = [...new Set(cells.map((c) => c.expiry).filter(Boolean))]
-    .sort()
+  const sessionDate = domain.sessionDate;
+  let allExps = domain.expiries
     .filter((e) => !sessionDate || e.slice(0, 10) >= sessionDate);
   // 0DTE is measured against the SNAPSHOT's session, never today: an EOD grid replayed
   // on a later day has no wall-clock 0DTE, but it does have one for its own session.
@@ -336,9 +465,12 @@ export function buildMatrixGrid(opts: BuildMatrixGridOpts): MatrixGridModel | nu
     ? [...new Set(allStrikes.filter((k) => Math.abs(k - spotRef) / spotRef <= windowPct / 100).map(toBucket))]
     : [...new Set(allStrikes.map(toBucket))];
   if (!exactStrikes && strikes.length < 5) strikes = [...new Set(allStrikes.map(toBucket))];
+  // Selected window before the row cap. The cap below may sort this array in place.
+  const scopeStrikes = strikes.slice();
   if (strikes.length > maxRows) {
-    strikes = spotRef
-      ? strikes.sort((a, b) => Math.abs(a - spotRef) - Math.abs(b - spotRef)).slice(0, maxRows)
+    const center = displayCenterStrike != null && strikes.includes(displayCenterStrike) ? displayCenterStrike : spotRef;
+    strikes = center
+      ? strikes.sort((a, b) => Math.abs(a - center) - Math.abs(b - center)).slice(0, maxRows)
       : strikes.slice(0, maxRows);
   }
   strikes.sort((a, b) => b - a); // ladder order: high strikes on top
@@ -366,9 +498,36 @@ export function buildMatrixGrid(opts: BuildMatrixGridOpts): MatrixGridModel | nu
     }
   }
 
-  // Normalisation over the VISIBLE field only (the window is what the eye compares).
+  // Colour scale. "displayed" measures the rows this grid returns. "selected-scope"
+  // measures every strike in the selected window × every selected expiry, before the
+  // maxRows cap and independent of displayCenterStrike. byKey itself stays displayed.
+  let scaleByKey: Map<string, MatrixHeatCell> = byKey;
+  let scaleStrikes = strikes;
+  if (scaleOver === "selected-scope") {
+    scaleStrikes = scopeStrikes;
+    scaleByKey = new Map();
+    const scopeSet = new Set(scopeStrikes);
+    for (const c of cells) {
+      if (!Number.isFinite(c.strike) || !expSet.has(c.expiry)) continue;
+      const kb = toBucket(c.strike);
+      if (!scopeSet.has(kb)) continue;
+      const key = `${kb}|${c.expiry}`;
+      let acc = scaleByKey.get(key);
+      if (!acc) {
+        acc = { strike: kb, expiry: c.expiry };
+        scaleByKey.set(key, acc);
+      }
+      for (const f of FIELDS) {
+        const v = f === "delta_oi" ? numDoi(c.delta_oi) : num(c[f]);
+        if (v != null) {
+          acc[f] = ((f === "delta_oi" ? numDoi(acc.delta_oi) : num(acc[f])) ?? 0) + v;
+        }
+      }
+    }
+  }
+
   const mags: number[] = [];
-  for (const c of byKey.values()) {
+  for (const c of scaleByKey.values()) {
     const v = matrixCellValue(c, metric);
     if (v != null && v !== 0) mags.push(Math.abs(v));
   }
@@ -379,8 +538,8 @@ export function buildMatrixGrid(opts: BuildMatrixGridOpts): MatrixGridModel | nu
     perCol = new Map();
     for (const e of exps) {
       const colMags: number[] = [];
-      for (const k of strikes) {
-        const c = byKey.get(`${k}|${e}`);
+      for (const k of scaleStrikes) {
+        const c = scaleByKey.get(`${k}|${e}`);
         const v = c ? matrixCellValue(c, metric) : null;
         if (v != null && v !== 0) colMags.push(Math.abs(v));
       }
@@ -394,19 +553,36 @@ export function buildMatrixGrid(opts: BuildMatrixGridOpts): MatrixGridModel | nu
     const sigMags: number[] = [];
     for (const k of strikes) {
       let total = 0;
-      let hasAny = false;
+      let known = 0;
       for (const e of exps) {
         const c = byKey.get(`${k}|${e}`);
         const v = c ? matrixCellValue(c, metric) : null;
         if (v != null) {
           total += v;
-          hasAny = true;
+          known++;
         }
       }
       // null (never 0) when no expiry published this strike — an absent row must not
       // render as a confident "flat", the same reason heatSeekerConfPct returns null.
-      sigma.set(k, hasAny ? total : null);
-      if (hasAny && total !== 0) sigMags.push(Math.abs(total));
+      const complete = known === exps.length && known > 0 && Number.isFinite(total);
+      sigma.set(k, complete ? total : null);
+      if (scaleOver !== "selected-scope" && complete && total !== 0) sigMags.push(Math.abs(total));
+    }
+    if (scaleOver === "selected-scope") {
+      for (const k of scopeStrikes) {
+        let total = 0;
+        let known = 0;
+        for (const e of exps) {
+          const c = scaleByKey.get(`${k}|${e}`);
+          const v = c ? matrixCellValue(c, metric) : null;
+          if (v != null) {
+            total += v;
+            known++;
+          }
+        }
+        const complete = known === exps.length && known > 0 && Number.isFinite(total);
+        if (complete && total !== 0) sigMags.push(Math.abs(total));
+      }
     }
     sigmaScale = scaleOf(sigMags, signed);
   }
@@ -992,6 +1168,26 @@ export interface MatrixRailInteraction {
   missingLabel: string;
   spotLabel: string;
   units: string;
+  /** Explicit one-shot keyboard reveal; ordinary selection does not seize focus. */
+  reveal?: { id: number; cell: MatrixCellSelection } | null;
+}
+
+/** Center a row without wasting a complete row behind the sticky column header. */
+function centerRailRow(scroll: HTMLDivElement, row: HTMLTableRowElement) {
+  const viewportTop = scroll.getBoundingClientRect().top + scroll.clientTop;
+  const contentTop = (element: Element) => element.getBoundingClientRect().top - viewportTop + scroll.scrollTop;
+  const headerHeight = Math.max(0, ...Array.from(scroll.querySelectorAll("thead th"),
+    (cell) => cell.getBoundingClientRect().height));
+  const bodyHeight = scroll.clientHeight - headerHeight;
+  const maxScroll = Math.max(0, scroll.scrollHeight - scroll.clientHeight);
+  const clamp = (value: number) => Math.max(0, Math.min(maxScroll, value));
+  const desired = clamp(contentTop(row) - headerHeight - (bodyHeight - row.getBoundingClientRect().height) / 2);
+  // Align to an actual row boundary, including the taller reference row. Arbitrary
+  // pixel centering clips both ends of the otherwise six-row tablet viewport.
+  const boundaries = [0, maxScroll, ...Array.from(scroll.querySelectorAll("tbody tr"),
+    (candidate) => clamp(contentTop(candidate) - headerHeight))];
+  scroll.scrollTop = boundaries.reduce((best, candidate) =>
+    Math.abs(candidate - desired) < Math.abs(best - desired) ? candidate : best, 0);
 }
 
 /** The compact presentation of the SAME model and color/value laws, not another heatmap engine. */
@@ -999,6 +1195,7 @@ function RailMatrix({ grid, metric, interaction }: {
   grid: MatrixGridModel; metric: MatrixDisplayMetric; interaction: MatrixRailInteraction;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const lastReveal = useRef<number | null>(null);
   const [focused, setFocused] = useState<string | null>(null);
   const spot = grid.spotRef;
   const nearest = grid.strikes.reduce<number | null>((best, strike) =>
@@ -1010,8 +1207,25 @@ function RailMatrix({ grid, metric, interaction }: {
   useEffect(() => {
     const scroll = scrollRef.current;
     const row = scroll?.querySelector<HTMLTableRowElement>('[data-reference-row="true"]');
-    if (scroll && row) scroll.scrollTop = Math.max(0, row.offsetTop - scroll.clientHeight / 2);
+    if (scroll && row) centerRailRow(scroll, row);
   }, [identity]);
+
+  useEffect(() => {
+    const request = interaction.reveal;
+    if (!request || request.id === lastReveal.current) return;
+    const row = grid.strikes.indexOf(request.cell.strike), col = grid.exps.indexOf(request.cell.expiry);
+    if (row < 0 || col < 0) return;
+    const button = scrollRef.current?.querySelector<HTMLButtonElement>('[data-row="' + row + '"][data-col="' + col + '"]');
+    if (!button) return;
+    lastReveal.current = request.id;
+    button.focus({ preventScroll: true });
+    const tr = button.closest("tr");
+    const scroll = scrollRef.current;
+    // The rail can itself sit below the fold in a mobile sheet. Reveal through
+    // every scroll ancestor, not only the matrix viewport. No analysis state changes.
+    button.scrollIntoView?.({ block: "center", inline: "nearest", behavior: "instant" });
+    if (tr && scroll) centerRailRow(scroll, tr);
+  }, [identity, interaction.reveal, grid.strikes, grid.exps]);
 
   function navigate(event: React.KeyboardEvent<HTMLButtonElement>, row: number, col: number) {
     if (event.key === "Escape") {
@@ -1033,7 +1247,8 @@ function RailMatrix({ grid, metric, interaction }: {
     scrollRef.current?.querySelector<HTMLButtonElement>(`[data-row="${r}"][data-col="${c}"]`)?.focus();
   }
 
-  return <div className={railStyles.scroll} ref={scrollRef} data-options-grid>
+  return <div className={railStyles.scroll} ref={scrollRef} data-options-grid
+    data-scale-hi={String(grid.scaleHi)} data-scale-lo={String(grid.scaleLo)}>
     <table className={railStyles.table} aria-label={interaction.name}>
       <thead><tr><th scope="col">{interaction.strikeLabel}</th>{grid.exps.map((exp) =>
         <th scope="col" key={exp}><time dateTime={exp}>{exp.slice(5)}</time><small>{dteLabel(exp, grid.sessionDate)}</small></th>)}</tr></thead>

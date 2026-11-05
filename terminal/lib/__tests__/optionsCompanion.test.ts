@@ -3,7 +3,7 @@ import { optionsRoot, isoSession, readCompanionMatrix, readVannaProfile, matrixF
 import { optionsReadAccess } from "../optionsAccess";
 import { gateEntitlement, type EntitlementSnapshot } from "../entitlementStore";
 import { syncOptionsPricePin, removeOptionsPricePin } from "../optionsChartPin";
-import { buildMatrixGrid, matrixExactScopeStats, matrixCellValue, matrixCellTone, fmtMatrixCell } from "@/components/shared/StrikeExpiryMatrix";
+import { buildMatrixGrid, matrixExactScopeStats, matrixScopeStructure, matrixSelectedNodeContext, matrixCellValue, matrixCellTone, fmtMatrixCell } from "@/components/shared/StrikeExpiryMatrix";
 
 const now = Date.parse("2026-09-23T15:00:00Z");
 const cell = (strike = 192, expiry = "2026-09-25") => ({ strike, expiry, gex: 2_500_000, call_oi: 3, put_oi: 5 });
@@ -74,9 +74,34 @@ describe("companion source boundaries", () => {
     const receipt = readCompanionMatrix({ ...matrix(), spot: 200, cells }, "NVDA", now);
     if (!receipt.ok) throw Error(`fixture: ${receipt.reason}`);
     const stats = matrixExactScopeStats(receipt.value.doc, "gex", 25, 3);
-    expect(stats).toEqual({ total: 161, missing: false, known: 161, expected: 161 });
+    expect(stats).toEqual({ total: 161, knownTotal: 161, missing: false, known: 161, expected: 161, domainBasis: "derived-grid" });
     const grid = buildMatrixGrid({ matrix: receipt.value.doc, metric: "gex", exactStrikes: true, windowPct: 25, maxRows: 101, maxCols: 3 })!;
     expect(grid.strikes).toHaveLength(101);
+  });
+  it("derives selected-node strike totals, ex-0DTE context, rank and net-share without price semantics", () => {
+    const doc = { ...matrix(), spot: 193, _build_meta: { asof_date: "2026-09-25" }, cells: [
+      { ...cell(192, "2026-09-25"), gex: 2_500_000 }, { ...cell(192, "2026-10-02"), gex: -500_000 },
+      { ...cell(194, "2026-09-25"), gex: 5_000_000 }, { ...cell(194, "2026-10-02"), gex: 1_000_000 },
+    ] };
+    const grid = buildMatrixGrid({ matrix: doc, metric: "gex", exactStrikes: true, windowPct: 25, maxRows: 10_000, maxCols: 3 })!;
+    const context = matrixSelectedNodeContext(grid, "gex", { strike: 192, expiry: "2026-09-25" });
+    expect(context.strikeTotal).toBe(2); expect(context.ex0dteTotal).toBe(-.5);
+    expect(context.rank).toBe(2); expect(context.scopeKnown).toBe(4);
+    expect(context.strikeSharePct).toBeCloseTo(83.333333, 5); expect(context.maxStrikeAbs).toBe(2.5);
+    expect(context.expiryRows).toEqual([{ expiry: "2026-09-25", value: 2.5 }, { expiry: "2026-10-02", value: -.5 }]);
+  });
+  it("summarizes the dominant, opposite-sign node and leading expiry by absolute cell magnitude", () => {
+    const doc = { ...matrix(), spot: 193, _build_meta: { asof_date: "2026-09-25" }, cells: [
+      { ...cell(192, "2026-09-25"), gex: 2_500_000 }, { ...cell(192, "2026-10-02"), gex: -500_000 },
+      { ...cell(194, "2026-09-25"), gex: 5_000_000 }, { ...cell(194, "2026-10-02"), gex: 1_000_000 },
+    ] };
+    const grid = buildMatrixGrid({ matrix: doc, metric: "gex", exactStrikes: true, windowPct: 25, maxRows: 10_000, maxCols: 3 })!;
+    const brief = matrixScopeStructure(grid, "gex");
+    expect(brief.dominant).toMatchObject({ strike: 194, expiry: "2026-09-25", value: 5 });
+    expect(brief.dominant?.distancePct).toBeCloseTo(100 / 193, 8);
+    expect(brief.opposing).toMatchObject({ strike: 192, expiry: "2026-10-02", value: -.5 });
+    expect(brief.leadingExpiry).toMatchObject({ expiry: "2026-09-25", absNet: 7.5 });
+    expect(brief.leadingExpiry?.sharePct).toBeCloseTo(83.333333, 5); expect(brief.absNetTotal).toBe(9); expect(brief.known).toBe(4);
   });
   it("validates canonical Vanna profiles, preserving nulls and the all-expiry basis", () => {
     const r = readVannaProfile({ NVDA: profile() }, "NVDA", now); expect(r.ok).toBe(true);
@@ -120,6 +145,7 @@ describe("ephemeral chart price pin", () => {
     const host = { createPriceLine: vi.fn(() => ({ id: "line" })), removePriceLine: vi.fn() };
     const pin = syncOptionsPricePin(null, host as never, level, "NVDA", true, "#aaa");
     expect(pin).not.toBeNull(); expect(host.createPriceLine).toHaveBeenCalledTimes(1);
+    expect(host.createPriceLine).toHaveBeenCalledWith(expect.objectContaining({ price: 195, lineStyle: 2, lineWidth: 1, axisLabelVisible: true, title: "Strike 195 · EOD" }));
     expect(syncOptionsPricePin(pin, host as never, level, "NVDA", true, "#aaa")).toBe(pin);
     expect(syncOptionsPricePin(pin, host as never, level, "SPY", true, "#aaa")).toBeNull();
     expect(host.removePriceLine).toHaveBeenCalledTimes(1);

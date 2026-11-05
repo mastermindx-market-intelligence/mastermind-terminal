@@ -1,4 +1,6 @@
 import { isoSession } from "./dte";
+import { readOptionsMatrixSourceSession } from "./investigationOptionsReference";
+
 /**
  * gexLadder.ts — pure transforms behind the GEX desk's strike ladder (OEU T-A).
  *
@@ -22,17 +24,20 @@ import { isoSession } from "./dte";
  *        lens reports itself unavailable rather than filtering a greek it cannot filter.
  *      - A strike the matrix does not cover returns `null`, NOT 0 and NOT the aggregate.
  *        `null` renders as an em dash. A strike the matrix DOES cover but which carries
- *        no cell for the selected expiry remains unresolved, not inferred zero.
+ *        no cell for the selected expiry is UNRESOLVED, not an inferred zero; one
+ *        unresolved cell makes the strike row and the selected total unknown. A measured
+ *        zero cell stays a zero.
  *      - An expiry is only offered when the matrix actually holds cells for it at strikes
  *        the ladder shows. Two stores built by two nightly jobs drift (the live matrix ran
  *        two weeks behind the gex payload while this was written) — when they disagree the
  *        control goes dark with a reason instead of quietly lying.
- *      - "0DTE" is always relative to the MATRIX's own session (`matrix.asof`), never the
- *        gex payload's — the matrix's cells were computed as of its own snapshot, so a
- *        drifted matrix must not borrow "today" from the newer payload and relabel a
- *        14-DTE leg "0DTE". `matrixSessionsAgree` gates this: when the two stores disagree
- *        by more than a routine cadence gap, every narrow lens (zero / ex-zero / one) goes
- *        dark rather than summing — or mislabeling — across two different sessions. A cell
+ *      - "0DTE" is always relative to the MATRIX's own source session
+ *        (`_build_meta.asof_date`), never its build clock (`matrix.asof`, which crosses UTC
+ *        midnight on late builds) and never the gex payload's — a drifted matrix must not
+ *        borrow "today" from the newer payload and relabel a 14-DTE leg "0DTE".
+ *        `matrixDescribedSessionsMatch` gates this: unless both stores describe the same
+ *        session, every narrow lens (zero / ex-zero / one) goes dark rather than summing —
+ *        or mislabeling — across two different sessions. A cell
  *        for an expiry strictly before the matrix's own anchor day is dropped outright: it
  *        was already expired from the matrix's own vantage point and can be neither "0DTE"
  *        nor "what survives tonight".
@@ -53,9 +58,14 @@ export interface GexMatrixCell {
   gex: number | null;
 }
 
+/** A cell whose `gex` is a finite measured value (a measured 0 included). */
+export type KnownGexMatrixCell = GexMatrixCell & { gex: number };
+
 /** The slice of `options_structure.matrix/v1` the ladder needs. */
 export interface GexMatrix {
-  asof?: string; // build clock, not the source session
+  /** The build clock — NOT the source session. */
+  asof?: string;
+  /** `asof_date` is the source session the cells describe. */
   _build_meta?: { asof_date?: string | null } | null;
   spot?: number | null;
   expiries?: string[];
@@ -98,7 +108,7 @@ export function lensNeedsMatrix(lens: ExpiryLens): boolean {
 
 /**
  * The strikes the matrix actually covers, as a Set. A ladder strike inside this set with
- * no cell for the selected expiry remains unresolved; a ladder strike OUTSIDE it is
+ * no cell for the selected expiry is unresolved; a ladder strike OUTSIDE it is
  * unknown — the matrix windowed it away — and must render as a dash.
  *
  * Falls back to the strikes present in `cells` when the payload omits the `strikes` axis.
@@ -143,10 +153,79 @@ export function matrixExpiryCoverage(
 // ─── Per-strike values under a lens ─────────────────────────────────────────────────
 
 /**
+ * One strike's row inside the selected grid. These counts describe the display grid
+ * (matrix strikes × selected expiries), never provider or contract completeness.
+ */
+export interface LensStrikeDetail {
+  /** Σ of the known cells for this strike, $mn; null when none of its cells is known. */
+  knownMn: number | null;
+  knownCells: number;
+  unresolvedCells: number;
+}
+
+/** Why a narrow lens produced no grid at all (null when it did). */
+export type LensUnavailableReason =
+  | "source_session_unavailable"
+  | "different_source_session"
+  | "population_unavailable"
+  | "invalid_axis"
+  | "invalid_cell_identity"
+  | "duplicate_cell_identity"
+  | "unsupported_scope"
+  | "numeric_overflow";
+
+/**
+ * The population a narrow lens is REQUIRED to cover in the coupled desk view: what the desk
+ * displays and what the lens label names. The matrix is windowed differently from both
+ * (producer: strikes ±20% of spot with no cap, expiries ≤90 DTE; the ladder is the 160
+ * strikes nearest spot and `by_expiry` is the whole chain), so its own grid is never the
+ * population: a required pair the matrix does not carry is unresolved, not out of scope,
+ * and a matrix strike the ladder does not show never enters the sum.
+ */
+export interface LensPopulation {
+  /** The ladder's strikes (gex `by_strike[].strike`), i.e. the rows the desk renders. */
+  strikes: Iterable<number>;
+  /** The chain's expirations (gex `by_expiry[].exp`); null when the payload did not supply them. */
+  expiries: Iterable<string | null | undefined> | null;
+}
+
+export interface LensStrikeValues {
+  /** strike → net gamma exposure in $mn, set ONLY for strikes whose every selected cell is known. */
+  byStrike: Map<number, number>;
+  /**
+   * Strikes of the judged population that the matrix strike axis carries. The judged
+   * population (the keys of `byStrikeDetail`) is the same for every narrow lens.
+   */
+  covered: Set<number>;
+  /** Σ over the whole selected grid, $mn — null unless every selected cell is known. */
+  totalMn: number | null;
+  /** Σ of the known cells only, $mn — a disclosed subtotal, never a stand-in for the total. */
+  knownTotalMn: number | null;
+  /** Known cells that fed the subtotal. */
+  cellCount: number;
+  /** The matrix's own source session (`_build_meta.asof_date`), never its build clock. */
+  sourceSession: string | null;
+  /** The expiries the lens selected, ascending. */
+  requestedExpiries: string[];
+  /** One entry per covered strike, including strikes with no known cell. */
+  byStrikeDetail: Map<number, LensStrikeDetail>;
+  /** Selected (strike, expiry) pairs that are absent, null or non-finite. */
+  unresolvedPairCount: number;
+  /** Judged strikes the matrix strike axis does not carry (all of their pairs are unresolved). */
+  missingStrikeCount: number;
+  /** Selected expiries the matrix expiry axis does not carry (all of their pairs are unresolved). */
+  missingExpiryCount: number;
+  /** Selected-grid arithmetic only; never a claim about source quality or the full book. */
+  complete: boolean;
+  reason: LensUnavailableReason | null;
+}
+
+/**
  * Calendar-day gap tolerated between the matrix's own session and the gex payload's
- * session before the narrow lenses are treated as untrustworthy. 4 covers a routine
- * long weekend plus a single Monday holiday (Fri close → Tue open); anything wider is
- * the documented drift failure mode ("two weeks behind"), not ordinary cadence.
+ * session by `matrixSessionsAgree`. 4 covers a routine long weekend plus a single Monday
+ * holiday (Fri close → Tue open); anything wider is the documented drift failure mode
+ * ("two weeks behind"), not ordinary cadence. The coupled desk view now requires the
+ * stricter `matrixDescribedSessionsMatch`; this tolerance is kept for existing callers.
  */
 export const MAX_SESSION_GAP_DAYS = 4;
 
@@ -169,104 +248,258 @@ export function matrixSessionsAgree(
   return Math.abs(gMs - mMs) / 86_400_000 <= MAX_SESSION_GAP_DAYS;
 }
 
+/** A real calendar date in strict `YYYY-MM-DD` form. */
+export function isRealSessionDate(value: unknown): value is string {
+  return isoSession(value) !== null;
+}
 
-/** These counts describe an explicit display grid, never provider/contract completeness. */
-export interface LensStrikeDetail {
-  knownMn: number | null;
-  knownCells: number;
-  unresolvedCells: number;
-}
-export interface LensStrikeValues {
-  byStrike: Map<number, number>;
-  covered: Set<number>;
-  totalMn: number | null;
-  knownTotalMn: number | null;
-  cellCount: number;
-  sourceSession: string | null;
-  requestedExpiries: string[];
-  byStrikeDetail: Map<number, LensStrikeDetail>;
-  unresolvedPairCount: number;
-  /** Selected-grid arithmetic only; never source quality or full-book validity. */
-  complete: boolean;
-  reason: "source_session_unavailable" | "different_source_session" | "invalid_axis" |
-    "invalid_cell_identity" | "duplicate_cell_identity" | "unsupported_scope" |
-    "numeric_overflow" | null;
-}
-export function isRealSessionDate(value: unknown): value is string { return isoSession(value)!==null; }
+const ISO_INSTANT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:Z|[+-]\d{2}:\d{2})$/;
+
+/** The day a gex payload describes: a bare session date, or the date part of a strict ISO instant. */
 function describedGexDay(value: unknown): string | null {
-  const bare=isoSession(value);
-  if(bare) return bare;
-  if(typeof value!=="string" || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:Z|[+-]\d{2}:\d{2})$/.test(value) || !Number.isFinite(Date.parse(value))) return null;
-  return isoSession(value.slice(0,10));
-}
-export function matrixSourceSession(matrix: GexMatrix | null | undefined): string | null {
-  return isoSession(matrix?._build_meta?.asof_date);
-}
-/** Necessary only for the embedded same-snapshot composition; not a history or source-local display rule. */
-export function matrixDescribedSessionsMatch(matrixSession: string | null | undefined, gexAsOf: string | null | undefined): boolean {
-  const m=isoSession(matrixSession), g=describedGexDay(gexAsOf);
-  return m!==null && g!==null && m===g;
-}
-export function matrixLensByStrike(
-  matrix: GexMatrix | null | undefined, lens: ExpiryLens,
-  gexAsOf: string | null | undefined,
-  operation: "coupled-view" | "source-local" = "coupled-view",
-): LensStrikeValues {
-  const sourceSession=matrixSourceSession(matrix);
-  const empty: LensStrikeValues={byStrike:new Map(),covered:new Set(),totalMn:null,knownTotalMn:null,
-    cellCount:0,sourceSession,requestedExpiries:[],byStrikeDetail:new Map(),unresolvedPairCount:0,complete:false,reason:null};
-  if(lens.kind==="all") return empty;
-  if(!sourceSession) return {...empty,reason:"source_session_unavailable"};
-  if(operation!=="source-local" && !matrixDescribedSessionsMatch(sourceSession,gexAsOf)) return {...empty,reason:"different_source_session"};
-  if(!Array.isArray(matrix?.cells)||matrix.cells.length===0||matrix.cells.length>100000) return {...empty,reason:"unsupported_scope"};
-  const seen=new Set<string>();
-  for(const c of matrix.cells) {
-    if(!c||typeof c!=="object"||!Number.isFinite(c.strike)||c.strike<=0||!isoSession(c.expiry)) return {...empty,reason:"invalid_cell_identity"};
-    const key=c.strike+"|"+c.expiry;
-    // Match existing companion ingress: reject the whole duplicate payload before scope filtering.
-    if(seen.has(key)) return {...empty,reason:"duplicate_cell_identity"};
-    seen.add(key);
-  }
-  if((matrix.strikes!=null&&!Array.isArray(matrix.strikes))||(matrix.expiries!=null&&!Array.isArray(matrix.expiries))) return {...empty,reason:"invalid_axis"};
-  const ks=matrix.strikes?.length ? matrix.strikes : [...new Set(matrix.cells.map(c=>c.strike))];
-  const es=matrix.expiries?.length ? matrix.expiries : [...new Set(matrix.cells.map(c=>c.expiry))];
-  if(!ks.every(k=>Number.isFinite(k)&&k>0)||!es.every(e=>isoSession(e)!==null)) return {...empty,reason:"invalid_axis"};
-  const strikes=new Set(ks), expiries=new Set(es);
-  if(strikes.size!==ks.length||expiries.size!==es.length||matrix.cells.some(c=>!strikes.has(c.strike)||!expiries.has(c.expiry))) return {...empty,reason:"invalid_axis"};
-  let selected=[...expiries].filter(e=>e>=sourceSession).sort();
-  if(lens.kind==="zero") selected=selected.filter(e=>e===sourceSession);
-  else if(lens.kind==="ex-zero") selected=selected.filter(e=>e!==sourceSession);
-  else if(lens.kind==="one") {
-    if(!isoSession(lens.exp)) return {...empty,reason:"unsupported_scope"};
-    selected=selected.filter(e=>e===lens.exp);
-  } else return {...empty,reason:"unsupported_scope"};
-  if(!selected.length||strikes.size*selected.length>100000) return {...empty,reason:"unsupported_scope"};
-  const out={...empty,covered:strikes,requestedExpiries:selected};
-  const wanted=new Set(selected), values=new Map<number,Map<string,number|null>>();
-  for(const c of matrix.cells) {
-    if(!wanted.has(c.expiry)) continue;
-    let row=values.get(c.strike); if(!row) {row=new Map();values.set(c.strike,row);}
-    row.set(c.expiry,typeof c.gex==="number"&&Number.isFinite(c.gex)?c.gex/DOLLARS_PER_MN:null);
-  }
-  let sum=0;
-  for(const k of strikes) {
-    let knownMn=0, knownCells=0, unresolvedCells=0;
-    for(const e of selected) {const v=values.get(k)?.get(e);if(v==null){unresolvedCells++;continue;}knownMn+=v;knownCells++;}
-    if(!Number.isFinite(knownMn)) return {...empty,reason:"numeric_overflow"};
-    out.byStrikeDetail.set(k,{knownMn:knownCells?knownMn:null,knownCells,unresolvedCells});
-    if(knownCells===selected.length) out.byStrike.set(k,knownMn);
-    out.cellCount+=knownCells;out.unresolvedPairCount+=unresolvedCells;sum+=knownMn;
-  }
-  if(!Number.isFinite(sum)) return {...empty,reason:"numeric_overflow"};
-  out.knownTotalMn=out.cellCount?sum:null;
-  out.complete=out.cellCount>0&&out.unresolvedPairCount===0;
-  out.totalMn=out.complete?sum:null;
-  return out;
+  const bare = isoSession(value);
+  if (bare) return bare;
+  if (typeof value !== "string" || !ISO_INSTANT.test(value) || !Number.isFinite(Date.parse(value))) return null;
+  return isoSession(value.slice(0, 10));
 }
 
 /**
- * The expiry key that IS the snapshot's session day, or null. Date-part comparison only —
- * Uses the shared exact date validator without inferring a session from the wall clock.
+ * The session the matrix cells describe. `_build_meta.asof_date` is the producer's source
+ * session; the top-level `asof` is only the build clock and crosses UTC midnight on late
+ * builds, so it is never used as the 0DTE anchor.
+ */
+export function matrixSourceSession(matrix: GexMatrix | null | undefined): string | null {
+  const r = readOptionsMatrixSourceSession(matrix);
+  return r.ok ? r.sourceSession : null;
+}
+
+/**
+ * The coupled desk view shows matrix cells beside the gex payload's ladder, so both must
+ * describe the SAME session. Exact equality — not a history or source-local display rule.
+ */
+export function matrixDescribedSessionsMatch(
+  matrixSession: string | null | undefined,
+  gexAsOf: string | null | undefined,
+): boolean {
+  const m = isoSession(matrixSession);
+  const g = describedGexDay(gexAsOf);
+  return m !== null && g !== null && m === g;
+}
+
+const MAX_GRID_CELLS = 100_000;
+
+/**
+ * Sum the matrix cells selected by `lens` down to one value per strike, in $mn.
+ *
+ * The selected grid is the judged strikes × every selected expiry on or after the source
+ * session (an earlier expiry was already expired at capture time). Every pair in that
+ * grid is required:
+ *   - a known cell (finite `gex`, including a measured 0) contributes its value;
+ *   - an absent pair, or a null / non-finite `gex`, is UNRESOLVED — never an inferred 0.
+ * A strike row is set only when all its selected cells are known, and `totalMn` is set only
+ * when the whole grid is known. The known part stays available as `knownTotalMn` so the view
+ * can disclose it as a subtotal.
+ *
+ * The judged population:
+ *   - with `population` (the desk): the ladder's strikes × the chain expiries (gex
+ *     `by_expiry`, united with the matrix's own expiry axis) the lens selects. A required pair
+ *     the matrix windowed away — a ladder strike off its strike axis, a chain expiry past its
+ *     DTE window — is unresolved and withholds the total; a matrix strike the ladder does not
+ *     show never enters the sum, so a complete total always equals the sum of the rows shown.
+ *   - without it (source-local readers): the matrix's own strike × expiry axes.
+ * Either way the strike population is the same for every narrow lens, so changing the lens
+ * never silently changes it.
+ *
+ * `operation: "coupled-view"` (the desk) also requires the gex payload to describe the same
+ * session (`matrixDescribedSessionsMatch`); `"source-local"` reads the matrix on its own.
+ * A malformed document (bad axes, impossible dates, duplicate pairs) yields no grid and a reason.
+ */
+export function matrixLensByStrike(
+  matrix: GexMatrix | null | undefined,
+  lens: ExpiryLens,
+  gexAsOf: string | null | undefined,
+  operation: "coupled-view" | "source-local" = "coupled-view",
+  population?: LensPopulation,
+): LensStrikeValues {
+  if (lens.kind === "all") return emptyLensValues(matrixSourceSession(matrix));
+  return selectedGrid(matrix, lens, gexAsOf, operation, population).values;
+}
+
+/**
+ * The cells behind the ladder tooltip's per-strike expiry shares, or null when no share can
+ * be stated honestly. Shares are renormalised over the cells handed in, so a strike is
+ * offered only when EVERY pair of its selected grid is known — one unresolved cell would
+ * otherwise inflate the shares of the rest. Under the All lens the grid is every chain
+ * expiry on or after the source session; under a narrow lens, the lens's selection. The
+ * coupled-view session gate applies: a matrix from another session offers nothing.
+ */
+export function matrixShareCells(
+  matrix: GexMatrix | null | undefined,
+  lens: ExpiryLens,
+  gexAsOf: string | null | undefined,
+  population: LensPopulation,
+): KnownGexMatrixCell[] | null {
+  const grid = selectedGrid(matrix, lens, gexAsOf, "coupled-view", population);
+  if (grid.values.reason || grid.values.requestedExpiries.length === 0) return null;
+  const out: KnownGexMatrixCell[] = [];
+  for (const [strike, row] of grid.cells) {
+    if (!grid.values.byStrike.has(strike)) continue;
+    for (const e of grid.values.requestedExpiries) {
+      const c = row.get(e);
+      if (c) out.push(c);
+    }
+  }
+  return out;
+}
+
+function emptyLensValues(sourceSession: string | null): LensStrikeValues {
+  return {
+    byStrike: new Map(),
+    covered: new Set(),
+    totalMn: null,
+    knownTotalMn: null,
+    cellCount: 0,
+    sourceSession,
+    requestedExpiries: [],
+    byStrikeDetail: new Map(),
+    unresolvedPairCount: 0,
+    missingStrikeCount: 0,
+    missingExpiryCount: 0,
+    complete: false,
+    reason: null,
+  };
+}
+
+interface SelectedGrid {
+  values: LensStrikeValues;
+  /** strike → selected expiry → the known cell (finite gex), for judged strikes only. */
+  cells: Map<number, Map<string, KnownGexMatrixCell>>;
+}
+
+function selectedGrid(
+  matrix: GexMatrix | null | undefined,
+  lens: ExpiryLens,
+  gexAsOf: string | null | undefined,
+  operation: "coupled-view" | "source-local",
+  population: LensPopulation | undefined,
+): SelectedGrid {
+  const sourceSession = matrixSourceSession(matrix);
+  const empty = emptyLensValues(sourceSession);
+  const unavailable = (reason: LensUnavailableReason): SelectedGrid => ({ values: { ...empty, reason }, cells: new Map() });
+
+  if (!sourceSession) return unavailable("source_session_unavailable");
+  if (operation !== "source-local" && !matrixDescribedSessionsMatch(sourceSession, gexAsOf)) {
+    return unavailable("different_source_session");
+  }
+  const cells = matrix?.cells;
+  if (!Array.isArray(cells) || cells.length === 0 || cells.length > MAX_GRID_CELLS) {
+    return unavailable("unsupported_scope");
+  }
+
+  // Cell identity: a positive strike and a real session date; one cell per pair, document-wide.
+  const seen = new Set<string>();
+  for (const c of cells) {
+    if (!c || typeof c !== "object" || !Number.isFinite(c.strike) || c.strike <= 0 || !isoSession(c.expiry)) {
+      return unavailable("invalid_cell_identity");
+    }
+    const key = `${c.strike}|${c.expiry}`;
+    if (seen.has(key)) return unavailable("duplicate_cell_identity");
+    seen.add(key);
+  }
+
+  // Axes: unique, valid, and containing every cell. Missing axes fall back to the cells' own.
+  if ((matrix!.strikes != null && !Array.isArray(matrix!.strikes))
+    || (matrix!.expiries != null && !Array.isArray(matrix!.expiries))) {
+    return unavailable("invalid_axis");
+  }
+  const strikeAxis = matrix!.strikes?.length ? matrix!.strikes : [...new Set(cells.map((c) => c.strike))];
+  const expiryAxis = matrix!.expiries?.length ? matrix!.expiries : [...new Set(cells.map((c) => c.expiry))];
+  if (!strikeAxis.every((k) => Number.isFinite(k) && k > 0) || !expiryAxis.every((e) => isoSession(e) !== null)) {
+    return unavailable("invalid_axis");
+  }
+  const strikes = new Set(strikeAxis);
+  const expiries = new Set(expiryAxis);
+  if (strikes.size !== strikeAxis.length || expiries.size !== expiryAxis.length
+    || cells.some((c) => !strikes.has(c.strike) || !expiries.has(c.expiry))) {
+    return unavailable("invalid_axis");
+  }
+
+  // The judged population: the displayed ladder × the chain, or the matrix's own axes.
+  let judgedStrikes: number[] = [...strikes];
+  const candidateExpiries = new Set(expiries);
+  if (population) {
+    judgedStrikes = [...new Set([...population.strikes].filter((k) => Number.isFinite(k) && k > 0))];
+    if (judgedStrikes.length === 0) return unavailable("unsupported_scope");
+    if (population.expiries == null) return unavailable("population_unavailable");
+    for (const raw of population.expiries) {
+      const e = isoSession(normExp(raw));
+      if (!e) return unavailable("invalid_axis");
+      candidateExpiries.add(e);
+    }
+  }
+
+  // Selected expiries: on or after the source session, narrowed by the lens. The All lens
+  // keeps the whole live grid (only the tooltip's share cells read it that way).
+  let selected = [...candidateExpiries].filter((e) => e >= sourceSession).sort();
+  if (lens.kind === "all") { /* every live expiry */ }
+  else if (lens.kind === "zero") selected = selected.filter((e) => e === sourceSession);
+  else if (lens.kind === "ex-zero") selected = selected.filter((e) => e !== sourceSession);
+  else if (lens.kind === "one") {
+    // The lens key tolerates the ' 00:00:00' store shape; cell identities stay strict.
+    const wantExp = isoSession(normExp(lens.exp));
+    if (!wantExp) return unavailable("unsupported_scope");
+    selected = selected.filter((e) => e === wantExp);
+  } else return unavailable("unsupported_scope");
+  if (selected.length === 0 || judgedStrikes.length * selected.length > MAX_GRID_CELLS) {
+    return unavailable("unsupported_scope");
+  }
+
+  const wanted = new Set(selected);
+  const judged = new Set(judgedStrikes);
+  const known = new Map<number, Map<string, KnownGexMatrixCell>>();
+  for (const c of cells) {
+    if (!wanted.has(c.expiry) || !judged.has(c.strike)) continue;
+    if (typeof c.gex !== "number" || !Number.isFinite(c.gex)) continue;
+    let row = known.get(c.strike);
+    if (!row) { row = new Map(); known.set(c.strike, row); }
+    row.set(c.expiry, c as KnownGexMatrixCell);
+  }
+
+  const out: LensStrikeValues = {
+    ...empty,
+    covered: new Set(judgedStrikes.filter((k) => strikes.has(k))),
+    requestedExpiries: selected,
+    missingStrikeCount: judgedStrikes.filter((k) => !strikes.has(k)).length,
+    missingExpiryCount: selected.filter((e) => !expiries.has(e)).length,
+  };
+  let sum = 0;
+  for (const k of judgedStrikes) {
+    let knownMn = 0;
+    let knownCells = 0;
+    let unresolvedCells = 0;
+    for (const e of selected) {
+      const c = known.get(k)?.get(e);
+      if (!c) { unresolvedCells++; continue; }
+      knownMn += c.gex / DOLLARS_PER_MN;
+      knownCells++;
+    }
+    if (!Number.isFinite(knownMn)) return unavailable("numeric_overflow");
+    out.byStrikeDetail.set(k, { knownMn: knownCells ? knownMn : null, knownCells, unresolvedCells });
+    if (knownCells === selected.length) out.byStrike.set(k, knownMn);
+    out.cellCount += knownCells;
+    out.unresolvedPairCount += unresolvedCells;
+    sum += knownMn;
+  }
+  if (!Number.isFinite(sum)) return unavailable("numeric_overflow");
+  out.knownTotalMn = out.cellCount ? sum : null;
+  out.complete = out.cellCount > 0 && out.unresolvedPairCount === 0;
+  out.totalMn = out.complete ? sum : null;
+  return { values: out, cells: known };
+}
+
+/**
+ * The expiry key that IS the snapshot's session day, or null. Date-part comparison only;
+ * the shared strict date validator admits the day, and no session is inferred from the wall clock.
  */
 export function zeroDteExpiry(
   expiries: Iterable<string>,
@@ -282,21 +515,20 @@ export function zeroDteExpiry(
 
 /**
  * One ladder row's value under the active lens.
- *   - All lens → the caller's aggregate value (from `by_strike`), always a number.
+ *   - All lens → the caller's aggregate value (from `by_strike`); null when the producer
+ *     did not supply that greek for the strike.
  *   - Narrower lens → the complete selected-grid sum for that strike; `null` if any
  *     selected cell is unresolved or the matrix never covered the strike.
- * `null` is the honest dash. It is never silently replaced by the aggregate.
+ * `null` is the honest dash. It is never silently replaced by the aggregate or by 0.
  */
 export function lensValueForStrike(
   strike: number,
-  aggregate: number,
+  aggregate: number | null,
   lens: ExpiryLens,
   vals: LensStrikeValues,
 ): number | null {
   if (lens.kind === "all") return aggregate;
-  const v = vals.byStrike.get(strike);
-  if (v != null) return v;
-  return null; // Omitted/invalid is not a certified zero.
+  return vals.byStrike.get(strike) ?? null;
 }
 
 // ─── Bar scale (B1) ─────────────────────────────────────────────────────────────────
@@ -350,9 +582,9 @@ export function scaleBases(
 export function fmtMn(v: number | null | undefined): string {
   if (v == null || !Number.isFinite(v)) return "—";
   const abs = Math.abs(v);
-  // A covered strike with nothing at this expiry is a real, directionless zero — "+0"
-  // would imply a positive read where there is none. (An UNCOVERED strike is `null`
-  // upstream and renders an em dash instead; the two states must stay distinguishable.)
+  // A measured zero is a real, directionless zero — "+0" would imply a positive read where
+  // there is none. (An unknown value is `null` upstream and renders an em dash instead; the
+  // two states must stay distinguishable.)
   if (abs < 0.0005) return "0";
   const sign = v >= 0 ? "+" : "-";
   if (abs >= 1000) return `${sign}${(abs / 1000).toFixed(2)}B`;
