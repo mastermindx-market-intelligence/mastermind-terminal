@@ -26,6 +26,7 @@ test("desktop: company families live beside symbol, views live in the page subhe
   await context.locator('[data-fin-family="lab"]').click();
   await expect(page).toHaveURL(/[?&]page=lab\b/);
   await expect(page.locator(".fin-pane--workspace .fin-page-subnav")).toHaveCount(0);
+  await expect(page.locator("#fin-active-panel")).toHaveAccessibleName("Lab");
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(overflow).toBeLessThanOrEqual(1);
 });
@@ -116,3 +117,52 @@ test("medium desktop: all multi-view families keep their subpages separate and d
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(overflow).toBeLessThanOrEqual(1);
 });
+
+for (const lang of ["en", "zh"] as const) for (const width of [390, 820]) {
+  test(`family sheet owns focus and retires at desktop: ${lang} ${width}`, async ({ page }) => {
+    await page.setViewportSize({ width, height: width === 390 ? 844 : 1180 });
+    await page.addInitScript((locale) => localStorage.setItem("mm.lang", locale), lang);
+    await page.goto(`/analysis?symbol=NVDA&page=earnings&lang=${lang}`);
+    const context = page.locator(".analysis-context-bar");
+    const trigger = context.locator(".fin-family-mobile-trigger");
+    await expect(trigger).toHaveText(lang === "zh" ? /盈利/ : /Earnings/, { timeout: 45_000 });
+    await trigger.click();
+    const sheet = page.locator(".fin-family-sheet");
+    await expect(sheet).toBeVisible();
+    await expect(sheet.locator('[data-fin-family-sheet="earnings"]')).toBeFocused();
+    await expect(page.locator(".fin-family-sheet-scrim")).toHaveAttribute("tabindex", "-1");
+
+    const first = sheet.locator(".fin-family-sheet-close");
+    const last = sheet.locator('[data-fin-family-sheet="lab"]');
+    await last.focus();
+    await page.keyboard.press("Tab");
+    await expect(first).toBeFocused();
+    await page.keyboard.press("Shift+Tab");
+    await expect(last).toBeFocused();
+
+    await sheet.locator('[data-fin-family-sheet="market"]').focus();
+    await page.keyboard.press("Enter");
+    await expect(sheet).toHaveCount(0);
+    await expect(trigger).toBeFocused();
+    await expect(trigger).toContainText(lang === "zh" ? "市场" : "Market");
+    await expect.poll(() => new URL(page.url()).searchParams.get("symbol")).toBe("NVDA");
+    await expect.poll(() => new URL(page.url()).searchParams.get("page")).toBe("technicals");
+    const panel = page.locator("#fin-active-panel");
+    await expect(panel).toHaveAccessibleName(lang === "zh" ? "技术面" : "Technicals");
+
+    await trigger.click();
+    await expect(sheet.locator('[data-fin-family-sheet="market"]')).toBeFocused();
+    await page.keyboard.press("Escape");
+    await expect(sheet).toHaveCount(0);
+    await expect(trigger).toBeFocused();
+    await expect(page).toHaveURL(/\/analysis\?/);
+
+    await trigger.click();
+    await expect(sheet).toBeVisible();
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await expect(sheet).toHaveCount(0);
+    await expect(trigger).toHaveAttribute("aria-expanded", "false");
+    await expect(context.locator('[data-fin-family="market"]')).toBeFocused();
+    await expect(panel).toHaveAccessibleName(lang === "zh" ? "技术面" : "Technicals");
+  });
+}

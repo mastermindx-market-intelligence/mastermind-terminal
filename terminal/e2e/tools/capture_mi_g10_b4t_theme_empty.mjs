@@ -137,7 +137,8 @@ async function captureOne(browser, { width, height, lang, theme }) {
   const clipH = Math.max(1, Math.min(Math.ceil(row.box.height) + pad * 2, height - clipY));
   row.clip = { x: clipX, y: clipY, width: clipW, height: clipH };
   const file = `${width}x${height}-${lang}-${theme}-theme-empty.png`;
-  await page.screenshot({ path: join(outDir, file), clip: row.clip, fullPage: false });
+  await page.evaluate(() => document.fonts.ready);
+  await page.screenshot({ path: join(outDir, file), clip: row.clip, fullPage: false, animations: "disabled" });
   await context.close();
   row.file = file; row.lang = lang; row.theme = theme; row.viewport = `${width}x${height}`;
   console.log(`[${row.viewport}-${lang}-${theme}] ${file} dataTheme=${row.dataTheme} (afterMount=${row.dataThemeAfterMount}) cardBg=${row.cardBackgroundColor} border=${row.borderTopStyle}/${row.borderTopColor} p=${row.pColor} box=${JSON.stringify(row.box)} clip=${JSON.stringify(row.clip)}`);

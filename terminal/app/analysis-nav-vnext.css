@@ -29,7 +29,8 @@
 .analysis-context-actions .analysis-context-freshness{
   margin-left:0;white-space:nowrap;font-size:10px;
 }
-.analysis-context-actions .analysis-context-theses{
+.analysis-context-actions .analysis-context-theses,
+.analysis-context-actions .analysis-context-chart{
   min-height:32px;padding:0 8px;font-size:10.5px;
 }
 .analysis-context-more{display:none;position:relative;flex:none;margin-left:auto}
@@ -41,7 +42,8 @@
 }
 .analysis-context-more summary::-webkit-details-marker{display:none}
 .analysis-context-more summary:focus-visible,
-.analysis-context-more-menu a:focus-visible{
+.analysis-context-more-menu a:focus-visible,
+.analysis-context-more-menu button:focus-visible{
   outline:2px solid var(--brand-2);outline-offset:2px;
 }
 .analysis-context-more-menu{
@@ -50,12 +52,15 @@
   min-width:185px;padding:6px;border:1px solid var(--line-3);
   border-radius:10px;background:var(--panel);box-shadow:0 12px 30px rgba(0,0,0,.25);
 }
-.analysis-context-more-menu a{
+.analysis-context-more-menu a,
+.analysis-context-more-menu button{
   display:flex;align-items:center;min-height:40px;padding:0 10px;
   border-radius:6px;color:var(--text-2);font:600 11.5px/1 var(--font-ui);
-  text-decoration:none;white-space:nowrap;
+  text-decoration:none;white-space:nowrap;text-align:left;
+  border:0;background:transparent;cursor:pointer;
 }
-.analysis-context-more-menu a:hover{background:var(--panel-2);color:var(--text)}
+.analysis-context-more-menu a:hover,
+.analysis-context-more-menu button:hover{background:var(--panel-2);color:var(--text)}
 /* This is a contextual part of the page header, not a second global menu.
  * Only multi-view families render it; single-view families have no blank row. */
 .analysis-shell .fin-pane--workspace .fin-page-subnav{
@@ -105,15 +110,19 @@
   .analysis-shell .analysis-context-actions .analysis-context-freshness{
     display:none;
   }
-  .analysis-shell .analysis-context-actions .analysis-context-theses{
+  .analysis-shell .analysis-context-actions .analysis-context-theses,
+  .analysis-shell .analysis-context-actions .analysis-context-chart{
     width:40px;min-width:40px;height:44px;min-height:44px;
     display:flex;justify-content:center;padding:0;gap:0;
   }
-  .analysis-shell .analysis-context-actions .analysis-context-theses svg{
+  .analysis-shell .analysis-context-actions .analysis-context-theses svg,
+  .analysis-shell .analysis-context-actions .analysis-context-chart svg{
     width:17px;height:17px;flex:none;fill:none;
     stroke:currentColor;stroke-width:1.7;stroke-linejoin:round;stroke-linecap:round;
   }
-  .analysis-shell .analysis-context-actions .analysis-context-theses span{display:none}
+  .analysis-shell .analysis-context-actions .analysis-context-theses span,
+  .analysis-shell .analysis-context-actions .analysis-context-chart span{display:none}
+  .analysis-shell .analysis-context-bar--shared .fin-family-mobile-trigger{min-width:108px}
   .analysis-shell .analysis-context-more{display:none}
   .analysis-shell .fin-pane--workspace .fin-page-subnav{display:none}
   .analysis-shell .fin-family-sheet-layer{z-index:120}
@@ -129,8 +138,11 @@
   .analysis-shell .fin-research-nav--primary .fin-family-mobile-trigger{
     min-width:102px;padding:0 5px;
   }
+  .analysis-shell .analysis-context-bar--shared .fin-family-mobile-trigger{min-width:74px;max-width:86px;gap:4px}
+  .analysis-shell .analysis-context-bar--shared .fin-family-mobile-trigger span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .analysis-shell .analysis-context-actions{display:flex;gap:2px}
-  .analysis-shell .analysis-context-actions .analysis-context-theses{
+  .analysis-shell .analysis-context-actions .analysis-context-theses,
+  .analysis-shell .analysis-context-actions .analysis-context-chart{
     width:44px;min-width:44px;
   }
 }

@@ -9,6 +9,9 @@ for (const [lang, theme] of [["en", "light"], ["zh", "dark"]] as const) {
     await page.addInitScript(({ lang, theme, now }) => {
       localStorage.setItem("mm.lang", lang); localStorage.setItem("theme", theme); localStorage.setItem("theme_auto", "0");
       Date.now = () => now;
+      const readyWindow = window as Window & { __mmResponsiveVisualReady?: boolean };
+      readyWindow.__mmResponsiveVisualReady = false;
+      window.addEventListener("mm:terminal-visual-ready", () => { readyWindow.__mmResponsiveVisualReady = true; }, { once: true });
     }, { lang, theme, now: MARKET_RISK_NOW });
     let scenario = "healthy";
     const extraSource = "unavailable-source-" + "x".repeat(80);
@@ -36,7 +39,19 @@ for (const [lang, theme] of [["en", "light"], ["zh", "dark"]] as const) {
       } });
     });
     await page.goto("/terminal?symbol=NVDA");
-    await page.locator(".sig-btn").click();
+    await expect.poll(
+      () => page.evaluate(() => Boolean((window as Window & { __mmResponsiveVisualReady?: boolean }).__mmResponsiveVisualReady)),
+      { message: "the interactive Terminal should finish hydrating", timeout: 15_000 },
+    ).toBe(true);
+    // The stacked tablet layout is still settling here: the rail, then the chart, grow and push
+    // the launcher from y=829 to 887 to 1123. A click aimed at the earlier box lands on the board
+    // above it and is lost (CI tablet, runs 39129201404 and the round before). The launcher
+    // toggles, so click again only while it still reports closed.
+    const launcher = page.getByTestId("intelligence-launcher");
+    await expect(async () => {
+      if (await launcher.getAttribute("aria-expanded") !== "true") await launcher.click();
+      await expect(launcher).toHaveAttribute("aria-expanded", "true", { timeout: 1_000 });
+    }).toPass({ timeout: 20_000 });
     const chip = page.getByTestId("market-risk-chip"), summary = chip.locator("summary");
     await expect(chip).toBeVisible(); await expect(summary).toContainText("51/100");
     await expect(summary).toContainText(lang === "zh" ? "美国市场风险" : "US market risk");

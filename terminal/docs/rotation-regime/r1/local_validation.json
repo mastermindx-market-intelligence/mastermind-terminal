@@ -1,0 +1,79 @@
+{
+  "browser_tests": {
+    "incumbent_study": 12,
+    "input_basis": "synthetic_fixture_not_market_data",
+    "languages": [
+      "en",
+      "zh"
+    ],
+    "new_monitor": 12,
+    "passed": 24,
+    "viewports": [
+      [
+        1440,
+        900
+      ],
+      [
+        820,
+        1180
+      ],
+      [
+        390,
+        844
+      ]
+    ]
+  },
+  "environment": {
+    "node": "v26.5.0",
+    "npm": "11.17.0"
+  },
+  "evidence_kind": "attended_local_test_observation",
+  "git_diff_check": {
+    "exit_code": 0
+  },
+  "independent_review": "not_completed",
+  "live_latency": "not_qualified",
+  "market_backtests": "not_run",
+  "operation_id": "rotation-regime-r1-20261103-c1",
+  "process_exit_code": 0,
+  "process_pid": 73203,
+  "process_runtime_seconds": 95.69,
+  "production_release": "not_performed",
+  "recorded_at_utc": "2026-11-03T22:59:33.104108+00:00",
+  "schema": "terminal.rotation_monitor.local_validation.v1",
+  "scoped_eslint": {
+    "exit_code": 0,
+    "paths": 7
+  },
+  "screenshot_sha256": {
+    "terminal/docs/rotation-regime/r1/desktop-en.png": "4ddbaa14c56e724db984102d19a918581538cd141df0e493c2cdfedb451af513",
+    "terminal/docs/rotation-regime/r1/desktop-zh.png": "a46bb8324d579aeac99b5e8325e12f0b31369611c149a42d210833240fa92028",
+    "terminal/docs/rotation-regime/r1/mobile-en.png": "3d51feb36ed5930873ca430ccd9ece1037ad707054184e29ec4de00c030bcce0",
+    "terminal/docs/rotation-regime/r1/mobile-zh.png": "df4cdb534bef532454ac3126df9cb62b416b35783c65f587b4a007fe5ed99d44",
+    "terminal/docs/rotation-regime/r1/tablet-en.png": "5ebb748e2431f9301adeaeffde8e494722c03c4a269818cbb909d110fddb85e9",
+    "terminal/docs/rotation-regime/r1/tablet-zh.png": "a124ed102401c7bb6e321c78135234466b1e6cba67259484d2af621f57a6bc26"
+  },
+  "source_base": "2ded360882b9c721e690907ff363b553781fb920",
+  "source_sha256": {
+    "terminal/components/workspaces/RSPivotRotationMonitor.module.css": "89a67aa9e44745ed6801d22889f18bc45ea1697a94b05978a5abfbc85a272e18",
+    "terminal/components/workspaces/RSPivotRotationMonitor.tsx": "88f8fd8d3c3d512db8056a5339455e512aadaea45dd2d92e7712ce99e14ab2f8",
+    "terminal/components/workspaces/RSPivotStudy.tsx": "120e6c21abd474604f8d29c38b030456458fed584e34a7236847f9d5b086c3b3",
+    "terminal/components/workspaces/useRotationMonitorInputs.ts": "98ea4ee80070db57b8e186985ef5026a37785878471262be966ed40e7118a09a",
+    "terminal/e2e/rotation-monitor.spec.ts": "66b15d7bfb3ff5a387705948d648a7f30e4701401b42243a85debf593edb100a",
+    "terminal/lib/__tests__/rotationMonitor.test.ts": "79036876a835896b96fe680dd368cd4ed7ae280eb9de69925a4dbf1013a8cc19",
+    "terminal/lib/__tests__/rotationMonitorInputs.test.tsx": "274e3b48259cae9e2e90351b63e7013e5325d8cc800b19fa93da957ced2500e7",
+    "terminal/lib/rotationMonitor.ts": "911da1411a27c1eb7394d1c54c8d503b1123916ba485f7050c0e278fa75039f8",
+    "terminal/package-lock.json": "ecb0e5d1f6119efbbbf84ad2058dab315ad1c1326537aff6de7597e4ad5358a9"
+  },
+  "typecheck": {
+    "command": "npx tsc --noEmit --incremental false",
+    "exit_code": 0
+  },
+  "unit_tests": {
+    "files": 8,
+    "incumbent_regressions": 48,
+    "new_lifecycle": 9,
+    "new_measurement": 38,
+    "passed": 95
+  }
+}
