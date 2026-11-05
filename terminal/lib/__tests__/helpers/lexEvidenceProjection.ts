@@ -57,6 +57,9 @@ export function fingerprintCapturedLex(source: string, expectedRawSha256: string
  * Only the pending-onboarding copy, verified absent from these captures, may differ.
  */
 export function assertCapturedLexProjection(currentSource: string, recordedRawSha256: string, manifest: string): void {
+  // A new capture can bind the complete current source directly. Historical
+  // projection provenance is needed only when those exact bytes differ.
+  if (sha256(currentSource) === recordedRawSha256) return;
   const rows = manifest.split("\n").filter((line) => line.startsWith("lexProjection: "));
   if (rows.length !== 1) throw new Error("Expected one captured LEX projection binding");
   const binding = JSON.parse(rows[0].slice("lexProjection: ".length));
