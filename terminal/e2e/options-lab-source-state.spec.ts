@@ -12,7 +12,7 @@ async function installReads(page: Page, archivedLadder = false) {
   await page.route("**/api/flow?*", async route => {
     const feed = new URL(route.request().url()).searchParams.get("f");
     if (feed) reads.push(feed);
-    if (feed === "matrix:SPY") return route.fulfill({ json: { schema: "options_structure.matrix/v1", root: "SPY", session: "2026-10-19", cells: [{ strike: 100, expiry: "2026-10-23", call_vol: 243, call_oi: 110, put_vol: 9, put_oi: 2 }] } });
+    if (feed === "matrix:SPY") return route.fulfill({ json: { schema: "options_structure.matrix/v1", root: "SPY", session: "2026-10-19", cells: [{ strike: 100, expiry: "2026-10-23", call_vol: 243, call_oi: 110, put_vol: 9, put_oi: 2 }, { strike: 103, expiry: "2026-10-23", call_vol: 12, call_oi: 30, put_vol: 4, put_oi: 8 }] } });
     if (feed === "gex:SPY") return route.fulfill({ json: reportedGammaBook("2026-10-19") });
     if (feed === "gex_dates:SPY") return route.fulfill({ json: { root: "SPY", dates: ["2026-10-19", "2026-10-16"], latest: "2026-10-19" } });
     if (feed === "gex_at:SPY:2026-10-16") return route.fulfill({ json: {
@@ -48,12 +48,13 @@ for (const status of ["unavailable", "absent"] as const) {
       await page.goto("/options?tab=gex&view=research");
       const lab = page.getByRole("region", { name: "3D Research Lab", exact: true });
       await expect(lab).toBeVisible({ timeout: 45_000 });
-      await lab.getByRole("button", { name: "100 Call · 2026-10-23", exact: true }).click();
+      await lab.getByRole("button", { name: "103 Put · 2026-10-23", exact: true }).click();
       await lab.getByRole("button", { name: "Replay & change", exact: true }).click();
       const panel = lab.getByTestId("research-reported-gamma");
       await expect(panel).toHaveAttribute("data-comparison-state", "data");
-      await expect(panel).toContainText("+20K → +10K");
+      await expect(panel).toContainText("−20K → −10K");
       await expect(panel.getByTestId("research-reported-gamma-pin")).toHaveAttribute("data-pin-state", "pinned");
+      await expect(panel.getByTestId("research-reported-gamma-pin")).toContainText("103 Put · 2026-10-23");
       const liveReads = reads.filter(x => x === "gex:SPY").length;
       const archiveReads = reads.filter(x => x === "gex_at:SPY:2026-10-16").length;
       releaseFailure();
@@ -65,8 +66,9 @@ for (const status of ["unavailable", "absent"] as const) {
       await lab.screenshot({ path: info.outputPath(status + "-withdrawn.png") });
       releaseRecovery();
       await expect(panel).toHaveAttribute("data-comparison-state", "data");
-      await expect(panel).toContainText("+20K → +30K");
+      await expect(panel).toContainText("−20K → −30K");
       await expect(panel.getByTestId("research-reported-gamma-pin")).toHaveAttribute("data-pin-state", "pinned");
+      await expect(panel.getByTestId("research-reported-gamma-pin")).toContainText("103 Put · 2026-10-23");
       expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
       await panel.screenshot({ path: info.outputPath(status + "-recovered.png") });
     } finally {
