@@ -71,7 +71,9 @@ export function boatsChartRefresh(
     });
     if (previousCaptureMs !== 0 || hasOvernightBars || latestAcceptedTradeMs !== 0 || quote?.extSource === "tiingo_boats"
         || daytime?.meaning !== "daytime_assembly_not_market_data_freshness"
-        || daytime.refresh_pending !== false || daytime.refresh_error !== null
+        || !(daytime.refresh_pending === false
+          || (daytime.refresh_pending === true && daytime.assembly_complete === true))
+        || daytime.refresh_error !== null
         || !Number.isFinite(assembled) || assembled > nowMs + 5_000 || !body.bars.length) return null;
   }
   const captureMs = daytimeOnly ? 0 : Math.max(...valid);

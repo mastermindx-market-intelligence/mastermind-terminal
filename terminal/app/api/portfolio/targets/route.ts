@@ -1,3 +1,4 @@
+import { parsePortfolioRoleEdit } from "@/lib/portfolioTargetRole";
 import { NextResponse } from "next/server";
 import { portfolioBookKey } from "@/lib/portfolioSnapshot.server";
 import { cookies } from "next/headers";
@@ -30,6 +31,9 @@ import {
 
 const TARGETS_TABLE = "portfolio_targets";
 const TARGET_FIELDS = "ticker,target_weight_pct,band_pct,updated_at";
+const ROLE_TARGET_FIELDS = `${TARGET_FIELDS},role_label`;
+const missingRoleColumn = (error: { code?: string; message?: string } | null | undefined) =>
+  (error?.code === "42703" || error?.code === "PGRST204") && (error.message ?? "").includes("role_label");
 
 const isE2eFixture = () => process.env.TERMINAL_E2E_FIXTURE === "1";
 
@@ -63,18 +67,26 @@ function rowToTarget(row: DbRow): PortfolioTarget | null {
   const band = normalizeBandPct(row.band_pct);
   if (!ticker || weight.kind !== "value" || band.kind !== "value") return null;
   const updatedAt = typeof row.updated_at === "string" ? row.updated_at : null;
-  return { ticker, targetWeightPct: weight.value, bandPct: band.value, updatedAt };
+  return { ticker, targetWeightPct: weight.value, bandPct: band.value, updatedAt,
+    ...(row.role_label === null || typeof row.role_label === "string" ? { roleLabel: row.role_label } : {}) };
 }
 
 async function readTargets(db: PortfolioDb, userId: string): Promise<
-  | { ok: true; targets: PortfolioTarget[] }
+  | { ok: true; targets: PortfolioTarget[]; roleLabelsAvailable: boolean }
   | { ok: false; error: string }
 > {
-  let result: { data?: DbRow[] | DbRow | null; error?: { message?: string } | null };
+  let result: { data?: DbRow[] | DbRow | null; error?: { code?: string; message?: string } | null };
+  let roleLabelsAvailable = true;
   try {
     result = await db.from(TARGETS_TABLE)
-      .select(TARGET_FIELDS)
+      .select(ROLE_TARGET_FIELDS)
       .eq("user_id", userId);
+    // Read-only compatibility fallback for an explicitly absent additive column.
+    // Never retry a write, missing table, permission error, or network failure.
+    if (missingRoleColumn(result.error)) {
+      roleLabelsAvailable = false;
+      result = await db.from(TARGETS_TABLE).select(TARGET_FIELDS).eq("user_id", userId);
+    }
   } catch (cause) {
     return { ok: false, error: cause instanceof Error ? cause.message : "targets unavailable" };
   }
@@ -82,6 +94,7 @@ async function readTargets(db: PortfolioDb, userId: string): Promise<
   if (!Array.isArray(result?.data)) return { ok: false, error: "targets unavailable" };
   return {
     ok: true,
+    roleLabelsAvailable,
     targets: result.data.map(rowToTarget).filter((row): row is PortfolioTarget => !!row),
   };
 }
@@ -111,6 +124,7 @@ export async function GET() {
     })),
     targets.targets,
   );
+  summary.roleLabelsAvailable = targets.roleLabelsAvailable;
   return NextResponse.json({ summary, bookKey: portfolioBookKey(positions.positions) }, { headers: { "Cache-Control": "private, no-store" } });
 }
 
@@ -127,9 +141,31 @@ export async function POST(req: Request) {
   // R6 (i): dispatch on the action FIRST. Validating the ticker ahead of it answered a POST of
   // `{"action":"bogus"}` with "invalid ticker" — a true statement about the wrong thing.
   const action = body.action;
-  if (action !== "set" && action !== "clear") return fail("unsupported action", 400);
+  if (action !== "set" && action !== "clear" && action !== "set_role") return fail("unsupported action", 400);
   const ticker = normalizeTicker(body.ticker);
   if (!ticker) return fail("invalid ticker", 400);
+
+  if (action === "set_role") {
+    const role = parsePortfolioRoleEdit(body.roleLabel);
+    if (role.kind !== "value") return fail("invalid role", 400);
+    try {
+      // Existence and additive-schema check precede mutation. A role edit cannot
+      // create a target or replay a weight/band captured from an older render.
+      const prior = await db.from(TARGETS_TABLE).select(ROLE_TARGET_FIELDS)
+        .eq("user_id", userId).eq("ticker", ticker).maybeSingle();
+      if (prior.error) return fail("role labels unavailable", 503);
+      if (!prior.data || Array.isArray(prior.data)) return fail("target not found", 404);
+      const updated = await db.from(TARGETS_TABLE)
+        .update({ role_label: role.value, updated_at: new Date().toISOString() })
+        .eq("user_id", userId).eq("ticker", ticker).select(ROLE_TARGET_FIELDS);
+      if (updated.error || !Array.isArray(updated.data) || !updated.data[0]) return fail("role change unconfirmed", 503);
+      const target = rowToTarget(updated.data[0]);
+      if (!target || target.roleLabel !== role.value) return fail("role change unconfirmed", 503);
+      return NextResponse.json({ ok: true, target }, { headers: { "Cache-Control": "private, no-store" } });
+    } catch {
+      return fail("role change unconfirmed", 503);
+    }
+  }
 
   if (action === "set") {
     const positions = await readPositions(db, userId);

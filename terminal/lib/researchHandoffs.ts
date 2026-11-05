@@ -19,6 +19,12 @@
 // full page ending at the last row, a cursor-shaped-but-wrong value, an unsorted or duplicated
 // page is `unavailable`, never a silently complete read.
 
+// The typed scenario reference rides only on an opted-in read DTO and is validated through the
+// pure leaf module's parser -- never re-implemented or coerced here. It is unresolved input
+// metadata: not a retention, entitlement or source-availability claim, and never stored
+// basis/result values.
+import { parseScenarioCapture, type ScenarioCapture } from "./investigationScenario";
+
 export type HandoffSummary = {
   grantId: string;
   investigationId: string;
@@ -27,6 +33,9 @@ export type HandoffSummary = {
   sharedBy: string;
   granteeUserId: string;
   createdAt: string;
+  /** Present (always true) only on an opted-in scenario row; absent -- never false -- on a
+   *  plain row, whose payload keyset stays exactly the 0041 one. */
+  scenarioIncluded?: true;
 };
 
 export type HandoffOwnItem = { id: string; revision: number; title: string };
@@ -57,6 +66,9 @@ export type HandoffReadPayload = {
   committedAt: string;
   intent: { title: string; question: string };
   continuation: { nextQuestion?: string; nextObservation?: string };
+  /** The pinned revision's stored typed scenario reference; present only on an opted-in
+   *  same-pinned-revision grant, and only after the pure module re-derives it. */
+  scenarioCapture?: ScenarioCapture;
 };
 
 export type HandoffReadResult =
@@ -87,7 +99,13 @@ const exactKeys = (v: Record<string, unknown>, keys: readonly string[]): boolean
   Object.keys(v).length === keys.length && keys.every((k) => Object.hasOwn(v, k));
 
 function parseSummary(v: unknown): HandoffSummary | null {
-  if (!isPlainObject(v) || !exactKeys(v, ["grant_id", "investigation_id", "revision", "title", "shared_by", "grantee_user_id", "created_at"])) return null;
+  const summaryKeys = ["grant_id", "investigation_id", "revision", "title", "shared_by", "grantee_user_id", "created_at"] as const;
+  if (!isPlainObject(v)) return null;
+  // Exactly the plain seven-key summary, or the same seven keys plus `scenario_included: true`
+  // on an opted-in row. Any other key set -- including `scenario_included: false`, which the
+  // SQL never emits -- is refused, never coerced.
+  const optedIn = exactKeys(v, [...summaryKeys, "scenario_included"]) && v.scenario_included === true;
+  if (!optedIn && !exactKeys(v, summaryKeys)) return null;
   if (!isUuid(v.grant_id) || !isUuid(v.investigation_id) || !isUuid(v.shared_by) || !isUuid(v.grantee_user_id)) return null;
   if (!isPosInt(v.revision) || typeof v.title !== "string" || !isIso(v.created_at)) return null;
   return {
@@ -98,6 +116,7 @@ function parseSummary(v: unknown): HandoffSummary | null {
     sharedBy: v.shared_by,
     granteeUserId: v.grantee_user_id,
     createdAt: v.created_at,
+    ...(optedIn ? { scenarioIncluded: true as const } : {}),
   };
 }
 
@@ -159,9 +178,12 @@ function parseRead(v: unknown): HandoffReadResult {
   if (v.status === "not_found" && exactKeys(v, ["status"])) return { status: "not_found" };
   if (v.status !== "found" || !exactKeys(v, ["status", "handoff"]) || !isPlainObject(v.handoff)) return { status: "unavailable" };
   const h = v.handoff;
-  if (!isPlainObject(h) || !exactKeys(h, ["schema", "grant_id", "investigation_id", "revision", "shared_by", "committed_at", "intent", "continuation"])) {
-    return { status: "unavailable" };
-  }
+  const readKeys = ["schema", "grant_id", "investigation_id", "revision", "shared_by", "committed_at", "intent", "continuation"] as const;
+  if (!isPlainObject(h)) return { status: "unavailable" };
+  // Exactly the plain eight-key read DTO, or the same eight keys plus `scenario_capture` on an
+  // opted-in same-pinned-revision grant. Any other key set is unavailable, never a partial read.
+  const withCapture = exactKeys(h, [...readKeys, "scenario_capture"]);
+  if (!withCapture && !exactKeys(h, readKeys)) return { status: "unavailable" };
   if (h.schema !== HANDOFF_SCHEMA_V1 || !isUuid(h.grant_id) || !isUuid(h.investigation_id) || !isUuid(h.shared_by)) {
     return { status: "unavailable" };
   }
@@ -182,6 +204,15 @@ function parseRead(v: unknown): HandoffReadResult {
   const continuation: HandoffReadPayload["continuation"] = {};
   if (typeof nextQuestion === "string") continuation.nextQuestion = nextQuestion;
   if (typeof nextObservation === "string") continuation.nextObservation = nextObservation;
+  let scenarioCapture: ScenarioCapture | undefined;
+  if (withCapture) {
+    // A malformed, forged, superseded-full-value or unknown stored reference makes the whole
+    // read unavailable -- never a partial object and never a coerced value. The parsed value is
+    // reference metadata only: it claims no retention, entitlement or source availability.
+    const capture = parseScenarioCapture(h.scenario_capture);
+    if (!capture) return { status: "unavailable" };
+    scenarioCapture = capture;
+  }
   return {
     status: "found",
     handoff: {
@@ -193,6 +224,7 @@ function parseRead(v: unknown): HandoffReadResult {
       committedAt: h.committed_at,
       intent: { title: intent.title, question: intent.question },
       continuation,
+      ...(scenarioCapture ? { scenarioCapture } : {}),
     },
   };
 }
@@ -299,13 +331,28 @@ export async function readHandoff(userId: string, grantId: string): Promise<Hand
 /** POST {investigation_id, revision, grantee_user_id} — the create RPC. */
 export function shareHandoff(
   userId: string,
-  input: { investigationId: string; revision: number; granteeUserId: string },
+  input: {
+    investigationId: string;
+    revision: number;
+    granteeUserId: string;
+    /** Opt the share into carrying the pinned revision's typed scenario reference: the request
+     *  routes to the scenario create RPC. Absent or false is the exact plain 0041 share -- the
+     *  body then never names the flag at all. The choice is owner read protocol only: it
+     *  claims no entitlement and no source availability. */
+    includeScenario?: boolean;
+  },
 ): Promise<HandoffResponse<HandoffShareResult>> {
-  const payload = {
+  const payload: {
+    investigation_id: string;
+    revision: number;
+    grantee_user_id: string;
+    include_scenario?: true;
+  } = {
     investigation_id: input.investigationId,
     revision: input.revision,
     grantee_user_id: input.granteeUserId,
   };
+  if (input.includeScenario === true) payload.include_scenario = true;
   return call(
     userId,
     { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) },
