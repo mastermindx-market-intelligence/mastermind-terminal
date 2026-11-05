@@ -176,6 +176,119 @@ test("F11 source-component server explicitly selects supported webpack, without 
   assert.match(source,/maxRedirects: 0/);
 });
 
+
+const { invalidateStaleOutcomeArtifacts, writeSuccessArtifact, assertAllSixObserved, FIXTURE_TEMP } = require("./capture_b_f11_10_analysis_theses_entry.cjs");
+
+// Outcome-manifest lifecycle contract (F11 stale-success repair, C1).
+const SIX_FILES = ["desktop-en.png", "desktop-zh.png", "tablet-en.png", "tablet-zh.png", "mobile-en.png", "mobile-zh.png"];
+function plantOutcomeObject(dir, name, content) {
+  const target = path.join(dir, name);
+  fs.writeFileSync(target, content);
+  return target;
+}
+
+test("invocation start outcome invalidation clears only known stale outcome manifests, preserving images and evidence", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "f11-outcome-invalidate-"));
+  try {
+    const staleFixture = plantOutcomeObject(root, "FIXTURE.json", '{"schema":"terminal.f11-source-component-fixture.v1","stale":true}\n');
+    plantOutcomeObject(root, "FAILURE.json", '{"status":"FAILURE","stale":true}\n');
+    const png = plantOutcomeObject(root, "desktop-en.png", Buffer.from("old-desktop-png-bytes"));
+    plantOutcomeObject(root, "mobile-zh.png", Buffer.from("old-mobile-png-bytes"));
+    const evidence = plantOutcomeObject(root, "EVIDENCE.yml", "# capturedAtHead: old-head\n");
+    plantOutcomeObject(root, "unrelated.txt", "keep me");
+    const cleared = invalidateStaleOutcomeArtifacts(root);
+    assert.deepEqual(cleared.slice().sort(), ["FAILURE.json", "FIXTURE.json"]);
+    assert.equal(fs.existsSync(staleFixture), false);
+    assert.equal(fs.existsSync(path.join(root, "FAILURE.json")), false);
+    assert.equal(fs.existsSync(path.join(root, FIXTURE_TEMP)), false);
+    assert.ok(fs.readFileSync(png).equals(Buffer.from("old-desktop-png-bytes")));
+    assert.ok(fs.readFileSync(path.join(root, "mobile-zh.png")).equals(Buffer.from("old-mobile-png-bytes")));
+    assert.equal(fs.readFileSync(evidence, "utf8"), "# capturedAtHead: old-head\n");
+    assert.equal(fs.readFileSync(path.join(root, "unrelated.txt"), "utf8"), "keep me");
+    // Idempotent when no outcome manifests exist.
+    assert.deepEqual(invalidateStaleOutcomeArtifacts(root), []);
+    // A directory or symlink occupying a known outcome name is refused, never deleted.
+    fs.mkdirSync(path.join(root, "FAILURE.json"));
+    assert.throws(() => invalidateStaleOutcomeArtifacts(root), { message: "F11_UNEXPECTED_OUTCOME_OBJECT" });
+    fs.rmdirSync(path.join(root, "FAILURE.json"));
+    fs.symlinkSync(png, path.join(root, "FIXTURE.json"));
+    assert.throws(() => invalidateStaleOutcomeArtifacts(root), { message: "F11_UNEXPECTED_OUTCOME_OBJECT" });
+    assert.equal(fs.existsSync(png), true);
+  } finally { fs.rmSync(root, { recursive: true, force: true }); }
+});
+
+test("partial two-desktop-then-forced-tablet-failure outcome leaves no eligible success and only the current FAILURE", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "f11-outcome-partial-"));
+  try {
+    const desktopPng = plantOutcomeObject(root, "desktop-en.png", Buffer.from("old-desktop"));
+    const tabletPng = plantOutcomeObject(root, "tablet-en.png", Buffer.from("old-tablet"));
+    plantOutcomeObject(root, "FAIL-tablet-en.png", Buffer.from("old-failure-screenshot"));
+    const evidence = plantOutcomeObject(root, "EVIDENCE.yml", "# old evidence\n");
+    // Reproduce the actual hosted gap: a prior accepted success is planted.
+    plantOutcomeObject(root, "FIXTURE.json", '{"capturedAtHead":"old-accepted-head","status":"SUCCESS"}');
+    assert.deepEqual(invalidateStaleOutcomeArtifacts(root), ["FIXTURE.json"]);
+    // Two desktop observations land, then the tablet-en shot fails hard.
+    const files = ["desktop-en.png", "desktop-zh.png"];
+    const observations = [
+      { file: "desktop-en.png", state: "context-bar-with-theses-control" },
+      { file: "desktop-zh.png", state: "context-bar-with-theses-control" },
+    ];
+    writeFailureArtifact(root, "fixture-head", { file: "tablet-en.png", requestBoundary: { componentFundUnavailable: 0 } }, new Error("F11_PAGE_SCRIPT_ERROR"));
+    // Partial sets, duplicates, missing and out-of-order observations all refuse.
+    assert.throws(() => assertAllSixObserved(files, observations), { message: "F11_PARTIAL_CAPTURE_NOT_ELIGIBLE_FOR_SUCCESS" });
+    assert.throws(() => assertAllSixObserved(SIX_FILES, observations), { message: "F11_PARTIAL_CAPTURE_NOT_ELIGIBLE_FOR_SUCCESS" });
+    const duplicated = [observations[0], observations[1], observations[0], { file: "tablet-zh.png" }, { file: "mobile-en.png" }, { file: "mobile-zh.png" }];
+    assert.throws(() => assertAllSixObserved(SIX_FILES, duplicated), { message: "F11_PARTIAL_CAPTURE_NOT_ELIGIBLE_FOR_SUCCESS" });
+    assert.throws(() => assertAllSixObserved(SIX_FILES, SIX_FILES.map((f) => ({ file: f })).slice(0, 5)), { message: "F11_PARTIAL_CAPTURE_NOT_ELIGIBLE_FOR_SUCCESS" });
+    assert.throws(() => assertAllSixObserved(SIX_FILES.slice().reverse(), SIX_FILES.map((f) => ({ file: f }))), { message: "F11_PARTIAL_CAPTURE_NOT_ELIGIBLE_FOR_SUCCESS" });
+    assert.throws(() => writeSuccessArtifact(root, files, { entryObservations: observations }), { message: "F11_PARTIAL_CAPTURE_NOT_ELIGIBLE_FOR_SUCCESS" });
+    // Failure/partial-six: no eligible success, no torn temp, only current FAILURE.
+    assert.equal(fs.existsSync(path.join(root, "FIXTURE.json")), false);
+    assert.equal(fs.existsSync(path.join(root, FIXTURE_TEMP)), false);
+    const failure = JSON.parse(fs.readFileSync(path.join(root, "FAILURE.json"), "utf8"));
+    assert.equal(failure.status, "FAILURE");
+    assert.equal(failure.errorCode, "F11_PAGE_SCRIPT_ERROR");
+    assert.equal(failure.file, "tablet-en.png");
+    assert.equal(failure.capturedAtHead, "fixture-head");
+    // Old unrelated images and evidence history are unchanged.
+    assert.ok(fs.readFileSync(desktopPng).equals(Buffer.from("old-desktop")));
+    assert.ok(fs.readFileSync(tabletPng).equals(Buffer.from("old-tablet")));
+    assert.ok(fs.readFileSync(path.join(root, "FAIL-tablet-en.png")).equals(Buffer.from("old-failure-screenshot")));
+    assert.equal(fs.readFileSync(evidence, "utf8"), "# old evidence\n");
+  } finally { fs.rmSync(root, { recursive: true, force: true }); }
+});
+
+test("stable all-six outcome success publishes atomically via exclusive temp and clears stale failure", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "f11-outcome-success-"));
+  try {
+    plantOutcomeObject(root, "FAILURE.json", '{"status":"FAILURE","stale":true}\n');
+    const desktopPng = plantOutcomeObject(root, "desktop-en.png", Buffer.from("current-desktop-en"));
+    const observations = SIX_FILES.map((file) => ({ file, state: "context-bar-with-theses-control" }));
+    assertAllSixObserved(SIX_FILES, observations);
+    const bytes = writeSuccessArtifact(root, SIX_FILES, {
+      schema: "terminal.f11-source-component-fixture.v1",
+      capturedAtHead: "fixture-head",
+      scope: "fixture论点",
+      entryObservations: observations,
+    });
+    const written = JSON.parse(fs.readFileSync(path.join(root, "FIXTURE.json"), "utf8"));
+    assert.equal(written.schema, "terminal.f11-source-component-fixture.v1");
+    assert.equal(written.capturedAtHead, "fixture-head");
+    assert.deepEqual(written.entryObservations.map((observation) => observation.file), SIX_FILES);
+    assert.equal(bytes, fs.statSync(path.join(root, "FIXTURE.json")).size);
+    assert.ok(fs.readFileSync(desktopPng).equals(Buffer.from("current-desktop-en")));
+    // Success clears the stale failure record and leaves no temp behind.
+    assert.equal(fs.existsSync(path.join(root, "FAILURE.json")), false);
+    assert.equal(fs.existsSync(path.join(root, FIXTURE_TEMP)), false);
+    // Exclusive temp: a leftover concurrent temp refuses instead of being
+    // overwritten; the already-published success manifest stays intact.
+    plantOutcomeObject(root, FIXTURE_TEMP, '{"torn":true}');
+    assert.throws(() => writeSuccessArtifact(root, SIX_FILES, { entryObservations: observations }), { message: "F11_OUTCOME_TEMP_COLLISION" });
+    assert.equal(JSON.parse(fs.readFileSync(path.join(root, "FIXTURE.json"), "utf8")).capturedAtHead, "fixture-head");
+    assert.equal(fs.readFileSync(path.join(root, FIXTURE_TEMP), "utf8"), '{"torn":true}');
+  } finally { fs.rmSync(root, { recursive: true, force: true }); }
+});
+
 function evaluateActualNextConfig(env) {
   const ts=require("typescript"), vm=require("node:vm");
   const source=fs.readFileSync(path.join(__dirname,"../../next.config.ts"),"utf8");
@@ -194,4 +307,70 @@ test("actual Next config disables only F11 development debug transport; producti
   const ordinary=evaluateActualNextConfig({...env,TERMINAL_F11_PROVIDER_CLOSED:"0"});
   assert.equal(JSON.stringify({...f11,experimental:undefined}),JSON.stringify({...ordinary,experimental:undefined}));
   assert.equal(captureServerEnv({TERMINAL_F11_PROVIDER_CLOSED:"0"}).TERMINAL_F11_PROVIDER_CLOSED,"1");
+});
+
+function outcomeModuleForTest({ root, fsOverrides={}, rejectPlaywright=false }) {
+  const vm=require("node:vm"), source=fs.readFileSync(path.join(__dirname,"capture_b_f11_10_analysis_theses_entry.cjs"),"utf8");
+  const sandboxModule={exports:{}};
+  const localRequire=name => {
+    if (name === "node:fs") return {...fs,...fsOverrides};
+    if (name === "@playwright/test" && rejectPlaywright) throw new Error("F11_TEST_LOADER_FAILED");
+    if (name === "node:child_process") return {spawn(){throw new Error("UNEXPECTED_SPAWN");},execFileSync(){throw new Error("UNEXPECTED_GIT");}};
+    return require(name);
+  };
+  vm.runInNewContext(source+"\nmodule.exports.mainForTest=main;",{module:sandboxModule,exports:sandboxModule.exports,require:localRequire,__dirname:path.join(root,"terminal/e2e/tools"),process:{env:{},stdout:{write(){}}},console,Buffer});
+  return sandboxModule.exports;
+}
+test("outcome unknown temporary preimage refuses without deleting or overwriting it", () => {
+  const root=fs.mkdtempSync(path.join(os.tmpdir(),"f11-outcome-unknown-temp-"));
+  try {
+    const temp=plantOutcomeObject(root,FIXTURE_TEMP,"unknown prior writer");
+    assert.throws(()=>invalidateStaleOutcomeArtifacts(root),{message:"F11_OUTCOME_TEMP_COLLISION"});
+    assert.equal(fs.readFileSync(temp,"utf8"),"unknown prior writer");
+  } finally {fs.rmSync(root,{recursive:true,force:true});}
+});
+test("outcome failure-cleanup refusal cannot leave an eligible success", () => {
+  const root=fs.mkdtempSync(path.join(os.tmpdir(),"f11-outcome-cleanup-refusal-"));
+  try {
+    fs.mkdirSync(path.join(root,"FAILURE.json"));
+    assert.throws(()=>writeSuccessArtifact(root,SIX_FILES,{entryObservations:SIX_FILES.map(file=>({file}))}),{message:"F11_UNEXPECTED_OUTCOME_OBJECT"});
+    assert.equal(fs.existsSync(path.join(root,"FIXTURE.json")),false);
+  } finally {fs.rmSync(root,{recursive:true,force:true});}
+});
+test("outcome atomic publisher does not promote one short write into success", () => {
+  const root=fs.mkdtempSync(path.join(os.tmpdir(),"f11-outcome-short-write-"));
+  try {
+    const api=outcomeModuleForTest({root,fsOverrides:{writeSync(fd,body){return fs.writeSync(fd,Buffer.from(body).subarray(0,5));}}});
+    const payload={capturedAtHead:"current",entryObservations:SIX_FILES.map(file=>({file}))};
+    api.writeSuccessArtifact(root,SIX_FILES,payload);
+    assert.deepEqual(JSON.parse(fs.readFileSync(path.join(root,"FIXTURE.json"),"utf8")),payload);
+  } finally {fs.rmSync(root,{recursive:true,force:true});}
+});
+test("outcome invalidation precedes dependency-loader failure in the actual main", async () => {
+  const root=fs.mkdtempSync(path.join(os.tmpdir(),"f11-outcome-main-loader-"));
+  try {
+    const out=path.join(root,"terminal/docs/pr-crops/b-f11-10-analysis-theses-entry");fs.mkdirSync(out,{recursive:true});
+    plantOutcomeObject(out,"FIXTURE.json",'{"capturedAtHead":"old"}');
+    const api=outcomeModuleForTest({root,rejectPlaywright:true});
+    await assert.rejects(api.mainForTest(),{message:"F11_TEST_LOADER_FAILED"});
+    assert.equal(fs.existsSync(path.join(out,"FIXTURE.json")),false);
+  } finally {fs.rmSync(root,{recursive:true,force:true});}
+});
+test("outcome failure writer refuses a linked marker without changing its target", () => {
+  const root=fs.mkdtempSync(path.join(os.tmpdir(),"f11-outcome-failure-link-"));
+  try {
+    const target=plantOutcomeObject(root,"unrelated.txt","unchanged");fs.symlinkSync(target,path.join(root,"FAILURE.json"));
+    assert.throws(()=>writeFailureArtifact(root,"current",{file:"tablet-en.png"},new Error("F11_PAGE_SCRIPT_ERROR")));
+    assert.equal(fs.readFileSync(target,"utf8"),"unchanged");
+  } finally {fs.rmSync(root,{recursive:true,force:true});}
+});
+
+test("outcome publisher refuses an already present success instead of overwriting it", () => {
+  const root=fs.mkdtempSync(path.join(os.tmpdir(),"f11-outcome-existing-success-"));
+  try {
+    const old=plantOutcomeObject(root,"FIXTURE.json",'{"capturedAtHead":"prior"}');
+    assert.throws(()=>writeSuccessArtifact(root,SIX_FILES,{entryObservations:SIX_FILES.map(file=>({file}))}),{message:"F11_SUCCESS_ALREADY_PRESENT"});
+    assert.equal(fs.readFileSync(old,"utf8"),'{"capturedAtHead":"prior"}');
+    assert.equal(fs.existsSync(path.join(root,FIXTURE_TEMP)),false);
+  } finally {fs.rmSync(root,{recursive:true,force:true});}
 });

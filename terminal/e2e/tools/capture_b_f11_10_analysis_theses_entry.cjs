@@ -18,7 +18,7 @@
 
 const { spawn, execFileSync } = require("node:child_process");
 const { createHash } = require("node:crypto");
-const { mkdirSync, readFileSync, writeFileSync, lstatSync } = require("node:fs");
+const { closeSync, fsyncSync, lstatSync, mkdirSync, openSync, readFileSync, renameSync, unlinkSync, writeFileSync } = require("node:fs");
 const { join } = require("node:path");
 
 const ROOT = join(__dirname, "..", "..");
@@ -104,7 +104,88 @@ function writeFailureArtifact(out, capturedAtHead, diagnostic, error) {
   writeFileSync(join(out, "FAILURE.json"), JSON.stringify({
     schema: "terminal.f11-source-component-failure.v1", status: "FAILURE",
     capturedAtHead, failedAt: new Date().toISOString(), errorCode: code, ...diagnostic,
-  }, null, 2) + "\n");
+  }, null, 2) + "\n", { flag: "wx", mode: 0o600 });
+}
+
+// Outcome-manifest lifecycle: exactly these known filenames carry run outcome
+// state in OUT. Everything else in OUT is historical evidence (PNGs,
+// EVIDENCE.yml, FAIL-*.png) and is never cleared, globbed or rewritten here.
+const FIXTURE_TEMP = "FIXTURE.json.tmp";
+const OUTCOME_FILES = ["FIXTURE.json", "FAILURE.json"];
+
+function removeKnownOutcomeFile(out, name) {
+  const target = join(out, name);
+  let stats;
+  try { stats = lstatSync(target); }
+  catch (error) { if (error.code === "ENOENT") return false; throw error; }
+  // lstat (not stat): a symlink — even to a regular file — is an unexpected
+  // object in OUT; refuse it instead of following or unlinking through it.
+  if (!stats.isFile()) throw new Error("F11_UNEXPECTED_OUTCOME_OBJECT");
+  unlinkSync(target);
+  return true;
+}
+
+function assertNoOutcomeTemp(out) {
+  try {
+    const found = lstatSync(join(out, FIXTURE_TEMP));
+    if (!found.isFile()) throw new Error("F11_UNEXPECTED_OUTCOME_OBJECT");
+  } catch (error) { if (error.code === "ENOENT") return; throw error; }
+  // A pre-existing temp may belong to a live or uncertain invocation. Never
+  // delete it or infer that it is abandoned from its name or age.
+  throw new Error("F11_OUTCOME_TEMP_COLLISION");
+}
+
+function invalidateStaleOutcomeArtifacts(out) {
+  assertNoOutcomeTemp(out);
+  const cleared = [];
+  for (const name of OUTCOME_FILES) {
+    if (removeKnownOutcomeFile(out, name)) cleared.push(name);
+  }
+  return cleared;
+}
+
+function assertAllSixObserved(files, entryObservations) {
+  const expected = SHOTS.map((shot) => shot.file);
+  const complete = Array.isArray(files) && Array.isArray(entryObservations)
+    && files.length === expected.length
+    && entryObservations.length === expected.length
+    && expected.every((file, index) => files[index] === file)
+    && entryObservations.every((observation, index) => observation && observation.file === expected[index]);
+  if (!complete || new Set(entryObservations.map((observation) => observation.file)).size !== expected.length) {
+    throw new Error("F11_PARTIAL_CAPTURE_NOT_ELIGIBLE_FOR_SUCCESS");
+  }
+}
+
+function writeSuccessArtifact(out, files, payload) {
+  // No success manifest may exist until all six ordered current observations are done.
+  assertAllSixObserved(files, payload && payload.entryObservations);
+  const body = JSON.stringify(payload, null, 2) + "\n";
+  assertNoOutcomeTemp(out);
+  try {
+    const existing = lstatSync(join(out, "FIXTURE.json"));
+    if (!existing.isFile()) throw new Error("F11_UNEXPECTED_OUTCOME_OBJECT");
+    throw new Error("F11_SUCCESS_ALREADY_PRESENT");
+  } catch (error) { if (error.code !== "ENOENT") throw error; }
+  // Any cleanup refusal must occur before the success marker can become eligible.
+  removeKnownOutcomeFile(out, "FAILURE.json");
+  let fd;
+  try {
+    // Exclusive create: a concurrent or crashed invocation's temp can never be
+    // overwritten, so no torn/partial FIXTURE.json is ever renamed into place.
+    fd = openSync(join(out, FIXTURE_TEMP), "wx", 0o600);
+  } catch (error) {
+    if (error.code === "EEXIST") throw new Error("F11_OUTCOME_TEMP_COLLISION");
+    throw error;
+  }
+  try {
+    // writeFileSync handles short writes; a single writeSync may write only a prefix.
+    writeFileSync(fd, body, "utf8");
+    fsyncSync(fd);
+  } finally {
+    closeSync(fd);
+  }
+  renameSync(join(out, FIXTURE_TEMP), join(out, "FIXTURE.json"));
+  return Buffer.byteLength(body, "utf8");
 }
 
 function currentGitHead() {
@@ -280,9 +361,15 @@ async function shoot(page, file) {
 }
 
 async function main() {
+  mkdirSync(OUT, { recursive: true });
+  // Invocation start: a previous run's success/failure manifests are stale the
+  // moment this invocation begins. Clear only the known outcome filenames so a
+  // failed or partial run can never leave an eligible old FIXTURE.json behind;
+  // historical PNGs and EVIDENCE.yml are untouched.
+  const clearedOutcome = invalidateStaleOutcomeArtifacts(OUT);
+  if (clearedOutcome.length) process.stdout.write(`cleared stale outcome: ${clearedOutcome.join(", ")}\n`);
   const { chromium } = require("@playwright/test");
   assertNoCaptureDotenv();
-  mkdirSync(OUT, { recursive: true });
   const capturedAtHead = currentGitHead();
   const child = startServer();
   const files = [];
@@ -359,7 +446,7 @@ async function main() {
     stopServer(child);
   }
 
-  writeFileSync(join(OUT, "FIXTURE.json"), JSON.stringify({
+  const fixturePayload = {
     schema: "terminal.f11-source-component-fixture.v1",
     capturedAtHead,
     captureProfile,
@@ -376,8 +463,7 @@ async function main() {
     ].map((rel) => [rel, sha256File(rel)])),
     scope: "Real source component, synthetic fixture identity and unavailable market inputs; no authenticated, provider, installed or account proof",
     entryObservations,
-  }, null, 2) + "\n");
-
+  };
   const evidence = [
     "# B-F11-10a Analysis context-bar theses entry — capture evidence",
     "# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06",
@@ -404,10 +490,12 @@ async function main() {
     ...SHOTS.map((s) => `  - ${s.file}`),
   ];
   writeFileSync(join(OUT, "EVIDENCE.yml"), `${evidence.join("\n")}\n`);
+  // Publish eligibility last, after all six observations and evidence metadata.
+  writeSuccessArtifact(OUT, files, fixturePayload);
   console.log(`wrote ${files.length} crops + EVIDENCE.yml at ${capturedAtHead}`);
 }
 
-module.exports = { assertNoCaptureDotenv, captureServerEnv, installCaptureBoundary, staticScriptPath, consoleErrorKind, writeFailureArtifact };
+module.exports = { assertAllSixObserved, assertNoCaptureDotenv, captureServerEnv, installCaptureBoundary, invalidateStaleOutcomeArtifacts, staticScriptPath, consoleErrorKind, writeFailureArtifact, writeSuccessArtifact, FIXTURE_TEMP };
 
 if (require.main === module) main().catch((err) => {
   console.error(err);
