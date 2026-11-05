@@ -1,3 +1,5 @@
+import { workspaceSourceClock } from "./intelligenceWorkspaceView";
+
 /** A source event remains history even when its recency changes the regime read. */
 export interface OracleHistoricalSignal {
   type: string;
@@ -20,8 +22,8 @@ export interface OracleEntryAvailability {
 export function oracleEntryAvailability(zh = false): OracleEntryAvailability {
   return {
     status: "UNAVAILABLE_DATA",
-    label: zh ? "入场机会尚未核实" : "Entry availability not verified",
-    reason: zh ? "缺少适用于神谕的当前入场数据源" : "No qualified current Oracle entry source",
+    label: zh ? "入场机会尚未核实" : "Entry unverified",
+    reason: zh ? "缺少当前神谕入场数据" : "Current Oracle entry data unavailable",
   };
 }
 
@@ -1036,16 +1038,28 @@ const ENTRY_POSTURE: Record<string, [string, string]> = {
 export function deskVerdict(intel: any, zh = false, now: number = Date.now()): Verdict {
   const lean = intel?.tape?.ai_lean;
   const dir = String(lean?.dir || "").toUpperCase();
-  const band = String(lean?.band || "").toLowerCase();
-  const entry = String(lean?.entry || "").toLowerCase();
-  const asof = (intel?.tape?.asof ?? null) as string | null;
-  const age = ageDays(asof, now);
-  const sub = asof
-    ? `${zh ? "数据截至" : "as of"} ${fmtDate(asof, zh)}${age != null ? ` · ${age}${zh ? "天" : "d"}` : ""}`
+  const band = String(lean?.band || "").trim().toLowerCase();
+  const entry = String(lean?.entry || "").trim().toLowerCase();
+  const clock = workspaceSourceClock(intel?.tape?.asof, now);
+  const sub = clock.kind === "dated"
+    ? `${zh ? "数据截至" : "as of"} ${fmtDate(clock.date, zh)} · ${clock.ageDays}${zh ? "天" : "d"}`
     : null;
+  const knownPosture = (!dir || dir === "NEUTRAL") && Object.hasOwn(ENTRY_POSTURE, entry);
+  // Previous bridge versions emitted NEUTRAL with an explicit empty band when
+  // no directional assessment existed. Older direction-only records omit band.
+  const reportedNeutral = dir === "NEUTRAL" && (!Object.hasOwn(lean, "band") || !!band);
+  const hasLean = knownPosture || dir === "BULL" || dir === "BEAR" || reportedNeutral;
+  // The bridge uses calendar sessions. A cached report may outlive its producer's window.
+  // Pre-policy research snapshots use the bridge's original five-calendar-day window.
+  const maxDays = lean?.max_age_days === undefined ? 5 : lean.max_age_days;
+  const sessionAge = clock.kind === "dated" ? Math.floor(now / DAY_MS) - Date.parse(clock.date.slice(0, 10)) / DAY_MS : null;
+  const expired = !Number.isInteger(maxDays) || maxDays < 1 || sessionAge === null || sessionAge >= maxDays;
+  if (clock.kind !== "dated" || intel?.tape?.stale || lean?.abstain || !hasLean || expired) {
+    return { label: zh ? "暂无当前判断" : "No current reading", color: "var(--muted)", raw: null, sub, dim: true };
+  }
   const score = typeof lean?.score === "number" ? lean.score : null;
   // symmetric staleness guard: a desk read older than the display threshold loses authority too
-  const dim = age != null && age > ORACLE_STALE_DAYS;
+  const dim = clock.ageDays > ORACLE_STALE_DAYS;
   const notes: string[] = [];
   // honest label: the desk score is name_score.potential_score = dip-entry READINESS
   // (it structurally rewards washed-out names), NOT directional conviction.
@@ -1062,10 +1076,10 @@ export function deskVerdict(intel: any, zh = false, now: number = Date.now()): V
 
   // NEUTRAL with a known entry posture: render the posture, not a blank "Neutral" —
   // "Neutral" on a market leader reads as an opinion; "Awaiting confluence" is the truth.
-  if ((dir === "NEUTRAL" || !dir) && Object.prototype.hasOwnProperty.call(ENTRY_POSTURE, entry)) {
+  if (knownPosture) {
     const [en, zhLbl] = ENTRY_POSTURE[entry];
     notes.push(zh ? "入场时机读数 — 非方向观点" : "entry-timing read — not a directional view");
-    return { label: zh ? zhLbl : en, color: "var(--signal)", raw: dir || "NEUTRAL", sub, dim, note: notes.join(" · ") };
+    return { label: zh ? zhLbl : en, color: "var(--signal)", raw: dir || "POSTURE", sub, dim, note: notes.join(" · ") };
   }
 
   const color = dir === "BULL" ? "var(--buy)" : dir === "BEAR" ? "var(--sell)" : "var(--signal)";
