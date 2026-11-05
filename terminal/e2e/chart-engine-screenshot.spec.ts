@@ -107,6 +107,9 @@ test("MM transparent pane repaint matches a fresh priced frame", async ({ page }
       const engine = module.createCanvasEngine(host, {
         width, height, devicePixelRatio: 1, scheduler,
         layout: { background: { color: "transparent" }, textColor: "#d6dae3" },
+        // The empty and priced first paints settle different axis widths.
+        // Keep both final frames on the same requested horizontal window.
+        timeScale: { lockVisibleTimeRangeOnResize: true },
       });
       try {
         const series = engine.addSeries("line", {
@@ -133,6 +136,7 @@ test("MM transparent pane repaint matches a fresh priced frame", async ({ page }
         const afterData = {
           scheduledCallbacksRun, rowCount: series.data().length,
           priceRange: engine.priceScale("right").getVisibleRange(),
+          logicalRange: engine.timeScale().getVisibleLogicalRange(),
         };
         return { empty, final, beforeData, afterData };
       } finally {
@@ -184,6 +188,8 @@ test("MM transparent pane repaint matches a fresh priced frame", async ({ page }
   expect(result.repainted.afterData.rowCount).toBe(result.rowCount);
   expect(result.fresh.afterData.rowCount).toBe(result.rowCount);
   expect(result.repainted.afterData.priceRange).toEqual(result.fresh.afterData.priceRange);
+  expect(result.repainted.afterData.logicalRange).toEqual({ from: 0, to: 29 });
+  expect(result.repainted.afterData.logicalRange).toEqual(result.fresh.afterData.logicalRange);
   expect(result.fresh.afterData.priceRange?.from).toBeGreaterThan(200);
   expect(pngs.repainted.equals(pngs.empty)).toBe(false);
   expect(finalPngBytesEqual, "a transparent repaint must contain exactly the fresh final frame's PNG bytes").toBe(true);
