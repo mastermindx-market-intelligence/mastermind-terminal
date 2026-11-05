@@ -8,6 +8,7 @@ import { isIntradayTf } from "@/lib/intradaySources";
 import { VISUAL_INTELLIGENCE_DEFAULTS, type VisualIntelligenceSettings } from "@/lib/visualIntelligence";
 import { useLang, useT } from "@/lib/i18n";
 import { boatsChartCopy } from "@/lib/extQuoteCopy";
+import { pick } from "@/lib/finFormat";
 import overnightStyles from "./ChartOvernight.module.css";
 import DataOriginChip from "@/components/DataOriginChip";
 import type { DataOrigin } from "@/lib/dataOrigin";
@@ -495,9 +496,9 @@ export default function ChartFrameBar({
           className="cfb-chip"
           data-testid="cfb-currency"
           aria-label={tradingCurrency
-            ? (lang === "zh" ? `交易币种：${tradingCurrency}` : `Trading currency: ${tradingCurrency}`)
-            : (lang === "zh" ? "交易币种不可用" : "Trading currency unavailable")}
-        >{tradingCurrency ?? (lang === "zh" ? "币种?" : "CCY?")}</span>
+            ? pick(lang === "zh", `Trading currency: ${tradingCurrency}`, `交易币种：${tradingCurrency}`)
+            : pick(lang === "zh", "Trading currency unavailable", "交易币种不可用")}
+        >{tradingCurrency ?? pick(lang === "zh", "CCY?", "币种?")}</span>
         {/* Gear: quick settings */}
         <div className="cfb-gear-host" ref={gearRef}>
           <button

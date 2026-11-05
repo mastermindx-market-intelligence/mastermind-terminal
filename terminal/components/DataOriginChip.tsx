@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useLang, useT } from "@/lib/i18n";
 import { originPending, type DataOrigin, type DataOriginState } from "@/lib/dataOrigin";
+import { pick } from "@/lib/finFormat";
 
 // The popover's <dl> (basis/src/as-of/generation/open) is shown only for states that
 // carried a labelled payload; pending/unavailable/composite have no payload to describe.
@@ -84,7 +85,7 @@ export default function DataOriginChip({ symbol, origin }: { symbol?: string; or
                   qualified one (exact symbol + a valid UTC-calendar last bar). */}
               {effective.sourceLastSession != null && (
                 <>
-                  <dt>{lang === "zh" ? "来源最近日线交易日" : "Source last daily session"}</dt>
+                  <dt>{pick(lang === "zh", "Source last daily session", "来源最近日线交易日")}</dt>
                   <dd><code>{effective.sourceLastSession}</code></dd>
                 </>
               )}
