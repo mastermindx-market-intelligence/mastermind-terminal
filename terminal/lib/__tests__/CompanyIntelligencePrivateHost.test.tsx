@@ -15,6 +15,7 @@ const probe = vi.hoisted(() => ({
   reads: [] as { identity: AccountIdentity; symbol: string | null }[],
   publicState: 'loading',
   privateFailure: false,
+  sharedPresentation: false,
 }));
 
 // Exercise the real host and private wrapper. Controller/decoder behavior has its
@@ -34,6 +35,16 @@ vi.mock('@/components/fin/CompanyIntelligencePrivatePanel', () => ({
 vi.mock('@/components/fin/CompanyIntelligencePage', () => ({
   default() { return <div data-public>{probe.publicState}<button>Public retry</button></div>; },
 }));
+vi.mock('@/components/fin/SharedShellCompanyIntelligence', () => ({
+  default() { return <div data-shared-public>{probe.publicState}<button>Shared public retry</button></div>; },
+}));
+vi.mock('@/components/chrome/shared-shell/SharedShellPresentation', () => ({
+  useOptionalSharedShellPresentation: () => probe.sharedPresentation ? {} : null,
+}));
+vi.mock('@/components/fin/RegionalCompanySnapshot', () => ({
+  default() { return <div data-regional-snapshot>Reported company snapshot</div>; },
+}));
+vi.mock('@/lib/useMediaQuery', () => ({ useIsMobile: () => false }));
 vi.mock('@/components/chrome/AppShell', () => ({ useShellIdentity: () => probe.identity }));
 vi.mock('@/lib/i18n', () => ({
   useLang: () => ({ lang: 'en' }),
@@ -67,7 +78,10 @@ vi.mock('@/components/fin/TechLabPanel', () => ({ default: () => null }));
 vi.mock('@/components/fin/TranscriptDrawer', () => ({ default: () => null }));
 vi.mock('@/components/fin/TranscriptsPage', () => ({ default: () => null }));
 vi.mock('@/components/fin/FinComparePage', () => ({ default: () => null }));
-vi.mock('@/components/fin/ResearchWorkspaceNav', () => ({ default: () => null }));
+vi.mock('@/components/fin/ResearchWorkspaceNav', async importOriginal => ({
+  ...await importOriginal<typeof import('@/components/fin/ResearchWorkspaceNav')>(),
+  default: () => null,
+}));
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 let root: Root;
@@ -86,6 +100,7 @@ beforeEach(() => {
   probe.reads = [];
   probe.publicState = 'loading';
   probe.privateFailure = false;
+  probe.sharedPresentation = false;
   window.history.replaceState(null, '', '/analysis');
   vi.stubGlobal('fetch', vi.fn(() => new Promise(() => {})));
   container = document.createElement('div');
@@ -134,6 +149,35 @@ describe('private intelligence in existing shared hosts', () => {
     expect(probe.reads.at(-1)?.symbol).toBe('BRK-B');
     expect(container.querySelector('[data-public]')?.textContent).toContain('error');
     expect(container.querySelector('[data-private]')?.textContent).toBe('BRK-B');
+  });
+
+  it('preserves the shared public owner beside independently enabled private intelligence', async () => {
+    probe.sharedPresentation = true;
+    probe.publicState = 'error';
+    await pane({ identity: probe.identity, privateEnabled: true });
+    expect(container.querySelector('[data-shared-public]')?.textContent).toContain('error');
+    expect(container.querySelector('[data-public]')).toBeNull();
+    expect(container.querySelector('[data-private]')?.textContent).toBe('GOOG');
+    expect(probe.reads.at(-1)).toEqual({ identity: probe.identity, symbol: 'GOOG' });
+  });
+
+  it('keeps both event owners unmounted in a regional snapshot and mounts them on explicit event selection', async () => {
+    probe.sharedPresentation = true;
+    window.history.replaceState(null, '', '/analysis?symbol=0700.HK&page=intelligence');
+    await pane({ identity: probe.identity, privateEnabled: true, sym: '0700.HK' });
+    expect(container.querySelector('[data-regional-snapshot]')).not.toBeNull();
+    expect(container.querySelector('[data-shared-public]')).toBeNull();
+    expect(container.querySelector('[data-private]')).toBeNull();
+    expect(probe.reads).toEqual([]);
+
+    const events = container.querySelector<HTMLButtonElement>('[data-ci-regional-tab="event"]');
+    expect(events).not.toBeNull();
+    await act(async () => { events!.click(); });
+    expect(new URL(window.location.href).searchParams.get('ci_view')).toBe('event');
+    expect(container.querySelector('[data-regional-snapshot]')).toBeNull();
+    expect(container.querySelector('[data-shared-public]')).not.toBeNull();
+    expect(container.querySelector('[data-private]')?.textContent).toBe('0700.HK');
+    expect(probe.reads.at(-1)).toEqual({ identity: probe.identity, symbol: '0700.HK' });
   });
 
   it('clears the private subtree when readiness is revoked or intelligence is left', async () => {

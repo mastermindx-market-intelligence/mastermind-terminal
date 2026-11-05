@@ -9,8 +9,9 @@ import {
   type RiskInputPosition,
 } from "@/lib/portfolioRisk";
 
+// Mathematical controls declare a fictional shared USD entry unit.
 const pos = (ticker: string, shares: number | null, entryPrice: number | null, status: "open" | "closed" = "open"): RiskInputPosition =>
-  ({ ticker, shares, entryPrice, status });
+  ({ ticker, shares, entryPrice, entryCurrency: "USD", status });
 
 const read = (facts: Partial<{ sector: string | null; marketCap: number | null; thinlyTraded: boolean | null }>, ticker: string): ArtifactState =>
   ({ kind: "read", facts: { ticker, sector: null, marketCap: null, thinlyTraded: null, ...facts } });
@@ -49,6 +50,78 @@ describe("computePortfolioRisk", () => {
     expect(risk.counts.total).toBe(6); // 6 open (excludes the closed one)
     expect(risk.counts.sized).toBe(5);
     expect(risk.gaps.some((g) => g.ticker === "FFF" && g.reason === "no_size")).toBe(true);
+  });
+
+  // Coverage denominators count SECURITIES, not lots: `sized`/`read` fold open lots by normalized
+  // ticker, so `total` must be the distinct normalized OPEN-ticker count — including unsized-only
+  // securities and excluding closed lots — or the coverage sentence under-reports against a
+  // phantom lot. RED on the pre-fix tree: two AAA lots + one BBB lot printed "Read 2 of 3
+  // holdings" although only two securities exist and both were read.
+  it("counts normalized open securities without hiding unsized-only records or counting closed lots", () => {
+    const book: RiskInputPosition[] = [
+      pos("AAA", 100, 100),        // complete lot 1
+      pos(" aaa ", 50, 100),       // same security under a lowercase/padded alias
+      pos("BBB", 50, 100),         // complete
+      pos("CCC", null, 100),       // unsized-only security, lot 1 -> no_size
+      pos(" ccc ", 10, null),      // unsized-only security, lot 2 -> no_size (kept per record)
+      pos("ZZZ", 1, 100, "closed"),// closed-only security: never in the denominator
+      { ...pos("AAA", 1, 100, "closed"), entryCurrency: "HKD" }, // closed lots cannot poison the open USD cohort
+    ];
+    const frozen = book.map((p) => ({ ...p }));
+    const risk = computePortfolioRisk(book, FIXTURE_ARTIFACTS);
+    // The computation is read-only: all seven input records survive untouched.
+    expect(book).toEqual(frozen);
+    expect(risk.counts).toEqual({ total: 3, sized: 2, read: 2 });
+    expect(risk.totalCost).toBe(20000);
+    expect(risk.costCurrency).toBe("USD");
+    expect(risk.concentration?.top1).toEqual({ ticker: "AAA", weightPct: 75 });
+    // Per-record gaps stay per-record: repeated missing records must not disappear just because
+    // the headline counts distinct securities.
+    expect(risk.gaps.filter((g) => g.ticker === "CCC")).toEqual([
+      { ticker: "CCC", reason: "no_size" },
+      { ticker: "CCC", reason: "no_size" },
+    ]);
+    expect(risk.gaps.some((g) => g.ticker === "ZZZ")).toBe(false);
+    expect(riskCopy(risk).coverage).toEqual({
+      en: "Read data for 2 of 3 securities. Record valuation may still be incomplete.",
+      zh: "已读取 3 只证券中 2 只的数据。持仓记录的估值仍可能不完整。",
+    });
+  });
+
+  // The currency-refusal early return must use the same security denominator. Sibling lots of ONE
+  // ticker carrying incompatible entry units withhold the whole monetary cohort — and the mixed
+  // unit is named as a per-ticker gap — while security-data coverage stays reportable and honest
+  // that this is a data read, not a valuation. RED on the pre-fix tree: this book printed
+  // total 4 — its four open lots — against 3 real securities.
+  it.each([
+    { entryCurrency: null, reason: "currency_unknown" },
+    { entryCurrency: "HKD", reason: "currency_mismatch" },
+  ] as const)("keeps security coverage separate from $reason when one ticker holds mixed-unit sibling lots", ({ entryCurrency, reason }) => {
+    const book: RiskInputPosition[] = [
+      pos("AAA", 100, 100),
+      { ...pos(" aaa ", 50, 100), entryCurrency }, // same security, incompatible/unknown unit
+      pos("BBB", 50, 100),
+      pos("CCC", null, 100),        // unsized-only security stays in the denominator
+      pos("ZZZ", 1, 100, "closed"), // closed lots stay out
+    ];
+    const risk = computePortfolioRisk(book, FIXTURE_ARTIFACTS);
+    expect(risk.counts).toEqual({ total: 3, sized: 2, read: 2 });
+    // The refused cohort withholds every monetary output, exactly as before.
+    expect(risk.totalCost).toBeNull();
+    expect(risk.costCurrency).toBeNull();
+    expect(risk.concentration).toBeNull();
+    expect(risk.sectors).toEqual([]);
+    expect(risk.sizes).toEqual([]);
+    expect(risk.liquidity).toBeNull();
+    // The refusal is disclosed per affected security; the unsized record keeps its own gap.
+    expect(risk.gaps).toContainEqual({ ticker: "AAA", reason });
+    expect(risk.gaps).toContainEqual({ ticker: "BBB", reason });
+    expect(risk.gaps).toContainEqual({ ticker: "CCC", reason: "no_size" });
+    expect(risk.gaps.some((g) => g.ticker === "ZZZ")).toBe(false);
+    expect(riskCopy(risk).coverage).toEqual({
+      en: "Read data for 2 of 3 securities. Record valuation may still be incomplete.",
+      zh: "已读取 3 只证券中 2 只的数据。持仓记录的估值仍可能不完整。",
+    });
   });
 
   it("3: sectors + sectorUncoveredPct === 100; sizes + sizeUncoveredPct === 100", () => {

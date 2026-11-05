@@ -1,6 +1,7 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { mkdirSync, writeFileSync } from "node:fs";
 import matrixFixture from "../public/data/matrix_fixture.json";
+import { openChartContext } from "./phoneChrome";
 type ChartDebugWindow = Window & {
   __mmChartAxisOpts?: () => { rowCount: number; optionsPin: { price: number; lineStyle: number } | null };
   __mmChartOwnership?: () => { orphanPricePaneLines: number; orphanSeries: number; pricePaneLines: number; trackedPricePaneLines: number; live: { priceLines: number; series: number } };
@@ -1130,6 +1131,19 @@ for (const lang of ["en", "zh"] as const) {
       expect(bodyOverflow).not.toBe("hidden");
       await page.screenshot({ path: `${crops}/pp2b-${project}-${lang}-parked.png`, fullPage: false });
 
+      // Context may read the chart while the Options sheet remains parked with A held.
+      const optionsBeforeContext = await panel.elementHandle();
+      expect(optionsBeforeContext).not.toBeNull();
+      await openChartContext(page, lang);
+      const contextReader = page.locator("[data-context-reader]");
+      await expect(contextReader).toBeVisible();
+      await expect(page.locator("[data-detent]")).toHaveCSS("visibility", "hidden");
+      expect(await page.evaluate(() => document.body.style.overflow)).not.toBe("hidden");
+      await expect(chip).toHaveCount(0);
+      expect(await optionsBeforeContext!.evaluate((el) => el.isConnected && document.querySelector("[data-options-companion]") === el)).toBe(true);
+      await expect.poll(async () => (await chartPin(page))?.price).toBe(780);
+      expect((await chartPin(page))?.lineStyle).toBe(2);
+
       current = buildB;
       const [, ] = await Promise.all([
         page.waitForResponse(/\/api\/flow\?f=matrix(?::|%3A)SPY/, { timeout: 10_000 }),
@@ -1139,6 +1153,10 @@ for (const lang of ["en", "zh"] as const) {
       await expect(panel.getByTestId("options-newer-snapshot")).toContainText(ISO_B);
       await expect.poll(async () => (await chartPin(page))?.price).toBe(780);
 
+      await contextReader.getByRole("button", { name: lang === "zh" ? "关闭图表解读" : "Close chart context", exact: true }).click();
+      await expect(contextReader).toHaveCount(0);
+      await expect(chip).toBeVisible();
+      expect(await optionsBeforeContext!.evaluate((el) => el.isConnected && document.querySelector("[data-options-companion]") === el)).toBe(true);
       await chip.click();
       const companionConnected = await page.evaluate(() => {
         const el = document.querySelector("[data-options-companion]") as HTMLElement | null;
@@ -1276,6 +1294,21 @@ for (const lang of ["en", "zh"] as const) {
     expect(cBox!.width).toBeGreaterThan(0);
     expect(cBox!.height).toBeGreaterThan(0);
     await page.mouse.click(cBox!.x + cBox!.width / 2, cBox!.y + cBox!.height / 2);
+
+    // Replacing the rail view with Context must preserve the real Options instance.
+    const optionsBeforeContext = await panel.elementHandle();
+    expect(optionsBeforeContext).not.toBeNull();
+    await openChartContext(page, lang);
+    const contextReader = page.locator("[data-context-reader]");
+    await expect(contextReader).toBeVisible();
+    await expect(panel).toBeHidden();
+    expect(await optionsBeforeContext!.evaluate((el) => el.isConnected && document.querySelector("[data-options-companion]") === el)).toBe(true);
+    await expect.poll(async () => (await chartPin(page))?.price).toBe(780);
+    expect((await chartPin(page))?.lineStyle).toBe(2);
+    await contextReader.getByRole("button", { name: lang === "zh" ? "关闭图表解读" : "Close chart context", exact: true }).click();
+    await expect(contextReader).toHaveCount(0);
+    await expect(panel).toBeVisible();
+    expect(await optionsBeforeContext!.evaluate((el) => el.isConnected && document.querySelector("[data-options-companion]") === el)).toBe(true);
     const railDeltas = await page.evaluate(() => {
       const stored = (window as unknown as { __pp2bRailScrollers: Array<{ el: HTMLElement; scrollTop: number; scrollLeft: number }> }).__pp2bRailScrollers ?? [];
       return stored.map((entry) => ({ connected: entry.el.isConnected, dTop: entry.el.scrollTop - entry.scrollTop, dLeft: entry.el.scrollLeft - entry.scrollLeft }));

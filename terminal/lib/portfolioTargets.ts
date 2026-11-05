@@ -13,6 +13,7 @@
 // allocatePercentages (that is reserved for stacked bars that must visually sum to 100).
 
 import { tickerKey, type Lang, type Bilingual, type RiskInputPosition } from "@/lib/portfolioRisk";
+import { positiveCostCohort, type CostGap } from "@/lib/portfolioMoney";
 
 export type { Lang, Bilingual };
 
@@ -21,6 +22,7 @@ export type NumericField =
   | { kind: "invalid" };
 
 export type PortfolioTarget = {
+  roleLabel?: string | null;
   ticker: string;
   targetWeightPct: number;
   bandPct: number;
@@ -30,6 +32,7 @@ export type PortfolioTarget = {
 export type TargetStatus = "within_band" | "outside_band" | "unweighable";
 
 export type TargetDrift = {
+  roleLabel?: string | null;
   ticker: string;
   currentWeightPct: number | null;
   targetWeightPct: number;
@@ -39,11 +42,14 @@ export type TargetDrift = {
 };
 
 export type UntargetedHolding = { ticker: string; currentWeightPct: number | null };
-export type OrphanedTarget = { ticker: string; targetWeightPct: number; bandPct: number };
+export type OrphanedTarget = { roleLabel?: string | null; ticker: string; targetWeightPct: number; bandPct: number };
 
 export interface PortfolioTargetsSummary {
   schema: "portfolio_targets.v1";
+  roleLabelsAvailable?: boolean;
   weightBasis: "cost";
+  costCurrency?: string | null;
+  costGap?: CostGap | null;
   targetsSumPct: number | null;
   targetsSumOffBy100: number | null;
   drifts: TargetDrift[];
@@ -57,16 +63,20 @@ export interface PortfolioTargetsSummary {
 export function isPortfolioTargetsSummary(value: unknown): value is PortfolioTargetsSummary {
   const record = (item: unknown): item is Record<string, unknown> =>
     item !== null && typeof item === "object" && !Array.isArray(item);
+  const validRole = (item: unknown) => item === undefined || item === null || typeof item === "string" && Array.from(item).length <= 48 && !/[\u0000-\u001f\u007f-\u009f]/u.test(item);
   const nullableNumber = (item: unknown) => item === null || isFiniteNum(item);
   const ticker = (item: unknown) => typeof item === "string" && item.trim().length > 0;
   return record(value)
     && value.schema === "portfolio_targets.v1"
     && value.weightBasis === "cost"
+    && (value.roleLabelsAvailable === undefined || typeof value.roleLabelsAvailable === "boolean")
+    && (value.costGap === undefined || value.costGap === null
+      || value.costGap === "currency_unknown" || value.costGap === "currency_mismatch" || value.costGap === "amount_overflow")
     && nullableNumber(value.targetsSumPct)
     && nullableNumber(value.targetsSumOffBy100)
     && Array.isArray(value.drifts)
     && value.drifts.every((row: unknown) => record(row)
-      && ticker(row.ticker) && nullableNumber(row.currentWeightPct)
+      && ticker(row.ticker) && validRole(row.roleLabel) && nullableNumber(row.currentWeightPct)
       && isFiniteNum(row.targetWeightPct) && isFiniteNum(row.bandPct)
       && nullableNumber(row.driftPct)
       && (row.status === "within_band" || row.status === "outside_band" || row.status === "unweighable"))
@@ -75,7 +85,7 @@ export function isPortfolioTargetsSummary(value: unknown): value is PortfolioTar
       && ticker(row.ticker) && nullableNumber(row.currentWeightPct))
     && Array.isArray(value.orphaned)
     && value.orphaned.every((row: unknown) => record(row)
-      && ticker(row.ticker) && isFiniteNum(row.targetWeightPct) && isFiniteNum(row.bandPct));
+      && ticker(row.ticker) && validRole(row.roleLabel) && isFiniteNum(row.targetWeightPct) && isFiniteNum(row.bandPct));
 }
 
 export const DEFAULT_BAND_PCT = 5;
@@ -124,6 +134,7 @@ export function computePortfolioTargets(
   targets: readonly PortfolioTarget[],
 ): PortfolioTargetsSummary {
   const open = positions.filter((p) => p.status === "open");
+  const cohort = positiveCostCohort(open);
   const costByTicker = new Map<string, number>();
   const openTickers = new Set<string>();
   for (const p of open) {
@@ -139,7 +150,7 @@ export function computePortfolioTargets(
     if (cost == null || !(cost > 0)) continue;
     costByTicker.set(key, (costByTicker.get(key) ?? 0) + cost);
   }
-  const totalCost = [...costByTicker.values()].reduce((a, c) => a + c, 0);
+  const totalCost = cohort.money?.amount ?? 0;
   const pctOf = (cost: number): number | null =>
     totalCost > 0 ? round1((cost / totalCost) * 100) : null;
 
@@ -157,6 +168,7 @@ export function computePortfolioTargets(
     if (!hasOpen) {
       orphaned.push({
         ticker: key,
+        ...(t.roleLabel !== undefined ? { roleLabel: t.roleLabel } : {}),
         targetWeightPct: t.targetWeightPct,
         bandPct: t.bandPct,
       });
@@ -169,6 +181,7 @@ export function computePortfolioTargets(
     if (currentWeightPct == null) {
       drifts.push({
         ticker: key,
+        ...(t.roleLabel !== undefined ? { roleLabel: t.roleLabel } : {}),
         currentWeightPct: null,
         targetWeightPct: t.targetWeightPct,
         bandPct: t.bandPct,
@@ -181,6 +194,7 @@ export function computePortfolioTargets(
     const status: TargetStatus = Math.abs(driftPct) <= t.bandPct ? "within_band" : "outside_band";
     drifts.push({
       ticker: key,
+      ...(t.roleLabel !== undefined ? { roleLabel: t.roleLabel } : {}),
       currentWeightPct,
       targetWeightPct: t.targetWeightPct,
       bandPct: t.bandPct,
@@ -205,6 +219,8 @@ export function computePortfolioTargets(
   return {
     schema: "portfolio_targets.v1",
     weightBasis: "cost",
+    costCurrency: cohort.money?.currency ?? null,
+    costGap: cohort.reason,
     targetsSumPct,
     targetsSumOffBy100,
     drifts,
@@ -240,8 +256,8 @@ export const T_BAND: Bilingual = { en: "Your band", zh: "你的容忍区间" };
 export const T_WITHIN: Bilingual = { en: "Inside your band", zh: "在容忍区间内" };
 export const T_OUTSIDE: Bilingual = { en: "Outside your band", zh: "超出容忍区间" };
 export const T_UNWEIGHABLE: Bilingual = {
-  en: "No share count or entry price yet — this target can't be measured.",
-  zh: "还没有记录股数或建仓价，暂时无法衡量这个目标。",
+  en: "Current weight unavailable.",
+  zh: "暂无法计算当前权重。",
 };
 export const T_UNTARGETED_HEADER: Bilingual = {
   en: "Holdings with no target set",
@@ -254,8 +270,8 @@ export const T_UNTARGETED_HINT: Bilingual = {
 /** Round-2 ruling R6 (c): a holding with no weight must not be described with the ordinary hint,
  *  whose "{pct}%" slot degrades to an em dash beside a percent sign. */
 export const T_UNTARGETED_HINT_UNWEIGHABLE: Bilingual = {
-  en: "{ticker} — not weighable yet (size or price missing).",
-  zh: "{ticker}——暂时无法计算权重（缺少数量或价格）。",
+  en: "{ticker} — current weight unavailable.",
+  zh: "{ticker} · 暂无法计算当前权重。",
 };
 export const T_ORPHANED_HEADER: Bilingual = {
   en: "Targets on positions you no longer hold",
@@ -276,6 +292,24 @@ export const T_NO_TARGETS: Bilingual = {
 export const T_EMPTY_BOOK: Bilingual = {
   en: "Add a position with a share count and entry price to start setting targets.",
   zh: "先为持仓添加股数和建仓价，才能开始设定目标。",
+};
+export const T_POSITIVE_COST_NEEDED: Bilingual = {
+  en: "Current weights require positive, comparable entry costs.",
+  zh: "当前权重需要按正值且可比较的入场成本计算。",
+};
+const COST_NOTICES: Record<CostGap, Bilingual> = {
+  currency_unknown: {
+    en: "Current weights are unavailable because some entry currencies are not recorded.",
+    zh: "部分入场价格未记录币种，暂无法计算当前权重。",
+  },
+  currency_mismatch: {
+    en: "Current weights are unavailable because entry costs use different currencies. No currency conversion is applied.",
+    zh: "入场成本使用不同币种，暂无法计算当前权重。未进行货币换算。",
+  },
+  amount_overflow: {
+    en: "Current weights are unavailable because recorded entry costs exceed the supported numeric range.",
+    zh: "记录的入场成本超出支持的数值范围，暂无法计算当前权重。",
+  },
 };
 export const T_UNAVAILABLE: Bilingual = {
   en: "We could not read your targets in time. It will try again next time you reload.",
@@ -311,8 +345,14 @@ export const T_SAVED: Bilingual = { en: "Saved", zh: "已保存" };
  *  confirmation. Same flash slot, same duration, its own sentence. */
 export const T_CLEARED: Bilingual = { en: "Target cleared.", zh: "已清除目标。" };
 export const T_SAVE_FAIL: Bilingual = {
-  en: "Could not save. Your target was not changed.",
-  zh: "保存失败，你的目标未被修改。",
+  en: "We couldn't confirm this change. Refresh to check your saved target.",
+  zh: "无法确认此次更改。请刷新以核对已保存的目标。",
+};
+/** The fixed stale-owner precondition (011 F7): a target write refused because the account
+ *  changed must not read as an ordinary failure that invites a blind retry. */
+export const T_ERR_OWNER_MISMATCH: Bilingual = {
+  en: "The account changed while this target was being saved, so the target was not applied. Check the account shown above before trying again.",
+  zh: "保存目标时账户已切换，目标未生效。请先核对当前显示的账户，再决定是否重试。",
 };
 
 function fill(b: Bilingual, vars: Record<string, string>): Bilingual {
@@ -347,7 +387,7 @@ export function targetsCopy(
   _lang: Lang,
   options: TargetsCopyOptions = {},
 ): {
-  title: Bilingual; standing: Bilingual; basis: Bilingual;
+  title: Bilingual; standing: Bilingual; basis: Bilingual; costNotice: Bilingual | null;
   rows: { ticker: string; current: Bilingual | null; target: Bilingual; drift: Bilingual | null;
     band: Bilingual; status: Bilingual; unweighableNote: Bilingual | null }[];
   untargeted: { header: Bilingual; rows: { ticker: string; hint: Bilingual }[] } | null;
@@ -395,10 +435,9 @@ export function targetsCopy(
     }
     : null;
 
-  // R1 / R6 (a): the lead sentence. T_NO_TARGETS was unreachable because it was only consulted on
-  // the branch where every list was empty. It now speaks for the real "you hold weighable
-  // positions and have set no targets" state, while T_EMPTY_BOOK covers every case with nothing
-  // weighable to measure against — including a book emptied down to orphaned targets alone.
+  // An unavailable common cost basis does not make an existing book empty.
+  const costNotice = summary.costGap ? COST_NOTICES[summary.costGap] : null;
+  const hasOpenHoldings = summary.drifts.length > 0 || summary.untargeted.length > 0;
   const hasWeighable = summary.drifts.some((d) => d.currentWeightPct != null)
     || summary.untargeted.some((u) => u.currentWeightPct != null);
 
@@ -413,14 +452,17 @@ export function targetsCopy(
     ? fill(T_SUM_NOTE, { sum: fmtPct(roundedSum) })
     : null;
 
-  const emptyState = !hasWeighable
+  const emptyState = !hasOpenHoldings
     ? T_EMPTY_BOOK
-    : (summary.drifts.length === 0 && summary.orphaned.length === 0 ? T_NO_TARGETS : null);
+    : !hasWeighable
+      ? costNotice ? null : T_POSITIVE_COST_NEEDED
+      : (summary.drifts.length === 0 && summary.orphaned.length === 0 ? T_NO_TARGETS : null);
 
   return {
     title: T_TITLE,
     standing: T_STANDING,
     basis: options.shapeReadoutVisible ? T_BASIS : T_BASIS_SHORT,
+    costNotice,
     rows,
     untargeted,
     orphaned,
@@ -462,5 +504,6 @@ export function apiErrorCopy(error: string): Bilingual {
   if (error === "invalid band") return T_ERR_INVALID_BAND;
   if (error === "not a current holding") return T_ERR_NOT_HOLDING;
   if (error === "target not found") return T_ERR_NOT_FOUND;
+  if (error === "owner mismatch") return T_ERR_OWNER_MISMATCH;
   return T_SAVE_FAIL;
 }

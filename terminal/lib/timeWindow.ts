@@ -82,6 +82,38 @@ export function timeAtLogical(clock: AxisClock, logical: number): number {
 }
 
 /** Fractional logical index at an epoch-ms instant — the exact inverse of `timeAtLogical`. */
+type LogicalHint = { ms: number; logical: number };
+
+// AxisClock instances are long-lived for one unchanged pane generation. Range events during a pan
+// repeatedly ask for two nearby inverse mappings, so keep only those two recent answers. Hints are
+// never authority: their surrounding timestamps are re-read and must still bracket the requested
+// instant, otherwise the exact binary search below runs unchanged. WeakMap keeps clock lifetime as
+// the cache lifetime and cannot retain a retired pane.
+const LOGICAL_HINTS = new WeakMap<AxisClock, LogicalHint[]>();
+
+function rememberLogicalHint(clock: AxisClock, ms: number, logical: number) {
+  if (!Number.isFinite(ms) || !Number.isFinite(logical)) return;
+  const previous = LOGICAL_HINTS.get(clock) ?? [];
+  const next = [{ ms, logical }, ...previous.filter((h) => h.ms !== ms)].slice(0, 2);
+  LOGICAL_HINTS.set(clock, next);
+}
+
+function logicalFromHint(clock: AxisClock, ms: number): number {
+  const hints = LOGICAL_HINTS.get(clock);
+  if (!hints?.length) return NaN;
+  // A viewport alternates left/right endpoints. Choosing by the requested timestamp makes the
+  // previous left edge feed the next left edge and likewise for the right edge.
+  const candidates = [...hints].sort((a, b) => Math.abs(a.ms - ms) - Math.abs(b.ms - ms));
+  for (const hint of candidates) {
+    const i = Math.max(clock.first, Math.min(clock.last - 1, Math.floor(hint.logical)));
+    const a = clock.msAt(i);
+    const b = clock.msAt(i + 1);
+    if (!Number.isFinite(a) || !Number.isFinite(b) || !(b > a) || ms < a || ms > b) continue;
+    return i + (ms - a) / (b - a);
+  }
+  return NaN;
+}
+
 export function logicalAtTime(clock: AxisClock, ms: number): number {
   if (!usable(clock) || !Number.isFinite(ms)) return NaN;
   const msFirst = clock.msAt(clock.first);
@@ -89,6 +121,13 @@ export function logicalAtTime(clock: AxisClock, ms: number): number {
   if (!Number.isFinite(msFirst) || !Number.isFinite(msLast)) return NaN;
   if (ms <= msFirst) return clock.first + (ms - msFirst) / clock.step;
   if (ms >= msLast) return clock.last + (ms - msLast) / clock.step;
+
+  const hinted = logicalFromHint(clock, ms);
+  if (Number.isFinite(hinted)) {
+    rememberLogicalHint(clock, ms, hinted);
+    return hinted;
+  }
+
   // bracket the instant: invariant msAt(lo) <= ms <= msAt(hi)
   let lo = clock.first;
   let hi = clock.last;
@@ -101,7 +140,9 @@ export function logicalAtTime(clock: AxisClock, ms: number): number {
   const a = clock.msAt(lo);
   const b = clock.msAt(hi);
   if (!Number.isFinite(a) || !Number.isFinite(b)) return NaN;
-  return b > a ? lo + (ms - a) / (b - a) : lo;
+  const logical = b > a ? lo + (ms - a) / (b - a) : lo;
+  rememberLogicalHint(clock, ms, logical);
+  return logical;
 }
 
 /** The calendar window a chart is currently showing, from its live logical range. */

@@ -7,18 +7,18 @@
     "terminal/e2e/alerts-mutation-races.spec.ts": "c32fa08fdfc99a5b060ec96ada99e795c67b724161ea9a791f529bc08643d3ba"
   },
   "captures": {
-    "desktop-en-deleted-row.png": "cb42eccd8ec5788ce36e8e77240603f8f6d2d8bb2b6f3e06292213590d928372",
-    "desktop-en-newer-draft.png": "d0f784eea3f30e558902ecacbb393c76bcd098ce913b801b26526d54575a6ef3",
-    "desktop-zh-deleted-row.png": "caa369a1c24e24f2f981d5bb77967fc19399ccbe12a6169b5f2b22d6f4845743",
-    "desktop-zh-newer-draft.png": "d7810b4fb74ed1740b4928b8cc525f6496a353d707e655386e0bdd57b960f36e",
-    "mobile-en-deleted-row.png": "6f67c7577185a6b0d3a1cfab282b0e644ace50be49f9eb4cd7f4e7c8c58f1f00",
-    "mobile-en-newer-draft.png": "992f13612b57033f9681facdadc7c639eb681efda381de943ab70d87c10dd67e",
-    "mobile-zh-deleted-row.png": "f2ffbb142e27a7a8d8a714076b11097293f8166389f40e4a72ceb2956a0664bd",
-    "mobile-zh-newer-draft.png": "8728cf3d06a01b855ec8e145aba28a925790c94c8b2c130c8e6bbff6476c38a3",
-    "tablet-en-deleted-row.png": "f7e1c7c2a0f7bffaae5997d8c1abe3a72f1fbf789741e527c248abc8eefe5878",
-    "tablet-en-newer-draft.png": "1d565a8fdcf7323b0f848bd7a6df5b16d27c5d5acc60f18f3161612945dbd546",
-    "tablet-zh-deleted-row.png": "06a5614b1e376a69ba1c59b8aae6d9e3c93f3a25d8590722faf3d5b453cea5a9",
-    "tablet-zh-newer-draft.png": "05f71d899b04b5323e4684bf7c252b322777771d8f3d011d5fbe142e8a011835"
+    "desktop-en-deleted-row.png": "68dfd10a4c57f2483a6697392a3e65b14daf7f7fdf87b625c925773fcd1e60b1",
+    "desktop-en-newer-draft.png": "58e5199185cee491c7fc2a1fa4f7fe4406b6ce2ea9c94b4cd10f57c14324316d",
+    "desktop-zh-deleted-row.png": "6dc219a836273792582038af78370ace1cc2a237be4c842b55b0a0c7d398f800",
+    "desktop-zh-newer-draft.png": "c65e0457ed7fb6c7ee43ed8c59d8a0d7d7735396283520b9f023f922a8d460c5",
+    "mobile-en-deleted-row.png": "282ea2b335d47ee2ea6311cfddf9d6d0ef8b43915fefa1040c0b69376bfd4ea4",
+    "mobile-en-newer-draft.png": "ead235869895d4ed31658b0d6548f131db8f7e4d08e2714cb9498f8de5ca45ce",
+    "mobile-zh-deleted-row.png": "1b2998fdbdda4860304de97574472159e8166a32021b552a6c7356d3deff3118",
+    "mobile-zh-newer-draft.png": "9e82d885fa400250d50a0f2da8396e713bdcc2a4e664177a16e5342afdaa859d",
+    "tablet-en-deleted-row.png": "79a0028eaa601afd856882ccd4d965e832786cd8901a2c602900e98222d9c3f4",
+    "tablet-en-newer-draft.png": "8223f019b7d725427a3f03f024898ebf4bc5c33e81a67b68f31aa01a84b2d93c",
+    "tablet-zh-deleted-row.png": "c92a5ba5bc5f05df86ba27b9b79444becfe890f58ff6f451eab42bcd18f69a26",
+    "tablet-zh-newer-draft.png": "9dd4a911996ed21ba3485bb57dd564a698df20b0dd8c3112416214da458c03eb"
   },
   "baseline": {
     "race_failures": 6,
@@ -29,12 +29,22 @@
   "production": false,
   "theme": "Existing dark Terminal surface; no styles changed",
   "recapture": {
-    "reason": "E20 landing train 2 merged E17 into AlertsView.tsx, a locked source; crops regenerated on the merged tree, never copied from either parent",
-    "capturedAtHead": "1bfb1c7f4b08d9d375eec15be88467d645ec8f6c",
-    "capturedAt": "2026-10-11T20:49:05.333597+00:00",
-    "command": "TERMINAL_E2E_PORT=47310 npx playwright test e2e/alerts-mutation-races.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0",
+    "reason": "E20 landing train 3 merged E18, which adds the 'Manage several alerts' card to the alerts page. That page is not one of the locked sources, but these full-page captures include the card, so all twelve were regenerated on the train 3 tree, never copied from either parent",
+    "capturedAtHead": "8753bbf7fe0642434fedcefe30a12a2384611a1c",
+    "capturedAt": "2026-10-11T23:28:21.323070+00:00",
+    "command": "CI=1 TERMINAL_E2E_PORT=47320 npx playwright test e2e/alerts-mutation-races.spec.ts --project=<desktop|tablet|mobile> --workers=1 --retries=0 (inside the train 3 cold e2e run, one project per run, after rm -rf .next/dev)",
     "responsive_browser_checks_passed": 12,
     "responsive_browser_checks_failed": 0,
-    "historical_fields": "base, baseline and fixed_component_checks describe the original #931 qualification"
+    "source_locks": "unchanged; all three locked sources match source_sha256",
+    "historical_fields": "base, baseline and fixed_component_checks describe the original #931 qualification",
+    "priorRecapture": {
+      "reason": "E20 landing train 2 merged E17 into AlertsView.tsx, a locked source; crops regenerated on the merged tree, never copied from either parent",
+      "capturedAtHead": "1bfb1c7f4b08d9d375eec15be88467d645ec8f6c",
+      "capturedAt": "2026-10-11T20:49:05.333597+00:00",
+      "command": "TERMINAL_E2E_PORT=47310 npx playwright test e2e/alerts-mutation-races.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0",
+      "responsive_browser_checks_passed": 12,
+      "responsive_browser_checks_failed": 0,
+      "historical_fields": "base, baseline and fixed_component_checks describe the original #931 qualification"
+    }
   }
 }
