@@ -83,3 +83,36 @@ test("foreign routes and optimizer URLs abort without fetching, and sockets clos
   context.registered.socket({ close: () => { closed = true; }, connectToServer: () => { throw new Error("must not connect"); } });
   assert.equal(closed, true);
 });
+
+test("startup waits for the normal component interception event, without issuing a request", async () => {
+  const context = contextDouble(); const counts = await installCaptureBoundary(context);
+  let resolved = false;
+  const waiting = counts.waitForBusinessRequest(1000).then(() => { resolved = true; });
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(resolved, false);
+  assert.equal(counts.businessUnavailable, 0);
+  // Synthetic route double only: no browser, app, socket or HTTP request exists.
+  const route = requestDouble("http://127.0.0.1:3565/data/NVDA.fund.json", "fetch");
+  await context.registered.request(route); await waiting;
+  assert.equal(counts.businessUnavailable, 1);
+  assert.equal(resolved, true);
+  assert.equal(Object.hasOwn({ ...counts }, "waitForBusinessRequest"), false);
+});
+test("no-interception and blocked-script cases keep the positive guard failing", async () => {
+  const context = contextDouble(); const counts = await installCaptureBoundary(context);
+  const blockedScript = requestDouble("https://foreign.invalid/app.js", "script");
+  await context.registered.request(blockedScript);
+  await assert.rejects(counts.waitForBusinessRequest(1), { message: "F11_BUSINESS_REQUEST_BOUNDARY_NOT_EXERCISED" });
+  assert.deepEqual(blockedScript.calls.map(c => c[0]), ["abort"]);
+  assert.equal(counts.businessUnavailable, 0);
+});
+
+test("chrome, foreign and other-symbol reads never substitute for the actual NVDA component event", async () => {
+  const context = contextDouble(); const counts = await installCaptureBoundary(context);
+  for (const url of ["http://127.0.0.1:3565/api/me", "http://127.0.0.1:3565/data/AAPL.fund.json", "https://foreign.invalid/data/NVDA.fund.json"]) {
+    await context.registered.request(requestDouble(url, "fetch"));
+  }
+  assert.equal(counts.businessUnavailable, 3);
+  assert.equal(counts.componentFundUnavailable, 0);
+  await assert.rejects(counts.waitForBusinessRequest(1), { message: "F11_BUSINESS_REQUEST_BOUNDARY_NOT_EXERCISED" });
+});

@@ -153,7 +153,17 @@ async function assertNoNextIndicator(page, file) {
 
 async function installCaptureBoundary(context, base = BASE) {
   const { classifyRequest, typedUnavailablePayload } = require("./f11_provider_closed_policy.cjs");
-  const counts = { forwarded: 0, unavailable: 0, aborted: 0, webSocketsBlocked: 0, redirectOrBadStatus: 0 };
+  const counts = { forwarded: 0, unavailable: 0, businessUnavailable: 0, componentFundUnavailable: 0, aborted: 0, webSocketsBlocked: 0, redirectOrBadStatus: 0 };
+  let signalBusinessRequest;
+  const observedBusinessRequest = new Promise(resolve => { signalBusinessRequest = resolve; });
+  Object.defineProperty(counts, "waitForBusinessRequest", { value: async (timeoutMs = 10_000) => {
+    let timer;
+    try {
+      await Promise.race([observedBusinessRequest, new Promise((resolve, reject) => {
+        timer = setTimeout(() => reject(new Error("F11_BUSINESS_REQUEST_BOUNDARY_NOT_EXERCISED")), timeoutMs);
+      })]);
+    } finally { clearTimeout(timer); }
+  } });
   if (typeof context.routeWebSocket !== "function") throw new Error("F11_WEBSOCKET_BOUNDARY_UNSUPPORTED");
   // The crop needs no live stream, including dev HMR. Block before a socket connects.
   await context.routeWebSocket("**/*", (socket) => { counts.webSocketsBlocked++; socket.close(); });
@@ -162,7 +172,17 @@ async function installCaptureBoundary(context, base = BASE) {
     const decision = classifyRequest({ url: request.url(), method: request.method(), resourceType: request.resourceType() }, base);
     if (decision.decision === "fulfill") {
       counts.unavailable++;
-      return route.fulfill({ status: 503, contentType: "application/json", headers: { "Cache-Control": "no-store" }, body: JSON.stringify(typedUnavailablePayload()) });
+      await route.fulfill({ status: 503, contentType: "application/json", headers: { "Cache-Control": "no-store" }, body: JSON.stringify(typedUnavailablePayload()) });
+      // Observe only the component's normal business reads, never issue a probe.
+      const intercepted = new URL(request.url());
+      if (intercepted.pathname.startsWith("/api/") || intercepted.pathname.startsWith("/data/")) counts.businessUnavailable++;
+      // AnalysisWorkspace calls getFund(sym) from its settled-symbol effect;
+      // fund.ts owns this exact URL. Chrome/other-symbol reads are not this proof.
+      if (intercepted.origin === base && intercepted.pathname === `/data/${SYM}.fund.json`) {
+        counts.componentFundUnavailable++;
+        signalBusinessRequest();
+      }
+      return;
     }
     if (decision.decision === "continue") {
       // Only policy-qualified loopback documents/assets reach this call. Do not
@@ -218,7 +238,7 @@ async function shoot(page, file) {
   await assertNoNextIndicator(page, file);
   await page.mouse.move(0, 0);
   await page.waitForTimeout(200);
-  await page.screenshot({ path: join(OUT, file) });
+  return page.screenshot({ path: join(OUT, file) });
 }
 
 async function main() {
@@ -246,16 +266,24 @@ async function main() {
         await context.addCookies([{ name: "mm_e2e_rs30", value: "1", url: BASE }]);
         const page = await context.newPage();
         page.setDefaultTimeout(45_000);
+        const pageErrorNames = [];
+        page.on("pageerror", error => {
+          const known = ["Error", "TypeError", "ReferenceError", "SyntaxError", "RangeError", "URIError", "EvalError"];
+          pageErrorNames.push(known.includes(error.name) ? error.name : "Error");
+        });
         try {
           const entry = await openAnalysis(page, shot.lang, VIEWPORTS[shot.viewport]);
-          await shoot(page, shot.file);
-          if (boundaryCounts.unavailable < 1) throw new Error("F11_BUSINESS_REQUEST_BOUNDARY_NOT_EXERCISED");
+          await boundaryCounts.waitForBusinessRequest();
+          if (pageErrorNames.length) throw new Error("F11_PAGE_SCRIPT_ERROR");
+          const image = await shoot(page, shot.file);
+          if (boundaryCounts.componentFundUnavailable < 1) throw new Error("F11_BUSINESS_REQUEST_BOUNDARY_NOT_EXERCISED");
           if (boundaryCounts.redirectOrBadStatus !== 0) throw new Error("F11_ALLOWED_ROUTE_DID_NOT_RETURN_200");
           files.push(shot.file);
-          entryObservations.push({ file: shot.file, viewport: VIEWPORTS[shot.viewport], ...entry, requestBoundary: { ...boundaryCounts } });
+          entryObservations.push({ file: shot.file, viewport: VIEWPORTS[shot.viewport], ...entry, requestBoundary: { ...boundaryCounts }, pageErrorNames, image: { bytes: image.length, sha256: createHash("sha256").update(image).digest("hex") } });
           console.log("ok");
         } catch (err) {
           console.log(`FAIL ${err && err.message ? err.message : err}`);
+          console.error("F11_CAPTURE_DIAGNOSTICS " + JSON.stringify({ file: shot.file, requestBoundary: { ...boundaryCounts }, pageErrorNames }));
           try {
             await page.screenshot({ path: join(OUT, `FAIL-${shot.file}`), fullPage: false });
           } catch { /* ignore */ }
