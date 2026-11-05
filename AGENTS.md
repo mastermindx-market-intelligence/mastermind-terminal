@@ -4,6 +4,41 @@ This repository and Macro Dashboard are operated by multiple Claude accounts and
 Codex sessions. Repository files are the durable, shared source of instructions;
 promises or “memory” recorded only inside one chat do not carry to another session.
 
+## Assigned Meta-CEO and economical Fabric delegation (2026-10-12)
+
+Only a **currently assigned** principal or AI CEO owns architectural choices,
+decomposition, review and integration — in Codex, in Claude, in an attended
+ChatGPT Web session or in an admitted Fabric session. Assignment is the fence;
+a client list is not. A normal Terminal worker does not self-promote because it
+is running in Codex or Claude or on a frontier model. Reuse protected Mastermind
+`docs/sol_skills/WEB_CEO_DELEGATION.md` and its routing/authority companions;
+Terminal has no second Fabric scheduler or grant system.
+
+For independently verifiable, bounded C0/C1/C2 implementation, research,
+testing, debugging or review, the assigned principal makes the paid Fabric
+delegation decision **before spending substantial frontier principal turns**.
+An enrolled Codex session uses the existing `mastermind-fabric-delegate` skill
+and installed `fabric_task.py` adapter with its verified current
+`CODEX_THREAD_ID` root, stable child ID and original parent; an assigned Claude
+session uses its own installed delegation skill and already admitted
+Executive/Fabric path, never guessing a parent. Those paths apply only inside
+that actual harness and existing admission — the Executive/Capacity path
+remains the owner of admission and placement, and an installed skill or adapter
+is not itself admission. A native child is not an external Fabric worker and
+is reserved for genuine coordinator/judgment needs. Never duplicate an existing
+run, change carrier after `EFFECT_UNKNOWN`, or bypass a provider/tool/permission
+refusal.
+
+The principal retains real architectural decisions and reconciles compact
+worker returns (exact source hash, test evidence, result, gaps, effects, next
+parent decision), leaving full logs outside principal context. Maintain durable
+decisions in the canonical Macro Agent OS, not a Terminal-local memory mirror.
+Do not spawn just to fill 114 Ubuntu ceilings; consider genuine independent
+ready work, thermal/disk/provider constraints, shared worktree custody, cost
+and the parent's review capacity. These source instructions do not install a
+plugin, prove a live Codex adopter, alter native model defaults or authorize
+merges/deployments.
+
 ## Session-owned PR/source review (Chairman 2026-11-03)
 
 The assigned attended CEO Web session owns the actual source diff, self-review, focused tests, required CI and authorized release. **FAST, STANDARD, and CRITICAL do not impose a blanket independent technical reviewer, Fabric/Dot/native-child handoff or additional formal non-author approval on attended Web work.** A risk tier still determines proportionate security, regression and real-path proof; incomplete source is HOLD, not a shortcut. A different ChatGPT Web, Codex or Claude top-level session is never the default review prerequisite. Existing native GitHub/CODEOWNERS approvals, recorded release/security holds, exact-head CI, source custody and non-author merge authority remain binding; never self-approve, self-merge or bypass a required control. This attended-session waiver does not disable the separate signed automatic GitHub/Executive machine review path.
@@ -20,13 +55,18 @@ The assigned session owns the original PR through qualified source/tests, failin
 
 1. Read `terminal/AGENTS.md` and `terminal/CLAUDE.md` in full before changing the
    Next.js application.
-2. Treat local Claude project memory as optional context, not a startup or
-   delivery gate. The historical index at
+2. Recover current source, the exact assigned task and any existing Macro Agent OS
+   workstream before using account-local notes. Treat local Claude project memory
+   as optional context, not a startup or delivery gate: it is optional historical
+   context for an eligible Claude session, not a mandatory startup dependency for
+   Codex, ChatGPT Web or Fabric workers. The historical index at
    `~/.claude/projects/-Users-chriswong-Documents-Cluade-charting-app/memory/MEMORY.md`
    and its `git-flow-commit-pr-merge-habit`, `prod-repo-is-stale`, and
    `deploy-topology` notes may be read when relevant and accessible. If absent,
    recover from current source and canonical Agent OS instead. Local memory
-   never establishes a live owner, permission, or effect clearance.
+   never establishes a live owner, permission, or effect clearance, and old
+   memory instructions never override current repository, protected Mastermind
+   or release rules.
 3. Treat `/Users/chriswong/Documents/Cluade/Macro Dashboard` as the connected
    dashboard/backend repository. Authentication, subscriptions, data contracts,
    APIs, Caddy routes, and deployment changes may require checking both repos.

@@ -19,7 +19,14 @@ Mastermind #2018/#2026/#2030 and Terminal #1251 have their own protected and ins
 This application session must complete the existing PR's verification and authorized release path; a source commit, Draft, PR, CI wait or review request is not a terminal result. Repair CI on its original carrier, make stable PRs Ready, meet actual formal approval/hold checks, and verify final merge and required responsive/browser proof. See the root [finish-to-release rule](../AGENTS.md#finish-the-existing-release-not-the-draft). Do not invent review recipients or bypass protected merge.
 
 ## Model routing
-Opus builds and reviews code. Design choices are judgment work — made in the session's main loop (or an Opus designer agent), never delegated to Sonnet; builders only implement fully-specified designs (exact markup/classes handed to them). Sonnet = mechanical non-code sweeps only; Haiku = trivial extraction.
+Use the currently protected Mastermind routing/delegation policy and the actual
+installed provider/host grants; this nested Terminal guide does not pin a
+universal Opus/Sonnet/Haiku hierarchy or confer agent-spawn permission. An
+explicitly assigned principal considers admitted economical paid Fabric for
+bounded implementation, tests and research, while retaining architecture,
+integration and acceptance. A normal worker remains a scoped leaf. Preserve
+qualified design judgment and proportionate independent review when required.
+Claude-native Agent/Task routing hooks are not Codex-native capabilities.
 
 ## Design direction (user-facing surfaces)
 - **OPERATOR RESCISSION 2026-08-02:** the former "design system is REAL and locked /
