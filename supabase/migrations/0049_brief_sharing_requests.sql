@@ -465,10 +465,10 @@ begin
 end $keep$;
 
 -- Privileges: only the five surface functions are executable by authenticated sessions.
--- The three internal helpers above stay callable by their owner alone. Revoking PUBLIC
--- execute (the creation default) also leaves anon and service_role without access: no
--- direct grant is made to either, and service_role has no auth.uid()/Terminal session,
--- so it cannot issue, read, share or keep private any request. No table privilege, no
+-- The three internal helpers above stay callable by their function owner alone.
+-- Explicitly revoke service_role as well: revoking PUBLIC does not remove a direct
+-- or default EXECUTE grant already held by that role. Only the five surface
+-- functions below are then granted to authenticated. No table privilege, no
 -- UPDATE grant and no RLS policy is added or widened: the new columns live under the
 -- existing owner-scoped brief_deliveries RLS, the owner could already read their own
 -- whole row, and the feed never returns a whole row to any client.
@@ -480,7 +480,7 @@ revoke all on function public.brief_sharing_request_record(uuid,integer,timestam
   public.read_brief_sharing_request(uuid,uuid,integer),
   public.share_requested_brief(uuid,uuid,integer,text,text),
   public.keep_requested_brief_private(uuid,uuid,integer,text)
-  from public,anon,authenticated;
+  from public,anon,authenticated,service_role;
 grant execute on function public.issue_brief_sharing_request(uuid,uuid,uuid,text),
   public.read_brief_sharing_requests(),
   public.read_brief_sharing_request(uuid,uuid,integer),
