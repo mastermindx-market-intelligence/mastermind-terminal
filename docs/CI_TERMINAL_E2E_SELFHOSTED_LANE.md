@@ -127,53 +127,87 @@ cleanup, a crontab or `at` entry, `~/.gitconfig` (`core.hooksPath`,
 `~/.config`, `~/.local`, or files in `/tmp`, `/var/tmp`, `/dev/shm`. Anything that
 survives runs as `ghrunner-N`, the same uid as the next job's runner, and could
 read that job's `.credentials` or JIT config (`hidepid=2` hides nothing from a
-uid's own processes). So before minting, each cycle kills the previous job's
-**cgroup**, not its process list: `pkill` reads the list once, so a job that keeps
-forking can leave a child alive past a plain kill, and `loginctl terminate-user`
-does nothing here because job processes live in the unit's cgroup, not a logind
-session. Each job runs in its own child cgroup of the unit (`Delegate=yes`), the
-reset writes `1` to that cgroup's `cgroup.kill` (kernel 5.14+; on older kernels
-freeze the cgroup, then kill it) and waits until `cgroup.procs` is empty, and then
+uid's own processes). Two mechanisms close this, in a fixed order.
+
+First, **cron and `at` are denied to the slot users outright** (`/etc/cron.deny`
+and `/etc/at.deny` list every `ghrunner-N`), so a job cannot install a timer that
+fires as its uid after the reset; a job that fires later runs in `cron.service`
+/ `atd`, not in the job's cgroup, and no cgroup kill would reach it. The reset
+still removes any crontab or `at` queue entry **before** it kills anything, so the
+purge is never racing a timer that fires between the fail-closed check and the
+mint.
+
+Second, each cycle kills the previous job's **cgroup**, not its process list:
+`pkill` reads the list once, so a job that keeps forking can leave a child alive
+past a plain kill, and `loginctl terminate-user` does nothing here because job
+processes live in the unit's cgroup, not a logind session. Each job runs in its
+own child cgroup of the unit (`Delegate=yes`); the process placed in that cgroup is
+the one that `exec`s `run.sh`, so the whole job tree is inside it. The reset writes
+`1` to that cgroup's `cgroup.kill` (kernel 5.14+; on older kernels freeze the
+cgroup, then kill it), waits until `cgroup.events` reports `populated 0` (the
+`cgroup.procs` file always has size 0, so a size test would not wait at all), and
+removes the cgroup, failing the slot if either step fails. It then rebuilds the
+whole home from `/etc/skel`, deletes the user's files under the temp and sticky
+directories, re-extracts the runner directory from the pristine tarball with mode
+0700 on both the slot and the home (the job's `actions/cache` restores the
+per-slot Playwright store itself), and as the **last statement before the mint**
 **fails closed**: if `pgrep -u ghrunner-N` still finds anything, the slot stays
-down rather than minting a new config beside a survivor. After that the cycle
-removes the slot user's crontab and `at` jobs, rebuilds the whole home from
-`/etc/skel`, deletes its files under the temp and sticky directories, and
-re-extracts the runner directory from the pristine tarball with mode 0700 on both
-the slot and the home (the job's `actions/cache` restores the per-slot Playwright
-store itself). The unit also runs with `PrivateTmp=yes`. The canary's caveat
-stands: registration alone does not clean the filesystem; this loop is what does.
+down rather than minting a new config beside a survivor. The unit also runs with
+`PrivateTmp=yes` and the default `KillMode=control-group`, so a unit stop kills
+whatever the loop did not. The canary's caveat stands: registration alone does not
+clean the filesystem; this loop is what does.
+
+**Host prerequisites the loop assumes** (verify once per host before enabling a
+slot; none of these has been observed on ubuntu0 yet): unified cgroup v2 only
+(`/proc/self/cgroup` is a single `0::` line; the loop asserts this and exits
+otherwise), kernel 5.14 or later for `cgroup.kill`, `/etc/cron.deny` and
+`/etc/at.deny` naming every slot user, linger off for every slot user
+(`loginctl show-user ghrunner-N` reports `Linger=no`), `/etc/pam.d/sudo` not
+pulling in `pam_systemd` (Ubuntu's `common-session-noninteractive` does not; a
+stack that does would move `run.sh` into a `user-N.slice` session scope outside
+the job cgroup), and no auditd `execve` rule that records argv, which would log the
+JIT config blob.
 
 ```
 # system unit for slot N (PrivateTmp=yes, Delegate=yes), running as root for the reset;
 # minting runs as ghmint, the only account that can read the org credential. The only
 # sudoers line this needs is
 #   Defaults!/opt/actions-runner/slots/ubuntu0-e2e-N/run.sh !log_allowed
-# so the JIT blob on that command line is not written to the auth log (root needs no
-# rule to run run.sh as ghrunner-N; nothing grants ghmint or ghrunner-N any sudo).
+# so the JIT blob on that command line is not written to the auth log (root runs
+# run.sh as ghrunner-N under the stock `root ALL=(ALL:ALL) ALL` line; nothing grants
+# ghmint or ghrunner-N any sudo). Keep the unit's default KillMode=control-group.
 # Do not replace the sudo with `systemd-run`: a transient unit's ExecStart, JIT blob
 # included, is readable by every user through `systemctl show`.
 u=ghrunner-N; slot=/opt/actions-runner/slots/ubuntu0-e2e-N
+# unified cgroup v2 only: on a hybrid/v1 host /proc/self/cgroup has several lines and
+# the path below would be wrong
+[ "$(wc -l < /proc/self/cgroup)" = 1 ] && grep -q '^0::' /proc/self/cgroup || exit 1
 unit_cg="/sys/fs/cgroup$(cut -d: -f3 /proc/self/cgroup)"; job_cg="$unit_cg/job"
+grep -qx "$u" /etc/cron.deny && grep -qx "$u" /etc/at.deny || exit 1   # timers denied at the source
 while :; do
-  # 1. dead slot: kill the previous job's cgroup (not a process-list snapshot), then fail closed
+  # 1. no timer may fire as $u after the reset: purge cron/at BEFORE killing anything
+  crontab -r -u "$u" 2>/dev/null; for j in $(atq | awk -v u="$u" '$NF==u{print $1}'); do atrm "$j"; done
+  # 2. dead slot: kill the previous job's cgroup (not a process-list snapshot)
   if [ -d "$job_cg" ]; then
     echo 1 > "$job_cg/cgroup.kill"
-    while [ -s "$job_cg/cgroup.procs" ]; do sleep 0.2; done
-    rmdir "$job_cg"
+    until grep -q '^populated 0' "$job_cg/cgroup.events"; do sleep 0.2; done   # cgroup.procs is always size 0
+    rmdir "$job_cg" || exit 1
   fi
   pkill -KILL -u "$u"; sleep 1
-  if pgrep -u "$u" >/dev/null; then echo "slot $u still has a live process; not minting" >&2; exit 1; fi
-  crontab -r -u "$u" 2>/dev/null; for j in $(atq | awk -v u="$u" '$NF==u{print $1}'); do atrm "$j"; done
+  # 3. fresh home, temp and runner tree, readable by this slot only
   find /tmp /var/tmp /dev/shm /run/lock /var/crash /dev/mqueue -user "$u" -delete 2>/dev/null
   rm -rf "/home/$u" "$slot"
   mkdir -p "/home/$u" && cp -a /etc/skel/. "/home/$u/" && chown -R "$u:$u" "/home/$u" && chmod 0700 "/home/$u"
-  # 2. pristine runner tree, readable by this slot only
   mkdir -p "$slot" && tar xzf /opt/actions-runner/actions-runner-linux-x64.tar.gz -C "$slot"
   chown -R "$u:$u" "$slot" && chmod 0700 "$slot"
-  # 3. one-shot JIT config, minted as ghmint, handed only to this run.sh in a fresh job cgroup
+  # 4. fail closed, as the last statement before the mint
+  if pgrep -u "$u" >/dev/null; then echo "slot $u still has a live process; not minting" >&2; exit 1; fi
+  # 5. one-shot JIT config, minted as ghmint, handed only to this run.sh in a fresh job cgroup.
+  #    The shell that writes itself into cgroup.procs is the one that execs run.sh (in a
+  #    `( ... )` subshell `$$` is still the loop shell's pid, so the job would stay outside).
   jit="$(sudo -u ghmint mint-jitconfig ubuntu0-e2e-N self-hosted,linux,x64,ubuntu0-e2e <restricted-group-id>)"  # never echoed
-  mkdir "$job_cg"
-  ( echo $$ > "$job_cg/cgroup.procs" && exec sudo -u "$u" "$slot/run.sh" --jitconfig "$jit" )
+  mkdir "$job_cg" || exit 1
+  sh -c 'echo $$ > "$1/cgroup.procs" && shift && exec "$@"' _ "$job_cg" sudo -u "$u" "$slot/run.sh" --jitconfig "$jit"
 done
 ```
 
@@ -187,8 +221,9 @@ in a shared transcript: the JIT config blob on the command line is credential
 material for that one job.
 
 **What this does and does not bound.** With per-slot users, `hidepid=2`, JIT
-configs, 0700 slot and home directories, a cgroup kill that fails closed, and a
-fresh home, runner tree and temp files before every job, one approved run cannot
+configs, 0700 slot and home directories, cron and `at` denied, a cgroup kill that
+fails closed, and a fresh home, runner tree and temp files before every job, one
+approved run cannot
 read another slot's credentials and cannot persist a process, cron entry, dotfile
 or file into a later job on its own slot (a leftover file in some other sticky
 directory is unreachable once no process survives to use it). It can still read anything world-readable on the host, use
