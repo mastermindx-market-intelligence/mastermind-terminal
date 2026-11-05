@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { useT } from "@/lib/i18n";
+import { useLang, useT } from "@/lib/i18n";
 import { originPending, type DataOrigin, type DataOriginState } from "@/lib/dataOrigin";
 
 // The popover's <dl> (basis/src/as-of/generation/open) is shown only for states that
@@ -24,6 +24,8 @@ function srcLabel(src: string | null, t: ReturnType<typeof useT>): string {
  */
 export default function DataOriginChip({ symbol, origin }: { symbol?: string; origin: DataOrigin | null }) {
   const t = useT();
+  // B1 — the chart-only source-session label is localized inline (kept out of the central LEX).
+  const { lang } = useLang();
   const [open, setOpen] = useState(false);
   const hostRef = useRef<HTMLDivElement>(null);
   const effective = origin && symbol && origin.symbol === symbol ? origin : originPending(symbol ?? "");
@@ -82,7 +84,7 @@ export default function DataOriginChip({ symbol, origin }: { symbol?: string; or
                   qualified one (exact symbol + a valid UTC-calendar last bar). */}
               {effective.sourceLastSession != null && (
                 <>
-                  <dt>{t("originSourceSession")}</dt>
+                  <dt>{lang === "zh" ? "来源最近日线交易日" : "Source last daily session"}</dt>
                   <dd><code>{effective.sourceLastSession}</code></dd>
                 </>
               )}

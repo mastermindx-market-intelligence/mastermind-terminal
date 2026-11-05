@@ -495,9 +495,9 @@ export default function ChartFrameBar({
           className="cfb-chip"
           data-testid="cfb-currency"
           aria-label={tradingCurrency
-            ? t("cfbCurrencyAria").replace("{code}", tradingCurrency)
-            : t("cfbCurrencyUnavailableAria")}
-        >{tradingCurrency ?? t("cfbCurrencyUnknown")}</span>
+            ? (lang === "zh" ? `交易币种：${tradingCurrency}` : `Trading currency: ${tradingCurrency}`)
+            : (lang === "zh" ? "交易币种不可用" : "Trading currency unavailable")}
+        >{tradingCurrency ?? (lang === "zh" ? "币种?" : "CCY?")}</span>
         {/* Gear: quick settings */}
         <div className="cfb-gear-host" ref={gearRef}>
           <button
