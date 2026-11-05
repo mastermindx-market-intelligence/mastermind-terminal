@@ -2,7 +2,7 @@
 import { VolRegimeChip } from "@/components/eodcontext/VolRegimeChip";
 import ExposureMap from "@/components/exposure-map/ExposureMap";
 import { parseExposureChartRequest } from "@/lib/exposureChartLink";
-import { EXPOSURE_ORIGIN_PARAM, exposureOriginForCompany, parseExposureOrigin, withExposureOrigin, type ExposureOrigin } from "@/lib/exposureOrigin";
+import { EXPOSURE_ORIGIN_PARAM, exposureOriginForStep, parseExposureOrigin, withExposureOrigin, type ExposureOrigin } from "@/lib/exposureOrigin";
 /**
  * GexDeskView — GEX desk surface (Wave 2, MomoEdge parity).
  *
@@ -214,9 +214,9 @@ const GEX_POLL_MS = 60_000;
 // Every desk read keeps its outcome (failure-state truth law): only a 404/410 is a
 // published absence; a 5xx, a refused fetch or an unparseable body is a read that did
 // not land, and it renders as a load error with a Retry — never as a coverage gap.
-async function readFlow(f: string): Promise<FlowOutcome> {
+async function readFlow(f: string, options: { refresh?: boolean } = {}): Promise<FlowOutcome> {
   try {
-    return await flowGetResult(f);
+    return await flowGetResult(f, options);
   } catch {
     return { status: "unavailable", reason: "network" };
   }
@@ -261,7 +261,8 @@ export function GexDeskView({ onMapFirstChange, onOpenPlan }: { onMapFirstChange
   if (sectorOrigin && sectorOrigin.company !== ticker) setSectorOrigin(null);
   const stepSectorOrigin = (next: { company: string; index: number }) => {
     if (!sectorOrigin || !isValidRoot(next.company)) return;
-    const origin = exposureOriginForCompany(sectorOrigin, next.company, next.index);
+    const origin = exposureOriginForStep(sectorOrigin, next);
+    if (!origin) return;
     const url = new URL(window.location.href);
     url.searchParams.set("symbol", next.company);
     url.searchParams.set("view", "chart");
@@ -522,7 +523,8 @@ export function GexDeskView({ onMapFirstChange, onOpenPlan }: { onMapFirstChange
       setArchivedError(false);
       setArchivedPayload(null);
       void (async () => {
-        const outcome = await readFlow(`gex_at:${ticker}:${date}`);
+        // Explicit selection must consume the read, not leave a corrected book in background cache.
+        const outcome = await readFlow(`gex_at:${ticker}:${date}`, { refresh: true });
         if (sessionReqRef.current !== req) return;
         const data = outcome.status === "data" ? (outcome.data as GexPayload) : null;
         const ok = !!data && data.root === ticker && gexSessionOf(data.asof) === date && Array.isArray(data.by_strike) && data.by_strike.length > 0;
@@ -959,6 +961,8 @@ export function GexDeskView({ onMapFirstChange, onOpenPlan }: { onMapFirstChange
   if (researchOpen) return (
     <OptionsResearchLab key={ticker} root={ticker}
       matrix={isArchived ? null : visibleMatrix}
+      // Reuse the selected Exposure book; null prevents a separate live fallback.
+      currentGexSnapshot={!isArchived && rootOk ? activePayload : null}
       matrixReadStatus={isArchived || !rootOk ? "data" : matrixStatus}
       onRetryMatrix={isArchived || !rootOk ? undefined : retryMatrix}
       volatility={researchEod.vol}

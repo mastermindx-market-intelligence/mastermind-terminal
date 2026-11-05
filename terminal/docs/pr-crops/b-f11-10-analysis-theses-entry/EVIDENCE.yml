@@ -5,7 +5,7 @@
 # capturedAt: 2026-10-24T05:29:47.034Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/workspaces/AnalysisWorkspace.tsx: "411b8a7e498b8af3f9337fdcf3835dd62e6a5854826f414171d8303efd8aa5bb"
+  terminal/components/workspaces/AnalysisWorkspace.tsx: "28a1d3b6d318a7e04297d2ba958a93da602761d01d5b587d66c14a9e78e6c39b"
   terminal/app/company-intelligence.css: "8b43f2046891837f6572fa2a59b7594547def9602b0454e1f14edba322da2a34"
   terminal/lib/i18n.tsx: "13f33e3178b105a64f1f5df35974cd99041ef06f05bdece95939dd07a8b9fe7c"
 theme: dark
@@ -43,3 +43,11 @@ documentLanguageRecapture20261024:
 
 # Raw capture identity and every upstream source/crop lock remain unchanged; omit only unused pending-copy dependency.
 lexProjection: {"schema":"terminal.lex_capture_projection.v1","omittedProperty":"obDonePrefsSyncing","capturedRawSha256":"13f33e3178b105a64f1f5df35974cd99041ef06f05bdece95939dd07a8b9fe7c","projectedSha256":"d6dcc2df7615a1c5782f4d755178fbb76bcf9ee42b93dffe7c7c95317a652de5","sourceGitBlob":"664d68043f472919f7b581f545a334bf66d9782f","sourceRecoveryCommit":"e2846880681d4b9aff4a060e1321f50f240cafc7","captureCommitLocallyAvailable":true}
+
+companyAlternateListingSourceRecapture20261103:
+  sourceHead: 246ae1579e88ff9c7583eff5061a404644bed05a
+  qualification: Fresh incumbent six-case NVDA context-bar capture; OUT declaration redirected only; no runtime, fixture, URL, viewport or assertion change
+  captureDirectory: ../company-alternate-listing-20261103/theses-entry-20261103
+  start: ../company-alternate-listing-20261103/theses-entry-20261103/start.json
+  result: ../company-alternate-listing-20261103/theses-entry-20261103/result.json
+  scope: AnalysisWorkspace source row only; historical six crops, raw capture identity and lexProjection retained unchanged; local dev fixture, no served or authenticated claim
