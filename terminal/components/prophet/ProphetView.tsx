@@ -310,11 +310,13 @@ export function ProphetView() {
             <span>{t("mastheadUpdated")}</span>
             <b>{asofLabel}</b>
           </div>
-          <div className="obs-prophet-stat" data-testid="prophet-source-vintage">
-            <span>{t("mastheadSourceThrough")}</span>
-            <b>{sourceVintage.label ?? "—"}</b>
+          <div className="obs-prophet-stat" data-testid="prophet-source-vintage" style={{ gap: 2, flex: "0 0 auto" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap" }}>
+              <span>{t("mastheadSourceThrough")}</span>
+              <b>{sourceVintage.label ?? "—"}</b>
+            </div>
             {sourceWarnings.length > 0 && (
-              <span role="status" style={{ color: "var(--muted, #999)", fontSize: 12, lineHeight: 1.3 }}>
+              <span role="status" style={{ color: "var(--muted, #999)", fontSize: 12, lineHeight: 1.3, whiteSpace: "nowrap", textTransform: "none", letterSpacing: 0 }}>
                 {sourceWarnings.join(" · ")}
               </span>
             )}
