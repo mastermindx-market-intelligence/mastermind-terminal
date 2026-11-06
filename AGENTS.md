@@ -143,8 +143,13 @@ Do not wait for a separate request to commit, push, merge, or deploy.
 
 Do not stop at a local commit or open PR. Release holds include an explicit
 operator hold, required CI or independent review that is pending or failing,
-and a genuine deployment blocker. Never arm a protected merge while its required
-review or current-head checks remain unqualified.
+and a genuine deployment blocker. A source-complete, non-held, review-qualified
+Ready PR may request native **auto-merge enrollment while its required CI is
+still pending**, after verifying actual GitHub required-check protection, review
+requirements, source custody and conflicts. GitHub must hold the eventual merge
+until every enforced check succeeds; pending is never PASS. Do not enroll a
+Draft, known-red, conflicting, explicitly held or incompletely qualified PR,
+or one with missing/ambiguous enforcement or a binding approval outstanding.
 
 Direct working-tree rsync/scp is not a deployment; production builds only
 merged master. A held release step blocks that effect, not the whole session.
