@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import re
 from copy import deepcopy
 from pathlib import Path
@@ -489,7 +490,16 @@ def test_green_current_head_is_sha_pinned_merged_and_deleted():
     assert result[0] == "#7: merged and deleted claude/pr-7"
 
 
-def test_green_heads_enqueue_concurrently_when_native_queue_is_enabled():
+READY_REPORT = (
+    "#{n}: ready for the merge queue; native user admission required "
+    "(gh pr merge {n} --auto --match-head-commit head-{n}); head head-{n} verified green by this sweep"
+)
+
+
+def test_queue_mode_reports_green_heads_ready_and_never_enqueues():
+    # A successful workflow-token enqueue does not establish downstream event
+    # delivery. Green heads remain eligible, but this sweep only reports them;
+    # the native user path pins the exact verified head at admission.
     api = FakeApi(
         [pull(1), pull(2, mergeable_state="behind")],
         queue_enabled=True,
@@ -497,16 +507,10 @@ def test_green_heads_enqueue_concurrently_when_native_queue_is_enabled():
 
     result = sweep(api)
 
-    assert ("enqueue", "PR-node-1", "head-1") in api.actions
-    assert ("enqueue", "PR-node-2", "head-2") in api.actions
-    assert not any(action[0] == "merge" for action in api.actions)
-    assert not any(action[0] == "update" for action in api.actions)
-    assert not any(action[0] == "dispatch_ci" for action in api.actions)
-    assert not any(action[0] == "delete" for action in api.actions)
-    assert result == [
-        "#1: enqueued in merge queue (MQE-PR-node-1)",
-        "#2: enqueued in merge queue (MQE-PR-node-2)",
-    ]
+    assert api.actions == []
+    assert api.queue_entries == {}
+    assert api.dispatched == []
+    assert result == [READY_REPORT.format(n=1), READY_REPORT.format(n=2)]
 
 
 def test_queue_mode_is_idempotent_for_an_already_enqueued_head():
@@ -522,21 +526,84 @@ def test_queue_mode_is_idempotent_for_an_already_enqueued_head():
     assert not any(action[0] in {"enqueue", "merge", "update", "delete"} for action in api.actions)
 
 
-def test_queue_enqueue_4xx_is_a_per_pr_decline_and_does_not_hide_the_next_candidate():
+def test_queue_mode_reports_an_existing_entry_read_only_and_still_sees_the_next_head():
+    # A head already holding a queue entry is reported exactly as before --
+    # read-only, no mutation -- and its outcome must not hide the next armed
+    # head, which (holding no entry) is reported ready rather than enqueued.
     api = FakeApi(
         [pull(1), pull(2)],
         queue_enabled=True,
-        enqueue_errors={1: (422, "expected head changed")},
+        queue_entries={"PR-node-1": "MQE-existing"},
     )
 
     result = sweep(api)
 
-    assert result == [
-        "#1: declined: GitHub API 422: expected head changed",
-        "#2: enqueued in merge queue (MQE-PR-node-2)",
-    ]
-    assert ("enqueue", "PR-node-2", "head-2") in api.actions
+    assert result == ["#1: already queued (MQE-existing)", READY_REPORT.format(n=2)]
+    assert api.actions == []
+    assert api.queue_entries == {"PR-node-1": "MQE-existing"}
 
+
+# --- native queue admission is a user action (2026-11-05) ----------------------
+#
+# The workflow-token enqueue result is not downstream event-delivery proof.
+# This sweep therefore never enqueues. A red, pending,
+# foreign-App or held head is refused exactly as before, and a fully green head
+# with no entry is reported ready for `gh pr merge --auto` instead.
+
+
+def test_queue_mode_red_head_is_quarantined_and_never_enqueued():
+    api = FakeApi([pull()], queue_enabled=True, runs={"head-7": checks(conclusion="failure")})
+
+    result = sweep(api)
+
+    assert result == ["#7: red"]
+    assert ("add_labels", 7, (BLOCK_LABEL,)) in api.actions
+    assert not any(action[0] == "enqueue" for action in api.actions)
+    assert api.queue_entries == {}
+
+
+def test_queue_mode_pending_head_waits_and_never_enqueues():
+    runs = checks()
+    runs.append(
+        {
+            "id": 999,
+            "name": REQUIRED_CHECKS[0],
+            "status": "in_progress",
+            "conclusion": None,
+            "app": {"id": REQUIRED_CHECK_APP_ID},
+        }
+    )
+    api = FakeApi([pull()], queue_enabled=True, runs={"head-7": runs})
+
+    result = sweep(api)
+
+    assert result == [f"#7: pending: {REQUIRED_CHECKS[0]}"]
+    assert api.actions == []
+    assert api.queue_entries == {}
+
+
+def test_queue_mode_foreign_app_green_waits_and_never_enqueues():
+    api = FakeApi([pull()], queue_enabled=True, runs={"head-7": checks(app_id=999999)})
+
+    result = sweep(api)
+
+    assert result == [
+        f"#7: missing trusted App {REQUIRED_CHECK_APP_ID} checks: " + ", ".join(REQUIRED_CHECKS)
+    ]
+    assert api.actions == []
+    assert api.queue_entries == {}
+
+
+def test_queue_mode_held_run_is_released_and_never_enqueues():
+    # A held pull_request run is still released (it is the only way checks can
+    # ever arrive) -- and the sweep still performs no queue admission itself.
+    api = FakeApi([pull()], queue_enabled=True, runs={"head-7": []}, ci_runs={"head-7": [ci_run()]})
+
+    result = sweep(api)
+
+    assert result == ["#7: re-ran held pull_request CI run 9001 for head-7; awaiting PR-linked CI"]
+    assert api.actions == [("rerun", 9001)]
+    assert api.queue_entries == {}
 
 
 def test_wrong_app_green_never_reaches_merge_or_quarantine():
@@ -766,11 +833,13 @@ def test_merge_queue_probe_is_bound_to_the_exact_repository_and_base():
     }
 
 
-def test_enqueue_mutation_pins_the_exact_pull_request_and_head():
+def test_enqueue_mutation_pins_the_exact_pull_request_and_head(monkeypatch):
     api = RecordingGraphQLApi(
         [{"enqueuePullRequest": {"mergeQueueEntry": {"id": "MQE-7"}}}]
     )
 
+    # This existing test isolates mutation shape; issuer tests exercise the real preflight.
+    monkeypatch.setattr(api, "native_enqueue_api", lambda: api)
     assert api.enqueue("PR-node-7", "head-7") == "MQE-7"
     assert api.calls[0][1] == {
         "pullRequestId": "PR-node-7",
@@ -1122,3 +1191,262 @@ def test_re_run_posts_to_the_exact_run():
     api.rerun_workflow_run(38370600573)
 
     assert api.calls == [("POST", "/actions/runs/38370600573/rerun", None)]
+
+
+# Native enqueue must use an authenticated event-generating user credential.
+# All network boundaries below are replaced; token strings are test-owned sentinels.
+@pytest.fixture
+def native_issuer_transport(monkeypatch):
+    monkeypatch.setenv("NATIVE_ENQUEUE_TOKEN", "test-native-user-credential")
+    monkeypatch.setenv("NATIVE_ENQUEUE_ISSUER_LOGIN", "release-user")
+    monkeypatch.setenv("NATIVE_ENQUEUE_ISSUER_ID", "42")
+    monkeypatch.setenv("GITHUB_REPOSITORY_ID", "71")
+    monkeypatch.setenv("GITHUB_TOKEN", "test-job-credential")
+    identity = {
+        "viewer": {"__typename": "User", "login": "release-user", "databaseId": 42},
+        "repository": {"nameWithOwner": "mastermindx-market-intelligence/mastermind-terminal",
+                       "databaseId": 71, "viewerPermission": "WRITE"},
+    }
+    calls = []
+    def transport(api, query, variables):
+        calls.append((api.token, query, deepcopy(variables)))
+        if "mutation" in query:
+            return {"enqueuePullRequest": {"mergeQueueEntry": {"id": "MQE-test"}}}
+        return deepcopy(identity)
+    monkeypatch.setattr(mog.GitHubApi, "graphql_request", transport)
+    def no_http(*args, **kwargs):
+        raise AssertionError("no provider transport allowed")
+    monkeypatch.setattr(mog.urllib.request, "urlopen", no_http)
+    api = mog.GitHubApi("mastermindx-market-intelligence/mastermind-terminal", "test-job-credential")
+    return api, identity, calls
+
+
+def test_native_enqueue_uses_only_qualified_user_credential(native_issuer_transport):
+    api, _, calls = native_issuer_transport
+    assert api.enqueue("PR-exact", "head-exact") == "MQE-test"
+    assert len(calls) == 2
+    assert all(row[0] == "test-native-user-credential" for row in calls)
+    assert "viewer" in calls[0][1] and "repository" in calls[0][1]
+    assert calls[0][2] == {"owner": "mastermindx-market-intelligence", "name": "mastermind-terminal"}
+    assert calls[1][2] == {"pullRequestId": "PR-exact", "expectedHeadOid": "head-exact"}
+    assert api.token == "test-job-credential"  # Other incumbent operations are unchanged.
+
+
+@pytest.mark.parametrize("field,value", [
+    ("NATIVE_ENQUEUE_TOKEN", ""),
+    ("NATIVE_ENQUEUE_TOKEN", "test-job-credential"),
+    ("NATIVE_ENQUEUE_ISSUER_LOGIN", ""),
+    ("NATIVE_ENQUEUE_ISSUER_ID", ""),
+    ("NATIVE_ENQUEUE_ISSUER_ID", "not-an-id"),
+    ("GITHUB_REPOSITORY_ID", ""),
+])
+def test_native_enqueue_missing_or_job_token_never_mutates(native_issuer_transport, monkeypatch, field, value):
+    api, _, calls = native_issuer_transport
+    monkeypatch.setenv(field, value)
+    with pytest.raises(ApiError):
+        api.enqueue("PR-exact", "head-exact")
+    assert calls == []
+
+
+@pytest.mark.parametrize("section,field,value", [
+    ("viewer", "__typename", "Bot"),
+    ("viewer", "login", "github-actions[bot]"),
+    ("viewer", "login", "different-user"),
+    ("viewer", "databaseId", 43),
+    ("viewer", "databaseId", True),
+    ("repository", "nameWithOwner", "other/repository"),
+    ("repository", "databaseId", 72),
+    ("repository", "viewerPermission", "READ"),
+    ("repository", "viewerPermission", None),
+])
+def test_native_enqueue_wrong_identity_or_repository_never_mutates(native_issuer_transport, section, field, value):
+    api, identity, calls = native_issuer_transport
+    identity[section][field] = value
+    with pytest.raises(ApiError):
+        api.enqueue("PR-exact", "head-exact")
+    assert len(calls) == 1 and "mutation" not in calls[0][1]
+
+
+def test_native_enqueue_wrong_configured_repository_never_reads(native_issuer_transport):
+    api, _, calls = native_issuer_transport
+    api.repo = "foreign/repository"
+    with pytest.raises(ApiError):
+        api.enqueue("PR-exact", "head-exact")
+    assert calls == []
+
+
+@pytest.mark.parametrize("response", [None, {}, {"viewer": None, "repository": None}])
+def test_native_enqueue_incomplete_identity_never_mutates(native_issuer_transport, monkeypatch, response):
+    api, _, calls = native_issuer_transport
+    def incomplete(client, query, variables):
+        calls.append((client.token, query, variables))
+        return response
+    monkeypatch.setattr(mog.GitHubApi, "graphql_request", incomplete)
+    with pytest.raises(ApiError):
+        api.enqueue("PR-exact", "head-exact")
+    assert len(calls) == 1 and "mutation" not in calls[0][1]
+
+
+def test_native_enqueue_identity_failure_is_not_retried(native_issuer_transport, monkeypatch):
+    api, _, calls = native_issuer_transport
+    def denied(client, query, variables):
+        calls.append((client.token, query, variables))
+        raise ApiError(403, "test refusal")
+    monkeypatch.setattr(mog.GitHubApi, "graphql_request", denied)
+    with pytest.raises(ApiError):
+        api.enqueue("PR-exact", "head-exact")
+    assert len(calls) == 1
+
+
+def test_native_enqueue_requalifies_each_original_attempt(native_issuer_transport):
+    api, identity, calls = native_issuer_transport
+    assert api.enqueue("PR-first", "head-first") == "MQE-test"
+    identity["viewer"]["databaseId"] = 99
+    with pytest.raises(ApiError):
+        api.enqueue("PR-second", "head-second")
+    assert len(calls) == 3
+    assert sum("mutation" in row[1] for row in calls) == 1
+
+
+
+def test_native_enqueue_lost_response_has_one_mutation_and_no_fallback(native_issuer_transport, monkeypatch):
+    api, identity, calls = native_issuer_transport
+    def lost(client, query, variables):
+        calls.append((client.token, query, deepcopy(variables)))
+        if "mutation" in query:
+            raise TimeoutError("test-owned lost response")
+        return deepcopy(identity)
+    monkeypatch.setattr(mog.GitHubApi, "graphql_request", lost)
+    with pytest.raises(TimeoutError):
+        api.enqueue("PR-exact", "head-exact")
+    assert len(calls) == 2
+    assert sum("mutation" in row[1] for row in calls) == 1
+    assert all(row[0] == "test-native-user-credential" for row in calls)
+
+
+def test_reporting_workflow_does_not_receive_native_user_credentials():
+    document = yaml.safe_load((Path(__file__).resolve().parents[1] / ".github/workflows/merge-on-green.yml").read_text())
+    steps = document["jobs"]["sweep"]["steps"]
+    step = next(s for s in steps if s.get("name") == "reconcile armed pull requests")
+    assert step["env"]["MERGE_TOKEN"] == "${{ secrets.GITHUB_TOKEN }}"
+    assert not any(name.startswith("NATIVE_ENQUEUE_") for name in step["env"])
+    assert "GITHUB_REPOSITORY_ID" not in step["env"]
+    assert "ADMIN_GH_TOKEN" not in json.dumps(document)
+    assert document["concurrency"]["cancel-in-progress"] is False
+    assert document["jobs"]["sweep"]["timeout-minutes"] == 10
+
+
+def test_configured_user_enrollment_does_not_enable_workflow_queue_admission(monkeypatch):
+    for name, value in {
+        "NATIVE_ENQUEUE_TOKEN": "test-explicit-user-credential",
+        "NATIVE_ENQUEUE_ISSUER_LOGIN": "test-user",
+        "NATIVE_ENQUEUE_ISSUER_ID": "123",
+        "GITHUB_REPOSITORY_ID": "456",
+    }.items():
+        monkeypatch.setenv(name, value)
+    api = FakeApi([pull(1)], queue_enabled=True)
+
+    def forbidden_enqueue(*args):
+        raise AssertionError("configured credentials must not activate sweep admission")
+
+    monkeypatch.setattr(api, "enqueue", forbidden_enqueue)
+    assert sweep(api) == [READY_REPORT.format(n=1)]
+    assert api.actions == []
+    assert api.queue_entries == {}
+
+
+
+def assert_privileged_controller_source(document):
+    events = document.get("on", document.get(True))
+    assert set(events) == {"workflow_run", "pull_request_target", "schedule", "workflow_dispatch"}
+    assert events["workflow_run"] == {"workflows": ["CI"], "types": ["completed"]}
+    assert events["pull_request_target"] == {"types": ["labeled", "reopened", "ready_for_review"]}
+    assert events["schedule"] == [{"cron": "*/10 * * * *"}]
+    checkout = document["jobs"]["sweep"]["steps"][0]
+    assert checkout["uses"] == "actions/checkout@v4"
+    assert checkout["with"]["ref"] == "${{ github.sha }}"
+    assert checkout["with"]["sparse-checkout"] == "scripts/merge_on_green.py"
+    assert checkout["with"]["sparse-checkout-cone-mode"] is False
+
+
+def controller_source_document():
+    return yaml.safe_load((Path(__file__).resolve().parents[1] / ".github/workflows/merge-on-green.yml").read_text())
+
+
+def test_privileged_controller_pins_immutable_event_source():
+    assert_privileged_controller_source(controller_source_document())
+
+
+@pytest.mark.parametrize("ref", ["master", "${{ github.event.pull_request.head.sha }}", "${{ github.event.workflow_run.head_sha }}", ""])
+def test_privileged_controller_rejects_mutable_or_untrusted_source(ref):
+    document = controller_source_document()
+    document["jobs"]["sweep"]["steps"][0]["with"]["ref"] = ref
+    with pytest.raises(AssertionError):
+        assert_privileged_controller_source(document)
+
+
+def test_privileged_controller_rejects_candidate_event_and_sparse_expansion():
+    document = controller_source_document()
+    events = document.get("on", document.get(True))
+    events["pull_request"] = events.pop("pull_request_target")
+    with pytest.raises(AssertionError):
+        assert_privileged_controller_source(document)
+    document = controller_source_document()
+    document["jobs"]["sweep"]["steps"][0]["with"]["sparse-checkout"] = "."
+    with pytest.raises(AssertionError):
+        assert_privileged_controller_source(document)
+
+
+
+def evaluate_controller_job_gate(document, *, repository, ref, default_branch):
+    # Evaluate the actual YAML expression over test-owned event context. This
+    # small harness supports only the operators/functions used by this gate.
+    expression = document["jobs"]["sweep"].get("if")
+    assert isinstance(expression, str), "privileged job has no source gate"
+    expression = expression.strip()
+    assert expression.startswith("${{") and expression.endswith("}}")
+    expression = expression[3:-2].strip()
+    for name, value in {
+        "github.event.repository.default_branch": default_branch,
+        "github.repository": repository,
+        "github.ref": ref,
+    }.items():
+        expression = expression.replace(name, repr(value))
+    expression = expression.replace("&&", " and ").replace("||", " or ")
+    return eval(expression, {"__builtins__": {}, "format": lambda pattern, value: pattern.format(value)})
+
+
+@pytest.mark.parametrize("event,ref", [
+    ("schedule", "refs/heads/master"),
+    ("workflow_run", "refs/heads/master"),
+    ("pull_request_target", "refs/heads/master"),
+    ("workflow_dispatch", "refs/heads/master"),
+])
+def test_controller_job_gate_accepts_default_branch_events(event, ref):
+    document = controller_source_document()
+    events = document.get("on", document.get(True))
+    assert event in events
+    assert evaluate_controller_job_gate(document, repository="mastermindx-market-intelligence/mastermind-terminal", ref=ref, default_branch="master") is True
+    assert document["jobs"]["sweep"]["steps"][0]["with"]["ref"] == "${{ github.sha }}"
+
+
+@pytest.mark.parametrize("event,repository,ref,default_branch", [
+    ("workflow_dispatch", "mastermindx-market-intelligence/mastermind-terminal", "refs/heads/feature", "master"),
+    ("workflow_dispatch", "mastermindx-market-intelligence/mastermind-terminal", "refs/tags/master", "master"),
+    ("pull_request_target", "mastermindx-market-intelligence/mastermind-terminal", "refs/heads/release", "master"),
+    ("workflow_run", "mastermindx-market-intelligence/mastermind-terminal", "refs/heads/feature", "master"),
+    ("schedule", "foreign/mastermind-terminal", "refs/heads/master", "master"),
+    ("workflow_dispatch", "mastermindx-market-intelligence/mastermind-terminal", "refs/heads/master", "main"),
+])
+def test_controller_job_gate_rejects_untrusted_event_source(event, repository, ref, default_branch):
+    document = controller_source_document()
+    assert event in document.get("on", document.get(True))
+    assert evaluate_controller_job_gate(document, repository=repository, ref=ref, default_branch=default_branch) is False
+
+
+def test_controller_source_gate_cannot_be_moved_after_checkout():
+    document = controller_source_document()
+    expression = document["jobs"]["sweep"].pop("if", None)
+    document["jobs"]["sweep"]["steps"][1]["if"] = expression
+    with pytest.raises(AssertionError, match="no source gate"):
+        evaluate_controller_job_gate(document, repository="mastermindx-market-intelligence/mastermind-terminal", ref="refs/heads/master", default_branch="master")

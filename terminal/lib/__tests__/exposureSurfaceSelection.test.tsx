@@ -6,6 +6,7 @@ import ExposureMap from "@/components/exposure-map/ExposureMap";
 import producer from "./fixtures/exposure-projection.json";
 
 const locale = vi.hoisted(() => ({ lang: "en" }));
+const viewport = vi.hoisted(() => ({ phone: false }));
 const captured = vi.hoisted(() => ({ chart: [] as { optionsLevel?: { price: number } | null }[] }));
 vi.mock("@/lib/i18n", () => ({ useLang: () => locale }));
 vi.mock("next/dynamic", () => ({
@@ -30,7 +31,7 @@ vi.mock("@/components/exposure-map/FrozenNodeEntry", () => ({ default: () => nul
 vi.mock("@/components/exposure-map/ExposureDivergence", () => ({ default: () => null }));
 vi.mock("@/components/chrome/AppShell", () => ({ useShellIdentity: () => ({ kind: "guest" }) }));
 vi.mock("@/components/researchlab/useResearchAppearance", () => ({ useResearchAppearance: () => {} }));
-vi.mock("@/lib/useMediaQuery", () => ({ useIsPhone: () => false }));
+vi.mock("@/lib/useMediaQuery", () => ({ useIsPhone: () => viewport.phone }));
 vi.mock("@/lib/flowClientCache", () => ({ flowGetResult: async () => ({ kind: "unavailable" }) }));
 
 const SESSION = "2026-10-13";
@@ -48,7 +49,8 @@ const projection = (() => {
   const proto = base.cells[0]!;
   base.cells = EXPIRIES.map((expiry, e) => ({
     ...structuredClone(proto), expiry, strike: 100, economic_expiry_at: `${expiry}T20:00:00Z`,
-    gamma: { ...proto.gamma, net: 100e6 * (e + 1), gross: 200e6 * (e + 1), known_net: 100e6 * (e + 1), known_gross: 200e6 * (e + 1) },
+    gamma: { ...proto.gamma, net: 100e6 * (e + 1), gross: 200e6 * (e + 1), known_net: 100e6 * (e + 1), known_gross: 200e6 * (e + 1),
+      call: 150e6 * (e + 1), put: -50e6 * (e + 1) },
   }));
   base.cell_count = base.cells.length;
   return base;
@@ -58,14 +60,27 @@ const book = { root: "SPY", asof: SESSION, spot_ref: 100,
   by_strike: [{ strike: 100, gamma_net: 300e6 }], by_expiry: EXPIRIES.map((exp) => ({ exp })),
   exposure_projection: projection };
 
-let host: HTMLDivElement, view: Root;
+let host: HTMLDivElement, view: Root, unmounted: boolean;
+let frames: Map<number, FrameRequestCallback>;
 beforeEach(() => {
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
   vi.spyOn(Date, "now").mockReturnValue(Date.parse("2026-10-14T20:00:00Z"));
+  locale.lang = "en"; viewport.phone = false; unmounted = false;
+  vi.stubGlobal("matchMedia", (query: string) => ({
+    media: query, matches: false, onchange: null,
+    addEventListener: vi.fn(), removeEventListener: vi.fn(),
+    addListener: vi.fn(), removeListener: vi.fn(), dispatchEvent: () => true,
+  }));
   captured.chart.length = 0;
+  frames = new Map();
+  let frameId = 0;
+  vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => {
+    const id = ++frameId; frames.set(id, callback); return id;
+  });
+  vi.stubGlobal("cancelAnimationFrame", (id: number) => { frames.delete(id); });
   host = document.createElement("div"); document.body.append(host); view = createRoot(host);
 });
-afterEach(() => { act(() => view.unmount()); host.remove(); vi.restoreAllMocks(); vi.unstubAllGlobals(); });
+afterEach(() => { if (!unmounted) act(() => view.unmount()); host.remove(); vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 
 const mount = (root = "SPY", source: unknown = book) =>
   act(() => view.render(<ExposureMap root={root} source={source} matrix={null} />));
@@ -79,6 +94,38 @@ const surfaceTab = () =>
   [...host.querySelectorAll("button")].find((b) => !b.dataset.testid && /surface/i.test(b.textContent ?? ""))!;
 const surfaceButton = (id: string) => host.querySelector<HTMLButtonElement>(`[data-testid="${id}"]`)!;
 const click = (el: Element) => act(() => { (el as HTMLElement).click(); });
+const flushFrames = () => {
+  // Execute scheduled work instead of hiding a competing/stale focus callback.
+  for (let pass = 0; frames.size && pass < 10; pass++) {
+    act(() => {
+      const pending = [...frames.values()]; frames.clear();
+      for (const callback of pending) callback(0);
+    });
+  }
+  expect(frames.size).toBe(0);
+};
+const key = (target: Element, value: string, shiftKey = false) => act(() => {
+  target.dispatchEvent(new KeyboardEvent("keydown", { key: value, shiftKey, bubbles: true, cancelable: true }));
+});
+const openFromSurface = (action: string) => {
+  const opener = surfaceTab(); click(opener);
+  const button = surfaceButton(action); button.focus();
+  expect(document.activeElement).toBe(button);
+  click(button);
+  expect(button.isConnected).toBe(false);
+  return opener;
+};
+const phoneInspector = () => document.querySelector<HTMLElement>('[data-testid="exposure-node-inspector"]')!;
+const closeButton = (within: HTMLElement) =>
+  [...within.querySelectorAll<HTMLButtonElement>("button")].find(button => button.textContent === "Close inspector")!;
+const usePhone = () => {
+  viewport.phone = true;
+  // jsdom has no layout; let the actual sheet's focusable-element filter see
+  // these connected controls. Browser geometry/keyboard proof lives in e2e.
+  vi.spyOn(HTMLElement.prototype, "getClientRects").mockImplementation(function (this: HTMLElement) {
+    return (this.isConnected ? [new DOMRect(0, 0, 1, 1)] : []) as unknown as DOMRectList;
+  });
+};
 
 it("opens a surface cell at its own expiry and Gamma, never the all-expiry aggregate", () => {
   locale.lang = "en";
@@ -160,5 +207,126 @@ it("withdraws a handoff whose exact cell has no data instead of broadening", () 
   expect(recover).toBeDefined();
   expect(selectedRows().length).toBe(0);
   expect(inspector().textContent).not.toContain("+200M");
+  expect(level()).toBeNull();
+});
+
+it.each(["surface-open-oct23", "surface-pin-oct23"])("hands %s focus to the desktop inspector and returns to the connected tab", action => {
+  mount();
+  const opener = openFromSurface(action);
+  expect(document.activeElement).toBe(inspector());
+  expect(document.activeElement?.isConnected).toBe(true);
+  flushFrames();
+  expect(document.activeElement).toBe(inspector());
+  click(closeButton(inspector()));
+  expect(document.activeElement).toBe(opener);
+  expect(selectedRows().length).toBe(0);
+
+  // A second activation of the same cell must not be suppressed by strike/identity equality.
+  openFromSurface(action);
+  expect(document.activeElement).toBe(inspector());
+  openFromSurface(action);
+  expect(document.activeElement).toBe(inspector());
+  key(inspector(), "Escape");
+  flushFrames();
+  expect(document.activeElement).toBe(opener);
+  expect(opener.isConnected).toBe(true);
+});
+
+it("does not steal focus on an unchanged read, locale render or phone-to-desktop resize", () => {
+  mount(); openFromSurface("surface-open-oct23");
+  const opener = surfaceTab(); opener.focus();
+  mount(); flushFrames();
+  expect(document.activeElement).toBe(opener);
+  locale.lang = "zh"; mount(); flushFrames();
+  expect(document.activeElement).toBe(opener);
+  viewport.phone = true; mount(); flushFrames();
+  viewport.phone = false; mount(); flushFrames();
+  expect(document.activeElement).not.toBe(inspector());
+});
+
+it.each([
+  ["surface-open-oct23", "root"], ["surface-pin-oct23", "root"],
+  ["surface-open-oct23", "source"], ["surface-pin-oct23", "source"],
+] as const)("cancels %s focus when its pending %s changes", (action, change) => {
+  mount(); click(surfaceTab());
+  const opener = surfaceTab(), button = surfaceButton(action);
+  button.focus();
+  const other = { ...book, root: "QQQ", exposure_projection: { ...structuredClone(projection), root: "QQQ", security_id: "SEC:QQQ" } };
+  act(() => {
+    button.click();
+    view.render(<ExposureMap root={change === "root" ? "QQQ" : "SPY"} source={change === "root" ? other : { ...book }} matrix={null} />);
+  });
+  flushFrames();
+  expect(document.activeElement).toBe(opener);
+  expect(selectedRows().length).toBe(0);
+  expect(level()).toBeNull();
+});
+
+it("keeps a missing-cell handoff on the Surface tab and cancels a pending handoff on Close", () => {
+  mount();
+  const opener = openFromSurface("surface-open-ghost");
+  flushFrames();
+  expect(document.activeElement).toBe(opener);
+  expect(selectedRows().length).toBe(0);
+
+  openFromSurface("surface-open-oct23");
+  click(surfaceTab());
+  const close = closeButton(inspector());
+  act(() => { surfaceButton("surface-pin-oct23").click(); close.click(); });
+  flushFrames();
+  expect(document.activeElement).toBe(opener);
+  expect(selectedRows().length).toBe(0);
+  expect(level()).toBeNull();
+});
+
+it.each(["surface-open-oct23", "surface-pin-oct23"])("lets the real phone sheet own %s focus, Tab containment and return", action => {
+  usePhone(); mount(); flushFrames();
+  const opener = openFromSurface(action);
+  // No parent RAF competes with the sheet. The connected opener remains focused
+  // until MobileSheet runs its own initial-focus callback.
+  expect(document.activeElement).toBe(opener);
+  flushFrames();
+  const dialog = document.querySelector<HTMLElement>('[role="dialog"]')!;
+  expect(document.activeElement).toBe(dialog);
+  expect(document.activeElement).not.toBe(phoneInspector());
+  key(dialog, "Tab", true);
+  const last = document.activeElement!;
+  expect(last).not.toBe(dialog);
+  expect(dialog.contains(last)).toBe(true);
+  key(last, "Tab");
+  const first = document.activeElement!;
+  expect(first).not.toBe(last);
+  expect(dialog.contains(first)).toBe(true);
+  key(first, "Tab", true);
+  expect(document.activeElement).toBe(last);
+  key(last, "Escape");
+  flushFrames();
+  expect(document.querySelector('[role="dialog"]')).toBeNull();
+  expect(document.activeElement).toBe(opener);
+
+  openFromSurface(action); flushFrames();
+  click(closeButton(phoneInspector())); flushFrames();
+  expect(document.querySelector('[role="dialog"]')).toBeNull();
+  expect(document.activeElement).toBe(opener);
+});
+
+it.each(["root", "source", "close", "unmount"] as const)("cancels the phone sheet's scheduled focus on %s", change => {
+  usePhone(); mount(); flushFrames();
+  const opener = openFromSurface("surface-open-oct23");
+  expect(document.activeElement).toBe(opener);
+  if (change === "close") click(closeButton(phoneInspector()));
+  else if (change === "unmount") {
+    act(() => view.unmount()); unmounted = true;
+    const survivor = document.createElement("button"); host.append(survivor); survivor.focus();
+    flushFrames();
+    expect(document.activeElement).toBe(survivor);
+    return;
+  } else {
+    const other = { ...book, root: "QQQ", exposure_projection: { ...structuredClone(projection), root: "QQQ", security_id: "SEC:QQQ" } };
+    mount(change === "root" ? "QQQ" : "SPY", change === "root" ? other : { ...book });
+  }
+  flushFrames();
+  expect(document.querySelector('[role="dialog"]')).toBeNull();
+  expect(document.activeElement).toBe(opener);
   expect(level()).toBeNull();
 });

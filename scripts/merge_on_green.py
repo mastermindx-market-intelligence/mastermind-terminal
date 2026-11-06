@@ -8,9 +8,12 @@ same-repository, non-draft pull requests carrying the
 ``merge-on-green`` label; requires the latest trusted instance of all three CI jobs
 to have completed successfully; and pins every state-changing action to the head SHA
 it evaluated. When GitHub's native merge queue is enabled for master, the controller
-enqueues every eligible green head (including a head that is merely behind master)
-and leaves integration ordering/revalidation to that queue. Without a merge queue it
-retains the historical refresh-then-SHA-pinned-squash fallback.
+verifies every eligible green head (including a head that is merely behind master)
+against the queue and reports it ready, but never enqueues: this workflow holds
+the repository GITHUB_TOKEN, whose enqueue return cannot establish downstream
+merge-group event delivery. Admission is left to the already-supported native-user
+route, with an expected-head pin. Without
+a merge queue it retains the historical refresh-then-SHA-pinned-squash fallback.
 
 The controller is deliberately label-gated. ``hold`` and ``do-not-merge`` are hard
 vetoes. A genuine trusted red or conflict is labelled ``merge-blocked`` with one
@@ -181,8 +184,61 @@ class GitHubApi:
         entry_id = entry.get("id")
         return str(entry_id) if entry_id else None
 
+    def native_enqueue_api(self) -> GitHubApi:
+        """Qualify the distinct user credential at the native mutation boundary.
+
+        The repository job token remains the incumbent read/legacy credential.
+        It cannot be a fallback here: its enqueue event need not start group CI.
+        Configuration is a prospective enrollment, never proof of the identity.
+        """
+        token = os.environ.get("NATIVE_ENQUEUE_TOKEN", "").strip()
+        login = os.environ.get("NATIVE_ENQUEUE_ISSUER_LOGIN", "").strip()
+        issuer_id = os.environ.get("NATIVE_ENQUEUE_ISSUER_ID", "").strip()
+        repository_id = os.environ.get("GITHUB_REPOSITORY_ID", "").strip()
+        if (
+            self.repo != "mastermindx-market-intelligence/mastermind-terminal"
+            or not token
+            or token in {self.token, os.environ.get("GITHUB_TOKEN", "").strip()}
+            or not login
+            or login.casefold() == "github-actions[bot]"
+            or not issuer_id.isascii() or not issuer_id.isdecimal() or int(issuer_id) <= 0
+            or not repository_id.isascii() or not repository_id.isdecimal() or int(repository_id) <= 0
+        ):
+            raise ApiError(412, "native enqueue issuer enrollment unavailable")
+        client = GitHubApi(self.repo, token)
+        identity = client.graphql_request(
+            """
+            query($owner: String!, $name: String!) {
+              viewer { __typename login databaseId }
+              repository(owner: $owner, name: $name) {
+                nameWithOwner databaseId viewerPermission
+              }
+            }
+            """,
+            {"owner": "mastermindx-market-intelligence", "name": "mastermind-terminal"},
+        )
+        viewer = identity.get("viewer") if isinstance(identity, dict) else None
+        repository = identity.get("repository") if isinstance(identity, dict) else None
+        if (
+            not isinstance(viewer, dict) or not isinstance(repository, dict)
+            or viewer.get("__typename") != "User"
+            or viewer.get("login") != login
+            or type(viewer.get("databaseId")) is not int
+            or viewer["databaseId"] != int(issuer_id)
+            or repository.get("nameWithOwner") != self.repo
+            or type(repository.get("databaseId")) is not int
+            or repository["databaseId"] != int(repository_id)
+            or repository.get("viewerPermission") not in {"WRITE", "MAINTAIN", "ADMIN"}
+        ):
+            raise ApiError(412, "native enqueue issuer identity or repository grant unqualified")
+        return client
+
     def enqueue(self, pull_request_id: str, head_sha: str) -> str:
-        data = self.graphql_request(
+        # Explicit caller primitive only: the reporting sweep never calls this.
+        # Fresh user qualification precedes its single expected-head mutation;
+        # never cache identity or retry an ambiguous response here.
+        client = self.native_enqueue_api()
+        data = client.graphql_request(
             """
             mutation($pullRequestId: ID!, $expectedHeadOid: GitObjectID!) {
               enqueuePullRequest(
@@ -556,17 +612,16 @@ def sweep(api: MergeApi, trigger_number: int | None = None, *, wait=time.sleep) 
             if existing_entry is not None:
                 actions.append(f"#{number}: already queued ({existing_entry})")
                 continue
-            try:
-                entry_id = api.enqueue(pull_request_id, head_sha)
-            except ApiError as error:
-                if not (400 <= error.status < 500):
-                    raise
-                actions.append(f"#{number}: declined: {error}")
-                continue
-            actions.append(f"#{number}: enqueued in merge queue ({entry_id})")
-            # Enqueueing does not advance master. Keep evaluating other green
-            # candidates so GitHub can build up to the queue's configured
-            # concurrent-candidate limit in this same sweep.
+            # A GITHUB_TOKEN enqueue return does not prove downstream merge_group
+            # event delivery. Keep this workflow read-only at the admission seam;
+            # a maintainer uses the existing native-user path with the verified
+            # head pinned. This is not a finding about every missing event.
+            # Admission, ordering and revalidation then belong to the queue.
+            actions.append(
+                f"#{number}: ready for the merge queue; native user admission required "
+                f"(gh pr merge {number} --auto --match-head-commit {head_sha}); "
+                f"head {head_sha} verified green by this sweep"
+            )
             continue
         if mergeable_state == "behind":
             branch = str(pull["head"]["ref"])
