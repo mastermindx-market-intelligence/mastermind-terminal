@@ -240,6 +240,55 @@ _ENVELOPE_FIELDS = ("schema", "bundle_id", "definition_id", "market", "revision"
 _AUTHORITY_FLAGS = ("envelope_may_execute", "envelope_may_gate", "envelope_may_rank", "envelope_may_size")
 
 
+_MULTI_ASSET_FIELDS = frozenset({
+    "schema", "method_version", "captured_at", "alignment_basis", "window", "status",
+    "reasons", "benchmark_instrument_id", "benchmark_return", "base_currency", "rows",
+    "coverage", "source_kind", "provider_available_at", "historical_original_availability_proven",
+    "capture_coherence", "display_only", "no_predictive_claim", "authority", "limitations", "context_digest",
+})
+_MULTI_ASSET_ROW_FIELDS = frozenset({
+    "instrument_id", "label_en", "label_zh", "asset_class", "exposure_region", "listing_market",
+    "currency", "return_basis", "start_session", "end_session", "last_source_session", "status",
+    "reasons", "absolute_return", "relative_return", "classification", "source_ref", "source_digest",
+    "evidence_family_id",
+})
+
+
+def _multi_asset_display_transport(raw, *, produced: datetime | None) -> dict | None:
+    """Bounded forwarding only; the native Terminal reader checks row semantics.
+
+    No new collector, return calculation, quote clock or investment authority.
+    Malformed optional data cannot replace the independently qualified core risk.
+    Closed field sets prevent unrelated/private fields from crossing this bridge.
+    """
+    if not isinstance(raw, dict) or set(raw) != _MULTI_ASSET_FIELDS:
+        return None
+    if (raw.get("schema") != "mastermind.multi_asset_daily_context/v1"
+            or raw.get("method_version") != "same_us_cash_session_snapshot.v1"
+            or raw.get("display_only") is not True or raw.get("no_predictive_claim") is not True):
+        return None
+    auth = raw.get("authority")
+    if (not isinstance(auth, dict) or set(auth) != {"can_rank", "can_gate", "can_size", "can_trade"}
+            or any(value is not False for value in auth.values())):
+        return None
+    captured = _timestamp(raw.get("captured_at"))
+    if produced is None or captured is None or captured > produced:
+        return None
+    rows = raw.get("rows")
+    if not isinstance(rows, list) or len(rows) != 11:
+        return None
+    if any(not isinstance(row, dict) or not _MULTI_ASSET_ROW_FIELDS <= set(row)
+           or set(row) - _MULTI_ASSET_ROW_FIELDS - {"comparison_status"} for row in rows):
+        return None
+    try:
+        payload = json.dumps(raw, allow_nan=False)
+        if len(payload.encode("utf-8")) > 65_536:
+            return None
+        return json.loads(payload)
+    except (ValueError, TypeError, OverflowError, RecursionError):
+        return None
+
+
 def qualify_risk_envelope(raw, asof, *, today: date, now: datetime | None = None) -> tuple[dict | None, dict]:
     """Carry a matching native envelope; transport clocks never refresh its evidence."""
     if now is not None:
@@ -300,10 +349,13 @@ def qualify_risk_envelope(raw, asof, *, today: date, now: datetime | None = None
     # all_on_session includes optional organs. Their own stale/null coverage is
     # preserved; it must not erase independently qualified measured state.
     try:
-        json.dumps(envelope, allow_nan=False)
+        json.dumps({key: value for key, value in envelope.items() if key != "multi_asset_context"}, allow_nan=False)
     except (ValueError, TypeError):
         reasons.append("invalid_json_values")
     qualified = {key: envelope[key] for key in _ENVELOPE_FIELDS if key in envelope}
+    multi_asset = _multi_asset_display_transport(envelope.get("multi_asset_context"), produced=produced)
+    if multi_asset is not None:
+        qualified["multi_asset_context"] = multi_asset
     reasons = sorted(set(reasons))
     return (None if reasons else qualified), {"qualified": not reasons, "reasons": reasons}
 

@@ -258,7 +258,7 @@ export function qualifyRiskEnvelope(
   // Keep the existing owner-qualified envelope independently usable.
   const { multi_asset_context: rawMultiAsset, ...riskCore } = source;
   if (!finiteJson(riskCore)) reasons.add("invalid_json_values");
-  const multiAsset = qualifyMultiAssetContext(rawMultiAsset, nowMs);
+  const multiAsset = qualifyMultiAssetContext(rawMultiAsset, nowMs, text(source.produced_at) ?? undefined);
   const qualified = reasons.size === 0;
   const envelope = qualified ? Object.fromEntries(
     ENVELOPE_FIELDS.filter(key => key in source).map(key => [key, source[key]]),
@@ -378,7 +378,7 @@ export function riskEnvelopeCopy(envelope: Record<string, unknown> | null, zh: b
     ? `最近记录的状态变化：${label(before.verdict, verdicts)} → ${label(after.verdict, verdicts)}（${text(before.asof)} → ${text(after.asof)}）。当前快照本身不确定变化发生时间。`
     : `Last recorded state change: ${label(before.verdict, verdicts)} → ${label(after.verdict, verdicts)} (${text(before.asof)} → ${text(after.asof)}). The current snapshot alone does not date the transition.`);
   else details.push(zh ? "现有记录未确立最近一次状态变化的日期。" : "The available record does not establish the date of a latest state change.");
-  const multiAsset = qualifyMultiAssetContext(envelope.multi_asset_context, nowMs);
+  const multiAsset = qualifyMultiAssetContext(envelope.multi_asset_context, nowMs, text(envelope.produced_at) ?? undefined);
   if (multiAsset.qualified && multiAsset.context) {
     details.push(...multiAssetContextCopy(multiAsset.context, zh));
   }
