@@ -315,7 +315,7 @@ def test_parallel_candidate_is_bound_to_all_native_predecessor_owners():
     ("mergeQueue.entries.nodes.1.pullRequest.headRepository.nameWithOwner", "other/repo"),
     ("mergeQueue.entries.nodes.1.pullRequest.state", "MERGED"),
     ("mergeQueue.entries.nodes.1.headCommit.tree.oid", "bogus"),
-    ("defaultBranchRef.target.oid", "a" * 40),
+    ("defaultBranchRef.target.oid", "0" * 40),
 ])
 def test_parallel_group_refuses_non_native_or_incomplete_membership(path, value):
     data, event, env = parallel_fixture()
