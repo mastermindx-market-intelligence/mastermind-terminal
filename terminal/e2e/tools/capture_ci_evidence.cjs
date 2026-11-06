@@ -4,7 +4,56 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const crypto = require("node:crypto");
-const { spawnSync, execFileSync } = require("node:child_process");
+const { spawnSync, spawn: spawnAsync, execFileSync } = require("node:child_process");
+
+const OPTIONS_PACKET = "terminal/docs/pr-crops/options-level-axis-labels";
+const OPTIONS_SOURCES = ["components/ChartPanel.tsx", "lib/optionsLevels.ts", "lib/pricePaneSvgScope.ts", "lib/priceTagPlacement.ts"];
+const sha256 = bytes => crypto.createHash("sha256").update(bytes).digest("hex");
+
+// Decide whether the existing packet needs a real recapture. Its unchanged unit reader
+// still owns all image/proof validation; a matching source snapshot is not a new capture.
+function optionsCapturePlan(terminal) {
+  const file = path.join(terminal, "docs/pr-crops/options-level-axis-labels/manifest.json");
+  let manifest;
+  try { manifest = JSON.parse(fs.readFileSync(file, "utf8")); }
+  catch (error) {
+    if (error.code === "ENOENT" || error instanceof SyntaxError)
+      return { required: true, reason: "missing-or-invalid-manifest" };
+    throw error;
+  }
+  const changed = OPTIONS_SOURCES.filter(file =>
+    manifest?.sourceFiles?.[file] !== sha256(fs.readFileSync(path.join(terminal, file))));
+  return { required: changed.length > 0, changed };
+}
+
+// Called by PL6 only while its own warmed server is alive. Async spawn keeps that
+// owner's event loop draining the server pipes while Options makes HTTP requests.
+async function captureOptions({ server, ownedServer, baseURL, terminal, env = process.env,
+  spawn = spawnAsync } = {}) {
+  if (!ownedServer(server)) throw new Error("CI_OPTIONS_SERVER_NOT_READY");
+  await new Promise((resolve, reject) => {
+    const child = spawn(process.execPath, ["docs/pr-crops/options-level-axis-labels/capture.mjs"], {
+      cwd: terminal, env: { ...env, BASE_URL: baseURL }, stdio: "inherit", timeout: 600_000,
+    });
+    child.once("error", reject);
+    child.once("close", (status, signal) => {
+      if (signal || status !== 0)
+        reject(new Error(`CI_OPTIONS_CHILD_FAILED: status=${status} signal=${signal || "none"}`));
+      else resolve();
+    });
+  });
+  if (!ownedServer(server)) throw new Error("CI_OPTIONS_SERVER_NOT_READY");
+}
+
+function optionsReceipt(repoRoot, captured, checkoutCommit) {
+  const relative = `${OPTIONS_PACKET}/manifest.json`;
+  const bytes = fs.readFileSync(path.join(repoRoot, relative));
+  const manifest = JSON.parse(bytes);
+  if (captured && (manifest.sourceHead !== checkoutCommit || optionsCapturePlan(path.join(repoRoot, "terminal")).required))
+    throw new Error("CI_OPTIONS_CHECKOUT_BINDING");
+  return { path: relative, sha256: sha256(bytes), sourceHead: manifest.sourceHead,
+    state: captured ? "CAPTURED_AWAITING_UNIT_VALIDATION" : "EXISTING_PACKET_AWAITING_UNIT_VALIDATION" };
+}
 
 function operationIds(env) {
   for (const name of ["GITHUB_RUN_ID", "GITHUB_RUN_ATTEMPT"])
@@ -77,6 +126,7 @@ function run({ repoRoot = path.resolve(__dirname, "../../.."), env = process.env
     Object.assign(record, checkout(repoRoot, env));
     const captureProfile = evidence.profile(env);
     record.profile = captureProfile;
+    record.optionsAxis = { plan: optionsCapturePlan(terminal), state: "PREPARING" };
     record.state = "CAPTURING"; save();
     const capture = (packet, args, extraEnv) => {
       const stdoutPath = path.join(diagnostics, `${ids[packet]}.stdout.log`);
@@ -88,7 +138,7 @@ function run({ repoRoot = path.resolve(__dirname, "../../.."), env = process.env
       try {
         err = fs.openSync(stderrPath, "wx");
         result = spawn(process.execPath, args, { cwd: terminal,
-          env: { ...env, CAPTURE_ONLY: "", ...extraEnv }, stdio: ["ignore", out, err] });
+          env: { ...env, CAPTURE_ONLY: "", TERMINAL_CI_OPTIONS_AXIS_CAPTURE: "0", ...extraEnv }, stdio: ["ignore", out, err] });
       } finally { fs.closeSync(out); if (err !== undefined) fs.closeSync(err); }
       Object.assign(child, { state: "RETURNED", status: result.status, signal: result.signal,
         error: result.error?.message || null }); save();
@@ -97,10 +147,13 @@ function run({ repoRoot = path.resolve(__dirname, "../../.."), env = process.env
       if (fs.statSync(stdoutPath).size > 16 * 1024 * 1024) throw new Error("CI_EVIDENCE_LOG_LIMIT");
       return reference(fs.readFileSync(stdoutPath, "utf8"), packet, ids[packet], evidence);
     };
-    const refs = [
-      capture("pl6", ["e2e/tools/capture_pl6_batch1.cjs"], { TERMINAL_PL6_EVIDENCE_OPERATION_ID: ids.pl6, TERMINAL_CROP_PORT: "3536" }),
-      capture("vi", ["e2e/tools/capture_visual_evidence.cjs", "--id", ids.vi, "--port", "3537"], {}),
-    ];
+    const refs = [capture("pl6", ["e2e/tools/capture_pl6_batch1.cjs"], {
+      TERMINAL_PL6_EVIDENCE_OPERATION_ID: ids.pl6, TERMINAL_CROP_PORT: "3536",
+      TERMINAL_CI_OPTIONS_AXIS_CAPTURE: record.optionsAxis.plan.required ? "1" : "0",
+    })];
+    Object.assign(record.optionsAxis, optionsReceipt(repoRoot, record.optionsAxis.plan.required, record.actualCheckout.commit));
+    save();
+    refs.push(capture("vi", ["e2e/tools/capture_visual_evidence.cjs", "--id", ids.vi, "--port", "3537"], {}));
     const required = [...evidence.requirements("pl6"), ...evidence.requirements("vi")];
     if (required.length !== 50 || new Set(required.map(c => c.key)).size !== 50) throw new Error("CI_EVIDENCE_REQUIREMENTS");
     const selections = required.map(c => ({ operationId: ids[c.packet], key: c.key }));
@@ -137,4 +190,4 @@ if (require.main === module) {
     else throw new Error("CI_EVIDENCE_ARGUMENT");
   } catch (error) { console.error(error.stack || error.message); process.exitCode = 1; }
 }
-module.exports = { operationIds, reference, checkoutIdentity, recordCheckout, run };
+module.exports = { operationIds, reference, checkoutIdentity, recordCheckout, optionsCapturePlan, captureOptions, run };

@@ -13,6 +13,7 @@ const expectedLinePrices = [192.42, 192.44, 192.46, 192.52, 192.58, 192.60];
 const sourceFiles = [
   "components/ChartPanel.tsx",
   "lib/optionsLevels.ts",
+  "lib/pricePaneSvgScope.ts",
   "lib/priceTagPlacement.ts",
 ];
 const viewports = [
