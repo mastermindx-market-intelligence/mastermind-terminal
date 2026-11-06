@@ -4,6 +4,7 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import ExposureMap from "@/components/exposure-map/ExposureMap";
 import producer from "./fixtures/exposure-projection.json";
+import * as chartLinks from "@/lib/exposureChartLink";
 
 const locale = vi.hoisted(() => ({ lang: "en" }));
 const captured = vi.hoisted(() => ({ chart: [] as { optionsLevel?: { price: number } | null }[] }));
@@ -161,4 +162,33 @@ it("withdraws a handoff whose exact cell has no data instead of broadening", () 
   expect(selectedRows().length).toBe(0);
   expect(inspector().textContent).not.toContain("+200M");
   expect(level()).toBeNull();
+});
+
+
+const RETURN_REQUEST: chartLinks.ExposureChartRequest = { v: 1, root: "SPY", session: SESSION,
+  strike: 100, archived: false, metric: "gamma", lens: { kind: "one", exp: "2026-10-23" },
+  shock: { spotPercent: 0, ivPoints: 0, calendarDays: 0 }, fingerprint: "a".repeat(64) };
+it("focuses only the source-validated returned inspector and escapes to its selected row", async () => {
+  vi.spyOn(chartLinks, "exposureChartFingerprint").mockResolvedValue(RETURN_REQUEST.fingerprint);
+  await act(async () => view.render(<ExposureMap root="SPY" source={book} matrix={null} initialRequest={RETURN_REQUEST} />));
+  expect(host.querySelector('[data-testid="exposure-return-check"]')?.getAttribute("data-state")).toBe("ready");
+  expect(document.activeElement).toBe(inspector().querySelector("h3"));
+  expect(inspector().textContent).toContain("+200M");
+  act(() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true })));
+  expect(document.activeElement).toBe(host.querySelector("tbody tr th button"));
+});
+it("does not move focus for a returned selection whose source digest changed", async () => {
+  vi.spyOn(chartLinks, "exposureChartFingerprint").mockResolvedValue("b".repeat(64));
+  const before = document.activeElement;
+  await act(async () => view.render(<ExposureMap root="SPY" source={book} matrix={null} initialRequest={RETURN_REQUEST} />));
+  expect(host.querySelector('[data-testid="exposure-return-check"]')?.getAttribute("data-state")).toBe("changed");
+  expect(document.activeElement).toBe(before);
+  expect(selectedRows()).toHaveLength(0);
+});
+it("does not move focus when a returned source is unavailable", async () => {
+  const before = document.activeElement;
+  await act(async () => view.render(<ExposureMap root="SPY" source={null} sourceStatus="unavailable" matrix={null} initialRequest={RETURN_REQUEST} />));
+  expect(host.querySelector('[data-testid="exposure-return-check"]')?.getAttribute("data-state")).toBe("unavailable");
+  expect(document.activeElement).toBe(before);
+  expect(selectedRows()).toHaveLength(0);
 });

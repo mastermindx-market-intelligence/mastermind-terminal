@@ -1,7 +1,7 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page, type Locator } from "@playwright/test";
 import { createHash } from "node:crypto";
 import { writeFile } from "node:fs/promises";
-import { parseExposureChartRequest, exposureChartFingerprint, exposureChartHref } from "../lib/exposureChartLink";
+import { parseExposureChartRequest, exposureChartFingerprint, exposureChartHref, exposureMapHref } from "../lib/exposureChartLink";
 import { readExposureMap } from "../lib/exposureMap";
 import { usRegularSessionWindow } from "../lib/usEquitySessionClock";
 import producer from "../lib/__tests__/fixtures/exposure-projection.json";
@@ -1197,4 +1197,207 @@ if (LIGHT_ACCEPTANCE) for (const lang of ["en", "zh"] as const) test(`synthetic 
   await page.screenshot({path:`test-results/synthetic-light-map-signed-${lang}.png`});
   await retainSyntheticJson("synthetic-light-map-signed-text.json", {source:SOURCE_REF,session:SESSION,expiry:SELECTED_EXPIRY,metric:"gamma",values,momentum:bias,nonColor:"explicit signed numbers and unchanged bullish/bearish words; exposure face/swatch palette unchanged",typography:"fallback; no full typography/production acceptance"});
   for(const row of [...values,...bias]) expect(row.contrast,`${row.text}: ${row.foreground} on ${row.background}`).toBeGreaterThanOrEqual(4.5);
+});
+
+const ACCESS_ACCEPTANCE = process.env.TERMINAL_EXPOSURE_ACCESS_ACCEPTANCE === "1";
+async function prepareAccessFixture(page: Page, baseURL: string, lang: "en" | "zh", entryRoute = "/options?tab=prism&symbol=SPY&view=chart") {
+  const origin = new URL(baseURL).origin;
+  await page.context().route("**/*", route => new URL(route.request().url()).origin === origin ? route.continue() : route.abort("blockedbyclient"));
+  await page.context().addCookies([{ name:"mm_e2e_rs30", value:"1", url:baseURL }]);
+  await page.addInitScript(locale => { localStorage.setItem("mm.lang",locale);Reflect.deleteProperty(window,"EventSource"); },lang);
+  await page.clock.install({time:new Date(FIXED_NOW)});
+  await installSyntheticRoutes(page);
+  await page.goto(entryRoute);
+  await expect(page.getByTestId("exposure-map")).toHaveAttribute("data-chart-ready","true",{timeout:30_000});
+}
+async function tabToActual(page: Page, target: Locator) {
+  for(let n=0;n<160;n++) {
+    if(await target.evaluate(el=>el===document.activeElement))return n;
+    await page.keyboard.press("Tab");
+  }
+  throw new Error("Target not reached in160 actual Tab presses");
+}
+async function actualFocusPaint(target: Locator) {
+  return target.evaluate(el=>{
+    const css=getComputedStyle(el),face=el.querySelector("polygon"),b=el.getBoundingClientRect();
+    return {active:document.activeElement===el,focusVisible:el.matches(":focus-visible"),tag:el.tagName,text:el.textContent?.slice(0,180),label:el.getAttribute("aria-label"),outline:css.outlineStyle,outlineWidth:css.outlineWidth,outlineColor:css.outlineColor,faceStroke:face?getComputedStyle(face).stroke:null,faceStrokeWidth:face?getComputedStyle(face).strokeWidth:null,bounds:{x:b.x,y:b.y,width:b.width,height:b.height}};
+  });
+}
+
+async function expectSelectedHeadingExposed(page: Page, inspector: Locator, stage: string) {
+  const paint=await inspector.locator("h3").evaluate(el=>{
+    const b=el.getBoundingClientRect(),x=b.x+b.width/2,y=b.y+b.height/2,hit=document.elementFromPoint(x,y);
+    const obstacles=[...document.querySelectorAll<HTMLElement>("body *")].flatMap(node=>{
+      const css=getComputedStyle(node);if((css.position!=="fixed"&&css.position!=="sticky")||css.pointerEvents==="none"||node.contains(el)||!node.checkVisibility({checkOpacity:true,checkVisibilityCSS:true}))return[];
+      const r=node.getBoundingClientRect();return r.width>0&&r.height>0&&r.left<=x&&r.right>=x&&r.top>=0&&r.top<=b.bottom?[{tag:node.tagName,className:node.className,top:r.top,bottom:r.bottom}]:[];
+    });
+    return{text:el.textContent,top:b.top,bottom:b.bottom,left:b.left,right:b.right,viewportHeight:innerHeight,hitIsHeading:hit===el||!!hit&&el.contains(hit),hit:hit?{tag:hit.tagName,className:hit.getAttribute("class")}:null,topObstacles:obstacles,obstacleBottom:Math.max(0,...obstacles.map(r=>r.bottom))};
+  });
+  await retainSyntheticJson(`synthetic-s9-heading-${stage}.json`,paint);
+  expect(paint.top,"selected heading clears actual sticky/fixed chrome bounds").toBeGreaterThanOrEqual(paint.obstacleBottom);
+  expect(paint.bottom).toBeLessThanOrEqual(paint.viewportHeight);
+  expect(paint.hitIsHeading,"selected identity is actually hit-visible").toBe(true);
+}
+
+if(ACCESS_ACCEPTANCE)test("synthetic S9 native resize capability",async({page,baseURL},info)=>{
+  test.skip(info.project.name!=="desktop","one same-browser capability observation");test.setTimeout(90_000);
+  await prepareAccessFixture(page,baseURL!,"en");
+  const session=await page.context().newCDPSession(page);
+  const read=async()=>({metrics:await session.send("Page.getLayoutMetrics"),text:await page.getByTestId("exposure-map").locator("h2").evaluate(el=>{
+    const r=document.createRange();r.selectNodeContents(el);const b=r.getBoundingClientRect(),s=getComputedStyle(el);
+    return{fontSize:s.fontSize,lineHeight:s.lineHeight,width:b.width,height:b.height,innerWidth,outerWidth,dpr:devicePixelRatio,visualScale:visualViewport?.scale,rootZoom:getComputedStyle(document.documentElement).zoom,transform:s.transform,scrollWidth:document.documentElement.scrollWidth,clientWidth:document.documentElement.clientWidth};
+  })});
+  const before=await read();
+  for(let n=0;n<5;n++)await page.keyboard.press("Meta+Equal");
+  const shortcut=await read();
+  await page.keyboard.press("Meta+Digit0");
+  await session.send("Emulation.setEmulatedOSTextScale",{scale:2});
+  const osText=await read();
+  await page.screenshot({path:"test-results/synthetic-s9-os-text-scale2.png"});
+  await retainSyntheticJson("synthetic-s9-resize-capability.json",{before,shortcut,osText,measuredTextHeightRatio:osText.text.height/before.text.height,measuredTextWidthRatio:osText.text.width/before.text.width,mechanism:"Installed native CDP Emulation.setEmulatedOSTextScale(scale2), not CSSzoom/DPR/pinch",qualification:"Only actual200% glyph enlargement would qualify controlled OS-text emulation. Browserzoom remains separate; command success alone proves neither.",compiler:"NextdevWebpack/fallback fonts/same loopback guard"});
+  await session.detach();
+});
+
+if(ACCESS_ACCEPTANCE)for(const lang of ["en","zh"]as const)for(const theme of ["dark","light"]as const)test(`synthetic S9 keyboard return ${lang} ${theme}`,async({page,baseURL},info)=>{
+  test.skip(info.project.name!=="desktop","representative keyboard path; accepted responsive captures reused");test.setTimeout(90_000);
+  await prepareAccessFixture(page,baseURL!,lang);
+  if(theme==="light")await selectActualLight(page,lang,"s9-entry");
+  const mt=exposureMapT(lang),st=exposureSurfaceT(lang),map=page.getByTestId("exposure-map");
+  const surfaceTab=map.getByRole("button",{name:mt("surfaceTab"),exact:true});
+  await tabToActual(page,surfaceTab);await page.keyboard.press("Enter");
+  const surface=map.locator('section[data-surface-status="ready"]');
+  const negative=surface.locator(`[data-surface-cell][data-strike="98"][data-expiry="${SELECTED_EXPIRY}"]`);
+  await tabToActual(page,negative);await page.keyboard.press("Enter");
+  await expect(surface.getByTestId("surface-inspector").locator("strong").first()).toHaveText("−60M");
+  await page.keyboard.press("Space");
+  await page.keyboard.press("Shift+Tab");await page.keyboard.press("Tab");await expect(negative).toBeFocused();
+  const negativeFocus=await actualFocusPaint(negative);expect(negativeFocus.focusVisible).toBe(true);expect(Number.parseFloat(negativeFocus.faceStrokeWidth!)).toBeGreaterThanOrEqual(2);
+  const selected=surface.locator(`[data-surface-cell][data-strike="103"][data-expiry="${SELECTED_EXPIRY}"]`);
+  await tabToActual(page,selected);await page.keyboard.press("Enter");
+  await expect(surface.getByTestId("surface-inspector").locator("strong").first()).toHaveText("+200M");
+  const selectedFocus=await actualFocusPaint(selected);
+  await page.screenshot({path:`test-results/synthetic-s9-keyboard-cell-${lang}-${theme}.png`});
+  const pin=surface.getByRole("button",{name:st("pinCell",{cell:`103 × ${shortCellDate(lang,SELECTED_EXPIRY)}`}),exact:true});
+  await tabToActual(page,pin);await page.keyboard.press("Enter");
+  const inspector=page.getByTestId("exposure-node-inspector");
+  await expect(map.getByLabel(mt("scope"),{exact:true})).toHaveValue(SELECTED_EXPIRY);await expect(inspector).toContainText("+200M");
+  const open=inspector.getByRole("button",{name:mt("openOnMainChart"),exact:true});
+  await tabToActual(page,open);await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(/\/terminal\?.*#exposure=/);
+  const request=parseExposureChartRequest(new URL(page.url()).hash);
+  expect(request).toMatchObject({root:"SPY",session:SESSION,strike:103,metric:"gamma",lens:{kind:"one",exp:SELECTED_EXPIRY}});
+  const reference=page.getByTestId("exposure-chart-reference");await expect(reference).toHaveAttribute("data-state","ready",{timeout:30_000});
+  if(theme==="light")await selectActualLight(page,lang,"s9-mainchart");
+  const back=reference.getByRole("link",{name:mt("returnToExposure"),exact:true});await tabToActual(page,back);
+  const backFocus=await actualFocusPaint(back);expect(backFocus.focusVisible).toBe(true);expect(Number.parseFloat(backFocus.outlineWidth)).toBeGreaterThanOrEqual(2);
+  await page.keyboard.press("Enter");
+  await expect(page.getByTestId("exposure-return-check")).toHaveAttribute("data-state","ready",{timeout:30_000});
+  await expect(inspector).toContainText("+200M");expect(parseExposureChartRequest(new URL(page.url()).hash)).toEqual(request);
+  const restoredFocus=await actualFocusPaint(inspector.locator("h3"));
+  await retainSyntheticJson("synthetic-s9-keyboard-return.json",{lang,theme,request,negativeFocus,selectedFocus,backFocus,restoredFocus,themeAfterHardReturn:await page.locator("html").getAttribute("data-theme"),accountPersistence:"Unproved under synthetic401; no theme persistence claim"});
+  await page.screenshot({path:`test-results/synthetic-s9-keyboard-return-${lang}-${theme}.png`});
+  await expectSelectedHeadingExposed(page,inspector,"return");
+  expect(restoredFocus.active,"validated return must focus matching inspector heading, not body").toBe(true);
+  expect(restoredFocus.focusVisible).toBe(true);
+  await page.keyboard.press("Escape");
+  const row=map.getByRole("rowheader",{name:/^103(?:◆)?$/}).getByRole("button");await expect(row).toBeFocused();
+  if(theme==="light") {
+    // Synthetic auth cannot hydrate a saved theme across this hard navigation.
+    // Apply explicit Light intent via the real control, then reach the exact row
+    // again through real Tab/Enter; do not force focus or claim persistence.
+    await selectActualLight(page,lang,"s9-return-explicit-light");
+    await tabToActual(page,row);
+  }
+  await page.keyboard.press("Enter");await expect(inspector.locator("h3")).toBeFocused();
+  await expectSelectedHeadingExposed(page,inspector,"final");
+  const finalFocus=await actualFocusPaint(inspector.locator("h3"));expect(finalFocus.focusVisible).toBe(true);
+  expect(Number.parseFloat(finalFocus.outlineWidth)).toBeGreaterThanOrEqual(2);
+  await expect(page.locator("html")).toHaveAttribute("data-theme",theme);
+  await page.screenshot({path:`test-results/synthetic-s9-keyboard-final-${lang}-${theme}.png`});
+  await retainSyntheticJson("synthetic-s9-keyboard-final.json",{lang,theme,request,finalFocus,actualKeys:["Tab","Shift+Tab","Enter","Space","Escape"],selectedRowRecoveredOnEscape:true,sourceSession:await map.getAttribute("data-source-session"),scope:await map.getByLabel(mt("scope"),{exact:true}).inputValue(),metric:await map.getByRole("group",{name:mt("metric"),exact:true}).locator('[aria-pressed="true"]').textContent(),themeAfterExplicitIntent:await page.locator("html").getAttribute("data-theme"),accountPersistence:"Unproved under synthetic401"});
+});
+
+if(ACCESS_ACCEPTANCE)test("synthetic S9 builtin appearance zoom capability",async({page,baseURL,browser},info)=>{
+  test.skip(info.project.name!=="desktop","one built-in UI capability attempt through existing isolated launcher");test.setTimeout(90_000);
+  await prepareAccessFixture(page,baseURL!,"en");
+  const session=await page.context().newCDPSession(page);
+  const measure=async()=>({metrics:await session.send("Page.getLayoutMetrics"),glyph:await page.getByTestId("exposure-map").locator("h2").evaluate(el=>{
+    const r=document.createRange();r.selectNodeContents(el);const b=r.getBoundingClientRect();return{fontSize:getComputedStyle(el).fontSize,x:b.x,y:b.y,height:b.height,width:b.width,innerWidth,outerWidth,dpr:devicePixelRatio};
+  })});
+  const before=await measure();
+  const beforePng=await page.screenshot({path:"test-results/synthetic-s9-builtin-zoom-before.png"});
+  const beforeRaster={width:beforePng.readUInt32BE(16),height:beforePng.readUInt32BE(20)};
+  let rasterWitness:Record<string,unknown>|null=null;
+  let originalLabel:string|null=null,changed=false,restored=false,gap:string|null=null,after:Awaited<ReturnType<typeof measure>>|null=null;
+  const blocked:string[]=[];page.on("requestfailed",request=>{if(new URL(request.url()).origin!==new URL(baseURL!).origin)blocked.push(`${new URL(request.url()).protocol} ${request.failure()?.errorText}`);});
+  const control=()=>page.locator("select").filter({has:page.locator("option").filter({hasText:/^200%$/})});
+  try{
+    try{await page.goto("chrome://settings/appearance");}catch(error){gap=`Built-in appearance navigation unavailable: ${String(error)}`;}
+    if(!gap){
+      await expect(page.locator("settings-ui")).toBeVisible({timeout:5_000});
+      const zoom=control();
+      if(await zoom.count()!==1||!await zoom.isVisible())gap="No single visible built-in Page zoom select with a200% option in this isolated context";
+      else{
+        originalLabel=(await zoom.locator("option:checked").textContent())?.trim()??null;
+        if(!originalLabel)gap="Built-in Page zoom original selection could not be read; no setting changed";
+        else{
+          await zoom.selectOption({label:"200%"});changed=true;
+          await expect(zoom.locator("option:checked")).toHaveText("200%");
+          await page.goto("/options?tab=prism&symbol=SPY&view=chart");
+          await expect(page.getByTestId("exposure-map")).toHaveAttribute("data-chart-ready","true",{timeout:30_000});
+          after=await measure();
+          const afterPng=await page.screenshot({path:"test-results/synthetic-s9-builtin-zoom200-fixture.png"});
+          const afterRaster={width:afterPng.readUInt32BE(16),height:afterPng.readUInt32BE(20)};
+          const beforeTextRangePx=before.glyph.height*beforeRaster.width/before.metrics.cssVisualViewport.clientWidth;
+          const afterTextRangePx=after.glyph.height*afterRaster.width/after.metrics.cssVisualViewport.clientWidth;
+          const viewportRatio=before.metrics.cssVisualViewport.clientWidth/after.metrics.cssVisualViewport.clientWidth;
+          const rasterTextRatio=afterTextRangePx/beforeTextRangePx;
+          const fixedPhysicalRaster=beforeRaster.width===afterRaster.width&&beforeRaster.height===afterRaster.height;
+          const qualified200=Math.abs((after.metrics.cssVisualViewport.zoom??0)-2)<.01&&Math.abs(viewportRatio-2)<.05&&Math.abs(rasterTextRatio-2)<.05&&fixedPhysicalRaster;
+          rasterWitness={beforeRaster,afterRaster,beforeTextRangePx,afterTextRangePx,viewportRatio,rasterTextRatio,fixedPhysicalRaster,qualified200,note:"CSS font-size/range may remain CSSpx; native UIzoom + actual raster-space text and CSS viewport at fixed physical dimensions jointly establish the effect. DPR alone is never used as zoom proof."};
+          if(!qualified200)gap="Built-in200% selected, but the fixed-physical-window nativezoom/text/reflow witness did not jointly establish effective200%";
+        }
+      }
+    }
+    if(gap){await page.screenshot({path:"test-results/synthetic-s9-builtin-zoom-gap.png"});}
+  }finally{
+    if(changed&&originalLabel){
+      await page.goto("chrome://settings/appearance");await control().selectOption({label:originalLabel});
+      await expect(control().locator("option:checked")).toHaveText(originalLabel);restored=true;
+    }
+    await retainSyntheticJson("synthetic-s9-builtin-zoom-capability.json",{before,after,beforeRaster,rasterWitness,originalLabel,changed,restored,gap,blocked,browserVersion:browser.version(),browserFlavor:process.env.TERMINAL_EXPOSURE_BROWSER_FLAVOR??"incumbent default headless-shell",mechanism:"Actual built-in appearance Page zoom control only; same installed browser/launcher/context guard. No private API/preferences file/CSS/DPR/pinch substitute.",scope:"Only native zoom plus actual fixture glyph/layout enlargement would qualify200%. No setting change if UI unavailable."});
+    if (!page.isClosed()) await session.detach();
+  }
+});
+
+if(ACCESS_ACCEPTANCE)test("synthetic S9 phone inspector keyboard trap",async({page,baseURL},info)=>{
+  test.skip(info.project.name!=="mobile","one affected390 ENLight MobileSheet smoke");test.setTimeout(90_000);
+  // Source-qualified exact-expiry route: native select-key behavior is OUT OF
+  // SCOPE. This uses the same public reader/digest as the chart-return contract.
+  const lens={kind:"one" as const,exp:SELECTED_EXPIRY},shock={spotPercent:0,ivPoints:0,calendarDays:0};
+  const read=readExposureMap(envelope,"SPY",null,lens,"gamma",SESSION,Date.parse(FIXED_NOW),shock);
+  const request={v:1 as const,root:"SPY",session:SESSION,strike:103,archived:false,metric:"gamma" as const,lens,shock,fingerprint:await exposureChartFingerprint("SPY",read,lens,"gamma",shock)};
+  await prepareAccessFixture(page,baseURL!,"en",exposureMapHref(request)!);
+  const map=page.getByTestId("exposure-map"),mt=exposureMapT("en"),scope=map.getByLabel(mt("scope"),{exact:true});
+  await expect(page.getByTestId("exposure-return-check")).toHaveAttribute("data-state","ready",{timeout:30_000});
+  await expect(scope).toHaveValue(SELECTED_EXPIRY);
+  const row=map.getByRole("rowheader",{name:/^103(?:◆)?$/}).getByRole("button");
+  const sheet=page.locator(".msheet"),heading=page.getByTestId("exposure-node-inspector").locator("h3");
+  await expect(sheet).toBeVisible();await expect(heading).toBeFocused();
+  await page.keyboard.press("Escape");await expect(sheet).toHaveCount(0);await expect(row).toBeFocused();
+  await selectActualLight(page,"en","s9-phone-entry");
+  await tabToActual(page,row);await page.keyboard.press("Enter");
+  await expect(sheet).toBeVisible();await expect(heading).toBeFocused();
+  await expect(heading).toContainText("103");await expect(page.getByTestId("exposure-node-inspector")).toContainText("+200M");
+  const focus=await actualFocusPaint(heading);expect(focus.focusVisible).toBe(true);expect(Number.parseFloat(focus.outlineWidth)).toBeGreaterThanOrEqual(2);
+  const visibility=await heading.evaluate(el=>{const r=el.getBoundingClientRect(),h=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return{top:r.top,bottom:r.bottom,viewportHeight:innerHeight,hit:h===el||!!h&&el.contains(h)};});
+  expect(visibility.top).toBeGreaterThanOrEqual(0);expect(visibility.bottom).toBeLessThanOrEqual(visibility.viewportHeight);expect(visibility.hit).toBe(true);
+  const confined=[];
+  for(const key of ["Tab","Tab","Shift+Tab","Shift+Tab","Shift+Tab","Tab"]){
+    await page.keyboard.press(key);const active=await sheet.evaluate(el=>({inside:!!document.activeElement&&el.contains(document.activeElement),tag:document.activeElement?.tagName,text:document.activeElement?.textContent?.slice(0,80)}));expect(active.inside).toBe(true);confined.push({key,...active});
+  }
+  await page.screenshot({path:"test-results/synthetic-s9-phone-trap-en-light390.png"});
+  await page.keyboard.press("Escape");await expect(sheet).toHaveCount(0);await expect(row).toBeFocused();
+  const rowFocus=await actualFocusPaint(row);expect(rowFocus.focusVisible).toBe(true);
+  await retainSyntheticJson("synthetic-s9-phone-trap.json",{source:SOURCE_REF,session:SESSION,expiry:SELECTED_EXPIRY,metric:"gamma",strike:103,nativeExpiryKeyboard:"OUT OF SCOPE — source-qualified exact-expiry route",request,theme:await page.locator("html").getAttribute("data-theme"),focus,visibility,confined,rowFocus});
 });

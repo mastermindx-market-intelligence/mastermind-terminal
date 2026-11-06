@@ -90,9 +90,11 @@ export default function ExposureMap({ root, source, matrix, stale = false, sourc
   // serves that exact cell. A root or source change invalidates the intent.
   const [pendingCell, setPendingCell] = useState<{ root: string; source: unknown; expiry: string; strike: number; pin: boolean } | null>(null);
   const [momentumHost, setMomentumHost] = useState<HTMLDivElement | null>(null);
-  const inspector = useRef<HTMLElement>(null);
+  const inspector = useRef<HTMLHeadingElement>(null);
+  const mapHost = useRef<HTMLElement>(null);
   const chartHost = useRef<HTMLDivElement>(null);
   const returnFocus = useRef<HTMLElement | null>(null);
+  const restoredReturnFocus = useRef<string | null>(null);
   const primitive = useRef<ReturnType<typeof createExposureMapPrimitive> | null>(null);
   const lens = useMemo<ExposureLens>(() => scope === "all" || scope === "zero" || scope === "next-live" || scope === "week" ? { kind: scope } : { kind: "one", exp: scope }, [scope]);
   const [clock, setClock] = useState(() => Date.now());
@@ -153,6 +155,21 @@ export default function ExposureMap({ root, source, matrix, stale = false, sourc
     setPendingCell({ root, source, expiry: cell.expiry, strike: cell.strike, pin: pinCell });
   };
   const selected = selection?.identity === identity ? read.summary.nodes.find((n) => n.strike === selection.strike) ?? null : null;
+  // Return intent becomes a keyboard destination only after the exact source
+  // fingerprint and current selection agree. Focus the labelled heading, not the
+  // tall panel whose native scroll alignment can hide the selected identity.
+  useLayoutEffect(() => {
+    if (!entry || returnCheck?.state !== "ready" || returnCheck.identity !== identity
+      || selected?.strike !== entry.strike || restoredReturnFocus.current === identity) return;
+    const panel = inspector.current;
+    if (!mapHost.current || (!phone && !panel)) return;
+    restoredReturnFocus.current = identity;
+    returnFocus.current = mapHost.current
+      .querySelector<HTMLButtonElement>('tbody tr[aria-selected="true"] th button');
+    // The phone sheet owns its autofocus/trap; its existing data-autofocus
+    // contract chooses this same heading after capturing the real opener.
+    if (!phone) panel?.focus();
+  }, [entry, returnCheck, identity, selected, phone]);
   const linkKey = `${identity}|${selected?.strike ?? ""}`;
   const currentLinkKey = useRef(linkKey);
   useLayoutEffect(() => { currentLinkKey.current = linkKey; return () => { currentLinkKey.current = ""; }; }, [linkKey]);
@@ -192,7 +209,17 @@ export default function ExposureMap({ root, source, matrix, stale = false, sourc
     return () => { if (api.inventory().alive && api.panes()[0]?.getSeries().includes(series)) series.detachPrimitive(p); if (primitive.current === p) primitive.current = null; };
   }, [api, ready, chartCurrent, root, tf]);
   useLayoutEffect(() => { primitive.current?.set(chartCurrent ? drawing : { ...drawing, nodes: [], selected: null }); }, [drawing, api, ready, chartCurrent, root, tf]);
-  const close = useCallback(() => { setSelection(null); returnFocus.current?.focus(); }, []);
+  const close = useCallback(() => {
+    const target = returnFocus.current;
+    setSelection(null);
+    if (phone) {
+      // Restore after the sheet's captured-opener cleanup, and never after a
+      // source change or a new selection has replaced this closing context.
+      requestAnimationFrame(() => {
+        if (currentLinkKey.current === `${identity}|` && target?.isConnected) target.focus();
+      });
+    } else target?.focus();
+  }, [identity, phone]);
   useEffect(() => {
     if (!api?.inventory().alive || !chartCurrent) return;
     const pick = (event: { point?: { x: number; y: number } }) => {
@@ -289,9 +316,9 @@ export default function ExposureMap({ root, source, matrix, stale = false, sourc
     { name: t("spotUpIvDown"), spotPercent: 1, ivPoints: -1, calendarDays: 0 },
     { name: t("oneDayPasses"), spotPercent: 0, ivPoints: 0, calendarDays: 1 },
   ];
-  const inspectorPanel = <aside ref={inspector} tabIndex={-1} className={styles.inspector} aria-label={t("inspect")} data-testid="exposure-node-inspector">
+  const inspectorPanel = <aside className={styles.inspector} aria-label={t("inspect")} data-testid="exposure-node-inspector">
         <span className={styles.eyebrow}>{selected ? (t("nodeInvestigation")) : (t("structureAtAGlance"))}</span>
-        <h3>{selected ? `${t("selected")} ${selected.strike}` : (t("priceToPositioning"))}</h3>
+        <h3 ref={inspector} tabIndex={-1} data-autofocus={phone ? "" : undefined}>{selected ? `${t("selected")} ${selected.strike}` : (t("priceToPositioning"))}</h3>
         {s.coveredOnly && <p className={styles.note}>{t("measuredContributions")} · {t("measuredOnlyExplanation")}</p>}
         {focus && <><div className={styles.routeHero}><span>${exposureValue(read.spot)}</span><span>→</span><strong>{focus.strike}</strong></div><dl>
           <dt>{t("distance")}</dt><dd>{signed(structure.distancePoints)} · {signed(structure.distancePercent)}%</dd>
@@ -306,7 +333,7 @@ export default function ExposureMap({ root, source, matrix, stale = false, sourc
         <div className={styles.rankedNodes}><span className={styles.eyebrow}>{t("largestNetNodes")}</span>{structure.ranked.slice(0, 5).map((n, i) => <button key={n.strike} type="button" onClick={e => select(n.strike, e.currentTarget)} aria-pressed={selected?.strike === n.strike}><span><small>{String(i + 1).padStart(2, "0")}</small> {n.strike}</span><b data-sign={n.netMn! < 0 ? "negative" : "positive"}>{signed(n.netMn)}M</b></button>)}</div>
         <p className={styles.note}>{t("model")}{metric === "delta" && (t("deltaAppliesAssumedLongCallShortPutInventory"))}</p>
       </aside>;
-  return <section className={styles.map} data-testid="exposure-map" data-chart-ready={chartCurrent ? "true" : "false"} data-source-root={root} data-source-session={read.session ?? ""}>
+  return <section ref={mapHost} className={styles.map} data-testid="exposure-map" data-chart-ready={chartCurrent ? "true" : "false"} data-source-root={root} data-source-session={read.session ?? ""}>
     <nav className={styles.workspaceNav} aria-label={t("exposureWorkspace")}>
       <input list="exposure-roots" value={symbolInput} onChange={e => setSymbolInput(e.target.value.toUpperCase())} onBlur={commitSymbol} onKeyDown={e => { if (e.key === "Enter") commitSymbol(); }} aria-label={t("exposureSymbol")} maxLength={12} />
       <datalist id="exposure-roots">{GEX_AUTOCOMPLETE_ROOTS.map(r => <option key={r}>{r}</option>)}</datalist>

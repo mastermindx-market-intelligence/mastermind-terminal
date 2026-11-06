@@ -374,3 +374,5 @@
    words carry meaning; the fixed exposure palette stays on chart marks. */
 :global(html[data-theme="light"]) .map .rankedNodes b[data-sign],
 :global(html[data-theme="light"]) .map .momentumGrid strong[data-sign] { color:var(--text); }
+
+.inspector>h3:focus-visible { outline:2px solid var(--brand-2); outline-offset:3px; }
