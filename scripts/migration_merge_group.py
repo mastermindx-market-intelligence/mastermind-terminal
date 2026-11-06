@@ -233,8 +233,11 @@ def validate_parallel_snapshot(
                     "first PR merge tree differs from native candidate")
         owners[number] = source_head
         prev = current
-    require(prev == head and (candidate.get("baseCommit") or {}).get("oid") == event_base,
-            "event candidate base/head do not match native queue")
+    # merge_group.base_sha is the protected target branch SHA, not the
+    # predictive predecessor (which comes only from the native queue chain).
+    # Exact candidate ancestry was checked above on each immutable commit.
+    require(event_base == protected_tip and prev == head,
+            "event protected base/head do not match native queue")
     return owners, protected_tip
 
 
