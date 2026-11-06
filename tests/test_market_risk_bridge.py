@@ -20,6 +20,14 @@ from ingest.pull_macro_risk import build_market_risk, _is_stale  # noqa: E402
 TODAY = date(2026, 7, 1)
 
 
+@pytest.fixture(autouse=True)
+def isolate_runtime_publication(tmp_path, monkeypatch):
+    # Unit tests cannot read the development or production runtime implicitly.
+    from ingest import pull_macro_risk
+    monkeypatch.setattr(pull_macro_risk, "LIVE_DIR", tmp_path / "no-published-live-data")
+
+
+
 # ── fixtures ─────────────────────────────────────────────────────────────────
 
 def _risk_state(*, asof="2026-07-01", verdict="RISK_OFF", score=40):
@@ -429,3 +437,105 @@ def test_actual_ingest_main_publishes_cross_asset_context_atomically(tmp_path, m
     assert published["risk_envelope_freshness"]["qualified"] is True
     assert published["source_path"] == "local:data/market_state/latest.json"
     assert not list(output.parent.glob(".market-risk-*.tmp"))
+
+
+# The existing Macro systemd publisher owns MACRO_LIVE_DIR; the checkout's
+# site/live is only its staging/legacy copy and can be rolled back by git sync.
+def _runtime_pair(tmp_path, monkeypatch):
+    macro = tmp_path / "macro"
+    live = tmp_path / "published/live"
+    live.mkdir(parents=True)
+    settled = macro / "data/market_state/latest.json"
+    settled.parent.mkdir(parents=True)
+    settled.write_text(json.dumps(_market_state()))
+    raw = _risk_state(verdict="RISK_ON", score=66)
+    raw.update(live_active=True, realtime=True, built="2026-07-01T18:59:00Z", stale_after="2026-07-01T19:15:00Z")
+    raw["live"]["source_event_time"] = "2026-07-01T18:58:00Z"
+    (live / "risk_state.json").write_text(json.dumps(raw))
+    monkeypatch.setattr(bridge, "MACRO", macro)
+    monkeypatch.setattr(bridge, "LIVE_DIR", live, raising=False)
+    monkeypatch.delenv("MACRO_RISK_URL", raising=False)
+    monkeypatch.delenv("MACRO_RISK_ENVELOPE_URL", raising=False)
+    return macro, live, raw
+
+
+def test_resolver_consumes_actual_runtime_publisher_before_checkout(tmp_path, monkeypatch):
+    macro, live, source = _runtime_pair(tmp_path, monkeypatch)
+    old = macro / "site/live/risk_state.json"
+    old.parent.mkdir(parents=True)
+    old.write_text(json.dumps(_risk_state(asof="2026-06-01")))
+    raw, provenance = bridge.resolve_source(now=NOW)
+    assert raw == source
+    assert provenance == "runtime:live/risk_state.json"
+    out = build_market_risk(raw, now=NOW, provenance=provenance)
+    assert out["stale"] is False and out["realtime"] is True
+    assert out["source_event_time"] == "2026-07-01T18:58:00Z"
+
+
+def test_runtime_provisional_envelope_uses_its_own_clock_and_existing_owner(tmp_path, monkeypatch):
+    macro, live, _ = _runtime_pair(tmp_path, monkeypatch)
+    envelope = _envelope()
+    envelope.update(revision="live_provisional", live_active=True, stale_after="2026-07-01T19:15:00Z")
+    (live / "risk_envelope.json").write_text(json.dumps(envelope))
+    assert bridge.resolve_risk_envelope("2026-07-01", today=NOW.date(), now=NOW) == envelope
+
+
+@pytest.mark.parametrize("reason", ["expired", "future", "missing_clock", "malformed", "missing", "symlink", "oversized", "closed_old_session"])
+def test_runtime_source_failure_preserves_qualified_settled_fallback(tmp_path, monkeypatch, reason):
+    _, live, raw = _runtime_pair(tmp_path, monkeypatch)
+    target = live / "risk_state.json"
+    if reason == "expired": raw["stale_after"] = "2026-07-01T18:59:00Z"
+    elif reason == "future": raw["built"] = "2026-07-02T18:59:00Z"
+    elif reason == "missing_clock": raw["live"].pop("source_event_time")
+    elif reason == "closed_old_session":
+        raw.update(live_active=False, stale=True, nightly_asof="2026-06-01", stale_reason="market closed")
+    if reason == "malformed": target.write_text("{")
+    elif reason == "missing": target.unlink()
+    elif reason == "oversized": target.write_bytes(b" " * (4 * 1024 * 1024 + 1))
+    elif reason == "symlink":
+        other = tmp_path / "other.json"; other.write_text(json.dumps(raw))
+        target.unlink(); target.symlink_to(other)
+    else: target.write_text(json.dumps(raw))
+    chosen, provenance = bridge.resolve_source(now=NOW)
+    assert chosen["schema"] == "market_state.v1"
+    assert provenance == "local:data/market_state/latest.json"
+    assert build_market_risk(chosen, now=NOW)["stale"] is False
+
+
+def test_runtime_source_preserves_explicit_url_owner_precedence(tmp_path, monkeypatch):
+    _runtime_pair(tmp_path, monkeypatch)
+    url_source = _market_state(score=48)
+    monkeypatch.setenv("MACRO_RISK_URL", "https://example.invalid/existing-owner")
+    monkeypatch.setattr(bridge, "_fetch_url", lambda _: url_source)
+    chosen, provenance = bridge.resolve_source(now=NOW)
+    assert chosen == url_source and provenance.startswith("url:")
+
+
+def test_expired_runtime_envelope_preserves_settled_native_envelope(tmp_path, monkeypatch):
+    macro, live, _ = _runtime_pair(tmp_path, monkeypatch)
+    stale = _envelope(); stale.update(revision="live_provisional", stale_after="2026-07-01T18:59:00Z")
+    (live / "risk_envelope.json").write_text(json.dumps(stale))
+    settled = macro / "site/riskdata/risk_envelope.json"
+    settled.parent.mkdir(parents=True); settled.write_text(json.dumps(_envelope()))
+    chosen = bridge.resolve_risk_envelope("2026-07-01", today=NOW.date(), now=NOW)
+    assert chosen == _envelope()
+
+
+def test_closed_runtime_cannot_displace_newer_qualified_settled_session(tmp_path, monkeypatch):
+    _, live, raw = _runtime_pair(tmp_path, monkeypatch)
+    raw.update(live_active=False, realtime=False, stale=True, stale_reason="market closed", nightly_asof="2026-06-30")
+    (live / "risk_state.json").write_text(json.dumps(raw))
+    chosen, provenance = bridge.resolve_source(now=NOW)
+    assert chosen["schema"] == "market_state.v1" and chosen["asof"] == "2026-07-01"
+    assert provenance == "local:data/market_state/latest.json"
+
+
+def test_closed_runtime_envelope_cannot_displace_qualified_settled_bundle(tmp_path, monkeypatch):
+    macro, live, _ = _runtime_pair(tmp_path, monkeypatch)
+    closed = _envelope(); closed.update(revision="live_provisional", live_active=False,
+                                      stale_after="2026-07-01T19:15:00Z", bundle_id="closed-provisional")
+    (live / "risk_envelope.json").write_text(json.dumps(closed))
+    path = macro / "site/riskdata/risk_envelope.json"
+    path.parent.mkdir(parents=True); path.write_text(json.dumps(_envelope()))
+    chosen = bridge.resolve_risk_envelope("2026-07-01", today=NOW.date(), now=NOW)
+    assert chosen == _envelope()
