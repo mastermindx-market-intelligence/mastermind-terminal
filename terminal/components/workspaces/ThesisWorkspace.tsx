@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useLayoutEffect, useEffectEvent, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import Link from "next/link";
 import { useLang, useT } from "@/lib/i18n";
 import { subjectKindLabel } from "@/lib/plainLabels";
 import { parseAnalysisSearchParams } from "@/lib/analysisRoute";
@@ -559,6 +560,10 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   // selected record, even if the server props and selection state did not change.
   const browserLocation = useSyncExternalStore(subscribeThesisLocation, thesisLocation, serverThesisLocation);
   const initialSymbolKey = normalizeAnalysisSymbol(initialSymbol) ?? "";
+  // Mount-only fallback for history initialization. Later prop/locale updates
+  // must not reinitialize context already validated by a canonical thesis read.
+  // Analysis keys this workspace by owner and thesis; a new mount gets new inputs.
+  const mountRoute = useRef({ symbol: initialSymbolKey, thesisId: initialThesisId });
   const [listState, setListState] = useState<LoadState>(invalidLink ? "ready" : "loading");
   const [detailState, setDetailState] = useState<DetailState>(initialThesisId ? "loading" : "idle");
   const [theses, setTheses] = useState<ThesisSummary[]>([]);
@@ -864,8 +869,8 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     }
     const params = new URLSearchParams(window.location.search);
     const route = parseAnalysisSearchParams(params);
-    const company = normalizeAnalysisSymbol(route.kind === "theses" ? route.symbol : initialSymbolKey) ?? "";
-    const thesisId = route.kind === "theses" ? route.thesisId : initialThesisId;
+    const company = normalizeAnalysisSymbol(route.kind === "theses" ? route.symbol : mountRoute.current.symbol) ?? "";
+    const thesisId = route.kind === "theses" ? route.thesisId : mountRoute.current.thesisId;
     contextCompany.current = company;
     if (hasMarketOntologyContext(params) && !company) {
       const url = new URL(window.location.href);
@@ -877,7 +882,6 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     // canonical load names the anchored company — the same rule as a reopen from the
     // list. Without that, a link whose thesis belongs to another company would carry a
     // strip that was never validated against what is on screen.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMarketOntologyContext(thesisId ? null : mountedContext);
   }, []);
 
@@ -2296,7 +2300,12 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       <main className={`main2 ws-shell ${styles.root}`} data-testid="thesis-workspace">
         <section className={styles.centerState} role="status" data-testid="thesis-invalid-link">
           <span className={styles.stateMark}>!</span><h1>{copy.invalidLink}</h1><p>{copy.invalidLinkBody}</p>
-          <a className={styles.primaryButton} href="/analysis?view=theses">{copy.title}</a>
+          <Link className={styles.primaryButton} href="/analysis?view=theses" prefetch={false}
+            onNavigate={(event) => {
+              // Leave the invalid workspace through a full-document handoff.
+              event.preventDefault();
+              window.location.assign("/analysis?view=theses");
+            }}>{copy.title}</Link>
         </section>
       </main>
     );
