@@ -174,8 +174,8 @@ describe("Market Tide observed-response consumer", () => {
   });
 
   it("retains explicit missing cause and incomplete market status", () => {
-    const x = mutate(v => { v.market_status = "unavailable";
-      v.market_reason = "MISSING_MARKET_RETURN"; });
+    const x = { ...valid(), market_status: "unavailable",
+      market_reason: "MISSING_MARKET_RETURN" };
     // This only validates the producer's report. It cannot independently
     // authenticate an unseen market source or imply fresh browser data.
     expect(parseMarketTideEventResponse(x)?.marketStatus).toBe("unavailable");
