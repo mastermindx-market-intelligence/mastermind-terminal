@@ -1,6 +1,10 @@
 /**
  * TERMINAL-02 live-bar acceptance — CANVAS witness, tick-correlated.
  *
+ * Historical measurements below predate distinct-observation matching. Aggregate counts cannot
+ * reconstruct their pairing without raw timestamps; they are not production acceptance of this
+ * corrected scorer. New receipts retain the sampled body timestamps for independent rescoring.
+ *
  * A study's live value exists ONLY as pixels the lightweight-charts canvas draws. There is no DOM
  * node holding it, and the dev hooks (`__mmLiveBarGeneration`) are stripped from the production
  * bundle — verified on app.mastermind-x.com 2026-09-29, `typeof` is "undefined" there. So the only
@@ -9,23 +13,24 @@
  *
  * ── WHY THE PANE BODIES, NOT THE PRICE-AXIS STRIPS ────────────────────────────────────────────
  * The first version of this file diffed the price pane's AXIS strip against the study pane's AXIS
- * strip. That pairing cannot return COHERENT on any build, because the two strips do not have
- * comparable sensitivity. Measured on production over 90s (BTC-USD, 3D), on a build that provably
- * contains the fix:
+ * strip. The reported run below produced a false SPLIT because the strips did not have comparable
+ * sensitivity. Historical production observation over 90s (BTC-USD, 3D), on the author's reported
+ * fixed build:
  *
  *      candle axis 84 moves   |   study axis  1 move
  *      candle body  5 moves   |   study body  5 moves
  *
  * The candle's axis label re-renders on every cent; the study's axis label is rounded, so a correct
- * per-tick update is invisible in it. Comparing them measures LABEL PRECISION, not generation
- * coherence, and yields a guaranteed false SPLIT. The plot areas are commensurate sensors. Axis
+ * per-tick update can be invisible in it. Comparing them can measure LABEL PRECISION instead of
+ * generation coherence and produce a false SPLIT. The plot areas are commensurate sensors. Axis
  * counts are still reported below, as diagnostics only — never as the verdict's input.
  *
  * ── WHY TICK-CORRELATED, NOT WINDOW-AGGREGATE ─────────────────────────────────────────────────
  * The slow lane periodically refetches and rebuilds everything, so over a long window a BROKEN
  * build's study pane does eventually redraw. "Did the study ever move" would therefore drift back
- * to a false COHERENT. Each CANDLE-body move is scored on whether the STUDY body moved within
- * CORR_MS of it.
+ * to a false COHERENT. Each CANDLE-body move is paired with a distinct STUDY-body observation
+ * within CORR_MS. A repaint can support only one pair; temporal correlation alone does not prove
+ * that both observations were caused by the same live-bar generation.
  *
  * ── WHY A LOW RATIO IS NOT PROOF OF THE DEFECT ────────────────────────────────────────────────
  * A study can be updated on every tick and still repaint only occasionally, because its value has
@@ -140,7 +145,19 @@ while (Date.now() < deadline) {
 }
 
 // Score each CANDLE-BODY move on whether the STUDY BODY moved with it.
-const paired = at.candleBody.filter((t) => at.studyBody.some((u) => u >= t - CORR_MS && u <= t + CORR_MS));
+// Each observed study repaint can support at most one candle observation.
+// Match in timestamp order to retain maximum cardinality within the same ±CORR_MS window.
+const candleTimes = [...at.candleBody].sort((a, b) => a - b);
+const studyTimes = [...at.studyBody].sort((a, b) => a - b);
+const paired = [];
+let studyIndex = 0;
+for (const t of candleTimes) {
+  while (studyIndex < studyTimes.length && studyTimes[studyIndex] < t - CORR_MS) studyIndex++;
+  if (studyIndex < studyTimes.length && studyTimes[studyIndex] <= t + CORR_MS) {
+    paired.push(t);
+    studyIndex++;
+  }
+}
 const ratio = at.candleBody.length ? paired.length / at.candleBody.length : 0;
 const verdict =
   !servedSha && !isLocal
@@ -161,6 +178,8 @@ console.log(JSON.stringify({
   moves,                                   // all four regions; axes are DIAGNOSTIC ONLY
   candleBodyMoves: at.candleBody.length, studyBodyMoves: at.studyBody.length,
   pairedMoves: paired.length, pairedRatio: Number(ratio.toFixed(3)), verdict,
+  // Actual sampled epoch-millisecond observations, not reconstructed matches.
+  candleBodyAt: at.candleBody, studyBodyAt: at.studyBody,
   // The caller MUST anchor the verdict to the tree, not just to a SHA string:
   //   git ls-tree -r <servedSha> --name-only | grep liveBarProjection
   // A COHERENT reading against a build that does not contain the carrier is measuring someone

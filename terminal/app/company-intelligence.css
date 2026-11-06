@@ -47,7 +47,7 @@
   radial-gradient(900px 180px at 18% -40%,color-mix(in srgb,var(--brand) 24%,transparent),transparent 62%),
   linear-gradient(180deg,color-mix(in srgb,var(--panel-2) 86%,var(--brand) 4%),var(--panel));
   box-shadow:var(--shadow-card);overflow:hidden}
-.ci-hero::before{content:"";position:absolute;inset:0 auto 0 0;width:3px;background:linear-gradient(180deg,var(--brand-2),color-mix(in srgb,var(--brand) 20%,transparent));pointer-events:none}
+
 .ci-hero-main{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-4);padding:var(--sp-4) var(--sp-5)}
 .ci-identity{display:flex;align-items:center;gap:var(--sp-3);min-width:0}
 .ci-company-mark{width:44px;height:44px;display:grid;place-items:center;flex:none;border:1px solid color-mix(in srgb,var(--brand) 34%,var(--line));border-radius:12px;background:linear-gradient(145deg,color-mix(in srgb,var(--brand) 22%,var(--panel-2)),var(--panel-3));color:#fff;font:720 17px/1 var(--font-ui);box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}
@@ -85,7 +85,7 @@
 .ci-stance,.ci-material,.ci-changes,.ci-quote,.ci-lens-panel{padding:var(--sp-4)}
 .ci-section-label{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-3);margin-bottom:10px}
 .ci-section-label>span{display:inline-flex;align-items:center;gap:8px;color:var(--text-2);font:720 var(--fs-micro)/1 var(--font-ui);letter-spacing:.12em}
-.ci-section-label>span::before{content:"";width:3px;height:13px;border-radius:2px;background:linear-gradient(180deg,var(--brand-2),color-mix(in srgb,var(--brand) 20%,transparent))}
+
 .ci-section-label small{color:var(--muted);font:520 10px/1.2 var(--font-ui)}
 .ci-claim{width:100%;text-align:left}
 .ci-page .ci-stance-copy{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-4);min-height:72px;padding:14px 16px;border:1px solid var(--line);border-radius:var(--r-tile);background:color-mix(in srgb,var(--panel-2) 88%,transparent);color:var(--text);transition:border-color var(--t-fast),background var(--t-fast),box-shadow var(--t-fast)}
@@ -125,6 +125,7 @@
 .ci-theme-card{position:relative;display:grid;gap:13px;min-width:0;padding:var(--sp-4);border:1px solid color-mix(in srgb,var(--brand) 21%,var(--line));border-radius:var(--r-card);background:linear-gradient(119deg,color-mix(in srgb,var(--brand) 8%,var(--panel-2)),var(--panel) 62%,color-mix(in srgb,var(--brand-2) 5%,var(--panel)));box-shadow:var(--shadow-card);overflow:hidden}
 .ci-theme-card::after{content:"";position:absolute;pointer-events:none;right:-38px;bottom:-58px;width:168px;height:168px;border:1px solid color-mix(in srgb,var(--brand) 20%,transparent);border-radius:50%;box-shadow:0 0 0 25px color-mix(in srgb,var(--brand) 5%,transparent),0 0 0 57px color-mix(in srgb,var(--brand) 3%,transparent)}
 .ci-theme-card>*{position:relative;z-index:1}
+.ci-theme-card.ci-theme-empty{gap:7px;padding:var(--sp-4);border-radius:var(--r-card);background:color-mix(in srgb,var(--panel) 94%,transparent)}.ci-theme-card.ci-theme-empty::after{display:none}.ci-theme-card.ci-theme-empty>p{margin:0;color:var(--muted);font:520 11px/1.5 var(--font-ui)}
 .ci-theme-header{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--sp-3)}
 .ci-theme-header>div{display:grid;gap:5px;min-width:0}.ci-theme-kicker{color:var(--brand-2);font:720 9.5px/1 var(--font-ui);letter-spacing:.13em}.ci-theme-header h3{margin:0;color:var(--text);font:660 15px/1.25 var(--font-ui);letter-spacing:-.012em}
 .ci-theme-rule{max-width:840px;margin:0;color:var(--muted);font:520 11px/1.5 var(--font-ui)}
@@ -286,9 +287,9 @@
 
 @media (max-width:640px){
   /* One full-width tap target, ≥44px tall: on the phone this bar IS the symbol switcher. */
-  .analysis-context-bar{min-height:52px;padding:7px 10px;gap:8px}.analysis-context-freshness{display:none}
+  .analysis-context-bar{min-height:52px;padding:7px 10px;gap:8px;flex-wrap:wrap}.analysis-context-freshness{display:none}
   .analysis-context-back{width:44px;min-width:44px;padding:0;justify-content:center;font-size:0}.analysis-context-back svg{width:15px;height:15px}
-  .sym-pick{flex:1;min-width:0;min-height:44px;border-color:var(--line-3);background:var(--panel-2)}
+  .sym-pick{flex:1 1 150px;min-width:0;min-height:44px;border-color:var(--line-3);background:var(--panel-2)}
   .sym-pick-mark{width:34px;height:34px}
   .sym-pick-id small{display:none}
   .sym-pick-id strong{font-size:15px}
@@ -343,7 +344,7 @@
 .ci-ts-compare{display:grid;gap:var(--sp-3);padding-top:var(--sp-4);border-top:1px solid var(--line)}.ci-ts-compare-head{display:flex;align-items:flex-end;justify-content:space-between;gap:var(--sp-3)}.ci-ts-compare-head>div{display:grid;gap:5px}.ci-ts-compare-head .fin-eyebrow{margin:0;color:var(--brand-2)}.ci-ts-compare-head h4{margin:0;color:var(--text);font:660 14px/1.25 var(--font-ui);letter-spacing:-.015em}.ci-ts-compare-head>span{color:var(--muted);font:550 9.5px/1 var(--font-ui)}
 .ci-ts-compare-controls{display:grid;grid-template-columns:minmax(0,1fr) 20px minmax(0,1fr) auto;align-items:end;gap:8px}.ci-ts-compare-controls label{display:grid;gap:5px;color:var(--muted);font:630 9px/1 var(--font-ui);letter-spacing:.06em;text-transform:uppercase}.ci-ts-compare-controls select{width:100%;height:36px;padding:0 26px 0 9px;border:1px solid var(--line-3);border-radius:var(--r-md);outline:0;background:var(--inset);color:var(--text);font:600 10px/1 var(--font-num);font-variant-numeric:tabular-nums;letter-spacing:0;text-transform:none}.ci-ts-compare-controls select:focus-visible{border-color:var(--brand-2);box-shadow:0 0 0 3px color-mix(in srgb,var(--brand) 13%,transparent)}.ci-ts-compare-swap{display:grid;place-items:center;height:36px;color:var(--brand-2);font:620 16px/1 var(--font-ui)}.ci-ts-compare-controls>.btn{height:36px;min-height:36px;padding:0 12px;white-space:nowrap}
 .ci-ts-compare-prompt{margin:0;padding:11px 12px;border:1px dashed var(--line-3);border-radius:var(--r-tile);color:var(--muted);font:520 10.5px/1.5 var(--font-ui)}.ci-ts-compare-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--sp-3)}.ci-ts-compare-col{display:grid;align-content:start;gap:8px;min-width:0;padding:10px;border:1px solid var(--line);border-radius:var(--r-tile);background:color-mix(in srgb,var(--panel-2) 86%,transparent)}.ci-ts-compare-col>header{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-bottom:8px;border-bottom:1px solid var(--line-2)}.ci-ts-compare-col>header>div{display:grid;gap:3px;min-width:0}.ci-ts-compare-col>header strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text);font:640 10.5px/1.2 var(--font-ui)}.ci-ts-compare-col>header small{color:var(--muted);font:520 9px/1 var(--font-num)}.ci-ts-compare-col>header>span{display:grid;place-items:center;min-width:22px;height:22px;padding:0 6px;border-radius:var(--r-pill);background:color-mix(in srgb,var(--brand) 12%,transparent);color:var(--brand-2);font:650 10px/1 var(--font-num)}.ci-ts-compare-col .ci-ts-span{padding:10px;background:var(--panel)}.ci-ts-compare-empty{padding:12px 3px;color:var(--muted);font:520 10px/1.45 var(--font-ui)}
-.ci-ts-dialog-wrap{position:fixed;z-index:260;inset:0;display:grid;place-items:center;padding:20px}.ci-ts-dialog-scrim{position:absolute;inset:0;width:100%;height:100%;background:var(--pop-scrim);backdrop-filter:blur(4px);cursor:default}.ci-ts-dialog{position:relative;z-index:1;display:grid;gap:var(--sp-3);width:min(550px,100%);max-height:min(700px,calc(100vh - 40px));padding:var(--sp-4);border:1px solid color-mix(in srgb,var(--brand) 30%,var(--line));border-radius:var(--r-card);background:linear-gradient(145deg,color-mix(in srgb,var(--panel-2) 88%,var(--brand) 6%),var(--panel));box-shadow:var(--shadow-3);overflow:auto}.ci-ts-dialog>header{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--sp-3);padding-bottom:var(--sp-3);border-bottom:1px solid var(--line)}.ci-ts-dialog>header>div{display:grid;gap:6px}.ci-ts-dialog .fin-eyebrow{margin:0;color:var(--brand-2)}.ci-ts-dialog h3{margin:0;color:var(--text);font:660 15px/1.25 var(--font-ui)}.ci-ts-dialog dl{display:grid;gap:0;margin:0}.ci-ts-dialog dl>div{display:grid;grid-template-columns:minmax(118px,.7fr) minmax(0,1.3fr);gap:14px;padding:10px 0;border-bottom:1px solid var(--line-2)}.ci-ts-dialog dt{color:var(--muted);font:540 9.5px/1.35 var(--font-ui)}.ci-ts-dialog dd{min-width:0;margin:0;color:var(--text-2);text-align:right;font:560 9.5px/1.35 var(--font-ui)}.ci-ts-dialog dd code{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-2);font:500 9.5px/1.35 var(--font-code)}.ci-ts-dialog dd a{color:var(--brand-2);font-weight:620}.ci-ts-verify{display:inline-flex;align-items:center;min-height:20px;padding:0 7px;border:1px solid color-mix(in srgb,var(--up) 35%,var(--line));border-radius:var(--r-pill);background:color-mix(in srgb,var(--up) 9%,transparent);color:color-mix(in srgb,var(--up) 80%,#fff);font:650 9px/1 var(--font-ui)}.ci-ts-verify.stale_revision{border-color:color-mix(in srgb,var(--warn) 38%,var(--line));background:color-mix(in srgb,var(--warn) 9%,transparent);color:var(--warn)}.ci-ts-dialog-note{margin:0;padding:10px;border-left:2px solid var(--brand-2);border-radius:0 var(--r-tile) var(--r-tile) 0;background:color-mix(in srgb,var(--brand) 5%,transparent);color:var(--muted);font:520 10px/1.45 var(--font-ui)}
+.ci-ts-dialog-wrap{position:fixed;z-index:260;inset:0;display:grid;place-items:center;padding:20px}.ci-ts-dialog-scrim{position:absolute;inset:0;width:100%;height:100%;background:var(--pop-scrim);backdrop-filter:blur(4px);cursor:default}.ci-ts-dialog{position:relative;z-index:1;display:grid;gap:var(--sp-3);width:min(550px,100%);max-height:min(700px,calc(100vh - 40px));padding:var(--sp-4);border:1px solid color-mix(in srgb,var(--brand) 30%,var(--line));border-radius:var(--r-card);background:linear-gradient(145deg,color-mix(in srgb,var(--panel-2) 88%,var(--brand) 6%),var(--panel));box-shadow:var(--shadow-3);overflow:auto}.ci-ts-dialog>header{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--sp-3);padding-bottom:var(--sp-3);border-bottom:1px solid var(--line)}.ci-ts-dialog>header>div{display:grid;gap:6px}.ci-ts-dialog .fin-eyebrow{margin:0;color:var(--brand-2)}.ci-ts-dialog h3{margin:0;color:var(--text);font:660 15px/1.25 var(--font-ui)}.ci-ts-dialog dl{display:grid;gap:0;margin:0}.ci-ts-dialog dl>div{display:grid;grid-template-columns:minmax(118px,.7fr) minmax(0,1.3fr);gap:14px;padding:10px 0;border-bottom:1px solid var(--line-2)}.ci-ts-dialog dt{color:var(--muted);font:540 9.5px/1.35 var(--font-ui)}.ci-ts-dialog dd{min-width:0;margin:0;color:var(--text-2);text-align:right;font:560 9.5px/1.35 var(--font-ui)}.ci-ts-dialog dd code{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-2);font:500 9.5px/1.35 var(--font-code)}.ci-ts-dialog dd a{color:var(--brand-2);font-weight:620}.ci-ts-verify{display:inline-flex;align-items:center;min-height:20px;padding:0 7px;border:1px solid color-mix(in srgb,var(--up) 35%,var(--line));border-radius:var(--r-pill);background:color-mix(in srgb,var(--up) 9%,transparent);color:color-mix(in srgb,var(--up) 80%,#fff);font:650 9px/1 var(--font-ui)}.ci-ts-verify.stale_revision{border-color:color-mix(in srgb,var(--warn) 38%,var(--line));background:color-mix(in srgb,var(--warn) 9%,transparent);color:var(--warn)}.ci-ts-dialog-note{margin:0;padding:10px;border:1px solid var(--line);border-radius:var(--r-tile);background:var(--panel-2);color:var(--muted);font:520 10px/1.45 var(--font-ui)}
 
 @media (max-width:760px){.ci-ts-explorer{padding:var(--sp-3);border-radius:var(--r-tile)}.ci-ts-hero{display:grid}.ci-ts-contract{justify-self:start}.ci-ts-filters{grid-template-columns:1fr;gap:9px}.ci-ts-search{grid-template-columns:1fr}.ci-ts-search>.btn{width:100%}.ci-ts-compare-controls{grid-template-columns:1fr 16px 1fr}.ci-ts-compare-controls>.btn{grid-column:1/-1;width:100%}.ci-ts-compare-grid{grid-template-columns:1fr}.ci-ts-dialog-wrap{align-items:end;padding:0}.ci-ts-dialog{width:100%;max-height:min(84vh,760px);padding:var(--sp-4);border-right:0;border-bottom:0;border-left:0;border-radius:var(--r-card) var(--r-card) 0 0}.ci-ts-dialog dl>div{grid-template-columns:1fr;gap:5px}.ci-ts-dialog dd{text-align:left}}
 @media (max-width:420px){.ci-ts-event-chips{display:grid;grid-template-columns:1fr}.ci-ts-event-chips button{justify-content:space-between}.ci-ts-span>header{align-items:flex-start}.ci-ts-span-actions{flex-direction:column;align-items:flex-end;gap:6px}.ci-ts-speaker{display:grid;gap:3px}.ci-ts-compare-head{display:grid;gap:6px}.ci-ts-compare-head>span{justify-self:start}.ci-ts-state{grid-template-columns:27px minmax(0,1fr)}.ci-ts-state>.btn,.ci-ts-attachment-actions{grid-column:2;justify-self:start}.ci-ts-attachment-actions{flex-wrap:wrap;justify-content:flex-start}}
@@ -381,7 +382,7 @@
 .ci-paper-takeaways>button:hover,.ci-paper-takeaways>button.selected{border-color:color-mix(in srgb,var(--brand-2) 40%,var(--line));background:color-mix(in srgb,var(--brand) 7%,var(--panel-2))}
 .ci-paper-takeaways span{color:var(--muted);font:620 8.5px/1 var(--font-ui);text-transform:uppercase;letter-spacing:.06em}
 .ci-paper-takeaways strong{overflow:hidden;color:var(--text-2);font:610 10.5px/1.25 var(--font-ui);text-overflow:ellipsis;white-space:nowrap}
-.ci-paper-company-visual{position:relative;display:grid;place-items:center;min-height:184px;border-left:1px solid color-mix(in srgb,var(--brand) 15%,var(--line));background:radial-gradient(circle at 50% 48%,color-mix(in srgb,var(--brand) 24%,transparent),transparent 35%),linear-gradient(145deg,transparent 35%,color-mix(in srgb,var(--brand-2) 6%,transparent))}
+.ci-paper-company-visual{position:relative;display:grid;place-items:center;min-height:184px;border-left:1px solid var(--line);background:radial-gradient(circle at 50% 48%,color-mix(in srgb,var(--brand) 24%,transparent),transparent 35%),linear-gradient(145deg,transparent 35%,color-mix(in srgb,var(--brand-2) 6%,transparent))}
 .ci-paper-company-visual>span{position:relative;z-index:2;color:color-mix(in srgb,var(--text) 86%,var(--brand-2));font:760 27px/1 var(--font-num);letter-spacing:.12em;text-shadow:0 0 28px color-mix(in srgb,var(--brand) 50%,transparent)}
 .ci-paper-company-visual>i{position:absolute;inset:50% auto auto 50%;width:128px;height:128px;transform:translate(-50%,-50%);border:1px solid color-mix(in srgb,var(--brand-2) 18%,transparent);border-radius:50%}
 .ci-paper-company-visual>i:nth-of-type(2){width:190px;height:190px;border-color:color-mix(in srgb,var(--brand) 12%,transparent)}
@@ -532,3 +533,82 @@ button.ci-paper-results-row:hover,button.ci-paper-results-row.selected{backgroun
   .ci-paper-results-call{grid-template-columns:1fr}
   .ci-paper-results-call>small{grid-column:auto}
 }
+
+/* BEGIN Shared Shell Company · selected-event read — append-only scoped overrides.
+   Every selector below is prefixed html[data-mmx-shared-shell="1"]; ordinary Company
+   layouts are untouched. Existing tokens only; px/fr/clamp literals are geometry. */
+
+/* — Desktop: selected-event answer left, watchpoints right, boundary footer below both.
+   Left children auto-place into column 1 rows in DOM order (hero, optional metrics,
+   insights), so an absent metrics section leaves no empty grid row and the footer
+   never needs a fixed row number. */
+html[data-mmx-shared-shell="1"] .ci-paper-brief{display:grid;grid-template-columns:minmax(0,1.8fr) minmax(260px,.9fr);grid-auto-flow:row;align-items:start;column-gap:24px;row-gap:0}
+html[data-mmx-shared-shell="1"] .ci-paper-brief-hero,
+html[data-mmx-shared-shell="1"] .ci-paper-metrics,
+html[data-mmx-shared-shell="1"] .ci-paper-insights{grid-column:1;grid-row:auto;min-width:0;margin-bottom:24px}
+html[data-mmx-shared-shell="1"] .ci-paper-watch{grid-column:2;grid-row:1 / span 3;min-width:0;align-self:start;margin-bottom:24px}
+html[data-mmx-shared-shell="1"] .ci-paper-boundary{grid-column:1 / -1;grid-row:auto;min-width:0;margin-bottom:0}
+
+/* — Shared hero: single answer column, neutral panel surface, modest depth,
+   decorative aria-hidden ticker orbit off; headline/synopsis get full width. */
+html[data-mmx-shared-shell="1"] .ci-paper-brief-hero{grid-template-columns:minmax(0,1fr);min-height:0;border:1px solid var(--hairline);border-radius:var(--r-card);background:var(--panel);box-shadow:var(--shadow-card)}
+html[data-mmx-shared-shell="1"] .ci-paper-company-visual{display:none}
+html[data-mmx-shared-shell="1"] .ci-paper-brief-copy{padding:20px 22px}
+html[data-mmx-shared-shell="1"] .ci-paper-brief-copy h3{max-width:none;font-size:clamp(22px,2vw,30px)}
+html[data-mmx-shared-shell="1"] .ci-paper-brief-copy>p{max-width:none;font-size:13.5px;line-height:1.55}
+
+/* — Quiet one-column insight list on the answer side; the source-qualified
+   what changed / why it matters / watchpoints groups all stay rendered. */
+html[data-mmx-shared-shell="1"] .ci-paper-insights{grid-template-columns:minmax(0,1fr);gap:12px}
+html[data-mmx-shared-shell="1"] .ci-paper-insight{min-height:0}
+
+/* — Nav hero and take-note dialog: neutral material only, even hairline border. */
+html[data-mmx-shared-shell="1"] .ci-hero{background:var(--panel);border-color:var(--hairline)}
+html[data-mmx-shared-shell="1"] .ci-ts-dialog-note{border:1px solid var(--hairline);border-radius:var(--r-tile);background:var(--panel-2)}
+
+/* — Light theme: white research surface, firmer hairline, controlled existing shadow. */
+html[data-mmx-shared-shell="1"][data-theme="light"] .ci-hero,
+html[data-mmx-shared-shell="1"][data-theme="light"] .ci-paper-brief-hero,
+html[data-mmx-shared-shell="1"][data-theme="light"] .ci-paper-insight,
+html[data-mmx-shared-shell="1"][data-theme="light"] .ci-paper-watch{background:var(--panel);border-color:var(--line);box-shadow:var(--shadow-card)}
+
+/* Light lens labels use the research-surface ink rather than the dark-only white.
+   Selected state keeps a quiet fill and full neutral outline. */
+html[data-mmx-shared-shell="1"][data-theme="light"] .ci-lenses button{color:var(--text-2)}
+html[data-mmx-shared-shell="1"][data-theme="light"] .ci-lenses button.on{color:var(--text);background:var(--panel-2);box-shadow:inset 0 0 0 1px var(--line)}
+
+/* — ≤1100px: stack in natural DOM order on one track (no order property, no
+   a11y reordering); watchpoints and boundary footer reset to auto placement. */
+@media (max-width:1100px){
+  html[data-mmx-shared-shell="1"] .ci-paper-brief{grid-template-columns:minmax(0,1fr);column-gap:0}
+  html[data-mmx-shared-shell="1"] .ci-paper-brief-hero,
+  html[data-mmx-shared-shell="1"] .ci-paper-metrics,
+  html[data-mmx-shared-shell="1"] .ci-paper-insights,
+  html[data-mmx-shared-shell="1"] .ci-paper-watch,
+  html[data-mmx-shared-shell="1"] .ci-paper-boundary{grid-column:auto;grid-row:auto;align-self:auto}
+}
+
+/* — ≤760px: dense controls and paragraphs wrap; no new horizontal clipping. */
+@media (max-width:760px){
+  html[data-mmx-shared-shell="1"] .ci-provenance-bar{flex-wrap:wrap;align-items:flex-start;gap:8px 12px;overflow-x:visible;white-space:normal}
+  html[data-mmx-shared-shell="1"] .ci-provenance-bar>span{flex:0 0 auto;flex-wrap:wrap;max-width:100%;white-space:normal;overflow-wrap:anywhere}
+  html[data-mmx-shared-shell="1"] .ci-provenance-bar .ci-live-dot{flex:none}
+  html[data-mmx-shared-shell="1"] .ci-paper-brief-copy{padding:16px}
+  html[data-mmx-shared-shell="1"] .ci-paper-takeaways{flex-wrap:wrap;overflow-x:visible}
+  html[data-mmx-shared-shell="1"] .ci-paper-takeaways>button{flex:1 1 170px;min-width:0;max-width:none}
+  html[data-mmx-shared-shell="1"] .ci-paper-takeaways strong{white-space:normal}
+}
+
+/* — ≤390px: watchpoint rows stack (label + arrow on top, value full width below). */
+@media (max-width:390px){
+  html[data-mmx-shared-shell="1"] .ci-paper-watch-list>button{grid-template-columns:minmax(0,1fr) auto}
+  html[data-mmx-shared-shell="1"] .ci-paper-watch-list strong{grid-column:1 / -1;grid-row:2;white-space:normal}
+}
+/* Source labels and watchpoints remain readable at the shell's workspace width. */
+html[data-mmx-shared-shell="1"] .ci-provenance-bar{background:var(--panel-2);color:var(--text-2)}
+html[data-mmx-shared-shell="1"] .ci-paper-watch-list>button{min-height:44px}
+html[data-mmx-shared-shell="1"] .ci-paper-watch-list>button>span,
+html[data-mmx-shared-shell="1"] .ci-paper-watch-list>button>strong{font-size:12px;line-height:1.5}
+html[data-mmx-shared-shell="1"] .ci-paper-watch>header h4{font-size:14px;line-height:1.4}
+html[data-mmx-shared-shell="1"] .ci-paper-watch>header p{font-size:11px;line-height:1.5}
+/* END Shared Shell Company · selected-event read */

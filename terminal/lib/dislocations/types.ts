@@ -16,6 +16,8 @@ export type EpisodeCatalyst = {
   fresh_until: string;
   relevant_until: string;
   coverage: string;
+  context_state?: string;
+  catalyst_schema?: string;
 };
 
 export type LiveEntryEpisode = {
@@ -62,6 +64,8 @@ export type EpisodeDisplay = {
   stance: Stance;
   stance_en: string;
   stance_zh: string;
+  watching_en: string | null;
+  watching_zh: string | null;
   knowable_at: string | null;
   delay_badge_en: "Delayed data (≈15 min)";
   delay_badge_zh: "延迟数据（约15分钟）";

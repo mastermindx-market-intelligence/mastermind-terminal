@@ -1,4 +1,36 @@
+import { workspaceSourceClock } from "./intelligenceWorkspaceView";
+
+/** A source event remains history even when its recency changes the regime read. */
+export interface OracleHistoricalSignal {
+  type: string;
+  chartTs: string;
+  /** Explicit source availability only; a chart/bar date never fills this field. */
+  knownTs: string | null;
+  label: string;
+  date: string;
+  confirmed: boolean;
+}
+
+export interface OracleEntryAvailability {
+  status: "UNAVAILABLE_DATA";
+  label: string;
+  reason: string;
+}
+
+/** No qualified Oracle strategy/horizon/current-entry owner is bound to this consumer.
+ * Prophet B4 availability is strategy-specific and cannot qualify an Oracle entry. */
+export function oracleEntryAvailability(zh = false): OracleEntryAvailability {
+  return {
+    status: "UNAVAILABLE_DATA",
+    label: zh ? "入场机会尚未核实" : "Entry unverified",
+    reason: zh ? "缺少当前神谕入场数据" : "Current Oracle entry data unavailable",
+  };
+}
+
 export interface Verdict {
+  historicalSignal?: OracleHistoricalSignal | null;
+  refusedSignalKnownTs?: string | null;
+  entryAvailability?: OracleEntryAvailability;
   label: string;
   color: string;
   raw: string | null;
@@ -715,7 +747,61 @@ export function computeStance(st: OracleState, trend: StanceTrend, zh: boolean):
 //   2. manifest row.verdict (scored lane) — undated fallback when there is no slice: dimmed.
 // Either way this is a swing-timing overlay read (3D bars), never an investment view — the
 // horizon rides along in `note` so the button tooltip says so.
+/** Consumer projection only: never edits signal history, scoring or engine clocks. */
 export function oracleVerdict(
+  v?: string | null,
+  slice?: OracleSlice | null,
+  zh = false,
+  now: number = Date.now(),
+  trend: StanceTrend = null,
+): Verdict {
+  const read = oracleVerdictRead(v, slice, zh, now, trend);
+  const { anchor, blockedTail } = anchorSignal(slice?.indicator?.signals);
+  const explicitKnownTs = (signal: OracleSignal | null): string | null =>
+    typeof signal?.known_ts === "string" && Number.isFinite(Date.parse(signal.known_ts)) ? signal.known_ts : null;
+  let historicalSignal: OracleHistoricalSignal | null = null;
+  if (anchor) {
+    const type = String(anchor.type).toUpperCase();
+    const knownTs = explicitKnownTs(anchor);
+    const quality = String(anchor.quality ?? "").toLowerCase();
+    const starter = BUYISH.includes(type) && (quality === "block" || quality === "pending");
+    const confirmed = BUYISH.includes(type) && knownTs != null && Date.parse(knownTs) <= now
+      && !SOFT_Q.has(quality) && anchor.scored !== false && !isRetroOverride(anchor);
+    const event = starter ? (zh ? "试仓" : "Starter")
+      : eventLabel(type, zh, sliceSignalBasis(anchor), anchor.quality);
+    historicalSignal = {
+      type,
+      chartTs: anchor.ts,
+      knownTs,
+      label: confirmed ? (zh ? `已确认${event}` : `Confirmed ${event}`) : event,
+      date: oracleHistoryDate(knownTs, zh),
+      confirmed,
+    };
+  }
+  return { ...read, historicalSignal, refusedSignalKnownTs: explicitKnownTs(blockedTail), entryAvailability: oracleEntryAvailability(zh) };
+}
+
+function oracleHistoryDate(knownTs: string | null, zh: boolean): string {
+  return knownTs
+    ? new Date(knownTs).toLocaleDateString(zh ? "zh-CN" : "en-US", { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" })
+    : (zh ? "信号可知日期未核实" : "Signal date unverified");
+}
+
+/** Both Oracle consumers use the same visible history/stance wording and source clock. */
+export function oraclePresentation(verdict: Pick<Verdict, "label" | "sub" | "stance" | "blocked" | "historicalSignal" | "refusedSignalKnownTs"> & Partial<Pick<Verdict, "raw">>, zh = false): { heading: string; label: string; sub: string | null } {
+  const history = verdict.historicalSignal;
+  const showsHistory = history != null && !verdict.stance && verdict.raw === history.type;
+  const refusalDate = oracleHistoryDate(verdict.refusedSignalKnownTs ?? null, zh);
+  const blockedNote = verdict.blocked ? ` · ${zh ? "入场被拦截" : "entry blocked"} ${refusalDate}` : "";
+  return {
+    heading: verdict.stance ? (zh ? "当前姿态" : "Current regime")
+      : (zh ? "历史信号" : "Historical signal"),
+    label: showsHistory ? history.label : verdict.label,
+    sub: showsHistory ? history.date + blockedNote : verdict.raw === "BLOCKED_ENTRY" ? refusalDate : verdict.sub ?? null,
+  };
+}
+
+function oracleVerdictRead(
   v?: string | null,
   slice?: OracleSlice | null,
   zh = false,
@@ -952,16 +1038,28 @@ const ENTRY_POSTURE: Record<string, [string, string]> = {
 export function deskVerdict(intel: any, zh = false, now: number = Date.now()): Verdict {
   const lean = intel?.tape?.ai_lean;
   const dir = String(lean?.dir || "").toUpperCase();
-  const band = String(lean?.band || "").toLowerCase();
-  const entry = String(lean?.entry || "").toLowerCase();
-  const asof = (intel?.tape?.asof ?? null) as string | null;
-  const age = ageDays(asof, now);
-  const sub = asof
-    ? `${zh ? "数据截至" : "as of"} ${fmtDate(asof, zh)}${age != null ? ` · ${age}${zh ? "天" : "d"}` : ""}`
+  const band = String(lean?.band || "").trim().toLowerCase();
+  const entry = String(lean?.entry || "").trim().toLowerCase();
+  const clock = workspaceSourceClock(intel?.tape?.asof, now);
+  const sub = clock.kind === "dated"
+    ? `${zh ? "数据截至" : "as of"} ${fmtDate(clock.date, zh)} · ${clock.ageDays}${zh ? "天" : "d"}`
     : null;
+  const knownPosture = (!dir || dir === "NEUTRAL") && Object.hasOwn(ENTRY_POSTURE, entry);
+  // Previous bridge versions emitted NEUTRAL with an explicit empty band when
+  // no directional assessment existed. Older direction-only records omit band.
+  const reportedNeutral = dir === "NEUTRAL" && (!Object.hasOwn(lean, "band") || !!band);
+  const hasLean = knownPosture || dir === "BULL" || dir === "BEAR" || reportedNeutral;
+  // The bridge uses calendar sessions. A cached report may outlive its producer's window.
+  // Pre-policy research snapshots use the bridge's original five-calendar-day window.
+  const maxDays = lean?.max_age_days === undefined ? 5 : lean.max_age_days;
+  const sessionAge = clock.kind === "dated" ? Math.floor(now / DAY_MS) - Date.parse(clock.date.slice(0, 10)) / DAY_MS : null;
+  const expired = !Number.isInteger(maxDays) || maxDays < 1 || sessionAge === null || sessionAge >= maxDays;
+  if (clock.kind !== "dated" || intel?.tape?.stale || lean?.abstain || !hasLean || expired) {
+    return { label: zh ? "暂无当前判断" : "No current reading", color: "var(--muted)", raw: null, sub, dim: true };
+  }
   const score = typeof lean?.score === "number" ? lean.score : null;
   // symmetric staleness guard: a desk read older than the display threshold loses authority too
-  const dim = age != null && age > ORACLE_STALE_DAYS;
+  const dim = clock.ageDays > ORACLE_STALE_DAYS;
   const notes: string[] = [];
   // honest label: the desk score is name_score.potential_score = dip-entry READINESS
   // (it structurally rewards washed-out names), NOT directional conviction.
@@ -978,10 +1076,10 @@ export function deskVerdict(intel: any, zh = false, now: number = Date.now()): V
 
   // NEUTRAL with a known entry posture: render the posture, not a blank "Neutral" —
   // "Neutral" on a market leader reads as an opinion; "Awaiting confluence" is the truth.
-  if ((dir === "NEUTRAL" || !dir) && ENTRY_POSTURE[entry]) {
+  if (knownPosture) {
     const [en, zhLbl] = ENTRY_POSTURE[entry];
     notes.push(zh ? "入场时机读数 — 非方向观点" : "entry-timing read — not a directional view");
-    return { label: zh ? zhLbl : en, color: "var(--signal)", raw: dir || "NEUTRAL", sub, dim, note: notes.join(" · ") };
+    return { label: zh ? zhLbl : en, color: "var(--signal)", raw: dir || "POSTURE", sub, dim, note: notes.join(" · ") };
   }
 
   const color = dir === "BULL" ? "var(--buy)" : dir === "BEAR" ? "var(--sell)" : "var(--signal)";

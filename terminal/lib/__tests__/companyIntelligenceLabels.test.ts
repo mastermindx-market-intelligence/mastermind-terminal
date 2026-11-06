@@ -119,4 +119,14 @@ describe("company intelligence labels", () => {
     assertPlainLabel(EVENT_WORKSPACE_ATTRIBUTION.en, "event_workspace.v1");
     assertPlainLabel(EVENT_WORKSPACE_ATTRIBUTION.zh, "event_workspace.v1");
   });
+  it("uses the existing fallback for inherited object names, not inherited map properties", () => {
+    for (const zh of [false, true]) {
+      for (const [raw, expected] of [["constructor", "Constructor"], ["__proto__", "Proto"], [" CONSTRUCTOR ", "Constructor"]]) {
+        expect(topicTagLabel(raw, zh)).toBe(expected);
+        expect(managerStyleLabel(raw, zh)).toBe(expected);
+        expect(typedAbsenceReasonLabel(raw, zh)).toBe(zh ? NOT_CLASSIFIED.zh : NOT_CLASSIFIED.en);
+      }
+    }
+  });
+
 });

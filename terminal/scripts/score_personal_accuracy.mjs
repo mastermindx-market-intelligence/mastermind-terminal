@@ -101,12 +101,29 @@ export async function loadResolverRegistry() {
   return mod.RESOLVER_REGISTRY;
 }
 
+/**
+ * The worker reads and writes rows over PostgREST only — it never opens a Realtime channel. But
+ * supabase-js still builds a RealtimeClient inside `createClient`, and that constructor resolves
+ * `options.transport ?? WebSocketFactory.getWebSocketConstructor()`, which THROWS on Node < 22 when
+ * there is no global WebSocket. The VPS runs Node 20: the first natural nightly after env hydration
+ * shipped (2026-10-04 22:21:55Z) hydrated its keys and then exited 1 on exactly that throw, before
+ * scoring anything. Handing Realtime an explicit transport skips the probe; this one refuses to
+ * connect, so any future Realtime use by the worker fails loudly instead of needing a socket the
+ * worker host does not have.
+ */
+export class NoRealtimeTransport {
+  constructor() {
+    throw new Error("score_personal_accuracy: Realtime is not available to the nightly worker");
+  }
+}
+
 export function createServiceClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key || !/^https:\/\//.test(url)) return null;
   return createClient(url, key, {
     auth: { persistSession: false, autoRefreshToken: false },
+    realtime: { transport: NoRealtimeTransport },
   });
 }
 
