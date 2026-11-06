@@ -4,7 +4,7 @@ import { classifyInvestigationOperationReceipt } from "./investigationOperationR
 import { ownerUserId } from "./accountIdentity";
 export type InvestigationSaveState =
   | { phase: "idle" }
-  | { phase: "pending" | "uncertain"; principal: string; command: InvestigationCommand; captureOutcome?: "unknown_after_canonical_not_applied" }
+  | { phase: "pending" | "uncertain"; principal: string; command: InvestigationCommand; captureOutcome?: "unknown_after_canonical_not_applied"; canonicalResult?: InvestigationCommitted }
   | { phase: "committed"; principal: string; result: InvestigationCommitted; receiptBinding?: "native_lineage" | "legacy_recorded_completion" }
   | { phase: "rejected"; principal: string; command: InvestigationCommand; reason: string };
 function sameJson(a: unknown, b: unknown): boolean {
@@ -49,11 +49,17 @@ export function settleInvestigationSave(state: InvestigationSaveState, principal
   if (isInvestigationCommitted(response) && response.id === state.command.id
     && response.revision === state.command.expected_revision + 1
     && response.lifecycle === (state.command.action === "remove" ? "removed" : "active")
-    && matchesCommand(response,state.command)) return { phase: "committed", principal, result: response };
+    && matchesCommand(response,state.command)) {
+    // Canonical commit is real recorded information, but does not settle an
+    // independent producer phase already known to remain UNKNOWN.
+    if (state.captureOutcome) return { phase: "uncertain", principal, command: state.command, captureOutcome: state.captureOutcome, canonicalResult: response };
+    return { phase: "committed", principal, result: response };
+  }
   const status = response !== null && typeof response === "object" ? (response as { status?: unknown }).status : null;
   // A late canonical refusal cannot settle the already-observed independent
   // native capture. Keep the original command and conservative retry fence.
-  if (state.captureOutcome) return { phase: "uncertain", principal, command: state.command, captureOutcome: state.captureOutcome };
+  if (state.captureOutcome) return { phase: "uncertain", principal, command: state.command, captureOutcome: state.captureOutcome,
+    ...(state.canonicalResult ? { canonicalResult: state.canonicalResult } : {}) };
   if (typeof status === "string" && definitive.has(status)) return { phase: "rejected", principal, command: state.command, reason: status };
   // not_found on receipt lookup, auth expiry, timeout and malformed replies are all inconclusive.
   return { phase: "uncertain", principal, command: state.command,
@@ -79,7 +85,8 @@ export function settleInvestigationOperationRead(state: InvestigationSaveState, 
   if (read_binding === "stored_no_effect" && disposition === "not_applied") {
     // A canonical DB fence cannot settle a private retention PUT that precedes
     // the DB lock. Suppress retries without granting new-draft/clear authority.
-    if (mayHaveNativeCapture(state.command)) return { phase: "uncertain", principal, command: state.command, captureOutcome: "unknown_after_canonical_not_applied" };
+    if (mayHaveNativeCapture(state.command)) return { phase: "uncertain", principal, command: state.command, captureOutcome: "unknown_after_canonical_not_applied",
+      ...(state.canonicalResult ? { canonicalResult: state.canonicalResult } : {}) };
     return { phase: "rejected", principal, command: state.command, reason: "not_applied" };
   }
   return unresolved();

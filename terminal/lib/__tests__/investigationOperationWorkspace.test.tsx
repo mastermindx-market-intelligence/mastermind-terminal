@@ -63,7 +63,7 @@ it.each(["en", "zh"])("keeps a scenario capture UNKNOWN after the canonical fenc
  expect(fetcher.mock.calls.filter(([,init])=>init?.method==="POST")).toHaveLength(0);
 });
 
-it("does not let a late POST rejection erase a newer native-capture UNKNOWN fence, including after reload",async()=>{
+it.each(["rejected","committed"])("does not let a late canonical POST %s erase a newer native-capture UNKNOWN fence, including after reload",async late=>{
  locale.lang="en";
  const original={...command,manifest:{...command.manifest,scenario_capture:capture}};
  sessionStorage.setItem(key,JSON.stringify({owner,command:original}));
@@ -79,10 +79,12 @@ it("does not let a late POST rejection erase a newer native-capture UNKNOWN fenc
  expect(fetcher.mock.calls.filter(([,init])=>init?.method==="POST")).toHaveLength(1);
  await act(async()=>{button("Check original outcome").click();for(let i=0;i<8;i++)await Promise.resolve();});
  expect(el.textContent).toContain("private source capture outcome is still unknown");
- await act(async()=>{finishPost({json:async()=>({status:"version_conflict",current_revision:9})});for(let i=0;i<8;i++)await Promise.resolve();});
+ const body=late==="committed"?{status:"committed",id:command.id,revision:1,lifecycle:"active",manifest:original.manifest,committed_at:"2026-11-05T01:00:00Z"}:{status:"version_conflict",current_revision:9};
+ await act(async()=>{finishPost({json:async()=>body});for(let i=0;i<8;i++)await Promise.resolve();});
  expect(el.textContent).toContain("private source capture outcome is still unknown");
  expect(button("Start new research").disabled).toBe(true);
  expect(button("Retry original save")).toBeUndefined();
+ if(late==="committed")expect(el.textContent).toContain("Canonical save recorded · Revision 1");
  const retainedUnknown=JSON.parse(sessionStorage.getItem(key)!);
  expect(retainedUnknown.command).toEqual(original);
  expect(retainedUnknown.capture_outcome).toBe("unknown_after_canonical_not_applied");

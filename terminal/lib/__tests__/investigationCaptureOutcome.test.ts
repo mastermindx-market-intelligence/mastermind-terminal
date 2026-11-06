@@ -25,6 +25,10 @@ it("keeps loss-after-private-PUT and zero returned handlers UNKNOWN despite a ca
   expect(result).toMatchObject({phase:"uncertain",captureOutcome:"unknown_after_canonical_not_applied"});
   expect(retryInvestigationSave(result,owner)).toBeNull();
  }
+ const canonical={status:"committed",id:command.id,revision:1,lifecycle:"active",manifest:command.manifest,committed_at:"2026-11-05T01:00:00Z"};
+ const recorded=settleInvestigationSave(state,owner,canonical);
+ expect(recorded).toMatchObject({phase:"uncertain",captureOutcome:"unknown_after_canonical_not_applied",canonicalResult:canonical});
+ expect(retryInvestigationSave(recorded,owner)).toBeNull();
 });
 it("retains the exact journal, denies new-draft authority and keeps conservative suppression on reload",()=>{
  const storage=store();retainInvestigationJournal(storage,owner,command);
