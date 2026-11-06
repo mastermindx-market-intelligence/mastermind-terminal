@@ -75,7 +75,8 @@ export default function DividendsPage({ sym, fund, zh }: DividendsPageProps) {
 
   const div = fund.dividends
 
-  // ── Empty state: never paid ──────────────────────────────────────────────
+  // The producer also sets never_paid when cached dividend records are absent.
+  // This flag cannot establish company policy, lifetime history or future plans.
   if (!div || div.never_paid) {
     return (
       <div className="fin-body">
@@ -85,8 +86,8 @@ export default function DividendsPage({ sym, fund, zh }: DividendsPageProps) {
           <div className="fin-empty-why">
             {pick(
               !!zh,
-              `${sym} has never declared a dividend, and no distribution is currently planned. This is a company policy, not a gap in the data.`,
-              `${sym} 从未宣派股息，目前也没有派息计划。这是公司政策，并非数据缺失。`
+              `${sym} has no dividend records in this dataset. This does not confirm the company's full dividend history or future distribution plans.`,
+              `${sym} 在本数据集中没有股息记录。这不能确认公司的完整派息历史或未来派息计划。`
             )}
           </div>
         </div>
@@ -262,3 +263,4 @@ export default function DividendsPage({ sym, fund, zh }: DividendsPageProps) {
     </div>
   )
 }
+
