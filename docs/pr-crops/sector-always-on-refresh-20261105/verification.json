@@ -123,5 +123,17 @@
       "sha256": "03e49aa9fbc7d3fef58ba277cb02f770dc607d7f55f5a1f1db87b8339d5f3829",
       "bytes": 9184
     }
-  ]
+  ],
+  "hosted_regression_followup": {
+    "date": "2026-11-06",
+    "suite": "sector-intraday-comparison.spec.ts: repeated observations keep source age",
+    "passed": 3,
+    "viewports": [
+      "desktop",
+      "tablet",
+      "mobile"
+    ],
+    "scope": "fixture browser regression; not production acceptance",
+    "change": "require the scheduled revalidation while retaining stale/source-clock assertions"
+  }
 }

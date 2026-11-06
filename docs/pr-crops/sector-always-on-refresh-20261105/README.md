@@ -33,3 +33,9 @@ This receipt does not establish hosted CI, merge, installation, production crede
 
 Source base: `f9d3280a2a3ff28dd925b128231702b836c8a247`.
 Operation: `macro-always-on-terminal-refresh-20261105-c3`.
+
+## November 6 hosted regression follow-up
+
+The original hosted mobile/tablet suite caught an obsolete request-count expectation in `sector-intraday-comparison.spec.ts`: it asserted one owner read after a 46-minute clock advance. The new visible-feed cadence correctly issues a second request. The test now requires that revalidation while retaining all source-clock, stale-comparison, retained-observation and overflow assertions. This proves repeated delivery of an old observation does not make it current.
+
+`npm run test:e2e:responsive -- e2e/sector-intraday-comparison.spec.ts --grep 'an open workspace keeps repeated observations'` passed **3/3** at desktop, tablet and mobile on November 6. Application code and the previously captured 18 screenshots are unchanged. Hosted CI must conclude on the follow-up commit; this receipt is still fixture evidence, not live beta acceptance.
