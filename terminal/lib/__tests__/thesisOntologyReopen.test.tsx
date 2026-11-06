@@ -121,6 +121,7 @@ type DetailAnswer = Response | Promise<Response>;
 /** Fetch stub over the real `/api/theses` contract that records EVERY request it sees. */
 function installFetch(config: {
   theses?: ThesisSummary[];
+  list?: () => DetailAnswer;
   detailFor?: (id: string) => DetailAnswer | undefined;
 } = {}) {
   const requests: string[] = [];
@@ -138,7 +139,7 @@ function installFetch(config: {
       if (answer) return answer;
       return jsonResponse({ error: "thesis_not_found" }, 404);
     }
-    return jsonResponse({ theses: config.theses ?? [], truncated: false });
+    return config.list?.() ?? jsonResponse({ theses: config.theses ?? [], truncated: false });
   });
   vi.stubGlobal("fetch", fetchMock);
   return { fetchMock, requests };
@@ -236,6 +237,53 @@ afterEach(() => {
 });
 
 describe("ThesisWorkspace reopen with MarketOntology context", () => {
+  it.each(["response", "decoded body", "401", "500", "network error", "owner A returns"] as const)(
+    "ignores the previous owner's late list %s after the current owner's list answers",
+    async (lateKind) => {
+      const oldRow = summary(NVDA_ID, listingSubject("NVDA"), "Previous owner private thesis");
+      const currentRow = summary(MSFT_ID, listingSubject("MSFT"), "Current owner private thesis");
+      let settleResponse!: (response: Response) => void;
+      let rejectResponse!: (error: Error) => void;
+      let settleBody!: (body: unknown) => void;
+      const response = new Promise<Response>((resolve, reject) => {
+        settleResponse = resolve;
+        rejectResponse = reject;
+      });
+      const body = new Promise<unknown>((resolve) => { settleBody = resolve; });
+      let reads = 0;
+      const { requests } = installFetch({ list: () => {
+        reads += 1;
+        if (reads > 1) return jsonResponse({ theses: [currentRow], truncated: false });
+        return lateKind === "decoded body"
+          ? { ok: true, status: 200, json: () => body } as Response
+          : response;
+      } });
+      const el = await mountAt("/analysis?view=theses", { ownerKey: "owner-a" });
+      await act(async () => { root!.render(<ThesisWorkspace ownerKey="owner-b" />); });
+      await flush();
+      if (lateKind === "owner A returns") {
+        await act(async () => { root!.render(<ThesisWorkspace ownerKey="owner-a" />); });
+        await flush();
+      }
+      expect(thesisRow(el, currentRow.title)).toBeTruthy();
+      await act(async () => {
+        if (lateKind === "decoded body") settleBody({ theses: [oldRow], truncated: true });
+        else if (lateKind === "network error") rejectResponse(new Error("old read disconnected"));
+        else settleResponse(jsonResponse({ theses: [oldRow], truncated: true },
+          lateKind === "401" ? 401 : lateKind === "500" ? 500 : 200));
+      });
+      await flush();
+      expect(el.textContent).not.toContain(oldRow.title);
+      expect(thesisRow(el, currentRow.title)).toBeTruthy();
+      expect(el.textContent).not.toContain("Your session expired");
+      expect(el.textContent).not.toContain("Your thesis store did not answer");
+      expect(el.textContent).not.toContain("More theses exist");
+      expect(requests.filter(request => request === "/api/theses ")).toHaveLength(
+        lateKind === "owner A returns" ? 3 : 2,
+      );
+    },
+  );
+
   it("a late same-id read cannot restore the candidate from a different history entry", async () => {
     const nvda = summary(NVDA_ID, listingSubject("NVDA"), "NVDA thesis");
     let answer: ((response: Response) => void) | undefined;
