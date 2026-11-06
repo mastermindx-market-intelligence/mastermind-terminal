@@ -1,7 +1,8 @@
 import { expect, test, type Page } from "@playwright/test";
 import { createHash } from "node:crypto";
 import { writeFile } from "node:fs/promises";
-import { parseExposureChartRequest } from "../lib/exposureChartLink";
+import { parseExposureChartRequest, exposureChartFingerprint, exposureChartHref } from "../lib/exposureChartLink";
+import { readExposureMap } from "../lib/exposureMap";
 import { usRegularSessionWindow } from "../lib/usEquitySessionClock";
 import producer from "../lib/__tests__/fixtures/exposure-projection.json";
 import { exposureMapT } from "../components/exposure-map/exposureMapStrings";
@@ -1003,4 +1004,92 @@ if (LIGHT_ACCEPTANCE) test("synthetic light chart control contrast", async ({ pa
   await page.screenshot({ path:"test-results/synthetic-light-tablet-controls-hover.png" });
   await button.tap(); await expect(page.locator(".app.fs")).toHaveCount(0);
   await retainSyntheticJson("synthetic-light-control-contrast.json", { ordinary,expanded,hoverPaint,compiler:"Nextdev webpack under unchanged loopback guard",typography:"fallback; not full visual acceptance" });
+});
+
+
+if (LIGHT_ACCEPTANCE) for (const lang of ["en", "zh"] as const) test(`synthetic light return boundary ${lang}`, async ({ page, baseURL }, info) => {
+  test.setTimeout(90_000);
+  const origin = new URL(baseURL!).origin;
+  await page.context().route("**/*", route => new URL(route.request().url()).origin === origin ? route.continue() : route.abort("blockedbyclient"));
+  await page.context().addCookies([{ name: "mm_e2e_rs30", value: "1", url: baseURL! }]);
+  await page.addInitScript(locale => { localStorage.setItem("mm.lang", locale); Reflect.deleteProperty(window, "EventSource"); }, lang);
+  await page.clock.install({ time: new Date(FIXED_NOW) });
+  await installSyntheticRoutes(page);
+  // Reuse the same source-derived request through the incumbent public reader.
+  // This boundary case adds no new Surface/geometry/performance claims.
+  const lens = { kind: "one" as const, exp: SELECTED_EXPIRY }, shock = { spotPercent: 0, ivPoints: 0, calendarDays: 0 };
+  const read = readExposureMap(envelope, "SPY", null, lens, "gamma", SESSION, Date.parse(FIXED_NOW), shock);
+  const fingerprint = await exposureChartFingerprint("SPY", read, lens, "gamma", shock);
+  const request = { v: 1 as const, root: "SPY", session: SESSION, strike: SELECTED_STRIKE, archived: false, metric: "gamma" as const, lens, shock, fingerprint };
+  await page.goto(exposureChartHref(request)!);
+  const mt = exposureMapT(lang), reference = page.getByTestId("exposure-chart-reference");
+  await expect(reference).toHaveAttribute("data-state", "ready", { timeout: 30_000 });
+  await selectActualLight(page, lang, "return-entry-chart");
+  await reference.getByRole("link", { name: mt("returnToExposure"), exact: true }).click();
+  await expect(page.getByTestId("exposure-return-check")).toHaveAttribute("data-state", "ready", { timeout: 30_000 });
+  expect(parseExposureChartRequest(new URL(page.url()).hash)).toEqual(request);
+  const themeBefore = await page.locator("html").getAttribute("data-theme");
+  // A hard navigation plus deliberately unavailable synthetic auth cannot prove
+  // saved-account persistence. The phone inspector is a real modal: dismiss it
+  // before opening Settings, then re-open the exact strike after Light applies.
+  const phoneInspector = (page.viewportSize()?.width ?? 0) <= 640;
+  if (phoneInspector) {
+    await page.keyboard.press("Escape");
+    await expect(page.locator(".msheet-scrim")).toHaveCount(0);
+  }
+  await selectActualLight(page, lang, "returned-map");
+  if (phoneInspector) await page.getByTestId("exposure-map").getByRole("rowheader", { name: new RegExp(`^${SELECTED_STRIKE}(?:◆)?$`) }).getByRole("button").click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+  const map = page.getByTestId("exposure-map"), inspector = page.getByTestId("exposure-node-inspector");
+  await expect(map).toHaveAttribute("data-source-session", SESSION);
+  await expect(map.getByLabel(mt("scope"), { exact: true })).toHaveValue(SELECTED_EXPIRY);
+  await expect(inspector).toContainText("+200M"); await expect(inspector).toContainText("400M");
+  await inspector.scrollIntoViewIfNeeded();
+  await page.screenshot({ path:`test-results/synthetic-light-return-${info.project.name}-${lang}.png` });
+  if (info.project.name === "mobile") {
+    await page.setViewportSize({ width: 320, height: 844 });
+    await expect(inspector).toContainText("+200M"); await inspector.scrollIntoViewIfNeeded();
+    await page.screenshot({ path:`test-results/synthetic-light-return-mobile-${lang}-320.png` });
+  }
+  await retainSyntheticJson("synthetic-light-return-boundary.json", { request, sameSourceFingerprint: true, themeBeforeExplicitIntent: themeBefore,
+    themeAfter: await page.locator("html").getAttribute("data-theme"), viewport: page.viewportSize(),
+    accountPreferencePersistence: "NOT PROVED — synthetic auth unavailable401; explicit Light reapplied via actual control",
+    typography: "fallback — not full visual acceptance" });
+});
+
+
+if (LIGHT_ACCEPTANCE) for (const lang of ["en", "zh"] as const) test(`synthetic light surface signed ink ${lang}`, async ({ page, baseURL }, info) => {
+  test.skip(info.project.name !== "mobile", "one narrow signed-value contrast check per language");
+  test.setTimeout(90_000);
+  const origin = new URL(baseURL!).origin;
+  await page.context().route("**/*", route => new URL(route.request().url()).origin === origin ? route.continue() : route.abort("blockedbyclient"));
+  await page.context().addCookies([{ name: "mm_e2e_rs30", value: "1", url: baseURL! }]);
+  await page.addInitScript(locale => { localStorage.setItem("mm.lang", locale); Reflect.deleteProperty(window, "EventSource"); }, lang);
+  await page.clock.install({ time: new Date(FIXED_NOW) });
+  await installSyntheticRoutes(page); await page.setViewportSize({ width: 320, height: 844 });
+  await page.goto("/options?tab=prism&symbol=SPY&view=chart");
+  const map=page.getByTestId("exposure-map"), mt=exposureMapT(lang);
+  await expect(map).toHaveAttribute("data-chart-ready", "true", { timeout: 30_000 });
+  await selectActualLight(page,lang,"surface-signed-ink");
+  await map.getByRole("button",{name:mt("surfaceTab"),exact:true}).click();
+  const surface=map.locator('section[data-surface-status="ready"]');
+  const values=[];
+  for(const strike of [103,98]) {
+    const cell=surface.locator(`[data-surface-cell][data-strike="${strike}"][data-expiry="${SELECTED_EXPIRY}"]`);
+    await cell.locator('polygon[class*="faceTop"]').tap();
+    const inspector=surface.getByTestId("surface-inspector"), hero=inspector.locator("strong").first();
+    await expect(inspector.locator("h3")).toContainText(`${strike} ×`);
+    await expect(hero).toHaveText(strike===103?"+200M":"−60M");
+    await expect(cell).toHaveAttribute("role","button");
+    const paint=await hero.evaluate(el=>{
+      const c=getComputedStyle(el),bg=getComputedStyle(el.closest("aside")!).backgroundColor;
+      const rgb=(s:string)=>s.match(/[\d.]+/g)!.slice(0,3).map(Number),lin=(n:number)=>n/255<=.04045?n/255/12.92:((n/255+.055)/1.055)**2.4;
+      const lum=(s:string)=>rgb(s).reduce((a,n,i)=>a+lin(n)*[.2126,.7152,.0722][i]!,0),a=lum(c.color),b=lum(bg);
+      return{text:el.textContent,foreground:c.color,background:bg,fontSize:c.fontSize,contrast:(Math.max(a,b)+.05)/(Math.min(a,b)+.05)};
+    });
+    expect(paint.contrast).toBeGreaterThanOrEqual(3); values.push({strike,expiry:SELECTED_EXPIRY,metric:"gamma",mode:"net",...paint});
+    await inspector.scrollIntoViewIfNeeded();
+    await page.screenshot({path:`test-results/synthetic-light-signed-${lang}-${strike}-320.png`});
+  }
+  await retainSyntheticJson("synthetic-light-signed-ink.json",{source:SOURCE_REF,session:SESSION,values,nonColor:"explicit + and minus signs, strike/expiry/metric text and button semantics retained; prism palette unchanged",typography:"fallback — not full visual acceptance"});
 });
