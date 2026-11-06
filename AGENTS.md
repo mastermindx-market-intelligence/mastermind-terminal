@@ -69,6 +69,23 @@ action; never an archived chat as the only actor.
 
 ## Workspace and git
 
+**Authoring-surface boundary (conditional on accepted Mastermind source):** The
+`mmx-workspace` and local checkout constraints below govern sessions that actually
+edit, commit or publish using an M2 host filesystem/process. Once Mastermind PR
+#2118 has **merged to protected `master`**, and the current protected
+`docs/DELIVERY_WORKFLOW.md` explicitly admits it, a separately authorized Web,
+Claude or Codex session using GitHub-native source APIs may create/update an
+isolated branch, commit and open its own PR without acquiring an M2 worktree
+for that remote-only operation. An open policy PR is not installed authority.
+
+Preserve exact repository/source pin, original operation branch/carrier,
+preimage or expected-head CAS, competing writers and denied/unknown effects.
+A pre-existing local uncommitted change cannot be moved to GitHub API as a
+workaround for a refused host publication. All M2-local work still obeys the
+installed launcher, occupied-checkout restrictions and source-storage guards;
+neither route permits direct `master` writes, review/CI bypass, self-approval,
+self-merge or bypass of Terminal's `merge-on-green` release contract.
+
 - The canonical project home is `/Users/chriswong/Documents/Cluade`.
 - Never create project work in `~/.codex/worktrees`, `/private/tmp`, or another
   Codex-only location. Never use a `codex/` branch for these repositories.
