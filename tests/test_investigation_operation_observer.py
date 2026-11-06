@@ -40,7 +40,10 @@ def observe(data, **overrides):
 
 def test_recorded_fence_is_distinguished_from_read_miss():
     result, calls = observe({"status": "not_applied", "id": ITEM, "operation_id": OP})
-    assert result["observation"] == "recorded_no_effect"
+    assert result["observation"] == "canonical_not_applied"
+    assert result["observation_scope"] == "canonical_database_only"
+    assert result["native_capture_outcome"] == "not_established"
+    assert result["whole_request_settled"] is False
     assert result["cutover_qualified"] is False
     assert result["requires"] == "actual-schema-grants-and-receipt-immutability-qualification"
     assert calls == [("read_investigation_operation_v2", {"p_operation_id": OP})]

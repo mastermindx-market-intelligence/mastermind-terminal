@@ -535,14 +535,14 @@
       "note": "Original Terminal PR #1048 authored this forward extension after reserving 0050 in commit 1d026f58fb0de4cd6ff1a0bf7a38edc7ddf46a34. The existing 0031 security-invoker validator/read RPCs gain atomic strict mixed human/AI validation and the literal installed capability; the replace/CAS/replay RPC, table grants, RLS and authenticated owner remain unchanged. Application date not recorded because this source-only migration remains unapplied. The canonical 0049 claim from #1290 is unchanged and its unmerged SQL is absent. Source publication authorizes no production DDL, credential, grant, runtime installation or paired Macro/Terminal release effect."
     },
     "0051": {
-      "state": "reserved",
-      "file": null,
+      "state": "taken",
+      "file": "0051_investigation_native_capture_participant.sql",
       "packet": "P12.T11.S17-NATIVE-CAPTURE-PARTICIPANT",
       "pr": 1312,
       "pr_state": "open",
       "applied_in_production": false,
       "applied_date": null,
-      "note": "Source reservation before authoring. Current protected 691bb74c plus all189 open PR fully paginated filenames qualify max0050 on original PR1048; original0049/1290 and0050/1048 rows retained exactly. Extends existing Investigation operation authority for private capture participants; source only, no SQL application, issuer provisioning, runtime activation or old-effect reconciliation."
+      "note": "Source reservation before authoring. Current protected 691bb74c plus all189 open PR fully paginated filenames qualify max0050 on original PR1048; original0049/1290 and0050/1048 rows retained exactly. Extends existing Investigation operation authority for private capture participants; source only, no SQL application, issuer provisioning, runtime activation or old-effect reconciliation. Application date is not recorded because this source remains unapplied."
     }
   }
 }

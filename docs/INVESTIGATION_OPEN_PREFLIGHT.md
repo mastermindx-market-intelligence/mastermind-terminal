@@ -72,6 +72,57 @@ These missing contracts are engineering inputs; no historical-owner ACK is
 required. Their positive runtime truth cannot be manufactured from fixtures.
 This preparation exposes the exact gaps without claiming the S17 outcome done.
 
+## Prospective native capture participant
+
+0051 is an **unapplied source extension** of the existing
+`investigation_mutation_receipts(user_id, operation_id)` owner. It does not
+implement unified OPEN, provision credentials, apply/replay 0030 or qualify the
+current schema. Its exact 0030 apply/reconcile body preimages must match; later
+validator ownership and the existing mutation ACL remain intact.
+
+The deliberate initial-capture wire carries the exact canonical request as
+typed JSON: principal, action, target, expected revision, full admitted manifest
+and explicit nullable layout capture. The DB owner compares that request as
+JSONB. The separately reported native request/source SHA values are correlation
+bindings; no JavaScript/Python/PostgreSQL numeric serialization equivalence is
+assumed. Native accepted-token authentication derives the principal, issuer and
+session epoch. Current product/source/destination/Save/retention checks remain
+with the existing native owners.
+
+Before its first private retention PUT, the native server uses its incumbent
+same-project service-role reference to call the fixed
+`claim_investigation_native_capture_v1` RPC once. The existing per-operation
+advisory lock atomically creates one generation in the same receipt row. Any
+duplicate, changed binding, old canonical fence or lost claim acknowledgement
+grants no execution. A native reservation is pending, never a canonical commit.
+
+After the synchronous incumbent producer returns from all original writes and
+exact readbacks, `complete_investigation_native_capture_v1` records retained for
+only that original generation/binding. No further retention writes occur below
+this barrier. The existing service role authenticates the trusted server
+domain, **not an individual binary**; generation is nonsecret identity, not
+authority. PUBLIC, anon and authenticated cannot execute claim/completion.
+The native browser-facing route accepts no completion or server-role input.
+
+Canonical save and native retention remain separate dispositions. The same
+operation lock serializes canonical apply/reconcile against the reservation.
+Canonical apply waits for the stored retained phase; canonical reconciliation
+may permanently fence save without claiming the native phase ended. A factual
+original completion may arrive later without reopening rights or issuing PUTs.
+The owner-only `read_investigation_native_capture_v1` exposes this distinction;
+its result is not an ingress/drain or cutover attestation. The current UI keeps
+capture uncertainty until its own authenticated, bound consumer contract can
+establish closure; neither local journal bytes nor canonical not-applied alone
+can unlock a potentially active producer.
+
+Partial writes, lost completion acknowledgements, mismatched generations and
+unavailable rights remain UNKNOWN. No TTL, empty handler count, object existence,
+new request key or retry resolves them. Existing flags default OFF, the common
+Investigation guard remains shared, and the normal installer remains CLOSED.
+Actual isolated socket-only PostgreSQL controls prove only their disposable
+schema/ACL/transaction fixture; installed credentials/schema/grants, original
+unknown operations, all ingress/drain and activation remain separate holds.
+
 ## Atomic source composition on the incumbent SQL path
 
 `ops/investigation_closed_composition.py` is an import-only source assembler,

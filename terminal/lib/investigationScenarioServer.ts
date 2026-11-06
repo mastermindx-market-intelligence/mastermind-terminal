@@ -2,6 +2,7 @@ import "server-only";
 import { parseScenarioCapture, type ScenarioCapture } from "./investigationScenario";
 import { parseScenarioNativeIntent, requestNativeScenario } from "./scenarioNative";
 import { readScenarioSession } from "./scenarioSessionServer";
+import type { InvestigationCommand } from "./investigations";
 
 export type ScenarioCaptureSaveRefusal = "invalid_source_reference" | "source_context_unavailable"
   | "source_authorization_unavailable" | "source_unavailable";
@@ -9,6 +10,7 @@ export type ScenarioCaptureSaveQualification = { ok: true; capture: ScenarioCapt
   | { ok: false; reason: ScenarioCaptureSaveRefusal };
 export type ScenarioSaveContext = {
   id: string; expected_revision: number; operation_id: string; action: "create" | "revise"; initial_capture?: boolean;
+  command?: InvestigationCommand;
 };
 
 /** Initially capture, or read-only recover, exact source under the SAME verified owner.
@@ -27,7 +29,10 @@ export async function qualifyScenarioCaptureSave(capture: unknown, principal: st
     : context.action !== "revise" || context.expected_revision < 1)) return { ok: false, reason: "source_context_unavailable" };
   const intent = parseScenarioNativeIntent({ mode: context.initial_capture === true ? "capture" : "qualify", investigation_id: context.id,
     revision: context.expected_revision+1, grant_id: null, expected_revision: context.expected_revision,
-    operation_id: context.operation_id, capture: parsed });
+    operation_id: context.operation_id, capture: parsed,
+    ...(context.initial_capture === true ? { canonical_request: { principal, target: context.id, action: context.action,
+      expected_revision: context.expected_revision, manifest: context.command?.manifest,
+      layout_capture: context.command?.layout_capture ?? null } } : {}) });
   if (!intent) return { ok: false, reason: "source_context_unavailable" };
   const session = await readScenarioSession(principal);
   if (session.status !== "ok") return { ok: false, reason: "source_authorization_unavailable" };

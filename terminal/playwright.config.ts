@@ -51,7 +51,7 @@ export default defineConfig({
   // 30000ms exceeded" mid-poll, not a poll's own budget). CI-only, like the worker cap;
   // locally the default stands.
   timeout: process.env.CI ? 60_000 : undefined,
-  reporter: process.env.CI ? "github" : "list",
+  reporter: process.env.CI ? [["github"], ["./e2e/reporters/retainedProgress.mjs"]] : "list",
   use: {
     baseURL,
     screenshot: "only-on-failure",

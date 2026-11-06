@@ -12,6 +12,9 @@ apply consults that same immutable receipt before writing. A read miss is NOT
 that fence. The capacity branch's unstored limit_reached answer is deliberately
 not accepted as a stored receipt. Receipt immutability/current schema/grants
 still need their actual separate qualification; this helper never clears OPEN.
+This is canonical database scope only. Private capture can precede that SQL
+owner and remain active/UNKNOWN after its fence or commit; no handler count,
+receipt miss or canonical result establishes whole-request settlement.
 """
 import re
 from datetime import datetime
@@ -28,6 +31,8 @@ def _valid(pattern, value):
 
 def _result(observation, reason):
     return {"observation": observation, "reason": reason,
+            "observation_scope": "canonical_database_only",
+            "native_capture_outcome": "not_established", "whole_request_settled": False,
             "cutover_qualified": False, "requires": _REQUIRES}
 
 
@@ -65,7 +70,7 @@ def observe_original_operation(*, principal, operation_id, investigation_id,
         # not accept an unstored capacity response or caller-supplied label.
         if set(data) != {"status", "id", "operation_id"}:
             return unresolved("recorded_fence_not_established")
-        return _result("recorded_no_effect", "stored_original_key_fence")
+        return _result("canonical_not_applied", "stored_original_key_canonical_fence")
     if data.get("status") == "committed":
         if (data.get("author_ref") != principal
                 or not _valid(_DIGEST, expected_manifest_digest)

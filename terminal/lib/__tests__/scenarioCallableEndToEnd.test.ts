@@ -31,6 +31,7 @@ def put_object(Bucket,Key,Body,**kwargs):
     puts.append(Key);h.s3.objects[Key]=bytes(Body)
 h.s3.put_object=put_object
 from tests.test_options_hub_retention import controlled_decision
+from tests.test_scenario_initial_capture import native_authority
 case={'value':'allow'}
 def rpc(req,timeout):
     body=json.loads(req.data)
@@ -42,7 +43,7 @@ def rpc(req,timeout):
     return FakeRpcResponse(value)
 patch.setattr(S,'_open_rpc',rpc)
 app=FastAPI();app.include_router(S.router)
-app.state.options_scenario_source_bindings=S.SourceScenarioBindings(s3=h.s3,bucket='b',destination=h.destination_qualifier,resource_access=h.resource_access,source_use_decision=h.source_use_decision,clock=h.clock,producer_out_dir=producer,source_save_decision=h.source_use_decision,retention_decision=controlled_decision())
+app.state.options_scenario_source_bindings=S.SourceScenarioBindings(s3=h.s3,bucket='b',destination=h.destination_qualifier,resource_access=h.resource_access,source_use_decision=h.source_use_decision,clock=h.clock,producer_out_dir=producer,source_save_decision=h.source_use_decision,retention_decision=controlled_decision(),native_capture_authority=native_authority(h))
 @app.middleware('http')
 async def control(request,call_next):
     case['value']=request.headers.get('x-controlled-native','allow');h.resource_calls=0
