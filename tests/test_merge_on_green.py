@@ -444,14 +444,22 @@ def test_a_text_only_regex_guard_misfires_on_a_comment_or_shell_block():
     assert job_level_permissions(yaml.safe_load(decorated)) == {}
 
 
-def test_candidate_ci_explicitly_pins_read_only_contents_permission():
-    workflow = ci_workflow()
+APPROVED_CI_JOB_PERMISSIONS = {
+    "python": {"contents": "read", "pull-requests": "read"},
+}
 
+
+def assert_candidate_ci_permissions(workflow: dict[str, Any]) -> None:
+    # The namespace guard reads native queue/PR membership only in the Python
+    # job. No other job, extra scope or write privilege is approved.
+    assert workflow.get("permissions") == {"contents": "read"}
+    assert job_level_permissions(workflow) == APPROVED_CI_JOB_PERMISSIONS
+
+
+def test_candidate_ci_explicitly_pins_read_only_contents_permission():
     # Semantic parse, not byte position: reformatting this block or adding an
     # unrelated top-level key elsewhere in the file cannot defeat the check.
-    assert workflow.get("permissions") == {"contents": "read"}
-    # No candidate job may widen the top-level read-only grant.
-    assert job_level_permissions(workflow) == {}
+    assert_candidate_ci_permissions(ci_workflow())
 
 
 def test_candidate_ci_runs_for_native_merge_queue_heads():
@@ -461,24 +469,58 @@ def test_candidate_ci_runs_for_native_merge_queue_heads():
 
 
 def test_job_level_permission_elevation_is_rejected_by_the_candidate_ci_guard():
-    # Reviewer minor #3 on PR #487: the previous version of this test asserted
-    # only the helper's return value, never that the guard itself (the same
-    # `job_level_permissions(workflow) == {}` assertion used above in
-    # test_candidate_ci_explicitly_pins_read_only_contents_permission) actually
-    # FAILS when run against the mutant. Prove that here with pytest.raises,
-    # mutation-testing style: the guard must kill this mutation, not merely
-    # compute a value that happens to differ from it.
+    # Exercise the same guard as the real-workflow test against a forbidden
+    # write grant, while retaining the one approved read-only Python job.
     workflow = ci_workflow()
-    elevated = dict(workflow)
-    elevated["jobs"] = dict(workflow["jobs"])
+    assert_candidate_ci_permissions(workflow)
+    elevated = deepcopy(workflow)
     elevated["jobs"]["probe"] = {
         "runs-on": "ubuntu-latest",
         "permissions": {"contents": "write"},
     }
 
-    assert job_level_permissions(elevated) == {"probe": {"contents": "write"}}
+    assert job_level_permissions(elevated) == {
+        **APPROVED_CI_JOB_PERMISSIONS,
+        "probe": {"contents": "write"},
+    }
     with pytest.raises(AssertionError):
-        assert job_level_permissions(elevated) == {}
+        assert_candidate_ci_permissions(elevated)
+
+
+@pytest.mark.parametrize(
+    ("job", "permissions"),
+    [
+        pytest.param("python", {"contents": "write", "pull-requests": "read"}, id="contents-write"),
+        pytest.param("python", {"contents": "read", "pull-requests": "write"}, id="pull-requests-write"),
+        pytest.param("python", {"contents": "read", "pull-requests": "read", "issues": "read"}, id="extra-read-scope"),
+        pytest.param("python", {"contents": "read", "pull-requests": "read", "id-token": "write"}, id="extra-write-scope"),
+        pytest.param("python", "read-all", id="python-read-all"),
+        pytest.param("python", "write-all", id="python-write-all"),
+        pytest.param("python", {}, id="missing-python-scopes"),
+        pytest.param("python", {"contents": "read"}, id="missing-pr-scope"),
+        pytest.param("probe", {"contents": "read"}, id="unapproved-read-only-job"),
+        pytest.param("probe", {}, id="unapproved-empty-job-grant"),
+    ],
+)
+def test_candidate_ci_rejects_unapproved_job_permission_changes(job, permissions):
+    workflow = deepcopy(ci_workflow())
+    workflow["jobs"].setdefault(job, {"runs-on": "ubuntu-latest"})["permissions"] = permissions
+
+    with pytest.raises(AssertionError):
+        assert_candidate_ci_permissions(workflow)
+
+
+@pytest.mark.parametrize(
+    "permissions",
+    [None, {}, "read-all", "write-all", {"contents": "write"},
+     {"contents": "read", "pull-requests": "read"}],
+)
+def test_candidate_ci_rejects_top_level_permission_changes(permissions):
+    workflow = deepcopy(ci_workflow())
+    workflow["permissions"] = permissions
+
+    with pytest.raises(AssertionError):
+        assert_candidate_ci_permissions(workflow)
 
 
 def test_green_current_head_is_sha_pinned_merged_and_deleted():
