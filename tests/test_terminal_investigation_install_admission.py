@@ -2849,7 +2849,7 @@ def test_two_exact_production_safety_predicates_are_source_qualified(verifier):
     assert hashlib.sha256(SAFETY_GUARD.encode()).hexdigest() == verifier["VOLUME_SAFETY_SHA256"]
     verifier["main"](["/app", NEW_SHA, "prestart", "/app", "terminal", "/app", "production"])
     assert reads.count(verifier["VOLUME_SAFETY_PATH"]) == 2
-    assert host.unit_calls.count("ExecStartPre") == 3
+    assert host.unit_calls.count("ExecStartPre") == 4
 
 
 @pytest.mark.parametrize("change", [
@@ -2975,4 +2975,24 @@ def test_deferred_safety_search_and_indirect_environment_refused(verifier, prop,
 
     verifier["unit_property"] = moving_property
     with pytest.raises(verifier["Refused"]):
+        verifier["classify_environment_topology"]("production", "terminal", "/app", "/app")
+
+
+@pytest.mark.parametrize("transition", ["appears", "disappears"])
+def test_conjoined_hook_qualifiers_require_one_observed_projection(verifier, transition):
+    host, _, _ = safety_host(verifier)
+    original = verifier["unit_property"]
+    reads = 0
+    def moving_property(unit, prop):
+        nonlocal reads
+        value = original(unit, prop)
+        if prop == "ExecStartPre":
+            reads += 1
+            if transition == "appears" and reads == 1:
+                return ""
+            if transition == "disappears" and reads >= 2:
+                return ""
+        return value
+    verifier["unit_property"] = moving_property
+    with pytest.raises(verifier["Refused"], match="safety-hook-changed-during-verification"):
         verifier["classify_environment_topology"]("production", "terminal", "/app", "/app")

@@ -5196,6 +5196,11 @@ def classify_environment_topology(profile, unit, app_root, env_source_dir):
     if (safety_environment is not None
             and safety_hook_environment(unit) != safety_environment):
         raise Refused("safety-hook-changed-during-verification")
+    # Both independent qualifiers must describe the same observed hook set.
+    # A hook appearing after the typed branch was skipped cannot be admitted
+    # only by the source snapshot, nor may a verified hook disappear mid-read.
+    if unit_property(unit, "ExecStartPre") != prehooks:
+        raise Refused("safety-hook-changed-during-verification")
 
 
 def unit_source_paths(property_value):
