@@ -32,3 +32,16 @@ def test_terminal_guide_inherits_the_current_root_command():
     root = _merge_commands((ROOT / GUIDES[0]).read_text(encoding="utf-8"))
     nested = _merge_commands((ROOT / GUIDES[1]).read_text(encoding="utf-8"))
     assert root == nested
+
+
+
+def test_github_native_source_authoring_has_no_host_worktree_prerequisite():
+    root = (ROOT / GUIDES[0]).read_text(encoding="utf-8")
+    nested = (ROOT / GUIDES[1]).read_text(encoding="utf-8")
+    assert "**GitHub-native** source" in root
+    assert "requires no M2 worktree" in root
+    assert "Independently authorized GitHub-native" in nested
+    assert "does not require an M2 worktree" in nested
+    assert "blob" in root and "blob" in nested
+    assert "Never switch" in root and "Never switch" in nested
+    assert "Attended Web/Studio sessions must reuse or acquire" not in nested
