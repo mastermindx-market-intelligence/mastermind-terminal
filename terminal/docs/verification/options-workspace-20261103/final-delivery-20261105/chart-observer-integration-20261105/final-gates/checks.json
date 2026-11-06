@@ -1,0 +1,145 @@
+[
+  {
+    "profile": "original",
+    "check": "unit",
+    "exit": 0,
+    "seconds": 23.272,
+    "command": [
+      "./node_modules/.bin/vitest",
+      "run",
+      "lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts",
+      "lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts",
+      "lib/__tests__/optionsExposureEvidence.test.ts",
+      "lib/__tests__/visualIntelligenceEvidence.test.ts",
+      "lib/__tests__/b_pl_6Batch1Evidence.test.ts",
+      "lib/__tests__/b_f11_10AnalysisThesesEntryEvidence.test.ts",
+      "lib/__tests__/exposureMapPrimitive.test.ts",
+      "lib/__tests__/exposureMap.test.ts",
+      "lib/__tests__/exposureWorkspace.test.ts",
+      "lib/__tests__/sharedShellLoginDefault.test.tsx",
+      "lib/__tests__/frozenNodeEntryView.test.tsx",
+      "lib/__tests__/researchLabSourceAvailability.test.tsx",
+      "lib/__tests__/researchLabAdmission.test.tsx",
+      "--maxWorkers=4",
+      "--minWorkers=2",
+      "--reporter=default",
+      "--reporter=json",
+      "--outputFile=/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/final-observer-binding-gates-r4/original-unit-report.json"
+    ],
+    "raw_log_sha256": "957e7e81639352cc53a3f0086be2cd0deac3e30e55bfe5520af97c1dbbcc9fdd",
+    "gzip_sha256": "047cf9c4669ca7ff4937e2409f90fed5e03ef60e2b8a33a566f3f227d06ac9ee",
+    "summary": {
+      "numTotalTests": 120,
+      "numPassedTests": 120,
+      "numFailedTests": 0,
+      "numPendingTests": 0,
+      "numTodoTests": 0,
+      "success": true
+    }
+  },
+  {
+    "profile": "exposure",
+    "check": "unit",
+    "exit": 0,
+    "seconds": 16.171,
+    "command": [
+      "./node_modules/.bin/vitest",
+      "run",
+      "lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts",
+      "lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts",
+      "lib/__tests__/optionsExposureEvidence.test.ts",
+      "lib/__tests__/exposureMapPrimitive.test.ts",
+      "lib/__tests__/exposureMap.test.ts",
+      "lib/__tests__/exposureWorkspace.test.ts",
+      "lib/__tests__/sharedShellLoginDefault.test.tsx",
+      "lib/__tests__/frozenNodeEntryView.test.tsx",
+      "lib/__tests__/researchLabSourceAvailability.test.tsx",
+      "lib/__tests__/researchLabAdmission.test.tsx",
+      "--maxWorkers=4",
+      "--minWorkers=2",
+      "--reporter=default",
+      "--reporter=json",
+      "--outputFile=/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/final-observer-binding-gates-r4/exposure-unit-report.json"
+    ],
+    "raw_log_sha256": "b936d2cd1e50965bec7ada24460a9bdced3fc1a76c6a10434bcd5e21cdf90567",
+    "gzip_sha256": "cd2cee62ae6f39f792d49d4ad87806ba521e4d91c50b165079d3581c6a768535",
+    "summary": {
+      "numTotalTests": 112,
+      "numPassedTests": 112,
+      "numFailedTests": 0,
+      "numPendingTests": 0,
+      "numTodoTests": 0,
+      "success": true
+    }
+  },
+  {
+    "profile": "preview",
+    "check": "unit",
+    "exit": 0,
+    "seconds": 22.434,
+    "command": [
+      "./node_modules/.bin/vitest",
+      "run",
+      "lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts",
+      "lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts",
+      "lib/__tests__/optionsExposureEvidence.test.ts",
+      "lib/__tests__/visualIntelligenceEvidence.test.ts",
+      "lib/__tests__/b_pl_6Batch1Evidence.test.ts",
+      "lib/__tests__/b_f11_10AnalysisThesesEntryEvidence.test.ts",
+      "lib/__tests__/exposureMapPrimitive.test.ts",
+      "lib/__tests__/exposureMap.test.ts",
+      "lib/__tests__/exposureWorkspace.test.ts",
+      "lib/__tests__/sharedShellLoginDefault.test.tsx",
+      "lib/__tests__/frozenNodeEntryView.test.tsx",
+      "lib/__tests__/researchLabSourceAvailability.test.tsx",
+      "lib/__tests__/researchLabAdmission.test.tsx",
+      "lib/__tests__/marketRiskMarketScope.test.tsx",
+      "lib/__tests__/marketRisk.test.ts",
+      "lib/__tests__/earningsExpectationBoundary.test.tsx",
+      "lib/__tests__/eventWorkspace.test.ts",
+      "--maxWorkers=4",
+      "--minWorkers=2",
+      "--reporter=default",
+      "--reporter=json",
+      "--outputFile=/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/final-observer-binding-gates-r4/preview-unit-report.json"
+    ],
+    "raw_log_sha256": "3bafdbf86fa4a2fbdfe35c80a31fef3a11d137e33441279fe77f14f897084af3",
+    "gzip_sha256": "c07bf0a79b20e4863be97282a7d01dc759c913b69c599c6a2107a849e77d1c75",
+    "summary": {
+      "numTotalTests": 284,
+      "numPassedTests": 284,
+      "numFailedTests": 0,
+      "numPendingTests": 0,
+      "numTodoTests": 0,
+      "success": true
+    }
+  },
+  {
+    "profile": "preview",
+    "check": "typecheck",
+    "exit": 0,
+    "seconds": 129.463,
+    "command": [
+      "./node_modules/.bin/tsc",
+      "--noEmit",
+      "--incremental",
+      "false"
+    ],
+    "raw_log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "gzip_sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+  },
+  {
+    "profile": "original",
+    "check": "lint",
+    "exit": 0,
+    "seconds": 5.373,
+    "command": [
+      "./node_modules/.bin/eslint",
+      "lib/__tests__/helpers/optionsExposureEvidence.ts",
+      "lib/__tests__/optionsExposureEvidence.test.ts",
+      "--max-warnings=0"
+    ],
+    "raw_log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "gzip_sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+  }
+]

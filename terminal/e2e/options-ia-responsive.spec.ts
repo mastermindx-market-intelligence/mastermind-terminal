@@ -20,10 +20,16 @@ test("seven-category Options IA stays addressable, honest, and contained", async
     });
   }
 
+  await page.clock.setFixedTime(new Date("2026-11-01T18:00:00Z")); // Sunday: closed independently of the feed date.
   await page.goto("/options?tab=tape");
   const workspace = page.locator('[data-options-ia="seven-category-stage-a"]');
   await expect(workspace).toBeVisible({ timeout: 15_000 });
-  await expect(page.getByRole("tablist", { name: zh ? "期权类别" : "Options categories" })).toBeVisible();
+  const categories = page.getByRole("tablist", { name: zh ? "期权类别" : "Options categories" });
+  const picker = page.getByRole("combobox", { name: zh ? "切换期权视图" : "Switch Options view" });
+  const compact = testInfo.project.name === "mobile";
+  await expect(picker).toBeVisible();
+  if (compact) await expect(categories).toBeHidden();
+  else await expect(categories).toBeVisible();
   await expect(page.getByRole("tablist", { name: zh ? "期权子视图" : "Options views" })).toBeVisible();
 
   for (const category of CATEGORY_IDS) {
@@ -73,7 +79,8 @@ test("seven-category Options IA stays addressable, honest, and contained", async
   });
 
   // A category selects its deterministic home and exposes only its owned views.
-  await page.locator("#wtab-cat-exposure").click();
+  if (compact) await picker.selectOption("gex");
+  else await page.locator("#wtab-cat-exposure").click();
   await expect(page).toHaveURL(/\/options\?tab=gex$/);
   await expect(page.locator("#wtab-gex")).toHaveAttribute("aria-selected", "true");
   await expect(page.locator("#wtab-positioning")).toBeVisible();
@@ -86,7 +93,8 @@ test("seven-category Options IA stays addressable, honest, and contained", async
   });
 
   // Statistics is a real IA destination, but it cannot imply an unbuilt feed.
-  await page.locator("#wtab-cat-statistics").click();
+  if (compact) await picker.selectOption("statistics");
+  else await page.locator("#wtab-cat-statistics").click();
   await expect(page).toHaveURL(/\/options\?tab=statistics$/);
   await expect(page.locator('[data-options-ia-gate="statistics-r3"]')).toContainText(
     zh ? "不使用合成数值" : "no synthetic values",
@@ -103,7 +111,8 @@ test("seven-category Options IA stays addressable, honest, and contained", async
   // R5 P/C history is a strict read-only derivation over the Structure pane's
   // existing nightly oi_time payload. It retains the source contract and t-1
   // timing law, with no new fetch or directional interpretation.
-  await page.locator("#wtab-cat-structure").click();
+  if (compact) await picker.selectOption("structure");
+  else await page.locator("#wtab-cat-structure").click();
   await expect(page).toHaveURL(/\/options\?tab=structure$/);
   const pcHistory = page.locator('[data-options-pc-oi-history="r5-v1"]');
   await expect(pcHistory).toBeVisible({ timeout: 15_000 });
@@ -131,7 +140,8 @@ test("seven-category Options IA stays addressable, honest, and contained", async
   });
 
   // #380/#382 remain the same pane-level contracts after navigation through the IA.
-  await page.locator("#wtab-cat-flow").click();
+  if (compact) await picker.selectOption("tape");
+  else await page.locator("#wtab-cat-flow").click();
   await expect(page).toHaveURL(/\/options\?tab=tape$/);
   await expect(page.locator('[data-options-export="tape-csv-v1"]')).toHaveAttribute(
     "data-export-contract",
@@ -167,7 +177,7 @@ test("seven-category Options IA stays addressable, honest, and contained", async
   await expect(page).toHaveURL(/\/options\?tab=largest$/);
   const largestBoard = page.locator('[data-options-flow-board="largest-events"]');
   await expect(largestBoard).toBeVisible();
-  await expect(largestBoard).toContainText(zh ? "并非单笔成交排名" : "not an individual-trade ranking");
+  await expect(largestBoard).toContainText(zh ? "每行汇总同一批次内的合格成交" : "groups qualifying prints from one feed batch");
   await expect(largestBoard.locator(".options-flow-board-receipt").nth(1).locator("strong")).toHaveText("12");
   const largestRows = testInfo.project.name === "mobile"
     ? largestBoard.locator(".options-flow-board-card")

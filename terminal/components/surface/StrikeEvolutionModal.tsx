@@ -12,11 +12,11 @@
  *     per-expiry cells for this strike (else the section is omitted, never faked).
  *   - a footer: spot · stamp count · Esc-to-close.
  *
- * Keyboard: Esc closes; focus is trapped inside the dialog. The layer is a fixed scrim
- * (portal-free, but position:fixed) so it never clips inside the pane's overflow.
+ * The native modal contains focus and sits above the chart and sticky navigation.
  */
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import ui from "./SurfaceWorkspace.module.css";
 import {
   createChart,
   LineSeries,
@@ -41,11 +41,13 @@ interface Props {
   /** Underlying root — the symbol an alert created from this drill is filed against. */
   root: string;
   strikeIdx: number;
+  onSelectStrike: (index: number) => void;
   metric: string;
   metricLabel: string;
   /** Column index the replay is scrubbed to; null = use the (already-truncated) frame as-is. */
   scrubbedTimeIdx: number | null;
   matrixCells: MatrixCell[] | null;
+  matrixSession: string | null;
   asofLabel: string;
   lang: Lang;
   /**
@@ -75,19 +77,17 @@ function fmtDollarSigned(v: number): string {
   return `${s}$${a.toFixed(0)}`;
 }
 
-const FOCUSABLE =
-  'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
-
 export function StrikeEvolutionModal({
-  frame, root, strikeIdx, metric, metricLabel, scrubbedTimeIdx, matrixCells, asofLabel, lang,
+  frame, root, strikeIdx, onSelectStrike, metric, metricLabel, scrubbedTimeIdx, matrixCells, matrixSession, asofLabel, lang,
   replayLive, pinned, onTogglePin, onClose,
 }: Props) {
   const t = makeSurfaceT(lang);
   const chartWrap = useRef<HTMLDivElement>(null);
-  const dialogRef = useRef<HTMLDivElement>(null);
+  const dialogRef = useRef<HTMLDialogElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   // Alert-from-drill state. `needsAuth` is set from the API's own 401 — the hub carries no
   // session prop, so the request itself is what tells us the user is signed out.
+  const [alertDirection, setAlertDirection] = useState<"above" | "below" | null>(null);
   const [alertState, setAlertState] = useState<"idle" | "busy" | "done" | "error" | "auth">("idle");
 
   const series = useMemo(
@@ -107,33 +107,19 @@ export function StrikeEvolutionModal({
   // B4: "none" omit · "live" show the bars · "stale" withdraw them with a plain-word reason.
   const expiryState = expiryPanelState(topExpiries.length, replayLive);
 
-  // ── Esc + focus trap ─────────────────────────────────────────────────────────
   useEffect(() => {
-    closeRef.current?.focus();
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") { e.preventDefault(); onClose(); return; }
-      if (e.key === "Tab") {
-        const root = dialogRef.current;
-        if (!root) return;
-        const nodes = Array.from(root.querySelectorAll<HTMLElement>(FOCUSABLE)).filter(
-          (n) => !n.hasAttribute("disabled"),
-        );
-        if (nodes.length === 0) return;
-        const first = nodes[0];
-        const last = nodes[nodes.length - 1];
-        const active = document.activeElement as HTMLElement | null;
-        if (e.shiftKey && active === first) { e.preventDefault(); last.focus(); }
-        else if (!e.shiftKey && active === last) { e.preventDefault(); first.focus(); }
-      }
-    }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    dialog.showModal();
+    closeRef.current?.focus({ preventScroll: true });
+    return () => dialog.close();
+  }, []);
 
+  const hasObservations = series.points.some(point => point.v != null);
   // ── LWC line: strike's metric value across realized stamps + NOW marker ──────
   useEffect(() => {
     const el = chartWrap.current;
-    if (!el || series.points.length === 0) return;
+    if (!el || !hasObservations) return;
 
     const date = frame.session_date ?? new Date().toISOString().slice(0, 10);
     // Same display-epoch convention as the pane and the candle feed (B11) — see
@@ -161,25 +147,24 @@ export function StrikeEvolutionModal({
     // directional read of the strike's exposure, so it honors the East-Asian flip via tokens.
     // The fallback is deliberately NEUTRAL: a hardcoded green/red here would survive a
     // failed resolve and paint the wrong side under html[data-updown="east"].
-    const nowVal = series.nowValue ?? 0;
-    const lineColor = css(nowVal >= 0 ? "--up" : "--down") || css("--text-2") || "#9ba3b4";
+    const lineColor = css(series.nowValue == null ? "--text-2" : series.nowValue >= 0 ? "--up" : "--down") || "#9ba3b4";
     const line: ISeriesApi<"Line"> = chart.addSeries(LineSeries, {
       color: lineColor, lineWidth: 2 as never, priceLineVisible: false, lastValueVisible: true, title: metricLabel,
     });
-    line.setData(series.points.map((p) => ({ time: toTs(p.t), value: p.v })));
+    line.setData(series.points.map(p => p.v == null ? { time: toTs(p.t) } : { time: toTs(p.t), value: p.v }));
 
     // Zero baseline (sign flips are the read) + NOW marker at the last realized column.
     try {
       line.createPriceLine({ price: 0, color: "rgba(214,218,227,.22)", lineWidth: 1, lineStyle: 2, axisLabelVisible: false } as never);
     } catch {}
-    if (series.nowT) {
+    if (series.nowT && series.nowValue != null) {
       try {
         createSeriesMarkers(line, [{
           time: toTs(series.nowT),
           position: "inBar",
           color: css("--signal") || "#e8b339",
           shape: "circle",
-          text: t("evoNow"),
+          text: `${series.nowT} ET`,
         }] as never);
       } catch {}
     }
@@ -194,10 +179,10 @@ export function StrikeEvolutionModal({
       try { chart.remove(); } catch {}
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [series, metricLabel, lang]);
+  }, [series, metricLabel, lang, hasObservations]);
 
   const strikeDisp = Number.isFinite(series.strike) ? series.strike : "—";
-  const spotDisp = frame.spot != null ? frame.spot : null;
+  const spotDisp = Number.isFinite(frame.spot) ? frame.spot : null;
 
   // ── Alert from the drill ─────────────────────────────────────────────────────
   // Uses the SAME endpoint and condition shape AlertsView posts (`{symbol, condition}`
@@ -208,9 +193,9 @@ export function StrikeEvolutionModal({
   // is touched here.
   // Direction follows the strike's side of spot: a level above spot is something price has
   // to rise into, below is something it has to fall into.
-  const above = spotDisp == null ? true : series.strike >= spotDisp;
+  const direction = alertDirection ?? (spotDisp == null ? null : series.strike >= spotDisp ? "above" : "below");
   async function createStrikeAlert() {
-    if (alertState === "busy" || !Number.isFinite(series.strike)) return;
+    if (!direction || alertState === "busy" || alertState === "done" || !Number.isFinite(series.strike)) return;
     setAlertState("busy");
     try {
       const r = await fetch("/api/alerts", {
@@ -218,46 +203,54 @@ export function StrikeEvolutionModal({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           symbol: root,
-          condition: { type: "price", op: above ? "above" : "below", value: series.strike },
+          condition: { type: "price", op: direction, value: series.strike },
         }),
       });
       if (r.status === 401 || r.status === 403) { setAlertState("auth"); return; }
       const d = await r.json().catch(() => ({}));
-      setAlertState(d?.alert ? "done" : "error");
+      setAlertState(r.ok && d?.alert ? "done" : "error");
     } catch {
       setAlertState("error");
     }
   }
 
   return (
-    <div
-      className="obs-modal-scrim"
-      onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}
-    >
-      <div
-        className="obs-modal obs"
-        ref={dialogRef}
-        role="dialog"
-        aria-modal="true"
-        aria-label={`${t("evoTitle")} — ${t("evoStrike")} ${strikeDisp}`}
-      >
-        {/* Header — three ranked steps: eyebrow (what this drill is) → the strike as the
-            hero numeral → a muted caption naming the metric being drilled. */}
-        <div className="obs-modal-hd">
-          <div className="obs-modal-title">
-            <span className="obs-lbl">{t("evoTitle")}</span>
-            <b className="num">{strikeDisp}</b>
-            <span style={HD_CAPTION}>{metricLabel} {t("evoMetricAt")}</span>
+    <dialog ref={dialogRef} className={`obs-modal obs ${ui.strikeDialog}`}
+      aria-label={`${t("evoTitle")} · ${root} · ${strikeDisp}`}
+      onCancel={event => { event.preventDefault(); onClose(); }}
+      onKeyDown={event => event.stopPropagation()}
+      onClick={event => {
+        if (event.target !== event.currentTarget) return;
+        const bounds = event.currentTarget.getBoundingClientRect();
+        if (event.clientX < bounds.left || event.clientX > bounds.right ||
+            event.clientY < bounds.top || event.clientY > bounds.bottom) onClose();
+      }}>
+        <div className={ui.inspectionHead}>
+          <span className={`obs-lbl ${ui.inspectionContext}`}>
+            {root} · {t("evoTitle")} {frame.session_date && <time dateTime={frame.session_date}>· {frame.session_date}</time>}
+          </span>
+          <label className={ui.strikeLabel}>
+              <span>{t("selectStrike")}</span>
+              <select value={strikeIdx} disabled={alertState === "busy"} onChange={event => {
+                setAlertDirection(null);
+                setAlertState("idle");
+                onSelectStrike(Number(event.target.value));
+              }}>
+                {frame.price_levels.map((strike, index) => Number.isFinite(strike) &&
+                  <option key={index} value={index}>{strike}</option>)}
+              </select>
+          </label>
+          <div className={ui.inspectionValue}>
+            <span>{t("strikeValueAt").replace("{metric}", metricLabel).replace("{time}", frame.time_steps.at(-1) ?? "—")}</span>
+            <strong>{series.nowValue == null ? "—" : fmtDollarSigned(series.nowValue)}</strong>
           </div>
           <button ref={closeRef} className="obs-modal-close" style={CLOSE_BTN}
-            onClick={onClose} aria-label={t("evoCloseAria")}>
-            {t("evoClose")}
-          </button>
+            onClick={onClose} aria-label={t("evoCloseAria")}>{t("evoClose")}</button>
         </div>
 
         {/* Body */}
         <div className="obs-modal-body">
-          {series.points.length > 0 ? (
+          {hasObservations ? (
             <div className="obs-modal-chart" ref={chartWrap} />
           ) : (
             /* Honest empty: name the state and why it is empty for THIS strike. */
@@ -285,7 +278,8 @@ export function StrikeEvolutionModal({
           )}
           {expiryState === "live" && (
             <div style={{ marginTop: 14 }}>
-              <div className="obs-lbl" style={{ marginBottom: 7 }}>{t("evoExpiryBreakdown")}</div>
+              <div className="obs-lbl" style={{ marginBottom: 7 }}>{t("matrixGexByExpiry")} · {matrixSession}</div>
+              <span className={ui.matrixBasis}>{t("matrixGexShare")}</span>
               {topExpiries.map((e) => {
                 const frac = Math.abs(e.gex) / expMaxAbs;
                 const isPos = e.gex >= 0;
@@ -326,26 +320,27 @@ export function StrikeEvolutionModal({
               </button>
             )}
 
-            <button
-              type="button"
-              className="obs-chip"
-              style={ACTION_CHIP}
-              disabled={alertState === "busy" || alertState === "done"}
-              onClick={createStrikeAlert}
-            >
-              {alertState === "busy" ? t("alertCreating")
-                : alertState === "done" ? t("alertCreated")
-                : t("alertAtStrike")}
-            </button>
-
-            {/* Plain-word preview of what will actually fire — same read as the alerts page. */}
-            {alertState !== "auth" && alertState !== "error" && Number.isFinite(series.strike) && (
-              <span className="obs-modal-actions-note">
-                {root} {above ? t("alertCrossesAbove") : t("alertCrossesBelow")}{" "}
-                <b className="num" style={{ color: "var(--text-2)" }}>{series.strike}</b>
-              </span>
-            )}
-
+            <details className={ui.alertDetails}>
+              <summary>{t("priceAlert")}</summary>
+              <div className={ui.alertCondition}>
+                <b>{root}</b>
+                <select aria-label={t("alertCondition")} value={direction ?? ""}
+                  disabled={alertState === "busy"} onChange={event => {
+                    const next = event.target.value;
+                    if (next !== "above" && next !== "below") return;
+                    setAlertDirection(next);
+                    setAlertState("idle");
+                  }}>
+                  {!direction && <option value="">{t("chooseDirection")}</option>}
+                  <option value="above">{t("alertAbove")}</option>
+                  <option value="below">{t("alertBelow")}</option>
+                </select>
+                <b className="num">{strikeDisp}</b>
+                <button type="button" className="obs-chip" style={ACTION_CHIP}
+                  disabled={!direction || alertState === "busy" || alertState === "done"} onClick={createStrikeAlert}>
+                  {alertState === "busy" ? t("alertCreating") : alertState === "done" ? t("alertCreated") : t("createAlert")}
+                </button>
+              </div>
             {/* Anon: the POST's own 401 is what tells us — the hub carries no session prop.
                 Same nudge shape the rest of the terminal uses. */}
             {alertState === "auth" && (
@@ -360,29 +355,26 @@ export function StrikeEvolutionModal({
             {alertState === "done" && (
               <a href="/alerts" className="obs-modal-actions-cta">{t("alertManage")}</a>
             )}
+            </details>
           </div>
         </div>
 
         {/* Footer: provenance (source · spot · stamp count · as-of) then the Esc hint */}
         <div className="obs-modal-foot">
-          <span style={{ color: "var(--muted)" }}>{t("sourceOpra")}</span>
+          <span style={{ color: "var(--muted)" }}>{t(metric === "netprem" ? "sourceOpra" : "sourceGreek")}</span>
           {spotDisp != null && (
             <span>· {t("evoSpot")} <b className="num" style={{ color: "var(--text)" }}>{spotDisp}</b></span>
           )}
           <span>· <b className="num" style={{ color: "var(--text)" }}>{series.total}</b> {t("evoSnapshots")}</span>
           {asofLabel && <span style={{ color: "var(--muted)" }}>· {t("asOf")} {asofLabel}</span>}
-          <span style={{ marginLeft: "auto", color: "var(--muted)" }}>{t("evoEscHint")}</span>
+          <span className={ui.escapeHint}>{t("evoEscHint")}</span>
         </div>
-      </div>
-    </div>
+    </dialog>
   );
 }
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
-const HD_CAPTION: React.CSSProperties = { fontSize: "var(--fs-label)", color: "var(--muted)" };
-
-/** Close affordance sized for a real pointer/thumb, not just for a mouse. */
 const CLOSE_BTN: React.CSSProperties = {
   height: 40, minWidth: 44, padding: "0 var(--sp-4)",
   borderRadius: "var(--r-tile)", fontSize: "var(--fs-ui)", fontWeight: 600,

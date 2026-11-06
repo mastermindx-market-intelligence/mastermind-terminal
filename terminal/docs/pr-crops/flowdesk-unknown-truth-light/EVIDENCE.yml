@@ -1,8 +1,7 @@
-capturedAtHead: daab948465d37a18f42a0682cf56a3ea2426e4fb
+capturedAtHead: 7bd947615ce5c806197dd52305c6dbedc2198e24
 capturedAtHeadSource: "CAPTURE_HEAD (the commit this uncommitted tree builds on)"
 # capturedAtHead is informational. The lock is layoutFiles.
-# #1198 G8 moved the FlowDeskView.tsx and WatchlistRail.tsx pins only; no crop was recaptured. Same-host fixed-clock A/B (2-3 renders with the G8 files, 2-6 with the pre-G8 files): gauge-empty-390-toolbar and gauge-partial-1440-context render the same non-committed bytes under both sources (source-independent: G8 and pre-G8 give identical bytes; cause not established, not bisected); unavailable-1440-context differs only inside its as-of text (clock); absent-after-data-1440-{context,note,zh-context,zh-note}, absent-first-1440-{context,toolbar,zh-context,zh-toolbar}, gauge-empty-1440-{context,toolbar,zh-context,zh-toolbar} and na-score-1440-{context,zh-context} vary run to run (rounded-corner anti-aliasing); every crop shares at least one byte-identical render between the two sources.
-capturedAt: 2026-11-01T17:01:08.686Z
+capturedAt: 2026-11-03T06:05:11.923Z
 command: "cd terminal && node docs/pr-crops/flowdesk-unknown-truth-light/capture.mjs"
 theme: "light — Shared Shell beta only (MMX_SHARED_SHELL=1, localStorage mmx.shell.theme=light)."
 sources: "the FLOW_FIXTURE dev server's own feed; only the /api/flow/stream and /api/flow?f=feed transport is scripted; na-score withholds flowScore on alternate events, gauge-partial withholds the first print's premium, gauge-empty publishes no prints. Not market data or provider evidence."
@@ -13,18 +12,24 @@ layoutFiles:
     sha256: 09e9db8ecbc3be7858d609342b1ba3d5797298adfa17a5f936b04b9c00c31414
   - path: terminal/components/chrome/shared-shell/shared-shell.css
     sha256: aa6555ac18306f31fb317d8941bd1dd530ab7c61c18e67d2a73a439329950339
+  - path: terminal/components/flowdesk/CommandWorkspace.module.css
+    sha256: 4f68349a5c21bf68204ca502b58bdc0b0c75d55e98a859b6659e9c4540a06c78
+  - path: terminal/components/flowdesk/EvidenceDisclosure.module.css
+    sha256: 03a020ff84e673e7ec63b870b68e662612b9a08379496f91756ecd4b0cbc0181
+  - path: terminal/components/flowdesk/CommandResearch.module.css
+    sha256: 0fc27adca23d66459c817baa917dd3fcad2c66fe9c0cf6d732db046296869c83
   - path: terminal/components/flowdesk/FeedPane.tsx
-    sha256: e2e01341164c2eedefa6caf935064540cc133fc1166a36dd630b9207a9baca83
+    sha256: 6b8efe6ad2de988d357b47bdc325141215cf0a02feaa2e7c45efd5a2a8e84fad
   - path: terminal/components/flowdesk/FlowCard.tsx
-    sha256: cef9c25c7e144c82200f89818bb679a2282f217debbf0229cf163cdddac1de37
+    sha256: 15883037ea943c5030177b2ff507a9c4c2ee9ec811583461016a95bb337c52ab
   - path: terminal/components/flowdesk/FlowDeskView.tsx
-    sha256: 801cf41437b4749d3ad449e60ab35be8ffcc7f0e193ce5773b9c1ec7e49c01c0
+    sha256: d4217612605cfa8fad398ed198b503a6e32b709982473ff6e03a5765650c1d4f
   - path: terminal/components/flowdesk/FlowGauge.tsx
     sha256: d05705f904bd79bf36fc3e58d9d258e72324548857b1a5d474b11e067e348aef
   - path: terminal/components/flowdesk/PrintInspector.tsx
-    sha256: 9afd51d9d816790a5615d6680e57600c5278d60214ffcc6b61c1e3202540ab64
+    sha256: 55d766031cb26279327bf66f8c94c9d9c0fcab78e75727b4bf5632e8856f7dea
   - path: terminal/components/flowdesk/WatchlistRail.tsx
-    sha256: 44a09f3b446f30d49bc349e5bba3d14afc2df47dd76d35a7ab8f9ca4facdf8da
+    sha256: bbbe237ea1288772b7b1b071328c659590b0abbb233b20490773ff589d7aed83
   - path: terminal/components/ui/RingGauge.tsx
     sha256: 18772b03682044321b0fa4a8f925c7eae2303a4927635b3068e6419453880114
   - path: terminal/lib/flowPrintInspector.ts
@@ -52,7 +57,7 @@ crops:
     part: "viewport"
     htmlTheme: light
     sharedShell: "1"
-    sha256: bc73a38074c8421cf58750f257d89342e2c33dd74d4d1350c29c0c1111ca7f96
+    sha256: c8985c1c9fbbe356116496ada17e7a8b0423828092f27240db1a84be0eef12f5
   - file: unavailable-1440-toolbar.png
     viewport: 1440x900
     lang: en
@@ -60,7 +65,7 @@ crops:
     part: ".obs-fd-toolbar held count"
     htmlTheme: light
     sharedShell: "1"
-    sha256: 2063d4e8728e5338a917fe487970bbd841c989bd7284d7deb40555a554ff14d8
+    sha256: d56fc501e7ab20360c3c4edbe9433ebdb054ba8609a449e01297291eb3db6107
   - file: unavailable-1440-load-error.png
     viewport: 1440x900
     lang: en
@@ -68,7 +73,7 @@ crops:
     part: "flowfeed-load-error"
     htmlTheme: light
     sharedShell: "1"
-    sha256: 9c2eb9d9d8d98d278a0bd264ee81c90aed5442f1938ddcea62bf951040de8a3c
+    sha256: 99b915e6dce081aa269f48accf9f12680dd16bf876b044c22a26748b9e668077
   - file: unavailable-1440-watchlist.png
     viewport: 1440x900
     lang: en
@@ -76,7 +81,7 @@ crops:
     part: "watchlist-feed-unavailable"
     htmlTheme: light
     sharedShell: "1"
-    sha256: 9947c2cef22cd47a443f9a1930135845cacaebeecdb9d4a91d0c0d57af362b04
+    sha256: 420d1b71b04503d321113cf0fb9fd50d388227e5f8e6e1dff8be150c39696597
   - file: absent-first-1440-context.png
     viewport: 1440x900
     lang: en
@@ -84,7 +89,7 @@ crops:
     part: "viewport"
     htmlTheme: light
     sharedShell: "1"
-    sha256: dae3a0655f6903b3f062bfdb0f1b18782bbee6ac30a851103635a8dd17d041af
+    sha256: 6e986690953e94213624104265a45d95ead9c6fb032f372cacac85bb8912cbf5
   - file: absent-first-1440-toolbar.png
     viewport: 1440x900
     lang: en
@@ -92,7 +97,7 @@ crops:
     part: ".obs-fd-toolbar held count"
     htmlTheme: light
     sharedShell: "1"
-    sha256: 50d7e9a2a697923394cbf2ba6348f27460a0a35a986e1415f2a840688b2479f8
+    sha256: 9bff6e4d3fe4e26b6c8696e5de9c36277fdac4a8f0ba4acc97faf4886c4165ba
   - file: absent-first-1440-note.png
     viewport: 1440x900
     lang: en
@@ -100,7 +105,7 @@ crops:
     part: "flowfeed-absent"
     htmlTheme: light
     sharedShell: "1"
-    sha256: 06e98b8e6b76f43bfc1b5f7d09b49c0021e5f339df4fd34036f927a4af6a7c7c
+    sha256: fca06e5353c3f02cb9e10364d01a4fdcb1a61df37cfecc15f2c526fde92fce20
   - file: absent-after-data-1440-context.png
     viewport: 1440x900
     lang: en
@@ -108,7 +113,7 @@ crops:
     part: "viewport"
     htmlTheme: light
     sharedShell: "1"
-    sha256: 2789c4ed0d74ad558501358e349ea768c0ed97d9ac7b3e00ef57d90ddd1202e7
+    sha256: ba250687217b2f47effdcd3e2005452fd0c165e2fe7b32579dfc7835cd01beb5
   - file: absent-after-data-1440-note.png
     viewport: 1440x900
     lang: en
@@ -116,7 +121,7 @@ crops:
     part: "flowfeed-refresh-absent"
     htmlTheme: light
     sharedShell: "1"
-    sha256: f4ec384414ea8aa42564a9b7540c56aa711b295fb30966a70dd830344e3119fd
+    sha256: 53cac9d90f7d35c0d77f4711f77d23419154f93518688f441941216b6121d8ce
   - file: absent-after-data-1440-gauge.png
     viewport: 1440x900
     lang: en
@@ -124,7 +129,7 @@ crops:
     part: "[data-tut=\"flow-gauge\"] held, last-read totals"
     htmlTheme: light
     sharedShell: "1"
-    sha256: b69ac782f7a39038f539042b11f8ba428e223969809a2d3d3098bfed299575a1
+    sha256: a9526068a78b919f79c62f62f464ac9195c6d8d17a2b4207e42640f348aa995b
   - file: loading-1440-context.png
     viewport: 1440x900
     lang: en
@@ -132,7 +137,7 @@ crops:
     part: "viewport"
     htmlTheme: light
     sharedShell: "1"
-    sha256: e4b1d85820edd9fd0b945115e9ff6ecc6cf85cdb75db2c30cad367be27206c07
+    sha256: ef60ce489e0744901a768bda66a12ea14ed39a6378f6bf705d6c88a66c656712
   - file: loading-1440-toolbar.png
     viewport: 1440x900
     lang: en
@@ -140,7 +145,7 @@ crops:
     part: ".obs-fd-toolbar held count"
     htmlTheme: light
     sharedShell: "1"
-    sha256: d1794a64ab6fe44d7286e549bc67b764e5ac96c6a7869d9e6dcb6d2af8d9bf87
+    sha256: 2720df9476b11f44b425eda77761edf057716f889e3c9860bc2c61eb127728d5
   - file: loading-1440-rail.png
     viewport: 1440x900
     lang: en
@@ -148,7 +153,7 @@ crops:
     part: ".obs-fd-left skeleton"
     htmlTheme: light
     sharedShell: "1"
-    sha256: 94ad0dc313a08b351713d18dc158950f9c614fc3d4e7a2837a6a19f31df04a28
+    sha256: fff0d9822fb8b125e6f9287cca9d9bfd9b269af06f0f67352dbe2ceb7a8801e6
   - file: na-score-1440-context.png
     viewport: 1440x900
     lang: en
@@ -156,7 +161,7 @@ crops:
     part: "viewport"
     htmlTheme: light
     sharedShell: "1"
-    sha256: 7a9cf04eb3a9d64d3fa101ede1f3312f56207d20cacbb8cb143f7dd84c85a788
+    sha256: f9ddcc01eec0afd1d962e81eac4290bff79ef64706ea4a73e1c0dd90620f66ba
   - file: na-score-1440-na-card.png
     viewport: 1440x900
     lang: en
@@ -164,7 +169,7 @@ crops:
     part: "unscored .obs-fc-card"
     htmlTheme: light
     sharedShell: "1"
-    sha256: a172faa61b0bbb4554404b6cf667ab4bda63dd4679b0f212e4a8406cb71e474b
+    sha256: d050f8f90941b2667ea98099ef6a3c8991314722e1fbbd64eddfd2b6ed53afcc
   - file: na-score-1440-scored-card.png
     viewport: 1440x900
     lang: en
@@ -172,7 +177,7 @@ crops:
     part: "scored .obs-fc-card"
     htmlTheme: light
     sharedShell: "1"
-    sha256: b1ced08a496242fa8cdb9c2ee661568698595d07d492d870cea03e6988c813b8
+    sha256: f4b8b7d2b7583ed58ac6d9d104ed1a07e8ed9a1908ad47c63bd5dd97b8661aa8
   - file: gauge-partial-1440-context.png
     viewport: 1440x900
     lang: en
@@ -180,7 +185,7 @@ crops:
     part: "viewport"
     htmlTheme: light
     sharedShell: "1"
-    sha256: 598feabad5e3bee0cd3b22f0bfab70fb8068cd6d3a13970dbe08fc861419a3de
+    sha256: 6b6e08cdabb7f710c511c7992da63e5ffd20f090db2892199b6d7d08479bca6b
   - file: gauge-partial-1440-gauge.png
     viewport: 1440x900
     lang: en
@@ -188,7 +193,7 @@ crops:
     part: "[data-tut=\"flow-gauge\"] unavailable"
     htmlTheme: light
     sharedShell: "1"
-    sha256: 7758260480b816cb993e722d2ac8a2611db85fdb1f1e19d1e85d928f96f9c596
+    sha256: 378dfc4fd7bfc64f6a9f3ec83f4df26551469bdb54c308878868890418e6733f
   - file: gauge-empty-1440-context.png
     viewport: 1440x900
     lang: en
@@ -196,7 +201,7 @@ crops:
     part: "viewport"
     htmlTheme: light
     sharedShell: "1"
-    sha256: 4e6683274264c4c7733d37bb091e5076aa8c53b2e3671121c8280f9d4a8fec9d
+    sha256: 2fe3ddd4839f8e11b2a1e09125a8ce9c32cb683cb639f49ac42366a80041eab6
   - file: gauge-empty-1440-gauge.png
     viewport: 1440x900
     lang: en
@@ -204,7 +209,7 @@ crops:
     part: "[data-tut=\"flow-gauge\"] unavailable"
     htmlTheme: light
     sharedShell: "1"
-    sha256: c91d975c64dee87a910b4608b27fefba108c5dd0e640515e17869a45bdf71834
+    sha256: ef99aed4701c42c2ea6774a0b24deb828a574af2ea8fd5b54dae34544a0d0455
   - file: gauge-empty-1440-toolbar.png
     viewport: 1440x900
     lang: en
@@ -212,7 +217,7 @@ crops:
     part: ".obs-fd-toolbar published empty tape"
     htmlTheme: light
     sharedShell: "1"
-    sha256: 20d14186001aae03da01fc4009430c5a70e5045738ce07edfd61ea764af3a424
+    sha256: 897a9df3d39b221f0134c4cf4875580215887883df9526b0acf056d2365fd0d2
   - file: unavailable-390-toolbar.png
     viewport: 390x844
     lang: en
@@ -220,7 +225,7 @@ crops:
     part: ".obs-fd-toolbar held count"
     htmlTheme: light
     sharedShell: "1"
-    sha256: 1c8aab4a7f20c79c60a013192056a4f592a0e25fd7d8f1251bac5fb2b9d195d0
+    sha256: a7a809c4df4a7ebd66274201d4c3187c983c319881ab1a70e0d2ee16ec5e4e09
   - file: unavailable-390-load-error.png
     viewport: 390x844
     lang: en
@@ -228,7 +233,7 @@ crops:
     part: "flowfeed-load-error"
     htmlTheme: light
     sharedShell: "1"
-    sha256: d0a4109013ce3ca4b435ee2e0a108581ce636b270d7af63927d9b9aa04bc1d4b
+    sha256: c817bfb51302689c235df39a488c6d82d9eab2d70162cd6c036729327aadd81c
   - file: unavailable-390-watchlist.png
     viewport: 390x844
     lang: en
@@ -236,7 +241,7 @@ crops:
     part: "watchlist-feed-unavailable"
     htmlTheme: light
     sharedShell: "1"
-    sha256: 8f2bda07c851a4f09b397fde1a6a6ba681a66415ecb1760bebf43e61b4f6c64d
+    sha256: 652607e007b2d6984e43b529993f804cdd403888e135802d2dd8e5c5d414b224
   - file: absent-first-390-toolbar.png
     viewport: 390x844
     lang: en
@@ -244,7 +249,7 @@ crops:
     part: ".obs-fd-toolbar held count"
     htmlTheme: light
     sharedShell: "1"
-    sha256: 3c0e92e6f2b8c0f266efcc1bb3feb1e7891c8e81179194d1b595852f42daf7d9
+    sha256: 9ae19c3378612977d95c43737d70fd1f08f4eaa7fcc01c5f411c8ac4ac3490dd
   - file: absent-first-390-note.png
     viewport: 390x844
     lang: en
@@ -252,7 +257,7 @@ crops:
     part: "flowfeed-absent"
     htmlTheme: light
     sharedShell: "1"
-    sha256: 5e90df341c4945c27da0139025562aed540ba8fd65c8f8cc35b5aed7ef4a72f5
+    sha256: 487f2538ece28a3080b898a3765007743a6a99a9b9e2003f2097702dba3a2488
   - file: absent-after-data-390-note.png
     viewport: 390x844
     lang: en
@@ -260,7 +265,7 @@ crops:
     part: "flowfeed-refresh-absent"
     htmlTheme: light
     sharedShell: "1"
-    sha256: 92fc9ce7292cf048cbf61651a97caab0ab9c57f90eb618b89bb374c920b54a5b
+    sha256: a45422c7b139b7936d58c2a76c9e7449bcd265664204f9270717e82c928db31b
   - file: absent-after-data-390-gauge.png
     viewport: 390x844
     lang: en
@@ -268,7 +273,7 @@ crops:
     part: "[data-tut=\"flow-gauge\"] held, last-read totals"
     htmlTheme: light
     sharedShell: "1"
-    sha256: 5f2f4f7dfeb2579096ac8f6658c58c7cde95d20b766b4b0b27e73517551d7db7
+    sha256: e39ef8cc6318f0f2211458e939e259cbdc428d940649f4a81ba52b24d63610ee
   - file: loading-390-toolbar.png
     viewport: 390x844
     lang: en
@@ -276,7 +281,7 @@ crops:
     part: ".obs-fd-toolbar held count"
     htmlTheme: light
     sharedShell: "1"
-    sha256: 64dd65676902f407a7a23a3b6e81c8d1f6e05b97d976abb5be3a8d3f26ab361a
+    sha256: a83ba05a0b4a9332c60ff347527cd5f947063e3cd532719457b7a492617da97b
   - file: loading-390-rail.png
     viewport: 390x844
     lang: en
@@ -284,7 +289,7 @@ crops:
     part: ".obs-fd-left skeleton"
     htmlTheme: light
     sharedShell: "1"
-    sha256: e0ba7ce77171e5ad51a993080a77a777666c73e26e5c8f85284703e4371ecce8
+    sha256: 4b75902f182f38880469f373d4f4a8b9988dc3aa145a6efe31f4e0c6f578a227
   - file: na-score-390-na-card.png
     viewport: 390x844
     lang: en
@@ -292,7 +297,7 @@ crops:
     part: "unscored .obs-fc-card"
     htmlTheme: light
     sharedShell: "1"
-    sha256: cc458d47c2649e0eb56031a7589c39d9e74a7bde7d45af3ad4fe18362597dd1b
+    sha256: 3ded67d96eadc1ffd6a5302bbeddcecd766f90180b5a400cab33fa3b150a462e
   - file: na-score-390-scored-card.png
     viewport: 390x844
     lang: en
@@ -300,7 +305,7 @@ crops:
     part: "scored .obs-fc-card"
     htmlTheme: light
     sharedShell: "1"
-    sha256: a47ff45876f22275d2983a6fe2167e304b2edd9088b3d9b243cee183fb13e8f7
+    sha256: c3735a1448dd5577b58da763281a31f304700cb8a74d91655ec9a5b17133c17c
   - file: gauge-partial-390-gauge.png
     viewport: 390x844
     lang: en
@@ -308,7 +313,7 @@ crops:
     part: "[data-tut=\"flow-gauge\"] unavailable"
     htmlTheme: light
     sharedShell: "1"
-    sha256: a8dd4bc4629fe7a555c0ea1adfdda9dbc4c6049b4900663542582335394b6f18
+    sha256: 07b25a5970fba2d7351b1206841eb8c5232fc019e13c51e37de796ce2e573edf
   - file: gauge-empty-390-gauge.png
     viewport: 390x844
     lang: en
@@ -316,7 +321,7 @@ crops:
     part: "[data-tut=\"flow-gauge\"] unavailable"
     htmlTheme: light
     sharedShell: "1"
-    sha256: af9bc6903a47ab335a21770e451b51ee9d3b04c5cdd2175965378c2856a9a8fc
+    sha256: 27105e3b21dbfdebf359adb29100acd96a61a3efb90c4edfa767b07280d85e74
   - file: gauge-empty-390-toolbar.png
     viewport: 390x844
     lang: en
@@ -324,7 +329,7 @@ crops:
     part: ".obs-fd-toolbar published empty tape"
     htmlTheme: light
     sharedShell: "1"
-    sha256: 638eff26211013af86066597dfc28ffb543cae6f0431acc7a379e52dc745f494
+    sha256: eb7da3d1e37ddb9383cf11128c334feedefa2b3301b9689812b21ac8ac0147c1
   - file: unavailable-1440-zh-context.png
     viewport: 1440x900
     lang: zh
@@ -332,7 +337,7 @@ crops:
     part: "viewport"
     htmlTheme: light
     sharedShell: "1"
-    sha256: 151ecd5d325b9d645534bc1b6580854d96863901e1a042b8d0c2b3f190b378bc
+    sha256: 7bc79f9ce252b622e12e0eab56ffcc84f29f5c81cdf13e1d9308b8657ab30cf0
   - file: unavailable-1440-zh-toolbar.png
     viewport: 1440x900
     lang: zh
@@ -340,7 +345,7 @@ crops:
     part: ".obs-fd-toolbar held count"
     htmlTheme: light
     sharedShell: "1"
-    sha256: 67522e123a5c8822a098670575504292f7c87d9ac69afbbbcab6320f275de851
+    sha256: 3dc0d46fda157a0102a6fe604047465700bbe2c2abe94379be79e0ba3c5ff3ac
   - file: unavailable-1440-zh-load-error.png
     viewport: 1440x900
     lang: zh
@@ -348,7 +353,7 @@ crops:
     part: "flowfeed-load-error"
     htmlTheme: light
     sharedShell: "1"
-    sha256: 4e1f18b607226dfcbccc529af0f37911ff50f72c9f8877a08d485b2c6d9fdc11
+    sha256: 99aeb1a4b4cd44924a94b2fdd0e80ab6ba084eb889efff59ce1ce0ddfb85177d
   - file: unavailable-1440-zh-watchlist.png
     viewport: 1440x900
     lang: zh
@@ -356,7 +361,7 @@ crops:
     part: "watchlist-feed-unavailable"
     htmlTheme: light
     sharedShell: "1"
-    sha256: 5416f8d48447cc6ce6cb0d6ae2c8933aca25a833e0a0c56b1bb8043407df38c4
+    sha256: 3ef68532ebe008ce931e76eedb9739e2e44e03e40580b219c8f182719351a01e
   - file: absent-first-1440-zh-context.png
     viewport: 1440x900
     lang: zh
@@ -364,7 +369,7 @@ crops:
     part: "viewport"
     htmlTheme: light
     sharedShell: "1"
-    sha256: be3f6dbd01060bd9d1e5692fc6349779b215819457d22ad429782c50fedc4687
+    sha256: ce1463994caf0d0751765836ceabb07ad87df6a9cbfbd7782a19ea9feed32b33
   - file: absent-first-1440-zh-toolbar.png
     viewport: 1440x900
     lang: zh
@@ -372,7 +377,7 @@ crops:
     part: ".obs-fd-toolbar held count"
     htmlTheme: light
     sharedShell: "1"
-    sha256: d7d81f7206e4471a4a5099609a16a9dfe4b6999133f82fc6db7a072e9926fd0e
+    sha256: debfa1ae9d874cd48f916eeb033dfe857b0d0e4c915163ff06fb4798065d36de
   - file: absent-first-1440-zh-note.png
     viewport: 1440x900
     lang: zh
@@ -380,7 +385,7 @@ crops:
     part: "flowfeed-absent"
     htmlTheme: light
     sharedShell: "1"
-    sha256: 0ec5375aa9c3b2d60c5135c0257b3a7df3c1494dedb3d415917cae95cdd26a76
+    sha256: 35e6845c923f8246bdb6e791c045cc5e394f8b028e1456348e32fc1f7d02c79c
   - file: absent-after-data-1440-zh-context.png
     viewport: 1440x900
     lang: zh
@@ -388,7 +393,7 @@ crops:
     part: "viewport"
     htmlTheme: light
     sharedShell: "1"
-    sha256: af9f9a68f19f85792850f7176b0586e87e6794586ce84b5474a45e85f1b63623
+    sha256: 98adcaa00f298e7590fcc2f1026b504b572d6df195f15943732a5b7c46275b0d
   - file: absent-after-data-1440-zh-note.png
     viewport: 1440x900
     lang: zh
@@ -396,7 +401,7 @@ crops:
     part: "flowfeed-refresh-absent"
     htmlTheme: light
     sharedShell: "1"
-    sha256: 1c4146be269ee88c8ec11b50b6b7857afae8b312f7d62c85919b3d5f7c90727a
+    sha256: 3d14691b00f2b15b787a960417b493ee16872191b14376e8359432a89c6a08d4
   - file: absent-after-data-1440-zh-gauge.png
     viewport: 1440x900
     lang: zh
@@ -404,7 +409,7 @@ crops:
     part: "[data-tut=\"flow-gauge\"] held, last-read totals"
     htmlTheme: light
     sharedShell: "1"
-    sha256: 25df33f2a9982a08c2c85a5285ed1bd5227fc7f76b2e7b8de97c04a4d9ce81e8
+    sha256: 1749c6df25e9a44eb6fae12d8e4ca707b1727f80cbdd4d6229b51e26f6fbf448
   - file: loading-1440-zh-context.png
     viewport: 1440x900
     lang: zh
@@ -412,7 +417,7 @@ crops:
     part: "viewport"
     htmlTheme: light
     sharedShell: "1"
-    sha256: fa843b4539eb843b687b3daf2abb2430556dffa65591dbbd0db0555579f8c1f0
+    sha256: b7ad67e458c0774a78b9271d7c379fc8b8a36f2a833c80cdac27dd1df6f6aa50
   - file: loading-1440-zh-toolbar.png
     viewport: 1440x900
     lang: zh
@@ -420,7 +425,7 @@ crops:
     part: ".obs-fd-toolbar held count"
     htmlTheme: light
     sharedShell: "1"
-    sha256: 0eea34fac4f3af53723a45f8c0002bfb90086015833e954e7550208ff7f4e681
+    sha256: d517f4ebc6f30c91da9cbc2bfe1034b0d295ec3d83fcdc58d7b0b6390b168616
   - file: loading-1440-zh-rail.png
     viewport: 1440x900
     lang: zh
@@ -428,7 +433,7 @@ crops:
     part: ".obs-fd-left skeleton"
     htmlTheme: light
     sharedShell: "1"
-    sha256: 94ad0dc313a08b351713d18dc158950f9c614fc3d4e7a2837a6a19f31df04a28
+    sha256: fff0d9822fb8b125e6f9287cca9d9bfd9b269af06f0f67352dbe2ceb7a8801e6
   - file: na-score-1440-zh-context.png
     viewport: 1440x900
     lang: zh
@@ -436,7 +441,7 @@ crops:
     part: "viewport"
     htmlTheme: light
     sharedShell: "1"
-    sha256: 23a09ce54ecd1c44c82cff3facbfbc73a236135f8d71649099b160f63f3b0d6c
+    sha256: 204963525d327b2016c9f8710ac1f3b68c2abbca609638977c61c4a260701633
   - file: na-score-1440-zh-na-card.png
     viewport: 1440x900
     lang: zh
@@ -444,7 +449,7 @@ crops:
     part: "unscored .obs-fc-card"
     htmlTheme: light
     sharedShell: "1"
-    sha256: 8f1301806e650118e284db8fb48b0df2c6e173e405b678dbc545bb2e6cefce3b
+    sha256: 181bb18cff8a4576b43e259b07eae2d39908b86ff93c58a5d026290780c609f7
   - file: na-score-1440-zh-scored-card.png
     viewport: 1440x900
     lang: zh
@@ -452,7 +457,7 @@ crops:
     part: "scored .obs-fc-card"
     htmlTheme: light
     sharedShell: "1"
-    sha256: 7c3d79c68bd0633b32a55b870849c8df389ff40e6532ad4581ba6edab065eebf
+    sha256: deb6016dd8435414673c0c69958dc94495ab6fb74ed0793753dd033b8312714f
   - file: gauge-partial-1440-zh-context.png
     viewport: 1440x900
     lang: zh
@@ -460,7 +465,7 @@ crops:
     part: "viewport"
     htmlTheme: light
     sharedShell: "1"
-    sha256: 79ebcca0c81bb01d034dd8bd248e86272ed6d4445b787ae011901d5cddc3aaab
+    sha256: 344fec3bf87fae9a3a68a242538103d72cd6c3c1833937f2e6b86d0c7cdf4b34
   - file: gauge-partial-1440-zh-gauge.png
     viewport: 1440x900
     lang: zh
@@ -468,7 +473,7 @@ crops:
     part: "[data-tut=\"flow-gauge\"] unavailable"
     htmlTheme: light
     sharedShell: "1"
-    sha256: 09a5092d771f787ba3e943bfd0636031d33d75efd32d27b4545211974831f4be
+    sha256: 9ad0d5a91718120a49f0dd3a1c8a58a542cb9ac8f407405f21107300faf2e8bd
   - file: gauge-empty-1440-zh-context.png
     viewport: 1440x900
     lang: zh
@@ -476,7 +481,7 @@ crops:
     part: "viewport"
     htmlTheme: light
     sharedShell: "1"
-    sha256: 81582f1e960568bd61242842e9df82cef8becb2e51631c6341f86d88688bc61b
+    sha256: 42605e092f8a9745fd9e5a0facdac43bfcb540d0dca8c3e8f20b329809b8dd4d
   - file: gauge-empty-1440-zh-gauge.png
     viewport: 1440x900
     lang: zh
@@ -484,7 +489,7 @@ crops:
     part: "[data-tut=\"flow-gauge\"] unavailable"
     htmlTheme: light
     sharedShell: "1"
-    sha256: 2da42296dc3864c78ad85bb39b190e591abb18815cf1bbb6e4ce99945f44609b
+    sha256: 50b79f77bbb883418c0a9115e2ad3d307414087ec78dde08bba310b0db9571f5
   - file: gauge-empty-1440-zh-toolbar.png
     viewport: 1440x900
     lang: zh
@@ -492,7 +497,7 @@ crops:
     part: ".obs-fd-toolbar published empty tape"
     htmlTheme: light
     sharedShell: "1"
-    sha256: 31a56f7b437d5bc9178f902477fb78eaab3a1bbc58ef708ba4abaea234411b57
+    sha256: c6d667b3d79633f5f329cc8a5e333a06aee58c365719c09983c7a0bd19633570
   - file: unavailable-390-zh-toolbar.png
     viewport: 390x844
     lang: zh
@@ -500,7 +505,7 @@ crops:
     part: ".obs-fd-toolbar held count"
     htmlTheme: light
     sharedShell: "1"
-    sha256: 4e7d858db3a69728f5c906af94c866875767890f90cc8b9847ef96bdede77d85
+    sha256: abe2bba7e857a43c9a3d12c7e4973f4c696001d42eb68638cfd521f1fb79b1e9
   - file: unavailable-390-zh-load-error.png
     viewport: 390x844
     lang: zh
@@ -508,7 +513,7 @@ crops:
     part: "flowfeed-load-error"
     htmlTheme: light
     sharedShell: "1"
-    sha256: 1c0f9ef1289a4ce3cdb5c3b85c291a7e2e1e6c42eb2d807e6789880b02da342a
+    sha256: 062d6162c716e06c8b632b9b59b8c5d236f6da49e323c1f60c238b446c5cd4cf
   - file: unavailable-390-zh-watchlist.png
     viewport: 390x844
     lang: zh
@@ -516,7 +521,7 @@ crops:
     part: "watchlist-feed-unavailable"
     htmlTheme: light
     sharedShell: "1"
-    sha256: 7c79ae6b299307f2b4b6d2df0a8db9c087973be1c3bd0b496b62f266cb686621
+    sha256: b05e80bb2972e12739cc27473c21e009a95be48cb1899ba07ddfddae1c639f6a
   - file: absent-first-390-zh-toolbar.png
     viewport: 390x844
     lang: zh
@@ -524,7 +529,7 @@ crops:
     part: ".obs-fd-toolbar held count"
     htmlTheme: light
     sharedShell: "1"
-    sha256: 0376b663bcff8b9eb714141ca2373bad809c295988bfc4e2886a26997024ff00
+    sha256: 2463ac9ae97581ac98ae9af65dfca7de47c0ba8f42376d2ba06c6f7b88262634
   - file: absent-first-390-zh-note.png
     viewport: 390x844
     lang: zh
@@ -532,7 +537,7 @@ crops:
     part: "flowfeed-absent"
     htmlTheme: light
     sharedShell: "1"
-    sha256: 9000bc2b77bc8a7bc0ea9ac7c61d716bf16f5892e617e5174c38ffaa1b3671ef
+    sha256: 606942ce3fe20d805059eca38718ae2eb2f04c8b30f0a5d81090801cef221b37
   - file: absent-after-data-390-zh-note.png
     viewport: 390x844
     lang: zh
@@ -540,7 +545,7 @@ crops:
     part: "flowfeed-refresh-absent"
     htmlTheme: light
     sharedShell: "1"
-    sha256: 6a0ad56444c335b4067f1bb13a26039ff5403febf6c1d53a59ce0fe6b545ef69
+    sha256: a5a2f891258e4725c220cb1c82104ad3ae1727213c513b94811409c421198f6b
   - file: absent-after-data-390-zh-gauge.png
     viewport: 390x844
     lang: zh
@@ -548,7 +553,7 @@ crops:
     part: "[data-tut=\"flow-gauge\"] held, last-read totals"
     htmlTheme: light
     sharedShell: "1"
-    sha256: efc8147832e38f4ecd553d9ccad2fadfe53d814c3a08fcdcb6fb686abf1b660d
+    sha256: bb8bd08096564ce275ebe9fe515709306873e8903b60a8c8b0ca5ea55875bb9d
   - file: loading-390-zh-toolbar.png
     viewport: 390x844
     lang: zh
@@ -556,7 +561,7 @@ crops:
     part: ".obs-fd-toolbar held count"
     htmlTheme: light
     sharedShell: "1"
-    sha256: c6c392964e2c21485ff0764ad6a34737d1b764aec4436d4b1f4877c979794deb
+    sha256: fa7b482cd57e939e6781ad0a79d7e0a1b51f75c5aebeecb9f7302690b36ea2c9
   - file: loading-390-zh-rail.png
     viewport: 390x844
     lang: zh
@@ -564,7 +569,7 @@ crops:
     part: ".obs-fd-left skeleton"
     htmlTheme: light
     sharedShell: "1"
-    sha256: e0ba7ce77171e5ad51a993080a77a777666c73e26e5c8f85284703e4371ecce8
+    sha256: 4b75902f182f38880469f373d4f4a8b9988dc3aa145a6efe31f4e0c6f578a227
   - file: na-score-390-zh-na-card.png
     viewport: 390x844
     lang: zh
@@ -572,7 +577,7 @@ crops:
     part: "unscored .obs-fc-card"
     htmlTheme: light
     sharedShell: "1"
-    sha256: 187dcf54223355f91897a7fe5bbd4c849289e8f860ab0e5528b75e6fc9497f62
+    sha256: 8c4d3685def80702cbf12508aca42aedb9ece74e15a8ed914ab41e0773eb96ec
   - file: na-score-390-zh-scored-card.png
     viewport: 390x844
     lang: zh
@@ -580,7 +585,7 @@ crops:
     part: "scored .obs-fc-card"
     htmlTheme: light
     sharedShell: "1"
-    sha256: a8493d32c6dc072cc122737b1cdd825674cbf26b902692ac86107e8d4c50e9e2
+    sha256: 7147d5fdc5171b88664b8ac0bdb78a80365f876a506d6bec6deaac637cb6b31b
   - file: gauge-partial-390-zh-gauge.png
     viewport: 390x844
     lang: zh
@@ -588,7 +593,7 @@ crops:
     part: "[data-tut=\"flow-gauge\"] unavailable"
     htmlTheme: light
     sharedShell: "1"
-    sha256: 9675093f7201613ecbb0e90d352f516bf3c853453e0abf6e0cca08fcebe414c3
+    sha256: 15db780de3e33649d7559c1a9720c9d7a59d3bbc09897b4db2d0f0a86a0588d3
   - file: gauge-empty-390-zh-gauge.png
     viewport: 390x844
     lang: zh
@@ -596,7 +601,7 @@ crops:
     part: "[data-tut=\"flow-gauge\"] unavailable"
     htmlTheme: light
     sharedShell: "1"
-    sha256: 6019221134f64b21285bcb0228eb915633d8416f59f3ae6eb798afdd7325fd93
+    sha256: cd73bb8fb635911ef5109b2a84bece997b5c71b68485ceeecb40bb045a7e0758
   - file: gauge-empty-390-zh-toolbar.png
     viewport: 390x844
     lang: zh
@@ -604,4 +609,4 @@ crops:
     part: ".obs-fd-toolbar published empty tape"
     htmlTheme: light
     sharedShell: "1"
-    sha256: 4ede48b80c37558357998884456b96156aed01f26f8c3d48f8ab99e608196e58
+    sha256: 862babf6fa688bec425608d08d7b3dbb908bcf1ada8a47f15c96387e7197ed60

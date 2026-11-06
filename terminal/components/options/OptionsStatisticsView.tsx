@@ -34,13 +34,17 @@ export function OptionsStatisticsPanel({ result, lang, transportStale = false }:
     <p className={s.muted}>{text("No values shown", "当前不显示数值")}</p>
   </div>;
   const r = result;
+  const noCoveredPremium = (bucket: ObservedBucket) => bucket.qualified_premium_usd === null &&
+    (bucket.premium_print_coverage === 0 || bucket.print_count === 0) && bucket.premium_total_status === "UNAVAILABLE";
+  const showPremium = r.totals.premium_print_coverage !== 0 || ![r.totals, ...Object.values(r.rights), ...Object.values(r.venues),
+    ...Object.values(r.locations)].every(noCoveredPremium);
   const rows = (entries: [string, ObservedBucket][], labels?: Record<string, [string, string]>) => entries.map(([key, b]) => <tr key={key}>
     <th scope="row">{labels?.[key]?.[zh ? 1 : 0] ?? (key === "UNKNOWN" ? text("Unknown", "未知") : key)}</th>
     <td>{num(b.print_count)}</td><td>{num(b.contract_volume)}</td>
-    <td>{premium(b)}<small>{text("Print coverage", "笔数覆盖率")} {pct(b.premium_print_coverage)}</small></td>
+    {showPremium && <td>{premium(b)}<small>{text("Print coverage", "笔数覆盖率")} {pct(b.premium_print_coverage)}</small></td>}
   </tr>);
   const table = (entries: [string, ObservedBucket][], caption: string, labels?: Record<string, [string, string]>) => <div className={s.tableScroll} tabIndex={0} role="region" aria-label={caption}>
-    <table><caption className={s.srOnly}>{caption}</caption><thead><tr><th scope="col">{text("Group", "分组")}</th><th scope="col">{text("Prints", "笔数")}</th><th scope="col">{text("Contracts", "合约量")}</th><th scope="col">{text("Qualified premium", "合格权利金小计")}</th></tr></thead><tbody>{rows(entries, labels)}</tbody></table>
+    <table><caption className={s.srOnly}>{caption}</caption><thead><tr><th scope="col">{text("Group", "分组")}</th><th scope="col">{text("Prints", "笔数")}</th><th scope="col">{text("Contracts", "合约量")}</th>{showPremium && <th scope="col">{text("Qualified premium", "合格权利金小计")}</th>}</tr></thead><tbody>{rows(entries, labels)}</tbody></table>
   </div>;
   const venues = Object.entries(r.venues).sort((a, b) => b[1].print_count - a[1].print_count || a[0].localeCompare(b[0]));
   const stale = transportStale || r.stale;

@@ -1,6 +1,7 @@
+import { qualifiedOptionsVisualPacket } from "./helpers/optionsVisualEvidence";
 import { createRequire } from "node:module";
 import { assertCapturedLexProjection } from "./helpers/lexEvidenceProjection";
-// Preserve the raw capture pin; only unused onboarding copy has an AST dependency projection.
+// Raw capture pins stay immutable; qualified packets supply their checked source expectations.
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -10,8 +11,10 @@ import { PNG } from "pngjs";
 const REPO = join(__dirname, "../../..");
 const immutableEvidence = createRequire(import.meta.url)("../../e2e/tools/visualEvidence.cjs");
 const composition = immutableEvidence.selectedComposition(REPO);
-const CROP_DIR = join(__dirname, "../../docs/pr-crops/terminal-visual-intelligence");
-const EVIDENCE = join(CROP_DIR, "EVIDENCE.yml");
+const ROOT_CROP_DIR = join(__dirname, "../../docs/pr-crops/terminal-visual-intelligence");
+const qualified = composition === null ? qualifiedOptionsVisualPacket(REPO, "vi") : null;
+const CROP_DIR = qualified?.cropDir ?? ROOT_CROP_DIR;
+const EVIDENCE = qualified?.evidence ?? join(ROOT_CROP_DIR, "EVIDENCE.yml");
 
 function sha256(path: string): string {
   return createHash("sha256").update(readFileSync(path)).digest("hex");
@@ -114,7 +117,8 @@ describe("Terminal Visual Intelligence browser evidence", () => {
   it("locks the source files that determine the captured chart-context surface", () => {
     const recorded = mapSection(text, "layoutFiles");
     expect(Object.keys(recorded).length).toBeGreaterThanOrEqual(9);
-    for (const [relative, expected] of Object.entries(recorded)) {
+    const expectedSources = qualified ? qualified.qualifiedSources : recorded;
+    for (const [relative, expected] of Object.entries(expectedSources)) {
       const absolute = join(REPO, relative);
       expect(existsSync(absolute), relative).toBe(true);
       if (relative === "terminal/lib/i18n.tsx") {

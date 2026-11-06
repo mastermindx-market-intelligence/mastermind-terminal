@@ -1,0 +1,9 @@
+{
+  "schema": "terminal.lex_capture_projection.v1",
+  "omittedProperty": "obDonePrefsSyncing",
+  "capturedRawSha256": "92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435",
+  "projectedSha256": "d6dcc2df7615a1c5782f4d755178fbb76bcf9ee42b93dffe7c7c95317a652de5",
+  "sourceGitBlob": "efd3688e2b4ca6bcd9e806d0096854158c1de214",
+  "sourceRecoveryCommit": "11531481b0a540ee96bcd86df418fd1e42715363",
+  "captureCommitLocallyAvailable": true
+}

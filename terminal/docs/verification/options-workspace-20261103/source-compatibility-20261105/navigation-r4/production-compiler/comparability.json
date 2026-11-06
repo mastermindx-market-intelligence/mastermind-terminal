@@ -1,0 +1,485 @@
+{
+  "schema": "options_production_comparability.v1",
+  "recorded_at": "2026-11-05T07:59:59.925532+00:00",
+  "source_count": 3124,
+  "captured_input_map_sha256": "dd8b4c978741a32f576f08277841dbda3952aeb128c97fa76a73a8a18a38f514",
+  "isolated_copy_matches_recorded_inputs": true,
+  "current_combined_preview_differences": {
+    "terminal/e2e/fixtureWarmup.cjs": {
+      "captured": "4ff5d71c544d5310e630952539b23540cc179ff2e421034b452ef41adf9c2532",
+      "current": "280e694efb9fcfca2a2fad5fb98ab1beec317d6780e567750acb7e44ba806aa1"
+    },
+    "terminal/lib/__tests__/helpers/optionsExposureEvidence.ts": {
+      "captured": "1a75aa7f5dc2f1ac2ba8c340085a10e53928010a8e84fde52c9bbb2275ebaf13",
+      "current": "f78863fb9d4d65a1ca4c6bf6d0b604e8ff20148d3319614163f8377ed2c4a836"
+    },
+    "terminal/lib/__tests__/helpers/optionsVisualEvidence.ts": {
+      "captured": "172eb833904545c54ae383c889677348ae5716def276e7218b9788103584b9d8",
+      "current": "b2248fe06eca6cfb0e6ffd67a6cd12c02f0e0da4c8cd318b4ab71cb3a9e680f5"
+    }
+  },
+  "combined_preview_production_runtime_unchanged": true,
+  "shared_repair_sources_equal": true,
+  "production_build_passed": true,
+  "turbopack_development_browser_passed": 9,
+  "authenticated_production_browser_claimed": false,
+  "original_options_whole_tree_equivalence_claimed": false,
+  "raw_logs_losslessly_compressed": true,
+  "files": [
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/source-inputs.json",
+      "stored": "production/source-inputs.json",
+      "source_sha256": "dd8b4c978741a32f576f08277841dbda3952aeb128c97fa76a73a8a18a38f514",
+      "stored_sha256": "dd8b4c978741a32f576f08277841dbda3952aeb128c97fa76a73a8a18a38f514",
+      "encoding": "identity"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/build-source-after.json",
+      "stored": "production/build-source-after.json",
+      "source_sha256": "daf678d9c62606bcdcfeb1f6167b7d543a397bb913bbdbdede41996ad79c85d3",
+      "stored_sha256": "daf678d9c62606bcdcfeb1f6167b7d543a397bb913bbdbdede41996ad79c85d3",
+      "encoding": "identity"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/copy-receipt.json",
+      "stored": "production/copy-receipt.json",
+      "source_sha256": "60aac273798be504f3a56f244ed6eaf87e493e6c5cfad9218eeb25312a466fa9",
+      "stored_sha256": "60aac273798be504f3a56f244ed6eaf87e493e6c5cfad9218eeb25312a466fa9",
+      "encoding": "identity"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/production-build-http-v2-process.json",
+      "stored": "production/production-build-http-v2-process.json",
+      "source_sha256": "bd39952bb1e2f01f8e768d9ec5f74e970b058a87057914cf3bc4dc516934925b",
+      "stored_sha256": "bd39952bb1e2f01f8e768d9ec5f74e970b058a87057914cf3bc4dc516934925b",
+      "encoding": "identity"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/production-build-http-v2-receipt.json",
+      "stored": "production/production-build-http-v2-receipt.json",
+      "source_sha256": "77ec6fe34a40c3af2c7a2dda84d86625ee9c2db383fb05b6ecf68f229833b9a9",
+      "stored_sha256": "77ec6fe34a40c3af2c7a2dda84d86625ee9c2db383fb05b6ecf68f229833b9a9",
+      "encoding": "identity"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/production-build-http-v2.log",
+      "stored": "production/production-build-http-v2.log.gz",
+      "source_sha256": "5d1788c2f4f6363b5adce629d9b064d89c0d6bebe96d50fc1a82cf6c942a9194",
+      "stored_sha256": "278a74d640da85103befb75104a3e824cfe36fa6b63ff2b292d9222e406e27bc",
+      "encoding": "gzip"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/production-build-process.json",
+      "stored": "production/production-build-process.json",
+      "source_sha256": "67a7c9edbe866db7af4dbb46490ecd9af900029b65e780c5a1f958f5218baaa3",
+      "stored_sha256": "67a7c9edbe866db7af4dbb46490ecd9af900029b65e780c5a1f958f5218baaa3",
+      "encoding": "identity"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/production-build-receipt.json",
+      "stored": "production/production-build-receipt.json",
+      "source_sha256": "e9551a30d4ca48285066f4022a8c93c843a8c65f3504437a5ffe7a7a832be733",
+      "stored_sha256": "e9551a30d4ca48285066f4022a8c93c843a8c65f3504437a5ffe7a7a832be733",
+      "encoding": "identity"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/production-build.log",
+      "stored": "production/production-build.log.gz",
+      "source_sha256": "92bff51d9cb4e9b0c32905bc5a751462d27f18f40fd15e699eabcfb0113aa316",
+      "stored_sha256": "87733c3f23bbf4c72d1b8fc89790ca9b44ec4034e80d0e57be682484358313e4",
+      "encoding": "gzip"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/production-generated-next-env.d.ts",
+      "stored": "production/production-generated-next-env.d.ts.gz",
+      "source_sha256": "7b550dda9686c16f36a17bf9051d5dbf31e98555b30d114ac49fc49a1e712651",
+      "stored_sha256": "22ee637ea181f645c84bcf3cdfacd386323cf2f3dd6e6dcde47c36ededb5c60c",
+      "encoding": "gzip"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/production-emitted-fonts.json",
+      "stored": "production/production-emitted-fonts.json",
+      "source_sha256": "bf23f09e38f459e056636764dca23624b5fe1f08a69da87342894116a37cd994",
+      "stored_sha256": "bf23f09e38f459e056636764dca23624b5fe1f08a69da87342894116a37cd994",
+      "encoding": "identity"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/font-fixture-inputs.json",
+      "stored": "production/font-fixture-inputs.json",
+      "source_sha256": "332ae1417ce4f55e1d20f1dd3a5fed0b5fc24b6c72593830722b73b348652629",
+      "stored_sha256": "332ae1417ce4f55e1d20f1dd3a5fed0b5fc24b6c72593830722b73b348652629",
+      "encoding": "identity"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/font-preflight-reconciliation.json",
+      "stored": "production/font-preflight-reconciliation.json",
+      "source_sha256": "0ee250c8ce177c51a0deb73ac6fb0ed67c35010bc21446da52a1e55e6deee2d6",
+      "stored_sha256": "0ee250c8ce177c51a0deb73ac6fb0ed67c35010bc21446da52a1e55e6deee2d6",
+      "encoding": "identity"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/font-server-binding.json",
+      "stored": "production/font-server-binding.json",
+      "source_sha256": "06e0f67486c7275b018e7bbab5242f947e7ec086b07dd3902facc682e9ec572a",
+      "stored_sha256": "06e0f67486c7275b018e7bbab5242f947e7ec086b07dd3902facc682e9ec572a",
+      "encoding": "identity"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/font-server-qualification.json",
+      "stored": "production/font-server-qualification.json",
+      "source_sha256": "ab2a5a95744818816631f693fcb0ae67b0be5465456dac82345c7facc1d01ed7",
+      "stored_sha256": "ab2a5a95744818816631f693fcb0ae67b0be5465456dac82345c7facc1d01ed7",
+      "encoding": "identity"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/google-responses-turbopack.cjs",
+      "stored": "production/google-responses-turbopack.cjs",
+      "source_sha256": "9022de643fe32ffd697908b07dca73d6b9faf2eafb7570d34076a55c1b16493f",
+      "stored_sha256": "9022de643fe32ffd697908b07dca73d6b9faf2eafb7570d34076a55c1b16493f",
+      "encoding": "identity"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/prepare-font-fixture-regex-preflight.py",
+      "stored": "production/prepare-font-fixture-regex-preflight.py",
+      "source_sha256": "f8777b9eb7deff55781e3c766d545669c99fff620e8b55351eefe5761dc5c2b8",
+      "stored_sha256": "f8777b9eb7deff55781e3c766d545669c99fff620e8b55351eefe5761dc5c2b8",
+      "encoding": "identity"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/turbopack-browser-driver.log",
+      "stored": "production/turbopack-browser-driver.log.gz",
+      "source_sha256": "7d7e1cb157bb528c8d18e7f5ae17a146fd2211a0a4f20e9a7d8ad5f4c8601767",
+      "stored_sha256": "0099720d5ea9666bd7800a2dc09c7c0665ddd4e3a0b105df4dc9e36eeb4f8024",
+      "encoding": "gzip"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/font-fixture/13bf9871fe164e7f-s.2f7nqdagzwx2-.woff2",
+      "stored": "production/font-fixture/13bf9871fe164e7f-s.2f7nqdagzwx2-.woff2",
+      "source_sha256": "992eea2f70210457ddd1196de4df3240919ffe068ad188c79d985fba4565d3bf",
+      "stored_sha256": "992eea2f70210457ddd1196de4df3240919ffe068ad188c79d985fba4565d3bf",
+      "encoding": "identity"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/font-fixture/1bffadaabf893a1e-s.3-6t-g6q0vh0a.woff2",
+      "stored": "production/font-fixture/1bffadaabf893a1e-s.3-6t-g6q0vh0a.woff2",
+      "source_sha256": "a28eb6d3ccb534ae0c94ca999371df024aab60b08c3c8a5720ee9e32fa0faaa2",
+      "stored_sha256": "a28eb6d3ccb534ae0c94ca999371df024aab60b08c3c8a5720ee9e32fa0faaa2",
+      "encoding": "identity"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/font-fixture/2bbe8d2671613f1f-s.0k62hbripvv8p.woff2",
+      "stored": "production/font-fixture/2bbe8d2671613f1f-s.0k62hbripvv8p.woff2",
+      "source_sha256": "8db00ff46c67b22cda8bed865acf7077651cac8d2841d5b40980556b48961931",
+      "stored_sha256": "8db00ff46c67b22cda8bed865acf7077651cac8d2841d5b40980556b48961931",
+      "encoding": "identity"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/font-fixture/2c55a0e60120577a-s.0-dom-5bn10r2.woff2",
+      "stored": "production/font-fixture/2c55a0e60120577a-s.0-dom-5bn10r2.woff2",
+      "source_sha256": "fccca918fea40089dacadc7045861314d1a6bc91f1f323cc1eeb22ebcdb321b5",
+      "stored_sha256": "fccca918fea40089dacadc7045861314d1a6bc91f1f323cc1eeb22ebcdb321b5",
+      "encoding": "identity"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/font-fixture/3fe682a82f50d426-s.0vfdmo25voy_0.woff2",
+      "stored": "production/font-fixture/3fe682a82f50d426-s.0vfdmo25voy_0.woff2",
+      "source_sha256": "7db7affbce1fdee69c1ffc2641bbca289b049867f524c9d861fe35ab6670bf29",
+      "stored_sha256": "7db7affbce1fdee69c1ffc2641bbca289b049867f524c9d861fe35ab6670bf29",
+      "encoding": "identity"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/font-fixture/5476f68d60460930-s.2uwcyprjm3xu3.woff2",
+      "stored": "production/font-fixture/5476f68d60460930-s.2uwcyprjm3xu3.woff2",
+      "source_sha256": "46dd4cdca58c26ae87cc6927657bf83b2e8abfc39ffd0ab176e301a8d28d22bf",
+      "stored_sha256": "46dd4cdca58c26ae87cc6927657bf83b2e8abfc39ffd0ab176e301a8d28d22bf",
+      "encoding": "identity"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/font-fixture/70bc3e132a0a741e-s.3t6q91iet4nsy.woff2",
+      "stored": "production/font-fixture/70bc3e132a0a741e-s.3t6q91iet4nsy.woff2",
+      "source_sha256": "1e06740a02a443fb7f3eeda8fcaa685a0f6c620e3f01e6666e847295469ce3ad",
+      "stored_sha256": "1e06740a02a443fb7f3eeda8fcaa685a0f6c620e3f01e6666e847295469ce3ad",
+      "encoding": "identity"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/font-fixture/71b036adf157cdcf-s.0bp8oijd_gu96.woff2",
+      "stored": "production/font-fixture/71b036adf157cdcf-s.0bp8oijd_gu96.woff2",
+      "source_sha256": "3edf363dbf9d5fa0cdc784ae2b431a8a4152f4055a8a8858028c0bd668808273",
+      "stored_sha256": "3edf363dbf9d5fa0cdc784ae2b431a8a4152f4055a8a8858028c0bd668808273",
+      "encoding": "identity"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/font-fixture/83afe278b6a6bb3c-s.p.2bn3s6zvc0dyp.woff2",
+      "stored": "production/font-fixture/83afe278b6a6bb3c-s.p.2bn3s6zvc0dyp.woff2",
+      "source_sha256": "c940764593d0fe5d596be327ca7558855e018039fb78509aa21921fd3644c3e4",
+      "stored_sha256": "c940764593d0fe5d596be327ca7558855e018039fb78509aa21921fd3644c3e4",
+      "encoding": "identity"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/font-fixture/89b21bb081cb7469-s.1fby2rem9ngyr.woff2",
+      "stored": "production/font-fixture/89b21bb081cb7469-s.1fby2rem9ngyr.woff2",
+      "source_sha256": "1390e86cc2823e759358918c01c4fcc1b6e4f01bca915bdbeb6d68eb5c244405",
+      "stored_sha256": "1390e86cc2823e759358918c01c4fcc1b6e4f01bca915bdbeb6d68eb5c244405",
+      "encoding": "identity"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/font-fixture/9c72aa0f40e4eef8-s.1y4-pdgsjb-pw.woff2",
+      "stored": "production/font-fixture/9c72aa0f40e4eef8-s.1y4-pdgsjb-pw.woff2",
+      "source_sha256": "aebf2ab4a4ce6810d73c1ac7be7cafb4e5ec4cee2d6db5fb3e09691747ec4bd6",
+      "stored_sha256": "aebf2ab4a4ce6810d73c1ac7be7cafb4e5ec4cee2d6db5fb3e09691747ec4bd6",
+      "encoding": "identity"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/font-fixture/ad66f9afd8947f86-s.3lvt2whj97whp.woff2",
+      "stored": "production/font-fixture/ad66f9afd8947f86-s.3lvt2whj97whp.woff2",
+      "source_sha256": "a2e2c783ca6f9c20486e81e72a279203e86730bbf8f01ff6a5ee9dbd09e1c271",
+      "stored_sha256": "a2e2c783ca6f9c20486e81e72a279203e86730bbf8f01ff6a5ee9dbd09e1c271",
+      "encoding": "identity"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/font-fixture/cc545e633e20c56d-s.176arc174-8zp.woff2",
+      "stored": "production/font-fixture/cc545e633e20c56d-s.176arc174-8zp.woff2",
+      "source_sha256": "af7486955880be1c2b972e9c766acffb776768d669b6576ed9a0919ce72e7ca6",
+      "stored_sha256": "af7486955880be1c2b972e9c766acffb776768d669b6576ed9a0919ce72e7ca6",
+      "encoding": "identity"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/browser-turbopack-navigation-r4/browser-receipt.json",
+      "stored": "browser/browser-receipt.json",
+      "source_sha256": "7c0bad4835ffa28ddc5ed8b6d8cf14d674bf93bc38b55ac961020bab7714055c",
+      "stored_sha256": "7c0bad4835ffa28ddc5ed8b6d8cf14d674bf93bc38b55ac961020bab7714055c",
+      "encoding": "identity"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/browser-turbopack-navigation-r4/browser-report.json",
+      "stored": "browser/browser-report.json",
+      "source_sha256": "c7cef71ef9995bfcb45e5ec4369d0831449801cd2d4ed5ad82717106b05786d6",
+      "stored_sha256": "c7cef71ef9995bfcb45e5ec4369d0831449801cd2d4ed5ad82717106b05786d6",
+      "encoding": "identity"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/browser-turbopack-navigation-r4/browser.log",
+      "stored": "browser/browser.log.gz",
+      "source_sha256": "b43d046f7f63fda7fad826cec239ebd1eb7dbc4f0f1ad7fb9cb6ebefd2a8e5b8",
+      "stored_sha256": "4c3ec0a17d1e79c25a0ea9897db13a22eeab31c9c93922c396331a25dd32069f",
+      "encoding": "gzip"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/browser-turbopack-navigation-r4/server.log",
+      "stored": "browser/server.log.gz",
+      "source_sha256": "f7274cfd6fe9314e96cd6cb946833a78dac21221781339e1ebe1c874b70e85ca",
+      "stored_sha256": "1fdf9dc4b7bb94d266b98de11b0b39757be289c1164533dbe14537ea502051ec",
+      "encoding": "gzip"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/browser-turbopack-navigation-r4/selection.log",
+      "stored": "browser/selection.log.gz",
+      "source_sha256": "d3c88927ccb50434aa37513501cbc669927d1f65663cb84b7955c99bf67a836b",
+      "stored_sha256": "2f202cc7b8a1fa7aa54f570fd12765629ce05f4929b1b2c2e91befdbffa935e2",
+      "encoding": "gzip"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/browser-turbopack-navigation-r4/source-before.json",
+      "stored": "browser/source-before.json",
+      "source_sha256": "dd8b4c978741a32f576f08277841dbda3952aeb128c97fa76a73a8a18a38f514",
+      "stored_sha256": "dd8b4c978741a32f576f08277841dbda3952aeb128c97fa76a73a8a18a38f514",
+      "encoding": "identity"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/browser-turbopack-navigation-r4/source-after.json",
+      "stored": "browser/source-after.json",
+      "source_sha256": "dd8b4c978741a32f576f08277841dbda3952aeb128c97fa76a73a8a18a38f514",
+      "stored_sha256": "dd8b4c978741a32f576f08277841dbda3952aeb128c97fa76a73a8a18a38f514",
+      "encoding": "identity"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/browser-turbopack-navigation-r4/playwright-artifacts-sha256.json",
+      "stored": "browser/playwright-artifacts-sha256.json",
+      "source_sha256": "ba66773b89d814bf5cfdc32bf748deb5c9d54bde4f8a8f0e7cbf82f95cd4ca61",
+      "stored_sha256": "ba66773b89d814bf5cfdc32bf748deb5c9d54bde4f8a8f0e7cbf82f95cd4ca61",
+      "encoding": "identity"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/browser-turbopack-navigation-r4/prior-flat-test-results.json",
+      "stored": "browser/prior-flat-test-results.json",
+      "source_sha256": "ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356",
+      "stored_sha256": "ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356",
+      "encoding": "identity"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/tree/terminal/.next/options-turbopack-gate-r4-20261105/.last-run.json",
+      "stored": "browser/playwright-artifacts/.last-run.json",
+      "source_sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "stored_sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "encoding": "identity"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/tree/terminal/.next/options-turbopack-gate-r4-20261105/options-deeplink-Options-c-0259e-nd-styles-are-still-loading-desktop/desktop-options-pending-assets-return.png",
+      "stored": "browser/playwright-artifacts/options-deeplink-Options-c-0259e-nd-styles-are-still-loading-desktop/desktop-options-pending-assets-return.png",
+      "source_sha256": "7099b5b7045e09f49498c4c3cac9398367b490be27801f5902a12800dde81a06",
+      "stored_sha256": "7099b5b7045e09f49498c4c3cac9398367b490be27801f5902a12800dde81a06",
+      "encoding": "identity"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/tree/terminal/.next/options-turbopack-gate-r4-20261105/options-deeplink-Options-c-0259e-nd-styles-are-still-loading-desktop/trace.zip",
+      "stored": "browser/playwright-artifacts/options-deeplink-Options-c-0259e-nd-styles-are-still-loading-desktop/trace.zip",
+      "source_sha256": "ae85773caa3832a4ed810ee8c4029d56c0529c24010bd3a00ccbac71d04f8e1b",
+      "stored_sha256": "ae85773caa3832a4ed810ee8c4029d56c0529c24010bd3a00ccbac71d04f8e1b",
+      "encoding": "identity"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/tree/terminal/.next/options-turbopack-gate-r4-20261105/options-deeplink-Options-c-0259e-nd-styles-are-still-loading-mobile/mobile-options-pending-assets-return.png",
+      "stored": "browser/playwright-artifacts/options-deeplink-Options-c-0259e-nd-styles-are-still-loading-mobile/mobile-options-pending-assets-return.png",
+      "source_sha256": "74073daafc6426d77ba44c59f13f76b1659b20ef780ed357a50a6861beb369ec",
+      "stored_sha256": "74073daafc6426d77ba44c59f13f76b1659b20ef780ed357a50a6861beb369ec",
+      "encoding": "identity"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/tree/terminal/.next/options-turbopack-gate-r4-20261105/options-deeplink-Options-c-0259e-nd-styles-are-still-loading-mobile/trace.zip",
+      "stored": "browser/playwright-artifacts/options-deeplink-Options-c-0259e-nd-styles-are-still-loading-mobile/trace.zip",
+      "source_sha256": "78da272da52c24098275c0eea31501ea2353c6e9f26bda71da9ebfb7057eec50",
+      "stored_sha256": "78da272da52c24098275c0eea31501ea2353c6e9f26bda71da9ebfb7057eec50",
+      "encoding": "identity"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/tree/terminal/.next/options-turbopack-gate-r4-20261105/options-deeplink-Options-c-0259e-nd-styles-are-still-loading-tablet/tablet-options-pending-assets-return.png",
+      "stored": "browser/playwright-artifacts/options-deeplink-Options-c-0259e-nd-styles-are-still-loading-tablet/tablet-options-pending-assets-return.png",
+      "source_sha256": "07e65cfdc7c7d5e9e070122d99a283471828a2e854bb51f4aaf7d3539afc7b99",
+      "stored_sha256": "07e65cfdc7c7d5e9e070122d99a283471828a2e854bb51f4aaf7d3539afc7b99",
+      "encoding": "identity"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/tree/terminal/.next/options-turbopack-gate-r4-20261105/options-deeplink-Options-c-0259e-nd-styles-are-still-loading-tablet/trace.zip",
+      "stored": "browser/playwright-artifacts/options-deeplink-Options-c-0259e-nd-styles-are-still-loading-tablet/trace.zip",
+      "source_sha256": "2a625aa10637e917909148c53b62d203304007822a34a10c5f03940f22dcff93",
+      "stored_sha256": "2a625aa10637e917909148c53b62d203304007822a34a10c5f03940f22dcff93",
+      "encoding": "identity"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/tree/terminal/.next/options-turbopack-gate-r4-20261105/options-deeplink-Options-c-19c3c-nd-styles-are-still-loading-desktop/desktop-options-pending-assets-return.png",
+      "stored": "browser/playwright-artifacts/options-deeplink-Options-c-19c3c-nd-styles-are-still-loading-desktop/desktop-options-pending-assets-return.png",
+      "source_sha256": "07d9673cf05ecccca028dfd456ac5782e5a19363ea798b4375d07e7654073e24",
+      "stored_sha256": "07d9673cf05ecccca028dfd456ac5782e5a19363ea798b4375d07e7654073e24",
+      "encoding": "identity"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/tree/terminal/.next/options-turbopack-gate-r4-20261105/options-deeplink-Options-c-19c3c-nd-styles-are-still-loading-desktop/trace.zip",
+      "stored": "browser/playwright-artifacts/options-deeplink-Options-c-19c3c-nd-styles-are-still-loading-desktop/trace.zip",
+      "source_sha256": "1cce02ba86c93c560bd8d1bf4bf071c4876ca8f544541c4fe460f6d22e3b75cc",
+      "stored_sha256": "1cce02ba86c93c560bd8d1bf4bf071c4876ca8f544541c4fe460f6d22e3b75cc",
+      "encoding": "identity"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/tree/terminal/.next/options-turbopack-gate-r4-20261105/options-deeplink-Options-c-19c3c-nd-styles-are-still-loading-mobile/mobile-options-pending-assets-return.png",
+      "stored": "browser/playwright-artifacts/options-deeplink-Options-c-19c3c-nd-styles-are-still-loading-mobile/mobile-options-pending-assets-return.png",
+      "source_sha256": "74073daafc6426d77ba44c59f13f76b1659b20ef780ed357a50a6861beb369ec",
+      "stored_sha256": "74073daafc6426d77ba44c59f13f76b1659b20ef780ed357a50a6861beb369ec",
+      "encoding": "identity"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/tree/terminal/.next/options-turbopack-gate-r4-20261105/options-deeplink-Options-c-19c3c-nd-styles-are-still-loading-mobile/trace.zip",
+      "stored": "browser/playwright-artifacts/options-deeplink-Options-c-19c3c-nd-styles-are-still-loading-mobile/trace.zip",
+      "source_sha256": "f922f06890cf70191808c14713f64c730b845d0d0ea1e3ff77951c77a3b781cd",
+      "stored_sha256": "f922f06890cf70191808c14713f64c730b845d0d0ea1e3ff77951c77a3b781cd",
+      "encoding": "identity"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/tree/terminal/.next/options-turbopack-gate-r4-20261105/options-deeplink-Options-c-19c3c-nd-styles-are-still-loading-tablet/tablet-options-pending-assets-return.png",
+      "stored": "browser/playwright-artifacts/options-deeplink-Options-c-19c3c-nd-styles-are-still-loading-tablet/tablet-options-pending-assets-return.png",
+      "source_sha256": "1178b89911b1e3ac8f52a056750134d4232044bac5dd2f9c25d76ec9b7167eea",
+      "stored_sha256": "1178b89911b1e3ac8f52a056750134d4232044bac5dd2f9c25d76ec9b7167eea",
+      "encoding": "identity"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/tree/terminal/.next/options-turbopack-gate-r4-20261105/options-deeplink-Options-c-19c3c-nd-styles-are-still-loading-tablet/trace.zip",
+      "stored": "browser/playwright-artifacts/options-deeplink-Options-c-19c3c-nd-styles-are-still-loading-tablet/trace.zip",
+      "source_sha256": "dfd995586c421e8681ff30baa84b3687e3045fe38144246a02d78af46b7baea7",
+      "stored_sha256": "dfd995586c421e8681ff30baa84b3687e3045fe38144246a02d78af46b7baea7",
+      "encoding": "identity"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/tree/terminal/.next/options-turbopack-gate-r4-20261105/options-deeplink-Options-f-731cd-ile-retaining-visited-desks-desktop/desktop-options-query-navigation.png",
+      "stored": "browser/playwright-artifacts/options-deeplink-Options-f-731cd-ile-retaining-visited-desks-desktop/desktop-options-query-navigation.png",
+      "source_sha256": "1dcd70eb017ed772418490c40ba2eb844c25929b4ad3ef1400925fd8152e378d",
+      "stored_sha256": "1dcd70eb017ed772418490c40ba2eb844c25929b4ad3ef1400925fd8152e378d",
+      "encoding": "identity"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/tree/terminal/.next/options-turbopack-gate-r4-20261105/options-deeplink-Options-f-731cd-ile-retaining-visited-desks-desktop/trace.zip",
+      "stored": "browser/playwright-artifacts/options-deeplink-Options-f-731cd-ile-retaining-visited-desks-desktop/trace.zip",
+      "source_sha256": "9405f2c83d558bd51d088775736a675622a09c28fe26df7402cabbb060b184e1",
+      "stored_sha256": "9405f2c83d558bd51d088775736a675622a09c28fe26df7402cabbb060b184e1",
+      "encoding": "identity"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/tree/terminal/.next/options-turbopack-gate-r4-20261105/options-deeplink-Options-f-731cd-ile-retaining-visited-desks-mobile/mobile-options-query-navigation.png",
+      "stored": "browser/playwright-artifacts/options-deeplink-Options-f-731cd-ile-retaining-visited-desks-mobile/mobile-options-query-navigation.png",
+      "source_sha256": "81bd3241187240896dafcfe5900ede8a5ec46a655674e27c9232a800f6c217f5",
+      "stored_sha256": "81bd3241187240896dafcfe5900ede8a5ec46a655674e27c9232a800f6c217f5",
+      "encoding": "identity"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/tree/terminal/.next/options-turbopack-gate-r4-20261105/options-deeplink-Options-f-731cd-ile-retaining-visited-desks-mobile/trace.zip",
+      "stored": "browser/playwright-artifacts/options-deeplink-Options-f-731cd-ile-retaining-visited-desks-mobile/trace.zip",
+      "source_sha256": "c728a3b743c595a79b831703fca0ed367d02001e5b57a6c4126c5976d8bf26d1",
+      "stored_sha256": "c728a3b743c595a79b831703fca0ed367d02001e5b57a6c4126c5976d8bf26d1",
+      "encoding": "identity"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/tree/terminal/.next/options-turbopack-gate-r4-20261105/options-deeplink-Options-f-731cd-ile-retaining-visited-desks-tablet/tablet-options-query-navigation.png",
+      "stored": "browser/playwright-artifacts/options-deeplink-Options-f-731cd-ile-retaining-visited-desks-tablet/tablet-options-query-navigation.png",
+      "source_sha256": "0c9ac9b80bf517df00a6798f440ee1148fa642f86a731f37026986bed8cfcbba",
+      "stored_sha256": "0c9ac9b80bf517df00a6798f440ee1148fa642f86a731f37026986bed8cfcbba",
+      "encoding": "identity"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/tree/terminal/.next/options-turbopack-gate-r4-20261105/options-deeplink-Options-f-731cd-ile-retaining-visited-desks-tablet/trace.zip",
+      "stored": "browser/playwright-artifacts/options-deeplink-Options-f-731cd-ile-retaining-visited-desks-tablet/trace.zip",
+      "source_sha256": "cd9def036fc77f50f0cd56d8fe1a5bc503c5721660ae36e2e108728de783ed96",
+      "stored_sha256": "cd9def036fc77f50f0cd56d8fe1a5bc503c5721660ae36e2e108728de783ed96",
+      "encoding": "identity"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/prepare-production-turbopack-r4.py",
+      "stored": "drivers/prepare-production-turbopack-r4.py",
+      "source_sha256": "c317fef634cdf0db11f2e9f616737057e86a0e2978367c203a6f847ea33f1540",
+      "stored_sha256": "c317fef634cdf0db11f2e9f616737057e86a0e2978367c203a6f847ea33f1540",
+      "encoding": "identity"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/prepare-turbopack-http-fixture-r4.py",
+      "stored": "drivers/prepare-turbopack-http-fixture-r4.py",
+      "source_sha256": "bd9840b2df003717012b21db72ce6012931791b5df41f945ba0e1fb8961fb1c4",
+      "stored_sha256": "bd9840b2df003717012b21db72ce6012931791b5df41f945ba0e1fb8961fb1c4",
+      "encoding": "identity"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/verify-production-turbopack-r4.py",
+      "stored": "drivers/verify-production-turbopack-r4.py",
+      "source_sha256": "8ef82be887676974deeead29b99b01c35c65659855b2424096f3f6ec03b5e2ae",
+      "stored_sha256": "8ef82be887676974deeead29b99b01c35c65659855b2424096f3f6ec03b5e2ae",
+      "encoding": "identity"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/verify-production-turbopack-http-r4.py",
+      "stored": "drivers/verify-production-turbopack-http-r4.py",
+      "source_sha256": "192691bbb6ca2f599e8387ced942132d7a7f8879ad0f648a52bae2d2224209a5",
+      "stored_sha256": "192691bbb6ca2f599e8387ced942132d7a7f8879ad0f648a52bae2d2224209a5",
+      "encoding": "identity"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/verify-turbopack-browser-r4.py",
+      "stored": "drivers/verify-turbopack-browser-r4.py",
+      "source_sha256": "27d6dc6c417faf64b0d7277a3944445e485bf2822a8514a6d70fa0edb54b9ae8",
+      "stored_sha256": "27d6dc6c417faf64b0d7277a3944445e485bf2822a8514a6d70fa0edb54b9ae8",
+      "encoding": "identity"
+    },
+    {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/persist-production-proof-r4.py",
+      "stored": "drivers/persist-production-proof-r4.py",
+      "source_sha256": "6980a4d6e19dc093e92f3735660e7fb820e93383008e18173e2946ae00577ff0",
+      "stored_sha256": "6980a4d6e19dc093e92f3735660e7fb820e93383008e18173e2946ae00577ff0",
+      "encoding": "identity"
+    }
+  ]
+}

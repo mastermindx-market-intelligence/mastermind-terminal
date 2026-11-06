@@ -1,4 +1,5 @@
 "use client";
+import research from "@/components/options/ResearchGrid.module.css";
 /**
  * VolView — the Volatility tab (R3): per-root IV posture from options_hub.vol/v1.
  *
@@ -450,7 +451,7 @@ export function VolView({ liveSpot }: { liveSpot?: LiveSpotStamp | null } = {}) 
             )}
           </div>
         ) : (
-          <div style={GRID}>
+          <div className={`options-research-pair ${research.grid}`} style={GRID}>
             {/* ═══ Panel A — stat tiles ═══════════════════════════════════ */}
             <section className="fin-card" style={{ gridColumn: "1 / -1", minWidth: 0 }}>
               <div className="fin-card-h">{t("statsTitle")}</div>
@@ -648,7 +649,6 @@ const BODY: React.CSSProperties = {
    grid math, no media query, so there is never a horizontal-overflow band. */
 const GRID: React.CSSProperties = {
   display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(min(460px, 100%), 1fr))",
   gap: 12,
   alignItems: "start",
 };

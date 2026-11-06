@@ -1,0 +1,82 @@
+{
+  "schema": "options_exposure_dependency_port.v1",
+  "reason": "Six real mobile Retry visibility/interception failures with older Gex and the Options header; integrate accepted compatible Exposure implementation.",
+  "accepted_head": "0182a45abccb9c0e77b2c8e4626431e89635b35f",
+  "options_parent": "98ffa891116ccc9e6be58a64148dbe45591e6ce8",
+  "protected_base": "11531481b0a540ee96bcd86df418fd1e42715363",
+  "files": [
+    {
+      "path": "terminal/components/gexdesk/GexDeskView.tsx",
+      "before_sha256": "45e534f221754d1bf3a3214d9a1cbaa4e297623482cb0c9832f8e904ed944bb9",
+      "after_sha256": "770ddedbe67516359a1f8d29f1ce28a7cc89b63e16dba87071b84609fc04b544",
+      "source": "accepted Exposure018"
+    },
+    {
+      "path": "terminal/components/gexdesk/ExposureWorkspace.module.css",
+      "before_sha256": null,
+      "after_sha256": "bf8a7d85fc594d9666e97445fde47e36cd64c4f6fc6883a75102d25115666158",
+      "source": "accepted Exposure018"
+    },
+    {
+      "path": "terminal/components/gexdesk/GexHistory.tsx",
+      "before_sha256": "c7606bd9a1f46c35ab337d28cf29818eb3b8238beb3d81a34b9fbe744b24a522",
+      "after_sha256": "98cee19d83f754a4c6afb7b152576cfb9c1a52e7532e937bd52e8600a98bcdc9",
+      "source": "accepted Exposure018"
+    },
+    {
+      "path": "terminal/components/gexdesk/MarketStateCard.tsx",
+      "before_sha256": "069c4a2f1a5f53e8f611e3231b78751948cc0264c8af6efd167f7b3e4902bbe2",
+      "after_sha256": "d197f5d243c3c998d6550717ddf18fa4f74658ec877ac0178139b0a6b894f09f",
+      "source": "accepted Exposure018"
+    },
+    {
+      "path": "terminal/components/gexdesk/StrikeLadder.tsx",
+      "before_sha256": "55dccbef4e3bfebc09477f6d9a0133cf0bc5d70531d32d532e760ff214ed4596",
+      "after_sha256": "d5e73cded2c40be7566af46bd6314c8938f9acdd2fdd9bd4c7575cba5e8a7b33",
+      "source": "accepted Exposure018"
+    },
+    {
+      "path": "terminal/components/gexdesk/gexStrings.ts",
+      "before_sha256": "15fb1e6b89725ae7bf5762b3b0cd9749e85331f6733c34efc710979430132d7b",
+      "after_sha256": "76ae4a42bdd91378006315e4c1b972d8548aa771843aae1fcc4aa5ca069b3637",
+      "source": "accepted Exposure018"
+    },
+    {
+      "path": "terminal/components/eodcontext/EodContextBelt.tsx",
+      "before_sha256": "983b21e1a030ab66aada5d773a9d0ae9abccf0e796452e9cd6e3df62d6761013",
+      "after_sha256": "7be644f8b402b36a0e6bf066a3f0c8bf7e8b4ffc743b6393ac3edf4f94003060",
+      "source": "accepted Exposure018"
+    },
+    {
+      "path": "terminal/components/researchlab/AdmittedOptionsResearchLab.tsx",
+      "before_sha256": "77f3b6dda5d70f96d2e87652b6a66b8207db888278014ada199ddd12d08023ad",
+      "after_sha256": "b5d53a1a443cd81e7598826181327777fec1d3fd52879b75a23fd6fceeaba6f8",
+      "source": "accepted Exposure018"
+    },
+    {
+      "path": "terminal/lib/useMediaQuery.ts",
+      "before_sha256": "3c965e88ce07cc6936694f455753501b19d888441ad6087f0f62f42318995c15",
+      "after_sha256": "ed7b4262fefaa2a9e4aba12916fdfe23224612f5523a3eefd5649b10a65e9eaf",
+      "source": "accepted Exposure018"
+    },
+    {
+      "path": "terminal/lib/__tests__/researchLabSourceAvailability.test.tsx",
+      "before_sha256": null,
+      "after_sha256": "12093c6d15f90b3d3bfe9b37e31308508bd2d9df6305ca8cd802621b6f3792ea",
+      "source": "accepted Exposure018"
+    },
+    {
+      "path": "terminal/e2e/tools/capture_gex_levels_heatmap_load_failure.cjs",
+      "before_sha256": "2e3ead6650594d2d25a2250dbc1e1646e8e2e7824b1f80e1e25bb59ddff44bbc",
+      "after_sha256": "f6c52d0666cee5a497d0836ec8e9c8eb05a9ba51fad63ba9f443d623ad99bc28",
+      "source": "combined native harness"
+    },
+    {
+      "path": "terminal/e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs",
+      "before_sha256": "d0b5b9376dee918ae21d0f9765b8a09e50233982c627b915b8f452decd67680c",
+      "after_sha256": "53aa8d13b25e9d2a6051a4ec79ef23ffb79ba5673b4bfdba4407b15b075cb094",
+      "source": "combined native harness"
+    }
+  ],
+  "visual_117_unchanged": true
+}

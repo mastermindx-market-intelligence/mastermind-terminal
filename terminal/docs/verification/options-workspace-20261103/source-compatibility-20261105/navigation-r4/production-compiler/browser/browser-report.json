@@ -1,0 +1,624 @@
+{
+  "config": {
+    "argv": [
+      "/opt/homebrew/Cellar/node/26.5.0/bin/node",
+      "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/tree/terminal/node_modules/.bin/playwright",
+      "test",
+      "e2e/options-deeplink.spec.ts",
+      "--grep",
+      "Options follows query navigation and Back/Forward|Options can leave (Exposure|Research Lab) while new scripts",
+      "--project=desktop",
+      "--project=tablet",
+      "--project=mobile",
+      "--workers=1",
+      "--retries=0",
+      "--trace=on",
+      "--output=.next/options-turbopack-gate-r4-20261105",
+      "--reporter=list,json"
+    ],
+    "configFile": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/tree/terminal/playwright.config.ts",
+    "rootDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/tree/terminal/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/tree/terminal/e2e/globalSetup.ts",
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/tree/terminal/.next/options-turbopack-gate-r4-20261105",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "desktop",
+        "name": "desktop",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/tree/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/tree/terminal/.next/options-turbopack-gate-r4-20261105",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "tablet",
+        "name": "tablet",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/tree/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/tree/terminal/.next/options-turbopack-gate-r4-20261105",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "mobile",
+        "name": "mobile",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/tree/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/tree/terminal/.next/options-turbopack-gate-r4-20261105",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-desktop",
+        "name": "company-intelligence-desktop",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/tree/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/tree/terminal/.next/options-turbopack-gate-r4-20261105",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-tablet",
+        "name": "company-intelligence-tablet",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/tree/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/tree/terminal/.next/options-turbopack-gate-r4-20261105",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-mobile",
+        "name": "company-intelligence-mobile",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/tree/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/tree/terminal/.next/options-turbopack-gate-r4-20261105",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "terminal-chrome-intermediate",
+        "name": "terminal-chrome-intermediate",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/tree/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/terminal-chrome-responsive\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/tree/terminal/.next/options-turbopack-gate-r4-20261105",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "w2a-workspaces",
+        "name": "w2a-workspaces",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/tree/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list"
+      ],
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.1",
+    "workers": 1,
+    "webServer": {
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 3694",
+      "url": "http://127.0.0.1:3694/terminal?symbol=NVDA",
+      "reuseExistingServer": true,
+      "timeout": 120000,
+      "env": {
+        "ANALYSIS_LOCAL_PREVIEW": "1",
+        "ADMIN_DEV": "1",
+        "TERMINAL_E2E_FIXTURE": "1",
+        "TERMINAL_E2E_EMAIL": "responsive@example.com",
+        "TERMINAL_E2E_ENTITLEMENT": "unlimited",
+        "RATE_LIMIT_MAX": "100000",
+        "HUB_REALTIME_QUOTES": "1",
+        "TICKER_NEWS_RAIL": "1",
+        "FLOW_FIXTURE": "1",
+        "NEXT_PUBLIC_SUPABASE_URL": "http://127.0.0.1:54321",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY": "fixture-anon-key"
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "options-deeplink.spec.ts",
+      "file": "options-deeplink.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "Options follows query navigation and Back/Forward while retaining visited desks",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1861,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-05T07:24:27.096Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/tree/terminal/.next/options-turbopack-gate-r4-20261105/options-deeplink-Options-f-731cd-ile-retaining-visited-desks-desktop/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "499d798c04fba4fb76cd-07545127b2122f6b5ce3",
+          "file": "options-deeplink.spec.ts",
+          "line": 87,
+          "column": 5
+        },
+        {
+          "title": "Options can leave Exposure while new scripts and styles are still loading",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1334,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-05T07:24:29.449Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "pending-assets",
+                      "contentType": "application/json",
+                      "body": "WwogIHsKICAgICJ0eXBlIjogInNjcmlwdCIsCiAgICAidXJsIjogImh0dHA6Ly8xMjcuMC4wLjE6MzY5NC9fbmV4dC9zdGF0aWMvY2h1bmtzL2NvbXBvbmVudHNfMTJ3cjZiXy5fLmpzIgogIH0sCiAgewogICAgInR5cGUiOiAic2NyaXB0IiwKICAgICJ1cmwiOiAiaHR0cDovLzEyNy4wLjAuMTozNjk0L19uZXh0L3N0YXRpYy9jaHVua3MvbGliXzF6ZTVxeXYuXy5qcyIKICB9LAogIHsKICAgICJ0eXBlIjogInNjcmlwdCIsCiAgICAidXJsIjogImh0dHA6Ly8xMjcuMC4wLjE6MzY5NC9fbmV4dC9zdGF0aWMvY2h1bmtzL2NvbXBvbmVudHNfZ2V4ZGVza18xNWJydG5vLl8uanMiCiAgfSwKICB7CiAgICAidHlwZSI6ICJzY3JpcHQiLAogICAgInVybCI6ICJodHRwOi8vMTI3LjAuMC4xOjM2OTQvX25leHQvc3RhdGljL2NodW5rcy9jb21wb25lbnRzX2V4cG9zdXJlLW1hcF8xY2h2ZXBrLl8uanMiCiAgfSwKICB7CiAgICAidHlwZSI6ICJzY3JpcHQiLAogICAgInVybCI6ICJodHRwOi8vMTI3LjAuMC4xOjM2OTQvX25leHQvc3RhdGljL2NodW5rcy9jb21wb25lbnRzXzBnel94MnUuXy5qcyIKICB9LAogIHsKICAgICJ0eXBlIjogInNjcmlwdCIsCiAgICAidXJsIjogImh0dHA6Ly8xMjcuMC4wLjE6MzY5NC9fbmV4dC9zdGF0aWMvY2h1bmtzL2NvbXBvbmVudHNfZ2V4ZGVza19HZXhEZXNrVmlld190c3hfMHgwdF96Ny5fLmpzIgogIH0KXQ=="
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/tree/terminal/.next/options-turbopack-gate-r4-20261105/options-deeplink-Options-c-19c3c-nd-styles-are-still-loading-desktop/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "499d798c04fba4fb76cd-e9d190508417b0d6f14e",
+          "file": "options-deeplink.spec.ts",
+          "line": 138,
+          "column": 5
+        },
+        {
+          "title": "Options can leave Research Lab while new scripts and styles are still loading",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2001,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-05T07:24:30.890Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "pending-assets",
+                      "contentType": "application/json",
+                      "body": "WwogIHsKICAgICJ0eXBlIjogInNjcmlwdCIsCiAgICAidXJsIjogImh0dHA6Ly8xMjcuMC4wLjE6MzY5NC9fbmV4dC9zdGF0aWMvY2h1bmtzL2NvbXBvbmVudHNfcmVzZWFyY2hsYWJfUmVzZWFyY2hTY2VuZV90c3hfMGpuZmw2Ny5fLmpzIgogIH0sCiAgewogICAgInR5cGUiOiAic2NyaXB0IiwKICAgICJ1cmwiOiAiaHR0cDovLzEyNy4wLjAuMTozNjk0L19uZXh0L3N0YXRpYy9jaHVua3MvXzBwbDVzZGouXy5qcyIKICB9LAogIHsKICAgICJ0eXBlIjogInNjcmlwdCIsCiAgICAidXJsIjogImh0dHA6Ly8xMjcuMC4wLjE6MzY5NC9fbmV4dC9zdGF0aWMvY2h1bmtzL2NvbXBvbmVudHNfcmVzZWFyY2hsYWJfQWRtaXR0ZWRPcHRpb25zUmVzZWFyY2hMYWJfdHN4XzB4MHRfejcuXy5qcyIKICB9Cl0="
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/tree/terminal/.next/options-turbopack-gate-r4-20261105/options-deeplink-Options-c-0259e-nd-styles-are-still-loading-desktop/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "499d798c04fba4fb76cd-06119a1b88c9594c9a3e",
+          "file": "options-deeplink.spec.ts",
+          "line": 138,
+          "column": 5
+        },
+        {
+          "title": "Options follows query navigation and Back/Forward while retaining visited desks",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2252,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-05T07:24:33.599Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/tree/terminal/.next/options-turbopack-gate-r4-20261105/options-deeplink-Options-f-731cd-ile-retaining-visited-desks-tablet/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "499d798c04fba4fb76cd-3a7019b08323ce141c4c",
+          "file": "options-deeplink.spec.ts",
+          "line": 87,
+          "column": 5
+        },
+        {
+          "title": "Options can leave Exposure while new scripts and styles are still loading",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1500,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-05T07:24:36.251Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "pending-assets",
+                      "contentType": "application/json",
+                      "body": "WwogIHsKICAgICJ0eXBlIjogInNjcmlwdCIsCiAgICAidXJsIjogImh0dHA6Ly8xMjcuMC4wLjE6MzY5NC9fbmV4dC9zdGF0aWMvY2h1bmtzL2NvbXBvbmVudHNfMTJ3cjZiXy5fLmpzIgogIH0sCiAgewogICAgInR5cGUiOiAic2NyaXB0IiwKICAgICJ1cmwiOiAiaHR0cDovLzEyNy4wLjAuMTozNjk0L19uZXh0L3N0YXRpYy9jaHVua3MvbGliXzF6ZTVxeXYuXy5qcyIKICB9LAogIHsKICAgICJ0eXBlIjogInNjcmlwdCIsCiAgICAidXJsIjogImh0dHA6Ly8xMjcuMC4wLjE6MzY5NC9fbmV4dC9zdGF0aWMvY2h1bmtzL2NvbXBvbmVudHNfZ2V4ZGVza18xNWJydG5vLl8uanMiCiAgfSwKICB7CiAgICAidHlwZSI6ICJzY3JpcHQiLAogICAgInVybCI6ICJodHRwOi8vMTI3LjAuMC4xOjM2OTQvX25leHQvc3RhdGljL2NodW5rcy9jb21wb25lbnRzX2V4cG9zdXJlLW1hcF8xY2h2ZXBrLl8uanMiCiAgfSwKICB7CiAgICAidHlwZSI6ICJzY3JpcHQiLAogICAgInVybCI6ICJodHRwOi8vMTI3LjAuMC4xOjM2OTQvX25leHQvc3RhdGljL2NodW5rcy9jb21wb25lbnRzXzBnel94MnUuXy5qcyIKICB9LAogIHsKICAgICJ0eXBlIjogInNjcmlwdCIsCiAgICAidXJsIjogImh0dHA6Ly8xMjcuMC4wLjE6MzY5NC9fbmV4dC9zdGF0aWMvY2h1bmtzL2NvbXBvbmVudHNfZ2V4ZGVza19HZXhEZXNrVmlld190c3hfMHgwdF96Ny5fLmpzIgogIH0KXQ=="
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/tree/terminal/.next/options-turbopack-gate-r4-20261105/options-deeplink-Options-c-19c3c-nd-styles-are-still-loading-tablet/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "499d798c04fba4fb76cd-80b50aac8e048947dbf0",
+          "file": "options-deeplink.spec.ts",
+          "line": 138,
+          "column": 5
+        },
+        {
+          "title": "Options can leave Research Lab while new scripts and styles are still loading",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2207,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-05T07:24:38.032Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "pending-assets",
+                      "contentType": "application/json",
+                      "body": "WwogIHsKICAgICJ0eXBlIjogInNjcmlwdCIsCiAgICAidXJsIjogImh0dHA6Ly8xMjcuMC4wLjE6MzY5NC9fbmV4dC9zdGF0aWMvY2h1bmtzL2NvbXBvbmVudHNfcmVzZWFyY2hsYWJfUmVzZWFyY2hTY2VuZV90c3hfMGpuZmw2Ny5fLmpzIgogIH0sCiAgewogICAgInR5cGUiOiAic2NyaXB0IiwKICAgICJ1cmwiOiAiaHR0cDovLzEyNy4wLjAuMTozNjk0L19uZXh0L3N0YXRpYy9jaHVua3MvXzBwbDVzZGouXy5qcyIKICB9LAogIHsKICAgICJ0eXBlIjogInNjcmlwdCIsCiAgICAidXJsIjogImh0dHA6Ly8xMjcuMC4wLjE6MzY5NC9fbmV4dC9zdGF0aWMvY2h1bmtzL2NvbXBvbmVudHNfcmVzZWFyY2hsYWJfQWRtaXR0ZWRPcHRpb25zUmVzZWFyY2hMYWJfdHN4XzB4MHRfejcuXy5qcyIKICB9Cl0="
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/tree/terminal/.next/options-turbopack-gate-r4-20261105/options-deeplink-Options-c-0259e-nd-styles-are-still-loading-tablet/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "499d798c04fba4fb76cd-0bb8561e8cae943c583b",
+          "file": "options-deeplink.spec.ts",
+          "line": 138,
+          "column": 5
+        },
+        {
+          "title": "Options follows query navigation and Back/Forward while retaining visited desks",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1943,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-05T07:24:41.138Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/tree/terminal/.next/options-turbopack-gate-r4-20261105/options-deeplink-Options-f-731cd-ile-retaining-visited-desks-mobile/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "499d798c04fba4fb76cd-441b596e7a56feb341e1",
+          "file": "options-deeplink.spec.ts",
+          "line": 87,
+          "column": 5
+        },
+        {
+          "title": "Options can leave Exposure while new scripts and styles are still loading",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1256,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-05T07:24:43.520Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "pending-assets",
+                      "contentType": "application/json",
+                      "body": "WwogIHsKICAgICJ0eXBlIjogInNjcmlwdCIsCiAgICAidXJsIjogImh0dHA6Ly8xMjcuMC4wLjE6MzY5NC9fbmV4dC9zdGF0aWMvY2h1bmtzL2NvbXBvbmVudHNfMTJ3cjZiXy5fLmpzIgogIH0sCiAgewogICAgInR5cGUiOiAic2NyaXB0IiwKICAgICJ1cmwiOiAiaHR0cDovLzEyNy4wLjAuMTozNjk0L19uZXh0L3N0YXRpYy9jaHVua3MvbGliXzF6ZTVxeXYuXy5qcyIKICB9LAogIHsKICAgICJ0eXBlIjogInNjcmlwdCIsCiAgICAidXJsIjogImh0dHA6Ly8xMjcuMC4wLjE6MzY5NC9fbmV4dC9zdGF0aWMvY2h1bmtzL2NvbXBvbmVudHNfZ2V4ZGVza18xNWJydG5vLl8uanMiCiAgfSwKICB7CiAgICAidHlwZSI6ICJzY3JpcHQiLAogICAgInVybCI6ICJodHRwOi8vMTI3LjAuMC4xOjM2OTQvX25leHQvc3RhdGljL2NodW5rcy9jb21wb25lbnRzX2V4cG9zdXJlLW1hcF8xY2h2ZXBrLl8uanMiCiAgfSwKICB7CiAgICAidHlwZSI6ICJzY3JpcHQiLAogICAgInVybCI6ICJodHRwOi8vMTI3LjAuMC4xOjM2OTQvX25leHQvc3RhdGljL2NodW5rcy9jb21wb25lbnRzXzBnel94MnUuXy5qcyIKICB9LAogIHsKICAgICJ0eXBlIjogInNjcmlwdCIsCiAgICAidXJsIjogImh0dHA6Ly8xMjcuMC4wLjE6MzY5NC9fbmV4dC9zdGF0aWMvY2h1bmtzL2NvbXBvbmVudHNfZ2V4ZGVza19HZXhEZXNrVmlld190c3hfMHgwdF96Ny5fLmpzIgogIH0KXQ=="
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/tree/terminal/.next/options-turbopack-gate-r4-20261105/options-deeplink-Options-c-19c3c-nd-styles-are-still-loading-mobile/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "499d798c04fba4fb76cd-6b5d88a8c29f3863b983",
+          "file": "options-deeplink.spec.ts",
+          "line": 138,
+          "column": 5
+        },
+        {
+          "title": "Options can leave Research Lab while new scripts and styles are still loading",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1687,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-05T07:24:44.907Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "pending-assets",
+                      "contentType": "application/json",
+                      "body": "WwogIHsKICAgICJ0eXBlIjogInNjcmlwdCIsCiAgICAidXJsIjogImh0dHA6Ly8xMjcuMC4wLjE6MzY5NC9fbmV4dC9zdGF0aWMvY2h1bmtzL2NvbXBvbmVudHNfcmVzZWFyY2hsYWJfUmVzZWFyY2hTY2VuZV90c3hfMGpuZmw2Ny5fLmpzIgogIH0sCiAgewogICAgInR5cGUiOiAic2NyaXB0IiwKICAgICJ1cmwiOiAiaHR0cDovLzEyNy4wLjAuMTozNjk0L19uZXh0L3N0YXRpYy9jaHVua3MvXzBwbDVzZGouXy5qcyIKICB9LAogIHsKICAgICJ0eXBlIjogInNjcmlwdCIsCiAgICAidXJsIjogImh0dHA6Ly8xMjcuMC4wLjE6MzY5NC9fbmV4dC9zdGF0aWMvY2h1bmtzL2NvbXBvbmVudHNfcmVzZWFyY2hsYWJfQWRtaXR0ZWRPcHRpb25zUmVzZWFyY2hMYWJfdHN4XzB4MHRfejcuXy5qcyIKICB9Cl0="
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/tree/terminal/.next/options-turbopack-gate-r4-20261105/options-deeplink-Options-c-0259e-nd-styles-are-still-loading-mobile/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "499d798c04fba4fb76cd-bc2417dd719f635a48f9",
+          "file": "options-deeplink.spec.ts",
+          "line": 138,
+          "column": 5
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-05T07:24:14.329Z",
+    "duration": 32462.086999999996,
+    "expected": 9,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

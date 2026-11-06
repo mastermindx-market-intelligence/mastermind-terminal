@@ -1,0 +1,20 @@
+{
+  "reason": "Remove disposable preview-only verification shims; use exact canonical Options capture inputs. Prior proof/source maps remain unchanged.",
+  "files": [
+    {
+      "path": "terminal/e2e/globalSetup.ts",
+      "preview_before": "a721b6c5932252dd5b29efcbb2b0c04b27eba36cfb4563634b4d9b6440ab4892",
+      "canonical_after": "c2fbd4f02bb93d40f4cf9b5a80f302e11adeecd0e32a54d1d11cd9aad72a886b"
+    },
+    {
+      "path": "terminal/package.json",
+      "preview_before": "9583a0dcd8cc232ea92dd4185de32e269d939477422962cb249b79da8279db6c",
+      "canonical_after": "49a5d19c384aa136867ae093093c303aa49c8f5078ac6e59b8a5a3ea88e3f59e"
+    },
+    {
+      "path": "terminal/playwright.config.ts",
+      "preview_before": "de74d9150283eb9dd5243b57c4ee597171d50f328be749d6c43ba8287a6f4525",
+      "canonical_after": "bb09d98f2bf2647a1975dac07a0e85ab673473986145a1db0d30f22d38e5c076"
+    }
+  ]
+}

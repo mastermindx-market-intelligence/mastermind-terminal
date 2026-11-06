@@ -1,0 +1,63 @@
+{
+  "schema": "options_native_visual_review.v1",
+  "capture_revision": "options-navigation-r4",
+  "recorded_at": "2026-11-05T08:11:04.617725+00:00",
+  "method": "Actual image inspection in this root session and read-only delegated inspection; no optional reviewer gate.",
+  "image_count": 35,
+  "images": {
+    "gex/gex-ladder-unavailable-1440-zh.png": "a5664fb748a1bc49a83fd3f471894e75a0cd4f6c06fed51163367736988778be",
+    "gex/gex-ladder-unavailable-1440.png": "ee946ba908ba2738d261f26fdb23e0b0b37f286e13338a3f2728cc800e79bf33",
+    "gex/gex-ladder-retried-1440-zh.png": "ebaa7b4a639f5932d45a2c5d6222ed9d4e75e14f38bf0b827fc3a76bc417e1cf",
+    "gex/gex-ladder-retried-1440.png": "ba77f4fb7f4073be02f3847043a3f2f9ce60ad35bb33f70e65ffe95db7cc4762",
+    "gex/gex-rail-unavailable-1440-zh.png": "2bb9942b36a49559421a8f50b5925dc3ee2fe8daf36d9322355298f2dd4bc5ad",
+    "gex/gex-rail-retried-1440-zh.png": "b66d18b87827834848b1d67a2a7fe9053f9c62fae24593f5477bbadfc3ced223",
+    "gex/gex-live-refresh-failed-1440-zh.png": "d4b925e8b68e9e8d67674c83c8a85e783db60f00ccd51dc1bb7cbcc56535408d",
+    "gex/gex-live-retried-1440-zh.png": "27b0f33bdbf597be47fc2d764b0764a6a0db86652d8da67487ba4991afd49eb4",
+    "gex/levels-unavailable-1440-zh.png": "c657ddc3dceef6e3dfefe5d5f52d26782c0344873d762a56b2d0dddd189d83cb",
+    "gex/levels-retried-1440-zh.png": "f48adbf6e76e10beb6f453338ce6cbd7206ef1720185f6e641431249b900c6b6",
+    "gex/levels-refresh-failed-1440-zh.png": "a57164b2fada3b229d2b4f5a887c35ad1b20c430391fbf091def8d4115a4589f",
+    "gex/heatmap-unavailable-1440-zh.png": "31b3b5daf17811c3c4a0fbc96a5f005954780346fa64426ccaaf8f66943942bc",
+    "gex/heatmap-retried-1440-zh.png": "2fe3de85f078ec2dbd8ec7f2c9ec1f9126526e5edd7655b785b0c2cd66a1eea5",
+    "gex/heatmap-persisted-refresh-failed-1440.png": "c2208806519498f942f3281751d052918256ec225fa25fe29e7c3ba6c2486960",
+    "gex/heatmap-persisted-retried-1440.png": "59c153ba4a1f381b10a89e667380a1a460a28f067ce0d9b4d3dadf608ee85283",
+    "gex/gex-ladder-unavailable-390-zh.png": "9478e50211437330330f29fa65e0d86a2df138b3a09558872241a9b037ded796",
+    "gex/gex-ladder-retried-390-zh.png": "14f1f048d03f1f1c98b8bb1ceb41c77acc82e2886a127b9b13cc47c29cef065c",
+    "gex/gex-live-refresh-failed-390-zh.png": "520ab385ded6547c2294cd12a9355fce3d0d06c18b517dab181405e64eb180bc",
+    "gex/gex-live-retried-390-zh.png": "0ddcb94c00224661cdb1f25f2a8acd2317c23933a931eb84ecf3e5927fe88a83",
+    "gex/levels-unavailable-390-zh.png": "189cdb968950fc9db8b04bf390a32a36b98fac802d907ff72f2e28667bbd2fdb",
+    "gex/levels-retried-390-zh.png": "38877cfb4dfdd90a7779811034a470969663f85d69a6f7fbe1d29f9dc5fd3a32",
+    "gex/gex-ladder-retried-820.png": "c231ea75720550d73eb23ee8c30a8dbaebd077f6f2b0de223322362d2826d38b",
+    "gex/heatmap-persisted-refresh-failed-820-zh.png": "db1cbe7ccdf04e2fcff7ee19278c7de575c1f07ffa3b6f74e05317cde430dc27",
+    "eod/chainheat-unavailable-390-zh.png": "4a25307531d5196b0bb63ce660cb9f3d5550dc3fda87579956f086aa6dcaede8",
+    "eod/chainheat-retried-390-zh.png": "2ad7c549c1904be20f39b499cd0e8881a4a631c9b1dea2d72a7a00a52b10e11a",
+    "eod/eod-structure-unavailable-390-zh.png": "0c678f0cfe6b7484c40634101bd7c3342b4253c405f25d819fc51fb88cc603de",
+    "eod/eod-structure-partial-390-zh.png": "dbc790b049fec4038280afa0415e373e3619247358bf599d1c44e75be7ba51ab",
+    "eod/heatmap-flow-unavailable-390-zh.png": "864cd64392d1cf834528f2ef1c1a913332795b453bdc2050dd5a15ab95ef2039",
+    "eod/heatmap-flow-retried-390-zh.png": "7739de40ed836b72a222a912cc2f08fa1d2066c8aa597dba2970fdb994475473",
+    "eod/heatmap-flow-persisted-refresh-failed-390-zh.png": "22111cc2dc25e5e23e12c54898640611aae93c4c256cc329b69fc98d2cde4d15",
+    "eod/heatmap-flow-persisted-retried-390-zh.png": "7739de40ed836b72a222a912cc2f08fa1d2066c8aa597dba2970fdb994475473",
+    "eod/eod-darkpool-unavailable-820-zh.png": "07f391c6babe9740ee83f062cc7eddf110a9d650687cf697db0525983b260f7a",
+    "eod/eod-darkpool-retried-820-zh.png": "ed4e688b98c0139b8bc07a239122c7d1decbcbad0bada90ad9d822bbd252cd7d",
+    "eod/chainheat-refresh-failed-820.png": "49fe10b83a18abe65e9a9ebc4c9dc777a9f28b8da5d6ba6d1c30e0f98a996c25",
+    "eod/heatmap-flow-auth-820-zh.png": "ae8afabda5eb08d696975e3f63b439424ae1ea00bbb452ae8e2e0f7bd987f74a"
+  },
+  "viewports": [
+    1440,
+    820,
+    390
+  ],
+  "languages": [
+    "en",
+    "zh"
+  ],
+  "theme": "dark",
+  "result": "No blocking clipping, overlapping controls, hidden Retry, or misleading recovery state in the inspected component sample.",
+  "source_freshness": "Recovered GEX retains the aged-read warning; recovered Chain Heat remains historical with its measured age; persisted data stays explicitly marked after refresh failure.",
+  "partial_and_permission_states": "Partial EOD fields keep valid values and identify failed reads separately; Flow permission state explains the price-only fallback.",
+  "known_nonblocking_gap": "The existing Levels positive dealer-gamma explanatory paragraph remains English in ZH while translated labels and controls fit. This was also present in prior r3 review.",
+  "scope_limits": [
+    "Component screenshots are not full-page journey proof.",
+    "Static review does not replace keyboard, functional Retry, focus, or measured contrast verification.",
+    "The Terminal application remains dark-only; accepted light Paper studies are not claimed as a global application theme."
+  ]
+}

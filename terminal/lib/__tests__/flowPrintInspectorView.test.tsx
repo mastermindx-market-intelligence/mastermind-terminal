@@ -94,6 +94,12 @@ describe("PrintInspector (view)", () => {
   it("renders identity, premium arithmetic, side estimate with method and the not-supplied clocks", () => {
     const text = renderAt(<PrintInspector event={E1} lang="en" oiAsOf="2026-10-20" />);
     expect(container?.querySelector('[data-testid="flow-print-inspector"]')).not.toBeNull();
+    const detail = container!.querySelector("details")!;
+    expect(detail.open).toBe(false);
+    expect(container!.querySelector("strong")?.textContent).toBe("Bought · estimate");
+    expect(detail.textContent).toContain("receipt not supplied by the flow owner");
+    act(() => detail.querySelector("summary")!.click());
+    expect(detail.open).toBe(true);
     // Identity: strike without trailing zeros, expiry as the neighbours format it.
     expect(text).toContain("SELECTED PRINT");
     expect(text).toContain("AAPL 230 C · Oct 23, 2026");

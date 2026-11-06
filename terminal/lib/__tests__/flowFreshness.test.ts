@@ -11,6 +11,7 @@ import {
   formatObservedCycle,
   parseLiveFlowMetaTiming,
   usOptionsSessionState,
+  usOptionsMarketClock,
 } from "@/lib/flowFreshness";
 
 const META_V2 = {
@@ -171,4 +172,11 @@ describe("fixture contract", () => {
     expect(JSON.stringify(flowFixture.meta)).not.toContain("cadence_sec_target");
     expect(JSON.stringify(flowFixture.meta)).not.toContain("cadence_sec_measured");
   });
+});
+
+it("separates the exchange clock from the published session date", () => {
+  const now = new Date("2026-11-02T16:03:00Z");
+  expect(usOptionsMarketClock(now)).toEqual({ date: "2026-11-02", open: true });
+  expect(usOptionsSessionState("2026-10-30", now)).toBe("last_session");
+  expect(usOptionsMarketClock(new Date("2126-01-02T17:00:00Z"))).toBeNull();
 });

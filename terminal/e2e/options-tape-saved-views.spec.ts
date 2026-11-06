@@ -98,8 +98,10 @@ for (const lang of ["en", "zh"] as const) {
     await library.click();
     await panel(page).getByRole("button", { name: `${lang === "zh" ? "打开" : "Open"} NVDA · 期权观察 👩‍💻`, exact: true }).click();
     await expect(exporter).toContainText("2");
-    const refreshed = await rowValues(page);
-    expect(refreshed.map((row) => row[9])).toEqual(["$2.0M", "$2.5M"]);
+    // The phone layout places quantity below premium; verify the primary amounts in sorted order.
+    const premiums = await rows(page).locator("td:nth-child(10)").evaluateAll(cells =>
+      cells.map(cell => cell.firstChild?.textContent?.trim()));
+    expect(premiums).toEqual(["$2.0M", "$2.5M"]);
     await library.click();
     await panel(page).getByRole("button", { name: `${lang === "zh" ? "重命名" : "Rename"} SPY watch`, exact: true }).click();
     await panel(page).getByRole("textbox").fill("SPY intraday");

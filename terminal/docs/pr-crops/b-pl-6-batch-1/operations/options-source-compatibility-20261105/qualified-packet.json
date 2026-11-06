@@ -1,0 +1,12 @@
+{
+  "schema": "options_visual_packet.v1",
+  "kind": "pl6",
+  "operation": "options-source-compatibility-20261105",
+  "receipt": "capture-receipt.json",
+  "receiptSha256": "741a0f15ad24b414140b8f94e3df19369825af5c2f3b5fd7aaa416fd56c46087",
+  "manifest": "qualified-root/EVIDENCE.yml",
+  "manifestSha256": "5d26bf26d26b9cc11e066bea64c98e862dbe099ad5469b796a7f391bd4352d10",
+  "sourceBeforeSha256": "9477eda308f33e4d7d48b6a88f1a7ca19e33d8635bd80ef42618f8e4c62aaf32",
+  "sourceAfterSha256": "9477eda308f33e4d7d48b6a88f1a7ca19e33d8635bd80ef42618f8e4c62aaf32",
+  "inventoryReconciliationSha256": "3eb6a61eb21cfbc44db6a167f25a65d6629601c2b8b87ab458feaa06e45df50e"
+}

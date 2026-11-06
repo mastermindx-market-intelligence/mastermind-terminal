@@ -239,6 +239,13 @@ priorTiingo24hConsumerRecapture:
   refreshedFiles: [ChartChrome-1440.png, ChartChrome-1440-zh.png, ChartChrome-390.png, ChartChrome-390-zh.png]
   overnightRefreshHarness: The changed harness was actually run for the retained Tiingo cold-first-paint evidence; source hash updated without altering earlier qualification records.
 
+# Current Options visual qualification; protected baseline is retained.
+optionsVisualSourceCompatibility20261105:
+  protectedBase: "11531481b0a540ee96bcd86df418fd1e42715363"
+  priorPublishedHead: "98ffa891116ccc9e6be58a64148dbe45591e6ce8"
+  qualifiedPacket: "operations/options-source-compatibility-20261105/revisions/options-navigation-r4/qualified-packet.json"
+  qualifiedPacketSha256: "d221de01f8061aa1d36e3cd1d6ffc28a0821551fab5de850edd7e1161421c36c"
+
 currentLocalGates:
   sourceHead: 2aaa2be13ab1e026aa437cf3e89be8fe04b7415a
   integratedMaster: d9ec4d2b86e9e9e0129d7fcd4c646f25f7670c49

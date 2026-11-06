@@ -1,0 +1,13 @@
+{
+  "schema": "original_options_joint_native_promotion.v1",
+  "native_passed": 114,
+  "native_failed": 0,
+  "source_count": 303,
+  "source_contract_sha256": "427c9fcec7a8c53da0c65e62190e7785aea9bd28183be474efaf991f6f558dc1",
+  "current_capture_receipt_sha256": "45c6bf7bd7be9612a546e82593257c8afc2aae323aa68050da753a3146bf5bcc",
+  "predecessor_receipt_sha256": "a347586737e8ec83ade6a40f3139770dbc54f0298a6a26f83e7cd3214a16f7d0",
+  "one_current_native_run": true,
+  "runtime_profiles_share_exercised_sources": true,
+  "entire_application_identity_claimed": false,
+  "prior_root_and_protected_root_retained": true
+}

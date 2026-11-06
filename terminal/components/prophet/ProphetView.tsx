@@ -554,6 +554,7 @@ export function AnalysisPanel({
             className="obs-tag"
             style={{ ...DIR_BADGE, "--c": dirColor } as React.CSSProperties}
           >
+            {phase === "invalidated" && (lang === "zh" ? "原方向 · " : "Original · ")}
             {isBear ? `▼ ${t("bear")}` : `▲ ${t("bull")}`}
           </span>
           {phaseLabel && (
@@ -610,20 +611,6 @@ export function AnalysisPanel({
         </div>
       )}
 
-      {/* ── Trade geometry price rail ── */}
-      <div style={{ marginBottom: 14 }}>
-        <GeometryRail
-          direction={plan.direction}
-          entry={plan.entry}
-          stop={plan.invalidation}
-          t1={t1}
-          t2={t2}
-          last={plan.last_price ?? null}
-          geometry={geometry}
-          lang={lang}
-        />
-      </div>
-
       {/* ── WHAT TO DO NOW ── */}
       {whatToDo && whatToDo.length > 0 && (
         <div style={SECTION_BOX} className="obs-card obs-prophet-section obs-prophet-section-primary">
@@ -641,6 +628,20 @@ export function AnalysisPanel({
           </ol>
         </div>
       )}
+
+      {/* ── Trade geometry price rail ── */}
+      <div style={{ marginBottom: 14 }}>
+        <GeometryRail
+          direction={plan.direction}
+          entry={plan.entry}
+          stop={plan.invalidation}
+          t1={t1}
+          t2={t2}
+          last={plan.last_price ?? null}
+          geometry={geometry}
+          lang={lang}
+        />
+      </div>
 
       {/* ── PROFIT TAKING PLAN ── */}
       {profitPlan && profitPlan.length > 0 && (

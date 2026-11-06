@@ -16,6 +16,7 @@
  * All copy lives in flowdeskStrings.ts (FD); all math lives in flowPrintInspector.ts.
  */
 
+import styles from "./EvidenceDisclosure.module.css";
 import { fmtDate, pick } from "@/lib/finFormat";
 import { gaugeMissingPrints } from "@/lib/flowdeskStrings";
 import type { Lang } from "@/lib/i18n";
@@ -77,47 +78,30 @@ export function PrintInspector({ event, lang, oiAsOf = null }: PrintInspectorPro
 
   return (
     <div className="obs-insp-section obs-print" data-testid="flow-print-inspector">
-      <div className="obs-insp-section-label obs-lbl">{s.eyebrow}</div>
-
-      {/* 1 · Identity */}
-      <div className="obs-print-identity num">{identity}</div>
-
-      {/* 2 · Clocks — the owner carries only the event time */}
-      <div className="obs-print-line">
-        {s.eventLabel} <span className="num">{formatEventClock(view.eventTs)}</span>
-        {" · "}{s.receiptNotSupplied}
-        {" · "}{s.exchCondNotSupplied}
+      <div className={styles.printSummary}>
+        <div><strong>{sideLabel}</strong><span>{methodLine}</span></div>
+        <div><strong className="num">{Number.isFinite(view.avgPrice) ? formatPrintPrice(view.avgPrice) : "—"}</strong><span>{pick(lang === "zh", "Average price", "平均成交价")}</span></div>
       </div>
+      {!view.arithmeticReproduces && <div className={styles.warning} role="note">{premiumLine}</div>}
+      {view.ratio && <div className={styles.activity}>{activityLine}</div>}
 
-      {/* 3 · Premium with the multiplier shown */}
-      <div className="obs-print-line obs-print-premium num">{premiumLine}</div>
-
-      {/* 4 · Side — a named-method estimate, no direction colour */}
-      <div className="obs-print-block">
-        <div className="obs-print-hd obs-lbl">{s.sideHeading}</div>
-        <div className="obs-print-side">{sideLabel}</div>
-        <div className="obs-print-sub">{methodLine}</div>
-        <div className="obs-print-sub">{s.confidenceNotSupplied}</div>
-      </div>
-
-      {/* 5 · Lineage + quote context — not supplied by this owner */}
-      <div className="obs-print-block">
-        <div className="obs-print-hd obs-lbl">{s.lineageHeading}</div>
-        <div className="obs-print-sub">{s.lineageNotSupplied}</div>
-        <div className="obs-print-sub">{s.quoteNotSupplied}</div>
-      </div>
-
-      {/* 6 · Packages — no package source is admitted */}
-      <div className="obs-print-block">
-        <div className="obs-print-hd obs-lbl">{s.packagesHeading}</div>
-        <div className="obs-print-sub">{s.packagesNone}</div>
-      </div>
-
-      {/* 7 · Contracts-over-prior-OI — a dated comparison, never a direction */}
-      <div className="obs-print-block">
-        <div className="obs-print-hd obs-lbl">{s.activityHeading}</div>
-        <div className="obs-print-sub num">{activityLine}</div>
-      </div>
+      <details key={view.id} className={styles.disclosure}>
+        <summary>{pick(lang === "zh", "Print evidence", "成交依据")}</summary>
+        <div className={styles.evidence}>
+          <div className="obs-print-hd obs-lbl">{s.eyebrow}</div>
+          <div className="obs-print-identity num">{identity}</div>
+          <div>{s.eventLabel} <span className="num">{formatEventClock(view.eventTs)}</span></div>
+          {view.arithmeticReproduces && <div className="obs-print-premium num">{premiumLine}</div>}
+          <div>{s.receiptNotSupplied} · {s.exchCondNotSupplied}</div>
+          <div className="obs-print-hd obs-lbl">{s.sideHeading}</div>
+          <div>{s.confidenceNotSupplied}</div>
+          <div className="obs-print-hd obs-lbl">{s.lineageHeading}</div>
+          <div>{s.lineageNotSupplied} · {s.quoteNotSupplied}</div>
+          <div className="obs-print-hd obs-lbl">{s.packagesHeading}</div>
+          <div>{s.packagesNone}</div>
+          {!view.ratio && <div>{activityLine}</div>}
+        </div>
+      </details>
     </div>
   );
 }

@@ -231,13 +231,11 @@ async function captureLevelsView(page, width, lang, outPath) {
 
 async function captureLevelsLearn(page, width, lang, outPath) {
   await gotoReady(page, "/learn", lang);
-  const hero = page.locator("h1").first();
-  await hero.waitFor({ state: "visible", timeout: 20_000 });
+  // A cached static article can paint before its saved locale hydrates.
+  // Require the actual localized heading, including on a cold browser context.
   const needle = lang === "zh" ? "伽马天气图" : "The gamma weather map";
-  const text = ((await hero.textContent()) || "").trim();
-  if (!text.includes(needle)) {
-    throw new Error(`${outPath}: expected learn hero ${needle}, got ${text}`);
-  }
+  await page.getByRole("heading", { level: 1, name: new RegExp(needle) })
+    .waitFor({ state: "visible", timeout: 20_000 });
   const main = page.locator("main").first();
   await cropLocator(page, main, outPath, 12);
 }

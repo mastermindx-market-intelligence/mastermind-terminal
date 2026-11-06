@@ -1,0 +1,6 @@
+{
+  "phase": "new Lab falsifier added; runtime unchanged",
+  "before_sha256": "2e50573d4b310b304a5fc5aa3c0712ddcd666c08e920623023c8dd9fcb32f845",
+  "after_sha256": "22cd1f9d796540e074d3d5c27a09bee872907598bfef1da20af8d3ae2b5cc4ed",
+  "both_profiles_identical": true
+}

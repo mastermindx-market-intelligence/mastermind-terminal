@@ -1,0 +1,12 @@
+{
+  "schema": "options_exposure_packet.v1",
+  "kind": "eod",
+  "profile": "combined",
+  "operation": "combined-source-compatibility-20261105",
+  "captureRevision": "options-navigation-r4",
+  "receipt": "capture-receipt.json",
+  "receiptSha256": "f3997e23542a5244db67330d65df13b4ed7f27a4bf69190257c0cd8963208377",
+  "manifest": "qualified-root/EVIDENCE.yml",
+  "manifestSha256": "b5c6cef5f59b6a7ba11b54d4baee982626cccdb9b293e7627a5e2e3270642b88",
+  "previousPacketInventorySha256": "4515093ab9ba4915341a7e163dd4623c4b2698368f4d1988e3d3a8c89135cb42"
+}

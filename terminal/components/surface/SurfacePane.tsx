@@ -32,7 +32,9 @@
  * gutter) zooms continuously between them.
  */
 
+import ui from "./SurfaceWorkspace.module.css";
 import React, {
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -69,7 +71,9 @@ import {
   removeHostedLines,
   topOiChangeStrikes,
   type SurfaceFrame,
-  type MatrixCell,
+  matrixForSurfaceObservation,
+  readSurfaceExpiryMatrix,
+  type SurfaceExpiryMatrix,
 } from "@/lib/surfaceContract";
 import { filterBarsToSessionDate, sessionEpoch, type Bar6 } from "@/lib/intradayShared";
 import { useReplay } from "./replayContext";
@@ -248,15 +252,26 @@ function strikeWindow(levels: number[], spot?: number | null): [number, number] 
   return [min - padding, max + padding];
 }
 
-interface Readout { strike: number; value: number }
+function nearestStrikeIndex(levels: readonly number[], price: number | null): number {
+  let nearest = -1, best = Infinity;
+  for (const [index, level] of levels.entries()) {
+    if (!Number.isFinite(level)) continue;
+    if (price == null || !Number.isFinite(price)) return index;
+    const distance = Math.abs(level - price);
+    if (distance < best) { nearest = index; best = distance; }
+  }
+  return nearest;
+}
+
+interface Readout { strike: number; value: number | null }
 
 /** A hovered strike row: the level, its index, the active-metric value, all-greek values
  *  at the current stamp, and the screen point to anchor the popover to. */
 interface StrikeHover {
   strike: number;
-  strikeIdx: number;
+  observedTime: string;
   pctFromSpot: number | null;
-  active: { key: Metric; value: number };
+  active: { key: Metric; value: number | null };
   others: { key: Metric; value: number }[]; // other metrics present in this frame's grids
   x: number; // clientX for the fixed popover
   y: number; // clientY
@@ -321,7 +336,7 @@ export function SurfacePane({
   // setHover). A stable function identity across a lang-unchanged render fixes it.
   const t = useMemo(() => makeSurfaceT(lang), [lang]);
   const gexT = useMemo(() => makeGexT(lang), [lang]);
-  const { state: replayState, asOfStamp, live, sessionDate, archived, indexDate, indexError, frameRevision, sourceRevision } = useReplay();
+  const { state: replayState, dispatch, asOfStamp, live, sessionDate, archived, indexDate, indexError, frameRevision, sourceRevision } = useReplay();
   const sync = useSurfaceSync();
   const isCell = chrome === "cell";
   // Nightly-derived overlays (Levels / regime / OI Δ) never truncate or interpolate to the
@@ -335,6 +350,17 @@ export function SurfacePane({
   const [metricState, setMetricState] = useState<Metric>("netprem");
   const metric: Metric = fixedMetric ?? metricState;
   const [aggMin, setAggMin] = useState<number>(5);
+  const settingsRef = useRef<HTMLDetailsElement>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  useEffect(() => {
+    if (!settingsOpen) return;
+    const closeOutside = (event: PointerEvent) => {
+      const details = settingsRef.current;
+      if (details && !details.contains(event.target as Node)) details.open = false;
+    };
+    document.addEventListener("pointerdown", closeOutside);
+    return () => document.removeEventListener("pointerdown", closeOutside);
+  }, [settingsOpen]);
   const [opacity, setOpacity] = useState<number>(1);
   const [rangeQ, setRangeQ] = useState<number>(80);
   const [frameResult, setFrameResult] = useState<{ root: string; stamp: string; data: SurfaceFrame } | null>(null);
@@ -357,10 +383,26 @@ export function SurfacePane({
   const [loading, setLoading] = useState(true);
   // Strike hover popover (RECON §4.2): the row under the crosshair + its screen anchor.
   const [hover, setHover] = useState<StrikeHover | null>(null);
-  // Intraday-Evolution modal: the strike index it opened on (null = closed).
-  const [modalIdx, setModalIdx] = useState<number | null>(null);
+  // Keep the actual observation open while the live index or level ordering changes.
+  const [inspection, setInspection] = useState<{ frame: SurfaceFrame; strikeIdx: number } | null>(null);
+  const inspectButtonRef = useRef<HTMLButtonElement>(null);
+  const openInspection = useCallback((snapshot: SurfaceFrame, strikeIdx: number) => {
+    if (strikeIdx < 0 || !Number.isFinite(snapshot.price_levels[strikeIdx])) return;
+    dispatch({ type: "pause" });
+    setInspection({ frame: snapshot, strikeIdx });
+  }, [dispatch]);
+  const closeInspection = useCallback(() => {
+    setInspection(null);
+    requestAnimationFrame(() => inspectButtonRef.current?.focus({ preventScroll: true }));
+  }, []);
   // Per-strike-per-expiry cells for the modal's expiry breakdown (matrix payload; optional).
-  const [matrixCells, setMatrixCells] = useState<MatrixCell[] | null>(null);
+  const [matrix, setMatrix] = useState<SurfaceExpiryMatrix | null>(null);
+  const expiryMatrix = useMemo(
+    () => matrixForSurfaceObservation(matrix, root, inspection?.frame ?? null, archived),
+    [matrix, root, inspection, archived],
+  );
+  const matrixCells = expiryMatrix?.cells ?? null;
+  const matrixSession = expiryMatrix?.session ?? null;
 
   // ── Nightly overlays (Levels / regime chip / OI Δ) — opt-in, session-only toggles.
   // Not persisted (unlike the Contrast toggle, which lives on the theme): these mirror
@@ -396,7 +438,6 @@ export function SurfacePane({
   const opacityRef = useRef<number>(1);
   // R1.4: which day-max normalizer applyShaderRef reads — set from the `contrastMode` prop.
   const contrastRef = useRef<ContrastMode>("balanced");
-  const hoverIdxRef = useRef<number | null>(null); // latest hovered strike idx for click→modal
   // B9: the frame's time axis in display epochs, rebuilt ONCE per frame. The crosshair
   // handler used to construct one Date per session column on every mousemove (~390 for a
   // full 1-min day); it now binary-free scans this prebuilt array instead.
@@ -440,7 +481,6 @@ export function SurfacePane({
   useEffect(() => { metricRef.current = metric; }, [metric]);
   useEffect(() => { opacityRef.current = opacity; }, [opacity]);
   useEffect(() => { contrastRef.current = contrastMode; }, [contrastMode]);
-  useEffect(() => { hoverIdxRef.current = hover?.strikeIdx ?? null; }, [hover]);
   const effAggMin = aggMinOverride ?? aggMin;
   // The route slices server-side so a single-session pane does not receive 20,000 deep
   // history bars. Keep the same filter client-side as a contract boundary: a stale CDN,
@@ -607,20 +647,9 @@ export function SurfacePane({
       try {
         const data = await flowGet(`matrix:${root}`);
         if (cancelled) return;
-        const raw = (data as { cells?: unknown })?.cells;
-        if (!Array.isArray(raw)) { setMatrixCells(null); return; }
-        const cells: MatrixCell[] = [];
-        for (const c of raw) {
-          if (!c || typeof c !== "object") continue;
-          const rec = c as Record<string, unknown>;
-          const strike = Number(rec.strike);
-          const expiry = typeof rec.expiry === "string" ? rec.expiry : "";
-          const gex = Number(rec.gex);
-          if (Number.isFinite(strike) && expiry) cells.push({ strike, expiry, gex: Number.isFinite(gex) ? gex : 0 });
-        }
-        setMatrixCells(cells.length ? cells : null);
+        setMatrix(readSurfaceExpiryMatrix(data, root));
       } catch {
-        if (!cancelled) setMatrixCells(null);
+        if (!cancelled) setMatrix(null);
       }
     })();
     return () => { cancelled = true; };
@@ -739,6 +768,15 @@ export function SurfacePane({
     () => (oiChangeStore && oiChangeStore.root === root ? parseOiChangeRows(oiChangeStore.data, root) : []),
     [oiChangeStore, root],
   );
+  const oiChangeAsofDate = (() => {
+    if (!oiChangeStore || oiChangeStore.root !== root) return null;
+    const raw = (oiChangeStore.data as { asof?: unknown } | null)?.asof;
+    const s = typeof raw === "string" ? raw.slice(0, 10) : "";
+    return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : null;
+  })();
+  const surfaceDay = frame?.session_date;
+  const laterLevels = !!(surfaceDay && optLevels.asofDate && optLevels.asofDate > surfaceDay);
+  const laterOi = !!(surfaceDay && oiChangeAsofDate && oiChangeAsofDate > surfaceDay);
   const topOiStrikes = useMemo(() => topOiChangeStrikes(oiChangeCells, 5), [oiChangeCells]);
 
   // ── Intraday candles (per agg) ───────────────────────────────────────────────
@@ -833,6 +871,14 @@ export function SurfacePane({
     });
     candleSeriesRef.current = candle;
 
+    function strikeAtY(snapshot: SurfaceFrame, y: number) {
+      const price = candle.coordinateToPrice(y) ?? heat.coordinateToPrice(y);
+      if (price == null) return -1;
+      const painted = levelsRef.current;
+      const index = nearestStrikeIndex(painted, price);
+      return index < 0 ? -1 : snapshot.price_levels.indexOf(painted[index]);
+    }
+
     // Crosshair readout: nearest strike level + its amount at the crosshair time.
     chart.subscribeCrosshairMove((param: MouseEventParams) => {
       const f = frameRef.current;
@@ -846,14 +892,8 @@ export function SurfacePane({
       // Map the crosshair Y → price via the price scale. Prefer the candle series, but fall
       // back to the heat series when candles are empty (fixture / illiquid roots) — they
       // share the right price scale, and the heat field always has data when a frame loads.
-      const price = candle.coordinateToPrice(param.point.y) ?? heat.coordinateToPrice(param.point.y);
-      if (price == null) { setReadout(null); setHover(null); return; }
-      // nearest strike level to the crosshair price
-      let li = 0, best = Infinity;
-      for (let i = 0; i < f.price_levels.length; i++) {
-        const d = Math.abs(f.price_levels[i] - price);
-        if (d < best) { best = d; li = i; }
-      }
+      const li = strikeAtY(f, param.point.y);
+      if (li < 0) { setReadout(null); setHover(null); return; }
       // nearest time column to the crosshair time — scans the epochs precomputed on the
       // frame effect (B9: this loop used to allocate a Date per column per mousemove).
       const grid = f.grids[metricRef.current];
@@ -867,7 +907,8 @@ export function SurfacePane({
           if (d < bestT) { bestT = d; ti = k; }
         }
       }
-      const value = grid?.[li]?.[ti] ?? 0;
+      const cell = grid?.[li]?.[ti];
+      const value = Number.isFinite(cell) ? cell : null;
       const strike = f.price_levels[li];
       setReadout({ strike, value });
 
@@ -883,13 +924,14 @@ export function SurfacePane({
       for (const k of GREEK_KEYS) {
         if (k === metricRef.current) continue;
         const g2 = f.grids[k];
-        if (metricEnabled(f, k) && g2?.[li]) others.push({ key: k, value: g2[li][ti] ?? 0 });
+        const other = g2?.[li]?.[ti];
+        if (Number.isFinite(other)) others.push({ key: k, value: other });
       }
       const rect = el.getBoundingClientRect();
       const spot = f.spot;
       setHover({
         strike,
-        strikeIdx: li,
+        observedTime: f.time_steps[ti] ?? "",
         pctFromSpot: spot != null && spot !== 0 ? ((strike - spot) / spot) * 100 : null,
         active: { key: metricRef.current, value },
         others,
@@ -898,12 +940,34 @@ export function SurfacePane({
       });
     });
 
-    // Click a strike → open the Intraday-Evolution modal for the hovered strike row.
-    chart.subscribeClick((param: MouseEventParams) => {
-      if (!param.point) return;
-      const idx = hoverIdxRef.current;
-      if (idx != null) setModalIdx(idx);
-    });
+    // The chart groups successive touches into double taps and drops a second tap
+    // on a different strike. Recognize a short press on the plot itself; leave pan,
+    // pinch, long-press inspection and axis scaling with the chart.
+    let press: { id: number; x: number; y: number; start: number } | null = null;
+    function startPress(event: PointerEvent) {
+      press = event.isPrimary && event.button === 0
+        ? { id: event.pointerId, x: event.clientX, y: event.clientY, start: event.timeStamp } : null;
+    }
+    function cancelPress() { press = null; }
+    function movePress(event: PointerEvent) {
+      if (press?.id === event.pointerId && Math.hypot(event.clientX - press.x, event.clientY - press.y) > 8) cancelPress();
+    }
+    function endPress(event: PointerEvent) {
+      movePress(event);
+      const started = press;
+      cancelPress();
+      if (started?.id !== event.pointerId || event.timeStamp - started.start >= 500) return;
+      const snapshot = frameRef.current;
+      if (!snapshot || !metricEnabled(snapshot, metricRef.current)) return;
+      const bounds = el!.getBoundingClientRect(), pane = chart.paneSize();
+      const x = event.clientX - bounds.left, y = event.clientY - bounds.top;
+      if (x >= 0 && x < pane.width && y >= 0 && y < pane.height) openInspection(snapshot, strikeAtY(snapshot, y));
+    }
+    el.addEventListener("pointerdown", startPress, true);
+    el.addEventListener("pointermove", movePress, true);
+    el.addEventListener("pointercancel", cancelPress, true);
+    el.addEventListener("pointerleave", cancelPress);
+    el.addEventListener("pointerup", endPress, true);
 
     const ro = new ResizeObserver(() => {
       if (el && chartRef.current) {
@@ -961,6 +1025,11 @@ export function SurfacePane({
     return () => {
       ro.disconnect();
       mo.disconnect();
+      el.removeEventListener("pointerdown", startPress, true);
+      el.removeEventListener("pointermove", movePress, true);
+      el.removeEventListener("pointercancel", cancelPress, true);
+      el.removeEventListener("pointerleave", cancelPress);
+      el.removeEventListener("pointerup", endPress, true);
       el.removeEventListener("wheel", onWheel, { capture: true });
       try { chart.remove(); } catch {}
       chartRef.current = null;
@@ -982,6 +1051,7 @@ export function SurfacePane({
 
     if (!frame || !frame.grids[metric]) {
       heat.setData([]);
+      levelsRef.current = [];
       return;
     }
     const date = frame.session_date ?? new Date().toISOString().slice(0, 10);
@@ -1104,7 +1174,7 @@ export function SurfacePane({
     // removePriceLine() silently no-ops on a foreign series.
     removeHostedLines(levelLinesRef.current);
     levelLinesRef.current = [];
-    if (!levelsOn || optLevels.status !== "ok") return;
+    if (!levelsOn || laterLevels || optLevels.status !== "ok") return;
     const style: Record<OptLevelKey, { color: string; dash: number; title: string }> = {
       call_wall: { color: css("--brand-2") || "#4d82ff", dash: 0, title: t("levelCallWall") },
       put_wall: { color: css("--down") || "#f0566b", dash: 0, title: t("levelPutWall") },
@@ -1127,7 +1197,7 @@ export function SurfacePane({
            on the next data/root change. */
       }
     }
-  }, [levelsOn, optLevels, t, hasDrawnBars]);
+  }, [levelsOn, laterLevels, optLevels, t, hasDrawnBars]);
 
   // ── OI Δ toggle: badge the top-5 strikes by |ΔOI| on the strike axis. `lineVisible:
   // false` draws NOTHING across the pane's width — only the coloured axis-label badge —
@@ -1145,7 +1215,7 @@ export function SurfacePane({
     oiLinesRef.current = [];
     // F1: withdrawn outright during an archived session — never draw badges from TODAY's
     // oi_change: data under a past session's field.
-    if (!oiDeltaOn || overlayPolicy.oiDeltaWithdrawn || !topOiStrikes.size) return;
+    if (!oiDeltaOn || laterOi || overlayPolicy.oiDeltaWithdrawn || !topOiStrikes.size) return;
     const badge = css("--signal") || "#e8b339";
     for (const strike of topOiStrikes.keys()) {
       try {
@@ -1159,7 +1229,7 @@ export function SurfacePane({
         /* LWC rejected the level (no price scale yet) — retries on the next data change. */
       }
     }
-  }, [oiDeltaOn, topOiStrikes, hasDrawnBars, overlayPolicy.oiDeltaWithdrawn]);
+  }, [oiDeltaOn, laterOi, topOiStrikes, hasDrawnBars, overlayPolicy.oiDeltaWithdrawn]);
 
   // Candles → chart.
   // PIT: the heat field is server-truncated to the scrubbed stamp, so the candles must stop
@@ -1212,7 +1282,6 @@ export function SurfacePane({
 
   // ── Stamps / labels ──────────────────────────────────────────────────────────
   // Plain computations, cheap enough to run every render — no memoization needed.
-  const asofLabel = fmtAsofLabel(frame?.asof);
   const snapshotCount = frame?.time_steps.length ?? 0;
   const observedCadenceSec = frame ? observedSurfaceCadenceSec(frame.time_steps) : null;
   const metricLabel = t(METRICS.find((m) => m.key === metric)?.labelKey ?? "metricNetPrem");
@@ -1220,6 +1289,15 @@ export function SurfacePane({
   // A quad cell whose greek the snapshot doesn't carry: say "accruing" over the empty
   // field instead of leaving a blank rectangle with no explanation.
   const cellAccruing = isCell && !!fixedMetric && fixedMetric !== "netprem" && !metricEnabled(frame, fixedMetric);
+  const inspectControl = (
+    <button type="button" className={ui.inspectStrike} ref={inspectButtonRef}
+      disabled={!hasData || !metricEnabled(frame, metric) || !frame?.price_levels.some(Number.isFinite)}
+      aria-haspopup="dialog" aria-label={isCell ? `${t("inspectStrike")} · ${metricLabel}` : undefined}
+      onKeyDown={event => { if (event.key === " ") event.stopPropagation(); }}
+      onClick={() => { if (frame) openInspection(frame, nearestStrikeIndex(frame.price_levels, frame.spot)); }}>
+      {t("inspectStrike")}
+    </button>
+  );
   const pinnedHere = hover ? (pins ?? []).some((p) => p.strike === hover.strike) : false;
 
   // ── Nightly-overlay provenance notes (honesty tiering) ───────────────────────
@@ -1248,7 +1326,7 @@ export function SurfacePane({
         ? "unavailable"
         : "ok";
   // F1: archived Levels — loading / no-dated-snapshot / EM-omitted-but-drawn / no-coverage.
-  const levelsNote = overlayPolicy.useDatedLevels
+  const levelsNote = laterLevels ? t("overlayAfterSession").replace("{date}", optLevels.asofDate!) : overlayPolicy.useDatedLevels
     ? archivedLevelsLoading
       ? t("nightlyLoading")
       : archivedLevelsMissing
@@ -1279,15 +1357,9 @@ export function SurfacePane({
       : oiChangeStore.data == null
         ? "unavailable"
         : "ok";
-  const oiChangeAsofDate = (() => {
-    if (oiChangeFetchState !== "ok" || !oiChangeStore) return null;
-    const raw = (oiChangeStore.data as { asof?: unknown } | null)?.asof;
-    const s = typeof raw === "string" ? raw.slice(0, 10) : "";
-    return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : null;
-  })();
   // F11: Σ|ΔOI| conflates strikes being built and strikes being unwound — the note leads
   // with that honesty phrase (mirrors the toggle's aria-label) rather than only the date.
-  const oiDeltaNote =
+  const oiDeltaNote = laterOi ? t("overlayAfterSession").replace("{date}", oiChangeAsofDate!) :
     oiChangeFetchState === "loading"
       ? t("nightlyLoading")
       : oiChangeFetchState === "unavailable"
@@ -1300,6 +1372,7 @@ export function SurfacePane({
   // dot and ticker page already use (lib/mscGlance REGIME_COLORS + gexStrings `regime*`).
   // REGIME-DYNAMICS LAW: the state word never stands alone — stability and dist-to-flip
   // ride with it, same as MarketStateCard / StockAnalysis.
+  const laterRegime = !!(glanceRow?.asofDate && frame?.session_date && glanceRow.asofDate > frame.session_date);
   const regimeLabel = glanceRow ? plainRegime(gexT, glanceRow.regime, lang) : null;
   const regimeNote = glanceRow ? nightlyDateNote(glanceRow.asofDate, true) : "";
   // R3: the ≤460px compact-slot text — whichever of dist-to-flip/stability the payload
@@ -1336,7 +1409,7 @@ export function SurfacePane({
     <div style={PANE} className="obs-surf-pane">
       {/* Controls row — the quad's shared toolbar owns these in cell mode. */}
       {!isCell && (
-      <div style={CONTROLS} className="obs-surf-controls">
+      <div style={CONTROLS} className={`obs-surf-controls ${ui.controls}`}>
         {/* Metric tabs — greek tabs feature-detect on the loaded frame's grids. */}
         <div style={GROUP} role="group" aria-label={t("metricLensAria")}>
           {METRICS.map((m) => {
@@ -1360,6 +1433,16 @@ export function SurfacePane({
           })}
         </div>
 
+        {inspectControl}
+        <details className={ui.settings} ref={settingsRef} onToggle={(event) => setSettingsOpen(event.currentTarget.open)}
+          onKeyDown={(event) => {
+            if (event.key === "Escape") {
+              event.currentTarget.open = false;
+              event.currentTarget.querySelector("summary")?.focus();
+            }
+          }}>
+          <summary>{t("chartControls")}</summary>
+          <div className={ui.settingsBody}>
         {/* X-axis framing. "Surface window" is the useful default for a sparse live field;
             "Full session" restores open-to-close context and makes manual pan/zoom useful. */}
         <div style={GROUP} role="group" aria-label={t("timeWindowAria")}>
@@ -1383,6 +1466,7 @@ export function SurfacePane({
             {t("timeWindowSession")}
           </button>
         </div>
+
 
         {/* Candle interval. These controls never change or resample the field snapshots. */}
         <div style={GROUP} role="group" aria-label={t("aggAria")}>
@@ -1481,7 +1565,8 @@ export function SurfacePane({
             <EodReplayTag lang={lang} />
           )}
         </div>
-
+          </div>
+        </details>
       </div>
       )}
 
@@ -1522,6 +1607,10 @@ export function SurfacePane({
           {overlayPolicy.regimeWithdrawn ? (
             <span className="obs-surf-data-item" aria-label={t("regimeChipAria")}>
               <span style={WITHDRAWN_NOTE}>{t("archivedOverlaysWithdrawn")}</span>
+            </span>
+          ) : laterRegime ? (
+            <span className="obs-surf-data-item" aria-label={t("regimeChipAria")}>
+              {t("laterRegime").replace("{date}", glanceRow!.asofDate!)}
             </span>
           ) : glanceRow && regimeLabel && (
             <span className="obs-surf-data-item" aria-label={t("regimeChipAria")}>
@@ -1587,7 +1676,7 @@ export function SurfacePane({
           <div className="obs-lbl" style={CELL_BADGE}>
             <span style={{ ...SWATCH, background: `var(${METRIC_CSS[metric].pos})`, marginRight: 5 }} />
             {metricLabel}
-            {cellAccruing && <span style={CELL_ACCRUING}>{t("quadAccruing")}</span>}
+            {cellAccruing ? <span style={CELL_ACCRUING}>{t("quadAccruing")}</span> : inspectControl}
           </div>
         )}
 
@@ -1603,8 +1692,8 @@ export function SurfacePane({
             <span style={{ color: "var(--muted)" }}>{t("strike")}</span>
             <span style={{ color: "var(--text)", fontWeight: 700 }}>{readout.strike}</span>
             <span style={{ color: "var(--muted)" }}>{metricLabel}</span>
-            <span style={{ color: readout.value >= 0 ? "var(--up)" : "var(--down)", fontWeight: 700 }}>
-              {fmtDollarSigned(readout.value)}
+            <span style={{ color: readout.value == null ? "var(--muted)" : readout.value >= 0 ? "var(--up)" : "var(--down)", fontWeight: 700 }}>
+              {readout.value == null ? "—" : fmtDollarSigned(readout.value)}
             </span>
           </div>
         )}
@@ -1626,7 +1715,7 @@ export function SurfacePane({
       </div>
 
       {/* Strike hover popover (RECON §4.2) — fixed layer, never clipped by the chart. */}
-      {hover && hasData && modalIdx == null && (
+      {hover && hasData && !inspection && (
         <div
           className="obs-surf-pop"
           style={{
@@ -1637,6 +1726,7 @@ export function SurfacePane({
         >
           <div className="obs-surf-pop-hd">
             <span className="obs-surf-pop-strike">{hover.strike}</span>
+            {hover.observedTime && <span>{hover.observedTime} ET</span>}
             {hover.pctFromSpot != null && (
               <span className="obs-surf-pop-pct">
                 {hover.pctFromSpot >= 0 ? "+" : ""}{hover.pctFromSpot.toFixed(1)}% {t("popFromSpot")}
@@ -1645,8 +1735,8 @@ export function SurfacePane({
           </div>
           <div className="obs-surf-pop-row">
             <span className="k">{metricLabel}</span>
-            <span className="v" style={{ color: hover.active.value >= 0 ? "var(--up)" : "var(--down)" }}>
-              {fmtDollarSigned(hover.active.value)}
+            <span className="v" style={{ color: hover.active.value == null ? "var(--muted)" : hover.active.value >= 0 ? "var(--up)" : "var(--down)" }}>
+              {hover.active.value == null ? "—" : fmtDollarSigned(hover.active.value)}
             </span>
           </div>
           {hover.others.length > 0 && (
@@ -1680,28 +1770,30 @@ export function SurfacePane({
       )}
 
       {/* Intraday-Evolution modal (RECON §4.2) */}
-      {modalIdx != null && frame && (
+      {inspection && (
         <StrikeEvolutionModal
           // The frame is ALREADY server-truncated to the scrubbed stamp, so its time_steps /
           // grid rows are the realized-so-far window — the modal's series is replay-aware by
           // construction (NOW = the last realized column). scrubbedTimeIdx=null = full frame.
-          frame={frame}
+          frame={inspection.frame}
           root={root}
-          strikeIdx={modalIdx}
+          strikeIdx={inspection.strikeIdx}
+          onSelectStrike={strikeIdx => setInspection(current => current && { ...current, strikeIdx })}
           metric={metric}
           metricLabel={metricLabel}
           scrubbedTimeIdx={null}
           matrixCells={matrixCells}
-          asofLabel={asofLabel}
+          matrixSession={matrixSession}
+          asofLabel={fmtAsofLabel(inspection.frame.asof)}
           lang={lang}
           // B4: the per-expiry matrix is ONE head-of-day fetch keyed on root, so it always
           // describes the present. Telling the modal whether the replay is at the head lets
           // it label that panel honestly instead of captioning present-time shares "at NOW"
           // over a scrubbed-back moment.
-          replayLive={live}
-          pinned={(pins ?? []).some((p) => p.strike === frame.price_levels[modalIdx])}
+          replayLive={live && inspection.frame.asof === frame?.asof}
+          pinned={(pins ?? []).some((p) => p.strike === inspection.frame.price_levels[inspection.strikeIdx])}
           onTogglePin={onTogglePin}
-          onClose={() => setModalIdx(null)}
+          onClose={closeInspection}
         />
       )}
 

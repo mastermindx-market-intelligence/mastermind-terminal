@@ -33,7 +33,7 @@ for (const lang of ["en", "zh"]) {
     await expect(workspace.locator('[data-statistics-state="unavailable"]')).toBeVisible();
     await expect(workspace).toContainText(lang === "zh" ? "未知，并非为零" : "unknown, not zero");
     await expect(workspace).not.toContainText("$600.00");
-    await page.locator("#wtab-cat-flow").click();
+    await page.locator(".options-ia-category-row select").selectOption("tape");
     await expect(page).toHaveURL(/tab=tape/);
     await expect(workspace).toHaveCount(0);
   });
@@ -51,4 +51,23 @@ test("Statistics withholds absent and corrupt snapshots without invented zeros",
   await page.reload();
   await expect(page.locator('[data-statistics-state="invalid"]')).toContainText("could not be verified");
   await expect(page.locator("#wpanel-statistics table")).toHaveCount(0);
+});
+
+test("zero premium coverage is disclosed once while print and contract counts stay visible", async ({ page }) => {
+  await page.addInitScript(() => Reflect.deleteProperty(window, "EventSource"));
+  const data = structuredClone(fixture);
+  const root = data.observed_statistics.roots.SPY;
+  for (const bucket of [root.totals, ...Object.values(root.rights), ...Object.values(root.locations), ...Object.values(root.venues)]) {
+    bucket.premium_qualified_print_count = 0;
+    bucket.premium_print_coverage = bucket.print_count > 0 ? 0 : null;
+    bucket.qualified_premium_usd = null;
+    bucket.premium_total_status = "UNAVAILABLE";
+  }
+  await page.route(url => url.pathname === "/api/flow" && url.searchParams.get("f") === "meta", route => route.fulfill({ json: data }));
+  await page.goto("/options?tab=statistics");
+  const desk = page.locator("#wpanel-statistics");
+  await expect(desk.locator('[data-statistics-state="available"]')).toBeVisible();
+  await expect(desk.getByRole("columnheader", { name: "Qualified premium" })).toHaveCount(0);
+  await expect(desk.getByText("Print coverage 0.0%", { exact: true })).toHaveCount(1);
+  await expect(desk.getByRole("columnheader", { name: "Contracts", exact: true }).first()).toBeVisible();
 });

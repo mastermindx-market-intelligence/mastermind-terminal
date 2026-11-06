@@ -185,6 +185,9 @@ const nextConfig: NextConfig = {
   // client graph, normalize the builtin scheme so Next's existing crypto browser
   // fallback can resolve it. Server imports and Turbopack keep their normal path.
   webpack(config, { isServer, webpack }) {
+    // Eager workspace CSS must remain in its owner chunk. Re-emitting already
+    // available styles in a lazy child makes Next block unrelated UI commits.
+    if (!isServer) config.optimization = { ...config.optimization, removeAvailableModules: true };
     if (!isServer) config.plugins.push(new webpack.NormalModuleReplacementPlugin(/^node:crypto$/, (resource: { request: string }) => {
       resource.request = "crypto";
     }));

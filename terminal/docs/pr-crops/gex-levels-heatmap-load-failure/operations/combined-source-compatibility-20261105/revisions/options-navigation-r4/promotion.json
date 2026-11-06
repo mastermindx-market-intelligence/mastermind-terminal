@@ -1,0 +1,14 @@
+{
+  "schema": "options_navigation_revision_promotion.v1",
+  "revision": "options-navigation-r4",
+  "kind": "gex",
+  "actual_passed": 114,
+  "source_count": 319,
+  "native_canonical_crop_count": null,
+  "descriptor_sha256": "a47cbbc318c57b92574bb92b1b43a0dfaea10d7080c60805114734e229a352b4",
+  "preceding_descriptor_sha256": "0819582a22ef88745e0824280635d704ef9fb00448d037ce2e7c49b46471a8b1",
+  "preceding_packet_inventory_sha256": "c9f0aa2c43cb06d0590fb065d7b0a97f019e247c13757cc9a672f665eed12670",
+  "preceding_packet_bytes_unchanged": true,
+  "original_and_combined_sources_equal_within_contract": true,
+  "entire_application_identity_claimed": false
+}

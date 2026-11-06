@@ -15,6 +15,9 @@
 
 import type { HeatData, HeatCell } from "@/lib/heatSeries";
 import type { Time } from "lightweight-charts";
+import { isMatrixDocForRoot } from "@/components/gexdesk/matrixDoc";
+import { matrixSourceSession } from "@/lib/gexLadder";
+import { isoSession } from "@/lib/dte";
 
 // ─── Snapshot store types ───────────────────────────────────────────────────
 
@@ -399,6 +402,58 @@ export interface MatrixCell {
   gex: number;
 }
 
+export interface SurfaceExpiryMatrix {
+  root: string;
+  session: string;
+  builtAt: number;
+  cells: MatrixCell[];
+}
+
+function zonedInstant(value: unknown): number | null {
+  if (typeof value !== "string" || !isoSession(value.slice(0, 10))
+    || !/^\d{4}-\d{2}-\d{2}T(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|[+-]\d{2}:[0-5]\d)$/.test(value)) return null;
+  const epoch = Date.parse(value);
+  return Number.isFinite(epoch) ? epoch : null;
+}
+
+/** Read the nightly product using its own identity and cell-session receipt. */
+export function readSurfaceExpiryMatrix(raw: unknown, root: string): SurfaceExpiryMatrix | null {
+  if (!isMatrixDocForRoot(raw, root) || !raw.cells || raw.cells.length > 100_000) return null;
+  const session = matrixSourceSession(raw);
+  const builtAt = zonedInstant(raw.asof);
+  if (!session || builtAt === null) return null;
+  const cells: MatrixCell[] = [];
+  const seen = new Set<string>();
+  for (const cell of raw.cells) {
+    if (!cell || !Number.isFinite(cell.strike) || cell.strike <= 0 || !isoSession(cell.expiry)) return null;
+    const key = `${cell.strike}/${cell.expiry}`;
+    if (seen.has(key)) return null;
+    seen.add(key);
+    if (cell.expiry >= session && typeof cell.gex === "number" && Number.isFinite(cell.gex)) {
+      cells.push({ strike: cell.strike, expiry: cell.expiry, gex: cell.gex });
+    }
+  }
+  return cells.length ? { root, session, builtAt, cells } : null;
+}
+
+const matrixClockET = new Intl.DateTimeFormat("sv-SE", {
+  timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit",
+  hour: "2-digit", minute: "2-digit", hourCycle: "h23",
+});
+
+/** A root-only fetch has no historical version keyed to an archived or scrubbed observation. */
+export function matrixForSurfaceObservation(
+  matrix: SurfaceExpiryMatrix | null, root: string, frame: SurfaceFrame | null, archived: boolean,
+): SurfaceExpiryMatrix | null {
+  if (!matrix || !frame || archived || matrix.root !== root || matrix.session !== frame.session_date) return null;
+  const cutoff = zonedInstant(frame.asof);
+  const lastMinute = frame.time_steps.at(-1);
+  if (cutoff === null || matrix.builtAt > cutoff || !lastMinute) return null;
+  // Frames can be rebuilt later. Bound the build clock by the observed Eastern minute as well.
+  const builtET = matrixClockET.format(matrix.builtAt);
+  return builtET.slice(0, 10) === matrix.session && builtET <= `${matrix.session} ${lastMinute}` ? matrix : null;
+}
+
 export interface ExpiryShare {
   exp: string;
   gex: number;
@@ -621,7 +676,7 @@ export function metricEnabled(frame: SurfaceFrame | null | undefined, key: strin
 
 export interface StrikePoint {
   t: string; // "HH:MM" session time column
-  v: number; // the metric's value for this strike at that time
+  v: number | null; // missing measurement, measured zero and signed values stay distinct
 }
 
 export interface StrikeSeries {
@@ -659,13 +714,13 @@ export function buildStrikeSeries(
   const steps = frame.time_steps ?? [];
   const strike = frame.price_levels?.[strikeIdx] ?? NaN;
   if (!Array.isArray(row) || steps.length === 0) return { ...empty, strike };
-  const total = Math.min(row.length, steps.length);
+  const total = steps.length;
   const cut =
     upToTimeIdx == null || upToTimeIdx < 0 || upToTimeIdx >= total ? total - 1 : upToTimeIdx;
   const points: StrikePoint[] = [];
   for (let ti = 0; ti <= cut; ti++) {
     const v = row[ti];
-    points.push({ t: steps[ti], v: Number.isFinite(v) ? v : 0 });
+    points.push({ t: steps[ti], v: Number.isFinite(v) ? v : null });
   }
   const last = points[points.length - 1] ?? null;
   return {

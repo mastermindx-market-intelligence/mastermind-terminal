@@ -14,6 +14,7 @@
 import {
   useCallback, useEffect, useMemo, useRef, useState,
 } from "react";
+import layout from "./CommandResearch.module.css";
 import { FlowCard } from "./FlowCard";
 import { FiltersPanel, DEFAULT_FILTERS } from "./FiltersPanel";
 import type { BadgeFlag, DetectionFlag, FlowFilters } from "./FiltersPanel";
@@ -659,10 +660,17 @@ export function FeedPane({
   }, [filtered.length, visibleCount]);
 
 
+  const hasSelection = isFiltersDirty(filters) || preset !== "ALL" || search.trim() !== "";
+  function clearSelection() {
+    setSearch("");
+    onFiltersChange(DEFAULT_FILTERS);
+    updatePrefs({ preset: "ALL" });
+  }
+
   // ── Render ──────────────────────────────────────────────────────────────────
 
   return (
-    <div className="obs-fd-feed-wrap">
+    <div className={`obs-fd-feed-wrap ${layout.feed}`}>
       {/* ── Toolbar ── */}
       <div className="obs-fd-toolbar">
         {/* N SIGNALS count. Unknown is not zero: with no feed there is no tape to
@@ -696,7 +704,8 @@ export function FeedPane({
 
         {/* Ticker search */}
         <input
-          type="text"
+          type="search"
+          aria-label={pick(zh, "Filter flow by ticker", "按代码筛选资金流")}
           placeholder={zh ? "搜索标的…" : "Search ticker…"}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -706,14 +715,16 @@ export function FeedPane({
         />
 
         {/* Sort toggle — reuse fin-toggle (unchanged) */}
-        <div className="fin-toggle">
+        <div className="fin-toggle" role="group" aria-label={pick(zh, "Sort events", "事件排序")}>
           <button
+            aria-pressed={sort === "NEW"}
             className={sort === "NEW" ? "on" : ""}
             onClick={() => updatePrefs({ sort: "NEW" })}
           >
             {zh ? "最新" : "NEW"}
           </button>
           <button
+            aria-pressed={sort === "SCORE"}
             className={sort === "SCORE" ? "on" : ""}
             onClick={() => updatePrefs({ sort: "SCORE" })}
           >
@@ -748,6 +759,7 @@ export function FeedPane({
           <button
             key={p}
             className={`obs-chip${preset === p ? " on" : ""}`}
+            aria-pressed={preset === p}
             onClick={() => updatePrefs({ preset: p })}
           >
             {p === "ALL"    ? (zh ? "全部" : "ALL")
@@ -757,6 +769,9 @@ export function FeedPane({
               : (zh ? "扫单" : "SWEEPS")}
           </button>
         ))}
+        {hasSelection && <button type="button" className="command-clear" onClick={clearSelection}>
+          {pick(zh, "Clear selection", "清除筛选")}
+        </button>}
       </div>
 
       {/* ── FiltersPanel ── */}
@@ -816,7 +831,7 @@ export function FeedPane({
         {feed !== null && filtered.length === 0 && (
           <EmptyState
             zh={zh}
-            hasFilters={isFiltersDirty(effectiveFilters) || search.length > 0}
+            hasFilters={hasSelection}
             stale={feed.stale === true}
             sessionDate={feed.session_date}
           />

@@ -1,4 +1,5 @@
 "use client";
+import { pick } from "@/lib/finFormat";
 /**
  * LevelsView — the Terminal "Levels" board (Voltick Gamma-Levels WP-A3).
  *
@@ -33,6 +34,8 @@ import React, {
 } from "react";
 import { flowGetResult, flowInvalidate, type FlowOutcome } from "@/lib/flowClientCache";
 import { isValidRoot } from "@/lib/flowRoot";
+import { useSearchParams } from "next/navigation";
+import { levelsSymbol } from "./levelsNavigation";
 import { useLang, useT } from "@/lib/i18n";
 import { trackSearch } from "@/lib/searchTrack";
 import {
@@ -246,10 +249,16 @@ export function LevelsView() {
   const t = useT();
   const tRead = (key: LevelsReadKey) => levelsReadLabel(key, lang);
 
-  const [ticker, setTicker]     = useState("SPY");
-  const [inputVal, setInputVal] = useState("SPY");
+  const params = useSearchParams();
+  // The hub keeps visited desks mounted. A symbol change on another desk must
+  // not start a hidden Levels read or reset the last Levels selection.
+  const routeRoot = params?.get("tab") === "levels" ? levelsSymbol(params) ?? "SPY" : null;
+  const [lastRouteRoot, setLastRouteRoot] = useState(routeRoot);
+  const [ticker, setTicker] = useState(routeRoot ?? "SPY");
+  const [inputVal, setInputVal] = useState(ticker);
   const [payload, setPayload]   = useState<LevelsPayload | null>(null);
   const [read, setRead]         = useState<LevelsRead>("loading");
+  const [showVoids, setShowVoids] = useState(false);
   const [colorblind, setColorblind] = useState(false);
   const [selected, setSelected] = useState<{ key: string; label: string; note: string } | null>(null);
 
@@ -319,14 +328,35 @@ export function LevelsView() {
     }
   }, [payload]);
 
-  const commitTicker = useCallback(() => {
-    const root = inputVal.trim().toUpperCase();
-    // The route's own root rule: a root /api/flow would refuse is never committed.
-    if (isValidRoot(root) && root !== ticker) {
-      trackSearch(root, "levels-board", inputVal.trim() || undefined);
+  function showTicker(root: string) {
+    setInputVal(root);
+    if (root !== ticker) {
       setTicker(root);
+      setPayload(null);
+      setRead("loading");
+      setSelected(null);
     }
-  }, [inputVal, ticker]);
+  }
+
+  // Restore the data owner and its visible label in the same render on Back/Forward.
+  if (routeRoot !== lastRouteRoot) {
+    setLastRouteRoot(routeRoot);
+    if (routeRoot !== null) showTicker(routeRoot);
+  }
+
+  function commitTicker(value: string) {
+    const root = value.trim().toUpperCase();
+    if (!isValidRoot(root)) return;
+    if (root !== ticker) {
+      trackSearch(root, "levels-board", value.trim());
+      const url = new URL(window.location.href);
+      if (url.pathname === "/options" && url.searchParams.get("tab") === "levels") {
+        url.searchParams.set("symbol", root);
+        window.history.pushState(null, "", url);
+      }
+    }
+    showTicker(root);
+  }
 
   const palette = colorblind ? PALETTE_CB : PALETTE_THEME;
   const band = useMemo(() => priceBand(payload), [payload]);
@@ -426,8 +456,8 @@ export function LevelsView() {
               list="levels-roots"
               value={inputVal}
               onChange={(e) => setInputVal(e.target.value.toUpperCase())}
-              onBlur={commitTicker}
-              onKeyDown={(e) => { if (e.key === "Enter") commitTicker(); }}
+              onBlur={() => commitTicker(inputVal)}
+              onKeyDown={(e) => { if (e.key === "Enter") commitTicker(inputVal); }}
               placeholder="SPY"
               aria-label={t("lvTicker")}
               spellCheck={false}
@@ -443,7 +473,7 @@ export function LevelsView() {
                 key={r}
                 className={`chip${ticker === r ? " on" : ""}`}
                 style={{ height: 24, fontSize: 11, fontWeight: 700, letterSpacing: "0.03em" }}
-                onClick={() => { if (r !== ticker) trackSearch(r, "levels-board"); setInputVal(r); setTicker(r); }}
+                onClick={() => commitTicker(r)}
               >
                 {r}
               </button>
@@ -460,6 +490,10 @@ export function LevelsView() {
               {t("lvAsOf")} {asofStr}{asofStale && <span style={{ marginLeft: 5, fontWeight: 600 }}>{t("lvPriorSession")}</span>}
             </span>
           )}
+          {voidNodes.length > 0 && <button type="button" className={`chip${showVoids ? " on" : ""}`}
+            aria-pressed={showVoids} onClick={() => { setShowVoids(!showVoids); if (selected?.key.startsWith("void-")) setSelected(null); }}>
+            {pick(lang === "zh", "Low-friction zones", "低阻力区间")} · {voidNodes.length}
+          </button>}
           <button
             className={`chip${colorblind ? " on" : ""}`}
             style={{ height: 24, fontSize: 11, fontWeight: 700, letterSpacing: "0.02em" }}
@@ -518,7 +552,7 @@ export function LevelsView() {
           ) : (
             <div style={COLUMN_STAGE}>
               {/* void bands (thin, low-friction stretches) */}
-              {band && voidNodes.map((v, i) => {
+              {band && showVoids && voidNodes.map((v, i) => {
                 const yTop = projY(v.strike_hi as number) * 100;
                 const yBot = projY(v.strike_lo as number) * 100;
                 return (
@@ -706,7 +740,7 @@ export function LevelsView() {
               )}
             </div>
 
-            <a href="/learn" style={LEARN_LINK}>{t("lvLearnCta")}</a>
+            <a href={`/learn?symbol=${encodeURIComponent(ticker)}`} style={LEARN_LINK}>{t("lvLearnCta")}</a>
           </div>
         </div>
       </div>

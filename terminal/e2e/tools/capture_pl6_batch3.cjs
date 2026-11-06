@@ -284,6 +284,19 @@ async function captureFlowDesk(page, width, lang, outPath) {
   // Reset only appears when dirty; the caveat lines are always present.
   const caveat = lang === "zh" ? "方向由成交价变动规则推断" : "inferred from the last trade";
   await filters.getByText(caveat).first().waitFor({ state: "visible", timeout: 15_000 });
+  if (width === 390) {
+    await filters.evaluate((panel) => panel.scrollIntoView({ block: "start" }));
+    // Both the desk and its feed can scroll. A bounding box alone accepts a
+    // card clipped behind the footer, even when the screenshot contains none of it.
+    const visible = await card.evaluate((element) => new Promise((resolve) => {
+      const observer = new IntersectionObserver(([entry]) => {
+        observer.disconnect();
+        resolve(entry.intersectionRatio);
+      }, { rootMargin: "0px 0px -52px" });
+      observer.observe(element);
+    }));
+    if (visible < 0.99) throw new Error(`first filtered card clipped (${visible})`);
+  }
   await assertNoNextIndicator(page, outPath);
   await page.waitForTimeout(120);
   await stripDevOverlay(page);

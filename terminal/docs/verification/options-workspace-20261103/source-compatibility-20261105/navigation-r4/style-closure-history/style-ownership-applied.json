@@ -1,0 +1,26 @@
+{
+  "hub_before_sha256": "75bd73f5fca6b1685d8194617f9c66a50ad08f035e2f9c03e1fb9afcf2e5ff4e",
+  "hub_after_sha256": "120381563ee8e6b5f001f01447cc7dbadf8ff3706e4968999aa066ee0a3489b6",
+  "added_styles": {
+    "flowdesk/EvidenceDisclosure.module.css": "03a020ff84e673e7ec63b870b68e662612b9a08379496f91756ecd4b0cbc0181",
+    "flowdesk/CommandWorkspace.module.css": "e064e4a85df0613f4eb913d1cbe867a919cbf02bb0aa0498d98ff5a865b9d390",
+    "flowdesk/CommandResearch.module.css": "a68a80c5bf804bd123ad1fd5cbb01b657149709b59b95b3e7d44338e228a361e",
+    "flowdesk/ChainHeat.module.css": "7a0393fecc5a10b09b95679fcbecc529afbf601e8fd8f5e3addc39641c9b6bc0",
+    "msc/msc.module.css": "9db7004bb1f1fe6bb614119e77471d10a0c1d8aa2bd3dbe16a6ba46c1eead459",
+    "prophet/OptionsAlphaInvestigation.module.css": "48534e16c5632176162a570b189d0da59486d3976846ee3efc15a54a163db0a7",
+    "prophet/SelectionCohortCard.module.css": "9dcf3eb272a684a63728e79c5a94ca7efd4ae7474979fcdfdd11be35be86f2ff",
+    "prophet/SelectionCohortCard.global.css": "3b30065deec77b3193737648b3059a53134a5190f3e144fa2aa0edf43a6dc9b4",
+    "options/ResearchGrid.module.css": "eba2ec6eb1b490141e9a1239fd19438c4da89950c5c34c4905266751db0a7e3a",
+    "structure/OiChangePanel.module.css": "2f8bb3ed83a484d38937c1e5d7105656b41ed70b9d5b960c837e7a7361f6fb84",
+    "surface/SurfaceWorkspace.module.css": "0261b7cae44106054f2bc287891e951ada4d5c11113ebb2bb78af2b0847a551d",
+    "researchlab/ResearchLab.module.css": "5fd39a1a16b0d245581903b660662db45ebee55c6e6651225f70ba1199cb23fe",
+    "LargeTradesOverlay.module.css": "8711801a87641519447de52925f2852dce2cbfb0160ee0794e59727e1ae6ff00",
+    "DayStatsStrip.module.css": "34ac28647cbf4c75c88b1fa2b51ae367f3be154bc42400e59b440ffee52dfcaf",
+    "ChartOvernight.module.css": "7c3603b0ad6df031f7e9f5c9b4fed63e8159b6ab616aa7cd8f8321a3f84cf04d",
+    "VisualIntelligencePanel.module.css": "0f7630c6dd6c2fbf5915df4ab450f73a173d443d51fd2e53aed593698d6283df"
+  },
+  "style_count": 33,
+  "owned_edges": 15,
+  "source_content_changes_to_css": false,
+  "baseline_lab_failed": true
+}

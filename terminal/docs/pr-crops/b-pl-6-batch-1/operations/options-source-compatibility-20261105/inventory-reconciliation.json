@@ -1,0 +1,21 @@
+{
+  "schema": "native_inventory_reconciliation.v1",
+  "native_exit": 0,
+  "actual_images": 24,
+  "actual_failures": 0,
+  "canonical_required_images": 20,
+  "supplemental_images": [
+    "DiscoverLeaders-1440-zh.png",
+    "DiscoverLeaders-1440.png",
+    "DiscoverLeaders-390-zh.png",
+    "DiscoverLeaders-390.png"
+  ],
+  "controller_exit": 1,
+  "controller_assertion": "expected20; native legacy producer correctly emits24",
+  "capture_receipt_sha256": "741a0f15ad24b414140b8f94e3df19369825af5c2f3b5fd7aaa416fd56c46087",
+  "capture_log_sha256": "6b2e580e6ac9b2db25c358189e983a8f7c6f9588bef14ada8bd0bc15e8fed450",
+  "driver_sha256": "889beee7b10336d292ac66f4c669ee2a1e542f44ce40651dd00269ca838ef5ff",
+  "source_contract_unchanged": true,
+  "recapture_performed": false,
+  "scope": "Four Discover captures are supplemental; their full data/route dependency closure is not part of the117-source canonical contract."
+}

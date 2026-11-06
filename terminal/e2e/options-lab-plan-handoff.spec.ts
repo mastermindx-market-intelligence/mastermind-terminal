@@ -41,8 +41,7 @@ for (const lang of ["en", "zh"] as const) for (const theme of ["dark", "light"] 
     await expect(editor.locator('input[id*="quantity"]')).toHaveValue("");
     await editor.locator('input[id*="quantity"]').fill("2");
     await editor.locator('input[id*="entry"]').fill("1.25");
-    await page.getByRole("tablist", { name: t("Options categories", "期权类别"), exact: true })
-      .getByRole("tab", { name: t("Exposure", "敞口"), exact: true }).click();
+    await page.getByRole("combobox", { name: t("Switch Options view", "切换期权视图"), exact: true }).selectOption("gex");
     await expect(lab).toBeVisible();
     await lab.getByRole("button", { name: t("Choose exact contracts for Plan", "前往精确合约候选列表"), exact: true }).click();
     await expect(editor).toHaveCount(0); // Existing shortlist unmount clears its draft.

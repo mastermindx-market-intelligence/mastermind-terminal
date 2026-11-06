@@ -1,0 +1,501 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: visual-intelligence.spec.ts >> context can be restored through the existing chart settings without a new preference owner
+- Location: e2e/visual-intelligence.spec.ts:205:5
+
+# Error details
+
+```
+Test timeout of 30000ms exceeded.
+```
+
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e3]:
+      - button "Menu" [ref=e4] [cursor=pointer]:
+        - img [ref=e5]
+      - generic:
+        - img
+        - generic: MASTERMIND
+      - generic [ref=e7]:
+        - button "Chart actions" [ref=e8] [cursor=pointer]:
+          - img [ref=e9]
+        - button "Mastermind AI" [ref=e11] [cursor=pointer]:
+          - img [ref=e12]
+        - button "Settings" [ref=e14] [cursor=pointer]: R
+    - generic [ref=e15]:
+      - generic [ref=e17]:
+        - img [ref=e18]
+        - generic [ref=e22]:
+          - generic [ref=e23]: MASTERMIND
+          - generic [ref=e24]: TERMINAL
+      - navigation [ref=e25]:
+        - link "Chart" [ref=e26] [cursor=pointer]:
+          - /url: /terminal
+          - img [ref=e27]
+          - text: Chart
+        - link "Analysis" [ref=e29] [cursor=pointer]:
+          - /url: /analysis?symbol=NVDA
+          - img [ref=e30]
+          - text: Analysis
+        - link "Discover" [ref=e32] [cursor=pointer]:
+          - /url: /discover
+          - img [ref=e33]
+          - text: Discover
+        - link "Dislocations" [ref=e38] [cursor=pointer]:
+          - /url: /dislocations
+          - img [ref=e39]
+          - text: Dislocations
+        - link "Options" [ref=e40] [cursor=pointer]:
+          - /url: /options
+          - img [ref=e41]
+          - text: Options
+        - link "Scripts" [ref=e44] [cursor=pointer]:
+          - /url: /scripts
+          - img [ref=e45]
+          - text: Scripts
+        - link "Portfolio" [ref=e49] [cursor=pointer]:
+          - /url: /portfolio
+          - img [ref=e50]
+          - text: Portfolio
+        - link "Alerts" [ref=e52] [cursor=pointer]:
+          - /url: /alerts
+          - img [ref=e53]
+          - text: Alerts
+        - button "Mastermind AI" [ref=e56] [cursor=pointer]:
+          - img [ref=e57]
+          - text: Mastermind AI
+      - button "Settings" [ref=e60] [cursor=pointer]: R
+    - generic [ref=e61]:
+      - button "Symbol search — NVDA" [ref=e62] [cursor=pointer]:
+        - generic [ref=e63]:
+          - generic [ref=e64]: "N"
+          - generic [ref=e65]: NVDA
+          - img [ref=e66]
+        - generic [ref=e69]:
+          - generic [ref=e70]: "192.53"
+          - generic [ref=e71]: "-1.64%"
+      - button "Upcoming events for this list" [ref=e72] [cursor=pointer]:
+        - img [ref=e73]
+    - generic [ref=e76]:
+      - button "Fullscreen chart" [ref=e77] [cursor=pointer]:
+        - img [ref=e78]
+      - generic [ref=e81]:
+        - button "Chart context" [expanded] [ref=e82] [cursor=pointer]:
+          - img [ref=e83]
+          - text: Context
+        - generic [ref=e87]:
+          - button "D" [ref=e88] [cursor=pointer]
+          - button "3D" [ref=e89] [cursor=pointer]
+          - button "W" [ref=e90] [cursor=pointer]
+          - button "1M" [ref=e91] [cursor=pointer]
+          - button "Customize timeframes" [ref=e92] [cursor=pointer]:
+            - img [ref=e93]
+        - button "Candles ▾" [ref=e96] [cursor=pointer]:
+          - img [ref=e97]
+          - text: Candles
+          - generic [ref=e99]: ▾
+        - button "Indicators" [ref=e100] [cursor=pointer]:
+          - img [ref=e101]
+          - text: Indicators
+        - button "More" [ref=e104] [cursor=pointer]:
+          - img [ref=e105]
+          - generic [ref=e109]: More
+      - generic [ref=e110]:
+        - toolbar "Drawing tools" [ref=e111]:
+          - button "Cursor" [pressed] [ref=e112] [cursor=pointer]:
+            - img [ref=e113]
+          - generic [ref=e116]:
+            - button "Trend line, Alt+T" [ref=e117] [cursor=pointer]:
+              - img [ref=e118]
+            - button "Open Lines, channels & pitchforks tools" [ref=e120] [cursor=pointer]:
+              - img [ref=e121]
+          - generic [ref=e123]:
+            - button "Fibonacci retracement, Alt+F" [ref=e124] [cursor=pointer]:
+              - img [ref=e125]
+            - button "Open Fibonacci & Gann tools" [ref=e127] [cursor=pointer]:
+              - img [ref=e128]
+          - generic [ref=e130]:
+            - button "XABCD pattern" [ref=e131] [cursor=pointer]:
+              - img [ref=e132]
+            - button "Open Patterns, Elliott waves & cycles tools" [ref=e134] [cursor=pointer]:
+              - img [ref=e135]
+          - generic [ref=e137]:
+            - button "Long position" [ref=e138] [cursor=pointer]:
+              - img [ref=e139]
+            - button "Open Forecasting, volume & ranges tools" [ref=e141] [cursor=pointer]:
+              - img [ref=e142]
+          - generic [ref=e144]:
+            - button "Brush" [ref=e145] [cursor=pointer]:
+              - img [ref=e146]
+            - button "Open Freehand tools" [ref=e148] [cursor=pointer]:
+              - img [ref=e149]
+          - generic [ref=e151]:
+            - button "Rectangle, Alt+Shift+R" [ref=e152] [cursor=pointer]:
+              - img [ref=e153]
+            - button "Open Shapes & curves tools" [ref=e155] [cursor=pointer]:
+              - img [ref=e156]
+          - generic [ref=e158]:
+            - button "Arrow marker" [ref=e159] [cursor=pointer]:
+              - img [ref=e160]
+            - button "Open Arrows tools" [ref=e162] [cursor=pointer]:
+              - img [ref=e163]
+          - generic [ref=e165]:
+            - button "Text, Alt+X" [ref=e166] [cursor=pointer]:
+              - img [ref=e167]
+            - button "Open Text, notes & labels tools" [ref=e169] [cursor=pointer]:
+              - img [ref=e170]
+          - generic [ref=e172]:
+            - button "Emoji" [ref=e173] [cursor=pointer]:
+              - img [ref=e174]
+            - button "Open Emoji & icons tools" [ref=e176] [cursor=pointer]:
+              - img [ref=e177]
+          - button "Keep drawing active" [ref=e179] [cursor=pointer]:
+            - img [ref=e180]
+          - generic [ref=e182]:
+            - 'button "Magnet mode: Off" [ref=e183] [cursor=pointer]':
+              - img [ref=e184]
+            - button "Open magnet modes" [ref=e186] [cursor=pointer]:
+              - img [ref=e187]
+          - group "Drawing history" [ref=e189]:
+            - button "Undo drawing change" [disabled] [ref=e190]:
+              - img [ref=e191]
+            - button "Redo drawing change" [disabled] [ref=e193]:
+              - img [ref=e194]
+          - button "Lock 0 drawings" [disabled] [ref=e196]:
+            - img [ref=e197]
+          - button "Hide 0 drawings" [ref=e199] [cursor=pointer]:
+            - img [ref=e200]
+          - button "Remove drawings, 0 drawings" [ref=e203] [cursor=pointer]:
+            - img [ref=e204]
+            - generic [ref=e206]: "0"
+          - button "Hide favorites (0)" [disabled] [ref=e208] [cursor=pointer]:
+            - img [ref=e209]
+        - generic [ref=e212]:
+          - generic [ref=e213]:
+            - generic:
+              - generic:
+                - generic:
+                  - generic:
+                    - generic: "N"
+                  - generic: NVIDIA Corp · 3D · Equities
+                - generic:
+                  - generic:
+                    - generic: O
+                    - generic: "200.12"
+                    - generic: H
+                    - generic: "201.67"
+                    - generic: L
+                    - generic: "191.22"
+                    - generic: C
+                    - generic: "192.53"
+                  - generic: "-7.51 (-3.75%)"
+            - table [ref=e216]:
+              - row [ref=e217]:
+                - cell
+                - cell [ref=e218]
+                - cell [ref=e222]
+              - row [ref=e226]:
+                - cell [ref=e227]
+              - row [ref=e229]:
+                - cell
+                - cell [ref=e230]
+                - cell [ref=e234]
+              - row [ref=e238]:
+                - cell [ref=e239]
+              - row [ref=e241]:
+                - cell
+                - cell [ref=e242]
+                - cell [ref=e246]
+              - row [ref=e250]:
+                - cell
+                - cell [ref=e251]
+                - cell [ref=e255]
+            - button "5" [ref=e258] [cursor=pointer]:
+              - img [ref=e259]
+              - generic [ref=e261]: "5"
+            - img
+            - img
+            - img
+            - generic:
+              - generic: NVDA
+              - generic:
+                - generic: "192.53"
+                - generic: 00:00
+          - generic [ref=e262]:
+            - generic [ref=e263]:
+              - button "1D" [ref=e264] [cursor=pointer]
+              - button "5D" [ref=e265] [cursor=pointer]
+              - button "1M" [ref=e266] [cursor=pointer]
+              - button "3M" [ref=e267] [cursor=pointer]
+              - button "6M" [ref=e268] [cursor=pointer]
+              - button "YTD" [ref=e269] [cursor=pointer]
+              - button "1Y" [ref=e270] [cursor=pointer]
+              - button "5Y" [ref=e271] [cursor=pointer]
+              - button "All" [ref=e272] [cursor=pointer]
+              - button "Go to date" [ref=e274] [cursor=pointer]:
+                - img [ref=e275]
+            - generic [ref=e278]:
+              - generic [ref=e279]: 23:46:19 UTC-8
+              - button "Extended trading hours" [disabled]: ETH
+              - button "Data origin for this chart" [ref=e281] [cursor=pointer]: BASIS?
+              - button "Quick settings" [ref=e283] [cursor=pointer]:
+                - img [ref=e284]
+      - region "Chart context" [ref=e289]:
+        - generic [ref=e290]:
+          - generic [ref=e291]:
+            - heading "Chart context" [level=3] [ref=e292]
+            - paragraph [ref=e293]: NVDA · 3D
+          - button "Close chart context" [active] [ref=e294] [cursor=pointer]: ×
+        - generic [ref=e295]:
+          - generic [ref=e296]:
+            - generic [ref=e297]: Latest plotted bar
+            - time [ref=e298]: 2026-06-24
+          - button "Previous bar" [ref=e299] [cursor=pointer]: ‹
+          - button "Next bar" [disabled] [ref=e300]: ›
+          - button "Latest" [disabled] [ref=e301]
+        - generic [ref=e302]:
+          - heading "Trend and momentum are mixed or transitional." [level=4] [ref=e303]
+          - generic [ref=e304]: "Momentum: Weakening"
+        - generic [ref=e306]:
+          - generic [ref=e307]:
+            - generic [ref=e308]:
+              - heading "Bar move" [level=4] [ref=e309]
+              - generic [ref=e310]: 3D · open → close
+            - strong [ref=e311]: "-3.79%"
+          - generic [ref=e312]:
+            - generic [ref=e313]:
+              - heading "Trend" [level=4] [ref=e314]
+              - strong [ref=e315]: Mixed
+            - paragraph [ref=e316]: Price and averages are not aligned
+            - generic [ref=e317]:
+              - generic [ref=e318]:
+                - term [ref=e319]: Price
+                - definition [ref=e320]: "192.53"
+              - generic [ref=e321]:
+                - term [ref=e322]: EMA 20
+                - definition [ref=e323]: "203.87"
+              - generic [ref=e324]:
+                - term [ref=e325]: EMA 50
+                - definition [ref=e326]: "194.24"
+          - generic [ref=e327]:
+            - generic [ref=e328]:
+              - heading "Momentum" [level=4] [ref=e329]
+              - strong [ref=e330]: Weakening
+            - generic [ref=e331]:
+              - strong [ref=e332]: "44.52"
+              - generic [ref=e333]: RSI 14
+            - meter "RSI 14" [ref=e334]
+            - generic [ref=e336]:
+              - generic [ref=e337]: 0 · Down
+              - generic [ref=e338]: "40"
+              - generic [ref=e339]: "60"
+              - generic [ref=e340]: Up · 100
+          - generic [ref=e341]:
+            - generic [ref=e342]:
+              - heading "Volume rank" [level=4] [ref=e343]
+              - generic [ref=e344]:
+                - strong [ref=e345]: "29"
+                - generic [ref=e346]: / 100
+            - meter "Volume rank" [ref=e347]
+            - generic [ref=e349]: Percentile · compared with 100 earlier bars
+        - generic [ref=e350]:
+          - group [ref=e351]:
+            - generic "Range & company events" [ref=e352] [cursor=pointer]:
+              - generic [ref=e353]: Range & company events
+              - generic [ref=e354]: ›
+          - group [ref=e355]:
+            - generic "Chart layers" [ref=e356] [cursor=pointer]:
+              - generic [ref=e357]: Chart layers
+              - generic [ref=e358]: ›
+          - group [ref=e359]:
+            - generic "How to read this" [ref=e360] [cursor=pointer]:
+              - generic [ref=e361]: How to read this
+              - generic [ref=e362]: ›
+        - generic [ref=e363]: "Quote source: Not stated"
+    - complementary [ref=e364]:
+      - generic [ref=e366]:
+        - button "Review Default 6 symbols, one at a time, in the current order" [ref=e367] [cursor=pointer]:
+          - img [ref=e368]
+          - generic [ref=e370]:
+            - generic [ref=e371]: Review Default
+            - generic [ref=e372]: 6 symbols, one at a time, in the current order
+        - tablist "Rail source" [ref=e373]:
+          - tab "Portfolio" [ref=e374] [cursor=pointer]
+          - tab "Watchlists" [selected] [ref=e375] [cursor=pointer]
+          - tab "News" [ref=e376] [cursor=pointer]
+        - generic [ref=e377]:
+          - generic [ref=e378]:
+            - generic [ref=e380]: "N"
+            - generic [ref=e381]:
+              - generic [ref=e382]: NVIDIA Corp
+              - generic [ref=e383]: NVDA · Equities
+            - button "Open full analysis" [ref=e384] [cursor=pointer]:
+              - img [ref=e385]
+            - generic [ref=e387]:
+              - generic [ref=e388]: "192.53"
+              - generic [ref=e389]: "-1.64%"
+              - generic [ref=e390]: Closed
+          - generic [ref=e391]:
+            - generic [ref=e392]:
+              - button "Open Intelligence workspace" [ref=e393] [cursor=pointer]:
+                - generic [ref=e394]:
+                  - generic [ref=e395]:
+                    - img [ref=e396]
+                    - text: Intelligence
+                  - img [ref=e399]
+                - generic [ref=e401]:
+                  - generic [ref=e402]:
+                    - generic [ref=e403]: Oracle
+                    - generic [ref=e404]: Uptrend — no entry signal
+                    - generic [ref=e405]: "Historical signal: Structure stop · Signal date unverified"
+                  - generic [ref=e406]:
+                    - generic [ref=e407]: Research
+                    - generic [ref=e408]: No current reading
+                    - generic [ref=e409]: View details
+                - generic [ref=e410]:
+                  - generic [ref=e411]: Prophet
+                  - generic [ref=e412]: Sign in to view
+                - generic [ref=e414]: Oracle entry unverified · No current data
+              - generic [ref=e416]:
+                - generic [ref=e417]: Trend
+                - generic [ref=e418]: Uptrend
+                - generic [ref=e419]: weeks–months
+            - generic [ref=e420]:
+              - generic [ref=e421]:
+                - img [ref=e422]
+                - generic [ref=e424]: Deep analysis coming online
+                - generic [ref=e425]: This name isn't in the research desk yet — the chart, levels and oracle verdict above are live.
+              - generic [ref=e426]:
+                - generic [ref=e428]: Key stats
+                - generic [ref=e429]:
+                  - generic [ref=e430]:
+                    - generic [ref=e431]: Volume
+                    - generic [ref=e432]: 179.30 M
+                  - generic [ref=e433]:
+                    - generic [ref=e434]: Avg volume (30D)
+                    - generic [ref=e435]: 170.09 M
+              - generic [ref=e436]:
+                - generic [ref=e438]: Performance
+                - generic [ref=e439]:
+                  - generic [ref=e440]:
+                    - generic [ref=e441]: "-8.62%"
+                    - generic [ref=e442]: 1W
+                  - generic [ref=e443]:
+                    - generic [ref=e444]: "-9.44%"
+                    - generic [ref=e445]: 1M
+                  - generic [ref=e446]:
+                    - generic [ref=e447]: +12.43%
+                    - generic [ref=e448]: 3M
+                  - generic [ref=e449]:
+                    - generic [ref=e450]: +1.75%
+                    - generic [ref=e451]: 6M
+                  - generic [ref=e452]:
+                    - generic [ref=e453]: +3.23%
+                    - generic [ref=e454]: YTD
+                  - generic [ref=e455]:
+                    - generic [ref=e456]: +24.77%
+                    - generic [ref=e457]: 1Y
+              - generic [ref=e458]:
+                - generic [ref=e460]: Technicals
+                - generic [ref=e461]:
+                  - img "23 of 100" [ref=e462]:
+                    - generic [ref=e463]:
+                      - img [ref=e464]
+                      - generic:
+                        - generic: "23"
+                        - generic: Strong sell
+                  - generic [ref=e468]:
+                    - generic [ref=e469]: Sell 17
+                    - generic [ref=e470]: Neutral 7
+                    - generic [ref=e471]: Buy 2
+                - button "More technicals ›" [ref=e472] [cursor=pointer]
+              - generic [ref=e473]:
+                - generic [ref=e474]:
+                  - generic [ref=e475]: Realized volatility
+                  - generic [ref=e476]: cone
+                - generic [ref=e478]:
+                  - img [ref=e480]:
+                    - generic [ref=e482]: 35%
+                    - generic [ref=e484]: 40%
+                    - generic [ref=e486]: 45%
+                    - generic [ref=e488]: 50%
+                    - generic [ref=e490]: 55%
+                  - generic [ref=e513]:
+                    - generic [ref=e514]: 10d
+                    - generic [ref=e515]: 21d
+                    - generic [ref=e516]: 42d
+                    - generic [ref=e517]: 63d
+                    - generic [ref=e518]: 126d
+                    - generic [ref=e519]: 252d
+                  - generic [ref=e520]:
+                    - generic [ref=e521]: Current
+                    - generic [ref=e523]: Median
+              - region "Seasonality view context" [ref=e526]:
+                - group "Linking for this view" [ref=e527]:
+                  - button "Follow chart" [pressed] [ref=e528] [cursor=pointer]
+                  - button "Pin this view" [ref=e529] [cursor=pointer]
+                  - button "Unlink" [ref=e530] [cursor=pointer]
+                - status [ref=e531]: "Following chart: NVDA"
+                - paragraph [ref=e532]: Linking applies to this session only.
+                - generic [ref=e533]:
+                  - generic [ref=e534]:
+                    - img [ref=e535]
+                    - text: Seasonality · avg monthly return
+                    - generic [ref=e538]: 10y
+                  - radiogroup "Seasonality · avg monthly return" [ref=e539]:
+                    - radio "Jan · +6.6% avg · WR 60% · n=5" [ref=e540] [cursor=pointer]:
+                      - generic [ref=e543]: J
+                    - radio "Feb · +8.7% avg · WR 60% · n=5" [ref=e544] [cursor=pointer]:
+                      - generic [ref=e547]: F
+                    - radio "Mar · +6.2% avg · WR 60% · n=5" [ref=e548] [cursor=pointer]:
+                      - generic [ref=e551]: M
+                    - radio "Apr · -4.3% avg · WR 40% · n=5" [ref=e552] [cursor=pointer]:
+                      - generic [ref=e555]: A
+                    - radio "May · +18.8% avg · WR 100% · n=5" [ref=e556] [cursor=pointer]:
+                      - generic [ref=e559]: M
+                    - radio "Jun · +2.8% avg · WR 60% · n=5" [ref=e560] [cursor=pointer]:
+                      - generic [ref=e563]: J
+                    - radio "Jul · +7.0% avg · WR 60% · n=5" [ref=e564] [cursor=pointer]:
+                      - generic [ref=e567]: J
+                    - radio "Aug · +0.7% avg · WR 60% · n=5" [ref=e568] [cursor=pointer]:
+                      - generic [ref=e571]: A
+                    - radio "Sep · -6.0% avg · WR 40% · n=5" [ref=e572] [cursor=pointer]:
+                      - generic [ref=e575]: S
+                    - radio "Oct · +9.2% avg · WR 80% · n=5" [ref=e576] [cursor=pointer]:
+                      - generic [ref=e579]: O
+                    - radio "Nov · +11.9% avg · WR 80% · n=5" [checked] [ref=e580] [cursor=pointer]:
+                      - generic [ref=e583]: "N"
+                    - radio "Dec · -3.0% avg · WR 40% · n=5" [ref=e584] [cursor=pointer]:
+                      - generic [ref=e587]: D
+                  - generic [ref=e588]:
+                    - combobox "Seasonality · avg monthly return · Jan–Dec" [ref=e589]:
+                      - option "Jan"
+                      - option "Feb"
+                      - option "Mar"
+                      - option "Apr"
+                      - option "May"
+                      - option "Jun"
+                      - option "Jul"
+                      - option "Aug"
+                      - option "Sep"
+                      - option "Oct"
+                      - option "Nov" [selected]
+                      - option "Dec"
+                    - status [ref=e590]: Nov · +11.9% avg · WR 80% · n=5
+                  - generic [ref=e591]: Current month highlighted · from NVDA history (display-only context).
+                  - button "More seasonals ›" [ref=e592] [cursor=pointer]
+            - generic [ref=e593]:
+              - button "Open full analysis" [ref=e594] [cursor=pointer]
+              - button "Ask Mastermind AI about NVDA →" [ref=e595] [cursor=pointer]
+  - alert [ref=e596]
+```

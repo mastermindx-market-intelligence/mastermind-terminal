@@ -1,0 +1,10 @@
+{
+  "schema": "options_proof_packaging_reconciliation.v1",
+  "before_sha256": "c2c26eb1f9934242e6e9329e07edda57f11541a8b6296a9e5b1cf84f8ca35f36",
+  "after_sha256": "8cdef2152b84e176788c3e5e0253c0134ac4e26f367b7418382f7e0c33772a8e",
+  "reason": "TypeScript includes every **/*.ts and **/*.tsx outside node_modules. Historical source snapshots must be losslessly archived rather than introduced as compiler inputs. Raw logs are also archived with original and stored hashes.",
+  "runtime_changed": false,
+  "capture_driver_pins_changed": false,
+  "capture_contracts_changed": false,
+  "promotion_executed": false
+}

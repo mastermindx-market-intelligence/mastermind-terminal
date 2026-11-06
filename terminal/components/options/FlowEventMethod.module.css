@@ -1,0 +1,9 @@
+.method { min-width: 0; color: var(--text-2); }
+.method summary { width: fit-content; cursor: pointer; padding: 5px 0; font-size: 12px; }
+.method summary:focus-visible { outline: 2px solid var(--brand-2); outline-offset: 2px; }
+.method p { margin: 3px 0; max-width: 54ch; line-height: 1.45; }
+.method time { color: var(--text-dim); font-variant-numeric: tabular-nums; }
+@media (max-width: 640px) {
+  :global(.options-flow-board-foot):has(.method) { flex-wrap: wrap; gap: 2px 8px; }
+  .method summary { display: list-item; min-height: 44px; align-content: center; }
+}

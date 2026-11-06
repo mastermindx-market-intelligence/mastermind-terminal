@@ -1,0 +1,17 @@
+[
+  {
+    "file": "capture-native-navigation-r3.py",
+    "sha256": "df0cb63133ae8cf293ae1417e89a08185483131185b046679eaa77628c594385",
+    "executed": false
+  },
+  {
+    "file": "capture-visual-navigation-r3.py",
+    "sha256": "9a3d2dc0e1a3c8d5ffffd9a81918124ac270714cd3a98df6e163a5fc01cc3a3b",
+    "executed": false
+  },
+  {
+    "file": "verify-final-journeys-navigation-r3.py",
+    "sha256": "7a7a9efdf5420347cefe513ef6459e95a5b7ea01f460ff6c5caef2e3f2858277",
+    "executed": false
+  }
+]

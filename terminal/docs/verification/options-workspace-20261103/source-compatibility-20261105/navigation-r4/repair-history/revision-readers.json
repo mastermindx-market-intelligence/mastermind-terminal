@@ -1,0 +1,9 @@
+{
+  "native_driver_sha256": "df0cb63133ae8cf293ae1417e89a08185483131185b046679eaa77628c594385",
+  "visual_driver_sha256": "26f96cde4b225a544ede766de488fdb2afcab912a23b29fe0cb4299c843a76d6",
+  "native_reader_sha256": "9506e927ee7fc7e0af9b3b23bf73b7d958cc53373ac53214def370c5d455f92d",
+  "visual_reader_sha256": "7124244e94937ec0b0161343e7c9b9872e429971fea1448b0169262613c5bfe8",
+  "revision": "options-navigation-r3",
+  "historical_packets_untouched": true,
+  "captures_executed": false
+}

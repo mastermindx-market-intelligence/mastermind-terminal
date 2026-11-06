@@ -1,0 +1,189 @@
+{
+  "schema": "options_visual_attempt_reconciliation.v1",
+  "phase": "ARCHIVED",
+  "attempt": 1,
+  "original_controller_pid": 82530,
+  "controller_terminal": true,
+  "ports_closed": [
+    3685,
+    3687
+  ],
+  "result": {
+    "passed": 28,
+    "failed": 2,
+    "skipped": 0,
+    "flaky": 0
+  },
+  "source_count": 138,
+  "source_stable": true,
+  "driver_sha256": "cd36837df355c144ecd6b60185cbe4c231e03f568a82351b7eb77caffeae5d61",
+  "source_directory": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/visual-navigation-r4-warm-vi",
+  "archived_directory": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/visual-navigation-r4-warm-attempt1-vi",
+  "original_artifact_directory": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-visual-vi-navigation-r4-warm-20261105",
+  "archived_artifact_directory": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-visual-vi-navigation-r4-warm-attempt1-20261105",
+  "files": {
+    "capture.log": "74fd24d7b7a2a9212a63649d173d8d2914476ead8da8deaab4ea9cf41e118688",
+    "source-before.json": "e33ffe823b42d24aa24b5b36c188f1ef838ea44809e414a21c95b709c4e42cde",
+    "source-after.json": "e33ffe823b42d24aa24b5b36c188f1ef838ea44809e414a21c95b709c4e42cde",
+    "desktop-context-zh.png": "87a1cadf316e64f8e06840c5b6e848f839567b51e9fd666c40313ea58a639190",
+    "mobile-context-zh.png": "e405b67dd7664ccbe130e97c455a536b24e7b85ab51af9f96ec135e030608622",
+    "desktop-context.png": "ae65b80132abd4340fb94f9584e19f584467b78a3263ff70e3c42ef1591506f8",
+    "tablet-context-zh.png": "98d7f2885698a75d51a29ddc6ae9644bd8f008334b2aad4a403010e071bd00e4",
+    "tablet-context.png": "533a7b20be04d407d9f91dcdf5a6e1ca17654431189feeb25151a0f14f1839db",
+    "browser-report.json": "892c245bed155dda198c483ad5b3dfcc4abbe932c6113b0b4ea709941735fd39",
+    "mobile-context.png": "4bb912458a311faed7e779e24dffda3907ce5af4eec95dbc1a9f21ae3978bbe7",
+    "server.log": "2802a38dff2878e984c638fcf346547412348eba24e7e317908e96b01a1983d7",
+    "capture-receipt.json": "a34a5c9f6b802470dcc0cab23e0602d1daa9934975a666dc3d9414373a418a5d",
+    "prior-preview-root/desktop-context-zh.png": "83b59d36a3e8a147234ba56f9c4405c3197b30bd42512b081b4607af0df6542c",
+    "prior-preview-root/mobile-context-zh.png": "e405b67dd7664ccbe130e97c455a536b24e7b85ab51af9f96ec135e030608622",
+    "prior-preview-root/desktop-context.png": "8297a3b0692203d1883f47da5066ef722a9f2c0370831564ba4d09aadd74ea21",
+    "prior-preview-root/tablet-context-zh.png": "98d7f2885698a75d51a29ddc6ae9644bd8f008334b2aad4a403010e071bd00e4",
+    "prior-preview-root/tablet-context.png": "533a7b20be04d407d9f91dcdf5a6e1ca17654431189feeb25151a0f14f1839db",
+    "prior-preview-root/browser-report.json": "caa135e0a1655999e44a9e20ffeca767c6ee818a388bf78ca0a76aca6af26950",
+    "prior-preview-root/mobile-context.png": "4bb912458a311faed7e779e24dffda3907ce5af4eec95dbc1a9f21ae3978bbe7"
+  },
+  "artifacts": {
+    ".last-run.json": "3cbc9f2c499a227c81bc5677ef62ae6ca4842760d40108389e3ea294ebf2de20",
+    "visual-intelligence-classi-5b088-ut-pretending-to-paint-them-mobile/trace.zip": "326c30ce091cbb2cc7badb1ff9a5a71844c4c27c7f513af9684e86d599c0067c",
+    "visual-intelligence-replay-a628d--rows-across-viewport-sizes-mobile/trace.zip": "121c0a37ddafe1390435ff4074fbecec7e3068d2dfaf334b9ef0a266106c90ea",
+    "visual-intelligence-saved--c3e49-ithout-stale-SSR-attributes-tablet/trace.zip": "623b48e8c7c7997c59b69e708b145b38635a4e410c60269e36b2da618230b714",
+    "visual-intelligence-real-c-4f8be--overwrite-base-series-data-tablet/trace.zip": "0e0aa11aac66d73905979006257e81d9bd3fbc195834819b93bd9eb60353ef83",
+    "visual-intelligence-Chines-75b9f-emains-keyboard-dismissible-tablet/trace.zip": "878f3c6a150f485255262421430851a79395755dc62312162e84e6aabc6cd3c4",
+    "visual-intelligence-table--218b7-ontext-as-the-plotted-chart-mobile/trace.zip": "380f72b9e824c0399ed143e505f132b15c543bc53a003c9b27179e461fe4e3a6",
+    "visual-intelligence-defaul-aa21e-erlays-and-persists-choices-tablet/trace.zip": "5cf6d9009262f42c5e23efe815408048ad0a21147c4c694a805e85476ad02fa5",
+    "visual-intelligence-an-una-e7223-me-fabricated-event-context-mobile/trace.zip": "a9711b2abb3d20340d143a5d6cfecda386beabd4e00c5794b8ef2c0c6827e2c9",
+    "visual-intelligence-an-una-e7223-me-fabricated-event-context-desktop/trace.zip": "4486af86240f36b6f4622da61d9fa793617fc3656eb9cf67c5484fda418db8a1",
+    "visual-intelligence-histor-91528--current-calendar-knowledge-mobile/trace.zip": "8e4bacd1a9b69cf5988d1c18e31d82972c6f7f9c3a338856c15931dc2bf15a7e",
+    "visual-intelligence-table--218b7-ontext-as-the-plotted-chart-desktop/trace.zip": "dd78dc105ed789d5bf43f55ce19f826d1c1d122fe0f86a60c71210d522b9c425",
+    "visual-intelligence-classi-5b088-ut-pretending-to-paint-them-desktop/trace.zip": "22b4d4d732822797f495f0bee51438aed4fcde9ef7a4c4b3b6bcb8258e6a93bc",
+    "visual-intelligence-contex-fbcdc-hout-a-new-preference-owner-tablet/test-failed-1.png": "d45717be7e7c4b7a537a1e77363236f4cb0071c4bb2b2a0e3968ac7843a1d21b",
+    "visual-intelligence-contex-fbcdc-hout-a-new-preference-owner-tablet/trace.zip": "16880a2ab15ac1e28c45f90ddf3f0dfe299328950e89d72d7bdd7b3bff59be40",
+    "visual-intelligence-contex-fbcdc-hout-a-new-preference-owner-tablet/error-context.md": "e24018ebe62ee131f31a934a9a4408675e03795b58da1176f65bf9a200cfc5b7",
+    "visual-intelligence-replay-a628d--rows-across-viewport-sizes-tablet/trace.zip": "35a141a0ac188a94a6272f49b2e076e990e5027392f2f791fdb1bfeabfdf9833",
+    "visual-intelligence-saved--c3e49-ithout-stale-SSR-attributes-mobile/trace.zip": "ef3ba373dad46fc88c45fad2f10c49c1e5a3a2d0742c522439134926908aa0e5",
+    "visual-intelligence-real-c-4f8be--overwrite-base-series-data-mobile/trace.zip": "b7358d0d572a11325a005ce3f1e7a86da635e41e29fd46eeac846ea508f44d2d",
+    "visual-intelligence-contex-fbcdc-hout-a-new-preference-owner-desktop/trace.zip": "506cc02e043ae817aee730b7214a5743d3a1209271ed349cfb7fc05dc00cb9a6",
+    "visual-intelligence-saved--c3e49-ithout-stale-SSR-attributes-desktop/trace.zip": "093c23384e30e1057ab1c5ad281f68377265081eea45e57cfe452f8374b91426",
+    "visual-intelligence-classi-5b088-ut-pretending-to-paint-them-tablet/trace.zip": "89c8fb91f8b0bec5f58b1b8c83ac145adeb704f7970e0d7802d6c65a51b94943",
+    "visual-intelligence-defaul-aa21e-erlays-and-persists-choices-desktop/trace.zip": "fc7741c4e2a5c349f2a6ea98cb1247eba9ebeb0f5724379ff5beaf95c6f9d8aa",
+    "visual-intelligence-contex-fbcdc-hout-a-new-preference-owner-mobile/trace.zip": "5f4a53160ebddcb3e55f2128fba1a77f03fbb616261a88382bfa2540e611259d",
+    "visual-intelligence-replay-a628d--rows-across-viewport-sizes-desktop/trace.zip": "e882ed9fefe1648116fe3c22d22b460d3ffea6cc4d3e8d876589efb0ae9d8f47",
+    "visual-intelligence-Chines-75b9f-emains-keyboard-dismissible-desktop/trace.zip": "12b36c1563589fc78fd5cb0f6ab75bdd3c535ff463394a4d8ff7211a26e072c3",
+    "visual-intelligence-defaul-aa21e-erlays-and-persists-choices-mobile/test-failed-1.png": "f6847a8334abd06697799efab5e81ade1d0e52d0e9aa5f09e3d87e4953ff063e",
+    "visual-intelligence-defaul-aa21e-erlays-and-persists-choices-mobile/trace.zip": "df702265f9ff16bf3c08bef91f85927acc23aa6a56fd73a0d3a2d615c897f50d",
+    "visual-intelligence-defaul-aa21e-erlays-and-persists-choices-mobile/error-context.md": "a0747dfb25a8d0a431bc40ecdff148bb46c6e64dff7fea9e5069ef0453317569",
+    "visual-intelligence-an-una-e7223-me-fabricated-event-context-tablet/trace.zip": "5769874532886a6aa886228e2aac10f5ff32145688d1401f832664de98695d35",
+    "visual-intelligence-real-c-4f8be--overwrite-base-series-data-desktop/trace.zip": "0a8544d2caf7019cb8382efb583eafcf770677ffeca3b9b5a3cf52c82b9e7fb2",
+    "visual-intelligence-histor-91528--current-calendar-knowledge-tablet/trace.zip": "cac9294dc8d9bb62212e5c4ff488fdccfa8eb22195bb08d95627702401f7c134",
+    "visual-intelligence-histor-91528--current-calendar-knowledge-desktop/trace.zip": "6fc0e8d40b5973e6f10fcd128218b4d2039f579c648532f2f0cbab345c7043f0",
+    "visual-intelligence-table--218b7-ontext-as-the-plotted-chart-tablet/trace.zip": "800e4ccd97189f2af937635ef1d8bad4feefb14b156e73c2098edc58b9006fb6",
+    "visual-intelligence-Chines-75b9f-emains-keyboard-dismissible-mobile/trace.zip": "a8255544907a57026647bdd500d16b7fd2e145e7682d8135ce3a236224d998a1",
+    "visual-intelligence-Chines-75b9f-emains-keyboard-dismissible-mobile/attachments/chart-context-zh-5cc6820e5fadec967da8d16af09b4ac2ca3c26e3.png": "e405b67dd7664ccbe130e97c455a536b24e7b85ab51af9f96ec135e030608622",
+    "visual-intelligence-defaul-aa21e-erlays-and-persists-choices-mobile/attachments/chart-context-en-a4de0098035fc1c9ab0273a416de102519c7b93a.png": "4bb912458a311faed7e779e24dffda3907ce5af4eec95dbc1a9f21ae3978bbe7",
+    "visual-intelligence-Chines-75b9f-emains-keyboard-dismissible-desktop/attachments/chart-context-zh-9145df304dd245dc1f6cb456b7bc942972c2ebc3.png": "87a1cadf316e64f8e06840c5b6e848f839567b51e9fd666c40313ea58a639190",
+    "visual-intelligence-defaul-aa21e-erlays-and-persists-choices-desktop/attachments/chart-context-en-6f96bedec0912538646f79b8f4a212e28a4b1c86.png": "ae65b80132abd4340fb94f9584e19f584467b78a3263ff70e3c42ef1591506f8",
+    "visual-intelligence-defaul-aa21e-erlays-and-persists-choices-tablet/attachments/chart-context-en-d068ce63195aa0f297764e1b0e280596ad33fb03.png": "533a7b20be04d407d9f91dcdf5a6e1ca17654431189feeb25151a0f14f1839db",
+    "visual-intelligence-Chines-75b9f-emains-keyboard-dismissible-tablet/attachments/chart-context-zh-593f3cefa934c84d9df2bc38a570edcb325e993d.png": "98d7f2885698a75d51a29ddc6ae9644bd8f008334b2aad4a403010e071bd00e4"
+  },
+  "failed_cases": [
+    {
+      "title": "context can be restored through the existing chart settings without a new preference owner",
+      "project": "tablet",
+      "result": {
+        "workerIndex": 1,
+        "parallelIndex": 0,
+        "status": "timedOut",
+        "duration": 35882,
+        "error": {
+          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+          "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+        },
+        "errors": [
+          {
+            "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+          }
+        ],
+        "stdout": [],
+        "stderr": [],
+        "retry": 0,
+        "startTime": "2026-11-05T07:45:44.490Z",
+        "annotations": [],
+        "attachments": [
+          {
+            "name": "screenshot",
+            "contentType": "image/png",
+            "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-visual-vi-navigation-r4-warm-20261105/visual-intelligence-contex-fbcdc-hout-a-new-preference-owner-tablet/test-failed-1.png"
+          },
+          {
+            "name": "error-context",
+            "contentType": "text/markdown",
+            "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-visual-vi-navigation-r4-warm-20261105/visual-intelligence-contex-fbcdc-hout-a-new-preference-owner-tablet/error-context.md"
+          },
+          {
+            "name": "trace",
+            "contentType": "application/zip",
+            "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-visual-vi-navigation-r4-warm-20261105/visual-intelligence-contex-fbcdc-hout-a-new-preference-owner-tablet/trace.zip"
+          }
+        ]
+      }
+    },
+    {
+      "title": "default context explains plotted bars, toggles original overlays, and persists choices",
+      "project": "mobile",
+      "result": {
+        "workerIndex": 3,
+        "parallelIndex": 0,
+        "status": "timedOut",
+        "duration": 96597,
+        "error": {
+          "message": "\u001b[31mTest timeout of 90000ms exceeded.\u001b[39m",
+          "stack": "\u001b[31mTest timeout of 90000ms exceeded.\u001b[39m"
+        },
+        "errors": [
+          {
+            "message": "\u001b[31mTest timeout of 90000ms exceeded.\u001b[39m"
+          }
+        ],
+        "stdout": [],
+        "stderr": [],
+        "retry": 0,
+        "startTime": "2026-11-05T07:48:25.464Z",
+        "annotations": [
+          {
+            "type": "slow",
+            "location": {
+              "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/e2e/visual-intelligence.spec.ts",
+              "line": 63,
+              "column": 8
+            }
+          }
+        ],
+        "attachments": [
+          {
+            "name": "chart-context-en",
+            "contentType": "image/png",
+            "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-visual-vi-navigation-r4-warm-20261105/visual-intelligence-defaul-aa21e-erlays-and-persists-choices-mobile/attachments/chart-context-en-a4de0098035fc1c9ab0273a416de102519c7b93a.png"
+          },
+          {
+            "name": "screenshot",
+            "contentType": "image/png",
+            "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-visual-vi-navigation-r4-warm-20261105/visual-intelligence-defaul-aa21e-erlays-and-persists-choices-mobile/test-failed-1.png"
+          },
+          {
+            "name": "error-context",
+            "contentType": "text/markdown",
+            "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-visual-vi-navigation-r4-warm-20261105/visual-intelligence-defaul-aa21e-erlays-and-persists-choices-mobile/error-context.md"
+          },
+          {
+            "name": "trace",
+            "contentType": "application/zip",
+            "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-visual-vi-navigation-r4-warm-20261105/visual-intelligence-defaul-aa21e-erlays-and-persists-choices-mobile/trace.zip"
+          }
+        ]
+      }
+    }
+  ],
+  "recovery": "Same unchanged producer after native capture reaches terminal; no overlapping owned capture workloads. All assertions and time budgets preserved.",
+  "observed_reason": "Two total test timeouts during slow navigation; former HMR failure absent. Host snapshot recorded 24 logical CPUs, load63.51/88.74/79.56 and 11743MiB swap used. Contention supported; not claimed to be caused solely by these two owned workloads.",
+  "recorded_at": "2026-11-05T07:57:24.199125+00:00"
+}

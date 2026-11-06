@@ -1,0 +1,26 @@
+[
+  {
+    "path": "terminal/lib/__tests__/researchReportedGamma.test.ts",
+    "sha256": "7698b47ceb9cd150f6c4a6ca2740702ab22676e03ac339b7cf587ff639e60d4d"
+  },
+  {
+    "path": "terminal/lib/__tests__/researchReportedGammaMounted.test.tsx",
+    "sha256": "3b589be6b5b2fa774628c7172887f24aa04dea63b03ec4c4bee4e4b1b42f8560"
+  },
+  {
+    "path": "terminal/lib/__tests__/gexDeskLoadFailureState.test.tsx",
+    "sha256": "e96015331c0f0432cf9f78df95e475165a7a6720393c915701713c7f0817c2f2"
+  },
+  {
+    "path": "terminal/lib/__tests__/exposureExpirySelection.test.tsx",
+    "sha256": "b323e537745ab4852b5ad6154e6a23461ad4cd285ea2758e3bacb76193763315"
+  },
+  {
+    "path": "terminal/lib/__tests__/exposureMomentumConsumer.test.tsx",
+    "sha256": "00f95ad381d72cdb0cbceb7077ac1e90c43763ded9db3adfcb66ee30b66c30ce"
+  },
+  {
+    "path": "terminal/lib/__tests__/sectorExposureDepthReturn.test.ts",
+    "sha256": "1292a288b398be135d4bb1ae67349beee4e35b4bb3860a1370468abdc8a258b4"
+  }
+]

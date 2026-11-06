@@ -1,0 +1,5 @@
+{
+  "prior_effect": "Empty fixture directory only; no font or application files changed.",
+  "cause": "Overescaped local regex matched zero font URLs.",
+  "repair": "Corrected regex; verified original directory empty before continuing."
+}
