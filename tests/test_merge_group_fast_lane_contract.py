@@ -26,7 +26,12 @@ def test_full_browser_matrix_only_skips_on_native_merge_group() -> None:
     e2e = all_jobs["terminal-e2e"]
     assert e2e["if"] == "github.event_name != 'merge_group'"
     assert e2e["strategy"]["fail-fast"] is False
-    assert len(e2e["strategy"]["matrix"]["include"]) == 12
+    from scripts.ci_e2e_scope import FULL_MATRIX
+    assert len(FULL_MATRIX) == 12
+    assert e2e["strategy"]["matrix"] == (
+        chr(36) + "{{ fromJSON(needs.e2e-scope.outputs.matrix) }}"
+    )
+    assert e2e["needs"] == ["e2e-scope"]
     assert any(
         "test:e2e:responsive -- ${{ matrix.projects }}" in str(step.get("run", ""))
         for step in e2e["steps"]
@@ -60,14 +65,16 @@ def test_required_aggregate_keeps_original_check_name_and_dependencies() -> None
     aggregate = jobs()["terminal"]
     assert aggregate["name"] == "Terminal typecheck + tests"
     assert aggregate["if"] == "always()"
-    assert set(aggregate["needs"]) == {"terminal-unit", "terminal-e2e"}
+    assert set(aggregate["needs"]) == {"e2e-scope", "terminal-unit", "terminal-e2e"}
     step = aggregate["steps"][0]
     assert step["env"] == {
+        "SCOPE": chr(36) + "{{ needs.e2e-scope.result }}",
         "UNIT": "${{ needs.terminal-unit.result }}",
         "E2E": "${{ needs.terminal-e2e.result }}",
         "EVENT": "${{ github.event_name }}",
     }
     assert "Merge-group fast lane" in step["run"]
+    assert 'if [ "$SCOPE" != "success" ]; then' in step["run"]
 
 
 @pytest.mark.parametrize(
@@ -91,7 +98,8 @@ def test_required_aggregate_refuses_missing_or_failed_event_checks(
     command = jobs()["terminal"]["steps"][0]["run"]
     result = subprocess.run(
         ["bash", "-e", "-c", command],
-        env={**os.environ, "EVENT": event, "UNIT": unit, "E2E": e2e},
+        env={**os.environ, "EVENT": event, "SCOPE": "success",
+             "UNIT": unit, "E2E": e2e},
         capture_output=True,
         text=True,
         check=False,
@@ -99,3 +107,21 @@ def test_required_aggregate_refuses_missing_or_failed_event_checks(
     assert (result.returncode == 0) is should_pass, (
         event, unit, e2e, result.stdout, result.stderr
     )
+
+
+@pytest.mark.parametrize("scope_result", ["skipped", "failure", "cancelled", ""])
+@pytest.mark.parametrize(("event", "e2e"), [
+    ("pull_request", "success"), ("merge_group", "skipped")
+])
+def test_unqualified_scope_can_never_pass_event_aggregate(
+    scope_result: str, event: str, e2e: str
+) -> None:
+    command = jobs()["terminal"]["steps"][0]["run"]
+    result = subprocess.run(
+        ["bash", "-e", "-c", command],
+        env={**os.environ, "EVENT": event, "SCOPE": scope_result,
+             "UNIT": "success", "E2E": e2e},
+        capture_output=True, text=True, check=False,
+    )
+    assert result.returncode != 0, (scope_result, event, result.stdout)
+    assert "e2e-scope concluded" in result.stdout
