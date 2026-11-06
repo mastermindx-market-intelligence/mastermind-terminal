@@ -460,6 +460,12 @@ jobs:
   python:
     name: Ingest + signal-layer tests
     runs-on: ubuntu-latest
+    # GitHub GraphQL native mergeQueue and source PR membership are read-only;
+    # contents:read alone cannot authenticate the queue's pull-request objects.
+    # Keep write privileges absent on the candidate-controlled merge_group path.
+    permissions:
+      contents: read
+      pull-requests: read
     steps:
       - uses: actions/checkout@v4
       # The Scenario PostgreSQL qualification drives the actual TypeScript HTTP
