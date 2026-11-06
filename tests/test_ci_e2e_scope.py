@@ -200,3 +200,113 @@ def test_real_synthetic_pr_merge_uses_exact_parent_and_source_diff(tmp_path, mon
         "focused", "reviewed_screener_presentation_or_tests"
     )
     assert scope.select("merge_group", MERGE_REF, merge_sha, head_sha)[0] == "full"
+
+
+def _run_workflow_selector_in_git_checkout(tmp_path, *, install_base_selector,
+                                           tamper_with_selector=False):
+    """Run actual GitHub Actions shell after a synthetic two-parent PR merge."""
+    import os
+
+    repo = tmp_path / "checkout"
+    repo.mkdir()
+
+    def git(*args):
+        return subprocess.check_output(
+            ["git", "-C", str(repo), *args], stderr=subprocess.PIPE
+        ).decode().strip()
+
+    git("init", "-b", "master")
+    git("config", "user.name", "CI Scope Integration")
+    git("config", "user.email", "ci-scope@example.invalid")
+    css = repo / "terminal" / "components" / "screener" / "CrossMarketStrip.module.css"
+    css.parent.mkdir(parents=True)
+    css.write_text(".x { padding: 1px; }\n")
+    (repo / "README.md").write_text("root\n")
+    if install_base_selector:
+        script = repo / "scripts" / "ci_e2e_scope.py"
+        script.parent.mkdir(parents=True)
+        script.write_bytes((ROOT / "scripts" / "ci_e2e_scope.py").read_bytes())
+    git("add", ".")
+    git("commit", "-m", "protected master")
+    git("checkout", "-b", "scoped-pr")
+    css.write_text(".x { padding: 2px; }\n")
+    if tamper_with_selector:
+        assert install_base_selector
+        # Candidate script deliberately lies; immutable protected script must
+        # run instead and see the candidate's script change as a FULL trigger.
+        script.write_text("raise RuntimeError('PR script must not execute')\n")
+    git("add", ".")
+    git("commit", "-m", "candidate")
+    candidate_sha = git("rev-parse", "HEAD")
+    git("checkout", "master")
+    git("merge", "--no-ff", "--no-edit", "scoped-pr")
+    merge_sha = git("rev-parse", "HEAD")
+    workflow = yaml.safe_load(CI.read_text())
+    shell = workflow["jobs"]["e2e-scope"]["steps"][-1]["run"]
+    assert "git show" in shell and 'HEAD^1' in shell
+    output = tmp_path / "action-output"
+    output.touch()
+    env = {
+        **os.environ,
+        "GITHUB_EVENT_NAME": "pull_request",
+        "GITHUB_SHA": merge_sha,
+        "GITHUB_REF": MERGE_REF,
+        "PR_HEAD_SHA": candidate_sha,
+        "GITHUB_OUTPUT": str(output),
+        "RUNNER_TEMP": str(tmp_path),
+    }
+    result = subprocess.run(
+        ["bash", "-e", "-o", "pipefail", "-c", shell],
+        cwd=repo, env=env, text=True, capture_output=True, timeout=20,
+    )
+    assert result.returncode == 0, (result.stdout, result.stderr)
+    fields = dict(line.split("=", 1) for line in output.read_text().splitlines())
+    return fields["mode"], json.loads(fields["matrix"])["include"], result.stdout
+
+
+def test_real_workflow_bootstrap_cannot_use_new_unprotected_selector(tmp_path):
+    mode, matrix, stdout = _run_workflow_selector_in_git_checkout(
+        tmp_path, install_base_selector=False
+    )
+    assert mode == "full"
+    assert matrix == scope.FULL_MATRIX
+    assert "immutable protected selector unavailable" in stdout
+
+
+def test_real_workflow_uses_protected_selector_for_scoped_css(tmp_path):
+    mode, matrix, stdout = _run_workflow_selector_in_git_checkout(
+        tmp_path, install_base_selector=True
+    )
+    assert mode == "focused"
+    assert matrix == scope.FOCUSED_MATRIX
+    assert "reviewed_screener_presentation_or_tests" in stdout
+
+
+def test_real_workflow_rejects_candidate_selector_tampering(tmp_path):
+    mode, matrix, stdout = _run_workflow_selector_in_git_checkout(
+        tmp_path, install_base_selector=True, tamper_with_selector=True
+    )
+    assert mode == "full"
+    assert matrix == scope.FULL_MATRIX
+    assert "unknown_or_elevated_path" in stdout
+
+
+def test_real_workflow_merge_group_always_bootstraps_full(tmp_path, monkeypatch):
+    import os
+
+    shell = yaml.safe_load(CI.read_text())["jobs"]["e2e-scope"]["steps"][-1]["run"]
+    output = tmp_path / "action-output"
+    output.touch()
+    monkeypatch.setenv("GITHUB_EVENT_NAME", "merge_group")
+    monkeypatch.setenv("GITHUB_SHA", SHA_A)
+    monkeypatch.setenv("PR_HEAD_SHA", SHA_C)
+    monkeypatch.setenv("GITHUB_REF", "refs/heads/gh-readonly-queue/master/pr-123")
+    monkeypatch.setenv("GITHUB_OUTPUT", str(output))
+    monkeypatch.setenv("RUNNER_TEMP", str(tmp_path))
+    result = subprocess.run(["bash", "-e", "-o", "pipefail", "-c", shell],
+                            cwd=ROOT, env=os.environ.copy(), capture_output=True,
+                            text=True, timeout=20)
+    assert result.returncode == 0, (result.stdout, result.stderr)
+    fields = dict(line.split("=", 1) for line in output.read_text().splitlines())
+    assert fields["mode"] == "full"
+    assert json.loads(fields["matrix"]) == {"include": scope.FULL_MATRIX}

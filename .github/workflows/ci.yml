@@ -82,7 +82,52 @@ jobs:
         id: select
         env:
           PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: python3 scripts/ci_e2e_scope.py
+        run: |
+          set -euo pipefail
+          # Pull requests cannot modify their own selector to claim a narrower
+          # proof. Execute the selector from the synthetic merge commit's
+          # immutable first parent (the protected base for this exact run).
+          # Bootstrap, other events, unknown Git state or absent base script
+          # always run the canonical FULL matrix without executing PR code.
+          TRUSTED=""
+          if [ "${GITHUB_EVENT_NAME}" = "pull_request" ] &&
+             [ "$(git rev-parse HEAD)" = "${GITHUB_SHA}" ] &&
+             [ "$(git rev-list --parents -n 1 HEAD | wc -w | tr -d ' ')" = "3" ]; then
+            BASE=$(git rev-parse HEAD^1)
+            if [ "$(git cat-file -t "${BASE}:scripts/ci_e2e_scope.py" 2>/dev/null || true)" = "blob" ]; then
+              TRUSTED="${RUNNER_TEMP}/trusted_ci_e2e_scope.py"
+              git show "${BASE}:scripts/ci_e2e_scope.py" > "${TRUSTED}"
+            fi
+          fi
+          if [ -n "${TRUSTED}" ]; then
+            python3 "${TRUSTED}"
+          else
+            python3 - <<'PY'
+          import json
+          import os
+
+          matrix = [
+              {"shard": f"{name}-{i}",
+               "projects": f"--project={name} --shard={i}/{total}",
+               "specs": ""}
+              for name, total in (("desktop", 5), ("tablet", 3), ("mobile", 3))
+              for i in range(1, total + 1)
+          ]
+          matrix.append({
+              "shard": "serial",
+              "projects": " ".join(f"--project={project}" for project in (
+                  "company-intelligence-desktop", "company-intelligence-tablet",
+                  "company-intelligence-mobile", "terminal-chrome-intermediate",
+                  "w2a-workspaces",
+              )),
+              "specs": "",
+          })
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              output.write("mode=full\n")
+              output.write("matrix=" + json.dumps({"include": matrix}, separators=(",", ":")) + "\n")
+          print("e2e-scope: full (immutable protected selector unavailable or non-PR)")
+          PY
+          fi
 
   terminal-unit:
     needs: [e2e-scope]
