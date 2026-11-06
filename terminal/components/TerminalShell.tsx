@@ -3188,6 +3188,12 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // re-fire the interval (which bursts /api/quote). The interval is mounted ONCE and reads them;
   // key changes only schedule a single debounced fresh poll so back-to-back edits coalesce.
   const quoteAliveRef = useRef(true);
+  // Hold one flight through JSON settlement and coalesce refresh triggers.
+  // Cleanup fences publication but leaves that flight owned until it settles.
+  const quoteGenerationRef = useRef(0);
+  const quoteInFlightRef = useRef(false);
+  const quoteTrailingRef = useRef(false);
+  const quoteTrailingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Consecutive null polls per symbol. A null only evicts a previously-good quote after 3 misses
   // in a row: one aborted upstream chunk nulls every CN/HK symbol at once, and hard-deleting on the
   // first null flipped the whole board (header + watchlist + pane cards) to Historical until the
@@ -3196,42 +3202,69 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // simply isn't judged on a poll it sat out — its eviction window stretches to 3 full cycles,
   // which is strictly less flap-prone than the ~18s it used to be, never more.
   const quoteMissRef = useRef<Record<string, number>>({});
-  const pollQuotes = useCallback(() => {
+  const pollQuotes = useCallback(async () => {
+    if (!quoteAliveRef.current) return;
     if (typeof document !== "undefined" && document.hidden) return; // (b) don't poll a backgrounded tab
-    // Plan this poll: priority always, then as much of the rotation as still fits under the cap.
-    const plan = planQuoteBatch({
-      priority: quotePriorityRef.current,
-      rotating: quoteRotatingRef.current,
-      cursor: quoteCursorRef.current,
-    });
-    quoteCursorRef.current = plan.nextCursor;
-    if (!plan.symbols.length) return;
-    const key = plan.symbols.join(",");
-    fetch(`/api/quote?view=regular&syms=${encodeURIComponent(key)}`)
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => {
-        if (!quoteAliveRef.current || !d || !d.quotes) return;
-        const misses = quoteMissRef.current;
-        const drop = new Set<string>();
+    if (!quotePriorityRef.current.some((g) => g.symbols.some(Boolean)) &&
+        !quoteRotatingRef.current.some((g) => g.symbols.some(Boolean))) return;
+    if (quoteInFlightRef.current) {
+      quoteTrailingRef.current = true;
+      return;
+    }
+    // A direct trigger may consume the refresh before its queued catch-up timer.
+    if (quoteTrailingTimerRef.current != null) {
+      clearTimeout(quoteTrailingTimerRef.current);
+      quoteTrailingTimerRef.current = null;
+    }
+    quoteTrailingRef.current = false;
+    quoteInFlightRef.current = true;
+    const generation = quoteGenerationRef.current;
+    try {
+      // Plan only an actual flight; suppressed triggers never consume rotation.
+      const plan = planQuoteBatch({
+        priority: quotePriorityRef.current,
+        rotating: quoteRotatingRef.current,
+        cursor: quoteCursorRef.current,
+      });
+      if (!plan.symbols.length) return;
+      const key = plan.symbols.join(",");
+      const response = fetch(`/api/quote?view=regular&syms=${encodeURIComponent(key)}`);
+      quoteCursorRef.current = plan.nextCursor;
+      const r = await response;
+      const d = r.ok ? await r.json() : null;
+      if (!quoteAliveRef.current || quoteGenerationRef.current !== generation || !d || !d.quotes) return;
+      const misses = quoteMissRef.current;
+      const drop = new Set<string>();
+      for (const k of Object.keys(d.quotes)) {
+        if (d.quotes[k]) delete misses[k];
+        else if ((misses[k] = (misses[k] ?? 0) + 1) >= 3) { drop.add(k); delete misses[k]; }
+      }
+      updateQuotes((prev) => {
+        if (!quoteAliveRef.current || quoteGenerationRef.current !== generation) return prev;
+        // (a) Unchanged-value suppression: only touch symbols whose quote actually changed,
+        // reusing the prior object reference otherwise. updateQuotes rejects that no-op
+        // before it can interrupt an unrelated pending chart/preferences render.
+        let changed = false;
+        const n: Record<string, any> = { ...prev };
         for (const k of Object.keys(d.quotes)) {
-          if (d.quotes[k]) delete misses[k];
-          else if ((misses[k] = (misses[k] ?? 0) + 1) >= 3) { drop.add(k); delete misses[k]; }
+          const q = d.quotes[k];
+          if (q) { const merged = mergeFormingQuote(prev[k], q); if (!quoteEq(prev[k], merged)) { n[k] = merged; changed = true; } }
+          else if (drop.has(k) && k in n) { delete n[k]; changed = true; }
         }
-        updateQuotes((prev) => {
-          // (a) Unchanged-value suppression: only touch symbols whose quote actually changed,
-          // reusing the prior object reference otherwise. updateQuotes rejects that no-op
-          // before it can interrupt an unrelated pending chart/preferences render.
-          let changed = false;
-          const n: Record<string, any> = { ...prev };
-          for (const k of Object.keys(d.quotes)) {
-            const q = d.quotes[k];
-            if (q) { const merged = mergeFormingQuote(prev[k], q); if (!quoteEq(prev[k], merged)) { n[k] = merged; changed = true; } }
-            else if (drop.has(k) && k in n) { delete n[k]; changed = true; }
-          }
-          return changed ? n : prev;
-        });
-      })
-      .catch(() => {});
+        return changed ? n : prev;
+      });
+    } catch {
+      // Request/parse failure retains the last-known quotes and miss counters.
+    } finally {
+      quoteInFlightRef.current = false;
+      if (quoteAliveRef.current && quoteTrailingRef.current) {
+        quoteTrailingRef.current = false;
+        quoteTrailingTimerRef.current = setTimeout(() => {
+          quoteTrailingTimerRef.current = null;
+          pollQuotes();
+        }, 0);
+      }
+    }
   }, [updateQuotes]);
   // stable 6s interval, mounted once. Pauses while the tab is hidden and fires an immediate
   // catch-up poll on re-show so a returning user sees fresh prices without waiting a full cycle.
@@ -3240,7 +3273,17 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     const id = setInterval(pollQuotes, 6000);
     const onVis = () => { if (!document.hidden) pollQuotes(); };
     document.addEventListener("visibilitychange", onVis);
-    return () => { quoteAliveRef.current = false; clearInterval(id); document.removeEventListener("visibilitychange", onVis); };
+    return () => {
+      quoteAliveRef.current = false;
+      quoteGenerationRef.current += 1;
+      quoteTrailingRef.current = false;
+      if (quoteTrailingTimerRef.current != null) {
+        clearTimeout(quoteTrailingTimerRef.current);
+        quoteTrailingTimerRef.current = null;
+      }
+      clearInterval(id);
+      document.removeEventListener("visibilitychange", onVis);
+    };
   }, [pollQuotes]);
   // debounced fresh poll whenever the demand SET changes (rapid edits collapse to one fetch);
   // also prune miss counters for symbols that left the set so a re-added one starts at zero.
@@ -3350,7 +3393,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
 
   // item-26/27: extended/overnight poll — US equities only. Always includes the active symbol
   // (pane-card secondary block, item-25) plus all watchlist US singles when the Ext column is on.
-  // Runs at 30 s cadence (ext prints move slowly). Separate from main quote poll so the hub
+  // Uses the existing overnight/day cadence. Separate from main quote polling so the hub
   // lane surface (/api/quote route) stays untouched.
   const extSymsKey = useMemo(() => {
     const syms: string[] = [];
@@ -3371,32 +3414,63 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   const extSymsKeyRef = useRef(extSymsKey);
   extSymsKeyRef.current = extSymsKey;
   const extAliveRef = useRef(true);
+  const extGenerationRef = useRef(0);
+  const extInFlightRef = useRef(false);
+  const extTrailingRef = useRef(false);
+  const extTrailingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const extRequestSequence = useRef(0);
   const extAcceptedSequence = useRef(0);
-  const pollExtQuotes = useCallback(() => {
+  const pollExtQuotes = useCallback(async () => {
+    if (!extAliveRef.current) return;
     if (typeof document !== "undefined" && document.hidden) return; // don't poll a backgrounded tab
     const key = extSymsKeyRef.current;
     if (!key) return;
-    const requestSequence = ++extRequestSequence.current;
-    fetch(`/api/ext-quote?syms=${encodeURIComponent(key)}`)
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => {
-        if (!extAliveRef.current || !d?.quotes || requestSequence < extAcceptedSequence.current) return;
-        // Only authoritative successful responses advance this barrier. A 503
-        // retains last-good until expiry but cannot undo a newer null snapshot.
-        extAcceptedSequence.current = requestSequence;
-        setExtQuotes((prev) => {
-          // reuse prior reference when every incoming ext quote is byte-identical
-          let changed = false;
-          const n: Record<string, ExtQuote | null> = { ...prev };
-          for (const k of Object.keys(d.quotes)) {
-            const incoming = isPublicBoatsQuote(d.quotes[k]) ? d.quotes[k] : null;
-            if (!quoteEq(prev[k], incoming)) { n[k] = incoming; changed = true; }
-          }
-          return changed ? n : prev;
-        });
-      })
-      .catch(() => {});
+    if (extInFlightRef.current) {
+      extTrailingRef.current = true;
+      return;
+    }
+    if (extTrailingTimerRef.current != null) {
+      clearTimeout(extTrailingTimerRef.current);
+      extTrailingTimerRef.current = null;
+    }
+    extTrailingRef.current = false;
+    extInFlightRef.current = true;
+    const generation = extGenerationRef.current;
+    try {
+      const requestSequence = ++extRequestSequence.current;
+      const r = await fetch(`/api/ext-quote?syms=${encodeURIComponent(key)}`);
+      const d = r.ok ? await r.json() : null;
+      if (!extAliveRef.current || extGenerationRef.current !== generation || !d?.quotes ||
+          requestSequence < extAcceptedSequence.current) return;
+      // Only authoritative successful responses advance this barrier. A 503
+      // retains last-good until expiry but cannot undo a newer null snapshot.
+      extAcceptedSequence.current = requestSequence;
+      setExtQuotes((prev) => {
+        if (!extAliveRef.current || extGenerationRef.current !== generation) return prev;
+        // Accepted maps retain React's update order: a newer response for another
+        // demand set must not discard an already accepted null for this symbol.
+        // Keep public BOATS validation at the actual state-update boundary: a
+        // packet can expire while React's functional updater is deferred.
+        let changed = false;
+        const n: Record<string, ExtQuote | null> = { ...prev };
+        for (const k of Object.keys(d.quotes)) {
+          const incoming = isPublicBoatsQuote(d.quotes[k]) ? d.quotes[k] : null;
+          if (!quoteEq(prev[k], incoming)) { n[k] = incoming; changed = true; }
+        }
+        return changed ? n : prev;
+      });
+    } catch {
+      // Failure is not an authoritative null and does not advance the barrier.
+    } finally {
+      extInFlightRef.current = false;
+      if (extAliveRef.current && extTrailingRef.current) {
+        extTrailingRef.current = false;
+        extTrailingTimerRef.current = setTimeout(() => {
+          extTrailingTimerRef.current = null;
+          pollExtQuotes();
+        }, 0);
+      }
+    }
   }, []);
   useEffect(() => {
     extAliveRef.current = true;
@@ -3405,7 +3479,17 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     schedule();
     const onVis = () => { if (!document.hidden) pollExtQuotes(); };
     document.addEventListener("visibilitychange", onVis);
-    return () => { extAliveRef.current = false; clearTimeout(id); document.removeEventListener("visibilitychange", onVis); };
+    return () => {
+      extAliveRef.current = false;
+      extGenerationRef.current += 1;
+      extTrailingRef.current = false;
+      if (extTrailingTimerRef.current != null) {
+        clearTimeout(extTrailingTimerRef.current);
+        extTrailingTimerRef.current = null;
+      }
+      clearTimeout(id);
+      document.removeEventListener("visibilitychange", onVis);
+    };
   }, [pollExtQuotes]);
   const hasBoatsDisplay = Object.values(extQuotes).some(q => q?.extSource === "tiingo_boats");
   useEffect(() => {
