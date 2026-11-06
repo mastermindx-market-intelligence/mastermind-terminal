@@ -51,6 +51,9 @@ export function settleInvestigationSave(state: InvestigationSaveState, principal
     && response.lifecycle === (state.command.action === "remove" ? "removed" : "active")
     && matchesCommand(response,state.command)) return { phase: "committed", principal, result: response };
   const status = response !== null && typeof response === "object" ? (response as { status?: unknown }).status : null;
+  // A late canonical refusal cannot settle the already-observed independent
+  // native capture. Keep the original command and conservative retry fence.
+  if (state.captureOutcome) return { phase: "uncertain", principal, command: state.command, captureOutcome: state.captureOutcome };
   if (typeof status === "string" && definitive.has(status)) return { phase: "rejected", principal, command: state.command, reason: status };
   // not_found on receipt lookup, auth expiry, timeout and malformed replies are all inconclusive.
   return { phase: "uncertain", principal, command: state.command,

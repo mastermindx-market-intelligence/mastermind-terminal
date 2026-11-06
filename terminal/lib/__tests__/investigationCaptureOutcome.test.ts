@@ -1,6 +1,6 @@
 import { parseInvestigationCommand } from "../investigations";
 import { expect, it } from "vitest";
-import { beginInvestigationSave, settleInvestigationOperationRead, retryInvestigationSave } from "../investigationSave";
+import { beginInvestigationSave, settleInvestigationOperationRead, settleInvestigationSave, retryInvestigationSave } from "../investigationSave";
 import { retainInvestigationJournal, readInvestigationJournal, clearRejectedInvestigationJournal, retainInvestigationCaptureUnknown } from "../investigationJournal";
 const principal="10000000-0000-4000-8000-000000000001", owner=`account:${principal}`;
 const command=parseInvestigationCommand({id:"20000000-0000-4000-8000-000000000002",operation_id:"30000000-0000-4000-8000-000000000003",expected_revision:0,action:"create" as const,
@@ -20,6 +20,11 @@ it("keeps loss-after-private-PUT and zero returned handlers UNKNOWN despite a ca
  const later=settleInvestigationOperationRead(state,owner,{status:"not_found"});
  expect(later).toMatchObject({phase:"uncertain",captureOutcome:"unknown_after_canonical_not_applied"});
  expect(retryInvestigationSave(later,owner)).toBeNull();
+ for(const late of [{status:"version_conflict",current_revision:9},{status:"invalid_payload"},null]){
+  const result=settleInvestigationSave(state,owner,late);
+  expect(result).toMatchObject({phase:"uncertain",captureOutcome:"unknown_after_canonical_not_applied"});
+  expect(retryInvestigationSave(result,owner)).toBeNull();
+ }
 });
 it("retains the exact journal, denies new-draft authority and keeps conservative suppression on reload",()=>{
  const storage=store();retainInvestigationJournal(storage,owner,command);
