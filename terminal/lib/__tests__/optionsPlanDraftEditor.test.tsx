@@ -32,7 +32,7 @@ describe("prepared Plan editor integration seam", () => {
     await act(async () => root.render(<OptionsPlanDraftEditor draft={d} lang={lang} onApply={applied} onClose={close} />));
     expect(host.textContent).toContain("NVDA1");
     expect(host.textContent).toContain("2026-10-23T20:00:00Z");
-    expect(host.textContent).toContain(lang === "en" ? "not saved to your account" : "尚未保存到账户");
+    expect(host.textContent).toContain(lang === "en" ? "does not save your changes" : "不会自动保存更改");
     expect(host.querySelector('[data-plan-field="mid"]')?.textContent).toContain("4.5");
     expect(host.querySelector('[data-plan-field="bid_ask"] [data-cell-state]')?.getAttribute("data-cell-state")).toBe("not_supplied");
     expect(host.querySelector('[data-plan-field="multiplier"] [data-cell-state]')?.getAttribute("data-cell-state")).toBe("not_supplied");

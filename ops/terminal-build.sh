@@ -15,6 +15,8 @@
 #   /opt/terminal/terminal-build.sh --target beta --target-sha <full-lowercase-40-hex>
 # USAGE (beta-only one-shot failed dirty upgrade recovery; immutable IDs required):
 #   /opt/terminal/terminal-build.sh --target beta --recover-attempt <32-hex> --pending-record-id <64-hex> --target-sha <40-hex>
+# OPTIONAL factual local HTTP observation (ordinary beta upgrade only; never global drain):
+#   /opt/terminal/terminal-build.sh --target beta --target-sha <full-40-hex> --observe-terminal-http
 # USAGE (beta-only FIRST-INSTALL bootstrap entrance; invalid for production):
 #   /opt/terminal/terminal-build.sh --target beta --bootstrap --target-sha <full-lowercase-40-hex>
 #
@@ -137,6 +139,7 @@ BETA_STATUS_URL=http://127.0.0.1:3001/api/shared-shell/status
 ENV_SOURCE_DIR="$APP"
 DEPLOY_LOCK_HELD=0
 BOOTSTRAP_REQUESTED=0
+HTTP_OBSERVATION_REQUESTED=0
 DEMOTE_ON_FAILURE=0
 BOOTSTRAP_MODE=
 BETA_BOOTSTRAP_SCRATCH=
@@ -2657,6 +2660,11 @@ def action_runtime(args):
         "previous_runtime_record_id": attempt.get("prior_runtime_record_id"),
         "runtime_accepted": True, "rollback_baseline": True,
     }
+    # Optional bounded FACTS only; absent/incomplete captures never gate a normal
+    # CLOSED installation and never imply global ingress/drain/OPEN readiness.
+    if (attempt.get("terminal_http_before",{}).get("state")=="observed"
+            and attempt.get("terminal_http_after",{}).get("state")=="observed"):
+        payload["terminal_http_observation"]=attempt["terminal_http_after"]["facts"]
     if attempt.get("recovery_from_record_id"):
         payload.update({key: attempt[key] for key in (
             "recovery_from_record", "recovery_from_record_id", "recovery_retained_builds")})
@@ -2693,7 +2701,100 @@ def action_demote(args):
     return 0
 
 
+def _http_module(attempt):
+    import subprocess
+    sha=full_sha(attempt.get("target_sha", ""), "HTTP observer source SHA")
+    repo=attempt.get("canonical_repo")
+    if not isinstance(repo,str) or norm(repo)!=repo: fail("HTTP observer owner source is invalid")
+    env=dict(os.environ,GIT_NO_LAZY_FETCH="1",GIT_OPTIONAL_LOCKS="0",GIT_TERMINAL_PROMPT="0")
+    protected=subprocess.run(["git","-C",repo,"merge-base","--is-ancestor",sha,"refs/remotes/origin/master"],capture_output=True,env=env)
+    code=subprocess.run(["git","-C",repo,"show",sha+":ops/investigation_http_closure.py"],capture_output=True,env=env)
+    if protected.returncode or code.returncode or len(code.stdout)>1048576: fail("HTTP observer protected source unavailable")
+    namespace={"__name__":"_owned_terminal_http_source"}
+    exec(compile(code.stdout,"<qualified-terminal-http-owner>","exec"),namespace)
+    return namespace
+
+
+def _http_save(target_root,state_dir,identifier,old_path,attempt):
+    attempt.pop("record_id",None)
+    path=publish(state_dir,f"attempt-{identifier}-http-{record_id(attempt)[:16]}.json",attempt)
+    replace_pointer(target_root,ATTEMPT_POINTER,path,old_path)
+    return path,read_record(path)
+
+
+def _http_action(args,stage):
+    target_root,state_dir,identifier,expected_id=args
+    old_path,attempt=read_attempt(target_root,state_dir,identifier)
+    hex64(expected_id,"HTTP observation original owner record")
+    if record_id(attempt)!=expected_id: fail("HTTP observation owner record changed")
+    field="terminal_http_"+stage
+    if field in attempt: fail("HTTP observation already started; preserve original result")
+    if stage=="before":
+        if attempt.get("phase")!="staging" or attempt.get("live_inputs_dirty") or not attempt.get("prior_runtime_record_id"):
+            fail("HTTP prior capture must precede this upgrade replacement")
+        current,_=pointer_destination(target_root,RUNTIME_POINTER)
+        prior=validated_runtime(target_root,state_dir,attempt["app_root"],attempt["canonical_repo"],"/opt/terminal/terminal",current)
+        if record_id(prior)!=attempt["prior_runtime_record_id"]: fail("HTTP prior accepted generation changed")
+        require_live_identity(attempt["app_root"],attempt["prior_sha"],attempt["prior_build_id"])
+    elif stage=="after":
+        if attempt.get("phase")!="validated" or attempt.get("terminal_http_before",{}).get("state")!="observed":
+            fail("HTTP drain unavailable without original prior capture and validated replacement")
+        require_live_identity(attempt["app_root"],attempt["target_sha"],attempt["build_id"])
+    else: fail("HTTP observation stage invalid")
+    module=_http_module(attempt)
+    # The existing attempt records the original stage BEFORE the first native
+    # read. Failure/response loss is not an invitation to replace that stage.
+    attempt[field]={"state":"observing","source_record_id":expected_id}
+    started_path,started=_http_save(target_root,state_dir,identifier,old_path,attempt)
+    try:
+        if stage=="before":
+            facts=module["capture_before"](attempt["canonical_repo"],attempt["target_sha"])
+            beta=next(u for u in facts["units"] if u["unit"]=="terminal-beta")
+            if beta["source_sha"]!=attempt["prior_sha"] or beta["build_id"]!=attempt["prior_build_id"]:
+                raise ValueError("HTTP prior generation mismatch")
+        else:
+            facts=module["capture_after"](attempt["canonical_repo"],attempt["target_sha"],attempt["terminal_http_before"]["facts"],attempt["target_sha"],attempt["build_id"])
+        result={"state":"observed","source_record_id":expected_id,"facts":facts}
+    except Exception as error:
+        # No raw config, headers, environment, command line or exception prose.
+        code=error.args[0] if isinstance(error,module["Unavailable"]) and error.args else "http_owner_observation_unavailable"
+        if not isinstance(code,str) or re.fullmatch(r"[a-z0-9_]{1,96}",code)is None: code="http_owner_observation_unavailable"
+        result={"state":"unavailable","source_record_id":expected_id,"reason":code}
+    path,now=read_attempt(target_root,state_dir,identifier)
+    if norm(path)!=norm(started_path) or record_id(now)!=record_id(started): fail("HTTP owner changed during observation; original intent retained")
+    now[field]=result
+    final,_=_http_save(target_root,state_dir,identifier,path,now)
+    if result["state"]!="observed": fail("HTTP observation unavailable: "+result["reason"])
+    print(final)
+    return 0
+
+
+def action_http_before(args):
+    return _http_action(args,"before")
+
+
+def action_http_after(args):
+    return _http_action(args,"after")
+
+
+def action_http_observe(args):
+    target_root,state_dir,app_root,repo,production_app=args
+    path,_=pointer_destination(target_root,RUNTIME_POINTER)
+    record=validated_runtime(target_root,state_dir,app_root,repo,production_app,path)
+    facts=record.get("terminal_http_observation")
+    if not facts: fail("HTTP drain unavailable: accepted generation has no owned observation")
+    module=_http_module({"target_sha":record["accepted_sha"],"canonical_repo":record["canonical_repo"]})
+    try: result=module["observe_current"](repo,record["accepted_sha"],facts)
+    except Exception: fail("HTTP current owner observation unavailable; no fallback or retry")
+    print(json.dumps(result,sort_keys=True,separators=(",",":")))
+    return 0
+
+
 ACTIONS = {
+    "http-pending-id": lambda args: print(record_id(read_attempt(*args)[1])) or 0,
+    "http-before": action_http_before,
+    "http-after": action_http_after,
+    "http-observe": action_http_observe,
     "inventory": action_inventory,
     "members": action_members,
     "admit": action_admit,
@@ -2993,6 +3094,24 @@ beta_publish_runtime_accepted(){
   RUNTIME_RECORD_PATH=$outcome
   log "beta generation runtime-accepted: $RUNTIME_RECORD_PATH"
   return 0
+}
+
+# Optional factual observation in this SAME transaction; never an OPEN/drain
+# grant or an acceptance gate for an ordinary CLOSED install. No environment
+# opt-in and no second publisher. Failed/unfinished stages remain immutable in
+# the existing private attempt; they cannot be overwritten by another sample.
+beta_http_capture(){
+  local stage=$1 pending outcome
+  [ "$HTTP_OBSERVATION_REQUESTED" = 1 ] || return 0
+  [ "$TARGET" = beta ] && [ "$DEPLOY_LOCK_HELD" = 1 ] && [ -n "$BETA_TXN_ID" ] || {
+    log "FATAL: HTTP observation requires this beta transaction's shared hold"; return 73;
+  }
+  pending=$(beta_statectl http-pending-id "$BETA_TARGET_ROOT" "$SOURCE_PROVISIONED_STATE_DIR" "$BETA_TXN_ID") || return $?
+  if ! outcome=$(beta_statectl "http-$stage" "$BETA_TARGET_ROOT" "$SOURCE_PROVISIONED_STATE_DIR" "$BETA_TXN_ID" "$pending" 2>&1); then
+    log "HTTP $stage observation unavailable; existing attempt retains original stage; no global drain claim"
+    return 0
+  fi
+  log "HTTP $stage factual owner observation retained in existing attempt"
 }
 
 beta_bootstrap_demote(){
@@ -3830,6 +3949,7 @@ beta_txn_begin(){
   NEW_BUILD_ID=
   BETA_TXN_COMMITTED=0
   BETA_TXN_INPUTS_DIRTY=0
+  beta_http_capture before || return $?
   # Before any live dependency/source write or generation move, prevent a reboot
   # from starting the not-yet-accepted candidate. Existing A may keep serving.
   systemctl disable "$SERVICE_NAME" || return $?
@@ -4402,6 +4522,7 @@ beta_txn_commit(){
   [ "$PREFLIGHT_ACCEPTED_SHA" = "$FULL_SHA" ] || { log "FATAL: beta final source receipt is not the candidate SHA"; return 75; }
   beta_unit_declares_shared_shell active disabled || return $?
   beta_txn_phase validated "$NEW_BUILD_ID" || return $?
+  beta_http_capture after || return $?
   beta_txn_phase committing "$NEW_BUILD_ID" || return $?
   beta_publish_runtime_accepted "$FULL_SHA" "$NEW_BUILD_ID" || return $?
   BETA_TXN_COMMITTED=1
@@ -4473,6 +4594,7 @@ investigation_install_state(){
   sanitize_git_environment
   if ! decision=$(python3 -I - "$SRC" "$expected_sha" "$phase" "$APP" "$SERVICE_NAME" \
       "$ENV_SOURCE_DIR" "$TARGET" 2>&1 <<'PY_INVESTIGATION_INSTALL'
+import hashlib
 import json
 import os
 import re
@@ -4508,6 +4630,40 @@ MAX_LAUNCH_TOKENS = 24
 MAX_SCAN_LINES = 4096
 PHASES = ("prestart", "poststart", "restoration")
 PROFILES = ("production", "beta")
+
+# The canonical production unit may carry exactly two ExecStartPre commands:
+# the installed build-id check through the trusted interpreter and the storage
+# volume guard. Declaring unit sources, typed effective argv and script
+# custody are bound separately; nothing here executes a hook, and a recognized
+# hook never shortcuts the remaining admission classification.
+CANONICAL_PRODUCTION_UNIT = "terminal"
+PREHOOK_INTERPRETER = "/bin/sh"
+PREHOOK_INTERPRETER_REALPATH = "/usr/bin/dash"
+PREHOOK_GUARD_PATH = "/usr/local/sbin/terminal-volume-guard"
+PREHOOK_GUARD_BYTES = 600
+PREHOOK_GUARD_SHA256 = (
+    "1a7e39a4188d9dcfd55907e741a1b27850ed65835f4525cc6bc3a48eca122de9")
+PREHOOK_FRAGMENT_PATH = "/etc/systemd/system/terminal.service"
+PREHOOK_SOURCE_DIR = "/etc/systemd/system/terminal.service.d"
+PREHOOK_DECLARATION_BASENAMES = ("hardening.conf", "storage.conf")
+PREHOOK_BUILD_ID_ARGV = (
+    "/bin/sh", "-c",
+    "test -f /opt/terminal/terminal/.next/BUILD_ID || "
+    "{ echo no-build-refusing-start; exit 1; }")
+PREHOOK_GUARD_ARGV = (PREHOOK_GUARD_PATH, "--service")
+PREHOOK_HARDENING_DECLARATION = (
+    '/bin/sh -c "test -f /opt/terminal/terminal/.next/BUILD_ID || '
+    '{ echo no-build-refusing-start; exit 1; }"')
+PREHOOK_STORAGE_DECLARATION = "/usr/local/sbin/terminal-volume-guard --service"
+MAX_PREHOOK_ROWS = 8
+MAX_PREHOOK_REPLY_BYTES = 64 * 1024
+MAX_UNIT_SOURCE_BYTES = 16 * 1024
+MAX_UNIT_SOURCES = 32
+PREHOOK_DEFAULT_SEARCH_DIRS = (
+    "/usr/local/sbin", "/usr/local/bin", "/usr/sbin", "/usr/bin")
+PREHOOK_SUPPORTED_SEARCH_PATHS = (
+    ":".join(PREHOOK_DEFAULT_SEARCH_DIRS),
+    ":".join((*PREHOOK_DEFAULT_SEARCH_DIRS, "/sbin", "/bin")))
 
 # The key must be followed by a separator/whitespace/end so a longer key that
 # merely shares this prefix is never classified as this key.
@@ -4922,16 +5078,21 @@ def safety_hook_environment(unit):
                 unit_property(unit, "ExecSearchPath"),
                 unit_property(unit, "PassEnvironment"),
                 unit_property(unit, "UnsetEnvironment"))
+    # Preserve the incumbent fixed manager-PATH/tool-custody contract. This
+    # qualification precedes the sole manager PATH exception below; all other
+    # launch environment surfaces retain their strict override refusal.
+    classify_prehook_search_environment(unit, snapshot[1])
     if snapshot[2]:
         raise Refused("safety-hook-search-path-unsupported")
-    for text in (snapshot[0], snapshot[1], snapshot[3], snapshot[4]):
+    for index, text in enumerate((snapshot[0], snapshot[1], snapshot[3], snapshot[4])):
         try:
             tokens = shlex.split(text)
         except ValueError:
             raise Refused("safety-hook-environment-unsupported")
-        refuse_selected_launch_overrides(tokens)
         for token in tokens:
             key = token.partition("=")[0]
+            if index != 1 or key != "PATH":
+                refuse_selected_launch_overrides([token])
             if (key.upper() in ("IFS", "SHELLOPTS", "BASHOPTS", "CDPATH", "GLOBIGNORE")
                     or key.startswith("BASH_FUNC_")):
                 raise Refused("safety-hook-environment-unsupported")
@@ -4971,10 +5132,17 @@ def classify_environment_topology(profile, unit, app_root, env_source_dir):
     expected_root = "/opt/terminal/terminal" if profile == "production" else "/opt/terminal/beta/terminal"
     if unit_property(unit, "WorkingDirectory") != expected_root:
         raise Refused("unsupported-working-directory")
+    prehooks = unit_property(unit, "ExecStartPre")
     for prop in ("ExecStartPost", "ExecCondition", "ExecStopPost",
                  "RootDirectory", "RootImage", "PAMName"):
         if unit_property(unit, prop):
             raise Refused("unsupported-service-launch-hook")
+    if prehooks:
+        # Zero-hook behavior is unchanged everywhere else: any ExecStartPre on
+        # a non-production target or any other unit stays refused outright.
+        if profile != "production" or unit != CANONICAL_PRODUCTION_UNIT:
+            raise Refused("unsupported-service-launch-hook")
+        classify_supported_prehooks(unit)
     safety_environment = classify_production_safety_hooks(profile, unit)
     files = unit_property(unit, "EnvironmentFiles")
     entries = ENVFILE_ENTRY.findall(files)
@@ -5002,6 +5170,8 @@ def classify_environment_topology(profile, unit, app_root, env_source_dir):
             raise Refused("admission-key-in-indirect-unit-environment")
     manager = safety_environment[1] if safety_environment is not None else manager_environment()
     refuse_file_launch_overrides(manager)
+    if prehooks:
+        classify_prehook_search_environment(unit, manager)
     if KEY_ASSIGNMENT.search(manager):
         raise Refused("admission-key-in-manager-environment")
     values = admission_values_in_unit_environment(
@@ -5026,6 +5196,290 @@ def classify_environment_topology(profile, unit, app_root, env_source_dir):
     if (safety_environment is not None
             and safety_hook_environment(unit) != safety_environment):
         raise Refused("safety-hook-changed-during-verification")
+    # Both independent qualifiers must describe the same observed hook set.
+    # A hook appearing after the typed branch was skipped cannot be admitted
+    # only by the source snapshot, nor may a verified hook disappear mid-read.
+    if unit_property(unit, "ExecStartPre") != prehooks:
+        raise Refused("safety-hook-changed-during-verification")
+
+
+def unit_source_paths(property_value):
+    # DropInPaths renders as a space-separated path list. Whitespace inside a
+    # path would make the rendering ambiguous, so it is a refusal, never a
+    # guess. Loaded sources beyond the expected two stay un-pinned: they are
+    # read only to prove they declare no ExecStartPre.
+    entries = property_value.split(" ")
+    if len(entries) > MAX_UNIT_SOURCES or len(set(entries)) != len(entries):
+        raise Refused("unit-source-list-unusable")
+    paths = []
+    for entry in entries:
+        entry = entry.strip(" \t")
+        if not entry:
+            continue
+        if (not entry.startswith("/") or re.search(r"[\s\"']", entry)
+                or entry.endswith("/")):
+            raise Refused("unit-source-list-unusable")
+        paths.append(entry)
+    return paths
+
+
+def execstartpre_assignments(text, prefix):
+    # Narrow systemd directive scan: complete single-line assignments only.
+    # Continuations, NUL/BOM bytes and unrecognized line shapes fail closed so
+    # a prehook declaration can never hide behind unsupported syntax. Only
+    # ExecStartPre values are projected; unrelated fields are never pinned.
+    if "\x00" in text or "\ufeff" in text:
+        raise Refused(prefix + "-unsupported-syntax")
+    lines = text.split("\n")
+    if len(lines) > MAX_SCAN_LINES:
+        raise Refused(prefix + "-oversized")
+    values = []
+    section = None
+    for line in lines:
+        stripped = line.strip(" \t\r")
+        if not stripped or stripped.startswith(("#", ";")):
+            continue
+        if stripped.startswith("[") and stripped.endswith("]"):
+            section = stripped[1:-1]
+            continue
+        if stripped.endswith("\\"):
+            raise Refused(prefix + "-unsupported-syntax")
+        key, separator, value = stripped.partition("=")
+        key = key.strip(" \t")
+        if not separator or re.fullmatch(r"[A-Za-z][A-Za-z0-9]*", key) is None:
+            raise Refused(prefix + "-unsupported-syntax")
+        if key.lower() == "execstartpre":
+            if key != "ExecStartPre" or section != "Service":
+                raise Refused(prefix + "-unsupported-syntax")
+            values.append(value.strip(" \t"))
+    return values
+
+
+def unit_execstartpre_rows(unit):
+    # Typed effective ExecStartPre argv over D-Bus. The rendered systemctl
+    # argv[] vector is lossy for arguments containing whitespace, so approval
+    # is never based on rendered text. Read-only: hooks are never executed.
+    name = unit if unit.endswith(".service") else unit + ".service"
+    object_path = "/org/freedesktop/systemd1/unit/" + re.sub(
+        r"[^A-Za-z0-9]", lambda match: "_%02x" % ord(match.group(0)), name)
+    try:
+        completed = subprocess.run(
+            ["/usr/bin/busctl", "--json=short", "get-property", "org.freedesktop.systemd1",
+             object_path, "org.freedesktop.systemd1.Service", "ExecStartPre"],
+            stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, timeout=30)
+    except (OSError, subprocess.SubprocessError):
+        raise Refused("prehook-effective-argv-unavailable")
+    if completed.returncode != 0:
+        raise Refused("prehook-effective-argv-unavailable")
+    if len(completed.stdout) > MAX_PREHOOK_REPLY_BYTES:
+        raise Refused("prehook-inventory-oversized")
+    try:
+        return json.loads(completed.stdout.decode("utf-8"))
+    except (ValueError, UnicodeDecodeError):
+        raise Refused("prehook-effective-argv-unavailable")
+
+
+def typed_prehook_rows(payload):
+    # busctl --json=short renders the reply body as the list of complete out
+    # arguments; here that is one argument holding the a(sasbttttuii) array.
+    # Row positions are the execution order. Anything else fails closed.
+    if (not isinstance(payload, dict) or set(payload) != {"type", "data"}
+            or payload["type"] != "a(sasbttttuii)"):
+        raise Refused("unsupported-prehook-shape")
+    rows = payload["data"]
+    if not isinstance(rows, list) or not rows:
+        raise Refused("unsupported-prehook-shape")
+    if (len(rows) == 1 and isinstance(rows[0], list)
+            and all(isinstance(row, list) for row in rows[0])):
+        rows = rows[0]
+    if len(rows) > MAX_PREHOOK_ROWS:
+        raise Refused("prehook-inventory-oversized")
+    typed = []
+    for row in rows:
+        if (not isinstance(row, list) or len(row) != 10
+                or not isinstance(row[0], str)
+                or not isinstance(row[1], list) or not row[1]
+                or not all(isinstance(item, str) for item in row[1])
+                or not isinstance(row[2], bool)):
+            raise Refused("unsupported-prehook-shape")
+        typed.append((row[0], tuple(row[1]), row[2]))
+    return typed
+
+
+def trusted_path_identity(path):
+    # Metadata-only custody reader for hook-referenced binaries. Identity is
+    # the evidence; nothing is executed and no content beyond custody is read.
+    try:
+        direct = os.lstat(path)
+        resolved = os.path.realpath(path)
+        target = os.stat(path)
+    except OSError:
+        raise Refused("prehook-custody-unavailable")
+    return (direct.st_uid, direct.st_gid, stat.S_ISLNK(direct.st_mode),
+            resolved, target.st_uid, target.st_gid, target.st_mode,
+            stat.S_ISREG(target.st_mode), target.st_size)
+
+
+def bind_prehook_interpreter_custody():
+    # The observed legitimate /bin/sh is a trusted root-owned symlink to the
+    # root-owned interpreter. That exact shape is bound by path and custody;
+    # unexpected interpreter, target or ownership changes fail closed.
+    trusted_uid = os.geteuid()
+    link = trusted_path_identity(PREHOOK_INTERPRETER)
+    (link_uid, link_gid, is_symlink, resolved,
+     target_uid, target_gid, target_mode, target_regular, _) = link
+    if (not is_symlink or link_uid != trusted_uid or link_gid != trusted_uid
+            or resolved != PREHOOK_INTERPRETER_REALPATH
+            or not target_regular or target_uid != trusted_uid
+            or target_gid != trusted_uid or target_mode & 0o022
+            or not target_mode & 0o100):
+        raise Refused("prehook-interpreter-custody")
+
+
+def guard_script_payload():
+    return read_bounded_regular_file(
+        PREHOOK_GUARD_PATH, PREHOOK_GUARD_BYTES, "guard-script")
+
+
+def bind_prehook_guard_custody():
+    # The volume guard is bound by exact body hash and custody: a root-owned,
+    # non-symlink, group/other-nonwritable, owner-executable regular file. A
+    # changed body - including one that mutates environment files - is refused
+    # here on hash and size alone, before anything could run it.
+    trusted_uid = os.geteuid()
+    guard = trusted_path_identity(PREHOOK_GUARD_PATH)
+    (link_uid, link_gid, is_symlink, resolved,
+     target_uid, target_gid, target_mode, target_regular, _) = guard
+    if (is_symlink or resolved != PREHOOK_GUARD_PATH
+            or link_uid != trusted_uid or link_gid != trusted_uid
+            or not target_regular or target_uid != trusted_uid
+            or target_gid != trusted_uid or target_mode & 0o022
+            or not target_mode & 0o100):
+        raise Refused("prehook-guard-custody")
+    payload = guard_script_payload()
+    if (len(payload.encode("utf-8")) != PREHOOK_GUARD_BYTES
+            or hashlib.sha256(payload.encode("utf-8")).hexdigest()
+            != PREHOOK_GUARD_SHA256):
+        raise Refused("prehook-guard-body-mismatch")
+
+
+def classify_supported_prehooks(unit):
+    # Production's canonical unit binds the two approved prehooks three ways:
+    # the declaring drop-in sources (owners, order, custody), the typed
+    # effective argv (order, argv, ignore_errors) and the guard script body.
+    if (unit_property(unit, "Id") != "terminal.service"
+            or unit_property(unit, "FragmentPath") != PREHOOK_FRAGMENT_PATH):
+        raise Refused("prehook-unit-source-unqualified")
+    entries = unit_source_paths(unit_property(unit, "DropInPaths"))
+    owners = {}
+    for entry in entries:
+        base = entry.rstrip("/").rpartition("/")[2]
+        if base in PREHOOK_DECLARATION_BASENAMES:
+            if base in owners:
+                raise Refused("prehook-declaration-ambiguous")
+            owners[base] = entry
+    if len(owners) != len(PREHOOK_DECLARATION_BASENAMES):
+        raise Refused("prehook-declaration-missing")
+    hardening_owner = owners["hardening.conf"]
+    storage_owner = owners["storage.conf"]
+    hardening_parent = hardening_owner.rpartition("/")[0]
+    storage_parent = storage_owner.rpartition("/")[0]
+    if (hardening_parent != storage_parent
+            or hardening_parent != PREHOOK_SOURCE_DIR
+            or entries.index(hardening_owner) > entries.index(storage_owner)):
+        raise Refused("prehook-declaration-ambiguous")
+    for entry in [PREHOOK_FRAGMENT_PATH, *entries]:
+        if entry != PREHOOK_FRAGMENT_PATH and os.path.dirname(entry) != PREHOOK_SOURCE_DIR:
+            raise Refused("prehook-declaration-ambiguous")
+        values = execstartpre_assignments(
+            read_bounded_regular_file(entry, MAX_UNIT_SOURCE_BYTES, "unit-source"),
+            "unit-source")
+        if entry == hardening_owner:
+            if values != [PREHOOK_HARDENING_DECLARATION]:
+                raise Refused("prehook-declaration-mismatch")
+        elif entry == storage_owner:
+            if values != [PREHOOK_STORAGE_DECLARATION]:
+                raise Refused("prehook-declaration-mismatch")
+        elif values:
+            raise Refused("prehook-declaration-extra")
+    rows = typed_prehook_rows(unit_execstartpre_rows(unit))
+    if len(rows) != 2:
+        raise Refused("unsupported-prehook-shape")
+    if rows[0] != (PREHOOK_BUILD_ID_ARGV[0], PREHOOK_BUILD_ID_ARGV, False):
+        raise Refused("unsupported-prehook-shape")
+    if rows[1] != (PREHOOK_GUARD_PATH, PREHOOK_GUARD_ARGV, False):
+        raise Refused("unsupported-prehook-shape")
+    bind_prehook_interpreter_custody()
+    bind_prehook_guard_custody()
+
+
+def prehook_search_directories(manager):
+    # systemctl show-environment is not a shell program. Recognize only its
+    # literal PATH form and two standard system-manager sequences, never
+    # expand variables, quotes, escapes, relative/empty elements or custom
+    # directories. An absent assignment uses systemd's documented default.
+    values = []
+    for line in manager.split("\n"):
+        stripped = line.strip(" \t\r")
+        if re.match(r"^(?:export\s+)?PATH(?![A-Za-z0-9_])", stripped):
+            match = re.fullmatch(r"PATH=([/A-Za-z0-9:_-]+)", stripped)
+            if match is None:
+                raise Refused("prehook-search-path-unqualified")
+            values.append(match.group(1))
+    if len(values) > 1:
+        raise Refused("prehook-search-path-unqualified")
+    if not values:
+        return PREHOOK_DEFAULT_SEARCH_DIRS
+    if values[0] not in PREHOOK_SUPPORTED_SEARCH_PATHS:
+        raise Refused("prehook-search-path-unqualified")
+    return tuple(values[0].split(":"))
+
+
+def qualify_prehook_search_tools(directories):
+    # Read metadata only. Every directory/ancestor must be root-custodied
+    # and nonwritable by group/other; /bin and /sbin may use their normal
+    # root-owned aliases. Never execute a tool to qualify it. The first
+    # existing match must resolve to the canonical trusted /usr/bin tool,
+    # so an earlier PATH shadow is refused even when its file is root-owned.
+    trusted_uid = os.geteuid()
+    for directory in directories:
+        components = directory.strip("/").split("/")
+        paths = ["/"] + ["/" + "/".join(components[:n])
+                         for n in range(1, len(components) + 1)]
+        for path in paths:
+            identity = trusted_path_identity(path)
+            (owner, group, linked, resolved, target_owner, target_group,
+             mode, regular, size) = identity
+            expected = {"/bin": "/usr/bin", "/sbin": "/usr/sbin"}.get(path, path)
+            if (owner != trusted_uid or group != trusted_uid
+                    or target_owner != trusted_uid or target_group != trusted_uid
+                    or not stat.S_ISDIR(mode) or mode & 0o022
+                    or resolved != expected):
+                raise Refused("prehook-search-directory-custody")
+    for name in ("findmnt", "stat"):
+        for directory in directories:
+            path = directory + "/" + name
+            if not os.path.lexists(path):
+                continue
+            identity = trusted_path_identity(path)
+            (owner, group, linked, resolved, target_owner, target_group,
+             mode, regular, size) = identity
+            if (owner != trusted_uid or group != trusted_uid
+                    or target_owner != trusted_uid or target_group != trusted_uid
+                    or not regular or mode & 0o022 or not mode & 0o100
+                    or resolved != "/usr/bin/" + name):
+                raise Refused("prehook-search-tool-custody")
+            break
+        else:
+            raise Refused("prehook-search-tool-unavailable")
+
+
+def classify_prehook_search_environment(unit, manager):
+    # ExecSearchPath can supply the hook's PATH independently of manager and
+    # unit Environment. This contract supports only the ordinary default.
+    if unit_property(unit, "ExecSearchPath"):
+        raise Refused("prehook-search-path-unqualified")
+    qualify_prehook_search_tools(prehook_search_directories(manager))
 
 
 def installed_package_json(app_root):
@@ -5121,7 +5575,7 @@ def classify_project_npm_config(repository, revision, listing, app_root):
             path, MAX_ENV_FILE_BYTES, "project-npm-configuration"))
 
 
-def classify_serving_processes(unit, app_root):
+def classify_serving_processes(unit, app_root, *, require_closed=True):
     if unit_property(unit, "ActiveState") != "active":
         raise Refused("service-not-active")
     main_text = unit_property(unit, "MainPID")
@@ -5156,6 +5610,7 @@ def classify_serving_processes(unit, app_root):
         return collected
     collected = descendants(capture=True)
     roles = {}
+    initial_closed = {}
     for pid in collected:
         role = serving_role(proc_cmdline(pid), proc_comm(pid))
         if role == "unknown":
@@ -5183,9 +5638,10 @@ def classify_serving_processes(unit, app_root):
         refuse_launch_overrides(item.decode("utf-8", "replace")
                                 for item in initial_env.split(b"\0") if item)
         values = admission_values_in_proc_environ(initial_env)
-        if len(values) > 1:
+        initial_closed[pid] = len(values)==1 and values[0]==CLOSED_VALUE
+        if require_closed and len(values) > 1:
             raise Refused("serving-process-admission-conflict")
-        if not values or values[0] != CLOSED_VALUE:
+        if require_closed and (not values or values[0] != CLOSED_VALUE):
             raise Refused("serving-process-admission-not-closed")
     if (unit_property(unit, "ActiveState") != "active"
             or unit_property(unit, "MainPID") != main_text
@@ -5197,6 +5653,10 @@ def classify_serving_processes(unit, app_root):
             raise Refused("process-identity-changed-during-verification")
         if proc_cgroup_path(pid) != main_cgroup:
             raise Refused("process-identity-changed-during-verification")
+
+    return {"cgroup": main_cgroup, "processes": [
+        {"pid": pid, "start_ticks": expected_starttimes[pid], "role": roles[pid],
+         "initial_closed": initial_closed[pid]} for pid in collected]}
 
 
 def main(argv):
@@ -5398,7 +5858,7 @@ if [ "${BASH_SOURCE[0]}" != "$0" ]; then
 fi
 
 # ── argument form -> profile -> SHA. Nothing here touches the filesystem. ──────
-# Four explicit forms are accepted: the production default, ordinary beta,
+# Existing forms plus one optional beta factual-observation form are accepted: the production default, ordinary beta,
 # beta bootstrap, and exact one-shot beta recovery. The profile flag,
 # when present, comes first and --bootstrap is valid only with --target beta. There
 # is no environment variable, config file or positional shortcut that selects a
@@ -5415,6 +5875,10 @@ if [ "$#" -eq 2 ] && [ "$1" = "--target-sha" ]; then
 elif [ "$#" -eq 4 ] && [ "$1" = "--target" ] && [ "$3" = "--target-sha" ]; then
   TARGET_REQUESTED=$2
   TARGET_SHA=$4
+elif [ "$#" -eq 5 ] && [ "$1" = "--target" ] && [ "$2" = beta ] && [ "$3" = "--target-sha" ] && [ "$5" = "--observe-terminal-http" ]; then
+  TARGET_REQUESTED=beta
+  TARGET_SHA=$4
+  HTTP_OBSERVATION_REQUESTED=1
 elif [ "$#" -eq 5 ] && [ "$1" = "--target" ] && [ "$3" = "--bootstrap" ] && [ "$4" = "--target-sha" ]; then
   TARGET_REQUESTED=$2
   TARGET_SHA=$5

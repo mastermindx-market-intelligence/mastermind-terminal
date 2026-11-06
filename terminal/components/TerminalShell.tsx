@@ -6,6 +6,7 @@ import MobileSheet from "@/components/ui/MobileSheet";
 import OptionsRail, { type OptionsRailHandle } from "@/components/options-companion/OptionsRail";
 import { optionsT } from "@/components/options-companion/optionsStrings";
 import type { OptionsChartLevel } from "@/lib/optionsCompanion";
+import type { OptionsPinViewport } from "@/lib/optionsChartPin";
 import replayStyles from "./ReplayTransport.module.css";
 import compactCsvStyles from "./WatchlistCsvCompact.module.css";
 import contextStyles from "./ChartContextPlacement.module.css";
@@ -177,6 +178,8 @@ import { SHELL_DRAW_TOOLS } from "@/lib/drawingTaxonomy";
 import { type ShellPanelId } from "@/lib/platform/contract";
 import SettingsButton from "@/components/settings/SettingsButton";
 import { SettingsProvider } from "@/components/settings/SettingsProvider";
+import { SharedShellPresentation } from "@/components/chrome/shared-shell/SharedShellPresentation";
+import "@/components/chrome/shared-shell/shared-shell.css";
 import { OnboardingProvider } from "@/components/onboarding/OnboardingProvider";
 import DrawingSidebar from "@/components/DrawingSidebar";
 import DayRange from "@/components/DayRange";
@@ -1181,10 +1184,20 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   const [panes, setPanes] = useState<string[]>([seed0]);
   const [activePane, setActivePane] = useState(0);
   const optionsRailRef = useRef<OptionsRailHandle>(null);
-  const [optionsLevel, setOptionsLevel] = useState<(OptionsChartLevel & { pane: number }) | null>(null);
+  const [optionsLevel, setOptionsLevel] = useState<{ level: OptionsChartLevel; pane: number } | null>(null);
+  const [optionsViewport, setOptionsViewport] = useState<OptionsPinViewport | null>(null);
+  const optionsSelectionRef = useRef({ selection: optionsLevel, activePane });
+  optionsSelectionRef.current = { selection: optionsLevel, activePane };
   const pinOptionsLevel = useCallback((level: OptionsChartLevel | null) => {
-    setOptionsLevel(level ? { ...level, pane: activePane } : null);
+    setOptionsLevel(level ? { level, pane: activePane } : null);
+    setOptionsViewport(null);
   }, [activePane]);
+  const onOptionsViewport = useCallback((view: OptionsPinViewport) => {
+    const current = optionsSelectionRef.current;
+    if (!current.selection || current.selection.pane !== current.activePane || current.selection.level !== view.level) return;
+    setOptionsViewport(previous => previous?.level === view.level && previous.state === view.state
+      && previous.generation === view.generation ? previous : view);
+  }, []);
   const [sync, setSync] = useState(true);
   // E09 link groups. `null` = derived from the legacy `sync` switch (all panes one group, or none);
   // a value = the user chose groups per pane. Device-local (mm.ws `links`); saved layouts keep `sync`.
@@ -6127,6 +6140,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         can call useOnboarding() directly. Note this provider is a DESCENDANT of
         TerminalShell, so useSettings() *here* would be the no-op — the buttons
         below are children of it, which is what matters. */}
+    <SharedShellPresentation enabled={!shellMode} identity={identity} appearanceOnly>
     <SettingsProvider identity={identity} defaultSection="terminal">
     <div className={`app${fullChart ? " fs" : ""}${shellMode ? " shell-app" : ""}`} data-shell={shellMode ? "app" : undefined} data-tray={shellMode && shellTray ? "1" : undefined} data-dossier={dossierMode ? "1" : undefined} style={{ ["--rail-w" as any]: `${railW}px` }}>
       {!shellMode && <RetainedInvestigationLayout search={urlSearch} owner={wlOwner} onOpen={(config,name)=>{
@@ -6593,7 +6607,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             />
             <div className={`pane-grid ${contextStyles.paneGrid}`} data-n={panes.length}>
               {panes.map((sym, i) => (
-                <ChartPane key={i} idx={i} contextDock={contextDock} optionsLevel={ent.optionsRead && !replayOn && i === activePane && optionsLevel?.pane === i ? optionsLevel : null} symbol={sym} drawingOwnerKey={currentDrawingOwnerKey} isActive={i === activePane} onActivate={setActivePane} row={paneRows[i]} tf={paneTfs[i] ?? "D"} episodeId={initialEpisode && initialSymbol && sym.toUpperCase() === initialSymbol.toUpperCase() ? initialEpisode : null} chartType={chartType} inds={inds} tool={drawingsReadyFor(sym) ? activeDrawingTool : null} toolActivation={toolState.activation} drawingSticky={drawingCreationDisabledReason ? false : drawingKeepsActive} drawingCreationDisabled={drawingCreationDisabledReason !== null} drawStyle={drawStyle} detectCmd={detectCmd} compare={compare} compareCfg={compareCfg} onCompareCfgChange={setCompareCfg} magnet={magnet} replayCutoff={replayOn && i === 0 ? replayCutoff : null} onMeta={onPaneMeta} drawings={[...(drawingOwnerMatches ? (drawStore[sym] ?? []) : []), ...chartBus.aiDrawingsFor(sym)]} drawingsVisible={drawingsVisible} onDrawingsChange={(d) => setSymbolDrawings(sym, d)} onDetectedDrawingCount={i === activePane ? setActivePaneDetectedDrawingCount : undefined} liveQuote={{ ...(quotes[sym] ?? {}), ...(isPublicBoatsQuote(extQuotes[sym], extClockMs) ? extQuotes[sym] : {}) }} dataReady={prefsHydrated} initialTimeframe={startTfRef.current} indParams={indParams} hidden={hidden} onToggleHidden={toggleHidden} onRemoveInd={removeInd} onOpenSettings={openSettings} onOpenSource={openSource} pineScripts={pineScripts} dayMode={dtm} userTier={userTier}
+                <ChartPane key={i} idx={i} contextDock={contextDock} optionsLevel={ent.optionsRead && !replayOn && i === activePane && optionsLevel?.pane === i ? optionsLevel.level : null} onOptionsViewport={onOptionsViewport} symbol={sym} drawingOwnerKey={currentDrawingOwnerKey} isActive={i === activePane} onActivate={setActivePane} row={paneRows[i]} tf={paneTfs[i] ?? "D"} episodeId={initialEpisode && initialSymbol && sym.toUpperCase() === initialSymbol.toUpperCase() ? initialEpisode : null} chartType={chartType} inds={inds} tool={drawingsReadyFor(sym) ? activeDrawingTool : null} toolActivation={toolState.activation} drawingSticky={drawingCreationDisabledReason ? false : drawingKeepsActive} drawingCreationDisabled={drawingCreationDisabledReason !== null} drawStyle={drawStyle} detectCmd={detectCmd} compare={compare} compareCfg={compareCfg} onCompareCfgChange={setCompareCfg} magnet={magnet} replayCutoff={replayOn && i === 0 ? replayCutoff : null} onMeta={onPaneMeta} drawings={[...(drawingOwnerMatches ? (drawStore[sym] ?? []) : []), ...chartBus.aiDrawingsFor(sym)]} drawingsVisible={drawingsVisible} onDrawingsChange={(d) => setSymbolDrawings(sym, d)} onDetectedDrawingCount={i === activePane ? setActivePaneDetectedDrawingCount : undefined} liveQuote={{ ...(quotes[sym] ?? {}), ...(isPublicBoatsQuote(extQuotes[sym], extClockMs) ? extQuotes[sym] : {}) }} dataReady={prefsHydrated} initialTimeframe={startTfRef.current} indParams={indParams} hidden={hidden} onToggleHidden={toggleHidden} onRemoveInd={removeInd} onOpenSettings={openSettings} onOpenSource={openSource} pineScripts={pineScripts} dayMode={dtm} userTier={userTier}
                   onAddAlert={(price) => { window.location.href = `/alerts?sym=${encodeURIComponent(active)}&price=${encodeURIComponent(price.toFixed(4))}&type=price_above`; }}
                   onTableView={() => setTableViewOpen(true)}
                   onObjectTree={() => setObjectTreeOpen((o) => !o)}
@@ -6852,7 +6866,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       <OptionsRail ref={optionsRailRef} symbol={active} enabled={!shellMode && !dossierMode}
         contextOpen={contextOpen && contextAvailable} contextAvailable={contextAvailable} onContextChange={changeContext} contextHostRef={setContextRailHost}
         access={ent.loading ? "loading" : ent.optionsRead ? "allowed" : "locked"}
-        pinned={optionsLevel?.pane === activePane ? optionsLevel : null} onPin={pinOptionsLevel} replayActive={replayOn}>
+        pinned={optionsLevel?.pane === activePane ? optionsLevel.level : null} onPin={pinOptionsLevel}
+        viewport={optionsLevel?.pane === activePane && optionsViewport?.level === optionsLevel.level ? optionsViewport : null} replayActive={replayOn}>
         <div className="rail-body">
           {!dossierMode && <WatchlistReviewBar review={wlReview} activeSymbol={active} activeList={activeList} activeListCount={lists[activeList]?.length ?? 0} manifestSymbols={man?.symbols ?? null} />}
           {/* The authenticated rail has three distinct sources: Portfolio, Watchlists and News.
@@ -7574,6 +7589,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
 
     </div>
     </SettingsProvider>
+    </SharedShellPresentation>
     </OnboardingProvider>
   );
 }

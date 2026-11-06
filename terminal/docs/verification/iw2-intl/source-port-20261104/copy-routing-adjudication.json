@@ -1,0 +1,21 @@
+{
+  "run": "iw2-intl-copy-routing-20261104-r1",
+  "original_foreground": "44955 terminal0",
+  "usage": "MISSING",
+  "raw_artifact_verdict": "NOT_ACCEPTED_AS_RETURNED",
+  "raw_sha256": "14dab84d883c106ccb174b96c52fed0b57c5b6b8962a5fa0e71f73c7d9ec7733",
+  "raw_problem": "one context line omitted existing initialIntlEntry prop; raw git apply --check failed without source effects",
+  "parent_correction": "restore original current function context in patch only; no prop/interface change",
+  "parent_patch_sha256": "aeb484a3b4a8bf194aa5c615333412f1de77702744225ef480b2582517347ea2",
+  "parent_source_verdict": "PASS_SCOPED",
+  "receiver_runtime_and_interfaces": "byte identical",
+  "receiver_EN_ZH_values": "all exact original",
+  "workspace": "six pair values exact; reverse pairs and one helper restores complete original file byte exactly",
+  "guard": "16 original findings ->0 blocking;self-check all6 rules detected",
+  "affected_cases": 61,
+  "files": 5,
+  "typescript_exit": 0,
+  "real_browser_delta": "final source captures pending;prior actualproducer/wholePlan proof reused",
+  "SQL_auth_owner_effects": "NONE",
+  "observation_unavailable": "one original diagnostic rc76;notretried;actualforegroundreturnsettlednaturally"
+}

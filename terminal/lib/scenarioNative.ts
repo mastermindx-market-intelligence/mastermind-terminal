@@ -2,15 +2,18 @@ import "server-only";
 import { scenarioBasisEncoding } from "./scenarioAcquisition";
 import { createHash } from "node:crypto";
 import { parseScenarioCapture, type ScenarioCapture } from "./investigationScenario";
-import { isInvestigationId } from "./investigations";
+import { isInvestigationId, parseInvestigationCommand, type InvestigationCommand } from "./investigations";
+import { isDeepStrictEqual } from "node:util";
 import { createExposureMapReader } from "./exposureMap";
 import { scenarioBasisFromRead } from "@/components/exposure-map/exposureScenarioBasis";
-import { SCENARIO_VERSION, localScenarioValue, type ScenarioBasis, type ScenarioValue } from "./exposureScenario";
+import { localScenarioValue, type ScenarioBasis, type ScenarioValue } from "./exposureScenario";
 
 export const SCENARIO_NATIVE_URL = "https://www.mastermind-x.com/api/options/scenario-source/resolve";
 const MAX_RESPONSE = 13 * 1024 * 1024;
 type ReadIntent = { mode: "resolve"; investigation_id: string; revision: number; grant_id: string | null };
-type SaveIntent = { mode: "qualify" | "capture"; investigation_id: string; revision: number; grant_id: null; expected_revision: number; operation_id: string; capture: ScenarioCapture };
+export type ScenarioCanonicalRequest = { principal: string; action: "create" | "revise"; target: string; expected_revision: number;
+  manifest: InvestigationCommand["manifest"]; layout_capture: {layout_id:string;expected_revision:number;revision_id:string} | null };
+type SaveIntent = { mode: "qualify" | "capture"; investigation_id: string; revision: number; grant_id: null; expected_revision: number; operation_id: string; capture: ScenarioCapture; canonical_request?: ScenarioCanonicalRequest };
 export type ScenarioNativeIntent = ReadIntent | SaveIntent;
 export type ScenarioNativeResult =
   | { status: "resolved"; investigation_id: string; revision: number; grant_id: string | null; capture: ScenarioCapture; basis: ScenarioBasis; result: ScenarioValue }
@@ -28,10 +31,28 @@ export function parseScenarioNativeIntent(raw: unknown): ScenarioNativeIntent | 
     && (raw.grant_id === null || isInvestigationId(raw.grant_id))) {
     return { mode: "resolve", investigation_id: raw.investigation_id, revision: Number(raw.revision), grant_id: raw.grant_id };
   }
-  if ((raw.mode !== "qualify" && raw.mode !== "capture") || !exact(raw, ["mode", "investigation_id", "revision", "grant_id", "expected_revision", "operation_id", "capture"])
+  if ((raw.mode !== "qualify" && raw.mode !== "capture") || !exact(raw, ["mode", "investigation_id", "revision", "grant_id", "expected_revision", "operation_id", "capture", ...(raw.mode === "capture" ? ["canonical_request"] : [])])
     || raw.grant_id !== null || !isInvestigationId(raw.operation_id) || !Number.isSafeInteger(raw.expected_revision)
     || Number(raw.expected_revision) < 0 || Number(raw.expected_revision) + 1 !== raw.revision) return null;
   const capture = parseScenarioCapture(raw.capture);
+  if (raw.mode === "capture") {
+    const request = raw.canonical_request;
+    if (!record(request) || !exact(request, ["principal", "action", "target", "expected_revision", "manifest", "layout_capture"])
+      || !isInvestigationId(request.principal) || request.target !== raw.investigation_id || request.expected_revision !== raw.expected_revision
+      || request.action !== (raw.expected_revision === 0 ? "create" : "revise")) return null;
+    // The native claim stores a pinned layout revision, not the browser's
+    // unqualified two-field layout request. Match SQL0051's existing binding.
+    const layout=request.layout_capture;
+    if (layout !== null && (!record(layout) || !exact(layout,["layout_id","expected_revision","revision_id"])
+      || !isInvestigationId(layout.layout_id) || !isInvestigationId(layout.revision_id)
+      || !Number.isSafeInteger(layout.expected_revision) || Number(layout.expected_revision)<1 || Number(layout.expected_revision)>999999999)) return null;
+    const command = parseInvestigationCommand({ id: request.target, operation_id: raw.operation_id, expected_revision: request.expected_revision,
+      action: request.action, manifest: request.manifest });
+    if (!capture || !command || (layout !== null && command.manifest.layout_refs.length !== 0)
+      || !isDeepStrictEqual(command.manifest.scenario_capture, capture)) return null;
+    return { mode: "capture", investigation_id: raw.investigation_id, revision: Number(raw.revision), grant_id: null,
+      expected_revision: Number(raw.expected_revision), operation_id: raw.operation_id, capture, canonical_request: request as ScenarioCanonicalRequest };
+  }
   return capture ? { mode: raw.mode, investigation_id: raw.investigation_id, revision: Number(raw.revision), grant_id: null,
     expected_revision: Number(raw.expected_revision), operation_id: raw.operation_id, capture } : null;
 }
@@ -102,9 +123,19 @@ export function decodeNativeScenario(raw: unknown, expected: ScenarioNativeInten
       return exact(raw, ["status", "reason"]) && reasons.includes(String(raw.reason)) ? { status: "denied" } : unavailable();
     }
     if (raw.status === "unavailable") return unavailable();
-    if (!exact(raw, ["status", "mode", "investigation_id", "revision", "grant_id", "capture", "gex", "moves"])
+    if (!exact(raw, ["status", "mode", "investigation_id", "revision", "grant_id", "capture", "gex", "moves", ...(expected.mode === "capture" ? ["native_capture"] : [])])
       || raw.status !== "resolved" || raw.mode !== expected.mode || raw.investigation_id !== expected.investigation_id
       || raw.revision !== expected.revision || raw.grant_id !== expected.grant_id) return unavailable();
+    if (expected.mode === "capture") {
+      const phase = raw.native_capture;
+      if (!record(phase) || !exact(phase, ["schema", "operation_id", "generation", "request_sha256", "source_binding_sha256", "native_phase"])
+        || phase.schema !== "investigation.native_capture.v1" || phase.operation_id !== expected.operation_id
+        || !isInvestigationId(phase.generation) || phase.native_phase !== "retained"
+        || typeof phase.request_sha256 !== "string" || !/^[0-9a-f]{64}$/.test(phase.request_sha256)
+        || typeof phase.source_binding_sha256 !== "string" || !/^[0-9a-f]{64}$/.test(phase.source_binding_sha256)) return unavailable();
+      // Bounded fixed-origin producer observation only. Canonical SQL separately
+      // verifies its stored same-operation phase; this is no browser authority.
+    }
     const capture = parseScenarioCapture(raw.capture);
     if (!capture || (expected.mode !== "resolve" && JSON.stringify(capture) !== JSON.stringify(expected.capture))) return unavailable();
     const s = capture.source;

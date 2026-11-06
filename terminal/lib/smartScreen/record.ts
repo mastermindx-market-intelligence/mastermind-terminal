@@ -51,7 +51,7 @@ export function normalizeScreenName(value: unknown): string | null {
 
 const isIso = (value: unknown): value is string =>
   typeof value === "string" && value.length <= 40 && Number.isFinite(Date.parse(value));
-const isRev = (value: unknown): value is number =>
+export const isScreenRevision = (value: unknown): value is number =>
   typeof value === "number" && Number.isInteger(value) && value >= 1 && value <= 1_000_000_000;
 
 export type ParsedRecord =
@@ -64,7 +64,7 @@ export function parseScreenRecord(value: unknown, keyId?: string): ParsedRecord 
   if (!value || typeof value !== "object" || Array.isArray(value)) return { kind: "invalid" };
   const v = value as Record<string, unknown>;
   const id = typeof v.id === "string" && SCREEN_ID_RE.test(v.id) ? v.id : null;
-  if (!id || (keyId !== undefined && id !== keyId) || !isRev(v.rev)) return { kind: "invalid" };
+  if (!id || (keyId !== undefined && id !== keyId) || !isScreenRevision(v.rev)) return { kind: "invalid" };
   const def = v.def as Record<string, unknown> | undefined;
   const grammar = def && typeof def === "object" ? def.grammar : undefined;
   const reviewVersion = v.review && typeof v.review === "object" ? (v.review as Record<string, unknown>).v : undefined;

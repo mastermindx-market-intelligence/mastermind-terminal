@@ -1,31 +1,28 @@
 "use client";
-import { useEffect, useState } from "react";
-import { createClient } from "./supabase/client";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { subscribeAuthLifecycle, type AuthLifecycleSnapshot, type AuthLifecycleSubscription } from "./supabase/authLifecycle";
 
-/** Display lifetime only. Private API auth/entitlement remains authoritative.
- * A→B→A gets three lifetimes, so an earlier account cannot revive a draft.
- * No token or session object leaves the incumbent Auth client. */
-export function useOptionsPlanScope(): string {
-  const [scope, setScope] = useState({ subject: null as string | null, generation: 0 });
+/** Existing verified lifecycle, one incumbent SDK subscription. No token,
+ * storage, clock-derived epoch or second identity authority leaves that owner. */
+export function useOptionsPlanBoundary() {
+  const [projected, setProjected] = useState<AuthLifecycleSnapshot | null>(null);
+  const owner = useRef<AuthLifecycleSubscription | null>(null);
   useEffect(() => {
-    let alive = true, observed = 0;
-    let unsubscribe = () => {};
-    const accept = (subject: string | null) => {
-      if (alive) setScope(value => value.subject === subject ? value : { subject, generation: value.generation + 1 });
-    };
-    try {
-      const auth = createClient().auth;
-      const { data: { subscription } } = auth.onAuthStateChange((_event, session) => {
-        observed++;
-        accept(session?.user.id ?? null);
-      });
-      unsubscribe = () => subscription.unsubscribe();
-      const issued = observed;
-      void auth.getUser().then(({ data, error }) => {
-        if (observed === issued) accept(error ? null : data.user?.id ?? null);
-      }).catch(() => { if (observed === issued) accept(null); });
-    } catch { accept(null); }
-    return () => { alive = false; unsubscribe(); };
+    let active = true;
+    const subscription = subscribeAuthLifecycle(snapshot => { if (active) setProjected(snapshot); });
+    owner.current = subscription;
+    return () => { active = false; if (owner.current === subscription) owner.current = null; subscription.unsubscribe(); };
   }, []);
-  return JSON.stringify([scope.subject, scope.generation]);
+  // Same UUID/new auth_epoch (including account A-B-A) replaces the complete
+  // editor/controller. Unverified input cannot retain a ready calculation view.
+  const key = JSON.stringify([projected?.principal_partition ?? null, projected?.auth_epoch ?? null, projected?.availability ?? "pending"]);
+  const isCurrent = useCallback(() => {
+    const actual = owner.current?.getSnapshot();
+    return !!projected && projected.availability === "ready" && !!actual && actual.availability === "ready"
+      && actual.principal_partition === projected.principal_partition && actual.auth_epoch === projected.auth_epoch;
+  }, [projected]);
+  return { key, ownerKey: projected?.availability === "ready" ? projected.principal_partition ?? "" : "", isCurrent };
 }
+
+/** Compatibility for existing read-only scope consumers. */
+export function useOptionsPlanScope(): string { return useOptionsPlanBoundary().key; }

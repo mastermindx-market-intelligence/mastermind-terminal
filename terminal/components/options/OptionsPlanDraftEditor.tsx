@@ -81,7 +81,7 @@ export function OptionsPlanDraftEditor({ draft, lang, onApply, onClose, contextD
   </>;
   return <section className={`${styles.cmp}${layout === "planning" ? ` ${styles.planCompact}` : ""}`} aria-labelledby={`${id}-title`} data-testid="options-plan-draft">
     <div className={styles.cmpHd}><h3 className={styles.cmpTitle} id={`${id}-title`}>{t("Plan draft", "计划草稿")}</h3>
-      <p className={styles.cmpNoExec}>{t("Record your research and assumptions. This draft is not saved to your account.", "记录研究观点与假设，此草稿尚未保存到账户。")}</p></div>
+      <p className={styles.cmpNoExec}>{t("Editing these research notes and assumptions does not save your changes.", "编辑研究笔记和假设不会自动保存更改。")}</p></div>
     <p className={styles.hint}>{contextDescription ?? t("Dated reference marks remain separate from your entry assumption. Quotes, fees and a compatible valuation model are unavailable; no payoff or profit is calculated.", "带日期的参考价格与入场假设分别保留。当前缺少报价、费用及兼容估值模型，不计算收益或损益。")}</p>
     <form className={styles.planForm} onSubmit={submit} noValidate>
       {layout === "full" && researchFields}

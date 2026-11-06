@@ -131,6 +131,7 @@ export default function SectionPreferences({ t, identity, user, onClose, onPatch
 
   function pickTheme(choice: ThemeChoice) {
     // Matches the macro semantics: `auto` records the flag and lets the dashboard
+    // Saved research and 3D Research Lab consume the same local-time theme preference.
     // compute the theme from local time; an explicit pick records the theme and
     // clears the flag. The mounted 3D Research Lab consumes this preference;
     // Shared Shell also applies explicit intent when the saved choice is unchanged.
@@ -190,8 +191,8 @@ export default function SectionPreferences({ t, identity, user, onClose, onPatch
           <Row
             label={t("acsAppearance")}
             desc={lang === "zh"
-              ? "应用于宏观仪表盘与 3D 研究室。终端其他视图保持深色。自动模式按本地时间在 07:00–19:00 使用浅色。"
-              : "Applies to the Macro Dashboard and 3D Research Lab. Other Terminal views remain dark. Auto uses local time: light from 07:00 to 19:00."}
+              ? "应用于宏观仪表盘、已保存研究和 3D 研究室。终端其他视图保持深色。自动模式按本地时间在 07:00–19:00 使用浅色。"
+              : "Applies to Macro Dashboard, Saved research and 3D Research Lab. Other Terminal views remain dark. Auto uses local time: light from 07:00 to 19:00."}
             control={
               <span className="acs-seg" role="group" aria-label={t("acsAppearance")}>
                 {(["light", "auto", "dark"] as ThemeChoice[]).map((c) => (

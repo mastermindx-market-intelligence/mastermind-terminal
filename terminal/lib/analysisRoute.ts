@@ -1,9 +1,10 @@
 import { isUuid } from "@/lib/theses";
+import {parseIntlEntry,safeIntlReturn,type IntlEntrySelectors} from "./investigationIntlEntry";
 
 export type AnalysisRoute =
   | { kind: "company"; symbol?: string; page?: string }
   | { kind: "theses"; symbol?: string; thesisId?: string }
-  | { kind: "investigations"; symbol?: string; investigationId?: string; revision?: number }
+  | { kind: "investigations"; symbol?: string; investigationId?: string; revision?: number;intlEntry?:IntlEntrySelectors;intlReturnTo?:string }
   | { kind: "unsupported"; reason: "invalid_view" | "unsupported_view" | "thesis_requires_theses" }
   | { kind: "invalid_thesis" };
 
@@ -27,6 +28,8 @@ function optional(value: string | string[] | undefined): string | undefined {
  */
 export function parseAnalysisRoute(query: SearchParams): AnalysisRoute {
   const view = query.view;
+  const intl=parseIntlEntry(query),returnTo=query.intl_return===undefined?null:safeIntlReturn(query.intl_return);
+  if(intl.kind==="invalid"||(query.intl_return!==undefined&&!returnTo)||((intl.kind==="entry"||returnTo!==null)&&view!=="investigations"))return {kind:"unsupported",reason:"invalid_view"};
   if (Array.isArray(view) || (typeof view === "string" && !view.trim())) {
     return { kind: "unsupported", reason: "invalid_view" };
   }
@@ -39,9 +42,10 @@ export function parseAnalysisRoute(query: SearchParams): AnalysisRoute {
   if ((query.investigation !== undefined || query.revision !== undefined) && view !== "investigations") return {kind:"unsupported",reason:"invalid_view"};
   if (view === "investigations") {
     const id=query.investigation, revision=query.revision;
+    if(intl.kind==="entry"&&(id!==undefined||revision!==undefined||query.symbol!==undefined))return {kind:"unsupported",reason:"invalid_view"};
     if (Array.isArray(id) || (id !== undefined && !isUuid(id)) || Array.isArray(revision)
       || (revision !== undefined && (!id || !/^[1-9][0-9]{0,9}$/.test(revision) || Number(revision)>2147483647))) return {kind:"unsupported",reason:"invalid_view"};
-    return {kind:"investigations",...(id ? {investigationId:id.toLowerCase()} : {}),...(revision ? {revision:Number(revision)} : {}),...(optional(query.symbol) !== undefined ? {symbol:optional(query.symbol)} : {})};
+    return {kind:"investigations",...(id ? {investigationId:id.toLowerCase()} : {}),...(revision ? {revision:Number(revision)} : {}),...(optional(query.symbol) !== undefined ? {symbol:optional(query.symbol)} : {}),...(intl.kind==="entry"?{intlEntry:intl.value}:{}),...(returnTo?{intlReturnTo:returnTo}:{})};
   }
   if (view === "theses") {
     if (Array.isArray(query.thesis)) return { kind: "invalid_thesis" };

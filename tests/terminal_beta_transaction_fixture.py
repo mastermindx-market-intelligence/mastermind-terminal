@@ -4,7 +4,9 @@ import fnmatch,hashlib,json,os,pathlib,shutil,signal,stat,sys,tarfile
 R=pathlib.Path(os.environ['TXN_FIXTURE_ROOT']).resolve()
 P=json.loads((R/'paths.json').read_text())
 A='1'*40; B='2'*40; BUILD='build-constant-fixture'
-def path(key): return pathlib.Path(P[key])
+# A stored path may be reached through a symlink alias. Normalize it exactly
+# as confined() normalizes an argument, so routing compares like with like.
+def path(key): return pathlib.Path(P[key]).resolve()
 def event(value):
  with (R/'effects.log').open('a') as f: f.write(value+'\n')
 def die(message,code=71):
