@@ -21,14 +21,20 @@ export type TideEventLink = {
   sourceRef: string;
   scenarioDirection: string | null;
 };
+export type TideSourceReceipt = {
+  sourceRef: string; revision: string; rightsRef: string;
+  observedAt: string; usableAt: string; status: "complete" | "partial";
+  returnWindowRef: string | null;
+};
 export type TideRow = {
   securityId: string;
   ticker: string | null;
   status: "observed" | "unavailable";
   reason: string | null;
   returnPct: number | null;
-  source: { sourceRef: string; revision: string; rightsRef: string;
-    observedAt: string; usableAt: string; status: "complete" | "partial" } | null;
+  source: TideSourceReceipt | null;
+  factorSources: { market: TideSourceReceipt; sector: TideSourceReceipt;
+    returnWindowRef: string } | null;
   eventLinks: TideEventLink[];
   decomposition: { marketPct: number; sectorExcessPct: number; unexplainedPct: number } | null;
 };
@@ -69,6 +75,22 @@ function micros(value: unknown): bigint | null {
   return BigInt(ms) * BigInt(1000) + BigInt((m[5] ?? "").padEnd(6, "0").slice(3));
 }
 const unique = (names: string[]) => new Set(names).size === names.length;
+
+function parseReceipt(value: unknown, decision: bigint): TideSourceReceipt | null {
+  if (!obj(value)) return null;
+  const observed = micros(value.observed_at), usable = micros(value.usable_at);
+  if (!str(value.source_ref) || !str(value.revision) || !str(value.rights_ref) ||
+      observed === null || usable === null || observed > usable || usable > decision ||
+      !["complete", "partial"].includes(String(value.status)) ||
+      !(value.return_window_ref === undefined || str(value.return_window_ref))) return null;
+  return {
+    sourceRef: value.source_ref, revision: value.revision,
+    rightsRef: value.rights_ref, observedAt: value.observed_at as string,
+    usableAt: value.usable_at as string,
+    status: value.status as "complete" | "partial",
+    returnWindowRef: (value.return_window_ref as string | undefined) ?? null,
+  };
+}
 
 export function parseMarketTideEventResponse(value: unknown): TideResponseView | null {
   if (!obj(value)) return null;
@@ -117,14 +139,8 @@ export function parseMarketTideEventResponse(value: unknown): TideResponseView |
                        item.decomposition !== null || !str(item.reason))) return null;
     let source: TideRow["source"] = null;
     if (available) {
-      const s = item.source as Obj;
-      const tObserved = micros(s.observed_at), tUsable = micros(s.usable_at);
-      if (!str(s.source_ref) || !str(s.revision) || !str(s.rights_ref) ||
-          tObserved === null || tUsable === null || tObserved > tUsable ||
-          tUsable > decision || !["complete", "partial"].includes(String(s.status))) return null;
-      source = { sourceRef: s.source_ref, revision: s.revision, rightsRef: s.rights_ref,
-        observedAt: s.observed_at as string, usableAt: s.usable_at as string,
-        status: s.status as "complete" | "partial" };
+      source = parseReceipt(item.source, decision);
+      if (!source) return null;
       observed++;
     }
     const eventLinks: TideEventLink[] = [];
@@ -139,19 +155,31 @@ export function parseMarketTideEventResponse(value: unknown): TideResponseView |
     }
     const d = item.decomposition;
     let decomposition: TideRow["decomposition"] = null;
+    let factorSources: TideRow["factorSources"] = null;
     if (d !== null) {
-      if (!available || !obj(d) || d.method !== "market_plus_sector_excess/v1" ||
+      if (!available || v.market_status !== "admitted" ||
+          !obj(d) || d.method !== "market_plus_sector_excess/v1" ||
           d.causal_attribution !== false || !num(d.market_pct) ||
           !num(d.sector_excess_pct) || !num(d.unexplained_pct) ||
           !eq(d.market_pct + d.sector_excess_pct + d.unexplained_pct,
-              item.return_pct as number)) return null;
+              item.return_pct as number) || !obj(item.factor_receipts) ||
+          !str(item.factor_receipts.return_window_ref)) return null;
+      const marketSource = parseReceipt(item.factor_receipts.market, decision);
+      const sectorSource = parseReceipt(item.factor_receipts.sector, decision);
+      const windowRef = item.factor_receipts.return_window_ref;
+      if (!marketSource || !sectorSource || !source ||
+          source.returnWindowRef !== windowRef ||
+          marketSource.returnWindowRef !== windowRef ||
+          sectorSource.returnWindowRef !== windowRef) return null;
+      factorSources = { market: marketSource, sector: sectorSource, returnWindowRef: windowRef };
       decomposition = { marketPct: d.market_pct,
         sectorExcessPct: d.sector_excess_pct, unexplainedPct: d.unexplained_pct };
       modeled++;
-    }
+    } else if (item.factor_receipts != null) return null;
     rows.push({ securityId: item.security_id, ticker: item.ticker,
       status: item.status as TideRow["status"], reason: item.reason as string | null,
-      returnPct: item.return_pct as number | null, source, eventLinks, decomposition });
+      returnPct: item.return_pct as number | null, source, eventLinks, decomposition,
+      factorSources });
     withheldCount += eventLinks.length;
   }
 
