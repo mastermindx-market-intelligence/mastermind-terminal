@@ -99,9 +99,12 @@ it("shows the native original-operation fence without retrying or trusting a per
   const pending = JSON.parse(raw);
   fetcher.mockResolvedValue(response({ status: "not_applied", id: pending.command.id, operation_id: pending.command.operation_id, read_principal: user, read_operation_id: pending.command.operation_id, read_binding: "stored_no_effect" }));
   await click(button("Check original outcome"));
-  expect(el.textContent).toContain("original request was recorded as not applied");
+  expect(el.textContent).toContain("canonical save was recorded as not applied");
+  expect(el.textContent).toContain("private source capture outcome is still unknown");
   expect(el.textContent).not.toContain("Retry original save");
-  expect(sessionStorage.getItem(key)).toBe(raw);
+  const conservative = JSON.parse(sessionStorage.getItem(key)!);
+  expect(conservative.command).toEqual(pending.command);
+  expect(conservative.capture_outcome).toBe("unknown_after_canonical_not_applied");
   expect(fetcher.mock.calls.filter(([, init]) => init?.method === "POST")).toHaveLength(1);
 });
 it("clears private legacy content on account change and never sends a legacy full-value journal", async () => {

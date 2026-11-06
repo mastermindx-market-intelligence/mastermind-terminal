@@ -47,11 +47,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useShellIdentity } from "@/components/chrome/AppShell";
 import { identityOwnerKey, identityUserId } from "@/lib/accountIdentity";
-import { readInvestigationJournal, retainInvestigationJournal, rejectInvestigationJournal, clearCommittedInvestigationJournal } from "@/lib/investigationJournal";
+import { readInvestigationJournal, retainInvestigationJournal, retainInvestigationCaptureUnknown, rejectInvestigationJournal, clearCommittedInvestigationJournal } from "@/lib/investigationJournal";
 import { createScenarioCapture } from "@/lib/investigationScenario";
 import {
   beginInvestigationSave,
   retryInvestigationSave,
+  originalInvestigationOperationToRead,
   settleInvestigationSave,
   settleInvestigationOperationRead,
   type InvestigationSaveState,
@@ -91,6 +92,7 @@ const COPY = {
     check: "Check original outcome",
     retry: "Retry original save",
     conflict: "This revision was not committed. The original request is retained.",
+    captureUnknown: "The canonical save was recorded as not applied. The private source capture outcome is still unknown. Your draft and original request are retained; no retry was sent.",
     noEffect: "The original request was recorded as not applied. Your draft is retained; no retry was sent.",
     refusedSource: "This revision was not committed because its exact source is unavailable. The original request is retained.",
     saved: "Saved",
@@ -122,6 +124,7 @@ const COPY = {
     check: "检查原请求结果",
     retry: "重试原保存请求",
     conflict: "本修订未提交，原请求已保留。",
+    captureUnknown: "规范保存已记录为未执行，但私有来源捕获结果仍未知。草稿和原请求已保留，未发送重试。",
     noEffect: "原请求已记录为未执行。草稿已保留，未发送重试。",
     refusedSource: "平台当前无法获取该确切来源，本修订未提交，原请求已保留。",
     saved: "已保存",
@@ -142,7 +145,7 @@ const exactJson = (a: unknown, b: unknown): boolean => JSON.stringify(a) === JSO
 type Phase =
   | { kind: "idle" }
   | { kind: "pending" }
-  | { kind: "uncertain" }
+  | { kind: "uncertain"; captureUnknown?: true }
   | { kind: "rejected"; reason?: string }
   | { kind: "blocked" }
   | { kind: "occupied" }
@@ -293,7 +296,10 @@ export default function SavedScenarioCapture({ inputs, sourceReference = null, l
     }
     if (next.phase === "uncertain") {
       setRetained(next.command);
-      setPhase({ kind: "uncertain" });
+      if (next.captureOutcome) {
+        try { retainInvestigationCaptureUnknown(sessionStorage, owner, next); } catch { /* still UNKNOWN, never clear */ }
+      }
+      setPhase({ kind: "uncertain", ...(next.captureOutcome ? { captureUnknown: true as const } : {}) });
     }
   }
 
@@ -329,7 +335,7 @@ export default function SavedScenarioCapture({ inputs, sourceReference = null, l
 
   /** Explicit outcome check: the existing operation receipt by its ORIGINAL operation_id. */
   async function onCheck() {
-    const command = retryInvestigationSave(stateRef.current, ownerKey);
+    const command = originalInvestigationOperationToRead(stateRef.current, ownerKey);
     if (!command) return;
     const gen = genRef.current;
     const controller = new AbortController();
@@ -448,10 +454,10 @@ export default function SavedScenarioCapture({ inputs, sourceReference = null, l
           )}
           {phase.kind === "uncertain" && (
             <>
-              <p className={styles.status} role="status">{c.uncertain}</p>
+              <p className={styles.status} role="status">{phase.captureUnknown ? c.captureUnknown : c.uncertain}</p>
               <div className={styles.actions}>
                 <button type="button" onClick={() => void onCheck()}>{c.check}</button>
-                <button type="button" disabled={busy} onClick={onRetry}>{c.retry}</button>
+                {!phase.captureUnknown && <button type="button" disabled={busy} onClick={onRetry}>{c.retry}</button>}
               </div>
             </>
           )}

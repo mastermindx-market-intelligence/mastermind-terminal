@@ -9,7 +9,7 @@ import { parseScenarioCapture } from "./investigationScenario";
 import { recoverInvestigationSave, type InvestigationSaveState } from "./investigationSave";
 type Store = Pick<Storage,"getItem"|"setItem"|"removeItem">;
 type Entry = { key:string; owner:string; text:string };
-type Retained = {phase:"uncertain";principal:string;command:InvestigationCommand} | Extract<InvestigationSaveState,{phase:"rejected"}>;
+type Retained = {phase:"uncertain";principal:string;command:InvestigationCommand;captureOutcome?:"unknown_after_canonical_not_applied"} | Extract<InvestigationSaveState,{phase:"rejected"}>;
 export type JournalRead = {status:"empty";entries:Entry[]}
  | {status:"retained";entries:Entry[];state:Retained}
  | {status:"conflict"|"invalid"|"legacy";entries:Entry[]};
@@ -23,7 +23,8 @@ const stable=(value:unknown):string=>JSON.stringify(value,(_key,v)=>v&&typeof v=
 const same=(a:InvestigationCommand,b:InvestigationCommand)=>stable(a)===stable(b);
 // This is current state-machine output, never a persisted local attestation.
 const confirmedNoEffect=(state:InvestigationSaveState|undefined,principal:string,command:InvestigationCommand)=>
- state?.phase==="rejected"&&state.principal===principal&&state.reason==="not_applied"&&same(state.command,command);
+ state?.phase==="rejected"&&state.principal===principal&&state.reason==="not_applied"&&same(state.command,command)
+ &&!((command.action==="create"||command.action==="revise")&&command.manifest.scenario_capture!==undefined);
 export function readInvestigationJournal(store:Store,principal:string):JournalRead {
  const entries=owners(principal).map(owner=>({owner,key:key(owner),text:store.getItem(key(owner))})).filter((v):v is Entry=>v.text!==null);
  if(!entries.length)return {status:"empty",entries};
@@ -36,7 +37,7 @@ export function readInvestigationJournal(store:Store,principal:string):JournalRe
    const state=recoverInvestigationSave(entry.owner,raw);
    if(!state||(state.phase!=="uncertain"&&state.phase!=="rejected")){invalid=true;continue;}
    if(state.phase==="rejected")states.push({...state,principal});
-   else states.push({phase:"uncertain",principal,command:state.command});
+   else states.push({phase:"uncertain",principal,command:state.command,...(state.captureOutcome?{captureOutcome:state.captureOutcome}:{})});
   }catch{invalid=true;}
  }
  // Even an invalid/legacy second buffer cannot be silently discarded in favor
@@ -44,7 +45,16 @@ export function readInvestigationJournal(store:Store,principal:string):JournalRe
  if(entries.length>1&&(invalid||legacy||states.some(s=>!same(s.command,states[0].command))))return {status:"conflict",entries};
  if(invalid)return {status:"invalid",entries};if(legacy)return {status:"legacy",entries};
  // If duplicate copies disagree about rejection, preserve uncertainty.
- return {status:"retained",entries,state:states.find(s=>s.phase==="uncertain")??states[0]};
+ return {status:"retained",entries,state:states.find(s=>s.phase==="uncertain"&&s.captureOutcome)??states.find(s=>s.phase==="uncertain")??states[0]};
+}
+/** A conservative local marker may suppress a retry, never authorize an effect.
+ * Native capture settlement remains UNKNOWN; the original command stays exact.
+ */
+export function retainInvestigationCaptureUnknown(store:Store,principal:string,state:InvestigationSaveState){
+ if(state.phase!=="uncertain"||state.principal!==principal||state.captureOutcome!=="unknown_after_canonical_not_applied")throw Error("capture outcome unavailable");
+ const found=readInvestigationJournal(store,principal);
+ if(found.status!=="retained"||!same(found.state.command,state.command))throw Error("journal changed");
+ for(const entry of found.entries)store.setItem(entry.key,JSON.stringify({owner:entry.owner,command:state.command,capture_outcome:state.captureOutcome}));
 }
 export function retainInvestigationJournal(store:Store,principal:string,command:InvestigationCommand,previous?:InvestigationSaveState){
  const found=readInvestigationJournal(store,principal);

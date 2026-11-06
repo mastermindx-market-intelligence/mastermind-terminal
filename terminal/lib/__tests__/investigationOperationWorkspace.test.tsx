@@ -41,3 +41,22 @@ it.each(["en", "zh"])("keeps a receipt miss or incomplete fence UNKNOWN without 
   expect(sessionStorage.getItem(key)).toBe(retained);
   expect(fetcher.mock.calls.filter(([, init]) => init?.method === "POST")).toHaveLength(0);
 });
+
+it.each(["en", "zh"])("keeps a scenario capture UNKNOWN after the canonical fence and prevents new drafts (%s)", async lang => {
+ locale.lang=lang;
+ const scenario_capture={schema:"investigation_scenario_reference.v1",model_version:"exposure-scenario/v1",inputs:{targetSpot:600,deltaSigmaPts:1,days:1},
+  source:{owner:"options_hub",root:"SPX",session:"2026-10-16",source_as_of:"2026-10-16t15:30:00z",evaluated_at:"2026-10-16T15:45:00Z",lens:{kind:"one",exp:"2026-10-30"},selection_key:"2026-10-30|2026-10-30T09:30:00-04:00,2026-10-30|2026-10-30T16:00:00-04:00",basis_sha256:"a".repeat(64),gex:{sha256:"b".repeat(64),byte_length:2048},moves:null}};
+ const original={...command,manifest:{...command.manifest,scenario_capture}};
+ sessionStorage.setItem(key,JSON.stringify({owner,command:original}));
+ await mount({status:"not_applied",id:command.id,operation_id:command.operation_id,read_principal:principal,read_operation_id:command.operation_id,read_binding:"stored_no_effect"});
+ expect(el.textContent).toContain(lang==="zh"?"私有来源捕获结果仍未知":"private source capture outcome is still unknown");
+ expect([...el.querySelectorAll("button")].some(b=>b.textContent===(lang==="zh"?"重试原保存请求":"Retry original save"))).toBe(false);
+ const start=[...el.querySelectorAll("button")].find(b=>b.textContent===(lang==="zh"?"开始新研究":"Start new research"));
+ expect(start?.disabled).toBe(true);
+ expect(JSON.parse(sessionStorage.getItem(key)!).command).toEqual(original);
+ const check=[...el.querySelectorAll("button")].find(b=>b.textContent===(lang==="zh"?"检查原请求结果":"Check original outcome"));
+ const before=fetcher.mock.calls.filter(([u])=>String(u).includes("operation_id=")).length;
+ await act(async()=>{check!.click();for(let i=0;i<8;i++)await Promise.resolve();});
+ expect(fetcher.mock.calls.filter(([u])=>String(u).includes("operation_id="))).toHaveLength(before+1);
+ expect(fetcher.mock.calls.filter(([,init])=>init?.method==="POST")).toHaveLength(0);
+});

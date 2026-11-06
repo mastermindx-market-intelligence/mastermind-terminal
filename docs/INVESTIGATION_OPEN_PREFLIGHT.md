@@ -142,6 +142,22 @@ command after the current bound fence; an absent/foreign/other-operation result
 or local `not_applied` label cannot clear it. Existing direct POST completion
 handling and the common CLOSED/OPEN guard remain unchanged.
 
+### Native capture is a separate possible effect
+
+For scenario create/revise, the native source capture can PUT private objects
+before the canonical DB operation lock begins. Its current producer has no
+durable original-execution completion receipt. A DB `not_applied` fence therefore
+means **canonical save not applied, external capture UNKNOWN**, never whole-request
+no effect. Handler completion, zero in-flight count, existing retained bytes or
+lease expiry cannot settle the original capture.
+
+That outcome keeps the exact command locked, suppresses original mutation retry
+and denies new-draft/journal-clear authority. The existing original-key GET remains
+available. The journal may retain a conservative `capture_outcome` suppression
+marker; it can only keep UNKNOWN/deny a retry, never certify settlement or permit
+a new effect. Reload and later inconclusive reads preserve that suppression.
+Non-scenario DB fences keep their separately qualified canonical behavior.
+
 ## Existing decisions reused
 
 P1.T15's accepted order is protected source, separately qualified CLOSED install,

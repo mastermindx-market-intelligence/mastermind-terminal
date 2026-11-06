@@ -4,7 +4,7 @@ import { classifyInvestigationOperationReceipt } from "./investigationOperationR
 import { ownerUserId } from "./accountIdentity";
 export type InvestigationSaveState =
   | { phase: "idle" }
-  | { phase: "pending" | "uncertain"; principal: string; command: InvestigationCommand }
+  | { phase: "pending" | "uncertain"; principal: string; command: InvestigationCommand; captureOutcome?: "unknown_after_canonical_not_applied" }
   | { phase: "committed"; principal: string; result: InvestigationCommitted; receiptBinding?: "native_lineage" | "legacy_recorded_completion" }
   | { phase: "rejected"; principal: string; command: InvestigationCommand; reason: string };
 function sameJson(a: unknown, b: unknown): boolean {
@@ -32,7 +32,9 @@ export function recoverInvestigationSave(principal: string, raw: unknown): Inves
   if (saved.phase === "rejected" && typeof saved.reason === "string" && definitive.has(saved.reason)) {
     return { phase: "rejected", principal, command, reason: saved.reason };
   }
-  return { phase: "uncertain", principal, command };
+  return { phase: "uncertain", principal, command,
+    ...(saved.capture_outcome === "unknown_after_canonical_not_applied" && mayHaveNativeCapture(command)
+      ? { captureOutcome: "unknown_after_canonical_not_applied" as const } : {}) };
 }
 export function beginInvestigationSave(principal: string, raw: unknown, previous: InvestigationSaveState): InvestigationSaveState {
   previous = partitionInvestigationSave(previous, principal || null);
@@ -51,7 +53,8 @@ export function settleInvestigationSave(state: InvestigationSaveState, principal
   const status = response !== null && typeof response === "object" ? (response as { status?: unknown }).status : null;
   if (typeof status === "string" && definitive.has(status)) return { phase: "rejected", principal, command: state.command, reason: status };
   // not_found on receipt lookup, auth expiry, timeout and malformed replies are all inconclusive.
-  return { phase: "uncertain", principal, command: state.command };
+  return { phase: "uncertain", principal, command: state.command,
+    ...(state.captureOutcome ? { captureOutcome: state.captureOutcome } : {}) };
 }
 /** Receipt reads have a stricter native lineage contract than incumbent POST replies.
  * A current authenticated read is an observation, never an implicit reconcile/retry.
@@ -70,12 +73,22 @@ export function settleInvestigationOperationRead(state: InvestigationSaveState, 
     const settled = settleInvestigationSave(state, principal, native);
     return settled.phase === "committed" ? { ...settled, receiptBinding: read_binding } : settled;
   }
-  if (read_binding === "stored_no_effect" && disposition === "not_applied") return { phase: "rejected", principal, command: state.command, reason: "not_applied" };
+  if (read_binding === "stored_no_effect" && disposition === "not_applied") {
+    // A canonical DB fence cannot settle a private retention PUT that precedes
+    // the DB lock. Suppress retries without granting new-draft/clear authority.
+    if (mayHaveNativeCapture(state.command)) return { phase: "uncertain", principal, command: state.command, captureOutcome: "unknown_after_canonical_not_applied" };
+    return { phase: "rejected", principal, command: state.command, reason: "not_applied" };
+  }
   return unresolved();
 }
 export function retryInvestigationSave(state: InvestigationSaveState, principal: string): InvestigationCommand | null {
+  return (state.phase === "pending" || state.phase === "uncertain") && state.principal === principal && !state.captureOutcome ? JSON.parse(JSON.stringify(state.command)) : null;
+}
+export function originalInvestigationOperationToRead(state: InvestigationSaveState, principal: string): InvestigationCommand | null {
   return (state.phase === "pending" || state.phase === "uncertain") && state.principal === principal ? JSON.parse(JSON.stringify(state.command)) : null;
 }
+const mayHaveNativeCapture = (command: InvestigationCommand) =>
+  (command.action === "create" || command.action === "revise") && command.manifest.scenario_capture !== undefined;
 export function partitionInvestigationSave(state: InvestigationSaveState, principal: string | null): InvestigationSaveState {
   return state.phase === "idle" || state.principal === principal ? state : { phase: "idle" };
 }
