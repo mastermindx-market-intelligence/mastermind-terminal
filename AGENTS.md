@@ -147,7 +147,7 @@ and a genuine deployment blocker. A source-complete, non-held, review-qualified
 Ready PR may request native **auto-merge enrollment while its required CI is
 still pending**, after verifying actual GitHub required-check protection, review
 requirements, source custody and conflicts. GitHub must hold the eventual merge
-until every enforced check succeeds; pending is never PASS. Do not enroll a
+until every enforced check succeeds. Pending is never PASS. Do not enroll a
 Draft, known-red, conflicting, explicitly held or incompletely qualified PR,
 or one with missing/ambiguous enforcement or a binding approval outstanding.
 
