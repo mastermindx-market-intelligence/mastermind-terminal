@@ -6,7 +6,7 @@ import { isInvestigationId, parseInvestigationCommand, type InvestigationCommand
 import { isDeepStrictEqual } from "node:util";
 import { createExposureMapReader } from "./exposureMap";
 import { scenarioBasisFromRead } from "@/components/exposure-map/exposureScenarioBasis";
-import { SCENARIO_VERSION, localScenarioValue, type ScenarioBasis, type ScenarioValue } from "./exposureScenario";
+import { localScenarioValue, type ScenarioBasis, type ScenarioValue } from "./exposureScenario";
 
 export const SCENARIO_NATIVE_URL = "https://www.mastermind-x.com/api/options/scenario-source/resolve";
 const MAX_RESPONSE = 13 * 1024 * 1024;

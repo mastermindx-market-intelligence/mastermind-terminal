@@ -15,7 +15,8 @@ function MockLink({ children, ...props }: React.ComponentProps<"a">) { projectio
 vi.mock("next/link", () => ({ default: MockLink }));
 vi.mock("@/lib/investigationContracts", () => ({ INVESTIGATION_MANIFEST_SCHEMA_V2: "investigation.manifest.v2", validateInvestigationManifest: () => ({ ok: true, errors: [] }), validateStoredInvestigationManifest: () => ({ ok: true }), canonicalInvestigationJson: () => "" }));
 vi.mock("@/lib/investigations", async () => ({ ...await vi.importActual<typeof import("@/lib/investigations")>("@/lib/investigations"), INVESTIGATION_ADMISSION: {} }));
-vi.mock("@/lib/investigationSave", () => ({
+vi.mock("@/lib/investigationSave", async () => ({
+ ...await vi.importActual<typeof import("@/lib/investigationSave")>("@/lib/investigationSave"),
  beginInvestigationSave: vi.fn(), settleInvestigationSave: (state: unknown) => state,
  retryInvestigationSave: () => null, investigationCommandToReconcile: () => null,
  recoverInvestigationSave: mocks.recover, receiptRequiresOwnerCheck: () => false,
