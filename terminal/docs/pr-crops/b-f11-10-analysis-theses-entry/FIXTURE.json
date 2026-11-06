@@ -1,6 +1,6 @@
 {
   "schema": "terminal.f11-source-component-fixture.v1",
-  "capturedAtHead": "1b85b8e799a8a6232230c4fa2ba6e7f460698180",
+  "capturedAtHead": "de20960c3340cd79fc8bf92598e11d6aee41cab3",
   "captureProfile": {
     "server": {
       "command": "next dev --webpack",
@@ -34,42 +34,42 @@
     "cases": [
       {
         "file": "desktop-en.png",
-        "pid": 67665,
+        "pid": 86513,
         "closeObserved": true,
         "processGroupAbsent": true,
         "exitSuccess": "NOT_ASSERTED"
       },
       {
         "file": "desktop-zh.png",
-        "pid": 68293,
+        "pid": 88207,
         "closeObserved": true,
         "processGroupAbsent": true,
         "exitSuccess": "NOT_ASSERTED"
       },
       {
         "file": "tablet-en.png",
-        "pid": 68897,
+        "pid": 90669,
         "closeObserved": true,
         "processGroupAbsent": true,
         "exitSuccess": "NOT_ASSERTED"
       },
       {
         "file": "tablet-zh.png",
-        "pid": 69732,
+        "pid": 93427,
         "closeObserved": true,
         "processGroupAbsent": true,
         "exitSuccess": "NOT_ASSERTED"
       },
       {
         "file": "mobile-en.png",
-        "pid": 70307,
+        "pid": 96557,
         "closeObserved": true,
         "processGroupAbsent": true,
         "exitSuccess": "NOT_ASSERTED"
       },
       {
         "file": "mobile-zh.png",
-        "pid": 70894,
+        "pid": 99988,
         "closeObserved": true,
         "processGroupAbsent": true,
         "exitSuccess": "NOT_ASSERTED"
@@ -153,7 +153,7 @@
     {
       "file": "desktop-en.png",
       "serverSettlement": {
-        "pid": 67665,
+        "pid": 86513,
         "closeObserved": true,
         "processGroupAbsent": true,
         "exitSuccess": "NOT_ASSERTED"
@@ -172,7 +172,7 @@
     {
       "file": "desktop-zh.png",
       "serverSettlement": {
-        "pid": 68293,
+        "pid": 88207,
         "closeObserved": true,
         "processGroupAbsent": true,
         "exitSuccess": "NOT_ASSERTED"
@@ -191,7 +191,7 @@
     {
       "file": "tablet-en.png",
       "serverSettlement": {
-        "pid": 68897,
+        "pid": 90669,
         "closeObserved": true,
         "processGroupAbsent": true,
         "exitSuccess": "NOT_ASSERTED"
@@ -210,7 +210,7 @@
     {
       "file": "tablet-zh.png",
       "serverSettlement": {
-        "pid": 69732,
+        "pid": 93427,
         "closeObserved": true,
         "processGroupAbsent": true,
         "exitSuccess": "NOT_ASSERTED"
@@ -229,7 +229,7 @@
     {
       "file": "mobile-en.png",
       "serverSettlement": {
-        "pid": 70307,
+        "pid": 96557,
         "closeObserved": true,
         "processGroupAbsent": true,
         "exitSuccess": "NOT_ASSERTED"
@@ -248,7 +248,7 @@
     {
       "file": "mobile-zh.png",
       "serverSettlement": {
-        "pid": 70894,
+        "pid": 99988,
         "closeObserved": true,
         "processGroupAbsent": true,
         "exitSuccess": "NOT_ASSERTED"
@@ -266,9 +266,9 @@
     }
   ],
   "fixtureSources": {
-    "terminal/e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs": "32659958497db12b7cc31f6ebcb4523c3587e652348e0afe97fb267455ded2d7",
+    "terminal/e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs": "9f61e04a00928917ba44a906d16b32797573cdc03bfed821bcda79459b0c69c7",
     "terminal/e2e/tools/f11_provider_closed_policy.cjs": "e2534e0a6575e0f1ba76d1e03645fb2fd1184f9029bad4b2fc2767aa3ebfa38c",
-    "terminal/e2e/tools/f11_owned_server.cjs": "884c585fbf638b297a8e397c15360c9f9b3e25b2a1e17721e7cd332e7db6792f",
+    "terminal/e2e/tools/f11_owned_server.cjs": "229fd69538d3582083b98522423b25c2f7869473fe57582a9d501404ac7f60eb",
     "terminal/e2e/tools/f11_script_metadata.cjs": "0a26c3ae13ed6242e0126465b794ce401f836e6cf44e8906b13a40ce817dec19",
     "terminal/tsconfig.f11.json": "7bde30a1142628589810fb41bc40d9d2f805e829eaa10a7fb7c0c15c060a2c63",
     "terminal/tsconfig.json": "be18523b23b78b6e1a876ddd107d330f0168bddf09d751b57e0b5edce69c66f3",
@@ -295,8 +295,8 @@
         "webpackGroups": 9,
         "registeredChunkIds": [
           "app-pages-internals",
-          "app/global-error",
           "app/error",
+          "app/global-error",
           "app/not-found",
           "app/layout",
           "app/(shell)/analysis/page",
@@ -388,18 +388,18 @@
         "businessUnavailable": 5,
         "componentFundUnavailable": 1,
         "aborted": 1,
-        "webSocketsBlocked": 1,
+        "webSocketsBlocked": 2,
         "redirectOrBadStatus": 0,
         "failedAllowedResponses": [],
         "publicScripts": [
           {
             "pathname": "/_next/static/chunks/webpack.js",
             "bytes": 145377,
-            "sha256": "d0c2c98e465783b972dbf1b97bd75217b9c164abb286f046fcb7d7d1d7844e05",
+            "sha256": "1bc42dc19565efe3f35dc0d9c3e88789958319ad2601529528047f1fbd64e491",
             "mime": "application/javascript",
-            "fetchMs": 8.09124999999949,
-            "bodyMs": 0.473374999999578,
-            "fulfillMs": 14.926541999999245,
+            "fetchMs": 12.503333000000566,
+            "bodyMs": 1.0732090000019525,
+            "fulfillMs": 6.973791000000347,
             "encoding": "gzip",
             "requestId": 1
           },
@@ -408,31 +408,31 @@
             "bytes": 245068,
             "sha256": "f262afa2e33a9c3b6903a7f74fd32bce1b278070abb18fa017739d7de57c72fb",
             "mime": "application/javascript",
-            "fetchMs": 33.250332999999955,
-            "bodyMs": 15.494833000000654,
-            "fulfillMs": 32.784333000001425,
+            "fetchMs": 42.06187499999942,
+            "bodyMs": 0.7072919999991427,
+            "fulfillMs": 30.232707999999548,
             "encoding": "gzip",
             "requestId": 2
-          },
-          {
-            "pathname": "/_next/static/chunks/app/global-error.js",
-            "bytes": 949486,
-            "sha256": "8740aebba71f0fbcde8d62c11ac7dc66694d3b5f3d6c0b5e40029fd8987ed669",
-            "mime": "application/javascript",
-            "fetchMs": 93.19024999999965,
-            "bodyMs": 0.6755830000001879,
-            "fulfillMs": 55.25554099999863,
-            "encoding": "gzip",
-            "requestId": 3
           },
           {
             "pathname": "/_next/static/chunks/app/error.js",
             "bytes": 919745,
             "sha256": "8790e1ff7343226e5ee1eac46d470b1fc54a6700f79171e38ca75d6331169140",
             "mime": "application/javascript",
-            "fetchMs": 95.11537500000122,
-            "bodyMs": 7.889041999998881,
-            "fulfillMs": 57.37370800000099,
+            "fetchMs": 101.51158299999952,
+            "bodyMs": 1.3010840000024473,
+            "fulfillMs": 65.46349999999802,
+            "encoding": "gzip",
+            "requestId": 3
+          },
+          {
+            "pathname": "/_next/static/chunks/app/global-error.js",
+            "bytes": 949486,
+            "sha256": "8740aebba71f0fbcde8d62c11ac7dc66694d3b5f3d6c0b5e40029fd8987ed669",
+            "mime": "application/javascript",
+            "fetchMs": 110.65370800000164,
+            "bodyMs": 0.9852920000012091,
+            "fulfillMs": 76.86908299999777,
             "encoding": "gzip",
             "requestId": 4
           },
@@ -441,20 +441,20 @@
             "bytes": 961407,
             "sha256": "229fecf9135b8d32c43635fb71e9d3fa662119df777d7bda7af98500cd5508a3",
             "mime": "application/javascript",
-            "fetchMs": 104.17191599999933,
-            "bodyMs": 10.490041999999448,
-            "fulfillMs": 89.99033299999974,
+            "fetchMs": 111.5423750000009,
+            "bodyMs": 5.207916999999725,
+            "fulfillMs": 120.35116700000071,
             "encoding": "gzip",
             "requestId": 5
           },
           {
             "pathname": "/_next/static/chunks/app/layout.js",
             "bytes": 1014775,
-            "sha256": "bf340f57a070494a5de9aa20ba0ed05ba7ce64db3751038928cd85f2c04fa867",
+            "sha256": "d14ada19227646c83d1be85cf0ec13d1506890b9d5b2fe55b72b6de36eb0f53e",
             "mime": "application/javascript",
-            "fetchMs": 125.36175000000003,
-            "bodyMs": 0.3509169999997539,
-            "fulfillMs": 91.22095799999988,
+            "fetchMs": 118.00412500000311,
+            "bodyMs": 5.72925000000032,
+            "fulfillMs": 160.5659999999989,
             "encoding": "gzip",
             "requestId": 6
           },
@@ -463,9 +463,9 @@
             "bytes": 3929122,
             "sha256": "e39c743a431c0f1aca3b02f976a4019d7fad17fe8209442180ef4eb3f7a05a32",
             "mime": "application/javascript",
-            "fetchMs": 166.78716599999825,
-            "bodyMs": 0.634291000000303,
-            "fulfillMs": 139.89166699999987,
+            "fetchMs": 200.57158300000083,
+            "bodyMs": 2.054167000002053,
+            "fulfillMs": 153.51037499999802,
             "encoding": "gzip",
             "requestId": 7
           },
@@ -474,9 +474,9 @@
             "bytes": 5135733,
             "sha256": "56adee20c1bfed2b3bf355acc471d09a9b51d5b313bc008c4823f80ae4a77c92",
             "mime": "application/javascript",
-            "fetchMs": 219.75625000000036,
-            "bodyMs": 0.29354199999943376,
-            "fulfillMs": 198.89258300000074,
+            "fetchMs": 247.41733300000124,
+            "bodyMs": 0.8216249999968568,
+            "fulfillMs": 334.67316700000083,
             "encoding": "gzip",
             "requestId": 8
           },
@@ -485,9 +485,9 @@
             "bytes": 11972375,
             "sha256": "86c309b9a5896bd5c4bd6389ac6ef7836418631afed3bb0a2616d98216fb9b61",
             "mime": "application/javascript",
-            "fetchMs": 358.4532909999998,
-            "bodyMs": 0.35858399999960966,
-            "fulfillMs": 245.15158399999927,
+            "fetchMs": 514.7375829999983,
+            "bodyMs": 1.1709589999991294,
+            "fulfillMs": 241.4880830000002,
             "encoding": "gzip",
             "requestId": 9
           },
@@ -496,9 +496,9 @@
             "bytes": 21910965,
             "sha256": "cc8dc1aa0595030a97b0b3f3221e6f78ab3d025fb750188765515dab9b64a148",
             "mime": "application/javascript",
-            "fetchMs": 657.7641669999994,
-            "bodyMs": 0.5306249999994179,
-            "fulfillMs": 694.2026669999996,
+            "fetchMs": 805.0747499999998,
+            "bodyMs": 0.6614169999993464,
+            "fulfillMs": 943.7344580000026,
             "encoding": "gzip",
             "requestId": 10
           }
@@ -516,12 +516,12 @@
           },
           {
             "requestId": 3,
-            "pathname": "/_next/static/chunks/app/global-error.js",
+            "pathname": "/_next/static/chunks/app/error.js",
             "event": "finished"
           },
           {
             "requestId": 4,
-            "pathname": "/_next/static/chunks/app/error.js",
+            "pathname": "/_next/static/chunks/app/global-error.js",
             "event": "finished"
           },
           {
@@ -573,9 +573,9 @@
         "webpackGroups": 9,
         "registeredChunkIds": [
           "app-pages-internals",
+          "app/global-error",
           "app/error",
           "app/not-found",
-          "app/global-error",
           "app/layout",
           "app/(shell)/analysis/page",
           "app/(shell)/layout",
@@ -673,11 +673,11 @@
           {
             "pathname": "/_next/static/chunks/webpack.js",
             "bytes": 145377,
-            "sha256": "c0b89ede30f22702c0c0ba5388d1593a26118cc519744aabfa457f4b3ddef28f",
+            "sha256": "969243b3872d49ca8c1c87601bc82ce8a8bc7a5970b1ed90ca7a4a408b1eecf6",
             "mime": "application/javascript",
-            "fetchMs": 12.474624999998923,
-            "bodyMs": 0.23729199999797856,
-            "fulfillMs": 11.018707999999606,
+            "fetchMs": 14.078459000003932,
+            "bodyMs": 0.29716699999698903,
+            "fulfillMs": 15.927292000000307,
             "encoding": "gzip",
             "requestId": 1
           },
@@ -686,53 +686,53 @@
             "bytes": 245068,
             "sha256": "f262afa2e33a9c3b6903a7f74fd32bce1b278070abb18fa017739d7de57c72fb",
             "mime": "application/javascript",
-            "fetchMs": 23.184457999999722,
-            "bodyMs": 0.6792499999974098,
-            "fulfillMs": 26.925916000000143,
+            "fetchMs": 35.77100000000064,
+            "bodyMs": 1.2188749999986612,
+            "fulfillMs": 51.126750000003085,
             "encoding": "gzip",
             "requestId": 2
-          },
-          {
-            "pathname": "/_next/static/chunks/app/error.js",
-            "bytes": 919745,
-            "sha256": "8790e1ff7343226e5ee1eac46d470b1fc54a6700f79171e38ca75d6331169140",
-            "mime": "application/javascript",
-            "fetchMs": 97.24195800000234,
-            "bodyMs": 1.1509580000019923,
-            "fulfillMs": 67.3179999999993,
-            "encoding": "gzip",
-            "requestId": 3
-          },
-          {
-            "pathname": "/_next/static/chunks/app/not-found.js",
-            "bytes": 961407,
-            "sha256": "229fecf9135b8d32c43635fb71e9d3fa662119df777d7bda7af98500cd5508a3",
-            "mime": "application/javascript",
-            "fetchMs": 103.61029200000121,
-            "bodyMs": 0.36062500000116415,
-            "fulfillMs": 90.54629099999875,
-            "encoding": "gzip",
-            "requestId": 4
           },
           {
             "pathname": "/_next/static/chunks/app/global-error.js",
             "bytes": 949486,
             "sha256": "8740aebba71f0fbcde8d62c11ac7dc66694d3b5f3d6c0b5e40029fd8987ed669",
             "mime": "application/javascript",
-            "fetchMs": 103.58887500000128,
-            "bodyMs": 0.896374999996624,
-            "fulfillMs": 112.66933400000198,
+            "fetchMs": 119.14962500000547,
+            "bodyMs": 0.9464159999988624,
+            "fulfillMs": 74.11262500000157,
+            "encoding": "gzip",
+            "requestId": 3
+          },
+          {
+            "pathname": "/_next/static/chunks/app/error.js",
+            "bytes": 919745,
+            "sha256": "8790e1ff7343226e5ee1eac46d470b1fc54a6700f79171e38ca75d6331169140",
+            "mime": "application/javascript",
+            "fetchMs": 126.19095799999923,
+            "bodyMs": 1.4898749999993015,
+            "fulfillMs": 98.17491700000392,
+            "encoding": "gzip",
+            "requestId": 4
+          },
+          {
+            "pathname": "/_next/static/chunks/app/not-found.js",
+            "bytes": 961407,
+            "sha256": "229fecf9135b8d32c43635fb71e9d3fa662119df777d7bda7af98500cd5508a3",
+            "mime": "application/javascript",
+            "fetchMs": 127.85250000000087,
+            "bodyMs": 5.461875000000873,
+            "fulfillMs": 113.29308300000412,
             "encoding": "gzip",
             "requestId": 5
           },
           {
             "pathname": "/_next/static/chunks/app/layout.js",
             "bytes": 1014775,
-            "sha256": "73a2ef82cbaaab483f38cdb973761afbb2cff3e55c7818882f9db45a17175a47",
+            "sha256": "cb01d6844c380ae1fc3b1360baa6e5915ff4f24aae60dbd04841f8ec8d3d416b",
             "mime": "application/javascript",
-            "fetchMs": 115.80054200000086,
-            "bodyMs": 0.34779100000014296,
-            "fulfillMs": 149.7006250000013,
+            "fetchMs": 135.4282499999972,
+            "bodyMs": 8.39150000000518,
+            "fulfillMs": 159.29675000000134,
             "encoding": "gzip",
             "requestId": 6
           },
@@ -741,9 +741,9 @@
             "bytes": 3929122,
             "sha256": "e39c743a431c0f1aca3b02f976a4019d7fad17fe8209442180ef4eb3f7a05a32",
             "mime": "application/javascript",
-            "fetchMs": 228.7279579999995,
-            "bodyMs": 0.7882920000010927,
-            "fulfillMs": 134.35208399999829,
+            "fetchMs": 267.89354099999764,
+            "bodyMs": 0.30045800000516465,
+            "fulfillMs": 181.22849999999744,
             "encoding": "gzip",
             "requestId": 7
           },
@@ -752,9 +752,9 @@
             "bytes": 5135733,
             "sha256": "56adee20c1bfed2b3bf355acc471d09a9b51d5b313bc008c4823f80ae4a77c92",
             "mime": "application/javascript",
-            "fetchMs": 277.7875830000012,
-            "bodyMs": 0.42300000000250293,
-            "fulfillMs": 211.76599999999962,
+            "fetchMs": 327.6412500000006,
+            "bodyMs": 0.29191699999501,
+            "fulfillMs": 266.9760000000024,
             "encoding": "gzip",
             "requestId": 8
           },
@@ -763,9 +763,9 @@
             "bytes": 11972375,
             "sha256": "86c309b9a5896bd5c4bd6389ac6ef7836418631afed3bb0a2616d98216fb9b61",
             "mime": "application/javascript",
-            "fetchMs": 440.13524999999936,
-            "bodyMs": 0.29783300000053714,
-            "fulfillMs": 217.0722919999971,
+            "fetchMs": 505.7418340000004,
+            "bodyMs": 0.37591700000484707,
+            "fulfillMs": 301.187125000004,
             "encoding": "gzip",
             "requestId": 9
           },
@@ -774,9 +774,9 @@
             "bytes": 21910965,
             "sha256": "cc8dc1aa0595030a97b0b3f3221e6f78ab3d025fb750188765515dab9b64a148",
             "mime": "application/javascript",
-            "fetchMs": 725.5475420000002,
-            "bodyMs": 0.4830420000034792,
-            "fulfillMs": 402.37816699999894,
+            "fetchMs": 782.5412080000024,
+            "bodyMs": 0.9144579999992857,
+            "fulfillMs": 524.9411249999976,
             "encoding": "gzip",
             "requestId": 10
           }
@@ -794,17 +794,17 @@
           },
           {
             "requestId": 3,
-            "pathname": "/_next/static/chunks/app/error.js",
+            "pathname": "/_next/static/chunks/app/global-error.js",
             "event": "finished"
           },
           {
             "requestId": 4,
-            "pathname": "/_next/static/chunks/app/not-found.js",
+            "pathname": "/_next/static/chunks/app/error.js",
             "event": "finished"
           },
           {
             "requestId": 5,
-            "pathname": "/_next/static/chunks/app/global-error.js",
+            "pathname": "/_next/static/chunks/app/not-found.js",
             "event": "finished"
           },
           {
@@ -851,8 +851,8 @@
         "webpackGroups": 9,
         "registeredChunkIds": [
           "app-pages-internals",
-          "app/global-error",
           "app/error",
+          "app/global-error",
           "app/not-found",
           "app/layout",
           "app/(shell)/analysis/page",
@@ -951,11 +951,11 @@
           {
             "pathname": "/_next/static/chunks/webpack.js",
             "bytes": 145377,
-            "sha256": "ad7ec0fc670b082faf2a01ace8663fa4fed039802517dd1ae413bbd674fc7586",
+            "sha256": "ab58c842ca8b3d7b5b9e6241c39cb56d5e3040f62d1d8404da95d4143e658f82",
             "mime": "application/javascript",
-            "fetchMs": 11.537417000006826,
-            "bodyMs": 0.7797080000018468,
-            "fulfillMs": 18.433499999999185,
+            "fetchMs": 14.800209000000905,
+            "bodyMs": 0.3634170000004815,
+            "fulfillMs": 15.532666999999492,
             "encoding": "gzip",
             "requestId": 1
           },
@@ -964,31 +964,31 @@
             "bytes": 245068,
             "sha256": "f262afa2e33a9c3b6903a7f74fd32bce1b278070abb18fa017739d7de57c72fb",
             "mime": "application/javascript",
-            "fetchMs": 43.78337499999907,
-            "bodyMs": 0.6485000000029686,
-            "fulfillMs": 26.656124999994063,
+            "fetchMs": 28.643457999998645,
+            "bodyMs": 0.7983750000057626,
+            "fulfillMs": 19.33912500000588,
             "encoding": "gzip",
             "requestId": 2
-          },
-          {
-            "pathname": "/_next/static/chunks/app/global-error.js",
-            "bytes": 949486,
-            "sha256": "8740aebba71f0fbcde8d62c11ac7dc66694d3b5f3d6c0b5e40029fd8987ed669",
-            "mime": "application/javascript",
-            "fetchMs": 112.40724999999657,
-            "bodyMs": 6.084833000000799,
-            "fulfillMs": 96.20004200000403,
-            "encoding": "gzip",
-            "requestId": 3
           },
           {
             "pathname": "/_next/static/chunks/app/error.js",
             "bytes": 919745,
             "sha256": "8790e1ff7343226e5ee1eac46d470b1fc54a6700f79171e38ca75d6331169140",
             "mime": "application/javascript",
-            "fetchMs": 117.96695900000486,
-            "bodyMs": 7.871167000004789,
-            "fulfillMs": 123.48083400000178,
+            "fetchMs": 112.68283299999894,
+            "bodyMs": 0.3077919999996084,
+            "fulfillMs": 68.98729199999798,
+            "encoding": "gzip",
+            "requestId": 3
+          },
+          {
+            "pathname": "/_next/static/chunks/app/global-error.js",
+            "bytes": 949486,
+            "sha256": "8740aebba71f0fbcde8d62c11ac7dc66694d3b5f3d6c0b5e40029fd8987ed669",
+            "mime": "application/javascript",
+            "fetchMs": 117.30841599999985,
+            "bodyMs": 0.1693329999980051,
+            "fulfillMs": 86.5737500000032,
             "encoding": "gzip",
             "requestId": 4
           },
@@ -997,20 +997,20 @@
             "bytes": 961407,
             "sha256": "229fecf9135b8d32c43635fb71e9d3fa662119df777d7bda7af98500cd5508a3",
             "mime": "application/javascript",
-            "fetchMs": 135.73858299999847,
-            "bodyMs": 0.8022500000006403,
-            "fulfillMs": 142.76333299999533,
+            "fetchMs": 125.34604099999706,
+            "bodyMs": 0.7211660000029951,
+            "fulfillMs": 105.3927079999994,
             "encoding": "gzip",
             "requestId": 5
           },
           {
             "pathname": "/_next/static/chunks/app/layout.js",
             "bytes": 1014775,
-            "sha256": "a779f14edc5f1d6113b65890b5d617519cb9cb4e440683ec845ca8ec0e2c5bb9",
+            "sha256": "2ba9650ae455296877d12892f69dcaa59e334cb9344172b05237da76eeb212f3",
             "mime": "application/javascript",
-            "fetchMs": 142.02320800000598,
-            "bodyMs": 0.25641600000381004,
-            "fulfillMs": 193.7445829999997,
+            "fetchMs": 133.62654200000543,
+            "bodyMs": 0.7992920000033337,
+            "fulfillMs": 146.0846670000028,
             "encoding": "gzip",
             "requestId": 6
           },
@@ -1019,9 +1019,9 @@
             "bytes": 3929122,
             "sha256": "e39c743a431c0f1aca3b02f976a4019d7fad17fe8209442180ef4eb3f7a05a32",
             "mime": "application/javascript",
-            "fetchMs": 290.7251669999969,
-            "bodyMs": 0.8498749999998836,
-            "fulfillMs": 146.87870799999655,
+            "fetchMs": 238.2154159999991,
+            "bodyMs": 0.7199170000021695,
+            "fulfillMs": 141.74037500000122,
             "encoding": "gzip",
             "requestId": 7
           },
@@ -1030,9 +1030,9 @@
             "bytes": 5135733,
             "sha256": "56adee20c1bfed2b3bf355acc471d09a9b51d5b313bc008c4823f80ae4a77c92",
             "mime": "application/javascript",
-            "fetchMs": 351.4172499999986,
-            "bodyMs": 0.2545410000020638,
-            "fulfillMs": 252.79229099999793,
+            "fetchMs": 293.5918329999986,
+            "bodyMs": 0.27145800000289455,
+            "fulfillMs": 234.52879199999734,
             "encoding": "gzip",
             "requestId": 8
           },
@@ -1041,9 +1041,9 @@
             "bytes": 11972375,
             "sha256": "86c309b9a5896bd5c4bd6389ac6ef7836418631afed3bb0a2616d98216fb9b61",
             "mime": "application/javascript",
-            "fetchMs": 506.6737920000014,
-            "bodyMs": 0.2657499999986612,
-            "fulfillMs": 265.6124160000036,
+            "fetchMs": 458.4907499999972,
+            "bodyMs": 0.28325000000040745,
+            "fulfillMs": 283.66412500000297,
             "encoding": "gzip",
             "requestId": 9
           },
@@ -1052,9 +1052,9 @@
             "bytes": 21910965,
             "sha256": "cc8dc1aa0595030a97b0b3f3221e6f78ab3d025fb750188765515dab9b64a148",
             "mime": "application/javascript",
-            "fetchMs": 809.0327500000058,
-            "bodyMs": 0.7177919999958249,
-            "fulfillMs": 535.8717089999991,
+            "fetchMs": 795.4107919999951,
+            "bodyMs": 1.1277919999993173,
+            "fulfillMs": 602.3660830000008,
             "encoding": "gzip",
             "requestId": 10
           }
@@ -1072,12 +1072,12 @@
           },
           {
             "requestId": 3,
-            "pathname": "/_next/static/chunks/app/global-error.js",
+            "pathname": "/_next/static/chunks/app/error.js",
             "event": "finished"
           },
           {
             "requestId": 4,
-            "pathname": "/_next/static/chunks/app/error.js",
+            "pathname": "/_next/static/chunks/app/global-error.js",
             "event": "finished"
           },
           {
@@ -1229,11 +1229,11 @@
           {
             "pathname": "/_next/static/chunks/webpack.js",
             "bytes": 145377,
-            "sha256": "2c2a0f61b4edd4ee2331ed770dc2e584e8579126d6245e379cd6563b8ba58aed",
+            "sha256": "1fcdccd6f2fa55a53ef8e818f531b8aab1cb0412f8602c9324cc1fc07d6c5720",
             "mime": "application/javascript",
-            "fetchMs": 15.595915999998397,
-            "bodyMs": 0.265332999995735,
-            "fulfillMs": 13.816957999995793,
+            "fetchMs": 29.971040999997058,
+            "bodyMs": 0.33695799999986775,
+            "fulfillMs": 27.317125000001397,
             "encoding": "gzip",
             "requestId": 1
           },
@@ -1242,9 +1242,9 @@
             "bytes": 245068,
             "sha256": "f262afa2e33a9c3b6903a7f74fd32bce1b278070abb18fa017739d7de57c72fb",
             "mime": "application/javascript",
-            "fetchMs": 19.188999999998487,
-            "bodyMs": 0.2968330000003334,
-            "fulfillMs": 7.164500000006228,
+            "fetchMs": 42.338209000008646,
+            "bodyMs": 0.2561249999998836,
+            "fulfillMs": 26.54741699999431,
             "encoding": "gzip",
             "requestId": 2
           },
@@ -1253,9 +1253,9 @@
             "bytes": 919745,
             "sha256": "8790e1ff7343226e5ee1eac46d470b1fc54a6700f79171e38ca75d6331169140",
             "mime": "application/javascript",
-            "fetchMs": 78.10050000000047,
-            "bodyMs": 1.6960829999952693,
-            "fulfillMs": 50.629165999998804,
+            "fetchMs": 155.14795899999444,
+            "bodyMs": 0.7496660000033444,
+            "fulfillMs": 76.75766699999804,
             "encoding": "gzip",
             "requestId": 3
           },
@@ -1264,9 +1264,9 @@
             "bytes": 949486,
             "sha256": "8740aebba71f0fbcde8d62c11ac7dc66694d3b5f3d6c0b5e40029fd8987ed669",
             "mime": "application/javascript",
-            "fetchMs": 78.32070899999962,
-            "bodyMs": 1.9548330000034184,
-            "fulfillMs": 69.13850000000093,
+            "fetchMs": 167.00954099999217,
+            "bodyMs": 0.41862499999115244,
+            "fulfillMs": 105.92716700000165,
             "encoding": "gzip",
             "requestId": 4
           },
@@ -1275,20 +1275,20 @@
             "bytes": 961407,
             "sha256": "229fecf9135b8d32c43635fb71e9d3fa662119df777d7bda7af98500cd5508a3",
             "mime": "application/javascript",
-            "fetchMs": 89.6986670000042,
-            "bodyMs": 0.5079159999950207,
-            "fulfillMs": 84.48125000000437,
+            "fetchMs": 167.27804099999776,
+            "bodyMs": 0.9117499999993015,
+            "fulfillMs": 142.31479199999012,
             "encoding": "gzip",
             "requestId": 5
           },
           {
             "pathname": "/_next/static/chunks/app/layout.js",
             "bytes": 1014775,
-            "sha256": "cc97f20df056d4698bcee3aeab7963cb1e8085a8a09be215359ec60fbc93b524",
+            "sha256": "93c1698bdb7eb79418952371c3be14320ec60068d86eb358b0636286fc34a530",
             "mime": "application/javascript",
-            "fetchMs": 95.20020900000236,
-            "bodyMs": 0.5521660000013071,
-            "fulfillMs": 117.6785000000018,
+            "fetchMs": 180.2994999999937,
+            "bodyMs": 0.4285000000090804,
+            "fulfillMs": 193.12987499999872,
             "encoding": "gzip",
             "requestId": 6
           },
@@ -1297,9 +1297,9 @@
             "bytes": 3929122,
             "sha256": "e39c743a431c0f1aca3b02f976a4019d7fad17fe8209442180ef4eb3f7a05a32",
             "mime": "application/javascript",
-            "fetchMs": 185.64174999999523,
-            "bodyMs": 0.36229199999797856,
-            "fulfillMs": 122.86204199999338,
+            "fetchMs": 339.8912080000009,
+            "bodyMs": 0.5131249999976717,
+            "fulfillMs": 194.10166699999536,
             "encoding": "gzip",
             "requestId": 7
           },
@@ -1308,9 +1308,9 @@
             "bytes": 5135733,
             "sha256": "56adee20c1bfed2b3bf355acc471d09a9b51d5b313bc008c4823f80ae4a77c92",
             "mime": "application/javascript",
-            "fetchMs": 223.67112500000076,
-            "bodyMs": 0.268499999998312,
-            "fulfillMs": 220.4114999999947,
+            "fetchMs": 424.29725000000326,
+            "bodyMs": 0.5774579999997513,
+            "fulfillMs": 460.59129199999734,
             "encoding": "gzip",
             "requestId": 8
           },
@@ -1319,9 +1319,9 @@
             "bytes": 11972375,
             "sha256": "86c309b9a5896bd5c4bd6389ac6ef7836418631afed3bb0a2616d98216fb9b61",
             "mime": "application/javascript",
-            "fetchMs": 385.40037499999744,
-            "bodyMs": 0.31108300000050804,
-            "fulfillMs": 212.98958299999504,
+            "fetchMs": 740.6176660000056,
+            "bodyMs": 0.48358400000142865,
+            "fulfillMs": 742.1109580000048,
             "encoding": "gzip",
             "requestId": 9
           },
@@ -1330,9 +1330,9 @@
             "bytes": 21910965,
             "sha256": "cc8dc1aa0595030a97b0b3f3221e6f78ab3d025fb750188765515dab9b64a148",
             "mime": "application/javascript",
-            "fetchMs": 624.2582500000062,
-            "bodyMs": 0.280083999998169,
-            "fulfillMs": 368.5410000000047,
+            "fetchMs": 1508.9601249999978,
+            "bodyMs": 0.8686659999948461,
+            "fulfillMs": 1169.3669170000067,
             "encoding": "gzip",
             "requestId": 10
           }
@@ -1507,11 +1507,11 @@
           {
             "pathname": "/_next/static/chunks/webpack.js",
             "bytes": 145377,
-            "sha256": "8ca8d117a9de70cb856a652dc1dbe02851d4ac1fe956379b88e34f3307497ca2",
+            "sha256": "3890b30f0c9c9a1d3abaf4858a1f1f2b89eb8b28f83ae12e5c0b0f377ff68f1c",
             "mime": "application/javascript",
-            "fetchMs": 12.445542000001296,
-            "bodyMs": 0.41499999999359716,
-            "fulfillMs": 19.956374999994296,
+            "fetchMs": 49.80283299999428,
+            "bodyMs": 0.2646249999961583,
+            "fulfillMs": 51.50341600000684,
             "encoding": "gzip",
             "requestId": 1
           },
@@ -1520,9 +1520,9 @@
             "bytes": 245068,
             "sha256": "f262afa2e33a9c3b6903a7f74fd32bce1b278070abb18fa017739d7de57c72fb",
             "mime": "application/javascript",
-            "fetchMs": 36.92783299999428,
-            "bodyMs": 2.5510829999984708,
-            "fulfillMs": 31.61424999999872,
+            "fetchMs": 91.26574999999139,
+            "bodyMs": 9.261083000004874,
+            "fulfillMs": 33.445082999998704,
             "encoding": "gzip",
             "requestId": 2
           },
@@ -1531,9 +1531,9 @@
             "bytes": 919745,
             "sha256": "8790e1ff7343226e5ee1eac46d470b1fc54a6700f79171e38ca75d6331169140",
             "mime": "application/javascript",
-            "fetchMs": 86.48154200000863,
-            "bodyMs": 0.6937909999978729,
-            "fulfillMs": 53.8289589999913,
+            "fetchMs": 174.3059579999972,
+            "bodyMs": 0.5410830000037095,
+            "fulfillMs": 97.94599999999627,
             "encoding": "gzip",
             "requestId": 3
           },
@@ -1542,9 +1542,9 @@
             "bytes": 949486,
             "sha256": "8740aebba71f0fbcde8d62c11ac7dc66694d3b5f3d6c0b5e40029fd8987ed669",
             "mime": "application/javascript",
-            "fetchMs": 93.23587499999849,
-            "bodyMs": 2.1271249999990687,
-            "fulfillMs": 65.43583400000352,
+            "fetchMs": 180.53908299999603,
+            "bodyMs": 1.7448330000042915,
+            "fulfillMs": 124.32295800000429,
             "encoding": "gzip",
             "requestId": 4
           },
@@ -1553,20 +1553,20 @@
             "bytes": 961407,
             "sha256": "229fecf9135b8d32c43635fb71e9d3fa662119df777d7bda7af98500cd5508a3",
             "mime": "application/javascript",
-            "fetchMs": 97.15670800000953,
-            "bodyMs": 5.374833999987459,
-            "fulfillMs": 80.66308300000674,
+            "fetchMs": 183.9328749999986,
+            "bodyMs": 4.848167000003741,
+            "fulfillMs": 157.5430830000114,
             "encoding": "gzip",
             "requestId": 5
           },
           {
             "pathname": "/_next/static/chunks/app/layout.js",
             "bytes": 1014775,
-            "sha256": "7c48c1796f19657fb954d9dd3aa17f9a0b54d544c10aea0d6ce8cc19fb27108c",
+            "sha256": "fd5ad1146d22fbf33ab51c0d111294113ff3c2aa7010dc3f1b31d8d4c4a4996b",
             "mime": "application/javascript",
-            "fetchMs": 111.5482500000071,
-            "bodyMs": 0.47062500000174623,
-            "fulfillMs": 117.7434590000048,
+            "fetchMs": 200.55120799998986,
+            "bodyMs": 0.9829579999932321,
+            "fulfillMs": 211.63904100000218,
             "encoding": "gzip",
             "requestId": 6
           },
@@ -1575,9 +1575,9 @@
             "bytes": 3929122,
             "sha256": "e39c743a431c0f1aca3b02f976a4019d7fad17fe8209442180ef4eb3f7a05a32",
             "mime": "application/javascript",
-            "fetchMs": 189.90479099999357,
-            "bodyMs": 5.6724580000009155,
-            "fulfillMs": 133.50058400000853,
+            "fetchMs": 356.947542000009,
+            "bodyMs": 0.4282909999892581,
+            "fulfillMs": 248.76933300000383,
             "encoding": "gzip",
             "requestId": 7
           },
@@ -1586,9 +1586,9 @@
             "bytes": 5135733,
             "sha256": "56adee20c1bfed2b3bf355acc471d09a9b51d5b313bc008c4823f80ae4a77c92",
             "mime": "application/javascript",
-            "fetchMs": 238.11424999999872,
-            "bodyMs": 0.2604169999976875,
-            "fulfillMs": 242.27395799999067,
+            "fetchMs": 441.44174999999814,
+            "bodyMs": 0.27037499999278225,
+            "fulfillMs": 479.02879199999734,
             "encoding": "gzip",
             "requestId": 8
           },
@@ -1597,9 +1597,9 @@
             "bytes": 11972375,
             "sha256": "86c309b9a5896bd5c4bd6389ac6ef7836418631afed3bb0a2616d98216fb9b61",
             "mime": "application/javascript",
-            "fetchMs": 389.8136669999949,
-            "bodyMs": 0.32529200000863057,
-            "fulfillMs": 227.25299999999697,
+            "fetchMs": 765.1806669999933,
+            "bodyMs": 0.2763340000092285,
+            "fulfillMs": 730.9822500000009,
             "encoding": "gzip",
             "requestId": 9
           },
@@ -1608,9 +1608,9 @@
             "bytes": 21910965,
             "sha256": "cc8dc1aa0595030a97b0b3f3221e6f78ab3d025fb750188765515dab9b64a148",
             "mime": "application/javascript",
-            "fetchMs": 624.7172910000081,
-            "bodyMs": 0.2545410000020638,
-            "fulfillMs": 370.76479099999415,
+            "fetchMs": 1487.0033750000002,
+            "bodyMs": 3.028874999989057,
+            "fulfillMs": 1114.286957999997,
             "encoding": "gzip",
             "requestId": 10
           }
@@ -1686,8 +1686,8 @@
         "registeredChunkIds": [
           "app-pages-internals",
           "app/error",
-          "app/not-found",
           "app/global-error",
+          "app/not-found",
           "app/layout",
           "app/(shell)/analysis/page",
           "app/(shell)/layout",
@@ -1785,11 +1785,11 @@
           {
             "pathname": "/_next/static/chunks/webpack.js",
             "bytes": 145377,
-            "sha256": "f7530f6657cafe74c80a289ea8431f6578d62b829e5adcb5cd32f483a2ec7c4b",
+            "sha256": "cea2e7fd802946a9a32665e2f52445d0e439968b1626e93f72c2fcafe4c47c2e",
             "mime": "application/javascript",
-            "fetchMs": 14.174375000002328,
-            "bodyMs": 0.22670900000957772,
-            "fulfillMs": 15.718624999994063,
+            "fetchMs": 19.05312500000582,
+            "bodyMs": 0.30083300001570024,
+            "fulfillMs": 16.223916000017198,
             "encoding": "gzip",
             "requestId": 1
           },
@@ -1798,9 +1798,9 @@
             "bytes": 245068,
             "sha256": "f262afa2e33a9c3b6903a7f74fd32bce1b278070abb18fa017739d7de57c72fb",
             "mime": "application/javascript",
-            "fetchMs": 28.07979200000409,
-            "bodyMs": 0.697334000011324,
-            "fulfillMs": 16.321125000002212,
+            "fetchMs": 26.3755410000158,
+            "bodyMs": 2.8782089999876916,
+            "fulfillMs": 45.31258399999933,
             "encoding": "gzip",
             "requestId": 2
           },
@@ -1809,42 +1809,42 @@
             "bytes": 919745,
             "sha256": "8790e1ff7343226e5ee1eac46d470b1fc54a6700f79171e38ca75d6331169140",
             "mime": "application/javascript",
-            "fetchMs": 115.90462499999558,
-            "bodyMs": 0.8307080000085989,
-            "fulfillMs": 97.83212500000081,
+            "fetchMs": 138.91883399998187,
+            "bodyMs": 1.0728330000129063,
+            "fulfillMs": 84.60541600000579,
             "encoding": "gzip",
             "requestId": 3
-          },
-          {
-            "pathname": "/_next/static/chunks/app/not-found.js",
-            "bytes": 961407,
-            "sha256": "229fecf9135b8d32c43635fb71e9d3fa662119df777d7bda7af98500cd5508a3",
-            "mime": "application/javascript",
-            "fetchMs": 115.6057909999945,
-            "bodyMs": 1.4310830000031274,
-            "fulfillMs": 137.79920900000434,
-            "encoding": "gzip",
-            "requestId": 4
           },
           {
             "pathname": "/_next/static/chunks/app/global-error.js",
             "bytes": 949486,
             "sha256": "8740aebba71f0fbcde8d62c11ac7dc66694d3b5f3d6c0b5e40029fd8987ed669",
             "mime": "application/javascript",
-            "fetchMs": 128.68741699999373,
-            "bodyMs": 0.23679100000299513,
-            "fulfillMs": 150.97087499999907,
+            "fetchMs": 137.64841699998942,
+            "bodyMs": 1.8599999999860302,
+            "fulfillMs": 125.54070900002262,
+            "encoding": "gzip",
+            "requestId": 4
+          },
+          {
+            "pathname": "/_next/static/chunks/app/not-found.js",
+            "bytes": 961407,
+            "sha256": "229fecf9135b8d32c43635fb71e9d3fa662119df777d7bda7af98500cd5508a3",
+            "mime": "application/javascript",
+            "fetchMs": 138.9129580000008,
+            "bodyMs": 2.720207999984268,
+            "fulfillMs": 168.51608300002408,
             "encoding": "gzip",
             "requestId": 5
           },
           {
             "pathname": "/_next/static/chunks/app/layout.js",
             "bytes": 1014775,
-            "sha256": "c68be45874e0f2f4b542e9c3b9944e3a1ad386aba6dd9a11b86505edb55ff99f",
+            "sha256": "e6da366f96869ddae4e9ba26db07631e36cd6c2f881349c0fe1bdb4dde4be7ce",
             "mime": "application/javascript",
-            "fetchMs": 140.93445800000336,
-            "bodyMs": 0.18520799999532755,
-            "fulfillMs": 188.83699999999953,
+            "fetchMs": 167.48154099998646,
+            "bodyMs": 3.9764169999980368,
+            "fulfillMs": 235.67191600002116,
             "encoding": "gzip",
             "requestId": 6
           },
@@ -1853,9 +1853,9 @@
             "bytes": 3929122,
             "sha256": "e39c743a431c0f1aca3b02f976a4019d7fad17fe8209442180ef4eb3f7a05a32",
             "mime": "application/javascript",
-            "fetchMs": 291.55808299999626,
-            "bodyMs": 0.7929580000054557,
-            "fulfillMs": 153.58608400000958,
+            "fetchMs": 332.9547500000044,
+            "bodyMs": 0.5964579999854323,
+            "fulfillMs": 333.4102079999866,
             "encoding": "gzip",
             "requestId": 7
           },
@@ -1864,9 +1864,9 @@
             "bytes": 5135733,
             "sha256": "56adee20c1bfed2b3bf355acc471d09a9b51d5b313bc008c4823f80ae4a77c92",
             "mime": "application/javascript",
-            "fetchMs": 350.7136670000036,
-            "bodyMs": 0.2574579999927664,
-            "fulfillMs": 243.36733400000958,
+            "fetchMs": 446.84700000000885,
+            "bodyMs": 0.2821249999979045,
+            "fulfillMs": 518.2222919999913,
             "encoding": "gzip",
             "requestId": 8
           },
@@ -1875,9 +1875,9 @@
             "bytes": 11972375,
             "sha256": "86c309b9a5896bd5c4bd6389ac6ef7836418631afed3bb0a2616d98216fb9b61",
             "mime": "application/javascript",
-            "fetchMs": 510.7634589999943,
-            "bodyMs": 0.28145799999765586,
-            "fulfillMs": 252.17112500000803,
+            "fetchMs": 737.9448339999944,
+            "bodyMs": 0.34241700000711717,
+            "fulfillMs": 1175.2461670000048,
             "encoding": "gzip",
             "requestId": 9
           },
@@ -1886,9 +1886,9 @@
             "bytes": 21910965,
             "sha256": "cc8dc1aa0595030a97b0b3f3221e6f78ab3d025fb750188765515dab9b64a148",
             "mime": "application/javascript",
-            "fetchMs": 804.076917000013,
-            "bodyMs": 0.4359169999952428,
-            "fulfillMs": 734.1448339999915,
+            "fetchMs": 1625.7705839999835,
+            "bodyMs": 0.7952919999952428,
+            "fulfillMs": 1302.5593750000116,
             "encoding": "gzip",
             "requestId": 10
           }
@@ -1911,12 +1911,12 @@
           },
           {
             "requestId": 4,
-            "pathname": "/_next/static/chunks/app/not-found.js",
+            "pathname": "/_next/static/chunks/app/global-error.js",
             "event": "finished"
           },
           {
             "requestId": 5,
-            "pathname": "/_next/static/chunks/app/global-error.js",
+            "pathname": "/_next/static/chunks/app/not-found.js",
             "event": "finished"
           },
           {

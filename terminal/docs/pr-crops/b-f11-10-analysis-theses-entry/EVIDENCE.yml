@@ -1,8 +1,8 @@
 # B-F11-10a Analysis context-bar theses entry — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 1b85b8e799a8a6232230c4fa2ba6e7f460698180
-# capturedAt: 2026-11-05T23:03:29.244Z
+# capturedAtHead: de20960c3340cd79fc8bf92598e11d6aee41cab3
+# capturedAt: 2026-11-06T00:13:09.284Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/components/workspaces/AnalysisWorkspace.tsx: "80bc4d4018313e22edcd2144d7d2616b447c9d2c10cf775900ef3bd2f199860c"
