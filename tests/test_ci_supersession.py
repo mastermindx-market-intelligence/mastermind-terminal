@@ -48,21 +48,35 @@ def _errors(workflow):
     return errors
 
 
-def test_new_head_is_not_locked_behind_the_previous_verdict():
-    assert _errors(_workflow()) == []
-
-
-def test_every_matrix_shard_and_job_has_an_independent_key():
-    workflow = _workflow()
+def _keys(workflow, shards):
     keys = []
     for lane in LANES:
         group = workflow["jobs"][lane]["concurrency"]["group"]
         if lane == "terminal-e2e":
-            matrix = workflow["jobs"][lane]["strategy"]["matrix"]["include"]
-            assert matrix
-            keys.extend(group.replace("${{ matrix.shard }}", item["shard"]) for item in matrix)
+            keys.extend(group.replace("${{ matrix.shard }}", shard) for shard in shards)
         else:
             keys.append(group)
+    return keys
+
+
+def test_new_head_is_not_locked_behind_the_previous_verdict():
+    assert _errors(_workflow()) == []
+
+
+def test_shard_identity_separates_e2e_keys_from_other_jobs():
+    # This guards key separation, not matrix coverage. The existing browser
+    # coverage tests own actual static or dynamically selected project coverage.
+    keys = _keys(_workflow(), ("desktop-1", "desktop-2", "mobile-1", "serial"))
+    assert len(keys) == len(set(keys))
+
+
+def test_dynamic_matrix_does_not_change_the_supersession_contract():
+    workflow = deepcopy(_workflow())
+    workflow["jobs"]["terminal-e2e"]["strategy"]["matrix"] = (
+        "${{ fromJSON(needs.e2e-scope.outputs.matrix) }}"
+    )
+    assert _errors(workflow) == []
+    keys = _keys(workflow, ("desktop-1", "mobile-1"))
     assert len(keys) == len(set(keys))
 
 
