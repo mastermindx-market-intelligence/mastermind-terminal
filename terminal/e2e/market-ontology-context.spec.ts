@@ -182,7 +182,12 @@ test("J1 saves A, inspects B, and reopens A with its exact source return", async
   });
   const otherId = await createFixtureThesis(page, "a1000000-0000-4000-8000-00000000ab01", "MSFT", "J1 inspect B");
   await openAnalysis(page, `symbol=NVDA&page=intelligence&${CONTEXT_QUERY}`);
-  await page.getByRole("link", { name: /Your theses on NVDA/ }).click();
+  if ((page.viewportSize()?.width ?? 1440) <= 640) {
+    await page.locator(".analysis-context-actions > summary").click();
+    await page.locator(".analysis-context-actions-menu").getByRole("link", { name: /Your theses on NVDA/ }).click();
+  } else {
+    await page.getByRole("link", { name: /Your theses on NVDA/ }).click();
+  }
   await expect(page.getByTestId("thesis-workspace")).toBeVisible();
   await fillNewThesis(page, "J1 saved A");
   await page.getByRole("button", { name: "Save", exact: true }).click();

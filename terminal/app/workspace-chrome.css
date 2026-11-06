@@ -122,15 +122,20 @@ html:not([data-shell="app"]) .app:not(.shell-app) .status-ohlc .mut {
 }
 @media (max-width: 640px) {
   .analysis-shell .analysis-context-bar {
-    display: grid;
-    grid-template-columns: repeat(12, minmax(0, 1fr));
+    display: flex;
+    flex-wrap: nowrap;
+    position: relative;
+    z-index: 40;
     padding: 6px 10px;
     gap: 6px;
   }
-  .analysis-shell .analysis-context-back { grid-column: span 2; width: 100%; }
-  .analysis-shell .analysis-context-bar .sym-pick { grid-column: span 10; width: 100%; }
+  .analysis-shell .analysis-context-back { flex: 0 0 44px; width: 44px; }
+  .analysis-shell .analysis-context-bar .sym-pick { flex: 1 1 0; min-width: 0; width: auto; }
+  /* Desktop retains the direct research links. Mobile exposes their same targets
+     through one 44px menu instead of occupying a full second navigation row. */
   .analysis-shell .analysis-context-theses,
-  .analysis-shell .analysis-context-chart { grid-column: span 6; justify-content: center; min-height: 44px; }
+  .analysis-shell .analysis-context-chart { display: none; }
+  .analysis-shell .analysis-context-actions { display: block; }
   .analysis-shell .ci-hero-main { padding: 14px; gap: 12px; }
   .analysis-shell .ci-identity { gap: 10px; }
   .analysis-shell .ci-company-mark { width: 34px; height: 34px; border-radius: 8px; }

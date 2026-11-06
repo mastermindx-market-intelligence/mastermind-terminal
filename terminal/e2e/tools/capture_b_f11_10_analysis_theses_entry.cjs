@@ -147,9 +147,12 @@ async function openAnalysis(page, lang, viewport) {
     waitUntil: "domcontentloaded",
     timeout: 90_000,
   });
-  // Wait for the context bar and the theses control to be visible.
-  await page.getByLabel(lang === "zh" ? "你的研究论点：NVDA" : "Your theses on NVDA")
-    .waitFor({ state: "visible", timeout: 45_000 });
+  // On phones the thesis destination is available in the compact research-actions disclosure.
+  // Keep the capture of the closed, single-row toolbar rather than opening an overlay.
+  const entry = (page.viewportSize()?.width ?? 1440) <= 640
+    ? page.locator(".analysis-context-actions > summary")
+    : page.getByLabel(lang === "zh" ? "你的研究论点：NVDA" : "Your theses on NVDA");
+  await entry.waitFor({ state: "visible", timeout: 45_000 });
   await stripDevOverlay(page);
 }
 

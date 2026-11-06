@@ -10,6 +10,18 @@
 .analysis-context-theses:hover{color:var(--text);border-color:var(--line-3);background:var(--panel-3)}
 .analysis-context-theses:focus-visible{outline:0;border-color:var(--brand-2);box-shadow:0 0 0 3px color-mix(in srgb,var(--brand) 13%,transparent)}
 .analysis-context-theses svg{fill:none;stroke:currentColor;stroke-width:2}
+/* Mobile-only disclosure: preserve saved-research and thesis destinations without a second toolbar row. */
+.analysis-context-actions{display:none;position:relative;flex:none}
+.analysis-context-actions>summary{display:grid;place-items:center;list-style:none;width:44px;height:44px;border:1px solid var(--line);border-radius:8px;background:var(--panel-2);color:var(--text-2);cursor:pointer}
+.analysis-context-actions>summary::-webkit-details-marker{display:none}
+.analysis-context-actions>summary svg{fill:currentColor}
+.analysis-context-actions>summary:hover,.analysis-context-actions[open]>summary{color:var(--text);border-color:var(--line-3);background:var(--panel-3)}
+.analysis-context-actions>summary:focus-visible{outline:2px solid var(--brand-2);outline-offset:2px}
+.analysis-context-actions-menu{position:absolute;right:0;top:calc(100% + 6px);z-index:60;display:flex;flex-direction:column;min-width:210px;max-width:calc(100vw - 20px);padding:5px;border:1px solid var(--line-3);border-radius:10px;background:var(--panel);box-shadow:var(--shadow-card)}
+.analysis-context-actions:not([open])>.analysis-context-actions-menu{display:none}
+.analysis-context-actions-menu>a,.analysis-context-actions-menu>button{display:flex;align-items:center;width:100%;min-height:44px;padding:0 12px;border:0;border-radius:6px;background:transparent;color:var(--text);font:600 12px/1.35 var(--font-ui);text-align:left;text-decoration:none;cursor:pointer}
+.analysis-context-actions-menu>a:hover,.analysis-context-actions-menu>button:hover{background:var(--panel-2)}
+.analysis-context-actions-menu>a:focus-visible,.analysis-context-actions-menu>button:focus-visible{outline:2px solid var(--brand-2);outline-offset:-2px}
 /* components/SymbolPicker's trigger. It replaced a read-only identity chip sitting beside a
    "switch company" text field — two controls naming one company. This is the chart's `.pair`
    idiom (globals.css:186): the ticker you are on IS the button that changes it. */
