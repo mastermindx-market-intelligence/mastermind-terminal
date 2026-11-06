@@ -268,3 +268,63 @@ def test_a_duplicate_shard_name_is_reported():
     entry(include, "desktop-2")["shard"] = "desktop-1"
     errors = matrix_coverage_errors(include, playwright_projects())
     assert any("'desktop-1' is used by 2" in error for error in errors), errors
+
+
+def test_ci_attempt_json_reporter_is_complete_and_phase_disjoint():
+    """Native attempt evidence must not replace GitHub annotations or alter shard selection."""
+    import re
+
+    steps = ci_workflow()["jobs"]["terminal-e2e"]["steps"]
+    main = next(step for step in steps if step.get("name") == "Run responsive E2E shard with native attempt timing")
+    assert "test:e2e:responsive -- ${{ matrix.projects }}" in main["run"]
+    assert main["env"]["MMX_CI_ATTEMPT_REPORT_PATH"] == "ci-attempt-reports/${{ matrix.shard }}/main.json"
+    expected = {
+        "Qualify investor shell opt-in": "ci-attempt-reports/serial/investor-shell.json",
+        "Qualify Shared Shell beta presentation": "ci-attempt-reports/serial/shared-shell.json",
+    }
+    for name, path in expected.items():
+        step = next(step for step in steps if step.get("name") == name)
+        assert step["if"] == "matrix.shard == 'serial'"
+        assert step["env"]["MMX_CI_ATTEMPT_REPORT_PATH"] == path
+    upload = next(step for step in steps if step.get("name") == "Upload responsive QA screenshots")
+    assert upload["if"] == "always()"
+    paths = upload["with"]["path"].splitlines()
+    assert {part.strip() for part in paths} == {"terminal/test-results", "terminal/ci-attempt-reports"}
+    config = (ROOT / "terminal" / "playwright.config.ts").read_text()
+    assert re.search(r'\["github"\]', config)
+    assert '"json", { outputFile: nativeAttemptReportPath }' in config
+    assert 'reporter: process.env.CI ? ciReporters : "list"' in config
+
+
+
+def test_native_weighted_e2e_shards_preserve_the_original_exact_cover():
+    """Native weight vectors affect only sizes, never project identity or number of shards."""
+    step = next(
+        s for s in ci_workflow()["jobs"]["terminal-e2e"]["steps"]
+        if s.get("name") == "Run responsive E2E shard with native attempt timing"
+    )
+    weighted = step["env"]["PWTEST_SHARD_WEIGHTS"]
+    expected = {"desktop": 7, "tablet": 5, "mobile": 5}
+    for project, count in expected.items():
+        hit = re.search(
+            rf"startsWith\(matrix\.shard, '{project}-'\) && '([0-9:]+)'",
+            weighted,
+        )
+        assert hit, f"{project}: missing shared native weight vector"
+        sizes = [int(x) for x in hit.group(1).split(":")]
+        assert len(sizes) == count, f"{project}: native shard total mismatch"
+        assert min(sizes) > 0, f"{project}: no empty/zero-weight shard"
+    # The current candidate is bounded to two-run desktop/tablet calibration.
+    # Mobile is an explicit conservative uniform hold until a second complete
+    # independent mobile run is available (the prior had a cancelled shard).
+    vectors = {
+        "desktop": [147, 192, 183, 223, 177, 227, 138],
+        "tablet": [208, 309, 303, 301, 166],
+        "mobile": [1, 1, 1, 1, 1],
+    }
+    for project, sizes in vectors.items():
+        fragment = ":".join(map(str, sizes))
+        assert f"startsWith(matrix.shard, '{project}-') && '{fragment}'" in weighted
+    assert weighted.rstrip().endswith("|| '' }}"), "serial must retain ordinary sharding"
+    assert "grep -q 'PWTEST_SHARD_WEIGHTS'" in step["run"]
+    assert "npm run test:e2e:responsive -- ${{ matrix.projects }}" in step["run"]

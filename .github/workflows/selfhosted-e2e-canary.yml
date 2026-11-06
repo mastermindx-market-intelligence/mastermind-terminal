@@ -41,7 +41,7 @@ on:
   workflow_dispatch:
     inputs:
       shard:
-        description: ci.yml terminal-e2e shard label (desktop-1..5, tablet-1..3, mobile-1..3, serial); mapped to its exact Playwright selector by .github/scripts/selfhosted_canary_inputs.sh
+        description: ci.yml terminal-e2e shard label (desktop-1..7, tablet-1..5, mobile-1..5, serial); mapped to its fixed hosted selector and distribution weights
         default: desktop-1
         type: string
       workers:
@@ -172,12 +172,19 @@ jobs:
         timeout-minutes: 12
         run: npx playwright install chromium
       - name: Run shard (timed)
+        env:
+          PWTEST_SHARD_WEIGHTS: "${{ startsWith(needs.admit.outputs.shard, 'desktop-') && '147:192:183:223:177:227:138' || startsWith(needs.admit.outputs.shard, 'tablet-') && '208:309:303:301:166' || startsWith(needs.admit.outputs.shard, 'mobile-') && '1:1:1:1:1' || '' }}"
         # Only the *_OK / CANARY_PROJECTS values written by the validator are used here; the
         # raw CANARY_SHARD / CANARY_WORKERS inputs are never referenced by any run step
         # (tests/test_selfhosted_canary_workflow.py forbids it). CANARY_PROJECTS comes from
         # the fixed table, so word-splitting it into an argument array is safe.
         run: |
           read -r -a projects <<< "$CANARY_PROJECTS"
+          # Fail closed if a future Playwright update removes native weights.
+          if [ -n "$PWTEST_SHARD_WEIGHTS" ]; then
+            grep -q 'PWTEST_SHARD_WEIGHTS' node_modules/playwright/lib/cli/testActions.js ||
+              { echo 'Native weighted sharding unavailable; requalify Playwright' >&2; exit 1; }
+          fi
           t0=$(date +%s)
           npm run test:e2e:responsive -- "${projects[@]}" --workers="$CANARY_WORKERS_OK"
           echo "shard_seconds=$(( $(date +%s) - t0 )) shard=$CANARY_SHARD_OK workers=$CANARY_WORKERS_OK"

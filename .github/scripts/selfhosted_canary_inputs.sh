@@ -15,17 +15,23 @@ shard="${CANARY_SHARD:-}"
 workers="${CANARY_WORKERS:-}"
 
 case "$shard" in
-  desktop-1) projects="--project=desktop --shard=1/5" ;;
-  desktop-2) projects="--project=desktop --shard=2/5" ;;
-  desktop-3) projects="--project=desktop --shard=3/5" ;;
-  desktop-4) projects="--project=desktop --shard=4/5" ;;
-  desktop-5) projects="--project=desktop --shard=5/5" ;;
-  tablet-1) projects="--project=tablet --shard=1/3" ;;
-  tablet-2) projects="--project=tablet --shard=2/3" ;;
-  tablet-3) projects="--project=tablet --shard=3/3" ;;
-  mobile-1) projects="--project=mobile --shard=1/3" ;;
-  mobile-2) projects="--project=mobile --shard=2/3" ;;
-  mobile-3) projects="--project=mobile --shard=3/3" ;;
+  desktop-1) projects="--project=desktop --shard=1/7" ;;
+  desktop-2) projects="--project=desktop --shard=2/7" ;;
+  desktop-3) projects="--project=desktop --shard=3/7" ;;
+  desktop-4) projects="--project=desktop --shard=4/7" ;;
+  desktop-5) projects="--project=desktop --shard=5/7" ;;
+  desktop-6) projects="--project=desktop --shard=6/7" ;;
+  desktop-7) projects="--project=desktop --shard=7/7" ;;
+  tablet-1) projects="--project=tablet --shard=1/5" ;;
+  tablet-2) projects="--project=tablet --shard=2/5" ;;
+  tablet-3) projects="--project=tablet --shard=3/5" ;;
+  tablet-4) projects="--project=tablet --shard=4/5" ;;
+  tablet-5) projects="--project=tablet --shard=5/5" ;;
+  mobile-1) projects="--project=mobile --shard=1/5" ;;
+  mobile-2) projects="--project=mobile --shard=2/5" ;;
+  mobile-3) projects="--project=mobile --shard=3/5" ;;
+  mobile-4) projects="--project=mobile --shard=4/5" ;;
+  mobile-5) projects="--project=mobile --shard=5/5" ;;
   serial) projects="--project=company-intelligence-desktop --project=company-intelligence-tablet --project=company-intelligence-mobile --project=terminal-chrome-intermediate --project=w2a-workspaces" ;;
   *)
     printf '::error::CANARY_SHARD must be a ci.yml terminal-e2e shard label; rejected %q\n' "$shard" >&2

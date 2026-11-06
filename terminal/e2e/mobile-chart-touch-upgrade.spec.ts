@@ -398,8 +398,8 @@ test("MM-008: sparse history announces an understandable no-samples state", asyn
   await expect(card.getByTestId("seasonality-detail")).not.toContainText("0%");
 
   await switchLanguage(page, "zh");
+  await expect(january).toHaveAttribute("title", /无样本/);
   const chineseTitle = await january.getAttribute("title");
-  expect(chineseTitle).toContain("无样本");
   await expect(card.getByTestId("seasonality-detail")).toHaveText(chineseTitle!);
 });
 

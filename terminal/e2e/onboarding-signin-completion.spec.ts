@@ -61,7 +61,11 @@ for (const lang of ["en", "zh"] as const) {
       await expect.poll(() => page.evaluate(() => (window as unknown as { __mmSigninSubmissions: number }).__mmSigninSubmissions)).toBe(1);
       await expect(sheet.getByRole("button", { name: lang === "zh" ? "新用户？创建账户" : "New here? Create your account", exact: true })).toBeDisabled();
       await expect(sheet).toBeVisible();
-      await page.evaluate(() => (window as unknown as { __mmResolveSignin?: () => void }).__mmResolveSignin?.());
+      // Arm the required document-load proof before releasing the sign-in response.
+      await Promise.all([
+        page.waitForEvent("domcontentloaded", { timeout: 15_000 }),
+        page.evaluate(() => (window as unknown as { __mmResolveSignin?: () => void }).__mmResolveSignin?.()),
+      ]);
       await expect(sheet).toBeHidden({ timeout: 15_000 });
       // The original router.refresh() would not produce a new document; this
       // assertion binds the test to the real server-gate recovery behavior.

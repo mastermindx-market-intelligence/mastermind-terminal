@@ -1,4 +1,4 @@
-import { defineConfig } from "@playwright/test";
+import { defineConfig, type ReporterDescription } from "@playwright/test";
 
 // Shared worktrees frequently run responsive suites in parallel. Allow each
 // checkout to reserve its own port instead of silently reusing another tree's
@@ -12,6 +12,16 @@ const terminalChromeIntermediateSpec = /terminal-chrome-responsive\.spec\.ts/;
 // project, or every named screenshot gets clobbered three times over by parallel projects racing
 // the same file paths.
 const w2aWorkspacesSpec = /w2a-workspaces\.spec\.ts/;
+
+// CI keeps native GitHub annotations. An optional per-invocation JSON report
+// retains actual attempt-zero/retry timings without changing test execution.
+// The workflow writes each invocation outside Playwright outputDir, which
+// subsequent serial invocations can erase.
+const nativeAttemptReportPath = process.env.MMX_CI_ATTEMPT_REPORT_PATH?.trim();
+const ciReporters: ReporterDescription[] = [
+  ["github"],
+  ...(nativeAttemptReportPath ? ([["json", { outputFile: nativeAttemptReportPath }]] as ReporterDescription[]) : []),
+];
 
 export default defineConfig({
   testDir: "./e2e",
@@ -51,11 +61,14 @@ export default defineConfig({
   // 30000ms exceeded" mid-poll, not a poll's own budget). CI-only, like the worker cap;
   // locally the default stands.
   timeout: process.env.CI ? 60_000 : undefined,
-  reporter: process.env.CI ? "github" : "list",
+  reporter: process.env.CI ? ciReporters : "list",
   use: {
     baseURL,
     screenshot: "only-on-failure",
-    trace: "retain-on-failure",
+    // Avoid recording and discarding a trace for every successful CI attempt.
+    // Keep the first retry trace even when it passes; initial failures still
+    // retain screenshots/errors. Use --trace=retain-on-failure for diagnosis.
+    trace: process.env.CI ? "on-first-retry" : "retain-on-failure",
   },
   projects: [
     // Keep the broad responsive suite fully parallel. The Company Intelligence

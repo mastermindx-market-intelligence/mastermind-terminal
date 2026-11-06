@@ -118,6 +118,11 @@ jobs:
         run: node e2e/tools/capture_ci_evidence.cjs
       - run: npm test
         timeout-minutes: 20
+      # Node's test runner owns this contract. A .test.cjs name made Playwright
+      # execute it during discovery in browser shards, outside its own report.
+      # Keep every assertion, run it once, and retain the required unit fan-in.
+      - name: Visual evidence writer-reader contract (once)
+        run: node --test e2e/tools/visualEvidence.node-unit.cjs
       # Quarantined journeys are disclosed on EVERY run: a green matrix must never be read as
       # full coverage. Bare `echo`, never a logger — a logger prefix pushes `::warning` off the
       # start of the line and GitHub silently drops the annotation.
@@ -281,6 +286,17 @@ jobs:
     # This cap is a hang detector, not a budget to grow into: when a shard creeps toward it,
     # split that shard (as desktop, tablet and mobile are below), never just raise the number.
     timeout-minutes: 60
+    # 2026-11-02 bounded critical-path experiment. Hosted green 41496257793
+    # measured desktop 20-45m, tablet 26-51m, mobile 36-49m. Split more
+    # finely without changing test selection, one-worker stability, retries,
+    # the 60m cap, other jobs, or protected fan-in. Added runner startup cost
+    # and actual time saved must be measured before accepting this setting.
+    # Retune after exact-head GREEN 41507479087: 44.0m, 462.7 job runner-min,
+    # below both recent 50.8/53.8m baselines but not the <=40m acceptance
+    # target. Next exact-head GREEN 41514788591 measured 41.1m/489.5
+    # summed job-min (22/22 green, one desktop retry-pass flake); <=40m
+    # target remains unmet and budget must be rechecked. Trial 7/5/5 is
+    # experimental: only the desktop critical path is repartitioned.
     strategy:
       # NEVER fail-fast. One red shard must not delete the other shards' evidence — the
       # aggregator below already turns any red into a red required check.
@@ -301,19 +317,26 @@ jobs:
           # partitioning preserves the hang cap and does not fix assertions. Green
           # predecessor heads 7579 (desktop-1 PASS 58m50) and 60c2 (PASS 57m17) sat
           # about a minute under the cap while every other quarter ran 26-44 min.
-          # Five Playwright shards retain the complete project with less work per
-          # runner. tests/test_ci_e2e_shards.py rejects missing, duplicate or
+          # Seven contiguous Playwright shards retain complete coverage: the
+          # 6/5/5 GREEN trial 41514788591 moved the critical path to desktop-1
+          # (40.9m) and desktop-6 (39.7m); desktop-6 had one retry-pass flake.
+          # Retune only desktop and requalify exact-head CI and runner cost.
+          # tests/test_ci_e2e_shards.py rejects missing, duplicate or
           # inconsistent shards.
           - shard: desktop-1
-            projects: "--project=desktop --shard=1/5"
+            projects: "--project=desktop --shard=1/7"
           - shard: desktop-2
-            projects: "--project=desktop --shard=2/5"
+            projects: "--project=desktop --shard=2/7"
           - shard: desktop-3
-            projects: "--project=desktop --shard=3/5"
+            projects: "--project=desktop --shard=3/7"
           - shard: desktop-4
-            projects: "--project=desktop --shard=4/5"
+            projects: "--project=desktop --shard=4/7"
           - shard: desktop-5
-            projects: "--project=desktop --shard=5/5"
+            projects: "--project=desktop --shard=5/7"
+          - shard: desktop-6
+            projects: "--project=desktop --shard=6/7"
+          - shard: desktop-7
+            projects: "--project=desktop --shard=7/7"
           # tablet and mobile outgrew one job the same way. On 2026-10-12 the last eight green
           # runs measured tablet 47-59 min and mobile 44-56 min, and train 3 (#960, head
           # 1dc6c48e9) lost both at the 60-min cap: jobs 114632507605 (tablet) and
@@ -323,24 +346,34 @@ jobs:
           # `--shard` coverage contract as desktop; tests/test_ci_e2e_shards.py guards these too.
           # Tablet halves now approach the same cap: #1061 run 39416005343
           # tablet-1 passed in 56m47s, and #1090 run 39415184138 in 55m40s.
-          # Three complete shards preserve coverage and leave runner margin.
+          # Five contiguous shards: 6/4/4 trial 41507479087 passed in 44m,
+          # but tablet-4 still ran 43.8m versus <=40m target. Re-measure 5-way.
           - shard: tablet-1
-            projects: "--project=tablet --shard=1/3"
+            projects: "--project=tablet --shard=1/5"
           - shard: tablet-2
-            projects: "--project=tablet --shard=2/3"
+            projects: "--project=tablet --shard=2/5"
           - shard: tablet-3
-            projects: "--project=tablet --shard=3/3"
+            projects: "--project=tablet --shard=3/5"
+          - shard: tablet-4
+            projects: "--project=tablet --shard=4/5"
+          - shard: tablet-5
+            projects: "--project=tablet --shard=5/5"
           # A mobile HALF still reached the cap: on 2026-10-20 run 39403170318
           # job 118563127930 started 09:48:07 UTC, selected 513 tests with the single CI
           # worker at 09:49:29, and was still passing with no assertion failure when the
           # host cancelled it at 10:48:24 — 60m17s, the unchanged cap (#1061). Three
-          # contiguous Playwright shards, same coverage contract as desktop above.
+          # contiguous Playwright shards, now five after 6/4/4 trial mobile-2
+          # ran 43.6m. Same exact-cover contract as desktop; measure new tail.
           - shard: mobile-1
-            projects: "--project=mobile --shard=1/3"
+            projects: "--project=mobile --shard=1/5"
           - shard: mobile-2
-            projects: "--project=mobile --shard=2/3"
+            projects: "--project=mobile --shard=2/5"
           - shard: mobile-3
-            projects: "--project=mobile --shard=3/3"
+            projects: "--project=mobile --shard=3/5"
+          - shard: mobile-4
+            projects: "--project=mobile --shard=4/5"
+          - shard: mobile-5
+            projects: "--project=mobile --shard=5/5"
           # The company-intelligence chain uses Playwright `dependencies`
           # (playwright.config.ts:69-87) and MUST stay whole inside one shard, or the
           # dependency projects re-run in every shard that touches them.
@@ -374,20 +407,24 @@ jobs:
         with:
           path: ~/.cache/ms-playwright
           key: pw-${{ runner.os }}-${{ steps.pw.outputs.version }}
-      # `--with-deps` shells out to apt, and the runner's Ubuntu mirror stalls often enough to
-      # matter (see #438). Bound it, then fall back to a browser-only install.
-      - name: Install Playwright browsers (apt bounded, browser-only fallback)
-        if: steps.pwcache.outputs.cache-hit != 'true'
+      # The browser cache contains binaries, not the runner's system/font packages.
+      # Qualify the same Playwright-managed dependencies on both cache paths.
+      - name: Install Playwright browser and system dependencies (bounded)
         timeout-minutes: 12
+        run: timeout 480 npx playwright install --with-deps chromium
+      - name: Run responsive E2E shard with native attempt timing
+        env:
+          MMX_CI_ATTEMPT_REPORT_PATH: ci-attempt-reports/${{ matrix.shard }}/main.json
+          # Same Playwright native distribution weights for every shard of
+          # one project. Counts differ, test identities and shard count do not.
+          PWTEST_SHARD_WEIGHTS: "${{ startsWith(matrix.shard, 'desktop-') && '147:192:183:223:177:227:138' || startsWith(matrix.shard, 'tablet-') && '208:309:303:301:166' || startsWith(matrix.shard, 'mobile-') && '1:1:1:1:1' || '' }}"
         run: |
-          timeout 480 npx playwright install --with-deps chromium \
-            || { echo "::warning::apt/--with-deps stalled or failed — installing the browser only"; \
-                 npx playwright install chromium; }
-      # A cache hit still needs the system libs check to be cheap and non-fatal.
-      - name: Ensure browser present on cache hit
-        if: steps.pwcache.outputs.cache-hit == 'true'
-        run: npx playwright install chromium
-      - run: npm run test:e2e:responsive -- ${{ matrix.projects }}
+          # Fail closed if a future Playwright update removes native weights.
+          if [ -n "$PWTEST_SHARD_WEIGHTS" ]; then
+            grep -q 'PWTEST_SHARD_WEIGHTS' node_modules/playwright/lib/cli/testActions.js ||
+              { echo 'Native weighted sharding unavailable; requalify Playwright' >&2; exit 1; }
+          fi
+          npm run test:e2e:responsive -- ${{ matrix.projects }}
       # This feature is default-off; the ordinary matrix skips its browser tests.
       # Exercise it with the SAME harness, without altering production flags.
       - name: Qualify investor shell opt-in
@@ -396,10 +433,11 @@ jobs:
           MMX_INVESTOR_SHELL_PREVIEW: '1'
           CI: '1'
           TERMINAL_E2E_PORT: '31991'
+          MMX_CI_ATTEMPT_REPORT_PATH: ci-attempt-reports/serial/investor-shell.json
         run: >-
           npm run test:e2e:responsive -- e2e/investor-shell-preview.spec.ts
           --project=desktop --project=tablet --project=mobile
-          --workers=1 --retries=0
+          --workers=1 --retries=0 --trace=retain-on-failure
           --output=test-results/investor-shell-preview
       - name: Qualify Shared Shell beta presentation
         if: matrix.shard == 'serial'
@@ -407,10 +445,11 @@ jobs:
           MMX_SHARED_SHELL: '1'
           CI: '1'
           TERMINAL_E2E_PORT: '31992'
+          MMX_CI_ATTEMPT_REPORT_PATH: ci-attempt-reports/serial/shared-shell.json
         run: >-
           npm run test:e2e:responsive -- e2e/shared-shell-refinement.spec.ts
           --project=desktop --project=tablet --project=mobile
-          --workers=1 --retries=0
+          --workers=1 --retries=0 --trace=retain-on-failure
           --output=test-results/shared-shell-refinement
       - name: Upload responsive QA screenshots
         if: always()
@@ -419,7 +458,9 @@ jobs:
           # upload-artifact@v4 HARD-FAILS on duplicate names across a matrix. The shard
           # suffix is mandatory, not cosmetic.
           name: responsive-qa-${{ github.run_id }}-${{ matrix.shard }}
-          path: terminal/test-results
+          path: |
+            terminal/test-results
+            terminal/ci-attempt-reports
           if-no-files-found: ignore
 
   terminal:

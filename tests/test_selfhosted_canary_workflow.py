@@ -24,6 +24,12 @@ CI_WORKFLOW = ROOT / ".github" / "workflows" / "ci.yml"
 VALIDATOR = ROOT / ".github" / "scripts" / "selfhosted_canary_inputs.sh"
 
 TABLE_LINE = re.compile(r'^\s*([a-z0-9-]+)\)\s+projects="([^"]*)"\s+;;\s*$', re.M)
+VALID_SHARDS = [
+    *(f"desktop-{i}" for i in range(1, 8)),
+    *(f"tablet-{i}" for i in range(1, 6)),
+    *(f"mobile-{i}" for i in range(1, 6)),
+    "serial",
+]
 
 
 def canary() -> dict[str, Any]:
@@ -95,7 +101,7 @@ def test_shard_table_mirrors_hosted_e2e_matrix() -> None:
     assert table == hosted
 
 
-@pytest.mark.parametrize("shard", ["desktop-1", "tablet-3", "serial"])
+@pytest.mark.parametrize("shard", VALID_SHARDS)
 def test_valid_inputs_emit_fixed_selector(shard: str, tmp_path: Path) -> None:
     rc, written = run_validator(shard, "4", tmp_path)
     assert rc == 0
@@ -112,7 +118,8 @@ def test_valid_inputs_emit_fixed_selector(shard: str, tmp_path: Path) -> None:
         "desktop-1`id`",
         "desktop-1\nid",
         "--project=desktop --shard=1/5",
-        "desktop-6",
+        "desktop-8", "tablet-6", "mobile-6",
+        "--project=desktop --shard=1/7",
         "",
     ],
 )
@@ -301,7 +308,8 @@ def test_untrusted_source_cannot_publish_any_admission_output(
 
 
 @pytest.mark.parametrize(("shard", "workers"), [
-    ("desktop-6", "1"), ("desktop-1; id", "1"),
+    ("desktop-8", "1"), ("tablet-6", "1"), ("mobile-6", "1"),
+    ("--project=desktop --shard=1/7", "1"), ("desktop-1; id", "1"),
     ("desktop-1\nid", "1"), ("--project=desktop --shard=1/5", "1"),
     ("desktop-1", "0"), ("desktop-1", "17"), ("desktop-1", "08"),
     ("desktop-1", "99999999999999999999"), ("desktop-1", "1 $(id)"),
@@ -315,7 +323,8 @@ def test_invalid_inputs_never_publish_selfhosted_admission(
 
 
 @pytest.mark.parametrize(("shard", "workers"), [
-    ("desktop-1", "1"), ("tablet-3", "4"), ("serial", "16"),
+    *((shard, "16" if shard == "serial" else "1") for shard in VALID_SHARDS),
+    ("tablet-3", "4"),
 ])
 def test_valid_admission_binds_fixed_inputs_and_same_immutable_sha(
     shard: str, workers: str, tmp_path: Path,
@@ -328,3 +337,75 @@ def test_valid_admission_binds_fixed_inputs_and_same_immutable_sha(
         f"admitted=true\nsha={TRUSTED_SHA}\nshard={shard}\n"
         f"projects={table[shard]}\nworkers={workers}\n"
     )
+
+WEIGHT_SUPPORT_GUARD = """if [ -n "$PWTEST_SHARD_WEIGHTS" ]; then
+  grep -q 'PWTEST_SHARD_WEIGHTS' node_modules/playwright/lib/cli/testActions.js ||
+    { echo 'Native weighted sharding unavailable; requalify Playwright' >&2; exit 1; }
+fi"""
+
+
+def assert_weighted_shard_wiring(wf: dict[str, Any]) -> None:
+    hosted = yaml.safe_load(CI_WORKFLOW.read_text(encoding="utf-8"))["jobs"]["terminal-e2e"]
+    hosted_step = next(step for step in hosted["steps"] if "PWTEST_SHARD_WEIGHTS" in step.get("env", {}))
+    expected = hosted_step["env"]["PWTEST_SHARD_WEIGHTS"].replace("matrix.shard", "needs.admit.outputs.shard")
+    step = next(step for step in wf["jobs"]["canary"]["steps"] if step.get("name") == "Run shard (timed)")
+    assert step.get("env", {}).get("PWTEST_SHARD_WEIGHTS") == expected
+    run = step["run"]
+    assert WEIGHT_SUPPORT_GUARD in run
+    assert run.index(WEIGHT_SUPPORT_GUARD) < run.index("t0=") < run.index("npm run test:e2e:responsive")
+    # Validate installed support after npm ci; hosted admission has no node_modules.
+    steps = wf["jobs"]["canary"]["steps"]
+    assert next(i for i, item in enumerate(steps) if item.get("name") == "npm ci (timed)") < steps.index(step)
+
+
+def test_canary_uses_the_admitted_hosted_weight_policy() -> None:
+    assert_weighted_shard_wiring(canary())
+
+
+@pytest.mark.parametrize("mutation", [
+    "missing-weights", "raw-input-shard", "changed-vector",
+    "missing-guard", "fail-open-guard", "guard-after-test",
+])
+def test_weight_policy_and_support_guard_mutations_are_rejected(mutation: str) -> None:
+    wf = copy.deepcopy(canary())
+    step = next(step for step in wf["jobs"]["canary"]["steps"] if step.get("name") == "Run shard (timed)")
+    if mutation == "missing-weights":
+        step.pop("env")
+    elif mutation == "raw-input-shard":
+        step["env"]["PWTEST_SHARD_WEIGHTS"] = step["env"]["PWTEST_SHARD_WEIGHTS"].replace(
+            "needs.admit.outputs.shard", "inputs.shard",
+        )
+    elif mutation == "changed-vector":
+        step["env"]["PWTEST_SHARD_WEIGHTS"] = step["env"]["PWTEST_SHARD_WEIGHTS"].replace("147:192", "1:192")
+    elif mutation == "missing-guard":
+        step["run"] = step["run"].replace(WEIGHT_SUPPORT_GUARD, "")
+    elif mutation == "fail-open-guard":
+        step["run"] = step["run"].replace("exit 1;", "true;")
+    elif mutation == "guard-after-test":
+        step["run"] = step["run"].replace(WEIGHT_SUPPORT_GUARD, "") + WEIGHT_SUPPORT_GUARD + "\n"
+    else:
+        raise AssertionError(mutation)
+    with pytest.raises(AssertionError):
+        assert_weighted_shard_wiring(wf)
+
+
+@pytest.mark.parametrize(("weights", "installed", "expected"), [
+    ("147:192:183:223:177:227:138", False, 1),
+    ("147:192:183:223:177:227:138", True, 0),
+    ("", False, 0),
+])
+def test_installed_weight_support_fails_closed(
+    weights: str, installed: bool, expected: int, tmp_path: Path,
+) -> None:
+    run = next(step["run"] for step in canary()["jobs"]["canary"]["steps"] if step.get("name") == "Run shard (timed)")
+    assert WEIGHT_SUPPORT_GUARD in run
+    if installed:
+        target = tmp_path / "node_modules/playwright/lib/cli/testActions.js"
+        target.parent.mkdir(parents=True)
+        target.write_text("PWTEST_SHARD_WEIGHTS", encoding="utf-8")
+    proc = subprocess.run(
+        ["bash", "-euo", "pipefail", "-c", WEIGHT_SUPPORT_GUARD],
+        cwd=tmp_path, env={**os.environ, "PWTEST_SHARD_WEIGHTS": weights},
+        capture_output=True, text=True, timeout=30,
+    )
+    assert proc.returncode == expected

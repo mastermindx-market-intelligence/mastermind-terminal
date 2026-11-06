@@ -334,7 +334,7 @@ test("phone: the Drawings sheet opens at 62% over a live chart and drags to full
   // Grabber up expands to full…
   await drag(GRABBER, -260);
   await expect(sheet).toHaveAttribute("data-detent", "full");
-  expect(await ratio()).toBeGreaterThan(0.9);
+  await expect.poll(ratio).toBeGreaterThan(0.9);
   expect(await gridScrolls()).toBe(true);
   // …where the dim (and only the dim — never a blur) arrives.
   await expect.poll(async () => (await scrimLook()).bg).toBe("rgba(5, 7, 11, 0.55)");
@@ -382,7 +382,7 @@ test("phone: ••• opens the analysis hub at 60% and drags to full", async (
   const grip = (await hub.locator(".mhub-grip").boundingBox())!;
   await pointerDrag(page, '[data-testid="analysis-hub"]', { x: grip.x + grip.width / 2, y: grip.y + 2 }, -260);
   await expect(hub).toHaveAttribute("data-detent", "full");
-  expect(await ratio()).toBeGreaterThan(0.9);
+  await expect.poll(ratio).toBeGreaterThan(0.9);
   await expect.poll(async () => (await hubScrimLook()).bg).toBe("rgba(5, 7, 11, 0.55)");
   const gripFull = (await hub.locator(".mhub-grip").boundingBox())!;
   await pointerDrag(page, '[data-testid="analysis-hub"]', { x: gripFull.x + gripFull.width / 2, y: gripFull.y + 2 }, 240);
@@ -471,7 +471,8 @@ test("phone: tapping the symbol wheel opens the ticker picker as a drawer", asyn
   const row = (await drawer.locator(".sres .r").first().boundingBox())!;
   await pointerDrag(page, ".msheet.msheet-search", { x: row.x + row.width * 0.4, y: row.y + 4 }, -240);
   await expect(drawer).toHaveAttribute("data-detent", "full");
-  expect(await ratio()).toBeGreaterThan(0.9);
+  // Detent state precedes the height transition; preserve the same full-height invariant.
+  await expect.poll(ratio).toBeGreaterThan(0.9);
 
   // A short, quick flick down steps one detent back rather than needing a full-height drag.
   await pointerDrag(page, ".msheet.msheet-search", { x: 195, y: 120 }, 70);
