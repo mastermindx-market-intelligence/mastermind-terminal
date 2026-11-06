@@ -40,7 +40,7 @@ query($owner: String!, $name: String!) {
     nameWithOwner
     defaultBranchRef { name target { oid } }
     mergeQueue(branch: "master") {
-      configuration { mergeMethod maximumEntriesToBuild maximumEntriesToMerge }
+      configuration { mergeMethod mergingStrategy maximumEntriesToBuild maximumEntriesToMerge }
       entries(first: 100) {
         pageInfo { hasNextPage }
         nodes {
@@ -151,6 +151,137 @@ def validate_migrations(number: int, doc: dict, files: Mapping[str, bytes], sour
                 "protected-base migration absence is not proven")
 
 
+
+def validate_parallel_snapshot(
+    data: dict, event: dict, env: Mapping[str, str], checkout_head: str
+) -> tuple[dict[int, str], str]:
+    """Bind the exact ordered queue prefix to this candidate's real Git tree.
+
+    ALLGREEN currently builds up to eight candidates at once; each accepted
+    candidate is a single-parent squash of its predecessor. The open migration
+    may belong to ANY verified preceding PR, not necessarily the final PR.
+    """
+    require(env.get("GITHUB_EVENT_NAME") == "merge_group", "not a merge-group event")
+    require(event.get("action") == "checks_requested", "wrong merge-group action")
+    repo = env.get("GITHUB_REPOSITORY", "")
+    require(re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", repo), "invalid repository identity")
+    require(event.get("repository", {}).get("full_name") == repo, "event repository differs")
+    group = event.get("merge_group", {})
+    head, event_base = oid(group.get("head_sha")), oid(group.get("base_sha"))
+    require(checkout_head == head == env.get("GITHUB_SHA"), "event and checkout heads differ")
+    require(group.get("base_ref") == "refs/heads/master", "wrong protected base ref")
+    ref = group.get("head_ref", "")
+    require(isinstance(ref, str) and ref.startswith("refs/heads/gh-readonly-queue/master/")
+            and ref == env.get("GITHUB_REF"), "event and checkout refs differ")
+    repository = data.get("repository") or {}
+    require(repository.get("nameWithOwner") == repo, "API repository differs")
+    default = repository.get("defaultBranchRef") or {}
+    require(default.get("name") == "master", "queue target is not protected master")
+    protected_tip = oid((default.get("target") or {}).get("oid"))
+    queue = repository.get("mergeQueue") or {}
+    config = queue.get("configuration") or {}
+    require(
+        config.get("mergeMethod") == "SQUASH"
+        and config.get("mergingStrategy") == "ALLGREEN"
+        and type(config.get("maximumEntriesToBuild")) is int
+        and type(config.get("maximumEntriesToMerge")) is int
+        and (config["maximumEntriesToBuild"], config["maximumEntriesToMerge"]) == (8, 4),
+        "parallel queue profile is not qualified",
+    )
+    entries = queue.get("entries") or {}
+    require(entries.get("pageInfo", {}).get("hasNextPage") is False, "incomplete queue snapshot")
+    nodes = entries.get("nodes")
+    require(isinstance(nodes, list) and nodes, "missing queue entries")
+    require(all(isinstance(n, dict) and type(n.get("position")) is int
+                and n["position"] > 0 for n in nodes), "invalid queue position")
+    ordered = sorted(nodes, key=lambda n: n["position"])
+    require(all(n["position"] == i for i, n in enumerate(ordered, 1)),
+            "non-contiguous or duplicate queue positions")
+    matches = [n for n in ordered if (n.get("headCommit") or {}).get("oid") == head]
+    require(len(matches) == 1, "candidate has no unique native queue entry")
+    candidate = matches[0]
+    prefix = ordered[:candidate["position"]]
+    require(prefix and prefix[-1] is candidate, "candidate position differs")
+    owners: dict[int, str] = {}
+    prev = protected_tip
+    for entry in prefix:
+        require((entry.get("baseCommit") or {}).get("oid") == prev,
+                "native predecessor chain differs")
+        commit = entry.get("headCommit") or {}
+        current = oid(commit.get("oid"))
+        oid((commit.get("tree") or {}).get("oid"))
+        require(commit.get("parents", {}).get("nodes") == [{"oid": prev}],
+                "native candidate is not a single-parent squash")
+        pr = entry.get("pullRequest") or {}
+        number = pr.get("number")
+        require(type(number) is int and number > 0 and number not in owners,
+                "invalid or duplicate queue owner")
+        source_head = oid(pr.get("headRefOid"))
+        require(pr.get("state") == "OPEN" and pr.get("baseRefName") == "master",
+                "queue owner PR is not open against master")
+        require((pr.get("baseRepository") or {}).get("nameWithOwner") == repo
+                and (pr.get("headRepository") or {}).get("nameWithOwner") == repo,
+                "foreign queue owner repository")
+        if entry["position"] == 1:
+            # A later queue entry may have a different synthetic predecessor
+            # from its PR's ordinary potentialMergeCommit. First entry does not.
+            merge = pr.get("potentialMergeCommit") or {}
+            require(merge.get("parents", {}).get("nodes")
+                    == [{"oid": prev}, {"oid": source_head}],
+                    "first PR merge has wrong protected base/source")
+            require((merge.get("tree") or {}).get("oid") == (commit.get("tree") or {}).get("oid"),
+                    "first PR merge tree differs from native candidate")
+        owners[number] = source_head
+        prev = current
+    require(prev == head and (candidate.get("baseCommit") or {}).get("oid") == event_base,
+            "event candidate base/head do not match native queue")
+    return owners, protected_tip
+
+
+def validate_parallel_migrations(
+    owners: Mapping[int, str], protected_tip: str, doc: dict,
+    files: Mapping[str, bytes], read: Callable[[str, dict], dict], variables: dict,
+) -> frozenset[int]:
+    """Authenticate each present open migration against its native owner PR.
+
+    Reuses the existing full provenance gate: source ledger row exactness,
+    source-file blob hash and protected-base absence. Never rely on a ledger PR
+    number alone. Supports multiple distinct migration owners in one queue.
+    """
+    groups: dict[int, dict[str, bytes]] = {}
+    for name, raw in sorted(files.items()):
+        require(bool(re.fullmatch(r"\d{4}_[a-z0-9_]+\.sql", name)),
+                "invalid migration filename")
+        row = (doc.get("prefixes") or {}).get(name.split("_", 1)[0]) or {}
+        number = row.get("pr")
+        require(type(number) is int and number in owners
+                and row.get("state") == "taken" and row.get("pr_state") == "open"
+                and row.get("file") == name,
+                "open migration not owned by an immutable queue member")
+        groups.setdefault(number, {})[name] = raw
+    require(bool(groups), "no open migration requires group qualification")
+    for number, subset in sorted(groups.items()):
+        source_head = owners[number]
+        expressions = {"ledger": f"{source_head}:supabase/migrations/RESERVATIONS.json",
+                       "base_tree": f"{protected_tip}:supabase/migrations"}
+        for i, filename in enumerate(sorted(subset)):
+            expressions[f"file{i}"] = f"{source_head}:supabase/migrations/{filename}"
+            expressions[f"base{i}"] = f"{protected_tip}:supabase/migrations/{filename}"
+        fields = " ".join(
+            f"{key}: object(expression: " + "$" + f"{key}) {{ __typename "
+            + ("... on Tree { entries { name type } }"
+               if key == "base_tree" else "... on Blob { oid text }")
+            + " }" for key in expressions
+        )
+        declarations = ", ".join("$" + f"{key}: String!" for key in expressions)
+        query = ("query($owner: String!, $name: String!, " + declarations
+                 + ") { repository(owner: $owner, name: $name) { "
+                 + fields + " } }")
+        source = read(query, variables | expressions).get("repository") or {}
+        validate_migrations(number, doc, subset, source)
+    return frozenset(groups)
+
+
 def graphql_reader(token: str) -> Callable[[str, dict], dict]:
     require(bool(token), "read-only GitHub token is unavailable")
 
@@ -183,6 +314,12 @@ def qualify_owner(root: Path, env: Mapping[str, str], doc: dict, files: Mapping[
         owner, name = env["GITHUB_REPOSITORY"].split("/", 1)
         variables = {"owner": owner, "name": name}
         snapshot = read(QUEUE_QUERY, variables)
+        config = ((snapshot.get("repository") or {}).get("mergeQueue") or {}).get("configuration") or {}
+        if (config.get("maximumEntriesToBuild"), config.get("maximumEntriesToMerge")) == (8, 4):
+            members, protected_tip = validate_parallel_snapshot(snapshot, event, env, checkout)
+            return validate_parallel_migrations(
+                members, protected_tip, doc, files, read, variables
+            )
         number, source_head, base = validate_snapshot(snapshot, event, env, checkout)
         expressions = {"ledger": f"{source_head}:supabase/migrations/RESERVATIONS.json",
                        "base_tree": f"{base}:supabase/migrations"}
