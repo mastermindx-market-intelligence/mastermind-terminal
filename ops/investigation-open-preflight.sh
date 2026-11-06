@@ -39,7 +39,7 @@ investigation_open_preflight(){
   # not prove all ingress, direct RPC or original operation outcomes (P1.T15).
   # Do not add an OPEN branch until the incumbent observer/verifier contracts
   # and effect recovery are implemented and independently qualified.
-  printf '{"status":"SOURCE_PREPARATION","open_transaction_implemented":false,"installed_sha":"%s","missing_source_contracts":["all-ingress-direct-rpc-drain-observer","original-operation-reconciliation-verifier","lawfully-admitted-schema-grants-receipt-verifier","unified-open-adoption-and-recovery-transaction"]}\n' "$expected_sha"
+  printf '{"status":"SOURCE_PREPARATION","open_transaction_implemented":false,"installed_sha":"%s","missing_source_contracts":["all-ingress-direct-rpc-drain-observer","original-operation-inventory-and-live-receipt-binding","lawfully-admitted-schema-grants-receipt-verifier","unified-open-adoption-and-recovery-transaction"]}\n' "$expected_sha"
   return 78
 }
 

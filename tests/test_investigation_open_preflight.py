@@ -44,7 +44,7 @@ def test_valid_incumbent_installation_reports_source_gaps_without_open():
     assert report["installed_sha"] == SHA
     assert report["missing_source_contracts"] == [
         "all-ingress-direct-rpc-drain-observer",
-        "original-operation-reconciliation-verifier",
+        "original-operation-inventory-and-live-receipt-binding",
         "lawfully-admitted-schema-grants-receipt-verifier",
         "unified-open-adoption-and-recovery-transaction",
     ]
