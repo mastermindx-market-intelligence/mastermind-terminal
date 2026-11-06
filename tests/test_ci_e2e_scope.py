@@ -148,6 +148,9 @@ def test_required_check_never_launders_skipped_or_failed_scope():
     assert '[ "$fail" -eq 0 ] || exit 1' in run
     assert jobs["terminal-unit"]["needs"] == ["e2e-scope"]
     assert jobs["terminal-e2e"]["needs"] == ["e2e-scope"]
+    # Full audited PR matrix or safe focused subset; native merge_group must
+    # not duplicate the separately proven browser work.
+    assert jobs["terminal-e2e"]["if"] == "github.event_name != 'merge_group'"
     assert jobs["terminal-e2e"]["strategy"]["fail-fast"] is False
     assert jobs["terminal-e2e"]["strategy"]["matrix"] == (
         "${{ fromJSON(needs.e2e-scope.outputs.matrix) }}"
@@ -157,7 +160,10 @@ def test_required_check_never_launders_skipped_or_failed_scope():
     for step in jobs["terminal-unit"]["steps"]:
         if step.get("name") in ("Prepare Chromium for original mock captures",
                                 "Capture and validate evidence on this checkout"):
-            assert step["if"] == "needs.e2e-scope.outputs.mode == 'full'"
+            assert step["if"] == (
+                "github.event_name != 'merge_group' || "
+                "steps.evidence_plan.outputs.capture == 'true'"
+            )
     command = next(step["run"] for step in jobs["terminal-e2e"]["steps"]
                    if "test:e2e:responsive" in step.get("run", ""))
     assert "${{ matrix.projects }}" in command
