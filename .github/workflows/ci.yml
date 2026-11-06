@@ -108,7 +108,12 @@ jobs:
         run: node --test e2e/tools/capture_ci_evidence.test.cjs e2e/tools/capture_visual_evidence.test.cjs
       - name: Prepare Chromium for original mock captures
         timeout-minutes: 10
-        run: npx playwright install --with-deps chromium
+        run: |
+          # Leave time for a browser-only fallback when the Ubuntu apt mirror stalls.
+          # Missing browser/system dependencies still fail the real capture below.
+          timeout --signal=TERM --kill-after=15s 240s npx playwright install --with-deps chromium \
+            || { echo "::warning::Dependency installation stalled or failed; trying browser-only installation."; \
+                 timeout --signal=TERM --kill-after=15s 180s npx playwright install chromium; }
       - name: Capture and validate evidence on this checkout
         timeout-minutes: 55
         run: node e2e/tools/capture_ci_evidence.cjs
@@ -409,7 +414,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          # upload-artifact@v4 HARD-FAILS on duplicate names across a matrix. The shard
+          # upload-artifact@v4 HARD-FAILS on duplicate artifact names across a matrix. The shard
           # suffix is mandatory, not cosmetic.
           name: responsive-qa-${{ github.run_id }}-${{ matrix.shard }}
           path: terminal/test-results
