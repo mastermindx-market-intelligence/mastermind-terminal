@@ -21,6 +21,9 @@ const key=(owner:string)=>`mm.investigation.pending.v2:${encodeURIComponent(owne
 const owners=(principal:string)=>{const subject=investigationSubject(principal);return subject?[subject,ownerKeyFor(subject)]:[principal];};
 const stable=(value:unknown):string=>JSON.stringify(value,(_key,v)=>v&&typeof v==="object"&&!Array.isArray(v)?Object.fromEntries(Object.keys(v).sort().map(k=>[k,v[k]])):v);
 const same=(a:InvestigationCommand,b:InvestigationCommand)=>stable(a)===stable(b);
+// This is current state-machine output, never a persisted local attestation.
+const confirmedNoEffect=(state:InvestigationSaveState|undefined,principal:string,command:InvestigationCommand)=>
+ state?.phase==="rejected"&&state.principal===principal&&state.reason==="not_applied"&&same(state.command,command);
 export function readInvestigationJournal(store:Store,principal:string):JournalRead {
  const entries=owners(principal).map(owner=>({owner,key:key(owner),text:store.getItem(key(owner))})).filter((v):v is Entry=>v.text!==null);
  if(!entries.length)return {status:"empty",entries};
@@ -45,7 +48,7 @@ export function readInvestigationJournal(store:Store,principal:string):JournalRe
 }
 export function retainInvestigationJournal(store:Store,principal:string,command:InvestigationCommand,previous?:InvestigationSaveState){
  const found=readInvestigationJournal(store,principal);
- if(found.status!=="empty"&&!(found.status==="retained"&&found.state.phase==="rejected"
+ if(found.status!=="empty"&&!(found.status==="retained"&&(found.state.phase==="rejected"||confirmedNoEffect(previous,principal,found.state.command))
    &&previous?.phase==="rejected"&&same(found.state.command,previous.command)))throw Error("occupied journal");
  const entries=found.status==="empty"?[{owner:investigationSubject(principal)?ownerKeyFor(investigationSubject(principal)):principal,key:key(investigationSubject(principal)?ownerKeyFor(investigationSubject(principal)):principal),text:""}]:found.entries;
  for(const entry of entries){const text=JSON.stringify({owner:entry.owner,command});store.setItem(entry.key,text);if(store.getItem(entry.key)!==text)throw Error("journal unavailable");}
@@ -62,8 +65,8 @@ export function clearCommittedInvestigationJournal(store:Store,principal:string,
  for(const entry of found.entries)store.removeItem(entry.key);
 }
 /** Starting another draft cannot discard either UNKNOWN or conflicting buffers. */
-export function clearRejectedInvestigationJournal(store:Store,principal:string){
+export function clearRejectedInvestigationJournal(store:Store,principal:string,confirmed?:InvestigationSaveState){
  const found=readInvestigationJournal(store,principal);if(found.status==="empty")return;
- if(found.status!=="retained"||found.state.phase!=="rejected")throw Error("unsettled journal");
+ if(found.status!=="retained"||(found.state.phase!=="rejected"&&!confirmedNoEffect(confirmed,principal,found.state.command)))throw Error("unsettled journal");
  for(const entry of found.entries)store.removeItem(entry.key);
 }

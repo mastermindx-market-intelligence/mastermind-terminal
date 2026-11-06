@@ -2,6 +2,7 @@ import {
   INVESTIGATION_MANIFEST_SCHEMA_V2, validateInvestigationManifest,
   type InvestigationAdmission, type InvestigationManifest,
 } from "./investigationContracts";
+import { classifyInvestigationOperationReceipt, isInvestigationReceiptTimestamp } from "./investigationOperationReceipt";
 
 /** These adapters describe the G1 owners actually integrated by this service. */
 export const INVESTIGATION_ADMISSION: InvestigationAdmission = {
@@ -31,6 +32,7 @@ export type InvestigationCommitted = {
   committed_at: string;
 };
 export type InvestigationFailure = { status: "invalid_payload" | "unauthenticated" | "not_found" | "version_conflict" | "idempotency_conflict" | "invalid_transition" | "reference_unavailable" | "layout_conflict" | "limit_reached" | "unavailable"; current_revision?: number };
+export type InvestigationOperationRead = (InvestigationCommitted | { status: "not_applied"; id: string; operation_id: string }) & { read_principal: string; read_operation_id: string; read_binding: "native_lineage" | "legacy_recorded_completion" | "stored_no_effect" };
 export type InvestigationDb = { rpc(name: string, args: Record<string, unknown>): PromiseLike<{ data: unknown; error: unknown }> };
 export type InvestigationSummary = {id:string;revision:number;lifecycle:"active"|"removed";title:string;question:string;updated_at:string};
 export async function listInvestigations(db:InvestigationDb):Promise<{status:"listed";items:InvestigationSummary[]}|InvestigationFailure> {
@@ -71,6 +73,13 @@ export function isInvestigationCommitted(raw: unknown): raw is InvestigationComm
     && record(raw.manifest) && raw.manifest.schema===INVESTIGATION_MANIFEST_SCHEMA_V2
     && validateInvestigationManifest(raw.manifest, INVESTIGATION_ADMISSION).ok;
 }
+/** Exact incumbent 0028 receipt shape, not a fallback for incomplete 0030 lineage. */
+export function isLegacyInvestigationCommitted(raw: unknown): raw is InvestigationCommitted {
+  return isInvestigationCommitted(raw)
+    && Object.keys(raw).length === 6
+    && Object.keys(raw).every(k => ["status", "id", "revision", "lifecycle", "manifest", "committed_at"].includes(k))
+    && raw.revision <= 2147483647 && isInvestigationReceiptTimestamp(raw.committed_at);
+}
 const failureCodes = new Set(["invalid_payload", "unauthenticated", "not_found", "version_conflict", "idempotency_conflict", "invalid_transition", "reference_unavailable", "layout_conflict", "limit_reached"]);
 export async function applyInvestigationRevision(db: InvestigationDb, command: InvestigationCommand): Promise<InvestigationCommitted | InvestigationFailure> {
   const valid = parseInvestigationCommand(command);
@@ -91,12 +100,18 @@ export async function applyInvestigationRevision(db: InvestigationDb, command: I
 }
 
 /** A receipt miss is explicitly inconclusive after transport uncertainty. Never replace its key. */
-export async function readInvestigationOperation(db: InvestigationDb, operationId: string): Promise<InvestigationCommitted | InvestigationFailure> {
+export async function readInvestigationOperation(db: InvestigationDb, operationId: string, principal: string): Promise<InvestigationOperationRead | InvestigationFailure> {
   if (!isInvestigationId(operationId)) return { status: "invalid_payload" };
+  if (!isInvestigationId(principal)) return { status: "unavailable" };
   try {
     const { data, error } = await db.rpc("read_investigation_operation_v2", { p_operation_id: operationId });
     if (error) return { status: "unavailable" };
-    if (isInvestigationCommitted(data)) return data;
+    const disposition = classifyInvestigationOperationReceipt(data, operationId, principal);
+    if (disposition === "committed" && isInvestigationCommitted(data)) return { ...data, read_principal: principal, read_operation_id: operationId, read_binding: "native_lineage" };
+    // This records the legacy receipt's limited claim; shape does NOT prove a
+    // 0028 producer epoch or qualify 0030 lineage, grants or cutover.
+    if (isLegacyInvestigationCommitted(data)) return { ...data, read_principal: principal, read_operation_id: operationId, read_binding: "legacy_recorded_completion" };
+    if (disposition === "not_applied") return { status: "not_applied", id: (data as { id: string }).id, operation_id: operationId, read_principal: principal, read_operation_id: operationId, read_binding: "stored_no_effect" };
     return record(data) && data.status === "not_found" ? { status: "not_found" } : { status: "unavailable" };
   } catch { return { status: "unavailable" }; }
 }

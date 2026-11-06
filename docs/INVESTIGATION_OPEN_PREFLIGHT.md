@@ -26,8 +26,13 @@ count cannot replace these contracts.
    with an exhaustive current set and bounded observation identity. One unit's
    CLOSED setting cannot establish other API instances or direct RPC closure;
    closing admission does not cancel already-admitted requests. The retained
-   S11 record contains an actual refused fleet-metadata effect, not an accepted
-   observation contract that this candidate may silently replace.
+   S11 record retains a fleet-metadata effect whose original receipt/generation
+   is unavailable. The source at Mastermind 968e1a62 classifies the named
+   OWNER_RESULT_INVALID as returned-owner JSON/schema/readiness validation,
+   wrapped as REFUSED; it is not inherently a permission preflight. This does
+   not clear or retry the historical effect. The Fleet contract supplies
+   gateway/tunnel health, not ingress closure, in-flight drain or an admission
+   epoch. Its repair/enrollment cannot substitute for this different contract.
 2. **Original-operation inventory and live receipt binding.** The source-only
    `ops/investigation_operation_observer.py` now reads one explicit original
    principal/key through the incumbent `read_investigation_operation_v2` RPC
@@ -106,6 +111,36 @@ and runtime qualification on the incumbent carrier. It does not clear T03k,
 execute/replay the held qualifier, apply SQL, prove fleet/drain/original-operation
 outcomes, or authorize OPEN. Actual server/helper acceptance and rollback remain
 unexecuted. No alternate SQL transport or credentials are introduced.
+
+## Existing TypeScript read and draft consumer
+
+The Python observer does not substitute for the application's operation reader.
+The TypeScript service, authenticated GET and both existing save consumers now
+preserve three distinct observations. A complete native committed receipt needs
+the authenticated principal, original operation and native revision/parent,
+timestamp and digest fields. The client also matches the original target,
+expected revision, lifecycle and exact requested/materialized manifest through
+the incumbent save state machine. A stored exact `not_applied` receipt is a
+read-only no-effect fence, not a receipt miss or the unstored capacity response.
+The GET returns its actual authenticated read principal and original lookup key;
+neither is accepted from a caller-supplied identity parameter.
+
+The exact incumbent six-field legacy committed shape remains a **legacy recorded
+completion** under that authenticated original-key lookup. The response and
+client state retain this limited binding explicitly. Shape alone does not prove
+a 0028 producer epoch or provide enriched 0030 lineage, durable no-effect or
+cutover qualification. Any partial/mixed enrichment refuses; a result marked as
+native lineage cannot downgrade to legacy when native fields disappear.
+
+The Saved workspace and standalone scenario capture use the operation-read
+settlement path only for their existing GET checks. Neither path calls apply,
+reconcile or retry on a read. A bound stored fence disables retry of that original
+request and shows useful EN/ZH copy with the draft retained. It is not persisted
+as local authority: after reload the existing draft journal is UNKNOWN and must
+be read again. Only a deliberate new-draft action may replace that exact retained
+command after the current bound fence; an absent/foreign/other-operation result
+or local `not_applied` label cannot clear it. Existing direct POST completion
+handling and the common CLOSED/OPEN guard remain unchanged.
 
 ## Existing decisions reused
 

@@ -53,6 +53,7 @@ import {
   beginInvestigationSave,
   retryInvestigationSave,
   settleInvestigationSave,
+  settleInvestigationOperationRead,
   type InvestigationSaveState,
 } from "@/lib/investigationSave";
 import type { InvestigationCommand } from "@/lib/investigations";
@@ -90,6 +91,7 @@ const COPY = {
     check: "Check original outcome",
     retry: "Retry original save",
     conflict: "This revision was not committed. The original request is retained.",
+    noEffect: "The original request was recorded as not applied. Your draft is retained; no retry was sent.",
     refusedSource: "This revision was not committed because its exact source is unavailable. The original request is retained.",
     saved: "Saved",
     revision: "Revision",
@@ -120,6 +122,7 @@ const COPY = {
     check: "检查原请求结果",
     retry: "重试原保存请求",
     conflict: "本修订未提交，原请求已保留。",
+    noEffect: "原请求已记录为未执行。草稿已保留，未发送重试。",
     refusedSource: "平台当前无法获取该确切来源，本修订未提交，原请求已保留。",
     saved: "已保存",
     revision: "修订",
@@ -267,11 +270,11 @@ export default function SavedScenarioCapture({ inputs, sourceReference = null, l
   /** Canonical settle: only an exact committed receipt is a commit; definitive refusals are
    *  rejected; everything else — timeouts, auth expiry, malformed replies, receipt misses —
    *  stays UNKNOWN with the original command retained. */
-  function settle(response: unknown) {
+  function settle(response: unknown, operationRead = false) {
     const owner = ownerKey;
     const previous = stateRef.current;
     if (previous.phase !== "pending" && previous.phase !== "uncertain") return;
-    const next = settleInvestigationSave(previous, owner, response);
+    const next = operationRead ? settleInvestigationOperationRead(previous, owner, response) : settleInvestigationSave(previous, owner, response);
     stateRef.current = next;
     if (next.phase === "committed") {
       try { clearCommittedInvestigationJournal(sessionStorage,owner,previous.command); } catch { /* the receipt remains authoritative */ }
@@ -282,7 +285,7 @@ export default function SavedScenarioCapture({ inputs, sourceReference = null, l
     }
     if (next.phase === "rejected") {
       try {
-        rejectInvestigationJournal(sessionStorage,owner,next.command,next.reason);
+        if (next.reason !== "not_applied") rejectInvestigationJournal(sessionStorage,owner,next.command,next.reason);
       } catch { /* nothing was committed either way */ }
       setRetained(next.command);
       setPhase({ kind: "rejected", reason: next.reason });
@@ -335,10 +338,10 @@ export default function SavedScenarioCapture({ inputs, sourceReference = null, l
       const response = await fetch(`/api/investigations?operation_id=${encodeURIComponent(command.operation_id)}`, { cache: "no-store", signal: controller.signal });
       const body: unknown = await response.json().catch(() => null);
       if (!alive(gen)) return;
-      settle(body);
+      settle(body, true);
     } catch {
       if (!alive(gen) || controller.signal.aborted) return;
-      settle(null);
+      settle(null, true);
     }
   }
 
@@ -440,7 +443,7 @@ export default function SavedScenarioCapture({ inputs, sourceReference = null, l
           {phase.kind === "blocked" && <p className={styles.status} role="status">{c.storage}</p>}
           {phase.kind === "rejected" && !refusal && (
             <p className={styles.status} role="status" data-testid="scenario-capture-status">
-              {phase.reason === "reference_unavailable" ? c.refusedSource : c.conflict}
+              {phase.reason === "not_applied" ? c.noEffect : phase.reason === "reference_unavailable" ? c.refusedSource : c.conflict}
             </p>
           )}
           {phase.kind === "uncertain" && (

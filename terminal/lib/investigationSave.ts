@@ -1,9 +1,11 @@
 /** Client recovery state only. The database operation receipt remains the sole retry authority. */
-import { isInvestigationCommitted, parseInvestigationCommand, type InvestigationCommand, type InvestigationCommitted } from "./investigations";
+import { isInvestigationId, isInvestigationCommitted, isLegacyInvestigationCommitted, parseInvestigationCommand, type InvestigationCommand, type InvestigationCommitted } from "./investigations";
+import { classifyInvestigationOperationReceipt } from "./investigationOperationReceipt";
+import { ownerUserId } from "./accountIdentity";
 export type InvestigationSaveState =
   | { phase: "idle" }
   | { phase: "pending" | "uncertain"; principal: string; command: InvestigationCommand }
-  | { phase: "committed"; principal: string; result: InvestigationCommitted }
+  | { phase: "committed"; principal: string; result: InvestigationCommitted; receiptBinding?: "native_lineage" | "legacy_recorded_completion" }
   | { phase: "rejected"; principal: string; command: InvestigationCommand; reason: string };
 function sameJson(a: unknown, b: unknown): boolean {
   if (a === b) return true;
@@ -50,6 +52,26 @@ export function settleInvestigationSave(state: InvestigationSaveState, principal
   if (typeof status === "string" && definitive.has(status)) return { phase: "rejected", principal, command: state.command, reason: status };
   // not_found on receipt lookup, auth expiry, timeout and malformed replies are all inconclusive.
   return { phase: "uncertain", principal, command: state.command };
+}
+/** Receipt reads have a stricter native lineage contract than incumbent POST replies.
+ * A current authenticated read is an observation, never an implicit reconcile/retry.
+ */
+export function settleInvestigationOperationRead(state: InvestigationSaveState, principal: string, response: unknown): InvestigationSaveState {
+  if (state.phase !== "pending" && state.phase !== "uncertain") return state;
+  if (state.principal !== principal) return { phase: "idle" };
+  const unresolved = () => settleInvestigationSave(state, principal, null);
+  if (!response || typeof response !== "object" || Array.isArray(response)) return unresolved();
+  const { read_principal, read_operation_id, read_binding, ...native } = response as Record<string, unknown>;
+  const subject = ownerUserId(principal) || principal;
+  if (!isInvestigationId(subject) || read_principal !== subject || read_operation_id !== state.command.operation_id || native.id !== state.command.id) return unresolved();
+  const disposition = classifyInvestigationOperationReceipt(native, state.command.operation_id, subject);
+  if ((read_binding === "native_lineage" && disposition === "committed")
+      || (read_binding === "legacy_recorded_completion" && isLegacyInvestigationCommitted(native))) {
+    const settled = settleInvestigationSave(state, principal, native);
+    return settled.phase === "committed" ? { ...settled, receiptBinding: read_binding } : settled;
+  }
+  if (read_binding === "stored_no_effect" && disposition === "not_applied") return { phase: "rejected", principal, command: state.command, reason: "not_applied" };
+  return unresolved();
 }
 export function retryInvestigationSave(state: InvestigationSaveState, principal: string): InvestigationCommand | null {
   return (state.phase === "pending" || state.phase === "uncertain") && state.principal === principal ? JSON.parse(JSON.stringify(state.command)) : null;

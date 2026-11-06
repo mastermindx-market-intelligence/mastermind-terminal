@@ -17,9 +17,9 @@ describe("Investigation owner service", () => {
     expect(calls).toEqual([{name:"apply_investigation_revision_v2",args:{p_id:command.id,p_expected_revision:0,p_action:"create",p_operation_id:command.operation_id,p_manifest:command.manifest,p_layout_capture:null}}]);
   });
   it("keeps outage and absent operation distinct without any mutation", async () => {
-    expect(await readInvestigationOperation({rpc:async()=>({data:null,error:{message:"offline"}})},command.operation_id)).toEqual({status:"unavailable"});
+    expect(await readInvestigationOperation({rpc:async()=>({data:null,error:{message:"offline"}})},command.operation_id,command.id)).toEqual({status:"unavailable"});
     const calls:string[]=[];
-    expect(await readInvestigationOperation({rpc:async(name)=>{calls.push(name);return{data:{status:"not_found"},error:null};}},command.operation_id)).toEqual({status:"not_found"});
+    expect(await readInvestigationOperation({rpc:async(name)=>{calls.push(name);return{data:{status:"not_found"},error:null};}},command.operation_id,command.id)).toEqual({status:"not_found"});
     expect(calls).toEqual(["read_investigation_operation_v2"]);
   });
   it("rejects a wrong revision returned by an exact-revision read", async () => {

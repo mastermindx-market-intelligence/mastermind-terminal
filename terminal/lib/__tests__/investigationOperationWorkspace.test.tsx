@@ -1,0 +1,43 @@
+// @vitest-environment jsdom
+import { afterEach, beforeEach, expect, it, vi } from "vitest";
+import { act } from "react";
+import { createRoot, type Root } from "react-dom/client";
+import InvestigationWorkspace from "@/components/workspaces/InvestigationWorkspace";
+const locale = vi.hoisted(() => ({ lang: "en" }));
+vi.mock("@/lib/i18n", () => ({ useLang: () => locale }));
+vi.mock("@/lib/supabase/client", () => ({ createClient: () => ({ auth: { onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }) } }) }));
+(globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
+const principal = "10000000-0000-4000-8000-000000000001", owner = `account:${principal}`;
+const command = { id: "20000000-0000-4000-8000-000000000002", operation_id: "30000000-0000-4000-8000-000000000003", expected_revision: 0, action: "create",
+  manifest: { schema: "investigation_manifest.v2", intent: { title: "Original draft", question: "Exact question", subjects: [] }, layout_refs: [], thesis_refs: [], evidence_refs: [], continuation: {} } };
+const key = `mm.investigation.pending.v2:${encodeURIComponent(owner)}`;
+const retained = JSON.stringify({ owner, command });
+let el: HTMLDivElement, root: Root;
+const fetcher = vi.fn();
+beforeEach(() => { sessionStorage.clear(); sessionStorage.setItem(key, retained); fetcher.mockReset(); vi.stubGlobal("fetch", fetcher); el = document.createElement("div"); document.body.append(el); root = createRoot(el); });
+afterEach(async () => { await act(async () => root.unmount()); el.remove(); vi.unstubAllGlobals(); });
+async function mount(outcome: unknown) {
+  fetcher.mockImplementation(async (url: string) => ({ json: async () => url.includes("operation_id=") ? outcome : url === "/api/layouts" ? { layouts: [] } : { status: "listed", items: [] } }));
+  await act(async () => { root.render(<InvestigationWorkspace ownerKey={owner} />); for (let i = 0; i < 12; i++) await Promise.resolve(); });
+}
+it.each(["en", "zh"])("shows a bound durable fence with retained draft and no original retry (%s)", async lang => {
+  locale.lang = lang;
+  await mount({ status: "not_applied", id: command.id, operation_id: command.operation_id, read_principal: principal, read_operation_id: command.operation_id, read_binding: "stored_no_effect" });
+  expect(el.textContent).toContain(lang === "zh" ? "原请求已记录为未执行" : "original request was recorded as not applied");
+  expect(el.textContent).toContain("Exact question");
+  expect([...el.querySelectorAll("button")].some(b => b.textContent === (lang === "zh" ? "重试原保存请求" : "Retry original save"))).toBe(false);
+  expect(sessionStorage.getItem(key)).toBe(retained);
+  expect(fetcher.mock.calls.filter(([, init]) => init?.method === "POST")).toHaveLength(0);
+  const start = [...el.querySelectorAll("button")].find(b => b.textContent === (lang === "zh" ? "开始新研究" : "Start new research"));
+  expect(start).toBeDefined();
+  await act(async () => start!.click());
+  expect(sessionStorage.getItem(key)).toBeNull();
+  expect(fetcher.mock.calls.filter(([, init]) => init?.method === "POST")).toHaveLength(0);
+});
+it.each(["en", "zh"])("keeps a receipt miss or incomplete fence UNKNOWN without a mutation (%s)", async lang => {
+  locale.lang = lang;
+  await mount({ status: "not_found" });
+  expect(el.textContent).toContain(lang === "zh" ? "保存结果尚未确认" : "save outcome is not confirmed");
+  expect(sessionStorage.getItem(key)).toBe(retained);
+  expect(fetcher.mock.calls.filter(([, init]) => init?.method === "POST")).toHaveLength(0);
+});

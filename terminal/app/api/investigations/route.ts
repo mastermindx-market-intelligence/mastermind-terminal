@@ -9,7 +9,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 const headers = { "Cache-Control": "private, no-store", "Vary": "Cookie" };
 const respond = (body: unknown, status = 200) => NextResponse.json(body, { status, headers });
-const statuses: Record<string, number> = { found: 200, committed: 200, invalid_payload: 400, unauthenticated: 401, not_found: 404, version_conflict: 409, idempotency_conflict: 409, layout_conflict: 409, invalid_transition: 422, reference_unavailable: 422, limit_reached: 429, unavailable: 503 };
+const statuses: Record<string, number> = { found: 200, committed: 200, not_applied: 200, invalid_payload: 400, unauthenticated: 401, not_found: 404, version_conflict: 409, idempotency_conflict: 409, layout_conflict: 409, invalid_transition: 422, reference_unavailable: 422, limit_reached: 429, unavailable: 503 };
 // The authenticated subject rides beside the db: a scenario-bearing save must name the SAME
 // user in its x-mm-scenario-owner header, so an intent written by another browser identity can
 // never be applied under this session. GET keeps RLS as the sole owner authority.
@@ -45,7 +45,7 @@ export async function GET(request: Request) {
     const operation = params.get("operation_id");
     if (operation !== null) {
       if (keys.length !== 1) return respond({ status: "invalid_payload" }, 400);
-      const result = await readInvestigationOperation(db, operation);
+      const result = await readInvestigationOperation(db, operation, authed.userId);
       return respond(result, statuses[result.status] ?? 503);
     }
     const id = params.get("id");
