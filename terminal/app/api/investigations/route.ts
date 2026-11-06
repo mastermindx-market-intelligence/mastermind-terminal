@@ -46,7 +46,7 @@ export async function GET(request: Request) {
     const operation = params.get("operation_id");
     if (operation !== null) {
       if (keys.length !== 1) return respond({ status: "invalid_payload" }, 400);
-      const result = await readInvestigationOperation(db, operation);
+      const result = await readInvestigationOperation(db, operation, authed.userId);
       return respond(result, statuses[result.status] ?? 503);
     }
     const id = params.get("id");
@@ -112,7 +112,7 @@ async function mutate(request: Request, reconcile: boolean) {
         const captureMode = request.headers.get("x-mm-scenario-capture");
         if (captureMode !== null && captureMode !== "initial" && captureMode !== "recover") return respond({ status: "invalid_payload" }, 400);
         const qualified = await qualifyScenarioCaptureSave(command.manifest.scenario_capture, userId, {
-          id: command.id, expected_revision: command.expected_revision, operation_id: command.operation_id, action: command.action, initial_capture: captureMode === "initial",
+          id: command.id, expected_revision: command.expected_revision, operation_id: command.operation_id, action: command.action, initial_capture: captureMode === "initial", command,
         });
         // A private retention effect can precede a lost response/read/CAS failure.
         // Keep the original operation UNKNOWN, never definitive "nothing changed".

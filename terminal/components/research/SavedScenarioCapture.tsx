@@ -25,7 +25,8 @@
 //     `mm.investigation.pending.v2:<owner>` BEFORE anything is sent. A storage failure sends
 //     nothing. A buffer that already holds another operation — saved research or an earlier
 //     scenario save — is never overwritten, replaced, adopted or replayed: this panel shows the
-//     native Saved research entry and stops. A buffer whose scenario_capture is NOT a valid
+//     native Saved research entry and stops. An exact same-owner/reference/input journal
+//     may be recovered read-only after reload; it is never auto-sent. A buffer whose scenario_capture is NOT a valid
 //     reference-only capture is refused the same way, with copy that says it stores protected
 //     values this platform no longer accepts — it is never sent, checked, adopted or
 //     downgraded by dropping fields.
@@ -49,13 +50,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useShellIdentity } from "@/components/chrome/AppShell";
 import { identityOwnerKey, identityUserId } from "@/lib/accountIdentity";
-import { readInvestigationJournal, retainInvestigationJournal, rejectInvestigationJournal, clearCommittedInvestigationJournal } from "@/lib/investigationJournal";
+import { readInvestigationJournal, retainInvestigationJournal, retainInvestigationCaptureUnknown, rejectInvestigationJournal, clearCommittedInvestigationJournal, clearRejectedInvestigationJournal } from "@/lib/investigationJournal";
+import { canonicalInvestigationJson } from "@/lib/investigationContracts";
 import { createScenarioCapture } from "@/lib/investigationScenario";
 import {
   beginInvestigationSave,
   retryInvestigationSave,
   investigationCommandToReconcile,
+  investigationOperationReadRequest,
+  investigationNativeObservationLabel,
   settleInvestigationSave,
+  settleInvestigationOperationRead,
   type InvestigationSaveState,
 } from "@/lib/investigationSave";
 import type { InvestigationCommand } from "@/lib/investigations";
@@ -76,6 +81,7 @@ type Props = {
 const COPY = {
   en: {
     head: "Save this scenario",
+    newDraft: "Start a new scenario draft",
     intro: "Saved research records your inputs and an exact source reference. Protected source capture is checked separately.",
     title: "Title",
     question: "Question",
@@ -93,6 +99,11 @@ const COPY = {
     check: "Check original outcome",
     retry: "Retry checked save",
     conflict: "This revision was not committed. The original request is retained.",
+    captureRejected: "Canonical save was rejected. The private source capture outcome is still unknown. Your draft and original request are retained; no retry was sent.",
+    captureCommitted: "Canonical save recorded",
+    captureUnknownAfterCommit: "The private source capture outcome is still unknown. Your draft and original request are retained; no retry was sent.",
+    captureUnknown: "The canonical save was recorded as not applied. The private source capture outcome is still unknown. Your draft and original request are retained; no retry was sent.",
+    noEffect: "The original request was recorded as not applied. Your draft is retained; no retry was sent.",
     refusedSource: "This revision was not committed because its exact source is unavailable. The original request is retained.",
     saved: "Saved",
     revision: "Revision",
@@ -106,6 +117,7 @@ const COPY = {
   },
   zh: {
     head: "保存此方案",
+    newDraft: "开始新方案草稿",
     intro: "已保存研究记录你的输入与确切来源引用。受保护来源的捕获将单独核验。",
     title: "标题",
     question: "提问",
@@ -123,6 +135,11 @@ const COPY = {
     check: "检查原请求结果",
     retry: "重试已核验保存",
     conflict: "本修订未提交，原请求已保留。",
+    captureRejected: "规范保存被拒绝，但私有来源捕获结果仍未知。草稿和原请求已保留，未发送重试。",
+    captureCommitted: "规范保存已记录",
+    captureUnknownAfterCommit: "私有来源捕获结果仍未知。草稿和原请求已保留，未发送重试。",
+    captureUnknown: "规范保存已记录为未执行，但私有来源捕获结果仍未知。草稿和原请求已保留，未发送重试。",
+    noEffect: "原请求已记录为未执行。草稿已保留，未发送重试。",
     refusedSource: "平台当前无法获取该确切来源，本修订未提交，原请求已保留。",
     saved: "已保存",
     revision: "修订",
@@ -136,13 +153,13 @@ const COPY = {
   },
 } as const;
 
-const exactJson = (a: unknown, b: unknown): boolean => JSON.stringify(a) === JSON.stringify(b);
+const exactJson = (a: unknown, b: unknown): boolean => canonicalInvestigationJson(a) === canonicalInvestigationJson(b);
 
 
 type Phase =
   | { kind: "idle" }
   | { kind: "pending" }
-  | { kind: "uncertain" }
+  | { kind: "uncertain"; captureUnknown?: true; canonicalRevision?: number; canonicalRejected?: true; nativeObserved?: true }
   | { kind: "rejected"; reason?: string }
   | { kind: "blocked" }
   | { kind: "occupied" }
@@ -169,6 +186,7 @@ export default function SavedScenarioCapture({ inputs, sourceReference = null, l
   // Every async completion is stamped with the generation that started it; an owner change or
   // unmount bumps the counter, so a late answer can never paint into the new owner's panel.
   const genRef = useRef(0);
+  const operationReadSeq = useRef(0);
   const stateRef = useRef<InvestigationSaveState>({ phase: "idle" });
   const abortRef = useRef<AbortController | null>(null);
 
@@ -195,6 +213,35 @@ export default function SavedScenarioCapture({ inputs, sourceReference = null, l
       abortRef.current?.abort();
     };
   }, [ownerKey, reset]);
+
+  // Reload recovery adopts only this exact reference/input capture for this owner.
+  // Another retained operation remains occupied and unchanged. No mutation or
+  // source-byte read is initiated; Check is an explicit body-based owner read.
+  useEffect(() => {
+    let active=true;
+    const generation=genRef.current;
+    // Read the external journal after setup, with cancellation for owner/source
+    // transitions. This never starts a save or grants local settlement authority.
+    queueMicrotask(() => {
+      if (!active || generation!==genRef.current || !isAccount || !made.ok || stateRef.current.phase !== "idle") return;
+      try {
+        const journal=readInvestigationJournal(sessionStorage,ownerKey);
+        if(journal.status === "empty") return;
+        if(journal.status !== "retained"
+            || !["create","revise"].includes(journal.state.command.action)
+            || (journal.state.command.action === "create") !== (journal.state.command.expected_revision === 0)
+            || !exactJson(journal.state.command.manifest.scenario_capture,made.capture)) {
+          setPhase({kind:journal.status === "legacy" ? "legacy" : "occupied"}); return;
+        }
+        stateRef.current=journal.state;
+        setRetained(journal.state.command);
+        setTitle(journal.state.command.manifest.intent.title);
+        setQuestion(journal.state.command.manifest.intent.question);
+        setPhase(journal.state.phase === "rejected" ? {kind:"rejected",reason:journal.state.reason} : {kind:"uncertain",...(journal.state.captureOutcome?{captureUnknown:true as const}:{})});
+      } catch {setPhase({kind:"blocked"});}
+    });
+    return()=>{active=false;};
+  },[ownerKey,isAccount,made]);
 
   /** The save click. Everything frozen here stays frozen: the reference, the ids, the typed
    *  words and the journal entry. */
@@ -271,13 +318,13 @@ export default function SavedScenarioCapture({ inputs, sourceReference = null, l
   /** Canonical settle: only an exact committed receipt is a commit; definitive refusals are
    *  rejected; everything else — timeouts, auth expiry, malformed replies, receipt misses —
    *  stays UNKNOWN with the original command retained. */
-  function settle(command:InvestigationCommand,response: unknown) {
+  function settle(command:InvestigationCommand,response: unknown,operationRead=false) {
     const owner = ownerKey;
     const previous = stateRef.current;
     if (previous.phase !== "pending" && previous.phase !== "uncertain") return;
     if(previous.principal!==owner||previous.command.id!==command.id||previous.command.operation_id!==command.operation_id
       ||previous.command.action!==command.action||previous.command.expected_revision!==command.expected_revision)return;
-    const next = settleInvestigationSave(previous, owner, response);
+    const next = operationRead?settleInvestigationOperationRead(previous,owner,response):settleInvestigationSave(previous, owner, response);
     stateRef.current = next;
     if (next.phase === "committed") {
       try { clearCommittedInvestigationJournal(sessionStorage,owner,previous.command); } catch { /* the receipt remains authoritative */ }
@@ -288,7 +335,7 @@ export default function SavedScenarioCapture({ inputs, sourceReference = null, l
     }
     if (next.phase === "rejected") {
       try {
-        rejectInvestigationJournal(sessionStorage,owner,next.command,next.reason);
+        if (next.reason !== "not_applied") rejectInvestigationJournal(sessionStorage,owner,next.command,next.reason);
       } catch { /* nothing was committed either way */ }
       setRetained(next.command);
       setPhase({ kind: "rejected", reason: next.reason });
@@ -296,7 +343,10 @@ export default function SavedScenarioCapture({ inputs, sourceReference = null, l
     }
     if (next.phase === "uncertain") {
       setRetained(next.command);
-      setPhase({ kind: "uncertain" });
+      if (next.captureOutcome) {
+        try { retainInvestigationCaptureUnknown(sessionStorage, owner, next); } catch { /* still UNKNOWN, never clear */ }
+      }
+      setPhase({ kind: "uncertain", ...(next.nativeObservation ? {nativeObserved:true as const} : {}), ...(next.captureOutcome ? { captureUnknown: true as const } : {}), ...(next.canonicalResult ? { canonicalRevision: next.canonicalResult.revision } : {}), ...(next.canonicalRefusal ? { canonicalRejected: true as const } : {}) });
     }
   }
 
@@ -330,22 +380,20 @@ export default function SavedScenarioCapture({ inputs, sourceReference = null, l
     }
   }
 
-  /** Explicit full-request owner check. It never repeats native retention or an apply POST. */
+  /** Explicit full-original-command read; never repeats capture/apply/reconcile. */
   async function onCheck() {
     const command = investigationCommandToReconcile(stateRef.current, ownerKey);
     if (!command) return;
-    const gen = genRef.current;
-    const controller = new AbortController();
-    abortRef.current = controller;
+    const gen=genRef.current,ticket=++operationReadSeq.current,original=stateRef.current;
+    const controller=new AbortController();abortRef.current=controller;
+    const current=()=>alive(gen)&&ticket===operationReadSeq.current&&!controller.signal.aborted&&stateRef.current===original;
     try {
-      const response = await fetch("/api/investigations", {method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(command),cache:"no-store",signal:controller.signal});
-      const body: unknown = await response.json().catch(() => null);
-      if (!alive(gen)) return;
-      settle(command,body);
-    } catch {
-      if (!alive(gen) || controller.signal.aborted) return;
-      settle(command,null);
-    }
+      const ownerRecheck=original.phase==="uncertain"&&original.ownerRecheck;
+      const request=ownerRecheck?{url:"/api/investigations",init:{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(command)}}:investigationOperationReadRequest(command,ownerKey);
+      const response=await fetch(request.url,{...request.init,cache:"no-store",signal:controller.signal});
+      const body:unknown=await response.json().catch(()=>null);
+      if(current())settle(command,body,!ownerRecheck);
+    } catch {if(current())settle(command,null,true);}
   }
 
   /** Only the current exact owner fence permits a new operation. Reloaded
@@ -370,6 +418,7 @@ export default function SavedScenarioCapture({ inputs, sourceReference = null, l
     <div className={styles.root} data-testid="saved-scenario-capture" data-phase={phase.kind}>
       <span className={styles.eyebrow}>{c.head}</span>
       <p className={styles.note}>{c.intro}</p>
+      {investigationNativeObservationLabel(stateRef.current,lang)&&<p role="status" data-testid="native-operation-facts" className={styles.note}>{investigationNativeObservationLabel(stateRef.current,lang)}</p>}
 
       {phase.kind === "committed" ? (
         <>
@@ -447,16 +496,21 @@ export default function SavedScenarioCapture({ inputs, sourceReference = null, l
             </button>
           </div>
           {phase.kind === "blocked" && <p className={styles.status} role="status">{c.storage}</p>}
+          {phase.kind === "rejected" && phase.reason === "not_applied" && <button type="button" onClick={()=>{
+            try {clearRejectedInvestigationJournal(sessionStorage,ownerKey,stateRef.current);reset();}
+            catch {setPhase({kind:"blocked"});}
+          }}>{c.newDraft}</button>}
           {phase.kind === "rejected" && !refusal && (
             <p className={styles.status} role="status" data-testid="scenario-capture-status">
-              {phase.reason === "reference_unavailable" ? c.refusedSource : c.conflict}
+              {phase.reason === "not_applied" ? c.noEffect : phase.reason === "reference_unavailable" ? c.refusedSource : c.conflict}
             </p>
           )}
           {phase.kind === "uncertain" && (
             <>
-              <p className={styles.status} role="status">{c.uncertain}</p>
+              <p className={styles.status} role="status">{phase.nativeObserved ? c.uncertain : phase.captureUnknown ? (phase.canonicalRevision ? `${c.captureCommitted} · ${c.revision} ${phase.canonicalRevision}. ${c.captureUnknownAfterCommit}` : phase.canonicalRejected ? c.captureRejected : c.captureUnknown) : c.uncertain}</p>
               <div className={styles.actions}>
                 <button type="button" onClick={() => void onCheck()}>{c.check}</button>
+
               </div>
             </>
           )}

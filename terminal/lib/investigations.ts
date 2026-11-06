@@ -4,6 +4,7 @@ import {
   INVESTIGATION_MANIFEST_SCHEMA_V2, INVESTIGATION_MANIFEST_SCHEMA_V3, validateInvestigationManifest, validateStoredInvestigationManifest,
   type InvestigationAdmission, type InvestigationManifest,
 } from "./investigationContracts";
+import { classifyInvestigationOperationReceipt, isInvestigationReceiptTimestamp } from "./investigationOperationReceipt";
 
 /** These adapters describe the G1 owners actually integrated by this service. */
 export const INVESTIGATION_ADMISSION: InvestigationAdmission = {
@@ -43,6 +44,18 @@ export type InvestigationCommitted = {
   manifest_digest?: string;
 };
 export type InvestigationFailure = { status: "invalid_payload" | "unauthenticated" | "not_found" | "version_conflict" | "idempotency_conflict" | "invalid_transition" | "reference_unavailable" | "layout_conflict" | "screen_conflict" | "limit_reached" | "unavailable" | "not_applied"; current_revision?: number; id?: string; operation_id?: string; reason?: "limit_reached" };
+export type InvestigationOperationRead = (InvestigationCommitted | { status: "not_applied"; id: string; operation_id: string }) & { read_principal: string; read_operation_id: string; read_binding: "native_lineage" | "legacy_recorded_completion" | "stored_no_effect" };
+export type InvestigationNativeReceipt = {
+  status: "found"; schema: "investigation.native_capture.v1"; id: string;
+  binding: { actor: string; operation_id: string; issuer: string; auth_epoch: string; request_sha256: string; source_binding_sha256: string };
+  generation: string; native_phase: "started" | "retained";
+  canonical_status: "pending" | "committed" | "not_applied";
+  request: Record<string, unknown>;
+};
+export type InvestigationNativeOperationRead = InvestigationNativeReceipt & {
+  read_binding: "native_participant"; read_principal: string; read_operation_id: string;
+  canonical: InvestigationOperationRead | InvestigationFailure;
+};
 export type InvestigationDb = { rpc(name: string, args: Record<string, unknown>): PromiseLike<{ data: unknown; error: unknown }> };
 export type InvestigationSummary = {id:string;revision:number;lifecycle:"active"|"removed";title:string;question:string;updated_at:string};
 export async function listInvestigations(db:InvestigationDb):Promise<{status:"listed";items:InvestigationSummary[]}|InvestigationFailure> {
@@ -57,6 +70,53 @@ const UUID = /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/;
 export const isInvestigationId = (v: unknown): v is string => typeof v === "string" && UUID.test(v);
 const record = (v: unknown): v is Record<string, unknown> => v !== null && typeof v === "object" && !Array.isArray(v);
 const exact = (v: Record<string, unknown>, keys: string[]) => Object.keys(v).every(k => keys.includes(k));
+export const investigationCanonicalRequest = (command: InvestigationCommand, principal: string) => ({
+  principal, action: command.action, target: command.id, expected_revision: command.expected_revision,
+  manifest: command.manifest, layout_capture: command.layout_capture ?? null,
+  ...(command.screen_capture === undefined ? {} : {screen_capture: command.screen_capture}),
+});
+
+/** A read of the original owner row, never a claim, completion, or current source grant.
+ * Historical issuer/session epoch are row facts; a reauthenticated owner need not
+ * impersonate that historical session. Missing old/uninstrumented rows stay unknown.
+ */
+export function parseInvestigationNativeReceipt(raw: unknown, command: InvestigationCommand, principal: string): InvestigationNativeReceipt | null {
+  if (!parseInvestigationCommand(command,true) || !["create","revise"].includes(command.action) || !command.manifest.scenario_capture
+      || (command.expected_revision === 0) !== (command.action === "create")
+      || !record(raw) || Object.keys(raw).length !== 8
+      || !exact(raw,["status","schema","binding","generation","native_phase","canonical_status","id","request"])
+      || raw.status !== "found" || raw.schema !== "investigation.native_capture.v1" || raw.id !== command.id
+      || !isInvestigationId(principal) || !isInvestigationId(raw.generation)
+      || (raw.native_phase !== "started" && raw.native_phase !== "retained")
+      || typeof raw.canonical_status !== "string" || !["pending","committed","not_applied"].includes(raw.canonical_status)
+      || (raw.canonical_status === "committed" && raw.native_phase !== "retained")
+      || !sameJson(raw.request, investigationCanonicalRequest(command,principal))) return null;
+  const b = raw.binding;
+  if (!record(b) || Object.keys(b).length !== 6 || !exact(b,["actor","operation_id","issuer","auth_epoch","request_sha256","source_binding_sha256"])
+      || b.actor !== principal || b.operation_id !== command.operation_id || !isInvestigationId(b.auth_epoch)
+      || typeof b.issuer !== "string" || !/^https:\/\/[a-z0-9.-]+\/auth\/v1$/.test(b.issuer)
+      || typeof b.request_sha256 !== "string" || !/^[0-9a-f]{64}$/.test(b.request_sha256)
+      || typeof b.source_binding_sha256 !== "string" || !/^[0-9a-f]{64}$/.test(b.source_binding_sha256)) return null;
+  return JSON.parse(JSON.stringify(raw)) as InvestigationNativeReceipt;
+}
+
+export async function readInvestigationNativeOperation(db: InvestigationDb, raw: unknown, principal: string): Promise<InvestigationNativeOperationRead | InvestigationFailure> {
+  const command = parseInvestigationCommand(raw,true);
+  if (!command || !isInvestigationId(principal) || !["create","revise"].includes(command.action) || !command.manifest.scenario_capture
+      || (command.expected_revision === 0) !== (command.action === "create")) return { status: "invalid_payload" };
+  try {
+    const {data,error} = await db.rpc("read_investigation_native_capture_v1", {
+      p_operation_id: command.operation_id, p_request: investigationCanonicalRequest(command,principal),
+    });
+    if (error) return {status:"unavailable"};
+    const native = parseInvestigationNativeReceipt(data,command,principal);
+    if (!native) return record(data) && data.status === "not_found" && Object.keys(data).length === 1 ? {status:"not_found"} : {status:"unavailable"};
+    // Separate observations: a canonical receipt cannot settle a started producer.
+    const canonical = native.canonical_status === "pending" ? {status:"unavailable" as const}
+      : await readInvestigationOperation(db,command.operation_id,principal);
+    return {...native,read_binding:"native_participant",read_principal:principal,read_operation_id:command.operation_id,canonical};
+  } catch { return {status:"unavailable"}; }
+}
 
 export function parseInvestigationCommand(raw: unknown, recovery = false): InvestigationCommand | null {
   if (!record(raw) || !exact(raw, ["id", "operation_id", "expected_revision", "action", "manifest", "layout_capture", "screen_capture"])
@@ -142,6 +202,14 @@ function noEffect(data: unknown, id: string, operationId: string): Investigation
   return data.reason === "limit_reached" ? { status: "not_applied", id, operation_id: operationId, reason: "limit_reached" } : { status: "unavailable" };
 }
 const failureCodes = new Set(["invalid_payload", "unauthenticated", "not_found", "version_conflict", "idempotency_conflict", "invalid_transition", "reference_unavailable", "layout_conflict", "screen_conflict", "limit_reached"]);
+/** Exact incumbent 0028 receipt shape, not a fallback for incomplete 0030 lineage. */
+export function isLegacyInvestigationCommitted(raw: unknown): raw is InvestigationCommitted {
+  return isInvestigationCommitted(raw)
+    && Object.keys(raw).length === 6
+    && Object.keys(raw).every(k => ["status", "id", "revision", "lifecycle", "manifest", "committed_at"].includes(k))
+    && raw.revision <= 2147483647 && isInvestigationReceiptTimestamp(raw.committed_at);
+}
+
 export async function applyInvestigationRevision(db: InvestigationDb, command: InvestigationCommand): Promise<InvestigationCommitted | InvestigationFailure> {
   const valid = parseInvestigationCommand(command);
   if (!valid) return { status: "invalid_payload" };
@@ -164,15 +232,18 @@ export async function applyInvestigationRevision(db: InvestigationDb, command: I
 }
 
 /** A receipt miss is explicitly inconclusive after transport uncertainty. Never replace its key. */
-export async function readInvestigationOperation(db: InvestigationDb, operationId: string): Promise<InvestigationCommitted | InvestigationFailure> {
+export async function readInvestigationOperation(db: InvestigationDb, operationId: string, principal: string): Promise<InvestigationOperationRead | InvestigationFailure> {
   if (!isInvestigationId(operationId)) return { status: "invalid_payload" };
+  if (!isInvestigationId(principal)) return { status: "unavailable" };
   try {
     const { data, error } = await db.rpc("read_investigation_operation_v2", { p_operation_id: operationId });
     if (error) return { status: "unavailable" };
-    // Pre-kernel receipts lack this field; never fabricate it or ignore a present mismatch.
-    if (isInvestigationCommitted(data) && (data.operation_id === undefined || data.operation_id === operationId)) return data;
-    const fenced = record(data) && isInvestigationId(data.id) ? noEffect(data, data.id, operationId) : null;
-    if (fenced) return fenced;
+    const disposition = classifyInvestigationOperationReceipt(data, operationId, principal);
+    if (disposition === "committed" && isInvestigationCommitted(data)) return { ...data, read_principal: principal, read_operation_id: operationId, read_binding: "native_lineage" };
+    // This records the legacy receipt's limited claim; shape does NOT prove a
+    // 0028 producer epoch or qualify 0030 lineage, grants or cutover.
+    if (isLegacyInvestigationCommitted(data)) return { ...data, read_principal: principal, read_operation_id: operationId, read_binding: "legacy_recorded_completion" };
+    if (disposition === "not_applied") return { status: "not_applied", id: (data as { id: string }).id, operation_id: operationId, read_principal: principal, read_operation_id: operationId, read_binding: "stored_no_effect" };
     return record(data) && data.status === "not_found" ? { status: "not_found" } : { status: "unavailable" };
   } catch { return { status: "unavailable" }; }
 }

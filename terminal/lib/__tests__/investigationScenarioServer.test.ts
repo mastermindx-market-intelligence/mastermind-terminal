@@ -3,6 +3,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 // the unconfigured module: no backend exists behind it here, so no runtime acceptance of a
 // real save/reopen is claimed or testable — only that the boundary refuses honestly.
 import * as serverModule from "@/lib/investigationScenarioServer";
+import * as nativeModule from "@/lib/scenarioNative";
+import * as sessionModule from "@/lib/scenarioSessionServer";
 import { qualifyScenarioCaptureSave } from "@/lib/investigationScenarioServer";
 
 const HEX64 = /^[0-9a-f]{64}$/;
@@ -110,4 +112,16 @@ describe("qualifyScenarioCaptureSave — the unconfigured real default", () => {
     await qualifyScenarioCaptureSave(fullValueCapture, user);
     expect(vi.mocked(fetch)).not.toHaveBeenCalled();
   });
+});
+
+it("refuses combined native scenario+screen before session/native IO instead of stripping the screen",async()=>{
+ const {command,principal}=await import("./investigationNativeRecovery.fixture");
+ const selected={...command,screen_capture:{screen_id:"a".repeat(32),expected_revision:7}};
+ const native=vi.spyOn(nativeModule,"requestNativeScenario");
+ const session=vi.spyOn(sessionModule,"readScenarioSession");
+ try {
+  const result=await qualifyScenarioCaptureSave(command.manifest.scenario_capture,principal,{id:command.id,operation_id:command.operation_id,expected_revision:0,action:"create",initial_capture:true,command:selected});
+  expect(result).toEqual({ok:false,reason:"source_context_unavailable"});
+  expect(session).not.toHaveBeenCalled();expect(native).not.toHaveBeenCalled();expect(fetch).not.toHaveBeenCalled();
+ } finally {native.mockRestore();session.mockRestore();}
 });

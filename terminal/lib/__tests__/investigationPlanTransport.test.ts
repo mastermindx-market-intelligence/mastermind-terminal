@@ -54,8 +54,8 @@ describe("native Plan transport and recovery composition (in-memory only)",()=>{
   const missing:Partial<typeof r>={...r};delete missing.revision_id;expect(await readInvestigation({rpc:async()=>({data:missing,error:null})},id,1)).toEqual({status:"unavailable"});
  });
  it("reads the exact original committed operation, and refuses a foreign operation",async()=>{
-  const c=command(),r=receipt(c);expect(await readInvestigationOperation({rpc:async()=>({data:r,error:null})},op)).toEqual(r);
-  expect(await readInvestigationOperation({rpc:async()=>({data:{...r,operation_id:rid},error:null})},op)).toEqual({status:"unavailable"});
+  const c=command(),r=receipt(c);expect(await readInvestigationOperation({rpc:async()=>({data:r,error:null})},op,author)).toEqual({...r,read_principal:author,read_operation_id:op,read_binding:"native_lineage"});
+  expect(await readInvestigationOperation({rpc:async()=>({data:{...r,operation_id:rid},error:null})},op,author)).toEqual({status:"unavailable"});
  });
  it("Review creates a new exact whole-Plan manifest without mutating the opened revision",()=>{
   const a=manifest(),before=canonicalInvestigationJson(a),b=assessmentRevision(a,"inconclusive", "a".repeat(64),"Keep unknown terms");expect(canonicalInvestigationJson(a)).toBe(before);expect(b.option_plan).toEqual(a.option_plan);expect(b.option_plan).not.toBe(a.option_plan);expect(b.review).toEqual({assessment:"inconclusive",fire_event_id:"a".repeat(64),note:"Keep unknown terms"});expect(parseInvestigationCommand({...command(),action:"revise",expected_revision:1,manifest:b})?.manifest).toEqual(b);

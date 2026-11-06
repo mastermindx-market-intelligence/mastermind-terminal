@@ -169,7 +169,7 @@ jobs:
       - run: npx tsc --noEmit
       - name: Check immutable evidence orchestration (synthetic)
         timeout-minutes: 1
-        run: node --test e2e/tools/capture_ci_evidence.test.cjs e2e/tools/capture_visual_evidence.test.cjs scripts/ci/plan-evidence-capture.test.cjs
+        run: node --test e2e/tools/capture_ci_evidence.test.cjs e2e/tools/capture_visual_evidence.test.cjs scripts/ci/plan-evidence-capture.test.cjs scripts/retained-progress-reporter.test.mjs
       - name: Plan current-source evidence capture
         id: evidence_plan
         run: node scripts/ci/plan-evidence-capture.cjs
@@ -566,6 +566,6 @@ jobs:
           command -v pg_ctl
           command -v psql
       - name: Exercise migration, replay, CAS and owner isolation
-        run: python -m pytest tests/test_investigation_postgres.py tests/test_thesis_proposal_postgres.py tests/test_api_watchlist_write_postgres.py tests/test_forex_watch_postgres.py tests/test_alerts_frozen_hit_postgres.py tests/test_alerts_frozen_prepared_postgres.py tests/test_portfolio_target_role_postgres.py tests/test_options_frozen_migration_postgres.py tests/test_options_frozen_enrollment_postgres.py -q
+        run: python -m pytest tests/test_investigation_postgres.py tests/test_investigation_native_participant_postgres.py tests/test_investigation_schema_qualification_postgres.py tests/test_investigation_rpc_closure_postgres.py tests/test_thesis_proposal_postgres.py tests/test_api_watchlist_write_postgres.py tests/test_forex_watch_postgres.py tests/test_alerts_frozen_hit_postgres.py tests/test_alerts_frozen_prepared_postgres.py tests/test_portfolio_target_role_postgres.py tests/test_options_frozen_migration_postgres.py tests/test_options_frozen_enrollment_postgres.py -q
       - name: Exercise drawing snapshots, replacement and actual competing sessions
         run: python tests/sql/audit04/run_native_fixture.py --out-dir "$RUNNER_TEMP/audit04-evidence"
