@@ -417,9 +417,15 @@ describe("a recovered create keeps its retained context on ordinary Save", () =>
   it.each(FIELDS)("keeps %s exactly", async (_name, field) => {
     const retained = richCreate();
     fenceCreate(retained);
+    const originalJournal = sessionStorage.getItem(key);
     await mount();
-    expect(host.textContent).toContain(CONFLICT);
-    expect(JSON.parse(sessionStorage.getItem(key)!)).toMatchObject({ phase: "rejected", reason: "not_applied" });
+    // The current owner answered not_applied: this is a factual no-effect
+    // phase, not a version conflict and never a persisted retry authority.
+    expect(host.textContent).toContain("The original request was recorded as not applied.");
+    expect(host.textContent).not.toContain(UNCERTAIN);
+    expect(button("Try save again")).toBeDefined();
+    expect(posts).toHaveLength(0);
+    expect(sessionStorage.getItem(key)).toBe(originalJournal);
     await click("Save research");
     expect(posts).toHaveLength(1);
     expect(field(posts[0])).toBeDefined();
@@ -761,10 +767,15 @@ const reviseScenario: Record<keyof typeof RETRY_LATEST, (command: InvestigationC
 describe("a reopened revise that cannot be retried unchanged is directed to its latest revision", () => {
   it.each((Object.keys(RETRY_LATEST) as (keyof typeof RETRY_LATEST)[]).flatMap(kind => (["en", "zh"] as const).map(lang => [kind, lang] as const)))("%s (%s)", async (kind, lang) => {
     i18n.lang = lang;
-    fenceLegacyCreate(command => { command.action = "revise"; command.expected_revision = 3; reviseScenario[kind](command); });
+    const command = fenceLegacyCreate(command => { command.action = "revise"; command.expected_revision = 3; reviseScenario[kind](command); });
+    const originalJournal = sessionStorage.getItem(key);
     await mount(); await flush();
     const retained = sessionStorage.getItem(key);
-    expect(JSON.parse(retained!)).toMatchObject({ phase: "rejected", reason: "not_applied" });
+    expect(retained).toBe(originalJournal);
+    expect(JSON.parse(retained!)).toEqual({ owner, command });
+    expect(receiptReads).toEqual([command.operation_id]);
+    expect(host.textContent).not.toContain(UNCERTAIN);
+    expect(button(lang === "zh" ? "重新保存" : "Try save again")).toBeDefined();
     await click(lang === "zh" ? "重新保存" : "Try save again");
     expect(posts).toHaveLength(0);
     expect(notices()).toContain(RETRY_LATEST[kind][lang]);
@@ -1069,7 +1080,9 @@ describe("a stored invalid_payload refusal is rechecked with the owner before an
       return;
     }
     expect(host.textContent).toContain(NOT_APPLIED);
-    expect(JSON.parse(sessionStorage.getItem(key)!)).toEqual({ owner, command: sent, phase: "rejected", reason: "not_applied" });
+    // Full-request owner proof lives only in this current mounted state.
+    // Keep the exact original buffer; reload must ask that owner again.
+    expect(sessionStorage.getItem(key)).toBe(stored);
     expect(posts).toHaveLength(0);
     // Only now may a new operation be sent, and only in the strict current shape.
     await click("Try save again"); await flush();
@@ -1091,7 +1104,11 @@ describe("a stored invalid_payload refusal is rechecked with the owner before an
     if (owns === "matching") {
       expect(host.textContent).not.toContain(UNCERTAIN);
       if (found === "committed") { expect(sessionStorage.getItem(key)).toBeNull(); expect(button(SAVED)).toBeDefined(); }
-      else { expect(host.textContent).toContain(NOT_APPLIED); expect(JSON.parse(sessionStorage.getItem(key)!)).toEqual({ owner, command: sent, phase: "rejected", reason: "not_applied" }); }
+      else {
+        expect(host.textContent).toContain(NOT_APPLIED);
+        // The current full-command owner proof is not cached as retry authority.
+        expect(sessionStorage.getItem(key)).toBe(stored);
+      }
       expect(posts).toHaveLength(0);
       return;
     }
