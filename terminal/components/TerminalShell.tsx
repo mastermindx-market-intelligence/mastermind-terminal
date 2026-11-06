@@ -36,7 +36,7 @@ import { isMacroSymbol } from "@/lib/macroSymbols";
 import { freshnessLabel } from "@/lib/feedFreshness";
 import { boatsLatestTradeLabel } from "@/lib/extQuoteCopy";
 import { isExtQuoteCurrent, isPublicBoatsQuote, extQuotePollMs, type ExtProvenance } from "@/lib/extQuoteFreshness";
-import { flowGet } from "@/lib/flowClientCache";
+import { flowGet, flowInvalidate } from "@/lib/flowClientCache";
 // R3.2 glance layer: the rail block's per-root gexstate read. Entitlement-gated at
 // /api/flow — a 403 nulls out and the rail renders exactly as before (free UX unchanged).
 // NOTE (R3.3 deferred): the watchlist regime dot was built and then pulled — its index
@@ -53,7 +53,8 @@ import { portfolioRailOwner, usePortfolioRailRead } from "@/lib/usePortfolioRail
 // entire graph (14 fundamentals pages + statement/intelligence/transcript libs, ~709 KB of
 // source) into the /terminal first-paint chunk. See components/fin/finPages.ts.
 import { FIN_PAGES, type FinPage } from "@/components/fin/finPages";
-import { getFund, getOpts, getBars, type Fund, type Bar } from "@/lib/fund";
+import { getStockVolatility, type StockVolatility } from "@/lib/stockVolatility";
+import { getFund, getBars, type Fund, type Bar } from "@/lib/fund";
 import { allDefaults, indDefaults, withDefaults, IND_ORDER, IND_DEFS, isIndKey } from "@/lib/indicators";
 import { addStudyInstance, isAdditionalStudyId, studyParamsWithDefaults, studyTypeOf, supportsMultipleInstances } from "@/lib/studyInstances";
 import { isRenderableStudyInstance, studyInstanceMeta, withStudyInstanceParams } from "@/lib/studyInstanceView";
@@ -1490,7 +1491,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   const [slice, setSlice] = useState<any>(null);
   const [fund, setFund] = useState<Fund | null>(null);
   const [fundLoading, setFundLoading] = useState(true);   // true from symbol reset until getFund settles — MegaPane/ForecastPage skeleton gate
-  const [opts, setOpts] = useState<any>(null);
+  const volOwner = useRef(identity);
+  const [opts, setOpts] = useState<(StockVolatility & { owner: typeof identity }) | null>(null);
   const [bars, setBars] = useState<Bar[]>([]);
   const [barsSymbol, setBarsSymbol] = useState<string | null>(null);
   // MegaPane (in-shell fundamentals overlay) + OracleDash (Golden Oracle history) overlays
@@ -3064,6 +3066,22 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     getBars(active).then((b) => { if (alive) { setBars(b); setBarsSymbol(active); } }).catch(() => {});
     // deferred: intel (~30-80KB), fund (~100-200KB), opts (~50-100KB) — not visible until user opens
     // the rail cards or MegaPane; deferring avoids competing with the chart's OHLC fetch on cold load.
+    // The Hub publishes after the close. A chart left open overnight must
+    // eventually consume the next publication even when its symbol never changes.
+    if (volOwner.current !== identity) {
+      flowInvalidate(`vol:${active.toUpperCase()}`);
+      volOwner.current = identity;
+    }
+    const refreshVolatility = () => {
+      if (!alive || document.visibilityState !== "visible") return;
+      getStockVolatility(active).then(read => {
+        if (alive) setOpts({ ...read, owner: identity });
+      }).catch(() => {
+        if (alive) setOpts({ root: active, status: "unavailable", owner: identity });
+      });
+    };
+    const volTimer = window.setInterval(refreshVolatility, 30 * 60_000);
+    document.addEventListener("visibilitychange", refreshVolatility);
     const useNativeRic = typeof requestIdleCallback !== "undefined";
     let cancelDeferred: () => void;
     if (useNativeRic) {
@@ -3071,7 +3089,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         if (!alive) return;
         getJSON(`/data/${active}.intel.json`).then((d) => { if (alive) setIntel(d); });
         getFund(active).then((d) => { if (alive) setFund(d); }).catch(() => {}).finally(() => { if (alive) setFundLoading(false); });
-        getOpts(active).then((d) => { if (alive) setOpts(d); }).catch(() => {});
+        refreshVolatility();
         // R3.2: positioning block data — US options names only; 403/absence nulls out silently
         if (classify(active) === "us" && !isMacroSymbol(active)) {
           flowGet(`gexstate:${active.toUpperCase()}`).then((d) => { if (alive) setRailGex(d); }).catch(() => {});
@@ -3083,7 +3101,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         if (!alive) return;
         getJSON(`/data/${active}.intel.json`).then((d) => { if (alive) setIntel(d); });
         getFund(active).then((d) => { if (alive) setFund(d); }).catch(() => {}).finally(() => { if (alive) setFundLoading(false); });
-        getOpts(active).then((d) => { if (alive) setOpts(d); }).catch(() => {});
+        refreshVolatility();
         if (classify(active) === "us" && !isMacroSymbol(active)) {
           flowGet(`gexstate:${active.toUpperCase()}`).then((d) => { if (alive) setRailGex(d); }).catch(() => {});
         }
@@ -3093,8 +3111,10 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     return () => {
       alive = false;
       cancelDeferred();
+      window.clearInterval(volTimer);
+      document.removeEventListener("visibilitychange", refreshVolatility);
     };
-  }, [active]);
+  }, [active, identity]);
 
   // ONE batched live-quote poll for the active symbol + every watchlist row. Symbol-keyed results
   // merge into `quotes`, so switching tickers never bleeds a stale quote and the header + watchlist
@@ -7110,7 +7130,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
               {!dossierMode && <WatchlistReviewBar slot="phone-foot" review={wlReview} activeSymbol={active} activeList={activeList} activeListCount={lists[activeList]?.length ?? 0} manifestSymbols={man?.symbols ?? null} />}
               {/* Seasonality is injected via beforeIv so it renders BETWEEN the Analyst gauge and Implied
                   Volatility (order: analysis → Seasonality → IV) rather than after the whole card. */}
-              <StockAnalysis intel={intel} row={m} fund={fund} opts={opts} bars={bars} glance={parseGlanceState(railGex, active)} onOpenPane={(p) => setPaneOpen(p)} onOpenSignals={() => setSignalsOpen(true)}
+              <StockAnalysis intel={intel} row={m} fund={fund} opts={opts?.root === active && opts.owner === identity ? opts : null} bars={bars} glance={parseGlanceState(railGex, active)} onOpenPane={(p) => setPaneOpen(p)} onOpenSignals={() => setSignalsOpen(true)}
                 beforeIv={<div key="linked-seasonality" style={{ padding: 12 }}><LinkedSeasonalityCard context={chartBus.context} activeSymbol={active} onOpenCurrent={() => setPaneOpen("seasonals")} /></div>} />
               {/* ── bottom button group (after Seasonality): full analysis + Ask AI ── */}
               <div className="sa-btn-group">
