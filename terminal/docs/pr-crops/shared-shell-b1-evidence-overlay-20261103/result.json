@@ -1,0 +1,445 @@
+{
+  "sourceBase": "f528a219cc5d73e94e058575e3df83d689632bf9",
+  "scope": "LOCAL_FIXTURE_ONLY_NO_AUTH_OR_BETA_PROOF",
+  "outcomes": [
+    {
+      "width": 390,
+      "height": 844,
+      "zh": true,
+      "light": true,
+      "verdict": "PASS",
+      "hit": {
+        "reachable": true,
+        "parent": "BODY",
+        "panel": "rgba(0, 0, 0, 0)",
+        "rect": {
+          "x": 330,
+          "y": 16,
+          "width": 44,
+          "height": 44
+        }
+      },
+      "tokens": [
+        {
+          "name": "--panel",
+          "layer": "#fff",
+          "owner": "#fff"
+        },
+        {
+          "name": "--text",
+          "layer": "#202632",
+          "owner": "#202632"
+        },
+        {
+          "name": "--rcpt-exact",
+          "layer": "#3168df",
+          "owner": "#3168df"
+        },
+        {
+          "name": "--rcpt-absent",
+          "layer": "#69768a",
+          "owner": "#69768a"
+        }
+      ],
+      "baselineCalls": [
+        "symbol=AAPL",
+        "symbol=AAPL",
+        "event_id=evt_cik0000320193_2026q3_results&generation_id=f709a0a6ec514282d5769e7d&company_id=cik%3A0000320193&fingerprint=cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "event_id=evt_cik0000320193_2026q3_results&generation_id=f709a0a6ec514282d5769e7d&company_id=cik%3A0000320193&fingerprint=cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+      ],
+      "pageErrors": [],
+      "scope": "LOCAL_FIXTURE_ONLY"
+    },
+    {
+      "width": 820,
+      "height": 1180,
+      "zh": false,
+      "light": false,
+      "verdict": "PASS",
+      "hit": {
+        "reachable": true,
+        "parent": "BODY",
+        "panel": "rgba(0, 0, 0, 0)",
+        "rect": {
+          "x": 751,
+          "y": 35,
+          "width": 34,
+          "height": 36
+        }
+      },
+      "tokens": [
+        {
+          "name": "--panel",
+          "layer": "#181b21",
+          "owner": "#181b21"
+        },
+        {
+          "name": "--text",
+          "layer": "#d7dce3",
+          "owner": "#d7dce3"
+        },
+        {
+          "name": "--rcpt-exact",
+          "layer": "#7aa7e0",
+          "owner": "#7aa7e0"
+        },
+        {
+          "name": "--rcpt-absent",
+          "layer": "#8b93a1",
+          "owner": "#8b93a1"
+        }
+      ],
+      "baselineCalls": [
+        "symbol=AAPL",
+        "symbol=AAPL",
+        "event_id=evt_cik0000320193_2026q3_results&generation_id=f709a0a6ec514282d5769e7d&company_id=cik%3A0000320193&fingerprint=cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+      ],
+      "pageErrors": [],
+      "scope": "LOCAL_FIXTURE_ONLY"
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "zh": false,
+      "light": false,
+      "verdict": "PASS",
+      "hit": {
+        "reachable": true,
+        "parent": "BODY",
+        "panel": "rgba(0, 0, 0, 0)",
+        "rect": {
+          "x": 1371,
+          "y": 81,
+          "width": 34,
+          "height": 36
+        }
+      },
+      "tokens": [
+        {
+          "name": "--panel",
+          "layer": "#181b21",
+          "owner": "#181b21"
+        },
+        {
+          "name": "--text",
+          "layer": "#d7dce3",
+          "owner": "#d7dce3"
+        },
+        {
+          "name": "--rcpt-exact",
+          "layer": "#7aa7e0",
+          "owner": "#7aa7e0"
+        },
+        {
+          "name": "--rcpt-absent",
+          "layer": "#8b93a1",
+          "owner": "#8b93a1"
+        }
+      ],
+      "baselineCalls": [
+        "symbol=AAPL",
+        "symbol=AAPL",
+        "event_id=evt_cik0000320193_2026q3_results&generation_id=f709a0a6ec514282d5769e7d&company_id=cik%3A0000320193&fingerprint=cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+      ],
+      "pageErrors": [],
+      "scope": "LOCAL_FIXTURE_ONLY"
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "zh": true,
+      "light": false,
+      "verdict": "PASS",
+      "hit": {
+        "reachable": true,
+        "parent": "BODY",
+        "panel": "rgba(0, 0, 0, 0)",
+        "rect": {
+          "x": 330,
+          "y": 16,
+          "width": 44,
+          "height": 44
+        }
+      },
+      "tokens": [
+        {
+          "name": "--panel",
+          "layer": "#181b21",
+          "owner": "#181b21"
+        },
+        {
+          "name": "--text",
+          "layer": "#d7dce3",
+          "owner": "#d7dce3"
+        },
+        {
+          "name": "--rcpt-exact",
+          "layer": "#7aa7e0",
+          "owner": "#7aa7e0"
+        },
+        {
+          "name": "--rcpt-absent",
+          "layer": "#8b93a1",
+          "owner": "#8b93a1"
+        }
+      ],
+      "baselineCalls": [
+        "symbol=AAPL",
+        "symbol=AAPL",
+        "event_id=evt_cik0000320193_2026q3_results&generation_id=f709a0a6ec514282d5769e7d&company_id=cik%3A0000320193&fingerprint=cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "event_id=evt_cik0000320193_2026q3_results&generation_id=f709a0a6ec514282d5769e7d&company_id=cik%3A0000320193&fingerprint=cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+      ],
+      "pageErrors": [],
+      "scope": "LOCAL_FIXTURE_ONLY"
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "zh": false,
+      "light": true,
+      "verdict": "PASS",
+      "hit": {
+        "reachable": true,
+        "parent": "BODY",
+        "panel": "rgba(0, 0, 0, 0)",
+        "rect": {
+          "x": 1371,
+          "y": 81,
+          "width": 34,
+          "height": 36
+        }
+      },
+      "tokens": [
+        {
+          "name": "--panel",
+          "layer": "#fff",
+          "owner": "#fff"
+        },
+        {
+          "name": "--text",
+          "layer": "#202632",
+          "owner": "#202632"
+        },
+        {
+          "name": "--rcpt-exact",
+          "layer": "#3168df",
+          "owner": "#3168df"
+        },
+        {
+          "name": "--rcpt-absent",
+          "layer": "#69768a",
+          "owner": "#69768a"
+        }
+      ],
+      "baselineCalls": [
+        "symbol=AAPL",
+        "symbol=AAPL",
+        "event_id=evt_cik0000320193_2026q3_results&generation_id=f709a0a6ec514282d5769e7d&company_id=cik%3A0000320193&fingerprint=cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "event_id=evt_cik0000320193_2026q3_results&generation_id=f709a0a6ec514282d5769e7d&company_id=cik%3A0000320193&fingerprint=cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+      ],
+      "pageErrors": [],
+      "scope": "LOCAL_FIXTURE_ONLY"
+    }
+  ],
+  "status": "PASS_SCOPED_SOURCE_FIXTURE",
+  "sourceFiles": {
+    "terminal/components/fin/EvidenceRail.tsx": "7ee9993e3b86fef30f07a83b8a4c5c00578269aa84f9af1b68f815ba5442890d",
+    "terminal/app/company-intelligence.css": "8b43f2046891837f6572fa2a59b7594547def9602b0454e1f14edba322da2a34",
+    "terminal/lib/__tests__/CompanyRetainedSelection.test.tsx": "9e4518be32d5e011d87df06d723920525b6ccfa1dfcfae550534e7e939d66b7d",
+    "terminal/lib/__tests__/CompanyIntelligenceNativeResults.test.tsx": "47d3a15be12a0c362fba96e6513eb0f947022094cca3afdc98f417b6d1e6736b",
+    "terminal/lib/__tests__/companyBriefWatchpointMeaning.test.tsx": "0370a66ac573e5451e254ded713f0e78ca7a4d72147edc8415cdbbdafc48de6c",
+    "terminal/components/fin/EvidenceRail.css": "522a1ec2eb44dd15abacf8d90455122efad3aa292579ba16e4a117328c448d8b"
+  },
+  "captures": {
+    "b1-evidence-close-390-light-zh.png": "87a155ee801dee04efebb84bcdddee17376988567500f2a9f4b96f31f5900b79",
+    "b1-evidence-close-1440-dark-en.png": "881b5bd4aa28d9827cee91489b5bc2ac001b0b4120f64644ad26b9609d1bde03"
+  },
+  "discriminators": {
+    "original_failure": "390px light ZH metric receipt rendered, but mobile account avatar intercepted normal Close tapping for the full action timeout",
+    "review_failure": "initially-open overlay with stable onClose lost focus to BODY on portal move",
+    "regressions": "both failures reproduced before their respective repair; existing component suite now has 18 passing cases",
+    "browser_activation": "normal Close and keyboard Escape return focus; animated mobile chart Back used one visible hit-tested touchscreen tap, without force/reload",
+    "narrow": "each 390px Chinese run also changed to320px on returned Analysis, checked no overflow and reachable chart action"
+  },
+  "fabric": {
+    "run": "b1-investigation-acceptance-20261103-01a1a4b2",
+    "state": "TERMINAL",
+    "rc": 0,
+    "result_sha256": "874bb13030d92097b252873daa3d0def4d9b52b52a6f12ad2e3f501898ba1e52",
+    "acceptance": "NOT_ACCEPTED",
+    "observation_refusal": "original_run_observation_unconfirmed",
+    "export_refusal": "destination_outside_approved_evidence_root",
+    "artifact_received": false,
+    "retry_or_reconstruction": false
+  },
+  "outcomesSourceCommit": "45aa8a3d54a942fc1ad884209c90b14111606ccf",
+  "priorBehaviorEvidence": "Five previously accepted source-fixture cells are credited at45aa; only the two style-scope cells below were rerun after stylesheet ownership changed.",
+  "styleScopeVerification": {
+    "sourceBase": "45aa8a3d54a942fc1ad884209c90b14111606ccf",
+    "workingCopy": "EvidenceRail stylesheet ownership correction",
+    "scope": "LOCAL_FIXTURE_ONLY_NO_AUTH_OR_BETA_PROOF",
+    "outcomes": [
+      {
+        "width": 390,
+        "height": 844,
+        "zh": true,
+        "light": true,
+        "verdict": "PASS",
+        "hit": {
+          "reachable": true,
+          "parent": "BODY",
+          "panel": "rgba(0, 0, 0, 0)",
+          "rect": {
+            "x": 330,
+            "y": 16,
+            "width": 44,
+            "height": 44
+          }
+        },
+        "tokens": [
+          {
+            "name": "--panel",
+            "layer": "#fff",
+            "owner": "#fff"
+          },
+          {
+            "name": "--text",
+            "layer": "#202632",
+            "owner": "#202632"
+          },
+          {
+            "name": "--rcpt-exact",
+            "layer": "#3168df",
+            "owner": "#3168df"
+          },
+          {
+            "name": "--rcpt-absent",
+            "layer": "#69768a",
+            "owner": "#69768a"
+          },
+          {
+            "name": "--rcpt-superseded",
+            "layer": "#e8a33d",
+            "owner": "#e8a33d"
+          },
+          {
+            "name": "--rcpt-withheld",
+            "layer": "#8c96a6",
+            "owner": "#8c96a6"
+          },
+          {
+            "name": "--rcpt-meta",
+            "layer": "color-mix(in srgb,#69768a 80%,#546174)",
+            "owner": "color-mix(in srgb,#69768a 80%,#546174)"
+          }
+        ],
+        "baselineCalls": [
+          "symbol=AAPL",
+          "symbol=AAPL"
+        ],
+        "pageErrors": [],
+        "scope": "LOCAL_FIXTURE_ONLY"
+      },
+      {
+        "width": 1440,
+        "height": 900,
+        "zh": false,
+        "light": false,
+        "verdict": "PASS",
+        "hit": {
+          "reachable": true,
+          "parent": "BODY",
+          "panel": "rgba(0, 0, 0, 0)",
+          "rect": {
+            "x": 1371,
+            "y": 81,
+            "width": 34,
+            "height": 36
+          }
+        },
+        "tokens": [
+          {
+            "name": "--panel",
+            "layer": "#181b21",
+            "owner": "#181b21"
+          },
+          {
+            "name": "--text",
+            "layer": "#d7dce3",
+            "owner": "#d7dce3"
+          },
+          {
+            "name": "--rcpt-exact",
+            "layer": "#7aa7e0",
+            "owner": "#7aa7e0"
+          },
+          {
+            "name": "--rcpt-absent",
+            "layer": "#8b93a1",
+            "owner": "#8b93a1"
+          },
+          {
+            "name": "--rcpt-superseded",
+            "layer": "#e8a33d",
+            "owner": "#e8a33d"
+          },
+          {
+            "name": "--rcpt-withheld",
+            "layer": "#697587",
+            "owner": "#697587"
+          },
+          {
+            "name": "--rcpt-meta",
+            "layer": "color-mix(in srgb,#8b93a1 80%,#b2bbc9)",
+            "owner": "color-mix(in srgb,#8b93a1 80%,#b2bbc9)"
+          }
+        ],
+        "baselineCalls": [
+          "symbol=AAPL",
+          "symbol=AAPL"
+        ],
+        "pageErrors": [],
+        "scope": "LOCAL_FIXTURE_ONLY"
+      }
+    ]
+  },
+  "styleScopeCorrection": {
+    "incumbent_company_css_sha256": "8b43f2046891837f6572fa2a59b7594547def9602b0454e1f14edba322da2a34",
+    "behavior": "portal and focus lifecycle unchanged; only portal token/control declarations moved to EvidenceRail-owned stylesheet",
+    "affected_checks": "23tests across3Company component suites and2legacy affected locks; typecheck and scopedESLint pass",
+    "source_scope": "existing semantic tokens only; no hash restamps or unrelated capture changes",
+    "fabric_run": "b1-evidence-style-scope-20261103-01a1a4b2",
+    "fabric_result_sha256": "eb703500e19515e24091a224d9bf29b7f17b62cbecea858a9896f25b25760829",
+    "parent_integration": "copied the fifth existing superseded alias absent from capsule context, exactly from incumbent CSS"
+  },
+  "sourceAction": {
+    "document": {
+      "document_id": "disclosure_document_6d2b525b388dbedb697802668c0efadbad40299712901063843b905672f5f7d1",
+      "filing_key": {
+        "accession": "0000320193-26-000018",
+        "cik": "0000320193"
+      },
+      "kind": "issuer_release",
+      "receipt_state": "byte_replayed",
+      "source_sha256": "070abd6a9cdb7070e546d24ffcbc41c65450d939c6f88f189cb18ec711cf5fdb",
+      "url": "https://www.sec.gov/Archives/edgar/data/320193/000032019326000018/a8-kex991q3202606272026.htm"
+    },
+    "action": {
+      "href": "https://www.sec.gov/Archives/edgar/data/320193/000032019326000018/a8-kex991q3202606272026.htm",
+      "target": "_blank",
+      "rel": "noreferrer"
+    },
+    "responses": [
+      {
+        "url": "https://www.sec.gov/Archives/edgar/data/320193/000032019326000018/a8-kex991q3202606272026.htm",
+        "status": 403
+      }
+    ],
+    "popup_title": "SEC.gov | Your Request Originates from an Undeclared Automated Tool",
+    "sec_reference": "0.a3d02e17.1793770850.a9903487",
+    "scope": "anonymous public target action from the existing explicit local Company fixture",
+    "document_content_access": "REFUSED_HTTP403",
+    "retry_or_alternate_reader": false,
+    "transcript_document_access": "separate and unproven"
+  }
+}

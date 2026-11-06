@@ -169,7 +169,7 @@ jobs:
       - run: npx tsc --noEmit
       - name: Check immutable evidence orchestration (synthetic)
         timeout-minutes: 1
-        run: node --test e2e/tools/capture_ci_evidence.test.cjs e2e/tools/capture_visual_evidence.test.cjs scripts/ci/plan-evidence-capture.test.cjs scripts/retained-progress-reporter.test.mjs
+        run: node --test e2e/tools/capture_ci_evidence.test.cjs e2e/tools/capture_visual_evidence.test.cjs scripts/ci/plan-evidence-capture.test.cjs scripts/retained-progress-reporter.test.mjs e2e/tools/capture_b_f11_10_analysis_theses_entry.test.cjs e2e/tools/f11_provider_closed_policy.test.cjs
       - name: Plan current-source evidence capture
         id: evidence_plan
         run: node scripts/ci/plan-evidence-capture.cjs
@@ -189,6 +189,11 @@ jobs:
         if: github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'
         timeout-minutes: 55
         run: node e2e/tools/capture_ci_evidence.cjs
+      # F11 is a separate real-component contract, not an extra case in PL6/VI50.
+      # Business inputs are intercepted as unavailable before reaching API/provider code.
+      - name: Capture provider-closed F11 theses entry on this checkout
+        timeout-minutes: 8
+        run: node e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs
       - run: npm test
         timeout-minutes: 20
       # Quarantined journeys are disclosed on EVERY run: a green matrix must never be read as
@@ -328,6 +333,7 @@ jobs:
           path: |
             ${{ runner.temp }}/terminal-ci-evidence/
             terminal/test-results/
+            terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/
             terminal/docs/pr-crops/b-pl-6-batch-1/ci-${{ github.run_id }}-${{ github.run_attempt }}-*
             terminal/docs/pr-crops/terminal-visual-intelligence/ci-${{ github.run_id }}-${{ github.run_attempt }}-*
             terminal/docs/pr-crops/options-level-axis-labels/manifest.json

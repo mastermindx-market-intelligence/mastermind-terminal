@@ -1,7 +1,13 @@
 // @vitest-environment jsdom
 import React,{act} from "react";
 import {createRoot} from "react-dom/client";
-import {expect,it,vi} from "vitest";
+import {beforeEach,expect,it,vi} from "vitest";
+// This positive BFF fixture models an explicitly born-OPEN process. Real boot
+// file/custody/closure behavior is separately exercised by the S7 controls.
+const bootFixture=vi.hoisted(()=>({closed:false}));
+vi.mock("@/lib/investigationBootAdmission",()=>({readInvestigationBootAdmission:()=>true,
+ hasObservedInvestigationClosure:()=>bootFixture.closed,observeInvestigationClosure:()=>{bootFixture.closed=true}}));
+beforeEach(()=>{bootFixture.closed=false});
 import {readFileSync,readdirSync} from "node:fs";
 import {join} from "node:path";
 import InvestigationWorkspace from "@/components/workspaces/InvestigationWorkspace";
