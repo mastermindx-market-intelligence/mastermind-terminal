@@ -488,20 +488,42 @@ jobs:
 
   python:
     name: Ingest + signal-layer tests
+    needs: ci-scope
+    if: always()
     runs-on: ubuntu-latest
     steps:
+      # The name is a protected required context. A scoped result is explicitly
+      # disclosed, while a failed/unqualified planner is a hard RED.
+      - name: Assert trusted scope; disclose omitted unrelated ingest tests
+        env:
+          PLAN: ${{ needs.ci-scope.result }}
+          MODE: ${{ needs.ci-scope.outputs.mode }}
+        run: |
+          if [ "$PLAN" != "success" ]; then
+            echo "::error title=ingest-ci::scope planner failed ($PLAN)"
+            exit 1
+          fi
+          case "$MODE" in
+            full) echo "Full ingest and signal-layer qualification required" ;;
+            screener) echo "::notice title=ingest-ci::verified Screener-only UI PR; ingest tests not selected (see ci-scope)" ;;
+            *) echo "::error title=ingest-ci::invalid scope mode ($MODE)"; exit 1 ;;
+          esac
       - uses: actions/checkout@v4
+        if: needs.ci-scope.outputs.mode == 'full'
       # The Scenario PostgreSQL qualification drives the actual TypeScript HTTP
       # consumer in this same job. Python and PostgreSQL alone cannot run it.
       - uses: actions/setup-node@v4
+        if: needs.ci-scope.outputs.mode == 'full'
         with:
           node-version: 20
           cache: npm
           cache-dependency-path: terminal/package-lock.json
       - name: Install Terminal consumer test dependencies
+        if: needs.ci-scope.outputs.mode == 'full'
         run: npm ci
         working-directory: terminal
       - uses: actions/setup-python@v5
+        if: needs.ci-scope.outputs.mode == 'full'
         with:
           python-version: "3.12"
           cache: pip
@@ -519,11 +541,14 @@ jobs:
       # requirements.txt additionally carries fastapi/uvicorn, which nothing under tests/
       # imports — installing them would only slow the job down.
       - run: pip install numpy pandas pyarrow jsonschema pyyaml requests yfinance==1.4.1 pytest
+        if: needs.ci-scope.outputs.mode == 'full'
       # Keep the broad ingest suite fail-closed when PostgreSQL binaries are missing.
       # The dedicated upstream Investigation job remains an additional gate.
       - name: Put PostgreSQL binaries on PATH
+        if: needs.ci-scope.outputs.mode == 'full'
         run: echo "$(pg_config --bindir)" >> "$GITHUB_PATH"
       - name: Require PostgreSQL rather than silently skip
+        if: needs.ci-scope.outputs.mode == 'full'
         run: |
           command -v initdb
           command -v pg_ctl
@@ -544,6 +569,7 @@ jobs:
       # on that trigger github.event.pull_request.number is empty, and that
       # dispatched run is then the only CI run for the sha that merges.
       - run: python -m pytest tests/ -q
+        if: needs.ci-scope.outputs.mode == 'full'
         env:
           PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr_number }}
           # Read-only native membership qualification for present open migrations
@@ -552,6 +578,8 @@ jobs:
 
   investigation-postgres:
     name: Investigation PostgreSQL invariants
+    needs: ci-scope
+    if: needs.ci-scope.outputs.mode == 'full'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
