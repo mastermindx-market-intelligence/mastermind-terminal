@@ -12,6 +12,14 @@ on:
   schedule:
     - cron: "*/10 * * * *"
   workflow_dispatch:
+    inputs:
+      target_pr:
+        description: >-
+          Optional pull request number: this run reconciles only that pull
+          request. Empty (the default) reconciles every armed pull request.
+        required: false
+        default: ""
+        type: string
 
 permissions:
   actions: write
@@ -52,4 +60,6 @@ jobs:
           # This sweep reports queue readiness, never native-user admission.
           # Keep user enqueue credentials out of its environment.
           TRIGGER_PR_NUMBER: ${{ github.event.pull_request.number }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          TARGET_PR: ${{ inputs.target_pr }}
         run: python3 scripts/merge_on_green.py
