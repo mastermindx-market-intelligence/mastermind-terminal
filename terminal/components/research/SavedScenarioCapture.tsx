@@ -25,14 +25,15 @@
 //     `mm.investigation.pending.v2:<owner>` BEFORE anything is sent. A storage failure sends
 //     nothing. A buffer that already holds another operation — saved research or an earlier
 //     scenario save — is never overwritten, replaced, adopted or replayed: this panel shows the
-//     native Saved research entry and stops. A buffer whose scenario_capture is NOT a valid
+//     native Saved research entry and stops. An exact same-owner/reference/input journal
+//     may be recovered read-only after reload; it is never auto-sent. A buffer whose scenario_capture is NOT a valid
 //     reference-only capture is refused the same way, with copy that says it stores protected
 //     values this platform no longer accepts — it is never sent, checked, adopted or
 //     downgraded by dropping fields.
 //   · the POST carries the deliberate owner binding header `x-mm-scenario-owner:<user id>`
 //     derived from the actual shell identity (never a body override). A lost response leaves
 //     the outcome UNKNOWN with the exact command retained; recovery is the explicit Check
-//     (operation_id GET) or read-only source recovery before CAS (the SAME operation, same ids).
+//     (body-based owner receipt read) or read-only source recovery before CAS (the SAME operation, same ids).
 //     The initial capture header is never reused on recovery. No automatic retries, no new
 //     UUIDs, no registry.
 //   · a CONFIRMED commit is a METADATA commit — the reference and the inputs were recorded —
@@ -47,12 +48,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useShellIdentity } from "@/components/chrome/AppShell";
 import { identityOwnerKey, identityUserId } from "@/lib/accountIdentity";
-import { readInvestigationJournal, retainInvestigationJournal, retainInvestigationCaptureUnknown, rejectInvestigationJournal, clearCommittedInvestigationJournal } from "@/lib/investigationJournal";
+import { readInvestigationJournal, retainInvestigationJournal, retainInvestigationCaptureUnknown, rejectInvestigationJournal, clearCommittedInvestigationJournal, clearRejectedInvestigationJournal } from "@/lib/investigationJournal";
 import { createScenarioCapture } from "@/lib/investigationScenario";
 import {
   beginInvestigationSave,
   retryInvestigationSave,
   originalInvestigationOperationToRead,
+  investigationOperationReadRequest,
+  investigationNativeObservationLabel,
   settleInvestigationSave,
   settleInvestigationOperationRead,
   type InvestigationSaveState,
@@ -75,6 +78,7 @@ type Props = {
 const COPY = {
   en: {
     head: "Save this scenario",
+    newDraft: "Start a new scenario draft",
     intro: "Saved research records your inputs and an exact source reference. Protected source capture is checked separately.",
     title: "Title",
     question: "Question",
@@ -110,6 +114,7 @@ const COPY = {
   },
   zh: {
     head: "保存此方案",
+    newDraft: "开始新方案草稿",
     intro: "已保存研究记录你的输入与确切来源引用。受保护来源的捕获将单独核验。",
     title: "标题",
     question: "提问",
@@ -151,7 +156,7 @@ const exactJson = (a: unknown, b: unknown): boolean => JSON.stringify(a) === JSO
 type Phase =
   | { kind: "idle" }
   | { kind: "pending" }
-  | { kind: "uncertain"; captureUnknown?: true; canonicalRevision?: number; canonicalRejected?: true }
+  | { kind: "uncertain"; captureUnknown?: true; canonicalRevision?: number; canonicalRejected?: true; nativeObserved?: true }
   | { kind: "rejected"; reason?: string }
   | { kind: "blocked" }
   | { kind: "occupied" }
@@ -178,6 +183,7 @@ export default function SavedScenarioCapture({ inputs, sourceReference = null, l
   // Every async completion is stamped with the generation that started it; an owner change or
   // unmount bumps the counter, so a late answer can never paint into the new owner's panel.
   const genRef = useRef(0);
+  const operationReadSeq = useRef(0);
   const stateRef = useRef<InvestigationSaveState>({ phase: "idle" });
   const abortRef = useRef<AbortController | null>(null);
 
@@ -204,6 +210,35 @@ export default function SavedScenarioCapture({ inputs, sourceReference = null, l
       abortRef.current?.abort();
     };
   }, [ownerKey, reset]);
+
+  // Reload recovery adopts only this exact reference/input capture for this owner.
+  // Another retained operation remains occupied and unchanged. No mutation or
+  // source-byte read is initiated; Check is an explicit body-based owner read.
+  useEffect(() => {
+    let active=true;
+    const generation=genRef.current;
+    // Read the external journal after setup, with cancellation for owner/source
+    // transitions. This never starts a save or grants local settlement authority.
+    queueMicrotask(() => {
+      if (!active || generation!==genRef.current || !isAccount || !made.ok || stateRef.current.phase !== "idle") return;
+      try {
+        const journal=readInvestigationJournal(sessionStorage,ownerKey);
+        if(journal.status === "empty") return;
+        if(journal.status !== "retained"
+            || !["create","revise"].includes(journal.state.command.action)
+            || (journal.state.command.action === "create") !== (journal.state.command.expected_revision === 0)
+            || !exactJson(journal.state.command.manifest.scenario_capture,made.capture)) {
+          setPhase({kind:journal.status === "legacy" ? "legacy" : "occupied"}); return;
+        }
+        stateRef.current=journal.state;
+        setRetained(journal.state.command);
+        setTitle(journal.state.command.manifest.intent.title);
+        setQuestion(journal.state.command.manifest.intent.question);
+        setPhase(journal.state.phase === "rejected" ? {kind:"rejected",reason:journal.state.reason} : {kind:"uncertain",...(journal.state.captureOutcome?{captureUnknown:true as const}:{})});
+      } catch {setPhase({kind:"blocked"});}
+    });
+    return()=>{active=false;};
+  },[ownerKey,isAccount,made]);
 
   /** The save click. Everything frozen here stays frozen: the reference, the ids, the typed
    *  words and the journal entry. */
@@ -305,7 +340,7 @@ export default function SavedScenarioCapture({ inputs, sourceReference = null, l
       if (next.captureOutcome) {
         try { retainInvestigationCaptureUnknown(sessionStorage, owner, next); } catch { /* still UNKNOWN, never clear */ }
       }
-      setPhase({ kind: "uncertain", ...(next.captureOutcome ? { captureUnknown: true as const } : {}), ...(next.canonicalResult ? { canonicalRevision: next.canonicalResult.revision } : {}), ...(next.canonicalRefusal ? { canonicalRejected: true as const } : {}) });
+      setPhase({ kind: "uncertain", ...(next.nativeObservation ? {nativeObserved:true as const} : {}), ...(next.captureOutcome ? { captureUnknown: true as const } : {}), ...(next.canonicalResult ? { canonicalRevision: next.canonicalResult.revision } : {}), ...(next.canonicalRefusal ? { canonicalRejected: true as const } : {}) });
     }
   }
 
@@ -341,15 +376,18 @@ export default function SavedScenarioCapture({ inputs, sourceReference = null, l
 
   /** Explicit outcome check: the existing operation receipt by its ORIGINAL operation_id. */
   async function onCheck() {
+    const ticket=++operationReadSeq.current;
     const command = originalInvestigationOperationToRead(stateRef.current, ownerKey);
     if (!command) return;
     const gen = genRef.current;
     const controller = new AbortController();
     abortRef.current = controller;
     try {
-      const response = await fetch(`/api/investigations?operation_id=${encodeURIComponent(command.operation_id)}`, { cache: "no-store", signal: controller.signal });
+      const original=stateRef.current;
+      const request=investigationOperationReadRequest(command,ownerKey);
+      const response = await fetch(request.url, {...request.init, cache: "no-store", signal: controller.signal });
       const body: unknown = await response.json().catch(() => null);
-      if (!alive(gen)) return;
+      if (!alive(gen) || ticket!==operationReadSeq.current || controller.signal.aborted || stateRef.current !== original) return;
       settle(body, true);
     } catch {
       if (!alive(gen) || controller.signal.aborted) return;
@@ -376,6 +414,7 @@ export default function SavedScenarioCapture({ inputs, sourceReference = null, l
     <div className={styles.root} data-testid="saved-scenario-capture" data-phase={phase.kind}>
       <span className={styles.eyebrow}>{c.head}</span>
       <p className={styles.note}>{c.intro}</p>
+      {investigationNativeObservationLabel(stateRef.current,lang)&&<p role="status" data-testid="native-operation-facts" className={styles.note}>{investigationNativeObservationLabel(stateRef.current,lang)}</p>}
 
       {phase.kind === "committed" ? (
         <>
@@ -453,6 +492,10 @@ export default function SavedScenarioCapture({ inputs, sourceReference = null, l
             </button>
           </div>
           {phase.kind === "blocked" && <p className={styles.status} role="status">{c.storage}</p>}
+          {phase.kind === "rejected" && phase.reason === "not_applied" && <button type="button" onClick={()=>{
+            try {clearRejectedInvestigationJournal(sessionStorage,ownerKey,stateRef.current);reset();}
+            catch {setPhase({kind:"blocked"});}
+          }}>{c.newDraft}</button>}
           {phase.kind === "rejected" && !refusal && (
             <p className={styles.status} role="status" data-testid="scenario-capture-status">
               {phase.reason === "not_applied" ? c.noEffect : phase.reason === "reference_unavailable" ? c.refusedSource : c.conflict}
@@ -460,7 +503,7 @@ export default function SavedScenarioCapture({ inputs, sourceReference = null, l
           )}
           {phase.kind === "uncertain" && (
             <>
-              <p className={styles.status} role="status">{phase.captureUnknown ? (phase.canonicalRevision ? `${c.captureCommitted} · ${c.revision} ${phase.canonicalRevision}. ${c.captureUnknownAfterCommit}` : phase.canonicalRejected ? c.captureRejected : c.captureUnknown) : c.uncertain}</p>
+              <p className={styles.status} role="status">{phase.nativeObserved ? c.uncertain : phase.captureUnknown ? (phase.canonicalRevision ? `${c.captureCommitted} · ${c.revision} ${phase.canonicalRevision}. ${c.captureUnknownAfterCommit}` : phase.canonicalRejected ? c.captureRejected : c.captureUnknown) : c.uncertain}</p>
               <div className={styles.actions}>
                 <button type="button" onClick={() => void onCheck()}>{c.check}</button>
                 {!phase.captureUnknown && <button type="button" disabled={busy} onClick={onRetry}>{c.retry}</button>}

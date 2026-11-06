@@ -69,11 +69,12 @@ it("retains only inputs and exact references before a lost POST response, then c
   for (const forbidden of ["gexMn", "totalMn", "referenceSpot", "moveFraction", "result", "basis\""]) expect(raw).not.toContain(forbidden);
   fetcher.mockResolvedValue(response({ status: "unavailable" }, false));
   await click(button("Check original outcome"));
-  expect(fetcher.mock.calls[1][0]).toContain(`operation_id=${pending.command.operation_id}`);
-  expect(fetcher.mock.calls.filter(([, init]) => init?.method === "POST")).toHaveLength(1);
+  expect(fetcher.mock.calls[1][0]).toBe("/api/investigations/operation-read");
+  expect(JSON.parse(fetcher.mock.calls[1][1].body)).toEqual(pending.command);
+  expect(fetcher.mock.calls.filter(([u, init]) => u === "/api/investigations" && init?.method === "POST")).toHaveLength(1);
   expect(el.textContent).toContain("not confirmed");
   await click(button("Retry original save"));
-  const posts=fetcher.mock.calls.filter(([,init])=>init?.method==="POST");
+  const posts=fetcher.mock.calls.filter(([u,init])=>u==="/api/investigations"&&init?.method==="POST");
   expect(posts).toHaveLength(2);
   expect(posts[1][1].headers["x-mm-scenario-capture"]).toBe("recover");
   expect(JSON.parse(posts[1][1].body)).toEqual(pending.command);
@@ -89,7 +90,7 @@ it("keeps confirmed metadata success when its GET fails and never substitutes a 
   expect(el.textContent).toContain("exact readback is unavailable");
   await mount(<SavedScenarioCapture {...sourceProps} inputs={{ ...capture.inputs, targetSpot: 601 }} sourceReference={null} />);
   expect(el.textContent).toContain("Saved · Revision 1");
-  expect(fetcher.mock.calls.filter(([, init]) => init?.method === "POST")).toHaveLength(1);
+  expect(fetcher.mock.calls.filter(([u, init]) => u === "/api/investigations" && init?.method === "POST")).toHaveLength(1);
 });
 
 it("shows the native original-operation fence without retrying or trusting a persisted local disposition", async () => {
@@ -105,7 +106,7 @@ it("shows the native original-operation fence without retrying or trusting a per
   const conservative = JSON.parse(sessionStorage.getItem(key)!);
   expect(conservative.command).toEqual(pending.command);
   expect(conservative.capture_outcome).toBe("unknown_after_canonical_not_applied");
-  expect(fetcher.mock.calls.filter(([, init]) => init?.method === "POST")).toHaveLength(1);
+  expect(fetcher.mock.calls.filter(([u, init]) => u === "/api/investigations" && init?.method === "POST")).toHaveLength(1);
 });
 
 it.each(["version_conflict","idempotency_conflict","limit_reached"])("retains external capture UNKNOWN after a direct canonical %s with NO outcome GET",async status=>{
@@ -121,14 +122,14 @@ it.each(["version_conflict","idempotency_conflict","limit_reached"])("retains ex
  expect(retained.capture_outcome).toBe("unknown_after_canonical_refusal");
  expect(retained.command.operation_id).toBe(JSON.parse(fetcher.mock.calls[0][1].body).operation_id);
  await mount(<InvestigationWorkspace ownerKey={`account:${user}`}/>);
- expect(fetcher.mock.calls.filter(([,init])=>init?.method==="POST")).toHaveLength(1);
+ expect(fetcher.mock.calls.filter(([u,init])=>u==="/api/investigations"&&init?.method==="POST")).toHaveLength(1);
  const start=[...el.querySelectorAll<HTMLButtonElement>("button")].find(b=>b.textContent==="Start new research");
  expect(start?.disabled).toBe(true);
 });
 it("clears private legacy content on account change and never sends a legacy full-value journal", async () => {
   sessionStorage.setItem(key, JSON.stringify({ owner: `account:${user}`, command: { manifest: { scenario_capture: { basis: { gexMn: 55 }, result: { totalMn: 4 } } } } }));
   await mount(<SavedScenarioCapture {...sourceProps} />);
-  await click(el.querySelector('[data-testid="scenario-save"]') as HTMLElement);
+  expect(el.querySelector('[data-testid="scenario-save"]')).toBeNull();
   expect(fetcher).not.toHaveBeenCalled(); expect(el.textContent).toContain("no longer accepts");
   shell.identity = { kind: "account", userId: recipient, email: "recipient@test" };
   await mount(<SavedScenarioCapture {...sourceProps} />);
@@ -185,19 +186,20 @@ it("capture UNKNOWN navigates/reloads through actual raw claims.sub Workspace pr
  fetcher.mockRejectedValue(new Error("possible retention/commit response lost"));await startSave();
  const journal=sessionStorage.getItem(key)!,pending=JSON.parse(journal);fetcher.mockReset().mockImplementation(async(url)=>workspaceRead(url));
  await mount(<InvestigationWorkspace ownerKey={user}/>);
- expect(fetcher.mock.calls.some(([url])=>String(url).includes(`operation_id=${pending.command.operation_id}`))).toBe(true);
- expect(fetcher.mock.calls.filter(([,init])=>init?.method==="POST")).toHaveLength(0);
+ expect(fetcher.mock.calls.some(([url,init])=>url==="/api/investigations/operation-read"&&JSON.parse(init.body).operation_id===pending.command.operation_id)).toBe(true);
+ expect(fetcher.mock.calls.filter(([u,init])=>u==="/api/investigations"&&init?.method==="POST")).toHaveLength(0);
  expect(sessionStorage.getItem(key)).toBe(journal);expect(button("Start new research").disabled).toBe(true);
  await mount(<span/>);await mount(<InvestigationWorkspace ownerKey={user}/>);
  expect(sessionStorage.getItem(key)).toBe(journal);await click(button("Retry original save"));
- const posts=fetcher.mock.calls.filter(([,init])=>init?.method==="POST");expect(posts).toHaveLength(1);
+ const posts=fetcher.mock.calls.filter(([u,init])=>u==="/api/investigations"&&init?.method==="POST");expect(posts).toHaveLength(1);
  expect(JSON.parse(posts[0][1].body)).toEqual(pending.command);expect(posts[0][1].headers["x-mm-scenario-capture"]).toBe("recover");
 });
 it("capture respects existing raw-UUID UNKNOWN journal instead of admitting a fresh operation",async()=>{
  fetcher.mockRejectedValue(new Error("unknown"));await startSave();const original=JSON.parse(sessionStorage.getItem(key)!);
  sessionStorage.removeItem(key);sessionStorage.setItem(rawKey,JSON.stringify({...original,owner:user}));const retained=sessionStorage.getItem(rawKey);
  await mount(<span/>);fetcher.mockReset();await startSave();expect(fetcher).not.toHaveBeenCalled();
- expect(sessionStorage.getItem(rawKey)).toBe(retained);expect(sessionStorage.getItem(key)).toBeNull();expect(el.textContent).toContain("previous save");
+ expect(sessionStorage.getItem(rawKey)).toBe(retained);expect(sessionStorage.getItem(key)).toBeNull();expect(el.textContent).toContain("not confirmed");
+ expect(button("Check original outcome")).toBeDefined();
 });
 it("different UNKNOWN operations in both namespaces block recovery/retry/new drafts and preserve both byte-for-byte",async()=>{
  fetcher.mockRejectedValue(new Error("unknown"));await startSave();const original=sessionStorage.getItem(key)!,parsed=JSON.parse(original);
@@ -205,6 +207,6 @@ it("different UNKNOWN operations in both namespaces block recovery/retry/new dra
  fetcher.mockReset().mockImplementation(async(url)=>workspaceRead(url));await mount(<InvestigationWorkspace ownerKey={user}/>);
  expect(button("Start new research").disabled).toBe(true);expect(el.textContent).toContain("retained saves");
  expect(fetcher.mock.calls.some(([url])=>String(url).includes("operation_id="))).toBe(false);
- expect(fetcher.mock.calls.filter(([,init])=>init?.method==="POST")).toHaveLength(0);
+ expect(fetcher.mock.calls.filter(([u,init])=>u==="/api/investigations"&&init?.method==="POST")).toHaveLength(0);
  expect(sessionStorage.getItem(key)).toBe(original);expect(sessionStorage.getItem(rawKey)).toBe(other);
 });

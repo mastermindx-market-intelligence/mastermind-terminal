@@ -6,7 +6,7 @@
 import { ownerKeyFor, ownerUserId } from "./accountIdentity";
 import { isInvestigationId, type InvestigationCommand } from "./investigations";
 import { parseScenarioCapture } from "./investigationScenario";
-import { recoverInvestigationSave, type CaptureOutcome, type InvestigationSaveState } from "./investigationSave";
+import { recoverInvestigationSave, hasBoundNativeTerminal, type CaptureOutcome, type InvestigationSaveState } from "./investigationSave";
 type Store = Pick<Storage,"getItem"|"setItem"|"removeItem">;
 type Entry = { key:string; owner:string; text:string };
 type Retained = {phase:"uncertain";principal:string;command:InvestigationCommand;captureOutcome?:CaptureOutcome} | Extract<InvestigationSaveState,{phase:"rejected"}>;
@@ -24,7 +24,8 @@ const same=(a:InvestigationCommand,b:InvestigationCommand)=>stable(a)===stable(b
 // This is current state-machine output, never a persisted local attestation.
 const confirmedNoEffect=(state:InvestigationSaveState|undefined,principal:string,command:InvestigationCommand)=>
  state?.phase==="rejected"&&state.principal===principal&&state.reason==="not_applied"&&same(state.command,command)
- &&!((command.action==="create"||command.action==="revise")&&command.manifest.scenario_capture!==undefined);
+ &&(!((command.action==="create"||command.action==="revise")&&command.manifest.scenario_capture!==undefined)
+   ||hasBoundNativeTerminal(state,principal,command));
 export function readInvestigationJournal(store:Store,principal:string):JournalRead {
  const entries=owners(principal).map(owner=>({owner,key:key(owner),text:store.getItem(key(owner))})).filter((v):v is Entry=>v.text!==null);
  if(!entries.length)return {status:"empty",entries};

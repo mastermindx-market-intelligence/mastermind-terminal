@@ -1,13 +1,13 @@
 /** Client recovery state only. The database operation receipt remains the sole retry authority. */
-import { isInvestigationId, isInvestigationCommitted, isLegacyInvestigationCommitted, parseInvestigationCommand, type InvestigationCommand, type InvestigationCommitted } from "./investigations";
+import { isInvestigationId, isInvestigationCommitted, isLegacyInvestigationCommitted, parseInvestigationCommand, parseInvestigationNativeReceipt, type InvestigationNativeReceipt, type InvestigationCommand, type InvestigationCommitted } from "./investigations";
 import { classifyInvestigationOperationReceipt } from "./investigationOperationReceipt";
 import { ownerUserId } from "./accountIdentity";
-export type CaptureOutcome = "unknown_after_canonical_not_applied" | "unknown_after_canonical_refusal";
+export type CaptureOutcome = "unknown_after_canonical_not_applied" | "unknown_after_canonical_refusal" | "native_participant_unresolved";
 export type InvestigationSaveState =
   | { phase: "idle" }
-  | { phase: "pending" | "uncertain"; principal: string; command: InvestigationCommand; captureOutcome?: CaptureOutcome; canonicalResult?: InvestigationCommitted; canonicalRefusal?: string }
-  | { phase: "committed"; principal: string; result: InvestigationCommitted; receiptBinding?: "native_lineage" | "legacy_recorded_completion" }
-  | { phase: "rejected"; principal: string; command: InvestigationCommand; reason: string };
+  | { phase: "pending" | "uncertain"; principal: string; command: InvestigationCommand; captureOutcome?: CaptureOutcome; canonicalResult?: InvestigationCommitted; canonicalRefusal?: string; nativeObservation?: InvestigationNativeReceipt }
+  | { phase: "committed"; principal: string; result: InvestigationCommitted; receiptBinding?: "native_lineage" | "legacy_recorded_completion"; nativeObservation?: InvestigationNativeReceipt }
+  | { phase: "rejected"; principal: string; command: InvestigationCommand; reason: string; nativeObservation?: InvestigationNativeReceipt };
 function sameJson(a: unknown, b: unknown): boolean {
   if (a === b) return true;
   if (Array.isArray(a) || Array.isArray(b)) return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((v,i) => sameJson(v,b[i]));
@@ -35,7 +35,7 @@ export function recoverInvestigationSave(principal: string, raw: unknown): Inves
     return { phase: "rejected", principal, command, reason: saved.reason };
   }
   return { phase: "uncertain", principal, command,
-    ...((saved.capture_outcome === "unknown_after_canonical_not_applied" || saved.capture_outcome === "unknown_after_canonical_refusal") && mayHaveNativeCapture(command)
+    ...((saved.capture_outcome === "unknown_after_canonical_not_applied" || saved.capture_outcome === "unknown_after_canonical_refusal" || saved.capture_outcome === "native_participant_unresolved") && mayHaveNativeCapture(command)
       ? { captureOutcome: saved.capture_outcome } : {}) };
 }
 export function beginInvestigationSave(principal: string, raw: unknown, previous: InvestigationSaveState): InvestigationSaveState {
@@ -54,13 +54,13 @@ export function settleInvestigationSave(state: InvestigationSaveState, principal
     && matchesCommand(response,state.command)) {
     // Canonical commit is real recorded information, but does not settle an
     // independent producer phase already known to remain UNKNOWN.
-    if (state.captureOutcome) return { phase: "uncertain", principal, command: state.command, captureOutcome: state.captureOutcome, canonicalResult: response };
+    if (state.captureOutcome) return { ...state, phase: "uncertain", canonicalResult: response };
     return { phase: "committed", principal, result: response };
   }
   const status = response !== null && typeof response === "object" ? (response as { status?: unknown }).status : null;
   // A late canonical refusal cannot settle the already-observed independent
   // native capture. Keep the original command and conservative retry fence.
-  if (state.captureOutcome) return { phase: "uncertain", principal, command: state.command, captureOutcome: state.captureOutcome,
+  if (state.captureOutcome) return { ...state, phase: "uncertain",
     ...(state.canonicalResult ? { canonicalResult: state.canonicalResult } : {}),
     ...(state.canonicalRefusal ? { canonicalRefusal: state.canonicalRefusal } : {}) };
   if (typeof status === "string" && definitive.has(status)) {
@@ -79,8 +79,33 @@ export function settleInvestigationSave(state: InvestigationSaveState, principal
 export function settleInvestigationOperationRead(state: InvestigationSaveState, principal: string, response: unknown): InvestigationSaveState {
   if (state.phase !== "pending" && state.phase !== "uncertain") return state;
   if (state.principal !== principal) return { phase: "idle" };
-  const unresolved = () => settleInvestigationSave(state, principal, null);
+  const unresolved = (): InvestigationSaveState => ({...state, phase:"uncertain"});
   if (!response || typeof response !== "object" || Array.isArray(response)) return unresolved();
+  if ((response as {read_binding?:unknown}).read_binding === "native_participant") {
+    const {read_principal,read_operation_id,read_binding,canonical,...raw} = response as Record<string,unknown>;
+    const subject = ownerUserId(principal) || principal;
+    const native = parseInvestigationNativeReceipt(raw,state.command,subject);
+    if (read_binding !== "native_participant" || read_principal !== subject || read_operation_id !== state.command.operation_id || !native
+        || (state.nativeObservation && (!sameJson(state.nativeObservation.binding,native.binding)
+          || state.nativeObservation.generation !== native.generation
+          || (state.nativeObservation.native_phase === "retained" && native.native_phase !== "retained")
+          || (state.nativeObservation.canonical_status !== "pending" && native.canonical_status !== state.nativeObservation.canonical_status)))) return unresolved();
+    const waiting: InvestigationSaveState = {...state,phase:"uncertain",captureOutcome:"native_participant_unresolved",nativeObservation:native};
+    if (native.native_phase !== "retained" || native.canonical_status === "pending"
+        || !canonical || typeof canonical !== "object" || Array.isArray(canonical)) return waiting;
+    const {read_principal: cp,read_operation_id: co,read_binding: cb,...result} = canonical as Record<string,unknown>;
+    if (cp !== subject || co !== state.command.operation_id || result.id !== state.command.id) return waiting;
+    if (native.canonical_status === "not_applied" && cb === "stored_no_effect"
+        && classifyInvestigationOperationReceipt(result,state.command.operation_id,subject) === "not_applied") {
+      return {phase:"rejected",principal,command:state.command,reason:"not_applied",nativeObservation:native};
+    }
+    if (native.canonical_status === "committed" && cb === "native_lineage"
+        && classifyInvestigationOperationReceipt(result,state.command.operation_id,subject) === "committed") {
+      const committed = settleInvestigationSave({phase:"pending",principal,command:state.command},principal,result);
+      if (committed.phase === "committed") return {...committed,receiptBinding:"native_lineage",nativeObservation:native};
+    }
+    return waiting;
+  }
   const { read_principal, read_operation_id, read_binding, ...native } = response as Record<string, unknown>;
   const subject = ownerUserId(principal) || principal;
   if (!isInvestigationId(subject) || read_principal !== subject || read_operation_id !== state.command.operation_id || native.id !== state.command.id) return unresolved();
@@ -99,11 +124,32 @@ export function settleInvestigationOperationRead(state: InvestigationSaveState, 
   }
   return unresolved();
 }
+/** Current read observation only; never persisted as a clearance or source-access grant. */
+export function hasBoundNativeTerminal(state: InvestigationSaveState, principal: string, command: InvestigationCommand): boolean {
+  if (state.phase !== "rejected" || state.principal !== principal || state.reason !== "not_applied"
+      || !sameJson(state.command,command) || !state.nativeObservation) return false;
+  const native = parseInvestigationNativeReceipt(state.nativeObservation,command,ownerUserId(principal)||principal);
+  return native?.native_phase === "retained" && native.canonical_status === "not_applied";
+}
+export function investigationNativeObservationLabel(state: InvestigationSaveState, lang: "en"|"zh"): string | null {
+  if (state.phase === "idle" || !state.nativeObservation) return null;
+  const native = state.nativeObservation;
+  const phase = native.native_phase === "retained" ? (lang === "zh" ? "原来源保留写入已结束" : "Original source retention writes finished")
+    : (lang === "zh" ? "原来源保留写入尚未确认结束" : "Original source retention writes are not confirmed finished");
+  const canonical = {pending:lang === "zh"?"保存待确认":"save pending",committed:lang === "zh"?"保存已提交":"save committed",not_applied:lang === "zh"?"保存未执行":"save not applied"}[native.canonical_status];
+  return `${phase} · ${canonical}. ${lang === "zh" ? "这不是当前私有来源访问权限。" : "This does not grant current private-source access."}`;
+}
 export function retryInvestigationSave(state: InvestigationSaveState, principal: string): InvestigationCommand | null {
   return (state.phase === "pending" || state.phase === "uncertain") && state.principal === principal && !state.captureOutcome ? JSON.parse(JSON.stringify(state.command)) : null;
 }
 export function originalInvestigationOperationToRead(state: InvestigationSaveState, principal: string): InvestigationCommand | null {
   return (state.phase === "pending" || state.phase === "uncertain") && state.principal === principal ? JSON.parse(JSON.stringify(state.command)) : null;
+}
+/** Body transport for instrumented native reads; legacy research GET stays scoped. */
+export function investigationOperationReadRequest(command: InvestigationCommand, principal: string): {url:string;init?:RequestInit} {
+  return mayHaveNativeCapture(command) ? {url:"/api/investigations/operation-read",init:{
+    method:"POST",headers:{"Content-Type":"application/json","x-mm-scenario-owner":ownerUserId(principal)||principal},body:JSON.stringify(command),
+  }} : {url:`/api/investigations?operation_id=${encodeURIComponent(command.operation_id)}`};
 }
 const mayHaveNativeCapture = (command: InvestigationCommand) =>
   (command.action === "create" || command.action === "revise") && command.manifest.scenario_capture !== undefined;

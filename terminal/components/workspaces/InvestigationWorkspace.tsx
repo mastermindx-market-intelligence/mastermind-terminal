@@ -10,7 +10,7 @@ import { investigationSubject, readInvestigationJournal, retainInvestigationJour
 import SavedScenarioRead from "@/components/research/SavedScenarioRead";
 import { validateInvestigationManifest, type InvestigationManifest, type InvestigationEvidenceRef } from "@/lib/investigationContracts";
 import { INVESTIGATION_ADMISSION, type InvestigationCommand, type InvestigationSummary } from "@/lib/investigations";
-import { beginInvestigationSave, settleInvestigationSave, settleInvestigationOperationRead, originalInvestigationOperationToRead, retryInvestigationSave, type InvestigationSaveState } from "@/lib/investigationSave";
+import { beginInvestigationSave, settleInvestigationSave, settleInvestigationOperationRead, originalInvestigationOperationToRead, investigationOperationReadRequest, investigationNativeObservationLabel, retryInvestigationSave, type InvestigationSaveState } from "@/lib/investigationSave";
 import type { EventWorkspace, RetainedEventWorkspaceReceipt } from "@/lib/eventWorkspace";
 import { exposureChartHref, parseExposureChartRequest } from "@/lib/exposureChartLink";
 import { parseExposureOrigin } from "@/lib/exposureOrigin";
@@ -72,7 +72,7 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
  // A recovered journal whose scenario_capture is not a valid reference-only capture: refused
  // as-is — never sent, never checked, never downgraded by dropping fields.
  const [legacyScenario,setLegacyScenario]=useState(false);
- const scope=useRef<AbortController|null>(null),detailSeq=useRef(0),baselineSeq=useRef(0),optionsSeq=useRef(0),alertsSeq=useRef(0),stateRef=useRef<InvestigationSaveState>({phase:"idle"});
+ const scope=useRef<AbortController|null>(null),detailSeq=useRef(0),baselineSeq=useRef(0),optionsSeq=useRef(0),alertsSeq=useRef(0),operationReadSeq=useRef(0),stateRef=useRef<InvestigationSaveState>({phase:"idle"});
  const detailTitle=useRef<HTMLHeadingElement>(null),draftTitle=useRef<HTMLInputElement>(null);
  useEffect(()=>{if(editing)draftTitle.current?.focus();else if(detail)detailTitle.current?.focus();},[editing,detail?.id,detail?.revision]);
  const locked=saveState.phase==="pending"||saveState.phase==="uncertain";
@@ -172,7 +172,7 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
   if(next.phase==="committed") {window.history.replaceState({},"",`/analysis?view=investigations&investigation=${next.result.id}&revision=${next.result.revision}`);setMessage(c.readback);await Promise.all([openRecord(next.result.id,next.result.revision,true),inventory()]);}
   else if(next.phase==="uncertain"&&next.captureOutcome) {
    try{retainInvestigationCaptureUnknown(sessionStorage,ownerKey,next);}catch{setStorageBlocked(true);}
-   setMessage(next.canonicalResult?`${c.captureCommitted} · ${c.revision} ${next.canonicalResult.revision}. ${c.captureUnknownAfterCommit}`:next.canonicalRefusal?c.captureRejected:next.captureOutcome==="unknown_after_canonical_refusal"?c.captureUnknownAfterCommit:c.captureUnknown);
+   setMessage(next.captureOutcome==="native_participant_unresolved"?c.uncertain:next.canonicalResult?`${c.captureCommitted} · ${c.revision} ${next.canonicalResult.revision}. ${c.captureUnknownAfterCommit}`:next.canonicalRefusal?c.captureRejected:next.captureOutcome==="unknown_after_canonical_refusal"?c.captureUnknownAfterCommit:c.captureUnknown);
   }
   else if(next.phase==="rejected") {
    // A stored fence is observed live, never persisted as local authority. The
@@ -190,13 +190,18 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
  }
  async function checkOutcome() {
   const command=originalInvestigationOperationToRead(stateRef.current,ownerKey);if(!command)return;
+  const controller=scope.current, original=stateRef.current, ticket=++operationReadSeq.current;
   setMessage(c.checking);
-  try {await settle(await json(`/api/investigations?operation_id=${command.operation_id}`),true);}catch{if(!scope.current?.signal.aborted)await settle(null,true);}
+  const request=investigationOperationReadRequest(command,ownerKey);
+  const current=()=>ticket===operationReadSeq.current&&controller===scope.current&&!controller?.signal.aborted&&stateRef.current===original;
+  try {const value=await json(request.url,request.init);if(current())await settle(value,true);}
+  catch{if(current())await settle(null,true);}
   if(stateRef.current.phase==="uncertain")setMessage("");
  }
  useEffect(()=>{
   const controller=new AbortController();scope.current=controller;
   setAuthEnded(false);setItems(null);setDetail(null);setBaseline(null);setSave({phase:"idle"});setStorageBlocked(false);
+  setDraft(emptyDraft(initialSymbol));setEditing(false);setMessage("");setRetainedScenario(null);setLegacyScenario(false);setLayouts([]);setLayoutError(false);
   setAlertRows(null);setOutbox(null);setAlertLoad("loading");
   void inventory();
   void json("/api/layouts").then(value=>{
@@ -285,7 +290,8 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
   <Link className={styles.back} href={`/analysis${symbol?`?symbol=${encodeURIComponent(symbol)}`:""}`}>← {c.back}</Link>
   <header className={styles.heading}><div><h1>{c.title}</h1><p>{c.intro}</p></div><button disabled={frozen} onClick={()=>beginEdit(true)}>{c.start}</button></header>
   {storageBlocked&&<p className={styles.notice} role="alert">{c.storage}</p>}
-  {locked&&<section className={styles.notice} aria-label={c.operation}><p role="status">{saveState.phase==="uncertain"&&saveState.captureOutcome?(saveState.canonicalResult?`${c.captureCommitted} · ${c.revision} ${saveState.canonicalResult.revision}. ${c.captureUnknownAfterCommit}`:saveState.canonicalRefusal?c.captureRejected:saveState.captureOutcome==="unknown_after_canonical_refusal"?c.captureUnknownAfterCommit:c.captureUnknown):c.uncertain}</p><div className={styles.actions}><button onClick={()=>void checkOutcome()}>{c.check}</button>{!(saveState.phase==="uncertain"&&saveState.captureOutcome)&&<button disabled={saveState.phase==="pending"} onClick={()=>{const cmd=retryInvestigationSave(stateRef.current,ownerKey);if(cmd){setSave({phase:"pending",principal:ownerKey,command:cmd});void send(cmd);}}}>{c.retrySave}</button>}</div></section>}
+  {locked&&<section className={styles.notice} aria-label={c.operation}><p role="status">{saveState.phase==="uncertain"&&saveState.captureOutcome?(saveState.captureOutcome==="native_participant_unresolved"?c.uncertain:saveState.canonicalResult?`${c.captureCommitted} · ${c.revision} ${saveState.canonicalResult.revision}. ${c.captureUnknownAfterCommit}`:saveState.canonicalRefusal?c.captureRejected:saveState.captureOutcome==="unknown_after_canonical_refusal"?c.captureUnknownAfterCommit:c.captureUnknown):c.uncertain}</p><div className={styles.actions}><button onClick={()=>void checkOutcome()}>{c.check}</button>{!(saveState.phase==="uncertain"&&saveState.captureOutcome)&&<button disabled={saveState.phase==="pending"} onClick={()=>{const cmd=retryInvestigationSave(stateRef.current,ownerKey);if(cmd){setSave({phase:"pending",principal:ownerKey,command:cmd});void send(cmd);}}}>{c.retrySave}</button>}</div></section>}
+  {investigationNativeObservationLabel(saveState,lang)&&<p role="status" data-testid="native-operation-facts" className={styles.notice}>{investigationNativeObservationLabel(saveState,lang)}</p>}
   {message&&<p role="status" className={styles.notice}>{message}</p>}
   {saveState.phase==="rejected"&&<section className={styles.notice}>{saveState.command.expected_revision>0&&<button onClick={()=>void openRecord(saveState.command.id)}>{c.viewLatest}</button>}<details><summary>{c.retainedDraft}</summary><h3>{saveState.command.manifest.intent.title}</h3><p className={styles.question}>{saveState.command.manifest.intent.question}</p><p className={styles.question}>{saveState.command.manifest.continuation.next_question}</p></details></section>}
   <div className={styles.columns}>
